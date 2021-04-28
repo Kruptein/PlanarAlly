@@ -34,7 +34,7 @@ export class FowLayer extends Layer {
 
         this.ctx.fillStyle = "rgba(0, 0, 0, 1)";
 
-        const activeFloor = floorStore.currentFloor.value.id;
+        const activeFloor = floorStore.currentFloor.value!.id;
 
         if (this.floor === activeFloor && this.canvas.style.display === "none")
             this.canvas.style.removeProperty("display");

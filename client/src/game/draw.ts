@@ -20,7 +20,7 @@ export function drawLoop(): void {
     }
     // Then process the current floor
     if (floorStore.currentFloor !== undefined) {
-        drawFloor(floorStore.currentFloor.value);
+        drawFloor(floorStore.currentFloor.value!);
     }
     for (let i = state.floorIndex; i >= 0; i--) {
         const floor = state.floors[i];
@@ -114,7 +114,7 @@ export function drawAuras(shape: Shape, ctx: CanvasRenderingContext2D): void {
 }
 
 function drawPoint(point: number[], r: number, colour?: string): void {
-    const dl = floorStore.getLayer(floorStore.currentFloor.value, LayerName.Draw);
+    const dl = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
     const ctx = dl.ctx;
     ctx.lineJoin = "round";
@@ -128,7 +128,7 @@ function drawPoint(point: number[], r: number, colour?: string): void {
 }
 
 function drawPointL(point: number[], r: number, colour?: string): void {
-    const dl = floorStore.getLayer(floorStore.currentFloor.value, LayerName.Draw);
+    const dl = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
     const ctx = dl.ctx;
     ctx.lineJoin = "round";
@@ -142,7 +142,7 @@ function drawPointL(point: number[], r: number, colour?: string): void {
 }
 
 export function drawPolygon(polygon: number[][], colour?: string): void {
-    const dl = floorStore.getLayer(floorStore.currentFloor.value, LayerName.Draw);
+    const dl = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
     const ctx = dl.ctx;
     ctx.lineJoin = "round";
@@ -160,7 +160,7 @@ export function drawPolygon(polygon: number[][], colour?: string): void {
 }
 
 function drawPolygonL(polygon: number[][], colour?: string): void {
-    const dl = floorStore.getLayer(floorStore.currentFloor.value, LayerName.Draw);
+    const dl = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
     const ctx = dl.ctx;
     ctx.lineJoin = "round";
@@ -198,7 +198,7 @@ function drawLine(from: number[], to: number[], constrained: boolean, local: boo
     // } else {
     //     console.log(" ", from, to);
     // }
-    const dl = floorStore.getLayer(floorStore.currentFloor.value, LayerName.Draw);
+    const dl = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
     const ctx = dl.ctx;
     ctx.beginPath();
@@ -212,7 +212,7 @@ function drawLine(from: number[], to: number[], constrained: boolean, local: boo
 function drawEdge(edge: Edge, colour: string, local = false): void {
     const from = edge.first!.vertices[edge.second === 0 ? 1 : 0]!.point!;
     const to = edge.first!.vertices[edge.second === 2 ? 1 : 2]!.point!;
-    const dl = floorStore.getLayer(floorStore.currentFloor.value, LayerName.Draw);
+    const dl = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
     const ctx = dl.ctx;
     ctx.beginPath();
@@ -227,7 +227,7 @@ function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0)
     I = 0;
     J = 0;
     let T = 0;
-    const dl = floorStore.getLayer(floorStore.currentFloor.value, LayerName.Draw);
+    const dl = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
     const ctx = dl.ctx;
     if (clear) ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);

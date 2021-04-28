@@ -24,7 +24,7 @@ class SelectionState extends Store<State> {
 
     clear(invalidate: boolean): void {
         this._state.selection.clear();
-        if (invalidate) floorStore.currentLayer.value.invalidate(true);
+        if (invalidate) floorStore.currentLayer.value!.invalidate(true);
     }
 
     // UI helpers are objects that are created for UI reaons but that are not pertinent to the actual state

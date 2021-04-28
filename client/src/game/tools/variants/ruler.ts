@@ -53,7 +53,7 @@ class RulerTool extends Tool {
         });
         ruler.ignoreZoomSize = true;
 
-        const layer = floorStore.getLayer(floorStore.currentFloor.value, LayerName.Draw);
+        const layer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
         if (layer === undefined) {
             console.log("No draw layer!");
             return;
@@ -73,7 +73,7 @@ class RulerTool extends Tool {
 
         if (clientStore.useSnapping(event)) [this.startPoint] = snapToGridPoint(this.startPoint);
 
-        const layer = floorStore.getLayer(floorStore.currentFloor.value, LayerName.Draw);
+        const layer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
         if (layer === undefined) {
             console.log("No draw layer!");
             return;
@@ -94,7 +94,7 @@ class RulerTool extends Tool {
         if (!this.active || this.rulers.length === 0 || this.startPoint === undefined || this.text === undefined)
             return;
 
-        const layer = floorStore.getLayer(floorStore.currentFloor.value, LayerName.Draw);
+        const layer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
         if (layer === undefined) {
             console.log("No draw layer!");
             return;
@@ -140,7 +140,7 @@ class RulerTool extends Tool {
             this.createNewRuler(lastRuler.endPoint, lastRuler.endPoint);
             this.previousLength += this.currentLength;
 
-            const layer = floorStore.getLayer(floorStore.currentFloor.value, LayerName.Draw);
+            const layer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
             if (layer === undefined) {
                 console.log("No draw layer!");
                 return;
@@ -159,7 +159,7 @@ class RulerTool extends Tool {
         if (!this.active || this.rulers.length === 0 || this.startPoint === undefined || this.text === undefined)
             return;
 
-        const layer = floorStore.getLayer(floorStore.currentFloor.value, LayerName.Draw);
+        const layer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
         if (layer === undefined) {
             console.log("No active layer!");
             return;

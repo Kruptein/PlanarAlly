@@ -81,13 +81,13 @@ export default defineComponent({
         const layers = computed(() => {
             if (!gameStore.state.boardInitialized) return [];
             return floorStore
-                .getLayers(floorStore.currentFloor.value)
+                .getLayers(floorStore.currentFloor.value!)
                 .filter((l) => l.selectable && (isDm.value || l.playerEditable))
                 .map((l) => l.name);
         });
 
         const selectedLayer = computed(
-            () => floorStore.getLayers(floorStore.currentFloor.value)[floorState.layerIndex].name,
+            () => floorStore.getLayers(floorStore.currentFloor.value!)[floorState.layerIndex].name,
         );
 
         return {

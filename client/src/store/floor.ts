@@ -43,12 +43,19 @@ class FloorStore extends Store<FloorState> {
         };
     }
 
-    get currentFloor(): ComputedRef<Floor> {
-        return computed(() => this._state.floors[this._state.floorIndex]);
+    get currentFloor(): ComputedRef<Floor | undefined> {
+        return computed(() => {
+            if (this._state.floorIndex < 0) return undefined;
+            return this._state.floors[this._state.floorIndex];
+        });
     }
 
-    get currentLayer(): ComputedRef<Layer> {
-        return computed(() => this.getLayer(this.currentFloor.value)!);
+    get currentLayer(): ComputedRef<Layer | undefined> {
+        return computed(() => {
+            const floor = this.currentFloor.value;
+            if (floor === undefined) return undefined;
+            return this.getLayer(floor);
+        });
     }
 
     clear(): void {
@@ -126,7 +133,7 @@ class FloorStore extends Store<FloorState> {
                 else layer.canvas.style.removeProperty("display");
             }
         }
-        this.selectLayer(this.currentLayer.value.name, sync, false);
+        this.selectLayer(this.currentLayer.value!.name, sync, false);
         this.invalidateAllFloors();
     }
 
@@ -246,7 +253,7 @@ class FloorStore extends Store<FloorState> {
     selectLayer(name: string, sync = true, invalidate = true): void {
         let found = false;
         selectionState.clear(false);
-        for (const [index, layer] of this.getLayers(this.currentFloor.value).entries()) {
+        for (const [index, layer] of this.getLayers(this.currentFloor.value!).entries()) {
             if (!layer.selectable) continue;
             if (found && layer.name !== LayerName.Lighting) layer.ctx.globalAlpha = 0.3;
             else layer.ctx.globalAlpha = 1.0;

@@ -338,7 +338,7 @@ class SelectTool extends Tool implements ISelectTool {
                     ignorePoint = GlobalPoint.fromArray(this.originalResizePoints[this.resizePoint]);
                 let targetPoint = gp;
                 if (clientStore.useSnapping(event) && this.hasFeature(SelectFeatures.Snapping, features))
-                    [targetPoint, this.snappedToPoint] = snapToPoint(floorStore.currentLayer.value, gp, ignorePoint);
+                    [targetPoint, this.snappedToPoint] = snapToPoint(floorStore.currentLayer.value!, gp, ignorePoint);
                 else this.snappedToPoint = false;
 
                 this.resizePoint = resizeShape(shape, targetPoint, this.resizePoint, ctrlOrCmdPressed(event), true);
@@ -371,7 +371,7 @@ class SelectTool extends Tool implements ISelectTool {
             console.log("No active layer!");
             return;
         }
-        const layer = floorStore.currentLayer.value;
+        const layer = floorStore.currentLayer.value!;
 
         let layerSelection = selectionState.get({ includeComposites: false });
 
@@ -579,7 +579,7 @@ class SelectTool extends Tool implements ISelectTool {
             console.log("No active layer!");
             return;
         }
-        const layer = floorStore.currentLayer.value;
+        const layer = floorStore.currentLayer.value!;
         const layerSelection = selectionState.get({ includeComposites: false });
         const mouse = getLocalPointFromEvent(event);
         const globalMouse = l2g(mouse);
@@ -616,7 +616,7 @@ class SelectTool extends Tool implements ISelectTool {
     // ROTATION
 
     createRotationUi(features: ToolFeatures<SelectFeatures>): void {
-        const layer = floorStore.currentLayer.value;
+        const layer = floorStore.currentLayer.value!;
 
         const layerSelection = selectionState.get({ includeComposites: false });
 
@@ -683,7 +683,7 @@ class SelectTool extends Tool implements ISelectTool {
     }
 
     rotateSelection(newAngle: number, center: GlobalPoint, temporary: boolean): void {
-        const layer = floorStore.currentLayer.value;
+        const layer = floorStore.currentLayer.value!;
         const dA = newAngle - this.angle;
         this.angle = newAngle;
         const layerSelection = selectionState.get({ includeComposites: false });

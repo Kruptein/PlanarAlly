@@ -62,10 +62,10 @@ export function mouseMove(event: MouseEvent): void {
     // Annotation hover
     let found = false;
     for (const uuid of gameStore.state.annotations) {
-        if (UuidMap.has(uuid) && floorStore.hasLayer(floorStore.currentFloor.value, LayerName.Draw)) {
+        if (UuidMap.has(uuid) && floorStore.hasLayer(floorStore.currentFloor.value!, LayerName.Draw)) {
             const shape = UuidMap.get(uuid)!;
             if (
-                shape.floor.id === floorStore.currentFloor.value.id &&
+                shape.floor.id === floorStore.currentFloor.value!.id &&
                 shape.contains(l2g(getLocalPointFromEvent(event)))
             ) {
                 found = true;
@@ -214,10 +214,10 @@ export function touchMove(event: TouchEvent): void {
     // Annotation hover
     let found = false;
     for (const uuid of gameStore.state.annotations) {
-        if (UuidMap.has(uuid) && floorStore.hasLayer(floorStore.currentFloor.value, LayerName.Draw)) {
+        if (UuidMap.has(uuid) && floorStore.hasLayer(floorStore.currentFloor.value!, LayerName.Draw)) {
             const shape = UuidMap.get(uuid)!;
             if (
-                shape.floor.id === floorStore.currentFloor.value.id &&
+                shape.floor.id === floorStore.currentFloor.value!.id &&
                 shape.contains(l2g(getLocalPointFromEvent(event)))
             ) {
                 found = true;

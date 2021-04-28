@@ -38,7 +38,7 @@ export default defineComponent({
             if (!isDm.value) return;
 
             sendBringPlayers({
-                floor: floorStore.currentFloor.value.name,
+                floor: floorStore.currentFloor.value!.name,
                 x: l2gx(defaultContextLeft.value),
                 // eslint-disable-next-line no-undef
                 y: l2gy(defaultContextTop.value),
@@ -76,7 +76,7 @@ export default defineComponent({
             shape.src = src;
 
             floorStore
-                .getLayer(floorStore.currentFloor.value, LayerName.Dm)!
+                .getLayer(floorStore.currentFloor.value!, LayerName.Dm)!
                 .addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO, false);
             img.onload = () => (gameState.boardInitialized ? shape.layer.invalidate(true) : undefined);
 

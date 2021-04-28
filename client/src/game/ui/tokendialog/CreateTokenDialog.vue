@@ -40,7 +40,7 @@ export default defineComponent({
         }
 
         function submit(): void {
-            const layer = floorStore.currentLayer.value;
+            const layer = floorStore.currentLayer.value!;
 
             const token = new CircularToken(
                 l2g(new LocalPoint(tokenDialogLeft, tokenDialogTop)),

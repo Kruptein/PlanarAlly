@@ -40,7 +40,7 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
 
     // A fromJSON and toJSON on Shape would be cleaner but ts does not allow for static abstracts so yeah.
 
-    if (shape.group !== undefined) {
+    if (shape.group !== undefined && shape.group !== null) {
         const group = getGroup(shape.group);
         if (group === undefined) {
             console.log("Missing group info detected");
@@ -138,7 +138,7 @@ export function copyShapes(): void {
 }
 
 export function pasteShapes(targetLayer?: LayerName): readonly Shape[] {
-    const layer = floorStore.getLayer(floorStore.currentFloor.value, targetLayer);
+    const layer = floorStore.getLayer(floorStore.currentFloor.value!, targetLayer);
     if (!layer) return [];
     const gameState = gameStore.state;
     if (gameState.clipboard.length === 0) return [];

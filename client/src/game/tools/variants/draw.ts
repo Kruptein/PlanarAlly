@@ -71,8 +71,8 @@ class DrawTool extends Tool {
         watch(
             () => gameStore.state.boardInitialized,
             () => {
-                watch(floorStore.currentFloor, (_, oldFloor) => this.onFloorChange(oldFloor));
-                watch(floorStore.currentLayer, (_, oldLayer) => this.onLayerChange(oldLayer));
+                watch(floorStore.currentFloor, (_, oldFloor) => this.onFloorChange(oldFloor!));
+                watch(floorStore.currentLayer, (_, oldLayer) => this.onLayerChange(oldLayer!));
             },
         );
         watch(
@@ -108,11 +108,11 @@ class DrawTool extends Tool {
 
     private getLayer(data?: { floor?: Floor; layer?: LayerName }): Layer | undefined {
         if (this.state.selectedMode === DrawMode.Normal)
-            return floorStore.getLayer(data?.floor ?? floorStore.currentFloor.value, data?.layer);
+            return floorStore.getLayer(data?.floor ?? floorStore.currentFloor.value!, data?.layer);
         else if (this.state.selectedMode === DrawMode.Erase) {
-            return floorStore.getLayer(floorStore.currentFloor.value, LayerName.Map);
+            return floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Map);
         }
-        return floorStore.getLayer(floorStore.currentFloor.value, LayerName.Lighting);
+        return floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Lighting);
     }
 
     private finaliseShape(): void {
@@ -143,7 +143,7 @@ class DrawTool extends Tool {
         const layer = this.getLayer()!;
         await layer.waitValid();
         if (!this.isActiveTool.value) return;
-        const dL = floorStore.getLayer(floorStore.currentFloor.value, LayerName.Draw)!;
+        const dL = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw)!;
         for (const point of layer.points.keys()) {
             const parsedPoint = JSON.parse(point);
             dL.ctx.beginPath();
@@ -155,9 +155,9 @@ class DrawTool extends Tool {
     private onModeChange(newValue: string, oldValue: string): void {
         if (this.brushHelper === undefined) return;
 
-        const fowLayer = floorStore.getLayer(floorStore.currentFloor.value, LayerName.Lighting);
+        const fowLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Lighting);
         const normalLayer = floorStore.currentLayer.value;
-        const mapLayer = floorStore.getLayer(floorStore.currentFloor.value, LayerName.Map)!;
+        const mapLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Map)!;
         if (fowLayer === undefined || normalLayer === undefined) return;
 
         this.setupBrush();
@@ -237,7 +237,7 @@ class DrawTool extends Tool {
             layer.invalidate(false);
         }
         layer.canvas.parentElement!.style.removeProperty("cursor");
-        floorStore.getLayer(floorStore.currentFloor.value, LayerName.Draw)?.invalidate(true);
+        floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw)?.invalidate(true);
     }
 
     // MOUSE HANDLERS

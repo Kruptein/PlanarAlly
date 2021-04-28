@@ -598,14 +598,14 @@ export abstract class Shape {
         this.blocksMovement = blocksMovement;
         const movementBlockers = visionState.getBlockers(
             TriangulationTarget.MOVEMENT,
-            this._floor ?? floorStore.currentFloor.value.id,
+            this._floor ?? floorStore.currentFloor.value!.id,
         );
         const obstructionIndex = movementBlockers.indexOf(this.uuid);
         if (this.blocksMovement && obstructionIndex === -1) {
             visionState.addBlocker(
                 TriangulationTarget.MOVEMENT,
                 this.uuid,
-                this._floor ?? floorStore.currentFloor.value.id,
+                this._floor ?? floorStore.currentFloor.value!.id,
                 recalculate,
             );
             alteredMovement = true;
@@ -613,7 +613,7 @@ export abstract class Shape {
             visionState.sliceBlockers(
                 TriangulationTarget.MOVEMENT,
                 obstructionIndex,
-                this._floor ?? floorStore.currentFloor.value.id,
+                this._floor ?? floorStore.currentFloor.value!.id,
                 recalculate,
             );
             alteredMovement = true;
@@ -946,14 +946,14 @@ export abstract class Shape {
         let alteredVision = false;
         const visionBlockers = visionState.getBlockers(
             TriangulationTarget.VISION,
-            this._floor ?? floorStore.currentFloor.value.id,
+            this._floor ?? floorStore.currentFloor.value!.id,
         );
         const obstructionIndex = visionBlockers.indexOf(this.uuid);
         if (this.blocksVision && obstructionIndex === -1) {
             visionState.addBlocker(
                 TriangulationTarget.VISION,
                 this.uuid,
-                this._floor ?? floorStore.currentFloor.value.id,
+                this._floor ?? floorStore.currentFloor.value!.id,
                 recalculate,
             );
             alteredVision = true;
@@ -961,7 +961,7 @@ export abstract class Shape {
             visionState.sliceBlockers(
                 TriangulationTarget.VISION,
                 obstructionIndex,
-                this._floor ?? floorStore.currentFloor.value.id,
+                this._floor ?? floorStore.currentFloor.value!.id,
                 recalculate,
             );
             alteredVision = true;
@@ -969,7 +969,7 @@ export abstract class Shape {
 
         // Check if the visionsource auras are in the gameManager
         const visionSources: { shape: string; aura: string }[] = [
-            ...visionState.getVisionSources(this._floor ?? floorStore.currentFloor.value.id),
+            ...visionState.getVisionSources(this._floor ?? floorStore.currentFloor.value!.id),
         ];
         for (const au of this.getAuras(true)) {
             const i = visionSources.findIndex((o) => o.aura === au.uuid);
@@ -988,7 +988,7 @@ export abstract class Shape {
                     visionSources.splice(i, 1);
             }
         }
-        visionState.setVisionSources(visionSources, this._floor ?? floorStore.currentFloor.value.id);
+        visionState.setVisionSources(visionSources, this._floor ?? floorStore.currentFloor.value!.id);
         return alteredVision;
     }
 }

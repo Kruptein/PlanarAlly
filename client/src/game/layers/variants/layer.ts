@@ -55,6 +55,10 @@ export class Layer {
         }
     }
 
+    get isActiveLayer(): boolean {
+        return floorStore.currentLayer.value === this;
+    }
+
     get width(): number {
         return this.canvas.width;
     }
@@ -98,7 +102,11 @@ export class Layer {
             sendShapeAdd({ shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
         if (invalidate) this.invalidate(invalidate !== InvalidationMode.WITH_LIGHT);
 
-        if (activeShapeStore.state.uuid === undefined && activeShapeStore.state.lastUuid === shape.uuid) {
+        if (
+            this.isActiveLayer &&
+            activeShapeStore.state.uuid === undefined &&
+            activeShapeStore.state.lastUuid === shape.uuid
+        ) {
             selectionState.push(shape);
         }
 
@@ -129,7 +137,7 @@ export class Layer {
     }
 
     setServerShapes(shapes: ServerShape[]): void {
-        selectionState.clear(false); // TODO: Fix keeping selection on those items that are not moved.
+        if (this.isActiveLayer) selectionState.clear(false); // TODO: Fix keeping selection on those items that are not moved.
         // We need to ensure composites are added after all their variants have been added
         const composites = [];
         for (const serverShape of shapes) {
@@ -192,7 +200,7 @@ export class Layer {
             else val.delete(shape.uuid);
         }
 
-        selectionState.remove(shape.uuid);
+        if (this.isActiveLayer) selectionState.remove(shape.uuid);
 
         // EventBus.$emit("Initiative.Remove", shape.uuid);
         // EventBus.$emit("Initiative.ForceUpdate");
@@ -263,7 +271,7 @@ export class Layer {
                 shape.draw(ctx);
             }
 
-            if (selectionState.hasSelection) {
+            if (this.isActiveLayer && selectionState.hasSelection) {
                 ctx.fillStyle = this.selectionColor;
                 ctx.strokeStyle = this.selectionColor;
                 ctx.lineWidth = this.selectionWidth;

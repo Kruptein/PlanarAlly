@@ -117,7 +117,7 @@ export default defineComponent({
             const dW = realShape.w / (dDraftData.ddraft_resolution.map_size.x * size);
             const dH = realShape.h / (dDraftData.ddraft_resolution.map_size.y * size);
 
-            const fowLayer = floorStore.getLayer(floorStore.currentFloor.value, LayerName.Lighting)!;
+            const fowLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Lighting)!;
 
             for (const wall of dDraftData.ddraft_line_of_sight) {
                 const points = wall.map(

@@ -17,6 +17,7 @@ import { sendShapesMove } from "../../api/emits/shape/core";
 import { addGroupMembers, createNewGroupForShapes, getGroupSize, removeGroup } from "../../groups";
 import { selectionState } from "../../layers/selection";
 import { compositeState } from "../../layers/state";
+import { Layer } from "../../layers/variants/layer";
 import { AssetOptions } from "../../models/asset";
 import { Floor, LayerName } from "../../models/floor";
 import { ServerAsset } from "../../models/shapes";
@@ -124,7 +125,7 @@ export default defineComponent({
 
         const layers = computed(() => {
             if (isDm.value && !selectionIncludesSpawnToken.value) {
-                return floorStore.getLayers(floorStore.currentFloor.value).filter((l) => l.selectable);
+                return floorStore.getLayers(floorStore.currentFloor.value!).filter((l) => l.selectable);
             }
             return [];
         });
@@ -133,14 +134,14 @@ export default defineComponent({
             selectionState.clear(false);
             moveLayer(
                 [...selectionState.get({ includeComposites: true })],
-                floorStore.getLayer(floorStore.currentFloor.value, newLayer)!,
+                floorStore.getLayer(floorStore.currentFloor.value!, newLayer)!,
                 true,
             );
             close();
         }
 
         function moveToBack(): void {
-            const layer = floorStore.currentLayer.value;
+            const layer = floorStore.currentLayer.value!;
             for (const shape of selectionState.get({ includeComposites: false })) {
                 layer.moveShapeOrder(shape, 0, SyncMode.FULL_SYNC);
             }
@@ -148,7 +149,7 @@ export default defineComponent({
         }
 
         function moveToFront(): void {
-            const layer = floorStore.currentLayer.value;
+            const layer = floorStore.currentLayer.value!;
             for (const shape of selectionState.get({ includeComposites: false })) {
                 layer.moveShapeOrder(shape, layer.size({ includeComposites: true }) - 1, SyncMode.FULL_SYNC);
             }
@@ -339,7 +340,7 @@ export default defineComponent({
         }
 
         return {
-            activeLayer: floorStore.currentLayer,
+            activeLayer: floorStore.currentLayer as ComputedRef<Layer>,
             activeLocation: toRef(locationStore.state, "activeLocation"),
             addToInitiative,
             canBeSaved,

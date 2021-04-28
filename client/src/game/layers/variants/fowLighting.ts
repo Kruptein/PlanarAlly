@@ -39,13 +39,13 @@ export class FowLightingLayer extends FowLayer {
             // At all times provide a minimal vision range to prevent losing your tokens in fog.
             if (
                 settingsStore.fullFow.value &&
-                floorStore.hasLayer(floorStore.currentFloor.value, LayerName.Tokens) &&
-                floorStore.currentFloor.value.id === this.floor
+                floorStore.hasLayer(floorStore.currentFloor.value!, LayerName.Tokens) &&
+                floorStore.currentFloor.value!.id === this.floor
             ) {
                 for (const sh of gameStore.activeTokens.value) {
                     const shape = UuidMap.get(sh)!;
                     if ((shape.options.get("skipDraw") ?? false) === true) continue;
-                    if (shape.floor.id !== floorStore.currentFloor.value.id) continue;
+                    if (shape.floor.id !== floorStore.currentFloor.value!.id) continue;
                     const bb = shape.getBoundingBox();
                     const lcenter = g2l(shape.center());
                     const alm = 0.8 * g2lz(bb.w);
@@ -132,10 +132,10 @@ export class FowLightingLayer extends FowLayer {
                 this.ctx.drawImage(this.virtualCanvas, 0, 0);
             }
 
-            const activeFloor = floorStore.currentFloor.value.id;
+            const activeFloor = floorStore.currentFloor.value!.id;
             if (settingsStore.fowLos.value && this.floor === activeFloor) {
                 this.ctx.globalCompositeOperation = "source-in";
-                this.ctx.drawImage(floorStore.getLayer(floorStore.currentFloor.value, LayerName.Vision)!.canvas, 0, 0);
+                this.ctx.drawImage(floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Vision)!.canvas, 0, 0);
             }
 
             for (const preShape of this.preFogShapes) {

@@ -75,7 +75,7 @@ class SpellTool extends Tool {
     drawShape(syncChanged = false): void {
         if (!selectionState.hasSelection && this.state.selectedSpellShape === SpellShape.Cone) return;
 
-        const layer = floorStore.currentLayer.value;
+        const layer = floorStore.currentLayer.value!;
 
         const ogPoint = new GlobalPoint(0, 0);
         let startPosition = ogPoint;
@@ -126,7 +126,7 @@ class SpellTool extends Tool {
     }
 
     drawRangeShape(): void {
-        const layer = floorStore.currentLayer.value;
+        const layer = floorStore.currentLayer.value!;
 
         if (this.rangeShape !== undefined) {
             layer.removeShape(this.rangeShape, SyncMode.NO_SYNC, false);
@@ -150,7 +150,7 @@ class SpellTool extends Tool {
     }
 
     onDeselect(): void {
-        const layer = floorStore.currentLayer.value;
+        const layer = floorStore.currentLayer.value!;
 
         if (this.shape !== undefined) {
             layer.removeShape(this.shape, this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC, false);
@@ -165,7 +165,7 @@ class SpellTool extends Tool {
     // eslint-disable-next-line @typescript-eslint/require-await
     async onDown(): Promise<void> {
         if (this.shape === undefined) return;
-        const layer = floorStore.currentLayer.value;
+        const layer = floorStore.currentLayer.value!;
 
         layer.removeShape(this.shape, this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC, false);
         this.shape.isInvisible = !this.state.showPublic;
@@ -178,7 +178,7 @@ class SpellTool extends Tool {
         if (this.shape === undefined) return;
 
         const endPoint = l2g(lp);
-        const layer = floorStore.currentLayer.value;
+        const layer = floorStore.currentLayer.value!;
 
         if (selectionState.hasSelection && this.state.range === 0) {
             if (this.state.selectedSpellShape === SpellShape.Cone) {
@@ -196,7 +196,7 @@ class SpellTool extends Tool {
 
     onContextMenu(): void {
         if (this.shape !== undefined) {
-            const layer = floorStore.currentLayer.value;
+            const layer = floorStore.currentLayer.value!;
 
             layer.removeShape(this.shape, this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC, false);
             this.shape = undefined;

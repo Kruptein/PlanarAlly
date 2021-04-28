@@ -9,13 +9,13 @@ export class GridLayer extends Layer {
         this.valid = false;
     }
     show(): void {
-        if (settingsStore.useGrid.value && this.floor === floorStore.currentFloor.value.id)
+        if (settingsStore.useGrid.value && this.floor === floorStore.currentFloor.value!.id)
             this.canvas.style.removeProperty("display");
     }
     draw(_doClear?: boolean): void {
         if (!this.valid) {
             if (settingsStore.useGrid.value) {
-                const activeFowFloor = floorStore.currentFloor.value.id;
+                const activeFowFloor = floorStore.currentFloor.value!.id;
 
                 if (this.floor === activeFowFloor && this.canvas.style.display === "none")
                     this.canvas.style.removeProperty("display");

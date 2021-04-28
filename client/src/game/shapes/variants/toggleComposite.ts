@@ -123,11 +123,13 @@ export class ToggleComposite extends Shape {
             sendToggleCompositeActiveVariant({ shape: this.uuid, variant });
         }
 
-        const selection = [...selectionState.get({ includeComposites: false })];
-        const index = selection.findIndex((s) => s.uuid === oldVariant.uuid);
-        if (index >= 0) {
-            selection.splice(index, 1, newVariant);
-            selectionState.set(...selection);
+        if (this._layer !== undefined && this.layer.isActiveLayer) {
+            const selection = [...selectionState.get({ includeComposites: false })];
+            const index = selection.findIndex((s) => s.uuid === oldVariant.uuid);
+            if (index >= 0) {
+                selection.splice(index, 1, newVariant);
+                selectionState.set(...selection);
+            }
         }
 
         newVariant.invalidate(false);

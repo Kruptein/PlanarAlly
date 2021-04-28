@@ -77,7 +77,7 @@ class MapTool extends Tool {
             this.shape.invalidate(true);
         }
         if (this.rect !== undefined) {
-            const layer = floorStore.currentLayer.value;
+            const layer = floorStore.currentLayer.value!;
             layer.removeShape(this.rect, SyncMode.NO_SYNC, true);
             this.rect = undefined;
             this.state.hasRect = false;
@@ -97,7 +97,7 @@ class MapTool extends Tool {
         const startPoint = l2g(lp);
 
         this.startPoint = startPoint;
-        const layer = floorStore.currentLayer.value;
+        const layer = floorStore.currentLayer.value!;
 
         this.active = true;
 
@@ -113,7 +113,7 @@ class MapTool extends Tool {
 
         const endPoint = l2g(lp);
 
-        const layer = floorStore.currentLayer.value;
+        const layer = floorStore.currentLayer.value!;
 
         this.rect.w = Math.abs(endPoint.x - this.startPoint.x);
         this.rect.h = Math.abs(endPoint.y - this.startPoint.y);

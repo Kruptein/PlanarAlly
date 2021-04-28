@@ -43,7 +43,7 @@ class PingTool extends Tool {
     async onDown(lp: LocalPoint): Promise<void> {
         this.cleanup();
         this.startPoint = l2g(lp);
-        const layer = floorStore.getLayer(floorStore.currentFloor.value, LayerName.Draw);
+        const layer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
 
         if (layer === undefined) {
             console.log("No draw layer!");
@@ -70,7 +70,7 @@ class PingTool extends Tool {
 
         const gp = l2g(lp);
 
-        const layer = floorStore.getLayer(floorStore.currentFloor.value, LayerName.Draw);
+        const layer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
         if (layer === undefined) {
             console.log("No draw layer!");
             return;

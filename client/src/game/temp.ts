@@ -91,7 +91,7 @@ export async function dropAsset(
     data: { imageSource: string; assetId: number },
     position: { x: number; y: number },
 ): Promise<Asset | undefined> {
-    const layer = floorStore.currentLayer.value;
+    const layer = floorStore.currentLayer.value!;
 
     let options: BaseTemplate | undefined;
     if (data.assetId) {

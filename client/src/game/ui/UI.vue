@@ -1,11 +1,12 @@
 <script lang="ts">
-import { computed, defineComponent, reactive, ref, toRefs } from "vue";
+import { computed, defineComponent, onMounted, reactive, ref, toRefs } from "vue";
 import { useI18n } from "vue-i18n";
 import "vue-slider-component/theme/default.css";
 import vueSlider from "vue-slider-component";
 
 import MarkdownModal from "../../core/components/modals/MarkdownModal.vue";
 import { baseAdjust } from "../../core/utils";
+import { activeShapeStore } from "../../store/activeShape";
 import { clientStore } from "../../store/client";
 import { coreStore } from "../../store/core";
 import { gameStore } from "../../store/game";
@@ -13,8 +14,10 @@ import { gameStore } from "../../store/game";
 import Annotation from "./Annotation.vue";
 import DefaultContext from "./contextmenu/DefaultContext.vue";
 import ShapeContext from "./contextmenu/ShapeContext.vue";
+import { showDefaultContextMenu, showShapeContextMenu } from "./contextmenu/state";
 import Floors from "./Floors.vue";
 import Initiative from "./initiative/Initiative.vue";
+import { initiativeStore } from "./initiative/state";
 import LocationBar from "./menu/LocationBar.vue";
 import MenuBar from "./menu/MenuBar.vue";
 import SelectionInfo from "./SelectionInfo.vue";
@@ -23,6 +26,7 @@ import DmSettings from "./settings/dm/DmSettings.vue";
 import LocationSettings from "./settings/location/LocationSettings.vue";
 import ShapeSettings from "./settings/shape/ShapeSettings.vue";
 import CreateTokenDialog from "./tokendialog/CreateTokenDialog.vue";
+import { tokenDialogVisible } from "./tokendialog/state";
 import Tools from "./tools/Tools.vue";
 
 export default defineComponent({
@@ -73,6 +77,15 @@ export default defineComponent({
                 return true;
             }
             return false;
+        });
+
+        onMounted(() => {
+            // hide all UI elements that were previously open
+            activeShapeStore.setShowEditDialog(false);
+            initiativeStore.show(false);
+            showDefaultContextMenu.value = false;
+            showShapeContextMenu.value = false;
+            tokenDialogVisible.value = false;
         });
 
         function toggleLocations(): void {

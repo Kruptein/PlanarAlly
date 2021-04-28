@@ -50,6 +50,12 @@ class InitiativeStore extends Store<InitiativeState> {
         };
     }
 
+    clear(): void {
+        this._state.data = [];
+        this._state.newData = [];
+        this._state.currentActor = null;
+    }
+
     show(show: boolean): void {
         this._state.showInitiative = show;
     }

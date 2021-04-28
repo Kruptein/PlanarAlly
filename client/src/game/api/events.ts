@@ -27,6 +27,7 @@ import { Note, ServerFloor } from "../models/general";
 import { Location } from "../models/settings";
 import { setCenterPosition } from "../position";
 import { deleteShapes } from "../shapes/utils";
+import { initiativeStore } from "../ui/initiative/state";
 import { visionState } from "../vision/state";
 
 import { activeLayerToselect } from "./events/client";
@@ -70,7 +71,7 @@ socket.on("Board.Locations.Set", (locationInfo: Location[]) => {
     document.getElementById("layers")!.innerHTML = "";
     floorStore.clear();
     compositeState.clear();
-    // EventBus.$emit("Initiative.Clear");
+    initiativeStore.clear();
 });
 
 socket.on("Board.Floor.Set", (floor: ServerFloor) => {

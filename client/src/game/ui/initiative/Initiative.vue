@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, toRef, toRefs } from "vue";
+import { defineComponent, onMounted, toRef, toRefs } from "vue";
 import { useI18n } from "vue-i18n";
 import draggable from "vuedraggable";
 
@@ -20,6 +20,8 @@ export default defineComponent({
         const modals = useModal();
 
         const isDm = toRef(gameStore.state, "isDm");
+
+        onMounted(() => initiativeStore.show(false));
 
         function getName(actor: InitiativeData): string {
             const shape = UuidMap.get(actor.uuid);

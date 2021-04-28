@@ -118,6 +118,24 @@ class SettingsStore extends Store<SettingsState> {
                 options: { [toSnakeCase(key)]: null },
                 location: location,
             });
+
+            if (["fowLos", "spawnLocations", "unitSize", "visionMinRange", "visionMaxRange"].includes(key)) {
+                floorStore.invalidateAllFloors();
+            } else if (["fullFow", "fowOpacity"].includes(key)) {
+                floorStore.invalidateLightAllFloors();
+            } else if (key === "gridType") {
+                for (const floor of floorStore.state.floors) {
+                    const gridLayer = floorStore.getGridLayer(floor)!;
+                    gridLayer.invalidate();
+                }
+            } else if (key === "useGrid") {
+                for (const floor of floorStore.state.floors) {
+                    const gridLayer = floorStore.getGridLayer(floor)!;
+                    if (this.useGrid.value) gridLayer.canvas.style.display = "block";
+                    else gridLayer.canvas.style.display = "none";
+                    gridLayer.invalidate();
+                }
+            }
         }
     }
 
@@ -148,7 +166,7 @@ class SettingsStore extends Store<SettingsState> {
     }
 
     setGridType(gridType: string, location: number | undefined, sync: boolean): void {
-        if (!["SQUARE", "POINTY_HEX", "FLAT_HEX"].includes(gridType)) {
+        if (gridType !== null && !["SQUARE", "POINTY_HEX", "FLAT_HEX"].includes(gridType)) {
             throw new Error("Unknown grid type set");
         }
         if (this.mutate("gridType", gridType, location)) {

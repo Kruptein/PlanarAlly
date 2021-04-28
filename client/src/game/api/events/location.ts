@@ -14,7 +14,6 @@ socket.on("Location.Set", (data: ServerLocation) => {
     settingsStore.setActiveLocation(data.id);
     gameStore.updatePlayersLocation([clientStore.state.username], data.id, false);
     setLocationOptions(data.id, data.options);
-    // EventBus.$emit("Location.Options.Set");
 });
 
 socket.on("Locations.Settings.Set", (data: { [key: number]: Partial<ServerLocationOptions> }) => {

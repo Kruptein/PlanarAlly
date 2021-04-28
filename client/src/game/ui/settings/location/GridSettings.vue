@@ -63,7 +63,11 @@ export default defineComponent({
             settingsStore.reset(key, props.location);
         }
 
-        return { isGlobal, options, reset, t, useGrid, gridType, unitSize, unitSizeUnit };
+        function e(k: any): boolean {
+            return k !== undefined && k !== null;
+        }
+
+        return { e, isGlobal, options, reset, t, useGrid, gridType, unitSize, unitSizeUnit };
     },
 });
 </script>
@@ -82,13 +86,13 @@ export default defineComponent({
                 </i18n-t>
             </template>
         </div>
-        <div class="row" :class="{ overwritten: !isGlobal && options.useGrid !== undefined }">
+        <div class="row" :class="{ overwritten: !isGlobal && e(options.useGrid) }">
             <label :for="'useGridInput-' + location" v-t="'game.ui.settings.GridSettings.use_grid'"></label>
             <div>
                 <input :id="'useGridInput-' + location" type="checkbox" v-model="useGrid" />
             </div>
             <div
-                v-if="!isGlobal && options.useGrid !== undefined"
+                v-if="!isGlobal && e(options.useGrid)"
                 @click="reset('useGrid')"
                 :title="t('game.ui.settings.common.reset_default')"
             >
@@ -96,7 +100,7 @@ export default defineComponent({
             </div>
             <div v-else></div>
         </div>
-        <div class="row" :class="{ overwritten: !isGlobal && options.gridType !== undefined }">
+        <div class="row" :class="{ overwritten: !isGlobal && e(options.gridType) }">
             <label :for="'gridType-' + location" v-t="'game.ui.settings.GridSettings.grid_type'"></label>
             <div>
                 <select :id="'gridType-' + location" v-model="gridType">
@@ -106,7 +110,7 @@ export default defineComponent({
                 </select>
             </div>
             <div
-                v-if="!isGlobal && options.gridType !== undefined"
+                v-if="!isGlobal && e(options.gridType)"
                 @click="reset('gridType')"
                 :title="t('game.ui.settings.common.reset_default')"
             >
@@ -114,7 +118,7 @@ export default defineComponent({
             </div>
             <div v-else></div>
         </div>
-        <div class="row" :class="{ overwritten: !isGlobal && options.unitSizeUnit !== undefined }">
+        <div class="row" :class="{ overwritten: !isGlobal && e(options.unitSizeUnit) }">
             <div>
                 <label :for="'unitSizeUnit-' + location" v-t="'game.ui.settings.GridSettings.size_unit'"></label>
             </div>
@@ -122,7 +126,7 @@ export default defineComponent({
                 <input :id="'unitSizeUnit-' + location" type="text" v-model="unitSizeUnit" />
             </div>
             <div
-                v-if="!isGlobal && options.unitSizeUnit !== undefined"
+                v-if="!isGlobal && e(options.unitSizeUnit)"
                 @click="reset('unitSizeUnit')"
                 :title="t('game.ui.settings.common.reset_default')"
             >
@@ -130,7 +134,7 @@ export default defineComponent({
             </div>
             <div v-else></div>
         </div>
-        <div class="row" :class="{ overwritten: !isGlobal && options.unitSize !== undefined }">
+        <div class="row" :class="{ overwritten: !isGlobal && e(options.unitSize) }">
             <div>
                 <label :for="'unitSizeInput-' + location">
                     {{ t("game.ui.settings.GridSettings.unit_size_in_UNIT", { unit: unitSizeUnit }) }}
@@ -140,7 +144,7 @@ export default defineComponent({
                 <input :id="'unitSizeInput-' + location" type="number" step="any" v-model.number="unitSize" />
             </div>
             <div
-                v-if="!isGlobal && options.unitSize !== undefined"
+                v-if="!isGlobal && e(options.unitSize)"
                 @click="reset('unitSize')"
                 :title="t('game.ui.settings.common.reset_default')"
             >

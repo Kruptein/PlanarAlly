@@ -109,7 +109,7 @@ export default defineComponent({
                             @mouseleave="toggleHighlight(actor.uuid, false)"
                         >
                             <template v-if="actor.has_img">
-                                <img :src="actor.source" width="30px" height="30px" :title="getName(actor)" alt="" />
+                                <img :src="actor.source" :title="getName(actor)" alt="" />
                             </template>
                             <template v-else>
                                 <span style="width: auto">{{ getName(actor) }}</span>

@@ -5,7 +5,7 @@ import { clientStore } from "../../store/client";
 import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
 import { sendRemoveShapes } from "../api/emits/shape/core";
-import { addGroupMembers, createNewGroupForShapes, generateNewBadge, getGroup } from "../groups";
+import { addGroupMembers, createNewGroupForShapes, generateNewBadge, hasGroup } from "../groups";
 import { selectionState } from "../layers/selection";
 import { LayerName } from "../models/floor";
 import {
@@ -41,11 +41,11 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
     // A fromJSON and toJSON on Shape would be cleaner but ts does not allow for static abstracts so yeah.
 
     if (shape.group !== undefined && shape.group !== null) {
-        const group = getGroup(shape.group);
+        const group = hasGroup(shape.group);
         if (group === undefined) {
             console.log("Missing group info detected");
         } else {
-            addGroupMembers(group.uuid, [{ uuid: shape.uuid, badge: shape.badge }], false);
+            addGroupMembers(shape.group, [{ uuid: shape.uuid, badge: shape.badge }], false);
         }
     }
 

@@ -522,6 +522,14 @@ export abstract class Shape {
         return (..._: unknown[]) => {};
     }
 
+    // GROUP
+
+    setGroupId(groupId: string | undefined, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.UI) this._("setGroupId")(groupId, syncTo);
+
+        this.groupId = groupId;
+    }
+
     // PROPERTIES
 
     setName(name: string, syncTo: SyncTo): void {

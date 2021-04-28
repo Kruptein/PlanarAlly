@@ -180,6 +180,19 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         }
     }
 
+    // GROUP
+
+    setGroupId(groupId: string | undefined, syncTo: SyncTo): void {
+        if (this._state.uuid === undefined) return;
+
+        this._state.groupId = groupId;
+
+        if (syncTo !== SyncTo.UI) {
+            const shape = UuidMap.get(this._state.uuid)!;
+            shape.setGroupId(groupId, syncTo);
+        }
+    }
+
     // PROPERTIES
 
     setName(name: string, syncTo: SyncTo): void {

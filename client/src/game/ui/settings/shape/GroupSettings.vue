@@ -9,8 +9,8 @@ import {
     CHARACTER_SETS,
     createNewGroupForShapes,
     getBadgeCharacters,
-    getGroup,
-    getGroupMembers,
+    groupMap,
+    memberMap,
     removeGroup,
     removeGroupMember,
     setCharacterSet,
@@ -34,16 +34,18 @@ export default defineComponent({
         const group = computed(() => {
             const groupId = activeShapeStore.state.groupId;
             if (groupId !== undefined) {
-                return getGroup(groupId);
+                return groupMap.value.get(groupId);
+            } else {
+                return undefined;
             }
-            return undefined;
         });
 
         const groupMembers = computed(() => {
-            if (group.value === undefined) {
-                return [];
-            }
-            return getGroupMembers(group.value.uuid).sort((a, b) => a.badge - b.badge);
+            if (group.value === undefined) return [];
+
+            const members = memberMap.value.get(group.value.uuid);
+            if (members === undefined) return [];
+            return [...members].map((m) => UuidMap.get(m)!).sort((a, b) => a.badge - b.badge);
         });
 
         function invalidate(): void {

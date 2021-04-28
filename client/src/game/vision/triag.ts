@@ -481,8 +481,8 @@ export function collinear(p: Point, q: Point, r: Point): boolean {
     return surface > -0.0001 && surface < 0.0001;
 }
 
-export function rotateAroundOrigin(p: Point, angle: number): Point {
-    const s = Math.sin(angle);
-    const c = Math.cos(angle);
-    return [p[0] * c - p[1] * s, p[0] * s + p[1] * c];
-}
+// export function rotateAroundOrigin(p: Point, angle: number): Point {
+//     const s = Math.sin(angle);
+//     const c = Math.cos(angle);
+//     return [p[0] * c - p[1] * s, p[0] * s + p[1] * c];
+// }

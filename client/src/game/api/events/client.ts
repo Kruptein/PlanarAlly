@@ -2,6 +2,7 @@ import { clientStore } from "../../../store/client";
 import { ServerClient, userOptionsToClient } from "../../models/settings";
 import { socket } from "../socket";
 
+// eslint-disable-next-line import/no-unused-modules
 export let activeLayerToselect: string | undefined;
 
 socket.on("Client.Options.Set", (options: ServerClient) => {

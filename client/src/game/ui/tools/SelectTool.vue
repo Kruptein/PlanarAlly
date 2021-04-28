@@ -8,8 +8,8 @@ import { useToolPosition } from "./toolPosition";
 
 export default defineComponent({
     setup() {
-        let right = ref("0px");
-        let arrow = ref("0px");
+        const right = ref("0px");
+        const arrow = ref("0px");
 
         onMounted(() => {
             ({ right: right.value, arrow: arrow.value } = useToolPosition(selectTool.toolName));

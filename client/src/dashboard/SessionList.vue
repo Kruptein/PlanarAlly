@@ -38,7 +38,6 @@ export default defineComponent({
         }
 
         async function updateInfo(): Promise<void> {
-            console.log("Update info");
             const response = await baseAdjustedFetch(
                 `/api/rooms/${selected.value!.creator}/${selected.value!.name}/info`,
             );

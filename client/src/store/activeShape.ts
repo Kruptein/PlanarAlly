@@ -73,6 +73,14 @@ interface ActiveShapeState {
 }
 
 export class ActiveShapeStore extends Store<ActiveShapeState> {
+    floor: ComputedRef<number | undefined>;
+    isComposite: ComputedRef<boolean>;
+
+    hasEditAccess: ComputedRef<boolean>;
+    hasDefaultEditAccess: ComputedRef<boolean>;
+    hasDefaultMovementAccess: ComputedRef<boolean>;
+    hasDefaultVisionAccess: ComputedRef<boolean>;
+
     protected data(): ActiveShapeState {
         return {
             showEditDialog: false,
@@ -112,6 +120,26 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
     constructor() {
         super();
+        this.floor = computed(() =>
+            this._state.uuid !== undefined ? UuidMap.get(this._state.uuid)?.floor.id : undefined,
+        );
+        this.isComposite = computed(() => this._state.parentUuid !== undefined);
+
+        this.hasEditAccess = computed(() => {
+            if (this._state.uuid === undefined) return false;
+            const gameState = gameStore.state;
+            if (gameState.isDm) return true;
+            if (gameState.isFakePlayer && gameStore.activeTokens.value.has(this._state.uuid)) return true;
+            if (this._state.access?.edit === true) return true;
+            return this._state.owners.some((u) => u.user === clientStore.state.username && u.access.edit === true);
+        });
+
+        this.hasDefaultEditAccess = computed(() => this._state.access?.edit ?? false);
+
+        this.hasDefaultMovementAccess = computed(() => this._state.access?.movement ?? false);
+
+        this.hasDefaultVisionAccess = computed(() => this._state.access?.vision ?? false);
+
         watchEffect(() => {
             const selection = selectionState.state.selection;
             if (selection.size === 0) {
@@ -137,14 +165,6 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
     setShowEditDialog(visible: boolean): void {
         this._state.showEditDialog = visible;
-    }
-
-    get floor(): ComputedRef<number | undefined> {
-        return computed(() => (this._state.uuid !== undefined ? UuidMap.get(this._state.uuid)?.floor.id : undefined));
-    }
-
-    get isComposite(): ComputedRef<boolean> {
-        return computed(() => this._state.parentUuid !== undefined);
     }
 
     // OPTIONS
@@ -283,29 +303,6 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
     }
 
     // ACCESS
-
-    get hasEditAccess(): ComputedRef<boolean> {
-        return computed(() => {
-            if (this._state.uuid === undefined) return false;
-            const gameState = gameStore.state;
-            if (gameState.isDm) return true;
-            if (gameState.isFakePlayer && gameStore.activeTokens.value.has(this._state.uuid)) return true;
-            if (this._state.access?.edit === true) return true;
-            return this._state.owners.some((u) => u.user === clientStore.state.username && u.access.edit === true);
-        });
-    }
-
-    get hasDefaultEditAccess(): ComputedRef<boolean> {
-        return computed(() => this._state.access?.edit ?? false);
-    }
-
-    get hasDefaultMovementAccess(): ComputedRef<boolean> {
-        return computed(() => this._state.access?.movement ?? false);
-    }
-
-    get hasDefaultVisionAccess(): ComputedRef<boolean> {
-        return computed(() => this._state.access?.vision ?? false);
-    }
 
     setDefaultAccess(access: ShapeAccess, syncTo: SyncTo): void {
         if (this._state.uuid === undefined) return;

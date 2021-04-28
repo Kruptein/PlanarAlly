@@ -29,6 +29,19 @@ interface State {
 }
 
 class ClientStore extends Store<State> {
+    zoomFactor: ComputedRef<number>;
+
+    constructor() {
+        super();
+        this.zoomFactor = computed(() => {
+            const gf = this._state.gridSize / DEFAULT_GRID_SIZE;
+            // Powercurve 0.2/3/10
+            // Based on https://stackoverflow.com/a/17102320
+            const zoomValue = 1 / (-5 / 3 + (28 / 15) * Math.exp(1.83 * this._state.zoomDisplay));
+            return zoomValue * gf;
+        });
+    }
+
     protected data(): State {
         return {
             username: "",
@@ -94,16 +107,6 @@ class ClientStore extends Store<State> {
         if (zoom > 1) zoom = 1;
         this._state.zoomDisplay = zoom;
         floorStore.invalidateAllFloors();
-    }
-
-    get zoomFactor(): ComputedRef<number> {
-        return computed(() => {
-            const gf = this._state.gridSize / DEFAULT_GRID_SIZE;
-            // Powercurve 0.2/3/10
-            // Based on https://stackoverflow.com/a/17102320
-            const zoomValue = 1 / (-5 / 3 + (28 / 15) * Math.exp(1.83 * this._state.zoomDisplay));
-            return zoomValue * gf;
-        });
     }
 
     updateZoom(newZoomDisplay: number, zoomLocation: GlobalPoint): void {

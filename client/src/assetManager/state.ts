@@ -25,6 +25,34 @@ interface AssetState {
 }
 
 class AssetStore extends Store<AssetState> {
+    currentFolder: ComputedRef<number>;
+    parentFolder: ComputedRef<number>;
+    currentFilePath: ComputedRef<string>;
+
+    constructor() {
+        super();
+        this.currentFolder = computed(() => {
+            const path = this._state.folderPath;
+            if (path.length > 0) {
+                return path[path.length - 1];
+            }
+            return this._state.root;
+        });
+
+        this.parentFolder = computed(() => {
+            const path = this._state.folderPath;
+            if (path.length > 1) return path[path.length - 2];
+            return this._state.root;
+        });
+
+        this.currentFilePath = computed(() =>
+            this._state.folderPath.reduce(
+                (acc: string, val: number) => `${acc}/${this._state.idMap.get(val)?.name}`,
+                "",
+            ),
+        );
+    }
+
     protected data(): AssetState {
         return {
             modalActive: false,
@@ -41,33 +69,6 @@ class AssetStore extends Store<AssetState> {
             expectedUploads: 0,
             resolvedUploads: 0,
         };
-    }
-
-    get currentFolder(): ComputedRef<number> {
-        return computed(() => {
-            const path = this._state.folderPath;
-            if (path.length > 0) {
-                return path[path.length - 1];
-            }
-            return this._state.root;
-        });
-    }
-
-    get parentFolder(): ComputedRef<number> {
-        return computed(() => {
-            const path = this._state.folderPath;
-            if (path.length > 1) return path[path.length - 2];
-            return this._state.root;
-        });
-    }
-
-    get currentFilePath(): ComputedRef<string> {
-        return computed(() =>
-            this._state.folderPath.reduce(
-                (acc: string, val: number) => `${acc}/${this._state.idMap.get(val)?.name}`,
-                "",
-            ),
-        );
     }
 
     clear(): void {

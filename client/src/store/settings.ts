@@ -30,60 +30,43 @@ interface SettingsState {
 }
 
 class SettingsStore extends Store<SettingsState> {
+    currentLocationOptions: ComputedRef<Partial<LocationOptions>>;
+
+    fowLos: ComputedRef<boolean>;
+    fowOpacity: ComputedRef<number>;
+    fullFow: ComputedRef<boolean>;
+    gridType: ComputedRef<string>;
+    movePlayerOnTokenChange: ComputedRef<boolean>;
+    spawnLocations: ComputedRef<string[]>;
+    unitSize: ComputedRef<number>;
+    unitSizeUnit: ComputedRef<string>;
+    useGrid: ComputedRef<boolean>;
+    visionMaxRange: ComputedRef<number>;
+    visionMinRange: ComputedRef<number>;
+
+    constructor() {
+        super();
+        this.currentLocationOptions = computed(() => this._state.locationOptions.get(this._state.activeLocation)!);
+
+        this.fowLos = this._("fowLos");
+        this.fowOpacity = this._("fowOpacity");
+        this.fullFow = this._("fullFow");
+        this.gridType = this._("gridType");
+        this.movePlayerOnTokenChange = this._("movePlayerOnTokenChange");
+        this.spawnLocations = this._("spawnLocations");
+        this.unitSize = this._("unitSize");
+        this.unitSizeUnit = this._("unitSizeUnit");
+        this.useGrid = this._("useGrid");
+        this.visionMaxRange = this._("visionMaxRange");
+        this.visionMinRange = this._("visionMinRange");
+    }
+
     protected data(): SettingsState {
         return {
             activeLocation: 0,
             defaultLocationOptions,
             locationOptions: new Map(),
         };
-    }
-
-    get gridType(): ComputedRef<string> {
-        return this._("gridType");
-    }
-
-    get currentLocationOptions(): ComputedRef<Partial<LocationOptions>> {
-        return computed(() => this._state.locationOptions.get(this._state.activeLocation)!);
-    }
-
-    get fowLos(): ComputedRef<boolean> {
-        return this._("fowLos");
-    }
-
-    get fullFow(): ComputedRef<boolean> {
-        return this._("fullFow");
-    }
-
-    get unitSize(): ComputedRef<number> {
-        return this._("unitSize");
-    }
-
-    get unitSizeUnit(): ComputedRef<string> {
-        return this._("unitSizeUnit");
-    }
-
-    get fowOpacity(): ComputedRef<number> {
-        return this._("fowOpacity");
-    }
-
-    get useGrid(): ComputedRef<boolean> {
-        return this._("useGrid");
-    }
-
-    get spawnLocations(): ComputedRef<string[]> {
-        return this._("spawnLocations");
-    }
-
-    get movePlayerOnTokenChange(): ComputedRef<boolean> {
-        return this._("movePlayerOnTokenChange");
-    }
-
-    get visionMinRange(): ComputedRef<number> {
-        return this._("visionMinRange");
-    }
-
-    get visionMaxRange(): ComputedRef<number> {
-        return this._("visionMaxRange");
     }
 
     private _<K extends keyof LocationOptions>(key: K): ComputedRef<LocationOptions[K]> {

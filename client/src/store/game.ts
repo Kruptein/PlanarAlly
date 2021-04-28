@@ -57,6 +57,15 @@ interface GameState {
 }
 
 class GameStore extends Store<GameState> {
+    activeTokens: ComputedRef<Set<string>>;
+
+    constructor() {
+        super();
+        this.activeTokens = computed(() => {
+            if (this._state.activeTokenFilters !== undefined) return this._state.activeTokenFilters;
+            return this._state.ownedTokens;
+        });
+    }
     protected data(): GameState {
         return {
             isConnected: false,
@@ -188,13 +197,6 @@ class GameStore extends Store<GameState> {
     }
 
     // ACCESS
-
-    get activeTokens(): ComputedRef<Set<string>> {
-        return computed(() => {
-            if (this._state.activeTokenFilters !== undefined) return this._state.activeTokenFilters;
-            return this._state.ownedTokens;
-        });
-    }
 
     setActiveTokens(...tokens: string[]): void {
         this._state.activeTokenFilters = new Set(tokens);

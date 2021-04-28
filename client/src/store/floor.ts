@@ -34,6 +34,22 @@ class FloorStore extends Store<FloorState> {
     private lastFloorId = 0;
     private layerMap: Map<number, Layer[]> = new Map();
 
+    currentFloor: ComputedRef<Floor | undefined>;
+    currentLayer: ComputedRef<Layer | undefined>;
+
+    constructor() {
+        super();
+        this.currentFloor = computed(() => {
+            if (this._state.floorIndex < 0) return undefined;
+            return this._state.floors[this._state.floorIndex];
+        });
+        this.currentLayer = computed(() => {
+            const floor = this.currentFloor.value;
+            if (floor === undefined) return undefined;
+            return this.getLayer(floor);
+        });
+    }
+
     protected data(): FloorState {
         return {
             floors: [],
@@ -41,21 +57,6 @@ class FloorStore extends Store<FloorState> {
 
             layerIndex: -1,
         };
-    }
-
-    get currentFloor(): ComputedRef<Floor | undefined> {
-        return computed(() => {
-            if (this._state.floorIndex < 0) return undefined;
-            return this._state.floors[this._state.floorIndex];
-        });
-    }
-
-    get currentLayer(): ComputedRef<Layer | undefined> {
-        return computed(() => {
-            const floor = this.currentFloor.value;
-            if (floor === undefined) return undefined;
-            return this.getLayer(floor);
-        });
     }
 
     clear(): void {

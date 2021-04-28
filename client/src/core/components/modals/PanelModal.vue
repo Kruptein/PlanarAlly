@@ -100,7 +100,7 @@ export default defineComponent({
     padding-right: 5px;
 }
 
-::v-deep {
+:deep() {
     .panel {
         background-color: white;
         padding: 1em;

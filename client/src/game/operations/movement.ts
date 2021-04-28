@@ -1,4 +1,4 @@
-import { Vector } from "../../core/geometry";
+import { addP, toArrayP, Vector } from "../../core/geometry";
 import { sendShapePositionUpdate } from "../api/emits/shape/core";
 import { Shape } from "../shapes/shape";
 import { TriangulationTarget, visionState } from "../vision/state";
@@ -31,11 +31,15 @@ export function moveShapes(shapes: readonly Shape[], delta: Vector, temporary: b
             });
         }
 
-        const operation: ShapeMovementOperation = { uuid: shape.uuid, from: shape.refPoint.asArray(), to: [] };
+        const operation: ShapeMovementOperation = {
+            uuid: shape.uuid,
+            from: toArrayP(shape.refPoint),
+            to: toArrayP(shape.refPoint),
+        };
 
-        shape.refPoint = shape.refPoint.add(delta);
+        shape.refPoint = addP(shape.refPoint, delta);
 
-        operation.to = shape.refPoint.asArray();
+        operation.to = toArrayP(shape.refPoint);
         operationList.shapes.push(operation);
 
         if (shape.blocksMovement && !temporary)

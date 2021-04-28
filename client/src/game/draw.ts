@@ -306,8 +306,8 @@ function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0)
 //         [[200,-1350],[200,4350],[750,4350],[750,-1350]],
 //         [[3556.1308949025706,368.2067431718624],[3556.1308949025706,4099.326575833981],[4125.828761825174,4099.326575833981],[4125.828761825174,368.2067431718624]]];
 //     for (const [i, shape] of (<Polygon[]>floorStore.getLayer(floorStore.currentFloor.name, )!.shapes).entries()) {
-//         shape.refPoint = GlobalPoint.fromArray(POINTS[i][0]);
-//         shape._vertices = POINTS[i].slice(1).map(p => GlobalPoint.fromArray(p));
+//         shape.refPoint = toGP(POINTS[i][0]);
+//         shape._vertices = POINTS[i].slice(1).map(p => toGP(p));
 //         socket.emit("Shape.Position.Update", { shape: shape.asDict(), redraw: true, temporary: false });
 //     }
 // }

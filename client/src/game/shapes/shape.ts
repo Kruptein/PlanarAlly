@@ -1,7 +1,7 @@
 import tinycolor from "tinycolor2";
 
 import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "../../core/conversions";
-import { GlobalPoint, Vector } from "../../core/geometry";
+import { addP, cloneP, equalsP, GlobalPoint, subtractP, toArrayP, toGP, Vector } from "../../core/geometry";
 import { rotateAroundPoint } from "../../core/math";
 import { SyncTo } from "../../core/models/types";
 import { FunctionPropertyNames, PartialBy } from "../../core/types";
@@ -69,7 +69,7 @@ export abstract class Shape {
     protected _refPoint: GlobalPoint;
     protected _angle = 0;
 
-    abstract get points(): number[][];
+    abstract get points(): [number, number][];
 
     abstract contains(point: GlobalPoint, nearbyThreshold?: number): boolean;
 
@@ -178,7 +178,7 @@ export abstract class Shape {
     }
 
     get refPoint(): GlobalPoint {
-        return this._refPoint.clone();
+        return cloneP(this._refPoint);
     }
     set refPoint(point: GlobalPoint) {
         this._refPoint = point;
@@ -198,12 +198,12 @@ export abstract class Shape {
         this._layer = layer;
     }
 
-    getPositionRepresentation(): { angle: number; points: number[][] } {
-        return { angle: this.angle, points: [this.refPoint.asArray()] };
+    getPositionRepresentation(): { angle: number; points: [number, number][] } {
+        return { angle: this.angle, points: [toArrayP(this.refPoint)] };
     }
 
-    setPositionRepresentation(position: { angle: number; points: number[][] }): void {
-        this._refPoint = GlobalPoint.fromArray(position.points[0]);
+    setPositionRepresentation(position: { angle: number; points: [number, number][] }): void {
+        this._refPoint = toGP(position.points[0]);
         this.angle = position.angle;
         this.updateShapeVision(false, false);
     }
@@ -229,7 +229,7 @@ export abstract class Shape {
 
     rotateAround(point: GlobalPoint, angle: number): void {
         const center = this.center();
-        if (!point.equals(center)) this.center(rotateAroundPoint(center, point, angle));
+        if (!equalsP(point, center)) this.center(rotateAroundPoint(center, point, angle));
         this.angle += angle;
         this.updatePoints();
     }
@@ -246,12 +246,12 @@ export abstract class Shape {
     }
 
     getPointOrientation(i: number): Vector {
-        const prev = GlobalPoint.fromArray(this.points[(this.points.length + i - 1) % this.points.length]);
-        const point = GlobalPoint.fromArray(this.points[i]);
-        const next = GlobalPoint.fromArray(this.points[(i + 1) % this.points.length]);
-        const vec = next.subtract(prev);
-        const mid = prev.add(vec.multiply(0.5));
-        return point.subtract(mid).normalize();
+        const prev = toGP(this.points[(this.points.length + i - 1) % this.points.length]);
+        const point = toGP(this.points[i]);
+        const next = toGP(this.points[(i + 1) % this.points.length]);
+        const vec = subtractP(next, prev);
+        const mid = addP(prev, vec.multiply(0.5));
+        return subtractP(point, mid).normalize();
     }
 
     // DRAWING
@@ -401,11 +401,7 @@ export abstract class Shape {
             if (p[1] < miny) miny = p[1];
             if (p[1] > maxy) maxy = p[1];
         }
-        return new BoundingRect(
-            new GlobalPoint(minx - delta, miny - delta),
-            maxx - minx + 2 * delta,
-            maxy - miny + 2 * delta,
-        );
+        return new BoundingRect(toGP(minx - delta, miny - delta), maxx - minx + 2 * delta, maxy - miny + 2 * delta);
     }
 
     getBoundingBox(delta = 0): BoundingRect {
@@ -502,7 +498,7 @@ export abstract class Shape {
                 if (aura.value > 0 || aura.dim > 0) {
                     const r = getUnitDistance(aura.value + aura.dim);
                     const center = this.center();
-                    const auraArea = new BoundingRect(new GlobalPoint(center.x - r, center.y - r), r * 2, r * 2);
+                    const auraArea = new BoundingRect(toGP(center.x - r, center.y - r), r * 2, r * 2);
                     if (auraArea.visibleInCanvas(canvas)) {
                         return true;
                     }

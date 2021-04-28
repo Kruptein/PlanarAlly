@@ -1,22 +1,22 @@
 import { clientStore, DEFAULT_GRID_SIZE } from "../store/client";
 import { settingsStore } from "../store/settings";
 
-import { GlobalPoint, LocalPoint, Ray } from "./geometry";
+import { GlobalPoint, LocalPoint, Ray, toGP, toLP } from "./geometry";
 
 export function g2l(obj: GlobalPoint): LocalPoint {
     const state = clientStore.state;
     const z = clientStore.zoomFactor.value;
     const panX = state.panX;
     const panY = state.panY;
-    return new LocalPoint((obj.x + panX) * z, (obj.y + panY) * z);
+    return toLP((obj.x + panX) * z, (obj.y + panY) * z);
 }
 
 export function g2lx(x: number): number {
-    return g2l(new GlobalPoint(x, 0)).x;
+    return g2l(toGP(x, 0)).x;
 }
 
 export function g2ly(y: number): number {
-    return g2l(new GlobalPoint(0, y)).y;
+    return g2l(toGP(0, y)).y;
 }
 
 export function g2lz(z: number): number {
@@ -38,19 +38,19 @@ export function l2g(obj: LocalPoint | Ray<LocalPoint>): GlobalPoint | Ray<Global
     const z = clientStore.zoomFactor.value;
     const panX = state.panX;
     const panY = state.panY;
-    if (obj instanceof LocalPoint) {
-        return new GlobalPoint(obj.x / z - panX, obj.y / z - panY);
-    } else {
+    if (obj instanceof Ray) {
         return new Ray<GlobalPoint>(l2g(obj.origin), obj.direction.multiply(1 / z), obj.tMax);
+    } else {
+        return toGP(obj.x / z - panX, obj.y / z - panY);
     }
 }
 
 export function l2gx(x: number): number {
-    return l2g(new LocalPoint(x, 0)).x;
+    return l2g(toLP(x, 0)).x;
 }
 
 export function l2gy(y: number): number {
-    return l2g(new LocalPoint(0, y)).y;
+    return l2g(toLP(0, y)).y;
 }
 
 export function l2gz(z: number): number {
@@ -62,7 +62,7 @@ export function clampGridLine(point: number): number {
 }
 
 export function clampToGrid(point: GlobalPoint): GlobalPoint {
-    return new GlobalPoint(clampGridLine(point.x), clampGridLine(point.y));
+    return toGP(clampGridLine(point.x), clampGridLine(point.y));
 }
 
 export function toRadians(degrees: number): number {

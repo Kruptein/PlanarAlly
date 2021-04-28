@@ -1,4 +1,4 @@
-import { LocalPoint } from "../../../core/geometry";
+import { LocalPoint, subtractP, toLP } from "../../../core/geometry";
 import { i18n } from "../../../i18n";
 import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
@@ -12,14 +12,14 @@ class PanTool extends Tool {
     readonly toolName = ToolName.Pan;
     readonly toolTranslation = i18n.global.t("tool.Pan");
 
-    private panStart = new LocalPoint(0, 0);
+    private panStart = toLP(0, 0);
 
     get permittedTools(): ToolPermission[] {
         return [{ name: ToolName.Select, features: { enabled: [SelectFeatures.Context] } }];
     }
 
     panScreen(target: LocalPoint, full: boolean): void {
-        const distance = target.subtract(this.panStart).multiply(1 / clientStore.zoomFactor.value);
+        const distance = subtractP(target, this.panStart).multiply(1 / clientStore.zoomFactor.value);
         clientStore.increasePanX(Math.round(distance.x));
         clientStore.increasePanY(Math.round(distance.y));
         this.panStart = target;

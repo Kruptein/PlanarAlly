@@ -1,5 +1,5 @@
 import { clampGridLine, clampToGrid, g2lx, g2ly } from "../../../core/conversions";
-import { GlobalPoint, Vector } from "../../../core/geometry";
+import { addP, GlobalPoint, toGP, Vector } from "../../../core/geometry";
 import { rotateAroundPoint } from "../../../core/math";
 import { DEFAULT_GRID_SIZE } from "../../../store/client";
 import { calculateDelta } from "../../drag";
@@ -60,15 +60,15 @@ export abstract class BaseRect extends Shape {
         return bbox;
     }
 
-    get points(): number[][] {
+    get points(): [number, number][] {
         if (this.w === 0 || this.h === 0) return [[this.refPoint.x, this.refPoint.y]];
 
         const center = this.center();
 
         const topleft = rotateAroundPoint(this.refPoint, center, this.angle);
-        const botleft = rotateAroundPoint(this.refPoint.add(new Vector(0, this.h)), center, this.angle);
-        const botright = rotateAroundPoint(this.refPoint.add(new Vector(this.w, this.h)), center, this.angle);
-        const topright = rotateAroundPoint(this.refPoint.add(new Vector(this.w, 0)), center, this.angle);
+        const botleft = rotateAroundPoint(addP(this.refPoint, new Vector(0, this.h)), center, this.angle);
+        const botright = rotateAroundPoint(addP(this.refPoint, new Vector(this.w, this.h)), center, this.angle);
+        const topright = rotateAroundPoint(addP(this.refPoint, new Vector(this.w, 0)), center, this.angle);
         return [
             [topleft.x, topleft.y],
             [botleft.x, botleft.y],
@@ -89,8 +89,8 @@ export abstract class BaseRect extends Shape {
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
     center(centerPoint?: GlobalPoint): GlobalPoint | void {
-        if (centerPoint === undefined) return this.refPoint.add(new Vector(this.w / 2, this.h / 2));
-        this.refPoint = new GlobalPoint(centerPoint.x - this.w / 2, centerPoint.y - this.h / 2);
+        if (centerPoint === undefined) return addP(this.refPoint, new Vector(this.w / 2, this.h / 2));
+        this.refPoint = toGP(centerPoint.x - this.w / 2, centerPoint.y - this.h / 2);
     }
 
     visibleInCanvas(canvas: HTMLCanvasElement, options: { includeAuras: boolean }): boolean {
@@ -125,12 +125,12 @@ export abstract class BaseRect extends Shape {
         }
 
         const delta = calculateDelta(new Vector(targetX - this.refPoint.x, targetY - this.refPoint.y), this);
-        this.refPoint = this.refPoint.add(delta);
+        this.refPoint = addP(this.refPoint, delta);
 
         this.invalidate(false);
     }
     resizeToGrid(resizePoint: number, retainAspectRatio: boolean): void {
-        const targetPoint = new GlobalPoint(
+        const targetPoint = toGP(
             this.refPoint.x + (resizePoint > 1 ? this.w : 0),
             this.refPoint.y + ([1, 2].includes(resizePoint) ? this.h : 0),
         );
@@ -154,13 +154,13 @@ export abstract class BaseRect extends Shape {
             case 0: {
                 this.w += this.refPoint.x - point.x;
                 this.h += this.refPoint.y - point.y;
-                this.refPoint = this.refPoint.add(new Vector(oldW - this.w, oldH - this.h));
+                this.refPoint = addP(this.refPoint, new Vector(oldW - this.w, oldH - this.h));
                 break;
             }
             case 1: {
                 this.w += this.refPoint.x - point.x;
                 this.h = point.y - this.refPoint.y;
-                this.refPoint = new GlobalPoint(point.x, this.refPoint.y);
+                this.refPoint = toGP(point.x, this.refPoint.y);
                 break;
             }
             case 2: {
@@ -171,7 +171,7 @@ export abstract class BaseRect extends Shape {
             case 3: {
                 this.w = point.x - this.refPoint.x;
                 this.h += this.refPoint.y - point.y;
-                this.refPoint = new GlobalPoint(this.refPoint.x, point.y);
+                this.refPoint = toGP(this.refPoint.x, point.y);
                 break;
             }
         }
@@ -181,11 +181,11 @@ export abstract class BaseRect extends Shape {
         else if (this.h < 0) resizePoint += resizePoint % 2 === 0 ? 1 : -1;
 
         if (this.w < 0) {
-            this.refPoint = this.refPoint.add(new Vector(this.w, 0));
+            this.refPoint = addP(this.refPoint, new Vector(this.w, 0));
             this.w = Math.abs(this.w);
         }
         if (this.h < 0) {
-            this.refPoint = this.refPoint.add(new Vector(0, this.h));
+            this.refPoint = addP(this.refPoint, new Vector(0, this.h));
             this.h = Math.abs(this.h);
         }
 
@@ -193,12 +193,12 @@ export abstract class BaseRect extends Shape {
             const tempAspectRatio = this.w / this.h;
             if (tempAspectRatio > aspectRatio) {
                 if (resizePoint === 0 || resizePoint === 3) {
-                    this.refPoint = new GlobalPoint(this.refPoint.x, this.refPoint.y + this.h - this.w / aspectRatio);
+                    this.refPoint = toGP(this.refPoint.x, this.refPoint.y + this.h - this.w / aspectRatio);
                 }
                 this.h = this.w / aspectRatio;
             } else if (tempAspectRatio < aspectRatio) {
                 if (resizePoint === 0 || resizePoint === 1) {
-                    this.refPoint = new GlobalPoint(this.refPoint.x + this.w - this.h * aspectRatio, this.refPoint.y);
+                    this.refPoint = toGP(this.refPoint.x + this.w - this.h * aspectRatio, this.refPoint.y);
                 }
                 this.w = this.h * aspectRatio;
             }
@@ -207,11 +207,8 @@ export abstract class BaseRect extends Shape {
         const newResizePoint = (resizePoint + 4) % 4;
         const oppositeNRP = (newResizePoint + 2) % 4;
 
-        const vec = Vector.fromPoints(
-            GlobalPoint.fromArray(this.points[oppositeNRP]),
-            GlobalPoint.fromArray(oldPoints[oppositeNRP]),
-        );
-        this.refPoint = this.refPoint.add(vec);
+        const vec = Vector.fromPoints(toGP(this.points[oppositeNRP]), toGP(oldPoints[oppositeNRP]));
+        this.refPoint = addP(this.refPoint, vec);
 
         return newResizePoint;
     }

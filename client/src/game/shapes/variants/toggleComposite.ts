@@ -142,7 +142,7 @@ export class ToggleComposite extends Shape {
         });
     }
 
-    get points(): number[][] {
+    get points(): [number, number][] {
         return [];
     }
 

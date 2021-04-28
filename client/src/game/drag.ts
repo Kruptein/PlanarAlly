@@ -1,4 +1,4 @@
-import { Vector, GlobalPoint } from "../core/geometry";
+import { Vector, toGP, toArrayP, addP, subtractP } from "../core/geometry";
 
 import { Shape } from "./shapes/shape";
 import { TriangulationTarget, visionState } from "./vision/state";
@@ -10,7 +10,7 @@ import { cw, ccw, intersection, orientation } from "./vision/triag";
 // And it does now, so hey ¯\_(ツ)_/¯
 export function calculateDelta(delta: Vector, sel: Shape, shrink = false): Vector {
     if (delta.x === 0 && delta.y === 0) return delta;
-    const center = sel.center().asArray();
+    const center = toArrayP(sel.center());
     const centerTriangle = visionState.getCDT(TriangulationTarget.MOVEMENT, sel.floor.id).locate(center, null).loc;
     for (let point of sel.points) {
         if (shrink) {
@@ -25,8 +25,8 @@ export function calculateDelta(delta: Vector, sel: Shape, shrink = false): Vecto
 }
 
 function checkTriangle(point: Point, triangle: Triangle, delta: Vector, skip: Triangle[] = []): Vector {
-    const p = new GlobalPoint(point[0], point[1]);
-    const endpoint = p.add(delta).asArray();
+    const p = toGP(point[0], point[1]);
+    const endpoint = toArrayP(addP(p, delta));
     if (triangle.contains(endpoint)) return delta;
     skip.push(triangle);
 
@@ -47,7 +47,7 @@ function checkTriangle(point: Point, triangle: Triangle, delta: Vector, skip: Tr
             if (o === Sign.LEFT_TURN) continue;
             if (o === Sign.ZERO) continue;
         }
-        let newDelta = new GlobalPoint(ix[0], ix[1]).subtract(p).multiply(0.8);
+        let newDelta = subtractP(toGP(ix[0], ix[1]), p).multiply(0.8);
         if (newDelta.length() < 1) newDelta = new Vector(0, 0);
         if (newDelta.length() < delta.length()) delta = newDelta;
     }

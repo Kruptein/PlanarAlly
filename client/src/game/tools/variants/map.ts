@@ -1,7 +1,7 @@
 import { reactive } from "@vue/reactivity";
 
 import { l2g } from "../../../core/conversions";
-import { GlobalPoint, LocalPoint, Vector } from "../../../core/geometry";
+import { addP, cloneP, GlobalPoint, LocalPoint, subtractP, toGP, Vector } from "../../../core/geometry";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { DEFAULT_GRID_SIZE } from "../../../store/client";
@@ -101,7 +101,7 @@ class MapTool extends Tool {
 
         this.active = true;
 
-        this.rect = new Rect(this.startPoint.clone(), 0, 0, { fillColour: "rgba(0,0,0,0)", strokeColour: "black" });
+        this.rect = new Rect(cloneP(this.startPoint), 0, 0, { fillColour: "rgba(0,0,0,0)", strokeColour: "black" });
         this.state.hasRect = true;
         this.rect.preventSync = true;
         layer.addShape(this.rect, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
@@ -117,10 +117,7 @@ class MapTool extends Tool {
 
         this.rect.w = Math.abs(endPoint.x - this.startPoint.x);
         this.rect.h = Math.abs(endPoint.y - this.startPoint.y);
-        this.rect.refPoint = new GlobalPoint(
-            Math.min(this.startPoint.x, endPoint.x),
-            Math.min(this.startPoint.y, endPoint.y),
-        );
+        this.rect.refPoint = toGP(Math.min(this.startPoint.x, endPoint.x), Math.min(this.startPoint.y, endPoint.y));
         layer.invalidate(false);
     }
 
@@ -161,9 +158,9 @@ class MapTool extends Tool {
             const oldRefpoint = this.shape.refPoint;
             const oldCenter = this.rect.center();
 
-            const delta = oldCenter.subtract(oldRefpoint);
-            const newCenter = oldRefpoint.add(new Vector(xFactor * delta.x, yFactor * delta.y));
-            this.shape.refPoint = this.shape.refPoint.add(oldCenter.subtract(newCenter));
+            const delta = subtractP(oldCenter, oldRefpoint);
+            const newCenter = addP(oldRefpoint, new Vector(xFactor * delta.x, yFactor * delta.y));
+            this.shape.refPoint = addP(this.shape.refPoint, subtractP(oldCenter, newCenter));
         } else {
             this.shape.w = this.state.sizeX;
             this.shape.h = this.state.sizeY;

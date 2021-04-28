@@ -1,5 +1,5 @@
 import { clampGridLine, l2gx, l2gy, l2gz } from "../core/conversions";
-import { GlobalPoint } from "../core/geometry";
+import { toGP } from "../core/geometry";
 import { SyncMode, InvalidationMode } from "../core/models/types";
 import { useModal } from "../core/plugins/modals/plugin";
 import { baseAdjust, uuidv4 } from "../core/utils";
@@ -121,7 +121,7 @@ export async function dropAsset(
 
     return new Promise((resolve) => {
         image.onload = () => {
-            const refPoint = new GlobalPoint(l2gx(position.x), l2gy(position.y));
+            const refPoint = toGP(l2gx(position.x), l2gy(position.y));
             const asset = new Asset(image, refPoint, l2gz(image.width), l2gz(image.height), {
                 assetId: data.assetId,
                 uuid,
@@ -134,7 +134,7 @@ export async function dropAsset(
             }
 
             if (settingsStore.useGrid.value) {
-                asset.refPoint = new GlobalPoint(clampGridLine(asset.refPoint.x), clampGridLine(asset.refPoint.y));
+                asset.refPoint = toGP(clampGridLine(asset.refPoint.x), clampGridLine(asset.refPoint.y));
             }
 
             layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);

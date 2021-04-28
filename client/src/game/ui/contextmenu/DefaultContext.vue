@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 
 import ContextMenu from "../../../core/components/ContextMenu.vue";
 import { l2g, l2gx, l2gy } from "../../../core/conversions";
-import { LocalPoint } from "../../../core/geometry";
+import { toLP } from "../../../core/geometry";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { baseAdjust, uuidv4 } from "../../../core/utils";
@@ -69,7 +69,7 @@ export default defineComponent({
             const img = new Image(64, 64);
             img.src = baseAdjust(src);
 
-            const loc = new LocalPoint(defaultContextLeft.value, defaultContextTop.value);
+            const loc = toLP(defaultContextLeft.value, defaultContextTop.value);
 
             const shape = new Asset(img, l2g(loc), 50, 50, { uuid });
             shape.name = spawnName;

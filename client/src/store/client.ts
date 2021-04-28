@@ -1,7 +1,7 @@
 import { computed, ComputedRef } from "vue";
 
 import { g2l, l2g } from "../core/conversions";
-import { GlobalPoint, Vector } from "../core/geometry";
+import { addP, GlobalPoint, subtractP, toGP, Vector } from "../core/geometry";
 import { Store } from "../core/store";
 import { toSnakeCase } from "../core/utils";
 import { sendClientLocationOptions, sendDefaultClientOptions, sendRoomClientOptions } from "../game/api/emits/client";
@@ -57,12 +57,12 @@ class ClientStore extends Store<State> {
     }
 
     get screenTopLeft(): GlobalPoint {
-        return new GlobalPoint(-this._state.panX, -this._state.panY);
+        return toGP(-this._state.panX, -this._state.panY);
     }
 
     get screenCenter(): GlobalPoint {
         const halfScreen = new Vector(window.innerWidth / 2, window.innerHeight / 2);
-        return l2g(g2l(this.screenTopLeft).add(halfScreen));
+        return l2g(addP(g2l(this.screenTopLeft), halfScreen));
     }
 
     setUsername(username: string): void {
@@ -114,7 +114,7 @@ class ClientStore extends Store<State> {
         this._state.zoomDisplay = newZoomDisplay;
         const newLoc = l2g(oldLoc);
         // Change the pan settings to keep the zoomLocation in the same exact location before and after the zoom.
-        const diff = newLoc.subtract(zoomLocation);
+        const diff = subtractP(newLoc, zoomLocation);
         this._state.panX += diff.x;
         this._state.panY += diff.y;
         floorStore.invalidateAllFloors();

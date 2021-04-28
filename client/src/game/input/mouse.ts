@@ -1,5 +1,5 @@
 import { l2g } from "../../core/conversions";
-import { LocalPoint } from "../../core/geometry";
+import { LocalPoint, toLP } from "../../core/geometry";
 import { clientStore } from "../../store/client";
 
 export function scrollZoom(e: WheelEvent): void {
@@ -19,12 +19,12 @@ export function getLocalPointFromEvent(e: MouseEvent | TouchEvent): LocalPoint {
 }
 
 function getMouse(e: MouseEvent): LocalPoint {
-    return new LocalPoint(e.pageX, e.pageY);
+    return toLP(e.pageX, e.pageY);
 }
 
 // takes a given touch event and converts to LocalPoint
 function getTouch(e: TouchEvent): LocalPoint {
     // touches is a TouchList, which is a list of touches (for each finger)
     // default to first touch (first index) to get x/y
-    return new LocalPoint(e.changedTouches[0].pageX, e.changedTouches[0].pageY);
+    return toLP(e.changedTouches[0].pageX, e.changedTouches[0].pageY);
 }

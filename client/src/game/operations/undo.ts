@@ -1,4 +1,4 @@
-import { GlobalPoint, Vector } from "../../core/geometry";
+import { GlobalPoint, toGP, Vector } from "../../core/geometry";
 import { SyncMode } from "../../core/models/types";
 import { floorStore } from "../../store/floor";
 import { UuidMap } from "../../store/shapeMap";
@@ -85,7 +85,7 @@ function handleOperation(direction: "undo" | "redo"): void {
 
 function handleMovement(shapes: ShapeMovementOperation[], direction: "undo" | "redo"): void {
     const fullShapes = shapes.map((s) => UuidMap.get(s.uuid)!);
-    let delta = Vector.fromPoints(GlobalPoint.fromArray(shapes[0].to), GlobalPoint.fromArray(shapes[0].from));
+    let delta = Vector.fromPoints(toGP(shapes[0].to), toGP(shapes[0].from));
     if (direction === "redo") delta = delta.reverse();
     moveShapes(fullShapes, delta, true);
     (toolMap[ToolName.Select] as ISelectTool).resetRotationHelper();
@@ -101,15 +101,15 @@ function handleRotation(shapes: ShapeRotationOperation[], center: GlobalPoint, d
 
 function handleResize(
     uuid: string,
-    fromPoint: number[],
-    toPoint: number[],
+    fromPoint: [number, number],
+    toPoint: [number, number],
     resizePoint: number,
     retainAspectRatio: boolean,
     direction: "undo" | "redo",
 ): void {
     const shape = UuidMap.get(uuid)!;
     const targetPoint = direction === "undo" ? fromPoint : toPoint;
-    resizeShape(shape, GlobalPoint.fromArray(targetPoint), resizePoint, retainAspectRatio, false);
+    resizeShape(shape, toGP(targetPoint), resizePoint, retainAspectRatio, false);
 }
 
 function handleFloorMove(shapes: string[], from: number, to: number, direction: "undo" | "redo"): void {

@@ -1,6 +1,7 @@
 <script lang="ts">
 import { computed, defineComponent, toRef } from "vue";
 
+import { cloneP } from "../../../../core/geometry";
 import { Asset as A, InvalidationMode, SyncMode, SyncTo } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../../../store/activeShape";
@@ -71,7 +72,7 @@ export default defineComponent({
 
             let parent = compositeParent.value;
             if (parent === undefined) {
-                parent = new ToggleComposite(shape.refPoint.clone(), shape.uuid, [
+                parent = new ToggleComposite(cloneP(shape.refPoint), shape.uuid, [
                     { uuid: shape.uuid, name: "base variant" },
                 ]);
                 shape.layer.addShape(parent, SyncMode.FULL_SYNC, InvalidationMode.NO);

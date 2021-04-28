@@ -1,7 +1,7 @@
 import { ref } from "vue";
 
 import { l2g } from "../../../core/conversions";
-import { GlobalPoint, LocalPoint } from "../../../core/geometry";
+import { cloneP, GlobalPoint, LocalPoint, toGP } from "../../../core/geometry";
 import { snapToGridPoint } from "../../../core/math";
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
@@ -79,8 +79,8 @@ class RulerTool extends Tool {
             return;
         }
         this.active = true;
-        this.createNewRuler(this.startPoint.clone(), this.startPoint.clone());
-        this.text = new Text(this.startPoint.clone(), "", 20, {
+        this.createNewRuler(cloneP(this.startPoint), cloneP(this.startPoint));
+        this.text = new Text(cloneP(this.startPoint), "", 20, {
             fillColour: "#000",
             strokeColour: "#fff",
         });
@@ -121,7 +121,7 @@ class RulerTool extends Tool {
         const angle = Math.atan2(diffsign * ydiff, xdiff);
         const xmid = Math.min(start.x, end.x) + xdiff / 2;
         const ymid = Math.min(start.y, end.y) + ydiff / 2;
-        this.text.refPoint = new GlobalPoint(xmid, ymid);
+        this.text.refPoint = toGP(xmid, ymid);
         this.text.text = label;
         this.text.angle = angle;
         sendTextUpdate({ uuid: this.text.uuid, text: this.text.text, temporary: true });

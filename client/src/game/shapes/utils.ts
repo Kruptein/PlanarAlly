@@ -1,4 +1,4 @@
-import { GlobalPoint, Vector } from "../../core/geometry";
+import { subtractP, toGP, Vector } from "../../core/geometry";
 import { SyncMode, InvalidationMode } from "../../core/models/types";
 import { baseAdjust, uuidv4 } from "../../core/utils";
 import { clientStore } from "../../store/client";
@@ -51,7 +51,7 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
 
     // Shape Type specifics
 
-    const refPoint = new GlobalPoint(shape.x, shape.y);
+    const refPoint = toGP(shape.x, shape.y);
     if (shape.type_ === "rect") {
         const rect = shape as ServerRect;
         sh = new Rect(refPoint, rect.width, rect.height, {
@@ -75,7 +75,7 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
         });
     } else if (shape.type_ === "line") {
         const line = shape as ServerLine;
-        sh = new Line(refPoint, new GlobalPoint(line.x2, line.y2), {
+        sh = new Line(refPoint, toGP(line.x2, line.y2), {
             lineWidth: line.line_width,
             strokeColour: line.stroke_colour,
             uuid: line.uuid,
@@ -84,7 +84,7 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
         const polygon = shape as ServerPolygon;
         sh = new Polygon(
             refPoint,
-            polygon.vertices.map((v) => GlobalPoint.fromArray(v)),
+            polygon.vertices.map((v) => toGP(v)),
             {
                 fillColour: polygon.fill_colour,
                 strokeColour: polygon.stroke_colour,
@@ -146,7 +146,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly Shape[] {
     selectionState.clear(false);
 
     gameStore.setClipboardPosition(clientStore.screenCenter);
-    let offset = clientStore.screenCenter.subtract(gameState.clipboardPosition);
+    let offset = subtractP(clientStore.screenCenter, gameState.clipboardPosition);
     // Check against 200 as that is the squared length of a vector with size 10, 10
     if (offset.squaredLength() < 200) {
         offset = new Vector(10, 10);

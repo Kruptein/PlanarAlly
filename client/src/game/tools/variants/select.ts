@@ -1,7 +1,7 @@
 import { ref } from "vue";
 
 import { g2l, g2lx, g2ly, l2g, l2gz } from "../../../core/conversions";
-import { GlobalPoint, LocalPoint, Ray, Vector } from "../../../core/geometry";
+import { addP, GlobalPoint, LocalPoint, Ray, toArrayP, toGP, toLP, Vector } from "../../../core/geometry";
 import { equalPoints, snapToPoint } from "../../../core/math";
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
 import { ctrlOrCmdPressed } from "../../../core/utils";
@@ -74,15 +74,15 @@ class SelectTool extends Tool implements ISelectTool {
     rotationEnd?: Circle;
 
     resizePoint = 0;
-    originalResizePoints: number[][] = [];
+    originalResizePoints: [number, number][] = [];
 
     deltaChanged = false;
     snappedToPoint = false;
 
     // Because we never drag from the asset's (0, 0) coord and want a smoother drag experience
     // we keep track of the actual offset within the asset.
-    dragRay = new Ray<LocalPoint>(new LocalPoint(0, 0), new Vector(0, 0));
-    selectionStartPoint = new GlobalPoint(-1000, -1000);
+    dragRay = new Ray<LocalPoint>(toLP(0, 0), new Vector(0, 0));
+    selectionStartPoint = toGP(-1000, -1000);
     selectionHelper: Rect | undefined = undefined;
 
     operationReady = false;
@@ -161,12 +161,12 @@ class SelectTool extends Tool implements ISelectTool {
 
             if (this.rotationUiActive && this.hasFeature(SelectFeatures.Rotate, features)) {
                 const anchor = this.rotationAnchor!.points[1];
-                if (equalPoints(anchor, gp.asArray(), 10)) {
+                if (equalPoints(anchor, toArrayP(gp), 10)) {
                     this.setToolPermissions([]);
                     this.mode = SelectOperations.Rotate;
                     hit = true;
 
-                    this.operationList = { type: "rotation", center: new GlobalPoint(0, 0), shapes: [] };
+                    this.operationList = { type: "rotation", center: toGP(0, 0), shapes: [] };
                     for (const shape of selectionState.get({ includeComposites: false }))
                         this.operationList.shapes.push({ uuid: shape.uuid, from: shape.angle, to: 0 });
 
@@ -190,7 +190,7 @@ class SelectTool extends Tool implements ISelectTool {
                         type: "resize",
                         uuid: shape.uuid,
                         fromPoint: shape.points[this.resizePoint],
-                        toPoint: [],
+                        toPoint: shape.points[this.resizePoint],
                         resizePoint: this.resizePoint,
                         retainAspectRatio: false,
                     };
@@ -217,7 +217,11 @@ class SelectTool extends Tool implements ISelectTool {
                     // don't use layerSelection here as it can be outdated by the pushSelection setSelection above
                     this.operationList = { type: "movement", shapes: [] };
                     for (const shape of selectionState.get({ includeComposites: false }))
-                        this.operationList.shapes.push({ uuid: shape.uuid, from: shape.refPoint.asArray(), to: [] });
+                        this.operationList.shapes.push({
+                            uuid: shape.uuid,
+                            from: toArrayP(shape.refPoint),
+                            to: toArrayP(shape.refPoint),
+                        });
                 }
                 layer.invalidate(true);
                 hit = true;
@@ -295,7 +299,7 @@ class SelectTool extends Tool implements ISelectTool {
 
             this.selectionHelper!.w = Math.abs(endPoint.x - this.selectionStartPoint.x);
             this.selectionHelper!.h = Math.abs(endPoint.y - this.selectionStartPoint.y);
-            this.selectionHelper!.refPoint = new GlobalPoint(
+            this.selectionHelper!.refPoint = toGP(
                 Math.min(this.selectionStartPoint.x, endPoint.x),
                 Math.min(this.selectionStartPoint.y, endPoint.y),
             );
@@ -334,8 +338,7 @@ class SelectTool extends Tool implements ISelectTool {
                 if (!shape.ownedBy(false, { movementAccess: true })) return;
 
                 let ignorePoint: GlobalPoint | undefined;
-                if (this.resizePoint >= 0)
-                    ignorePoint = GlobalPoint.fromArray(this.originalResizePoints[this.resizePoint]);
+                if (this.resizePoint >= 0) ignorePoint = toGP(this.originalResizePoints[this.resizePoint]);
                 let targetPoint = gp;
                 if (clientStore.useSnapping(event) && this.hasFeature(SelectFeatures.Snapping, features))
                     [targetPoint, this.snappedToPoint] = snapToPoint(floorStore.currentLayer.value!, gp, ignorePoint);
@@ -397,8 +400,8 @@ class SelectTool extends Tool implements ISelectTool {
                 if (shape.points.length > 1) {
                     for (let i = 0; i < shape.points.length; i++) {
                         const ray = Ray.fromPoints(
-                            GlobalPoint.fromArray(shape.points[i]),
-                            GlobalPoint.fromArray(shape.points[(i + 1) % shape.points.length]),
+                            toGP(shape.points[i]),
+                            toGP(shape.points[(i + 1) % shape.points.length]),
                         );
                         if (cbbox.containsRay(ray).hit) {
                             selectionState.push(shape);
@@ -406,7 +409,7 @@ class SelectTool extends Tool implements ISelectTool {
                         }
                     }
                 } else {
-                    if (cbbox.contains(GlobalPoint.fromArray(shape.points[0]))) {
+                    if (cbbox.contains(toGP(shape.points[0]))) {
                         selectionState.push(shape);
                     }
                 }
@@ -474,7 +477,7 @@ class SelectTool extends Tool implements ISelectTool {
                         }
                     }
                     if (this.operationList?.type === "movement") {
-                        this.operationList.shapes[s].to = sel.refPoint.asArray();
+                        this.operationList.shapes[s].to = toArrayP(sel.refPoint);
                         this.operationReady = true;
                     }
 
@@ -518,7 +521,7 @@ class SelectTool extends Tool implements ISelectTool {
                     }
 
                     if (this.operationList?.type === "resize") {
-                        this.operationList.toPoint = l2g(lp).asArray();
+                        this.operationList.toPoint = toArrayP(l2g(lp));
                         this.operationList.resizePoint = this.resizePoint;
                         this.operationList.retainAspectRatio = ctrlOrCmdPressed(event);
                         this.operationReady = true;
@@ -633,8 +636,8 @@ class SelectTool extends Tool implements ISelectTool {
                 .expand(new Vector(-50, -50));
         }
 
-        const topCenter = new GlobalPoint((bbox.topRight.x + bbox.topLeft.x) / 2, bbox.topLeft.y);
-        const topCenterPlus = topCenter.add(new Vector(0, -DEFAULT_GRID_SIZE));
+        const topCenter = toGP((bbox.topRight.x + bbox.topLeft.x) / 2, bbox.topLeft.y);
+        const topCenterPlus = addP(topCenter, new Vector(0, -DEFAULT_GRID_SIZE));
 
         this.angle = 0;
         this.rotationAnchor = new Line(topCenter, topCenterPlus, { lineWidth: l2gz(1.5), strokeColour: "#7c253e" });
@@ -707,7 +710,7 @@ class SelectTool extends Tool implements ISelectTool {
                 // test rotate case
                 if (this.rotationUiActive) {
                     const anchor = this.rotationAnchor!.points[1];
-                    if (equalPoints(anchor, globalMouse.asArray(), 10)) {
+                    if (equalPoints(anchor, toArrayP(globalMouse), 10)) {
                         cursorStyle = "ew-resize";
                         break;
                     }

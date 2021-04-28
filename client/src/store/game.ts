@@ -1,7 +1,7 @@
 import { ComputedRef } from "@vue/reactivity";
 import { computed } from "@vue/runtime-core";
 
-import { GlobalPoint } from "../core/geometry";
+import { GlobalPoint, toGP } from "../core/geometry";
 import { AssetListMap } from "../core/models/types";
 import { Store } from "../core/store";
 import { sendClientLocationOptions } from "../game/api/emits/client";
@@ -85,7 +85,7 @@ class GameStore extends Store<GameState> {
             notes: [],
 
             clipboard: [],
-            clipboardPosition: new GlobalPoint(0, 0),
+            clipboardPosition: toGP(0, 0),
 
             labels: new Map(),
             filterNoLabel: false,

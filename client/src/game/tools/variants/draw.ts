@@ -1,7 +1,7 @@
 import { computed, reactive, watch, watchEffect } from "vue";
 
 import { clampGridLine, g2lx, g2ly, getUnitDistance, l2g, l2gz } from "../../../core/conversions";
-import { GlobalPoint, LocalPoint } from "../../../core/geometry";
+import { cloneP, GlobalPoint, LocalPoint, subtractP, toGP } from "../../../core/geometry";
 import { equalPoints, snapToPoint } from "../../../core/math";
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
 import { PromptFunction } from "../../../core/plugins/modals/prompt";
@@ -211,7 +211,7 @@ class DrawTool extends Tool {
         const layer = this.getLayer();
         if (layer === undefined) return;
         layer.canvas.parentElement!.style.cursor = "none";
-        this.brushHelper = new Circle(new GlobalPoint(mouse?.x ?? -1000, mouse?.y ?? -1000), this.state.brushSize / 2, {
+        this.brushHelper = new Circle(toGP(mouse?.x ?? -1000, mouse?.y ?? -1000), this.state.brushSize / 2, {
             fillColour: this.state.fillColour,
         });
         this.setupBrush();
@@ -256,21 +256,21 @@ class DrawTool extends Tool {
             this.active = true;
             switch (this.state.selectedShape) {
                 case DrawShape.Square: {
-                    this.shape = new Rect(startPoint.clone(), 0, 0, {
+                    this.shape = new Rect(cloneP(startPoint), 0, 0, {
                         fillColour: this.state.fillColour,
                         strokeColour: this.state.borderColour,
                     });
                     break;
                 }
                 case DrawShape.Circle: {
-                    this.shape = new Circle(startPoint.clone(), this.helperSize, {
+                    this.shape = new Circle(cloneP(startPoint), this.helperSize, {
                         fillColour: this.state.fillColour,
                         strokeColour: this.state.borderColour,
                     });
                     break;
                 }
                 case DrawShape.Brush: {
-                    this.shape = new Polygon(startPoint.clone(), [], {
+                    this.shape = new Polygon(cloneP(startPoint), [], {
                         strokeColour: this.state.fillColour,
                         lineWidth: this.state.brushSize,
                         openPolygon: true,
@@ -282,12 +282,9 @@ class DrawTool extends Tool {
                     const fill = this.state.isClosedPolygon ? this.state.fillColour : undefined;
                     const stroke = this.state.isClosedPolygon ? this.state.borderColour : this.state.fillColour;
                     if (clientStore.useSnapping(event) && !this.snappedToPoint) {
-                        this.brushHelper.refPoint = new GlobalPoint(
-                            clampGridLine(startPoint.x),
-                            clampGridLine(startPoint.y),
-                        );
+                        this.brushHelper.refPoint = toGP(clampGridLine(startPoint.x), clampGridLine(startPoint.y));
                     }
-                    this.shape = new Polygon(this.brushHelper.refPoint.clone(), [], {
+                    this.shape = new Polygon(cloneP(this.brushHelper.refPoint), [], {
                         fillColour: fill,
                         strokeColour: stroke,
                         lineWidth: this.state.brushSize,
@@ -302,7 +299,7 @@ class DrawTool extends Tool {
                         this.active = false;
                         return;
                     }
-                    this.shape = new Text(this.brushHelper.refPoint.clone(), text, this.state.fontSize, {
+                    this.shape = new Text(cloneP(this.brushHelper.refPoint), text, this.state.fontSize, {
                         fillColour: this.state.fillColour,
                         strokeColour: this.state.borderColour,
                     });
@@ -342,8 +339,8 @@ class DrawTool extends Tool {
             // draw tool already active in polygon mode, add a new point to the polygon
 
             if (clientStore.useSnapping(event) && !this.snappedToPoint)
-                this.brushHelper.refPoint = new GlobalPoint(clampGridLine(startPoint.x), clampGridLine(startPoint.y));
-            this.shape._vertices.push(this.brushHelper.refPoint.clone());
+                this.brushHelper.refPoint = toGP(clampGridLine(startPoint.x), clampGridLine(startPoint.y));
+            this.shape._vertices.push(cloneP(this.brushHelper.refPoint));
             this.shape.updatePoints();
         }
 
@@ -417,7 +414,7 @@ class DrawTool extends Tool {
                 rect.w = newW;
                 rect.h = newH;
                 if (endPoint.x < this.startPoint.x || endPoint.y < this.startPoint.y) {
-                    this.shape.refPoint = new GlobalPoint(
+                    this.shape.refPoint = toGP(
                         Math.min(this.startPoint.x, endPoint.x),
                         Math.min(this.startPoint.y, endPoint.y),
                     );
@@ -426,7 +423,7 @@ class DrawTool extends Tool {
             }
             case DrawShape.Circle: {
                 const circ = this.shape as Circle;
-                const newR = Math.abs(endPoint.subtract(this.startPoint).length());
+                const newR = Math.abs(subtractP(endPoint, this.startPoint).length());
                 if (circ.r === newR) return;
                 circ.r = newR;
                 break;
@@ -577,7 +574,7 @@ class DrawTool extends Tool {
         const refPoint = this.brushHelper?.refPoint;
         const bs = this.brushHelper?.r;
         if (this.brushHelper !== undefined) layer.removeShape(this.brushHelper, SyncMode.NO_SYNC, true);
-        this.brushHelper = new Circle(new GlobalPoint(-1000, -1000), bs ?? this.state.brushSize / 2, {
+        this.brushHelper = new Circle(toGP(-1000, -1000), bs ?? this.state.brushSize / 2, {
             fillColour: this.state.fillColour,
         });
         this.setupBrush();

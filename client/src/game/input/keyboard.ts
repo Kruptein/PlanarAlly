@@ -1,4 +1,4 @@
-import { Vector, GlobalPoint } from "../../core/geometry";
+import { equalsP, toGP, Vector } from "../../core/geometry";
 import { SyncMode, SyncTo } from "../../core/models/types";
 import { ctrlOrCmdPressed } from "../../core/utils";
 import { activeShapeStore } from "../../store/activeShape";
@@ -31,7 +31,7 @@ export function onKeyUp(event: KeyboardEvent): void {
             // numpad-zero only if Ctrl is not pressed, as this would otherwise conflict with Ctrl + 0
             const tokens = [...gameStore.state.ownedTokens].map((o) => UuidMap.get(o)!);
             if (tokens.length === 0) return;
-            const i = tokens.findIndex((o) => o.center().equals(clientStore.screenCenter));
+            const i = tokens.findIndex((o) => equalsP(o.center(), clientStore.screenCenter));
             const token = tokens[(i + 1) % tokens.length];
             setCenterPosition(token.center());
             floorStore.selectFloor({ name: token.floor.name }, true);
@@ -155,7 +155,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             gameStore.toggleUi();
         } else if (event.key === "0" && ctrlOrCmdPressed(event)) {
             // Ctrl-0 or numpad 0 - Re-center/reset the viewport
-            setCenterPosition(new GlobalPoint(0, 0));
+            setCenterPosition(toGP(0, 0));
             sendClientLocationOptions();
             floorStore.invalidateAllFloors();
         } else if (event.code === "Numpad5") {
@@ -171,7 +171,7 @@ export function onKeyDown(event: KeyboardEvent): void {
                 targetX /= selection.length;
                 targetY /= selection.length;
             }
-            setCenterPosition(new GlobalPoint(targetX, targetY));
+            setCenterPosition(toGP(targetX, targetY));
             sendClientLocationOptions();
             floorStore.invalidateAllFloors();
         } else if (event.key === "c" && ctrlOrCmdPressed(event)) {

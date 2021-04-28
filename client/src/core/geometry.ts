@@ -3,9 +3,6 @@ This module defines some Point classes.
 A strong focus is made to ensure that at no time a global and a local point are mixed up with each other.
 At first glance this adds weird looking hacks as ts does not support nominal typing.
 */
-
-import { DeepReadonly } from "@vue/reactivity";
-
 function getPointDistance(p1: Point | Vector, p2: Point | Vector): number {
     const a = p1.x - p2.x;
     const b = p1.y - p2.y;
@@ -23,58 +20,43 @@ export function getDistanceToSegment(p: Point, line: [Point, Point]): number {
     return getPointDistance(nearest, pointVector);
 }
 
-export class Point {
-    readonly x: number;
-    readonly y: number;
+export type Point = { x: number; y: number };
+export type GlobalPoint = Point & { __brand: "GlobalPoint" };
+export type LocalPoint = Point & { __brand: "LocalPoint" };
 
-    constructor(x: number, y: number) {
-        this.x = x;
-        this.y = y;
-    }
-
-    *[Symbol.iterator](): Generator<number> {
-        yield this.x;
-        yield this.y;
-    }
-
-    static fromArray(point: number[]): Point {
-        return new Point(point[0], point[1]);
-    }
-    add(vec: Vector | this): this {
-        return new (this as any).constructor(this.x + vec.x, this.y + vec.y);
-    }
-    subtract(other: Vector | this | DeepReadonly<this>): Vector {
-        return new Vector(this.x - other.x, this.y - other.y);
-    }
-    clone(): this {
-        return new (this as any).constructor(this.x, this.y);
-    }
-    get(dimension: 0 | 1): number {
-        if (dimension === 0) return this.x;
-        return this.y;
-    }
-    asArray(): number[] {
-        return [this.x, this.y];
-    }
-    equals(other: GlobalPoint, delta = 0.0001): boolean {
-        return Math.abs(this.x - other.x) < delta && Math.abs(this.y - other.y) < delta;
-    }
-}
-export class GlobalPoint extends Point {
-    // This is to differentiate with LocalPoint, is actually never used
-    // We do ! to prevent errors that it never gets initialized
-    // tslint:disable-next-line:variable-name
-    _GlobalPoint!: string;
-    static fromArray(point: number[]): GlobalPoint {
-        return new GlobalPoint(point[0], point[1]);
-    }
+function point(x: number, y: number): Point {
+    return { x, y };
 }
 
-export class LocalPoint extends Point {
-    // This is to differentiate with GlobalPoint, is actually never used
-    // We do ! to prevent errors that it never gets initialized
-    // tslint:disable-next-line:variable-name
-    _LocalPoint!: string;
+export function toGP(array: [number, number]): GlobalPoint;
+export function toGP(x: number, y: number): GlobalPoint;
+export function toGP(first: number | [number, number], second?: number): GlobalPoint {
+    if (first instanceof Array) return { x: first[0], y: first[1], __brand: "GlobalPoint" };
+    return { x: first, y: second!, __brand: "GlobalPoint" };
+}
+
+export function toLP(x: number, y: number): LocalPoint {
+    return { x, y, __brand: "LocalPoint" };
+}
+
+export function toArrayP<T extends Point>(a: T): [number, number] {
+    return [a.x, a.y];
+}
+
+export function equalsP<T extends Point>(a: T, b: T, delta = 0.0001): boolean {
+    return Math.abs(a.x - b.x) < delta && Math.abs(a.y - b.y) < delta;
+}
+
+export function cloneP<T extends Point>(point: T): T {
+    return { x: point.x, y: point.y } as T;
+}
+
+export function addP<T extends Point>(point: T, vec: Vector): T {
+    return { x: point.x + vec.x, y: point.y + vec.y } as T;
+}
+
+export function subtractP<T extends Point>(a: T, b: T | Vector): Vector {
+    return new Vector(a.x - b.x, a.y - b.y);
 }
 
 export class Vector {
@@ -88,9 +70,8 @@ export class Vector {
         return new Vector(p2.x - p1.x, p2.y - p1.y);
     }
 
-    *[Symbol.iterator](): Generator<number> {
-        yield this.x;
-        yield this.y;
+    asArray(): [number, number] {
+        return [this.x, this.y];
     }
 
     dot(other: Vector): number {
@@ -145,7 +126,7 @@ export class Ray<T extends Point> {
         return new Ray(p1, vec, maxT);
     }
     get(t: number): T {
-        return new Point(this.origin.x + t * this.direction.x, this.origin.y + t * this.direction.y) as T;
+        return point(this.origin.x + t * this.direction.x, this.origin.y + t * this.direction.y) as T;
     }
     getDistance(t1: number, t2: number): number {
         return Math.sqrt(Math.pow(t2 - t1, 2) * (Math.pow(this.direction.x, 2) + Math.pow(this.direction.y, 2)));

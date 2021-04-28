@@ -73,7 +73,7 @@ export interface ServerLine extends ServerShape {
     line_width: number;
 }
 export interface ServerPolygon extends ServerShape {
-    vertices: number[][];
+    vertices: [number, number][];
     open_polygon: boolean;
     line_width: number;
 }

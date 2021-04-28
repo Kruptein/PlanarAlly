@@ -1,7 +1,7 @@
 import { reactive, watch, watchEffect } from "vue";
 
 import { g2l, getUnitDistance, l2g, toRadians } from "../../../core/conversions";
-import { GlobalPoint, LocalPoint } from "../../../core/geometry";
+import { equalsP, LocalPoint, toGP } from "../../../core/geometry";
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { clientStore } from "../../../store/client";
@@ -77,7 +77,7 @@ class SpellTool extends Tool {
 
         const layer = floorStore.currentLayer.value!;
 
-        const ogPoint = new GlobalPoint(0, 0);
+        const ogPoint = toGP(0, 0);
         let startPosition = ogPoint;
 
         if (this.shape !== undefined) {
@@ -110,7 +110,7 @@ class SpellTool extends Tool {
         this.shape.strokeColour = this.state.colour;
         this.shape.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.UI);
 
-        if (selectionState.hasSelection && (this.state.range === 0 || startPosition.equals(ogPoint))) {
+        if (selectionState.hasSelection && (this.state.range === 0 || equalsP(startPosition, ogPoint))) {
             const selection = [...selectionState.state.selection.values()];
             this.shape.center(UuidMap.get(selection[0])!.center());
         }

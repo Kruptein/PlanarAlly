@@ -14,8 +14,8 @@ export type Operation =
 // MOVEMENT
 export interface ShapeMovementOperation {
     uuid: string;
-    from: number[];
-    to: number[];
+    from: [number, number];
+    to: [number, number];
 }
 
 export interface MovementOperation {
@@ -28,8 +28,8 @@ interface ResizeOperation {
     type: "resize";
     // shapes: (RectResizeOperation | CircleResizeOperation | PolygonResizeOperation)[];
     uuid: string;
-    fromPoint: number[];
-    toPoint: number[];
+    fromPoint: [number, number];
+    toPoint: [number, number];
     resizePoint: number;
     retainAspectRatio: boolean;
 }

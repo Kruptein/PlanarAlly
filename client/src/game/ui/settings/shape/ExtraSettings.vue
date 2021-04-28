@@ -2,7 +2,7 @@
 import { computed, defineComponent, ref, toRefs } from "vue";
 
 import { l2gz } from "../../../../core/conversions";
-import { GlobalPoint } from "../../../../core/geometry";
+import { toGP } from "../../../../core/geometry";
 import { InvalidationMode, SyncMode, SyncTo } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { baseAdjustedFetch, uuidv4 } from "../../../../core/utils";
@@ -120,9 +120,7 @@ export default defineComponent({
             const fowLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Lighting)!;
 
             for (const wall of dDraftData.ddraft_line_of_sight) {
-                const points = wall.map(
-                    (w) => new GlobalPoint(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH),
-                );
+                const points = wall.map((w) => toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH));
                 const shape = new Polygon(points[0], points.slice(1), { openPolygon: true, strokeColour: "red" });
                 shape.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.UI);
 
@@ -132,8 +130,8 @@ export default defineComponent({
             }
 
             for (const portal of dDraftData.ddraft_portals) {
-                const points = portal.bounds.map(
-                    (w) => new GlobalPoint(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH),
+                const points = portal.bounds.map((w) =>
+                    toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH),
                 );
                 const shape = new Polygon(points[0], points.slice(1), { openPolygon: true, strokeColour: "blue" });
                 shape.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.UI);
@@ -146,7 +144,7 @@ export default defineComponent({
             }
 
             for (const light of dDraftData.ddraft_lights) {
-                const refPoint = new GlobalPoint(
+                const refPoint = toGP(
                     targetRP.x + light.position.x * size * dW,
                     targetRP.y + light.position.y * size * dH,
                 );

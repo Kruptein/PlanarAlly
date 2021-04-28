@@ -1,5 +1,5 @@
 import { g2l, g2lx, g2ly, g2lz } from "../../../core/conversions";
-import { GlobalPoint } from "../../../core/geometry";
+import { addP, GlobalPoint, subtractP, toArrayP, toGP } from "../../../core/geometry";
 import { rotateAroundPoint } from "../../../core/math";
 import { ServerLine } from "../../models/shapes";
 import { Shape } from "../shape";
@@ -29,12 +29,12 @@ export class Line extends Shape {
         return false;
     }
 
-    getPositionRepresentation(): { angle: number; points: number[][] } {
-        return { angle: this.angle, points: [this.refPoint.asArray(), this.endPoint.asArray()] };
+    getPositionRepresentation(): { angle: number; points: [number, number][] } {
+        return { angle: this.angle, points: [toArrayP(this.refPoint), toArrayP(this.endPoint)] };
     }
 
-    setPositionRepresentation(position: { angle: number; points: number[][] }): void {
-        this.endPoint = GlobalPoint.fromArray(position.points[1]);
+    setPositionRepresentation(position: { angle: number; points: [number, number][] }): void {
+        this.endPoint = toGP(position.points[1]);
         super.setPositionRepresentation(position);
     }
 
@@ -46,15 +46,15 @@ export class Line extends Shape {
         });
     }
 
-    get points(): number[][] {
+    get points(): [number, number][] {
         return [
-            [...rotateAroundPoint(this.refPoint, this.center(), this.angle)],
-            [...rotateAroundPoint(this.endPoint, this.center(), this.angle)],
+            toArrayP(rotateAroundPoint(this.refPoint, this.center(), this.angle)),
+            toArrayP(rotateAroundPoint(this.endPoint, this.center(), this.angle)),
         ];
     }
     getBoundingBox(): BoundingRect {
         return new BoundingRect(
-            new GlobalPoint(Math.min(this.refPoint.x, this.endPoint.x), Math.min(this.refPoint.y, this.endPoint.y)),
+            toGP(Math.min(this.refPoint.x, this.endPoint.x), Math.min(this.refPoint.y, this.endPoint.y)),
             Math.abs(this.refPoint.x - this.endPoint.x),
             Math.abs(this.refPoint.y - this.endPoint.y),
         );
@@ -79,10 +79,11 @@ export class Line extends Shape {
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
     center(centerPoint?: GlobalPoint): GlobalPoint | void {
-        if (centerPoint === undefined) return this.refPoint.add(this.endPoint.subtract(this.refPoint).multiply(1 / 2));
+        if (centerPoint === undefined)
+            return addP(this.refPoint, subtractP(this.endPoint, this.refPoint).multiply(1 / 2));
         const oldCenter = this.center();
-        this.refPoint = GlobalPoint.fromArray([...centerPoint.subtract(oldCenter.subtract(this.refPoint))]);
-        this.endPoint = GlobalPoint.fromArray([...centerPoint.subtract(oldCenter.subtract(this.endPoint))]);
+        this.refPoint = toGP(subtractP(centerPoint, subtractP(oldCenter, this.refPoint)).asArray());
+        this.endPoint = toGP(subtractP(centerPoint, subtractP(oldCenter, this.endPoint)).asArray());
     }
     visibleInCanvas(canvas: HTMLCanvasElement, options: { includeAuras: boolean }): boolean {
         if (super.visibleInCanvas(canvas, options)) return true;

@@ -34,15 +34,18 @@ socket.on("Shapes.Remove", (shapeIds: string[]) => {
     deleteShapes(shapes, SyncMode.NO_SYNC);
 });
 
-socket.on("Shapes.Position.Update", (data: { uuid: string; position: { angle: number; points: number[][] } }[]) => {
-    for (const sh of data) {
-        const shape = UuidMap.get(sh.uuid);
-        if (shape === undefined) {
-            continue;
+socket.on(
+    "Shapes.Position.Update",
+    (data: { uuid: string; position: { angle: number; points: [number, number][] } }[]) => {
+        for (const sh of data) {
+            const shape = UuidMap.get(sh.uuid);
+            if (shape === undefined) {
+                continue;
+            }
+            shape.setPositionRepresentation(sh.position);
         }
-        shape.setPositionRepresentation(sh.position);
-    }
-});
+    },
+);
 
 socket.on("Shapes.Options.Update", (data: { uuid: string; option: string }[]) => {
     for (const sh of data) {

@@ -12,7 +12,7 @@ import "./events/shape/core";
 import "./events/shape/options";
 import "./events/shape/togglecomposite";
 
-import { GlobalPoint } from "../../core/geometry";
+import { toGP } from "../../core/geometry";
 import { AssetList, AssetListMap, SyncMode } from "../../core/models/types";
 import { router } from "../../router";
 import { clientStore } from "../../store/client";
@@ -93,7 +93,7 @@ socket.on("Board.Floor.Set", (floor: ServerFloor) => {
 socket.on("Position.Set", (data: { floor?: string; x: number; y: number; zoom?: number }) => {
     if (data.floor !== undefined) floorStore.selectFloor({ name: data.floor }, false);
     if (data.zoom !== undefined) clientStore.setZoomDisplay(data.zoom);
-    setCenterPosition(new GlobalPoint(data.x, data.y));
+    setCenterPosition(toGP(data.x, data.y));
 });
 
 socket.on("Notes.Set", (notes: Note[]) => {

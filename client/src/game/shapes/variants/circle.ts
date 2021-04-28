@@ -1,5 +1,5 @@
 import { g2lz, clampGridLine } from "../../../core/conversions";
-import { GlobalPoint, Vector } from "../../../core/geometry";
+import { addP, GlobalPoint, subtractP, toGP, Vector } from "../../../core/geometry";
 import { DEFAULT_GRID_SIZE } from "../../../store/client";
 import { getFogColour } from "../../colour";
 import { calculateDelta } from "../../drag";
@@ -43,14 +43,10 @@ export class Circle extends Shape {
     }
 
     getBoundingBox(): BoundingRect {
-        return new BoundingRect(
-            new GlobalPoint(this.refPoint.x - this.r, this.refPoint.y - this.r),
-            this.r * 2,
-            this.r * 2,
-        );
+        return new BoundingRect(toGP(this.refPoint.x - this.r, this.refPoint.y - this.r), this.r * 2, this.r * 2);
     }
 
-    get points(): number[][] {
+    get points(): [number, number][] {
         return this.getBoundingBox().points;
     }
 
@@ -120,7 +116,7 @@ export class Circle extends Shape {
             targetY = Math.round((this.refPoint.y - gs / 2) / gs) * gs + this.r;
         }
         const delta = calculateDelta(new Vector(targetX - this.refPoint.x, targetY - this.refPoint.y), this);
-        this.refPoint = this.refPoint.add(delta);
+        this.refPoint = addP(this.refPoint, delta);
         this.invalidate(false);
     }
     resizeToGrid(): void {
@@ -129,7 +125,7 @@ export class Circle extends Shape {
         this.invalidate(false);
     }
     resize(resizePoint: number, point: GlobalPoint): number {
-        const diff = point.subtract(this.refPoint);
+        const diff = subtractP(point, this.refPoint);
         this.r = Math.sqrt(Math.pow(diff.length(), 2) / 2);
         return resizePoint;
     }

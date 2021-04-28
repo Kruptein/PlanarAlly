@@ -1,5 +1,5 @@
 import { g2lx, g2ly } from "../../../core/conversions";
-import { GlobalPoint, Point, Vector, Ray } from "../../../core/geometry";
+import { GlobalPoint, Point, Vector, Ray, toGP, addP } from "../../../core/geometry";
 import { rotateAroundPoint } from "../../../core/math";
 
 export class BoundingRect {
@@ -17,9 +17,9 @@ export class BoundingRect {
         this.w = w;
         this.h = h;
         this.topLeft = topleft;
-        this.topRight = new GlobalPoint(topleft.x + w, topleft.y);
-        this.botRight = new GlobalPoint(topleft.x + w, topleft.y + h);
-        this.botLeft = new GlobalPoint(topleft.x, topleft.y + h);
+        this.topRight = toGP(topleft.x + w, topleft.y);
+        this.botRight = toGP(topleft.x + w, topleft.y + h);
+        this.botLeft = toGP(topleft.x, topleft.y + h);
     }
 
     get angle(): number {
@@ -40,7 +40,7 @@ export class BoundingRect {
         );
     }
 
-    get points(): number[][] {
+    get points(): [number, number][] {
         if (this.w === 0 || this.h === 0) return [[this.topLeft.x, this.topLeft.y]];
 
         const center = this.center();
@@ -58,12 +58,12 @@ export class BoundingRect {
     }
 
     offset(vector: Vector): BoundingRect {
-        return new BoundingRect(this.topLeft.add(vector), this.w, this.h);
+        return new BoundingRect(addP(this.topLeft, vector), this.w, this.h);
     }
 
     expand(vector: Vector): BoundingRect {
         return new BoundingRect(
-            this.topLeft.add(vector),
+            addP(this.topLeft, vector),
             this.w + 2 * Math.abs(vector.x),
             this.h + 2 * Math.abs(vector.y),
         );
@@ -74,7 +74,7 @@ export class BoundingRect {
         const xmax = Math.max(this.topRight.x, other.topRight.x);
         const ymin = Math.min(this.topLeft.y, other.topLeft.y);
         const ymax = Math.max(this.botLeft.y, other.botLeft.y);
-        return new BoundingRect(new GlobalPoint(xmin, ymin), xmax - xmin, ymax - ymin);
+        return new BoundingRect(toGP(xmin, ymin), xmax - xmin, ymax - ymin);
     }
 
     getDiagCorner(botright: boolean): GlobalPoint {
@@ -115,12 +115,8 @@ export class BoundingRect {
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): BoundingRect;
     center(centerPoint?: GlobalPoint): GlobalPoint | BoundingRect {
-        if (centerPoint === undefined) return this.topLeft.add(new Vector(this.w / 2, this.h / 2));
-        return new BoundingRect(
-            new GlobalPoint(centerPoint.x - this.w / 2, centerPoint.y - this.h / 2),
-            this.w,
-            this.h,
-        );
+        if (centerPoint === undefined) return addP(this.topLeft, new Vector(this.w / 2, this.h / 2));
+        return new BoundingRect(toGP(centerPoint.x - this.w / 2, centerPoint.y - this.h / 2), this.w, this.h);
     }
 
     getMaxExtent(): 0 | 1 {
@@ -142,7 +138,7 @@ export class BoundingRect {
         const newCenter = rotateAroundPoint(center, point, angle);
 
         const bb = new BoundingRect(
-            this.topLeft.add(new Vector(newCenter.x - center.x, newCenter.y - center.y)),
+            addP(this.topLeft, new Vector(newCenter.x - center.x, newCenter.y - center.y)),
             this.w,
             this.h,
         );

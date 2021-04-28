@@ -5,7 +5,7 @@ import { defineComponent, nextTick, ref, watch, watchEffect } from "vue";
 import ColourPicker from "../../../core/components/ColourPicker.vue";
 import Modal from "../../../core/components/modals/Modal.vue";
 import { getUnitDistance, l2g } from "../../../core/conversions";
-import { LocalPoint } from "../../../core/geometry";
+import { toLP } from "../../../core/geometry";
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
 import { calcFontScale } from "../../../core/utils";
 import { clientStore } from "../../../store/client";
@@ -43,7 +43,7 @@ export default defineComponent({
             const layer = floorStore.currentLayer.value!;
 
             const token = new CircularToken(
-                l2g(new LocalPoint(tokenDialogLeft, tokenDialogTop)),
+                l2g(toLP(tokenDialogLeft, tokenDialogTop)),
                 getUnitDistance(settingsStore.unitSize.value / 2),
                 text.value || "X",
                 "10px serif",

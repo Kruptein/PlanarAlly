@@ -11,7 +11,17 @@ import { Edge, EdgeIterator, TDS } from "./vision/tds";
 import { computeVisibility } from "./vision/te";
 import { ccw, cw } from "./vision/triag";
 
-export function drawLoop(): void {
+let _animationFrameId = 0;
+
+export function startDrawLoop(): void {
+    _animationFrameId = requestAnimationFrame(drawLoop);
+}
+
+export function stopDrawLoop(): void {
+    cancelAnimationFrame(_animationFrameId);
+}
+
+function drawLoop(): void {
     const state = floorStore.state;
     // First process all other floors
     for (const [f, floor] of state.floors.entries()) {
@@ -28,7 +38,7 @@ export function drawLoop(): void {
             if (i === state.floorIndex || !layer.isVisionLayer) layer.show();
         }
     }
-    requestAnimationFrame(drawLoop);
+    _animationFrameId = requestAnimationFrame(drawLoop);
 }
 
 function drawFloor(floor: Floor): void {

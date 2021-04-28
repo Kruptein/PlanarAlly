@@ -21,7 +21,7 @@ import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
 import { locationStore } from "../../store/location";
 import { UuidMap } from "../../store/shapeMap";
-import { drawLoop } from "../draw";
+import { startDrawLoop, stopDrawLoop } from "../draw";
 import { compositeState } from "../layers/state";
 import { Note, ServerFloor } from "../models/general";
 import { Location } from "../models/settings";
@@ -63,6 +63,7 @@ socket.on("redirect", (destination: string) => {
 // Bootup events
 
 socket.on("Board.Locations.Set", (locationInfo: Location[]) => {
+    stopDrawLoop();
     gameStore.clear();
     visionState.clear();
     locationStore.setLocations(locationInfo, false);
@@ -81,7 +82,7 @@ socket.on("Board.Floor.Set", (floor: ServerFloor) => {
 
     if (selectFloor) {
         floorStore.selectFloor({ name: floor.name }, false);
-        requestAnimationFrame(drawLoop);
+        startDrawLoop();
         coreStore.setLoading(false);
         gameStore.setBoardInitialized(true);
         if (activeLayerToselect !== undefined) floorStore.selectLayer(activeLayerToselect, false);

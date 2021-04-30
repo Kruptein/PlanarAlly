@@ -1,5 +1,4 @@
 import "./events/access";
-import "./events/client";
 import "./events/floor";
 import "./events/groups";
 import "./events/initiative";

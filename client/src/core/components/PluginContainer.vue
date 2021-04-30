@@ -10,7 +10,6 @@ export default defineComponent({
     name: "PlanarAllyModals",
     components: { AssetPicker, ConfirmDialog, Prompt, SelectionBox },
     props: ["assetPicker", "confirm", "prompt", "selectionBox"],
-    setup() {},
 });
 </script>
 

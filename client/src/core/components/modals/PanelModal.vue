@@ -20,9 +20,7 @@ export default defineComponent({
             emit("update:visible", false);
         }
 
-        function handleClick(): void {}
-
-        return { handleClick, hideModal, selection, t };
+        return { hideModal, selection, t };
     },
 });
 </script>
@@ -37,7 +35,7 @@ export default defineComponent({
                 </div>
             </div>
         </template>
-        <div class="modal-body" @click="handleClick">
+        <div class="modal-body">
             <div id="categories">
                 <div
                     class="category"

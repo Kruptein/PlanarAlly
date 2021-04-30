@@ -132,7 +132,11 @@ export default defineComponent({
                     </div>
                 </div>
                 <!-- DM SETTINGS -->
-                <button class="menu-accordion" @click="openDmSettings" v-t="'game.ui.menu.MenuBar.dm_options'"></button>
+                <button
+                    class="menu-accordion"
+                    @click="openDmSettings"
+                    v-t="'game.ui.menu.MenuBar.dm_settings'"
+                ></button>
             </template>
             <!-- MARKERS -->
             <button class="menu-accordion" v-t="'common.markers'"></button>
@@ -149,11 +153,11 @@ export default defineComponent({
                     <div v-if="markers.size === 0" v-t="'game.ui.menu.MenuBar.no_markers'"></div>
                 </div>
             </div>
-            <!-- CLIENT OPTIONS -->
+            <!-- CLIENT SETTINGS -->
             <button
                 class="menu-accordion"
                 @click="openClientSettings"
-                v-t="'game.ui.menu.MenuBar.client_options'"
+                v-t="'game.ui.menu.MenuBar.client_settings'"
             ></button>
         </div>
         <router-link

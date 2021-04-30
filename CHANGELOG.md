@@ -16,6 +16,7 @@ These usually have no immediately visible impact on regular users
 ### Changed
 
 -   [tech] server_config variable `public_name` is now commented by default
+-   [tech] removed dependencies from Dockefile, that were no longer needed
 
 ### Fixed
 

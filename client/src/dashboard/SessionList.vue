@@ -30,7 +30,7 @@ export default defineComponent({
             if (props.sessions.length > 0) await updateInfo();
         });
         // This is needed for the Play tab that is immediately mounted without props.sessions
-        watch(selected, async () => await updateInfo());
+        watch(selected, async () => updateInfo());
 
         async function select(index: number): Promise<void> {
             selectedIndex.value = index;

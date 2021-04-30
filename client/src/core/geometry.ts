@@ -24,10 +24,6 @@ export type Point = { x: number; y: number };
 export type GlobalPoint = Point & { __brand: "GlobalPoint" };
 export type LocalPoint = Point & { __brand: "LocalPoint" };
 
-function point(x: number, y: number): Point {
-    return { x, y };
-}
-
 export function toGP(array: [number, number]): GlobalPoint;
 export function toGP(x: number, y: number): GlobalPoint;
 export function toGP(first: number | [number, number], second?: number): GlobalPoint {
@@ -126,7 +122,7 @@ export class Ray<T extends Point> {
         return new Ray(p1, vec, maxT);
     }
     get(t: number): T {
-        return point(this.origin.x + t * this.direction.x, this.origin.y + t * this.direction.y) as T;
+        return { x: this.origin.x + t * this.direction.x, y: this.origin.y + t * this.direction.y } as T;
     }
     getDistance(t1: number, t2: number): number {
         return Math.sqrt(Math.pow(t2 - t1, 2) * (Math.pow(this.direction.x, 2) + Math.pow(this.direction.y, 2)));

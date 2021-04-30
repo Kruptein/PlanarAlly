@@ -75,9 +75,9 @@ export default defineComponent({
             }
         });
 
-        function setActiveNavigation(navigation: number): void {
-            if (navigation === 2 && state.owned.length === 0) navigation = 3;
-            state.activeNavigation = navigation;
+        function setActiveNavigation(navigationIndex: number): void {
+            if (navigationIndex === 2 && state.owned.length === 0) navigationIndex = 3;
+            state.activeNavigation = navigationIndex;
         }
 
         async function openAssetManager(): Promise<void> {

@@ -121,14 +121,14 @@ export default defineComponent({
                 <!-- NOTES -->
                 <button class="menu-accordion" v-t="'common.notes'"></button>
                 <div class="menu-accordion-panel">
-                    <div class="menu-accordion-subpanel" id="menu-notes">
-                        <a class="actionButton" @click="createNote" :title="t('game.ui.menu.MenuBar.create_note')">
-                            <font-awesome-icon icon="plus-square" />
-                        </a>
+                    <div class="menu-accordion-subpanel" id="menu-notes" style="position: relative">
                         <div v-for="note in notes" :key="note.uuid" @click="openNote(note)" style="cursor: pointer">
                             {{ note.title || "[?]" }}
                         </div>
                         <div v-if="!notes.length" v-t="'game.ui.menu.MenuBar.no_notes'"></div>
+                        <a class="actionButton" @click="createNote" :title="t('game.ui.menau.MenuBar.create_note')">
+                            <font-awesome-icon icon="plus-square" />
+                        </a>
                     </div>
                 </div>
                 <!-- DM SETTINGS -->
@@ -233,9 +233,9 @@ DIRECTORY.CSS changes
 }
 
 .actionButton {
-    margin: 5px;
-    align-self: flex-end;
-    margin-bottom: -30px;
+    position: absolute;
+    right: 5px;
+    top: 3px;
 }
 
 .menu-accordion {

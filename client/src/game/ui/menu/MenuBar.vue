@@ -10,11 +10,11 @@ import { uiStore } from "../../../store/ui";
 import { Note } from "../../models/general";
 import NoteDialog from "../NoteDialog.vue";
 
-import AssetNode from "./AssetNode.vue";
+import AssetParentNode from "./AssetParentNode.vue";
 
 export default defineComponent({
     name: "MenuBar",
-    components: { AssetNode, NoteDialog },
+    components: { AssetParentNode, NoteDialog },
     setup() {
         const { t } = useI18n();
 
@@ -70,7 +70,6 @@ export default defineComponent({
             t,
             isDm: toRef(gameState, "isDm"),
 
-            assets: toRef(gameState, "assets"),
             assetSearch,
             noAssets,
 
@@ -112,7 +111,7 @@ export default defineComponent({
                         <font-awesome-icon icon="external-link-alt" />
                     </a>
                     <div class="directory" id="menu-tokens">
-                        <AssetNode :asset="assets" :search="assetSearch.toLowerCase()" />
+                        <AssetParentNode :search="assetSearch.toLowerCase()" />
                         <div v-if="noAssets">
                             {{ t("game.ui.menu.MenuBar.no_assets") }}
                         </div>

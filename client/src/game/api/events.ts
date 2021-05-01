@@ -12,7 +12,7 @@ import "./events/shape/options";
 import "./events/shape/togglecomposite";
 
 import { toGP } from "../../core/geometry";
-import { AssetList, AssetListMap, SyncMode } from "../../core/models/types";
+import { AssetList, SyncMode } from "../../core/models/types";
 import { router } from "../../router";
 import { clientStore } from "../../store/client";
 import { coreStore } from "../../store/core";
@@ -20,6 +20,7 @@ import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
 import { locationStore } from "../../store/location";
 import { UuidMap } from "../../store/shapeMap";
+import { convertAssetListToMap } from "../assets/utils";
 import { startDrawLoop, stopDrawLoop } from "../draw";
 import { compositeState } from "../layers/state";
 import { Note, ServerFloor } from "../models/general";
@@ -101,21 +102,8 @@ socket.on("Notes.Set", (notes: Note[]) => {
     for (const note of notes) gameStore.newNote(note, false);
 });
 
-function convertAssetMap(assets: AssetList): AssetListMap {
-    const m = new Map();
-    for (const key of Object.keys(assets)) {
-        if (key === "__files") {
-            m.set(key, assets[key]);
-        } else {
-            const n = convertAssetMap(assets[key] as AssetList);
-            m.set(key, n);
-        }
-    }
-    return m;
-}
-
 socket.on("Asset.List.Set", (assets: AssetList) => {
-    gameStore.setAssets(convertAssetMap(assets));
+    gameStore.setAssets(convertAssetListToMap(assets));
 });
 
 socket.on("Markers.Set", (markers: string[]) => {

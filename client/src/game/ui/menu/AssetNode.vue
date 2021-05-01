@@ -2,74 +2,30 @@
 import { computed, defineComponent, PropType, reactive, toRefs } from "vue";
 
 import { AssetFile, AssetListMap } from "../../../core/models/types";
-import { alphSort, baseAdjust } from "../../../core/utils";
+import { baseAdjust } from "../../../core/utils";
 
 interface State {
-    empty: boolean;
-    emptyFolders: string[];
     hoveredHash: string;
 }
 
 export default defineComponent({
     name: "AssetNode",
     props: {
-        asset: { type: Object as PropType<AssetListMap>, required: true },
-        name: String,
-        search: { type: String, required: true },
+        assets: { type: Object as PropType<AssetListMap>, required: true },
     },
-    setup(props, { emit }) {
+    setup(props) {
         const state: State = reactive({
-            empty: false,
-            emptyFolders: [],
             hoveredHash: "",
         });
 
-        // watch(
-        //     () => props.search,
-        //     () => {
-        //         console.log(props.search);
-        //         checkVisibility();
-        //     },
-        // );
-
         const files = computed(() => {
-            const assetFiles = props.asset.get("__files") as AssetFile[] | undefined;
+            const assetFiles = props.assets.get("__files") as AssetFile[] | undefined;
             return assetFiles?.concat() ?? [];
         });
 
-        const filteredFiles = computed(() =>
-            files.value
-                .filter((f) => f.name.toLowerCase().includes(props.search.toLowerCase()))
-                .sort((a, b) => (a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1)),
-        );
-
         const folders = computed(() => {
-            return [...props.asset.keys()].filter((el) => "__files" !== el).sort(alphSort);
+            return [...props.assets.keys()].filter((el) => "__files" !== el);
         });
-
-        function checkVisibility(): void {
-            const newEmpty = files.value.length === 0 && folders.value.length <= state.emptyFolders.length;
-            if (!state.empty && newEmpty) {
-                state.empty = true;
-                emit("folderEmpty", props.name);
-            } else if (state.empty && !newEmpty) {
-                state.empty = false;
-                emit("folderShow", props.name);
-            }
-        }
-
-        function folderEmpty(name: string): void {
-            state.emptyFolders.push(name);
-            checkVisibility();
-        }
-
-        function folderShow(name: string): void {
-            state.emptyFolders.splice(
-                state.emptyFolders.findIndex((x) => x === name),
-                1,
-            );
-            checkVisibility();
-        }
 
         function toggle(event: { target: HTMLElement }): void {
             for (let i = 0; i < event.target.children.length; i++) {
@@ -87,25 +43,19 @@ export default defineComponent({
             event.dataTransfer.setData("text/plain", JSON.stringify({ imageSource, assetId }));
         }
 
-        return { ...toRefs(state), baseAdjust, dragStart, filteredFiles, folders, folderEmpty, folderShow, toggle };
+        return { ...toRefs(state), baseAdjust, dragStart, files, folders, toggle };
     },
 });
 </script>
 
 <template>
     <ul>
-        <li
-            v-for="folder in folders"
-            :key="folder"
-            class="folder"
-            @click.stop="toggle"
-            v-show="!emptyFolders.includes(folder)"
-        >
+        <li v-for="folder in folders" :key="folder" class="folder" @click.stop="toggle">
             {{ folder }}
-            <asset-node :asset="asset.get(folder)" :name="folder" :search="search"></asset-node>
+            <AssetNode :assets="assets.get(folder)" />
         </li>
         <li
-            v-for="file in filteredFiles"
+            v-for="file in files"
             :key="file.id"
             class="file draggable token"
             draggable="true"

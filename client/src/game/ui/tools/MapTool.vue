@@ -1,286 +1,112 @@
 <script lang="ts">
-import Component from "vue-class-component";
+import { defineComponent, onMounted, reactive, toRefs, watchEffect } from "vue";
+import { useI18n } from "vue-i18n";
 
-import { sendShapePositionUpdate, sendShapeSizeUpdate } from "@/game/api/emits/shape/core";
-import { EventBus } from "@/game/event-bus";
-import { GlobalPoint, Vector, LocalPoint } from "@/game/geom";
-import { layerManager } from "@/game/layers/manager";
-import { floorStore } from "@/game/layers/store";
-import { Shape } from "@/game/shapes/shape";
-import { Rect } from "@/game/shapes/variants/rect";
-import Tool from "@/game/ui/tools/Tool.vue";
-import { l2g } from "@/game/units";
+import { DEFAULT_GRID_SIZE } from "../../../store/client";
+import { UuidMap } from "../../../store/shapeMap";
+import { selectionState } from "../../layers/selection";
+import { mapTool } from "../../tools/variants/map";
 
-import { SyncMode, InvalidationMode } from "../../../core/models/types";
-import { DEFAULT_GRID_SIZE } from "../../store";
+import { useToolPosition } from "./toolPosition";
 
-import { SelectFeatures } from "./SelectTool.vue";
-import { ToolBasics } from "./ToolBasics";
-import { ToolName, ToolPermission } from "./utils";
+export default defineComponent({
+    setup() {
+        const { t } = useI18n();
 
-@Component
-export default class MapTool extends Tool implements ToolBasics {
-    name = ToolName.Map;
-    active = false;
-    gridX = 3;
-    gridY = 3;
-    sizeX = 0;
-    sizeY = 0;
+        const state = reactive({
+            arrow: "0px",
+            right: "0px",
 
-    // used for region selection
-    factorX = 1;
-    factorY = 1;
-
-    startPoint: GlobalPoint | undefined = undefined;
-    rect: Rect | undefined = undefined;
-    shape: Rect | undefined = undefined;
-    error = "";
-
-    ogRP: GlobalPoint | undefined = undefined;
-    ogW: number | null = null;
-    ogH: number | null = null;
-
-    manualDrag = true;
-    lock = true;
-    aspectRatio = 1;
-
-    hasShape = false;
-    hasRect = false;
-
-    permittedTools_: ToolPermission[] = [
-        { name: ToolName.Select, features: { enabled: [SelectFeatures.ChangeSelection] } },
-    ];
-
-    get permittedTools(): ToolPermission[] {
-        return this.permittedTools_;
-    }
-    // Life cycle
-
-    mounted(): void {
-        EventBus.$on("SelectionInfo.Shapes.Set", (shapes: Shape[]) => {
-            this.setSelection(shapes);
+            lock: false,
         });
-    }
 
-    beforeDestroy(): void {
-        EventBus.$off("SelectionInfo.Shapes.Set");
-    }
+        onMounted(() => {
+            ({ right: state.right, arrow: state.arrow } = useToolPosition(mapTool.toolName));
+        });
 
-    // End life cycle
-
-    setSelection(shapes: readonly Shape[]): void {
-        if (shapes.length === 1 && this.shape === undefined && ["assetrect", "rect"].includes(shapes[0].type)) {
-            this.shape = shapes[0] as Rect;
-            this.hasShape = true;
-            this.ogRP = this.shape.refPoint;
-            this.ogW = this.shape.w;
-            this.ogH = this.shape.h;
-            this.aspectRatio = this.shape.w / this.shape.h;
-        } else if (shapes.length === 0) {
-            this.removeRect();
-        }
-    }
-
-    skipManualDrag(): void {
-        if (this.shape === undefined) return;
-
-        this.manualDrag = false;
-        this.gridX = this.shape.w / DEFAULT_GRID_SIZE;
-        this.gridY = this.shape.h / DEFAULT_GRID_SIZE;
-        this.sizeX = this.shape.w;
-        this.sizeY = this.shape.h;
-    }
-
-    removeRect(reset = true): void {
-        if (this.shape && reset && this.active) {
-            this.shape.refPoint = this.ogRP!;
-            this.shape.w = this.ogW!;
-            this.shape.h = this.ogH!;
-
-            sendShapePositionUpdate([this.shape], true);
-            sendShapeSizeUpdate({ shape: this.shape, temporary: true });
-            this.shape.invalidate(true);
-        }
-        if (this.rect) {
-            const layer = floorStore.currentLayer!;
-            layer.removeShape(this.rect, SyncMode.NO_SYNC, true);
-            this.rect = undefined;
-            this.hasRect = false;
-        }
-        this.permittedTools_ = [{ name: ToolName.Select, features: { enabled: [SelectFeatures.ChangeSelection] } }];
-        this.shape = undefined;
-        this.hasShape = false;
-        this.error = "";
-        this.manualDrag = true;
-    }
-
-    preview(temporary: boolean): void {
-        if (this.shape === undefined || (this.rect === undefined && this.manualDrag)) return;
-        if (!Number.isFinite(this.gridX) || !Number.isFinite(this.gridY) || this.gridX <= 0 || this.gridY <= 0) {
-            this.error = "Input should be a positive number";
-            return;
-        }
-
-        if (this.rect !== undefined) {
-            const xFactor = (this.gridX * DEFAULT_GRID_SIZE) / this.rect.w;
-            const yFactor = (this.gridY * DEFAULT_GRID_SIZE) / this.rect.h;
-
-            this.shape.w *= xFactor;
-            this.shape.h *= yFactor;
-
-            const oldRefpoint = this.shape.refPoint;
-            const oldCenter = this.rect.center();
-
-            const delta = oldCenter.subtract(oldRefpoint);
-            const newCenter = oldRefpoint.add(new Vector(xFactor * delta.x, yFactor * delta.y));
-            this.shape.refPoint = this.shape.refPoint.add(oldCenter.subtract(newCenter));
-        } else {
-            this.shape.w = this.sizeX;
-            this.shape.h = this.sizeY;
-        }
-
-        sendShapePositionUpdate([this.shape], temporary);
-        sendShapeSizeUpdate({ shape: this.shape, temporary: temporary });
-        this.shape.invalidate(true);
-    }
-
-    apply(): void {
-        this.preview(false);
-        this.removeRect(false);
-    }
-
-    onSelect(): void {
-        this.setSelection(layerManager.getSelection({ includeComposites: false }));
-    }
-
-    onDeselect(): void {
-        this.removeRect();
-    }
-
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onDown(lp: LocalPoint): Promise<void> {
-        if (!this.manualDrag) return;
-        if (this.rect !== undefined || !layerManager.hasSelection()) return;
-
-        const startPoint = l2g(lp);
-
-        this.startPoint = startPoint;
-        const layer = floorStore.currentLayer;
-        if (layer === undefined) {
-            console.log("No active layer!");
-            return;
-        }
-        this.active = true;
-
-        this.rect = new Rect(this.startPoint.clone(), 0, 0, { fillColour: "rgba(0,0,0,0)", strokeColour: "black" });
-        this.hasRect = true;
-        this.rect.preventSync = true;
-        layer.addShape(this.rect, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
-        layer.setSelection(this.rect);
-        console.log(this.rect);
-    }
-
-    onMove(lp: LocalPoint): void {
-        if (!this.active || this.rect === undefined || this.startPoint === undefined) return;
-
-        const endPoint = l2g(lp);
-
-        const layer = floorStore.currentLayer;
-        if (layer === undefined) {
-            console.log("No active layer!");
-            return;
-        }
-
-        this.rect.w = Math.abs(endPoint.x - this.startPoint.x);
-        this.rect.h = Math.abs(endPoint.y - this.startPoint.y);
-        this.rect.refPoint = new GlobalPoint(
-            Math.min(this.startPoint.x, endPoint.x),
-            Math.min(this.startPoint.y, endPoint.y),
-        );
-        layer.invalidate(false);
-    }
-
-    onUp(): void {
-        if (!this.active || this.rect === undefined) return;
-        const layer = floorStore.currentLayer;
-        if (layer === undefined) {
-            console.log("No active layer!");
-            return;
-        }
-        this.active = false;
-
-        if (layer.getSelection({ includeComposites: false }).length !== 1) {
-            this.removeRect();
-            return;
-        }
-
-        this.permittedTools_ = [
-            { name: ToolName.Select, features: { enabled: [SelectFeatures.Drag, SelectFeatures.Resize] } },
-        ];
-    }
-
-    toggleLock(): void {
-        this.lock = !this.lock;
-        if (this.lock) this.aspectRatio = this.shape!.w / this.shape!.h;
-    }
-
-    updateGridX(): void {
-        if (this.lock) {
-            if (this.manualDrag) {
-                this.gridY = this.gridX / (this.rect!.w / this.rect!.h);
-            } else {
-                this.gridY = this.gridX / this.aspectRatio;
+        watchEffect(() => {
+            if (state.lock) {
+                mapTool.state.aspectRatio = mapTool.shape!.w / mapTool.shape!.h;
             }
-            this.sizeY = this.gridY * DEFAULT_GRID_SIZE;
-        }
-        this.sizeX = this.gridX * DEFAULT_GRID_SIZE;
-        if (!this.manualDrag && this.gridX > 0) this.preview(true);
-    }
+        });
 
-    updateGridY(): void {
-        if (this.lock) {
-            if (this.manualDrag) {
-                this.gridX = this.gridY * (this.rect!.w / this.rect!.h);
-            } else {
-                this.gridX = this.gridY * this.aspectRatio;
+        watchEffect(() => {
+            const selection = [...selectionState.state.selection].map((s) => UuidMap.get(s)!);
+            mapTool.setSelection(selection);
+        });
+
+        function apply(): void {
+            mapTool.preview(false);
+            mapTool.removeRect(false);
+        }
+
+        function updateGridX(): void {
+            if (state.lock) {
+                if (mapTool.state.manualDrag) {
+                    mapTool.state.gridY = mapTool.state.gridX / (mapTool.rect!.w / mapTool.rect!.h);
+                } else {
+                    mapTool.state.gridY = mapTool.state.gridX / mapTool.state.aspectRatio;
+                }
+                mapTool.state.sizeY = mapTool.state.gridY * DEFAULT_GRID_SIZE;
             }
-            this.sizeX = this.gridX * DEFAULT_GRID_SIZE;
+            mapTool.state.sizeX = mapTool.state.gridX * DEFAULT_GRID_SIZE;
+            if (!mapTool.state.manualDrag && mapTool.state.gridX > 0) mapTool.preview(true);
         }
-        this.sizeY = this.gridY * DEFAULT_GRID_SIZE;
-        if (!this.manualDrag && this.gridY > 0) this.preview(true);
-    }
 
-    updateSizeX(): void {
-        if (this.lock) {
-            this.sizeY = this.sizeX / this.aspectRatio;
-            this.gridY = this.sizeY / DEFAULT_GRID_SIZE;
+        function updateGridY(): void {
+            if (state.lock) {
+                if (mapTool.state.manualDrag) {
+                    mapTool.state.gridX = mapTool.state.gridY * (mapTool.rect!.w / mapTool.rect!.h);
+                } else {
+                    mapTool.state.gridX = mapTool.state.gridY * mapTool.state.aspectRatio;
+                }
+                mapTool.state.sizeX = mapTool.state.gridX * DEFAULT_GRID_SIZE;
+            }
+            mapTool.state.sizeY = mapTool.state.gridY * DEFAULT_GRID_SIZE;
+            if (!mapTool.state.manualDrag && mapTool.state.gridY > 0) mapTool.preview(true);
         }
-        this.gridX = this.sizeX / DEFAULT_GRID_SIZE;
-        if (this.sizeX > 0) this.preview(true);
-    }
 
-    updateSizeY(): void {
-        if (this.lock) {
-            this.sizeX = this.sizeY * this.aspectRatio;
-            this.gridX = this.sizeX / DEFAULT_GRID_SIZE;
+        function updateSizeX(): void {
+            if (state.lock) {
+                mapTool.state.sizeY = mapTool.state.sizeX / mapTool.state.aspectRatio;
+                mapTool.state.gridY = mapTool.state.sizeY / DEFAULT_GRID_SIZE;
+            }
+            mapTool.state.gridX = mapTool.state.sizeX / DEFAULT_GRID_SIZE;
+            if (mapTool.state.sizeX > 0) mapTool.preview(true);
         }
-        this.gridY = this.sizeY / DEFAULT_GRID_SIZE;
-        if (this.sizeY > 0) this.preview(true);
-    }
-}
+
+        function updateSizeY(): void {
+            if (state.lock) {
+                mapTool.state.sizeX = mapTool.state.sizeY * mapTool.state.aspectRatio;
+                mapTool.state.gridX = mapTool.state.sizeX / DEFAULT_GRID_SIZE;
+            }
+            mapTool.state.gridY = mapTool.state.sizeY / DEFAULT_GRID_SIZE;
+            if (mapTool.state.sizeY > 0) mapTool.preview(true);
+        }
+
+        return {
+            ...toRefs(state),
+            ...toRefs(mapTool.state),
+            t,
+            selected: mapTool.isActiveTool,
+            removeRect: () => mapTool.removeRect(),
+            skipManualDrag: () => mapTool.skipManualDrag(),
+            apply,
+            updateGridX,
+            updateGridY,
+            updateSizeX,
+            updateSizeY,
+        };
+    },
+});
 </script>
-
 <template>
-    <div
-        class="tool-detail map"
-        v-if="selected"
-        :style="{ '--detailRight': detailRight(), '--detailArrow': detailArrow }"
-    >
+    <div class="tool-detail map" v-if="selected" :style="{ '--detailRight': right, '--detailArrow': arrow }">
         <template v-if="hasShape">
             <div class="row">{{ error }}</div>
             <template v-if="!hasRect && manualDrag === true">
                 <div id="map-selection-choice">
-                    <div>{{ $t("game.ui.tools.MapTool.drag_to_resize") }}</div>
+                    <div>{{ t("game.ui.tools.MapTool.drag_to_resize") }}</div>
                     <div id="next" @click="skipManualDrag">
                         Scale full image instead
                         <font-awesome-icon icon="arrow-right" />
@@ -290,7 +116,7 @@ export default class MapTool extends Tool implements ToolBasics {
             <template v-else>
                 <div id="map-grid">
                     <div class="explanation" v-t="'game.ui.tools.MapTool.set_target_grid_cells'"></div>
-                    <div class="map-lock" @click="toggleLock" title="(Un)lock aspect ratio">
+                    <div class="map-lock" @click="lock = !lock" title="(Un)lock aspect ratio">
                         <font-awesome-icon v-show="lock" icon="link" />
                         <font-awesome-icon v-show="!lock" icon="unlink" />
                     </div>
@@ -303,7 +129,7 @@ export default class MapTool extends Tool implements ToolBasics {
                 <div id="map-size" v-show="!manualDrag">
                     <div class="explanation">Set target pixels</div>
 
-                    <div class="map-lock" @click="toggleLock" title="(Un)lock aspect ratio">
+                    <div class="map-lock" @click="lock = !lock" title="(Un)lock aspect ratio">
                         <font-awesome-icon v-show="lock" icon="link" />
                         <font-awesome-icon v-show="!lock" icon="unlink" />
                     </div>
@@ -319,7 +145,7 @@ export default class MapTool extends Tool implements ToolBasics {
                 </div>
             </template>
         </template>
-        <template v-else>{{ $t("game.ui.tools.MapTool.select_shape_msg") }}</template>
+        <template v-else>{{ t("game.ui.tools.MapTool.select_shape_msg") }}</template>
     </div>
 </template>
 

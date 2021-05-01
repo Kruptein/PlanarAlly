@@ -1,136 +1,23 @@
-import { dom, library } from "@fortawesome/fontawesome-svg-core";
-import { faDAndD, faDiscord, faGithub, faPatreon } from "@fortawesome/free-brands-svg-icons";
-import { faCompass, faCopy, faWindowClose } from "@fortawesome/free-regular-svg-icons";
-import {
-    faArchive,
-    faArrowRight,
-    faArrowsAlt,
-    faAt,
-    faChevronDown,
-    faChevronLeft,
-    faChevronRight,
-    faChevronUp,
-    faCircle,
-    faCog,
-    faDownload,
-    faDrawPolygon,
-    faEdit,
-    faExclamation,
-    faExternalLinkAlt,
-    faEye,
-    faFolder,
-    faFont,
-    faLanguage,
-    faLightbulb,
-    faLink,
-    faLock,
-    faMinusSquare,
-    faPaintBrush,
-    faPencilAlt,
-    faPlay,
-    faPlus,
-    faPlusSquare,
-    faShareAlt,
-    faSignOutAlt,
-    faSquare,
-    faStopwatch,
-    faSyncAlt,
-    faTimesCircle,
-    faTrashAlt,
-    faUnlink,
-    faUnlock,
-    faUpload,
-    faUserCircle,
-    faUsers,
-    faVideo,
-} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import Vue from "vue";
-import Toasted from "vue-toasted";
+import { createApp } from "vue";
+import Toast, { PluginOptions, POSITION } from "vue-toastification";
 
-import App from "@/App.vue";
-import { router } from "@/router";
-import { rootStore } from "@/store";
+import App from "./App.vue";
+import { PlanarAllyModalsPlugin } from "./core/plugins/modals/plugin";
+import { loadFontAwesome } from "./fa";
+import { i18n } from "./i18n";
+import { router } from "./router";
 
-import { baseAdjust } from "./core/utils";
-import i18n from "./i18n";
-import { registerScripts } from "./scripts";
+loadFontAwesome();
 
-library.add(
-    faArchive,
-    faArrowRight,
-    faArrowsAlt,
-    faAt,
-    faChevronDown,
-    faChevronLeft,
-    faChevronRight,
-    faChevronUp,
-    faCircle,
-    faCog,
-    faCopy,
-    faCompass,
-    faDAndD,
-    faDiscord,
-    faDownload,
-    faDrawPolygon,
-    faEdit,
-    faExclamation,
-    faExternalLinkAlt,
-    faEye,
-    faFolder,
-    faFont,
-    faGithub,
-    faLanguage,
-    faLightbulb,
-    faLink,
-    faLock,
-    faUnlock,
-    faMinusSquare,
-    faPaintBrush,
-    faPatreon,
-    faPencilAlt,
-    faPlay,
-    faPlus,
-    faPlusSquare,
-    faShareAlt,
-    faSignOutAlt,
-    faSquare,
-    faStopwatch,
-    faSyncAlt,
-    faTimesCircle,
-    faTrashAlt,
-    faUnlink,
-    faUpload,
-    faUsers,
-    faUserCircle,
-    faVideo,
-    faWindowClose,
-);
+const toastOptions: PluginOptions = {
+    position: POSITION.BOTTOM_RIGHT,
+};
 
-dom.watch();
-
-Vue.component("font-awesome-icon", FontAwesomeIcon);
-Vue.use(Toasted, {
-    iconPack: "fontawesome",
-});
-
-Vue.config.productionTip = false;
-Vue.config.devtools = true;
-Vue.config.performance = true;
-
-Vue.mixin({
-    methods: {
-        baseAdjust: (url: string) => baseAdjust(url),
-    },
-});
-
-registerScripts();
-
-const app = new Vue({
-    router,
-    store: rootStore,
-    i18n,
-    render: (h) => h(App),
-}).$mount("#app");
-
-(window as any).app = app;
+const app = createApp(App);
+app.use(router)
+    .use(i18n)
+    .use(Toast, toastOptions)
+    .use(PlanarAllyModalsPlugin)
+    .component("font-awesome-icon", FontAwesomeIcon)
+    .mount("body");

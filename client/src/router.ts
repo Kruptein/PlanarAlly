@@ -1,88 +1,63 @@
-// import "./class-component-hooks";
+import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
 
-import Vue from "vue";
-import Router from "vue-router";
-
-import AssetManager from "@/assetManager/AssetManager.vue";
-import Login from "@/auth/login.vue";
-import Logout from "@/auth/logout";
-import { coreStore } from "@/core/store";
-import Game from "@/game/Game.vue";
-import Invitation from "@/invitation/invitation";
-import Settings from "@/settings/settings.vue";
-
+import AssetManager from "./assetManager/AssetManager.vue";
+import Login from "./auth/Login.vue";
+import { Logout } from "./auth/logout";
 import { baseAdjustedFetch } from "./core/utils";
 import Dashboard from "./dashboard/Dashboard.vue";
+import Game from "./game/Game.vue";
 import { handleNotifications } from "./notifications";
+import { coreStore } from "./store/core";
 import { BASE_PATH } from "./utils";
 
-Vue.use(Router);
+const routes: Array<RouteRecordRaw> = [
+    {
+        path: "/",
+        redirect: "/dashboard",
+    },
+    {
+        path: "/assets/:folder*",
+        component: AssetManager,
+        name: "assets",
+        meta: {
+            auth: true,
+        },
+    },
+    {
+        path: "/auth",
+        component: { template: "<router-view></router-view>" },
+        children: [
+            { path: "login", name: "login", component: Login },
+            { path: "logout", component: Logout },
+        ],
+    },
+    {
+        path: "/dashboard",
+        name: "dashboard",
+        component: Dashboard,
+        meta: {
+            auth: true,
+        },
+    },
+    {
+        path: "/game/:creator/:room",
+        component: Game,
+        name: "game",
+        meta: {
+            auth: true,
+        },
+    },
+];
 
-// import { AssetManager } from "./assetManager/assets";
-// const AssetManager = () => import("./assetManager/assets").then(m => m.AssetManager);
-
-export const router = new Router({
-    mode: "history",
-    base: BASE_PATH,
-    routes: [
-        {
-            path: "/",
-            redirect: "/dashboard",
-        },
-        {
-            path: "/assets/:folder*",
-            component: AssetManager,
-            name: "assets",
-            meta: {
-                auth: true,
-            },
-        },
-        {
-            path: "/auth",
-            component: { template: "<router-view></router-view>" },
-            children: [
-                { path: "login", name: "login", component: Login },
-                { path: "logout", component: Logout },
-            ],
-        },
-        {
-            path: "/invite/:code",
-            component: Invitation,
-            meta: {
-                auth: true,
-            },
-        },
-        {
-            path: "/dashboard",
-            name: "dashboard",
-            component: Dashboard,
-            meta: {
-                auth: true,
-            },
-        },
-        {
-            path: "/settings/:page?",
-            name: "settings",
-            component: Settings,
-            meta: {
-                auth: true,
-            },
-        },
-        {
-            path: "/game/:creator/:room",
-            component: Game,
-            name: "game",
-            meta: {
-                auth: true,
-            },
-        },
-    ],
+export const router = createRouter({
+    history: createWebHistory(BASE_PATH),
+    routes,
 });
 
 router.beforeEach(async (to, _from, next) => {
     // disable for now as it gives a flicker on transition between login and dashboard.
     // coreStore.setLoading(true);
-    if (!coreStore.initialized) {
+    if (!coreStore.state.initialized) {
         // Launch core requests
         const promiseArray = [baseAdjustedFetch("/api/auth"), baseAdjustedFetch("/api/version")];
 
@@ -99,7 +74,7 @@ router.beforeEach(async (to, _from, next) => {
         // Handle core requests
         const [authResponse, versionResponse] = await Promise.all(promiseArray);
         if (authResponse.ok && versionResponse.ok) {
-            const authData = await authResponse.json();
+            const authData: { auth: boolean; username: string; email: string } = await authResponse.json();
             const versionData = await versionResponse.json();
             if (authData.auth) {
                 coreStore.setAuthenticated(true);
@@ -113,7 +88,7 @@ router.beforeEach(async (to, _from, next) => {
         } else {
             console.error("Authentication check could not be fulfilled.");
         }
-    } else if (to.matched.some((record) => record.meta.auth) && !coreStore.authenticated) {
+    } else if (to.matched.some((record) => record.meta.auth) && !coreStore.state.authenticated) {
         next({ path: "/auth/login", query: { redirect: to.path } });
     } else {
         next();

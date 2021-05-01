@@ -1,14 +1,15 @@
-import { GlobalPoint } from "@/game/geom";
-import { BaseRect } from "@/game/shapes/variants/baserect";
-import { gameStore } from "@/game/store";
-import { g2l } from "@/game/units";
-import { getFogColour } from "@/game/utils";
-
+import { g2l } from "../../../core/conversions";
+import { GlobalPoint } from "../../../core/geometry";
+import { clientStore } from "../../../store/client";
+import { getFogColour } from "../../colour";
 import { ServerRect } from "../../models/shapes";
 import { SHAPE_TYPE } from "../types";
 
+import { BaseRect } from "./baseRect";
+
 export class Rect extends BaseRect {
     type: SHAPE_TYPE = "rect";
+
     constructor(
         topleft: GlobalPoint,
         w: number,
@@ -16,6 +17,10 @@ export class Rect extends BaseRect {
         options?: { fillColour?: string; strokeColour?: string; uuid?: string },
     ) {
         super(topleft, w, h, options);
+    }
+
+    get isClosed(): boolean {
+        return true;
     }
 
     asDict(): ServerRect {
@@ -26,7 +31,7 @@ export class Rect extends BaseRect {
         super.draw(ctx);
         if (this.fillColour === "fog") ctx.fillStyle = getFogColour();
         else ctx.fillStyle = this.fillColour;
-        const z = gameStore.zoomFactor;
+        const z = clientStore.zoomFactor.value;
         const loc = g2l(this.refPoint);
         const center = g2l(this.center());
         ctx.fillRect(loc.x - center.x, loc.y - center.y, this.w * z, this.h * z);

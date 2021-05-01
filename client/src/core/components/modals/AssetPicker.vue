@@ -1,147 +1,87 @@
 <script lang="ts">
-import { Socket } from "socket.io-client";
-import Vue from "vue";
-import Component from "vue-class-component";
-import { mapGetters } from "vuex";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { defineComponent, ref, toRefs, watchEffect } from "vue";
 
-import Modal from "@/core/components/modals/modal.vue";
-
-import { assetStore } from "../../../assetManager/store";
-import { Asset } from "../../models/types";
-import { createNewManager } from "../../socket";
+import { socket } from "../../../assetManager/socket";
+import { assetStore } from "../../../assetManager/state";
+import { i18n } from "../../../i18n";
 import { baseAdjust } from "../../utils";
 
-@Component({
-    components: {
-        Modal,
+import Modal from "./Modal.vue";
+
+export default defineComponent({
+    components: { FontAwesomeIcon, Modal },
+    props: {
+        visible: { type: Boolean, required: true },
     },
-    computed: {
-        ...mapGetters("assets", [
-            "currentFolder",
-            "files",
-            "firstSelectedFile",
-            "folders",
-            "idMap",
-            "parentFolder",
-            "path",
-            "selected",
-        ]),
-    },
-})
-export default class AssetPicker extends Vue {
-    currentFolder!: number;
-    files!: number[];
-    folders!: number[];
-    idMap!: Map<number, Asset>;
-    path!: number[];
-    selected!: number[];
+    emits: ["submit", "close"],
+    setup(props, { emit }) {
+        const { t } = i18n.global;
 
-    visible = false;
-    socket!: Socket;
+        const state = assetStore.state;
 
-    mounted(): void {
-        this.socket = createNewManager().socket("/pa_assetmgmt");
+        const confirm = ref<HTMLButtonElement | null>(null);
 
-        this.socket.on("Folder.Root.Set", (root: number) => {
-            assetStore.setRoot(root);
-        });
-
-        this.socket.on("Folder.Set", (data: { folder: Asset; path?: number[] }) => {
-            assetStore.clear();
-            assetStore.idMap.set(data.folder.id, data.folder);
-            if (data.folder.children) {
-                for (const child of data.folder.children) {
-                    assetStore.addAsset(child);
-                }
+        watchEffect(() => {
+            if (props.visible) {
+                assetStore.clear();
+                assetStore.clearSelected();
+                assetStore.clearFolderPath();
+                assetStore.setModalActive(true);
+                if (!socket.connected) socket.connect();
+                socket.emit("Folder.Get");
+            } else {
+                if (socket.connected) socket.disconnect();
             }
         });
-    }
 
-    changeDirectory(nextFolder: number): void {
-        if (nextFolder < 0) assetStore.folderPath.pop();
-        else assetStore.folderPath.push(nextFolder);
-        assetStore.clearSelected();
-        this.socket.emit("Folder.Get", this.currentFolder);
-    }
-
-    select(event: MouseEvent, inode: number): void {
-        assetStore.clearSelected();
-        if (assetStore.files.includes(inode)) {
-            assetStore.selected.push(inode);
-        }
-    }
-
-    beforeDestroy(): void {
-        this.socket.disconnect();
-    }
-
-    resolve: (ok: Asset | undefined) => void = (_ok: Asset | undefined) => {};
-    reject: () => void = () => {};
-
-    confirm(): void {
-        if (assetStore.selected.length !== 1) {
-            this.resolve(undefined);
-        } else {
-            this.resolve(assetStore.idMap.get(assetStore.selected[0]));
-        }
-        this.close();
-    }
-    close(): void {
-        this.resolve(undefined);
-        this.visible = false;
-    }
-    open(): Promise<Asset | undefined> {
-        this.visible = true;
-
-        assetStore.clear();
-        assetStore.clearSelected();
-        assetStore.clearFolderPath();
-
-        if (!this.socket.connected) {
-            this.socket.connect();
+        function showIdName(dir: number): string {
+            return state.idMap.get(dir)?.name ?? "";
         }
 
-        this.socket.emit("Folder.Get");
+        function getIdImageSrc(file: number): string {
+            return baseAdjust("/static/assets/" + state.idMap.get(file)!.file_hash);
+        }
 
-        return new Promise((resolve, reject) => {
-            this.resolve = resolve;
-            this.reject = reject;
-        });
-    }
+        function select(event: MouseEvent, inode: number): void {
+            assetStore.clearSelected();
+            if (assetStore.state.files.includes(inode)) {
+                assetStore.addSelectedInode(inode);
+            }
+        }
 
-    showIdName(dir: number): string {
-        return this.idMap.has(dir) ? this.idMap.get(dir)!.name : "";
-    }
-
-    getIdImageSrc(file: number): string {
-        return baseAdjust("/static/assets/" + this.idMap.get(file)!.file_hash);
-    }
-}
+        return {
+            ...toRefs(state),
+            t,
+            emit,
+            changeDirectory: (folder: number) => assetStore.changeDirectory(folder),
+            confirm,
+            getIdImageSrc,
+            select,
+            showIdName,
+        };
+    },
+});
 </script>
 
 <template>
-    <modal :visible="visible" @close="close">
-        <div
-            class="modal-header"
-            slot="header"
-            slot-scope="m"
-            draggable="true"
-            @dragstart="m.dragStart"
-            @dragend="m.dragEnd"
-        >
-            Asset Picker
-            <div class="header-close" @click="close" :title="$t('common.close')">
-                <font-awesome-icon :icon="['far', 'window-close']" />
+    <modal :visible="visible" @close="emit('close')">
+        <template v-slot:header="m">
+            <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
+                Asset Picker
+                <div class="header-close" @click="emit('close')" :title="t('common.close')">
+                    <font-awesome-icon :icon="['far', 'window-close']" />
+                </div>
             </div>
-        </div>
+        </template>
         <div class="modal-body">
             <div id="assets">
                 <div id="breadcrumbs">
                     <div>/</div>
-                    <div v-for="dir in path" :key="dir">{{ showIdName(dir) }}</div>
+                    <div v-for="dir in folderPath" :key="dir">{{ showIdName(dir) }}</div>
                 </div>
                 <div id="explorer">
-                    <div class="inode folder" v-if="path.length" @dblclick="changeDirectory(-1)">
+                    <div class="inode folder" v-if="folderPath.length" @dblclick="changeDirectory(-1)">
                         <font-awesome-icon icon="folder" style="font-size: 50px" />
                         <div class="title">..</div>
                     </div>
@@ -171,8 +111,8 @@ export default class AssetPicker extends Vue {
                 </div>
             </div>
             <div class="buttons">
-                <button @click="confirm" ref="confirm">Select</button>
-                <button @click="close" ref="deny">Cancel</button>
+                <button @click="emit('submit')" ref="confirm">Select</button>
+                <button @click="emit('close')" ref="deny">Cancel</button>
             </div>
         </div>
     </modal>

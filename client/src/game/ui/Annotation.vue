@@ -1,28 +1,19 @@
 <script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
-import VueMarkdown from "vue-markdown";
+import { defineComponent, toRef } from "vue";
+import VueMarkdownIt from "vue3-markdown-it";
 
-@Component({
-    components: {
-        VueMarkdown,
+import { uiStore } from "../../store/ui";
+
+export default defineComponent({
+    components: { VueMarkdownIt },
+    setup() {
+        return { text: toRef(uiStore.state, "annotationText") };
     },
-})
-export default class Annotation extends Vue {
-    private text = "";
-
-    get hasText(): boolean {
-        return this.text !== "";
-    }
-
-    setActiveText(text: string): void {
-        this.text = text;
-    }
-}
+});
 </script>
 
 <template>
-    <vue-markdown v-show="text.length > 0" :source="text" id="annotation"></vue-markdown>
+    <VueMarkdownIt v-show="text.length > 0" :source="text" id="annotation" />
 </template>
 
 <style scoped>

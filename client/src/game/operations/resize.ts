@@ -1,8 +1,7 @@
+import { GlobalPoint } from "../../core/geometry";
 import { sendShapeSizeUpdate } from "../api/emits/shape/core";
-import { GlobalPoint } from "../geom";
 import { Shape } from "../shapes/shape";
-import { visibilityStore } from "../visibility/store";
-import { TriangulationTarget } from "../visibility/te/pa";
+import { TriangulationTarget, visionState } from "../vision/state";
 
 export function resizeShape(
     shape: Shape,
@@ -14,16 +13,16 @@ export function resizeShape(
     let recalculateMovement = false;
     let recalculateVision = false;
 
-    if (shape.movementObstruction && !temporary) {
+    if (shape.blocksMovement && !temporary) {
         recalculateMovement = true;
-        visibilityStore.deleteFromTriag({
+        visionState.deleteFromTriangulation({
             target: TriangulationTarget.MOVEMENT,
             shape: shape.uuid,
         });
     }
-    if (shape.visionObstruction) {
+    if (shape.blocksVision) {
         recalculateVision = true;
-        visibilityStore.deleteFromTriag({
+        visionState.deleteFromTriangulation({
             target: TriangulationTarget.VISION,
             shape: shape.uuid,
         });
@@ -32,14 +31,14 @@ export function resizeShape(
     const newResizePoint = shape.resize(resizePoint, targetPoint, retainAspectRatio);
 
     // todo: think about calling deleteIntersectVertex directly on the corner point
-    if (shape.movementObstruction && !temporary)
-        visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: shape.uuid });
-    if (shape.visionObstruction) visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: shape.uuid });
+    if (shape.blocksMovement && !temporary)
+        visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: shape.uuid });
+    if (shape.blocksVision) visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: shape.uuid });
 
     if (!shape.preventSync) sendShapeSizeUpdate({ shape, temporary });
 
-    if (recalculateMovement) visibilityStore.recalculateMovement(shape.floor.id);
-    if (recalculateVision) visibilityStore.recalculateVision(shape.floor.id);
+    if (recalculateMovement) visionState.recalculateMovement(shape.floor.id);
+    if (recalculateVision) visionState.recalculateVision(shape.floor.id);
     shape.layer.invalidate(false);
 
     return newResizePoint;

@@ -1,8 +1,7 @@
+import { GlobalPoint } from "../../core/geometry";
 import { sendShapePositionUpdate } from "../api/emits/shape/core";
-import { GlobalPoint } from "../geom";
 import { Shape } from "../shapes/shape";
-import { visibilityStore } from "../visibility/store";
-import { TriangulationTarget } from "../visibility/te/pa";
+import { TriangulationTarget, visionState } from "../vision/state";
 
 export function rotateShapes(
     shapes: readonly Shape[],
@@ -14,16 +13,16 @@ export function rotateShapes(
     let recalculateVision = false;
 
     for (const shape of shapes) {
-        if (shape.movementObstruction && !temporary) {
+        if (shape.blocksMovement && !temporary) {
             recalculateMovement = true;
-            visibilityStore.deleteFromTriag({
+            visionState.deleteFromTriangulation({
                 target: TriangulationTarget.MOVEMENT,
                 shape: shape.uuid,
             });
         }
-        if (shape.visionObstruction) {
+        if (shape.blocksVision) {
             recalculateVision = true;
-            visibilityStore.deleteFromTriag({
+            visionState.deleteFromTriangulation({
                 target: TriangulationTarget.VISION,
                 shape: shape.uuid,
             });
@@ -31,15 +30,15 @@ export function rotateShapes(
 
         shape.rotateAround(center, deltaAngle);
 
-        if (shape.movementObstruction && !temporary)
-            visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: shape.uuid });
-        if (shape.visionObstruction)
-            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: shape.uuid });
+        if (shape.blocksMovement && !temporary)
+            visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: shape.uuid });
+        if (shape.blocksVision)
+            visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: shape.uuid });
 
         if (!shape.preventSync) sendShapePositionUpdate([shape], temporary);
     }
 
-    if (recalculateMovement) visibilityStore.recalculateMovement(shapes[0].floor.id);
-    if (recalculateVision) visibilityStore.recalculateVision(shapes[0].floor.id);
+    if (recalculateMovement) visionState.recalculateMovement(shapes[0].floor.id);
+    if (recalculateVision) visionState.recalculateVision(shapes[0].floor.id);
     shapes[0].layer.invalidate(false);
 }

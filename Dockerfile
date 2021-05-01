@@ -34,8 +34,7 @@ VOLUME /planarally/static/assets
 
 ENV PA_GIT_INFO docker:${DOCKER_TAG}-${SOURCE_COMMIT}
 
-# Dependencies for building requirements
-RUN apt-get update && apt-get install dumb-init libffi-dev libssl-dev gcc curl -y && \
+RUN apt-get update && apt-get install dumb-init curl libffi-dev libssl-dev gcc -y && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy first requirements.txt so changes in code dont require to reinstall python requirements

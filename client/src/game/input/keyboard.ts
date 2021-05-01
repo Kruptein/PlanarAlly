@@ -1,43 +1,43 @@
-import { GlobalPoint, Vector } from "@/game/geom";
-import { layerManager } from "@/game/layers/manager";
-import { copyShapes, deleteShapes, pasteShapes } from "@/game/shapes/utils";
-import { DEFAULT_GRID_SIZE, gameStore } from "@/game/store";
-import { calculateDelta } from "@/game/ui/tools/utils";
-
+import { equalsP, toGP, Vector } from "../../core/geometry";
 import { SyncMode, SyncTo } from "../../core/models/types";
 import { ctrlOrCmdPressed } from "../../core/utils";
+import { activeShapeStore } from "../../store/activeShape";
+import { clientStore, DEFAULT_GRID_SIZE } from "../../store/client";
+import { floorStore } from "../../store/floor";
+import { gameStore } from "../../store/game";
+import { settingsStore } from "../../store/settings";
+import { UuidMap } from "../../store/shapeMap";
 import { sendClientLocationOptions } from "../api/emits/client";
-import { EventBus } from "../event-bus";
-import { floorStore } from "../layers/store";
-import { moveFloor } from "../layers/utils";
+import { calculateDelta } from "../drag";
+import { selectionState } from "../layers/selection";
+import { ToolMode } from "../models/tools";
 import { moveShapes } from "../operations/movement";
-import { redoOperation, undoOperation } from "../operations/undo";
-import { gameSettingsStore } from "../settings";
-import { activeShapeStore } from "../ui/ActiveShapeStore";
-import { setCenterPosition } from "../utils";
+import { undoOperation, redoOperation } from "../operations/undo";
+import { setCenterPosition } from "../position";
+import { deleteShapes, copyShapes, pasteShapes } from "../shapes/utils";
+import { moveFloor } from "../temp";
+import { activeToolMode } from "../tools/tools";
 
 export function onKeyUp(event: KeyboardEvent): void {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         // no-op (condition is cleaner this way)
     } else {
         if (event.key === "Delete" || event.key === "Del" || event.key === "Backspace") {
-            const l = floorStore.currentLayer!;
-            const selection = l.getSelection({ includeComposites: true });
+            const selection = selectionState.get({ includeComposites: true });
             deleteShapes(selection, SyncMode.FULL_SYNC);
         }
         if (event.key === " " || (event.code === "Numpad0" && !ctrlOrCmdPressed(event))) {
             // Spacebar or numpad-zero: cycle through own tokens
             // numpad-zero only if Ctrl is not pressed, as this would otherwise conflict with Ctrl + 0
-            const tokens = gameStore.ownedtokens.map((o) => layerManager.UUIDMap.get(o)!);
+            const tokens = [...gameStore.state.ownedTokens].map((o) => UuidMap.get(o)!);
             if (tokens.length === 0) return;
-            const i = tokens.findIndex((o) => o.center().equals(gameStore.screenCenter));
+            const i = tokens.findIndex((o) => equalsP(o.center(), clientStore.screenCenter));
             const token = tokens[(i + 1) % tokens.length];
             setCenterPosition(token.center());
-            floorStore.selectFloor({ targetFloor: token.floor.name, sync: true });
+            floorStore.selectFloor({ name: token.floor.name }, true);
         }
         if (event.key === "Enter") {
-            const selection = layerManager.getSelection({ includeComposites: false });
-            if (selection.length === 1) {
+            if (selectionState.hasSelection) {
                 activeShapeStore.setShowEditDialog(true);
             }
         }
@@ -86,25 +86,25 @@ export function onKeyDown(event: KeyboardEvent): void {
                 offsetY += gridSize;
             }
             // in hex mode, if movement is diagonal, offsets have to be modified
-            if (gameSettingsStore.gridType === "FLAT_HEX" && offsetX != 0) {
+            if (settingsStore.gridType.value === "FLAT_HEX" && offsetX != 0) {
                 offsetX = (1.5 * offsetX) / Math.sqrt(3);
                 offsetY *= 0.5;
-            } else if (gameSettingsStore.gridType === "POINTY_HEX" && offsetY != 0) {
+            } else if (settingsStore.gridType.value === "POINTY_HEX" && offsetY != 0) {
                 offsetX *= 0.5;
                 offsetY = (1.5 * offsetY) / Math.sqrt(3);
             }
-            if (layerManager.hasSelection()) {
+            if (selectionState.hasSelection) {
                 // if in hex-mode, first invalidate invalid axis
                 const flatHexInvalid = ["ArrowLeft", "ArrowRight", "Numpad4", "Numpad6"];
                 const pointyHexInvalid = ["ArrowUp", "ArrowDown", "Numpad2", "Numpad8"];
-                if (gameSettingsStore.gridType === "FLAT_HEX" && flatHexInvalid.includes(event.code)) {
+                if (settingsStore.gridType.value === "FLAT_HEX" && flatHexInvalid.includes(event.code)) {
                     offsetX = 0;
-                } else if (gameSettingsStore.gridType === "POINTY_HEX" && pointyHexInvalid.includes(event.code)) {
+                } else if (settingsStore.gridType.value === "POINTY_HEX" && pointyHexInvalid.includes(event.code)) {
                     offsetY = 0;
                 }
-                const selection = layerManager.getSelection({ includeComposites: false });
+                const selection = selectionState.get({ includeComposites: false });
                 let delta = new Vector(offsetX, offsetY);
-                if (!event.shiftKey || !gameStore.IS_DM) {
+                if (!event.shiftKey || !gameStore.state.isDm) {
                     // First check for collisions.  Using the smooth wall slide collision check used on mouse move is overkill here.
                     for (const sel of selection) {
                         delta = calculateDelta(delta, sel, true);
@@ -115,35 +115,35 @@ export function onKeyDown(event: KeyboardEvent): void {
                 moveShapes(selection, delta, false);
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.
-                gameStore.increasePanX(offsetX * -1);
-                gameStore.increasePanY(offsetY * -1);
-                layerManager.invalidateAllFloors();
+                clientStore.increasePanX(offsetX * -1);
+                clientStore.increasePanY(offsetY * -1);
+                floorStore.invalidateAllFloors();
                 sendClientLocationOptions();
             }
         } else if (event.key === "d") {
             // d - Deselect all
-            layerManager.clearSelection();
+            selectionState.clear(true);
         } else if (event.key === "x") {
             // x - Mark Defeated
-            const selection = layerManager.getSelection({ includeComposites: true });
+            const selection = selectionState.get({ includeComposites: true });
             for (const shape of selection) {
                 const isDefeated = !shape.isDefeated;
                 shape.setDefeated(isDefeated, SyncTo.SERVER);
-                if (activeShapeStore.uuid === shape.uuid) {
-                    activeShapeStore.setIsDefeated({ isDefeated, syncTo: SyncTo.UI });
+                if (activeShapeStore.state.uuid === shape.uuid) {
+                    activeShapeStore.setIsDefeated(isDefeated, SyncTo.UI);
                 }
             }
             event.preventDefault();
             event.stopPropagation();
         } else if (event.key === "l" && ctrlOrCmdPressed(event)) {
-            const selection = layerManager.getSelection({ includeComposites: true });
+            const selection = selectionState.get({ includeComposites: true });
             for (const shape of selection) {
                 // This and GroupSettings are the only places currently where we would need to update both UI and Server.
                 // Might need to introduce a SyncTo.BOTH
                 const isLocked = !shape.isLocked;
                 shape.setLocked(isLocked, SyncTo.SERVER);
-                if (activeShapeStore.uuid === shape.uuid) {
-                    activeShapeStore.setLocked({ isLocked, syncTo: SyncTo.UI });
+                if (activeShapeStore.state.uuid === shape.uuid) {
+                    activeShapeStore.setLocked(isLocked, SyncTo.UI);
                 }
             }
             event.preventDefault();
@@ -152,18 +152,18 @@ export function onKeyDown(event: KeyboardEvent): void {
             // Ctrl-u - disable and reenable the Interface
             event.preventDefault();
             event.stopPropagation();
-            gameStore.toggleUI();
+            gameStore.toggleUi();
         } else if (event.key === "0" && ctrlOrCmdPressed(event)) {
             // Ctrl-0 or numpad 0 - Re-center/reset the viewport
-            setCenterPosition(new GlobalPoint(0, 0));
+            setCenterPosition(toGP(0, 0));
             sendClientLocationOptions();
-            layerManager.invalidateAllFloors();
+            floorStore.invalidateAllFloors();
         } else if (event.code === "Numpad5") {
             // numpad 5 will center on selected shape(s) or on origin
             let targetX = 0;
             let targetY = 0;
-            if (layerManager.hasSelection()) {
-                const selection = layerManager.getSelection({ includeComposites: false });
+            if (selectionState.hasSelection) {
+                const selection = selectionState.get({ includeComposites: false });
                 for (const sel of selection) {
                     targetX += sel.refPoint.x;
                     targetY += sel.refPoint.y;
@@ -171,9 +171,9 @@ export function onKeyDown(event: KeyboardEvent): void {
                 targetX /= selection.length;
                 targetY /= selection.length;
             }
-            setCenterPosition(new GlobalPoint(targetX, targetY));
+            setCenterPosition(toGP(targetX, targetY));
             sendClientLocationOptions();
-            layerManager.invalidateAllFloors();
+            floorStore.invalidateAllFloors();
         } else if (event.key === "c" && ctrlOrCmdPressed(event)) {
             // Ctrl-c - Copy
             copyShapes();
@@ -188,51 +188,50 @@ export function onKeyDown(event: KeyboardEvent): void {
             redoOperation();
             event.preventDefault();
             event.stopPropagation();
-        } else if (event.key === "PageUp" && floorStore.currentFloorindex < floorStore.floors.length - 1) {
+        } else if (event.key === "PageUp" && floorStore.state.floorIndex < floorStore.state.floors.length - 1) {
             // Page Up - Move floor up
             // Alt + Page Up - Move selected shapes floor up
             // Alt + Shift + Page Up - Move selected shapes floor up AND move floor up
             event.preventDefault();
             event.stopPropagation();
-            const targetFloor = floorStore.floors.findIndex(
-                (f, i) => i > floorStore.currentFloorindex && (gameStore.IS_DM || f.playerVisible),
+            const targetFloor = floorStore.state.floors.findIndex(
+                (f, i) => i > floorStore.state.floorIndex && (gameStore.state.isDm || f.playerVisible),
             );
 
             changeFloor(event, targetFloor);
-        } else if (event.key === "PageDown" && floorStore.currentFloorindex > 0) {
+        } else if (event.key === "PageDown" && floorStore.state.floorIndex > 0) {
             // Page Down - Move floor down
             // Alt + Page Down - Move selected shape floor down
             // Alt + Shift + Page Down - Move selected shapes floor down AND move floor down
             event.preventDefault();
             event.stopPropagation();
-            const maxLength = floorStore.floors.length - 1;
-            let targetFloor = [...floorStore.floors]
+            const maxLength = floorStore.state.floors.length - 1;
+            let targetFloor = [...floorStore.state.floors]
                 .reverse()
                 .findIndex(
-                    (f, i) => maxLength - i < floorStore.currentFloorindex && (gameStore.IS_DM || f.playerVisible),
+                    (f, i) => maxLength - i < floorStore.state.floorIndex && (gameStore.state.isDm || f.playerVisible),
                 );
             targetFloor = maxLength - targetFloor;
 
             changeFloor(event, targetFloor);
         } else if (event.key === "Tab") {
             event.preventDefault();
-            EventBus.$emit("ToolMode.Toggle");
+            activeToolMode.value = activeToolMode.value === ToolMode.Build ? ToolMode.Play : ToolMode.Build;
         }
     }
 }
 
 function changeFloor(event: KeyboardEvent, targetFloor: number): void {
-    if (targetFloor < 0 || targetFloor > floorStore.floors.length - 1) return;
-    const selection = layerManager.getSelection({ includeComposites: true });
-    const newFloor = floorStore.floors[targetFloor];
-    const newLayer = layerManager.getLayer(newFloor)!;
+    if (targetFloor < 0 || targetFloor > floorStore.state.floors.length - 1) return;
+    const selection = selectionState.get({ includeComposites: true });
+    const newFloor = floorStore.state.floors[targetFloor];
 
     if (event.altKey) {
         moveFloor([...selection], newFloor, true);
     }
-    layerManager.clearSelection();
+    selectionState.clear(true);
     if (!event.altKey || event.shiftKey) {
-        floorStore.selectFloor({ targetFloor, sync: true });
+        floorStore.selectFloor({ position: targetFloor }, true);
     }
-    if (event.shiftKey) for (const shape of selection) newLayer.pushSelection(shape);
+    if (event.shiftKey) for (const shape of selection) selectionState.push(shape);
 }

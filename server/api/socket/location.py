@@ -1,6 +1,5 @@
 import json
 from typing import List, Union
-from uuid import uuid4
 
 from playhouse.shortcuts import update_model_from_dict
 from typing_extensions import TypedDict
@@ -20,7 +19,6 @@ from models import (
     PlayerRoom,
     Room,
     Shape,
-    User,
 )
 from models.asset import Asset
 from models.label import Label, LabelSelection
@@ -375,11 +373,9 @@ async def clone_location(sid: str, data: LocationCloneData):
         logger.warning(f"{pr.player.name} attempted to clone locations.")
         return
     try:
-        room = (
-            Room.select().where(
-                (Room.name == data["room"]) & (Room.creator == pr.player)
-            )[0]
-        )
+        room = Room.select().where(
+            (Room.name == data["room"]) & (Room.creator == pr.player)
+        )[0]
     except IndexError:
         logger.warning(f"Destination room {data['room']} not found.")
         return

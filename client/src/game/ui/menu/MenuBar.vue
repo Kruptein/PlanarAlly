@@ -1,129 +1,133 @@
 <script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
-import { mapState } from "vuex";
+import { computed, defineComponent, ref, toRef } from "vue";
+import { useI18n } from "vue-i18n";
 
-import ColorPicker from "@/core/components/colorpicker.vue";
-import { baseAdjust, uuidv4 } from "@/core/utils";
-import { layerManager } from "@/game/layers/manager";
-import { Note } from "@/game/models/general";
-import { gameStore } from "@/game/store";
-import AssetNode from "@/game/ui/menu/AssetNode.vue";
-import NoteDialog from "@/game/ui/NoteDialog.vue";
+import { AssetFile } from "../../../core/models/types";
+import { baseAdjust, uuidv4 } from "../../../core/utils";
+import { gameStore } from "../../../store/game";
+import { UuidMap } from "../../../store/shapeMap";
+import { uiStore } from "../../../store/ui";
+import { Note } from "../../models/general";
+import NoteDialog from "../NoteDialog.vue";
 
-import { AssetList } from "../../../core/models/types";
-import UI from "../ui.vue";
+import AssetParentNode from "./AssetParentNode.vue";
 
-@Component({
-    components: {
-        "color-picker": ColorPicker,
-        "asset-node": AssetNode,
-        NoteDialog,
-    },
-    computed: {
-        ...mapState("game", ["assets", "notes", "markers"]),
-    },
-})
-export default class MenuBar extends Vue {
-    assets!: AssetList;
-    markers!: string[];
-    notes!: Note[];
+export default defineComponent({
+    name: "MenuBar",
+    components: { AssetParentNode, NoteDialog },
+    setup() {
+        const { t } = useI18n();
 
-    $refs!: {
-        note: NoteDialog;
-    };
-    $parent!: UI;
+        const showNote = ref(false);
 
-    assetSearch = "";
+        const assetSearch = ref("");
+        const gameState = gameStore.state;
 
-    baseAdjust(path: string): string {
-        return baseAdjust(path);
-    }
+        const noAssets = computed(() => {
+            return gameState.assets.size === 1 && (gameState.assets.get("__files") as AssetFile[]).length <= 0;
+        });
 
-    get IS_DM(): boolean {
-        return gameStore.IS_DM || gameStore.FAKE_PLAYER;
-    }
-
-    settingsClick(event: { target: HTMLElement }): void {
-        if (
-            event.target.classList.contains("menu-accordion") &&
-            event.target.nextElementSibling?.classList.contains("menu-accordion-panel")
-        ) {
-            event.target.classList.toggle("menu-accordion-active");
+        function settingsClick(event: { target: HTMLElement }): void {
+            if (
+                event.target.classList.contains("menu-accordion") &&
+                (event.target.nextElementSibling?.classList.contains("menu-accordion-panel") ?? false)
+            ) {
+                event.target.classList.toggle("menu-accordion-active");
+            }
         }
-    }
-    createNote(): void {
-        const note = { title: this.$t("game.ui.menu.MenuBar.new_note").toString(), text: "", uuid: uuidv4() };
-        gameStore.newNote({ note, sync: true });
-        this.openNote(note);
-    }
-    openNote(note: Note): void {
-        this.$refs.note.open(note);
-    }
 
-    openDmSettings(): void {
-        this.$parent.$refs.dmsettings.open();
-    }
-
-    openUserSettings(): void {
-        this.$parent.$refs.clientsettings.open();
-    }
-
-    delMarker(marker: string): void {
-        gameStore.removeMarker({ marker: marker, sync: true });
-    }
-
-    jumpToMarker(marker: string): void {
-        gameStore.jumpToMarker(marker);
-    }
-
-    nameMarker(marker: string): string {
-        const shape = layerManager.UUIDMap.get(marker);
-        if (shape !== undefined) {
-            return shape.name;
-        } else {
-            return "";
+        function createNote(): void {
+            const note = { title: t("game.ui.menu.MenuBar.new_note"), text: "", uuid: uuidv4() };
+            gameStore.newNote(note, true);
+            openNote(note);
         }
-    }
-}
+
+        function openNote(note: Note): void {
+            showNote.value = true;
+            uiStore.setActiveNote(note);
+        }
+
+        function delMarker(marker: string): void {
+            gameStore.removeMarker(marker, true);
+        }
+
+        function jumpToMarker(marker: string): void {
+            gameStore.jumpToMarker(marker);
+        }
+
+        function nameMarker(marker: string): string {
+            const shape = UuidMap.get(marker);
+            if (shape !== undefined) {
+                return shape.name;
+            } else {
+                return "";
+            }
+        }
+
+        return {
+            baseAdjust,
+            settingsClick,
+            t,
+            isDm: toRef(gameState, "isDm"),
+
+            assetSearch,
+            noAssets,
+
+            createNote,
+            activeNote: toRef(uiStore.state, "activeNote"),
+            notes: toRef(gameState, "notes"),
+            openNote,
+            showNote,
+
+            openDmSettings: () => uiStore.showDmSettings(!uiStore.state.showDmSettings),
+
+            markers: toRef(gameState, "markers"),
+            delMarker,
+            jumpToMarker,
+            nameMarker,
+
+            openClientSettings: () => uiStore.showClientSettings(!uiStore.state.showClientSettings),
+        };
+    },
+});
 </script>
 
 <template>
+    <NoteDialog v-model:visible="showNote" />
     <!-- SETTINGS -->
-    <div id="menu" @click="settingsClick" ref="settings">
-        <NoteDialog ref="note"></NoteDialog>
+    <div id="menu" @click="settingsClick">
         <div style="width: 200px; overflow-y: auto; overflow-x: hidden">
             <!-- ASSETS -->
-            <template v-if="IS_DM">
+            <template v-if="isDm">
                 <button class="menu-accordion" v-t="'common.assets'"></button>
                 <div id="menu-assets" class="menu-accordion-panel">
-                    <input id="asset-search" v-model="assetSearch" :placeholder="$t('common.search')" />
+                    <input id="asset-search" v-model="assetSearch" :placeholder="t('common.search')" />
                     <a
                         class="actionButton"
                         :href="baseAdjust('/assets')"
                         target="blank"
-                        :title="$t('game.ui.menu.MenuBar.open_asset_manager')"
+                        :title="t('game.ui.menu.MenuBar.open_asset_manager')"
                     >
                         <font-awesome-icon icon="external-link-alt" />
                     </a>
                     <div class="directory" id="menu-tokens">
-                        <asset-node :asset="assets" :search="assetSearch"></asset-node>
-                        <div v-if="Object.keys(assets).length === 1 && assets['__files'].length <= 0">
-                            {{ $t("game.ui.menu.MenuBar.no_assets") }}
+                        <AssetParentNode :search="assetSearch.toLowerCase()" />
+                        <div v-if="noAssets">
+                            {{ t("game.ui.menu.MenuBar.no_assets") }}
                         </div>
                     </div>
                 </div>
                 <!-- NOTES -->
                 <button class="menu-accordion" v-t="'common.notes'"></button>
                 <div class="menu-accordion-panel">
-                    <div class="menu-accordion-subpanel" id="menu-notes">
-                        <a class="actionButton" @click="createNote" :title="$t('game.ui.menu.MenuBar.create_note')">
-                            <font-awesome-icon icon="plus-square" />
-                        </a>
+                    <div class="menu-accordion-subpanel" id="menu-notes" style="position: relative">
                         <div v-for="note in notes" :key="note.uuid" @click="openNote(note)" style="cursor: pointer">
                             {{ note.title || "[?]" }}
                         </div>
                         <div v-if="!notes.length" v-t="'game.ui.menu.MenuBar.no_notes'"></div>
+                        <a class="actionButton" @click="createNote" :title="t('game.ui.menu.MenuBar.create_note')">
+                            <font-awesome-icon icon="plus-square" />
+                        </a>
                     </div>
                 </div>
                 <!-- DM SETTINGS -->
@@ -137,21 +141,21 @@ export default class MenuBar extends Vue {
             <button class="menu-accordion" v-t="'common.markers'"></button>
             <div class="menu-accordion-panel">
                 <div class="menu-accordion-subpanel" id="menu-markers">
-                    <div v-for="marker in markers" :key="marker" style="cursor: pointer">
+                    <div v-for="marker of markers.values()" :key="marker" style="cursor: pointer">
                         <div @click="jumpToMarker(marker)" class="menu-accordion-subpanel-text">
                             {{ nameMarker(marker) || "[?]" }}
                         </div>
-                        <div @click="delMarker(marker)" :title="$t('game.ui.menu.MenuBar.delete_marker')">
+                        <div @click="delMarker(marker)" :title="t('game.ui.menu.MenuBar.delete_marker')">
                             <font-awesome-icon icon="minus-square" />
                         </div>
                     </div>
-                    <div v-if="!markers.length" v-t="'game.ui.menu.MenuBar.no_markers'"></div>
+                    <div v-if="markers.size === 0" v-t="'game.ui.menu.MenuBar.no_markers'"></div>
                 </div>
             </div>
             <!-- CLIENT SETTINGS -->
             <button
                 class="menu-accordion"
-                @click="openUserSettings"
+                @click="openClientSettings"
                 v-t="'game.ui.menu.MenuBar.client_settings'"
             ></button>
         </div>
@@ -160,7 +164,7 @@ export default class MenuBar extends Vue {
             class="menu-accordion"
             style="width: 200px; box-sizing: border-box; text-decoration: none; display: inline-block"
         >
-            {{ $t("common.exit") }}
+            {{ t("common.exit") }}
         </router-link>
     </div>
 </template>
@@ -209,7 +213,6 @@ DIRECTORY.CSS changes
 
 #menuContainer {
     position: absolute;
-    z-index: 20;
     top: 0;
     left: 0;
     height: 100%;
@@ -229,10 +232,9 @@ DIRECTORY.CSS changes
 }
 
 .actionButton {
-    margin: 5px;
-    align-self: flex-end;
-    margin-bottom: -30px;
-    z-index: 11;
+    position: absolute;
+    right: 5px;
+    top: 3px;
 }
 
 .menu-accordion {

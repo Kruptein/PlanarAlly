@@ -157,7 +157,7 @@
                     "no_notes": "Keine Notizen",
                     "dm_settings": "SL Einstellungen",
                     "no_markers": "Keine Markierungen",
-                    "client_settings": "Einstellungen"
+                    "client_settings": "Client Einstellungen"
                 }
             },
             "NoteDialog": {
@@ -355,8 +355,8 @@
                     "share": "Mit den anderen teilen"
                 },
                 "SpellTool": {
-			"size": "Größe",
-                        "range": "Reichweite (Radius)"
+                    "size": "Größe",
+                    "range": "Reichweite (Radius)"
                 },
                 "tools": {
                     "change_mode": "Modus ändern"

@@ -2,6 +2,8 @@ import { Label } from "../shapes/interfaces";
 import { ShapeAccess, ShapeOwner } from "../shapes/owners";
 import { SHAPE_TYPE } from "../shapes/types";
 
+import { LayerName } from "./floor";
+
 export interface ServerShape {
     uuid: string;
     type_: SHAPE_TYPE;
@@ -9,7 +11,7 @@ export interface ServerShape {
     y: number;
     angle: number;
     floor: string;
-    layer: string;
+    layer: LayerName;
     movement_obstruction: boolean;
     vision_obstruction: boolean;
     draw_operator: string;
@@ -71,7 +73,7 @@ export interface ServerLine extends ServerShape {
     line_width: number;
 }
 export interface ServerPolygon extends ServerShape {
-    vertices: number[][];
+    vertices: [number, number][];
     open_polygon: boolean;
     line_width: number;
 }

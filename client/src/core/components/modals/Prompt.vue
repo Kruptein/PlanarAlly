@@ -1,0 +1,96 @@
+<script lang="ts">
+import { defineComponent, nextTick, ref, watchEffect } from "vue";
+
+import { i18n } from "../../../i18n";
+
+import Modal from "./Modal.vue";
+
+export default defineComponent({
+    name: "Prompt",
+    components: { Modal },
+    emits: ["close", "submit"],
+    props: {
+        visible: { type: Boolean, required: true },
+        title: { type: String, required: true },
+        question: { type: String, required: true },
+        error: String,
+    },
+    setup(props, { emit }) {
+        const { t } = i18n.global;
+
+        const answer = ref("");
+        const input = ref<HTMLInputElement | null>(null);
+
+        watchEffect(() => {
+            if (props.visible) {
+                nextTick(() => input.value!.focus());
+            }
+        });
+
+        function reset(): void {
+            answer.value = "";
+        }
+
+        function close(): void {
+            emit("close");
+            reset();
+        }
+
+        function submit(): void {
+            emit("submit", answer.value);
+            reset();
+        }
+
+        return { t, answer, close, input, submit };
+    },
+});
+</script>
+
+<template>
+    <Modal :visible="visible" @close="close">
+        <template v-slot:header="m">
+            <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
+                {{ title }}
+            </div>
+        </template>
+        <div class="modal-body">
+            <div id="question">{{ question }}</div>
+            <div id="error" v-if="error">{{ error }}</div>
+            <input type="text" ref="input" v-model="answer" @keyup.enter="submit" />
+        </div>
+        <div class="modal-footer">
+            <button @click="submit">{{ t("common.submit") }}</button>
+        </div>
+    </Modal>
+</template>
+
+<style scoped>
+.modal-header {
+    background-color: #ff7052;
+    padding: 10px;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: move;
+}
+
+.modal-body {
+    padding: 10px;
+    padding-bottom: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+#question {
+    margin-bottom: 20px;
+}
+
+#error {
+    color: red;
+    margin-bottom: 5px;
+}
+
+.modal-footer {
+    padding: 10px;
+    text-align: right;
+}
+</style>

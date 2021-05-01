@@ -1,110 +1,120 @@
 <script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
-import { NavigationGuard, Route } from "vue-router";
+import { defineComponent, onMounted, reactive, toRefs } from "vue";
+import { NavigationGuardNext, RouteLocationNormalized, useRoute, useRouter } from "vue-router";
 
-import LanguageDropdown from "@/core/components/languageDropdown.vue";
-import ConfirmDialog from "@/core/components/modals/ConfirmDialog.vue";
-
+import LanguageDropdown from "../core/components/LanguageDropdown.vue";
+import { useModal } from "../core/plugins/modals/plugin";
 import { baseAdjust, baseAdjustedFetch, getErrorReason } from "../core/utils";
 
 import CreateCampaign from "./CreateCampaign.vue";
 import SessionList from "./SessionList.vue";
 import { RoomInfo } from "./types";
 
-@Component({ components: { ConfirmDialog, CreateCampaign, LanguageDropdown, SessionList } })
-export default class Dashboard extends Vue {
-    $refs!: {
-        confirm: ConfirmDialog;
-    };
+interface DashboardState {
+    showLanguageDropdown: boolean;
+    owned: RoomInfo[];
+    joined: RoomInfo[];
+    error: string;
+    activeNavigation: number;
+}
 
-    showLanguageDropdown = false;
-    owned: RoomInfo[] = [];
-    joined: RoomInfo[] = [];
-    error = "";
+const state: DashboardState = reactive({
+    showLanguageDropdown: false,
+    owned: [],
+    joined: [],
+    error: "",
+    activeNavigation: 1,
+});
 
-    activeNavigation = 1;
-    navigation: { text: string; type: "header" | "separator" | "action"; fn?: (navigation: number) => void }[] = [
-        { text: "game", type: "header" },
-        { text: "play", type: "action", fn: this.setActiveNavigation },
-        { text: "run", type: "action", fn: this.setActiveNavigation },
-        { text: "create", type: "action", fn: this.setActiveNavigation },
-        { text: "", type: "separator" },
-        { text: "assets", type: "header" },
-        { text: "manage", type: "action", fn: this.openAssetManager },
-        { text: "create", type: "action", fn: this.setActiveNavigation },
-        { text: "", type: "separator" },
-        { text: "Settings", type: "action", fn: this.openSettings },
-        { text: "", type: "separator" },
-        { text: "Logout", type: "action", fn: this.logout },
-    ];
-
-    setActiveNavigation(navigation: number): void {
-        if (navigation === 2 && this.owned.length === 0) navigation = 3;
-        this.activeNavigation = navigation;
-    }
-
-    async beforeRouteEnter(to: Route, from: Route, next: Parameters<NavigationGuard>[2]): Promise<void> {
+export default defineComponent({
+    name: "Dashboard",
+    components: { CreateCampaign, LanguageDropdown, SessionList },
+    async beforeRouteEnter(_to: RouteLocationNormalized, _from: RouteLocationNormalized, next: NavigationGuardNext) {
         const response = await baseAdjustedFetch("/api/rooms");
-        next(async (vm: Vue) => {
+        next(async () => {
             if (response.ok) {
                 const data: { owned: RoomInfo[]; joined: RoomInfo[] } = await response.json();
-
-                (vm as this).owned = data.owned;
-                (vm as this).joined = data.joined;
+                state.owned = data.owned;
+                state.joined = data.joined;
             } else {
-                (vm as this).error = await getErrorReason(response);
+                state.error = await getErrorReason(response);
             }
         });
-    }
+    },
+    setup() {
+        const modals = useModal();
+        const route = useRoute();
+        const router = useRouter();
 
-    async mounted(): Promise<void> {
-        if (this.$route.params?.error === "join_game") {
-            await this.$refs.confirm.open(
-                "Failed to join session",
-                "It was not possible to join the game session. This might be because the DM has locked the session.",
-                { showNo: false, yes: "Ok" },
-            );
+        const navigation: {
+            text: string;
+            type: "header" | "separator" | "action";
+            fn?: (navigation: number) => void;
+        }[] = [
+            { text: "game", type: "header" },
+            { text: "play", type: "action", fn: setActiveNavigation },
+            { text: "run", type: "action", fn: setActiveNavigation },
+            { text: "create", type: "action", fn: setActiveNavigation },
+            { text: "", type: "separator" },
+            { text: "assets", type: "header" },
+            { text: "manage", type: "action", fn: openAssetManager },
+            { text: "create", type: "action", fn: setActiveNavigation },
+            { text: "", type: "separator" },
+            { text: "Settings", type: "action", fn: openSettings },
+            { text: "", type: "separator" },
+            { text: "Logout", type: "action", fn: logout },
+        ];
+
+        onMounted(async () => {
+            if (route.params?.error === "join_game") {
+                await modals.confirm(
+                    "Failed to join session",
+                    "It was not possible to join the game session. This might be because the DM has locked the session.",
+                    { showNo: false, yes: "Ok" },
+                );
+            }
+        });
+
+        function setActiveNavigation(navigationIndex: number): void {
+            if (navigationIndex === 2 && state.owned.length === 0) navigationIndex = 3;
+            state.activeNavigation = navigationIndex;
         }
-    }
 
-    baseAdjust(src: string): string {
-        return baseAdjust(src);
-    }
+        async function openAssetManager(): Promise<void> {
+            await router.push("/assets");
+        }
 
-    async openAssetManager(): Promise<void> {
-        await this.$router.push("/assets");
-    }
+        async function openSettings(): Promise<void> {
+            await router.push("/settings");
+        }
 
-    async openSettings(): Promise<void> {
-        await this.$router.push("/settings");
-    }
+        async function logout(): Promise<void> {
+            await router.push("/auth/logout");
+        }
 
-    async logout(): Promise<void> {
-        await this.$router.push("/auth/logout");
-    }
+        function leaveRoom(index: number): void {
+            state.joined.splice(index, 1);
+        }
 
-    rename(index: number, name: string): void {
-        this.owned[index].name = name;
-    }
+        function rename(index: number, name: string): void {
+            state.owned[index].name = name;
+        }
 
-    updateLogo(index: number, logo: string): void {
-        this.owned[index].logo = logo;
-    }
+        function removeRoom(index: number): void {
+            state.owned.splice(index, 1);
+        }
 
-    leaveRoom(index: number): void {
-        Vue.delete(this.joined, index);
-    }
+        function updateLogo(index: number, logo: string): void {
+            state.owned[index].logo = logo;
+        }
 
-    removeRoom(index: number): void {
-        Vue.delete(this.owned, index);
-    }
-}
+        return { ...toRefs(state), baseAdjust, leaveRoom, navigation, removeRoom, rename, updateLogo };
+    },
+});
 </script>
 
 <template>
     <div id="page">
-        <ConfirmDialog ref="confirm" />
         <SessionList v-if="activeNavigation === 1" :sessions="joined" :dmMode="false" @remove-room="leaveRoom" />
         <SessionList
             v-else-if="activeNavigation === 2"

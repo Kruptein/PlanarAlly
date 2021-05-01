@@ -1,86 +1,55 @@
 <script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
+import { defineComponent, nextTick, ref, watchEffect } from "vue";
 
-import Modal from "@/core/components/modals/modal.vue";
+import Modal from "./Modal.vue";
 
-@Component({
-    components: {
-        Modal,
+export default defineComponent({
+    name: "ConfirmDialog",
+    components: { Modal },
+    emits: ["close", "submit"],
+    props: {
+        visible: { type: Boolean, required: true },
+        yes: { type: String, required: true },
+        no: { type: String, required: true },
+        showNo: { type: Boolean, required: true },
+        title: { type: String, required: true },
+        text: { type: String, required: true },
+        focus: { type: String, required: true },
     },
-})
-export default class ConfirmDialog extends Vue {
-    $refs!: {
-        confirm: HTMLButtonElement;
-        deny: HTMLButtonElement;
-    };
+    setup(props, { emit }) {
+        const confirm = ref<HTMLButtonElement | null>(null);
+        const deny = ref<HTMLButtonElement | null>(null);
 
-    visible = false;
-    yes = "Yes";
-    no = "No";
-    showNo = true;
-    title = "";
-    text = "";
-    focus: "confirm" | "deny" = "deny";
-
-    resolve: (ok: boolean | undefined) => void = (_ok: boolean | undefined) => {};
-    reject: () => void = () => {};
-
-    confirm(): void {
-        this.resolve(true);
-        this.close();
-    }
-    deny(): void {
-        this.resolve(false);
-        this.close();
-    }
-    close(): void {
-        this.resolve(undefined);
-        this.visible = false;
-    }
-    open(
-        title: string,
-        text = "",
-        buttons?: { yes?: string; no?: string; focus?: "confirm" | "deny"; showNo?: boolean },
-    ): Promise<boolean | undefined> {
-        this.yes = buttons?.yes ?? "yes";
-        this.no = buttons?.no ?? "no";
-        this.showNo = buttons?.showNo ?? true;
-        this.focus = buttons?.focus ?? (this.showNo ? "deny" : "confirm");
-        this.title = title;
-        this.text = text;
-
-        this.visible = true;
-        this.$nextTick(() => {
-            if (this.focus === "confirm") this.$refs.confirm.focus();
-            else this.$refs.deny.focus();
+        watchEffect(() => {
+            if (props.visible) {
+                nextTick(() => {
+                    if (props.focus === "confirm") confirm.value!.focus();
+                    else deny.value!.focus();
+                });
+            }
         });
 
-        return new Promise((resolve, reject) => {
-            this.resolve = resolve;
-            this.reject = reject;
-        });
-    }
-}
+        return { confirm, deny, emit };
+    },
+});
 </script>
 
 <template>
-    <modal :visible="visible" @close="close">
-        <div
-            class="modal-header"
-            slot="header"
-            slot-scope="m"
-            draggable="true"
-            @dragstart="m.dragStart"
-            @dragend="m.dragEnd"
-        >
-            {{ title }}
-        </div>
+    <modal :visible="visible" @close="emit('close')">
+        <template v-slot:header="m">
+            <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
+                {{ title }}
+            </div>
+        </template>
         <div class="modal-body">
             <slot>{{ text }}</slot>
             <div class="buttons">
-                <button @click="confirm" ref="confirm" :class="{ focus: focus === 'confirm' }">{{ yes }}</button>
-                <button @click="deny" v-if="showNo" ref="deny" :class="{ focus: focus === 'deny' }">{{ no }}</button>
+                <button @click="emit('submit', true)" ref="confirm" :class="{ focus: focus === 'confirm' }">
+                    {{ yes }}
+                </button>
+                <button @click="emit('submit', false)" v-if="showNo" ref="deny" :class="{ focus: focus === 'deny' }">
+                    {{ no }}
+                </button>
             </div>
         </div>
     </modal>

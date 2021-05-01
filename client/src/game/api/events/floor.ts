@@ -1,27 +1,23 @@
-import { coreStore } from "../../../core/store";
-import { layerManager } from "../../layers/manager";
-import { floorStore, getFloorId } from "../../layers/store";
-import { addFloor, removeFloor } from "../../layers/utils";
+import { coreStore } from "../../../store/core";
+import { floorStore } from "../../../store/floor";
 import { ServerFloor } from "../../models/general";
 import { socket } from "../socket";
 
 socket.on("Floor.Create", (data: { floor: ServerFloor; creator: string }) => {
-    addFloor(data.floor);
-    if (data.creator === coreStore.username) floorStore.selectFloor({ targetFloor: data.floor.name, sync: true });
+    floorStore.addServerFloor(data.floor);
+    if (data.creator === coreStore.state.username) floorStore.selectFloor({ name: data.floor.name }, true);
 });
 
-socket.on("Floor.Remove", (floor: string) => {
-    removeFloor(getFloorId(floor));
+socket.on("Floor.Remove", (name: string) => {
+    floorStore.removeFloor({ name }, false);
 });
 
 socket.on("Floor.Visible.Set", (data: { name: string; visible: boolean }) => {
-    const floor = layerManager.getFloor(getFloorId(data.name));
-    if (floor === undefined) return;
-    floor.playerVisible = data.visible;
+    floorStore.setFloorPlayerVisible({ name: data.name }, data.visible, false);
 });
 
 socket.on("Floor.Rename", (data: { index: number; name: string }) => {
-    floorStore.renameFloor({ ...data, sync: false });
+    floorStore.renameFloor(data.index, data.name, false);
 });
 
-socket.on("Floors.Reorder", (floors: string[]) => floorStore.reorderFloors({ floors, sync: false }));
+socket.on("Floors.Reorder", (floors: string[]) => floorStore.reorderFloors(floors, false));

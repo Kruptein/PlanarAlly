@@ -51,6 +51,9 @@ async def assetmgmt_connect(sid: str, environ):
 
 @sio.on("Folder.Get", namespace=ASSET_NS)
 async def get_folder(sid: str, folder=None):
+    if folder is not None and folder < 0:
+        return
+
     user = asset_state.get_user(sid)
 
     if folder is None:

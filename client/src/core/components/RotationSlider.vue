@@ -1,63 +1,50 @@
 <script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
-import { Prop } from "vue-property-decorator";
+import { computed, defineComponent, onMounted, ref } from "vue";
 
-import { toDegrees, toRadians } from "../../game/units";
+import { toDegrees, toRadians } from "../conversions";
 
-@Component
-export default class RotationSlider extends Vue {
-    @Prop(Number) readonly angle!: number;
-    $refs!: {
-        circle: HTMLDivElement;
-        slider: HTMLDivElement;
-    };
+export default defineComponent({
+    props: { angle: { type: Number, required: true } },
+    setup(props, { emit }) {
+        const circle = ref<HTMLDivElement | null>(null);
 
-    private radianAngle = 0;
-    left = 0;
-    top = 0;
+        let active = false;
+        const radius = 10;
+        const radianAngle = ref(0);
 
-    mounted(): void {
-        this.radianAngle = toRadians(this.angle);
-        this.left = this.getLeft();
-        this.top = this.getTop();
-    }
+        const left = computed(() => Math.round(radius * Math.cos(radianAngle.value)) + radius / 2);
+        const top = computed(() => Math.round(radius * Math.sin(radianAngle.value)) + radius / 2);
 
-    private radius = 10;
-    active = false;
+        onMounted(() => {
+            radianAngle.value = toRadians(props.angle);
+        });
 
-    mouseDown(): void {
-        this.active = true;
-    }
-
-    mouseUp(): void {
-        if (this.active) this.$emit("change", toDegrees(this.radianAngle));
-        this.active = false;
-    }
-
-    mouseMove(event: MouseEvent): void {
-        if (this.active) {
-            const circleRect = this.$refs.circle.getBoundingClientRect();
-            const center = { x: circleRect.left + circleRect.width / 2, y: circleRect.top + circleRect.height / 2 };
-
-            const mPos = { x: event.x - center.x, y: event.y - center.y };
-            this.radianAngle = Math.PI / 2 - Math.atan2(this.radius * mPos.x, this.radius * mPos.y);
-
-            this.left = this.getLeft();
-            this.top = this.getTop();
-
-            this.$emit("input", toDegrees(this.radianAngle));
+        function mouseDown(): void {
+            active = true;
         }
-    }
 
-    private getLeft(): number {
-        return Math.round(this.radius * Math.cos(this.radianAngle)) + this.radius / 2;
-    }
+        function mouseUp(): void {
+            if (active) {
+                emit("change", toDegrees(radianAngle.value));
+            }
+            active = false;
+        }
 
-    private getTop(): number {
-        return Math.round(this.radius * Math.sin(this.radianAngle)) + this.radius / 2;
-    }
-}
+        function mouseMove(event: MouseEvent): void {
+            if (active) {
+                const circleRect = circle.value!.getBoundingClientRect();
+                const center = { x: circleRect.left + circleRect.width / 2, y: circleRect.top + circleRect.height / 2 };
+
+                const mPos = { x: event.x - center.x, y: event.y - center.y };
+                radianAngle.value = Math.PI / 2 - Math.atan2(radius * mPos.x, radius * mPos.y);
+
+                emit("input", toDegrees(radianAngle.value));
+            }
+        }
+
+        return { circle, left, top, mouseDown, mouseUp, mouseMove };
+    },
+});
 </script>
 
 <template>

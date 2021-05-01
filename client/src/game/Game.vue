@@ -1,198 +1,162 @@
 <script lang="ts">
+import throttle from "lodash/throttle";
+import { defineComponent, onMounted, onUnmounted, toRef, watchEffect } from "vue";
+
+import { useModal } from "../core/plugins/modals/plugin";
+import { clientStore } from "../store/client";
+import { coreStore } from "../store/core";
+import { floorStore } from "../store/floor";
+import { gameStore } from "../store/game";
+
+import { createConnection, socket } from "./api/socket";
+import { onKeyDown } from "./input/keyboard";
+import { scrollZoom } from "./input/mouse";
+import { clearUndoStacks } from "./operations/undo";
+import { dropAsset } from "./temp";
+import {
+    contextMenu,
+    keyUp,
+    mouseDown,
+    mouseLeave,
+    mouseMove,
+    mouseUp,
+    touchEnd,
+    touchMove,
+    touchStart,
+} from "./tools/events";
+import UI from "./ui/UI.vue";
+
 import "@/game/api/events";
 
-import throttle from "lodash/throttle";
-import Vue from "vue";
-import Component from "vue-class-component";
-import { Watch } from "vue-property-decorator";
-
-import ConfirmDialog from "@/core/components/modals/ConfirmDialog.vue";
-import SelectionBox from "@/core/components/modals/SelectionBox.vue";
-import { coreStore } from "@/core/store";
-import { createConnection, socket } from "@/game/api/socket";
-import { onKeyDown, onKeyUp } from "@/game/input/keyboard";
-import { scrollZoom } from "@/game/input/mouse";
-import { layerManager } from "@/game/layers/manager";
-import Initiative from "@/game/ui/initiative/initiative.vue";
-
-import { dropAsset } from "./layers/utils";
-import { clearUndoStacks } from "./operations/undo";
-import { gameStore } from "./store";
-import UI from "./ui/ui.vue";
-
-@Component({
-    components: {
-        ConfirmDialog,
-        Initiative,
-        SelectionBox,
-        UI,
-    },
-    beforeRouteEnter(to, from, next) {
+export default defineComponent({
+    name: "Game",
+    components: { UI },
+    beforeRouteEnter(to, _from, next) {
         coreStore.setLoading(true);
         createConnection(to);
         next();
     },
-    beforeRouteLeave(to, from, next) {
+    beforeRouteLeave(_to, _from, next) {
         socket.disconnect();
         next();
     },
-})
-export default class Game extends Vue {
-    $refs!: {
-        confirm: ConfirmDialog;
-        selectionbox: SelectionBox;
-        ui: UI;
-    };
+    setup() {
+        const modals = useModal();
 
-    ready = {
-        manager: false,
-    };
+        const gameState = gameStore.state;
 
-    throttledmoveSet = false;
-    throttledmove: (event: MouseEvent) => void = (_event: MouseEvent) => {};
+        let throttledMoveSet = false;
+        let throttledMove: (event: MouseEvent) => void = (_event: MouseEvent) => {};
+        let throttledTouchMoveSet = false;
+        let throttledTouchMove: (event: TouchEvent) => void = (_event: TouchEvent) => {};
 
-    throttledtouchmoveSet = false;
-    throttledtouchmove: (event: TouchEvent) => void = (_event: TouchEvent) => {};
-
-    mounted(): void {
-        window.addEventListener("resize", this.resizeWindow);
-        window.addEventListener("keyup", (event: KeyboardEvent) => {
-            if (this.$refs.ui === undefined) return;
-            this.$refs.ui.$refs.tools.keyup(event);
+        watchEffect(() => {
+            if (!gameStore.state.boardInitialized) {
+                throttledMoveSet = false;
+                throttledTouchMoveSet = false;
+            }
         });
-        window.addEventListener("keydown", onKeyDown);
-        clearUndoStacks();
-        this.ready.manager = true;
-    }
 
-    destroyed(): void {
-        window.removeEventListener("resize", this.resizeWindow);
-        window.removeEventListener("keyup", onKeyUp);
-        window.removeEventListener("keydown", onKeyDown);
-        this.ready.manager = false;
-    }
+        onMounted(() => {
+            window.addEventListener("keyup", keyUp);
+            window.addEventListener("keydown", onKeyDown);
+            window.addEventListener("resize", resizeWindow);
+            clearUndoStacks();
+        });
 
-    @Watch("isBoardInitialized")
-    onBoardInitialized(newValue: boolean): void {
-        if (!newValue) {
-            this.throttledmoveSet = false;
-            this.throttledtouchmoveSet = false;
+        onUnmounted(() => {
+            window.removeEventListener("keyup", keyUp);
+            window.removeEventListener("keydown", onKeyDown);
+            window.removeEventListener("resize", resizeWindow);
+        });
+
+        // Window events
+        function zoom(event: WheelEvent): void {
+            if (clientStore.state.disableScrollToZoom) return;
+            throttle(scrollZoom)(event);
         }
-    }
 
-    // Window events
-
-    zoom(event: WheelEvent): void {
-        if (gameStore.disableScrollToZoom) return;
-
-        throttle(scrollZoom)(event);
-    }
-
-    resizeWindow(): void {
-        layerManager.setWidth(window.innerWidth);
-        layerManager.setHeight(window.innerHeight);
-        layerManager.invalidateAllFloors();
-    }
-
-    // Touch events
-
-    touchend(event: TouchEvent): void {
-        if (this.$refs.ui === undefined) return;
-        this.$refs.ui.$refs.tools.touchend(event);
-    }
-
-    touchstart(event: TouchEvent): void {
-        if (this.$refs.ui === undefined) return;
-        this.$refs.ui.$refs.tools.touchstart(event);
-    }
-
-    touchmove(event: TouchEvent): void {
-        if (this.$refs.ui === undefined) return;
-        // limit the number of touch moves to ease server load
-        if (!this.throttledtouchmoveSet) {
-            this.throttledtouchmoveSet = true;
-            this.throttledtouchmove = throttle(this.$refs.ui.$refs.tools.touchmove, 5);
+        function resizeWindow(): void {
+            floorStore.setWidth(window.innerWidth);
+            floorStore.setHeight(window.innerHeight);
+            floorStore.invalidateAllFloors();
         }
-        // after throttling pass event to object
-        this.throttledtouchmove(event);
-    }
 
-    // Mouse events
+        // Touch events
 
-    mousedown(event: MouseEvent): void {
-        if (this.$refs.ui === undefined) return;
-        this.$refs.ui.$refs.tools.mousedown(event);
-    }
-
-    mouseup(event: MouseEvent): void {
-        if (this.$refs.ui === undefined) return;
-        this.$refs.ui.$refs.tools.mouseup(event);
-    }
-
-    mousemove(event: MouseEvent): void {
-        if (this.$refs.ui === undefined) return;
-        if (!this.throttledmoveSet) {
-            this.throttledmoveSet = true;
-            this.throttledmove = throttle(this.$refs.ui.$refs.tools.mousemove, 15);
+        function touchmove(event: TouchEvent): void {
+            // limit the number of touch moves to ease server load
+            if (!throttledTouchMoveSet) {
+                throttledTouchMoveSet = true;
+                throttledTouchMove = throttle(touchMove, 5);
+            }
+            // after throttling pass event to object
+            throttledTouchMove(event);
         }
-        this.throttledmove(event);
-    }
 
-    mouseleave(event: MouseEvent): void {
-        if (this.$refs.ui === undefined) return;
-        this.$refs.ui.$refs.tools.mouseleave(event);
-    }
-
-    contextmenu(event: MouseEvent): void {
-        if (this.$refs.ui === undefined) return;
-        this.$refs.ui.$refs.tools.contextmenu(event);
-    }
-
-    async drop(event: DragEvent): Promise<void> {
-        if (event === null || event.dataTransfer === null) return;
-        if (event.dataTransfer.files.length > 0) {
-            await this.$refs.confirm.open("Warning", "Uploading files should be done through the asset manager.", {
-                yes: "Ok",
-                showNo: false,
-            });
-        } else if (event.dataTransfer.getData("text/plain") === "" || event === null || event.dataTransfer === null) {
-            return;
-        } else {
-            const data: { imageSource: string; assetId: number } = JSON.parse(event.dataTransfer.getData("text/plain"));
-            await dropAsset(data, { x: event.clientX, y: event.clientY }, this.$refs.selectionbox);
+        function mousemove(event: MouseEvent): void {
+            if (!throttledMoveSet) {
+                throttledMoveSet = true;
+                throttledMove = throttle(mouseMove, 15);
+            }
+            throttledMove(event);
         }
-    }
 
-    get isBoardInitialized(): boolean {
-        return gameStore.isBoardInitialized;
-    }
+        async function drop(event: DragEvent): Promise<void> {
+            if (event === null || event.dataTransfer === null) return;
+            if (event.dataTransfer.files.length > 0) {
+                await modals.confirm("Warning", "Uploading files should be done through the asset manager.", {
+                    yes: "Ok",
+                    showNo: false,
+                });
+            } else if (
+                event.dataTransfer.getData("text/plain") === "" ||
+                event === null ||
+                event.dataTransfer === null
+            ) {
+                return;
+            } else {
+                const data: { imageSource: string; assetId: number } = JSON.parse(
+                    event.dataTransfer.getData("text/plain"),
+                );
+                await dropAsset(data, { x: event.clientX, y: event.clientY });
+            }
+        }
 
-    get isConnected(): boolean {
-        return gameStore.isConnected;
-    }
-}
+        return {
+            contextMenu,
+            drop,
+            isConnected: toRef(gameState, "isConnected"),
+            mouseDown,
+            mouseLeave,
+            mousemove,
+            mouseUp,
+            touchStart,
+            touchmove,
+            touchEnd,
+            zoom,
+        };
+    },
+});
 </script>
 
 <template>
-    <div id="main" @mouseleave="mouseleave" @wheel="zoom">
-        <UI v-if="isBoardInitialized" ref="ui"></UI>
+    <div id="main" @mouseleave="mouseLeave" @wheel="zoom">
         <div id="board" :class="{ disconnected: !isConnected }">
             <div
                 id="layers"
-                @mousedown="mousedown"
-                @mouseup="mouseup"
+                @mousedown="mouseDown"
+                @mouseup="mouseUp"
                 @mousemove="mousemove"
-                @contextmenu.prevent.stop="contextmenu"
+                @contextmenu.prevent.stop="contextMenu"
                 @dragover.prevent
                 @drop.prevent.stop="drop"
                 @touchmove="touchmove"
-                @touchstart="touchstart"
-                @touchend="touchend"
+                @touchstart="touchStart"
+                @touchend="touchEnd"
             ></div>
         </div>
-        <Initiative ref="initiative" id="initiativedialog"></Initiative>
-        <ConfirmDialog ref="confirm"></ConfirmDialog>
-        <SelectionBox ref="selectionbox"></SelectionBox>
+        <UI ref="ui" />
     </div>
 </template>
 

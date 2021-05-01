@@ -1,5 +1,6 @@
 // vue.config.js
 
+const webpack = require("webpack");
 // const CircularDependencyPlugin = require("circular-dependency-plugin");
 // const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 
@@ -13,10 +14,14 @@ module.exports = {
         devtool: "source-map",
         resolve: {
             alias: {
-                vue$: "vue/dist/vue.esm.js", // 'vue/dist/vue.common.js' for webpack 1
+                vue$: "vue/dist/vue.esm-bundler.js", // 'vue/dist/vue.common.js' for webpack 1
             },
         },
         // plugins: [
+        //     new webpack.DefinePlugin({
+        //         __VUE_OPTIONS_API__: false,
+        //         __VUE_PROD_DEVTOOLS__: false,
+        //     }),
         //     new CircularDependencyPlugin({
         //         exclude: /a\.js|node_modules/,
         //         failOnError: false,

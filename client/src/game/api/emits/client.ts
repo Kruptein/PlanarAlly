@@ -1,10 +1,11 @@
+import { clientStore } from "../../../store/client";
 import { ServerUserOptions, ServerUserLocationOptions } from "../../models/settings";
-import { gameStore } from "../../store";
 import { wrapSocket } from "../helpers";
 import { socket } from "../socket";
 
 export function sendClientLocationOptions(): void {
-    _sendClientLocationOptions({ pan_x: gameStore.panX, pan_y: gameStore.panY, zoom_factor: gameStore.zoomDisplay });
+    const state = clientStore.state;
+    _sendClientLocationOptions({ pan_x: state.panX, pan_y: state.panY, zoom_factor: state.zoomDisplay });
 }
 
 function _sendClientLocationOptions(locationOptions: ServerUserLocationOptions): void {

@@ -1,280 +1,266 @@
 <script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
-import { Prop, Watch } from "vue-property-decorator";
+import { computed, defineComponent, ref, toRef, toRefs, watchEffect } from "vue";
+import { useI18n } from "vue-i18n";
 import draggable from "vuedraggable";
-import { mapState } from "vuex";
 
-import Prompt from "@/core/components/modals/prompt.vue";
-import SelectionBox from "@/core/components/modals/SelectionBox.vue";
-import { sendLocationChange, sendNewLocation } from "@/game/api/emits/location";
-import { gameStore } from "@/game/store";
-
-import { coreStore } from "../../../core/store";
-import { EventBus } from "../../event-bus";
+import { useModal } from "../../../core/plugins/modals/plugin";
+import { clientStore } from "../../../store/client";
+import { coreStore } from "../../../store/core";
+import { gameStore } from "../../../store/game";
+import { locationStore } from "../../../store/location";
+import { uiStore } from "../../../store/ui";
+import { sendLocationChange, sendNewLocation } from "../../api/emits/location";
 import { Location } from "../../models/settings";
 
-@Component({
-    computed: {
-        ...mapState("game", ["IS_DM"]),
-        ...mapState("gameSettings", ["activeLocation"]),
-    },
-    components: { Prompt, SelectionBox },
-})
-export default class LocationBar extends Vue {
-    activeLocation!: number;
-    IS_DM!: boolean;
+export default defineComponent({
+    components: { draggable },
+    props: { active: { type: Boolean, required: true }, menuActive: { type: Boolean, required: true } },
+    setup() {
+        const { t } = useI18n();
+        const modals = useModal();
 
-    $refs!: {
-        locations: InstanceType<typeof draggable>;
-        prompt: Prompt;
-        selectionbox: SelectionBox;
-    };
+        const locations = ref<{ $el: HTMLDivElement } | null>(null);
 
-    @Prop() active!: boolean;
-    @Prop() menuActive!: boolean;
+        const isDm = toRef(gameStore.state, "isDm");
 
-    @Watch("active")
-    toggleActive(active: boolean): void {
-        for (const expandEl of this.$refs.locations.$el.querySelectorAll(".player-collapse-content")) {
-            const hEl = expandEl as HTMLElement;
-            if (this.expanded.includes(Number.parseInt(hEl.dataset.loc || "-1"))) {
-                if (active) {
-                    hEl.style.removeProperty("display");
+        const activeLocations = computed({
+            get() {
+                return locationStore.activeLocations.value;
+            },
+            set(locations: Location[]) {
+                locationStore.setActiveLocations(locations, true);
+            },
+        });
+
+        // could not figure out how to use the @scroll events on the draggable in vue3
+        // used to work fine in vue2, played around with component-data but to no avail
+        watchEffect(() => {
+            if (locations.value) {
+                locations.value.$el.addEventListener("scroll", () => fixDisplays());
+                locations.value.$el.addEventListener("wheel", (e) => horizontalWheel(e));
+            }
+        });
+
+        const expanded = ref<Set<number>>(new Set());
+
+        const hasArchivedLocations = computed(() => locationStore.archivedLocations.value.length > 0);
+
+        async function showArchivedLocations(): Promise<void> {
+            const locations = locationStore.archivedLocations.value;
+            if (locations.length === 0) return;
+
+            const choice = await modals.selectionBox(
+                "Select a location to retore",
+                locations.map((l) => l.name),
+            );
+            const location = locations.find((l) => l.name === choice);
+            if (choice !== undefined && location !== undefined) {
+                locationStore.unarchiveLocation(location.id, true);
+            }
+        }
+
+        async function createLocation(): Promise<void> {
+            const value = await modals.prompt(
+                t("game.ui.menu.LocationBar.new_location_name"),
+                t("game.ui.menu.LocationBar.create_new_location"),
+            );
+            if (value !== undefined) sendNewLocation(value);
+        }
+
+        function changeLocation(id: number): void {
+            sendLocationChange({ location: id, users: [clientStore.state.username] });
+            coreStore.setLoading(true);
+        }
+
+        function openLocationSettings(location: number): void {
+            uiStore.showLocationSettings(location);
+        }
+
+        function toggleExpanded(id: number): void {
+            if (expanded.value.has(id)) expanded.value.delete(id);
+            else expanded.value.add(id);
+        }
+
+        function onDragAdd(event: { item: HTMLDivElement; clone: HTMLDivElement }): void {
+            event.clone.replaceWith(event.item);
+        }
+
+        function endPlayerDrag(e: { item: HTMLDivElement; from: HTMLDivElement; to: HTMLDivElement }): void {
+            e.item.style.removeProperty("transform");
+            const fromLocation = Number.parseInt(e.from.dataset.loc!);
+            const toLocation = Number.parseInt(e.to.dataset.loc!);
+            if (toLocation === undefined || fromLocation === toLocation) return;
+            const targetPlayer = e.item.textContent!.trim();
+
+            for (const player of gameStore.state.players) {
+                if (player.name === targetPlayer) {
+                    gameStore.updatePlayersLocation([player.name], toLocation, true);
+                    break;
+                }
+            }
+        }
+
+        function endPlayersDrag(e: { item: HTMLDivElement; from: HTMLDivElement; to: HTMLDivElement }): void {
+            e.item.style.removeProperty("transform");
+            const fromLocation = Number.parseInt(e.from.dataset.loc!);
+            const toLocation = Number.parseInt(e.to.dataset.loc!);
+            if (toLocation === undefined || fromLocation === toLocation) return;
+
+            const players = [];
+            for (const player of gameStore.state.players) {
+                if (player.location === fromLocation && player.role !== 1) {
+                    players.push(player.name);
+                }
+            }
+            gameStore.updatePlayersLocation(players, toLocation, true);
+
+            if (expanded.value.has(fromLocation)) {
+                expanded.value.delete(fromLocation);
+                expanded.value.add(toLocation);
+            }
+        }
+
+        function horizontalWheel(event: WheelEvent): void {
+            if (locations.value === null) return;
+
+            const el = locations.value.$el;
+
+            if (event.deltaY > 0) el.scrollLeft += 100;
+            else el.scrollLeft -= 100;
+            fixDisplays();
+        }
+
+        function fixDisplays(): void {
+            if (locations.value === null) return;
+
+            const el = locations.value.$el;
+
+            for (const expandEl of el.querySelectorAll(".player-collapse-content")) {
+                const hEl = expandEl as HTMLElement;
+                hEl.style.marginLeft = `calc(0.5em - ${el.scrollLeft}px)`;
+                if (expanded.value.has(Number.parseInt(hEl.dataset.loc ?? "-1"))) {
+                    if (hEl.style.display === "none") hEl.style.removeProperty("display");
                 } else {
+                    continue;
+                }
+                if (hEl.getBoundingClientRect().right > window.innerWidth) {
                     hEl.style.display = "none";
                 }
             }
         }
-    }
 
-    expanded: number[] = [];
-    horizontalOffset = 0;
-
-    changeLocation(id: number): void {
-        sendLocationChange({ location: id, users: [gameStore.username] });
-        coreStore.setLoading(true);
-    }
-
-    get locations(): Location[] {
-        return [...gameStore.activeLocations];
-    }
-
-    set locations(locations: Location[]) {
-        gameStore.setActiveLocations({ locations, sync: true });
-    }
-
-    get playerLocations(): Map<number, string[]> {
-        const map: Map<number, string[]> = new Map();
-        for (const player of gameStore.players) {
-            if (player.name === gameStore.username && gameStore.IS_DM) continue;
-            if (!map.has(player.location)) map.set(player.location, []);
-            map.get(player.location)!.push(player.name);
-        }
-        return map;
-    }
-
-    async createLocation(): Promise<void> {
-        const value = await this.$refs.prompt.prompt(
-            this.$t("game.ui.menu.LocationBar.new_location_name").toString(),
-            this.$t("game.ui.menu.LocationBar.create_new_location").toString(),
-        );
-        if (value !== undefined) sendNewLocation(value);
-    }
-
-    openLocationSettings(location: number): void {
-        EventBus.$emit("LocationSettings.Open", location);
-    }
-
-    toggleExpanded(id: number): void {
-        const idx = this.expanded.indexOf(id);
-        if (idx < 0) this.expanded.push(id);
-        else this.expanded.splice(idx, 1);
-    }
-
-    endLocationDrag(e: { item: HTMLDivElement }): void {
-        e.item.style.removeProperty("transform");
-    }
-
-    endPlayersDrag(e: { item: HTMLDivElement; clone: HTMLDivElement; from: HTMLDivElement; to: HTMLDivElement }): void {
-        e.item.style.removeProperty("transform");
-        const fromLocation = Number.parseInt(e.from.dataset.loc!);
-        const toLocation = Number.parseInt(e.to.dataset.loc!);
-        if (toLocation === undefined || fromLocation === toLocation) return;
-        const players = [];
-        for (const player of gameStore.players) {
-            if (player.location === fromLocation && player.role !== 1) {
-                player.location = toLocation;
-                players.push(player.name);
-            }
-        }
-        const idx = this.expanded.findIndex((x) => x === fromLocation);
-        if (idx >= 0) {
-            this.expanded.splice(idx, 1);
-            this.expanded.push(toLocation);
-        }
-        sendLocationChange({ location: toLocation, users: players });
-    }
-
-    endPlayerDrag(e: { item: HTMLDivElement; from: HTMLDivElement; to: HTMLDivElement }): void {
-        e.item.style.removeProperty("transform");
-        const fromLocation = Number.parseInt(e.from.dataset.loc!);
-        const toLocation = Number.parseInt(e.to.dataset.loc!);
-        if (toLocation === undefined || fromLocation === toLocation) return;
-        const targetPlayer = e.item.textContent!.trim();
-        for (const player of gameStore.players) {
-            if (player.name === targetPlayer) {
-                player.location = toLocation;
-                sendLocationChange({ location: toLocation, users: [targetPlayer] });
-                break;
-            }
-        }
-    }
-
-    onDragAdd(e: { item: HTMLDivElement; clone: HTMLDivElement }): void {
-        e.clone.replaceWith(e.item);
-    }
-
-    doHorizontalScroll(e: WheelEvent): void {
-        const el: HTMLElement = this.$refs.locations.$el as HTMLElement;
-        if (e.deltaY > 0) el.scrollLeft += 100;
-        else el.scrollLeft -= 100;
-        this.horizontalOffset = el.scrollLeft;
-        this.fixDisplays(el);
-    }
-
-    doHorizontalScrollA(_e: WheelEvent): void {
-        const el: HTMLElement = this.$refs.locations.$el as HTMLElement;
-        this.fixDisplays(el);
-    }
-
-    private fixDisplays(el: HTMLElement): void {
-        for (const expandEl of el.querySelectorAll(".player-collapse-content")) {
-            const hEl = expandEl as HTMLElement;
-            hEl.style.marginLeft = `-${el.scrollLeft}px`;
-            if (this.expanded.includes(Number.parseInt(hEl.dataset.loc || "-1"))) {
-                if (hEl.style.display === "none") hEl.style.removeProperty("display");
-            } else {
-                continue;
-            }
-            if (hEl.getBoundingClientRect().right > window.innerWidth) {
-                hEl.style.display = "none";
-            }
-        }
-    }
-
-    getLocationPlayers(location: number): string[] {
-        return this.playerLocations.get(location) ?? [];
-    }
-
-    hasArchivedLocations(): boolean {
-        return gameStore.archivedLocations.length > 0;
-    }
-
-    async showArchivedLocations(): Promise<void> {
-        const locations = gameStore.archivedLocations;
-        if (locations.length === 0) return;
-        const choice = await this.$refs.selectionbox.open(
-            "Select a location to restore",
-            locations.map((l) => l.name),
-        );
-        const location = locations.find((l) => l.name === choice);
-        if (choice !== undefined && location !== undefined) {
-            gameStore.unarchiveLocation({ id: location.id, sync: true });
-        }
-    }
-}
+        return {
+            ...toRefs(locationStore.state),
+            activeLocations,
+            changeLocation,
+            createLocation,
+            endPlayerDrag,
+            endPlayersDrag,
+            expanded,
+            fixDisplays,
+            hasArchivedLocations,
+            isDm,
+            locations,
+            onDragAdd,
+            openLocationSettings,
+            showArchivedLocations,
+            t,
+            toggleExpanded,
+        };
+    },
+});
 </script>
 
 <template>
-    <div id="location-bar" v-if="IS_DM">
-        <SelectionBox ref="selectionbox" />
-        <Prompt ref="prompt" />
+    <div id="location-bar" v-if="isDm">
         <div id="location-actions">
-            <div id="create-location" :title="$t('game.ui.menu.LocationBar.add_new_location')" @click="createLocation">
+            <div id="create-location" :title="t('game.ui.menu.LocationBar.add_new_location')" @click="createLocation">
                 +
             </div>
             <div
                 id="archive-locations"
                 title="Show archived locations"
                 @click="showArchivedLocations"
-                :class="{ noArchived: !hasArchivedLocations() }"
+                :class="{ noArchived: !hasArchivedLocations }"
             >
                 <font-awesome-icon icon="archive" />
             </div>
         </div>
         <draggable
             id="locations"
-            v-model="locations"
-            @end="endLocationDrag"
-            handle=".drag-handle"
-            @wheel.native="doHorizontalScroll"
-            @scroll.native="doHorizontalScrollA"
+            v-model="activeLocations"
+            item-key="id"
             ref="locations"
+            handle=".drag-handle"
             :style="{ maxWidth: 'calc(100vw - 105px - ' + (menuActive ? '200px' : '0px') + ')' }"
         >
-            <div class="location" v-for="location in locations" :key="location.id">
-                <div class="location-name" :class="{ 'active-location': activeLocation === location.id }">
-                    <div class="drag-handle"></div>
-                    <div class="location-name-label" @click.self="changeLocation(location.id)">{{ location.name }}</div>
-                    <div class="location-settings-icon" @click="openLocationSettings(location.id)">
-                        <font-awesome-icon icon="cog" />
-                    </div>
-                </div>
-                <draggable
-                    class="location-players"
-                    v-show="playerLocations.has(location.id)"
-                    :group="{ name: 'players', pull: 'clone' }"
-                    @end="endPlayersDrag"
-                    @add="onDragAdd"
-                    handle=".player-collapse-header"
-                    :data-loc="location.id"
-                >
-                    <div class="player-collapse-header">
-                        {{ $t("common.players") }}
-                        <div
-                            :title="$t('game.ui.menu.LocationBar.show_specific_pl')"
-                            @click="toggleExpanded(location.id)"
-                        >
-                            <span v-show="expanded.includes(location.id)">
-                                <font-awesome-icon icon="chevron-up" />
-                            </span>
-                            <span v-show="!expanded.includes(location.id)">
-                                <font-awesome-icon icon="chevron-down" />
-                            </span>
+            <template #item="{ element: location }">
+                <div class="location">
+                    <div class="location-name" :class="{ 'active-location': activeLocation === location.id }">
+                        <div class="drag-handle"></div>
+                        <div class="location-name-label" @click.self="changeLocation(location.id)">
+                            {{ location.name }}
+                        </div>
+                        <div class="location-settings-icon" @click="openLocationSettings(location.id)">
+                            <font-awesome-icon icon="cog" />
                         </div>
                     </div>
                     <draggable
+                        class="location-players"
+                        v-show="playerLocations.has(location.id)"
+                        :list="[{ id: location.id }]"
+                        item-key="id"
+                        :group="{ name: 'players', pull: 'clone' }"
+                        handle=".player-collapse-header"
+                        :data-loc="location.id"
+                        @add="onDragAdd"
+                        @end="endPlayersDrag"
+                    >
+                        <template #item>
+                            <div class="player-collapse-header">
+                                {{ t("common.players") }}
+                                <div
+                                    :title="t('game.ui.menu.LocationBar.show_specific_pl')"
+                                    @click="toggleExpanded(location.id)"
+                                >
+                                    <span v-show="expanded.has(location.id)">
+                                        <font-awesome-icon icon="chevron-up" />
+                                    </span>
+                                    <span v-show="!expanded.has(location.id)">
+                                        <font-awesome-icon icon="chevron-down" />
+                                    </span>
+                                </div>
+                            </div>
+                        </template>
+                    </draggable>
+                    <draggable
                         class="player-collapse-content"
-                        v-show="expanded.includes(location.id)"
+                        v-show="active && expanded.has(location.id)"
+                        :list="[...(playerLocations.get(location.id) ?? [])]"
+                        item-key="id"
                         :data-loc="location.id"
                         group="player"
                         @end="endPlayerDrag"
                     >
-                        <div
-                            class="player-collapse-item"
-                            v-for="player in getLocationPlayers(location.id)"
-                            :key="player"
-                            :data-loc="location.id"
-                        >
-                            {{ player }}
-                        </div>
+                        <template #item="{ element: player }">
+                            <div class="player-collapse-item" :data-loc="location.id">
+                                {{ player }}
+                            </div>
+                        </template>
                     </draggable>
                     <draggable
                         class="location-players-empty"
-                        v-show="!expanded.includes(location.id)"
-                        group="player"
+                        v-show="!playerLocations.has(location.id)"
+                        :group="{ name: 'empty-players', put: ['players', 'player'] }"
+                        :list="[{ id: location.id }]"
+                        item-key="id"
                         :data-loc="location.id"
-                    ></draggable>
-                </draggable>
-                <draggable
-                    class="location-players-empty"
-                    v-show="!playerLocations.has(location.id)"
-                    @add="onDragAdd"
-                    :group="{ name: 'empty-players', put: ['players', 'player'] }"
-                    :data-loc="location.id"
-                ></draggable>
-            </div>
+                        @add="onDragAdd"
+                    >
+                        <template #item><div></div></template>
+                    </draggable>
+                </div>
+            </template>
         </draggable>
     </div>
 </template>
@@ -420,6 +406,10 @@ export default class LocationBar extends Vue {
     min-width: 150px;
 }
 
+.location-players-empty {
+    height: 25px;
+}
+
 .player-collapse-header {
     display: flex;
     align-items: center;
@@ -432,8 +422,9 @@ export default class LocationBar extends Vue {
 
 .player-collapse-content {
     position: absolute;
-    /* top: 15px; */
-    margin-top: 35px;
+    margin-top: 90px;
+    margin-left: 0.5em;
+    color: white;
 }
 
 .player-collapse-item {

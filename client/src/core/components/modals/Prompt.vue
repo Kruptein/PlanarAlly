@@ -1,6 +1,8 @@
 <script lang="ts">
 import { defineComponent, nextTick, ref, watchEffect } from "vue";
 
+import { i18n } from "../../../i18n";
+
 import Modal from "./Modal.vue";
 
 export default defineComponent({
@@ -14,6 +16,8 @@ export default defineComponent({
         error: String,
     },
     setup(props, { emit }) {
+        const { t } = i18n.global;
+
         const answer = ref("");
         const input = ref<HTMLInputElement | null>(null);
 
@@ -37,7 +41,7 @@ export default defineComponent({
             reset();
         }
 
-        return { answer, close, input, submit };
+        return { t, answer, close, input, submit };
     },
 });
 </script>
@@ -54,7 +58,9 @@ export default defineComponent({
             <div id="error" v-if="error">{{ error }}</div>
             <input type="text" ref="input" v-model="answer" @keyup.enter="submit" />
         </div>
-        <div class="modal-footer"><button @click="submit">Submit</button></div>
+        <div class="modal-footer">
+            <button @click="submit">{{ t("common.submit") }}</button>
+        </div>
     </Modal>
 </template>
 

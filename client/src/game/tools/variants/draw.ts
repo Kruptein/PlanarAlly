@@ -1,6 +1,6 @@
 import { computed, reactive, watch, watchEffect } from "vue";
 
-import { clampGridLine, g2lx, g2ly, getUnitDistance, l2g, l2gz } from "../../../core/conversions";
+import { clampGridLine, getUnitDistance, l2g, l2gz } from "../../../core/conversions";
 import { cloneP, GlobalPoint, LocalPoint, subtractP, toGP } from "../../../core/geometry";
 import { equalPoints, snapToPoint } from "../../../core/math";
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
@@ -139,18 +139,18 @@ class DrawTool extends Tool {
         overrideLastOperation({ type: "shapeadd", shapes: [this.shape.asDict()] });
     }
 
-    private async showLayerPoints(): Promise<void> {
-        const layer = this.getLayer()!;
-        await layer.waitValid();
-        if (!this.isActiveTool.value) return;
-        const dL = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw)!;
-        for (const point of layer.points.keys()) {
-            const parsedPoint = JSON.parse(point);
-            dL.ctx.beginPath();
-            dL.ctx.arc(g2lx(parsedPoint[0]), g2ly(parsedPoint[1]), 5, 0, 2 * Math.PI);
-            dL.ctx.fill();
-        }
-    }
+    // private async showLayerPoints(): Promise<void> {
+    //     const layer = this.getLayer()!;
+    //     await layer.waitValid();
+    //     if (!this.isActiveTool.value) return;
+    //     const dL = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw)!;
+    //     for (const point of layer.points.keys()) {
+    //         const parsedPoint = JSON.parse(point);
+    //         dL.ctx.beginPath();
+    //         dL.ctx.arc(g2lx(parsedPoint[0]), g2ly(parsedPoint[1]), 5, 0, 2 * Math.PI);
+    //         dL.ctx.fill();
+    //     }
+    // }
 
     private onModeChange(newValue: string, oldValue: string): void {
         if (this.brushHelper === undefined) return;
@@ -216,7 +216,7 @@ class DrawTool extends Tool {
         });
         this.setupBrush();
         layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false); // during mode change the shape is already added
-        if (gameStore.state.isDm) this.showLayerPoints();
+        // if (gameStore.state.isDm) this.showLayerPoints();
     }
 
     onDeselect(data?: { floor?: Floor; layer?: LayerName }): void {

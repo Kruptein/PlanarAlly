@@ -17,19 +17,19 @@ module.exports = {
                 vue$: "vue/dist/vue.esm-bundler.js", // 'vue/dist/vue.common.js' for webpack 1
             },
         },
-        plugins: [
-            new webpack.DefinePlugin({
-                __VUE_OPTIONS_API__: false,
-                __VUE_PROD_DEVTOOLS__: false,
-            }),
-            //     new CircularDependencyPlugin({
-            //         exclude: /a\.js|node_modules/,
-            //         failOnError: false,
-            //         allowAsyncCycles: false,
-            //         cwd: process.cwd(),
-            //     }),
-            //     new BundleAnalyzerPlugin({ analyzerPort: process.env.VUE_CLI_MODERN_BUILD ? 8888 : 9999 }),
-        ],
+        // plugins: [
+        //     new webpack.DefinePlugin({
+        //         __VUE_OPTIONS_API__: false,
+        //         __VUE_PROD_DEVTOOLS__: false,
+        //     }),
+        //     new CircularDependencyPlugin({
+        //         exclude: /a\.js|node_modules/,
+        //         failOnError: false,
+        //         allowAsyncCycles: false,
+        //         cwd: process.cwd(),
+        //     }),
+        //     new BundleAnalyzerPlugin({ analyzerPort: process.env.VUE_CLI_MODERN_BUILD ? 8888 : 9999 }),
+        // ],
     },
 
     parallel: require("os").cpus().length > 1 && !process.env.CIRCLECI,

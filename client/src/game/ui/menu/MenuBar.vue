@@ -100,10 +100,11 @@ export default defineComponent({
             <!-- ASSETS -->
             <template v-if="isDm">
                 <button class="menu-accordion" v-t="'common.assets'"></button>
-                <div id="menu-assets" class="menu-accordion-panel">
+                <div id="menu-assets" class="menu-accordion-panel" style="position: relative">
                     <input id="asset-search" v-model="assetSearch" :placeholder="t('common.search')" />
                     <a
                         class="actionButton"
+                        style="top: 25px"
                         :href="baseAdjust('/assets')"
                         target="blank"
                         :title="t('game.ui.menu.MenuBar.open_asset_manager')"

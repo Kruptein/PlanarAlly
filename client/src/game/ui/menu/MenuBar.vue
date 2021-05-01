@@ -126,7 +126,7 @@ export default defineComponent({
                             {{ note.title || "[?]" }}
                         </div>
                         <div v-if="!notes.length" v-t="'game.ui.menu.MenuBar.no_notes'"></div>
-                        <a class="actionButton" @click="createNote" :title="t('game.ui.menau.MenuBar.create_note')">
+                        <a class="actionButton" @click="createNote" :title="t('game.ui.menu.MenuBar.create_note')">
                             <font-awesome-icon icon="plus-square" />
                         </a>
                     </div>

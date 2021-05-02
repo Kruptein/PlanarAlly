@@ -29,7 +29,12 @@ export function filterAssetMap(assets: ReadonlyAssetListMap, filter = ""): Asset
             );
         } else {
             const n = filterAssetMap(value as ReadonlyAssetListMap, filter);
-            if (n.size > 1 || key.toLocaleLowerCase().includes(filter)) m.set(key, n);
+            if (
+                n.size > 1 ||
+                (n.size === 1 && (n.get("__files") as AssetFile[]).length > 0) ||
+                key.toLocaleLowerCase().includes(filter)
+            )
+                m.set(key, n);
         }
     }
     return new Map([...m].sort((a, b) => alphSort(a[0], b[0])));

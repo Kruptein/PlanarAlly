@@ -1,6 +1,6 @@
 <script lang="ts">
 import tinycolor from "tinycolor2";
-import { defineComponent, nextTick, ref, watch, watchEffect } from "vue";
+import { defineComponent, nextTick, ref, watch } from "vue";
 
 import ColourPicker from "../../../core/components/ColourPicker.vue";
 import Modal from "../../../core/components/modals/Modal.vue";
@@ -25,8 +25,10 @@ export default defineComponent({
         const fillColour = ref("rgba(255, 255, 255, 1)");
         const text = ref("");
 
-        watchEffect(() => {
-            if (tokenDialogVisible.value) {
+        // can't use watchEffect here, because the name focus change will trigger this
+        // on colour picker select
+        watch(tokenDialogVisible, (isVisible) => {
+            if (isVisible) {
                 updatePreview();
                 nextTick(() => name.value?.focus());
             }

@@ -1,7 +1,7 @@
 <script lang="ts">
 import { clamp } from "lodash";
 import tinycolor from "tinycolor2";
-import { computed, defineComponent, nextTick, ref, watch, watchEffect } from "vue";
+import { computed, defineComponent, nextTick, ref, watchEffect } from "vue";
 
 import { getInputPosition } from "../events";
 
@@ -17,7 +17,7 @@ export default defineComponent({
         showAlpha: { type: Boolean, default: true },
         vShow: { type: Boolean, default: true },
     },
-    emits: { "update:colour": (_: string) => true },
+    emits: { "update:colour": (_: string) => true, "input:colour": (_: string) => true },
     setup(props, { emit }) {
         const alpha = ref<HTMLDivElement | null>(null);
         const hue = ref<HTMLDivElement | null>(null);
@@ -40,7 +40,6 @@ export default defineComponent({
         const rgbaString = computed(() => tc.value.toRgbString());
 
         watchEffect(() => (tc.value = tinycolor(props.colour)));
-        watch(tc, () => emit("update:colour", rgbaString.value));
 
         const alphaActive = ref(false);
         const alphaBackground = computed(
@@ -125,10 +124,14 @@ export default defineComponent({
                 ...hsl.value,
                 a: clamp((x - el.x) / el.width, 0, 1),
             });
+            emit("input:colour", rgbaString.value);
         }
 
         function onAlphaUp(): void {
+            if (!alphaActive.value) return;
+
             alphaActive.value = false;
+            emit("update:colour", rgbaString.value);
         }
 
         function onHueDown(event: MouseEvent | TouchEvent): void {
@@ -146,10 +149,14 @@ export default defineComponent({
                 ...hsl.value,
                 h: clamp(360 * ((x - el.x) / el.width), 0, 360),
             });
+            emit("input:colour", rgbaString.value);
         }
 
         function onHueUp(): void {
+            if (!hueActive.value) return;
+
             hueActive.value = false;
+            emit("update:colour", rgbaString.value);
         }
 
         function onSaturationDown(event: MouseEvent | TouchEvent): void {
@@ -171,10 +178,14 @@ export default defineComponent({
                 s: dX / el.width,
                 v: clamp(1 - dY / el.height, 0, 1),
             });
+            emit("input:colour", rgbaString.value);
         }
 
         function onSaturationUp(): void {
+            if (!saturationActive.value) return;
+
             saturationActive.value = false;
+            emit("update:colour", rgbaString.value);
         }
 
         return {

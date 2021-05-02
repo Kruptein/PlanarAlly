@@ -63,9 +63,10 @@ export default defineComponent({
             activeShapeStore.setStrokeColour(event, temporary ? SyncTo.SHAPE : SyncTo.SERVER);
         }
 
-        function setFillColour(event: string, temporary = false): void {
+        function setFillColour(colour: string, temporary = false): void {
+            console.log(colour);
             if (!owned) return;
-            activeShapeStore.setFillColour(event, temporary ? SyncTo.SHAPE : SyncTo.SERVER);
+            activeShapeStore.setFillColour(colour, temporary ? SyncTo.SHAPE : SyncTo.SERVER);
         }
 
         return {
@@ -148,9 +149,9 @@ export default defineComponent({
         <div class="row">
             <label for="shapeselectiondialog-strokecolour" v-t="'common.border_color'"></label>
             <ColourPicker
-                :color="strokeColour"
-                @input="setStrokeColour($event, true)"
-                @change="setStrokeColour($event)"
+                :colour="strokeColour"
+                @input:colour="setStrokeColour($event, true)"
+                @update:colour="setStrokeColour($event)"
                 style="grid-column-start: toggle"
                 :disabled="!owned"
             />
@@ -158,9 +159,9 @@ export default defineComponent({
         <div class="row">
             <label for="shapeselectiondialog-fillcolour" v-t="'common.fill_color'"></label>
             <ColourPicker
-                :color="fillColour"
-                @input="setFillColour($event, true)"
-                @change="setFillColour($event)"
+                :colour="fillColour"
+                @input:colour="setFillColour($event, true)"
+                @update:colour="setFillColour($event)"
                 style="grid-column-start: toggle"
                 :disabled="!owned"
             />

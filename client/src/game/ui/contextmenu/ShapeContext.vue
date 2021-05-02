@@ -131,12 +131,9 @@ export default defineComponent({
         });
 
         function setLayer(newLayer: LayerName): void {
+            const oldSelection = [...selectionState.get({ includeComposites: true })];
             selectionState.clear(false);
-            moveLayer(
-                [...selectionState.get({ includeComposites: true })],
-                floorStore.getLayer(floorStore.currentFloor.value!, newLayer)!,
-                true,
-            );
+            moveLayer(oldSelection, floorStore.getLayer(floorStore.currentFloor.value!, newLayer)!, true);
             close();
         }
 

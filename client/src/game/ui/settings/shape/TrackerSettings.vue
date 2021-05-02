@@ -179,8 +179,8 @@ export default defineComponent({
                     <div v-if="tracker.draw">
                         <ColourPicker
                             :colour="tracker.primaryColor"
-                            @input="updateTracker(tracker.uuid, { primaryColor: $event }, false)"
-                            @change="updateTracker(tracker.uuid, { primaryColor: $event })"
+                            @input:colour="updateTracker(tracker.uuid, { primaryColor: $event }, false)"
+                            @update:colour="updateTracker(tracker.uuid, { primaryColor: $event })"
                             :disabled="!owned"
                         />
                     </div>
@@ -188,8 +188,8 @@ export default defineComponent({
                     <div v-if="tracker.draw">
                         <ColourPicker
                             :colour="tracker.secondaryColor"
-                            @input="updateTracker(tracker.uuid, { secondaryColor: $event }, false)"
-                            @change="updateTracker(tracker.uuid, { secondaryColor: $event })"
+                            @input:colour="updateTracker(tracker.uuid, { secondaryColor: $event }, false)"
+                            @update:colour="updateTracker(tracker.uuid, { secondaryColor: $event })"
                             :disabled="!owned"
                         />
                     </div>
@@ -273,16 +273,16 @@ export default defineComponent({
                     <div class="colour">
                         Aura:
                         <ColourPicker
-                            :color="aura.colour"
-                            @input="updateAura(aura.uuid, { colour: $event }, false)"
-                            @change="updateAura(aura.uuid, { colour: $event })"
+                            :colour="aura.colour"
+                            @input:colour="updateAura(aura.uuid, { colour: $event }, false)"
+                            @update:colour="updateAura(aura.uuid, { colour: $event })"
                             :disabled="!owned"
                         />
                         Border:
                         <ColourPicker
-                            :color="aura.borderColour"
-                            @input="updateAura(aura.uuid, { borderColour: $event }, false)"
-                            @change="updateAura(aura.uuid, { borderColour: $event })"
+                            :colour="aura.borderColour"
+                            @input:colour="updateAura(aura.uuid, { borderColour: $event }, false)"
+                            @update:colour="updateAura(aura.uuid, { borderColour: $event })"
                             :disabled="!owned"
                         />
                     </div>

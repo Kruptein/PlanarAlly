@@ -144,18 +144,21 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
             const selection = selectionState.state.selection;
             if (selection.size === 0) {
                 this.clear();
-            } else if (this._state.uuid === undefined && selection.size > 0) {
+            } else if (this._state.uuid === undefined) {
                 this.setActiveShape(UuidMap.get([...selection][0])!);
             } else {
-                let found = false;
+                let sameMainShape = false;
                 for (const sel of selection) {
                     if ([this._state.uuid, this._state.parentUuid].includes(sel)) {
-                        found = true;
+                        sameMainShape = true;
                         break;
                     }
                 }
-                if (!found) {
+                if (!sameMainShape) {
+                    const showEditDialog = this._state.showEditDialog;
                     activeShapeStore.clear();
+                    activeShapeStore.setActiveShape(UuidMap.get([...selection][0])!);
+                    if (showEditDialog) this._state.showEditDialog = showEditDialog;
                 }
             }
         });

@@ -1,5 +1,5 @@
 <script lang="ts">
-import { computed, defineComponent, onMounted, reactive, ref, toRefs } from "vue";
+import { computed, defineComponent, onMounted, reactive, ref, toRef, toRefs } from "vue";
 import { useI18n } from "vue-i18n";
 import "vue-slider-component/theme/default.css";
 import vueSlider from "vue-slider-component";
@@ -132,17 +132,23 @@ export default defineComponent({
 
         return {
             baseAdjust,
-            core: { ...toRefs(coreState) },
-            game: { ...toRefs(gameStore.state) },
+            t,
+
+            uiEl,
+
+            isDm: toRef(gameStore.state, "isDm"),
+            isFakePlayer: toRef(gameStore.state, "isFakePlayer"),
+            showUi: toRef(gameStore.state, "showUi"),
+
             changelogText,
             showChangelog,
             releaseVersion,
-            t,
+
+            ...toRefs(visible),
             toggleLocations,
             toggleMenu,
-            ...toRefs(visible),
             topLeft,
-            uiEl,
+
             zoomDisplay,
         };
     },
@@ -150,7 +156,7 @@ export default defineComponent({
 </script>
 
 <template>
-    <div id="ui" ref="uiEl" v-show="game.showUi">
+    <div id="ui" ref="uiEl" v-show="showUi">
         <div id="logo" v-show="topLeft">
             <div id="logo-icons">
                 <a href="https://www.planarally.io" target="_blank" rel="noopener noreferrer">
@@ -192,10 +198,10 @@ export default defineComponent({
         <div id="radialmenu">
             <div class="rm-wrapper">
                 <div class="rm-toggler">
-                    <ul class="rm-list" :class="{ 'rm-list-dm': game.isDm }">
+                    <ul class="rm-list" :class="{ 'rm-list-dm': isDm }">
                         <li
                             @click="toggleLocations"
-                            v-if="game.isDm"
+                            v-if="isDm"
                             class="rm-item"
                             id="rm-locations"
                             :title="t('game.ui.ui.open_loc_menu')"
@@ -216,15 +222,15 @@ export default defineComponent({
         </div>
         <MenuBar />
         <Tools />
-        <LocationBar :active="locations" :menuActive="settings" />
+        <LocationBar v-if="isDm" :active="locations" :menuActive="settings" />
         <Floors />
         <CreateTokenDialog />
         <Initiative />
         <DefaultContext />
         <ShapeContext />
         <ShapeSettings />
-        <DmSettings v-if="game.isDm || game.isFakePlayer" />
-        <LocationSettings v-if="game.isDm || game.isFakePlayer" />
+        <DmSettings v-if="isDm || isFakePlayer" />
+        <LocationSettings v-if="isDm || isFakePlayer" />
         <ClientSettings />
         <SelectionInfo />
         <Annotation />

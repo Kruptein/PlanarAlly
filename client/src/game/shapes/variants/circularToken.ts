@@ -3,8 +3,6 @@ import * as tinycolor from "tinycolor2";
 import { g2l, g2lz } from "../../../core/conversions";
 import { GlobalPoint } from "../../../core/geometry";
 import { calcFontScale } from "../../../core/utils";
-import { gameStore } from "../../../store/game";
-import { InitiativeData } from "../../models/general";
 import { ServerCircularToken } from "../../models/shapes";
 import { SHAPE_TYPE } from "../types";
 
@@ -61,16 +59,5 @@ export class CircularToken extends Circle {
         ctx.fillText(this.text, 0, 0);
 
         super.drawPost(ctx);
-    }
-    getInitiativeRepr(): InitiativeData {
-        return {
-            uuid: this.uuid,
-            visible: !gameStore.state.isDm,
-            group: false,
-            source: this.name === "" || this.name === "Unknown shape" ? this.text : this.name,
-            has_img: false,
-            effects: [],
-            index: Infinity,
-        };
     }
 }

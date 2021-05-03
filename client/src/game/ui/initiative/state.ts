@@ -1,88 +1,125 @@
+import { PromptFunction } from "../../../core/plugins/modals/prompt";
 import { Store } from "../../../core/store";
-import { uuidv4 } from "../../../core/utils";
 import { i18n } from "../../../i18n";
 import { gameStore } from "../../../store/game";
 import { UuidMap } from "../../../store/shapeMap";
 import {
     sendInitiativeNewEffect,
+    sendInitiativeOptionUpdate,
     sendInitiativeRemove,
     sendInitiativeRemoveEffect,
+    sendInitiativeRenameEffect,
     sendInitiativeRoundUpdate,
+    sendInitiativeTurnsEffect,
     sendInitiativeTurnUpdate,
-    sendInitiativeUpdate,
-    sendInitiativeUpdateEffect,
+    sendInitiativeAdd,
 } from "../../api/emits/initiative";
 import { InitiativeData, InitiativeEffect } from "../../models/general";
 import { setCenterPosition } from "../../position";
 
 let activeTokensBackup: Set<string> = new Set();
 
-function getDefaultEffect(): { uuid: string; name: string; turns: number } {
-    return { uuid: uuidv4(), name: i18n.global.t("game.ui.initiative.initiative.new_effect"), turns: 10 };
+function getDefaultEffect(): InitiativeEffect {
+    return { name: i18n.global.t("game.ui.initiative.initiative.new_effect"), turns: "10", highlightsActor: false };
 }
 
 interface InitiativeState {
     showInitiative: boolean;
-    data: InitiativeData[];
-    newData: InitiativeData[];
+    locationData: InitiativeData[];
 
-    currentActor: string | null;
     roundCounter: number;
+    turnCounter: number;
 
-    editLock: boolean;
     cameraLock: boolean;
     visionLock: boolean;
 }
 
 class InitiativeStore extends Store<InitiativeState> {
+    private promptFunction: PromptFunction | undefined;
+
+    constructor() {
+        super();
+    }
+
     protected data(): InitiativeState {
         return {
             showInitiative: false,
-            data: [],
-            newData: [],
+            locationData: [],
 
-            currentActor: null,
             roundCounter: 1,
+            turnCounter: 0,
 
-            editLock: false,
             cameraLock: false,
             visionLock: false,
         };
     }
 
+    setPromptFunction(promptFunction: PromptFunction): void {
+        this.promptFunction = promptFunction;
+    }
+
     clear(): void {
-        this._state.data = [];
-        this._state.newData = [];
-        this._state.currentActor = null;
+        this._state.locationData = [];
     }
 
     show(show: boolean): void {
         this._state.showInitiative = show;
     }
 
-    setData(data: InitiativeData[]): void {
-        if (this._state.editLock) this._state.newData = data;
-        else this._state.data = data;
+    setData(data: { location: number; round: number; turn: number; data: InitiativeData[] }): void {
+        this._state.locationData = data.data;
+        this.setRoundCounter(data.round, false);
+        this.setTurnCounter(data.turn, false);
+    }
+
+    // Ideally we get rid of this
+    _forceUpdate(): void {
+        this._state.locationData = [...this._state.locationData];
     }
 
     // PURE INITIATIVE
 
-    addInitiative(data: InitiativeData): void {
-        const d = this._state.data.findIndex((a) => a.uuid === data.uuid);
-        if (d >= 0) return;
-        if (data.initiative === undefined) data.initiative = 0;
-        sendInitiativeUpdate(data);
+    async handleRequest(): Promise<void> {
+        for (const initiative of this._state.locationData) {
+            if (gameStore.state.ownedTokens.has(initiative.shape)) {
+                const newInitiative = await this.promptFunction!(
+                    UuidMap.get(initiative.shape)!.name,
+                    "New initiative requested",
+                );
+                if (newInitiative !== undefined) {
+                    const num = Number.parseFloat(newInitiative);
+                    if (isNaN(num)) continue;
+                    this.addInitiative(initiative.shape, num, initiative.isGroup);
+                }
+            }
+        }
     }
 
-    removeInitiative(uuid: string, sync: boolean): void {
-        const d = this._state.data.findIndex((a) => a.uuid === uuid);
-        if (d < 0) return;
+    addInitiative(shape: string, initiative: number | undefined, isGroup = false): void {
+        let actor = this._state.locationData.find((a) => a.shape === shape);
+        if (actor === undefined) {
+            actor = {
+                effects: [],
+                isGroup,
+                isVisible: !gameStore.state.isDm,
+                shape,
+                initiative,
+            };
+            this._state.locationData.push(actor);
+        } else {
+            actor.initiative = initiative;
+        }
+        sendInitiativeAdd(actor);
+    }
 
-        this._state.data.splice(d, 1);
+    removeInitiative(shapeId: string, sync: boolean): void {
+        const index = this._state.locationData.findIndex((i) => i.shape === shapeId);
+        if (index < 0) return;
 
-        if (sync) sendInitiativeRemove(uuid);
+        this._state.locationData.splice(index, 1);
+        if (sync) sendInitiativeRemove(shapeId);
         // Remove highlight
-        const shape = UuidMap.get(uuid);
+        const shape = UuidMap.get(shapeId);
         if (shape === undefined) return;
         if (shape.showHighlight) {
             shape.showHighlight = false;
@@ -92,23 +129,19 @@ class InitiativeStore extends Store<InitiativeState> {
 
     // TURN / ROUND TRACKING
 
-    setCurrentActor(currentActor: string): void {
-        this._state.currentActor = currentActor;
-    }
-
-    updateTurn(actorId: string, sync: boolean): void {
+    setTurnCounter(turn: number, sync: boolean): void {
         if (sync && !gameStore.state.isDm) return;
+        this._state.turnCounter = turn;
 
-        this.setCurrentActor(actorId);
-
-        const actor = this._state.data.find((a) => a.uuid === actorId);
+        const actor = this._state.locationData[this._state.turnCounter];
         if (actor === undefined) return;
 
         if (actor.effects.length > 0) {
             for (let e = actor.effects.length - 1; e >= 0; e--) {
-                if (!isNaN(+actor.effects[e].turns)) {
-                    if (actor.effects[e].turns <= 0) actor.effects.splice(e, 1);
-                    else actor.effects[e].turns--;
+                const turns = +actor.effects[e].turns;
+                if (!isNaN(turns)) {
+                    if (turns <= 0) actor.effects.splice(e, 1);
+                    else actor.effects[e].turns = (turns - 1).toString();
                 }
             }
         }
@@ -116,104 +149,87 @@ class InitiativeStore extends Store<InitiativeState> {
             this.setVisionLock(this._state.visionLock);
         }
         this.setCameraLock(this._state.cameraLock);
-
-        if (sync) sendInitiativeTurnUpdate(actorId);
+        if (sync) sendInitiativeTurnUpdate(turn);
     }
 
     setRoundCounter(round: number, sync: boolean): void {
         if (sync && !gameStore.state.isDm) return;
-
         this._state.roundCounter = round;
-        if (sync) sendInitiativeRoundUpdate(round);
-
-        if (this._state.data.length > 0) {
-            this.updateTurn(this._state.data[0].uuid, true);
+        if (sync) {
+            sendInitiativeRoundUpdate(round);
+            if (this._state.locationData.length > 0) {
+                this.setTurnCounter(0, sync);
+            }
         }
     }
 
     nextTurn(): void {
         if (!gameStore.state.isDm) return;
+        if (this._state.turnCounter === this._state.locationData.length - 1) {
+            this.setRoundCounter(this._state.roundCounter + 1, true);
+        } else {
+            this.setTurnCounter(this._state.turnCounter + 1, true);
+        }
+    }
 
-        const next = this._state.data[
-            (this._state.data.findIndex((a) => a.uuid === this._state.currentActor) + 1) % this._state.data.length
-        ];
-        if (this._state.data[0].uuid === next.uuid) this.setRoundCounter(this._state.roundCounter + 1, true);
-        else this.updateTurn(next.uuid, true);
+    previousTurn(): void {
+        if (!gameStore.state.isDm) return;
+        if (this._state.turnCounter === 0) {
+            this.setRoundCounter(this._state.roundCounter - 1, true);
+            this.setTurnCounter(this._state.locationData.length - 1, true);
+        } else {
+            this.setTurnCounter(this._state.turnCounter - 1, true);
+        }
     }
 
     // EFFECTS
 
-    createEffect(actorId: string, effect: InitiativeEffect | undefined, sync: boolean): void {
-        const actor = this.getActor(actorId);
+    createEffect(shape: string, effect: InitiativeEffect | undefined, sync: boolean): void {
+        const actor = this._state.locationData.find((i) => i.shape === shape);
         if (actor === undefined) return;
 
         if (effect === undefined) effect = getDefaultEffect();
-
         actor.effects.push(effect);
-        if (sync) sendInitiativeNewEffect({ actor: actor.uuid, effect });
+        if (sync) sendInitiativeNewEffect({ actor: actor.shape, effect });
     }
 
-    setEffectName(actorId: string, effectId: string, name: string, sync: boolean): void {
-        const actor = this.getActor(actorId);
+    setEffectName(shape: string, index: number, name: string, sync: boolean): void {
+        const actor = this._state.locationData.find((i) => i.shape === shape);
         if (actor === undefined) return;
 
-        const effect = actor.effects.find((e) => e.uuid === effectId);
+        const effect = actor.effects[index];
         if (effect === undefined) return;
 
         effect.name = name;
-        if (sync) this.syncEffect(actor, effect);
+        if (sync) sendInitiativeRenameEffect({ shape, index, name });
     }
 
-    setEffectTurns(actorId: string, effectId: string, turns: number, sync: boolean): void {
-        const actor = this.getActor(actorId);
+    setEffectTurns(shape: string, index: number, turns: string, sync: boolean): void {
+        const actor = this._state.locationData.find((i) => i.shape === shape);
         if (actor === undefined) return;
 
-        const effect = actor.effects.find((e) => e.uuid === effectId);
+        const effect = actor.effects[index];
         if (effect === undefined) return;
 
         effect.turns = turns;
-        if (sync) this.syncEffect(actor, effect);
+        if (sync) sendInitiativeTurnsEffect({ shape, index, turns });
     }
 
-    updateEffect(actorId: string, effect: InitiativeEffect, sync: boolean): void {
-        const actor = this.getActor(actorId);
+    removeEffect(shape: string, index: number, sync: boolean): void {
+        const actor = this._state.locationData.find((i) => i.shape === shape);
         if (actor === undefined) return;
 
-        const effectIndex = actor.effects.findIndex((e) => e.uuid === effect.uuid);
-        if (effectIndex === undefined) return;
-
-        actor.effects[effectIndex] = effect;
-        if (sync) this.syncEffect(actor, effect);
-    }
-
-    syncEffect(actor: InitiativeData, effect: InitiativeEffect): void {
-        if (!this.owns(actor)) return;
-        sendInitiativeUpdateEffect({ actor: actor.uuid, effect });
-    }
-
-    removeEffect(actorId: string, effect: string, sync: boolean): void {
-        const actor = this.getActor(actorId);
-        if (actor === undefined) return;
-
-        const effectIndex = actor.effects.findIndex((e) => e.uuid === effect);
-        if (effectIndex === undefined) return;
-
-        actor.effects.splice(effectIndex, 1);
-        if (sync) sendInitiativeRemoveEffect({ actor: actorId, effect });
+        actor.effects.splice(index, 1);
+        if (sync) sendInitiativeRemoveEffect({ shape, index });
     }
 
     // Locks
 
-    setLock(lock: boolean): void {
-        if (lock) this._state.newData = this._state.data;
-        else this._state.data = this._state.newData;
-        this._state.editLock = lock;
-    }
-
     setCameraLock(hasCameraLock: boolean): void {
         this._state.cameraLock = hasCameraLock;
-        if (hasCameraLock && this._state.currentActor !== null) {
-            const shape = UuidMap.get(this._state.currentActor);
+        if (hasCameraLock) {
+            const actor = this._state.locationData[this._state.turnCounter];
+            const shape = UuidMap.get(actor.shape);
             if (shape?.ownedBy(false, { visionAccess: true }) ?? false) {
                 setCenterPosition(shape!.center());
             }
@@ -223,9 +239,10 @@ class InitiativeStore extends Store<InitiativeState> {
     setVisionLock(hasVisionLock: boolean): void {
         this._state.visionLock = hasVisionLock;
         if (hasVisionLock) {
+            const actor = this._state.locationData[this._state.turnCounter];
             activeTokensBackup = new Set(gameStore.activeTokens.value);
-            if (this._state.currentActor !== null && gameStore.state.ownedTokens.has(this._state.currentActor)) {
-                gameStore.setActiveTokens(this._state.currentActor);
+            if (gameStore.state.ownedTokens.has(actor.shape)) {
+                gameStore.setActiveTokens(actor.shape);
             } else {
                 gameStore.unsetActiveTokens();
             }
@@ -236,23 +253,26 @@ class InitiativeStore extends Store<InitiativeState> {
 
     // EXTRA
 
-    private getActor(actorId: string): InitiativeData | undefined {
-        return this._state.data.find((a) => a.uuid === actorId);
-    }
-
-    owns(actor: InitiativeData): boolean {
+    owns(shapeId: string): boolean {
         if (gameStore.state.isDm) return true;
-        const shape = UuidMap.get(actor.uuid);
+        const shape = UuidMap.get(shapeId);
         // Shapes that are unknown to this client are hidden from this client but owned by other clients
         if (shape === undefined) return false;
         return shape.ownedBy(false, { editAccess: true });
     }
 
-    toggleOption(actorId: string, option: "visible" | "group"): void {
-        const actor = this.getActor(actorId);
-        if (actor === undefined || !this.owns(actor)) return;
+    toggleOption(index: number, option: "isVisible" | "isGroup"): void {
+        const actor = this._state.locationData[index];
+        if (actor === undefined || !this.owns(actor.shape)) return;
         actor[option] = !actor[option];
-        sendInitiativeUpdate(actor);
+        sendInitiativeOptionUpdate({ shape: actor.shape, option, value: actor[option] });
+    }
+
+    setOption(shape: string, option: "isVisible" | "isGroup", value: boolean): void {
+        const actor = this._state.locationData.find((i) => i.shape === shape);
+        if (actor === undefined) return;
+        actor[option] = value;
+        console.log(this._state.locationData);
     }
 }
 

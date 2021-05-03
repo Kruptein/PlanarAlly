@@ -9,7 +9,7 @@ from api.socket.constants import GAME_NS
 from app import app, sio
 from models import (
     Floor,
-    InitiativeLocationData,
+    Initiative,
     Layer,
     Location,
     LocationOptions,
@@ -25,8 +25,6 @@ from models.label import Label, LabelSelection
 from models.role import Role
 from state.game import game_state
 from utils import logger
-
-from .initiative import send_client_initiatives
 
 from config import config
 
@@ -173,17 +171,10 @@ async def load_location(sid: str, location: Location, *, complete=False):
 
     # 6. Load Initiative
 
-    location_data = InitiativeLocationData.get_or_none(location=location)
+    location_data = Initiative.get_or_none(location=location)
     if location_data:
-        await send_client_initiatives(pr, pr.player)
         await sio.emit(
-            "Initiative.Round.Update",
-            location_data.round,
-            room=sid,
-            namespace=GAME_NS,
-        )
-        await sio.emit(
-            "Initiative.Turn.Set", location_data.turn, room=sid, namespace=GAME_NS
+            "Initiative.Set", location_data.as_dict(), room=sid, namespace=GAME_NS
         )
 
     # 7. Load labels

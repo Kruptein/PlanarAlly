@@ -10,20 +10,17 @@ export interface ServerLocation {
 }
 
 export interface InitiativeData {
-    uuid: string;
+    shape: string;
     initiative?: number;
-    visible: boolean;
-    group: boolean;
-    source: string;
-    has_img: boolean;
+    isVisible: boolean;
+    isGroup: boolean;
     effects: InitiativeEffect[];
-    index: number;
 }
 
 export interface InitiativeEffect {
-    uuid: string;
     name: string;
-    turns: number;
+    turns: string;
+    highlightsActor: boolean;
 }
 
 export interface ServerFloor {

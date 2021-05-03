@@ -97,10 +97,11 @@ export default defineComponent({
             const groupsProcessed = new Set();
             for (const shape of selection) {
                 if (!groupInitiatives || shape.groupId === undefined || !groupsProcessed.has(shape.groupId)) {
-                    initiativeStore.addInitiative({
-                        ...shape.getInitiativeRepr(),
-                        group: groupInitiatives && shape.groupId !== undefined,
-                    });
+                    initiativeStore.addInitiative(
+                        shape.uuid,
+                        Math.floor(Math.random() * 10),
+                        groupInitiatives && shape.groupId !== undefined,
+                    );
                     groupsProcessed.add(shape.groupId);
                 }
             }
@@ -111,11 +112,13 @@ export default defineComponent({
         function getInitiativeWord(): string {
             const selection = selectionState.state.selection;
             if (selection.size === 1) {
-                return initiativeStore.state.data.some((i) => i.uuid === [...selection][0])
+                return initiativeStore.state.locationData.some((i) => i.shape === [...selection][0])
                     ? t("game.ui.selection.ShapeContext.show_initiative")
                     : t("game.ui.selection.ShapeContext.add_initiative");
             } else {
-                return [...selection].every((shape) => initiativeStore.state.data.some((i) => i.uuid === shape))
+                return [...selection].every((shape) =>
+                    initiativeStore.state.locationData.some((i) => i.shape === shape),
+                )
                     ? t("game.ui.selection.ShapeContext.show_initiative")
                     : t("game.ui.selection.ShapeContext.add_all_initiative");
             }

@@ -127,7 +127,8 @@
                     "vision_log_msg": "Auto lock vision (only show vision of active token)",
                     "camera_log_msg": "Auto camera lock on active token",
                     "reset_round": "Reset rounds/turns",
-                    "next": "Next"
+                    "next": "Next",
+                    "previous": "Previous"
                 }
             },
             "LabelManager": {

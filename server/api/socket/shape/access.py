@@ -1,6 +1,5 @@
 import auth
 from api.socket.constants import GAME_NS
-from api.socket.initiative import send_client_initiatives
 from api.socket.shape.data_models import ServerShapeDefaultOwner, ServerShapeOwner
 from app import app, sio
 from models import PlayerRoom, Shape, ShapeOwner, User
@@ -48,7 +47,6 @@ async def add_shape_owner(sid: str, data: ServerShapeOwner):
             movement_access=data["movement_access"],
             vision_access=data["vision_access"],
         )
-    await send_client_initiatives(pr, target_user)
     await sio.emit(
         "Shape.Owner.Add",
         data,
@@ -201,4 +199,3 @@ async def update_default_shape_owner(sid: str, data: ServerShapeDefaultOwner):
             room=sid,
             namespace=GAME_NS,
         )
-        await send_client_initiatives(pr, player)

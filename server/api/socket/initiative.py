@@ -70,6 +70,12 @@ class ServerInitiativeOrderChange(TypedDict):
     newIndex: int
 
 
+def sort_initiative(data, sort: int):
+    if sort == 2:
+        return data
+    return sorted(data, key=lambda x: x.get("initiative", 0) or 0, reverse=sort == 0)
+
+
 @sio.on("Initiative.Request", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def request_initiatives(sid: str):
@@ -145,8 +151,6 @@ async def add_initiative(sid: str, data: ServerInitiativeData):
         else:
             json_data.append(data)
 
-        json_data.sort(key=lambda x: x.get("initiative", 0) or 0, reverse=True)
-
         location_data.data = json.dumps(json_data)
         location_data.save()
 
@@ -180,7 +184,7 @@ async def set_initiative_value(sid: str, data: ServerSetInitiativeValue):
                 initiative["initiative"] = data["value"]
                 break
 
-        json_data.sort(key=lambda x: x.get("initiative", 0) or 0, reverse=True)
+        json_data = sort_initiative(json_data, location_data.sort)
 
         location_data.data = json.dumps(json_data)
         location_data.save()
@@ -269,11 +273,11 @@ async def change_initiative_order(sid: str, data: ServerInitiativeOrderChange):
             return
 
         if json_data[new_index]["initiative"] != json_data[old_index]["initiative"]:
-            print("Manual sorting")
+            location_data.sort = 2
 
         json_data.insert(new_index, json_data.pop(old_index))
 
-        json_data.sort(key=lambda x: x.get("initiative", 0) or 0, reverse=True)
+        json_data = sort_initiative(json_data, location_data.sort)
 
         location_data.data = json.dumps(json_data)
         location_data.save()
@@ -347,6 +351,38 @@ async def update_initiative_round(sid: str, data: int):
         data,
         room=pr.active_location.get_path(),
         skip_sid=sid,
+        namespace=GAME_NS,
+    )
+
+
+@sio.on("Initiative.Sort.Set", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def set_initiative_sort(sid: str, sort: int):
+    pr: PlayerRoom = game_state.get(sid)
+
+    if pr.role != Role.DM:
+        logger.warning(f"{pr.player.name} attempted to change initiative sort")
+        return
+
+    with db.atomic():
+        location_data = Initiative.get(location=pr.active_location)
+        location_data.sort = sort
+        json_data = json.loads(location_data.data)
+
+        json_data = sort_initiative(json_data, location_data.sort)
+
+        location_data.data = json.dumps(json_data)
+        location_data.save()
+
+    await sio.emit(
+        "Initiative.Sort.Set",
+        room=pr.active_location.get_path(),
+        namespace=GAME_NS,
+    )
+    await sio.emit(
+        "Initiative.Set",
+        location_data.as_dict(),
+        room=pr.active_location.get_path(),
         namespace=GAME_NS,
     )
 

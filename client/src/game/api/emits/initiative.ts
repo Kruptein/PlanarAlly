@@ -1,4 +1,4 @@
-import { InitiativeData, InitiativeEffect } from "../../models/general";
+import { InitiativeData, InitiativeEffect, InitiativeSort } from "../../models/initiative";
 import { wrapSocket } from "../helpers";
 import { socket } from "../socket";
 
@@ -27,3 +27,4 @@ export const sendInitiativeClear = (): void => {
 export const sendInitiativeReorder = wrapSocket<{ shape: string; oldIndex: number; newIndex: number }>(
     "Initiative.Order.Change",
 );
+export const sendInitiativeSetSort = wrapSocket<InitiativeSort>("Initiative.Sort.Set");

@@ -99,7 +99,7 @@ export default defineComponent({
                 if (!groupInitiatives || shape.groupId === undefined || !groupsProcessed.has(shape.groupId)) {
                     initiativeStore.addInitiative(
                         shape.uuid,
-                        Math.floor(Math.random() * 10),
+                        undefined,
                         groupInitiatives && shape.groupId !== undefined,
                     );
                     groupsProcessed.add(shape.groupId);

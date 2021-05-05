@@ -9,7 +9,7 @@ import { gameStore } from "../../../store/game";
 import { UuidMap } from "../../../store/shapeMap";
 import { sendRequestInitiatives } from "../../api/emits/initiative";
 import { getGroupMembers } from "../../groups";
-import { InitiativeData } from "../../models/general";
+import { InitiativeData, InitiativeSort } from "../../models/initiative";
 import { Shape } from "../../shapes/shape";
 import { Asset } from "../../shapes/variants/asset";
 
@@ -118,11 +118,30 @@ export default defineComponent({
                 initiativeStore.changeOrder(data.moved.element.shape, data.moved.oldIndex, data.moved.newIndex);
         }
 
+        function changeSort(): void {
+            if (isDm.value) {
+                const sort = (initiativeStore.state.sort + 1) % (Object.keys(InitiativeSort).length / 2);
+                initiativeStore.changeSort(sort, true);
+            }
+        }
+
+        function translateSort(sort: InitiativeSort): string {
+            switch (sort) {
+                case InitiativeSort.Down:
+                    return "sort-amount-down";
+                case InitiativeSort.Up:
+                    return "sort-amount-down-alt";
+                default:
+                    return "random";
+            }
+        }
+
         return {
             ...toRefs(initiativeStore.state),
             isDm,
             t,
             changeOrder,
+            changeSort,
             canSee,
             getImage,
             getName,
@@ -135,6 +154,7 @@ export default defineComponent({
             setEffectName,
             setEffectTurns,
             setInitiative,
+            translateSort,
             lock,
             unlock,
             close: () => initiativeStore.show(false),
@@ -271,7 +291,6 @@ export default defineComponent({
             <div id="initiative-bar-dm" v-if="isDm">
                 <div
                     class="initiative-bar-button"
-                    :class="{ notAllowed: !isDm }"
                     @click="previousTurn"
                     :title="t('game.ui.initiative.initiative.previous')"
                 >
@@ -279,19 +298,24 @@ export default defineComponent({
                 </div>
                 <div
                     class="initiative-bar-button"
-                    :class="{ notAllowed: !isDm }"
                     @click="reset"
+                    :title="t('game.ui.initiative.initiative.reset_round')"
+                >
+                    1
+                </div>
+                <div
+                    class="initiative-bar-button"
+                    @click="clearValues"
                     :title="t('game.ui.initiative.initiative.reset_round')"
                 >
                     <font-awesome-icon icon="sync-alt" />
                 </div>
                 <div
                     class="initiative-bar-button"
-                    :class="{ notAllowed: !isDm }"
-                    @click="clearValues"
+                    @click="changeSort"
                     :title="t('game.ui.initiative.initiative.reset_round')"
                 >
-                    <font-awesome-icon icon="sync-alt" />
+                    <font-awesome-icon :icon="translateSort(sort)" :key="sort" />
                 </div>
                 <div
                     class="initiative-bar-button"
@@ -302,19 +326,20 @@ export default defineComponent({
                     <font-awesome-icon icon="chevron-right" />
                 </div>
             </div>
-            <div id="initiative-bar">
-                <div id="initiative-round">
-                    {{ t("game.ui.initiative.initiative.round_N", roundCounter) }}
-                </div>
-                <!-- <div
+            <div id="initiative-round">
+                {{ t("game.ui.initiative.initiative.round_N", roundCounter) }}
+
+                <div
+                    id="initiative-settings"
                     class="initiative-bar-button"
-                    :class="{ notAllowed: !isDm }"
                     @click="nextTurn"
                     :title="t('game.ui.initiative.initiative.next')"
                 >
                     <font-awesome-icon icon="cog" />
-                </div> -->
-                <!-- <div
+                </div>
+            </div>
+            <!-- <div id="initiative-bar"> -->
+            <!-- <div
                     class="initiative-bar-button"
                     :style="visionLock ? 'background-color: #82c8a0' : ''"
                     @click="setVisionLock(!visionLock)"
@@ -330,7 +355,7 @@ export default defineComponent({
                 >
                     <font-awesome-icon icon="video" />
                 </div> -->
-            </div>
+            <!-- </div> -->
         </div>
     </Modal>
 </template>
@@ -477,19 +502,20 @@ export default defineComponent({
     margin-top: 10px;
 }
 
-#initiative-bar {
-    display: grid;
-    grid-template-columns: auto;
-    align-items: center;
-    justify-items: center;
-    margin-right: 10px;
-    margin-left: 10px;
-    margin-top: 5px;
-    margin-bottom: 0;
-    padding: 2px;
+#initiative-round {
+    text-align: center;
+    margin: 10px 0;
+    position: relative;
+
+    #initiative-settings {
+        position: absolute;
+        right: 5px;
+        top: -6px;
+    }
 }
 
 .initiative-bar-button {
+    font-weight: bold;
     border: solid 2px #82c8a0;
     border-radius: 5px;
     padding: 5px;

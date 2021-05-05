@@ -940,7 +940,7 @@ def upgrade(version):
             )
             db.execute_sql("DROP TABLE initiative")
             db.execute_sql(
-                'CREATE TABLE "initiative" ("id" INTEGER NOT NULL PRIMARY KEY, "location_id" INTEGER NOT NULL, "round" INTEGER NOT NULL, "turn" INTEGER NOT NULL, "data" TEXT NOT NULL, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE)'
+                'CREATE TABLE "initiative" ("id" INTEGER NOT NULL PRIMARY KEY, "location_id" INTEGER NOT NULL, "round" INTEGER NOT NULL, "sort" INTEGER NOT NULL DEFAULT 0, "turn" INTEGER NOT NULL, "data" TEXT NOT NULL, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE)'
             )
 
             location_data = db.execute_sql(

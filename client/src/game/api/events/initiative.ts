@@ -1,10 +1,8 @@
-import { InitiativeData, InitiativeEffect } from "../../models/general";
+import { InitiativeEffect, InitiativeSettings, InitiativeSort } from "../../models/initiative";
 import { initiativeStore } from "../../ui/initiative/state";
 import { socket } from "../socket";
 
-socket.on("Initiative.Set", (data: { location: number; round: number; turn: number; data: InitiativeData[] }) =>
-    initiativeStore.setData(data),
-);
+socket.on("Initiative.Set", (data: InitiativeSettings) => initiativeStore.setData(data));
 socket.on("Initiative.Value.Set", (data: { shape: string; value: number }) =>
     initiativeStore.setInitiative(data.shape, data.value, false),
 );
@@ -28,3 +26,4 @@ socket.on("Initiative.Option.Set", (data: { shape: string; option: "isVisible" |
     initiativeStore.setOption(data.shape, data.option, data.value),
 );
 socket.on("Initiative.Clear", () => initiativeStore.clearValues(false));
+socket.on("Initiative.Sort.Set", (sort: InitiativeSort) => initiativeStore.changeSort(sort, false));

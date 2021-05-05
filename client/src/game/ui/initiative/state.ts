@@ -15,8 +15,9 @@ import {
     sendInitiativeSetValue,
     sendInitiativeClear,
     sendInitiativeReorder,
+    sendInitiativeSetSort,
 } from "../../api/emits/initiative";
-import { InitiativeData, InitiativeEffect } from "../../models/general";
+import { InitiativeData, InitiativeEffect, InitiativeSettings, InitiativeSort } from "../../models/initiative";
 import { setCenterPosition } from "../../position";
 
 let activeTokensBackup: Set<string> = new Set();
@@ -32,6 +33,7 @@ interface InitiativeState {
 
     roundCounter: number;
     turnCounter: number;
+    sort: InitiativeSort;
 
     editLock: string;
     cameraLock: boolean;
@@ -51,6 +53,7 @@ class InitiativeStore extends Store<InitiativeState> {
 
             roundCounter: 1,
             turnCounter: 0,
+            sort: InitiativeSort.Down,
 
             editLock: "",
             cameraLock: false,
@@ -66,12 +69,13 @@ class InitiativeStore extends Store<InitiativeState> {
         this._state.showInitiative = show;
     }
 
-    setData(data: { location: number; round: number; turn: number; data: InitiativeData[] }): void {
+    setData(data: InitiativeSettings): void {
         if (this._state.editLock) this._state.newData = data.data;
         else this._state.locationData = data.data;
 
         this.setRoundCounter(data.round, false);
         this.setTurnCounter(data.turn, false);
+        this._state.sort = data.sort;
     }
 
     // Ideally we get rid of this
@@ -188,6 +192,11 @@ class InitiativeStore extends Store<InitiativeState> {
         } else {
             this.setTurnCounter(this._state.turnCounter - 1, true);
         }
+    }
+
+    changeSort(sort: number, sync: boolean): void {
+        this._state.sort = sort;
+        if (sync) sendInitiativeSetSort(sort);
     }
 
     // EFFECTS

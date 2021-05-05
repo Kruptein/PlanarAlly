@@ -1,5 +1,6 @@
 import { Store } from "../core/store";
 import { Note } from "../game/models/general";
+import { ClientSettingCategory } from "../game/ui/settings/client/categories";
 
 interface UiState {
     activeNote: Note;
@@ -7,6 +8,7 @@ interface UiState {
     annotationText: string;
 
     showClientSettings: boolean;
+    clientSettingsTab: string;
     showDmSettings: boolean;
     openedLocationSettings: number;
 }
@@ -19,6 +21,7 @@ class UiStore extends Store<UiState> {
             annotationText: "",
 
             showClientSettings: false,
+            clientSettingsTab: ClientSettingCategory.Appearance,
             showDmSettings: false,
             openedLocationSettings: -1,
         };
@@ -26,6 +29,10 @@ class UiStore extends Store<UiState> {
 
     showClientSettings(show: boolean): void {
         this._state.showClientSettings = show;
+    }
+
+    setClientTab(tab: ClientSettingCategory): void {
+        this._state.clientSettingsTab = tab;
     }
 
     showDmSettings(show: boolean): void {

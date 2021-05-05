@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, PropType, ref } from "vue";
+import { defineComponent, PropType, ref, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 
 import Modal from "./Modal.vue";
@@ -10,11 +10,18 @@ export default defineComponent({
         visible: { type: Boolean, required: true },
         categories: { type: Object as PropType<string[]>, required: true },
         applyTranslation: { type: Boolean, default: false },
+        initialSelection: { type: String, required: false },
     },
     setup(props, { emit }) {
         const { t } = useI18n();
 
         const selection = ref(props.categories[0]);
+
+        watchEffect(() => {
+            if (props.initialSelection !== undefined && props.categories.includes(props.initialSelection)) {
+                selection.value = props.initialSelection;
+            }
+        });
 
         function hideModal(): void {
             emit("update:visible", false);

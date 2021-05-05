@@ -28,6 +28,15 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
     if (options.room_user_options?.disable_scroll_to_zoom !== undefined)
         clientStore.setDisableScrollToZoom(options.room_user_options.disable_scroll_to_zoom, false);
     else clientStore.setDisableScrollToZoom(options.default_user_options.disable_scroll_to_zoom, false);
+    if (options.room_user_options?.initiative_camera_lock !== undefined)
+        clientStore.setInitiativeCameraLock(options.room_user_options.initiative_camera_lock, false);
+    else clientStore.setInitiativeCameraLock(options.default_user_options.initiative_camera_lock, false);
+    if (options.room_user_options?.initiative_vision_lock !== undefined)
+        clientStore.setInitiativeVisionLock(options.room_user_options.initiative_vision_lock, false);
+    else clientStore.setInitiativeVisionLock(options.default_user_options.initiative_vision_lock, false);
+    if (options.room_user_options?.initiative_effect_visibility !== undefined)
+        clientStore.setInitiativeEffectVisibility(options.room_user_options.initiative_effect_visibility, false);
+    else clientStore.setInitiativeEffectVisibility(options.default_user_options.initiative_effect_visibility, false);
 
     clientStore.setPanX(options.location_user_options.pan_x);
     clientStore.setPanY(options.location_user_options.pan_y);

@@ -1,15 +1,20 @@
 <script lang="ts">
-import { defineComponent, onMounted, toRef, toRefs } from "vue";
+import { computed, defineComponent, onMounted, toRef, toRefs } from "vue";
 import { useI18n } from "vue-i18n";
 import draggable from "vuedraggable";
 
 import Modal from "../../../core/components/modals/Modal.vue";
 import { useModal } from "../../../core/plugins/modals/plugin";
+import { clientStore } from "../../../store/client";
 import { gameStore } from "../../../store/game";
 import { UuidMap } from "../../../store/shapeMap";
+import { uiStore } from "../../../store/ui";
+import { sendRequestInitiatives } from "../../api/emits/initiative";
 import { getGroupMembers } from "../../groups";
-import { InitiativeData } from "../../models/general";
+import { InitiativeData, InitiativeEffectMode, InitiativeSort } from "../../models/initiative";
 import { Shape } from "../../shapes/shape";
+import { Asset } from "../../shapes/variants/asset";
+import { ClientSettingCategory } from "../settings/client/categories";
 
 import { initiativeStore } from "./state";
 
@@ -23,17 +28,21 @@ export default defineComponent({
 
         onMounted(() => initiativeStore.show(false));
 
+        const alwaysShowEffects = computed(
+            () => clientStore.state.initiativeEffectVisibility === InitiativeEffectMode.Always,
+        );
+
         function getName(actor: InitiativeData): string {
-            const shape = UuidMap.get(actor.uuid);
+            const shape = UuidMap.get(actor.shape);
             if (shape !== undefined) {
                 if (shape.nameVisible) return shape.name;
                 if (shape.ownedBy(false, { editAccess: true })) return shape.name;
             }
-            return actor.source;
+            return "?";
         }
 
         async function removeInitiative(actor: InitiativeData): Promise<void> {
-            if (actor.group) {
+            if (actor.isGroup) {
                 const continueRemoval = await modals.confirm(
                     "Removing initiative",
                     "Are you sure you wish to remove this group from the initiative order?",
@@ -42,7 +51,23 @@ export default defineComponent({
                     return;
                 }
             }
-            initiativeStore.removeInitiative(actor.uuid, true);
+            initiativeStore.removeInitiative(actor.shape, true);
+        }
+
+        function setEffectName(shape: string, index: number, name: string): void {
+            if (initiativeStore.owns(shape)) initiativeStore.setEffectName(shape, index, name, true);
+        }
+
+        function setEffectTurns(shape: string, index: number, turns: string): void {
+            if (initiativeStore.owns(shape)) initiativeStore.setEffectTurns(shape, index, turns, true);
+        }
+
+        function createEffect(shape: string): void {
+            if (initiativeStore.owns(shape)) initiativeStore.createEffect(shape, undefined, true);
+        }
+
+        function removeEffect(shape: string, index: number): void {
+            if (initiativeStore.owns(shape)) initiativeStore.removeEffect(shape, index, true);
         }
 
         function toggleHighlight(actorId: string, show: boolean): void {
@@ -60,28 +85,106 @@ export default defineComponent({
             }
         }
 
+        function hasImage(actor: InitiativeData): boolean {
+            return UuidMap.get(actor.shape)!.type === "assetrect";
+        }
+
+        function getImage(actor: InitiativeData): string {
+            return (UuidMap.get(actor.shape)! as Asset).src;
+        }
+
+        function canSee(actor: InitiativeData): boolean {
+            if (isDm.value || actor.isVisible) return true;
+            const shape = UuidMap.get(actor.shape);
+            if (shape === undefined) return false;
+            return shape.ownedBy(false, { editAccess: true });
+        }
+
+        function reset(): void {
+            initiativeStore.setRoundCounter(1, true);
+            sendRequestInitiatives();
+        }
+
+        function lock(shape: string): void {
+            if (initiativeStore.owns(shape)) initiativeStore.lock(shape);
+        }
+
+        function unlock(): void {
+            if (initiativeStore.state.editLock !== "") initiativeStore.unlock();
+        }
+
+        function setInitiative(shape: string, value: string): void {
+            const numValue = Number.parseInt(value);
+            if (isNaN(numValue)) return;
+
+            if (initiativeStore.owns(shape)) initiativeStore.setInitiative(shape, numValue, true);
+        }
+
+        function changeOrder(data: { moved?: { element: InitiativeData; newIndex: number; oldIndex: number } }): void {
+            if (isDm.value && data.moved)
+                initiativeStore.changeOrder(data.moved.element.shape, data.moved.oldIndex, data.moved.newIndex);
+        }
+
+        function changeSort(): void {
+            if (isDm.value) {
+                const sort = (initiativeStore.state.sort + 1) % (Object.keys(InitiativeSort).length / 2);
+                initiativeStore.changeSort(sort, true);
+            }
+        }
+
+        function translateSort(sort: InitiativeSort): string {
+            switch (sort) {
+                case InitiativeSort.Down:
+                    return "sort-amount-down";
+                case InitiativeSort.Up:
+                    return "sort-amount-down-alt";
+                default:
+                    return "hand-paper";
+            }
+        }
+
+        function openSettings(): void {
+            uiStore.setClientTab(ClientSettingCategory.Initiative);
+            uiStore.showClientSettings(true);
+        }
+
         return {
             ...toRefs(initiativeStore.state),
             isDm,
             t,
+
+            changeOrder,
+            changeSort,
+            translateSort,
+
+            hasImage,
+            getImage,
             getName,
+
+            setInitiative,
             removeInitiative,
+            reset,
+
+            canSee,
             toggleHighlight,
+            openSettings,
+
+            createEffect,
+            removeEffect,
+            setEffectName,
+            setEffectTurns,
+            alwaysShowEffects,
+
+            lock,
+            unlock,
+
             close: () => initiativeStore.show(false),
-            createEffect: (actorId: string) => initiativeStore.createEffect(actorId, undefined, true),
-            removeEffect: (actorId: string, effect: string) => initiativeStore.removeEffect(actorId, effect, true),
-            setEffectName: (actorId: string, effect: string, name: string) =>
-                initiativeStore.setEffectName(actorId, effect, name, true),
-            setEffectTurns: (actorId: string, effect: string, turns: number) =>
-                initiativeStore.setEffectTurns(actorId, effect, turns, true),
+            clearValues: () => initiativeStore.clearValues(true),
             nextTurn: () => initiativeStore.nextTurn(),
-            owns: (actor: InitiativeData) => initiativeStore.owns(actor),
-            setLock: (lock: boolean) => initiativeStore.setLock(lock),
-            setRoundCounter: (round: number) => initiativeStore.setRoundCounter(round, true),
-            setCameraLock: (lock: boolean) => initiativeStore.setCameraLock(lock),
-            setVisionLock: (lock: boolean) => initiativeStore.setVisionLock(lock),
-            toggleOption: (actorId: string, option: "visible" | "group") =>
-                initiativeStore.toggleOption(actorId, option),
+            previousTurn: () => initiativeStore.previousTurn(),
+            owns: (actorId: string) => initiativeStore.owns(actorId),
+            toggleOption: (index: number, option: "isVisible" | "isGroup") =>
+                initiativeStore.toggleOption(index, option),
         };
     },
 });
@@ -98,39 +201,72 @@ export default defineComponent({
             </div>
         </template>
         <div class="modal-body">
-            <!-- @change="updateOrder"
-                :setData="fakeSetData" -->
-            <draggable id="initiative-list" v-model="data" :disabled="!isDm" item-key="uuid">
-                <template #item="{ element: actor }">
-                    <div style="display: flex; flex-direction: column; align-items: flex-end">
+            <draggable
+                id="initiative-list"
+                :modelValue="locationData"
+                @change="changeOrder"
+                :disabled="!isDm"
+                item-key="uuid"
+            >
+                <template #item="{ element: actor, index }">
+                    <div style="display: flex; flex-direction: column; align-items: flex-end" v-if="canSee(actor)">
                         <div
                             class="initiative-actor"
-                            :class="{ 'initiative-selected': currentActor === actor.uuid }"
+                            :class="{
+                                'initiative-selected': turnCounter === index,
+                                blurred: editLock !== '' && editLock !== actor.shape,
+                            }"
                             :style="{ cursor: isDm && 'move' }"
-                            @mouseenter="toggleHighlight(actor.uuid, true)"
-                            @mouseleave="toggleHighlight(actor.uuid, false)"
+                            @mouseenter="toggleHighlight(actor.shape, true)"
+                            @mouseleave="toggleHighlight(actor.shape, false)"
                         >
-                            <template v-if="actor.has_img">
-                                <img :src="actor.source" :title="getName(actor)" alt="" />
+                            <div
+                                v-if="owns(actor.shape)"
+                                class="remove"
+                                @click="removeInitiative(actor)"
+                                :class="{ notAllowed: !owns(actor.shape) }"
+                            >
+                                &#215;
+                            </div>
+                            <template v-if="hasImage(actor)">
+                                <img :src="getImage(actor)" :title="getName(actor)" alt="" />
                             </template>
                             <template v-else>
                                 <span style="width: auto">{{ getName(actor) }}</span>
                             </template>
-                            <!-- @change="syncInitiative(actor)" -->
                             <input
+                                class="initiative-value"
                                 type="text"
                                 :placeholder="t('common.value')"
-                                v-model.lazy.number="actor.initiative"
-                                :disabled="!owns(actor)"
-                                :class="{ notAllowed: !owns(actor) }"
-                                @focus="setLock(true)"
-                                @blur="setLock(false)"
+                                :value="actor.initiative"
+                                :disabled="!owns(actor.shape)"
+                                :class="{ notAllowed: !owns(actor.shape) }"
+                                @focus="lock(actor.shape)"
+                                @blur="unlock"
+                                @change="setInitiative(actor.shape, $event.target.value)"
+                                @keyup.enter="$event.target.blur()"
                             />
+                            <div
+                                :style="{ opacity: actor.isVisible ? '1.0' : '0.3' }"
+                                :class="{ notAllowed: !owns(actor.shape) }"
+                                @click="toggleOption(index, 'isVisible')"
+                                :title="t('common.toggle_public_private')"
+                            >
+                                <font-awesome-icon icon="eye" />
+                            </div>
+                            <div
+                                :style="{ opacity: actor.isGroup ? '1.0' : '0.3' }"
+                                :class="{ notAllowed: !owns(actor.shape) }"
+                                @click="toggleOption(index, 'isGroup')"
+                                :title="t('game.ui.initiative.initiative.toggle_group')"
+                            >
+                                <font-awesome-icon icon="users" />
+                            </div>
                             <div
                                 class="initiative-effects-icon"
                                 style="opacity: 0.6"
-                                :class="{ notAllowed: !owns(actor) }"
-                                @click="createEffect(actor.uuid)"
+                                :class="{ notAllowed: !owns(actor.shape) }"
+                                @click="createEffect(actor.shape)"
                                 :title="t('game.ui.initiative.initiative.add_timed_effect')"
                             >
                                 <font-awesome-icon icon="stopwatch" />
@@ -139,49 +275,33 @@ export default defineComponent({
                                 </template>
                                 <template v-else>0</template>
                             </div>
-                            <div
-                                :style="{ opacity: actor.visible ? '1.0' : '0.3' }"
-                                :class="{ notAllowed: !owns(actor) }"
-                                @click="toggleOption(actor.uuid, 'visible')"
-                                :title="t('common.toggle_public_private')"
-                            >
-                                <font-awesome-icon icon="eye" />
-                            </div>
-                            <div
-                                :style="{ opacity: actor.group ? '1.0' : '0.3' }"
-                                :class="{ notAllowed: !owns(actor) }"
-                                @click="toggleOption(actor.uuid, 'group')"
-                                :title="t('game.ui.initiative.initiative.toggle_group')"
-                            >
-                                <font-awesome-icon icon="users" />
-                            </div>
-                            <div
-                                :style="{ opacity: owns(actor) ? '1.0' : '0.3' }"
-                                :class="{ notAllowed: !owns(actor) }"
-                                @click="removeInitiative(actor)"
-                                :title="t('game.ui.initiative.initiative.delete_init')"
-                            >
-                                <font-awesome-icon icon="trash-alt" />
-                            </div>
                         </div>
-                        <div class="initiative-effect" v-if="actor.effects">
-                            <div v-for="effect in actor.effects" :key="effect.uuid">
+                        <div
+                            class="initiative-effect"
+                            :class="{ 'effect-visible': alwaysShowEffects }"
+                            v-if="actor.effects.length > 0"
+                        >
+                            <div v-for="(effect, e) of actor.effects" :key="effect.uuid">
                                 <input
                                     type="text"
                                     v-model="effect.name"
-                                    :size="effect.name.length || 1"
-                                    @change="setEffectName(actor.uuid, effect.uuid, $event.target.value)"
+                                    :style="{ width: '100px' }"
+                                    :class="{ notAllowed: !owns(actor.shape) }"
+                                    :disabled="!owns(actor.shape)"
+                                    @change="setEffectName(actor.shape, e, $event.target.value)"
                                 />
                                 <input
                                     type="text"
                                     v-model="effect.turns"
-                                    :size="effect.turns.toString().length || 1"
-                                    @change="setEffectTurns(actor.uuid, effect.uuid, $event.target.value)"
+                                    :style="{ width: '25px' }"
+                                    :class="{ notAllowed: !owns(actor.shape) }"
+                                    :disabled="!owns(actor.shape)"
+                                    @change="setEffectTurns(actor.shape, e, $event.target.value)"
                                 />
                                 <div
-                                    :style="{ opacity: owns(actor) ? '1.0' : '0.3' }"
-                                    :class="{ notAllowed: !owns(actor) }"
-                                    @click="removeEffect(actor.uuid, effect.uuid)"
+                                    :style="{ opacity: owns(actor.shape) ? '1.0' : '0.3' }"
+                                    :class="{ notAllowed: !owns(actor.shape) }"
+                                    @click="removeEffect(actor.shape, e)"
                                     :title="t('game.ui.initiative.initiative.delete_effect')"
                                 >
                                     <font-awesome-icon icon="trash-alt" />
@@ -191,34 +311,34 @@ export default defineComponent({
                     </div>
                 </template>
             </draggable>
-            <div id="initiative-bar">
-                <div id="initiative-round">
-                    {{ t("game.ui.initiative.initiative.round_N", roundCounter) }}
-                </div>
-                <div style="display: flex"></div>
+            <div id="initiative-bar-dm" v-if="isDm">
                 <div
                     class="initiative-bar-button"
-                    :style="visionLock ? 'background-color: #82c8a0' : ''"
-                    @click="setVisionLock(!visionLock)"
-                    :title="t('game.ui.initiative.initiative.vision_log_msg')"
-                >
-                    <font-awesome-icon icon="eye" />
-                </div>
-                <div
-                    class="initiative-bar-button"
-                    :style="cameraLock ? 'background-color: #82c8a0' : ''"
-                    @click="setCameraLock(!cameraLock)"
-                    :title="t('game.ui.initiative.initiative.camera_log_msg')"
-                >
-                    <font-awesome-icon icon="video" />
-                </div>
-                <div
-                    class="initiative-bar-button"
-                    :class="{ notAllowed: !isDm }"
-                    @click="setRoundCounter(1)"
+                    @click="reset"
                     :title="t('game.ui.initiative.initiative.reset_round')"
                 >
+                    <font-awesome-icon icon="angle-double-left" />
+                </div>
+                <div
+                    class="initiative-bar-button"
+                    @click="previousTurn"
+                    :title="t('game.ui.initiative.initiative.previous')"
+                >
+                    <font-awesome-icon icon="chevron-left" />
+                </div>
+                <div
+                    class="initiative-bar-button"
+                    @click="clearValues"
+                    :title="t('game.ui.initiative.initiative.clear')"
+                >
                     <font-awesome-icon icon="sync-alt" />
+                </div>
+                <div
+                    class="initiative-bar-button"
+                    @click="changeSort"
+                    :title="t('game.ui.initiative.initiative.change_sort')"
+                >
+                    <font-awesome-icon :icon="translateSort(sort)" :key="sort" />
                 </div>
                 <div
                     class="initiative-bar-button"
@@ -227,6 +347,18 @@ export default defineComponent({
                     :title="t('game.ui.initiative.initiative.next')"
                 >
                     <font-awesome-icon icon="chevron-right" />
+                </div>
+            </div>
+            <div id="initiative-round">
+                {{ t("game.ui.initiative.initiative.round_N", roundCounter) }}
+
+                <div
+                    id="initiative-settings"
+                    class="initiative-bar-button"
+                    @click="openSettings"
+                    :title="t('game.ui.initiative.initiative.next')"
+                >
+                    <font-awesome-icon icon="cog" />
                 </div>
             </div>
         </div>
@@ -240,6 +372,7 @@ export default defineComponent({
     font-size: 20px;
     font-weight: bold;
     cursor: move;
+    min-width: 150px;
 }
 
 .header-close {
@@ -268,28 +401,64 @@ export default defineComponent({
     margin-bottom: 2px;
     border-radius: 5px;
     border: solid 2px rgba(0, 0, 0, 0);
+    position: relative;
+
+    min-width: 155px;
+
+    .remove {
+        display: none;
+
+        position: absolute;
+        color: red;
+        font-size: 25px;
+        font-weight: bold;
+        cursor: pointer;
+        top: -15px;
+        right: -8px;
+    }
 
     &:hover {
         border: solid 2px #82c8a0;
+
+        > .remove {
+            display: block;
+        }
+    }
+
+    img {
+        width: 30px;
+    }
+
+    svg {
+        width: 20px;
+        margin: 0 1px;
     }
 
     > * {
-        width: 30px;
-        margin-left: 2px;
+        display: flex;
+        justify-content: center;
     }
+
+    .initiative-value {
+        font-weight: 800;
+        width: 60px;
+        margin: 0 10px;
+        padding: 2px;
+        text-align: center;
+        background-color: inherit;
+        border: 0;
+
+        cursor: pointer;
+    }
+}
+
+.blurred {
+    filter: blur(5px);
 }
 
 .initiative-selected {
     border: solid 2px #82c8a0;
     background-color: #82c8a0;
-}
-
-.initiative-selected + .initiative-effect,
-.initiative-actor:hover + .initiative-effect,
-.initiative-effect:hover {
-    display: flex;
-    border-color: rgba(130, 200, 160, 0.6);
-    background-color: rgba(130, 200, 160, 0.6);
 }
 
 .initiative-effect {
@@ -324,15 +493,32 @@ export default defineComponent({
     }
 }
 
-#initiative-bar {
+.initiative-selected + .initiative-effect,
+.initiative-actor:hover + .initiative-effect,
+.initiative-effect:hover,
+.effect-visible {
     display: flex;
-    justify-content: space-between;
+    border-color: rgba(130, 200, 160, 0.6);
+    background-color: rgba(130, 200, 160, 0.6);
+}
+
+#initiative-bar-dm {
+    display: flex;
     align-items: center;
-    margin-right: 10px;
-    margin-left: 10px;
+    justify-content: center;
     margin-top: 10px;
-    margin-bottom: -10px;
-    padding: 2px;
+}
+
+#initiative-round {
+    text-align: center;
+    margin: 10px 0;
+    position: relative;
+
+    #initiative-settings {
+        position: absolute;
+        right: 5px;
+        top: -6px;
+    }
 }
 
 .initiative-bar-button {

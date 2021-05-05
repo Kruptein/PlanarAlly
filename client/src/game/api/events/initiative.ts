@@ -1,18 +1,29 @@
-import { InitiativeData, InitiativeEffect } from "../../models/general";
+import { InitiativeEffect, InitiativeSettings, InitiativeSort } from "../../models/initiative";
 import { initiativeStore } from "../../ui/initiative/state";
 import { socket } from "../socket";
 
-socket.on("Initiative.Set", (data: InitiativeData[]) => initiativeStore.setData(data));
+socket.on("Initiative.Set", (data: InitiativeSettings) => initiativeStore.setData(data));
+socket.on("Initiative.Value.Set", (data: { shape: string; value: number }) =>
+    initiativeStore.setInitiative(data.shape, data.value, false),
+);
+socket.on("Initiative.Remove", (data: string) => initiativeStore.removeInitiative(data, false));
 
-socket.on("Initiative.Turn.Set", (actor: string) => initiativeStore.setCurrentActor(actor));
-socket.on("Initiative.Turn.Update", (actor: string) => initiativeStore.updateTurn(actor, false));
+socket.on("Initiative.Turn.Update", (turn: number) => initiativeStore.setTurnCounter(turn, false));
 socket.on("Initiative.Round.Update", (round: number) => initiativeStore.setRoundCounter(round, false));
 socket.on("Initiative.Effect.New", (data: { actor: string; effect: InitiativeEffect }) => {
     initiativeStore.createEffect(data.actor, data.effect, false);
 });
-socket.on("Initiative.Effect.Update", (data: { actor: string; effect: InitiativeEffect }) =>
-    initiativeStore.updateEffect(data.actor, data.effect, false),
+socket.on("Initiative.Effect.Rename", (data: { shape: string; index: number; name: string }) => {
+    initiativeStore.setEffectName(data.shape, data.index, data.name, false);
+});
+socket.on("Initiative.Effect.Turns", (data: { shape: string; index: number; turns: string }) => {
+    initiativeStore.setEffectTurns(data.shape, data.index, data.turns, false);
+});
+socket.on("Initiative.Effect.Remove", (data: { shape: string; index: number }) =>
+    initiativeStore.removeEffect(data.shape, data.index, false),
 );
-socket.on("Initiative.Effect.Remove", (data: { actor: string; effect: string }) =>
-    initiativeStore.removeEffect(data.actor, data.effect, false),
+socket.on("Initiative.Option.Set", (data: { shape: string; option: "isVisible" | "isGroup"; value: boolean }) =>
+    initiativeStore.setOption(data.shape, data.option, data.value),
 );
+socket.on("Initiative.Clear", () => initiativeStore.clearValues(false));
+socket.on("Initiative.Sort.Set", (sort: InitiativeSort) => initiativeStore.changeSort(sort, false));

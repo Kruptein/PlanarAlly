@@ -127,7 +127,10 @@
                     "vision_log_msg": "Auto lock vision (only show vision of active token)",
                     "camera_log_msg": "Auto camera lock on active token",
                     "reset_round": "Reset rounds/turns",
-                    "next": "Next"
+                    "next": "Next",
+                    "previous": "Previous",
+                    "clear": "Clear initiatives",
+                    "change_sort": "Change sorting"
                 }
             },
             "LabelManager": {
@@ -226,6 +229,13 @@
                     "BehaviourSettings": {
                         "invert_alt_set": "Invert ALT behaviour",
                         "disable_scroll_to_zoom": "Disable scroll to zoom"
+                    },
+                    "InitiativeSettings": {
+                        "camera_lock": "Lock camera to active (owned) tokens",
+                        "vision_lock": "Lock vision to active (owned) tokens",
+                        "effect_visibility": "When to show effects",
+                        "effect_always": "Always",
+                        "effect_active": "Active and on-hover"
                     }
                 },
                 "dm": {

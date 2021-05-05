@@ -41,6 +41,10 @@ class ClientOptions(TypedDict, total=False):
     grid_size: int
     disable_scroll_to_zoom: bool
 
+    initiative_camera_lock: bool
+    initiative_vision_lock: bool
+    initiative_effect_visibility: int
+
 
 @sio.on("Client.Options.Default.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)

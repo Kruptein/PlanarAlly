@@ -9,23 +9,6 @@ export interface ServerLocation {
     options: Partial<ServerLocationOptions>;
 }
 
-export interface InitiativeData {
-    uuid: string;
-    initiative?: number;
-    visible: boolean;
-    group: boolean;
-    source: string;
-    has_img: boolean;
-    effects: InitiativeEffect[];
-    index: number;
-}
-
-export interface InitiativeEffect {
-    uuid: string;
-    name: string;
-    turns: number;
-}
-
 export interface ServerFloor {
     index: number;
     name: string;

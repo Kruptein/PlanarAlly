@@ -203,7 +203,7 @@ export class Layer {
 
         if (this.isActiveLayer) selectionState.remove(shape.uuid);
 
-        initiativeStore.removeInitiative(shape.uuid, false);
+        if (sync === SyncMode.FULL_SYNC) initiativeStore.removeInitiative(shape.uuid, false);
         this.invalidate(!shape.triggersVisionRecalc);
         return true;
     }

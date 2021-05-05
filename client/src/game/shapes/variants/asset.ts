@@ -1,7 +1,5 @@
 import { g2l, g2lx, g2ly, g2lz } from "../../../core/conversions";
 import { GlobalPoint } from "../../../core/geometry";
-import { gameStore } from "../../../store/game";
-import { InitiativeData } from "../../models/general";
 import { ServerAsset } from "../../models/shapes";
 import { SHAPE_TYPE } from "../types";
 
@@ -54,16 +52,5 @@ export class Asset extends BaseRect {
             console.warn(`Shape ${this.uuid} could not load the image ${this.src}`);
         }
         super.drawPost(ctx);
-    }
-    getInitiativeRepr(): InitiativeData {
-        return {
-            uuid: this.uuid,
-            visible: !gameStore.state.isDm,
-            group: false,
-            source: this.src,
-            has_img: true,
-            effects: [],
-            index: Infinity,
-        };
     }
 }

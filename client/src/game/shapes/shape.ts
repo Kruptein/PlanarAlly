@@ -47,8 +47,8 @@ import { Layer } from "../layers/variants/layer";
 import { aurasFromServer, aurasToServer, partialAuraToServer } from "../models/conversion/aura";
 import { partialTrackerToServer, trackersFromServer, trackersToServer } from "../models/conversion/tracker";
 import { Floor, LayerName } from "../models/floor";
-import { InitiativeData } from "../models/general";
 import { accessToServer, ownerToClient, ownerToServer, ServerShape } from "../models/shapes";
+import { initiativeStore } from "../ui/initiative/state";
 import { TriangulationTarget, visionState } from "../vision/state";
 
 import { Aura, Label, Tracker } from "./interfaces";
@@ -153,18 +153,6 @@ export abstract class Shape {
      */
     get triggersVisionRecalc(): boolean {
         return this.isToken || this.getAuras(true).some((a) => a.visionSource) || this.blocksMovement;
-    }
-
-    getInitiativeRepr(): InitiativeData {
-        return {
-            uuid: this.uuid,
-            visible: !gameStore.state.isDm,
-            group: false,
-            source: this.name,
-            has_img: false,
-            effects: [],
-            index: Infinity,
-        };
     }
 
     // POSITION
@@ -721,6 +709,7 @@ export abstract class Shape {
             if (!this.ownedBy(false, { visionAccess: true })) gameStore.removeOwnedToken(this.uuid);
         }
         if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();
+        initiativeStore._forceUpdate();
     }
 
     hasOwner(username: string): boolean {
@@ -748,6 +737,7 @@ export abstract class Shape {
                 gameStore.addOwnedToken(this.uuid);
             if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();
         }
+        initiativeStore._forceUpdate();
     }
 
     updateOwner(owner: PartialBy<ShapeOwner, "shape">, syncTo: SyncTo): void {
@@ -780,6 +770,7 @@ export abstract class Shape {
         }
         targetOwner.access = fullOwner.access;
         if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();
+        initiativeStore._forceUpdate();
     }
 
     removeOwner(owner: string, syncTo: SyncTo): void {
@@ -794,6 +785,7 @@ export abstract class Shape {
             gameStore.removeOwnedToken(owner);
         }
         if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();
+        initiativeStore._forceUpdate();
     }
 
     // TRACKERS

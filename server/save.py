@@ -13,9 +13,8 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 61
+SAVE_VERSION = 62
 
-import datetime
 import json
 import logging
 import os
@@ -933,6 +932,84 @@ def upgrade(version):
             db.execute_sql(
                 "INSERT INTO player_room (id, role, player_id, room_id, active_location_id, notes, last_played) SELECT id, role, player_id, room_id, active_location_id, notes, last_played FROM _player_room_60"
             )
+    elif version == 61:
+        # Initiative changes
+        # Add UserOptions initiative settings
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN initiative_camera_lock INTEGER DEFAULT 0"
+            )
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN initiative_vision_lock INTEGER DEFAULT 0"
+            )
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN initiative_effect_visibility TEXT DEFAULT 'active'"
+            )
+            data = db.execute_sql(
+                "UPDATE user_options SET initiative_camera_lock = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
+            )
+            data = db.execute_sql(
+                "UPDATE user_options SET initiative_vision_lock = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
+            )
+            data = db.execute_sql(
+                "UPDATE user_options SET initiative_effect_visibility = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
+            )
+
+            db.execute_sql(
+                "CREATE TEMPORARY TABLE _initiative_61 AS SELECT * FROM initiative"
+            )
+            db.execute_sql("DROP TABLE initiative")
+            db.execute_sql(
+                'CREATE TABLE "initiative" ("id" INTEGER NOT NULL PRIMARY KEY, "location_id" INTEGER NOT NULL, "round" INTEGER NOT NULL, "sort" INTEGER NOT NULL DEFAULT 0, "turn" INTEGER NOT NULL, "data" TEXT NOT NULL, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE)'
+            )
+
+            location_data = db.execute_sql(
+                "SELECT id, location_id, round, turn FROM initiative_location_data"
+            )
+            for raw_location in location_data.fetchall():
+                initiative_data = db.execute_sql(
+                    'SELECT uuid, initiative, visible, "group" FROM _initiative_61 as i WHERE i.location_data_id = ?',
+                    (raw_location[0],),
+                )
+                turn = 0
+
+                initiative_list = []
+                for i, raw_initiative in enumerate(initiative_data.fetchall()):
+                    if raw_initiative[0] == raw_location[3]:
+                        turn = i
+
+                    initiative = {
+                        "shape": raw_initiative[0],
+                        "initiative": raw_initiative[1],
+                        "isVisible": raw_initiative[2],
+                        "isGroup": raw_initiative[3],
+                        "effects": [],
+                    }
+                    effect_data = db.execute_sql(
+                        "SELECT name, turns FROM initiative_effect WHERE initiative_id = ?",
+                        (raw_initiative[0],),
+                    )
+                    for raw_effect in effect_data.fetchall():
+                        effect = {
+                            "name": raw_effect[0],
+                            "turns": raw_effect[1],
+                            "highlightsActor": False,
+                        }
+                        initiative["effects"].append(effect)
+                    initiative_list.append(initiative)
+                db.execute_sql(
+                    "INSERT INTO initiative (location_id, round, turn, data) VALUES (?, ?, ?, ?)",
+                    (
+                        raw_location[1],
+                        raw_location[2],
+                        turn,
+                        json.dumps(initiative_list),
+                    ),
+                )
+            db.execute_sql("DROP TABLE initiative_effect")
+            db.execute_sql("DROP TABLE _initiative_61")
+            db.execute_sql("DROP TABLE initiative_location_data")
+
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

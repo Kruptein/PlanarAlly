@@ -5,7 +5,9 @@ import { socket } from "../socket";
 socket.on("Initiative.Set", (data: { location: number; round: number; turn: number; data: InitiativeData[] }) =>
     initiativeStore.setData(data),
 );
-
+socket.on("Initiative.Value.Set", (data: { shape: string; value: number }) =>
+    initiativeStore.setInitiative(data.shape, data.value, false),
+);
 socket.on("Initiative.Remove", (data: string) => initiativeStore.removeInitiative(data, false));
 
 socket.on("Initiative.Turn.Update", (turn: number) => initiativeStore.setTurnCounter(turn, false));
@@ -25,6 +27,4 @@ socket.on("Initiative.Effect.Remove", (data: { shape: string; index: number }) =
 socket.on("Initiative.Option.Set", (data: { shape: string; option: "isVisible" | "isGroup"; value: boolean }) =>
     initiativeStore.setOption(data.shape, data.option, data.value),
 );
-socket.on("Initiative.Request", () => {
-    initiativeStore.handleRequest();
-});
+socket.on("Initiative.Clear", () => initiativeStore.clearValues(false));

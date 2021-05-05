@@ -1,9 +1,6 @@
 import json
-from operator import itemgetter
 from typing import List, Optional
 from typing_extensions import TypedDict
-
-from playhouse.shortcuts import dict_to_model, update_model_from_dict
 
 import auth
 from api.socket.constants import GAME_NS
@@ -16,7 +13,6 @@ from models import (
 from models.db import db
 from models.role import Role
 from models.shape.access import has_ownership
-from models.utils import reduce_data_to_model
 from state.game import game_state
 from utils import logger
 
@@ -58,9 +54,20 @@ class ServerInitiativeEffectTurns(TypedDict):
     turns: str
 
 
+class ServerSetInitiativeValue(TypedDict):
+    shape: str
+    value: int
+
+
 class ServerRemoveInitiativeEffectActor(TypedDict):
     shape: str
     index: int
+
+
+class ServerInitiativeOrderChange(TypedDict):
+    shape: str
+    oldIndex: int
+    newIndex: int
 
 
 @sio.on("Initiative.Request", namespace=GAME_NS)
@@ -123,7 +130,7 @@ async def add_initiative(sid: str, data: ServerInitiativeData):
 
     if shape is not None and not has_ownership(shape, pr):
         logger.warning(
-            f"{pr.player.name} attempted to remove initiative of an asset it does not own"
+            f"{pr.player.name} attempted to add initiative to an asset it does not own"
         )
         return
 
@@ -138,7 +145,7 @@ async def add_initiative(sid: str, data: ServerInitiativeData):
         else:
             json_data.append(data)
 
-        json_data.sort(key=itemgetter("initiative"), reverse=True)
+        json_data.sort(key=lambda x: x.get("initiative", 0) or 0, reverse=True)
 
         location_data.data = json.dumps(json_data)
         location_data.save()
@@ -146,6 +153,67 @@ async def add_initiative(sid: str, data: ServerInitiativeData):
     await sio.emit(
         "Initiative.Set",
         location_data.as_dict(),
+        room=pr.active_location.get_path(),
+        namespace=GAME_NS,
+    )
+
+
+@sio.on("Initiative.Value.Set", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def set_initiative_value(sid: str, data: ServerSetInitiativeValue):
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = Shape.get_or_none(uuid=data)
+
+    if shape is not None and not has_ownership(shape, pr):
+        logger.warning(
+            f"{pr.player.name} attempted to remove initiative of an asset it does not own"
+        )
+        return
+
+    with db.atomic():
+        location_data = Initiative.get(location=pr.active_location)
+        json_data = json.loads(location_data.data)
+
+        for initiative in json_data:
+            if initiative["shape"] == data["shape"]:
+                initiative["initiative"] = data["value"]
+                break
+
+        json_data.sort(key=lambda x: x.get("initiative", 0) or 0, reverse=True)
+
+        location_data.data = json.dumps(json_data)
+        location_data.save()
+
+    await sio.emit(
+        "Initiative.Set",
+        location_data.as_dict(),
+        room=pr.active_location.get_path(),
+        namespace=GAME_NS,
+    )
+
+
+@sio.on("Initiative.Clear", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def clear_initiatives(sid: str):
+    pr: PlayerRoom = game_state.get(sid)
+
+    if pr.role != Role.DM:
+        logger.warning(f"{pr.player.name} attempted to clear all initiatives")
+        return
+
+    with db.atomic():
+        location_data = Initiative.get(location=pr.active_location)
+        json_data = json.loads(location_data.data)
+
+        for initiative in json_data:
+            initiative["initiative"] = None
+
+        location_data.data = json.dumps(json_data)
+        location_data.save()
+
+    await sio.emit(
+        "Initiative.Clear",
         room=pr.active_location.get_path(),
         namespace=GAME_NS,
     )
@@ -177,6 +245,43 @@ async def remove_initiative(sid: str, data: str):
         data,
         room=pr.active_location.get_path(),
         skip_sid=sid,
+        namespace=GAME_NS,
+    )
+
+
+@sio.on("Initiative.Order.Change", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def change_initiative_order(sid: str, data: ServerInitiativeOrderChange):
+    pr: PlayerRoom = game_state.get(sid)
+
+    if pr.role != Role.DM:
+        logger.warning(f"{pr.player.name} attempted to reorder initiatives")
+        return
+
+    old_index = data["oldIndex"]
+    new_index = data["newIndex"]
+
+    with db.atomic():
+        location_data = Initiative.get(location=pr.active_location)
+        json_data = json.loads(location_data.data)
+
+        if json_data[old_index]["shape"] != data["shape"]:
+            return
+
+        if json_data[new_index]["initiative"] != json_data[old_index]["initiative"]:
+            print("Manual sorting")
+
+        json_data.insert(new_index, json_data.pop(old_index))
+
+        json_data.sort(key=lambda x: x.get("initiative", 0) or 0, reverse=True)
+
+        location_data.data = json.dumps(json_data)
+        location_data.save()
+
+    await sio.emit(
+        "Initiative.Set",
+        location_data.as_dict(),
+        room=pr.active_location.get_path(),
         namespace=GAME_NS,
     )
 

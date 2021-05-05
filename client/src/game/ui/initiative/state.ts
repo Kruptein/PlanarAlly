@@ -1,4 +1,3 @@
-import { PromptFunction } from "../../../core/plugins/modals/prompt";
 import { Store } from "../../../core/store";
 import { i18n } from "../../../i18n";
 import { gameStore } from "../../../store/game";
@@ -13,6 +12,9 @@ import {
     sendInitiativeTurnsEffect,
     sendInitiativeTurnUpdate,
     sendInitiativeAdd,
+    sendInitiativeSetValue,
+    sendInitiativeClear,
+    sendInitiativeReorder,
 } from "../../api/emits/initiative";
 import { InitiativeData, InitiativeEffect } from "../../models/general";
 import { setCenterPosition } from "../../position";
@@ -26,17 +28,17 @@ function getDefaultEffect(): InitiativeEffect {
 interface InitiativeState {
     showInitiative: boolean;
     locationData: InitiativeData[];
+    newData: InitiativeData[];
 
     roundCounter: number;
     turnCounter: number;
 
+    editLock: string;
     cameraLock: boolean;
     visionLock: boolean;
 }
 
 class InitiativeStore extends Store<InitiativeState> {
-    private promptFunction: PromptFunction | undefined;
-
     constructor() {
         super();
     }
@@ -45,17 +47,15 @@ class InitiativeStore extends Store<InitiativeState> {
         return {
             showInitiative: false,
             locationData: [],
+            newData: [],
 
             roundCounter: 1,
             turnCounter: 0,
 
+            editLock: "",
             cameraLock: false,
             visionLock: false,
         };
-    }
-
-    setPromptFunction(promptFunction: PromptFunction): void {
-        this.promptFunction = promptFunction;
     }
 
     clear(): void {
@@ -67,7 +67,9 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     setData(data: { location: number; round: number; turn: number; data: InitiativeData[] }): void {
-        this._state.locationData = data.data;
+        if (this._state.editLock) this._state.newData = data.data;
+        else this._state.locationData = data.data;
+
         this.setRoundCounter(data.round, false);
         this.setTurnCounter(data.turn, false);
     }
@@ -78,22 +80,6 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     // PURE INITIATIVE
-
-    async handleRequest(): Promise<void> {
-        for (const initiative of this._state.locationData) {
-            if (gameStore.state.ownedTokens.has(initiative.shape)) {
-                const newInitiative = await this.promptFunction!(
-                    UuidMap.get(initiative.shape)!.name,
-                    "New initiative requested",
-                );
-                if (newInitiative !== undefined) {
-                    const num = Number.parseFloat(newInitiative);
-                    if (isNaN(num)) continue;
-                    this.addInitiative(initiative.shape, num, initiative.isGroup);
-                }
-            }
-        }
-    }
 
     addInitiative(shape: string, initiative: number | undefined, isGroup = false): void {
         let actor = this._state.locationData.find((a) => a.shape === shape);
@@ -112,11 +98,20 @@ class InitiativeStore extends Store<InitiativeState> {
         sendInitiativeAdd(actor);
     }
 
+    setInitiative(shapeId: string, value: number, sync: boolean): void {
+        const actor = this.getDataSet().find((a) => a.shape === shapeId);
+        if (actor === undefined) return;
+
+        actor.initiative = value;
+        if (sync) sendInitiativeSetValue({ shape: shapeId, value });
+    }
+
     removeInitiative(shapeId: string, sync: boolean): void {
-        const index = this._state.locationData.findIndex((i) => i.shape === shapeId);
+        const data = this.getDataSet();
+        const index = data.findIndex((i) => i.shape === shapeId);
         if (index < 0) return;
 
-        this._state.locationData.splice(index, 1);
+        data.splice(index, 1);
         if (sync) sendInitiativeRemove(shapeId);
         // Remove highlight
         const shape = UuidMap.get(shapeId);
@@ -127,13 +122,26 @@ class InitiativeStore extends Store<InitiativeState> {
         }
     }
 
+    clearValues(sync: boolean): void {
+        for (const data of this._state.locationData) {
+            data.initiative = undefined;
+        }
+        if (sync) sendInitiativeClear();
+    }
+
+    changeOrder(shape: string, oldIndex: number, newIndex: number): void {
+        if (this.getDataSet()[oldIndex].shape === shape) {
+            sendInitiativeReorder({ shape, oldIndex, newIndex });
+        }
+    }
+
     // TURN / ROUND TRACKING
 
     setTurnCounter(turn: number, sync: boolean): void {
         if (sync && !gameStore.state.isDm) return;
         this._state.turnCounter = turn;
 
-        const actor = this._state.locationData[this._state.turnCounter];
+        const actor = this.getDataSet()[this._state.turnCounter];
         if (actor === undefined) return;
 
         if (actor.effects.length > 0) {
@@ -157,7 +165,7 @@ class InitiativeStore extends Store<InitiativeState> {
         this._state.roundCounter = round;
         if (sync) {
             sendInitiativeRoundUpdate(round);
-            if (this._state.locationData.length > 0) {
+            if (this.getDataSet().length > 0) {
                 this.setTurnCounter(0, sync);
             }
         }
@@ -165,7 +173,7 @@ class InitiativeStore extends Store<InitiativeState> {
 
     nextTurn(): void {
         if (!gameStore.state.isDm) return;
-        if (this._state.turnCounter === this._state.locationData.length - 1) {
+        if (this._state.turnCounter === this.getDataSet().length - 1) {
             this.setRoundCounter(this._state.roundCounter + 1, true);
         } else {
             this.setTurnCounter(this._state.turnCounter + 1, true);
@@ -176,7 +184,7 @@ class InitiativeStore extends Store<InitiativeState> {
         if (!gameStore.state.isDm) return;
         if (this._state.turnCounter === 0) {
             this.setRoundCounter(this._state.roundCounter - 1, true);
-            this.setTurnCounter(this._state.locationData.length - 1, true);
+            this.setTurnCounter(this.getDataSet().length - 1, true);
         } else {
             this.setTurnCounter(this._state.turnCounter - 1, true);
         }
@@ -185,16 +193,20 @@ class InitiativeStore extends Store<InitiativeState> {
     // EFFECTS
 
     createEffect(shape: string, effect: InitiativeEffect | undefined, sync: boolean): void {
-        const actor = this._state.locationData.find((i) => i.shape === shape);
+        const actor = this.getDataSet().find((i) => i.shape === shape);
         if (actor === undefined) return;
 
         if (effect === undefined) effect = getDefaultEffect();
         actor.effects.push(effect);
+
+        console.log(this._state.locationData[0].effects);
+        console.log(this._state.newData[0].effects);
+        console.log(this._state.locationData[0].effects === this._state.newData[0].effects);
         if (sync) sendInitiativeNewEffect({ actor: actor.shape, effect });
     }
 
     setEffectName(shape: string, index: number, name: string, sync: boolean): void {
-        const actor = this._state.locationData.find((i) => i.shape === shape);
+        const actor = this.getDataSet().find((i) => i.shape === shape);
         if (actor === undefined) return;
 
         const effect = actor.effects[index];
@@ -205,7 +217,7 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     setEffectTurns(shape: string, index: number, turns: string, sync: boolean): void {
-        const actor = this._state.locationData.find((i) => i.shape === shape);
+        const actor = this.getDataSet().find((i) => i.shape === shape);
         if (actor === undefined) return;
 
         const effect = actor.effects[index];
@@ -216,7 +228,7 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     removeEffect(shape: string, index: number, sync: boolean): void {
-        const actor = this._state.locationData.find((i) => i.shape === shape);
+        const actor = this.getDataSet().find((i) => i.shape === shape);
         if (actor === undefined) return;
 
         actor.effects.splice(index, 1);
@@ -225,10 +237,20 @@ class InitiativeStore extends Store<InitiativeState> {
 
     // Locks
 
+    lock(shape: string): void {
+        this._state.editLock = shape;
+        this._state.newData = this._state.locationData.map((d) => ({ ...d, effects: [...d.effects] }));
+    }
+
+    unlock(): void {
+        this._state.editLock = "";
+        this._state.locationData = this._state.newData;
+    }
+
     setCameraLock(hasCameraLock: boolean): void {
         this._state.cameraLock = hasCameraLock;
         if (hasCameraLock) {
-            const actor = this._state.locationData[this._state.turnCounter];
+            const actor = this.getDataSet()[this._state.turnCounter];
             const shape = UuidMap.get(actor.shape);
             if (shape?.ownedBy(false, { visionAccess: true }) ?? false) {
                 setCenterPosition(shape!.center());
@@ -239,7 +261,7 @@ class InitiativeStore extends Store<InitiativeState> {
     setVisionLock(hasVisionLock: boolean): void {
         this._state.visionLock = hasVisionLock;
         if (hasVisionLock) {
-            const actor = this._state.locationData[this._state.turnCounter];
+            const actor = this.getDataSet()[this._state.turnCounter];
             activeTokensBackup = new Set(gameStore.activeTokens.value);
             if (gameStore.state.ownedTokens.has(actor.shape)) {
                 gameStore.setActiveTokens(actor.shape);
@@ -253,6 +275,10 @@ class InitiativeStore extends Store<InitiativeState> {
 
     // EXTRA
 
+    getDataSet(): InitiativeData[] {
+        return this._state[this._state.editLock === "" ? "locationData" : "newData"];
+    }
+
     owns(shapeId: string): boolean {
         if (gameStore.state.isDm) return true;
         const shape = UuidMap.get(shapeId);
@@ -262,17 +288,16 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     toggleOption(index: number, option: "isVisible" | "isGroup"): void {
-        const actor = this._state.locationData[index];
+        const actor = this.getDataSet()[index];
         if (actor === undefined || !this.owns(actor.shape)) return;
         actor[option] = !actor[option];
         sendInitiativeOptionUpdate({ shape: actor.shape, option, value: actor[option] });
     }
 
     setOption(shape: string, option: "isVisible" | "isGroup", value: boolean): void {
-        const actor = this._state.locationData.find((i) => i.shape === shape);
+        const actor = this.getDataSet().find((i) => i.shape === shape);
         if (actor === undefined) return;
         actor[option] = value;
-        console.log(this._state.locationData);
     }
 }
 

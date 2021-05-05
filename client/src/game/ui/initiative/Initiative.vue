@@ -20,7 +20,6 @@ export default defineComponent({
     setup() {
         const { t } = useI18n();
         const modals = useModal();
-        initiativeStore.setPromptFunction(modals.prompt);
 
         const isDm = toRef(gameStore.state, "isDm");
 
@@ -99,10 +98,31 @@ export default defineComponent({
             sendRequestInitiatives();
         }
 
+        function lock(shape: string): void {
+            if (initiativeStore.owns(shape)) initiativeStore.lock(shape);
+        }
+
+        function unlock(): void {
+            if (initiativeStore.state.editLock !== "") initiativeStore.unlock();
+        }
+
+        function setInitiative(shape: string, value: string): void {
+            const numValue = Number.parseInt(value);
+            if (isNaN(numValue)) return;
+
+            if (initiativeStore.owns(shape)) initiativeStore.setInitiative(shape, numValue, true);
+        }
+
+        function changeOrder(data: { moved?: { element: InitiativeData; newIndex: number; oldIndex: number } }): void {
+            if (isDm.value && data.moved)
+                initiativeStore.changeOrder(data.moved.element.shape, data.moved.oldIndex, data.moved.newIndex);
+        }
+
         return {
             ...toRefs(initiativeStore.state),
             isDm,
             t,
+            changeOrder,
             canSee,
             getImage,
             getName,
@@ -110,11 +130,15 @@ export default defineComponent({
             removeInitiative,
             reset,
             toggleHighlight,
-            close: () => initiativeStore.show(false),
             createEffect,
             removeEffect,
             setEffectName,
             setEffectTurns,
+            setInitiative,
+            lock,
+            unlock,
+            close: () => initiativeStore.show(false),
+            clearValues: () => initiativeStore.clearValues(true),
             nextTurn: () => initiativeStore.nextTurn(),
             previousTurn: () => initiativeStore.previousTurn(),
             owns: (actorId: string) => initiativeStore.owns(actorId),
@@ -138,36 +162,51 @@ export default defineComponent({
             </div>
         </template>
         <div class="modal-body">
-            <draggable id="initiative-list" v-model="locationData" :disabled="!isDm" item-key="uuid">
+            <draggable
+                id="initiative-list"
+                :modelValue="locationData"
+                @change="changeOrder"
+                :disabled="!isDm"
+                item-key="uuid"
+            >
                 <template #item="{ element: actor, index }">
                     <div style="display: flex; flex-direction: column; align-items: flex-end" v-if="canSee(actor)">
                         <div
                             class="initiative-actor"
-                            :class="{ 'initiative-selected': turnCounter === index }"
+                            :class="{
+                                'initiative-selected': turnCounter === index,
+                                blurred: editLock !== '' && editLock !== actor.shape,
+                            }"
                             :style="{ cursor: isDm && 'move' }"
                             @mouseenter="toggleHighlight(actor.shape, true)"
                             @mouseleave="toggleHighlight(actor.shape, false)"
                         >
+                            <div
+                                v-if="owns(actor.shape)"
+                                class="remove"
+                                @click="removeInitiative(actor)"
+                                :class="{ notAllowed: !owns(actor.shape) }"
+                            >
+                                &#215;
+                            </div>
                             <template v-if="hasImage(actor)">
                                 <img :src="getImage(actor)" :title="getName(actor)" alt="" />
                             </template>
                             <template v-else>
                                 <span style="width: auto">{{ getName(actor) }}</span>
                             </template>
-                            <div class="initiative-value">{{ actor.initiative }}</div>
-                            <div
-                                class="initiative-effects-icon"
-                                style="opacity: 0.6"
+                            <input
+                                class="initiative-value"
+                                type="text"
+                                :placeholder="t('common.value')"
+                                :value="actor.initiative"
+                                :disabled="!owns(actor.shape)"
                                 :class="{ notAllowed: !owns(actor.shape) }"
-                                @click="createEffect(actor.shape)"
-                                :title="t('game.ui.initiative.initiative.add_timed_effect')"
-                            >
-                                <font-awesome-icon icon="stopwatch" />
-                                <template v-if="actor.effects">
-                                    {{ actor.effects.length }}
-                                </template>
-                                <template v-else>0</template>
-                            </div>
+                                @focus="lock(actor.shape)"
+                                @blur="unlock"
+                                @change="setInitiative(actor.shape, $event.target.value)"
+                                @keyup.enter="$event.target.blur()"
+                            />
                             <div
                                 :style="{ opacity: actor.isVisible ? '1.0' : '0.3' }"
                                 :class="{ notAllowed: !owns(actor.shape) }"
@@ -185,20 +224,25 @@ export default defineComponent({
                                 <font-awesome-icon icon="users" />
                             </div>
                             <div
-                                :style="{ opacity: owns(actor.shape) ? '1.0' : '0.3' }"
+                                class="initiative-effects-icon"
+                                style="opacity: 0.6"
                                 :class="{ notAllowed: !owns(actor.shape) }"
-                                @click="removeInitiative(actor)"
-                                :title="t('game.ui.initiative.initiative.delete_init')"
+                                @click="createEffect(actor.shape)"
+                                :title="t('game.ui.initiative.initiative.add_timed_effect')"
                             >
-                                <font-awesome-icon icon="trash-alt" />
+                                <font-awesome-icon icon="stopwatch" />
+                                <template v-if="actor.effects">
+                                    {{ actor.effects.length }}
+                                </template>
+                                <template v-else>0</template>
                             </div>
                         </div>
-                        <div class="initiative-effect" v-if="actor.effects">
+                        <div class="initiative-effect" v-if="actor.effects.length > 0">
                             <div v-for="(effect, e) of actor.effects" :key="effect.uuid">
                                 <input
                                     type="text"
                                     v-model="effect.name"
-                                    :size="effect.name.length || 1"
+                                    :style="{ width: '100px' }"
                                     :class="{ notAllowed: !owns(actor.shape) }"
                                     :disabled="!owns(actor.shape)"
                                     @change="setEffectName(actor.shape, e, $event.target.value)"
@@ -206,7 +250,7 @@ export default defineComponent({
                                 <input
                                     type="text"
                                     v-model="effect.turns"
-                                    :size="effect.turns.length || 1"
+                                    :style="{ width: '25px' }"
                                     :class="{ notAllowed: !owns(actor.shape) }"
                                     :disabled="!owns(actor.shape)"
                                     @change="setEffectTurns(actor.shape, e, $event.target.value)"
@@ -237,6 +281,14 @@ export default defineComponent({
                     class="initiative-bar-button"
                     :class="{ notAllowed: !isDm }"
                     @click="reset"
+                    :title="t('game.ui.initiative.initiative.reset_round')"
+                >
+                    <font-awesome-icon icon="sync-alt" />
+                </div>
+                <div
+                    class="initiative-bar-button"
+                    :class="{ notAllowed: !isDm }"
+                    @click="clearValues"
                     :title="t('game.ui.initiative.initiative.reset_round')"
                 >
                     <font-awesome-icon icon="sync-alt" />
@@ -318,21 +370,59 @@ export default defineComponent({
     margin-bottom: 2px;
     border-radius: 5px;
     border: solid 2px rgba(0, 0, 0, 0);
+    position: relative;
+
+    min-width: 155px;
+
+    .remove {
+        display: none;
+
+        position: absolute;
+        color: red;
+        font-size: 25px;
+        font-weight: bold;
+        cursor: pointer;
+        top: -15px;
+        right: -8px;
+    }
 
     &:hover {
         border: solid 2px #82c8a0;
+
+        > .remove {
+            display: block;
+        }
+    }
+
+    img {
+        width: 30px;
+    }
+
+    svg {
+        width: 20px;
+        margin: 0 1px;
     }
 
     > * {
-        width: 30px;
-        margin-left: 2px;
         display: flex;
         justify-content: center;
     }
 
     .initiative-value {
-        font-weight: bold;
+        font-weight: 800;
+        width: 60px;
+        margin: 0 10px;
+        padding: 2px;
+        text-align: center;
+        background-color: inherit;
+        border: 0;
+
+        cursor: pointer;
     }
+}
+
+.blurred {
+    filter: blur(5px);
 }
 
 .initiative-selected {

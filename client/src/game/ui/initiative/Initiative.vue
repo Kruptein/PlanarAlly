@@ -372,6 +372,7 @@ export default defineComponent({
     font-size: 20px;
     font-weight: bold;
     cursor: move;
+    min-width: 150px;
 }
 
 .header-close {

@@ -5,6 +5,7 @@ import { addP, GlobalPoint, subtractP, toGP, Vector } from "../core/geometry";
 import { Store } from "../core/store";
 import { toSnakeCase } from "../core/utils";
 import { sendClientLocationOptions, sendDefaultClientOptions, sendRoomClientOptions } from "../game/api/emits/client";
+import { InitiativeEffectMode } from "../game/models/initiative";
 import { UserOptions } from "../game/models/settings";
 
 import { floorStore } from "./floor";
@@ -24,6 +25,10 @@ interface State {
     gridSize: number;
     panX: number;
     panY: number;
+
+    initiativeCameraLock: boolean;
+    initiativeVisionLock: boolean;
+    initiativeEffectVisibility: InitiativeEffectMode;
 
     zoomDisplay: number;
 }
@@ -53,6 +58,10 @@ class ClientStore extends Store<State> {
                 invertAlt: false,
                 gridSize: DEFAULT_GRID_SIZE,
                 disableScrollToZoom: false,
+
+                initiativeCameraLock: false,
+                initiativeVisionLock: false,
+                initiativeEffectVisibility: InitiativeEffectMode.ActiveAndHover,
             },
 
             fowColour: "rgba(0, 0, 0, 1)",
@@ -64,6 +73,10 @@ class ClientStore extends Store<State> {
             gridSize: DEFAULT_GRID_SIZE,
             panX: 0,
             panY: 0,
+
+            initiativeCameraLock: false,
+            initiativeVisionLock: false,
+            initiativeEffectVisibility: InitiativeEffectMode.ActiveAndHover,
 
             zoomDisplay: 0.5,
         };
@@ -172,6 +185,21 @@ class ClientStore extends Store<State> {
     setRulerColour(colour: string, sync: boolean): void {
         this._state.rulerColour = colour;
         if (sync) sendRoomClientOptions({ ruler_colour: colour });
+    }
+
+    setInitiativeCameraLock(initiativeCameraLock: boolean, sync: boolean): void {
+        this._state.initiativeCameraLock = initiativeCameraLock;
+        if (sync) sendRoomClientOptions({ initiative_camera_lock: initiativeCameraLock });
+    }
+
+    setInitiativeVisionLock(initiativeVisionLock: boolean, sync: boolean): void {
+        this._state.initiativeVisionLock = initiativeVisionLock;
+        if (sync) sendRoomClientOptions({ initiative_vision_lock: initiativeVisionLock });
+    }
+
+    setInitiativeEffectVisibility(initiativeEffectVisibility: InitiativeEffectMode, sync: boolean): void {
+        this._state.initiativeEffectVisibility = initiativeEffectVisibility;
+        if (sync) sendRoomClientOptions({ initiative_effect_visibility: initiativeEffectVisibility });
     }
 }
 

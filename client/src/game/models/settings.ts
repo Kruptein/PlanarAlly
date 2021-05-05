@@ -1,3 +1,5 @@
+import { InitiativeEffectMode } from "./initiative";
+
 export interface ServerLocationOptions {
     use_grid: boolean;
     grid_type: string;
@@ -56,6 +58,10 @@ export interface ServerUserOptions {
     invert_alt: boolean;
     grid_size: number;
     disable_scroll_to_zoom: boolean;
+
+    initiative_camera_lock: boolean;
+    initiative_vision_lock: boolean;
+    initiative_effect_visibility: InitiativeEffectMode;
 }
 
 export interface UserOptions {
@@ -65,6 +71,10 @@ export interface UserOptions {
     invertAlt: boolean;
     gridSize: number;
     disableScrollToZoom: boolean;
+
+    initiativeCameraLock: boolean;
+    initiativeVisionLock: boolean;
+    initiativeEffectVisibility: InitiativeEffectMode;
 }
 
 export const optionsToClient = (options: ServerLocationOptions): LocationOptions => ({
@@ -89,4 +99,8 @@ export const userOptionsToClient = (options: ServerUserOptions): UserOptions => 
     invertAlt: options.invert_alt,
     rulerColour: options.ruler_colour,
     disableScrollToZoom: options.disable_scroll_to_zoom,
+
+    initiativeCameraLock: options.initiative_camera_lock,
+    initiativeVisionLock: options.initiative_vision_lock,
+    initiativeEffectVisibility: options.initiative_effect_visibility,
 });

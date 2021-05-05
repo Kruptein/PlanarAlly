@@ -17,6 +17,10 @@ class UserOptions(BaseModel):
     grid_size = IntegerField(default=50, null=True)
     disable_scroll_to_zoom = BooleanField(default=False, null=True)
 
+    initiative_camera_lock = BooleanField(default=False, null=True)
+    initiative_vision_lock = BooleanField(default=False, null=True)
+    initiative_effect_visibility = TextField(default="active", null=True)
+
     @classmethod
     def create_empty(cls):
         return UserOptions.create(

@@ -934,7 +934,27 @@ def upgrade(version):
             )
     elif version == 61:
         # Initiative changes
+        # Add UserOptions initiative settings
         with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN initiative_camera_lock INTEGER DEFAULT 0"
+            )
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN initiative_vision_lock INTEGER DEFAULT 0"
+            )
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN initiative_effect_visibility TEXT DEFAULT 'active'"
+            )
+            data = db.execute_sql(
+                "UPDATE user_options SET initiative_camera_lock = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
+            )
+            data = db.execute_sql(
+                "UPDATE user_options SET initiative_vision_lock = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
+            )
+            data = db.execute_sql(
+                "UPDATE user_options SET initiative_effect_visibility = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
+            )
+
             db.execute_sql(
                 "CREATE TEMPORARY TABLE _initiative_61 AS SELECT * FROM initiative"
             )

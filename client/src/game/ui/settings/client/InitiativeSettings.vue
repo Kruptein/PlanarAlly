@@ -1,130 +1,143 @@
 <script lang="ts">
-import { computed, defineComponent } from "vue";
+import { computed, defineComponent, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { useModal } from "../../../../core/plugins/modals/plugin";
-import { baseAdjustedFetch } from "../../../../core/utils";
-import { RoomInfo } from "../../../../dashboard/types";
-import { gameStore } from "../../../../store/game";
-import { locationStore } from "../../../../store/location";
+import { clientStore } from "../../../../store/client";
+import { InitiativeEffectMode } from "../../../models/initiative";
+import { UserOptions } from "../../../models/settings";
 
 export default defineComponent({
-    props: { location: { type: Number, required: true } },
-    setup(props, { emit }) {
+    setup() {
         const { t } = useI18n();
-        const modals = useModal();
 
-        const hasPlayers = computed(() => gameStore.state.players.some((p) => p.location === props.location));
+        const defaultOptions = toRef(clientStore.state, "defaultClientOptions");
 
-        const name = computed({
+        const cameraLock = computed({
             get() {
-                return locationStore.activeLocations.value.find((l) => l.id === props.location)?.name ?? "";
+                return clientStore.state.initiativeCameraLock;
             },
-            set(name: string) {
-                locationStore.renameLocation(props.location, name, true);
+            set(cameraLock: boolean) {
+                clientStore.setInitiativeCameraLock(cameraLock, true);
             },
         });
 
-        function archiveLocation(): void {
-            emit("update:location", locationStore.activeLocations.value.find((l) => l.id !== props.location)!.id);
-            locationStore.archiveLocation(props.location, true);
-            emit("close");
+        const visionLock = computed({
+            get() {
+                return clientStore.state.initiativeVisionLock;
+            },
+            set(visionLock: boolean) {
+                clientStore.setInitiativeVisionLock(visionLock, true);
+            },
+        });
+
+        const effectVisibility = computed({
+            get() {
+                return clientStore.state.initiativeEffectVisibility;
+            },
+            set(effectVisibility: InitiativeEffectMode) {
+                clientStore.setInitiativeEffectVisibility(effectVisibility, true);
+            },
+        });
+
+        function setDefault(key: keyof UserOptions): void {
+            clientStore.setDefaultClientOption(key, clientStore.state[key], true);
         }
 
-        async function deleteLocation(): Promise<void> {
-            const remove = await modals.confirm(
-                t("common.warning"),
-                t("game.ui.settings.LocationBar.LocationAdminSettings.remove_location_msg_NAME", {
-                    name: name.value,
-                }),
-                {
-                    yes: t("game.ui.settings.LocationBar.LocationAdminSettings.remove_location_yes"),
-                    no: t("game.ui.settings.LocationBar.LocationAdminSettings.remove_location_no"),
-                },
-            );
-            if (remove !== true) return;
-            emit("update:location", locationStore.activeLocations.value.find((l) => l.id !== props.location)!.id);
-            locationStore.removeLocation(props.location, true);
-            emit("close");
-        }
-
-        async function onCloneClick(): Promise<void> {
-            const response = await baseAdjustedFetch("/api/rooms");
-            if (response.ok) {
-                const data = await response.json();
-                var owned: RoomInfo[] = data.owned;
-
-                const choice = await modals.selectionBox(
-                    t("game.ui.settings.LocationBar.LocationAdminSettings.choose_room"),
-                    owned.map((room: RoomInfo) => room.name),
-                );
-                const chosenRoom = owned.find((room) => room.name === choice);
-                if (!chosenRoom) return;
-
-                const roomName = chosenRoom.name;
-
-                locationStore.cloneLocation(props.location, roomName, true);
-
-                emit("close");
-            } else {
-                console.log("Recieved a non-ok status code while fetching rooms.");
-            }
-        }
-
-        return { archiveLocation, deleteLocation, hasPlayers, name, onCloneClick, t };
+        return {
+            t,
+            defaultOptions,
+            setDefault,
+            effectVisibilityOptions: Object.values(InitiativeEffectMode),
+            cameraLock,
+            effectVisibility,
+            visionLock,
+        };
     },
 });
 </script>
 
 <template>
-    <div class="panel">
+    <div class="panel restore-panel">
         <div class="row">
-            <div>
-                <label :for="'rename-' + location" v-t="'common.name'"></label>
-            </div>
-            <div>
-                <input :id="'rename-' + location" type="text" v-model="name" />
-            </div>
+            <label for="cameraLock" v-t="'game.ui.settings.client.InitiativeSettings.camera_lock'"></label>
+            <div><input id="cameraLock" type="checkbox" v-model="cameraLock" /></div>
+            <template v-if="cameraLock !== defaultOptions.initiativeCameraLock">
+                <div
+                    :title="t('game.ui.settings.common.reset_default')"
+                    @click="cameraLock = defaultOptions.initiativeCameraLock"
+                >
+                    <font-awesome-icon icon="times-circle" />
+                </div>
+                <div :title="t('game.ui.settings.common.sync_default')" @click="setDefault('initiativeCameraLock')">
+                    <font-awesome-icon icon="sync-alt" />
+                </div>
+            </template>
         </div>
         <div class="row">
+            <label for="visionLock" v-t="'game.ui.settings.client.InitiativeSettings.vision_lock'"></label>
+            <div><input id="visionLock" type="checkbox" v-model="visionLock" /></div>
+            <template v-if="visionLock !== defaultOptions.initiativeVisionLock">
+                <div
+                    :title="t('game.ui.settings.common.reset_default')"
+                    @click="visionLock = defaultOptions.initiativeVisionLock"
+                >
+                    <font-awesome-icon icon="times-circle" />
+                </div>
+                <div :title="t('game.ui.settings.common.sync_default')" @click="setDefault('initiativeVisionLock')">
+                    <font-awesome-icon icon="sync-alt" />
+                </div>
+            </template>
+        </div>
+        <div class="row">
+            <label for="effectVisibility" v-t="'game.ui.settings.client.InitiativeSettings.effect_visibility'"></label>
             <div>
-                <button
-                    @click="onCloneClick"
-                    v-t="'game.ui.settings.LocationBar.LocationAdminSettings.clone_this_location'"
-                ></button>
+                <select @change="effectVisibility = $event.target.value" size="">
+                    <option
+                        v-for="option in effectVisibilityOptions"
+                        :key="option"
+                        :value="option"
+                        :label="t('game.ui.settings.client.InitiativeSettings.effect_' + option)"
+                        :selected="option === effectVisibility"
+                    ></option>
+                </select>
             </div>
-            <div>
-                <button
-                    class="danger"
-                    @click="archiveLocation"
-                    :disabled="hasPlayers"
-                    :title="
-                        hasPlayers
-                            ? t('game.ui.settings.LocationBar.LocationAdminSettings.move_existing_pl')
-                            : t('game.ui.settings.LocationBar.LocationAdminSettings.archive_this_location')
-                    "
-                    v-t="'game.ui.settings.LocationBar.LocationAdminSettings.archive_this_location'"
-                ></button>
-            </div>
-            <div>
-                <button
-                    class="danger"
-                    @click="deleteLocation"
-                    :disabled="hasPlayers"
-                    :title="
-                        hasPlayers
-                            ? t('game.ui.settings.LocationBar.LocationAdminSettings.move_existing_pl')
-                            : t('game.ui.settings.LocationBar.LocationAdminSettings.delete_this_location')
-                    "
-                    v-t="'game.ui.settings.LocationBar.LocationAdminSettings.delete_this_location'"
-                ></button>
-            </div>
+            <template v-if="effectVisibility !== defaultOptions.initiativeEffectVisibility">
+                <div
+                    :title="t('game.ui.settings.common.reset_default')"
+                    @click="effectVisibility = defaultOptions.initiativeEffectVisibility"
+                >
+                    <font-awesome-icon icon="times-circle" />
+                </div>
+                <div
+                    :title="t('game.ui.settings.common.sync_default')"
+                    @click="setDefault('initiativeEffectVisibility')"
+                >
+                    <font-awesome-icon icon="sync-alt" />
+                </div>
+            </template>
         </div>
     </div>
 </template>
 
 <style scoped>
-.danger:hover:disabled {
-    cursor: not-allowed;
+/* Force higher specificity without !important abuse */
+.panel.restore-panel {
+    min-width: 20vw;
+    column-gap: 15px;
+    grid-template-columns: [setting] 1fr [value] auto [restore] 30px [sync] 30px [end];
+}
+
+label {
+    grid-column-start: setting;
+}
+
+.overwritten,
+.restore-panel .row.overwritten * {
+    color: #7c253e;
+    font-weight: bold;
+}
+
+.panel input[type="number"] {
+    width: 50px;
 }
 </style>

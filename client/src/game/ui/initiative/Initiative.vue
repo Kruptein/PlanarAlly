@@ -1,15 +1,16 @@
 <script lang="ts">
-import { defineComponent, onMounted, toRef, toRefs } from "vue";
+import { computed, defineComponent, onMounted, toRef, toRefs } from "vue";
 import { useI18n } from "vue-i18n";
 import draggable from "vuedraggable";
 
 import Modal from "../../../core/components/modals/Modal.vue";
 import { useModal } from "../../../core/plugins/modals/plugin";
+import { clientStore } from "../../../store/client";
 import { gameStore } from "../../../store/game";
 import { UuidMap } from "../../../store/shapeMap";
 import { sendRequestInitiatives } from "../../api/emits/initiative";
 import { getGroupMembers } from "../../groups";
-import { InitiativeData, InitiativeSort } from "../../models/initiative";
+import { InitiativeData, InitiativeEffectMode, InitiativeSort } from "../../models/initiative";
 import { Shape } from "../../shapes/shape";
 import { Asset } from "../../shapes/variants/asset";
 
@@ -24,6 +25,10 @@ export default defineComponent({
         const isDm = toRef(gameStore.state, "isDm");
 
         onMounted(() => initiativeStore.show(false));
+
+        const alwaysShowEffects = computed(
+            () => clientStore.state.initiativeEffectVisibility === InitiativeEffectMode.Always,
+        );
 
         function getName(actor: InitiativeData): string {
             const shape = UuidMap.get(actor.shape);
@@ -140,6 +145,7 @@ export default defineComponent({
             ...toRefs(initiativeStore.state),
             isDm,
             t,
+            alwaysShowEffects,
             changeOrder,
             changeSort,
             canSee,
@@ -257,7 +263,11 @@ export default defineComponent({
                                 <template v-else>0</template>
                             </div>
                         </div>
-                        <div class="initiative-effect" v-if="actor.effects.length > 0">
+                        <div
+                            class="initiative-effect"
+                            :class="{ 'effect-visible': alwaysShowEffects }"
+                            v-if="actor.effects.length > 0"
+                        >
                             <div v-for="(effect, e) of actor.effects" :key="effect.uuid">
                                 <input
                                     type="text"
@@ -338,24 +348,6 @@ export default defineComponent({
                     <font-awesome-icon icon="cog" />
                 </div>
             </div>
-            <!-- <div id="initiative-bar"> -->
-            <!-- <div
-                    class="initiative-bar-button"
-                    :style="visionLock ? 'background-color: #82c8a0' : ''"
-                    @click="setVisionLock(!visionLock)"
-                    :title="t('game.ui.initiative.initiative.vision_log_msg')"
-                >
-                    <font-awesome-icon icon="eye" />
-                </div>
-                <div
-                    class="initiative-bar-button"
-                    :style="cameraLock ? 'background-color: #82c8a0' : ''"
-                    @click="setCameraLock(!cameraLock)"
-                    :title="t('game.ui.initiative.initiative.camera_log_msg')"
-                >
-                    <font-awesome-icon icon="video" />
-                </div> -->
-            <!-- </div> -->
         </div>
     </Modal>
 </template>
@@ -455,14 +447,6 @@ export default defineComponent({
     background-color: #82c8a0;
 }
 
-.initiative-selected + .initiative-effect,
-.initiative-actor:hover + .initiative-effect,
-.initiative-effect:hover {
-    display: flex;
-    border-color: rgba(130, 200, 160, 0.6);
-    background-color: rgba(130, 200, 160, 0.6);
-}
-
 .initiative-effect {
     display: none;
     flex-direction: column;
@@ -493,6 +477,15 @@ export default defineComponent({
             }
         }
     }
+}
+
+.initiative-selected + .initiative-effect,
+.initiative-actor:hover + .initiative-effect,
+.initiative-effect:hover,
+.effect-visible {
+    display: flex;
+    border-color: rgba(130, 200, 160, 0.6);
+    background-color: rgba(130, 200, 160, 0.6);
 }
 
 #initiative-bar-dm {

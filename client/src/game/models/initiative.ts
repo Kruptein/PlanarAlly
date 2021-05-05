@@ -25,3 +25,8 @@ export type InitiativeSettings = {
     sort: InitiativeSort;
     data: InitiativeData[];
 };
+
+export enum InitiativeEffectMode {
+    ActiveAndHover = "active",
+    Always = "always",
+}

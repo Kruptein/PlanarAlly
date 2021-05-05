@@ -132,7 +132,7 @@ export default defineComponent({
                 case InitiativeSort.Up:
                     return "sort-amount-down-alt";
                 default:
-                    return "random";
+                    return "hand-paper";
             }
         }
 
@@ -291,6 +291,13 @@ export default defineComponent({
             <div id="initiative-bar-dm" v-if="isDm">
                 <div
                     class="initiative-bar-button"
+                    @click="reset"
+                    :title="t('game.ui.initiative.initiative.reset_round')"
+                >
+                    <font-awesome-icon icon="angle-double-left" />
+                </div>
+                <div
+                    class="initiative-bar-button"
                     @click="previousTurn"
                     :title="t('game.ui.initiative.initiative.previous')"
                 >
@@ -298,22 +305,15 @@ export default defineComponent({
                 </div>
                 <div
                     class="initiative-bar-button"
-                    @click="reset"
-                    :title="t('game.ui.initiative.initiative.reset_round')"
-                >
-                    1
-                </div>
-                <div
-                    class="initiative-bar-button"
                     @click="clearValues"
-                    :title="t('game.ui.initiative.initiative.reset_round')"
+                    :title="t('game.ui.initiative.initiative.clear')"
                 >
                     <font-awesome-icon icon="sync-alt" />
                 </div>
                 <div
                     class="initiative-bar-button"
                     @click="changeSort"
-                    :title="t('game.ui.initiative.initiative.reset_round')"
+                    :title="t('game.ui.initiative.initiative.change_sort')"
                 >
                     <font-awesome-icon :icon="translateSort(sort)" :key="sort" />
                 </div>
@@ -515,7 +515,6 @@ export default defineComponent({
 }
 
 .initiative-bar-button {
-    font-weight: bold;
     border: solid 2px #82c8a0;
     border-radius: 5px;
     padding: 5px;

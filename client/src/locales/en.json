@@ -128,7 +128,9 @@
                     "camera_log_msg": "Auto camera lock on active token",
                     "reset_round": "Reset rounds/turns",
                     "next": "Next",
-                    "previous": "Previous"
+                    "previous": "Previous",
+                    "clear": "Clear initiatives",
+                    "change_sort": "Change sorting"
                 }
             },
             "LabelManager": {

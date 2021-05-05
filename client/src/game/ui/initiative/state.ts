@@ -1,5 +1,6 @@
 import { Store } from "../../../core/store";
 import { i18n } from "../../../i18n";
+import { clientStore } from "../../../store/client";
 import { gameStore } from "../../../store/game";
 import { UuidMap } from "../../../store/shapeMap";
 import {
@@ -36,8 +37,6 @@ interface InitiativeState {
     sort: InitiativeSort;
 
     editLock: string;
-    cameraLock: boolean;
-    visionLock: boolean;
 }
 
 class InitiativeStore extends Store<InitiativeState> {
@@ -56,8 +55,6 @@ class InitiativeStore extends Store<InitiativeState> {
             sort: InitiativeSort.Down,
 
             editLock: "",
-            cameraLock: false,
-            visionLock: false,
         };
     }
 
@@ -157,10 +154,8 @@ class InitiativeStore extends Store<InitiativeState> {
                 }
             }
         }
-        if (this._state.visionLock) {
-            this.setVisionLock(this._state.visionLock);
-        }
-        this.setCameraLock(this._state.cameraLock);
+        this.handleCameraLock();
+        this.handleVisionLock();
         if (sync) sendInitiativeTurnUpdate(turn);
     }
 
@@ -256,9 +251,8 @@ class InitiativeStore extends Store<InitiativeState> {
         this._state.locationData = this._state.newData;
     }
 
-    setCameraLock(hasCameraLock: boolean): void {
-        this._state.cameraLock = hasCameraLock;
-        if (hasCameraLock) {
+    handleCameraLock(): void {
+        if (clientStore.state.initiativeCameraLock) {
             const actor = this.getDataSet()[this._state.turnCounter];
             const shape = UuidMap.get(actor.shape);
             if (shape?.ownedBy(false, { visionAccess: true }) ?? false) {
@@ -267,9 +261,8 @@ class InitiativeStore extends Store<InitiativeState> {
         }
     }
 
-    setVisionLock(hasVisionLock: boolean): void {
-        this._state.visionLock = hasVisionLock;
-        if (hasVisionLock) {
+    handleVisionLock(): void {
+        if (clientStore.state.initiativeVisionLock) {
             const actor = this.getDataSet()[this._state.turnCounter];
             activeTokensBackup = new Set(gameStore.activeTokens.value);
             if (gameStore.state.ownedTokens.has(actor.shape)) {

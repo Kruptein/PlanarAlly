@@ -8,11 +8,13 @@ import { useModal } from "../../../core/plugins/modals/plugin";
 import { clientStore } from "../../../store/client";
 import { gameStore } from "../../../store/game";
 import { UuidMap } from "../../../store/shapeMap";
+import { uiStore } from "../../../store/ui";
 import { sendRequestInitiatives } from "../../api/emits/initiative";
 import { getGroupMembers } from "../../groups";
 import { InitiativeData, InitiativeEffectMode, InitiativeSort } from "../../models/initiative";
 import { Shape } from "../../shapes/shape";
 import { Asset } from "../../shapes/variants/asset";
+import { ClientSettingCategory } from "../settings/client/categories";
 
 import { initiativeStore } from "./state";
 
@@ -141,35 +143,46 @@ export default defineComponent({
             }
         }
 
+        function openSettings(): void {
+            uiStore.setClientTab(ClientSettingCategory.Initiative);
+            uiStore.showClientSettings(true);
+        }
+
         return {
             ...toRefs(initiativeStore.state),
             isDm,
             t,
-            alwaysShowEffects,
+
             changeOrder,
             changeSort,
-            canSee,
+            translateSort,
+
+            hasImage,
             getImage,
             getName,
-            hasImage,
+
+            setInitiative,
             removeInitiative,
             reset,
+
+            canSee,
             toggleHighlight,
+            openSettings,
+
             createEffect,
             removeEffect,
             setEffectName,
             setEffectTurns,
-            setInitiative,
-            translateSort,
+            alwaysShowEffects,
+
             lock,
             unlock,
+
             close: () => initiativeStore.show(false),
             clearValues: () => initiativeStore.clearValues(true),
             nextTurn: () => initiativeStore.nextTurn(),
             previousTurn: () => initiativeStore.previousTurn(),
             owns: (actorId: string) => initiativeStore.owns(actorId),
-            setCameraLock: (lock: boolean) => initiativeStore.setCameraLock(lock),
-            setVisionLock: (lock: boolean) => initiativeStore.setVisionLock(lock),
             toggleOption: (index: number, option: "isVisible" | "isGroup") =>
                 initiativeStore.toggleOption(index, option),
         };
@@ -342,7 +355,7 @@ export default defineComponent({
                 <div
                     id="initiative-settings"
                     class="initiative-bar-button"
-                    @click="nextTurn"
+                    @click="openSettings"
                     :title="t('game.ui.initiative.initiative.next')"
                 >
                     <font-awesome-icon icon="cog" />

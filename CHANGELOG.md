@@ -16,6 +16,19 @@ These usually have no immediately visible impact on regular users
 
 ### Changed
 
+-   Initiative changes
+    -   UI changes
+        -   separate DM bar only visible to DM
+        -   camera/vision lock settings are moved to client settings
+        -   quick action to open client settings
+        -   delete button removed, now a hover action instead
+        -   more width for the initiative value
+        -   initiative value no longer looks like a default input field
+    -   Option to go back a turn
+    -   Option to wipe all existing initiatives
+    -   Option to change the sorting behaviour
+    -   Blur effect to make it clear that initiative is not yet synced
+    -   Enter can now be used to submit a new initiative value
 -   [tech] server_config variable `public_name` is now commented by default
 -   [tech] removed dependencies from Dockefile, that were no longer needed
 -   [tech] A big rewrite/refactor of the client has been done.

@@ -45,6 +45,7 @@ export default defineComponent({
 
         const gameState = gameStore.state;
 
+        const mediaQuery = matchMedia(`(resolution: ${devicePixelRatio}dppx)`);
         let throttledMoveSet = false;
         let throttledMove: (event: MouseEvent) => void = (_event: MouseEvent) => {};
         let throttledTouchMoveSet = false;
@@ -62,12 +63,14 @@ export default defineComponent({
             window.addEventListener("keydown", onKeyDown);
             window.addEventListener("resize", resizeWindow);
             clearUndoStacks();
+            mediaQuery.addEventListener("change", resizeWindow);
         });
 
         onUnmounted(() => {
             window.removeEventListener("keyup", keyUp);
             window.removeEventListener("keydown", onKeyDown);
             window.removeEventListener("resize", resizeWindow);
+            mediaQuery.removeEventListener("change", resizeWindow);
         });
 
         // Window events

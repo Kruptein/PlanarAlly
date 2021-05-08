@@ -8,6 +8,7 @@ import { clientStore } from "../../../store/client";
 import { coreStore } from "../../../store/core";
 import { gameStore } from "../../../store/game";
 import { locationStore } from "../../../store/location";
+import { settingsStore } from "../../../store/settings";
 import { uiStore } from "../../../store/ui";
 import { sendLocationChange, sendNewLocation } from "../../api/emits/location";
 import { Location } from "../../models/settings";
@@ -151,6 +152,7 @@ export default defineComponent({
 
         return {
             ...toRefs(locationStore.state),
+            activeLocation: toRef(settingsStore.state, "activeLocation"),
             activeLocations,
             changeLocation,
             createLocation,

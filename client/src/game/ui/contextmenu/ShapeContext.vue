@@ -341,7 +341,7 @@ export default defineComponent({
 
         return {
             activeLayer: floorStore.currentLayer as ComputedRef<Layer>,
-            activeLocation: toRef(locationStore.state, "activeLocation"),
+            activeLocation: toRef(settingsStore.state, "activeLocation"),
             addToInitiative,
             canBeSaved,
             close,

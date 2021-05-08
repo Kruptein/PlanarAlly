@@ -180,12 +180,12 @@ export function onKeyDown(event: KeyboardEvent): void {
         } else if (event.key === "v" && ctrlOrCmdPressed(event)) {
             // Ctrl-v - Paste
             pasteShapes();
-        } else if (event.key === "z" && ctrlOrCmdPressed(event)) {
-            undoOperation();
+        } else if (event.key.toLocaleLowerCase() === "z" && event.shiftKey && ctrlOrCmdPressed(event)) {
+            redoOperation();
             event.preventDefault();
             event.stopPropagation();
-        } else if (event.key === "Z" && ctrlOrCmdPressed(event)) {
-            redoOperation();
+        } else if (event.key === "z" && ctrlOrCmdPressed(event)) {
+            undoOperation();
             event.preventDefault();
             event.stopPropagation();
         } else if (event.key === "PageUp" && floorStore.state.floorIndex < floorStore.state.floors.length - 1) {

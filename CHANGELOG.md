@@ -37,6 +37,7 @@ These usually have no immediately visible impact on regular users
 
 -   A bug related to floors and lighting on higher up floors not updating
 -   Reordering floors being rendered wrong until a refresh
+-   Redo not working on Mac
 -   [DM] Co-DM not seeing private initiatives
 -   [DM] Removing last floor giving a blank screen
 -   [DM] Removing floors below the active floor giving a blank screen

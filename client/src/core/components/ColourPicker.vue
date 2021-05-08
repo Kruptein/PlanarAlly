@@ -50,11 +50,14 @@ export default defineComponent({
 
         const hueActive = ref(false);
         const hueLeft = computed(() => `${(hsl.value.h * 100) / 360}%`);
+        const hueFallback = ref(0);
 
         const saturationActive = ref(false);
         const saturationLeft = computed(() => `${hsv.value.s * 100}%`);
         const saturationTop = computed(() => `${101 - hsv.value.v * 100}%`);
-        const saturationBackgroundColour = computed(() => `hsl(${hsv.value.h}, 100%, 50%)`);
+        const saturationBackgroundColour = computed(
+            () => `hsl(${hsv.value.s === 0 ? hueFallback.value : hsv.value.h}, 100%, 50%)`,
+        );
 
         function setPosition(): void {
             let _left = 0;
@@ -144,11 +147,13 @@ export default defineComponent({
 
             const el = hue.value!.getBoundingClientRect();
             const { x } = getInputPosition(event);
+            const h = clamp(360 * ((x - el.x) / el.width), 0, 360);
 
             tc.value = tinycolor({
                 ...hsl.value,
-                h: clamp(360 * ((x - el.x) / el.width), 0, 360),
+                h,
             });
+            hueFallback.value = h;
             emit("input:colour", rgbaString.value);
         }
 

@@ -65,14 +65,14 @@ export class FowVisionLayer extends FowLayer {
                     const fowl = floorStore.getLayer(floor, this.name);
                     if (fowl === undefined) continue;
                     this.vCtx.globalCompositeOperation = "destination-over";
-                    this.vCtx.drawImage(fowl.canvas, 0, 0);
+                    this.vCtx.drawImage(fowl.canvas, 0, 0, window.innerWidth, window.innerHeight);
                     const mapl = floorStore.getLayer(floor, LayerName.Map);
                     if (mapl === undefined) continue;
                     this.vCtx.globalCompositeOperation = "destination-out";
-                    this.vCtx.drawImage(mapl.canvas, 0, 0);
+                    this.vCtx.drawImage(mapl.canvas, 0, 0, window.innerWidth, window.innerHeight);
                 }
                 this.ctx.globalCompositeOperation = "source-over";
-                this.ctx.drawImage(this.virtualCanvas, 0, 0);
+                this.ctx.drawImage(this.virtualCanvas, 0, 0, window.innerWidth, window.innerHeight);
             }
 
             // For the players this is done at the beginning of this function.  TODO: why the split up ???

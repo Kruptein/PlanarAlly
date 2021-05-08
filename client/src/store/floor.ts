@@ -9,6 +9,7 @@ import {
     sendRenameFloor,
 } from "../game/api/emits/floor";
 import { addNewGroup, hasGroup } from "../game/groups";
+import { createCanvas } from "../game/layers/canvas";
 import { recalculateZIndices } from "../game/layers/floor";
 import { selectionState } from "../game/layers/selection";
 import { FowLightingLayer } from "../game/layers/variants/fowLighting";
@@ -182,10 +183,7 @@ class FloorStore extends Store<FloorState> {
     // LAYERS
 
     addServerLayer(layerInfo: ServerLayer, floor: Floor): void {
-        // Create canvas element
-        const canvas = document.createElement("canvas");
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        const canvas = createCanvas();
 
         const layerName = layerInfo.name as LayerName;
 
@@ -315,16 +313,11 @@ class FloorStore extends Store<FloorState> {
 
     // WINDOW
 
-    setHeight(height: number): void {
+    resize(width: number, height: number): void {
         for (const layer of [...this.layerMap.values()].flat()) {
-            layer.height = height;
+            layer.resize(width, height);
         }
-    }
-
-    setWidth(width: number): void {
-        for (const layer of [...this.layerMap.values()].flat()) {
-            layer.width = width;
-        }
+        floorStore.invalidateAllFloors();
     }
 }
 

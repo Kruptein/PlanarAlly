@@ -9,6 +9,7 @@ import {
     sendRenameFloor,
 } from "../game/api/emits/floor";
 import { addNewGroup, hasGroup } from "../game/groups";
+import { createCanvas } from "../game/layers/canvas";
 import { recalculateZIndices } from "../game/layers/floor";
 import { selectionState } from "../game/layers/selection";
 import { FowLightingLayer } from "../game/layers/variants/fowLighting";
@@ -182,16 +183,7 @@ class FloorStore extends Store<FloorState> {
     // LAYERS
 
     addServerLayer(layerInfo: ServerLayer, floor: Floor): void {
-        // Create canvas element
-        const canvas = document.createElement("canvas");
-        // Set display size in css pixels
-        canvas.style.width = `${window.innerWidth}px`;
-        canvas.style.height = `${window.innerHeight}px`;
-        // Set actual size in memory
-        canvas.width = Math.floor(window.devicePixelRatio * window.innerWidth);
-        canvas.height = Math.floor(window.devicePixelRatio * window.innerHeight);
-        // Normalize coordinate system to use css pixels
-        canvas.getContext("2d")?.scale(window.devicePixelRatio, window.devicePixelRatio);
+        const canvas = createCanvas();
 
         const layerName = layerInfo.name as LayerName;
 

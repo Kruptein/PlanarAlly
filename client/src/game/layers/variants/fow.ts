@@ -1,6 +1,7 @@
 import { floorStore } from "../../../store/floor";
 import { LayerName } from "../../models/floor";
 import { Shape } from "../../shapes/shape";
+import { createCanvas } from "../canvas";
 
 import { Layer } from "./layer";
 
@@ -12,9 +13,7 @@ export class FowLayer extends Layer {
 
     constructor(canvas: HTMLCanvasElement, public name: LayerName, public floor: number, protected index: number) {
         super(canvas, name, floor, index);
-        this.virtualCanvas = document.createElement("canvas");
-        this.virtualCanvas.width = window.innerWidth;
-        this.virtualCanvas.height = window.innerHeight;
+        this.virtualCanvas = createCanvas();
         this.vCtx = this.virtualCanvas.getContext("2d")!;
     }
 
@@ -46,13 +45,13 @@ export class FowLayer extends Layer {
                     const mapl = floorStore.getLayer(floor, LayerName.Map);
                     if (mapl === undefined) continue;
                     this.ctx.globalCompositeOperation = "destination-out";
-                    this.ctx.drawImage(mapl.canvas, 0, 0);
+                    this.ctx.drawImage(mapl.canvas, 0, 0, window.innerWidth, window.innerHeight);
                 }
                 if (floor.id !== activeFloor) {
                     const fowl = floorStore.getLayer(floor, this.name);
                     if (fowl === undefined) continue;
                     this.ctx.globalCompositeOperation = "source-over";
-                    this.ctx.drawImage(fowl.canvas, 0, 0);
+                    this.ctx.drawImage(fowl.canvas, 0, 0, window.innerWidth, window.innerHeight);
                 }
                 if (floor.id === activeFloor) break;
             }

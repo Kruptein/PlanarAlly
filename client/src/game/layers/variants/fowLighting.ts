@@ -129,13 +129,19 @@ export class FowLightingLayer extends FowLayer {
                 }
 
                 this.vCtx.fill();
-                this.ctx.drawImage(this.virtualCanvas, 0, 0);
+                this.ctx.drawImage(this.virtualCanvas, 0, 0, window.innerWidth, window.innerHeight);
             }
 
             const activeFloor = floorStore.currentFloor.value!.id;
             if (settingsStore.fowLos.value && this.floor === activeFloor) {
                 this.ctx.globalCompositeOperation = "source-in";
-                this.ctx.drawImage(floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Vision)!.canvas, 0, 0);
+                this.ctx.drawImage(
+                    floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Vision)!.canvas,
+                    0,
+                    0,
+                    window.innerWidth,
+                    window.innerHeight,
+                );
             }
 
             for (const preShape of this.preFogShapes) {

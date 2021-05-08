@@ -10,13 +10,12 @@ import { UuidMap } from "../../store/shapeMap";
 import { sendClientLocationOptions } from "../api/emits/client";
 import { calculateDelta } from "../drag";
 import { selectionState } from "../layers/selection";
-import { ToolMode } from "../models/tools";
 import { moveShapes } from "../operations/movement";
 import { undoOperation, redoOperation } from "../operations/undo";
 import { setCenterPosition } from "../position";
 import { deleteShapes, copyShapes, pasteShapes } from "../shapes/utils";
 import { moveFloor } from "../temp";
-import { activeToolMode } from "../tools/tools";
+import { toggleActiveMode } from "../tools/tools";
 
 export function onKeyUp(event: KeyboardEvent): void {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
@@ -216,7 +215,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             changeFloor(event, targetFloor);
         } else if (event.key === "Tab") {
             event.preventDefault();
-            activeToolMode.value = activeToolMode.value === ToolMode.Build ? ToolMode.Play : ToolMode.Build;
+            toggleActiveMode();
         }
     }
 }

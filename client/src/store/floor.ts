@@ -184,8 +184,14 @@ class FloorStore extends Store<FloorState> {
     addServerLayer(layerInfo: ServerLayer, floor: Floor): void {
         // Create canvas element
         const canvas = document.createElement("canvas");
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        // Set display size in css pixels
+        canvas.style.width = `${window.innerWidth}px`;
+        canvas.style.height = `${window.innerHeight}px`;
+        // Set actual size in memory
+        canvas.width = Math.floor(window.devicePixelRatio * window.innerWidth);
+        canvas.height = Math.floor(window.devicePixelRatio * window.innerHeight);
+        // Normalize coordinate system to use css pixels
+        canvas.getContext("2d")?.scale(window.devicePixelRatio, window.devicePixelRatio);
 
         const layerName = layerInfo.name as LayerName;
 

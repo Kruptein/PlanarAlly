@@ -250,12 +250,19 @@ export abstract class Shape {
 
         const center = g2l(this.center());
 
-        ctx.setTransform(1, 0, 0, 1, center.x, center.y);
+        ctx.setTransform(
+            devicePixelRatio,
+            0,
+            0,
+            devicePixelRatio,
+            center.x * devicePixelRatio,
+            center.y * devicePixelRatio,
+        );
         ctx.rotate(this.angle);
     }
 
     drawPost(ctx: CanvasRenderingContext2D): void {
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
 
         let bbox: BoundingRect | undefined;
         if (this.showBadge) {

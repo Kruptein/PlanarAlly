@@ -21,7 +21,7 @@ import {
 import { InitiativeData, InitiativeEffect, InitiativeSettings, InitiativeSort } from "../../models/initiative";
 import { setCenterPosition } from "../../position";
 
-let activeTokensBackup: Set<string> = new Set();
+let activeTokensBackup: Set<string> | undefined = undefined;
 
 function getDefaultEffect(): InitiativeEffect {
     return { name: i18n.global.t("game.ui.initiative.initiative.new_effect"), turns: "10", highlightsActor: false };
@@ -264,14 +264,16 @@ class InitiativeStore extends Store<InitiativeState> {
     handleVisionLock(): void {
         if (clientStore.state.initiativeVisionLock) {
             const actor = this.getDataSet()[this._state.turnCounter];
-            activeTokensBackup = new Set(gameStore.activeTokens.value);
+            if (gameStore.state.activeTokenFilters === undefined) activeTokensBackup = undefined;
+            else activeTokensBackup = new Set(gameStore.state.activeTokenFilters);
             if (gameStore.state.ownedTokens.has(actor.shape)) {
                 gameStore.setActiveTokens(actor.shape);
             } else {
                 gameStore.unsetActiveTokens();
             }
         } else {
-            gameStore.setActiveTokens(...activeTokensBackup.values());
+            if (activeTokensBackup === undefined) gameStore.unsetActiveTokens();
+            else gameStore.setActiveTokens(...activeTokensBackup.values());
         }
     }
 

@@ -16,7 +16,6 @@ import { gameStore } from "./game";
 import { settingsStore } from "./settings";
 
 interface LocationState {
-    activeLocation: number;
     playerLocations: Map<number, Set<string>>;
 }
 
@@ -40,7 +39,7 @@ class LocationStore extends Store<LocationState> {
     }
 
     protected data(): LocationState {
-        return { activeLocation: 0, playerLocations: new Map() };
+        return { playerLocations: new Map() };
     }
 
     activeLocations = computed(() => this.locations.value.filter((l) => !l.archived));
@@ -85,7 +84,7 @@ class LocationStore extends Store<LocationState> {
         if (location === undefined) {
             throw new Error("unknown location rename attempt");
         }
-        if (this._state.activeLocation === id) settingsStore.setActiveLocation(id);
+        if (settingsStore.state.activeLocation === id) settingsStore.setActiveLocation(id);
         location.name = name;
         if (sync) sendLocationRename({ location: id, name });
     }

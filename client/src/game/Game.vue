@@ -77,9 +77,7 @@ export default defineComponent({
         }
 
         function resizeWindow(): void {
-            floorStore.setWidth(window.innerWidth);
-            floorStore.setHeight(window.innerHeight);
-            floorStore.invalidateAllFloors();
+            floorStore.resize(window.innerWidth, window.innerHeight);
         }
 
         // Touch events

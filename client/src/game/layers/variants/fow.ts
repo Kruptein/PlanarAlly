@@ -1,7 +1,7 @@
 import { floorStore } from "../../../store/floor";
 import { LayerName } from "../../models/floor";
 import { Shape } from "../../shapes/shape";
-import { createCanvas } from "../canvas";
+import { createCanvas, setCanvasDimensions } from "../canvas";
 
 import { Layer } from "./layer";
 
@@ -17,14 +17,9 @@ export class FowLayer extends Layer {
         this.vCtx = this.virtualCanvas.getContext("2d")!;
     }
 
-    set width(width: number) {
-        super.width = width;
-        this.virtualCanvas.width = width;
-    }
-
-    set height(height: number) {
-        super.height = height;
-        this.virtualCanvas.height = height;
+    resize(width: number, height: number): void {
+        super.resize(width, height);
+        setCanvasDimensions(this.virtualCanvas, width, height);
     }
 
     _draw(): void {

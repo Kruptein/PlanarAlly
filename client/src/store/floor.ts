@@ -313,16 +313,11 @@ class FloorStore extends Store<FloorState> {
 
     // WINDOW
 
-    setHeight(height: number): void {
+    resize(width: number, height: number): void {
         for (const layer of [...this.layerMap.values()].flat()) {
-            layer.height = height;
+            layer.resize(width, height);
         }
-    }
-
-    setWidth(width: number): void {
-        for (const layer of [...this.layerMap.values()].flat()) {
-            layer.width = width;
-        }
+        floorStore.invalidateAllFloors();
     }
 }
 

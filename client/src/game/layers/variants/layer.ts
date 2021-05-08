@@ -14,6 +14,7 @@ import { Shape } from "../../shapes/shape";
 import { createShapeFromDict } from "../../shapes/utils";
 import { initiativeStore } from "../../ui/initiative/state";
 import { TriangulationTarget, visionState } from "../../vision/state";
+import { setCanvasDimensions } from "../canvas";
 import { selectionState } from "../selection";
 import { compositeState } from "../state";
 
@@ -64,16 +65,12 @@ export class Layer {
         return this.canvas.width;
     }
 
-    set width(width: number) {
-        this.canvas.width = width;
-    }
-
     get height(): number {
         return this.canvas.height;
     }
 
-    set height(height: number) {
-        this.canvas.height = height;
+    resize(width: number, height: number): void {
+        setCanvasDimensions(this.canvas, width, height);
     }
 
     // SHAPES

@@ -214,7 +214,7 @@
                     "ClientSettings": {
                         "client_settings": "Client Settings"
                     },
-                    "AppearanceSettings": {
+                    "DisplaySettings": {
                         "grid_size_in_pixels": "Dimensioni della griglia (in pixel):"
                     },
                     "BehaviourSettings": {

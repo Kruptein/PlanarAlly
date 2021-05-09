@@ -37,9 +37,15 @@ class ClientOptions(TypedDict, total=False):
     grid_colour: str
     fow_colour: str
     ruler_colour: str
+
     invert_alt: bool
-    grid_size: int
     disable_scroll_to_zoom: bool
+
+    use_high_dpi: bool
+    grid_size: int
+    use_as_physical_board: bool
+    mini_size: int
+    ppi: int
 
     initiative_camera_lock: bool
     initiative_vision_lock: bool

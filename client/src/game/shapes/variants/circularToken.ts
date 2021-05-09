@@ -3,6 +3,7 @@ import * as tinycolor from "tinycolor2";
 import { g2l, g2lz } from "../../../core/conversions";
 import { GlobalPoint } from "../../../core/geometry";
 import { calcFontScale } from "../../../core/utils";
+import { clientStore } from "../../../store/client";
 import { ServerCircularToken } from "../../models/shapes";
 import { SHAPE_TYPE } from "../types";
 
@@ -53,7 +54,8 @@ export class CircularToken extends Circle {
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         const fontScale = calcFontScale(ctx, this.text, g2lz(this.r - 5));
-        ctx.setTransform(fontScale, 0, 0, fontScale, center.x * devicePixelRatio, center.y * devicePixelRatio);
+        const pixelRatio = clientStore.devicePixelRatio.value;
+        ctx.setTransform(fontScale, 0, 0, fontScale, center.x * pixelRatio, center.y * pixelRatio);
         ctx.rotate(this.angle);
         ctx.fillStyle = tinycolor.mostReadable(this.fillColour, ["#000", "#fff"]).toHexString();
         ctx.fillText(this.text, 0, 0);

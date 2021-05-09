@@ -65,7 +65,7 @@ export function drawAuras(shape: Shape, ctx: CanvasRenderingContext2D): void {
 
         const value = aura.value > 0 && !isNaN(aura.value) ? aura.value : 0;
         const dim = aura.dim > 0 && !isNaN(aura.dim) ? aura.dim : 0;
-        if (value === 0 && dim === 0) return;
+        if (value === 0 && dim === 0) continue;
         ctx.beginPath();
 
         const innerRange = g2lr(value + dim);

@@ -11,39 +11,49 @@ import { UserOptions } from "../game/models/settings";
 import { floorStore } from "./floor";
 
 export const DEFAULT_GRID_SIZE = 50;
+// export const ZOOM_1_SOLUTION = 0.194904;
 
-interface State {
+interface State extends UserOptions {
     username: string;
 
     defaultClientOptions: UserOptions;
-    disableScrollToZoom: boolean;
-    fowColour: string;
-    invertAlt: boolean;
-    rulerColour: string;
-    gridColour: string;
 
-    gridSize: number;
     panX: number;
     panY: number;
-
-    initiativeCameraLock: boolean;
-    initiativeVisionLock: boolean;
-    initiativeEffectVisibility: InitiativeEffectMode;
-
     zoomDisplay: number;
 }
 
 class ClientStore extends Store<State> {
     zoomFactor: ComputedRef<number>;
+    gridSize: ComputedRef<number>;
+    devicePixelRatio: ComputedRef<number>;
 
     constructor() {
         super();
         this.zoomFactor = computed(() => {
-            const gf = this._state.gridSize / DEFAULT_GRID_SIZE;
-            // Powercurve 0.2/3/10
-            // Based on https://stackoverflow.com/a/17102320
-            const zoomValue = 1 / (-5 / 3 + (28 / 15) * Math.exp(1.83 * this._state.zoomDisplay));
-            return zoomValue * gf;
+            const gf = this.gridSize.value / DEFAULT_GRID_SIZE;
+            if (this._state.useAsPhysicalBoard) {
+                return gf;
+            } else {
+                // Powercurve 0.2/3/10
+                // Based on https://stackoverflow.com/a/17102320
+                const zoomValue = 1 / (-5 / 3 + (28 / 15) * Math.exp(1.83 * this._state.zoomDisplay));
+                return zoomValue * gf;
+            }
+        });
+        this.gridSize = computed(() => {
+            if (this._state.useAsPhysicalBoard) {
+                return (this._state.ppi * this._state.miniSize) / this.devicePixelRatio.value;
+            } else {
+                return this._state.gridSize;
+            }
+        });
+        this.devicePixelRatio = computed(() => {
+            if (this._state.useHighDpi) {
+                return window.devicePixelRatio;
+            } else {
+                return 1;
+            }
         });
     }
 
@@ -55,9 +65,15 @@ class ClientStore extends Store<State> {
                 gridColour: "rgba(0, 0, 0, 1)",
                 fowColour: "rgba(0, 0, 0, 1)",
                 rulerColour: "rgba(255, 0, 0, 1)",
+
                 invertAlt: false,
-                gridSize: DEFAULT_GRID_SIZE,
                 disableScrollToZoom: false,
+
+                useHighDpi: true,
+                gridSize: DEFAULT_GRID_SIZE,
+                useAsPhysicalBoard: false,
+                miniSize: 1,
+                ppi: 96,
 
                 initiativeCameraLock: false,
                 initiativeVisionLock: false,
@@ -66,18 +82,23 @@ class ClientStore extends Store<State> {
 
             fowColour: "rgba(0, 0, 0, 1)",
             gridColour: "rgba(0, 0, 0, 1)",
-            invertAlt: false,
             rulerColour: "rgba(255, 0, 0, 1)",
+
+            invertAlt: false,
             disableScrollToZoom: false,
 
+            useHighDpi: true,
             gridSize: DEFAULT_GRID_SIZE,
-            panX: 0,
-            panY: 0,
+            useAsPhysicalBoard: false,
+            miniSize: 1,
+            ppi: 96,
 
             initiativeCameraLock: false,
             initiativeVisionLock: false,
             initiativeEffectVisibility: InitiativeEffectMode.ActiveAndHover,
 
+            panX: 0,
+            panY: 0,
             zoomDisplay: 0.5,
         };
     }
@@ -152,10 +173,7 @@ class ClientStore extends Store<State> {
         if (sync) sendDefaultClientOptions({ [toSnakeCase(key)]: value });
     }
 
-    setDisableScrollToZoom(disable: boolean, sync: boolean): void {
-        this._state.disableScrollToZoom = disable;
-        if (sync) sendRoomClientOptions({ disable_scroll_to_zoom: disable });
-    }
+    // APPEARANCE
 
     setFowColour(colour: string, sync: boolean): void {
         this._state.fowColour = colour;
@@ -171,21 +189,56 @@ class ClientStore extends Store<State> {
         if (sync) sendRoomClientOptions({ grid_colour: colour });
     }
 
-    setGridSize(size: number, sync: boolean): void {
-        this._state.gridSize = size;
-        floorStore.invalidateAllFloors();
-        if (sync) sendRoomClientOptions({ grid_size: size });
+    setRulerColour(colour: string, sync: boolean): void {
+        this._state.rulerColour = colour;
+        if (sync) sendRoomClientOptions({ ruler_colour: colour });
     }
+
+    // BEHAVIOUR
 
     setInvertAlt(invertAlt: boolean, sync: boolean): void {
         this._state.invertAlt = invertAlt;
         if (sync) sendRoomClientOptions({ invert_alt: invertAlt });
     }
 
-    setRulerColour(colour: string, sync: boolean): void {
-        this._state.rulerColour = colour;
-        if (sync) sendRoomClientOptions({ ruler_colour: colour });
+    setDisableScrollToZoom(disable: boolean, sync: boolean): void {
+        this._state.disableScrollToZoom = disable;
+        if (sync) sendRoomClientOptions({ disable_scroll_to_zoom: disable });
     }
+
+    // DISPLAY
+
+    setUseHighDpi(useHighDpi: boolean, sync: boolean): void {
+        this._state.useHighDpi = useHighDpi;
+        floorStore.resize(window.innerWidth, window.innerHeight);
+        if (sync) sendRoomClientOptions({ use_high_dpi: useHighDpi });
+    }
+
+    setGridSize(size: number, sync: boolean): void {
+        this._state.gridSize = size;
+        floorStore.invalidateAllFloors();
+        if (sync) sendRoomClientOptions({ grid_size: size });
+    }
+
+    setUseAsPhysicalBoard(useAsPhysicalBoard: boolean, sync: boolean): void {
+        this._state.useAsPhysicalBoard = useAsPhysicalBoard;
+        floorStore.invalidateAllFloors();
+        if (sync) sendRoomClientOptions({ use_as_physical_board: useAsPhysicalBoard });
+    }
+
+    setMiniSize(size: number, sync: boolean): void {
+        this._state.miniSize = size;
+        floorStore.invalidateAllFloors();
+        if (sync) sendRoomClientOptions({ mini_size: size });
+    }
+
+    setPpi(ppi: number, sync: boolean): void {
+        this._state.ppi = ppi;
+        floorStore.invalidateAllFloors();
+        if (sync) sendRoomClientOptions({ ppi });
+    }
+
+    // INITIATIVE
 
     setInitiativeCameraLock(initiativeCameraLock: boolean, sync: boolean): void {
         this._state.initiativeCameraLock = initiativeCameraLock;

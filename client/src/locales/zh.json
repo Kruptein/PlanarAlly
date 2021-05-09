@@ -215,7 +215,7 @@
                     "ClientSettings": {
                         "client_settings": "Client Settings"
                     },
-                    "AppearanceSettings": {
+                    "DisplaySettings": {
                         "grid_size_in_pixels": "网格尺寸（像素）："
                     },
                     "BehaviourSettings": {

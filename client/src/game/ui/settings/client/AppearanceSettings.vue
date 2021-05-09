@@ -41,22 +41,11 @@ export default defineComponent({
             },
         });
 
-        const gridSize = computed({
-            get() {
-                return clientStore.state.gridSize;
-            },
-            set(gridSize: number) {
-                if (gridSize >= 1) {
-                    clientStore.setGridSize(gridSize, true);
-                }
-            },
-        });
-
         function setDefault(key: keyof UserOptions): void {
             clientStore.setDefaultClientOption(key, clientStore.state[key], true);
         }
 
-        return { t, defaultOptions, setDefault, fowColour, gridColour, rulerColour, gridSize };
+        return { t, defaultOptions, setDefault, fowColour, gridColour, rulerColour };
     },
 });
 </script>
@@ -83,20 +72,6 @@ export default defineComponent({
                     <font-awesome-icon icon="times-circle" />
                 </div>
                 <div :title="t('game.ui.settings.common.sync_default')" @click="setDefault('gridColour')">
-                    <font-awesome-icon icon="sync-alt" />
-                </div>
-            </template>
-        </div>
-        <div class="row">
-            <label for="gridSize" v-t="'game.ui.settings.client.AppearanceSettings.grid_size_in_pixels'"></label>
-            <div>
-                <input id="gridSize" type="number" v-model="gridSize" />
-            </div>
-            <template v-if="gridSize !== defaultOptions.gridSize">
-                <div :title="t('game.ui.settings.common.reset_default')" @click="gridSize = defaultOptions.gridSize">
-                    <font-awesome-icon icon="times-circle" />
-                </div>
-                <div :title="t('game.ui.settings.common.sync_default')" @click="setDefault('gridSize')">
                     <font-awesome-icon icon="sync-alt" />
                 </div>
             </template>

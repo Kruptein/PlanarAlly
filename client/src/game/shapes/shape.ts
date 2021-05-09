@@ -249,20 +249,15 @@ export abstract class Shape {
         else ctx.globalCompositeOperation = "source-over";
 
         const center = g2l(this.center());
+        const pixelRatio = clientStore.devicePixelRatio.value;
 
-        ctx.setTransform(
-            devicePixelRatio,
-            0,
-            0,
-            devicePixelRatio,
-            center.x * devicePixelRatio,
-            center.y * devicePixelRatio,
-        );
+        ctx.setTransform(pixelRatio, 0, 0, pixelRatio, center.x * pixelRatio, center.y * pixelRatio);
         ctx.rotate(this.angle);
     }
 
     drawPost(ctx: CanvasRenderingContext2D): void {
-        ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+        const pixelRatio = clientStore.devicePixelRatio.value;
+        ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 
         let bbox: BoundingRect | undefined;
         if (this.showBadge) {

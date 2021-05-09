@@ -197,7 +197,7 @@
                     "ClientSettings": {
                         "client_settings": "Client Settings"
                     },
-                    "AppearanceSettings": {
+                    "DisplaySettings": {
                         "grid_size_in_pixels": "Gitterstørrelse (i pixels):"
                     },
                     "BehaviourSettings": {

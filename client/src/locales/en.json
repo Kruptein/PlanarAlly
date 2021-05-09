@@ -223,8 +223,12 @@
                     "ClientSettings": {
                         "client_settings": "Client Settings"
                     },
-                    "AppearanceSettings": {
-                        "grid_size_in_pixels": "Size (in pixels):"
+                    "DisplaySettings": {
+                        "use_high_dpi": "Use HiDPI/retina if applicable",
+                        "grid_size_in_pixels": "Size (in pixels):",
+                        "use_as_physical_gameboard": "Use as physical gameboard",
+                        "mini_size_in_inches": "Mini size (in inches)",
+                        "ppi": "Pixel density (PPI)"
                     },
                     "BehaviourSettings": {
                         "invert_alt_set": "Invert ALT behaviour",

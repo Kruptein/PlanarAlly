@@ -12,6 +12,10 @@ These usually have no immediately visible impact on regular users
 
 -   HiDPI/retina support
     -   window.devicePixelRatio is now taken into account for rendering
+    -   Can be disabled from ClientSettings->Display
+-   Physical (mini) grid size
+    -   Indicate grid size in function of mini dimensions and PPI
+    -   Disables zoom tool when enabled
 -   [tech] API Server is now disabled by default and can be enabled through the server_config
 -   [DM] Added ability to copy a location into another game session.
 -   [DM] The asset menu bar in-game now automatically live updates when changes are done in the asset manager

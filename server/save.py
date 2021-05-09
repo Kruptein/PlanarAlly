@@ -13,7 +13,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 62
+SAVE_VERSION = 63
 
 import json
 import logging
@@ -1009,6 +1009,31 @@ def upgrade(version):
             db.execute_sql("DROP TABLE initiative_effect")
             db.execute_sql("DROP TABLE _initiative_61")
             db.execute_sql("DROP TABLE initiative_location_data")
+    elif version == 62:
+        # Add UserOptions.use_as_physical_board .ppi and .mini_size
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN use_as_physical_board INTEGER DEFAULT 0"
+            )
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN mini_size REAL DEFAULT 1"
+            )
+            db.execute_sql("ALTER TABLE user_options ADD COLUMN ppi INTEGER DEFAULT 96")
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN use_high_dpi INTEGER DEFAULT 1"
+            )
+            data = db.execute_sql(
+                "UPDATE user_options SET use_as_physical_board = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
+            )
+            data = db.execute_sql(
+                "UPDATE user_options SET mini_size = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
+            )
+            data = db.execute_sql(
+                "UPDATE user_options SET ppi = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
+            )
+            data = db.execute_sql(
+                "UPDATE user_options SET use_high_dpi = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
+            )
 
     else:
         raise UnknownVersionException(

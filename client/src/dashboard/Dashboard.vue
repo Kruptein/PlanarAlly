@@ -1,21 +1,27 @@
 <script lang="ts">
-import { defineComponent, onMounted, reactive, toRefs } from "vue";
+import { computed, defineComponent, onMounted, reactive, ref, toRefs } from "vue";
 import { NavigationGuardNext, RouteLocationNormalized, useRoute, useRouter } from "vue-router";
 
 import LanguageDropdown from "../core/components/LanguageDropdown.vue";
 import { useModal } from "../core/plugins/modals/plugin";
 import { baseAdjust, baseAdjustedFetch, getErrorReason } from "../core/utils";
 
+import AccountSettings from "./AccountSettings.vue";
 import CreateCampaign from "./CreateCampaign.vue";
 import SessionList from "./SessionList.vue";
-import { RoomInfo } from "./types";
+import { Navigation, NavigationEntry, RoomInfo } from "./types";
+
+enum NavigationMode {
+    Main,
+    Settings,
+}
 
 interface DashboardState {
     showLanguageDropdown: boolean;
     owned: RoomInfo[];
     joined: RoomInfo[];
     error: string;
-    activeNavigation: number;
+    activeNavigation: Navigation;
 }
 
 const state: DashboardState = reactive({
@@ -23,12 +29,12 @@ const state: DashboardState = reactive({
     owned: [],
     joined: [],
     error: "",
-    activeNavigation: 1,
+    activeNavigation: Navigation.Play,
 });
 
 export default defineComponent({
     name: "Dashboard",
-    components: { CreateCampaign, LanguageDropdown, SessionList },
+    components: { AccountSettings, CreateCampaign, LanguageDropdown, SessionList },
     async beforeRouteEnter(_to: RouteLocationNormalized, _from: RouteLocationNormalized, next: NavigationGuardNext) {
         const response = await baseAdjustedFetch("/api/rooms");
         next(async () => {
@@ -46,24 +52,32 @@ export default defineComponent({
         const route = useRoute();
         const router = useRouter();
 
-        const navigation: {
-            text: string;
-            type: "header" | "separator" | "action";
-            fn?: (navigation: number) => void;
-        }[] = [
+        const mainNavigation: NavigationEntry[] = [
             { text: "game", type: "header" },
-            { text: "play", type: "action", fn: setActiveNavigation },
-            { text: "run", type: "action", fn: setActiveNavigation },
-            { text: "create", type: "action", fn: setActiveNavigation },
-            { text: "", type: "separator" },
+            { type: "action", navigation: Navigation.Play, fn: setActiveNavigation },
+            { type: "action", navigation: Navigation.Run, fn: setActiveNavigation },
+            { type: "action", navigation: Navigation.Create, fn: setActiveNavigation },
+            { type: "separator" },
             { text: "assets", type: "header" },
-            { text: "manage", type: "action", fn: openAssetManager },
-            { text: "create", type: "action", fn: setActiveNavigation },
-            { text: "", type: "separator" },
-            { text: "Settings", type: "action", fn: openSettings },
-            { text: "", type: "separator" },
-            { text: "Logout", type: "action", fn: logout },
+            { type: "action", navigation: Navigation.AssetManage, fn: openAssetManager },
+            { type: "action", navigation: Navigation.AssetCreate, fn: setActiveNavigation },
+            { type: "separator" },
+            { type: "action", navigation: Navigation.Settings, fn: toggleNavigation },
+            { type: "separator" },
+            { type: "action", navigation: Navigation.Logout, fn: logout },
         ];
+
+        const settingsNavigation: NavigationEntry[] = [
+            { text: "settings", type: "header" },
+            { type: "action", navigation: Navigation.Account, fn: setActiveNavigation },
+            { type: "separator" },
+            { type: "action", navigation: Navigation.Back, fn: toggleNavigation },
+        ];
+
+        const activeNavigation = ref(NavigationMode.Main);
+        const navigation = computed(() =>
+            activeNavigation.value === NavigationMode.Main ? mainNavigation : settingsNavigation,
+        );
 
         onMounted(async () => {
             if (route.params?.error === "join_game") {
@@ -75,17 +89,34 @@ export default defineComponent({
             }
         });
 
-        function setActiveNavigation(navigationIndex: number): void {
-            if (navigationIndex === 2 && state.owned.length === 0) navigationIndex = 3;
+        const navigationTranslation: Record<Navigation, string> = {
+            [Navigation.Play]: "play",
+            [Navigation.Run]: "run",
+            [Navigation.Create]: "create",
+            [Navigation.Settings]: "settings",
+            [Navigation.AssetManage]: "manage",
+            [Navigation.AssetCreate]: "create",
+            [Navigation.Logout]: "logout",
+
+            [Navigation.Account]: "account",
+            [Navigation.Back]: "back",
+        };
+
+        function setActiveNavigation(navigationIndex: Navigation): void {
+            if (navigationIndex === Navigation.Run && state.owned.length === 0) navigationIndex = Navigation.Create;
             state.activeNavigation = navigationIndex;
+        }
+
+        function toggleNavigation(): void {
+            if (activeNavigation.value === NavigationMode.Main) {
+                activeNavigation.value = NavigationMode.Settings;
+            } else {
+                activeNavigation.value = NavigationMode.Main;
+            }
         }
 
         async function openAssetManager(): Promise<void> {
             await router.push("/assets");
-        }
-
-        async function openSettings(): Promise<void> {
-            await router.push("/settings");
         }
 
         async function logout(): Promise<void> {
@@ -108,23 +139,41 @@ export default defineComponent({
             state.owned[index].logo = logo;
         }
 
-        return { ...toRefs(state), baseAdjust, leaveRoom, navigation, removeRoom, rename, updateLogo };
+        return {
+            ...toRefs(state),
+            baseAdjust,
+
+            Navigation,
+            navigationTranslation,
+            navigation,
+
+            leaveRoom,
+            removeRoom,
+            rename,
+            updateLogo,
+        };
     },
 });
 </script>
 
 <template>
     <div id="page">
-        <SessionList v-if="activeNavigation === 1" :sessions="joined" :dmMode="false" @remove-room="leaveRoom" />
         <SessionList
-            v-else-if="activeNavigation === 2"
+            v-if="activeNavigation === Navigation.Play"
+            :sessions="joined"
+            :dmMode="false"
+            @remove-room="leaveRoom"
+        />
+        <SessionList
+            v-else-if="activeNavigation === Navigation.Run"
             :sessions="owned"
             :dmMode="true"
             @rename="rename"
             @remove-room="removeRoom"
             @update-logo="updateLogo"
         />
-        <CreateCampaign v-else-if="activeNavigation === 3" />
+        <CreateCampaign v-else-if="activeNavigation === Navigation.Create" />
+        <AccountSettings v-else-if="activeNavigation === Navigation.Account" />
         <div v-else id="not-implemented">
             <img :src="baseAdjust('/static/img/d20-fail.svg')" />
             <div class="padding bold">OOF, That's a critical one!</div>
@@ -141,18 +190,22 @@ export default defineComponent({
                 <img :src="baseAdjust('/static/favicon.png')" alt="PA logo" />
             </div>
             <nav>
-                <div
-                    v-for="[i, nav] of navigation.entries()"
-                    :class="{
-                        header: nav.type === 'header',
-                        separator: nav.type === 'separator',
-                        selected: activeNavigation === i,
-                    }"
-                    @click="nav.fn(i)"
-                    :key="i"
-                >
-                    {{ nav.text }}
-                </div>
+                <template v-for="nav of navigation">
+                    <div
+                        v-if="nav.type === 'action'"
+                        :key="nav.navigation"
+                        @click="nav.fn(nav.navigation)"
+                        :class="{
+                            selected: activeNavigation === nav.navigation,
+                        }"
+                    >
+                        {{ navigationTranslation[nav.navigation] }}
+                    </div>
+                    <div v-else-if="nav.type === 'header'" :key="nav.text" class="header">
+                        {{ nav.text }}
+                    </div>
+                    <div v-else class="separator" :key="nav.type"></div>
+                </template>
             </nav>
         </div>
     </div>

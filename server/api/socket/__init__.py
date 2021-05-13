@@ -7,6 +7,7 @@ from api.socket.constants import GAME_NS
 from app import app, sio
 from models import Floor, Layer, LocationUserOption, PlayerRoom
 from models.db import db
+from models.role import Role
 from models.user import UserOptions
 from state.game import game_state
 
@@ -30,7 +31,10 @@ from . import (
 class LocationOptions(TypedDict):
     pan_x: int
     pan_y: int
+    zoom_display: int
     zoom_factor: int
+    client_w: int
+    client_h: int
 
 
 class ClientOptions(TypedDict, total=False):
@@ -83,11 +87,21 @@ async def set_client_location_options(sid: str, data: LocationOptions):
     LocationUserOption.update(
         pan_x=data["pan_x"],
         pan_y=data["pan_y"],
-        zoom_factor=data["zoom_factor"],
+        zoom_display=data["zoom_display"],
     ).where(
         (LocationUserOption.location == pr.active_location)
         & (LocationUserOption.user == pr.player)
     ).execute()
+
+    if pr.role != Role.DM:
+        for sid, player in game_state.get_t(skip_sid=sid):
+            if player.role == Role.DM:
+                await sio.emit(
+                    "Player.Move",
+                    {"player": pr.player.id, **data},
+                    room=sid,
+                    namespace=GAME_NS,
+                )
 
 
 @sio.on("Client.ActiveLayer.Set", namespace=GAME_NS)

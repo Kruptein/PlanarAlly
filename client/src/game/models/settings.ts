@@ -46,6 +46,9 @@ export interface ServerClient {
 export interface ServerUserLocationOptions {
     pan_x: number;
     pan_y: number;
+    client_w: number;
+    client_h: number;
+    zoom_display: number;
     zoom_factor: number;
     active_floor?: string;
     active_layer?: string;

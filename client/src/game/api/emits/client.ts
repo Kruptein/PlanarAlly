@@ -5,7 +5,14 @@ import { socket } from "../socket";
 
 export function sendClientLocationOptions(): void {
     const state = clientStore.state;
-    _sendClientLocationOptions({ pan_x: state.panX, pan_y: state.panY, zoom_factor: state.zoomDisplay });
+    _sendClientLocationOptions({
+        pan_x: state.panX,
+        pan_y: state.panY,
+        zoom_display: state.zoomDisplay,
+        zoom_factor: clientStore.zoomFactor.value,
+        client_h: window.innerHeight,
+        client_w: window.innerWidth,
+    });
 }
 
 function _sendClientLocationOptions(locationOptions: ServerUserLocationOptions): void {

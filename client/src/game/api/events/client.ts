@@ -58,7 +58,7 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
 
     clientStore.setPanX(options.location_user_options.pan_x);
     clientStore.setPanY(options.location_user_options.pan_y);
-    clientStore.setZoomDisplay(options.location_user_options.zoom_factor);
+    clientStore.setZoomDisplay(options.location_user_options.zoom_display);
 
     activeLayerToselect = options.location_user_options.active_layer;
 });

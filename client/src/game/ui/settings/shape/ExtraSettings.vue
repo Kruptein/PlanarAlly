@@ -14,6 +14,7 @@ import { settingsStore } from "../../../../store/settings";
 import { UuidMap } from "../../../../store/shapeMap";
 import { DDraftData } from "../../../models/ddraft";
 import { LayerName } from "../../../models/floor";
+import { ShapeOptions } from "../../../models/shapes";
 import { Aura } from "../../../shapes/interfaces";
 import { Asset } from "../../../shapes/variants/asset";
 import { Circle } from "../../../shapes/variants/circle";
@@ -87,10 +88,12 @@ export default defineComponent({
                 const path = pathChild.getAttribute("d");
                 if (path !== null) paths.push(path);
             }
-            const options = { ...activeShapeStore.state.options! };
-            options.svgPaths = paths;
-            options.svgWidth = w;
-            options.svgHeight = h;
+            const options: Partial<ShapeOptions> = {
+                ...activeShapeStore.state.options!,
+                svgPaths: paths,
+                svgHeight: h,
+                svgWidth: w,
+            };
             activeShapeStore.setOptions(options, SyncTo.SERVER);
             visionState.recalculateVision(activeShapeStore.floor.value!);
             hasPath.value = true;
@@ -101,7 +104,7 @@ export default defineComponent({
             delete options.svgPaths;
             delete options.svgWidth;
             delete options.svgHeight;
-            activeShapeStore.setOptions(options, SyncTo.SERVER);
+            activeShapeStore.setOptions(options as Omit<ShapeOptions, "svgPaths">, SyncTo.SERVER);
             visionState.recalculateVision(activeShapeStore.floor.value!);
             hasPath.value = false;
         }

@@ -118,7 +118,7 @@ export class Layer {
     getShapes(options: { skipUiHelpers?: boolean; includeComposites: boolean }): readonly Shape[] {
         const skipUiHelpers = options.skipUiHelpers ?? true;
         let shapes: readonly Shape[] = skipUiHelpers
-            ? this.shapes.filter((s) => !s.options.has("UiHelper"))
+            ? this.shapes.filter((s) => !(s.options.UiHelper ?? false))
             : this.shapes;
         if (options.includeComposites) {
             shapes = compositeState.addAllCompositeShapes(shapes);
@@ -249,7 +249,7 @@ export class Layer {
 
             // Aura draw loop
             for (const shape of this.shapes) {
-                if (shape.options.has("skipDraw") && (shape.options.get("skipDraw") as boolean)) continue;
+                if (shape.options.skipDraw ?? false) continue;
                 if (!shape.visibleInCanvas(this.canvas, { includeAuras: true })) continue;
                 if (this.name === LayerName.Lighting && currentLayer !== this) continue;
                 drawAuras(shape, ctx);

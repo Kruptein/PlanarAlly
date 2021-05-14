@@ -313,8 +313,8 @@ class DrawTool extends Tool {
                 this.shape.fillColour = "rgba(0, 0, 0, 1)";
             }
             if (this.state.selectedMode === DrawMode.Hide || this.state.selectedMode === DrawMode.Reveal) {
-                this.shape.options.set("preFogShape", true);
-                this.shape.options.set("skipDraw", true);
+                this.shape.options.preFogShape = true;
+                this.shape.options.skipDraw = true;
                 this.shape.fillColour = "rgba(0, 0, 0, 1)";
             }
             if (this.state.selectedMode === DrawMode.Reveal) this.shape.globalCompositeOperation = "source-over";
@@ -549,16 +549,16 @@ class DrawTool extends Tool {
     private setupBrush(): void {
         if (this.brushHelper === undefined) return;
         if (this.state.selectedMode === DrawMode.Reveal || this.state.selectedMode === DrawMode.Hide) {
-            this.brushHelper.options.set("preFogShape", true);
-            this.brushHelper.options.set("skipDraw", true);
+            this.brushHelper.options.preFogShape = true;
+            this.brushHelper.options.skipDraw = true;
             this.brushHelper.fillColour = "rgba(0, 0, 0, 1)";
 
             if (this.state.selectedMode === DrawMode.Reveal) this.brushHelper.globalCompositeOperation = "source-over";
             else if (this.state.selectedMode === DrawMode.Hide)
                 this.brushHelper.globalCompositeOperation = "destination-out";
         } else {
-            this.brushHelper.options.delete("preFogShape");
-            this.brushHelper.options.delete("skipDraw");
+            delete this.brushHelper.options.preFogShape;
+            delete this.brushHelper.options.skipDraw;
             this.brushHelper.globalCompositeOperation = "source-over";
             this.brushHelper.fillColour = this.state.fillColour;
         }

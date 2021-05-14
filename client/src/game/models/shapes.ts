@@ -140,3 +140,16 @@ export const ownerToClient = (owner: ServerShapeOwner): ShapeOwner => ({
     shape: owner.shape,
     access: accessToClient(owner),
 });
+
+export interface ShapeOptions {
+    isPlayerRect: boolean;
+
+    preFogShape: boolean;
+    skipDraw: boolean;
+
+    svgHeight: number;
+    svgPaths: string[];
+    svgWidth: number;
+
+    UiHelper: boolean;
+}

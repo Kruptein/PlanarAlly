@@ -153,8 +153,7 @@ class SelectTool extends Tool implements ISelectTool {
 
         for (let i = selectionStack.length - 1; i >= 0; i--) {
             const shape = selectionStack[i];
-            if (!shape.options.has("preFogShape") && ((shape.options.get("skipDraw") as boolean | undefined) ?? false))
-                continue;
+            if (!(shape.options.preFogShape ?? false) && (shape.options.skipDraw ?? false)) continue;
             if ([this.rotationAnchor?.uuid, this.rotationBox?.uuid, this.rotationEnd?.uuid].includes(shape.uuid))
                 continue;
             if (shape.isInvisible && !shape.ownedBy(false, { movementAccess: true })) continue;
@@ -244,7 +243,7 @@ class SelectTool extends Tool implements ISelectTool {
                     strokeColour: "#7c253e",
                 });
                 this.selectionHelper.strokeWidth = 2;
-                this.selectionHelper.options.set("UiHelper", "true");
+                this.selectionHelper.options.UiHelper = true;
                 this.selectionHelper.addOwner(
                     { user: clientStore.state.username, access: { edit: true } },
                     SyncTo.SHAPE,
@@ -388,11 +387,7 @@ class SelectTool extends Tool implements ISelectTool {
             }
             const cbbox = this.selectionHelper!.getBoundingBox();
             for (const shape of layer.getShapes({ includeComposites: false })) {
-                if (
-                    !shape.options.has("preFogShape") &&
-                    ((shape.options.get("skipDraw") as boolean | undefined) ?? false)
-                )
-                    continue;
+                if (!(shape.options.preFogShape ?? false) && (shape.options.skipDraw ?? false)) continue;
                 if (!shape.ownedBy(false, { movementAccess: true })) continue;
                 if (!shape.visibleInCanvas(layer.canvas, { includeAuras: false })) continue;
                 if (layerSelection.some((s) => s.uuid === shape.uuid)) continue;

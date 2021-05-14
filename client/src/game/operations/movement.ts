@@ -49,7 +49,11 @@ export function moveShapes(shapes: readonly Shape[], delta: Vector, temporary: b
         // todo: Fix again
         // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
         if (!shape.preventSync) updateList.push(shape);
+        if (shape.options.isPlayerRect ?? false) {
+            const x = 2;
+        }
     }
+
     sendShapePositionUpdate(updateList, temporary);
     if (!temporary) addOperation(operationList);
 

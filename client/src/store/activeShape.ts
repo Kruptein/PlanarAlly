@@ -4,6 +4,7 @@ import { SyncTo } from "../core/models/types";
 import { Store } from "../core/store";
 import { selectionState } from "../game/layers/selection";
 import { compositeState } from "../game/layers/state";
+import { ShapeOptions } from "../game/models/shapes";
 import { Aura, Label, Tracker } from "../game/shapes/interfaces";
 import { ShapeAccess, ShapeOwner } from "../game/shapes/owners";
 import { Shape } from "../game/shapes/shape";
@@ -41,7 +42,7 @@ interface ActiveShapeState {
     showEditDialog: boolean;
     type: SHAPE_TYPE | undefined;
 
-    options: Record<string, any> | undefined;
+    options: Partial<ShapeOptions> | undefined;
 
     groupId: string | undefined;
 
@@ -172,14 +173,14 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
     // OPTIONS
 
-    setOptions(options: Record<string, any>, syncTo: SyncTo): void {
+    setOptions(options: Partial<ShapeOptions>, syncTo: SyncTo): void {
         if (this._state.uuid === undefined) return;
 
         this._state.options = options;
 
         if (syncTo !== SyncTo.UI) {
             const shape = UuidMap.get(this._state.uuid)!;
-            shape.setOptions(new Map(Object.entries(this._state.options)), SyncTo.SERVER);
+            shape.setOptions(this._state.options, SyncTo.SERVER);
         }
     }
 
@@ -628,7 +629,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.parentUuid = parent?.uuid;
         this._state.type = shape.type;
 
-        this._state.options = Object.fromEntries(shape.options);
+        this._state.options = { ...shape.options };
 
         this._state.groupId = shape.groupId;
 

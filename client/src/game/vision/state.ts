@@ -105,8 +105,8 @@ class VisionState extends Store<State> {
             const shape = UuidMap.get(sh)!;
             if (shape.floor.id !== floor) continue;
 
-            if (shape.type === "assetrect" && shape.options.has("svgPaths")) {
-                for (const pathString of shape.options.get("svgPaths") as string[]) {
+            if (shape.type === "assetrect") {
+                for (const pathString of shape.options.svgPaths ?? []) {
                     const pathElement = document.createElementNS("http://www.w3.org/2000/svg", "path");
                     pathElement.setAttribute("d", pathString);
                     const paths = pathToArray(shape as Asset, pathElement);

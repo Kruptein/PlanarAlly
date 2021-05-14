@@ -52,7 +52,7 @@ socket.on("Shapes.Options.Update", (data: { uuid: string; option: string }[]) =>
         if (shape === undefined) {
             continue;
         }
-        shape.setOptions(new Map(JSON.parse(sh.option)), SyncTo.UI);
+        shape.setOptions(Object.fromEntries(JSON.parse(sh.option)), SyncTo.UI);
     }
 });
 

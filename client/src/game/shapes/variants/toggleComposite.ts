@@ -31,7 +31,7 @@ export class ToggleComposite extends Shape {
         },
     ) {
         super(position, options);
-        this.options.set("skipDraw", true);
+        this.options.skipDraw = true;
         for (const variant of _variants) {
             compositeState.addComposite(this.uuid, variant, false);
         }
@@ -113,9 +113,9 @@ export class ToggleComposite extends Shape {
         }
 
         if (sync) {
-            oldVariant.options.set("skipDraw", true);
+            oldVariant.options.skipDraw = true;
             const oldCenter = oldVariant.center();
-            newVariant.options.delete("skipDraw");
+            delete newVariant.options.skipDraw;
             newVariant.center(oldCenter);
 
             sendShapePositionUpdate([newVariant], false);

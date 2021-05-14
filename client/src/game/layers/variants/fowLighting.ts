@@ -16,14 +16,14 @@ import { FowLayer } from "./fow";
 export class FowLightingLayer extends FowLayer {
     addShape(shape: Shape, sync: SyncMode, invalidate: InvalidationMode, snappable = true): void {
         super.addShape(shape, sync, invalidate, snappable);
-        if (shape.options.has("preFogShape") && (shape.options.get("preFogShape") as boolean)) {
+        if (shape.options.preFogShape ?? false) {
             this.preFogShapes.push(shape);
         }
     }
 
     removeShape(shape: Shape, sync: SyncMode, recalculate: boolean): boolean {
         let idx = -1;
-        if (shape.options.has("preFogShape") && (shape.options.get("preFogShape") as boolean)) {
+        if (shape.options.preFogShape ?? false) {
             idx = this.preFogShapes.findIndex((s) => s.uuid === shape.uuid);
         }
         const remove = super.removeShape(shape, sync, recalculate);
@@ -44,7 +44,7 @@ export class FowLightingLayer extends FowLayer {
             ) {
                 for (const sh of gameStore.activeTokens.value) {
                     const shape = UuidMap.get(sh)!;
-                    if ((shape.options.get("skipDraw") ?? false) === true) continue;
+                    if (shape.options.skipDraw ?? false) continue;
                     if (shape.floor.id !== floorStore.currentFloor.value!.id) continue;
                     const bb = shape.getBoundingBox();
                     const lcenter = g2l(shape.center());

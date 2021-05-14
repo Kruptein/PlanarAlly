@@ -47,7 +47,7 @@ import { Layer } from "../layers/variants/layer";
 import { aurasFromServer, aurasToServer, partialAuraToServer } from "../models/conversion/aura";
 import { partialTrackerToServer, trackersFromServer, trackersToServer } from "../models/conversion/tracker";
 import { Floor, LayerName } from "../models/floor";
-import { accessToServer, ownerToClient, ownerToServer, ServerShape } from "../models/shapes";
+import { accessToServer, ownerToClient, ownerToServer, ServerShape, ShapeOptions } from "../models/shapes";
 import { initiativeStore } from "../ui/initiative/state";
 import { TriangulationTarget, visionState } from "../vision/state";
 
@@ -128,7 +128,7 @@ export abstract class Shape {
     preventSync = false;
 
     // Additional options for specialized uses
-    options: Map<string, any> = new Map();
+    options: Partial<ShapeOptions> = {};
 
     constructor(
         refPoint: GlobalPoint,
@@ -426,7 +426,7 @@ export abstract class Shape {
             is_token: this.isToken,
             is_invisible: this.isInvisible,
             is_defeated: this.isDefeated,
-            options: JSON.stringify([...this.options]),
+            options: JSON.stringify(Object.entries(this.options)),
             badge: this.badge,
             show_badge: this.showBadge,
             is_locked: this.isLocked,
@@ -466,7 +466,7 @@ export abstract class Shape {
             this.annotation = data.annotation;
         }
         this.name = data.name;
-        if (data.options !== undefined) this.options = new Map(JSON.parse(data.options));
+        if (data.options !== undefined) this.options = Object.fromEntries(JSON.parse(data.options));
         if (data.asset !== undefined) this.assetId = data.asset;
         if (data.group !== undefined) this.groupId = data.group;
         // retain reactivity
@@ -642,11 +642,11 @@ export abstract class Shape {
 
     // OPTIONS
 
-    setOptions(options: Map<string, any>, syncTo: SyncTo): void {
+    setOptions(options: Partial<ShapeOptions>, syncTo: SyncTo): void {
         this.options = options;
 
         if (syncTo === SyncTo.SERVER) sendShapeOptionsUpdate([this], false);
-        if (syncTo === SyncTo.UI) this._("setOptions")(Object.fromEntries(this.options), syncTo);
+        if (syncTo === SyncTo.UI) this._("setOptions")(this.options, syncTo);
     }
 
     // ACCESS

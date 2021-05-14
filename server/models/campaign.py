@@ -272,7 +272,7 @@ class LocationUserOption(BaseModel):
     user = ForeignKeyField(User, backref="location_options", on_delete="CASCADE")
     pan_x = IntegerField(default=0)
     pan_y = IntegerField(default=0)
-    zoom_factor = FloatField(default=1.0)
+    zoom_display = FloatField(default=1.0)
     active_layer = ForeignKeyField(Layer, backref="active_users", null=True)
 
     def __repr__(self):

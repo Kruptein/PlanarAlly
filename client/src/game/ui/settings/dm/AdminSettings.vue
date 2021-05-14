@@ -37,12 +37,24 @@ export default defineComponent({
             showRefreshState.value = true;
         }
 
+        async function kickPlayer(playerId: number): Promise<void> {
+            const value = await modals.confirm("Kicking player", "Are you sure you wish to kick this player?");
+            if (value === true) gameStore.kickPlayer(playerId);
+        }
+
         function changePlayerRole(event: { target: HTMLSelectElement }, player: number): void {
             const value = event.target.value;
             const role = parseInt(value);
             if (isNaN(role) || role < 0 || role >= roles.length) return;
 
             gameStore.setPlayerRole(player, role, true);
+        }
+
+        function togglePlayerRect(player: number): void {
+            const p = gameStore.state.players.find((p) => p.id === player)?.showRect;
+            if (p === undefined) return;
+
+            gameStore.setShowPlayerRect(player, !p);
         }
 
         async function deleteSession(): Promise<void> {
@@ -62,8 +74,9 @@ export default defineComponent({
             t,
 
             players: toRef(gameState, "players"),
-            kickPlayer: (playerId: number) => gameStore.kickPlayer(playerId),
+            kickPlayer,
             changePlayerRole,
+            togglePlayerRect,
             roles,
 
             invitationUrl,
@@ -96,6 +109,13 @@ export default defineComponent({
                         {{ role }}
                     </option>
                 </select>
+                <div
+                    title="Show player viewport"
+                    :style="{ opacity: player.showRect ? 1 : 0.3 }"
+                    @click="togglePlayerRect(player.id)"
+                >
+                    <font-awesome-icon icon="eye" />
+                </div>
                 <div @click="kickPlayer(player.id)" v-t="'game.ui.settings.dm.AdminSettings.kick'"></div>
             </div>
         </div>
@@ -150,6 +170,10 @@ export default defineComponent({
 <style lang="scss" scoped>
 .player-actions {
     display: flex;
+
+    * {
+        margin: 0 10px;
+    }
 
     select {
         margin-right: 20%;

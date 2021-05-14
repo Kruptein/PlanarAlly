@@ -15,8 +15,8 @@ export function pathToArray(shape: Asset, path: SVGPathElement): number[][][] {
     const w = shape.w;
     const h = shape.h;
 
-    const dW = w / shape.options.get("svgWidth");
-    const dH = h / shape.options.get("svgHeight");
+    const dW = w / (shape.options.svgWidth ?? 1);
+    const dH = h / (shape.options.svgHeight ?? 1);
 
     for (const seg of pathData) {
         switch (seg.type) {

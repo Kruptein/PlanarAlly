@@ -21,7 +21,7 @@ export const sendTextUpdate = wrapSocket<{ uuid: string; text: string; temporary
 export function sendShapeOptionsUpdate(shapes: readonly Shape[], temporary: boolean): void {
     const options = shapes
         .filter((s) => !s.preventSync)
-        .map((s) => ({ uuid: s.uuid, option: JSON.stringify([...s.options]) }));
+        .map((s) => ({ uuid: s.uuid, option: JSON.stringify(Object.entries(s.options)) }));
     if (options.length > 0) {
         socket.emit("Shapes.Options.Update", {
             options,

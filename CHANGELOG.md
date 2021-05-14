@@ -16,9 +16,13 @@ These usually have no immediately visible impact on regular users
 -   Physical (mini) grid size
     -   Indicate grid size in function of mini dimensions and PPI
     -   Disables zoom tool when enabled
--   [tech] API Server is now disabled by default and can be enabled through the server_config
 -   [DM] Added ability to copy a location into another game session.
 -   [DM] The asset menu bar in-game now automatically live updates when changes are done in the asset manager
+-   [DM] Player viewport info
+    -   Show a rectangle on the DM layer representing the player current viewport
+    -   Moving this rectangle will live update the related player's view (only pan for now)
+    -   Can be toggled on from the DM settings
+-   [tech] API Server is now disabled by default and can be enabled through the server_config
 
 ### Changed
 
@@ -35,6 +39,7 @@ These usually have no immediately visible impact on regular users
     -   Option to change the sorting behaviour
     -   Blur effect to make it clear that initiative is not yet synced
     -   Enter can now be used to submit a new initiative value
+-   [DM] kicking a player now first prompts for confirmation
 -   [tech] server_config variable `public_name` is now commented by default
 -   [tech] removed dependencies from Dockefile, that were no longer needed
 -   [tech] A big rewrite/refactor of the client has been done.

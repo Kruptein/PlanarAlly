@@ -34,7 +34,7 @@ socket.on(
         gameStore.setRoomCreator(data.creator);
         gameStore.setInvitationCode(data.invitationCode);
         gameStore.setIsLocked(data.isLocked, false);
-        gameStore.setPlayers(data.players);
+        gameStore.setPlayers(data.players.map((p) => ({ ...p, showRect: false })));
         gameStore.setPublicName(data.publicName);
         settingsStore.setDefaultLocationOptions(optionsToClient(data.default_options));
         setLocationOptions(undefined, data.default_options);
@@ -46,5 +46,5 @@ socket.on("Room.Info.InvitationCode.Set", (invitationCode: string) => {
 });
 
 socket.on("Room.Info.Players.Add", (data: { id: number; name: string; location: number; role: number }) => {
-    gameStore.addPlayer(data);
+    gameStore.addPlayer({ ...data, showRect: false });
 });

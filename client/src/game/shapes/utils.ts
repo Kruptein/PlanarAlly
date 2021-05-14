@@ -214,7 +214,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly Shape[] {
         if (shape === undefined) continue;
 
         layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
-        if (!shape.options.has("skipDraw")) selectionState.push(shape);
+        if (!(shape.options.skipDraw ?? false)) selectionState.push(shape);
     }
 
     layer.invalidate(false);

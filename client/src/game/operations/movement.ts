@@ -1,5 +1,6 @@
 import { addP, toArrayP, Vector } from "../../core/geometry";
 import { sendShapePositionUpdate } from "../api/emits/shape/core";
+import { moveClient } from "../client";
 import { Shape } from "../shapes/shape";
 import { TriangulationTarget, visionState } from "../vision/state";
 
@@ -49,7 +50,11 @@ export function moveShapes(shapes: readonly Shape[], delta: Vector, temporary: b
         // todo: Fix again
         // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
         if (!shape.preventSync) updateList.push(shape);
+        if (shape.options.isPlayerRect ?? false) {
+            moveClient(shape.uuid);
+        }
     }
+
     sendShapePositionUpdate(updateList, temporary);
     if (!temporary) addOperation(operationList);
 

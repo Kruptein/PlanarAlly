@@ -38,6 +38,10 @@ class State(ABC, Generic[T]):
             ):
                 yield sid
 
+    def get_t(self, **options) -> Generator[Tuple[str, T], None, None]:
+        for sid in self.get_sids(**options):
+            yield sid, self.get(sid)
+
     def get_users(self, **options) -> Generator[Tuple[str, User], None, None]:
         for sid in self.get_sids(**options):
             yield sid, self.get_user(sid)

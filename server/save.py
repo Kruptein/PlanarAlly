@@ -13,7 +13,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 63
+SAVE_VERSION = 64
 
 import json
 import logging
@@ -1034,7 +1034,19 @@ def upgrade(version):
             data = db.execute_sql(
                 "UPDATE user_options SET use_high_dpi = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
             )
-
+    elif version == 63:
+        # Rename LocationUserOption.zoom_factor to zoom_display
+        with db.atomic():
+            db.execute_sql(
+                "CREATE TEMPORARY TABLE _location_user_option_27 AS SELECT * FROM location_user_option"
+            )
+            db.execute_sql("DROP TABLE location_user_option")
+            db.execute_sql(
+                'CREATE TABLE "location_user_option" ("id" INTEGER NOT NULL PRIMARY KEY, "location_id" INTEGER NOT NULL, "user_id" INTEGER NOT NULL, "pan_x" INTEGER NOT NULL, "pan_y" INTEGER NOT NULL, "zoom_display" REAL NOT NULL, "active_layer_id" INTEGER, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("active_layer_id") REFERENCES "layer" ("id"))'
+            )
+            db.execute_sql(
+                'INSERT INTO "location_user_option" (id, location_id, user_id, pan_x, pan_y, zoom_display, active_layer_id) SELECT id, location_id, user_id, pan_x, pan_y, zoom_factor, active_layer_id FROM _location_user_option_27 '
+            )
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

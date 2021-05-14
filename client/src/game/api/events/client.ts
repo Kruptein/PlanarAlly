@@ -1,9 +1,24 @@
 import { clientStore } from "../../../store/client";
-import { ServerClient, userOptionsToClient } from "../../models/settings";
+import { floorStore } from "../../../store/floor";
+import { gameStore } from "../../../store/game";
+import { moveClientRect } from "../../client";
+import { ServerClient, ServerUserLocationOptions, userOptionsToClient } from "../../models/settings";
 import { socket } from "../socket";
 
 // eslint-disable-next-line import/no-unused-modules
 export let activeLayerToselect: string | undefined;
+
+socket.on("Client.Move", (data: { player: number } & ServerUserLocationOptions) => {
+    const { player, ...locationData } = data;
+    if (gameStore.state.isDm) {
+        moveClientRect(player, locationData);
+    } else {
+        clientStore.setPanX(data.pan_x);
+        clientStore.setPanY(data.pan_y);
+        clientStore.setZoomDisplay(data.zoom_display);
+        floorStore.invalidateAllFloors();
+    }
+});
 
 socket.on("Client.Options.Set", (options: ServerClient) => {
     clientStore.setUsername(options.name);

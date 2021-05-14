@@ -21,3 +21,5 @@ function _sendClientLocationOptions(locationOptions: ServerUserLocationOptions):
 
 export const sendRoomClientOptions = wrapSocket<Partial<ServerUserOptions>>("Client.Options.Room.Set");
 export const sendDefaultClientOptions = wrapSocket<Partial<ServerUserOptions>>("Client.Options.Default.Set");
+
+export const sendMoveClient = wrapSocket<{ player: number; data: ServerUserLocationOptions }>("Client.Move");

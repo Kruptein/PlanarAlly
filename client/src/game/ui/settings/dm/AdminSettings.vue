@@ -37,6 +37,11 @@ export default defineComponent({
             showRefreshState.value = true;
         }
 
+        async function kickPlayer(playerId: number): Promise<void> {
+            const value = await modals.confirm("Kicking player", "Are you sure you wish to kick this player?");
+            if (value === true) gameStore.kickPlayer(playerId);
+        }
+
         function changePlayerRole(event: { target: HTMLSelectElement }, player: number): void {
             const value = event.target.value;
             const role = parseInt(value);
@@ -62,7 +67,7 @@ export default defineComponent({
             t,
 
             players: toRef(gameState, "players"),
-            kickPlayer: (playerId: number) => gameStore.kickPlayer(playerId),
+            kickPlayer,
             changePlayerRole,
             roles,
 

@@ -3,4 +3,5 @@ export interface Player {
     name: string;
     location: number;
     role: number;
+    showRect: boolean;
 }

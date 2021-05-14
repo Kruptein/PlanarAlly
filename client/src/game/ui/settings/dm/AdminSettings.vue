@@ -50,6 +50,13 @@ export default defineComponent({
             gameStore.setPlayerRole(player, role, true);
         }
 
+        function togglePlayerRect(player: number): void {
+            const p = gameStore.state.players.find((p) => p.id === player)?.showRect;
+            if (p === undefined) return;
+
+            gameStore.setShowPlayerRect(player, !p);
+        }
+
         async function deleteSession(): Promise<void> {
             const value = await modals.prompt(
                 t("game.ui.settings.dm.AdminSettings.delete_session_msg_CREATOR_ROOM", {
@@ -69,6 +76,7 @@ export default defineComponent({
             players: toRef(gameState, "players"),
             kickPlayer,
             changePlayerRole,
+            togglePlayerRect,
             roles,
 
             invitationUrl,
@@ -101,6 +109,13 @@ export default defineComponent({
                         {{ role }}
                     </option>
                 </select>
+                <div
+                    title="Show player viewport"
+                    :style="{ opacity: player.showRect ? 1 : 0.3 }"
+                    @click="togglePlayerRect(player.id)"
+                >
+                    <font-awesome-icon icon="eye" />
+                </div>
                 <div @click="kickPlayer(player.id)" v-t="'game.ui.settings.dm.AdminSettings.kick'"></div>
             </div>
         </div>
@@ -155,6 +170,10 @@ export default defineComponent({
 <style lang="scss" scoped>
 .player-actions {
     display: flex;
+
+    * {
+        margin: 0 10px;
+    }
 
     select {
         margin-right: 20%;

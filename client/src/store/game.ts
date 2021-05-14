@@ -11,6 +11,7 @@ import { sendMarkerCreate, sendMarkerRemove } from "../game/api/emits/marker";
 import { sendNewNote, sendRemoveNote, sendUpdateNote } from "../game/api/emits/note";
 import { sendChangePlayerRole } from "../game/api/emits/players";
 import { sendRoomKickPlayer, sendRoomLock } from "../game/api/emits/room";
+import { showClientRect } from "../game/client";
 import { Note } from "../game/models/general";
 import { Player } from "../game/models/player";
 import { ServerShape } from "../game/models/shapes";
@@ -168,8 +169,17 @@ class GameStore extends Store<GameState> {
     setPlayerRole(playerId: number, role: number, sync: boolean): void {
         const player = this._state.players.find((p) => p.id === playerId);
         if (player === undefined) return;
+
         player.role = role;
         if (sync) sendChangePlayerRole({ player: playerId, role });
+    }
+
+    setShowPlayerRect(playerId: number, showPlayerRect: boolean): void {
+        const player = this._state.players.find((p) => p.id === playerId);
+        if (player === undefined) return;
+
+        player.showRect = showPlayerRect;
+        showClientRect(playerId, showPlayerRect);
     }
 
     // ROOM

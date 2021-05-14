@@ -26,6 +26,7 @@ export function moveClientRect(player: number, data: ServerUserLocationOptions):
             uuid,
         });
         rect.options.isPlayerRect = true;
+        rect.options.skipDraw = true;
         rect.preventSync = true;
         layer.addShape(rect, SyncMode.NO_SYNC, InvalidationMode.NO, false);
     }
@@ -52,4 +53,14 @@ export function moveClient(rectUuid: string): void {
     const center = rect.center();
 
     sendMoveClient({ player, data: { ...playerData, pan_x: w / 2 - center.x, pan_y: h / 2 - center.y } });
+}
+
+export function showClientRect(player: number, show: boolean): void {
+    const rectUuid = playerRectUuids.get(player);
+    if (rectUuid === undefined) return;
+    const rect = UuidMap.get(rectUuid)!;
+    if (rect === undefined) return;
+
+    rect.options.skipDraw = !show;
+    rect.layer.invalidate(true);
 }

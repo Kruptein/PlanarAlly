@@ -141,7 +141,9 @@ async def add_initiative(sid: str, data: ServerInitiativeData):
         return
 
     with db.atomic():
-        location_data = Initiative.get(location=pr.active_location)
+        location_data, _ = Initiative.get_or_create(
+            location=pr.active_location, defaults={"round": 0, "turn": 0, "data": "[]"}
+        )
         json_data = json.loads(location_data.data)
 
         for initiative in json_data:

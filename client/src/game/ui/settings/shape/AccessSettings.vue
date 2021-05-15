@@ -13,14 +13,14 @@ export default defineComponent({
 
         const accessDropdown = ref<HTMLSelectElement | null>(null);
 
-        const owned = activeShapeStore.hasEditAccess.value;
+        const owned = activeShapeStore.hasEditAccess;
 
         const playersWithoutAccess = computed(() =>
             gameStore.state.players.filter((p) => !activeShapeStore.state.owners.some((o) => o.user === p.name)),
         );
 
         function addOwner(): void {
-            if (!owned) return;
+            if (!owned.value) return;
             const dropdown = accessDropdown.value!;
             const selectedUser = dropdown.options[dropdown.selectedIndex].value;
             if (selectedUser === "") return;
@@ -35,27 +35,27 @@ export default defineComponent({
         }
 
         function removeOwner(owner: string): void {
-            if (!owned) return;
+            if (!owned.value) return;
             activeShapeStore.removeOwner(owner, SyncTo.SERVER);
         }
 
         function toggleDefaultEditAccess(): void {
-            if (!owned) return;
+            if (!owned.value) return;
             activeShapeStore.setDefaultEditAccess(!activeShapeStore.hasDefaultEditAccess.value, SyncTo.SERVER);
         }
 
         function toggleDefaultMovementAccess(): void {
-            if (!owned) return;
+            if (!owned.value) return;
             activeShapeStore.setDefaultMovementAccess(!activeShapeStore.hasDefaultMovementAccess.value, SyncTo.SERVER);
         }
 
         function toggleDefaultVisionAccess(): void {
-            if (!owned) return;
+            if (!owned.value) return;
             activeShapeStore.setDefaultVisionAccess(!activeShapeStore.hasDefaultVisionAccess.value, SyncTo.SERVER);
         }
 
         function toggleOwnerEditAccess(owner: ShapeOwner): void {
-            if (!owned) return;
+            if (!owned.value) return;
             // un-reactify it, because we want to check on access permissions in updateOwner
             // otherwise one would never be able to remove their edit access rights
             const copy = { ...owner, access: { ...owner.access } };
@@ -68,7 +68,7 @@ export default defineComponent({
         }
 
         function toggleOwnerMovementAccess(owner: ShapeOwner): void {
-            if (!owned) return;
+            if (!owned.value) return;
             const copy = { ...owner, access: { ...owner.access } };
             copy.access.movement = !copy.access.movement;
             if (copy.access.movement) {
@@ -80,7 +80,7 @@ export default defineComponent({
         }
 
         function toggleOwnerVisionAccess(owner: ShapeOwner): void {
-            if (!owned) return;
+            if (!owned.value) return;
             const copy = { ...owner, access: { ...owner.access } };
             copy.access.vision = !copy.access.vision;
             if (!copy.access.vision) {

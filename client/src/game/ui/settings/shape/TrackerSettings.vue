@@ -14,23 +14,23 @@ export default defineComponent({
     setup() {
         const { t } = useI18n();
 
-        const owned = activeShapeStore.hasEditAccess.value;
+        const owned = activeShapeStore.hasEditAccess;
 
         // Tracker
 
         function updateTracker(tracker: string, delta: Partial<Tracker>, syncTo = true): void {
-            if (!owned) return;
+            if (!owned.value) return;
             if (activeShapeStore.state.uuid !== undefined)
                 activeShapeStore.updateTracker(tracker, delta, syncTo === true ? SyncTo.SERVER : SyncTo.SHAPE);
         }
 
         function removeTracker(tracker: string): void {
-            if (!owned) return;
+            if (!owned.value) return;
             activeShapeStore.removeTracker(tracker, SyncTo.SERVER);
         }
 
         function toggleCompositeTracker(trackerId: string): void {
-            if (!owned) return;
+            if (!owned.value) return;
             if (!activeShapeStore.isComposite.value) return;
 
             const tracker = activeShapeStore.state.trackers.find((t) => t.uuid === trackerId);
@@ -52,7 +52,7 @@ export default defineComponent({
         // Aura
 
         function updateAura(aura: string, delta: Partial<Aura>, syncTo = true): void {
-            if (!owned) return;
+            if (!owned.value) return;
             if (delta.value !== undefined && (isNaN(delta.value) || delta.value < 0)) delta.value = 0;
             if (delta.dim !== undefined && (isNaN(delta.dim) || delta.dim < 0)) delta.dim = 0;
             if (activeShapeStore.state.uuid !== undefined)
@@ -60,12 +60,12 @@ export default defineComponent({
         }
 
         function removeAura(aura: string): void {
-            if (!owned) return;
+            if (!owned.value) return;
             activeShapeStore.removeAura(aura, SyncTo.SERVER);
         }
 
         function toggleCompositeAura(auraId: string): void {
-            if (!owned) return;
+            if (!owned.value) return;
             if (!activeShapeStore.isComposite.value) return;
 
             const aura = activeShapeStore.state.auras.find((t) => t.uuid === auraId);

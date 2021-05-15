@@ -11,61 +11,61 @@ export default defineComponent({
     setup() {
         const { t } = useI18n();
 
-        const owned = activeShapeStore.hasEditAccess.value;
+        const owned = activeShapeStore.hasEditAccess;
 
         function updateName(event: { target: HTMLInputElement }): void {
-            if (!owned) return;
+            if (!owned.value) return;
             activeShapeStore.setName(event.target.value, SyncTo.SERVER);
         }
 
         function toggleNameVisible(): void {
-            if (!owned) return;
+            if (!owned.value) return;
             activeShapeStore.setNameVisible(!activeShapeStore.state.nameVisible, SyncTo.SERVER);
         }
 
         function setToken(event: { target: HTMLInputElement }): void {
-            if (!owned) return;
+            if (!owned.value) return;
             activeShapeStore.setIsToken(event.target.checked, SyncTo.SERVER);
         }
 
         function setInvisible(event: { target: HTMLInputElement }): void {
-            if (!owned) return;
+            if (!owned.value) return;
             activeShapeStore.setIsInvisible(event.target.checked, SyncTo.SERVER);
         }
 
         function setDefeated(event: { target: HTMLInputElement }): void {
-            if (!owned) return;
+            if (!owned.value) return;
             activeShapeStore.setIsDefeated(event.target.checked, SyncTo.SERVER);
         }
 
         function setLocked(event: { target: HTMLInputElement }): void {
-            if (!owned) return;
+            if (!owned.value) return;
             activeShapeStore.setLocked(event.target.checked, SyncTo.SERVER);
         }
 
         function toggleBadge(event: { target: HTMLInputElement }): void {
-            if (!owned) return;
+            if (!owned.value) return;
             activeShapeStore.setShowBadge(event.target.checked, SyncTo.SERVER);
         }
 
         function setBlocksVision(event: { target: HTMLInputElement }): void {
-            if (!owned) return;
+            if (!owned.value) return;
             activeShapeStore.setBlocksVision(event.target.checked, SyncTo.SERVER);
         }
 
         function setBlocksMovement(event: { target: HTMLInputElement }): void {
-            if (!owned) return;
+            if (!owned.value) return;
             activeShapeStore.setBlocksMovement(event.target.checked, SyncTo.SERVER);
         }
 
         function setStrokeColour(event: string, temporary = false): void {
-            if (!owned) return;
+            if (!owned.value) return;
             activeShapeStore.setStrokeColour(event, temporary ? SyncTo.SHAPE : SyncTo.SERVER);
         }
 
         function setFillColour(colour: string, temporary = false): void {
             console.log(colour);
-            if (!owned) return;
+            if (!owned.value) return;
             activeShapeStore.setFillColour(colour, temporary ? SyncTo.SHAPE : SyncTo.SERVER);
         }
 

@@ -3,6 +3,7 @@ import { computed, defineComponent, onMounted, reactive, toRef, toRefs } from "v
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../core/components/ColourPicker.vue";
+import { useModal } from "../../../core/plugins/modals/plugin";
 import { gameStore } from "../../../store/game";
 import { DrawMode, DrawShape, drawTool } from "../../tools/variants/draw";
 
@@ -12,6 +13,9 @@ export default defineComponent({
     components: { ColourPicker },
     setup() {
         const { t } = useI18n();
+        const modals = useModal();
+
+        drawTool.setPromptFunction(modals.prompt);
 
         const state = reactive({
             arrow: "0px",

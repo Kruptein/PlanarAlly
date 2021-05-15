@@ -1,5 +1,5 @@
 <script lang="ts">
-import { computed, defineComponent } from "vue";
+import { computed, defineComponent, toRef } from "vue";
 
 import { SyncTo } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
@@ -183,14 +183,14 @@ export default defineComponent({
             customCharacterSet,
             deleteGroup,
             getBadgeCharacters,
-            groupId: activeShapeStore.state.groupId,
+            groupId: toRef(activeShapeStore.state, "groupId"),
             groupMembers,
             removeMember,
             selectedCharacterSet,
             showBadge,
             toggleHighlight,
             updateToggles,
-            uuid: activeShapeStore.state.uuid,
+            uuid: toRef(activeShapeStore.state, "uuid"),
         };
     },
 });

@@ -79,7 +79,13 @@ class Shape(BaseModel):
 
     # todo: Change this API to accept a PlayerRoom instead
     def as_dict(self, user: User, dm: bool):
-        data = model_to_dict(self, recurse=False, exclude=[Shape.layer, Shape.index])
+        data = {
+            k: v
+            for k, v in model_to_dict(
+                self, recurse=False, exclude=[Shape.layer, Shape.index]
+            ).items()
+            if v is not None
+        }
         # Owner query > list of usernames
         data["owners"] = [owner.as_dict() for owner in self.owners]
         # Layer query > layer name
@@ -178,8 +184,6 @@ class ShapeLabel(BaseModel):
         ShapeLabel.create(shape=shape, label=self.label.make_copy())
 
 
-
-
 class Tracker(BaseModel):
     uuid = TextField(primary_key=True)
     shape = ForeignKeyField(Shape, backref="trackers", on_delete="CASCADE")
@@ -199,7 +203,7 @@ class Tracker(BaseModel):
 
     def make_copy(self, new_shape):
         dict = self.as_dict()
-        dict['uuid'] = str(uuid4())
+        dict["uuid"] = str(uuid4())
         type(self).create(shape=new_shape, **dict)
 
 
@@ -225,7 +229,7 @@ class Aura(BaseModel):
 
     def make_copy(self, new_shape):
         dict = self.as_dict()
-        dict['uuid'] = str(uuid4())
+        dict["uuid"] = str(uuid4())
         type(self).create(shape=new_shape, **dict)
 
 

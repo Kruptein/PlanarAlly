@@ -29,7 +29,7 @@ export default defineComponent({
 
         const textarea = ref<HTMLTextAreaElement | null>(null);
 
-        const owned = activeShapeStore.hasEditAccess.value;
+        const owned = activeShapeStore.hasEditAccess;
 
         // ANNOTATIONS
 
@@ -41,13 +41,13 @@ export default defineComponent({
         }
 
         function updateAnnotation(event: { target: HTMLInputElement }, sync = true): void {
-            if (!owned) return;
+            if (!owned.value) return;
             calcHeight();
             activeShapeStore.setAnnotation(event.target.value, sync ? SyncTo.SERVER : SyncTo.SHAPE);
         }
 
         function setAnnotationVisible(event: { target: HTMLInputElement }): void {
-            if (!owned) return;
+            if (!owned.value) return;
             activeShapeStore.setAnnotationVisible(event.target.checked, SyncTo.SERVER);
         }
 
@@ -56,12 +56,12 @@ export default defineComponent({
         const showLabelManager = ref(false);
 
         function addLabel(label: string): void {
-            if (!owned) return;
+            if (!owned.value) return;
             activeShapeStore.addLabel(label, SyncTo.SERVER);
         }
 
         function removeLabel(uuid: string): void {
-            if (!owned) return;
+            if (!owned.value) return;
             activeShapeStore.removeLabel(uuid, SyncTo.SERVER);
         }
 

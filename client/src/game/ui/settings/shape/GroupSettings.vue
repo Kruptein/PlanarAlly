@@ -29,7 +29,7 @@ export default defineComponent({
         let customText: string[] = [];
         let _creationOrder: CREATION_ORDER_TYPES = "incrementing";
 
-        const owned = activeShapeStore.hasEditAccess.value;
+        const owned = activeShapeStore.hasEditAccess;
 
         const group = computed(() => {
             const groupId = activeShapeStore.state.groupId;
@@ -64,7 +64,7 @@ export default defineComponent({
                 }
             },
             set(index: number) {
-                if (!owned) return;
+                if (!owned.value) return;
 
                 if (group.value === undefined) {
                     characterSetSelected = index;
@@ -87,7 +87,7 @@ export default defineComponent({
                 return group.value.characterSet.join(",");
             },
             set(characterSet: string) {
-                if (!owned) return;
+                if (!owned.value) return;
 
                 const value = characterSet.split(",");
                 if (group.value === undefined) {
@@ -107,7 +107,7 @@ export default defineComponent({
                 return group.value.creationOrder;
             },
             async set(creationOrder: CREATION_ORDER_TYPES) {
-                if (!owned) return;
+                if (!owned.value) return;
 
                 if (group.value === undefined) {
                     _creationOrder = creationOrder;
@@ -125,25 +125,25 @@ export default defineComponent({
         });
 
         function updateToggles(checked: boolean): void {
-            if (!owned) return;
+            if (!owned.value) return;
             for (const member of groupMembers.value) {
                 if (member.showBadge !== checked) member.setShowBadge(checked, SyncTo.SERVER);
             }
         }
 
         function centerMember(member: Shape): void {
-            if (!owned) return;
+            if (!owned.value) return;
             setCenterPosition(member.center());
         }
 
         function toggleHighlight(member: Shape, show: boolean): void {
-            if (!owned) return;
+            if (!owned.value) return;
             member.showHighlight = show;
             member.layer.invalidate(true);
         }
 
         function showBadge(member: Shape, checked: boolean): void {
-            if (!owned) return;
+            if (!owned.value) return;
             // This and Keyboard are the only places currently where we would need to update both UI and Server.
             // Might need to introduce a SyncTo.BOTH
             member.setShowBadge(checked, SyncTo.SERVER);
@@ -151,18 +151,18 @@ export default defineComponent({
         }
 
         function removeMember(member: Shape): void {
-            if (!owned) return;
+            if (!owned.value) return;
             removeGroupMember(member.groupId!, member.uuid, true);
         }
 
         function createGroup(): void {
-            if (!owned) return;
+            if (!owned.value) return;
             if (activeShapeStore.state.groupId !== undefined) return;
             createNewGroupForShapes([activeShapeStore.state.uuid!]);
         }
 
         async function deleteGroup(): Promise<void> {
-            if (!owned) return;
+            if (!owned.value) return;
             const groupId = activeShapeStore.state.groupId;
             if (groupId === undefined) return;
             const remove = await modals.confirm(

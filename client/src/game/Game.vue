@@ -12,7 +12,7 @@ import { createConnection, socket } from "./api/socket";
 import { onKeyDown } from "./input/keyboard";
 import { scrollZoom } from "./input/mouse";
 import { clearUndoStacks } from "./operations/undo";
-import { dropAsset } from "./temp";
+import { dropAsset, setSelectionBoxFunction } from "./temp";
 import {
     contextMenu,
     keyUp,
@@ -42,6 +42,7 @@ export default defineComponent({
     },
     setup() {
         const modals = useModal();
+        setSelectionBoxFunction(modals.selectionBox);
 
         const gameState = gameStore.state;
 

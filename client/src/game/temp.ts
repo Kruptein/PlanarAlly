@@ -1,7 +1,7 @@
 import { clampGridLine, l2gx, l2gy, l2gz } from "../core/conversions";
 import { toGP } from "../core/geometry";
 import { SyncMode, InvalidationMode } from "../core/models/types";
-import { useModal } from "../core/plugins/modals/plugin";
+import { SelectionBoxFunction } from "../core/plugins/modals/selectionBox";
 import { baseAdjust, uuidv4 } from "../core/utils";
 import { i18n } from "../i18n";
 import { floorStore } from "../store/floor";
@@ -87,6 +87,12 @@ export function addShape(shape: ServerShape, sync: SyncMode): Shape | undefined 
     return sh;
 }
 
+let selectionBoxFunction: SelectionBoxFunction | undefined = undefined;
+
+export function setSelectionBoxFunction(f: SelectionBoxFunction): void {
+    selectionBoxFunction = f;
+}
+
 export async function dropAsset(
     data: { imageSource: string; assetId: number },
     position: { x: number; y: number },
@@ -100,8 +106,7 @@ export async function dropAsset(
             const choices = Object.keys(response.options?.templates ?? {});
             if (choices.length > 0) {
                 try {
-                    const modals = useModal();
-                    const choice = await modals.selectionBox(
+                    const choice = await selectionBoxFunction!(
                         i18n.global.t("game.ui.templates.choose").toString(),
                         choices,
                     );

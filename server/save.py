@@ -1020,7 +1020,7 @@ def upgrade(version):
             )
             db.execute_sql("ALTER TABLE user_options ADD COLUMN ppi INTEGER DEFAULT 96")
             db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN use_high_dpi INTEGER DEFAULT 1"
+                "ALTER TABLE user_options ADD COLUMN use_high_dpi INTEGER DEFAULT 0"
             )
             data = db.execute_sql(
                 "UPDATE user_options SET use_as_physical_board = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"

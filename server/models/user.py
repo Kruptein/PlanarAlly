@@ -24,7 +24,7 @@ class UserOptions(BaseModel):
     invert_alt = BooleanField(default=False, null=True)
     disable_scroll_to_zoom = BooleanField(default=False, null=True)
 
-    use_high_dpi = BooleanField(default=True, null=True)
+    use_high_dpi = BooleanField(default=False, null=True)
     grid_size = IntegerField(default=50, null=True)
     use_as_physical_board = BooleanField(default=False, null=True)
     mini_size = FloatField(default=1, null=True)

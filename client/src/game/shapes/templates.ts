@@ -39,8 +39,8 @@ export function applyTemplate<T extends ServerShape>(shape: T, template: BaseTem
     // Shape specific keys
     for (const key of getTemplateKeys(shape.type_)) {
         if (["assetrect", "rect"].includes(shape.type_)) {
-            const rect = (shape as any) as ServerRect;
-            const rectTemplate = (template as any) as ServerRect;
+            const rect = shape as any as ServerRect;
+            const rectTemplate = template as any as ServerRect;
 
             if (key === "width") {
                 rect.width = rectTemplate.width * gridRescale;

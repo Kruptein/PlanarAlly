@@ -1,3 +1,4 @@
+import { clamp } from "lodash";
 import tinycolor from "tinycolor2";
 
 import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "../../core/conversions";
@@ -314,7 +315,7 @@ export abstract class Shape {
                 const rectWidth = botRight.x - topLeft.x; // - g2lz(10);
                 const rectHeight = g2lz(5);
                 const maxVal = tracker.maxvalue;
-                const curVal = tracker.value > tracker.maxvalue ? tracker.maxvalue : tracker.value;
+                const curVal = clamp(tracker.value, 0, tracker.maxvalue);
                 ctx.beginPath();
                 ctx.fillStyle = tracker.secondaryColor;
                 ctx.fillRect(rectX, rectY, rectWidth, rectHeight);

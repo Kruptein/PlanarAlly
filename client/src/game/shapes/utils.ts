@@ -20,6 +20,7 @@ import {
     ServerToggleComposite,
     ServerTracker,
     ServerAura,
+    ServerShapeOwner,
 } from "../models/shapes";
 import { addOperation } from "../operations/undo";
 import { TriangulationTarget, VisibilityMode, visionState } from "../vision/state";
@@ -180,6 +181,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly Shape[] {
             };
             newShape.trackers.push(newTracker);
         }
+
         // Auras
         newShape.auras = [];
         for (const aura of clip.auras) {
@@ -189,6 +191,17 @@ export function pasteShapes(targetLayer?: LayerName): readonly Shape[] {
             };
             newShape.auras.push(newAura);
         }
+
+        // Owners
+        newShape.owners = [];
+        for (const owner of clip.owners) {
+            const newOwner: ServerShapeOwner = {
+                ...owner,
+                shape: newShape.uuid,
+            };
+            newShape.owners.push(newOwner);
+        }
+
         // Badge
         if (clip.group !== undefined) {
             // We do not need to explicitly join the group as that will be done by createShape below

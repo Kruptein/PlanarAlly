@@ -206,6 +206,10 @@ class SelectTool extends Tool implements ISelectTool {
                     }
                     this.removeRotationUi();
                     this.createRotationUi(features);
+                } else {
+                    if (ctrlOrCmdPressed(event)) {
+                        selectionState.remove(shape.uuid);
+                    }
                 }
                 // Drag case, a shape is selected
                 if (this.hasFeature(SelectFeatures.Drag, features)) {

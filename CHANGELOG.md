@@ -39,6 +39,7 @@ These usually have no immediately visible impact on regular users
     -   Option to change the sorting behaviour
     -   Blur effect to make it clear that initiative is not yet synced
     -   Enter can now be used to submit a new initiative value
+-   Ctrl/Cmd clicking on an already selected shape will now deselect it instead
 -   [DM] kicking a player now first prompts for confirmation
 -   [tech] server_config variable `public_name` is now commented by default
 -   [tech] removed dependencies from Dockefile, that were no longer needed

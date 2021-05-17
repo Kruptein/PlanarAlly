@@ -86,7 +86,7 @@ export default defineComponent({
         }
 
         function hasImage(actor: InitiativeData): boolean {
-            return UuidMap.get(actor.shape)!.type === "assetrect";
+            return UuidMap.get(actor.shape)?.type === "assetrect" ?? false;
         }
 
         function getImage(actor: InitiativeData): string {

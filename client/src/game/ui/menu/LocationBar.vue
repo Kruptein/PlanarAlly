@@ -16,7 +16,7 @@ import { Location } from "../../models/settings";
 export default defineComponent({
     components: { draggable },
     props: { active: { type: Boolean, required: true }, menuActive: { type: Boolean, required: true } },
-    setup() {
+    setup(props) {
         const { t } = useI18n();
         const modals = useModal();
 
@@ -39,6 +39,13 @@ export default defineComponent({
             if (locations.value) {
                 locations.value.$el.addEventListener("scroll", () => fixDisplays());
                 locations.value.$el.addEventListener("wheel", (e) => horizontalWheel(e));
+            }
+        });
+
+        // :style with `menuActive` did not update properly on the draggable
+        watchEffect(() => {
+            if (locations.value !== null) {
+                locations.value.$el.style.maxWidth = `calc(100vw - 105px - ${props.menuActive ? "200px" : "0px"})`;
             }
         });
 
@@ -188,14 +195,7 @@ export default defineComponent({
                 <font-awesome-icon icon="archive" />
             </div>
         </div>
-        <draggable
-            id="locations"
-            v-model="activeLocations"
-            item-key="id"
-            ref="locations"
-            handle=".drag-handle"
-            :style="{ maxWidth: 'calc(100vw - 105px - ' + (menuActive ? '200px' : '0px') + ')' }"
-        >
+        <draggable id="locations" v-model="activeLocations" item-key="id" ref="locations" handle=".drag-handle">
             <template #item="{ element: location }">
                 <div class="location">
                     <div class="location-name" :class="{ 'active-location': activeLocation === location.id }">

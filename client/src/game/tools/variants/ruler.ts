@@ -8,7 +8,7 @@ import { i18n } from "../../../i18n";
 import { clientStore, DEFAULT_GRID_SIZE } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
 import { settingsStore } from "../../../store/settings";
-import { sendShapePositionUpdate, sendTextUpdate } from "../../api/emits/shape/core";
+import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { LayerName } from "../../models/floor";
 import { ToolFeatures, ToolName, ToolPermission } from "../../models/tools";
 import { Line } from "../../shapes/variants/line";
@@ -122,9 +122,8 @@ class RulerTool extends Tool {
         const xmid = Math.min(start.x, end.x) + xdiff / 2;
         const ymid = Math.min(start.y, end.y) + ydiff / 2;
         this.text.refPoint = toGP(xmid, ymid);
-        this.text.text = label;
+        this.text.setText(label, SyncMode.TEMP_SYNC);
         this.text.angle = angle;
-        sendTextUpdate({ uuid: this.text.uuid, text: this.text.text, temporary: true });
         sendShapePositionUpdate([this.text], true);
         layer.invalidate(true);
     }

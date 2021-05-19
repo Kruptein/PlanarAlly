@@ -1,10 +1,13 @@
 <script lang="ts">
-import { defineComponent, toRefs } from "vue";
+import { computed, defineComponent, toRefs } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../../core/components/ColourPicker.vue";
-import { SyncTo } from "../../../../core/models/types";
+import { SyncMode, SyncTo } from "../../../../core/models/types";
 import { activeShapeStore } from "../../../../store/activeShape";
+import { UuidMap } from "../../../../store/shapeMap";
+import { CircularToken } from "../../../shapes/variants/circularToken";
+import { Text } from "../../../shapes/variants/text";
 
 export default defineComponent({
     components: { ColourPicker },
@@ -64,14 +67,48 @@ export default defineComponent({
         }
 
         function setFillColour(colour: string, temporary = false): void {
-            console.log(colour);
             if (!owned.value) return;
             activeShapeStore.setFillColour(colour, temporary ? SyncTo.SHAPE : SyncTo.SERVER);
+        }
+
+        const hasValue = computed(() => {
+            if (activeShapeStore.state.type === undefined) return false;
+            return ["circulartoken", "text"].includes(activeShapeStore.state.type);
+        });
+
+        function getValue(): string {
+            if (activeShapeStore.state.uuid !== undefined) {
+                if (activeShapeStore.state.type === "circulartoken") {
+                    return (UuidMap.get(activeShapeStore.state.uuid) as CircularToken).text;
+                } else if (activeShapeStore.state.type === "text") {
+                    return (UuidMap.get(activeShapeStore.state.uuid) as Text).text;
+                }
+            }
+            return "";
+        }
+
+        function setValue(event: { target: HTMLInputElement }): void {
+            if (!owned.value) return;
+            if (activeShapeStore.state.uuid !== undefined) {
+                const shape = UuidMap.get(activeShapeStore.state.uuid);
+                if (activeShapeStore.state.type === "circulartoken") {
+                    (shape as CircularToken).setText(event.target.value, SyncMode.FULL_SYNC);
+                } else if (activeShapeStore.state.type === "text") {
+                    (shape as Text).setText(event.target.value, SyncMode.FULL_SYNC);
+                }
+                shape?.invalidate(true);
+            }
         }
 
         return {
             ...toRefs(activeShapeStore.state),
             owned: activeShapeStore.hasEditAccess,
+            t,
+
+            hasValue,
+            getValue,
+            setValue,
+
             setBlocksMovement,
             setBlocksVision,
             setDefeated,
@@ -80,7 +117,6 @@ export default defineComponent({
             setLocked,
             setStrokeColour,
             setToken,
-            t,
             toggleBadge,
             toggleNameVisible,
             updateName,
@@ -103,6 +139,17 @@ export default defineComponent({
             >
                 <font-awesome-icon icon="eye" />
             </div>
+        </div>
+        <div class="row" v-if="hasValue">
+            <label for="shapeselectiondialog-value" v-t="'common.value'"></label>
+            <input
+                type="text"
+                id="shapeselectiondialog-value"
+                :value="getValue()"
+                @change="setValue"
+                :disabled="!owned"
+            />
+            <div></div>
         </div>
         <div class="row">
             <label for="shapeselectiondialog-istoken" v-t="'game.ui.selection.edit_dialog.dialog.is_a_token'"></label>

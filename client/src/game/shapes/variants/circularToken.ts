@@ -2,8 +2,10 @@ import * as tinycolor from "tinycolor2";
 
 import { g2l, g2lz } from "../../../core/conversions";
 import { GlobalPoint } from "../../../core/geometry";
+import { SyncMode } from "../../../core/models/types";
 import { calcFontScale } from "../../../core/utils";
 import { clientStore } from "../../../store/client";
+import { sendCircularTokenUpdate } from "../../api/emits/shape/circularToken";
 import { ServerCircularToken } from "../../models/shapes";
 import { SHAPE_TYPE } from "../types";
 
@@ -29,6 +31,7 @@ export class CircularToken extends Circle {
         this.font = font;
         this.name = this.text;
     }
+
     asDict(): ServerCircularToken {
         return Object.assign(this.getBaseDict(), {
             radius: this.r,
@@ -37,6 +40,7 @@ export class CircularToken extends Circle {
             font: this.font,
         });
     }
+
     fromDict(data: ServerCircularToken): void {
         super.fromDict(data);
         this.r = data.radius;
@@ -44,6 +48,7 @@ export class CircularToken extends Circle {
         this.text = data.text;
         this.font = data.font;
     }
+
     draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
 
@@ -61,5 +66,12 @@ export class CircularToken extends Circle {
         ctx.fillText(this.text, 0, 0);
 
         super.drawPost(ctx);
+    }
+
+    setText(text: string, sync: SyncMode): void {
+        this.text = text;
+        if (sync !== SyncMode.NO_SYNC) {
+            sendCircularTokenUpdate({ uuid: this.uuid, text, temporary: sync === SyncMode.TEMP_SYNC });
+        }
     }
 }

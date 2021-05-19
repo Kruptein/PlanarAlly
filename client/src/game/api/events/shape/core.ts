@@ -7,7 +7,6 @@ import { Shape } from "../../../shapes/shape";
 import { deleteShapes } from "../../../shapes/utils";
 import { Circle } from "../../../shapes/variants/circle";
 import { Rect } from "../../../shapes/variants/rect";
-import { Text } from "../../../shapes/variants/text";
 import { addShape, moveFloor, moveLayer } from "../../../temp";
 import { socket } from "../../socket";
 
@@ -76,14 +75,6 @@ socket.on("Shapes.Layer.Change", (data: { uuids: string[]; floor: string; layer:
     const shapes = data.uuids.map((u) => UuidMap.get(u) ?? undefined).filter((s) => s !== undefined) as Shape[];
     if (shapes.length === 0) return;
     moveLayer(shapes, floorStore.getLayer(floorStore.getFloor({ name: data.floor })!, data.layer)!, false);
-});
-
-socket.on("Shape.Text.Value.Set", (data: { uuid: string; text: string }) => {
-    const shape = UuidMap.get(data.uuid) as Text | undefined;
-    if (shape === undefined) return;
-
-    shape.text = data.text;
-    shape.layer.invalidate(true);
 });
 
 socket.on("Shape.Rect.Size.Update", (data: { uuid: string; w: number; h: number }) => {

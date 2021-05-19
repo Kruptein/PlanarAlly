@@ -203,9 +203,6 @@ class InitiativeStore extends Store<InitiativeState> {
         if (effect === undefined) effect = getDefaultEffect();
         actor.effects.push(effect);
 
-        console.log(this._state.locationData[0].effects);
-        console.log(this._state.newData[0].effects);
-        console.log(this._state.locationData[0].effects === this._state.newData[0].effects);
         if (sync) sendInitiativeNewEffect({ actor: actor.shape, effect });
     }
 

@@ -16,6 +16,7 @@ These usually have no immediately visible impact on regular users
 -   Physical (mini) grid size
     -   Indicate grid size in function of mini dimensions and PPI
     -   Disables zoom tool when enabled
+-   Ability to edit the text value for CircularTokens and Text objects from the property settings
 -   [DM] Added ability to copy a location into another game session.
 -   [DM] The asset menu bar in-game now automatically live updates when changes are done in the asset manager
 -   [DM] Player viewport info

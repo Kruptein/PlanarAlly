@@ -1,6 +1,8 @@
 import { g2lz, l2gz } from "../../../core/conversions";
 import { addP, GlobalPoint, toGP, Vector } from "../../../core/geometry";
 import { rotateAroundPoint } from "../../../core/math";
+import { SyncMode } from "../../../core/models/types";
+import { sendTextUpdate } from "../../api/emits/shape/text";
 import { ServerText } from "../../models/shapes";
 import { Shape } from "../shape";
 import { SHAPE_TYPE } from "../types";
@@ -177,5 +179,12 @@ export class Text extends Shape {
             y += lineHeight;
         }
         return allLines;
+    }
+
+    setText(text: string, sync: SyncMode): void {
+        this.text = text;
+        if (sync !== SyncMode.NO_SYNC) {
+            sendTextUpdate({ uuid: this.uuid, text, temporary: sync === SyncMode.TEMP_SYNC });
+        }
     }
 }

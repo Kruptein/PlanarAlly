@@ -7,8 +7,10 @@ import "./events/location";
 import "./events/notification";
 import "./events/player";
 import "./events/room";
+import "./events/shape/circularToken";
 import "./events/shape/core";
 import "./events/shape/options";
+import "./events/shape/text";
 import "./events/shape/togglecomposite";
 
 import { toGP } from "../../core/geometry";

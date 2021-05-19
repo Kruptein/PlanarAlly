@@ -17,7 +17,6 @@ export const sendShapesMove =
         shapes: string[];
         target: { location: number; floor: string; x: number; y: number };
     }>("Shapes.Location.Move");
-export const sendTextUpdate = wrapSocket<{ uuid: string; text: string; temporary: boolean }>("Shape.Text.Value.Set");
 
 export function sendShapeOptionsUpdate(shapes: readonly Shape[], temporary: boolean): void {
     const options = shapes

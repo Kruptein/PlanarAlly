@@ -6,6 +6,7 @@ import { Logout } from "./auth/logout";
 import { baseAdjustedFetch } from "./core/utils";
 import Dashboard from "./dashboard/Dashboard.vue";
 import Game from "./game/Game.vue";
+import Invitation from "./invitation";
 import { handleNotifications } from "./notifications";
 import { coreStore } from "./store/core";
 import { BASE_PATH } from "./utils";
@@ -35,6 +36,13 @@ const routes: Array<RouteRecordRaw> = [
         path: "/dashboard",
         name: "dashboard",
         component: Dashboard,
+        meta: {
+            auth: true,
+        },
+    },
+    {
+        path: "/invite/:code",
+        component: Invitation,
         meta: {
             auth: true,
         },

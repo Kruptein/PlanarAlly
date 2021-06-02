@@ -46,10 +46,13 @@ class SpellTool extends Tool {
 
     constructor() {
         super();
-        watchEffect(() => {
-            if (this.state.size <= 0) this.state.size = 1;
-            if (this.shape !== undefined) this.drawShape();
-        });
+        watch(
+            () => this.state.size,
+            () => {
+                if (this.state.size <= 0) this.state.size = 1;
+                if (this.shape !== undefined) this.drawShape();
+            },
+        );
         watchEffect(() => {
             if (this.state.range < 0) this.state.range = 0;
             if (this.state.range > 0 && this.state.selectedSpellShape === SpellShape.Cone) {

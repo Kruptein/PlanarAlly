@@ -8,6 +8,8 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+## [0.27.0] - 2021-06-02
+
 ### Added
 
 -   HiDPI/retina support

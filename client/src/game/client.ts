@@ -2,6 +2,7 @@ import { toGP } from "../core/geometry";
 import { InvalidationMode, SyncMode } from "../core/models/types";
 import { uuidv4 } from "../core/utils";
 import { floorStore } from "../store/floor";
+import { gameStore } from "../store/game";
 import { UuidMap } from "../store/shapeMap";
 
 import { sendMoveClient } from "./api/emits/client";
@@ -26,7 +27,7 @@ export function moveClientRect(player: number, data: ServerUserLocationOptions):
             uuid,
         });
         rect.options.isPlayerRect = true;
-        rect.options.skipDraw = true;
+        rect.options.skipDraw = !(gameStore.state.players.find((p) => p.id === player)?.showRect ?? false);
         rect.preventSync = true;
         layer.addShape(rect, SyncMode.NO_SYNC, InvalidationMode.NO, false);
     }

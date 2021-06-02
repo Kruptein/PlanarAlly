@@ -55,6 +55,7 @@ These usually have no immediately visible impact on regular users
 -   [DM] Co-DM not seeing private initiatives
 -   [DM] Removing last floor giving a blank screen
 -   [DM] Removing floors below the active floor giving a blank screen
+-   [DM] Setting a value < 1 for unitSize was possible
 -   [tech] Building docker image on ARM
 
 ## [0.26.1] - 2021-03-15

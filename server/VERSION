@@ -1,60 +1,51 @@
-0.26.1
-
-### Fixed
-
--   A couple of database errors related to completely new servers
--   Markers context menu not working correctly after change
-
-# 0.26.0
+0.27.0
 
 ### Added
 
--   Client setting to disable zoom behaviour on scroll
--   Erase option to draw tool
-    -   This makes anything from the current floor below it in the draw stack in its region transparent
--   Big red border when disconnected
--   Option to make other players (co-)DM
--   Show a small info popup when trying to join a locked session
--   Option to load wall info from an accompanying svg file
--   Support for dungeondraft dd2vtt files
-    -   When placed on the board, a special 'apply ddraft' button is available in the extra settings to load the walls/portals/lights
--   Text shape to the draw tool
-    -   When you click somewhere, a modal will appear to ask for the text
--   Code to set a public hostname to be used when updating the invitation url by reading from server_config.cfg
-    "general -> public_name". If the public_name is empty or does not exists it falls back to normal operation.
--   Added code to planarally.py to display the warning about the template directory if not running in
-    dev mode.
--   Added ability to put a cross through tokens to mark them as defeated using a toggle in the token properties or by selecting them and pressing 'x'
+-   HiDPI/retina support
+    -   window.devicePixelRatio is now taken into account for rendering
+    -   Can be disabled from ClientSettings->Display
+-   Physical (mini) grid size
+    -   Indicate grid size in function of mini dimensions and PPI
+    -   Disables zoom tool when enabled
+-   Ability to edit the text value for CircularTokens and Text objects from the property settings
+-   [DM] Added ability to copy a location into another game session.
+-   [DM] The asset menu bar in-game now automatically live updates when changes are done in the asset manager
+-   [DM] Player viewport info
+    -   Show a rectangle on the DM layer representing the player current viewport
+    -   Moving this rectangle will live update the related player's view (only pan for now)
+    -   Can be toggled on from the DM settings
+-   [tech] API Server is now disabled by default and can be enabled through the server_config
 
 ### Changed
 
--   Client settings
-    -   Now open in a modal just like the DM settings
-    -   Now can be campaign-specific (with reset/make default options)
--   Spell cone icon is now filled
--   Ctrl keybindings now use Cmd on mac
--   OpenSans font is now loaded from the server itself instead of google fonts
--   Ruler size is now always the same size on your screen irregardles of zoom
--   Ping size is now always the same size on your screen irregardles of zoom
--   Dashboard redesign (page after login)
-    -   general UI overhaul
-    -   option to set a logo for a session
-    -   option to put personal notes
-    -   shows last playtime for your account
-    -   direct access to the asset manager
-    -   (asset manager and settings will at a later time be integrated)
-    -   Direct access to leave/delete campaigns
--   Loading animation is now dice related and 3d
+-   Initiative changes
+    -   UI changes
+        -   separate DM bar only visible to DM
+        -   camera/vision lock settings are moved to client settings
+        -   quick action to open client settings
+        -   delete button removed, now a hover action instead
+        -   more width for the initiative value
+        -   initiative value no longer looks like a default input field
+    -   Option to go back a turn
+    -   Option to wipe all existing initiatives
+    -   Option to change the sorting behaviour
+    -   Blur effect to make it clear that initiative is not yet synced
+    -   Enter can now be used to submit a new initiative value
+-   Ctrl/Cmd clicking on an already selected shape will now deselect it instead
+-   [DM] kicking a player now first prompts for confirmation
+-   [tech] server_config variable `public_name` is now commented by default
+-   [tech] removed dependencies from Dockefile, that were no longer needed
+-   [tech] A big rewrite/refactor of the client has been done.
 
 ### Fixed
 
--   It's no longer possible to create a floor with a name that is already in use
--   Token properly snaps to mouse when leaving wall
--   Template drops on non-default grid scales where not resized accordingly
--   Some cases where a disconnect would happen without reconnect attempts
--   Cause of slow session loading times
-    -   shape group info is now sent along during initial load
--   Shapes with a variant always appearing to other players
--   Context menus going offscreen
--   Navigating backwards (by mouse or with browser controls) not working
--   Global initiative remove popup when deleting group shape
+-   A bug related to floors and lighting on higher up floors not updating
+-   Reordering floors being rendered wrong until a refresh
+-   Redo not working on Mac
+-   Tracker bars with negative values showing a bar going to the left
+-   [DM] Co-DM not seeing private initiatives
+-   [DM] Removing last floor giving a blank screen
+-   [DM] Removing floors below the active floor giving a blank screen
+-   [DM] Setting a value < 1 for unitSize was possible
+-   [tech] Building docker image on ARM

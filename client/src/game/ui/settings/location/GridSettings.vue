@@ -45,7 +45,7 @@ export default defineComponent({
                 return settingsStore.getLocationOptions("unitSize", location.value);
             },
             set(unitSize: number) {
-                settingsStore.setUnitSize(unitSize, location.value, true);
+                if (unitSize >= 1) settingsStore.setUnitSize(unitSize, location.value, true);
             },
         });
 

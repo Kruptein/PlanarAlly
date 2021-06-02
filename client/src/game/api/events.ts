@@ -1,32 +1,39 @@
-import { AssetList, SyncMode } from "@/core/models/types";
-import "@/game/api/events/access";
-import "@/game/api/events/client";
-import "@/game/api/events/floor";
-import "@/game/api/events/groups";
-import "@/game/api/events/initiative";
-import "@/game/api/events/labels";
-import "@/game/api/events/location";
-import "@/game/api/events/notification";
-import "@/game/api/events/player";
-import "@/game/api/events/room";
-import "@/game/api/events/shape/core";
-import "@/game/api/events/shape/options";
-import "@/game/api/events/shape/togglecomposite";
-import { socket } from "@/game/api/socket";
-import { EventBus } from "@/game/event-bus";
-import { GlobalPoint } from "@/game/geom";
-import { layerManager } from "@/game/layers/manager";
-import { addFloor } from "@/game/layers/utils";
-import { gameManager } from "@/game/manager";
-import { Note, ServerFloor } from "@/game/models/general";
-import { gameStore } from "@/game/store";
-import { router } from "@/router";
+import "./events/access";
+import "./events/floor";
+import "./events/groups";
+import "./events/initiative";
+import "./events/labels";
+import "./events/location";
+import "./events/notification";
+import "./events/player";
+import "./events/room";
+import "./events/shape/circularToken";
+import "./events/shape/core";
+import "./events/shape/options";
+import "./events/shape/text";
+import "./events/shape/togglecomposite";
 
-import { coreStore } from "../../core/store";
-import { floorStore } from "../layers/store";
+import { toGP } from "../../core/geometry";
+import { AssetList, SyncMode } from "../../core/models/types";
+import { router } from "../../router";
+import { clientStore } from "../../store/client";
+import { coreStore } from "../../store/core";
+import { floorStore } from "../../store/floor";
+import { gameStore } from "../../store/game";
+import { locationStore } from "../../store/location";
+import { UuidMap } from "../../store/shapeMap";
+import { convertAssetListToMap } from "../assets/utils";
+import { startDrawLoop, stopDrawLoop } from "../draw";
+import { compositeState } from "../layers/state";
+import { Note, ServerFloor } from "../models/general";
 import { Location } from "../models/settings";
+import { setCenterPosition } from "../position";
 import { deleteShapes } from "../shapes/utils";
-import { visibilityStore } from "../visibility/store";
+import { initiativeStore } from "../ui/initiative/state";
+import { visionState } from "../vision/state";
+
+import { activeLayerToselect } from "./events/client";
+import { socket } from "./socket";
 
 // Core WS events
 
@@ -59,53 +66,53 @@ socket.on("redirect", (destination: string) => {
 // Bootup events
 
 socket.on("Board.Locations.Set", (locationInfo: Location[]) => {
+    stopDrawLoop();
     gameStore.clear();
-    visibilityStore.clear();
-    gameStore.setLocations({ locations: locationInfo, sync: false });
+    visionState.clear();
+    locationStore.setLocations(locationInfo, false);
     document.getElementById("layers")!.innerHTML = "";
-    floorStore.reset();
-    layerManager.reset();
-    EventBus.$emit("Initiative.Clear");
+    floorStore.clear();
+    compositeState.clear();
+    initiativeStore.clear();
 });
 
 socket.on("Board.Floor.Set", (floor: ServerFloor) => {
     // It is important that this condition is evaluated before the async addFloor call.
     // The very first floor that arrives is the one we want to select
     // When this condition is evaluated after the await, we are at the mercy of the async scheduler
-    const selectFloor = floorStore.floors.length === 0;
-    addFloor(floor);
+    const selectFloor = floorStore.state.floors.length === 0;
+    floorStore.addServerFloor(floor);
 
     if (selectFloor) {
-        floorStore.selectFloor({ targetFloor: floor.name, sync: false });
-        requestAnimationFrame(layerManager.drawLoop);
+        floorStore.selectFloor({ name: floor.name }, false);
+        startDrawLoop();
         coreStore.setLoading(false);
         gameStore.setBoardInitialized(true);
-        EventBus.$emit(`Board.Floor.Set`);
+        if (activeLayerToselect !== undefined) floorStore.selectLayer(activeLayerToselect, false);
     }
 });
 
 // Varia
 
 socket.on("Position.Set", (data: { floor?: string; x: number; y: number; zoom?: number }) => {
-    if (data.floor) floorStore.selectFloor({ targetFloor: data.floor, sync: false });
-    if (data.zoom) gameStore.setZoomDisplay(data.zoom);
-    gameManager.setCenterPosition(new GlobalPoint(data.x, data.y));
+    if (data.floor !== undefined) floorStore.selectFloor({ name: data.floor }, false);
+    if (data.zoom !== undefined) clientStore.setZoomDisplay(data.zoom);
+    setCenterPosition(toGP(data.x, data.y));
 });
 
 socket.on("Notes.Set", (notes: Note[]) => {
-    for (const note of notes) gameStore.newNote({ note, sync: false });
-});
-
-socket.on("Markers.Set", (markers: string[]) => {
-    for (const marker of markers) gameStore.newMarker({ marker, sync: false });
+    for (const note of notes) gameStore.newNote(note, false);
 });
 
 socket.on("Asset.List.Set", (assets: AssetList) => {
-    gameStore.setAssets(assets);
+    gameStore.setAssets(convertAssetListToMap(assets));
+});
+
+socket.on("Markers.Set", (markers: string[]) => {
+    for (const marker of markers) gameStore.newMarker(marker, false);
 });
 
 socket.on("Temp.Clear", (shapeIds: string[]) => {
-    // We use ! on the get here even though to silence the typechecker as we filter undefineds later.
-    const shapes = shapeIds.map((s) => layerManager.UUIDMap.get(s)!).filter((s) => s !== undefined);
+    const shapes = shapeIds.map((s) => UuidMap.get(s)!).filter((s) => s !== undefined);
     deleteShapes(shapes, SyncMode.NO_SYNC);
 });

@@ -1,53 +1,44 @@
 <script lang="ts">
-import Loading from "vue-loading-overlay";
-import { Component, Vue, Watch } from "vue-property-decorator";
-import { Route } from "vue-router";
-
-import "vue-loading-overlay/dist/vue-loading.css";
-import { coreStore } from "@/core/store";
+import { computed, defineComponent, ref, watch } from "vue";
+import { useRoute } from "vue-router";
 
 import { baseAdjust } from "./core/utils";
+import { coreStore } from "./store/core";
 import { BASE_PATH } from "./utils";
 
-@Component({
-    components: {
-        Loading,
+export default defineComponent({
+    name: "App",
+    setup() {
+        const route = useRoute();
+
+        const transitionName = ref("");
+        const webmError = ref(false);
+        const webmStart = 2 * Math.floor(Math.random() * 5);
+
+        const loading = computed(() => coreStore.state.loading);
+        const backgroundImage = `url('${BASE_PATH}static/img/login_background.png')`;
+
+        watch(
+            () => route.name,
+            (toRoute, fromRoute) => {
+                if (fromRoute === "login" && toRoute === "dashboard") {
+                    transitionName.value = "slide-left";
+                } else if (fromRoute === "dashboard" && toRoute === "login") {
+                    transitionName.value = "slide-right";
+                } else {
+                    transitionName.value = "";
+                }
+            },
+        );
+
+        return { backgroundImage, baseAdjust, loading, transitionName, webmError, webmStart };
     },
-})
-export default class App extends Vue {
-    transitionName = "";
-
-    webmError = false;
-    webmStart = 2 * Math.floor(Math.random() * 5);
-
-    get loading(): boolean {
-        return coreStore.loading;
-    }
-
-    get backgroundImage(): string {
-        return `url('${BASE_PATH}static/img/login_background.png')`;
-    }
-
-    baseAdjust(src: string): string {
-        return baseAdjust(src);
-    }
-
-    @Watch("$route")
-    onRouteChange(toRoute: Route, fromRoute: Route): void {
-        if (fromRoute.name === "login" && toRoute.name === "dashboard") {
-            this.transitionName = "slide-left";
-        } else if (fromRoute.name === "dashboard" && toRoute.name === "login") {
-            this.transitionName = "slide-right";
-        } else {
-            this.transitionName = "";
-        }
-    }
-}
+});
 </script>
 
 <template>
     <div id="app" :style="{ backgroundImage }">
-        <loading v-if="transitionName === ''" :active.sync="loading" :is-full-page="true">
+        <div id="loading" v-if="transitionName === '' && loading">
             <video
                 v-if="!webmError"
                 autoplay
@@ -59,14 +50,17 @@ export default class App extends Vue {
                 @error="webmError = true"
             />
             <img v-else :src="baseAdjust('/static/img/loading.gif')" style="height: 20vh" />
-        </loading>
-        <transition :name="transitionName" mode="out-in">
-            <router-view ref="activeComponent"></router-view>
-        </transition>
+        </div>
+        <router-view v-slot="{ Component }">
+            <transition :name="transitionName" mode="out-in">
+                <component :is="Component" />
+            </transition>
+        </router-view>
     </div>
 </template>
 
-<style>
+<style lang="scss">
+@import "vue-toastification/dist/index.css";
 @font-face {
     font-family: "Open Sans";
     src: local("OpenSans"), url("./core/fonts/OpenSans-Regular.ttf") format("truetype");
@@ -86,21 +80,33 @@ body,
     height: 100%;
     font-family: "Open Sans", sans-serif;
     font-weight: 200;
-}
 
-#app {
     display: flex;
     background-repeat: repeat;
     background-attachment: fixed;
+
+    #loading {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    svg {
+        cursor: pointer;
+    }
 }
 
-.toasted > svg:first-child {
-    margin-right: 0.7rem;
-}
-
-body .toasted-container.top-left {
-    top: 1%;
-    left: 3%;
+// don't move these inside the above or it will have higher specificity
+a,
+a:visited,
+a:hover,
+a:active {
+    color: inherit;
 }
 
 .slide-right-leave-active,

@@ -1,122 +1,127 @@
 <script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
+import { computed, defineComponent, reactive, toRefs } from "vue";
+import { useI18n } from "vue-i18n";
 
-import Modal from "@/core/components/modals/modal.vue";
-import { uuidv4 } from "@/core/utils";
-import { socket } from "@/game/api/socket";
-import { gameStore } from "@/game/store";
-
+import Modal from "../../core/components/modals/Modal.vue";
+import { uuidv4 } from "../../core/utils";
+import { clientStore } from "../../store/client";
+import { gameStore } from "../../store/game";
+import { sendLabelVisibility } from "../api/emits/labels";
 import { Label } from "../shapes/interfaces";
 
-@Component({
-    components: {
-        Modal,
-    },
-})
-export default class LabelManager extends Vue {
-    visible = false;
-    newCategory = "";
-    newName = "";
-    search = "";
+export default defineComponent({
+    components: { Modal },
+    emits: ["update:visible", "addLabel"],
+    props: { visible: { type: Boolean, required: true } },
+    setup(_, { emit }) {
+        const { t } = useI18n();
 
-    open(): void {
-        this.visible = true;
-        this.newCategory = "";
-        this.newName = "";
-        this.$nextTick(() => (this.$refs.search as HTMLInputElement).focus());
-    }
+        const state = reactive({
+            newCategory: "",
+            newName: "",
+            search: "",
+        });
 
-    get labels(): { [category: string]: Label[] } {
-        const cat: { [category: string]: Label[] } = { "": [] };
-        for (const uuid of Object.keys(gameStore.labels)) {
-            const label = gameStore.labels[uuid];
-            if (
-                this.search.length &&
-                `${label.category.toLowerCase()}${label.name.toLowerCase()}`.search(this.search.toLowerCase()) < 0
-            )
-                continue;
-            if (label.user !== gameStore.username) continue;
-            if (!label.category) cat[""].push(label);
-            else {
-                if (!(label.category in cat)) cat[label.category] = [];
-                cat[label.category].push(label);
-                cat[label.category].sort((a, b) => a.name.localeCompare(b.name));
-            }
+        function close(): void {
+            emit("update:visible", false);
         }
-        return cat;
-    }
 
-    get categories(): string[] {
-        return Object.keys(this.labels).sort();
-    }
+        const hasLabels = computed(() => gameStore.state.labels.size > 0);
 
-    selectLabel(label: string): void {
-        this.$emit("addLabel", label);
-        this.visible = false;
-    }
+        const categories = computed(() => {
+            const cat: Map<string, Label[]> = new Map();
+            cat.set("", []);
+            for (const label of gameStore.state.labels.values()) {
+                if (label.user !== clientStore.state.username) continue;
+                const fullName = `${label.category.toLowerCase()}${label.name.toLowerCase()}`;
+                if (state.search.length > 0 && fullName.search(state.search.toLowerCase()) < 0) {
+                    continue;
+                }
+                if (!label.category) {
+                    cat.get("")!.push(label);
+                } else {
+                    if (!cat.has(label.category)) {
+                        cat.set(label.category, []);
+                    }
+                    cat.get(label.category)!.push(label);
+                    cat.get(label.category)!.sort((a, b) => a.name.localeCompare(b.name));
+                }
+            }
+            return cat;
+        });
 
-    toggleVisibility(label: Label): void {
-        label.visible = !label.visible;
-        socket.emit("Label.Visibility.Set", { uuid: label.uuid, visible: label.visible });
-    }
+        function selectLabel(label: string): void {
+            emit("addLabel", label);
+            close();
+        }
 
-    addLabel(): void {
-        if (this.newName === "") return;
-        const label = {
-            uuid: uuidv4(),
-            category: this.newCategory,
-            name: this.newName,
-            visible: false,
-            user: gameStore.username,
+        function toggleVisibility(label: Label): void {
+            label.visible = !label.visible;
+            sendLabelVisibility({ uuid: label.uuid, visible: label.visible });
+        }
+
+        function addLabel(): void {
+            if (state.newName === "") return;
+            const label = {
+                uuid: uuidv4(),
+                category: state.newCategory,
+                name: state.newName,
+                visible: false,
+                user: clientStore.state.username,
+            };
+            gameStore.addLabel(label, true);
+            state.newCategory = "";
+            state.newName = "";
+        }
+
+        function deleteLabel(uuid: string): void {
+            gameStore.deleteLabel(uuid, true);
+        }
+
+        return {
+            ...toRefs(state),
+            t,
+            close,
+            hasLabels,
+            categories,
+            selectLabel,
+            addLabel,
+            toggleVisibility,
+            deleteLabel,
         };
-        gameStore.addLabel(label);
-        socket.emit("Label.Add", label);
-        this.newCategory = "";
-        this.newName = "";
-    }
-
-    deleteLabel(uuid: string): void {
-        gameStore.deleteLabel({ uuid, user: gameStore.username });
-        socket.emit("Label.Delete", uuid);
-    }
-}
+    },
+});
 </script>
 
 <template>
-    <Modal :visible="visible" @close="visible = false" :mask="false">
-        <div
-            class="modal-header"
-            slot="header"
-            slot-scope="m"
-            draggable="true"
-            @dragstart="m.dragStart"
-            @dragend="m.dragEnd"
-        >
-            <div v-t="'game.ui.LabelManager.title'"></div>
-            <div class="header-close" @click="visible = false" :title="$t('common.close')">
-                <font-awesome-icon :icon="['far', 'window-close']" />
+    <Modal :visible="visible" @close="close" :mask="false">
+        <template v-slot:header="m">
+            <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
+                <div v-t="'game.ui.LabelManager.title'"></div>
+                <div class="header-close" @click="close" :title="t('common.close')">
+                    <font-awesome-icon :icon="['far', 'window-close']" />
+                </div>
             </div>
-        </div>
+        </template>
         <div class="modal-body">
             <div class="grid">
                 <div>
-                    <abbr :title="$t('game.ui.LabelManager.category')" v-t="'game.ui.LabelManager.cat_abbr'"></abbr>
+                    <abbr :title="t('game.ui.LabelManager.category')" v-t="'game.ui.LabelManager.cat_abbr'"></abbr>
                 </div>
                 <div class="name" v-t="'common.name'"></div>
                 <div>
-                    <abbr :title="$t('game.ui.LabelManager.visible')" v-t="'game.ui.LabelManager.vis_abbr'"></abbr>
+                    <abbr :title="t('game.ui.LabelManager.visible')" v-t="'game.ui.LabelManager.vis_abbr'"></abbr>
                 </div>
                 <div>
-                    <abbr :title="$t('game.ui.LabelManager.delete')" v-t="'game.ui.LabelManager.del_abbr'"></abbr>
+                    <abbr :title="t('game.ui.LabelManager.delete')" v-t="'game.ui.LabelManager.del_abbr'"></abbr>
                 </div>
                 <div class="separator spanrow" style="margin: 0 0 7px"></div>
-                <input class="spanrow" type="text" :placeholder="$t('common.search')" v-model="search" ref="search" />
+                <input class="spanrow" type="text" :placeholder="t('common.search')" v-model="search" />
             </div>
             <div class="grid scroll">
-                <template v-for="category in categories">
-                    <template v-for="label in labels[category]">
-                        <div :key="'row-' + label.uuid" class="row" @click="selectLabel(label.uuid)">
+                <template v-for="labels of categories.values()">
+                    <template v-for="label of labels" :key="label.uuid">
+                        <div class="row" @click="selectLabel(label.uuid)">
                             <template v-if="label.category">
                                 <div :key="'cat-' + label.uuid">{{ label.category }}</div>
                                 <div class="name" :key="'name-' + label.uuid">{{ label.name }}</div>
@@ -130,21 +135,21 @@ export default class LabelManager extends Vue {
                                 :style="{ textAlign: 'center' }"
                                 :class="{ 'lower-opacity': !label.visible }"
                                 @click.stop="toggleVisibility(label)"
-                                :title="$t('common.toggle_public_private')"
+                                :title="t('common.toggle_public_private')"
                             >
                                 <font-awesome-icon icon="eye" />
                             </div>
                             <div
                                 :key="'delete-' + label.uuid"
                                 @click.stop="deleteLabel(label.uuid)"
-                                :title="$t('game.ui.LabelManager.delete_label')"
+                                :title="t('game.ui.LabelManager.delete_label')"
                             >
                                 <font-awesome-icon icon="trash-alt" />
                             </div>
                         </div>
                     </template>
                 </template>
-                <template v-if="Object.keys(labels).length === 0">
+                <template v-if="!hasLabels">
                     <div id="no-labels" v-t="'game.ui.LabelManager.no_exist_msg'"></div>
                 </template>
             </div>

@@ -1,33 +1,33 @@
 import "path-data-polyfill";
+import { addP, toArrayP, toGP, Vector } from "../core/geometry";
 
-import { GlobalPoint, Vector } from "./geom";
 import { Asset } from "./shapes/variants/asset";
 
 export function pathToArray(shape: Asset, path: SVGPathElement): number[][][] {
     const paths: number[][][] = [];
 
-    let currentLocation = new GlobalPoint(0, 0);
+    let currentLocation = toGP(0, 0);
     const pathData = (path as any).getPathData();
 
-    let points: number[][] = [];
+    let points: [number, number][] = [];
 
     const targetRP = shape.refPoint;
     const w = shape.w;
     const h = shape.h;
 
-    const dW = w / shape.options.get("svgWidth");
-    const dH = h / shape.options.get("svgHeight");
+    const dW = w / (shape.options.svgWidth ?? 1);
+    const dH = h / (shape.options.svgHeight ?? 1);
 
     for (const seg of pathData) {
         switch (seg.type) {
             case "Z": {
                 //ClosePath
-                currentLocation = GlobalPoint.fromArray(points[0]);
+                currentLocation = toGP(points[0]);
                 break;
             }
             case "M": {
                 //MoveToAbs
-                currentLocation = new GlobalPoint(targetRP.x + seg.values[0] * dW, targetRP.y + seg.values[1] * dH);
+                currentLocation = toGP(targetRP.x + seg.values[0] * dW, targetRP.y + seg.values[1] * dH);
                 break;
             }
             case "m": {
@@ -35,47 +35,47 @@ export function pathToArray(shape: Asset, path: SVGPathElement): number[][][] {
                 points.push(points[0]);
                 paths.push(points);
                 points = [];
-                currentLocation = currentLocation.add(new Vector(dW * seg.values[0], dH * seg.values[1]));
+                currentLocation = addP(currentLocation, new Vector(dW * seg.values[0], dH * seg.values[1]));
                 break;
             }
             case "L": {
                 //LineToAbs
-                currentLocation = new GlobalPoint(targetRP.x + dW * seg.values[0], targetRP.y + dH * seg.values[1]);
+                currentLocation = toGP(targetRP.x + dW * seg.values[0], targetRP.y + dH * seg.values[1]);
                 break;
             }
             case "l": {
                 //LineToRel
-                currentLocation = currentLocation.add(new Vector(dW * seg.values[0], dH * seg.values[1]));
+                currentLocation = addP(currentLocation, new Vector(dW * seg.values[0], dH * seg.values[1]));
                 break;
             }
             case "H": {
                 //LineToHorizontalAbs
-                currentLocation = new GlobalPoint(targetRP.x + dW * seg.values[0], targetRP.y + dH * currentLocation.y);
+                currentLocation = toGP(targetRP.x + dW * seg.values[0], targetRP.y + dH * currentLocation.y);
                 break;
             }
             case "h": {
                 // LineToHorizontalRel
-                currentLocation = currentLocation.add(new Vector(dW * seg.values[0], 0));
+                currentLocation = addP(currentLocation, new Vector(dW * seg.values[0], 0));
                 break;
             }
             case "V": {
                 // LineToVerticalAbs
-                currentLocation = new GlobalPoint(targetRP.x + dW * currentLocation.x, targetRP.y + dH * seg.values[0]);
+                currentLocation = toGP(targetRP.x + dW * currentLocation.x, targetRP.y + dH * seg.values[0]);
                 break;
             }
             case "v": {
                 // LineToVerticalRel
-                currentLocation = currentLocation.add(new Vector(0, dH * seg.values[0]));
+                currentLocation = addP(currentLocation, new Vector(0, dH * seg.values[0]));
                 break;
             }
             case "C": {
                 // bezier curve
-                currentLocation = new GlobalPoint(targetRP.x + seg.values[0] * dW, targetRP.y + seg.values[1] * dH);
+                currentLocation = toGP(targetRP.x + seg.values[0] * dW, targetRP.y + seg.values[1] * dH);
                 break;
             }
             case "c": {
                 // bezier curve
-                currentLocation = currentLocation.add(new Vector(dW * seg.values[4], dH * seg.values[5]));
+                currentLocation = addP(currentLocation, new Vector(dW * seg.values[4], dH * seg.values[5]));
                 break;
             }
             default: {
@@ -84,7 +84,7 @@ export function pathToArray(shape: Asset, path: SVGPathElement): number[][][] {
                 break;
             }
         }
-        points.push(currentLocation.asArray());
+        points.push(toArrayP(currentLocation));
     }
 
     paths.push(points);

@@ -1,36 +1,41 @@
 <script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
+import { computed, defineComponent, toRef } from "vue";
+import { useI18n } from "vue-i18n";
 
+import { clientStore } from "../../../../store/client";
 import { UserOptions } from "../../../models/settings";
-import { gameStore } from "../../../store";
 
-@Component
-export default class BehaviourSettings extends Vue {
-    get defaultOptions(): UserOptions {
-        return gameStore.defaultClientOptions;
-    }
+export default defineComponent({
+    setup() {
+        const { t } = useI18n();
 
-    get invertAlt(): boolean {
-        return gameStore.invertAlt;
-    }
+        const defaultOptions = toRef(clientStore.state, "defaultClientOptions");
 
-    set invertAlt(value: boolean) {
-        gameStore.setInvertAlt({ invertAlt: value, sync: true });
-    }
+        const invertAlt = computed({
+            get() {
+                return clientStore.state.invertAlt;
+            },
+            set(invertAlt: boolean) {
+                clientStore.setInvertAlt(invertAlt, true);
+            },
+        });
 
-    get disableScrollToZoom(): boolean {
-        return gameStore.disableScrollToZoom;
-    }
+        const disableScrollToZoom = computed({
+            get() {
+                return clientStore.state.disableScrollToZoom;
+            },
+            set(disableScrollToZoom: boolean) {
+                clientStore.setDisableScrollToZoom(disableScrollToZoom, true);
+            },
+        });
 
-    set disableScrollToZoom(value: boolean) {
-        gameStore.setDisableScrollToZoom({ disableScrollToZoom: value, sync: true });
-    }
+        function setDefault(key: keyof UserOptions): void {
+            clientStore.setDefaultClientOption(key, clientStore.state[key], true);
+        }
 
-    setDefault(key: keyof UserOptions): void {
-        gameStore.setDefaultClientOption({ key, value: gameStore[key], sync: true });
-    }
-}
+        return { t, defaultOptions, setDefault, invertAlt, disableScrollToZoom };
+    },
+});
 </script>
 
 <template>
@@ -40,10 +45,10 @@ export default class BehaviourSettings extends Vue {
             <label for="invertAlt" v-t="'game.ui.settings.client.BehaviourSettings.invert_alt_set'"></label>
             <div><input id="invertAlt" type="checkbox" v-model="invertAlt" /></div>
             <template v-if="invertAlt !== defaultOptions.invertAlt">
-                <div :title="$t('game.ui.settings.common.reset_default')" @click="invertAlt = defaultOptions.invertAlt">
+                <div :title="t('game.ui.settings.common.reset_default')" @click="invertAlt = defaultOptions.invertAlt">
                     <font-awesome-icon icon="times-circle" />
                 </div>
-                <div :title="$t('game.ui.settings.common.sync_default')" @click="setDefault('invertAlt')">
+                <div :title="t('game.ui.settings.common.sync_default')" @click="setDefault('invertAlt')">
                     <font-awesome-icon icon="sync-alt" />
                 </div>
             </template>
@@ -57,12 +62,12 @@ export default class BehaviourSettings extends Vue {
             <div><input id="disableScrollToZoom" type="checkbox" v-model="disableScrollToZoom" /></div>
             <template v-if="disableScrollToZoom !== defaultOptions.disableScrollToZoom">
                 <div
-                    :title="$t('game.ui.settings.common.reset_default')"
+                    :title="t('game.ui.settings.common.reset_default')"
                     @click="disableScrollToZoom = defaultOptions.disableScrollToZoom"
                 >
                     <font-awesome-icon icon="times-circle" />
                 </div>
-                <div :title="$t('game.ui.settings.common.sync_default')" @click="setDefault('disableScrollToZoom')">
+                <div :title="t('game.ui.settings.common.sync_default')" @click="setDefault('disableScrollToZoom')">
                     <font-awesome-icon icon="sync-alt" />
                 </div>
             </template>

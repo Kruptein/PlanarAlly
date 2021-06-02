@@ -1,119 +1,126 @@
 <script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
-import { Prop, Watch } from "vue-property-decorator";
+import { computed, defineComponent, onMounted, PropType, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 
-import AssetPicker from "@/core/components/modals/AssetPicker.vue";
-import ConfirmDialog from "@/core/components/modals/ConfirmDialog.vue";
-import Prompt from "@/core/components/modals/prompt.vue";
-
+import { useModal } from "../core/plugins/modals/plugin";
 import { baseAdjust, baseAdjustedFetch, deleteFetch, patchFetch } from "../core/utils";
 
 import { RoomInfo } from "./types";
 
-@Component({ components: { AssetPicker, ConfirmDialog, Prompt } })
-export default class SessionList extends Vue {
-    @Prop() sessions!: RoomInfo[];
-    @Prop() dmMode!: boolean;
-    $refs!: {
-        assetPicker: AssetPicker;
-        confirm: ConfirmDialog;
-        prompt: Prompt;
-    };
+export default defineComponent({
+    props: {
+        dmMode: { type: Boolean, required: true },
+        sessions: { type: Object as PropType<RoomInfo[]>, required: true },
+    },
+    setup(props, { emit }) {
+        const { t } = useI18n();
+        const modals = useModal();
 
-    notes = "";
-    lastPlayed?: string = "";
-    private selectedIndex = 0;
+        const notes = ref("");
+        const lastPlayed = ref("");
+        const selectedIndex = ref(0);
 
-    @Watch("selected")
-    async onSelectedChange(): Promise<void> {
-        await this.updateInfo();
-    }
-
-    get selected(): RoomInfo | undefined {
-        if (this.sessions.length <= this.selectedIndex) return undefined;
-        return this.sessions[this.selectedIndex];
-    }
-
-    async select(index: number): Promise<void> {
-        this.selectedIndex = index;
-        await this.updateInfo();
-    }
-
-    private async updateInfo(): Promise<void> {
-        const response = await baseAdjustedFetch(`/api/rooms/${this.selected!.creator}/${this.selected!.name}/info`);
-        const data = await response.json();
-        this.notes = data.notes;
-        this.lastPlayed = data.last_played;
-    }
-
-    baseAdjust(src: string): string {
-        return baseAdjust(src);
-    }
-
-    async rename(): Promise<void> {
-        if (this.selected === undefined) return;
-
-        const name = await this.$refs.prompt.prompt(
-            "What should the new name be for this session?",
-            this.$t("common.rename").toString(),
-            (val) => ({
-                valid: !this.sessions.some((s) => s.name === val),
-                reason: this.$t("common.name_already_in_use").toString(),
-            }),
-        );
-        if (name === undefined) return;
-        const success = await patchFetch(`/api/rooms/${this.selected.creator}/${this.selected.name}`, { name });
-        if (success.ok) {
-            this.$emit("rename", this.selectedIndex, name);
-        }
-    }
-
-    async setLogo(): Promise<void> {
-        if (this.selected === undefined) return;
-
-        const data = await this.$refs.assetPicker.open();
-        if (data === undefined) return;
-        const success = await patchFetch(`/api/rooms/${this.selected.creator}/${this.selected.name}`, {
-            logo: data.id,
+        const selected = computed(() => {
+            if (props.sessions.length <= selectedIndex.value) return undefined;
+            return props.sessions[selectedIndex.value];
         });
-        if (success.ok) {
-            this.$emit("update-logo", this.selectedIndex, data.file_hash);
-        }
-    }
 
-    async setNotes(event: { target: HTMLTextAreaElement }): Promise<void> {
-        const text = event.target.value;
-        const success = await patchFetch(`/api/rooms/${this.selected!.creator}/${this.selected!.name}/info`, {
-            notes: text,
+        // This is neded for the Create tab that is mounted later
+        onMounted(async () => {
+            if (props.sessions.length > 0) await updateInfo();
         });
-        if (success.ok) {
-            this.notes = text;
-        }
-    }
+        // This is needed for the Play tab that is immediately mounted without props.sessions
+        watch(selected, async () => updateInfo());
 
-    async leaveOrDelete(): Promise<void> {
-        if (this.selected === undefined) return;
-
-        const actionWord = this.dmMode ? "Removing" : "Leaving";
-        const answer = await this.$refs.confirm.open(`${actionWord} ${this.selected.name}!`, "Are you sure?", {
-            showNo: false,
-        });
-        if (answer === undefined) return;
-        const response = await deleteFetch(`/api/rooms/${this.selected.creator}/${this.selected.name}`);
-        if (response.ok) {
-            this.$emit("remove-room", this.selectedIndex);
+        async function select(index: number): Promise<void> {
+            selectedIndex.value = index;
+            await updateInfo();
         }
-    }
-}
+
+        async function updateInfo(): Promise<void> {
+            const response = await baseAdjustedFetch(
+                `/api/rooms/${selected.value!.creator}/${selected.value!.name}/info`,
+            );
+            const data = await response.json();
+            notes.value = data.notes;
+            lastPlayed.value = data.last_played;
+        }
+
+        async function rename(): Promise<void> {
+            if (selected.value === undefined) return;
+
+            const name = await modals.prompt(
+                "What should the new name be for this session?",
+                t("common.rename").toString(),
+                (val) => ({
+                    valid: !props.sessions.some((s) => s.name === val),
+                    reason: t("common.name_already_in_use").toString(),
+                }),
+            );
+            if (name === undefined) return;
+            const success = await patchFetch(`/api/rooms/${selected.value.creator}/${selected.value.name}`, { name });
+            if (success.ok) {
+                emit("rename", selectedIndex.value, name);
+            }
+        }
+
+        async function setLogo(): Promise<void> {
+            if (selected.value === undefined) return;
+
+            const data = await modals.assetPicker();
+            if (data === undefined) return;
+            const success = await patchFetch(`/api/rooms/${selected.value.creator}/${selected.value.name}`, {
+                logo: data.id,
+            });
+            if (success.ok) {
+                emit("update-logo", selectedIndex.value, data.file_hash);
+            }
+        }
+
+        async function setNotes(event: { target: HTMLTextAreaElement }): Promise<void> {
+            if (selected.value === undefined) return;
+
+            const text = event.target.value;
+            const success = await patchFetch(`/api/rooms/${selected.value.creator}/${selected.value.name}/info`, {
+                notes: text,
+            });
+            if (success.ok) {
+                notes.value = text;
+            }
+        }
+
+        async function leaveOrDelete(): Promise<void> {
+            if (selected.value === undefined) return;
+
+            const actionWord = props.dmMode ? "Removing" : "Leaving";
+            const answer = await modals.confirm(`${actionWord} ${selected.value.name}!`, "Are you sure?", {
+                showNo: false,
+            });
+            if (answer !== true) return;
+            const response = await deleteFetch(`/api/rooms/${selected.value.creator}/${selected.value.name}`);
+            if (response.ok) {
+                emit("remove-room", selectedIndex.value);
+            }
+        }
+
+        return {
+            baseAdjust,
+            lastPlayed,
+            leaveOrDelete,
+            notes,
+            rename,
+            select,
+            selected,
+            selectedIndex,
+            setLogo,
+            setNotes,
+        };
+    },
+});
 </script>
 
 <template>
     <div id="content">
-        <AssetPicker ref="assetPicker" />
-        <ConfirmDialog ref="confirm" />
-        <Prompt ref="prompt" />
-
         <div v-if="sessions.length === 0" id="empty">
             <img :src="baseAdjust('/static/img/d20-fail.svg')" />
             <div class="padding bold">OOF, That's a critical one!</div>
@@ -127,6 +134,7 @@ export default class SessionList extends Vue {
 
         <div v-else id="sessions">
             <div v-for="(room, i) in sessions" :key="i" :class="{ selected: i === selectedIndex }" @click="select(i)">
+                <div class="name">{{ room.name }}</div>
                 <div class="logo">
                     <img :src="baseAdjust(room.logo ? `/static/assets/${room.logo}` : '/static/img/d20.svg')" />
                     <router-link
@@ -138,7 +146,6 @@ export default class SessionList extends Vue {
                     </router-link>
                     <div v-else class="launch"><font-awesome-icon icon="lock" /></div>
                 </div>
-                <div class="name">{{ room.name }}</div>
             </div>
         </div>
         <div id="details" v-if="selected">
@@ -220,6 +227,8 @@ export default class SessionList extends Vue {
 
         > div {
             display: flex;
+            // This prevents us from having to deal with z-indices
+            flex-direction: row-reverse;
             justify-content: center;
             align-items: center;
             min-height: 0;
@@ -279,7 +288,6 @@ export default class SessionList extends Vue {
                 align-items: center;
 
                 background-color: white;
-                z-index: 5;
 
                 img {
                     width: 7em;

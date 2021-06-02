@@ -9,13 +9,15 @@ from api.socket.constants import GAME_NS
 from app import app, sio
 from models import (
     Floor,
-    InitiativeLocationData,
+    Initiative,
+    Layer,
     Location,
     LocationOptions,
     LocationUserOption,
     Marker,
     Note,
     PlayerRoom,
+    Room,
     Shape,
 )
 from models.asset import Asset
@@ -23,8 +25,6 @@ from models.label import Label, LabelSelection
 from models.role import Role
 from state.game import game_state
 from utils import logger
-
-from .initiative import send_client_initiatives
 
 from config import config
 
@@ -63,6 +63,11 @@ class LocationChangeData(TypedDict):
 class LocationRenameData(TypedDict):
     location: int
     name: str
+
+
+class LocationCloneData(TypedDict):
+    location: int
+    room: str
 
 
 @sio.on("Location.Load", namespace=GAME_NS)
@@ -166,17 +171,10 @@ async def load_location(sid: str, location: Location, *, complete=False):
 
     # 6. Load Initiative
 
-    location_data = InitiativeLocationData.get_or_none(location=location)
+    location_data = Initiative.get_or_none(location=location)
     if location_data:
-        await send_client_initiatives(pr, pr.player)
         await sio.emit(
-            "Initiative.Round.Update",
-            location_data.round,
-            room=sid,
-            namespace=GAME_NS,
-        )
-        await sio.emit(
-            "Initiative.Turn.Set", location_data.turn, room=sid, namespace=GAME_NS
+            "Initiative.Set", location_data.as_dict(), room=sid, namespace=GAME_NS
         )
 
     # 7. Load labels
@@ -356,6 +354,43 @@ async def add_new_location(sid: str, location: str):
         await load_location(psid, new_location)
     pr.active_location = new_location
     pr.save()
+
+
+@sio.on("Location.Clone", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def clone_location(sid: str, data: LocationCloneData):
+    pr: PlayerRoom = game_state.get(sid)
+    if pr.role != Role.DM:
+        logger.warning(f"{pr.player.name} attempted to clone locations.")
+        return
+    try:
+        room = Room.select().where(
+            (Room.name == data["room"]) & (Room.creator == pr.player)
+        )[0]
+    except IndexError:
+        logger.warning(f"Destination room {data['room']} not found.")
+        return
+
+    src_location = Location.get_by_id(data["location"])
+    new_location = Location.create(
+        room=room, name=src_location.name, index=room.locations.count()
+    )
+
+    new_groups = {}
+
+    for prev_floor in src_location.floors.order_by(Floor.index):
+        new_floor = new_location.create_floor(prev_floor.name)
+        for prev_layer in prev_floor.layers:
+            new_layer = new_floor.layers.where(Layer.name == prev_layer.name).get()
+            for src_shape in prev_layer.shapes:
+                new_group = None
+                if src_shape.group:
+                    group_id = src_shape.group.uuid
+                    if group_id not in new_groups:
+                        new_groups[group_id] = src_shape.group.make_copy()
+                    new_group = new_groups[group_id]
+
+                src_shape.make_copy(new_layer, new_group)
 
 
 @sio.on("Locations.Order.Set", namespace=GAME_NS)

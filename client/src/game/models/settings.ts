@@ -1,3 +1,5 @@
+import { InitiativeEffectMode } from "./initiative";
+
 export interface ServerLocationOptions {
     use_grid: boolean;
     grid_type: string;
@@ -44,6 +46,9 @@ export interface ServerClient {
 export interface ServerUserLocationOptions {
     pan_x: number;
     pan_y: number;
+    client_w: number;
+    client_h: number;
+    zoom_display: number;
     zoom_factor: number;
     active_floor?: string;
     active_layer?: string;
@@ -53,18 +58,42 @@ export interface ServerUserOptions {
     grid_colour: string;
     fow_colour: string;
     ruler_colour: string;
+
     invert_alt: boolean;
-    grid_size: number;
     disable_scroll_to_zoom: boolean;
+
+    use_high_dpi: boolean;
+    grid_size: number;
+    use_as_physical_board: boolean;
+    mini_size: number;
+    ppi: number;
+
+    initiative_camera_lock: boolean;
+    initiative_vision_lock: boolean;
+    initiative_effect_visibility: InitiativeEffectMode;
 }
 
 export interface UserOptions {
+    // Appearance
     gridColour: string;
     fowColour: string;
     rulerColour: string;
+
+    // Behaviour
     invertAlt: boolean;
-    gridSize: number;
     disableScrollToZoom: boolean;
+
+    // Display
+    useHighDpi: boolean;
+    useAsPhysicalBoard: boolean;
+    gridSize: number;
+    miniSize: number;
+    ppi: number;
+
+    // Initiative
+    initiativeCameraLock: boolean;
+    initiativeVisionLock: boolean;
+    initiativeEffectVisibility: InitiativeEffectMode;
 }
 
 export const optionsToClient = (options: ServerLocationOptions): LocationOptions => ({
@@ -85,8 +114,18 @@ export const optionsToClient = (options: ServerLocationOptions): LocationOptions
 export const userOptionsToClient = (options: ServerUserOptions): UserOptions => ({
     fowColour: options.fow_colour,
     gridColour: options.grid_colour,
-    gridSize: options.grid_size,
-    invertAlt: options.invert_alt,
     rulerColour: options.ruler_colour,
+
+    invertAlt: options.invert_alt,
     disableScrollToZoom: options.disable_scroll_to_zoom,
+
+    useHighDpi: options.use_high_dpi,
+    gridSize: options.grid_size,
+    useAsPhysicalBoard: options.use_as_physical_board,
+    miniSize: options.mini_size,
+    ppi: options.ppi,
+
+    initiativeCameraLock: options.initiative_camera_lock,
+    initiativeVisionLock: options.initiative_vision_lock,
+    initiativeEffectVisibility: options.initiative_effect_visibility,
 });

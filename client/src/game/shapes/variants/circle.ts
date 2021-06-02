@@ -1,13 +1,13 @@
-import { GlobalPoint, Vector } from "@/game/geom";
-import { ServerCircle } from "@/game/models/shapes";
-import { Shape } from "@/game/shapes/shape";
-import { BoundingRect } from "@/game/shapes/variants/boundingrect";
-import { calculateDelta } from "@/game/ui/tools/utils";
-import { clampGridLine, g2lz } from "@/game/units";
-import { getFogColour } from "@/game/utils";
-
-import { DEFAULT_GRID_SIZE } from "../../store";
+import { g2lz, clampGridLine } from "../../../core/conversions";
+import { addP, GlobalPoint, subtractP, toGP, Vector } from "../../../core/geometry";
+import { DEFAULT_GRID_SIZE } from "../../../store/client";
+import { getFogColour } from "../../colour";
+import { calculateDelta } from "../../drag";
+import { ServerCircle } from "../../models/shapes";
+import { Shape } from "../shape";
 import { SHAPE_TYPE } from "../types";
+
+import { BoundingRect } from "./boundingRect";
 
 export class Circle extends Shape {
     type: SHAPE_TYPE = "circle";
@@ -25,6 +25,10 @@ export class Circle extends Shape {
         this.viewingAngle = options?.viewingAngle ?? null;
     }
 
+    get isClosed(): boolean {
+        return true;
+    }
+
     asDict(): ServerCircle {
         return Object.assign(this.getBaseDict(), {
             radius: this.r,
@@ -39,14 +43,10 @@ export class Circle extends Shape {
     }
 
     getBoundingBox(): BoundingRect {
-        return new BoundingRect(
-            new GlobalPoint(this.refPoint.x - this.r, this.refPoint.y - this.r),
-            this.r * 2,
-            this.r * 2,
-        );
+        return new BoundingRect(toGP(this.refPoint.x - this.r, this.refPoint.y - this.r), this.r * 2, this.r * 2);
     }
 
-    get points(): number[][] {
+    get points(): [number, number][] {
         return this.getBoundingBox().points;
     }
 
@@ -116,7 +116,7 @@ export class Circle extends Shape {
             targetY = Math.round((this.refPoint.y - gs / 2) / gs) * gs + this.r;
         }
         const delta = calculateDelta(new Vector(targetX - this.refPoint.x, targetY - this.refPoint.y), this);
-        this.refPoint = this.refPoint.add(delta);
+        this.refPoint = addP(this.refPoint, delta);
         this.invalidate(false);
     }
     resizeToGrid(): void {
@@ -125,7 +125,7 @@ export class Circle extends Shape {
         this.invalidate(false);
     }
     resize(resizePoint: number, point: GlobalPoint): number {
-        const diff = point.subtract(this.refPoint);
+        const diff = subtractP(point, this.refPoint);
         this.r = Math.sqrt(Math.pow(diff.length(), 2) / 2);
         return resizePoint;
     }

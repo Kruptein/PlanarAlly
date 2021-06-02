@@ -375,6 +375,25 @@ async def move_shapes(sid: str, data: ServerShapeLocationMove):
         )
 
 
+@sio.on("Shape.CircularToken.Value.Set", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def set_circular_token_value(sid: str, data: TextUpdateData):
+    pr: PlayerRoom = game_state.get(sid)
+
+    if not data["temporary"]:
+        shape: CircularToken = CircularToken.get_by_id(data["uuid"])
+        shape.text = data["text"]
+        shape.save()
+
+    await sio.emit(
+        "Shape.CircularToken.Value.Set",
+        data,
+        room=pr.active_location.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )
+
+
 @sio.on("Shape.Text.Value.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def set_text_value(sid: str, data: TextUpdateData):

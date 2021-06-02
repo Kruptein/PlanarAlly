@@ -1,74 +1,54 @@
 <script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
-import { ToastObject } from "vue-toasted";
+import { defineComponent, reactive, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useToast } from "vue-toastification";
 
-import AssetPicker from "@/core/components/modals/AssetPicker.vue";
-
-import { coreStore } from "../core/store";
+import { useModal } from "../core/plugins/modals/plugin";
 import { baseAdjust, postFetch } from "../core/utils";
+import { coreStore } from "../store/core";
 
-@Component({ components: { AssetPicker } })
-export default class CreateCampaign extends Vue {
-    $refs!: {
-        assetPicker: AssetPicker;
-    };
+export default defineComponent({
+    name: "CreateCampaign",
+    setup() {
+        const modals = useModal();
+        const router = useRouter();
+        const toast = useToast();
 
-    name = "";
-    logo: { path: string; id: number } = { path: "", id: -1 };
+        const name = ref("");
+        const logo = reactive({ path: "", id: -1 });
 
-    baseAdjust(src: string): string {
-        return baseAdjust(src);
-    }
-
-    async setLogo(): Promise<void> {
-        const data = await this.$refs.assetPicker.open();
-        if (data === undefined) return;
-        this.logo = {
-            path: data.file_hash!,
-            id: data.id,
-        };
-    }
-
-    async create(): Promise<void> {
-        if (this.name === "") {
-            this.errorToast("Fill in a name!");
-            return;
+        async function create(): Promise<void> {
+            if (name.value === "") {
+                toast.error("Fill in a name!");
+                return;
+            }
+            const response = await postFetch("/api/rooms", {
+                name: name.value,
+                logo: logo.id,
+            });
+            if (response.ok) {
+                router.push(`/game/${encodeURIComponent(coreStore.state.username)}/${encodeURIComponent(name.value)}`);
+            } else if (response.statusText === "Conflict") {
+                toast.error("A campaign with that name already exists!");
+            } else {
+                toast.error("An unknown error occured :(");
+            }
         }
-        const response = await postFetch("/api/rooms", {
-            name: this.name,
-            logo: this.logo.id,
-        });
-        if (response.ok) {
-            this.$router.push(`/game/${encodeURIComponent(coreStore.username)}/${encodeURIComponent(this.name)}`);
-        } else if (response.statusText === "Conflict") {
-            this.errorToast("A campaign with that name already exists!");
-        } else {
-            this.errorToast("An unknown error occured :(");
-        }
-    }
 
-    private errorToast(text: string): void {
-        this.$toasted.error(text, {
-            position: "bottom-right",
-            icon: "exclamation",
-            action: [
-                {
-                    text: "close",
-                    class: "black",
-                    onClick: (e: HTMLElement, t: ToastObject) => {
-                        t.goAway(0);
-                    },
-                },
-            ],
-        });
-    }
-}
+        async function setLogo(): Promise<void> {
+            const data = await modals.assetPicker();
+            if (data === undefined || data.file_hash === undefined) return;
+            logo.path = data.file_hash;
+            logo.id = data.id;
+        }
+
+        return { baseAdjust, create, logo, name, setLogo };
+    },
+});
 </script>
 
 <template>
     <div id="content">
-        <AssetPicker ref="assetPicker" />
         <div class="title">Create a new campaign</div>
         <div class="input">
             <div class="logo">

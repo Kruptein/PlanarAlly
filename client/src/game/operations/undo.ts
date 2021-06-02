@@ -1,11 +1,13 @@
+import { GlobalPoint, toGP, Vector } from "../../core/geometry";
 import { SyncMode } from "../../core/models/types";
-import { EventBus } from "../event-bus";
-import { GlobalPoint, Vector } from "../geom";
-import { layerManager } from "../layers/manager";
-import { moveFloor, moveLayer } from "../layers/utils";
-import { gameManager } from "../manager";
+import { floorStore } from "../../store/floor";
+import { UuidMap } from "../../store/shapeMap";
+import { LayerName } from "../models/floor";
 import { ServerShape } from "../models/shapes";
+import { ISelectTool, ToolName } from "../models/tools";
 import { deleteShapes } from "../shapes/utils";
+import { addShape, moveFloor, moveLayer } from "../temp";
+import { toolMap } from "../tools/tools";
 
 import { Operation, ShapeMovementOperation, ShapeRotationOperation } from "./model";
 import { moveShapes } from "./movement";
@@ -82,57 +84,57 @@ function handleOperation(direction: "undo" | "redo"): void {
 }
 
 function handleMovement(shapes: ShapeMovementOperation[], direction: "undo" | "redo"): void {
-    const fullShapes = shapes.map((s) => layerManager.UUIDMap.get(s.uuid)!);
-    let delta = Vector.fromPoints(GlobalPoint.fromArray(shapes[0].to), GlobalPoint.fromArray(shapes[0].from));
+    const fullShapes = shapes.map((s) => UuidMap.get(s.uuid)!);
+    let delta = Vector.fromPoints(toGP(shapes[0].to), toGP(shapes[0].from));
     if (direction === "redo") delta = delta.reverse();
     moveShapes(fullShapes, delta, true);
-    EventBus.$emit("Select.RotationHelper.Reset");
+    (toolMap[ToolName.Select] as ISelectTool).resetRotationHelper();
 }
 
 function handleRotation(shapes: ShapeRotationOperation[], center: GlobalPoint, direction: "undo" | "redo"): void {
-    const fullShapes = shapes.map((s) => layerManager.UUIDMap.get(s.uuid)!);
+    const fullShapes = shapes.map((s) => UuidMap.get(s.uuid)!);
     let angle = shapes[0].from - shapes[0].to;
     if (direction === "redo") angle *= -1;
     rotateShapes(fullShapes, angle, center, true);
-    EventBus.$emit("Select.RotationHelper.Reset");
+    (toolMap[ToolName.Select] as ISelectTool).resetRotationHelper();
 }
 
 function handleResize(
     uuid: string,
-    fromPoint: number[],
-    toPoint: number[],
+    fromPoint: [number, number],
+    toPoint: [number, number],
     resizePoint: number,
     retainAspectRatio: boolean,
     direction: "undo" | "redo",
 ): void {
-    const shape = layerManager.UUIDMap.get(uuid)!;
+    const shape = UuidMap.get(uuid)!;
     const targetPoint = direction === "undo" ? fromPoint : toPoint;
-    resizeShape(shape, GlobalPoint.fromArray(targetPoint), resizePoint, retainAspectRatio, false);
+    resizeShape(shape, toGP(targetPoint), resizePoint, retainAspectRatio, false);
 }
 
 function handleFloorMove(shapes: string[], from: number, to: number, direction: "undo" | "redo"): void {
-    const fullShapes = shapes.map((s) => layerManager.UUIDMap.get(s)!);
+    const fullShapes = shapes.map((s) => UuidMap.get(s)!);
     let floorId = from;
     if (direction === "redo") floorId = to;
-    const floor = layerManager.getFloor(floorId)!;
+    const floor = floorStore.getFloor({ id: floorId })!;
     moveFloor(fullShapes, floor, true);
 }
 
-function handleLayerMove(shapes: string[], from: string, to: string, direction: "undo" | "redo"): void {
-    const fullShapes = shapes.map((s) => layerManager.UUIDMap.get(s)!);
+function handleLayerMove(shapes: string[], from: LayerName, to: LayerName, direction: "undo" | "redo"): void {
+    const fullShapes = shapes.map((s) => UuidMap.get(s)!);
     let layerName = from;
     if (direction === "redo") layerName = to;
-    const floor = layerManager.getFloor(fullShapes[0].floor.id)!;
-    const layer = layerManager.getLayer(floor, layerName)!;
+    const floor = floorStore.getFloor({ id: fullShapes[0].floor.id })!;
+    const layer = floorStore.getLayer(floor, layerName)!;
     moveLayer(fullShapes, layer, true);
 }
 
 function handleShapeRemove(shapes: ServerShape[], direction: "undo" | "redo"): void {
     if (direction === "undo") {
-        for (const shape of shapes) gameManager.addShape(shape, SyncMode.FULL_SYNC);
+        for (const shape of shapes) addShape(shape, SyncMode.FULL_SYNC);
     } else {
         deleteShapes(
-            shapes.map((s) => layerManager.UUIDMap.get(s.uuid)!),
+            shapes.map((s) => UuidMap.get(s.uuid)!),
             SyncMode.FULL_SYNC,
         );
     }

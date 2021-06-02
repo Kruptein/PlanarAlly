@@ -1,494 +1,89 @@
 <script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
+import { computed, defineComponent } from "vue";
+import { useI18n } from "vue-i18n";
 
-import { EventBus } from "@/game/event-bus";
-import { layerManager } from "@/game/layers/manager";
-import { floorStore } from "@/game/layers/store";
-import { gameStore } from "@/game/store";
-import ShapeContext from "@/game/ui/selection/ShapeContext.vue";
-import DefaultContext from "@/game/ui/tools/DefaultContext.vue";
-import DrawTool from "@/game/ui/tools/DrawTool.vue";
-import FilterTool from "@/game/ui/tools/FilterTool.vue";
-import MapTool from "@/game/ui/tools/MapTool.vue";
-import PanTool from "@/game/ui/tools/PanTool.vue";
-import PingTool from "@/game/ui/tools/PingTool.vue";
-import RulerTool from "@/game/ui/tools/RulerTool.vue";
-import SelectTool, { SelectFeatures } from "@/game/ui/tools/SelectTool.vue";
-import VisionTool from "@/game/ui/tools/VisionTool.vue";
-import { l2g } from "@/game/units";
-import { getLocalPointFromEvent } from "@/game/utils";
+import { gameStore } from "../../../store/game";
+import { ToolMode, ToolName } from "../../models/tools";
+import { activeModeTools, activeTool, activeToolMode, dmTools, toggleActiveMode, toolMap } from "../../tools/tools";
 
-import Annotation from "../Annotation.vue";
-import UI from "../ui.vue";
-
+import DrawTool from "./DrawTool.vue";
+import FilterTool from "./FilterTool.vue";
+import MapTool from "./MapTool.vue";
+import RulerTool from "./RulerTool.vue";
+import SelectTool from "./SelectTool.vue";
 import SpellTool from "./SpellTool.vue";
-import Tool from "./Tool.vue";
-import { ToolName, ToolFeatures } from "./utils";
+import VisionTool from "./VisionTool.vue";
 
-@Component({
-    components: {
-        Annotation,
-        DefaultContext,
-        DrawTool,
-        FilterTool,
-        MapTool,
-        PanTool,
-        PingTool,
-        RulerTool,
-        SelectTool,
-        ShapeContext,
-        SpellTool,
-        VisionTool,
-    },
-    watch: {
-        currentTool(newValue: ToolName, oldValue: ToolName) {
-            const old = (this as Tools).componentMap[oldValue];
-            old.selected = false;
-            old.onDeselect();
-            const new_ = (this as Tools).componentMap[newValue];
-            new_.selected = true;
-            new_.onSelect();
-        },
-    },
-})
-export default class Tools extends Vue {
-    $parent!: UI;
-    $refs!: {
-        selectTool: SelectTool;
-        panTool: PanTool;
-        drawTool: DrawTool;
-        rulerTool: RulerTool;
-        pingTool: PingTool;
-        mapTool: MapTool;
-        filterTool: FilterTool;
-        visionTool: VisionTool;
-        spellTool: SpellTool;
+export default defineComponent({
+    components: { DrawTool, FilterTool, MapTool, RulerTool, SelectTool, SpellTool, VisionTool },
+    setup() {
+        const { t } = useI18n();
 
-        annotation: Annotation;
-        defaultcontext: DefaultContext;
-        // Only used by Select directly, however Select needs to be loaded for other tools to allow Select.Context
-        shapecontext: ShapeContext;
-    };
-
-    mode: "Build" | "Play" = "Play";
-
-    private componentmap_: { [key in ToolName]: Tool } = {} as any;
-
-    mounted(): void {
-        this.componentmap_ = {
-            [ToolName.Select]: this.$refs.selectTool,
-            [ToolName.Pan]: this.$refs.panTool,
-            [ToolName.Draw]: this.$refs.drawTool,
-            [ToolName.Ruler]: this.$refs.rulerTool,
-            [ToolName.Ping]: this.$refs.pingTool,
-            [ToolName.Map]: this.$refs.mapTool,
-            [ToolName.Filter]: this.$refs.filterTool,
-            [ToolName.Vision]: this.$refs.visionTool,
-            [ToolName.Spell]: this.$refs.spellTool,
-        };
-        this.$refs.selectTool.selected = true;
-        EventBus.$on("ToolMode.Toggle", this.toggleMode);
-    }
-
-    beforeDestroy(): void {
-        EventBus.$off("ToolMode.Toggle");
-    }
-
-    currentTool = ToolName.Select;
-    dmTools = [ToolName.Map];
-
-    buildTools: [ToolName, ToolFeatures][] = [
-        [ToolName.Select, {}],
-        [ToolName.Pan, {}],
-        [ToolName.Draw, {}],
-        [ToolName.Ruler, {}],
-        [ToolName.Map, {}],
-        [ToolName.Filter, {}],
-        [ToolName.Vision, {}],
-    ];
-    playTools: [ToolName, ToolFeatures][] = [
-        [ToolName.Select, { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate] }],
-        [ToolName.Pan, {}],
-        [ToolName.Spell, {}],
-        [ToolName.Ruler, {}],
-        [ToolName.Ping, {}],
-        [ToolName.Filter, {}],
-        [ToolName.Vision, {}],
-    ];
-
-    get componentMap(): { [key in ToolName]: Tool } {
-        return this.componentmap_;
-    }
-
-    get IS_DM(): boolean {
-        return gameStore.IS_DM;
-    }
-
-    getCurrentToolComponent(): Tool {
-        return this.componentMap[this.currentTool];
-    }
-
-    get tools(): [ToolName, ToolFeatures][] {
-        return this.mode === "Build" ? this.buildTools : this.playTools;
-    }
-
-    get visibleTools(): ToolName[] {
-        return this.tools
-            .map((t) => t[0])
-            .filter((t) => (!this.dmTools.includes(t) || this.IS_DM) && this.toolVisible(t));
-    }
-
-    private getFeatures(tool: ToolName): ToolFeatures {
-        return this.tools.find((t) => t[0] === tool)?.[1] ?? {};
-    }
-
-    toolVisible(tool: string): boolean {
-        if (tool === "Filter") {
-            return Object.keys(gameStore.labels).length > 0;
-        } else if (tool === "Vision") {
-            return gameStore.ownedtokens.length > 1;
-        }
-        return true;
-    }
-
-    keyup(event: KeyboardEvent): void {
-        const targetTool = this.currentTool;
-
-        const tool = this.componentMap[targetTool];
-        for (const permitted of tool.permittedTools) {
-            if (!(permitted.early ?? false)) continue;
-            this.componentMap[permitted.name].onKeyUp(event, permitted.features);
-        }
-
-        tool.onKeyUp(event, this.getFeatures(targetTool));
-
-        for (const permitted of tool.permittedTools) {
-            if (permitted.early ?? false) continue;
-            this.componentMap[permitted.name].onKeyUp(event, permitted.features);
-        }
-    }
-
-    mousedown(event: MouseEvent): void {
-        if ((event.target as HTMLElement).tagName !== "CANVAS") return;
-
-        let targetTool = this.currentTool;
-        if (event.button === 1) {
-            targetTool = ToolName.Pan;
-        } else if (event.button !== 0) {
-            return;
-        }
-
-        const tool = this.componentMap[targetTool];
-
-        for (const permitted of tool.permittedTools) {
-            if (!(permitted.early ?? false)) continue;
-            this.componentMap[permitted.name].onMouseDown(event, permitted.features);
-        }
-
-        tool.onMouseDown(event, this.getFeatures(targetTool));
-
-        for (const permitted of tool.permittedTools) {
-            if (permitted.early ?? false) continue;
-            this.componentMap[permitted.name].onMouseDown(event, permitted.features);
-        }
-    }
-    mouseup(event: MouseEvent): void {
-        if ((event.target as HTMLElement).tagName !== "CANVAS") return;
-
-        let targetTool = this.currentTool;
-        if (event.button === 1) {
-            targetTool = ToolName.Pan;
-        } else if (event.button !== 0) {
-            return;
-        }
-
-        const tool = this.componentMap[targetTool];
-
-        for (const permitted of tool.permittedTools) {
-            if (!(permitted.early ?? false)) continue;
-            this.componentMap[permitted.name].onMouseUp(event, permitted.features);
-        }
-
-        tool.onMouseUp(event, this.getFeatures(targetTool));
-
-        for (const permitted of tool.permittedTools) {
-            if (permitted.early ?? false) continue;
-            this.componentMap[permitted.name].onMouseUp(event, permitted.features);
-        }
-    }
-    mousemove(event: MouseEvent): void {
-        if ((event.target as HTMLElement).tagName !== "CANVAS") return;
-
-        let targetTool = this.currentTool;
-        // force targetTool to pan if hitting mouse wheel
-        if ((event.buttons & 4) !== 0) {
-            targetTool = ToolName.Pan;
-        } else if ((event.button & 1) > 1) {
-            return;
-        }
-
-        const tool = this.componentMap[targetTool];
-
-        for (const permitted of tool.permittedTools) {
-            if (!(permitted.early ?? false)) continue;
-            this.componentMap[permitted.name].onMouseMove(event, permitted.features);
-        }
-
-        tool.onMouseMove(event, this.getFeatures(targetTool));
-
-        for (const permitted of tool.permittedTools) {
-            if (permitted.early ?? false) continue;
-            this.componentMap[permitted.name].onMouseMove(event, permitted.features);
-        }
-
-        // Annotation hover
-        let found = false;
-        for (const uuid of gameStore.annotations) {
-            if (layerManager.UUIDMap.has(uuid) && layerManager.hasLayer(floorStore.currentFloor, "draw")) {
-                const shape = layerManager.UUIDMap.get(uuid)!;
-                if (
-                    shape.floor.id === floorStore.currentFloor.id &&
-                    shape.contains(l2g(getLocalPointFromEvent(event)))
-                ) {
-                    found = true;
-                    this.$refs.annotation.setActiveText(shape.annotation);
-                }
+        function isToolVisible(tool: ToolName): boolean {
+            if (tool === ToolName.Filter) {
+                return gameStore.state.labels.size > 0;
+            } else if (tool === ToolName.Vision) {
+                return gameStore.state.ownedTokens.size > 1;
             }
-        }
-        if (!found && this.$refs.annotation.hasText) {
-            this.$refs.annotation.setActiveText("");
-        }
-    }
-    mouseleave(event: MouseEvent): void {
-        const tool = this.componentMap[this.currentTool];
-
-        for (const permitted of tool.permittedTools) {
-            if (!(permitted.early ?? false)) continue;
-            this.componentMap[permitted.name].onMouseUp(event, permitted.features);
+            return true;
         }
 
-        tool.onMouseUp(event, this.getFeatures(this.currentTool));
+        const visibleTools = computed(() => {
+            {
+                const tools = [];
+                for (const [toolName] of activeModeTools.value) {
+                    if (dmTools.includes(toolName) && !gameStore.state.isDm) continue;
+                    if (!isToolVisible(toolName)) continue;
 
-        for (const permitted of tool.permittedTools) {
-            if (permitted.early ?? false) continue;
-            this.componentMap[permitted.name].onMouseUp(event, permitted.features);
-        }
-    }
-    contextmenu(event: MouseEvent): void {
-        if ((event.target as HTMLElement).tagName !== "CANVAS") return;
-        if (event.button !== 2 || (event.target as HTMLElement).tagName !== "CANVAS") return;
-        const tool = this.componentMap[this.currentTool];
-
-        for (const permitted of tool.permittedTools) {
-            if (!(permitted.early ?? false)) continue;
-            this.componentMap[permitted.name].onContextMenu(event, permitted.features);
-        }
-
-        tool.onContextMenu(event, this.getFeatures(this.currentTool));
-
-        for (const permitted of tool.permittedTools) {
-            if (permitted.early ?? false) continue;
-            this.componentMap[permitted.name].onContextMenu(event, permitted.features);
-        }
-    }
-
-    touchstart(event: TouchEvent): void {
-        if ((event.target as HTMLElement).tagName !== "CANVAS") return;
-
-        const tool = this.componentMap[this.currentTool];
-
-        if (event.touches.length === 2) {
-            tool.scaling = true;
-        }
-
-        for (const permitted of tool.permittedTools) {
-            if (!(permitted.early ?? false)) continue;
-            const otherTool = this.componentMap[permitted.name];
-            otherTool.scaling = tool.scaling;
-            if (otherTool.scaling) otherTool.onPinchStart(event, permitted.features);
-            else otherTool.onTouchStart(event, permitted.features);
-        }
-
-        if (tool.scaling) tool.onPinchStart(event, this.getFeatures(this.currentTool));
-        else tool.onTouchStart(event, this.getFeatures(this.currentTool));
-
-        for (const permitted of tool.permittedTools) {
-            if (permitted.early ?? false) continue;
-            const otherTool = this.componentMap[permitted.name];
-            otherTool.scaling = tool.scaling;
-            if (otherTool.scaling) otherTool.onPinchStart(event, permitted.features);
-            else otherTool.onTouchStart(event, permitted.features);
-        }
-    }
-
-    touchend(event: TouchEvent): void {
-        if ((event.target as HTMLElement).tagName !== "CANVAS") return;
-
-        const tool = this.componentMap[this.currentTool];
-
-        for (const permitted of tool.permittedTools) {
-            if (!(permitted.early ?? false)) continue;
-            const otherTool = this.componentMap[permitted.name];
-            if (otherTool.scaling) otherTool.onPinchEnd(event, permitted.features);
-            else otherTool.onTouchEnd(event, permitted.features);
-            otherTool.scaling = false;
-        }
-
-        if (tool.scaling) tool.onPinchEnd(event, this.getFeatures(this.currentTool));
-        else tool.onTouchEnd(event, this.getFeatures(this.currentTool));
-        tool.scaling = false;
-
-        for (const permitted of tool.permittedTools) {
-            if (permitted.early ?? false) continue;
-            const otherTool = this.componentMap[permitted.name];
-            if (otherTool.scaling) otherTool.onPinchEnd(event, permitted.features);
-            else otherTool.onTouchEnd(event, permitted.features);
-            otherTool.scaling = false;
-        }
-    }
-
-    touchmove(event: TouchEvent): void {
-        if ((event.target as HTMLElement).tagName !== "CANVAS") return;
-
-        const tool = this.componentMap[this.currentTool];
-
-        for (const permitted of tool.permittedTools) {
-            if (!(permitted.early ?? false)) continue;
-            const otherTool = this.componentMap[permitted.name];
-            if (otherTool.scaling) otherTool.onPinchMove(event, permitted.features);
-            else if (event.touches.length >= 3) otherTool.onThreeTouchMove(event, permitted.features);
-            else otherTool.onTouchMove(event, permitted.features);
-        }
-
-        if (tool.scaling) {
-            event.preventDefault();
-            tool.onPinchMove(event, this.getFeatures(this.currentTool));
-        } else if (event.touches.length >= 3) {
-            tool.onThreeTouchMove(event, this.getFeatures(this.currentTool));
-        } else {
-            tool.onTouchMove(event, this.getFeatures(this.currentTool));
-        }
-
-        for (const permitted of tool.permittedTools) {
-            if (permitted.early ?? false) continue;
-            const otherTool = this.componentMap[permitted.name];
-            if (otherTool.scaling) otherTool.onPinchMove(event, permitted.features);
-            else if (event.touches.length >= 3) otherTool.onThreeTouchMove(event, permitted.features);
-            else otherTool.onTouchMove(event, permitted.features);
-        }
-
-        // Annotation hover
-        let found = false;
-        for (const uuid of gameStore.annotations) {
-            if (layerManager.UUIDMap.has(uuid) && layerManager.hasLayer(floorStore.currentFloor, "draw")) {
-                const shape = layerManager.UUIDMap.get(uuid)!;
-                if (shape.contains(l2g(getLocalPointFromEvent(event)))) {
-                    found = true;
-                    this.$refs.annotation.setActiveText(shape.annotation);
+                    const tool = toolMap[toolName];
+                    tools.push({
+                        name: toolName,
+                        translation: tool.toolTranslation,
+                        alert: tool.alert.value,
+                    });
                 }
+                return tools;
             }
-        }
-        if (!found && this.$refs.annotation.hasText) {
-            this.$refs.annotation.setActiveText("");
-        }
-    }
+        });
 
-    toggleMode(): void {
-        this.mode = this.mode === "Build" ? "Play" : "Build";
-        const tool = this.componentMap[this.currentTool];
-        for (const permitted of tool.permittedTools) {
-            if (!(permitted.early ?? false)) continue;
-            this.componentMap[permitted.name].onToolsModeChange(this.mode, permitted.features);
-        }
-        tool.onToolsModeChange(this.mode, this.getFeatures(this.currentTool));
-        for (const permitted of tool.permittedTools) {
-            if (permitted.early ?? false) continue;
-            this.componentMap[permitted.name].onToolsModeChange(this.mode, permitted.features);
-        }
-    }
+        const modeTranslation = computed(() =>
+            activeToolMode.value === ToolMode.Build ? t("tool.Build") : t("tool.Play"),
+        );
 
-    getModeWord(): string {
-        return this.mode === "Build" ? this.$t("tool.Build").toString() : this.$t("tool.Play").toString();
-    }
-
-    getToolWord(tool: string): string {
-        switch (tool) {
-            case ToolName.Select:
-                return this.$t("tool.Select").toString();
-
-            case ToolName.Pan:
-                return this.$t("tool.Pan").toString();
-
-            case ToolName.Spell:
-                return this.$t("tool.Spell").toString();
-
-            case ToolName.Draw:
-                return this.$t("tool.Draw").toString();
-
-            case ToolName.Ruler:
-                return this.$t("tool.Ruler").toString();
-
-            case ToolName.Ping:
-                return this.$t("tool.Ping").toString();
-
-            case ToolName.Map:
-                return this.$t("tool.Map").toString();
-
-            case ToolName.Filter:
-                return this.$t("tool.Filter").toString();
-
-            case ToolName.Vision:
-                return this.$t("tool.Vision").toString();
-
-            default:
-                return "";
-        }
-    }
-
-    hasAlert(tool: ToolName): boolean {
-        if (this.componentMap[tool]) return this.componentMap[tool].alert;
-        return false;
-    }
-}
+        return { activeTool, modeTranslation, t, toggleActiveMode, ToolName, visibleTools };
+    },
+});
 </script>
 
 <template>
     <div id="tools">
-        <Annotation ref="annotation"></Annotation>
-        <ShapeContext ref="shapecontext"></ShapeContext>
-        <DefaultContext ref="defaultcontext"></DefaultContext>
         <div id="toolselect">
             <ul>
                 <li
                     v-for="tool in visibleTools"
-                    :key="tool"
+                    :key="tool.name"
                     class="tool"
-                    :class="{ 'tool-selected': currentTool === tool, 'tool-alert': hasAlert(tool) }"
-                    :ref="tool + '-selector'"
-                    @mousedown="currentTool = tool"
+                    :class="{ 'tool-selected': activeTool === tool.name, 'tool-alert': tool.alert }"
+                    :id="tool.name + '-selector'"
+                    @mousedown="activeTool = tool.name"
                 >
-                    <a href="#">{{ getToolWord(tool) }}</a>
+                    <a href="#">{{ tool.translation }}</a>
                 </li>
-                <li id="tool-mode" @click="toggleMode" :title="$t('game.ui.tools.tools.change_mode')">
-                    {{ getModeWord() }}
+                <li id="tool-mode" @click="toggleActiveMode" :title="t('game.ui.tools.tools.change_mode')">
+                    {{ modeTranslation }}
                 </li>
             </ul>
         </div>
         <div>
-            <template>
-                <SelectTool v-show="currentTool === 'Select'" ref="selectTool"></SelectTool>
-                <PanTool v-show="currentTool === 'Pan'" ref="panTool"></PanTool>
-                <SpellTool v-show="currentTool === 'Spell'" ref="spellTool"></SpellTool>
-                <keep-alive>
-                    <DrawTool v-show="currentTool === 'Draw'" ref="drawTool"></DrawTool>
-                </keep-alive>
-                <RulerTool v-show="currentTool === 'Ruler'" ref="rulerTool"></RulerTool>
-                <PingTool v-show="currentTool === 'Ping'" ref="pingTool"></PingTool>
-                <MapTool v-show="currentTool === 'Map'" ref="mapTool"></MapTool>
-                <FilterTool v-show="currentTool === 'Filter'" ref="filterTool"></FilterTool>
-                <VisionTool v-show="currentTool === 'Vision'" ref="visionTool"></VisionTool>
-            </template>
+            <SelectTool v-if="activeTool === ToolName.Select" />
+            <SpellTool v-if="activeTool === ToolName.Spell" />
+            <keep-alive>
+                <DrawTool v-if="activeTool === ToolName.Draw" />
+            </keep-alive>
+            <RulerTool v-if="activeTool === ToolName.Ruler" />
+            <MapTool v-if="activeTool === ToolName.Map" />
+            <FilterTool v-if="activeTool === ToolName.Filter" />
+            <VisionTool v-if="activeTool === ToolName.Vision" />
         </div>
     </div>
 </template>
@@ -502,7 +97,6 @@ export default class Tools extends Vue {
     position: absolute;
     bottom: 25px;
     right: 25px;
-    z-index: 10;
     display: flex;
     align-items: center;
 
@@ -570,6 +164,42 @@ export default class Tools extends Vue {
         display: block;
         padding: 10px;
         text-decoration: none;
+    }
+}
+</style>
+
+<style lang="scss">
+.tool-detail {
+    position: absolute;
+    right: var(--detailRight);
+    bottom: 80px;
+    /* width: 150px; */
+    border: solid 1px #2b2b2b;
+    background-color: white;
+    display: grid;
+    padding: 10px;
+    /* grid-template-columns: 50% 50%; */
+    grid-template-columns: auto auto;
+    grid-column-gap: 5px;
+    grid-row-gap: 2px;
+
+    &:after {
+        content: "";
+        position: absolute;
+        right: var(--detailArrow);
+        bottom: 0;
+        width: 0;
+        height: 0;
+        border: 14px solid transparent;
+        border-top-color: black;
+        border-bottom: 0;
+        margin-left: -14px;
+        margin-bottom: -14px;
+    }
+
+    input {
+        width: 100%;
+        box-sizing: border-box;
     }
 }
 </style>

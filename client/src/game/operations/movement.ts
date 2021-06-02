@@ -1,8 +1,8 @@
+import { addP, toArrayP, Vector } from "../../core/geometry";
 import { sendShapePositionUpdate } from "../api/emits/shape/core";
-import { Vector } from "../geom";
+import { moveClient } from "../client";
 import { Shape } from "../shapes/shape";
-import { visibilityStore } from "../visibility/store";
-import { TriangulationTarget } from "../visibility/te/pa";
+import { TriangulationTarget, visionState } from "../vision/state";
 
 import { MovementOperation, ShapeMovementOperation } from "./model";
 import { addOperation } from "./undo";
@@ -17,41 +17,49 @@ export function moveShapes(shapes: readonly Shape[], delta: Vector, temporary: b
     for (const shape of shapes) {
         if (!shape.ownedBy(false, { movementAccess: true })) continue;
 
-        if (shape.movementObstruction && !temporary) {
+        if (shape.blocksMovement && !temporary) {
             recalculateMovement = true;
-            visibilityStore.deleteFromTriag({
+            visionState.deleteFromTriangulation({
                 target: TriangulationTarget.MOVEMENT,
                 shape: shape.uuid,
             });
         }
-        if (shape.visionObstruction) {
+        if (shape.blocksVision) {
             recalculateVision = true;
-            visibilityStore.deleteFromTriag({
+            visionState.deleteFromTriangulation({
                 target: TriangulationTarget.VISION,
                 shape: shape.uuid,
             });
         }
 
-        const operation: ShapeMovementOperation = { uuid: shape.uuid, from: shape.refPoint.asArray(), to: [] };
+        const operation: ShapeMovementOperation = {
+            uuid: shape.uuid,
+            from: toArrayP(shape.refPoint),
+            to: toArrayP(shape.refPoint),
+        };
 
-        shape.refPoint = shape.refPoint.add(delta);
+        shape.refPoint = addP(shape.refPoint, delta);
 
-        operation.to = shape.refPoint.asArray();
+        operation.to = toArrayP(shape.refPoint);
         operationList.shapes.push(operation);
 
-        if (shape.movementObstruction && !temporary)
-            visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: shape.uuid });
-        if (shape.visionObstruction)
-            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: shape.uuid });
+        if (shape.blocksMovement && !temporary)
+            visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: shape.uuid });
+        if (shape.blocksVision)
+            visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: shape.uuid });
         // todo: Fix again
         // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
         if (!shape.preventSync) updateList.push(shape);
+        if (shape.options.isPlayerRect ?? false) {
+            moveClient(shape.uuid);
+        }
     }
+
     sendShapePositionUpdate(updateList, temporary);
     if (!temporary) addOperation(operationList);
 
     const floorId = shapes[0].floor.id;
-    if (recalculateVision) visibilityStore.recalculateVision(floorId);
-    if (recalculateMovement) visibilityStore.recalculateMovement(floorId);
+    if (recalculateVision) visionState.recalculateVision(floorId);
+    if (recalculateMovement) visionState.recalculateMovement(floorId);
     shapes[0].layer.invalidate(false);
 }

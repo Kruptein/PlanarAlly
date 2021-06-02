@@ -1,9 +1,8 @@
-import { Asset } from "@/core/models/types";
-
+import { Asset } from "../core/models/types";
 import { socketManager } from "../core/socket";
 import { baseAdjust } from "../core/utils";
 
-import { assetStore } from "./store";
+import { assetStore } from "./state";
 
 export const socket = socketManager.socket("/pa_assetmgmt");
 
@@ -11,7 +10,7 @@ let disConnected = false;
 
 socket.on("connect", () => {
     console.log("Connected");
-    if (disConnected) socket.emit("Folder.Get", assetStore.currentFolder);
+    if (disConnected) socket.emit("Folder.Get", assetStore.currentFolder.value);
 });
 socket.on("disconnect", () => {
     console.log("Disconnected");
@@ -26,15 +25,11 @@ socket.on("Folder.Root.Set", (root: number) => {
 });
 socket.on("Folder.Set", (data: { folder: Asset; path?: number[] }) => {
     assetStore.clear();
-    assetStore.idMap.set(data.folder.id, data.folder);
-    if (data.folder.children) {
-        for (const child of data.folder.children) {
-            assetStore.resolveUpload(child.name);
-            assetStore.addAsset(child);
-        }
+    assetStore.setFolderData(data.folder.id, data.folder);
+    if (!assetStore.state.modalActive) {
+        if (data.path) assetStore.setPath(data.path);
+        window.history.pushState(null, "Asset Manager", baseAdjust(`/assets${assetStore.currentFilePath.value}`));
     }
-    if (data.path) assetStore.setPath(data.path);
-    window.history.pushState(null, "Asset Manager", baseAdjust(`/assets${assetStore.currentFilePath}`));
 });
 socket.on("Folder.Create", (folder: Asset) => {
     assetStore.addAsset(folder);
@@ -50,5 +45,5 @@ socket.on("Asset.Export.Finish", (uuid: string) => {
 
 socket.on("Asset.Import.Finish", (name: string) => {
     assetStore.resolveUpload(name);
-    socket.emit("Folder.Get", assetStore.currentFolder);
+    socket.emit("Folder.Get", assetStore.currentFolder.value);
 });

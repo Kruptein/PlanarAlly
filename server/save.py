@@ -13,9 +13,8 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 61
+SAVE_VERSION = 64
 
-import datetime
 import json
 import logging
 import os
@@ -932,6 +931,121 @@ def upgrade(version):
             )
             db.execute_sql(
                 "INSERT INTO player_room (id, role, player_id, room_id, active_location_id, notes, last_played) SELECT id, role, player_id, room_id, active_location_id, notes, last_played FROM _player_room_60"
+            )
+    elif version == 61:
+        # Initiative changes
+        # Add UserOptions initiative settings
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN initiative_camera_lock INTEGER DEFAULT 0"
+            )
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN initiative_vision_lock INTEGER DEFAULT 0"
+            )
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN initiative_effect_visibility TEXT DEFAULT 'active'"
+            )
+            data = db.execute_sql(
+                "UPDATE user_options SET initiative_camera_lock = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
+            )
+            data = db.execute_sql(
+                "UPDATE user_options SET initiative_vision_lock = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
+            )
+            data = db.execute_sql(
+                "UPDATE user_options SET initiative_effect_visibility = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
+            )
+
+            db.execute_sql(
+                "CREATE TEMPORARY TABLE _initiative_61 AS SELECT * FROM initiative"
+            )
+            db.execute_sql("DROP TABLE initiative")
+            db.execute_sql(
+                'CREATE TABLE "initiative" ("id" INTEGER NOT NULL PRIMARY KEY, "location_id" INTEGER NOT NULL, "round" INTEGER NOT NULL, "sort" INTEGER NOT NULL DEFAULT 0, "turn" INTEGER NOT NULL, "data" TEXT NOT NULL, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE)'
+            )
+
+            location_data = db.execute_sql(
+                "SELECT id, location_id, round, turn FROM initiative_location_data"
+            )
+            for raw_location in location_data.fetchall():
+                initiative_data = db.execute_sql(
+                    'SELECT uuid, initiative, visible, "group" FROM _initiative_61 as i WHERE i.location_data_id = ?',
+                    (raw_location[0],),
+                )
+                turn = 0
+
+                initiative_list = []
+                for i, raw_initiative in enumerate(initiative_data.fetchall()):
+                    if raw_initiative[0] == raw_location[3]:
+                        turn = i
+
+                    initiative = {
+                        "shape": raw_initiative[0],
+                        "initiative": raw_initiative[1],
+                        "isVisible": raw_initiative[2],
+                        "isGroup": raw_initiative[3],
+                        "effects": [],
+                    }
+                    effect_data = db.execute_sql(
+                        "SELECT name, turns FROM initiative_effect WHERE initiative_id = ?",
+                        (raw_initiative[0],),
+                    )
+                    for raw_effect in effect_data.fetchall():
+                        effect = {
+                            "name": raw_effect[0],
+                            "turns": raw_effect[1],
+                            "highlightsActor": False,
+                        }
+                        initiative["effects"].append(effect)
+                    initiative_list.append(initiative)
+                db.execute_sql(
+                    "INSERT INTO initiative (location_id, round, turn, data) VALUES (?, ?, ?, ?)",
+                    (
+                        raw_location[1],
+                        raw_location[2],
+                        turn,
+                        json.dumps(initiative_list),
+                    ),
+                )
+            db.execute_sql("DROP TABLE initiative_effect")
+            db.execute_sql("DROP TABLE _initiative_61")
+            db.execute_sql("DROP TABLE initiative_location_data")
+    elif version == 62:
+        # Add UserOptions.use_as_physical_board .ppi and .mini_size
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN use_as_physical_board INTEGER DEFAULT 0"
+            )
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN mini_size REAL DEFAULT 1"
+            )
+            db.execute_sql("ALTER TABLE user_options ADD COLUMN ppi INTEGER DEFAULT 96")
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN use_high_dpi INTEGER DEFAULT 0"
+            )
+            data = db.execute_sql(
+                "UPDATE user_options SET use_as_physical_board = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
+            )
+            data = db.execute_sql(
+                "UPDATE user_options SET mini_size = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
+            )
+            data = db.execute_sql(
+                "UPDATE user_options SET ppi = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
+            )
+            data = db.execute_sql(
+                "UPDATE user_options SET use_high_dpi = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
+            )
+    elif version == 63:
+        # Rename LocationUserOption.zoom_factor to zoom_display
+        with db.atomic():
+            db.execute_sql(
+                "CREATE TEMPORARY TABLE _location_user_option_27 AS SELECT * FROM location_user_option"
+            )
+            db.execute_sql("DROP TABLE location_user_option")
+            db.execute_sql(
+                'CREATE TABLE "location_user_option" ("id" INTEGER NOT NULL PRIMARY KEY, "location_id" INTEGER NOT NULL, "user_id" INTEGER NOT NULL, "pan_x" INTEGER NOT NULL, "pan_y" INTEGER NOT NULL, "zoom_display" REAL NOT NULL, "active_layer_id" INTEGER, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("active_layer_id") REFERENCES "layer" ("id"))'
+            )
+            db.execute_sql(
+                'INSERT INTO "location_user_option" (id, location_id, user_id, pan_x, pan_y, zoom_display, active_layer_id) SELECT id, location_id, user_id, pan_x, pan_y, zoom_factor, active_layer_id FROM _location_user_option_27 '
             )
     else:
         raise UnknownVersionException(

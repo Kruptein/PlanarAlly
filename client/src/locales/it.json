@@ -151,9 +151,9 @@
                     "create_note": "Crea nota",
                     "delete_marker": "Elimina indicatore",
                     "no_notes": "Nessuna nota",
-                    "dm_options": "Opzioni DM",
+                    "dm_settings": "Opzioni DM",
                     "no_markers": "Nessun indicatore",
-                    "client_options": "Opzioni client"
+                    "client_settings": "Opzioni client"
                 }
             },
             "NoteDialog": {
@@ -214,7 +214,7 @@
                     "ClientSettings": {
                         "client_settings": "Client Settings"
                     },
-                    "AppearanceSettings": {
+                    "DisplaySettings": {
                         "grid_size_in_pixels": "Dimensioni della griglia (in pixel):"
                     },
                     "BehaviourSettings": {

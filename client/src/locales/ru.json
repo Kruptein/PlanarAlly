@@ -139,9 +139,9 @@
                     "create_note": "Создать заметку",
                     "delete_marker": "Удалить маркер",
                     "no_notes": "Нет заметок",
-                    "dm_options": "Опции для мастера",
+                    "dm_settings": "Опции для мастера",
                     "no_markers": "Нет маркеров",
-                    "client_options": "Опции клиента"
+                    "client_settings": "Опции клиента"
                 }
             },
             "NoteDialog": {
@@ -197,7 +197,7 @@
                     "ClientSettings": {
                         "client_settings": "Client Settings"
                     },
-                    "AppearanceSettings": {
+                    "DisplaySettings": {
                         "grid_size_in_pixels": "Размер сетки (в пикселях):"
                     },
                     "BehaviourSettings": {

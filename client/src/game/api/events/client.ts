@@ -1,46 +1,79 @@
-import { EventBus } from "../../event-bus";
-import { layerManager } from "../../layers/manager";
-import { ServerClient, userOptionsToClient } from "../../models/settings";
-import { gameStore } from "../../store";
+import { clientStore } from "../../../store/client";
+import { floorStore } from "../../../store/floor";
+import { gameStore } from "../../../store/game";
+import { moveClientRect } from "../../client";
+import { ServerClient, ServerUserLocationOptions, userOptionsToClient } from "../../models/settings";
 import { socket } from "../socket";
 
+// eslint-disable-next-line import/no-unused-modules
+export let activeLayerToselect: string | undefined;
+
+socket.on("Client.Move", (data: { player: number } & ServerUserLocationOptions) => {
+    const { player, ...locationData } = data;
+    if (gameStore.state.isDm) {
+        moveClientRect(player, locationData);
+    } else {
+        clientStore.setPanX(data.pan_x);
+        clientStore.setPanY(data.pan_y);
+        clientStore.setZoomDisplay(data.zoom_display);
+        floorStore.invalidateAllFloors();
+    }
+});
+
 socket.on("Client.Options.Set", (options: ServerClient) => {
-    gameStore.setUsername(options.name);
+    clientStore.setUsername(options.name);
 
-    gameStore.setDefaultClientOptions(userOptionsToClient(options.default_user_options));
+    clientStore.setDefaultClientOptions(userOptionsToClient(options.default_user_options));
 
-    if (options.room_user_options?.grid_size)
-        gameStore.setGridSize({ gridSize: options.room_user_options.grid_size, sync: false });
-    else gameStore.setGridSize({ gridSize: options.default_user_options.grid_size, sync: false });
-    if (options.room_user_options?.grid_colour)
-        gameStore.setGridColour({ colour: options.room_user_options.grid_colour, sync: false });
-    else gameStore.setGridColour({ colour: options.default_user_options.grid_colour, sync: false });
-    if (options.room_user_options?.fow_colour)
-        gameStore.setFOWColour({ colour: options.room_user_options.fow_colour, sync: false });
-    else gameStore.setFOWColour({ colour: options.default_user_options.fow_colour, sync: false });
-    if (options.room_user_options?.ruler_colour)
-        gameStore.setRulerColour({ colour: options.room_user_options.ruler_colour, sync: false });
-    else gameStore.setRulerColour({ colour: options.default_user_options.ruler_colour, sync: false });
-    if (options.room_user_options?.invert_alt)
-        gameStore.setInvertAlt({ invertAlt: options.room_user_options.invert_alt, sync: false });
-    else gameStore.setInvertAlt({ invertAlt: options.default_user_options.invert_alt, sync: false });
-    if (options.room_user_options?.disable_scroll_to_zoom)
-        gameStore.setDisableScrollToZoom({
-            disableScrollToZoom: options.room_user_options.disable_scroll_to_zoom,
-            sync: false,
-        });
-    else
-        gameStore.setDisableScrollToZoom({
-            disableScrollToZoom: options.default_user_options.disable_scroll_to_zoom,
-            sync: false,
-        });
+    // Appearance
+    if (options.room_user_options?.grid_colour !== undefined)
+        clientStore.setGridColour(options.room_user_options.grid_colour, false);
+    else clientStore.setGridColour(options.default_user_options.grid_colour, false);
+    if (options.room_user_options?.fow_colour !== undefined)
+        clientStore.setFowColour(options.room_user_options.fow_colour, false);
+    else clientStore.setFowColour(options.default_user_options.fow_colour, false);
+    if (options.room_user_options?.ruler_colour !== undefined)
+        clientStore.setRulerColour(options.room_user_options.ruler_colour, false);
+    else clientStore.setRulerColour(options.default_user_options.ruler_colour, false);
 
-    gameStore.setPanX(options.location_user_options.pan_x);
-    gameStore.setPanY(options.location_user_options.pan_y);
-    gameStore.setZoomDisplay(options.location_user_options.zoom_factor);
+    // Behaviour
+    if (options.room_user_options?.invert_alt !== undefined)
+        clientStore.setInvertAlt(options.room_user_options.invert_alt, false);
+    else clientStore.setInvertAlt(options.default_user_options.invert_alt, false);
+    if (options.room_user_options?.disable_scroll_to_zoom !== undefined)
+        clientStore.setDisableScrollToZoom(options.room_user_options.disable_scroll_to_zoom, false);
+    else clientStore.setDisableScrollToZoom(options.default_user_options.disable_scroll_to_zoom, false);
 
-    EventBus.$once("Board.Floor.Set", () => {
-        if (options.location_user_options.active_layer)
-            layerManager.selectLayer(options.location_user_options.active_layer, false);
-    });
+    // Display
+    if (options.room_user_options?.use_high_dpi !== undefined)
+        clientStore.setUseHighDpi(options.room_user_options.use_high_dpi, false);
+    else clientStore.setUseHighDpi(options.default_user_options.use_high_dpi, false);
+    if (options.room_user_options?.grid_size !== undefined)
+        clientStore.setGridSize(options.room_user_options.grid_size, false);
+    else clientStore.setGridSize(options.default_user_options.grid_size, false);
+    if (options.room_user_options?.use_as_physical_board !== undefined)
+        clientStore.setUseAsPhysicalBoard(options.room_user_options.use_as_physical_board, false);
+    else clientStore.setUseAsPhysicalBoard(options.default_user_options.use_as_physical_board, false);
+    if (options.room_user_options?.mini_size !== undefined)
+        clientStore.setMiniSize(options.room_user_options.mini_size, false);
+    else clientStore.setMiniSize(options.default_user_options.mini_size, false);
+    if (options.room_user_options?.ppi !== undefined) clientStore.setPpi(options.room_user_options.ppi, false);
+    else clientStore.setPpi(options.default_user_options.ppi, false);
+
+    // Initiative
+    if (options.room_user_options?.initiative_camera_lock !== undefined)
+        clientStore.setInitiativeCameraLock(options.room_user_options.initiative_camera_lock, false);
+    else clientStore.setInitiativeCameraLock(options.default_user_options.initiative_camera_lock, false);
+    if (options.room_user_options?.initiative_vision_lock !== undefined)
+        clientStore.setInitiativeVisionLock(options.room_user_options.initiative_vision_lock, false);
+    else clientStore.setInitiativeVisionLock(options.default_user_options.initiative_vision_lock, false);
+    if (options.room_user_options?.initiative_effect_visibility !== undefined)
+        clientStore.setInitiativeEffectVisibility(options.room_user_options.initiative_effect_visibility, false);
+    else clientStore.setInitiativeEffectVisibility(options.default_user_options.initiative_effect_visibility, false);
+
+    clientStore.setPanX(options.location_user_options.pan_x);
+    clientStore.setPanY(options.location_user_options.pan_y);
+    clientStore.setZoomDisplay(options.location_user_options.zoom_display);
+
+    activeLayerToselect = options.location_user_options.active_layer;
 });

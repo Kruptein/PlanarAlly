@@ -1,11 +1,12 @@
-import { getDistanceToSegment, GlobalPoint } from "../../geom";
+import { g2l, g2lz, g2lx, g2ly } from "../../../core/conversions";
+import { GlobalPoint, getDistanceToSegment, toGP, toArrayP, subtractP, addP } from "../../../core/geometry";
+import { filterEqualPoints, getPointsCenter, rotateAroundPoint } from "../../../core/math";
+import { getFogColour } from "../../colour";
 import { ServerPolygon } from "../../models/shapes";
-import { g2l, g2lx, g2ly, g2lz } from "../../units";
-import { filterEqualPoints, getFogColour, getPointsCenter, rotateAroundPoint } from "../../utils";
 import { Shape } from "../shape";
 import { SHAPE_TYPE } from "../types";
 
-import { BoundingRect } from "./boundingrect";
+import { BoundingRect } from "./boundingRect";
 
 export class Polygon extends Shape {
     type: SHAPE_TYPE = "polygon";
@@ -38,9 +39,9 @@ export class Polygon extends Shape {
         return this._refPoint;
     }
     set refPoint(point: GlobalPoint) {
-        const delta = point.subtract(this._refPoint);
+        const delta = subtractP(point, this._refPoint);
         this._refPoint = point;
-        for (let i = 0; i < this._vertices.length; i++) this._vertices[i] = this._vertices[i].add(delta);
+        for (let i = 0; i < this._vertices.length; i++) this._vertices[i] = addP(this._vertices[i], delta);
     }
 
     get vertices(): GlobalPoint[] {
@@ -53,7 +54,7 @@ export class Polygon extends Shape {
 
     asDict(): ServerPolygon {
         return Object.assign(this.getBaseDict(), {
-            vertices: this._vertices.map((v) => v.asArray()),
+            vertices: this._vertices.map((v) => toArrayP(v)),
             open_polygon: this.openPolygon,
             line_width: this.lineWidth,
         });
@@ -61,7 +62,7 @@ export class Polygon extends Shape {
 
     fromDict(data: ServerPolygon): void {
         super.fromDict(data);
-        this._vertices = data.vertices.map((v) => GlobalPoint.fromArray(v));
+        this._vertices = data.vertices.map((v) => toGP(v));
         this.openPolygon = data.open_polygon;
         this.lineWidth = data.line_width;
     }
@@ -77,28 +78,24 @@ export class Polygon extends Shape {
             if (p.y < miny) miny = p.y;
             if (p.y > maxy) maxy = p.y;
         }
-        let bbox = new BoundingRect(
-            new GlobalPoint(minx - delta, miny - delta),
-            maxx - minx + 2 * delta,
-            maxy - miny + 2 * delta,
-        );
+        let bbox = new BoundingRect(toGP(minx - delta, miny - delta), maxx - minx + 2 * delta, maxy - miny + 2 * delta);
         bbox = bbox.center(rotateAroundPoint(bbox.center(), this.center(), this.angle));
         bbox.angle = this.angle;
         return bbox;
     }
 
-    getPositionRepresentation(): { angle: number; points: number[][] } {
-        return { angle: this.angle, points: this.vertices.map((v) => v.asArray()) };
+    getPositionRepresentation(): { angle: number; points: [number, number][] } {
+        return { angle: this.angle, points: this.vertices.map((v) => toArrayP(v)) };
     }
 
-    setPositionRepresentation(position: { angle: number; points: number[][] }): void {
-        this._vertices = position.points.slice(1).map((p) => GlobalPoint.fromArray(p));
+    setPositionRepresentation(position: { angle: number; points: [number, number][] }): void {
+        this._vertices = position.points.slice(1).map((p) => toGP(p));
         super.setPositionRepresentation(position);
     }
 
-    get points(): number[][] {
+    get points(): [number, number][] {
         const center = this.center();
-        return this.vertices.map((point) => [...rotateAroundPoint(point, center, this.angle)]);
+        return this.vertices.map((point) => toArrayP(rotateAroundPoint(point, center, this.angle)));
     }
 
     draw(ctx: CanvasRenderingContext2D): void {
@@ -148,7 +145,7 @@ export class Polygon extends Shape {
             return getPointsCenter(this.uniqueVertices);
         }
         const oldCenter = this.center();
-        this.refPoint = GlobalPoint.fromArray([...centerPoint.subtract(oldCenter.subtract(this.refPoint))]);
+        this.refPoint = toGP(subtractP(centerPoint, subtractP(oldCenter, this.refPoint)).asArray());
     }
 
     visibleInCanvas(canvas: HTMLCanvasElement, options: { includeAuras: boolean }): boolean {
@@ -164,7 +161,7 @@ export class Polygon extends Shape {
             if (resizePoint === 0) this._refPoint = point;
             else this._vertices[resizePoint - 1] = point;
         } else {
-            const newPoints = this.points.map((p) => GlobalPoint.fromArray(p));
+            const newPoints = this.points.map((p) => toGP(p));
 
             newPoints[resizePoint] = point;
 

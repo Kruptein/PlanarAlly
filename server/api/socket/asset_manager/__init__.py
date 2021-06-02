@@ -18,9 +18,11 @@ from uuid import uuid4
 import auth
 from app import app, sio
 from models import Asset
+from models.user import User
 from state.asset import asset_state
+from state.game import game_state
 from utils import logger
-from ..constants import ASSET_NS
+from ..constants import ASSET_NS, GAME_NS
 from .common import UploadData
 from .ddraft import ASSETS_DIR, handle_ddraft_file
 
@@ -38,6 +40,17 @@ class AssetExport(TypedDict):
     data: List[AssetDict]
 
 
+async def update_live_game(user: User):
+    for sid, pr in game_state._sid_map.items():
+        if pr.player == user:
+            await sio.emit(
+                "Asset.List.Set",
+                Asset.get_user_structure(user),
+                room=sid,
+                namespace=GAME_NS,
+            )
+
+
 @sio.on("connect", namespace=ASSET_NS)
 async def assetmgmt_connect(sid: str, environ):
     user = await authorized_userid(environ["aiohttp.request"])
@@ -51,6 +64,9 @@ async def assetmgmt_connect(sid: str, environ):
 
 @sio.on("Folder.Get", namespace=ASSET_NS)
 async def get_folder(sid: str, folder=None):
+    if folder is not None and folder < 0:
+        return
+
     user = asset_state.get_user(sid)
 
     if folder is None:
@@ -102,6 +118,7 @@ async def create_folder(sid: str, data):
         parent = Asset.get_root_folder(user)
     asset = Asset.create(name=data["name"], owner=user, parent=parent)
     await sio.emit("Folder.Create", asset.as_dict(), room=sid, namespace=ASSET_NS)
+    await update_live_game(user)
 
 
 @sio.on("Inode.Move", namespace=ASSET_NS)
@@ -118,6 +135,7 @@ async def move_inode(sid: str, data):
         return
     asset.parent = target
     asset.save()
+    await update_live_game(user)
 
 
 @sio.on("Asset.Rename", namespace=ASSET_NS)
@@ -130,6 +148,7 @@ async def assetmgmt_rename(sid: str, data):
         return
     asset.name = data["name"]
     asset.save()
+    await update_live_game(user)
 
 
 @sio.on("Asset.Remove", namespace=ASSET_NS)
@@ -141,6 +160,8 @@ async def assetmgmt_rm(sid: str, data):
         logger.warning(f"{user.name} attempted to remove a file it doesn't own.")
         return
     asset.delete_instance(recursive=True, delete_nullable=True)
+
+    await update_live_game(user)
 
     if asset.file_hash is not None and (ASSETS_DIR / asset.file_hash).exists():
         if Asset.select().where(Asset.file_hash == asset.file_hash).count() == 0:
@@ -249,6 +270,9 @@ async def assetmgmt_upload(sid: str, upload_data: UploadData):
         await handle_ddraft_file(upload_data, data, sid)
     else:
         await handle_regular_file(upload_data, data, sid)
+    
+    user = asset_state.get_user(sid)
+    await update_live_game(user)
 
 
 def export_asset(asset: Union[AssetDict, List[AssetDict]], parent=-1) -> AssetExport:

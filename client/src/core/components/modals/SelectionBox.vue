@@ -1,107 +1,89 @@
 <script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
-import VueMarkdown from "vue-markdown";
+import { computed, defineComponent, PropType, reactive, toRefs } from "vue";
+import VueMarkdownIt from "vue3-markdown-it";
 
-import Modal from "@/core/components/modals/modal.vue";
+import { i18n } from "../../../i18n";
+import { SelectionBoxOptions } from "../../plugins/modals/selectionBox";
 
-@Component({
-    components: {
-        Modal,
-        VueMarkdown,
+import Modal from "./Modal.vue";
+
+export default defineComponent({
+    name: "Prompt",
+    components: { Modal, VueMarkdownIt },
+    emits: ["close", "submit"],
+    props: {
+        visible: { type: Boolean, required: true },
+        title: { type: String, required: true },
+        choices: { type: Object as PropType<string[]>, required: true },
+        options: Object as PropType<SelectionBoxOptions>,
     },
-})
-export default class SelectionBox extends Vue {
-    visible = false;
-    title = "";
-    text = "";
-    choices: string[] = [];
-    defaultButton = "";
-    customName = "";
-    customButton = "";
-    activeSelection = 0;
+    setup(props, { emit }) {
+        // don't use useI18n here, the modals plugin is loaded earlier
+        const t = i18n.global.t;
 
-    error = "";
-
-    resolve: (value: string | undefined) => void = (_value: string | undefined) => {};
-    reject: () => void = () => {};
-
-    select(choice: number): void {
-        this.activeSelection = choice;
-    }
-
-    create(): void {
-        if (this.customName === "") {
-            this.error = this.$t("core.components.selectionbox.non_empty_warning").toString();
-        } else if (this.choices.includes(this.customName)) {
-            this.error = this.$t("core.components.selectionbox.already_exists_warning").toString();
-        } else {
-            this.resolve(this.customName);
-            this.close();
-        }
-    }
-
-    submit(): void {
-        this.resolve(this.choices[this.activeSelection]);
-        this.close();
-    }
-
-    close(): void {
-        this.resolve(undefined);
-        this.visible = false;
-    }
-
-    open(
-        title: string,
-        choices: string[],
-        options?: { text?: string; defaultButton?: string; customButton?: string },
-    ): Promise<string | undefined> {
-        this.title = title;
-        this.visible = true;
-        this.choices = choices;
-        this.text = options?.text ?? "";
-        this.defaultButton = options?.defaultButton ?? this.$t("common.select").toString();
-        this.customButton = options?.customButton ?? "";
-        this.error = "";
-        return new Promise((resolve, reject) => {
-            this.resolve = resolve;
-            this.reject = reject;
+        const state = reactive({
+            activeSelection: 0,
+            customName: "",
+            error: "",
         });
-    }
-}
+
+        const customButton = computed(() => props.options?.customButton ?? "");
+        const defaultButton = computed(() => props.options?.defaultButton ?? t("common.select"));
+        const text = computed(() => props.options?.text ?? "");
+
+        function close(): void {
+            emit("close");
+            state.activeSelection = 0;
+            state.customName = "";
+            state.error = "";
+        }
+
+        function create(): void {
+            if (state.customName === "") {
+                state.error = t("core.components.selectionbox.non_empty_warning").toString();
+            } else if (props.choices.includes(state.customName)) {
+                state.error = t("core.components.selectionbox.already_exists_warning").toString();
+            } else {
+                emit("submit", state.customName);
+                close();
+            }
+        }
+
+        function submit(): void {
+            emit("submit", props.choices[state.activeSelection]);
+        }
+
+        return { ...toRefs(state), close, create, customButton, defaultButton, submit, t, text };
+    },
+});
 </script>
 
 <template>
     <Modal :visible="visible" @close="close">
-        <div
-            class="modal-header"
-            slot="header"
-            slot-scope="m"
-            draggable="true"
-            @dragstart="m.dragStart"
-            @dragend="m.dragEnd"
-        >
-            {{ title }}
-        </div>
+        <template v-slot:header="m">
+            <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
+                {{ title }}
+            </div>
+        </template>
         <div class="modal-body">
-            <vue-markdown :source="text"></vue-markdown>
+            <VueMarkdownIt :source="text" />
             <div id="error" v-if="error.length > 0">{{ error }}</div>
             <div id="selectionbox">
-                <template v-for="[i, choice] of choices.entries()">
-                    <div :key="choice" :class="{ selected: i === activeSelection }" @click="activeSelection = i">
+                <template v-for="[i, choice] of choices.entries()" :key="choice">
+                    <div :class="{ selected: i === activeSelection }" @click="activeSelection = i">
                         {{ choice }}
                     </div>
                 </template>
             </div>
-            <div class="button" @click="submit()">{{ defaultButton }}</div>
+            <div class="button" @click="submit">{{ defaultButton }}</div>
             <template v-if="customButton.length > 0">
                 <h4>
                     <span>
-                        {{ $t("common.or").toLocaleUpperCase().toString() }}
+                        {{ t("common.or").toLocaleUpperCase().toString() }}
                     </span>
                 </h4>
                 <input type="text" class="input" v-model="customName" />
-                <div class="button" @click="create()">{{ customButton }}</div>
+                <div class="button" @click="create">{{ customButton }}</div>
             </template>
         </div>
     </Modal>

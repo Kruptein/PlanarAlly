@@ -1,193 +1,136 @@
 <script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
-import { Route, NavigationGuard } from "vue-router";
-import { mapGetters } from "vuex";
+import { defineComponent, toRefs } from "vue";
+import { useI18n } from "vue-i18n";
 
-import AssetContextMenu from "@/assetManager/AssetContextMenu.vue";
-import { socket } from "@/assetManager/socket";
-import { assetStore } from "@/assetManager/store";
-import Prompt from "@/core/components/modals/prompt.vue";
-import { Asset } from "@/core/models/types";
-import { baseAdjust, uuidv4 } from "@/core/utils";
+import { useModal } from "../core/plugins/modals/plugin";
+import { baseAdjust, ctrlOrCmdPressed } from "../core/utils";
 
-import { ctrlOrCmdPressed } from "../game/input/keyboard";
+import AssetContextMenu from "./AssetContext.vue";
+import { openAssetContextMenu } from "./context";
+import { socket } from "./socket";
+import { assetStore } from "./state";
 
-Component.registerHooks(["beforeRouteEnter"]);
-
-@Component({
-    components: {
-        Prompt,
-        AssetContextMenu,
-    },
-    computed: {
-        ...mapGetters("assets", [
-            "currentFolder",
-            "expectedUploads",
-            "files",
-            "firstSelectedFile",
-            "folders",
-            "idMap",
-            "parentFolder",
-            "path",
-            "resolvedUploads",
-            "selected",
-        ]),
-    },
-    beforeRouteLeave(to, from, next) {
-        socket.disconnect();
-        next();
-    },
-})
-export default class AssetManager extends Vue {
-    $refs!: {
-        cm: AssetContextMenu;
-        prompt: Prompt;
-    };
-
-    currentFolder!: number;
-    expectedUploads!: number;
-    files!: number[];
-    firstSelectedFile!: Asset | null;
-    folders!: number[];
-    idMap!: Map<number, Asset>;
-    parentFolder!: number;
-    path!: number[];
-    resolvedUploads!: number;
-    selected!: number[];
-
-    draggingSelection = false;
-
-    beforeRouteEnter(to: Route, _from: Route, next: Parameters<NavigationGuard>[2]): void {
+export default defineComponent({
+    components: { AssetContextMenu },
+    beforeRouteEnter(to, _from, next): void {
+        assetStore.setModalActive(false);
         socket.connect();
         socket.emit("Folder.GetByPath", to.path.slice("/assets".length));
         next();
-    }
+    },
+    beforeRouteLeave(_to, _from, next): void {
+        socket.disconnect();
+        next();
+    },
+    setup() {
+        const { t } = useI18n();
+        const modals = useModal();
 
-    changeDirectory(nextFolder: number): void {
-        if (nextFolder < 0) assetStore.folderPath.pop();
-        else assetStore.folderPath.push(nextFolder);
-        assetStore.clearSelected();
-        socket.emit("Folder.Get", this.currentFolder);
-    }
-    async createDirectory(): Promise<void> {
-        const name = await this.$refs.prompt.prompt(
-            this.$t("assetManager.AssetManager.new_folder_name").toString(),
-            "?",
-        );
-        if (name !== undefined) {
-            socket.emit("Folder.Create", { name, parent: this.currentFolder });
+        const state = assetStore.state;
+
+        // DRAGGING
+
+        let draggingSelection = false;
+
+        function startDrag(event: DragEvent, file: number): void {
+            if (event.dataTransfer === null) return;
+            event.dataTransfer.setData("Hack", "ittyHack");
+            event.dataTransfer.dropEffect = "move";
+            if (!state.selected.includes(file)) assetStore.addSelectedInode(file);
+            draggingSelection = true;
         }
-    }
-    moveInode(inode: number, target: number): void {
-        assetStore.removeAsset(inode);
-        socket.emit("Inode.Move", { inode, target });
-    }
-    select(event: MouseEvent, inode: number): void {
-        if (event.shiftKey && assetStore.selected.length > 0) {
-            const inodes = [...assetStore.folders, ...assetStore.files];
-            const start = inodes.indexOf(assetStore.selected[assetStore.selected.length - 1]);
-            const end = inodes.indexOf(inode);
-            for (let i = start; i !== end; start < end ? i++ : i--) {
-                if (i === start) continue;
-                assetStore.selected.push(inodes[i]);
-            }
-            assetStore.selected.push(inodes[end]);
-        } else {
-            if (!ctrlOrCmdPressed(event)) {
-                assetStore.clearSelected();
-            }
-            assetStore.selected.push(inode);
+
+        function moveDrag(event: DragEvent): void {
+            if ((event.target as HTMLElement).classList.contains("folder"))
+                (event.target as HTMLElement).classList.add("inode-selected");
         }
-    }
-    startDrag(event: DragEvent, file: number): void {
-        if (event.dataTransfer === null) return;
-        event.dataTransfer.setData("Hack", "ittyHack");
-        event.dataTransfer.dropEffect = "move";
-        if (!assetStore.selected.includes(file)) assetStore.selected.push(file);
-        this.draggingSelection = true;
-    }
-    moveDrag(event: DragEvent): void {
-        if ((event.target as HTMLElement).classList.contains("folder"))
-            (event.target as HTMLElement).classList.add("inode-selected");
-    }
-    leaveDrag(event: DragEvent): void {
-        if ((event.target as HTMLElement).classList.contains("folder"))
+
+        function leaveDrag(event: DragEvent): void {
+            if ((event.target as HTMLElement).classList.contains("folder"))
+                (event.target as HTMLElement).classList.remove("inode-selected");
+        }
+
+        function stopDrag(event: DragEvent, target: number): void {
             (event.target as HTMLElement).classList.remove("inode-selected");
-    }
-    stopDrag(event: DragEvent, target: number): void {
-        (event.target as HTMLElement).classList.remove("inode-selected");
-        if (this.draggingSelection) {
-            if (
-                (target === assetStore.root || assetStore.folders.includes(target)) &&
-                !assetStore.selected.includes(target)
-            ) {
-                for (const inode of assetStore.selected) {
-                    this.moveInode(inode, target);
+            if (draggingSelection) {
+                if ((target === state.root || state.folders.includes(target)) && !state.selected.includes(target)) {
+                    for (const inode of state.selected) {
+                        assetStore.moveInode(inode, target);
+                    }
                 }
+                assetStore.clearSelected();
+            } else if (event.dataTransfer && event.dataTransfer.files.length > 0) {
+                assetStore.upload(event.dataTransfer.files, target);
             }
-            assetStore.clearSelected();
-        } else if (event.dataTransfer && event.dataTransfer.files.length > 0) {
-            this.upload(event.dataTransfer.files, target);
+            draggingSelection = false;
         }
-        this.draggingSelection = false;
-    }
-    prepareUpload(): void {
-        document.getElementById("files")!.click();
-    }
-    async upload(fls?: FileList, target?: number): Promise<void> {
-        const files = (document.getElementById("files")! as HTMLInputElement).files;
-        if (fls === undefined) {
-            if (files) fls = files;
-            else return;
-        }
-        assetStore.addExpectedUploads(fls.length);
-        if (target === undefined) target = this.currentFolder;
-        const CHUNK_SIZE = 100000;
-        for (const file of fls) {
-            const uuid = uuidv4();
-            const slices = Math.ceil(file.size / CHUNK_SIZE);
-            assetStore._pendingUploads.push(file.name);
-            for (let slice = 0; slice < slices; slice++) {
-                await new Promise((resolve) => {
-                    const fr = new FileReader();
-                    fr.readAsArrayBuffer(
-                        file.slice(
-                            slice * CHUNK_SIZE,
-                            slice * CHUNK_SIZE + Math.min(CHUNK_SIZE, file.size - slice * CHUNK_SIZE),
-                        ),
-                    );
-                    fr.onload = (_e) => {
-                        socket.emit(
-                            "Asset.Upload",
-                            {
-                                name: file.name,
-                                directory: target,
-                                data: fr.result,
-                                slice,
-                                totalSlices: slices,
-                                uuid,
-                            },
-                            resolve,
-                        );
-                    };
-                });
+
+        // INODE MANAGEMENT
+
+        async function createDirectory(): Promise<void> {
+            const name = await modals.prompt(t("assetManager.AssetManager.new_folder_name"), "?");
+            if (name !== undefined) {
+                socket.emit("Folder.Create", { name, parent: assetStore.currentFolder.value });
             }
         }
-    }
 
-    exportData(): void {
-        if (this.selected.length > 0) socket.emit("Asset.Export", this.selected);
-    }
+        function select(event: MouseEvent, inode: number): void {
+            if (event.shiftKey && state.selected.length > 0) {
+                const inodes = [...state.folders, ...state.files];
+                const start = inodes.indexOf(state.selected[state.selected.length - 1]);
+                const end = inodes.indexOf(inode);
+                for (let i = start; i !== end; start < end ? i++ : i--) {
+                    if (i === start) continue;
+                    assetStore.addSelectedInode(inodes[i]);
+                }
+                assetStore.addSelectedInode(inodes[end]);
+            } else {
+                if (!ctrlOrCmdPressed(event)) {
+                    assetStore.clearSelected();
+                }
+                assetStore.addSelectedInode(inode);
+            }
+        }
 
-    showIdName(dir: number): string {
-        return this.idMap.has(dir) ? this.idMap.get(dir)!.name : "";
-    }
+        // VARIA
 
-    getIdImageSrc(file: number): string {
-        return baseAdjust("/static/assets/" + this.idMap.get(file)!.file_hash);
-    }
-}
+        function exportData(): void {
+            if (state.selected.length > 0) socket.emit("Asset.Export", state.selected);
+        }
+
+        function showIdName(dir: number): string {
+            return state.idMap.get(dir)?.name ?? "";
+        }
+
+        function getIdImageSrc(file: number): string {
+            return baseAdjust("/static/assets/" + state.idMap.get(file)!.file_hash);
+        }
+
+        function prepareUpload(): void {
+            document.getElementById("files")!.click();
+        }
+
+        return {
+            ...toRefs(state),
+            t,
+            currentFolder: assetStore.currentFolder,
+            parentFolder: assetStore.parentFolder,
+            upload: () => assetStore.upload(),
+            changeDirectory: (folder: number) => assetStore.changeDirectory(folder),
+            createDirectory,
+            select,
+            startDrag,
+            moveDrag,
+            leaveDrag,
+            stopDrag,
+            exportData,
+            showIdName,
+            getIdImageSrc,
+            prepareUpload,
+            openAssetContextMenu,
+        };
+    },
+});
 </script>
 
 <template>
@@ -195,7 +138,7 @@ export default class AssetManager extends Vue {
         <div id="titlebar" v-t="'assetManager.AssetManager.title'"></div>
         <div id="progressbar" v-show="expectedUploads > 0 && expectedUploads !== resolvedUploads">
             <div id="progressbar-label">
-                {{ $t("assetManager.AssetManager.uploading") }} {{ resolvedUploads }} / {{ expectedUploads }}
+                {{ t("assetManager.AssetManager.uploading") }} {{ resolvedUploads }} / {{ expectedUploads }}
             </div>
             <div id="progressbar-meter">
                 <span :style="{ width: (resolvedUploads / expectedUploads) * 100 + '%' }"></span>
@@ -204,24 +147,24 @@ export default class AssetManager extends Vue {
         <div id="assets" @dragover.prevent="moveDrag" @drop.prevent.stop="stopDrag($event, currentFolder)">
             <div id="breadcrumbs">
                 <div>/</div>
-                <div v-for="dir in path" :key="dir">{{ showIdName(dir) }}</div>
+                <div v-for="dir in folderPath" :key="dir">{{ showIdName(dir) }}</div>
             </div>
             <div id="actionbar">
                 <input id="files" type="file" multiple hidden @change="upload()" />
-                <div @click="createDirectory" :title="$t('assetManager.AssetManager.create_folder')">
+                <div @click="createDirectory" :title="t('assetManager.AssetManager.create_folder')">
                     <font-awesome-icon icon="plus-square" />
                 </div>
-                <div @click="prepareUpload" :title="$t('assetManager.AssetManager.upload_files')">
+                <div @click="prepareUpload" :title="t('assetManager.AssetManager.upload_files')">
                     <font-awesome-icon icon="upload" />
                 </div>
-                <div @click="exportData" :title="$t('assetManager.AssetManager.download_files')">
+                <div @click="exportData" :title="t('assetManager.AssetManager.download_files')">
                     <font-awesome-icon icon="download" />
                 </div>
             </div>
             <div id="explorer">
                 <div
                     class="inode folder"
-                    v-if="path.length"
+                    v-if="folderPath.length"
                     @dblclick="changeDirectory(-1)"
                     @dragover.prevent="moveDrag"
                     @dragleave.prevent="leaveDrag"
@@ -237,8 +180,11 @@ export default class AssetManager extends Vue {
                     :key="key"
                     :class="{ 'inode-selected': selected.includes(key) }"
                     @click="select($event, key)"
+                    @contextmenu.prevent="
+                        select($event, key);
+                        openAssetContextMenu($event);
+                    "
                     @dblclick="changeDirectory(key)"
-                    @contextmenu.prevent="$refs.cm.open($event, key)"
                     @dragstart="startDrag($event, key)"
                     @dragover.prevent="moveDrag"
                     @dragleave.prevent="leaveDrag"
@@ -254,7 +200,10 @@ export default class AssetManager extends Vue {
                     :key="file"
                     :class="{ 'inode-selected': selected.includes(file) }"
                     @click="select($event, file)"
-                    @contextmenu.prevent="$refs.cm.open($event, file)"
+                    @contextmenu.prevent="
+                        select($event, file);
+                        openAssetContextMenu($event);
+                    "
                     @dragstart="startDrag($event, file)"
                 >
                     <img :src="getIdImageSrc(file)" width="50" alt="" />
@@ -262,8 +211,7 @@ export default class AssetManager extends Vue {
                 </div>
             </div>
         </div>
-        <AssetContextMenu ref="cm"></AssetContextMenu>
-        <Prompt ref="prompt"></Prompt>
+        <AssetContextMenu />
     </div>
 </template>
 
@@ -279,7 +227,6 @@ body {
     margin: 0;
     width: 100%;
     height: 100%;
-    background: url("/static/img/login_background.png") repeat fixed;
     font-family: "Open Sans", sans-serif;
 }
 

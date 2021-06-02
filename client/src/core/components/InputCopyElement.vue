@@ -1,34 +1,38 @@
 <script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
-import { Prop } from "vue-property-decorator";
+import { defineComponent, reactive, toRefs } from "vue";
+import { useI18n } from "vue-i18n";
 
-@Component
-export default class InputCopyElement extends Vue {
-    @Prop() value!: string;
+export default defineComponent({
+    props: { value: { type: String, required: true } },
+    setup(props) {
+        const { t } = useI18n();
 
-    borderColour = "lightgray";
-    popupString = "";
-    showPopup = false;
+        const state = reactive({
+            showPopup: false,
+            popupString: "",
+        });
 
-    async copy(): Promise<void> {
-        try {
-            await navigator.clipboard.writeText(this.value);
-            this.popupString = this.$t("core.components.InputCopyElement.copied").toString();
-        } catch {
-            console.log("Could not copy to clipboard :(");
-            this.popupString = this.$t("common.error_msg").toString();
+        async function copy(): Promise<void> {
+            try {
+                await navigator.clipboard.writeText(props.value);
+                state.popupString = t("core.components.InputCopyElement.copied");
+            } catch {
+                console.log("Could not copy to clipboard :(");
+                state.popupString = t("common.error_msg");
+            }
+            state.showPopup = true;
         }
-        this.showPopup = true;
-    }
-}
+
+        return { ...toRefs(state), copy, t };
+    },
+});
 </script>
 
 <template>
     <div id="input-copy" @mouseleave="showPopup = false">
         <input type="text" disabled="disabled" :value="value" id="input-element" />
         <div v-show="showPopup" id="show-popup">{{ popupString }}</div>
-        <div id="copy-button" @click="copy" :title="$t('core.components.InputCopyElement.copy')">
+        <div id="copy-button" @click="copy" :title="t('core.components.InputCopyElement.copy')">
             <font-awesome-icon :icon="['far', 'copy']" />
         </div>
     </div>

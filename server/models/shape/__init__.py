@@ -1,4 +1,5 @@
 import json
+from uuid import uuid4
 
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
 from playhouse.shortcuts import model_to_dict, update_model_from_dict
@@ -78,7 +79,13 @@ class Shape(BaseModel):
 
     # todo: Change this API to accept a PlayerRoom instead
     def as_dict(self, user: User, dm: bool):
-        data = model_to_dict(self, recurse=False, exclude=[Shape.layer, Shape.index])
+        data = {
+            k: v
+            for k, v in model_to_dict(
+                self, recurse=False, exclude=[Shape.layer, Shape.index]
+            ).items()
+            if v is not None
+        }
         # Owner query > list of usernames
         data["owners"] = [owner.as_dict() for owner in self.owners]
         # Layer query > layer name
@@ -118,6 +125,53 @@ class Shape(BaseModel):
     def subtype(self):
         return getattr(self, f"{self.type_}_set").get()
 
+    def make_copy(self, dst_layer, new_group):
+        new_shape = Shape.create(
+            uuid=str(uuid4()),
+            layer=dst_layer,
+            type_=self.type_,
+            x=self.x,
+            y=self.y,
+            name=self.name,
+            name_visible=self.name_visible,
+            fill_colour=self.fill_colour,
+            stroke_colour=self.stroke_colour,
+            vision_obstruction=self.vision_obstruction,
+            movement_obstruction=self.movement_obstruction,
+            is_token=self.is_token,
+            annotation=self.annotation,
+            draw_operator=self.draw_operator,
+            index=self.index,
+            options=self.options,
+            badge=self.badge,
+            show_badge=self.show_badge,
+            default_edit_access=self.default_edit_access,
+            default_vision_access=self.default_vision_access,
+            is_invisible=self.is_invisible,
+            is_defeated=self.is_defeated,
+            default_movement_access=self.default_movement_access,
+            is_locked=self.is_locked,
+            angle=self.angle,
+            stroke_width=self.stroke_width,
+            asset=self.asset,
+            group=new_group,
+            annotation_visible=self.annotation_visible,
+            ignore_zoom_size=self.ignore_zoom_size,
+        )
+
+        self.subtype.make_copy(new_shape)
+
+        for aura in self.auras:
+            aura.make_copy(new_shape)
+
+        for tracker in self.trackers:
+            tracker.make_copy(new_shape)
+
+        for label in self.labels:
+            label.make_copy(new_shape)
+
+        return new_shape
+
 
 class ShapeLabel(BaseModel):
     shape = ForeignKeyField(Shape, backref="labels", on_delete="CASCADE")
@@ -125,6 +179,9 @@ class ShapeLabel(BaseModel):
 
     def as_dict(self):
         return self.label.as_dict()
+
+    def make_copy(self, shape):
+        ShapeLabel.create(shape=shape, label=self.label.make_copy())
 
 
 class Tracker(BaseModel):
@@ -143,6 +200,11 @@ class Tracker(BaseModel):
 
     def as_dict(self):
         return model_to_dict(self, recurse=False, exclude=[Tracker.shape])
+
+    def make_copy(self, new_shape):
+        dict = self.as_dict()
+        dict["uuid"] = str(uuid4())
+        type(self).create(shape=new_shape, **dict)
 
 
 class Aura(BaseModel):
@@ -164,6 +226,11 @@ class Aura(BaseModel):
 
     def as_dict(self):
         return model_to_dict(self, recurse=False, exclude=[Aura.shape])
+
+    def make_copy(self, new_shape):
+        dict = self.as_dict()
+        dict["uuid"] = str(uuid4())
+        type(self).create(shape=new_shape, **dict)
 
 
 class ShapeOwner(BaseModel):
@@ -211,6 +278,11 @@ class ShapeType(BaseModel):
 
     def set_location(self, points: List[List[int]]) -> None:
         logger.error("Attempt to set location on shape without location info")
+
+    def make_copy(self, new_shape):
+        table = type(self)
+        dict = self.as_dict(exclude=[table.shape])
+        table.create(shape=new_shape, **dict)
 
 
 class BaseRect(ShapeType):

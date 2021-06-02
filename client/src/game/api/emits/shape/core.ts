@@ -12,16 +12,16 @@ export const sendShapeOrder = wrapSocket<{ uuid: string; index: number; temporar
 export const sendFloorChange = wrapSocket<{ uuids: string[]; floor: string }>("Shapes.Floor.Change");
 export const sendLayerChange = wrapSocket<{ uuids: string[]; layer: string; floor: string }>("Shapes.Layer.Change");
 
-export const sendShapesMove = wrapSocket<{
-    shapes: string[];
-    target: { location: number; floor: string; x: number; y: number };
-}>("Shapes.Location.Move");
-export const sendTextUpdate = wrapSocket<{ uuid: string; text: string; temporary: boolean }>("Shape.Text.Value.Set");
+export const sendShapesMove =
+    wrapSocket<{
+        shapes: string[];
+        target: { location: number; floor: string; x: number; y: number };
+    }>("Shapes.Location.Move");
 
 export function sendShapeOptionsUpdate(shapes: readonly Shape[], temporary: boolean): void {
     const options = shapes
         .filter((s) => !s.preventSync)
-        .map((s) => ({ uuid: s.uuid, option: JSON.stringify([...s.options]) }));
+        .map((s) => ({ uuid: s.uuid, option: JSON.stringify(Object.entries(s.options)) }));
     if (options.length > 0) {
         socket.emit("Shapes.Options.Update", {
             options,
@@ -66,14 +66,12 @@ export function sendShapeSizeUpdate(data: { shape: Shape; temporary: boolean }):
 
 // helpers
 
-const _sendRectSizeUpdate = wrapSocket<{ uuid: string; w: number; h: number; temporary: boolean }>(
-    "Shape.Rect.Size.Update",
-);
+const _sendRectSizeUpdate =
+    wrapSocket<{ uuid: string; w: number; h: number; temporary: boolean }>("Shape.Rect.Size.Update");
 const _sendCircleSizeUpdate = wrapSocket<{ uuid: string; r: number; temporary: boolean }>("Shape.Circle.Size.Update");
 
-const _sendTextSizeUpdate = wrapSocket<{ uuid: string; font_size: number; temporary: boolean }>(
-    "Shape.Text.Size.Update",
-);
+const _sendTextSizeUpdate =
+    wrapSocket<{ uuid: string; font_size: number; temporary: boolean }>("Shape.Text.Size.Update");
 
 function _sendShapePositionUpdate(
     shapes: { uuid: string; position: { angle: number; points: number[][] } }[],

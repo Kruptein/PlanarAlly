@@ -1,60 +1,67 @@
 <script lang="ts">
-import Component from "vue-class-component";
+import { computed, defineComponent, onMounted, ref } from "vue";
 
-import { layerManager } from "@/game/layers/manager";
-import { gameStore } from "@/game/store";
-import Tool from "@/game/ui/tools/Tool.vue";
-
+import { gameStore } from "../../../store/game";
+import { UuidMap } from "../../../store/shapeMap";
 import { Shape } from "../../shapes/shape";
 import { Asset } from "../../shapes/variants/asset";
+import { visionTool } from "../../tools/variants/vision";
 
-import { SelectFeatures } from "./SelectTool.vue";
-import { ToolName, ToolPermission } from "./utils";
+import { useToolPosition } from "./toolPosition";
 
-@Component
-export default class VisionTool extends Tool {
-    name = ToolName.Vision;
-    active = false;
+export default defineComponent({
+    setup() {
+        const right = ref("0px");
+        const arrow = ref("0px");
 
-    get permittedTools(): ToolPermission[] {
-        return [{ name: ToolName.Select, features: { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate] } }];
-    }
+        onMounted(() => {
+            ({ right: right.value, arrow: arrow.value } = useToolPosition(visionTool.toolName));
+        });
 
-    get selection(): readonly string[] {
-        return gameStore.activeTokens;
-    }
+        const tokens = computed(() => [...gameStore.state.ownedTokens].map((t) => UuidMap.get(t)!));
+        const selection = computed(() => {
+            if (gameStore.state.activeTokenFilters === undefined) return gameStore.state.ownedTokens;
+            return gameStore.state.activeTokenFilters;
+        });
 
-    get tokens(): Shape[] {
-        return gameStore.ownedtokens.map((t) => layerManager.UUIDMap.get(t)!);
-    }
+        function toggle(uuid: string): void {
+            if (selection.value.has(uuid)) gameStore.removeActiveToken(uuid);
+            else gameStore.addActiveToken(uuid);
 
-    toggle(uuid: string): void {
-        if (this.selection.includes(uuid)) gameStore.removeActiveToken(uuid);
-        else gameStore.addActiveToken(uuid);
-
-        if (gameStore.activeTokens.length !== gameStore.ownedtokens.length) {
-            this.alert = true;
-        } else {
-            this.alert = false;
+            if (gameStore.state.activeTokenFilters !== undefined) {
+                visionTool.alert.value = true;
+            } else {
+                visionTool.alert.value = false;
+            }
         }
-    }
 
-    getImageSrc(token: Shape): string {
-        if (token.type === "assetrect") {
-            return (token as Asset).src;
+        function getImageSrc(token: Shape): string {
+            if (token.type === "assetrect") {
+                return (token as Asset).src;
+            }
+            return "";
         }
-        return "";
-    }
-}
+
+        return {
+            arrow,
+            right,
+            selected: visionTool.isActiveTool,
+            getImageSrc,
+            selection,
+            toggle,
+            tokens,
+        };
+    },
+});
 </script>
 
 <template>
-    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight(), '--detailArrow': detailArrow }">
+    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': right, '--detailArrow': arrow }">
         <div
             v-for="token in tokens"
             :key="token.uuid"
             class="token"
-            :class="{ selected: selection.includes(token.uuid) }"
+            :class="{ selected: selection.has(token.uuid) }"
             @click="toggle(token.uuid)"
         >
             <img :src="getImageSrc(token)" width="30px" height="30px" v-if="getImageSrc(token) !== ''" alt="" />
@@ -95,5 +102,11 @@ export default class VisionTool extends Tool {
         cursor: pointer;
         background-color: rgba(255, 112, 82, 0.2);
     }
+}
+</style>
+
+<style scoped lang="scss">
+.tool-detail {
+    display: block;
 }
 </style>

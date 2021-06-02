@@ -1,11 +1,9 @@
-import { GlobalPoint } from "@/game/geom";
-import { InitiativeData } from "@/game/models/general";
-import { ServerAsset } from "@/game/models/shapes";
-import { BaseRect } from "@/game/shapes/variants/baserect";
-import { gameStore } from "@/game/store";
-import { g2l, g2lx, g2ly, g2lz } from "@/game/units";
-
+import { g2l, g2lx, g2ly, g2lz } from "../../../core/conversions";
+import { GlobalPoint } from "../../../core/geometry";
+import { ServerAsset } from "../../models/shapes";
 import { SHAPE_TYPE } from "../types";
+
+import { BaseRect } from "./baseRect";
 
 export class Asset extends BaseRect {
     type: SHAPE_TYPE = "assetrect";
@@ -22,6 +20,10 @@ export class Asset extends BaseRect {
     ) {
         super(topleft, w, h, options);
         this.img = img;
+    }
+
+    get isClosed(): boolean {
+        return true;
     }
 
     asDict(): ServerAsset {
@@ -50,16 +52,5 @@ export class Asset extends BaseRect {
             console.warn(`Shape ${this.uuid} could not load the image ${this.src}`);
         }
         super.drawPost(ctx);
-    }
-    getInitiativeRepr(): InitiativeData {
-        return {
-            uuid: this.uuid,
-            visible: !gameStore.IS_DM,
-            group: false,
-            source: this.src,
-            has_img: true,
-            effects: [],
-            index: Infinity,
-        };
     }
 }

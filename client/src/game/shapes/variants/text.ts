@@ -1,11 +1,13 @@
-import { GlobalPoint, Vector } from "@/game/geom";
-import { Shape } from "@/game/shapes/shape";
-import { BoundingRect } from "@/game/shapes/variants/boundingrect";
-
+import { g2lz, l2gz } from "../../../core/conversions";
+import { addP, GlobalPoint, toGP, Vector } from "../../../core/geometry";
+import { rotateAroundPoint } from "../../../core/math";
+import { SyncMode } from "../../../core/models/types";
+import { sendTextUpdate } from "../../api/emits/shape/text";
 import { ServerText } from "../../models/shapes";
-import { g2lz, l2gz } from "../../units";
-import { rotateAroundPoint } from "../../utils";
+import { Shape } from "../shape";
 import { SHAPE_TYPE } from "../types";
+
+import { BoundingRect } from "./boundingRect";
 
 export class Text extends Shape {
     type: SHAPE_TYPE = "text";
@@ -26,6 +28,10 @@ export class Text extends Shape {
         super(position, options);
     }
 
+    get isClosed(): boolean {
+        return true;
+    }
+
     asDict(): ServerText {
         return Object.assign(this.getBaseDict(), {
             text: this.text,
@@ -34,13 +40,13 @@ export class Text extends Shape {
         });
     }
 
-    get points(): number[][] {
+    get points(): [number, number][] {
         return this.getBoundingBox().points;
     }
 
     getBoundingBox(): BoundingRect {
         const bbox = new BoundingRect(
-            this.refPoint.add(new Vector(-this.width / 2, -this.height / 2)),
+            addP(this.refPoint, new Vector(-this.width / 2, -this.height / 2)),
             this.width,
             this.height,
         ); // TODO: fix this bounding box
@@ -127,11 +133,8 @@ export class Text extends Shape {
         const newResizePoint = (resizePoint + 4) % 4;
         const oppositeNRP = (newResizePoint + 2) % 4;
 
-        const vec = Vector.fromPoints(
-            GlobalPoint.fromArray(this.points[oppositeNRP]),
-            GlobalPoint.fromArray(oldPoints[oppositeNRP]),
-        );
-        this.refPoint = this.refPoint.add(vec);
+        const vec = Vector.fromPoints(toGP(this.points[oppositeNRP]), toGP(oldPoints[oppositeNRP]));
+        this.refPoint = addP(this.refPoint, vec);
 
         return newResizePoint;
     }
@@ -176,5 +179,12 @@ export class Text extends Shape {
             y += lineHeight;
         }
         return allLines;
+    }
+
+    setText(text: string, sync: SyncMode): void {
+        this.text = text;
+        if (sync !== SyncMode.NO_SYNC) {
+            sendTextUpdate({ uuid: this.uuid, text, temporary: sync === SyncMode.TEMP_SYNC });
+        }
     }
 }

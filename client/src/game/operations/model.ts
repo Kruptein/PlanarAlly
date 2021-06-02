@@ -1,4 +1,5 @@
-import { GlobalPoint } from "../geom";
+import { GlobalPoint } from "../../core/geometry";
+import { LayerName } from "../models/floor";
 import { ServerShape } from "../models/shapes";
 
 export type Operation =
@@ -13,8 +14,8 @@ export type Operation =
 // MOVEMENT
 export interface ShapeMovementOperation {
     uuid: string;
-    from: number[];
-    to: number[];
+    from: [number, number];
+    to: [number, number];
 }
 
 export interface MovementOperation {
@@ -27,8 +28,8 @@ interface ResizeOperation {
     type: "resize";
     // shapes: (RectResizeOperation | CircleResizeOperation | PolygonResizeOperation)[];
     uuid: string;
-    fromPoint: number[];
-    toPoint: number[];
+    fromPoint: [number, number];
+    toPoint: [number, number];
     resizePoint: number;
     retainAspectRatio: boolean;
 }
@@ -60,8 +61,8 @@ interface FloorMoveOperation {
 
 interface LayerMoveOperation {
     type: "layermovement";
-    from: string;
-    to: string;
+    from: LayerName;
+    to: LayerName;
     shapes: string[];
 }
 

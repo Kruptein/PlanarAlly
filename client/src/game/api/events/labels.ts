@@ -1,35 +1,29 @@
-import { layerManager } from "../../layers/manager";
+import { gameStore } from "../../../store/game";
 import { Label } from "../../shapes/interfaces";
-import { gameStore } from "../../store";
 import { socket } from "../socket";
 
 socket.on("Labels.Set", (labels: Label[]) => {
-    for (const label of labels) gameStore.addLabel(label);
+    for (const label of labels) gameStore.addLabel(label, false);
 });
 
 socket.on("Label.Visibility.Set", (data: { user: string; uuid: string; visible: boolean }) => {
-    gameStore.setLabelVisibility(data);
+    gameStore.setLabelVisibility(data.uuid, data.visible);
 });
 
 socket.on("Label.Add", (data: Label) => {
-    gameStore.addLabel(data);
+    gameStore.addLabel(data, false);
 });
 
 socket.on("Label.Delete", (data: { user: string; uuid: string }) => {
-    gameStore.deleteLabel(data);
+    gameStore.deleteLabel(data.uuid, false);
 });
 
 socket.on("Labels.Filter.Add", (uuid: string) => {
-    gameStore.labelFilters.push(uuid);
-    layerManager.invalidateAllFloors();
+    gameStore.addLabelFilter(uuid, false);
 });
 
 socket.on("Labels.Filter.Remove", (uuid: string) => {
-    const idx = gameStore.labelFilters.indexOf(uuid);
-    if (idx >= 0) {
-        gameStore.labelFilters.splice(idx, 1);
-        layerManager.invalidateAllFloors();
-    }
+    gameStore.removeLabelFilter(uuid, false);
 });
 
 socket.on("Labels.Filters.Set", (filters: string[]) => {

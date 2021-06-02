@@ -21,12 +21,20 @@ async def refresh_invite_code(sid: str):
     pr.room.invitation_code = uuid.uuid4()
     pr.room.save()
 
-    await sio.emit(
-        "Room.Info.InvitationCode.Set",
-        str(pr.room.invitation_code),
-        room=sid,
-        namespace=GAME_NS,
-    )
+    for room_player in pr.room.players:
+        if room_player.role != Role.DM:
+            continue
+
+        for psid in game_state.get_sids(
+            player=room_player.player,
+            active_location=pr.active_location,
+        ):
+            await sio.emit(
+                "Room.Info.InvitationCode.Set",
+                str(pr.room.invitation_code),
+                room=psid,
+                namespace=GAME_NS,
+            )
 
 @sio.on("Room.Info.Players.Kick", namespace=GAME_NS)
 @auth.login_required(app, sio)

@@ -152,9 +152,9 @@
                     "create_note": "Crear nota",
                     "delete_marker": "Borrar etiqueta",
                     "no_notes": "No hay notas",
-                    "dm_options": "Opciones de DM",
+                    "dm_settings": "Opciones de DM",
                     "no_markers": "No hay etiquetas",
-                    "client_options": "Opciones de cliente"
+                    "client_settings": "Opciones de cliente"
                 }
             },
             "NoteDialog": {
@@ -215,7 +215,7 @@
                     "ClientSettings": {
                         "client_settings": "Client Settings"
                     },
-                    "AppearanceSettings": {
+                    "DisplaySettings": {
                         "grid_size_in_pixels": "Tamaño de la Grilla (en pixeles):"
                     },
                     "BehaviourSettings": {

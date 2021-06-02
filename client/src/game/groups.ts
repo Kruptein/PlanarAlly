@@ -1,5 +1,8 @@
+import { ref, Ref } from "vue";
+
 import { SyncTo } from "../core/models/types";
 import { uuidv4 } from "../core/utils";
+import { UuidMap } from "../store/shapeMap";
 
 import {
     sendCreateGroup,
@@ -9,7 +12,6 @@ import {
     sendMemberBadgeUpdate,
     sendRemoveGroup,
 } from "./api/emits/groups";
-import { layerManager } from "./layers/manager";
 import { CREATION_ORDER_TYPES, Group, groupToClient, groupToServer, ServerGroup } from "./models/groups";
 import { Shape } from "./shapes/shape";
 
@@ -17,19 +19,19 @@ const numberCharacterSet = "0123456789".split("");
 const latinCharacterSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 export const CHARACTER_SETS = [numberCharacterSet, latinCharacterSet];
 
-const groupMap: Map<string, Group> = new Map();
-const memberMap: Map<string, Set<string>> = new Map();
+export const groupMap: Ref<Map<string, Group>> = ref(new Map());
+export const memberMap: Ref<Map<string, Set<string>>> = ref(new Map());
 
 export function addNewGroup(group: Group, sync: boolean): void {
-    groupMap.set(group.uuid, group);
-    memberMap.set(group.uuid, new Set());
+    groupMap.value.set(group.uuid, group);
+    memberMap.value.set(group.uuid, new Set());
     if (sync) {
         sendCreateGroup(groupToServer(group));
     }
 }
 
 export function hasGroup(groupId: string): boolean {
-    return groupMap.has(groupId);
+    return groupMap.value.has(groupId);
 }
 
 export function removeGroup(groupId: string, sync: boolean): void {
@@ -39,8 +41,8 @@ export function removeGroup(groupId: string, sync: boolean): void {
         member.setShowBadge(false, SyncTo.UI);
     }
     if (sync) sendRemoveGroup(groupId);
-    memberMap.delete(groupId);
-    groupMap.delete(groupId);
+    memberMap.value.delete(groupId);
+    groupMap.value.delete(groupId);
 }
 
 export function createNewGroupForShapes(shapes: string[], keepBadges = false): void {
@@ -52,27 +54,27 @@ export function createNewGroupForShapes(shapes: string[], keepBadges = false): v
     addNewGroup(group, true);
     addGroupMembers(
         group.uuid,
-        shapes.map((s) => ({ uuid: s, badge: keepBadges ? layerManager.UUIDMap.get(s)!.badge : undefined })),
+        shapes.map((s) => ({ uuid: s, badge: keepBadges ? UuidMap.get(s)!.badge : undefined })),
         true,
     );
 }
 
 export function updateGroupFromServer(serverGroup: ServerGroup): void {
     const group = groupToClient(serverGroup);
-    groupMap.set(group.uuid, group);
+    groupMap.value.set(group.uuid, group);
     for (const layer of new Set(getGroupMembers(group.uuid).map((s) => s.layer))) {
         layer.invalidate(true);
     }
 }
 
 export function getGroupSize(groupId: string): number {
-    return memberMap.get(groupId)?.size ?? 0;
+    return memberMap.value.get(groupId)?.size ?? 0;
 }
 
 export function getGroupMembers(groupId: string): Shape[] {
-    const members = memberMap.get(groupId);
+    const members = memberMap.value.get(groupId);
     if (members === undefined) return [];
-    return [...members].map((m) => layerManager.UUIDMap.get(m)!);
+    return [...members].map((m) => UuidMap.get(m)!);
 }
 
 export function addGroupMembers(groupId: string, members: { uuid: string; badge?: number }[], sync: boolean): void {
@@ -82,16 +84,16 @@ export function addGroupMembers(groupId: string, members: { uuid: string; badge?
             member.badge = generateNewBadge(groupId);
         }
         newMembers.push(member as { uuid: string; badge: number });
-        const shape = layerManager.UUIDMap.get(member.uuid);
+        const shape = UuidMap.get(member.uuid);
         if (shape && shape.groupId !== groupId) {
             if (shape.groupId !== undefined) {
-                memberMap.get(shape.groupId)?.delete(shape.uuid);
+                memberMap.value.get(shape.groupId)?.delete(shape.uuid);
             }
-            shape.groupId = groupId;
+            shape.setGroupId(groupId, SyncTo.UI);
             shape.badge = member.badge;
             shape.invalidate(true);
         }
-        memberMap.get(groupId)?.add(member.uuid);
+        memberMap.value.get(groupId)?.add(member.uuid);
     }
     if (sync) {
         sendGroupJoin({ group_id: groupId, members: newMembers });
@@ -99,28 +101,24 @@ export function addGroupMembers(groupId: string, members: { uuid: string; badge?
 }
 
 export function removeGroupMember(groupId: string, member: string, sync: boolean): void {
-    const members = memberMap.get(groupId);
+    const members = memberMap.value.get(groupId);
     members?.delete(member);
-    const shape = layerManager.UUIDMap.get(member);
+    const shape = UuidMap.get(member);
     if (shape !== undefined) shape.setShowBadge(false, SyncTo.UI);
     if (sync) {
         sendGroupLeave([{ uuid: member, group_id: groupId }]);
     }
 }
 
-export function getGroup(groupId: string): Group | undefined {
-    return groupMap.get(groupId);
-}
-
 export function setCharacterSet(groupId: string, characterSet: string[]): void {
-    const newGroupInfo = { ...groupMap.get(groupId)!, characterSet };
-    groupMap.set(groupId, newGroupInfo);
+    const newGroupInfo = { ...groupMap.value.get(groupId)!, characterSet };
+    groupMap.value.set(groupId, newGroupInfo);
     sendGroupUpdate(groupToServer(newGroupInfo));
 }
 
 export function setCreationOrder(groupId: string, creationOrder: CREATION_ORDER_TYPES): void {
-    const newGroupInfo = { ...groupMap.get(groupId)!, creationOrder };
-    groupMap.set(groupId, newGroupInfo);
+    const newGroupInfo = { ...groupMap.value.get(groupId)!, creationOrder };
+    groupMap.value.set(groupId, newGroupInfo);
     sendGroupUpdate(groupToServer(newGroupInfo));
 
     const members = getGroupMembers(groupId);
@@ -148,7 +146,12 @@ export function setCreationOrder(groupId: string, creationOrder: CREATION_ORDER_
 export function getBadgeCharacters(shape: Shape): string {
     if (shape.groupId === undefined) return "0";
 
-    const group = getGroup(shape.groupId)!;
+    const group = groupMap.value.get(shape.groupId);
+
+    if (group === undefined) {
+        console.warn("could not fetch badge characters");
+        return "0";
+    }
 
     if (group.characterSet.join("") === numberCharacterSet.join("")) return (shape.badge + 1).toString();
 
@@ -165,7 +168,7 @@ export function getBadgeCharacters(shape: Shape): string {
 }
 
 export function generateNewBadge(groupId: string): number {
-    const group = getGroup(groupId)!;
+    const group = groupMap.value.get(groupId)!;
     const members = getGroupMembers(groupId);
     const badges = members.map((m) => m.badge);
     const membersLength = Math.max(2 * members.length + 1, 10);
@@ -174,7 +177,7 @@ export function generateNewBadge(groupId: string): number {
         return Math.max(-1, ...badges) + 1;
     } else {
         let value: number | undefined;
-        while (!value || badges.includes(value)) {
+        while (value === undefined || badges.includes(value)) {
             value = Math.floor(Math.random() * membersLength);
         }
         return value;

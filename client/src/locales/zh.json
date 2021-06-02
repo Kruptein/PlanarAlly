@@ -152,9 +152,9 @@
                     "create_note": "创建便签",
                     "delete_marker": "删除记号",
                     "no_notes": "暂无便签",
-                    "dm_options": "DM选项",
+                    "dm_settings": "DM选项",
                     "no_markers": "暂无记号",
-                    "client_options": "客户端选项"
+                    "client_settings": "客户端选项"
                 }
             },
             "NoteDialog": {
@@ -215,7 +215,7 @@
                     "ClientSettings": {
                         "client_settings": "Client Settings"
                     },
-                    "AppearanceSettings": {
+                    "DisplaySettings": {
                         "grid_size_in_pixels": "网格尺寸（像素）："
                     },
                     "BehaviourSettings": {

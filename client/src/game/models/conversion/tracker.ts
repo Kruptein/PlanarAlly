@@ -1,6 +1,5 @@
-import { ServerTracker } from "@/game/models/shapes";
-
 import { Tracker } from "../../shapes/interfaces";
+import { ServerTracker } from "../shapes";
 
 export const trackersFromServer = (...trackers: ServerTracker[]): Tracker[] => {
     const result = [];

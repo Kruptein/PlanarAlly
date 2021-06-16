@@ -416,13 +416,13 @@ export default defineComponent({
             .hue {
                 grid-area: hue;
                 background: linear-gradient(90deg, red 0, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, red);
-                height: 10px;
+                height: 12px;
                 position: relative;
             }
 
             .alpha {
                 grid-area: alpha;
-                height: 10px;
+                height: 12px;
                 position: relative;
                 pointer-events: none;
 
@@ -470,7 +470,7 @@ export default defineComponent({
     .picker {
         cursor: pointer;
         width: 10px;
-        height: 10px;
+        height: 12px;
         background: #fff;
         border-radius: 1px;
         box-shadow: 0 0 2px rgba(0, 0, 0, 0.6);

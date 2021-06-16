@@ -1,9 +1,7 @@
-import * as tinycolor from "tinycolor2";
-
 import { g2l, g2lz } from "../../../core/conversions";
 import { GlobalPoint } from "../../../core/geometry";
 import { SyncMode } from "../../../core/models/types";
-import { calcFontScale } from "../../../core/utils";
+import { calcFontScale, mostReadable } from "../../../core/utils";
 import { clientStore } from "../../../store/client";
 import { sendCircularTokenUpdate } from "../../api/emits/shape/circularToken";
 import { ServerCircularToken } from "../../models/shapes";
@@ -62,7 +60,7 @@ export class CircularToken extends Circle {
         const pixelRatio = clientStore.devicePixelRatio.value;
         ctx.setTransform(fontScale, 0, 0, fontScale, center.x * pixelRatio, center.y * pixelRatio);
         ctx.rotate(this.angle);
-        ctx.fillStyle = tinycolor.mostReadable(this.fillColour, ["#000", "#fff"]).toHexString();
+        ctx.fillStyle = mostReadable(this.fillColour);
         ctx.fillText(this.text, 0, 0);
 
         super.drawPost(ctx);

@@ -146,6 +146,7 @@ export interface ShapeOptions {
 
     preFogShape: boolean;
     skipDraw: boolean;
+    borderOperation: string;
 
     svgHeight: number;
     svgPaths: string[];

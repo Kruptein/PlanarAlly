@@ -1,12 +1,11 @@
 import { clamp } from "lodash";
-import tinycolor from "tinycolor2";
 
 import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "../../core/conversions";
 import { addP, cloneP, equalsP, GlobalPoint, subtractP, toArrayP, toGP, Vector } from "../../core/geometry";
 import { rotateAroundPoint } from "../../core/math";
 import { SyncTo } from "../../core/models/types";
 import { FunctionPropertyNames, PartialBy } from "../../core/types";
-import { uuidv4 } from "../../core/utils";
+import { mostReadable, uuidv4 } from "../../core/utils";
 import { ActiveShapeStore, activeShapeStore } from "../../store/activeShape";
 import { clientStore } from "../../store/client";
 import { floorStore } from "../../store/floor";
@@ -90,7 +89,7 @@ export abstract class Shape {
     // Fill colour of the shape
     fillColour: string;
     strokeColour: string;
-    strokeWidth = 5;
+    strokeWidth: number;
 
     assetId?: number;
     groupId?: string;
@@ -133,13 +132,14 @@ export abstract class Shape {
 
     constructor(
         refPoint: GlobalPoint,
-        options?: { fillColour?: string; strokeColour?: string; uuid?: string; assetId?: number },
+        options?: { fillColour?: string; strokeColour?: string; uuid?: string; assetId?: number; strokeWidth?: number },
     ) {
         this._refPoint = refPoint;
         this.uuid = options?.uuid ?? uuidv4();
         this.fillColour = options?.fillColour ?? "#000";
         this.strokeColour = options?.strokeColour ?? "rgba(0,0,0,0)";
         this.assetId = options?.assetId;
+        this.strokeWidth = options?.strokeWidth ?? 5;
     }
 
     abstract center(): GlobalPoint;
@@ -272,7 +272,7 @@ export abstract class Shape {
             ctx.arc(location.x - r, location.y - r, r, 0, 2 * Math.PI);
             ctx.stroke();
             ctx.fill();
-            ctx.fillStyle = tinycolor.mostReadable(this.strokeColour, ["#000", "#fff"]).toHexString();
+            ctx.fillStyle = mostReadable(this.strokeColour);
 
             const badgeChars = getBadgeCharacters(this);
             const scalingFactor = 2.3 - 0.5 * badgeChars.length;
@@ -509,7 +509,8 @@ export abstract class Shape {
      * @param f A funtion name that exists on ActiveShapeStore
      */
     protected _<F extends FunctionPropertyNames<ActiveShapeStore>>(f: F): ActiveShapeStore[F] {
-        if (this.uuid === activeShapeStore.state.uuid) return activeShapeStore[f].bind(activeShapeStore);
+        if (this.uuid === activeShapeStore.state.uuid)
+            return activeShapeStore[f].bind(activeShapeStore) as ActiveShapeStore[F];
         return (..._: unknown[]) => {};
     }
 

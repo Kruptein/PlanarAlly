@@ -1,5 +1,4 @@
 <script lang="ts">
-import tinycolor from "tinycolor2";
 import { defineComponent, nextTick, ref, watch } from "vue";
 
 import ColourPicker from "../../../core/components/ColourPicker.vue";
@@ -7,7 +6,7 @@ import Modal from "../../../core/components/modals/Modal.vue";
 import { getUnitDistance, l2g } from "../../../core/conversions";
 import { toLP } from "../../../core/geometry";
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
-import { calcFontScale } from "../../../core/utils";
+import { calcFontScale, mostReadable } from "../../../core/utils";
 import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
 import { settingsStore } from "../../../store/settings";
@@ -81,7 +80,7 @@ export default defineComponent({
             ctx.textBaseline = "middle";
             const fontScale = calcFontScale(ctx, text.value || "X", r - 2.5);
             ctx.setTransform(fontScale, 0, 0, fontScale, dest.x, dest.y);
-            ctx.fillStyle = tinycolor.mostReadable(fillColour.value, ["#000", "#fff"]).toHexString();
+            ctx.fillStyle = mostReadable(fillColour.value);
             ctx.fillText(text.value || "X", 0, 0);
             ctx.restore();
         }

@@ -1,12 +1,11 @@
 import { clamp } from "lodash";
-import tinycolor from "tinycolor2";
 
 import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "../../core/conversions";
 import { addP, cloneP, equalsP, GlobalPoint, subtractP, toArrayP, toGP, Vector } from "../../core/geometry";
 import { rotateAroundPoint } from "../../core/math";
 import { SyncTo } from "../../core/models/types";
 import { FunctionPropertyNames, PartialBy } from "../../core/types";
-import { uuidv4 } from "../../core/utils";
+import { mostReadable, uuidv4 } from "../../core/utils";
 import { ActiveShapeStore, activeShapeStore } from "../../store/activeShape";
 import { clientStore } from "../../store/client";
 import { floorStore } from "../../store/floor";
@@ -272,7 +271,7 @@ export abstract class Shape {
             ctx.arc(location.x - r, location.y - r, r, 0, 2 * Math.PI);
             ctx.stroke();
             ctx.fill();
-            ctx.fillStyle = tinycolor.mostReadable(this.strokeColour, ["#000", "#fff"]).toHexString();
+            ctx.fillStyle = mostReadable(this.strokeColour);
 
             const badgeChars = getBadgeCharacters(this);
             const scalingFactor = 2.3 - 0.5 * badgeChars.length;

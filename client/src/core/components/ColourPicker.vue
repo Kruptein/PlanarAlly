@@ -290,15 +290,15 @@ export default defineComponent({
                     </div>
                     <div class="alpha">
                         <div class="checker"></div>
-                    <div
-                        ref="alpha"
-                        @pointerdown="onAlphaDown"
-                        @pointermove="onAlphaMove"
-                        @pointerup="onAlphaUp"
-                        @pointerleave="onAlphaUp"
-                        :style="{
-                            background: alphaBackground,
-                        }"
+                        <div
+                            ref="alpha"
+                            @pointerdown="onAlphaDown"
+                            @pointermove="onAlphaMove"
+                            @pointerup="onAlphaUp"
+                            @pointerleave="onAlphaUp"
+                            :style="{
+                                background: alphaBackground,
+                            }"
                         ></div>
                         <div class="pointer" :style="{ left: alphaLeft }">
                             <div class="picker"></div>
@@ -407,7 +407,7 @@ export default defineComponent({
 
                 > * {
                     position: absolute;
-                border-radius: 15px;
+                    border-radius: 15px;
                     width: 100%;
                     height: 100%;
                 }

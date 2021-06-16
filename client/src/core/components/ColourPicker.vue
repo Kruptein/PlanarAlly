@@ -268,7 +268,10 @@ export default defineComponent({
             </div>
             <div class="body">
                 <div class="sliders">
-                    <div class="preview" :style="{ backgroundColor: rgbaString }"></div>
+                    <div class="preview">
+                        <div class="checker"></div>
+                        <div :style="{ backgroundColor: rgbaString }"></div>
+                    </div>
                     <div
                         class="hue"
                         ref="hue"
@@ -285,8 +288,9 @@ export default defineComponent({
                             <div class="picker"></div>
                         </div>
                     </div>
+                    <div class="alpha">
+                        <div class="checker"></div>
                     <div
-                        class="alpha"
                         ref="alpha"
                         @pointerdown="onAlphaDown"
                         @pointermove="onAlphaMove"
@@ -295,7 +299,7 @@ export default defineComponent({
                         :style="{
                             background: alphaBackground,
                         }"
-                    >
+                        ></div>
                         <div class="pointer" :style="{ left: alphaLeft }">
                             <div class="picker"></div>
                         </div>
@@ -377,6 +381,10 @@ export default defineComponent({
         border-radius: 2px;
         box-shadow: 0 0 2px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(0, 0, 0, 0.3);
 
+        .checker {
+            background: repeating-conic-gradient(lightgray 0% 25%, transparent 0% 50%) 50% / 10px 10px;
+        }
+
         .sliders {
             padding: 15px;
             display: grid;
@@ -395,7 +403,14 @@ export default defineComponent({
                 grid-area: preview;
                 width: 30px;
                 height: 30px;
+                position: relative;
+
+                > * {
+                    position: absolute;
                 border-radius: 15px;
+                    width: 100%;
+                    height: 100%;
+                }
             }
 
             .hue {
@@ -409,6 +424,14 @@ export default defineComponent({
                 grid-area: alpha;
                 height: 10px;
                 position: relative;
+                pointer-events: none;
+
+                > :not(.pointer) {
+                    pointer-events: all;
+                    width: 100%;
+                    height: 100%;
+                    position: absolute;
+                }
             }
         }
 

@@ -49,7 +49,7 @@ export default defineComponent({
         const alphaLeft = computed(() => `${rgb.value.a * 100}%`);
 
         const hueActive = ref(false);
-        const hueLeft = computed(() => `${(hsl.value.h * 100) / 360}%`);
+        const hueLeft = computed(() => `${((hsl.value.h === 0 ? hueFallback.value : hsl.value.h) * 100) / 360}%`);
         const hueFallback = ref(0);
 
         const saturationActive = ref(false);
@@ -74,7 +74,7 @@ export default defineComponent({
             top.value = `${_top}px`;
         }
 
-        function open(event: MouseEvent | TouchEvent): void {
+        function open(event: PointerEvent): void {
             setPosition();
             visible.value = true;
             nextTick(() => modal.value!.focus());
@@ -112,12 +112,12 @@ export default defineComponent({
             inputMode.value = inputMode.value === InputMode.Hex ? InputMode.Rgba : inputMode.value - 1;
         }
 
-        function onAlphaDown(event: MouseEvent | TouchEvent): void {
+        function onAlphaDown(event: PointerEvent): void {
             alphaActive.value = true;
             onAlphaMove(event);
         }
 
-        function onAlphaMove(event: MouseEvent | TouchEvent): void {
+        function onAlphaMove(event: PointerEvent): void {
             if (!alphaActive.value) return;
 
             const el = alpha.value!.getBoundingClientRect();
@@ -137,12 +137,12 @@ export default defineComponent({
             emit("update:colour", rgbaString.value);
         }
 
-        function onHueDown(event: MouseEvent | TouchEvent): void {
+        function onHueDown(event: PointerEvent): void {
             hueActive.value = true;
             onHueMove(event);
         }
 
-        function onHueMove(event: MouseEvent | TouchEvent): void {
+        function onHueMove(event: PointerEvent): void {
             if (!hueActive.value) return;
 
             const el = hue.value!.getBoundingClientRect();
@@ -272,13 +272,10 @@ export default defineComponent({
                     <div
                         class="hue"
                         ref="hue"
-                        @touchstart="onHueDown"
-                        @mousedown="onHueDown"
-                        @touchmove="onHueMove"
-                        @mousemove="onHueMove"
-                        @touchend="onHueUp"
-                        @mouseup="onHueUp"
-                        @mouseleave="onHueUp"
+                        @pointerdown="onHueDown"
+                        @pointermove="onHueMove"
+                        @pointerup="onHueUp"
+                        @pointerleave="onHueUp"
                         role="slider"
                         :aria-valuenow="hsl.h"
                         aria-valuemin="0"
@@ -291,13 +288,10 @@ export default defineComponent({
                     <div
                         class="alpha"
                         ref="alpha"
-                        @touchstart="onAlphaDown"
-                        @mousedown="onAlphaDown"
-                        @touchmove="onAlphaMove"
-                        @mousemove="onAlphaMove"
-                        @touchend="onAlphaUp"
-                        @mouseup="onAlphaUp"
-                        @mouseleave="onAlphaUp"
+                        @pointerdown="onAlphaDown"
+                        @pointermove="onAlphaMove"
+                        @pointerup="onAlphaUp"
+                        @pointerleave="onAlphaUp"
                         :style="{
                             background: alphaBackground,
                         }"

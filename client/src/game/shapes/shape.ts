@@ -509,7 +509,8 @@ export abstract class Shape {
      * @param f A funtion name that exists on ActiveShapeStore
      */
     protected _<F extends FunctionPropertyNames<ActiveShapeStore>>(f: F): ActiveShapeStore[F] {
-        if (this.uuid === activeShapeStore.state.uuid) return activeShapeStore[f].bind(activeShapeStore);
+        if (this.uuid === activeShapeStore.state.uuid)
+            return activeShapeStore[f].bind(activeShapeStore) as ActiveShapeStore[F];
         return (..._: unknown[]) => {};
     }
 

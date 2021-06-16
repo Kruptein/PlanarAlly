@@ -8,6 +8,10 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+### Changed
+
+-   Draw helper now has a contrast border
+
 ### Fixed
 
 -   Subset of HTML no longer working in annotations

@@ -8,6 +8,10 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+### Fixed
+
+-   Subset of HTML no longer working in annotations
+
 ## [0.27.0] - 2021-06-02
 
 ### Added

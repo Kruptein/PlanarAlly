@@ -164,12 +164,13 @@ export default defineComponent({
             emit("update:colour", rgbaString.value);
         }
 
-        function onSaturationDown(event: MouseEvent | TouchEvent): void {
+        function onSaturationDown(event: PointerEvent): void {
             saturationActive.value = true;
+            saturation.value!.setPointerCapture(event.pointerId);
             onSaturationMove(event);
         }
 
-        function onSaturationMove(event: MouseEvent | TouchEvent): void {
+        function onSaturationMove(event: PointerEvent): void {
             if (!saturationActive.value) return;
 
             const el = saturation.value!.getBoundingClientRect();
@@ -186,7 +187,8 @@ export default defineComponent({
             emit("input:colour", rgbaString.value);
         }
 
-        function onSaturationUp(): void {
+        function onSaturationUp(event: PointerEvent): void {
+            saturation.value!.releasePointerCapture(event.pointerId);
             if (!saturationActive.value) return;
 
             saturationActive.value = false;
@@ -251,12 +253,9 @@ export default defineComponent({
             <div class="saturation-wrapper">
                 <div
                     ref="saturation"
-                    @touchstart="onSaturationDown"
-                    @mousedown="onSaturationDown"
-                    @touchmove="onSaturationMove"
-                    @mousemove="onSaturationMove"
-                    @touchend="onSaturationUp"
-                    @mouseup="onSaturationUp"
+                    @pointerdown="onSaturationDown"
+                    @pointermove="onSaturationMove"
+                    @pointerup="onSaturationUp"
                     class="saturation"
                     :style="{ background: saturationBackgroundColour }"
                 >

@@ -13,7 +13,7 @@ export default defineComponent({
 </script>
 
 <template>
-    <VueMarkdownIt v-show="text.length > 0" :source="text" id="annotation" />
+    <VueMarkdownIt v-show="text.length > 0" :source="text" id="annotation" :html="true" />
 </template>
 
 <style scoped>

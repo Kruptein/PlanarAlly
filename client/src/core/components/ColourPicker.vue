@@ -386,10 +386,16 @@ export default defineComponent({
         .sliders {
             padding: 15px;
             display: grid;
+            align-items: center;
             grid-template-columns: 45px auto;
             grid-template-areas:
                 "preview hue"
                 "preview alpha";
+
+            .hue:hover,
+            .alpha:hover {
+                cursor: pointer;
+            }
 
             .preview {
                 grid-area: preview;

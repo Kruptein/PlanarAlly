@@ -49,7 +49,7 @@ export default defineComponent({
         const alphaLeft = computed(() => `${rgb.value.a * 100}%`);
 
         const hueActive = ref(false);
-        const hueLeft = computed(() => `${(hsl.value.h * 100) / 360}%`);
+        const hueLeft = computed(() => `${((hsl.value.h === 0 ? hueFallback.value : hsl.value.h) * 100) / 360}%`);
         const hueFallback = ref(0);
 
         const saturationActive = ref(false);
@@ -74,7 +74,7 @@ export default defineComponent({
             top.value = `${_top}px`;
         }
 
-        function open(event: MouseEvent | TouchEvent): void {
+        function open(event: PointerEvent): void {
             setPosition();
             visible.value = true;
             nextTick(() => modal.value!.focus());
@@ -112,12 +112,12 @@ export default defineComponent({
             inputMode.value = inputMode.value === InputMode.Hex ? InputMode.Rgba : inputMode.value - 1;
         }
 
-        function onAlphaDown(event: MouseEvent | TouchEvent): void {
+        function onAlphaDown(event: PointerEvent): void {
             alphaActive.value = true;
             onAlphaMove(event);
         }
 
-        function onAlphaMove(event: MouseEvent | TouchEvent): void {
+        function onAlphaMove(event: PointerEvent): void {
             if (!alphaActive.value) return;
 
             const el = alpha.value!.getBoundingClientRect();
@@ -137,12 +137,12 @@ export default defineComponent({
             emit("update:colour", rgbaString.value);
         }
 
-        function onHueDown(event: MouseEvent | TouchEvent): void {
+        function onHueDown(event: PointerEvent): void {
             hueActive.value = true;
             onHueMove(event);
         }
 
-        function onHueMove(event: MouseEvent | TouchEvent): void {
+        function onHueMove(event: PointerEvent): void {
             if (!hueActive.value) return;
 
             const el = hue.value!.getBoundingClientRect();
@@ -164,12 +164,13 @@ export default defineComponent({
             emit("update:colour", rgbaString.value);
         }
 
-        function onSaturationDown(event: MouseEvent | TouchEvent): void {
+        function onSaturationDown(event: PointerEvent): void {
             saturationActive.value = true;
+            saturation.value!.setPointerCapture(event.pointerId);
             onSaturationMove(event);
         }
 
-        function onSaturationMove(event: MouseEvent | TouchEvent): void {
+        function onSaturationMove(event: PointerEvent): void {
             if (!saturationActive.value) return;
 
             const el = saturation.value!.getBoundingClientRect();
@@ -186,7 +187,8 @@ export default defineComponent({
             emit("input:colour", rgbaString.value);
         }
 
-        function onSaturationUp(): void {
+        function onSaturationUp(event: PointerEvent): void {
+            saturation.value!.releasePointerCapture(event.pointerId);
             if (!saturationActive.value) return;
 
             saturationActive.value = false;
@@ -251,12 +253,9 @@ export default defineComponent({
             <div class="saturation-wrapper">
                 <div
                     ref="saturation"
-                    @touchstart="onSaturationDown"
-                    @mousedown="onSaturationDown"
-                    @touchmove="onSaturationMove"
-                    @mousemove="onSaturationMove"
-                    @touchend="onSaturationUp"
-                    @mouseup="onSaturationUp"
+                    @pointerdown="onSaturationDown"
+                    @pointermove="onSaturationMove"
+                    @pointerup="onSaturationUp"
                     class="saturation"
                     :style="{ background: saturationBackgroundColour }"
                 >
@@ -269,17 +268,17 @@ export default defineComponent({
             </div>
             <div class="body">
                 <div class="sliders">
-                    <div class="preview" :style="{ backgroundColor: rgbaString }"></div>
+                    <div class="preview">
+                        <div class="checker"></div>
+                        <div :style="{ backgroundColor: rgbaString }"></div>
+                    </div>
                     <div
                         class="hue"
                         ref="hue"
-                        @touchstart="onHueDown"
-                        @mousedown="onHueDown"
-                        @touchmove="onHueMove"
-                        @mousemove="onHueMove"
-                        @touchend="onHueUp"
-                        @mouseup="onHueUp"
-                        @mouseleave="onHueUp"
+                        @pointerdown="onHueDown"
+                        @pointermove="onHueMove"
+                        @pointerup="onHueUp"
+                        @pointerleave="onHueUp"
                         role="slider"
                         :aria-valuenow="hsl.h"
                         aria-valuemin="0"
@@ -289,20 +288,18 @@ export default defineComponent({
                             <div class="picker"></div>
                         </div>
                     </div>
-                    <div
-                        class="alpha"
-                        ref="alpha"
-                        @touchstart="onAlphaDown"
-                        @mousedown="onAlphaDown"
-                        @touchmove="onAlphaMove"
-                        @mousemove="onAlphaMove"
-                        @touchend="onAlphaUp"
-                        @mouseup="onAlphaUp"
-                        @mouseleave="onAlphaUp"
-                        :style="{
-                            background: alphaBackground,
-                        }"
-                    >
+                    <div class="alpha">
+                        <div class="checker"></div>
+                        <div
+                            ref="alpha"
+                            @pointerdown="onAlphaDown"
+                            @pointermove="onAlphaMove"
+                            @pointerup="onAlphaUp"
+                            @pointerleave="onAlphaUp"
+                            :style="{
+                                background: alphaBackground,
+                            }"
+                        ></div>
                         <div class="pointer" :style="{ left: alphaLeft }">
                             <div class="picker"></div>
                         </div>
@@ -384,32 +381,57 @@ export default defineComponent({
         border-radius: 2px;
         box-shadow: 0 0 2px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(0, 0, 0, 0.3);
 
+        .checker {
+            background: repeating-conic-gradient(lightgray 0% 25%, transparent 0% 50%) 50% / 10px 10px;
+        }
+
         .sliders {
             padding: 15px;
             display: grid;
+            align-items: center;
             grid-template-columns: 45px auto;
             grid-template-areas:
                 "preview hue"
                 "preview alpha";
 
+            .hue:hover,
+            .alpha:hover {
+                cursor: pointer;
+            }
+
             .preview {
                 grid-area: preview;
                 width: 30px;
                 height: 30px;
-                border-radius: 15px;
+                position: relative;
+
+                > * {
+                    position: absolute;
+                    border-radius: 15px;
+                    width: 100%;
+                    height: 100%;
+                }
             }
 
             .hue {
                 grid-area: hue;
                 background: linear-gradient(90deg, red 0, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, red);
-                height: 10px;
+                height: 12px;
                 position: relative;
             }
 
             .alpha {
                 grid-area: alpha;
-                height: 10px;
+                height: 12px;
                 position: relative;
+                pointer-events: none;
+
+                > :not(.pointer) {
+                    pointer-events: all;
+                    width: 100%;
+                    height: 100%;
+                    position: absolute;
+                }
             }
         }
 
@@ -448,7 +470,7 @@ export default defineComponent({
     .picker {
         cursor: pointer;
         width: 10px;
-        height: 10px;
+        height: 12px;
         background: #fff;
         border-radius: 1px;
         box-shadow: 0 0 2px rgba(0, 0, 0, 0.6);

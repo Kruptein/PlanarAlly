@@ -11,6 +11,12 @@ These usually have no immediately visible impact on regular users
 ### Fixed
 
 -   Subset of HTML no longer working in annotations
+-   Various colour picker fixes
+    -   Keep focus on saturation while mouse down
+    -   Increase height sliders
+    -   Fix hue slider click initially not moving
+    -   Add back checkboard background
+    -   Show cursor:pointer on slider hover
 
 ## [0.27.0] - 2021-06-02
 

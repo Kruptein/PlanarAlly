@@ -79,11 +79,14 @@ class DrawTool extends Tool {
             () => this.state.selectedMode,
             (newMode, oldMode) => this.onModeChange(newMode, oldMode),
         );
-        watchEffect(() => {
-            if (this.brushHelper) {
-                this.brushHelper.fillColour = this.state.fillColour;
-            }
-        });
+        watch(
+            () => this.state.fillColour,
+            () => {
+                if (this.brushHelper) {
+                    this.brushHelper.fillColour = this.state.fillColour;
+                }
+            },
+        );
         watchEffect(() => {
             if (this.shape !== undefined && this.active) {
                 (this.shape as Polygon).openPolygon = !this.state.isClosedPolygon;

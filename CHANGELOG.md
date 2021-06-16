@@ -17,6 +17,7 @@ These usually have no immediately visible impact on regular users
     -   Fix hue slider click initially not moving
     -   Add back checkboard background
     -   Show cursor:pointer on slider hover
+-   Draw tool cursor not immediately changing on colour change
 
 ## [0.27.0] - 2021-06-02
 

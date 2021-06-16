@@ -89,7 +89,7 @@ export abstract class Shape {
     // Fill colour of the shape
     fillColour: string;
     strokeColour: string;
-    strokeWidth = 5;
+    strokeWidth: number;
 
     assetId?: number;
     groupId?: string;
@@ -132,13 +132,14 @@ export abstract class Shape {
 
     constructor(
         refPoint: GlobalPoint,
-        options?: { fillColour?: string; strokeColour?: string; uuid?: string; assetId?: number },
+        options?: { fillColour?: string; strokeColour?: string; uuid?: string; assetId?: number; strokeWidth?: number },
     ) {
         this._refPoint = refPoint;
         this.uuid = options?.uuid ?? uuidv4();
         this.fillColour = options?.fillColour ?? "#000";
         this.strokeColour = options?.strokeColour ?? "rgba(0,0,0,0)";
         this.assetId = options?.assetId;
+        this.strokeWidth = options?.strokeWidth ?? 5;
     }
 
     abstract center(): GlobalPoint;

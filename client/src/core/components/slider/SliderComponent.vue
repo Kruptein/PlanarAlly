@@ -61,11 +61,7 @@ export default defineComponent({
             dotPos.value = pos;
         }
 
-        function blurd(): void {
-            console.log(23);
-        }
-
-        return { blurd, dotPos, rail, dragging, focussed, scale, value, onClick, dragMove };
+        return { dotPos, rail, dragging, focussed, scale, value, onClick, dragMove };
     },
 });
 </script>

@@ -1,4 +1,4 @@
-import { clamp } from "lodash";
+import clamp from "lodash/clamp";
 
 import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "../../core/conversions";
 import { addP, cloneP, equalsP, GlobalPoint, subtractP, toArrayP, toGP, Vector } from "../../core/geometry";

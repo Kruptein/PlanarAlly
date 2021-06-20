@@ -1,15 +1,15 @@
 <script lang="ts">
 import { computed, defineComponent, onMounted, reactive, ref, toRef, toRefs } from "vue";
 import { useI18n } from "vue-i18n";
-import "vue-slider-component/theme/default.css";
-import vueSlider from "vue-slider-component";
 
 import MarkdownModal from "../../core/components/modals/MarkdownModal.vue";
+import SliderComponent from "../../core/components/slider/SliderComponent.vue";
 import { baseAdjust } from "../../core/utils";
 import { activeShapeStore } from "../../store/activeShape";
 import { clientStore } from "../../store/client";
 import { coreStore } from "../../store/core";
 import { gameStore } from "../../store/game";
+import { sendClientLocationOptions } from "../api/emits/client";
 
 import Annotation from "./Annotation.vue";
 import DefaultContext from "./contextmenu/DefaultContext.vue";
@@ -46,8 +46,8 @@ export default defineComponent({
         SelectionInfo,
         ShapeContext,
         ShapeSettings,
+        SliderComponent,
         Tools,
-        vueSlider,
     },
     setup() {
         const uiEl = ref<HTMLDivElement | null>(null);
@@ -127,8 +127,13 @@ export default defineComponent({
             },
             set(zoom: number) {
                 clientStore.setZoomDisplay(zoom);
+                sendClientLocationOptions();
             },
         });
+
+        function setTempZoomDisplay(value: number): void {
+            clientStore.setZoomDisplay(value);
+        }
 
         return {
             baseAdjust,
@@ -150,6 +155,7 @@ export default defineComponent({
             topLeft,
 
             zoomDisplay,
+            setTempZoomDisplay,
         };
     },
 });
@@ -238,22 +244,18 @@ export default defineComponent({
         <MarkdownModal v-if="showChangelog" :title="t('game.ui.ui.new_ver_msg')" :source="changelogText" />
         <!-- When updating zoom boundaries, also update store updateZoom function;
             should probably do this using a store variable-->
-        <vueSlider
+        <SliderComponent
             id="zoom"
-            v-model="zoomDisplay"
-            :height="6"
-            :width="200"
+            height="6px"
+            width="200px"
+            :dot-size="[8, 20]"
+            :rail-style="{ 'background-color': '#fff', 'box-shadow': '0.5px 0.5px 3px 1px rgba(0, 0, 0, .36)' }"
+            :dot-style="{ 'border-radius': '15%' }"
             :min="0"
             :max="1"
-            :interval="0.1"
-            :dot-size="[8, 20]"
-            :dot-options="{ style: { 'border-radius': '15%' } }"
-            :tooltip-placement="'bottom'"
-            :tooltip="'focus'"
-            :tooltip-formatter="zoomDisplay.toFixed(1)"
-            :rail-style="{ 'background-color': '#fff', 'box-shadow': '0.5px 0.5px 3px 1px rgba(0, 0, 0, .36)' }"
-            :process-style="{ 'background-color': '#fff' }"
-        ></vueSlider>
+            v-model="zoomDisplay"
+            @change="setTempZoomDisplay"
+        />
     </div>
 </template>
 

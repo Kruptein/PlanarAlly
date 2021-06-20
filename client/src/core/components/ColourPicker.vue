@@ -1,5 +1,5 @@
 <script lang="ts">
-import { clamp } from "lodash";
+import clamp from "lodash/clamp";
 import tinycolor from "tinycolor2";
 import { computed, defineComponent, nextTick, ref, watchEffect } from "vue";
 

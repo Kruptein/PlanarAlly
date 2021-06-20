@@ -74,7 +74,6 @@ export class Circle extends Shape {
             // Inset the border with - borderWidth / 2
             // Slight imperfection added to account for zoom subpixel differences
             const r = this.r - this.strokeWidth / 2.5;
-            console.log(r, this.strokeWidth);
             this.drawArc(ctx, Math.max(this.strokeWidth / 2, this.ignoreZoomSize ? r : g2lz(r)));
             ctx.stroke();
             ctx.globalCompositeOperation = ogOperation;

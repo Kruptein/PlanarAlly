@@ -220,8 +220,8 @@ export default defineComponent({
 </template>
 
 <style lang="scss">
-@import "~swiper/swiper.scss";
-@import "~swiper/components/pagination/pagination.scss";
+@import "swiper/swiper.scss";
+@import "swiper/components/pagination/pagination.scss";
 
 .swiper-pagination-bullet-active {
     background-color: var(--primary);

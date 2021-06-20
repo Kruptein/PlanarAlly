@@ -26,7 +26,7 @@ import {
 } from "./tools/events";
 import UI from "./ui/UI.vue";
 
-import "@/game/api/events";
+import "./api/events";
 
 export default defineComponent({
     name: "Game",

@@ -25,12 +25,12 @@ const routes: Array<RouteRecordRaw> = [
         },
     },
     {
-        path: "/auth",
-        component: { template: "<router-view></router-view>" },
-        children: [
-            { path: "login", name: "login", component: Login },
-            { path: "logout", component: Logout },
-        ],
+        path: "/auth/login",
+        component: Login,
+    },
+    {
+        path: "/auth/logout",
+        component: Logout,
     },
     {
         path: "/dashboard",

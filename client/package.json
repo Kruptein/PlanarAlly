@@ -3,11 +3,12 @@
     "version": "0.27.0",
     "private": true,
     "scripts": {
-        "serve": "vue-cli-service serve",
-        "clean": "rimraf ../server/static/js/ && rimraf ../server/static/css/",
-        "build": "npm run clean && vue-cli-service build --no-clean --modern",
-        "lint": "vue-cli-service lint",
-        "lint:ci": "vue-cli-service lint --no-fix"
+        "dev": "vite",
+        "serve": "vite preview",
+        "clean": "rimraf ../server/static/vite/",
+        "build": "npm run clean && vite build && mv ../server/index.html ../server/templates/index.html",
+        "lint": "eslint src --fix",
+        "lint:ci": "eslint src --no-fix"
     },
     "dependencies": {
         "@fortawesome/fontawesome-svg-core": "^1.2.35",
@@ -23,24 +24,19 @@
         "vue": "^3.0.10",
         "vue-i18n": "^9.1.6",
         "vue-router": "^4.0.8",
-        "vue-slider-component": "^4.0.0-beta.3",
         "vue-toastification": "^2.0.0-rc.1",
         "vue3-markdown-it": "^1.0.8",
         "vuedraggable": "^4.0.1"
     },
     "devDependencies": {
+        "@intlify/vite-plugin-vue-i18n": "^2.2.1",
         "@types/jest": "^26.0.23",
         "@types/lodash": "^4.14.169",
         "@types/swiper": "^5.4.2",
         "@types/tinycolor2": "^1.4.2",
         "@typescript-eslint/eslint-plugin": "^4.23.0",
         "@typescript-eslint/parser": "^4.23.0",
-        "@vue/cli-plugin-babel": "~5.0.0-beta.1",
-        "@vue/cli-plugin-eslint": "~5.0.0-beta.1",
-        "@vue/cli-plugin-router": "~5.0.0-beta.1",
-        "@vue/cli-plugin-typescript": "~5.0.0-beta.1",
-        "@vue/cli-plugin-unit-jest": "~5.0.0-beta.1",
-        "@vue/cli-service": "~5.0.0-beta.1",
+        "@vitejs/plugin-vue": "^1.2.3",
         "@vue/compiler-sfc": "^3.0.10",
         "@vue/eslint-config-prettier": "^6.0.0",
         "@vue/eslint-config-typescript": "^7.0.0",
@@ -56,6 +52,9 @@
         "sass-loader": "^11.1.1",
         "ts-jest": "^26.5.6",
         "typescript": "~4.2.4",
-        "vue-jest": "^5.0.0-0"
+        "upath": "^2.0.1",
+        "vite": "^2.3.7",
+        "vue-jest": "^5.0.0-0",
+        "vue-tsc": "^0.1.7"
     }
 }

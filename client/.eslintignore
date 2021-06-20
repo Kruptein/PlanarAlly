@@ -8,3 +8,4 @@ postcss.config.js
 babel.config.js
 .eslintrc.js
 tests/unit/.eslintrc.js
+vite.config.ts

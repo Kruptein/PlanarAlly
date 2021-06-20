@@ -6,7 +6,8 @@
         "dev": "vite",
         "serve": "vite preview",
         "clean": "rimraf ../server/static/vite/",
-        "build": "npm run clean && vite build && mv ../server/index.html ../server/templates/index.html",
+        "build": "npm run build:ci && mv ../server/index.html ../server/templates/index.html",
+        "build:ci": "npm run clean && vite build",
         "lint": "eslint src --fix",
         "lint:ci": "eslint src --no-fix"
     },

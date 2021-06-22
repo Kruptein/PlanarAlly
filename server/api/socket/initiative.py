@@ -274,7 +274,9 @@ async def change_initiative_order(sid: str, data: ServerInitiativeOrderChange):
         if json_data[old_index]["shape"] != data["shape"]:
             return
 
-        if json_data[new_index]["initiative"] != json_data[old_index]["initiative"]:
+        if json_data[new_index].get("initiative", 0) != json_data[old_index].get(
+            "initiative", 0
+        ):
             location_data.sort = 2
 
         json_data.insert(new_index, json_data.pop(old_index))

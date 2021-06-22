@@ -182,7 +182,7 @@ export default defineComponent({
             clearValues: () => initiativeStore.clearValues(true),
             nextTurn: () => initiativeStore.nextTurn(),
             previousTurn: () => initiativeStore.previousTurn(),
-            owns: (actorId: string) => initiativeStore.owns(actorId),
+            owns: (actorId?: string) => initiativeStore.owns(actorId),
             toggleOption: (index: number, option: "isVisible" | "isGroup") =>
                 initiativeStore.toggleOption(index, option),
         };
@@ -344,6 +344,17 @@ export default defineComponent({
                 >
                     <font-awesome-icon icon="cog" />
                 </div>
+                <div
+                    v-if="!isDm"
+                    id="initiative-next-round"
+                    class="initiative-bar-button"
+                    :class="{ notAllowed: !owns() }"
+                    :style="{ opacity: owns() ? 1.0 : 0.3 }"
+                    @click="nextTurn"
+                    :title="t('game.ui.initiative.next')"
+                >
+                    <font-awesome-icon icon="chevron-right" />
+                </div>
             </div>
         </div>
     </Modal>
@@ -499,6 +510,12 @@ export default defineComponent({
     position: relative;
 
     #initiative-settings {
+        position: absolute;
+        right: 30px;
+        top: -6px;
+    }
+
+    #initiative-next-round {
         position: absolute;
         right: 5px;
         top: -6px;

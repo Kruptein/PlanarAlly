@@ -299,16 +299,18 @@ async def change_initiative_order(sid: str, data: ServerInitiativeOrderChange):
 async def update_initiative_turn(sid: str, turn: int):
     pr: PlayerRoom = game_state.get(sid)
 
-    if pr.role != Role.DM:
+    location_data: Initiative = Initiative.get(location=pr.active_location)
+    json_data = json.loads(location_data.data)
+
+    if pr.role != Role.DM and not has_ownership(
+        Shape.get_or_none(uuid=json_data[location_data.turn]["shape"]), pr
+    ):
         logger.warning(f"{pr.player.name} attempted to advance the initiative tracker")
         return
 
-    location_data = Initiative.get(location=pr.active_location)
     with db.atomic():
         nextTurn = turn > location_data.turn
         location_data.turn = turn
-
-        json_data = json.loads(location_data.data)
 
         for i, effect in enumerate(json_data[turn]["effects"][-1:]):
             try:
@@ -341,11 +343,18 @@ async def update_initiative_turn(sid: str, turn: int):
 async def update_initiative_round(sid: str, data: int):
     pr: PlayerRoom = game_state.get(sid)
 
-    if pr.role != Role.DM:
-        logger.warning(f"{pr.player.name} attempted to advance the initiative tracker")
-        return
-
     location_data = Initiative.get(location=pr.active_location)
+
+    if pr.role != Role.DM:
+        json_data = json.loads(location_data.data)
+        if not has_ownership(
+            Shape.get_or_none(uuid=json_data[location_data.turn]["shape"]), pr
+        ):
+            logger.warning(
+                f"{pr.player.name} attempted to advance the initiative tracker"
+            )
+            return
+
     with db.atomic():
         location_data.round = data
         location_data.save()

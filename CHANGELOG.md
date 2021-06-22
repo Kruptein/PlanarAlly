@@ -11,6 +11,7 @@ These usually have no immediately visible impact on regular users
 ### Changed
 
 -   Draw helper now has a contrast border
+-   Initiative can now be advanced by the active player
 -   [tech] Moved from vue-cli to vite
     -   this greatly improves dev and build speed
     -   main dev script is now `npm run dev`
@@ -25,6 +26,7 @@ These usually have no immediately visible impact on regular users
     -   Add back checkboard background
     -   Show cursor:pointer on slider hover
 -   Draw tool cursor not immediately changing on colour change
+-   Initiative reordering with unset values would throw error
 
 ## [0.27.0] - 2021-06-02
 

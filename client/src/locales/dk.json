@@ -102,17 +102,15 @@
                 "add_new_floor": "Tilføj en ny etage"
             },
             "initiative": {
-                "initiative": {
-                    "new_effect": "Ny effekt",
-                    "add_timed_effect": "Tilføj effekt med varighed",
-                    "toggle_group": "Skift individuel / gruppe initiativ",
-                    "delete_init": "Slet initiativ",
-                    "round_N": "Runde {n}",
-                    "vision_log_msg": "Autolås syn (vis kun den aktive polet)",
-                    "camera_log_msg": "Autolås kamera ved aktiv polet",
-                    "reset_round": "Nulstil runder/ture",
-                    "next": "Næste"
-                }
+                "new_effect": "Ny effekt",
+                "add_timed_effect": "Tilføj effekt med varighed",
+                "toggle_group": "Skift individuel / gruppe initiativ",
+                "delete_init": "Slet initiativ",
+                "round_N": "Runde {n}",
+                "vision_log_msg": "Autolås syn (vis kun den aktive polet)",
+                "camera_log_msg": "Autolås kamera ved aktiv polet",
+                "reset_round": "Nulstil runder/ture",
+                "next": "Næste"
             },
             "LabelManager": {
                 "category": "Kategori",

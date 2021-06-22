@@ -114,17 +114,15 @@
                 "rename_header_title": "Rinominado il piano"
             },
             "initiative": {
-                "initiative": {
-                    "new_effect": "Nuovo effetto",
-                    "add_timed_effect": "Aggiungi un effetto temporale",
-                    "toggle_group": "Cambia iniziativa individuale / gruppo",
-                    "delete_init": "Elimina iniziativa",
-                    "round_N": "Round {n}",
-                    "vision_log_msg": "Blocca visuale automaticamente (mostra solo la visuale del segnalino attivo)",
-                    "camera_log_msg": "Blocca la camera sul segnalino attivo",
-                    "reset_round": "Azzera round/turni",
-                    "next": "Prossimo"
-                }
+                "new_effect": "Nuovo effetto",
+                "add_timed_effect": "Aggiungi un effetto temporale",
+                "toggle_group": "Cambia iniziativa individuale / gruppo",
+                "delete_init": "Elimina iniziativa",
+                "round_N": "Round {n}",
+                "vision_log_msg": "Blocca visuale automaticamente (mostra solo la visuale del segnalino attivo)",
+                "camera_log_msg": "Blocca la camera sul segnalino attivo",
+                "reset_round": "Azzera round/turni",
+                "next": "Prossimo"
             },
             "LabelManager": {
                 "category": "Categoria",

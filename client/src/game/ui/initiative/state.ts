@@ -139,7 +139,7 @@ class InitiativeStore extends Store<InitiativeState> {
     // TURN / ROUND TRACKING
 
     setTurnCounter(turn: number, sync: boolean): void {
-        if (sync && !gameStore.state.isDm) return;
+        if (sync && !gameStore.state.isDm && !this.owns()) return;
         this._state.turnCounter = turn;
 
         const actor = this.getDataSet()[this._state.turnCounter];
@@ -160,7 +160,7 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     setRoundCounter(round: number, sync: boolean): void {
-        if (sync && !gameStore.state.isDm) return;
+        if (sync && !gameStore.state.isDm && !this.owns()) return;
         this._state.roundCounter = round;
         if (sync) {
             sendInitiativeRoundUpdate(round);
@@ -171,7 +171,7 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     nextTurn(): void {
-        if (!gameStore.state.isDm) return;
+        if (!gameStore.state.isDm && !this.owns()) return;
         if (this._state.turnCounter === this.getDataSet().length - 1) {
             this.setRoundCounter(this._state.roundCounter + 1, true);
         } else {
@@ -280,7 +280,11 @@ class InitiativeStore extends Store<InitiativeState> {
         return this._state[this._state.editLock === "" ? "locationData" : "newData"];
     }
 
-    owns(shapeId: string): boolean {
+    owns(shapeId?: string): boolean {
+        if (shapeId === undefined) {
+            shapeId = this._state.locationData[this._state.turnCounter]?.shape;
+            if (shapeId === undefined) return false;
+        }
         if (gameStore.state.isDm) return true;
         const shape = UuidMap.get(shapeId);
         // Shapes that are unknown to this client are hidden from this client but owned by other clients

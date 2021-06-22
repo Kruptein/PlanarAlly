@@ -182,7 +182,7 @@ export default defineComponent({
             clearValues: () => initiativeStore.clearValues(true),
             nextTurn: () => initiativeStore.nextTurn(),
             previousTurn: () => initiativeStore.previousTurn(),
-            owns: (actorId: string) => initiativeStore.owns(actorId),
+            owns: (actorId?: string) => initiativeStore.owns(actorId),
             toggleOption: (index: number, option: "isVisible" | "isGroup") =>
                 initiativeStore.toggleOption(index, option),
         };
@@ -258,7 +258,7 @@ export default defineComponent({
                                 :style="{ opacity: actor.isGroup ? '1.0' : '0.3' }"
                                 :class="{ notAllowed: !owns(actor.shape) }"
                                 @click="toggleOption(index, 'isGroup')"
-                                :title="t('game.ui.initiative.initiative.toggle_group')"
+                                :title="t('game.ui.initiative.toggle_group')"
                             >
                                 <font-awesome-icon icon="users" />
                             </div>
@@ -267,7 +267,7 @@ export default defineComponent({
                                 style="opacity: 0.6"
                                 :class="{ notAllowed: !owns(actor.shape) }"
                                 @click="createEffect(actor.shape)"
-                                :title="t('game.ui.initiative.initiative.add_timed_effect')"
+                                :title="t('game.ui.initiative.add_timed_effect')"
                             >
                                 <font-awesome-icon icon="stopwatch" />
                                 <template v-if="actor.effects">
@@ -302,7 +302,7 @@ export default defineComponent({
                                     :style="{ opacity: owns(actor.shape) ? '1.0' : '0.3' }"
                                     :class="{ notAllowed: !owns(actor.shape) }"
                                     @click="removeEffect(actor.shape, e)"
-                                    :title="t('game.ui.initiative.initiative.delete_effect')"
+                                    :title="t('game.ui.initiative.delete_effect')"
                                 >
                                     <font-awesome-icon icon="trash-alt" />
                                 </div>
@@ -312,53 +312,48 @@ export default defineComponent({
                 </template>
             </draggable>
             <div id="initiative-bar-dm" v-if="isDm">
-                <div
-                    class="initiative-bar-button"
-                    @click="reset"
-                    :title="t('game.ui.initiative.initiative.reset_round')"
-                >
+                <div class="initiative-bar-button" @click="reset" :title="t('game.ui.initiative.reset_round')">
                     <font-awesome-icon icon="angle-double-left" />
                 </div>
-                <div
-                    class="initiative-bar-button"
-                    @click="previousTurn"
-                    :title="t('game.ui.initiative.initiative.previous')"
-                >
+                <div class="initiative-bar-button" @click="previousTurn" :title="t('game.ui.initiative.previous')">
                     <font-awesome-icon icon="chevron-left" />
                 </div>
-                <div
-                    class="initiative-bar-button"
-                    @click="clearValues"
-                    :title="t('game.ui.initiative.initiative.clear')"
-                >
+                <div class="initiative-bar-button" @click="clearValues" :title="t('game.ui.initiative.clear')">
                     <font-awesome-icon icon="sync-alt" />
                 </div>
-                <div
-                    class="initiative-bar-button"
-                    @click="changeSort"
-                    :title="t('game.ui.initiative.initiative.change_sort')"
-                >
+                <div class="initiative-bar-button" @click="changeSort" :title="t('game.ui.initiative.change_sort')">
                     <font-awesome-icon :icon="translateSort(sort)" :key="sort" />
                 </div>
                 <div
                     class="initiative-bar-button"
                     :class="{ notAllowed: !isDm }"
                     @click="nextTurn"
-                    :title="t('game.ui.initiative.initiative.next')"
+                    :title="t('game.ui.initiative.next')"
                 >
                     <font-awesome-icon icon="chevron-right" />
                 </div>
             </div>
             <div id="initiative-round">
-                {{ t("game.ui.initiative.initiative.round_N", roundCounter) }}
+                {{ t("game.ui.initiative.round_N", roundCounter) }}
 
                 <div
                     id="initiative-settings"
                     class="initiative-bar-button"
                     @click="openSettings"
-                    :title="t('game.ui.initiative.initiative.next')"
+                    :title="t('game.ui.initiative.settings')"
                 >
                     <font-awesome-icon icon="cog" />
+                </div>
+                <div
+                    v-if="!isDm"
+                    id="initiative-next-round"
+                    class="initiative-bar-button"
+                    :class="{ notAllowed: !owns() }"
+                    :style="{ opacity: owns() ? 1.0 : 0.3 }"
+                    @click="nextTurn"
+                    :title="t('game.ui.initiative.next')"
+                >
+                    <font-awesome-icon icon="chevron-right" />
                 </div>
             </div>
         </div>
@@ -515,6 +510,12 @@ export default defineComponent({
     position: relative;
 
     #initiative-settings {
+        position: absolute;
+        right: 30px;
+        top: -6px;
+    }
+
+    #initiative-next-round {
         position: absolute;
         right: 5px;
         top: -6px;

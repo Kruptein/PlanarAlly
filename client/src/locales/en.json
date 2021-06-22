@@ -117,21 +117,20 @@
                 "rename_header_title": "Renaming Floor"
             },
             "initiative": {
-                "initiative": {
-                    "new_effect": "New effect",
-                    "add_timed_effect": "Add timed effect",
-                    "toggle_group": "Toggle individual / group initiative",
-                    "delete_init": "Delete initiative",
-                    "delete_effect": "Delete effect",
-                    "round_N": "Round {n}",
-                    "vision_log_msg": "Auto lock vision (only show vision of active token)",
-                    "camera_log_msg": "Auto camera lock on active token",
-                    "reset_round": "Reset rounds/turns",
-                    "next": "Next",
-                    "previous": "Previous",
-                    "clear": "Clear initiatives",
-                    "change_sort": "Change sorting"
-                }
+                "new_effect": "New effect",
+                "add_timed_effect": "Add timed effect",
+                "toggle_group": "Toggle individual / group initiative",
+                "delete_init": "Delete initiative",
+                "delete_effect": "Delete effect",
+                "round_N": "Round {n}",
+                "vision_log_msg": "Auto lock vision (only show vision of active token)",
+                "camera_log_msg": "Auto camera lock on active token",
+                "reset_round": "Reset rounds/turns",
+                "next": "Next",
+                "previous": "Previous",
+                "clear": "Clear initiatives",
+                "change_sort": "Change sorting",
+                "settings": "Settings"
             },
             "LabelManager": {
                 "category": "Category",

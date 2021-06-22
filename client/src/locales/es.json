@@ -114,18 +114,16 @@
                 "rename_header_title": "Renombrando Piso"
             },
             "initiative": {
-                "initiative": {
-                    "new_effect": "Nuevo Efecto",
-                    "add_timed_effect": "Añadir efecto temporal",
-                    "toggle_group": "Activar/Desactivar iniciativa individual / grupal",
-                    "delete_init": "Borrar iniciativa",
-                    "delete_effect": "Borrar efecto",
-                    "round_N": "Ronda {n}",
-                    "vision_log_msg": "Trabar vision automáticamente (Solo mostrar visión del token activo)",
-                    "camera_log_msg": "Trabar la cámara en el token activo",
-                    "reset_round": "Reiniciar rondas/turnos",
-                    "next": "Siguiente"
-                }
+                "new_effect": "Nuevo Efecto",
+                "add_timed_effect": "Añadir efecto temporal",
+                "toggle_group": "Activar/Desactivar iniciativa individual / grupal",
+                "delete_init": "Borrar iniciativa",
+                "delete_effect": "Borrar efecto",
+                "round_N": "Ronda {n}",
+                "vision_log_msg": "Trabar vision automáticamente (Solo mostrar visión del token activo)",
+                "camera_log_msg": "Trabar la cámara en el token activo",
+                "reset_round": "Reiniciar rondas/turnos",
+                "next": "Siguiente"
             },
             "LabelManager": {
                 "category": "Categoría",

@@ -216,7 +216,7 @@ export default defineComponent({
                                 'initiative-selected': turnCounter === index,
                                 blurred: editLock !== '' && editLock !== actor.shape,
                             }"
-                            :style="{ cursor: isDm && 'move' }"
+                            :style="{ cursor: isDm ? 'move' : 'auto' }"
                             @mouseenter="toggleHighlight(actor.shape, true)"
                             @mouseleave="toggleHighlight(actor.shape, false)"
                         >

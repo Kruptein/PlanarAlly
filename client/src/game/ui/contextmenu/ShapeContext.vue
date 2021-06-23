@@ -391,7 +391,7 @@ export default defineComponent({
                 <li
                     v-for="(floor, idx) in floors"
                     :key="floor.name"
-                    :style="[idx === currentFloorIndex ? { 'background-color': '#82c8a0' } : {}]"
+                    :style="[idx === currentFloorIndex ? { backgroundColor: '#82c8a0' } : {}]"
                     @click="setFloor(floor)"
                 >
                     {{ floor.name }}
@@ -404,7 +404,7 @@ export default defineComponent({
                 <li
                     v-for="layer in layers"
                     :key="layer.name"
-                    :style="[layer.name === activeLayer.name ? { 'background-color': '#82c8a0' } : {}]"
+                    :style="[layer.name === activeLayer.name ? { backgroundColor: '#82c8a0' } : {}]"
                     @click="setLayer(layer.name)"
                 >
                     {{ layerTranslationMapping[layer.name] }}
@@ -417,7 +417,7 @@ export default defineComponent({
                 <li
                     v-for="location in locations"
                     :key="location.id"
-                    :style="[activeLocation === location.id ? { 'background-color': '#82c8a0' } : {}]"
+                    :style="[activeLocation === location.id ? { backgroundColor: '#82c8a0' } : {}]"
                     @click="setLocation(location.id)"
                 >
                     {{ location.name }}

@@ -5,6 +5,7 @@ import { toDegrees, toRadians } from "../conversions";
 
 export default defineComponent({
     props: { angle: { type: Number, required: true } },
+    emits: { input: Number, change: Number },
     setup(props, { emit }) {
         const circle = ref<HTMLDivElement | null>(null);
 

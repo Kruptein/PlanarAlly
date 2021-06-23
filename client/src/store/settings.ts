@@ -98,10 +98,7 @@ class SettingsStore extends Store<SettingsState> {
         return false;
     }
 
-    getLocationOptions<K extends keyof LocationOptions>(
-        key: K,
-        location: number | undefined,
-    ): Partial<LocationOptions[K]> {
+    getLocationOptions<K extends keyof LocationOptions>(key: K, location: number | undefined): LocationOptions[K] {
         if (location === undefined) return this._state.defaultLocationOptions![key];
         return getValueOrDefault(
             this._state.locationOptions.get(location),

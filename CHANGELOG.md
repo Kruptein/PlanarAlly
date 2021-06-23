@@ -12,6 +12,7 @@ These usually have no immediately visible impact on regular users
 
 -   Draw helper now has a contrast border
 -   Initiative can now be advanced by the active player
+-   Co-DMs can no longer strip DM status of the campaign creator
 -   [tech] Moved from vue-cli to vite
     -   this greatly improves dev and build speed
     -   main dev script is now `npm run dev`

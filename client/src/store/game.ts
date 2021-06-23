@@ -17,7 +17,9 @@ import { Player } from "../game/models/player";
 import { ServerShape } from "../game/models/shapes";
 import { setCenterPosition } from "../game/position";
 import { Label } from "../game/shapes/interfaces";
+import { router } from "../router";
 
+import { coreStore } from "./core";
 import { floorStore } from "./floor";
 import { UuidMap } from "./shapeMap";
 
@@ -169,6 +171,10 @@ class GameStore extends Store<GameState> {
     setPlayerRole(playerId: number, role: number, sync: boolean): void {
         const player = this._state.players.find((p) => p.id === playerId);
         if (player === undefined) return;
+
+        if (player.name === router.currentRoute.value.params.creator && coreStore.state.username !== player.name) {
+            return;
+        }
 
         player.role = role;
         if (sync) sendChangePlayerRole({ player: playerId, role });

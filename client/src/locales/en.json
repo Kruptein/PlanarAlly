@@ -214,7 +214,7 @@
                     "remove_marker": "Remove marker",
                     "set_marker": "Set marker",
                     "no_spawn_set_title": "Could not move shapes",
-                    "no_spawn_set_text": "The destination has no spawn locations configured, make sure to create at least one."
+                    "no_spawn_set_text": "The destination has no spawn locations configured. Make sure to create at least one by using the context-menu in the destination location."
                 }
             },
             "settings": {

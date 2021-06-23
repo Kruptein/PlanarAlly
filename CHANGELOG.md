@@ -12,7 +12,6 @@ These usually have no immediately visible impact on regular users
 
 -   Draw helper now has a contrast border
 -   Initiative can now be advanced by the active player
--   Co-DMs can no longer strip DM status of the campaign creator
 -   [tech] Moved from vue-cli to vite
     -   this greatly improves dev and build speed
     -   main dev script is now `npm run dev`
@@ -28,6 +27,8 @@ These usually have no immediately visible impact on regular users
     -   Show cursor:pointer on slider hover
 -   Draw tool cursor not immediately changing on colour change
 -   Initiative reordering with unset values would throw error
+-   Co-DMs can no longer strip DM status of the campaign creator
+-   Co-DMs can no longer kick the campaign creator
 
 ## [0.27.0] - 2021-06-02
 

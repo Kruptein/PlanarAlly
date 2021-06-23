@@ -27,6 +27,8 @@ These usually have no immediately visible impact on regular users
     -   Show cursor:pointer on slider hover
 -   Draw tool cursor not immediately changing on colour change
 -   Initiative reordering with unset values would throw error
+-   Co-DMs can no longer strip DM status of the campaign creator
+-   Co-DMs can no longer kick the campaign creator
 
 ## [0.27.0] - 2021-06-02
 

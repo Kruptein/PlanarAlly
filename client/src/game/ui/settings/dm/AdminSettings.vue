@@ -1,10 +1,11 @@
 <script lang="ts">
 import { computed, defineComponent, ref, toRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 import InputCopyElement from "../../../../core/components/InputCopyElement.vue";
 import { useModal } from "../../../../core/plugins/modals/plugin";
+import { coreStore } from "../../../../store/core";
 import { gameStore } from "../../../../store/game";
 import { sendDeleteRoom, sendRefreshInviteCode } from "../../../api/emits/room";
 import { getRoles } from "../../../models/role";
@@ -14,6 +15,7 @@ export default defineComponent({
     setup() {
         const { t } = useI18n();
         const modals = useModal();
+        const route = useRoute();
         const router = useRouter();
 
         const gameState = gameStore.state;
@@ -30,6 +32,9 @@ export default defineComponent({
         const invitationUrl = computed(
             () => `${window.location.protocol}//${gameState.publicName}/invite/${gameState.invitationCode}`,
         );
+
+        const creator = computed(() => route.params.creator);
+        const username = toRef(coreStore.state, "username");
 
         function refreshInviteCode(): void {
             sendRefreshInviteCode();
@@ -74,6 +79,8 @@ export default defineComponent({
             t,
 
             players: toRef(gameState, "players"),
+            creator,
+            username,
             kickPlayer,
             changePlayerRole,
             togglePlayerRect,
@@ -99,7 +106,10 @@ export default defineComponent({
         <div class="row smallrow" v-for="player of players" :key="player.id">
             <div>{{ player.name }}</div>
             <div class="player-actions">
-                <select @change="changePlayerRole($event, player.id)">
+                <select
+                    @change="changePlayerRole($event, player.id)"
+                    :disabled="username !== creator && player.name === creator"
+                >
                     <option
                         v-for="[i, role] of roles.entries()"
                         :key="'role-' + i + '-' + player.id"
@@ -116,7 +126,11 @@ export default defineComponent({
                 >
                     <font-awesome-icon icon="eye" />
                 </div>
-                <div @click="kickPlayer(player.id)" v-t="'game.ui.settings.dm.AdminSettings.kick'"></div>
+                <div
+                    @click="kickPlayer(player.id)"
+                    v-t="'game.ui.settings.dm.AdminSettings.kick'"
+                    :style="{ opacity: username !== creator && player.name === creator ? 0.3 : 1.0 }"
+                ></div>
             </div>
         </div>
         <div class="row smallrow" v-if="players.length === 0">

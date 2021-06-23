@@ -164,6 +164,13 @@ class GameStore extends Store<GameState> {
     }
 
     kickPlayer(playerId: number): void {
+        const player = this._state.players.find((p) => p.id === playerId);
+        if (player === undefined) return;
+
+        if (player.name === router.currentRoute.value.params.creator && coreStore.state.username !== player.name) {
+            return;
+        }
+
         sendRoomKickPlayer(playerId);
         this._state.players = this._state.players.filter((p) => p.id !== playerId);
     }

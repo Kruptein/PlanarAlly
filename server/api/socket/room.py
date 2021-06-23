@@ -5,6 +5,7 @@ from api.socket.constants import GAME_NS
 from app import app, sio
 from models import PlayerRoom
 from models.role import Role
+from models.user import User
 from state.game import game_state
 from utils import logger
 
@@ -36,6 +37,7 @@ async def refresh_invite_code(sid: str):
                 namespace=GAME_NS,
             )
 
+
 @sio.on("Room.Info.Players.Kick", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def kick_player(sid: str, player_id: int):
@@ -46,10 +48,18 @@ async def kick_player(sid: str, player_id: int):
         return
 
     pr = PlayerRoom.get_or_none(player=player_id, room=pr.room)
-    if pr:
-        for psid in game_state.get_sids(player=pr.player, room=pr.room):
-            await sio.disconnect(psid, namespace=GAME_NS)
-        pr.delete_instance(True)
+    if pr is None:
+        return
+
+    creator: User = pr.room.creator
+
+    if pr.player != creator and creator == pr.player:
+        logger.warning(f"{pr.player.name} attempted to kick the campaign creator")
+        return
+
+    for psid in game_state.get_sids(player=pr.player, room=pr.room):
+        await sio.disconnect(psid, namespace=GAME_NS)
+    pr.delete_instance(True)
 
 
 @sio.on("Room.Delete", namespace=GAME_NS)

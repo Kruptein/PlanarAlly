@@ -126,7 +126,11 @@ export default defineComponent({
                 >
                     <font-awesome-icon icon="eye" />
                 </div>
-                <div @click="kickPlayer(player.id)" v-t="'game.ui.settings.dm.AdminSettings.kick'"></div>
+                <div
+                    @click="kickPlayer(player.id)"
+                    v-t="'game.ui.settings.dm.AdminSettings.kick'"
+                    :style="{ opacity: username !== creator && player.name === creator ? 0.3 : 1.0 }"
+                ></div>
             </div>
         </div>
         <div class="row smallrow" v-if="players.length === 0">

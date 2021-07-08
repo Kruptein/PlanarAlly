@@ -8,6 +8,11 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+### Added
+
+-   Configure background colors for floors (map layer)
+    -   Can be configured on a campaign/location or individual floor level
+
 ### Changed
 
 -   Draw helper now has a contrast border

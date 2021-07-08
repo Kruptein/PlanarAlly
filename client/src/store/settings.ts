@@ -21,6 +21,10 @@ const defaultLocationOptions: LocationOptions = {
     visionMaxRange: 0,
     visionMinRange: 0,
     visionMode: "",
+
+    airMapBackground: null,
+    groundMapBackground: null,
+    undergroundMapBackground: null,
 };
 
 interface SettingsState {
@@ -44,6 +48,10 @@ class SettingsStore extends Store<SettingsState> {
     visionMaxRange: ComputedRef<number>;
     visionMinRange: ComputedRef<number>;
 
+    airMapBackground: ComputedRef<string | null>;
+    groundMapBackground: ComputedRef<string | null>;
+    undergroundMapBackground: ComputedRef<string | null>;
+
     constructor() {
         super();
         this.currentLocationOptions = computed(() => this._state.locationOptions.get(this._state.activeLocation)!);
@@ -59,6 +67,10 @@ class SettingsStore extends Store<SettingsState> {
         this.useGrid = this._("useGrid");
         this.visionMaxRange = this._("visionMaxRange");
         this.visionMinRange = this._("visionMinRange");
+
+        this.airMapBackground = this._("airMapBackground");
+        this.groundMapBackground = this._("groundMapBackground");
+        this.undergroundMapBackground = this._("undergroundMapBackground");
     }
 
     protected data(): SettingsState {
@@ -252,6 +264,40 @@ class SettingsStore extends Store<SettingsState> {
             if (sync)
                 sendLocationOptions({
                     options: { move_player_on_token_change: movePlayerOnTokenChange },
+                    location,
+                });
+        }
+    }
+
+    setAirMapBackground(airMapBackground: string | null, location: number | undefined, sync: boolean): void {
+        if (this.mutate("airMapBackground", airMapBackground, location)) {
+            if (sync)
+                sendLocationOptions({
+                    options: { air_map_background: airMapBackground },
+                    location,
+                });
+        }
+    }
+
+    setGroundMapBackground(groundMapBackground: string | null, location: number | undefined, sync: boolean): void {
+        if (this.mutate("groundMapBackground", groundMapBackground, location)) {
+            if (sync)
+                sendLocationOptions({
+                    options: { ground_map_background: groundMapBackground },
+                    location,
+                });
+        }
+    }
+
+    setUndergroundMapBackground(
+        undergroundMapBackground: string | null,
+        location: number | undefined,
+        sync: boolean,
+    ): void {
+        if (this.mutate("undergroundMapBackground", undergroundMapBackground, location)) {
+            if (sync)
+                sendLocationOptions({
+                    options: { underground_map_background: undergroundMapBackground },
                     location,
                 });
         }

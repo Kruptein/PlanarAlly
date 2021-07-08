@@ -263,6 +263,9 @@
                         "dm_settings": "DM Settings"
                     }
                 },
+                "floor": {
+                    "title": "Floor Settings"
+                },
                 "common": {
                     "overridden_msg": "Some of these settings can be overriden by location specific settings",
                     "overridden_highlight": "highlighted",
@@ -278,6 +281,12 @@
                     "SQUARE": "Squares",
                     "POINTY_HEX": "Pointy Hexagons",
                     "FLAT_HEX": "Flat Hexagons"
+                },
+                "FloorSettings": {
+                    "backgrounds": "Map backgrounds",
+                    "air_background": "Air floor(s)",
+                    "ground_background": "Ground floor(s)",
+                    "underground_background": "Underground floor(s)"
                 },
                 "VariaSettings": {
                     "movePlayerOnTokenChange": "Move player(s) when a token they own changes location"

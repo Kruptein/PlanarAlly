@@ -13,7 +13,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 64
+SAVE_VERSION = 65
 
 import json
 import logging
@@ -642,6 +642,37 @@ def upgrade(version):
             )
             db.execute_sql(
                 'INSERT INTO "location_user_option" (id, location_id, user_id, pan_x, pan_y, zoom_display, active_layer_id) SELECT id, location_id, user_id, pan_x, pan_y, zoom_factor, active_layer_id FROM _location_user_option_27 '
+            )
+    elif version == 64:
+        # Add LocationOptions.map_background_{air/ground/underground}
+        # Add Floor.type_ and Floor.background_color
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE location_options ADD COLUMN air_map_background TEXT DEFAULT NULL"
+            )
+            db.execute_sql(
+                "ALTER TABLE location_options ADD COLUMN ground_map_background TEXT DEFAULT NULL"
+            )
+            db.execute_sql(
+                "ALTER TABLE location_options ADD COLUMN underground_map_background TEXT DEFAULT NULL"
+            )
+            data = db.execute_sql("SELECT default_options_id FROM room")
+            # for row in data.fetchall():
+            #     db.execute_sql(
+            #         f"UPDATE location_options SET 'map_background_air' = 'rgba(0, 0, 0, 0)' WHERE id = '{row[0]}'"
+            #     )
+            #     db.execute_sql(
+            #         f"UPDATE location_options SET 'map_background_ground' = 'rgba(0, 0, 0, 0)' WHERE id = '{row[0]}'"
+            #     )
+            #     db.execute_sql(
+            #         f"UPDATE location_options SET 'map_background_underground' = 'rgba(0, 0, 0, 0)' WHERE id = '{row[0]}'"
+            #     )
+
+            db.execute_sql(
+                "ALTER TABLE floor ADD COLUMN type_ INTEGER NOT NULL DEFAULT 1"
+            )
+            db.execute_sql(
+                "ALTER TABLE floor ADD COLUMN background_color TEXT DEFAULT NULL"
             )
     else:
         raise UnknownVersionException(

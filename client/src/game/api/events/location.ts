@@ -55,5 +55,11 @@ export function setLocationOptions(id: number | undefined, options: Partial<Serv
     if (options.move_player_on_token_change !== undefined) {
         settingsStore.setMovePlayerOnTokenChange(options.move_player_on_token_change, id, false);
     }
+    if (options?.air_map_background !== undefined)
+        settingsStore.setAirMapBackground(options.air_map_background, id, false);
+    if (options?.ground_map_background !== undefined)
+        settingsStore.setGroundMapBackground(options.ground_map_background, id, false);
+    if (options?.underground_map_background !== undefined)
+        settingsStore.setUndergroundMapBackground(options.underground_map_background, id, false);
     if (id !== undefined) settingsStore.setSpawnLocations(JSON.parse(options.spawn_locations ?? "[]"), id, false);
 }

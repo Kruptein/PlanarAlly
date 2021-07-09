@@ -657,16 +657,6 @@ def upgrade(version):
                 "ALTER TABLE location_options ADD COLUMN underground_map_background TEXT DEFAULT NULL"
             )
             data = db.execute_sql("SELECT default_options_id FROM room")
-            # for row in data.fetchall():
-            #     db.execute_sql(
-            #         f"UPDATE location_options SET 'map_background_air' = 'rgba(0, 0, 0, 0)' WHERE id = '{row[0]}'"
-            #     )
-            #     db.execute_sql(
-            #         f"UPDATE location_options SET 'map_background_ground' = 'rgba(0, 0, 0, 0)' WHERE id = '{row[0]}'"
-            #     )
-            #     db.execute_sql(
-            #         f"UPDATE location_options SET 'map_background_underground' = 'rgba(0, 0, 0, 0)' WHERE id = '{row[0]}'"
-            #     )
 
             db.execute_sql(
                 "ALTER TABLE floor ADD COLUMN type_ INTEGER NOT NULL DEFAULT 1"

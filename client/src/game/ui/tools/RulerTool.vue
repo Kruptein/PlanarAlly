@@ -1,37 +1,32 @@
-<script lang="ts">
-import { defineComponent, onMounted, ref } from "vue";
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
 
 import { rulerTool } from "../../tools/variants/ruler";
 
 import { useToolPosition } from "./toolPosition";
 
-export default defineComponent({
-    setup() {
-        const right = ref("0px");
-        const arrow = ref("0px");
+import type { CSSProperties } from "vue";
 
-        onMounted(() => {
-            ({ right: right.value, arrow: arrow.value } = useToolPosition(rulerTool.toolName));
-        });
+const right = ref("0px");
+const arrow = ref("0px");
 
-        function toggle(event: { target: HTMLButtonElement }): void {
-            const state = event.target.getAttribute("aria-pressed") ?? "false";
-            rulerTool.showPublic.value = state === "false";
-        }
+const selected = rulerTool.isActiveTool;
+const showPublic = rulerTool.showPublic;
 
-        return {
-            arrow,
-            right,
-            selected: rulerTool.isActiveTool,
-            showPublic: rulerTool.showPublic,
-            toggle,
-        };
-    },
+onMounted(() => {
+    ({ right: right.value, arrow: arrow.value } = useToolPosition(rulerTool.toolName));
 });
+
+function toggle(event: MouseEvent): void {
+    const state = (event.target as HTMLButtonElement).getAttribute("aria-pressed") ?? "false";
+    rulerTool.showPublic.value = state === "false";
+}
+
+const toolStyle = { "--detailRight": right.value, "--detailArrow": arrow.value } as CSSProperties;
 </script>
 
 <template>
-    <div id="ruler" class="tool-detail" v-if="selected" :style="{ '--detailRight': right, '--detailArrow': arrow }">
+    <div id="ruler" class="tool-detail" v-if="selected" :style="toolStyle">
         <button @click="toggle" :aria-pressed="showPublic" v-t="'game.ui.tools.RulerTool.share'"></button>
     </div>
 </template>

@@ -1,6 +1,6 @@
-<script lang="ts">
+<script setup lang="ts">
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { defineComponent, ref, toRefs, watchEffect } from "vue";
+import { defineEmit, defineProps, ref, watchEffect } from "vue";
 
 import { socket } from "../../../assetManager/socket";
 import { assetStore } from "../../../assetManager/state";
@@ -9,59 +9,48 @@ import { baseAdjust } from "../../utils";
 
 import Modal from "./Modal.vue";
 
-export default defineComponent({
-    components: { FontAwesomeIcon, Modal },
-    props: {
-        visible: { type: Boolean, required: true },
-    },
-    emits: ["submit", "close"],
-    setup(props, { emit }) {
-        const { t } = i18n.global;
-
-        const state = assetStore.state;
-
-        const confirm = ref<HTMLButtonElement | null>(null);
-
-        watchEffect(() => {
-            if (props.visible) {
-                assetStore.clear();
-                assetStore.clearSelected();
-                assetStore.clearFolderPath();
-                assetStore.setModalActive(true);
-                if (!socket.connected) socket.connect();
-                socket.emit("Folder.Get");
-            } else {
-                if (socket.connected) socket.disconnect();
-            }
-        });
-
-        function showIdName(dir: number): string {
-            return state.idMap.get(dir)?.name ?? "";
-        }
-
-        function getIdImageSrc(file: number): string {
-            return baseAdjust("/static/assets/" + state.idMap.get(file)!.file_hash);
-        }
-
-        function select(event: MouseEvent, inode: number): void {
-            assetStore.clearSelected();
-            if (assetStore.state.files.includes(inode)) {
-                assetStore.addSelectedInode(inode);
-            }
-        }
-
-        return {
-            ...toRefs(state),
-            t,
-            emit,
-            changeDirectory: (folder: number) => assetStore.changeDirectory(folder),
-            confirm,
-            getIdImageSrc,
-            select,
-            showIdName,
-        };
-    },
+const props = defineProps({
+    visible: { type: Boolean, required: true },
 });
+const emit = defineEmit(["submit", "close"]);
+
+const { t } = i18n.global;
+
+const state = assetStore.state;
+
+const confirm = ref<HTMLButtonElement | null>(null);
+
+watchEffect(() => {
+    if (props.visible) {
+        assetStore.clear();
+        assetStore.clearSelected();
+        assetStore.clearFolderPath();
+        assetStore.setModalActive(true);
+        if (!socket.connected) socket.connect();
+        socket.emit("Folder.Get");
+    } else {
+        if (socket.connected) socket.disconnect();
+    }
+});
+
+function showIdName(dir: number): string {
+    return state.idMap.get(dir)?.name ?? "";
+}
+
+function getIdImageSrc(file: number): string {
+    return baseAdjust("/static/assets/" + state.idMap.get(file)!.file_hash);
+}
+
+function select(event: MouseEvent, inode: number): void {
+    assetStore.clearSelected();
+    if (assetStore.state.files.includes(inode)) {
+        assetStore.addSelectedInode(inode);
+    }
+}
+
+function changeDirectory(folder: number): void {
+    assetStore.changeDirectory(folder);
+}
 </script>
 
 <template>
@@ -78,19 +67,19 @@ export default defineComponent({
             <div id="assets">
                 <div id="breadcrumbs">
                     <div>/</div>
-                    <div v-for="dir in folderPath" :key="dir">{{ showIdName(dir) }}</div>
+                    <div v-for="dir in state.folderPath" :key="dir">{{ showIdName(dir) }}</div>
                 </div>
                 <div id="explorer">
-                    <div class="inode folder" v-if="folderPath.length" @dblclick="changeDirectory(-1)">
+                    <div class="inode folder" v-if="state.folderPath.length" @dblclick="changeDirectory(-1)">
                         <font-awesome-icon icon="folder" style="font-size: 50px" />
                         <div class="title">..</div>
                     </div>
                     <div
                         class="inode folder"
                         draggable="true"
-                        v-for="key in folders"
+                        v-for="key in state.folders"
                         :key="key"
-                        :class="{ 'inode-selected': selected.includes(key) }"
+                        :class="{ 'inode-selected': state.selected.includes(key) }"
                         @click="select($event, key)"
                         @dblclick="changeDirectory(key)"
                     >
@@ -100,9 +89,9 @@ export default defineComponent({
                     <div
                         class="inode file"
                         draggable="true"
-                        v-for="file in files"
+                        v-for="file in state.files"
                         :key="file"
-                        :class="{ 'inode-selected': selected.includes(file) }"
+                        :class="{ 'inode-selected': state.selected.includes(file) }"
                         @click="select($event, file)"
                     >
                         <img :src="getIdImageSrc(file)" width="50" alt="" />

@@ -14,9 +14,6 @@
         "baseUrl": ".",
         "outDir": "dist",
         "types": ["jest", "@intlify/vite-plugin-vue-i18n/client"],
-        "paths": {
-            "@/*": ["src/*"]
-        },
         "lib": ["esnext", "dom", "dom.iterable", "scripthost"]
     },
     "include": ["src/**/*.ts", "src/**/*.vue", "tests/**/*.ts"],

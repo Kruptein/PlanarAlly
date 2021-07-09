@@ -12,6 +12,7 @@ const arrow = ref("0px");
 
 const selected = rulerTool.isActiveTool;
 const showPublic = rulerTool.showPublic;
+const toolStyle = { "--detailRight": right.value, "--detailArrow": arrow.value } as CSSProperties;
 
 onMounted(() => {
     ({ right: right.value, arrow: arrow.value } = useToolPosition(rulerTool.toolName));
@@ -21,8 +22,6 @@ function toggle(event: MouseEvent): void {
     const state = (event.target as HTMLButtonElement).getAttribute("aria-pressed") ?? "false";
     rulerTool.showPublic.value = state === "false";
 }
-
-const toolStyle = { "--detailRight": right.value, "--detailArrow": arrow.value } as CSSProperties;
 </script>
 
 <template>

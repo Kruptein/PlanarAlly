@@ -1,70 +1,70 @@
-<script lang="ts">
-import { computed, defineComponent, PropType, reactive, toRefs } from "vue";
+<script setup lang="ts">
+import { computed, defineProps, reactive } from "vue";
 
-import { AssetFile, AssetListMap } from "../../../core/models/types";
 import { baseAdjust } from "../../../core/utils";
+
+import type { AssetFile, AssetListMap } from "../../../core/models/types";
+import type { PropType } from "vue";
 
 interface State {
     hoveredHash: string;
 }
 
-export default defineComponent({
-    name: "AssetNode",
-    props: {
-        assets: { type: Object as PropType<AssetListMap>, required: true },
-    },
-    setup(props) {
-        const state: State = reactive({
-            hoveredHash: "",
-        });
-
-        const files = computed(() => {
-            const assetFiles = props.assets.get("__files") as AssetFile[] | undefined;
-            return assetFiles?.concat() ?? [];
-        });
-
-        const folders = computed(() => {
-            return [...props.assets.keys()].filter((el) => "__files" !== el);
-        });
-
-        function toggle(event: { target: HTMLElement }): void {
-            for (let i = 0; i < event.target.children.length; i++) {
-                const el = event.target.children[i] as HTMLElement;
-                el.style.display = el.style.display === "" ? "block" : "";
-            }
-        }
-
-        function dragStart(event: DragEvent, imageSource: string, assetId: number): void {
-            state.hoveredHash = "";
-            if (event === null || event.dataTransfer === null) return;
-
-            const img = (event.target as HTMLElement).querySelector(".preview")!;
-            event.dataTransfer.setDragImage(img, 0, 0);
-            event.dataTransfer.setData("text/plain", JSON.stringify({ imageSource, assetId }));
-        }
-
-        return { ...toRefs(state), baseAdjust, dragStart, files, folders, toggle };
-    },
+const props = defineProps({
+    assets: { type: Object as PropType<AssetListMap>, required: true },
 });
+const state: State = reactive({
+    hoveredHash: "",
+});
+
+function childAssets(folder: string): AssetListMap {
+    return props.assets.get(folder) as AssetListMap;
+}
+
+const files = computed(() => {
+    const assetFiles = props.assets.get("__files") as AssetFile[] | undefined;
+    return assetFiles?.concat() ?? [];
+});
+
+const folders = computed(() => {
+    return [...props.assets.keys()].filter((el) => "__files" !== el);
+});
+
+function toggle(event: MouseEvent): void {
+    const children = (event.target as HTMLLIElement).children;
+    for (let i = 0; i < children.length; i++) {
+        const el = children[i] as HTMLElement;
+        el.style.display = el.style.display === "" ? "block" : "";
+    }
+}
+
+function dragStart(event: DragEvent, imageSource: string, assetId: number): void {
+    state.hoveredHash = "";
+    if (event === null || event.dataTransfer === null) return;
+
+    const img = (event.target as HTMLElement).querySelector(".preview")!;
+    event.dataTransfer.setDragImage(img, 0, 0);
+    event.dataTransfer.setData("text/plain", JSON.stringify({ imageSource, assetId }));
+}
 </script>
 
 <template>
     <ul>
         <li v-for="folder in folders" :key="folder" class="folder" @click.stop="toggle">
             {{ folder }}
-            <AssetNode :assets="assets.get(folder)" />
+            <AssetNode :assets="childAssets(folder)" />
         </li>
         <li
             v-for="file in files"
             :key="file.id"
             class="file draggable token"
             draggable="true"
-            @mouseover="hoveredHash = file.hash"
-            @mouseout="hoveredHash = ''"
+            @mouseover="state.hoveredHash = file.hash"
+            @mouseout="state.hoveredHash = ''"
             @dragstart="dragStart($event, '/static/assets/' + file.hash, file.id)"
         >
             {{ file.name }}
-            <div v-if="hoveredHash == file.hash" class="preview">
+            <div v-if="state.hoveredHash == file.hash" class="preview">
                 <img class="asset-preview-image" :src="baseAdjust('/static/assets/' + file.hash)" alt="" />
             </div>
         </li>

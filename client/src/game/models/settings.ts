@@ -13,6 +13,10 @@ export interface ServerLocationOptions {
     vision_max_range: number;
     spawn_locations: string;
     move_player_on_token_change: boolean;
+
+    air_map_background?: string | null;
+    ground_map_background?: string | null;
+    underground_map_background?: string | null;
 }
 
 export interface Location {
@@ -34,6 +38,10 @@ export interface LocationOptions {
     visionMaxRange: number;
     spawnLocations: string[];
     movePlayerOnTokenChange: boolean;
+
+    airMapBackground: string | null;
+    groundMapBackground: string | null;
+    undergroundMapBackground: string | null;
 }
 
 export interface ServerClient {
@@ -109,6 +117,10 @@ export const optionsToClient = (options: ServerLocationOptions): LocationOptions
     visionMaxRange: options.vision_max_range,
     spawnLocations: JSON.parse(options.spawn_locations),
     movePlayerOnTokenChange: options.move_player_on_token_change,
+
+    airMapBackground: options.air_map_background ?? null,
+    groundMapBackground: options.ground_map_background ?? null,
+    undergroundMapBackground: options.underground_map_background ?? null,
 });
 
 export const userOptionsToClient = (options: ServerUserOptions): UserOptions => ({

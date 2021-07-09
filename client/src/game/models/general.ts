@@ -14,6 +14,8 @@ export interface ServerFloor {
     name: string;
     layers: ServerLayer[];
     player_visible: boolean;
+    type_: number;
+    background_color: string | null;
 }
 
 export interface ServerLayer {

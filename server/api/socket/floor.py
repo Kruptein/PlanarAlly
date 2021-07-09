@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from typing_extensions import TypedDict
 
 import auth
@@ -19,6 +19,16 @@ class FloorRename(TypedDict):
 class FloorVisibleData(TypedDict):
     name: str
     visible: bool
+
+
+class FloorTypeData(TypedDict):
+    name: str
+    floorType: int
+
+
+class FloorBackgroundData(TypedDict):
+    name: str
+    background: Optional[str]
 
 
 @sio.on("Floor.Create", namespace=GAME_NS)
@@ -82,6 +92,7 @@ async def set_floor_visibility(sid: str, data: FloorVisibleData):
         "Floor.Visible.Set",
         data,
         room=pr.active_location.get_path(),
+        skip_sid=sid,
         namespace=GAME_NS,
     )
 
@@ -101,6 +112,50 @@ async def rename_floor(sid: str, data: FloorRename):
 
     await sio.emit(
         "Floor.Rename",
+        data,
+        room=pr.active_location.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )
+
+
+@sio.on("Floor.Type.Set", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def set_floor_type(sid: str, data: FloorTypeData):
+    pr: PlayerRoom = game_state.get(sid)
+
+    if pr.role != Role.DM:
+        logger.warning(f"{pr.player.name} attempted to set floor type")
+        return
+
+    floor: Floor = Floor.get(location=pr.active_location, name=data["name"])
+    floor.type_ = data["floorType"]
+    floor.save()
+
+    await sio.emit(
+        "Floor.Type.Set",
+        data,
+        room=pr.active_location.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )
+
+
+@sio.on("Floor.Background.Set", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def set_floor_background(sid: str, data: FloorBackgroundData):
+    pr: PlayerRoom = game_state.get(sid)
+
+    if pr.role != Role.DM:
+        logger.warning(f"{pr.player.name} attempted to set floor background")
+        return
+
+    floor: Floor = Floor.get(location=pr.active_location, name=data["name"])
+    floor.background_color = data.get("background", None)
+    floor.save()
+
+    await sio.emit(
+        "Floor.Background.Set",
         data,
         room=pr.active_location.get_path(),
         skip_sid=sid,

@@ -23,6 +23,7 @@ import MenuBar from "./menu/MenuBar.vue";
 import SelectionInfo from "./SelectionInfo.vue";
 import ClientSettings from "./settings/client/ClientSettings.vue";
 import DmSettings from "./settings/dm/DmSettings.vue";
+import FloorSettings from "./settings/FloorSettings.vue";
 import LocationSettings from "./settings/location/LocationSettings.vue";
 import ShapeSettings from "./settings/shape/ShapeSettings.vue";
 import CreateTokenDialog from "./tokendialog/CreateTokenDialog.vue";
@@ -38,6 +39,7 @@ export default defineComponent({
         DefaultContext,
         DmSettings,
         Floors,
+        FloorSettings,
         Initiative,
         LocationBar,
         LocationSettings,
@@ -236,6 +238,7 @@ export default defineComponent({
         <ShapeContext />
         <ShapeSettings />
         <DmSettings v-if="isDm || isFakePlayer" />
+        <FloorSettings v-if="isDm || isFakePlayer" />
         <LocationSettings v-if="isDm || isFakePlayer" />
         <ClientSettings />
         <SelectionInfo />

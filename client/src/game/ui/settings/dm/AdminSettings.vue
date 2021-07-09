@@ -1,5 +1,5 @@
-<script lang="ts">
-import { computed, defineComponent, ref, toRef, watch } from "vue";
+<script setup lang="ts">
+import { computed, ref, toRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 
@@ -10,94 +10,72 @@ import { gameStore } from "../../../../store/game";
 import { sendDeleteRoom, sendRefreshInviteCode } from "../../../api/emits/room";
 import { getRoles } from "../../../models/role";
 
-export default defineComponent({
-    components: { InputCopyElement },
-    setup() {
-        const { t } = useI18n();
-        const modals = useModal();
-        const route = useRoute();
-        const router = useRouter();
+const { t } = useI18n();
+const modals = useModal();
+const route = useRoute();
+const router = useRouter();
 
-        const gameState = gameStore.state;
+const gameState = gameStore.state;
 
-        const roles = getRoles();
-        const refreshState = ref("pending");
-        const showRefreshState = ref(false);
+const roles = getRoles();
+const refreshState = ref("pending");
+const showRefreshState = ref(false);
 
-        watch(
-            () => gameState.invitationCode,
-            () => (showRefreshState.value = false),
-        );
+const players = toRef(gameState, "players");
+const locked = toRef(gameState, "isLocked");
 
-        const invitationUrl = computed(
-            () => `${window.location.protocol}//${gameState.publicName}/invite/${gameState.invitationCode}`,
-        );
+watch(
+    () => gameState.invitationCode,
+    () => (showRefreshState.value = false),
+);
 
-        const creator = computed(() => route.params.creator);
-        const username = toRef(coreStore.state, "username");
+const invitationUrl = computed(
+    () => `${window.location.protocol}//${gameState.publicName}/invite/${gameState.invitationCode}`,
+);
 
-        function refreshInviteCode(): void {
-            sendRefreshInviteCode();
-            refreshState.value = "pending";
-            showRefreshState.value = true;
-        }
+const creator = computed(() => route.params.creator);
+const username = toRef(coreStore.state, "username");
 
-        async function kickPlayer(playerId: number): Promise<void> {
-            const value = await modals.confirm("Kicking player", "Are you sure you wish to kick this player?");
-            if (value === true) gameStore.kickPlayer(playerId);
-        }
+function refreshInviteCode(): void {
+    sendRefreshInviteCode();
+    refreshState.value = "pending";
+    showRefreshState.value = true;
+}
 
-        function changePlayerRole(event: { target: HTMLSelectElement }, player: number): void {
-            const value = event.target.value;
-            const role = parseInt(value);
-            if (isNaN(role) || role < 0 || role >= roles.length) return;
+async function kickPlayer(playerId: number): Promise<void> {
+    const value = await modals.confirm("Kicking player", "Are you sure you wish to kick this player?");
+    if (value === true) gameStore.kickPlayer(playerId);
+}
 
-            gameStore.setPlayerRole(player, role, true);
-        }
+function changePlayerRole(event: Event, player: number): void {
+    const value = (event.target as HTMLSelectElement).value;
+    const role = parseInt(value);
+    if (isNaN(role) || role < 0 || role >= roles.length) return;
 
-        function togglePlayerRect(player: number): void {
-            const p = gameStore.state.players.find((p) => p.id === player)?.showRect;
-            if (p === undefined) return;
+    gameStore.setPlayerRole(player, role, true);
+}
 
-            gameStore.setShowPlayerRect(player, !p);
-        }
+function togglePlayerRect(player: number): void {
+    const p = gameStore.state.players.find((p) => p.id === player)?.showRect;
+    if (p === undefined) return;
 
-        async function deleteSession(): Promise<void> {
-            const value = await modals.prompt(
-                t("game.ui.settings.dm.AdminSettings.delete_session_msg_CREATOR_ROOM", {
-                    creator: gameState.roomCreator,
-                    room: gameState.roomName,
-                }),
-                t("game.ui.settings.dm.AdminSettings.deleting_session"),
-            );
-            if (value !== `${gameState.roomCreator}/${gameState.roomName}`) return;
-            sendDeleteRoom();
-            router.push("/");
-        }
+    gameStore.setShowPlayerRect(player, !p);
+}
 
-        return {
-            t,
+async function deleteSession(): Promise<void> {
+    const value = await modals.prompt(
+        t("game.ui.settings.dm.AdminSettings.delete_session_msg_CREATOR_ROOM", {
+            creator: gameState.roomCreator,
+            room: gameState.roomName,
+        }),
+        t("game.ui.settings.dm.AdminSettings.deleting_session"),
+    );
+    if (value !== `${gameState.roomCreator}/${gameState.roomName}`) return;
+    sendDeleteRoom();
+    router.push("/");
+}
 
-            players: toRef(gameState, "players"),
-            creator,
-            username,
-            kickPlayer,
-            changePlayerRole,
-            togglePlayerRect,
-            roles,
-
-            invitationUrl,
-            refreshInviteCode,
-            refreshState,
-            showRefreshState,
-
-            locked: toRef(gameState, "isLocked"),
-            toggleLock: () => gameStore.setIsLocked(!gameState.isLocked, true),
-
-            deleteSession,
-        };
-    },
-});
+const toggleLock = (): void => gameStore.setIsLocked(!gameState.isLocked, true);
 </script>
 
 <template>

@@ -1,95 +1,73 @@
-<script lang="ts">
-import { computed, defineComponent, ref, toRef } from "vue";
+<script setup lang="ts">
+import { computed, ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { AssetFile } from "../../../core/models/types";
 import { baseAdjust, uuidv4 } from "../../../core/utils";
 import { gameStore } from "../../../store/game";
 import { UuidMap } from "../../../store/shapeMap";
 import { uiStore } from "../../../store/ui";
-import { Note } from "../../models/general";
 import NoteDialog from "../NoteDialog.vue";
 
 import AssetParentNode from "./AssetParentNode.vue";
 
-export default defineComponent({
-    name: "MenuBar",
-    components: { AssetParentNode, NoteDialog },
-    setup() {
-        const { t } = useI18n();
+import type { AssetFile } from "../../../core/models/types";
+import type { Note } from "../../models/general";
 
-        const showNote = ref(false);
+const { t } = useI18n();
 
-        const assetSearch = ref("");
-        const gameState = gameStore.state;
+const showNote = ref(false);
 
-        const noAssets = computed(() => {
-            return gameState.assets.size === 1 && (gameState.assets.get("__files") as AssetFile[]).length <= 0;
-        });
+const assetSearch = ref("");
+const gameState = gameStore.state;
 
-        function settingsClick(event: { target: HTMLElement }): void {
-            if (
-                event.target.classList.contains("menu-accordion") &&
-                (event.target.nextElementSibling?.classList.contains("menu-accordion-panel") ?? false)
-            ) {
-                event.target.classList.toggle("menu-accordion-active");
-            }
-        }
+const isDm = toRef(gameState, "isDm");
+const notes = toRef(gameState, "notes");
+const markers = toRef(gameState, "markers");
 
-        function createNote(): void {
-            const note = { title: t("game.ui.menu.MenuBar.new_note"), text: "", uuid: uuidv4() };
-            gameStore.newNote(note, true);
-            openNote(note);
-        }
-
-        function openNote(note: Note): void {
-            showNote.value = true;
-            uiStore.setActiveNote(note);
-        }
-
-        function delMarker(marker: string): void {
-            gameStore.removeMarker(marker, true);
-        }
-
-        function jumpToMarker(marker: string): void {
-            gameStore.jumpToMarker(marker);
-        }
-
-        function nameMarker(marker: string): string {
-            const shape = UuidMap.get(marker);
-            if (shape !== undefined) {
-                return shape.name;
-            } else {
-                return "";
-            }
-        }
-
-        return {
-            baseAdjust,
-            settingsClick,
-            t,
-            isDm: toRef(gameState, "isDm"),
-
-            assetSearch,
-            noAssets,
-
-            createNote,
-            activeNote: toRef(uiStore.state, "activeNote"),
-            notes: toRef(gameState, "notes"),
-            openNote,
-            showNote,
-
-            openDmSettings: () => uiStore.showDmSettings(!uiStore.state.showDmSettings),
-
-            markers: toRef(gameState, "markers"),
-            delMarker,
-            jumpToMarker,
-            nameMarker,
-
-            openClientSettings: () => uiStore.showClientSettings(!uiStore.state.showClientSettings),
-        };
-    },
+const noAssets = computed(() => {
+    return gameState.assets.size === 1 && (gameState.assets.get("__files") as AssetFile[]).length <= 0;
 });
+
+function settingsClick(event: MouseEvent): void {
+    const target = event.target as HTMLDivElement;
+    if (
+        target.classList.contains("menu-accordion") &&
+        (target.nextElementSibling?.classList.contains("menu-accordion-panel") ?? false)
+    ) {
+        target.classList.toggle("menu-accordion-active");
+    }
+}
+
+function createNote(): void {
+    const note = { title: t("game.ui.menu.MenuBar.new_note"), text: "", uuid: uuidv4() };
+    gameStore.newNote(note, true);
+    openNote(note);
+}
+
+function openNote(note: Note): void {
+    showNote.value = true;
+    uiStore.setActiveNote(note);
+}
+
+function delMarker(marker: string): void {
+    gameStore.removeMarker(marker, true);
+}
+
+function jumpToMarker(marker: string): void {
+    gameStore.jumpToMarker(marker);
+}
+
+function nameMarker(marker: string): string {
+    const shape = UuidMap.get(marker);
+    if (shape !== undefined) {
+        return shape.name;
+    } else {
+        return "";
+    }
+}
+
+const openDmSettings = (): void => uiStore.showDmSettings(!uiStore.state.showDmSettings);
+const openClientSettings = (): void => uiStore.showClientSettings(!uiStore.state.showClientSettings);
 </script>
 
 <template>

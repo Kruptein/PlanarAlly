@@ -1,59 +1,52 @@
-<script lang="ts">
-import { computed, defineComponent, toRef } from "vue";
+<script setup lang="ts">
+import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { clientStore } from "../../../../store/client";
 import { InitiativeEffectMode } from "../../../models/initiative";
-import { UserOptions } from "../../../models/settings";
 
-export default defineComponent({
-    setup() {
-        const { t } = useI18n();
+import type { UserOptions } from "../../../models/settings";
 
-        const defaultOptions = toRef(clientStore.state, "defaultClientOptions");
+const { t } = useI18n();
 
-        const cameraLock = computed({
-            get() {
-                return clientStore.state.initiativeCameraLock;
-            },
-            set(cameraLock: boolean) {
-                clientStore.setInitiativeCameraLock(cameraLock, true);
-            },
-        });
+const effectVisibilityOptions = Object.values(InitiativeEffectMode);
 
-        const visionLock = computed({
-            get() {
-                return clientStore.state.initiativeVisionLock;
-            },
-            set(visionLock: boolean) {
-                clientStore.setInitiativeVisionLock(visionLock, true);
-            },
-        });
+const defaultOptions = toRef(clientStore.state, "defaultClientOptions");
 
-        const effectVisibility = computed({
-            get() {
-                return clientStore.state.initiativeEffectVisibility;
-            },
-            set(effectVisibility: InitiativeEffectMode) {
-                clientStore.setInitiativeEffectVisibility(effectVisibility, true);
-            },
-        });
-
-        function setDefault(key: keyof UserOptions): void {
-            clientStore.setDefaultClientOption(key, clientStore.state[key], true);
-        }
-
-        return {
-            t,
-            defaultOptions,
-            setDefault,
-            effectVisibilityOptions: Object.values(InitiativeEffectMode),
-            cameraLock,
-            effectVisibility,
-            visionLock,
-        };
+const cameraLock = computed({
+    get() {
+        return clientStore.state.initiativeCameraLock;
+    },
+    set(cameraLock: boolean) {
+        clientStore.setInitiativeCameraLock(cameraLock, true);
     },
 });
+
+const visionLock = computed({
+    get() {
+        return clientStore.state.initiativeVisionLock;
+    },
+    set(visionLock: boolean) {
+        clientStore.setInitiativeVisionLock(visionLock, true);
+    },
+});
+
+const effectVisibility = computed({
+    get() {
+        return clientStore.state.initiativeEffectVisibility;
+    },
+    set(effectVisibility: InitiativeEffectMode) {
+        clientStore.setInitiativeEffectVisibility(effectVisibility, true);
+    },
+});
+
+function setDefault(key: keyof UserOptions): void {
+    clientStore.setDefaultClientOption(key, clientStore.state[key], true);
+}
+
+function setEffectVisibility(event: Event): void {
+    effectVisibility.value = (event.target as HTMLSelectElement).value as InitiativeEffectMode;
+}
 </script>
 
 <template>
@@ -91,7 +84,7 @@ export default defineComponent({
         <div class="row">
             <label for="effectVisibility" v-t="'game.ui.settings.client.InitiativeSettings.effect_visibility'"></label>
             <div>
-                <select @change="effectVisibility = $event.target.value" size="">
+                <select @change="setEffectVisibility">
                     <option
                         v-for="option in effectVisibilityOptions"
                         :key="option"

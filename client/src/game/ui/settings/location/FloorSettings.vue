@@ -25,8 +25,10 @@ const options = computed(() => {
 const location = computed(() => (isGlobal.value ? undefined : props.location));
 
 function getBackgroundValueFromType(type: BackgroundType, val: string | null | undefined): string | null {
-    return type === 0 ? "none" : val ?? "rgba(255, 255, 255, 1)";
+    return type === BackgroundType.None ? "none" : val ?? "rgba(255, 255, 255, 1)";
 }
+
+// TODO: Clean up this hack around settingsstore not being reactive when setting things
 const invalidateHack = ref(0);
 
 // AIR

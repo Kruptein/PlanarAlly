@@ -1,127 +1,107 @@
-<script lang="ts">
-import { computed, defineComponent, toRef } from "vue";
+<script setup lang="ts">
+import { computed, defineProps, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { gameStore } from "../../../../store/game";
 import { settingsStore } from "../../../../store/settings";
-import { LocationOptions } from "../../../models/settings";
 import { VisibilityMode, visionState } from "../../../vision/state";
 
-export default defineComponent({
-    props: { location: { type: Number, default: -1 } },
-    setup(props) {
-        const { t } = useI18n();
+import type { LocationOptions } from "../../../models/settings";
+import { getValue } from "src/core/utils";
 
-        const isGlobal = computed(() => props.location < 0);
+const props = defineProps({ location: { type: Number, default: -1 } });
+const { t } = useI18n();
 
-        const options = computed(() => {
-            if (isGlobal.value) {
-                return settingsStore.state.defaultLocationOptions!;
-            } else {
-                return settingsStore.state.locationOptions.get(props.location) ?? {};
-            }
-        });
+const visionMode = toRef(visionState.state, "mode");
 
-        const fakePlayer = computed({
-            get() {
-                return gameStore.state.isFakePlayer;
-            },
-            set(isFakePlayer: boolean) {
-                gameStore.setFakePlayer(isFakePlayer);
-            },
-        });
+const isGlobal = computed(() => props.location < 0);
 
-        const location = computed(() => (isGlobal.value ? undefined : props.location));
+const options = computed(() => {
+    if (isGlobal.value) {
+        return settingsStore.state.defaultLocationOptions!;
+    } else {
+        return settingsStore.state.locationOptions.get(props.location) ?? {};
+    }
+});
 
-        const fullFow = computed({
-            get() {
-                return settingsStore.getLocationOptions("fullFow", location.value);
-            },
-            set(fullFow: boolean) {
-                settingsStore.setFullFow(fullFow, location.value, true);
-            },
-        });
-
-        const fowLos = computed({
-            get() {
-                return settingsStore.getLocationOptions("fowLos", location.value);
-            },
-            set(fowLos: boolean) {
-                settingsStore.setLineOfSight(fowLos, location.value, true);
-            },
-        });
-
-        const fowOpacity = computed({
-            get() {
-                return settingsStore.getLocationOptions("fowOpacity", location.value);
-            },
-            set(fowOpacity: number) {
-                settingsStore.setFowOpacity(fowOpacity, location.value, true);
-            },
-        });
-
-        const unitSizeUnit = computed({
-            get() {
-                return settingsStore.getLocationOptions("unitSizeUnit", location.value);
-            },
-            set(unitSizeUnit: string) {
-                settingsStore.setUnitSizeUnit(unitSizeUnit, location.value, true);
-            },
-        });
-
-        const visionMinRange = computed({
-            get() {
-                return settingsStore.getLocationOptions("visionMinRange", location.value);
-            },
-            set(visionMinRange: number) {
-                settingsStore.setVisionRangeMin(visionMinRange, location.value, true);
-            },
-        });
-
-        const visionMaxRange = computed({
-            get() {
-                return settingsStore.getLocationOptions("visionMaxRange", location.value);
-            },
-            set(visionMaxRange: number) {
-                settingsStore.setVisionRangeMax(visionMaxRange, location.value, true);
-            },
-        });
-
-        function reset(key: keyof LocationOptions): void {
-            if (isGlobal.value) return;
-            settingsStore.reset(key, props.location);
-        }
-
-        function changeVisionMode(event: { target: HTMLSelectElement }): void {
-            const value = event.target.value;
-            let mode: VisibilityMode;
-            if (value === t("game.ui.settings.VisionSettings.default")) mode = VisibilityMode.TRIANGLE;
-            else if (value === t("game.ui.settings.VisionSettings.experimental"))
-                mode = VisibilityMode.TRIANGLE_ITERATIVE;
-            else return;
-            visionState.setVisionMode(mode, true);
-        }
-
-        return {
-            isGlobal,
-            options,
-            reset,
-            t,
-
-            fakePlayer,
-
-            visionMode: toRef(visionState.state, "mode"),
-            changeVisionMode,
-
-            fullFow,
-            fowLos,
-            fowOpacity,
-            unitSizeUnit,
-            visionMinRange,
-            visionMaxRange,
-        };
+const fakePlayer = computed({
+    get() {
+        return gameStore.state.isFakePlayer;
+    },
+    set(isFakePlayer: boolean) {
+        gameStore.setFakePlayer(isFakePlayer);
     },
 });
+
+const location = computed(() => (isGlobal.value ? undefined : props.location));
+
+const fullFow = computed({
+    get() {
+        return settingsStore.getLocationOptions("fullFow", location.value);
+    },
+    set(fullFow: boolean) {
+        settingsStore.setFullFow(fullFow, location.value, true);
+    },
+});
+
+const fowLos = computed({
+    get() {
+        return settingsStore.getLocationOptions("fowLos", location.value);
+    },
+    set(fowLos: boolean) {
+        settingsStore.setLineOfSight(fowLos, location.value, true);
+    },
+});
+
+const fowOpacity = computed({
+    get() {
+        return settingsStore.getLocationOptions("fowOpacity", location.value);
+    },
+    set(fowOpacity: number) {
+        settingsStore.setFowOpacity(fowOpacity, location.value, true);
+    },
+});
+
+const unitSizeUnit = computed({
+    get() {
+        return settingsStore.getLocationOptions("unitSizeUnit", location.value);
+    },
+    set(unitSizeUnit: string) {
+        settingsStore.setUnitSizeUnit(unitSizeUnit, location.value, true);
+    },
+});
+
+const visionMinRange = computed({
+    get() {
+        return settingsStore.getLocationOptions("visionMinRange", location.value);
+    },
+    set(visionMinRange: number) {
+        settingsStore.setVisionRangeMin(visionMinRange, location.value, true);
+    },
+});
+
+const visionMaxRange = computed({
+    get() {
+        return settingsStore.getLocationOptions("visionMaxRange", location.value);
+    },
+    set(visionMaxRange: number) {
+        settingsStore.setVisionRangeMax(visionMaxRange, location.value, true);
+    },
+});
+
+function reset(key: keyof LocationOptions): void {
+    if (isGlobal.value) return;
+    settingsStore.reset(key, props.location);
+}
+
+function changeVisionMode(event: Event): void {
+    const value = getValue(event);
+    let mode: VisibilityMode;
+    if (value === t("game.ui.settings.VisionSettings.default")) mode = VisibilityMode.TRIANGLE;
+    else if (value === t("game.ui.settings.VisionSettings.experimental")) mode = VisibilityMode.TRIANGLE_ITERATIVE;
+    else return;
+    visionState.setVisionMode(mode, true);
+}
 </script>
 
 <template>

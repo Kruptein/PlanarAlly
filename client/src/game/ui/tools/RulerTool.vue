@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CSSProperties } from "vue";
+import { computed } from "vue";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -13,7 +14,7 @@ const arrow = ref("0px");
 
 const selected = rulerTool.isActiveTool;
 const showPublic = rulerTool.showPublic;
-const toolStyle = { "--detailRight": right.value, "--detailArrow": arrow.value } as CSSProperties;
+const toolStyle = computed(() => ({ "--detailRight": right.value, "--detailArrow": arrow.value } as CSSProperties));
 
 onMounted(() => {
     ({ right: right.value, arrow: arrow.value } = useToolPosition(rulerTool.toolName));

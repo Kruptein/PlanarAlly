@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { CSSProperties } from "vue";
-import { onMounted, reactive, watchEffect } from "vue";
+import { computed, onMounted, reactive, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { DEFAULT_GRID_SIZE } from "../../../store/client";
@@ -22,7 +22,7 @@ const state = reactive({
 const selected = mapTool.isActiveTool;
 const removeRect = (): void => mapTool.removeRect();
 const skipManualDrag = (): void => mapTool.skipManualDrag();
-const toolStyle = { "--detailRight": state.right, "--detailArrow": state.arrow } as CSSProperties;
+const toolStyle = computed(() => ({ "--detailRight": state.right, "--detailArrow": state.arrow } as CSSProperties));
 
 onMounted(() => {
     ({ right: state.right, arrow: state.arrow } = useToolPosition(mapTool.toolName));

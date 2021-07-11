@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { CSSProperties } from "vue";
-import { onMounted, ref, toRef, watch } from "vue";
+import { computed, onMounted, ref, toRef, watch } from "vue";
 
 import { selectionState } from "../../layers/selection";
 import { selectTool } from "../../tools/variants/select";
@@ -13,7 +13,7 @@ const arrow = ref("0px");
 const hasSelection = selectTool.hasSelection;
 const selected = selectTool.isActiveTool;
 const showRuler = selectTool.showRuler;
-const toolStyle = { "--detailRight": right.value, "--detailArrow": arrow.value } as CSSProperties;
+const toolStyle = computed(() => ({ "--detailRight": right.value, "--detailArrow": arrow.value } as CSSProperties));
 
 onMounted(() => {
     ({ right: right.value, arrow: arrow.value } = useToolPosition(selectTool.toolName));

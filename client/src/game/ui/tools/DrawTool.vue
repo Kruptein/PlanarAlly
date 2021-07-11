@@ -25,7 +25,7 @@ const isDm = toRef(gameStore.state, "isDm");
 const modes = Object.values(DrawMode);
 const selected = drawTool.isActiveTool;
 const shapes = Object.values(DrawShape);
-const toolStyle = { "--detailRight": state.right, "--detailArrow": state.arrow } as CSSProperties;
+const toolStyle = computed(() => ({ "--detailRight": state.right, "--detailArrow": state.arrow } as CSSProperties));
 
 const translationMapping = {
     [DrawMode.Normal]: t("game.ui.tools.DrawTool.normal"),

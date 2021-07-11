@@ -20,7 +20,7 @@ const state = reactive({
 const selected = spellTool.isActiveTool;
 const selection = toRef(selectionState.state, "selection");
 const shapes = Object.values(SpellShape);
-const toolStyle = { "--detailRight": state.right, "--detailArrow": state.arrow } as CSSProperties;
+const toolStyle = computed(() => ({ "--detailRight": state.right, "--detailArrow": state.arrow } as CSSProperties));
 
 onMounted(() => {
     ({ right: state.right, arrow: state.arrow } = useToolPosition(spellTool.toolName));

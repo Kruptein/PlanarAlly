@@ -18,7 +18,7 @@ const state = reactive({
 });
 
 const selected = filterTool.isActiveTool;
-const toolStyle = { "--detailRight": state.right, "--detailArrow": state.arrow } as CSSProperties;
+const toolStyle = computed(() => ({ "--detailRight": state.right, "--detailArrow": state.arrow } as CSSProperties));
 
 onMounted(() => {
     ({ right: state.right, arrow: state.arrow } = useToolPosition(filterTool.toolName));

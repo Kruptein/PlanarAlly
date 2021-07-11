@@ -14,7 +14,7 @@ const right = ref("0px");
 const arrow = ref("0px");
 
 const selected = visionTool.isActiveTool;
-const toolStyle = { "--detailRight": right.value, "--detailArrow": arrow.value } as CSSProperties;
+const toolStyle = computed(() => ({ "--detailRight": right.value, "--detailArrow": arrow.value } as CSSProperties));
 
 onMounted(() => {
     ({ right: right.value, arrow: arrow.value } = useToolPosition(visionTool.toolName));

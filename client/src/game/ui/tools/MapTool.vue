@@ -1,5 +1,6 @@
-<script lang="ts">
-import { defineComponent, onMounted, reactive, toRefs, watchEffect } from "vue";
+<script setup lang="ts">
+import type { CSSProperties } from "vue";
+import { computed, onMounted, reactive, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { DEFAULT_GRID_SIZE } from "../../../store/client";
@@ -9,102 +10,89 @@ import { mapTool } from "../../tools/variants/map";
 
 import { useToolPosition } from "./toolPosition";
 
-export default defineComponent({
-    setup() {
-        const { t } = useI18n();
+const { t } = useI18n();
 
-        const state = reactive({
-            arrow: "0px",
-            right: "0px",
+const state = reactive({
+    arrow: "0px",
+    right: "0px",
 
-            lock: false,
-        });
-
-        onMounted(() => {
-            ({ right: state.right, arrow: state.arrow } = useToolPosition(mapTool.toolName));
-        });
-
-        watchEffect(() => {
-            if (state.lock) {
-                mapTool.state.aspectRatio = mapTool.shape!.w / mapTool.shape!.h;
-            }
-        });
-
-        watchEffect(() => {
-            const selection = [...selectionState.state.selection].map((s) => UuidMap.get(s)!);
-            mapTool.setSelection(selection);
-        });
-
-        function apply(): void {
-            mapTool.preview(false);
-            mapTool.removeRect(false);
-        }
-
-        function updateGridX(): void {
-            if (state.lock) {
-                if (mapTool.state.manualDrag) {
-                    mapTool.state.gridY = mapTool.state.gridX / (mapTool.rect!.w / mapTool.rect!.h);
-                } else {
-                    mapTool.state.gridY = mapTool.state.gridX / mapTool.state.aspectRatio;
-                }
-                mapTool.state.sizeY = mapTool.state.gridY * DEFAULT_GRID_SIZE;
-            }
-            mapTool.state.sizeX = mapTool.state.gridX * DEFAULT_GRID_SIZE;
-            if (!mapTool.state.manualDrag && mapTool.state.gridX > 0) mapTool.preview(true);
-        }
-
-        function updateGridY(): void {
-            if (state.lock) {
-                if (mapTool.state.manualDrag) {
-                    mapTool.state.gridX = mapTool.state.gridY * (mapTool.rect!.w / mapTool.rect!.h);
-                } else {
-                    mapTool.state.gridX = mapTool.state.gridY * mapTool.state.aspectRatio;
-                }
-                mapTool.state.sizeX = mapTool.state.gridX * DEFAULT_GRID_SIZE;
-            }
-            mapTool.state.sizeY = mapTool.state.gridY * DEFAULT_GRID_SIZE;
-            if (!mapTool.state.manualDrag && mapTool.state.gridY > 0) mapTool.preview(true);
-        }
-
-        function updateSizeX(): void {
-            if (state.lock) {
-                mapTool.state.sizeY = mapTool.state.sizeX / mapTool.state.aspectRatio;
-                mapTool.state.gridY = mapTool.state.sizeY / DEFAULT_GRID_SIZE;
-            }
-            mapTool.state.gridX = mapTool.state.sizeX / DEFAULT_GRID_SIZE;
-            if (mapTool.state.sizeX > 0) mapTool.preview(true);
-        }
-
-        function updateSizeY(): void {
-            if (state.lock) {
-                mapTool.state.sizeX = mapTool.state.sizeY * mapTool.state.aspectRatio;
-                mapTool.state.gridX = mapTool.state.sizeX / DEFAULT_GRID_SIZE;
-            }
-            mapTool.state.gridY = mapTool.state.sizeY / DEFAULT_GRID_SIZE;
-            if (mapTool.state.sizeY > 0) mapTool.preview(true);
-        }
-
-        return {
-            ...toRefs(state),
-            ...toRefs(mapTool.state),
-            t,
-            selected: mapTool.isActiveTool,
-            removeRect: () => mapTool.removeRect(),
-            skipManualDrag: () => mapTool.skipManualDrag(),
-            apply,
-            updateGridX,
-            updateGridY,
-            updateSizeX,
-            updateSizeY,
-        };
-    },
+    lock: false,
 });
+
+const selected = mapTool.isActiveTool;
+const removeRect = (): void => mapTool.removeRect();
+const skipManualDrag = (): void => mapTool.skipManualDrag();
+const toolStyle = computed(() => ({ "--detailRight": state.right, "--detailArrow": state.arrow } as CSSProperties));
+
+onMounted(() => {
+    ({ right: state.right, arrow: state.arrow } = useToolPosition(mapTool.toolName));
+});
+
+watchEffect(() => {
+    if (state.lock) {
+        mapTool.state.aspectRatio = mapTool.shape!.w / mapTool.shape!.h;
+    }
+});
+
+watchEffect(() => {
+    const selection = [...selectionState.state.selection].map((s) => UuidMap.get(s)!);
+    mapTool.setSelection(selection);
+});
+
+function apply(): void {
+    mapTool.preview(false);
+    mapTool.removeRect(false);
+}
+
+function updateGridX(): void {
+    if (state.lock) {
+        if (mapTool.state.manualDrag) {
+            mapTool.state.gridY = mapTool.state.gridX / (mapTool.rect!.w / mapTool.rect!.h);
+        } else {
+            mapTool.state.gridY = mapTool.state.gridX / mapTool.state.aspectRatio;
+        }
+        mapTool.state.sizeY = mapTool.state.gridY * DEFAULT_GRID_SIZE;
+    }
+    mapTool.state.sizeX = mapTool.state.gridX * DEFAULT_GRID_SIZE;
+    if (!mapTool.state.manualDrag && mapTool.state.gridX > 0) mapTool.preview(true);
+}
+
+function updateGridY(): void {
+    if (state.lock) {
+        if (mapTool.state.manualDrag) {
+            mapTool.state.gridX = mapTool.state.gridY * (mapTool.rect!.w / mapTool.rect!.h);
+        } else {
+            mapTool.state.gridX = mapTool.state.gridY * mapTool.state.aspectRatio;
+        }
+        mapTool.state.sizeX = mapTool.state.gridX * DEFAULT_GRID_SIZE;
+    }
+    mapTool.state.sizeY = mapTool.state.gridY * DEFAULT_GRID_SIZE;
+    if (!mapTool.state.manualDrag && mapTool.state.gridY > 0) mapTool.preview(true);
+}
+
+function updateSizeX(): void {
+    if (state.lock) {
+        mapTool.state.sizeY = mapTool.state.sizeX / mapTool.state.aspectRatio;
+        mapTool.state.gridY = mapTool.state.sizeY / DEFAULT_GRID_SIZE;
+    }
+    mapTool.state.gridX = mapTool.state.sizeX / DEFAULT_GRID_SIZE;
+    if (mapTool.state.sizeX > 0) mapTool.preview(true);
+}
+
+function updateSizeY(): void {
+    if (state.lock) {
+        mapTool.state.sizeX = mapTool.state.sizeY * mapTool.state.aspectRatio;
+        mapTool.state.gridX = mapTool.state.sizeX / DEFAULT_GRID_SIZE;
+    }
+    mapTool.state.gridY = mapTool.state.sizeY / DEFAULT_GRID_SIZE;
+    if (mapTool.state.sizeY > 0) mapTool.preview(true);
+}
 </script>
 <template>
-    <div class="tool-detail map" v-if="selected" :style="{ '--detailRight': right, '--detailArrow': arrow }">
-        <template v-if="hasShape">
-            <div class="row">{{ error }}</div>
-            <template v-if="!hasRect && manualDrag === true">
+    <div class="tool-detail map" v-if="selected" :style="toolStyle">
+        <template v-if="mapTool.state.hasShape">
+            <div class="row">{{ mapTool.state.error }}</div>
+            <template v-if="!mapTool.state.hasRect && mapTool.state.manualDrag === true">
                 <div id="map-selection-choice">
                     <div>{{ t("game.ui.tools.MapTool.drag_to_resize") }}</div>
                     <div id="next" @click="skipManualDrag">
@@ -115,33 +103,57 @@ export default defineComponent({
             </template>
             <template v-else>
                 <div id="map-grid">
-                    <div class="explanation" v-t="'game.ui.tools.MapTool.set_target_grid_cells'"></div>
-                    <div class="map-lock" @click="lock = !lock" title="(Un)lock aspect ratio">
-                        <font-awesome-icon v-show="lock" icon="link" />
-                        <font-awesome-icon v-show="!lock" icon="unlink" />
+                    <div class="explanation">{{ t("game.ui.tools.MapTool.set_target_grid_cells") }}</div>
+                    <div class="map-lock" @click="state.lock = !state.lock" title="(Un)lock aspect ratio">
+                        <font-awesome-icon v-show="state.lock" icon="link" />
+                        <font-awesome-icon v-show="!state.lock" icon="unlink" />
                     </div>
-                    <label for="map-g-x" v-t="'game.ui.tools.MapTool.horizontal'"></label>
-                    <input id="map-g-x" type="number" @input="updateGridX" v-model.number="gridX" class="hinput" />
-                    <label for="map-g-y" v-t="'game.ui.tools.MapTool.vertical'"></label>
-                    <input id="map-g-y" type="number" @input="updateGridY" v-model.number="gridY" class="vinput" />
+                    <label for="map-g-x">{{ t("game.ui.tools.MapTool.horizontal") }}</label>
+                    <input
+                        id="map-g-x"
+                        type="number"
+                        @input="updateGridX"
+                        v-model.number="mapTool.state.gridX"
+                        class="hinput"
+                    />
+                    <label for="map-g-y">{{ t("game.ui.tools.MapTool.vertical") }}</label>
+                    <input
+                        id="map-g-y"
+                        type="number"
+                        @input="updateGridY"
+                        v-model.number="mapTool.state.gridY"
+                        class="vinput"
+                    />
                 </div>
                 <div id="map-separator"></div>
-                <div id="map-size" v-show="!manualDrag">
+                <div id="map-size" v-show="!mapTool.state.manualDrag">
                     <div class="explanation">Set target pixels</div>
 
-                    <div class="map-lock" @click="lock = !lock" title="(Un)lock aspect ratio">
-                        <font-awesome-icon v-show="lock" icon="link" />
-                        <font-awesome-icon v-show="!lock" icon="unlink" />
+                    <div class="map-lock" @click="state.lock = !state.lock" title="(Un)lock aspect ratio">
+                        <font-awesome-icon v-show="state.lock" icon="link" />
+                        <font-awesome-icon v-show="!state.lock" icon="unlink" />
                     </div>
-                    <label for="map-s-x" v-t="'game.ui.tools.MapTool.horizontal'"></label>
-                    <input id="map-s-x" type="number" @input="updateSizeX" v-model.number="sizeX" class="hinput" />
-                    <label for="map-s-y" v-t="'game.ui.tools.MapTool.vertical'"></label>
-                    <input id="map-s-y" type="number" @input="updateSizeY" v-model.number="sizeY" class="vinput" />
+                    <label for="map-s-x">{{ t("game.ui.tools.MapTool.horizontal") }}</label>
+                    <input
+                        id="map-s-x"
+                        type="number"
+                        @input="updateSizeX"
+                        v-model.number="mapTool.state.sizeX"
+                        class="hinput"
+                    />
+                    <label for="map-s-y">{{ t("game.ui.tools.MapTool.vertical") }}</label>
+                    <input
+                        id="map-s-y"
+                        type="number"
+                        @input="updateSizeY"
+                        v-model.number="mapTool.state.sizeY"
+                        class="vinput"
+                    />
                 </div>
                 <div id="map-buttons">
-                    <div class="button apply" @click="apply" v-t="'game.ui.tools.MapTool.apply'"></div>
+                    <div class="button apply" @click="apply">{{ t("game.ui.tools.MapTool.apply") }}</div>
                     <div style="width: 25px"></div>
-                    <div class="button cancel" @click="removeRect" v-t="'game.ui.tools.MapTool.cancel'"></div>
+                    <div class="button cancel" @click="removeRect">{{ t("game.ui.tools.MapTool.cancel") }}</div>
                 </div>
             </template>
         </template>

@@ -1,5 +1,6 @@
 <script lang="ts">
 import { defineComponent, nextTick, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../core/components/ColourPicker.vue";
 import Modal from "../../../core/components/modals/Modal.vue";
@@ -17,6 +18,7 @@ import { tokenDialogLeft, tokenDialogTop, tokenDialogVisible } from "./state";
 export default defineComponent({
     components: { ColourPicker, Modal },
     setup() {
+        const { t } = useI18n();
         const canvas = ref<HTMLCanvasElement | null>(null);
         const name = ref<HTMLInputElement | null>(null);
 
@@ -85,7 +87,7 @@ export default defineComponent({
             ctx.restore();
         }
 
-        return { borderColour, canvas, close, fillColour, name, submit, text, visible: tokenDialogVisible };
+        return { t, borderColour, canvas, close, fillColour, name, submit, text, visible: tokenDialogVisible };
     },
 });
 </script>
@@ -93,16 +95,12 @@ export default defineComponent({
 <template>
     <Modal :visible="visible" @close="close">
         <template v-slot:header="m">
-            <div
-                class="modal-header"
-                draggable="true"
-                @dragstart="m.dragStart"
-                @dragend="m.dragEnd"
-                v-t="'game.ui.tools.CreateTokenModal.create_basic_token'"
-            ></div>
+            <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
+                {{ t("game.ui.tools.CreateTokenModal.create_basic_token") }}
+            </div>
         </template>
         <div class="modal-body">
-            <label for="createtokendialog-text" v-t="'game.ui.tools.CreateTokenModal.text'"></label>
+            <label for="createtokendialog-text">{{ t("game.ui.tools.CreateTokenModal.text") }}</label>
             <input
                 type="text"
                 id="createtokendialog-name"
@@ -111,17 +109,17 @@ export default defineComponent({
                 placeholder="X"
                 @keyup.enter="submit"
             />
-            <label v-t="'common.colours'"></label>
+            <label>{{ t("common.colours") }}</label>
             <div class="colours">
-                <span v-t="'game.ui.tools.CreateTokenModal.fill'"></span>
+                <span>{{ t("game.ui.tools.CreateTokenModal.fill") }}</span>
                 <ColourPicker v-model:colour="fillColour" />
-                <span v-t="'game.ui.tools.CreateTokenModal.border'"></span>
+                <span>{{ t("game.ui.tools.CreateTokenModal.border") }}</span>
                 <ColourPicker v-model:colour="borderColour" />
             </div>
             <canvas ref="canvas"></canvas>
         </div>
         <div class="modal-footer">
-            <button @click="submit" v-t="'common.submit'"></button>
+            <button @click="submit">{{ t("common.submit") }}</button>
         </div>
     </Modal>
 </template>

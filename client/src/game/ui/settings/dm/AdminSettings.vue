@@ -1,5 +1,5 @@
-<script lang="ts">
-import { computed, defineComponent, ref, toRef, watch } from "vue";
+<script setup lang="ts">
+import { computed, ref, toRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 
@@ -10,99 +10,77 @@ import { gameStore } from "../../../../store/game";
 import { sendDeleteRoom, sendRefreshInviteCode } from "../../../api/emits/room";
 import { getRoles } from "../../../models/role";
 
-export default defineComponent({
-    components: { InputCopyElement },
-    setup() {
-        const { t } = useI18n();
-        const modals = useModal();
-        const route = useRoute();
-        const router = useRouter();
+const { t } = useI18n();
+const modals = useModal();
+const route = useRoute();
+const router = useRouter();
 
-        const gameState = gameStore.state;
+const gameState = gameStore.state;
 
-        const roles = getRoles();
-        const refreshState = ref("pending");
-        const showRefreshState = ref(false);
+const roles = getRoles();
+const refreshState = ref("pending");
+const showRefreshState = ref(false);
 
-        watch(
-            () => gameState.invitationCode,
-            () => (showRefreshState.value = false),
-        );
+const players = toRef(gameState, "players");
+const locked = toRef(gameState, "isLocked");
 
-        const invitationUrl = computed(
-            () => `${window.location.protocol}//${gameState.publicName}/invite/${gameState.invitationCode}`,
-        );
+watch(
+    () => gameState.invitationCode,
+    () => (showRefreshState.value = false),
+);
 
-        const creator = computed(() => route.params.creator);
-        const username = toRef(coreStore.state, "username");
+const invitationUrl = computed(
+    () => `${window.location.protocol}//${gameState.publicName}/invite/${gameState.invitationCode}`,
+);
 
-        function refreshInviteCode(): void {
-            sendRefreshInviteCode();
-            refreshState.value = "pending";
-            showRefreshState.value = true;
-        }
+const creator = computed(() => route.params.creator);
+const username = toRef(coreStore.state, "username");
 
-        async function kickPlayer(playerId: number): Promise<void> {
-            const value = await modals.confirm("Kicking player", "Are you sure you wish to kick this player?");
-            if (value === true) gameStore.kickPlayer(playerId);
-        }
+function refreshInviteCode(): void {
+    sendRefreshInviteCode();
+    refreshState.value = "pending";
+    showRefreshState.value = true;
+}
 
-        function changePlayerRole(event: { target: HTMLSelectElement }, player: number): void {
-            const value = event.target.value;
-            const role = parseInt(value);
-            if (isNaN(role) || role < 0 || role >= roles.length) return;
+async function kickPlayer(playerId: number): Promise<void> {
+    const value = await modals.confirm("Kicking player", "Are you sure you wish to kick this player?");
+    if (value === true) gameStore.kickPlayer(playerId);
+}
 
-            gameStore.setPlayerRole(player, role, true);
-        }
+function changePlayerRole(event: Event, player: number): void {
+    const value = (event.target as HTMLSelectElement).value;
+    const role = parseInt(value);
+    if (isNaN(role) || role < 0 || role >= roles.length) return;
 
-        function togglePlayerRect(player: number): void {
-            const p = gameStore.state.players.find((p) => p.id === player)?.showRect;
-            if (p === undefined) return;
+    gameStore.setPlayerRole(player, role, true);
+}
 
-            gameStore.setShowPlayerRect(player, !p);
-        }
+function togglePlayerRect(player: number): void {
+    const p = gameStore.state.players.find((p) => p.id === player)?.showRect;
+    if (p === undefined) return;
 
-        async function deleteSession(): Promise<void> {
-            const value = await modals.prompt(
-                t("game.ui.settings.dm.AdminSettings.delete_session_msg_CREATOR_ROOM", {
-                    creator: gameState.roomCreator,
-                    room: gameState.roomName,
-                }),
-                t("game.ui.settings.dm.AdminSettings.deleting_session"),
-            );
-            if (value !== `${gameState.roomCreator}/${gameState.roomName}`) return;
-            sendDeleteRoom();
-            router.push("/");
-        }
+    gameStore.setShowPlayerRect(player, !p);
+}
 
-        return {
-            t,
+async function deleteSession(): Promise<void> {
+    const value = await modals.prompt(
+        t("game.ui.settings.dm.AdminSettings.delete_session_msg_CREATOR_ROOM", {
+            creator: gameState.roomCreator,
+            room: gameState.roomName,
+        }),
+        t("game.ui.settings.dm.AdminSettings.deleting_session"),
+    );
+    if (value !== `${gameState.roomCreator}/${gameState.roomName}`) return;
+    sendDeleteRoom();
+    router.push("/");
+}
 
-            players: toRef(gameState, "players"),
-            creator,
-            username,
-            kickPlayer,
-            changePlayerRole,
-            togglePlayerRect,
-            roles,
-
-            invitationUrl,
-            refreshInviteCode,
-            refreshState,
-            showRefreshState,
-
-            locked: toRef(gameState, "isLocked"),
-            toggleLock: () => gameStore.setIsLocked(!gameState.isLocked, true),
-
-            deleteSession,
-        };
-    },
-});
+const toggleLock = (): void => gameStore.setIsLocked(!gameState.isLocked, true);
 </script>
 
 <template>
     <div class="panel">
-        <div class="spanrow header" v-t="'common.players'"></div>
+        <div class="spanrow header">{{ t("common.players") }}</div>
         <div class="row smallrow" v-for="player of players" :key="player.id">
             <div>{{ player.name }}</div>
             <div class="player-actions">
@@ -128,17 +106,18 @@ export default defineComponent({
                 </div>
                 <div
                     @click="kickPlayer(player.id)"
-                    v-t="'game.ui.settings.dm.AdminSettings.kick'"
                     :style="{ opacity: username !== creator && player.name === creator ? 0.3 : 1.0 }"
-                ></div>
+                >
+                    {{ t("game.ui.settings.dm.AdminSettings.kick") }}
+                </div>
             </div>
         </div>
         <div class="row smallrow" v-if="players.length === 0">
-            <div class="spanrow" v-t="'game.ui.settings.dm.AdminSettings.no_players_invite_msg'"></div>
+            <div class="spanrow">{{ t("game.ui.settings.dm.AdminSettings.no_players_invite_msg") }}</div>
         </div>
-        <div class="spanrow header" v-t="'game.ui.settings.dm.AdminSettings.invite_code'"></div>
+        <div class="spanrow header">{{ t("game.ui.settings.dm.AdminSettings.invite_code") }}</div>
         <div class="row">
-            <div v-t="'game.ui.settings.dm.AdminSettings.invitation_url'"></div>
+            <div>{{ t("game.ui.settings.dm.AdminSettings.invitation_url") }}</div>
             <template v-if="showRefreshState">
                 <InputCopyElement :value="refreshState" />
             </template>
@@ -149,17 +128,17 @@ export default defineComponent({
         <div class="row" @click="refreshInviteCode">
             <div></div>
             <div>
-                <button v-t="'game.ui.settings.dm.AdminSettings.refresh_invitation_code'"></button>
+                <button>{{ t("game.ui.settings.dm.AdminSettings.refresh_invitation_code") }}</button>
             </div>
         </div>
-        <div class="spanrow header" v-t="'game.ui.settings.dm.AdminSettings.danger_NBSP_zone'"></div>
+        <div class="spanrow header">{{ t("game.ui.settings.dm.AdminSettings.danger_NBSP_zone") }}</div>
         <div class="row">
             <div style="margin-right: 0.5em">
                 <template v-if="locked">
                     {{ t("game.ui.settings.dm.AdminSettings.unlock_NBSP_Session_NBSP") }}
                 </template>
                 <template v-else>{{ t("game.ui.settings.dm.AdminSettings.lock_NBSP_Session_NBSP") }}</template>
-                <em v-t="'game.ui.settings.dm.AdminSettings.dm_access_only'"></em>
+                <em>{{ t("game.ui.settings.dm.AdminSettings.dm_access_only") }}</em>
             </div>
             <div>
                 <button class="danger" @click="toggleLock">
@@ -169,13 +148,11 @@ export default defineComponent({
             </div>
         </div>
         <div class="row">
-            <div v-t="'game.ui.settings.dm.AdminSettings.remove_session'"></div>
+            <div>{{ t("game.ui.settings.dm.AdminSettings.remove_session") }}</div>
             <div>
-                <button
-                    class="danger"
-                    @click="deleteSession"
-                    v-t="'game.ui.settings.dm.AdminSettings.delete_session'"
-                ></button>
+                <button class="danger" @click="deleteSession">
+                    {{ t("game.ui.settings.dm.AdminSettings.delete_session") }}
+                </button>
             </div>
         </div>
     </div>

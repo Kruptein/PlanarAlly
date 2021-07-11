@@ -1,7 +1,6 @@
-import { ServerShape } from "@/game/models/shapes";
-
 import { ServerGroup } from "./groups";
 import { ServerLocationOptions } from "./settings";
+import { ServerShape } from "./shapes";
 
 export interface ServerLocation {
     id: number;

@@ -13,11 +13,9 @@
         "sourceMap": true,
         "baseUrl": ".",
         "outDir": "dist",
-        "types": ["jest", "@intlify/vite-plugin-vue-i18n/client"],
-        "paths": {
-            "@/*": ["src/*"]
-        },
-        "lib": ["esnext", "dom", "dom.iterable", "scripthost"]
+        "types": ["@intlify/vite-plugin-vue-i18n/client"],
+        "lib": ["esnext", "dom", "dom.iterable", "scripthost"],
+        "skipLibCheck": true
     },
     "include": ["src/**/*.ts", "src/**/*.vue", "tests/**/*.ts"],
     "exclude": ["node_modules"]

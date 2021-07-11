@@ -1,95 +1,72 @@
-<script lang="ts">
-import { computed, defineComponent, ref, toRef } from "vue";
+<script setup lang="ts">
+import { computed, ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { AssetFile } from "../../../core/models/types";
+import type { AssetFile } from "../../../core/models/types";
 import { baseAdjust, uuidv4 } from "../../../core/utils";
 import { gameStore } from "../../../store/game";
 import { UuidMap } from "../../../store/shapeMap";
 import { uiStore } from "../../../store/ui";
-import { Note } from "../../models/general";
+import type { Note } from "../../models/general";
 import NoteDialog from "../NoteDialog.vue";
 
 import AssetParentNode from "./AssetParentNode.vue";
 
-export default defineComponent({
-    name: "MenuBar",
-    components: { AssetParentNode, NoteDialog },
-    setup() {
-        const { t } = useI18n();
+const { t } = useI18n();
 
-        const showNote = ref(false);
+const showNote = ref(false);
 
-        const assetSearch = ref("");
-        const gameState = gameStore.state;
+const assetSearch = ref("");
+const gameState = gameStore.state;
 
-        const noAssets = computed(() => {
-            return gameState.assets.size === 1 && (gameState.assets.get("__files") as AssetFile[]).length <= 0;
-        });
+const isDm = toRef(gameState, "isDm");
+const notes = toRef(gameState, "notes");
+const markers = toRef(gameState, "markers");
 
-        function settingsClick(event: { target: HTMLElement }): void {
-            if (
-                event.target.classList.contains("menu-accordion") &&
-                (event.target.nextElementSibling?.classList.contains("menu-accordion-panel") ?? false)
-            ) {
-                event.target.classList.toggle("menu-accordion-active");
-            }
-        }
-
-        function createNote(): void {
-            const note = { title: t("game.ui.menu.MenuBar.new_note"), text: "", uuid: uuidv4() };
-            gameStore.newNote(note, true);
-            openNote(note);
-        }
-
-        function openNote(note: Note): void {
-            showNote.value = true;
-            uiStore.setActiveNote(note);
-        }
-
-        function delMarker(marker: string): void {
-            gameStore.removeMarker(marker, true);
-        }
-
-        function jumpToMarker(marker: string): void {
-            gameStore.jumpToMarker(marker);
-        }
-
-        function nameMarker(marker: string): string {
-            const shape = UuidMap.get(marker);
-            if (shape !== undefined) {
-                return shape.name;
-            } else {
-                return "";
-            }
-        }
-
-        return {
-            baseAdjust,
-            settingsClick,
-            t,
-            isDm: toRef(gameState, "isDm"),
-
-            assetSearch,
-            noAssets,
-
-            createNote,
-            activeNote: toRef(uiStore.state, "activeNote"),
-            notes: toRef(gameState, "notes"),
-            openNote,
-            showNote,
-
-            openDmSettings: () => uiStore.showDmSettings(!uiStore.state.showDmSettings),
-
-            markers: toRef(gameState, "markers"),
-            delMarker,
-            jumpToMarker,
-            nameMarker,
-
-            openClientSettings: () => uiStore.showClientSettings(!uiStore.state.showClientSettings),
-        };
-    },
+const noAssets = computed(() => {
+    return gameState.assets.size === 1 && (gameState.assets.get("__files") as AssetFile[]).length <= 0;
 });
+
+function settingsClick(event: MouseEvent): void {
+    const target = event.target as HTMLDivElement;
+    if (
+        target.classList.contains("menu-accordion") &&
+        (target.nextElementSibling?.classList.contains("menu-accordion-panel") ?? false)
+    ) {
+        target.classList.toggle("menu-accordion-active");
+    }
+}
+
+function createNote(): void {
+    const note = { title: t("game.ui.menu.MenuBar.new_note"), text: "", uuid: uuidv4() };
+    gameStore.newNote(note, true);
+    openNote(note);
+}
+
+function openNote(note: Note): void {
+    showNote.value = true;
+    uiStore.setActiveNote(note);
+}
+
+function delMarker(marker: string): void {
+    gameStore.removeMarker(marker, true);
+}
+
+function jumpToMarker(marker: string): void {
+    gameStore.jumpToMarker(marker);
+}
+
+function nameMarker(marker: string): string {
+    const shape = UuidMap.get(marker);
+    if (shape !== undefined) {
+        return shape.name;
+    } else {
+        return "";
+    }
+}
+
+const openDmSettings = (): void => uiStore.showDmSettings(!uiStore.state.showDmSettings);
+const openClientSettings = (): void => uiStore.showClientSettings(!uiStore.state.showClientSettings);
 </script>
 
 <template>
@@ -99,7 +76,7 @@ export default defineComponent({
         <div style="width: 200px; overflow-y: auto; overflow-x: hidden">
             <!-- ASSETS -->
             <template v-if="isDm">
-                <button class="menu-accordion" v-t="'common.assets'"></button>
+                <button class="menu-accordion">{{ t("common.assets") }}</button>
                 <div id="menu-assets" class="menu-accordion-panel" style="position: relative">
                     <input id="asset-search" v-model="assetSearch" :placeholder="t('common.search')" />
                     <a
@@ -119,27 +96,25 @@ export default defineComponent({
                     </div>
                 </div>
                 <!-- NOTES -->
-                <button class="menu-accordion" v-t="'common.notes'"></button>
+                <button class="menu-accordion">{{ t("common.notes") }}</button>
                 <div class="menu-accordion-panel">
                     <div class="menu-accordion-subpanel" id="menu-notes" style="position: relative">
                         <div v-for="note in notes" :key="note.uuid" @click="openNote(note)" style="cursor: pointer">
                             {{ note.title || "[?]" }}
                         </div>
-                        <div v-if="!notes.length" v-t="'game.ui.menu.MenuBar.no_notes'"></div>
+                        <div v-if="!notes.length">{{ t("game.ui.menu.MenuBar.no_notes") }}</div>
                         <a class="actionButton" @click="createNote" :title="t('game.ui.menu.MenuBar.create_note')">
                             <font-awesome-icon icon="plus-square" />
                         </a>
                     </div>
                 </div>
                 <!-- DM SETTINGS -->
-                <button
-                    class="menu-accordion"
-                    @click="openDmSettings"
-                    v-t="'game.ui.menu.MenuBar.dm_settings'"
-                ></button>
+                <button class="menu-accordion" @click="openDmSettings">
+                    {{ t("game.ui.menu.MenuBar.dm_settings") }}
+                </button>
             </template>
             <!-- MARKERS -->
-            <button class="menu-accordion" v-t="'common.markers'"></button>
+            <button class="menu-accordion">{{ t("common.markers") }}</button>
             <div class="menu-accordion-panel">
                 <div class="menu-accordion-subpanel" id="menu-markers">
                     <div v-for="marker of markers.values()" :key="marker" style="cursor: pointer">
@@ -150,15 +125,13 @@ export default defineComponent({
                             <font-awesome-icon icon="minus-square" />
                         </div>
                     </div>
-                    <div v-if="markers.size === 0" v-t="'game.ui.menu.MenuBar.no_markers'"></div>
+                    <div v-if="markers.size === 0">{{ t("game.ui.menu.MenuBar.no_markers") }}</div>
                 </div>
             </div>
             <!-- CLIENT SETTINGS -->
-            <button
-                class="menu-accordion"
-                @click="openClientSettings"
-                v-t="'game.ui.menu.MenuBar.client_settings'"
-            ></button>
+            <button class="menu-accordion" @click="openClientSettings">
+                {{ t("game.ui.menu.MenuBar.client_settings") }}
+            </button>
         </div>
         <router-link
             to="/dashboard"

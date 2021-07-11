@@ -4,14 +4,14 @@ import { useI18n } from "vue-i18n";
 
 export default defineComponent({
     setup() {
-        const { availableLocales, locale } = useI18n({ useScope: "global" });
+        const { availableLocales, locale, t } = useI18n({ useScope: "global" });
 
         function setLocale(newLocale: string): void {
             locale.value = newLocale;
             localStorage.setItem("locale", newLocale);
         }
 
-        return { availableLocales, locale, setLocale };
+        return { availableLocales, locale, setLocale, t };
     },
 });
 </script>
@@ -24,9 +24,10 @@ export default defineComponent({
             v-for="availableLocale in availableLocales"
             :key="`locale-${availableLocale}`"
             :value="availableLocale"
-            v-t="'locale.' + availableLocale"
             @click="setLocale(availableLocale)"
-        ></div>
+        >
+            {{ t("locale." + availableLocale) }}
+        </div>
     </div>
 </template>
 

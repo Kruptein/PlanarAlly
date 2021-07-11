@@ -65,10 +65,9 @@ export default defineComponent({
             </template>
         </div>
         <div class="row" :class="{ overwritten: !isGlobal && options.movePlayerOnTokenChange !== undefined }">
-            <label
-                :for="'movePlayerOnTokenChangeInput-' + location"
-                v-t="'game.ui.settings.VariaSettings.movePlayerOnTokenChange'"
-            ></label>
+            <label :for="'movePlayerOnTokenChangeInput-' + location">
+                {{ t("game.ui.settings.VariaSettings.movePlayerOnTokenChange") }}
+            </label>
             <div>
                 <input
                     :id="'movePlayerOnTokenChangeInput-' + location"

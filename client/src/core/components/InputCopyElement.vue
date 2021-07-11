@@ -1,37 +1,32 @@
-<script lang="ts">
-import { defineComponent, reactive, toRefs } from "vue";
+<script setup lang="ts">
+import { defineProps, reactive } from "vue";
 import { useI18n } from "vue-i18n";
 
-export default defineComponent({
-    props: { value: { type: String, required: true } },
-    setup(props) {
-        const { t } = useI18n();
+const { t } = useI18n();
 
-        const state = reactive({
-            showPopup: false,
-            popupString: "",
-        });
+const props = defineProps({ value: { type: String, required: true } });
 
-        async function copy(): Promise<void> {
-            try {
-                await navigator.clipboard.writeText(props.value);
-                state.popupString = t("core.components.InputCopyElement.copied");
-            } catch {
-                console.log("Could not copy to clipboard :(");
-                state.popupString = t("common.error_msg");
-            }
-            state.showPopup = true;
-        }
-
-        return { ...toRefs(state), copy, t };
-    },
+const state = reactive({
+    showPopup: false,
+    popupString: "",
 });
+
+async function copy(): Promise<void> {
+    try {
+        await navigator.clipboard.writeText(props.value);
+        state.popupString = t("core.components.InputCopyElement.copied");
+    } catch {
+        console.log("Could not copy to clipboard :(");
+        state.popupString = t("common.error_msg");
+    }
+    state.showPopup = true;
+}
 </script>
 
 <template>
-    <div id="input-copy" @mouseleave="showPopup = false">
-        <input type="text" disabled="disabled" :value="value" id="input-element" />
-        <div v-show="showPopup" id="show-popup">{{ popupString }}</div>
+    <div id="input-copy" @mouseleave="state.showPopup = false">
+        <input type="text" disabled :value="value" id="input-element" />
+        <div v-show="state.showPopup" id="show-popup">{{ state.popupString }}</div>
         <div id="copy-button" @click="copy" :title="t('core.components.InputCopyElement.copy')">
             <font-awesome-icon :icon="['far', 'copy']" />
         </div>

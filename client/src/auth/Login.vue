@@ -1,7 +1,7 @@
-<script lang="ts">
+<script setup lang="ts">
 import SwiperCore, { Pagination } from "swiper/core";
 import { Swiper, SwiperSlide } from "swiper/vue";
-import { defineComponent, ref } from "vue";
+import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import { useToast } from "vue-toastification";
@@ -12,89 +12,72 @@ import { coreStore } from "../store/core";
 
 SwiperCore.use([Pagination]);
 
-export default defineComponent({
-    components: { LanguageDropdown, Swiper, SwiperSlide },
-    setup() {
-        const { t } = useI18n();
-        const route = useRoute();
-        const router = useRouter();
-        const toast = useToast();
+const { t } = useI18n();
+const route = useRoute();
+const router = useRouter();
+const toast = useToast();
 
-        const username = ref("");
-        const password = ref("");
-        const email = ref("");
-        const registerMode = ref(false);
+const username = ref("");
+const password = ref("");
+const email = ref("");
+const registerMode = ref(false);
 
-        const showLanguageDropdown = ref(false);
+const showLanguageDropdown = ref(false);
 
-        async function submit(): Promise<void> {
-            if (registerMode.value) await register();
-            else await login();
-        }
+async function submit(): Promise<void> {
+    if (registerMode.value) await register();
+    else await login();
+}
 
-        async function login(): Promise<void> {
-            const response = await postFetch("/api/login", {
-                username: username.value,
-                password: password.value,
-            });
-            if (response.ok) {
-                coreStore.setUsername(username.value);
-                coreStore.setAuthenticated(true);
-                const data: { email?: string } = await response.json();
-                if (data.email !== undefined) coreStore.setEmail(data.email);
-                router.push((route.query.redirect as string) ?? "/");
-            } else {
-                toast.error(await getErrorReason(response));
-            }
-        }
-        async function register(): Promise<void> {
-            const response = await postFetch("/api/register", {
-                username: username.value,
-                password: password.value,
-                email: email.value,
-            });
-            if (response.ok) {
-                coreStore.setUsername(username.value);
-                coreStore.setAuthenticated(true);
-                router.push((route.query.redirect as string) ?? "/");
-            } else {
-                toast.error(await getErrorReason(response));
-            }
-        }
+async function login(): Promise<void> {
+    const response = await postFetch("/api/login", {
+        username: username.value,
+        password: password.value,
+    });
+    if (response.ok) {
+        coreStore.setUsername(username.value);
+        coreStore.setAuthenticated(true);
+        const data: { email?: string } = await response.json();
+        if (data.email !== undefined) coreStore.setEmail(data.email);
+        router.push((route.query.redirect as string) ?? "/");
+    } else {
+        toast.error(await getErrorReason(response));
+    }
+}
+async function register(): Promise<void> {
+    const response = await postFetch("/api/register", {
+        username: username.value,
+        password: password.value,
+        email: email.value,
+    });
+    if (response.ok) {
+        coreStore.setUsername(username.value);
+        coreStore.setAuthenticated(true);
+        router.push((route.query.redirect as string) ?? "/");
+    } else {
+        toast.error(await getErrorReason(response));
+    }
+}
 
-        function focusin(event: { target?: { nextElementSibling?: HTMLElement } }): void {
-            if (event.target && event.target.nextElementSibling) {
-                const span = event.target.nextElementSibling;
-                span.style.opacity = "0";
-            }
-        }
+function focusin(event: FocusEvent): void {
+    const target = event.target as HTMLFormElement | null;
+    if (target && target.nextElementSibling) {
+        const span = target.nextElementSibling as HTMLElement;
+        span.style.opacity = "0";
+    }
+}
 
-        function focusout(event: { target?: { nextElementSibling?: HTMLElement } }): void {
-            if (event.target && event.target.nextElementSibling) {
-                const span = event.target.nextElementSibling;
-                span.style.opacity = "1";
-            }
-        }
+function focusout(event: FocusEvent): void {
+    const target = event.target as HTMLFormElement | null;
+    if (target && target.nextElementSibling) {
+        const span = target.nextElementSibling as HTMLElement;
+        span.style.opacity = "1";
+    }
+}
 
-        function slideNext(swiper: Swiper): void {
-            swiper.slideNext();
-        }
-
-        return {
-            baseAdjust,
-            email,
-            focusin,
-            focusout,
-            slideNext,
-            password,
-            registerMode,
-            showLanguageDropdown,
-            submit,
-            t,
-            username,
-        };
-    },
-});
+function slideNext(swiper: Swiper): void {
+    swiper.slideNext();
+}
 </script>
 
 <template>
@@ -117,24 +100,14 @@ export default defineComponent({
                 @click="slideNext"
             >
                 <swiper-slide>
-                    <video
-                        autoplay="autoplay"
-                        loop="loop"
-                        muted="muted"
-                        :poster="baseAdjust('/static/img/carousel_vision.png')"
-                    >
+                    <video autoplay loop muted :poster="baseAdjust('/static/img/carousel_vision.png')">
                         <source src="https://planarally.io/assets/media/vision.8eab5657.webm" type="video/webm" />
                         <source src="https://planarally.io/assets/media/vision.06d14f50.mp4" type="video/mp4" />
                     </video>
                     <div class="carousel-details">Immersive lighting & vision system</div>
                 </swiper-slide>
                 <swiper-slide>
-                    <video
-                        autoplay="autoplay"
-                        loop="loop"
-                        muted="muted"
-                        :poster="baseAdjust('/static/img/carousel_floors.png')"
-                    >
+                    <video autoplay loop muted :poster="baseAdjust('/static/img/carousel_floors.png')">
                         <source src="https://www.planarally.io/assets/0.19.0/floors.webm" type="video/webm" />
                         <source src="https://www.planarally.io/assets/0.19.0/floors.mp4" type="video/mp4" />
                     </video>
@@ -158,7 +131,7 @@ export default defineComponent({
                 <img :src="baseAdjust('/static/favicon.png')" alt="PA logo" />
             </div>
             <form @focusin="focusin" @focusout="focusout" @submit.prevent="submit">
-                <label v-t="'common.username'"></label>
+                <label>{{ t("common.username") }}</label>
                 <div class="input">
                     <input
                         id="username"
@@ -174,7 +147,7 @@ export default defineComponent({
                         <font-awesome-icon icon="user-circle" />
                     </span>
                 </div>
-                <label v-t="'common.password'"></label>
+                <label>{{ t("common.password") }}</label>
                 <div class="input">
                     <input
                         id="password"

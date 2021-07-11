@@ -1,5 +1,6 @@
-<script lang="ts">
-import { computed, defineComponent, onMounted, reactive, toRef, toRefs } from "vue";
+<script setup lang="ts">
+import type { CSSProperties } from "vue";
+import { computed, onMounted, reactive, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../core/components/ColourPicker.vue";
@@ -9,114 +10,107 @@ import { DrawMode, DrawShape, drawTool } from "../../tools/variants/draw";
 
 import { useToolPosition } from "./toolPosition";
 
-export default defineComponent({
-    components: { ColourPicker },
-    setup() {
-        const { t } = useI18n();
-        const modals = useModal();
+const { t } = useI18n();
+const modals = useModal();
 
-        drawTool.setPromptFunction(modals.prompt);
+drawTool.setPromptFunction(modals.prompt);
 
-        const state = reactive({
-            arrow: "0px",
-            right: "0px",
-        });
+const state = reactive({
+    arrow: "0px",
+    right: "0px",
+});
 
-        const translationMapping = {
-            [DrawMode.Normal]: t("game.ui.tools.DrawTool.normal"),
-            [DrawMode.Reveal]: t("game.ui.tools.DrawTool.reveal"),
-            [DrawMode.Hide]: t("game.ui.tools.DrawTool.hide"),
-            [DrawMode.Erase]: t("game.ui.tools.DrawTool.erase"),
-            [DrawShape.Square]: t("game.ui.tools.DrawTool.square"),
-            [DrawShape.Circle]: t("game.ui.tools.DrawTool.circle"),
-            [DrawShape.Polygon]: t("game.ui.tools.DrawTool.draw-polygon"),
-            [DrawShape.Brush]: t("game.ui.tools.DrawTool.paint-brush"),
-            [DrawShape.Text]: t("game.ui.tools.DrawTool.text"),
-        };
+const hasBrushSize = drawTool.hasBrushSize;
+const isDm = toRef(gameStore.state, "isDm");
+const modes = Object.values(DrawMode);
+const selected = drawTool.isActiveTool;
+const shapes = Object.values(DrawShape);
+const toolStyle = computed(() => ({ "--detailRight": state.right, "--detailArrow": state.arrow } as CSSProperties));
 
-        onMounted(() => {
-            ({ right: state.right, arrow: state.arrow } = useToolPosition(drawTool.toolName));
-        });
+const translationMapping = {
+    [DrawMode.Normal]: t("game.ui.tools.DrawTool.normal"),
+    [DrawMode.Reveal]: t("game.ui.tools.DrawTool.reveal"),
+    [DrawMode.Hide]: t("game.ui.tools.DrawTool.hide"),
+    [DrawMode.Erase]: t("game.ui.tools.DrawTool.erase"),
+    [DrawShape.Square]: t("game.ui.tools.DrawTool.square"),
+    [DrawShape.Circle]: t("game.ui.tools.DrawTool.circle"),
+    [DrawShape.Polygon]: t("game.ui.tools.DrawTool.draw-polygon"),
+    [DrawShape.Brush]: t("game.ui.tools.DrawTool.paint-brush"),
+    [DrawShape.Text]: t("game.ui.tools.DrawTool.text"),
+};
 
-        const showBorderColour = computed(() => {
-            if (drawTool.state.selectedShape === DrawShape.Brush) return false;
-            if (drawTool.state.selectedShape === DrawShape.Polygon && !drawTool.state.isClosedPolygon) return false;
-            return true;
-        });
+onMounted(() => {
+    ({ right: state.right, arrow: state.arrow } = useToolPosition(drawTool.toolName));
+});
 
-        return {
-            ...toRefs(drawTool.state),
-            ...toRefs(state),
-            DrawShape,
-            hasBrushSize: drawTool.hasBrushSize,
-            isDm: toRef(gameStore.state, "isDm"),
-            modes: Object.values(DrawMode),
-            selected: drawTool.isActiveTool,
-            shapes: Object.values(DrawShape),
-            showBorderColour,
-            t,
-            translationMapping,
-        };
-    },
+const showBorderColour = computed(() => {
+    if (drawTool.state.selectedShape === DrawShape.Brush) return false;
+    if (drawTool.state.selectedShape === DrawShape.Polygon && !drawTool.state.isClosedPolygon) return false;
+    return true;
 });
 </script>
 
 <template>
-    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': right, '--detailArrow': arrow }">
-        <div v-show="isDm" v-t="'game.ui.tools.DrawTool.mode'"></div>
+    <div class="tool-detail" v-if="selected" :style="toolStyle">
+        <div v-show="isDm">{{ t("game.ui.tools.DrawTool.mode") }}</div>
         <div v-show="isDm" class="draw-select-group">
             <div
                 v-for="mode in modes"
                 :key="mode"
                 class="draw-select-option"
-                :class="{ 'draw-select-option-selected': selectedMode === mode }"
-                @click="selectedMode = mode"
+                :class="{ 'draw-select-option-selected': drawTool.state.selectedMode === mode }"
+                @click="drawTool.state.selectedMode = mode"
             >
                 {{ translationMapping[mode] }}
             </div>
         </div>
-        <div v-t="'common.shape'"></div>
+        <div>{{ t("common.shape") }}</div>
         <div class="draw-select-group">
             <div
                 v-for="shape in shapes"
                 :key="shape"
                 class="draw-select-option"
-                :class="{ 'draw-select-option-selected': selectedShape === shape }"
-                @click="selectedShape = shape"
+                :class="{ 'draw-select-option-selected': drawTool.state.selectedShape === shape }"
+                @click="drawTool.state.selectedShape = shape"
                 :title="translationMapping[shape]"
             >
                 <font-awesome-icon :icon="shape" />
             </div>
         </div>
-        <div v-t="'common.colours'"></div>
+        <div>{{ t("common.colours") }}</div>
         <div class="draw-select-group">
             <ColourPicker
                 class="draw-select-option"
                 :class="{ 'radius-right': !showBorderColour }"
                 :title="t('game.ui.tools.DrawTool.foreground_color')"
-                v-model:colour="fillColour"
+                v-model:colour="drawTool.state.fillColour"
             />
             <ColourPicker
                 class="draw-select-option"
                 :vShow="showBorderColour"
                 :title="t('game.ui.tools.DrawTool.background_color')"
-                v-model:colour="borderColour"
+                v-model:colour="drawTool.state.borderColour"
             />
         </div>
-        <div v-show="selectedShape === DrawShape.Polygon" style="display: flex">
-            <label for="polygon-close" style="flex: 5" v-t="'game.ui.tools.DrawTool.closed_polygon'"></label>
-            <input type="checkbox" id="polygon-close" style="flex: 1; align-self: center" v-model="isClosedPolygon" />
+        <div v-show="drawTool.state.selectedShape === DrawShape.Polygon" style="display: flex">
+            <label for="polygon-close" style="flex: 5">{{ t("game.ui.tools.DrawTool.closed_polygon") }}</label>
+            <input
+                type="checkbox"
+                id="polygon-close"
+                style="flex: 1; align-self: center"
+                v-model="drawTool.state.isClosedPolygon"
+            />
         </div>
-        <div v-show="selectedShape === DrawShape.Text" style="display: flex">
-            <label for="font-size" style="flex: 5" v-t="'game.ui.tools.DrawTool.font_size'"></label>
-            <input type="number" id="font-size" style="flex: 1; align-self: center" v-model="fontSize" />
+        <div v-show="drawTool.state.selectedShape === DrawShape.Text" style="display: flex">
+            <label for="font-size" style="flex: 5">{{ t("game.ui.tools.DrawTool.font_size") }}</label>
+            <input type="number" id="font-size" style="flex: 1; align-self: center" v-model="drawTool.state.fontSize" />
         </div>
         <div v-show="hasBrushSize" style="display: flex">
-            <label for="brush-size" style="flex: 5" v-t="'game.ui.tools.DrawTool.brush_size'"></label>
+            <label for="brush-size" style="flex: 5">{{ t("game.ui.tools.DrawTool.brush_size") }}</label>
             <input
                 type="input"
                 id="brush-size"
-                v-model="brushSize"
+                v-model="drawTool.state.brushSize"
                 style="flex: 4; align-self: center; max-width: 100px"
             />
         </div>

@@ -135,7 +135,7 @@ export default defineComponent({
 
 <template>
     <div id="AssetManager" v-cloak>
-        <div id="titlebar" v-t="'assetManager.AssetManager.title'"></div>
+        <div id="titlebar">{{ t("assetManager.AssetManager.title") }}</div>
         <div id="progressbar" v-show="expectedUploads > 0 && expectedUploads !== resolvedUploads">
             <div id="progressbar-label">
                 {{ t("assetManager.AssetManager.uploading") }} {{ resolvedUploads }} / {{ expectedUploads }}

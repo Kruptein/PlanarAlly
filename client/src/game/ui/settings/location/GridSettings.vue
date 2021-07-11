@@ -87,7 +87,7 @@ export default defineComponent({
             </template>
         </div>
         <div class="row" :class="{ overwritten: !isGlobal && e(options.useGrid) }">
-            <label :for="'useGridInput-' + location" v-t="'game.ui.settings.GridSettings.use_grid'"></label>
+            <label :for="'useGridInput-' + location">{{ t("game.ui.settings.GridSettings.use_grid") }}</label>
             <div>
                 <input :id="'useGridInput-' + location" type="checkbox" v-model="useGrid" />
             </div>
@@ -101,12 +101,12 @@ export default defineComponent({
             <div v-else></div>
         </div>
         <div class="row" :class="{ overwritten: !isGlobal && e(options.gridType) }">
-            <label :for="'gridType-' + location" v-t="'game.ui.settings.GridSettings.grid_type'"></label>
+            <label :for="'gridType-' + location">{{ t("game.ui.settings.GridSettings.grid_type") }}</label>
             <div>
                 <select :id="'gridType-' + location" v-model="gridType">
-                    <option value="SQUARE" v-t="'game.ui.settings.GridSettings.SQUARE'"></option>
-                    <option value="POINTY_HEX" v-t="'game.ui.settings.GridSettings.POINTY_HEX'"></option>
-                    <option value="FLAT_HEX" v-t="'game.ui.settings.GridSettings.FLAT_HEX'"></option>
+                    <option value="SQUARE">{{ t("game.ui.settings.GridSettings.SQUARE") }}</option>
+                    <option value="POINTY_HEX">{{ t("game.ui.settings.GridSettings.POINTY_HEX") }}</option>
+                    <option value="FLAT_HEX">{{ t("game.ui.settings.GridSettings.FLAT_HEX") }}</option>
                 </select>
             </div>
             <div
@@ -120,7 +120,7 @@ export default defineComponent({
         </div>
         <div class="row" :class="{ overwritten: !isGlobal && e(options.unitSizeUnit) }">
             <div>
-                <label :for="'unitSizeUnit-' + location" v-t="'game.ui.settings.GridSettings.size_unit'"></label>
+                <label :for="'unitSizeUnit-' + location">{{ t("game.ui.settings.GridSettings.size_unit") }}</label>
             </div>
             <div>
                 <input :id="'unitSizeUnit-' + location" type="text" v-model="unitSizeUnit" />

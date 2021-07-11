@@ -1,5 +1,5 @@
-<script lang="ts">
-import { defineComponent, ref, toRef } from "vue";
+<script setup lang="ts">
+import { defineEmit, defineProps, ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import Modal from "../../core/components/modals/Modal.vue";
@@ -7,49 +7,43 @@ import { useModal } from "../../core/plugins/modals/plugin";
 import { gameStore } from "../../store/game";
 import { uiStore } from "../../store/ui";
 
-export default defineComponent({
-    name: "NoteDialog",
-    components: { Modal },
-    props: { visible: { type: Boolean, required: true } },
-    setup(_, { emit }) {
-        const textarea = ref<HTMLTextAreaElement | null>(null);
-        const title = ref<HTMLInputElement | null>(null);
+defineProps({ visible: { type: Boolean, required: true } });
+const emit = defineEmit();
 
-        const { t } = useI18n();
-        const modals = useModal();
+const textarea = ref<HTMLTextAreaElement | null>(null);
+const title = ref<HTMLInputElement | null>(null);
 
-        const note = toRef(uiStore.state, "activeNote");
+const { t } = useI18n();
+const modals = useModal();
 
-        function calcHeight(): void {
-            if (textarea.value !== null) {
-                textarea.value.style.height = "auto";
-                textarea.value.style.height = textarea.value.scrollHeight + "px";
-            }
-        }
+const note = toRef(uiStore.state, "activeNote");
 
-        function setText(event: { target: HTMLTextAreaElement }): void {
-            gameStore.updateNote({ ...note.value, text: event.target.value }, true);
-        }
+function calcHeight(): void {
+    if (textarea.value !== null) {
+        textarea.value.style.height = "auto";
+        textarea.value.style.height = textarea.value.scrollHeight + "px";
+    }
+}
 
-        function setTitle(event: { target: HTMLInputElement }): void {
-            gameStore.updateNote({ ...note.value, title: event.target.value }, true);
-        }
+function setText(event: Event): void {
+    gameStore.updateNote({ ...note.value, text: (event.target as HTMLTextAreaElement).value }, true);
+}
 
-        async function removeNote(): Promise<void> {
-            const doRemove = await modals.confirm(t("game.ui.NoteDialog.warning_msg"));
-            if (doRemove === true) {
-                gameStore.removeNote(note.value, true);
-                close();
-            }
-        }
+function setTitle(event: Event): void {
+    gameStore.updateNote({ ...note.value, title: (event.target as HTMLInputElement).value }, true);
+}
 
-        function close(): void {
-            emit("update:visible", false);
-        }
+async function removeNote(): Promise<void> {
+    const doRemove = await modals.confirm(t("game.ui.NoteDialog.warning_msg"));
+    if (doRemove === true) {
+        gameStore.removeNote(note.value, true);
+        close();
+    }
+}
 
-        return { calcHeight, close, note, removeNote, setText, setTitle, t, textarea, title };
-    },
-});
+function close(): void {
+    emit("update:visible", false);
+}
 </script>
 
 <template>

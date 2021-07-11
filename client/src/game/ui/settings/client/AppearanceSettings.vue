@@ -53,14 +53,14 @@ export default defineComponent({
 <template>
     <div class="panel restore-panel">
         <div class="row">
-            <label for="languageSelect" v-t="'locale.select'"></label>
+            <label for="languageSelect">{{ t("locale.select") }}</label>
             <div>
                 <div><LanguageSelect id="languageSelect" /></div>
             </div>
         </div>
         <div class="spanrow header">Grid</div>
         <div class="row">
-            <label for="gridColour" v-t="'common.colour'"></label>
+            <label for="gridColour">{{ t("common.colour") }}</label>
             <div>
                 <ColourPicker id="gridColour" v-model:colour="gridColour" />
             </div>
@@ -78,7 +78,7 @@ export default defineComponent({
         </div>
         <div class="spanrow header">Ruler</div>
         <div class="row">
-            <label for="rulerColour" v-t="'common.colour'"></label>
+            <label for="rulerColour">{{ t("common.colour") }}</label>
             <div>
                 <ColourPicker id="rulerColour" v-model:colour="rulerColour" />
             </div>
@@ -96,7 +96,7 @@ export default defineComponent({
         </div>
         <div class="spanrow header">Fog</div>
         <div class="row">
-            <label for="fowColour" v-t="'common.colour'"></label>
+            <label for="fowColour">{{ t("common.colour") }}</label>
             <div>
                 <ColourPicker id="fowColour" :disableAlpha="true" v-model:colour="fowColour" />
             </div>

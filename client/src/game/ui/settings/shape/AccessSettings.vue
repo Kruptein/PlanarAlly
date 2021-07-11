@@ -1,121 +1,103 @@
-<script lang="ts">
-import { computed, defineComponent, ref, toRefs } from "vue";
+<script setup lang="ts">
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { SyncTo } from "../../../../core/models/types";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { gameStore } from "../../../../store/game";
-import { ShapeOwner } from "../../../shapes/owners";
+import type { ShapeOwner } from "../../../shapes/owners";
 
-export default defineComponent({
-    setup() {
-        const { t } = useI18n();
+const { t } = useI18n();
 
-        const accessDropdown = ref<HTMLSelectElement | null>(null);
+const accessDropdown = ref<HTMLSelectElement | null>(null);
 
-        const owned = activeShapeStore.hasEditAccess;
+const owned = activeShapeStore.hasEditAccess;
+const hasDefaultEditAccess = activeShapeStore.hasDefaultEditAccess;
+const hasDefaultMovementAccess = activeShapeStore.hasDefaultMovementAccess;
+const hasDefaultVisionAccess = activeShapeStore.hasDefaultVisionAccess;
 
-        const playersWithoutAccess = computed(() =>
-            gameStore.state.players.filter((p) => !activeShapeStore.state.owners.some((o) => o.user === p.name)),
-        );
+const playersWithoutAccess = computed(() =>
+    gameStore.state.players.filter((p) => !activeShapeStore.state.owners.some((o) => o.user === p.name)),
+);
 
-        function addOwner(): void {
-            if (!owned.value) return;
-            const dropdown = accessDropdown.value!;
-            const selectedUser = dropdown.options[dropdown.selectedIndex].value;
-            if (selectedUser === "") return;
-            activeShapeStore.addOwner(
-                {
-                    shape: activeShapeStore.state.uuid!,
-                    user: selectedUser,
-                    access: { edit: true, movement: true, vision: true },
-                },
-                SyncTo.SERVER,
-            );
-        }
+function addOwner(): void {
+    if (!owned.value) return;
+    const dropdown = accessDropdown.value!;
+    const selectedUser = dropdown.options[dropdown.selectedIndex].value;
+    if (selectedUser === "") return;
+    activeShapeStore.addOwner(
+        {
+            shape: activeShapeStore.state.uuid!,
+            user: selectedUser,
+            access: { edit: true, movement: true, vision: true },
+        },
+        SyncTo.SERVER,
+    );
+}
 
-        function removeOwner(owner: string): void {
-            if (!owned.value) return;
-            activeShapeStore.removeOwner(owner, SyncTo.SERVER);
-        }
+function removeOwner(owner: string): void {
+    if (!owned.value) return;
+    activeShapeStore.removeOwner(owner, SyncTo.SERVER);
+}
 
-        function toggleDefaultEditAccess(): void {
-            if (!owned.value) return;
-            activeShapeStore.setDefaultEditAccess(!activeShapeStore.hasDefaultEditAccess.value, SyncTo.SERVER);
-        }
+function toggleDefaultEditAccess(): void {
+    if (!owned.value) return;
+    activeShapeStore.setDefaultEditAccess(!activeShapeStore.hasDefaultEditAccess.value, SyncTo.SERVER);
+}
 
-        function toggleDefaultMovementAccess(): void {
-            if (!owned.value) return;
-            activeShapeStore.setDefaultMovementAccess(!activeShapeStore.hasDefaultMovementAccess.value, SyncTo.SERVER);
-        }
+function toggleDefaultMovementAccess(): void {
+    if (!owned.value) return;
+    activeShapeStore.setDefaultMovementAccess(!activeShapeStore.hasDefaultMovementAccess.value, SyncTo.SERVER);
+}
 
-        function toggleDefaultVisionAccess(): void {
-            if (!owned.value) return;
-            activeShapeStore.setDefaultVisionAccess(!activeShapeStore.hasDefaultVisionAccess.value, SyncTo.SERVER);
-        }
+function toggleDefaultVisionAccess(): void {
+    if (!owned.value) return;
+    activeShapeStore.setDefaultVisionAccess(!activeShapeStore.hasDefaultVisionAccess.value, SyncTo.SERVER);
+}
 
-        function toggleOwnerEditAccess(owner: ShapeOwner): void {
-            if (!owned.value) return;
-            // un-reactify it, because we want to check on access permissions in updateOwner
-            // otherwise one would never be able to remove their edit access rights
-            const copy = { ...owner, access: { ...owner.access } };
-            copy.access.edit = !copy.access.edit;
-            if (copy.access.edit) {
-                copy.access.movement = true;
-                copy.access.vision = true;
-            }
-            activeShapeStore.updateOwner(copy, SyncTo.SERVER);
-        }
+function toggleOwnerEditAccess(owner: ShapeOwner): void {
+    if (!owned.value) return;
+    // un-reactify it, because we want to check on access permissions in updateOwner
+    // otherwise one would never be able to remove their edit access rights
+    const copy = { ...owner, access: { ...owner.access } };
+    copy.access.edit = !copy.access.edit;
+    if (copy.access.edit) {
+        copy.access.movement = true;
+        copy.access.vision = true;
+    }
+    activeShapeStore.updateOwner(copy, SyncTo.SERVER);
+}
 
-        function toggleOwnerMovementAccess(owner: ShapeOwner): void {
-            if (!owned.value) return;
-            const copy = { ...owner, access: { ...owner.access } };
-            copy.access.movement = !copy.access.movement;
-            if (copy.access.movement) {
-                copy.access.vision = true;
-            } else {
-                copy.access.edit = false;
-            }
-            activeShapeStore.updateOwner(copy, SyncTo.SERVER);
-        }
+function toggleOwnerMovementAccess(owner: ShapeOwner): void {
+    if (!owned.value) return;
+    const copy = { ...owner, access: { ...owner.access } };
+    copy.access.movement = !copy.access.movement;
+    if (copy.access.movement) {
+        copy.access.vision = true;
+    } else {
+        copy.access.edit = false;
+    }
+    activeShapeStore.updateOwner(copy, SyncTo.SERVER);
+}
 
-        function toggleOwnerVisionAccess(owner: ShapeOwner): void {
-            if (!owned.value) return;
-            const copy = { ...owner, access: { ...owner.access } };
-            copy.access.vision = !copy.access.vision;
-            if (!copy.access.vision) {
-                copy.access.edit = false;
-                copy.access.movement = false;
-            }
-            activeShapeStore.updateOwner(copy, SyncTo.SERVER);
-        }
-
-        return {
-            ...toRefs(activeShapeStore.state),
-            accessDropdown,
-            addOwner,
-            hasDefaultEditAccess: activeShapeStore.hasDefaultEditAccess,
-            hasDefaultMovementAccess: activeShapeStore.hasDefaultMovementAccess,
-            hasDefaultVisionAccess: activeShapeStore.hasDefaultVisionAccess,
-            owned,
-            playersWithoutAccess,
-            removeOwner,
-            t,
-            toggleDefaultEditAccess,
-            toggleDefaultMovementAccess,
-            toggleDefaultVisionAccess,
-            toggleOwnerEditAccess,
-            toggleOwnerMovementAccess,
-            toggleOwnerVisionAccess,
-        };
-    },
-});
+function toggleOwnerVisionAccess(owner: ShapeOwner): void {
+    if (!owned.value) return;
+    const copy = { ...owner, access: { ...owner.access } };
+    copy.access.vision = !copy.access.vision;
+    if (!copy.access.vision) {
+        copy.access.edit = false;
+        copy.access.movement = false;
+    }
+    activeShapeStore.updateOwner(copy, SyncTo.SERVER);
+}
 </script>
 
 <template>
     <div class="panel restore-panel">
-        <div class="spanrow header" v-t="'game.ui.selection.edit_dialog.access.access'"></div>
-        <div class="owner"><em v-t="'game.ui.selection.edit_dialog.access.default'"></em></div>
+        <div class="spanrow header">{{ t("game.ui.selection.edit_dialog.access.access") }}</div>
+        <div class="owner">
+            <em>{{ t("game.ui.selection.edit_dialog.access.default") }}</em>
+        </div>
         <div
             :style="{
                 opacity: hasDefaultEditAccess ? 1.0 : 0.3,
@@ -143,7 +125,7 @@ export default defineComponent({
         >
             <font-awesome-icon icon="lightbulb" />
         </div>
-        <template v-for="owner in owners" :key="owner.user">
+        <template v-for="owner in activeShapeStore.state.owners" :key="owner.user">
             <div class="owner">
                 {{ owner.user }}
             </div>
@@ -188,12 +170,9 @@ export default defineComponent({
                 {{ player.name }}
             </option>
         </select>
-        <button
-            id="button"
-            @click="addOwner"
-            v-show="playersWithoutAccess.length > 0 && owned"
-            v-t="'game.ui.selection.edit_dialog.access.add_access'"
-        ></button>
+        <button id="button" @click="addOwner" v-show="playersWithoutAccess.length > 0 && owned">
+            {{ t("game.ui.selection.edit_dialog.access.add_access") }}
+        </button>
     </div>
 </template>
 

@@ -1,110 +1,93 @@
-<script lang="ts">
-import { defineComponent, toRefs } from "vue";
+<script setup lang="ts">
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../../core/components/ColourPicker.vue";
 import RotationSlider from "../../../../core/components/RotationSlider.vue";
 import { SyncTo } from "../../../../core/models/types";
+import { getValue } from "../../../../core/utils";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { sendShapeMoveAura, sendShapeMoveTracker } from "../../../api/emits/shape/options";
-import { Aura, Tracker } from "../../../shapes/interfaces";
+import type { Aura, Tracker } from "../../../shapes/interfaces";
 
-export default defineComponent({
-    components: { ColourPicker, RotationSlider },
-    setup() {
-        const { t } = useI18n();
+const { t } = useI18n();
 
-        const owned = activeShapeStore.hasEditAccess;
+const owned = activeShapeStore.hasEditAccess;
+const isComposite = activeShapeStore.isComposite;
 
-        // Tracker
+// Tracker
 
-        function updateTracker(tracker: string, delta: Partial<Tracker>, syncTo = true): void {
-            if (!owned.value) return;
-            if (activeShapeStore.state.uuid !== undefined)
-                activeShapeStore.updateTracker(tracker, delta, syncTo === true ? SyncTo.SERVER : SyncTo.SHAPE);
-        }
+function updateTracker(tracker: string, delta: Partial<Tracker>, syncTo = true): void {
+    if (!owned.value) return;
+    if (activeShapeStore.state.uuid !== undefined)
+        activeShapeStore.updateTracker(tracker, delta, syncTo === true ? SyncTo.SERVER : SyncTo.SHAPE);
+}
 
-        function removeTracker(tracker: string): void {
-            if (!owned.value) return;
-            activeShapeStore.removeTracker(tracker, SyncTo.SERVER);
-        }
+function removeTracker(tracker: string): void {
+    if (!owned.value) return;
+    activeShapeStore.removeTracker(tracker, SyncTo.SERVER);
+}
 
-        function toggleCompositeTracker(trackerId: string): void {
-            if (!owned.value) return;
-            if (!activeShapeStore.isComposite.value) return;
+function toggleCompositeTracker(trackerId: string): void {
+    if (!owned.value) return;
+    if (!activeShapeStore.isComposite.value) return;
 
-            const tracker = activeShapeStore.state.trackers.find((t) => t.uuid === trackerId);
-            if (tracker === undefined) return;
+    const tracker = activeShapeStore.state.trackers.find((t) => t.uuid === trackerId);
+    if (tracker === undefined) return;
 
-            activeShapeStore.removeTracker(trackerId, SyncTo.SHAPE);
+    activeShapeStore.removeTracker(trackerId, SyncTo.SHAPE);
 
-            const oldShape = tracker.shape;
-            if (oldShape === activeShapeStore.state.uuid) {
-                activeShapeStore.setTrackerShape(tracker.uuid, activeShapeStore.state.parentUuid!);
-            } else {
-                activeShapeStore.setTrackerShape(tracker.uuid, activeShapeStore.state.uuid!);
-            }
+    const oldShape = tracker.shape;
+    if (oldShape === activeShapeStore.state.uuid) {
+        activeShapeStore.setTrackerShape(tracker.uuid, activeShapeStore.state.parentUuid!);
+    } else {
+        activeShapeStore.setTrackerShape(tracker.uuid, activeShapeStore.state.uuid!);
+    }
 
-            activeShapeStore.pushTracker(tracker, tracker.shape, SyncTo.SHAPE);
-            sendShapeMoveTracker({ shape: oldShape, new_shape: tracker.shape, tracker: tracker.uuid });
-        }
+    activeShapeStore.pushTracker(tracker, tracker.shape, SyncTo.SHAPE);
+    sendShapeMoveTracker({ shape: oldShape, new_shape: tracker.shape, tracker: tracker.uuid });
+}
 
-        // Aura
+// Aura
 
-        function updateAura(aura: string, delta: Partial<Aura>, syncTo = true): void {
-            if (!owned.value) return;
-            if (delta.value !== undefined && (isNaN(delta.value) || delta.value < 0)) delta.value = 0;
-            if (delta.dim !== undefined && (isNaN(delta.dim) || delta.dim < 0)) delta.dim = 0;
-            if (activeShapeStore.state.uuid !== undefined)
-                activeShapeStore.updateAura(aura, delta, syncTo === true ? SyncTo.SERVER : SyncTo.SHAPE);
-        }
+function updateAura(aura: string, delta: Partial<Aura>, syncTo = true): void {
+    if (!owned.value) return;
+    if (delta.value !== undefined && (isNaN(delta.value) || delta.value < 0)) delta.value = 0;
+    if (delta.dim !== undefined && (isNaN(delta.dim) || delta.dim < 0)) delta.dim = 0;
+    if (activeShapeStore.state.uuid !== undefined)
+        activeShapeStore.updateAura(aura, delta, syncTo === true ? SyncTo.SERVER : SyncTo.SHAPE);
+}
 
-        function removeAura(aura: string): void {
-            if (!owned.value) return;
-            activeShapeStore.removeAura(aura, SyncTo.SERVER);
-        }
+function removeAura(aura: string): void {
+    if (!owned.value) return;
+    activeShapeStore.removeAura(aura, SyncTo.SERVER);
+}
 
-        function toggleCompositeAura(auraId: string): void {
-            if (!owned.value) return;
-            if (!activeShapeStore.isComposite.value) return;
+function toggleCompositeAura(auraId: string): void {
+    if (!owned.value) return;
+    if (!activeShapeStore.isComposite.value) return;
 
-            const aura = activeShapeStore.state.auras.find((t) => t.uuid === auraId);
-            if (aura === undefined) return;
+    const aura = activeShapeStore.state.auras.find((t) => t.uuid === auraId);
+    if (aura === undefined) return;
 
-            activeShapeStore.removeAura(auraId, SyncTo.SHAPE);
+    activeShapeStore.removeAura(auraId, SyncTo.SHAPE);
 
-            const oldShape = aura.shape;
-            if (oldShape === activeShapeStore.state.uuid) {
-                activeShapeStore.setAuraShape(aura.uuid, activeShapeStore.state.parentUuid!);
-            } else {
-                activeShapeStore.setAuraShape(aura.uuid, activeShapeStore.state.uuid!);
-            }
+    const oldShape = aura.shape;
+    if (oldShape === activeShapeStore.state.uuid) {
+        activeShapeStore.setAuraShape(aura.uuid, activeShapeStore.state.parentUuid!);
+    } else {
+        activeShapeStore.setAuraShape(aura.uuid, activeShapeStore.state.uuid!);
+    }
 
-            activeShapeStore.pushAura(aura, aura.shape, SyncTo.SHAPE);
-            sendShapeMoveAura({ shape: oldShape, new_shape: aura.shape, aura: aura.uuid });
-        }
-
-        return {
-            ...toRefs(activeShapeStore.state),
-            isComposite: activeShapeStore.isComposite,
-            owned,
-            updateTracker,
-            removeTracker,
-            toggleCompositeTracker,
-            updateAura,
-            removeAura,
-            t,
-            toggleCompositeAura,
-        };
-    },
-});
+    activeShapeStore.pushAura(aura, aura.shape, SyncTo.SHAPE);
+    sendShapeMoveAura({ shape: oldShape, new_shape: aura.shape, aura: aura.uuid });
+}
 </script>
 
 <template>
     <div style="display: contents">
         <div id="trackers-panel">
-            <div class="spanrow header" v-t="'common.trackers'"></div>
-            <div class="aura" v-for="tracker in trackers" :key="tracker.uuid">
+            <div class="spanrow header">{{ t("common.trackers") }}</div>
+            <div class="aura" v-for="tracker in activeShapeStore.state.trackers" :key="tracker.uuid">
                 <div class="summary">
                     <label class="name" :for="'check-' + tracker.uuid">{{ tracker.name }}</label>
                     <div
@@ -124,7 +107,7 @@ export default defineComponent({
                         <input
                             type="text"
                             :value="tracker.name"
-                            @change="updateTracker(tracker.uuid, { name: $event.target.value })"
+                            @change="updateTracker(tracker.uuid, { name: getValue($event) })"
                             :disabled="!owned"
                         />
                     </div>
@@ -133,16 +116,16 @@ export default defineComponent({
                         <input
                             type="number"
                             :value="tracker.value"
-                            @change="updateTracker(tracker.uuid, { value: parseFloat($event.target.value) })"
+                            @change="updateTracker(tracker.uuid, { value: parseFloat(getValue($event)) })"
                             :title="t('game.ui.selection.edit_dialog.dialog.current_value')"
                             :disabled="!owned"
                         />
-                        <span style="padding: 5px; 5px;">/</span>
+                        <span style="padding: 5px">/</span>
                         <input
                             type="number"
                             :value="tracker.maxvalue"
                             min=""
-                            @change="updateTracker(tracker.uuid, { maxvalue: parseFloat($event.target.value) })"
+                            @change="updateTracker(tracker.uuid, { maxvalue: parseFloat(getValue($event)) })"
                             :title="t('game.ui.selection.edit_dialog.dialog.current_value')"
                             :disabled="!owned"
                         />
@@ -195,8 +178,8 @@ export default defineComponent({
                     </div>
                 </div>
             </div>
-            <div class="spanrow header" v-t="'common.auras'"></div>
-            <div class="aura" v-for="aura of auras" :key="aura.uuid">
+            <div class="spanrow header">{{ t("common.auras") }}</div>
+            <div class="aura" v-for="aura of activeShapeStore.state.auras" :key="aura.uuid">
                 <div class="summary">
                     <label class="name" :for="'check-' + aura.uuid">{{ aura.name }}</label>
                     <div
@@ -221,7 +204,7 @@ export default defineComponent({
                         <input
                             type="text"
                             :value="aura.name"
-                            @change="updateAura(aura.uuid, { name: $event.target.value })"
+                            @change="updateAura(aura.uuid, { name: getValue($event) })"
                             :disabled="!owned"
                         />
                     </div>
@@ -230,8 +213,8 @@ export default defineComponent({
                         <input
                             type="number"
                             :value="aura.value"
-                            @input="updateAura(aura.uuid, { value: parseFloat($event.target.value) }, false)"
-                            @change="updateAura(aura.uuid, { value: parseFloat($event.target.value) })"
+                            @input="updateAura(aura.uuid, { value: parseFloat(getValue($event)) }, false)"
+                            @change="updateAura(aura.uuid, { value: parseFloat(getValue($event)) })"
                             :title="t('game.ui.selection.edit_dialog.dialog.current_value')"
                             :disabled="!owned"
                         />
@@ -240,8 +223,8 @@ export default defineComponent({
                             type="number"
                             :value="aura.dim"
                             min="0"
-                            @input="updateAura(aura.uuid, { dim: parseFloat($event.target.value) }, false)"
-                            @change="updateAura(aura.uuid, { dim: parseFloat($event.target.value) })"
+                            @input="updateAura(aura.uuid, { dim: parseFloat(getValue($event)) }, false)"
+                            @change="updateAura(aura.uuid, { dim: parseFloat(getValue($event)) })"
                             :title="t('game.ui.selection.edit_dialog.dialog.dim_value')"
                             :disabled="!owned"
                         />
@@ -251,7 +234,7 @@ export default defineComponent({
                         <input
                             type="number"
                             :value="aura.angle"
-                            @change="updateAura(aura.uuid, { angle: parseFloat($event.target.value) })"
+                            @change="updateAura(aura.uuid, { angle: parseFloat(getValue($event)) })"
                             min="1"
                             max="360"
                         />

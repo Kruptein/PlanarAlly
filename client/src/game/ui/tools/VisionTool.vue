@@ -1,5 +1,6 @@
-<script lang="ts">
-import { computed, defineComponent, onMounted, ref } from "vue";
+<script setup lang="ts">
+import type { CSSProperties } from "vue";
+import { computed, onMounted, ref } from "vue";
 
 import { gameStore } from "../../../store/game";
 import { UuidMap } from "../../../store/shapeMap";
@@ -9,54 +10,43 @@ import { visionTool } from "../../tools/variants/vision";
 
 import { useToolPosition } from "./toolPosition";
 
-export default defineComponent({
-    setup() {
-        const right = ref("0px");
-        const arrow = ref("0px");
+const right = ref("0px");
+const arrow = ref("0px");
 
-        onMounted(() => {
-            ({ right: right.value, arrow: arrow.value } = useToolPosition(visionTool.toolName));
-        });
+const selected = visionTool.isActiveTool;
+const toolStyle = computed(() => ({ "--detailRight": right.value, "--detailArrow": arrow.value } as CSSProperties));
 
-        const tokens = computed(() => [...gameStore.state.ownedTokens].map((t) => UuidMap.get(t)!));
-        const selection = computed(() => {
-            if (gameStore.state.activeTokenFilters === undefined) return gameStore.state.ownedTokens;
-            return gameStore.state.activeTokenFilters;
-        });
-
-        function toggle(uuid: string): void {
-            if (selection.value.has(uuid)) gameStore.removeActiveToken(uuid);
-            else gameStore.addActiveToken(uuid);
-
-            if (gameStore.state.activeTokenFilters !== undefined) {
-                visionTool.alert.value = true;
-            } else {
-                visionTool.alert.value = false;
-            }
-        }
-
-        function getImageSrc(token: Shape): string {
-            if (token.type === "assetrect") {
-                return (token as Asset).src;
-            }
-            return "";
-        }
-
-        return {
-            arrow,
-            right,
-            selected: visionTool.isActiveTool,
-            getImageSrc,
-            selection,
-            toggle,
-            tokens,
-        };
-    },
+onMounted(() => {
+    ({ right: right.value, arrow: arrow.value } = useToolPosition(visionTool.toolName));
 });
+
+const tokens = computed(() => [...gameStore.state.ownedTokens].map((t) => UuidMap.get(t)!));
+const selection = computed(() => {
+    if (gameStore.state.activeTokenFilters === undefined) return gameStore.state.ownedTokens;
+    return gameStore.state.activeTokenFilters;
+});
+
+function toggle(uuid: string): void {
+    if (selection.value.has(uuid)) gameStore.removeActiveToken(uuid);
+    else gameStore.addActiveToken(uuid);
+
+    if (gameStore.state.activeTokenFilters !== undefined) {
+        visionTool.alert.value = true;
+    } else {
+        visionTool.alert.value = false;
+    }
+}
+
+function getImageSrc(token: Shape): string {
+    if (token.type === "assetrect") {
+        return (token as Asset).src;
+    }
+    return "";
+}
 </script>
 
 <template>
-    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': right, '--detailArrow': arrow }">
+    <div class="tool-detail" v-if="selected" :style="toolStyle">
         <div
             v-for="token in tokens"
             :key="token.uuid"

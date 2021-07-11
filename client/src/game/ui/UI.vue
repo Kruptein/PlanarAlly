@@ -198,7 +198,7 @@ export default defineComponent({
                 </div>
             </div>
             <div id="logo-version">
-                <span v-t="'common.version'"></span>
+                <span>{{ t("common.version") }}</span>
                 <span>{{ releaseVersion }}</span>
             </div>
         </div>

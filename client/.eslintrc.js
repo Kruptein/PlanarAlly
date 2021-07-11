@@ -21,10 +21,6 @@ module.exports = {
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-non-null-assertion": "off",
         "@typescript-eslint/no-unused-vars": "off", // handled by tsconfig noUnusedLocals
-        // "@typescript-eslint/no-unused-vars": [
-        //     process.env.GITHUB_ACTION === undefined ? 1 : 2,
-        //     { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
-        // ],
         "@typescript-eslint/no-use-before-define": 0,
         "@typescript-eslint/require-await": "error",
         "@typescript-eslint/strict-boolean-expressions": 2,
@@ -39,7 +35,6 @@ module.exports = {
             },
         ],
         "vue/no-unused-components": [process.env.GITHUB_ACTION === undefined ? 1 : 2],
-        // "no-console": process.env.NODE_ENV === "production" ? "error" : "off",
         "no-console": "off",
         "no-constant-condition": "off",
         "no-debugger": process.env.NODE_ENV === "production" ? "error" : "off",

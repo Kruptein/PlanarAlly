@@ -1,122 +1,105 @@
-<script lang="ts">
-import { computed, defineComponent, onMounted, PropType, ref, watch } from "vue";
+<script setup lang="ts">
+import type { PropType } from "vue";
+import { computed, defineEmit, defineProps, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useModal } from "../core/plugins/modals/plugin";
-import { baseAdjust, baseAdjustedFetch, deleteFetch, patchFetch } from "../core/utils";
+import { baseAdjust, baseAdjustedFetch, deleteFetch, getValue, patchFetch } from "../core/utils";
 
-import { RoomInfo } from "./types";
+import type { RoomInfo } from "./types";
 
-export default defineComponent({
-    props: {
-        dmMode: { type: Boolean, required: true },
-        sessions: { type: Object as PropType<RoomInfo[]>, required: true },
-    },
-    setup(props, { emit }) {
-        const { t } = useI18n();
-        const modals = useModal();
-
-        const notes = ref("");
-        const lastPlayed = ref("");
-        const selectedIndex = ref(0);
-
-        const selected = computed(() => {
-            if (props.sessions.length <= selectedIndex.value) return undefined;
-            return props.sessions[selectedIndex.value];
-        });
-
-        // This is neded for the Create tab that is mounted later
-        onMounted(async () => {
-            if (props.sessions.length > 0) await updateInfo();
-        });
-        // This is needed for the Play tab that is immediately mounted without props.sessions
-        watch(selected, async () => updateInfo());
-
-        async function select(index: number): Promise<void> {
-            selectedIndex.value = index;
-            await updateInfo();
-        }
-
-        async function updateInfo(): Promise<void> {
-            const response = await baseAdjustedFetch(
-                `/api/rooms/${selected.value!.creator}/${selected.value!.name}/info`,
-            );
-            const data = await response.json();
-            notes.value = data.notes;
-            lastPlayed.value = data.last_played;
-        }
-
-        async function rename(): Promise<void> {
-            if (selected.value === undefined) return;
-
-            const name = await modals.prompt(
-                "What should the new name be for this session?",
-                t("common.rename").toString(),
-                (val) => ({
-                    valid: !props.sessions.some((s) => s.name === val),
-                    reason: t("common.name_already_in_use").toString(),
-                }),
-            );
-            if (name === undefined) return;
-            const success = await patchFetch(`/api/rooms/${selected.value.creator}/${selected.value.name}`, { name });
-            if (success.ok) {
-                emit("rename", selectedIndex.value, name);
-            }
-        }
-
-        async function setLogo(): Promise<void> {
-            if (selected.value === undefined) return;
-
-            const data = await modals.assetPicker();
-            if (data === undefined) return;
-            const success = await patchFetch(`/api/rooms/${selected.value.creator}/${selected.value.name}`, {
-                logo: data.id,
-            });
-            if (success.ok) {
-                emit("update-logo", selectedIndex.value, data.file_hash);
-            }
-        }
-
-        async function setNotes(event: { target: HTMLTextAreaElement }): Promise<void> {
-            if (selected.value === undefined) return;
-
-            const text = event.target.value;
-            const success = await patchFetch(`/api/rooms/${selected.value.creator}/${selected.value.name}/info`, {
-                notes: text,
-            });
-            if (success.ok) {
-                notes.value = text;
-            }
-        }
-
-        async function leaveOrDelete(): Promise<void> {
-            if (selected.value === undefined) return;
-
-            const actionWord = props.dmMode ? "Removing" : "Leaving";
-            const answer = await modals.confirm(`${actionWord} ${selected.value.name}!`, "Are you sure?", {
-                showNo: false,
-            });
-            if (answer !== true) return;
-            const response = await deleteFetch(`/api/rooms/${selected.value.creator}/${selected.value.name}`);
-            if (response.ok) {
-                emit("remove-room", selectedIndex.value);
-            }
-        }
-
-        return {
-            baseAdjust,
-            lastPlayed,
-            leaveOrDelete,
-            notes,
-            rename,
-            select,
-            selected,
-            selectedIndex,
-            setLogo,
-            setNotes,
-        };
-    },
+const props = defineProps({
+    dmMode: { type: Boolean, required: true },
+    sessions: { type: Object as PropType<RoomInfo[]>, required: true },
 });
+const emit = defineEmit(["remove-room", "rename", "update-logo"]);
+
+const { t } = useI18n();
+const modals = useModal();
+
+const notes = ref("");
+const lastPlayed = ref("");
+const selectedIndex = ref(0);
+
+const selected = computed(() => {
+    if (props.sessions.length <= selectedIndex.value) return undefined;
+    return props.sessions[selectedIndex.value];
+});
+
+// This is neded for the Create tab that is mounted later
+onMounted(async () => {
+    if (props.sessions.length > 0) await updateInfo();
+});
+// This is needed for the Play tab that is immediately mounted without props.sessions
+watch(selected, async () => updateInfo());
+
+async function select(index: number): Promise<void> {
+    selectedIndex.value = index;
+    await updateInfo();
+}
+
+async function updateInfo(): Promise<void> {
+    const response = await baseAdjustedFetch(`/api/rooms/${selected.value!.creator}/${selected.value!.name}/info`);
+    const data = await response.json();
+    notes.value = data.notes;
+    lastPlayed.value = data.last_played;
+}
+
+async function rename(): Promise<void> {
+    if (selected.value === undefined) return;
+
+    const name = await modals.prompt(
+        "What should the new name be for this session?",
+        t("common.rename").toString(),
+        (val) => ({
+            valid: !props.sessions.some((s) => s.name === val),
+            reason: t("common.name_already_in_use").toString(),
+        }),
+    );
+    if (name === undefined) return;
+    const success = await patchFetch(`/api/rooms/${selected.value.creator}/${selected.value.name}`, { name });
+    if (success.ok) {
+        emit("rename", selectedIndex.value, name);
+    }
+}
+
+async function setLogo(): Promise<void> {
+    if (selected.value === undefined) return;
+
+    const data = await modals.assetPicker();
+    if (data === undefined) return;
+    const success = await patchFetch(`/api/rooms/${selected.value.creator}/${selected.value.name}`, {
+        logo: data.id,
+    });
+    if (success.ok) {
+        emit("update-logo", selectedIndex.value, data.file_hash);
+    }
+}
+
+async function setNotes(text: string): Promise<void> {
+    if (selected.value === undefined) return;
+
+    const success = await patchFetch(`/api/rooms/${selected.value.creator}/${selected.value.name}/info`, {
+        notes: text,
+    });
+    if (success.ok) {
+        notes.value = text;
+    }
+}
+
+async function leaveOrDelete(): Promise<void> {
+    if (selected.value === undefined) return;
+
+    const actionWord = props.dmMode ? "Removing" : "Leaving";
+    const answer = await modals.confirm(`${actionWord} ${selected.value.name}!`, "Are you sure?", {
+        showNo: false,
+    });
+    if (answer !== true) return;
+    const response = await deleteFetch(`/api/rooms/${selected.value.creator}/${selected.value.name}`);
+    if (response.ok) {
+        emit("remove-room", selectedIndex.value);
+    }
+}
 </script>
 
 <template>
@@ -171,7 +154,7 @@ export default defineComponent({
             <div>{{ lastPlayed ? lastPlayed : "unknown" }}</div>
             <div style="flex-grow: 1"></div>
             <div class="header">Notes</div>
-            <textarea style="flex-grow: 1" :value="notes" @change="setNotes"></textarea>
+            <textarea style="flex-grow: 1" :value="notes" @change="setNotes(getValue($event))"></textarea>
             <div style="flex-grow: 2"></div>
             <div class="leave" @click="leaveOrDelete">{{ dmMode ? "DELETE" : "LEAVE" }}</div>
         </div>

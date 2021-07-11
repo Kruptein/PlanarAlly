@@ -87,3 +87,7 @@ export function ctrlOrCmdPressed(event: KeyboardEvent | MouseEvent | TouchEvent)
 export function mostReadable(colour: string): string {
     return tinycolor.mostReadable(colour, ["#000", "#fff"]).toHexString();
 }
+
+export function getValue(event: Event): string {
+    return (event.target as HTMLInputElement).value;
+}

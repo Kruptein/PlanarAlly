@@ -7,7 +7,7 @@
         "serve": "vite preview",
         "clean": "rimraf ../server/static/vite/",
         "build": "npm run build:ci && mv ../server/index.html ../server/templates/index.html",
-        "build:ci": "npm run clean && tsc --noEmit && vite build --outDir dist",
+        "build:ci": "npm run clean && vue-tsc --noEmit && vite build --outDir dist",
         "lint": "eslint src --fix",
         "lint:ci": "eslint src --no-fix"
     },

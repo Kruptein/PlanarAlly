@@ -1,104 +1,83 @@
-<script lang="ts">
-import { defineComponent, ref, toRef } from "vue";
+<script setup lang="ts">
+import { ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 
 import { useModal } from "../core/plugins/modals/plugin";
-import { getErrorReason, postFetch } from "../core/utils";
+import { getErrorReason, getValue, postFetch } from "../core/utils";
 import { coreStore } from "../store/core";
 
-export default defineComponent({
-    setup() {
-        const { t } = useI18n();
-        const modals = useModal();
-        const router = useRouter();
+const { t } = useI18n();
+const modals = useModal();
+const router = useRouter();
 
-        const errorMessage = ref("");
-        const showPasswordFields = ref(false);
-        const changePasswordText = ref(t("settings.AccountSettings.change_pwd"));
-        const passwordResetField = ref("");
-        const passwordRepeatField = ref("");
+const errorMessage = ref("");
+const showPasswordFields = ref(false);
+const changePasswordText = ref(t("settings.AccountSettings.change_pwd"));
+const passwordResetField = ref("");
+const passwordRepeatField = ref("");
 
-        const email = toRef(coreStore.state, "email");
+const name = toRef(coreStore.state, "username");
+const email = toRef(coreStore.state, "email");
 
-        async function setEmail(event: { target?: HTMLInputElement }): Promise<void> {
-            if (event.target !== undefined && event.target?.checkValidity() && event.target.value !== email.value) {
-                const result = await postFetch("/api/users/email", {
-                    email: event.target.value,
-                });
-                if (result.ok) {
-                    coreStore.setEmail(event.target.value);
-                    // todo: show some kind of notification to notify of success
-                } else {
-                    event.target.value = coreStore.state.email ?? "";
-                }
-            }
+async function setEmail(event: Event): Promise<void> {
+    if (event.target === undefined) return;
+    const value = getValue(event);
+    if ((event.target as HTMLInputElement).checkValidity() && value !== email.value) {
+        const result = await postFetch("/api/users/email", {
+            email: value,
+        });
+        if (result.ok) {
+            coreStore.setEmail(value);
+            // todo: show some kind of notification to notify of success
+        } else {
+            (event.target as HTMLInputElement).value = coreStore.state.email ?? "";
         }
+    }
+}
 
-        async function changePassword(): Promise<void> {
-            if (showPasswordFields.value) {
-                if (passwordResetField.value === "") {
-                    errorMessage.value = t("settings.AccountSettings.no_pwd_msg");
-                    return;
-                }
-                if (passwordRepeatField.value !== passwordResetField.value) {
-                    errorMessage.value = t("settings.AccountSettings.pwd_not_match");
-                    return;
-                }
-                const response = await postFetch("/api/users/password", {
-                    password: passwordResetField.value,
-                });
-                if (response.ok) {
-                    hidePasswordChange();
-                } else {
-                    errorMessage.value =
-                        (await getErrorReason(response)) ?? t("settings.AccountSettings.server_request_error");
-                }
-            } else {
-                showPasswordFields.value = true;
-                changePasswordText.value = t("common.confirm");
-            }
+async function changePassword(): Promise<void> {
+    if (showPasswordFields.value) {
+        if (passwordResetField.value === "") {
+            errorMessage.value = t("settings.AccountSettings.no_pwd_msg");
+            return;
         }
-
-        function hidePasswordChange(): void {
-            errorMessage.value = "";
-            showPasswordFields.value = false;
-            changePasswordText.value = t("settings.AccountSettings.change_pwd");
+        if (passwordRepeatField.value !== passwordResetField.value) {
+            errorMessage.value = t("settings.AccountSettings.pwd_not_match");
+            return;
         }
-
-        async function deleteAccount(): Promise<void> {
-            const result = await modals.confirm(t("settings.AccountSettings.remove_account_msg"));
-            if (result === true) {
-                const response = await postFetch("/api/users/delete");
-                if (response.ok) {
-                    coreStore.setAuthenticated(false);
-                    router.push("/");
-                } else {
-                    errorMessage.value = t("settings.AccountSettings.delete_request_error");
-                }
-            }
+        const response = await postFetch("/api/users/password", {
+            password: passwordResetField.value,
+        });
+        if (response.ok) {
+            hidePasswordChange();
+        } else {
+            errorMessage.value = (await getErrorReason(response)) ?? t("settings.AccountSettings.server_request_error");
         }
+    } else {
+        showPasswordFields.value = true;
+        changePasswordText.value = t("common.confirm");
+    }
+}
 
-        return {
-            t,
-            name: toRef(coreStore.state, "username"),
+function hidePasswordChange(): void {
+    errorMessage.value = "";
+    showPasswordFields.value = false;
+    changePasswordText.value = t("settings.AccountSettings.change_pwd");
+}
 
-            email,
-            setEmail,
-
-            passwordResetField,
-            passwordRepeatField,
-
-            changePassword,
-            changePasswordText,
-            errorMessage,
-            showPasswordFields,
-            hidePasswordChange,
-
-            deleteAccount,
-        };
-    },
-});
+async function deleteAccount(): Promise<void> {
+    const result = await modals.confirm(t("settings.AccountSettings.remove_account_msg"));
+    if (result === true) {
+        const response = await postFetch("/api/users/delete");
+        if (response.ok) {
+            coreStore.setAuthenticated(false);
+            router.push("/");
+        } else {
+            errorMessage.value = t("settings.AccountSettings.delete_request_error");
+        }
+    }
+}
 </script>
 
 <template>

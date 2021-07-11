@@ -94,6 +94,7 @@ export default defineComponent({
         }
 
         return {
+            t,
             bringPlayers,
             close,
             createSpawnLocation,
@@ -110,10 +111,10 @@ export default defineComponent({
 
 <template>
     <ContextMenu :visible="visible" :left="left" :top="top" @cm:close="close">
-        <li @click="bringPlayers" v-if="isDm" v-t="'game.ui.tools.DefaultContext.bring_pl'"></li>
-        <li @click="showTokenDialog" v-t="'game.ui.tools.DefaultContext.create_basic_token'"></li>
-        <li @click="showInitiativeDialog" v-t="'game.ui.tools.DefaultContext.show_initiative'"></li>
-        <li @click="createSpawnLocation" v-if="isDm" v-t="'game.ui.tools.DefaultContext.create_spawn_location'"></li>
+        <li @click="bringPlayers" v-if="isDm">{{ t("game.ui.tools.DefaultContext.bring_pl") }}</li>
+        <li @click="showTokenDialog">{{ t("game.ui.tools.DefaultContext.create_basic_token") }}</li>
+        <li @click="showInitiativeDialog">{{ t("game.ui.tools.DefaultContext.show_initiative") }}</li>
+        <li @click="createSpawnLocation" v-if="isDm">{{ t("game.ui.tools.DefaultContext.create_spawn_location") }}</li>
     </ContextMenu>
 </template>
 

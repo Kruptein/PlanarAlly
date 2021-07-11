@@ -131,7 +131,7 @@ function slideNext(swiper: Swiper): void {
                 <img :src="baseAdjust('/static/favicon.png')" alt="PA logo" />
             </div>
             <form @focusin="focusin" @focusout="focusout" @submit.prevent="submit">
-                <label v-t="'common.username'"></label>
+                <label>{{ t("common.username") }}</label>
                 <div class="input">
                     <input
                         id="username"
@@ -147,7 +147,7 @@ function slideNext(swiper: Swiper): void {
                         <font-awesome-icon icon="user-circle" />
                     </span>
                 </div>
-                <label v-t="'common.password'"></label>
+                <label>{{ t("common.password") }}</label>
                 <div class="input">
                     <input
                         id="password"

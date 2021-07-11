@@ -103,12 +103,12 @@ function updateSizeY(): void {
             </template>
             <template v-else>
                 <div id="map-grid">
-                    <div class="explanation" v-t="'game.ui.tools.MapTool.set_target_grid_cells'"></div>
+                    <div class="explanation">{{ t("game.ui.tools.MapTool.set_target_grid_cells") }}</div>
                     <div class="map-lock" @click="state.lock = !state.lock" title="(Un)lock aspect ratio">
                         <font-awesome-icon v-show="state.lock" icon="link" />
                         <font-awesome-icon v-show="!state.lock" icon="unlink" />
                     </div>
-                    <label for="map-g-x" v-t="'game.ui.tools.MapTool.horizontal'"></label>
+                    <label for="map-g-x">{{ t("game.ui.tools.MapTool.horizontal") }}</label>
                     <input
                         id="map-g-x"
                         type="number"
@@ -116,7 +116,7 @@ function updateSizeY(): void {
                         v-model.number="mapTool.state.gridX"
                         class="hinput"
                     />
-                    <label for="map-g-y" v-t="'game.ui.tools.MapTool.vertical'"></label>
+                    <label for="map-g-y">{{ t("game.ui.tools.MapTool.vertical") }}</label>
                     <input
                         id="map-g-y"
                         type="number"
@@ -133,7 +133,7 @@ function updateSizeY(): void {
                         <font-awesome-icon v-show="state.lock" icon="link" />
                         <font-awesome-icon v-show="!state.lock" icon="unlink" />
                     </div>
-                    <label for="map-s-x" v-t="'game.ui.tools.MapTool.horizontal'"></label>
+                    <label for="map-s-x">{{ t("game.ui.tools.MapTool.horizontal") }}</label>
                     <input
                         id="map-s-x"
                         type="number"
@@ -141,7 +141,7 @@ function updateSizeY(): void {
                         v-model.number="mapTool.state.sizeX"
                         class="hinput"
                     />
-                    <label for="map-s-y" v-t="'game.ui.tools.MapTool.vertical'"></label>
+                    <label for="map-s-y">{{ t("game.ui.tools.MapTool.vertical") }}</label>
                     <input
                         id="map-s-y"
                         type="number"
@@ -151,9 +151,9 @@ function updateSizeY(): void {
                     />
                 </div>
                 <div id="map-buttons">
-                    <div class="button apply" @click="apply" v-t="'game.ui.tools.MapTool.apply'"></div>
+                    <div class="button apply" @click="apply">{{ t("game.ui.tools.MapTool.apply") }}</div>
                     <div style="width: 25px"></div>
-                    <div class="button cancel" @click="removeRect" v-t="'game.ui.tools.MapTool.cancel'"></div>
+                    <div class="button cancel" @click="removeRect">{{ t("game.ui.tools.MapTool.cancel") }}</div>
                 </div>
             </template>
         </template>

@@ -424,22 +424,18 @@ export default defineComponent({
                 </li>
             </ul>
         </li>
-        <li @click="moveToBack" v-if="isOwned" v-t="'game.ui.selection.ShapeContext.move_back'"></li>
-        <li @click="moveToFront" v-if="isOwned" v-t="'game.ui.selection.ShapeContext.move_front'"></li>
+        <li @click="moveToBack" v-if="isOwned">{{ t("game.ui.selection.ShapeContext.move_back") }}</li>
+        <li @click="moveToFront" v-if="isOwned">{{ t("game.ui.selection.ShapeContext.move_front") }}</li>
         <li @click="addToInitiative" v-if="isOwned && !selectionIncludesSpawnToken">{{ getInitiativeWord() }}</li>
-        <li
-            @click="deleteSelection"
-            v-if="!selectionIncludesSpawnToken && (isDm || isOwned)"
-            v-t="'game.ui.selection.ShapeContext.delete_shapes'"
-        ></li>
+        <li @click="deleteSelection" v-if="!selectionIncludesSpawnToken && (isDm || isOwned)">
+            {{ t("game.ui.selection.ShapeContext.delete_shapes") }}
+        </li>
         <template v-if="hasSingleSelection">
-            <li v-if="isMarker" @click="deleteMarker" v-t="'game.ui.selection.ShapeContext.remove_marker'"></li>
-            <li v-else @click="setMarker" v-t="'game.ui.selection.ShapeContext.set_marker'"></li>
-            <li
-                @click="saveTemplate"
-                v-if="!selectionIncludesSpawnToken && isDm && canBeSaved"
-                v-t="'game.ui.templates.save'"
-            ></li>
+            <li v-if="isMarker" @click="deleteMarker">{{ t("game.ui.selection.ShapeContext.remove_marker") }}</li>
+            <li v-else @click="setMarker">{{ t("game.ui.selection.ShapeContext.set_marker") }}</li>
+            <li @click="saveTemplate" v-if="!selectionIncludesSpawnToken && isDm && canBeSaved">
+                {{ t("game.ui.templates.save") }}
+            </li>
         </template>
         <template v-else>
             <li>
@@ -457,7 +453,7 @@ export default defineComponent({
                 </ul>
             </li>
         </template>
-        <li v-if="hasSingleSelection" @click="openEditDialog" v-t="'game.ui.selection.ShapeContext.show_props'"></li>
+        <li v-if="hasSingleSelection" @click="openEditDialog">{{ t("game.ui.selection.ShapeContext.show_props") }}</li>
     </ContextMenu>
 </template>
 

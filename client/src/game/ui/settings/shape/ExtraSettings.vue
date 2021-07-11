@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { l2gz } from "../../../../core/conversions";
 import { toGP } from "../../../../core/geometry";
@@ -22,6 +23,7 @@ import { Polygon } from "../../../shapes/variants/polygon";
 import { visionState } from "../../../vision/state";
 import LabelManager from "../../LabelManager.vue";
 
+const { t } = useI18n();
 const modals = useModal();
 
 const textarea = ref<HTMLTextAreaElement | null>(null);
@@ -176,7 +178,7 @@ function applyDDraft(): void {
 
 <template>
     <div class="panel restore-panel">
-        <div class="spanrow header" v-t="'common.labels'"></div>
+        <div class="spanrow header">{{ t("common.labels") }}</div>
         <div id="labels" class="spanrow">
             <div v-for="label in activeShapeStore.state.labels" class="label" :key="label.uuid">
                 <template v-if="label.category">
@@ -191,11 +193,10 @@ function applyDDraft(): void {
                 <div class="label-main" @click="showLabelManager = true">+</div>
             </div>
         </div>
-        <div class="spanrow header" v-t="'common.annotation'"></div>
-        <label
-            for="edit_dialog-extra-show_annotation"
-            v-t="'game.ui.selection.edit_dialog.dialog.show_annotation'"
-        ></label>
+        <div class="spanrow header">{{ t("common.annotation") }}</div>
+        <label for="edit_dialog-extra-show_annotation">
+            {{ t("game.ui.selection.edit_dialog.dialog.show_annotation") }}
+        </label>
         <input
             id="edit_dialog-extra-show_annotation"
             type="checkbox"

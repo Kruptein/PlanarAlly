@@ -51,7 +51,7 @@ function setEffectVisibility(event: Event): void {
 <template>
     <div class="panel restore-panel">
         <div class="row">
-            <label for="cameraLock" v-t="'game.ui.settings.client.InitiativeSettings.camera_lock'"></label>
+            <label for="cameraLock">{{ t("game.ui.settings.client.InitiativeSettings.camera_lock") }}</label>
             <div><input id="cameraLock" type="checkbox" v-model="cameraLock" /></div>
             <template v-if="cameraLock !== defaultOptions.initiativeCameraLock">
                 <div
@@ -66,7 +66,7 @@ function setEffectVisibility(event: Event): void {
             </template>
         </div>
         <div class="row">
-            <label for="visionLock" v-t="'game.ui.settings.client.InitiativeSettings.vision_lock'"></label>
+            <label for="visionLock">{{ t("game.ui.settings.client.InitiativeSettings.vision_lock") }}</label>
             <div><input id="visionLock" type="checkbox" v-model="visionLock" /></div>
             <template v-if="visionLock !== defaultOptions.initiativeVisionLock">
                 <div
@@ -81,7 +81,9 @@ function setEffectVisibility(event: Event): void {
             </template>
         </div>
         <div class="row">
-            <label for="effectVisibility" v-t="'game.ui.settings.client.InitiativeSettings.effect_visibility'"></label>
+            <label for="effectVisibility">
+                {{ t("game.ui.settings.client.InitiativeSettings.effect_visibility") }}
+            </label>
             <div>
                 <select @change="setEffectVisibility">
                     <option

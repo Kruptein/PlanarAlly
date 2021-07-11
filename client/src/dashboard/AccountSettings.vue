@@ -82,13 +82,13 @@ async function deleteAccount(): Promise<void> {
 
 <template>
     <div id="content">
-        <div class="spanrow header" v-t="'settings.AccountSettings.general'"></div>
+        <div class="spanrow header">{{ t("settings.AccountSettings.general") }}</div>
         <div class="row">
-            <label for="username" v-t="'settings.AccountSettings.username'"></label>
+            <label for="username">{{ t("settings.AccountSettings.username") }}</label>
             <div>{{ name }}</div>
         </div>
         <div class="row">
-            <label for="email" v-t="'settings.AccountSettings.email'"></label>
+            <label for="email">{{ t("settings.AccountSettings.email") }}</label>
             <div>
                 <input
                     type="email"
@@ -100,15 +100,15 @@ async function deleteAccount(): Promise<void> {
                 />
             </div>
         </div>
-        <div class="spanrow header" v-t="'settings.AccountSettings.danger_zone'"></div>
+        <div class="spanrow header">{{ t("settings.AccountSettings.danger_zone") }}</div>
         <div class="row" v-if="showPasswordFields">
-            <label for="password-reset" v-t="'settings.AccountSettings.new_pwd'"></label>
+            <label for="password-reset">{{ t("settings.AccountSettings.new_pwd") }}</label>
             <div>
                 <input type="password" id="password-reset" autocomplete="new-password" v-model="passwordResetField" />
             </div>
         </div>
         <div class="row" v-if="showPasswordFields">
-            <label for="password-repeat" v-t="'settings.AccountSettings.repeat_pwd'"></label>
+            <label for="password-repeat">{{ t("settings.AccountSettings.repeat_pwd") }}</label>
             <div>
                 <input type="password" id="password-repeat" autocomplete="new-password" v-model="passwordRepeatField" />
             </div>
@@ -118,12 +118,9 @@ async function deleteAccount(): Promise<void> {
         </div>
         <div class="row">
             <div>
-                <button
-                    class="danger"
-                    v-if="showPasswordFields"
-                    v-t="'common.cancel'"
-                    @click="hidePasswordChange"
-                ></button>
+                <button class="danger" v-if="showPasswordFields" @click="hidePasswordChange">
+                    {{ t("common.cancel") }}
+                </button>
             </div>
             <div>
                 <button class="danger" @click="changePassword">{{ changePasswordText }}</button>
@@ -131,7 +128,9 @@ async function deleteAccount(): Promise<void> {
         </div>
         <div class="row">
             <div style="grid-column-start: value">
-                <button class="danger" v-t="'settings.AccountSettings.delete_account'" @click="deleteAccount"></button>
+                <button class="danger" @click="deleteAccount">
+                    {{ t("settings.AccountSettings.delete_account") }}
+                </button>
             </div>
         </div>
     </div>

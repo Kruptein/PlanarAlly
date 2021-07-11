@@ -76,7 +76,7 @@ const openClientSettings = (): void => uiStore.showClientSettings(!uiStore.state
         <div style="width: 200px; overflow-y: auto; overflow-x: hidden">
             <!-- ASSETS -->
             <template v-if="isDm">
-                <button class="menu-accordion" v-t="'common.assets'"></button>
+                <button class="menu-accordion">{{ t("common.assets") }}</button>
                 <div id="menu-assets" class="menu-accordion-panel" style="position: relative">
                     <input id="asset-search" v-model="assetSearch" :placeholder="t('common.search')" />
                     <a
@@ -96,27 +96,25 @@ const openClientSettings = (): void => uiStore.showClientSettings(!uiStore.state
                     </div>
                 </div>
                 <!-- NOTES -->
-                <button class="menu-accordion" v-t="'common.notes'"></button>
+                <button class="menu-accordion">{{ t("common.notes") }}</button>
                 <div class="menu-accordion-panel">
                     <div class="menu-accordion-subpanel" id="menu-notes" style="position: relative">
                         <div v-for="note in notes" :key="note.uuid" @click="openNote(note)" style="cursor: pointer">
                             {{ note.title || "[?]" }}
                         </div>
-                        <div v-if="!notes.length" v-t="'game.ui.menu.MenuBar.no_notes'"></div>
+                        <div v-if="!notes.length">{{ t("game.ui.menu.MenuBar.no_notes") }}</div>
                         <a class="actionButton" @click="createNote" :title="t('game.ui.menu.MenuBar.create_note')">
                             <font-awesome-icon icon="plus-square" />
                         </a>
                     </div>
                 </div>
                 <!-- DM SETTINGS -->
-                <button
-                    class="menu-accordion"
-                    @click="openDmSettings"
-                    v-t="'game.ui.menu.MenuBar.dm_settings'"
-                ></button>
+                <button class="menu-accordion" @click="openDmSettings">
+                    {{ t("game.ui.menu.MenuBar.dm_settings") }}
+                </button>
             </template>
             <!-- MARKERS -->
-            <button class="menu-accordion" v-t="'common.markers'"></button>
+            <button class="menu-accordion">{{ t("common.markers") }}</button>
             <div class="menu-accordion-panel">
                 <div class="menu-accordion-subpanel" id="menu-markers">
                     <div v-for="marker of markers.values()" :key="marker" style="cursor: pointer">
@@ -127,15 +125,13 @@ const openClientSettings = (): void => uiStore.showClientSettings(!uiStore.state
                             <font-awesome-icon icon="minus-square" />
                         </div>
                     </div>
-                    <div v-if="markers.size === 0" v-t="'game.ui.menu.MenuBar.no_markers'"></div>
+                    <div v-if="markers.size === 0">{{ t("game.ui.menu.MenuBar.no_markers") }}</div>
                 </div>
             </div>
             <!-- CLIENT SETTINGS -->
-            <button
-                class="menu-accordion"
-                @click="openClientSettings"
-                v-t="'game.ui.menu.MenuBar.client_settings'"
-            ></button>
+            <button class="menu-accordion" @click="openClientSettings">
+                {{ t("game.ui.menu.MenuBar.client_settings") }}
+            </button>
         </div>
         <router-link
             to="/dashboard"

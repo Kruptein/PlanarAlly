@@ -163,7 +163,7 @@ function _(e: any): number {
     <Modal :visible="initiativeStore.state.showInitiative" @close="close" :mask="false">
         <template v-slot:header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
-                <div v-t="'common.initiative'"></div>
+                <div>{{ t("common.initiative") }}</div>
                 <div class="header-close" @click="close" :title="t('common.close')">
                     <font-awesome-icon :icon="['far', 'window-close']" />
                 </div>

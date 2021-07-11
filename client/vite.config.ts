@@ -14,6 +14,9 @@ export default defineConfig({
     server: {
         host: "0.0.0.0",
         port: 8080,
+        fs: {
+            strict: false,
+        },
     },
     base: process.env.PA_BASEPATH,
     build: {

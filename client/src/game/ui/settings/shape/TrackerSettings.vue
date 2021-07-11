@@ -86,7 +86,7 @@ function toggleCompositeAura(auraId: string): void {
 <template>
     <div style="display: contents">
         <div id="trackers-panel">
-            <div class="spanrow header" v-t="'common.trackers'"></div>
+            <div class="spanrow header">{{ t("common.trackers") }}</div>
             <div class="aura" v-for="tracker in activeShapeStore.state.trackers" :key="tracker.uuid">
                 <div class="summary">
                     <label class="name" :for="'check-' + tracker.uuid">{{ tracker.name }}</label>
@@ -178,7 +178,7 @@ function toggleCompositeAura(auraId: string): void {
                     </div>
                 </div>
             </div>
-            <div class="spanrow header" v-t="'common.auras'"></div>
+            <div class="spanrow header">{{ t("common.auras") }}</div>
             <div class="aura" v-for="aura of activeShapeStore.state.auras" :key="aura.uuid">
                 <div class="summary">
                     <label class="name" :for="'check-' + aura.uuid">{{ aura.name }}</label>

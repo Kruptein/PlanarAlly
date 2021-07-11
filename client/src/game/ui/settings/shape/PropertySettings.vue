@@ -102,7 +102,7 @@ function setValue(event: Event): void {
     <div class="panel restore-panel">
         <div class="spanrow header">Common</div>
         <div class="row">
-            <label for="shapeselectiondialog-name" v-t="'common.name'"></label>
+            <label for="shapeselectiondialog-name">{{ t("common.name") }}</label>
             <input
                 type="text"
                 id="shapeselectiondialog-name"
@@ -120,7 +120,7 @@ function setValue(event: Event): void {
             </div>
         </div>
         <div class="row" v-if="hasValue">
-            <label for="shapeselectiondialog-value" v-t="'common.value'"></label>
+            <label for="shapeselectiondialog-value">{{ t("common.value") }}</label>
             <input
                 type="text"
                 id="shapeselectiondialog-value"
@@ -131,7 +131,7 @@ function setValue(event: Event): void {
             <div></div>
         </div>
         <div class="row">
-            <label for="shapeselectiondialog-istoken" v-t="'game.ui.selection.edit_dialog.dialog.is_a_token'"></label>
+            <label for="shapeselectiondialog-istoken">{{ t("game.ui.selection.edit_dialog.dialog.is_a_token") }}</label>
             <input
                 type="checkbox"
                 id="shapeselectiondialog-istoken"
@@ -143,10 +143,9 @@ function setValue(event: Event): void {
             />
         </div>
         <div class="row">
-            <label
-                for="shapeselectiondialog-is-invisible"
-                v-t="'game.ui.selection.edit_dialog.dialog.is_invisible'"
-            ></label>
+            <label for="shapeselectiondialog-is-invisible">
+                {{ t("game.ui.selection.edit_dialog.dialog.is_invisible") }}
+            </label>
             <input
                 type="checkbox"
                 id="shapeselectiondialog-is-invisible"
@@ -158,10 +157,9 @@ function setValue(event: Event): void {
             />
         </div>
         <div class="row">
-            <label
-                for="shapeselectiondialog-is-defeated"
-                v-t="'game.ui.selection.edit_dialog.dialog.is_defeated'"
-            ></label>
+            <label for="shapeselectiondialog-is-defeated">
+                {{ t("game.ui.selection.edit_dialog.dialog.is_defeated") }}
+            </label>
             <input
                 type="checkbox"
                 id="shapeselectiondialog-is-defeated"
@@ -173,7 +171,7 @@ function setValue(event: Event): void {
             />
         </div>
         <div class="row">
-            <label for="shapeselectiondialog-strokecolour" v-t="'common.border_color'"></label>
+            <label for="shapeselectiondialog-strokecolour">{{ t("common.border_color") }}</label>
             <ColourPicker
                 :colour="activeShapeStore.state.strokeColour"
                 @input:colour="setStrokeColour($event, true)"
@@ -183,7 +181,7 @@ function setValue(event: Event): void {
             />
         </div>
         <div class="row">
-            <label for="shapeselectiondialog-fillcolour" v-t="'common.fill_color'"></label>
+            <label for="shapeselectiondialog-fillcolour">{{ t("common.fill_color") }}</label>
             <ColourPicker
                 :colour="activeShapeStore.state.fillColour"
                 @input:colour="setFillColour($event, true)"
@@ -194,10 +192,9 @@ function setValue(event: Event): void {
         </div>
         <div class="spanrow header">Advanced</div>
         <div class="row">
-            <label
-                for="shapeselectiondialog-visionblocker"
-                v-t="'game.ui.selection.edit_dialog.dialog.block_vision_light'"
-            ></label>
+            <label for="shapeselectiondialog-visionblocker">
+                {{ t("game.ui.selection.edit_dialog.dialog.block_vision_light") }}
+            </label>
             <input
                 type="checkbox"
                 id="shapeselectiondialog-visionblocker"
@@ -208,10 +205,9 @@ function setValue(event: Event): void {
             />
         </div>
         <div class="row">
-            <label
-                for="shapeselectiondialog-moveblocker"
-                v-t="'game.ui.selection.edit_dialog.dialog.block_movement'"
-            ></label>
+            <label for="shapeselectiondialog-moveblocker">
+                {{ t("game.ui.selection.edit_dialog.dialog.block_movement") }}
+            </label>
             <input
                 type="checkbox"
                 id="shapeselectiondialog-moveblocker"
@@ -222,7 +218,9 @@ function setValue(event: Event): void {
             />
         </div>
         <div class="row">
-            <label for="shapeselectiondialog-is-locked" v-t="'game.ui.selection.edit_dialog.dialog.is_locked'"></label>
+            <label for="shapeselectiondialog-is-locked">
+                {{ t("game.ui.selection.edit_dialog.dialog.is_locked") }}
+            </label>
             <input
                 type="checkbox"
                 id="shapeselectiondialog-is-locked"
@@ -234,7 +232,9 @@ function setValue(event: Event): void {
             />
         </div>
         <div class="row">
-            <label for="shapeselectiondialog-showBadge" v-t="'game.ui.selection.edit_dialog.dialog.show_badge'"></label>
+            <label for="shapeselectiondialog-showBadge">
+                {{ t("game.ui.selection.edit_dialog.dialog.show_badge") }}
+            </label>
             <input
                 type="checkbox"
                 id="shapeselectiondialog-showBadge"

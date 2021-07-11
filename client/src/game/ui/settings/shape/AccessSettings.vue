@@ -94,8 +94,10 @@ function toggleOwnerVisionAccess(owner: ShapeOwner): void {
 
 <template>
     <div class="panel restore-panel">
-        <div class="spanrow header" v-t="'game.ui.selection.edit_dialog.access.access'"></div>
-        <div class="owner"><em v-t="'game.ui.selection.edit_dialog.access.default'"></em></div>
+        <div class="spanrow header">{{ t("game.ui.selection.edit_dialog.access.access") }}</div>
+        <div class="owner">
+            <em>{{ t("game.ui.selection.edit_dialog.access.default") }}</em>
+        </div>
         <div
             :style="{
                 opacity: hasDefaultEditAccess ? 1.0 : 0.3,
@@ -168,12 +170,9 @@ function toggleOwnerVisionAccess(owner: ShapeOwner): void {
                 {{ player.name }}
             </option>
         </select>
-        <button
-            id="button"
-            @click="addOwner"
-            v-show="playersWithoutAccess.length > 0 && owned"
-            v-t="'game.ui.selection.edit_dialog.access.add_access'"
-        ></button>
+        <button id="button" @click="addOwner" v-show="playersWithoutAccess.length > 0 && owned">
+            {{ t("game.ui.selection.edit_dialog.access.add_access") }}
+        </button>
     </div>
 </template>
 

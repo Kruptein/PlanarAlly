@@ -117,16 +117,16 @@ function changeVisionMode(event: Event): void {
                 </i18n-t>
             </template>
         </div>
-        <div class="spanrow header" v-t="'game.ui.settings.VisionSettings.core'"></div>
+        <div class="spanrow header">{{ t("game.ui.settings.VisionSettings.core") }}</div>
         <div class="row" v-if="isGlobal">
-            <label for="fakePlayerInput" v-t="'game.ui.settings.VisionSettings.fake_player'"></label>
+            <label for="fakePlayerInput">{{ t("game.ui.settings.VisionSettings.fake_player") }}</label>
             <div>
                 <input id="fakePlayerInput" type="checkbox" v-model="fakePlayer" />
             </div>
             <div></div>
         </div>
         <div class="row" :class="{ overwritten: !isGlobal && options.fullFow !== undefined }">
-            <label :for="'useFOWInput-' + location" v-t="'game.ui.settings.VisionSettings.fill_fow'"></label>
+            <label :for="'useFOWInput-' + location">{{ t("game.ui.settings.VisionSettings.fill_fow") }}</label>
             <div>
                 <input :id="'useFOWInput-' + location" type="checkbox" v-model="fullFow" />
             </div>
@@ -140,7 +140,7 @@ function changeVisionMode(event: Event): void {
             <div v-else></div>
         </div>
         <div class="row" :class="{ overwritten: !isGlobal && options.fowLos !== undefined }">
-            <label :for="'fowLos-' + location" v-t="'game.ui.settings.VisionSettings.only_show_lights_los'"></label>
+            <label :for="'fowLos-' + location">{{ t("game.ui.settings.VisionSettings.only_show_lights_los") }}</label>
             <div>
                 <input :id="'fowLos-' + location" type="checkbox" v-model="fowLos" />
             </div>
@@ -154,7 +154,7 @@ function changeVisionMode(event: Event): void {
             <div v-else></div>
         </div>
         <div class="row" :class="{ overwritten: !isGlobal && options.fowOpacity !== undefined }">
-            <label :for="'fowOpacity-' + location" v-t="'game.ui.settings.VisionSettings.fow_opacity'"></label>
+            <label :for="'fowOpacity-' + location">{{ t("game.ui.settings.VisionSettings.fow_opacity") }}</label>
             <div>
                 <input
                     :id="'fowOpacity-' + location"
@@ -174,13 +174,15 @@ function changeVisionMode(event: Event): void {
             </div>
             <div v-else></div>
         </div>
-        <div class="spanrow header" v-t="'game.ui.settings.VisionSettings.advanced'"></div>
+        <div class="spanrow header">{{ t("game.ui.settings.VisionSettings.advanced") }}</div>
         <div class="row" v-if="isGlobal">
-            <label :for="'visionMode-' + location" v-t="'game.ui.settings.VisionSettings.vision_mode'"></label>
+            <label :for="'visionMode-' + location">{{ t("game.ui.settings.VisionSettings.vision_mode") }}</label>
             <div>
                 <select :id="'visionMode-' + location" @change="changeVisionMode">
-                    <option :selected="visionMode === 0" v-t="'game.ui.settings.VisionSettings.default'"></option>
-                    <option :selected="visionMode === 1" v-t="'game.ui.settings.VisionSettings.experimental'"></option>
+                    <option :selected="visionMode === 0">{{ t("game.ui.settings.VisionSettings.default") }}</option>
+                    <option :selected="visionMode === 1">
+                        {{ t("game.ui.settings.VisionSettings.experimental") }}
+                    </option>
                 </select>
             </div>
             <div></div>

@@ -25,7 +25,7 @@ function toggle(event: MouseEvent): void {
 
 <template>
     <div id="ruler" class="tool-detail" v-if="selected" :style="toolStyle">
-        <button @click="toggle" :aria-pressed="showPublic" v-t="'game.ui.tools.RulerTool.share'"></button>
+        <button @click="toggle" :aria-pressed="showPublic">{{ t("game.ui.tools.RulerTool.share") }}</button>
     </div>
 </template>
 

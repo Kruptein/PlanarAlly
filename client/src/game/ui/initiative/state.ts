@@ -24,7 +24,7 @@ import { setCenterPosition } from "../../position";
 let activeTokensBackup: Set<string> | undefined = undefined;
 
 function getDefaultEffect(): InitiativeEffect {
-    return { name: i18n.global.t("game.ui.initiative.initiative.new_effect"), turns: "10", highlightsActor: false };
+    return { name: i18n.global.t("game.ui.initiative.new_effect"), turns: "10", highlightsActor: false };
 }
 
 interface InitiativeState {

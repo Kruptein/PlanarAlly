@@ -88,10 +88,14 @@ export function mostReadable(colour: string): string {
     return tinycolor.mostReadable(colour, ["#000", "#fff"]).toHexString();
 }
 
+export function getTarget(event: Event): HTMLInputElement {
+    return event.target as HTMLInputElement;
+}
+
 export function getValue(event: Event): string {
-    return (event.target as HTMLInputElement).value;
+    return getTarget(event).value;
 }
 
 export function getChecked(event: Event): boolean {
-    return (event.target as HTMLInputElement).checked;
+    return getTarget(event).checked;
 }

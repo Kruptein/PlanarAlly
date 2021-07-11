@@ -11,6 +11,9 @@ enum InputMode {
     Rgba,
 }
 
+// enums are not properly exported yet with setup https://github.com/vuejs/vue-next/issues/3571
+const IM = InputMode;
+
 const props = defineProps({
     colour: { type: String, default: "rgba(0, 0, 0, 1)" },
     showAlpha: { type: Boolean, default: true },
@@ -267,9 +270,9 @@ function onSaturationUp(event: PointerEvent): void {
                 <div class="mode">
                     <div
                         class="content"
-                        :style="{ gridTemplateColumns: `repeat(${inputMode === InputMode.Hex ? 1 : 4}, 1fr)` }"
+                        :style="{ gridTemplateColumns: `repeat(${inputMode === IM.Hex ? 1 : 4}, 1fr)` }"
                     >
-                        <template v-if="inputMode === InputMode.Rgba">
+                        <template v-if="inputMode === IM.Rgba">
                             <input type="text" :value="rgb.r" />
                             <input type="text" :value="rgb.g" />
                             <input type="text" :value="rgb.b" />
@@ -279,7 +282,7 @@ function onSaturationUp(event: PointerEvent): void {
                             <div>B</div>
                             <div>A</div>
                         </template>
-                        <template v-else-if="inputMode === InputMode.Hsla">
+                        <template v-else-if="inputMode === IM.Hsla">
                             <input type="text" :value="hsl.h.toFixed(0)" />
                             <input type="text" :value="(100 * hsl.s).toFixed(0) + '%'" />
                             <input type="text" :value="(100 * hsl.l).toFixed(0) + '%'" />

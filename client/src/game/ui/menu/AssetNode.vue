@@ -31,8 +31,8 @@ const folders = computed(() => {
 
 function toggle(event: MouseEvent): void {
     const children = (event.target as HTMLLIElement).children;
-    for (let i = 0; i < children.length; i++) {
-        const el = children[i] as HTMLElement;
+    for (const child of children) {
+        const el = child as HTMLElement;
         el.style.display = el.style.display === "" ? "block" : "";
     }
 }

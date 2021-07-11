@@ -91,3 +91,7 @@ export function mostReadable(colour: string): string {
 export function getValue(event: Event): string {
     return (event.target as HTMLInputElement).value;
 }
+
+export function getChecked(event: Event): boolean {
+    return (event.target as HTMLInputElement).checked;
+}

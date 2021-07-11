@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { CSSProperties } from "vue";
-import { computed } from "vue";
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { rulerTool } from "../../tools/variants/ruler";

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { PropType } from "vue";
 import { computed, defineEmit, defineProps, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -6,7 +7,6 @@ import { useModal } from "../core/plugins/modals/plugin";
 import { baseAdjust, baseAdjustedFetch, deleteFetch, getValue, patchFetch } from "../core/utils";
 
 import type { RoomInfo } from "./types";
-import type { PropType } from "vue";
 
 const props = defineProps({
     dmMode: { type: Boolean, required: true },

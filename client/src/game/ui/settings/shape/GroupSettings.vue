@@ -17,11 +17,10 @@ import {
     setCharacterSet,
     setCreationOrder,
 } from "../../../groups";
+import type { CREATION_ORDER_TYPES } from "../../../models/groups";
 import { CREATION_ORDER_OPTIONS } from "../../../models/groups";
 import { setCenterPosition } from "../../../position";
 import { Shape } from "../../../shapes/shape";
-
-import type { CREATION_ORDER_TYPES } from "../../../models/groups";
 
 const groupId = toRef(activeShapeStore.state, "groupId");
 const uuid = toRef(activeShapeStore.state, "uuid");

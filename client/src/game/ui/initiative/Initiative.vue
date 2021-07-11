@@ -12,14 +12,13 @@ import { UuidMap } from "../../../store/shapeMap";
 import { uiStore } from "../../../store/ui";
 import { sendRequestInitiatives } from "../../api/emits/initiative";
 import { getGroupMembers } from "../../groups";
+import type { InitiativeData } from "../../models/initiative";
 import { InitiativeEffectMode, InitiativeSort } from "../../models/initiative";
 import { Shape } from "../../shapes/shape";
 import { Asset } from "../../shapes/variants/asset";
 import { ClientSettingCategory } from "../settings/client/categories";
 
 import { initiativeStore } from "./state";
-
-import type { InitiativeData } from "../../models/initiative";
 
 const { t } = useI18n();
 const modals = useModal();

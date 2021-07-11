@@ -7,7 +7,6 @@ import { SyncTo } from "../../../../core/models/types";
 import { getValue } from "../../../../core/utils";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { sendShapeMoveAura, sendShapeMoveTracker } from "../../../api/emits/shape/options";
-
 import type { Aura, Tracker } from "../../../shapes/interfaces";
 
 const { t } = useI18n();

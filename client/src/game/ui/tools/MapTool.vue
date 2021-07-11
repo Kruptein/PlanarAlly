@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { CSSProperties } from "vue";
 import { onMounted, reactive, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -8,8 +9,6 @@ import { selectionState } from "../../layers/selection";
 import { mapTool } from "../../tools/variants/map";
 
 import { useToolPosition } from "./toolPosition";
-
-import type { CSSProperties } from "vue";
 
 const { t } = useI18n();
 

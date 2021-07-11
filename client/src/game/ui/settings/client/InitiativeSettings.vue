@@ -4,7 +4,6 @@ import { useI18n } from "vue-i18n";
 
 import { clientStore } from "../../../../store/client";
 import { InitiativeEffectMode } from "../../../models/initiative";
-
 import type { UserOptions } from "../../../models/settings";
 
 const { t } = useI18n();

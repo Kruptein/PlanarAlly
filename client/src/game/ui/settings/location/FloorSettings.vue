@@ -5,7 +5,6 @@ import { useI18n } from "vue-i18n";
 import ColourPicker from "../../../../core/components/ColourPicker.vue";
 import { BackgroundType, getBackgroundTypes } from "../../../../game/models/floor";
 import { settingsStore } from "../../../../store/settings";
-
 import type { LocationOptions } from "../../../models/settings";
 
 const { t } = useI18n();

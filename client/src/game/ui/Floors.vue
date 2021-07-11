@@ -8,10 +8,9 @@ import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
 import { uiStore } from "../../store/ui";
 import { sendCreateFloor } from "../api/emits/floor";
+import type { Floor } from "../models/floor";
 
 import { layerTranslationMapping } from "./translations";
-
-import type { Floor } from "../models/floor";
 
 const { t } = useI18n();
 const modals = useModal();

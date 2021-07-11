@@ -5,7 +5,6 @@ import { useI18n } from "vue-i18n";
 import { SyncTo } from "../../../../core/models/types";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { gameStore } from "../../../../store/game";
-
 import type { ShapeOwner } from "../../../shapes/owners";
 
 const { t } = useI18n();

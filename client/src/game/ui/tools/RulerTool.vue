@@ -1,11 +1,10 @@
 <script setup lang="ts">
+import type { CSSProperties } from "vue";
 import { onMounted, ref } from "vue";
 
 import { rulerTool } from "../../tools/variants/ruler";
 
 import { useToolPosition } from "./toolPosition";
-
-import type { CSSProperties } from "vue";
 
 const right = ref("0px");
 const arrow = ref("0px");

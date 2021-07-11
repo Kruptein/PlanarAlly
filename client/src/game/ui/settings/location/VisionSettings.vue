@@ -2,12 +2,11 @@
 import { computed, defineProps, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { getValue } from "../../../../core/utils";
 import { gameStore } from "../../../../store/game";
 import { settingsStore } from "../../../../store/settings";
-import { VisibilityMode, visionState } from "../../../vision/state";
-
 import type { LocationOptions } from "../../../models/settings";
-import { getValue } from "src/core/utils";
+import { VisibilityMode, visionState } from "../../../vision/state";
 
 const props = defineProps({ location: { type: Number, default: -1 } });
 const { t } = useI18n();

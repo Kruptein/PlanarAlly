@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { CSSProperties } from "vue";
 import { computed, onMounted, reactive, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -8,8 +9,6 @@ import { selectionState } from "../../layers/selection";
 import { SpellShape, spellTool } from "../../tools/variants/spell";
 
 import { useToolPosition } from "./toolPosition";
-
-import type { CSSProperties } from "vue";
 
 const { t } = useI18n();
 

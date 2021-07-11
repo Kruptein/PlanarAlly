@@ -1,12 +1,11 @@
 <script setup lang="ts">
+import type { CSSProperties } from "vue";
 import { onMounted, ref, toRef, watch } from "vue";
 
 import { selectionState } from "../../layers/selection";
 import { selectTool } from "../../tools/variants/select";
 
 import { useToolPosition } from "./toolPosition";
-
-import type { CSSProperties } from "vue";
 
 const right = ref("0px");
 const arrow = ref("0px");

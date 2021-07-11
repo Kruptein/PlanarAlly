@@ -2,16 +2,15 @@
 import { computed, ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
+import type { AssetFile } from "../../../core/models/types";
 import { baseAdjust, uuidv4 } from "../../../core/utils";
 import { gameStore } from "../../../store/game";
 import { UuidMap } from "../../../store/shapeMap";
 import { uiStore } from "../../../store/ui";
+import type { Note } from "../../models/general";
 import NoteDialog from "../NoteDialog.vue";
 
 import AssetParentNode from "./AssetParentNode.vue";
-
-import type { AssetFile } from "../../../core/models/types";
-import type { Note } from "../../models/general";
 
 const { t } = useI18n();
 

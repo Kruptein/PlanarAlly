@@ -12,16 +12,15 @@ import { floorStore } from "../../../../store/floor";
 import { gameStore } from "../../../../store/game";
 import { settingsStore } from "../../../../store/settings";
 import { UuidMap } from "../../../../store/shapeMap";
+import type { DDraftData } from "../../../models/ddraft";
 import { LayerName } from "../../../models/floor";
+import type { ShapeOptions } from "../../../models/shapes";
+import type { Aura } from "../../../shapes/interfaces";
 import { Asset } from "../../../shapes/variants/asset";
 import { Circle } from "../../../shapes/variants/circle";
 import { Polygon } from "../../../shapes/variants/polygon";
 import { visionState } from "../../../vision/state";
 import LabelManager from "../../LabelManager.vue";
-
-import type { DDraftData } from "../../../models/ddraft";
-import type { ShapeOptions } from "../../../models/shapes";
-import type { Aura } from "../../../shapes/interfaces";
 
 const modals = useModal();
 

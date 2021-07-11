@@ -1,15 +1,14 @@
 <script setup lang="ts">
+import type { CSSProperties } from "vue";
 import { computed, onMounted, reactive } from "vue";
 import { useI18n } from "vue-i18n";
 
 import Accordion from "../../../core/components/Accordion.vue";
 import { gameStore } from "../../../store/game";
+import type { Label } from "../../shapes/interfaces";
 import { filterTool } from "../../tools/variants/filter";
 
 import { useToolPosition } from "./toolPosition";
-
-import type { Label } from "../../shapes/interfaces";
-import type { CSSProperties } from "vue";
 
 const { t } = useI18n();
 

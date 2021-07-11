@@ -154,7 +154,7 @@ function openSettings(): void {
 }
 
 // shitty helper because draggable loses all type information :arghfist:
-function _(e: any): number {
+function n(e: any): number {
     return e;
 }
 </script>
@@ -259,7 +259,7 @@ function _(e: any): number {
                                     :style="{ width: '100px' }"
                                     :class="{ notAllowed: !owns(actor.shape) }"
                                     :disabled="!owns(actor.shape)"
-                                    @change="setEffectName(actor.shape, _(e), getValue($event))"
+                                    @change="setEffectName(actor.shape, n(e), getValue($event))"
                                 />
                                 <input
                                     type="text"
@@ -267,12 +267,12 @@ function _(e: any): number {
                                     :style="{ width: '25px' }"
                                     :class="{ notAllowed: !owns(actor.shape) }"
                                     :disabled="!owns(actor.shape)"
-                                    @change="setEffectTurns(actor.shape, _(e), getValue($event))"
+                                    @change="setEffectTurns(actor.shape, n(e), getValue($event))"
                                 />
                                 <div
                                     :style="{ opacity: owns(actor.shape) ? '1.0' : '0.3' }"
                                     :class="{ notAllowed: !owns(actor.shape) }"
-                                    @click="removeEffect(actor.shape, _(e))"
+                                    @click="removeEffect(actor.shape, n(e))"
                                     :title="t('game.ui.initiative.delete_effect')"
                                 >
                                     <font-awesome-icon icon="trash-alt" />

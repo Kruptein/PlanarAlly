@@ -30,7 +30,7 @@ const modals = useModal();
 const characterSet = ["numbers", "latin characters", "custom"];
 let characterSetSelected = 0;
 let customText: string[] = [];
-let _creationOrder: CREATION_ORDER_TYPES = "incrementing";
+let defaultCreationOrder: CREATION_ORDER_TYPES = "incrementing";
 
 const owned = activeShapeStore.hasEditAccess;
 
@@ -105,7 +105,7 @@ const customCharacterSet = computed({
 const creationOrder = computed({
     get() {
         if (group.value === undefined) {
-            return _creationOrder;
+            return defaultCreationOrder;
         }
         return group.value.creationOrder;
     },
@@ -113,7 +113,7 @@ const creationOrder = computed({
         if (!owned.value) return;
 
         if (group.value === undefined) {
-            _creationOrder = creationOrder;
+            defaultCreationOrder = creationOrder;
         } else {
             const doChange = await modals.confirm(
                 "Changing creation order",

@@ -1,213 +1,185 @@
-<script lang="ts">
-import { computed, defineComponent, ref, toRefs } from "vue";
+<script setup lang="ts">
+import { computed, ref } from "vue";
 
 import { l2gz } from "../../../../core/conversions";
 import { toGP } from "../../../../core/geometry";
 import { InvalidationMode, SyncMode, SyncTo } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
-import { baseAdjustedFetch, uuidv4 } from "../../../../core/utils";
+import { baseAdjustedFetch, getChecked, getValue, uuidv4 } from "../../../../core/utils";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { clientStore, DEFAULT_GRID_SIZE } from "../../../../store/client";
 import { floorStore } from "../../../../store/floor";
 import { gameStore } from "../../../../store/game";
 import { settingsStore } from "../../../../store/settings";
 import { UuidMap } from "../../../../store/shapeMap";
-import { DDraftData } from "../../../models/ddraft";
 import { LayerName } from "../../../models/floor";
-import { ShapeOptions } from "../../../models/shapes";
-import { Aura } from "../../../shapes/interfaces";
 import { Asset } from "../../../shapes/variants/asset";
 import { Circle } from "../../../shapes/variants/circle";
 import { Polygon } from "../../../shapes/variants/polygon";
 import { visionState } from "../../../vision/state";
 import LabelManager from "../../LabelManager.vue";
 
-export default defineComponent({
-    components: { LabelManager },
-    setup() {
-        const modals = useModal();
+import type { DDraftData } from "../../../models/ddraft";
+import type { ShapeOptions } from "../../../models/shapes";
+import type { Aura } from "../../../shapes/interfaces";
 
-        const textarea = ref<HTMLTextAreaElement | null>(null);
+const modals = useModal();
 
-        const owned = activeShapeStore.hasEditAccess;
+const textarea = ref<HTMLTextAreaElement | null>(null);
 
-        // ANNOTATIONS
+const owned = activeShapeStore.hasEditAccess;
 
-        function calcHeight(): void {
-            if (textarea.value !== null) {
-                textarea.value.style.height = "auto";
-                textarea.value.style.height = textarea.value.scrollHeight + "px";
-            }
+// ANNOTATIONS
+
+function calcHeight(): void {
+    if (textarea.value !== null) {
+        textarea.value.style.height = "auto";
+        textarea.value.style.height = textarea.value.scrollHeight + "px";
+    }
+}
+
+function updateAnnotation(event: Event, sync = true): void {
+    if (!owned.value) return;
+    calcHeight();
+    activeShapeStore.setAnnotation(getValue(event), sync ? SyncTo.SERVER : SyncTo.SHAPE);
+}
+
+function setAnnotationVisible(event: Event): void {
+    if (!owned.value) return;
+    activeShapeStore.setAnnotationVisible(getChecked(event), SyncTo.SERVER);
+}
+
+// LABELS
+
+const showLabelManager = ref(false);
+
+function addLabel(label: string): void {
+    if (!owned.value) return;
+    activeShapeStore.addLabel(label, SyncTo.SERVER);
+}
+
+function removeLabel(uuid: string): void {
+    if (!owned.value) return;
+    activeShapeStore.removeLabel(uuid, SyncTo.SERVER);
+}
+
+// SVG / DDRAFT
+
+const hasDDraftInfo = computed(() => "ddraft_format" in (activeShapeStore.state.options ?? {}));
+const hasPath = ref(false);
+const showSvgSection = computed(() => gameStore.state.isDm && activeShapeStore.state.type === "assetrect");
+
+async function uploadSvg(): Promise<void> {
+    const asset = await modals.assetPicker();
+    if (asset === undefined || asset.file_hash === undefined) return;
+
+    const data = await baseAdjustedFetch(`/static/assets/${asset.file_hash}`);
+    const svgText = await data.text();
+    const template = document.createElement("template");
+    template.innerHTML = svgText;
+    const svgEl = template.content.children[0] as SVGSVGElement;
+    const w = svgEl.width.baseVal.value;
+    const h = svgEl.height.baseVal.value;
+    const paths: string[] = [];
+
+    for (const pathChild of svgEl.getElementsByTagNameNS("http://www.w3.org/2000/svg", "path")) {
+        const path = pathChild.getAttribute("d");
+        if (path !== null) paths.push(path);
+    }
+    const options: Partial<ShapeOptions> = {
+        ...activeShapeStore.state.options!,
+        svgPaths: paths,
+        svgHeight: h,
+        svgWidth: w,
+    };
+    activeShapeStore.setOptions(options, SyncTo.SERVER);
+    visionState.recalculateVision(activeShapeStore.floor.value!);
+    hasPath.value = true;
+}
+
+function removeSvg(): void {
+    const options = { ...activeShapeStore.state.options! };
+    delete options.svgPaths;
+    delete options.svgWidth;
+    delete options.svgHeight;
+    activeShapeStore.setOptions(options as Omit<ShapeOptions, "svgPaths">, SyncTo.SERVER);
+    visionState.recalculateVision(activeShapeStore.floor.value!);
+    hasPath.value = false;
+}
+
+function applyDDraft(): void {
+    const dDraftData = activeShapeStore.state.options! as DDraftData;
+    const size = dDraftData.ddraft_resolution.pixels_per_grid;
+
+    const realShape = UuidMap.get(activeShapeStore.state.uuid!)! as Asset;
+
+    const targetRP = realShape.refPoint;
+
+    const dW = realShape.w / (dDraftData.ddraft_resolution.map_size.x * size);
+    const dH = realShape.h / (dDraftData.ddraft_resolution.map_size.y * size);
+
+    const fowLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Lighting)!;
+
+    for (const wall of dDraftData.ddraft_line_of_sight) {
+        const points = wall.map((w) => toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH));
+        const shape = new Polygon(points[0], points.slice(1), { openPolygon: true, strokeColour: "red" });
+        shape.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.UI);
+
+        shape.setBlocksVision(true, SyncTo.UI, false);
+        shape.setBlocksMovement(true, SyncTo.UI, false);
+        fowLayer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
+    }
+
+    for (const portal of dDraftData.ddraft_portals) {
+        const points = portal.bounds.map((w) => toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH));
+        const shape = new Polygon(points[0], points.slice(1), { openPolygon: true, strokeColour: "blue" });
+        shape.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.UI);
+
+        if (portal.closed) {
+            shape.setBlocksVision(true, SyncTo.UI, false);
+            shape.setBlocksMovement(true, SyncTo.UI, false);
         }
+        fowLayer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
+    }
 
-        function updateAnnotation(event: { target: HTMLInputElement }, sync = true): void {
-            if (!owned.value) return;
-            calcHeight();
-            activeShapeStore.setAnnotation(event.target.value, sync ? SyncTo.SERVER : SyncTo.SHAPE);
-        }
+    for (const light of dDraftData.ddraft_lights) {
+        const refPoint = toGP(targetRP.x + light.position.x * size * dW, targetRP.y + light.position.y * size * dH);
 
-        function setAnnotationVisible(event: { target: HTMLInputElement }): void {
-            if (!owned.value) return;
-            activeShapeStore.setAnnotationVisible(event.target.checked, SyncTo.SERVER);
-        }
+        const shape = new Circle(refPoint, l2gz(10));
+        shape.isInvisible = true;
 
-        // LABELS
-
-        const showLabelManager = ref(false);
-
-        function addLabel(label: string): void {
-            if (!owned.value) return;
-            activeShapeStore.addLabel(label, SyncTo.SERVER);
-        }
-
-        function removeLabel(uuid: string): void {
-            if (!owned.value) return;
-            activeShapeStore.removeLabel(uuid, SyncTo.SERVER);
-        }
-
-        // SVG / DDRAFT
-
-        const hasDDraftInfo = computed(() => "ddraft_format" in (activeShapeStore.state.options ?? {}));
-        const hasPath = ref(false);
-        const showSvgSection = computed(() => gameStore.state.isDm && activeShapeStore.state.type === "assetrect");
-
-        async function uploadSvg(): Promise<void> {
-            const asset = await modals.assetPicker();
-            if (asset === undefined || asset.file_hash === undefined) return;
-
-            const data = await baseAdjustedFetch(`/static/assets/${asset.file_hash}`);
-            const svgText = await data.text();
-            const template = document.createElement("template");
-            template.innerHTML = svgText;
-            const svgEl = template.content.children[0] as SVGSVGElement;
-            const w = svgEl.width.baseVal.value;
-            const h = svgEl.height.baseVal.value;
-            const paths: string[] = [];
-
-            for (const pathChild of svgEl.getElementsByTagNameNS("http://www.w3.org/2000/svg", "path")) {
-                const path = pathChild.getAttribute("d");
-                if (path !== null) paths.push(path);
-            }
-            const options: Partial<ShapeOptions> = {
-                ...activeShapeStore.state.options!,
-                svgPaths: paths,
-                svgHeight: h,
-                svgWidth: w,
-            };
-            activeShapeStore.setOptions(options, SyncTo.SERVER);
-            visionState.recalculateVision(activeShapeStore.floor.value!);
-            hasPath.value = true;
-        }
-
-        function removeSvg(): void {
-            const options = { ...activeShapeStore.state.options! };
-            delete options.svgPaths;
-            delete options.svgWidth;
-            delete options.svgHeight;
-            activeShapeStore.setOptions(options as Omit<ShapeOptions, "svgPaths">, SyncTo.SERVER);
-            visionState.recalculateVision(activeShapeStore.floor.value!);
-            hasPath.value = false;
-        }
-
-        function applyDDraft(): void {
-            const dDraftData = activeShapeStore.state.options! as DDraftData;
-            const size = dDraftData.ddraft_resolution.pixels_per_grid;
-
-            const realShape = UuidMap.get(activeShapeStore.state.uuid!)! as Asset;
-
-            const targetRP = realShape.refPoint;
-
-            const dW = realShape.w / (dDraftData.ddraft_resolution.map_size.x * size);
-            const dH = realShape.h / (dDraftData.ddraft_resolution.map_size.y * size);
-
-            const fowLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Lighting)!;
-
-            for (const wall of dDraftData.ddraft_line_of_sight) {
-                const points = wall.map((w) => toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH));
-                const shape = new Polygon(points[0], points.slice(1), { openPolygon: true, strokeColour: "red" });
-                shape.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.UI);
-
-                shape.setBlocksVision(true, SyncTo.UI, false);
-                shape.setBlocksMovement(true, SyncTo.UI, false);
-                fowLayer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
-            }
-
-            for (const portal of dDraftData.ddraft_portals) {
-                const points = portal.bounds.map((w) =>
-                    toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH),
-                );
-                const shape = new Polygon(points[0], points.slice(1), { openPolygon: true, strokeColour: "blue" });
-                shape.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.UI);
-
-                if (portal.closed) {
-                    shape.setBlocksVision(true, SyncTo.UI, false);
-                    shape.setBlocksMovement(true, SyncTo.UI, false);
-                }
-                fowLayer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
-            }
-
-            for (const light of dDraftData.ddraft_lights) {
-                const refPoint = toGP(
-                    targetRP.x + light.position.x * size * dW,
-                    targetRP.y + light.position.y * size * dH,
-                );
-
-                const shape = new Circle(refPoint, l2gz(10));
-                shape.isInvisible = true;
-
-                const aura: Aura = {
-                    uuid: uuidv4(),
-                    active: true,
-                    visionSource: true,
-                    visible: true,
-                    name: "ddraft light source",
-                    value: light.range * settingsStore.unitSize.value * (DEFAULT_GRID_SIZE / size),
-                    dim: 0,
-                    colour: `#${light.color}`,
-                    borderColour: "rgba(0, 0, 0, 0)",
-                    angle: 360,
-                    direction: 0,
-                };
-
-                shape.pushAura(aura, SyncTo.UI);
-                shape.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.UI);
-
-                realShape.layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
-            }
-
-            visionState.recalculateVision(realShape.floor.id);
-            visionState.recalculateMovement(realShape.floor.id);
-            fowLayer.invalidate(false);
-            realShape.layer.invalidate(false);
-        }
-
-        return {
-            ...toRefs(activeShapeStore.state),
-            owned: activeShapeStore.hasEditAccess,
-
-            addLabel,
-            showLabelManager,
-            removeLabel,
-
-            updateAnnotation,
-            setAnnotationVisible,
-
-            applyDDraft,
-            hasDDraftInfo,
-            hasPath,
-            removeSvg,
-            showSvgSection,
-            uploadSvg,
+        const aura: Aura = {
+            uuid: uuidv4(),
+            active: true,
+            visionSource: true,
+            visible: true,
+            name: "ddraft light source",
+            value: light.range * settingsStore.unitSize.value * (DEFAULT_GRID_SIZE / size),
+            dim: 0,
+            colour: `#${light.color}`,
+            borderColour: "rgba(0, 0, 0, 0)",
+            angle: 360,
+            direction: 0,
         };
-    },
-});
+
+        shape.pushAura(aura, SyncTo.UI);
+        shape.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.UI);
+
+        realShape.layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
+    }
+
+    visionState.recalculateVision(realShape.floor.id);
+    visionState.recalculateMovement(realShape.floor.id);
+    fowLayer.invalidate(false);
+    realShape.layer.invalidate(false);
+}
 </script>
 
 <template>
     <div class="panel restore-panel">
         <div class="spanrow header" v-t="'common.labels'"></div>
         <div id="labels" class="spanrow">
-            <div v-for="label in labels" class="label" :key="label.uuid">
+            <div v-for="label in activeShapeStore.state.labels" class="label" :key="label.uuid">
                 <template v-if="label.category">
                     <div class="label-user">{{ label.category }}</div>
                     <div class="label-main" @click="removeLabel(label.uuid)">{{ label.name }}</div>
@@ -228,7 +200,7 @@ export default defineComponent({
         <input
             id="edit_dialog-extra-show_annotation"
             type="checkbox"
-            :checked="annotationVisible"
+            :checked="activeShapeStore.state.annotationVisible"
             @click="setAnnotationVisible"
             class="styled-checkbox"
             :disabled="!owned"
@@ -236,7 +208,7 @@ export default defineComponent({
         <textarea
             class="spanrow"
             ref="textarea"
-            :value="annotation"
+            :value="activeShapeStore.state.annotation"
             @input="updateAnnotation($event, false)"
             @change="updateAnnotation"
             :disabled="!owned"

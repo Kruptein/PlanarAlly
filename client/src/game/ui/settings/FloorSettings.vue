@@ -196,7 +196,11 @@ function setPatternData(data: { offsetX?: Event; offsetY?: Event; scaleX?: Event
             <template v-if="backgroundType === BackgroundType.Pattern">
                 <div>Pattern</div>
                 <div>
-                    <img :src="baseAdjust('/static/assets/' + backgroundPattern.hash)" class="pattern-preview" />
+                    <img
+                        alt="Pattern image preview"
+                        :src="baseAdjust('/static/assets/' + backgroundPattern.hash)"
+                        class="pattern-preview"
+                    />
                     <font-awesome-icon id="set-pattern" icon="plus-square" title="Set a pattern" @click="setPattern" />
                 </div>
                 <div></div>

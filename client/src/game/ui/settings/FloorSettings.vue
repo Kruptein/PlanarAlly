@@ -5,9 +5,11 @@ import { useI18n } from "vue-i18n";
 import ColourPicker from "../../../core/components/ColourPicker.vue";
 import Modal from "../../../core/components/modals/Modal.vue";
 import { useModal } from "../../../core/plugins/modals/plugin";
+import { baseAdjust, getValue } from "../../../core/utils";
 import { floorStore } from "../../../store/floor";
 import { settingsStore } from "../../../store/settings";
 import { uiStore } from "../../../store/ui";
+import { getPattern, patternToString } from "../../layers/floor";
 import {
     BackgroundType,
     FloorType,
@@ -76,10 +78,12 @@ function setBackgroundType(event: Event): void {
 
     const type = Number.parseInt((event.target as HTMLSelectElement).value);
     let value: string | undefined;
-    if (type === 0) {
-        value = "none";
-    } else {
+    if (type === 1) {
         value = "rgba(255, 255, 255, 1)";
+    } else if (type === 2) {
+        value = "pattern:empty";
+    } else {
+        value = "none";
     }
     floorStore.setFloorBackground({ id: floor.value.id }, value, true);
 }
@@ -93,10 +97,47 @@ function resetBackground(): void {
     if (floor.value === undefined) return;
     floorStore.setFloorBackground({ id: floor.value.id }, undefined, true);
 }
+
+async function setPattern(): Promise<void> {
+    if (floor.value === undefined) return;
+
+    const data = await modals.assetPicker();
+    if (data === undefined || data.file_hash === undefined) return;
+
+    floorStore.setFloorBackground({ id: floor.value.id }, `pattern(${data.file_hash},0,0,1,1)`, true);
+}
+
+const backgroundPattern = computed(() => {
+    const background = floor.value?.backgroundValue ?? defaultBackground.value;
+    const defaultPattern = {
+        hash: "",
+        offsetX: 0,
+        offsetY: 0,
+        scaleX: 0,
+        scaleY: 0,
+    };
+    if (background === null) return defaultPattern;
+
+    return getPattern(background) ?? defaultPattern;
+});
+
+function setPatternData(data: { offsetX?: Event; offsetY?: Event; scaleX?: Event; scaleY?: Event }): void {
+    if (floor.value === undefined) return;
+
+    const pattern = backgroundPattern.value;
+    const offsetX = data.offsetX ? Number.parseInt(getValue(data.offsetX)) : pattern.offsetX;
+    const offsetY = data.offsetY ? Number.parseInt(getValue(data.offsetY)) : pattern.offsetY;
+    const scaleX = data.scaleX ? Number.parseInt(getValue(data.scaleX)) / 100 : pattern.scaleX;
+    const scaleY = data.scaleY ? Number.parseInt(getValue(data.scaleY)) / 100 : pattern.scaleY;
+
+    const newPattern = { ...pattern, offsetX, offsetY, scaleX, scaleY };
+
+    floorStore.setFloorBackground({ id: floor.value.id }, patternToString(newPattern), true);
+}
 </script>
 
 <template>
-    <Modal :visible="visible" @close="close">
+    <Modal :visible="visible" :mask="false" @close="close">
         <template v-slot:header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 <div>{{ t("game.ui.settings.floor.title") }}</div>
@@ -152,6 +193,47 @@ function resetBackground(): void {
                 <div></div>
             </template>
 
+            <template v-if="backgroundType === BackgroundType.Pattern">
+                <div>Pattern</div>
+                <div>
+                    <img :src="baseAdjust('/static/assets/' + backgroundPattern.hash)" class="pattern-preview" />
+                    <font-awesome-icon id="set-pattern" icon="plus-square" title="Set a pattern" @click="setPattern" />
+                </div>
+                <div></div>
+
+                <div>Offset</div>
+                <div>
+                    <input
+                        type="number"
+                        :value="backgroundPattern.offsetX"
+                        @change="setPatternData({ offsetX: $event })"
+                    />
+                    <input
+                        type="number"
+                        :value="backgroundPattern.offsetY"
+                        @change="setPatternData({ offsetY: $event })"
+                    />
+                </div>
+                <div></div>
+
+                <div>Scale</div>
+                <div>
+                    <input
+                        type="number"
+                        min="1"
+                        :value="100 * backgroundPattern.scaleX"
+                        @change="setPatternData({ scaleX: $event })"
+                    />
+                    <input
+                        type="number"
+                        min="1"
+                        :value="100 * backgroundPattern.scaleY"
+                        @change="setPatternData({ scaleY: $event })"
+                    />
+                </div>
+                <div></div>
+            </template>
+
             <div></div>
             <button @click="removeFloor">Remove</button>
         </div>
@@ -193,5 +275,10 @@ function resetBackground(): void {
 .modal-body .row.overwritten * {
     color: #7c253e;
     font-weight: bold;
+}
+
+.pattern-preview {
+    max-width: 100px;
+    max-height: 100px;
 }
 </style>

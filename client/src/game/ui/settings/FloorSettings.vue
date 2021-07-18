@@ -5,11 +5,9 @@ import { useI18n } from "vue-i18n";
 import ColourPicker from "../../../core/components/ColourPicker.vue";
 import Modal from "../../../core/components/modals/Modal.vue";
 import { useModal } from "../../../core/plugins/modals/plugin";
-import { baseAdjust, getValue } from "../../../core/utils";
 import { floorStore } from "../../../store/floor";
 import { settingsStore } from "../../../store/settings";
 import { uiStore } from "../../../store/ui";
-import { getPattern, patternToString } from "../../layers/floor";
 import {
     BackgroundType,
     FloorType,

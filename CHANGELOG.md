@@ -10,8 +10,9 @@ These usually have no immediately visible impact on regular users
 
 ### Added
 
--   Configure background colors for floors (map layer)
+-   Configure background for floors (map layer)
     -   Can be configured on a campaign/location or individual floor level
+    -   Can be set to "empty", "simple colour" or a repeated asset
 
 ### Changed
 

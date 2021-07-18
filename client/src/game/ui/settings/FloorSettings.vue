@@ -16,6 +16,8 @@ import {
     getFloorTypes,
 } from "../../models/floor";
 
+import PatternSettings from "./floor/PatternSettings.vue";
+
 const { t } = useI18n();
 const modals = useModal();
 
@@ -76,10 +78,12 @@ function setBackgroundType(event: Event): void {
 
     const type = Number.parseInt((event.target as HTMLSelectElement).value);
     let value: string | undefined;
-    if (type === 0) {
-        value = "rgba(0, 0, 0, 0)";
-    } else {
+    if (type === 1) {
         value = "rgba(255, 255, 255, 1)";
+    } else if (type === 2) {
+        value = "pattern:empty";
+    } else {
+        value = "none";
     }
     floorStore.setFloorBackground({ id: floor.value.id }, value, true);
 }
@@ -93,10 +97,15 @@ function resetBackground(): void {
     if (floor.value === undefined) return;
     floorStore.setFloorBackground({ id: floor.value.id }, undefined, true);
 }
+
+function setPatternData(data: string): void {
+    if (floor.value === undefined) return;
+    floorStore.setFloorBackground({ id: floor.value.id }, data, true);
+}
 </script>
 
 <template>
-    <Modal :visible="visible" @close="close">
+    <Modal :visible="visible" :mask="false" @close="close">
         <template v-slot:header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 <div>{{ t("game.ui.settings.floor.title") }}</div>
@@ -150,6 +159,13 @@ function resetBackground(): void {
                     />
                 </div>
                 <div></div>
+            </template>
+
+            <template v-if="backgroundType === BackgroundType.Pattern">
+                <PatternSettings
+                    :pattern="floor?.backgroundValue ?? defaultBackground ?? ''"
+                    @update:pattern="setPatternData"
+                />
             </template>
 
             <div></div>

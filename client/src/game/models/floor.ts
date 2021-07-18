@@ -29,16 +29,30 @@ export function getFloorTypes(): string[] {
 export enum BackgroundType {
     None,
     Simple,
+    Pattern,
 }
 
 export function getBackgroundTypes(): string[] {
-    return ["None", "Simple"];
+    return ["None", "Simple", "Pattern"];
 }
 
 export function getBackgroundTypeFromString(background: string | null): BackgroundType {
     if (background === null || background === "none") {
         return BackgroundType.None;
-    } else {
+    } else if (background.startsWith("rgb")) {
         return BackgroundType.Simple;
+    } else if (background.startsWith("pattern")) {
+        return BackgroundType.Pattern;
+    } else {
+        console.warn("Unknown background type ", background);
+        return BackgroundType.None;
     }
+}
+
+export interface BackgroundPattern {
+    hash: string;
+    offsetX: number;
+    offsetY: number;
+    scaleX: number;
+    scaleY: number;
 }

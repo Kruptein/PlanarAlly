@@ -128,7 +128,18 @@ class SettingsStore extends Store<SettingsState> {
                 location: location,
             });
 
-            if (["fowLos", "spawnLocations", "unitSize", "visionMinRange", "visionMaxRange"].includes(key)) {
+            if (
+                [
+                    "fowLos",
+                    "spawnLocations",
+                    "unitSize",
+                    "visionMinRange",
+                    "visionMaxRange",
+                    "airMapBackground",
+                    "groundMapBackground",
+                    "undergroundMapBackground",
+                ].includes(key)
+            ) {
                 floorStore.invalidateAllFloors();
             } else if (["fullFow", "fowOpacity"].includes(key)) {
                 floorStore.invalidateLightAllFloors();
@@ -271,6 +282,7 @@ class SettingsStore extends Store<SettingsState> {
 
     setAirMapBackground(airMapBackground: string | null, location: number | undefined, sync: boolean): void {
         if (this.mutate("airMapBackground", airMapBackground, location)) {
+            floorStore.invalidateAllFloors();
             if (sync)
                 sendLocationOptions({
                     options: { air_map_background: airMapBackground },
@@ -280,7 +292,10 @@ class SettingsStore extends Store<SettingsState> {
     }
 
     setGroundMapBackground(groundMapBackground: string | null, location: number | undefined, sync: boolean): void {
+        console.log(groundMapBackground);
         if (this.mutate("groundMapBackground", groundMapBackground, location)) {
+            console.log(11);
+            floorStore.invalidateAllFloors();
             if (sync)
                 sendLocationOptions({
                     options: { ground_map_background: groundMapBackground },
@@ -295,6 +310,7 @@ class SettingsStore extends Store<SettingsState> {
         sync: boolean,
     ): void {
         if (this.mutate("undergroundMapBackground", undergroundMapBackground, location)) {
+            floorStore.invalidateAllFloors();
             if (sync)
                 sendLocationOptions({
                     options: { underground_map_background: undergroundMapBackground },

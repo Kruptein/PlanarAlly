@@ -77,7 +77,7 @@ function setBackgroundType(event: Event): void {
     const type = Number.parseInt((event.target as HTMLSelectElement).value);
     let value: string | undefined;
     if (type === 0) {
-        value = "rgba(0, 0, 0, 0)";
+        value = "none";
     } else {
         value = "rgba(255, 255, 255, 1)";
     }

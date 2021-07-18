@@ -210,6 +210,7 @@ class FloorStore extends Store<FloorState> {
         if (floor === undefined) return;
 
         floor.backgroundValue = backgroundValue;
+        this.invalidate(floor);
         if (sync) sendFloorSetBackground({ name: floor.name, background: backgroundValue });
     }
 

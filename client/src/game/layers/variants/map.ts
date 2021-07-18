@@ -16,25 +16,30 @@ export class MapLayer extends Layer {
 
             const floor = floorStore.getFloor({ id: this.floor });
 
-            let background: string | CanvasPattern | null = null;
-
-            if (floor?.backgroundValue === undefined) {
+            let floorBackground = floor?.backgroundValue;
+            if (floorBackground === undefined) {
                 if (floor?.type === FloorType.Air) {
-                    background = settingsStore.airMapBackground.value;
+                    floorBackground = settingsStore.airMapBackground.value ?? undefined;
                 } else if (floor?.type === FloorType.Ground) {
-                    background = settingsStore.groundMapBackground.value;
+                    floorBackground = settingsStore.groundMapBackground.value ?? undefined;
                 } else {
-                    background = settingsStore.undergroundMapBackground.value;
+                    floorBackground = settingsStore.undergroundMapBackground.value ?? undefined;
                 }
-            } else if (floor?.backgroundValue.startsWith("rgb")) {
-                background = floor.backgroundValue;
-            } else if (floor?.backgroundValue.startsWith("pattern")) {
-                background = this.getPatternBackground(floor.backgroundValue);
             }
 
-            if (background !== null && background !== "none") {
-                this.ctx.fillStyle = background;
-                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            if (floorBackground !== undefined && floorBackground !== "none") {
+                let background: string | CanvasPattern | null = null;
+
+                if (floorBackground.startsWith("rgb")) {
+                    background = floorBackground;
+                } else if (floorBackground.startsWith("pattern")) {
+                    background = this.getPatternBackground(floorBackground);
+                }
+
+                if (background !== null) {
+                    this.ctx.fillStyle = background;
+                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                }
             }
 
             super.draw(false);

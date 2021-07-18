@@ -3,9 +3,10 @@ import { computed, defineProps, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../../core/components/ColourPicker.vue";
-import { BackgroundType, getBackgroundTypes } from "../../../../game/models/floor";
+import { BackgroundType, getBackgroundTypeFromString, getBackgroundTypes } from "../../../../game/models/floor";
 import { settingsStore } from "../../../../store/settings";
 import type { LocationOptions } from "../../../models/settings";
+import PatternSettings from "../floor/PatternSettings.vue";
 
 const { t } = useI18n();
 
@@ -23,8 +24,15 @@ const options = computed(() => {
 
 const location = computed(() => (isGlobal.value ? undefined : props.location));
 
-function getBackgroundValueFromType(type: BackgroundType, val: string | null | undefined): string | null {
-    return type === BackgroundType.None ? "none" : val ?? "rgba(255, 255, 255, 1)";
+function getBackgroundValueFromType(type: BackgroundType): string | null {
+    switch (type) {
+        case BackgroundType.Simple:
+            return "rgba(255, 255, 255, 1)";
+        case BackgroundType.Pattern:
+            return "pattern:empty";
+        default:
+            return "none";
+    }
 }
 
 // TODO: Clean up this hack around settingsstore not being reactive when setting things
@@ -42,11 +50,7 @@ const airBackground = computed({
     },
 });
 const airBackgroundType = computed(() => {
-    if (airBackground.value === null || airBackground.value === "none") {
-        return BackgroundType.None;
-    } else {
-        return BackgroundType.Simple;
-    }
+    return getBackgroundTypeFromString(airBackground.value);
 });
 
 function setAirBackground(background: string): void {
@@ -55,7 +59,7 @@ function setAirBackground(background: string): void {
 
 function setAirBackgroundFromEvent(event: Event): void {
     const type = Number.parseInt((event.target as HTMLSelectElement).value);
-    airBackground.value = getBackgroundValueFromType(type, options.value.airMapBackground);
+    airBackground.value = getBackgroundValueFromType(type);
     invalidateHack.value++;
 }
 
@@ -71,11 +75,7 @@ const groundBackground = computed({
     },
 });
 const groundBackgroundType = computed(() => {
-    if (groundBackground.value === null || groundBackground.value === "none") {
-        return BackgroundType.None;
-    } else {
-        return BackgroundType.Simple;
-    }
+    return getBackgroundTypeFromString(groundBackground.value);
 });
 
 function setGroundBackground(background: string): void {
@@ -84,7 +84,7 @@ function setGroundBackground(background: string): void {
 
 function setGroundBackgroundFromEvent(event: Event): void {
     const type = Number.parseInt((event.target as HTMLSelectElement).value);
-    groundBackground.value = getBackgroundValueFromType(type, options.value.groundMapBackground);
+    groundBackground.value = getBackgroundValueFromType(type);
     invalidateHack.value++;
 }
 
@@ -100,11 +100,7 @@ const undergroundBackground = computed({
     },
 });
 const undergroundBackgroundType = computed(() => {
-    if (undergroundBackground.value === null || undergroundBackground.value === "none") {
-        return BackgroundType.None;
-    } else {
-        return BackgroundType.Simple;
-    }
+    return getBackgroundTypeFromString(undergroundBackground.value);
 });
 
 function setUndergroundBackground(background: string): void {
@@ -113,7 +109,7 @@ function setUndergroundBackground(background: string): void {
 
 function setUndergroundBackgroundFromEvent(event: Event): void {
     const type = Number.parseInt((event.target as HTMLSelectElement).value);
-    undergroundBackground.value = getBackgroundValueFromType(type, options.value.undergroundMapBackground);
+    undergroundBackground.value = getBackgroundValueFromType(type);
     invalidateHack.value++;
 }
 
@@ -169,6 +165,9 @@ function e(k: any): boolean {
             <div><ColourPicker :colour="airBackground ?? undefined" @update:colour="setAirBackground($event)" /></div>
             <div></div>
         </div>
+        <div class="row" v-show="airBackgroundType === BackgroundType.Pattern">
+            <PatternSettings :pattern="airBackground ?? ''" @update:pattern="setAirBackground" />
+        </div>
 
         <div class="row" :class="{ overwritten: !isGlobal && e(options.groundMapBackground) }">
             <label :for="'groundBackground-' + location">
@@ -196,6 +195,9 @@ function e(k: any): boolean {
                 <ColourPicker :colour="groundBackground ?? undefined" @update:colour="setGroundBackground($event)" />
             </div>
             <div></div>
+        </div>
+        <div class="row" v-show="groundBackgroundType === BackgroundType.Pattern">
+            <PatternSettings :pattern="groundBackground ?? ''" @update:pattern="setGroundBackground" />
         </div>
 
         <div class="row" :class="{ overwritten: !isGlobal && e(options.undergroundMapBackground) }">
@@ -231,6 +233,9 @@ function e(k: any): boolean {
                 />
             </div>
             <div></div>
+        </div>
+        <div class="row" v-show="undergroundBackgroundType === BackgroundType.Pattern">
+            <PatternSettings :pattern="undergroundBackground ?? ''" @update:pattern="setUndergroundBackground" />
         </div>
     </div>
 </template>

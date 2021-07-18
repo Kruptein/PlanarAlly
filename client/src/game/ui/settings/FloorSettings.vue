@@ -18,6 +18,8 @@ import {
     getFloorTypes,
 } from "../../models/floor";
 
+import PatternSettings from "./floor/PatternSettings.vue";
+
 const { t } = useI18n();
 const modals = useModal();
 
@@ -98,41 +100,9 @@ function resetBackground(): void {
     floorStore.setFloorBackground({ id: floor.value.id }, undefined, true);
 }
 
-async function setPattern(): Promise<void> {
+function setPatternData(data: string): void {
     if (floor.value === undefined) return;
-
-    const data = await modals.assetPicker();
-    if (data === undefined || data.file_hash === undefined) return;
-
-    floorStore.setFloorBackground({ id: floor.value.id }, `pattern(${data.file_hash},0,0,1,1)`, true);
-}
-
-const backgroundPattern = computed(() => {
-    const background = floor.value?.backgroundValue ?? defaultBackground.value;
-    const defaultPattern = {
-        hash: "",
-        offsetX: 0,
-        offsetY: 0,
-        scaleX: 0,
-        scaleY: 0,
-    };
-    if (background === null) return defaultPattern;
-
-    return getPattern(background) ?? defaultPattern;
-});
-
-function setPatternData(data: { offsetX?: Event; offsetY?: Event; scaleX?: Event; scaleY?: Event }): void {
-    if (floor.value === undefined) return;
-
-    const pattern = backgroundPattern.value;
-    const offsetX = data.offsetX ? Number.parseInt(getValue(data.offsetX)) : pattern.offsetX;
-    const offsetY = data.offsetY ? Number.parseInt(getValue(data.offsetY)) : pattern.offsetY;
-    const scaleX = data.scaleX ? Number.parseInt(getValue(data.scaleX)) / 100 : pattern.scaleX;
-    const scaleY = data.scaleY ? Number.parseInt(getValue(data.scaleY)) / 100 : pattern.scaleY;
-
-    const newPattern = { ...pattern, offsetX, offsetY, scaleX, scaleY };
-
-    floorStore.setFloorBackground({ id: floor.value.id }, patternToString(newPattern), true);
+    floorStore.setFloorBackground({ id: floor.value.id }, data, true);
 }
 </script>
 
@@ -194,48 +164,10 @@ function setPatternData(data: { offsetX?: Event; offsetY?: Event; scaleX?: Event
             </template>
 
             <template v-if="backgroundType === BackgroundType.Pattern">
-                <div>Pattern</div>
-                <div>
-                    <img
-                        alt="Pattern image preview"
-                        :src="baseAdjust('/static/assets/' + backgroundPattern.hash)"
-                        class="pattern-preview"
-                    />
-                    <font-awesome-icon id="set-pattern" icon="plus-square" title="Set a pattern" @click="setPattern" />
-                </div>
-                <div></div>
-
-                <div>Offset</div>
-                <div>
-                    <input
-                        type="number"
-                        :value="backgroundPattern.offsetX"
-                        @change="setPatternData({ offsetX: $event })"
-                    />
-                    <input
-                        type="number"
-                        :value="backgroundPattern.offsetY"
-                        @change="setPatternData({ offsetY: $event })"
-                    />
-                </div>
-                <div></div>
-
-                <div>Scale</div>
-                <div>
-                    <input
-                        type="number"
-                        min="1"
-                        :value="100 * backgroundPattern.scaleX"
-                        @change="setPatternData({ scaleX: $event })"
-                    />
-                    <input
-                        type="number"
-                        min="1"
-                        :value="100 * backgroundPattern.scaleY"
-                        @change="setPatternData({ scaleY: $event })"
-                    />
-                </div>
-                <div></div>
+                <PatternSettings
+                    :pattern="floor?.backgroundValue ?? defaultBackground ?? ''"
+                    @update:pattern="setPatternData"
+                />
             </template>
 
             <div></div>
@@ -279,10 +211,5 @@ function setPatternData(data: { offsetX?: Event; offsetY?: Event; scaleX?: Event
 .modal-body .row.overwritten * {
     color: #7c253e;
     font-weight: bold;
-}
-
-.pattern-preview {
-    max-width: 100px;
-    max-height: 100px;
 }
 </style>

@@ -29,28 +29,7 @@ export class MapLayer extends Layer {
             } else if (floor?.backgroundValue.startsWith("rgb")) {
                 background = floor.backgroundValue;
             } else if (floor?.backgroundValue.startsWith("pattern")) {
-                const patternData = getPattern(floor?.backgroundValue);
-                if (patternData !== undefined) {
-                    const hash = patternData.hash;
-                    const patternImage = patternImages[hash];
-                    if (patternImage === undefined) {
-                        const img = new Image();
-                        patternImages[hash] = img;
-                        img.src = baseAdjust("/static/assets/" + hash);
-                        img.onload = () => {
-                            this.invalidate(true);
-                        };
-                    } else if (patternImage.loading) {
-                        const pattern = this.ctx.createPattern(patternImage, "repeat");
-                        const panX = (patternData.offsetX + clientStore.state.panX) * clientStore.zoomFactor.value;
-                        const panY = (patternData.offsetY + clientStore.state.panY) * clientStore.zoomFactor.value;
-                        const scaleX = patternData.scaleX * clientStore.zoomFactor.value;
-                        const scaleY = patternData.scaleY * clientStore.zoomFactor.value;
-
-                        pattern?.setTransform(new DOMMatrix([scaleX, 0, 0, scaleY, panX, panY]));
-                        background = pattern;
-                    }
-                }
+                background = this.getPatternBackground(floor.backgroundValue);
             }
 
             if (background !== null && background !== "none") {
@@ -61,5 +40,31 @@ export class MapLayer extends Layer {
             super.draw(false);
             this.valid = true;
         }
+    }
+
+    private getPatternBackground(backgroundValue: string): CanvasPattern | null {
+        const patternData = getPattern(backgroundValue);
+        if (patternData === undefined) return null;
+
+        const hash = patternData.hash;
+        const patternImage = patternImages[hash];
+        if (patternImage === undefined) {
+            const img = new Image();
+            patternImages[hash] = img;
+            img.src = baseAdjust("/static/assets/" + hash);
+            img.onload = () => {
+                this.invalidate(true);
+            };
+        } else if (patternImage.loading) {
+            const pattern = this.ctx.createPattern(patternImage, "repeat");
+            const panX = (patternData.offsetX + clientStore.state.panX) * clientStore.zoomFactor.value;
+            const panY = (patternData.offsetY + clientStore.state.panY) * clientStore.zoomFactor.value;
+            const scaleX = patternData.scaleX * clientStore.zoomFactor.value;
+            const scaleY = patternData.scaleY * clientStore.zoomFactor.value;
+
+            pattern?.setTransform(new DOMMatrix([scaleX, 0, 0, scaleY, panX, panY]));
+            return pattern;
+        }
+        return null;
     }
 }

@@ -105,7 +105,7 @@ class VisionState extends Store<State> {
             const shape = UuidMap.get(sh)!;
             if (shape.floor.id !== floor) continue;
 
-            if (shape.type === "assetrect") {
+            if (shape.type === "assetrect" && shape.options.svgPaths !== undefined) {
                 for (const pathString of shape.options.svgPaths ?? []) {
                     const pathElement = document.createElementNS("http://www.w3.org/2000/svg", "path");
                     pathElement.setAttribute("d", pathString);
@@ -169,6 +169,7 @@ class VisionState extends Store<State> {
     private addShapesToTriangulation(target: TriangulationTarget, ...shapes: Shape[]): void {
         // console.time("AS");
         for (const shape of shapes) {
+            console.log(shape.type, shape.points.length);
             if (shape.points.length <= 1) continue;
             const j = shape.isClosed ? 0 : 1;
             for (let i = 0; i < shape.points.length - j; i++) {

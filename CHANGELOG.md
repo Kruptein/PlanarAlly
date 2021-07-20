@@ -35,6 +35,7 @@ These usually have no immediately visible impact on regular users
 -   Initiative reordering with unset values would throw error
 -   Co-DMs can no longer strip DM status of the campaign creator
 -   Co-DMs can no longer kick the campaign creator
+-   Assets' block properties no longer working
 
 ## [0.27.0] - 2021-06-02
 

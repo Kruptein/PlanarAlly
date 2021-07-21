@@ -169,7 +169,6 @@ class VisionState extends Store<State> {
     private addShapesToTriangulation(target: TriangulationTarget, ...shapes: Shape[]): void {
         // console.time("AS");
         for (const shape of shapes) {
-            console.log(shape.type, shape.points.length);
             if (shape.points.length <= 1) continue;
             const j = shape.isClosed ? 0 : 1;
             for (let i = 0; i < shape.points.length - j; i++) {

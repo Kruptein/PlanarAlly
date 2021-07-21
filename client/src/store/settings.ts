@@ -292,9 +292,7 @@ class SettingsStore extends Store<SettingsState> {
     }
 
     setGroundMapBackground(groundMapBackground: string | null, location: number | undefined, sync: boolean): void {
-        console.log(groundMapBackground);
         if (this.mutate("groundMapBackground", groundMapBackground, location)) {
-            console.log(11);
             floorStore.invalidateAllFloors();
             if (sync)
                 sendLocationOptions({

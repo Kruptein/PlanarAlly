@@ -202,18 +202,17 @@ async def load_location(sid: str, location: Location, *, complete=False):
 
     # 8. Load Notes
 
-    if complete:
-        await sio.emit(
-            "Notes.Set",
-            [
-                note.as_dict()
-                for note in Note.select().where(
-                    (Note.user == pr.player) & (Note.room == pr.room)
-                )
-            ],
-            room=sid,
-            namespace=GAME_NS,
-        )
+    await sio.emit(
+        "Notes.Set",
+        [
+            note.as_dict()
+            for note in Note.select().where(
+                (Note.user == pr.player) & (Note.room == pr.room)
+            )
+        ],
+        room=sid,
+        namespace=GAME_NS,
+    )
 
     # 9. Load Markers
 

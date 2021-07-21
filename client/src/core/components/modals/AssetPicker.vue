@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { defineEmit, defineProps, ref, watchEffect } from "vue";
+import { defineEmit, defineProps, watchEffect } from "vue";
 
 import { socket } from "../../../assetManager/socket";
 import { assetStore } from "../../../assetManager/state";
@@ -17,8 +17,6 @@ const emit = defineEmit(["submit", "close"]);
 const { t } = i18n.global;
 
 const state = assetStore.state;
-
-const confirm = ref<HTMLButtonElement | null>(null);
 
 watchEffect(() => {
     if (props.visible) {
@@ -100,8 +98,8 @@ function changeDirectory(folder: number): void {
                 </div>
             </div>
             <div class="buttons">
-                <button @click="emit('submit')" ref="confirm">Select</button>
-                <button @click="emit('close')" ref="deny">Cancel</button>
+                <button @click="emit('submit')">Select</button>
+                <button @click="emit('close')">Cancel</button>
             </div>
         </div>
     </modal>

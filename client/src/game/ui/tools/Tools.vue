@@ -100,7 +100,7 @@ const toolModes = computed(() => {
 
 #toolselect {
     position: absolute;
-    bottom: 25px;
+    bottom: 15px;
     right: 25px;
     display: flex;
     flex-direction: column;
@@ -176,7 +176,7 @@ const toolModes = computed(() => {
 .tool-detail {
     position: absolute;
     right: var(--detailRight);
-    bottom: 80px;
+    bottom: 105px;
     /* width: 150px; */
     border: solid 1px #2b2b2b;
     background-color: white;

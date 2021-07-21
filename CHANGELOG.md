@@ -37,6 +37,7 @@ These usually have no immediately visible impact on regular users
 -   Co-DMs can no longer strip DM status of the campaign creator
 -   Co-DMs can no longer kick the campaign creator
 -   Assets' block properties no longer working
+-   Notes disappearing when changing locations
 
 ## [0.27.0] - 2021-06-02
 

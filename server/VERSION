@@ -1,51 +1,32 @@
-0.27.0
+0.28.0
 
 ### Added
 
--   HiDPI/retina support
-    -   window.devicePixelRatio is now taken into account for rendering
-    -   Can be disabled from ClientSettings->Display
--   Physical (mini) grid size
-    -   Indicate grid size in function of mini dimensions and PPI
-    -   Disables zoom tool when enabled
--   Ability to edit the text value for CircularTokens and Text objects from the property settings
--   [DM] Added ability to copy a location into another game session.
--   [DM] The asset menu bar in-game now automatically live updates when changes are done in the asset manager
--   [DM] Player viewport info
-    -   Show a rectangle on the DM layer representing the player current viewport
-    -   Moving this rectangle will live update the related player's view (only pan for now)
-    -   Can be toggled on from the DM settings
--   [tech] API Server is now disabled by default and can be enabled through the server_config
+-   Configure background for floors (map layer)
+    -   Can be configured on a campaign/location or individual floor level
+    -   Can be set to "empty", "simple colour" or a repeated asset
 
 ### Changed
 
--   Initiative changes
-    -   UI changes
-        -   separate DM bar only visible to DM
-        -   camera/vision lock settings are moved to client settings
-        -   quick action to open client settings
-        -   delete button removed, now a hover action instead
-        -   more width for the initiative value
-        -   initiative value no longer looks like a default input field
-    -   Option to go back a turn
-    -   Option to wipe all existing initiatives
-    -   Option to change the sorting behaviour
-    -   Blur effect to make it clear that initiative is not yet synced
-    -   Enter can now be used to submit a new initiative value
--   Ctrl/Cmd clicking on an already selected shape will now deselect it instead
--   [DM] kicking a player now first prompts for confirmation
--   [tech] server_config variable `public_name` is now commented by default
--   [tech] removed dependencies from Dockefile, that were no longer needed
--   [tech] A big rewrite/refactor of the client has been done.
+-   Draw helper now has a contrast border
+-   Initiative can now be advanced by the active player
+-   Toolbar mode is now more clearly shown
+-   [tech] Moved from vue-cli to vite
+    -   this greatly improves dev and build speed
+    -   main dev script is now `npm run dev`
 
 ### Fixed
 
--   A bug related to floors and lighting on higher up floors not updating
--   Reordering floors being rendered wrong until a refresh
--   Redo not working on Mac
--   Tracker bars with negative values showing a bar going to the left
--   [DM] Co-DM not seeing private initiatives
--   [DM] Removing last floor giving a blank screen
--   [DM] Removing floors below the active floor giving a blank screen
--   [DM] Setting a value < 1 for unitSize was possible
--   [tech] Building docker image on ARM
+-   Subset of HTML no longer working in annotations
+-   Various colour picker fixes
+    -   Keep focus on saturation while mouse down
+    -   Increase height sliders
+    -   Fix hue slider click initially not moving
+    -   Add back checkboard background
+    -   Show cursor:pointer on slider hover
+-   Draw tool cursor not immediately changing on colour change
+-   Initiative reordering with unset values would throw error
+-   Co-DMs can no longer strip DM status of the campaign creator
+-   Co-DMs can no longer kick the campaign creator
+-   Assets' block properties no longer working
+-   Notes disappearing when changing locations

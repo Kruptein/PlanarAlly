@@ -31,7 +31,7 @@ async def root_dev(request):
     get_data = request.rel_url.query
     async with aiohttp.ClientSession() as session:
         async with session.request(
-            "get", target_url, headers=request.headers, params=get_data, data=data
+            "get", target_url, headers=request.headers, data=data
         ) as response:
             raw = await response.read()
             raw = raw.replace(b"$BASE_PATH$", bytes(subpath, "utf-8")[:-1])

@@ -92,7 +92,7 @@ export default defineComponent({
             v-show="visible"
             @dragover.prevent="dragOver"
         >
-            <div class="modal-container" @click.stop ref="container" :style="{ 'background-color': colour }">
+            <div class="modal-container" @click.stop ref="container" :style="{ backgroundColor: colour }">
                 <slot name="header" :dragStart="dragStart" :dragEnd="dragEnd"></slot>
                 <slot></slot>
             </div>

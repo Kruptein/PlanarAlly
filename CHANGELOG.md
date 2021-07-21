@@ -8,6 +8,39 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+## [0.28.0] - 2021-07-21
+
+### Added
+
+-   Configure background for floors (map layer)
+    -   Can be configured on a campaign/location or individual floor level
+    -   Can be set to "empty", "simple colour" or a repeated asset
+
+### Changed
+
+-   Draw helper now has a contrast border
+-   Initiative can now be advanced by the active player
+-   Toolbar mode is now more clearly shown
+-   [tech] Moved from vue-cli to vite
+    -   this greatly improves dev and build speed
+    -   main dev script is now `npm run dev`
+
+### Fixed
+
+-   Subset of HTML no longer working in annotations
+-   Various colour picker fixes
+    -   Keep focus on saturation while mouse down
+    -   Increase height sliders
+    -   Fix hue slider click initially not moving
+    -   Add back checkboard background
+    -   Show cursor:pointer on slider hover
+-   Draw tool cursor not immediately changing on colour change
+-   Initiative reordering with unset values would throw error
+-   Co-DMs can no longer strip DM status of the campaign creator
+-   Co-DMs can no longer kick the campaign creator
+-   Assets' block properties no longer working
+-   Notes disappearing when changing locations
+
 ## [0.27.0] - 2021-06-02
 
 ### Added

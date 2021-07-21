@@ -114,18 +114,16 @@
                 "rename_header_title": "重命名楼层"
             },
             "initiative": {
-                "initiative": {
-                    "new_effect": "新的效果",
-                    "add_timed_effect": "添加倒计时效果",
-                    "delete_effect": "删除效果",
-                    "toggle_group": "切换个体/群体先攻",
-                    "delete_init": "移除先攻",
-                    "round_N": "第{n}轮",
-                    "vision_log_msg": "自动锁定视野（只显示视野可用的指示物）",
-                    "camera_log_msg": "自动跟踪指示物所在的视角",
-                    "reset_round": "重置轮次/回合",
-                    "next": "下一个"
-                }
+                "new_effect": "新的效果",
+                "add_timed_effect": "添加倒计时效果",
+                "delete_effect": "删除效果",
+                "toggle_group": "切换个体/群体先攻",
+                "delete_init": "移除先攻",
+                "round_N": "第{n}轮",
+                "vision_log_msg": "自动锁定视野（只显示视野可用的指示物）",
+                "camera_log_msg": "自动跟踪指示物所在的视角",
+                "reset_round": "重置轮次/回合",
+                "next": "下一个"
             },
             "LabelManager": {
                 "category": "分类",

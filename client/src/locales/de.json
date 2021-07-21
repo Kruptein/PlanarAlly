@@ -117,18 +117,16 @@
                 "rename_header_title": "Stockwerk umbenennen"
             },
             "initiative": {
-                "initiative": {
-                    "new_effect": "Neuer Effekt",
-                    "add_timed_effect": "Effekt mit Wirkungsdauer erstellen",
-                    "toggle_group": "Individuelle / Gruppen-Initiative umschalten",
-                    "delete_init": "Aus Initiative löschen",
-                    "delete_effect": "Effekt löschen",
-                    "round_N": "Runde {n}",
-                    "vision_log_msg": "Sicht automatisch sperren (zeige nur Sicht des aktiven Spielsteins)",
-                    "camera_log_msg": "Ansicht automatisch auf aktiven Spielstein zentrieren",
-                    "reset_round": "Runden/Züge zurücksetzen",
-                    "next": "Nächster Zug"
-                }
+                "new_effect": "Neuer Effekt",
+                "add_timed_effect": "Effekt mit Wirkungsdauer erstellen",
+                "toggle_group": "Individuelle / Gruppen-Initiative umschalten",
+                "delete_init": "Aus Initiative löschen",
+                "delete_effect": "Effekt löschen",
+                "round_N": "Runde {n}",
+                "vision_log_msg": "Sicht automatisch sperren (zeige nur Sicht des aktiven Spielsteins)",
+                "camera_log_msg": "Ansicht automatisch auf aktiven Spielstein zentrieren",
+                "reset_round": "Runden/Züge zurücksetzen",
+                "next": "Nächster Zug"
             },
             "LabelManager": {
                 "category": "Kategorie",

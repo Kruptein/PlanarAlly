@@ -42,6 +42,9 @@ class LocationOptions(BaseModel):
     spawn_locations = TextField(default="[]")
     move_player_on_token_change = BooleanField(default=True, null=True)
     grid_type = TextField(default="SQUARE", null=True)
+    air_map_background = TextField(default="rgba(0, 0, 0, 0)")
+    ground_map_background = TextField(default="rgba(0, 0, 0, 0)")
+    underground_map_background = TextField(default="rgba(0, 0, 0, 0)")
 
     def as_dict(self):
         return {
@@ -211,6 +214,8 @@ class Floor(BaseModel):
     index = IntegerField()
     name = TextField()
     player_visible = BooleanField(default=False)
+    type_ = IntegerField(default=1)
+    background_color = TextField(default=None, null=True)
 
     def __repr__(self):
         return f"<Floor {self.name} {[self.index]}>"

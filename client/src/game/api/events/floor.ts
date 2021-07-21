@@ -21,3 +21,11 @@ socket.on("Floor.Rename", (data: { index: number; name: string }) => {
 });
 
 socket.on("Floors.Reorder", (floors: string[]) => floorStore.reorderFloors(floors, false));
+
+socket.on("Floor.Type.Set", (data: { name: string; floorType: number }) => {
+    floorStore.setFloorType({ name: data.name }, data.floorType, false);
+});
+
+socket.on("Floor.Background.Set", (data: { name: string; background?: string }) => {
+    floorStore.setFloorBackground({ name: data.name }, data.background, false);
+});

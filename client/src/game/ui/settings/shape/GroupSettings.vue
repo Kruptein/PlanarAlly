@@ -1,8 +1,9 @@
-<script lang="ts">
-import { computed, defineComponent, toRef } from "vue";
+<script setup lang="ts">
+import { computed, toRef } from "vue";
 
 import { SyncTo } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
+import { getChecked, getValue } from "../../../../core/utils";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { UuidMap } from "../../../../store/shapeMap";
 import {
@@ -16,184 +17,165 @@ import {
     setCharacterSet,
     setCreationOrder,
 } from "../../../groups";
-import { CREATION_ORDER_OPTIONS, CREATION_ORDER_TYPES } from "../../../models/groups";
+import type { CREATION_ORDER_TYPES } from "../../../models/groups";
+import { CREATION_ORDER_OPTIONS } from "../../../models/groups";
 import { setCenterPosition } from "../../../position";
 import { Shape } from "../../../shapes/shape";
 
-export default defineComponent({
-    setup() {
-        const modals = useModal();
+const groupId = toRef(activeShapeStore.state, "groupId");
+const uuid = toRef(activeShapeStore.state, "uuid");
 
-        const characterSet = ["numbers", "latin characters", "custom"];
-        let characterSetSelected = 0;
-        let customText: string[] = [];
-        let _creationOrder: CREATION_ORDER_TYPES = "incrementing";
+const modals = useModal();
 
-        const owned = activeShapeStore.hasEditAccess;
+const characterSet = ["numbers", "latin characters", "custom"];
+let characterSetSelected = 0;
+let customText: string[] = [];
+let defaultCreationOrder: CREATION_ORDER_TYPES = "incrementing";
 
-        const group = computed(() => {
-            const groupId = activeShapeStore.state.groupId;
-            if (groupId !== undefined) {
-                return groupMap.value.get(groupId);
+const owned = activeShapeStore.hasEditAccess;
+
+const group = computed(() => {
+    const groupId = activeShapeStore.state.groupId;
+    if (groupId !== undefined) {
+        return groupMap.value.get(groupId);
+    } else {
+        return undefined;
+    }
+});
+
+const groupMembers = computed(() => {
+    if (group.value === undefined) return [];
+
+    const members = memberMap.value.get(group.value.uuid);
+    if (members === undefined) return [];
+    return [...members].map((m) => UuidMap.get(m)!).sort((a, b) => a.badge - b.badge);
+});
+
+function invalidate(): void {
+    const shape = UuidMap.get(activeShapeStore.state.uuid!)!;
+    shape.invalidate(true);
+}
+
+const selectedCharacterSet = computed({
+    get() {
+        if (group.value === undefined) {
+            return characterSetSelected;
+        } else {
+            const charset = group.value.characterSet;
+            const index = CHARACTER_SETS.findIndex((cs) => cs.join(",") === charset.join(","));
+            return index >= 0 ? index : 2;
+        }
+    },
+    set(index: number) {
+        if (!owned.value) return;
+
+        if (group.value === undefined) {
+            characterSetSelected = index;
+        } else {
+            if (index === 2) {
+                setCharacterSet(group.value.uuid, []);
             } else {
-                return undefined;
-            }
-        });
-
-        const groupMembers = computed(() => {
-            if (group.value === undefined) return [];
-
-            const members = memberMap.value.get(group.value.uuid);
-            if (members === undefined) return [];
-            return [...members].map((m) => UuidMap.get(m)!).sort((a, b) => a.badge - b.badge);
-        });
-
-        function invalidate(): void {
-            const shape = UuidMap.get(activeShapeStore.state.uuid!)!;
-            shape.invalidate(true);
-        }
-
-        const selectedCharacterSet = computed({
-            get() {
-                if (group.value === undefined) {
-                    return characterSetSelected;
-                } else {
-                    const charset = group.value.characterSet;
-                    const index = CHARACTER_SETS.findIndex((cs) => cs.join(",") === charset.join(","));
-                    return index >= 0 ? index : 2;
-                }
-            },
-            set(index: number) {
-                if (!owned.value) return;
-
-                if (group.value === undefined) {
-                    characterSetSelected = index;
-                } else {
-                    if (index === 2) {
-                        setCharacterSet(group.value.uuid, []);
-                    } else {
-                        setCharacterSet(group.value.uuid, CHARACTER_SETS[index]);
-                        invalidate();
-                    }
-                }
-            },
-        });
-
-        const customCharacterSet = computed({
-            get() {
-                if (group.value === undefined) {
-                    return customText.join(",");
-                }
-                return group.value.characterSet.join(",");
-            },
-            set(characterSet: string) {
-                if (!owned.value) return;
-
-                const value = characterSet.split(",");
-                if (group.value === undefined) {
-                    customText = value;
-                } else {
-                    setCharacterSet(group.value.uuid, value);
-                    invalidate();
-                }
-            },
-        });
-
-        const creationOrder = computed({
-            get() {
-                if (group.value === undefined) {
-                    return _creationOrder;
-                }
-                return group.value.creationOrder;
-            },
-            async set(creationOrder: CREATION_ORDER_TYPES) {
-                if (!owned.value) return;
-
-                if (group.value === undefined) {
-                    _creationOrder = creationOrder;
-                } else {
-                    const doChange = await modals.confirm(
-                        "Changing creation order",
-                        "Are you sure you wish to change the creation order? This will change all badges in this group.",
-                    );
-                    if (doChange === true) {
-                        setCreationOrder(group.value.uuid, creationOrder);
-                        invalidate();
-                    }
-                }
-            },
-        });
-
-        function updateToggles(checked: boolean): void {
-            if (!owned.value) return;
-            for (const member of groupMembers.value) {
-                if (member.showBadge !== checked) member.setShowBadge(checked, SyncTo.SERVER);
+                setCharacterSet(group.value.uuid, CHARACTER_SETS[index]);
+                invalidate();
             }
         }
-
-        function centerMember(member: Shape): void {
-            if (!owned.value) return;
-            setCenterPosition(member.center());
-        }
-
-        function toggleHighlight(member: Shape, show: boolean): void {
-            if (!owned.value) return;
-            member.showHighlight = show;
-            member.layer.invalidate(true);
-        }
-
-        function showBadge(member: Shape, checked: boolean): void {
-            if (!owned.value) return;
-            // This and Keyboard are the only places currently where we would need to update both UI and Server.
-            // Might need to introduce a SyncTo.BOTH
-            member.setShowBadge(checked, SyncTo.SERVER);
-            if (member.uuid === activeShapeStore.state.uuid) activeShapeStore.setShowBadge(checked, SyncTo.UI);
-        }
-
-        function removeMember(member: Shape): void {
-            if (!owned.value) return;
-            removeGroupMember(member.groupId!, member.uuid, true);
-        }
-
-        function createGroup(): void {
-            if (!owned.value) return;
-            if (activeShapeStore.state.groupId !== undefined) return;
-            createNewGroupForShapes([activeShapeStore.state.uuid!]);
-        }
-
-        async function deleteGroup(): Promise<void> {
-            if (!owned.value) return;
-            const groupId = activeShapeStore.state.groupId;
-            if (groupId === undefined) return;
-            const remove = await modals.confirm(
-                "Removing group",
-                "Are you sure you wish to remove this group. There might be shapes in other locations that are associated with this group as well.",
-            );
-            if (remove === true) {
-                removeGroup(groupId, true);
-            }
-        }
-
-        return {
-            centerMember,
-            characterSet,
-            createGroup,
-            creationOrder,
-            CREATION_ORDER_OPTIONS,
-            customCharacterSet,
-            deleteGroup,
-            getBadgeCharacters,
-            groupId: toRef(activeShapeStore.state, "groupId"),
-            groupMembers,
-            removeMember,
-            selectedCharacterSet,
-            showBadge,
-            toggleHighlight,
-            updateToggles,
-            uuid: toRef(activeShapeStore.state, "uuid"),
-        };
     },
 });
+
+const customCharacterSet = computed({
+    get() {
+        if (group.value === undefined) {
+            return customText.join(",");
+        }
+        return group.value.characterSet.join(",");
+    },
+    set(characterSet: string) {
+        if (!owned.value) return;
+
+        const value = characterSet.split(",");
+        if (group.value === undefined) {
+            customText = value;
+        } else {
+            setCharacterSet(group.value.uuid, value);
+            invalidate();
+        }
+    },
+});
+
+const creationOrder = computed({
+    get() {
+        if (group.value === undefined) {
+            return defaultCreationOrder;
+        }
+        return group.value.creationOrder;
+    },
+    async set(creationOrder: CREATION_ORDER_TYPES) {
+        if (!owned.value) return;
+
+        if (group.value === undefined) {
+            defaultCreationOrder = creationOrder;
+        } else {
+            const doChange = await modals.confirm(
+                "Changing creation order",
+                "Are you sure you wish to change the creation order? This will change all badges in this group.",
+            );
+            if (doChange === true) {
+                setCreationOrder(group.value.uuid, creationOrder);
+                invalidate();
+            }
+        }
+    },
+});
+
+function updateToggles(checked: boolean): void {
+    if (!owned.value) return;
+    for (const member of groupMembers.value) {
+        if (member.showBadge !== checked) member.setShowBadge(checked, SyncTo.SERVER);
+    }
+}
+
+function centerMember(member: Shape): void {
+    if (!owned.value) return;
+    setCenterPosition(member.center());
+}
+
+function toggleHighlight(member: Shape, show: boolean): void {
+    if (!owned.value) return;
+    member.showHighlight = show;
+    member.layer.invalidate(true);
+}
+
+function showBadge(member: Shape, checked: boolean): void {
+    if (!owned.value) return;
+    // This and Keyboard are the only places currently where we would need to update both UI and Server.
+    // Might need to introduce a SyncTo.BOTH
+    member.setShowBadge(checked, SyncTo.SERVER);
+    if (member.uuid === activeShapeStore.state.uuid) activeShapeStore.setShowBadge(checked, SyncTo.UI);
+}
+
+function removeMember(member: Shape): void {
+    if (!owned.value) return;
+    removeGroupMember(member.groupId!, member.uuid, true);
+}
+
+function createGroup(): void {
+    if (!owned.value) return;
+    if (activeShapeStore.state.groupId !== undefined) return;
+    createNewGroupForShapes([activeShapeStore.state.uuid!]);
+}
+
+async function deleteGroup(): Promise<void> {
+    if (!owned.value) return;
+    const groupId = activeShapeStore.state.groupId;
+    if (groupId === undefined) return;
+    const remove = await modals.confirm(
+        "Removing group",
+        "Are you sure you wish to remove this group. There might be shapes in other locations that are associated with this group as well.",
+    );
+    if (remove === true) {
+        removeGroup(groupId, true);
+    }
+}
 </script>
 
 <template>
@@ -213,7 +195,7 @@ export default defineComponent({
                 <input
                     type="text"
                     :value="customCharacterSet"
-                    @change="customCharacterSet = $event.target.value"
+                    @change="customCharacterSet = getValue($event)"
                     placeholder="α,β,γ,δ,ε"
                 />
             </div>
@@ -236,7 +218,7 @@ export default defineComponent({
                     id="toggleCheckbox"
                     type="checkbox"
                     ref="toggleCheckbox"
-                    @click="updateToggles($event.target.checked)"
+                    @click="updateToggles(getChecked($event))"
                 />
             </div>
             <div></div>
@@ -259,11 +241,7 @@ export default defineComponent({
                 </div>
                 <div></div>
                 <div>
-                    <input
-                        type="checkbox"
-                        :checked="member.showBadge"
-                        @click="showBadge(member, $event.target.checked)"
-                    />
+                    <input type="checkbox" :checked="member.showBadge" @click="showBadge(member, getChecked($event))" />
                 </div>
                 <div :style="{ textAlign: 'center' }">
                     <font-awesome-icon icon="trash-alt" @click="removeMember(member)" />

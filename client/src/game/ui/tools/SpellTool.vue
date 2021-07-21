@@ -1,5 +1,6 @@
-<script lang="ts">
-import { computed, defineComponent, onMounted, reactive, toRef, toRefs } from "vue";
+<script setup lang="ts">
+import type { CSSProperties } from "vue";
+import { computed, onMounted, reactive, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../core/components/ColourPicker.vue";
@@ -9,60 +10,45 @@ import { SpellShape, spellTool } from "../../tools/variants/spell";
 
 import { useToolPosition } from "./toolPosition";
 
-export default defineComponent({
-    components: { ColourPicker },
-    setup() {
-        const { t } = useI18n();
+const { t } = useI18n();
 
-        const state = reactive({
-            arrow: "0px",
-            right: "0px",
-        });
-
-        onMounted(() => {
-            ({ right: state.right, arrow: state.arrow } = useToolPosition(spellTool.toolName));
-        });
-
-        const canConeBeCast = computed(() => selectionState.state.selection.size > 0 && spellTool.state.range === 0);
-
-        const translationMapping = {
-            [SpellShape.Square]: t("game.ui.tools.DrawTool.square"),
-            [SpellShape.Circle]: t("game.ui.tools.DrawTool.circle"),
-            [SpellShape.Cone]: t("game.ui.tools.DrawTool.cone"),
-        };
-
-        function selectShape(shape: SpellShape): void {
-            spellTool.state.selectedSpellShape = shape;
-            spellTool.drawShape();
-        }
-
-        return {
-            ...toRefs(state),
-            ...toRefs(spellTool.state),
-            baseAdjust,
-            SpellShape,
-            t,
-            selected: spellTool.isActiveTool,
-            selection: toRef(selectionState.state, "selection"),
-            shapes: Object.values(SpellShape),
-
-            canConeBeCast,
-            selectShape,
-            translationMapping,
-        };
-    },
+const state = reactive({
+    arrow: "0px",
+    right: "0px",
 });
+
+const selected = spellTool.isActiveTool;
+const selection = toRef(selectionState.state, "selection");
+const shapes = Object.values(SpellShape);
+const toolStyle = computed(() => ({ "--detailRight": state.right, "--detailArrow": state.arrow } as CSSProperties));
+
+onMounted(() => {
+    ({ right: state.right, arrow: state.arrow } = useToolPosition(spellTool.toolName));
+});
+
+const canConeBeCast = computed(() => selectionState.state.selection.size > 0 && spellTool.state.range === 0);
+
+const translationMapping = {
+    [SpellShape.Square]: t("game.ui.tools.DrawTool.square"),
+    [SpellShape.Circle]: t("game.ui.tools.DrawTool.circle"),
+    [SpellShape.Cone]: t("game.ui.tools.DrawTool.cone"),
+};
+
+function selectShape(shape: SpellShape): void {
+    spellTool.state.selectedSpellShape = shape;
+    spellTool.drawShape();
+}
 </script>
 
 <template>
-    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': right, '--detailArrow': arrow }">
+    <div class="tool-detail" v-if="selected" :style="toolStyle">
         <div class="selectgroup">
             <div
                 v-for="shape in shapes"
                 :key="shape"
                 class="option"
                 :class="{
-                    'option-selected': selectedSpellShape === shape,
+                    'option-selected': spellTool.state.selectedSpellShape === shape,
                     disabled: !canConeBeCast && shape === SpellShape.Cone,
                 }"
                 @click="selectShape(shape)"
@@ -73,32 +59,40 @@ export default defineComponent({
             </div>
         </div>
         <div id="grid">
-            <label for="size" style="flex: 5" v-t="'game.ui.tools.SpellTool.size'"></label>
-            <input type="number" id="size" style="flex: 1; align-self: center" v-model.number="size" min="0" step="5" />
-            <label
-                for="range"
-                style="flex: 5"
-                v-t="'game.ui.tools.SpellTool.range'"
-                :class="{ disabled: selection.size === 0 }"
-            ></label>
+            <label for="size" style="flex: 5">{{ t("game.ui.tools.SpellTool.size") }}</label>
+            <input
+                type="number"
+                id="size"
+                style="flex: 1; align-self: center"
+                v-model.number="spellTool.state.size"
+                min="0"
+                step="5"
+            />
+            <label for="range" style="flex: 5" :class="{ disabled: selection.size === 0 }">
+                {{ t("game.ui.tools.SpellTool.range") }}
+            </label>
             <input
                 type="number"
                 id="range"
                 style="flex: 1; align-self: center"
                 min="0"
                 step="5"
-                v-model.number="range"
+                v-model.number="spellTool.state.range"
                 :disabled="selection.size === 0"
                 :class="{ disabled: selection.size === 0 }"
             />
-            <label for="colour" style="flex: 5" v-t="'common.fill_color'"></label>
+            <label for="colour" style="flex: 5">{{ t("common.fill_color") }}</label>
             <ColourPicker
                 class="option"
-                v-model:colour="colour"
+                v-model:colour="spellTool.state.colour"
                 :title="t('game.ui.tools.DrawTool.background_color')"
             />
-            <label for="range" style="flex: 5" v-t="'game.ui.selection.edit_dialog.dialog.show_annotation'"></label>
-            <button class="slider-checkbox" :aria-pressed="showPublic" @click="showPublic = !showPublic"></button>
+            <label for="range" style="flex: 5">{{ t("game.ui.selection.edit_dialog.dialog.show_annotation") }}</label>
+            <button
+                class="slider-checkbox"
+                :aria-pressed="spellTool.state.showPublic"
+                @click="spellTool.state.showPublic = !spellTool.state.showPublic"
+            ></button>
         </div>
     </div>
 </template>

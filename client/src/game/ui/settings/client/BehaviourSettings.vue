@@ -42,7 +42,7 @@ export default defineComponent({
     <div class="panel restore-panel">
         <div class="spanrow header">Snapping</div>
         <div class="row">
-            <label for="invertAlt" v-t="'game.ui.settings.client.BehaviourSettings.invert_alt_set'"></label>
+            <label for="invertAlt">{{ t("game.ui.settings.client.BehaviourSettings.invert_alt_set") }}</label>
             <div><input id="invertAlt" type="checkbox" v-model="invertAlt" /></div>
             <template v-if="invertAlt !== defaultOptions.invertAlt">
                 <div :title="t('game.ui.settings.common.reset_default')" @click="invertAlt = defaultOptions.invertAlt">
@@ -55,10 +55,9 @@ export default defineComponent({
         </div>
         <div class="spanrow header">Mouse & Gestures</div>
         <div class="row">
-            <label
-                for="disableScrollToZoom"
-                v-t="'game.ui.settings.client.BehaviourSettings.disable_scroll_to_zoom'"
-            ></label>
+            <label for="disableScrollToZoom">
+                {{ t("game.ui.settings.client.BehaviourSettings.disable_scroll_to_zoom") }}
+            </label>
             <div><input id="disableScrollToZoom" type="checkbox" v-model="disableScrollToZoom" /></div>
             <template v-if="disableScrollToZoom !== defaultOptions.disableScrollToZoom">
                 <div

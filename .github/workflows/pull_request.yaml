@@ -24,4 +24,4 @@ jobs:
             - name: build
               working-directory: client
               run: |
-                  npm run build
+                  npm run build:ci

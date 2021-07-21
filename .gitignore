@@ -11,6 +11,7 @@ server/oldsaves
 .venv
 venv/
 env/
+server/.python-version
 
 # PyInstaller
 server/dist/**
@@ -32,6 +33,7 @@ server/static/assets/**
 server/static/css/**
 server/static/js/**
 server/static/img/assets/**
+server/static/vite/**
 server/templates/**
 
 # docs

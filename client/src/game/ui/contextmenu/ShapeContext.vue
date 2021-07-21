@@ -391,7 +391,7 @@ export default defineComponent({
                 <li
                     v-for="(floor, idx) in floors"
                     :key="floor.name"
-                    :style="[idx === currentFloorIndex ? { 'background-color': '#82c8a0' } : {}]"
+                    :style="[idx === currentFloorIndex ? { backgroundColor: '#82c8a0' } : {}]"
                     @click="setFloor(floor)"
                 >
                     {{ floor.name }}
@@ -404,7 +404,7 @@ export default defineComponent({
                 <li
                     v-for="layer in layers"
                     :key="layer.name"
-                    :style="[layer.name === activeLayer.name ? { 'background-color': '#82c8a0' } : {}]"
+                    :style="[layer.name === activeLayer.name ? { backgroundColor: '#82c8a0' } : {}]"
                     @click="setLayer(layer.name)"
                 >
                     {{ layerTranslationMapping[layer.name] }}
@@ -417,29 +417,25 @@ export default defineComponent({
                 <li
                     v-for="location in locations"
                     :key="location.id"
-                    :style="[activeLocation === location.id ? { 'background-color': '#82c8a0' } : {}]"
+                    :style="[activeLocation === location.id ? { backgroundColor: '#82c8a0' } : {}]"
                     @click="setLocation(location.id)"
                 >
                     {{ location.name }}
                 </li>
             </ul>
         </li>
-        <li @click="moveToBack" v-if="isOwned" v-t="'game.ui.selection.ShapeContext.move_back'"></li>
-        <li @click="moveToFront" v-if="isOwned" v-t="'game.ui.selection.ShapeContext.move_front'"></li>
+        <li @click="moveToBack" v-if="isOwned">{{ t("game.ui.selection.ShapeContext.move_back") }}</li>
+        <li @click="moveToFront" v-if="isOwned">{{ t("game.ui.selection.ShapeContext.move_front") }}</li>
         <li @click="addToInitiative" v-if="isOwned && !selectionIncludesSpawnToken">{{ getInitiativeWord() }}</li>
-        <li
-            @click="deleteSelection"
-            v-if="!selectionIncludesSpawnToken && (isDm || isOwned)"
-            v-t="'game.ui.selection.ShapeContext.delete_shapes'"
-        ></li>
+        <li @click="deleteSelection" v-if="!selectionIncludesSpawnToken && (isDm || isOwned)">
+            {{ t("game.ui.selection.ShapeContext.delete_shapes") }}
+        </li>
         <template v-if="hasSingleSelection">
-            <li v-if="isMarker" @click="deleteMarker" v-t="'game.ui.selection.ShapeContext.remove_marker'"></li>
-            <li v-else @click="setMarker" v-t="'game.ui.selection.ShapeContext.set_marker'"></li>
-            <li
-                @click="saveTemplate"
-                v-if="!selectionIncludesSpawnToken && isDm && canBeSaved"
-                v-t="'game.ui.templates.save'"
-            ></li>
+            <li v-if="isMarker" @click="deleteMarker">{{ t("game.ui.selection.ShapeContext.remove_marker") }}</li>
+            <li v-else @click="setMarker">{{ t("game.ui.selection.ShapeContext.set_marker") }}</li>
+            <li @click="saveTemplate" v-if="!selectionIncludesSpawnToken && isDm && canBeSaved">
+                {{ t("game.ui.templates.save") }}
+            </li>
         </template>
         <template v-else>
             <li>
@@ -457,7 +453,7 @@ export default defineComponent({
                 </ul>
             </li>
         </template>
-        <li v-if="hasSingleSelection" @click="openEditDialog" v-t="'game.ui.selection.ShapeContext.show_props'"></li>
+        <li v-if="hasSingleSelection" @click="openEditDialog">{{ t("game.ui.selection.ShapeContext.show_props") }}</li>
     </ContextMenu>
 </template>
 

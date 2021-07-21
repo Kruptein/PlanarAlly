@@ -5,6 +5,7 @@ from api.socket.constants import GAME_NS
 from app import app, sio
 from models import PlayerRoom
 from models.role import Role
+from models.user import User
 from state.game import game_state
 from utils import logger
 
@@ -51,6 +52,14 @@ async def set_player_role(sid: str, data: PlayerRoleChange):
     new_role = Role(data["role"])
 
     player_pr: PlayerRoom = PlayerRoom.get(player=data["player"], room=pr.room)
+    creator: User = player_pr.room.creator
+
+    if pr.player != creator and creator == player_pr.player:
+        logger.warning(
+            f"{pr.player.name} attempted to change the role of the campaign creator"
+        )
+        return
+
     player_pr.role = new_role
     player_pr.save()
 

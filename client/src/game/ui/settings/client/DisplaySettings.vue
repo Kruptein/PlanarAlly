@@ -74,7 +74,7 @@ export default defineComponent({
 <template>
     <div class="panel restore-panel">
         <div class="row">
-            <label for="useHighDpi" v-t="'game.ui.settings.client.DisplaySettings.use_high_dpi'"></label>
+            <label for="useHighDpi">{{ t("game.ui.settings.client.DisplaySettings.use_high_dpi") }}</label>
             <div><input id="useHighDpi" type="checkbox" v-model="useHighDpi" /></div>
             <template v-if="useHighDpi !== defaultOptions.useHighDpi">
                 <div
@@ -90,10 +90,9 @@ export default defineComponent({
         </div>
         <div class="spanrow header">Gameboard</div>
         <div class="row">
-            <label
-                for="useAsPhysicalBoard"
-                v-t="'game.ui.settings.client.DisplaySettings.use_as_physical_gameboard'"
-            ></label>
+            <label for="useAsPhysicalBoard">
+                {{ t("game.ui.settings.client.DisplaySettings.use_as_physical_gameboard") }}
+            </label>
             <div><input id="useAsPhysicalBoard" type="checkbox" v-model="useAsPhysicalBoard" /></div>
             <template v-if="useAsPhysicalBoard !== defaultOptions.useAsPhysicalBoard">
                 <div
@@ -108,7 +107,7 @@ export default defineComponent({
             </template>
         </div>
         <div class="row" :class="{ 'row-disabled': !useAsPhysicalBoard }">
-            <label for="miniSize" v-t="'game.ui.settings.client.DisplaySettings.mini_size_in_inches'"></label>
+            <label for="miniSize">{{ t("game.ui.settings.client.DisplaySettings.mini_size_in_inches") }}</label>
             <div>
                 <input id="miniSize" type="number" v-model="miniSize" :disabled="!useAsPhysicalBoard" />
             </div>
@@ -122,7 +121,7 @@ export default defineComponent({
             </template>
         </div>
         <div class="row" :class="{ 'row-disabled': !useAsPhysicalBoard }">
-            <label for="ppi" v-t="'game.ui.settings.client.DisplaySettings.ppi'"></label>
+            <label for="ppi">{{ t("game.ui.settings.client.DisplaySettings.ppi") }}</label>
             <div>
                 <input id="ppi" type="number" v-model="ppi" :disabled="!useAsPhysicalBoard" />
             </div>
@@ -137,7 +136,7 @@ export default defineComponent({
         </div>
         <div class="spanrow header">Grid</div>
         <div class="row" :class="{ 'row-disabled': useAsPhysicalBoard }">
-            <label for="gridSize" v-t="'game.ui.settings.client.DisplaySettings.grid_size_in_pixels'"></label>
+            <label for="gridSize">{{ t("game.ui.settings.client.DisplaySettings.grid_size_in_pixels") }}</label>
             <div>
                 <input id="gridSize" type="number" v-model="gridSize" :disabled="useAsPhysicalBoard" />
             </div>

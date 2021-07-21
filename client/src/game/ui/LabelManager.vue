@@ -97,7 +97,7 @@ export default defineComponent({
     <Modal :visible="visible" @close="close" :mask="false">
         <template v-slot:header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
-                <div v-t="'game.ui.LabelManager.title'"></div>
+                <div>{{ t("game.ui.LabelManager.title") }}</div>
                 <div class="header-close" @click="close" :title="t('common.close')">
                     <font-awesome-icon :icon="['far', 'window-close']" />
                 </div>
@@ -106,14 +106,14 @@ export default defineComponent({
         <div class="modal-body">
             <div class="grid">
                 <div>
-                    <abbr :title="t('game.ui.LabelManager.category')" v-t="'game.ui.LabelManager.cat_abbr'"></abbr>
+                    <abbr :title="t('game.ui.LabelManager.category')">{{ t("game.ui.LabelManager.cat_abbr") }}</abbr>
                 </div>
-                <div class="name" v-t="'common.name'"></div>
+                <div class="name">{{ t("common.name") }}</div>
                 <div>
-                    <abbr :title="t('game.ui.LabelManager.visible')" v-t="'game.ui.LabelManager.vis_abbr'"></abbr>
+                    <abbr :title="t('game.ui.LabelManager.visible')">{{ t("game.ui.LabelManager.vis_abbr") }}</abbr>
                 </div>
                 <div>
-                    <abbr :title="t('game.ui.LabelManager.delete')" v-t="'game.ui.LabelManager.del_abbr'"></abbr>
+                    <abbr :title="t('game.ui.LabelManager.delete')">{{ t("game.ui.LabelManager.del_abbr") }}</abbr>
                 </div>
                 <div class="separator spanrow" style="margin: 0 0 7px"></div>
                 <input class="spanrow" type="text" :placeholder="t('common.search')" v-model="search" />
@@ -150,14 +150,14 @@ export default defineComponent({
                     </template>
                 </template>
                 <template v-if="!hasLabels">
-                    <div id="no-labels" v-t="'game.ui.LabelManager.no_exist_msg'"></div>
+                    <div id="no-labels">{{ t("game.ui.LabelManager.no_exist_msg") }}</div>
                 </template>
             </div>
             <div class="grid">
                 <div class="separator spanrow"></div>
                 <input type="text" v-model.trim="newCategory" />
                 <input type="text" v-model.trim="newName" />
-                <button id="addLabelButton" @click.stop="addLabel" v-t="'common.add'"></button>
+                <button id="addLabelButton" @click.stop="addLabel">{{ t("common.add") }}</button>
             </div>
         </div>
     </Modal>

@@ -49,6 +49,7 @@ export default defineComponent({
         }
 
         return {
+            t,
             cm,
             left: assetContextLeft,
             top: assetContextTop,
@@ -63,7 +64,7 @@ export default defineComponent({
 
 <template>
     <ContextMenu ref="cm" :visible="visible" :left="left" :top="top" @cm:close="close">
-        <li @click="rename" v-t="'common.rename'"></li>
-        <li @click="remove" v-t="'common.remove'"></li>
+        <li @click="rename">{{ t("common.rename") }}</li>
+        <li @click="remove">{{ t("common.remove") }}</li>
     </ContextMenu>
 </template>

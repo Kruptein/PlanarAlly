@@ -117,21 +117,20 @@
                 "rename_header_title": "Renaming Floor"
             },
             "initiative": {
-                "initiative": {
-                    "new_effect": "New effect",
-                    "add_timed_effect": "Add timed effect",
-                    "toggle_group": "Toggle individual / group initiative",
-                    "delete_init": "Delete initiative",
-                    "delete_effect": "Delete effect",
-                    "round_N": "Round {n}",
-                    "vision_log_msg": "Auto lock vision (only show vision of active token)",
-                    "camera_log_msg": "Auto camera lock on active token",
-                    "reset_round": "Reset rounds/turns",
-                    "next": "Next",
-                    "previous": "Previous",
-                    "clear": "Clear initiatives",
-                    "change_sort": "Change sorting"
-                }
+                "new_effect": "New effect",
+                "add_timed_effect": "Add timed effect",
+                "toggle_group": "Toggle individual / group initiative",
+                "delete_init": "Delete initiative",
+                "delete_effect": "Delete effect",
+                "round_N": "Round {n}",
+                "vision_log_msg": "Auto lock vision (only show vision of active token)",
+                "camera_log_msg": "Auto camera lock on active token",
+                "reset_round": "Reset rounds/turns",
+                "next": "Next",
+                "previous": "Previous",
+                "clear": "Clear initiatives",
+                "change_sort": "Change sorting",
+                "settings": "Settings"
             },
             "LabelManager": {
                 "category": "Category",
@@ -215,7 +214,7 @@
                     "remove_marker": "Remove marker",
                     "set_marker": "Set marker",
                     "no_spawn_set_title": "Could not move shapes",
-                    "no_spawn_set_text": "The destination has no spawn locations configured, make sure to create at least one."
+                    "no_spawn_set_text": "The destination has no spawn locations configured. Make sure to create at least one by using the context-menu in the destination location."
                 }
             },
             "settings": {
@@ -264,6 +263,9 @@
                         "dm_settings": "DM Settings"
                     }
                 },
+                "floor": {
+                    "title": "Floor Settings"
+                },
                 "common": {
                     "overridden_msg": "Some of these settings can be overriden by location specific settings",
                     "overridden_highlight": "highlighted",
@@ -279,6 +281,12 @@
                     "SQUARE": "Squares",
                     "POINTY_HEX": "Pointy Hexagons",
                     "FLAT_HEX": "Flat Hexagons"
+                },
+                "FloorSettings": {
+                    "backgrounds": "Map backgrounds",
+                    "air_background": "Air floor(s)",
+                    "ground_background": "Ground floor(s)",
+                    "underground_background": "Underground floor(s)"
                 },
                 "VariaSettings": {
                     "movePlayerOnTokenChange": "Move player(s) when a token they own changes location"

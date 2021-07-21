@@ -1,3 +1,5 @@
+import tinycolor from "tinycolor2";
+
 import { BASE_PATH } from "../utils";
 
 // Reference: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
@@ -80,4 +82,20 @@ export async function getErrorReason(response: Response): Promise<string> {
 export function ctrlOrCmdPressed(event: KeyboardEvent | MouseEvent | TouchEvent): boolean {
     if (navigator.platform.includes("Mac")) return event.metaKey;
     return event.ctrlKey;
+}
+
+export function mostReadable(colour: string): string {
+    return tinycolor.mostReadable(colour, ["#000", "#fff"]).toHexString();
+}
+
+export function getTarget(event: Event): HTMLInputElement {
+    return event.target as HTMLInputElement;
+}
+
+export function getValue(event: Event): string {
+    return getTarget(event).value;
+}
+
+export function getChecked(event: Event): boolean {
+    return getTarget(event).checked;
 }

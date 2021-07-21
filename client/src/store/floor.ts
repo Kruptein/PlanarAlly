@@ -1,9 +1,11 @@
-import { computed, ComputedRef } from "@vue/runtime-core";
+import { computed, ComputedRef, DeepReadonly } from "@vue/runtime-core";
 
 import { Store } from "../core/store";
 import {
     sendActiveLayer,
     sendFloorReorder,
+    sendFloorSetBackground,
+    sendFloorSetType,
     sendFloorSetVisible,
     sendRemoveFloor,
     sendRenameFloor,
@@ -16,10 +18,13 @@ import { FowLightingLayer } from "../game/layers/variants/fowLighting";
 import { FowVisionLayer } from "../game/layers/variants/fowVision";
 import { GridLayer } from "../game/layers/variants/grid";
 import { Layer } from "../game/layers/variants/layer";
-import { Floor, LayerName } from "../game/models/floor";
+import { MapLayer } from "../game/layers/variants/map";
+import { Floor, FloorType, LayerName } from "../game/models/floor";
 import { ServerFloor, ServerLayer } from "../game/models/general";
 import { groupToClient } from "../game/models/groups";
 import { TriangulationTarget, visionState } from "../game/vision/state";
+
+import { gameStore } from "./game";
 
 interface FloorState {
     floors: Floor[];
@@ -71,16 +76,24 @@ class FloorStore extends Store<FloorState> {
     // FLOOR
 
     private _parseFloor(mode: "index", data: FloorRepresentation): number | undefined;
-    private _parseFloor(mode: "object", data: FloorRepresentation): Floor | undefined;
-    private _parseFloor(mode: "index" | "object", data: FloorRepresentation): number | Floor | undefined {
+    private _parseFloor(mode: "object", data: FloorRepresentation, readonly?: true): DeepReadonly<Floor> | undefined;
+    private _parseFloor(mode: "object", data: FloorRepresentation, readonly: false): Floor | undefined;
+    private _parseFloor(
+        mode: "index" | "object",
+        data: FloorRepresentation,
+        readonly = true,
+    ): number | DeepReadonly<Floor> | undefined {
         const method = mode === "index" ? "findIndex" : "find";
-        if ("name" in data) return floorStore.state.floors[method]((f) => f.name === data.name);
-        if ("id" in data) return floorStore.state.floors[method]((f) => f.id === data.id);
-        return mode === "index" ? data.position : floorStore.state.floors[data.position];
+        const target = readonly === false ? floorStore._state : floorStore.state;
+        if ("name" in data) return target.floors[method]((f) => f.name === data.name);
+        if ("id" in data) return target.floors[method]((f) => f.id === data.id);
+        return mode === "index" ? data.position : target.floors[data.position];
     }
 
-    getFloor(data: FloorRepresentation): Floor | undefined {
-        return this._parseFloor("object", data);
+    getFloor(data: FloorRepresentation, readonly: false): Floor | undefined;
+    getFloor(data: FloorRepresentation, readonly?: true): DeepReadonly<Floor> | undefined;
+    getFloor(data: FloorRepresentation, readonly = true): Floor | DeepReadonly<Floor> | undefined {
+        return this._parseFloor("object", data, readonly as any); // any cast needed because overload signature is not visible
     }
 
     getFloorIndex(data: FloorRepresentation): number | undefined {
@@ -96,9 +109,11 @@ class FloorStore extends Store<FloorState> {
             id: floorStore.generateFloorId(),
             name: serverFloor.name,
             playerVisible: serverFloor.player_visible,
+            type: serverFloor.type_,
+            backgroundValue: serverFloor.background_color ?? undefined,
         };
         this.addFloor(floor, serverFloor.index);
-        visionState.addCdt(floorStore.getFloor({ name: serverFloor.name })!.id);
+        visionState.addCdt(this.getFloor({ name: serverFloor.name })!.id);
         for (const layer of serverFloor.layers) this.addServerLayer(layer, floor);
         visionState.recalculateVision(this.getFloor({ name: floor.name })!.id);
         visionState.recalculateMovement(this.getFloor({ name: floor.name })!.id);
@@ -165,7 +180,7 @@ class FloorStore extends Store<FloorState> {
     }
 
     setFloorPlayerVisible(floorRepresentation: FloorRepresentation, visible: boolean, sync: boolean): void {
-        const floor = this.getFloor(floorRepresentation);
+        const floor = this.getFloor(floorRepresentation, false);
         if (floor === undefined) throw new Error("Could not update floor visibility for unknown floor");
 
         floor.playerVisible = visible;
@@ -180,6 +195,25 @@ class FloorStore extends Store<FloorState> {
         if (sync) sendFloorReorder(floors);
     }
 
+    setFloorType(floorRepr: FloorRepresentation, floorType: FloorType, sync: boolean): void {
+        if (!gameStore.state.isDm) return;
+        const floor = this.getFloor(floorRepr, false);
+        if (floor === undefined) return;
+
+        floor.type = floorType;
+        if (sync) sendFloorSetType({ name: floor.name, floorType });
+    }
+
+    setFloorBackground(floorRepr: FloorRepresentation, backgroundValue: string | undefined, sync: boolean): void {
+        if (!gameStore.state.isDm) return;
+        const floor = this.getFloor(floorRepr, false);
+        if (floor === undefined) return;
+
+        floor.backgroundValue = backgroundValue;
+        this.invalidate(floor);
+        if (sync) sendFloorSetBackground({ name: floor.name, background: backgroundValue });
+    }
+
     // LAYERS
 
     addServerLayer(layerInfo: ServerLayer, floor: Floor): void {
@@ -189,12 +223,17 @@ class FloorStore extends Store<FloorState> {
 
         // Create the Layer instance
         let layer: Layer;
-        if (layerInfo.type_ === LayerName.Grid) layer = new GridLayer(canvas, layerName, floor.id, layerInfo.index);
-        else if (layerInfo.type_ === LayerName.Lighting)
+        if (layerInfo.type_ === LayerName.Grid) {
+            layer = new GridLayer(canvas, layerName, floor.id, layerInfo.index);
+        } else if (layerInfo.type_ === LayerName.Lighting) {
             layer = new FowLightingLayer(canvas, layerName, floor.id, layerInfo.index);
-        else if (layerInfo.type_ === LayerName.Vision)
+        } else if (layerInfo.type_ === LayerName.Vision) {
             layer = new FowVisionLayer(canvas, layerName, floor.id, layerInfo.index);
-        else layer = new Layer(canvas, layerName, floor.id, layerInfo.index);
+        } else if (layerName === LayerName.Map) {
+            layer = new MapLayer(canvas, layerName, floor.id, layerInfo.index);
+        } else {
+            layer = new Layer(canvas, layerName, floor.id, layerInfo.index);
+        }
         layer.selectable = layerInfo.selectable;
         layer.playerEditable = layerInfo.player_editable;
         this.addLayer(layer, floor.id);

@@ -18,7 +18,13 @@ export class Circle extends Shape {
     constructor(
         center: GlobalPoint,
         r: number,
-        options?: { fillColour?: string; strokeColour?: string; viewingAngle?: number; uuid?: string },
+        options?: {
+            fillColour?: string;
+            strokeColour?: string;
+            viewingAngle?: number;
+            uuid?: string;
+            strokeWidth?: number;
+        },
     ) {
         super(center, options);
         this.r = r || 1;
@@ -60,14 +66,17 @@ export class Circle extends Shape {
         ctx.fill();
 
         if (this.strokeColour !== "rgba(0, 0, 0, 0)") {
-            const borderWidth = 5;
+            const ogOperation = ctx.globalCompositeOperation;
+            if (this.options.borderOperation !== undefined) ctx.globalCompositeOperation = this.options.borderOperation;
             ctx.beginPath();
-            ctx.lineWidth = this.ignoreZoomSize ? borderWidth : g2lz(borderWidth);
+            ctx.lineWidth = this.ignoreZoomSize ? this.strokeWidth : g2lz(this.strokeWidth);
             ctx.strokeStyle = this.strokeColour;
             // Inset the border with - borderWidth / 2
-            const r = this.r - borderWidth / 2;
-            this.drawArc(ctx, Math.max(borderWidth / 2, this.ignoreZoomSize ? r : g2lz(r)));
+            // Slight imperfection added to account for zoom subpixel differences
+            const r = this.r - this.strokeWidth / 2.5;
+            this.drawArc(ctx, Math.max(this.strokeWidth / 2, this.ignoreZoomSize ? r : g2lz(r)));
             ctx.stroke();
+            ctx.globalCompositeOperation = ogOperation;
         }
         super.drawPost(ctx);
     }

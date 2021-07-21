@@ -1,49 +1,37 @@
-<script lang="ts">
-import { defineComponent, onMounted, ref, toRef, watch } from "vue";
+<script setup lang="ts">
+import type { CSSProperties } from "vue";
+import { computed, onMounted, ref, toRef, watch } from "vue";
 
 import { selectionState } from "../../layers/selection";
 import { selectTool } from "../../tools/variants/select";
 
 import { useToolPosition } from "./toolPosition";
 
-export default defineComponent({
-    setup() {
-        const right = ref("0px");
-        const arrow = ref("0px");
+const right = ref("0px");
+const arrow = ref("0px");
 
-        onMounted(() => {
-            ({ right: right.value, arrow: arrow.value } = useToolPosition(selectTool.toolName));
-            selectTool.setToolPermissions();
-            watch(toRef(selectionState.state, "selection"), () => {
-                selectTool.resetRotationHelper();
-            });
-        });
+const hasSelection = selectTool.hasSelection;
+const selected = selectTool.isActiveTool;
+const showRuler = selectTool.showRuler;
+const toolStyle = computed(() => ({ "--detailRight": right.value, "--detailArrow": arrow.value } as CSSProperties));
 
-        function toggleShowRuler(event: { target: HTMLButtonElement }): void {
-            const state = event.target.getAttribute("aria-pressed") ?? "false";
-            selectTool.showRuler.value = state === "false";
-            selectTool.setToolPermissions();
-        }
-
-        return {
-            arrow,
-            hasSelection: selectTool.hasSelection,
-            right,
-            selected: selectTool.isActiveTool,
-            showRuler: selectTool.showRuler,
-            toggleShowRuler,
-        };
-    },
+onMounted(() => {
+    ({ right: right.value, arrow: arrow.value } = useToolPosition(selectTool.toolName));
+    selectTool.setToolPermissions();
+    watch(toRef(selectionState.state, "selection"), () => {
+        selectTool.resetRotationHelper();
+    });
 });
+
+function toggleShowRuler(event: MouseEvent): void {
+    const state = (event.target as HTMLButtonElement).getAttribute("aria-pressed") ?? "false";
+    selectTool.showRuler.value = state === "false";
+    selectTool.setToolPermissions();
+}
 </script>
 
 <template>
-    <div
-        id="ruler"
-        class="tool-detail"
-        v-if="selected && hasSelection"
-        :style="{ '--detailRight': right, '--detailArrow': arrow }"
-    >
+    <div id="ruler" class="tool-detail" v-if="selected && hasSelection" :style="toolStyle">
         <button @click="toggleShowRuler" :aria-pressed="showRuler">Show ruler</button>
     </div>
 </template>

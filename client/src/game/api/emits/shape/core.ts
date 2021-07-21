@@ -12,11 +12,10 @@ export const sendShapeOrder = wrapSocket<{ uuid: string; index: number; temporar
 export const sendFloorChange = wrapSocket<{ uuids: string[]; floor: string }>("Shapes.Floor.Change");
 export const sendLayerChange = wrapSocket<{ uuids: string[]; layer: string; floor: string }>("Shapes.Layer.Change");
 
-export const sendShapesMove =
-    wrapSocket<{
-        shapes: string[];
-        target: { location: number; floor: string; x: number; y: number };
-    }>("Shapes.Location.Move");
+export const sendShapesMove = wrapSocket<{
+    shapes: string[];
+    target: { location: number; floor: string; x: number; y: number };
+}>("Shapes.Location.Move");
 
 export function sendShapeOptionsUpdate(shapes: readonly Shape[], temporary: boolean): void {
     const options = shapes

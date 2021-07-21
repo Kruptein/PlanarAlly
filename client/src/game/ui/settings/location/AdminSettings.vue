@@ -80,7 +80,7 @@ export default defineComponent({
     <div class="panel">
         <div class="row">
             <div>
-                <label :for="'rename-' + location" v-t="'common.name'"></label>
+                <label :for="'rename-' + location">{{ t("common.name") }}</label>
             </div>
             <div>
                 <input :id="'rename-' + location" type="text" v-model="name" />
@@ -88,10 +88,9 @@ export default defineComponent({
         </div>
         <div class="row">
             <div>
-                <button
-                    @click="onCloneClick"
-                    v-t="'game.ui.settings.LocationBar.LocationAdminSettings.clone_this_location'"
-                ></button>
+                <button @click="onCloneClick">
+                    {{ t("game.ui.settings.LocationBar.LocationAdminSettings.clone_this_location") }}
+                </button>
             </div>
             <div>
                 <button
@@ -103,8 +102,9 @@ export default defineComponent({
                             ? t('game.ui.settings.LocationBar.LocationAdminSettings.move_existing_pl')
                             : t('game.ui.settings.LocationBar.LocationAdminSettings.archive_this_location')
                     "
-                    v-t="'game.ui.settings.LocationBar.LocationAdminSettings.archive_this_location'"
-                ></button>
+                >
+                    {{ t("game.ui.settings.LocationBar.LocationAdminSettings.archive_this_location") }}
+                </button>
             </div>
             <div>
                 <button
@@ -116,8 +116,9 @@ export default defineComponent({
                             ? t('game.ui.settings.LocationBar.LocationAdminSettings.move_existing_pl')
                             : t('game.ui.settings.LocationBar.LocationAdminSettings.delete_this_location')
                     "
-                    v-t="'game.ui.settings.LocationBar.LocationAdminSettings.delete_this_location'"
-                ></button>
+                >
+                    {{ t("game.ui.settings.LocationBar.LocationAdminSettings.delete_this_location") }}
+                </button>
             </div>
         </div>
     </div>

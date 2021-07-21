@@ -1,38 +1,33 @@
-<script lang="ts">
-import { defineComponent, onMounted, ref } from "vue";
+<script setup lang="ts">
+import type { CSSProperties } from "vue";
+import { computed, onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { rulerTool } from "../../tools/variants/ruler";
 
 import { useToolPosition } from "./toolPosition";
 
-export default defineComponent({
-    setup() {
-        const right = ref("0px");
-        const arrow = ref("0px");
+const { t } = useI18n();
+const right = ref("0px");
+const arrow = ref("0px");
 
-        onMounted(() => {
-            ({ right: right.value, arrow: arrow.value } = useToolPosition(rulerTool.toolName));
-        });
+const selected = rulerTool.isActiveTool;
+const showPublic = rulerTool.showPublic;
+const toolStyle = computed(() => ({ "--detailRight": right.value, "--detailArrow": arrow.value } as CSSProperties));
 
-        function toggle(event: { target: HTMLButtonElement }): void {
-            const state = event.target.getAttribute("aria-pressed") ?? "false";
-            rulerTool.showPublic.value = state === "false";
-        }
-
-        return {
-            arrow,
-            right,
-            selected: rulerTool.isActiveTool,
-            showPublic: rulerTool.showPublic,
-            toggle,
-        };
-    },
+onMounted(() => {
+    ({ right: right.value, arrow: arrow.value } = useToolPosition(rulerTool.toolName));
 });
+
+function toggle(event: MouseEvent): void {
+    const state = (event.target as HTMLButtonElement).getAttribute("aria-pressed") ?? "false";
+    rulerTool.showPublic.value = state === "false";
+}
 </script>
 
 <template>
-    <div id="ruler" class="tool-detail" v-if="selected" :style="{ '--detailRight': right, '--detailArrow': arrow }">
-        <button @click="toggle" :aria-pressed="showPublic" v-t="'game.ui.tools.RulerTool.share'"></button>
+    <div id="ruler" class="tool-detail" v-if="selected" :style="toolStyle">
+        <button @click="toggle" :aria-pressed="showPublic">{{ t("game.ui.tools.RulerTool.share") }}</button>
     </div>
 </template>
 

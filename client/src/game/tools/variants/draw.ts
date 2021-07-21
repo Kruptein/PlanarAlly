@@ -5,7 +5,7 @@ import { cloneP, GlobalPoint, LocalPoint, subtractP, toGP } from "../../../core/
 import { equalPoints, snapToPoint } from "../../../core/math";
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
 import { PromptFunction } from "../../../core/plugins/modals/prompt";
-import { ctrlOrCmdPressed } from "../../../core/utils";
+import { ctrlOrCmdPressed, mostReadable } from "../../../core/utils";
 import { i18n } from "../../../i18n";
 import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
@@ -62,6 +62,7 @@ class DrawTool extends Tool {
     private startPoint?: GlobalPoint;
     private shape?: Shape;
     private brushHelper?: Circle;
+    // private brushFinder?: Circle;
     private ruler?: Line;
 
     private snappedToPoint = false;
@@ -79,11 +80,23 @@ class DrawTool extends Tool {
             () => this.state.selectedMode,
             (newMode, oldMode) => this.onModeChange(newMode, oldMode),
         );
-        watchEffect(() => {
-            if (this.brushHelper) {
-                this.brushHelper.fillColour = this.state.fillColour;
-            }
-        });
+        watch(
+            () => this.state.fillColour,
+            () => {
+                if (this.brushHelper) {
+                    this.brushHelper.fillColour = this.state.fillColour;
+                    this.brushHelper.strokeColour = mostReadable(this.state.fillColour);
+                }
+            },
+        );
+        watch(
+            () => this.state.brushSize,
+            () => {
+                if (this.brushHelper) {
+                    this.brushHelper.strokeWidth = Math.max(1, this.state.brushSize * 0.05);
+                }
+            },
+        );
         watchEffect(() => {
             if (this.shape !== undefined && this.active) {
                 (this.shape as Polygon).openPolygon = !this.state.isClosedPolygon;
@@ -211,9 +224,7 @@ class DrawTool extends Tool {
         const layer = this.getLayer();
         if (layer === undefined) return;
         layer.canvas.parentElement!.style.cursor = "none";
-        this.brushHelper = new Circle(toGP(mouse?.x ?? -1000, mouse?.y ?? -1000), this.state.brushSize / 2, {
-            fillColour: this.state.fillColour,
-        });
+        this.brushHelper = this.createBrush(toGP(mouse?.x ?? -1000, mouse?.y ?? -1000));
         this.setupBrush();
         layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false); // during mode change the shape is already added
         // if (gameStore.state.isDm) this.showLayerPoints();
@@ -546,6 +557,18 @@ class DrawTool extends Tool {
 
     // BRUSH
 
+    private createBrush(position: GlobalPoint, brushSize?: number): Circle {
+        const size = brushSize ?? this.state.brushSize / 2;
+        const brush = new Circle(position, size, {
+            fillColour: this.state.fillColour,
+            strokeColour: mostReadable(this.state.fillColour),
+            strokeWidth: Math.max(1, size * 0.05),
+        });
+        // Make sure we can see the border of the reveal brush
+        brush.options.borderOperation = "source-over";
+        return brush;
+    }
+
     private setupBrush(): void {
         if (this.brushHelper === undefined) return;
         if (this.state.selectedMode === DrawMode.Reveal || this.state.selectedMode === DrawMode.Hide) {
@@ -574,9 +597,7 @@ class DrawTool extends Tool {
         const refPoint = this.brushHelper?.refPoint;
         const bs = this.brushHelper?.r;
         if (this.brushHelper !== undefined) layer.removeShape(this.brushHelper, SyncMode.NO_SYNC, true);
-        this.brushHelper = new Circle(toGP(-1000, -1000), bs ?? this.state.brushSize / 2, {
-            fillColour: this.state.fillColour,
-        });
+        this.brushHelper = this.createBrush(toGP(-1000, -1000), bs);
         this.setupBrush();
         layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false); // during mode change the shape is already added
         if (refPoint) this.brushHelper.refPoint = refPoint;

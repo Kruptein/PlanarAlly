@@ -1,7 +1,6 @@
-import { ServerShape } from "@/game/models/shapes";
-
 import { ServerGroup } from "./groups";
 import { ServerLocationOptions } from "./settings";
+import { ServerShape } from "./shapes";
 
 export interface ServerLocation {
     id: number;
@@ -14,6 +13,8 @@ export interface ServerFloor {
     name: string;
     layers: ServerLayer[];
     player_visible: boolean;
+    type_: number;
+    background_color: string | null;
 }
 
 export interface ServerLayer {

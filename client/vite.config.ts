@@ -24,5 +24,8 @@ export default defineConfig({
         assetsDir: process.env.NODE_ENV === "production" ? "static/vite" : "dev-static",
         outDir: "../server",
         chunkSizeWarningLimit: 1500,
+        rollupOptions: {
+            external: ["/static/extern/css/directory.css"],
+        },
     },
 });

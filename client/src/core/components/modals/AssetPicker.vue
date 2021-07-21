@@ -131,9 +131,92 @@ function changeDirectory(folder: number): void {
 #assets {
     max-height: 50vh;
     width: 30vw;
+    flex-grow: 1;
+    background-color: white;
+    border: solid 1px black;
+    margin: 10px;
+    position: relative;
+    padding-top: 45px;
+    padding-bottom: 45px;
+    box-shadow: 3px 3px gray;
+
+    #breadcrumbs {
+        position: absolute;
+        left: 0;
+        top: 0;
+        display: flex;
+        overflow: hidden;
+        z-index: 1;
+        background-color: #ff7052;
+        color: white;
+        align-items: center;
+        padding: 5px;
+        border-bottom-right-radius: 10px;
+
+        > div {
+            position: relative;
+            padding: 10px;
+            padding-left: 20px;
+            text-align: center;
+
+            &:first-child {
+                padding-left: 10px;
+            }
+        }
+
+        div {
+            &:last-child::after {
+                content: none;
+            }
+
+            &::after {
+                content: "";
+                position: absolute;
+                display: inline-block;
+                width: 30px;
+                height: 30px;
+                top: 3px;
+                right: -10px;
+                background-color: transparent;
+                border-top-right-radius: 5px;
+                -webkit-transform: scale(0.707) rotate(45deg);
+                transform: scale(0.707) rotate(45deg);
+                box-shadow: 1px -1px rgba(0, 0, 0, 0.25);
+                z-index: 1;
+            }
+        }
+    }
 
     #explorer {
+        position: relative;
+        left: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+        max-width: 100%;
         max-height: 54vh;
+        overflow: auto;
+
+        .inode {
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+
+            * {
+                pointer-events: none;
+            }
+        }
+
+        .inode:hover,
+        .inode-selected {
+            cursor: pointer;
+            background-color: #ff7052;
+        }
+        .title {
+            word-break: break-all;
+        }
     }
 }
 

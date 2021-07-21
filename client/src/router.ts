@@ -1,15 +1,18 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
 
-import AssetManager from "./assetManager/AssetManager.vue";
 import Login from "./auth/Login.vue";
 import { Logout } from "./auth/logout";
 import { baseAdjustedFetch } from "./core/utils";
 import Dashboard from "./dashboard/Dashboard.vue";
-import Game from "./game/Game.vue";
 import Invitation from "./invitation";
 import { handleNotifications } from "./notifications";
 import { coreStore } from "./store/core";
 import { BASE_PATH } from "./utils";
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const AssetManager = () => import("./assetManager/AssetManager.vue");
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const Game = () => import("./game/Game.vue");
 
 const routes: Array<RouteRecordRaw> = [
     {

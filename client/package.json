@@ -1,12 +1,12 @@
 {
     "name": "client",
-    "version": "0.27.0",
+    "version": "0.28.0",
     "private": true,
     "scripts": {
         "dev": "vite",
         "serve": "vite preview",
         "clean": "rimraf ../server/static/vite/",
-        "build:prep": "npm run clean && vue-tsc --noEmit",
+        "build:prep": "npm run clean",
         "build": "npm run build:prep && vite build && mv ../server/index.html ../server/templates/index.html",
         "build:ci": "npm run build:prep && vite build --outDir dist",
         "lint": "eslint src --fix",

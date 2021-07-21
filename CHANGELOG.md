@@ -8,6 +8,8 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+## [0.28.0] - 2021-07-21
+
 ### Added
 
 -   Configure background for floors (map layer)

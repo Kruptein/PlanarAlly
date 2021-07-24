@@ -1,5 +1,5 @@
 <script lang="ts">
-import { DeepReadonly, defineComponent, toRefs } from "vue";
+import { defineComponent, toRefs } from "vue";
 import { useI18n } from "vue-i18n";
 
 import Modal from "../../../core/components/modals/Modal.vue";
@@ -11,7 +11,7 @@ export default defineComponent({
         function close(): void {
             diceStore.setShowDiceResults(false);
         }
-        function sum(data: DeepReadonly<number>[]): number {
+        function sum(data: readonly number[]): number {
             return data.reduce((acc, val) => acc + val);
         }
         return { t, ...toRefs(diceStore.state), close, sum };
@@ -37,15 +37,15 @@ export default defineComponent({
                 <template v-else-if="results.length > 0">
                     <div id="total">{{ results[0].total }}</div>
                     <div id="breakdown">
-                        <template v-for="[i, part] of results[0].details.entries()" :key="i">
-                            <div v-if="part.type === 'dice'">
-                                <div class="input">{{ part.input }}</div>
-                                <div class="value">{{ sum(part.output) }}</div>
+                        <template v-for="result of results[0].details.entries()" :key="result[0]">
+                            <div v-if="result[1].type === 'dice'">
+                                <div class="input">{{ result[1].input }}</div>
+                                <div class="value">{{ sum(result[1].output) }}</div>
                             </div>
-                            <div v-else-if="part.type === 'op'">
-                                {{ part.value }}
+                            <div v-else-if="result[1].type === 'op'">
+                                {{ result[1].value }}
                             </div>
-                            <div v-else class="value">{{ part.output }}</div>
+                            <div v-else class="value">{{ result[1].output }}</div>
                         </template>
                     </div>
                 </template>

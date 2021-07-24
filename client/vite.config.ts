@@ -25,7 +25,7 @@ export default defineConfig({
         outDir: "../server",
         chunkSizeWarningLimit: 2500,
         rollupOptions: {
-            external: ["/static/extern/css/directory.css"],
+            external: ["ammo.js"],
         },
     },
 });

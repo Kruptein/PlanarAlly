@@ -144,6 +144,7 @@ export default defineComponent({
 
 <template>
     <div id="main" @mouseleave="mouseLeave" @wheel="zoom">
+        <canvas id="babylon"></canvas>
         <div id="board" :class="{ disconnected: !isConnected }">
             <div
                 id="layers"
@@ -207,5 +208,10 @@ svg {
     &.disconnected {
         border: solid 5px red;
     }
+}
+
+#babylon {
+    z-index: 11;
+    pointer-events: none;
 }
 </style>

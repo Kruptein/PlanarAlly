@@ -15,6 +15,8 @@ import { diceStore } from "./state";
 let diceThrower: DiceThrower | undefined;
 let dndParser: DndParser | undefined;
 
+// This is in fact used in dice.ts using dynamic import
+// eslint-disable-next-line import/no-unused-modules
 export async function loadDiceEnv(): Promise<DiceThrower> {
     const canvas = document.getElementById("babylon") as HTMLCanvasElement;
 

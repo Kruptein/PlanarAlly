@@ -8,7 +8,7 @@
         "clean": "rimraf ../server/static/vite/",
         "build:prep": "npm run clean",
         "build": "npm run build:prep && vite build && mv ../server/index.html ../server/templates/index.html",
-        "build:ci": "npm run build:prep && vite build --outDir dist",
+        "build:ci": "npm run build:prep && vue-tsc --noEmit && vite build --outDir dist",
         "lint": "eslint src --fix",
         "lint:ci": "eslint src --no-fix"
     },

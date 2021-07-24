@@ -59,7 +59,7 @@ export abstract class Tool implements ITool {
     onPinchEnd(_event: TouchEvent, _features: ToolFeatures): void {}
     onContextMenu(_event: MouseEvent, _features: ToolFeatures): void {}
 
-    onSelect(): void {}
+    async onSelect(): Promise<void> {}
     onDeselect(): void {}
     async onDown(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): Promise<void> {}
     onUp(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): void {}

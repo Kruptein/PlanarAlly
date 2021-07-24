@@ -2,6 +2,7 @@ import { computed, ref, watch } from "vue";
 
 import { ITool, ToolFeatures, ToolMode, ToolName } from "../models/tools";
 
+import { diceTool } from "./variants/dice";
 import { drawTool } from "./variants/draw";
 import { filterTool } from "./variants/filter";
 import { mapTool } from "./variants/map";
@@ -26,6 +27,7 @@ export const toolMap: Record<string, ITool> = {
     [ToolName.Filter]: filterTool,
     [ToolName.Vision]: visionTool,
     [ToolName.Spell]: spellTool,
+    [ToolName.Dice]: diceTool,
 };
 
 const buildTools: [ToolName, ToolFeatures][] = [
@@ -45,6 +47,7 @@ const playTools: [ToolName, ToolFeatures][] = [
     [ToolName.Ping, {}],
     [ToolName.Filter, {}],
     [ToolName.Vision, {}],
+    [ToolName.Dice, {}],
 ];
 
 export const dmTools = [ToolName.Map];

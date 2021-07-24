@@ -23,7 +23,7 @@ export default defineConfig({
         minify: "esbuild",
         assetsDir: process.env.NODE_ENV === "production" ? "static/vite" : "dev-static",
         outDir: "../server",
-        chunkSizeWarningLimit: 1500,
+        chunkSizeWarningLimit: 2500,
         rollupOptions: {
             external: ["/static/extern/css/directory.css"],
         },

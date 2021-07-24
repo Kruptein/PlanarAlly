@@ -13,7 +13,7 @@ import { loadAmmoModule } from "./ammo";
 import { diceStore } from "./state";
 
 let diceThrower: DiceThrower | undefined;
-export let dndParser: DndParser | undefined;
+let dndParser: DndParser | undefined;
 
 export async function loadDiceEnv(): Promise<DiceThrower> {
     const canvas = document.getElementById("babylon") as HTMLCanvasElement;

@@ -25,7 +25,7 @@ module.exports = {
         "@typescript-eslint/require-await": "error",
         "@typescript-eslint/strict-boolean-expressions": 2,
         "prefer-const": [process.env.GITHUB_ACTION === undefined ? 1 : 2],
-        "import/no-unused-modules": [process.env.GITHUB_ACTION === undefined ? 1 : 2, { unusedExports: true }],
+        "import/no-unused-modules": [process.env.GITHUB_ACTION === undefined ? 0 : 2, { unusedExports: true }],
         "import/order": [
             process.env.GITHUB_ACTION === undefined ? 1 : 2,
             {

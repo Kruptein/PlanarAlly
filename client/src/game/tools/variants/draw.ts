@@ -220,7 +220,8 @@ class DrawTool extends Tool {
 
     // STATE HANDLERS
 
-    onSelect(mouse?: { x: number; y: number }): void {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onSelect(mouse?: { x: number; y: number }): Promise<void> {
         const layer = this.getLayer();
         if (layer === undefined) return;
         layer.canvas.parentElement!.style.cursor = "none";

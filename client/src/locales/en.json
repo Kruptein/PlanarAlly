@@ -415,7 +415,8 @@
         "Map": "Map",
         "Filter": "Filter",
         "Vision": "Vision",
-        "Spell": "Spell"
+        "Spell": "Spell",
+        "Dice": "Dice"
     },
     "settings": {
         "AccountSettings": {

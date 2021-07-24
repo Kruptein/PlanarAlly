@@ -145,7 +145,8 @@ class SpellTool extends Tool {
         layer.addShape(this.rangeShape, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false);
     }
 
-    onSelect(): void {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onSelect(): Promise<void> {
         if (!selectionState.hasSelection && this.state.selectedSpellShape === SpellShape.Cone) {
             this.state.selectedSpellShape = SpellShape.Circle;
         }

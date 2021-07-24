@@ -7,6 +7,7 @@ import { gameStore } from "../../../store/game";
 import { ToolMode, ToolName } from "../../models/tools";
 import { activeModeTools, activeTool, activeToolMode, dmTools, toggleActiveMode, toolMap } from "../../tools/tools";
 
+import DiceTool from "./DiceTool.vue";
 import DrawTool from "./DrawTool.vue";
 import FilterTool from "./FilterTool.vue";
 import MapTool from "./MapTool.vue";
@@ -89,6 +90,7 @@ const toolModes = computed(() => {
             <MapTool v-if="activeTool === ToolName.Map" />
             <FilterTool v-if="activeTool === ToolName.Filter" />
             <VisionTool v-if="activeTool === ToolName.Vision" />
+            <DiceTool v-if="activeTool === ToolName.Dice" />
         </div>
     </div>
 </template>

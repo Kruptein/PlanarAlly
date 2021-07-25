@@ -24,6 +24,10 @@ export function toSnakeCase(s: string): string {
         .replace(/^_/, "");
 }
 
+export function randomInterval(min: number, max: number): number {
+    return Math.random() * (max - min + 1) + min;
+}
+
 export function calcFontScale(ctx: CanvasRenderingContext2D, text: string, r: number): number {
     const fontWidth = ctx.measureText(text).width;
     const fontSize = Number(ctx.font.split("px")[0]) * 1.5;

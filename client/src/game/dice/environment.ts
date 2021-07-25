@@ -92,23 +92,27 @@ function loadDiceBox(scene: Scene): void {
     // Physics
     new PhysicsImpostor(ground, PhysicsImpostor.BoxImpostor, {
         mass: 0,
-        restitution: 0.3,
-        friction: 0.7,
+        restitution: 0.1,
+        friction: 3,
     });
     new PhysicsImpostor(wall1, PhysicsImpostor.BoxImpostor, {
         mass: 0,
-        restitution: 1.0,
+        restitution: 0.9,
+        friction: 0.5,
     });
     new PhysicsImpostor(wall2, PhysicsImpostor.BoxImpostor, {
         mass: 0,
-        restitution: 1.0,
+        restitution: 0.9,
+        friction: 0.5,
     });
     new PhysicsImpostor(wall3, PhysicsImpostor.BoxImpostor, {
         mass: 0,
-        restitution: 1.0,
+        restitution: 0.9,
+        friction: 0.5,
     });
     new PhysicsImpostor(wall4, PhysicsImpostor.BoxImpostor, {
         mass: 0,
-        restitution: 1.0,
+        restitution: 0.9,
+        friction: 0.5,
     });
 }

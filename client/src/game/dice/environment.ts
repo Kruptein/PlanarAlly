@@ -26,6 +26,11 @@ export async function loadDiceEnv(): Promise<DiceThrower> {
     diceThrower = new DiceThrower({ canvas });
     await diceThrower.load("/static/babylon_test6.babylon", Ammo());
 
+    /*
+     * Currently the camera looks in such a way that the x-axis goes from negative right to positive left
+     * and the y-axis goes from negative top to positive bottom
+     * With (0, 0) at the center of the screen
+     */
     const scene = diceThrower.scene;
     scene.clearColor = new Color4(0, 0, 0, 0);
     const camera = new ArcRotateCamera("camera", 0, 0, 0, new Vector3(0, 0, 0), scene);
@@ -69,6 +74,7 @@ function loadDiceBox(scene: Scene): void {
 
     const width = Math.abs(topRight.x - topLeft.x);
     const height = Math.abs(botLeft.z - topLeft.z);
+    diceStore.setDimensions(width, height);
 
     const wall1 = BoxBuilder.CreateBox("north", { width, depth: 1, height: 2 });
     wall1.isVisible = false;
@@ -91,18 +97,18 @@ function loadDiceBox(scene: Scene): void {
     });
     new PhysicsImpostor(wall1, PhysicsImpostor.BoxImpostor, {
         mass: 0,
-        restitution: 0.9,
+        restitution: 1.0,
     });
     new PhysicsImpostor(wall2, PhysicsImpostor.BoxImpostor, {
         mass: 0,
-        restitution: 0.9,
+        restitution: 1.0,
     });
     new PhysicsImpostor(wall3, PhysicsImpostor.BoxImpostor, {
         mass: 0,
-        restitution: 0.9,
+        restitution: 1.0,
     });
     new PhysicsImpostor(wall4, PhysicsImpostor.BoxImpostor, {
         mass: 0,
-        restitution: 0.9,
+        restitution: 1.0,
     });
 }

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { DieOptions } from "@planarally/dice";
 import type { CSSProperties } from "vue";
 import { computed, onMounted, ref } from "vue";
 
@@ -36,7 +35,7 @@ function add(die: number): void {
         d.amount++;
     }
     clearTimeout(timeout);
-    timeout = setTimeout(go, 4000);
+    timeout = setTimeout(go, 1000);
 }
 
 const diceText = computed(() => {
@@ -50,8 +49,29 @@ const diceText = computed(() => {
     return text;
 });
 
-async function roll(inp: string, options?: DieOptions[]): Promise<number> {
+async function roll(inp: string): Promise<number> {
     diceStore.setIsPending(true);
+    const xDir = Math.random();
+    const yDir = Math.random();
+    const side = Math.random() > 0.5 ? true : false;
+    const signX = Math.random() > 0.5 ? 1 : -1;
+    const signY = Math.random() > 0.5 ? 1 : -1;
+
+    const w = diceStore.state.dimensions.width / 2;
+    const h = diceStore.state.dimensions.height / 2;
+    console.log(w, h);
+
+    const options = {
+        position: new diceTool.vector3(signX * (side ? w : w * xDir), 3, signY * (side ? h * yDir : h)),
+        linear: new diceTool.vector3(
+            -signX * Math.max(5, Math.random() * 20),
+            -1,
+            -signY * Math.max(5, Math.random() * 20),
+        ),
+        angular: new diceTool.vector3(5, -1, 5),
+    };
+    console.log(options);
+
     const results = await diceTool.dndParser.fromString(inp, options);
     diceStore.setResults(results);
     diceStore.setIsPending(false);
@@ -196,19 +216,19 @@ async function go(): Promise<void> {
             &.transition::before {
                 border-top-color: $border; // Make borders visible
                 border-right-color: $border;
-                transition: width 1s ease-out,
+                transition: width 0.25s ease-out,
                     // Width expands first
-                    height 1s ease-out 1s; // And then height
+                    height 0.25s ease-out 0.25s; // And then height
             }
 
             &.transition::after {
                 border-bottom-color: $border; // Make borders visible
                 border-left-color: $border;
-                transition: border-color 0s ease-out 2s,
+                transition: border-color 0s ease-out 0.5s,
                     // Wait for ::before to finish before showing border
-                    width 1s ease-out 2s,
+                    width 0.25s ease-out 0.5s,
                     // And then exanding width
-                    height 1s ease-out 3s; // And finally height
+                    height 0.25s ease-out 0.75s; // And finally height
             }
         }
     }

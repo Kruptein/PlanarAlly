@@ -55,6 +55,7 @@ async function reroll(inp: string): Promise<void> {
 
 async function go(): Promise<void> {
     clearTimeout(timeout);
+    button.value?.classList.remove("transition");
     const rollString = diceText.value;
     const result = await diceTool.roll(rollString);
     history.value.push({ roll: rollString, result });

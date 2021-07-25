@@ -1,7 +1,9 @@
 import type { Vector3 } from "@babylonjs/core/Maths/math.vector";
-import type { DiceThrower, DndParser } from "@planarally/dice";
+import type { DiceThrower, DieOptions, DndParser } from "@planarally/dice";
+import tinycolor from "tinycolor2";
 
 import { i18n } from "../../../i18n";
+import { clientStore } from "../../../store/client";
 import { diceStore } from "../../dice/state";
 import { ToolName, ToolPermission } from "../../models/tools";
 import { Tool } from "../tool";
@@ -53,7 +55,9 @@ class DiceTool extends Tool {
         const w = diceStore.state.dimensions.width / 2;
         const h = diceStore.state.dimensions.height / 2;
 
-        const options = {
+        const color = tinycolor(clientStore.state.rulerColour).toHexString();
+
+        const options: Omit<DieOptions, "die"> = {
             position: new this.vector3(signX * (side ? w : w * xDir), 3, signY * (side ? h * yDir : h)),
             linear: new this.vector3(
                 -signX * Math.max(5, Math.random() * 20),
@@ -61,6 +65,7 @@ class DiceTool extends Tool {
                 -signY * Math.max(5, Math.random() * 20),
             ),
             angular: new this.vector3(5, -1, 5),
+            color,
         };
 
         const results = await diceTool.dndParser.fromString(inp, options);

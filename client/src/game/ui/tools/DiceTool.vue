@@ -2,7 +2,6 @@
 import type { CSSProperties } from "vue";
 import { computed, onMounted, ref } from "vue";
 
-import { diceStore } from "../../dice/state";
 import { diceTool } from "../../tools/variants/dice";
 
 import { useToolPosition } from "./toolPosition";
@@ -49,45 +48,15 @@ const diceText = computed(() => {
     return text;
 });
 
-async function roll(inp: string): Promise<number> {
-    diceStore.setIsPending(true);
-    const xDir = Math.random();
-    const yDir = Math.random();
-    const side = Math.random() > 0.5 ? true : false;
-    const signX = Math.random() > 0.5 ? 1 : -1;
-    const signY = Math.random() > 0.5 ? 1 : -1;
-
-    const w = diceStore.state.dimensions.width / 2;
-    const h = diceStore.state.dimensions.height / 2;
-    console.log(w, h);
-
-    const options = {
-        position: new diceTool.vector3(signX * (side ? w : w * xDir), 3, signY * (side ? h * yDir : h)),
-        linear: new diceTool.vector3(
-            -signX * Math.max(5, Math.random() * 20),
-            -1,
-            -signY * Math.max(5, Math.random() * 20),
-        ),
-        angular: new diceTool.vector3(5, -1, 5),
-    };
-    console.log(options);
-
-    const results = await diceTool.dndParser.fromString(inp, options);
-    diceStore.setResults(results);
-    diceStore.setIsPending(false);
-    diceStore.setShowDiceResults(true);
-    return results[0].total;
-}
-
 async function reroll(inp: string): Promise<void> {
-    const result = await roll(inp);
+    const result = await diceTool.roll(inp);
     history.value.push({ roll: inp, result });
 }
 
 async function go(): Promise<void> {
     clearTimeout(timeout);
     const rollString = diceText.value;
-    const result = await roll(rollString);
+    const result = await diceTool.roll(rollString);
     history.value.push({ roll: rollString, result });
     diceArray.value = [];
 }

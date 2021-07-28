@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { CSSProperties } from "vue";
-import { computed, onMounted, ref } from "vue";
+import { computed, nextTick, onMounted, ref } from "vue";
 
 import { diceTool } from "../../tools/variants/dice";
 
@@ -11,6 +11,7 @@ import { useToolPosition } from "./toolPosition";
 const right = ref("0px");
 const arrow = ref("0px");
 const button = ref<HTMLButtonElement | null>(null);
+const historyDiv = ref<HTMLDivElement | null>(null);
 
 const toolStyle = computed(() => ({ "--detailRight": right.value, "--detailArrow": arrow.value } as CSSProperties));
 
@@ -22,6 +23,13 @@ onMounted(() => {
 const diceArray = ref<{ die: number; amount: number }[]>([]);
 const history = ref<{ roll: string; result: number }[]>([]);
 let timeout: number | undefined;
+
+function addToHistory(roll: string, result: number): void {
+    history.value.push({ roll, result });
+    nextTick(() => {
+        historyDiv.value!.scrollTop = historyDiv.value!.scrollHeight;
+    });
+}
 
 function add(die: number): void {
     button.value?.classList.remove("transition");
@@ -50,7 +58,7 @@ const diceText = computed(() => {
 
 async function reroll(inp: string): Promise<void> {
     const result = await diceTool.roll(inp);
-    history.value.push({ roll: inp, result });
+    addToHistory(inp, result);
 }
 
 async function go(): Promise<void> {
@@ -58,14 +66,14 @@ async function go(): Promise<void> {
     button.value?.classList.remove("transition");
     const rollString = diceText.value;
     const result = await diceTool.roll(rollString);
-    history.value.push({ roll: rollString, result });
+    addToHistory(rollString, result);
     diceArray.value = [];
 }
 </script>
 
 <template>
     <div id="dice" class="tool-detail" :style="toolStyle">
-        <div id="dice-history">
+        <div id="dice-history" ref="historyDiv">
             <template v-for="r of history" :key="r.roll">
                 <div class="roll" @click="reroll(r.roll)">{{ r.roll }}</div>
                 <div class="result">{{ r.result }}</div>
@@ -95,6 +103,10 @@ async function go(): Promise<void> {
     #dice-history {
         display: grid;
         grid-template-columns: 1fr 2em;
+
+        max-height: 10em;
+        overflow-y: auto;
+        padding-right: 0.5em;
 
         > .roll:hover {
             cursor: pointer;

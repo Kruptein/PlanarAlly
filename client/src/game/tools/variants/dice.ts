@@ -1,5 +1,6 @@
 import type { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type { DiceThrower, DieOptions, DndParser } from "@planarally/dice";
+import { watch } from "@vue/runtime-core";
 import tinycolor from "tinycolor2";
 
 import { randomInterval } from "../../../core/utils";
@@ -29,6 +30,18 @@ class DiceTool extends Tool {
     diceThrower!: DiceThrower;
     dndParser!: DndParser;
     vector3!: typeof Vector3;
+
+    constructor() {
+        super();
+        watch(
+            () => diceStore.state.showUi,
+            (showUi) => {
+                if (!showUi) {
+                    this.diceThrower?.reset();
+                }
+            },
+        );
+    }
 
     async onSelect(): Promise<void> {
         if (this.diceThrower === undefined) {

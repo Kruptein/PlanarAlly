@@ -59,7 +59,7 @@ class DiceTool extends Tool {
         const color = tinycolor(clientStore.state.rulerColour).toHexString();
 
         const options: Omit<DieOptions, "die"> = {
-            position: new this.vector3(signX * (side ? w : w * xDir), 3, signY * (side ? h * yDir : h)),
+            position: new this.vector3(signX * (-5 + (side ? w : w * xDir)), 3, signY * (-5 + (side ? h * yDir : h))),
             linear: new this.vector3(-signX * randomInterval(10, 20), -1, -signY * randomInterval(10, 20)),
             angular: new this.vector3(-signX, 0, -2),
             color,

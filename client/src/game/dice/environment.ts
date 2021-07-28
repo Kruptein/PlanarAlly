@@ -23,7 +23,7 @@ export async function loadDiceEnv(): Promise<DiceThrower> {
     await loadAmmoModule();
     const Ammo = (window as any).Ammo;
 
-    diceThrower = new DiceThrower({ canvas });
+    diceThrower = new DiceThrower({ canvas, tresholds: { linear: 0.075, angular: 0.01 } });
     await diceThrower.load("/static/babylon_test6.babylon", Ammo());
 
     /*
@@ -65,7 +65,7 @@ function paPredicate(mesh: AbstractMesh): boolean {
 function loadDiceBox(scene: Scene): void {
     // Visual
     const ground = GroundBuilder.CreateGround("ground", { width: 2000, height: 2000, subdivisions: 2 }, scene);
-    ground.position.y = -1;
+    // ground.position.y = -1;
     ground.isVisible = false;
 
     const topLeft = scene.pick(0, 0, paPredicate)!.pickedPoint!;
@@ -76,18 +76,22 @@ function loadDiceBox(scene: Scene): void {
     const height = Math.abs(botLeft.z - topLeft.z);
     diceStore.setDimensions(width, height);
 
-    const wall1 = BoxBuilder.CreateBox("north", { width, depth: 1, height: 2 });
+    const wall1 = BoxBuilder.CreateBox("north", { width, depth: 1, height: 20 });
     wall1.isVisible = false;
     wall1.position.z = height / 2;
-    const wall2 = BoxBuilder.CreateBox("south", { width, depth: 1, height: 2 });
+    wall1.position.y = 10;
+    const wall2 = BoxBuilder.CreateBox("south", { width, depth: 1, height: 20 });
     wall2.position.z = -height / 2;
     wall2.isVisible = false;
-    const wall3 = BoxBuilder.CreateBox("east", { width: 1, depth: height, height: 2 });
+    wall2.position.y = 10;
+    const wall3 = BoxBuilder.CreateBox("east", { width: 1, depth: height, height: 20 });
     wall3.position.x = width / 2;
     wall3.isVisible = false;
-    const wall4 = BoxBuilder.CreateBox("west", { width: 1, depth: height, height: 2 });
+    wall3.position.y = 10;
+    const wall4 = BoxBuilder.CreateBox("west", { width: 1, depth: height, height: 20 });
     wall4.position.x = -width / 2;
     wall4.isVisible = false;
+    wall4.position.y = 10;
 
     // Physics
     new PhysicsImpostor(ground, PhysicsImpostor.BoxImpostor, {

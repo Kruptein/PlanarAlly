@@ -5,13 +5,13 @@ import { Camera } from "@babylonjs/core/Cameras/camera";
 import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
-import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
-import { Color3, Color4, Vector3 } from "@babylonjs/core/Maths/math";
+import { Color4, Vector3 } from "@babylonjs/core/Maths/math";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { BoxBuilder } from "@babylonjs/core/Meshes/Builders/boxBuilder";
 import { GroundBuilder } from "@babylonjs/core/Meshes/Builders/groundBuilder";
 import { PhysicsImpostor } from "@babylonjs/core/Physics/physicsImpostor";
 import { Scene } from "@babylonjs/core/scene";
+import { ShadowOnlyMaterial } from "@babylonjs/materials/shadowOnly";
 import { Dice, DiceThrower, DieOptions, DndParser } from "@planarally/dice";
 
 import { loadAmmoModule } from "./ammo";
@@ -19,6 +19,8 @@ import { diceStore } from "./state";
 
 let diceThrower: DiceThrower | undefined;
 let dndParser: DndParser | undefined;
+
+let light: DirectionalLight;
 
 // This is in fact used in dice.ts using dynamic import
 // eslint-disable-next-line import/no-unused-modules
@@ -43,7 +45,7 @@ export async function loadDiceEnv(): Promise<DiceThrower> {
     camera.attachControl(canvas);
     camera.fovMode = Camera.FOVMODE_HORIZONTAL_FIXED;
     new HemisphericLight("light", new Vector3(0, 1, 0), scene);
-    const light = new DirectionalLight("DirectionalLight", new Vector3(0, -1, 0), scene);
+    light = new DirectionalLight("DirectionalLight", new Vector3(0, -1, 0), scene);
     light.position = new Vector3(0, 5, 0);
     light.intensity = 1;
 
@@ -87,12 +89,9 @@ function paPredicate(mesh: AbstractMesh): boolean {
 function loadDiceBox(scene: Scene): void {
     // Visual
     const ground = GroundBuilder.CreateGround("ground", { width: 2000, height: 2000, subdivisions: 2 }, scene);
-    const material = new StandardMaterial("m", scene);
-    material.alpha = 0.3;
-    material.diffuseColor = new Color3(0, 0, 0);
+    const material = new ShadowOnlyMaterial("m", scene);
+    material.activeLight = light;
     ground.material = material;
-    // ground.position.y = -1;
-    // ground.isVisible = false;
     ground.receiveShadows = true;
 
     const topLeft = scene.pick(0, 0, paPredicate)!.pickedPoint!;

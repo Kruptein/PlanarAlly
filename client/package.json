@@ -13,6 +13,7 @@
         "lint:ci": "eslint src --no-fix"
     },
     "dependencies": {
+        "@babylonjs/materials": "^4.2.0",
         "@fortawesome/fontawesome-svg-core": "^1.2.35",
         "@fortawesome/free-brands-svg-icons": "^5.15.3",
         "@fortawesome/free-regular-svg-icons": "^5.15.3",

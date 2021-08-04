@@ -25,7 +25,7 @@ export function toSnakeCase(s: string): string {
 }
 
 export function randomInterval(min: number, max: number): number {
-    return Math.random() * (max - min + 1) + min;
+    return Math.random() * (max - min) + min;
 }
 
 export function calcFontScale(ctx: CanvasRenderingContext2D, text: string, r: number): number {

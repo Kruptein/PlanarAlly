@@ -1,7 +1,12 @@
+import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
+
 import { ArcRotateCamera } from "@babylonjs/core/Cameras/arcRotateCamera";
 import { Camera } from "@babylonjs/core/Cameras/camera";
+import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
-import { Color4, Vector3 } from "@babylonjs/core/Maths/math";
+import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
+import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
+import { Color3, Color4, Vector3 } from "@babylonjs/core/Maths/math";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { BoxBuilder } from "@babylonjs/core/Meshes/Builders/boxBuilder";
 import { GroundBuilder } from "@babylonjs/core/Meshes/Builders/groundBuilder";
@@ -23,7 +28,7 @@ export async function loadDiceEnv(): Promise<DiceThrower> {
     await loadAmmoModule();
     const Ammo = (window as any).Ammo;
 
-    diceThrower = new DiceThrower({ canvas, tresholds: { linear: 0.075, angular: 0.01 } });
+    diceThrower = new DiceThrower({ canvas, tresholds: { linear: 0.05, angular: 0.1 } });
     await diceThrower.load("/static/babylon_test6.babylon", Ammo());
 
     /*
@@ -38,6 +43,22 @@ export async function loadDiceEnv(): Promise<DiceThrower> {
     camera.attachControl(canvas);
     camera.fovMode = Camera.FOVMODE_HORIZONTAL_FIXED;
     new HemisphericLight("light", new Vector3(0, 1, 0), scene);
+    const light = new DirectionalLight("DirectionalLight", new Vector3(0, -1, 0), scene);
+    light.position = new Vector3(0, 5, 0);
+    light.intensity = 1;
+
+    scene.registerBeforeRender(() => {
+        const meshes = scene.getActiveMeshes();
+        for (let j = 0; j < meshes.length; j++) {
+            const i = meshes.data[j].getPhysicsImpostor();
+            if (i === null || i === undefined) continue;
+            i.setLinearVelocity(i.getLinearVelocity()!.multiplyByFloats(0.99, 0.99, 0.99));
+            i.setAngularVelocity(i.getAngularVelocity()!.multiplyByFloats(0.99, 0.99, 0.99));
+        }
+    });
+
+    (window as any).shadowGenerator = new ShadowGenerator(1024, light);
+
     loadDiceBox(scene);
 
     diceThrower.startRenderLoop();
@@ -65,8 +86,13 @@ function paPredicate(mesh: AbstractMesh): boolean {
 function loadDiceBox(scene: Scene): void {
     // Visual
     const ground = GroundBuilder.CreateGround("ground", { width: 2000, height: 2000, subdivisions: 2 }, scene);
+    const material = new StandardMaterial("m", scene);
+    material.alpha = 0.3;
+    material.diffuseColor = new Color3(0, 0, 0);
+    ground.material = material;
     // ground.position.y = -1;
-    ground.isVisible = false;
+    // ground.isVisible = false;
+    ground.receiveShadows = true;
 
     const topLeft = scene.pick(0, 0, paPredicate)!.pickedPoint!;
     const topRight = scene.pick(window.innerWidth, 0, paPredicate)!.pickedPoint!;
@@ -97,7 +123,7 @@ function loadDiceBox(scene: Scene): void {
     new PhysicsImpostor(ground, PhysicsImpostor.BoxImpostor, {
         mass: 0,
         restitution: 0.1,
-        friction: 3,
+        friction: 1,
     });
     new PhysicsImpostor(wall1, PhysicsImpostor.BoxImpostor, {
         mass: 0,

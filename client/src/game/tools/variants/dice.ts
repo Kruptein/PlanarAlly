@@ -1,5 +1,7 @@
+import type { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
 import type { Vector3 } from "@babylonjs/core/Maths/math.vector";
-import type { DiceThrower, DieOptions, DndParser } from "@planarally/dice";
+import type { Mesh } from "@babylonjs/core/Meshes/mesh";
+import type { Dice, DiceThrower, DieOptions, DndParser } from "@planarally/dice";
 import { watch } from "@vue/runtime-core";
 import tinycolor from "tinycolor2";
 
@@ -66,30 +68,40 @@ class DiceTool extends Tool {
         const signX = Math.random() > 0.5 ? 1 : -1;
         const signY = Math.random() > 0.5 ? 1 : -1;
 
-        const w = diceStore.state.dimensions.width / 2;
-        const h = diceStore.state.dimensions.height / 2;
+        const w = (diceStore.state.dimensions.width / 2) * 0.85;
+        const h = (diceStore.state.dimensions.height / 2) * 0.85;
 
         const color = tinycolor(clientStore.state.rulerColour).toHexString();
 
+        const position = new this.vector3(signX * (side ? w : xDir * w), 4.5, signY * (side ? yDir * h : h));
+
+        // Aim from side to center
+        const linear = this.vector3
+            .Zero()
+            .subtract(position)
+            // Slightly deviate from center
+            .add(new this.vector3(randomInterval(0, 5) - 2.5, randomInterval(0, 2) - 1, randomInterval(0, 5) - 2.5))
+            // Power up
+            .multiplyByFloats(5, 1, 5);
         const options: Omit<DieOptions, "die"> = {
-            position: new this.vector3(signX * (-5 + (side ? w : w * xDir)), 3, signY * (-5 + (side ? h * yDir : h))),
-            linear: new this.vector3(-signX * randomInterval(10, 20), -1, -signY * randomInterval(10, 20)),
-            angular: new this.vector3(-signX, 0, -2),
+            position,
+            linear,
+            angular: new this.vector3(linear.x / 2, 0, 0),
             color,
         };
 
-        // const options: Omit<DieOptions, "die"> = {
-        //     position: new this.vector3(-w, 3, 0),
-        //     linear: new this.vector3(20, -1, 0),
-        //     angular: new this.vector3(1, 0, -2),
-        //     color,
-        // };
+        console.log(options);
 
-        const results = await diceTool.dndParser.fromString(inp, options);
+        const results = await diceTool.dndParser.fromString(inp, options, (die, mesh) => this.addShadow(die, mesh));
         diceStore.setResults(results);
         diceStore.setIsPending(false);
         diceStore.setShowDiceResults(true);
         return results[0].total;
+    }
+
+    addShadow(die: Dice, mesh: Mesh): void {
+        ((window as any).shadowGenerator as ShadowGenerator).addShadowCaster(mesh);
+        ((window as any).shadowGenerator as ShadowGenerator).useExponentialShadowMap = true;
     }
 }
 

@@ -6,6 +6,7 @@ interface DiceState {
     showUi: boolean;
     pending: boolean;
     results: DndResult[];
+    dimensions: { width: number; height: number };
 }
 
 class DiceStore extends Store<DiceState> {
@@ -14,6 +15,7 @@ class DiceStore extends Store<DiceState> {
             showUi: false,
             pending: false,
             results: [],
+            dimensions: { width: 0, height: 0 },
         };
     }
 
@@ -27,6 +29,10 @@ class DiceStore extends Store<DiceState> {
 
     setIsPending(pending: boolean): void {
         this._state.pending = pending;
+    }
+
+    setDimensions(width: number, height: number): void {
+        this._state.dimensions = { width, height };
     }
 }
 

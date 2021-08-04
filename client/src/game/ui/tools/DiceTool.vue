@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import type { DieOptions } from "@planarally/dice";
 import type { CSSProperties } from "vue";
-import { computed, onMounted, ref } from "vue";
+import { computed, nextTick, onMounted, ref } from "vue";
 
-import { diceStore } from "../../dice/state";
 import { diceTool } from "../../tools/variants/dice";
 
 import { useToolPosition } from "./toolPosition";
@@ -13,6 +11,7 @@ import { useToolPosition } from "./toolPosition";
 const right = ref("0px");
 const arrow = ref("0px");
 const button = ref<HTMLButtonElement | null>(null);
+const historyDiv = ref<HTMLDivElement | null>(null);
 
 const toolStyle = computed(() => ({ "--detailRight": right.value, "--detailArrow": arrow.value } as CSSProperties));
 
@@ -25,6 +24,13 @@ const diceArray = ref<{ die: number; amount: number }[]>([]);
 const history = ref<{ roll: string; result: number }[]>([]);
 let timeout: number | undefined;
 
+function addToHistory(roll: string, result: number): void {
+    history.value.push({ roll, result });
+    nextTick(() => {
+        historyDiv.value!.scrollTop = historyDiv.value!.scrollHeight;
+    });
+}
+
 function add(die: number): void {
     button.value?.classList.remove("transition");
     button.value!.clientWidth; // force reflow
@@ -36,7 +42,7 @@ function add(die: number): void {
         d.amount++;
     }
     clearTimeout(timeout);
-    timeout = setTimeout(go, 4000);
+    timeout = setTimeout(go, 1000);
 }
 
 const diceText = computed(() => {
@@ -50,32 +56,24 @@ const diceText = computed(() => {
     return text;
 });
 
-async function roll(inp: string, options?: DieOptions[]): Promise<number> {
-    diceStore.setIsPending(true);
-    const results = await diceTool.dndParser.fromString(inp, options);
-    diceStore.setResults(results);
-    diceStore.setIsPending(false);
-    diceStore.setShowDiceResults(true);
-    return results[0].total;
-}
-
 async function reroll(inp: string): Promise<void> {
-    const result = await roll(inp);
-    history.value.push({ roll: inp, result });
+    const result = await diceTool.roll(inp);
+    addToHistory(inp, result);
 }
 
 async function go(): Promise<void> {
     clearTimeout(timeout);
+    button.value?.classList.remove("transition");
     const rollString = diceText.value;
-    const result = await roll(rollString);
-    history.value.push({ roll: rollString, result });
+    const result = await diceTool.roll(rollString);
+    addToHistory(rollString, result);
     diceArray.value = [];
 }
 </script>
 
 <template>
     <div id="dice" class="tool-detail" :style="toolStyle">
-        <div id="dice-history">
+        <div id="dice-history" ref="historyDiv">
             <template v-for="r of history" :key="r.roll">
                 <div class="roll" @click="reroll(r.roll)">{{ r.roll }}</div>
                 <div class="result">{{ r.result }}</div>
@@ -105,6 +103,10 @@ async function go(): Promise<void> {
     #dice-history {
         display: grid;
         grid-template-columns: 1fr 2em;
+
+        max-height: 10em;
+        overflow-y: auto;
+        padding-right: 0.5em;
 
         > .roll:hover {
             cursor: pointer;
@@ -196,19 +198,19 @@ async function go(): Promise<void> {
             &.transition::before {
                 border-top-color: $border; // Make borders visible
                 border-right-color: $border;
-                transition: width 1s ease-out,
+                transition: width 0.25s ease-out,
                     // Width expands first
-                    height 1s ease-out 1s; // And then height
+                    height 0.25s ease-out 0.25s; // And then height
             }
 
             &.transition::after {
                 border-bottom-color: $border; // Make borders visible
                 border-left-color: $border;
-                transition: border-color 0s ease-out 2s,
+                transition: border-color 0s ease-out 0.5s,
                     // Wait for ::before to finish before showing border
-                    width 1s ease-out 2s,
+                    width 0.25s ease-out 0.5s,
                     // And then exanding width
-                    height 1s ease-out 3s; // And finally height
+                    height 0.25s ease-out 0.75s; // And finally height
             }
         }
     }

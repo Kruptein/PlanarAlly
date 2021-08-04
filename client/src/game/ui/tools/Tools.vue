@@ -47,9 +47,15 @@ const visibleTools = computed(() => {
 
 function getStyle(tool: ToolMode): CSSProperties {
     if (tool === activeToolMode.value) {
-        return { fontWeight: "bold" };
+        return {
+            fontWeight: "bold",
+            fontSize: "larger",
+            textDecoration: "underline",
+            textUnderlineOffset: "5px",
+            textDecorationThickness: "3px",
+        };
     }
-    return {};
+    return { fontStyle: "italic" };
 }
 
 const toolModes = computed(() => {

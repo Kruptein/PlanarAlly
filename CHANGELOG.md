@@ -11,6 +11,7 @@ These usually have no immediately visible impact on regular users
 ### Changed
 
 -   Active tool-mode is now more distinct
+-   Prevent setting visionMinRange > visionMaxRange using settings UI
 
 ### Fixed
 

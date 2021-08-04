@@ -113,8 +113,8 @@ export class FowLightingLayer extends FowLayer {
                 this.vCtx.globalCompositeOperation = "source-in";
                 this.vCtx.beginPath();
 
-                const angleA = toRadians(aura.direction - aura.angle / 2);
-                const angleB = toRadians(aura.direction + aura.angle / 2);
+                const angleA = shape.angle + toRadians(aura.direction - aura.angle / 2);
+                const angleB = shape.angle + toRadians(aura.direction + aura.angle / 2);
 
                 if (aura.angle < 360) {
                     this.vCtx.moveTo(lcenter.x, lcenter.y);

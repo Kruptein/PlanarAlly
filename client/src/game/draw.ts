@@ -89,8 +89,8 @@ export function drawAuras(shape: Shape, ctx: CanvasRenderingContext2D): void {
             gradient.addColorStop(1, tc.setAlpha(0).toRgbString());
         }
 
-        const angleA = aura.angle === 360 ? 0 : toRadians(aura.direction - aura.angle / 2);
-        const angleB = aura.angle === 360 ? Math.PI * 2 : toRadians(aura.direction + aura.angle / 2);
+        const angleA = aura.angle === 360 ? 0 : shape.angle + toRadians(aura.direction - aura.angle / 2);
+        const angleB = aura.angle === 360 ? Math.PI * 2 : shape.angle + toRadians(aura.direction + aura.angle / 2);
 
         // Set visibility polygon as clipping path
         if (aura.visionSource) {

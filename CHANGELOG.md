@@ -12,6 +12,10 @@ These usually have no immediately visible impact on regular users
 
 -   Active tool-mode is now more distinct
 
+### Fixed
+
+-   Locked shapes being able to move locations
+
 ## [0.28.0] - 2021-07-21
 
 ### Added

@@ -174,6 +174,11 @@ export default defineComponent({
         });
 
         async function setLocation(newLocation: number): Promise<void> {
+            const shapes = [...selectionState.state.selection].filter((s) => !UuidMap.get(s)!.isLocked);
+            if (shapes.length === 0) {
+                return;
+            }
+
             const spawnInfo = await requestSpawnInfo(newLocation);
             let spawnLocation: ServerAsset;
 
@@ -209,12 +214,13 @@ export default defineComponent({
             };
 
             sendShapesMove({
-                shapes: [...selectionState.state.selection],
+                shapes,
                 target: { location: newLocation, ...targetPosition },
             });
             if (settingsStore.movePlayerOnTokenChange.value) {
                 const users: Set<string> = new Set();
                 for (const shape of selectionState.get({ includeComposites: true })) {
+                    if (shape.isLocked) continue;
                     for (const owner of shape.owners) users.add(owner.user);
                 }
                 gameStore.updatePlayersLocation([...users], newLocation, true, { ...targetPosition });

@@ -26,6 +26,13 @@ export class FowVisionLayer extends FowLayer {
             // This was done in commit be1e65cff1e7369375fe11cfa1643fab1d11beab.
             if (!gameStore.state.isDm) super.draw(false);
 
+            const visionMin = g2lr(settingsStore.visionMinRange.value);
+            let visionMax = g2lr(settingsStore.visionMaxRange.value);
+            // The radial-gradient doesn't handle equal radii properly.
+            if (visionMax === visionMin) {
+                visionMax += 0.01;
+            }
+
             for (const tokenId of gameStore.activeTokens.value) {
                 const token = UuidMap.get(tokenId);
                 if (token === undefined || token.floor.id !== this.floor) continue;
@@ -36,10 +43,10 @@ export class FowVisionLayer extends FowLayer {
                 const gradient = this.ctx.createRadialGradient(
                     lcenter.x,
                     lcenter.y,
-                    g2lr(settingsStore.visionMinRange.value),
+                    visionMin,
                     lcenter.x,
                     lcenter.y,
-                    g2lr(settingsStore.visionMaxRange.value),
+                    visionMax,
                 );
                 gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
                 gradient.addColorStop(1, "rgba(0, 0, 0, 0)");

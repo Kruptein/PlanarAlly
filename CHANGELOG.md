@@ -16,6 +16,7 @@ These usually have no immediately visible impact on regular users
 
 -   Locked shapes being able to move locations
 -   Locked shapes being able to change floors
+-   vision min range equal to max range bug
 
 ## [0.28.0] - 2021-07-21
 

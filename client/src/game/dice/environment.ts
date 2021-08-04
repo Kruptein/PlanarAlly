@@ -52,6 +52,7 @@ export async function loadDiceEnv(): Promise<DiceThrower> {
         for (let j = 0; j < meshes.length; j++) {
             const i = meshes.data[j].getPhysicsImpostor();
             if (i === null || i === undefined) continue;
+            if (meshes.data[j].position.y > 3) continue;
             i.setLinearVelocity(i.getLinearVelocity()!.multiplyByFloats(0.99, 0.99, 0.99));
             i.setAngularVelocity(i.getAngularVelocity()!.multiplyByFloats(0.99, 0.99, 0.99));
         }

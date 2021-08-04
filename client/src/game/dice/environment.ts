@@ -102,22 +102,24 @@ function loadDiceBox(scene: Scene): void {
     const height = Math.abs(botLeft.z - topLeft.z);
     diceStore.setDimensions(width, height);
 
-    const wall1 = BoxBuilder.CreateBox("north", { width, depth: 1, height: 20 });
+    const wall1 = BoxBuilder.CreateBox("north", { width, depth: 1, height: 40 });
     wall1.isVisible = false;
     wall1.position.z = height / 2;
-    wall1.position.y = 10;
-    const wall2 = BoxBuilder.CreateBox("south", { width, depth: 1, height: 20 });
+    wall1.position.y = 20;
+    const wall2 = BoxBuilder.CreateBox("south", { width, depth: 1, height: 40 });
     wall2.position.z = -height / 2;
     wall2.isVisible = false;
-    wall2.position.y = 10;
-    const wall3 = BoxBuilder.CreateBox("east", { width: 1, depth: height, height: 20 });
+    wall2.position.y = 20;
+    const wall3 = BoxBuilder.CreateBox("east", { width: 1, depth: height, height: 40 });
     wall3.position.x = width / 2;
     wall3.isVisible = false;
-    wall3.position.y = 10;
-    const wall4 = BoxBuilder.CreateBox("west", { width: 1, depth: height, height: 20 });
+    wall3.position.y = 20;
+    const wall4 = BoxBuilder.CreateBox("west", { width: 1, depth: height, height: 40 });
     wall4.position.x = -width / 2;
     wall4.isVisible = false;
-    wall4.position.y = 10;
+    wall4.position.y = 20;
+    const roof = BoxBuilder.CreateBox("roof", { width, depth: height });
+    roof.position.y = 40;
 
     // Physics
     new PhysicsImpostor(ground, PhysicsImpostor.BoxImpostor, {

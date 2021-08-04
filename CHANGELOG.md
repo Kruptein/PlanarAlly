@@ -8,6 +8,10 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+### Changed
+
+-   Active tool-mode is now more distinct
+
 ## [0.28.0] - 2021-07-21
 
 ### Added

@@ -80,7 +80,7 @@ class DiceTool extends Tool {
             .Zero()
             .subtract(position)
             // Slightly deviate from center
-            .add(new this.vector3(randomInterval(0, 5) - 2.5, randomInterval(0, 2) - 1, randomInterval(0, 5) - 2.5))
+            .add(new this.vector3(randomInterval(0, 20) - 10, randomInterval(0, 5) - 2.5, randomInterval(0, 20) - 10))
             // Power up
             .multiplyByFloats(5, 1, 5);
         const options: Omit<DieOptions, "die"> = {

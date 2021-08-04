@@ -21,6 +21,7 @@ import { Asset } from "./shapes/variants/asset";
 import { visionState } from "./vision/state";
 
 export function moveFloor(shapes: Shape[], newFloor: Floor, sync: boolean): void {
+    shapes = shapes.filter((s) => !s.isLocked);
     if (shapes.length === 0) return;
     const oldLayer = shapes[0].layer;
     const oldFloor = shapes[0].floor;

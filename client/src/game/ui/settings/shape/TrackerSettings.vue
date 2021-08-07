@@ -313,6 +313,10 @@ input[type="text"] {
     padding: 2px;
 }
 
+input[type="number"] {
+    width: 65px;
+}
+
 .aura {
     display: flex;
     flex-direction: column;
@@ -393,7 +397,7 @@ input[type="text"] {
 
     input:checked + .details {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr minmax(180px, 1fr);
         align-items: center;
         row-gap: 0.5em;
     }

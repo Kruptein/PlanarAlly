@@ -466,6 +466,7 @@ export default defineComponent({
 <style scoped lang="scss">
 .ContextMenu ul {
     border: 1px solid #82c8a0;
+    width: -moz-fit-content;
     width: fit-content;
 
     li {

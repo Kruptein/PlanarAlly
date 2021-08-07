@@ -51,7 +51,7 @@ function getStyle(tool: ToolMode): CSSProperties {
             fontWeight: "bold",
             fontSize: "larger",
             textDecoration: "underline",
-            textUnderlineOffset: "5px",
+            textUnderlineOffset: "6px",
             textDecorationThickness: "3px",
         };
     }

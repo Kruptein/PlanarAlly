@@ -24,7 +24,9 @@ export default defineComponent({
     right: 0;
     margin: auto;
     z-index: 10;
+    width: -moz-fit-content;
     width: fit-content;
+    height: -moz-fit-content;
     height: fit-content;
 
     border: solid 1px #9c455e;

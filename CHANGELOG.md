@@ -19,6 +19,8 @@ These usually have no immediately visible impact on regular users
 -   Locked shapes being able to change floors
 -   vision min range equal to max range bug
 -   Angled auras not rotating with general shape rotation
+-   Multiple styling issues in firefox
+    -   annotations no longer fill entire screen width
 
 ## [0.28.0] - 2021-07-21
 

@@ -12,6 +12,7 @@ These usually have no immediately visible impact on regular users
 
 -   Active tool-mode is now more distinct
 -   Prevent setting visionMinRange > visionMaxRange using settings UI
+-   Added number input to the aura angle direction UI
 
 ### Fixed
 

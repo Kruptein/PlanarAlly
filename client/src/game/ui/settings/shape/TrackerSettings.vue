@@ -240,6 +240,7 @@ function toggleCompositeAura(auraId: string): void {
                         />
                         <RotationSlider
                             :angle="aura.direction"
+                            :show-number-input="true"
                             @input="
                                 (direction) => {
                                     updateAura(aura.uuid, { direction }, false);
@@ -376,10 +377,7 @@ input[type="number"] {
 
         .angle {
             display: flex;
-
-            input {
-                margin-right: 4em;
-            }
+            justify-content: space-between;
         }
 
         .colour {

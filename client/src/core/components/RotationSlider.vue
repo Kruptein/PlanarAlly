@@ -4,7 +4,7 @@ import { computed, defineComponent, onMounted, ref } from "vue";
 import { toDegrees, toRadians } from "../conversions";
 
 export default defineComponent({
-    props: { angle: { type: Number, required: true } },
+    props: { angle: { type: Number, required: true }, showNumberInput: { type: Boolean, default: false } },
     emits: { input: Number, change: Number },
     setup(props, { emit }) {
         const circle = ref<HTMLDivElement | null>(null);
@@ -49,32 +49,49 @@ export default defineComponent({
 </script>
 
 <template>
-    <div
-        id="circle"
-        ref="circle"
-        @mousedown="mouseDown"
-        @mouseup="mouseUp"
-        @mousemove="mouseMove"
-        @mouseleave="mouseUp"
-    >
-        <div id="slider" ref="slider" :style="{ left: `${left}px`, top: `${top}px` }"></div>
+    <div class="rotational-slider" :class="{ withNumber: showNumberInput }">
+        <div
+            class="circle"
+            ref="circle"
+            @mousedown="mouseDown"
+            @mouseup="mouseUp"
+            @mousemove="mouseMove"
+            @mouseleave="mouseUp"
+        >
+            <div class="slider" ref="slider" :style="{ left: `${left}px`, top: `${top}px` }"></div>
+        </div>
+        <div v-if="showNumberInput"><input type="number" /></div>
     </div>
 </template>
 
 <style lang="scss" scoped>
-#circle {
-    width: 20px;
-    height: 20px;
-    border: 2px solid gray;
-    border-radius: 100%;
-}
+.rotational-slider {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 
-#slider {
-    position: relative;
-    height: 10px;
-    width: 10px;
-    background: gray;
-    border-radius: 100%;
-    cursor: pointer;
+    &.withNumber {
+        width: 75px;
+    }
+
+    input[type="number"] {
+        width: 30px;
+    }
+
+    .circle {
+        width: 20px;
+        height: 20px;
+        border: 2px solid gray;
+        border-radius: 100%;
+    }
+
+    .slider {
+        position: relative;
+        height: 10px;
+        width: 10px;
+        background: gray;
+        border-radius: 100%;
+        cursor: pointer;
+    }
 }
 </style>

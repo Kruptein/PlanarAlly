@@ -1,4 +1,5 @@
 import "./events/access";
+import "./events/dice";
 import "./events/floor";
 import "./events/groups";
 import "./events/initiative";

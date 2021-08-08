@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 import type { CSSProperties } from "vue";
-import { computed, nextTick, onMounted, ref } from "vue";
 
+import { coreStore } from "../../../store/core";
+import { sendDiceRollResult } from "../../api/emits/dice";
 import { diceTool } from "../../tools/variants/dice";
 
 import { useToolPosition } from "./toolPosition";
@@ -21,28 +23,29 @@ onMounted(() => {
 
 // Dice logic
 const diceArray = ref<{ die: number; amount: number }[]>([]);
-const history = ref<{ roll: string; result: number }[]>([]);
 let timeout: number | undefined;
 
-function addToHistory(roll: string, result: number): void {
-    history.value.push({ roll, result });
+watch(diceTool.state.history, () => {
     nextTick(() => {
         historyDiv.value!.scrollTop = historyDiv.value!.scrollHeight;
     });
-}
+});
 
 function add(die: number): void {
-    button.value?.classList.remove("transition");
-    button.value!.clientWidth; // force reflow
-    button.value?.classList.add("transition");
+    if (diceTool.state.autoRoll) {
+        button.value?.classList.remove("transition");
+        button.value!.clientWidth; // force reflow
+        button.value?.classList.add("transition");
+
+        clearTimeout(timeout);
+        timeout = setTimeout(go, 1000);
+    }
     const d = diceArray.value.find((d) => d.die === die);
     if (d === undefined) {
         diceArray.value.push({ die, amount: 1 });
     } else {
         d.amount++;
     }
-    clearTimeout(timeout);
-    timeout = setTimeout(go, 1000);
 }
 
 const diceText = computed(() => {
@@ -56,17 +59,29 @@ const diceText = computed(() => {
     return text;
 });
 
-async function reroll(inp: string): Promise<void> {
-    const result = await diceTool.roll(inp);
-    addToHistory(inp, result);
+async function reroll(roll: string): Promise<void> {
+    const result = await diceTool.roll(roll);
+    diceTool.state.history.push({ roll, result, player: coreStore.state.username });
+    sendDiceRollResult({
+        player: coreStore.state.username,
+        roll,
+        result,
+        shareWithAll: diceTool.state.shareWithAll,
+    });
 }
 
 async function go(): Promise<void> {
     clearTimeout(timeout);
     button.value?.classList.remove("transition");
-    const rollString = diceText.value;
-    const result = await diceTool.roll(rollString);
-    addToHistory(rollString, result);
+    const roll = diceText.value;
+    const result = await diceTool.roll(roll);
+    diceTool.state.history.push({ roll, result, player: coreStore.state.username });
+    sendDiceRollResult({
+        player: coreStore.state.username,
+        roll,
+        result,
+        shareWithAll: diceTool.state.shareWithAll,
+    });
     diceArray.value = [];
 }
 </script>
@@ -74,10 +89,24 @@ async function go(): Promise<void> {
 <template>
     <div id="dice" class="tool-detail" :style="toolStyle">
         <div id="dice-history" ref="historyDiv">
-            <template v-for="r of history" :key="r.roll">
-                <div class="roll" @click="reroll(r.roll)">{{ r.roll }}</div>
-                <div class="result">{{ r.result }}</div>
+            <template v-for="r of diceTool.state.history" :key="r.roll">
+                <div class="roll" :title="r.player" @click="reroll(r.roll)">{{ r.roll }}</div>
+                <div class="result" :title="r.player">{{ r.result }}</div>
             </template>
+        </div>
+        <div id="dice-options">
+            <div>Share with all</div>
+            <button
+                class="slider-checkbox"
+                :aria-pressed="diceTool.state.shareWithAll"
+                @click="diceTool.state.shareWithAll = !diceTool.state.shareWithAll"
+            ></button>
+            <div>Auto roll</div>
+            <button
+                class="slider-checkbox"
+                :aria-pressed="diceTool.state.autoRoll"
+                @click="diceTool.state.autoRoll = !diceTool.state.autoRoll"
+            ></button>
         </div>
         <div id="dice-picker">
             <div @click="add(20)">20</div>
@@ -87,8 +116,9 @@ async function go(): Promise<void> {
             <div @click="add(6)">6</div>
             <div @click="add(4)">4</div>
         </div>
+        <div>{{ diceText }}</div>
         <div id="dice-input">
-            <div>{{ diceText }}</div>
+            <button @click="diceArray = []">clear</button>
             <button ref="button" @click="go">GO</button>
         </div>
     </div>
@@ -104,9 +134,10 @@ async function go(): Promise<void> {
         display: grid;
         grid-template-columns: 1fr 2em;
 
-        max-height: 10em;
+        max-height: 3em;
         overflow-y: auto;
         padding-right: 0.5em;
+        padding-bottom: 0.5em;
 
         > .roll:hover {
             cursor: pointer;
@@ -115,6 +146,18 @@ async function go(): Promise<void> {
         > .result {
             text-align: right;
         }
+    }
+
+    #dice-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        justify-items: end;
+        align-items: center;
+        row-gap: 0.5em;
+
+        padding-right: 0.5em;
+        padding-top: 0.5em;
+        border-top: solid 1px;
     }
 
     #dice-picker {
@@ -137,8 +180,12 @@ async function go(): Promise<void> {
     #dice-input {
         display: flex;
         flex-direction: row;
+        justify-content: flex-end;
 
         > div {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
             flex-grow: 2;
         }
 

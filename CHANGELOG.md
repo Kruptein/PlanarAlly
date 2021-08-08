@@ -8,6 +8,10 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+### Added
+
+-   Dice rolling tool
+
 ### Changed
 
 -   Active tool-mode is now more distinct

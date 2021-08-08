@@ -459,9 +459,10 @@ export default defineComponent({
     font: inherit;
     line-height: inherit;
     text-align: left;
-    padding: 0.4em 0 0.4em 4em;
     position: relative;
     outline: none;
+    width: 2.6em;
+    padding: 0.4em 0 0.4em 0.4em;
 
     &:hover {
         cursor: pointer;

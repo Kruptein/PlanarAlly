@@ -4,6 +4,7 @@ import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { Dice, DiceThrower, DieOptions, DndParser } from "@planarally/dice";
 import { watch } from "@vue/runtime-core";
 import tinycolor from "tinycolor2";
+import { reactive } from "vue";
 
 import { randomInterval } from "../../../core/utils";
 import { i18n } from "../../../i18n";
@@ -32,6 +33,16 @@ class DiceTool extends Tool {
     diceThrower!: DiceThrower;
     dndParser!: DndParser;
     vector3!: typeof Vector3;
+
+    state = reactive<{
+        shareWithAll: boolean;
+        autoRoll: boolean;
+        history: { roll: string; result: number; player: string }[];
+    }>({
+        shareWithAll: false,
+        autoRoll: true,
+        history: [],
+    });
 
     constructor() {
         super();
@@ -89,8 +100,6 @@ class DiceTool extends Tool {
             angular: new this.vector3(linear.x / 2, 0, 0),
             color,
         };
-
-        console.log(options);
 
         const results = await diceTool.dndParser.fromString(inp, options, (die, mesh) => this.addShadow(die, mesh));
         diceStore.setResults(results);

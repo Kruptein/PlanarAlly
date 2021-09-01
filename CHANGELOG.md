@@ -31,7 +31,7 @@ These usually have no immediately visible impact on regular users
 -   Viewport sync
     -   viewport is sent immediately upon connecting (and does not wait for the first pan)
     -   DM viewport move is now throttled and should no longer appear laggy on the client
--   variou DPI related fixes
+-   various DPI related fixes
 
 ## [0.28.0] - 2021-07-21
 

@@ -8,7 +8,7 @@ import { gameStore } from "../../store/game";
 import { uiStore } from "../../store/ui";
 
 defineProps({ visible: { type: Boolean, required: true } });
-const emit = defineEmits();
+const emit = defineEmits(["update:visible"]);
 
 const textarea = ref<HTMLTextAreaElement | null>(null);
 const title = ref<HTMLInputElement | null>(null);

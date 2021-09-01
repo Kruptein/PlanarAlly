@@ -18,7 +18,8 @@ import {
     sendInitiativeReorder,
     sendInitiativeSetSort,
 } from "../../api/emits/initiative";
-import { InitiativeData, InitiativeEffect, InitiativeSettings, InitiativeSort } from "../../models/initiative";
+import { InitiativeSort } from "../../models/initiative";
+import type { InitiativeData, InitiativeEffect, InitiativeSettings } from "../../models/initiative";
 import { setCenterPosition } from "../../position";
 
 let activeTokensBackup: Set<string> | undefined = undefined;

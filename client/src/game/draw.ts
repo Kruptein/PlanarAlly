@@ -3,11 +3,13 @@ import tinycolor from "tinycolor2";
 import { g2l, g2lr, g2lx, g2ly, toRadians } from "../core/conversions";
 import { floorStore } from "../store/floor";
 
-import { Layer } from "./layers/variants/layer";
-import { Floor, LayerName } from "./models/floor";
-import { Shape } from "./shapes/shape";
+import type { Layer } from "./layers/variants/layer";
+import { LayerName } from "./models/floor";
+import type { Floor } from "./models/floor";
+import type { Shape } from "./shapes/shape";
 import { TriangulationTarget } from "./vision/state";
-import { Edge, EdgeIterator, TDS } from "./vision/tds";
+import { EdgeIterator } from "./vision/tds";
+import type { Edge, TDS } from "./vision/tds";
 import { computeVisibility } from "./vision/te";
 import { ccw, cw } from "./vision/triag";
 

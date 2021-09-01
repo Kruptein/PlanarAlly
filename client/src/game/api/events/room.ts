@@ -2,7 +2,8 @@ import { clientStore } from "../../../store/client";
 import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
 import { Role } from "../../models/role";
-import { optionsToClient, ServerLocationOptions } from "../../models/settings";
+import { optionsToClient } from "../../models/settings";
+import type { ServerLocationOptions } from "../../models/settings";
 import { socket } from "../socket";
 
 import { setLocationOptions } from "./location";

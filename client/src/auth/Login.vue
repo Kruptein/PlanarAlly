@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import SwiperCore, { Pagination } from "swiper/core";
-import { Swiper, SwiperSlide } from "swiper/vue";
+import type { Swiper } from "swiper/vue";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";

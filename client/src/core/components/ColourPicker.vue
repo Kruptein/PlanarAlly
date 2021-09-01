@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import clamp from "lodash/clamp";
 import tinycolor from "tinycolor2";
-import { computed, defineEmit, defineProps, nextTick, ref, watchEffect } from "vue";
+import { computed, defineEmits, defineProps, nextTick, ref, watchEffect } from "vue";
 
 import { getInputPosition } from "../events";
 
@@ -19,7 +19,7 @@ const props = defineProps({
     showAlpha: { type: Boolean, default: true },
     vShow: { type: Boolean, default: true },
 });
-const emit = defineEmit({ "update:colour": (_: string) => true, "input:colour": (_: string) => true });
+const emit = defineEmits({ "update:colour": (_: string) => true, "input:colour": (_: string) => true });
 
 const alpha = ref<HTMLDivElement | null>(null);
 const hue = ref<HTMLDivElement | null>(null);

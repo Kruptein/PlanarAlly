@@ -2,7 +2,8 @@ import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
 import { moveClientRect } from "../../client";
-import { ServerClient, ServerUserLocationOptions, userOptionsToClient } from "../../models/settings";
+import { userOptionsToClient } from "../../models/settings";
+import type { ServerClient, ServerUserLocationOptions } from "../../models/settings";
 import { socket } from "../socket";
 
 // eslint-disable-next-line import/no-unused-modules

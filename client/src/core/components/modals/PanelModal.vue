@@ -1,5 +1,6 @@
 <script lang="ts">
-import { defineComponent, PropType, ref, watchEffect } from "vue";
+import { defineComponent, ref, watchEffect } from "vue";
+import type { PropType } from "vue";
 import { useI18n } from "vue-i18n";
 
 import Modal from "./Modal.vue";

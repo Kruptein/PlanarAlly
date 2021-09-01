@@ -1,7 +1,7 @@
 import { g2l, g2lx, g2ly, g2lz } from "../../../core/conversions";
-import { GlobalPoint } from "../../../core/geometry";
-import { ServerAsset } from "../../models/shapes";
-import { SHAPE_TYPE } from "../types";
+import type { GlobalPoint } from "../../../core/geometry";
+import type { ServerAsset } from "../../models/shapes";
+import type { SHAPE_TYPE } from "../types";
 
 import { BaseRect } from "./baseRect";
 

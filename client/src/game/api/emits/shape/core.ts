@@ -1,8 +1,8 @@
-import { ServerShape } from "../../../models/shapes";
-import { Shape } from "../../../shapes/shape";
-import { Circle } from "../../../shapes/variants/circle";
-import { Rect } from "../../../shapes/variants/rect";
-import { Text } from "../../../shapes/variants/text";
+import type { ServerShape } from "../../../models/shapes";
+import type { Shape } from "../../../shapes/shape";
+import type { Circle } from "../../../shapes/variants/circle";
+import type { Rect } from "../../../shapes/variants/rect";
+import type { Text } from "../../../shapes/variants/text";
 import { wrapSocket } from "../../helpers";
 import { socket } from "../../socket";
 

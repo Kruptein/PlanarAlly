@@ -15,7 +15,8 @@ import "./events/shape/text";
 import "./events/shape/togglecomposite";
 
 import { toGP } from "../../core/geometry";
-import { AssetList, SyncMode } from "../../core/models/types";
+import { SyncMode } from "../../core/models/types";
+import type { AssetList } from "../../core/models/types";
 import { router } from "../../router";
 import { clientStore } from "../../store/client";
 import { coreStore } from "../../store/core";
@@ -26,13 +27,14 @@ import { UuidMap } from "../../store/shapeMap";
 import { convertAssetListToMap } from "../assets/utils";
 import { startDrawLoop, stopDrawLoop } from "../draw";
 import { compositeState } from "../layers/state";
-import { Note, ServerFloor } from "../models/general";
-import { Location } from "../models/settings";
+import type { Note, ServerFloor } from "../models/general";
+import type { Location } from "../models/settings";
 import { setCenterPosition } from "../position";
 import { deleteShapes } from "../shapes/utils";
 import { initiativeStore } from "../ui/initiative/state";
 import { visionState } from "../vision/state";
 
+import { sendClientLocationOptions } from "./emits/client";
 import { activeLayerToselect } from "./events/client";
 import { socket } from "./socket";
 
@@ -90,6 +92,8 @@ socket.on("Board.Floor.Set", (floor: ServerFloor) => {
         coreStore.setLoading(false);
         gameStore.setBoardInitialized(true);
         if (activeLayerToselect !== undefined) floorStore.selectLayer(activeLayerToselect, false);
+        // Send initial viewport on connect (this can change due to other monitors etc)
+        sendClientLocationOptions();
     }
 });
 

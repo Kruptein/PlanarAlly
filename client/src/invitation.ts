@@ -1,5 +1,5 @@
 import { defineComponent } from "vue";
-import { NavigationGuardNext, RouteLocationNormalized } from "vue-router";
+import type { NavigationGuardNext, RouteLocationNormalized } from "vue-router";
 
 import { postFetch } from "./core/utils";
 

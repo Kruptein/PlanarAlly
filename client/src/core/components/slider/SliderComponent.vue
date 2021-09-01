@@ -1,5 +1,6 @@
 <script lang="ts">
-import { computed, defineComponent, PropType, ref, watchEffect } from "vue";
+import { computed, defineComponent, ref, watchEffect } from "vue";
+import type { PropType } from "vue";
 
 import SliderDot from "./SliderDot.vue";
 import { getPosByEvent } from "./utils";

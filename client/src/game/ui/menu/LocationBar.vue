@@ -11,7 +11,7 @@ import { locationStore } from "../../../store/location";
 import { settingsStore } from "../../../store/settings";
 import { uiStore } from "../../../store/ui";
 import { sendLocationChange, sendNewLocation } from "../../api/emits/location";
-import { Location } from "../../models/settings";
+import type { Location } from "../../models/settings";
 
 export default defineComponent({
     components: { draggable },

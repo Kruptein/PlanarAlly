@@ -2,7 +2,8 @@
 import { computed, defineComponent, toRef } from "vue";
 
 import { cloneP } from "../../../../core/geometry";
-import { Asset as A, InvalidationMode, SyncMode, SyncTo } from "../../../../core/models/types";
+import { InvalidationMode, SyncMode, SyncTo } from "../../../../core/models/types";
+import type { Asset as A } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { UuidMap } from "../../../../store/shapeMap";

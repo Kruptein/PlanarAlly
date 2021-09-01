@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineEmit, defineProps, onMounted, ref } from "vue";
+import { computed, defineEmits, defineProps, onMounted, ref } from "vue";
 
 import { toDegrees, toRadians } from "../conversions";
 
@@ -7,7 +7,7 @@ const props = defineProps({
     angle: { type: Number, required: true },
     showNumberInput: { type: Boolean, default: false },
 });
-const emit = defineEmit({ input: Number, change: Number });
+const emit = defineEmits({ input: Number, change: Number });
 
 const circle = ref<HTMLDivElement | null>(null);
 

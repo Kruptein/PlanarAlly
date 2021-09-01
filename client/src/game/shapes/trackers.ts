@@ -1,7 +1,7 @@
 import { uuidv4 } from "../../core/utils";
-import { UiAura, UiTracker } from "../../store/activeShape";
+import type { UiAura, UiTracker } from "../../store/activeShape";
 
-import { Aura, Tracker } from "./interfaces";
+import type { Aura, Tracker } from "./interfaces";
 
 export function createEmptyUiTracker(shape: string): UiTracker {
     return {

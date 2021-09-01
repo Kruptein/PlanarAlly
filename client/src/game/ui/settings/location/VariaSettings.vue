@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 
 import { gameStore } from "../../../../store/game";
 import { settingsStore } from "../../../../store/settings";
-import { LocationOptions } from "../../../models/settings";
+import type { LocationOptions } from "../../../models/settings";
 
 export default defineComponent({
     props: { location: { type: Number, default: -1 } },

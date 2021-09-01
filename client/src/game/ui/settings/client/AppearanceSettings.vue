@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 import ColourPicker from "../../../../core/components/ColourPicker.vue";
 import LanguageSelect from "../../../../core/components/LanguageSelect.vue";
 import { clientStore } from "../../../../store/client";
-import { UserOptions } from "../../../models/settings";
+import type { UserOptions } from "../../../models/settings";
 
 export default defineComponent({
     components: { ColourPicker, LanguageSelect },

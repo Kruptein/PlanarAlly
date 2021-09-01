@@ -31,7 +31,7 @@ export default defineComponent({
             } else if (response.statusText === "Conflict") {
                 toast.error("A campaign with that name already exists!");
             } else {
-                toast.error("An unknown error occured :(");
+                toast.error(`An unknown error occured :( ${response.statusText})`);
             }
         }
 

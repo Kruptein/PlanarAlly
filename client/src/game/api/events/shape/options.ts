@@ -2,8 +2,8 @@ import { SyncTo } from "../../../../core/models/types";
 import { UuidMap } from "../../../../store/shapeMap";
 import { aurasFromServer, partialAuraFromServer } from "../../../models/conversion/aura";
 import { trackersFromServer, partialTrackerFromServer } from "../../../models/conversion/tracker";
-import { ServerAura, ServerTracker } from "../../../models/shapes";
-import { Aura, Tracker } from "../../../shapes/interfaces";
+import type { ServerAura, ServerTracker } from "../../../models/shapes";
+import type { Aura, Tracker } from "../../../shapes/interfaces";
 import { Shape } from "../../../shapes/shape";
 import { socket } from "../../socket";
 

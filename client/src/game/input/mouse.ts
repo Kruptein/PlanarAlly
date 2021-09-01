@@ -1,5 +1,6 @@
 import { l2g } from "../../core/conversions";
-import { LocalPoint, toLP } from "../../core/geometry";
+import { toLP } from "../../core/geometry";
+import type { LocalPoint } from "../../core/geometry";
 import { clientStore } from "../../store/client";
 
 export function scrollZoom(e: WheelEvent): void {

@@ -1,7 +1,7 @@
 import { clampGridLine, l2gx, l2gy, l2gz } from "../core/conversions";
 import { toGP } from "../core/geometry";
 import { SyncMode, InvalidationMode } from "../core/models/types";
-import { SelectionBoxFunction } from "../core/plugins/modals/selectionBox";
+import type { SelectionBoxFunction } from "../core/plugins/modals/selectionBox";
 import { baseAdjust, uuidv4 } from "../core/utils";
 import { i18n } from "../i18n";
 import { floorStore } from "../store/floor";
@@ -9,12 +9,12 @@ import { settingsStore } from "../store/settings";
 
 import { requestAssetOptions } from "./api/emits/asset";
 import { sendFloorChange, sendLayerChange } from "./api/emits/shape/core";
-import { Layer } from "./layers/variants/layer";
-import { Floor } from "./models/floor";
-import { ServerShape } from "./models/shapes";
-import { BaseTemplate } from "./models/templates";
+import type { Layer } from "./layers/variants/layer";
+import type { Floor } from "./models/floor";
+import type { ServerShape } from "./models/shapes";
+import type { BaseTemplate } from "./models/templates";
 import { addOperation } from "./operations/undo";
-import { Shape } from "./shapes/shape";
+import type { Shape } from "./shapes/shape";
 import { applyTemplate } from "./shapes/templates";
 import { createShapeFromDict } from "./shapes/utils";
 import { Asset } from "./shapes/variants/asset";

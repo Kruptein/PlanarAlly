@@ -1,7 +1,7 @@
 import { UuidMap } from "../../store/shapeMap";
 import { sendToggleCompositeAddVariant } from "../api/emits/shape/toggleComposite";
-import { Shape } from "../shapes/shape";
-import { ToggleComposite } from "../shapes/variants/toggleComposite";
+import type { Shape } from "../shapes/shape";
+import type { ToggleComposite } from "../shapes/variants/toggleComposite";
 
 class CompositeState {
     private compositeMap: Map<string, string> = new Map();

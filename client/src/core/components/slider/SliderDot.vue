@@ -1,5 +1,6 @@
 <script lang="ts">
-import { defineComponent, PropType } from "vue";
+import { defineComponent } from "vue";
+import type { PropType } from "vue";
 
 // eslint-disable-next-line import/no-unused-modules
 export default defineComponent({

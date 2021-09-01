@@ -1,9 +1,10 @@
 <script lang="ts">
-import { computed, defineComponent, PropType, reactive, toRefs } from "vue";
+import { computed, defineComponent, reactive, toRefs } from "vue";
+import type { PropType } from "vue";
 import VueMarkdownIt from "vue3-markdown-it";
 
 import { i18n } from "../../../i18n";
-import { SelectionBoxOptions } from "../../plugins/modals/selectionBox";
+import type { SelectionBoxOptions } from "../../plugins/modals/selectionBox";
 
 import Modal from "./Modal.vue";
 

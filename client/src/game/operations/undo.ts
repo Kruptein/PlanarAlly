@@ -1,15 +1,17 @@
-import { GlobalPoint, toGP, Vector } from "../../core/geometry";
+import { toGP, Vector } from "../../core/geometry";
+import type { GlobalPoint } from "../../core/geometry";
 import { SyncMode } from "../../core/models/types";
 import { floorStore } from "../../store/floor";
 import { UuidMap } from "../../store/shapeMap";
-import { LayerName } from "../models/floor";
-import { ServerShape } from "../models/shapes";
-import { ISelectTool, ToolName } from "../models/tools";
+import type { LayerName } from "../models/floor";
+import type { ServerShape } from "../models/shapes";
+import { ToolName } from "../models/tools";
+import type { ISelectTool } from "../models/tools";
 import { deleteShapes } from "../shapes/utils";
 import { addShape, moveFloor, moveLayer } from "../temp";
 import { toolMap } from "../tools/tools";
 
-import { Operation, ShapeMovementOperation, ShapeRotationOperation } from "./model";
+import type { Operation, ShapeMovementOperation, ShapeRotationOperation } from "./model";
 import { moveShapes } from "./movement";
 import { resizeShape } from "./resize";
 import { rotateShapes } from "./rotation";

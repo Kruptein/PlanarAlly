@@ -1,9 +1,11 @@
-import { GlobalPoint } from "../../core/geometry";
+import type { GlobalPoint } from "../../core/geometry";
 import { drawPolygon } from "../draw";
 
-import { Edge } from "./cdt";
-import { TriangulationTarget, visionState } from "./state";
-import { Point, Sign, Triangle } from "./tds";
+import type { Edge } from "./cdt";
+import { visionState } from "./state";
+import type { TriangulationTarget } from "./state";
+import { Sign } from "./tds";
+import type { Point, Triangle } from "./tds";
 import { ccw, cw, orientation } from "./triag";
 
 export function computeVisibility(

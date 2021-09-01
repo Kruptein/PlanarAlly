@@ -6,13 +6,14 @@ import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
 import { Color4, Vector3 } from "@babylonjs/core/Maths/math";
-import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
+import type { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { BoxBuilder } from "@babylonjs/core/Meshes/Builders/boxBuilder";
 import { GroundBuilder } from "@babylonjs/core/Meshes/Builders/groundBuilder";
 import { PhysicsImpostor } from "@babylonjs/core/Physics/physicsImpostor";
-import { Scene } from "@babylonjs/core/scene";
+import type { Scene } from "@babylonjs/core/scene";
 import { ShadowOnlyMaterial } from "@babylonjs/materials/shadowOnly";
-import { Dice, DiceThrower, DieOptions, DndParser } from "@planarally/dice";
+import { Dice, DiceThrower, DndParser } from "@planarally/dice";
+import type { DieOptions } from "@planarally/dice";
 
 import { loadAmmoModule } from "./ammo";
 import { diceStore } from "./state";

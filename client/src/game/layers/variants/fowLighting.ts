@@ -1,12 +1,12 @@
 import { g2l, g2lz, getUnitDistance, g2lr, g2lx, g2ly, toRadians } from "../../../core/conversions";
-import { SyncMode, InvalidationMode } from "../../../core/models/types";
+import type { SyncMode, InvalidationMode } from "../../../core/models/types";
 import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
 import { UuidMap } from "../../../store/shapeMap";
 import { getFogColour } from "../../colour";
 import { LayerName } from "../../models/floor";
-import { Shape } from "../../shapes/shape";
+import type { Shape } from "../../shapes/shape";
 import { Circle } from "../../shapes/variants/circle";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { computeVisibility } from "../../vision/te";
@@ -84,7 +84,7 @@ export class FowLightingLayer extends FowLayer {
                 const innerRange = g2lr(auraValue + auraDim);
 
                 const auraCircle = new Circle(center, auraLength);
-                if (!auraCircle.visibleInCanvas(this.ctx.canvas, { includeAuras: true })) continue;
+                if (!auraCircle.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: true })) continue;
 
                 this.vCtx.globalCompositeOperation = "source-over";
                 this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
@@ -145,7 +145,7 @@ export class FowLightingLayer extends FowLayer {
             }
 
             for (const preShape of this.preFogShapes) {
-                if (!preShape.visibleInCanvas(this.canvas, { includeAuras: true })) continue;
+                if (!preShape.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: true })) continue;
                 const ogComposite = preShape.globalCompositeOperation;
                 if (!settingsStore.fullFow.value) {
                     if (preShape.globalCompositeOperation === "source-over")
@@ -160,7 +160,7 @@ export class FowLightingLayer extends FowLayer {
             if (settingsStore.fullFow.value && this.floor === activeFloor) {
                 this.ctx.globalCompositeOperation = "source-out";
                 this.ctx.fillStyle = getFogColour();
-                this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+                this.ctx.fillRect(0, 0, this.width, this.height);
             }
 
             super.draw(false);

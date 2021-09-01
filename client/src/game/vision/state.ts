@@ -2,9 +2,9 @@ import { Store } from "../../core/store";
 import { floorStore } from "../../store/floor";
 import { UuidMap } from "../../store/shapeMap";
 import { sendLocationOptions } from "../api/emits/location";
-import { Aura } from "../shapes/interfaces";
-import { Shape } from "../shapes/shape";
-import { Asset } from "../shapes/variants/asset";
+import type { Aura } from "../shapes/interfaces";
+import type { Shape } from "../shapes/shape";
+import type { Asset } from "../shapes/variants/asset";
 import { pathToArray } from "../svg";
 
 import { CDT } from "./cdt";

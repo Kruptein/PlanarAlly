@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineEmit, defineProps } from "vue";
+import { computed, defineEmits, defineProps } from "vue";
 
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { baseAdjust, getValue } from "../../../../core/utils";
@@ -7,7 +7,7 @@ import { getPattern, patternToString } from "../../../layers/floor";
 import type { BackgroundPattern } from "../../../models/floor";
 
 const props = defineProps({ pattern: { type: String, required: true } });
-const emit = defineEmit({ "update:pattern": (_: string) => true });
+const emit = defineEmits({ "update:pattern": (_: string) => true });
 
 const modals = useModal();
 

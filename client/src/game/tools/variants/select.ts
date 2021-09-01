@@ -1,7 +1,8 @@
 import { ref } from "vue";
 
 import { g2l, g2lx, g2ly, l2g, l2gz } from "../../../core/conversions";
-import { addP, GlobalPoint, LocalPoint, Ray, toArrayP, toGP, toLP, Vector } from "../../../core/geometry";
+import { addP, toArrayP, toGP, toLP, Ray, Vector } from "../../../core/geometry";
+import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { equalPoints, snapToPoint } from "../../../core/math";
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
 import { ctrlOrCmdPressed } from "../../../core/utils";
@@ -14,14 +15,15 @@ import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/sh
 import { calculateDelta } from "../../drag";
 import { getLocalPointFromEvent } from "../../input/mouse";
 import { selectionState } from "../../layers/selection";
-import { ISelectTool, ToolFeatures, ToolMode, ToolName, ToolPermission } from "../../models/tools";
-import { Operation } from "../../operations/model";
+import { ToolMode, ToolName } from "../../models/tools";
+import type { ISelectTool, ToolFeatures, ToolPermission } from "../../models/tools";
+import type { Operation } from "../../operations/model";
 import { moveShapes } from "../../operations/movement";
 import { resizeShape } from "../../operations/resize";
 import { rotateShapes } from "../../operations/rotation";
 import { addOperation } from "../../operations/undo";
-import { Shape } from "../../shapes/shape";
-import { BoundingRect } from "../../shapes/variants/boundingRect";
+import type { Shape } from "../../shapes/shape";
+import type { BoundingRect } from "../../shapes/variants/boundingRect";
 import { Circle } from "../../shapes/variants/circle";
 import { Line } from "../../shapes/variants/line";
 import { Rect } from "../../shapes/variants/rect";
@@ -197,7 +199,7 @@ class SelectTool extends Tool implements ISelectTool {
                     break;
                 }
             }
-            if (shape.contains(gp)) {
+            if (shape.contains(gp, 50)) {
                 if (layerSelection.indexOf(shape) === -1) {
                     if (ctrlOrCmdPressed(event)) {
                         selectionState.push(shape);
@@ -393,7 +395,7 @@ class SelectTool extends Tool implements ISelectTool {
             for (const shape of layer.getShapes({ includeComposites: false })) {
                 if (!(shape.options.preFogShape ?? false) && (shape.options.skipDraw ?? false)) continue;
                 if (!shape.ownedBy(false, { movementAccess: true })) continue;
-                if (!shape.visibleInCanvas(layer.canvas, { includeAuras: false })) continue;
+                if (!shape.visibleInCanvas({ w: layer.width, h: layer.height }, { includeAuras: false })) continue;
                 if (layerSelection.some((s) => s.uuid === shape.uuid)) continue;
 
                 if (shape.points.length > 1) {

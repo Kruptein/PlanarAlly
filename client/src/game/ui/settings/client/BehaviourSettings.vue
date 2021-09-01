@@ -3,7 +3,7 @@ import { computed, defineComponent, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { clientStore } from "../../../../store/client";
-import { UserOptions } from "../../../models/settings";
+import type { UserOptions } from "../../../models/settings";
 
 export default defineComponent({
     setup() {

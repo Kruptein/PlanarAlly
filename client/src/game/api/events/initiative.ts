@@ -1,4 +1,4 @@
-import { InitiativeEffect, InitiativeSettings, InitiativeSort } from "../../models/initiative";
+import type { InitiativeEffect, InitiativeSettings, InitiativeSort } from "../../models/initiative";
 import { initiativeStore } from "../../ui/initiative/state";
 import { socket } from "../socket";
 

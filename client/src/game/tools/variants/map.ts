@@ -1,15 +1,17 @@
 import { reactive } from "@vue/reactivity";
 
 import { l2g } from "../../../core/conversions";
-import { addP, cloneP, GlobalPoint, LocalPoint, subtractP, toGP, Vector } from "../../../core/geometry";
+import { addP, cloneP, subtractP, toGP, Vector } from "../../../core/geometry";
+import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { DEFAULT_GRID_SIZE } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import { selectionState } from "../../layers/selection";
-import { ToolName, ToolPermission } from "../../models/tools";
-import { Shape } from "../../shapes/shape";
+import { ToolName } from "../../models/tools";
+import type { ToolPermission } from "../../models/tools";
+import type { Shape } from "../../shapes/shape";
 import { Rect } from "../../shapes/variants/rect";
 import { Tool } from "../tool";
 

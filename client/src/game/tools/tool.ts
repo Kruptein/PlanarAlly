@@ -1,10 +1,10 @@
 import { computed } from "@vue/runtime-core";
 import { ref } from "vue";
 
-import { LocalPoint } from "../../core/geometry";
+import type { LocalPoint } from "../../core/geometry";
 import { onKeyUp } from "../input/keyboard";
 import { getLocalPointFromEvent } from "../input/mouse";
-import { ToolFeatures, ITool, ToolMode, ToolName, ToolPermission } from "../models/tools";
+import type { ToolFeatures, ITool, ToolMode, ToolName, ToolPermission } from "../models/tools";
 
 import { activeTool } from "./tools";
 

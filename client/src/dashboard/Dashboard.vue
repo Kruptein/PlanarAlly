@@ -1,6 +1,7 @@
 <script lang="ts">
 import { computed, defineComponent, onMounted, reactive, ref, toRefs } from "vue";
-import { NavigationGuardNext, RouteLocationNormalized, useRoute, useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
+import type { NavigationGuardNext, RouteLocationNormalized } from "vue-router";
 
 import LanguageDropdown from "../core/components/LanguageDropdown.vue";
 import { useModal } from "../core/plugins/modals/plugin";
@@ -9,7 +10,8 @@ import { baseAdjust, baseAdjustedFetch, getErrorReason } from "../core/utils";
 import AccountSettings from "./AccountSettings.vue";
 import CreateCampaign from "./CreateCampaign.vue";
 import SessionList from "./SessionList.vue";
-import { Navigation, NavigationEntry, RoomInfo } from "./types";
+import { Navigation } from "./types";
+import type { NavigationEntry, RoomInfo } from "./types";
 
 enum NavigationMode {
     Main,

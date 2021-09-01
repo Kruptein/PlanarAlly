@@ -1,12 +1,14 @@
 import clamp from "lodash/clamp";
 
 import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "../../core/conversions";
-import { addP, cloneP, equalsP, GlobalPoint, subtractP, toArrayP, toGP, Vector } from "../../core/geometry";
+import { addP, cloneP, equalsP, subtractP, toArrayP, toGP } from "../../core/geometry";
+import type { GlobalPoint, Vector } from "../../core/geometry";
 import { rotateAroundPoint } from "../../core/math";
 import { SyncTo } from "../../core/models/types";
-import { FunctionPropertyNames, PartialBy } from "../../core/types";
+import type { FunctionPropertyNames, PartialBy } from "../../core/types";
 import { mostReadable, uuidv4 } from "../../core/utils";
-import { ActiveShapeStore, activeShapeStore } from "../../store/activeShape";
+import { activeShapeStore } from "../../store/activeShape";
+import type { ActiveShapeStore } from "../../store/activeShape";
 import { clientStore } from "../../store/client";
 import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
@@ -43,17 +45,18 @@ import {
 } from "../api/emits/shape/options";
 import { getBadgeCharacters } from "../groups";
 import { compositeState } from "../layers/state";
-import { Layer } from "../layers/variants/layer";
+import type { Layer } from "../layers/variants/layer";
 import { aurasFromServer, aurasToServer, partialAuraToServer } from "../models/conversion/aura";
 import { partialTrackerToServer, trackersFromServer, trackersToServer } from "../models/conversion/tracker";
-import { Floor, LayerName } from "../models/floor";
-import { accessToServer, ownerToClient, ownerToServer, ServerShape, ShapeOptions } from "../models/shapes";
+import type { Floor, LayerName } from "../models/floor";
+import { accessToServer, ownerToClient, ownerToServer } from "../models/shapes";
+import type { ServerShape, ShapeOptions } from "../models/shapes";
 import { initiativeStore } from "../ui/initiative/state";
 import { TriangulationTarget, visionState } from "../vision/state";
 
-import { Aura, Label, Tracker } from "./interfaces";
-import { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
-import { SHAPE_TYPE } from "./types";
+import type { Aura, Label, Tracker } from "./interfaces";
+import type { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
+import type { SHAPE_TYPE } from "./types";
 import { BoundingRect } from "./variants/boundingRect";
 
 export abstract class Shape {
@@ -146,7 +149,7 @@ export abstract class Shape {
     abstract center(centerPoint: GlobalPoint): void;
 
     // Informs whether `points` forms a close loop
-    abstract isClosed: boolean;
+    abstract get isClosed(): boolean;
 
     /**
      * Returns true if this shape should trigger a vision recalculation when it moves or otherwise mutates.
@@ -483,14 +486,14 @@ export abstract class Shape {
 
     // UTILITY
 
-    visibleInCanvas(canvas: HTMLCanvasElement, options: { includeAuras: boolean }): boolean {
+    visibleInCanvas(max: { w: number; h: number }, options: { includeAuras: boolean }): boolean {
         if (options.includeAuras) {
             for (const aura of this.getAuras(true)) {
                 if (aura.value > 0 || aura.dim > 0) {
                     const r = getUnitDistance(aura.value + aura.dim);
                     const center = this.center();
                     const auraArea = new BoundingRect(toGP(center.x - r, center.y - r), r * 2, r * 2);
-                    if (auraArea.visibleInCanvas(canvas)) {
+                    if (auraArea.visibleInCanvas(max)) {
                         return true;
                     }
                 }

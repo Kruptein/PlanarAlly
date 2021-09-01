@@ -1,10 +1,11 @@
-import { addP, toArrayP, Vector } from "../../core/geometry";
+import { addP, toArrayP } from "../../core/geometry";
+import type { Vector } from "../../core/geometry";
 import { sendShapePositionUpdate } from "../api/emits/shape/core";
 import { moveClient } from "../client";
-import { Shape } from "../shapes/shape";
+import type { Shape } from "../shapes/shape";
 import { TriangulationTarget, visionState } from "../vision/state";
 
-import { MovementOperation, ShapeMovementOperation } from "./model";
+import type { MovementOperation, ShapeMovementOperation } from "./model";
 import { addOperation } from "./undo";
 
 export function moveShapes(shapes: readonly Shape[], delta: Vector, temporary: boolean): void {

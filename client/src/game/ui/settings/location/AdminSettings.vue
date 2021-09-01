@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { baseAdjustedFetch } from "../../../../core/utils";
-import { RoomInfo } from "../../../../dashboard/types";
+import type { RoomInfo } from "../../../../dashboard/types";
 import { gameStore } from "../../../../store/game";
 import { locationStore } from "../../../../store/location";
 

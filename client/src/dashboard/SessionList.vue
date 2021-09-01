@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
-import { computed, defineEmit, defineProps, onMounted, ref, watch } from "vue";
+import { computed, defineEmits, defineProps, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useModal } from "../core/plugins/modals/plugin";
@@ -12,7 +12,7 @@ const props = defineProps({
     dmMode: { type: Boolean, required: true },
     sessions: { type: Object as PropType<RoomInfo[]>, required: true },
 });
-const emit = defineEmit(["remove-room", "rename", "update-logo"]);
+const emit = defineEmits(["remove-room", "rename", "update-logo"]);
 
 const { t } = useI18n();
 const modals = useModal();

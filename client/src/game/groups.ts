@@ -1,4 +1,5 @@
-import { ref, Ref } from "vue";
+import { ref } from "vue";
+import type { Ref } from "vue";
 
 import { SyncTo } from "../core/models/types";
 import { uuidv4 } from "../core/utils";
@@ -12,8 +13,9 @@ import {
     sendMemberBadgeUpdate,
     sendRemoveGroup,
 } from "./api/emits/groups";
-import { CREATION_ORDER_TYPES, Group, groupToClient, groupToServer, ServerGroup } from "./models/groups";
-import { Shape } from "./shapes/shape";
+import { groupToClient, groupToServer } from "./models/groups";
+import type { CREATION_ORDER_TYPES, Group, ServerGroup } from "./models/groups";
+import type { Shape } from "./shapes/shape";
 
 const numberCharacterSet = "0123456789".split("");
 const latinCharacterSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");

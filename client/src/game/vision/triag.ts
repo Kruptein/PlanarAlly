@@ -1,6 +1,7 @@
 import { equalPoint } from "../../core/math";
 
-import { EdgeCirculator, Point, Sign, Triangle, Vertex } from "./tds";
+import { EdgeCirculator, Sign } from "./tds";
+import type { Point, Triangle, Vertex } from "./tds";
 
 type Line = number[];
 

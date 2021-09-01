@@ -1,4 +1,4 @@
-import { ServerShapeOwner } from "../../models/shapes";
+import type { ServerShapeOwner } from "../../models/shapes";
 import { wrapSocket } from "../helpers";
 
 export const sendShapeAddOwner = wrapSocket<ServerShapeOwner>("Shape.Owner.Add");

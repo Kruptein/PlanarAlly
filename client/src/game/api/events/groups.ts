@@ -1,6 +1,7 @@
 import { UuidMap } from "../../../store/shapeMap";
 import { addGroupMembers, addNewGroup, removeGroup, removeGroupMember, updateGroupFromServer } from "../../groups";
-import { GroupJoinPayload, groupToClient, ServerGroup } from "../../models/groups";
+import { groupToClient } from "../../models/groups";
+import type { GroupJoinPayload, ServerGroup } from "../../models/groups";
 import { socket } from "../socket";
 
 socket.on("Group.Update", (data: ServerGroup) => {

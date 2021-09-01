@@ -1,7 +1,8 @@
 import { clientStore, DEFAULT_GRID_SIZE } from "../store/client";
 import { settingsStore } from "../store/settings";
 
-import { GlobalPoint, LocalPoint, Ray, toGP, toLP } from "./geometry";
+import { Ray, toGP, toLP } from "./geometry";
+import type { GlobalPoint, LocalPoint } from "./geometry";
 
 export function g2l(obj: GlobalPoint): LocalPoint {
     const state = clientStore.state;

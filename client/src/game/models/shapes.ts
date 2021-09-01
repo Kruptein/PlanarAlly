@@ -1,8 +1,8 @@
-import { Label } from "../shapes/interfaces";
-import { ShapeAccess, ShapeOwner } from "../shapes/owners";
-import { SHAPE_TYPE } from "../shapes/types";
+import type { Label } from "../shapes/interfaces";
+import type { ShapeAccess, ShapeOwner } from "../shapes/owners";
+import type { SHAPE_TYPE } from "../shapes/types";
 
-import { LayerName } from "./floor";
+import type { LayerName } from "./floor";
 
 export interface ServerShape {
     uuid: string;

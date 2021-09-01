@@ -1,4 +1,4 @@
-import { Asset } from "../core/models/types";
+import type { Asset } from "../core/models/types";
 import { socketManager } from "../core/socket";
 import { baseAdjust } from "../core/utils";
 

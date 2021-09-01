@@ -2,7 +2,8 @@ import "../style.css";
 
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { createApp } from "vue";
-import Toast, { PluginOptions, POSITION } from "vue-toastification";
+import Toast, { POSITION } from "vue-toastification";
+import type { PluginOptions } from "vue-toastification";
 
 import App from "./App.vue";
 import { PlanarAllyModalsPlugin } from "./core/plugins/modals/plugin";

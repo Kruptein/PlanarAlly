@@ -1,6 +1,6 @@
 import { POSITION, useToast } from "vue-toastification";
 
-import { DiceResult } from "../../models/dice";
+import type { DiceResult } from "../../models/dice";
 import { diceTool } from "../../tools/variants/dice";
 import { socket } from "../socket";
 

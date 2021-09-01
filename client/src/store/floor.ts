@@ -1,4 +1,5 @@
-import { computed, ComputedRef, DeepReadonly } from "@vue/runtime-core";
+import { computed } from "@vue/runtime-core";
+import type { ComputedRef, DeepReadonly } from "@vue/runtime-core";
 
 import { Store } from "../core/store";
 import {
@@ -19,8 +20,9 @@ import { FowVisionLayer } from "../game/layers/variants/fowVision";
 import { GridLayer } from "../game/layers/variants/grid";
 import { Layer } from "../game/layers/variants/layer";
 import { MapLayer } from "../game/layers/variants/map";
-import { Floor, FloorType, LayerName } from "../game/models/floor";
-import { ServerFloor, ServerLayer } from "../game/models/general";
+import { LayerName } from "../game/models/floor";
+import type { Floor, FloorType } from "../game/models/floor";
+import type { ServerFloor, ServerLayer } from "../game/models/general";
 import { groupToClient } from "../game/models/groups";
 import { TriangulationTarget, visionState } from "../game/vision/state";
 

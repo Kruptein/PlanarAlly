@@ -1,7 +1,8 @@
 <script lang="ts">
-import { defineComponent, onMounted, PropType, reactive, ref, toRefs } from "vue";
+import { defineComponent, onMounted, reactive, ref, toRefs } from "vue";
+import type { PropType } from "vue";
 
-import { Label } from "../../game/shapes/interfaces";
+import type { Label } from "../../game/shapes/interfaces";
 
 export default defineComponent({
     props: {

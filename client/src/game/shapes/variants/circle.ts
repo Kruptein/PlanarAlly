@@ -1,11 +1,12 @@
 import { g2lz, clampGridLine } from "../../../core/conversions";
-import { addP, GlobalPoint, subtractP, toGP, Vector } from "../../../core/geometry";
+import { addP, subtractP, toGP, Vector } from "../../../core/geometry";
+import type { GlobalPoint } from "../../../core/geometry";
 import { DEFAULT_GRID_SIZE } from "../../../store/client";
 import { getFogColour } from "../../colour";
 import { calculateDelta } from "../../drag";
-import { ServerCircle } from "../../models/shapes";
+import type { ServerCircle } from "../../models/shapes";
 import { Shape } from "../shape";
-import { SHAPE_TYPE } from "../types";
+import type { SHAPE_TYPE } from "../types";
 
 import { BoundingRect } from "./boundingRect";
 
@@ -106,9 +107,9 @@ export class Circle extends Shape {
         if (centerPoint === undefined) return this.refPoint;
         this.refPoint = centerPoint;
     }
-    visibleInCanvas(canvas: HTMLCanvasElement, options: { includeAuras: boolean }): boolean {
-        if (super.visibleInCanvas(canvas, options)) return true;
-        return this.getBoundingBox().visibleInCanvas(canvas);
+    visibleInCanvas(max: { w: number; h: number }, options: { includeAuras: boolean }): boolean {
+        if (super.visibleInCanvas(max, options)) return true;
+        return this.getBoundingBox().visibleInCanvas(max);
     }
     snapToGrid(): void {
         const gs = DEFAULT_GRID_SIZE;

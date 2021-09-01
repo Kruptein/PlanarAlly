@@ -1,11 +1,16 @@
-import { createApp, inject, InjectionKey, nextTick, Plugin } from "vue";
+import { createApp, inject, nextTick } from "vue";
+import type { InjectionKey, Plugin } from "vue";
 
 import PluginContainer from "../../components/PluginContainer.vue";
 
-import { AssetPickerFunction, useAssetPicker } from "./assetPicker";
-import { ConfirmFunction, useConfirm } from "./confirm";
-import { PromptFunction, usePrompt } from "./prompt";
-import { SelectionBoxFunction, useSelectionBox } from "./selectionBox";
+import { useAssetPicker } from "./assetPicker";
+import type { AssetPickerFunction } from "./assetPicker";
+import { useConfirm } from "./confirm";
+import type { ConfirmFunction } from "./confirm";
+import { usePrompt } from "./prompt";
+import type { PromptFunction } from "./prompt";
+import { useSelectionBox } from "./selectionBox";
+import type { SelectionBoxFunction } from "./selectionBox";
 
 const modalSymbol: InjectionKey<Modals> = Symbol("PlanarAllyModals");
 

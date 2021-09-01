@@ -1,5 +1,5 @@
-<script lang="ts">
-import { computed, defineComponent, onMounted, reactive, ref, toRef, toRefs } from "vue";
+<script setup lang="ts">
+import { computed, onMounted, reactive, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import MarkdownModal from "../../core/components/modals/MarkdownModal.vue";
@@ -31,142 +31,92 @@ import CreateTokenDialog from "./tokendialog/CreateTokenDialog.vue";
 import { tokenDialogVisible } from "./tokendialog/state";
 import Tools from "./tools/Tools.vue";
 
-export default defineComponent({
-    name: "UI",
-    components: {
-        Annotation,
-        ClientSettings,
-        CreateTokenDialog,
-        DefaultContext,
-        DiceResults,
-        DmSettings,
-        Floors,
-        FloorSettings,
-        Initiative,
-        LocationBar,
-        LocationSettings,
-        MarkdownModal,
-        MenuBar,
-        SelectionInfo,
-        ShapeContext,
-        ShapeSettings,
-        SliderComponent,
-        Tools,
+const uiEl = ref<HTMLDivElement | null>(null);
+
+const coreState = coreStore.state;
+const { t } = useI18n();
+
+const visible = reactive({
+    locations: false,
+    settings: false,
+});
+const topLeft = computed(() => visible.locations && visible.settings);
+
+const changelogText = computed(() =>
+    t("game.ui.ui.changelog_RELEASE_LOG", {
+        release: coreState.version.release,
+        log: coreState.changelog,
+    }),
+);
+
+const releaseVersion = computed(() => coreState.version.release);
+
+const showChangelog = computed(() => {
+    const version = localStorage.getItem("last-version");
+    if (version !== coreState.version.release) {
+        localStorage.setItem("last-version", coreState.version.release);
+        return true;
+    }
+    return false;
+});
+
+onMounted(() => {
+    // hide all UI elements that were previously open
+    activeShapeStore.setShowEditDialog(false);
+    initiativeStore.show(false);
+    showDefaultContextMenu.value = false;
+    showShapeContextMenu.value = false;
+    tokenDialogVisible.value = false;
+});
+
+function toggleLocations(): void {
+    const oldState = visible.locations;
+    // Split up visible.locations setting to smooth in/out overflow fix
+    if (oldState) visible.locations = false;
+    let i = 0;
+    const interval = setInterval(() => {
+        if (uiEl.value === null) return;
+        i += 10;
+        uiEl.value.style.gridTemplateRows = `${!oldState ? i : 100 - i}px auto 1fr auto`;
+        if (i >= 100) {
+            clearInterval(interval);
+            // Force height to become auto instead of harcoding it to 100px
+            uiEl.value.style.gridTemplateRows = `${!oldState ? "auto" : 0} auto 1fr auto`;
+            if (!oldState) visible.locations = true;
+        }
+    }, 20);
+}
+
+function toggleMenu(): void {
+    visible.settings = !visible.settings;
+    let i = 0;
+    const interval = setInterval(() => {
+        if (uiEl.value === null) return;
+        i += 10;
+        uiEl.value.style.gridTemplateColumns = `${visible.settings ? i : 200 - i}px repeat(3, 1fr)`;
+        if (i >= 200) {
+            clearInterval(interval);
+        }
+    }, 20);
+}
+
+const zoomDisplay = computed({
+    get(): number {
+        return clientStore.state.zoomDisplay;
     },
-    setup() {
-        const uiEl = ref<HTMLDivElement | null>(null);
-
-        const coreState = coreStore.state;
-        const { t } = useI18n();
-
-        const visible = reactive({
-            locations: false,
-            settings: false,
-        });
-        const topLeft = computed(() => visible.locations && visible.settings);
-
-        const changelogText = computed(() =>
-            t("game.ui.ui.changelog_RELEASE_LOG", {
-                release: coreState.version.release,
-                log: coreState.changelog,
-            }),
-        );
-
-        const releaseVersion = computed(() => coreState.version.release);
-
-        const showChangelog = computed(() => {
-            const version = localStorage.getItem("last-version");
-            if (version !== coreState.version.release) {
-                localStorage.setItem("last-version", coreState.version.release);
-                return true;
-            }
-            return false;
-        });
-
-        onMounted(() => {
-            // hide all UI elements that were previously open
-            activeShapeStore.setShowEditDialog(false);
-            initiativeStore.show(false);
-            showDefaultContextMenu.value = false;
-            showShapeContextMenu.value = false;
-            tokenDialogVisible.value = false;
-        });
-
-        function toggleLocations(): void {
-            const oldState = visible.locations;
-            // Split up visible.locations setting to smooth in/out overflow fix
-            if (oldState) visible.locations = false;
-            let i = 0;
-            const interval = setInterval(() => {
-                if (uiEl.value === null) return;
-
-                i += 10;
-                uiEl.value.style.gridTemplateRows = `${!oldState ? i : 100 - i}px auto 1fr auto`;
-                if (i >= 100) {
-                    clearInterval(interval);
-                    // Force height to become auto instead of harcoding it to 100px
-                    uiEl.value.style.gridTemplateRows = `${!oldState ? "auto" : 0} auto 1fr auto`;
-                    if (!oldState) visible.locations = true;
-                }
-            }, 20);
-        }
-
-        function toggleMenu(): void {
-            visible.settings = !visible.settings;
-            let i = 0;
-            const interval = setInterval(() => {
-                if (uiEl.value === null) return;
-
-                i += 10;
-                uiEl.value.style.gridTemplateColumns = `${visible.settings ? i : 200 - i}px repeat(3, 1fr)`;
-                if (i >= 200) {
-                    clearInterval(interval);
-                }
-            }, 20);
-        }
-
-        const zoomDisplay = computed({
-            get(): number {
-                return clientStore.state.zoomDisplay;
-            },
-            set(zoom: number) {
-                clientStore.setZoomDisplay(zoom);
-                sendClientLocationOptions();
-            },
-        });
-
-        function setTempZoomDisplay(value: number): void {
-            clientStore.setZoomDisplay(value);
-        }
-
-        return {
-            baseAdjust,
-            t,
-
-            uiEl,
-
-            isDm: toRef(gameStore.state, "isDm"),
-            isFakePlayer: toRef(gameStore.state, "isFakePlayer"),
-            showUi: toRef(gameStore.state, "showUi"),
-
-            changelogText,
-            showChangelog,
-            releaseVersion,
-
-            ...toRefs(visible),
-            toggleLocations,
-            toggleMenu,
-            topLeft,
-
-            zoomDisplay,
-            setTempZoomDisplay,
-        };
+    set(zoom: number) {
+        clientStore.setZoomDisplay(zoom);
+        sendClientLocationOptions();
     },
 });
+
+function setTempZoomDisplay(value: number): void {
+    clientStore.setZoomDisplay(value);
+}
 </script>
 
 <template>
-    <div id="ui" ref="uiEl" v-show="showUi">
+    <div id="ui" ref="uiEl" v-show="gameStore.state.showUi">
         <div id="logo" v-show="topLeft">
             <div id="logo-icons">
                 <a href="https://www.planarally.io" target="_blank" rel="noopener noreferrer">
@@ -208,10 +158,10 @@ export default defineComponent({
         <div id="radialmenu">
             <div class="rm-wrapper">
                 <div class="rm-toggler">
-                    <ul class="rm-list" :class="{ 'rm-list-dm': isDm }">
+                    <ul class="rm-list" :class="{ 'rm-list-dm': gameStore.state.isDm }">
                         <li
                             @click="toggleLocations"
-                            v-if="isDm"
+                            v-if="gameStore.state.isDm"
                             class="rm-item"
                             id="rm-locations"
                             :title="t('game.ui.ui.open_loc_menu')"
@@ -232,16 +182,16 @@ export default defineComponent({
         </div>
         <MenuBar />
         <Tools />
-        <LocationBar v-if="isDm" :active="locations" :menuActive="settings" />
+        <LocationBar v-if="gameStore.state.isDm" :active="visible.locations" :menuActive="visible.settings" />
         <Floors />
         <CreateTokenDialog />
         <Initiative />
         <DefaultContext />
         <ShapeContext />
         <ShapeSettings />
-        <DmSettings v-if="isDm || isFakePlayer" />
-        <FloorSettings v-if="isDm || isFakePlayer" />
-        <LocationSettings v-if="isDm || isFakePlayer" />
+        <DmSettings v-if="gameStore.state.isDm || gameStore.state.isFakePlayer" />
+        <FloorSettings v-if="gameStore.state.isDm || gameStore.state.isFakePlayer" />
+        <LocationSettings v-if="gameStore.state.isDm || gameStore.state.isFakePlayer" />
         <ClientSettings />
         <SelectionInfo />
         <Annotation />

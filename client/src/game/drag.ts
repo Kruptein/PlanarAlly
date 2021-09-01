@@ -1,8 +1,9 @@
 import { Vector, toGP, toArrayP, addP, subtractP } from "../core/geometry";
 
-import { Shape } from "./shapes/shape";
+import type { Shape } from "./shapes/shape";
 import { TriangulationTarget, visionState } from "./vision/state";
-import { Triangle, Sign, Point } from "./vision/tds";
+import { Sign } from "./vision/tds";
+import type { Triangle, Point } from "./vision/tds";
 import { cw, ccw, intersection, orientation } from "./vision/triag";
 
 // First go through each shape in the selection and see if the delta has to be truncated due to movement blockers

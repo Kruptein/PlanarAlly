@@ -1,9 +1,11 @@
-import { LocalPoint, subtractP, toLP } from "../../../core/geometry";
+import { subtractP, toLP } from "../../../core/geometry";
+import type { LocalPoint } from "../../../core/geometry";
 import { i18n } from "../../../i18n";
 import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
 import { sendClientLocationOptions } from "../../api/emits/client";
-import { ToolName, ToolPermission } from "../../models/tools";
+import { ToolName } from "../../models/tools";
+import type { ToolPermission } from "../../models/tools";
 import { Tool } from "../tool";
 
 import { SelectFeatures } from "./select";

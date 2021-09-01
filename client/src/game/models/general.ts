@@ -1,6 +1,6 @@
-import { ServerGroup } from "./groups";
-import { ServerLocationOptions } from "./settings";
-import { ServerShape } from "./shapes";
+import type { ServerGroup } from "./groups";
+import type { ServerLocationOptions } from "./settings";
+import type { ServerShape } from "./shapes";
 
 export interface ServerLocation {
     id: number;

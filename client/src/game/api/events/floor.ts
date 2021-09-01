@@ -1,6 +1,6 @@
 import { coreStore } from "../../../store/core";
 import { floorStore } from "../../../store/floor";
-import { ServerFloor } from "../../models/general";
+import type { ServerFloor } from "../../models/general";
 import { socket } from "../socket";
 
 socket.on("Floor.Create", (data: { floor: ServerFloor; creator: string }) => {

@@ -1,6 +1,6 @@
-import { GlobalPoint } from "../../core/geometry";
+import type { GlobalPoint } from "../../core/geometry";
 import { sendShapeSizeUpdate } from "../api/emits/shape/core";
-import { Shape } from "../shapes/shape";
+import type { Shape } from "../shapes/shape";
 import { TriangulationTarget, visionState } from "../vision/state";
 
 export function resizeShape(

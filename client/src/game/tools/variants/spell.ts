@@ -1,7 +1,8 @@
 import { reactive, watch, watchEffect } from "vue";
 
 import { g2l, getUnitDistance, l2g, toRadians } from "../../../core/conversions";
-import { equalsP, LocalPoint, toGP } from "../../../core/geometry";
+import { equalsP, toGP } from "../../../core/geometry";
+import type { LocalPoint } from "../../../core/geometry";
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { clientStore } from "../../../store/client";
@@ -9,8 +10,9 @@ import { floorStore } from "../../../store/floor";
 import { UuidMap } from "../../../store/shapeMap";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { selectionState } from "../../layers/selection";
-import { ToolName, ToolPermission } from "../../models/tools";
-import { Shape } from "../../shapes/shape";
+import { ToolName } from "../../models/tools";
+import type { ToolPermission } from "../../models/tools";
+import type { Shape } from "../../shapes/shape";
 import { Circle } from "../../shapes/variants/circle";
 import { Rect } from "../../shapes/variants/rect";
 import { Tool } from "../tool";

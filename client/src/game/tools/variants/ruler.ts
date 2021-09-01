@@ -1,7 +1,8 @@
 import { ref } from "vue";
 
 import { l2g } from "../../../core/conversions";
-import { cloneP, GlobalPoint, LocalPoint, toGP } from "../../../core/geometry";
+import { cloneP, toGP } from "../../../core/geometry";
+import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { snapToGridPoint } from "../../../core/math";
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
@@ -10,7 +11,8 @@ import { floorStore } from "../../../store/floor";
 import { settingsStore } from "../../../store/settings";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { LayerName } from "../../models/floor";
-import { ToolFeatures, ToolName, ToolPermission } from "../../models/tools";
+import { ToolName } from "../../models/tools";
+import type { ToolFeatures, ToolPermission } from "../../models/tools";
 import { Line } from "../../shapes/variants/line";
 import { Text } from "../../shapes/variants/text";
 import { Tool } from "../tool";

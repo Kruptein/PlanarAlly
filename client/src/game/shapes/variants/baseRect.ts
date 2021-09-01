@@ -1,9 +1,10 @@
 import { clampGridLine, clampToGrid, g2lx, g2ly } from "../../../core/conversions";
-import { addP, GlobalPoint, toGP, Vector } from "../../../core/geometry";
+import { addP, toGP, Vector } from "../../../core/geometry";
+import type { GlobalPoint } from "../../../core/geometry";
 import { rotateAroundPoint } from "../../../core/math";
 import { DEFAULT_GRID_SIZE } from "../../../store/client";
 import { calculateDelta } from "../../drag";
-import { ServerShape } from "../../models/shapes";
+import type { ServerShape } from "../../models/shapes";
 import { Shape } from "../shape";
 
 import { BoundingRect } from "./boundingRect";
@@ -93,11 +94,11 @@ export abstract class BaseRect extends Shape {
         this.refPoint = toGP(centerPoint.x - this.w / 2, centerPoint.y - this.h / 2);
     }
 
-    visibleInCanvas(canvas: HTMLCanvasElement, options: { includeAuras: boolean }): boolean {
-        if (super.visibleInCanvas(canvas, options)) return true;
+    visibleInCanvas(max: { w: number; h: number }, options: { includeAuras: boolean }): boolean {
+        if (super.visibleInCanvas(max, options)) return true;
         const coreVisible = !(
-            g2lx(this.refPoint.x) > canvas.width ||
-            g2ly(this.refPoint.y) > canvas.height ||
+            g2lx(this.refPoint.x) > max.w ||
+            g2ly(this.refPoint.y) > max.h ||
             g2lx(this.refPoint.x + this.w) < 0 ||
             g2ly(this.refPoint.y + this.h) < 0
         );

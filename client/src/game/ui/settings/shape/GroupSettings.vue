@@ -20,7 +20,7 @@ import {
 import type { CREATION_ORDER_TYPES } from "../../../models/groups";
 import { CREATION_ORDER_OPTIONS } from "../../../models/groups";
 import { setCenterPosition } from "../../../position";
-import { Shape } from "../../../shapes/shape";
+import type { Shape } from "../../../shapes/shape";
 
 const groupId = toRef(activeShapeStore.state, "groupId");
 const uuid = toRef(activeShapeStore.state, "uuid");

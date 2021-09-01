@@ -1,4 +1,4 @@
-import { Note } from "../../models/general";
+import type { Note } from "../../models/general";
 import { wrapSocket } from "../helpers";
 
 export const sendNewNote = wrapSocket<Note>("Note.New");

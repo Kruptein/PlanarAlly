@@ -1,12 +1,12 @@
 import { SyncMode, SyncTo } from "../../../../core/models/types";
 import { floorStore } from "../../../../store/floor";
 import { UuidMap } from "../../../../store/shapeMap";
-import { LayerName } from "../../../models/floor";
-import { ServerShape } from "../../../models/shapes";
-import { Shape } from "../../../shapes/shape";
+import type { LayerName } from "../../../models/floor";
+import type { ServerShape } from "../../../models/shapes";
+import type { Shape } from "../../../shapes/shape";
 import { deleteShapes } from "../../../shapes/utils";
-import { Circle } from "../../../shapes/variants/circle";
-import { Rect } from "../../../shapes/variants/rect";
+import type { Circle } from "../../../shapes/variants/circle";
+import type { Rect } from "../../../shapes/variants/rect";
 import { addShape, moveFloor, moveLayer } from "../../../temp";
 import { socket } from "../../socket";
 

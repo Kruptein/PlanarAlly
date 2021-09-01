@@ -1,5 +1,6 @@
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
 import { activeShapeStore } from "../../../store/activeShape";
+import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
@@ -8,9 +9,9 @@ import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../../api/emits/
 import { drawAuras } from "../../draw";
 import { removeGroupMember } from "../../groups";
 import { LayerName } from "../../models/floor";
-import { ServerShape } from "../../models/shapes";
+import type { ServerShape } from "../../models/shapes";
 import { addOperation } from "../../operations/undo";
-import { Shape } from "../../shapes/shape";
+import type { Shape } from "../../shapes/shape";
 import { createShapeFromDict } from "../../shapes/utils";
 import { initiativeStore } from "../../ui/initiative/state";
 import { TriangulationTarget, visionState } from "../../vision/state";
@@ -62,11 +63,11 @@ export class Layer {
     }
 
     get width(): number {
-        return this.canvas.width;
+        return this.canvas.width / clientStore.devicePixelRatio.value;
     }
 
     get height(): number {
-        return this.canvas.height;
+        return this.canvas.height / clientStore.devicePixelRatio.value;
     }
 
     resize(width: number, height: number): void {
@@ -250,7 +251,7 @@ export class Layer {
             // Aura draw loop
             for (const shape of this.shapes) {
                 if (shape.options.skipDraw ?? false) continue;
-                if (!shape.visibleInCanvas(this.canvas, { includeAuras: true })) continue;
+                if (!shape.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: true })) continue;
                 if (this.name === LayerName.Lighting && currentLayer !== this) continue;
                 drawAuras(shape, ctx);
                 visibleShapes.push(shape);
@@ -284,7 +285,7 @@ export class Layer {
                     const layers = floorStore.getLayers(lowerFloor);
                     if (layers[layers.length - 1].name === this.name) {
                         ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
-                        ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                        ctx.fillRect(0, 0, this.width, this.height);
                     }
                 }
             }

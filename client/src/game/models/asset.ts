@@ -1,4 +1,4 @@
-import { BaseTemplate } from "./templates";
+import type { BaseTemplate } from "./templates";
 
 export interface AssetOptions {
     version: string;

@@ -1,5 +1,5 @@
 import { UuidMap } from "../../../../store/shapeMap";
-import { Text } from "../../../shapes/variants/text";
+import type { Text } from "../../../shapes/variants/text";
 import { socket } from "../../socket";
 
 socket.on("Shape.Text.Value.Set", (data: { uuid: string; text: string }) => {

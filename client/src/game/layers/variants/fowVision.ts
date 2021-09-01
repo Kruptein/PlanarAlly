@@ -15,7 +15,7 @@ export class FowVisionLayer extends FowLayer {
             const originalOperation = this.ctx.globalCompositeOperation;
 
             if (!settingsStore.fowLos.value) {
-                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.clearRect(0, 0, this.width, this.height);
                 this.valid = true;
                 return;
             }

@@ -1,4 +1,4 @@
-import { GlobalPoint } from "../../../core/geometry";
+import type { GlobalPoint } from "../../../core/geometry";
 import { SyncTo, SyncMode } from "../../../core/models/types";
 import { gameStore } from "../../../store/game";
 import { UuidMap } from "../../../store/shapeMap";
@@ -10,10 +10,10 @@ import {
 } from "../../api/emits/shape/toggleComposite";
 import { selectionState } from "../../layers/selection";
 import { compositeState } from "../../layers/state";
-import { ServerToggleComposite } from "../../models/shapes";
+import type { ServerToggleComposite } from "../../models/shapes";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { Shape } from "../shape";
-import { SHAPE_TYPE } from "../types";
+import type { SHAPE_TYPE } from "../types";
 
 import { BoundingRect } from "./boundingRect";
 
@@ -165,9 +165,9 @@ export class ToggleComposite extends Shape {
         this.refPoint = centerPoint;
     }
 
-    visibleInCanvas(canvas: HTMLCanvasElement, options: { includeAuras: boolean }): boolean {
-        if (super.visibleInCanvas(canvas, options)) return true;
-        return this.getBoundingBox().visibleInCanvas(canvas);
+    visibleInCanvas(max: { w: number; h: number }, options: { includeAuras: boolean }): boolean {
+        if (super.visibleInCanvas(max, options)) return true;
+        return this.getBoundingBox().visibleInCanvas(max);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function

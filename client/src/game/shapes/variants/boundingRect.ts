@@ -1,5 +1,6 @@
 import { g2lx, g2ly } from "../../../core/conversions";
-import { GlobalPoint, Point, Vector, Ray, toGP, addP } from "../../../core/geometry";
+import { Vector, toGP, addP } from "../../../core/geometry";
+import type { GlobalPoint, Point, Ray } from "../../../core/geometry";
 import { rotateAroundPoint } from "../../../core/math";
 
 export class BoundingRect {
@@ -122,10 +123,10 @@ export class BoundingRect {
     getMaxExtent(): 0 | 1 {
         return this.w > this.h ? 0 : 1;
     }
-    visibleInCanvas(canvas: HTMLCanvasElement): boolean {
+    visibleInCanvas(max: { w: number; h: number }): boolean {
         const coreVisible = !(
-            g2lx(this.topLeft.x) > canvas.width ||
-            g2ly(this.topLeft.y) > canvas.height ||
+            g2lx(this.topLeft.x) > max.w ||
+            g2ly(this.topLeft.y) > max.h ||
             g2lx(this.topRight.x) < 0 ||
             g2ly(this.botRight.y) < 0
         );

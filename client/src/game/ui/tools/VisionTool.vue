@@ -4,8 +4,8 @@ import { computed, onMounted, ref } from "vue";
 
 import { gameStore } from "../../../store/game";
 import { UuidMap } from "../../../store/shapeMap";
-import { Shape } from "../../shapes/shape";
-import { Asset } from "../../shapes/variants/asset";
+import type { Shape } from "../../shapes/shape";
+import type { Asset } from "../../shapes/variants/asset";
 import { visionTool } from "../../tools/variants/vision";
 
 import { useToolPosition } from "./toolPosition";

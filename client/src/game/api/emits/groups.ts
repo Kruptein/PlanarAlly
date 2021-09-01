@@ -1,4 +1,4 @@
-import { GroupJoinPayload, ServerGroup } from "../../models/groups";
+import type { GroupJoinPayload, ServerGroup } from "../../models/groups";
 import { wrapSocket } from "../helpers";
 
 export const sendGroupUpdate = wrapSocket<ServerGroup>("Group.Update");

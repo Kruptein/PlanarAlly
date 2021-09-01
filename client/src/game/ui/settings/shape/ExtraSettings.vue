@@ -17,7 +17,7 @@ import type { DDraftData } from "../../../models/ddraft";
 import { LayerName } from "../../../models/floor";
 import type { ShapeOptions } from "../../../models/shapes";
 import type { Aura } from "../../../shapes/interfaces";
-import { Asset } from "../../../shapes/variants/asset";
+import type { Asset } from "../../../shapes/variants/asset";
 import { Circle } from "../../../shapes/variants/circle";
 import { Polygon } from "../../../shapes/variants/polygon";
 import { visionState } from "../../../vision/state";

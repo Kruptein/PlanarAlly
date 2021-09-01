@@ -1,7 +1,7 @@
-import { ComputedRef } from "@vue/reactivity";
+import type { ComputedRef } from "@vue/reactivity";
 import { computed } from "@vue/runtime-core";
 
-import { Asset } from "../core/models/types";
+import type { Asset } from "../core/models/types";
 import { Store } from "../core/store";
 import { uuidv4 } from "../core/utils";
 import { router } from "../router";

@@ -1,12 +1,13 @@
 import { l2g } from "../../../core/conversions";
-import { GlobalPoint, LocalPoint } from "../../../core/geometry";
+import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { LayerName } from "../../models/floor";
-import { ToolName, ToolPermission } from "../../models/tools";
+import { ToolName } from "../../models/tools";
+import type { ToolPermission } from "../../models/tools";
 import { deleteShapes } from "../../shapes/utils";
 import { Circle } from "../../shapes/variants/circle";
 import { Tool } from "../tool";

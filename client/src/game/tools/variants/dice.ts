@@ -1,7 +1,7 @@
 import type { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
-import type { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
-import type { Dice, DiceThrower, DieOptions, DndParser } from "@planarally/dice";
+import type { Dice, DieOptions } from "@planarally/dice";
 import { watch } from "@vue/runtime-core";
 import tinycolor from "tinycolor2";
 import { reactive } from "vue";
@@ -10,29 +10,15 @@ import { randomInterval } from "../../../core/utils";
 import { i18n } from "../../../i18n";
 import { clientStore } from "../../../store/client";
 import { diceStore } from "../../dice/state";
-import { ToolName, ToolPermission } from "../../models/tools";
+import { ToolName } from "../../models/tools";
+import type { ToolPermission } from "../../models/tools";
 import { Tool } from "../tool";
 
 import { SelectFeatures } from "./select";
 
-// The following dynamic imports are used to prevent all dice code (@planarally/dice and babylon)
-// from being loaded immediately
-// Most users don't have a need for the dicethrower so it's just wasted resources to download
-
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const env = () => import("../../dice/environment");
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const dice = () => import("@planarally/dice");
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const math = () => import("@babylonjs/core/Maths/math.vector");
-
 class DiceTool extends Tool {
     readonly toolName = ToolName.Dice;
     readonly toolTranslation = i18n.global.t("tool.Dice");
-
-    diceThrower!: DiceThrower;
-    dndParser!: DndParser;
-    vector3!: typeof Vector3;
 
     state = reactive<{
         shareWithAll: boolean;
@@ -48,22 +34,17 @@ class DiceTool extends Tool {
         super();
         watch(
             () => diceStore.state.showUi,
-            (showUi) => {
+            async (showUi) => {
                 if (!showUi) {
-                    this.diceThrower?.reset();
+                    (await diceStore.getDiceThrower()).reset();
                 }
             },
         );
     }
 
     async onSelect(): Promise<void> {
-        if (this.diceThrower === undefined) {
-            const e = await env();
-            const { DndParser } = await dice();
-            const { Vector3 } = await math();
-            this.diceThrower = await e.loadDiceEnv();
-            this.dndParser = new DndParser(this.diceThrower);
-            this.vector3 = Vector3;
+        if (diceStore.state.loaded === false) {
+            await diceStore.loadEnv();
         }
     }
 
@@ -84,24 +65,24 @@ class DiceTool extends Tool {
 
         const color = tinycolor(clientStore.state.rulerColour).toHexString();
 
-        const position = new this.vector3(signX * (side ? w : xDir * w), 4.5, signY * (side ? yDir * h : h));
+        const position = new Vector3(signX * (side ? w : xDir * w), 4.5, signY * (side ? yDir * h : h));
 
         // Aim from side to center
-        const linear = this.vector3
-            .Zero()
+        const linear = Vector3.Zero()
             .subtract(position)
             // Slightly deviate from center
-            .add(new this.vector3(randomInterval(0, 20) - 10, randomInterval(0, 5) - 2.5, randomInterval(0, 20) - 10))
+            .add(new Vector3(randomInterval(0, 20) - 10, randomInterval(0, 5) - 2.5, randomInterval(0, 20) - 10))
             // Power up
             .multiplyByFloats(randomInterval(3, 6), 1, randomInterval(3, 6));
         const options: Omit<DieOptions, "die"> = {
             position,
             linear,
-            angular: new this.vector3(linear.x / 2, 0, 0),
+            angular: new Vector3(linear.x / 2, 0, 0),
             color,
         };
 
-        const results = await diceTool.dndParser.fromString(inp, options, (die, mesh) => this.addShadow(die, mesh));
+        const parser = await diceStore.getDndParser();
+        const results = await parser.fromString(inp, options, (die, mesh) => this.addShadow(die, mesh));
         diceStore.setResults(results);
         diceStore.setIsPending(false);
         diceStore.setShowDiceResults(true);

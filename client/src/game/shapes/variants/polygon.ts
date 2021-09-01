@@ -1,10 +1,11 @@
 import { g2l, g2lz, g2lx, g2ly } from "../../../core/conversions";
-import { GlobalPoint, getDistanceToSegment, toGP, toArrayP, subtractP, addP } from "../../../core/geometry";
+import { getDistanceToSegment, toGP, toArrayP, subtractP, addP } from "../../../core/geometry";
+import type { GlobalPoint } from "../../../core/geometry";
 import { filterEqualPoints, getPointsCenter, rotateAroundPoint } from "../../../core/math";
 import { getFogColour } from "../../colour";
-import { ServerPolygon } from "../../models/shapes";
+import type { ServerPolygon } from "../../models/shapes";
 import { Shape } from "../shape";
-import { SHAPE_TYPE } from "../types";
+import type { SHAPE_TYPE } from "../types";
 
 import { BoundingRect } from "./boundingRect";
 
@@ -148,9 +149,9 @@ export class Polygon extends Shape {
         this.refPoint = toGP(subtractP(centerPoint, subtractP(oldCenter, this.refPoint)).asArray());
     }
 
-    visibleInCanvas(canvas: HTMLCanvasElement, options: { includeAuras: boolean }): boolean {
-        if (super.visibleInCanvas(canvas, options)) return true;
-        return this.getBoundingBox().visibleInCanvas(canvas);
+    visibleInCanvas(max: { w: number; h: number }, options: { includeAuras: boolean }): boolean {
+        if (super.visibleInCanvas(max, options)) return true;
+        return this.getBoundingBox().visibleInCanvas(max);
     }
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     snapToGrid(): void {}

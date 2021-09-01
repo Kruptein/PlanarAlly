@@ -1,4 +1,4 @@
-import { AssetOptions } from "../../models/asset";
+import type { AssetOptions } from "../../models/asset";
 import { socket } from "../socket";
 
 type AssetOptionsRequest<T extends AssetOptions | string> =

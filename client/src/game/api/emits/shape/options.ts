@@ -1,4 +1,4 @@
-import { ServerAura, ServerTracker } from "../../../models/shapes";
+import type { ServerAura, ServerTracker } from "../../../models/shapes";
 import { wrapSocket } from "../../helpers";
 import { socket } from "../../socket";
 

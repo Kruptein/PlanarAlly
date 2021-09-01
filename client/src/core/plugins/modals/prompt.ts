@@ -1,4 +1,5 @@
-import { DeepReadonly, Ref, readonly, reactive, toRefs } from "vue";
+import { readonly, reactive, toRefs } from "vue";
+import type { DeepReadonly, Ref } from "vue";
 
 type validationFunc = (value: string) => { valid: true } | { valid: false; reason: string };
 

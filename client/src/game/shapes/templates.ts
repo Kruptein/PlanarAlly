@@ -1,16 +1,9 @@
 import { settingsStore } from "../../store/settings";
 import { aurasToServer } from "../models/conversion/aura";
 import { trackersToServer } from "../models/conversion/tracker";
-import { ServerRect, ServerShape } from "../models/shapes";
-import {
-    BaseAuraStrings,
-    BaseAuraTemplate,
-    BaseTemplate,
-    BaseTemplateStrings,
-    BaseTrackerStrings,
-    BaseTrackerTemplate,
-    getTemplateKeys,
-} from "../models/templates";
+import type { ServerRect, ServerShape } from "../models/shapes";
+import { BaseAuraStrings, BaseTemplateStrings, BaseTrackerStrings, getTemplateKeys } from "../models/templates";
+import type { BaseAuraTemplate, BaseTemplate, BaseTrackerTemplate } from "../models/templates";
 
 import { createEmptyAura, createEmptyTracker } from "./trackers";
 

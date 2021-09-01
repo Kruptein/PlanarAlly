@@ -1,7 +1,7 @@
 import { Store } from "../../core/store";
 import { floorStore } from "../../store/floor";
 import { UuidMap } from "../../store/shapeMap";
-import { Shape } from "../shapes/shape";
+import type { Shape } from "../shapes/shape";
 
 import { compositeState } from "./state";
 

@@ -1,5 +1,5 @@
 import { clientStore } from "../../../store/client";
-import { ServerUserOptions, ServerUserLocationOptions } from "../../models/settings";
+import type { ServerUserOptions, ServerUserLocationOptions } from "../../models/settings";
 import { wrapSocket } from "../helpers";
 import { socket } from "../socket";
 

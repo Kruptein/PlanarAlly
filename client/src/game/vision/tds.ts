@@ -1,7 +1,7 @@
 import { equalPoints } from "../../core/math";
-import { Shape } from "../shapes/shape";
+import type { Shape } from "../shapes/shape";
 
-import { CDT } from "./cdt";
+import type { CDT } from "./cdt";
 import { ccw, cw, orientation, sideOfOrientedCircleP, ulp } from "./triag";
 
 export type Point = number[];

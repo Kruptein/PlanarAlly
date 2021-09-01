@@ -1,6 +1,7 @@
 import { SyncTo } from "../../../core/models/types";
 import { UuidMap } from "../../../store/shapeMap";
-import { ownerToClient, ServerShapeOwner } from "../../models/shapes";
+import { ownerToClient } from "../../models/shapes";
+import type { ServerShapeOwner } from "../../models/shapes";
 import { socket } from "../socket";
 
 socket.on("Shape.Owner.Add", (data: ServerShapeOwner) => {

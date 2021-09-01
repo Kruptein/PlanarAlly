@@ -1,7 +1,7 @@
 import "path-data-polyfill";
 import { addP, toArrayP, toGP, Vector } from "../core/geometry";
 
-import { Asset } from "./shapes/variants/asset";
+import type { Asset } from "./shapes/variants/asset";
 
 export function pathToArray(shape: Asset, path: SVGPathElement): number[][][] {
     const paths: number[][][] = [];

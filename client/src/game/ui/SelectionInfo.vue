@@ -6,7 +6,7 @@ import { SyncTo } from "../../core/models/types";
 import { useModal } from "../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../store/activeShape";
 import { UuidMap } from "../../store/shapeMap";
-import { Aura, Tracker } from "../shapes/interfaces";
+import type { Aura, Tracker } from "../shapes/interfaces";
 
 export default defineComponent({
     setup() {

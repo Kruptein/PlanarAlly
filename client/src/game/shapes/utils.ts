@@ -7,8 +7,8 @@ import { gameStore } from "../../store/game";
 import { sendRemoveShapes } from "../api/emits/shape/core";
 import { addGroupMembers, createNewGroupForShapes, generateNewBadge, hasGroup } from "../groups";
 import { selectionState } from "../layers/selection";
-import { LayerName } from "../models/floor";
-import {
+import type { LayerName } from "../models/floor";
+import type {
     ServerShape,
     ServerRect,
     ServerCircle,
@@ -25,7 +25,7 @@ import {
 import { addOperation } from "../operations/undo";
 import { TriangulationTarget, VisibilityMode, visionState } from "../vision/state";
 
-import { Shape } from "./shape";
+import type { Shape } from "./shape";
 import { Asset } from "./variants/asset";
 import { Circle } from "./variants/circle";
 import { CircularToken } from "./variants/circularToken";

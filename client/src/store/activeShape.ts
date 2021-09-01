@@ -1,16 +1,17 @@
-import { computed, ComputedRef, watchEffect } from "vue";
+import { computed, watchEffect } from "vue";
+import type { ComputedRef } from "vue";
 
 import { SyncTo } from "../core/models/types";
 import { Store } from "../core/store";
 import { selectionState } from "../game/layers/selection";
 import { compositeState } from "../game/layers/state";
-import { ShapeOptions } from "../game/models/shapes";
-import { Aura, Label, Tracker } from "../game/shapes/interfaces";
-import { ShapeAccess, ShapeOwner } from "../game/shapes/owners";
-import { Shape } from "../game/shapes/shape";
+import type { ShapeOptions } from "../game/models/shapes";
+import type { Aura, Label, Tracker } from "../game/shapes/interfaces";
+import type { ShapeAccess, ShapeOwner } from "../game/shapes/owners";
+import type { Shape } from "../game/shapes/shape";
 import { createEmptyUiAura, createEmptyUiTracker } from "../game/shapes/trackers";
-import { SHAPE_TYPE } from "../game/shapes/types";
-import { ToggleComposite } from "../game/shapes/variants/toggleComposite";
+import type { SHAPE_TYPE } from "../game/shapes/types";
+import type { ToggleComposite } from "../game/shapes/variants/toggleComposite";
 
 import { clientStore } from "./client";
 import { gameStore } from "./game";

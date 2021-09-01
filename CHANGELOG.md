@@ -17,6 +17,7 @@ These usually have no immediately visible impact on regular users
 -   Active tool-mode is now more distinct
 -   Prevent setting visionMinRange > visionMaxRange using settings UI
 -   Added number input to the aura angle direction UI
+-   Select hit detection on borders is increased
 
 ### Fixed
 
@@ -27,6 +28,10 @@ These usually have no immediately visible impact on regular users
 -   Multiple styling issues in firefox
     -   Annotations no longer fill entire screen width
     -   Aura UI being way to wide
+-   Viewport sync
+    -   viewport is sent immediately upon connecting (and does not wait for the first pan)
+    -   DM viewport move is now throttled and should no longer appear laggy on the client
+-   variou DPI related fixes
 
 ## [0.28.0] - 2021-07-21
 

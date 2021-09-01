@@ -1,6 +1,7 @@
 import { computed, ref, watch } from "vue";
 
-import { ITool, ToolFeatures, ToolMode, ToolName } from "../models/tools";
+import { ToolMode, ToolName } from "../models/tools";
+import type { ITool, ToolFeatures } from "../models/tools";
 
 import { diceTool } from "./variants/dice";
 import { drawTool } from "./variants/draw";

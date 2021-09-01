@@ -1,7 +1,7 @@
 <script lang="ts">
 import { computed, defineComponent } from "vue";
 
-import { ReadonlyAssetListMap } from "../../../core/models/types";
+import type { ReadonlyAssetListMap } from "../../../core/models/types";
 import { gameStore } from "../../../store/game";
 import { filterAssetMap } from "../../assets/utils";
 

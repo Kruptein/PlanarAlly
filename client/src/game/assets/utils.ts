@@ -1,4 +1,4 @@
-import { AssetFile, AssetList, AssetListMap, ReadonlyAssetListMap } from "../../core/models/types";
+import type { AssetFile, AssetList, AssetListMap, ReadonlyAssetListMap } from "../../core/models/types";
 import { alphSort } from "../../core/utils";
 
 export function convertAssetListToMap(assets: AssetList): AssetListMap {

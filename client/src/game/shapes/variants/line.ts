@@ -1,9 +1,10 @@
 import { g2l, g2lx, g2ly, g2lz } from "../../../core/conversions";
-import { addP, GlobalPoint, subtractP, toArrayP, toGP } from "../../../core/geometry";
+import { addP, subtractP, toArrayP, toGP } from "../../../core/geometry";
+import type { GlobalPoint } from "../../../core/geometry";
 import { rotateAroundPoint } from "../../../core/math";
-import { ServerLine } from "../../models/shapes";
+import type { ServerLine } from "../../models/shapes";
 import { Shape } from "../shape";
-import { SHAPE_TYPE } from "../types";
+import type { SHAPE_TYPE } from "../types";
 
 import { BoundingRect } from "./boundingRect";
 
@@ -85,9 +86,9 @@ export class Line extends Shape {
         this.refPoint = toGP(subtractP(centerPoint, subtractP(oldCenter, this.refPoint)).asArray());
         this.endPoint = toGP(subtractP(centerPoint, subtractP(oldCenter, this.endPoint)).asArray());
     }
-    visibleInCanvas(canvas: HTMLCanvasElement, options: { includeAuras: boolean }): boolean {
-        if (super.visibleInCanvas(canvas, options)) return true;
-        return this.getBoundingBox().visibleInCanvas(canvas);
+    visibleInCanvas(max: { w: number; h: number }, options: { includeAuras: boolean }): boolean {
+        if (super.visibleInCanvas(max, options)) return true;
+        return this.getBoundingBox().visibleInCanvas(max);
     }
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     snapToGrid(): void {}

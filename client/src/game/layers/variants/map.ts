@@ -38,7 +38,7 @@ export class MapLayer extends Layer {
 
                 if (background !== null) {
                     this.ctx.fillStyle = background;
-                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                    this.ctx.fillRect(0, 0, this.width, this.height);
                 }
             }
 

@@ -1,5 +1,5 @@
 import { g2l } from "../core/conversions";
-import { GlobalPoint } from "../core/geometry";
+import type { GlobalPoint } from "../core/geometry";
 import { clientStore } from "../store/client";
 import { floorStore } from "../store/floor";
 

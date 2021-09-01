@@ -1,4 +1,4 @@
-import { InitiativeData, InitiativeEffect, InitiativeSort } from "../../models/initiative";
+import type { InitiativeData, InitiativeEffect, InitiativeSort } from "../../models/initiative";
 import { wrapSocket } from "../helpers";
 import { socket } from "../socket";
 

@@ -1,4 +1,4 @@
-import { InitiativeEffectMode } from "./initiative";
+import type { InitiativeEffectMode } from "./initiative";
 
 export interface ServerLocationOptions {
     use_grid: boolean;

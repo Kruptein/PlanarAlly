@@ -1,6 +1,10 @@
 <script setup lang="ts">
-import SwiperCore, { Pagination } from "swiper/core";
-import type { Swiper } from "swiper/vue";
+import "swiper/css";
+import "swiper/css/pagination";
+
+import { Pagination } from "swiper";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { Swiper, SwiperSlide } from "swiper/vue";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
@@ -10,7 +14,7 @@ import LanguageDropdown from "../core/components/LanguageDropdown.vue";
 import { baseAdjust, getErrorReason, postFetch } from "../core/utils";
 import { coreStore } from "../store/core";
 
-SwiperCore.use([Pagination]);
+const swiperModules = [Pagination];
 
 const { t } = useI18n();
 const route = useRoute();
@@ -97,6 +101,7 @@ function slideNext(swiper: Swiper): void {
                 :pagination="{ clickable: true, el: '.swiper-pagination', type: 'bullets' }"
                 :slides-per-view="1"
                 :loop="true"
+                :modules="swiperModules"
                 @click="slideNext"
             >
                 <swiper-slide>
@@ -193,9 +198,6 @@ function slideNext(swiper: Swiper): void {
 </template>
 
 <style lang="scss">
-@import "swiper/swiper.scss";
-@import "swiper/components/pagination/pagination.scss";
-
 .swiper-pagination-bullet-active {
     background-color: var(--primary);
 }

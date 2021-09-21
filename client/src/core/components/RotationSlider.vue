@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { computed, defineEmits, defineProps, onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 
 import { toDegrees, toRadians } from "../conversions";
 
-const props = defineProps({
-    angle: { type: Number, required: true },
-    showNumberInput: { type: Boolean, default: false },
-});
-const emit = defineEmits({ input: Number, change: Number });
+const props = withDefaults(
+    defineProps<{
+        angle: number;
+        showNumberInput?: boolean;
+    }>(),
+    { showNumberInput: false },
+);
+const emit = defineEmits<{ (e: "input", angle: number): void; (e: "change", angle: number): void }>();
 
 const circle = ref<HTMLDivElement | null>(null);
 

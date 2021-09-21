@@ -1,5 +1,5 @@
-<script lang="ts">
-import { computed, defineComponent } from "vue";
+<script setup lang="ts">
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
@@ -13,53 +13,34 @@ import PropertySettings from "./PropertySettings.vue";
 import TrackerSettings from "./TrackerSettings.vue";
 import VariantSwitcher from "./VariantSwitcher.vue";
 
-export default defineComponent({
-    components: {
-        AccessSettings,
-        ExtraSettings,
-        GroupSettings,
-        PanelModal,
-        PropertySettings,
-        TrackerSettings,
-        VariantSwitcher,
+const { t } = useI18n();
+
+const visible = computed({
+    get() {
+        return activeShapeStore.state.showEditDialog;
     },
-    setup() {
-        const { t } = useI18n();
-
-        const visible = computed({
-            get() {
-                return activeShapeStore.state.showEditDialog;
-            },
-            set(visible: boolean) {
-                activeShapeStore.setShowEditDialog(visible);
-            },
-        });
-
-        const hasShape = computed(() => activeShapeStore.state.uuid !== undefined);
-
-        const categoryNames = computed(() => {
-            if (activeShapeStore.hasEditAccess.value) {
-                return [
-                    ShapeSettingCategory.Properties,
-                    ShapeSettingCategory.Trackers,
-                    ShapeSettingCategory.Access,
-                    ShapeSettingCategory.Group,
-                    ShapeSettingCategory.Extra,
-                ];
-            }
-            return [ShapeSettingCategory.Properties, ShapeSettingCategory.Trackers, ShapeSettingCategory.Access];
-        });
-
-        return {
-            categoryNames,
-            hasShape,
-            owned: activeShapeStore.hasEditAccess,
-            SSC: ShapeSettingCategory,
-            t,
-            visible,
-        };
+    set(visible: boolean) {
+        activeShapeStore.setShowEditDialog(visible);
     },
 });
+
+const hasShape = computed(() => activeShapeStore.state.uuid !== undefined);
+
+const categoryNames = computed(() => {
+    if (activeShapeStore.hasEditAccess.value) {
+        return [
+            ShapeSettingCategory.Properties,
+            ShapeSettingCategory.Trackers,
+            ShapeSettingCategory.Access,
+            ShapeSettingCategory.Group,
+            ShapeSettingCategory.Extra,
+        ];
+    }
+    return [ShapeSettingCategory.Properties, ShapeSettingCategory.Trackers, ShapeSettingCategory.Access];
+});
+
+const owned = activeShapeStore.hasEditAccess;
+const SSC = ShapeSettingCategory;
 </script>
 
 <template>

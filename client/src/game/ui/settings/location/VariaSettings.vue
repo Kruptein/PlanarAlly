@@ -1,53 +1,39 @@
-<script lang="ts">
-import { computed, defineComponent, toRef } from "vue";
+<script setup lang="ts">
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { gameStore } from "../../../../store/game";
 import { settingsStore } from "../../../../store/settings";
 import type { LocationOptions } from "../../../models/settings";
 
-export default defineComponent({
-    props: { location: { type: Number, default: -1 } },
-    setup(props) {
-        const { t } = useI18n();
+const props = withDefaults(defineProps<{ location?: number }>(), { location: -1 });
 
-        const isGlobal = computed(() => props.location < 0);
+const { t } = useI18n();
 
-        const options = computed(() => {
-            if (isGlobal.value) {
-                return settingsStore.state.defaultLocationOptions!;
-            } else {
-                return settingsStore.state.locationOptions.get(props.location) ?? {};
-            }
-        });
+const isGlobal = computed(() => props.location < 0);
 
-        const location = computed(() => (isGlobal.value ? undefined : props.location));
+const options = computed(() => {
+    if (isGlobal.value) {
+        return settingsStore.state.defaultLocationOptions!;
+    } else {
+        return settingsStore.state.locationOptions.get(props.location) ?? {};
+    }
+});
 
-        const movePlayerOnTokenChange = computed({
-            get() {
-                return settingsStore.getLocationOptions("movePlayerOnTokenChange", location.value);
-            },
-            set(movePlayerOnTokenChange: boolean) {
-                settingsStore.setMovePlayerOnTokenChange(movePlayerOnTokenChange, location.value, true);
-            },
-        });
+const location = computed(() => (isGlobal.value ? undefined : props.location));
 
-        function reset(key: keyof LocationOptions): void {
-            if (isGlobal.value) return;
-            settingsStore.reset(key, props.location);
-        }
-
-        return {
-            fakePlayer: toRef(gameStore.state, "isFakePlayer"),
-            isGlobal,
-            options,
-            reset,
-            t,
-
-            movePlayerOnTokenChange,
-        };
+const movePlayerOnTokenChange = computed({
+    get() {
+        return settingsStore.getLocationOptions("movePlayerOnTokenChange", location.value);
+    },
+    set(movePlayerOnTokenChange: boolean) {
+        settingsStore.setMovePlayerOnTokenChange(movePlayerOnTokenChange, location.value, true);
     },
 });
+
+function reset(key: keyof LocationOptions): void {
+    if (isGlobal.value) return;
+    settingsStore.reset(key, props.location);
+}
 </script>
 
 <template>

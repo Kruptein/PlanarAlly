@@ -1,26 +1,22 @@
-<script lang="ts">
-import { defineComponent, toRefs } from "vue";
+<script setup lang="ts">
 import { useI18n } from "vue-i18n";
 
 import Modal from "../../../core/components/modals/Modal.vue";
 import { diceStore } from "../../dice/state";
-export default defineComponent({
-    components: { Modal },
-    setup() {
-        const { t } = useI18n();
-        function close(): void {
-            diceStore.setShowDiceResults(false);
-        }
-        function sum(data: readonly number[]): number {
-            return data.reduce((acc, val) => acc + val);
-        }
-        return { t, ...toRefs(diceStore.state), close, sum };
-    },
-});
+
+const { t } = useI18n();
+
+function close(): void {
+    diceStore.setShowDiceResults(false);
+}
+
+function sum(data: readonly number[]): number {
+    return data.reduce((acc, val) => acc + val);
+}
 </script>
 
 <template>
-    <Modal :visible="showUi" @close="close" :mask="false">
+    <Modal :visible="diceStore.state.showUi" @close="close" :mask="false">
         <template v-slot:header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 <div>Dice Results</div>
@@ -31,13 +27,13 @@ export default defineComponent({
         </template>
         <div class="modal-body">
             <div id="dice-body">
-                <template v-if="pending">
+                <template v-if="diceStore.state.pending">
                     <div id="total">...</div>
                 </template>
-                <template v-else-if="results.length > 0">
-                    <div id="total">{{ results[0].total }}</div>
+                <template v-else-if="diceStore.state.results.length > 0">
+                    <div id="total">{{ diceStore.state.results[0].total }}</div>
                     <div id="breakdown">
-                        <template v-for="result of results[0].details.entries()" :key="result[0]">
+                        <template v-for="result of diceStore.state.results[0].details.entries()" :key="result[0]">
                             <div v-if="result[1].type === 'dice'">
                                 <div class="input">{{ result[1].input }}</div>
                                 <div class="value">{{ sum(result[1].output) }}</div>

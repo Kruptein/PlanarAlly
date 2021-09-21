@@ -1,6 +1,6 @@
-<script lang="ts">
-import { defineComponent, toRefs } from "vue";
+<script setup lang="ts">
 import { useI18n } from "vue-i18n";
+import { onBeforeRouteLeave, useRoute } from "vue-router";
 
 import { useModal } from "../core/plugins/modals/plugin";
 import { baseAdjust, ctrlOrCmdPressed } from "../core/utils";
@@ -10,144 +10,127 @@ import { openAssetContextMenu } from "./context";
 import { socket } from "./socket";
 import { assetStore } from "./state";
 
-export default defineComponent({
-    components: { AssetContextMenu },
-    beforeRouteEnter(to, _from, next): void {
-        assetStore.setModalActive(false);
-        socket.connect();
-        socket.emit("Folder.GetByPath", to.path.slice("/assets".length));
-        next();
-    },
-    beforeRouteLeave(_to, _from, next): void {
-        socket.disconnect();
-        next();
-    },
-    setup() {
-        const { t } = useI18n();
-        const modals = useModal();
+const route = useRoute();
 
-        const state = assetStore.state;
+assetStore.setModalActive(false);
+socket.connect();
+socket.emit("Folder.GetByPath", route.path.slice("/assets".length));
 
-        // DRAGGING
-
-        let draggingSelection = false;
-
-        function startDrag(event: DragEvent, file: number): void {
-            if (event.dataTransfer === null) return;
-            event.dataTransfer.setData("Hack", "ittyHack");
-            event.dataTransfer.dropEffect = "move";
-            if (!state.selected.includes(file)) assetStore.addSelectedInode(file);
-            draggingSelection = true;
-        }
-
-        function moveDrag(event: DragEvent): void {
-            if ((event.target as HTMLElement).classList.contains("folder"))
-                (event.target as HTMLElement).classList.add("inode-selected");
-        }
-
-        function leaveDrag(event: DragEvent): void {
-            if ((event.target as HTMLElement).classList.contains("folder"))
-                (event.target as HTMLElement).classList.remove("inode-selected");
-        }
-
-        function stopDrag(event: DragEvent, target: number): void {
-            (event.target as HTMLElement).classList.remove("inode-selected");
-            if (draggingSelection) {
-                if ((target === state.root || state.folders.includes(target)) && !state.selected.includes(target)) {
-                    for (const inode of state.selected) {
-                        assetStore.moveInode(inode, target);
-                    }
-                }
-                assetStore.clearSelected();
-            } else if (event.dataTransfer && event.dataTransfer.files.length > 0) {
-                assetStore.upload(event.dataTransfer.files, target);
-            }
-            draggingSelection = false;
-        }
-
-        // INODE MANAGEMENT
-
-        async function createDirectory(): Promise<void> {
-            const name = await modals.prompt(t("assetManager.AssetManager.new_folder_name"), "?");
-            if (name !== undefined) {
-                socket.emit("Folder.Create", { name, parent: assetStore.currentFolder.value });
-            }
-        }
-
-        function select(event: MouseEvent, inode: number): void {
-            if (event.shiftKey && state.selected.length > 0) {
-                const inodes = [...state.folders, ...state.files];
-                const start = inodes.indexOf(state.selected[state.selected.length - 1]);
-                const end = inodes.indexOf(inode);
-                for (let i = start; i !== end; start < end ? i++ : i--) {
-                    if (i === start) continue;
-                    assetStore.addSelectedInode(inodes[i]);
-                }
-                assetStore.addSelectedInode(inodes[end]);
-            } else {
-                if (!ctrlOrCmdPressed(event)) {
-                    assetStore.clearSelected();
-                }
-                assetStore.addSelectedInode(inode);
-            }
-        }
-
-        // VARIA
-
-        function exportData(): void {
-            if (state.selected.length > 0) socket.emit("Asset.Export", state.selected);
-        }
-
-        function showIdName(dir: number): string {
-            return state.idMap.get(dir)?.name ?? "";
-        }
-
-        function getIdImageSrc(file: number): string {
-            return baseAdjust("/static/assets/" + state.idMap.get(file)!.file_hash);
-        }
-
-        function prepareUpload(): void {
-            document.getElementById("files")!.click();
-        }
-
-        return {
-            ...toRefs(state),
-            t,
-            currentFolder: assetStore.currentFolder,
-            parentFolder: assetStore.parentFolder,
-            upload: () => assetStore.upload(),
-            changeDirectory: (folder: number) => assetStore.changeDirectory(folder),
-            createDirectory,
-            select,
-            startDrag,
-            moveDrag,
-            leaveDrag,
-            stopDrag,
-            exportData,
-            showIdName,
-            getIdImageSrc,
-            prepareUpload,
-            openAssetContextMenu,
-        };
-    },
+onBeforeRouteLeave((_to, _from, next) => {
+    socket.disconnect();
+    next();
 });
+
+const { t } = useI18n();
+const modals = useModal();
+
+const state = assetStore.state;
+
+// DRAGGING
+
+let draggingSelection = false;
+
+function startDrag(event: DragEvent, file: number): void {
+    if (event.dataTransfer === null) return;
+    event.dataTransfer.setData("Hack", "ittyHack");
+    event.dataTransfer.dropEffect = "move";
+    if (!state.selected.includes(file)) assetStore.addSelectedInode(file);
+    draggingSelection = true;
+}
+
+function moveDrag(event: DragEvent): void {
+    if ((event.target as HTMLElement).classList.contains("folder"))
+        (event.target as HTMLElement).classList.add("inode-selected");
+}
+
+function leaveDrag(event: DragEvent): void {
+    if ((event.target as HTMLElement).classList.contains("folder"))
+        (event.target as HTMLElement).classList.remove("inode-selected");
+}
+
+function stopDrag(event: DragEvent, target: number): void {
+    (event.target as HTMLElement).classList.remove("inode-selected");
+    if (draggingSelection) {
+        if ((target === state.root || state.folders.includes(target)) && !state.selected.includes(target)) {
+            for (const inode of state.selected) {
+                assetStore.moveInode(inode, target);
+            }
+        }
+        assetStore.clearSelected();
+    } else if (event.dataTransfer && event.dataTransfer.files.length > 0) {
+        assetStore.upload(event.dataTransfer.files, target);
+    }
+    draggingSelection = false;
+}
+
+// INODE MANAGEMENT
+
+async function createDirectory(): Promise<void> {
+    const name = await modals.prompt(t("assetManager.AssetManager.new_folder_name"), "?");
+    if (name !== undefined) {
+        socket.emit("Folder.Create", { name, parent: assetStore.currentFolder.value });
+    }
+}
+
+function select(event: MouseEvent, inode: number): void {
+    if (event.shiftKey && state.selected.length > 0) {
+        const inodes = [...state.folders, ...state.files];
+        const start = inodes.indexOf(state.selected[state.selected.length - 1]);
+        const end = inodes.indexOf(inode);
+        for (let i = start; i !== end; start < end ? i++ : i--) {
+            if (i === start) continue;
+            assetStore.addSelectedInode(inodes[i]);
+        }
+        assetStore.addSelectedInode(inodes[end]);
+    } else {
+        if (!ctrlOrCmdPressed(event)) {
+            assetStore.clearSelected();
+        }
+        assetStore.addSelectedInode(inode);
+    }
+}
+
+// VARIA
+
+function exportData(): void {
+    if (state.selected.length > 0) socket.emit("Asset.Export", state.selected);
+}
+
+function showIdName(dir: number): string {
+    return state.idMap.get(dir)?.name ?? "";
+}
+
+function getIdImageSrc(file: number): string {
+    return baseAdjust("/static/assets/" + state.idMap.get(file)!.file_hash);
+}
+
+function prepareUpload(): void {
+    document.getElementById("files")!.click();
+}
+
+// ...toRefs(state),
+
+const currentFolder = assetStore.currentFolder;
+const parentFolder = assetStore.parentFolder;
+const upload = (): Promise<void> => assetStore.upload();
+const changeDirectory = (folder: number): void => assetStore.changeDirectory(folder);
 </script>
 
 <template>
     <div id="AssetManager" v-cloak>
         <div id="titlebar">{{ t("assetManager.AssetManager.title") }}</div>
-        <div id="progressbar" v-show="expectedUploads > 0 && expectedUploads !== resolvedUploads">
+        <div id="progressbar" v-show="state.expectedUploads > 0 && state.expectedUploads !== state.resolvedUploads">
             <div id="progressbar-label">
-                {{ t("assetManager.AssetManager.uploading") }} {{ resolvedUploads }} / {{ expectedUploads }}
+                {{ t("assetManager.AssetManager.uploading") }} {{ state.resolvedUploads }} / {{ state.expectedUploads }}
             </div>
             <div id="progressbar-meter">
-                <span :style="{ width: (resolvedUploads / expectedUploads) * 100 + '%' }"></span>
+                <span :style="{ width: (state.resolvedUploads / state.expectedUploads) * 100 + '%' }"></span>
             </div>
         </div>
         <div id="assets" @dragover.prevent="moveDrag" @drop.prevent.stop="stopDrag($event, currentFolder)">
             <div id="breadcrumbs">
                 <div>/</div>
-                <div v-for="dir in folderPath" :key="dir">{{ showIdName(dir) }}</div>
+                <div v-for="dir in state.folderPath" :key="dir">{{ showIdName(dir) }}</div>
             </div>
             <div id="actionbar">
                 <input id="files" type="file" multiple hidden @change="upload()" />
@@ -164,7 +147,7 @@ export default defineComponent({
             <div id="explorer">
                 <div
                     class="inode folder"
-                    v-if="folderPath.length"
+                    v-if="state.folderPath.length"
                     @dblclick="changeDirectory(-1)"
                     @dragover.prevent="moveDrag"
                     @dragleave.prevent="leaveDrag"
@@ -176,9 +159,9 @@ export default defineComponent({
                 <div
                     class="inode folder"
                     draggable="true"
-                    v-for="key in folders"
+                    v-for="key in state.folders"
                     :key="key"
-                    :class="{ 'inode-selected': selected.includes(key) }"
+                    :class="{ 'inode-selected': state.selected.includes(key) }"
                     @click="select($event, key)"
                     @contextmenu.prevent="
                         select($event, key);
@@ -196,9 +179,9 @@ export default defineComponent({
                 <div
                     class="inode file"
                     draggable="true"
-                    v-for="file in files"
+                    v-for="file in state.files"
                     :key="file"
-                    :class="{ 'inode-selected': selected.includes(file) }"
+                    :class="{ 'inode-selected': state.selected.includes(file) }"
                     @click="select($event, file)"
                     @contextmenu.prevent="
                         select($event, file);

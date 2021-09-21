@@ -1,25 +1,19 @@
-<script lang="ts">
-import { defineComponent, ref } from "vue";
+<script setup lang="ts">
+import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import VueMarkdownIt from "vue3-markdown-it";
 
 import Modal from "./Modal.vue";
 
-export default defineComponent({
-    components: { Modal, VueMarkdownIt },
-    props: { title: { type: String, required: true }, source: { type: String, required: true } },
-    setup() {
-        const { t } = useI18n();
+defineProps<{ title: string; source: string }>();
 
-        const visible = ref(true);
+const { t } = useI18n();
 
-        function close(): void {
-            visible.value = false;
-        }
+const visible = ref(true);
 
-        return { close, t, visible };
-    },
-});
+function close(): void {
+    visible.value = false;
+}
 </script>
 
 <template>

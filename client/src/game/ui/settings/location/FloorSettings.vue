@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineProps, ref } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../../core/components/ColourPicker.vue";
@@ -10,7 +10,7 @@ import PatternSettings from "../floor/PatternSettings.vue";
 
 const { t } = useI18n();
 
-const props = defineProps({ location: { type: Number, default: -1 } });
+const props = withDefaults(defineProps<{ location?: number }>(), { location: -1 });
 const backgroundTypes = getBackgroundTypes();
 const isGlobal = computed(() => props.location < 0);
 

@@ -1,5 +1,5 @@
-<script lang="ts">
-import { computed, defineComponent, reactive, toRefs } from "vue";
+<script setup lang="ts">
+import { computed, reactive } from "vue";
 import { useI18n } from "vue-i18n";
 
 import Modal from "../../core/components/modals/Modal.vue";
@@ -7,90 +7,74 @@ import { uuidv4 } from "../../core/utils";
 import { clientStore } from "../../store/client";
 import { gameStore } from "../../store/game";
 import { sendLabelVisibility } from "../api/emits/labels";
-import { Label } from "../shapes/interfaces";
+import type { Label } from "../shapes/interfaces";
 
-export default defineComponent({
-    components: { Modal },
-    emits: ["update:visible", "addLabel"],
-    props: { visible: { type: Boolean, required: true } },
-    setup(_, { emit }) {
-        const { t } = useI18n();
+const emit = defineEmits(["update:visible", "addLabel"]);
+defineProps<{ visible: boolean }>();
 
-        const state = reactive({
-            newCategory: "",
-            newName: "",
-            search: "",
-        });
+const { t } = useI18n();
 
-        function close(): void {
-            emit("update:visible", false);
-        }
-
-        const hasLabels = computed(() => gameStore.state.labels.size > 0);
-
-        const categories = computed(() => {
-            const cat: Map<string, Label[]> = new Map();
-            cat.set("", []);
-            for (const label of gameStore.state.labels.values()) {
-                if (label.user !== clientStore.state.username) continue;
-                const fullName = `${label.category.toLowerCase()}${label.name.toLowerCase()}`;
-                if (state.search.length > 0 && fullName.search(state.search.toLowerCase()) < 0) {
-                    continue;
-                }
-                if (!label.category) {
-                    cat.get("")!.push(label);
-                } else {
-                    if (!cat.has(label.category)) {
-                        cat.set(label.category, []);
-                    }
-                    cat.get(label.category)!.push(label);
-                    cat.get(label.category)!.sort((a, b) => a.name.localeCompare(b.name));
-                }
-            }
-            return cat;
-        });
-
-        function selectLabel(label: string): void {
-            emit("addLabel", label);
-            close();
-        }
-
-        function toggleVisibility(label: Label): void {
-            label.visible = !label.visible;
-            sendLabelVisibility({ uuid: label.uuid, visible: label.visible });
-        }
-
-        function addLabel(): void {
-            if (state.newName === "") return;
-            const label = {
-                uuid: uuidv4(),
-                category: state.newCategory,
-                name: state.newName,
-                visible: false,
-                user: clientStore.state.username,
-            };
-            gameStore.addLabel(label, true);
-            state.newCategory = "";
-            state.newName = "";
-        }
-
-        function deleteLabel(uuid: string): void {
-            gameStore.deleteLabel(uuid, true);
-        }
-
-        return {
-            ...toRefs(state),
-            t,
-            close,
-            hasLabels,
-            categories,
-            selectLabel,
-            addLabel,
-            toggleVisibility,
-            deleteLabel,
-        };
-    },
+const state = reactive({
+    newCategory: "",
+    newName: "",
+    search: "",
 });
+
+function close(): void {
+    emit("update:visible", false);
+}
+
+const hasLabels = computed(() => gameStore.state.labels.size > 0);
+
+const categories = computed(() => {
+    const cat: Map<string, Label[]> = new Map();
+    cat.set("", []);
+    for (const label of gameStore.state.labels.values()) {
+        if (label.user !== clientStore.state.username) continue;
+        const fullName = `${label.category.toLowerCase()}${label.name.toLowerCase()}`;
+        if (state.search.length > 0 && fullName.search(state.search.toLowerCase()) < 0) {
+            continue;
+        }
+        if (!label.category) {
+            cat.get("")!.push(label);
+        } else {
+            if (!cat.has(label.category)) {
+                cat.set(label.category, []);
+            }
+            cat.get(label.category)!.push(label);
+            cat.get(label.category)!.sort((a, b) => a.name.localeCompare(b.name));
+        }
+    }
+    return cat;
+});
+
+function selectLabel(label: string): void {
+    emit("addLabel", label);
+    close();
+}
+
+function toggleVisibility(label: Label): void {
+    label.visible = !label.visible;
+    sendLabelVisibility({ uuid: label.uuid, visible: label.visible });
+}
+
+function addLabel(): void {
+    if (state.newName === "") return;
+    const label = {
+        uuid: uuidv4(),
+        category: state.newCategory,
+        name: state.newName,
+        visible: false,
+        user: clientStore.state.username,
+    };
+    gameStore.addLabel(label, true);
+    state.newCategory = "";
+    state.newName = "";
+}
+
+function deleteLabel(uuid: string): void {
+    gameStore.deleteLabel(uuid, true);
+}
 </script>
 
 <template>
@@ -116,7 +100,7 @@ export default defineComponent({
                     <abbr :title="t('game.ui.LabelManager.delete')">{{ t("game.ui.LabelManager.del_abbr") }}</abbr>
                 </div>
                 <div class="separator spanrow" style="margin: 0 0 7px"></div>
-                <input class="spanrow" type="text" :placeholder="t('common.search')" v-model="search" />
+                <input class="spanrow" type="text" :placeholder="t('common.search')" v-model="state.search" />
             </div>
             <div class="grid scroll">
                 <template v-for="labels of categories.values()">
@@ -155,8 +139,8 @@ export default defineComponent({
             </div>
             <div class="grid">
                 <div class="separator spanrow"></div>
-                <input type="text" v-model.trim="newCategory" />
-                <input type="text" v-model.trim="newName" />
+                <input type="text" v-model.trim="state.newCategory" />
+                <input type="text" v-model.trim="state.newName" />
                 <button id="addLabelButton" @click.stop="addLabel">{{ t("common.add") }}</button>
             </div>
         </div>

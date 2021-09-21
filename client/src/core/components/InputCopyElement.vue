@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { defineProps, reactive } from "vue";
+import { reactive } from "vue";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
-const props = defineProps({ value: { type: String, required: true } });
+const props = defineProps<{ value: string }>();
 
 const state = reactive({
     showPopup: false,

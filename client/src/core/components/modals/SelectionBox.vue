@@ -1,6 +1,5 @@
-<script lang="ts">
-import { computed, defineComponent, reactive, toRefs } from "vue";
-import type { PropType } from "vue";
+<script setup lang="ts">
+import { computed, reactive } from "vue";
 import VueMarkdownIt from "vue3-markdown-it";
 
 import { i18n } from "../../../i18n";
@@ -8,55 +7,48 @@ import type { SelectionBoxOptions } from "../../plugins/modals/selectionBox";
 
 import Modal from "./Modal.vue";
 
-export default defineComponent({
-    name: "Prompt",
-    components: { Modal, VueMarkdownIt },
-    emits: ["close", "submit"],
-    props: {
-        visible: { type: Boolean, required: true },
-        title: { type: String, required: true },
-        choices: { type: Object as PropType<string[]>, required: true },
-        options: Object as PropType<SelectionBoxOptions>,
-    },
-    setup(props, { emit }) {
-        // don't use useI18n here, the modals plugin is loaded earlier
-        const t = i18n.global.t;
+const emit = defineEmits(["close", "submit"]);
+const props = defineProps<{
+    visible: boolean;
+    title: string;
+    choices: string[];
+    options?: SelectionBoxOptions;
+}>();
 
-        const state = reactive({
-            activeSelection: 0,
-            customName: "",
-            error: "",
-        });
+// don't use useI18n here, the modals plugin is loaded earlier
+const t = i18n.global.t;
 
-        const customButton = computed(() => props.options?.customButton ?? "");
-        const defaultButton = computed(() => props.options?.defaultButton ?? t("common.select"));
-        const text = computed(() => props.options?.text ?? "");
-
-        function close(): void {
-            emit("close");
-            state.activeSelection = 0;
-            state.customName = "";
-            state.error = "";
-        }
-
-        function create(): void {
-            if (state.customName === "") {
-                state.error = t("core.components.selectionbox.non_empty_warning").toString();
-            } else if (props.choices.includes(state.customName)) {
-                state.error = t("core.components.selectionbox.already_exists_warning").toString();
-            } else {
-                emit("submit", state.customName);
-                close();
-            }
-        }
-
-        function submit(): void {
-            emit("submit", props.choices[state.activeSelection]);
-        }
-
-        return { ...toRefs(state), close, create, customButton, defaultButton, submit, t, text };
-    },
+const state = reactive({
+    activeSelection: 0,
+    customName: "",
+    error: "",
 });
+
+const customButton = computed(() => props.options?.customButton ?? "");
+const defaultButton = computed(() => props.options?.defaultButton ?? t("common.select"));
+const text = computed(() => props.options?.text ?? "");
+
+function close(): void {
+    emit("close");
+    state.activeSelection = 0;
+    state.customName = "";
+    state.error = "";
+}
+
+function create(): void {
+    if (state.customName === "") {
+        state.error = t("core.components.selectionbox.non_empty_warning").toString();
+    } else if (props.choices.includes(state.customName)) {
+        state.error = t("core.components.selectionbox.already_exists_warning").toString();
+    } else {
+        emit("submit", state.customName);
+        close();
+    }
+}
+
+function submit(): void {
+    emit("submit", props.choices[state.activeSelection]);
+}
 </script>
 
 <template>
@@ -68,10 +60,10 @@ export default defineComponent({
         </template>
         <div class="modal-body">
             <VueMarkdownIt :source="text" />
-            <div id="error" v-if="error.length > 0">{{ error }}</div>
+            <div id="error" v-if="state.error.length > 0">{{ state.error }}</div>
             <div id="selectionbox">
                 <template v-for="[i, choice] of choices.entries()" :key="choice">
-                    <div :class="{ selected: i === activeSelection }" @click="activeSelection = i">
+                    <div :class="{ selected: i === state.activeSelection }" @click="state.activeSelection = i">
                         {{ choice }}
                     </div>
                 </template>
@@ -83,7 +75,7 @@ export default defineComponent({
                         {{ t("common.or").toLocaleUpperCase().toString() }}
                     </span>
                 </h4>
-                <input type="text" class="input" v-model="customName" />
+                <input type="text" class="input" v-model="state.customName" />
                 <div class="button" @click="create">{{ customButton }}</div>
             </template>
         </div>

@@ -1,39 +1,29 @@
-<script lang="ts">
-import { defineComponent, nextTick, ref, watchEffect } from "vue";
+<script setup lang="ts">
+import { nextTick, ref, watchEffect } from "vue";
 
-export default defineComponent({
-    emits: ["cm:close"],
-    props: {
-        left: { type: Number, required: true },
-        top: { type: Number, required: true },
-        visible: { type: Boolean, required: true },
-    },
-    setup(props) {
-        const menu = ref<HTMLDivElement | null>(null);
+const props = defineProps<{ left: number; top: number; visible: boolean }>();
 
-        const deltaLeft = ref(0);
-        const deltaTop = ref(0);
+const menu = ref<HTMLDivElement | null>(null);
 
-        // Ensure the content is visible when we are at the bottom or right hand side
-        watchEffect(() => {
-            if (props.visible) {
-                nextTick(() => {
-                    const el = menu.value!;
-                    deltaLeft.value = 0;
-                    if (props.left + el.clientWidth > window.innerWidth) {
-                        deltaLeft.value = el.clientWidth;
-                    }
-                    deltaTop.value = 0;
-                    if (props.top + el.clientHeight > window.innerHeight) {
-                        deltaTop.value = el.clientHeight;
-                    }
-                    el.focus();
-                });
+const deltaLeft = ref(0);
+const deltaTop = ref(0);
+
+// Ensure the content is visible when we are at the bottom or right hand side
+watchEffect(() => {
+    if (props.visible) {
+        nextTick(() => {
+            const el = menu.value!;
+            deltaLeft.value = 0;
+            if (props.left + el.clientWidth > window.innerWidth) {
+                deltaLeft.value = el.clientWidth;
             }
+            deltaTop.value = 0;
+            if (props.top + el.clientHeight > window.innerHeight) {
+                deltaTop.value = el.clientHeight;
+            }
+            el.focus();
         });
-
-        return { deltaLeft, deltaTop, menu };
-    },
+    }
 });
 </script>
 

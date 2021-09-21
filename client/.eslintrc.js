@@ -63,4 +63,10 @@ module.exports = {
         tsconfigRootDir: __dirname,
         extraFileExtensions: [".vue"],
     },
+    globals: {
+        defineProps: "readonly",
+        defineEmits: "readonly",
+        defineExpose: "readonly",
+        withDefaults: "readonly",
+    },
 };

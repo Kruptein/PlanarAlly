@@ -1,5 +1,4 @@
-<script lang="ts">
-import { defineComponent } from "vue";
+<script setup lang="ts">
 import { useI18n } from "vue-i18n";
 
 import { SyncTo } from "../../core/models/types";
@@ -8,54 +7,48 @@ import { activeShapeStore } from "../../store/activeShape";
 import { UuidMap } from "../../store/shapeMap";
 import type { Aura, Tracker } from "../shapes/interfaces";
 
-export default defineComponent({
-    setup() {
-        const { t } = useI18n();
-        const modals = useModal();
+const { t } = useI18n();
+const modals = useModal();
 
-        const shape = activeShapeStore.state;
+const shape = activeShapeStore.state;
 
-        function setLocked(): void {
-            if (activeShapeStore.hasEditAccess.value) {
-                activeShapeStore.setLocked(!shape.isLocked, SyncTo.SERVER);
-            }
-        }
+function setLocked(): void {
+    if (activeShapeStore.hasEditAccess.value) {
+        activeShapeStore.setLocked(!shape.isLocked, SyncTo.SERVER);
+    }
+}
 
-        function openEditDialog(): void {
-            activeShapeStore.setShowEditDialog(true);
-        }
+function openEditDialog(): void {
+    activeShapeStore.setShowEditDialog(true);
+}
 
-        async function changeValue(tracker: Tracker | Aura, isAura: boolean): Promise<void> {
-            if (shape.uuid === undefined) return;
+async function changeValue(tracker: Tracker | Aura, isAura: boolean): Promise<void> {
+    if (shape.uuid === undefined) return;
 
-            const input = await modals.prompt(
-                t("game.ui.selection.SelectionInfo.new_value_NAME", { name: tracker.name }),
-                t("game.ui.selection.SelectionInfo.updating_NAME", { name: tracker.name }),
-            );
+    const input = await modals.prompt(
+        t("game.ui.selection.SelectionInfo.new_value_NAME", { name: tracker.name }),
+        t("game.ui.selection.SelectionInfo.updating_NAME", { name: tracker.name }),
+    );
 
-            if (input === undefined || shape.uuid === undefined) return;
+    if (input === undefined || shape.uuid === undefined) return;
 
-            let value = parseInt(input, 10);
-            if (isNaN(value)) {
-                return;
-            }
+    let value = parseInt(input, 10);
+    if (isNaN(value)) {
+        return;
+    }
 
-            if (input[0] === "+" || input[0] === "-") {
-                value += tracker.value;
-            }
+    if (input[0] === "+" || input[0] === "-") {
+        value += tracker.value;
+    }
 
-            if (isAura) {
-                activeShapeStore.updateAura(tracker.uuid, { value }, SyncTo.SERVER);
-                const sh = UuidMap.get(shape.uuid)!;
-                sh.invalidate(false);
-            } else {
-                activeShapeStore.updateTracker(tracker.uuid, { value }, SyncTo.SERVER);
-            }
-        }
-
-        return { t, shape, setLocked, openEditDialog, changeValue };
-    },
-});
+    if (isAura) {
+        activeShapeStore.updateAura(tracker.uuid, { value }, SyncTo.SERVER);
+        const sh = UuidMap.get(shape.uuid)!;
+        sh.invalidate(false);
+    } else {
+        activeShapeStore.updateTracker(tracker.uuid, { value }, SyncTo.SERVER);
+    }
+}
 </script>
 
 <template>

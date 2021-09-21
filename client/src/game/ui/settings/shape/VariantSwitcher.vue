@@ -3,7 +3,6 @@ import { computed, defineComponent, toRef } from "vue";
 
 import { cloneP } from "../../../../core/geometry";
 import { InvalidationMode, SyncMode, SyncTo } from "../../../../core/models/types";
-import type { Asset as A } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { UuidMap } from "../../../../store/shapeMap";
@@ -57,7 +56,7 @@ export default defineComponent({
         }
 
         async function addVariant(): Promise<void> {
-            const asset = undefined as A | undefined; // await this.$refs.assetPicker.open();
+            const asset = await modals.assetPicker();
             if (asset === undefined) return;
 
             const shape = UuidMap.get(vState.uuid!)!;
@@ -121,7 +120,6 @@ export default defineComponent({
 
 <template>
     <div id="variant-switcher">
-        <!-- <AssetPicker ref="assetPicker" /> -->
         <font-awesome-icon
             id="variant-left"
             icon="chevron-left"

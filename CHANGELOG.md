@@ -18,6 +18,7 @@ These usually have no immediately visible impact on regular users
 -   Prevent setting visionMinRange > visionMaxRange using settings UI
 -   Added number input to the aura angle direction UI
 -   Select hit detection on borders is increased
+-   Variant-switcher re-enabled
 
 ### Fixed
 

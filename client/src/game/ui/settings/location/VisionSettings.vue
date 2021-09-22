@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineProps, ref, toRef } from "vue";
+import { computed, ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { getValue } from "../../../../core/utils";
@@ -8,7 +8,7 @@ import { settingsStore } from "../../../../store/settings";
 import type { LocationOptions } from "../../../models/settings";
 import { VisibilityMode, visionState } from "../../../vision/state";
 
-const props = defineProps({ location: { type: Number, default: -1 } });
+const props = withDefaults(defineProps<{ location?: number }>(), { location: -1 });
 const { t } = useI18n();
 
 const visionMode = toRef(visionState.state, "mode");

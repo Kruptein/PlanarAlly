@@ -1,39 +1,32 @@
-<script lang="ts">
-import { computed, defineComponent, ref, watch } from "vue";
+<script setup lang="ts">
+import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
 import { baseAdjust } from "./core/utils";
 import { coreStore } from "./store/core";
 import { BASE_PATH } from "./utils";
 
-export default defineComponent({
-    name: "App",
-    setup() {
-        const route = useRoute();
+const route = useRoute();
 
-        const transitionName = ref("");
-        const webmError = ref(false);
-        const webmStart = 2 * Math.floor(Math.random() * 5);
+const transitionName = ref("");
+const webmError = ref(false);
+const webmStart = 2 * Math.floor(Math.random() * 5);
 
-        const loading = computed(() => coreStore.state.loading);
-        const backgroundImage = `url('${BASE_PATH}static/img/login_background.png')`;
+const loading = computed(() => coreStore.state.loading);
+const backgroundImage = `url('${BASE_PATH}static/img/login_background.png')`;
 
-        watch(
-            () => route.name,
-            (toRoute, fromRoute) => {
-                if (fromRoute === "login" && toRoute === "dashboard") {
-                    transitionName.value = "slide-left";
-                } else if (fromRoute === "dashboard" && toRoute === "login") {
-                    transitionName.value = "slide-right";
-                } else {
-                    transitionName.value = "";
-                }
-            },
-        );
-
-        return { backgroundImage, baseAdjust, loading, transitionName, webmError, webmStart };
+watch(
+    () => route.name,
+    (toRoute, fromRoute) => {
+        if (fromRoute === "login" && toRoute === "dashboard") {
+            transitionName.value = "slide-left";
+        } else if (fromRoute === "dashboard" && toRoute === "login") {
+            transitionName.value = "slide-right";
+        } else {
+            transitionName.value = "";
+        }
     },
-});
+);
 </script>
 
 <template>

@@ -1,41 +1,35 @@
-<script lang="ts">
-import { computed, defineComponent, toRef } from "vue";
+<script setup lang="ts">
+import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { clientStore } from "../../../../store/client";
 import type { UserOptions } from "../../../models/settings";
 
-export default defineComponent({
-    setup() {
-        const { t } = useI18n();
+const { t } = useI18n();
 
-        const defaultOptions = toRef(clientStore.state, "defaultClientOptions");
+const defaultOptions = toRef(clientStore.state, "defaultClientOptions");
 
-        const invertAlt = computed({
-            get() {
-                return clientStore.state.invertAlt;
-            },
-            set(invertAlt: boolean) {
-                clientStore.setInvertAlt(invertAlt, true);
-            },
-        });
-
-        const disableScrollToZoom = computed({
-            get() {
-                return clientStore.state.disableScrollToZoom;
-            },
-            set(disableScrollToZoom: boolean) {
-                clientStore.setDisableScrollToZoom(disableScrollToZoom, true);
-            },
-        });
-
-        function setDefault(key: keyof UserOptions): void {
-            clientStore.setDefaultClientOption(key, clientStore.state[key], true);
-        }
-
-        return { t, defaultOptions, setDefault, invertAlt, disableScrollToZoom };
+const invertAlt = computed({
+    get() {
+        return clientStore.state.invertAlt;
+    },
+    set(invertAlt: boolean) {
+        clientStore.setInvertAlt(invertAlt, true);
     },
 });
+
+const disableScrollToZoom = computed({
+    get() {
+        return clientStore.state.disableScrollToZoom;
+    },
+    set(disableScrollToZoom: boolean) {
+        clientStore.setDisableScrollToZoom(disableScrollToZoom, true);
+    },
+});
+
+function setDefault(key: keyof UserOptions): void {
+    clientStore.setDefaultClientOption(key, clientStore.state[key], true);
+}
 </script>
 
 <template>

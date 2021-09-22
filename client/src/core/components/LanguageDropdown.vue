@@ -1,19 +1,12 @@
-<script lang="ts">
-import { defineComponent } from "vue";
+<script setup lang="ts">
 import { useI18n } from "vue-i18n";
 
-export default defineComponent({
-    setup() {
-        const { availableLocales, locale, t } = useI18n({ useScope: "global" });
+const { availableLocales, locale, t } = useI18n({ useScope: "global" });
 
-        function setLocale(newLocale: string): void {
-            locale.value = newLocale;
-            localStorage.setItem("locale", newLocale);
-        }
-
-        return { availableLocales, locale, setLocale, t };
-    },
-});
+function setLocale(newLocale: string): void {
+    locale.value = newLocale;
+    localStorage.setItem("locale", newLocale);
+}
 </script>
 
 <template>

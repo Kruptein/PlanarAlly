@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { PropType } from "vue";
-import { computed, defineProps, reactive } from "vue";
+import { computed, reactive } from "vue";
 
 import type { AssetFile, AssetListMap } from "../../../core/models/types";
 import { baseAdjust } from "../../../core/utils";
@@ -9,9 +8,7 @@ interface State {
     hoveredHash: string;
 }
 
-const props = defineProps({
-    assets: { type: Object as PropType<AssetListMap>, required: true },
-});
+const props = defineProps<{ assets: AssetListMap }>();
 const state: State = reactive({
     hoveredHash: "",
 });

@@ -1,49 +1,37 @@
-<script lang="ts">
-import { defineComponent, nextTick, ref, watchEffect } from "vue";
+<script setup lang="ts">
+import { nextTick, ref, watchEffect } from "vue";
 
 import { i18n } from "../../../i18n";
 
 import Modal from "./Modal.vue";
 
-export default defineComponent({
-    name: "Prompt",
-    components: { Modal },
-    emits: ["close", "submit"],
-    props: {
-        visible: { type: Boolean, required: true },
-        title: { type: String, required: true },
-        question: { type: String, required: true },
-        error: String,
-    },
-    setup(props, { emit }) {
-        const { t } = i18n.global;
+const emit = defineEmits(["close", "submit"]);
+const props = defineProps<{ visible: boolean; title: string; question: string; error?: string }>();
 
-        const answer = ref("");
-        const input = ref<HTMLInputElement | null>(null);
+const { t } = i18n.global;
 
-        watchEffect(() => {
-            if (props.visible) {
-                nextTick(() => input.value!.focus());
-            }
-        });
+const answer = ref("");
+const input = ref<HTMLInputElement | null>(null);
 
-        function reset(): void {
-            answer.value = "";
-        }
-
-        function close(): void {
-            emit("close");
-            reset();
-        }
-
-        function submit(): void {
-            emit("submit", answer.value);
-            reset();
-        }
-
-        return { t, answer, close, input, submit };
-    },
+watchEffect(() => {
+    if (props.visible) {
+        nextTick(() => input.value!.focus());
+    }
 });
+
+function reset(): void {
+    answer.value = "";
+}
+
+function close(): void {
+    emit("close");
+    reset();
+}
+
+function submit(): void {
+    emit("submit", answer.value);
+    reset();
+}
 </script>
 
 <template>

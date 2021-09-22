@@ -1,74 +1,68 @@
-<script lang="ts">
-import { computed, defineComponent, toRef } from "vue";
+<script setup lang="ts">
+import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { clientStore } from "../../../../store/client";
 import type { UserOptions } from "../../../models/settings";
 
-export default defineComponent({
-    setup() {
-        const { t } = useI18n();
+const { t } = useI18n();
 
-        const defaultOptions = toRef(clientStore.state, "defaultClientOptions");
+const defaultOptions = toRef(clientStore.state, "defaultClientOptions");
 
-        const useHighDpi = computed({
-            get() {
-                return clientStore.state.useHighDpi;
-            },
-            set(useHighDpi: boolean) {
-                clientStore.setUseHighDpi(useHighDpi, true);
-            },
-        });
-
-        const gridSize = computed({
-            get() {
-                return clientStore.state.gridSize;
-            },
-            set(gridSize: number) {
-                if (gridSize >= 1) {
-                    clientStore.setGridSize(gridSize, true);
-                }
-            },
-        });
-
-        const useAsPhysicalBoard = computed({
-            get() {
-                return clientStore.state.useAsPhysicalBoard;
-            },
-            set(useAsPhysicalBoard: boolean) {
-                clientStore.setUseAsPhysicalBoard(useAsPhysicalBoard, true);
-            },
-        });
-
-        const miniSize = computed({
-            get() {
-                return clientStore.state.miniSize;
-            },
-            set(miniSize: number) {
-                if (miniSize >= 1) {
-                    clientStore.setMiniSize(miniSize, true);
-                }
-            },
-        });
-
-        const ppi = computed({
-            get() {
-                return clientStore.state.ppi;
-            },
-            set(ppi: number) {
-                if (ppi >= 1) {
-                    clientStore.setPpi(ppi, true);
-                }
-            },
-        });
-
-        function setDefault(key: keyof UserOptions): void {
-            clientStore.setDefaultClientOption(key, clientStore.state[key], true);
-        }
-
-        return { t, defaultOptions, setDefault, gridSize, miniSize, ppi, useAsPhysicalBoard, useHighDpi };
+const useHighDpi = computed({
+    get() {
+        return clientStore.state.useHighDpi;
+    },
+    set(useHighDpi: boolean) {
+        clientStore.setUseHighDpi(useHighDpi, true);
     },
 });
+
+const gridSize = computed({
+    get() {
+        return clientStore.state.gridSize;
+    },
+    set(gridSize: number) {
+        if (gridSize >= 1) {
+            clientStore.setGridSize(gridSize, true);
+        }
+    },
+});
+
+const useAsPhysicalBoard = computed({
+    get() {
+        return clientStore.state.useAsPhysicalBoard;
+    },
+    set(useAsPhysicalBoard: boolean) {
+        clientStore.setUseAsPhysicalBoard(useAsPhysicalBoard, true);
+    },
+});
+
+const miniSize = computed({
+    get() {
+        return clientStore.state.miniSize;
+    },
+    set(miniSize: number) {
+        if (miniSize >= 1) {
+            clientStore.setMiniSize(miniSize, true);
+        }
+    },
+});
+
+const ppi = computed({
+    get() {
+        return clientStore.state.ppi;
+    },
+    set(ppi: number) {
+        if (ppi >= 1) {
+            clientStore.setPpi(ppi, true);
+        }
+    },
+});
+
+function setDefault(key: keyof UserOptions): void {
+    clientStore.setDefaultClientOption(key, clientStore.state[key], true);
+}
 </script>
 
 <template>

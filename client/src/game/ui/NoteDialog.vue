@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineEmits, defineProps, ref, toRef } from "vue";
+import { ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import Modal from "../../core/components/modals/Modal.vue";
@@ -7,7 +7,7 @@ import { useModal } from "../../core/plugins/modals/plugin";
 import { gameStore } from "../../store/game";
 import { uiStore } from "../../store/ui";
 
-defineProps({ visible: { type: Boolean, required: true } });
+defineProps<{ visible: boolean }>();
 const emit = defineEmits(["update:visible"]);
 
 const textarea = ref<HTMLTextAreaElement | null>(null);

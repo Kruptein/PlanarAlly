@@ -15,6 +15,8 @@ import { CircularToken } from "../../shapes/variants/circularToken";
 
 import { tokenDialogLeft, tokenDialogTop, tokenDialogVisible } from "./state";
 
+const visible = tokenDialogVisible;
+
 const { t } = useI18n();
 const canvas = ref<HTMLCanvasElement | null>(null);
 const name = ref<HTMLInputElement | null>(null);
@@ -86,7 +88,7 @@ function updatePreview(): void {
 </script>
 
 <template>
-    <Modal :visible="tokenDialogVisible" @close="close">
+    <Modal :visible="visible" @close="close">
         <template v-slot:header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 {{ t("game.ui.tools.CreateTokenModal.create_basic_token") }}

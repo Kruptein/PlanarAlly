@@ -14,7 +14,7 @@ import { addOperation } from "../../operations/undo";
 import type { Shape } from "../../shapes/shape";
 import { createShapeFromDict } from "../../shapes/utils";
 import { initiativeStore } from "../../ui/initiative/state";
-import { TriangulationTarget, visionState } from "../../vision/state";
+import { TriangulationTarget, VisibilityMode, visionState } from "../../vision/state";
 import { setCanvasDimensions } from "../canvas";
 import { selectionState } from "../selection";
 import { compositeState } from "../state";
@@ -155,7 +155,11 @@ export class Layer {
             console.log(`Shape with unknown type ${serverShape.type_} could not be added`);
             return;
         }
-        this.addShape(shape, SyncMode.NO_SYNC, InvalidationMode.NO);
+        let invalidate = InvalidationMode.NO;
+        if (visionState.state.mode === VisibilityMode.TRIANGLE_ITERATIVE) {
+            invalidate = InvalidationMode.WITH_LIGHT;
+        }
+        this.addShape(shape, SyncMode.NO_SYNC, invalidate);
     }
 
     removeShape(shape: Shape, sync: SyncMode, recalculate: boolean): boolean {

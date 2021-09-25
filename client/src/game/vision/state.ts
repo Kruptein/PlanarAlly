@@ -76,10 +76,14 @@ class VisionState extends Store<State> {
     // CDT
 
     addCdt(floor: number): void {
-        this.cdt.set(floor, { vision: new CDT(), movement: new CDT() });
+        const vision = new CDT();
+        const movement = new CDT();
+        this.cdt.set(floor, { vision, movement });
         this.movementBlockers.set(floor, []);
         this.visionBlockers.set(floor, []);
         this.visionSources.set(floor, []);
+        this.addWalls(vision);
+        this.addWalls(movement);
     }
 
     getCDT(target: TriangulationTarget, floor: number): CDT {
@@ -119,6 +123,11 @@ class VisionState extends Store<State> {
             }
         }
         // // console.log(s);
+        this.addWalls(cdt);
+        (window as any).CDT = this.cdt;
+    }
+
+    private addWalls(cdt: CDT): void {
         // LEFT WALL
         cdt.insertConstraint([-1e8, -1e8], [-1e8, 1e8]);
         cdt.insertConstraint([-1e8, 1e8], [-1e11, 1e8]);
@@ -139,7 +148,6 @@ class VisionState extends Store<State> {
         cdt.insertConstraint([1e8, 1e8], [1e8, 1e11]);
         cdt.insertConstraint([1e8, 1e11], [-1e8, 1e11]);
         cdt.insertConstraint([-1e8, 1e11], [-1e8, 1e8]);
-        (window as any).CDT = this.cdt;
     }
 
     private triangulatePath(target: TriangulationTarget, shape: Shape, path: number[][], closed: boolean): void {

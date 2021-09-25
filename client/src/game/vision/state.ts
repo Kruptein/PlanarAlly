@@ -1,3 +1,4 @@
+import { equalsP } from "../../core/geometry";
 import { Store } from "../../core/store";
 import { floorStore } from "../../store/floor";
 import { UuidMap } from "../../store/shapeMap";
@@ -5,7 +6,7 @@ import { sendLocationOptions } from "../api/emits/location";
 import type { Aura } from "../shapes/interfaces";
 import type { Shape } from "../shapes/shape";
 import type { Asset } from "../shapes/variants/asset";
-import { pathToArray } from "../svg";
+import { getPaths, pathToArray } from "../svg";
 
 import { CDT } from "./cdt";
 import { IterativeDelete } from "./iterative";
@@ -105,18 +106,48 @@ class VisionState extends Store<State> {
             const shape = UuidMap.get(sh)!;
             if (shape.floor.id !== floor) continue;
 
-            if (shape.type === "assetrect" && shape.options.svgPaths !== undefined) {
-                for (const pathString of shape.options.svgPaths ?? []) {
-                    const pathElement = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                    pathElement.setAttribute("d", pathString);
-                    const paths = pathToArray(shape as Asset, pathElement);
-                    for (const path of paths) {
-                        this.triangulatePath(target, shape, path, false);
+            if (shape.type === "assetrect") {
+                const asset = shape as Asset;
+                if (shape.options.svgAsset !== undefined && asset.svgData !== undefined) {
+                    for (const svgData of asset.svgData) {
+                        if (!equalsP(shape.refPoint, svgData.rp) || svgData.paths === undefined) {
+                            const w = asset.w;
+                            const h = asset.h;
+
+                            const svg = svgData.svg as SVGSVGElement;
+
+                            const dW = w / (svg.width.animVal.valueInSpecifiedUnits ?? 1);
+                            const dH = h / (svg.height.animVal.valueInSpecifiedUnits ?? 1);
+
+                            svgData.paths = [...getPaths(asset, svg as SVGSVGElement, dW, dH)];
+                        }
+                        for (const paths of svgData.paths) {
+                            for (const path of paths) {
+                                this.triangulatePath(target, shape, path, false);
+                            }
+                        }
                     }
+                    continue;
+                } else if (shape.options.svgPaths !== undefined) {
+                    for (const pathString of shape.options.svgPaths ?? []) {
+                        const w = asset.w;
+                        const h = asset.h;
+
+                        const dW = w / (shape.options.svgWidth ?? 1);
+                        const dH = h / (shape.options.svgHeight ?? 1);
+
+                        const pathElement = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                        pathElement.setAttribute("d", pathString);
+                        const paths = pathToArray(shape as Asset, pathElement, dW, dH);
+                        for (const path of paths) {
+                            this.triangulatePath(target, shape, path, false);
+                            break;
+                        }
+                    }
+                    continue;
                 }
-            } else {
-                this.triangulatePath(target, shape, shape.points, shape.isClosed);
             }
+            this.triangulatePath(target, shape, shape.points, shape.isClosed);
         }
         // // console.log(s);
         // LEFT WALL
@@ -303,3 +334,4 @@ class VisionState extends Store<State> {
 }
 
 export const visionState = new VisionState();
+(window as any).visionState = visionState;

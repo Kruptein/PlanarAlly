@@ -148,9 +148,12 @@ export interface ShapeOptions {
     skipDraw: boolean;
     borderOperation: string;
 
+    // legacy svg stuff
     svgHeight: number;
     svgPaths: string[];
     svgWidth: number;
+    // new svg stuff
+    svgAsset: string;
 
     UiHelper: boolean;
 }

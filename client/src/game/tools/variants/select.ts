@@ -449,22 +449,25 @@ class SelectTool extends Tool implements ISelectTool {
                     )
                         continue;
 
+                    // movement is skipped during onMove and definitely has to be done here
+                    if (sel.blocksMovement) {
+                        visionState.deleteFromTriangulation({
+                            target: TriangulationTarget.MOVEMENT,
+                            shape: sel.uuid,
+                        });
+                    }
                     if (
                         settingsStore.useGrid.value &&
                         clientStore.useSnapping(event) &&
                         this.hasFeature(SelectFeatures.Snapping, features) &&
                         !this.deltaChanged
                     ) {
-                        if (sel.blocksVision)
+                        if (sel.blocksVision) {
                             visionState.deleteFromTriangulation({
                                 target: TriangulationTarget.VISION,
                                 shape: sel.uuid,
                             });
-                        if (sel.blocksMovement)
-                            visionState.deleteFromTriangulation({
-                                target: TriangulationTarget.MOVEMENT,
-                                shape: sel.uuid,
-                            });
+                        }
 
                         sel.snapToGrid();
 
@@ -472,11 +475,13 @@ class SelectTool extends Tool implements ISelectTool {
                             visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: sel.uuid });
                             recalcVision = true;
                         }
-                        if (sel.blocksMovement) {
-                            visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: sel.uuid });
-                            recalcMovement = true;
-                        }
                     }
+                    // movement is skipped during onMove and definitely has to be done here
+                    if (sel.blocksMovement) {
+                        visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: sel.uuid });
+                        recalcMovement = true;
+                    }
+
                     if (this.operationList?.type === "movement") {
                         this.operationList.shapes[s].to = toArrayP(sel.refPoint);
                         this.operationReady = true;

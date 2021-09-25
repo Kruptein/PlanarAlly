@@ -202,7 +202,7 @@ function y(yy: number, local: boolean): number {
 let I = 0;
 let J = 0;
 
-function drawLine(from: number[], to: number[], constrained: boolean, local: boolean): void {
+export function drawLine(from: number[], to: number[], constrained: boolean, local: boolean): void {
     // J++;
     // if (constrained) {
     //     I++;

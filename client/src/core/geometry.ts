@@ -62,8 +62,13 @@ export class Vector {
         this.x = x;
         this.y = y;
     }
+
     static fromPoints(p1: Point, p2: Point): Vector {
         return new Vector(p2.x - p1.x, p2.y - p1.y);
+    }
+
+    static fromArray(a: [number, number]): Vector {
+        return new Vector(a[0], a[1]);
     }
 
     asArray(): [number, number] {
@@ -130,4 +135,8 @@ export class Ray<T extends Point> {
     getT(t1: number, distance: number): number {
         return t1 + Math.sqrt(Math.pow(distance, 2) / (Math.pow(this.direction.x, 2) + Math.pow(this.direction.y, 2)));
     }
+}
+
+export function getCenterLine(start: [number, number], end: [number, number]): [number, number] {
+    return [(start[0] + end[0]) / 2, (start[1] + end[1]) / 2];
 }

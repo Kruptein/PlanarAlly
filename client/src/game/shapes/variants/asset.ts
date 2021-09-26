@@ -2,7 +2,7 @@ import { g2l, g2lx, g2ly, g2lz } from "../../../core/conversions";
 import type { GlobalPoint } from "../../../core/geometry";
 import type { ServerAsset } from "../../models/shapes";
 import { loadSvgData } from "../../svg";
-import { visionState } from "../../vision/state";
+import { TriangulationTarget, visionState } from "../../vision/state";
 import type { SHAPE_TYPE } from "../types";
 
 import { BaseRect } from "./baseRect";
@@ -46,7 +46,14 @@ export class Asset extends BaseRect {
         if (this.options.svgAsset !== undefined) {
             const svgs = await loadSvgData(`/static/assets/${this.options.svgAsset}`);
             this.svgData = [...svgs.values()].map((svg) => ({ svg, rp: this.refPoint, paths: undefined }));
-            visionState.recalculateVision(this._floor!);
+            if (this.blocksVision) {
+                visionState.recalculateVision(this._floor!);
+                visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.uuid });
+            }
+            if (this.blocksMovement) {
+                visionState.recalculateMovement(this._floor!);
+                visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: this.uuid });
+            }
             this.invalidate(false);
         }
     }

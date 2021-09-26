@@ -254,7 +254,7 @@ class SelectTool extends Tool implements ISelectTool {
                     { user: clientStore.state.username, access: { edit: true } },
                     SyncTo.SHAPE,
                 );
-                layer.addShape(this.selectionHelper, SyncMode.NO_SYNC, InvalidationMode.NO);
+                layer.addShape(this.selectionHelper, SyncMode.NO_SYNC, InvalidationMode.NO, { snappable: false });
             } else {
                 this.selectionHelper.refPoint = this.selectionStartPoint;
                 this.selectionHelper.w = 0;
@@ -656,7 +656,7 @@ class SelectTool extends Tool implements ISelectTool {
 
         for (const rotationShape of [this.rotationAnchor, this.rotationBox, this.rotationEnd]) {
             rotationShape.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.SHAPE);
-            layer.addShape(rotationShape, SyncMode.NO_SYNC, InvalidationMode.NO);
+            layer.addShape(rotationShape, SyncMode.NO_SYNC, InvalidationMode.NO, { snappable: false });
         }
 
         if (layerSelection.length === 1) {

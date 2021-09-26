@@ -35,7 +35,7 @@ export function moveClientRect(player: number, data: ServerUserLocationOptions):
         polygon.options.isPlayerRect = true;
         polygon.options.skipDraw = !(gameStore.state.players.find((p) => p.id === player)?.showRect ?? false);
         polygon.preventSync = true;
-        layer.addShape(polygon, SyncMode.NO_SYNC, InvalidationMode.NO, false);
+        layer.addShape(polygon, SyncMode.NO_SYNC, InvalidationMode.NO, { snappable: false });
     }
     const polygon = UuidMap.get(uuid)! as Polygon;
     const h = data.client_h / data.zoom_factor;

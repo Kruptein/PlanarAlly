@@ -106,7 +106,7 @@ class MapTool extends Tool {
         this.rect = new Rect(cloneP(this.startPoint), 0, 0, { fillColour: "rgba(0,0,0,0)", strokeColour: "black" });
         this.state.hasRect = true;
         this.rect.preventSync = true;
-        layer.addShape(this.rect, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
+        layer.addShape(this.rect, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
         selectionState.set(this.rect);
     }
 

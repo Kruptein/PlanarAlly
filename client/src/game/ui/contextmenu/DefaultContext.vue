@@ -74,7 +74,7 @@ async function createSpawnLocation(): Promise<void> {
 
     floorStore
         .getLayer(floorStore.currentFloor.value!, LayerName.Dm)!
-        .addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO, false);
+        .addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO, { snappable: false });
     img.onload = () => (gameState.boardInitialized ? shape.layer.invalidate(true) : undefined);
 
     settingsStore.setSpawnLocations([...spawnLocations, shape.uuid], settingsStore.state.activeLocation, true);

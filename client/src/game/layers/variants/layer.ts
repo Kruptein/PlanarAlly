@@ -83,13 +83,13 @@ export class Layer {
         return this.getShapes(options).length;
     }
 
-    addShape(shape: Shape, sync: SyncMode, invalidate: InvalidationMode, snappable = true): void {
+    addShape(shape: Shape, sync: SyncMode, invalidate: InvalidationMode, options?: { snappable?: boolean }): void {
         shape.setLayer(this.floor, this.name);
         this.shapes.push(shape);
         UuidMap.set(shape.uuid, shape);
         shape.setBlocksVision(shape.blocksVision, SyncTo.UI, invalidate !== InvalidationMode.NO);
         shape.setBlocksMovement(shape.blocksMovement, SyncTo.UI, invalidate !== InvalidationMode.NO);
-        if (snappable) {
+        if (options?.snappable ?? true) {
             for (const point of shape.points) {
                 const strp = JSON.stringify(point);
                 this.points.set(strp, (this.points.get(strp) || new Set()).add(shape.uuid));

@@ -44,6 +44,20 @@ function applyTransform(point: [number, number], transform?: Transform, scale = 
     return point;
 }
 
+function parseTransform(oldTransform: Transform | undefined, transformList: SVGTransformList): Transform {
+    const newTransform = copyTransform(oldTransform);
+    for (const t of transformList) {
+        if (t.type === 2) {
+            newTransform.push({ type: "translate", value: [t.matrix.e, t.matrix.f] });
+        } else if (t.type === 3) {
+            newTransform.push({ type: "scale", value: [t.matrix.a, t.matrix.d] });
+        } else {
+            console.log("Unsupported svg transform type encountered, please bother Kruptein to fix this", t);
+        }
+    }
+    return newTransform;
+}
+
 export function* getPaths(
     shape: Asset,
     svgEl: SVGSVGElement,
@@ -53,31 +67,13 @@ export function* getPaths(
 ): Generator<[number, number][][], void, void> {
     for (const child of svgEl.children) {
         if (child.tagName === "g") {
-            const newTransform = copyTransform(transform);
-            for (const t of (child as SVGSVGElement).transform.baseVal) {
-                if (t.type === 2) {
-                    newTransform.push({ type: "translate", value: [t.matrix.e, t.matrix.f] });
-                } else if (t.type === 3) {
-                    newTransform.push({ type: "scale", value: [t.matrix.a, t.matrix.d] });
-                } else {
-                    console.log("Unsupported svg transform type encountered, please bother Kruptein to fix this", t);
-                }
-            }
+            const newTransform = parseTransform(transform, (child as SVGSVGElement).transform.baseVal);
             yield* getPaths(shape, child as SVGSVGElement, dW, dH, newTransform);
         } else if (child.tagName === "path") {
             const path = child.getAttribute("d");
             if (path === null) continue;
 
-            const newTransform = copyTransform(transform);
-            for (const t of (child as SVGSVGElement).transform.baseVal) {
-                if (t.type === 2) {
-                    newTransform.push({ type: "translate", value: [t.matrix.e, t.matrix.f] });
-                } else if (t.type === 3) {
-                    newTransform.push({ type: "scale", value: [t.matrix.a, t.matrix.d] });
-                } else {
-                    console.log("Unsupported svg transform type encountered, please bother Kruptein to fix this", t);
-                }
-            }
+            const newTransform = parseTransform(transform, (child as SVGSVGElement).transform.baseVal);
             yield pathToArray(shape, child as SVGPathElement, dW, dH, newTransform);
         }
     }

@@ -1,5 +1,6 @@
 import "path-data-polyfill";
 import { addP, getCenterLine, toArrayP, toGP, Vector } from "../core/geometry";
+import type { GlobalPoint } from "../core/geometry";
 import { baseAdjustedFetch } from "../core/utils";
 import { floorStore } from "../store/floor";
 
@@ -153,27 +154,12 @@ export function pathToArray(
             }
             case "C": {
                 // bezier curve
-                currentLocation = toGP(targetRP.x + point[0] * dW, targetRP.y + point[1] * dH);
-                break;
+                currentLocation = handleBezierCurve(seg.values, transform, dW, dH, currentLocation, points, true);
+                continue;
             }
             case "c": {
-                const cp1 = applyTransform(seg.values, transform, true);
-                const cp1g = addP(currentLocation, new Vector(dW * cp1[0], dH * cp1[1]));
-                const cp2 = applyTransform(seg.values.slice(2), transform, true);
-                const cp2g = addP(currentLocation, new Vector(dW * cp2[0], dH * cp2[1]));
-                const end = applyTransform(seg.values.slice(4), transform, true);
-                const endg = addP(currentLocation, new Vector(dW * end[0], dH * end[1]));
-                for (const l of splitBezier(
-                    [currentLocation.x, currentLocation.y],
-                    [endg.x, endg.y],
-                    [cp1g.x, cp1g.y],
-                    [cp2g.x, cp2g.y],
-                )) {
-                    points.push(l[1]);
-                    if (DEBUG_SVG) drawLine(points[points.length - 2], l[1], true, false);
-                }
                 // bezier curve
-                currentLocation = endg; // addP(currentLocation, new Vector(dW * end[0], dH * end[1]));
+                currentLocation = handleBezierCurve(seg.values, transform, dW, dH, currentLocation, points, false);
                 continue;
             }
             default: {
@@ -196,6 +182,34 @@ export function pathToArray(
     paths.push(points);
 
     return paths;
+}
+
+function handleBezierCurve(
+    values: number[],
+    transform: Transform | undefined,
+    dW: number,
+    dH: number,
+    currentLocation: GlobalPoint,
+    points: [number, number][],
+    absolute: boolean,
+): GlobalPoint {
+    const cp1 = applyTransform(values.slice(0, 2) as [number, number], transform, !absolute);
+    const cp1g = addP(currentLocation, new Vector(dW * cp1[0], dH * cp1[1]));
+    const cp2 = applyTransform(values.slice(2, 4) as [number, number], transform, !absolute);
+    const cp2g = addP(currentLocation, new Vector(dW * cp2[0], dH * cp2[1]));
+    const end = applyTransform(values.slice(4, 6) as [number, number], transform, !absolute);
+    const endg = addP(currentLocation, new Vector(dW * end[0], dH * end[1]));
+
+    for (const l of splitBezier(
+        [currentLocation.x, currentLocation.y],
+        [endg.x, endg.y],
+        [cp1g.x, cp1g.y],
+        [cp2g.x, cp2g.y],
+    )) {
+        points.push(l[1]);
+        if (DEBUG_SVG) drawLine(points[points.length - 2], l[1], true, false);
+    }
+    return endg;
 }
 
 // Recursive de Casteljau

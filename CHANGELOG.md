@@ -19,6 +19,11 @@ These usually have no immediately visible impact on regular users
 -   Added number input to the aura angle direction UI
 -   Select hit detection on borders is increased
 -   Variant-switcher re-enabled
+-   SVG-walls handling
+    -   stored metadata is different
+        -   old method is still supported but will be deprecated in the future
+        -   it is strongly advised to reapply your svg walls
+    -   now takes basic transforms into account (i.e. scale && translate)
 
 ### Fixed
 

@@ -6,7 +6,7 @@ import { l2gz } from "../../../../core/conversions";
 import { toGP } from "../../../../core/geometry";
 import { InvalidationMode, SyncMode, SyncTo } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
-import { baseAdjustedFetch, getChecked, getValue, uuidv4 } from "../../../../core/utils";
+import { getChecked, getValue, uuidv4 } from "../../../../core/utils";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { clientStore, DEFAULT_GRID_SIZE } from "../../../../store/client";
 import { floorStore } from "../../../../store/floor";
@@ -67,35 +67,21 @@ function removeLabel(uuid: string): void {
 // SVG / DDRAFT
 
 const hasDDraftInfo = computed(() => "ddraft_format" in (activeShapeStore.state.options ?? {}));
-const hasPath = ref(false);
+const hasPath = computed(
+    () => "svgPaths" in (activeShapeStore.state.options ?? {}) || "svgAsset" in (activeShapeStore.state.options ?? {}),
+);
 const showSvgSection = computed(() => gameStore.state.isDm && activeShapeStore.state.type === "assetrect");
 
 async function uploadSvg(): Promise<void> {
     const asset = await modals.assetPicker();
     if (asset === undefined || asset.file_hash === undefined) return;
 
-    const data = await baseAdjustedFetch(`/static/assets/${asset.file_hash}`);
-    const svgText = await data.text();
-    const template = document.createElement("template");
-    template.innerHTML = svgText;
-    const svgEl = template.content.children[0] as SVGSVGElement;
-    const w = svgEl.width.baseVal.value;
-    const h = svgEl.height.baseVal.value;
-    const paths: string[] = [];
-
-    for (const pathChild of svgEl.getElementsByTagNameNS("http://www.w3.org/2000/svg", "path")) {
-        const path = pathChild.getAttribute("d");
-        if (path !== null) paths.push(path);
-    }
-    const options: Partial<ShapeOptions> = {
+    const options: Partial<Omit<ShapeOptions, "svgPaths">> = {
         ...activeShapeStore.state.options!,
-        svgPaths: paths,
-        svgHeight: h,
-        svgWidth: w,
+        svgAsset: asset.file_hash,
     };
     activeShapeStore.setOptions(options, SyncTo.SERVER);
-    visionState.recalculateVision(activeShapeStore.floor.value!);
-    hasPath.value = true;
+    (UuidMap.get(activeShapeStore.state.uuid!)! as Asset).loadSvgs();
 }
 
 function removeSvg(): void {
@@ -103,9 +89,10 @@ function removeSvg(): void {
     delete options.svgPaths;
     delete options.svgWidth;
     delete options.svgHeight;
+    delete options.svgAsset;
     activeShapeStore.setOptions(options as Omit<ShapeOptions, "svgPaths">, SyncTo.SERVER);
     visionState.recalculateVision(activeShapeStore.floor.value!);
-    hasPath.value = false;
+    floorStore.invalidate({ id: activeShapeStore.floor.value! });
 }
 
 function applyDDraft(): void {

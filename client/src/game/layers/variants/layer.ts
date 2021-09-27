@@ -83,13 +83,15 @@ export class Layer {
         return this.getShapes(options).length;
     }
 
-    addShape(shape: Shape, sync: SyncMode, invalidate: InvalidationMode, snappable = true): void {
+    addShape(shape: Shape, sync: SyncMode, invalidate: InvalidationMode, options?: { snappable?: boolean }): void {
         shape.setLayer(this.floor, this.name);
+
         this.shapes.push(shape);
+
         UuidMap.set(shape.uuid, shape);
         shape.setBlocksVision(shape.blocksVision, SyncTo.UI, invalidate !== InvalidationMode.NO);
         shape.setBlocksMovement(shape.blocksMovement, SyncTo.UI, invalidate !== InvalidationMode.NO);
-        if (snappable) {
+        if (options?.snappable ?? true) {
             for (const point of shape.points) {
                 const strp = JSON.stringify(point);
                 this.points.set(strp, (this.points.get(strp) || new Set()).add(shape.uuid));
@@ -97,8 +99,9 @@ export class Layer {
         }
         if (shape.ownedBy(false, { visionAccess: true }) && shape.isToken) gameStore.addOwnedToken(shape.uuid);
         if (shape.annotation.length) gameStore.addAnnotation(shape.uuid);
-        if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
+        if (sync !== SyncMode.NO_SYNC && !shape.preventSync) {
             sendShapeAdd({ shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
+        }
         if (invalidate) this.invalidate(invalidate !== InvalidationMode.WITH_LIGHT);
 
         if (
@@ -112,6 +115,7 @@ export class Layer {
         if (sync === SyncMode.FULL_SYNC) {
             addOperation({ type: "shapeadd", shapes: [shape.asDict()] });
         }
+        shape.onLayerAdd();
     }
 
     // UI helpers are objects that are created for UI reaons but that are not pertinent to the actual state
@@ -210,6 +214,7 @@ export class Layer {
         return true;
     }
 
+    // TODO: This does not take into account shapes that the server does not know about
     moveShapeOrder(shape: Shape, destinationIndex: number, sync: SyncMode): void {
         const oldIdx = this.shapes.indexOf(shape);
         if (oldIdx === destinationIndex) return;

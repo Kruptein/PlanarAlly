@@ -124,7 +124,7 @@ class SpellTool extends Tool {
             this.shape,
             this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC,
             InvalidationMode.NORMAL,
-            false,
+            { snappable: false },
         );
 
         this.drawRangeShape();
@@ -144,7 +144,7 @@ class SpellTool extends Tool {
             fillColour: "rgba(0,0,0,0)",
             strokeColour: "black",
         });
-        layer.addShape(this.rangeShape, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false);
+        layer.addShape(this.rangeShape, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
     }
 
     // eslint-disable-next-line @typescript-eslint/require-await
@@ -175,7 +175,7 @@ class SpellTool extends Tool {
 
         layer.removeShape(this.shape, this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC, false);
         this.shape.isInvisible = !this.state.showPublic;
-        layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NORMAL, false);
+        layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NORMAL, { snappable: false });
         this.shape = undefined;
         activateTool(ToolName.Select);
     }

@@ -159,6 +159,8 @@ export abstract class Shape {
         return this.isToken || this.getAuras(true).some((a) => a.visionSource) || this.blocksMovement;
     }
 
+    onLayerAdd(): void {}
+
     // POSITION
 
     get floor(): Floor {

@@ -62,7 +62,7 @@ class RulerTool extends Tool {
         }
 
         ruler.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.SHAPE);
-        layer.addShape(ruler, this.syncMode, InvalidationMode.NORMAL);
+        layer.addShape(ruler, this.syncMode, InvalidationMode.NORMAL, { snappable: false });
         this.rulers.push(ruler);
     }
 
@@ -88,7 +88,7 @@ class RulerTool extends Tool {
         });
         this.text.ignoreZoomSize = true;
         this.text.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.SHAPE);
-        layer.addShape(this.text, this.syncMode, InvalidationMode.NORMAL);
+        layer.addShape(this.text, this.syncMode, InvalidationMode.NORMAL, { snappable: false });
     }
 
     onMove(lp: LocalPoint, event: MouseEvent | TouchEvent): void {

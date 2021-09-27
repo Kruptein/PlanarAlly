@@ -314,7 +314,8 @@ class FloorStore extends Store<FloorState> {
 
     // INVALIDATE
 
-    invalidate(floor: Floor): void {
+    invalidate(floorRepr: FloorRepresentation): void {
+        const floor = this.getFloor(floorRepr, false)!;
         const layers = this.layerMap.get(floor.id)!;
         for (let i = layers.length - 1; i >= 0; i--) {
             layers[i].invalidate(true);

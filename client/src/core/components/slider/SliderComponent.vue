@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watchEffect } from "vue";
+import { computed, onMounted, ref, watchEffect } from "vue";
 
 import SliderDot from "./SliderDot.vue";
 import { getPosByEvent } from "./utils";
@@ -25,19 +25,21 @@ const dotPos = ref(0);
 const dragging = ref(false);
 const focussed = ref(false);
 
-const scale = computed(() => {
-    if (rail.value !== null) {
-        return Math.floor(rail.value.offsetWidth) / 100;
-    }
-    return 1;
+const scale = ref(1);
+
+onMounted(() => {
+    scale.value = Math.floor(rail.value?.offsetWidth ?? 100) / 100;
 });
 
 const value = computed(() => {
+    // console.log(props.min + (props.max - props.min), dotPos.value, scale.value);
+    // console.log(props.min + (props.max - props.min) * (dotPos.value / (100 * scale.value)));
     return props.min + (props.max - props.min) * (dotPos.value / (100 * scale.value));
 });
 
 watchEffect(() => {
     if (value.value !== props.modelValue) {
+        // console.log("WE", (100 * scale.value * (props.modelValue - props.min)) / (props.max - props.min));
         dotPos.value = (100 * scale.value * (props.modelValue - props.min)) / (props.max - props.min);
     }
 });
@@ -58,6 +60,7 @@ function dragMove(e: MouseEvent | TouchEvent): void {
 function setValueByPos(pos: number): void {
     if (pos === dotPos.value) return;
     dotPos.value = pos;
+    console.log("SVBP", dotPos.value);
 }
 </script>
 

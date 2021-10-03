@@ -41,6 +41,7 @@ These usually have no immediately visible impact on regular users
 -   Multiple experimental vision mode bugs
     -   Fix startup not working correctly
     -   Fix unsnapped move of blocking shape not updating movement triangulation
+-   Composite shape tracker/aura toggles
 
 ## [0.28.0] - 2021-07-21
 

@@ -22,17 +22,17 @@ export type UiAura = { shape: string; temporary: boolean } & Aura;
 
 function toUiTrackers(trackers: readonly Tracker[], shape: string): UiTracker[] {
     return trackers.map((tracker) => ({
+        ...tracker,
         shape,
         temporary: false,
-        ...tracker,
     }));
 }
 
 function toUiAuras(auras: readonly Aura[], shape: string): UiAura[] {
     return auras.map((aura) => ({
+        ...aura,
         shape,
         temporary: false,
-        ...aura,
     }));
 }
 
@@ -427,7 +427,9 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
             return;
         }
         if (syncTo !== SyncTo.UI) {
-            const sh = UuidMap.get(shape)!;
+            const sh = UuidMap.get(shape);
+            if (sh === undefined) return;
+
             sh.pushTracker(tracker, syncTo);
         }
     }
@@ -440,10 +442,10 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
         Object.assign(tracker, delta);
 
-        const shape = UuidMap.get(tracker.shape);
-        if (shape === undefined) return;
-
         if (syncTo !== SyncTo.UI) {
+            const shape = UuidMap.get(tracker.shape);
+            if (shape === undefined) return;
+
             if (tracker.temporary) {
                 tracker.temporary = false;
                 shape.pushTracker(tracker, SyncTo.SERVER);
@@ -465,10 +467,11 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
             this._state.firstRealTrackerIndex -= 1;
         }
 
-        const shape = UuidMap.get(tr.shape);
-        if (shape === undefined) return;
-
-        if (syncTo !== SyncTo.UI) shape.removeTracker(tracker, syncTo);
+        if (syncTo !== SyncTo.UI) {
+            const shape = UuidMap.get(tr.shape);
+            if (shape === undefined) return;
+            shape.removeTracker(tracker, syncTo);
+        }
     }
 
     setTrackerShape(trackerId: string, shape: string): void {

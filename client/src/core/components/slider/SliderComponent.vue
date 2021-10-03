@@ -32,14 +32,11 @@ onMounted(() => {
 });
 
 const value = computed(() => {
-    // console.log(props.min + (props.max - props.min), dotPos.value, scale.value);
-    // console.log(props.min + (props.max - props.min) * (dotPos.value / (100 * scale.value)));
     return props.min + (props.max - props.min) * (dotPos.value / (100 * scale.value));
 });
 
 watchEffect(() => {
     if (value.value !== props.modelValue) {
-        // console.log("WE", (100 * scale.value * (props.modelValue - props.min)) / (props.max - props.min));
         dotPos.value = (100 * scale.value * (props.modelValue - props.min)) / (props.max - props.min);
     }
 });

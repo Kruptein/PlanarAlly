@@ -57,7 +57,6 @@ function dragMove(e: MouseEvent | TouchEvent): void {
 function setValueByPos(pos: number): void {
     if (pos === dotPos.value) return;
     dotPos.value = pos;
-    console.log("SVBP", dotPos.value);
 }
 </script>
 

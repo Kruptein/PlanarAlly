@@ -427,7 +427,9 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
             return;
         }
         if (syncTo !== SyncTo.UI) {
-            const sh = UuidMap.get(shape)!;
+            const sh = UuidMap.get(shape);
+            if (sh === undefined) return;
+
             sh.pushTracker(tracker, syncTo);
         }
     }
@@ -440,10 +442,10 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
         Object.assign(tracker, delta);
 
+        if (syncTo !== SyncTo.UI) {
             const shape = UuidMap.get(tracker.shape);
             if (shape === undefined) return;
 
-        if (syncTo !== SyncTo.UI) {
             if (tracker.temporary) {
                 tracker.temporary = false;
                 shape.pushTracker(tracker, SyncTo.SERVER);
@@ -465,10 +467,11 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
             this._state.firstRealTrackerIndex -= 1;
         }
 
+        if (syncTo !== SyncTo.UI) {
             const shape = UuidMap.get(tr.shape);
             if (shape === undefined) return;
-
-        if (syncTo !== SyncTo.UI) shape.removeTracker(tracker, syncTo);
+            shape.removeTracker(tracker, syncTo);
+        }
     }
 
     setTrackerShape(trackerId: string, shape: string): void {

@@ -4,25 +4,15 @@ This is the code responsible for starting the backend and reacting to socket IO 
 """
 
 # Check for existence of './templates/' as it is not present if client was not built before
+from argparse import ArgumentParser
+import getpass
 import os
 import sys
 from utils import FILE_DIR
 
-if (not (FILE_DIR / "templates").exists()) and ("dev" not in sys.argv):
-    print(
-        "You must gather your par— you must build the client, before starting the server.\nSee https://www.planarally.io/server/setup/self-hosting/ on how to build the client or import a pre-built client."
-    )
-    sys.exit(1)
-
 # Mimetype recognition for js files apparently is not always properly setup out of the box for some users out there.
 import mimetypes
-
-mimetypes.init()
-mimetypes.types_map[".js"] = "application/javascript; charset=utf-8"
-
 import save
-
-save.check_save()
 
 import asyncio
 import configparser
@@ -39,9 +29,8 @@ from api.socket import *
 from api.socket.constants import GAME_NS
 from app import api_app, app as main_app, runners, setup_runner, sio
 from config import config
+from models import User, Room
 from utils import logger
-
-loop = asyncio.get_event_loop()
 
 # This is a fix for asyncio problems on windows that make it impossible to do ctrl+c
 if sys.platform.startswith("win"):
@@ -128,17 +117,107 @@ async def start_servers():
     print("(Press CTRL+C to quit)")
     print()
 
+def server_main(_args):
+    """Start the PlanarAlly server."""
 
-main_app.on_shutdown.append(on_shutdown)
+    if (not (FILE_DIR / "templates").exists()) and ("dev" not in sys.argv):
+        print(
+            "You must gather your par— you must build the client, before starting the server.\nSee https://www.planarally.io/server/setup/self-hosting/ on how to build the client or import a pre-built client."
+        )
+        sys.exit(1)
 
+    mimetypes.init()
+    mimetypes.types_map[".js"] = "application/javascript; charset=utf-8"
 
-if __name__ == "__main__":
+    save.check_save()
+
+    loop = asyncio.get_event_loop()
     loop.create_task(start_servers())
 
     try:
+        main_app.on_shutdown.append(on_shutdown)
+
         loop.run_forever()
     except:
         pass
     finally:
         for runner in runners:
             loop.run_until_complete(runner.cleanup())
+
+resource_types = [User, Room]
+
+def list_main(args):
+    """List all of the requested resource type."""
+    for resource_type in resource_types:
+        if resource_type.__name__.lower() == args.resource:
+            for resource in resource_type.select():
+                print(resource.name)
+
+def remove_main(args):
+    """Remove a requested resource."""
+    for resource_type in resource_types:
+        if resource_type.__name__.lower() == args.resource:
+            chosen_resource = resource_type.get_or_none(name=args.name)
+            chosen_resource.delete_instance()
+
+def reset_password_main(args):
+    """Reset a users password. Will prompt for the new password if not provided."""
+    password = args.password
+    if not password:
+        first_password = getpass.getpass()
+        second_password = getpass.getpass("Retype password:")
+        while first_password != second_password:
+            print("Passwords do not match.")
+            first_password = getpass.getpass()
+            second_password = getpass.getpass("Retype password:")
+        password = first_password
+    user = User.by_name(args.name)
+    user.set_password(password)
+    user.save()
+
+def add_subcommand(name, func, parent_parser, args):
+    sub_parser = parent_parser.add_parser(name, help=func.__doc__)
+    for arg in args:
+        sub_parser.add_argument(arg[0], **arg[1])
+    sub_parser.set_defaults(func=func)
+
+
+def main():
+    if len(sys.argv) < 2 or (len(sys.argv) == 2 and sys.argv[1] == "dev"):
+        # To keep the previous syntax, if this script is called with no args,
+        # Or with just dev, we should start the server.
+        server_main()
+        return
+
+    parser = ArgumentParser()
+    subparsers = parser.add_subparsers()
+
+    add_subcommand("serve", server_main, subparsers,
+        [("dev", {"nargs":"?", "choices":['dev'], "help":"Start the server with a development version of the client."})]
+    )
+
+    resource_names = [resource.__name__.lower() for resource in resource_types]
+
+    add_subcommand("list", list_main, subparsers,
+        [("resource", {"choices": resource_names, "help":"The resource to list."})]
+    )
+
+    add_subcommand("remove", remove_main, subparsers,
+        [
+            ("resource", {"choices": resource_names, "help": "The type of resource to remove"}),
+            ("name", {"help": "The name of the resource to remove"})
+        ]
+    )
+
+    add_subcommand("reset", reset_password_main, subparsers,
+        [
+            ("name", {"help": "The name of the user."}),
+            ("--password", {"help": "The new password. Will be prompted for if not provided."})
+        ]
+    )
+
+    options = parser.parse_args()
+    options.func(options)
+
+if __name__ == "__main__":
+    main()

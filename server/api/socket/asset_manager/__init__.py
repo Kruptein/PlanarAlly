@@ -270,7 +270,7 @@ async def assetmgmt_upload(sid: str, upload_data: UploadData):
         await handle_ddraft_file(upload_data, data, sid)
     else:
         await handle_regular_file(upload_data, data, sid)
-    
+
     user = asset_state.get_user(sid)
     await update_live_game(user)
 

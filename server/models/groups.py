@@ -11,4 +11,8 @@ class Group(BaseModel):
     creation_order = TextField(default="incrementing")
 
     def make_copy(self):
-        return Group.create(uuid=uuid4(), character_set=self.character_set, creation_order=self.creation_order)
+        return Group.create(
+            uuid=uuid4(),
+            character_set=self.character_set,
+            creation_order=self.creation_order,
+        )

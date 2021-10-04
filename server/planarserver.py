@@ -62,7 +62,11 @@ async def start_https(app: web.Application, host, port, chain, key):
         sys.exit(2)
 
     await setup_runner(
-        app, web.TCPSite, host=host, port=port, ssl_context=ctx,
+        app,
+        web.TCPSite,
+        host=host,
+        port=port,
+        ssl_context=ctx,
     )
 
 
@@ -117,6 +121,7 @@ async def start_servers():
     print("(Press CTRL+C to quit)")
     print()
 
+
 def server_main(_args):
     """Start the PlanarAlly server."""
 
@@ -144,7 +149,9 @@ def server_main(_args):
         for runner in runners:
             loop.run_until_complete(runner.cleanup())
 
+
 resource_types = [User, Room]
+
 
 def list_main(args):
     """List all of the requested resource type."""
@@ -153,12 +160,14 @@ def list_main(args):
             for resource in resource_type.select():
                 print(resource.name)
 
+
 def remove_main(args):
     """Remove a requested resource."""
     for resource_type in resource_types:
         if resource_type.__name__.lower() == args.resource:
             chosen_resource = resource_type.get_or_none(name=args.name)
             chosen_resource.delete_instance()
+
 
 def reset_password_main(args):
     """Reset a users password. Will prompt for the new password if not provided."""
@@ -175,6 +184,7 @@ def reset_password_main(args):
     user.set_password(password)
     user.save()
 
+
 def add_subcommand(name, func, parent_parser, args):
     sub_parser = parent_parser.add_parser(name, help=func.__doc__)
     for arg in args:
@@ -186,38 +196,66 @@ def main():
     if len(sys.argv) < 2 or (len(sys.argv) == 2 and sys.argv[1] == "dev"):
         # To keep the previous syntax, if this script is called with no args,
         # Or with just dev, we should start the server.
-        server_main()
+        server_main(None)
         return
 
     parser = ArgumentParser()
     subparsers = parser.add_subparsers()
 
-    add_subcommand("serve", server_main, subparsers,
-        [("dev", {"nargs":"?", "choices":['dev'], "help":"Start the server with a development version of the client."})]
+    add_subcommand(
+        "serve",
+        server_main,
+        subparsers,
+        [
+            (
+                "dev",
+                {
+                    "nargs": "?",
+                    "choices": ["dev"],
+                    "help": "Start the server with a development version of the client.",
+                },
+            )
+        ],
     )
 
     resource_names = [resource.__name__.lower() for resource in resource_types]
 
-    add_subcommand("list", list_main, subparsers,
-        [("resource", {"choices": resource_names, "help":"The resource to list."})]
+    add_subcommand(
+        "list",
+        list_main,
+        subparsers,
+        [("resource", {"choices": resource_names, "help": "The resource to list."})],
     )
 
-    add_subcommand("remove", remove_main, subparsers,
+    add_subcommand(
+        "remove",
+        remove_main,
+        subparsers,
         [
-            ("resource", {"choices": resource_names, "help": "The type of resource to remove"}),
-            ("name", {"help": "The name of the resource to remove"})
-        ]
+            (
+                "resource",
+                {"choices": resource_names, "help": "The type of resource to remove"},
+            ),
+            ("name", {"help": "The name of the resource to remove"}),
+        ],
     )
 
-    add_subcommand("reset", reset_password_main, subparsers,
+    add_subcommand(
+        "reset",
+        reset_password_main,
+        subparsers,
         [
             ("name", {"help": "The name of the user."}),
-            ("--password", {"help": "The new password. Will be prompted for if not provided."})
-        ]
+            (
+                "--password",
+                {"help": "The new password. Will be prompted for if not provided."},
+            ),
+        ],
     )
 
     options = parser.parse_args()
     options.func(options)
+
 
 if __name__ == "__main__":
     main()

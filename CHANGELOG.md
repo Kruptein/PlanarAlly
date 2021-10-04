@@ -12,6 +12,7 @@ These usually have no immediately visible impact on regular users
 
 -   Dice rolling tool
 -   Pointer to the draw tool
+-   Server Admin Commands
 
 ### Changed
 

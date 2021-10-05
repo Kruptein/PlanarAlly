@@ -1,7 +1,7 @@
 import { computed, reactive, watch, watchEffect } from "vue";
 
 import { clampGridLine, getUnitDistance, l2g, l2gz } from "../../../core/conversions";
-import { cloneP, subtractP, toGP } from "../../../core/geometry";
+import { addP, cloneP, subtractP, toArrayP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { equalPoints, snapToPoint } from "../../../core/math";
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
@@ -65,8 +65,8 @@ class DrawTool extends Tool {
     private startPoint?: GlobalPoint;
     private shape?: Shape;
     private brushHelper?: Circle;
-    // private brushFinder?: Circle;
     private ruler?: Line;
+    private pointer?: Polygon;
 
     private snappedToPoint = false;
 
@@ -232,6 +232,10 @@ class DrawTool extends Tool {
         this.setupBrush();
         layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false }); // during mode change the shape is already added
         // if (gameStore.state.isDm) this.showLayerPoints();
+        this.pointer = this.createPointer(toGP(mouse?.x ?? -1000, mouse?.y ?? -1000));
+        const drawLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
+        drawLayer!.addShape(this.pointer, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
+        drawLayer!.invalidate(true);
     }
 
     onDeselect(data?: { floor?: Floor; layer?: LayerName }): void {
@@ -240,6 +244,11 @@ class DrawTool extends Tool {
         if (this.brushHelper !== undefined) {
             layer.removeShape(this.brushHelper, SyncMode.NO_SYNC, true);
             this.brushHelper = undefined;
+        }
+        if (this.pointer !== undefined) {
+            const drawLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
+            drawLayer!.removeShape(this.pointer, SyncMode.NO_SYNC, true);
+            this.pointer = undefined;
         }
         if (this.ruler !== undefined) {
             layer.removeShape(this.ruler, SyncMode.NO_SYNC, true);
@@ -412,6 +421,12 @@ class DrawTool extends Tool {
             [endPoint, this.snappedToPoint] = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
         else this.snappedToPoint = false;
 
+        if (this.pointer !== undefined) {
+            this.pointer.refPoint = endPoint;
+            const dl = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw)!;
+            dl.invalidate(true);
+        }
+
         if (this.brushHelper !== undefined) {
             this.brushHelper.r = this.helperSize;
             this.brushHelper.refPoint = endPoint;
@@ -571,6 +586,24 @@ class DrawTool extends Tool {
         // Make sure we can see the border of the reveal brush
         brush.options.borderOperation = "source-over";
         return brush;
+    }
+
+    private createPointer(position: GlobalPoint): Polygon {
+        const vertices = [toGP(0, 20), toGP(4.2, 12.6), toGP(12, 16)];
+        const vec = Vector.fromArray(toArrayP(position));
+        const pointer = new Polygon(
+            position,
+            vertices.map((v) => addP(v, vec)),
+            {
+                fillColour: "white",
+                strokeColour: "black",
+                openPolygon: false,
+            },
+        );
+        // Make sure we can see the border of the reveal brush
+        pointer.options.borderOperation = "source-over";
+        pointer.ignoreZoomSize = true;
+        return pointer;
     }
 
     private setupBrush(): void {

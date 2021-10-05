@@ -32,6 +32,8 @@ from config import config
 from models import User, Room
 from utils import logger
 
+loop = asyncio.get_event_loop()
+
 # This is a fix for asyncio problems on windows that make it impossible to do ctrl+c
 if sys.platform.startswith("win"):
 
@@ -136,7 +138,6 @@ def server_main(_args):
 
     save.check_save()
 
-    loop = asyncio.get_event_loop()
     loop.create_task(start_servers())
 
     try:
@@ -172,6 +173,12 @@ def remove_main(args):
 def reset_password_main(args):
     """Reset a users password. Will prompt for the new password if not provided."""
     password = args.password
+    user = User.by_name(args.name)
+
+    if not user:
+        print(f"User with name {args.name} not found.")
+        sys.exit(1)
+
     if not password:
         first_password = getpass.getpass()
         second_password = getpass.getpass("Retype password:")
@@ -180,7 +187,6 @@ def reset_password_main(args):
             first_password = getpass.getpass()
             second_password = getpass.getpass("Retype password:")
         password = first_password
-    user = User.by_name(args.name)
     user.set_password(password)
     user.save()
 

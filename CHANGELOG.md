@@ -11,6 +11,7 @@ These usually have no immediately visible impact on regular users
 ### Added
 
 -   Dice rolling tool
+-   Pointer to the draw tool
 
 ### Changed
 

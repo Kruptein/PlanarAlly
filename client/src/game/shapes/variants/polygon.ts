@@ -1,6 +1,6 @@
-import { g2l, g2lz, g2lx, g2ly } from "../../../core/conversions";
-import { getDistanceToSegment, toGP, toArrayP, subtractP, addP } from "../../../core/geometry";
+import { g2l, g2lz } from "../../../core/conversions";
 import type { GlobalPoint } from "../../../core/geometry";
+import { addP, getDistanceToSegment, subtractP, toArrayP, toGP } from "../../../core/geometry";
 import { filterEqualPoints, getPointsCenter, rotateAroundPoint } from "../../../core/math";
 import { getFogColour } from "../../colour";
 import type { ServerPolygon } from "../../models/shapes";
@@ -106,7 +106,7 @@ export class Polygon extends Shape {
 
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
-        ctx.lineWidth = g2lz(this.lineWidth);
+        ctx.lineWidth = this.ignoreZoomSize ? this.lineWidth : g2lz(this.lineWidth);
 
         if (this.strokeColour === "fog") ctx.strokeStyle = getFogColour();
         else ctx.strokeStyle = this.strokeColour;
@@ -114,11 +114,18 @@ export class Polygon extends Shape {
         else ctx.fillStyle = this.fillColour;
 
         ctx.beginPath();
-        ctx.moveTo(g2lx(this.vertices[0].x) - center.x, g2ly(this.vertices[0].y) - center.y);
+        let localVertex = subtractP(g2l(this.vertices[0]), center);
+        ctx.moveTo(localVertex.x, localVertex.y);
         for (let i = 1; i <= this.vertices.length - (this.openPolygon ? 1 : 0); i++) {
             const vertex = this.vertices[i % this.vertices.length];
-            ctx.lineTo(g2lx(vertex.x) - center.x, g2ly(vertex.y) - center.y);
+            if (this.ignoreZoomSize) {
+                localVertex = addP(localVertex, subtractP(vertex, this.vertices[i - 1]));
+            } else {
+                localVertex = subtractP(g2l(vertex), center);
+            }
+            ctx.lineTo(localVertex.x, localVertex.y);
         }
+
         if (!this.openPolygon) ctx.fill();
         ctx.stroke();
         super.drawPost(ctx);

@@ -140,7 +140,7 @@ export class Layer {
     }
 
     setServerShapes(shapes: ServerShape[]): void {
-        if (this.isActiveLayer) selectionState.clear(false); // TODO: Fix keeping selection on those items that are not moved.
+        if (this.isActiveLayer) selectionState.clear(); // TODO: Fix keeping selection on those items that are not moved.
         // We need to ensure composites are added after all their variants have been added
         const composites = [];
         for (const serverShape of shapes) {

@@ -41,7 +41,7 @@ const buildTools: [ToolName, ToolFeatures][] = [
     [ToolName.Vision, {}],
 ];
 const playTools: [ToolName, ToolFeatures][] = [
-    [ToolName.Select, { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate] }],
+    [ToolName.Select, { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate, SelectFeatures.PolygonEdit] }],
     [ToolName.Pan, {}],
     [ToolName.Spell, {}],
     [ToolName.Ruler, {}],
@@ -59,6 +59,10 @@ watch(activeTool, (newTool, oldTool) => {
     toolMap[oldTool].onDeselect();
     toolMap[newTool].onSelect();
 });
+
+export function getActiveTool(): ITool {
+    return toolMap[activeTool.value];
+}
 
 export function toggleActiveMode(): void {
     activeToolMode.value = activeToolMode.value === ToolMode.Build ? ToolMode.Play : ToolMode.Build;

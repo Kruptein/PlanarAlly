@@ -1,7 +1,16 @@
-import { ref } from "vue";
+import { ref, watchEffect } from "vue";
 
-import { g2l, g2lx, g2ly, l2g, l2gz } from "../../../core/conversions";
-import { addP, toArrayP, toGP, toLP, Ray, Vector } from "../../../core/geometry";
+import { g2l, g2lx, g2ly, g2lz, l2g, l2gz, toRadians } from "../../../core/conversions";
+import {
+    addP,
+    toArrayP,
+    toGP,
+    toLP,
+    Ray,
+    Vector,
+    getPointDistance,
+    getDistanceToSegment,
+} from "../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { equalPoints, snapToPoint } from "../../../core/math";
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
@@ -15,6 +24,7 @@ import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/sh
 import { calculateDelta } from "../../drag";
 import { getLocalPointFromEvent } from "../../input/mouse";
 import { selectionState } from "../../layers/selection";
+import { LayerName } from "../../models/floor";
 import { ToolMode, ToolName } from "../../models/tools";
 import type { ISelectTool, ToolFeatures, ToolPermission } from "../../models/tools";
 import type { Operation } from "../../operations/model";
@@ -26,11 +36,12 @@ import type { Shape } from "../../shapes/shape";
 import type { BoundingRect } from "../../shapes/variants/boundingRect";
 import { Circle } from "../../shapes/variants/circle";
 import { Line } from "../../shapes/variants/line";
+import type { Polygon } from "../../shapes/variants/polygon";
 import { Rect } from "../../shapes/variants/rect";
 import { openDefaultContextMenu, openShapeContextMenu } from "../../ui/contextmenu/state";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { Tool } from "../tool";
-import { activeToolMode, deactivateTool } from "../tools";
+import { activeToolMode, deactivateTool, getFeatures } from "../tools";
 
 import { RulerFeatures } from "./ruler";
 
@@ -50,6 +61,7 @@ export enum SelectFeatures {
     Resize,
     Snapping,
     Rotate,
+    PolygonEdit,
 }
 
 // Calculate 45 degrees in radians just once
@@ -65,9 +77,18 @@ class SelectTool extends Tool implements ISelectTool {
     hasSelection = ref(false);
     showRuler = ref(false);
 
+    polygonUiLeft = ref("0px");
+    polygonUiTop = ref("0px");
+    polygonUiAngle = ref("0deg");
+    polygonUiVisible = ref("hidden");
+    polygonUiSizeX = ref("25px");
+    polygonUiSizeY = ref("25px");
+
     // NON REACTIVE PROPERTIES
 
     mode = SelectOperations.Noop;
+
+    lastMousePosition = toGP(0, 0);
 
     angle = 0;
     rotationUiActive = false;
@@ -90,10 +111,29 @@ class SelectTool extends Tool implements ISelectTool {
     operationReady = false;
     operationList?: Operation;
 
+    // polygon-edit related
+    polygonTracer: Circle | null = null;
+
     private permittedTools_: ToolPermission[] = [];
 
     get permittedTools(): ToolPermission[] {
         return this.permittedTools_;
+    }
+
+    constructor() {
+        super();
+
+        watchEffect(() => {
+            const selection = selectionState.state.selection;
+            if (selection.size === 0) {
+                this.removePolygonEditUi();
+            } else {
+                const features = getFeatures(this.toolName);
+                if (this.hasFeature(SelectFeatures.PolygonEdit, features)) {
+                    this.createPolygonEditUi();
+                }
+            }
+        });
     }
 
     setToolPermissions(permissions?: ToolPermission[]): void {
@@ -114,8 +154,14 @@ class SelectTool extends Tool implements ISelectTool {
         if (mode === ToolMode.Play) {
             document.body.style.cursor = "default";
             this.removeRotationUi();
-        } else if (this.hasFeature(SelectFeatures.Rotate, features)) {
-            this.createRotationUi(features);
+            this.removePolygonEditUi();
+        } else {
+            if (this.hasFeature(SelectFeatures.Rotate, features)) {
+                this.createRotationUi(features);
+            }
+            if (this.hasFeature(SelectFeatures.PolygonEdit, features)) {
+                this.createPolygonEditUi();
+            }
         }
     }
 
@@ -199,7 +245,7 @@ class SelectTool extends Tool implements ISelectTool {
                     break;
                 }
             }
-            if (shape.contains(gp, 50)) {
+            if (shape.contains(gp)) {
                 if (layerSelection.indexOf(shape) === -1) {
                     if (ctrlOrCmdPressed(event)) {
                         selectionState.push(shape);
@@ -262,7 +308,7 @@ class SelectTool extends Tool implements ISelectTool {
             }
 
             if (!ctrlOrCmdPressed(event)) {
-                selectionState.clear(false);
+                selectionState.clear();
             }
 
             if (this.rotationUiActive) {
@@ -278,10 +324,17 @@ class SelectTool extends Tool implements ISelectTool {
         // if we only have context capabilities, immediately skip
         if (features.enabled?.length === 1 && features.enabled[0] === SelectFeatures.Context) return;
 
+        const gp = l2g(lp);
+        this.lastMousePosition = gp;
+
         // We require move for the resize and rotate cursors
         if (
             !this.active &&
-            !(this.hasFeature(SelectFeatures.Resize, features) || this.hasFeature(SelectFeatures.Rotate, features))
+            !(
+                this.hasFeature(SelectFeatures.Resize, features) ||
+                this.hasFeature(SelectFeatures.Rotate, features) ||
+                this.hasFeature(SelectFeatures.PolygonEdit, features)
+            )
         )
             return;
 
@@ -293,8 +346,6 @@ class SelectTool extends Tool implements ISelectTool {
 
         const layerSelection = selectionState.get({ includeComposites: false });
         if (layerSelection.some((s) => s.isLocked)) return;
-
-        const gp = l2g(lp);
 
         this.deltaChanged = false;
 
@@ -336,6 +387,10 @@ class SelectTool extends Tool implements ISelectTool {
                     this.createRotationUi(features);
                 }
 
+                if (this.hasFeature(SelectFeatures.PolygonEdit, features)) {
+                    this.updatePolygonEditUi(gp);
+                }
+
                 layer.invalidate(false);
             } else if (this.mode === SelectOperations.Resize) {
                 const shape = layerSelection[0];
@@ -350,13 +405,13 @@ class SelectTool extends Tool implements ISelectTool {
                 else this.snappedToPoint = false;
 
                 this.resizePoint = resizeShape(shape, targetPoint, this.resizePoint, ctrlOrCmdPressed(event), true);
-                this.updateCursor(gp);
+                this.updateCursor(gp, features);
             } else if (this.mode === SelectOperations.Rotate) {
                 const center = this.rotationBox!.center();
                 const newAngle = -Math.atan2(center.y - gp.y, gp.x - center.x) + Math.PI / 2;
                 this.rotateSelection(newAngle, center, true);
             } else {
-                this.updateCursor(gp);
+                this.updateCursor(gp, features);
             }
         } else {
             document.body.style.cursor = "default";
@@ -389,7 +444,7 @@ class SelectTool extends Tool implements ISelectTool {
             if (ctrlOrCmdPressed(event)) {
                 // If either control or shift are pressed, do not remove selection
             } else {
-                selectionState.clear(false);
+                selectionState.clear();
             }
             const cbbox = this.selectionHelper!.getBoundingBox();
             for (const shape of layer.getShapes({ includeComposites: false })) {
@@ -705,13 +760,74 @@ class SelectTool extends Tool implements ISelectTool {
         layer.invalidate(false);
     }
 
+    // POLYGON EDIT
+
+    createPolygonEditUi(): void {
+        const selection = selectionState.get({ includeComposites: false });
+        if (selection.length !== 1 || selection[0].type !== "polygon") return;
+
+        this.removePolygonEditUi();
+
+        this.polygonTracer = new Circle(toGP(0, 0), 3, { fillColour: "rgba(0,0,0,0)", strokeColour: "black" });
+        const drawLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw)!;
+        drawLayer.addShape(this.polygonTracer, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
+        this.updatePolygonEditUi(this.lastMousePosition);
+        this.polygonUiVisible.value = "visible";
+        drawLayer.invalidate(true);
+    }
+
+    removePolygonEditUi(): void {
+        if (this.polygonTracer !== null) {
+            const drawLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw)!;
+            drawLayer.removeShape(this.polygonTracer, SyncMode.NO_SYNC, false);
+            drawLayer.invalidate(true);
+            this.polygonTracer = null;
+            this.polygonUiVisible.value = "hidden";
+        }
+    }
+
+    updatePolygonEditUi(gp: GlobalPoint): void {
+        const polygon = selectionState.get({ includeComposites: false })[0] as Polygon;
+        const pw = g2lz(polygon.lineWidth);
+
+        const pv = polygon.vertices;
+        let smallest = { distance: polygon.lineWidth * 2, nearest: gp, angle: 0, point: false };
+        for (let i = 1; i < pv.length; i++) {
+            const prevVertex = pv[i - 1];
+            const vertex = pv[i];
+            // check prev-vertex
+            if (getPointDistance(prevVertex, gp) < polygon.lineWidth / 2) {
+                smallest = { distance: 0, nearest: prevVertex, point: true, angle: 0 };
+                break;
+            }
+            // check edge
+            const info = getDistanceToSegment(gp, [prevVertex, vertex]);
+            if (info.distance < polygon.lineWidth / 1.5 && info.distance < smallest.distance) {
+                smallest = { ...info, angle: Vector.fromPoints(prevVertex, vertex).deg(), point: false };
+            }
+        }
+        if (smallest.distance <= polygon.lineWidth) {
+            this.polygonTracer!.refPoint = smallest.nearest;
+            this.polygonTracer!.layer.invalidate(true);
+            const lp = g2l(smallest.nearest);
+            const radians = toRadians(smallest.angle);
+            this.polygonUiLeft.value = `${lp.x - 25}px`;
+            this.polygonUiTop.value = `${lp.y - 25 / 2}px`;
+            this.polygonUiAngle.value = `${smallest.angle}deg`;
+            // 12.5 + pw/2 is the exact border, additional scaling to give a bit of air
+            this.polygonUiSizeX.value = `${-Math.sin(radians) * (15 + (1.5 * pw) / 2)}px`;
+            this.polygonUiSizeY.value = `${Math.cos(radians) * (15 + (1.5 * pw) / 2)}px`;
+        }
+        //check last vertex
+    }
+
     // CURSOR
 
-    updateCursor(globalMouse: GlobalPoint): void {
+    updateCursor(globalMouse: GlobalPoint, features: ToolFeatures<SelectFeatures>): void {
         let cursorStyle = "default";
         const layerSelection = selectionState.get({ includeComposites: false });
         for (const sel of layerSelection) {
-            const resizePoint = sel.getPointIndex(globalMouse, l2gz(3));
+            const resizePoint = sel.getPointIndex(globalMouse, l2gz(4));
             if (resizePoint < 0) {
                 // test rotate case
                 if (this.rotationUiActive) {
@@ -722,7 +838,7 @@ class SelectTool extends Tool implements ISelectTool {
                     }
                 }
             } else {
-                let angle = sel.getPointOrientation(resizePoint).angle();
+                let angle = sel.getPointOrientation(resizePoint).deg();
                 if (angle < 0) angle += 360;
                 const d = 45 / 2;
                 if (angle >= 315 + d || angle < d || (angle >= 135 + d && angle < 225 - d)) cursorStyle = "ew-resize";
@@ -735,6 +851,10 @@ class SelectTool extends Tool implements ISelectTool {
             }
         }
         document.body.style.cursor = cursorStyle;
+
+        if (this.hasFeature(SelectFeatures.PolygonEdit, features)) {
+            this.updatePolygonEditUi(globalMouse);
+        }
     }
 }
 

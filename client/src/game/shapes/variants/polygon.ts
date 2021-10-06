@@ -1,7 +1,8 @@
 import { g2l, g2lz } from "../../../core/conversions";
+import { addP, getDistanceToSegment, getPointDistance, subtractP, toArrayP, toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
-import { addP, getDistanceToSegment, subtractP, toArrayP, toGP } from "../../../core/geometry";
 import { filterEqualPoints, getPointsCenter, rotateAroundPoint } from "../../../core/math";
+import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { getFogColour } from "../../colour";
 import type { ServerPolygon } from "../../models/shapes";
 import { Shape } from "../shape";
@@ -181,5 +182,70 @@ export class Polygon extends Shape {
             }
         }
         return resizePoint;
+    }
+
+    // POLYGON OPERATIONS
+    cutPolygon(point: GlobalPoint): void {
+        let lastVertex = -1;
+        let nearVertex: GlobalPoint | null = null;
+        for (let i = 1; i <= this.vertices.length - (this.openPolygon ? 1 : 0); i++) {
+            const prevVertex = this.vertices[i - 1];
+            const vertex = this.vertices[i % this.vertices.length];
+
+            const info = getDistanceToSegment(point, [prevVertex, vertex]);
+            if (info.distance < this.lineWidth) {
+                lastVertex = i - 1;
+                nearVertex = info.nearest;
+                break;
+            }
+        }
+        if (lastVertex >= 0) {
+            const newVertices = this.vertices.slice(lastVertex + 1);
+            this._vertices = this._vertices.slice(0, lastVertex);
+            this._vertices.push(nearVertex!);
+
+            const newPolygon = new Polygon(nearVertex!, newVertices);
+            const uuid = newPolygon.uuid;
+            // make sure we copy over all the same properties but retain the correct uuid and vertices
+            newPolygon.fromDict({ ...this.asDict(), uuid });
+            newPolygon._refPoint = nearVertex!;
+            newPolygon._vertices = newVertices;
+
+            this.layer.addShape(newPolygon, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
+        }
+    }
+
+    addPoint(point: GlobalPoint): void {
+        for (let i = 1; i <= this.vertices.length - (this.openPolygon ? 1 : 0); i++) {
+            const prevVertex = this.vertices[i - 1];
+            const vertex = this.vertices[i % this.vertices.length];
+
+            const info = getDistanceToSegment(point, [prevVertex, vertex]);
+            if (info.distance < this.lineWidth) {
+                this._vertices.splice(i - 1, 0, info.nearest);
+                this.invalidate(true);
+                break;
+            }
+        }
+    }
+
+    removePoint(point: GlobalPoint): void {
+        if (getPointDistance(point, this.refPoint) < this.lineWidth) {
+            this._refPoint = this._vertices.splice(0, 1)[0];
+            this.invalidate(true);
+            return;
+        }
+
+        for (let i = 1; i <= this.vertices.length - (this.openPolygon ? 1 : 0); i++) {
+            const prevVertex = this.vertices[i - 1];
+            const vertex = this.vertices[i % this.vertices.length];
+
+            const info = getDistanceToSegment(point, [prevVertex, vertex]);
+            if (info.distance < this.lineWidth) {
+                this._vertices.splice(i - 1, 1);
+                this.invalidate(true);
+                break;
+            }
+        }
     }
 }

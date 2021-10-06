@@ -292,7 +292,7 @@ class FloorStore extends Store<FloorState> {
 
     selectLayer(name: string, sync = true, invalidate = true): void {
         let found = false;
-        selectionState.clear(false);
+        selectionState.clear();
         for (const [index, layer] of this.getLayers(this.currentFloor.value!).entries()) {
             if (!layer.selectable) continue;
             if (found && layer.name !== LayerName.Lighting) layer.ctx.globalAlpha = 0.3;

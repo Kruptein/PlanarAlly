@@ -1,5 +1,4 @@
 import { Store } from "../../core/store";
-import { floorStore } from "../../store/floor";
 import { UuidMap } from "../../store/shapeMap";
 import type { Shape } from "../shapes/shape";
 
@@ -22,9 +21,8 @@ class SelectionState extends Store<State> {
         return this.state.selection.size > 0;
     }
 
-    clear(invalidate: boolean): void {
+    clear(): void {
         this._state.selection.clear();
-        if (invalidate) floorStore.currentLayer.value!.invalidate(true);
     }
 
     // UI helpers are objects that are created for UI reaons but that are not pertinent to the actual state

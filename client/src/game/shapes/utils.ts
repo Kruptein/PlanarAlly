@@ -144,7 +144,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly Shape[] {
     const gameState = gameStore.state;
     if (gameState.clipboard.length === 0) return [];
 
-    selectionState.clear(false);
+    selectionState.clear();
 
     gameStore.setClipboardPosition(clientStore.screenCenter);
     let offset = subtractP(clientStore.screenCenter, gameState.clipboardPosition);

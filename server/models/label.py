@@ -24,8 +24,13 @@ class Label(BaseModel):
         return d
 
     def make_copy(self):
-        return Label.create(uuid=str(uuid4()), user=self.user, category=self.category, name=self.name, visible=self.visible)
-
+        return Label.create(
+            uuid=str(uuid4()),
+            user=self.user,
+            category=self.category,
+            name=self.name,
+            visible=self.visible,
+        )
 
 
 class LabelSelection(BaseModel):

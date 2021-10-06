@@ -71,7 +71,7 @@ export function toggleActiveMode(): void {
         activeTool.value = ToolName.Select;
     }
 
-    const tool = toolMap[activeTool.value];
+    const tool = getActiveTool();
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
         toolMap[permitted.name].onToolsModeChange(activeToolMode.value, permitted.features);

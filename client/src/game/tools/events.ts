@@ -7,7 +7,7 @@ import { getLocalPointFromEvent } from "../input/mouse";
 import { LayerName } from "../models/floor";
 import { ToolName } from "../models/tools";
 
-import { activeTool, getFeatures, toolMap } from "./tools";
+import { activeTool, getActiveTool, getFeatures, toolMap } from "./tools";
 
 export function mouseDown(event: MouseEvent): void {
     if ((event.target as HTMLElement).tagName !== "CANVAS") return;
@@ -104,7 +104,7 @@ export function mouseUp(event: MouseEvent): void {
 }
 
 export function mouseLeave(event: MouseEvent): void {
-    const tool = toolMap[activeTool.value];
+    const tool = getActiveTool();
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
@@ -122,7 +122,7 @@ export function mouseLeave(event: MouseEvent): void {
 export function contextMenu(event: MouseEvent): void {
     if ((event.target as HTMLElement).tagName !== "CANVAS") return;
     if (event.button !== 2 || (event.target as HTMLElement).tagName !== "CANVAS") return;
-    const tool = toolMap[activeTool.value];
+    const tool = getActiveTool();
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
@@ -138,7 +138,7 @@ export function contextMenu(event: MouseEvent): void {
 }
 
 export function keyUp(event: KeyboardEvent): void {
-    const tool = toolMap[activeTool.value];
+    const tool = getActiveTool();
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
@@ -156,7 +156,7 @@ export function keyUp(event: KeyboardEvent): void {
 export function touchStart(event: TouchEvent): void {
     if ((event.target as HTMLElement).tagName !== "CANVAS") return;
 
-    const tool = toolMap[activeTool.value];
+    const tool = getActiveTool();
 
     if (event.touches.length === 2) {
         tool.scaling = true;
@@ -184,7 +184,7 @@ export function touchStart(event: TouchEvent): void {
 export function touchMove(event: TouchEvent): void {
     if ((event.target as HTMLElement).tagName !== "CANVAS") return;
 
-    const tool = toolMap[activeTool.value];
+    const tool = getActiveTool();
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
@@ -233,7 +233,7 @@ export function touchMove(event: TouchEvent): void {
 export function touchEnd(event: TouchEvent): void {
     if ((event.target as HTMLElement).tagName !== "CANVAS") return;
 
-    const tool = toolMap[activeTool.value];
+    const tool = getActiveTool();
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;

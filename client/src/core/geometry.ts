@@ -20,6 +20,10 @@ export function getDistanceToSegment<T extends Point>(p: T, line: [T, T]): { dis
     return { distance: getPointDistance(nearest, pointVector), nearest: addP(line[0], nearest) };
 }
 
+export function getAngleBetween(a: Vector, b: Vector): number {
+    return -a.angle() + b.angle(); // inverted y-axis
+}
+
 export type Point = { x: number; y: number };
 export type GlobalPoint = Point & { __brand: "GlobalPoint" };
 export type LocalPoint = Point & { __brand: "LocalPoint" };

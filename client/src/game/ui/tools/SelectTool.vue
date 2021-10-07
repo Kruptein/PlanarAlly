@@ -22,6 +22,7 @@ const polygonUiAngle = selectTool.polygonUiAngle;
 const polygonUiVisible = selectTool.polygonUiVisible;
 const polygonUiSizeX = selectTool.polygonUiSizeX;
 const polygonUiSizeY = selectTool.polygonUiSizeY;
+const polygonUiVertex = selectTool.polygonUiVertex;
 
 onMounted(() => {
     ({ right: right.value, arrow: arrow.value } = useToolPosition(selectTool.toolName));
@@ -39,9 +40,6 @@ function toggleShowRuler(event: MouseEvent): void {
 
 function cutPolygon(): void {
     const selection = selectionState.get({ includeComposites: false })[0] as Polygon;
-    // // toLP import somehow messes up useModal
-    // const lp: LocalPoint = { x: shapeContextLeft.value, y: shapeContextTop.value, __brand: "LocalPoint" };
-    // selection.cutPolygon(l2g(lp));
     selection.cutPolygon(selectTool.polygonTracer!.refPoint);
 }
 
@@ -49,11 +47,17 @@ function addPoint(): void {
     const selection = selectionState.get({ includeComposites: false })[0] as Polygon;
     selection.addPoint(selectTool.polygonTracer!.refPoint);
 }
+
+function removePoint(): void {
+    const selection = selectionState.get({ includeComposites: false })[0] as Polygon;
+    selection.removePoint(selectTool.polygonTracer!.refPoint);
+}
 </script>
 
 <template>
     <div id="polygon-edit">
-        <div @click="addPoint"><font-awesome-icon icon="plus-square" /></div>
+        <div @click="removePoint" v-if="polygonUiVertex"><font-awesome-icon icon="trash-alt" /></div>
+        <div @click="addPoint" v-else><font-awesome-icon icon="plus-square" /></div>
         <div @click="cutPolygon"><font-awesome-icon icon="cut" /></div>
     </div>
 

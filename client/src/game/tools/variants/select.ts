@@ -1,6 +1,6 @@
 import { ref, watchEffect } from "vue";
 
-import { g2l, g2lx, g2ly, g2lz, l2g, l2gz, toRadians } from "../../../core/conversions";
+import { g2l, g2lx, g2ly, g2lz, l2g, l2gz, toDegrees, toRadians } from "../../../core/conversions";
 import {
     addP,
     toArrayP,
@@ -10,6 +10,7 @@ import {
     Vector,
     getPointDistance,
     getDistanceToSegment,
+    getAngleBetween,
 } from "../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { equalPoints, snapToPoint } from "../../../core/math";
@@ -83,6 +84,7 @@ class SelectTool extends Tool implements ISelectTool {
     polygonUiVisible = ref("hidden");
     polygonUiSizeX = ref("25px");
     polygonUiSizeY = ref("25px");
+    polygonUiVertex = ref(false);
 
     // NON REACTIVE PROPERTIES
 
@@ -796,8 +798,16 @@ class SelectTool extends Tool implements ISelectTool {
             const prevVertex = pv[i - 1];
             const vertex = pv[i];
             // check prev-vertex
-            if (getPointDistance(prevVertex, gp) < polygon.lineWidth / 2) {
-                smallest = { distance: 0, nearest: prevVertex, point: true, angle: 0 };
+            if (getPointDistance(prevVertex, gp) < polygon.lineWidth / 1.5) {
+                const vec = Vector.fromPoints(prevVertex, vertex);
+                let angle;
+                if (i === 1) {
+                    angle = vec.deg();
+                } else {
+                    const between = getAngleBetween(Vector.fromPoints(prevVertex, pv[i - 2]), vec) / 2;
+                    angle = (Math.abs(between) < Math.PI / 2 ? 1 : -1) * 90 - toDegrees(-vec.angle() + between);
+                }
+                smallest = { distance: 0, nearest: prevVertex, point: true, angle };
                 break;
             }
             // check edge
@@ -806,6 +816,11 @@ class SelectTool extends Tool implements ISelectTool {
                 smallest = { ...info, angle: Vector.fromPoints(prevVertex, vertex).deg(), point: false };
             }
         }
+        //check last vertex
+        if (getPointDistance(pv[pv.length - 1], gp) < polygon.lineWidth / 2) {
+            smallest = { distance: 0, nearest: pv[pv.length - 1], point: true, angle: smallest.angle };
+        }
+        // Show the UI
         if (smallest.distance <= polygon.lineWidth) {
             this.polygonTracer!.refPoint = smallest.nearest;
             this.polygonTracer!.layer.invalidate(true);
@@ -817,8 +832,8 @@ class SelectTool extends Tool implements ISelectTool {
             // 12.5 + pw/2 is the exact border, additional scaling to give a bit of air
             this.polygonUiSizeX.value = `${-Math.sin(radians) * (15 + (1.5 * pw) / 2)}px`;
             this.polygonUiSizeY.value = `${Math.cos(radians) * (15 + (1.5 * pw) / 2)}px`;
+            this.polygonUiVertex.value = smallest.point;
         }
-        //check last vertex
     }
 
     // CURSOR

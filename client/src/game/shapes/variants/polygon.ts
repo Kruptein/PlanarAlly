@@ -1,10 +1,13 @@
 import { g2l, g2lz } from "../../../core/conversions";
-import { addP, getDistanceToSegment, getPointDistance, subtractP, toArrayP, toGP } from "../../../core/geometry";
+import { addP, getDistanceToSegment, subtractP, toArrayP, toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
-import { filterEqualPoints, getPointsCenter, rotateAroundPoint } from "../../../core/math";
+import { equalPoints, filterEqualPoints, getPointsCenter, rotateAroundPoint } from "../../../core/math";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
+import { uuidv4 } from "../../../core/utils";
+import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { getFogColour } from "../../colour";
 import type { ServerPolygon } from "../../models/shapes";
+import { visionState } from "../../vision/state";
 import { Shape } from "../shape";
 import type { SHAPE_TYPE } from "../types";
 
@@ -203,6 +206,7 @@ export class Polygon extends Shape {
             const newVertices = this.vertices.slice(lastVertex + 1);
             this._vertices = this._vertices.slice(0, lastVertex);
             this._vertices.push(nearVertex!);
+            if (!this.preventSync) sendShapePositionUpdate([this], false);
 
             const newPolygon = new Polygon(nearVertex!, newVertices);
             const uuid = newPolygon.uuid;
@@ -210,8 +214,18 @@ export class Polygon extends Shape {
             newPolygon.fromDict({ ...this.asDict(), uuid });
             newPolygon._refPoint = nearVertex!;
             newPolygon._vertices = newVertices;
+            for (const tr of newPolygon._trackers) {
+                tr.uuid = uuidv4();
+            }
+            for (const au of newPolygon._auras) {
+                au.uuid = uuidv4();
+            }
 
-            this.layer.addShape(newPolygon, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
+            this.layer.addShape(
+                newPolygon,
+                SyncMode.FULL_SYNC,
+                this.blocksVision ? InvalidationMode.WITH_LIGHT : InvalidationMode.NORMAL,
+            );
         }
     }
 
@@ -223,6 +237,9 @@ export class Polygon extends Shape {
             const info = getDistanceToSegment(point, [prevVertex, vertex]);
             if (info.distance < this.lineWidth) {
                 this._vertices.splice(i - 1, 0, info.nearest);
+
+                if (!this.preventSync) sendShapePositionUpdate([this], false);
+
                 this.invalidate(true);
                 break;
             }
@@ -230,22 +247,28 @@ export class Polygon extends Shape {
     }
 
     removePoint(point: GlobalPoint): void {
-        if (getPointDistance(point, this.refPoint) < this.lineWidth) {
+        const pointArr = toArrayP(point);
+        let invalidate = false;
+        if (equalPoints(pointArr, toArrayP(this.refPoint))) {
             this._refPoint = this._vertices.splice(0, 1)[0];
+            invalidate = true;
             this.invalidate(true);
-            return;
+        } else {
+            for (const [i, v] of this._vertices.entries()) {
+                if (equalPoints(pointArr, toArrayP(v))) {
+                    this._vertices.splice(i, 1);
+                    invalidate = true;
+                    break;
+                }
+            }
         }
 
-        for (let i = 1; i <= this.vertices.length - (this.openPolygon ? 1 : 0); i++) {
-            const prevVertex = this.vertices[i - 1];
-            const vertex = this.vertices[i % this.vertices.length];
+        if (invalidate) {
+            if (this.blocksVision) visionState.recalculateVision(this.floor.id);
+            if (this.blocksMovement) visionState.recalculateMovement(this.floor.id);
+            if (!this.preventSync) sendShapePositionUpdate([this], false);
 
-            const info = getDistanceToSegment(point, [prevVertex, vertex]);
-            if (info.distance < this.lineWidth) {
-                this._vertices.splice(i - 1, 1);
-                this.invalidate(true);
-                break;
-            }
+            this.invalidate(true);
         }
     }
 }

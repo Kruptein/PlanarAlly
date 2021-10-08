@@ -167,6 +167,19 @@ class SelectTool extends Tool implements ISelectTool {
         }
     }
 
+    onDeselect(): void {
+        this.removePolygonEditUi();
+    }
+
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onSelect(): Promise<void> {
+        const features = getFeatures(this.toolName);
+        if (this.hasFeature(SelectFeatures.PolygonEdit, features)) {
+            this.createPolygonEditUi();
+            this.polygonUiVisible.value = "hidden";
+        }
+    }
+
     // INPUT HANDLERS
 
     // eslint-disable-next-line @typescript-eslint/require-await
@@ -774,7 +787,6 @@ class SelectTool extends Tool implements ISelectTool {
         const drawLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw)!;
         drawLayer.addShape(this.polygonTracer, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
         this.updatePolygonEditUi(this.lastMousePosition);
-        this.polygonUiVisible.value = "visible";
         drawLayer.invalidate(true);
     }
 
@@ -790,6 +802,11 @@ class SelectTool extends Tool implements ISelectTool {
 
     updatePolygonEditUi(gp: GlobalPoint): void {
         const polygon = selectionState.get({ includeComposites: false })[0] as Polygon;
+        if (polygon === undefined) {
+            this.polygonUiVisible.value = "hidden";
+            return;
+        }
+
         const pw = g2lz(polygon.lineWidth);
 
         const pv = polygon.vertices;
@@ -822,6 +839,7 @@ class SelectTool extends Tool implements ISelectTool {
         }
         // Show the UI
         if (smallest.distance <= polygon.lineWidth) {
+            this.polygonUiVisible.value = "visible";
             this.polygonTracer!.refPoint = smallest.nearest;
             this.polygonTracer!.layer.invalidate(true);
             const lp = g2l(smallest.nearest);

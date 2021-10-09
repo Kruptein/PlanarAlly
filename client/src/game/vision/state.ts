@@ -116,7 +116,8 @@ class VisionState extends Store<State> {
     }
 
     private triangulateShape(target: TriangulationTarget, shape: IShape): void {
-        if (shape.points.length === 0) return;
+        const points = shape.points; // expensive call
+        if (points.length === 0) return;
         if (shape.type === "assetrect") {
             const asset = shape as Asset;
             if (shape.options.svgAsset !== undefined && asset.svgData !== undefined) {
@@ -158,7 +159,7 @@ class VisionState extends Store<State> {
                 return;
             }
         }
-        this.triangulatePath(target, shape, shape.points, shape.isClosed);
+        this.triangulatePath(target, shape, points, shape.isClosed);
     }
 
     private addWalls(cdt: CDT): void {

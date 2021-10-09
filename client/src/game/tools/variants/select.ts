@@ -21,6 +21,7 @@ import { clientStore, DEFAULT_GRID_SIZE } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
+import { UuidMap } from "../../../store/shapeMap";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import { calculateDelta } from "../../drag";
 import { getLocalPointFromEvent } from "../../input/mouse";
@@ -127,13 +128,17 @@ class SelectTool extends Tool implements ISelectTool {
 
         watchEffect(() => {
             const selection = selectionState.state.selection;
-            if (selection.size === 0) {
+            if (selection.size !== 1) {
                 this.removePolygonEditUi();
             } else {
                 const features = getFeatures(this.toolName);
                 if (this.hasFeature(SelectFeatures.PolygonEdit, features)) {
-                    this.createPolygonEditUi();
+                    const uuid = [...selection.values()][0];
+                    if (UuidMap.get(uuid)!.type === "polygon") {
+                        return this.createPolygonEditUi();
+                    }
                 }
+                this.removePolygonEditUi();
             }
         });
     }
@@ -801,11 +806,9 @@ class SelectTool extends Tool implements ISelectTool {
     }
 
     updatePolygonEditUi(gp: GlobalPoint): void {
-        const polygon = selectionState.get({ includeComposites: false })[0] as Polygon;
-        if (polygon === undefined) {
-            this.polygonUiVisible.value = "hidden";
-            return;
-        }
+        if (this.polygonTracer === null) return;
+        const selection = selectionState.get({ includeComposites: false });
+        const polygon = selection[0] as Polygon;
 
         const pw = g2lz(polygon.lineWidth);
 

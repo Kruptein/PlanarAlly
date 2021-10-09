@@ -385,19 +385,20 @@ class DrawTool extends Tool {
                 this.ruler.refPoint = lastPoint;
                 this.ruler.endPoint = lastPoint;
             }
-            if (this.shape.blocksVision && this.shape.points.length > 1)
+            const points = this.shape.points; // expensive call
+            if (this.shape.blocksVision && points.length > 1)
                 visionState.insertConstraint(
                     TriangulationTarget.VISION,
                     this.shape,
-                    this.shape.points[this.shape.points.length - 2],
-                    this.shape.points[this.shape.points.length - 1],
+                    points[points.length - 2],
+                    points[points.length - 1],
                 );
-            if (this.shape.blocksMovement && this.shape.points.length > 1)
+            if (this.shape.blocksMovement && points.length > 1)
                 visionState.insertConstraint(
                     TriangulationTarget.MOVEMENT,
                     this.shape,
-                    this.shape.points[this.shape.points.length - 2],
-                    this.shape.points[this.shape.points.length - 1],
+                    points[points.length - 2],
+                    points[points.length - 1],
                 );
             layer.invalidate(false);
             if (!this.shape.preventSync) sendShapeSizeUpdate({ shape: this.shape, temporary: true });
@@ -460,7 +461,8 @@ class DrawTool extends Tool {
             }
             case DrawShape.Brush: {
                 const br = this.shape as Polygon;
-                if (equalPoints(br.points[br.points.length - 1], [endPoint.x, endPoint.y])) return;
+                const points = br.points; // expensive call
+                if (equalPoints(points[points.length - 1], [endPoint.x, endPoint.y])) return;
                 br._vertices.push(endPoint);
                 break;
             }
@@ -539,19 +541,20 @@ class DrawTool extends Tool {
             layer.removeShape(this.ruler!, SyncMode.NO_SYNC, true);
             this.ruler = undefined;
             if (this.state.isClosedPolygon) {
-                if (this.shape.blocksVision && this.shape.points.length > 1)
+                const points = this.shape.points; // expensive call
+                if (this.shape.blocksVision && points.length > 1)
                     visionState.insertConstraint(
                         TriangulationTarget.VISION,
                         this.shape,
-                        this.shape.points[0],
-                        this.shape.points[this.shape.points.length - 1],
+                        points[0],
+                        points[points.length - 1],
                     );
-                if (this.shape.blocksMovement && this.shape.points.length > 1)
+                if (this.shape.blocksMovement && points.length > 1)
                     visionState.insertConstraint(
                         TriangulationTarget.MOVEMENT,
                         this.shape,
-                        this.shape.points[0],
-                        this.shape.points[this.shape.points.length - 1],
+                        points[0],
+                        points[points.length - 1],
                     );
             }
             this.finaliseShape();

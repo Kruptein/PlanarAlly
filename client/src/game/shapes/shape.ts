@@ -240,9 +240,10 @@ export abstract class Shape implements IShape {
     }
 
     getPointOrientation(i: number): Vector {
-        const prev = toGP(this.points[(this.points.length + i - 1) % this.points.length]);
-        const point = toGP(this.points[i]);
-        const next = toGP(this.points[(i + 1) % this.points.length]);
+        const points = this.points; // this is an expensive function
+        const prev = toGP(points[(points.length + i - 1) % points.length]);
+        const point = toGP(points[i]);
+        const next = toGP(points[(i + 1) % points.length]);
         const vec = subtractP(next, prev);
         const mid = addP(prev, vec.multiply(0.5));
         return subtractP(point, mid).normalize();
@@ -343,8 +344,10 @@ export abstract class Shape implements IShape {
         }
         ctx.stroke();
 
+        const points = this.points; // expensive call
+
         // Draw vertices
-        for (const p of this.points) {
+        for (const p of points) {
             ctx.beginPath();
             ctx.arc(g2lx(p[0]), g2ly(p[1]), 3, 0, 2 * Math.PI);
             ctx.fill();
@@ -352,10 +355,10 @@ export abstract class Shape implements IShape {
 
         // Draw edges
         ctx.beginPath();
-        ctx.moveTo(g2lx(this.points[0][0]), g2ly(this.points[0][1]));
+        ctx.moveTo(g2lx(points[0][0]), g2ly(points[0][1]));
         const j = this.isClosed ? 0 : 1;
-        for (let i = 1; i <= this.points.length - j; i++) {
-            const vertex = this.points[i % this.points.length];
+        for (let i = 1; i <= points.length - j; i++) {
+            const vertex = points[i % points.length];
             ctx.lineTo(g2lx(vertex[0]), g2ly(vertex[1]));
         }
         ctx.stroke();
@@ -387,11 +390,12 @@ export abstract class Shape implements IShape {
     // BOUNDING BOX
 
     getAABB(delta = 0): BoundingRect {
-        let minx = this.points[0][0];
-        let maxx = this.points[0][0];
-        let miny = this.points[0][1];
-        let maxy = this.points[0][1];
-        for (const p of this.points.slice(1)) {
+        const points = this.points; // expensive call
+        let minx = points[0][0];
+        let maxx = points[0][0];
+        let miny = points[0][1];
+        let maxy = points[0][1];
+        for (const p of points.slice(1)) {
             if (p[0] < minx) minx = p[0];
             if (p[0] > maxx) maxx = p[0];
             if (p[1] < miny) miny = p[1];

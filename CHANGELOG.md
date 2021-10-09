@@ -48,6 +48,7 @@ These usually have no immediately visible impact on regular users
     -   Fix unsnapped move of blocking shape not updating movement triangulation
 -   Composite shape tracker/aura toggles
 -   Movement block not updating directly when not using snapping
+-   Some performance dropoff for big polygons
 
 ## [0.28.0] - 2021-07-21
 

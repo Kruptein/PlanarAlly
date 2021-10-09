@@ -248,7 +248,8 @@ class SelectTool extends Tool implements ISelectTool {
                     selectionState.set(shape);
                     this.removeRotationUi();
                     this.createRotationUi(features);
-                    this.originalResizePoints = shape.points;
+                    const points = shape.points; // expensive call
+                    this.originalResizePoints = points;
                     this.mode = SelectOperations.Resize;
                     layer.invalidate(true);
                     hit = true;
@@ -256,8 +257,8 @@ class SelectTool extends Tool implements ISelectTool {
                     this.operationList = {
                         type: "resize",
                         uuid: shape.uuid,
-                        fromPoint: shape.points[this.resizePoint],
-                        toPoint: shape.points[this.resizePoint],
+                        fromPoint: points[this.resizePoint],
+                        toPoint: points[this.resizePoint],
                         resizePoint: this.resizePoint,
                         retainAspectRatio: false,
                     };
@@ -473,19 +474,17 @@ class SelectTool extends Tool implements ISelectTool {
                 if (!shape.visibleInCanvas({ w: layer.width, h: layer.height }, { includeAuras: false })) continue;
                 if (layerSelection.some((s) => s.uuid === shape.uuid)) continue;
 
-                if (shape.points.length > 1) {
-                    for (let i = 0; i < shape.points.length; i++) {
-                        const ray = Ray.fromPoints(
-                            toGP(shape.points[i]),
-                            toGP(shape.points[(i + 1) % shape.points.length]),
-                        );
+                const points = shape.points; // expensive call
+                if (points.length > 1) {
+                    for (let i = 0; i < points.length; i++) {
+                        const ray = Ray.fromPoints(toGP(points[i]), toGP(points[(i + 1) % points.length]));
                         if (cbbox.containsRay(ray).hit) {
                             selectionState.push(shape);
-                            i = shape.points.length; // break out of the inner loop
+                            i = points.length; // break out of the inner loop
                         }
                     }
                 } else {
-                    if (cbbox.contains(toGP(shape.points[0]))) {
+                    if (cbbox.contains(toGP(points[0]))) {
                         selectionState.push(shape);
                     }
                 }

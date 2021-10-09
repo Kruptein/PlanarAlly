@@ -12,7 +12,6 @@ import { LayerName } from "../../models/floor";
 import type { ServerShape } from "../../models/shapes";
 import { addOperation } from "../../operations/undo";
 import type { IShape } from "../../shapes/interfaces";
-import type { Shape } from "../../shapes/shape";
 import { createShapeFromDict } from "../../shapes/utils";
 import { initiativeStore } from "../../ui/initiative/state";
 import { TriangulationTarget, VisibilityMode, visionState } from "../../vision/state";
@@ -84,7 +83,7 @@ export class Layer {
         return this.getShapes(options).length;
     }
 
-    addShape(shape: Shape, sync: SyncMode, invalidate: InvalidationMode, options?: { snappable?: boolean }): void {
+    addShape(shape: IShape, sync: SyncMode, invalidate: InvalidationMode, options?: { snappable?: boolean }): void {
         shape.setLayer(this.floor, this.name);
 
         this.shapes.push(shape);

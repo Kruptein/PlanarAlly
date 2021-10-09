@@ -19,7 +19,7 @@ import type { Floor } from "../../models/floor";
 import { ToolName } from "../../models/tools";
 import type { ToolFeatures } from "../../models/tools";
 import { overrideLastOperation } from "../../operations/undo";
-import type { Shape } from "../../shapes/shape";
+import type { IShape } from "../../shapes/interfaces";
 import { Circle } from "../../shapes/variants/circle";
 import { Line } from "../../shapes/variants/line";
 import { Polygon } from "../../shapes/variants/polygon";
@@ -63,7 +63,7 @@ class DrawTool extends Tool {
     hasBrushSize = computed(() => [DrawShape.Brush, DrawShape.Polygon].includes(this.state.selectedShape));
 
     private startPoint?: GlobalPoint;
-    private shape?: Shape;
+    private shape?: IShape;
     private brushHelper?: Circle;
     private ruler?: Line;
     private pointer?: Polygon;

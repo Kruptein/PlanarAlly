@@ -15,7 +15,6 @@ import type { ServerShape } from "./models/shapes";
 import type { BaseTemplate } from "./models/templates";
 import { addOperation } from "./operations/undo";
 import type { IShape } from "./shapes/interfaces";
-import type { Shape } from "./shapes/shape";
 import { applyTemplate } from "./shapes/templates";
 import { createShapeFromDict } from "./shapes/utils";
 import { Asset } from "./shapes/variants/asset";
@@ -73,7 +72,7 @@ export function moveLayer(shapes: readonly IShape[], newLayer: Layer, sync: bool
     }
 }
 
-export function addShape(shape: ServerShape, sync: SyncMode): Shape | undefined {
+export function addShape(shape: ServerShape, sync: SyncMode): IShape | undefined {
     if (!floorStore.hasLayer(floorStore.getFloor({ name: shape.floor })!, shape.layer)) {
         console.log(`Shape with unknown layer ${shape.layer} could not be added`);
         return;

@@ -6,7 +6,7 @@ import { settingsStore } from "../../../store/settings";
 import { UuidMap } from "../../../store/shapeMap";
 import { getFogColour } from "../../colour";
 import { LayerName } from "../../models/floor";
-import type { Shape } from "../../shapes/shape";
+import type { IShape } from "../../shapes/interfaces";
 import { Circle } from "../../shapes/variants/circle";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { computeVisibility } from "../../vision/te";
@@ -14,14 +14,14 @@ import { computeVisibility } from "../../vision/te";
 import { FowLayer } from "./fow";
 
 export class FowLightingLayer extends FowLayer {
-    addShape(shape: Shape, sync: SyncMode, invalidate: InvalidationMode, options?: { snappable?: boolean }): void {
+    addShape(shape: IShape, sync: SyncMode, invalidate: InvalidationMode, options?: { snappable?: boolean }): void {
         super.addShape(shape, sync, invalidate, options);
         if (shape.options.preFogShape ?? false) {
             this.preFogShapes.push(shape);
         }
     }
 
-    removeShape(shape: Shape, sync: SyncMode, recalculate: boolean): boolean {
+    removeShape(shape: IShape, sync: SyncMode, recalculate: boolean): boolean {
         let idx = -1;
         if (shape.options.preFogShape ?? false) {
             idx = this.preFogShapes.findIndex((s) => s.uuid === shape.uuid);

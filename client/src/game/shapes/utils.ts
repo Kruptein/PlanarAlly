@@ -26,7 +26,6 @@ import { addOperation } from "../operations/undo";
 import { TriangulationTarget, VisibilityMode, visionState } from "../vision/state";
 
 import type { IShape } from "./interfaces";
-import type { Shape } from "./shape";
 import { Asset } from "./variants/asset";
 import { Circle } from "./variants/circle";
 import { CircularToken } from "./variants/circularToken";
@@ -37,8 +36,8 @@ import { Text } from "./variants/text";
 import { ToggleComposite } from "./variants/toggleComposite";
 
 // eslint-disable-next-line
-export function createShapeFromDict(shape: ServerShape): Shape | undefined {
-    let sh: Shape;
+export function createShapeFromDict(shape: ServerShape): IShape | undefined {
+    let sh: IShape;
 
     // A fromJSON and toJSON on Shape would be cleaner but ts does not allow for static abstracts so yeah.
 

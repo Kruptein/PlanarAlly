@@ -524,7 +524,7 @@ class SelectTool extends Tool implements ISelectTool {
                     )
                         continue;
 
-                    // movement is skipped during onMove and definitely has to be done here
+                    // movementBlock is skipped during onMove and definitely has to be done here
                     if (sel.blocksMovement) {
                         visionState.deleteFromTriangulation({
                             target: TriangulationTarget.MOVEMENT,
@@ -551,7 +551,7 @@ class SelectTool extends Tool implements ISelectTool {
                             recalcVision = true;
                         }
                     }
-                    // movement is skipped during onMove and definitely has to be done here
+                    // movementBlock is skipped during onMove and definitely has to be done here
                     if (sel.blocksMovement) {
                         visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: sel.uuid });
                         recalcMovement = true;
@@ -572,6 +572,14 @@ class SelectTool extends Tool implements ISelectTool {
             if (this.mode === SelectOperations.Resize) {
                 for (const sel of layerSelection) {
                     if (!sel.ownedBy(false, { movementAccess: true })) continue;
+
+                    // movementBlock is skipped during onMove and definitely has to be done here
+                    if (sel.blocksMovement)
+                        visionState.deleteFromTriangulation({
+                            target: TriangulationTarget.MOVEMENT,
+                            shape: sel.uuid,
+                        });
+
                     if (
                         settingsStore.useGrid.value &&
                         clientStore.useSnapping(event) &&
@@ -582,21 +590,19 @@ class SelectTool extends Tool implements ISelectTool {
                                 target: TriangulationTarget.VISION,
                                 shape: sel.uuid,
                             });
-                        if (sel.blocksMovement)
-                            visionState.deleteFromTriangulation({
-                                target: TriangulationTarget.MOVEMENT,
-                                shape: sel.uuid,
-                            });
                         sel.resizeToGrid(this.resizePoint, ctrlOrCmdPressed(event));
                         if (sel.blocksVision) {
                             visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: sel.uuid });
                             recalcVision = true;
                         }
-                        if (sel.blocksMovement) {
-                            visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: sel.uuid });
-                            recalcMovement = true;
-                        }
                     }
+
+                    // movementBlock is skipped during onMove and definitely has to be done here
+                    if (sel.blocksMovement) {
+                        visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: sel.uuid });
+                        recalcMovement = true;
+                    }
+
                     if (!sel.preventSync) {
                         sendShapeSizeUpdate({ shape: sel, temporary: false });
                     }

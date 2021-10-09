@@ -44,6 +44,7 @@ These usually have no immediately visible impact on regular users
     -   Fix startup not working correctly
     -   Fix unsnapped move of blocking shape not updating movement triangulation
 -   Composite shape tracker/aura toggles
+-   Movement block not updating directly when not using snapping
 
 ## [0.28.0] - 2021-07-21
 

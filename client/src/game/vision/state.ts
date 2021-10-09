@@ -3,7 +3,7 @@ import { Store } from "../../core/store";
 import { floorStore } from "../../store/floor";
 import { UuidMap } from "../../store/shapeMap";
 import { sendLocationOptions } from "../api/emits/location";
-import type { Aura } from "../shapes/interfaces";
+import type { Aura, IShape } from "../shapes/interfaces";
 import type { Shape } from "../shapes/shape";
 import type { Asset } from "../shapes/variants/asset";
 import { getPaths, pathToArray } from "../svg";
@@ -116,7 +116,7 @@ class VisionState extends Store<State> {
         (window as any).CDT = this.cdt;
     }
 
-    private triangulateShape(target: TriangulationTarget, shape: Shape): void {
+    private triangulateShape(target: TriangulationTarget, shape: IShape): void {
         if (shape.points.length === 0) return;
         if (shape.type === "assetrect") {
             const asset = shape as Asset;
@@ -185,7 +185,7 @@ class VisionState extends Store<State> {
         cdt.insertConstraint([-1e8, 1e11], [-1e8, 1e8]);
     }
 
-    private triangulatePath(target: TriangulationTarget, shape: Shape, path: number[][], closed: boolean): void {
+    private triangulatePath(target: TriangulationTarget, shape: IShape, path: number[][], closed: boolean): void {
         const j = closed ? 0 : 1;
         for (let i = 0; i < path.length - j; i++) {
             const pa = path[i].map((n) => parseFloat(n.toFixed(10)));
@@ -194,7 +194,7 @@ class VisionState extends Store<State> {
         }
     }
 
-    insertConstraint(target: TriangulationTarget, shape: Shape, pa: number[], pb: number[]): void {
+    insertConstraint(target: TriangulationTarget, shape: IShape, pa: number[], pb: number[]): void {
         const cdt = this.getCDT(target, shape.floor.id);
         const { va, vb } = cdt.insertConstraint(pa, pb);
         va.shapes.add(shape);
@@ -216,7 +216,7 @@ class VisionState extends Store<State> {
         }
     }
 
-    private deleteShapesFromTriangulation(target: TriangulationTarget, shape: Shape): void {
+    private deleteShapesFromTriangulation(target: TriangulationTarget, shape: IShape): void {
         if (shape.points.length <= 1) return;
         new IterativeDelete(target, shape);
     }

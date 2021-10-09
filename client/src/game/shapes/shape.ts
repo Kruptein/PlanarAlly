@@ -54,12 +54,12 @@ import type { ServerShape, ShapeOptions } from "../models/shapes";
 import { initiativeStore } from "../ui/initiative/state";
 import { TriangulationTarget, visionState } from "../vision/state";
 
-import type { Aura, Label, Tracker } from "./interfaces";
+import type { Aura, IShape, Label, Tracker } from "./interfaces";
 import type { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
 import type { SHAPE_TYPE } from "./types";
 import { BoundingRect } from "./variants/boundingRect";
 
-export abstract class Shape {
+export abstract class Shape implements IShape {
     // Used to create class instance from server shape data
     abstract readonly type: SHAPE_TYPE;
     // The unique ID of this shape

@@ -6,9 +6,8 @@ import { Store } from "../core/store";
 import { selectionState } from "../game/layers/selection";
 import { compositeState } from "../game/layers/state";
 import type { ShapeOptions } from "../game/models/shapes";
-import type { Aura, Label, Tracker } from "../game/shapes/interfaces";
+import type { Aura, IShape, Label, Tracker } from "../game/shapes/interfaces";
 import type { ShapeAccess, ShapeOwner } from "../game/shapes/owners";
-import type { Shape } from "../game/shapes/shape";
 import { createEmptyUiAura, createEmptyUiTracker } from "../game/shapes/trackers";
 import type { SHAPE_TYPE } from "../game/shapes/types";
 import type { ToggleComposite } from "../game/shapes/variants/toggleComposite";
@@ -625,7 +624,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
     // STARTUP / CLEANUP
 
-    setActiveShape(shape: Shape): void {
+    setActiveShape(shape: IShape): void {
         if (this._state.lastUuid === shape.uuid) this._state.showEditDialog = true;
 
         this._state.uuid = shape.uuid;

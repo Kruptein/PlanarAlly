@@ -206,7 +206,6 @@ export class Polygon extends Shape {
             const newVertices = this.vertices.slice(lastVertex + 1);
             this._vertices = this._vertices.slice(0, lastVertex);
             this._vertices.push(nearVertex!);
-            if (!this.preventSync) sendShapePositionUpdate([this], false);
 
             const newPolygon = new Polygon(nearVertex!, newVertices);
             const uuid = newPolygon.uuid;
@@ -226,6 +225,10 @@ export class Polygon extends Shape {
                 SyncMode.FULL_SYNC,
                 this.blocksVision ? InvalidationMode.WITH_LIGHT : InvalidationMode.NORMAL,
             );
+            // Do the OG shape update AFTER sending the new polygon or there might (depending on network)
+            // be a couple of frames where the new polygon is not shown and the old one is already cut
+            // potentially showing hidden stuff
+            if (!this.preventSync) sendShapePositionUpdate([this], false);
         }
     }
 

@@ -4,7 +4,6 @@ import { floorStore } from "../../store/floor";
 import { UuidMap } from "../../store/shapeMap";
 import { sendLocationOptions } from "../api/emits/location";
 import type { Aura, IShape } from "../shapes/interfaces";
-import type { Shape } from "../shapes/shape";
 import type { Asset } from "../shapes/variants/asset";
 import { getPaths, pathToArray } from "../svg";
 
@@ -221,7 +220,7 @@ class VisionState extends Store<State> {
         new IterativeDelete(target, shape);
     }
 
-    moveShape(shape: Shape, oldFloor: number, newFloor: number): void {
+    moveShape(shape: IShape, oldFloor: number, newFloor: number): void {
         if (shape.blocksMovement) {
             this.moveBlocker(TriangulationTarget.MOVEMENT, shape.uuid, oldFloor, newFloor, true);
         }
@@ -310,7 +309,7 @@ class VisionState extends Store<State> {
         }
     }
 
-    removeBlocker(target: TriangulationTarget, floor: number, shape: Shape, recalculate: boolean): void {
+    removeBlocker(target: TriangulationTarget, floor: number, shape: IShape, recalculate: boolean): void {
         const blockers = this.getBlockers(target, floor);
         const index = blockers.findIndex((ls) => ls === shape.uuid);
         if (index >= 0) {

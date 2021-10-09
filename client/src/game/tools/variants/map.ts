@@ -11,7 +11,7 @@ import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/sh
 import { selectionState } from "../../layers/selection";
 import { ToolName } from "../../models/tools";
 import type { ToolPermission } from "../../models/tools";
-import type { Shape } from "../../shapes/shape";
+import type { IShape } from "../../shapes/interfaces";
 import { Rect } from "../../shapes/variants/rect";
 import { Tool } from "../tool";
 
@@ -51,7 +51,7 @@ class MapTool extends Tool {
         return this.permittedTools_;
     }
 
-    setSelection(shapes: readonly Shape[]): void {
+    setSelection(shapes: readonly IShape[]): void {
         if (shapes.length === 1 && this.shape === undefined && ["assetrect", "rect"].includes(shapes[0].type)) {
             this.shape = shapes[0] as Rect;
             this.state.hasShape = true;

@@ -25,6 +25,7 @@ import type {
 import { addOperation } from "../operations/undo";
 import { TriangulationTarget, VisibilityMode, visionState } from "../vision/state";
 
+import type { IShape } from "./interfaces";
 import type { Shape } from "./shape";
 import { Asset } from "./variants/asset";
 import { Circle } from "./variants/circle";
@@ -138,7 +139,7 @@ export function copyShapes(): void {
     gameStore.setClipboardPosition(clientStore.screenCenter);
 }
 
-export function pasteShapes(targetLayer?: LayerName): readonly Shape[] {
+export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
     const layer = floorStore.getLayer(floorStore.currentFloor.value!, targetLayer);
     if (!layer) return [];
     const gameState = gameStore.state;
@@ -234,7 +235,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly Shape[] {
     return selectionState.get({ includeComposites: false });
 }
 
-export function deleteShapes(shapes: readonly Shape[], sync: SyncMode): void {
+export function deleteShapes(shapes: readonly IShape[], sync: SyncMode): void {
     const removed: string[] = [];
     const recalculateIterative = visionState.state.mode === VisibilityMode.TRIANGLE_ITERATIVE;
     let recalculateVision = false;

@@ -14,13 +14,14 @@ import type { Floor } from "./models/floor";
 import type { ServerShape } from "./models/shapes";
 import type { BaseTemplate } from "./models/templates";
 import { addOperation } from "./operations/undo";
+import type { IShape } from "./shapes/interfaces";
 import type { Shape } from "./shapes/shape";
 import { applyTemplate } from "./shapes/templates";
 import { createShapeFromDict } from "./shapes/utils";
 import { Asset } from "./shapes/variants/asset";
 import { visionState } from "./vision/state";
 
-export function moveFloor(shapes: Shape[], newFloor: Floor, sync: boolean): void {
+export function moveFloor(shapes: IShape[], newFloor: Floor, sync: boolean): void {
     shapes = shapes.filter((s) => !s.isLocked);
     if (shapes.length === 0) return;
     const oldLayer = shapes[0].layer;
@@ -45,7 +46,7 @@ export function moveFloor(shapes: Shape[], newFloor: Floor, sync: boolean): void
     }
 }
 
-export function moveLayer(shapes: readonly Shape[], newLayer: Layer, sync: boolean): void {
+export function moveLayer(shapes: readonly IShape[], newLayer: Layer, sync: boolean): void {
     if (shapes.length === 0) return;
     const oldLayer = shapes[0].layer;
 

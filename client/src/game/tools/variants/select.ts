@@ -34,7 +34,7 @@ import { moveShapes } from "../../operations/movement";
 import { resizeShape } from "../../operations/resize";
 import { rotateShapes } from "../../operations/rotation";
 import { addOperation } from "../../operations/undo";
-import type { Shape } from "../../shapes/shape";
+import type { IShape } from "../../shapes/interfaces";
 import type { BoundingRect } from "../../shapes/variants/boundingRect";
 import { Circle } from "../../shapes/variants/circle";
 import { Line } from "../../shapes/variants/line";
@@ -210,7 +210,7 @@ class SelectTool extends Tool implements ISelectTool {
 
         // The selectionStack allows for lower positioned objects that are selected to have precedence during overlap.
         const layerSelection = selectionState.get({ includeComposites: false });
-        let selectionStack: readonly Shape[];
+        let selectionStack: readonly IShape[];
         if (this.hasFeature(SelectFeatures.ChangeSelection, features)) {
             const shapes = layer.getShapes({ includeComposites: false });
             if (!layerSelection.length) selectionStack = shapes;

@@ -4,7 +4,7 @@ import { computed, onMounted, ref } from "vue";
 
 import { gameStore } from "../../../store/game";
 import { UuidMap } from "../../../store/shapeMap";
-import type { Shape } from "../../shapes/shape";
+import type { IShape } from "../../shapes/interfaces";
 import type { Asset } from "../../shapes/variants/asset";
 import { visionTool } from "../../tools/variants/vision";
 
@@ -37,7 +37,7 @@ function toggle(uuid: string): void {
     }
 }
 
-function getImageSrc(token: Shape): string {
+function getImageSrc(token: IShape): string {
     if (token.type === "assetrect") {
         return (token as Asset).src;
     }

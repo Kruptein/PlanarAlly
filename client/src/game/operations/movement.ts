@@ -2,13 +2,13 @@ import { addP, toArrayP } from "../../core/geometry";
 import type { Vector } from "../../core/geometry";
 import { sendShapePositionUpdate } from "../api/emits/shape/core";
 import { moveClient } from "../client";
-import type { Shape } from "../shapes/shape";
+import type { IShape } from "../shapes/interfaces";
 import { TriangulationTarget, visionState } from "../vision/state";
 
 import type { MovementOperation, ShapeMovementOperation } from "./model";
 import { addOperation } from "./undo";
 
-export function moveShapes(shapes: readonly Shape[], delta: Vector, temporary: boolean): void {
+export function moveShapes(shapes: readonly IShape[], delta: Vector, temporary: boolean): void {
     let recalculateMovement = false;
     let recalculateVision = false;
 

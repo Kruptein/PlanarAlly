@@ -6,7 +6,7 @@ import { floorStore } from "../store/floor";
 import type { Layer } from "./layers/variants/layer";
 import { LayerName } from "./models/floor";
 import type { Floor } from "./models/floor";
-import type { Shape } from "./shapes/shape";
+import type { IShape } from "./shapes/interfaces";
 import { TriangulationTarget } from "./vision/state";
 import { EdgeIterator } from "./vision/tds";
 import type { Edge, TDS } from "./vision/tds";
@@ -58,7 +58,7 @@ function drawFloor(floor: Floor): void {
     if (fowLayer) fowLayer.draw();
 }
 
-export function drawAuras(shape: Shape, ctx: CanvasRenderingContext2D): void {
+export function drawAuras(shape: IShape, ctx: CanvasRenderingContext2D): void {
     const center = shape.center();
     const lCenter = g2l(center);
 

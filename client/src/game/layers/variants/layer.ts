@@ -11,7 +11,7 @@ import { removeGroupMember } from "../../groups";
 import { LayerName } from "../../models/floor";
 import type { ServerShape } from "../../models/shapes";
 import { addOperation } from "../../operations/undo";
-import type { Shape } from "../../shapes/shape";
+import type { IShape } from "../../shapes/interfaces";
 import { createShapeFromDict } from "../../shapes/utils";
 import { initiativeStore } from "../../ui/initiative/state";
 import { TriangulationTarget, VisibilityMode, visionState } from "../../vision/state";
@@ -32,7 +32,7 @@ export class Layer {
 
     // The collection of shapes that this layer contains.
     // These are ordered on a depth basis.
-    protected shapes: Shape[] = [];
+    protected shapes: IShape[] = [];
 
     points: Map<string, Set<string>> = new Map();
 
@@ -83,7 +83,7 @@ export class Layer {
         return this.getShapes(options).length;
     }
 
-    addShape(shape: Shape, sync: SyncMode, invalidate: InvalidationMode, options?: { snappable?: boolean }): void {
+    addShape(shape: IShape, sync: SyncMode, invalidate: InvalidationMode, options?: { snappable?: boolean }): void {
         shape.setLayer(this.floor, this.name);
 
         this.shapes.push(shape);
@@ -120,9 +120,9 @@ export class Layer {
 
     // UI helpers are objects that are created for UI reaons but that are not pertinent to the actual state
     // They are often not desired unless in specific circumstances
-    getShapes(options: { skipUiHelpers?: boolean; includeComposites: boolean }): readonly Shape[] {
+    getShapes(options: { skipUiHelpers?: boolean; includeComposites: boolean }): readonly IShape[] {
         const skipUiHelpers = options.skipUiHelpers ?? true;
-        let shapes: readonly Shape[] = skipUiHelpers
+        let shapes: readonly IShape[] = skipUiHelpers
             ? this.shapes.filter((s) => !(s.options.UiHelper ?? false))
             : this.shapes;
         if (options.includeComposites) {
@@ -131,16 +131,16 @@ export class Layer {
         return shapes;
     }
 
-    pushShapes(...shapes: Shape[]): void {
+    pushShapes(...shapes: IShape[]): void {
         this.shapes.push(...shapes);
     }
 
-    setShapes(...shapes: Shape[]): void {
+    setShapes(...shapes: IShape[]): void {
         this.shapes = shapes;
     }
 
     setServerShapes(shapes: ServerShape[]): void {
-        if (this.isActiveLayer) selectionState.clear(false); // TODO: Fix keeping selection on those items that are not moved.
+        if (this.isActiveLayer) selectionState.clear(); // TODO: Fix keeping selection on those items that are not moved.
         // We need to ensure composites are added after all their variants have been added
         const composites = [];
         for (const serverShape of shapes) {
@@ -166,7 +166,7 @@ export class Layer {
         this.addShape(shape, SyncMode.NO_SYNC, invalidate);
     }
 
-    removeShape(shape: Shape, sync: SyncMode, recalculate: boolean): boolean {
+    removeShape(shape: IShape, sync: SyncMode, recalculate: boolean): boolean {
         const idx = this.shapes.indexOf(shape);
         if (idx < 0) {
             console.error("attempted to remove shape not in layer.");
@@ -215,7 +215,7 @@ export class Layer {
     }
 
     // TODO: This does not take into account shapes that the server does not know about
-    moveShapeOrder(shape: Shape, destinationIndex: number, sync: SyncMode): void {
+    moveShapeOrder(shape: IShape, destinationIndex: number, sync: SyncMode): void {
         const oldIdx = this.shapes.indexOf(shape);
         if (oldIdx === destinationIndex) return;
         this.shapes.splice(oldIdx, 1);
@@ -255,7 +255,7 @@ export class Layer {
 
             const currentLayer = floorStore.currentLayer.value;
             // To optimize things slightly, we keep track of the shapes that passed the first round
-            const visibleShapes: Shape[] = [];
+            const visibleShapes: IShape[] = [];
 
             // Aura draw loop
             for (const shape of this.shapes) {

@@ -127,7 +127,7 @@ const layers = computed(() => {
 
 function setLayer(newLayer: LayerName): void {
     const oldSelection = [...selectionState.get({ includeComposites: true })];
-    selectionState.clear(false);
+    selectionState.clear();
     moveLayer(oldSelection, floorStore.getLayer(floorStore.currentFloor.value!, newLayer)!, true);
     close();
 }

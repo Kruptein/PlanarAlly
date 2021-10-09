@@ -1,5 +1,5 @@
 import type { ServerShape } from "../../../models/shapes";
-import type { Shape } from "../../../shapes/shape";
+import type { IShape } from "../../../shapes/interfaces";
 import type { Circle } from "../../../shapes/variants/circle";
 import type { Rect } from "../../../shapes/variants/rect";
 import type { Text } from "../../../shapes/variants/text";
@@ -17,7 +17,7 @@ export const sendShapesMove = wrapSocket<{
     target: { location: number; floor: string; x: number; y: number };
 }>("Shapes.Location.Move");
 
-export function sendShapeOptionsUpdate(shapes: readonly Shape[], temporary: boolean): void {
+export function sendShapeOptionsUpdate(shapes: readonly IShape[], temporary: boolean): void {
     const options = shapes
         .filter((s) => !s.preventSync)
         .map((s) => ({ uuid: s.uuid, option: JSON.stringify(Object.entries(s.options)) }));
@@ -29,14 +29,14 @@ export function sendShapeOptionsUpdate(shapes: readonly Shape[], temporary: bool
     }
 }
 
-export function sendShapePositionUpdate(shapes: readonly Shape[], temporary: boolean): void {
+export function sendShapePositionUpdate(shapes: readonly IShape[], temporary: boolean): void {
     const positions = shapes
         .filter((s) => !s.preventSync)
         .map((s) => ({ uuid: s.uuid, position: s.getPositionRepresentation() }));
     if (positions.length > 0) _sendShapePositionUpdate(positions, temporary);
 }
 
-export function sendShapeSizeUpdate(data: { shape: Shape; temporary: boolean }): void {
+export function sendShapeSizeUpdate(data: { shape: IShape; temporary: boolean }): void {
     switch (data.shape.type) {
         case "assetrect":
         case "rect": {

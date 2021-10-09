@@ -3,13 +3,13 @@ This module defines some Point classes.
 A strong focus is made to ensure that at no time a global and a local point are mixed up with each other.
 At first glance this adds weird looking hacks as ts does not support nominal typing.
 */
-function getPointDistance(p1: Point | Vector, p2: Point | Vector): number {
+export function getPointDistance(p1: Point | Vector, p2: Point | Vector): number {
     const a = p1.x - p2.x;
     const b = p1.y - p2.y;
     return Math.sqrt(a * a + b * b);
 }
 
-export function getDistanceToSegment(p: Point, line: [Point, Point]): number {
+export function getDistanceToSegment<T extends Point>(p: T, line: [T, T]): { distance: number; nearest: T } {
     const lineVector = Vector.fromPoints(...line);
     const pointVector = Vector.fromPoints(line[0], p);
     const pointVectorScaled = pointVector.multiply(1 / lineVector.length());
@@ -17,7 +17,11 @@ export function getDistanceToSegment(p: Point, line: [Point, Point]): number {
     if (t < 0) t = 0;
     else if (t > 1) t = 1;
     const nearest = lineVector.multiply(t);
-    return getPointDistance(nearest, pointVector);
+    return { distance: getPointDistance(nearest, pointVector), nearest: addP(line[0], nearest) };
+}
+
+export function getAngleBetween(a: Vector, b: Vector): number {
+    return -a.angle() + b.angle(); // inverted y-axis
 }
 
 export type Point = { x: number; y: number };
@@ -104,8 +108,13 @@ export class Vector {
     multiply(scale: number): Vector {
         return new Vector(this.x * scale, this.y * scale);
     }
+
+    deg(): number {
+        return (this.angle() * 180) / Math.PI;
+    }
+
     angle(): number {
-        return (Math.atan2(this.y, this.x) * 180) / Math.PI;
+        return Math.atan2(this.y, this.x);
     }
 }
 

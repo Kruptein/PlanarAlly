@@ -14,7 +14,7 @@ import { sendRequestInitiatives } from "../../api/emits/initiative";
 import { getGroupMembers } from "../../groups";
 import type { InitiativeData } from "../../models/initiative";
 import { InitiativeEffectMode, InitiativeSort } from "../../models/initiative";
-import type { Shape } from "../../shapes/shape";
+import type { IShape } from "../../shapes/interfaces";
 import type { Asset } from "../../shapes/variants/asset";
 import { ClientSettingCategory } from "../settings/client/categories";
 
@@ -78,7 +78,7 @@ function removeEffect(shape: string, index: number): void {
 function toggleHighlight(actorId: string, show: boolean): void {
     const shape = UuidMap.get(actorId);
     if (shape === undefined) return;
-    let shapeArray: Shape[];
+    let shapeArray: IShape[];
     if (shape.groupId === undefined) {
         shapeArray = [shape];
     } else {

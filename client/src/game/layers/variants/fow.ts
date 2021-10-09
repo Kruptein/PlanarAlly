@@ -1,13 +1,13 @@
 import { floorStore } from "../../../store/floor";
 import { LayerName } from "../../models/floor";
-import type { Shape } from "../../shapes/shape";
+import type { IShape } from "../../shapes/interfaces";
 import { createCanvas, setCanvasDimensions } from "../canvas";
 
 import { Layer } from "./layer";
 
 export class FowLayer extends Layer {
     isVisionLayer = true;
-    preFogShapes: Shape[] = [];
+    preFogShapes: IShape[] = [];
     virtualCanvas: HTMLCanvasElement;
     vCtx: CanvasRenderingContext2D;
 

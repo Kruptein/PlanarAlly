@@ -12,7 +12,7 @@ import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { selectionState } from "../../layers/selection";
 import { ToolName } from "../../models/tools";
 import type { ToolPermission } from "../../models/tools";
-import type { Shape } from "../../shapes/shape";
+import type { IShape } from "../../shapes/interfaces";
 import { Circle } from "../../shapes/variants/circle";
 import { Rect } from "../../shapes/variants/rect";
 import { Tool } from "../tool";
@@ -30,7 +30,7 @@ class SpellTool extends Tool {
     readonly toolName = ToolName.Spell;
     readonly toolTranslation = i18n.global.t("tool.Spell");
 
-    shape?: Shape;
+    shape?: IShape;
     rangeShape?: Circle;
 
     state = reactive({

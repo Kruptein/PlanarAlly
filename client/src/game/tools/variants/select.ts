@@ -1,7 +1,17 @@
-import { ref } from "vue";
+import { ref, watchEffect } from "vue";
 
-import { g2l, g2lx, g2ly, l2g, l2gz } from "../../../core/conversions";
-import { addP, toArrayP, toGP, toLP, Ray, Vector } from "../../../core/geometry";
+import { g2l, g2lx, g2ly, g2lz, l2g, l2gz, toDegrees, toRadians } from "../../../core/conversions";
+import {
+    addP,
+    toArrayP,
+    toGP,
+    toLP,
+    Ray,
+    Vector,
+    getPointDistance,
+    getDistanceToSegment,
+    getAngleBetween,
+} from "../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { equalPoints, snapToPoint } from "../../../core/math";
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
@@ -11,10 +21,12 @@ import { clientStore, DEFAULT_GRID_SIZE } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
+import { UuidMap } from "../../../store/shapeMap";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import { calculateDelta } from "../../drag";
 import { getLocalPointFromEvent } from "../../input/mouse";
 import { selectionState } from "../../layers/selection";
+import { LayerName } from "../../models/floor";
 import { ToolMode, ToolName } from "../../models/tools";
 import type { ISelectTool, ToolFeatures, ToolPermission } from "../../models/tools";
 import type { Operation } from "../../operations/model";
@@ -22,15 +34,16 @@ import { moveShapes } from "../../operations/movement";
 import { resizeShape } from "../../operations/resize";
 import { rotateShapes } from "../../operations/rotation";
 import { addOperation } from "../../operations/undo";
-import type { Shape } from "../../shapes/shape";
+import type { IShape } from "../../shapes/interfaces";
 import type { BoundingRect } from "../../shapes/variants/boundingRect";
 import { Circle } from "../../shapes/variants/circle";
 import { Line } from "../../shapes/variants/line";
+import type { Polygon } from "../../shapes/variants/polygon";
 import { Rect } from "../../shapes/variants/rect";
 import { openDefaultContextMenu, openShapeContextMenu } from "../../ui/contextmenu/state";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { Tool } from "../tool";
-import { activeToolMode, deactivateTool } from "../tools";
+import { activeToolMode, deactivateTool, getFeatures } from "../tools";
 
 import { RulerFeatures } from "./ruler";
 
@@ -50,6 +63,7 @@ export enum SelectFeatures {
     Resize,
     Snapping,
     Rotate,
+    PolygonEdit,
 }
 
 // Calculate 45 degrees in radians just once
@@ -65,9 +79,19 @@ class SelectTool extends Tool implements ISelectTool {
     hasSelection = ref(false);
     showRuler = ref(false);
 
+    polygonUiLeft = ref("0px");
+    polygonUiTop = ref("0px");
+    polygonUiAngle = ref("0deg");
+    polygonUiVisible = ref("hidden");
+    polygonUiSizeX = ref("25px");
+    polygonUiSizeY = ref("25px");
+    polygonUiVertex = ref(false);
+
     // NON REACTIVE PROPERTIES
 
     mode = SelectOperations.Noop;
+
+    lastMousePosition = toGP(0, 0);
 
     angle = 0;
     rotationUiActive = false;
@@ -90,10 +114,33 @@ class SelectTool extends Tool implements ISelectTool {
     operationReady = false;
     operationList?: Operation;
 
+    // polygon-edit related
+    polygonTracer: Circle | null = null;
+
     private permittedTools_: ToolPermission[] = [];
 
     get permittedTools(): ToolPermission[] {
         return this.permittedTools_;
+    }
+
+    constructor() {
+        super();
+
+        watchEffect(() => {
+            const selection = selectionState.state.selection;
+            if (selection.size !== 1) {
+                this.removePolygonEditUi();
+            } else {
+                const features = getFeatures(this.toolName);
+                if (this.hasFeature(SelectFeatures.PolygonEdit, features)) {
+                    const uuid = [...selection.values()][0];
+                    if (UuidMap.get(uuid)!.type === "polygon") {
+                        return this.createPolygonEditUi();
+                    }
+                }
+                this.removePolygonEditUi();
+            }
+        });
     }
 
     setToolPermissions(permissions?: ToolPermission[]): void {
@@ -114,8 +161,27 @@ class SelectTool extends Tool implements ISelectTool {
         if (mode === ToolMode.Play) {
             document.body.style.cursor = "default";
             this.removeRotationUi();
-        } else if (this.hasFeature(SelectFeatures.Rotate, features)) {
-            this.createRotationUi(features);
+            this.removePolygonEditUi();
+        } else {
+            if (this.hasFeature(SelectFeatures.Rotate, features)) {
+                this.createRotationUi(features);
+            }
+            if (this.hasFeature(SelectFeatures.PolygonEdit, features)) {
+                this.createPolygonEditUi();
+            }
+        }
+    }
+
+    onDeselect(): void {
+        this.removePolygonEditUi();
+    }
+
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onSelect(): Promise<void> {
+        const features = getFeatures(this.toolName);
+        if (this.hasFeature(SelectFeatures.PolygonEdit, features)) {
+            this.createPolygonEditUi();
+            this.polygonUiVisible.value = "hidden";
         }
     }
 
@@ -144,7 +210,7 @@ class SelectTool extends Tool implements ISelectTool {
 
         // The selectionStack allows for lower positioned objects that are selected to have precedence during overlap.
         const layerSelection = selectionState.get({ includeComposites: false });
-        let selectionStack: readonly Shape[];
+        let selectionStack: readonly IShape[];
         if (this.hasFeature(SelectFeatures.ChangeSelection, features)) {
             const shapes = layer.getShapes({ includeComposites: false });
             if (!layerSelection.length) selectionStack = shapes;
@@ -199,7 +265,7 @@ class SelectTool extends Tool implements ISelectTool {
                     break;
                 }
             }
-            if (shape.contains(gp, 50)) {
+            if (shape.contains(gp)) {
                 if (layerSelection.indexOf(shape) === -1) {
                     if (ctrlOrCmdPressed(event)) {
                         selectionState.push(shape);
@@ -262,7 +328,7 @@ class SelectTool extends Tool implements ISelectTool {
             }
 
             if (!ctrlOrCmdPressed(event)) {
-                selectionState.clear(false);
+                selectionState.clear();
             }
 
             if (this.rotationUiActive) {
@@ -278,10 +344,17 @@ class SelectTool extends Tool implements ISelectTool {
         // if we only have context capabilities, immediately skip
         if (features.enabled?.length === 1 && features.enabled[0] === SelectFeatures.Context) return;
 
+        const gp = l2g(lp);
+        this.lastMousePosition = gp;
+
         // We require move for the resize and rotate cursors
         if (
             !this.active &&
-            !(this.hasFeature(SelectFeatures.Resize, features) || this.hasFeature(SelectFeatures.Rotate, features))
+            !(
+                this.hasFeature(SelectFeatures.Resize, features) ||
+                this.hasFeature(SelectFeatures.Rotate, features) ||
+                this.hasFeature(SelectFeatures.PolygonEdit, features)
+            )
         )
             return;
 
@@ -293,8 +366,6 @@ class SelectTool extends Tool implements ISelectTool {
 
         const layerSelection = selectionState.get({ includeComposites: false });
         if (layerSelection.some((s) => s.isLocked)) return;
-
-        const gp = l2g(lp);
 
         this.deltaChanged = false;
 
@@ -336,6 +407,10 @@ class SelectTool extends Tool implements ISelectTool {
                     this.createRotationUi(features);
                 }
 
+                if (this.hasFeature(SelectFeatures.PolygonEdit, features)) {
+                    this.updatePolygonEditUi(gp);
+                }
+
                 layer.invalidate(false);
             } else if (this.mode === SelectOperations.Resize) {
                 const shape = layerSelection[0];
@@ -350,13 +425,13 @@ class SelectTool extends Tool implements ISelectTool {
                 else this.snappedToPoint = false;
 
                 this.resizePoint = resizeShape(shape, targetPoint, this.resizePoint, ctrlOrCmdPressed(event), true);
-                this.updateCursor(gp);
+                this.updateCursor(gp, features);
             } else if (this.mode === SelectOperations.Rotate) {
                 const center = this.rotationBox!.center();
                 const newAngle = -Math.atan2(center.y - gp.y, gp.x - center.x) + Math.PI / 2;
                 this.rotateSelection(newAngle, center, true);
             } else {
-                this.updateCursor(gp);
+                this.updateCursor(gp, features);
             }
         } else {
             document.body.style.cursor = "default";
@@ -389,7 +464,7 @@ class SelectTool extends Tool implements ISelectTool {
             if (ctrlOrCmdPressed(event)) {
                 // If either control or shift are pressed, do not remove selection
             } else {
-                selectionState.clear(false);
+                selectionState.clear();
             }
             const cbbox = this.selectionHelper!.getBoundingBox();
             for (const shape of layer.getShapes({ includeComposites: false })) {
@@ -449,7 +524,7 @@ class SelectTool extends Tool implements ISelectTool {
                     )
                         continue;
 
-                    // movement is skipped during onMove and definitely has to be done here
+                    // movementBlock is skipped during onMove and definitely has to be done here
                     if (sel.blocksMovement) {
                         visionState.deleteFromTriangulation({
                             target: TriangulationTarget.MOVEMENT,
@@ -476,7 +551,7 @@ class SelectTool extends Tool implements ISelectTool {
                             recalcVision = true;
                         }
                     }
-                    // movement is skipped during onMove and definitely has to be done here
+                    // movementBlock is skipped during onMove and definitely has to be done here
                     if (sel.blocksMovement) {
                         visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: sel.uuid });
                         recalcMovement = true;
@@ -497,6 +572,14 @@ class SelectTool extends Tool implements ISelectTool {
             if (this.mode === SelectOperations.Resize) {
                 for (const sel of layerSelection) {
                     if (!sel.ownedBy(false, { movementAccess: true })) continue;
+
+                    // movementBlock is skipped during onMove and definitely has to be done here
+                    if (sel.blocksMovement)
+                        visionState.deleteFromTriangulation({
+                            target: TriangulationTarget.MOVEMENT,
+                            shape: sel.uuid,
+                        });
+
                     if (
                         settingsStore.useGrid.value &&
                         clientStore.useSnapping(event) &&
@@ -507,21 +590,19 @@ class SelectTool extends Tool implements ISelectTool {
                                 target: TriangulationTarget.VISION,
                                 shape: sel.uuid,
                             });
-                        if (sel.blocksMovement)
-                            visionState.deleteFromTriangulation({
-                                target: TriangulationTarget.MOVEMENT,
-                                shape: sel.uuid,
-                            });
                         sel.resizeToGrid(this.resizePoint, ctrlOrCmdPressed(event));
                         if (sel.blocksVision) {
                             visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: sel.uuid });
                             recalcVision = true;
                         }
-                        if (sel.blocksMovement) {
-                            visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: sel.uuid });
-                            recalcMovement = true;
-                        }
                     }
+
+                    // movementBlock is skipped during onMove and definitely has to be done here
+                    if (sel.blocksMovement) {
+                        visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: sel.uuid });
+                        recalcMovement = true;
+                    }
+
                     if (!sel.preventSync) {
                         sendShapeSizeUpdate({ shape: sel, temporary: false });
                     }
@@ -705,13 +786,90 @@ class SelectTool extends Tool implements ISelectTool {
         layer.invalidate(false);
     }
 
+    // POLYGON EDIT
+
+    createPolygonEditUi(): void {
+        const selection = selectionState.get({ includeComposites: false });
+        if (selection.length !== 1 || selection[0].type !== "polygon") return;
+
+        this.removePolygonEditUi();
+
+        this.polygonTracer = new Circle(toGP(0, 0), 3, { fillColour: "rgba(0,0,0,0)", strokeColour: "black" });
+        const drawLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw)!;
+        drawLayer.addShape(this.polygonTracer, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
+        this.updatePolygonEditUi(this.lastMousePosition);
+        drawLayer.invalidate(true);
+    }
+
+    removePolygonEditUi(): void {
+        if (this.polygonTracer !== null) {
+            const drawLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw)!;
+            drawLayer.removeShape(this.polygonTracer, SyncMode.NO_SYNC, false);
+            drawLayer.invalidate(true);
+            this.polygonTracer = null;
+            this.polygonUiVisible.value = "hidden";
+        }
+    }
+
+    updatePolygonEditUi(gp: GlobalPoint): void {
+        if (this.polygonTracer === null) return;
+        const selection = selectionState.get({ includeComposites: false });
+        const polygon = selection[0] as Polygon;
+
+        const pw = g2lz(polygon.lineWidth);
+
+        const pv = polygon.vertices;
+        let smallest = { distance: polygon.lineWidth * 2, nearest: gp, angle: 0, point: false };
+        for (let i = 1; i < pv.length; i++) {
+            const prevVertex = pv[i - 1];
+            const vertex = pv[i];
+            // check prev-vertex
+            if (getPointDistance(prevVertex, gp) < polygon.lineWidth / 1.5) {
+                const vec = Vector.fromPoints(prevVertex, vertex);
+                let angle;
+                if (i === 1) {
+                    angle = vec.deg();
+                } else {
+                    const between = getAngleBetween(Vector.fromPoints(prevVertex, pv[i - 2]), vec) / 2;
+                    angle = (Math.abs(between) < Math.PI / 2 ? 1 : -1) * 90 - toDegrees(-vec.angle() + between);
+                }
+                smallest = { distance: 0, nearest: prevVertex, point: true, angle };
+                break;
+            }
+            // check edge
+            const info = getDistanceToSegment(gp, [prevVertex, vertex]);
+            if (info.distance < polygon.lineWidth / 1.5 && info.distance < smallest.distance) {
+                smallest = { ...info, angle: Vector.fromPoints(prevVertex, vertex).deg(), point: false };
+            }
+        }
+        //check last vertex
+        if (getPointDistance(pv[pv.length - 1], gp) < polygon.lineWidth / 2) {
+            smallest = { distance: 0, nearest: pv[pv.length - 1], point: true, angle: smallest.angle };
+        }
+        // Show the UI
+        if (smallest.distance <= polygon.lineWidth) {
+            this.polygonUiVisible.value = "visible";
+            this.polygonTracer!.refPoint = smallest.nearest;
+            this.polygonTracer!.layer.invalidate(true);
+            const lp = g2l(smallest.nearest);
+            const radians = toRadians(smallest.angle);
+            this.polygonUiLeft.value = `${lp.x - 25}px`;
+            this.polygonUiTop.value = `${lp.y - 25 / 2}px`;
+            this.polygonUiAngle.value = `${smallest.angle}deg`;
+            // 12.5 + pw/2 is the exact border, additional scaling to give a bit of air
+            this.polygonUiSizeX.value = `${-Math.sin(radians) * (15 + (1.5 * pw) / 2)}px`;
+            this.polygonUiSizeY.value = `${Math.cos(radians) * (15 + (1.5 * pw) / 2)}px`;
+            this.polygonUiVertex.value = smallest.point;
+        }
+    }
+
     // CURSOR
 
-    updateCursor(globalMouse: GlobalPoint): void {
+    updateCursor(globalMouse: GlobalPoint, features: ToolFeatures<SelectFeatures>): void {
         let cursorStyle = "default";
         const layerSelection = selectionState.get({ includeComposites: false });
         for (const sel of layerSelection) {
-            const resizePoint = sel.getPointIndex(globalMouse, l2gz(3));
+            const resizePoint = sel.getPointIndex(globalMouse, l2gz(4));
             if (resizePoint < 0) {
                 // test rotate case
                 if (this.rotationUiActive) {
@@ -722,7 +880,7 @@ class SelectTool extends Tool implements ISelectTool {
                     }
                 }
             } else {
-                let angle = sel.getPointOrientation(resizePoint).angle();
+                let angle = sel.getPointOrientation(resizePoint).deg();
                 if (angle < 0) angle += 360;
                 const d = 45 / 2;
                 if (angle >= 315 + d || angle < d || (angle >= 135 + d && angle < 225 - d)) cursorStyle = "ew-resize";
@@ -735,6 +893,10 @@ class SelectTool extends Tool implements ISelectTool {
             }
         }
         document.body.style.cursor = cursorStyle;
+
+        if (this.hasFeature(SelectFeatures.PolygonEdit, features)) {
+            this.updatePolygonEditUi(globalMouse);
+        }
     }
 }
 

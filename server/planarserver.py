@@ -6,10 +6,11 @@ This is the code responsible for starting the backend and reacting to socket IO 
 # Check for existence of './templates/' as it is not present if client was not built before
 from argparse import ArgumentParser
 import getpass
-from urllib.parse import quote, unquote
 import os
 import sys
+from urllib.parse import quote, unquote
 from utils import FILE_DIR
+from types import SimpleNamespace
 
 # Mimetype recognition for js files apparently is not always properly setup out of the box for some users out there.
 import mimetypes
@@ -155,6 +156,17 @@ def server_main(args):
             loop.run_until_complete(runner.cleanup())
 
 
+def list_main(args):
+    """List all of the requested resource type."""
+    resource = args.resource.lower()
+    if resource == "user":
+        for user in User.select():
+            print(user.name)
+    elif resource == "room":
+        for room in Room.select():
+            print(f"{quote(room.creator.name, safe='')}/{quote(room.name, safe='')}")
+
+
 def get_room(path):
     try:
         user, room = path.split("/")
@@ -167,34 +179,16 @@ def get_room(path):
     return room
 
 
-resource_types = [
-    {
-        "resource": User,
-        "display": lambda x: x.name,
-        "retrieve": lambda x: User.by_name(x),
-    },
-    {
-        "resource": Room,
-        "display": lambda x: f"{quote(x.creator.name, safe='')}/{quote(x.name, safe='')}",
-        "retrieve": get_room,
-    },
-]
-
-
-def list_main(args):
-    """List all of the requested resource type."""
-    for resource_type in resource_types:
-        if resource_type["resource"].__name__.lower() == args.resource:
-            for resource in resource_type["resource"].select():
-                print(resource_type["display"](resource))
-
-
 def remove_main(args):
     """Remove a requested resource."""
-    for resource_type in resource_types:
-        if resource_type["resource"].__name__.lower() == args.resource:
-            chosen_resource = resource_type["retrieve"](args.name)
-            chosen_resource.delete_instance()
+    resource = args.resource.lower()
+
+    if resource == "user":
+        user = User.by_name(args.name)
+        user.delete_instance()
+    elif resource == "room":
+        room = get_room(args.name)
+        room.delete_instance()
 
 
 def reset_password_main(args):
@@ -229,10 +223,8 @@ def main():
     if len(sys.argv) < 2 or (len(sys.argv) == 2 and sys.argv[1] == "dev"):
         # To keep the previous syntax, if this script is called with no args,
         # Or with just dev, we should start the server.
-        args = {"dev": None}
-        if len(sys.argv) == 2:
-            args["dev"] = sys.argv[1]
-        server_main(type("args", (object,), args))
+        args = SimpleNamespace(dev=len(sys.argv) == 2)
+        server_main(args)
         return
 
     parser = ArgumentParser()
@@ -254,9 +246,7 @@ def main():
         ],
     )
 
-    resource_names = [
-        resource["resource"].__name__.lower() for resource in resource_types
-    ]
+    resource_names = ["room", "user"]
 
     add_subcommand(
         "list",

@@ -14,6 +14,8 @@ from utils import FILE_DIR
 import mimetypes
 import save
 
+save_newly_created = save.check_existence()
+
 import asyncio
 import configparser
 
@@ -136,7 +138,8 @@ def server_main(_args):
     mimetypes.init()
     mimetypes.types_map[".js"] = "application/javascript; charset=utf-8"
 
-    save.check_save()
+    if not save_newly_created:
+        save.check_outdated()
 
     loop.create_task(start_servers())
 

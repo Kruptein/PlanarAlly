@@ -1,6 +1,7 @@
 from aiohttp import web
 from aiohttp.web_exceptions import HTTPUnauthorized
 from aiohttp_security import check_authorized
+from export.campaign import export_campaign
 
 from models import Location, LocationOptions, PlayerRoom, Room, User
 from models.db import db
@@ -169,4 +170,20 @@ async def delete(request: web.Request):
             pr[0].delete_instance(True)
             return web.HTTPOk()
 
+    return web.HTTPUnauthorized()
+
+
+async def export(request: web.Request):
+    user: User = await check_authorized(request)
+
+    creator = request.match_info["creator"]
+    roomname = request.match_info["roomname"]
+
+    if creator == user.name:
+        room: Room = Room.get_or_none(name=roomname, creator=user)
+        if room is None:
+            return web.HTTPBadRequest()
+
+        export_campaign(room)
+        return web.HTTPOk()
     return web.HTTPUnauthorized()

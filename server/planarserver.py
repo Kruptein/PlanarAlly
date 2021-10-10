@@ -9,6 +9,7 @@ import getpass
 import os
 import sys
 from urllib.parse import quote, unquote
+from export.campaign import import_campaign
 from utils import FILE_DIR
 from types import SimpleNamespace
 
@@ -167,16 +168,16 @@ def list_main(args):
             print(f"{quote(room.creator.name, safe='')}/{quote(room.name, safe='')}")
 
 
-def get_room(path):
+def get_room(path) -> Room:
     try:
         user, room = path.split("/")
     except ValueError:
         print("Invalid room. The room should have a single '/'")
+        sys.exit(1)
 
     user = User.by_name(unquote(user))
 
-    room = Room.get(name=unquote(room), creator=user)
-    return room
+    return Room.get(name=unquote(room), creator=user)
 
 
 def remove_main(args):
@@ -210,6 +211,10 @@ def reset_password_main(args):
         password = first_password
     user.set_password(password)
     user.save()
+
+
+def import_main(args):
+    import_campaign(args.file)
 
 
 def add_subcommand(name, func, parent_parser, args):
@@ -276,6 +281,18 @@ def main():
             ("name", {"help": "The name of the user."}),
             (
                 "--password",
+                {"help": "The new password. Will be prompted for if not provided."},
+            ),
+        ],
+    )
+
+    add_subcommand(
+        "import",
+        import_main,
+        subparsers,
+        [
+            (
+                "--file",
                 {"help": "The new password. Will be prompted for if not provided."},
             ),
         ],

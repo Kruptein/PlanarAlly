@@ -87,6 +87,9 @@ main_app.router.add_get(
 main_app.router.add_patch(
     f"{subpath}api/rooms/{{creator}}/{{roomname}}/info", api.http.rooms.set_info
 )
+main_app.router.add_get(
+    f"{subpath}api/rooms/{{creator}}/{{roomname}}/export", api.http.rooms.export
+)
 main_app.router.add_post(f"{subpath}api/invite", api.http.claim_invite)
 main_app.router.add_get(f"{subpath}api/version", api.http.version.get_version)
 main_app.router.add_get(f"{subpath}api/changelog", api.http.version.get_changelog)

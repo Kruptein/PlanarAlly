@@ -127,10 +127,10 @@ async def start_servers():
     print()
 
 
-def server_main(_args):
+def server_main(args):
     """Start the PlanarAlly server."""
 
-    if (not (FILE_DIR / "templates").exists()) and ("dev" not in sys.argv):
+    if (not (FILE_DIR / "templates").exists()) and args.dev:
         print(
             "You must gather your par— you must build the client, before starting the server.\nSee https://www.planarally.io/server/setup/self-hosting/ on how to build the client or import a pre-built client."
         )
@@ -229,7 +229,10 @@ def main():
     if len(sys.argv) < 2 or (len(sys.argv) == 2 and sys.argv[1] == "dev"):
         # To keep the previous syntax, if this script is called with no args,
         # Or with just dev, we should start the server.
-        server_main(None)
+        args = {"dev": None}
+        if len(sys.argv) == 2:
+            args["dev"] = sys.argv[1]
+        server_main(type("args", (object,), args))
         return
 
     parser = ArgumentParser()

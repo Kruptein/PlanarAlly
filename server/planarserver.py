@@ -6,6 +6,7 @@ This is the code responsible for starting the backend and reacting to socket IO 
 # Check for existence of './templates/' as it is not present if client was not built before
 from argparse import ArgumentParser
 import getpass
+from urllib.parse import quote, unquote
 import os
 import sys
 from utils import FILE_DIR
@@ -154,22 +155,45 @@ def server_main(_args):
             loop.run_until_complete(runner.cleanup())
 
 
-resource_types = [User, Room]
+def get_room(path):
+    try:
+        user, room = path.split("/")
+    except ValueError:
+        print("Invalid room. The room should have a single '/'")
+
+    user = User.by_name(unquote(user))
+
+    room = Room.get(name=unquote(room), creator=user)
+    return room
+
+
+resource_types = [
+    {
+        "resource": User,
+        "display": lambda x: x.name,
+        "retrieve": lambda x: User.by_name(x),
+    },
+    {
+        "resource": Room,
+        "display": lambda x: f"{quote(x.creator.name, safe='')}/{quote(x.name, safe='')}",
+        "retrieve": get_room,
+    },
+]
 
 
 def list_main(args):
     """List all of the requested resource type."""
     for resource_type in resource_types:
-        if resource_type.__name__.lower() == args.resource:
-            for resource in resource_type.select():
-                print(resource.name)
+        if resource_type["resource"].__name__.lower() == args.resource:
+            for resource in resource_type["resource"].select():
+                print(resource_type["display"](resource))
 
 
 def remove_main(args):
     """Remove a requested resource."""
     for resource_type in resource_types:
-        if resource_type.__name__.lower() == args.resource:
-            chosen_resource = resource_type.get_or_none(name=args.name)
+        if resource_type["resource"].__name__.lower() == args.resource:
+            chosen_resource = resource_type["retrieve"](args.name)
             chosen_resource.delete_instance()
 
 
@@ -227,7 +251,9 @@ def main():
         ],
     )
 
-    resource_names = [resource.__name__.lower() for resource in resource_types]
+    resource_names = [
+        resource["resource"].__name__.lower() for resource in resource_types
+    ]
 
     add_subcommand(
         "list",

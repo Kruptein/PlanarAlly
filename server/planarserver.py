@@ -8,7 +8,9 @@ from argparse import ArgumentParser
 import getpass
 import os
 import sys
+from urllib.parse import quote, unquote
 from utils import FILE_DIR
+from types import SimpleNamespace
 
 # Mimetype recognition for js files apparently is not always properly setup out of the box for some users out there.
 import mimetypes
@@ -126,10 +128,10 @@ async def start_servers():
     print()
 
 
-def server_main(_args):
+def server_main(args):
     """Start the PlanarAlly server."""
 
-    if (not (FILE_DIR / "templates").exists()) and ("dev" not in sys.argv):
+    if (not (FILE_DIR / "templates").exists()) and args.dev:
         print(
             "You must gather your par— you must build the client, before starting the server.\nSee https://www.planarally.io/server/setup/self-hosting/ on how to build the client or import a pre-built client."
         )
@@ -154,23 +156,39 @@ def server_main(_args):
             loop.run_until_complete(runner.cleanup())
 
 
-resource_types = [User, Room]
-
-
 def list_main(args):
     """List all of the requested resource type."""
-    for resource_type in resource_types:
-        if resource_type.__name__.lower() == args.resource:
-            for resource in resource_type.select():
-                print(resource.name)
+    resource = args.resource.lower()
+    if resource == "user":
+        for user in User.select():
+            print(user.name)
+    elif resource == "room":
+        for room in Room.select():
+            print(f"{quote(room.creator.name, safe='')}/{quote(room.name, safe='')}")
+
+
+def get_room(path):
+    try:
+        user, room = path.split("/")
+    except ValueError:
+        print("Invalid room. The room should have a single '/'")
+
+    user = User.by_name(unquote(user))
+
+    room = Room.get(name=unquote(room), creator=user)
+    return room
 
 
 def remove_main(args):
     """Remove a requested resource."""
-    for resource_type in resource_types:
-        if resource_type.__name__.lower() == args.resource:
-            chosen_resource = resource_type.get_or_none(name=args.name)
-            chosen_resource.delete_instance()
+    resource = args.resource.lower()
+
+    if resource == "user":
+        user = User.by_name(args.name)
+        user.delete_instance()
+    elif resource == "room":
+        room = get_room(args.name)
+        room.delete_instance()
 
 
 def reset_password_main(args):
@@ -205,7 +223,8 @@ def main():
     if len(sys.argv) < 2 or (len(sys.argv) == 2 and sys.argv[1] == "dev"):
         # To keep the previous syntax, if this script is called with no args,
         # Or with just dev, we should start the server.
-        server_main(None)
+        args = SimpleNamespace(dev=len(sys.argv) == 2)
+        server_main(args)
         return
 
     parser = ArgumentParser()
@@ -227,7 +246,7 @@ def main():
         ],
     )
 
-    resource_names = [resource.__name__.lower() for resource in resource_types]
+    resource_names = ["room", "user"]
 
     add_subcommand(
         "list",

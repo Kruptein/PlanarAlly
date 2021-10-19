@@ -128,6 +128,13 @@ class SelectTool extends Tool implements ISelectTool {
 
         watchEffect(() => {
             const selection = selectionState.state.selection;
+
+            // rotation logic
+            if (selection.size === 0) {
+                this.removeRotationUi();
+            }
+
+            // polygon edit ui logic
             if (selection.size !== 1) {
                 this.removePolygonEditUi();
             } else {

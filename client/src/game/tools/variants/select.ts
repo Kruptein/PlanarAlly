@@ -43,9 +43,9 @@ import { Rect } from "../../shapes/variants/rect";
 import { openDefaultContextMenu, openShapeContextMenu } from "../../ui/contextmenu/state";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { Tool } from "../tool";
-import { activeToolMode, deactivateTool, getFeatures } from "../tools";
+import { activeToolMode, getFeatures } from "../tools";
 
-import { RulerFeatures } from "./ruler";
+import { RulerFeatures, rulerTool } from "./ruler";
 
 enum SelectOperations {
     Noop,
@@ -69,7 +69,7 @@ export enum SelectFeatures {
 // Calculate 45 degrees in radians just once
 const ANGLE_SNAP = (45 * Math.PI) / 180;
 
-const rulerPermission = [{ name: ToolName.Ruler, features: { enabled: [RulerFeatures.All] }, early: true }];
+const rulerPermission = { name: ToolName.Ruler, features: { enabled: [RulerFeatures.All] }, early: true };
 
 class SelectTool extends Tool implements ISelectTool {
     readonly toolName = ToolName.Select;
@@ -150,18 +150,17 @@ class SelectTool extends Tool implements ISelectTool {
         });
     }
 
-    setToolPermissions(permissions?: ToolPermission[]): void {
-        const hasRuler = this.permittedTools_.length > 0;
-        if (permissions) {
-            this.permittedTools_ = permissions;
-        } else if (this.showRuler.value) {
-            this.permittedTools_ = rulerPermission;
-        } else {
-            this.permittedTools_ = [];
+    checkRuler(): boolean {
+        const rulerEnabled = this.permittedTools_.some((t) => t.name === ToolName.Ruler);
+        if (this.showRuler.value && this.hasSelection.value) {
+            if (!rulerEnabled) {
+                this.permittedTools_.push(rulerPermission);
+                return true;
+            }
+        } else if (rulerEnabled) {
+            this.permittedTools_ = this.permittedTools_.filter((t) => t.name !== ToolName.Ruler);
         }
-        if (this.permittedTools_.length === 0 && hasRuler) {
-            deactivateTool(ToolName.Ruler);
-        }
+        return false;
     }
 
     onToolsModeChange(mode: ToolMode, features: ToolFeatures<SelectFeatures>): void {
@@ -236,7 +235,6 @@ class SelectTool extends Tool implements ISelectTool {
             if (this.rotationUiActive && this.hasFeature(SelectFeatures.Rotate, features)) {
                 const anchor = this.rotationAnchor!.points[1];
                 if (equalPoints(anchor, toArrayP(gp), 10)) {
-                    this.setToolPermissions([]);
                     this.mode = SelectOperations.Rotate;
                     hit = true;
 
@@ -250,7 +248,6 @@ class SelectTool extends Tool implements ISelectTool {
             if (this.hasFeature(SelectFeatures.Resize, features)) {
                 this.resizePoint = shape.getPointIndex(gp, l2gz(5));
                 if (this.resizePoint >= 0) {
-                    this.setToolPermissions([]);
                     // Resize case, a corner is selected
                     selectionState.set(shape);
                     this.removeRotationUi();
@@ -308,9 +305,10 @@ class SelectTool extends Tool implements ISelectTool {
             }
         }
 
+        this.hasSelection.value = hit;
+
         // GroupSelect case, draw a selection box to select multiple shapes
         if (!hit) {
-            this.setToolPermissions([]);
             if (!this.hasFeature(SelectFeatures.ChangeSelection, features)) return;
             if (!this.hasFeature(SelectFeatures.GroupSelect, features)) return;
             this.mode = SelectOperations.GroupSelect;
@@ -344,6 +342,9 @@ class SelectTool extends Tool implements ISelectTool {
             }
 
             layer.invalidate(true);
+        }
+        if (this.checkRuler()) {
+            rulerTool.onDown(lp, event);
         }
         if (this.mode !== SelectOperations.Noop) this.active = true;
     }
@@ -664,7 +665,6 @@ class SelectTool extends Tool implements ISelectTool {
         if (this.operationReady) addOperation(this.operationList!);
 
         this.hasSelection.value = layerSelection.length > 0;
-        this.setToolPermissions();
 
         this.mode = SelectOperations.Noop;
     }

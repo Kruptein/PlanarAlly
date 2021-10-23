@@ -323,11 +323,12 @@ class VisionState extends Store<State> {
         else this.visionBlockers.delete(floor);
     }
 
-    removeVisionSources(floor: number, shape: string): boolean {
+    removeVisionSources(floor: number, shape: string): void {
         const sources = this.getVisionSources(floor);
-        const index = sources.findIndex((ls) => ls.shape === shape);
-        if (index >= 0) this.sliceVisionSources(index, floor);
-        return index >= 0;
+        const newSources = sources.filter((s) => s.shape !== shape);
+        if (newSources.length !== sources.length) {
+            this.setVisionSources(newSources, floor);
+        }
     }
 }
 

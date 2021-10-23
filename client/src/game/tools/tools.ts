@@ -90,7 +90,3 @@ export function getFeatures(tool: ToolName): ToolFeatures {
 export function activateTool(tool: ToolName): void {
     toolMap[tool].onSelect();
 }
-
-export function deactivateTool(tool: ToolName): void {
-    toolMap[tool].onDeselect();
-}

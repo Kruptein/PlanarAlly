@@ -49,6 +49,7 @@ These usually have no immediately visible impact on regular users
 -   Toggle Composite shapes (variants)
     -   shared tracker/aura toggles now properly work
     -   changing location of a composite now moves all variants along
+    -   Some non-shared auras could linger around when changing variant
 -   Movement block not updating directly when not using snapping
 -   Some performance dropoff for big polygons
 -   Remove lingering rotation UI when removing a shape in build mode

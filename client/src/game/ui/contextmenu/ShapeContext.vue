@@ -166,7 +166,7 @@ const locations = computed(() => {
 });
 
 async function setLocation(newLocation: number): Promise<void> {
-    const shapes = [...selectionState.state.selection].filter((s) => !UuidMap.get(s)!.isLocked);
+    const shapes = selectionState.get({ includeComposites: true }).filter((s) => !s.isLocked);
     if (shapes.length === 0) {
         return;
     }
@@ -206,7 +206,7 @@ async function setLocation(newLocation: number): Promise<void> {
     };
 
     sendShapesMove({
-        shapes,
+        shapes: shapes.map((s) => s.uuid),
         target: { location: newLocation, ...targetPosition },
     });
     if (settingsStore.movePlayerOnTokenChange.value) {

@@ -53,6 +53,7 @@ These usually have no immediately visible impact on regular users
 -   Movement block not updating directly when not using snapping
 -   Some performance dropoff for big polygons
 -   Remove lingering rotation UI when removing a shape in build mode
+-   Select tool showing ruler without selection
 
 ## [0.28.0] - 2021-07-21
 

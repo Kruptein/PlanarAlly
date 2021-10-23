@@ -26,7 +26,7 @@ const polygonUiVertex = selectTool.polygonUiVertex;
 
 onMounted(() => {
     ({ right: right.value, arrow: arrow.value } = useToolPosition(selectTool.toolName));
-    selectTool.setToolPermissions();
+    selectTool.checkRuler();
     watch(toRef(selectionState.state, "selection"), () => {
         selectTool.resetRotationHelper();
     });
@@ -35,7 +35,7 @@ onMounted(() => {
 function toggleShowRuler(event: MouseEvent): void {
     const state = (event.target as HTMLButtonElement).getAttribute("aria-pressed") ?? "false";
     selectTool.showRuler.value = state === "false";
-    selectTool.setToolPermissions();
+    selectTool.checkRuler();
 }
 
 function cutPolygon(): void {

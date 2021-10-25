@@ -75,8 +75,14 @@ class DrawTool extends Tool {
         watch(
             () => gameStore.state.boardInitialized,
             () => {
-                watch(floorStore.currentFloor, (_, oldFloor) => this.onFloorChange(oldFloor!));
-                watch(floorStore.currentLayer, (_, oldLayer) => this.onLayerChange(oldLayer!));
+                watch(floorStore.currentLayer, (newLayer, oldLayer) => {
+                    if (oldLayer === undefined) return;
+                    if (newLayer?.floor !== oldLayer.floor) {
+                        this.onFloorChange(floorStore.getFloor({ id: oldLayer.floor })!);
+                    } else if (newLayer?.name !== oldLayer.name) {
+                        this.onLayerChange(oldLayer);
+                    }
+                });
             },
         );
         watch(
@@ -246,7 +252,7 @@ class DrawTool extends Tool {
             this.brushHelper = undefined;
         }
         if (this.pointer !== undefined) {
-            const drawLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
+            const drawLayer = floorStore.getLayer(data?.floor ?? floorStore.currentFloor.value!, LayerName.Draw);
             drawLayer!.removeShape(this.pointer, SyncMode.NO_SYNC, true);
             this.pointer = undefined;
         }

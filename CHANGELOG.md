@@ -8,6 +8,8 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+## [0.29.0] - 2021-10-28
+
 ### Added
 
 -   Dice rolling tool

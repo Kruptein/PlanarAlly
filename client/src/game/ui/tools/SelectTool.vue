@@ -3,6 +3,7 @@ import type { CSSProperties } from "vue";
 import { computed, onMounted, ref, toRef, watch } from "vue";
 
 import { selectionState } from "../../layers/selection";
+import type { Polygon } from "../../shapes/variants/polygon";
 import { selectTool } from "../../tools/variants/select";
 
 import { useToolPosition } from "./toolPosition";
@@ -15,9 +16,17 @@ const selected = selectTool.isActiveTool;
 const showRuler = selectTool.showRuler;
 const toolStyle = computed(() => ({ "--detailRight": right.value, "--detailArrow": arrow.value } as CSSProperties));
 
+const polygonUiLeft = selectTool.polygonUiLeft;
+const polygonUiTop = selectTool.polygonUiTop;
+const polygonUiAngle = selectTool.polygonUiAngle;
+const polygonUiVisible = selectTool.polygonUiVisible;
+const polygonUiSizeX = selectTool.polygonUiSizeX;
+const polygonUiSizeY = selectTool.polygonUiSizeY;
+const polygonUiVertex = selectTool.polygonUiVertex;
+
 onMounted(() => {
     ({ right: right.value, arrow: arrow.value } = useToolPosition(selectTool.toolName));
-    selectTool.setToolPermissions();
+    selectTool.checkRuler();
     watch(toRef(selectionState.state, "selection"), () => {
         selectTool.resetRotationHelper();
     });
@@ -26,17 +35,57 @@ onMounted(() => {
 function toggleShowRuler(event: MouseEvent): void {
     const state = (event.target as HTMLButtonElement).getAttribute("aria-pressed") ?? "false";
     selectTool.showRuler.value = state === "false";
-    selectTool.setToolPermissions();
+    selectTool.checkRuler();
+}
+
+function cutPolygon(): void {
+    const selection = selectionState.get({ includeComposites: false })[0] as Polygon;
+    selection.cutPolygon(selectTool.polygonTracer!.refPoint);
+}
+
+function addPoint(): void {
+    const selection = selectionState.get({ includeComposites: false })[0] as Polygon;
+    selection.addPoint(selectTool.polygonTracer!.refPoint);
+}
+
+function removePoint(): void {
+    const selection = selectionState.get({ includeComposites: false })[0] as Polygon;
+    selection.removePoint(selectTool.polygonTracer!.refPoint);
 }
 </script>
 
 <template>
+    <div id="polygon-edit">
+        <div @click="removePoint" v-if="polygonUiVertex"><font-awesome-icon icon="trash-alt" /></div>
+        <div @click="addPoint" v-else><font-awesome-icon icon="plus-square" /></div>
+        <div @click="cutPolygon"><font-awesome-icon icon="cut" /></div>
+    </div>
+
     <div id="ruler" class="tool-detail" v-if="selected && hasSelection" :style="toolStyle">
         <button @click="toggleShowRuler" :aria-pressed="showRuler">Show ruler</button>
     </div>
 </template>
 
 <style scoped lang="scss">
+#polygon-edit {
+    visibility: v-bind(polygonUiVisible);
+    position: absolute;
+    display: flex;
+    top: v-bind(polygonUiTop);
+    left: v-bind(polygonUiLeft);
+    transform: translate(v-bind(polygonUiSizeX), v-bind(polygonUiSizeY)) rotate(v-bind(polygonUiAngle));
+
+    > div {
+        background-color: white;
+        border-radius: 25px;
+        width: 25px;
+        height: 25px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+}
+
 #ruler {
     display: flex;
 }

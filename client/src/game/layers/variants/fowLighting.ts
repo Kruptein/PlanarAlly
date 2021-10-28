@@ -1,12 +1,12 @@
 import { g2l, g2lz, getUnitDistance, g2lr, g2lx, g2ly, toRadians } from "../../../core/conversions";
-import { SyncMode, InvalidationMode } from "../../../core/models/types";
+import type { SyncMode, InvalidationMode } from "../../../core/models/types";
 import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
 import { UuidMap } from "../../../store/shapeMap";
 import { getFogColour } from "../../colour";
 import { LayerName } from "../../models/floor";
-import { Shape } from "../../shapes/shape";
+import type { IShape } from "../../shapes/interfaces";
 import { Circle } from "../../shapes/variants/circle";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { computeVisibility } from "../../vision/te";
@@ -14,14 +14,14 @@ import { computeVisibility } from "../../vision/te";
 import { FowLayer } from "./fow";
 
 export class FowLightingLayer extends FowLayer {
-    addShape(shape: Shape, sync: SyncMode, invalidate: InvalidationMode, snappable = true): void {
-        super.addShape(shape, sync, invalidate, snappable);
+    addShape(shape: IShape, sync: SyncMode, invalidate: InvalidationMode, options?: { snappable?: boolean }): void {
+        super.addShape(shape, sync, invalidate, options);
         if (shape.options.preFogShape ?? false) {
             this.preFogShapes.push(shape);
         }
     }
 
-    removeShape(shape: Shape, sync: SyncMode, recalculate: boolean): boolean {
+    removeShape(shape: IShape, sync: SyncMode, recalculate: boolean): boolean {
         let idx = -1;
         if (shape.options.preFogShape ?? false) {
             idx = this.preFogShapes.findIndex((s) => s.uuid === shape.uuid);
@@ -84,7 +84,7 @@ export class FowLightingLayer extends FowLayer {
                 const innerRange = g2lr(auraValue + auraDim);
 
                 const auraCircle = new Circle(center, auraLength);
-                if (!auraCircle.visibleInCanvas(this.ctx.canvas, { includeAuras: true })) continue;
+                if (!auraCircle.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: true })) continue;
 
                 this.vCtx.globalCompositeOperation = "source-over";
                 this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
@@ -113,8 +113,8 @@ export class FowLightingLayer extends FowLayer {
                 this.vCtx.globalCompositeOperation = "source-in";
                 this.vCtx.beginPath();
 
-                const angleA = toRadians(aura.direction - aura.angle / 2);
-                const angleB = toRadians(aura.direction + aura.angle / 2);
+                const angleA = shape.angle + toRadians(aura.direction - aura.angle / 2);
+                const angleB = shape.angle + toRadians(aura.direction + aura.angle / 2);
 
                 if (aura.angle < 360) {
                     this.vCtx.moveTo(lcenter.x, lcenter.y);
@@ -145,7 +145,7 @@ export class FowLightingLayer extends FowLayer {
             }
 
             for (const preShape of this.preFogShapes) {
-                if (!preShape.visibleInCanvas(this.canvas, { includeAuras: true })) continue;
+                if (!preShape.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: true })) continue;
                 const ogComposite = preShape.globalCompositeOperation;
                 if (!settingsStore.fullFow.value) {
                     if (preShape.globalCompositeOperation === "source-over")
@@ -160,7 +160,7 @@ export class FowLightingLayer extends FowLayer {
             if (settingsStore.fullFow.value && this.floor === activeFloor) {
                 this.ctx.globalCompositeOperation = "source-out";
                 this.ctx.fillStyle = getFogColour();
-                this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+                this.ctx.fillRect(0, 0, this.width, this.height);
             }
 
             super.draw(false);

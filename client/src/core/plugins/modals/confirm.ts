@@ -1,4 +1,5 @@
-import { DeepReadonly, Ref, readonly, reactive, toRefs } from "vue";
+import { readonly, reactive, toRefs } from "vue";
+import type { DeepReadonly, Ref } from "vue";
 
 type buttons = { yes?: string; no?: string; focus?: "confirm" | "deny"; showNo?: boolean };
 

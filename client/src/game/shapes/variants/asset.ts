@@ -1,15 +1,22 @@
 import { g2l, g2lx, g2ly, g2lz } from "../../../core/conversions";
-import { GlobalPoint } from "../../../core/geometry";
-import { ServerAsset } from "../../models/shapes";
-import { SHAPE_TYPE } from "../types";
+import { toGP } from "../../../core/geometry";
+import type { GlobalPoint } from "../../../core/geometry";
+import { InvalidationMode, SyncMode } from "../../../core/models/types";
+import type { ServerAsset } from "../../models/shapes";
+import { loadSvgData } from "../../svg";
+import { TriangulationTarget, visionState } from "../../vision/state";
+import type { SHAPE_TYPE } from "../types";
 
 import { BaseRect } from "./baseRect";
+import { Polygon } from "./polygon";
 
 export class Asset extends BaseRect {
     type: SHAPE_TYPE = "assetrect";
     img: HTMLImageElement;
     src = "";
     strokeColour = "white";
+
+    svgData?: { svg: Node; rp: GlobalPoint; paths?: [number, number][][][] }[];
 
     constructor(
         img: HTMLImageElement,
@@ -35,6 +42,37 @@ export class Asset extends BaseRect {
     fromDict(data: ServerAsset): void {
         super.fromDict(data);
         this.src = data.src;
+    }
+
+    onLayerAdd(): void {
+        if (this.options.svgAsset !== undefined && this.svgData === undefined) {
+            this.loadSvgs();
+        }
+    }
+
+    async loadSvgs(): Promise<void> {
+        if (this.options.svgAsset !== undefined) {
+            const cover = new Polygon(
+                this.refPoint,
+                this.points.slice(1).map((p) => toGP(p)),
+                { openPolygon: false },
+            );
+            this.layer.addShape(cover, SyncMode.NO_SYNC, InvalidationMode.NORMAL, {
+                snappable: false,
+            });
+            const svgs = await loadSvgData(`/static/assets/${this.options.svgAsset}`);
+            this.svgData = [...svgs.values()].map((svg) => ({ svg, rp: this.refPoint, paths: undefined }));
+            if (this.blocksVision) {
+                visionState.recalculateVision(this._floor!);
+                visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.uuid });
+            }
+            if (this.blocksMovement) {
+                visionState.recalculateMovement(this._floor!);
+                visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: this.uuid });
+            }
+            this.layer.removeShape(cover, SyncMode.NO_SYNC, false);
+            this.invalidate(false);
+        }
     }
 
     draw(ctx: CanvasRenderingContext2D): void {

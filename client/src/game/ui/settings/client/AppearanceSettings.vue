@@ -1,53 +1,46 @@
-<script lang="ts">
-import { computed, defineComponent, toRef } from "vue";
+<script setup lang="ts">
+import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../../core/components/ColourPicker.vue";
 import LanguageSelect from "../../../../core/components/LanguageSelect.vue";
 import { clientStore } from "../../../../store/client";
-import { UserOptions } from "../../../models/settings";
+import type { UserOptions } from "../../../models/settings";
 
-export default defineComponent({
-    components: { ColourPicker, LanguageSelect },
-    setup() {
-        const { t } = useI18n();
+const { t } = useI18n();
 
-        const defaultOptions = toRef(clientStore.state, "defaultClientOptions");
+const defaultOptions = toRef(clientStore.state, "defaultClientOptions");
 
-        const gridColour = computed({
-            get() {
-                return clientStore.state.gridColour;
-            },
-            set(gridColour: string) {
-                clientStore.setGridColour(gridColour, true);
-            },
-        });
-
-        const fowColour = computed({
-            get() {
-                return clientStore.state.fowColour;
-            },
-            set(fowColour: string) {
-                clientStore.setFowColour(fowColour, true);
-            },
-        });
-
-        const rulerColour = computed({
-            get() {
-                return clientStore.state.rulerColour;
-            },
-            set(rulerColour: string) {
-                clientStore.setRulerColour(rulerColour, true);
-            },
-        });
-
-        function setDefault(key: keyof UserOptions): void {
-            clientStore.setDefaultClientOption(key, clientStore.state[key], true);
-        }
-
-        return { t, defaultOptions, setDefault, fowColour, gridColour, rulerColour };
+const gridColour = computed({
+    get() {
+        return clientStore.state.gridColour;
+    },
+    set(gridColour: string) {
+        clientStore.setGridColour(gridColour, true);
     },
 });
+
+const fowColour = computed({
+    get() {
+        return clientStore.state.fowColour;
+    },
+    set(fowColour: string) {
+        clientStore.setFowColour(fowColour, true);
+    },
+});
+
+const rulerColour = computed({
+    get() {
+        return clientStore.state.rulerColour;
+    },
+    set(rulerColour: string) {
+        clientStore.setRulerColour(rulerColour, true);
+    },
+});
+
+function setDefault(key: keyof UserOptions): void {
+    clientStore.setDefaultClientOption(key, clientStore.state[key], true);
+}
 </script>
 
 <template>

@@ -3,11 +3,13 @@ import tinycolor from "tinycolor2";
 import { g2l, g2lr, g2lx, g2ly, toRadians } from "../core/conversions";
 import { floorStore } from "../store/floor";
 
-import { Layer } from "./layers/variants/layer";
-import { Floor, LayerName } from "./models/floor";
-import { Shape } from "./shapes/shape";
+import type { Layer } from "./layers/variants/layer";
+import { LayerName } from "./models/floor";
+import type { Floor } from "./models/floor";
+import type { IShape } from "./shapes/interfaces";
 import { TriangulationTarget } from "./vision/state";
-import { Edge, EdgeIterator, TDS } from "./vision/tds";
+import { EdgeIterator } from "./vision/tds";
+import type { Edge, TDS } from "./vision/tds";
 import { computeVisibility } from "./vision/te";
 import { ccw, cw } from "./vision/triag";
 
@@ -56,7 +58,7 @@ function drawFloor(floor: Floor): void {
     if (fowLayer) fowLayer.draw();
 }
 
-export function drawAuras(shape: Shape, ctx: CanvasRenderingContext2D): void {
+export function drawAuras(shape: IShape, ctx: CanvasRenderingContext2D): void {
     const center = shape.center();
     const lCenter = g2l(center);
 
@@ -89,8 +91,8 @@ export function drawAuras(shape: Shape, ctx: CanvasRenderingContext2D): void {
             gradient.addColorStop(1, tc.setAlpha(0).toRgbString());
         }
 
-        const angleA = aura.angle === 360 ? 0 : toRadians(aura.direction - aura.angle / 2);
-        const angleB = aura.angle === 360 ? Math.PI * 2 : toRadians(aura.direction + aura.angle / 2);
+        const angleA = aura.angle === 360 ? 0 : shape.angle + toRadians(aura.direction - aura.angle / 2);
+        const angleB = aura.angle === 360 ? Math.PI * 2 : shape.angle + toRadians(aura.direction + aura.angle / 2);
 
         // Set visibility polygon as clipping path
         if (aura.visionSource) {
@@ -200,7 +202,7 @@ function y(yy: number, local: boolean): number {
 let I = 0;
 let J = 0;
 
-function drawLine(from: number[], to: number[], constrained: boolean, local: boolean): void {
+export function drawLine(from: number[], to: number[], constrained: boolean, local: boolean): void {
     // J++;
     // if (constrained) {
     //     I++;

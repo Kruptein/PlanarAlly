@@ -88,6 +88,7 @@ async def set_invisible(sid: str, data: ShapeSetBooleanValue):
         namespace=GAME_NS,
     )
 
+
 @sio.on("Shape.Options.Defeated.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def set_defeated(sid: str, data: ShapeSetBooleanValue):

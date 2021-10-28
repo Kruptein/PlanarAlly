@@ -1,5 +1,5 @@
-<script lang="ts">
-import { computed, defineComponent, ref, toRef, toRefs, watchEffect } from "vue";
+<script setup lang="ts">
+import { computed, ref, toRef, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 import draggable from "vuedraggable";
 
@@ -11,173 +11,151 @@ import { locationStore } from "../../../store/location";
 import { settingsStore } from "../../../store/settings";
 import { uiStore } from "../../../store/ui";
 import { sendLocationChange, sendNewLocation } from "../../api/emits/location";
-import { Location } from "../../models/settings";
+import type { Location } from "../../models/settings";
 
-export default defineComponent({
-    components: { draggable },
-    props: { active: { type: Boolean, required: true }, menuActive: { type: Boolean, required: true } },
-    setup(props) {
-        const { t } = useI18n();
-        const modals = useModal();
+const props = defineProps<{ active: boolean; menuActive: boolean }>();
 
-        const locations = ref<{ $el: HTMLDivElement } | null>(null);
+const { t } = useI18n();
+const modals = useModal();
 
-        const isDm = toRef(gameStore.state, "isDm");
+const locations = ref<{ $el: HTMLDivElement } | null>(null);
 
-        const activeLocations = computed({
-            get() {
-                return locationStore.activeLocations.value;
-            },
-            set(locations: Location[]) {
-                locationStore.setActiveLocations(locations, true);
-            },
-        });
+const isDm = toRef(gameStore.state, "isDm");
 
-        // could not figure out how to use the @scroll events on the draggable in vue3
-        // used to work fine in vue2, played around with component-data but to no avail
-        watchEffect(() => {
-            if (locations.value) {
-                locations.value.$el.addEventListener("scroll", () => fixDisplays());
-                locations.value.$el.addEventListener("wheel", (e) => horizontalWheel(e));
-            }
-        });
-
-        // :style with `menuActive` did not update properly on the draggable
-        watchEffect(() => {
-            if (locations.value !== null) {
-                locations.value.$el.style.maxWidth = `calc(100vw - 105px - ${props.menuActive ? "200px" : "0px"})`;
-            }
-        });
-
-        const expanded = ref<Set<number>>(new Set());
-
-        const hasArchivedLocations = computed(() => locationStore.archivedLocations.value.length > 0);
-
-        async function showArchivedLocations(): Promise<void> {
-            const locations = locationStore.archivedLocations.value;
-            if (locations.length === 0) return;
-
-            const choice = await modals.selectionBox(
-                "Select a location to retore",
-                locations.map((l) => l.name),
-            );
-            const location = locations.find((l) => l.name === choice);
-            if (choice !== undefined && location !== undefined) {
-                locationStore.unarchiveLocation(location.id, true);
-            }
-        }
-
-        async function createLocation(): Promise<void> {
-            const value = await modals.prompt(
-                t("game.ui.menu.LocationBar.new_location_name"),
-                t("game.ui.menu.LocationBar.create_new_location"),
-            );
-            if (value !== undefined) sendNewLocation(value);
-        }
-
-        function changeLocation(id: number): void {
-            sendLocationChange({ location: id, users: [clientStore.state.username] });
-            coreStore.setLoading(true);
-        }
-
-        function openLocationSettings(location: number): void {
-            uiStore.showLocationSettings(location);
-        }
-
-        function toggleExpanded(id: number): void {
-            if (expanded.value.has(id)) expanded.value.delete(id);
-            else expanded.value.add(id);
-        }
-
-        function onDragAdd(event: { item: HTMLDivElement; clone: HTMLDivElement }): void {
-            event.clone.replaceWith(event.item);
-        }
-
-        function endPlayerDrag(e: { item: HTMLDivElement; from: HTMLDivElement; to: HTMLDivElement }): void {
-            e.item.style.removeProperty("transform");
-            const fromLocation = Number.parseInt(e.from.dataset.loc!);
-            const toLocation = Number.parseInt(e.to.dataset.loc!);
-            if (toLocation === undefined || fromLocation === toLocation) return;
-            const targetPlayer = e.item.textContent!.trim();
-
-            for (const player of gameStore.state.players) {
-                if (player.name === targetPlayer) {
-                    gameStore.updatePlayersLocation([player.name], toLocation, true);
-                    break;
-                }
-            }
-        }
-
-        function endPlayersDrag(e: { item: HTMLDivElement; from: HTMLDivElement; to: HTMLDivElement }): void {
-            e.item.style.removeProperty("transform");
-            const fromLocation = Number.parseInt(e.from.dataset.loc!);
-            const toLocation = Number.parseInt(e.to.dataset.loc!);
-            if (toLocation === undefined || fromLocation === toLocation) return;
-
-            const players = [];
-            for (const player of gameStore.state.players) {
-                if (player.location === fromLocation && player.role !== 1) {
-                    players.push(player.name);
-                }
-            }
-            gameStore.updatePlayersLocation(players, toLocation, true);
-
-            if (expanded.value.has(fromLocation)) {
-                expanded.value.delete(fromLocation);
-                expanded.value.add(toLocation);
-            }
-        }
-
-        function horizontalWheel(event: WheelEvent): void {
-            if (locations.value === null) return;
-
-            const el = locations.value.$el;
-
-            if (event.deltaY > 0) el.scrollLeft += 100;
-            else el.scrollLeft -= 100;
-            fixDisplays();
-        }
-
-        function fixDisplays(): void {
-            if (locations.value === null) return;
-
-            const el = locations.value.$el;
-
-            for (const expandEl of el.querySelectorAll(".player-collapse-content")) {
-                const hEl = expandEl as HTMLElement;
-                hEl.style.marginLeft = `calc(0.5em - ${el.scrollLeft}px)`;
-                if (expanded.value.has(Number.parseInt(hEl.dataset.loc ?? "-1"))) {
-                    if (hEl.style.display === "none") hEl.style.removeProperty("display");
-                } else {
-                    continue;
-                }
-                if (hEl.getBoundingClientRect().right > window.innerWidth) {
-                    hEl.style.display = "none";
-                }
-            }
-        }
-
-        return {
-            ...toRefs(locationStore.state),
-            activeLocation: toRef(settingsStore.state, "activeLocation"),
-            activeLocations,
-            changeLocation,
-            createLocation,
-            endPlayerDrag,
-            endPlayersDrag,
-            expanded,
-            fixDisplays,
-            hasArchivedLocations,
-            isDm,
-            locations,
-            onDragAdd,
-            openLocationSettings,
-            showArchivedLocations,
-            t,
-            toggleExpanded,
-        };
+const activeLocations = computed({
+    get() {
+        return locationStore.activeLocations.value;
+    },
+    set(locations: Location[]) {
+        locationStore.setActiveLocations(locations, true);
     },
 });
+
+// could not figure out how to use the @scroll events on the draggable in vue3
+// used to work fine in vue2, played around with component-data but to no avail
+watchEffect(() => {
+    if (locations.value) {
+        locations.value.$el.addEventListener("scroll", () => fixDisplays());
+        locations.value.$el.addEventListener("wheel", (e) => horizontalWheel(e));
+    }
+});
+
+// :style with `menuActive` did not update properly on the draggable
+watchEffect(() => {
+    if (locations.value !== null) {
+        locations.value.$el.style.maxWidth = `calc(100vw - 105px - ${props.menuActive ? "200px" : "0px"})`;
+    }
+});
+
+const expanded = ref<Set<number>>(new Set());
+
+const hasArchivedLocations = computed(() => locationStore.archivedLocations.value.length > 0);
+
+async function showArchivedLocations(): Promise<void> {
+    const locations = locationStore.archivedLocations.value;
+    if (locations.length === 0) return;
+
+    const choice = await modals.selectionBox(
+        "Select a location to retore",
+        locations.map((l) => l.name),
+    );
+    const location = locations.find((l) => l.name === choice);
+    if (choice !== undefined && location !== undefined) {
+        locationStore.unarchiveLocation(location.id, true);
+    }
+}
+
+async function createLocation(): Promise<void> {
+    const value = await modals.prompt(
+        t("game.ui.menu.LocationBar.new_location_name"),
+        t("game.ui.menu.LocationBar.create_new_location"),
+    );
+    if (value !== undefined) sendNewLocation(value);
+}
+
+function changeLocation(id: number): void {
+    sendLocationChange({ location: id, users: [clientStore.state.username] });
+    coreStore.setLoading(true);
+}
+
+function openLocationSettings(location: number): void {
+    uiStore.showLocationSettings(location);
+}
+
+function toggleExpanded(id: number): void {
+    if (expanded.value.has(id)) expanded.value.delete(id);
+    else expanded.value.add(id);
+}
+
+function onDragAdd(event: { item: HTMLDivElement; clone: HTMLDivElement }): void {
+    event.clone.replaceWith(event.item);
+}
+
+function endPlayerDrag(e: { item: HTMLDivElement; from: HTMLDivElement; to: HTMLDivElement }): void {
+    e.item.style.removeProperty("transform");
+    const fromLocation = Number.parseInt(e.from.dataset.loc!);
+    const toLocation = Number.parseInt(e.to.dataset.loc!);
+    if (toLocation === undefined || fromLocation === toLocation) return;
+    const targetPlayer = e.item.textContent!.trim();
+
+    for (const player of gameStore.state.players) {
+        if (player.name === targetPlayer) {
+            gameStore.updatePlayersLocation([player.name], toLocation, true);
+            break;
+        }
+    }
+}
+
+function endPlayersDrag(e: { item: HTMLDivElement; from: HTMLDivElement; to: HTMLDivElement }): void {
+    e.item.style.removeProperty("transform");
+    const fromLocation = Number.parseInt(e.from.dataset.loc!);
+    const toLocation = Number.parseInt(e.to.dataset.loc!);
+    if (toLocation === undefined || fromLocation === toLocation) return;
+
+    const players = [];
+    for (const player of gameStore.state.players) {
+        if (player.location === fromLocation && player.role !== 1) {
+            players.push(player.name);
+        }
+    }
+    gameStore.updatePlayersLocation(players, toLocation, true);
+
+    if (expanded.value.has(fromLocation)) {
+        expanded.value.delete(fromLocation);
+        expanded.value.add(toLocation);
+    }
+}
+
+function horizontalWheel(event: WheelEvent): void {
+    if (locations.value === null) return;
+
+    const el = locations.value.$el;
+
+    if (event.deltaY > 0) el.scrollLeft += 100;
+    else el.scrollLeft -= 100;
+    fixDisplays();
+}
+
+function fixDisplays(): void {
+    if (locations.value === null) return;
+
+    const el = locations.value.$el;
+
+    for (const expandEl of el.querySelectorAll(".player-collapse-content")) {
+        const hEl = expandEl as HTMLElement;
+        hEl.style.marginLeft = `calc(0.5em - ${el.scrollLeft}px)`;
+        if (expanded.value.has(Number.parseInt(hEl.dataset.loc ?? "-1"))) {
+            if (hEl.style.display === "none") hEl.style.removeProperty("display");
+        } else {
+            continue;
+        }
+        if (hEl.getBoundingClientRect().right > window.innerWidth) {
+            hEl.style.display = "none";
+        }
+    }
+}
+
+const activeLocation = toRef(settingsStore.state, "activeLocation");
 </script>
 
 <template>
@@ -209,7 +187,7 @@ export default defineComponent({
                     </div>
                     <draggable
                         class="location-players"
-                        v-show="playerLocations.has(location.id)"
+                        v-show="locationStore.state.playerLocations.has(location.id)"
                         :list="[{ id: location.id }]"
                         item-key="id"
                         :group="{ name: 'players', pull: 'clone' }"
@@ -238,7 +216,7 @@ export default defineComponent({
                     <draggable
                         class="player-collapse-content"
                         v-show="active && expanded.has(location.id)"
-                        :list="[...(playerLocations.get(location.id) ?? [])]"
+                        :list="[...(locationStore.state.playerLocations.get(location.id) ?? [])]"
                         item-key="id"
                         :data-loc="location.id"
                         group="player"
@@ -252,7 +230,7 @@ export default defineComponent({
                     </draggable>
                     <draggable
                         class="location-players-empty"
-                        v-show="!playerLocations.has(location.id)"
+                        v-show="!locationStore.state.playerLocations.has(location.id)"
                         :group="{ name: 'empty-players', put: ['players', 'player'] }"
                         :list="[{ id: location.id }]"
                         item-key="id"

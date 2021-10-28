@@ -48,6 +48,19 @@ def inc_save_version():
     db.execute_sql("UPDATE constants SET save_version = save_version + 1")
 
 
+def check_existence() -> bool:
+    if not os.path.isfile(SAVE_FILE):
+        logger.warning("Provided save file does not exist.  Creating a new one.")
+        db.create_tables(ALL_MODELS)
+        Constants.create(
+            save_version=SAVE_VERSION,
+            secret_token=secrets.token_bytes(32),
+            api_token=secrets.token_hex(32),
+        )
+        return True
+    return False
+
+
 def upgrade(version):
     if version < 32:
         raise OldVersionException(
@@ -672,50 +685,37 @@ def upgrade(version):
     db.foreign_keys = True
 
 
-def check_save():
-    if not os.path.isfile(SAVE_FILE):
-        logger.warning("Provided save file does not exist.  Creating a new one.")
-        db.create_tables(ALL_MODELS)
-        Constants.create(
-            save_version=SAVE_VERSION,
-            secret_token=secrets.token_bytes(32),
-            api_token=secrets.token_hex(32),
+def check_outdated():
+    try:
+        save_version = get_save_version()
+    except:
+        logger.error("Database does not conform to expected format. Failed to start.")
+        sys.exit(2)
+    if save_version != SAVE_VERSION:
+        logger.warning(
+            f"Save format {save_version} does not match the required version {SAVE_VERSION}!"
         )
-    else:
-        try:
-            save_version = get_save_version()
-        except:
-            logger.error(
-                "Database does not conform to expected format. Failed to start."
-            )
-            sys.exit(2)
-        if save_version != SAVE_VERSION:
-            logger.warning(
-                f"Save format {save_version} does not match the required version {SAVE_VERSION}!"
-            )
-            logger.warning("Attempting upgrade")
+        logger.warning("Attempting upgrade")
 
-        updated = False
-        while save_version != SAVE_VERSION:
-            updated = True
-            save_backups = Path("save_backups")
-            if not save_backups.is_dir():
-                save_backups.mkdir()
-            backup_path = (
-                save_backups.resolve() / f"{Path(SAVE_FILE).name}.{save_version}"
-            )
-            logger.warning(f"Backing up old save as {backup_path}")
-            shutil.copyfile(SAVE_FILE, backup_path)
-            logger.warning(f"Starting upgrade to {save_version + 1}")
-            try:
-                upgrade(save_version)
-            except Exception as e:
-                logger.exception(e)
-                logger.error("ERROR: Could not start server")
-                sys.exit(2)
-            else:
-                logger.warning(f"Upgrade to {save_version + 1} done.")
-                save_version = get_save_version()
+    updated = False
+    while save_version != SAVE_VERSION:
+        updated = True
+        save_backups = Path("save_backups")
+        if not save_backups.is_dir():
+            save_backups.mkdir()
+        backup_path = save_backups.resolve() / f"{Path(SAVE_FILE).name}.{save_version}"
+        logger.warning(f"Backing up old save as {backup_path}")
+        shutil.copyfile(SAVE_FILE, backup_path)
+        logger.warning(f"Starting upgrade to {save_version + 1}")
+        try:
+            upgrade(save_version)
+        except Exception as e:
+            logger.exception(e)
+            logger.error("ERROR: Could not start server")
+            sys.exit(2)
         else:
-            if updated:
-                logger.warning("Upgrade process completed successfully.")
+            logger.warning(f"Upgrade to {save_version + 1} done.")
+            save_version = get_save_version()
+    else:
+        if updated:
+            logger.warning("Upgrade process completed successfully.")

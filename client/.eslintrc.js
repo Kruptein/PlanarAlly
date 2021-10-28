@@ -3,17 +3,11 @@ module.exports = {
     env: {
         node: true,
     },
-    extends: [
-        "plugin:vue/vue3-essential",
-        "eslint:recommended",
-        "@vue/typescript/recommended",
-        "@vue/prettier",
-        "@vue/prettier/@typescript-eslint",
-        "plugin:import/typescript",
-    ],
+    extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended", "plugin:vue/vue3-essential"],
     rules: {
         "@typescript-eslint/await-thenable": 2,
         "@typescript-eslint/consistent-type-assertions": [2, { assertionStyle: "as" }],
+        "@typescript-eslint/consistent-type-imports": 2,
         "@typescript-eslint/explicit-function-return-type": [2, { allowExpressions: true }],
         "@typescript-eslint/explicit-member-accessibility": [2, { accessibility: "no-public" }],
         "@typescript-eslint/no-angle-bracket-type-assertion": "off",
@@ -25,7 +19,7 @@ module.exports = {
         "@typescript-eslint/require-await": "error",
         "@typescript-eslint/strict-boolean-expressions": 2,
         "prefer-const": [process.env.GITHUB_ACTION === undefined ? 1 : 2],
-        "import/no-unused-modules": [process.env.GITHUB_ACTION === undefined ? 1 : 2, { unusedExports: true }],
+        "import/no-unused-modules": [process.env.GITHUB_ACTION === undefined ? 0 : 2, { unusedExports: true }],
         "import/order": [
             process.env.GITHUB_ACTION === undefined ? 1 : 2,
             {
@@ -51,7 +45,7 @@ module.exports = {
             },
         },
     ],
-    plugins: ["import"],
+    plugins: ["@typescript-eslint", "import", "prettier"],
     settings: {
         "import/resolver": {
             typescript: {
@@ -67,5 +61,12 @@ module.exports = {
         },
         project: "./tsconfig.json",
         tsconfigRootDir: __dirname,
+        extraFileExtensions: [".vue"],
+    },
+    globals: {
+        defineProps: "readonly",
+        defineEmits: "readonly",
+        defineExpose: "readonly",
+        withDefaults: "readonly",
     },
 };

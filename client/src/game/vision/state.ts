@@ -1,11 +1,11 @@
+import { equalsP } from "../../core/geometry";
 import { Store } from "../../core/store";
 import { floorStore } from "../../store/floor";
 import { UuidMap } from "../../store/shapeMap";
 import { sendLocationOptions } from "../api/emits/location";
-import { Aura } from "../shapes/interfaces";
-import { Shape } from "../shapes/shape";
-import { Asset } from "../shapes/variants/asset";
-import { pathToArray } from "../svg";
+import type { Aura, IShape } from "../shapes/interfaces";
+import type { Asset } from "../shapes/variants/asset";
+import { getPaths, pathToArray } from "../svg";
 
 import { CDT } from "./cdt";
 import { IterativeDelete } from "./iterative";
@@ -76,10 +76,14 @@ class VisionState extends Store<State> {
     // CDT
 
     addCdt(floor: number): void {
-        this.cdt.set(floor, { vision: new CDT(), movement: new CDT() });
+        const vision = new CDT();
+        const movement = new CDT();
+        this.cdt.set(floor, { vision, movement });
         this.movementBlockers.set(floor, []);
         this.visionBlockers.set(floor, []);
         this.visionSources.set(floor, []);
+        this.addWalls(vision);
+        this.addWalls(movement);
     }
 
     getCDT(target: TriangulationTarget, floor: number): CDT {
@@ -105,20 +109,60 @@ class VisionState extends Store<State> {
             const shape = UuidMap.get(sh)!;
             if (shape.floor.id !== floor) continue;
 
-            if (shape.type === "assetrect" && shape.options.svgPaths !== undefined) {
-                for (const pathString of shape.options.svgPaths ?? []) {
-                    const pathElement = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                    pathElement.setAttribute("d", pathString);
-                    const paths = pathToArray(shape as Asset, pathElement);
-                    for (const path of paths) {
-                        this.triangulatePath(target, shape, path, false);
+            this.triangulateShape(target, shape);
+        }
+        this.addWalls(cdt);
+        (window as any).CDT = this.cdt;
+    }
+
+    private triangulateShape(target: TriangulationTarget, shape: IShape): void {
+        const points = shape.points; // expensive call
+        if (points.length === 0) return;
+        if (shape.type === "assetrect") {
+            const asset = shape as Asset;
+            if (shape.options.svgAsset !== undefined && asset.svgData !== undefined) {
+                for (const svgData of asset.svgData) {
+                    if (!equalsP(shape.refPoint, svgData.rp) || svgData.paths === undefined) {
+                        const w = asset.w;
+                        const h = asset.h;
+
+                        const svg = svgData.svg as SVGSVGElement;
+
+                        const dW = w / (svg.width.animVal.valueInSpecifiedUnits ?? 1);
+                        const dH = h / (svg.height.animVal.valueInSpecifiedUnits ?? 1);
+
+                        svgData.paths = [...getPaths(asset, svg as SVGSVGElement, dW, dH)];
+                    }
+                    for (const paths of svgData.paths) {
+                        for (const path of paths) {
+                            this.triangulatePath(target, shape, path, false);
+                        }
                     }
                 }
-            } else {
-                this.triangulatePath(target, shape, shape.points, shape.isClosed);
+                return;
+            } else if (shape.options.svgPaths !== undefined) {
+                for (const pathString of shape.options.svgPaths ?? []) {
+                    const w = asset.w;
+                    const h = asset.h;
+
+                    const dW = w / (shape.options.svgWidth ?? 1);
+                    const dH = h / (shape.options.svgHeight ?? 1);
+
+                    const pathElement = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    pathElement.setAttribute("d", pathString);
+                    const paths = pathToArray(shape as Asset, pathElement, dW, dH);
+                    for (const path of paths) {
+                        this.triangulatePath(target, shape, path, false);
+                        break;
+                    }
+                }
+                return;
             }
         }
-        // // console.log(s);
+        this.triangulatePath(target, shape, points, shape.isClosed);
+    }
+
+    private addWalls(cdt: CDT): void {
         // LEFT WALL
         cdt.insertConstraint([-1e8, -1e8], [-1e8, 1e8]);
         cdt.insertConstraint([-1e8, 1e8], [-1e11, 1e8]);
@@ -139,10 +183,9 @@ class VisionState extends Store<State> {
         cdt.insertConstraint([1e8, 1e8], [1e8, 1e11]);
         cdt.insertConstraint([1e8, 1e11], [-1e8, 1e11]);
         cdt.insertConstraint([-1e8, 1e11], [-1e8, 1e8]);
-        (window as any).CDT = this.cdt;
     }
 
-    private triangulatePath(target: TriangulationTarget, shape: Shape, path: number[][], closed: boolean): void {
+    private triangulatePath(target: TriangulationTarget, shape: IShape, path: number[][], closed: boolean): void {
         const j = closed ? 0 : 1;
         for (let i = 0; i < path.length - j; i++) {
             const pa = path[i].map((n) => parseFloat(n.toFixed(10)));
@@ -151,7 +194,7 @@ class VisionState extends Store<State> {
         }
     }
 
-    insertConstraint(target: TriangulationTarget, shape: Shape, pa: number[], pb: number[]): void {
+    insertConstraint(target: TriangulationTarget, shape: IShape, pa: number[], pb: number[]): void {
         const cdt = this.getCDT(target, shape.floor.id);
         const { va, vb } = cdt.insertConstraint(pa, pb);
         va.shapes.add(shape);
@@ -162,22 +205,8 @@ class VisionState extends Store<State> {
     addToTriangulation(data: { target: TriangulationTarget; shape: string }): void {
         if (this._state.mode === VisibilityMode.TRIANGLE_ITERATIVE) {
             const shape = UuidMap.get(data.shape);
-            if (shape) this.addShapesToTriangulation(data.target, shape);
+            if (shape) this.triangulateShape(data.target, shape);
         }
-    }
-
-    private addShapesToTriangulation(target: TriangulationTarget, ...shapes: Shape[]): void {
-        // console.time("AS");
-        for (const shape of shapes) {
-            if (shape.points.length <= 1) continue;
-            const j = shape.isClosed ? 0 : 1;
-            for (let i = 0; i < shape.points.length - j; i++) {
-                const pa = shape.points[i % shape.points.length];
-                const pb = shape.points[(i + 1) % shape.points.length];
-                this.insertConstraint(target, shape, pa, pb);
-            }
-        }
-        // console.timeEnd("AS");
     }
 
     deleteFromTriangulation(data: { target: TriangulationTarget; shape: string }): void {
@@ -187,12 +216,12 @@ class VisionState extends Store<State> {
         }
     }
 
-    private deleteShapesFromTriangulation(target: TriangulationTarget, shape: Shape): void {
+    private deleteShapesFromTriangulation(target: TriangulationTarget, shape: IShape): void {
         if (shape.points.length <= 1) return;
         new IterativeDelete(target, shape);
     }
 
-    moveShape(shape: Shape, oldFloor: number, newFloor: number): void {
+    moveShape(shape: IShape, oldFloor: number, newFloor: number): void {
         if (shape.blocksMovement) {
             this.moveBlocker(TriangulationTarget.MOVEMENT, shape.uuid, oldFloor, newFloor, true);
         }
@@ -281,7 +310,7 @@ class VisionState extends Store<State> {
         }
     }
 
-    removeBlocker(target: TriangulationTarget, floor: number, shape: Shape, recalculate: boolean): void {
+    removeBlocker(target: TriangulationTarget, floor: number, shape: IShape, recalculate: boolean): void {
         const blockers = this.getBlockers(target, floor);
         const index = blockers.findIndex((ls) => ls === shape.uuid);
         if (index >= 0) {
@@ -294,12 +323,14 @@ class VisionState extends Store<State> {
         else this.visionBlockers.delete(floor);
     }
 
-    removeVisionSources(floor: number, shape: string): boolean {
+    removeVisionSources(floor: number, shape: string): void {
         const sources = this.getVisionSources(floor);
-        const index = sources.findIndex((ls) => ls.shape === shape);
-        if (index >= 0) this.sliceVisionSources(index, floor);
-        return index >= 0;
+        const newSources = sources.filter((s) => s.shape !== shape);
+        if (newSources.length !== sources.length) {
+            this.setVisionSources(newSources, floor);
+        }
     }
 }
 
 export const visionState = new VisionState();
+(window as any).visionState = visionState;

@@ -1,9 +1,9 @@
 import { g2l } from "../../../core/conversions";
-import { GlobalPoint } from "../../../core/geometry";
+import type { GlobalPoint } from "../../../core/geometry";
 import { clientStore } from "../../../store/client";
 import { getFogColour } from "../../colour";
-import { ServerRect } from "../../models/shapes";
-import { SHAPE_TYPE } from "../types";
+import type { ServerRect } from "../../models/shapes";
+import type { SHAPE_TYPE } from "../types";
 
 import { BaseRect } from "./baseRect";
 

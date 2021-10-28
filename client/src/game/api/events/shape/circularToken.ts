@@ -1,5 +1,5 @@
 import { UuidMap } from "../../../../store/shapeMap";
-import { CircularToken } from "../../../shapes/variants/circularToken";
+import type { CircularToken } from "../../../shapes/variants/circularToken";
 import { socket } from "../../socket";
 
 socket.on("Shape.CircularToken.Value.Set", (data: { uuid: string; text: string }) => {

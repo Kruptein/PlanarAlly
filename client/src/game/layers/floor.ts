@@ -1,5 +1,5 @@
 import { floorStore } from "../../store/floor";
-import { BackgroundPattern } from "../models/floor";
+import type { BackgroundPattern } from "../models/floor";
 
 export function recalculateZIndices(): void {
     let i = 0;

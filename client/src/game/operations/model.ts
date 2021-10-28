@@ -1,6 +1,6 @@
-import { GlobalPoint } from "../../core/geometry";
-import { LayerName } from "../models/floor";
-import { ServerShape } from "../models/shapes";
+import type { GlobalPoint } from "../../core/geometry";
+import type { LayerName } from "../models/floor";
+import type { ServerShape } from "../models/shapes";
 
 export type Operation =
     | FloorMoveOperation

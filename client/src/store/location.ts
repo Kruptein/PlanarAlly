@@ -9,7 +9,7 @@ import {
     sendLocationRename,
     sendLocationUnarchive,
 } from "../game/api/emits/location";
-import { Location } from "../game/models/settings";
+import type { Location } from "../game/models/settings";
 
 import { clientStore } from "./client";
 import { gameStore } from "./game";

@@ -1,7 +1,7 @@
 import { equalPoints } from "../../core/math";
-import { Shape } from "../shapes/shape";
+import type { IShape } from "../shapes/interfaces";
 
-import { CDT } from "./cdt";
+import type { CDT } from "./cdt";
 import { ccw, cw, orientation, sideOfOrientedCircleP, ulp } from "./triag";
 
 export type Point = number[];
@@ -156,7 +156,7 @@ export class Vertex {
     infinite = false;
     private _point: Point | undefined;
     triangle: Triangle | undefined;
-    shapes: Set<Shape> = new Set();
+    shapes: Set<IShape> = new Set();
 
     constructor(point?: Point) {
         this._point = point;

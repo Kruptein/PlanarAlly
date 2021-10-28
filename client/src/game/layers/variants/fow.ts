@@ -1,13 +1,13 @@
 import { floorStore } from "../../../store/floor";
 import { LayerName } from "../../models/floor";
-import { Shape } from "../../shapes/shape";
+import type { IShape } from "../../shapes/interfaces";
 import { createCanvas, setCanvasDimensions } from "../canvas";
 
 import { Layer } from "./layer";
 
 export class FowLayer extends Layer {
     isVisionLayer = true;
-    preFogShapes: Shape[] = [];
+    preFogShapes: IShape[] = [];
     virtualCanvas: HTMLCanvasElement;
     vCtx: CanvasRenderingContext2D;
 
@@ -23,7 +23,7 @@ export class FowLayer extends Layer {
     }
 
     _draw(): void {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.clearRect(0, 0, this.width, this.height);
         this.vCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
         this.ctx.fillStyle = "rgba(0, 0, 0, 1)";

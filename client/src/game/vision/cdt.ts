@@ -4,12 +4,11 @@ import {
     FaceCirculator,
     LineFaceCirculator,
     LocateType,
-    Point,
     Sign,
     TDS,
     Triangle,
-    Vertex,
 } from "./tds";
+import type { Point, Vertex } from "./tds";
 import {
     ccw,
     collinearBetween,

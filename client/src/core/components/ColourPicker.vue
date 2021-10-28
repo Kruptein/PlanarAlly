@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import clamp from "lodash/clamp";
 import tinycolor from "tinycolor2";
-import { computed, defineEmit, defineProps, nextTick, ref, watchEffect } from "vue";
+import { computed, nextTick, ref, watchEffect } from "vue";
 
 import { getInputPosition } from "../events";
 
@@ -14,12 +14,12 @@ enum InputMode {
 // enums are not properly exported yet with setup https://github.com/vuejs/vue-next/issues/3571
 const IM = InputMode;
 
-const props = defineProps({
-    colour: { type: String, default: "rgba(0, 0, 0, 1)" },
-    showAlpha: { type: Boolean, default: true },
-    vShow: { type: Boolean, default: true },
+const props = withDefaults(defineProps<{ colour?: string; showAlpha?: boolean; vShow?: boolean }>(), {
+    colour: "rgba(0, 0, 0, 1)",
+    showAlpha: true,
+    vShow: true,
 });
-const emit = defineEmit({ "update:colour": (_: string) => true, "input:colour": (_: string) => true });
+const emit = defineEmits<{ (e: "update:colour", c: string): void; (e: "input:colour", c: string): void }>();
 
 const alpha = ref<HTMLDivElement | null>(null);
 const hue = ref<HTMLDivElement | null>(null);

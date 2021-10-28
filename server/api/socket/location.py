@@ -238,6 +238,22 @@ async def load_location(sid: str, location: Location, *, complete=False):
             namespace=GAME_NS,
         )
 
+    # 11. Load client positions
+
+    if pr.role == Role.DM:
+        for psid, player in game_state.get_users(
+            skip_sid=sid, active_location=pr.active_location
+        ):
+            if not psid in game_state.client_locations:
+                continue
+            data = game_state.client_locations[psid]
+            await sio.emit(
+                "Client.Move",
+                {"player": player.id, **data},
+                room=sid,
+                namespace=GAME_NS,
+            )
+
 
 @sio.on("Location.Change", namespace=GAME_NS)
 @auth.login_required(app, sio)

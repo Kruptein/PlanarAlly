@@ -1,7 +1,7 @@
 import { UuidMap } from "../../store/shapeMap";
 import { sendToggleCompositeAddVariant } from "../api/emits/shape/toggleComposite";
-import { Shape } from "../shapes/shape";
-import { ToggleComposite } from "../shapes/variants/toggleComposite";
+import type { IShape } from "../shapes/interfaces";
+import type { ToggleComposite } from "../shapes/variants/toggleComposite";
 
 class CompositeState {
     private compositeMap: Map<string, string> = new Map();
@@ -25,7 +25,7 @@ class CompositeState {
         }
     }
 
-    addAllCompositeShapes(shapes: readonly Shape[]): readonly Shape[] {
+    addAllCompositeShapes(shapes: readonly IShape[]): readonly IShape[] {
         const shapeUuids: Set<string> = new Set(shapes.map((s) => s.uuid));
         const allShapes = [...shapes];
         for (const shape of this.compositeMap.keys()) {

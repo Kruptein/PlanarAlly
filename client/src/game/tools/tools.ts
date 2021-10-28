@@ -1,7 +1,9 @@
 import { computed, ref, watch } from "vue";
 
-import { ITool, ToolFeatures, ToolMode, ToolName } from "../models/tools";
+import { ToolMode, ToolName } from "../models/tools";
+import type { ITool, ToolFeatures } from "../models/tools";
 
+import { diceTool } from "./variants/dice";
 import { drawTool } from "./variants/draw";
 import { filterTool } from "./variants/filter";
 import { mapTool } from "./variants/map";
@@ -26,6 +28,7 @@ export const toolMap: Record<string, ITool> = {
     [ToolName.Filter]: filterTool,
     [ToolName.Vision]: visionTool,
     [ToolName.Spell]: spellTool,
+    [ToolName.Dice]: diceTool,
 };
 
 const buildTools: [ToolName, ToolFeatures][] = [
@@ -38,13 +41,14 @@ const buildTools: [ToolName, ToolFeatures][] = [
     [ToolName.Vision, {}],
 ];
 const playTools: [ToolName, ToolFeatures][] = [
-    [ToolName.Select, { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate] }],
+    [ToolName.Select, { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate, SelectFeatures.PolygonEdit] }],
     [ToolName.Pan, {}],
     [ToolName.Spell, {}],
     [ToolName.Ruler, {}],
     [ToolName.Ping, {}],
     [ToolName.Filter, {}],
     [ToolName.Vision, {}],
+    [ToolName.Dice, {}],
 ];
 
 export const dmTools = [ToolName.Map];
@@ -56,6 +60,10 @@ watch(activeTool, (newTool, oldTool) => {
     toolMap[newTool].onSelect();
 });
 
+export function getActiveTool(): ITool {
+    return toolMap[activeTool.value];
+}
+
 export function toggleActiveMode(): void {
     activeToolMode.value = activeToolMode.value === ToolMode.Build ? ToolMode.Play : ToolMode.Build;
 
@@ -63,7 +71,7 @@ export function toggleActiveMode(): void {
         activeTool.value = ToolName.Select;
     }
 
-    const tool = toolMap[activeTool.value];
+    const tool = getActiveTool();
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
         toolMap[permitted.name].onToolsModeChange(activeToolMode.value, permitted.features);
@@ -81,8 +89,4 @@ export function getFeatures(tool: ToolName): ToolFeatures {
 
 export function activateTool(tool: ToolName): void {
     toolMap[tool].onSelect();
-}
-
-export function deactivateTool(tool: ToolName): void {
-    toolMap[tool].onDeselect();
 }

@@ -121,7 +121,8 @@ export function onKeyDown(event: KeyboardEvent): void {
             }
         } else if (event.key === "d") {
             // d - Deselect all
-            selectionState.clear(true);
+            selectionState.clear();
+            floorStore.currentLayer.value!.invalidate(true);
         } else if (event.key === "x") {
             // x - Mark Defeated
             const selection = selectionState.get({ includeComposites: true });
@@ -228,7 +229,8 @@ function changeFloor(event: KeyboardEvent, targetFloor: number): void {
     if (event.altKey) {
         moveFloor([...selection], newFloor, true);
     }
-    selectionState.clear(true);
+    selectionState.clear();
+    floorStore.currentLayer.value!.invalidate(true);
     if (!event.altKey || event.shiftKey) {
         floorStore.selectFloor({ position: targetFloor }, true);
     }

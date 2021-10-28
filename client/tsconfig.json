@@ -13,7 +13,7 @@
         "sourceMap": true,
         "baseUrl": ".",
         "outDir": "dist",
-        "types": ["@intlify/vite-plugin-vue-i18n/client"],
+        "types": ["vite/client", "@intlify/vite-plugin-vue-i18n/client"],
         "lib": ["esnext", "dom", "dom.iterable", "scripthost"],
         "skipLibCheck": true
     },

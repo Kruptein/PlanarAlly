@@ -1,5 +1,5 @@
 import { Store } from "../core/store";
-import { Note } from "../game/models/general";
+import type { Note } from "../game/models/general";
 import { ClientSettingCategory } from "../game/ui/settings/client/categories";
 
 interface UiState {

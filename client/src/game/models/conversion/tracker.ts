@@ -1,5 +1,5 @@
-import { Tracker } from "../../shapes/interfaces";
-import { ServerTracker } from "../shapes";
+import type { Tracker } from "../../shapes/interfaces";
+import type { ServerTracker } from "../shapes";
 
 export const trackersFromServer = (...trackers: ServerTracker[]): Tracker[] => {
     const result = [];

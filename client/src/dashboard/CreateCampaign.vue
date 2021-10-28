@@ -1,5 +1,5 @@
-<script lang="ts">
-import { defineComponent, reactive, ref } from "vue";
+<script setup lang="ts">
+import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useToast } from "vue-toastification";
 
@@ -7,44 +7,37 @@ import { useModal } from "../core/plugins/modals/plugin";
 import { baseAdjust, postFetch } from "../core/utils";
 import { coreStore } from "../store/core";
 
-export default defineComponent({
-    name: "CreateCampaign",
-    setup() {
-        const modals = useModal();
-        const router = useRouter();
-        const toast = useToast();
+const modals = useModal();
+const router = useRouter();
+const toast = useToast();
 
-        const name = ref("");
-        const logo = reactive({ path: "", id: -1 });
+const name = ref("");
+const logo = reactive({ path: "", id: -1 });
 
-        async function create(): Promise<void> {
-            if (name.value === "") {
-                toast.error("Fill in a name!");
-                return;
-            }
-            const response = await postFetch("/api/rooms", {
-                name: name.value,
-                logo: logo.id,
-            });
-            if (response.ok) {
-                router.push(`/game/${encodeURIComponent(coreStore.state.username)}/${encodeURIComponent(name.value)}`);
-            } else if (response.statusText === "Conflict") {
-                toast.error("A campaign with that name already exists!");
-            } else {
-                toast.error("An unknown error occured :(");
-            }
-        }
+async function create(): Promise<void> {
+    if (name.value === "") {
+        toast.error("Fill in a name!");
+        return;
+    }
+    const response = await postFetch("/api/rooms", {
+        name: name.value,
+        logo: logo.id,
+    });
+    if (response.ok) {
+        router.push(`/game/${encodeURIComponent(coreStore.state.username)}/${encodeURIComponent(name.value)}`);
+    } else if (response.statusText === "Conflict") {
+        toast.error("A campaign with that name already exists!");
+    } else {
+        toast.error(`An unknown error occured :( ${response.statusText})`);
+    }
+}
 
-        async function setLogo(): Promise<void> {
-            const data = await modals.assetPicker();
-            if (data === undefined || data.file_hash === undefined) return;
-            logo.path = data.file_hash;
-            logo.id = data.id;
-        }
-
-        return { baseAdjust, create, logo, name, setLogo };
-    },
-});
+async function setLogo(): Promise<void> {
+    const data = await modals.assetPicker();
+    if (data === undefined || data.file_hash === undefined) return;
+    logo.path = data.file_hash;
+    logo.id = data.id;
+}
 </script>
 
 <template>

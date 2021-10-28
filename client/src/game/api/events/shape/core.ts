@@ -1,12 +1,12 @@
 import { SyncMode, SyncTo } from "../../../../core/models/types";
 import { floorStore } from "../../../../store/floor";
 import { UuidMap } from "../../../../store/shapeMap";
-import { LayerName } from "../../../models/floor";
-import { ServerShape } from "../../../models/shapes";
-import { Shape } from "../../../shapes/shape";
+import type { LayerName } from "../../../models/floor";
+import type { ServerShape } from "../../../models/shapes";
+import type { IShape } from "../../../shapes/interfaces";
 import { deleteShapes } from "../../../shapes/utils";
-import { Circle } from "../../../shapes/variants/circle";
-import { Rect } from "../../../shapes/variants/rect";
+import type { Circle } from "../../../shapes/variants/circle";
+import type { Rect } from "../../../shapes/variants/rect";
 import { addShape, moveFloor, moveLayer } from "../../../temp";
 import { socket } from "../../socket";
 
@@ -65,14 +65,14 @@ socket.on("Shape.Order.Set", (data: { uuid: string; index: number }) => {
 });
 
 socket.on("Shapes.Floor.Change", (data: { uuids: string[]; floor: string }) => {
-    const shapes = data.uuids.map((u) => UuidMap.get(u) ?? undefined).filter((s) => s !== undefined) as Shape[];
+    const shapes = data.uuids.map((u) => UuidMap.get(u) ?? undefined).filter((s) => s !== undefined) as IShape[];
     if (shapes.length === 0) return;
     moveFloor(shapes, floorStore.getFloor({ name: data.floor })!, false);
     if (shapes.some((s) => s.ownedBy(false, { editAccess: true }))) floorStore.selectFloor({ name: data.floor }, false);
 });
 
 socket.on("Shapes.Layer.Change", (data: { uuids: string[]; floor: string; layer: LayerName }) => {
-    const shapes = data.uuids.map((u) => UuidMap.get(u) ?? undefined).filter((s) => s !== undefined) as Shape[];
+    const shapes = data.uuids.map((u) => UuidMap.get(u) ?? undefined).filter((s) => s !== undefined) as IShape[];
     if (shapes.length === 0) return;
     moveLayer(shapes, floorStore.getLayer(floorStore.getFloor({ name: data.floor })!, data.layer)!, false);
 });

@@ -1,4 +1,5 @@
-import { DeepReadonly, reactive, readonly } from "vue";
+import { reactive, readonly } from "vue";
+import type { DeepReadonly } from "vue";
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export abstract class Store<T extends object> {

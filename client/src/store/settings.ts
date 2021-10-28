@@ -1,10 +1,11 @@
-import { computed, ComputedRef } from "@vue/runtime-core";
+import { computed } from "vue";
+import type { ComputedRef } from "vue";
 
 import { Store } from "../core/store";
 import { getValueOrDefault } from "../core/types";
 import { toSnakeCase } from "../core/utils";
 import { sendLocationOptions } from "../game/api/emits/location";
-import { LocationOptions } from "../game/models/settings";
+import type { LocationOptions } from "../game/models/settings";
 
 import { floorStore } from "./floor";
 

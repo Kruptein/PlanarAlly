@@ -1,16 +1,16 @@
-import { computed, ComputedRef, watchEffect } from "vue";
+import { computed, watchEffect } from "vue";
+import type { ComputedRef } from "vue";
 
 import { SyncTo } from "../core/models/types";
 import { Store } from "../core/store";
 import { selectionState } from "../game/layers/selection";
 import { compositeState } from "../game/layers/state";
-import { ShapeOptions } from "../game/models/shapes";
-import { Aura, Label, Tracker } from "../game/shapes/interfaces";
-import { ShapeAccess, ShapeOwner } from "../game/shapes/owners";
-import { Shape } from "../game/shapes/shape";
+import type { ShapeOptions } from "../game/models/shapes";
+import type { Aura, IShape, Label, Tracker } from "../game/shapes/interfaces";
+import type { ShapeAccess, ShapeOwner } from "../game/shapes/owners";
 import { createEmptyUiAura, createEmptyUiTracker } from "../game/shapes/trackers";
-import { SHAPE_TYPE } from "../game/shapes/types";
-import { ToggleComposite } from "../game/shapes/variants/toggleComposite";
+import type { SHAPE_TYPE } from "../game/shapes/types";
+import type { ToggleComposite } from "../game/shapes/variants/toggleComposite";
 
 import { clientStore } from "./client";
 import { gameStore } from "./game";
@@ -21,17 +21,17 @@ export type UiAura = { shape: string; temporary: boolean } & Aura;
 
 function toUiTrackers(trackers: readonly Tracker[], shape: string): UiTracker[] {
     return trackers.map((tracker) => ({
+        ...tracker,
         shape,
         temporary: false,
-        ...tracker,
     }));
 }
 
 function toUiAuras(auras: readonly Aura[], shape: string): UiAura[] {
     return auras.map((aura) => ({
+        ...aura,
         shape,
         temporary: false,
-        ...aura,
     }));
 }
 
@@ -426,7 +426,9 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
             return;
         }
         if (syncTo !== SyncTo.UI) {
-            const sh = UuidMap.get(shape)!;
+            const sh = UuidMap.get(shape);
+            if (sh === undefined) return;
+
             sh.pushTracker(tracker, syncTo);
         }
     }
@@ -439,10 +441,10 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
         Object.assign(tracker, delta);
 
-        const shape = UuidMap.get(tracker.shape);
-        if (shape === undefined) return;
-
         if (syncTo !== SyncTo.UI) {
+            const shape = UuidMap.get(tracker.shape);
+            if (shape === undefined) return;
+
             if (tracker.temporary) {
                 tracker.temporary = false;
                 shape.pushTracker(tracker, SyncTo.SERVER);
@@ -464,10 +466,11 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
             this._state.firstRealTrackerIndex -= 1;
         }
 
-        const shape = UuidMap.get(tr.shape);
-        if (shape === undefined) return;
-
-        if (syncTo !== SyncTo.UI) shape.removeTracker(tracker, syncTo);
+        if (syncTo !== SyncTo.UI) {
+            const shape = UuidMap.get(tr.shape);
+            if (shape === undefined) return;
+            shape.removeTracker(tracker, syncTo);
+        }
     }
 
     setTrackerShape(trackerId: string, shape: string): void {
@@ -621,7 +624,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
     // STARTUP / CLEANUP
 
-    setActiveShape(shape: Shape): void {
+    setActiveShape(shape: IShape): void {
         if (this._state.lastUuid === shape.uuid) this._state.showEditDialog = true;
 
         this._state.uuid = shape.uuid;

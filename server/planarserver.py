@@ -4,25 +4,19 @@ This is the code responsible for starting the backend and reacting to socket IO 
 """
 
 # Check for existence of './templates/' as it is not present if client was not built before
+from argparse import ArgumentParser
+import getpass
 import os
 import sys
+from urllib.parse import quote, unquote
 from utils import FILE_DIR
-
-if (not (FILE_DIR / "templates").exists()) and ("dev" not in sys.argv):
-    print(
-        "You must gather your par— you must build the client, before starting the server.\nSee https://www.planarally.io/server/setup/self-hosting/ on how to build the client or import a pre-built client."
-    )
-    sys.exit(1)
+from types import SimpleNamespace
 
 # Mimetype recognition for js files apparently is not always properly setup out of the box for some users out there.
 import mimetypes
-
-mimetypes.init()
-mimetypes.types_map[".js"] = "application/javascript; charset=utf-8"
-
 import save
 
-save.check_save()
+save_newly_created = save.check_existence()
 
 import asyncio
 import configparser
@@ -39,6 +33,7 @@ from api.socket import *
 from api.socket.constants import GAME_NS
 from app import api_app, app as main_app, runners, setup_runner, sio
 from config import config
+from models import User, Room
 from utils import logger
 
 loop = asyncio.get_event_loop()
@@ -73,7 +68,11 @@ async def start_https(app: web.Application, host, port, chain, key):
         sys.exit(2)
 
     await setup_runner(
-        app, web.TCPSite, host=host, port=port, ssl_context=ctx,
+        app,
+        web.TCPSite,
+        host=host,
+        port=port,
+        ssl_context=ctx,
     )
 
 
@@ -129,16 +128,162 @@ async def start_servers():
     print()
 
 
-main_app.on_shutdown.append(on_shutdown)
+def server_main(args):
+    """Start the PlanarAlly server."""
 
+    if (not (FILE_DIR / "templates").exists()) and args.dev:
+        print(
+            "You must gather your par— you must build the client, before starting the server.\nSee https://www.planarally.io/server/setup/self-hosting/ on how to build the client or import a pre-built client."
+        )
+        sys.exit(1)
 
-if __name__ == "__main__":
+    mimetypes.init()
+    mimetypes.types_map[".js"] = "application/javascript; charset=utf-8"
+
+    if not save_newly_created:
+        save.check_outdated()
+
     loop.create_task(start_servers())
 
     try:
+        main_app.on_shutdown.append(on_shutdown)
+
         loop.run_forever()
     except:
         pass
     finally:
         for runner in runners:
             loop.run_until_complete(runner.cleanup())
+
+
+def list_main(args):
+    """List all of the requested resource type."""
+    resource = args.resource.lower()
+    if resource == "user":
+        for user in User.select():
+            print(user.name)
+    elif resource == "room":
+        for room in Room.select():
+            print(f"{quote(room.creator.name, safe='')}/{quote(room.name, safe='')}")
+
+
+def get_room(path):
+    try:
+        user, room = path.split("/")
+    except ValueError:
+        print("Invalid room. The room should have a single '/'")
+
+    user = User.by_name(unquote(user))
+
+    room = Room.get(name=unquote(room), creator=user)
+    return room
+
+
+def remove_main(args):
+    """Remove a requested resource."""
+    resource = args.resource.lower()
+
+    if resource == "user":
+        user = User.by_name(args.name)
+        user.delete_instance()
+    elif resource == "room":
+        room = get_room(args.name)
+        room.delete_instance()
+
+
+def reset_password_main(args):
+    """Reset a users password. Will prompt for the new password if not provided."""
+    password = args.password
+    user = User.by_name(args.name)
+
+    if not user:
+        print(f"User with name {args.name} not found.")
+        sys.exit(1)
+
+    if not password:
+        first_password = getpass.getpass()
+        second_password = getpass.getpass("Retype password:")
+        while first_password != second_password:
+            print("Passwords do not match.")
+            first_password = getpass.getpass()
+            second_password = getpass.getpass("Retype password:")
+        password = first_password
+    user.set_password(password)
+    user.save()
+
+
+def add_subcommand(name, func, parent_parser, args):
+    sub_parser = parent_parser.add_parser(name, help=func.__doc__)
+    for arg in args:
+        sub_parser.add_argument(arg[0], **arg[1])
+    sub_parser.set_defaults(func=func)
+
+
+def main():
+    if len(sys.argv) < 2 or (len(sys.argv) == 2 and sys.argv[1] == "dev"):
+        # To keep the previous syntax, if this script is called with no args,
+        # Or with just dev, we should start the server.
+        args = SimpleNamespace(dev=len(sys.argv) == 2)
+        server_main(args)
+        return
+
+    parser = ArgumentParser()
+    subparsers = parser.add_subparsers()
+
+    add_subcommand(
+        "serve",
+        server_main,
+        subparsers,
+        [
+            (
+                "dev",
+                {
+                    "nargs": "?",
+                    "choices": ["dev"],
+                    "help": "Start the server with a development version of the client.",
+                },
+            )
+        ],
+    )
+
+    resource_names = ["room", "user"]
+
+    add_subcommand(
+        "list",
+        list_main,
+        subparsers,
+        [("resource", {"choices": resource_names, "help": "The resource to list."})],
+    )
+
+    add_subcommand(
+        "remove",
+        remove_main,
+        subparsers,
+        [
+            (
+                "resource",
+                {"choices": resource_names, "help": "The type of resource to remove"},
+            ),
+            ("name", {"help": "The name of the resource to remove"}),
+        ],
+    )
+
+    add_subcommand(
+        "reset",
+        reset_password_main,
+        subparsers,
+        [
+            ("name", {"help": "The name of the user."}),
+            (
+                "--password",
+                {"help": "The new password. Will be prompted for if not provided."},
+            ),
+        ],
+    )
+
+    options = parser.parse_args()
+    options.func(options)
+
+
+if __name__ == "__main__":
+    main()

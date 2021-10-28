@@ -1,10 +1,11 @@
 import { computed, reactive, watch, watchEffect } from "vue";
 
 import { clampGridLine, getUnitDistance, l2g, l2gz } from "../../../core/conversions";
-import { cloneP, GlobalPoint, LocalPoint, subtractP, toGP } from "../../../core/geometry";
+import { addP, cloneP, subtractP, toArrayP, toGP, Vector } from "../../../core/geometry";
+import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { equalPoints, snapToPoint } from "../../../core/math";
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
-import { PromptFunction } from "../../../core/plugins/modals/prompt";
+import type { PromptFunction } from "../../../core/plugins/modals/prompt";
 import { ctrlOrCmdPressed, mostReadable } from "../../../core/utils";
 import { i18n } from "../../../i18n";
 import { clientStore } from "../../../store/client";
@@ -12,11 +13,13 @@ import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
 import { sendShapeSizeUpdate } from "../../api/emits/shape/core";
-import { Layer } from "../../layers/variants/layer";
-import { Floor, LayerName } from "../../models/floor";
-import { ToolFeatures, ToolName } from "../../models/tools";
+import type { Layer } from "../../layers/variants/layer";
+import { LayerName } from "../../models/floor";
+import type { Floor } from "../../models/floor";
+import { ToolName } from "../../models/tools";
+import type { ToolFeatures } from "../../models/tools";
 import { overrideLastOperation } from "../../operations/undo";
-import { Shape } from "../../shapes/shape";
+import type { IShape } from "../../shapes/interfaces";
 import { Circle } from "../../shapes/variants/circle";
 import { Line } from "../../shapes/variants/line";
 import { Polygon } from "../../shapes/variants/polygon";
@@ -60,10 +63,10 @@ class DrawTool extends Tool {
     hasBrushSize = computed(() => [DrawShape.Brush, DrawShape.Polygon].includes(this.state.selectedShape));
 
     private startPoint?: GlobalPoint;
-    private shape?: Shape;
+    private shape?: IShape;
     private brushHelper?: Circle;
-    // private brushFinder?: Circle;
     private ruler?: Line;
+    private pointer?: Polygon;
 
     private snappedToPoint = false;
 
@@ -72,8 +75,14 @@ class DrawTool extends Tool {
         watch(
             () => gameStore.state.boardInitialized,
             () => {
-                watch(floorStore.currentFloor, (_, oldFloor) => this.onFloorChange(oldFloor!));
-                watch(floorStore.currentLayer, (_, oldLayer) => this.onLayerChange(oldLayer!));
+                watch(floorStore.currentLayer, (newLayer, oldLayer) => {
+                    if (oldLayer === undefined) return;
+                    if (newLayer?.floor !== oldLayer.floor) {
+                        this.onFloorChange(floorStore.getFloor({ id: oldLayer.floor })!);
+                    } else if (newLayer?.name !== oldLayer.name) {
+                        this.onLayerChange(oldLayer);
+                    }
+                });
             },
         );
         watch(
@@ -188,11 +197,11 @@ class DrawTool extends Tool {
         // Adding
 
         if (newValue === DrawMode.Normal) {
-            normalLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false);
+            normalLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
         } else if (newValue === DrawMode.Erase) {
-            mapLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false);
+            mapLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
         } else {
-            fowLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false);
+            fowLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
         }
     }
 
@@ -220,14 +229,19 @@ class DrawTool extends Tool {
 
     // STATE HANDLERS
 
-    onSelect(mouse?: { x: number; y: number }): void {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onSelect(mouse?: { x: number; y: number }): Promise<void> {
         const layer = this.getLayer();
         if (layer === undefined) return;
         layer.canvas.parentElement!.style.cursor = "none";
         this.brushHelper = this.createBrush(toGP(mouse?.x ?? -1000, mouse?.y ?? -1000));
         this.setupBrush();
-        layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false); // during mode change the shape is already added
+        layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false }); // during mode change the shape is already added
         // if (gameStore.state.isDm) this.showLayerPoints();
+        this.pointer = this.createPointer(toGP(mouse?.x ?? -1000, mouse?.y ?? -1000));
+        const drawLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
+        drawLayer!.addShape(this.pointer, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
+        drawLayer!.invalidate(true);
     }
 
     onDeselect(data?: { floor?: Floor; layer?: LayerName }): void {
@@ -236,6 +250,11 @@ class DrawTool extends Tool {
         if (this.brushHelper !== undefined) {
             layer.removeShape(this.brushHelper, SyncMode.NO_SYNC, true);
             this.brushHelper = undefined;
+        }
+        if (this.pointer !== undefined) {
+            const drawLayer = floorStore.getLayer(data?.floor ?? floorStore.currentFloor.value!, LayerName.Draw);
+            drawLayer!.removeShape(this.pointer, SyncMode.NO_SYNC, true);
+            this.pointer = undefined;
         }
         if (this.ruler !== undefined) {
             layer.removeShape(this.ruler, SyncMode.NO_SYNC, true);
@@ -367,24 +386,25 @@ class DrawTool extends Tool {
                     lineWidth: this.state.brushSize,
                     strokeColour: this.state.fillColour,
                 });
-                layer.addShape(this.ruler, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false);
+                layer.addShape(this.ruler, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
             } else {
                 this.ruler.refPoint = lastPoint;
                 this.ruler.endPoint = lastPoint;
             }
-            if (this.shape.blocksVision && this.shape.points.length > 1)
+            const points = this.shape.points; // expensive call
+            if (this.shape.blocksVision && points.length > 1)
                 visionState.insertConstraint(
                     TriangulationTarget.VISION,
                     this.shape,
-                    this.shape.points[this.shape.points.length - 2],
-                    this.shape.points[this.shape.points.length - 1],
+                    points[points.length - 2],
+                    points[points.length - 1],
                 );
-            if (this.shape.blocksMovement && this.shape.points.length > 1)
+            if (this.shape.blocksMovement && points.length > 1)
                 visionState.insertConstraint(
                     TriangulationTarget.MOVEMENT,
                     this.shape,
-                    this.shape.points[this.shape.points.length - 2],
-                    this.shape.points[this.shape.points.length - 1],
+                    points[points.length - 2],
+                    points[points.length - 1],
                 );
             layer.invalidate(false);
             if (!this.shape.preventSync) sendShapeSizeUpdate({ shape: this.shape, temporary: true });
@@ -407,6 +427,12 @@ class DrawTool extends Tool {
         if (clientStore.useSnapping(event))
             [endPoint, this.snappedToPoint] = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
         else this.snappedToPoint = false;
+
+        if (this.pointer !== undefined) {
+            this.pointer.refPoint = endPoint;
+            const dl = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw)!;
+            dl.invalidate(true);
+        }
 
         if (this.brushHelper !== undefined) {
             this.brushHelper.r = this.helperSize;
@@ -441,7 +467,8 @@ class DrawTool extends Tool {
             }
             case DrawShape.Brush: {
                 const br = this.shape as Polygon;
-                if (equalPoints(br.points[br.points.length - 1], [endPoint.x, endPoint.y])) return;
+                const points = br.points; // expensive call
+                if (equalPoints(points[points.length - 1], [endPoint.x, endPoint.y])) return;
                 br._vertices.push(endPoint);
                 break;
             }
@@ -520,19 +547,20 @@ class DrawTool extends Tool {
             layer.removeShape(this.ruler!, SyncMode.NO_SYNC, true);
             this.ruler = undefined;
             if (this.state.isClosedPolygon) {
-                if (this.shape.blocksVision && this.shape.points.length > 1)
+                const points = this.shape.points; // expensive call
+                if (this.shape.blocksVision && points.length > 1)
                     visionState.insertConstraint(
                         TriangulationTarget.VISION,
                         this.shape,
-                        this.shape.points[0],
-                        this.shape.points[this.shape.points.length - 1],
+                        points[0],
+                        points[points.length - 1],
                     );
-                if (this.shape.blocksMovement && this.shape.points.length > 1)
+                if (this.shape.blocksMovement && points.length > 1)
                     visionState.insertConstraint(
                         TriangulationTarget.MOVEMENT,
                         this.shape,
-                        this.shape.points[0],
-                        this.shape.points[this.shape.points.length - 1],
+                        points[0],
+                        points[points.length - 1],
                     );
             }
             this.finaliseShape();
@@ -569,6 +597,24 @@ class DrawTool extends Tool {
         return brush;
     }
 
+    private createPointer(position: GlobalPoint): Polygon {
+        const vertices = [toGP(0, 20), toGP(4.2, 12.6), toGP(12, 16)];
+        const vec = Vector.fromArray(toArrayP(position));
+        const pointer = new Polygon(
+            position,
+            vertices.map((v) => addP(v, vec)),
+            {
+                fillColour: "white",
+                strokeColour: "black",
+                openPolygon: false,
+            },
+        );
+        // Make sure we can see the border of the reveal brush
+        pointer.options.borderOperation = "source-over";
+        pointer.ignoreZoomSize = true;
+        return pointer;
+    }
+
     private setupBrush(): void {
         if (this.brushHelper === undefined) return;
         if (this.state.selectedMode === DrawMode.Reveal || this.state.selectedMode === DrawMode.Hide) {
@@ -599,7 +645,7 @@ class DrawTool extends Tool {
         if (this.brushHelper !== undefined) layer.removeShape(this.brushHelper, SyncMode.NO_SYNC, true);
         this.brushHelper = this.createBrush(toGP(-1000, -1000), bs);
         this.setupBrush();
-        layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false); // during mode change the shape is already added
+        layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false }); // during mode change the shape is already added
         if (refPoint) this.brushHelper.refPoint = refPoint;
     }
 }

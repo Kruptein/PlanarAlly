@@ -37,14 +37,11 @@ function toggleCompositeTracker(trackerId: string): void {
     activeShapeStore.removeTracker(trackerId, SyncTo.SHAPE);
 
     const oldShape = tracker.shape;
-    if (oldShape === activeShapeStore.state.uuid) {
-        activeShapeStore.setTrackerShape(tracker.uuid, activeShapeStore.state.parentUuid!);
-    } else {
-        activeShapeStore.setTrackerShape(tracker.uuid, activeShapeStore.state.uuid!);
-    }
+    const newShape =
+        oldShape === activeShapeStore.state.uuid ? activeShapeStore.state.parentUuid! : activeShapeStore.state.uuid!;
 
-    activeShapeStore.pushTracker(tracker, tracker.shape, SyncTo.SHAPE);
-    sendShapeMoveTracker({ shape: oldShape, new_shape: tracker.shape, tracker: tracker.uuid });
+    activeShapeStore.pushTracker(tracker, newShape, SyncTo.SHAPE);
+    sendShapeMoveTracker({ shape: oldShape, new_shape: newShape, tracker: tracker.uuid });
 }
 
 // Aura
@@ -72,14 +69,11 @@ function toggleCompositeAura(auraId: string): void {
     activeShapeStore.removeAura(auraId, SyncTo.SHAPE);
 
     const oldShape = aura.shape;
-    if (oldShape === activeShapeStore.state.uuid) {
-        activeShapeStore.setAuraShape(aura.uuid, activeShapeStore.state.parentUuid!);
-    } else {
-        activeShapeStore.setAuraShape(aura.uuid, activeShapeStore.state.uuid!);
-    }
+    const newShape =
+        oldShape === activeShapeStore.state.uuid ? activeShapeStore.state.parentUuid! : activeShapeStore.state.uuid!;
 
-    activeShapeStore.pushAura(aura, aura.shape, SyncTo.SHAPE);
-    sendShapeMoveAura({ shape: oldShape, new_shape: aura.shape, aura: aura.uuid });
+    activeShapeStore.pushAura(aura, newShape, SyncTo.SHAPE);
+    sendShapeMoveAura({ shape: oldShape, new_shape: newShape, aura: aura.uuid });
 }
 </script>
 
@@ -144,6 +138,7 @@ function toggleCompositeAura(auraId: string): void {
                     <input
                         v-show="isComposite"
                         type="checkbox"
+                        :checked="tracker.shape === activeShapeStore.state.parentUuid"
                         @click="toggleCompositeTracker(tracker.uuid)"
                         :disabled="!owned"
                         :title="t('common.toggle_public_private')"
@@ -240,6 +235,7 @@ function toggleCompositeAura(auraId: string): void {
                         />
                         <RotationSlider
                             :angle="aura.direction"
+                            :show-number-input="true"
                             @input="
                                 (direction) => {
                                     updateAura(aura.uuid, { direction }, false);
@@ -313,6 +309,10 @@ input[type="text"] {
     padding: 2px;
 }
 
+input[type="number"] {
+    width: 65px;
+}
+
 .aura {
     display: flex;
     flex-direction: column;
@@ -372,10 +372,7 @@ input[type="text"] {
 
         .angle {
             display: flex;
-
-            input {
-                margin-right: 4em;
-            }
+            justify-content: space-between;
         }
 
         .colour {
@@ -393,7 +390,7 @@ input[type="text"] {
 
     input:checked + .details {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr minmax(180px, 1fr);
         align-items: center;
         row-gap: 0.5em;
     }

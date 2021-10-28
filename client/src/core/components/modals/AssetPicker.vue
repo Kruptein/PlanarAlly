@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { defineEmit, defineProps, watchEffect } from "vue";
+import { watchEffect } from "vue";
 
 import { socket } from "../../../assetManager/socket";
 import { assetStore } from "../../../assetManager/state";
@@ -9,10 +9,8 @@ import { baseAdjust } from "../../utils";
 
 import Modal from "./Modal.vue";
 
-const props = defineProps({
-    visible: { type: Boolean, required: true },
-});
-const emit = defineEmit(["submit", "close"]);
+const props = defineProps<{ visible: boolean }>();
+const emit = defineEmits(["submit", "close"]);
 
 const { t } = i18n.global;
 

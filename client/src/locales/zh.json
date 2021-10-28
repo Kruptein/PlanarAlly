@@ -21,7 +21,8 @@
             "uploading": "文件上传中",
             "create_folder": "创建文件夹",
             "upload_files": "上传文件",
-            "title": "素材管理器"
+            "title": "素材管理器",
+            "download_files": "下载文件"
         }
     },
     "common": {
@@ -70,7 +71,9 @@
         "name_already_in_use": "该名称已被占用！",
         "varia": "杂项",
         "select": "选择",
-        "or": "或"
+        "or": "或",
+        "colour": "颜色",
+        "toggle_draw": "指示物绘画"
     },
     "auth": {
         "login": {
@@ -123,7 +126,11 @@
                 "vision_log_msg": "自动锁定视野（只显示视野可用的指示物）",
                 "camera_log_msg": "自动跟踪指示物所在的视角",
                 "reset_round": "重置轮次/回合",
-                "next": "下一个"
+                "next": "下一个",
+                "clear": "清除先攻",
+                "previous": "上一个",
+                "change_sort": "修改排序",
+                "settings": "设置"
             },
             "LabelManager": {
                 "category": "分类",
@@ -138,7 +145,7 @@
             },
             "menu": {
                 "LocationBar": {
-                    "new_location_name": "新地点名称",
+                    "new_location_name": "新地点名称：",
                     "create_new_location": "创建新地点",
                     "add_new_location": "添加新地点",
                     "show_specific_pl": "显示特定玩家"
@@ -183,7 +190,9 @@
                         "is_locked": "锁定状态",
                         "show_badge": "显示数字标识",
                         "block_vision_light": "阻挡视野/光照",
-                        "block_movement": "阻挡移动"
+                        "block_movement": "阻挡移动",
+                        "is_defeated": "被击败",
+                        "show_annotation": "公开"
                     }
                 },
                 "SelectionInfo": {
@@ -211,13 +220,25 @@
             "settings": {
                 "client": {
                     "ClientSettings": {
-                        "client_settings": "Client Settings"
+                        "client_settings": "客户端设置"
                     },
                     "DisplaySettings": {
-                        "grid_size_in_pixels": "网格尺寸（像素）："
+                        "grid_size_in_pixels": "网格尺寸（像素）：",
+                        "use_high_dpi": "适用时，启用 HiDPI/Retina 显示",
+                        "use_as_physical_gameboard": "用作物理游戏板",
+                        "mini_size_in_inches": "棋子尺寸（英寸）",
+                        "ppi": "像素密度（PPI）"
                     },
                     "BehaviourSettings": {
-                        "invert_alt_set": "反转ALT使用"
+                        "invert_alt_set": "反转ALT使用",
+                        "disable_scroll_to_zoom": "禁用滚动缩放"
+                    },
+                    "InitiativeSettings": {
+                        "vision_lock": "锁定视野到激活（拥有）的指示物",
+                        "camera_lock": "锁定摄像机到激活（拥有）的指示物",
+                        "effect_visibility": "何时显示效果",
+                        "effect_always": "总是",
+                        "effect_active": "激活且鼠标悬停"
                     }
                 },
                 "dm": {
@@ -231,7 +252,7 @@
                         "kick": "踢出",
                         "no_players_invite_msg": "暂无玩家，可用下方链接邀请！",
                         "invite_code": "邀请码",
-                        "invitation_url": "邀请链接",
+                        "invitation_url": "邀请链接：",
                         "refresh_invitation_code": "刷新邀请码",
                         "danger_NBSP_zone": "危险区",
                         "dm_access_only": "（DM限定）",
@@ -246,7 +267,8 @@
                     "overridden_msg": "这些设置可能被特定地点的设置覆盖",
                     "overridden_highlight": "被高亮",
                     "reset_default": "重设为战局默认值",
-                    "overridden_highlight_path": "覆盖了战局设置的选项会{0}"
+                    "overridden_highlight_path": "覆盖了战局设置的选项会{0}",
+                    "sync_default": "令此项为新的默认值"
                 },
                 "GridSettings": {
                     "unit_size_in_UNIT": "单位尺寸（{unit}）",
@@ -259,12 +281,15 @@
                 },
                 "LocationBar": {
                     "LocationAdminSettings": {
-                        "remove_location_msg_NAME": "你确定要移除地点 {name} 吗？",
+                        "remove_location_msg_NAME": "你确定要移除地点 {name} 吗",
                         "remove_location_yes": "确认，移除该地点",
                         "remove_location_no": "否",
                         "move_existing_pl": "移动此地点的玩家",
                         "delete_this_location": "移除该地点",
-                        "remove_location": "移除地点"
+                        "remove_location": "移除地点",
+                        "archive_this_location": "存档此地点",
+                        "clone_this_location": "克隆此地点",
+                        "choose_room": "选择房间"
                     },
                     "LocationSettings": {
                         "location_settings": "地点设置："
@@ -290,6 +315,15 @@
                     "vision_mode": "视野模式：",
                     "default": "默认",
                     "experimental": "实验性"
+                },
+                "floor": {
+                    "title": "楼层设置"
+                },
+                "FloorSettings": {
+                    "backgrounds": "地图背景",
+                    "air_background": "空中楼层",
+                    "ground_background": "地面楼层",
+                    "underground_background": "地下楼层"
                 }
             },
             "templates": {
@@ -325,7 +359,11 @@
                     "paint-brush": "笔刷",
                     "normal": "普通",
                     "reveal": "揭示",
-                    "hide": "隐藏"
+                    "hide": "隐藏",
+                    "font_size": "字体大小",
+                    "erase": "擦除",
+                    "cone": "锥形",
+                    "text": "文本"
                 },
                 "FilterTool": {
                     "no_category": "无分类"
@@ -344,6 +382,10 @@
                 },
                 "tools": {
                     "change_mode": "改变模式"
+                },
+                "SpellTool": {
+                    "size": "尺寸",
+                    "range": "距离（半径）"
                 }
             },
             "ui": {
@@ -373,7 +415,9 @@
         "Ping": "指示",
         "Map": "缩图",
         "Filter": "筛选",
-        "Vision": "视野"
+        "Vision": "视野",
+        "Spell": "法术",
+        "Dice": "骰子"
     },
     "settings": {
         "AccountSettings": {
@@ -382,7 +426,7 @@
             "server_request_error": "服务器请求发生错误",
             "change_pwd": "修改密码",
             "remove_account_msg": "你确认要移除你的账号吗？",
-            "delete_request_error": "删除请求发生错误",
+            "delete_request_error": "删除请求发生错误。",
             "no_email_set": "未设置邮箱",
             "general": "通用",
             "username": "用户名：",

@@ -1,15 +1,17 @@
 import { reactive } from "@vue/reactivity";
 
 import { l2g } from "../../../core/conversions";
-import { addP, cloneP, GlobalPoint, LocalPoint, subtractP, toGP, Vector } from "../../../core/geometry";
+import { addP, cloneP, subtractP, toGP, Vector } from "../../../core/geometry";
+import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { DEFAULT_GRID_SIZE } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import { selectionState } from "../../layers/selection";
-import { ToolName, ToolPermission } from "../../models/tools";
-import { Shape } from "../../shapes/shape";
+import { ToolName } from "../../models/tools";
+import type { ToolPermission } from "../../models/tools";
+import type { IShape } from "../../shapes/interfaces";
 import { Rect } from "../../shapes/variants/rect";
 import { Tool } from "../tool";
 
@@ -49,7 +51,7 @@ class MapTool extends Tool {
         return this.permittedTools_;
     }
 
-    setSelection(shapes: readonly Shape[]): void {
+    setSelection(shapes: readonly IShape[]): void {
         if (shapes.length === 1 && this.shape === undefined && ["assetrect", "rect"].includes(shapes[0].type)) {
             this.shape = shapes[0] as Rect;
             this.state.hasShape = true;
@@ -104,7 +106,7 @@ class MapTool extends Tool {
         this.rect = new Rect(cloneP(this.startPoint), 0, 0, { fillColour: "rgba(0,0,0,0)", strokeColour: "black" });
         this.state.hasRect = true;
         this.rect.preventSync = true;
-        layer.addShape(this.rect, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
+        layer.addShape(this.rect, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
         selectionState.set(this.rect);
     }
 

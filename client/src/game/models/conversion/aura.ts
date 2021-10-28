@@ -1,5 +1,5 @@
-import { Aura } from "../../shapes/interfaces";
-import { ServerAura } from "../shapes";
+import type { Aura } from "../../shapes/interfaces";
+import type { ServerAura } from "../shapes";
 
 export const aurasFromServer = (...auras: ServerAura[]): Aura[] => {
     const result = [];

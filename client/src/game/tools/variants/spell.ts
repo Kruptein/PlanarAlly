@@ -1,7 +1,8 @@
 import { reactive, watch, watchEffect } from "vue";
 
 import { g2l, getUnitDistance, l2g, toRadians } from "../../../core/conversions";
-import { equalsP, LocalPoint, toGP } from "../../../core/geometry";
+import { equalsP, toGP } from "../../../core/geometry";
+import type { LocalPoint } from "../../../core/geometry";
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { clientStore } from "../../../store/client";
@@ -9,8 +10,9 @@ import { floorStore } from "../../../store/floor";
 import { UuidMap } from "../../../store/shapeMap";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { selectionState } from "../../layers/selection";
-import { ToolName, ToolPermission } from "../../models/tools";
-import { Shape } from "../../shapes/shape";
+import { ToolName } from "../../models/tools";
+import type { ToolPermission } from "../../models/tools";
+import type { IShape } from "../../shapes/interfaces";
 import { Circle } from "../../shapes/variants/circle";
 import { Rect } from "../../shapes/variants/rect";
 import { Tool } from "../tool";
@@ -28,7 +30,7 @@ class SpellTool extends Tool {
     readonly toolName = ToolName.Spell;
     readonly toolTranslation = i18n.global.t("tool.Spell");
 
-    shape?: Shape;
+    shape?: IShape;
     rangeShape?: Circle;
 
     state = reactive({
@@ -122,7 +124,7 @@ class SpellTool extends Tool {
             this.shape,
             this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC,
             InvalidationMode.NORMAL,
-            false,
+            { snappable: false },
         );
 
         this.drawRangeShape();
@@ -142,10 +144,11 @@ class SpellTool extends Tool {
             fillColour: "rgba(0,0,0,0)",
             strokeColour: "black",
         });
-        layer.addShape(this.rangeShape, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false);
+        layer.addShape(this.rangeShape, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
     }
 
-    onSelect(): void {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onSelect(): Promise<void> {
         if (!selectionState.hasSelection && this.state.selectedSpellShape === SpellShape.Cone) {
             this.state.selectedSpellShape = SpellShape.Circle;
         }
@@ -172,7 +175,7 @@ class SpellTool extends Tool {
 
         layer.removeShape(this.shape, this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC, false);
         this.shape.isInvisible = !this.state.showPublic;
-        layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NORMAL, false);
+        layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NORMAL, { snappable: false });
         this.shape = undefined;
         activateTool(ToolName.Select);
     }

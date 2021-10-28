@@ -1,68 +1,60 @@
-<script lang="ts">
-import { defineComponent, onMounted, PropType, reactive, ref, toRefs } from "vue";
+<script setup lang="ts">
+import { onMounted, reactive, ref } from "vue";
 
-import { Label } from "../../game/shapes/interfaces";
+import type { Label } from "../../game/shapes/interfaces";
 
-export default defineComponent({
-    props: {
-        title: { type: String, required: true },
-        items: { type: Object as PropType<Label[]>, required: true },
-        initialValues: { type: Object as PropType<string[]>, required: true },
-    },
-    setup(props, { emit }) {
-        const overall = ref<HTMLInputElement | null>(null);
+const emit = defineEmits<{ (e: "selectionupdate", selection: string[]): void }>();
+const props = defineProps<{ title: string; items: Label[]; initialValues: string[] }>();
 
-        const state = reactive({
-            active: false,
-            selected: [] as string[],
-        });
+const overall = ref<HTMLInputElement | null>(null);
 
-        onMounted(() => {
-            state.selected = props.initialValues;
-            updateCategory();
-        });
-
-        function toggleCategory(): void {
-            if (overall.value!.checked) state.selected = props.items.map((i) => i.uuid);
-            else state.selected = [];
-            emit("selectionupdate", state.selected);
-        }
-
-        function toggleSelection(item: string): void {
-            const found = state.selected.indexOf(item);
-            if (found === -1) state.selected.push(item);
-            else state.selected.splice(found, 1);
-            updateCategory();
-            emit("selectionupdate", state.selected);
-        }
-
-        function updateCategory(): void {
-            if (state.selected.length === 0) {
-                overall.value!.checked = false;
-                overall.value!.indeterminate = false;
-            } else if (state.selected.length === props.items.length) {
-                overall.value!.checked = true;
-                overall.value!.indeterminate = false;
-            } else {
-                overall.value!.checked = false;
-                overall.value!.indeterminate = true;
-            }
-        }
-
-        return { ...toRefs(state), overall, toggleCategory, toggleSelection };
-    },
+const state = reactive({
+    active: false,
+    selected: [] as string[],
 });
+
+onMounted(() => {
+    state.selected = props.initialValues;
+    updateCategory();
+});
+
+function toggleCategory(): void {
+    if (overall.value!.checked) state.selected = props.items.map((i) => i.uuid);
+    else state.selected = [];
+    emit("selectionupdate", state.selected);
+}
+
+function toggleSelection(item: string): void {
+    const found = state.selected.indexOf(item);
+    if (found === -1) state.selected.push(item);
+    else state.selected.splice(found, 1);
+    updateCategory();
+    emit("selectionupdate", state.selected);
+}
+
+function updateCategory(): void {
+    if (state.selected.length === 0) {
+        overall.value!.checked = false;
+        overall.value!.indeterminate = false;
+    } else if (state.selected.length === props.items.length) {
+        overall.value!.checked = true;
+        overall.value!.indeterminate = false;
+    } else {
+        overall.value!.checked = false;
+        overall.value!.indeterminate = true;
+    }
+}
 </script>
 
 <template>
     <div class="accordion">
-        <div id="header" @click.prevent="active = !active">
+        <div id="header" @click.prevent="state.active = !state.active">
             <input type="checkbox" @click.stop="toggleCategory" ref="overall" />
             <strong>{{ title }}</strong>
         </div>
-        <div v-show="active" id="body">
+        <div v-show="state.active" id="body">
             <div v-for="item in items" :key="item.uuid" class="item" @click="toggleSelection(item.uuid)">
-                <input type="checkbox" :checked="selected.includes(item.uuid)" @click.prevent />
+                <input type="checkbox" :checked="state.selected.includes(item.uuid)" @click.prevent />
                 {{ item.name }}
             </div>
         </div>

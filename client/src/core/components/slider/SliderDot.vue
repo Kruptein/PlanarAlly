@@ -1,18 +1,17 @@
-<script lang="ts">
-import { defineComponent, PropType } from "vue";
-
-// eslint-disable-next-line import/no-unused-modules
-export default defineComponent({
-    props: {
-        dotStyle: Object,
-        // eslint-disable-next-line vue/require-valid-default-prop
-        dotSize: { type: Object as PropType<[number, number]>, default: () => [14, 14] },
-        position: { type: Number, required: true },
-        value: Number,
-        focussed: { type: Boolean, default: false },
+<script setup lang="ts">
+withDefaults(
+    defineProps<{
+        dotStyle?: Record<string, unknown>;
+        dotSize?: [number, number];
+        position: number;
+        value?: number;
+        focussed?: boolean;
+    }>(),
+    {
+        dotSize: () => [14, 14],
+        focussed: false,
     },
-    setup() {},
-});
+);
 </script>
 
 <template>

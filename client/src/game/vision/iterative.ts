@@ -1,9 +1,11 @@
 import { equalPoints } from "../../core/math";
-import { Shape } from "../shapes/shape";
+import type { IShape } from "../shapes/interfaces";
 
-import { CDT } from "./cdt";
-import { TriangulationTarget, visionState } from "./state";
-import { Edge, Sign, Triangle, Vertex } from "./tds";
+import type { CDT } from "./cdt";
+import { visionState } from "./state";
+import type { TriangulationTarget } from "./state";
+import { Sign } from "./tds";
+import type { Edge, Triangle, Vertex } from "./tds";
 import { ccw, collinear, collinearInOrder, cw, xyCompare, xyEqual, xySmaller } from "./triag";
 
 interface Constraint {
@@ -55,10 +57,10 @@ export class IterativeDelete {
     private newConstraints: NewConstraint[];
     private handledPoints: number[][];
     private cdt: CDT;
-    private shape: Shape;
+    private shape: IShape;
     private finalConstraints: [Vertex, Vertex][];
 
-    constructor(target: TriangulationTarget, shape: Shape) {
+    constructor(target: TriangulationTarget, shape: IShape) {
         this.vertices = [];
         this.edges = [];
         this.newConstraints = [];

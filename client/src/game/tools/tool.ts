@@ -1,10 +1,10 @@
 import { computed } from "@vue/runtime-core";
 import { ref } from "vue";
 
-import { LocalPoint } from "../../core/geometry";
+import type { LocalPoint } from "../../core/geometry";
 import { onKeyUp } from "../input/keyboard";
 import { getLocalPointFromEvent } from "../input/mouse";
-import { ToolFeatures, ITool, ToolMode, ToolName, ToolPermission } from "../models/tools";
+import type { ToolFeatures, ITool, ToolMode, ToolName, ToolPermission } from "../models/tools";
 
 import { activeTool } from "./tools";
 
@@ -59,7 +59,7 @@ export abstract class Tool implements ITool {
     onPinchEnd(_event: TouchEvent, _features: ToolFeatures): void {}
     onContextMenu(_event: MouseEvent, _features: ToolFeatures): void {}
 
-    onSelect(): void {}
+    async onSelect(): Promise<void> {}
     onDeselect(): void {}
     async onDown(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): Promise<void> {}
     onUp(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): void {}

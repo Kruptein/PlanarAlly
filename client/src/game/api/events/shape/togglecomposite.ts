@@ -1,6 +1,6 @@
 import { SyncTo } from "../../../../core/models/types";
 import { UuidMap } from "../../../../store/shapeMap";
-import { ToggleComposite } from "../../../shapes/variants/toggleComposite";
+import type { ToggleComposite } from "../../../shapes/variants/toggleComposite";
 import { socket } from "../../socket";
 
 socket.on("ToggleComposite.Variants.Active.Set", (data: { shape: string; variant: string }): void => {

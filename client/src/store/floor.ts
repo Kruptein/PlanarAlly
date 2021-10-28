@@ -1,4 +1,5 @@
-import { computed, ComputedRef, DeepReadonly } from "@vue/runtime-core";
+import { computed } from "@vue/runtime-core";
+import type { ComputedRef, DeepReadonly } from "@vue/runtime-core";
 
 import { Store } from "../core/store";
 import {
@@ -19,8 +20,9 @@ import { FowVisionLayer } from "../game/layers/variants/fowVision";
 import { GridLayer } from "../game/layers/variants/grid";
 import { Layer } from "../game/layers/variants/layer";
 import { MapLayer } from "../game/layers/variants/map";
-import { Floor, FloorType, LayerName } from "../game/models/floor";
-import { ServerFloor, ServerLayer } from "../game/models/general";
+import { LayerName } from "../game/models/floor";
+import type { Floor, FloorType } from "../game/models/floor";
+import type { ServerFloor, ServerLayer } from "../game/models/general";
 import { groupToClient } from "../game/models/groups";
 import { TriangulationTarget, visionState } from "../game/vision/state";
 
@@ -290,7 +292,7 @@ class FloorStore extends Store<FloorState> {
 
     selectLayer(name: string, sync = true, invalidate = true): void {
         let found = false;
-        selectionState.clear(false);
+        selectionState.clear();
         for (const [index, layer] of this.getLayers(this.currentFloor.value!).entries()) {
             if (!layer.selectable) continue;
             if (found && layer.name !== LayerName.Lighting) layer.ctx.globalAlpha = 0.3;
@@ -312,7 +314,8 @@ class FloorStore extends Store<FloorState> {
 
     // INVALIDATE
 
-    invalidate(floor: Floor): void {
+    invalidate(floorRepr: FloorRepresentation): void {
+        const floor = this.getFloor(floorRepr, false)!;
         const layers = this.layerMap.get(floor.id)!;
         for (let i = layers.length - 1; i >= 0; i--) {
             layers[i].invalidate(true);

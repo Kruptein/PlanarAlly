@@ -1,36 +1,29 @@
-<script lang="ts">
-import { defineComponent, nextTick, ref, watchEffect } from "vue";
+<script setup lang="ts">
+import { nextTick, ref, watchEffect } from "vue";
 
 import Modal from "./Modal.vue";
 
-export default defineComponent({
-    name: "ConfirmDialog",
-    components: { Modal },
-    emits: ["close", "submit"],
-    props: {
-        visible: { type: Boolean, required: true },
-        yes: { type: String, required: true },
-        no: { type: String, required: true },
-        showNo: { type: Boolean, required: true },
-        title: { type: String, required: true },
-        text: { type: String, required: true },
-        focus: { type: String, required: true },
-    },
-    setup(props, { emit }) {
-        const confirm = ref<HTMLButtonElement | null>(null);
-        const deny = ref<HTMLButtonElement | null>(null);
+const props = defineProps<{
+    visible: boolean;
+    yes: string;
+    no: string;
+    showNo: boolean;
+    title: string;
+    text: string;
+    focus: string;
+}>();
+const emit = defineEmits(["close", "submit"]);
 
-        watchEffect(() => {
-            if (props.visible) {
-                nextTick(() => {
-                    if (props.focus === "confirm") confirm.value!.focus();
-                    else deny.value!.focus();
-                });
-            }
+const confirm = ref<HTMLButtonElement | null>(null);
+const deny = ref<HTMLButtonElement | null>(null);
+
+watchEffect(() => {
+    if (props.visible) {
+        nextTick(() => {
+            if (props.focus === "confirm") confirm.value!.focus();
+            else deny.value!.focus();
         });
-
-        return { confirm, deny, emit };
-    },
+    }
 });
 </script>
 

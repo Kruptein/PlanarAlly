@@ -7,8 +7,8 @@ import { gameStore } from "../../store/game";
 import { sendRemoveShapes } from "../api/emits/shape/core";
 import { addGroupMembers, createNewGroupForShapes, generateNewBadge, hasGroup } from "../groups";
 import { selectionState } from "../layers/selection";
-import { LayerName } from "../models/floor";
-import {
+import type { LayerName } from "../models/floor";
+import type {
     ServerShape,
     ServerRect,
     ServerCircle,
@@ -25,7 +25,7 @@ import {
 import { addOperation } from "../operations/undo";
 import { TriangulationTarget, VisibilityMode, visionState } from "../vision/state";
 
-import { Shape } from "./shape";
+import type { IShape } from "./interfaces";
 import { Asset } from "./variants/asset";
 import { Circle } from "./variants/circle";
 import { CircularToken } from "./variants/circularToken";
@@ -36,8 +36,8 @@ import { Text } from "./variants/text";
 import { ToggleComposite } from "./variants/toggleComposite";
 
 // eslint-disable-next-line
-export function createShapeFromDict(shape: ServerShape): Shape | undefined {
-    let sh: Shape;
+export function createShapeFromDict(shape: ServerShape): IShape | undefined {
+    let sh: IShape;
 
     // A fromJSON and toJSON on Shape would be cleaner but ts does not allow for static abstracts so yeah.
 
@@ -138,13 +138,13 @@ export function copyShapes(): void {
     gameStore.setClipboardPosition(clientStore.screenCenter);
 }
 
-export function pasteShapes(targetLayer?: LayerName): readonly Shape[] {
+export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
     const layer = floorStore.getLayer(floorStore.currentFloor.value!, targetLayer);
     if (!layer) return [];
     const gameState = gameStore.state;
     if (gameState.clipboard.length === 0) return [];
 
-    selectionState.clear(false);
+    selectionState.clear();
 
     gameStore.setClipboardPosition(clientStore.screenCenter);
     let offset = subtractP(clientStore.screenCenter, gameState.clipboardPosition);
@@ -234,7 +234,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly Shape[] {
     return selectionState.get({ includeComposites: false });
 }
 
-export function deleteShapes(shapes: readonly Shape[], sync: SyncMode): void {
+export function deleteShapes(shapes: readonly IShape[], sync: SyncMode): void {
     const removed: string[] = [];
     const recalculateIterative = visionState.state.mode === VisibilityMode.TRIANGLE_ITERATIVE;
     let recalculateVision = false;

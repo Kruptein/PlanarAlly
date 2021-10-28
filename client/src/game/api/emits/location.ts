@@ -1,5 +1,5 @@
-import { ServerLocationOptions } from "../../models/settings";
-import { ServerAsset } from "../../models/shapes";
+import type { ServerLocationOptions } from "../../models/settings";
+import type { ServerAsset } from "../../models/shapes";
 import { wrapSocket } from "../helpers";
 import { socket } from "../socket";
 

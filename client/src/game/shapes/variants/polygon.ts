@@ -1,10 +1,15 @@
-import { g2l, g2lz, g2lx, g2ly } from "../../../core/conversions";
-import { GlobalPoint, getDistanceToSegment, toGP, toArrayP, subtractP, addP } from "../../../core/geometry";
-import { filterEqualPoints, getPointsCenter, rotateAroundPoint } from "../../../core/math";
+import { g2l, g2lz } from "../../../core/conversions";
+import { addP, getDistanceToSegment, subtractP, toArrayP, toGP } from "../../../core/geometry";
+import type { GlobalPoint } from "../../../core/geometry";
+import { equalPoints, filterEqualPoints, getPointsCenter, rotateAroundPoint } from "../../../core/math";
+import { InvalidationMode, SyncMode } from "../../../core/models/types";
+import { uuidv4 } from "../../../core/utils";
+import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { getFogColour } from "../../colour";
-import { ServerPolygon } from "../../models/shapes";
+import type { ServerPolygon } from "../../models/shapes";
+import { visionState } from "../../vision/state";
 import { Shape } from "../shape";
-import { SHAPE_TYPE } from "../types";
+import type { SHAPE_TYPE } from "../types";
 
 import { BoundingRect } from "./boundingRect";
 
@@ -105,7 +110,7 @@ export class Polygon extends Shape {
 
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
-        ctx.lineWidth = g2lz(this.lineWidth);
+        ctx.lineWidth = this.ignoreZoomSize ? this.lineWidth : g2lz(this.lineWidth);
 
         if (this.strokeColour === "fog") ctx.strokeStyle = getFogColour();
         else ctx.strokeStyle = this.strokeColour;
@@ -113,11 +118,18 @@ export class Polygon extends Shape {
         else ctx.fillStyle = this.fillColour;
 
         ctx.beginPath();
-        ctx.moveTo(g2lx(this.vertices[0].x) - center.x, g2ly(this.vertices[0].y) - center.y);
+        let localVertex = subtractP(g2l(this.vertices[0]), center);
+        ctx.moveTo(localVertex.x, localVertex.y);
         for (let i = 1; i <= this.vertices.length - (this.openPolygon ? 1 : 0); i++) {
             const vertex = this.vertices[i % this.vertices.length];
-            ctx.lineTo(g2lx(vertex.x) - center.x, g2ly(vertex.y) - center.y);
+            if (this.ignoreZoomSize) {
+                localVertex = addP(localVertex, subtractP(vertex, this.vertices[i - 1]));
+            } else {
+                localVertex = subtractP(g2l(vertex), center);
+            }
+            ctx.lineTo(localVertex.x, localVertex.y);
         }
+
         if (!this.openPolygon) ctx.fill();
         ctx.stroke();
         super.drawPost(ctx);
@@ -132,7 +144,7 @@ export class Polygon extends Shape {
         const vertices = this.uniqueVertices;
         for (const [i, v] of vertices.entries()) {
             const nv = vertices[(i + 1) % vertices.length];
-            const distance = getDistanceToSegment(point, [v, nv]);
+            const { distance } = getDistanceToSegment(point, [v, nv]);
             if (distance <= nearbyThreshold) return true;
         }
         return false;
@@ -148,9 +160,9 @@ export class Polygon extends Shape {
         this.refPoint = toGP(subtractP(centerPoint, subtractP(oldCenter, this.refPoint)).asArray());
     }
 
-    visibleInCanvas(canvas: HTMLCanvasElement, options: { includeAuras: boolean }): boolean {
-        if (super.visibleInCanvas(canvas, options)) return true;
-        return this.getBoundingBox().visibleInCanvas(canvas);
+    visibleInCanvas(max: { w: number; h: number }, options: { includeAuras: boolean }): boolean {
+        if (super.visibleInCanvas(max, options)) return true;
+        return this.getBoundingBox().visibleInCanvas(max);
     }
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     snapToGrid(): void {}
@@ -173,5 +185,93 @@ export class Polygon extends Shape {
             }
         }
         return resizePoint;
+    }
+
+    // POLYGON OPERATIONS
+    cutPolygon(point: GlobalPoint): void {
+        let lastVertex = -1;
+        let nearVertex: GlobalPoint | null = null;
+        for (let i = 1; i <= this.vertices.length - (this.openPolygon ? 1 : 0); i++) {
+            const prevVertex = this.vertices[i - 1];
+            const vertex = this.vertices[i % this.vertices.length];
+
+            const info = getDistanceToSegment(point, [prevVertex, vertex]);
+            if (info.distance < this.lineWidth) {
+                lastVertex = i - 1;
+                nearVertex = info.nearest;
+                break;
+            }
+        }
+        if (lastVertex >= 0) {
+            const newVertices = this.vertices.slice(lastVertex + 1);
+            this._vertices = this._vertices.slice(0, lastVertex);
+            this._vertices.push(nearVertex!);
+
+            const newPolygon = new Polygon(nearVertex!, newVertices);
+            const uuid = newPolygon.uuid;
+            // make sure we copy over all the same properties but retain the correct uuid and vertices
+            newPolygon.fromDict({ ...this.asDict(), uuid });
+            newPolygon._refPoint = nearVertex!;
+            newPolygon._vertices = newVertices;
+            for (const tr of newPolygon._trackers) {
+                tr.uuid = uuidv4();
+            }
+            for (const au of newPolygon._auras) {
+                au.uuid = uuidv4();
+            }
+
+            this.layer.addShape(
+                newPolygon,
+                SyncMode.FULL_SYNC,
+                this.blocksVision ? InvalidationMode.WITH_LIGHT : InvalidationMode.NORMAL,
+            );
+            // Do the OG shape update AFTER sending the new polygon or there might (depending on network)
+            // be a couple of frames where the new polygon is not shown and the old one is already cut
+            // potentially showing hidden stuff
+            if (!this.preventSync) sendShapePositionUpdate([this], false);
+        }
+    }
+
+    addPoint(point: GlobalPoint): void {
+        for (let i = 1; i <= this.vertices.length - (this.openPolygon ? 1 : 0); i++) {
+            const prevVertex = this.vertices[i - 1];
+            const vertex = this.vertices[i % this.vertices.length];
+
+            const info = getDistanceToSegment(point, [prevVertex, vertex]);
+            if (info.distance < this.lineWidth) {
+                this._vertices.splice(i - 1, 0, info.nearest);
+
+                if (!this.preventSync) sendShapePositionUpdate([this], false);
+
+                this.invalidate(true);
+                break;
+            }
+        }
+    }
+
+    removePoint(point: GlobalPoint): void {
+        const pointArr = toArrayP(point);
+        let invalidate = false;
+        if (equalPoints(pointArr, toArrayP(this.refPoint))) {
+            this._refPoint = this._vertices.splice(0, 1)[0];
+            invalidate = true;
+            this.invalidate(true);
+        } else {
+            for (const [i, v] of this._vertices.entries()) {
+                if (equalPoints(pointArr, toArrayP(v))) {
+                    this._vertices.splice(i, 1);
+                    invalidate = true;
+                    break;
+                }
+            }
+        }
+
+        if (invalidate) {
+            if (this.blocksVision) visionState.recalculateVision(this.floor.id);
+            if (this.blocksMovement) visionState.recalculateMovement(this.floor.id);
+            if (!this.preventSync) sendShapePositionUpdate([this], false);
+
+            this.invalidate(true);
+        }
     }
 }

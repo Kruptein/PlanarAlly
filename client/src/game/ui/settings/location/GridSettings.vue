@@ -1,75 +1,70 @@
-<script lang="ts">
-import { computed, defineComponent } from "vue";
+<script setup lang="ts">
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { settingsStore } from "../../../../store/settings";
-import { LocationOptions } from "../../../models/settings";
+import type { LocationOptions } from "../../../models/settings";
 
-export default defineComponent({
-    props: { location: { type: Number, default: -1 } },
-    setup(props) {
-        const { t } = useI18n();
+const props = withDefaults(defineProps<{ location?: number }>(), { location: -1 });
 
-        const isGlobal = computed(() => props.location < 0);
+const { t } = useI18n();
 
-        const options = computed(() => {
-            if (isGlobal.value) {
-                return settingsStore.state.defaultLocationOptions!;
-            } else {
-                return settingsStore.state.locationOptions.get(props.location) ?? {};
-            }
-        });
+const isGlobal = computed(() => props.location < 0);
 
-        const location = computed(() => (isGlobal.value ? undefined : props.location));
+const options = computed(() => {
+    if (isGlobal.value) {
+        return settingsStore.state.defaultLocationOptions!;
+    } else {
+        return settingsStore.state.locationOptions.get(props.location) ?? {};
+    }
+});
 
-        const useGrid = computed({
-            get() {
-                return settingsStore.getLocationOptions("useGrid", location.value);
-            },
-            set(useGrid: boolean) {
-                settingsStore.setUseGrid(useGrid, location.value, true);
-            },
-        });
+const location = computed(() => (isGlobal.value ? undefined : props.location));
 
-        const gridType = computed({
-            get() {
-                return settingsStore.getLocationOptions("gridType", location.value);
-            },
-            set(gridType: string) {
-                settingsStore.setGridType(gridType, location.value, true);
-            },
-        });
-
-        const unitSize = computed({
-            get() {
-                return settingsStore.getLocationOptions("unitSize", location.value);
-            },
-            set(unitSize: number) {
-                if (unitSize >= 1) settingsStore.setUnitSize(unitSize, location.value, true);
-            },
-        });
-
-        const unitSizeUnit = computed({
-            get() {
-                return settingsStore.getLocationOptions("unitSizeUnit", location.value);
-            },
-            set(unitSizeUnit: string) {
-                settingsStore.setUnitSizeUnit(unitSizeUnit, location.value, true);
-            },
-        });
-
-        function reset(key: keyof LocationOptions): void {
-            if (isGlobal.value) return;
-            settingsStore.reset(key, props.location);
-        }
-
-        function e(k: any): boolean {
-            return k !== undefined && k !== null;
-        }
-
-        return { e, isGlobal, options, reset, t, useGrid, gridType, unitSize, unitSizeUnit };
+const useGrid = computed({
+    get() {
+        return settingsStore.getLocationOptions("useGrid", location.value);
+    },
+    set(useGrid: boolean) {
+        settingsStore.setUseGrid(useGrid, location.value, true);
     },
 });
+
+const gridType = computed({
+    get() {
+        return settingsStore.getLocationOptions("gridType", location.value);
+    },
+    set(gridType: string) {
+        settingsStore.setGridType(gridType, location.value, true);
+    },
+});
+
+const unitSize = computed({
+    get() {
+        return settingsStore.getLocationOptions("unitSize", location.value);
+    },
+    set(unitSize: number) {
+        if (unitSize >= 1) settingsStore.setUnitSize(unitSize, location.value, true);
+    },
+});
+
+const unitSizeUnit = computed({
+    get() {
+        return settingsStore.getLocationOptions("unitSizeUnit", location.value);
+    },
+    set(unitSizeUnit: string) {
+        settingsStore.setUnitSizeUnit(unitSizeUnit, location.value, true);
+    },
+});
+
+function reset(key: keyof LocationOptions): void {
+    if (isGlobal.value) return;
+    settingsStore.reset(key, props.location);
+}
+
+function e(k: any): boolean {
+    return k !== undefined && k !== null;
+}
 </script>
 
 <template>

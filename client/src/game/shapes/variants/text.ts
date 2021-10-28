@@ -1,11 +1,12 @@
 import { g2lz, l2gz } from "../../../core/conversions";
-import { addP, GlobalPoint, toGP, Vector } from "../../../core/geometry";
+import { addP, toGP, Vector } from "../../../core/geometry";
+import type { GlobalPoint } from "../../../core/geometry";
 import { rotateAroundPoint } from "../../../core/math";
 import { SyncMode } from "../../../core/models/types";
 import { sendTextUpdate } from "../../api/emits/shape/text";
-import { ServerText } from "../../models/shapes";
+import type { ServerText } from "../../models/shapes";
 import { Shape } from "../shape";
-import { SHAPE_TYPE } from "../types";
+import type { SHAPE_TYPE } from "../types";
 
 import { BoundingRect } from "./boundingRect";
 
@@ -97,9 +98,9 @@ export class Text extends Shape {
         this.refPoint = centerPoint;
     }
 
-    visibleInCanvas(canvas: HTMLCanvasElement, options: { includeAuras: boolean }): boolean {
-        if (super.visibleInCanvas(canvas, options)) return true;
-        return this.getBoundingBox().visibleInCanvas(canvas);
+    visibleInCanvas(max: { w: number; h: number }, options: { includeAuras: boolean }): boolean {
+        if (super.visibleInCanvas(max, options)) return true;
+        return this.getBoundingBox().visibleInCanvas(max);
     }
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     snapToGrid(): void {}
@@ -154,7 +155,7 @@ export class Text extends Shape {
     private getLines(ctx: CanvasRenderingContext2D): { text: string; x: number; y: number }[] {
         const lines = this.text.split("\n");
         const allLines: { text: string; x: number; y: number }[] = [];
-        const maxWidth = ctx.canvas.width;
+        const maxWidth = this.layer.width;
         const lineHeight = 30;
         const x = 0; // this.refPoint.x;
         let y = 0; // this.refPoint.y;

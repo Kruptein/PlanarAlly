@@ -1,5 +1,5 @@
 import { gameStore } from "../../../store/game";
-import { Label } from "../../shapes/interfaces";
+import type { Label } from "../../shapes/interfaces";
 import { socket } from "../socket";
 
 socket.on("Labels.Set", (labels: Label[]) => {

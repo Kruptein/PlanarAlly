@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineProps, toRef } from "vue";
+import { computed, ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { getValue } from "../../../../core/utils";
@@ -8,12 +8,15 @@ import { settingsStore } from "../../../../store/settings";
 import type { LocationOptions } from "../../../models/settings";
 import { VisibilityMode, visionState } from "../../../vision/state";
 
-const props = defineProps({ location: { type: Number, default: -1 } });
+const props = withDefaults(defineProps<{ location?: number }>(), { location: -1 });
 const { t } = useI18n();
 
 const visionMode = toRef(visionState.state, "mode");
 
 const isGlobal = computed(() => props.location < 0);
+
+// TODO: Clean up this hack around settingsstore not being reactive when setting things
+const invalidateHack = ref(0);
 
 const options = computed(() => {
     if (isGlobal.value) {
@@ -72,19 +75,29 @@ const unitSizeUnit = computed({
 
 const visionMinRange = computed({
     get() {
+        invalidateHack.value;
         return settingsStore.getLocationOptions("visionMinRange", location.value);
     },
-    set(visionMinRange: number) {
-        settingsStore.setVisionRangeMin(visionMinRange, location.value, true);
+    set(newMin: number) {
+        if (newMin > visionMaxRange.value) {
+            newMin = visionMaxRange.value;
+            invalidateHack.value++;
+        }
+        settingsStore.setVisionRangeMin(newMin, location.value, true);
     },
 });
 
 const visionMaxRange = computed({
     get() {
+        invalidateHack.value;
         return settingsStore.getLocationOptions("visionMaxRange", location.value);
     },
-    set(visionMaxRange: number) {
-        settingsStore.setVisionRangeMax(visionMaxRange, location.value, true);
+    set(newMax: number) {
+        if (newMax < visionMinRange.value) {
+            newMax = visionMinRange.value;
+            invalidateHack.value++;
+        }
+        settingsStore.setVisionRangeMax(newMax, location.value, true);
     },
 });
 
@@ -192,7 +205,13 @@ function changeVisionMode(event: Event): void {
                 {{ t("game.ui.settings.VisionSettings.min_full_vision_UNIT", { unit: unitSizeUnit }) }}
             </label>
             <div>
-                <input :id="'vmininp-' + location" type="number" min="0" v-model.lazy.number="visionMinRange" />
+                <input
+                    :id="'vmininp-' + location"
+                    type="number"
+                    min="0"
+                    :max="options.visionMaxRange ?? 0"
+                    v-model.lazy.number="visionMinRange"
+                />
             </div>
             <div
                 v-if="!isGlobal && options.visionMinRange !== undefined"
@@ -208,7 +227,12 @@ function changeVisionMode(event: Event): void {
                 {{ t("game.ui.settings.VisionSettings.max_vision_UNIT", { unit: unitSizeUnit }) }}
             </label>
             <div>
-                <input :id="'vmaxinp-' + location" type="number" min="0" v-model.lazy.number="visionMaxRange" />
+                <input
+                    :id="'vmaxinp-' + location"
+                    type="number"
+                    :min="Math.max(0, options.visionMinRange ?? 0)"
+                    v-model.lazy.number="visionMaxRange"
+                />
             </div>
             <div
                 v-if="!isGlobal && options.visionMaxRange !== undefined"

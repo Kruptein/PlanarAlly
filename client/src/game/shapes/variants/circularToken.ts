@@ -1,11 +1,11 @@
 import { g2l, g2lz } from "../../../core/conversions";
-import { GlobalPoint } from "../../../core/geometry";
+import type { GlobalPoint } from "../../../core/geometry";
 import { SyncMode } from "../../../core/models/types";
 import { calcFontScale, mostReadable } from "../../../core/utils";
 import { clientStore } from "../../../store/client";
 import { sendCircularTokenUpdate } from "../../api/emits/shape/circularToken";
-import { ServerCircularToken } from "../../models/shapes";
-import { SHAPE_TYPE } from "../types";
+import type { ServerCircularToken } from "../../models/shapes";
+import type { SHAPE_TYPE } from "../types";
 
 import { Circle } from "./circle";
 

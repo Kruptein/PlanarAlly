@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { PropType } from "vue";
-import { computed, defineEmit, defineProps, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useModal } from "../core/plugins/modals/plugin";
@@ -8,11 +7,11 @@ import { baseAdjust, baseAdjustedFetch, deleteFetch, getValue, patchFetch } from
 
 import type { RoomInfo } from "./types";
 
-const props = defineProps({
-    dmMode: { type: Boolean, required: true },
-    sessions: { type: Object as PropType<RoomInfo[]>, required: true },
-});
-const emit = defineEmit(["remove-room", "rename", "update-logo"]);
+const props = defineProps<{
+    dmMode: boolean;
+    sessions: RoomInfo[];
+}>();
+const emit = defineEmits(["remove-room", "rename", "update-logo"]);
 
 const { t } = useI18n();
 const modals = useModal();
@@ -149,13 +148,13 @@ async function leaveOrDelete(): Promise<void> {
                 LAUNCH!
             </router-link>
             <div v-else class="launch">ROOM LOCKED</div>
-            <div style="flex-grow: 1"></div>
+            <div :style="{ flexGrow: 1 }"></div>
             <div class="header">Last playtime</div>
             <div>{{ lastPlayed ? lastPlayed : "unknown" }}</div>
-            <div style="flex-grow: 1"></div>
+            <div :style="{ flexGrow: 1 }"></div>
             <div class="header">Notes</div>
-            <textarea style="flex-grow: 1" :value="notes" @change="setNotes(getValue($event))"></textarea>
-            <div style="flex-grow: 2"></div>
+            <textarea :style="{ flexGrow: 1 }" :value="notes" @change="setNotes(getValue($event))"></textarea>
+            <div :style="{ flexGrow: 2 }"></div>
             <div class="leave" @click="leaveOrDelete">{{ dmMode ? "DELETE" : "LEAVE" }}</div>
         </div>
     </div>

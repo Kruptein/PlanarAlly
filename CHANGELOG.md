@@ -8,6 +8,55 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+## [0.29.0] - 2021-10-28
+
+### Added
+
+-   Dice rolling tool
+-   Pointer to the draw tool
+-   Server Admin Commands
+-   Polygon edit tool
+    -   cut polygon in two / add extra node to polygon / remove node from polygon
+    -   accessible when selecting a polygon with the select tool in BUILD mode
+
+### Changed
+
+-   Active tool-mode is now more distinct
+-   Prevent setting visionMinRange > visionMaxRange using settings UI
+-   Added number input to the aura angle direction UI
+-   Variant-switcher re-enabled
+-   SVG-walls handling
+    -   stored metadata is different
+        -   old method is still supported but will be deprecated in the future
+        -   it is strongly advised to reapply your svg walls
+    -   now takes basic transforms into account (i.e. scale && translate)
+
+### Fixed
+
+-   Locked shapes being able to move locations
+-   Locked shapes being able to change floors
+-   vision min range equal to max range bug
+-   Angled auras not rotating with general shape rotation
+-   Multiple styling issues in firefox
+    -   Annotations no longer fill entire screen width
+    -   Aura UI being way to wide
+-   Viewport sync
+    -   viewport is sent immediately upon connecting (and does not wait for the first pan)
+    -   DM viewport move is now throttled and should no longer appear laggy on the client
+-   Various DPI related fixes
+-   Multiple experimental vision mode bugs
+    -   Fix startup not working correctly
+    -   Fix unsnapped move of blocking shape not updating movement triangulation
+-   Toggle Composite shapes (variants)
+    -   shared tracker/aura toggles now properly work
+    -   changing location of a composite now moves all variants along
+    -   Some non-shared auras could linger around when changing variant
+-   Movement block not updating directly when not using snapping
+-   Some performance dropoff for big polygons
+-   Remove lingering rotation UI when removing a shape in build mode
+-   Select tool showing ruler without selection
+-   Text resize not live-syncing to other clients
+
 ## [0.28.0] - 2021-07-21
 
 ### Added

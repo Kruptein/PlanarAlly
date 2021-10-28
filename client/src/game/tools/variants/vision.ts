@@ -1,5 +1,6 @@
 import { i18n } from "../../../i18n";
-import { ToolName, ToolPermission } from "../../models/tools";
+import { ToolName } from "../../models/tools";
+import type { ToolPermission } from "../../models/tools";
 import { Tool } from "../tool";
 
 import { SelectFeatures } from "./select";

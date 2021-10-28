@@ -1,6 +1,6 @@
-<script lang="ts">
-import { computed, defineComponent, onMounted, reactive, ref, toRefs } from "vue";
-import { NavigationGuardNext, RouteLocationNormalized, useRoute, useRouter } from "vue-router";
+<script setup lang="ts">
+import { computed, onMounted, reactive, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
 import LanguageDropdown from "../core/components/LanguageDropdown.vue";
 import { useModal } from "../core/plugins/modals/plugin";
@@ -9,7 +9,8 @@ import { baseAdjust, baseAdjustedFetch, getErrorReason } from "../core/utils";
 import AccountSettings from "./AccountSettings.vue";
 import CreateCampaign from "./CreateCampaign.vue";
 import SessionList from "./SessionList.vue";
-import { Navigation, NavigationEntry, RoomInfo } from "./types";
+import { Navigation } from "./types";
+import type { NavigationEntry, RoomInfo } from "./types";
 
 enum NavigationMode {
     Main,
@@ -32,148 +33,126 @@ const state: DashboardState = reactive({
     activeNavigation: Navigation.Play,
 });
 
-export default defineComponent({
-    name: "Dashboard",
-    components: { AccountSettings, CreateCampaign, LanguageDropdown, SessionList },
-    async beforeRouteEnter(_to: RouteLocationNormalized, _from: RouteLocationNormalized, next: NavigationGuardNext) {
-        const response = await baseAdjustedFetch("/api/rooms");
-        next(async () => {
-            if (response.ok) {
-                const data: { owned: RoomInfo[]; joined: RoomInfo[] } = await response.json();
-                state.owned = data.owned;
-                state.joined = data.joined;
-            } else {
-                state.error = await getErrorReason(response);
-            }
-        });
-    },
-    setup() {
-        const modals = useModal();
-        const route = useRoute();
-        const router = useRouter();
+const modals = useModal();
+const route = useRoute();
+const router = useRouter();
 
-        const mainNavigation: NavigationEntry[] = [
-            { text: "game", type: "header" },
-            { type: "action", navigation: Navigation.Play, fn: setActiveNavigation },
-            { type: "action", navigation: Navigation.Run, fn: setActiveNavigation },
-            { type: "action", navigation: Navigation.Create, fn: setActiveNavigation },
-            { type: "separator" },
-            { text: "assets", type: "header" },
-            { type: "action", navigation: Navigation.AssetManage, fn: openAssetManager },
-            { type: "action", navigation: Navigation.AssetCreate, fn: setActiveNavigation },
-            { type: "separator" },
-            { type: "action", navigation: Navigation.Settings, fn: toggleNavigation },
-            { type: "separator" },
-            { type: "action", navigation: Navigation.Logout, fn: logout },
-        ];
-
-        const settingsNavigation: NavigationEntry[] = [
-            { text: "settings", type: "header" },
-            { type: "action", navigation: Navigation.Account, fn: setActiveNavigation },
-            { type: "separator" },
-            { type: "action", navigation: Navigation.Back, fn: toggleNavigation },
-        ];
-
-        const activeNavigation = ref(NavigationMode.Main);
-        const navigation = computed(() =>
-            activeNavigation.value === NavigationMode.Main ? mainNavigation : settingsNavigation,
+onMounted(async () => {
+    if (route.params?.error === "join_game") {
+        await modals.confirm(
+            "Failed to join session",
+            "It was not possible to join the game session. This might be because the DM has locked the session.",
+            { showNo: false, yes: "Ok" },
         );
+    }
 
-        onMounted(async () => {
-            if (route.params?.error === "join_game") {
-                await modals.confirm(
-                    "Failed to join session",
-                    "It was not possible to join the game session. This might be because the DM has locked the session.",
-                    { showNo: false, yes: "Ok" },
-                );
-            }
-        });
-
-        const navigationTranslation: Record<Navigation, string> = {
-            [Navigation.Play]: "play",
-            [Navigation.Run]: "run",
-            [Navigation.Create]: "create",
-            [Navigation.Settings]: "settings",
-            [Navigation.AssetManage]: "manage",
-            [Navigation.AssetCreate]: "create",
-            [Navigation.Logout]: "logout",
-
-            [Navigation.Account]: "account",
-            [Navigation.Back]: "back",
-        };
-
-        function setActiveNavigation(navigationIndex: Navigation): void {
-            if (navigationIndex === Navigation.Run && state.owned.length === 0) navigationIndex = Navigation.Create;
-            state.activeNavigation = navigationIndex;
-        }
-
-        function toggleNavigation(): void {
-            if (activeNavigation.value === NavigationMode.Main) {
-                activeNavigation.value = NavigationMode.Settings;
-            } else {
-                activeNavigation.value = NavigationMode.Main;
-            }
-        }
-
-        async function openAssetManager(): Promise<void> {
-            await router.push("/assets");
-        }
-
-        async function logout(): Promise<void> {
-            await router.push("/auth/logout");
-        }
-
-        function leaveRoom(index: number): void {
-            state.joined.splice(index, 1);
-        }
-
-        function rename(index: number, name: string): void {
-            state.owned[index].name = name;
-        }
-
-        function removeRoom(index: number): void {
-            state.owned.splice(index, 1);
-        }
-
-        function updateLogo(index: number, logo: string): void {
-            state.owned[index].logo = logo;
-        }
-
-        return {
-            ...toRefs(state),
-            baseAdjust,
-
-            Navigation,
-            navigationTranslation,
-            navigation,
-
-            leaveRoom,
-            removeRoom,
-            rename,
-            updateLogo,
-        };
-    },
+    const response = await baseAdjustedFetch("/api/rooms");
+    if (response.ok) {
+        const data: { owned: RoomInfo[]; joined: RoomInfo[] } = await response.json();
+        console.log(data);
+        state.owned = data.owned;
+        state.joined = data.joined;
+    } else {
+        state.error = await getErrorReason(response);
+    }
 });
+
+const mainNavigation: NavigationEntry[] = [
+    { text: "game", type: "header" },
+    { type: "action", navigation: Navigation.Play, fn: setActiveNavigation },
+    { type: "action", navigation: Navigation.Run, fn: setActiveNavigation },
+    { type: "action", navigation: Navigation.Create, fn: setActiveNavigation },
+    { type: "separator" },
+    { text: "assets", type: "header" },
+    { type: "action", navigation: Navigation.AssetManage, fn: openAssetManager },
+    { type: "action", navigation: Navigation.AssetCreate, fn: setActiveNavigation },
+    { type: "separator" },
+    { type: "action", navigation: Navigation.Settings, fn: toggleNavigation },
+    { type: "separator" },
+    { type: "action", navigation: Navigation.Logout, fn: logout },
+];
+
+const settingsNavigation: NavigationEntry[] = [
+    { text: "settings", type: "header" },
+    { type: "action", navigation: Navigation.Account, fn: setActiveNavigation },
+    { type: "separator" },
+    { type: "action", navigation: Navigation.Back, fn: toggleNavigation },
+];
+
+const activeNavigation = ref(NavigationMode.Main);
+const navigation = computed(() =>
+    activeNavigation.value === NavigationMode.Main ? mainNavigation : settingsNavigation,
+);
+
+const navigationTranslation: Record<Navigation, string> = {
+    [Navigation.Play]: "play",
+    [Navigation.Run]: "run",
+    [Navigation.Create]: "create",
+    [Navigation.Settings]: "settings",
+    [Navigation.AssetManage]: "manage",
+    [Navigation.AssetCreate]: "create",
+    [Navigation.Logout]: "logout",
+
+    [Navigation.Account]: "account",
+    [Navigation.Back]: "back",
+};
+
+function setActiveNavigation(navigationIndex: Navigation): void {
+    if (navigationIndex === Navigation.Run && state.owned.length === 0) navigationIndex = Navigation.Create;
+    state.activeNavigation = navigationIndex;
+}
+
+function toggleNavigation(): void {
+    if (activeNavigation.value === NavigationMode.Main) {
+        activeNavigation.value = NavigationMode.Settings;
+    } else {
+        activeNavigation.value = NavigationMode.Main;
+    }
+}
+
+async function openAssetManager(): Promise<void> {
+    await router.push("/assets");
+}
+
+async function logout(): Promise<void> {
+    await router.push("/auth/logout");
+}
+
+function leaveRoom(index: number): void {
+    state.joined.splice(index, 1);
+}
+
+function rename(index: number, name: string): void {
+    state.owned[index].name = name;
+}
+
+function removeRoom(index: number): void {
+    state.owned.splice(index, 1);
+}
+
+function updateLogo(index: number, logo: string): void {
+    state.owned[index].logo = logo;
+}
 </script>
 
 <template>
     <div id="page">
         <SessionList
-            v-if="activeNavigation === Navigation.Play"
-            :sessions="joined"
+            v-if="state.activeNavigation === Navigation.Play"
+            :sessions="state.joined"
             :dmMode="false"
             @remove-room="leaveRoom"
         />
         <SessionList
-            v-else-if="activeNavigation === Navigation.Run"
-            :sessions="owned"
+            v-else-if="state.activeNavigation === Navigation.Run"
+            :sessions="state.owned"
             :dmMode="true"
             @rename="rename"
             @remove-room="removeRoom"
             @update-logo="updateLogo"
         />
-        <CreateCampaign v-else-if="activeNavigation === Navigation.Create" />
-        <AccountSettings v-else-if="activeNavigation === Navigation.Account" />
+        <CreateCampaign v-else-if="state.activeNavigation === Navigation.Create" />
+        <AccountSettings v-else-if="state.activeNavigation === Navigation.Account" />
         <div v-else id="not-implemented">
             <img :src="baseAdjust('/static/img/d20-fail.svg')" />
             <div class="padding bold">OOF, That's a critical one!</div>
@@ -183,9 +162,9 @@ export default defineComponent({
 
         <div id="nav-panel">
             <div id="language-selector">
-                <font-awesome-icon icon="language" @click="showLanguageDropdown = !showLanguageDropdown" />
+                <font-awesome-icon icon="language" @click="state.showLanguageDropdown = !state.showLanguageDropdown" />
             </div>
-            <LanguageDropdown id="language-dropdown" v-if="showLanguageDropdown" />
+            <LanguageDropdown id="language-dropdown" v-if="state.showLanguageDropdown" />
             <div id="logo">
                 <img :src="baseAdjust('/static/favicon.png')" alt="PA logo" />
             </div>
@@ -196,7 +175,7 @@ export default defineComponent({
                         :key="nav.navigation"
                         @click="nav.fn(nav.navigation)"
                         :class="{
-                            selected: activeNavigation === nav.navigation,
+                            selected: state.activeNavigation === nav.navigation,
                         }"
                     >
                         {{ navigationTranslation[nav.navigation] }}

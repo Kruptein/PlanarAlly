@@ -1,12 +1,13 @@
 import { l2g } from "../../../core/conversions";
-import { GlobalPoint, LocalPoint } from "../../../core/geometry";
+import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { LayerName } from "../../models/floor";
-import { ToolName, ToolPermission } from "../../models/tools";
+import { ToolName } from "../../models/tools";
+import type { ToolPermission } from "../../models/tools";
 import { deleteShapes } from "../../shapes/utils";
 import { Circle } from "../../shapes/variants/circle";
 import { Tool } from "../tool";
@@ -60,8 +61,8 @@ class PingTool extends Tool {
         this.border.ignoreZoomSize = true;
         this.ping.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.SHAPE);
         this.border.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.SHAPE);
-        layer.addShape(this.ping, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
-        layer.addShape(this.border, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
+        layer.addShape(this.ping, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL, { snappable: false });
+        layer.addShape(this.border, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL, { snappable: false });
     }
 
     onMove(lp: LocalPoint): void {

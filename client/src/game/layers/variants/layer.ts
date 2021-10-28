@@ -1,5 +1,6 @@
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
 import { activeShapeStore } from "../../../store/activeShape";
+import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
@@ -8,12 +9,12 @@ import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../../api/emits/
 import { drawAuras } from "../../draw";
 import { removeGroupMember } from "../../groups";
 import { LayerName } from "../../models/floor";
-import { ServerShape } from "../../models/shapes";
+import type { ServerShape } from "../../models/shapes";
 import { addOperation } from "../../operations/undo";
-import { Shape } from "../../shapes/shape";
+import type { IShape } from "../../shapes/interfaces";
 import { createShapeFromDict } from "../../shapes/utils";
 import { initiativeStore } from "../../ui/initiative/state";
-import { TriangulationTarget, visionState } from "../../vision/state";
+import { TriangulationTarget, VisibilityMode, visionState } from "../../vision/state";
 import { setCanvasDimensions } from "../canvas";
 import { selectionState } from "../selection";
 import { compositeState } from "../state";
@@ -31,7 +32,7 @@ export class Layer {
 
     // The collection of shapes that this layer contains.
     // These are ordered on a depth basis.
-    protected shapes: Shape[] = [];
+    protected shapes: IShape[] = [];
 
     points: Map<string, Set<string>> = new Map();
 
@@ -62,11 +63,11 @@ export class Layer {
     }
 
     get width(): number {
-        return this.canvas.width;
+        return this.canvas.width / clientStore.devicePixelRatio.value;
     }
 
     get height(): number {
-        return this.canvas.height;
+        return this.canvas.height / clientStore.devicePixelRatio.value;
     }
 
     resize(width: number, height: number): void {
@@ -82,13 +83,15 @@ export class Layer {
         return this.getShapes(options).length;
     }
 
-    addShape(shape: Shape, sync: SyncMode, invalidate: InvalidationMode, snappable = true): void {
+    addShape(shape: IShape, sync: SyncMode, invalidate: InvalidationMode, options?: { snappable?: boolean }): void {
         shape.setLayer(this.floor, this.name);
+
         this.shapes.push(shape);
+
         UuidMap.set(shape.uuid, shape);
         shape.setBlocksVision(shape.blocksVision, SyncTo.UI, invalidate !== InvalidationMode.NO);
         shape.setBlocksMovement(shape.blocksMovement, SyncTo.UI, invalidate !== InvalidationMode.NO);
-        if (snappable) {
+        if (options?.snappable ?? true) {
             for (const point of shape.points) {
                 const strp = JSON.stringify(point);
                 this.points.set(strp, (this.points.get(strp) || new Set()).add(shape.uuid));
@@ -96,8 +99,9 @@ export class Layer {
         }
         if (shape.ownedBy(false, { visionAccess: true }) && shape.isToken) gameStore.addOwnedToken(shape.uuid);
         if (shape.annotation.length) gameStore.addAnnotation(shape.uuid);
-        if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
+        if (sync !== SyncMode.NO_SYNC && !shape.preventSync) {
             sendShapeAdd({ shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
+        }
         if (invalidate) this.invalidate(invalidate !== InvalidationMode.WITH_LIGHT);
 
         if (
@@ -111,13 +115,14 @@ export class Layer {
         if (sync === SyncMode.FULL_SYNC) {
             addOperation({ type: "shapeadd", shapes: [shape.asDict()] });
         }
+        shape.onLayerAdd();
     }
 
     // UI helpers are objects that are created for UI reaons but that are not pertinent to the actual state
     // They are often not desired unless in specific circumstances
-    getShapes(options: { skipUiHelpers?: boolean; includeComposites: boolean }): readonly Shape[] {
+    getShapes(options: { skipUiHelpers?: boolean; includeComposites: boolean }): readonly IShape[] {
         const skipUiHelpers = options.skipUiHelpers ?? true;
-        let shapes: readonly Shape[] = skipUiHelpers
+        let shapes: readonly IShape[] = skipUiHelpers
             ? this.shapes.filter((s) => !(s.options.UiHelper ?? false))
             : this.shapes;
         if (options.includeComposites) {
@@ -126,16 +131,16 @@ export class Layer {
         return shapes;
     }
 
-    pushShapes(...shapes: Shape[]): void {
+    pushShapes(...shapes: IShape[]): void {
         this.shapes.push(...shapes);
     }
 
-    setShapes(...shapes: Shape[]): void {
+    setShapes(...shapes: IShape[]): void {
         this.shapes = shapes;
     }
 
     setServerShapes(shapes: ServerShape[]): void {
-        if (this.isActiveLayer) selectionState.clear(false); // TODO: Fix keeping selection on those items that are not moved.
+        if (this.isActiveLayer) selectionState.clear(); // TODO: Fix keeping selection on those items that are not moved.
         // We need to ensure composites are added after all their variants have been added
         const composites = [];
         for (const serverShape of shapes) {
@@ -154,10 +159,14 @@ export class Layer {
             console.log(`Shape with unknown type ${serverShape.type_} could not be added`);
             return;
         }
-        this.addShape(shape, SyncMode.NO_SYNC, InvalidationMode.NO);
+        let invalidate = InvalidationMode.NO;
+        if (visionState.state.mode === VisibilityMode.TRIANGLE_ITERATIVE) {
+            invalidate = InvalidationMode.WITH_LIGHT;
+        }
+        this.addShape(shape, SyncMode.NO_SYNC, invalidate);
     }
 
-    removeShape(shape: Shape, sync: SyncMode, recalculate: boolean): boolean {
+    removeShape(shape: IShape, sync: SyncMode, recalculate: boolean): boolean {
         const idx = this.shapes.indexOf(shape);
         if (idx < 0) {
             console.error("attempted to remove shape not in layer.");
@@ -205,7 +214,8 @@ export class Layer {
         return true;
     }
 
-    moveShapeOrder(shape: Shape, destinationIndex: number, sync: SyncMode): void {
+    // TODO: This does not take into account shapes that the server does not know about
+    moveShapeOrder(shape: IShape, destinationIndex: number, sync: SyncMode): void {
         const oldIdx = this.shapes.indexOf(shape);
         if (oldIdx === destinationIndex) return;
         this.shapes.splice(oldIdx, 1);
@@ -245,12 +255,12 @@ export class Layer {
 
             const currentLayer = floorStore.currentLayer.value;
             // To optimize things slightly, we keep track of the shapes that passed the first round
-            const visibleShapes: Shape[] = [];
+            const visibleShapes: IShape[] = [];
 
             // Aura draw loop
             for (const shape of this.shapes) {
                 if (shape.options.skipDraw ?? false) continue;
-                if (!shape.visibleInCanvas(this.canvas, { includeAuras: true })) continue;
+                if (!shape.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: true })) continue;
                 if (this.name === LayerName.Lighting && currentLayer !== this) continue;
                 drawAuras(shape, ctx);
                 visibleShapes.push(shape);
@@ -284,7 +294,7 @@ export class Layer {
                     const layers = floorStore.getLayers(lowerFloor);
                     if (layers[layers.length - 1].name === this.name) {
                         ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
-                        ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                        ctx.fillRect(0, 0, this.width, this.height);
                     }
                 }
             }

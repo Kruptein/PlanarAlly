@@ -1,8 +1,9 @@
-import { Layer } from "../game/layers/variants/layer";
+import type { Layer } from "../game/layers/variants/layer";
 import { DEFAULT_GRID_SIZE } from "../store/client";
 
 import { l2gz } from "./conversions";
-import { addP, equalsP, GlobalPoint, subtractP, toArrayP, toGP, Vector } from "./geometry";
+import { addP, equalsP, subtractP, toArrayP, toGP, Vector } from "./geometry";
+import type { GlobalPoint } from "./geometry";
 
 export function equalPoint(a: number, b: number, delta = 0.0001): boolean {
     return a - delta < b && a + delta > b;

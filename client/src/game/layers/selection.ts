@@ -1,7 +1,6 @@
 import { Store } from "../../core/store";
-import { floorStore } from "../../store/floor";
 import { UuidMap } from "../../store/shapeMap";
-import { Shape } from "../shapes/shape";
+import type { IShape } from "../shapes/interfaces";
 
 import { compositeState } from "./state";
 
@@ -22,15 +21,14 @@ class SelectionState extends Store<State> {
         return this.state.selection.size > 0;
     }
 
-    clear(invalidate: boolean): void {
+    clear(): void {
         this._state.selection.clear();
-        if (invalidate) floorStore.currentLayer.value!.invalidate(true);
     }
 
     // UI helpers are objects that are created for UI reaons but that are not pertinent to the actual state
     // They are often not desired unless in specific circumstances
-    get(options: { includeComposites: boolean; includeUiHelpers?: boolean }): readonly Shape[] {
-        const shapes: Shape[] = [];
+    get(options: { includeComposites: boolean; includeUiHelpers?: boolean }): readonly IShape[] {
+        const shapes: IShape[] = [];
         for (const selection of this._state.selection) {
             shapes.push(UuidMap.get(selection)!);
         }
@@ -42,13 +40,13 @@ class SelectionState extends Store<State> {
         return options.includeComposites ? compositeState.addAllCompositeShapes(shapes) : shapes;
     }
 
-    push(...selection: Shape[]): void {
+    push(...selection: IShape[]): void {
         for (const sel of selection) {
             this._state.selection.add(sel.uuid);
         }
     }
 
-    set(...selection: Shape[]): void {
+    set(...selection: IShape[]): void {
         this._state.selection.clear();
         this.push(...selection);
     }

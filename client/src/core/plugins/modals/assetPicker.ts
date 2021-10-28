@@ -1,7 +1,8 @@
-import { DeepReadonly, Ref, readonly, reactive, toRefs } from "vue";
+import { readonly, reactive, toRefs } from "vue";
+import type { DeepReadonly, Ref } from "vue";
 
 import { assetStore } from "../../../assetManager/state";
-import { Asset } from "../../models/types";
+import type { Asset } from "../../models/types";
 
 export type AssetPickerFunction = () => Promise<DeepReadonly<Asset> | undefined>;
 

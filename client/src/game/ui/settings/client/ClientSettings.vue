@@ -1,5 +1,5 @@
-<script lang="ts">
-import { computed, defineComponent, toRef } from "vue";
+<script setup lang="ts">
+import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
@@ -11,36 +11,25 @@ import { ClientSettingCategory } from "./categories";
 import DisplaySettings from "./DisplaySettings.vue";
 import InitiativeSettings from "./InitiativeSettings.vue";
 
-export default defineComponent({
-    components: { AppearanceSettings, BehaviourSettings, DisplaySettings, InitiativeSettings, PanelModal },
-    setup() {
-        const { t } = useI18n();
+const { t } = useI18n();
 
-        const visible = computed({
-            get() {
-                return uiStore.state.showClientSettings;
-            },
-            set(visible: boolean) {
-                uiStore.showClientSettings(visible);
-            },
-        });
-
-        const categoryNames = [
-            ClientSettingCategory.Appearance,
-            ClientSettingCategory.Behaviour,
-            ClientSettingCategory.Display,
-            ClientSettingCategory.Initiative,
-        ];
-
-        return {
-            activeClientTab: toRef(uiStore.state, "clientSettingsTab"),
-            ClientSettingCategory,
-            categoryNames,
-            visible,
-            t,
-        };
+const visible = computed({
+    get() {
+        return uiStore.state.showClientSettings;
+    },
+    set(visible: boolean) {
+        uiStore.showClientSettings(visible);
     },
 });
+
+const categoryNames = [
+    ClientSettingCategory.Appearance,
+    ClientSettingCategory.Behaviour,
+    ClientSettingCategory.Display,
+    ClientSettingCategory.Initiative,
+];
+
+const activeClientTab = toRef(uiStore.state, "clientSettingsTab");
 </script>
 
 <template>

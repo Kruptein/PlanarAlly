@@ -1,8 +1,9 @@
-import { ComputedRef } from "@vue/reactivity";
+import type { ComputedRef } from "@vue/reactivity";
 import { computed } from "@vue/runtime-core";
 
-import { GlobalPoint, toGP } from "../core/geometry";
-import { AssetListMap } from "../core/models/types";
+import { toGP } from "../core/geometry";
+import type { GlobalPoint } from "../core/geometry";
+import type { AssetListMap } from "../core/models/types";
 import { Store } from "../core/store";
 import { sendClientLocationOptions } from "../game/api/emits/client";
 import { sendLabelAdd, sendLabelDelete, sendLabelFilterAdd, sendLabelFilterDelete } from "../game/api/emits/labels";
@@ -12,11 +13,11 @@ import { sendNewNote, sendRemoveNote, sendUpdateNote } from "../game/api/emits/n
 import { sendChangePlayerRole } from "../game/api/emits/players";
 import { sendRoomKickPlayer, sendRoomLock } from "../game/api/emits/room";
 import { showClientRect } from "../game/client";
-import { Note } from "../game/models/general";
-import { Player } from "../game/models/player";
-import { ServerShape } from "../game/models/shapes";
+import type { Note } from "../game/models/general";
+import type { Player } from "../game/models/player";
+import type { ServerShape } from "../game/models/shapes";
 import { setCenterPosition } from "../game/position";
-import { Label } from "../game/shapes/interfaces";
+import type { Label } from "../game/shapes/interfaces";
 import { router } from "../router";
 
 import { coreStore } from "./core";

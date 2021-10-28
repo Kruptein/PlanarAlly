@@ -6,6 +6,7 @@ import auth
 
 from api.socket.constants import GAME_NS
 from app import app, sio
+from data_types.location import LocationOptions
 from models import Floor, Layer, LocationUserOption, PlayerRoom
 from models.db import db
 from models.role import Role
@@ -14,15 +15,6 @@ from state.game import game_state
 
 
 # DATA CLASSES FOR TYPE CHECKING
-class LocationOptions(TypedDict):
-    pan_x: int
-    pan_y: int
-    zoom_display: int
-    zoom_factor: int
-    client_w: int
-    client_h: int
-
-
 class MoveClientData(TypedDict):
     player: int
     data: LocationOptions
@@ -99,6 +91,7 @@ async def update_client_location(
 @auth.login_required(app, sio)
 async def set_client_location_options(sid: str, data: LocationOptions):
     pr: PlayerRoom = game_state.get(sid)
+    game_state.client_locations[sid] = data
 
     await update_client_location(pr.player.id, pr.room.id, sid, data)
 

@@ -1,15 +1,10 @@
-<script lang="ts">
-import { defineComponent, toRef } from "vue";
+<script setup lang="ts">
+import { toRef } from "vue";
 import VueMarkdownIt from "vue3-markdown-it";
 
 import { uiStore } from "../../store/ui";
 
-export default defineComponent({
-    components: { VueMarkdownIt },
-    setup() {
-        return { text: toRef(uiStore.state, "annotationText") };
-    },
-});
+const text = toRef(uiStore.state, "annotationText");
 </script>
 
 <template>
@@ -24,7 +19,9 @@ export default defineComponent({
     right: 0;
     margin: auto;
     z-index: 10;
+    width: -moz-fit-content;
     width: fit-content;
+    height: -moz-fit-content;
     height: fit-content;
 
     border: solid 1px #9c455e;

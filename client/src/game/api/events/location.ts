@@ -5,8 +5,8 @@ import { coreStore } from "../../../store/core";
 import { gameStore } from "../../../store/game";
 import { locationStore } from "../../../store/location";
 import { settingsStore } from "../../../store/settings";
-import { ServerLocation } from "../../models/general";
-import { Location, ServerLocationOptions } from "../../models/settings";
+import type { ServerLocation } from "../../models/general";
+import type { Location, ServerLocationOptions } from "../../models/settings";
 import { VisibilityMode, visionState } from "../../vision/state";
 import { socket } from "../socket";
 

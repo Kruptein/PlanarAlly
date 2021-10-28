@@ -1,14 +1,15 @@
 import { Vector, toGP, toArrayP, addP, subtractP } from "../core/geometry";
 
-import { Shape } from "./shapes/shape";
+import type { IShape } from "./shapes/interfaces";
 import { TriangulationTarget, visionState } from "./vision/state";
-import { Triangle, Sign, Point } from "./vision/tds";
+import { Sign } from "./vision/tds";
+import type { Triangle, Point } from "./vision/tds";
 import { cw, ccw, intersection, orientation } from "./vision/triag";
 
 // First go through each shape in the selection and see if the delta has to be truncated due to movement blockers
 // This is definitely super convoluted and inefficient but I was tired and really wanted the smooth wall sliding collision stuff to work
 // And it does now, so hey ¯\_(ツ)_/¯
-export function calculateDelta(delta: Vector, sel: Shape, shrink = false): Vector {
+export function calculateDelta(delta: Vector, sel: IShape, shrink = false): Vector {
     if (delta.x === 0 && delta.y === 0) return delta;
     const center = toArrayP(sel.center());
     const centerTriangle = visionState.getCDT(TriangulationTarget.MOVEMENT, sel.floor.id).locate(center, null).loc;

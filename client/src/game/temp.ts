@@ -1,7 +1,7 @@
 import { clampGridLine, l2gx, l2gy, l2gz } from "../core/conversions";
 import { toGP } from "../core/geometry";
 import { SyncMode, InvalidationMode } from "../core/models/types";
-import { SelectionBoxFunction } from "../core/plugins/modals/selectionBox";
+import type { SelectionBoxFunction } from "../core/plugins/modals/selectionBox";
 import { baseAdjust, uuidv4 } from "../core/utils";
 import { i18n } from "../i18n";
 import { floorStore } from "../store/floor";
@@ -9,18 +9,19 @@ import { settingsStore } from "../store/settings";
 
 import { requestAssetOptions } from "./api/emits/asset";
 import { sendFloorChange, sendLayerChange } from "./api/emits/shape/core";
-import { Layer } from "./layers/variants/layer";
-import { Floor } from "./models/floor";
-import { ServerShape } from "./models/shapes";
-import { BaseTemplate } from "./models/templates";
+import type { Layer } from "./layers/variants/layer";
+import type { Floor } from "./models/floor";
+import type { ServerShape } from "./models/shapes";
+import type { BaseTemplate } from "./models/templates";
 import { addOperation } from "./operations/undo";
-import { Shape } from "./shapes/shape";
+import type { IShape } from "./shapes/interfaces";
 import { applyTemplate } from "./shapes/templates";
 import { createShapeFromDict } from "./shapes/utils";
 import { Asset } from "./shapes/variants/asset";
 import { visionState } from "./vision/state";
 
-export function moveFloor(shapes: Shape[], newFloor: Floor, sync: boolean): void {
+export function moveFloor(shapes: IShape[], newFloor: Floor, sync: boolean): void {
+    shapes = shapes.filter((s) => !s.isLocked);
     if (shapes.length === 0) return;
     const oldLayer = shapes[0].layer;
     const oldFloor = shapes[0].floor;
@@ -44,7 +45,7 @@ export function moveFloor(shapes: Shape[], newFloor: Floor, sync: boolean): void
     }
 }
 
-export function moveLayer(shapes: readonly Shape[], newLayer: Layer, sync: boolean): void {
+export function moveLayer(shapes: readonly IShape[], newLayer: Layer, sync: boolean): void {
     if (shapes.length === 0) return;
     const oldLayer = shapes[0].layer;
 
@@ -71,7 +72,7 @@ export function moveLayer(shapes: readonly Shape[], newLayer: Layer, sync: boole
     }
 }
 
-export function addShape(shape: ServerShape, sync: SyncMode): Shape | undefined {
+export function addShape(shape: ServerShape, sync: SyncMode): IShape | undefined {
     if (!floorStore.hasLayer(floorStore.getFloor({ name: shape.floor })!, shape.layer)) {
         console.log(`Shape with unknown layer ${shape.layer} could not be added`);
         return;

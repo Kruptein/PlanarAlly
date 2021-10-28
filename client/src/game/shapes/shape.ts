@@ -1,12 +1,14 @@
 import clamp from "lodash/clamp";
 
 import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "../../core/conversions";
-import { addP, cloneP, equalsP, GlobalPoint, subtractP, toArrayP, toGP, Vector } from "../../core/geometry";
+import { addP, cloneP, equalsP, subtractP, toArrayP, toGP } from "../../core/geometry";
+import type { GlobalPoint, Vector } from "../../core/geometry";
 import { rotateAroundPoint } from "../../core/math";
 import { SyncTo } from "../../core/models/types";
-import { FunctionPropertyNames, PartialBy } from "../../core/types";
+import type { FunctionPropertyNames, PartialBy } from "../../core/types";
 import { mostReadable, uuidv4 } from "../../core/utils";
-import { ActiveShapeStore, activeShapeStore } from "../../store/activeShape";
+import { activeShapeStore } from "../../store/activeShape";
+import type { ActiveShapeStore } from "../../store/activeShape";
 import { clientStore } from "../../store/client";
 import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
@@ -43,20 +45,21 @@ import {
 } from "../api/emits/shape/options";
 import { getBadgeCharacters } from "../groups";
 import { compositeState } from "../layers/state";
-import { Layer } from "../layers/variants/layer";
+import type { Layer } from "../layers/variants/layer";
 import { aurasFromServer, aurasToServer, partialAuraToServer } from "../models/conversion/aura";
 import { partialTrackerToServer, trackersFromServer, trackersToServer } from "../models/conversion/tracker";
-import { Floor, LayerName } from "../models/floor";
-import { accessToServer, ownerToClient, ownerToServer, ServerShape, ShapeOptions } from "../models/shapes";
+import type { Floor, LayerName } from "../models/floor";
+import { accessToServer, ownerToClient, ownerToServer } from "../models/shapes";
+import type { ServerShape, ShapeOptions } from "../models/shapes";
 import { initiativeStore } from "../ui/initiative/state";
 import { TriangulationTarget, visionState } from "../vision/state";
 
-import { Aura, Label, Tracker } from "./interfaces";
-import { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
-import { SHAPE_TYPE } from "./types";
+import type { Aura, IShape, Label, Tracker } from "./interfaces";
+import type { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
+import type { SHAPE_TYPE } from "./types";
 import { BoundingRect } from "./variants/boundingRect";
 
-export abstract class Shape {
+export abstract class Shape implements IShape {
     // Used to create class instance from server shape data
     abstract readonly type: SHAPE_TYPE;
     // The unique ID of this shape
@@ -146,7 +149,7 @@ export abstract class Shape {
     abstract center(centerPoint: GlobalPoint): void;
 
     // Informs whether `points` forms a close loop
-    abstract isClosed: boolean;
+    abstract get isClosed(): boolean;
 
     /**
      * Returns true if this shape should trigger a vision recalculation when it moves or otherwise mutates.
@@ -155,6 +158,8 @@ export abstract class Shape {
     get triggersVisionRecalc(): boolean {
         return this.isToken || this.getAuras(true).some((a) => a.visionSource) || this.blocksMovement;
     }
+
+    onLayerAdd(): void {}
 
     // POSITION
 
@@ -235,9 +240,10 @@ export abstract class Shape {
     }
 
     getPointOrientation(i: number): Vector {
-        const prev = toGP(this.points[(this.points.length + i - 1) % this.points.length]);
-        const point = toGP(this.points[i]);
-        const next = toGP(this.points[(i + 1) % this.points.length]);
+        const points = this.points; // this is an expensive function
+        const prev = toGP(points[(points.length + i - 1) % points.length]);
+        const point = toGP(points[i]);
+        const next = toGP(points[(i + 1) % points.length]);
         const vec = subtractP(next, prev);
         const mid = addP(prev, vec.multiply(0.5));
         return subtractP(point, mid).normalize();
@@ -338,8 +344,10 @@ export abstract class Shape {
         }
         ctx.stroke();
 
+        const points = this.points; // expensive call
+
         // Draw vertices
-        for (const p of this.points) {
+        for (const p of points) {
             ctx.beginPath();
             ctx.arc(g2lx(p[0]), g2ly(p[1]), 3, 0, 2 * Math.PI);
             ctx.fill();
@@ -347,10 +355,10 @@ export abstract class Shape {
 
         // Draw edges
         ctx.beginPath();
-        ctx.moveTo(g2lx(this.points[0][0]), g2ly(this.points[0][1]));
+        ctx.moveTo(g2lx(points[0][0]), g2ly(points[0][1]));
         const j = this.isClosed ? 0 : 1;
-        for (let i = 1; i <= this.points.length - j; i++) {
-            const vertex = this.points[i % this.points.length];
+        for (let i = 1; i <= points.length - j; i++) {
+            const vertex = points[i % points.length];
             ctx.lineTo(g2lx(vertex[0]), g2ly(vertex[1]));
         }
         ctx.stroke();
@@ -382,11 +390,12 @@ export abstract class Shape {
     // BOUNDING BOX
 
     getAABB(delta = 0): BoundingRect {
-        let minx = this.points[0][0];
-        let maxx = this.points[0][0];
-        let miny = this.points[0][1];
-        let maxy = this.points[0][1];
-        for (const p of this.points.slice(1)) {
+        const points = this.points; // expensive call
+        let minx = points[0][0];
+        let maxx = points[0][0];
+        let miny = points[0][1];
+        let maxy = points[0][1];
+        for (const p of points.slice(1)) {
             if (p[0] < minx) minx = p[0];
             if (p[0] > maxx) maxx = p[0];
             if (p[1] < miny) miny = p[1];
@@ -483,14 +492,14 @@ export abstract class Shape {
 
     // UTILITY
 
-    visibleInCanvas(canvas: HTMLCanvasElement, options: { includeAuras: boolean }): boolean {
+    visibleInCanvas(max: { w: number; h: number }, options: { includeAuras: boolean }): boolean {
         if (options.includeAuras) {
             for (const aura of this.getAuras(true)) {
                 if (aura.value > 0 || aura.dim > 0) {
                     const r = getUnitDistance(aura.value + aura.dim);
                     const center = this.center();
                     const auraArea = new BoundingRect(toGP(center.x - r, center.y - r), r * 2, r * 2);
-                    if (auraArea.visibleInCanvas(canvas)) {
+                    if (auraArea.visibleInCanvas(max)) {
                         return true;
                     }
                 }

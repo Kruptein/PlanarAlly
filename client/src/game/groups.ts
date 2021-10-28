@@ -1,4 +1,5 @@
-import { ref, Ref } from "vue";
+import { ref } from "vue";
+import type { Ref } from "vue";
 
 import { SyncTo } from "../core/models/types";
 import { uuidv4 } from "../core/utils";
@@ -12,8 +13,9 @@ import {
     sendMemberBadgeUpdate,
     sendRemoveGroup,
 } from "./api/emits/groups";
-import { CREATION_ORDER_TYPES, Group, groupToClient, groupToServer, ServerGroup } from "./models/groups";
-import { Shape } from "./shapes/shape";
+import { groupToClient, groupToServer } from "./models/groups";
+import type { CREATION_ORDER_TYPES, Group, ServerGroup } from "./models/groups";
+import type { IShape } from "./shapes/interfaces";
 
 const numberCharacterSet = "0123456789".split("");
 const latinCharacterSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
@@ -71,7 +73,7 @@ export function getGroupSize(groupId: string): number {
     return memberMap.value.get(groupId)?.size ?? 0;
 }
 
-export function getGroupMembers(groupId: string): Shape[] {
+export function getGroupMembers(groupId: string): IShape[] {
     const members = memberMap.value.get(groupId);
     if (members === undefined) return [];
     return [...members].map((m) => UuidMap.get(m)!);
@@ -143,7 +145,7 @@ export function setCreationOrder(groupId: string, creationOrder: CREATION_ORDER_
     );
 }
 
-export function getBadgeCharacters(shape: Shape): string {
+export function getBadgeCharacters(shape: IShape): string {
     if (shape.groupId === undefined) return "0";
 
     const group = groupMap.value.get(shape.groupId);

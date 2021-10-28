@@ -20,7 +20,7 @@ import {
 import type { CREATION_ORDER_TYPES } from "../../../models/groups";
 import { CREATION_ORDER_OPTIONS } from "../../../models/groups";
 import { setCenterPosition } from "../../../position";
-import { Shape } from "../../../shapes/shape";
+import type { IShape } from "../../../shapes/interfaces";
 
 const groupId = toRef(activeShapeStore.state, "groupId");
 const uuid = toRef(activeShapeStore.state, "uuid");
@@ -134,18 +134,18 @@ function updateToggles(checked: boolean): void {
     }
 }
 
-function centerMember(member: Shape): void {
+function centerMember(member: IShape): void {
     if (!owned.value) return;
     setCenterPosition(member.center());
 }
 
-function toggleHighlight(member: Shape, show: boolean): void {
+function toggleHighlight(member: IShape, show: boolean): void {
     if (!owned.value) return;
     member.showHighlight = show;
     member.layer.invalidate(true);
 }
 
-function showBadge(member: Shape, checked: boolean): void {
+function showBadge(member: IShape, checked: boolean): void {
     if (!owned.value) return;
     // This and Keyboard are the only places currently where we would need to update both UI and Server.
     // Might need to introduce a SyncTo.BOTH
@@ -153,7 +153,7 @@ function showBadge(member: Shape, checked: boolean): void {
     if (member.uuid === activeShapeStore.state.uuid) activeShapeStore.setShowBadge(checked, SyncTo.UI);
 }
 
-function removeMember(member: Shape): void {
+function removeMember(member: IShape): void {
     if (!owned.value) return;
     removeGroupMember(member.groupId!, member.uuid, true);
 }

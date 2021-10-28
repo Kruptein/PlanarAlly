@@ -1,12 +1,14 @@
-import { computed, ComputedRef } from "vue";
+import { computed } from "vue";
+import type { ComputedRef } from "vue";
 
 import { g2l, l2g } from "../core/conversions";
-import { addP, GlobalPoint, subtractP, toGP, Vector } from "../core/geometry";
+import { addP, subtractP, toGP, Vector } from "../core/geometry";
+import type { GlobalPoint } from "../core/geometry";
 import { Store } from "../core/store";
 import { toSnakeCase } from "../core/utils";
 import { sendClientLocationOptions, sendDefaultClientOptions, sendRoomClientOptions } from "../game/api/emits/client";
 import { InitiativeEffectMode } from "../game/models/initiative";
-import { UserOptions } from "../game/models/settings";
+import type { UserOptions } from "../game/models/settings";
 
 import { floorStore } from "./floor";
 

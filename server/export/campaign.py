@@ -4,6 +4,7 @@ from playhouse.shortcuts import model_to_dict
 from models.campaign import Floor, Layer, Location, LocationOptions, PlayerRoom, Room
 from models.shape import (
     AssetRect,
+    Aura,
     Circle,
     CircularToken,
     Line,
@@ -13,6 +14,7 @@ from models.shape import (
     ShapeOwner,
     Text,
     ToggleComposite,
+    Tracker,
 )
 from models.user import User, UserOptions
 
@@ -90,6 +92,13 @@ def export_campaign(room: Room):
                         owner = model_to_dict(o, recurse=False)
                         del owner["id"]
                         owners.append(owner)
+
+                    shape_data["trackers"] = [
+                        model_to_dict(t, recurse=False) for t in shape.trackers
+                    ]
+                    shape_data["auras"] = [
+                        model_to_dict(a, recurse=False) for a in shape.auras
+                    ]
 
                     shape_data["access"] = owners
                     shapes.append(shape_data)
@@ -194,6 +203,16 @@ def import_campaign(fp: str):
                         sa = ShapeOwner(**access)
                         sa.user_id = USER_MAPPING[access["user"]]
                         sa.save(force_insert=True)
+
+                    # auras
+
+                    for tracker in shape["trackers"]:
+                        tr = Tracker(**tracker)
+                        tr.save(force_insert=True)
+
+                    for auras in shape["auras"]:
+                        au = Aura(**auras)
+                        au.save(force_insert=True)
 
                     # subtype
 

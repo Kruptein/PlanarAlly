@@ -24,13 +24,6 @@ import sys
 from pathlib import Path
 from uuid import uuid4
 
-from peewee import (
-    BooleanField,
-    ForeignKeyField,
-    IntegerField,
-)
-from playhouse.migrate import SqliteMigrator, migrate
-
 from config import SAVE_FILE
 from models import ALL_MODELS, Constants
 from models.db import db
@@ -62,176 +55,14 @@ def check_existence() -> bool:
 
 
 def upgrade(version):
-    if version < 32:
+    if version < 43:
         raise OldVersionException(
             f"Upgrade code for this version is >1 year old and is no longer in the active codebase to reduce clutter. You can still find this code on github, contact me for more info."
         )
 
     db.foreign_keys = False
 
-    if version == 32:
-        # Add Shape.angle and Shape.stroke_width
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE shape ADD COLUMN angle INTEGER NOT NULL DEFAULT 0"
-            )
-            db.execute_sql(
-                "ALTER TABLE shape ADD COLUMN stroke_width INTEGER NOT NULL DEFAULT 2"
-            )
-
-    elif version == 33:
-        # Add Floor.player_visible
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE floor ADD COLUMN player_visible INTEGER NOT NULL DEFAULT 1"
-            )
-
-    elif version == 34:
-        # Fix Floor.index
-        with db.atomic():
-            data = db.execute_sql("SELECT id FROM location")
-            for location_id in data.fetchall():
-                db.execute_sql(
-                    f"UPDATE floor SET 'index' = (SELECT COUNT(*)-1 FROM floor f WHERE f.location_id = {location_id[0]} AND f.id <= floor.id ) WHERE location_id = {location_id[0]}"
-                )
-
-    elif version == 35:
-        # Move grid size to client options
-        with db.atomic():
-            db.execute_sql(
-                "CREATE TEMPORARY TABLE _location_options_35 AS SELECT * FROM location_options"
-            )
-            db.execute_sql("DROP TABLE location_options")
-            db.execute_sql(
-                'CREATE TABLE "location_options" ("id" INTEGER NOT NULL PRIMARY KEY, "unit_size" REAL, "unit_size_unit" TEXT, "use_grid" INTEGER, "full_fow" INTEGER, "fow_opacity" REAL, "fow_los" INTEGER, "vision_mode" TEXT, "vision_min_range" REAL, "vision_max_range" REAL, "spawn_locations" TEXT NOT NULL DEFAULT "[]")'
-            )
-            db.execute_sql(
-                'CREATE INDEX IF NOT EXISTS "location_options_id" ON "location" ("options_id")'
-            )
-            db.execute_sql(
-                "INSERT INTO location_options (id, unit_size, unit_size_unit, use_grid, full_fow, fow_opacity, fow_los, vision_mode, vision_min_range, vision_max_range, spawn_locations) SELECT id, unit_size, unit_size_unit, use_grid, full_fow, fow_opacity, fow_los, vision_mode, vision_min_range, vision_max_range, spawn_locations FROM _location_options_35"
-            )
-            db.execute_sql(
-                "ALTER TABLE user ADD COLUMN grid_size INTEGER NOT NULL DEFAULT 50"
-            )
-
-    elif version == 36:
-        # Change polygon vertices format from { x: number, y: number } to number[]
-        with db.atomic():
-            data = db.execute_sql("SELECT shape_id, vertices FROM polygon")
-            for row in data.fetchall():
-                try:
-                    vertices = json.loads(row[1])
-                    if len(vertices) == 0 or isinstance(vertices[0], list):
-                        continue
-                    vertices = json.dumps([[v["x"], v["y"]] for v in vertices])
-                    db.execute_sql(
-                        f"UPDATE 'polygon' SET 'vertices' = '{vertices}' WHERE 'shape_id' = '{row[0]}'"
-                    )
-                except json.decoder.JSONDecodeError:
-                    print(f"Failed to update polygon vertices! {row}")
-
-    elif version == 37:
-        # Change shape.angle from integer field to float field
-        with db.atomic():
-            db.execute_sql("CREATE TEMPORARY TABLE _shape_37 AS SELECT * FROM shape")
-            db.execute_sql("DROP TABLE shape")
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "shape" ("uuid" TEXT NOT NULL PRIMARY KEY, "layer_id" INTEGER NOT NULL, "type_" TEXT NOT NULL, "x" REAL NOT NULL, "y" REAL NOT NULL, "name" TEXT, "name_visible" INTEGER NOT NULL, "fill_colour" TEXT NOT NULL, "stroke_colour" TEXT NOT NULL, "vision_obstruction" INTEGER NOT NULL, "movement_obstruction" INTEGER NOT NULL, "is_token" INTEGER NOT NULL, "annotation" TEXT NOT NULL, "draw_operator" TEXT NOT NULL, "index" INTEGER NOT NULL, "options" TEXT, "badge" INTEGER NOT NULL, "show_badge" INTEGER NOT NULL, "default_edit_access" INTEGER NOT NULL, "default_vision_access" INTEGER NOT NULL, is_invisible INTEGER NOT NULL DEFAULT 0, default_movement_access INTEGER NOT NULL DEFAULT 0, is_locked INTEGER NOT NULL DEFAULT 0, angle REAL NOT NULL DEFAULT 0, stroke_width INTEGER NOT NULL DEFAULT 2, FOREIGN KEY ("layer_id") REFERENCES "layer" ("id") ON DELETE CASCADE)'
-            )
-            db.execute_sql('CREATE INDEX "shape_layer_id" ON "shape" ("layer_id")')
-            db.execute_sql(
-                'INSERT INTO shape (uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, "index", options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width) SELECT uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, "index", options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width FROM _shape_37'
-            )
-            db.execute_sql("CREATE TEMPORARY TABLE _text_37 AS SELECT * FROM text")
-            db.execute_sql("DROP TABLE text")
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "text" ("shape_id" TEXT NOT NULL PRIMARY KEY, "text" TEXT NOT NULL, "font" TEXT NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE);'
-            )
-            db.execute_sql(
-                "INSERT INTO text (shape_id, text, font) SELECT shape_id, text, font FROM _text_37"
-            )
-
-    elif version == 38:
-        # Change polygon vertices format from { x: number, y: number } to number[]
-        with db.atomic():
-            data = db.execute_sql("SELECT shape_id, vertices FROM polygon")
-            for row in data.fetchall():
-                try:
-                    vertices = json.loads(row[1])
-                    if len(vertices) == 0 or isinstance(vertices[0], list):
-                        continue
-                    vertices = json.dumps([[v["x"], v["y"]] for v in vertices])
-                    db.execute_sql(
-                        f"UPDATE polygon SET vertices = '{vertices}' WHERE shape_id = '{row[0]}'"
-                    )
-                except json.decoder.JSONDecodeError:
-                    print(f"Failed to update polygon vertices! {row}")
-
-    elif version == 39:
-        # Fix Shape.index being set to 'index'
-        from models import Layer
-
-        with db.atomic():
-            data = db.execute_sql("SELECT id FROM layer")
-            for row in data.fetchall():
-                shape_query = db.execute_sql(
-                    f"SELECT uuid FROM shape WHERE layer_id = '{row[0]}'"
-                )
-                for i, shape_row in enumerate(shape_query.fetchall()):
-                    db.execute_sql(
-                        f"UPDATE shape SET 'index' = {i} WHERE uuid = '{shape_row[0]}'"
-                    )
-
-    elif version == 40:
-        # Add move_player_on_token_change to location_options
-        with db.atomic():
-            try:
-                db.execute_sql(
-                    "ALTER TABLE location_options ADD COLUMN move_player_on_token_change INTEGER DEFAULT 1"
-                )
-            except Exception as e:
-                if e.args[0] == "duplicate column name: move_player_on_token_change":
-                    # This addresses a save increase in a hotfix branch and a dev branch with the same version
-                    upgrade(39)
-                    return
-                else:
-                    raise e
-
-    elif version == 41:
-        # Add Asset.options and Shape.asset
-        with db.atomic():
-            db.execute_sql("ALTER TABLE asset ADD COLUMN options TEXT")
-
-            db.execute_sql("CREATE TEMPORARY TABLE _shape_41 AS SELECT * FROM shape")
-            db.execute_sql("DROP TABLE shape")
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "shape" ("uuid" TEXT NOT NULL PRIMARY KEY, "layer_id" INTEGER NOT NULL, "type_" TEXT NOT NULL, "x" REAL NOT NULL, "y" REAL NOT NULL, "name" TEXT, "name_visible" INTEGER NOT NULL, "fill_colour" TEXT NOT NULL, "stroke_colour" TEXT NOT NULL, "vision_obstruction" INTEGER NOT NULL, "movement_obstruction" INTEGER NOT NULL, "is_token" INTEGER NOT NULL, "annotation" TEXT NOT NULL, "draw_operator" TEXT NOT NULL, "index" INTEGER NOT NULL, "options" TEXT, "badge" INTEGER NOT NULL, "show_badge" INTEGER NOT NULL, "default_edit_access" INTEGER NOT NULL, "default_vision_access" INTEGER NOT NULL, is_invisible INTEGER NOT NULL DEFAULT 0, default_movement_access INTEGER NOT NULL DEFAULT 0, is_locked INTEGER NOT NULL DEFAULT 0, angle REAL NOT NULL DEFAULT 0, stroke_width INTEGER NOT NULL DEFAULT 2, asset_id INTEGER, FOREIGN KEY ("layer_id") REFERENCES "layer" ("id") ON DELETE CASCADE, FOREIGN KEY ("asset_id") REFERENCES "asset" ("id"))'
-            )
-            db.execute_sql('CREATE INDEX "shape_layer_id" ON "shape" ("layer_id")')
-            db.execute_sql('CREATE INDEX "shape_asset_id" ON "shape" ("asset_id")')
-            db.execute_sql(
-                'INSERT INTO shape (uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, "index", options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width) SELECT uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, "index", options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width FROM _shape_41'
-            )
-
-    elif version == 42:
-        # Add Notification and Constants.api_token
-        with db.atomic():
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "notification" ("uuid" TEXT NOT NULL PRIMARY KEY, "message" TEXT NOT NULL)'
-            )
-            db.execute_sql(
-                "CREATE TEMPORARY TABLE _constants_42 AS SELECT * FROM constants"
-            )
-            db.execute_sql("DROP TABLE constants")
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "constants" ("id" INTEGER NOT NULL PRIMARY KEY, "save_version" INTEGER NOT NULL, "secret_token" BLOB NOT NULL, "api_token" BLOB NOT NULL)'
-            )
-            api_token = secrets.token_hex(32)
-            db.execute_sql(
-                f"INSERT INTO constants (id, save_version, secret_token, api_token) SELECT id, save_version, secret_token, '{api_token}' FROM _constants_42"
-            )
-    elif version == 43:
+    if version == 43:
         # Add grid_type
         with db.atomic():
             db.execute_sql(

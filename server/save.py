@@ -13,7 +13,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 65
+SAVE_VERSION = 66
 
 import json
 import logging
@@ -507,6 +507,19 @@ def upgrade(version):
             )
             db.execute_sql(
                 "ALTER TABLE floor ADD COLUMN background_color TEXT DEFAULT NULL"
+            )
+    elif version == 65:
+        # Migrate new saves to allow NULL for map backgrounds
+        with db.atomic():
+            db.execute_sql(
+                "CREATE TEMPORARY TABLE _location_options_65 AS SELECT * FROM location_options"
+            )
+            db.execute_sql("DROP TABLE location_options")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "location_options" ("id" INTEGER NOT NULL PRIMARY KEY, "unit_size" REAL, "unit_size_unit" TEXT, "use_grid" INTEGER, "full_fow" INTEGER, "fow_opacity" REAL, "fow_los" INTEGER, "vision_mode" TEXT, "vision_min_range" REAL, "vision_max_range" REAL, "spawn_locations" TEXT NOT NULL, "move_player_on_token_change" INTEGER, "grid_type" TEXT, "air_map_background" TEXT, "ground_map_background" TEXT, "underground_map_background" TEXT);'
+            )
+            db.execute_sql(
+                'INSERT INTO "location_options" (id, unit_size, unit_size_unit, use_grid, full_fow, fow_opacity, fow_los, vision_mode, vision_min_range, vision_max_range, spawn_locations, move_player_on_token_change, grid_type, air_map_background, ground_map_background, underground_map_background) SELECT id, unit_size, unit_size_unit, use_grid, full_fow, fow_opacity, fow_los, vision_mode, vision_min_range, vision_max_range, spawn_locations, move_player_on_token_change, grid_type, air_map_background, ground_map_background, underground_map_background FROM _location_options_65 '
             )
     else:
         raise UnknownVersionException(

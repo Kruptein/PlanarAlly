@@ -58,6 +58,7 @@ def export_campaign(room: Room):
 
         _u = {}
         _u["_"] = model_to_dict(pr.player, recurse=False)
+        del _u["_"]["password_hash"]
         default_options = model_to_dict(pr.player.default_options, recurse=False)
         del default_options["id"]
         _u["default_options"] = default_options
@@ -173,6 +174,7 @@ def import_campaign(fp: str):
 
         user["default_options"] = default_options
         u = User(**user)
+        u.set_password("test")
         u.save()
 
         USER_MAPPING[og_id] = u.id

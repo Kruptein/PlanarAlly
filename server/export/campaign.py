@@ -10,6 +10,7 @@ from models.shape import (
     Polygon,
     Rect,
     Shape,
+    ShapeOwner,
     Text,
     ToggleComposite,
 )
@@ -83,6 +84,14 @@ def export_campaign(room: Room):
                     shape_data = {}
                     shape_data["_"] = model_to_dict(shape, recurse=False)
                     shape_data["st"] = model_to_dict(shape.subtype, recurse=False)
+
+                    owners = []
+                    for o in shape.owners:
+                        owner = model_to_dict(o, recurse=False)
+                        del owner["id"]
+                        owners.append(owner)
+
+                    shape_data["access"] = owners
                     shapes.append(shape_data)
                 layer_data["shapes"] = shapes
 
@@ -167,11 +176,26 @@ def import_campaign(fp: str):
                 ly.save()
 
                 for shape in layer["shapes"]:
+
+                    # general shape
+
                     shape["_"]["layer"] = ly
                     shape["_"]["asset"] = None
                     shape["_"]["group"] = None
                     s = Shape(**shape["_"])
                     s.save(force_insert=True)
+
+                    # access
+
+                    for access in shape["access"]:
+                        if access["user"] not in USER_MAPPING:
+                            continue
+
+                        sa = ShapeOwner(**access)
+                        sa.user_id = USER_MAPPING[access["user"]]
+                        sa.save(force_insert=True)
+
+                    # subtype
 
                     if s.type_ == "assetrect":
                         st = AssetRect(**shape["st"])

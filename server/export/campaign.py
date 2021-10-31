@@ -7,10 +7,12 @@ from models.shape import (
     Aura,
     Circle,
     CircularToken,
+    Label,
     Line,
     Polygon,
     Rect,
     Shape,
+    ShapeLabel,
     ShapeOwner,
     Text,
     ToggleComposite,
@@ -30,7 +32,7 @@ def export_campaign(room: Room):
 
     # Players meta info
     player_data = []
-    user_data = []
+    user_data = {"_": [], "labels": []}
     for pr in room.players:
         _p = {}
         player = model_to_dict(pr, recurse=False)
@@ -50,7 +52,7 @@ def export_campaign(room: Room):
         del default_options["id"]
         _u["default_options"] = default_options
 
-        user_data.append(_u)
+        user_data["_"].append(_u)
     export_data["players"] = player_data
     export_data["users"] = user_data
 
@@ -100,6 +102,19 @@ def export_campaign(room: Room):
                         model_to_dict(a, recurse=False) for a in shape.auras
                     ]
 
+                    labels = []
+                    for l in shape.labels:
+                        if not any(
+                            la["uuid"] == l.label.uuid for la in user_data["labels"]
+                        ):
+                            user_data["labels"].append(
+                                model_to_dict(l.label, recurse=False)
+                            )
+                        label = model_to_dict(l, recurse=False)
+                        del label["id"]
+                        labels.append(label)
+                    shape_data["labels"] = labels
+
                     shape_data["access"] = owners
                     shapes.append(shape_data)
                 layer_data["shapes"] = shapes
@@ -124,7 +139,7 @@ def import_campaign(fp: str):
     USER_MAPPING = {}  # old_id -> new_id
 
     # Load User data
-    for user_data in import_data["users"]:
+    for user_data in import_data["users"]["_"]:
         default_options = UserOptions(**user_data["default_options"])
         default_options.save()
 
@@ -137,6 +152,11 @@ def import_campaign(fp: str):
         u.save()
 
         USER_MAPPING[og_id] = u.id
+
+    for label in import_data["users"]["labels"]:
+        lb = Label(**label)
+        lb.user_id = USER_MAPPING[label["user"]]
+        lb.save(force_insert=True)
 
     # Load base room data
     default_options = LocationOptions(**import_data["room"]["default_options"])
@@ -213,6 +233,12 @@ def import_campaign(fp: str):
                     for auras in shape["auras"]:
                         au = Aura(**auras)
                         au.save(force_insert=True)
+
+                    # labels
+
+                    for label in shape["labels"]:
+                        lb = ShapeLabel(**label)
+                        lb.save(force_insert=True)
 
                     # subtype
 

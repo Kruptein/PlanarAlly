@@ -42,9 +42,9 @@ class LocationOptions(BaseModel):
     spawn_locations = TextField(default="[]")
     move_player_on_token_change = BooleanField(default=True, null=True)
     grid_type = TextField(default="SQUARE", null=True)
-    air_map_background = TextField(default="rgba(0, 0, 0, 0)")
-    ground_map_background = TextField(default="rgba(0, 0, 0, 0)")
-    underground_map_background = TextField(default="rgba(0, 0, 0, 0)")
+    air_map_background = TextField(default="rgba(0, 0, 0, 0)", null=True)
+    ground_map_background = TextField(default="rgba(0, 0, 0, 0)", null=True)
+    underground_map_background = TextField(default="rgba(0, 0, 0, 0)", null=True)
 
     def as_dict(self):
         return {

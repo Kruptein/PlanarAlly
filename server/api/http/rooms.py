@@ -1,6 +1,7 @@
+from typing import Union
 from aiohttp import web
-from aiohttp.web_exceptions import HTTPUnauthorized
 from aiohttp_security import check_authorized
+from multidict import MultiDict
 from export.campaign import export_campaign
 
 from models import Location, LocationOptions, PlayerRoom, Room, User
@@ -180,10 +181,12 @@ async def export(request: web.Request):
     roomname = request.match_info["roomname"]
 
     if creator == user.name:
-        room: Room = Room.get_or_none(name=roomname, creator=user)
+        room: Union[Room, None] = Room.get_or_none(name=roomname, creator=user)
         if room is None:
             return web.HTTPBadRequest()
 
-        export_campaign(room)
-        return web.HTTPOk()
+        fp, fl = export_campaign(room)
+        return web.FileResponse(
+            fp, headers=MultiDict({"Content-Disposition": f"Attachment;filename={fl}"})
+        )
     return web.HTTPUnauthorized()

@@ -1,4 +1,6 @@
 import json
+import os
+from pathlib import Path
 from playhouse.shortcuts import model_to_dict
 
 from models.campaign import (
@@ -143,8 +145,15 @@ def export_campaign(room: Room):
         locations_data.append(location_data)
     export_data["locations"] = locations_data
 
-    with open("out.json", "w") as f:
-        json.dump(export_data, f)
+    static_folder = Path("static")
+    os.makedirs(static_folder / "temp", exist_ok=True)
+    filename = f"{room.name}-{room.creator.name}.json"
+    fullpath = static_folder / "temp" / filename
+    if os.path.exists(fullpath):
+        os.remove(fullpath)
+    with open(fullpath, "w") as fl:
+        json.dump(export_data, fl)
+    return fullpath, filename
 
 
 def import_campaign(fp: str):

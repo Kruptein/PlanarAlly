@@ -1,7 +1,15 @@
 import json
 from playhouse.shortcuts import model_to_dict
 
-from models.campaign import Floor, Layer, Location, LocationOptions, PlayerRoom, Room
+from models.campaign import (
+    Floor,
+    Layer,
+    Location,
+    LocationOptions,
+    Note,
+    PlayerRoom,
+    Room,
+)
 from models.shape import (
     AssetRect,
     Aura,
@@ -55,6 +63,13 @@ def export_campaign(room: Room):
         user_data["_"].append(_u)
     export_data["players"] = player_data
     export_data["users"] = user_data
+
+    notes = []
+    for note in room.notes:
+        n = model_to_dict(note, recurse=False)
+        del n["room"]
+        notes.append(n)
+    export_data["room"]["notes"] = notes
 
     # Locations meta info
     locations_data = []
@@ -266,6 +281,15 @@ def import_campaign(fp: str):
                     elif s.type_ == "togglecomposite":
                         st = ToggleComposite(**shape["st"])
                         st.save(force_insert=True)
+
+    # Load notes
+
+    for note in import_data["room"]["notes"]:
+        nt = Note(**note)
+        nt.location_id = LOCATION_MAPPING[note["location"]]
+        nt.user_id = USER_MAPPING[note["user"]]
+        nt.room_id = ROOM_ID
+        nt.save(force_insert=True)
 
     # Load PlayerRoom data
 

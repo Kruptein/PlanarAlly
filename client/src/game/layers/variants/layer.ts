@@ -91,12 +91,15 @@ export class Layer {
         UuidMap.set(shape.uuid, shape);
         shape.setBlocksVision(shape.blocksVision, SyncTo.UI, invalidate !== InvalidationMode.NO);
         shape.setBlocksMovement(shape.blocksMovement, SyncTo.UI, invalidate !== InvalidationMode.NO);
+
+        shape.invalidatePoints();
         if (options?.snappable ?? true) {
             for (const point of shape.points) {
                 const strp = JSON.stringify(point);
                 this.points.set(strp, (this.points.get(strp) || new Set()).add(shape.uuid));
             }
         }
+
         if (shape.ownedBy(false, { visionAccess: true }) && shape.isToken) gameStore.addOwnedToken(shape.uuid);
         if (shape.annotation.length) gameStore.addAnnotation(shape.uuid);
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync) {

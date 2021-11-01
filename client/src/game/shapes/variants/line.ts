@@ -10,7 +10,7 @@ import { BoundingRect } from "./boundingRect";
 
 export class Line extends Shape {
     type: SHAPE_TYPE = "line";
-    endPoint: GlobalPoint;
+    private _endPoint: GlobalPoint;
     lineWidth: number;
     constructor(
         startPoint: GlobalPoint,
@@ -22,8 +22,17 @@ export class Line extends Shape {
         },
     ) {
         super(startPoint, { fillColour: "rgba(0, 0, 0, 0)", strokeColour: "#000", ...options });
-        this.endPoint = endPoint;
+        this._endPoint = endPoint;
         this.lineWidth = options?.lineWidth ?? 1;
+    }
+
+    get endPoint(): GlobalPoint {
+        return this._endPoint;
+    }
+
+    set endPoint(point: GlobalPoint) {
+        this._endPoint = point;
+        this.invalidatePoints();
     }
 
     get isClosed(): boolean {
@@ -47,12 +56,13 @@ export class Line extends Shape {
         });
     }
 
-    get points(): [number, number][] {
-        return [
+    invalidatePoints(): void {
+        this._points = [
             toArrayP(rotateAroundPoint(this.refPoint, this.center(), this.angle)),
             toArrayP(rotateAroundPoint(this.endPoint, this.center(), this.angle)),
         ];
     }
+
     getBoundingBox(): BoundingRect {
         return new BoundingRect(
             toGP(Math.min(this.refPoint.x, this.endPoint.x), Math.min(this.refPoint.y, this.endPoint.y)),
@@ -60,6 +70,7 @@ export class Line extends Shape {
             Math.abs(this.refPoint.y - this.endPoint.y),
         );
     }
+
     draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
 
@@ -73,6 +84,7 @@ export class Line extends Shape {
         ctx.stroke();
         super.drawPost(ctx);
     }
+
     contains(_point: GlobalPoint): boolean {
         return false; // TODO
     }
@@ -86,14 +98,18 @@ export class Line extends Shape {
         this.refPoint = toGP(subtractP(centerPoint, subtractP(oldCenter, this.refPoint)).asArray());
         this.endPoint = toGP(subtractP(centerPoint, subtractP(oldCenter, this.endPoint)).asArray());
     }
+
     visibleInCanvas(max: { w: number; h: number }, options: { includeAuras: boolean }): boolean {
         if (super.visibleInCanvas(max, options)) return true;
         return this.getBoundingBox().visibleInCanvas(max);
     }
+
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     snapToGrid(): void {}
+
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     resizeToGrid(): void {}
+
     resize(resizePoint: number, point: GlobalPoint): number {
         if (resizePoint === 0) this.refPoint = point;
         else this.endPoint = point;

@@ -72,7 +72,11 @@ export abstract class Shape implements IShape {
     protected _refPoint: GlobalPoint;
     protected _angle = 0;
 
-    abstract get points(): [number, number][];
+    protected _points: [number, number][] = [];
+    get points(): [number, number][] {
+        return this._points;
+    }
+    abstract invalidatePoints(): void;
 
     abstract contains(point: GlobalPoint, nearbyThreshold?: number): boolean;
 
@@ -176,6 +180,7 @@ export abstract class Shape implements IShape {
     }
     set refPoint(point: GlobalPoint) {
         this._refPoint = point;
+        this.invalidatePoints();
     }
 
     get angle(): number {
@@ -184,7 +189,8 @@ export abstract class Shape implements IShape {
 
     set angle(angle: number) {
         this._angle = angle;
-        this.updatePoints();
+        this.invalidatePoints();
+        this.updateLayerPoints();
     }
 
     setLayer(floor: number, layer: LayerName): void {
@@ -206,7 +212,7 @@ export abstract class Shape implements IShape {
         this.layer.invalidate(skipLightUpdate);
     }
 
-    updatePoints(): void {
+    updateLayerPoints(): void {
         for (const point of this.layer.points) {
             if (point[1].has(this.uuid)) {
                 if (point[1].size === 1) this.layer.points.delete(point[0]);
@@ -225,7 +231,7 @@ export abstract class Shape implements IShape {
         const center = this.center();
         if (!equalsP(point, center)) this.center(rotateAroundPoint(center, point, angle));
         this.angle += angle;
-        this.updatePoints();
+        this.updateLayerPoints();
     }
 
     rotateAroundAbsolute(point: GlobalPoint, angle: number): void {

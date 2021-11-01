@@ -1,2 +1,2 @@
-black==21.5b1
-mypy==0.790
+black==21.10b0
+mypy==0.910

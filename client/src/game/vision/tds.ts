@@ -6,6 +6,7 @@ import { ccw, cw, orientation, sideOfOrientedCircleP, ulp } from "./triag";
 
 export type Point = number[];
 
+// eslint-disable-next-line @typescript-eslint/no-loss-of-precision
 const INFINITE = -7e310;
 
 let _INFINITE_VERTEX: Vertex;

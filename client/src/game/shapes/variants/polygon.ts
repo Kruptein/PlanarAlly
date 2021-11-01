@@ -54,6 +54,12 @@ export class Polygon extends Shape {
         return [this._refPoint, ...this._vertices];
     }
 
+    set vertices(v: GlobalPoint[]) {
+        this._refPoint = v[0];
+        this._vertices = v.slice(1);
+        this.invalidatePoints();
+    }
+
     get uniqueVertices(): GlobalPoint[] {
         return filterEqualPoints(this.vertices);
     }

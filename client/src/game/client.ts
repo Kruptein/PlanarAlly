@@ -40,8 +40,7 @@ export function moveClientRect(player: number, data: ServerUserLocationOptions):
     const polygon = UuidMap.get(uuid)! as Polygon;
     const h = data.client_h / data.zoom_factor;
     const w = data.client_w / data.zoom_factor;
-    (polygon as any)._refPoint = toGP(0, 0);
-    polygon._vertices = [toGP(0, h), toGP(w, h), toGP(w, 0), toGP(0, 0)];
+    polygon.vertices = [toGP(0, 0), toGP(0, h), toGP(w, h), toGP(w, 0), toGP(0, 0)];
     polygon.center(toGP(w / 2 - data.pan_x, h / 2 - data.pan_y));
     layer.invalidate(true);
 }

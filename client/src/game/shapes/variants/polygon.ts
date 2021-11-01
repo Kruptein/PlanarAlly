@@ -15,7 +15,7 @@ import { BoundingRect } from "./boundingRect";
 
 export class Polygon extends Shape {
     type: SHAPE_TYPE = "polygon";
-    _vertices: GlobalPoint[] = [];
+    private _vertices: GlobalPoint[] = [];
     openPolygon = false;
     lineWidth: number;
 
@@ -47,10 +47,17 @@ export class Polygon extends Shape {
         const delta = subtractP(point, this._refPoint);
         this._refPoint = point;
         for (let i = 0; i < this._vertices.length; i++) this._vertices[i] = addP(this._vertices[i], delta);
+        this.invalidatePoints();
     }
 
     get vertices(): GlobalPoint[] {
         return [this._refPoint, ...this._vertices];
+    }
+
+    set vertices(v: GlobalPoint[]) {
+        this._refPoint = v[0];
+        this._vertices = v.slice(1);
+        this.invalidatePoints();
     }
 
     get uniqueVertices(): GlobalPoint[] {
@@ -98,9 +105,13 @@ export class Polygon extends Shape {
         super.setPositionRepresentation(position);
     }
 
-    get points(): [number, number][] {
+    private invalidatePoint(point: GlobalPoint, center: GlobalPoint): [number, number] {
+        return toArrayP(rotateAroundPoint(point, center, this.angle));
+    }
+
+    invalidatePoints(): void {
         const center = this.center();
-        return this.vertices.map((point) => toArrayP(rotateAroundPoint(point, center, this.angle)));
+        this._points = this.vertices.map((point) => this.invalidatePoint(point, center));
     }
 
     draw(ctx: CanvasRenderingContext2D): void {
@@ -164,10 +175,13 @@ export class Polygon extends Shape {
         if (super.visibleInCanvas(max, options)) return true;
         return this.getBoundingBox().visibleInCanvas(max);
     }
+
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     snapToGrid(): void {}
+
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     resizeToGrid(): void {}
+
     resize(resizePoint: number, point: GlobalPoint): number {
         if (this.angle === 0) {
             if (resizePoint === 0) this._refPoint = point;
@@ -184,6 +198,7 @@ export class Polygon extends Shape {
                 this._vertices[i] = rotateAroundPoint(newPoints[i + 1], newCenter, -this.angle);
             }
         }
+        this.invalidatePoints();
         return resizePoint;
     }
 
@@ -225,11 +240,19 @@ export class Polygon extends Shape {
                 SyncMode.FULL_SYNC,
                 this.blocksVision ? InvalidationMode.WITH_LIGHT : InvalidationMode.NORMAL,
             );
+
+            this.invalidatePoints();
+
             // Do the OG shape update AFTER sending the new polygon or there might (depending on network)
             // be a couple of frames where the new polygon is not shown and the old one is already cut
             // potentially showing hidden stuff
             if (!this.preventSync) sendShapePositionUpdate([this], false);
         }
+    }
+
+    pushPoint(point: GlobalPoint): void {
+        this._vertices.push(point);
+        this._points.push(this.invalidatePoint(point, this.center()));
     }
 
     addPoint(point: GlobalPoint): void {
@@ -247,6 +270,7 @@ export class Polygon extends Shape {
                 break;
             }
         }
+        this.invalidatePoints();
     }
 
     removePoint(point: GlobalPoint): void {
@@ -271,6 +295,7 @@ export class Polygon extends Shape {
             if (this.blocksMovement) visionState.recalculateMovement(this.floor.id);
             if (!this.preventSync) sendShapePositionUpdate([this], false);
 
+            this.invalidatePoints();
             this.invalidate(true);
         }
     }

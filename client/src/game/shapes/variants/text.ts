@@ -41,8 +41,8 @@ export class Text extends Shape {
         });
     }
 
-    get points(): [number, number][] {
-        return this.getBoundingBox().points;
+    invalidatePoints(): void {
+        this._points = this.getBoundingBox().points;
     }
 
     getBoundingBox(): BoundingRect {
@@ -102,10 +102,13 @@ export class Text extends Shape {
         if (super.visibleInCanvas(max, options)) return true;
         return this.getBoundingBox().visibleInCanvas(max);
     }
+
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     snapToGrid(): void {}
+
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     resizeToGrid(): void {}
+
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     resize(resizePoint: number, point: GlobalPoint): number {
         point = rotateAroundPoint(point, this.center(), -this.angle);

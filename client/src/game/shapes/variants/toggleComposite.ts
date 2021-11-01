@@ -142,8 +142,8 @@ export class ToggleComposite extends Shape {
         });
     }
 
-    get points(): [number, number][] {
-        return [];
+    invalidatePoints(): void {
+        return;
     }
 
     getBoundingBox(): BoundingRect {
@@ -151,7 +151,7 @@ export class ToggleComposite extends Shape {
     }
 
     draw(_ctx: CanvasRenderingContext2D): void {
-        // no-op
+        return;
     }
 
     contains(_point: GlobalPoint): boolean {

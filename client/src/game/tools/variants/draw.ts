@@ -139,7 +139,7 @@ class DrawTool extends Tool {
 
     private finaliseShape(): void {
         if (this.shape === undefined) return;
-        this.shape.updatePoints();
+        this.shape.updateLayerPoints();
         if (this.shape.points.length <= 1) {
             let mouse: { x: number; y: number } | undefined = undefined;
             if (this.brushHelper !== undefined) {
@@ -370,8 +370,8 @@ class DrawTool extends Tool {
 
             if (clientStore.useSnapping(event) && !this.snappedToPoint)
                 this.brushHelper.refPoint = toGP(clampGridLine(startPoint.x), clampGridLine(startPoint.y));
-            this.shape._vertices.push(cloneP(this.brushHelper.refPoint));
-            this.shape.updatePoints();
+            this.shape.pushPoint(cloneP(this.brushHelper.refPoint));
+            this.shape.updateLayerPoints();
         }
 
         // Start a ruler in polygon mode from the last point
@@ -469,7 +469,7 @@ class DrawTool extends Tool {
                 const br = this.shape as Polygon;
                 const points = br.points; // expensive call
                 if (equalPoints(points[points.length - 1], [endPoint.x, endPoint.y])) return;
-                br._vertices.push(endPoint);
+                br.pushPoint(endPoint);
                 break;
             }
             case DrawShape.Polygon: {

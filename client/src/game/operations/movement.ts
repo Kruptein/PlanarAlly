@@ -48,6 +48,7 @@ export function moveShapes(shapes: readonly IShape[], delta: Vector, temporary: 
             visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: shape.uuid });
         if (shape.blocksVision)
             visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: shape.uuid });
+
         // todo: Fix again
         // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
         if (!shape.preventSync) updateList.push(shape);

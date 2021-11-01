@@ -12,7 +12,7 @@ import { BoundingRect } from "./boundingRect";
 
 export class Circle extends Shape {
     type: SHAPE_TYPE = "circle";
-    r: number;
+    private _r: number;
     // circle if 360 otherwise a cone
     viewingAngle: number | null; // Do not confuse with angle, which is the direction!
 
@@ -28,8 +28,19 @@ export class Circle extends Shape {
         },
     ) {
         super(center, options);
-        this.r = r || 1;
+        this._r = r || 1;
         this.viewingAngle = options?.viewingAngle ?? null;
+    }
+
+    get r(): number {
+        return this._r;
+    }
+
+    set r(r: number) {
+        if (r > 0) {
+            this._r = r;
+            this.invalidatePoints();
+        }
     }
 
     get isClosed(): boolean {
@@ -53,8 +64,8 @@ export class Circle extends Shape {
         return new BoundingRect(toGP(this.refPoint.x - this.r, this.refPoint.y - this.r), this.r * 2, this.r * 2);
     }
 
-    get points(): [number, number][] {
-        return this.getBoundingBox().points;
+    invalidatePoints(): void {
+        this._points = this.getBoundingBox().points;
     }
 
     draw(ctx: CanvasRenderingContext2D): void {
@@ -101,16 +112,19 @@ export class Circle extends Shape {
     contains(point: GlobalPoint): boolean {
         return (point.x - this.refPoint.x) ** 2 + (point.y - this.refPoint.y) ** 2 < this.r ** 2;
     }
+
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
     center(centerPoint?: GlobalPoint): GlobalPoint | void {
         if (centerPoint === undefined) return this.refPoint;
         this.refPoint = centerPoint;
     }
+
     visibleInCanvas(max: { w: number; h: number }, options: { includeAuras: boolean }): boolean {
         if (super.visibleInCanvas(max, options)) return true;
         return this.getBoundingBox().visibleInCanvas(max);
     }
+
     snapToGrid(): void {
         const gs = DEFAULT_GRID_SIZE;
         let targetX;
@@ -129,11 +143,13 @@ export class Circle extends Shape {
         this.refPoint = addP(this.refPoint, delta);
         this.invalidate(false);
     }
+
     resizeToGrid(): void {
         const gs = DEFAULT_GRID_SIZE;
         this.r = Math.max(clampGridLine(this.r), gs / 2);
         this.invalidate(false);
     }
+
     resize(resizePoint: number, point: GlobalPoint): number {
         const diff = subtractP(point, this.refPoint);
         this.r = Math.sqrt(Math.pow(diff.length(), 2) / 2);

@@ -15,6 +15,9 @@ These usually have no immediately visible impact on regular users
 ### Performance
 
 -   Cache Shape.points to prevent frequent recalculations
+-   Changed width/height for devicePixelRatio canvas drawing
+-   Keep track of shapes in view to reduce draw loop calculations
+-   Keep track of vision sources in view to reduce draw loop calculations
 
 ## [0.29.0] - 2021-10-28
 

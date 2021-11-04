@@ -100,7 +100,7 @@ socket.on("Board.Floor.Set", (floor: ServerFloor) => {
 // Varia
 
 socket.on("Position.Set", (data: { floor?: string; x: number; y: number; zoom?: number }) => {
-    if (data.floor !== undefined) floorStore.selectFloor({ name: data.floor }, false);
+    if (data.floor !== undefined) floorStore.selectFloor({ name: data.floor }, true);
     if (data.zoom !== undefined) clientStore.setZoomDisplay(data.zoom);
     setCenterPosition(toGP(data.x, data.y));
 });

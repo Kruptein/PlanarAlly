@@ -34,6 +34,8 @@ export class Layer {
     // These are ordered on a depth basis.
     protected shapes: IShape[] = [];
 
+    protected shapesInView: Set<string> = new Set();
+
     points: Map<string, Set<string>> = new Map();
 
     // Extra selection highlighting settings
@@ -76,6 +78,25 @@ export class Layer {
 
     // SHAPES
 
+    invalidateView(): void {
+        this.shapesInView.clear();
+        for (const shape of this.shapes) {
+            if (shape.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: true }))
+                this.shapesInView.add(shape.uuid);
+        }
+    }
+
+    updateShapeView(shape: IShape): void {
+        const wasInSet = this.shapesInView.has(shape.uuid);
+        const shouldBeInSet = shape.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: true });
+
+        if (wasInSet !== shouldBeInSet) {
+            visionState.invalidateView(this.floor);
+            if (shouldBeInSet) this.shapesInView.add(shape.uuid);
+            else this.shapesInView.delete(shape.uuid);
+        }
+    }
+
     /**
      * Returns the number of shapes on this layer
      */
@@ -87,6 +108,8 @@ export class Layer {
         shape.setLayer(this.floor, this.name);
 
         this.shapes.push(shape);
+        if (shape.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: true }))
+            this.shapesInView.add(shape.uuid);
 
         UuidMap.set(shape.uuid, shape);
         shape.setBlocksVision(shape.blocksVision, SyncTo.UI, invalidate !== InvalidationMode.NO);
@@ -136,10 +159,15 @@ export class Layer {
 
     pushShapes(...shapes: IShape[]): void {
         this.shapes.push(...shapes);
+        for (const shape of shapes) {
+            if (shape.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: true }))
+                this.shapesInView.add(shape.uuid);
+        }
     }
 
     setShapes(...shapes: IShape[]): void {
         this.shapes = shapes;
+        this.invalidateView();
     }
 
     setServerShapes(shapes: ServerShape[]): void {
@@ -184,6 +212,7 @@ export class Layer {
             );
         }
         this.shapes.splice(idx, 1);
+        this.shapesInView.delete(shape.uuid);
 
         if (shape.groupId !== undefined) {
             removeGroupMember(shape.groupId, shape.uuid, false);
@@ -256,32 +285,32 @@ export class Layer {
             // First to draw the auras and a second time to draw the shapes themselves
             // Otherwise auras from one shape could overlap another shape.
 
-            const currentLayer = floorStore.currentLayer.value;
-            // To optimize things slightly, we keep track of the shapes that passed the first round
-            const visibleShapes: IShape[] = [];
+            const isActiveLayer = this.isActiveLayer;
 
-            // Aura draw loop
-            for (const shape of this.shapes) {
-                if (shape.options.skipDraw ?? false) continue;
-                if (!shape.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: true })) continue;
-                if (this.name === LayerName.Lighting && currentLayer !== this) continue;
-                drawAuras(shape, ctx);
-                visibleShapes.push(shape);
-            }
-            // Normal shape draw loop
-            for (const shape of visibleShapes) {
-                if (shape.isInvisible && !shape.ownedBy(true, { visionAccess: true })) continue;
-                if (shape.labels.length === 0 && gameState.filterNoLabel) continue;
-                if (
-                    shape.labels.length &&
-                    gameState.labelFilters.length &&
-                    !shape.labels.some((l) => gameState.labelFilters.includes(l.uuid))
-                )
-                    continue;
-                shape.draw(ctx);
+            if (this.name !== LayerName.Lighting || isActiveLayer) {
+                const visibleShapes: IShape[] = [];
+                // Aura draw loop
+                for (const shape of this.shapes) {
+                    if (!this.shapesInView.has(shape.uuid)) continue;
+                    if (shape.options.skipDraw ?? false) continue;
+                    drawAuras(shape, ctx);
+                    visibleShapes.push(shape);
+                }
+                // Normal shape draw loop
+                for (const shape of visibleShapes) {
+                    if (shape.isInvisible && !shape.ownedBy(true, { visionAccess: true })) continue;
+                    if (shape.labels.length === 0 && gameState.filterNoLabel) continue;
+                    if (
+                        shape.labels.length &&
+                        gameState.labelFilters.length &&
+                        !shape.labels.some((l) => gameState.labelFilters.includes(l.uuid))
+                    )
+                        continue;
+                    shape.draw(ctx);
+                }
             }
 
-            if (this.isActiveLayer && selectionState.hasSelection) {
+            if (isActiveLayer && selectionState.hasSelection) {
                 ctx.fillStyle = this.selectionColor;
                 ctx.strokeStyle = this.selectionColor;
                 ctx.lineWidth = this.selectionWidth;

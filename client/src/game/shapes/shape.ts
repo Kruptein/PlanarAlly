@@ -205,6 +205,8 @@ export abstract class Shape implements IShape {
     setPositionRepresentation(position: { angle: number; points: [number, number][] }): void {
         this._refPoint = toGP(position.points[0]);
         this.angle = position.angle;
+
+        this.layer.updateShapeView(this);
         this.updateShapeVision(false, false);
     }
 

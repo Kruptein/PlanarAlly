@@ -324,6 +324,10 @@ class FloorStore extends Store<FloorState> {
 
     invalidateAllFloors(): void {
         for (const floor of this._state.floors) {
+            for (const layer of this.getLayers(floor)) {
+                layer.invalidateView();
+            }
+            visionState.invalidateView(floor.id);
             this.invalidate(floor);
         }
     }
@@ -331,6 +335,10 @@ class FloorStore extends Store<FloorState> {
     invalidateVisibleFloors(): void {
         let floorFound = false;
         for (const floor of this._state.floors) {
+            for (const layer of this.getLayers(floor)) {
+                layer.invalidateView();
+            }
+            visionState.invalidateView(floor.id);
             if (floorFound) this.invalidateLight(floor.id);
             else this.invalidate(floor);
             if (floor === this.currentFloor.value) floorFound = true;

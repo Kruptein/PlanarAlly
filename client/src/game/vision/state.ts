@@ -1,3 +1,4 @@
+import { getUnitDistance } from "../../core/conversions";
 import { equalsP } from "../../core/geometry";
 import { Store } from "../../core/store";
 import { floorStore } from "../../store/floor";
@@ -5,6 +6,7 @@ import { UuidMap } from "../../store/shapeMap";
 import { sendLocationOptions } from "../api/emits/location";
 import type { Aura, IShape } from "../shapes/interfaces";
 import type { Asset } from "../shapes/variants/asset";
+import { Circle } from "../shapes/variants/circle";
 import { getPaths, pathToArray } from "../svg";
 
 import { CDT } from "./cdt";
@@ -28,6 +30,8 @@ class VisionState extends Store<State> {
     private visionBlockers: Map<number, string[]> = new Map();
     private movementBlockers: Map<number, string[]> = new Map();
     private visionSources: Map<number, { shape: string; aura: string }[]> = new Map();
+
+    private visionSourcesInView: Map<number, { shape: string; aura: string }[]> = new Map();
 
     private cdt: Map<number, { vision: CDT; movement: CDT }> = new Map();
 
@@ -238,12 +242,43 @@ class VisionState extends Store<State> {
         return blockers.get(floor) ?? [];
     }
 
+    getVisionSourcesInView(floor: number): readonly { shape: string; aura: string }[] {
+        return this.visionSourcesInView.get(floor) ?? [];
+    }
+
+    invalidateView(floor: number): void {
+        const layer = floorStore.currentLayer.value!;
+        if (layer === undefined) return;
+        const viv = [];
+        for (const source of this.getVisionSources(floor)) {
+            const shape = UuidMap.get(source.shape);
+            if (shape === undefined) continue;
+            const aura = shape.getAuras(true).find((a) => a.uuid === source.aura);
+            if (aura === undefined) continue;
+
+            if (!shape.ownedBy(true, { visionAccess: true }) && !aura.visible) continue;
+
+            const auraValue = aura.value > 0 && !isNaN(aura.value) ? aura.value : 0;
+            const auraDim = aura.dim > 0 && !isNaN(aura.dim) ? aura.dim : 0;
+
+            const auraLength = getUnitDistance(auraValue + auraDim);
+            const center = shape.center();
+
+            const auraCircle = new Circle(center, auraLength);
+            if (auraCircle.visibleInCanvas({ w: layer.width, h: layer.height }, { includeAuras: true })) {
+                viv.push(source);
+            }
+        }
+        this.visionSourcesInView.set(floor, viv);
+    }
+
     getVisionSources(floor: number): readonly { shape: string; aura: string }[] {
         return this.visionSources.get(floor) ?? [];
     }
 
     setVisionSources(sources: { shape: string; aura: string }[], floor: number): void {
         this.visionSources.set(floor, sources);
+        this.invalidateView(floor);
     }
 
     setBlockers(target: TriangulationTarget, blockers: string[], floor: number): void {
@@ -254,6 +289,7 @@ class VisionState extends Store<State> {
     sliceVisionSources(index: number, floor: number): void {
         const sources = this.getVisionSources(floor);
         this.setVisionSources([...sources.slice(0, index), ...sources.slice(index + 1)], floor);
+        this.invalidateView(floor);
     }
 
     sliceBlockers(target: TriangulationTarget, index: number, floor: number, recalculate: boolean): void {
@@ -272,6 +308,7 @@ class VisionState extends Store<State> {
     addVisionSource(source: { shape: string; aura: string }, floor: number): void {
         const sources = this.getVisionSources(floor);
         this.setVisionSources([...sources, source], floor);
+        this.invalidateView(floor);
     }
 
     addBlocker(target: TriangulationTarget, blocker: string, floor: number, recalculate: boolean): void {
@@ -329,6 +366,7 @@ class VisionState extends Store<State> {
         if (newSources.length !== sources.length) {
             this.setVisionSources(newSources, floor);
         }
+        this.invalidateView(floor);
     }
 }
 

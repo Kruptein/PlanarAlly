@@ -1,4 +1,4 @@
-import { g2l, g2lz, getUnitDistance, g2lr, g2lx, g2ly, toRadians } from "../../../core/conversions";
+import { g2l, g2lz, g2lr, g2lx, g2ly, toRadians } from "../../../core/conversions";
 import type { SyncMode, InvalidationMode } from "../../../core/models/types";
 import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
@@ -7,7 +7,6 @@ import { UuidMap } from "../../../store/shapeMap";
 import { getFogColour } from "../../colour";
 import { LayerName } from "../../models/floor";
 import type { IShape } from "../../shapes/interfaces";
-import { Circle } from "../../shapes/variants/circle";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { computeVisibility } from "../../vision/te";
 
@@ -67,24 +66,16 @@ export class FowLightingLayer extends FowLayer {
             }
 
             // First cut out all the light sources
-            for (const light of visionState.getVisionSources(this.floor)) {
-                const shape = UuidMap.get(light.shape);
-                if (shape === undefined) continue;
-                const aura = shape.getAuras(true).find((a) => a.uuid === light.aura);
-                if (aura === undefined) continue;
-
-                if (!shape.ownedBy(true, { visionAccess: true }) && !aura.visible) continue;
+            for (const light of visionState.getVisionSourcesInView(this.floor)) {
+                const shape = UuidMap.get(light.shape)!;
+                const aura = shape.getAuras(true).find((a) => a.uuid === light.aura)!;
 
                 const auraValue = aura.value > 0 && !isNaN(aura.value) ? aura.value : 0;
                 const auraDim = aura.dim > 0 && !isNaN(aura.dim) ? aura.dim : 0;
 
-                const auraLength = getUnitDistance(auraValue + auraDim);
                 const center = shape.center();
                 const lcenter = g2l(center);
                 const innerRange = g2lr(auraValue + auraDim);
-
-                const auraCircle = new Circle(center, auraLength);
-                if (!auraCircle.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: true })) continue;
 
                 this.vCtx.globalCompositeOperation = "source-over";
                 this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";

@@ -66,7 +66,10 @@ export class FowLightingLayer extends FowLayer {
             }
 
             // First cut out all the light sources
-            for (const light of visionState.getVisionSourcesInView(this.floor)) {
+            const visionSources = visionState.getVisionSourcesInView(this.floor);
+
+            this.vCtx.globalCompositeOperation = "source-over";
+            for (const light of visionSources) {
                 const shape = UuidMap.get(light.shape)!;
                 const aura = shape.getAuras(true).find((a) => a.uuid === light.aura)!;
 
@@ -77,14 +80,7 @@ export class FowLightingLayer extends FowLayer {
                 const lcenter = g2l(center);
                 const innerRange = g2lr(auraValue + auraDim);
 
-                this.vCtx.globalCompositeOperation = "source-over";
-                this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
-                const polygon = computeVisibility(center, TriangulationTarget.VISION, shape.floor.id);
                 this.vCtx.beginPath();
-                this.vCtx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
-                for (const point of polygon) this.vCtx.lineTo(g2lx(point[0]), g2ly(point[1]));
-                this.vCtx.closePath();
-                this.vCtx.fill();
                 if (auraDim > 0) {
                     // Fill the light aura with a radial dropoff towards the outside.
                     const gradient = this.vCtx.createRadialGradient(
@@ -101,8 +97,6 @@ export class FowLightingLayer extends FowLayer {
                 } else {
                     this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
                 }
-                this.vCtx.globalCompositeOperation = "source-in";
-                this.vCtx.beginPath();
 
                 const angleA = shape.angle + toRadians(aura.direction - aura.angle / 2);
                 const angleB = shape.angle + toRadians(aura.direction + aura.angle / 2);
@@ -119,9 +113,31 @@ export class FowLightingLayer extends FowLayer {
                     this.vCtx.lineTo(lcenter.x, lcenter.y);
                 }
 
+                // we cannot fill outside of the for loop due to the gradients :(
                 this.vCtx.fill();
-                this.ctx.drawImage(this.virtualCanvas, 0, 0, this.width, this.height);
             }
+
+            // second pass to filter to light source vision
+
+            this.vCtx.globalCompositeOperation = "source-in";
+            this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
+            this.vCtx.beginPath();
+            for (const light of visionSources) {
+                const shape = UuidMap.get(light.shape)!;
+
+                const center = shape.center();
+
+                const polygon = computeVisibility(center, TriangulationTarget.VISION, shape.floor.id);
+
+                this.vCtx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
+                for (const point of polygon) this.vCtx.lineTo(g2lx(point[0]), g2ly(point[1]));
+            }
+            this.vCtx.closePath();
+            this.vCtx.fill();
+
+            this.ctx.drawImage(this.virtualCanvas, 0, 0, this.width, this.height);
+
+            // end of light source cut
 
             const activeFloor = floorStore.currentFloor.value!.id;
             if (settingsStore.fowLos.value && this.floor === activeFloor) {

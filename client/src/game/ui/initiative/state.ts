@@ -254,7 +254,7 @@ class InitiativeStore extends Store<InitiativeState> {
             const actor = this.getDataSet()[this._state.turnCounter];
             const shape = UuidMap.get(actor.shape);
             if (shape?.ownedBy(false, { visionAccess: true }) ?? false) {
-                setCenterPosition(shape!.center());
+                setCenterPosition(shape!.center);
             }
         }
     }

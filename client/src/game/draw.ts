@@ -59,7 +59,7 @@ function drawFloor(floor: Floor): void {
 }
 
 export function drawAuras(shape: IShape, ctx: CanvasRenderingContext2D): void {
-    const center = shape.center();
+    const center = shape.center;
     const lCenter = g2l(center);
 
     for (const aura of shape.getAuras(true)) {

@@ -50,7 +50,7 @@ export class CircularToken extends Circle {
     draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
 
-        const center = g2l(this.center());
+        const center = g2l(this.center);
 
         ctx.font = this.font;
 

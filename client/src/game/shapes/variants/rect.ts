@@ -33,7 +33,7 @@ export class Rect extends BaseRect {
         else ctx.fillStyle = this.fillColour;
         const z = clientStore.zoomFactor.value;
         const loc = g2l(this.refPoint);
-        const center = g2l(this.center());
+        const center = g2l(this.center);
         ctx.fillRect(loc.x - center.x, loc.y - center.y, this.w * z, this.h * z);
         if (this.strokeColour !== "rgba(0, 0, 0, 0)") {
             ctx.strokeStyle = this.strokeColour;

@@ -146,11 +146,14 @@ export class Layer {
 
     // UI helpers are objects that are created for UI reaons but that are not pertinent to the actual state
     // They are often not desired unless in specific circumstances
-    getShapes(options: { skipUiHelpers?: boolean; includeComposites: boolean }): readonly IShape[] {
+    getShapes(options: {
+        includeComposites: boolean;
+        skipUiHelpers?: boolean;
+        onlyInView?: boolean;
+    }): readonly IShape[] {
         const skipUiHelpers = options.skipUiHelpers ?? true;
-        let shapes: readonly IShape[] = skipUiHelpers
-            ? this.shapes.filter((s) => !(s.options.UiHelper ?? false))
-            : this.shapes;
+        const target = options?.onlyInView ?? false ? this.shapes : [...this.shapesInView].map((s) => UuidMap.get(s)!);
+        let shapes: readonly IShape[] = skipUiHelpers ? target.filter((s) => !(s.options.UiHelper ?? false)) : target;
         if (options.includeComposites) {
             shapes = compositeState.addAllCompositeShapes(shapes);
         }

@@ -30,9 +30,9 @@ export function onKeyUp(event: KeyboardEvent): void {
             // numpad-zero only if Ctrl is not pressed, as this would otherwise conflict with Ctrl + 0
             const tokens = [...gameStore.state.ownedTokens].map((o) => UuidMap.get(o)!);
             if (tokens.length === 0) return;
-            const i = tokens.findIndex((o) => equalsP(o.center(), clientStore.screenCenter));
+            const i = tokens.findIndex((o) => equalsP(o.center, clientStore.screenCenter));
             const token = tokens[(i + 1) % tokens.length];
-            setCenterPosition(token.center());
+            setCenterPosition(token.center);
             floorStore.selectFloor({ name: token.floor.name }, true);
         }
         if (event.key === "Enter") {

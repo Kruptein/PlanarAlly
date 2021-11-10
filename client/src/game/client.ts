@@ -41,7 +41,7 @@ export function moveClientRect(player: number, data: ServerUserLocationOptions):
     const h = data.client_h / data.zoom_factor;
     const w = data.client_w / data.zoom_factor;
     polygon.vertices = [toGP(0, 0), toGP(0, h), toGP(w, h), toGP(w, 0), toGP(0, 0)];
-    polygon.center(toGP(w / 2 - data.pan_x, h / 2 - data.pan_y));
+    polygon.center = toGP(w / 2 - data.pan_x, h / 2 - data.pan_y);
     layer.invalidate(true);
 }
 
@@ -56,7 +56,7 @@ export function moveClient(rectUuid: string): void {
     const h = playerData.client_h / playerData.zoom_factor;
     const w = playerData.client_w / playerData.zoom_factor;
 
-    const center = rect.center();
+    const center = rect.center;
 
     sendMoveClientThrottled({ player, data: { ...playerData, pan_x: w / 2 - center.x, pan_y: h / 2 - center.y } });
 }

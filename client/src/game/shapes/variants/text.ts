@@ -27,6 +27,7 @@ export class Text extends Shape {
         },
     ) {
         super(position, options);
+        this._center = this.__center();
     }
 
     get isClosed(): boolean {
@@ -91,10 +92,15 @@ export class Text extends Shape {
         return this.getBoundingBox().contains(point);
     }
 
-    center(): GlobalPoint;
-    center(centerPoint: GlobalPoint): void;
-    center(centerPoint?: GlobalPoint): GlobalPoint | void {
-        if (centerPoint === undefined) return this.refPoint;
+    __center(): GlobalPoint {
+        return this._refPoint;
+    }
+
+    get center(): GlobalPoint {
+        return this._center;
+    }
+
+    set center(centerPoint: GlobalPoint) {
         this.refPoint = centerPoint;
     }
 
@@ -111,7 +117,7 @@ export class Text extends Shape {
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     resize(resizePoint: number, point: GlobalPoint): number {
-        point = rotateAroundPoint(point, this.center(), -this.angle);
+        point = rotateAroundPoint(point, this.center, -this.angle);
 
         const oldPoints = this.points;
 

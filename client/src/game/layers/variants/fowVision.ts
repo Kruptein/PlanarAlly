@@ -36,7 +36,7 @@ export class FowVisionLayer extends FowLayer {
             for (const tokenId of gameStore.activeTokens.value) {
                 const token = UuidMap.get(tokenId);
                 if (token === undefined || token.floor.id !== this.floor) continue;
-                const center = token.center();
+                const center = token.center;
                 const lcenter = g2l(center);
 
                 // Add a gradient vision dropoff
@@ -53,7 +53,7 @@ export class FowVisionLayer extends FowLayer {
                 this.ctx.fillStyle = gradient;
 
                 try {
-                    const polygon = computeVisibility(token.center(), TriangulationTarget.VISION, token.floor.id);
+                    const polygon = computeVisibility(token.center, TriangulationTarget.VISION, token.floor.id);
                     this.ctx.beginPath();
                     this.ctx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
                     for (const point of polygon) this.ctx.lineTo(g2lx(point[0]), g2ly(point[1]));

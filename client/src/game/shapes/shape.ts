@@ -71,6 +71,7 @@ export abstract class Shape implements IShape {
     // A reference point regarding that specific shape's structure
     protected _refPoint: GlobalPoint;
     protected _angle = 0;
+    protected _center!: GlobalPoint;
 
     protected _points: [number, number][] = [];
     get points(): [number, number][] {
@@ -149,8 +150,13 @@ export abstract class Shape implements IShape {
         this.strokeWidth = options?.strokeWidth ?? 5;
     }
 
-    abstract center(): GlobalPoint;
-    abstract center(centerPoint: GlobalPoint): void;
+    abstract __center(): GlobalPoint;
+    get center(): GlobalPoint {
+        return this._center;
+    }
+    set center(centerPoint: GlobalPoint) {
+        this._center = centerPoint;
+    }
 
     // Informs whether `points` forms a close loop
     abstract get isClosed(): boolean;
@@ -180,6 +186,8 @@ export abstract class Shape implements IShape {
     }
     set refPoint(point: GlobalPoint) {
         this._refPoint = point;
+        this._center = this.__center();
+        this.layer.updateShapeView(this);
         this.invalidatePoints();
     }
 
@@ -204,6 +212,7 @@ export abstract class Shape implements IShape {
 
     setPositionRepresentation(position: { angle: number; points: [number, number][] }): void {
         this._refPoint = toGP(position.points[0]);
+        this._center = this.__center();
         this.angle = position.angle;
 
         this.layer.updateShapeView(this);
@@ -230,8 +239,8 @@ export abstract class Shape implements IShape {
     }
 
     rotateAround(point: GlobalPoint, angle: number): void {
-        const center = this.center();
-        if (!equalsP(point, center)) this.center(rotateAroundPoint(center, point, angle));
+        const center = this.center;
+        if (!equalsP(point, center)) this.center = rotateAroundPoint(center, point, angle);
         this.angle += angle;
         this.updateLayerPoints();
     }
@@ -263,7 +272,7 @@ export abstract class Shape implements IShape {
         if (this.globalCompositeOperation !== undefined) ctx.globalCompositeOperation = this.globalCompositeOperation;
         else ctx.globalCompositeOperation = "source-over";
 
-        const center = g2l(this.center());
+        const center = g2l(this.center);
         const pixelRatio = clientStore.devicePixelRatio.value;
 
         ctx.setTransform(pixelRatio, 0, 0, pixelRatio, center.x * pixelRatio, center.y * pixelRatio);
@@ -505,7 +514,7 @@ export abstract class Shape implements IShape {
             for (const aura of this.getAuras(true)) {
                 if (aura.value > 0 || aura.dim > 0) {
                     const r = getUnitDistance(aura.value + aura.dim);
-                    const center = this.center();
+                    const center = this.center;
                     const auraArea = new BoundingRect(toGP(center.x - r, center.y - r), r * 2, r * 2);
                     if (auraArea.visibleInCanvas(max)) {
                         return true;

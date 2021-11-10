@@ -46,7 +46,7 @@ export class FowLightingLayer extends FowLayer {
                     if (shape.options.skipDraw ?? false) continue;
                     if (shape.floor.id !== floorStore.currentFloor.value!.id) continue;
                     const bb = shape.getBoundingBox();
-                    const lcenter = g2l(shape.center());
+                    const lcenter = g2l(shape.center);
                     const alm = 0.8 * g2lz(bb.w);
                     this.ctx.beginPath();
                     this.ctx.arc(lcenter.x, lcenter.y, alm, 0, 2 * Math.PI);
@@ -76,7 +76,7 @@ export class FowLightingLayer extends FowLayer {
                 const auraValue = aura.value > 0 && !isNaN(aura.value) ? aura.value : 0;
                 const auraDim = aura.dim > 0 && !isNaN(aura.dim) ? aura.dim : 0;
 
-                const center = shape.center();
+                const center = shape.center;
                 const lcenter = g2l(center);
                 const innerRange = g2lr(auraValue + auraDim);
 
@@ -125,7 +125,7 @@ export class FowLightingLayer extends FowLayer {
             for (const light of visionSources) {
                 const shape = UuidMap.get(light.shape)!;
 
-                const center = shape.center();
+                const center = shape.center;
 
                 const polygon = computeVisibility(center, TriangulationTarget.VISION, shape.floor.id);
 

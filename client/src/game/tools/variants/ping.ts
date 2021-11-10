@@ -77,8 +77,8 @@ class PingTool extends Tool {
             return;
         }
 
-        this.ping.center(gp);
-        this.border.center(gp);
+        this.ping.center = gp;
+        this.border.center = gp;
 
         sendShapePositionUpdate([this.ping, this.border], true);
 

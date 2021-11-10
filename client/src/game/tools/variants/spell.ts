@@ -117,7 +117,7 @@ class SpellTool extends Tool {
 
         if (selectionState.hasSelection && (this.state.range === 0 || equalsP(startPosition, ogPoint))) {
             const selection = [...selectionState.state.selection.values()];
-            this.shape.center(UuidMap.get(selection[0])!.center());
+            this.shape.center = UuidMap.get(selection[0])!.center;
         }
 
         layer.addShape(
@@ -140,7 +140,7 @@ class SpellTool extends Tool {
         if (!selectionState.hasSelection || this.state.range === 0) return;
 
         const selection = [...selectionState.state.selection.values()];
-        this.rangeShape = new Circle(UuidMap.get(selection[0])!.center(), getUnitDistance(this.state.range), {
+        this.rangeShape = new Circle(UuidMap.get(selection[0])!.center, getUnitDistance(this.state.range), {
             fillColour: "rgba(0,0,0,0)",
             strokeColour: "black",
         });
@@ -188,13 +188,13 @@ class SpellTool extends Tool {
 
         if (selectionState.hasSelection && this.state.range === 0) {
             if (this.state.selectedSpellShape === SpellShape.Cone) {
-                const center = g2l(this.shape.center());
+                const center = g2l(this.shape.center);
                 (this.shape as Circle).angle = -Math.atan2(lp.y - center.y, center.x - lp.x) + Math.PI;
                 if (this.state.showPublic) sendShapePositionUpdate([this.shape], true);
                 layer.invalidate(true);
             }
         } else {
-            this.shape.center(endPoint);
+            this.shape.center = endPoint;
             if (this.state.showPublic) sendShapePositionUpdate([this.shape], true);
             layer.invalidate(true);
         }

@@ -158,7 +158,7 @@ class MapTool extends Tool {
             this.shape.h *= yFactor;
 
             const oldRefpoint = this.shape.refPoint;
-            const oldCenter = this.rect.center();
+            const oldCenter = this.rect.center;
 
             const delta = subtractP(oldCenter, oldRefpoint);
             const newCenter = addP(oldRefpoint, new Vector(xFactor * delta.x, yFactor * delta.y));

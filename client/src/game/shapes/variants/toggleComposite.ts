@@ -114,9 +114,8 @@ export class ToggleComposite extends Shape {
 
         if (sync) {
             oldVariant.options.skipDraw = true;
-            const oldCenter = oldVariant.center();
             delete newVariant.options.skipDraw;
-            newVariant.center(oldCenter);
+            newVariant.center = oldVariant.center;
 
             sendShapePositionUpdate([newVariant], false);
             sendShapeOptionsUpdate([oldVariant, newVariant], false);
@@ -158,10 +157,15 @@ export class ToggleComposite extends Shape {
         return false;
     }
 
-    center(): GlobalPoint;
-    center(centerPoint: GlobalPoint): void;
-    center(centerPoint?: GlobalPoint): GlobalPoint | void {
-        if (centerPoint === undefined) return UuidMap.get(this.active_variant)!.center();
+    __center(): GlobalPoint {
+        return UuidMap.get(this.active_variant)!.center;
+    }
+
+    get center(): GlobalPoint {
+        return this.__center();
+    }
+
+    set center(centerPoint: GlobalPoint) {
         this.refPoint = centerPoint;
     }
 

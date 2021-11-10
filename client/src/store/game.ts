@@ -282,7 +282,7 @@ class GameStore extends Store<GameState> {
     jumpToMarker(marker: string): void {
         const shape = UuidMap.get(marker);
         if (shape == undefined) return;
-        setCenterPosition(shape.center());
+        setCenterPosition(shape.center);
         sendClientLocationOptions();
         floorStore.invalidateAllFloors();
     }

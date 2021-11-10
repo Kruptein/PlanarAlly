@@ -60,8 +60,9 @@ export interface IShape {
 
     options: Partial<ShapeOptions>;
 
-    center(): GlobalPoint;
-    center(centerPoint: GlobalPoint): void;
+    __center(): GlobalPoint;
+    get center(): GlobalPoint;
+    set center(centerPoint: GlobalPoint);
 
     get isClosed(): boolean;
 

@@ -120,7 +120,7 @@ export class FowLightingLayer extends FowLayer {
                 }
 
                 this.vCtx.fill();
-                this.ctx.drawImage(this.virtualCanvas, 0, 0, window.innerWidth, window.innerHeight);
+                this.ctx.drawImage(this.virtualCanvas, 0, 0, this.width, this.height);
             }
 
             const activeFloor = floorStore.currentFloor.value!.id;

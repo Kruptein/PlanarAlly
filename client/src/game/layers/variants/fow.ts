@@ -24,7 +24,7 @@ export class FowLayer extends Layer {
 
     _draw(): void {
         this.ctx.clearRect(0, 0, this.width, this.height);
-        this.vCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        this.vCtx.clearRect(0, 0, this.width, this.height);
 
         this.ctx.fillStyle = "rgba(0, 0, 0, 1)";
 
@@ -40,13 +40,13 @@ export class FowLayer extends Layer {
                     const mapl = floorStore.getLayer(floor, LayerName.Map);
                     if (mapl === undefined) continue;
                     this.ctx.globalCompositeOperation = "destination-out";
-                    this.ctx.drawImage(mapl.canvas, 0, 0, window.innerWidth, window.innerHeight);
+                    this.ctx.drawImage(mapl.canvas, 0, 0, this.width, this.height);
                 }
                 if (floor.id !== activeFloor) {
                     const fowl = floorStore.getLayer(floor, this.name);
                     if (fowl === undefined) continue;
                     this.ctx.globalCompositeOperation = "source-over";
-                    this.ctx.drawImage(fowl.canvas, 0, 0, window.innerWidth, window.innerHeight);
+                    this.ctx.drawImage(fowl.canvas, 0, 0, this.width, this.height);
                 }
                 if (floor.id === activeFloor) break;
             }

@@ -79,7 +79,7 @@ function focusout(event: FocusEvent): void {
     }
 }
 
-function slideNext(swiper: Swiper): void {
+function slideNext(swiper: any): void {
     swiper.slideNext();
 }
 </script>

@@ -44,6 +44,11 @@ export enum DrawShape {
     Text = "font",
 }
 
+export enum DrawCategory {
+    Shape = "square",
+    Vision = "eye",
+}
+
 class DrawTool extends Tool {
     readonly toolName = ToolName.Draw;
     readonly toolTranslation = i18n.global.t("tool.Draw");
@@ -51,12 +56,16 @@ class DrawTool extends Tool {
     state = reactive({
         selectedMode: DrawMode.Normal,
         selectedShape: DrawShape.Square,
+        selectedCategory: DrawCategory.Shape,
 
         fillColour: "rgba(0, 0, 0, 1)",
         borderColour: "rgba(255, 255, 255, 0)",
 
         isClosedPolygon: false,
         brushSize: 5,
+
+        blocksVision: false,
+        blocksMovement: false,
 
         fontSize: 20,
     });
@@ -81,6 +90,13 @@ class DrawTool extends Tool {
                         this.onFloorChange(floorStore.getFloor({ id: oldLayer.floor })!);
                     } else if (newLayer?.name !== oldLayer.name) {
                         this.onLayerChange(oldLayer);
+                    }
+                    if (newLayer?.isVisionLayer ?? false) {
+                        this.state.blocksMovement = true;
+                        this.state.blocksVision = true;
+                    } else if (oldLayer.isVisionLayer) {
+                        this.state.blocksMovement = false;
+                        this.state.blocksVision = false;
                     }
                 });
             },
@@ -353,9 +369,13 @@ class DrawTool extends Tool {
                 this.shape.globalCompositeOperation = "destination-out";
 
             this.shape.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.UI);
-            if (layer.name === LayerName.Lighting && this.state.selectedMode === DrawMode.Normal) {
-                this.shape.setBlocksVision(true, SyncTo.UI, false);
-                this.shape.setBlocksMovement(true, SyncTo.UI, false);
+            if (this.state.selectedMode === DrawMode.Normal) {
+                if (this.state.blocksMovement) {
+                    this.shape.setBlocksMovement(true, SyncTo.UI, false);
+                }
+                if (this.state.blocksVision) {
+                    this.shape.setBlocksVision(true, SyncTo.UI, false);
+                }
             }
             layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
 

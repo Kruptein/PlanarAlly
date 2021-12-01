@@ -38,6 +38,8 @@ const translationMapping = {
     [DrawShape.Polygon]: t("game.ui.tools.DrawTool.draw-polygon"),
     [DrawShape.Brush]: t("game.ui.tools.DrawTool.paint-brush"),
     [DrawShape.Text]: t("game.ui.tools.DrawTool.text"),
+    [DrawCategory.Shape]: t("game.ui.tools.DrawTool.shape-category"),
+    [DrawCategory.Vision]: t("game.ui.tools.DrawTool.vision-category"),
 };
 
 onMounted(() => {
@@ -60,6 +62,7 @@ const showBorderColour = computed(() => {
                 class="draw-category-option"
                 :class="{ 'draw-category-option-selected': drawTool.state.selectedCategory === category }"
                 @click="drawTool.state.selectedCategory = category"
+                :title="translationMapping[category]"
             >
                 <font-awesome-icon :icon="category" />
             </div>
@@ -79,8 +82,8 @@ const showBorderColour = computed(() => {
                 </div>
             </div>
             <div id="draw-colour-header">
-                <div>Fill</div>
-                <div v-show="showBorderColour">Stroke</div>
+                <div>{{ t("common.fill_color_short") }}</div>
+                <div v-show="showBorderColour">{{ t("common.stroke_color_short") }}</div>
             </div>
             <div class="draw-select-group">
                 <ColourPicker
@@ -123,7 +126,7 @@ const showBorderColour = computed(() => {
                 </div>
             </div>
             <div class="draw-checkbox-line">
-                <div>Blocks vision</div>
+                <div>{{ t("game.ui.selection.edit_dialog.dialog.block_vision_light") }}</div>
                 <div>
                     <input
                         type="checkbox"
@@ -134,7 +137,7 @@ const showBorderColour = computed(() => {
                 </div>
             </div>
             <div class="draw-checkbox-line">
-                <div>Blocks movement</div>
+                <div>{{ t("game.ui.selection.edit_dialog.dialog.block_movement") }}</div>
                 <div>
                     <input
                         type="checkbox"

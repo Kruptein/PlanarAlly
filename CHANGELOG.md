@@ -8,6 +8,12 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+### Changed
+
+-   Draw tool UI now has a tabbed interface
+    -   a shape tab to configure shape and colours
+    -   a visibility tab to configure advanced vision modes as well as blocksVision and blocksMovement changes
+
 ### Fixed
 
 -   floor not being remembered on reload after "Bring Players" action

@@ -6,7 +6,7 @@ import { useI18n } from "vue-i18n";
 import ColourPicker from "../../../core/components/ColourPicker.vue";
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { gameStore } from "../../../store/game";
-import { DrawMode, DrawShape, drawTool } from "../../tools/variants/draw";
+import { DrawCategory, DrawMode, DrawShape, drawTool } from "../../tools/variants/draw";
 
 import { useToolPosition } from "./toolPosition";
 
@@ -23,6 +23,7 @@ const state = reactive({
 const hasBrushSize = drawTool.hasBrushSize;
 const isDm = toRef(gameStore.state, "isDm");
 const modes = Object.values(DrawMode);
+const categories = Object.values(DrawCategory);
 const selected = drawTool.isActiveTool;
 const shapes = Object.values(DrawShape);
 const toolStyle = computed(() => ({ "--detailRight": state.right, "--detailArrow": state.arrow } as CSSProperties));
@@ -52,72 +53,155 @@ const showBorderColour = computed(() => {
 
 <template>
     <div class="tool-detail" v-if="selected" :style="toolStyle">
-        <div v-show="isDm">{{ t("game.ui.tools.DrawTool.mode") }}</div>
-        <div v-show="isDm" class="draw-select-group">
+        <div id="draw-tool-categories">
             <div
-                v-for="mode in modes"
-                :key="mode"
-                class="draw-select-option"
-                :class="{ 'draw-select-option-selected': drawTool.state.selectedMode === mode }"
-                @click="drawTool.state.selectedMode = mode"
+                v-for="category in categories"
+                :key="category"
+                class="draw-category-option"
+                :class="{ 'draw-category-option-selected': drawTool.state.selectedCategory === category }"
+                @click="drawTool.state.selectedCategory = category"
             >
-                {{ translationMapping[mode] }}
+                <font-awesome-icon :icon="category" />
             </div>
         </div>
-        <div>{{ t("common.shape") }}</div>
-        <div class="draw-select-group">
-            <div
-                v-for="shape in shapes"
-                :key="shape"
-                class="draw-select-option"
-                :class="{ 'draw-select-option-selected': drawTool.state.selectedShape === shape }"
-                @click="drawTool.state.selectedShape = shape"
-                :title="translationMapping[shape]"
-            >
-                <font-awesome-icon :icon="shape" />
+        <template v-if="drawTool.state.selectedCategory === 'square'">
+            <div class="draw-center-header">{{ t("common.shape") }}</div>
+            <div class="draw-select-group">
+                <div
+                    v-for="shape in shapes"
+                    :key="shape"
+                    class="draw-select-option"
+                    :class="{ 'draw-select-option-selected': drawTool.state.selectedShape === shape }"
+                    @click="drawTool.state.selectedShape = shape"
+                    :title="translationMapping[shape]"
+                >
+                    <font-awesome-icon :icon="shape" />
+                </div>
             </div>
-        </div>
-        <div>{{ t("common.colours") }}</div>
-        <div class="draw-select-group">
-            <ColourPicker
-                class="draw-select-option"
-                :class="{ 'radius-right': !showBorderColour }"
-                :title="t('game.ui.tools.DrawTool.foreground_color')"
-                v-model:colour="drawTool.state.fillColour"
-            />
-            <ColourPicker
-                class="draw-select-option"
-                :vShow="showBorderColour"
-                :title="t('game.ui.tools.DrawTool.background_color')"
-                v-model:colour="drawTool.state.borderColour"
-            />
-        </div>
-        <div v-show="drawTool.state.selectedShape === DrawShape.Polygon" style="display: flex">
-            <label for="polygon-close" style="flex: 5">{{ t("game.ui.tools.DrawTool.closed_polygon") }}</label>
-            <input
-                type="checkbox"
-                id="polygon-close"
-                style="flex: 1; align-self: center"
-                v-model="drawTool.state.isClosedPolygon"
-            />
-        </div>
-        <div v-show="drawTool.state.selectedShape === DrawShape.Text" style="display: flex">
-            <label for="font-size" style="flex: 5">{{ t("game.ui.tools.DrawTool.font_size") }}</label>
-            <input type="number" id="font-size" style="flex: 1; align-self: center" v-model="drawTool.state.fontSize" />
-        </div>
-        <div v-show="hasBrushSize" style="display: flex">
-            <label for="brush-size" style="flex: 5">{{ t("game.ui.tools.DrawTool.brush_size") }}</label>
-            <input
-                type="input"
-                id="brush-size"
-                v-model="drawTool.state.brushSize"
-                style="flex: 4; align-self: center; max-width: 100px"
-            />
-        </div>
+            <div id="draw-colour-header">
+                <div>Fill</div>
+                <div v-show="showBorderColour">Stroke</div>
+            </div>
+            <div class="draw-select-group">
+                <ColourPicker
+                    class="draw-select-option"
+                    :class="{ 'radius-right': !showBorderColour }"
+                    :title="t('game.ui.tools.DrawTool.foreground_color')"
+                    v-model:colour="drawTool.state.fillColour"
+                />
+                <ColourPicker
+                    class="draw-select-option"
+                    :vShow="showBorderColour"
+                    :title="t('game.ui.tools.DrawTool.background_color')"
+                    v-model:colour="drawTool.state.borderColour"
+                />
+            </div>
+            <div v-show="drawTool.state.selectedShape === DrawShape.Polygon" class="draw-checkbox-line">
+                <label for="polygon-close">{{ t("game.ui.tools.DrawTool.closed_polygon") }}</label>
+                <input type="checkbox" id="polygon-close" v-model="drawTool.state.isClosedPolygon" />
+            </div>
+            <div v-show="hasBrushSize" class="draw-input-line">
+                <label for="brush-size">{{ t("game.ui.tools.DrawTool.brush_size") }}</label>
+                <input type="input" id="brush-size" v-model="drawTool.state.brushSize" />
+            </div>
+            <div v-show="drawTool.state.selectedShape === DrawShape.Text" class="draw-input-line">
+                <label for="font-size">{{ t("game.ui.tools.DrawTool.font_size") }}</label>
+                <input type="number" id="font-size" v-model="drawTool.state.fontSize" />
+            </div>
+        </template>
+        <template v-else>
+            <div class="draw-center-header">{{ t("game.ui.tools.DrawTool.mode") }}</div>
+            <div v-show="isDm" class="draw-select-group">
+                <div
+                    v-for="mode in modes"
+                    :key="mode"
+                    class="draw-select-option"
+                    :class="{ 'draw-select-option-selected': drawTool.state.selectedMode === mode }"
+                    @click="drawTool.state.selectedMode = mode"
+                >
+                    {{ translationMapping[mode] }}
+                </div>
+            </div>
+            <div class="draw-checkbox-line">
+                <div>Blocks vision</div>
+                <div>
+                    <input
+                        type="checkbox"
+                        v-model="drawTool.state.blocksVision"
+                        @click="drawTool.state.blocksVision = !drawTool.state.blocksVision"
+                        :disabled="drawTool.state.selectedMode !== 'normal'"
+                    />
+                </div>
+            </div>
+            <div class="draw-checkbox-line">
+                <div>Blocks movement</div>
+                <div>
+                    <input
+                        type="checkbox"
+                        v-model="drawTool.state.blocksMovement"
+                        @click="drawTool.state.blocksMovement = !drawTool.state.blocksMovement"
+                        :disabled="drawTool.state.selectedMode !== 'normal'"
+                    />
+                </div>
+            </div>
+        </template>
     </div>
 </template>
 
 <style lang="scss">
+#draw-tool-categories {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    position: absolute;
+    left: -50px;
+    bottom: 0;
+
+    background-color: white;
+    font-size: 20px;
+
+    .draw-category-option {
+        display: flex;
+        justify-content: center;
+
+        padding: 10px;
+        width: 20px;
+
+        &:hover {
+            cursor: pointer;
+            background-color: #82c8a0;
+        }
+    }
+
+    .draw-category-option-selected {
+        background-color: #82c8a0;
+    }
+}
+
+.draw-center-header {
+    display: flex;
+    justify-content: center;
+}
+
+#draw-colour-header {
+    margin-top: 5px;
+    display: flex;
+    justify-content: space-around;
+}
+
+.draw-checkbox-line {
+    display: grid;
+    grid-template-columns: auto 25px;
+    margin-top: 5px;
+}
+
+.draw-input-line {
+    display: grid;
+    grid-template-columns: auto 50px;
+    margin-top: 5px;
+}
+
 .draw-select-group {
     display: flex;
 
@@ -159,5 +243,6 @@ const showBorderColour = computed(() => {
 <style scoped lang="scss">
 .tool-detail {
     display: block;
+    min-height: 125px;
 }
 </style>

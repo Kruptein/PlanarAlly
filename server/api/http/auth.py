@@ -1,6 +1,7 @@
 from aiohttp import web
 from aiohttp_security import authorized_userid, forget, remember
 
+from config import config
 from models import User
 from models.db import db
 from models.user import UserOptions
@@ -33,6 +34,9 @@ async def login(request):
 
 
 async def register(request):
+    if not config.getboolean("General", "allow_signups"):
+        return web.HTTPForbidden()
+
     username = await authorized_userid(request)
     if username:
         return web.HTTPOk()

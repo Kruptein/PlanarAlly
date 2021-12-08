@@ -3,10 +3,14 @@
 All notable changes to this project will be documented in this file.
 
 [DM] denotes changes only useful for the dungeon master
-[tech] denotes technical changes or changes specifically for the server owner.
+[tech]/[server] denotes technical changes or changes specifically for the server owner.
 These usually have no immediately visible impact on regular users
 
 ## Unreleased
+
+### Added
+
+-   [server] Added `allow_signups` option in the `General` config section that can be disabled to prevent users from signing up themselves
 
 ### Changed
 

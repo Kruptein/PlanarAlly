@@ -10,7 +10,7 @@
         "build": "npm run build:prep && vite build && mv ../server/index.html ../server/templates/index.html",
         "build:ci": "npm run build:prep && vue-tsc --noEmit && vite build --outDir dist",
         "lint": "eslint src --fix",
-        "lint:ci": "eslint src --no-fix"
+        "lint:ci": "CI=1 eslint src --no-fix"
     },
     "dependencies": {
         "@babylonjs/materials": "^4.2.0",

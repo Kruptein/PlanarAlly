@@ -5,7 +5,7 @@ import { clientStore } from "../../store/client";
 import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
 import { sendRemoveShapes } from "../api/emits/shape/core";
-import { addGroupMembers, createNewGroupForShapes, generateNewBadge, hasGroup } from "../groups";
+import { addGroupMembers, createNewGroupForShapes, hasGroup } from "../groups";
 import { selectionState } from "../layers/selection";
 import type { LayerName } from "../models/floor";
 import type {
@@ -157,6 +157,8 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
     const composites: ServerToggleComposite[] = [];
     const serverShapes: ServerShape[] = [];
 
+    const groupShapes: Record<string, string[]> = {};
+
     for (const clip of gameState.clipboard) {
         const newShape: ServerShape = Object.assign({}, clip, { auras: [], labels: [], owners: [], trackers: [] });
         newShape.uuid = uuidv4();
@@ -204,9 +206,12 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
 
         // Badge
         if (clip.group !== undefined) {
-            // We do not need to explicitly join the group as that will be done by createShape below
-            // The shape is not yet added to the layerManager at this point anyway
-            newShape.badge = generateNewBadge(clip.group);
+            // group join needs to happen after shape creation
+            newShape.group = undefined;
+            if (!(clip.group in groupShapes)) {
+                groupShapes[clip.group] = [];
+            }
+            groupShapes[clip.group].push(newShape.uuid);
         }
         if (clip.type_ === "togglecomposite") {
             composites.push(newShape as ServerToggleComposite);
@@ -227,8 +232,21 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
         if (shape === undefined) continue;
 
         layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
+
         if (!(shape.options.skipDraw ?? false)) selectionState.push(shape);
     }
+
+    for (const [group, shapes] of Object.entries(groupShapes)) {
+        addGroupMembers(
+            group,
+            shapes.map((uuid) => ({ uuid })),
+            true,
+        );
+    }
+    // const groupShape = groupShapes.find((s) => s.uuid === shape.uuid);
+    //     if (groupShape !== undefined) {
+    //         addGroupMembers(groupShape.group, [{ uuid: groupShape.uuid }], true);
+    //     }
 
     layer.invalidate(false);
     return selectionState.get({ includeComposites: false });

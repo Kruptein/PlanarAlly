@@ -169,7 +169,7 @@ export function getBadgeCharacters(shape: IShape): string {
     return message.join("");
 }
 
-export function generateNewBadge(groupId: string): number {
+function generateNewBadge(groupId: string): number {
     const group = groupMap.value.get(groupId)!;
     const members = getGroupMembers(groupId);
     const badges = members.map((m) => m.badge);

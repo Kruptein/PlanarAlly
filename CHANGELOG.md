@@ -16,7 +16,9 @@ These usually have no immediately visible impact on regular users
 
 ### Fixed
 
--   floor not being remembered on reload after "Bring Players" action
+-   Floor not being remembered on reload after "Bring Players" action
+-   Shape pasting not properly increasing badge counters
+-   Default vision shapes always acting as tokens (regardless of isToken)
 
 ### Performance
 

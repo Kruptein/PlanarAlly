@@ -722,10 +722,12 @@ export abstract class Shape implements IShape {
             sendShapeUpdateDefaultOwner({ ...accessToServer(this.defaultAccess), shape: this.uuid });
         if (syncTo === SyncTo.UI) this._("setDefaultAccess")(this.defaultAccess, syncTo);
 
-        if (this.defaultAccess.vision) {
-            if (this.ownedBy(false, { visionAccess: true })) gameStore.addOwnedToken(this.uuid);
-        } else {
-            if (!this.ownedBy(false, { visionAccess: true })) gameStore.removeOwnedToken(this.uuid);
+        if (this.isToken) {
+            if (this.defaultAccess.vision) {
+                if (this.ownedBy(false, { visionAccess: true })) gameStore.addOwnedToken(this.uuid);
+            } else {
+                if (!this.ownedBy(false, { visionAccess: true })) gameStore.removeOwnedToken(this.uuid);
+            }
         }
         if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();
         initiativeStore._forceUpdate();

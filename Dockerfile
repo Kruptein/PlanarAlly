@@ -1,7 +1,7 @@
 ################################
 # Build stage for the frontend #
 ################################
-FROM node:12-alpine as BUILDER
+FROM node:16-alpine as BUILDER
 
 WORKDIR /usr/src/client
 

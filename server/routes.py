@@ -8,6 +8,7 @@ from aiohttp_security import authorized_userid, check_authorized, forget, rememb
 
 import api.http
 from app import api_app, app as main_app
+from config import config
 from models import Room, User
 from models.role import Role
 from utils import logger
@@ -22,6 +23,11 @@ async def root(request):
     with open("./templates/index.html", "rb") as f:
         data = f.read()
         data = data.replace(b"/static", bytes(subpath, "utf-8")[:-1] + b"/static")
+
+        if not config.getboolean("General", "allow_signups"):
+            data = data.replace(
+                b'name="PA-signup" content="true"', b'name="PA-signup" content="false"'
+            )
         return web.Response(body=data, content_type="text/html")
 
 
@@ -35,6 +41,11 @@ async def root_dev(request):
         ) as response:
             raw = await response.read()
             raw = raw.replace(b"$BASE_PATH$", bytes(subpath, "utf-8")[:-1])
+            if not config.getboolean("General", "allow_signups"):
+                raw = raw.replace(
+                    b'name="PA-signup" content="true"',
+                    b'name="PA-signup" content="false"',
+                )
 
     return web.Response(body=raw, status=response.status, headers=response.headers)
 

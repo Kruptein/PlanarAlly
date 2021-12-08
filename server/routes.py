@@ -1,13 +1,14 @@
+from functools import partial
 import os
 import sys
 
 import aiohttp
 import aiohttp_jinja2
 from aiohttp import web
-from aiohttp_security import authorized_userid, check_authorized, forget, remember
+from aiohttp_security import check_authorized
 
 import api.http
-from app import api_app, app as main_app
+from app import admin_app, api_app, app as main_app
 from config import config
 from models import Room, User
 from models.role import Role
@@ -19,8 +20,9 @@ if subpath[-1] != "/":
     subpath = subpath + "/"
 
 
-async def root(request):
-    with open("./templates/index.html", "rb") as f:
+async def root(request, admin_api=False):
+    template = "admin-index.html" if admin_api else "index.html"
+    with open(f"./templates/{template}", "rb") as f:
         data = f.read()
         data = data.replace(b"/static", bytes(subpath, "utf-8")[:-1] + b"/static")
 
@@ -31,8 +33,9 @@ async def root(request):
         return web.Response(body=data, content_type="text/html")
 
 
-async def root_dev(request):
-    target_url = f"http://localhost:8080{request.rel_url}"
+async def root_dev(request, admin_api=False):
+    port = 8081 if admin_api else 8080
+    target_url = f"http://localhost:{port}{request.rel_url}"
     data = await request.read()
     get_data = request.rel_url.query
     async with aiohttp.ClientSession() as session:
@@ -106,15 +109,21 @@ main_app.router.add_get(f"{subpath}api/version", api.http.version.get_version)
 main_app.router.add_get(f"{subpath}api/changelog", api.http.version.get_changelog)
 main_app.router.add_get(f"{subpath}api/notifications", api.http.notifications.collect)
 
-if "dev" in sys.argv:
-    main_app.router.add_route("*", "/{tail:.*}", root_dev)
-else:
-    main_app.router.add_route("*", "/{tail:.*}", root)
-
 # ADMIN ROUTES
 
-api_app.router.add_post(f"{subpath}api/notifications", api.http.notifications.create)
-api_app.router.add_get(f"{subpath}api/notifications", api.http.notifications.collect)
+api_app.router.add_post(f"{subpath}notifications", api.http.notifications.create)
+api_app.router.add_get(f"{subpath}notifications", api.http.notifications.collect)
 api_app.router.add_delete(
-    f"{subpath}api/notifications/{{uuid}}", api.http.notifications.delete
+    f"{subpath}notifications/{{uuid}}", api.http.notifications.delete
 )
+api_app.router.add_get(f"{subpath}users", api.http.admin.users.collect)
+api_app.router.add_post(f"{subpath}users/reset", api.http.admin.users.reset)
+
+admin_app.add_subapp("/api/", api_app)
+
+if "dev" in sys.argv:
+    main_app.router.add_route("*", "/{tail:.*}", root_dev)
+    admin_app.router.add_route("*", "/{tail:.*}", partial(root_dev, admin_api=True))
+else:
+    main_app.router.add_route("*", "/{tail:.*}", root)
+    admin_app.router.add_route("*", "/{tail:.*}", partial(root, admin_api=True))

@@ -105,8 +105,8 @@ function updateSizeY(): void {
                 <div id="map-grid">
                     <div class="explanation">{{ t("game.ui.tools.MapTool.set_target_grid_cells") }}</div>
                     <div class="map-lock" @click="state.lock = !state.lock" title="(Un)lock aspect ratio">
-                        <font-awesome-icon v-show="state.lock" icon="link" />
-                        <font-awesome-icon v-show="!state.lock" icon="unlink" />
+                        <font-awesome-icon v-if="state.lock" icon="link" />
+                        <font-awesome-icon v-else icon="unlink" />
                     </div>
                     <label for="map-g-x">{{ t("game.ui.tools.MapTool.horizontal") }}</label>
                     <input
@@ -130,8 +130,8 @@ function updateSizeY(): void {
                     <div class="explanation">Set target pixels</div>
 
                     <div class="map-lock" @click="state.lock = !state.lock" title="(Un)lock aspect ratio">
-                        <font-awesome-icon v-show="state.lock" icon="link" />
-                        <font-awesome-icon v-show="!state.lock" icon="unlink" />
+                        <font-awesome-icon v-if="state.lock" icon="link" />
+                        <font-awesome-icon v-else icon="unlink" />
                     </div>
                     <label for="map-s-x">{{ t("game.ui.tools.MapTool.horizontal") }}</label>
                     <input

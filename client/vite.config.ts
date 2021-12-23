@@ -28,4 +28,5 @@ export default defineConfig({
             external: ["ammo.js"],
         },
     },
+    css: { preprocessorOptions: { scss: { charset: false } } },
 });

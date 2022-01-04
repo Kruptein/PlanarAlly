@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref, watch } from "vue";
+import { nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 
 const props = withDefaults(defineProps<{ colour?: string; mask?: boolean; visible: boolean }>(), {
     colour: "white",
@@ -16,6 +16,9 @@ let offsetY = 0;
 let screenX = 0;
 let screenY = 0;
 
+let containerX = 0;
+let containerY = 0;
+
 function close(): void {
     emit("close");
 }
@@ -25,7 +28,23 @@ function positionCheck(): void {
         nextTick(() => updatePosition());
     }
 }
-onMounted(() => positionCheck());
+
+function checkBounds(): void {
+    if (containerX > window.innerWidth - 100) {
+        containerX = window.innerWidth - 100;
+        container.value!.style.left = `${containerX}px`;
+    }
+    if (containerY > window.innerHeight - 100) {
+        containerY = window.innerHeight - 100;
+        container.value!.style.top = `${containerY}px`;
+    }
+}
+
+onMounted(() => {
+    window.addEventListener("resize", checkBounds);
+    positionCheck();
+});
+onUnmounted(() => window.removeEventListener("resize", checkBounds));
 watch(
     () => props.visible,
     () => positionCheck(),
@@ -35,8 +54,10 @@ function updatePosition(): void {
     if (container.value === undefined) return;
     if (!positioned) {
         if (container.value!.offsetWidth === 0 && container.value!.offsetHeight === 0) return;
-        container.value!.style.left = (window.innerWidth - container.value!.offsetWidth) / 2 + "px";
-        container.value!.style.top = (window.innerHeight - container.value!.offsetHeight) / 2 + "px";
+        containerX = (window.innerWidth - container.value!.offsetWidth) / 2;
+        containerY = (window.innerHeight - container.value!.offsetHeight) / 2;
+        container.value!.style.left = `${containerX}px`;
+        container.value!.style.top = `${containerY}px`;
         positioned = true;
     }
 }
@@ -56,18 +77,18 @@ function dragStart(event: DragEvent): void {
 
 function dragEnd(event: DragEvent): void {
     dragging = false;
-    let left = event.clientX - offsetX;
-    let top = event.clientY - offsetY;
+    containerX = event.clientX - offsetX;
+    containerY = event.clientY - offsetY;
     if (event.clientX === 0 && event.clientY === 0 && event.pageX === 0 && event.pageY === 0) {
-        left = parseInt(container.value!.style.left, 10) - (screenX - event.screenX);
-        top = parseInt(container.value!.style.top, 10) - (screenY - event.screenY);
+        containerX = parseInt(container.value!.style.left, 10) - (screenX - event.screenX);
+        containerY = parseInt(container.value!.style.top, 10) - (screenY - event.screenY);
     }
-    if (left < 0) left = 0;
-    if (left > window.innerWidth - 100) left = window.innerWidth - 100;
-    if (top < 0) top = 0;
-    if (top > window.innerHeight - 100) top = window.innerHeight - 100;
-    container.value!.style.left = left + "px";
-    container.value!.style.top = top + "px";
+    if (containerX < 0) containerX = 0;
+    if (containerX > window.innerWidth - 100) containerX = window.innerWidth - 100;
+    if (containerY < 0) containerY = 0;
+    if (containerY > window.innerHeight - 100) containerY = window.innerHeight - 100;
+    container.value!.style.left = `${containerX}px`;
+    container.value!.style.top = `${containerY}px`;
     container.value!.style.display = "block";
 }
 

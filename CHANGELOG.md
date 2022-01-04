@@ -23,6 +23,7 @@ These usually have no immediately visible impact on regular users
 -   Floor not being remembered on reload after "Bring Players" action
 -   Shape pasting not properly increasing badge counters
 -   Default vision shapes always acting as tokens (regardless of isToken)
+-   Map tool aspect ratio lock no longer working
 
 ### Performance
 

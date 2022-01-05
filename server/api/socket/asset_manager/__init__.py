@@ -115,9 +115,14 @@ async def create_folder(sid: str, data):
     user = asset_state.get_user(sid)
     parent = data.get("parent", None)
     if parent is None:
-        parent = Asset.get_root_folder(user)
+        parent = Asset.get_root_folder(user).id
     asset = Asset.create(name=data["name"], owner=user, parent=parent)
-    await sio.emit("Folder.Create", asset.as_dict(), room=sid, namespace=ASSET_NS)
+    await sio.emit(
+        "Folder.Create",
+        {"asset": asset.as_dict(), "parent": parent},
+        room=sid,
+        namespace=ASSET_NS,
+    )
     await update_live_game(user)
 
 
@@ -234,14 +239,32 @@ async def handle_regular_file(upload_data: UploadData, data: bytes, sid: str):
 
     user = asset_state.get_user(sid)
 
+    target = upload_data["directory"]
+
+    for directory in upload_data["newDirectories"]:
+        asset, created = Asset.get_or_create(name=directory, owner=user, parent=target)
+        if created:
+            await sio.emit(
+                "Folder.Create",
+                {"asset": asset.as_dict(), "parent": target},
+                room=sid,
+                namespace=ASSET_NS,
+            )
+        target = asset.id
+
     asset = Asset.create(
         name=upload_data["name"],
         file_hash=hashname,
         owner=user,
-        parent=upload_data["directory"],
+        parent=target,
     )
 
-    await sio.emit("Asset.Upload.Finish", asset.as_dict(), room=sid, namespace=ASSET_NS)
+    await sio.emit(
+        "Asset.Upload.Finish",
+        {"asset": asset.as_dict(), "parent": target},
+        room=sid,
+        namespace=ASSET_NS,
+    )
 
 
 @sio.on("Asset.Upload", namespace=ASSET_NS)

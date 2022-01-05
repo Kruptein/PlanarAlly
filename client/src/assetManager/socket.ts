@@ -31,12 +31,12 @@ socket.on("Folder.Set", (data: { folder: Asset; path?: number[] }) => {
         window.history.pushState(null, "Asset Manager", baseAdjust(`/assets${assetStore.currentFilePath.value}`));
     }
 });
-socket.on("Folder.Create", (folder: Asset) => {
-    assetStore.addAsset(folder);
+socket.on("Folder.Create", (data: { asset: Asset; parent: number }) => {
+    assetStore.addAsset(data.asset, data.parent);
 });
-socket.on("Asset.Upload.Finish", (asset: Asset) => {
-    assetStore.addAsset(asset);
-    assetStore.resolveUpload(asset.name);
+socket.on("Asset.Upload.Finish", (data: { asset: Asset; parent: number }) => {
+    assetStore.addAsset(data.asset, data.parent);
+    assetStore.resolveUpload(data.asset.name);
 });
 
 socket.on("Asset.Export.Finish", (uuid: string) => {

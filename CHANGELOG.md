@@ -26,6 +26,7 @@ These usually have no immediately visible impact on regular users
 -   Default vision shapes always acting as tokens (regardless of isToken)
 -   Map tool aspect ratio lock no longer working
 -   Modals will now change location when resizing the window would put them out of the visible screen area
+-   Asset manager would not check for stale files when removing a folder
 
 ### Performance
 

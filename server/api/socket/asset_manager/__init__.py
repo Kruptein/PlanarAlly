@@ -160,20 +160,30 @@ async def assetmgmt_rename(sid: str, data):
 @auth.login_required(app, sio)
 async def assetmgmt_rm(sid: str, data):
     user = asset_state.get_user(sid)
-    asset = Asset.get_by_id(data)
+    asset: Asset = Asset.get_by_id(data)
     if asset.owner != user:
         logger.warning(f"{user.name} attempted to remove a file it doesn't own.")
         return
+    asset_dict = asset.as_dict(children=True, recursive=True)
     asset.delete_instance(recursive=True, delete_nullable=True)
 
     await update_live_game(user)
+    cleanup_assets([asset_dict])
 
-    if asset.file_hash is not None and (ASSETS_DIR / asset.file_hash).exists():
-        if Asset.select().where(Asset.file_hash == asset.file_hash).count() == 0:
-            logger.info(
-                f"No asset maps to file {asset.file_hash}, removing from server"
-            )
-            (ASSETS_DIR / asset.file_hash).unlink()
+
+def cleanup_assets(assets):
+    for asset in assets:
+        if (
+            asset["file_hash"] is not None
+            and (ASSETS_DIR / asset["file_hash"]).exists()
+        ):
+            if Asset.select().where(Asset.file_hash == asset["file_hash"]).count() == 0:
+                logger.info(
+                    f"No asset maps to file {asset['file_hash']}, removing from server"
+                )
+                (ASSETS_DIR / asset["file_hash"]).unlink()
+        if "children" in asset:
+            cleanup_assets(asset["children"])
 
 
 def get_safe_members(

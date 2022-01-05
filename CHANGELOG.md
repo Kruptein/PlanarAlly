@@ -11,6 +11,7 @@ These usually have no immediately visible impact on regular users
 ### Added
 
 -   [server] Added `allow_signups` option in the `General` config section that can be disabled to prevent users from signing up themselves
+-   [asset-manager] drop support for folders
 
 ### Changed
 

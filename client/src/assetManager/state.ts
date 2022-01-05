@@ -139,7 +139,9 @@ class AssetStore extends Store<AssetState> {
 
     // ASSET
 
-    addAsset(asset: Asset): void {
+    addAsset(asset: Asset, parent?: number): void {
+        if (parent !== undefined && parent !== this.currentFolder.value) return;
+
         this._state.idMap.set(asset.id, asset);
         let target: "folders" | "files" = "folders";
         if (asset.file_hash !== null) {
@@ -185,7 +187,7 @@ class AssetStore extends Store<AssetState> {
         }
     }
 
-    async upload(fls?: FileList, target?: number): Promise<void> {
+    async upload(fls?: FileList, target?: number, targetOffset: string[] = []): Promise<void> {
         const files = (document.getElementById("files")! as HTMLInputElement).files;
         if (fls === undefined) {
             if (files) fls = files;
@@ -215,6 +217,7 @@ class AssetStore extends Store<AssetState> {
                             {
                                 name: file.name,
                                 directory: target,
+                                newDirectories: targetOffset,
                                 data: fr.result,
                                 slice,
                                 totalSlices: slices,

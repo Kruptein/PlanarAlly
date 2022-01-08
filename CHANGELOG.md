@@ -27,6 +27,7 @@ These usually have no immediately visible impact on regular users
 -   Map tool aspect ratio lock no longer working
 -   Modals will now change location when resizing the window would put them out of the visible screen area
 -   Asset manager would not check for stale files when removing a folder
+-   Fix scroll bars being visible due to dice canvas not being sized strictly
 
 ### Performance
 

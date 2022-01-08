@@ -29,6 +29,7 @@ import UI from "./ui/UI.vue";
 import "./api/events";
 
 export default defineComponent({
+    // eslint-disable-next-line vue/multi-word-component-names
     name: "Game",
     components: { UI },
     beforeRouteEnter(to, _from, next) {
@@ -213,5 +214,7 @@ svg {
 #babylon {
     z-index: 11;
     pointer-events: none;
+    width: 100%;
+    height: 100%;
 }
 </style>

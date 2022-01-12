@@ -10,8 +10,12 @@ These usually have no immediately visible impact on regular users
 
 ### Added
 
--   [server] Added `allow_signups` option in the `General` config section that can be disabled to prevent users from signing up themselves
 -   [asset-manager] drop support for folders
+-   [server] Added `allow_signups` option in the `General` config section that can be disabled to prevent users from signing up themselves
+-   [server] Added barebones admin dashboard
+    -   this uses the API endpoint and requires a token
+    -   lists users + reset password + delete
+    -   lists campaigns
 
 ### Changed
 
@@ -26,9 +30,9 @@ These usually have no immediately visible impact on regular users
 -   Default vision shapes always acting as tokens (regardless of isToken)
 -   Map tool aspect ratio lock no longer working
 -   Modals will now change location when resizing the window would put them out of the visible screen area
--   Asset manager would not check for stale files when removing a folder
 -   Fix scroll bars being visible due to dice canvas not being sized strictly
 -   Fix movement blockers intersecting with themselves when moving on the token layer
+-   [asset-manager] Asset manager would not check for stale files when removing a folder
 
 ### Performance
 

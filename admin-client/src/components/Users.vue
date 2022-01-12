@@ -7,9 +7,11 @@ const users = ref<{ name: string; email: string }[]>([]);
 const filter = ref("");
 
 const filteredUsers = computed(() => {
-    const filterV = filter.value;
+    const filterV = filter.value.toLowerCase();
     return users.value.filter(
-        (u) => u.name.includes(filterV) || u.email?.includes(filterV)
+        (u) =>
+            u.name.toLowerCase().includes(filterV) ||
+            u.email?.toLowerCase().includes(filterV)
     );
 });
 
@@ -63,23 +65,26 @@ async function remove(name: string): Promise<void> {
 <template>
     <div v-if="loading">Loading Users</div>
     <div id="users" v-else>
-        <div class="header">Name {{ filter }}</div>
+        <div class="header username">Name {{ filter }}</div>
         <div class="header">Email</div>
         <div class="header">Reset password</div>
         <div class="header">Remove user</div>
 
         <input
-            class="filter"
+            class="filter fullWidth"
             v-model="filter"
             type="text"
             placeholder="filter name or email"
         />
 
         <template v-for="user in filteredUsers">
-            <div>{{ user.name }}</div>
+            <div class="username">{{ user.name }}</div>
             <div>{{ user.email }}</div>
             <div class="pointer" @click="reset(user.name)">reset</div>
             <div class="pointer" @click="remove(user.name)">remove</div>
+        </template>
+        <template v-if="filteredUsers.length === 0">
+            <div class="fullWidth">No users match the current filter.</div>
         </template>
     </div>
 </template>
@@ -96,9 +101,8 @@ async function remove(name: string): Promise<void> {
 #users {
     margin: 50px;
     display: grid;
-    grid-template-columns: 1fr 1fr 250px 250px;
+    grid-template-columns: 1fr 1fr 150px 150px;
     flex-direction: column;
-    // height: 100%;
 
     > div {
         padding-top: 10px;
@@ -112,12 +116,19 @@ async function remove(name: string): Promise<void> {
     }
 
     .filter {
-        grid-column-start: 1;
-        grid-column-end: 5;
         padding-top: 10px;
         padding-bottom: 10px;
         margin-top: 10px;
         margin-bottom: 10px;
+    }
+
+    .username {
+        padding-left: 50px;
+        text-align: left;
+    }
+
+    .fullWidth {
+        grid-column: 1 / 5;
     }
 }
 </style>

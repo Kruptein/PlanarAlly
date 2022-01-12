@@ -2,6 +2,7 @@ import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
 import { state } from "./store";
 
 const TokenLogin = () => import("./components/TokenLogin.vue");
+const Campaigns = () => import("./components/Campaigns.vue");
 const Users = () => import("./components/Users.vue");
 
 const routes: Array<RouteRecordRaw> = [
@@ -12,6 +13,13 @@ const routes: Array<RouteRecordRaw> = [
     {
         path: "/users",
         component: Users,
+        meta: {
+            auth: true,
+        },
+    },
+    {
+        path: "/campaigns",
+        component: Campaigns,
         meta: {
             auth: true,
         },

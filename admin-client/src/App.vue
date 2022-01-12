@@ -4,8 +4,8 @@
     <header>
         <div id="header-title">PlanarAlly Admin Dashboard</div>
         <nav>
-            <router-link to="/users">users</router-link
-            ><router-link to="/usedrs">campaigns</router-link>
+            <router-link to="/users">users</router-link>
+            <router-link to="/campaigns">campaigns</router-link>
         </nav>
     </header>
     <div>
@@ -55,6 +55,13 @@ body {
 
             > a {
                 margin-right: 5px;
+                text-decoration: none;
+                color: black;
+
+                &.router-link-active,
+                &:hover {
+                    text-decoration: underline;
+                }
             }
         }
     }

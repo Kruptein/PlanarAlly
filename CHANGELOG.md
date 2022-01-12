@@ -28,6 +28,7 @@ These usually have no immediately visible impact on regular users
 -   Modals will now change location when resizing the window would put them out of the visible screen area
 -   Asset manager would not check for stale files when removing a folder
 -   Fix scroll bars being visible due to dice canvas not being sized strictly
+-   Fix movement blockers intersecting with themselves when moving on the token layer
 
 ### Performance
 

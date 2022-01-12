@@ -292,12 +292,16 @@ class SelectTool extends Tool implements ISelectTool {
 
                     // don't use layerSelection here as it can be outdated by the pushSelection setSelection above
                     this.operationList = { type: "movement", shapes: [] };
-                    for (const shape of selectionState.get({ includeComposites: false }))
+                    for (const shape of selectionState.get({ includeComposites: false })) {
                         this.operationList.shapes.push({
                             uuid: shape.uuid,
                             from: toArrayP(shape.refPoint),
                             to: toArrayP(shape.refPoint),
                         });
+                        if (shape.blocksMovement && shape.layer.name === LayerName.Tokens) {
+                            visionState.removeBlocker(TriangulationTarget.MOVEMENT, shape.floor.id, shape, true);
+                        }
+                    }
                 }
                 layer.invalidate(true);
                 hit = true;
@@ -560,6 +564,8 @@ class SelectTool extends Tool implements ISelectTool {
                     }
                     // movementBlock is skipped during onMove and definitely has to be done here
                     if (sel.blocksMovement) {
+                        if (sel.layer.name === LayerName.Tokens)
+                            visionState.addBlocker(TriangulationTarget.MOVEMENT, sel.uuid, sel.floor.id, false);
                         visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: sel.uuid });
                         recalcMovement = true;
                     }

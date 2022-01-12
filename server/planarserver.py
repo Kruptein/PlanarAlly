@@ -186,10 +186,10 @@ def remove_main(args):
 
     if resource == "user":
         user = User.by_name(args.name)
-        user.delete_instance()
+        user.delete_instance(recursive=True)
     elif resource == "room":
         room = get_room(args.name)
-        room.delete_instance()
+        room.delete_instance(recursive=True)
 
 
 def reset_password_main(args):

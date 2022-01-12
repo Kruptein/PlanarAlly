@@ -53,10 +53,9 @@ async function remove(name: string): Promise<void> {
         });
         if (data.status == 200) {
             window.alert("Account removed");
+            users.value = users.value.filter((u) => u.name !== name);
         } else {
-            window.alert(
-                "Account removal failed [Call is not yet implemented]"
-            );
+            window.alert("Account removal failed");
         }
     }
 }

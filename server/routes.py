@@ -118,6 +118,7 @@ api_app.router.add_delete(
 )
 api_app.router.add_get(f"{subpath}users", api.http.admin.users.collect)
 api_app.router.add_post(f"{subpath}users/reset", api.http.admin.users.reset)
+api_app.router.add_post(f"{subpath}users/remove", api.http.admin.users.remove)
 api_app.router.add_get(f"{subpath}campaigns", api.http.admin.campaigns.collect)
 
 admin_app.router.add_static(f"{subpath}static", "static")

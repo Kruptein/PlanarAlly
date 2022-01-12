@@ -1,5 +1,6 @@
 import secrets
 from aiohttp import web
+from aiohttp.web_exceptions import HTTPBadRequest
 
 from models import User
 
@@ -16,3 +17,13 @@ async def reset(request: web.Request) -> web.Response:
     user.set_password(new_pw)
     user.save()
     return web.json_response(new_pw)
+
+
+async def remove(request: web.Request) -> web.Response:
+    data = await request.json()
+    user = User.by_name(data["name"])
+    try:
+        user.delete_instance(recursive=True)
+    except:
+        return web.HTTPBadRequest(reason="User removal did not succeed.")
+    return web.HTTPOk()

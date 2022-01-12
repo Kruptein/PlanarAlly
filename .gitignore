@@ -20,6 +20,7 @@ server/build/**
 # JS
 client/coverage/**
 client/node_modules/**
+admin-client/node_modules/**
 
 # PlanarAlly
 server/planarallyserver.log
@@ -34,6 +35,7 @@ server/static/css/**
 server/static/js/**
 server/static/img/assets/**
 server/static/vite/**
+server/static/vite-admin/**
 server/templates/**
 
 # docs

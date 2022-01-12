@@ -47,4 +47,5 @@ sio.attach(app, socketio_path=socketio_path)
 app["state"] = {}
 
 # API APP
+admin_app = web.Application()
 api_app = setup_app([auth.token_middleware])

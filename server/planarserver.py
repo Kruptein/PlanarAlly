@@ -32,7 +32,7 @@ from state.game import game_state
 # Force loading of socketio routes
 from api.socket import *
 from api.socket.constants import GAME_NS
-from app import api_app, app as main_app, runners, setup_runner, sio
+from app import admin_app, app as main_app, runners, setup_runner, sio
 from config import config
 from models import User, Room
 from utils import logger
@@ -86,7 +86,7 @@ async def start_server(server_section: str):
     app = main_app
     method = "unknown"
     if server_section == "APIserver":
-        app = api_app
+        app = admin_app
 
     if socket:
         await start_socket(app, socket)
@@ -186,10 +186,10 @@ def remove_main(args):
 
     if resource == "user":
         user = User.by_name(args.name)
-        user.delete_instance()
+        user.delete_instance(recursive=True)
     elif resource == "room":
         room = get_room(args.name)
-        room.delete_instance()
+        room.delete_instance(recursive=True)
 
 
 def reset_password_main(args):

@@ -15,11 +15,12 @@ import {
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { equalPoints, snapToPoint } from "../../../core/math";
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
-import { ctrlOrCmdPressed } from "../../../core/utils";
+import { baseAdjust, ctrlOrCmdPressed } from "../../../core/utils";
 import { i18n } from "../../../i18n";
 import { clientStore, DEFAULT_GRID_SIZE } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
+import { Access, logicStore } from "../../../store/logic";
 import { settingsStore } from "../../../store/settings";
 import { UuidMap } from "../../../store/shapeMap";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
@@ -283,6 +284,15 @@ class SelectTool extends Tool implements ISelectTool {
                     if (ctrlOrCmdPressed(event)) {
                         selectionState.remove(shape.uuid);
                     }
+                }
+                // Logic Door Check
+                if (activeToolMode.value === ToolMode.Play && logicStore.canUseDoor(shape) === Access.Enabled) {
+                    console.log(shape.options.doorConditions);
+                    shape.setBlocksMovement(!shape.blocksMovement, SyncTo.SERVER, true);
+                    shape.setBlocksVision(!shape.blocksVision, SyncTo.SERVER, true);
+                    const state = shape.blocksVision ? "lock-open-solid" : "lock-solid";
+                    document.body.style.cursor = `url('${baseAdjust(`static/img/${state}.svg`)}') 16 16, auto`;
+                    return;
                 }
                 // Drag case, a shape is selected
                 if (this.hasFeature(SelectFeatures.Drag, features)) {

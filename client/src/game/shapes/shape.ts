@@ -12,6 +12,7 @@ import type { ActiveShapeStore } from "../../store/activeShape";
 import { clientStore } from "../../store/client";
 import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
+import { logicStore } from "../../store/logic";
 import { settingsStore } from "../../store/settings";
 import {
     sendShapeAddOwner,
@@ -24,6 +25,7 @@ import {
     sendShapeAddLabel,
     sendShapeCreateAura,
     sendShapeCreateTracker,
+    sendShapeIsDoor,
     sendShapeRemoveAura,
     sendShapeRemoveLabel,
     sendShapeRemoveTracker,
@@ -133,6 +135,9 @@ export abstract class Shape implements IShape {
 
     // Explicitly prevent any sync to the server
     preventSync = false;
+
+    // Logic
+    isDoor = false;
 
     // Additional options for specialized uses
     options: Partial<ShapeOptions> = {};
@@ -452,6 +457,7 @@ export abstract class Shape implements IShape {
             asset: this.assetId,
             group: this.groupId,
             ignore_zoom_size: this.ignoreZoomSize,
+            is_door: this.isDoor,
         };
     }
     fromDict(data: ServerShape): void {
@@ -475,6 +481,8 @@ export abstract class Shape implements IShape {
         this.showBadge = data.show_badge;
         this.isLocked = data.is_locked;
         this.annotationVisible = data.annotation_visible;
+        this.isDoor = data.is_door;
+        if (this.isDoor) logicStore.addDoor(this.uuid);
 
         this.ignoreZoomSize = data.ignore_zoom_size;
 
@@ -955,6 +963,15 @@ export abstract class Shape implements IShape {
         if (syncTo === SyncTo.UI) this._("removeLabel")(label, syncTo);
 
         this.labels = this.labels.filter((l) => l.uuid !== label);
+    }
+
+    // LOGIC
+
+    setIsDoor(isDoor: boolean, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.SERVER) sendShapeIsDoor({ shape: this.uuid, value: isDoor });
+        if (syncTo === SyncTo.UI) this._("setIsDoor")(isDoor, syncTo);
+
+        this.isDoor = isDoor;
     }
 
     // Extra Utilities

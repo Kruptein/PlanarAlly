@@ -14,6 +14,7 @@ import type { ToggleComposite } from "../game/shapes/variants/toggleComposite";
 
 import { clientStore } from "./client";
 import { gameStore } from "./game";
+import { logicStore } from "./logic";
 import { UuidMap } from "./shapeMap";
 
 export type UiTracker = { shape: string; temporary: boolean } & Tracker;
@@ -71,6 +72,8 @@ interface ActiveShapeState {
     annotation: string | undefined;
     annotationVisible: boolean;
     labels: Label[];
+
+    isDoor: boolean;
 }
 
 export class ActiveShapeStore extends Store<ActiveShapeState> {
@@ -116,6 +119,8 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
             annotation: undefined,
             annotationVisible: false,
             labels: [],
+
+            isDoor: false,
         };
     }
 
@@ -634,6 +639,28 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         }
     }
 
+    // LOGIC
+
+    setIsDoor(isDoor: boolean, syncTo: SyncTo): void {
+        if (this._state.uuid === undefined) return;
+
+        this._state.isDoor = isDoor;
+
+        if (this._state.options?.doorConditions === undefined) {
+            if (this._state.options === undefined) {
+                this._state.options = {};
+            }
+            this._state.options.doorConditions = { enabled: [], request: [], disabled: ["default"] };
+        }
+
+        if (syncTo !== SyncTo.UI) {
+            if (isDoor) logicStore.addDoor(this._state.uuid!);
+            else logicStore.removeDoor(this._state.uuid!);
+            const shape = UuidMap.get(this._state.uuid)!;
+            shape.setIsDoor(isDoor, syncTo);
+        }
+    }
+
     // STARTUP / CLEANUP
 
     setActiveShape(shape: IShape): void {
@@ -678,6 +705,8 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.annotationVisible = shape.annotationVisible;
         this._state.labels = [...shape.labels];
 
+        this._state.isDoor = shape.isDoor;
+
         if (this._state.parentUuid !== undefined) {
             const composite = UuidMap.get(this._state.parentUuid) as ToggleComposite;
             this._state.variants = composite.variants.map((v) => ({ ...v }));
@@ -721,6 +750,8 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.annotation = undefined;
         this._state.annotationVisible = false;
         this._state.labels = [];
+
+        this._state.isDoor = false;
     }
 }
 

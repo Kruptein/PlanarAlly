@@ -3,6 +3,7 @@ import type { ShapeAccess, ShapeOwner } from "../shapes/owners";
 import type { SHAPE_TYPE } from "../shapes/types";
 
 import type { LayerName } from "./floor";
+import type { Conditions } from "./logic";
 
 export interface ServerShape {
     uuid: string;
@@ -39,6 +40,7 @@ export interface ServerShape {
     asset?: number;
     group?: string;
     ignore_zoom_size: boolean;
+    is_door: boolean;
 }
 
 interface ServerShapeAccess {
@@ -156,4 +158,7 @@ export interface ShapeOptions {
     svgAsset: string;
 
     UiHelper: boolean;
+
+    // logic
+    doorConditions: Conditions;
 }

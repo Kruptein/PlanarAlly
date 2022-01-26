@@ -180,6 +180,9 @@
                         "default": "Default",
                         "add_access": "Add access"
                     },
+                    "logic": {
+                        "door": "Door"
+                    },
                     "dialog": {
                         "current_value": "Current value",
                         "remove_tracker": "Remove tracker",

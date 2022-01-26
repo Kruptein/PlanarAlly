@@ -1,13 +1,15 @@
 import { l2g } from "../../core/conversions";
+import { baseAdjust } from "../../core/utils";
 import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
+import { Access, logicStore } from "../../store/logic";
 import { UuidMap } from "../../store/shapeMap";
 import { uiStore } from "../../store/ui";
 import { getLocalPointFromEvent } from "../input/mouse";
 import { LayerName } from "../models/floor";
-import { ToolName } from "../models/tools";
+import { ToolMode, ToolName } from "../models/tools";
 
-import { activeTool, getActiveTool, getFeatures, toolMap } from "./tools";
+import { activeTool, activeToolMode, getActiveTool, getFeatures, toolMap } from "./tools";
 
 export function mouseDown(event: MouseEvent): void {
     if ((event.target as HTMLElement).tagName !== "CANVAS") return;
@@ -59,22 +61,38 @@ export function mouseMove(event: MouseEvent): void {
         toolMap[permitted.name].onMouseMove(event, permitted.features);
     }
 
+    // HOVER code
+    const eventPoint = l2g(getLocalPointFromEvent(event));
     // Annotation hover
-    let found = false;
+    let foundAnnotation = false;
     for (const uuid of gameStore.state.annotations) {
         if (UuidMap.has(uuid) && floorStore.hasLayer(floorStore.currentFloor.value!, LayerName.Draw)) {
             const shape = UuidMap.get(uuid)!;
-            if (
-                shape.floor.id === floorStore.currentFloor.value!.id &&
-                shape.contains(l2g(getLocalPointFromEvent(event)))
-            ) {
-                found = true;
+            if (shape.floor.id === floorStore.currentFloor.value!.id && shape.contains(eventPoint)) {
+                foundAnnotation = true;
                 uiStore.setAnnotationText(shape.annotation);
             }
         }
     }
-    if (!found && uiStore.state.annotationText.length > 0) {
+    if (!foundAnnotation && uiStore.state.annotationText.length > 0) {
         uiStore.setAnnotationText("");
+    }
+    // Logic hover
+    if (activeToolMode.value === ToolMode.Play) {
+        let foundDoor = false;
+        for (const uuid of logicStore.state.doors) {
+            const shape = UuidMap.get(uuid);
+            if (shape === undefined) continue;
+            if (shape.floor.id !== floorStore.currentFloor.value!.id) continue;
+            if (!shape.contains(eventPoint)) continue;
+            if (logicStore.canUseDoor(shape) === Access.Disabled) continue;
+
+            foundDoor = true;
+            const state = shape.blocksVision ? "lock-open-solid" : "lock-solid";
+            document.body.style.cursor = `url('${baseAdjust(`static/img/${state}.svg`)}') 16 16, auto`;
+            break;
+        }
+        if (!foundDoor) document.body.style.cursor = "default";
     }
 }
 

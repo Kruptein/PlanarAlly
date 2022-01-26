@@ -9,6 +9,7 @@ import AccessSettings from "./AccessSettings.vue";
 import { ShapeSettingCategory } from "./categories";
 import ExtraSettings from "./ExtraSettings.vue";
 import GroupSettings from "./GroupSettings.vue";
+import LogicSettings from "./LogicSettings.vue";
 import PropertySettings from "./PropertySettings.vue";
 import TrackerSettings from "./TrackerSettings.vue";
 import VariantSwitcher from "./VariantSwitcher.vue";
@@ -31,6 +32,7 @@ const categoryNames = computed(() => {
         return [
             ShapeSettingCategory.Properties,
             ShapeSettingCategory.Trackers,
+            ShapeSettingCategory.Logic,
             ShapeSettingCategory.Access,
             ShapeSettingCategory.Group,
             ShapeSettingCategory.Extra,
@@ -51,6 +53,7 @@ const SSC = ShapeSettingCategory;
                 <PropertySettings v-show="selection === SSC.Properties" />
                 <TrackerSettings v-show="selection === SSC.Trackers" />
                 <AccessSettings v-show="selection === SSC.Access" />
+                <LogicSettings v-show="selection === SSC.Logic" />
                 <GroupSettings v-show="owned && selection === SSC.Group" />
                 <ExtraSettings v-show="owned && selection === SSC.Extra" />
                 <VariantSwitcher v-show="owned" />

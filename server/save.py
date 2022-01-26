@@ -13,7 +13,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 66
+SAVE_VERSION = 67
 
 import json
 import logging
@@ -55,151 +55,14 @@ def check_existence() -> bool:
 
 
 def upgrade(version):
-    if version < 43:
+    if version < 49:
         raise OldVersionException(
             f"Upgrade code for this version is >1 year old and is no longer in the active codebase to reduce clutter. You can still find this code on github, contact me for more info."
         )
 
     db.foreign_keys = False
 
-    if version == 43:
-        # Add grid_type
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE location_options ADD COLUMN grid_type TEXT DEFAULT NULL"
-            )
-            data = db.execute_sql("SELECT default_options_id FROM room")
-            for row in data.fetchall():
-                db.execute_sql(
-                    f"UPDATE location_options SET 'grid_type' = 'SQUARE' WHERE id = '{row[0]}'"
-                )
-    elif version == 44:
-        # Change initiative effect turns to textfield
-        with db.atomic():
-            db.execute_sql(
-                "CREATE TEMPORARY TABLE _initiative_effect_44 AS SELECT * FROM initiative_effect"
-            )
-            db.execute_sql("DROP TABLE initiative_effect")
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "initiative_effect" ("uuid" TEXT NOT NULL PRIMARY KEY, "initiative_id" TEXT NOT NULL, "name" TEXT NOT NULL, "turns" TEXT NOT NULL, FOREIGN KEY ("initiative_id") REFERENCES "initiative" ("uuid") ON DELETE CASCADE)'
-            )
-            db.execute_sql(
-                "INSERT INTO initiative_effect (uuid, initiative_id, name, turns) SELECT uuid, initiative_id, name, turns FROM _initiative_effect_44"
-            )
-    elif version == 45:
-        # Promote group to a dedicated DB structure AND fix 'index' values in Shape.index
-        with db.atomic():
-            db.execute_sql('UPDATE shape set "index" = 0 WHERE "index" = ?', ("index",))
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "group" ("uuid" TEXT NOT NULL PRIMARY KEY, "character_set" TEXT NOT NULL, "creation_order" TEXT DEFAULT "incrementing")'
-            )
-            db.execute_sql("CREATE TEMPORARY TABLE _shape_45 AS SELECT * FROM shape")
-            db.execute_sql("DROP TABLE shape")
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "shape" ("uuid" TEXT NOT NULL PRIMARY KEY, "layer_id" INTEGER NOT NULL, "type_" TEXT NOT NULL, "x" REAL NOT NULL, "y" REAL NOT NULL, "name" TEXT, "name_visible" INTEGER NOT NULL, "fill_colour" TEXT NOT NULL, "stroke_colour" TEXT NOT NULL, "vision_obstruction" INTEGER NOT NULL, "movement_obstruction" INTEGER NOT NULL, "is_token" INTEGER NOT NULL, "annotation" TEXT NOT NULL, "draw_operator" TEXT NOT NULL, "index" INTEGER NOT NULL, "options" TEXT, "badge" INTEGER NOT NULL, "show_badge" INTEGER NOT NULL, "default_edit_access" INTEGER NOT NULL, "default_vision_access" INTEGER NOT NULL, is_invisible INTEGER NOT NULL DEFAULT 0, default_movement_access INTEGER NOT NULL DEFAULT 0, is_locked INTEGER NOT NULL DEFAULT 0, angle REAL NOT NULL DEFAULT 0, stroke_width INTEGER NOT NULL DEFAULT 2, asset_id INTEGER, group_id TEXT, FOREIGN KEY ("layer_id") REFERENCES "layer" ("id") ON DELETE CASCADE, FOREIGN KEY ("asset_id") REFERENCES "asset" ("id"), FOREIGN KEY ("group_id") REFERENCES "group" ("uuid"))'
-            )
-            db.execute_sql('CREATE INDEX "shape_layer_id" ON "shape" ("layer_id")')
-            db.execute_sql('CREATE INDEX "shape_asset_id" ON "shape" ("asset_id")')
-            db.execute_sql('CREATE INDEX "shape_group_id" ON "shape" ("group_id")')
-            db.execute_sql(
-                'INSERT INTO shape (uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, "index", options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width, asset_id) SELECT uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, "index", options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width, asset_id FROM _shape_45'
-            )
-
-            data = db.execute_sql("SELECT uuid, badge, options FROM shape")
-            pending_groups = {}
-            created_groups = {}
-            for row in data.fetchall():
-                uuid, badge, options = row
-                group_id = None
-                if options:
-                    try:
-                        options = dict(json.loads(options))
-                    except:
-                        logger.error(
-                            f"Could not read options for {uuid}, skipping this shape"
-                        )
-                        continue
-                    if "groupInfo" in options:
-                        # create new group
-                        group_id = str(uuid4())
-                        db.execute_sql(
-                            "INSERT INTO 'group' (uuid, character_set, creation_order) VALUES (?, ?, ?)",
-                            (group_id, "0,1,2,3,4,5,6,7,8,9", "incrementing"),
-                        )
-                        created_groups[uuid] = group_id
-                        # process everything in pending_groups
-                        if uuid in pending_groups:
-                            for member in pending_groups[uuid]:
-                                db.execute_sql(
-                                    "UPDATE shape SET group_id = ? WHERE uuid = ?",
-                                    (group_id, member),
-                                )
-                            del pending_groups[uuid]
-                        del options["groupInfo"]
-                    if "groupId" in options:
-                        if options["groupId"] in created_groups:
-                            # add to existing group
-                            group_id = created_groups[options["groupId"]]
-                        else:
-                            # remember this shape as something to add later
-                            if options["groupId"] not in pending_groups:
-                                pending_groups[options["groupId"]] = []
-                            pending_groups[options["groupId"]].append(uuid)
-                        del options["groupId"]
-                    options = json.dumps([[k, v] for k, v in options.items()])
-                if badge:
-                    badge -= 1
-                db.execute_sql(
-                    "UPDATE shape SET options = ?, badge = ?, group_id = ? WHERE uuid = ?",
-                    (options, badge, group_id, uuid),
-                )
-    elif version == 46:
-        # Add Composite Shape Association and Toggle Shape tables
-        with db.atomic():
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "composite_shape_association" ("id" INTEGER NOT NULL PRIMARY KEY, "variant_id" TEXT NOT NULL, "parent_id" TEXT NOT NULL, "name" TEXT NOT NULL, FOREIGN KEY ("variant_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE, FOREIGN KEY ("parent_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)'
-            )
-            db.execute_sql(
-                'CREATE INDEX IF NOT EXISTS "composite_shape_association_variant_id" ON "composite_shape_association" ("variant_id")'
-            )
-            db.execute_sql(
-                'CREATE INDEX IF NOT EXISTS "composite_shape_association_parent_id" ON "composite_shape_association" ("parent_id")'
-            )
-
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "toggle_composite" ("shape_id" TEXT NOT NULL PRIMARY KEY, "active_variant" TEXT, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid"))'
-            )
-            db.execute_sql(
-                'CREATE INDEX IF NOT EXISTS "toggle_composite_shape_id" ON "toggle_composite" ("shape_id")'
-            )
-    elif version == 47:
-        # Fix ToggleComposite skipDraw type (from string to boolean)
-        with db.atomic():
-            data = db.execute_sql("SELECT uuid, options FROM shape")
-            for row in data.fetchall():
-                uuid, options = row
-                if options:
-                    try:
-                        options = dict(json.loads(options))
-                    except:
-                        logger.error(
-                            f"Could not read options for {uuid}, skipping this shape"
-                        )
-                        continue
-                    if options.get("skipDraw", False) == "true":
-                        options["skipDraw"] = True
-                        options = json.dumps([[k, v] for k, v in options.items()])
-                        db.execute_sql(
-                            "UPDATE shape SET options = ? WHERE uuid = ?",
-                            (options, uuid),
-                        )
-    elif version == 48:
-        # Add Shape.annotation_visible
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE shape ADD COLUMN annotation_visible INTEGER NOT NULL DEFAULT 0"
-            )
-    elif version == 49:
+    if version == 49:
         # Extend Aura
         with db.atomic():
             db.execute_sql(
@@ -520,6 +383,12 @@ def upgrade(version):
             )
             db.execute_sql(
                 'INSERT INTO "location_options" (id, unit_size, unit_size_unit, use_grid, full_fow, fow_opacity, fow_los, vision_mode, vision_min_range, vision_max_range, spawn_locations, move_player_on_token_change, grid_type, air_map_background, ground_map_background, underground_map_background) SELECT id, unit_size, unit_size_unit, use_grid, full_fow, fow_opacity, fow_los, vision_mode, vision_min_range, vision_max_range, spawn_locations, move_player_on_token_change, grid_type, air_map_background, ground_map_background, underground_map_background FROM _location_options_65 '
+            )
+    elif version == 66:
+        # Add Shape.IsDoor
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE shape ADD COLUMN is_door INTEGER DEFAULT 0 NOT NULL"
             )
     else:
         raise UnknownVersionException(

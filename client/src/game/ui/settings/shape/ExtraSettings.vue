@@ -76,11 +76,7 @@ async function uploadSvg(): Promise<void> {
     const asset = await modals.assetPicker();
     if (asset === undefined || asset.file_hash === undefined) return;
 
-    const options: Partial<Omit<ShapeOptions, "svgPaths">> = {
-        ...activeShapeStore.state.options!,
-        svgAsset: asset.file_hash,
-    };
-    activeShapeStore.setOptions(options, SyncTo.SERVER);
+    activeShapeStore.setOptionKey("svgAsset", asset.file_hash, SyncTo.SERVER);
     (UuidMap.get(activeShapeStore.state.uuid!)! as Asset).loadSvgs();
 }
 

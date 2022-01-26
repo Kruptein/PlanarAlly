@@ -180,7 +180,19 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
         if (syncTo !== SyncTo.UI) {
             const shape = UuidMap.get(this._state.uuid)!;
-            shape.setOptions(this._state.options, SyncTo.SERVER);
+            shape.setOptions(this._state.options, syncTo);
+        }
+    }
+
+    setOptionKey<T extends keyof ShapeOptions>(key: T, value: ShapeOptions[T], syncTo: SyncTo): void {
+        if (this._state.uuid === undefined) return;
+        if (this._state.options === undefined) this._state.options = {};
+
+        this._state.options[key] = value;
+
+        if (syncTo !== SyncTo.UI) {
+            const shape = UuidMap.get(this._state.uuid)!;
+            shape.setOptions(this._state.options, syncTo);
         }
     }
 

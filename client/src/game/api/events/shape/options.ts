@@ -91,3 +91,9 @@ socket.on("Shape.Options.Defeated.Set", (data: { shape: string; value: boolean }
     if (shape === undefined) return;
     shape.setDefeated(data.value, SyncTo.UI);
 });
+
+socket.on("Shape.Options.IsDoor.Set", (data: { shape: string; value: boolean }) => {
+    const shape = UuidMap.get(data.shape);
+    if (shape === undefined) return;
+    shape.setIsDoor(data.value, SyncTo.UI);
+});

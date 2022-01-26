@@ -1,4 +1,5 @@
 import { ref, watchEffect } from "vue";
+import { POSITION, useToast } from "vue-toastification";
 
 import { g2l, g2lx, g2ly, g2lz, l2g, l2gz, toDegrees, toRadians } from "../../../core/conversions";
 import {
@@ -23,6 +24,7 @@ import { gameStore } from "../../../store/game";
 import { Access, logicStore } from "../../../store/logic";
 import { settingsStore } from "../../../store/settings";
 import { UuidMap } from "../../../store/shapeMap";
+import { sendDoorRequest } from "../../api/emits/logic";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import { calculateDelta } from "../../drag";
 import { getLocalPointFromEvent } from "../../input/mouse";
@@ -66,6 +68,8 @@ export enum SelectFeatures {
     Rotate,
     PolygonEdit,
 }
+
+const toast = useToast();
 
 // Calculate 45 degrees in radians just once
 const ANGLE_SNAP = (45 * Math.PI) / 180;
@@ -286,13 +290,21 @@ class SelectTool extends Tool implements ISelectTool {
                     }
                 }
                 // Logic Door Check
-                if (activeToolMode.value === ToolMode.Play && logicStore.canUseDoor(shape) === Access.Enabled) {
-                    console.log(shape.options.doorConditions);
-                    shape.setBlocksMovement(!shape.blocksMovement, SyncTo.SERVER, true);
-                    shape.setBlocksVision(!shape.blocksVision, SyncTo.SERVER, true);
-                    const state = shape.blocksVision ? "lock-open-solid" : "lock-solid";
-                    document.body.style.cursor = `url('${baseAdjust(`static/img/${state}.svg`)}') 16 16, auto`;
-                    return;
+                if (activeToolMode.value === ToolMode.Play) {
+                    const canUseDoor = logicStore.canUseDoor(shape);
+                    if (canUseDoor === Access.Enabled) {
+                        shape.setBlocksMovement(!shape.blocksMovement, SyncTo.SERVER, true);
+                        shape.setBlocksVision(!shape.blocksVision, SyncTo.SERVER, true);
+                        const state = shape.blocksVision ? "lock-open-solid" : "lock-solid";
+                        document.body.style.cursor = `url('${baseAdjust(`static/img/${state}.svg`)}') 16 16, auto`;
+                        return;
+                    } else if (canUseDoor === Access.Request) {
+                        toast.info("Request to open door sent", {
+                            position: POSITION.TOP_RIGHT,
+                        });
+                        sendDoorRequest(shape.uuid);
+                        return;
+                    }
                 }
                 // Drag case, a shape is selected
                 if (this.hasFeature(SelectFeatures.Drag, features)) {

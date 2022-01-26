@@ -6,6 +6,8 @@ import { gameStore } from "./game";
 
 interface LogicState {
     doors: Set<string>;
+
+    request: { requester: string; shape: string } | undefined;
 }
 
 export enum Access {
@@ -18,7 +20,16 @@ class LogicStore extends Store<LogicState> {
     protected data(): LogicState {
         return {
             doors: new Set(),
+            request: undefined,
         };
+    }
+
+    clearRequest(): void {
+        this._state.request = undefined;
+    }
+
+    handleRequest(data: { shape: string; requester: string }): void {
+        this._state.request = data;
     }
 
     addDoor(shape: string): void {

@@ -972,6 +972,7 @@ export abstract class Shape implements IShape {
 
         this.isDoor = isDoor;
         if (isDoor) logicStore.addDoor(this.uuid);
+        else logicStore.removeDoor(this.uuid);
     }
 
     // Extra Utilities

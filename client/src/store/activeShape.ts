@@ -650,7 +650,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
             if (this._state.options === undefined) {
                 this._state.options = {};
             }
-            this._state.options.doorConditions = { enabled: [], request: [], disabled: ["default"] };
+            this.setOptionKey("doorConditions", { enabled: [], request: [], disabled: ["default"] }, syncTo);
         }
 
         if (syncTo !== SyncTo.UI) {

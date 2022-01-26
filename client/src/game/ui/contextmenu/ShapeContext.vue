@@ -192,7 +192,7 @@ async function setLocation(newLocation: number): Promise<void> {
                 spawnInfo.map((s) => s.name),
             );
             if (choice === undefined) return;
-            const choiceShape = spawnInfo.find((s) => s.name === choice);
+            const choiceShape = spawnInfo.find((s) => s.name === choice[0]);
             if (choiceShape === undefined) return;
             spawnLocation = choiceShape;
             break;
@@ -259,7 +259,7 @@ async function saveTemplate(): Promise<void> {
             customButton: t("game.ui.templates.create_new"),
         });
         if (choice === undefined) return;
-        assetOptions.templates[choice] = toTemplate(shape.asDict());
+        assetOptions.templates[choice[0]] = toTemplate(shape.asDict());
         sendAssetOptions(shape.assetId, assetOptions);
     } catch {
         // no-op ; action cancelled

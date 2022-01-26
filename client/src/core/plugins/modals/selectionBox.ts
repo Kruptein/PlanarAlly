@@ -5,13 +5,14 @@ export interface SelectionBoxOptions {
     text?: string;
     defaultButton?: string;
     customButton?: string;
+    multiSelect?: boolean;
 }
 
 export type SelectionBoxFunction = (
     title: string,
     choices: string[],
     options?: SelectionBoxOptions,
-) => Promise<string | undefined>;
+) => Promise<string[] | undefined>;
 
 interface SelectionBoxModal {
     visible: DeepReadonly<Ref<boolean>>;
@@ -20,7 +21,7 @@ interface SelectionBoxModal {
     options?: Ref<SelectionBoxOptions | undefined>;
     open: SelectionBoxFunction;
     close: () => void;
-    submit: (choice: string) => void;
+    submit: (choice: string[]) => void;
 }
 
 export function useSelectionBox(): SelectionBoxModal {
@@ -28,12 +29,16 @@ export function useSelectionBox(): SelectionBoxModal {
         visible: false,
         title: "",
         choices: [] as string[],
-        options: {} as SelectionBoxOptions | undefined,
+        options: { multiSelect: false } as SelectionBoxOptions | undefined,
     });
 
-    let resolve: (value: string | undefined) => void = (_value: string | undefined) => {};
+    let resolve: (value: string[] | undefined) => void = (_value: string[] | undefined) => {};
 
-    async function open(title: string, choices: string[], options?: SelectionBoxOptions): Promise<string | undefined> {
+    async function open(
+        title: string,
+        choices: string[],
+        options?: SelectionBoxOptions,
+    ): Promise<string[] | undefined> {
         data.visible = true;
         data.title = title;
         data.choices = choices;
@@ -41,7 +46,7 @@ export function useSelectionBox(): SelectionBoxModal {
         return new Promise((res) => (resolve = res));
     }
 
-    function submit(answer: string): void {
+    function submit(answer: string[]): void {
         resolve(answer);
         data.visible = false;
     }

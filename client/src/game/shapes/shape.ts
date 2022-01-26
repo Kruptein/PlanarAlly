@@ -481,8 +481,7 @@ export abstract class Shape implements IShape {
         this.showBadge = data.show_badge;
         this.isLocked = data.is_locked;
         this.annotationVisible = data.annotation_visible;
-        this.isDoor = data.is_door;
-        if (this.isDoor) logicStore.addDoor(this.uuid);
+        this.setIsDoor(data.is_door, SyncTo.UI);
 
         this.ignoreZoomSize = data.ignore_zoom_size;
 
@@ -972,6 +971,7 @@ export abstract class Shape implements IShape {
         if (syncTo === SyncTo.UI) this._("setIsDoor")(isDoor, syncTo);
 
         this.isDoor = isDoor;
+        if (isDoor) logicStore.addDoor(this.uuid);
     }
 
     // Extra Utilities

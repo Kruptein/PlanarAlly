@@ -16,6 +16,7 @@ import { sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import type { Layer } from "../../layers/variants/layer";
 import { LayerName } from "../../models/floor";
 import type { Floor } from "../../models/floor";
+import type { Conditions } from "../../models/logic";
 import { ToolName } from "../../models/tools";
 import type { ToolFeatures } from "../../models/tools";
 import { overrideLastOperation } from "../../operations/undo";
@@ -47,6 +48,7 @@ export enum DrawShape {
 export enum DrawCategory {
     Shape = "square",
     Vision = "eye",
+    Logic = "cogs",
 }
 
 class DrawTool extends Tool {
@@ -68,6 +70,9 @@ class DrawTool extends Tool {
         blocksMovement: false,
 
         fontSize: 20,
+
+        isDoor: false,
+        doorConditions: { enabled: [], request: [], disabled: ["default"] } as Conditions,
     });
     hasBrushSize = computed(() => [DrawShape.Brush, DrawShape.Polygon].includes(this.state.selectedShape));
 
@@ -167,6 +172,10 @@ class DrawTool extends Tool {
             if (this.shape.blocksVision) visionState.recalculateVision(this.shape.floor.id);
             if (this.shape.blocksMovement) visionState.recalculateMovement(this.shape.floor.id);
             if (!this.shape.preventSync) sendShapeSizeUpdate({ shape: this.shape, temporary: false });
+        }
+        if (this.state.isDoor) {
+            this.shape.setOptions({ ...this.shape.options, doorConditions: this.state.doorConditions }, SyncTo.SERVER);
+            this.shape.setIsDoor(true, SyncTo.SERVER);
         }
         this.active = false;
         const layer = this.getLayer();
@@ -667,6 +676,12 @@ class DrawTool extends Tool {
         this.setupBrush();
         layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false }); // during mode change the shape is already added
         if (refPoint) this.brushHelper.refPoint = refPoint;
+    }
+
+    // LOGIC
+
+    setDoorConditions(conditions: Conditions): void {
+        this.state.doorConditions = conditions;
     }
 }
 

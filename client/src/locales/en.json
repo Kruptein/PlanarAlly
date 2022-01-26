@@ -181,6 +181,7 @@
                         "add_access": "Add access"
                     },
                     "logic": {
+                        "logic": "Logic",
                         "door": "Door"
                     },
                     "dialog": {
@@ -369,7 +370,9 @@
                     "cone": "cone",
                     "text": "text",
                     "shape-category": "Basic settings",
-                    "vision-category": "Vision settings"
+                    "vision-category": "Vision settings",
+                    "logic-category": "Logic settings",
+                    "door": "Add simple door logic"
                 },
                 "FilterTool": {
                     "no_category": "no category"

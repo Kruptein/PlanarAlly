@@ -30,7 +30,7 @@ function openConditions(): void {
             <LogicPermissions
                 v-model:visible="showConditions"
                 :conditions="options!.doorConditions!"
-                @change="setDoorConditions"
+                @update:conditions="setDoorConditions"
             />
         </teleport>
         <div class="spanrow header">Door</div>

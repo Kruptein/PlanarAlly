@@ -18,7 +18,7 @@ const props = defineProps<{
     visible: boolean;
 }>();
 const emit = defineEmits<{
-    (e: "change", conditions: Conditions): Conditions;
+    (e: "update:conditions", conditions: Conditions): Conditions;
     (e: "update:visible", visible: boolean): void;
     (e: "close"): void;
 }>();
@@ -55,7 +55,7 @@ function change(change: SortableChanged<string>, target: "enabled" | "request" |
         _target.splice(change.moved.oldIndex, 1);
         _target.splice(change.moved.newIndex, 0, change.moved.element);
     }
-    emit("change", conditions);
+    emit("update:conditions", conditions);
 }
 
 async function add(target: "enabled" | "request" | "disabled"): Promise<void> {
@@ -82,7 +82,7 @@ async function add(target: "enabled" | "request" | "disabled"): Promise<void> {
     for (const s of selection) {
         _target.push(s);
     }
-    emit("change", conditions);
+    emit("update:conditions", conditions);
 }
 
 function hideModal(): void {

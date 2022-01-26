@@ -112,7 +112,7 @@ export async function dropAsset(
                         choices,
                     );
                     if (choice === undefined) return;
-                    options = response.options!.templates[choice];
+                    options = response.options!.templates[choice[0]];
                 } catch {
                     // no-op ; action cancelled
                 }

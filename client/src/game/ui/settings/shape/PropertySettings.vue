@@ -6,8 +6,8 @@ import ColourPicker from "../../../../core/components/ColourPicker.vue";
 import { SyncMode, SyncTo } from "../../../../core/models/types";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { UuidMap } from "../../../../store/shapeMap";
-import { CircularToken } from "../../../shapes/variants/circularToken";
-import { Text } from "../../../shapes/variants/text";
+import type { CircularToken } from "../../../shapes/variants/circularToken";
+import type { Text } from "../../../shapes/variants/text";
 
 const { t } = useI18n();
 

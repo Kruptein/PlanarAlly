@@ -33,6 +33,8 @@ export const sendShapeMoveTracker =
     sendShapeOption<{ tracker: string; new_shape: string }>("Shape.Options.Tracker.Move");
 export const sendShapeMoveAura = sendShapeOption<{ aura: string; new_shape: string }>("Shape.Options.Aura.Move");
 
+export const sendShapeIsDoor = sendSimpleShapeOption<boolean>("Shape.Options.IsDoor.Set");
+
 export const sendShapeCreateTracker = (data: ServerTracker): void => {
     socket.emit("Shape.Options.Tracker.Create", data);
 };

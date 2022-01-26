@@ -1,4 +1,5 @@
 import { ref, watchEffect } from "vue";
+import { POSITION, useToast } from "vue-toastification";
 
 import { g2l, g2lx, g2ly, g2lz, l2g, l2gz, toDegrees, toRadians } from "../../../core/conversions";
 import {
@@ -15,13 +16,15 @@ import {
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { equalPoints, snapToPoint } from "../../../core/math";
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
-import { ctrlOrCmdPressed } from "../../../core/utils";
+import { baseAdjust, ctrlOrCmdPressed } from "../../../core/utils";
 import { i18n } from "../../../i18n";
 import { clientStore, DEFAULT_GRID_SIZE } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
+import { Access, logicStore } from "../../../store/logic";
 import { settingsStore } from "../../../store/settings";
 import { UuidMap } from "../../../store/shapeMap";
+import { sendDoorRequest } from "../../api/emits/logic";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import { calculateDelta } from "../../drag";
 import { getLocalPointFromEvent } from "../../input/mouse";
@@ -65,6 +68,8 @@ export enum SelectFeatures {
     Rotate,
     PolygonEdit,
 }
+
+const toast = useToast();
 
 // Calculate 45 degrees in radians just once
 const ANGLE_SNAP = (45 * Math.PI) / 180;
@@ -282,6 +287,23 @@ class SelectTool extends Tool implements ISelectTool {
                 } else {
                     if (ctrlOrCmdPressed(event)) {
                         selectionState.remove(shape.uuid);
+                    }
+                }
+                // Logic Door Check
+                if (activeToolMode.value === ToolMode.Play) {
+                    const canUseDoor = logicStore.canUseDoor(shape);
+                    if (canUseDoor === Access.Enabled) {
+                        shape.setBlocksMovement(!shape.blocksMovement, SyncTo.SERVER, true);
+                        shape.setBlocksVision(!shape.blocksVision, SyncTo.SERVER, true);
+                        const state = shape.blocksVision ? "lock-open-solid" : "lock-solid";
+                        document.body.style.cursor = `url('${baseAdjust(`static/img/${state}.svg`)}') 16 16, auto`;
+                        return;
+                    } else if (canUseDoor === Access.Request) {
+                        toast.info("Request to open door sent", {
+                            position: POSITION.TOP_RIGHT,
+                        });
+                        sendDoorRequest(shape.uuid);
+                        return;
                     }
                 }
                 // Drag case, a shape is selected

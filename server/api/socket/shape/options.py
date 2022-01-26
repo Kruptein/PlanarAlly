@@ -672,3 +672,24 @@ async def move_aura(sid: str, data: AuraMove):
         room=pr.active_location.get_path(),
         namespace=GAME_NS,
     )
+
+
+@sio.on("Shape.Options.IsDoor.Set", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def set_is_door(sid: str, data: ShapeSetBooleanValue):
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = get_shape_or_none(pr, data["shape"], "IsDoor.Set")
+    if shape is None:
+        return
+
+    shape.is_door = data["value"]
+    shape.save()
+
+    await sio.emit(
+        "Shape.Options.IsDoor.Set",
+        data,
+        skip_sid=sid,
+        room=pr.active_location.get_path(),
+        namespace=GAME_NS,
+    )

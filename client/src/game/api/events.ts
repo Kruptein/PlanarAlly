@@ -5,6 +5,7 @@ import "./events/groups";
 import "./events/initiative";
 import "./events/labels";
 import "./events/location";
+import "./events/logic";
 import "./events/notification";
 import "./events/player";
 import "./events/room";

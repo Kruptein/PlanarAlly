@@ -1,12 +1,13 @@
 <script setup lang="ts">
+import { computed, onMounted, reactive, ref, toRef } from "vue";
 import type { CSSProperties } from "vue";
-import { computed, onMounted, reactive, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../core/components/ColourPicker.vue";
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { gameStore } from "../../../store/game";
 import { DrawCategory, DrawMode, DrawShape, drawTool } from "../../tools/variants/draw";
+import LogicPermissions from "../settings/shape/LogicPermissions.vue";
 
 import { useToolPosition } from "./toolPosition";
 
@@ -28,6 +29,8 @@ const selected = drawTool.isActiveTool;
 const shapes = Object.values(DrawShape);
 const toolStyle = computed(() => ({ "--detailRight": state.right, "--detailArrow": state.arrow } as CSSProperties));
 
+const showConditions = ref(false);
+
 const translationMapping = {
     [DrawMode.Normal]: t("game.ui.tools.DrawTool.normal"),
     [DrawMode.Reveal]: t("game.ui.tools.DrawTool.reveal"),
@@ -40,6 +43,7 @@ const translationMapping = {
     [DrawShape.Text]: t("game.ui.tools.DrawTool.text"),
     [DrawCategory.Shape]: t("game.ui.tools.DrawTool.shape-category"),
     [DrawCategory.Vision]: t("game.ui.tools.DrawTool.vision-category"),
+    [DrawCategory.Logic]: t("game.ui.tools.DrawTool.logic-category"),
 };
 
 onMounted(() => {
@@ -112,7 +116,7 @@ const showBorderColour = computed(() => {
                 <input type="number" id="font-size" v-model="drawTool.state.fontSize" />
             </div>
         </template>
-        <template v-else>
+        <template v-else-if="drawTool.state.selectedCategory === 'eye'">
             <div class="draw-center-header">{{ t("game.ui.tools.DrawTool.mode") }}</div>
             <div v-show="isDm" class="draw-select-group">
                 <div
@@ -146,6 +150,23 @@ const showBorderColour = computed(() => {
                         :disabled="drawTool.state.selectedMode !== 'normal'"
                     />
                 </div>
+            </div>
+        </template>
+        <template v-else>
+            <teleport to="#teleport-modals">
+                <LogicPermissions v-model:visible="showConditions" v-model:conditions="drawTool.state.doorConditions" />
+            </teleport>
+            <div class="draw-center-header">{{ t("game.ui.selection.edit_dialog.logic.logic") }}</div>
+            <div class="draw-checkbox-options-line">
+                <div>{{ t("game.ui.tools.DrawTool.door") }}</div>
+                <div>
+                    <input
+                        type="checkbox"
+                        v-model="drawTool.state.isDoor"
+                        @click="drawTool.state.isDoor = !drawTool.state.isDoor"
+                    />
+                </div>
+                <font-awesome-icon icon="cog" @click="showConditions = true" />
             </div>
         </template>
     </div>
@@ -202,6 +223,13 @@ const showBorderColour = computed(() => {
 .draw-input-line {
     display: grid;
     grid-template-columns: auto 50px;
+    margin-top: 5px;
+}
+
+.draw-checkbox-options-line {
+    display: grid;
+    grid-template-columns: auto 25px 25px;
+    align-items: center;
     margin-top: 5px;
 }
 

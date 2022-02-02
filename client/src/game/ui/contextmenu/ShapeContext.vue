@@ -208,6 +208,7 @@ async function setLocation(newLocation: number): Promise<void> {
     sendShapesMove({
         shapes: shapes.map((s) => s.uuid),
         target: { location: newLocation, ...targetPosition },
+        tp_zone: false,
     });
     if (settingsStore.movePlayerOnTokenChange.value) {
         const users: Set<string> = new Set();

@@ -26,6 +26,7 @@ import {
     sendShapeCreateAura,
     sendShapeCreateTracker,
     sendShapeIsDoor,
+    sendShapeIsTeleportZone,
     sendShapeRemoveAura,
     sendShapeRemoveLabel,
     sendShapeRemoveTracker,
@@ -138,6 +139,7 @@ export abstract class Shape implements IShape {
 
     // Logic
     isDoor = false;
+    isTeleportZone = false;
 
     // Additional options for specialized uses
     options: Partial<ShapeOptions> = {};
@@ -458,6 +460,7 @@ export abstract class Shape implements IShape {
             group: this.groupId,
             ignore_zoom_size: this.ignoreZoomSize,
             is_door: this.isDoor,
+            is_teleport_zone: this.isTeleportZone,
         };
     }
     fromDict(data: ServerShape): void {
@@ -482,6 +485,7 @@ export abstract class Shape implements IShape {
         this.isLocked = data.is_locked;
         this.annotationVisible = data.annotation_visible;
         this.setIsDoor(data.is_door, SyncTo.UI);
+        this.setIsTeleportZone(data.is_teleport_zone, SyncTo.UI);
 
         this.ignoreZoomSize = data.ignore_zoom_size;
 
@@ -973,6 +977,15 @@ export abstract class Shape implements IShape {
         this.isDoor = isDoor;
         if (isDoor) logicStore.addDoor(this.uuid);
         else logicStore.removeDoor(this.uuid);
+    }
+
+    setIsTeleportZone(isTeleportZone: boolean, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.SERVER) sendShapeIsTeleportZone({ shape: this.uuid, value: isTeleportZone });
+        if (syncTo === SyncTo.UI) this._("setIsTeleportZone")(isTeleportZone, syncTo);
+
+        this.isTeleportZone = isTeleportZone;
+        if (isTeleportZone) logicStore.addTeleportZone(this.uuid);
+        else logicStore.removeTeleportZone(this.uuid);
     }
 
     // Extra Utilities

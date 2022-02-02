@@ -41,7 +41,8 @@ class PanTool extends Tool {
         this.panScreen(lp, false);
     }
 
-    onUp(lp: LocalPoint): void {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onUp(lp: LocalPoint): Promise<void> {
         if (!this.active) return;
         this.active = false;
         this.panScreen(lp, true);

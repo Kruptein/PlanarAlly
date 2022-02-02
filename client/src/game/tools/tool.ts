@@ -37,8 +37,8 @@ export abstract class Tool implements ITool {
     async onMouseDown(event: MouseEvent | TouchEvent, features: ToolFeatures): Promise<void> {
         await this.onDown(getLocalPointFromEvent(event), event, features);
     }
-    onMouseUp(event: MouseEvent, features: ToolFeatures): void {
-        this.onUp(getLocalPointFromEvent(event), event, features);
+    async onMouseUp(event: MouseEvent, features: ToolFeatures): Promise<void> {
+        await this.onUp(getLocalPointFromEvent(event), event, features);
     }
     onMouseMove(event: MouseEvent, features: ToolFeatures): void {
         this.onMove(getLocalPointFromEvent(event), event, features);
@@ -46,8 +46,8 @@ export abstract class Tool implements ITool {
     onTouchStart(event: TouchEvent, features: ToolFeatures): void {
         this.onDown(getLocalPointFromEvent(event), event, features);
     }
-    onTouchEnd(event: TouchEvent, features: ToolFeatures): void {
-        this.onUp(getLocalPointFromEvent(event), event, features);
+    async onTouchEnd(event: TouchEvent, features: ToolFeatures): Promise<void> {
+        await this.onUp(getLocalPointFromEvent(event), event, features);
     }
     onTouchMove(event: TouchEvent, features: ToolFeatures): void {
         this.onMove(getLocalPointFromEvent(event), event, features);
@@ -62,7 +62,7 @@ export abstract class Tool implements ITool {
     async onSelect(): Promise<void> {}
     onDeselect(): void {}
     async onDown(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): Promise<void> {}
-    onUp(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): void {}
+    async onUp(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): Promise<void> {}
     onMove(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): void {}
 
     onToolsModeChange(_mode: ToolMode, _features: ToolFeatures): void {}

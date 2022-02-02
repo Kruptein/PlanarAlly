@@ -693,3 +693,24 @@ async def set_is_door(sid: str, data: ShapeSetBooleanValue):
         room=pr.active_location.get_path(),
         namespace=GAME_NS,
     )
+
+
+@sio.on("Shape.Options.IsTeleportZone.Set", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def set_is_teleport_zone(sid: str, data: ShapeSetBooleanValue):
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = get_shape_or_none(pr, data["shape"], "IsTeleportZone.Set")
+    if shape is None:
+        return
+
+    shape.is_teleport_zone = data["value"]
+    shape.save()
+
+    await sio.emit(
+        "Shape.Options.IsTeleportZone.Set",
+        data,
+        skip_sid=sid,
+        room=pr.active_location.get_path(),
+        namespace=GAME_NS,
+    )

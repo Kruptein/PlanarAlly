@@ -10,6 +10,13 @@ These usually have no immediately visible impact on regular users
 
 ### Added
 
+-   simple logic systems to attach to shapes
+    -   these logic systems can be configured with permissions
+    -   current set of logic systems:
+        -   door
+            -   Automatically toggle blocking settings for a shape with a single click
+        -   teleport zones
+            -   Automatically move shapes to spawn points
 -   [asset-manager] drop support for folders
 -   [server] Added `allow_signups` option in the `General` config section that can be disabled to prevent users from signing up themselves
 -   [server] Added barebones admin dashboard

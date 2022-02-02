@@ -85,7 +85,7 @@ export function mouseMove(event: MouseEvent): void {
             if (shape === undefined) continue;
             if (shape.floor.id !== floorStore.currentFloor.value!.id) continue;
             if (!shape.contains(eventPoint)) continue;
-            if (logicStore.canUseDoor(shape) === Access.Disabled) continue;
+            if (logicStore.canUse(shape, "door") === Access.Disabled) continue;
 
             foundDoor = true;
             const state = shape.blocksVision ? "lock-open-solid" : "lock-solid";
@@ -96,7 +96,7 @@ export function mouseMove(event: MouseEvent): void {
     }
 }
 
-export function mouseUp(event: MouseEvent): void {
+export async function mouseUp(event: MouseEvent): Promise<void> {
     if ((event.target as HTMLElement).tagName !== "CANVAS") return;
 
     let targetTool = activeTool.value;
@@ -110,30 +110,30 @@ export function mouseUp(event: MouseEvent): void {
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
-        toolMap[permitted.name].onMouseUp(event, permitted.features);
+        await toolMap[permitted.name].onMouseUp(event, permitted.features);
     }
 
-    tool.onMouseUp(event, getFeatures(targetTool));
+    await tool.onMouseUp(event, getFeatures(targetTool));
 
     for (const permitted of tool.permittedTools) {
         if (permitted.early ?? false) continue;
-        toolMap[permitted.name].onMouseUp(event, permitted.features);
+        await toolMap[permitted.name].onMouseUp(event, permitted.features);
     }
 }
 
-export function mouseLeave(event: MouseEvent): void {
+export async function mouseLeave(event: MouseEvent): Promise<void> {
     const tool = getActiveTool();
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
-        toolMap[permitted.name].onMouseUp(event, permitted.features);
+        await toolMap[permitted.name].onMouseUp(event, permitted.features);
     }
 
-    tool.onMouseUp(event, getFeatures(activeTool.value));
+    await tool.onMouseUp(event, getFeatures(activeTool.value));
 
     for (const permitted of tool.permittedTools) {
         if (permitted.early ?? false) continue;
-        toolMap[permitted.name].onMouseUp(event, permitted.features);
+        await toolMap[permitted.name].onMouseUp(event, permitted.features);
     }
 }
 

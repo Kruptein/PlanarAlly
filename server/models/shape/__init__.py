@@ -62,6 +62,7 @@ class Shape(BaseModel):
     annotation_visible = BooleanField(default=False)
     ignore_zoom_size = BooleanField(default=False)
     is_door = BooleanField(default=False)
+    is_teleport_zone = BooleanField(default=False)
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"

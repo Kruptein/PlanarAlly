@@ -8,9 +8,10 @@
         "clean": "rimraf ../server/static/vite/",
         "build:prep": "npm run clean",
         "build": "npm run build:prep && vite build && mv ../server/index.html ../server/templates/index.html",
-        "build:ci": "npm run build:prep && vue-tsc --noEmit && vite build --outDir dist",
+        "build:ci": "npm run build:prep && npm run tsc && vite build --outDir dist",
         "lint": "eslint src --fix",
-        "lint:ci": "CI=1 eslint src --no-fix"
+        "lint:ci": "CI=1 eslint src --no-fix",
+        "tsc": "vue-tsc --noEmit"
     },
     "dependencies": {
         "@babylonjs/materials": "^4.2.0",
@@ -52,7 +53,7 @@
         "rimraf": "^3.0.2",
         "sass": "^1.43.4",
         "sass-loader": "^12.3.0",
-        "typescript": "~4.4.4",
+        "typescript": "~4.5.5",
         "upath": "^2.0.1",
         "vite": "^2.7.2",
         "vue-tsc": "^0.29.8"

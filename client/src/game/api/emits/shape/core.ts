@@ -13,8 +13,9 @@ export const sendFloorChange = wrapSocket<{ uuids: string[]; floor: string }>("S
 export const sendLayerChange = wrapSocket<{ uuids: string[]; layer: string; floor: string }>("Shapes.Layer.Change");
 
 export const sendShapesMove = wrapSocket<{
-    shapes: string[];
+    shapes: readonly string[];
     target: { location: number; floor: string; x: number; y: number };
+    tp_zone: boolean;
 }>("Shapes.Location.Move");
 
 export function sendShapeOptionsUpdate(shapes: readonly IShape[], temporary: boolean): void {
@@ -61,6 +62,13 @@ export function sendShapeSizeUpdate(data: { shape: IShape; temporary: boolean })
             _sendTextSizeUpdate({ uuid: shape.uuid, font_size: shape.fontSize, temporary: data.temporary });
         }
     }
+}
+
+export async function requestShapeInfo(shape: string): Promise<{ shape: ServerShape; location: number }> {
+    socket.emit("Shape.Info.Get", shape);
+    return new Promise((resolve: (value: { shape: ServerShape; location: number }) => void) =>
+        socket.once("Shape.Info", resolve),
+    );
 }
 
 // helpers

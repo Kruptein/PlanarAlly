@@ -60,6 +60,7 @@ export interface IShape {
 
     // logic
     isDoor: boolean;
+    isTeleportZone: boolean;
 
     options: Partial<ShapeOptions>;
 
@@ -174,6 +175,7 @@ export interface IShape {
     // LOGIC
 
     setIsDoor(isDoor: boolean, syncTo: SyncTo): void;
+    setIsTeleportZone(isTeleportZone: boolean, syncTo: SyncTo): void;
 }
 
 export interface Tracker {

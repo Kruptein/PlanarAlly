@@ -43,9 +43,14 @@ function close(): void {
 }
 
 function toggle(index: number): void {
-    if (state.activeSelection.has(index)) {
-        state.activeSelection.delete(index);
+    if (props.options?.multiSelect === true) {
+        if (state.activeSelection.has(index)) {
+            state.activeSelection.delete(index);
+        } else {
+            state.activeSelection.add(index);
+        }
     } else {
+        state.activeSelection.clear();
         state.activeSelection.add(index);
     }
 }

@@ -21,8 +21,7 @@ const toast = useToast();
 
 interface LogicState {
     doors: Set<string>;
-    teleportZones: Set<string>;
-    tpToast: ToastID | undefined;
+    teleportZones: Record<string, ToastID | undefined>;
 }
 
 export enum Access {
@@ -43,8 +42,7 @@ class LogicStore extends Store<LogicState> {
     protected data(): LogicState {
         return {
             doors: new Set(),
-            teleportZones: new Set(),
-            tpToast: undefined,
+            teleportZones: {},
         };
     }
 
@@ -57,11 +55,13 @@ class LogicStore extends Store<LogicState> {
     }
 
     addTeleportZone(shape: string): void {
-        this._state.teleportZones.add(shape);
+        this._state.teleportZones[shape] = undefined;
     }
 
     removeTeleportZone(shape: string): void {
-        this._state.teleportZones.delete(shape);
+        const toastId = this._state.teleportZones[shape];
+        if (toastId !== undefined) toast.dismiss(toastId);
+        delete this._state.teleportZones[shape];
     }
 
     canUse(shape: IShape, target: LOGIC_TYPES): Access {
@@ -85,7 +85,7 @@ class LogicStore extends Store<LogicState> {
     }
 
     async checkTeleport(shapes: readonly IShape[]): Promise<void> {
-        for (const tp of this._state.teleportZones) {
+        for (const [tp, toastId] of Object.entries(this._state.teleportZones)) {
             const shapesToMove: string[] = [];
             const tpShape = UuidMap.get(tp);
             if (tpShape === undefined || tpShape.options.teleport?.location === undefined) continue;
@@ -124,8 +124,8 @@ class LogicStore extends Store<LogicState> {
                     } else {
                         await this.teleport(tpShape.uuid, zone, shapesToMove);
                     }
-                } else {
-                    this._state.tpToast = toast.info(
+                } else if (toastId === undefined) {
+                    this._state.teleportZones[tpShape.uuid] = toast.info(
                         {
                             component: SingleButtonToast,
                             props: {
@@ -139,14 +139,34 @@ class LogicStore extends Store<LogicState> {
                             closeOnClick: false,
                         },
                     );
-                    return;
+                    continue;
+                }
+            } else if (toastId !== undefined) {
+                const shapes = this.getTpZoneShapes(tpShape.uuid);
+                if (shapes.length === 0) {
+                    toast.dismiss(toastId);
+                    this._state.teleportZones[tpShape.uuid] = undefined;
                 }
             }
         }
-        if (this._state.tpToast !== undefined) {
-            toast.dismiss(this._state.tpToast);
-            this._state.tpToast = undefined;
+    }
+
+    getTpZoneShapes(fromZone: string): string[] {
+        const tokenLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Tokens)!;
+        const shapes = [];
+        const fromShape = UuidMap.get(fromZone);
+        if (fromShape === undefined) return [];
+
+        for (const shape of tokenLayer.getShapes({ includeComposites: true })) {
+            if (
+                !shape.isLocked &&
+                shape.ownedBy(false, { movementAccess: true }) &&
+                fromShape.contains(shape.center())
+            ) {
+                shapes.push(shape.uuid);
+            }
         }
+        return shapes;
     }
 
     async teleport(fromZone: string, toZone: string, transfers?: readonly string[]): Promise<void> {
@@ -170,25 +190,8 @@ class LogicStore extends Store<LogicState> {
             };
         }
 
-        let shapes: string[] = [];
-        if (transfers === undefined) {
-            const tokenLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Tokens)!;
-            shapes = [];
-            const fromShape = UuidMap.get(fromZone);
-            if (fromShape === undefined) return;
-
-            for (const shape of tokenLayer.getShapes({ includeComposites: true })) {
-                if (
-                    !shape.isLocked &&
-                    shape.ownedBy(false, { movementAccess: true }) &&
-                    fromShape.contains(shape.center())
-                ) {
-                    shapes.push(shape.uuid);
-                }
-            }
-        } else {
-            shapes = [...transfers];
-        }
+        const shapes = transfers ? transfers : this.getTpZoneShapes(fromZone);
+        if (shapes.length === 0) return;
 
         sendShapesMove({
             shapes,

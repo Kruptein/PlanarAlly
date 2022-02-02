@@ -7,6 +7,7 @@ import draggable from "vuedraggable";
 import Modal from "../../../../core/components/modals/Modal.vue";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { gameStore } from "../../../../store/game";
+import { copyConditions } from "../../../../store/logic";
 import type { Conditions } from "../../../models/logic";
 
 const { t } = useI18n();
@@ -23,11 +24,11 @@ const emit = defineEmits<{
     (e: "close"): void;
 }>();
 
-let conditions = getConditionCopy();
+let conditions = copyConditions(props.conditions);
 
 watch(
     () => props.conditions,
-    () => (conditions = getConditionCopy()),
+    () => (conditions = copyConditions(props.conditions)),
 );
 
 type SortableChanged<T> = {
@@ -35,14 +36,6 @@ type SortableChanged<T> = {
     moved?: { element: T; newIndex: number; oldIndex: number };
     removed?: { element: T; oldIndex: number };
 };
-
-function getConditionCopy(): Conditions {
-    return {
-        enabled: [...props.conditions.enabled],
-        request: [...props.conditions.request],
-        disabled: [...props.conditions.disabled],
-    };
-}
 
 function change(change: SortableChanged<string>, target: "enabled" | "request" | "disabled"): void {
     const _target =

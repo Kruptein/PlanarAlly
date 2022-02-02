@@ -16,6 +16,7 @@ import { sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import type { Layer } from "../../layers/variants/layer";
 import { LayerName } from "../../models/floor";
 import type { Floor } from "../../models/floor";
+import { DEFAULT_CONDITIONS } from "../../models/logic";
 import type { Conditions } from "../../models/logic";
 import { ToolName } from "../../models/tools";
 import type { ToolFeatures } from "../../models/tools";
@@ -72,7 +73,7 @@ class DrawTool extends Tool {
         fontSize: 20,
 
         isDoor: false,
-        doorConditions: { enabled: [], request: [], disabled: ["default"] } as Conditions,
+        doorConditions: DEFAULT_CONDITIONS,
     });
     hasBrushSize = computed(() => [DrawShape.Brush, DrawShape.Polygon].includes(this.state.selectedShape));
 
@@ -526,7 +527,8 @@ class DrawTool extends Tool {
         layer.invalidate(false);
     }
 
-    onUp(lp: LocalPoint, event: MouseEvent | TouchEvent): void {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onUp(lp: LocalPoint, event: MouseEvent | TouchEvent): Promise<void> {
         if (
             !this.active ||
             this.shape === undefined ||

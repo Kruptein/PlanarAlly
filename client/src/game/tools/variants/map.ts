@@ -123,7 +123,8 @@ class MapTool extends Tool {
         layer.invalidate(false);
     }
 
-    onUp(): void {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onUp(): Promise<void> {
         if (!this.active || this.rect === undefined) return;
 
         this.active = false;

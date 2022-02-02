@@ -13,7 +13,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 67
+SAVE_VERSION = 68
 
 import json
 import logging
@@ -389,6 +389,12 @@ def upgrade(version):
         with db.atomic():
             db.execute_sql(
                 "ALTER TABLE shape ADD COLUMN is_door INTEGER DEFAULT 0 NOT NULL"
+            )
+    elif version == 67:
+        # Add Shape.IsTeleportZone
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE shape ADD COLUMN is_teleport_zone INTEGER DEFAULT 0 NOT NULL"
             )
     else:
         raise UnknownVersionException(

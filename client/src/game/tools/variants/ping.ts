@@ -85,7 +85,8 @@ class PingTool extends Tool {
         layer.invalidate(true);
     }
 
-    onUp(): void {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onUp(): Promise<void> {
         this.cleanup();
     }
 }

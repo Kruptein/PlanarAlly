@@ -38,7 +38,7 @@ export interface ITool {
 
     onKeyUp(event: KeyboardEvent, features: ToolFeatures): void;
 
-    onMouseUp(event: MouseEvent, features: ToolFeatures): void;
+    onMouseUp(event: MouseEvent, features: ToolFeatures): Promise<void>;
     onMouseMove(event: MouseEvent, features: ToolFeatures): void;
     onMouseDown(event: MouseEvent, features: ToolFeatures): void;
 

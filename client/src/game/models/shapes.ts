@@ -41,6 +41,7 @@ export interface ServerShape {
     group?: string;
     ignore_zoom_size: boolean;
     is_door: boolean;
+    is_teleport_zone: boolean;
 }
 
 interface ServerShapeAccess {
@@ -161,4 +162,9 @@ export interface ShapeOptions {
 
     // logic
     doorConditions: Conditions;
+    teleport: {
+        conditions: Conditions;
+        location?: { id: number; spawnUuid: string };
+        immediate: boolean;
+    };
 }

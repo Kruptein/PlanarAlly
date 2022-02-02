@@ -343,7 +343,7 @@ async def move_shape_order(sid: str, data: ShapeOrder):
 async def move_shapes(sid: str, data: ServerShapeLocationMove):
     pr: PlayerRoom = game_state.get(sid)
 
-    if pr.role != Role.DM:
+    if pr.role != Role.DM and not data["tp_zone"]:
         logger.warning(f"{pr.player.name} attempted to move shape locations")
         return
 
@@ -507,5 +507,21 @@ async def update_shape_options(sid: str, data: OptionUpdateList):
         data["options"],
         room=pr.active_location.get_path(),
         skip_sid=sid,
+        namespace=GAME_NS,
+    )
+
+
+@sio.on("Shape.Info.Get", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def get_shape_info(sid: str, shape_id: str):
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape: Shape = Shape.get_by_id(shape_id)
+    location = shape.layer.floor.location.id
+
+    await sio.emit(
+        "Shape.Info",
+        data={"shape": shape.as_dict(pr.player, False), "location": location},
+        room=sid,
         namespace=GAME_NS,
     )

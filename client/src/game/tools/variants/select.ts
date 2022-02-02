@@ -24,7 +24,7 @@ import { gameStore } from "../../../store/game";
 import { Access, logicStore } from "../../../store/logic";
 import { settingsStore } from "../../../store/settings";
 import { UuidMap } from "../../../store/shapeMap";
-import { sendDoorRequest } from "../../api/emits/logic";
+import { sendRequest } from "../../api/emits/logic";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import { calculateDelta } from "../../drag";
 import { getLocalPointFromEvent } from "../../input/mouse";
@@ -291,7 +291,7 @@ class SelectTool extends Tool implements ISelectTool {
                 }
                 // Logic Door Check
                 if (activeToolMode.value === ToolMode.Play) {
-                    const canUseDoor = logicStore.canUseDoor(shape);
+                    const canUseDoor = logicStore.canUse(shape, "door");
                     if (canUseDoor === Access.Enabled) {
                         shape.setBlocksMovement(!shape.blocksMovement, SyncTo.SERVER, true);
                         shape.setBlocksVision(!shape.blocksVision, SyncTo.SERVER, true);
@@ -302,7 +302,7 @@ class SelectTool extends Tool implements ISelectTool {
                         toast.info("Request to open door sent", {
                             position: POSITION.TOP_RIGHT,
                         });
-                        sendDoorRequest(shape.uuid);
+                        sendRequest({ door: shape.uuid, logic: "door" });
                         return;
                     }
                 }
@@ -473,7 +473,7 @@ class SelectTool extends Tool implements ISelectTool {
         }
     }
 
-    onUp(lp: LocalPoint, event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): void {
+    async onUp(lp: LocalPoint, event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): Promise<void> {
         // if we only have context capabilities, immediately skip
         if (features.enabled?.length === 1 && features.enabled[0] === SelectFeatures.Context) {
             // When using pan during select, the dragray will use a wrong lp to to the drag calculation in move
@@ -603,6 +603,8 @@ class SelectTool extends Tool implements ISelectTool {
                     sel.updateLayerPoints();
                 }
                 sendShapePositionUpdate(updateList, false);
+
+                await logicStore.checkTeleport(selectionState.get({ includeComposites: true }));
             }
             if (this.mode === SelectOperations.Resize) {
                 for (const sel of layerSelection) {

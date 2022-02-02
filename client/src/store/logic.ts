@@ -116,8 +116,8 @@ class LogicStore extends Store<LogicState> {
                             position: POSITION.TOP_RIGHT,
                         });
                         sendRequest({
-                            toZone: tpShape.uuid,
-                            fromZone: zone,
+                            fromZone: tpShape.uuid,
+                            toZone: zone,
                             transfers: shapesToMove,
                             logic: "tp",
                         });

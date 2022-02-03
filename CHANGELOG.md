@@ -48,6 +48,7 @@ For server owners using a subpath, some important changes are made, so make sure
 -   Modals will now change location when resizing the window would put them out of the visible screen area
 -   Fix scroll bars being visible due to dice canvas not being sized strictly
 -   Fix movement blockers intersecting with themselves when moving on the token layer
+-   Fix assets becoming invisible when using a subpath setup (only applies to new assets)
 -   [asset-manager] Asset manager would not check for stale files when removing a folder
 
 ### Performance

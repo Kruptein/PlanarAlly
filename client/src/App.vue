@@ -4,7 +4,6 @@ import { useRoute } from "vue-router";
 
 import { baseAdjust } from "./core/utils";
 import { coreStore } from "./store/core";
-import { BASE_PATH } from "./utils";
 
 const route = useRoute();
 
@@ -13,7 +12,7 @@ const webmError = ref(false);
 const webmStart = 2 * Math.floor(Math.random() * 5);
 
 const loading = computed(() => coreStore.state.loading);
-const backgroundImage = `url('${BASE_PATH}static/img/login_background.png')`;
+const backgroundImage = `url('${import.meta.env.BASE_URL}static/img/login_background.png')`;
 
 watch(
     () => route.name,

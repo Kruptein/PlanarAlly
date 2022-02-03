@@ -8,6 +8,8 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+For server owners using a subpath, some important changes are made, so make sure to check the changed section before upgrading
+
 ### Added
 
 -   simple logic systems to attach to shapes
@@ -29,6 +31,13 @@ These usually have no immediately visible impact on regular users
 -   Draw tool UI now has a tabbed interface
     -   a shape tab to configure shape and colours
     -   a visibility tab to configure advanced vision modes as well as blocksVision and blocksMovement changes
+-   [server] Change subpath handling
+    -   the client now MUST also set the PA_BASEPATH env variable in production mode
+    -   this means the env variable needs to be set at build time
+    -   the basepath now HAS TO END with a slash
+    -   for docker this means you need to manually build the image
+        -   use `--build-arg PA_BASEPATH='/subpath/'
+        -   you no longer need the `--env PA_BASEPATH` flag
 
 ### Fixed
 

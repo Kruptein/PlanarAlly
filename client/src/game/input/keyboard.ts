@@ -43,7 +43,7 @@ export function onKeyUp(event: KeyboardEvent): void {
     }
 }
 
-export function onKeyDown(event: KeyboardEvent): void {
+export async function onKeyDown(event: KeyboardEvent): Promise<void> {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         // Ctrl-a with a HTMLInputElement or a HTMLTextAreaElement selected - select all the text
         if (event.key === "a" && ctrlOrCmdPressed(event)) event.target.select();
@@ -111,7 +111,7 @@ export function onKeyDown(event: KeyboardEvent): void {
                 }
                 if (delta.length() === 0) return;
 
-                moveShapes(selection, delta, false);
+                await moveShapes(selection, delta, false);
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.
                 clientStore.increasePanX(offsetX * -1);

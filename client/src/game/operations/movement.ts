@@ -8,7 +8,7 @@ import { TriangulationTarget, visionState } from "../vision/state";
 import type { MovementOperation, ShapeMovementOperation } from "./model";
 import { addOperation } from "./undo";
 
-export function moveShapes(shapes: readonly IShape[], delta: Vector, temporary: boolean): void {
+export async function moveShapes(shapes: readonly IShape[], delta: Vector, temporary: boolean): Promise<void> {
     let recalculateMovement = false;
     let recalculateVision = false;
 

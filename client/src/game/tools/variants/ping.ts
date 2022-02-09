@@ -65,7 +65,8 @@ class PingTool extends Tool {
         layer.addShape(this.border, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL, { snappable: false });
     }
 
-    onMove(lp: LocalPoint): void {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onMove(lp: LocalPoint): Promise<void> {
         if (!this.active || this.ping === undefined || this.border === undefined || this.startPoint === undefined)
             return;
 

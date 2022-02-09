@@ -180,7 +180,8 @@ class SpellTool extends Tool {
         activateTool(ToolName.Select);
     }
 
-    onMove(lp: LocalPoint): void {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onMove(lp: LocalPoint): Promise<void> {
         if (this.shape === undefined) return;
 
         const endPoint = l2g(lp);

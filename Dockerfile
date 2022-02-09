@@ -12,6 +12,8 @@ RUN apk add --no-cache python3 make g++
 COPY client/package.json client/package-lock.json ./
 RUN npm i
 
+ARG PA_BASEPATH="/"
+
 COPY . /usr/src
 RUN npm run build
 
@@ -49,6 +51,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY --from=BUILDER --chown=9000:9000 /usr/src/server/ .
 
 USER 9000
+
+ARG PA_BASEPATH="/"
+ENV PA_BASEPATH=$PA_BASEPATH
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD [ "python", "-u", "planarserver.py"]

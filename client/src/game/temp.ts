@@ -132,7 +132,9 @@ export async function dropAsset(
                 assetId: data.assetId,
                 uuid,
             });
-            asset.src = new URL(image.src).pathname;
+
+            const pathname = new URL(image.src).pathname;
+            asset.src = pathname.replace(import.meta.env.BASE_URL, "/");
 
             if (options) {
                 asset.setLayer(layer.floor, layer.name); // if we don't set this the asDict will fail

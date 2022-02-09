@@ -375,7 +375,11 @@ class SelectTool extends Tool implements ISelectTool {
         if (this.mode !== SelectOperations.Noop) this.active = true;
     }
 
-    onMove(lp: LocalPoint, event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): void {
+    async onMove(
+        lp: LocalPoint,
+        event: MouseEvent | TouchEvent,
+        features: ToolFeatures<SelectFeatures>,
+    ): Promise<void> {
         // if we only have context capabilities, immediately skip
         if (features.enabled?.length === 1 && features.enabled[0] === SelectFeatures.Context) return;
 
@@ -431,7 +435,7 @@ class SelectTool extends Tool implements ISelectTool {
                     }
                 }
 
-                moveShapes(layerSelection, delta, true);
+                await moveShapes(layerSelection, delta, true);
 
                 if (!this.deltaChanged) {
                     this.dragRay = Ray.fromPoints(this.dragRay.origin, lp);

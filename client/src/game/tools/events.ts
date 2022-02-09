@@ -36,7 +36,7 @@ export function mouseDown(event: MouseEvent): void {
     }
 }
 
-export function mouseMove(event: MouseEvent): void {
+export async function mouseMove(event: MouseEvent): Promise<void> {
     if ((event.target as HTMLElement).tagName !== "CANVAS") return;
 
     let targetTool = activeTool.value;
@@ -51,14 +51,14 @@ export function mouseMove(event: MouseEvent): void {
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
-        toolMap[permitted.name].onMouseMove(event, permitted.features);
+        await toolMap[permitted.name].onMouseMove(event, permitted.features);
     }
 
-    tool.onMouseMove(event, getFeatures(targetTool));
+    await tool.onMouseMove(event, getFeatures(targetTool));
 
     for (const permitted of tool.permittedTools) {
         if (permitted.early ?? false) continue;
-        toolMap[permitted.name].onMouseMove(event, permitted.features);
+        await toolMap[permitted.name].onMouseMove(event, permitted.features);
     }
 
     // HOVER code
@@ -199,7 +199,7 @@ export function touchStart(event: TouchEvent): void {
     }
 }
 
-export function touchMove(event: TouchEvent): void {
+export async function touchMove(event: TouchEvent): Promise<void> {
     if ((event.target as HTMLElement).tagName !== "CANVAS") return;
 
     const tool = getActiveTool();
@@ -209,7 +209,7 @@ export function touchMove(event: TouchEvent): void {
         const otherTool = toolMap[permitted.name];
         if (otherTool.scaling) otherTool.onPinchMove(event, permitted.features);
         else if (event.touches.length >= 3) otherTool.onThreeTouchMove(event, permitted.features);
-        else otherTool.onTouchMove(event, permitted.features);
+        else await otherTool.onTouchMove(event, permitted.features);
     }
 
     if (tool.scaling) {
@@ -218,7 +218,7 @@ export function touchMove(event: TouchEvent): void {
     } else if (event.touches.length >= 3) {
         tool.onThreeTouchMove(event, getFeatures(activeTool.value));
     } else {
-        tool.onTouchMove(event, getFeatures(activeTool.value));
+        await tool.onTouchMove(event, getFeatures(activeTool.value));
     }
 
     for (const permitted of tool.permittedTools) {
@@ -226,7 +226,7 @@ export function touchMove(event: TouchEvent): void {
         const otherTool = toolMap[permitted.name];
         if (otherTool.scaling) otherTool.onPinchMove(event, permitted.features);
         else if (event.touches.length >= 3) otherTool.onThreeTouchMove(event, permitted.features);
-        else otherTool.onTouchMove(event, permitted.features);
+        else await otherTool.onTouchMove(event, permitted.features);
     }
 
     // Annotation hover

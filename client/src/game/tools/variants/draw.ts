@@ -446,7 +446,8 @@ class DrawTool extends Tool {
         }
     }
 
-    onMove(lp: LocalPoint, event: MouseEvent | TouchEvent): void {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onMove(lp: LocalPoint, event: MouseEvent | TouchEvent): Promise<void> {
         let endPoint = l2g(lp);
         const layer = this.getLayer();
         if (layer === undefined) {

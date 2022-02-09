@@ -110,7 +110,8 @@ class MapTool extends Tool {
         selectionState.set(this.rect);
     }
 
-    onMove(lp: LocalPoint): void {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onMove(lp: LocalPoint): Promise<void> {
         if (!this.active || this.rect === undefined || this.startPoint === undefined) return;
 
         const endPoint = l2g(lp);

@@ -91,7 +91,8 @@ class RulerTool extends Tool {
         layer.addShape(this.text, this.syncMode, InvalidationMode.NORMAL, { snappable: false });
     }
 
-    onMove(lp: LocalPoint, event: MouseEvent | TouchEvent): void {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onMove(lp: LocalPoint, event: MouseEvent | TouchEvent): Promise<void> {
         let endPoint = l2g(lp);
         if (!this.active || this.rulers.length === 0 || this.startPoint === undefined || this.text === undefined)
             return;

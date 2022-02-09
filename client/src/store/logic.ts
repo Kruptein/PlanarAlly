@@ -7,8 +7,9 @@ import { Store } from "../core/store";
 import { sendRequest } from "../game/api/emits/logic";
 import { requestShapeInfo, sendShapesMove } from "../game/api/emits/shape/core";
 import { LayerName } from "../game/models/floor";
-import { DEFAULT_CONDITIONS } from "../game/models/logic";
 import type { Conditions, LOGIC_TYPES } from "../game/models/logic";
+import { DEFAULT_CONDITIONS } from "../game/models/logic";
+import { setCenterPosition } from "../game/position";
 import type { IShape } from "../game/shapes/interfaces";
 
 import { coreStore } from "./core";
@@ -199,14 +200,18 @@ class LogicStore extends Store<LogicState> {
             tp_zone: true,
         });
         const { location, ...position } = target;
-        if (location !== activeLocation && settingsStore.movePlayerOnTokenChange.value) {
-            const users: Set<string> = new Set();
-            for (const sh of shapes) {
-                const shape = UuidMap.get(sh);
-                if (shape === undefined) continue;
-                for (const owner of shape.owners) users.add(owner.user);
+        if (settingsStore.movePlayerOnTokenChange.value) {
+            if (location === activeLocation) {
+                setCenterPosition(tpTargetShape!.center());
+            } else {
+                const users: Set<string> = new Set();
+                for (const sh of shapes) {
+                    const shape = UuidMap.get(sh);
+                    if (shape === undefined) continue;
+                    for (const owner of shape.owners) users.add(owner.user);
+                }
+                gameStore.updatePlayersLocation([...users], location, true, position);
             }
-            gameStore.updatePlayersLocation([...users], location, true, position);
         }
     }
 }

@@ -5,7 +5,7 @@ import { SyncTo } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { getChecked, getValue } from "../../../../core/utils";
 import { activeShapeStore } from "../../../../store/activeShape";
-import { UuidMap } from "../../../../store/shapeMap";
+import { IdMap } from "../../../../store/shapeMap";
 import {
     CHARACTER_SETS,
     createNewGroupForShapes,
@@ -48,11 +48,11 @@ const groupMembers = computed(() => {
 
     const members = memberMap.value.get(group.value.uuid);
     if (members === undefined) return [];
-    return [...members].map((m) => UuidMap.get(m)!).sort((a, b) => a.badge - b.badge);
+    return [...members].map((m) => IdMap.get(m)!).sort((a, b) => a.badge - b.badge);
 });
 
 function invalidate(): void {
-    const shape = UuidMap.get(activeShapeStore.state.uuid!)!;
+    const shape = IdMap.get(activeShapeStore.state.id!)!;
     shape.invalidate(true);
 }
 
@@ -155,13 +155,13 @@ function showBadge(member: IShape, checked: boolean): void {
 
 function removeMember(member: IShape): void {
     if (!owned.value) return;
-    removeGroupMember(member.groupId!, member.uuid, true);
+    removeGroupMember(member.groupId!, member.id, true);
 }
 
 function createGroup(): void {
     if (!owned.value) return;
     if (activeShapeStore.state.groupId !== undefined) return;
-    createNewGroupForShapes([activeShapeStore.state.uuid!]);
+    createNewGroupForShapes([activeShapeStore.state.id!]);
 }
 
 async function deleteGroup(): Promise<void> {

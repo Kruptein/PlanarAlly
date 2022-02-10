@@ -58,6 +58,8 @@ import { initiativeStore } from "../ui/initiative/state";
 import { TriangulationTarget, visionState } from "../vision/state";
 
 import type { Aura, IShape, Label, Tracker } from "./interfaces";
+import { generateId } from "./localId";
+import type { GlobalId, LocalId } from "./localId";
 import type { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
 import type { SHAPE_TYPE } from "./types";
 import { BoundingRect } from "./variants/boundingRect";
@@ -65,8 +67,9 @@ import { BoundingRect } from "./variants/boundingRect";
 export abstract class Shape implements IShape {
     // Used to create class instance from server shape data
     abstract readonly type: SHAPE_TYPE;
+    readonly id: LocalId;
     // The unique ID of this shape
-    readonly uuid: string;
+    readonly uuid: GlobalId;
     // The layer the shape is currently on
     protected _floor!: number | undefined;
     protected _layer!: LayerName;
@@ -146,9 +149,16 @@ export abstract class Shape implements IShape {
 
     constructor(
         refPoint: GlobalPoint,
-        options?: { fillColour?: string; strokeColour?: string; uuid?: string; assetId?: number; strokeWidth?: number },
+        options?: {
+            fillColour?: string;
+            strokeColour?: string;
+            uuid?: GlobalId;
+            assetId?: number;
+            strokeWidth?: number;
+        },
     ) {
         this._refPoint = refPoint;
+        this.id = generateId();
         this.uuid = options?.uuid ?? uuidv4();
         this.fillColour = options?.fillColour ?? "#000";
         this.strokeColour = options?.strokeColour ?? "rgba(0,0,0,0)";
@@ -383,9 +393,9 @@ export abstract class Shape implements IShape {
         if (this.blocksVision && !alteredVision) {
             visionState.deleteFromTriangulation({
                 target: TriangulationTarget.VISION,
-                shape: this.uuid,
+                shape: this.id,
             });
-            visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.uuid });
+            visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.id });
             visionState.recalculateVision(this.floor.id);
         }
         this.invalidate(false);
@@ -393,9 +403,9 @@ export abstract class Shape implements IShape {
         if (this.blocksMovement && !alteredMovement) {
             visionState.deleteFromTriangulation({
                 target: TriangulationTarget.MOVEMENT,
-                shape: this.uuid,
+                shape: this.id,
             });
-            visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: this.uuid });
+            visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: this.id });
             visionState.recalculateMovement(this.floor.id);
         }
     }
@@ -573,8 +583,8 @@ export abstract class Shape implements IShape {
 
         this.isToken = isToken;
         if (this.ownedBy(false, { visionAccess: true })) {
-            if (this.isToken) gameStore.addOwnedToken(this.uuid);
-            else gameStore.removeOwnedToken(this.uuid);
+            if (this.isToken) gameStore.addOwnedToken(this.id);
+            else gameStore.removeOwnedToken(this.id);
         }
         this.invalidate(false);
     }
@@ -622,11 +632,11 @@ export abstract class Shape implements IShape {
             TriangulationTarget.MOVEMENT,
             this._floor ?? floorStore.currentFloor.value!.id,
         );
-        const obstructionIndex = movementBlockers.indexOf(this.uuid);
+        const obstructionIndex = movementBlockers.indexOf(this.id);
         if (this.blocksMovement && obstructionIndex === -1) {
             visionState.addBlocker(
                 TriangulationTarget.MOVEMENT,
-                this.uuid,
+                this.id,
                 this._floor ?? floorStore.currentFloor.value!.id,
                 recalculate,
             );
@@ -698,7 +708,7 @@ export abstract class Shape implements IShape {
         const state = gameStore.state;
         if (state.isDm) return true;
 
-        const isActiveToken = gameStore.activeTokens.value.has(this.uuid);
+        const isActiveToken = gameStore.activeTokens.value.has(this.id);
 
         if (this.isToken && limitToActiveTokens && !isActiveToken) return false;
 
@@ -735,9 +745,9 @@ export abstract class Shape implements IShape {
 
         if (this.isToken) {
             if (this.defaultAccess.vision) {
-                if (this.ownedBy(false, { visionAccess: true })) gameStore.addOwnedToken(this.uuid);
+                if (this.ownedBy(false, { visionAccess: true })) gameStore.addOwnedToken(this.id);
             } else {
-                if (!this.ownedBy(false, { visionAccess: true })) gameStore.removeOwnedToken(this.uuid);
+                if (!this.ownedBy(false, { visionAccess: true })) gameStore.removeOwnedToken(this.id);
             }
         }
         if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();
@@ -755,26 +765,26 @@ export abstract class Shape implements IShape {
             owner.access.vision = true;
         }
         const fullOwner: ShapeOwner = {
-            shape: this.uuid,
+            shape: this.id,
             ...owner,
             access: { edit: false, vision: false, movement: false, ...owner.access },
         };
-        if (fullOwner.shape !== this.uuid) return;
+        if (fullOwner.shape !== this.id) return;
         if (!this.hasOwner(owner.user)) {
             if (syncTo === SyncTo.SERVER) sendShapeAddOwner(ownerToServer(fullOwner));
             if (syncTo === SyncTo.UI) this._("addOwner")(fullOwner, syncTo);
 
             this._owners.push(fullOwner);
             if ((owner.access.vision ?? false) && this.isToken && owner.user === clientStore.state.username)
-                gameStore.addOwnedToken(this.uuid);
+                gameStore.addOwnedToken(this.id);
             if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();
         }
         initiativeStore._forceUpdate();
     }
 
     updateOwner(owner: PartialBy<ShapeOwner, "shape">, syncTo: SyncTo): void {
-        const fullOwner: ShapeOwner = { shape: this.uuid, ...owner };
-        if (fullOwner.shape !== this.uuid) return;
+        const fullOwner: ShapeOwner = { shape: this.id, ...owner };
+        if (fullOwner.shape !== this.id) return;
         if (!this.hasOwner(owner.user)) return;
 
         const targetOwner = this._owners.find((o) => o.user === owner.user)!;
@@ -794,9 +804,9 @@ export abstract class Shape implements IShape {
         if (targetOwner.access.vision !== fullOwner.access.vision) {
             if (targetOwner.user === clientStore.state.username) {
                 if (fullOwner.access.vision) {
-                    gameStore.addOwnedToken(this.uuid);
+                    gameStore.addOwnedToken(this.id);
                 } else {
-                    gameStore.removeOwnedToken(this.uuid);
+                    gameStore.removeOwnedToken(this.id);
                 }
             }
         }
@@ -814,7 +824,7 @@ export abstract class Shape implements IShape {
         if (syncTo === SyncTo.UI) this._("removeOwner")(owner, syncTo);
 
         if (owner === clientStore.state.username) {
-            gameStore.removeOwnedToken(owner);
+            gameStore.removeOwnedToken(this.id);
         }
         if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();
         initiativeStore._forceUpdate();
@@ -825,7 +835,7 @@ export abstract class Shape implements IShape {
     getTrackers(includeParent: boolean): readonly Tracker[] {
         const tr: Tracker[] = [];
         if (includeParent) {
-            const parent = compositeState.getCompositeParent(this.uuid);
+            const parent = compositeState.getCompositeParent(this.id);
             if (parent !== undefined) {
                 tr.push(...parent.getTrackers(false));
             }
@@ -836,7 +846,7 @@ export abstract class Shape implements IShape {
 
     pushTracker(tracker: Tracker, syncTo: SyncTo): void {
         if (syncTo === SyncTo.SERVER) sendShapeCreateTracker(trackersToServer(this.uuid, [tracker])[0]);
-        else if (syncTo === SyncTo.UI) this._("pushTracker")(tracker, this.uuid, syncTo);
+        else if (syncTo === SyncTo.UI) this._("pushTracker")(tracker, this.id, syncTo);
 
         this._trackers.push(tracker);
         this.invalidate(false);
@@ -875,7 +885,7 @@ export abstract class Shape implements IShape {
     getAuras(includeParent: boolean): readonly Aura[] {
         const au: Aura[] = [];
         if (includeParent) {
-            const parent = compositeState.getCompositeParent(this.uuid);
+            const parent = compositeState.getCompositeParent(this.id);
             if (parent !== undefined) {
                 au.push(...parent.getAuras(false));
             }
@@ -886,7 +896,7 @@ export abstract class Shape implements IShape {
 
     pushAura(aura: Aura, syncTo: SyncTo): void {
         if (syncTo === SyncTo.SERVER) sendShapeCreateAura(aurasToServer(this.uuid, [aura])[0]);
-        else if (syncTo === SyncTo.UI) this._("pushAura")(aura, this.uuid, syncTo);
+        else if (syncTo === SyncTo.UI) this._("pushAura")(aura, this.id, syncTo);
 
         this._auras.push(aura);
         this.checkVisionSources();
@@ -916,7 +926,7 @@ export abstract class Shape implements IShape {
 
         const showsVision = aura.active && aura.visionSource;
 
-        if (showsVision && i === -1) visionState.addVisionSource({ shape: this.uuid, aura: aura.uuid }, this.floor.id);
+        if (showsVision && i === -1) visionState.addVisionSource({ shape: this.id, aura: aura.uuid }, this.floor.id);
         else if (!showsVision && i >= 0) visionState.sliceVisionSources(i, this.floor.id);
 
         this.invalidate(false);
@@ -940,9 +950,9 @@ export abstract class Shape implements IShape {
         const hadAnnotation = this.annotation !== "";
         this.annotation = text;
         if (this.annotation !== "" && !hadAnnotation) {
-            gameStore.addAnnotation(this.uuid);
+            gameStore.addAnnotation(this.id);
         } else if (this.annotation === "" && hadAnnotation) {
-            gameStore.removeAnnotation(this.uuid);
+            gameStore.removeAnnotation(this.id);
         }
     }
 
@@ -975,8 +985,8 @@ export abstract class Shape implements IShape {
         if (syncTo === SyncTo.UI) this._("setIsDoor")(isDoor, syncTo);
 
         this.isDoor = isDoor;
-        if (isDoor) logicStore.addDoor(this.uuid);
-        else logicStore.removeDoor(this.uuid);
+        if (isDoor) logicStore.addDoor(this.id);
+        else logicStore.removeDoor(this.id);
     }
 
     setIsTeleportZone(isTeleportZone: boolean, syncTo: SyncTo): void {
@@ -984,8 +994,8 @@ export abstract class Shape implements IShape {
         if (syncTo === SyncTo.UI) this._("setIsTeleportZone")(isTeleportZone, syncTo);
 
         this.isTeleportZone = isTeleportZone;
-        if (isTeleportZone) logicStore.addTeleportZone(this.uuid);
-        else logicStore.removeTeleportZone(this.uuid);
+        if (isTeleportZone) logicStore.addTeleportZone(this.id);
+        else logicStore.removeTeleportZone(this.id);
     }
 
     // Extra Utilities
@@ -996,11 +1006,11 @@ export abstract class Shape implements IShape {
             TriangulationTarget.VISION,
             this._floor ?? floorStore.currentFloor.value!.id,
         );
-        const obstructionIndex = visionBlockers.indexOf(this.uuid);
+        const obstructionIndex = visionBlockers.indexOf(this.id);
         if (this.blocksVision && obstructionIndex === -1) {
             visionState.addBlocker(
                 TriangulationTarget.VISION,
-                this.uuid,
+                this.id,
                 this._floor ?? floorStore.currentFloor.value!.id,
                 recalculate,
             );
@@ -1016,14 +1026,14 @@ export abstract class Shape implements IShape {
         }
 
         // Check if the visionsource auras are in the gameManager
-        const visionSources: { shape: string; aura: string }[] = [
+        const visionSources: { shape: LocalId; aura: string }[] = [
             ...visionState.getVisionSources(this._floor ?? floorStore.currentFloor.value!.id),
         ];
         for (const au of this.getAuras(true)) {
             const i = visionSources.findIndex((o) => o.aura === au.uuid);
             const isVisionSource = au.visionSource && au.active;
             if (isVisionSource && i === -1) {
-                visionSources.push({ shape: this.uuid, aura: au.uuid });
+                visionSources.push({ shape: this.id, aura: au.uuid });
             } else if (!isVisionSource && i >= 0) {
                 visionSources.splice(i, 1);
             }
@@ -1031,7 +1041,7 @@ export abstract class Shape implements IShape {
         // Check if anything in the gameManager referencing this shape is in fact still a visionsource
         for (let i = visionSources.length - 1; i >= 0; i--) {
             const ls = visionSources[i];
-            if (ls.shape === this.uuid) {
+            if (ls.shape === this.id) {
                 if (!this.getAuras(true).some((a) => a.uuid === ls.aura && a.visionSource && a.active))
                     visionSources.splice(i, 1);
             }

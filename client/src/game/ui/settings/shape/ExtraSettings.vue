@@ -12,7 +12,7 @@ import { clientStore, DEFAULT_GRID_SIZE } from "../../../../store/client";
 import { floorStore } from "../../../../store/floor";
 import { gameStore } from "../../../../store/game";
 import { settingsStore } from "../../../../store/settings";
-import { UuidMap } from "../../../../store/shapeMap";
+import { IdMap } from "../../../../store/shapeMap";
 import type { DDraftData } from "../../../models/ddraft";
 import { LayerName } from "../../../models/floor";
 import type { ShapeOptions } from "../../../models/shapes";
@@ -77,7 +77,7 @@ async function uploadSvg(): Promise<void> {
     if (asset === undefined || asset.file_hash === undefined) return;
 
     activeShapeStore.setOptionKey("svgAsset", asset.file_hash, SyncTo.SERVER);
-    (UuidMap.get(activeShapeStore.state.uuid!)! as Asset).loadSvgs();
+    (IdMap.get(activeShapeStore.state.id!)! as Asset).loadSvgs();
 }
 
 function removeSvg(): void {
@@ -95,7 +95,7 @@ function applyDDraft(): void {
     const dDraftData = activeShapeStore.state.options! as DDraftData;
     const size = dDraftData.ddraft_resolution.pixels_per_grid;
 
-    const realShape = UuidMap.get(activeShapeStore.state.uuid!)! as Asset;
+    const realShape = IdMap.get(activeShapeStore.state.id!)! as Asset;
 
     const targetRP = realShape.refPoint;
 

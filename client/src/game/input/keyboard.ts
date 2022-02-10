@@ -6,7 +6,7 @@ import { clientStore, DEFAULT_GRID_SIZE } from "../../store/client";
 import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
 import { settingsStore } from "../../store/settings";
-import { UuidMap } from "../../store/shapeMap";
+import { IdMap } from "../../store/shapeMap";
 import { sendClientLocationOptions } from "../api/emits/client";
 import { calculateDelta } from "../drag";
 import { selectionState } from "../layers/selection";
@@ -28,7 +28,7 @@ export function onKeyUp(event: KeyboardEvent): void {
         if (event.key === " " || (event.code === "Numpad0" && !ctrlOrCmdPressed(event))) {
             // Spacebar or numpad-zero: cycle through own tokens
             // numpad-zero only if Ctrl is not pressed, as this would otherwise conflict with Ctrl + 0
-            const tokens = [...gameStore.state.ownedTokens].map((o) => UuidMap.get(o)!);
+            const tokens = [...gameStore.state.ownedTokens].map((o) => IdMap.get(o)!);
             if (tokens.length === 0) return;
             const i = tokens.findIndex((o) => equalsP(o.center(), clientStore.screenCenter));
             const token = tokens[(i + 1) % tokens.length];

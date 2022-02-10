@@ -11,7 +11,8 @@
         "build:ci": "npm run build:prep && npm run tsc && vite build --outDir dist",
         "lint": "eslint src --fix",
         "lint:ci": "CI=1 eslint src --no-fix",
-        "tsc": "vue-tsc --noEmit"
+        "vue-tsc": "vue-tsc --noEmit",
+        "tsc": "tsc --noEmit"
     },
     "dependencies": {
         "@babylonjs/materials": "^4.2.0",

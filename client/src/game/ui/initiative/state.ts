@@ -2,7 +2,7 @@ import { Store } from "../../../core/store";
 import { i18n } from "../../../i18n";
 import { clientStore } from "../../../store/client";
 import { gameStore } from "../../../store/game";
-import { UuidMap } from "../../../store/shapeMap";
+import { IdMap } from "../../../store/shapeMap";
 import {
     sendInitiativeNewEffect,
     sendInitiativeOptionUpdate,
@@ -21,8 +21,9 @@ import {
 import { InitiativeSort } from "../../models/initiative";
 import type { InitiativeData, InitiativeEffect, InitiativeSettings } from "../../models/initiative";
 import { setCenterPosition } from "../../position";
+import type { LocalId } from "../../shapes/localId";
 
-let activeTokensBackup: Set<string> | undefined = undefined;
+let activeTokensBackup: Set<LocalId> | undefined = undefined;
 
 function getDefaultEffect(): InitiativeEffect {
     return { name: i18n.global.t("game.ui.initiative.new_effect"), turns: "10", highlightsActor: false };
@@ -37,7 +38,7 @@ interface InitiativeState {
     turnCounter: number;
     sort: InitiativeSort;
 
-    editLock: string;
+    editLock: LocalId;
 }
 
 class InitiativeStore extends Store<InitiativeState> {
@@ -55,7 +56,7 @@ class InitiativeStore extends Store<InitiativeState> {
             turnCounter: 0,
             sort: InitiativeSort.Down,
 
-            editLock: "",
+            editLock: -1 as LocalId,
         };
     }
 
@@ -68,7 +69,7 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     setData(data: InitiativeSettings): void {
-        if (this._state.editLock) this._state.newData = data.data;
+        if (this._state.editLock !== -1) this._state.newData = data.data;
         else this._state.locationData = data.data;
 
         this.setRoundCounter(data.round, false);
@@ -83,7 +84,7 @@ class InitiativeStore extends Store<InitiativeState> {
 
     // PURE INITIATIVE
 
-    addInitiative(shape: string, initiative: number | undefined, isGroup = false): void {
+    addInitiative(shape: LocalId, initiative: number | undefined, isGroup = false): void {
         let actor = this._state.locationData.find((a) => a.shape === shape);
         if (actor === undefined) {
             actor = {
@@ -100,23 +101,23 @@ class InitiativeStore extends Store<InitiativeState> {
         sendInitiativeAdd(actor);
     }
 
-    setInitiative(shapeId: string, value: number, sync: boolean): void {
+    setInitiative(shapeId: LocalId, value: number, sync: boolean): void {
         const actor = this.getDataSet().find((a) => a.shape === shapeId);
         if (actor === undefined) return;
 
         actor.initiative = value;
-        if (sync) sendInitiativeSetValue({ shape: shapeId, value });
+        if (sync) sendInitiativeSetValue({ shape: IdMap.get(shapeId)!.uuid, value });
     }
 
-    removeInitiative(shapeId: string, sync: boolean): void {
+    removeInitiative(shapeId: LocalId, sync: boolean): void {
         const data = this.getDataSet();
         const index = data.findIndex((i) => i.shape === shapeId);
         if (index < 0) return;
 
         data.splice(index, 1);
-        if (sync) sendInitiativeRemove(shapeId);
+        if (sync) sendInitiativeRemove(IdMap.get(shapeId)!.uuid);
         // Remove highlight
-        const shape = UuidMap.get(shapeId);
+        const shape = IdMap.get(shapeId);
         if (shape === undefined) return;
         if (shape.showHighlight) {
             shape.showHighlight = false;
@@ -131,9 +132,9 @@ class InitiativeStore extends Store<InitiativeState> {
         if (sync) sendInitiativeClear();
     }
 
-    changeOrder(shape: string, oldIndex: number, newIndex: number): void {
+    changeOrder(shape: LocalId, oldIndex: number, newIndex: number): void {
         if (this.getDataSet()[oldIndex].shape === shape) {
-            sendInitiativeReorder({ shape, oldIndex, newIndex });
+            sendInitiativeReorder({ shape: IdMap.get(shape)!.uuid, oldIndex, newIndex });
         }
     }
 
@@ -197,17 +198,17 @@ class InitiativeStore extends Store<InitiativeState> {
 
     // EFFECTS
 
-    createEffect(shape: string, effect: InitiativeEffect | undefined, sync: boolean): void {
+    createEffect(shape: LocalId, effect: InitiativeEffect | undefined, sync: boolean): void {
         const actor = this.getDataSet().find((i) => i.shape === shape);
         if (actor === undefined) return;
 
         if (effect === undefined) effect = getDefaultEffect();
         actor.effects.push(effect);
 
-        if (sync) sendInitiativeNewEffect({ actor: actor.shape, effect });
+        if (sync) sendInitiativeNewEffect({ actor: IdMap.get(actor.shape)!.uuid, effect });
     }
 
-    setEffectName(shape: string, index: number, name: string, sync: boolean): void {
+    setEffectName(shape: LocalId, index: number, name: string, sync: boolean): void {
         const actor = this.getDataSet().find((i) => i.shape === shape);
         if (actor === undefined) return;
 
@@ -215,10 +216,10 @@ class InitiativeStore extends Store<InitiativeState> {
         if (effect === undefined) return;
 
         effect.name = name;
-        if (sync) sendInitiativeRenameEffect({ shape, index, name });
+        if (sync) sendInitiativeRenameEffect({ shape: IdMap.get(shape)!.uuid, index, name });
     }
 
-    setEffectTurns(shape: string, index: number, turns: string, sync: boolean): void {
+    setEffectTurns(shape: LocalId, index: number, turns: string, sync: boolean): void {
         const actor = this.getDataSet().find((i) => i.shape === shape);
         if (actor === undefined) return;
 
@@ -226,33 +227,33 @@ class InitiativeStore extends Store<InitiativeState> {
         if (effect === undefined) return;
 
         effect.turns = turns;
-        if (sync) sendInitiativeTurnsEffect({ shape, index, turns });
+        if (sync) sendInitiativeTurnsEffect({ shape: IdMap.get(shape)!.uuid, index, turns });
     }
 
-    removeEffect(shape: string, index: number, sync: boolean): void {
+    removeEffect(shape: LocalId, index: number, sync: boolean): void {
         const actor = this.getDataSet().find((i) => i.shape === shape);
         if (actor === undefined) return;
 
         actor.effects.splice(index, 1);
-        if (sync) sendInitiativeRemoveEffect({ shape, index });
+        if (sync) sendInitiativeRemoveEffect({ shape: IdMap.get(shape)!.uuid, index });
     }
 
     // Locks
 
-    lock(shape: string): void {
+    lock(shape: LocalId): void {
         this._state.editLock = shape;
         this._state.newData = this._state.locationData.map((d) => ({ ...d, effects: [...d.effects] }));
     }
 
     unlock(): void {
-        this._state.editLock = "";
+        this._state.editLock = -1 as LocalId;
         this._state.locationData = this._state.newData;
     }
 
     handleCameraLock(): void {
         if (clientStore.state.initiativeCameraLock) {
             const actor = this.getDataSet()[this._state.turnCounter];
-            const shape = UuidMap.get(actor.shape);
+            const shape = IdMap.get(actor.shape);
             if (shape?.ownedBy(false, { visionAccess: true }) ?? false) {
                 setCenterPosition(shape!.center());
             }
@@ -278,16 +279,16 @@ class InitiativeStore extends Store<InitiativeState> {
     // EXTRA
 
     getDataSet(): InitiativeData[] {
-        return this._state[this._state.editLock === "" ? "locationData" : "newData"];
+        return this._state[this._state.editLock === -1 ? "locationData" : "newData"];
     }
 
-    owns(shapeId?: string): boolean {
+    owns(shapeId?: LocalId): boolean {
         if (shapeId === undefined) {
             shapeId = this._state.locationData[this._state.turnCounter]?.shape;
             if (shapeId === undefined) return false;
         }
         if (gameStore.state.isDm) return true;
-        const shape = UuidMap.get(shapeId);
+        const shape = IdMap.get(shapeId);
         // Shapes that are unknown to this client are hidden from this client but owned by other clients
         if (shape === undefined) return false;
         return shape.ownedBy(false, { editAccess: true });
@@ -297,10 +298,10 @@ class InitiativeStore extends Store<InitiativeState> {
         const actor = this.getDataSet()[index];
         if (actor === undefined || !this.owns(actor.shape)) return;
         actor[option] = !actor[option];
-        sendInitiativeOptionUpdate({ shape: actor.shape, option, value: actor[option] });
+        sendInitiativeOptionUpdate({ shape: IdMap.get(actor.shape)!.uuid, option, value: actor[option] });
     }
 
-    setOption(shape: string, option: "isVisible" | "isGroup", value: boolean): void {
+    setOption(shape: LocalId, option: "isVisible" | "isGroup", value: boolean): void {
         const actor = this.getDataSet().find((i) => i.shape === shape);
         if (actor === undefined) return;
         actor[option] = value;

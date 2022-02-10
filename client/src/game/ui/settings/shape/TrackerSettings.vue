@@ -6,6 +6,7 @@ import RotationSlider from "../../../../core/components/RotationSlider.vue";
 import { SyncTo } from "../../../../core/models/types";
 import { getValue } from "../../../../core/utils";
 import { activeShapeStore } from "../../../../store/activeShape";
+import { IdMap } from "../../../../store/shapeMap";
 import { sendShapeMoveAura, sendShapeMoveTracker } from "../../../api/emits/shape/options";
 import type { Aura, Tracker } from "../../../shapes/interfaces";
 
@@ -38,10 +39,14 @@ function toggleCompositeTracker(trackerId: string): void {
 
     const oldShape = tracker.shape;
     const newShape =
-        oldShape === activeShapeStore.state.uuid ? activeShapeStore.state.parentUuid! : activeShapeStore.state.uuid!;
+        oldShape === activeShapeStore.state.id ? activeShapeStore.state.parentUuid! : activeShapeStore.state.id!;
 
     activeShapeStore.pushTracker(tracker, newShape, SyncTo.SHAPE);
-    sendShapeMoveTracker({ shape: oldShape, new_shape: newShape, tracker: tracker.uuid });
+    sendShapeMoveTracker({
+        shape: IdMap.get(oldShape)!.uuid,
+        new_shape: IdMap.get(newShape)!.uuid,
+        tracker: tracker.uuid,
+    });
 }
 
 // Aura
@@ -70,10 +75,10 @@ function toggleCompositeAura(auraId: string): void {
 
     const oldShape = aura.shape;
     const newShape =
-        oldShape === activeShapeStore.state.uuid ? activeShapeStore.state.parentUuid! : activeShapeStore.state.uuid!;
+        oldShape === activeShapeStore.state.id ? activeShapeStore.state.parentUuid! : activeShapeStore.state.id!;
 
     activeShapeStore.pushAura(aura, newShape, SyncTo.SHAPE);
-    sendShapeMoveAura({ shape: oldShape, new_shape: newShape, aura: aura.uuid });
+    sendShapeMoveAura({ shape: IdMap.get(oldShape)!.uuid, new_shape: IdMap.get(newShape)!.uuid, aura: aura.uuid });
 }
 </script>
 

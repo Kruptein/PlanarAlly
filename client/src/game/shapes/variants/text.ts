@@ -5,6 +5,7 @@ import { rotateAroundPoint } from "../../../core/math";
 import { SyncMode } from "../../../core/models/types";
 import { sendTextUpdate } from "../../api/emits/shape/text";
 import type { ServerText } from "../../models/shapes";
+import type { GlobalId } from "../localId";
 import { Shape } from "../shape";
 import type { SHAPE_TYPE } from "../types";
 
@@ -23,7 +24,7 @@ export class Text extends Shape {
         options?: {
             fillColour?: string;
             strokeColour?: string;
-            uuid?: string;
+            uuid?: GlobalId;
         },
     ) {
         super(position, options);

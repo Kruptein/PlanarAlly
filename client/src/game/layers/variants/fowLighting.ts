@@ -3,7 +3,7 @@ import type { SyncMode, InvalidationMode } from "../../../core/models/types";
 import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
-import { UuidMap } from "../../../store/shapeMap";
+import { IdMap } from "../../../store/shapeMap";
 import { getFogColour } from "../../colour";
 import { LayerName } from "../../models/floor";
 import type { IShape } from "../../shapes/interfaces";
@@ -43,7 +43,7 @@ export class FowLightingLayer extends FowLayer {
                 floorStore.currentFloor.value!.id === this.floor
             ) {
                 for (const sh of gameStore.activeTokens.value) {
-                    const shape = UuidMap.get(sh)!;
+                    const shape = IdMap.get(sh)!;
                     if (shape.options.skipDraw ?? false) continue;
                     if (shape.floor.id !== floorStore.currentFloor.value!.id) continue;
                     const bb = shape.getBoundingBox();
@@ -68,7 +68,7 @@ export class FowLightingLayer extends FowLayer {
 
             // First cut out all the light sources
             for (const light of visionState.getVisionSources(this.floor)) {
-                const shape = UuidMap.get(light.shape);
+                const shape = IdMap.get(light.shape);
                 if (shape === undefined) continue;
                 const aura = shape.getAuras(true).find((a) => a.uuid === light.aura);
                 if (aura === undefined) continue;

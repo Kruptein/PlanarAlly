@@ -5,6 +5,7 @@ import { rotateAroundPoint } from "../../../core/math";
 import { DEFAULT_GRID_SIZE } from "../../../store/client";
 import { calculateDelta } from "../../drag";
 import type { ServerShape } from "../../models/shapes";
+import type { GlobalId } from "../localId";
 import { Shape } from "../shape";
 
 import { BoundingRect } from "./boundingRect";
@@ -19,7 +20,7 @@ export abstract class BaseRect extends Shape {
         topleft: GlobalPoint,
         w: number,
         h: number,
-        options?: { fillColour?: string; strokeColour?: string; uuid?: string; assetId?: number },
+        options?: { fillColour?: string; strokeColour?: string; uuid?: GlobalId; assetId?: number },
     ) {
         super(topleft, options);
         this._w = w;

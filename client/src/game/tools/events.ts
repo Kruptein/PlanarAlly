@@ -3,7 +3,7 @@ import { baseAdjust } from "../../core/utils";
 import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
 import { Access, logicStore } from "../../store/logic";
-import { UuidMap } from "../../store/shapeMap";
+import { IdMap } from "../../store/shapeMap";
 import { uiStore } from "../../store/ui";
 import { getLocalPointFromEvent } from "../input/mouse";
 import { LayerName } from "../models/floor";
@@ -66,8 +66,8 @@ export async function mouseMove(event: MouseEvent): Promise<void> {
     // Annotation hover
     let foundAnnotation = false;
     for (const uuid of gameStore.state.annotations) {
-        if (UuidMap.has(uuid) && floorStore.hasLayer(floorStore.currentFloor.value!, LayerName.Draw)) {
-            const shape = UuidMap.get(uuid)!;
+        if (IdMap.has(uuid) && floorStore.hasLayer(floorStore.currentFloor.value!, LayerName.Draw)) {
+            const shape = IdMap.get(uuid)!;
             if (shape.floor.id === floorStore.currentFloor.value!.id && shape.contains(eventPoint)) {
                 foundAnnotation = true;
                 uiStore.setAnnotationText(shape.annotation);
@@ -81,7 +81,7 @@ export async function mouseMove(event: MouseEvent): Promise<void> {
     if (activeToolMode.value === ToolMode.Play) {
         let foundDoor = false;
         for (const uuid of logicStore.state.doors) {
-            const shape = UuidMap.get(uuid);
+            const shape = IdMap.get(uuid);
             if (shape === undefined) continue;
             if (shape.floor.id !== floorStore.currentFloor.value!.id) continue;
             if (!shape.contains(eventPoint)) continue;
@@ -232,8 +232,8 @@ export async function touchMove(event: TouchEvent): Promise<void> {
     // Annotation hover
     let found = false;
     for (const uuid of gameStore.state.annotations) {
-        if (UuidMap.has(uuid) && floorStore.hasLayer(floorStore.currentFloor.value!, LayerName.Draw)) {
-            const shape = UuidMap.get(uuid)!;
+        if (IdMap.has(uuid) && floorStore.hasLayer(floorStore.currentFloor.value!, LayerName.Draw)) {
+            const shape = IdMap.get(uuid)!;
             if (
                 shape.floor.id === floorStore.currentFloor.value!.id &&
                 shape.contains(l2g(getLocalPointFromEvent(event)))

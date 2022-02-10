@@ -17,23 +17,22 @@ export function rotateShapes(
             recalculateMovement = true;
             visionState.deleteFromTriangulation({
                 target: TriangulationTarget.MOVEMENT,
-                shape: shape.uuid,
+                shape: shape.id,
             });
         }
         if (shape.blocksVision) {
             recalculateVision = true;
             visionState.deleteFromTriangulation({
                 target: TriangulationTarget.VISION,
-                shape: shape.uuid,
+                shape: shape.id,
             });
         }
 
         shape.rotateAround(center, deltaAngle);
 
         if (shape.blocksMovement && !temporary)
-            visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: shape.uuid });
-        if (shape.blocksVision)
-            visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: shape.uuid });
+            visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: shape.id });
+        if (shape.blocksVision) visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: shape.id });
 
         if (!shape.preventSync) sendShapePositionUpdate([shape], temporary);
     }

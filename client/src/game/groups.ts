@@ -3,7 +3,7 @@ import type { Ref } from "vue";
 
 import { SyncTo } from "../core/models/types";
 import { uuidv4 } from "../core/utils";
-import { UuidMap } from "../store/shapeMap";
+import { IdMap } from "../store/shapeMap";
 
 import {
     sendCreateGroup,
@@ -16,13 +16,14 @@ import {
 import { groupToClient, groupToServer } from "./models/groups";
 import type { CREATION_ORDER_TYPES, Group, ServerGroup } from "./models/groups";
 import type { IShape } from "./shapes/interfaces";
+import type { LocalId } from "./shapes/localId";
 
 const numberCharacterSet = "0123456789".split("");
 const latinCharacterSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 export const CHARACTER_SETS = [numberCharacterSet, latinCharacterSet];
 
 export const groupMap: Ref<Map<string, Group>> = ref(new Map());
-export const memberMap: Ref<Map<string, Set<string>>> = ref(new Map());
+export const memberMap: Ref<Map<string, Set<LocalId>>> = ref(new Map());
 
 export function addNewGroup(group: Group, sync: boolean): void {
     groupMap.value.set(group.uuid, group);
@@ -47,7 +48,7 @@ export function removeGroup(groupId: string, sync: boolean): void {
     groupMap.value.delete(groupId);
 }
 
-export function createNewGroupForShapes(shapes: string[], keepBadges = false): void {
+export function createNewGroupForShapes(shapes: LocalId[], keepBadges = false): void {
     const group: Group = {
         uuid: uuidv4(),
         characterSet: numberCharacterSet,
@@ -56,7 +57,7 @@ export function createNewGroupForShapes(shapes: string[], keepBadges = false): v
     addNewGroup(group, true);
     addGroupMembers(
         group.uuid,
-        shapes.map((s) => ({ uuid: s, badge: keepBadges ? UuidMap.get(s)!.badge : undefined })),
+        shapes.map((s) => ({ uuid: s, badge: keepBadges ? IdMap.get(s)!.badge : undefined })),
         true,
     );
 }
@@ -76,20 +77,20 @@ export function getGroupSize(groupId: string): number {
 export function getGroupMembers(groupId: string): IShape[] {
     const members = memberMap.value.get(groupId);
     if (members === undefined) return [];
-    return [...members].map((m) => UuidMap.get(m)!);
+    return [...members].map((m) => IdMap.get(m)!);
 }
 
-export function addGroupMembers(groupId: string, members: { uuid: string; badge?: number }[], sync: boolean): void {
-    const newMembers: { uuid: string; badge: number }[] = [];
+export function addGroupMembers(groupId: string, members: { uuid: LocalId; badge?: number }[], sync: boolean): void {
+    const newMembers: { uuid: LocalId; badge: number }[] = [];
     for (const member of members) {
         if (member.badge === undefined) {
             member.badge = generateNewBadge(groupId);
         }
-        newMembers.push(member as { uuid: string; badge: number });
-        const shape = UuidMap.get(member.uuid);
+        newMembers.push(member as { uuid: LocalId; badge: number });
+        const shape = IdMap.get(member.uuid);
         if (shape && shape.groupId !== groupId) {
             if (shape.groupId !== undefined) {
-                memberMap.value.get(shape.groupId)?.delete(shape.uuid);
+                memberMap.value.get(shape.groupId)?.delete(shape.id);
             }
             shape.setGroupId(groupId, SyncTo.UI);
             shape.badge = member.badge;
@@ -98,17 +99,20 @@ export function addGroupMembers(groupId: string, members: { uuid: string; badge?
         memberMap.value.get(groupId)?.add(member.uuid);
     }
     if (sync) {
-        sendGroupJoin({ group_id: groupId, members: newMembers });
+        sendGroupJoin({
+            group_id: groupId,
+            members: newMembers.map((m) => ({ uuid: IdMap.get(m.uuid)!.uuid, badge: m.badge })),
+        });
     }
 }
 
-export function removeGroupMember(groupId: string, member: string, sync: boolean): void {
+export function removeGroupMember(groupId: string, member: LocalId, sync: boolean): void {
     const members = memberMap.value.get(groupId);
     members?.delete(member);
-    const shape = UuidMap.get(member);
+    const shape = IdMap.get(member);
     if (shape !== undefined) shape.setShowBadge(false, SyncTo.UI);
     if (sync) {
-        sendGroupLeave([{ uuid: member, group_id: groupId }]);
+        sendGroupLeave([{ uuid: IdMap.get(member)!.uuid, group_id: groupId }]);
     }
 }
 

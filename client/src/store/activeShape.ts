@@ -8,6 +8,7 @@ import { compositeState } from "../game/layers/state";
 import { DEFAULT_CONDITIONS } from "../game/models/logic";
 import type { ShapeOptions } from "../game/models/shapes";
 import type { Aura, IShape, Label, Tracker } from "../game/shapes/interfaces";
+import type { GlobalId, LocalId } from "../game/shapes/localId";
 import type { ShapeAccess, ShapeOwner } from "../game/shapes/owners";
 import { createEmptyUiAura, createEmptyUiTracker } from "../game/shapes/trackers";
 import type { SHAPE_TYPE } from "../game/shapes/types";
@@ -16,12 +17,12 @@ import type { ToggleComposite } from "../game/shapes/variants/toggleComposite";
 import { clientStore } from "./client";
 import { gameStore } from "./game";
 import { logicStore } from "./logic";
-import { UuidMap } from "./shapeMap";
+import { IdMap } from "./shapeMap";
 
-export type UiTracker = { shape: string; temporary: boolean } & Tracker;
-export type UiAura = { shape: string; temporary: boolean } & Aura;
+export type UiTracker = { shape: LocalId; temporary: boolean } & Tracker;
+export type UiAura = { shape: LocalId; temporary: boolean } & Aura;
 
-function toUiTrackers(trackers: readonly Tracker[], shape: string): UiTracker[] {
+function toUiTrackers(trackers: readonly Tracker[], shape: LocalId): UiTracker[] {
     return trackers.map((tracker) => ({
         ...tracker,
         shape,
@@ -29,7 +30,7 @@ function toUiTrackers(trackers: readonly Tracker[], shape: string): UiTracker[] 
     }));
 }
 
-function toUiAuras(auras: readonly Aura[], shape: string): UiAura[] {
+function toUiAuras(auras: readonly Aura[], shape: LocalId): UiAura[] {
     return auras.map((aura) => ({
         ...aura,
         shape,
@@ -38,9 +39,10 @@ function toUiAuras(auras: readonly Aura[], shape: string): UiAura[] {
 }
 
 interface ActiveShapeState {
-    uuid?: string;
-    lastUuid?: string;
-    parentUuid?: string;
+    id?: LocalId;
+    uuid?: GlobalId;
+    lastUuid?: LocalId;
+    parentUuid?: LocalId;
     showEditDialog: boolean;
     type: SHAPE_TYPE | undefined;
 
@@ -68,7 +70,7 @@ interface ActiveShapeState {
     firstRealAuraIndex: number;
     auras: UiAura[];
 
-    variants: { uuid: string; name: string }[];
+    variants: { uuid: LocalId; name: string }[];
 
     annotation: string | undefined;
     annotationVisible: boolean;
@@ -129,16 +131,14 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
     constructor() {
         super();
-        this.floor = computed(() =>
-            this._state.uuid !== undefined ? UuidMap.get(this._state.uuid)?.floor.id : undefined,
-        );
+        this.floor = computed(() => (this._state.id !== undefined ? IdMap.get(this._state.id)?.floor.id : undefined));
         this.isComposite = computed(() => this._state.parentUuid !== undefined);
 
         this.hasEditAccess = computed(() => {
-            if (this._state.uuid === undefined) return false;
+            if (this._state.id === undefined) return false;
             const gameState = gameStore.state;
             if (gameState.isDm) return true;
-            if (gameState.isFakePlayer && gameStore.activeTokens.value.has(this._state.uuid)) return true;
+            if (gameState.isFakePlayer && gameStore.activeTokens.value.has(this._state.id)) return true;
             if (this._state.access?.edit === true) return true;
             return this._state.owners.some((u) => u.user === clientStore.state.username && u.access.edit === true);
         });
@@ -154,11 +154,11 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
             if (selection.size === 0) {
                 this.clear();
             } else if (this._state.uuid === undefined) {
-                this.setActiveShape(UuidMap.get([...selection][0])!);
+                this.setActiveShape(IdMap.get([...selection][0])!);
             } else {
                 let sameMainShape = false;
                 for (const sel of selection) {
-                    if ([this._state.uuid, this._state.parentUuid].includes(sel)) {
+                    if ([this._state.id, this._state.parentUuid].includes(sel)) {
                         sameMainShape = true;
                         break;
                     }
@@ -166,7 +166,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
                 if (!sameMainShape) {
                     const showEditDialog = this._state.showEditDialog;
                     activeShapeStore.clear();
-                    activeShapeStore.setActiveShape(UuidMap.get([...selection][0])!);
+                    activeShapeStore.setActiveShape(IdMap.get([...selection][0])!);
                     if (showEditDialog) this._state.showEditDialog = showEditDialog;
                 }
             }
@@ -182,24 +182,24 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
     // OPTIONS
 
     setOptions(options: Partial<ShapeOptions>, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         this._state.options = options;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(this._state.uuid)!;
+            const shape = IdMap.get(this._state.id)!;
             shape.setOptions(this._state.options, syncTo);
         }
     }
 
     setOptionKey<T extends keyof ShapeOptions>(key: T, value: ShapeOptions[T], syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
         if (this._state.options === undefined) this._state.options = {};
 
         this._state.options[key] = value;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(this._state.uuid)!;
+            const shape = IdMap.get(this._state.id)!;
             shape.setOptions(this._state.options, syncTo);
         }
     }
@@ -207,12 +207,12 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
     // GROUP
 
     setGroupId(groupId: string | undefined, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         this._state.groupId = groupId;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(this._state.uuid)!;
+            const shape = IdMap.get(this._state.id)!;
             shape.setGroupId(groupId, syncTo);
         }
     }
@@ -220,121 +220,121 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
     // PROPERTIES
 
     setName(name: string, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         this._state.name = name;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(this._state.uuid)!;
+            const shape = IdMap.get(this._state.id)!;
             shape.setName(name, syncTo);
         }
     }
 
     setNameVisible(visible: boolean, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         this._state.nameVisible = visible;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(this._state.uuid)!;
+            const shape = IdMap.get(this._state.id)!;
             shape.setNameVisible(visible, syncTo);
         }
     }
 
     setIsToken(isToken: boolean, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         this._state.isToken = isToken;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(this._state.uuid)!;
+            const shape = IdMap.get(this._state.id)!;
             shape.setIsToken(isToken, syncTo);
         }
     }
 
     setIsInvisible(isInvisible: boolean, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         this._state.isInvisible = isInvisible;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(this._state.uuid)!;
+            const shape = IdMap.get(this._state.id)!;
             shape.setInvisible(isInvisible, syncTo);
         }
     }
 
     setStrokeColour(colour: string, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         this._state.strokeColour = colour;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(this._state.uuid)!;
+            const shape = IdMap.get(this._state.id)!;
             shape.setStrokeColour(colour, syncTo);
         }
     }
 
     setFillColour(colour: string, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         this._state.fillColour = colour;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(this._state.uuid)!;
+            const shape = IdMap.get(this._state.id)!;
             shape.setFillColour(colour, syncTo);
         }
     }
 
     setBlocksMovement(blocksMovement: boolean, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         this._state.blocksMovement = blocksMovement;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(this._state.uuid)!;
+            const shape = IdMap.get(this._state.id)!;
             shape.setBlocksMovement(blocksMovement, syncTo);
         }
     }
 
     setBlocksVision(blocksVision: boolean, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         this._state.blocksVision = blocksVision;
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(this._state.uuid)!;
+            const shape = IdMap.get(this._state.id)!;
             shape.setBlocksVision(blocksVision, syncTo);
         }
     }
 
     setShowBadge(showBadge: boolean, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         this._state.showBadge = showBadge;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(this._state.uuid)!;
+            const shape = IdMap.get(this._state.id)!;
             shape.setShowBadge(showBadge, syncTo);
         }
     }
 
     setIsDefeated(isDefeated: boolean, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         this._state.isDefeated = isDefeated;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(this._state.uuid)!;
+            const shape = IdMap.get(this._state.id)!;
             shape.setDefeated(isDefeated, syncTo);
         }
     }
 
     setLocked(isLocked: boolean, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         this._state.isLocked = isLocked;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(this._state.uuid)!;
+            const shape = IdMap.get(this._state.id)!;
             shape.setLocked(isLocked, syncTo);
         }
     }
@@ -342,18 +342,18 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
     // ACCESS
 
     setDefaultAccess(access: ShapeAccess, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         this._state.access = { ...access };
 
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(this._state.uuid)!;
+            const shape = IdMap.get(this._state.id)!;
             shape.updateDefaultOwner(this._state.access, syncTo);
         }
     }
 
     setDefaultEditAccess(editAccess: boolean, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         this._state.access!.edit = editAccess;
         if (editAccess) {
@@ -362,26 +362,26 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         }
 
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(this._state.uuid)!;
+            const shape = IdMap.get(this._state.id)!;
             shape.updateDefaultOwner(this._state.access!, syncTo);
         }
     }
 
     setDefaultMovementAccess(movementAccess: boolean, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         this._state.access!.movement = movementAccess;
         if (movementAccess) this._state.access!.vision = true;
         else this._state.access!.edit = false;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(this._state.uuid)!;
+            const shape = IdMap.get(this._state.id)!;
             shape.updateDefaultOwner(this._state.access!, syncTo);
         }
     }
 
     setDefaultVisionAccess(visionAccess: boolean, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         this._state.access!.vision = visionAccess;
         if (!visionAccess) {
@@ -390,24 +390,24 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         }
 
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(this._state.uuid)!;
+            const shape = IdMap.get(this._state.id)!;
             shape.updateDefaultOwner(this._state.access!, syncTo);
         }
     }
 
     addOwner(owner: ShapeOwner, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         this._state.owners.push(owner);
 
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(this._state.uuid)!;
+            const shape = IdMap.get(this._state.id)!;
             shape.addOwner(owner, syncTo);
         }
     }
 
     updateOwner(owner: ShapeOwner, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         const index = this._state.owners.findIndex((o) => o.user === owner.user);
         if (index < 0) return;
@@ -415,29 +415,29 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         Object.assign(this._state.owners[index], owner);
 
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(this._state.uuid)!;
+            const shape = IdMap.get(this._state.id)!;
             shape.updateOwner({ ...owner, access: { ...owner.access } }, syncTo);
         }
     }
 
     removeOwner(owner: string, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         this._state.owners = this._state.owners.filter((o) => o.user !== owner);
 
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(this._state.uuid)!;
+            const shape = IdMap.get(this._state.id)!;
             shape.removeOwner(owner, syncTo);
         }
     }
 
     // TRACKERS
 
-    pushTracker(tracker: Tracker, shape: string, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+    pushTracker(tracker: Tracker, shape: LocalId, syncTo: SyncTo): void {
+        if (this._state.id === undefined) return;
 
         const tr = toUiTrackers([tracker], shape)[0];
-        if (this._state.uuid === shape) {
+        if (this._state.id === shape) {
             this._state.trackers.splice(this._state.trackers.length - 1, 0, tr);
         } else if (this._state.parentUuid === shape) {
             this._state.trackers.splice(this._state.firstRealTrackerIndex, 0, tr);
@@ -446,7 +446,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
             return;
         }
         if (syncTo !== SyncTo.UI) {
-            const sh = UuidMap.get(shape);
+            const sh = IdMap.get(shape);
             if (sh === undefined) return;
 
             sh.pushTracker(tracker, syncTo);
@@ -454,7 +454,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
     }
 
     updateTracker(trackerId: string, delta: Partial<Tracker>, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         const tracker = this._state.trackers.find((t) => t.uuid === trackerId);
         if (tracker === undefined) return;
@@ -462,13 +462,13 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         Object.assign(tracker, delta);
 
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(tracker.shape);
+            const shape = IdMap.get(tracker.shape);
             if (shape === undefined) return;
 
             if (tracker.temporary) {
                 tracker.temporary = false;
                 shape.pushTracker(tracker, SyncTo.SERVER);
-                this._state.trackers.push(createEmptyUiTracker(this._state.uuid!));
+                this._state.trackers.push(createEmptyUiTracker(this._state.id!));
             } else {
                 shape.updateTracker(trackerId, delta, syncTo);
             }
@@ -476,7 +476,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
     }
 
     removeTracker(tracker: string, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         const trackerIndex = this._state.trackers.findIndex((t) => t.uuid === tracker);
         if (trackerIndex < 0) return;
@@ -487,13 +487,13 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         }
 
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(tr.shape);
+            const shape = IdMap.get(tr.shape);
             if (shape === undefined) return;
             shape.removeTracker(tracker, syncTo);
         }
     }
 
-    setTrackerShape(trackerId: string, shape: string): void {
+    setTrackerShape(trackerId: string, shape: LocalId): void {
         const tracker = this._state.trackers.find((t) => t.uuid === trackerId);
         if (tracker !== undefined) {
             tracker.shape = shape;
@@ -502,11 +502,11 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
     // AURAS
 
-    pushAura(aura: Aura, shape: string, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+    pushAura(aura: Aura, shape: LocalId, syncTo: SyncTo): void {
+        if (this._state.id === undefined) return;
 
         const uiAura = toUiAuras([aura], shape)[0];
-        if (this._state.uuid === shape) {
+        if (this._state.id === shape) {
             this._state.auras.splice(this._state.auras.length - 1, 0, uiAura);
         } else if (this._state.parentUuid === shape) {
             this._state.auras.splice(this._state.firstRealAuraIndex, 0, uiAura);
@@ -515,27 +515,27 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
             return;
         }
         if (syncTo !== SyncTo.UI) {
-            const sh = UuidMap.get(shape)!;
+            const sh = IdMap.get(shape)!;
             sh.pushAura(aura, syncTo);
         }
     }
 
     updateAura(auraId: string, delta: Partial<Aura>, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         const aura = this._state.auras.find((a) => a.uuid === auraId);
         if (aura === undefined) return;
 
         Object.assign(aura, delta);
 
-        const shape = UuidMap.get(aura.shape);
+        const shape = IdMap.get(aura.shape);
         if (shape === undefined) return;
 
         if (syncTo !== SyncTo.UI) {
             if (aura.temporary) {
                 aura.temporary = false;
                 shape.pushAura(aura, SyncTo.SERVER);
-                this._state.auras.push(createEmptyUiAura(this._state.uuid!));
+                this._state.auras.push(createEmptyUiAura(this._state.id!));
             } else {
                 shape.updateAura(auraId, delta, syncTo);
             }
@@ -543,7 +543,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
     }
 
     removeAura(auraId: string, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         const auraIndex = this._state.auras.findIndex((t) => t.uuid === auraId);
         if (auraIndex < 0) return;
@@ -553,13 +553,13 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
             this._state.firstRealAuraIndex -= 1;
         }
 
-        const shape = UuidMap.get(aura.shape);
+        const shape = IdMap.get(aura.shape);
         if (shape === undefined) return;
 
         if (syncTo !== SyncTo.UI) shape.removeAura(auraId, syncTo);
     }
 
-    setAuraShape(auraId: string, shape: string): void {
+    setAuraShape(auraId: string, shape: LocalId): void {
         const aura = this._state.auras.find((a) => a.uuid === auraId);
         if (aura !== undefined) {
             aura.shape = shape;
@@ -568,7 +568,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
     // VARIANTS
 
-    renameVariant(uuid: string, name: string, syncTo: SyncTo): void {
+    renameVariant(uuid: LocalId, name: string, syncTo: SyncTo): void {
         if (this._state.uuid === undefined || this._state.parentUuid === undefined) return;
 
         const variant = this._state.variants.find((v) => v.uuid === uuid);
@@ -577,12 +577,12 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         variant.name = name;
 
         if (syncTo !== SyncTo.UI) {
-            const parent = UuidMap.get(this._state.parentUuid) as ToggleComposite;
+            const parent = IdMap.get(this._state.parentUuid) as ToggleComposite;
             parent.renameVariant(uuid, name, syncTo);
         }
     }
 
-    removeVariant(uuid: string, syncTo: SyncTo): void {
+    removeVariant(uuid: LocalId, syncTo: SyncTo): void {
         if (this._state.uuid === undefined || this._state.parentUuid === undefined) return;
 
         const index = this._state.variants.findIndex((v) => v.uuid === uuid);
@@ -591,7 +591,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.variants.splice(index, 1);
 
         if (syncTo !== SyncTo.UI) {
-            const parent = UuidMap.get(this._state.parentUuid) as ToggleComposite;
+            const parent = IdMap.get(this._state.parentUuid) as ToggleComposite;
             parent.removeVariant(uuid, syncTo);
         }
     }
@@ -599,45 +599,45 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
     // EXTRA
 
     setAnnotation(annotation: string, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         this._state.annotation = annotation;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(this._state.uuid)!;
+            const shape = IdMap.get(this._state.id)!;
             shape.setAnnotation(annotation, syncTo);
         }
     }
 
     setAnnotationVisible(visible: boolean, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         this._state.annotationVisible = visible;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(this._state.uuid)!;
+            const shape = IdMap.get(this._state.id)!;
             shape.setAnnotationVisible(visible, syncTo);
         }
     }
 
     addLabel(label: string, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         this._state.labels.push({ ...gameStore.state.labels.get(label)! });
 
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(this._state.uuid)!;
+            const shape = IdMap.get(this._state.id)!;
             shape.addLabel(label, syncTo);
         }
     }
 
     removeLabel(label: string, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         this._state.labels = this._state.labels.filter((l) => l.uuid !== label);
 
         if (syncTo !== SyncTo.UI) {
-            const shape = UuidMap.get(this._state.uuid)!;
+            const shape = IdMap.get(this._state.id)!;
             shape.removeLabel(label, syncTo);
         }
     }
@@ -645,7 +645,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
     // LOGIC
 
     setIsDoor(isDoor: boolean, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         this._state.isDoor = isDoor;
 
@@ -657,15 +657,15 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         }
 
         if (syncTo !== SyncTo.UI) {
-            if (isDoor) logicStore.addDoor(this._state.uuid!);
-            else logicStore.removeDoor(this._state.uuid!);
-            const shape = UuidMap.get(this._state.uuid)!;
+            if (isDoor) logicStore.addDoor(this._state.id!);
+            else logicStore.removeDoor(this._state.id!);
+            const shape = IdMap.get(this._state.id)!;
             shape.setIsDoor(isDoor, syncTo);
         }
     }
 
     setIsTeleportZone(isTeleportZone: boolean, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined) return;
+        if (this._state.id === undefined) return;
 
         this._state.isTeleportZone = isTeleportZone;
 
@@ -677,9 +677,9 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         }
 
         if (syncTo !== SyncTo.UI) {
-            if (isTeleportZone) logicStore.addTeleportZone(this._state.uuid!);
-            else logicStore.removeTeleportZone(this._state.uuid!);
-            const shape = UuidMap.get(this._state.uuid)!;
+            if (isTeleportZone) logicStore.addTeleportZone(this._state.id!);
+            else logicStore.removeTeleportZone(this._state.id!);
+            const shape = IdMap.get(this._state.id)!;
             shape.setIsTeleportZone(isTeleportZone, syncTo);
         }
     }
@@ -687,11 +687,12 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
     // STARTUP / CLEANUP
 
     setActiveShape(shape: IShape): void {
-        if (this._state.lastUuid === shape.uuid) this._state.showEditDialog = true;
+        if (this._state.lastUuid === shape.id) this._state.showEditDialog = true;
 
+        this._state.id = shape.id;
         this._state.uuid = shape.uuid;
-        const parent = compositeState.getCompositeParent(shape.uuid);
-        this._state.parentUuid = parent?.uuid;
+        const parent = compositeState.getCompositeParent(shape.id);
+        this._state.parentUuid = parent?.id;
         this._state.type = shape.type;
 
         this._state.options = { ...shape.options };
@@ -714,15 +715,15 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.owners = shape.owners.map((o) => ({ ...o, access: { ...o.access } }));
 
         if (parent !== undefined) {
-            this._state.trackers.push(...toUiTrackers(parent.getTrackers(false), parent.uuid));
+            this._state.trackers.push(...toUiTrackers(parent.getTrackers(false), parent.id));
             this._state.firstRealTrackerIndex = this._state.trackers.length;
-            this._state.auras.push(...toUiAuras(parent.getAuras(false), parent.uuid));
+            this._state.auras.push(...toUiAuras(parent.getAuras(false), parent.id));
             this._state.firstRealAuraIndex = this._state.auras.length;
         }
-        this._state.trackers.push(...toUiTrackers(shape.getTrackers(false), shape.uuid));
-        this._state.trackers.push(createEmptyUiTracker(this._state.uuid));
-        this._state.auras.push(...toUiAuras(shape.getAuras(false), shape.uuid));
-        this._state.auras.push(createEmptyUiAura(this._state.uuid));
+        this._state.trackers.push(...toUiTrackers(shape.getTrackers(false), shape.id));
+        this._state.trackers.push(createEmptyUiTracker(this._state.id));
+        this._state.auras.push(...toUiAuras(shape.getAuras(false), shape.id));
+        this._state.auras.push(createEmptyUiAura(this._state.id));
 
         this._state.annotation = shape.annotation;
         this._state.annotationVisible = shape.annotationVisible;
@@ -732,14 +733,15 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.isTeleportZone = shape.isTeleportZone;
 
         if (this._state.parentUuid !== undefined) {
-            const composite = UuidMap.get(this._state.parentUuid) as ToggleComposite;
+            const composite = IdMap.get(this._state.parentUuid) as ToggleComposite;
             this._state.variants = composite.variants.map((v) => ({ ...v }));
         }
     }
 
     clear(): void {
-        if (this._state.showEditDialog) this._state.lastUuid = this._state.uuid;
+        if (this._state.showEditDialog) this._state.lastUuid = this._state.id;
         else this._state.lastUuid = undefined;
+        this._state.id = undefined;
         this._state.uuid = undefined;
         this._state.parentUuid = undefined;
         this._state.showEditDialog = false;

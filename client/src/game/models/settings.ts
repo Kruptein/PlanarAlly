@@ -1,3 +1,5 @@
+import type { LocalId } from "../shapes/localId";
+
 import type { InitiativeEffectMode } from "./initiative";
 
 export interface ServerLocationOptions {
@@ -36,7 +38,7 @@ export interface LocationOptions {
     visionMode: string;
     visionMinRange: number;
     visionMaxRange: number;
-    spawnLocations: string[];
+    spawnLocations: LocalId[];
     movePlayerOnTokenChange: boolean;
 
     airMapBackground: string | null;

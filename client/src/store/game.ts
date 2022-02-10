@@ -18,11 +18,12 @@ import type { Player } from "../game/models/player";
 import type { ServerShape } from "../game/models/shapes";
 import { setCenterPosition } from "../game/position";
 import type { Label } from "../game/shapes/interfaces";
+import type { LocalId } from "../game/shapes/localId";
 import { router } from "../router";
 
 import { coreStore } from "./core";
 import { floorStore } from "./floor";
-import { UuidMap } from "./shapeMap";
+import { IdMap } from "./shapeMap";
 
 interface GameState {
     isConnected: boolean;
@@ -34,8 +35,8 @@ interface GameState {
     // Player
     players: Player[];
 
-    ownedTokens: Set<string>;
-    activeTokenFilters: Set<string> | undefined;
+    ownedTokens: Set<LocalId>;
+    activeTokenFilters: Set<LocalId> | undefined;
 
     // Room
     roomName: string;
@@ -46,9 +47,9 @@ interface GameState {
 
     assets: AssetListMap;
 
-    annotations: Set<string>;
+    annotations: Set<LocalId>;
 
-    markers: Set<string>;
+    markers: Set<LocalId>;
 
     notes: Note[];
 
@@ -61,7 +62,7 @@ interface GameState {
 }
 
 class GameStore extends Store<GameState> {
-    activeTokens: ComputedRef<Set<string>>;
+    activeTokens: ComputedRef<Set<LocalId>>;
 
     constructor() {
         super();
@@ -222,7 +223,7 @@ class GameStore extends Store<GameState> {
 
     // ACCESS
 
-    setActiveTokens(...tokens: string[]): void {
+    setActiveTokens(...tokens: LocalId[]): void {
         this._state.activeTokenFilters = new Set(tokens);
         floorStore.invalidateLightAllFloors();
     }
@@ -232,7 +233,7 @@ class GameStore extends Store<GameState> {
         floorStore.invalidateLightAllFloors();
     }
 
-    addActiveToken(token: string): void {
+    addActiveToken(token: LocalId): void {
         if (this._state.activeTokenFilters === undefined) return;
         this._state.activeTokenFilters.add(token);
         if (this._state.activeTokenFilters.size === this._state.ownedTokens.size)
@@ -240,7 +241,7 @@ class GameStore extends Store<GameState> {
         floorStore.invalidateLightAllFloors();
     }
 
-    removeActiveToken(token: string): void {
+    removeActiveToken(token: LocalId): void {
         if (this._state.activeTokenFilters === undefined) {
             this._state.activeTokenFilters = new Set([...this._state.ownedTokens]);
         }
@@ -248,11 +249,11 @@ class GameStore extends Store<GameState> {
         floorStore.invalidateLightAllFloors();
     }
 
-    addOwnedToken(token: string): void {
+    addOwnedToken(token: LocalId): void {
         this._state.ownedTokens.add(token);
     }
 
-    removeOwnedToken(token: string): void {
+    removeOwnedToken(token: LocalId): void {
         this._state.ownedTokens.delete(token);
     }
 
@@ -262,35 +263,35 @@ class GameStore extends Store<GameState> {
     }
 
     // ANNOTATIONS
-    addAnnotation(shape: string): void {
+    addAnnotation(shape: LocalId): void {
         this._state.annotations.add(shape);
     }
 
-    removeAnnotation(shape: string): void {
+    removeAnnotation(shape: LocalId): void {
         this._state.annotations.delete(shape);
     }
 
     // MARKERS
 
-    newMarker(marker: string, sync: boolean): void {
+    newMarker(marker: LocalId, sync: boolean): void {
         if (!this._state.markers.has(marker)) {
             this._state.markers.add(marker);
-            if (sync) sendMarkerCreate(marker);
+            if (sync) sendMarkerCreate(IdMap.get(marker)!.uuid);
         }
     }
 
-    jumpToMarker(marker: string): void {
-        const shape = UuidMap.get(marker);
+    jumpToMarker(marker: LocalId): void {
+        const shape = IdMap.get(marker);
         if (shape == undefined) return;
         setCenterPosition(shape.center());
         sendClientLocationOptions();
         floorStore.invalidateAllFloors();
     }
 
-    removeMarker(marker: string, sync: boolean): void {
+    removeMarker(marker: LocalId, sync: boolean): void {
         if (this._state.markers.has(marker)) {
             this._state.markers.delete(marker);
-            if (sync) sendMarkerRemove(marker);
+            if (sync) sendMarkerRemove(IdMap.get(marker)!.uuid);
         }
     }
 
@@ -358,7 +359,7 @@ class GameStore extends Store<GameState> {
     deleteLabel(uuid: string, sync: boolean): void {
         if (!this._state.labels.has(uuid)) return;
         const label = this._state.labels.get(uuid)!;
-        for (const shape of UuidMap.values()) {
+        for (const shape of IdMap.values()) {
             const i = shape.labels.indexOf(label);
             if (i >= 0) {
                 shape.labels.splice(i, 1);

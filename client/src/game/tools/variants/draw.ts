@@ -519,9 +519,9 @@ class DrawTool extends Tool {
                 )
                     visionState.deleteFromTriangulation({
                         target: TriangulationTarget.VISION,
-                        shape: this.shape.uuid,
+                        shape: this.shape.id,
                     });
-                visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.shape.uuid });
+                visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.shape.id });
                 visionState.recalculateVision(this.shape.floor.id);
             }
         }
@@ -548,15 +548,15 @@ class DrawTool extends Tool {
             if (this.shape.blocksVision)
                 visionState.deleteFromTriangulation({
                     target: TriangulationTarget.VISION,
-                    shape: this.shape.uuid,
+                    shape: this.shape.id,
                 });
             this.shape.resizeToGrid(this.shape.getPointIndex(endPoint, l2gz(5)), ctrlOrCmdPressed(event));
             if (this.shape.blocksVision) {
-                visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.shape.uuid });
+                visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.shape.id });
                 visionState.recalculateVision(this.shape.floor.id);
             }
             if (this.shape.blocksMovement) {
-                visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: this.shape.uuid });
+                visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: this.shape.id });
                 visionState.recalculateMovement(this.shape.floor.id);
             }
         }

@@ -3,6 +3,7 @@ import { addP, subtractP, toArrayP, toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { rotateAroundPoint } from "../../../core/math";
 import type { ServerLine } from "../../models/shapes";
+import type { GlobalId } from "../localId";
 import { Shape } from "../shape";
 import type { SHAPE_TYPE } from "../types";
 
@@ -18,7 +19,7 @@ export class Line extends Shape {
         options?: {
             lineWidth?: number;
             strokeColour?: string;
-            uuid?: string;
+            uuid?: GlobalId;
         },
     ) {
         super(startPoint, { fillColour: "rgba(0, 0, 0, 0)", strokeColour: "#000", ...options });

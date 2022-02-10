@@ -24,7 +24,7 @@ import { coreStore } from "../../store/core";
 import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
 import { locationStore } from "../../store/location";
-import { UuidMap } from "../../store/shapeMap";
+import { IdMap, UuidToIdMap } from "../../store/shapeMap";
 import { convertAssetListToMap } from "../assets/utils";
 import { startDrawLoop, stopDrawLoop } from "../draw";
 import { compositeState } from "../layers/state";
@@ -115,10 +115,10 @@ socket.on("Asset.List.Set", (assets: AssetList) => {
 });
 
 socket.on("Markers.Set", (markers: string[]) => {
-    for (const marker of markers) gameStore.newMarker(marker, false);
+    for (const marker of markers) gameStore.newMarker(UuidToIdMap.get(marker)!, false);
 });
 
 socket.on("Temp.Clear", (shapeIds: string[]) => {
-    const shapes = shapeIds.map((s) => UuidMap.get(s)!).filter((s) => s !== undefined);
+    const shapes = shapeIds.map((s) => IdMap.get(UuidToIdMap.get(s)!)!).filter((s) => s !== undefined);
     deleteShapes(shapes, SyncMode.NO_SYNC);
 });

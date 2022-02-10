@@ -1,6 +1,6 @@
 import { SyncMode, SyncTo } from "../../../../core/models/types";
 import { floorStore } from "../../../../store/floor";
-import { UuidMap } from "../../../../store/shapeMap";
+import { IdMap, UuidToIdMap } from "../../../../store/shapeMap";
 import type { LayerName } from "../../../models/floor";
 import type { ServerShape } from "../../../models/shapes";
 import type { IShape } from "../../../shapes/interfaces";
@@ -12,7 +12,7 @@ import { socket } from "../../socket";
 
 socket.on("Shape.Set", (data: ServerShape) => {
     // hard reset a shape
-    const old = UuidMap.get(data.uuid);
+    const old = IdMap.get(UuidToIdMap.get(data.uuid)!);
     if (old) old.layer.removeShape(old, SyncMode.NO_SYNC, true);
     addShape(data, SyncMode.NO_SYNC);
 });
@@ -28,7 +28,7 @@ socket.on("Shapes.Add", (shapes: ServerShape[]) => {
 });
 
 socket.on("Shapes.Remove", (shapeIds: string[]) => {
-    const shapes = shapeIds.map((s) => UuidMap.get(s)!).filter((s) => s !== undefined);
+    const shapes = shapeIds.map((s) => IdMap.get(UuidToIdMap.get(s)!)!).filter((s) => s !== undefined);
     deleteShapes(shapes, SyncMode.NO_SYNC);
 });
 
@@ -36,7 +36,7 @@ socket.on(
     "Shapes.Position.Update",
     (data: { uuid: string; position: { angle: number; points: [number, number][] } }[]) => {
         for (const sh of data) {
-            const shape = UuidMap.get(sh.uuid);
+            const shape = IdMap.get(UuidToIdMap.get(sh.uuid)!);
             if (shape === undefined) {
                 continue;
             }
@@ -47,7 +47,7 @@ socket.on(
 
 socket.on("Shapes.Options.Update", (data: { uuid: string; option: string }[]) => {
     for (const sh of data) {
-        const shape = UuidMap.get(sh.uuid);
+        const shape = IdMap.get(UuidToIdMap.get(sh.uuid)!);
         if (shape === undefined) {
             continue;
         }
@@ -56,29 +56,33 @@ socket.on("Shapes.Options.Update", (data: { uuid: string; option: string }[]) =>
 });
 
 socket.on("Shape.Order.Set", (data: { uuid: string; index: number }) => {
-    if (!UuidMap.has(data.uuid)) {
+    if (!IdMap.has(UuidToIdMap.get(data.uuid)!)) {
         console.log(`Attempted to move the shape order of an unknown shape`);
         return;
     }
-    const shape = UuidMap.get(data.uuid)!;
+    const shape = IdMap.get(UuidToIdMap.get(data.uuid)!)!;
     shape.layer.moveShapeOrder(shape, data.index, SyncMode.NO_SYNC);
 });
 
 socket.on("Shapes.Floor.Change", (data: { uuids: string[]; floor: string }) => {
-    const shapes = data.uuids.map((u) => UuidMap.get(u) ?? undefined).filter((s) => s !== undefined) as IShape[];
+    const shapes = data.uuids
+        .map((u) => IdMap.get(UuidToIdMap.get(u)!) ?? undefined)
+        .filter((s) => s !== undefined) as IShape[];
     if (shapes.length === 0) return;
     moveFloor(shapes, floorStore.getFloor({ name: data.floor })!, false);
     if (shapes.some((s) => s.ownedBy(false, { editAccess: true }))) floorStore.selectFloor({ name: data.floor }, false);
 });
 
 socket.on("Shapes.Layer.Change", (data: { uuids: string[]; floor: string; layer: LayerName }) => {
-    const shapes = data.uuids.map((u) => UuidMap.get(u) ?? undefined).filter((s) => s !== undefined) as IShape[];
+    const shapes = data.uuids
+        .map((u) => IdMap.get(UuidToIdMap.get(u)!) ?? undefined)
+        .filter((s) => s !== undefined) as IShape[];
     if (shapes.length === 0) return;
     moveLayer(shapes, floorStore.getLayer(floorStore.getFloor({ name: data.floor })!, data.layer)!, false);
 });
 
 socket.on("Shape.Rect.Size.Update", (data: { uuid: string; w: number; h: number }) => {
-    const shape = UuidMap.get(data.uuid) as Rect | undefined;
+    const shape = IdMap.get(UuidToIdMap.get(data.uuid)!) as Rect | undefined;
     if (shape === undefined) return;
 
     shape.w = data.w;
@@ -87,7 +91,7 @@ socket.on("Shape.Rect.Size.Update", (data: { uuid: string; w: number; h: number 
 });
 
 socket.on("Shape.Circle.Size.Update", (data: { uuid: string; r: number }) => {
-    const shape = UuidMap.get(data.uuid) as Circle | undefined;
+    const shape = IdMap.get(UuidToIdMap.get(data.uuid)!) as Circle | undefined;
     if (shape === undefined) return;
 
     shape.r = data.r;

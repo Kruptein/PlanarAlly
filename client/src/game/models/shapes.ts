@@ -1,4 +1,6 @@
+import { IdMap, UuidToIdMap } from "../../store/shapeMap";
 import type { Label } from "../shapes/interfaces";
+import type { GlobalId } from "../shapes/localId";
 import type { ShapeAccess, ShapeOwner } from "../shapes/owners";
 import type { SHAPE_TYPE } from "../shapes/types";
 
@@ -6,7 +8,7 @@ import type { LayerName } from "./floor";
 import type { Conditions } from "./logic";
 
 export interface ServerShape {
-    uuid: string;
+    uuid: GlobalId;
     type_: SHAPE_TYPE;
     x: number;
     y: number;
@@ -128,7 +130,7 @@ export const accessToServer = (access: ShapeAccess): ServerShapeAccess => ({
 
 export const ownerToServer = (owner: ShapeOwner): ServerShapeOwner => ({
     user: owner.user,
-    shape: owner.shape,
+    shape: IdMap.get(owner.shape)!.uuid,
     ...accessToServer(owner.access),
 });
 
@@ -140,7 +142,7 @@ const accessToClient = (access: ServerShapeAccess): ShapeAccess => ({
 
 export const ownerToClient = (owner: ServerShapeOwner): ShapeOwner => ({
     user: owner.user,
-    shape: owner.shape,
+    shape: UuidToIdMap.get(owner.shape)!,
     access: accessToClient(owner),
 });
 
@@ -164,7 +166,7 @@ export interface ShapeOptions {
     doorConditions: Conditions;
     teleport: {
         conditions: Conditions;
-        location?: { id: number; spawnUuid: string };
+        location?: { id: number; spawnUuid: GlobalId };
         immediate: boolean;
     };
 }

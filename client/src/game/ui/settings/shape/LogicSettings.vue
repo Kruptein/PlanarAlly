@@ -10,6 +10,7 @@ import { copyConditions } from "../../../../store/logic";
 import { requestSpawnInfo } from "../../../api/emits/location";
 import { DEFAULT_CONDITIONS } from "../../../models/logic";
 import type { Conditions, LOGIC_TYPES } from "../../../models/logic";
+import type { GlobalId } from "../../../shapes/localId";
 
 import LogicPermissions from "./LogicPermissions.vue";
 
@@ -88,7 +89,7 @@ async function chooseTarget(): Promise<void> {
 
     const location = locations.find((l) => l.name === choices[0])!.id;
     const spawnInfo = await requestSpawnInfo(location);
-    let targetLocation: { id: number; spawnUuid: string };
+    let targetLocation: { id: number; spawnUuid: GlobalId };
 
     switch (spawnInfo.length) {
         case 0:

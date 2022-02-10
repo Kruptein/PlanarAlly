@@ -4,6 +4,7 @@ import { baseAdjust, uuidv4 } from "../../core/utils";
 import { clientStore } from "../../store/client";
 import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
+import { UuidToIdMap } from "../../store/shapeMap";
 import { sendRemoveShapes } from "../api/emits/shape/core";
 import { addGroupMembers, createNewGroupForShapes, hasGroup } from "../groups";
 import { selectionState } from "../layers/selection";
@@ -26,6 +27,7 @@ import { addOperation } from "../operations/undo";
 import { TriangulationTarget, VisibilityMode, visionState } from "../vision/state";
 
 import type { IShape } from "./interfaces";
+import type { LocalId } from "./localId";
 import { Asset } from "./variants/asset";
 import { Circle } from "./variants/circle";
 import { CircularToken } from "./variants/circularToken";
@@ -46,7 +48,7 @@ export function createShapeFromDict(shape: ServerShape): IShape | undefined {
         if (group === undefined) {
             console.log("Missing group info detected");
         } else {
-            addGroupMembers(shape.group, [{ uuid: shape.uuid, badge: shape.badge }], false);
+            addGroupMembers(shape.group, [{ uuid: UuidToIdMap.get(shape.uuid)!, badge: shape.badge }], false);
         }
     }
 
@@ -113,10 +115,15 @@ export function createShapeFromDict(shape: ServerShape): IShape | undefined {
     } else if (shape.type_ === "togglecomposite") {
         const toggleComposite = shape as ServerToggleComposite;
 
-        sh = new ToggleComposite(refPoint, toggleComposite.active_variant, toggleComposite.variants, {
-            uuid: toggleComposite.uuid,
-        });
-        gameStore.addOwnedToken(sh.uuid);
+        sh = new ToggleComposite(
+            refPoint,
+            UuidToIdMap.get(toggleComposite.active_variant)!,
+            toggleComposite.variants.map((v) => ({ uuid: UuidToIdMap.get(v.uuid)!, name: v.name })),
+            {
+                uuid: toggleComposite.uuid,
+            },
+        );
+        gameStore.addOwnedToken(sh.id);
     } else {
         return undefined;
     }
@@ -130,7 +137,7 @@ export function copyShapes(): void {
     for (const shape of selectionState.get({ includeComposites: true })) {
         if (!shape.ownedBy(false, { editAccess: true })) continue;
         if (shape.groupId === undefined) {
-            createNewGroupForShapes([shape.uuid]);
+            createNewGroupForShapes([shape.id]);
         }
         clipboard.push(shape.asDict());
     }
@@ -157,7 +164,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
     const composites: ServerToggleComposite[] = [];
     const serverShapes: ServerShape[] = [];
 
-    const groupShapes: Record<string, string[]> = {};
+    const groupShapes: Record<string, LocalId[]> = {};
 
     for (const clip of gameState.clipboard) {
         const newShape: ServerShape = Object.assign({}, clip, { auras: [], labels: [], owners: [], trackers: [] });
@@ -211,7 +218,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
             if (!(clip.group in groupShapes)) {
                 groupShapes[clip.group] = [];
             }
-            groupShapes[clip.group].push(newShape.uuid);
+            groupShapes[clip.group].push(UuidToIdMap.get(newShape.uuid)!);
         }
         if (clip.type_ === "togglecomposite") {
             composites.push(newShape as ServerToggleComposite);

@@ -5,6 +5,7 @@ import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import type { ServerAsset } from "../../models/shapes";
 import { loadSvgData } from "../../svg";
 import { TriangulationTarget, visionState } from "../../vision/state";
+import type { GlobalId } from "../localId";
 import type { SHAPE_TYPE } from "../types";
 
 import { BaseRect } from "./baseRect";
@@ -23,7 +24,7 @@ export class Asset extends BaseRect {
         topleft: GlobalPoint,
         w: number,
         h: number,
-        options?: { uuid?: string; assetId?: number },
+        options?: { uuid?: GlobalId; assetId?: number },
     ) {
         super(topleft, w, h, options);
         this.img = img;
@@ -64,11 +65,11 @@ export class Asset extends BaseRect {
             this.svgData = [...svgs.values()].map((svg) => ({ svg, rp: this.refPoint, paths: undefined }));
             if (this.blocksVision) {
                 visionState.recalculateVision(this._floor!);
-                visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.uuid });
+                visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.id });
             }
             if (this.blocksMovement) {
                 visionState.recalculateMovement(this._floor!);
-                visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: this.uuid });
+                visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: this.id });
             }
             this.layer.removeShape(cover, SyncMode.NO_SYNC, false);
             this.invalidate(false);

@@ -24,19 +24,19 @@ export async function moveShapes(shapes: readonly IShape[], delta: Vector, tempo
             recalculateMovement = true;
             visionState.deleteFromTriangulation({
                 target: TriangulationTarget.MOVEMENT,
-                shape: shape.uuid,
+                shape: shape.id,
             });
         }
         if (shape.blocksVision) {
             recalculateVision = true;
             visionState.deleteFromTriangulation({
                 target: TriangulationTarget.VISION,
-                shape: shape.uuid,
+                shape: shape.id,
             });
         }
 
         const operation: ShapeMovementOperation = {
-            uuid: shape.uuid,
+            uuid: shape.id,
             from: toArrayP(shape.refPoint),
             to: toArrayP(shape.refPoint),
         };
@@ -47,15 +47,14 @@ export async function moveShapes(shapes: readonly IShape[], delta: Vector, tempo
         operationList.shapes.push(operation);
 
         if (shape.blocksMovement && !temporary)
-            visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: shape.uuid });
-        if (shape.blocksVision)
-            visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: shape.uuid });
+            visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: shape.id });
+        if (shape.blocksVision) visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: shape.id });
 
         // todo: Fix again
         // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
         if (!shape.preventSync) updateList.push(shape);
         if (shape.options.isPlayerRect ?? false) {
-            moveClient(shape.uuid);
+            moveClient(shape.id);
         }
     }
 

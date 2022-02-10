@@ -4,7 +4,7 @@ import { computed, onMounted, reactive, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { DEFAULT_GRID_SIZE } from "../../../store/client";
-import { UuidMap } from "../../../store/shapeMap";
+import { IdMap } from "../../../store/shapeMap";
 import { selectionState } from "../../layers/selection";
 import { mapTool } from "../../tools/variants/map";
 
@@ -35,7 +35,7 @@ watchEffect(() => {
 });
 
 watchEffect(() => {
-    const selection = [...selectionState.state.selection].map((s) => UuidMap.get(s)!);
+    const selection = [...selectionState.state.selection].map((s) => IdMap.get(s)!);
     mapTool.setSelection(selection);
 });
 

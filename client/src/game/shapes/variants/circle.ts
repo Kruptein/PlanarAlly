@@ -5,6 +5,7 @@ import { DEFAULT_GRID_SIZE } from "../../../store/client";
 import { getFogColour } from "../../colour";
 import { calculateDelta } from "../../drag";
 import type { ServerCircle } from "../../models/shapes";
+import type { GlobalId } from "../localId";
 import { Shape } from "../shape";
 import type { SHAPE_TYPE } from "../types";
 
@@ -23,7 +24,7 @@ export class Circle extends Shape {
             fillColour?: string;
             strokeColour?: string;
             viewingAngle?: number;
-            uuid?: string;
+            uuid?: GlobalId;
             strokeWidth?: number;
         },
     ) {

@@ -12,7 +12,7 @@ import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
-import { UuidMap } from "../../../store/shapeMap";
+import { IdMap } from "../../../store/shapeMap";
 import { sendBringPlayers } from "../../api/emits/players";
 import { LayerName } from "../../models/floor";
 import { Asset } from "../../shapes/variants/asset";
@@ -53,7 +53,7 @@ async function createSpawnLocation(): Promise<void> {
         t("game.ui.tools.DefaultContext.new_spawn_title").toString(),
         (value: string) => {
             if (value === "") return { valid: false, reason: t("common.insert_one_character").toString() };
-            const spawnNames = spawnLocations.map((uuid) => UuidMap.get(uuid)?.name ?? "");
+            const spawnNames = spawnLocations.map((uuid) => IdMap.get(uuid)?.name ?? "");
             if (spawnNames.some((name) => name === value))
                 return { valid: false, reason: t("common.name_already_in_use").toString() };
             return { valid: true };
@@ -77,7 +77,7 @@ async function createSpawnLocation(): Promise<void> {
         .addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO, { snappable: false });
     img.onload = () => (gameState.boardInitialized ? shape.layer.invalidate(true) : undefined);
 
-    settingsStore.setSpawnLocations([...spawnLocations, shape.uuid], settingsStore.state.activeLocation, true);
+    settingsStore.setSpawnLocations([...spawnLocations, shape.id], settingsStore.state.activeLocation, true);
 }
 
 function showInitiativeDialog(): void {

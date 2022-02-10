@@ -4,7 +4,7 @@ import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
-import { UuidMap } from "../../../store/shapeMap";
+import { IdMap, UuidToIdMap } from "../../../store/shapeMap";
 import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../../api/emits/shape/core";
 import { drawAuras } from "../../draw";
 import { removeGroupMember } from "../../groups";
@@ -88,7 +88,9 @@ export class Layer {
 
         this.shapes.push(shape);
 
-        UuidMap.set(shape.uuid, shape);
+        IdMap.set(shape.id, shape);
+        UuidToIdMap.set(shape.uuid, shape.id);
+
         shape.setBlocksVision(shape.blocksVision, SyncTo.UI, invalidate !== InvalidationMode.NO);
         shape.setBlocksMovement(shape.blocksMovement, SyncTo.UI, invalidate !== InvalidationMode.NO);
 
@@ -100,8 +102,8 @@ export class Layer {
             }
         }
 
-        if (shape.ownedBy(false, { visionAccess: true }) && shape.isToken) gameStore.addOwnedToken(shape.uuid);
-        if (shape.annotation.length) gameStore.addAnnotation(shape.uuid);
+        if (shape.ownedBy(false, { visionAccess: true }) && shape.isToken) gameStore.addOwnedToken(shape.id);
+        if (shape.annotation.length) gameStore.addAnnotation(shape.id);
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync) {
             sendShapeAdd({ shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
         }
@@ -110,7 +112,7 @@ export class Layer {
         if (
             this.isActiveLayer &&
             activeShapeStore.state.uuid === undefined &&
-            activeShapeStore.state.lastUuid === shape.uuid
+            activeShapeStore.state.lastUuid === shape.id
         ) {
             selectionState.push(shape);
         }
@@ -176,9 +178,9 @@ export class Layer {
             return false;
         }
         const locationOptions = settingsStore.currentLocationOptions.value;
-        if (locationOptions.spawnLocations!.includes(shape.uuid)) {
+        if (locationOptions.spawnLocations!.includes(shape.id)) {
             settingsStore.setSpawnLocations(
-                locationOptions.spawnLocations!.filter((s) => s !== shape.uuid),
+                locationOptions.spawnLocations!.filter((s) => s !== shape.id),
                 settingsStore.state.activeLocation,
                 true,
             );
@@ -186,7 +188,7 @@ export class Layer {
         this.shapes.splice(idx, 1);
 
         if (shape.groupId !== undefined) {
-            removeGroupMember(shape.groupId, shape.uuid, false);
+            removeGroupMember(shape.groupId, shape.id, false);
         }
 
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
@@ -194,14 +196,15 @@ export class Layer {
 
         visionState.removeBlocker(TriangulationTarget.VISION, this.floor, shape, recalculate);
         visionState.removeBlocker(TriangulationTarget.MOVEMENT, this.floor, shape, recalculate);
-        visionState.removeVisionSources(this.floor, shape.uuid);
+        visionState.removeVisionSources(this.floor, shape.id);
 
-        gameStore.removeAnnotation(shape.uuid);
+        gameStore.removeAnnotation(shape.id);
 
-        gameStore.removeOwnedToken(shape.uuid);
+        gameStore.removeOwnedToken(shape.id);
 
-        UuidMap.delete(shape.uuid);
-        gameStore.removeMarker(shape.uuid, true);
+        IdMap.delete(shape.id);
+        UuidToIdMap.delete(shape.uuid);
+        gameStore.removeMarker(shape.id, true);
 
         for (const point of shape.points) {
             const strp = JSON.stringify(point);
@@ -210,9 +213,9 @@ export class Layer {
             else val.delete(shape.uuid);
         }
 
-        if (this.isActiveLayer) selectionState.remove(shape.uuid);
+        if (this.isActiveLayer) selectionState.remove(shape.id);
 
-        if (sync === SyncMode.FULL_SYNC) initiativeStore.removeInitiative(shape.uuid, false);
+        if (sync === SyncMode.FULL_SYNC) initiativeStore.removeInitiative(shape.id, false);
         this.invalidate(!shape.triggersVisionRecalc);
         return true;
     }

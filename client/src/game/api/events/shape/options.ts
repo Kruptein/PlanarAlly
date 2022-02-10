@@ -1,5 +1,5 @@
 import { SyncTo } from "../../../../core/models/types";
-import { UuidMap } from "../../../../store/shapeMap";
+import { IdMap, UuidToIdMap } from "../../../../store/shapeMap";
 import { aurasFromServer, partialAuraFromServer } from "../../../models/conversion/aura";
 import { trackersFromServer, partialTrackerFromServer } from "../../../models/conversion/tracker";
 import type { ServerAura, ServerTracker } from "../../../models/shapes";
@@ -9,7 +9,7 @@ import { socket } from "../../socket";
 
 function wrapCall<T>(func: (value: T, syncTo: SyncTo) => void): (data: { shape: string; value: T }) => void {
     return (data) => {
-        const shape = UuidMap.get(data.shape);
+        const shape = IdMap.get(UuidToIdMap.get(data.shape)!);
         if (shape === undefined) return;
         func.bind(shape)(data.value, SyncTo.UI);
     };
@@ -35,20 +35,20 @@ socket.on("Shape.Options.Aura.Remove", wrapCall(Shape.prototype.removeAura));
 socket.on("Shape.Options.Label.Remove", wrapCall(Shape.prototype.removeLabel));
 
 socket.on("Shape.Options.Tracker.Create", (data: ServerTracker): void => {
-    const shape = UuidMap.get(data.shape);
+    const shape = IdMap.get(UuidToIdMap.get(data.shape)!);
     if (shape === undefined) return;
     shape.pushTracker(trackersFromServer(data)[0], SyncTo.UI);
 });
 
 socket.on("Shape.Options.Tracker.Update", (data: { uuid: string; shape: string } & Partial<Tracker>): void => {
-    const shape = UuidMap.get(data.shape);
+    const shape = IdMap.get(UuidToIdMap.get(data.shape)!);
     if (shape === undefined) return;
     shape.updateTracker(data.uuid, partialTrackerFromServer(data), SyncTo.UI);
 });
 
 socket.on("Shape.Options.Tracker.Move", (data: { shape: string; tracker: string; new_shape: string }): void => {
-    const shape = UuidMap.get(data.shape);
-    const newShape = UuidMap.get(data.new_shape);
+    const shape = IdMap.get(UuidToIdMap.get(data.shape)!);
+    const newShape = IdMap.get(UuidToIdMap.get(data.new_shape)!);
     if (shape === undefined || newShape === undefined) return;
     const tracker = shape.getTrackers(false).find((t) => t.uuid === data.tracker);
     if (tracker === undefined) return;
@@ -58,8 +58,8 @@ socket.on("Shape.Options.Tracker.Move", (data: { shape: string; tracker: string;
 });
 
 socket.on("Shape.Options.Aura.Move", (data: { shape: string; aura: string; new_shape: string }): void => {
-    const shape = UuidMap.get(data.shape);
-    const newShape = UuidMap.get(data.new_shape);
+    const shape = IdMap.get(UuidToIdMap.get(data.shape)!);
+    const newShape = IdMap.get(UuidToIdMap.get(data.new_shape)!);
     if (shape === undefined || newShape === undefined) return;
     const aura = shape.getAuras(false).find((a) => a.uuid === data.aura);
     if (aura === undefined) return;
@@ -69,31 +69,31 @@ socket.on("Shape.Options.Aura.Move", (data: { shape: string; aura: string; new_s
 });
 
 socket.on("Shape.Options.Aura.Create", (data: ServerAura): void => {
-    const shape = UuidMap.get(data.shape);
+    const shape = IdMap.get(UuidToIdMap.get(data.shape)!);
     if (shape === undefined) return;
     shape.pushAura(aurasFromServer(data)[0], SyncTo.UI);
 });
 
 socket.on("Shape.Options.Aura.Update", (data: { uuid: string; shape: string } & Partial<Aura>): void => {
-    const shape = UuidMap.get(data.shape);
+    const shape = IdMap.get(UuidToIdMap.get(data.shape)!);
     if (shape === undefined) return;
     shape.updateAura(data.uuid, partialAuraFromServer(data), SyncTo.UI);
 });
 
 socket.on("Shape.Options.Invisible.Set", (data: { shape: string; value: boolean }) => {
-    const shape = UuidMap.get(data.shape);
+    const shape = IdMap.get(UuidToIdMap.get(data.shape)!);
     if (shape === undefined) return;
     shape.setInvisible(data.value, SyncTo.UI);
 });
 
 socket.on("Shape.Options.Defeated.Set", (data: { shape: string; value: boolean }) => {
-    const shape = UuidMap.get(data.shape);
+    const shape = IdMap.get(UuidToIdMap.get(data.shape)!);
     if (shape === undefined) return;
     shape.setDefeated(data.value, SyncTo.UI);
 });
 
 socket.on("Shape.Options.IsDoor.Set", (data: { shape: string; value: boolean }) => {
-    const shape = UuidMap.get(data.shape);
+    const shape = IdMap.get(UuidToIdMap.get(data.shape)!);
     if (shape === undefined) return;
     shape.setIsDoor(data.value, SyncTo.UI);
 });

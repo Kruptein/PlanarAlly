@@ -1,4 +1,4 @@
-import { UuidMap } from "../../../store/shapeMap";
+import { IdMap, UuidToIdMap } from "../../../store/shapeMap";
 import { addGroupMembers, addNewGroup, removeGroup, removeGroupMember, updateGroupFromServer } from "../../groups";
 import { groupToClient } from "../../models/groups";
 import type { GroupJoinPayload, ServerGroup } from "../../models/groups";
@@ -13,12 +13,16 @@ socket.on("Group.Create", (data: ServerGroup) => {
 });
 
 socket.on("Group.Join", (data: GroupJoinPayload) => {
-    addGroupMembers(data.group_id, data.members, false);
+    addGroupMembers(
+        data.group_id,
+        data.members.map((m) => ({ badge: m.badge, uuid: UuidToIdMap.get(m.uuid)! })),
+        false,
+    );
 });
 
 socket.on("Group.Leave", (data: { uuid: string; group_id: string }[]) => {
     for (const member of data) {
-        removeGroupMember(member.group_id, member.uuid, false);
+        removeGroupMember(member.group_id, UuidToIdMap.get(member.uuid)!, false);
     }
 });
 
@@ -28,7 +32,7 @@ socket.on("Group.Remove", (data: string) => {
 
 socket.on("Group.Members.Update", (data: { uuid: string; badge: number }[]) => {
     for (const { uuid, badge } of data) {
-        const shape = UuidMap.get(uuid);
+        const shape = IdMap.get(UuidToIdMap.get(uuid)!);
         if (shape === undefined) return;
         shape.badge = badge;
         shape.invalidate(true);

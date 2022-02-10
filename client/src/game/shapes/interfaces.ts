@@ -5,13 +5,15 @@ import type { Layer } from "../layers/variants/layer";
 import type { Floor, LayerName } from "../models/floor";
 import type { ServerShape, ShapeOptions } from "../models/shapes";
 
+import type { GlobalId, LocalId } from "./localId";
 import type { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
 import type { SHAPE_TYPE } from "./types";
 import type { BoundingRect } from "./variants/boundingRect";
 
 export interface IShape {
     readonly type: SHAPE_TYPE;
-    readonly uuid: string;
+    readonly id: LocalId;
+    readonly uuid: GlobalId;
 
     get points(): [number, number][];
     invalidatePoints(): void;

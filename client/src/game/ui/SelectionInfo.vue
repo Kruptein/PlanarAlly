@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 import { SyncTo } from "../../core/models/types";
 import { useModal } from "../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../store/activeShape";
-import { UuidMap } from "../../store/shapeMap";
+import { IdMap } from "../../store/shapeMap";
 import type { Aura, Tracker } from "../shapes/interfaces";
 
 const { t } = useI18n();
@@ -23,7 +23,7 @@ function openEditDialog(): void {
 }
 
 async function changeValue(tracker: Tracker | Aura, isAura: boolean): Promise<void> {
-    if (shape.uuid === undefined) return;
+    if (shape.id === undefined) return;
 
     const input = await modals.prompt(
         t("game.ui.selection.SelectionInfo.new_value_NAME", { name: tracker.name }),
@@ -43,7 +43,7 @@ async function changeValue(tracker: Tracker | Aura, isAura: boolean): Promise<vo
 
     if (isAura) {
         activeShapeStore.updateAura(tracker.uuid, { value }, SyncTo.SERVER);
-        const sh = UuidMap.get(shape.uuid)!;
+        const sh = IdMap.get(shape.id)!;
         sh.invalidate(false);
     } else {
         activeShapeStore.updateTracker(tracker.uuid, { value }, SyncTo.SERVER);

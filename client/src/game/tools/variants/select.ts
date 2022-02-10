@@ -23,7 +23,7 @@ import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
 import { Access, logicStore } from "../../../store/logic";
 import { settingsStore } from "../../../store/settings";
-import { UuidMap } from "../../../store/shapeMap";
+import { IdMap } from "../../../store/shapeMap";
 import { sendRequest } from "../../api/emits/logic";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import { calculateDelta } from "../../drag";
@@ -146,7 +146,7 @@ class SelectTool extends Tool implements ISelectTool {
                 const features = getFeatures(this.toolName);
                 if (this.hasFeature(SelectFeatures.PolygonEdit, features)) {
                     const uuid = [...selection.values()][0];
-                    if (UuidMap.get(uuid)!.type === "polygon") {
+                    if (IdMap.get(uuid)!.type === "polygon") {
                         return this.createPolygonEditUi();
                     }
                 }
@@ -245,7 +245,7 @@ class SelectTool extends Tool implements ISelectTool {
 
                     this.operationList = { type: "rotation", center: toGP(0, 0), shapes: [] };
                     for (const shape of selectionState.get({ includeComposites: false }))
-                        this.operationList.shapes.push({ uuid: shape.uuid, from: shape.angle, to: 0 });
+                        this.operationList.shapes.push({ uuid: shape.id, from: shape.angle, to: 0 });
 
                     break;
                 }
@@ -265,7 +265,7 @@ class SelectTool extends Tool implements ISelectTool {
 
                     this.operationList = {
                         type: "resize",
-                        uuid: shape.uuid,
+                        uuid: shape.id,
                         fromPoint: points[this.resizePoint],
                         toPoint: points[this.resizePoint],
                         resizePoint: this.resizePoint,
@@ -286,7 +286,7 @@ class SelectTool extends Tool implements ISelectTool {
                     this.createRotationUi(features);
                 } else {
                     if (ctrlOrCmdPressed(event)) {
-                        selectionState.remove(shape.uuid);
+                        selectionState.remove(shape.id);
                     }
                 }
                 // Logic Door Check
@@ -316,7 +316,7 @@ class SelectTool extends Tool implements ISelectTool {
                     this.operationList = { type: "movement", shapes: [] };
                     for (const shape of selectionState.get({ includeComposites: false })) {
                         this.operationList.shapes.push({
-                            uuid: shape.uuid,
+                            uuid: shape.id,
                             from: toArrayP(shape.refPoint),
                             to: toArrayP(shape.refPoint),
                         });
@@ -565,7 +565,7 @@ class SelectTool extends Tool implements ISelectTool {
                     if (sel.blocksMovement) {
                         visionState.deleteFromTriangulation({
                             target: TriangulationTarget.MOVEMENT,
-                            shape: sel.uuid,
+                            shape: sel.id,
                         });
                     }
                     if (
@@ -577,22 +577,22 @@ class SelectTool extends Tool implements ISelectTool {
                         if (sel.blocksVision) {
                             visionState.deleteFromTriangulation({
                                 target: TriangulationTarget.VISION,
-                                shape: sel.uuid,
+                                shape: sel.id,
                             });
                         }
 
                         sel.snapToGrid();
 
                         if (sel.blocksVision) {
-                            visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: sel.uuid });
+                            visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: sel.id });
                             recalcVision = true;
                         }
                     }
                     // movementBlock is skipped during onMove and definitely has to be done here
                     if (sel.blocksMovement) {
                         if (sel.layer.name === LayerName.Tokens)
-                            visionState.addBlocker(TriangulationTarget.MOVEMENT, sel.uuid, sel.floor.id, false);
-                        visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: sel.uuid });
+                            visionState.addBlocker(TriangulationTarget.MOVEMENT, sel.id, sel.floor.id, false);
+                        visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: sel.id });
                         recalcMovement = true;
                     }
 
@@ -618,7 +618,7 @@ class SelectTool extends Tool implements ISelectTool {
                     if (sel.blocksMovement)
                         visionState.deleteFromTriangulation({
                             target: TriangulationTarget.MOVEMENT,
-                            shape: sel.uuid,
+                            shape: sel.id,
                         });
 
                     if (
@@ -629,18 +629,18 @@ class SelectTool extends Tool implements ISelectTool {
                         if (sel.blocksVision)
                             visionState.deleteFromTriangulation({
                                 target: TriangulationTarget.VISION,
-                                shape: sel.uuid,
+                                shape: sel.id,
                             });
                         sel.resizeToGrid(this.resizePoint, ctrlOrCmdPressed(event));
                         if (sel.blocksVision) {
-                            visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: sel.uuid });
+                            visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: sel.id });
                             recalcVision = true;
                         }
                     }
 
                     // movementBlock is skipped during onMove and definitely has to be done here
                     if (sel.blocksMovement) {
-                        visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: sel.uuid });
+                        visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: sel.id });
                         recalcMovement = true;
                     }
 

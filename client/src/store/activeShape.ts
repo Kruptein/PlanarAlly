@@ -3,12 +3,13 @@ import type { ComputedRef } from "vue";
 
 import { SyncTo } from "../core/models/types";
 import { Store } from "../core/store";
+import { getShape } from "../game/id";
+import type { LocalId } from "../game/id";
 import { selectionState } from "../game/layers/selection";
 import { compositeState } from "../game/layers/state";
 import { DEFAULT_CONDITIONS } from "../game/models/logic";
 import type { ShapeOptions } from "../game/models/shapes";
 import type { Aura, IShape, Label, Tracker } from "../game/shapes/interfaces";
-import type { GlobalId, LocalId } from "../game/shapes/localId";
 import type { ShapeAccess, ShapeOwner } from "../game/shapes/owners";
 import { createEmptyUiAura, createEmptyUiTracker } from "../game/shapes/trackers";
 import type { SHAPE_TYPE } from "../game/shapes/types";
@@ -17,7 +18,6 @@ import type { ToggleComposite } from "../game/shapes/variants/toggleComposite";
 import { clientStore } from "./client";
 import { gameStore } from "./game";
 import { logicStore } from "./logic";
-import { IdMap } from "./shapeMap";
 
 export type UiTracker = { shape: LocalId; temporary: boolean } & Tracker;
 export type UiAura = { shape: LocalId; temporary: boolean } & Aura;
@@ -40,7 +40,6 @@ function toUiAuras(auras: readonly Aura[], shape: LocalId): UiAura[] {
 
 interface ActiveShapeState {
     id?: LocalId;
-    uuid?: GlobalId;
     lastUuid?: LocalId;
     parentUuid?: LocalId;
     showEditDialog: boolean;
@@ -131,7 +130,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
     constructor() {
         super();
-        this.floor = computed(() => (this._state.id !== undefined ? IdMap.get(this._state.id)?.floor.id : undefined));
+        this.floor = computed(() => (this._state.id !== undefined ? getShape(this._state.id)?.floor.id : undefined));
         this.isComposite = computed(() => this._state.parentUuid !== undefined);
 
         this.hasEditAccess = computed(() => {
@@ -153,8 +152,8 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
             const selection = selectionState.state.selection;
             if (selection.size === 0) {
                 this.clear();
-            } else if (this._state.uuid === undefined) {
-                this.setActiveShape(IdMap.get([...selection][0])!);
+            } else if (this._state.id === undefined) {
+                this.setActiveShape(getShape([...selection][0])!);
             } else {
                 let sameMainShape = false;
                 for (const sel of selection) {
@@ -166,7 +165,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
                 if (!sameMainShape) {
                     const showEditDialog = this._state.showEditDialog;
                     activeShapeStore.clear();
-                    activeShapeStore.setActiveShape(IdMap.get([...selection][0])!);
+                    activeShapeStore.setActiveShape(getShape([...selection][0])!);
                     if (showEditDialog) this._state.showEditDialog = showEditDialog;
                 }
             }
@@ -187,7 +186,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.options = options;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.setOptions(this._state.options, syncTo);
         }
     }
@@ -199,7 +198,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.options[key] = value;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.setOptions(this._state.options, syncTo);
         }
     }
@@ -212,7 +211,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.groupId = groupId;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.setGroupId(groupId, syncTo);
         }
     }
@@ -225,7 +224,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.name = name;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.setName(name, syncTo);
         }
     }
@@ -236,7 +235,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.nameVisible = visible;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.setNameVisible(visible, syncTo);
         }
     }
@@ -247,7 +246,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.isToken = isToken;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.setIsToken(isToken, syncTo);
         }
     }
@@ -258,7 +257,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.isInvisible = isInvisible;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.setInvisible(isInvisible, syncTo);
         }
     }
@@ -269,7 +268,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.strokeColour = colour;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.setStrokeColour(colour, syncTo);
         }
     }
@@ -280,7 +279,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.fillColour = colour;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.setFillColour(colour, syncTo);
         }
     }
@@ -291,7 +290,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.blocksMovement = blocksMovement;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.setBlocksMovement(blocksMovement, syncTo);
         }
     }
@@ -301,7 +300,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
         this._state.blocksVision = blocksVision;
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.setBlocksVision(blocksVision, syncTo);
         }
     }
@@ -312,7 +311,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.showBadge = showBadge;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.setShowBadge(showBadge, syncTo);
         }
     }
@@ -323,7 +322,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.isDefeated = isDefeated;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.setDefeated(isDefeated, syncTo);
         }
     }
@@ -334,7 +333,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.isLocked = isLocked;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.setLocked(isLocked, syncTo);
         }
     }
@@ -347,7 +346,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.access = { ...access };
 
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.updateDefaultOwner(this._state.access, syncTo);
         }
     }
@@ -362,7 +361,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         }
 
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.updateDefaultOwner(this._state.access!, syncTo);
         }
     }
@@ -375,7 +374,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         else this._state.access!.edit = false;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.updateDefaultOwner(this._state.access!, syncTo);
         }
     }
@@ -390,7 +389,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         }
 
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.updateDefaultOwner(this._state.access!, syncTo);
         }
     }
@@ -401,7 +400,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.owners.push(owner);
 
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.addOwner(owner, syncTo);
         }
     }
@@ -415,7 +414,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         Object.assign(this._state.owners[index], owner);
 
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.updateOwner({ ...owner, access: { ...owner.access } }, syncTo);
         }
     }
@@ -426,7 +425,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.owners = this._state.owners.filter((o) => o.user !== owner);
 
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.removeOwner(owner, syncTo);
         }
     }
@@ -446,7 +445,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
             return;
         }
         if (syncTo !== SyncTo.UI) {
-            const sh = IdMap.get(shape);
+            const sh = getShape(shape);
             if (sh === undefined) return;
 
             sh.pushTracker(tracker, syncTo);
@@ -462,7 +461,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         Object.assign(tracker, delta);
 
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(tracker.shape);
+            const shape = getShape(tracker.shape);
             if (shape === undefined) return;
 
             if (tracker.temporary) {
@@ -487,7 +486,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         }
 
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(tr.shape);
+            const shape = getShape(tr.shape);
             if (shape === undefined) return;
             shape.removeTracker(tracker, syncTo);
         }
@@ -515,7 +514,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
             return;
         }
         if (syncTo !== SyncTo.UI) {
-            const sh = IdMap.get(shape)!;
+            const sh = getShape(shape)!;
             sh.pushAura(aura, syncTo);
         }
     }
@@ -528,7 +527,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
         Object.assign(aura, delta);
 
-        const shape = IdMap.get(aura.shape);
+        const shape = getShape(aura.shape);
         if (shape === undefined) return;
 
         if (syncTo !== SyncTo.UI) {
@@ -553,7 +552,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
             this._state.firstRealAuraIndex -= 1;
         }
 
-        const shape = IdMap.get(aura.shape);
+        const shape = getShape(aura.shape);
         if (shape === undefined) return;
 
         if (syncTo !== SyncTo.UI) shape.removeAura(auraId, syncTo);
@@ -569,7 +568,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
     // VARIANTS
 
     renameVariant(uuid: LocalId, name: string, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined || this._state.parentUuid === undefined) return;
+        if (this._state.id === undefined || this._state.parentUuid === undefined) return;
 
         const variant = this._state.variants.find((v) => v.uuid === uuid);
         if (variant === undefined) return;
@@ -577,13 +576,13 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         variant.name = name;
 
         if (syncTo !== SyncTo.UI) {
-            const parent = IdMap.get(this._state.parentUuid) as ToggleComposite;
+            const parent = getShape(this._state.parentUuid) as ToggleComposite;
             parent.renameVariant(uuid, name, syncTo);
         }
     }
 
     removeVariant(uuid: LocalId, syncTo: SyncTo): void {
-        if (this._state.uuid === undefined || this._state.parentUuid === undefined) return;
+        if (this._state.id === undefined || this._state.parentUuid === undefined) return;
 
         const index = this._state.variants.findIndex((v) => v.uuid === uuid);
         if (index < 0) return;
@@ -591,7 +590,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.variants.splice(index, 1);
 
         if (syncTo !== SyncTo.UI) {
-            const parent = IdMap.get(this._state.parentUuid) as ToggleComposite;
+            const parent = getShape(this._state.parentUuid) as ToggleComposite;
             parent.removeVariant(uuid, syncTo);
         }
     }
@@ -604,7 +603,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.annotation = annotation;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.setAnnotation(annotation, syncTo);
         }
     }
@@ -615,7 +614,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.annotationVisible = visible;
 
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.setAnnotationVisible(visible, syncTo);
         }
     }
@@ -626,7 +625,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.labels.push({ ...gameStore.state.labels.get(label)! });
 
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.addLabel(label, syncTo);
         }
     }
@@ -637,7 +636,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.labels = this._state.labels.filter((l) => l.uuid !== label);
 
         if (syncTo !== SyncTo.UI) {
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.removeLabel(label, syncTo);
         }
     }
@@ -659,7 +658,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         if (syncTo !== SyncTo.UI) {
             if (isDoor) logicStore.addDoor(this._state.id!);
             else logicStore.removeDoor(this._state.id!);
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.setIsDoor(isDoor, syncTo);
         }
     }
@@ -679,7 +678,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         if (syncTo !== SyncTo.UI) {
             if (isTeleportZone) logicStore.addTeleportZone(this._state.id!);
             else logicStore.removeTeleportZone(this._state.id!);
-            const shape = IdMap.get(this._state.id)!;
+            const shape = getShape(this._state.id)!;
             shape.setIsTeleportZone(isTeleportZone, syncTo);
         }
     }
@@ -690,7 +689,6 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         if (this._state.lastUuid === shape.id) this._state.showEditDialog = true;
 
         this._state.id = shape.id;
-        this._state.uuid = shape.uuid;
         const parent = compositeState.getCompositeParent(shape.id);
         this._state.parentUuid = parent?.id;
         this._state.type = shape.type;
@@ -733,7 +731,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.isTeleportZone = shape.isTeleportZone;
 
         if (this._state.parentUuid !== undefined) {
-            const composite = IdMap.get(this._state.parentUuid) as ToggleComposite;
+            const composite = getShape(this._state.parentUuid) as ToggleComposite;
             this._state.variants = composite.variants.map((v) => ({ ...v }));
         }
     }
@@ -742,7 +740,6 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         if (this._state.showEditDialog) this._state.lastUuid = this._state.id;
         else this._state.lastUuid = undefined;
         this._state.id = undefined;
-        this._state.uuid = undefined;
         this._state.parentUuid = undefined;
         this._state.showEditDialog = false;
         this._state.type = undefined;

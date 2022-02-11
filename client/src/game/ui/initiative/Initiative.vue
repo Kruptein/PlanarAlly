@@ -8,14 +8,14 @@ import { useModal } from "../../../core/plugins/modals/plugin";
 import { getTarget, getValue } from "../../../core/utils";
 import { clientStore } from "../../../store/client";
 import { gameStore } from "../../../store/game";
-import { IdMap } from "../../../store/shapeMap";
 import { uiStore } from "../../../store/ui";
 import { sendRequestInitiatives } from "../../api/emits/initiative";
 import { getGroupMembers } from "../../groups";
+import { getShape } from "../../id";
+import type { LocalId } from "../../id";
 import type { InitiativeData } from "../../models/initiative";
 import { InitiativeEffectMode, InitiativeSort } from "../../models/initiative";
 import type { IShape } from "../../shapes/interfaces";
-import type { LocalId } from "../../shapes/localId";
 import type { Asset } from "../../shapes/variants/asset";
 import { ClientSettingCategory } from "../settings/client/categories";
 
@@ -39,7 +39,7 @@ onMounted(() => initiativeStore.show(false));
 const alwaysShowEffects = computed(() => clientStore.state.initiativeEffectVisibility === InitiativeEffectMode.Always);
 
 function getName(actor: InitiativeData): string {
-    const shape = IdMap.get(actor.shape);
+    const shape = getShape(actor.shape);
     if (shape !== undefined) {
         if (shape.nameVisible) return shape.name;
         if (shape.ownedBy(false, { editAccess: true })) return shape.name;
@@ -77,7 +77,7 @@ function removeEffect(shape: LocalId, index: number): void {
 }
 
 function toggleHighlight(actorId: LocalId, show: boolean): void {
-    const shape = IdMap.get(actorId);
+    const shape = getShape(actorId);
     if (shape === undefined) return;
     let shapeArray: IShape[];
     if (shape.groupId === undefined) {
@@ -92,16 +92,16 @@ function toggleHighlight(actorId: LocalId, show: boolean): void {
 }
 
 function hasImage(actor: InitiativeData): boolean {
-    return IdMap.get(actor.shape)?.type === "assetrect" ?? false;
+    return getShape(actor.shape)?.type === "assetrect" ?? false;
 }
 
 function getImage(actor: InitiativeData): string {
-    return (IdMap.get(actor.shape)! as Asset).src;
+    return (getShape(actor.shape)! as Asset).src;
 }
 
 function canSee(actor: InitiativeData): boolean {
     if (isDm.value || actor.isVisible) return true;
-    const shape = IdMap.get(actor.shape);
+    const shape = getShape(actor.shape);
     if (shape === undefined) return false;
     return shape.ownedBy(false, { editAccess: true });
 }

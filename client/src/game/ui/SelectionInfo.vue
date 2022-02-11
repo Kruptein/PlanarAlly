@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 import { SyncTo } from "../../core/models/types";
 import { useModal } from "../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../store/activeShape";
-import { IdMap } from "../../store/shapeMap";
+import { getShape } from "../id";
 import type { Aura, Tracker } from "../shapes/interfaces";
 
 const { t } = useI18n();
@@ -30,7 +30,7 @@ async function changeValue(tracker: Tracker | Aura, isAura: boolean): Promise<vo
         t("game.ui.selection.SelectionInfo.updating_NAME", { name: tracker.name }),
     );
 
-    if (input === undefined || shape.uuid === undefined) return;
+    if (input === undefined || shape.id === undefined) return;
 
     let value = parseInt(input, 10);
     if (isNaN(value)) {
@@ -43,7 +43,7 @@ async function changeValue(tracker: Tracker | Aura, isAura: boolean): Promise<vo
 
     if (isAura) {
         activeShapeStore.updateAura(tracker.uuid, { value }, SyncTo.SERVER);
-        const sh = IdMap.get(shape.id)!;
+        const sh = getShape(shape.id)!;
         sh.invalidate(false);
     } else {
         activeShapeStore.updateTracker(tracker.uuid, { value }, SyncTo.SERVER);
@@ -53,7 +53,7 @@ async function changeValue(tracker: Tracker | Aura, isAura: boolean): Promise<vo
 
 <template>
     <div>
-        <template v-if="shape.uuid !== undefined">
+        <template v-if="shape.id !== undefined">
             <div id="selection-menu">
                 <div id="selection-lock-button" @click="setLocked" :title="t('game.ui.selection.SelectionInfo.lock')">
                     <font-awesome-icon v-if="shape.isLocked" icon="lock" />

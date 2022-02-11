@@ -6,7 +6,7 @@ import { getValueOrDefault } from "../core/types";
 import { toSnakeCase } from "../core/utils";
 import { sendLocationOptions } from "../game/api/emits/location";
 import type { LocationOptions } from "../game/models/settings";
-import type { LocalId } from "../game/shapes/localId";
+import type { LocalId } from "../game/id";
 
 import { floorStore } from "./floor";
 

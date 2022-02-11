@@ -6,8 +6,8 @@ import RotationSlider from "../../../../core/components/RotationSlider.vue";
 import { SyncTo } from "../../../../core/models/types";
 import { getValue } from "../../../../core/utils";
 import { activeShapeStore } from "../../../../store/activeShape";
-import { IdMap } from "../../../../store/shapeMap";
 import { sendShapeMoveAura, sendShapeMoveTracker } from "../../../api/emits/shape/options";
+import { getGlobalId } from "../../../id";
 import type { Aura, Tracker } from "../../../shapes/interfaces";
 
 const { t } = useI18n();
@@ -19,7 +19,7 @@ const isComposite = activeShapeStore.isComposite;
 
 function updateTracker(tracker: string, delta: Partial<Tracker>, syncTo = true): void {
     if (!owned.value) return;
-    if (activeShapeStore.state.uuid !== undefined)
+    if (activeShapeStore.state.id !== undefined)
         activeShapeStore.updateTracker(tracker, delta, syncTo === true ? SyncTo.SERVER : SyncTo.SHAPE);
 }
 
@@ -43,8 +43,8 @@ function toggleCompositeTracker(trackerId: string): void {
 
     activeShapeStore.pushTracker(tracker, newShape, SyncTo.SHAPE);
     sendShapeMoveTracker({
-        shape: IdMap.get(oldShape)!.uuid,
-        new_shape: IdMap.get(newShape)!.uuid,
+        shape: getGlobalId(oldShape),
+        new_shape: getGlobalId(newShape),
         tracker: tracker.uuid,
     });
 }
@@ -55,7 +55,7 @@ function updateAura(aura: string, delta: Partial<Aura>, syncTo = true): void {
     if (!owned.value) return;
     if (delta.value !== undefined && (isNaN(delta.value) || delta.value < 0)) delta.value = 0;
     if (delta.dim !== undefined && (isNaN(delta.dim) || delta.dim < 0)) delta.dim = 0;
-    if (activeShapeStore.state.uuid !== undefined)
+    if (activeShapeStore.state.id !== undefined)
         activeShapeStore.updateAura(aura, delta, syncTo === true ? SyncTo.SERVER : SyncTo.SHAPE);
 }
 
@@ -78,7 +78,7 @@ function toggleCompositeAura(auraId: string): void {
         oldShape === activeShapeStore.state.id ? activeShapeStore.state.parentUuid! : activeShapeStore.state.id!;
 
     activeShapeStore.pushAura(aura, newShape, SyncTo.SHAPE);
-    sendShapeMoveAura({ shape: IdMap.get(oldShape)!.uuid, new_shape: IdMap.get(newShape)!.uuid, aura: aura.uuid });
+    sendShapeMoveAura({ shape: getGlobalId(oldShape), new_shape: getGlobalId(newShape), aura: aura.uuid });
 }
 </script>
 

@@ -2,8 +2,8 @@ import { g2l } from "../../../core/conversions";
 import type { GlobalPoint } from "../../../core/geometry";
 import { clientStore } from "../../../store/client";
 import { getFogColour } from "../../colour";
+import type { GlobalId } from "../../id";
 import type { ServerRect } from "../../models/shapes";
-import type { GlobalId } from "../localId";
 import type { SHAPE_TYPE } from "../types";
 
 import { BaseRect } from "./baseRect";

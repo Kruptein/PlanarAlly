@@ -1,18 +1,18 @@
 import type { GlobalPoint } from "../../../core/geometry";
 import { SyncTo, SyncMode } from "../../../core/models/types";
 import { gameStore } from "../../../store/game";
-import { IdMap } from "../../../store/shapeMap";
 import { sendShapePositionUpdate, sendShapeOptionsUpdate } from "../../api/emits/shape/core";
 import {
     sendToggleCompositeActiveVariant,
     sendToggleCompositeRemoveVariant,
     sendToggleCompositeRenameVariant,
 } from "../../api/emits/shape/toggleComposite";
+import { getGlobalId, getShape } from "../../id";
+import type { GlobalId, LocalId } from "../../id";
 import { selectionState } from "../../layers/selection";
 import { compositeState } from "../../layers/state";
 import type { ServerToggleComposite } from "../../models/shapes";
 import { TriangulationTarget, visionState } from "../../vision/state";
-import type { GlobalId, LocalId } from "../localId";
 import { Shape } from "../shape";
 import type { SHAPE_TYPE } from "../types";
 
@@ -56,7 +56,7 @@ export class ToggleComposite extends Shape {
 
     renameVariant(uuid: LocalId, name: string, syncTo: SyncTo): void {
         if (syncTo === SyncTo.SERVER)
-            sendToggleCompositeRenameVariant({ shape: this.uuid, variant: IdMap.get(uuid)!.uuid, name });
+            sendToggleCompositeRenameVariant({ shape: getGlobalId(this.id), variant: getGlobalId(uuid), name });
         if (syncTo === SyncTo.UI) this._("renameVariant")(uuid, name, syncTo);
 
         const variant = this._variants.find((v) => v.uuid === uuid);
@@ -66,7 +66,7 @@ export class ToggleComposite extends Shape {
 
     removeVariant(id: LocalId, syncTo: SyncTo): void {
         if (syncTo === SyncTo.SERVER)
-            sendToggleCompositeRemoveVariant({ shape: this.uuid, variant: IdMap.get(id)!.uuid });
+            sendToggleCompositeRemoveVariant({ shape: getGlobalId(this.id), variant: getGlobalId(id) });
         if (syncTo === SyncTo.UI) this._("removeVariant")(id, syncTo);
 
         const v = this._variants.findIndex((v) => v.uuid === id);
@@ -78,13 +78,13 @@ export class ToggleComposite extends Shape {
         this._variants.splice(v, 1);
         this.setActiveVariant(newVariant, true);
 
-        const oldVariant = IdMap.get(id)!;
+        const oldVariant = getShape(id)!;
         oldVariant.layer.removeShape(oldVariant, SyncMode.FULL_SYNC, true);
     }
 
     private resetVariants(...variants: LocalId[]): void {
         for (const variantId of variants) {
-            const variant = IdMap.get(variantId);
+            const variant = getShape(variantId);
             if (variant === undefined) continue;
 
             if (variant.isToken) gameStore.removeOwnedToken(variant.id);
@@ -97,10 +97,10 @@ export class ToggleComposite extends Shape {
     }
 
     setActiveVariant(variant: LocalId, sync: boolean): void {
-        const oldVariant = IdMap.get(this.active_variant)!;
+        const oldVariant = getShape(this.active_variant)!;
         this.resetVariants(this.active_variant);
         this.active_variant = variant;
-        const newVariant = IdMap.get(this.active_variant)!;
+        const newVariant = getShape(this.active_variant)!;
 
         if (newVariant.isToken && newVariant.ownedBy(false, { visionAccess: true }))
             gameStore.addOwnedToken(newVariant.id);
@@ -123,12 +123,12 @@ export class ToggleComposite extends Shape {
 
             sendShapePositionUpdate([newVariant], false);
             sendShapeOptionsUpdate([oldVariant, newVariant], false);
-            sendToggleCompositeActiveVariant({ shape: this.uuid, variant: IdMap.get(variant)!.uuid });
+            sendToggleCompositeActiveVariant({ shape: getGlobalId(this.id), variant: getGlobalId(variant) });
         }
 
         if (this._layer !== undefined && this.layer.isActiveLayer) {
             const selection = [...selectionState.get({ includeComposites: false })];
-            const index = selection.findIndex((s) => s.uuid === oldVariant.uuid);
+            const index = selection.findIndex((s) => s.id === oldVariant.id);
             if (index >= 0) {
                 selection.splice(index, 1, newVariant);
                 selectionState.set(...selection);
@@ -140,8 +140,8 @@ export class ToggleComposite extends Shape {
 
     asDict(): ServerToggleComposite {
         return Object.assign(this.getBaseDict(), {
-            active_variant: IdMap.get(this.active_variant)!.uuid,
-            variants: this._variants.map((v) => ({ uuid: IdMap.get(v.uuid)!.uuid, name: v.name })),
+            active_variant: getGlobalId(this.active_variant)!,
+            variants: this._variants.map((v) => ({ uuid: getGlobalId(v.uuid)!, name: v.name })),
         });
     }
 
@@ -164,7 +164,7 @@ export class ToggleComposite extends Shape {
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
     center(centerPoint?: GlobalPoint): GlobalPoint | void {
-        if (centerPoint === undefined) return IdMap.get(this.active_variant)!.center();
+        if (centerPoint === undefined) return getShape(this.active_variant)!.center();
         this.refPoint = centerPoint;
     }
 

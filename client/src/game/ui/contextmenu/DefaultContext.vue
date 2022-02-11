@@ -12,8 +12,8 @@ import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
-import { IdMap } from "../../../store/shapeMap";
 import { sendBringPlayers } from "../../api/emits/players";
+import { getShape } from "../../id";
 import { LayerName } from "../../models/floor";
 import { Asset } from "../../shapes/variants/asset";
 import { initiativeStore } from "../initiative/state";
@@ -53,7 +53,7 @@ async function createSpawnLocation(): Promise<void> {
         t("game.ui.tools.DefaultContext.new_spawn_title").toString(),
         (value: string) => {
             if (value === "") return { valid: false, reason: t("common.insert_one_character").toString() };
-            const spawnNames = spawnLocations.map((uuid) => IdMap.get(uuid)?.name ?? "");
+            const spawnNames = spawnLocations.map((uuid) => getShape(uuid)?.name ?? "");
             if (spawnNames.some((name) => name === value))
                 return { valid: false, reason: t("common.name_already_in_use").toString() };
             return { valid: true };

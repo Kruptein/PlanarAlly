@@ -23,10 +23,10 @@ import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
 import { Access, logicStore } from "../../../store/logic";
 import { settingsStore } from "../../../store/settings";
-import { IdMap } from "../../../store/shapeMap";
 import { sendRequest } from "../../api/emits/logic";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import { calculateDelta } from "../../drag";
+import { getGlobalId, getShape } from "../../id";
 import { getLocalPointFromEvent } from "../../input/mouse";
 import { selectionState } from "../../layers/selection";
 import { LayerName } from "../../models/floor";
@@ -146,7 +146,7 @@ class SelectTool extends Tool implements ISelectTool {
                 const features = getFeatures(this.toolName);
                 if (this.hasFeature(SelectFeatures.PolygonEdit, features)) {
                     const uuid = [...selection.values()][0];
-                    if (IdMap.get(uuid)!.type === "polygon") {
+                    if (getShape(uuid)!.type === "polygon") {
                         return this.createPolygonEditUi();
                     }
                 }
@@ -233,8 +233,7 @@ class SelectTool extends Tool implements ISelectTool {
         for (let i = selectionStack.length - 1; i >= 0; i--) {
             const shape = selectionStack[i];
             if (!(shape.options.preFogShape ?? false) && (shape.options.skipDraw ?? false)) continue;
-            if ([this.rotationAnchor?.uuid, this.rotationBox?.uuid, this.rotationEnd?.uuid].includes(shape.uuid))
-                continue;
+            if ([this.rotationAnchor?.id, this.rotationBox?.id, this.rotationEnd?.id].includes(shape.id)) continue;
             if (shape.isInvisible && !shape.ownedBy(false, { movementAccess: true })) continue;
 
             if (this.rotationUiActive && this.hasFeature(SelectFeatures.Rotate, features)) {
@@ -302,7 +301,7 @@ class SelectTool extends Tool implements ISelectTool {
                         toast.info("Request to open door sent", {
                             position: POSITION.TOP_RIGHT,
                         });
-                        sendRequest({ door: shape.uuid, logic: "door" });
+                        sendRequest({ door: getGlobalId(shape.id), logic: "door" });
                         return;
                     }
                 }
@@ -510,7 +509,7 @@ class SelectTool extends Tool implements ISelectTool {
                 if (!(shape.options.preFogShape ?? false) && (shape.options.skipDraw ?? false)) continue;
                 if (!shape.ownedBy(false, { movementAccess: true })) continue;
                 if (!shape.visibleInCanvas({ w: layer.width, h: layer.height }, { includeAuras: false })) continue;
-                if (layerSelection.some((s) => s.uuid === shape.uuid)) continue;
+                if (layerSelection.some((s) => s.id === shape.id)) continue;
 
                 const points = shape.points; // expensive call
                 if (points.length > 1) {

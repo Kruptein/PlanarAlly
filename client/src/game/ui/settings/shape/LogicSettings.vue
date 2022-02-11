@@ -10,7 +10,7 @@ import { copyConditions } from "../../../../store/logic";
 import { requestSpawnInfo } from "../../../api/emits/location";
 import { DEFAULT_CONDITIONS } from "../../../models/logic";
 import type { Conditions, LOGIC_TYPES } from "../../../models/logic";
-import type { GlobalId } from "../../../shapes/localId";
+import type { GlobalId } from "../../../id";
 
 import LogicPermissions from "./LogicPermissions.vue";
 

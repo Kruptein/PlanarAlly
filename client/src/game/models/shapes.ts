@@ -1,6 +1,6 @@
-import { IdMap, UuidToIdMap } from "../../store/shapeMap";
+import { getGlobalId, getLocalId } from "../id";
+import type { GlobalId } from "../id";
 import type { Label } from "../shapes/interfaces";
-import type { GlobalId } from "../shapes/localId";
 import type { ShapeAccess, ShapeOwner } from "../shapes/owners";
 import type { SHAPE_TYPE } from "../shapes/types";
 
@@ -53,7 +53,7 @@ interface ServerShapeAccess {
 }
 
 export interface ServerShapeOwner extends ServerShapeAccess {
-    shape: string;
+    shape: GlobalId;
     user: string;
 }
 
@@ -88,15 +88,15 @@ export interface ServerText extends ServerShape {
 }
 
 export interface ServerToggleComposite extends ServerShape {
-    active_variant: string;
-    variants: { uuid: string; name: string }[];
+    active_variant: GlobalId;
+    variants: { uuid: GlobalId; name: string }[];
 }
 export interface ServerAsset extends ServerRect {
     src: string;
 }
 
 export interface ServerTracker {
-    shape: string;
+    shape: GlobalId;
     uuid: string;
     visible: boolean;
     name: string;
@@ -108,7 +108,7 @@ export interface ServerTracker {
 }
 
 export interface ServerAura {
-    shape: string;
+    shape: GlobalId;
     uuid: string;
     active: boolean;
     vision_source: boolean;
@@ -130,7 +130,7 @@ export const accessToServer = (access: ShapeAccess): ServerShapeAccess => ({
 
 export const ownerToServer = (owner: ShapeOwner): ServerShapeOwner => ({
     user: owner.user,
-    shape: IdMap.get(owner.shape)!.uuid,
+    shape: getGlobalId(owner.shape),
     ...accessToServer(owner.access),
 });
 
@@ -142,7 +142,7 @@ const accessToClient = (access: ServerShapeAccess): ShapeAccess => ({
 
 export const ownerToClient = (owner: ServerShapeOwner): ShapeOwner => ({
     user: owner.user,
-    shape: UuidToIdMap.get(owner.shape)!,
+    shape: getLocalId(owner.shape)!,
     access: accessToClient(owner),
 });
 

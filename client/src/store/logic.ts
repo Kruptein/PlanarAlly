@@ -6,18 +6,18 @@ import SingleButtonToast from "../core/components/toasts/SingleButtonToast.vue";
 import { Store } from "../core/store";
 import { sendRequest } from "../game/api/emits/logic";
 import { requestShapeInfo, sendShapesMove } from "../game/api/emits/shape/core";
+import { getGlobalId, getLocalId, getShape } from "../game/id";
+import type { GlobalId, LocalId } from "../game/id";
 import { LayerName } from "../game/models/floor";
 import type { Conditions, LOGIC_TYPES } from "../game/models/logic";
 import { DEFAULT_CONDITIONS } from "../game/models/logic";
 import { setCenterPosition } from "../game/position";
 import type { IShape } from "../game/shapes/interfaces";
-import type { GlobalId, LocalId } from "../game/shapes/localId";
 
 import { coreStore } from "./core";
 import { floorStore } from "./floor";
 import { gameStore } from "./game";
 import { settingsStore } from "./settings";
-import { IdMap, UuidToIdMap } from "./shapeMap";
 
 const toast = useToast();
 
@@ -89,7 +89,7 @@ class LogicStore extends Store<LogicState> {
     async checkTeleport(shapes: readonly IShape[]): Promise<void> {
         for (const [tp, toastId] of Object.entries(this._state.teleportZones)) {
             const shapesToMove: LocalId[] = [];
-            const tpShape = IdMap.get(tp as unknown as LocalId);
+            const tpShape = getShape(tp as unknown as LocalId);
             if (tpShape === undefined || tpShape.options.teleport?.location === undefined) continue;
 
             const canUse = this.canUse(tpShape, "tp");
@@ -101,7 +101,7 @@ class LogicStore extends Store<LogicState> {
                 if (
                     shape.isLocked ||
                     (settingsStore.currentLocationOptions.value.spawnLocations?.includes(shape.id) ?? false) ||
-                    shape.uuid === tpShape.uuid
+                    shape.id === tpShape.id
                 )
                     continue;
                 if (tpShape.contains(shape.center())) {
@@ -118,9 +118,9 @@ class LogicStore extends Store<LogicState> {
                             position: POSITION.TOP_RIGHT,
                         });
                         sendRequest({
-                            fromZone: tpShape.uuid,
+                            fromZone: getGlobalId(tpShape.id),
                             toZone: zone,
-                            transfers: shapesToMove.map((s) => IdMap.get(s)!.uuid),
+                            transfers: shapesToMove.map((s) => getGlobalId(s)),
                             logic: "tp",
                         });
                     } else {
@@ -156,7 +156,7 @@ class LogicStore extends Store<LogicState> {
     getTpZoneShapes(fromZone: LocalId): LocalId[] {
         const tokenLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Tokens)!;
         const shapes: LocalId[] = [];
-        const fromShape = IdMap.get(fromZone);
+        const fromShape = getShape(fromZone);
         if (fromShape === undefined) return [];
 
         for (const shape of tokenLayer.getShapes({ includeComposites: true })) {
@@ -173,8 +173,8 @@ class LogicStore extends Store<LogicState> {
 
     async teleport(fromZone: LocalId, toZone: GlobalId, transfers?: readonly LocalId[]): Promise<void> {
         const activeLocation = settingsStore.state.activeLocation;
-        const tpTargetId = UuidToIdMap.get(toZone);
-        const tpTargetShape = tpTargetId === undefined ? undefined : IdMap.get(tpTargetId);
+        const tpTargetId = getLocalId(toZone);
+        const tpTargetShape = tpTargetId === undefined ? undefined : getShape(tpTargetId);
         let target: { location: number; floor: string; x: number; y: number };
         if (tpTargetShape === undefined) {
             const { location, shape } = await requestShapeInfo(toZone);
@@ -197,7 +197,7 @@ class LogicStore extends Store<LogicState> {
         if (shapes.length === 0) return;
 
         sendShapesMove({
-            shapes: shapes.map((s) => IdMap.get(s)!.uuid),
+            shapes: shapes.map((s) => getGlobalId(s)),
             target,
             tp_zone: true,
         });
@@ -208,7 +208,7 @@ class LogicStore extends Store<LogicState> {
             } else {
                 const users: Set<string> = new Set();
                 for (const sh of shapes) {
-                    const shape = IdMap.get(sh);
+                    const shape = getShape(sh);
                     if (shape === undefined) continue;
                     for (const owner of shape.owners) users.add(owner.user);
                 }

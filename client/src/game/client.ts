@@ -5,12 +5,12 @@ import { InvalidationMode, SyncMode } from "../core/models/types";
 import { uuidv4 } from "../core/utils";
 import { floorStore } from "../store/floor";
 import { gameStore } from "../store/game";
-import { IdMap } from "../store/shapeMap";
 
 import { sendMoveClient } from "./api/emits/client";
+import { getShape } from "./id";
+import type { LocalId } from "./id";
 import { LayerName } from "./models/floor";
 import type { ServerUserLocationOptions } from "./models/settings";
-import type { LocalId } from "./shapes/localId";
 import { Polygon } from "./shapes/variants/polygon";
 
 const playerRectUuids: Map<number, LocalId> = new Map();
@@ -23,7 +23,7 @@ export function moveClientRect(player: number, data: ServerUserLocationOptions):
     const layer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Dm)!;
     let polygon: Polygon;
     if (playerRectUuids.has(player)) {
-        polygon = IdMap.get(playerRectUuids.get(player)!)! as Polygon;
+        polygon = getShape(playerRectUuids.get(player)!)! as Polygon;
     } else {
         polygon = new Polygon(toGP(0, 0), undefined, {
             fillColour: "rgba(0, 0, 0, 0)",
@@ -47,7 +47,7 @@ export function moveClientRect(player: number, data: ServerUserLocationOptions):
 export function moveClient(rectUuid: LocalId): void {
     const player = [...playerRectUuids.entries()].find(([_, uuid]) => uuid === rectUuid)?.[0] ?? -1;
     if (player < 0) return;
-    const rect = IdMap.get(rectUuid)!;
+    const rect = getShape(rectUuid)!;
     if (rect === undefined) return;
     const playerData = playerLocationData.get(player);
     if (playerData === undefined) return;
@@ -63,7 +63,7 @@ export function moveClient(rectUuid: LocalId): void {
 export function showClientRect(player: number, show: boolean): void {
     const rectUuid = playerRectUuids.get(player);
     if (rectUuid === undefined) return;
-    const rect = IdMap.get(rectUuid)!;
+    const rect = getShape(rectUuid)!;
     if (rect === undefined) return;
 
     rect.options.skipDraw = !show;

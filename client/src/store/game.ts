@@ -13,17 +13,17 @@ import { sendNewNote, sendRemoveNote, sendUpdateNote } from "../game/api/emits/n
 import { sendChangePlayerRole } from "../game/api/emits/players";
 import { sendRoomKickPlayer, sendRoomLock } from "../game/api/emits/room";
 import { showClientRect } from "../game/client";
+import { getAllShapes, getGlobalId, getShape } from "../game/id";
+import type { LocalId } from "../game/id";
 import type { Note } from "../game/models/general";
 import type { Player } from "../game/models/player";
 import type { ServerShape } from "../game/models/shapes";
 import { setCenterPosition } from "../game/position";
 import type { Label } from "../game/shapes/interfaces";
-import type { LocalId } from "../game/shapes/localId";
 import { router } from "../router";
 
 import { coreStore } from "./core";
 import { floorStore } from "./floor";
-import { IdMap } from "./shapeMap";
 
 interface GameState {
     isConnected: boolean;
@@ -276,12 +276,12 @@ class GameStore extends Store<GameState> {
     newMarker(marker: LocalId, sync: boolean): void {
         if (!this._state.markers.has(marker)) {
             this._state.markers.add(marker);
-            if (sync) sendMarkerCreate(IdMap.get(marker)!.uuid);
+            if (sync) sendMarkerCreate(getGlobalId(marker));
         }
     }
 
     jumpToMarker(marker: LocalId): void {
-        const shape = IdMap.get(marker);
+        const shape = getShape(marker);
         if (shape == undefined) return;
         setCenterPosition(shape.center());
         sendClientLocationOptions();
@@ -291,7 +291,7 @@ class GameStore extends Store<GameState> {
     removeMarker(marker: LocalId, sync: boolean): void {
         if (this._state.markers.has(marker)) {
             this._state.markers.delete(marker);
-            if (sync) sendMarkerRemove(IdMap.get(marker)!.uuid);
+            if (sync) sendMarkerRemove(getGlobalId(marker));
         }
     }
 
@@ -359,7 +359,7 @@ class GameStore extends Store<GameState> {
     deleteLabel(uuid: string, sync: boolean): void {
         if (!this._state.labels.has(uuid)) return;
         const label = this._state.labels.get(uuid)!;
-        for (const shape of IdMap.values()) {
+        for (const shape of getAllShapes()) {
             const i = shape.labels.indexOf(label);
             if (i >= 0) {
                 shape.labels.splice(i, 1);

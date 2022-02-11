@@ -1,10 +1,10 @@
 import { equalsP } from "../../core/geometry";
 import { Store } from "../../core/store";
 import { floorStore } from "../../store/floor";
-import { IdMap } from "../../store/shapeMap";
 import { sendLocationOptions } from "../api/emits/location";
+import { getShape } from "../id";
+import type { LocalId } from "../id";
 import type { Aura, IShape } from "../shapes/interfaces";
-import type { LocalId } from "../shapes/localId";
 import type { Asset } from "../shapes/variants/asset";
 import { getPaths, pathToArray } from "../svg";
 
@@ -107,7 +107,7 @@ class VisionState extends Store<State> {
         const shapes = this.getBlockers(target, floor);
 
         for (const sh of shapes) {
-            const shape = IdMap.get(sh)!;
+            const shape = getShape(sh)!;
             if (shape.floor.id !== floor) continue;
 
             this.triangulateShape(target, shape);
@@ -200,19 +200,19 @@ class VisionState extends Store<State> {
         const { va, vb } = cdt.insertConstraint(pa, pb);
         va.shapes.add(shape);
         vb.shapes.add(shape);
-        cdt.tds.addTriagVertices(shape.uuid, va, vb);
+        cdt.tds.addTriagVertices(shape.id, va, vb);
     }
 
     addToTriangulation(data: { target: TriangulationTarget; shape: LocalId }): void {
         if (this._state.mode === VisibilityMode.TRIANGLE_ITERATIVE) {
-            const shape = IdMap.get(data.shape);
+            const shape = getShape(data.shape);
             if (shape) this.triangulateShape(data.target, shape);
         }
     }
 
     deleteFromTriangulation(data: { target: TriangulationTarget; shape: LocalId }): void {
         if (this._state.mode === VisibilityMode.TRIANGLE_ITERATIVE) {
-            const shape = IdMap.get(data.shape);
+            const shape = getShape(data.shape);
             if (shape) this.deleteShapesFromTriangulation(data.target, shape);
         }
     }

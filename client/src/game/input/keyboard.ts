@@ -6,9 +6,9 @@ import { clientStore, DEFAULT_GRID_SIZE } from "../../store/client";
 import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
 import { settingsStore } from "../../store/settings";
-import { IdMap } from "../../store/shapeMap";
 import { sendClientLocationOptions } from "../api/emits/client";
 import { calculateDelta } from "../drag";
+import { getShape } from "../id";
 import { selectionState } from "../layers/selection";
 import { moveShapes } from "../operations/movement";
 import { undoOperation, redoOperation } from "../operations/undo";
@@ -28,7 +28,7 @@ export function onKeyUp(event: KeyboardEvent): void {
         if (event.key === " " || (event.code === "Numpad0" && !ctrlOrCmdPressed(event))) {
             // Spacebar or numpad-zero: cycle through own tokens
             // numpad-zero only if Ctrl is not pressed, as this would otherwise conflict with Ctrl + 0
-            const tokens = [...gameStore.state.ownedTokens].map((o) => IdMap.get(o)!);
+            const tokens = [...gameStore.state.ownedTokens].map((o) => getShape(o)!);
             if (tokens.length === 0) return;
             const i = tokens.findIndex((o) => equalsP(o.center(), clientStore.screenCenter));
             const token = tokens[(i + 1) % tokens.length];
@@ -129,7 +129,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             for (const shape of selection) {
                 const isDefeated = !shape.isDefeated;
                 shape.setDefeated(isDefeated, SyncTo.SERVER);
-                if (activeShapeStore.state.uuid === shape.uuid) {
+                if (activeShapeStore.state.id === shape.id) {
                     activeShapeStore.setIsDefeated(isDefeated, SyncTo.UI);
                 }
             }
@@ -142,7 +142,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                 // Might need to introduce a SyncTo.BOTH
                 const isLocked = !shape.isLocked;
                 shape.setLocked(isLocked, SyncTo.SERVER);
-                if (activeShapeStore.state.uuid === shape.uuid) {
+                if (activeShapeStore.state.id === shape.id) {
                     activeShapeStore.setLocked(isLocked, SyncTo.UI);
                 }
             }

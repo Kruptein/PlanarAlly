@@ -1,4 +1,5 @@
 import { equalPoints } from "../../core/math";
+import type { LocalId } from "../id";
 import type { IShape } from "../shapes/interfaces";
 
 import type { CDT } from "./cdt";
@@ -503,7 +504,7 @@ export enum LocateType {
 }
 
 export class TDS {
-    private triagVertices: Map<string, Vertex[]> = new Map();
+    private triagVertices: Map<LocalId, Vertex[]> = new Map();
     dimension = -1;
     vertices: Vertex[] = [];
     triangles: Triangle[] = [];
@@ -956,7 +957,7 @@ export class TDS {
         this.dimension--;
     }
 
-    addTriagVertices(shape: string, ...vertices: Vertex[]): void {
+    addTriagVertices(shape: LocalId, ...vertices: Vertex[]): void {
         const tv = this.triagVertices.get(shape) || this.triagVertices.set(shape, []).get(shape)!;
         for (const vertex of vertices) {
             if (tv.some((v) => equalPoints(vertex.point!, v.point!))) continue;
@@ -964,12 +965,12 @@ export class TDS {
         }
     }
 
-    getTriagVertices(shape: string): Vertex[] {
+    getTriagVertices(shape: LocalId): Vertex[] {
         const tv = this.triagVertices.get(shape);
         return tv === undefined ? [] : [...tv];
     }
 
-    clearTriagVertices(shape: string): void {
+    clearTriagVertices(shape: LocalId): void {
         this.triagVertices.set(shape, []);
     }
 }

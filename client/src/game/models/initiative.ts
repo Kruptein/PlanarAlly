@@ -1,4 +1,4 @@
-import type { LocalId } from "../shapes/localId";
+import type { LocalId } from "../id";
 
 export interface InitiativeData {
     shape: LocalId;

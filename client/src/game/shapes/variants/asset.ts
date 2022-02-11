@@ -2,10 +2,11 @@ import { g2l, g2lx, g2ly, g2lz } from "../../../core/conversions";
 import { toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
+import { getGlobalId } from "../../id";
+import type { GlobalId } from "../../id";
 import type { ServerAsset } from "../../models/shapes";
 import { loadSvgData } from "../../svg";
 import { TriangulationTarget, visionState } from "../../vision/state";
-import type { GlobalId } from "../localId";
 import type { SHAPE_TYPE } from "../types";
 
 import { BaseRect } from "./baseRect";
@@ -88,7 +89,7 @@ export class Asset extends BaseRect {
                 g2lz(this.h),
             );
         } catch (error) {
-            console.warn(`Shape ${this.uuid} could not load the image ${this.src}`);
+            console.warn(`Shape ${getGlobalId(this.id)} could not load the image ${this.src}`);
         }
         super.drawPost(ctx);
     }

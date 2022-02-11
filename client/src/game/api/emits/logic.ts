@@ -1,5 +1,5 @@
 import type { RequestType } from "../../models/logic";
-import type { Global } from "../../shapes/localId";
+import type { Global } from "../../id";
 import { wrapSocket } from "../helpers";
 
 export const sendRequest = wrapSocket<Global<RequestType>>("Logic.Request");

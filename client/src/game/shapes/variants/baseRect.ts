@@ -4,8 +4,8 @@ import type { GlobalPoint } from "../../../core/geometry";
 import { rotateAroundPoint } from "../../../core/math";
 import { DEFAULT_GRID_SIZE } from "../../../store/client";
 import { calculateDelta } from "../../drag";
+import type { GlobalId } from "../../id";
 import type { ServerShape } from "../../models/shapes";
-import type { GlobalId } from "../localId";
 import { Shape } from "../shape";
 
 import { BoundingRect } from "./boundingRect";

@@ -2,8 +2,8 @@ import { g2l, g2lx, g2ly, g2lz } from "../../../core/conversions";
 import { addP, subtractP, toArrayP, toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { rotateAroundPoint } from "../../../core/math";
+import type { GlobalId } from "../../id";
 import type { ServerLine } from "../../models/shapes";
-import type { GlobalId } from "../localId";
 import { Shape } from "../shape";
 import type { SHAPE_TYPE } from "../types";
 

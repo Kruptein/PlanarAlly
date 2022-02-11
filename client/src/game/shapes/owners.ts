@@ -1,4 +1,4 @@
-import type { LocalId } from "./localId";
+import type { LocalId } from "../id";
 
 export interface ShapeOwner {
     shape: LocalId;

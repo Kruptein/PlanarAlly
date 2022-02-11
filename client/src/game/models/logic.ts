@@ -1,4 +1,4 @@
-import type { Global, LocalId } from "../shapes/localId";
+import type { Global, LocalId } from "../id";
 
 export const DEFAULT_CONDITIONS: Conditions = { enabled: [], request: [], disabled: ["default"] };
 export type LOGIC_TYPES = "door" | "tp";

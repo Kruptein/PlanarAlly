@@ -25,7 +25,7 @@ const visible = computed({
     },
 });
 
-const hasShape = computed(() => activeShapeStore.state.uuid !== undefined);
+const hasShape = computed(() => activeShapeStore.state.id !== undefined);
 
 const categoryNames = computed(() => {
     if (activeShapeStore.hasEditAccess.value) {

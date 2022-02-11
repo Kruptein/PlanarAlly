@@ -1,3 +1,4 @@
+import type { GlobalId } from "../../id";
 import type { Aura } from "../../shapes/interfaces";
 import type { ServerAura } from "../shapes";
 
@@ -22,7 +23,7 @@ export const aurasFromServer = (...auras: ServerAura[]): Aura[] => {
     return result;
 };
 
-export const aurasToServer = (shape: string, auras: Aura[]): ServerAura[] => {
+export const aurasToServer = (shape: GlobalId, auras: Aura[]): ServerAura[] => {
     const result = [];
     for (const aura of auras) {
         result.push({

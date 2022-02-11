@@ -3,11 +3,11 @@ import { computed } from "vue";
 
 import { SyncTo } from "../../../core/models/types";
 import { logicStore } from "../../../store/logic";
-import { IdMap, UuidToIdMap } from "../../../store/shapeMap";
 import { sendDeclineRequest } from "../../api/emits/logic";
+import { getLocalId, getShapeFromGlobal } from "../../id";
+import type { Global } from "../../id";
 import type { DoorRequest, RequestTypeResponse, TpRequest } from "../../models/logic";
 import { setCenterPosition } from "../../position";
-import type { Global } from "../../shapes/localId";
 
 const emit = defineEmits(["close-toast"]);
 const props = defineProps<{ data: RequestTypeResponse }>();
@@ -31,7 +31,7 @@ function accept(): void {
 }
 
 function approveDoor(request: Global<DoorRequest> & { requester: string }): void {
-    const shape = IdMap.get(UuidToIdMap.get(request.door)!);
+    const shape = getShapeFromGlobal(request.door);
     if (shape === undefined) return;
 
     shape.setBlocksVision(!shape.blocksVision, SyncTo.SERVER, true);
@@ -40,15 +40,15 @@ function approveDoor(request: Global<DoorRequest> & { requester: string }): void
 
 function approveTp(request: Global<TpRequest> & { requester: string }): void {
     logicStore.teleport(
-        UuidToIdMap.get(request.fromZone)!,
+        getLocalId(request.fromZone)!,
         request.toZone,
-        request.transfers.map((t) => UuidToIdMap.get(t)!),
+        request.transfers.map((t) => getLocalId(t)!),
     );
 }
 
 function showArea(): void {
     const uuid = props.data.logic === "door" ? props.data.door : props.data.toZone;
-    const shape = IdMap.get(UuidToIdMap.get(uuid)!);
+    const shape = getShapeFromGlobal(uuid);
     if (shape === undefined) return;
 
     shape.showHighlight = true;

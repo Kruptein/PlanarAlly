@@ -5,9 +5,9 @@ import { cloneP } from "../../../../core/geometry";
 import { InvalidationMode, SyncMode, SyncTo } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../../../store/activeShape";
-import { IdMap } from "../../../../store/shapeMap";
+import { getShape } from "../../../id";
+import type { LocalId } from "../../../id";
 import { compositeState } from "../../../layers/state";
-import type { LocalId } from "../../../shapes/localId";
 import { ToggleComposite } from "../../../shapes/variants/toggleComposite";
 import { dropAsset } from "../../../temp";
 
@@ -58,7 +58,7 @@ async function addVariant(): Promise<void> {
     const asset = await modals.assetPicker();
     if (asset === undefined) return;
 
-    const shape = IdMap.get(vState.id!)!;
+    const shape = getShape(vState.id!)!;
 
     const newShape = await dropAsset(
         { imageSource: `/static/assets/${asset.file_hash}`, assetId: asset.id },

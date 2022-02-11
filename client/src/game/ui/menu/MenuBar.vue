@@ -5,10 +5,10 @@ import { useI18n } from "vue-i18n";
 import type { AssetFile } from "../../../core/models/types";
 import { baseAdjust, uuidv4 } from "../../../core/utils";
 import { gameStore } from "../../../store/game";
-import { IdMap } from "../../../store/shapeMap";
 import { uiStore } from "../../../store/ui";
+import { getShape } from "../../id";
+import type { LocalId } from "../../id";
 import type { Note } from "../../models/general";
-import type { LocalId } from "../../shapes/localId";
 import NoteDialog from "../NoteDialog.vue";
 
 import AssetParentNode from "./AssetParentNode.vue";
@@ -58,7 +58,7 @@ function jumpToMarker(marker: LocalId): void {
 }
 
 function nameMarker(marker: LocalId): string {
-    const shape = IdMap.get(marker);
+    const shape = getShape(marker);
     if (shape !== undefined) {
         return shape.name;
     } else {

@@ -1,7 +1,7 @@
 import { Store } from "../../core/store";
-import { IdMap } from "../../store/shapeMap";
+import { getShape } from "../id";
+import type { LocalId } from "../id";
 import type { IShape } from "../shapes/interfaces";
-import type { LocalId } from "../shapes/localId";
 
 import { compositeState } from "./state";
 
@@ -31,11 +31,11 @@ class SelectionState extends Store<State> {
     get(options: { includeComposites: boolean; includeUiHelpers?: boolean }): readonly IShape[] {
         const shapes: IShape[] = [];
         for (const selection of this._state.selection) {
-            shapes.push(IdMap.get(selection)!);
+            shapes.push(getShape(selection)!);
         }
         if (options.includeUiHelpers === true) {
             for (const selection of this._state.uiHelpers) {
-                shapes.push(IdMap.get(selection)!);
+                shapes.push(getShape(selection)!);
             }
         }
         return options.includeComposites ? compositeState.addAllCompositeShapes(shapes) : shapes;

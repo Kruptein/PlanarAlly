@@ -1,28 +1,29 @@
 import { SyncTo } from "../../../../core/models/types";
-import { IdMap, UuidToIdMap } from "../../../../store/shapeMap";
+import { getLocalId, getShape } from "../../../id";
+import type { GlobalId } from "../../../id";
 import type { ToggleComposite } from "../../../shapes/variants/toggleComposite";
 import { socket } from "../../socket";
 
-socket.on("ToggleComposite.Variants.Active.Set", (data: { shape: string; variant: string }): void => {
-    const shape = IdMap.get(UuidToIdMap.get(data.shape)!) as ToggleComposite;
+socket.on("ToggleComposite.Variants.Active.Set", (data: { shape: GlobalId; variant: GlobalId }): void => {
+    const shape = getShape(getLocalId(data.shape)!) as ToggleComposite;
     if (shape === undefined) return;
-    shape.setActiveVariant(UuidToIdMap.get(data.variant)!, false);
+    shape.setActiveVariant(getLocalId(data.variant)!, false);
 });
 
-socket.on("ToggleComposite.Variants.Add", (data: { shape: string; variant: string; name: string }): void => {
-    const shape = IdMap.get(UuidToIdMap.get(data.shape)!) as ToggleComposite;
+socket.on("ToggleComposite.Variants.Add", (data: { shape: GlobalId; variant: GlobalId; name: string }): void => {
+    const shape = getShape(getLocalId(data.shape)!) as ToggleComposite;
     if (shape === undefined) return;
-    shape.addVariant(UuidToIdMap.get(data.variant)!, data.name, false);
+    shape.addVariant(getLocalId(data.variant)!, data.name, false);
 });
 
-socket.on("ToggleComposite.Variants.Rename", (data: { shape: string; variant: string; name: string }): void => {
-    const shape = IdMap.get(UuidToIdMap.get(data.shape)!) as ToggleComposite;
+socket.on("ToggleComposite.Variants.Rename", (data: { shape: GlobalId; variant: GlobalId; name: string }): void => {
+    const shape = getShape(getLocalId(data.shape)!) as ToggleComposite;
     if (shape === undefined) return;
-    shape.renameVariant(UuidToIdMap.get(data.variant)!, data.name, SyncTo.UI);
+    shape.renameVariant(getLocalId(data.variant)!, data.name, SyncTo.UI);
 });
 
-socket.on("ToggleComposite.Variants.Remove", (data: { shape: string; variant: string }): void => {
-    const shape = IdMap.get(UuidToIdMap.get(data.shape)!) as ToggleComposite;
+socket.on("ToggleComposite.Variants.Remove", (data: { shape: GlobalId; variant: GlobalId }): void => {
+    const shape = getShape(getLocalId(data.shape)!) as ToggleComposite;
     if (shape === undefined) return;
-    shape.removeVariant(UuidToIdMap.get(data.variant)!, SyncTo.UI);
+    shape.removeVariant(getLocalId(data.variant)!, SyncTo.UI);
 });

@@ -4,10 +4,11 @@ import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
-import { IdMap, UuidToIdMap } from "../../../store/shapeMap";
 import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../../api/emits/shape/core";
 import { drawAuras } from "../../draw";
 import { removeGroupMember } from "../../groups";
+import { dropId, getGlobalId } from "../../id";
+import type { LocalId } from "../../id";
 import { LayerName } from "../../models/floor";
 import type { ServerShape } from "../../models/shapes";
 import { addOperation } from "../../operations/undo";
@@ -34,7 +35,7 @@ export class Layer {
     // These are ordered on a depth basis.
     protected shapes: IShape[] = [];
 
-    points: Map<string, Set<string>> = new Map();
+    points: Map<string, Set<LocalId>> = new Map();
 
     // Extra selection highlighting settings
     protected selectionColor = "#CC0000";
@@ -88,9 +89,6 @@ export class Layer {
 
         this.shapes.push(shape);
 
-        IdMap.set(shape.id, shape);
-        UuidToIdMap.set(shape.uuid, shape.id);
-
         shape.setBlocksVision(shape.blocksVision, SyncTo.UI, invalidate !== InvalidationMode.NO);
         shape.setBlocksMovement(shape.blocksMovement, SyncTo.UI, invalidate !== InvalidationMode.NO);
 
@@ -98,7 +96,7 @@ export class Layer {
         if (options?.snappable ?? true) {
             for (const point of shape.points) {
                 const strp = JSON.stringify(point);
-                this.points.set(strp, (this.points.get(strp) || new Set()).add(shape.uuid));
+                this.points.set(strp, (this.points.get(strp) || new Set()).add(shape.id));
             }
         }
 
@@ -111,7 +109,7 @@ export class Layer {
 
         if (
             this.isActiveLayer &&
-            activeShapeStore.state.uuid === undefined &&
+            activeShapeStore.state.id === undefined &&
             activeShapeStore.state.lastUuid === shape.id
         ) {
             selectionState.push(shape);
@@ -192,7 +190,7 @@ export class Layer {
         }
 
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
-            sendRemoveShapes({ uuids: [shape.uuid], temporary: sync === SyncMode.TEMP_SYNC });
+            sendRemoveShapes({ uuids: [getGlobalId(shape.id)], temporary: sync === SyncMode.TEMP_SYNC });
 
         visionState.removeBlocker(TriangulationTarget.VISION, this.floor, shape, recalculate);
         visionState.removeBlocker(TriangulationTarget.MOVEMENT, this.floor, shape, recalculate);
@@ -202,15 +200,14 @@ export class Layer {
 
         gameStore.removeOwnedToken(shape.id);
 
-        IdMap.delete(shape.id);
-        UuidToIdMap.delete(shape.uuid);
+        dropId(shape.id);
         gameStore.removeMarker(shape.id, true);
 
         for (const point of shape.points) {
             const strp = JSON.stringify(point);
             const val = this.points.get(strp);
             if (val === undefined || val.size === 1) this.points.delete(strp);
-            else val.delete(shape.uuid);
+            else val.delete(shape.id);
         }
 
         if (this.isActiveLayer) selectionState.remove(shape.id);
@@ -227,7 +224,11 @@ export class Layer {
         this.shapes.splice(oldIdx, 1);
         this.shapes.splice(destinationIndex, 0, shape);
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
-            sendShapeOrder({ uuid: shape.uuid, index: destinationIndex, temporary: sync === SyncMode.TEMP_SYNC });
+            sendShapeOrder({
+                uuid: getGlobalId(shape.id),
+                index: destinationIndex,
+                temporary: sync === SyncMode.TEMP_SYNC,
+            });
         this.invalidate(true);
     }
 

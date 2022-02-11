@@ -5,7 +5,6 @@ import { SyncTo } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { getChecked, getValue } from "../../../../core/utils";
 import { activeShapeStore } from "../../../../store/activeShape";
-import { IdMap } from "../../../../store/shapeMap";
 import {
     CHARACTER_SETS,
     createNewGroupForShapes,
@@ -17,13 +16,14 @@ import {
     setCharacterSet,
     setCreationOrder,
 } from "../../../groups";
+import { getShape } from "../../../id";
 import type { CREATION_ORDER_TYPES } from "../../../models/groups";
 import { CREATION_ORDER_OPTIONS } from "../../../models/groups";
 import { setCenterPosition } from "../../../position";
 import type { IShape } from "../../../shapes/interfaces";
 
 const groupId = toRef(activeShapeStore.state, "groupId");
-const uuid = toRef(activeShapeStore.state, "uuid");
+const id = toRef(activeShapeStore.state, "id");
 
 const modals = useModal();
 
@@ -48,11 +48,11 @@ const groupMembers = computed(() => {
 
     const members = memberMap.value.get(group.value.uuid);
     if (members === undefined) return [];
-    return [...members].map((m) => IdMap.get(m)!).sort((a, b) => a.badge - b.badge);
+    return [...members].map((m) => getShape(m)!).sort((a, b) => a.badge - b.badge);
 });
 
 function invalidate(): void {
-    const shape = IdMap.get(activeShapeStore.state.id!)!;
+    const shape = getShape(activeShapeStore.state.id!)!;
     shape.invalidate(true);
 }
 
@@ -150,7 +150,7 @@ function showBadge(member: IShape, checked: boolean): void {
     // This and Keyboard are the only places currently where we would need to update both UI and Server.
     // Might need to introduce a SyncTo.BOTH
     member.setShowBadge(checked, SyncTo.SERVER);
-    if (member.uuid === activeShapeStore.state.uuid) activeShapeStore.setShowBadge(checked, SyncTo.UI);
+    if (member.id === activeShapeStore.state.id) activeShapeStore.setShowBadge(checked, SyncTo.UI);
 }
 
 function removeMember(member: IShape): void {
@@ -234,7 +234,7 @@ async function deleteGroup(): Promise<void> {
                     @mouseenter="toggleHighlight(member, true)"
                     @mouseleave="toggleHighlight(member, false)"
                 >
-                    <template v-if="member.uuid === uuid">> {{ getBadgeCharacters(member) }} &lt;</template>
+                    <template v-if="member.id === id">> {{ getBadgeCharacters(member) }} &lt;</template>
                     <template v-else>
                         {{ getBadgeCharacters(member) }}
                     </template>

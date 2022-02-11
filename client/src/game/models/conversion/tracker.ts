@@ -1,3 +1,4 @@
+import type { GlobalId } from "../../id";
 import type { Tracker } from "../../shapes/interfaces";
 import type { ServerTracker } from "../shapes";
 
@@ -19,7 +20,7 @@ export const trackersFromServer = (...trackers: ServerTracker[]): Tracker[] => {
     return result;
 };
 
-export const trackersToServer = (shape: string, trackers: Tracker[]): ServerTracker[] => {
+export const trackersToServer = (shape: GlobalId, trackers: Tracker[]): ServerTracker[] => {
     const result = [];
     for (const tracker of trackers) {
         result.push({

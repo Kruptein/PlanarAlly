@@ -6,7 +6,7 @@ import type { GlobalPoint, Vector } from "../../core/geometry";
 import { rotateAroundPoint } from "../../core/math";
 import { SyncTo } from "../../core/models/types";
 import type { FunctionPropertyNames, PartialBy } from "../../core/types";
-import { mostReadable, uuidv4 } from "../../core/utils";
+import { mostReadable } from "../../core/utils";
 import { activeShapeStore } from "../../store/activeShape";
 import type { ActiveShapeStore } from "../../store/activeShape";
 import { clientStore } from "../../store/client";
@@ -47,6 +47,8 @@ import {
     sendShapeUpdateTracker,
 } from "../api/emits/shape/options";
 import { getBadgeCharacters } from "../groups";
+import { generateLocalId, getGlobalId } from "../id";
+import type { GlobalId, LocalId } from "../id";
 import { compositeState } from "../layers/state";
 import type { Layer } from "../layers/variants/layer";
 import { aurasFromServer, aurasToServer, partialAuraToServer } from "../models/conversion/aura";
@@ -58,8 +60,6 @@ import { initiativeStore } from "../ui/initiative/state";
 import { TriangulationTarget, visionState } from "../vision/state";
 
 import type { Aura, IShape, Label, Tracker } from "./interfaces";
-import { generateId } from "./localId";
-import type { GlobalId, LocalId } from "./localId";
 import type { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
 import type { SHAPE_TYPE } from "./types";
 import { BoundingRect } from "./variants/boundingRect";
@@ -68,8 +68,7 @@ export abstract class Shape implements IShape {
     // Used to create class instance from server shape data
     abstract readonly type: SHAPE_TYPE;
     readonly id: LocalId;
-    // The unique ID of this shape
-    readonly uuid: GlobalId;
+
     // The layer the shape is currently on
     protected _floor!: number | undefined;
     protected _layer!: LayerName;
@@ -158,8 +157,7 @@ export abstract class Shape implements IShape {
         },
     ) {
         this._refPoint = refPoint;
-        this.id = generateId();
-        this.uuid = options?.uuid ?? uuidv4();
+        this.id = generateLocalId(this, options?.uuid);
         this.fillColour = options?.fillColour ?? "#000";
         this.strokeColour = options?.strokeColour ?? "rgba(0,0,0,0)";
         this.assetId = options?.assetId;
@@ -231,16 +229,16 @@ export abstract class Shape implements IShape {
 
     updateLayerPoints(): void {
         for (const point of this.layer.points) {
-            if (point[1].has(this.uuid)) {
+            if (point[1].has(this.id)) {
                 if (point[1].size === 1) this.layer.points.delete(point[0]);
-                else point[1].delete(this.uuid);
+                else point[1].delete(this.id);
             }
         }
         for (const point of this.points) {
             const strp = JSON.stringify(point);
-            if (this.layer.points.has(strp) && !this.layer.points.get(strp)!.has(this.uuid))
-                this.layer.points.get(strp)!.add(this.uuid);
-            else if (!this.layer.points.has(strp)) this.layer.points.set(strp, new Set([this.uuid]));
+            if (this.layer.points.has(strp) && !this.layer.points.get(strp)!.has(this.id))
+                this.layer.points.get(strp)!.add(this.id);
+            else if (!this.layer.points.has(strp)) this.layer.points.set(strp, new Set([this.id]));
         }
     }
 
@@ -436,7 +434,7 @@ export abstract class Shape implements IShape {
     getBaseDict(): ServerShape {
         return {
             type_: this.type,
-            uuid: this.uuid,
+            uuid: getGlobalId(this.id),
             x: this.refPoint.x,
             y: this.refPoint.y,
             angle: this.angle,
@@ -445,8 +443,8 @@ export abstract class Shape implements IShape {
             draw_operator: this.globalCompositeOperation,
             movement_obstruction: this.blocksMovement,
             vision_obstruction: this.blocksVision,
-            auras: aurasToServer(this.uuid, this._auras),
-            trackers: trackersToServer(this.uuid, this._trackers),
+            auras: aurasToServer(getGlobalId(this.id), this._auras),
+            trackers: trackersToServer(getGlobalId(this.id), this._trackers),
             labels: this.labels,
             owners: this._owners.map((owner) => ownerToServer(owner)),
             fill_colour: this.fillColour,
@@ -545,7 +543,7 @@ export abstract class Shape implements IShape {
      * @param f A funtion name that exists on ActiveShapeStore
      */
     protected _<F extends FunctionPropertyNames<ActiveShapeStore>>(f: F): ActiveShapeStore[F] {
-        if (this.uuid === activeShapeStore.state.uuid)
+        if (this.id === activeShapeStore.state.id)
             return activeShapeStore[f].bind(activeShapeStore) as ActiveShapeStore[F];
         return (..._: unknown[]) => {};
     }
@@ -561,7 +559,7 @@ export abstract class Shape implements IShape {
     // PROPERTIES
 
     setName(name: string, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetName({ shape: this.uuid, value: name });
+        if (syncTo === SyncTo.SERVER) sendShapeSetName({ shape: getGlobalId(this.id), value: name });
         if (syncTo === SyncTo.UI) this._("setName")(name, syncTo);
 
         this.name = name;
@@ -571,14 +569,14 @@ export abstract class Shape implements IShape {
     }
 
     setNameVisible(visible: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetNameVisible({ shape: this.uuid, value: visible });
+        if (syncTo === SyncTo.SERVER) sendShapeSetNameVisible({ shape: getGlobalId(this.id), value: visible });
         if (syncTo === SyncTo.UI) this._("setNameVisible")(visible, syncTo);
 
         this.nameVisible = visible;
     }
 
     setIsToken(isToken: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetIsToken({ shape: this.uuid, value: isToken });
+        if (syncTo === SyncTo.SERVER) sendShapeSetIsToken({ shape: getGlobalId(this.id), value: isToken });
         if (syncTo === SyncTo.UI) this._("setIsToken")(isToken, syncTo);
 
         this.isToken = isToken;
@@ -590,7 +588,7 @@ export abstract class Shape implements IShape {
     }
 
     setInvisible(isInvisible: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetInvisible({ shape: this.uuid, value: isInvisible });
+        if (syncTo === SyncTo.SERVER) sendShapeSetInvisible({ shape: getGlobalId(this.id), value: isInvisible });
         if (syncTo === SyncTo.UI) this._("setIsInvisible")(isInvisible, syncTo);
 
         this.isInvisible = isInvisible;
@@ -598,7 +596,7 @@ export abstract class Shape implements IShape {
     }
 
     setStrokeColour(colour: string, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetStrokeColour({ shape: this.uuid, value: colour });
+        if (syncTo === SyncTo.SERVER) sendShapeSetStrokeColour({ shape: getGlobalId(this.id), value: colour });
         if (syncTo === SyncTo.UI) this._("setStrokeColour")(colour, syncTo);
 
         this.strokeColour = colour;
@@ -606,7 +604,7 @@ export abstract class Shape implements IShape {
     }
 
     setFillColour(colour: string, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetFillColour({ shape: this.uuid, value: colour });
+        if (syncTo === SyncTo.SERVER) sendShapeSetFillColour({ shape: getGlobalId(this.id), value: colour });
         if (syncTo === SyncTo.UI) this._("setFillColour")(colour, syncTo);
 
         this.fillColour = colour;
@@ -614,7 +612,7 @@ export abstract class Shape implements IShape {
     }
 
     setBlocksVision(blocksVision: boolean, syncTo: SyncTo, recalculate = true): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetBlocksVision({ shape: this.uuid, value: blocksVision });
+        if (syncTo === SyncTo.SERVER) sendShapeSetBlocksVision({ shape: getGlobalId(this.id), value: blocksVision });
         if (syncTo === SyncTo.UI) this._("setBlocksVision")(blocksVision, syncTo);
 
         this.blocksVision = blocksVision;
@@ -623,7 +621,8 @@ export abstract class Shape implements IShape {
     }
 
     setBlocksMovement(blocksMovement: boolean, syncTo: SyncTo, recalculate = true): boolean {
-        if (syncTo === SyncTo.SERVER) sendShapeSetBlocksMovement({ shape: this.uuid, value: blocksMovement });
+        if (syncTo === SyncTo.SERVER)
+            sendShapeSetBlocksMovement({ shape: getGlobalId(this.id), value: blocksMovement });
         if (syncTo === SyncTo.UI) this._("setBlocksMovement")(blocksMovement, syncTo);
 
         let alteredMovement = false;
@@ -655,7 +654,7 @@ export abstract class Shape implements IShape {
     }
 
     setShowBadge(showBadge: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetShowBadge({ shape: this.uuid, value: showBadge });
+        if (syncTo === SyncTo.SERVER) sendShapeSetShowBadge({ shape: getGlobalId(this.id), value: showBadge });
         if (syncTo === SyncTo.UI) this._("setShowBadge")(showBadge, syncTo);
 
         this.showBadge = showBadge;
@@ -664,7 +663,7 @@ export abstract class Shape implements IShape {
     }
 
     setDefeated(isDefeated: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetDefeated({ shape: this.uuid, value: isDefeated });
+        if (syncTo === SyncTo.SERVER) sendShapeSetDefeated({ shape: getGlobalId(this.id), value: isDefeated });
         if (syncTo === SyncTo.UI) this._("setIsDefeated")(isDefeated, syncTo);
 
         this.isDefeated = isDefeated;
@@ -672,7 +671,7 @@ export abstract class Shape implements IShape {
     }
 
     setLocked(isLocked: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetLocked({ shape: this.uuid, value: isLocked });
+        if (syncTo === SyncTo.SERVER) sendShapeSetLocked({ shape: getGlobalId(this.id), value: isLocked });
         if (syncTo === SyncTo.UI) this._("setLocked")(isLocked, syncTo);
 
         this.isLocked = isLocked;
@@ -740,7 +739,7 @@ export abstract class Shape implements IShape {
         this.defaultAccess = access;
 
         if (syncTo === SyncTo.SERVER)
-            sendShapeUpdateDefaultOwner({ ...accessToServer(this.defaultAccess), shape: this.uuid });
+            sendShapeUpdateDefaultOwner({ ...accessToServer(this.defaultAccess), shape: getGlobalId(this.id) });
         if (syncTo === SyncTo.UI) this._("setDefaultAccess")(this.defaultAccess, syncTo);
 
         if (this.isToken) {
@@ -845,7 +844,7 @@ export abstract class Shape implements IShape {
     }
 
     pushTracker(tracker: Tracker, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeCreateTracker(trackersToServer(this.uuid, [tracker])[0]);
+        if (syncTo === SyncTo.SERVER) sendShapeCreateTracker(trackersToServer(getGlobalId(this.id), [tracker])[0]);
         else if (syncTo === SyncTo.UI) this._("pushTracker")(tracker, this.id, syncTo);
 
         this._trackers.push(tracker);
@@ -861,7 +860,7 @@ export abstract class Shape implements IShape {
                 ...partialTrackerToServer({
                     ...delta,
                 }),
-                shape: this.uuid,
+                shape: getGlobalId(this.id),
                 uuid: trackerId,
             });
         } else if (syncTo === SyncTo.UI) {
@@ -873,7 +872,7 @@ export abstract class Shape implements IShape {
     }
 
     removeTracker(tracker: string, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeRemoveTracker({ shape: this.uuid, value: tracker });
+        if (syncTo === SyncTo.SERVER) sendShapeRemoveTracker({ shape: getGlobalId(this.id), value: tracker });
         else if (syncTo === SyncTo.UI) this._("removeTracker")(tracker, syncTo);
 
         this._trackers = this._trackers.filter((tr) => tr.uuid !== tracker);
@@ -895,7 +894,7 @@ export abstract class Shape implements IShape {
     }
 
     pushAura(aura: Aura, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeCreateAura(aurasToServer(this.uuid, [aura])[0]);
+        if (syncTo === SyncTo.SERVER) sendShapeCreateAura(aurasToServer(getGlobalId(this.id), [aura])[0]);
         else if (syncTo === SyncTo.UI) this._("pushAura")(aura, this.id, syncTo);
 
         this._auras.push(aura);
@@ -912,7 +911,7 @@ export abstract class Shape implements IShape {
                 ...partialAuraToServer({
                     ...delta,
                 }),
-                shape: this.uuid,
+                shape: getGlobalId(this.id),
                 uuid: auraId,
             });
         } else if (syncTo === SyncTo.UI) {
@@ -933,7 +932,7 @@ export abstract class Shape implements IShape {
     }
 
     removeAura(aura: string, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeRemoveAura({ shape: this.uuid, value: aura });
+        if (syncTo === SyncTo.SERVER) sendShapeRemoveAura({ shape: getGlobalId(this.id), value: aura });
         else if (syncTo === SyncTo.UI) this._("removeAura")(aura, syncTo);
 
         this._auras = this._auras.filter((au) => au.uuid !== aura);
@@ -944,7 +943,7 @@ export abstract class Shape implements IShape {
     // EXTRA
 
     setAnnotation(text: string, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetAnnotation({ shape: this.uuid, value: text });
+        if (syncTo === SyncTo.SERVER) sendShapeSetAnnotation({ shape: getGlobalId(this.id), value: text });
         if (syncTo === SyncTo.UI) this._("setAnnotation")(text, syncTo);
 
         const hadAnnotation = this.annotation !== "";
@@ -957,14 +956,14 @@ export abstract class Shape implements IShape {
     }
 
     setAnnotationVisible(visible: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetAnnotationVisible({ shape: this.uuid, value: visible });
+        if (syncTo === SyncTo.SERVER) sendShapeSetAnnotationVisible({ shape: getGlobalId(this.id), value: visible });
         if (syncTo === SyncTo.UI) this._("setAnnotationVisible")(visible, syncTo);
 
         this.annotationVisible = visible;
     }
 
     addLabel(label: string, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeAddLabel({ shape: this.uuid, value: label });
+        if (syncTo === SyncTo.SERVER) sendShapeAddLabel({ shape: getGlobalId(this.id), value: label });
         if (syncTo === SyncTo.UI) this._("addLabel")(label, syncTo);
 
         const l = gameStore.state.labels.get(label)!;
@@ -972,7 +971,7 @@ export abstract class Shape implements IShape {
     }
 
     removeLabel(label: string, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeRemoveLabel({ shape: this.uuid, value: label });
+        if (syncTo === SyncTo.SERVER) sendShapeRemoveLabel({ shape: getGlobalId(this.id), value: label });
         if (syncTo === SyncTo.UI) this._("removeLabel")(label, syncTo);
 
         this.labels = this.labels.filter((l) => l.uuid !== label);
@@ -981,7 +980,7 @@ export abstract class Shape implements IShape {
     // LOGIC
 
     setIsDoor(isDoor: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeIsDoor({ shape: this.uuid, value: isDoor });
+        if (syncTo === SyncTo.SERVER) sendShapeIsDoor({ shape: getGlobalId(this.id), value: isDoor });
         if (syncTo === SyncTo.UI) this._("setIsDoor")(isDoor, syncTo);
 
         this.isDoor = isDoor;
@@ -990,7 +989,7 @@ export abstract class Shape implements IShape {
     }
 
     setIsTeleportZone(isTeleportZone: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeIsTeleportZone({ shape: this.uuid, value: isTeleportZone });
+        if (syncTo === SyncTo.SERVER) sendShapeIsTeleportZone({ shape: getGlobalId(this.id), value: isTeleportZone });
         if (syncTo === SyncTo.UI) this._("setIsTeleportZone")(isTeleportZone, syncTo);
 
         this.isTeleportZone = isTeleportZone;

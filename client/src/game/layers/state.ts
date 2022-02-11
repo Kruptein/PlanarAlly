@@ -1,7 +1,7 @@
-import { IdMap } from "../../store/shapeMap";
 import { sendToggleCompositeAddVariant } from "../api/emits/shape/toggleComposite";
+import { getGlobalId, getShape } from "../id";
+import type { LocalId } from "../id";
 import type { IShape } from "../shapes/interfaces";
-import type { LocalId } from "../shapes/localId";
 import type { ToggleComposite } from "../shapes/variants/toggleComposite";
 
 class CompositeState {
@@ -14,7 +14,7 @@ class CompositeState {
     getCompositeParent(variant: LocalId): ToggleComposite | undefined {
         const shape_uuid = this.compositeMap.get(variant);
         if (shape_uuid !== undefined) {
-            return IdMap.get(shape_uuid) as ToggleComposite;
+            return getShape(shape_uuid) as ToggleComposite;
         }
         return undefined;
     }
@@ -23,8 +23,8 @@ class CompositeState {
         this.compositeMap.set(variant.uuid, parent);
         if (sync) {
             sendToggleCompositeAddVariant({
-                shape: IdMap.get(parent)!.uuid,
-                variant: IdMap.get(variant.uuid)!.uuid,
+                shape: getGlobalId(parent),
+                variant: getGlobalId(variant.uuid),
                 name: variant.name,
             });
         }
@@ -44,7 +44,7 @@ class CompositeState {
                         continue;
                     } else {
                         shapeUuids.add(variant.uuid);
-                        allShapes.push(IdMap.get(variant.uuid)!);
+                        allShapes.push(getShape(variant.uuid)!);
                     }
                 }
             }

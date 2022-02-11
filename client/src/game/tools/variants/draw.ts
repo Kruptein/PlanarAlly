@@ -515,7 +515,7 @@ class DrawTool extends Tool {
                 if (
                     visionState
                         .getCDT(TriangulationTarget.VISION, this.shape.floor.id)
-                        .tds.getTriagVertices(this.shape.uuid).length > 1
+                        .tds.getTriagVertices(this.shape.id).length > 1
                 )
                     visionState.deleteFromTriangulation({
                         target: TriangulationTarget.VISION,

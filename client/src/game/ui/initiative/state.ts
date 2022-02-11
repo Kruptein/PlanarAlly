@@ -2,7 +2,6 @@ import { Store } from "../../../core/store";
 import { i18n } from "../../../i18n";
 import { clientStore } from "../../../store/client";
 import { gameStore } from "../../../store/game";
-import { IdMap } from "../../../store/shapeMap";
 import {
     sendInitiativeNewEffect,
     sendInitiativeOptionUpdate,
@@ -18,10 +17,11 @@ import {
     sendInitiativeReorder,
     sendInitiativeSetSort,
 } from "../../api/emits/initiative";
+import { getGlobalId, getShape } from "../../id";
+import type { LocalId } from "../../id";
 import { InitiativeSort } from "../../models/initiative";
 import type { InitiativeData, InitiativeEffect, InitiativeSettings } from "../../models/initiative";
 import { setCenterPosition } from "../../position";
-import type { LocalId } from "../../shapes/localId";
 
 let activeTokensBackup: Set<LocalId> | undefined = undefined;
 
@@ -106,7 +106,7 @@ class InitiativeStore extends Store<InitiativeState> {
         if (actor === undefined) return;
 
         actor.initiative = value;
-        if (sync) sendInitiativeSetValue({ shape: IdMap.get(shapeId)!.uuid, value });
+        if (sync) sendInitiativeSetValue({ shape: getGlobalId(shapeId), value });
     }
 
     removeInitiative(shapeId: LocalId, sync: boolean): void {
@@ -115,9 +115,9 @@ class InitiativeStore extends Store<InitiativeState> {
         if (index < 0) return;
 
         data.splice(index, 1);
-        if (sync) sendInitiativeRemove(IdMap.get(shapeId)!.uuid);
+        if (sync) sendInitiativeRemove(getGlobalId(shapeId));
         // Remove highlight
-        const shape = IdMap.get(shapeId);
+        const shape = getShape(shapeId);
         if (shape === undefined) return;
         if (shape.showHighlight) {
             shape.showHighlight = false;
@@ -134,7 +134,7 @@ class InitiativeStore extends Store<InitiativeState> {
 
     changeOrder(shape: LocalId, oldIndex: number, newIndex: number): void {
         if (this.getDataSet()[oldIndex].shape === shape) {
-            sendInitiativeReorder({ shape: IdMap.get(shape)!.uuid, oldIndex, newIndex });
+            sendInitiativeReorder({ shape: getGlobalId(shape), oldIndex, newIndex });
         }
     }
 
@@ -205,7 +205,7 @@ class InitiativeStore extends Store<InitiativeState> {
         if (effect === undefined) effect = getDefaultEffect();
         actor.effects.push(effect);
 
-        if (sync) sendInitiativeNewEffect({ actor: IdMap.get(actor.shape)!.uuid, effect });
+        if (sync) sendInitiativeNewEffect({ actor: getGlobalId(actor.shape), effect });
     }
 
     setEffectName(shape: LocalId, index: number, name: string, sync: boolean): void {
@@ -216,7 +216,7 @@ class InitiativeStore extends Store<InitiativeState> {
         if (effect === undefined) return;
 
         effect.name = name;
-        if (sync) sendInitiativeRenameEffect({ shape: IdMap.get(shape)!.uuid, index, name });
+        if (sync) sendInitiativeRenameEffect({ shape: getGlobalId(shape), index, name });
     }
 
     setEffectTurns(shape: LocalId, index: number, turns: string, sync: boolean): void {
@@ -227,7 +227,7 @@ class InitiativeStore extends Store<InitiativeState> {
         if (effect === undefined) return;
 
         effect.turns = turns;
-        if (sync) sendInitiativeTurnsEffect({ shape: IdMap.get(shape)!.uuid, index, turns });
+        if (sync) sendInitiativeTurnsEffect({ shape: getGlobalId(shape), index, turns });
     }
 
     removeEffect(shape: LocalId, index: number, sync: boolean): void {
@@ -235,7 +235,7 @@ class InitiativeStore extends Store<InitiativeState> {
         if (actor === undefined) return;
 
         actor.effects.splice(index, 1);
-        if (sync) sendInitiativeRemoveEffect({ shape: IdMap.get(shape)!.uuid, index });
+        if (sync) sendInitiativeRemoveEffect({ shape: getGlobalId(shape), index });
     }
 
     // Locks
@@ -253,7 +253,7 @@ class InitiativeStore extends Store<InitiativeState> {
     handleCameraLock(): void {
         if (clientStore.state.initiativeCameraLock) {
             const actor = this.getDataSet()[this._state.turnCounter];
-            const shape = IdMap.get(actor.shape);
+            const shape = getShape(actor.shape);
             if (shape?.ownedBy(false, { visionAccess: true }) ?? false) {
                 setCenterPosition(shape!.center());
             }
@@ -288,7 +288,7 @@ class InitiativeStore extends Store<InitiativeState> {
             if (shapeId === undefined) return false;
         }
         if (gameStore.state.isDm) return true;
-        const shape = IdMap.get(shapeId);
+        const shape = getShape(shapeId);
         // Shapes that are unknown to this client are hidden from this client but owned by other clients
         if (shape === undefined) return false;
         return shape.ownedBy(false, { editAccess: true });
@@ -298,7 +298,7 @@ class InitiativeStore extends Store<InitiativeState> {
         const actor = this.getDataSet()[index];
         if (actor === undefined || !this.owns(actor.shape)) return;
         actor[option] = !actor[option];
-        sendInitiativeOptionUpdate({ shape: IdMap.get(actor.shape)!.uuid, option, value: actor[option] });
+        sendInitiativeOptionUpdate({ shape: getGlobalId(actor.shape), option, value: actor[option] });
     }
 
     setOption(shape: LocalId, option: "isVisible" | "isGroup", value: boolean): void {

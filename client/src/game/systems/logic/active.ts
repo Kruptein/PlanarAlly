@@ -2,16 +2,26 @@ import { reactive } from "vue";
 import type { DeepReadonly } from "vue";
 
 import { SyncTo } from "../../../core/models/types";
-import type { LocalId } from "../../id";
+import type { GlobalId, LocalId } from "../../id";
 
 import { copyPermissions } from "./common";
 import { doorSystem } from "./door";
 import type { Permissions } from "./models";
+import { teleportZoneSystem } from "./teleportZone";
 
 interface State {
     door: {
         enabled: boolean;
         permissions?: Permissions;
+    };
+    tp: {
+        enabled: boolean;
+        permissions?: Permissions;
+        immediate: boolean;
+        target?: {
+            locationId: number;
+            spawnUuid: GlobalId;
+        };
     };
 }
 
@@ -24,6 +34,12 @@ class ReactiveLogic {
             door: {
                 enabled: false,
                 permissions: undefined,
+            },
+            tp: {
+                enabled: false,
+                permissions: undefined,
+                immediate: false,
+                target: undefined,
             },
         });
     }
@@ -63,11 +79,32 @@ class ReactiveLogic {
         }
     }
 
-    setDoorPermissions(): void {}
+    setDoorPermissions(permissions: Permissions, syncTo: SyncTo): void {
+        if (this.id === undefined) return;
+
+        this._state.door.permissions = permissions;
+
+        if (syncTo !== SyncTo.UI) {
+            doorSystem.setPermissions(this.id, permissions, syncTo);
+        }
+    }
 
     // TP ZONE
 
-    setIsTeleportZone(): void {}
+    get isTeleportZone(): boolean {
+        return this.state.tp.enabled;
+    }
+
+    setIsTeleportZone(enabled: boolean, syncTo: SyncTo): void {
+        if (this.id === undefined) return;
+
+        this._state.tp.enabled = enabled;
+
+        if (syncTo !== SyncTo.UI) {
+            teleportZoneSystem.toggle(this.id, enabled, syncTo);
+        }
+    }
+
     setTeleportZonePermissions(): void {}
 }
 

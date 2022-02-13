@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, toRef, watchEffect } from "vue";
+import { computed, ref, watchEffect } from "vue";
 // import { useI18n } from "vue-i18n";
 
 import { SyncTo } from "../../../../core/models/types";
@@ -26,37 +26,35 @@ watchEffect(() => {
     }
 });
 
-const showConditions = ref(false);
+const showPermissions = ref(false);
 const activeLogic = ref<LOGIC_TYPES>("door");
 
-const options = toRef(activeShapeStore.state, "options");
-
-const activeConditions = computed(() => {
+const activePermissions = computed(() => {
     if (activeLogic.value === "door") {
-        return options.value?.doorConditions ?? DEFAULT_PERMISSIONS;
+        return reactiveLogic.state.door.permissions ?? DEFAULT_PERMISSIONS;
     } else {
-        return options.value?.teleport?.conditions ?? DEFAULT_PERMISSIONS;
+        return reactiveLogic.state.tp.permissions ?? DEFAULT_PERMISSIONS;
     }
 });
 
-function openConditions(target: LOGIC_TYPES): void {
+function openPermissions(target: LOGIC_TYPES): void {
     activeLogic.value = target;
-    showConditions.value = true;
+    showPermissions.value = true;
 }
 
-function setConditions(conditions: Permissions): void {
+function setPermissions(permissions: Permissions): void {
     if (activeLogic.value === "door") {
-        activeShapeStore.setOptionKey("doorConditions", conditions, SyncTo.SERVER);
+        reactiveLogic.setDoorPermissions(permissions, SyncTo.SERVER);
     } else {
-        activeShapeStore.setOptionKey(
-            "teleport",
-            {
-                conditions,
-                location: activeShapeStore.state.options?.teleport?.location,
-                immediate: activeShapeStore.state.options?.teleport?.immediate ?? false,
-            },
-            SyncTo.SERVER,
-        );
+        // activeShapeStore.setOptionKey(
+        //     "teleport",
+        //     {
+        //         conditions: permissions,
+        //         location: activeShapeStore.state.options?.teleport?.location,
+        //         immediate: activeShapeStore.state.options?.teleport?.immediate ?? false,
+        //     },
+        //     SyncTo.SERVER,
+        // );
     }
 }
 
@@ -69,7 +67,7 @@ function toggleDoor(): void {
 // Teleport Zone
 
 function toggleTeleportZone(): void {
-    // activeShapeStore.setIsTeleportZone(!activeShapeStore.state.isTeleportZone, SyncTo.SERVER);
+    reactiveLogic.setIsTeleportZone(!reactiveLogic.isTeleportZone, SyncTo.SERVER);
 }
 
 function toggleTpImmediate(): void {
@@ -143,9 +141,9 @@ async function chooseTarget(): Promise<void> {
     <div class="panel restore-panel" v-show="activeSelection">
         <teleport to="#teleport-modals">
             <LogicPermissions
-                v-model:visible="showConditions"
-                :permissions="activeConditions"
-                @update:conditions="setConditions"
+                v-model:visible="showPermissions"
+                :permissions="activePermissions"
+                @update:permissions="setPermissions"
             />
         </teleport>
         <div class="spanrow header">Door</div>
@@ -157,8 +155,8 @@ async function chooseTarget(): Promise<void> {
             :checked="reactiveLogic.state.door.enabled"
             @click="toggleDoor"
         />
-        <label for="logic-dialog-door-config">Conditions</label>
-        <button id="logic-dialog-door-config" class="center" @click="openConditions('door')">
+        <label for="logic-dialog-door-config">Permissions</label>
+        <button id="logic-dialog-door-config" class="center" @click="openPermissions('door')">
             <font-awesome-icon icon="cog" />
         </button>
         <div class="spanrow header">Teleport Zone</div>
@@ -171,7 +169,7 @@ async function chooseTarget(): Promise<void> {
             @click="toggleTeleportZone"
         />
         <label for="logic-dialog-tp-config">Conditions</label>
-        <button id="logic-dialog-tp-config" class="center" @click="openConditions('tp')">
+        <button id="logic-dialog-tp-config" class="center" @click="openPermissions('tp')">
             <font-awesome-icon icon="cog" />
         </button>
         <label for="logic-dialog-tp-target">Target</label>

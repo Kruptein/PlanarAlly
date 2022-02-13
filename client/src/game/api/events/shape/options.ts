@@ -7,6 +7,7 @@ import type { ServerAura, ServerTracker } from "../../../models/shapes";
 import type { Aura, Tracker } from "../../../shapes/interfaces";
 import { Shape } from "../../../shapes/shape";
 import { doorSystem } from "../../../systems/logic/door";
+import type { Permissions } from "../../../systems/logic/models";
 import { socket } from "../../socket";
 
 function wrapCall<T>(func: (value: T, syncTo: SyncTo) => void): (data: { shape: GlobalId; value: T }) => void {
@@ -98,4 +99,10 @@ socket.on("Shape.Options.IsDoor.Set", (data: { shape: GlobalId; value: boolean }
     const shape = getLocalId(data.shape);
     if (shape === undefined) return;
     doorSystem.toggle(shape, data.value, SyncTo.UI);
+});
+
+socket.on("Shape.Options.DoorPermissions.Set", (data: { shape: GlobalId; value: Permissions }) => {
+    const shape = getLocalId(data.shape);
+    if (shape === undefined) return;
+    doorSystem.setPermissions(shape, data.value, SyncTo.UI);
 });

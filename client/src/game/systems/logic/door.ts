@@ -1,5 +1,5 @@
 import { SyncTo } from "../../../core/models/types";
-import { sendShapeIsDoor } from "../../api/emits/shape/options";
+import { sendShapeIsDoor, sendShapePermissions } from "../../api/emits/shape/options";
 import { getGlobalId } from "../../id";
 import type { LocalId } from "../../id";
 
@@ -35,6 +35,11 @@ class DoorSystem {
 
     getPermissions(id: LocalId): Readonly<Permissions> | undefined {
         return this.permissions.get(id);
+    }
+
+    setPermissions(id: LocalId, permissions: Permissions, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.SERVER) sendShapePermissions({ shape: getGlobalId(id), value: permissions });
+        this.permissions.set(id, permissions);
     }
 
     canUse(id: LocalId): Access {

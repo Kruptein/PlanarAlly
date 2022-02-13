@@ -24,6 +24,14 @@ const emit = defineEmits<{
     (e: "close"): void;
 }>();
 
+// We have multiple sortables
+// when moving a value from one to the other we get a 'deleted' and 'added' event
+// the first event received will however be the intermediate state and we don't want to emit that
+// so we keep track of pending actions in this set
+// side-note: the order _seems_ deterministic in that it always first sends added and then deleted
+//            but this might be an implementation detail that changes when upgrading the sortable dependency
+const pendingEvents: Set<string> = new Set();
+
 let permissions = copyPermissions(props.permissions);
 
 watch(
@@ -42,13 +50,17 @@ function change(change: SortableChanged<string>, target: "enabled" | "request" |
         target === "enabled" ? permissions.enabled : target === "disabled" ? permissions.disabled : permissions.request;
     if (change.added) {
         _target.splice(change.added.newIndex, 0, change.added.element);
+        if (pendingEvents.has(change.added.element)) emit("update:permissions", permissions);
+        else pendingEvents.add(change.added.element);
     } else if (change.removed) {
         _target.splice(change.removed.oldIndex, 1);
+        if (pendingEvents.has(change.removed.element)) emit("update:permissions", permissions);
+        else pendingEvents.add(change.removed.element);
     } else if (change.moved) {
         _target.splice(change.moved.oldIndex, 1);
         _target.splice(change.moved.newIndex, 0, change.moved.element);
+        emit("update:permissions", permissions);
     }
-    emit("update:permissions", permissions);
 }
 
 async function add(target: "enabled" | "request" | "disabled"): Promise<void> {

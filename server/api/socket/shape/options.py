@@ -1,3 +1,4 @@
+import json
 from typing_extensions import TypedDict
 
 from playhouse.shortcuts import update_model_from_dict
@@ -688,6 +689,31 @@ async def set_is_door(sid: str, data: ShapeSetBooleanValue):
 
     await sio.emit(
         "Shape.Options.IsDoor.Set",
+        data,
+        skip_sid=sid,
+        room=pr.active_location.get_path(),
+        namespace=GAME_NS,
+    )
+
+
+@sio.on("Shape.Options.DoorPermissions.Set", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def set_is_door(sid: str, data):
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = get_shape_or_none(pr, data["shape"], "DoorPermissions.Set")
+    if shape is None:
+        return
+
+    options = json.loads(shape.options)
+    for option in options:
+        if option[0] == "doorConditions":
+            option[1] = data["value"]
+    shape.options = json.dumps(options)
+    print(shape.save())
+
+    await sio.emit(
+        "Shape.Options.DoorPermissions.Set",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),

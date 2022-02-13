@@ -1,4 +1,5 @@
 import type { ServerAura, ServerTracker } from "../../../models/shapes";
+import type { Permissions } from "../../../systems/logic/models";
 import { wrapSocket } from "../../helpers";
 import { socket } from "../../socket";
 
@@ -34,6 +35,7 @@ export const sendShapeMoveTracker =
 export const sendShapeMoveAura = sendShapeOption<{ aura: string; new_shape: string }>("Shape.Options.Aura.Move");
 
 export const sendShapeIsDoor = sendSimpleShapeOption<boolean>("Shape.Options.IsDoor.Set");
+export const sendShapePermissions = sendSimpleShapeOption<Permissions>("Shape.Options.DoorPermissions.Set");
 export const sendShapeIsTeleportZone = sendSimpleShapeOption<boolean>("Shape.Options.IsTeleportZone.Set");
 
 export const sendShapeCreateTracker = (data: ServerTracker): void => {

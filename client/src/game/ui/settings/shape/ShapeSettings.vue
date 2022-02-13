@@ -53,7 +53,7 @@ const SSC = ShapeSettingCategory;
                 <PropertySettings v-show="selection === SSC.Properties" />
                 <TrackerSettings v-show="selection === SSC.Trackers" />
                 <AccessSettings v-show="selection === SSC.Access" />
-                <LogicSettings v-show="selection === SSC.Logic" />
+                <LogicSettings :activeSelection="selection === SSC.Logic" />
                 <GroupSettings v-show="owned && selection === SSC.Group" />
                 <ExtraSettings v-show="owned && selection === SSC.Extra" />
                 <VariantSwitcher v-show="owned" />

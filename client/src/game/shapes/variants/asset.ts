@@ -3,7 +3,7 @@ import { toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { getGlobalId } from "../../id";
-import type { GlobalId } from "../../id";
+import type { GlobalId, LocalId } from "../../id";
 import type { ServerAsset } from "../../models/shapes";
 import { loadSvgData } from "../../svg";
 import { TriangulationTarget, visionState } from "../../vision/state";
@@ -25,7 +25,7 @@ export class Asset extends BaseRect {
         topleft: GlobalPoint,
         w: number,
         h: number,
-        options?: { uuid?: GlobalId; assetId?: number },
+        options?: { id?: LocalId; uuid?: GlobalId; assetId?: number },
     ) {
         super(topleft, w, h, options);
         this.img = img;

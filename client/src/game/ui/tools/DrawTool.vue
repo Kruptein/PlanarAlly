@@ -154,7 +154,10 @@ const showBorderColour = computed(() => {
         </template>
         <template v-else>
             <teleport to="#teleport-modals">
-                <LogicPermissions v-model:visible="showConditions" v-model:conditions="drawTool.state.doorConditions" />
+                <LogicPermissions
+                    v-model:visible="showConditions"
+                    v-model:permissions="drawTool.state.doorConditions"
+                />
             </teleport>
             <div class="draw-center-header">{{ t("game.ui.selection.edit_dialog.logic.logic") }}</div>
             <div class="draw-checkbox-options-line">

@@ -7,7 +7,7 @@ import { uuidv4 } from "../../../core/utils";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { getFogColour } from "../../colour";
 import { getGlobalId } from "../../id";
-import type { GlobalId } from "../../id";
+import type { GlobalId, LocalId } from "../../id";
 import type { ServerPolygon } from "../../models/shapes";
 import { visionState } from "../../vision/state";
 import { Shape } from "../shape";
@@ -29,6 +29,7 @@ export class Polygon extends Shape {
             strokeColour?: string;
             lineWidth?: number;
             openPolygon?: boolean;
+            id?: LocalId;
             uuid?: GlobalId;
         },
     ) {

@@ -21,7 +21,6 @@ import { i18n } from "../../../i18n";
 import { clientStore, DEFAULT_GRID_SIZE } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
-import { Access, logicStore } from "../../../store/logic";
 import { settingsStore } from "../../../store/settings";
 import { sendRequest } from "../../api/emits/logic";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
@@ -43,6 +42,9 @@ import { Circle } from "../../shapes/variants/circle";
 import { Line } from "../../shapes/variants/line";
 import type { Polygon } from "../../shapes/variants/polygon";
 import { Rect } from "../../shapes/variants/rect";
+import { doorSystem } from "../../systems/logic/door";
+import { Access } from "../../systems/logic/models";
+import { teleportZoneSystem } from "../../systems/logic/teleportZone";
 import { openDefaultContextMenu, openShapeContextMenu } from "../../ui/contextmenu/state";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { Tool } from "../tool";
@@ -290,7 +292,7 @@ class SelectTool extends Tool implements ISelectTool {
                 }
                 // Logic Door Check
                 if (activeToolMode.value === ToolMode.Play) {
-                    const canUseDoor = logicStore.canUse(shape, "door");
+                    const canUseDoor = doorSystem.canUse(shape.id);
                     if (canUseDoor === Access.Enabled) {
                         shape.setBlocksMovement(!shape.blocksMovement, SyncTo.SERVER, true);
                         shape.setBlocksVision(!shape.blocksVision, SyncTo.SERVER, true);
@@ -607,7 +609,7 @@ class SelectTool extends Tool implements ISelectTool {
                 }
                 sendShapePositionUpdate(updateList, false);
 
-                await logicStore.checkTeleport(selectionState.get({ includeComposites: true }));
+                await teleportZoneSystem.checkTeleport(selectionState.get({ includeComposites: true }));
             }
             if (this.mode === SelectOperations.Resize) {
                 for (const sel of layerSelection) {

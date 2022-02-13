@@ -5,7 +5,7 @@ import { calcFontScale, mostReadable } from "../../../core/utils";
 import { clientStore } from "../../../store/client";
 import { sendCircularTokenUpdate } from "../../api/emits/shape/circularToken";
 import { getGlobalId } from "../../id";
-import type { GlobalId } from "../../id";
+import type { GlobalId, LocalId } from "../../id";
 import type { ServerCircularToken } from "../../models/shapes";
 import type { SHAPE_TYPE } from "../types";
 
@@ -23,6 +23,7 @@ export class CircularToken extends Circle {
         options?: {
             fillColour?: string;
             strokeColour?: string;
+            id?: LocalId;
             uuid?: GlobalId;
         },
     ) {

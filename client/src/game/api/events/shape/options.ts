@@ -1,10 +1,12 @@
 import { SyncTo } from "../../../../core/models/types";
-import { getLocalId, getShape, GlobalId } from "../../../id";
+import { getLocalId, getShape } from "../../../id";
+import type { GlobalId } from "../../../id";
 import { aurasFromServer, partialAuraFromServer } from "../../../models/conversion/aura";
 import { trackersFromServer, partialTrackerFromServer } from "../../../models/conversion/tracker";
 import type { ServerAura, ServerTracker } from "../../../models/shapes";
 import type { Aura, Tracker } from "../../../shapes/interfaces";
 import { Shape } from "../../../shapes/shape";
+import { doorSystem } from "../../../systems/logic/door";
 import { socket } from "../../socket";
 
 function wrapCall<T>(func: (value: T, syncTo: SyncTo) => void): (data: { shape: GlobalId; value: T }) => void {
@@ -93,7 +95,7 @@ socket.on("Shape.Options.Defeated.Set", (data: { shape: GlobalId; value: boolean
 });
 
 socket.on("Shape.Options.IsDoor.Set", (data: { shape: GlobalId; value: boolean }) => {
-    const shape = getShape(getLocalId(data.shape)!);
+    const shape = getLocalId(data.shape);
     if (shape === undefined) return;
-    shape.setIsDoor(data.value, SyncTo.UI);
+    doorSystem.toggle(shape, data.value, SyncTo.UI);
 });

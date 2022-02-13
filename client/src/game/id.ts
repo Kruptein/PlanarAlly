@@ -15,19 +15,36 @@ const idMap: Map<LocalId, IShape> = new Map();
 
 let lastId = -1;
 const freeIds: LocalId[] = [];
+const reservedIds: Map<GlobalId, LocalId> = new Map();
 
 function generateId(): LocalId {
     return freeIds.pop() ?? (++lastId as LocalId);
 }
 
-export function generateLocalId(shape: IShape, global?: GlobalId): LocalId {
+// Prepare a LocalId for a GlobalId
+// This is used when a shape is not fully created yet, but already requires some LocalId knowledge
+export function reserveLocalId(uuid: GlobalId): LocalId {
     const local = generateId();
-    uuids[local] = global ?? uuidv4();
+    uuids[local] = uuid;
+    reservedIds.set(uuid, local);
+    return local;
+}
+
+export function generateLocalId(shape: IShape, global?: GlobalId): LocalId {
+    let local: LocalId;
+    if (global && reservedIds.has(global)) {
+        local = reservedIds.get(global)!;
+        reservedIds.delete(global);
+    } else {
+        local = generateId();
+        uuids[local] = global ?? uuidv4();
+    }
     idMap.set(local, shape);
     return local;
 }
 
 export function dropId(id: LocalId): void {
+    reservedIds.delete(uuids[id]);
     delete uuids[id];
     idMap.delete(id);
     freeIds.push(id);

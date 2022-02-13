@@ -2,12 +2,11 @@
 import { computed } from "vue";
 
 import { SyncTo } from "../../../core/models/types";
-import { logicStore } from "../../../store/logic";
 import { sendDeclineRequest } from "../../api/emits/logic";
-import { getLocalId, getShapeFromGlobal } from "../../id";
+import { getShapeFromGlobal } from "../../id";
 import type { Global } from "../../id";
-import type { DoorRequest, RequestTypeResponse, TpRequest } from "../../models/logic";
 import { setCenterPosition } from "../../position";
+import type { DoorRequest, RequestTypeResponse, TpRequest } from "../../systems/logic/models";
 
 const emit = defineEmits(["close-toast"]);
 const props = defineProps<{ data: RequestTypeResponse }>();
@@ -39,11 +38,11 @@ function approveDoor(request: Global<DoorRequest> & { requester: string }): void
 }
 
 function approveTp(request: Global<TpRequest> & { requester: string }): void {
-    logicStore.teleport(
-        getLocalId(request.fromZone)!,
-        request.toZone,
-        request.transfers.map((t) => getLocalId(t)!),
-    );
+    // logicStore.teleport(
+    //     getLocalId(request.fromZone)!,
+    //     request.toZone,
+    //     request.transfers.map((t) => getLocalId(t)!),
+    // );
 }
 
 function showArea(): void {

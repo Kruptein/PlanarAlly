@@ -1,21 +1,30 @@
 <script setup lang="ts">
-import { computed, ref, toRef } from "vue";
-import { useI18n } from "vue-i18n";
+import { computed, ref, toRef, watchEffect } from "vue";
+// import { useI18n } from "vue-i18n";
 
 import { SyncTo } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { locationStore } from "../../../../store/location";
-import { copyConditions } from "../../../../store/logic";
-import { requestSpawnInfo } from "../../../api/emits/location";
-import { DEFAULT_CONDITIONS } from "../../../models/logic";
-import type { Conditions, LOGIC_TYPES } from "../../../models/logic";
-import type { GlobalId } from "../../../id";
+// import { requestSpawnInfo } from "../../../api/emits/location";
+// import type { GlobalId } from "../../../id";
+import { reactiveLogic } from "../../../systems/logic/active";
+import { DEFAULT_PERMISSIONS } from "../../../systems/logic/models";
+import type { LOGIC_TYPES, Permissions } from "../../../systems/logic/models";
 
 import LogicPermissions from "./LogicPermissions.vue";
 
-const { t } = useI18n();
+// const { t } = useI18n();
 const modals = useModal();
+const props = defineProps<{ activeSelection: boolean }>();
+
+watchEffect(() => {
+    if (activeShapeStore.state.id !== undefined && props.activeSelection) {
+        reactiveLogic.load(activeShapeStore.state.id);
+    } else {
+        reactiveLogic.reset();
+    }
+});
 
 const showConditions = ref(false);
 const activeLogic = ref<LOGIC_TYPES>("door");
@@ -24,9 +33,9 @@ const options = toRef(activeShapeStore.state, "options");
 
 const activeConditions = computed(() => {
     if (activeLogic.value === "door") {
-        return options.value?.doorConditions ?? DEFAULT_CONDITIONS;
+        return options.value?.doorConditions ?? DEFAULT_PERMISSIONS;
     } else {
-        return options.value?.teleport?.conditions ?? DEFAULT_CONDITIONS;
+        return options.value?.teleport?.conditions ?? DEFAULT_PERMISSIONS;
     }
 });
 
@@ -35,7 +44,7 @@ function openConditions(target: LOGIC_TYPES): void {
     showConditions.value = true;
 }
 
-function setConditions(conditions: Conditions): void {
+function setConditions(conditions: Permissions): void {
     if (activeLogic.value === "door") {
         activeShapeStore.setOptionKey("doorConditions", conditions, SyncTo.SERVER);
     } else {
@@ -54,26 +63,26 @@ function setConditions(conditions: Conditions): void {
 // Door
 
 function toggleDoor(): void {
-    activeShapeStore.setIsDoor(!activeShapeStore.state.isDoor, SyncTo.SERVER);
+    reactiveLogic.setIsDoor(!reactiveLogic.isDoor, SyncTo.SERVER);
 }
 
 // Teleport Zone
 
 function toggleTeleportZone(): void {
-    activeShapeStore.setIsTeleportZone(!activeShapeStore.state.isTeleportZone, SyncTo.SERVER);
+    // activeShapeStore.setIsTeleportZone(!activeShapeStore.state.isTeleportZone, SyncTo.SERVER);
 }
 
 function toggleTpImmediate(): void {
-    const oldTp = activeShapeStore.state.options?.teleport;
-    activeShapeStore.setOptionKey(
-        "teleport",
-        {
-            conditions: oldTp?.conditions === undefined ? DEFAULT_CONDITIONS : copyConditions(oldTp.conditions),
-            location: oldTp?.location,
-            immediate: !(oldTp?.immediate ?? false),
-        },
-        SyncTo.SERVER,
-    );
+    // const oldTp = activeShapeStore.state.options?.teleport;
+    // activeShapeStore.setOptionKey(
+    //     "teleport",
+    //     {
+    //         conditions: oldTp?.conditions === undefined ? DEFAULT_CONDITIONS : copyConditions(oldTp.conditions),
+    //         location: oldTp?.location,
+    //         immediate: !(oldTp?.immediate ?? false),
+    //     },
+    //     SyncTo.SERVER,
+    // );
 }
 
 async function chooseTarget(): Promise<void> {
@@ -87,55 +96,55 @@ async function chooseTarget(): Promise<void> {
 
     // Select spawn point
 
-    const location = locations.find((l) => l.name === choices[0])!.id;
-    const spawnInfo = await requestSpawnInfo(location);
-    let targetLocation: { id: number; spawnUuid: GlobalId };
+    // const location = locations.find((l) => l.name === choices[0])!.id;
+    // const spawnInfo = await requestSpawnInfo(location);
+    // let targetLocation: { id: number; spawnUuid: GlobalId };
 
-    switch (spawnInfo.length) {
-        case 0:
-            await modals.confirm(
-                t("game.ui.selection.ShapeContext.no_spawn_set_title"),
-                t("game.ui.selection.ShapeContext.no_spawn_set_text"),
-                { showNo: false, yes: "Ok" },
-            );
-            return;
-        case 1:
-            targetLocation = { id: location, spawnUuid: spawnInfo[0].uuid };
-            break;
-        default: {
-            const choice = await modals.selectionBox(
-                "Choose the desired teleport target",
-                spawnInfo.map((s) => s.name),
-            );
-            if (choice === undefined) return;
-            const choiceShape = spawnInfo.find((s) => s.name === choice[0]);
-            if (choiceShape === undefined) return;
-            targetLocation = { id: location, spawnUuid: choiceShape.uuid };
-            break;
-        }
-    }
+    // switch (spawnInfo.length) {
+    //     case 0:
+    //         await modals.confirm(
+    //             t("game.ui.selection.ShapeContext.no_spawn_set_title"),
+    //             t("game.ui.selection.ShapeContext.no_spawn_set_text"),
+    //             { showNo: false, yes: "Ok" },
+    //         );
+    //         return;
+    //     case 1:
+    //         targetLocation = { id: location, spawnUuid: spawnInfo[0].uuid };
+    //         break;
+    //     default: {
+    //         const choice = await modals.selectionBox(
+    //             "Choose the desired teleport target",
+    //             spawnInfo.map((s) => s.name),
+    //         );
+    //         if (choice === undefined) return;
+    //         const choiceShape = spawnInfo.find((s) => s.name === choice[0]);
+    //         if (choiceShape === undefined) return;
+    //         targetLocation = { id: location, spawnUuid: choiceShape.uuid };
+    //         break;
+    //     }
+    // }
 
     // Save tp zone info
 
-    const oldConditions = activeShapeStore.state.options?.teleport?.conditions;
-    activeShapeStore.setOptionKey(
-        "teleport",
-        {
-            conditions: oldConditions === undefined ? DEFAULT_CONDITIONS : copyConditions(oldConditions),
-            location: targetLocation,
-            immediate: activeShapeStore.state.options?.teleport?.immediate ?? false,
-        },
-        SyncTo.SERVER,
-    );
+    // const oldConditions = activeShapeStore.state.options?.teleport?.conditions;
+    // activeShapeStore.setOptionKey(
+    //     "teleport",
+    //     {
+    //         conditions: oldConditions === undefined ? DEFAULT_PERMISSIONS : copyConditions(oldConditions),
+    //         location: targetLocation,
+    //         immediate: activeShapeStore.state.options?.teleport?.immediate ?? false,
+    //     },
+    //     SyncTo.SERVER,
+    // );
 }
 </script>
 
 <template>
-    <div class="panel restore-panel">
+    <div class="panel restore-panel" v-show="activeSelection">
         <teleport to="#teleport-modals">
             <LogicPermissions
                 v-model:visible="showConditions"
-                :conditions="activeConditions"
+                :permissions="activeConditions"
                 @update:conditions="setConditions"
             />
         </teleport>
@@ -145,7 +154,7 @@ async function chooseTarget(): Promise<void> {
             id="logic-dialog-door-toggle"
             type="checkbox"
             class="styled-checkbox center"
-            :checked="activeShapeStore.state.isDoor"
+            :checked="reactiveLogic.state.door.enabled"
             @click="toggleDoor"
         />
         <label for="logic-dialog-door-config">Conditions</label>
@@ -158,7 +167,7 @@ async function chooseTarget(): Promise<void> {
             id="logic-dialog-tp-toggle"
             type="checkbox"
             class="styled-checkbox center"
-            :checked="activeShapeStore.state.isTeleportZone"
+            :checked="true"
             @click="toggleTeleportZone"
         />
         <label for="logic-dialog-tp-config">Conditions</label>

@@ -6,7 +6,7 @@ import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
 import { sendRemoveShapes } from "../api/emits/shape/core";
 import { addGroupMembers, createNewGroupForShapes, hasGroup } from "../groups";
-import { getGlobalId, getLocalId } from "../id";
+import { getGlobalId, getLocalId, reserveLocalId } from "../id";
 import type { GlobalId, LocalId } from "../id";
 import { selectionState } from "../layers/selection";
 import type { LayerName } from "../models/floor";
@@ -48,7 +48,11 @@ export function createShapeFromDict(shape: ServerShape): IShape | undefined {
         if (group === undefined) {
             console.log("Missing group info detected");
         } else {
-            addGroupMembers(shape.group, [{ uuid: getLocalId(shape.uuid)!, badge: shape.badge }], false);
+            addGroupMembers(
+                shape.group,
+                [{ uuid: getLocalId(shape.uuid) ?? reserveLocalId(shape.uuid), badge: shape.badge }],
+                false,
+            );
         }
     }
 

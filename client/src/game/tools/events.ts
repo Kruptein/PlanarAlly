@@ -2,12 +2,13 @@ import { l2g } from "../../core/conversions";
 import { baseAdjust } from "../../core/utils";
 import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
-import { Access, logicStore } from "../../store/logic";
 import { uiStore } from "../../store/ui";
 import { getShape } from "../id";
 import { getLocalPointFromEvent } from "../input/mouse";
 import { LayerName } from "../models/floor";
 import { ToolMode, ToolName } from "../models/tools";
+import { doorSystem } from "../systems/logic/door";
+import { Access } from "../systems/logic/models";
 
 import { activeTool, activeToolMode, getActiveTool, getFeatures, toolMap } from "./tools";
 
@@ -80,12 +81,12 @@ export async function mouseMove(event: MouseEvent): Promise<void> {
     // Logic hover
     if (activeToolMode.value === ToolMode.Play) {
         let foundDoor = false;
-        for (const uuid of logicStore.state.doors) {
-            const shape = getShape(uuid);
+        for (const id of doorSystem.getDoors()) {
+            const shape = getShape(id);
             if (shape === undefined) continue;
             if (shape.floor.id !== floorStore.currentFloor.value!.id) continue;
             if (!shape.contains(eventPoint)) continue;
-            if (logicStore.canUse(shape, "door") === Access.Disabled) continue;
+            if (doorSystem.canUse(id) === Access.Disabled) continue;
 
             foundDoor = true;
             const state = shape.blocksVision ? "lock-open-solid" : "lock-solid";

@@ -7,28 +7,28 @@ import draggable from "vuedraggable";
 import Modal from "../../../../core/components/modals/Modal.vue";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { gameStore } from "../../../../store/game";
-import { copyConditions } from "../../../../store/logic";
-import type { Conditions } from "../../../models/logic";
+import { copyPermissions } from "../../../systems/logic/common";
+import type { Permissions } from "../../../systems/logic/models";
 
 const { t } = useI18n();
 
 const modals = useModal();
 
 const props = defineProps<{
-    conditions: DeepReadonly<Conditions>;
+    permissions: DeepReadonly<Permissions>;
     visible: boolean;
 }>();
 const emit = defineEmits<{
-    (e: "update:conditions", conditions: Conditions): Conditions;
+    (e: "update:permissions", permissions: Permissions): Permissions;
     (e: "update:visible", visible: boolean): void;
     (e: "close"): void;
 }>();
 
-let conditions = copyConditions(props.conditions);
+let permissions = copyPermissions(props.permissions);
 
 watch(
-    () => props.conditions,
-    () => (conditions = copyConditions(props.conditions)),
+    () => props.permissions,
+    () => (permissions = copyPermissions(props.permissions)),
 );
 
 type SortableChanged<T> = {
@@ -39,7 +39,7 @@ type SortableChanged<T> = {
 
 function change(change: SortableChanged<string>, target: "enabled" | "request" | "disabled"): void {
     const _target =
-        target === "enabled" ? conditions.enabled : target === "disabled" ? conditions.disabled : conditions.request;
+        target === "enabled" ? permissions.enabled : target === "disabled" ? permissions.disabled : permissions.request;
     if (change.added) {
         _target.splice(change.added.newIndex, 0, change.added.element);
     } else if (change.removed) {
@@ -48,7 +48,7 @@ function change(change: SortableChanged<string>, target: "enabled" | "request" |
         _target.splice(change.moved.oldIndex, 1);
         _target.splice(change.moved.newIndex, 0, change.moved.element);
     }
-    emit("update:conditions", conditions);
+    emit("update:permissions", permissions);
 }
 
 async function add(target: "enabled" | "request" | "disabled"): Promise<void> {
@@ -60,9 +60,9 @@ async function add(target: "enabled" | "request" | "disabled"): Promise<void> {
             .filter(
                 (p) =>
                     !(
-                        conditions.enabled.includes(p) ||
-                        conditions.request.includes(p) ||
-                        conditions.disabled.includes(p)
+                        permissions.enabled.includes(p) ||
+                        permissions.request.includes(p) ||
+                        permissions.disabled.includes(p)
                     ),
             ),
         { multiSelect: true },
@@ -70,12 +70,12 @@ async function add(target: "enabled" | "request" | "disabled"): Promise<void> {
     if (selection === undefined) return;
 
     const _target =
-        target === "enabled" ? conditions.enabled : target === "disabled" ? conditions.disabled : conditions.request;
+        target === "enabled" ? permissions.enabled : target === "disabled" ? permissions.disabled : permissions.request;
 
     for (const s of selection) {
         _target.push(s);
     }
-    emit("update:conditions", conditions);
+    emit("update:permissions", permissions);
 }
 
 function hideModal(): void {
@@ -100,7 +100,7 @@ function hideModal(): void {
 
             <draggable
                 class="condition-sorter"
-                :modelValue="props.conditions.enabled"
+                :modelValue="props.permissions.enabled"
                 group="door"
                 @change="change($event, 'enabled')"
                 item-key="uuid"
@@ -115,7 +115,7 @@ function hideModal(): void {
             </draggable>
             <draggable
                 class="condition-sorter"
-                :modelValue="props.conditions.request"
+                :modelValue="props.permissions.request"
                 group="door"
                 @change="change($event, 'request')"
                 item-key="uuid"
@@ -130,7 +130,7 @@ function hideModal(): void {
             </draggable>
             <draggable
                 class="condition-sorter"
-                :modelValue="props.conditions.disabled"
+                :modelValue="props.permissions.disabled"
                 group="door"
                 @change="change($event, 'disabled')"
                 item-key="uuid"

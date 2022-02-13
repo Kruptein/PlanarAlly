@@ -4,7 +4,7 @@ import type { GlobalPoint } from "../../../core/geometry";
 import { DEFAULT_GRID_SIZE } from "../../../store/client";
 import { getFogColour } from "../../colour";
 import { calculateDelta } from "../../drag";
-import type { GlobalId } from "../../id";
+import type { GlobalId, LocalId } from "../../id";
 import type { ServerCircle } from "../../models/shapes";
 import { Shape } from "../shape";
 import type { SHAPE_TYPE } from "../types";
@@ -24,6 +24,7 @@ export class Circle extends Shape {
             fillColour?: string;
             strokeColour?: string;
             viewingAngle?: number;
+            id?: LocalId;
             uuid?: GlobalId;
             strokeWidth?: number;
         },

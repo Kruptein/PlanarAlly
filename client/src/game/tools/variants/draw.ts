@@ -16,8 +16,6 @@ import { sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import type { Layer } from "../../layers/variants/layer";
 import { LayerName } from "../../models/floor";
 import type { Floor } from "../../models/floor";
-import { DEFAULT_CONDITIONS } from "../../models/logic";
-import type { Conditions } from "../../models/logic";
 import { ToolName } from "../../models/tools";
 import type { ToolFeatures } from "../../models/tools";
 import { overrideLastOperation } from "../../operations/undo";
@@ -27,6 +25,9 @@ import { Line } from "../../shapes/variants/line";
 import { Polygon } from "../../shapes/variants/polygon";
 import { Rect } from "../../shapes/variants/rect";
 import { Text } from "../../shapes/variants/text";
+import { doorSystem } from "../../systems/logic/door";
+import { DEFAULT_PERMISSIONS } from "../../systems/logic/models";
+import type { Permissions } from "../../systems/logic/models";
 import { openDefaultContextMenu } from "../../ui/contextmenu/state";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { Tool } from "../tool";
@@ -73,7 +74,7 @@ class DrawTool extends Tool {
         fontSize: 20,
 
         isDoor: false,
-        doorConditions: DEFAULT_CONDITIONS,
+        doorConditions: DEFAULT_PERMISSIONS,
     });
     hasBrushSize = computed(() => [DrawShape.Brush, DrawShape.Polygon].includes(this.state.selectedShape));
 
@@ -176,7 +177,7 @@ class DrawTool extends Tool {
         }
         if (this.state.isDoor) {
             this.shape.setOptions({ ...this.shape.options, doorConditions: this.state.doorConditions }, SyncTo.SERVER);
-            this.shape.setIsDoor(true, SyncTo.SERVER);
+            doorSystem.toggle(this.shape.id, true, SyncTo.SERVER);
         }
         this.active = false;
         const layer = this.getLayer();
@@ -683,7 +684,7 @@ class DrawTool extends Tool {
 
     // LOGIC
 
-    setDoorConditions(conditions: Conditions): void {
+    setDoorConditions(conditions: Permissions): void {
         this.state.doorConditions = conditions;
     }
 }

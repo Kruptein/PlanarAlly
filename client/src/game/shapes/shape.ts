@@ -12,7 +12,6 @@ import type { ActiveShapeStore } from "../../store/activeShape";
 import { clientStore } from "../../store/client";
 import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
-import { logicStore } from "../../store/logic";
 import { settingsStore } from "../../store/settings";
 import {
     sendShapeAddOwner,
@@ -25,8 +24,6 @@ import {
     sendShapeAddLabel,
     sendShapeCreateAura,
     sendShapeCreateTracker,
-    sendShapeIsDoor,
-    sendShapeIsTeleportZone,
     sendShapeRemoveAura,
     sendShapeRemoveLabel,
     sendShapeRemoveTracker,
@@ -56,6 +53,8 @@ import { partialTrackerToServer, trackersFromServer, trackersToServer } from "..
 import type { Floor, LayerName } from "../models/floor";
 import { accessToServer, ownerToClient, ownerToServer } from "../models/shapes";
 import type { ServerShape, ShapeOptions } from "../models/shapes";
+import { doorSystem } from "../systems/logic/door";
+import { teleportZoneSystem } from "../systems/logic/teleportZone";
 import { initiativeStore } from "../ui/initiative/state";
 import { TriangulationTarget, visionState } from "../vision/state";
 
@@ -139,10 +138,6 @@ export abstract class Shape implements IShape {
     // Explicitly prevent any sync to the server
     preventSync = false;
 
-    // Logic
-    isDoor = false;
-    isTeleportZone = false;
-
     // Additional options for specialized uses
     options: Partial<ShapeOptions> = {};
 
@@ -151,13 +146,14 @@ export abstract class Shape implements IShape {
         options?: {
             fillColour?: string;
             strokeColour?: string;
+            id?: LocalId;
             uuid?: GlobalId;
             assetId?: number;
             strokeWidth?: number;
         },
     ) {
         this._refPoint = refPoint;
-        this.id = generateLocalId(this, options?.uuid);
+        this.id = options?.id ?? generateLocalId(this, options?.uuid);
         this.fillColour = options?.fillColour ?? "#000";
         this.strokeColour = options?.strokeColour ?? "rgba(0,0,0,0)";
         this.assetId = options?.assetId;
@@ -467,11 +463,14 @@ export abstract class Shape implements IShape {
             asset: this.assetId,
             group: this.groupId,
             ignore_zoom_size: this.ignoreZoomSize,
-            is_door: this.isDoor,
-            is_teleport_zone: this.isTeleportZone,
+            is_door: doorSystem.isDoor(this.id),
+            is_teleport_zone: teleportZoneSystem.isTeleportZone(this.id),
         };
     }
     fromDict(data: ServerShape): void {
+        const options: Partial<ShapeOptions> =
+            data.options === undefined ? {} : Object.fromEntries(JSON.parse(data.options));
+
         this._layer = data.layer;
         this._floor = floorStore.getFloor({ name: data.floor })!.id;
         this.angle = data.angle;
@@ -492,8 +491,9 @@ export abstract class Shape implements IShape {
         this.showBadge = data.show_badge;
         this.isLocked = data.is_locked;
         this.annotationVisible = data.annotation_visible;
-        this.setIsDoor(data.is_door, SyncTo.UI);
-        this.setIsTeleportZone(data.is_teleport_zone, SyncTo.UI);
+        doorSystem.inform(this.id, data.is_door, options.doorConditions);
+        teleportZoneSystem.inform(this.id, data.is_teleport_zone, options.teleport);
+        // if (data.is_teleport_zone) teleportZoneSystem.addTeleportZone(this.id, options.teleport);
 
         this.ignoreZoomSize = data.ignore_zoom_size;
 
@@ -501,7 +501,7 @@ export abstract class Shape implements IShape {
             this.annotation = data.annotation;
         }
         this.name = data.name;
-        if (data.options !== undefined) this.options = Object.fromEntries(JSON.parse(data.options));
+        if (data.options !== undefined) this.options = options;
         if (data.asset !== undefined) this.assetId = data.asset;
         if (data.group !== undefined) this.groupId = data.group;
         // retain reactivity
@@ -975,26 +975,6 @@ export abstract class Shape implements IShape {
         if (syncTo === SyncTo.UI) this._("removeLabel")(label, syncTo);
 
         this.labels = this.labels.filter((l) => l.uuid !== label);
-    }
-
-    // LOGIC
-
-    setIsDoor(isDoor: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeIsDoor({ shape: getGlobalId(this.id), value: isDoor });
-        if (syncTo === SyncTo.UI) this._("setIsDoor")(isDoor, syncTo);
-
-        this.isDoor = isDoor;
-        if (isDoor) logicStore.addDoor(this.id);
-        else logicStore.removeDoor(this.id);
-    }
-
-    setIsTeleportZone(isTeleportZone: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeIsTeleportZone({ shape: getGlobalId(this.id), value: isTeleportZone });
-        if (syncTo === SyncTo.UI) this._("setIsTeleportZone")(isTeleportZone, syncTo);
-
-        this.isTeleportZone = isTeleportZone;
-        if (isTeleportZone) logicStore.addTeleportZone(this.id);
-        else logicStore.removeTeleportZone(this.id);
     }
 
     // Extra Utilities

@@ -3,9 +3,9 @@ import type { GlobalId } from "../id";
 import type { Label } from "../shapes/interfaces";
 import type { ShapeAccess, ShapeOwner } from "../shapes/owners";
 import type { SHAPE_TYPE } from "../shapes/types";
+import type { Permissions, TeleportOptions } from "../systems/logic/models";
 
 import type { LayerName } from "./floor";
-import type { Conditions } from "./logic";
 
 export interface ServerShape {
     uuid: GlobalId;
@@ -163,10 +163,6 @@ export interface ShapeOptions {
     UiHelper: boolean;
 
     // logic
-    doorConditions: Conditions;
-    teleport: {
-        conditions: Conditions;
-        location?: { id: number; spawnUuid: GlobalId };
-        immediate: boolean;
-    };
+    doorConditions: Permissions;
+    teleport: TeleportOptions;
 }

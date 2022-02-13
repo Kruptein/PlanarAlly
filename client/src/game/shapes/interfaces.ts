@@ -59,10 +59,6 @@ export interface IShape {
 
     preventSync: boolean;
 
-    // logic
-    isDoor: boolean;
-    isTeleportZone: boolean;
-
     options: Partial<ShapeOptions>;
 
     center(): GlobalPoint;
@@ -172,11 +168,6 @@ export interface IShape {
     setAnnotationVisible(visible: boolean, syncTo: SyncTo): void;
     addLabel(label: string, syncTo: SyncTo): void;
     removeLabel(label: string, syncTo: SyncTo): void;
-
-    // LOGIC
-
-    setIsDoor(isDoor: boolean, syncTo: SyncTo): void;
-    setIsTeleportZone(isTeleportZone: boolean, syncTo: SyncTo): void;
 }
 
 export interface Tracker {

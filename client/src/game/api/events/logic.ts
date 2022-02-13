@@ -1,6 +1,6 @@
 import { POSITION, useToast } from "vue-toastification";
 
-import type { RequestTypeResponse } from "../../models/logic";
+import type { RequestTypeResponse } from "../../systems/logic/models";
 import LogicRequestHandlerToast from "../../ui/toasts/LogicRequestHandlerToast.vue";
 import { socket } from "../socket";
 

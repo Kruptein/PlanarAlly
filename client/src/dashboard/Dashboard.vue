@@ -49,7 +49,6 @@ onMounted(async () => {
     const response = await baseAdjustedFetch("/api/rooms");
     if (response.ok) {
         const data: { owned: RoomInfo[]; joined: RoomInfo[] } = await response.json();
-        console.log(data);
         state.owned = data.owned;
         state.joined = data.joined;
     } else {

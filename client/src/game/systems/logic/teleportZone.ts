@@ -2,12 +2,17 @@ import { POSITION, useToast } from "vue-toastification";
 import type { ToastID } from "vue-toastification/dist/types/types";
 
 import SingleButtonToast from "../../../core/components/toasts/SingleButtonToast.vue";
-import type { SyncTo } from "../../../core/models/types";
+import { SyncTo } from "../../../core/models/types";
 import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
 import { sendRequest } from "../../api/emits/logic";
 import { requestShapeInfo, sendShapesMove } from "../../api/emits/shape/core";
+import {
+    sendShapeIsImmediateTeleportZone,
+    sendShapeIsTeleportZone,
+    sendShapeTeleportZonePermissions,
+} from "../../api/emits/shape/options";
 import { getGlobalId, getLocalId, getShape } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import { LayerName } from "../../models/floor";
@@ -25,7 +30,7 @@ type ClientTeleportOptions = TeleportOptions & {
 };
 
 const DEFAULT_OPTIONS: ClientTeleportOptions = {
-    conditions: DEFAULT_PERMISSIONS,
+    permissions: DEFAULT_PERMISSIONS,
     immediate: false,
     location: undefined,
     toastId: undefined,
@@ -44,6 +49,8 @@ class TeleportZoneSystem {
     }
 
     toggle(id: LocalId, enabled: boolean, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.SERVER) sendShapeIsTeleportZone({ shape: getGlobalId(id), value: enabled });
+
         if (enabled) {
             this.enabled.add(id);
         } else {
@@ -51,12 +58,29 @@ class TeleportZoneSystem {
         }
     }
 
+    toggleImmediate(id: LocalId, immediate: boolean, syncTo: SyncTo): void {
+        const options = this.data.get(id);
+        if (options === undefined) return;
+
+        if (syncTo === SyncTo.SERVER) sendShapeIsImmediateTeleportZone({ shape: getGlobalId(id), value: immediate });
+
+        options.immediate = immediate;
+    }
+
     isTeleportZone(id: LocalId): boolean {
         return this.enabled.has(id);
     }
 
     getPermissions(id: LocalId): Permissions | undefined {
-        return this.data.get(id)?.conditions;
+        return this.data.get(id)?.permissions;
+    }
+
+    setPermissions(id: LocalId, permissions: Permissions, syncTo: SyncTo): void {
+        const options = this.data.get(id);
+        if (options === undefined) return;
+
+        if (syncTo === SyncTo.SERVER) sendShapeTeleportZonePermissions({ shape: getGlobalId(id), value: permissions });
+        options.permissions = permissions;
     }
 
     canUse(id: LocalId): Access {

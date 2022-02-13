@@ -74,7 +74,7 @@ class DrawTool extends Tool {
         fontSize: 20,
 
         isDoor: false,
-        doorConditions: DEFAULT_PERMISSIONS,
+        doorPermissions: DEFAULT_PERMISSIONS,
     });
     hasBrushSize = computed(() => [DrawShape.Brush, DrawShape.Polygon].includes(this.state.selectedShape));
 
@@ -683,8 +683,8 @@ class DrawTool extends Tool {
 
     // LOGIC
 
-    setDoorConditions(conditions: Permissions): void {
-        this.state.doorConditions = conditions;
+    setDoorPermissions(permissions: Permissions): void {
+        this.state.doorPermissions = permissions;
     }
 }
 

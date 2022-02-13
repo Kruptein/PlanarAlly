@@ -46,41 +46,24 @@ function setPermissions(permissions: Permissions): void {
     if (activeLogic.value === "door") {
         reactiveLogic.setDoorPermissions(permissions, SyncTo.SERVER);
     } else {
-        // activeShapeStore.setOptionKey(
-        //     "teleport",
-        //     {
-        //         conditions: permissions,
-        //         location: activeShapeStore.state.options?.teleport?.location,
-        //         immediate: activeShapeStore.state.options?.teleport?.immediate ?? false,
-        //     },
-        //     SyncTo.SERVER,
-        // );
+        reactiveLogic.setTeleportZonePermissions(permissions, SyncTo.SERVER);
     }
 }
 
 // Door
 
 function toggleDoor(): void {
-    reactiveLogic.setIsDoor(!reactiveLogic.isDoor, SyncTo.SERVER);
+    reactiveLogic.setIsDoor(!reactiveLogic.state.door.enabled, SyncTo.SERVER);
 }
 
 // Teleport Zone
 
 function toggleTeleportZone(): void {
-    reactiveLogic.setIsTeleportZone(!reactiveLogic.isTeleportZone, SyncTo.SERVER);
+    reactiveLogic.setIsTeleportZone(!reactiveLogic.state.tp.enabled, SyncTo.SERVER);
 }
 
 function toggleTpImmediate(): void {
-    // const oldTp = activeShapeStore.state.options?.teleport;
-    // activeShapeStore.setOptionKey(
-    //     "teleport",
-    //     {
-    //         conditions: oldTp?.conditions === undefined ? DEFAULT_CONDITIONS : copyConditions(oldTp.conditions),
-    //         location: oldTp?.location,
-    //         immediate: !(oldTp?.immediate ?? false),
-    //     },
-    //     SyncTo.SERVER,
-    // );
+    reactiveLogic.setIsImmediateTeleportZone(!reactiveLogic.state.tp.immediate, SyncTo.SERVER);
 }
 
 async function chooseTarget(): Promise<void> {
@@ -165,10 +148,10 @@ async function chooseTarget(): Promise<void> {
             id="logic-dialog-tp-toggle"
             type="checkbox"
             class="styled-checkbox center"
-            :checked="true"
+            :checked="reactiveLogic.state.tp.enabled"
             @click="toggleTeleportZone"
         />
-        <label for="logic-dialog-tp-config">Conditions</label>
+        <label for="logic-dialog-tp-config">Permissions</label>
         <button id="logic-dialog-tp-config" class="center" @click="openPermissions('tp')">
             <font-awesome-icon icon="cog" />
         </button>
@@ -181,7 +164,7 @@ async function chooseTarget(): Promise<void> {
             id="logic-dialog-tp-toggle"
             type="checkbox"
             class="styled-checkbox center"
-            :checked="activeShapeStore.state.options?.teleport?.immediate === true"
+            :checked="reactiveLogic.state.tp.immediate"
             @click="toggleTpImmediate"
         />
     </div>

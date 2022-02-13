@@ -716,7 +716,7 @@ async def set_door_permissions(sid: str, data):
     if shape is None:
         return
 
-    set_options(shape, "doorConditions", data["value"])
+    set_options(shape, "door", data["value"])
 
     await sio.emit(
         "Shape.Options.DoorPermissions.Set",
@@ -741,6 +741,31 @@ async def set_is_teleport_zone(sid: str, data: ShapeSetBooleanValue):
 
     await sio.emit(
         "Shape.Options.IsTeleportZone.Set",
+        data,
+        skip_sid=sid,
+        room=pr.active_location.get_path(),
+        namespace=GAME_NS,
+    )
+
+
+@sio.on("Shape.Options.IsImmediateTeleportZone.Set", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def set_is_immediate_teleport_zone(sid: str, data: ShapeSetBooleanValue):
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = get_shape_or_none(pr, data["shape"], "IsTeleportZone.Set")
+    if shape is None:
+        return
+
+    options: List[Any] = json.loads(shape.options)
+    for option in options:
+        if option[0] == "teleport":
+            option[1]["immediate"] = data["value"]
+    shape.options = json.dumps(options)
+    shape.save()
+
+    await sio.emit(
+        "Shape.Options.IsImmediateTeleportZone.Set",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
@@ -792,7 +817,7 @@ async def set_skip_draw(sid: str, data: ShapeSetStringValue):
     shape.save()
 
     await sio.emit(
-        "Shape.Options.SkipDraw.Set",
+        "Shape.Options.SvgAsset.Set",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),

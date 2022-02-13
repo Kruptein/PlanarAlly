@@ -52,22 +52,29 @@ class ReactiveLogic {
         if (this.id === undefined) return;
 
         this.id = undefined;
+
         this._state.door.enabled = false;
         this._state.door.permissions = undefined;
+
+        this._state.tp.enabled = false;
+        this._state.tp.immediate = false;
+        this._state.tp.permissions = undefined;
+        this._state.tp.target = undefined;
     }
 
     load(id: LocalId): void {
         this.id = id;
+
         this._state.door.enabled = doorSystem.isDoor(id);
-        const permissions = doorSystem.getPermissions(id);
-        this._state.door.permissions = permissions ? copyPermissions(permissions) : undefined;
+        const doorPermissions = doorSystem.getPermissions(id);
+        this._state.door.permissions = doorPermissions ? copyPermissions(doorPermissions) : undefined;
+
+        this._state.tp.enabled = teleportZoneSystem.isTeleportZone(id);
+        const tpPermissions = teleportZoneSystem.getPermissions(id);
+        this._state.tp.permissions = tpPermissions ? copyPermissions(tpPermissions) : undefined;
     }
 
     // DOOR
-
-    get isDoor(): boolean {
-        return this._state.door.enabled;
-    }
 
     setIsDoor(enabled: boolean, syncTo: SyncTo): void {
         if (this.id === undefined) return;
@@ -91,10 +98,6 @@ class ReactiveLogic {
 
     // TP ZONE
 
-    get isTeleportZone(): boolean {
-        return this.state.tp.enabled;
-    }
-
     setIsTeleportZone(enabled: boolean, syncTo: SyncTo): void {
         if (this.id === undefined) return;
 
@@ -105,7 +108,25 @@ class ReactiveLogic {
         }
     }
 
-    setTeleportZonePermissions(): void {}
+    setIsImmediateTeleportZone(immediate: boolean, syncTo: SyncTo): void {
+        if (this.id === undefined) return;
+
+        this._state.tp.immediate = immediate;
+
+        if (syncTo !== SyncTo.UI) {
+            teleportZoneSystem.toggleImmediate(this.id, immediate, syncTo);
+        }
+    }
+
+    setTeleportZonePermissions(permissions: Permissions, syncTo: SyncTo): void {
+        if (this.id === undefined) return;
+
+        this._state.tp.permissions = permissions;
+
+        if (syncTo !== SyncTo.UI) {
+            teleportZoneSystem.setPermissions(this.id, permissions, syncTo);
+        }
+    }
 }
 
 export const reactiveLogic = new ReactiveLogic();

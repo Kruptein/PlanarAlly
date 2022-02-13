@@ -614,48 +614,6 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         }
     }
 
-    // LOGIC
-
-    // setIsDoor(isDoor: boolean, syncTo: SyncTo): void {
-    //     if (this._state.id === undefined) return;
-
-    //     this._state.isDoor = isDoor;
-
-    //     if (this._state.options?.doorConditions === undefined) {
-    //         if (this._state.options === undefined) {
-    //             this._state.options = {};
-    //         }
-    //         this.setOptionKey("doorConditions", DEFAULT_CONDITIONS, syncTo);
-    //     }
-
-    //     if (syncTo !== SyncTo.UI) {
-    //         if (isDoor) logicStore.addDoor(this._state.id!);
-    //         else logicStore.removeDoor(this._state.id!);
-    //         const shape = getShape(this._state.id)!;
-    //         shape.setIsDoor(isDoor, syncTo);
-    //     }
-    // }
-
-    // setIsTeleportZone(isTeleportZone: boolean, syncTo: SyncTo): void {
-    //     if (this._state.id === undefined) return;
-
-    //     this._state.isTeleportZone = isTeleportZone;
-
-    //     if (this._state.options?.teleport === undefined) {
-    //         if (this._state.options === undefined) {
-    //             this._state.options = {};
-    //         }
-    //         this.setOptionKey("teleport", { conditions: DEFAULT_CONDITIONS, immediate: false }, syncTo);
-    //     }
-
-    //     if (syncTo !== SyncTo.UI) {
-    //         if (isTeleportZone) logicStore.addTeleportZone(this._state.id!);
-    //         else logicStore.removeTeleportZone(this._state.id!);
-    //         const shape = getShape(this._state.id)!;
-    //         shape.setIsTeleportZone(isTeleportZone, syncTo);
-    //     }
-    // }
-
     // STARTUP / CLEANUP
 
     setActiveShape(shape: IShape): void {

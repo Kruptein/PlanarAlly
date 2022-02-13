@@ -1,5 +1,5 @@
 import { SyncTo } from "../../../core/models/types";
-import { sendShapeIsDoor, sendShapePermissions } from "../../api/emits/shape/options";
+import { sendShapeIsDoor, sendShapeDoorPermissions } from "../../api/emits/shape/options";
 import { getGlobalId } from "../../id";
 import type { LocalId } from "../../id";
 
@@ -12,6 +12,7 @@ class DoorSystem {
     private enabled: Set<LocalId> = new Set();
     private permissions: Map<LocalId, Permissions> = new Map();
 
+    // Inform the system about the state of a certain LocalId
     inform(id: LocalId, enabled: boolean, permissions?: Permissions): void {
         if (enabled) {
             this.enabled.add(id);
@@ -38,7 +39,7 @@ class DoorSystem {
     }
 
     setPermissions(id: LocalId, permissions: Permissions, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapePermissions({ shape: getGlobalId(id), value: permissions });
+        if (syncTo === SyncTo.SERVER) sendShapeDoorPermissions({ shape: getGlobalId(id), value: permissions });
         this.permissions.set(id, permissions);
     }
 

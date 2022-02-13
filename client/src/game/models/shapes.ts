@@ -165,6 +165,6 @@ export interface ShapeOptions {
 
 export interface ServerShapeOptions extends ShapeOptions {
     // logic
-    doorConditions: Permissions;
+    door: Permissions;
     teleport: TeleportOptions;
 }

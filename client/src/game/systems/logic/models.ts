@@ -29,7 +29,7 @@ export interface Permissions {
 }
 
 export interface TeleportOptions {
-    conditions: Permissions;
+    permissions: Permissions;
     location?: { id: number; spawnUuid: GlobalId };
     immediate: boolean;
 }

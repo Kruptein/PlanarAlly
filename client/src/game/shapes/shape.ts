@@ -491,9 +491,8 @@ export abstract class Shape implements IShape {
         this.showBadge = data.show_badge;
         this.isLocked = data.is_locked;
         this.annotationVisible = data.annotation_visible;
-        doorSystem.inform(this.id, data.is_door, options.doorConditions);
+        doorSystem.inform(this.id, data.is_door, options.door);
         teleportZoneSystem.inform(this.id, data.is_teleport_zone, options.teleport);
-        // if (data.is_teleport_zone) teleportZoneSystem.addTeleportZone(this.id, options.teleport);
 
         this.ignoreZoomSize = data.ignore_zoom_size;
 

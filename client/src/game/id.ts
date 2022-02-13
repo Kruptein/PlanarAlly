@@ -12,6 +12,7 @@ export type LocalId = number & { __brand: "localId" };
 const uuids: GlobalId[] = [];
 
 const idMap: Map<LocalId, IShape> = new Map();
+(window as any).idMap = idMap;
 
 let lastId = -1;
 const freeIds: LocalId[] = [];

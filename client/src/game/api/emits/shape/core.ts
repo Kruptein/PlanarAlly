@@ -19,18 +19,6 @@ export const sendShapesMove = wrapSocket<{
     tp_zone: boolean;
 }>("Shapes.Location.Move");
 
-export function sendShapeOptionsUpdate(shapes: readonly IShape[], temporary: boolean): void {
-    const options = shapes
-        .filter((s) => !s.preventSync)
-        .map((s) => ({ uuid: getGlobalId(s.id), option: JSON.stringify(Object.entries(s.options)) }));
-    if (options.length > 0) {
-        socket.emit("Shapes.Options.Update", {
-            options,
-            temporary,
-        });
-    }
-}
-
 export function sendShapePositionUpdate(shapes: readonly IShape[], temporary: boolean): void {
     const positions = shapes
         .filter((s) => !s.preventSync)

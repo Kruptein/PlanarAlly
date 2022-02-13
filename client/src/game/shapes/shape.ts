@@ -19,7 +19,6 @@ import {
     sendShapeUpdateDefaultOwner,
     sendShapeUpdateOwner,
 } from "../api/emits/access";
-import { sendShapeOptionsUpdate } from "../api/emits/shape/core";
 import {
     sendShapeAddLabel,
     sendShapeCreateAura,
@@ -52,6 +51,7 @@ import { aurasFromServer, aurasToServer, partialAuraToServer } from "../models/c
 import { partialTrackerToServer, trackersFromServer, trackersToServer } from "../models/conversion/tracker";
 import type { Floor, LayerName } from "../models/floor";
 import { accessToServer, ownerToClient, ownerToServer } from "../models/shapes";
+import type { ServerShapeOptions } from "../models/shapes";
 import type { ServerShape, ShapeOptions } from "../models/shapes";
 import { doorSystem } from "../systems/logic/door";
 import { teleportZoneSystem } from "../systems/logic/teleportZone";
@@ -468,7 +468,7 @@ export abstract class Shape implements IShape {
         };
     }
     fromDict(data: ServerShape): void {
-        const options: Partial<ShapeOptions> =
+        const options: Partial<ServerShapeOptions> =
             data.options === undefined ? {} : Object.fromEntries(JSON.parse(data.options));
 
         this._layer = data.layer;
@@ -675,15 +675,6 @@ export abstract class Shape implements IShape {
         if (syncTo === SyncTo.UI) this._("setLocked")(isLocked, syncTo);
 
         this.isLocked = isLocked;
-    }
-
-    // OPTIONS
-
-    setOptions(options: Partial<ShapeOptions>, syncTo: SyncTo): void {
-        this.options = options;
-
-        if (syncTo === SyncTo.SERVER) sendShapeOptionsUpdate([this], false);
-        if (syncTo === SyncTo.UI) this._("setOptions")(this.options, syncTo);
     }
 
     // ACCESS

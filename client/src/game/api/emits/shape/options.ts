@@ -1,3 +1,4 @@
+import type { GlobalId } from "../../../id";
 import type { ServerAura, ServerTracker } from "../../../models/shapes";
 import type { Permissions } from "../../../systems/logic/models";
 import { wrapSocket } from "../../helpers";
@@ -7,7 +8,7 @@ function sendShapeOption<T>(event: string): (data: { shape: string } & T) => voi
     return wrapSocket<{ shape: string } & T>(event);
 }
 
-function sendSimpleShapeOption<T>(event: string): (data: { shape: string; value: T }) => void {
+function sendSimpleShapeOption<T>(event: string): (data: { shape: GlobalId; value: T }) => void {
     return sendShapeOption<{ value: T }>(event);
 }
 
@@ -33,6 +34,9 @@ export const sendShapeRemoveTracker = sendSimpleShapeOption<string>("Shape.Optio
 export const sendShapeMoveTracker =
     sendShapeOption<{ tracker: string; new_shape: string }>("Shape.Options.Tracker.Move");
 export const sendShapeMoveAura = sendShapeOption<{ aura: string; new_shape: string }>("Shape.Options.Aura.Move");
+
+export const sendShapeSkipDraw = sendSimpleShapeOption<boolean>("Shape.Options.SkipDraw.Set");
+export const sendShapeSvgAsset = sendSimpleShapeOption<string | undefined>("Shape.Options.SvgAsset.Set");
 
 export const sendShapeIsDoor = sendSimpleShapeOption<boolean>("Shape.Options.IsDoor.Set");
 export const sendShapePermissions = sendSimpleShapeOption<Permissions>("Shape.Options.DoorPermissions.Set");

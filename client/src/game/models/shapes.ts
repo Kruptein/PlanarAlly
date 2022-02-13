@@ -161,7 +161,9 @@ export interface ShapeOptions {
     svgAsset: string;
 
     UiHelper: boolean;
+}
 
+export interface ServerShapeOptions extends ShapeOptions {
     // logic
     doorConditions: Permissions;
     teleport: TeleportOptions;

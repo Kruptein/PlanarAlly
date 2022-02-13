@@ -131,10 +131,6 @@ export interface IShape {
     setDefeated(isDefeated: boolean, syncTo: SyncTo): void;
     setLocked(isLocked: boolean, syncTo: SyncTo): void;
 
-    // OPTIONS
-
-    setOptions(options: Partial<ShapeOptions>, syncTo: SyncTo): void;
-
     // ACCESS
 
     get owners(): readonly ShapeOwner[];

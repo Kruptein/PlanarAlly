@@ -176,7 +176,6 @@ class DrawTool extends Tool {
             if (!this.shape.preventSync) sendShapeSizeUpdate({ shape: this.shape, temporary: false });
         }
         if (this.state.isDoor) {
-            this.shape.setOptions({ ...this.shape.options, doorConditions: this.state.doorConditions }, SyncTo.SERVER);
             doorSystem.toggle(this.shape.id, true, SyncTo.SERVER);
         }
         this.active = false;

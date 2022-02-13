@@ -106,3 +106,32 @@ socket.on("Shape.Options.DoorPermissions.Set", (data: { shape: GlobalId; value: 
     if (shape === undefined) return;
     doorSystem.setPermissions(shape, data.value, SyncTo.UI);
 });
+
+socket.on("Shape.Options.SkipDraw.Set", (data: { shape: GlobalId; value: boolean }) => {
+    const shapeId = getLocalId(data.shape);
+    if (shapeId === undefined) return;
+    const shape = getShape(shapeId);
+    if (shape === undefined) return;
+    if (shape.options === undefined) {
+        shape.options = {};
+    }
+    shape.options.skipDraw = data.value;
+});
+
+socket.on("Shape.Options.SvgAsset.Set", (data: { shape: GlobalId; value: string | undefined }) => {
+    const shapeId = getLocalId(data.shape);
+    if (shapeId === undefined) return;
+    const shape = getShape(shapeId);
+    if (shape === undefined) return;
+    if (shape.options === undefined) {
+        shape.options = {};
+    }
+    if (data.value === undefined) {
+        delete shape.options.svgAsset;
+        delete shape.options.svgHeight;
+        delete shape.options.svgPaths;
+        delete shape.options.svgWidth;
+    } else {
+        shape.options.svgAsset = data.value;
+    }
+});

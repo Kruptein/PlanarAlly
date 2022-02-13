@@ -176,31 +176,6 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.showEditDialog = visible;
     }
 
-    // OPTIONS
-
-    setOptions(options: Partial<ShapeOptions>, syncTo: SyncTo): void {
-        if (this._state.id === undefined) return;
-
-        this._state.options = options;
-
-        if (syncTo !== SyncTo.UI) {
-            const shape = getShape(this._state.id)!;
-            shape.setOptions(this._state.options, syncTo);
-        }
-    }
-
-    setOptionKey<T extends keyof ShapeOptions>(key: T, value: ShapeOptions[T], syncTo: SyncTo): void {
-        if (this._state.id === undefined) return;
-        if (this._state.options === undefined) this._state.options = {};
-
-        this._state.options[key] = value;
-
-        if (syncTo !== SyncTo.UI) {
-            const shape = getShape(this._state.id)!;
-            shape.setOptions(this._state.options, syncTo);
-        }
-    }
-
     // GROUP
 
     setGroupId(groupId: string | undefined, syncTo: SyncTo): void {

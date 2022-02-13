@@ -1,4 +1,4 @@
-import { SyncMode, SyncTo } from "../../../../core/models/types";
+import { SyncMode } from "../../../../core/models/types";
 import { floorStore } from "../../../../store/floor";
 import { getShapeFromGlobal } from "../../../id";
 import type { GlobalId } from "../../../id";
@@ -45,16 +45,6 @@ socket.on(
         }
     },
 );
-
-socket.on("Shapes.Options.Update", (data: { uuid: GlobalId; option: string }[]) => {
-    for (const sh of data) {
-        const shape = getShapeFromGlobal(sh.uuid);
-        if (shape === undefined) {
-            continue;
-        }
-        shape.setOptions(Object.fromEntries(JSON.parse(sh.option)), SyncTo.UI);
-    }
-});
 
 socket.on("Shape.Order.Set", (data: { uuid: GlobalId; index: number }) => {
     const shape = getShapeFromGlobal(data.uuid);

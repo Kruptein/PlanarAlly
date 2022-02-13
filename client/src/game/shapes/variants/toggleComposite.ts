@@ -1,7 +1,8 @@
 import type { GlobalPoint } from "../../../core/geometry";
 import { SyncTo, SyncMode } from "../../../core/models/types";
 import { gameStore } from "../../../store/game";
-import { sendShapePositionUpdate, sendShapeOptionsUpdate } from "../../api/emits/shape/core";
+import { sendShapePositionUpdate } from "../../api/emits/shape/core";
+import { sendShapeSkipDraw } from "../../api/emits/shape/options";
 import {
     sendToggleCompositeActiveVariant,
     sendToggleCompositeRemoveVariant,
@@ -123,7 +124,8 @@ export class ToggleComposite extends Shape {
             newVariant.center(oldCenter);
 
             sendShapePositionUpdate([newVariant], false);
-            sendShapeOptionsUpdate([oldVariant, newVariant], false);
+            sendShapeSkipDraw({ shape: getGlobalId(oldVariant.id), value: true });
+            sendShapeSkipDraw({ shape: getGlobalId(newVariant.id), value: false });
             sendToggleCompositeActiveVariant({ shape: getGlobalId(this.id), variant: getGlobalId(variant) });
         }
 

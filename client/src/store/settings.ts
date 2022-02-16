@@ -5,8 +5,8 @@ import { Store } from "../core/store";
 import { getValueOrDefault } from "../core/types";
 import { toSnakeCase } from "../core/utils";
 import { sendLocationOptions } from "../game/api/emits/location";
-import type { LocationOptions } from "../game/models/settings";
 import type { LocalId } from "../game/id";
+import type { LocationOptions } from "../game/models/settings";
 
 import { floorStore } from "./floor";
 

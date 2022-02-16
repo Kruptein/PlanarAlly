@@ -1,7 +1,7 @@
 import type { GlobalPoint } from "../../core/geometry";
+import type { LocalId } from "../id";
 import type { LayerName } from "../models/floor";
 import type { ServerShape } from "../models/shapes";
-import type { LocalId } from "../id";
 
 export type Operation =
     | FloorMoveOperation

@@ -32,6 +32,7 @@ export function moveClientRect(player: number, data: ServerUserLocationOptions):
             openPolygon: true,
             uuid: uuidv4(),
         });
+        playerRectUuids.set(player, polygon.id);
         polygon.options.isPlayerRect = true;
         polygon.options.skipDraw = !(gameStore.state.players.find((p) => p.id === player)?.showRect ?? false);
         polygon.preventSync = true;

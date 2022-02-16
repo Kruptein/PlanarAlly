@@ -1,3 +1,5 @@
+import { reactive } from "vue";
+import type { DeepReadonly } from "vue";
 import { POSITION, useToast } from "vue-toastification";
 import type { ToastID } from "vue-toastification/dist/types/types";
 
@@ -12,6 +14,7 @@ import {
     sendShapeIsImmediateTeleportZone,
     sendShapeIsTeleportZone,
     sendShapeTeleportZonePermissions,
+    sendShapeTeleportZoneTarget,
 } from "../../api/emits/shape/options";
 import { getGlobalId, getLocalId, getShape } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
@@ -20,8 +23,8 @@ import { setCenterPosition } from "../../position";
 import type { IShape } from "../../shapes/interfaces";
 
 import { canUse } from "./common";
-import type { Permissions, TeleportOptions } from "./models";
 import { Access, DEFAULT_PERMISSIONS } from "./models";
+import type { Permissions, TeleportOptions } from "./models";
 
 const toast = useToast();
 
@@ -36,9 +39,48 @@ const DEFAULT_OPTIONS: ClientTeleportOptions = {
     toastId: undefined,
 };
 
+interface ReactiveTpState {
+    id: LocalId | undefined;
+    enabled: boolean;
+    permissions?: Permissions;
+    immediate: boolean;
+    target?: TeleportOptions["location"];
+}
+
 class TeleportZoneSystem {
     private enabled: Set<LocalId> = new Set();
     private data: Map<LocalId, ClientTeleportOptions> = new Map();
+
+    // REACTIVE STATE
+
+    private _state: ReactiveTpState;
+
+    constructor() {
+        this._state = reactive({
+            id: undefined,
+            enabled: false,
+            immediate: false,
+        });
+    }
+
+    get state(): DeepReadonly<ReactiveTpState> {
+        return this._state;
+    }
+
+    loadState(id: LocalId): void {
+        this._state.id = id;
+        this._state.enabled = this.enabled.has(id);
+        const data = this.data.get(id);
+        this._state.permissions = data?.permissions;
+        this._state.immediate = data?.immediate ?? false;
+        this._state.target = data?.location;
+    }
+
+    dropState(): void {
+        this._state.id = undefined;
+    }
+
+    // BEHAVIOUR
 
     // Inform the system about the state of a certain LocalId
     inform(id: LocalId, enabled: boolean, options?: TeleportOptions): void {
@@ -50,6 +92,7 @@ class TeleportZoneSystem {
 
     toggle(id: LocalId, enabled: boolean, syncTo: SyncTo): void {
         if (syncTo === SyncTo.SERVER) sendShapeIsTeleportZone({ shape: getGlobalId(id), value: enabled });
+        if (this._state.id === id) this._state.enabled = enabled;
 
         if (enabled) {
             this.enabled.add(id);
@@ -63,6 +106,7 @@ class TeleportZoneSystem {
         if (options === undefined) return;
 
         if (syncTo === SyncTo.SERVER) sendShapeIsImmediateTeleportZone({ shape: getGlobalId(id), value: immediate });
+        if (this._state.id === id) this._state.immediate = immediate;
 
         options.immediate = immediate;
     }
@@ -80,11 +124,22 @@ class TeleportZoneSystem {
         if (options === undefined) return;
 
         if (syncTo === SyncTo.SERVER) sendShapeTeleportZonePermissions({ shape: getGlobalId(id), value: permissions });
+        if (this._state.id === id) this._state.permissions = permissions;
         options.permissions = permissions;
     }
 
     canUse(id: LocalId): Access {
         return canUse(id, "tp");
+    }
+
+    setTarget(id: LocalId, target: TeleportOptions["location"], syncTo: SyncTo): void {
+        const options = this.data.get(id);
+        if (options === undefined) return;
+
+        if (syncTo === SyncTo.SERVER) sendShapeTeleportZoneTarget({ shape: getGlobalId(id), value: target });
+        if (this._state.id === id) this._state.target = target;
+
+        options.location = target;
     }
 
     async checkTeleport(shapes: readonly IShape[]): Promise<void> {

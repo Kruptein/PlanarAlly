@@ -26,6 +26,7 @@ import { sendRequest } from "../../api/emits/logic";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import { calculateDelta } from "../../drag";
 import { getGlobalId, getShape } from "../../id";
+import type { LocalId } from "../../id";
 import { getLocalPointFromEvent } from "../../input/mouse";
 import { selectionState } from "../../layers/selection";
 import { LayerName } from "../../models/floor";
@@ -124,6 +125,8 @@ class SelectTool extends Tool implements ISelectTool {
     // polygon-edit related
     polygonTracer: Circle | null = null;
 
+    hoveredDoor?: LocalId;
+
     private permittedTools_: ToolPermission[] = [];
 
     get permittedTools(): ToolPermission[] {
@@ -216,6 +219,25 @@ class SelectTool extends Tool implements ISelectTool {
             return;
         }
 
+        // Logic Door Check
+        if (this.hoveredDoor !== undefined && activeToolMode.value === ToolMode.Play) {
+            const canUseDoor = doorSystem.canUse(this.hoveredDoor);
+            if (canUseDoor === Access.Enabled) {
+                const shape = getShape(this.hoveredDoor)!;
+                shape.setBlocksMovement(!shape.blocksMovement, SyncTo.SERVER, true);
+                shape.setBlocksVision(!shape.blocksVision, SyncTo.SERVER, true);
+                const state = shape.blocksVision ? "lock-open-solid" : "lock-solid";
+                document.body.style.cursor = `url('${baseAdjust(`static/img/${state}.svg`)}') 16 16, auto`;
+                return;
+            } else if (canUseDoor === Access.Request) {
+                toast.info("Request to open door sent", {
+                    position: POSITION.TOP_RIGHT,
+                });
+                sendRequest({ door: getGlobalId(this.hoveredDoor), logic: "door" });
+                return;
+            }
+        }
+
         this.operationReady = false;
         this.operationList = undefined;
 
@@ -288,23 +310,6 @@ class SelectTool extends Tool implements ISelectTool {
                 } else {
                     if (ctrlOrCmdPressed(event)) {
                         selectionState.remove(shape.id);
-                    }
-                }
-                // Logic Door Check
-                if (activeToolMode.value === ToolMode.Play) {
-                    const canUseDoor = doorSystem.canUse(shape.id);
-                    if (canUseDoor === Access.Enabled) {
-                        shape.setBlocksMovement(!shape.blocksMovement, SyncTo.SERVER, true);
-                        shape.setBlocksVision(!shape.blocksVision, SyncTo.SERVER, true);
-                        const state = shape.blocksVision ? "lock-open-solid" : "lock-solid";
-                        document.body.style.cursor = `url('${baseAdjust(`static/img/${state}.svg`)}') 16 16, auto`;
-                        return;
-                    } else if (canUseDoor === Access.Request) {
-                        toast.info("Request to open door sent", {
-                            position: POSITION.TOP_RIGHT,
-                        });
-                        sendRequest({ door: getGlobalId(shape.id), logic: "door" });
-                        return;
                     }
                 }
                 // Drag case, a shape is selected
@@ -386,6 +391,28 @@ class SelectTool extends Tool implements ISelectTool {
 
         const gp = l2g(lp);
         this.lastMousePosition = gp;
+
+        // Logic hover
+        if (activeToolMode.value === ToolMode.Play) {
+            let foundDoor = false;
+            for (const id of doorSystem.getDoors()) {
+                const shape = getShape(id);
+                if (shape === undefined) continue;
+                if (shape.floor.id !== floorStore.currentFloor.value!.id) continue;
+                if (!shape.contains(gp)) continue;
+                if (doorSystem.canUse(id) === Access.Disabled) continue;
+
+                foundDoor = true;
+                this.hoveredDoor = id;
+                const state = shape.blocksVision ? "lock-open-solid" : "lock-solid";
+                document.body.style.cursor = `url('${baseAdjust(`static/img/${state}.svg`)}') 16 16, auto`;
+                break;
+            }
+            if (!foundDoor) {
+                this.hoveredDoor = undefined;
+                document.body.style.cursor = "default";
+            }
+        }
 
         // We require move for the resize and rotate cursors
         if (

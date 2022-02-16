@@ -703,6 +703,9 @@ def set_options(shape: Shape, key: str, value):
     for option in options:
         if option[0] == key:
             option[1] = value
+            break
+    else:
+        options.append([key, value])
     shape.options = json.dumps(options)
     shape.save()
 
@@ -766,6 +769,26 @@ async def set_is_immediate_teleport_zone(sid: str, data: ShapeSetBooleanValue):
 
     await sio.emit(
         "Shape.Options.IsImmediateTeleportZone.Set",
+        data,
+        skip_sid=sid,
+        room=pr.active_location.get_path(),
+        namespace=GAME_NS,
+    )
+
+
+@sio.on("Shape.Options.TeleportZonePermissions.Set", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def set_tp_permissions(sid: str, data):
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = get_shape_or_none(pr, data["shape"], "TeleportZonePermissions.Set")
+    if shape is None:
+        return
+
+    set_options(shape, "teleport", data["value"])
+
+    await sio.emit(
+        "Shape.Options.TeleportZonePermissions.Set",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),

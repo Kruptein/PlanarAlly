@@ -7,7 +7,7 @@ import type { ServerAura, ServerTracker } from "../../../models/shapes";
 import type { Aura, Tracker } from "../../../shapes/interfaces";
 import { Shape } from "../../../shapes/shape";
 import { doorSystem } from "../../../systems/logic/door";
-import type { Permissions } from "../../../systems/logic/models";
+import type { Permissions, TeleportOptions } from "../../../systems/logic/models";
 import { teleportZoneSystem } from "../../../systems/logic/teleportZone";
 import { socket } from "../../socket";
 
@@ -118,6 +118,18 @@ socket.on("Shape.Options.IsImmediateTeleportZone.Set", (data: { shape: GlobalId;
     const shape = getLocalId(data.shape);
     if (shape === undefined) return;
     teleportZoneSystem.toggleImmediate(shape, data.value, SyncTo.UI);
+});
+
+socket.on("Shape.Options.TeleportZonePermissions.Set", (data: { shape: GlobalId; value: Permissions }) => {
+    const shape = getLocalId(data.shape);
+    if (shape === undefined) return;
+    teleportZoneSystem.setPermissions(shape, data.value, SyncTo.UI);
+});
+
+socket.on("Shape.Options.TeleportZoneTarget.Set", (data: { shape: GlobalId; value: TeleportOptions["location"] }) => {
+    const shape = getLocalId(data.shape);
+    if (shape === undefined) return;
+    teleportZoneSystem.setTarget(shape, data.value, SyncTo.UI);
 });
 
 socket.on("Shape.Options.SkipDraw.Set", (data: { shape: GlobalId; value: boolean }) => {

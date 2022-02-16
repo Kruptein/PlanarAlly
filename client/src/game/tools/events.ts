@@ -1,16 +1,13 @@
 import { l2g } from "../../core/conversions";
-import { baseAdjust } from "../../core/utils";
 import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
 import { uiStore } from "../../store/ui";
 import { getShape } from "../id";
 import { getLocalPointFromEvent } from "../input/mouse";
 import { LayerName } from "../models/floor";
-import { ToolMode, ToolName } from "../models/tools";
-import { doorSystem } from "../systems/logic/door";
-import { Access } from "../systems/logic/models";
+import { ToolName } from "../models/tools";
 
-import { activeTool, activeToolMode, getActiveTool, getFeatures, toolMap } from "./tools";
+import { activeTool, getActiveTool, getFeatures, toolMap } from "./tools";
 
 export function mouseDown(event: MouseEvent): void {
     if ((event.target as HTMLElement).tagName !== "CANVAS") return;
@@ -77,23 +74,6 @@ export async function mouseMove(event: MouseEvent): Promise<void> {
     }
     if (!foundAnnotation && uiStore.state.annotationText.length > 0) {
         uiStore.setAnnotationText("");
-    }
-    // Logic hover
-    if (activeToolMode.value === ToolMode.Play) {
-        let foundDoor = false;
-        for (const id of doorSystem.getDoors()) {
-            const shape = getShape(id);
-            if (shape === undefined) continue;
-            if (shape.floor.id !== floorStore.currentFloor.value!.id) continue;
-            if (!shape.contains(eventPoint)) continue;
-            if (doorSystem.canUse(id) === Access.Disabled) continue;
-
-            foundDoor = true;
-            const state = shape.blocksVision ? "lock-open-solid" : "lock-solid";
-            document.body.style.cursor = `url('${baseAdjust(`static/img/${state}.svg`)}') 16 16, auto`;
-            break;
-        }
-        if (!foundDoor) document.body.style.cursor = "default";
     }
 }
 

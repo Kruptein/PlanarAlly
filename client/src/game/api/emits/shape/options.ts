@@ -1,6 +1,6 @@
 import type { GlobalId } from "../../../id";
 import type { ServerAura, ServerTracker } from "../../../models/shapes";
-import type { Permissions } from "../../../systems/logic/models";
+import type { Permissions, TeleportOptions } from "../../../systems/logic/models";
 import { wrapSocket } from "../../helpers";
 import { socket } from "../../socket";
 
@@ -46,6 +46,9 @@ export const sendShapeIsImmediateTeleportZone = sendSimpleShapeOption<boolean>(
 );
 export const sendShapeTeleportZonePermissions = sendSimpleShapeOption<Permissions>(
     "Shape.Options.TeleportZonePermissions.Set",
+);
+export const sendShapeTeleportZoneTarget = sendSimpleShapeOption<TeleportOptions["location"]>(
+    "Shape.Options.TeleportZoneTarget.Set",
 );
 
 export const sendShapeCreateTracker = (data: ServerTracker): void => {

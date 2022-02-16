@@ -7,8 +7,8 @@ import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
-import { UuidMap } from "../../../store/shapeMap";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
+import { getShape } from "../../id";
 import { selectionState } from "../../layers/selection";
 import { ToolName } from "../../models/tools";
 import type { ToolPermission } from "../../models/tools";
@@ -117,7 +117,7 @@ class SpellTool extends Tool {
 
         if (selectionState.hasSelection && (this.state.range === 0 || equalsP(startPosition, ogPoint))) {
             const selection = [...selectionState.state.selection.values()];
-            this.shape.center(UuidMap.get(selection[0])!.center());
+            this.shape.center(getShape(selection[0])!.center());
         }
 
         layer.addShape(
@@ -140,7 +140,7 @@ class SpellTool extends Tool {
         if (!selectionState.hasSelection || this.state.range === 0) return;
 
         const selection = [...selectionState.state.selection.values()];
-        this.rangeShape = new Circle(UuidMap.get(selection[0])!.center(), getUnitDistance(this.state.range), {
+        this.rangeShape = new Circle(getShape(selection[0])!.center(), getUnitDistance(this.state.range), {
             fillColour: "rgba(0,0,0,0)",
             strokeColour: "black",
         });

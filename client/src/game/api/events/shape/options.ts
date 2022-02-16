@@ -1,15 +1,19 @@
 import { SyncTo } from "../../../../core/models/types";
-import { UuidMap } from "../../../../store/shapeMap";
+import { getLocalId, getShape } from "../../../id";
+import type { GlobalId } from "../../../id";
 import { aurasFromServer, partialAuraFromServer } from "../../../models/conversion/aura";
 import { trackersFromServer, partialTrackerFromServer } from "../../../models/conversion/tracker";
 import type { ServerAura, ServerTracker } from "../../../models/shapes";
 import type { Aura, Tracker } from "../../../shapes/interfaces";
 import { Shape } from "../../../shapes/shape";
+import { doorSystem } from "../../../systems/logic/door";
+import type { Permissions, TeleportOptions } from "../../../systems/logic/models";
+import { teleportZoneSystem } from "../../../systems/logic/teleportZone";
 import { socket } from "../../socket";
 
-function wrapCall<T>(func: (value: T, syncTo: SyncTo) => void): (data: { shape: string; value: T }) => void {
+function wrapCall<T>(func: (value: T, syncTo: SyncTo) => void): (data: { shape: GlobalId; value: T }) => void {
     return (data) => {
-        const shape = UuidMap.get(data.shape);
+        const shape = getShape(getLocalId(data.shape)!);
         if (shape === undefined) return;
         func.bind(shape)(data.value, SyncTo.UI);
     };
@@ -35,20 +39,20 @@ socket.on("Shape.Options.Aura.Remove", wrapCall(Shape.prototype.removeAura));
 socket.on("Shape.Options.Label.Remove", wrapCall(Shape.prototype.removeLabel));
 
 socket.on("Shape.Options.Tracker.Create", (data: ServerTracker): void => {
-    const shape = UuidMap.get(data.shape);
+    const shape = getShape(getLocalId(data.shape)!);
     if (shape === undefined) return;
     shape.pushTracker(trackersFromServer(data)[0], SyncTo.UI);
 });
 
-socket.on("Shape.Options.Tracker.Update", (data: { uuid: string; shape: string } & Partial<Tracker>): void => {
-    const shape = UuidMap.get(data.shape);
+socket.on("Shape.Options.Tracker.Update", (data: { uuid: string; shape: GlobalId } & Partial<Tracker>): void => {
+    const shape = getShape(getLocalId(data.shape)!);
     if (shape === undefined) return;
     shape.updateTracker(data.uuid, partialTrackerFromServer(data), SyncTo.UI);
 });
 
-socket.on("Shape.Options.Tracker.Move", (data: { shape: string; tracker: string; new_shape: string }): void => {
-    const shape = UuidMap.get(data.shape);
-    const newShape = UuidMap.get(data.new_shape);
+socket.on("Shape.Options.Tracker.Move", (data: { shape: GlobalId; tracker: string; new_shape: GlobalId }): void => {
+    const shape = getShape(getLocalId(data.shape)!);
+    const newShape = getShape(getLocalId(data.new_shape)!);
     if (shape === undefined || newShape === undefined) return;
     const tracker = shape.getTrackers(false).find((t) => t.uuid === data.tracker);
     if (tracker === undefined) return;
@@ -57,9 +61,9 @@ socket.on("Shape.Options.Tracker.Move", (data: { shape: string; tracker: string;
     newShape.pushTracker(tracker, SyncTo.UI);
 });
 
-socket.on("Shape.Options.Aura.Move", (data: { shape: string; aura: string; new_shape: string }): void => {
-    const shape = UuidMap.get(data.shape);
-    const newShape = UuidMap.get(data.new_shape);
+socket.on("Shape.Options.Aura.Move", (data: { shape: GlobalId; aura: string; new_shape: GlobalId }): void => {
+    const shape = getShape(getLocalId(data.shape)!);
+    const newShape = getShape(getLocalId(data.new_shape)!);
     if (shape === undefined || newShape === undefined) return;
     const aura = shape.getAuras(false).find((a) => a.uuid === data.aura);
     if (aura === undefined) return;
@@ -69,31 +73,90 @@ socket.on("Shape.Options.Aura.Move", (data: { shape: string; aura: string; new_s
 });
 
 socket.on("Shape.Options.Aura.Create", (data: ServerAura): void => {
-    const shape = UuidMap.get(data.shape);
+    const shape = getShape(getLocalId(data.shape)!);
     if (shape === undefined) return;
     shape.pushAura(aurasFromServer(data)[0], SyncTo.UI);
 });
 
-socket.on("Shape.Options.Aura.Update", (data: { uuid: string; shape: string } & Partial<Aura>): void => {
-    const shape = UuidMap.get(data.shape);
+socket.on("Shape.Options.Aura.Update", (data: { uuid: string; shape: GlobalId } & Partial<Aura>): void => {
+    const shape = getShape(getLocalId(data.shape)!);
     if (shape === undefined) return;
     shape.updateAura(data.uuid, partialAuraFromServer(data), SyncTo.UI);
 });
 
-socket.on("Shape.Options.Invisible.Set", (data: { shape: string; value: boolean }) => {
-    const shape = UuidMap.get(data.shape);
+socket.on("Shape.Options.Invisible.Set", (data: { shape: GlobalId; value: boolean }) => {
+    const shape = getShape(getLocalId(data.shape)!);
     if (shape === undefined) return;
     shape.setInvisible(data.value, SyncTo.UI);
 });
 
-socket.on("Shape.Options.Defeated.Set", (data: { shape: string; value: boolean }) => {
-    const shape = UuidMap.get(data.shape);
+socket.on("Shape.Options.Defeated.Set", (data: { shape: GlobalId; value: boolean }) => {
+    const shape = getShape(getLocalId(data.shape)!);
     if (shape === undefined) return;
     shape.setDefeated(data.value, SyncTo.UI);
 });
 
-socket.on("Shape.Options.IsDoor.Set", (data: { shape: string; value: boolean }) => {
-    const shape = UuidMap.get(data.shape);
+socket.on("Shape.Options.IsDoor.Set", (data: { shape: GlobalId; value: boolean }) => {
+    const shape = getLocalId(data.shape);
     if (shape === undefined) return;
-    shape.setIsDoor(data.value, SyncTo.UI);
+    doorSystem.toggle(shape, data.value, SyncTo.UI);
+});
+
+socket.on("Shape.Options.DoorPermissions.Set", (data: { shape: GlobalId; value: Permissions }) => {
+    const shape = getLocalId(data.shape);
+    if (shape === undefined) return;
+    doorSystem.setPermissions(shape, data.value, SyncTo.UI);
+});
+
+socket.on("Shape.Options.IsTeleportZone.Set", (data: { shape: GlobalId; value: boolean }) => {
+    const shape = getLocalId(data.shape);
+    if (shape === undefined) return;
+    teleportZoneSystem.toggle(shape, data.value, SyncTo.UI);
+});
+
+socket.on("Shape.Options.IsImmediateTeleportZone.Set", (data: { shape: GlobalId; value: boolean }) => {
+    const shape = getLocalId(data.shape);
+    if (shape === undefined) return;
+    teleportZoneSystem.toggleImmediate(shape, data.value, SyncTo.UI);
+});
+
+socket.on("Shape.Options.TeleportZonePermissions.Set", (data: { shape: GlobalId; value: Permissions }) => {
+    const shape = getLocalId(data.shape);
+    if (shape === undefined) return;
+    teleportZoneSystem.setPermissions(shape, data.value, SyncTo.UI);
+});
+
+socket.on("Shape.Options.TeleportZoneTarget.Set", (data: { shape: GlobalId; value: TeleportOptions["location"] }) => {
+    const shape = getLocalId(data.shape);
+    if (shape === undefined) return;
+    teleportZoneSystem.setTarget(shape, data.value, SyncTo.UI);
+});
+
+socket.on("Shape.Options.SkipDraw.Set", (data: { shape: GlobalId; value: boolean }) => {
+    const shapeId = getLocalId(data.shape);
+    if (shapeId === undefined) return;
+    const shape = getShape(shapeId);
+    if (shape === undefined) return;
+    if (shape.options === undefined) {
+        shape.options = {};
+    }
+    shape.options.skipDraw = data.value;
+});
+
+socket.on("Shape.Options.SvgAsset.Set", (data: { shape: GlobalId; value: string | undefined }) => {
+    const shapeId = getLocalId(data.shape);
+    if (shapeId === undefined) return;
+    const shape = getShape(shapeId);
+    if (shape === undefined) return;
+    if (shape.options === undefined) {
+        shape.options = {};
+    }
+    if (data.value === undefined) {
+        delete shape.options.svgAsset;
+        delete shape.options.svgHeight;
+        delete shape.options.svgPaths;
+        delete shape.options.svgWidth;
+    } else {
+        shape.options.svgAsset = data.value;
+    }
 });

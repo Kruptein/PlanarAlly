@@ -27,7 +27,7 @@ function addOwner(): void {
     if (selectedUser === "") return;
     activeShapeStore.addOwner(
         {
-            shape: activeShapeStore.state.uuid!,
+            shape: activeShapeStore.state.id!,
             user: selectedUser,
             access: { edit: true, movement: true, vision: true },
         },

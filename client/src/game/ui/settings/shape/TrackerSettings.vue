@@ -7,6 +7,7 @@ import { SyncTo } from "../../../../core/models/types";
 import { getValue } from "../../../../core/utils";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { sendShapeMoveAura, sendShapeMoveTracker } from "../../../api/emits/shape/options";
+import { getGlobalId } from "../../../id";
 import type { Aura, Tracker } from "../../../shapes/interfaces";
 
 const { t } = useI18n();
@@ -18,7 +19,7 @@ const isComposite = activeShapeStore.isComposite;
 
 function updateTracker(tracker: string, delta: Partial<Tracker>, syncTo = true): void {
     if (!owned.value) return;
-    if (activeShapeStore.state.uuid !== undefined)
+    if (activeShapeStore.state.id !== undefined)
         activeShapeStore.updateTracker(tracker, delta, syncTo === true ? SyncTo.SERVER : SyncTo.SHAPE);
 }
 
@@ -38,10 +39,14 @@ function toggleCompositeTracker(trackerId: string): void {
 
     const oldShape = tracker.shape;
     const newShape =
-        oldShape === activeShapeStore.state.uuid ? activeShapeStore.state.parentUuid! : activeShapeStore.state.uuid!;
+        oldShape === activeShapeStore.state.id ? activeShapeStore.state.parentUuid! : activeShapeStore.state.id!;
 
     activeShapeStore.pushTracker(tracker, newShape, SyncTo.SHAPE);
-    sendShapeMoveTracker({ shape: oldShape, new_shape: newShape, tracker: tracker.uuid });
+    sendShapeMoveTracker({
+        shape: getGlobalId(oldShape),
+        new_shape: getGlobalId(newShape),
+        tracker: tracker.uuid,
+    });
 }
 
 // Aura
@@ -50,7 +55,7 @@ function updateAura(aura: string, delta: Partial<Aura>, syncTo = true): void {
     if (!owned.value) return;
     if (delta.value !== undefined && (isNaN(delta.value) || delta.value < 0)) delta.value = 0;
     if (delta.dim !== undefined && (isNaN(delta.dim) || delta.dim < 0)) delta.dim = 0;
-    if (activeShapeStore.state.uuid !== undefined)
+    if (activeShapeStore.state.id !== undefined)
         activeShapeStore.updateAura(aura, delta, syncTo === true ? SyncTo.SERVER : SyncTo.SHAPE);
 }
 
@@ -70,10 +75,10 @@ function toggleCompositeAura(auraId: string): void {
 
     const oldShape = aura.shape;
     const newShape =
-        oldShape === activeShapeStore.state.uuid ? activeShapeStore.state.parentUuid! : activeShapeStore.state.uuid!;
+        oldShape === activeShapeStore.state.id ? activeShapeStore.state.parentUuid! : activeShapeStore.state.id!;
 
     activeShapeStore.pushAura(aura, newShape, SyncTo.SHAPE);
-    sendShapeMoveAura({ shape: oldShape, new_shape: newShape, aura: aura.uuid });
+    sendShapeMoveAura({ shape: getGlobalId(oldShape), new_shape: getGlobalId(newShape), aura: aura.uuid });
 }
 </script>
 

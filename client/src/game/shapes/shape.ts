@@ -6,13 +6,12 @@ import type { GlobalPoint, Vector } from "../../core/geometry";
 import { rotateAroundPoint } from "../../core/math";
 import { SyncTo } from "../../core/models/types";
 import type { FunctionPropertyNames, PartialBy } from "../../core/types";
-import { mostReadable, uuidv4 } from "../../core/utils";
+import { mostReadable } from "../../core/utils";
 import { activeShapeStore } from "../../store/activeShape";
 import type { ActiveShapeStore } from "../../store/activeShape";
 import { clientStore } from "../../store/client";
 import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
-import { logicStore } from "../../store/logic";
 import { settingsStore } from "../../store/settings";
 import {
     sendShapeAddOwner,
@@ -20,13 +19,10 @@ import {
     sendShapeUpdateDefaultOwner,
     sendShapeUpdateOwner,
 } from "../api/emits/access";
-import { sendShapeOptionsUpdate } from "../api/emits/shape/core";
 import {
     sendShapeAddLabel,
     sendShapeCreateAura,
     sendShapeCreateTracker,
-    sendShapeIsDoor,
-    sendShapeIsTeleportZone,
     sendShapeRemoveAura,
     sendShapeRemoveLabel,
     sendShapeRemoveTracker,
@@ -47,13 +43,18 @@ import {
     sendShapeUpdateTracker,
 } from "../api/emits/shape/options";
 import { getBadgeCharacters } from "../groups";
+import { generateLocalId, getGlobalId } from "../id";
+import type { GlobalId, LocalId } from "../id";
 import { compositeState } from "../layers/state";
 import type { Layer } from "../layers/variants/layer";
 import { aurasFromServer, aurasToServer, partialAuraToServer } from "../models/conversion/aura";
 import { partialTrackerToServer, trackersFromServer, trackersToServer } from "../models/conversion/tracker";
 import type { Floor, LayerName } from "../models/floor";
 import { accessToServer, ownerToClient, ownerToServer } from "../models/shapes";
+import type { ServerShapeOptions } from "../models/shapes";
 import type { ServerShape, ShapeOptions } from "../models/shapes";
+import { doorSystem } from "../systems/logic/door";
+import { teleportZoneSystem } from "../systems/logic/teleportZone";
 import { initiativeStore } from "../ui/initiative/state";
 import { TriangulationTarget, visionState } from "../vision/state";
 
@@ -65,8 +66,8 @@ import { BoundingRect } from "./variants/boundingRect";
 export abstract class Shape implements IShape {
     // Used to create class instance from server shape data
     abstract readonly type: SHAPE_TYPE;
-    // The unique ID of this shape
-    readonly uuid: string;
+    readonly id: LocalId;
+
     // The layer the shape is currently on
     protected _floor!: number | undefined;
     protected _layer!: LayerName;
@@ -137,19 +138,22 @@ export abstract class Shape implements IShape {
     // Explicitly prevent any sync to the server
     preventSync = false;
 
-    // Logic
-    isDoor = false;
-    isTeleportZone = false;
-
     // Additional options for specialized uses
     options: Partial<ShapeOptions> = {};
 
     constructor(
         refPoint: GlobalPoint,
-        options?: { fillColour?: string; strokeColour?: string; uuid?: string; assetId?: number; strokeWidth?: number },
+        options?: {
+            fillColour?: string;
+            strokeColour?: string;
+            id?: LocalId;
+            uuid?: GlobalId;
+            assetId?: number;
+            strokeWidth?: number;
+        },
     ) {
         this._refPoint = refPoint;
-        this.uuid = options?.uuid ?? uuidv4();
+        this.id = options?.id ?? generateLocalId(this, options?.uuid);
         this.fillColour = options?.fillColour ?? "#000";
         this.strokeColour = options?.strokeColour ?? "rgba(0,0,0,0)";
         this.assetId = options?.assetId;
@@ -221,16 +225,16 @@ export abstract class Shape implements IShape {
 
     updateLayerPoints(): void {
         for (const point of this.layer.points) {
-            if (point[1].has(this.uuid)) {
+            if (point[1].has(this.id)) {
                 if (point[1].size === 1) this.layer.points.delete(point[0]);
-                else point[1].delete(this.uuid);
+                else point[1].delete(this.id);
             }
         }
         for (const point of this.points) {
             const strp = JSON.stringify(point);
-            if (this.layer.points.has(strp) && !this.layer.points.get(strp)!.has(this.uuid))
-                this.layer.points.get(strp)!.add(this.uuid);
-            else if (!this.layer.points.has(strp)) this.layer.points.set(strp, new Set([this.uuid]));
+            if (this.layer.points.has(strp) && !this.layer.points.get(strp)!.has(this.id))
+                this.layer.points.get(strp)!.add(this.id);
+            else if (!this.layer.points.has(strp)) this.layer.points.set(strp, new Set([this.id]));
         }
     }
 
@@ -383,9 +387,9 @@ export abstract class Shape implements IShape {
         if (this.blocksVision && !alteredVision) {
             visionState.deleteFromTriangulation({
                 target: TriangulationTarget.VISION,
-                shape: this.uuid,
+                shape: this.id,
             });
-            visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.uuid });
+            visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.id });
             visionState.recalculateVision(this.floor.id);
         }
         this.invalidate(false);
@@ -393,9 +397,9 @@ export abstract class Shape implements IShape {
         if (this.blocksMovement && !alteredMovement) {
             visionState.deleteFromTriangulation({
                 target: TriangulationTarget.MOVEMENT,
-                shape: this.uuid,
+                shape: this.id,
             });
-            visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: this.uuid });
+            visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: this.id });
             visionState.recalculateMovement(this.floor.id);
         }
     }
@@ -426,7 +430,7 @@ export abstract class Shape implements IShape {
     getBaseDict(): ServerShape {
         return {
             type_: this.type,
-            uuid: this.uuid,
+            uuid: getGlobalId(this.id),
             x: this.refPoint.x,
             y: this.refPoint.y,
             angle: this.angle,
@@ -435,8 +439,8 @@ export abstract class Shape implements IShape {
             draw_operator: this.globalCompositeOperation,
             movement_obstruction: this.blocksMovement,
             vision_obstruction: this.blocksVision,
-            auras: aurasToServer(this.uuid, this._auras),
-            trackers: trackersToServer(this.uuid, this._trackers),
+            auras: aurasToServer(getGlobalId(this.id), this._auras),
+            trackers: trackersToServer(getGlobalId(this.id), this._trackers),
             labels: this.labels,
             owners: this._owners.map((owner) => ownerToServer(owner)),
             fill_colour: this.fillColour,
@@ -459,11 +463,14 @@ export abstract class Shape implements IShape {
             asset: this.assetId,
             group: this.groupId,
             ignore_zoom_size: this.ignoreZoomSize,
-            is_door: this.isDoor,
-            is_teleport_zone: this.isTeleportZone,
+            is_door: doorSystem.isDoor(this.id),
+            is_teleport_zone: teleportZoneSystem.isTeleportZone(this.id),
         };
     }
     fromDict(data: ServerShape): void {
+        const options: Partial<ServerShapeOptions> =
+            data.options === undefined ? {} : Object.fromEntries(JSON.parse(data.options));
+
         this._layer = data.layer;
         this._floor = floorStore.getFloor({ name: data.floor })!.id;
         this.angle = data.angle;
@@ -484,8 +491,8 @@ export abstract class Shape implements IShape {
         this.showBadge = data.show_badge;
         this.isLocked = data.is_locked;
         this.annotationVisible = data.annotation_visible;
-        this.setIsDoor(data.is_door, SyncTo.UI);
-        this.setIsTeleportZone(data.is_teleport_zone, SyncTo.UI);
+        doorSystem.inform(this.id, data.is_door, options.door);
+        teleportZoneSystem.inform(this.id, data.is_teleport_zone, options.teleport);
 
         this.ignoreZoomSize = data.ignore_zoom_size;
 
@@ -493,7 +500,7 @@ export abstract class Shape implements IShape {
             this.annotation = data.annotation;
         }
         this.name = data.name;
-        if (data.options !== undefined) this.options = Object.fromEntries(JSON.parse(data.options));
+        if (data.options !== undefined) this.options = options;
         if (data.asset !== undefined) this.assetId = data.asset;
         if (data.group !== undefined) this.groupId = data.group;
         // retain reactivity
@@ -535,7 +542,7 @@ export abstract class Shape implements IShape {
      * @param f A funtion name that exists on ActiveShapeStore
      */
     protected _<F extends FunctionPropertyNames<ActiveShapeStore>>(f: F): ActiveShapeStore[F] {
-        if (this.uuid === activeShapeStore.state.uuid)
+        if (this.id === activeShapeStore.state.id)
             return activeShapeStore[f].bind(activeShapeStore) as ActiveShapeStore[F];
         return (..._: unknown[]) => {};
     }
@@ -551,7 +558,7 @@ export abstract class Shape implements IShape {
     // PROPERTIES
 
     setName(name: string, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetName({ shape: this.uuid, value: name });
+        if (syncTo === SyncTo.SERVER) sendShapeSetName({ shape: getGlobalId(this.id), value: name });
         if (syncTo === SyncTo.UI) this._("setName")(name, syncTo);
 
         this.name = name;
@@ -561,26 +568,26 @@ export abstract class Shape implements IShape {
     }
 
     setNameVisible(visible: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetNameVisible({ shape: this.uuid, value: visible });
+        if (syncTo === SyncTo.SERVER) sendShapeSetNameVisible({ shape: getGlobalId(this.id), value: visible });
         if (syncTo === SyncTo.UI) this._("setNameVisible")(visible, syncTo);
 
         this.nameVisible = visible;
     }
 
     setIsToken(isToken: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetIsToken({ shape: this.uuid, value: isToken });
+        if (syncTo === SyncTo.SERVER) sendShapeSetIsToken({ shape: getGlobalId(this.id), value: isToken });
         if (syncTo === SyncTo.UI) this._("setIsToken")(isToken, syncTo);
 
         this.isToken = isToken;
         if (this.ownedBy(false, { visionAccess: true })) {
-            if (this.isToken) gameStore.addOwnedToken(this.uuid);
-            else gameStore.removeOwnedToken(this.uuid);
+            if (this.isToken) gameStore.addOwnedToken(this.id);
+            else gameStore.removeOwnedToken(this.id);
         }
         this.invalidate(false);
     }
 
     setInvisible(isInvisible: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetInvisible({ shape: this.uuid, value: isInvisible });
+        if (syncTo === SyncTo.SERVER) sendShapeSetInvisible({ shape: getGlobalId(this.id), value: isInvisible });
         if (syncTo === SyncTo.UI) this._("setIsInvisible")(isInvisible, syncTo);
 
         this.isInvisible = isInvisible;
@@ -588,7 +595,7 @@ export abstract class Shape implements IShape {
     }
 
     setStrokeColour(colour: string, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetStrokeColour({ shape: this.uuid, value: colour });
+        if (syncTo === SyncTo.SERVER) sendShapeSetStrokeColour({ shape: getGlobalId(this.id), value: colour });
         if (syncTo === SyncTo.UI) this._("setStrokeColour")(colour, syncTo);
 
         this.strokeColour = colour;
@@ -596,7 +603,7 @@ export abstract class Shape implements IShape {
     }
 
     setFillColour(colour: string, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetFillColour({ shape: this.uuid, value: colour });
+        if (syncTo === SyncTo.SERVER) sendShapeSetFillColour({ shape: getGlobalId(this.id), value: colour });
         if (syncTo === SyncTo.UI) this._("setFillColour")(colour, syncTo);
 
         this.fillColour = colour;
@@ -604,7 +611,7 @@ export abstract class Shape implements IShape {
     }
 
     setBlocksVision(blocksVision: boolean, syncTo: SyncTo, recalculate = true): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetBlocksVision({ shape: this.uuid, value: blocksVision });
+        if (syncTo === SyncTo.SERVER) sendShapeSetBlocksVision({ shape: getGlobalId(this.id), value: blocksVision });
         if (syncTo === SyncTo.UI) this._("setBlocksVision")(blocksVision, syncTo);
 
         this.blocksVision = blocksVision;
@@ -613,7 +620,8 @@ export abstract class Shape implements IShape {
     }
 
     setBlocksMovement(blocksMovement: boolean, syncTo: SyncTo, recalculate = true): boolean {
-        if (syncTo === SyncTo.SERVER) sendShapeSetBlocksMovement({ shape: this.uuid, value: blocksMovement });
+        if (syncTo === SyncTo.SERVER)
+            sendShapeSetBlocksMovement({ shape: getGlobalId(this.id), value: blocksMovement });
         if (syncTo === SyncTo.UI) this._("setBlocksMovement")(blocksMovement, syncTo);
 
         let alteredMovement = false;
@@ -622,11 +630,11 @@ export abstract class Shape implements IShape {
             TriangulationTarget.MOVEMENT,
             this._floor ?? floorStore.currentFloor.value!.id,
         );
-        const obstructionIndex = movementBlockers.indexOf(this.uuid);
+        const obstructionIndex = movementBlockers.indexOf(this.id);
         if (this.blocksMovement && obstructionIndex === -1) {
             visionState.addBlocker(
                 TriangulationTarget.MOVEMENT,
-                this.uuid,
+                this.id,
                 this._floor ?? floorStore.currentFloor.value!.id,
                 recalculate,
             );
@@ -645,7 +653,7 @@ export abstract class Shape implements IShape {
     }
 
     setShowBadge(showBadge: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetShowBadge({ shape: this.uuid, value: showBadge });
+        if (syncTo === SyncTo.SERVER) sendShapeSetShowBadge({ shape: getGlobalId(this.id), value: showBadge });
         if (syncTo === SyncTo.UI) this._("setShowBadge")(showBadge, syncTo);
 
         this.showBadge = showBadge;
@@ -654,7 +662,7 @@ export abstract class Shape implements IShape {
     }
 
     setDefeated(isDefeated: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetDefeated({ shape: this.uuid, value: isDefeated });
+        if (syncTo === SyncTo.SERVER) sendShapeSetDefeated({ shape: getGlobalId(this.id), value: isDefeated });
         if (syncTo === SyncTo.UI) this._("setIsDefeated")(isDefeated, syncTo);
 
         this.isDefeated = isDefeated;
@@ -662,19 +670,10 @@ export abstract class Shape implements IShape {
     }
 
     setLocked(isLocked: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetLocked({ shape: this.uuid, value: isLocked });
+        if (syncTo === SyncTo.SERVER) sendShapeSetLocked({ shape: getGlobalId(this.id), value: isLocked });
         if (syncTo === SyncTo.UI) this._("setLocked")(isLocked, syncTo);
 
         this.isLocked = isLocked;
-    }
-
-    // OPTIONS
-
-    setOptions(options: Partial<ShapeOptions>, syncTo: SyncTo): void {
-        this.options = options;
-
-        if (syncTo === SyncTo.SERVER) sendShapeOptionsUpdate([this], false);
-        if (syncTo === SyncTo.UI) this._("setOptions")(this.options, syncTo);
     }
 
     // ACCESS
@@ -698,7 +697,7 @@ export abstract class Shape implements IShape {
         const state = gameStore.state;
         if (state.isDm) return true;
 
-        const isActiveToken = gameStore.activeTokens.value.has(this.uuid);
+        const isActiveToken = gameStore.activeTokens.value.has(this.id);
 
         if (this.isToken && limitToActiveTokens && !isActiveToken) return false;
 
@@ -730,14 +729,14 @@ export abstract class Shape implements IShape {
         this.defaultAccess = access;
 
         if (syncTo === SyncTo.SERVER)
-            sendShapeUpdateDefaultOwner({ ...accessToServer(this.defaultAccess), shape: this.uuid });
+            sendShapeUpdateDefaultOwner({ ...accessToServer(this.defaultAccess), shape: getGlobalId(this.id) });
         if (syncTo === SyncTo.UI) this._("setDefaultAccess")(this.defaultAccess, syncTo);
 
         if (this.isToken) {
             if (this.defaultAccess.vision) {
-                if (this.ownedBy(false, { visionAccess: true })) gameStore.addOwnedToken(this.uuid);
+                if (this.ownedBy(false, { visionAccess: true })) gameStore.addOwnedToken(this.id);
             } else {
-                if (!this.ownedBy(false, { visionAccess: true })) gameStore.removeOwnedToken(this.uuid);
+                if (!this.ownedBy(false, { visionAccess: true })) gameStore.removeOwnedToken(this.id);
             }
         }
         if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();
@@ -755,26 +754,26 @@ export abstract class Shape implements IShape {
             owner.access.vision = true;
         }
         const fullOwner: ShapeOwner = {
-            shape: this.uuid,
+            shape: this.id,
             ...owner,
             access: { edit: false, vision: false, movement: false, ...owner.access },
         };
-        if (fullOwner.shape !== this.uuid) return;
+        if (fullOwner.shape !== this.id) return;
         if (!this.hasOwner(owner.user)) {
             if (syncTo === SyncTo.SERVER) sendShapeAddOwner(ownerToServer(fullOwner));
             if (syncTo === SyncTo.UI) this._("addOwner")(fullOwner, syncTo);
 
             this._owners.push(fullOwner);
             if ((owner.access.vision ?? false) && this.isToken && owner.user === clientStore.state.username)
-                gameStore.addOwnedToken(this.uuid);
+                gameStore.addOwnedToken(this.id);
             if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();
         }
         initiativeStore._forceUpdate();
     }
 
     updateOwner(owner: PartialBy<ShapeOwner, "shape">, syncTo: SyncTo): void {
-        const fullOwner: ShapeOwner = { shape: this.uuid, ...owner };
-        if (fullOwner.shape !== this.uuid) return;
+        const fullOwner: ShapeOwner = { shape: this.id, ...owner };
+        if (fullOwner.shape !== this.id) return;
         if (!this.hasOwner(owner.user)) return;
 
         const targetOwner = this._owners.find((o) => o.user === owner.user)!;
@@ -794,9 +793,9 @@ export abstract class Shape implements IShape {
         if (targetOwner.access.vision !== fullOwner.access.vision) {
             if (targetOwner.user === clientStore.state.username) {
                 if (fullOwner.access.vision) {
-                    gameStore.addOwnedToken(this.uuid);
+                    gameStore.addOwnedToken(this.id);
                 } else {
-                    gameStore.removeOwnedToken(this.uuid);
+                    gameStore.removeOwnedToken(this.id);
                 }
             }
         }
@@ -814,7 +813,7 @@ export abstract class Shape implements IShape {
         if (syncTo === SyncTo.UI) this._("removeOwner")(owner, syncTo);
 
         if (owner === clientStore.state.username) {
-            gameStore.removeOwnedToken(owner);
+            gameStore.removeOwnedToken(this.id);
         }
         if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();
         initiativeStore._forceUpdate();
@@ -825,7 +824,7 @@ export abstract class Shape implements IShape {
     getTrackers(includeParent: boolean): readonly Tracker[] {
         const tr: Tracker[] = [];
         if (includeParent) {
-            const parent = compositeState.getCompositeParent(this.uuid);
+            const parent = compositeState.getCompositeParent(this.id);
             if (parent !== undefined) {
                 tr.push(...parent.getTrackers(false));
             }
@@ -835,8 +834,8 @@ export abstract class Shape implements IShape {
     }
 
     pushTracker(tracker: Tracker, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeCreateTracker(trackersToServer(this.uuid, [tracker])[0]);
-        else if (syncTo === SyncTo.UI) this._("pushTracker")(tracker, this.uuid, syncTo);
+        if (syncTo === SyncTo.SERVER) sendShapeCreateTracker(trackersToServer(getGlobalId(this.id), [tracker])[0]);
+        else if (syncTo === SyncTo.UI) this._("pushTracker")(tracker, this.id, syncTo);
 
         this._trackers.push(tracker);
         this.invalidate(false);
@@ -851,7 +850,7 @@ export abstract class Shape implements IShape {
                 ...partialTrackerToServer({
                     ...delta,
                 }),
-                shape: this.uuid,
+                shape: getGlobalId(this.id),
                 uuid: trackerId,
             });
         } else if (syncTo === SyncTo.UI) {
@@ -863,7 +862,7 @@ export abstract class Shape implements IShape {
     }
 
     removeTracker(tracker: string, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeRemoveTracker({ shape: this.uuid, value: tracker });
+        if (syncTo === SyncTo.SERVER) sendShapeRemoveTracker({ shape: getGlobalId(this.id), value: tracker });
         else if (syncTo === SyncTo.UI) this._("removeTracker")(tracker, syncTo);
 
         this._trackers = this._trackers.filter((tr) => tr.uuid !== tracker);
@@ -875,7 +874,7 @@ export abstract class Shape implements IShape {
     getAuras(includeParent: boolean): readonly Aura[] {
         const au: Aura[] = [];
         if (includeParent) {
-            const parent = compositeState.getCompositeParent(this.uuid);
+            const parent = compositeState.getCompositeParent(this.id);
             if (parent !== undefined) {
                 au.push(...parent.getAuras(false));
             }
@@ -885,8 +884,8 @@ export abstract class Shape implements IShape {
     }
 
     pushAura(aura: Aura, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeCreateAura(aurasToServer(this.uuid, [aura])[0]);
-        else if (syncTo === SyncTo.UI) this._("pushAura")(aura, this.uuid, syncTo);
+        if (syncTo === SyncTo.SERVER) sendShapeCreateAura(aurasToServer(getGlobalId(this.id), [aura])[0]);
+        else if (syncTo === SyncTo.UI) this._("pushAura")(aura, this.id, syncTo);
 
         this._auras.push(aura);
         this.checkVisionSources();
@@ -902,7 +901,7 @@ export abstract class Shape implements IShape {
                 ...partialAuraToServer({
                     ...delta,
                 }),
-                shape: this.uuid,
+                shape: getGlobalId(this.id),
                 uuid: auraId,
             });
         } else if (syncTo === SyncTo.UI) {
@@ -916,14 +915,14 @@ export abstract class Shape implements IShape {
 
         const showsVision = aura.active && aura.visionSource;
 
-        if (showsVision && i === -1) visionState.addVisionSource({ shape: this.uuid, aura: aura.uuid }, this.floor.id);
+        if (showsVision && i === -1) visionState.addVisionSource({ shape: this.id, aura: aura.uuid }, this.floor.id);
         else if (!showsVision && i >= 0) visionState.sliceVisionSources(i, this.floor.id);
 
         this.invalidate(false);
     }
 
     removeAura(aura: string, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeRemoveAura({ shape: this.uuid, value: aura });
+        if (syncTo === SyncTo.SERVER) sendShapeRemoveAura({ shape: getGlobalId(this.id), value: aura });
         else if (syncTo === SyncTo.UI) this._("removeAura")(aura, syncTo);
 
         this._auras = this._auras.filter((au) => au.uuid !== aura);
@@ -934,27 +933,27 @@ export abstract class Shape implements IShape {
     // EXTRA
 
     setAnnotation(text: string, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetAnnotation({ shape: this.uuid, value: text });
+        if (syncTo === SyncTo.SERVER) sendShapeSetAnnotation({ shape: getGlobalId(this.id), value: text });
         if (syncTo === SyncTo.UI) this._("setAnnotation")(text, syncTo);
 
         const hadAnnotation = this.annotation !== "";
         this.annotation = text;
         if (this.annotation !== "" && !hadAnnotation) {
-            gameStore.addAnnotation(this.uuid);
+            gameStore.addAnnotation(this.id);
         } else if (this.annotation === "" && hadAnnotation) {
-            gameStore.removeAnnotation(this.uuid);
+            gameStore.removeAnnotation(this.id);
         }
     }
 
     setAnnotationVisible(visible: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetAnnotationVisible({ shape: this.uuid, value: visible });
+        if (syncTo === SyncTo.SERVER) sendShapeSetAnnotationVisible({ shape: getGlobalId(this.id), value: visible });
         if (syncTo === SyncTo.UI) this._("setAnnotationVisible")(visible, syncTo);
 
         this.annotationVisible = visible;
     }
 
     addLabel(label: string, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeAddLabel({ shape: this.uuid, value: label });
+        if (syncTo === SyncTo.SERVER) sendShapeAddLabel({ shape: getGlobalId(this.id), value: label });
         if (syncTo === SyncTo.UI) this._("addLabel")(label, syncTo);
 
         const l = gameStore.state.labels.get(label)!;
@@ -962,30 +961,10 @@ export abstract class Shape implements IShape {
     }
 
     removeLabel(label: string, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeRemoveLabel({ shape: this.uuid, value: label });
+        if (syncTo === SyncTo.SERVER) sendShapeRemoveLabel({ shape: getGlobalId(this.id), value: label });
         if (syncTo === SyncTo.UI) this._("removeLabel")(label, syncTo);
 
         this.labels = this.labels.filter((l) => l.uuid !== label);
-    }
-
-    // LOGIC
-
-    setIsDoor(isDoor: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeIsDoor({ shape: this.uuid, value: isDoor });
-        if (syncTo === SyncTo.UI) this._("setIsDoor")(isDoor, syncTo);
-
-        this.isDoor = isDoor;
-        if (isDoor) logicStore.addDoor(this.uuid);
-        else logicStore.removeDoor(this.uuid);
-    }
-
-    setIsTeleportZone(isTeleportZone: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeIsTeleportZone({ shape: this.uuid, value: isTeleportZone });
-        if (syncTo === SyncTo.UI) this._("setIsTeleportZone")(isTeleportZone, syncTo);
-
-        this.isTeleportZone = isTeleportZone;
-        if (isTeleportZone) logicStore.addTeleportZone(this.uuid);
-        else logicStore.removeTeleportZone(this.uuid);
     }
 
     // Extra Utilities
@@ -996,11 +975,11 @@ export abstract class Shape implements IShape {
             TriangulationTarget.VISION,
             this._floor ?? floorStore.currentFloor.value!.id,
         );
-        const obstructionIndex = visionBlockers.indexOf(this.uuid);
+        const obstructionIndex = visionBlockers.indexOf(this.id);
         if (this.blocksVision && obstructionIndex === -1) {
             visionState.addBlocker(
                 TriangulationTarget.VISION,
-                this.uuid,
+                this.id,
                 this._floor ?? floorStore.currentFloor.value!.id,
                 recalculate,
             );
@@ -1016,14 +995,14 @@ export abstract class Shape implements IShape {
         }
 
         // Check if the visionsource auras are in the gameManager
-        const visionSources: { shape: string; aura: string }[] = [
+        const visionSources: { shape: LocalId; aura: string }[] = [
             ...visionState.getVisionSources(this._floor ?? floorStore.currentFloor.value!.id),
         ];
         for (const au of this.getAuras(true)) {
             const i = visionSources.findIndex((o) => o.aura === au.uuid);
             const isVisionSource = au.visionSource && au.active;
             if (isVisionSource && i === -1) {
-                visionSources.push({ shape: this.uuid, aura: au.uuid });
+                visionSources.push({ shape: this.id, aura: au.uuid });
             } else if (!isVisionSource && i >= 0) {
                 visionSources.splice(i, 1);
             }
@@ -1031,7 +1010,7 @@ export abstract class Shape implements IShape {
         // Check if anything in the gameManager referencing this shape is in fact still a visionsource
         for (let i = visionSources.length - 1; i >= 0; i--) {
             const ls = visionSources[i];
-            if (ls.shape === this.uuid) {
+            if (ls.shape === this.id) {
                 if (!this.getAuras(true).some((a) => a.uuid === ls.aura && a.visionSource && a.active))
                     visionSources.splice(i, 1);
             }

@@ -16,8 +16,6 @@ import { sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import type { Layer } from "../../layers/variants/layer";
 import { LayerName } from "../../models/floor";
 import type { Floor } from "../../models/floor";
-import { DEFAULT_CONDITIONS } from "../../models/logic";
-import type { Conditions } from "../../models/logic";
 import { ToolName } from "../../models/tools";
 import type { ToolFeatures } from "../../models/tools";
 import { overrideLastOperation } from "../../operations/undo";
@@ -27,6 +25,9 @@ import { Line } from "../../shapes/variants/line";
 import { Polygon } from "../../shapes/variants/polygon";
 import { Rect } from "../../shapes/variants/rect";
 import { Text } from "../../shapes/variants/text";
+import { doorSystem } from "../../systems/logic/door";
+import { DEFAULT_PERMISSIONS } from "../../systems/logic/models";
+import type { Permissions } from "../../systems/logic/models";
 import { openDefaultContextMenu } from "../../ui/contextmenu/state";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { Tool } from "../tool";
@@ -73,7 +74,7 @@ class DrawTool extends Tool {
         fontSize: 20,
 
         isDoor: false,
-        doorConditions: DEFAULT_CONDITIONS,
+        doorPermissions: DEFAULT_PERMISSIONS,
     });
     hasBrushSize = computed(() => [DrawShape.Brush, DrawShape.Polygon].includes(this.state.selectedShape));
 
@@ -175,8 +176,7 @@ class DrawTool extends Tool {
             if (!this.shape.preventSync) sendShapeSizeUpdate({ shape: this.shape, temporary: false });
         }
         if (this.state.isDoor) {
-            this.shape.setOptions({ ...this.shape.options, doorConditions: this.state.doorConditions }, SyncTo.SERVER);
-            this.shape.setIsDoor(true, SyncTo.SERVER);
+            doorSystem.toggle(this.shape.id, true, SyncTo.SERVER);
         }
         this.active = false;
         const layer = this.getLayer();
@@ -515,13 +515,13 @@ class DrawTool extends Tool {
                 if (
                     visionState
                         .getCDT(TriangulationTarget.VISION, this.shape.floor.id)
-                        .tds.getTriagVertices(this.shape.uuid).length > 1
+                        .tds.getTriagVertices(this.shape.id).length > 1
                 )
                     visionState.deleteFromTriangulation({
                         target: TriangulationTarget.VISION,
-                        shape: this.shape.uuid,
+                        shape: this.shape.id,
                     });
-                visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.shape.uuid });
+                visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.shape.id });
                 visionState.recalculateVision(this.shape.floor.id);
             }
         }
@@ -548,15 +548,15 @@ class DrawTool extends Tool {
             if (this.shape.blocksVision)
                 visionState.deleteFromTriangulation({
                     target: TriangulationTarget.VISION,
-                    shape: this.shape.uuid,
+                    shape: this.shape.id,
                 });
             this.shape.resizeToGrid(this.shape.getPointIndex(endPoint, l2gz(5)), ctrlOrCmdPressed(event));
             if (this.shape.blocksVision) {
-                visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.shape.uuid });
+                visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.shape.id });
                 visionState.recalculateVision(this.shape.floor.id);
             }
             if (this.shape.blocksMovement) {
-                visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: this.shape.uuid });
+                visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: this.shape.id });
                 visionState.recalculateMovement(this.shape.floor.id);
             }
         }
@@ -683,8 +683,8 @@ class DrawTool extends Tool {
 
     // LOGIC
 
-    setDoorConditions(conditions: Conditions): void {
-        this.state.doorConditions = conditions;
+    setDoorPermissions(permissions: Permissions): void {
+        this.state.doorPermissions = permissions;
     }
 }
 

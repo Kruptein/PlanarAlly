@@ -2,6 +2,7 @@ import { g2l } from "../../../core/conversions";
 import type { GlobalPoint } from "../../../core/geometry";
 import { clientStore } from "../../../store/client";
 import { getFogColour } from "../../colour";
+import type { GlobalId, LocalId } from "../../id";
 import type { ServerRect } from "../../models/shapes";
 import type { SHAPE_TYPE } from "../types";
 
@@ -14,7 +15,7 @@ export class Rect extends BaseRect {
         topleft: GlobalPoint,
         w: number,
         h: number,
-        options?: { fillColour?: string; strokeColour?: string; uuid?: string },
+        options?: { fillColour?: string; strokeColour?: string; id?: LocalId; uuid?: GlobalId },
     ) {
         super(topleft, w, h, options);
     }

@@ -6,6 +6,8 @@ import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
 import { sendRemoveShapes } from "../api/emits/shape/core";
 import { addGroupMembers, createNewGroupForShapes, hasGroup } from "../groups";
+import { getGlobalId, getLocalId, reserveLocalId } from "../id";
+import type { GlobalId, LocalId } from "../id";
 import { selectionState } from "../layers/selection";
 import type { LayerName } from "../models/floor";
 import type {
@@ -46,7 +48,11 @@ export function createShapeFromDict(shape: ServerShape): IShape | undefined {
         if (group === undefined) {
             console.log("Missing group info detected");
         } else {
-            addGroupMembers(shape.group, [{ uuid: shape.uuid, badge: shape.badge }], false);
+            addGroupMembers(
+                shape.group,
+                [{ uuid: getLocalId(shape.uuid) ?? reserveLocalId(shape.uuid), badge: shape.badge }],
+                false,
+            );
         }
     }
 
@@ -113,10 +119,15 @@ export function createShapeFromDict(shape: ServerShape): IShape | undefined {
     } else if (shape.type_ === "togglecomposite") {
         const toggleComposite = shape as ServerToggleComposite;
 
-        sh = new ToggleComposite(refPoint, toggleComposite.active_variant, toggleComposite.variants, {
-            uuid: toggleComposite.uuid,
-        });
-        gameStore.addOwnedToken(sh.uuid);
+        sh = new ToggleComposite(
+            refPoint,
+            getLocalId(toggleComposite.active_variant)!,
+            toggleComposite.variants.map((v) => ({ uuid: getLocalId(v.uuid)!, name: v.name })),
+            {
+                uuid: toggleComposite.uuid,
+            },
+        );
+        gameStore.addOwnedToken(sh.id);
     } else {
         return undefined;
     }
@@ -130,7 +141,7 @@ export function copyShapes(): void {
     for (const shape of selectionState.get({ includeComposites: true })) {
         if (!shape.ownedBy(false, { editAccess: true })) continue;
         if (shape.groupId === undefined) {
-            createNewGroupForShapes([shape.uuid]);
+            createNewGroupForShapes([shape.id]);
         }
         clipboard.push(shape.asDict());
     }
@@ -153,11 +164,11 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
         offset = new Vector(10, 10);
     }
 
-    const shapeMap: Map<string, string> = new Map();
+    const shapeMap: Map<GlobalId, GlobalId> = new Map();
     const composites: ServerToggleComposite[] = [];
     const serverShapes: ServerShape[] = [];
 
-    const groupShapes: Record<string, string[]> = {};
+    const groupShapes: Record<string, LocalId[]> = {};
 
     for (const clip of gameState.clipboard) {
         const newShape: ServerShape = Object.assign({}, clip, { auras: [], labels: [], owners: [], trackers: [] });
@@ -211,7 +222,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
             if (!(clip.group in groupShapes)) {
                 groupShapes[clip.group] = [];
             }
-            groupShapes[clip.group].push(newShape.uuid);
+            groupShapes[clip.group].push(getLocalId(newShape.uuid)!);
         }
         if (clip.type_ === "togglecomposite") {
             composites.push(newShape as ServerToggleComposite);
@@ -221,9 +232,11 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
     }
 
     for (const composite of composites) {
-        composite.active_variant = shapeMap.get(composite.active_variant)!;
-        composite.variants = composite.variants.map((v) => ({ ...v, uuid: shapeMap.get(v.uuid)! }));
-        serverShapes.push(composite); // make sure it's added after the regular shapes
+        serverShapes.push({
+            ...composite,
+            active_variant: shapeMap.get(composite.active_variant)!,
+            variants: composite.variants.map((v) => ({ ...v, uuid: shapeMap.get(v.uuid)! })),
+        } as ServerToggleComposite); // make sure it's added after the regular shapes
     }
 
     // Finalize
@@ -253,14 +266,14 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
 }
 
 export function deleteShapes(shapes: readonly IShape[], sync: SyncMode): void {
-    const removed: string[] = [];
+    const removed: GlobalId[] = [];
     const recalculateIterative = visionState.state.mode === VisibilityMode.TRIANGLE_ITERATIVE;
     let recalculateVision = false;
     let recalculateMovement = false;
     for (let i = shapes.length - 1; i >= 0; i--) {
         const sel = shapes[i];
         if (sync !== SyncMode.NO_SYNC && !sel.ownedBy(false, { editAccess: true })) continue;
-        removed.push(sel.uuid);
+        removed.push(getGlobalId(sel.id));
         if (sel.blocksVision) recalculateVision = true;
         if (sel.blocksMovement) recalculateMovement = true;
         sel.layer.removeShape(sel, SyncMode.NO_SYNC, recalculateIterative);

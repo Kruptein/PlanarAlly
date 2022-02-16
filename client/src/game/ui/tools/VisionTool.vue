@@ -3,7 +3,8 @@ import type { CSSProperties } from "vue";
 import { computed, onMounted, ref } from "vue";
 
 import { gameStore } from "../../../store/game";
-import { UuidMap } from "../../../store/shapeMap";
+import { getShape } from "../../id";
+import type { LocalId } from "../../id";
 import type { IShape } from "../../shapes/interfaces";
 import type { Asset } from "../../shapes/variants/asset";
 import { visionTool } from "../../tools/variants/vision";
@@ -20,13 +21,13 @@ onMounted(() => {
     ({ right: right.value, arrow: arrow.value } = useToolPosition(visionTool.toolName));
 });
 
-const tokens = computed(() => [...gameStore.state.ownedTokens].map((t) => UuidMap.get(t)!));
+const tokens = computed(() => [...gameStore.state.ownedTokens].map((t) => getShape(t)!));
 const selection = computed(() => {
     if (gameStore.state.activeTokenFilters === undefined) return gameStore.state.ownedTokens;
     return gameStore.state.activeTokenFilters;
 });
 
-function toggle(uuid: string): void {
+function toggle(uuid: LocalId): void {
     if (selection.value.has(uuid)) gameStore.removeActiveToken(uuid);
     else gameStore.addActiveToken(uuid);
 
@@ -49,10 +50,10 @@ function getImageSrc(token: IShape): string {
     <div class="tool-detail" v-if="selected" :style="toolStyle">
         <div
             v-for="token in tokens"
-            :key="token.uuid"
+            :key="token.id"
             class="token"
-            :class="{ selected: selection.has(token.uuid) }"
-            @click="toggle(token.uuid)"
+            :class="{ selected: selection.has(token.id) }"
+            @click="toggle(token.id)"
         >
             <img :src="getImageSrc(token)" width="30px" height="30px" v-if="getImageSrc(token) !== ''" alt="" />
             <div>{{ token.name }}</div>

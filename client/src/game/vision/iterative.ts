@@ -77,7 +77,7 @@ export class IterativeDelete {
     }
 
     private deleteVertices(): void {
-        const vertices = this.cdt.tds.getTriagVertices(this.shape.uuid);
+        const vertices = this.cdt.tds.getTriagVertices(this.shape.id);
         const np = vertices.length;
         let from = vertices[np - 1];
         for (const [i, vertex] of vertices.entries()) {
@@ -145,7 +145,7 @@ export class IterativeDelete {
         }
         for (const vertex of this.vertices) this.cdt.removeVertex(vertex);
         for (const [from_, to] of this.finalConstraints) this.cdt.insertConstraintV(from_, to);
-        this.cdt.tds.clearTriagVertices(this.shape.uuid);
+        this.cdt.tds.clearTriagVertices(this.shape.id);
     }
 
     private deleteVertex(vertex: Vertex, from: Vertex, target: Vertex, isCorner: boolean): Vertex {

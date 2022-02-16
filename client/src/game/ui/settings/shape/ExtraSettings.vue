@@ -12,10 +12,10 @@ import { clientStore, DEFAULT_GRID_SIZE } from "../../../../store/client";
 import { floorStore } from "../../../../store/floor";
 import { gameStore } from "../../../../store/game";
 import { settingsStore } from "../../../../store/settings";
-import { UuidMap } from "../../../../store/shapeMap";
+import { sendShapeSvgAsset } from "../../../api/emits/shape/options";
+import { getGlobalId, getShape } from "../../../id";
 import type { DDraftData } from "../../../models/ddraft";
 import { LayerName } from "../../../models/floor";
-import type { ShapeOptions } from "../../../models/shapes";
 import type { Aura } from "../../../shapes/interfaces";
 import type { Asset } from "../../../shapes/variants/asset";
 import { Circle } from "../../../shapes/variants/circle";
@@ -76,17 +76,25 @@ async function uploadSvg(): Promise<void> {
     const asset = await modals.assetPicker();
     if (asset === undefined || asset.file_hash === undefined) return;
 
-    activeShapeStore.setOptionKey("svgAsset", asset.file_hash, SyncTo.SERVER);
-    (UuidMap.get(activeShapeStore.state.uuid!)! as Asset).loadSvgs();
+    const shape = getShape(activeShapeStore.state.id!)!;
+    if (shape.options === undefined) {
+        shape.options = {};
+    }
+    shape.options.svgAsset = asset.file_hash;
+    sendShapeSvgAsset({ shape: getGlobalId(shape.id), value: asset.file_hash });
+    (shape as Asset).loadSvgs();
 }
 
 function removeSvg(): void {
-    const options = { ...activeShapeStore.state.options! };
-    delete options.svgPaths;
-    delete options.svgWidth;
-    delete options.svgHeight;
-    delete options.svgAsset;
-    activeShapeStore.setOptions(options as Omit<ShapeOptions, "svgPaths">, SyncTo.SERVER);
+    const shape = getShape(activeShapeStore.state.id!)!;
+    if (shape.options === undefined) {
+        shape.options = {};
+    }
+    delete shape.options.svgPaths;
+    delete shape.options.svgWidth;
+    delete shape.options.svgHeight;
+    delete shape.options.svgAsset;
+    sendShapeSvgAsset({ shape: getGlobalId(shape.id), value: undefined });
     visionState.recalculateVision(activeShapeStore.floor.value!);
     floorStore.invalidate({ id: activeShapeStore.floor.value! });
 }
@@ -95,7 +103,7 @@ function applyDDraft(): void {
     const dDraftData = activeShapeStore.state.options! as DDraftData;
     const size = dDraftData.ddraft_resolution.pixels_per_grid;
 
-    const realShape = UuidMap.get(activeShapeStore.state.uuid!)! as Asset;
+    const realShape = getShape(activeShapeStore.state.id!)! as Asset;
 
     const targetRP = realShape.refPoint;
 

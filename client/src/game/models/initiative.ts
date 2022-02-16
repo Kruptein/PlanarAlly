@@ -1,5 +1,7 @@
+import type { LocalId } from "../id";
+
 export interface InitiativeData {
-    shape: string;
+    shape: LocalId;
     initiative?: number;
     isVisible: boolean;
     isGroup: boolean;

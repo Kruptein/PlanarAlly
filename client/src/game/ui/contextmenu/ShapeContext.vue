@@ -11,11 +11,12 @@ import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
 import { locationStore } from "../../../store/location";
 import { settingsStore } from "../../../store/settings";
-import { UuidMap } from "../../../store/shapeMap";
 import { requestAssetOptions, sendAssetOptions } from "../../api/emits/asset";
 import { requestSpawnInfo } from "../../api/emits/location";
 import { sendShapesMove } from "../../api/emits/shape/core";
 import { addGroupMembers, createNewGroupForShapes, getGroupSize, removeGroup } from "../../groups";
+import { getGlobalId, getShape } from "../../id";
+import type { LocalId } from "../../id";
 import { selectionState } from "../../layers/selection";
 import { compositeState } from "../../layers/state";
 import type { Layer } from "../../layers/variants/layer";
@@ -43,7 +44,7 @@ const selectionIncludesSpawnToken = computed(() =>
 );
 
 const isOwned = computed(() =>
-    [...selectionState.state.selection].every((s) => UuidMap.get(s)?.ownedBy(false, { editAccess: true })),
+    [...selectionState.state.selection].every((s) => getShape(s)?.ownedBy(false, { editAccess: true })),
 );
 
 function close(): void {
@@ -95,7 +96,7 @@ async function addToInitiative(): Promise<void> {
     const groupsProcessed = new Set();
     for (const shape of selection) {
         if (!groupInitiatives || shape.groupId === undefined || !groupsProcessed.has(shape.groupId)) {
-            initiativeStore.addInitiative(shape.uuid, undefined, groupInitiatives && shape.groupId !== undefined);
+            initiativeStore.addInitiative(shape.id, undefined, groupInitiatives && shape.groupId !== undefined);
             groupsProcessed.add(shape.groupId);
         }
     }
@@ -206,7 +207,7 @@ async function setLocation(newLocation: number): Promise<void> {
     };
 
     sendShapesMove({
-        shapes: shapes.map((s) => s.uuid),
+        shapes: shapes.map((s) => getGlobalId(s.id)),
         target: { location: newLocation, ...targetPosition },
         tp_zone: false,
     });
@@ -235,7 +236,7 @@ function deleteSelection(): void {
 
 const canBeSaved = computed(() =>
     [...selectionState.state.selection].every(
-        (s) => UuidMap.get(s)!.assetId !== undefined && compositeState.getCompositeParent(s) === undefined,
+        (s) => getShape(s)!.assetId !== undefined && compositeState.getCompositeParent(s) === undefined,
     ),
 );
 
@@ -270,16 +271,16 @@ async function saveTemplate(): Promise<void> {
 // GROUPS
 
 const groups = computed(() =>
-    [...selectionState.state.selection].map((s) => UuidMap.get(s)!.groupId).filter((g) => g !== undefined),
+    [...selectionState.state.selection].map((s) => getShape(s)!.groupId).filter((g) => g !== undefined),
 ) as ComputedRef<string[]>;
 
 const hasEntireGroup = computed(() => {
     const selection = selectionState.state.selection;
-    return selection.size === getGroupSize(UuidMap.get([...selection][0])!.groupId!);
+    return selection.size === getGroupSize(getShape([...selection][0])!.groupId!);
 });
 
 const hasUngrouped = computed(() =>
-    [...selectionState.state.selection].some((s) => UuidMap.get(s)!.groupId === undefined),
+    [...selectionState.state.selection].some((s) => getShape(s)!.groupId === undefined),
 );
 
 function createGroup(): void {
@@ -306,7 +307,7 @@ async function mergeGroups(): Promise<void> {
     );
     if (keepBadges === undefined) return;
     let targetGroup: string | undefined;
-    const membersToMove: { uuid: string; badge?: number }[] = [];
+    const membersToMove: { uuid: LocalId; badge?: number }[] = [];
     for (const shape of selectionState.get({ includeComposites: false })) {
         if (shape.groupId !== undefined) {
             if (targetGroup === undefined) {
@@ -314,7 +315,7 @@ async function mergeGroups(): Promise<void> {
             } else if (targetGroup === shape.groupId) {
                 continue;
             } else {
-                membersToMove.push({ uuid: shape.uuid, badge: keepBadges ? shape.badge : undefined });
+                membersToMove.push({ uuid: shape.id, badge: keepBadges ? shape.badge : undefined });
             }
         }
     }
@@ -332,7 +333,7 @@ function enlargeGroup(): void {
     const groupId = selection.find((s) => s.groupId !== undefined)!.groupId!;
     addGroupMembers(
         groupId,
-        selection.filter((s) => s.groupId === undefined).map((s) => ({ uuid: s.uuid })),
+        selection.filter((s) => s.groupId === undefined).map((s) => ({ uuid: s.id })),
         true,
     );
     close();

@@ -1,13 +1,15 @@
 import type { GlobalPoint } from "../../../core/geometry";
 import { SyncTo, SyncMode } from "../../../core/models/types";
 import { gameStore } from "../../../store/game";
-import { UuidMap } from "../../../store/shapeMap";
-import { sendShapePositionUpdate, sendShapeOptionsUpdate } from "../../api/emits/shape/core";
+import { sendShapePositionUpdate } from "../../api/emits/shape/core";
+import { sendShapeSkipDraw } from "../../api/emits/shape/options";
 import {
     sendToggleCompositeActiveVariant,
     sendToggleCompositeRemoveVariant,
     sendToggleCompositeRenameVariant,
 } from "../../api/emits/shape/toggleComposite";
+import { getGlobalId, getShape } from "../../id";
+import type { GlobalId, LocalId } from "../../id";
 import { selectionState } from "../../layers/selection";
 import { compositeState } from "../../layers/state";
 import type { ServerToggleComposite } from "../../models/shapes";
@@ -22,18 +24,19 @@ export class ToggleComposite extends Shape {
 
     constructor(
         position: GlobalPoint,
-        private active_variant: string,
-        private _variants: { uuid: string; name: string }[],
+        private active_variant: LocalId,
+        private _variants: { uuid: LocalId; name: string }[],
         options?: {
             fillColour?: string;
             strokeColour?: string;
-            uuid?: string;
+            id?: LocalId;
+            uuid?: GlobalId;
         },
     ) {
         super(position, options);
         this.options.skipDraw = true;
         for (const variant of _variants) {
-            compositeState.addComposite(this.uuid, variant, false);
+            compositeState.addComposite(this.id, variant, false);
         }
         this.resetVariants(...this._variants.map((v) => v.uuid));
         this.setActiveVariant(this.active_variant, false);
@@ -43,18 +46,19 @@ export class ToggleComposite extends Shape {
         return true;
     }
 
-    get variants(): readonly { uuid: string; name: string }[] {
+    get variants(): readonly { uuid: LocalId; name: string }[] {
         return this._variants;
     }
 
-    addVariant(uuid: string, name: string, sync: boolean): void {
+    addVariant(uuid: LocalId, name: string, sync: boolean): void {
         const variant = { uuid, name };
         this._variants.push(variant);
-        compositeState.addComposite(this.uuid, variant, sync);
+        compositeState.addComposite(this.id, variant, sync);
     }
 
-    renameVariant(uuid: string, name: string, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendToggleCompositeRenameVariant({ shape: this.uuid, variant: uuid, name });
+    renameVariant(uuid: LocalId, name: string, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.SERVER)
+            sendToggleCompositeRenameVariant({ shape: getGlobalId(this.id), variant: getGlobalId(uuid), name });
         if (syncTo === SyncTo.UI) this._("renameVariant")(uuid, name, syncTo);
 
         const variant = this._variants.find((v) => v.uuid === uuid);
@@ -62,11 +66,12 @@ export class ToggleComposite extends Shape {
         variant.name = name;
     }
 
-    removeVariant(uuid: string, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendToggleCompositeRemoveVariant({ shape: this.uuid, variant: uuid });
-        if (syncTo === SyncTo.UI) this._("removeVariant")(uuid, syncTo);
+    removeVariant(id: LocalId, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.SERVER)
+            sendToggleCompositeRemoveVariant({ shape: getGlobalId(this.id), variant: getGlobalId(id) });
+        if (syncTo === SyncTo.UI) this._("removeVariant")(id, syncTo);
 
-        const v = this._variants.findIndex((v) => v.uuid === uuid);
+        const v = this._variants.findIndex((v) => v.uuid === id);
         if (v === undefined) {
             console.error("Variant not found during variant removal");
             return;
@@ -75,40 +80,40 @@ export class ToggleComposite extends Shape {
         this._variants.splice(v, 1);
         this.setActiveVariant(newVariant, true);
 
-        const oldVariant = UuidMap.get(uuid)!;
+        const oldVariant = getShape(id)!;
         oldVariant.layer.removeShape(oldVariant, SyncMode.FULL_SYNC, true);
     }
 
-    private resetVariants(...variants: string[]): void {
+    private resetVariants(...variants: LocalId[]): void {
         for (const variantId of variants) {
-            const variant = UuidMap.get(variantId);
+            const variant = getShape(variantId);
             if (variant === undefined) continue;
 
-            if (variant.isToken) gameStore.removeOwnedToken(variant.uuid);
+            if (variant.isToken) gameStore.removeOwnedToken(variant.id);
             if (variant.blocksMovement)
                 visionState.removeBlocker(TriangulationTarget.MOVEMENT, variant.floor.id, variant, true);
             if (variant.blocksVision)
                 visionState.removeBlocker(TriangulationTarget.VISION, variant.floor.id, variant, true);
-            if (variant.getAuras(false).length > 0) visionState.removeVisionSources(variant.floor.id, variant.uuid);
+            if (variant.getAuras(false).length > 0) visionState.removeVisionSources(variant.floor.id, variant.id);
         }
     }
 
-    setActiveVariant(variant: string, sync: boolean): void {
-        const oldVariant = UuidMap.get(this.active_variant)!;
+    setActiveVariant(variant: LocalId, sync: boolean): void {
+        const oldVariant = getShape(this.active_variant)!;
         this.resetVariants(this.active_variant);
         this.active_variant = variant;
-        const newVariant = UuidMap.get(this.active_variant)!;
+        const newVariant = getShape(this.active_variant)!;
 
         if (newVariant.isToken && newVariant.ownedBy(false, { visionAccess: true }))
-            gameStore.addOwnedToken(newVariant.uuid);
+            gameStore.addOwnedToken(newVariant.id);
         if (newVariant.blocksMovement)
-            visionState.addBlocker(TriangulationTarget.MOVEMENT, newVariant.uuid, newVariant.floor.id, true);
+            visionState.addBlocker(TriangulationTarget.MOVEMENT, newVariant.id, newVariant.floor.id, true);
         if (newVariant.blocksVision)
-            visionState.addBlocker(TriangulationTarget.VISION, newVariant.uuid, newVariant.floor.id, true);
+            visionState.addBlocker(TriangulationTarget.VISION, newVariant.id, newVariant.floor.id, true);
 
         for (const au of newVariant.getAuras(false)) {
             if (au.visionSource && au.active) {
-                visionState.addVisionSource({ shape: newVariant.uuid, aura: au.uuid }, newVariant.floor.id);
+                visionState.addVisionSource({ shape: newVariant.id, aura: au.uuid }, newVariant.floor.id);
             }
         }
 
@@ -119,13 +124,14 @@ export class ToggleComposite extends Shape {
             newVariant.center(oldCenter);
 
             sendShapePositionUpdate([newVariant], false);
-            sendShapeOptionsUpdate([oldVariant, newVariant], false);
-            sendToggleCompositeActiveVariant({ shape: this.uuid, variant });
+            sendShapeSkipDraw({ shape: getGlobalId(oldVariant.id), value: true });
+            sendShapeSkipDraw({ shape: getGlobalId(newVariant.id), value: false });
+            sendToggleCompositeActiveVariant({ shape: getGlobalId(this.id), variant: getGlobalId(variant) });
         }
 
         if (this._layer !== undefined && this.layer.isActiveLayer) {
             const selection = [...selectionState.get({ includeComposites: false })];
-            const index = selection.findIndex((s) => s.uuid === oldVariant.uuid);
+            const index = selection.findIndex((s) => s.id === oldVariant.id);
             if (index >= 0) {
                 selection.splice(index, 1, newVariant);
                 selectionState.set(...selection);
@@ -137,8 +143,8 @@ export class ToggleComposite extends Shape {
 
     asDict(): ServerToggleComposite {
         return Object.assign(this.getBaseDict(), {
-            active_variant: this.active_variant,
-            variants: this._variants,
+            active_variant: getGlobalId(this.active_variant)!,
+            variants: this._variants.map((v) => ({ uuid: getGlobalId(v.uuid)!, name: v.name })),
         });
     }
 
@@ -161,7 +167,7 @@ export class ToggleComposite extends Shape {
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
     center(centerPoint?: GlobalPoint): GlobalPoint | void {
-        if (centerPoint === undefined) return UuidMap.get(this.active_variant)!.center();
+        if (centerPoint === undefined) return getShape(this.active_variant)!.center();
         this.refPoint = centerPoint;
     }
 

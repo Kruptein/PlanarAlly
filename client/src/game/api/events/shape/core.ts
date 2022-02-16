@@ -1,6 +1,7 @@
-import { SyncMode, SyncTo } from "../../../../core/models/types";
+import { SyncMode } from "../../../../core/models/types";
 import { floorStore } from "../../../../store/floor";
-import { UuidMap } from "../../../../store/shapeMap";
+import { getShapeFromGlobal } from "../../../id";
+import type { GlobalId } from "../../../id";
 import type { LayerName } from "../../../models/floor";
 import type { ServerShape } from "../../../models/shapes";
 import type { IShape } from "../../../shapes/interfaces";
@@ -12,7 +13,7 @@ import { socket } from "../../socket";
 
 socket.on("Shape.Set", (data: ServerShape) => {
     // hard reset a shape
-    const old = UuidMap.get(data.uuid);
+    const old = getShapeFromGlobal(data.uuid);
     if (old) old.layer.removeShape(old, SyncMode.NO_SYNC, true);
     addShape(data, SyncMode.NO_SYNC);
 });
@@ -27,16 +28,16 @@ socket.on("Shapes.Add", (shapes: ServerShape[]) => {
     }
 });
 
-socket.on("Shapes.Remove", (shapeIds: string[]) => {
-    const shapes = shapeIds.map((s) => UuidMap.get(s)!).filter((s) => s !== undefined);
+socket.on("Shapes.Remove", (shapeIds: GlobalId[]) => {
+    const shapes = shapeIds.map((s) => getShapeFromGlobal(s)!).filter((s) => s !== undefined);
     deleteShapes(shapes, SyncMode.NO_SYNC);
 });
 
 socket.on(
     "Shapes.Position.Update",
-    (data: { uuid: string; position: { angle: number; points: [number, number][] } }[]) => {
+    (data: { uuid: GlobalId; position: { angle: number; points: [number, number][] } }[]) => {
         for (const sh of data) {
-            const shape = UuidMap.get(sh.uuid);
+            const shape = getShapeFromGlobal(sh.uuid);
             if (shape === undefined) {
                 continue;
             }
@@ -45,40 +46,30 @@ socket.on(
     },
 );
 
-socket.on("Shapes.Options.Update", (data: { uuid: string; option: string }[]) => {
-    for (const sh of data) {
-        const shape = UuidMap.get(sh.uuid);
-        if (shape === undefined) {
-            continue;
-        }
-        shape.setOptions(Object.fromEntries(JSON.parse(sh.option)), SyncTo.UI);
-    }
-});
-
-socket.on("Shape.Order.Set", (data: { uuid: string; index: number }) => {
-    if (!UuidMap.has(data.uuid)) {
+socket.on("Shape.Order.Set", (data: { uuid: GlobalId; index: number }) => {
+    const shape = getShapeFromGlobal(data.uuid);
+    if (shape === undefined) {
         console.log(`Attempted to move the shape order of an unknown shape`);
         return;
     }
-    const shape = UuidMap.get(data.uuid)!;
     shape.layer.moveShapeOrder(shape, data.index, SyncMode.NO_SYNC);
 });
 
-socket.on("Shapes.Floor.Change", (data: { uuids: string[]; floor: string }) => {
-    const shapes = data.uuids.map((u) => UuidMap.get(u) ?? undefined).filter((s) => s !== undefined) as IShape[];
+socket.on("Shapes.Floor.Change", (data: { uuids: GlobalId[]; floor: string }) => {
+    const shapes = data.uuids.map((u) => getShapeFromGlobal(u) ?? undefined).filter((s) => s !== undefined) as IShape[];
     if (shapes.length === 0) return;
     moveFloor(shapes, floorStore.getFloor({ name: data.floor })!, false);
     if (shapes.some((s) => s.ownedBy(false, { editAccess: true }))) floorStore.selectFloor({ name: data.floor }, false);
 });
 
-socket.on("Shapes.Layer.Change", (data: { uuids: string[]; floor: string; layer: LayerName }) => {
-    const shapes = data.uuids.map((u) => UuidMap.get(u) ?? undefined).filter((s) => s !== undefined) as IShape[];
+socket.on("Shapes.Layer.Change", (data: { uuids: GlobalId[]; floor: string; layer: LayerName }) => {
+    const shapes = data.uuids.map((u) => getShapeFromGlobal(u) ?? undefined).filter((s) => s !== undefined) as IShape[];
     if (shapes.length === 0) return;
     moveLayer(shapes, floorStore.getLayer(floorStore.getFloor({ name: data.floor })!, data.layer)!, false);
 });
 
-socket.on("Shape.Rect.Size.Update", (data: { uuid: string; w: number; h: number }) => {
-    const shape = UuidMap.get(data.uuid) as Rect | undefined;
+socket.on("Shape.Rect.Size.Update", (data: { uuid: GlobalId; w: number; h: number }) => {
+    const shape = getShapeFromGlobal(data.uuid) as Rect | undefined;
     if (shape === undefined) return;
 
     shape.w = data.w;
@@ -86,8 +77,8 @@ socket.on("Shape.Rect.Size.Update", (data: { uuid: string; w: number; h: number 
     shape.layer.invalidate(!shape.triggersVisionRecalc);
 });
 
-socket.on("Shape.Circle.Size.Update", (data: { uuid: string; r: number }) => {
-    const shape = UuidMap.get(data.uuid) as Circle | undefined;
+socket.on("Shape.Circle.Size.Update", (data: { uuid: GlobalId; r: number }) => {
+    const shape = getShapeFromGlobal(data.uuid) as Circle | undefined;
     if (shape === undefined) return;
 
     shape.r = data.r;

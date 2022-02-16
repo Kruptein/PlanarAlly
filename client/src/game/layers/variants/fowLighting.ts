@@ -3,8 +3,8 @@ import type { SyncMode, InvalidationMode } from "../../../core/models/types";
 import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
-import { UuidMap } from "../../../store/shapeMap";
 import { getFogColour } from "../../colour";
+import { getShape } from "../../id";
 import { LayerName } from "../../models/floor";
 import type { IShape } from "../../shapes/interfaces";
 import { Circle } from "../../shapes/variants/circle";
@@ -24,7 +24,7 @@ export class FowLightingLayer extends FowLayer {
     removeShape(shape: IShape, sync: SyncMode, recalculate: boolean): boolean {
         let idx = -1;
         if (shape.options.preFogShape ?? false) {
-            idx = this.preFogShapes.findIndex((s) => s.uuid === shape.uuid);
+            idx = this.preFogShapes.findIndex((s) => s.id === shape.id);
         }
         const remove = super.removeShape(shape, sync, recalculate);
         if (remove && idx >= 0) this.preFogShapes.splice(idx, 1);
@@ -43,7 +43,7 @@ export class FowLightingLayer extends FowLayer {
                 floorStore.currentFloor.value!.id === this.floor
             ) {
                 for (const sh of gameStore.activeTokens.value) {
-                    const shape = UuidMap.get(sh)!;
+                    const shape = getShape(sh)!;
                     if (shape.options.skipDraw ?? false) continue;
                     if (shape.floor.id !== floorStore.currentFloor.value!.id) continue;
                     const bb = shape.getBoundingBox();
@@ -68,7 +68,7 @@ export class FowLightingLayer extends FowLayer {
 
             // First cut out all the light sources
             for (const light of visionState.getVisionSources(this.floor)) {
-                const shape = UuidMap.get(light.shape);
+                const shape = getShape(light.shape);
                 if (shape === undefined) continue;
                 const aura = shape.getAuras(true).find((a) => a.uuid === light.aura);
                 if (aura === undefined) continue;

@@ -1,6 +1,7 @@
 import type { GlobalPoint, Vector } from "../../core/geometry";
 import type { SyncTo } from "../../core/models/types";
 import type { PartialBy } from "../../core/types";
+import type { LocalId } from "../id";
 import type { Layer } from "../layers/variants/layer";
 import type { Floor, LayerName } from "../models/floor";
 import type { ServerShape, ShapeOptions } from "../models/shapes";
@@ -11,7 +12,7 @@ import type { BoundingRect } from "./variants/boundingRect";
 
 export interface IShape {
     readonly type: SHAPE_TYPE;
-    readonly uuid: string;
+    readonly id: LocalId;
 
     get points(): [number, number][];
     invalidatePoints(): void;
@@ -57,10 +58,6 @@ export interface IShape {
     ignoreZoomSize: boolean;
 
     preventSync: boolean;
-
-    // logic
-    isDoor: boolean;
-    isTeleportZone: boolean;
 
     options: Partial<ShapeOptions>;
 
@@ -134,10 +131,6 @@ export interface IShape {
     setDefeated(isDefeated: boolean, syncTo: SyncTo): void;
     setLocked(isLocked: boolean, syncTo: SyncTo): void;
 
-    // OPTIONS
-
-    setOptions(options: Partial<ShapeOptions>, syncTo: SyncTo): void;
-
     // ACCESS
 
     get owners(): readonly ShapeOwner[];
@@ -171,11 +164,6 @@ export interface IShape {
     setAnnotationVisible(visible: boolean, syncTo: SyncTo): void;
     addLabel(label: string, syncTo: SyncTo): void;
     removeLabel(label: string, syncTo: SyncTo): void;
-
-    // LOGIC
-
-    setIsDoor(isDoor: boolean, syncTo: SyncTo): void;
-    setIsTeleportZone(isTeleportZone: boolean, syncTo: SyncTo): void;
 }
 
 export interface Tracker {

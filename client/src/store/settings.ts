@@ -5,6 +5,7 @@ import { Store } from "../core/store";
 import { getValueOrDefault } from "../core/types";
 import { toSnakeCase } from "../core/utils";
 import { sendLocationOptions } from "../game/api/emits/location";
+import type { LocalId } from "../game/id";
 import type { LocationOptions } from "../game/models/settings";
 
 import { floorStore } from "./floor";
@@ -42,7 +43,7 @@ class SettingsStore extends Store<SettingsState> {
     fullFow: ComputedRef<boolean>;
     gridType: ComputedRef<string>;
     movePlayerOnTokenChange: ComputedRef<boolean>;
-    spawnLocations: ComputedRef<string[]>;
+    spawnLocations: ComputedRef<LocalId[]>;
     unitSize: ComputedRef<number>;
     unitSizeUnit: ComputedRef<string>;
     useGrid: ComputedRef<boolean>;
@@ -175,7 +176,7 @@ class SettingsStore extends Store<SettingsState> {
         }
     }
 
-    setSpawnLocations(spawnLocations: string[], location: number, sync: boolean): void {
+    setSpawnLocations(spawnLocations: LocalId[], location: number, sync: boolean): void {
         if (this.mutate("spawnLocations", spawnLocations, location)) {
             floorStore.invalidateAllFloors();
             if (sync)

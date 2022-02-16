@@ -24,9 +24,10 @@ import { coreStore } from "../../store/core";
 import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
 import { locationStore } from "../../store/location";
-import { UuidMap } from "../../store/shapeMap";
 import { convertAssetListToMap } from "../assets/utils";
 import { startDrawLoop, stopDrawLoop } from "../draw";
+import { getLocalId, getShapeFromGlobal } from "../id";
+import type { GlobalId } from "../id";
 import { compositeState } from "../layers/state";
 import type { Note, ServerFloor } from "../models/general";
 import type { Location } from "../models/settings";
@@ -114,11 +115,11 @@ socket.on("Asset.List.Set", (assets: AssetList) => {
     gameStore.setAssets(convertAssetListToMap(assets));
 });
 
-socket.on("Markers.Set", (markers: string[]) => {
-    for (const marker of markers) gameStore.newMarker(marker, false);
+socket.on("Markers.Set", (markers: GlobalId[]) => {
+    for (const marker of markers) gameStore.newMarker(getLocalId(marker)!, false);
 });
 
-socket.on("Temp.Clear", (shapeIds: string[]) => {
-    const shapes = shapeIds.map((s) => UuidMap.get(s)!).filter((s) => s !== undefined);
+socket.on("Temp.Clear", (shapeIds: GlobalId[]) => {
+    const shapes = shapeIds.map((s) => getShapeFromGlobal(s)!).filter((s) => s !== undefined);
     deleteShapes(shapes, SyncMode.NO_SYNC);
 });

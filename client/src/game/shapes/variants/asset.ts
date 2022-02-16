@@ -2,6 +2,8 @@ import { g2l, g2lx, g2ly, g2lz } from "../../../core/conversions";
 import { toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
+import { getGlobalId } from "../../id";
+import type { GlobalId, LocalId } from "../../id";
 import type { ServerAsset } from "../../models/shapes";
 import { loadSvgData } from "../../svg";
 import { TriangulationTarget, visionState } from "../../vision/state";
@@ -23,7 +25,7 @@ export class Asset extends BaseRect {
         topleft: GlobalPoint,
         w: number,
         h: number,
-        options?: { uuid?: string; assetId?: number },
+        options?: { id?: LocalId; uuid?: GlobalId; assetId?: number },
     ) {
         super(topleft, w, h, options);
         this.img = img;
@@ -64,11 +66,11 @@ export class Asset extends BaseRect {
             this.svgData = [...svgs.values()].map((svg) => ({ svg, rp: this.refPoint, paths: undefined }));
             if (this.blocksVision) {
                 visionState.recalculateVision(this._floor!);
-                visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.uuid });
+                visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.id });
             }
             if (this.blocksMovement) {
                 visionState.recalculateMovement(this._floor!);
-                visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: this.uuid });
+                visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: this.id });
             }
             this.layer.removeShape(cover, SyncMode.NO_SYNC, false);
             this.invalidate(false);
@@ -87,7 +89,7 @@ export class Asset extends BaseRect {
                 g2lz(this.h),
             );
         } catch (error) {
-            console.warn(`Shape ${this.uuid} could not load the image ${this.src}`);
+            console.warn(`Shape ${getGlobalId(this.id)} could not load the image ${this.src}`);
         }
         super.drawPost(ctx);
     }

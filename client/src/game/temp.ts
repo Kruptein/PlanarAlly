@@ -9,6 +9,7 @@ import { settingsStore } from "../store/settings";
 
 import { requestAssetOptions } from "./api/emits/asset";
 import { sendFloorChange, sendLayerChange } from "./api/emits/shape/core";
+import { getGlobalId } from "./id";
 import type { Layer } from "./layers/variants/layer";
 import type { Floor } from "./models/floor";
 import type { ServerShape } from "./models/shapes";
@@ -39,8 +40,8 @@ export function moveFloor(shapes: IShape[], newFloor: Floor, sync: boolean): voi
     oldLayer.invalidate(false);
     newLayer.invalidate(false);
     if (sync) {
-        const uuids = shapes.map((s) => s.uuid);
-        sendFloorChange({ uuids, floor: newFloor.name });
+        const uuids = shapes.map((s) => s.id);
+        sendFloorChange({ uuids: shapes.map((s) => getGlobalId(s.id)), floor: newFloor.name });
         addOperation({ type: "floormovement", shapes: uuids, from: oldFloor.id, to: newFloor.id });
     }
 }
@@ -62,9 +63,9 @@ export function moveLayer(shapes: readonly IShape[], newLayer: Layer, sync: bool
     newLayer.invalidate(false);
     // Sync!
     if (sync) {
-        const uuids = shapes.map((s) => s.uuid);
+        const uuids = shapes.map((s) => s.id);
         sendLayerChange({
-            uuids,
+            uuids: shapes.map((s) => getGlobalId(s.id)),
             layer: newLayer.name,
             floor: floorStore.getFloor({ id: newLayer.floor })!.name,
         });

@@ -5,8 +5,9 @@ import { useI18n } from "vue-i18n";
 import type { AssetFile } from "../../../core/models/types";
 import { baseAdjust, uuidv4 } from "../../../core/utils";
 import { gameStore } from "../../../store/game";
-import { UuidMap } from "../../../store/shapeMap";
 import { uiStore } from "../../../store/ui";
+import { getShape } from "../../id";
+import type { LocalId } from "../../id";
 import type { Note } from "../../models/general";
 import NoteDialog from "../NoteDialog.vue";
 
@@ -48,16 +49,16 @@ function openNote(note: Note): void {
     uiStore.setActiveNote(note);
 }
 
-function delMarker(marker: string): void {
+function delMarker(marker: LocalId): void {
     gameStore.removeMarker(marker, true);
 }
 
-function jumpToMarker(marker: string): void {
+function jumpToMarker(marker: LocalId): void {
     gameStore.jumpToMarker(marker);
 }
 
-function nameMarker(marker: string): string {
-    const shape = UuidMap.get(marker);
+function nameMarker(marker: LocalId): string {
+    const shape = getShape(marker);
     if (shape !== undefined) {
         return shape.name;
     } else {

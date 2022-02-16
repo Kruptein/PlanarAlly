@@ -1,12 +1,14 @@
+import { getGlobalId, getLocalId } from "../id";
+import type { GlobalId } from "../id";
 import type { Label } from "../shapes/interfaces";
 import type { ShapeAccess, ShapeOwner } from "../shapes/owners";
 import type { SHAPE_TYPE } from "../shapes/types";
+import type { Permissions, TeleportOptions } from "../systems/logic/models";
 
 import type { LayerName } from "./floor";
-import type { Conditions } from "./logic";
 
 export interface ServerShape {
-    uuid: string;
+    uuid: GlobalId;
     type_: SHAPE_TYPE;
     x: number;
     y: number;
@@ -51,7 +53,7 @@ interface ServerShapeAccess {
 }
 
 export interface ServerShapeOwner extends ServerShapeAccess {
-    shape: string;
+    shape: GlobalId;
     user: string;
 }
 
@@ -86,15 +88,15 @@ export interface ServerText extends ServerShape {
 }
 
 export interface ServerToggleComposite extends ServerShape {
-    active_variant: string;
-    variants: { uuid: string; name: string }[];
+    active_variant: GlobalId;
+    variants: { uuid: GlobalId; name: string }[];
 }
 export interface ServerAsset extends ServerRect {
     src: string;
 }
 
 export interface ServerTracker {
-    shape: string;
+    shape: GlobalId;
     uuid: string;
     visible: boolean;
     name: string;
@@ -106,7 +108,7 @@ export interface ServerTracker {
 }
 
 export interface ServerAura {
-    shape: string;
+    shape: GlobalId;
     uuid: string;
     active: boolean;
     vision_source: boolean;
@@ -128,7 +130,7 @@ export const accessToServer = (access: ShapeAccess): ServerShapeAccess => ({
 
 export const ownerToServer = (owner: ShapeOwner): ServerShapeOwner => ({
     user: owner.user,
-    shape: owner.shape,
+    shape: getGlobalId(owner.shape),
     ...accessToServer(owner.access),
 });
 
@@ -140,7 +142,7 @@ const accessToClient = (access: ServerShapeAccess): ShapeAccess => ({
 
 export const ownerToClient = (owner: ServerShapeOwner): ShapeOwner => ({
     user: owner.user,
-    shape: owner.shape,
+    shape: getLocalId(owner.shape)!,
     access: accessToClient(owner),
 });
 
@@ -159,12 +161,10 @@ export interface ShapeOptions {
     svgAsset: string;
 
     UiHelper: boolean;
+}
 
+export interface ServerShapeOptions extends ShapeOptions {
     // logic
-    doorConditions: Conditions;
-    teleport: {
-        conditions: Conditions;
-        location?: { id: number; spawnUuid: string };
-        immediate: boolean;
-    };
+    door: Permissions;
+    teleport: TeleportOptions;
 }

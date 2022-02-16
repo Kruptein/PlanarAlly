@@ -1,11 +1,13 @@
+import type { LocalId } from "../id";
+
 export interface ShapeOwner {
-    shape: string;
+    shape: LocalId;
     user: string;
     access: ShapeAccess;
 }
 
 export interface PartialShapeOwner {
-    shape: string;
+    shape: LocalId;
     user: string;
     access: Partial<ShapeAccess>;
 }

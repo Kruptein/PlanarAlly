@@ -1,81 +1,89 @@
 <script setup lang="ts">
-import { computed, ref, toRef } from "vue";
+import { computed, ref, watch } from "vue";
+import type { DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { SyncTo } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { locationStore } from "../../../../store/location";
-import { copyConditions } from "../../../../store/logic";
 import { requestSpawnInfo } from "../../../api/emits/location";
-import { DEFAULT_CONDITIONS } from "../../../models/logic";
-import type { Conditions, LOGIC_TYPES } from "../../../models/logic";
+import type { GlobalId } from "../../../id";
+import { doorSystem } from "../../../systems/logic/door";
+import { DEFAULT_PERMISSIONS } from "../../../systems/logic/models";
+import type { LOGIC_TYPES, Permissions } from "../../../systems/logic/models";
+import { teleportZoneSystem } from "../../../systems/logic/teleportZone";
 
 import LogicPermissions from "./LogicPermissions.vue";
 
 const { t } = useI18n();
 const modals = useModal();
+const props = defineProps<{ activeSelection: boolean }>();
 
-const showConditions = ref(false);
+watch(
+    [() => activeShapeStore.state.id, () => props.activeSelection],
+    ([newId, newSelection], [oldId, oldSelection]) => {
+        if (newSelection && newId !== undefined && (!(oldSelection ?? false) || oldId !== newId)) {
+            doorSystem.loadState(newId);
+            teleportZoneSystem.loadState(newId);
+        } else if ((!newSelection && (oldSelection ?? false)) || newId === undefined) {
+            doorSystem.dropState();
+            teleportZoneSystem.dropState();
+        }
+    },
+    { immediate: true },
+);
+
+const showPermissions = ref(false);
 const activeLogic = ref<LOGIC_TYPES>("door");
 
-const options = toRef(activeShapeStore.state, "options");
-
-const activeConditions = computed(() => {
+const activePermissions = computed(() => {
+    let permissions: DeepReadonly<Permissions> | undefined;
     if (activeLogic.value === "door") {
-        return options.value?.doorConditions ?? DEFAULT_CONDITIONS;
+        permissions = doorSystem.state.permissions;
     } else {
-        return options.value?.teleport?.conditions ?? DEFAULT_CONDITIONS;
+        permissions = teleportZoneSystem.state.permissions;
     }
+    return permissions ?? DEFAULT_PERMISSIONS;
 });
 
-function openConditions(target: LOGIC_TYPES): void {
+function openPermissions(target: LOGIC_TYPES): void {
     activeLogic.value = target;
-    showConditions.value = true;
+    showPermissions.value = true;
 }
 
-function setConditions(conditions: Conditions): void {
+function setPermissions(permissions: Permissions): void {
     if (activeLogic.value === "door") {
-        activeShapeStore.setOptionKey("doorConditions", conditions, SyncTo.SERVER);
+        if (doorSystem.state.id === undefined) return;
+        doorSystem.setPermissions(doorSystem.state.id, permissions, SyncTo.SERVER);
     } else {
-        activeShapeStore.setOptionKey(
-            "teleport",
-            {
-                conditions,
-                location: activeShapeStore.state.options?.teleport?.location,
-                immediate: activeShapeStore.state.options?.teleport?.immediate ?? false,
-            },
-            SyncTo.SERVER,
-        );
+        if (teleportZoneSystem.state.id === undefined) return;
+        teleportZoneSystem.setPermissions(teleportZoneSystem.state.id, permissions, SyncTo.SERVER);
     }
 }
 
 // Door
 
 function toggleDoor(): void {
-    activeShapeStore.setIsDoor(!activeShapeStore.state.isDoor, SyncTo.SERVER);
+    if (doorSystem.state.id === undefined) return;
+    doorSystem.toggle(doorSystem.state.id, !doorSystem.state.enabled, SyncTo.SERVER);
 }
 
 // Teleport Zone
 
 function toggleTeleportZone(): void {
-    activeShapeStore.setIsTeleportZone(!activeShapeStore.state.isTeleportZone, SyncTo.SERVER);
+    if (teleportZoneSystem.state.id === undefined) return;
+    teleportZoneSystem.toggle(teleportZoneSystem.state.id, !teleportZoneSystem.state.enabled, SyncTo.SERVER);
 }
 
 function toggleTpImmediate(): void {
-    const oldTp = activeShapeStore.state.options?.teleport;
-    activeShapeStore.setOptionKey(
-        "teleport",
-        {
-            conditions: oldTp?.conditions === undefined ? DEFAULT_CONDITIONS : copyConditions(oldTp.conditions),
-            location: oldTp?.location,
-            immediate: !(oldTp?.immediate ?? false),
-        },
-        SyncTo.SERVER,
-    );
+    if (teleportZoneSystem.state.id === undefined) return;
+    teleportZoneSystem.toggleImmediate(teleportZoneSystem.state.id, !teleportZoneSystem.state.immediate, SyncTo.SERVER);
 }
 
 async function chooseTarget(): Promise<void> {
+    if (teleportZoneSystem.state.id === undefined) return;
+
     // Select location
     const locations = locationStore.activeLocations.value;
     const choices = await modals.selectionBox(
@@ -88,7 +96,7 @@ async function chooseTarget(): Promise<void> {
 
     const location = locations.find((l) => l.name === choices[0])!.id;
     const spawnInfo = await requestSpawnInfo(location);
-    let targetLocation: { id: number; spawnUuid: string };
+    let targetLocation: { id: number; spawnUuid: GlobalId };
 
     switch (spawnInfo.length) {
         case 0:
@@ -116,26 +124,17 @@ async function chooseTarget(): Promise<void> {
 
     // Save tp zone info
 
-    const oldConditions = activeShapeStore.state.options?.teleport?.conditions;
-    activeShapeStore.setOptionKey(
-        "teleport",
-        {
-            conditions: oldConditions === undefined ? DEFAULT_CONDITIONS : copyConditions(oldConditions),
-            location: targetLocation,
-            immediate: activeShapeStore.state.options?.teleport?.immediate ?? false,
-        },
-        SyncTo.SERVER,
-    );
+    teleportZoneSystem.setTarget(teleportZoneSystem.state.id, targetLocation, SyncTo.SERVER);
 }
 </script>
 
 <template>
-    <div class="panel restore-panel">
+    <div class="panel restore-panel" v-show="activeSelection">
         <teleport to="#teleport-modals">
             <LogicPermissions
-                v-model:visible="showConditions"
-                :conditions="activeConditions"
-                @update:conditions="setConditions"
+                v-model:visible="showPermissions"
+                :permissions="activePermissions"
+                @update:permissions="setPermissions"
             />
         </teleport>
         <div class="spanrow header">Door</div>
@@ -144,11 +143,11 @@ async function chooseTarget(): Promise<void> {
             id="logic-dialog-door-toggle"
             type="checkbox"
             class="styled-checkbox center"
-            :checked="activeShapeStore.state.isDoor"
+            :checked="doorSystem.state.enabled"
             @click="toggleDoor"
         />
-        <label for="logic-dialog-door-config">Conditions</label>
-        <button id="logic-dialog-door-config" class="center" @click="openConditions('door')">
+        <label for="logic-dialog-door-config">Permissions</label>
+        <button id="logic-dialog-door-config" class="center" @click="openPermissions('door')">
             <font-awesome-icon icon="cog" />
         </button>
         <div class="spanrow header">Teleport Zone</div>
@@ -157,11 +156,11 @@ async function chooseTarget(): Promise<void> {
             id="logic-dialog-tp-toggle"
             type="checkbox"
             class="styled-checkbox center"
-            :checked="activeShapeStore.state.isTeleportZone"
+            :checked="teleportZoneSystem.state.enabled"
             @click="toggleTeleportZone"
         />
-        <label for="logic-dialog-tp-config">Conditions</label>
-        <button id="logic-dialog-tp-config" class="center" @click="openConditions('tp')">
+        <label for="logic-dialog-tp-config">Permissions</label>
+        <button id="logic-dialog-tp-config" class="center" @click="openPermissions('tp')">
             <font-awesome-icon icon="cog" />
         </button>
         <label for="logic-dialog-tp-target">Target</label>
@@ -173,7 +172,7 @@ async function chooseTarget(): Promise<void> {
             id="logic-dialog-tp-toggle"
             type="checkbox"
             class="styled-checkbox center"
-            :checked="activeShapeStore.state.options?.teleport?.immediate === true"
+            :checked="teleportZoneSystem.state.immediate"
             @click="toggleTpImmediate"
         />
     </div>

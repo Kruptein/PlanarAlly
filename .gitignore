@@ -1,3 +1,4 @@
+*.zip
 # editors
 .idea/**
 .vscode/**
@@ -25,7 +26,7 @@ admin-client/node_modules/**
 # PlanarAlly
 server/planarallyserver.log
 server/planar.save*
-server/planar.sqlite*
+server/*.sqlite*
 server/save_backups
 server/server_config.cfg
 

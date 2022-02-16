@@ -21,12 +21,12 @@ import { i18n } from "../../../i18n";
 import { clientStore, DEFAULT_GRID_SIZE } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
-import { Access, logicStore } from "../../../store/logic";
 import { settingsStore } from "../../../store/settings";
-import { UuidMap } from "../../../store/shapeMap";
 import { sendRequest } from "../../api/emits/logic";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import { calculateDelta } from "../../drag";
+import { getGlobalId, getShape } from "../../id";
+import type { LocalId } from "../../id";
 import { getLocalPointFromEvent } from "../../input/mouse";
 import { selectionState } from "../../layers/selection";
 import { LayerName } from "../../models/floor";
@@ -43,6 +43,9 @@ import { Circle } from "../../shapes/variants/circle";
 import { Line } from "../../shapes/variants/line";
 import type { Polygon } from "../../shapes/variants/polygon";
 import { Rect } from "../../shapes/variants/rect";
+import { doorSystem } from "../../systems/logic/door";
+import { Access } from "../../systems/logic/models";
+import { teleportZoneSystem } from "../../systems/logic/teleportZone";
 import { openDefaultContextMenu, openShapeContextMenu } from "../../ui/contextmenu/state";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { Tool } from "../tool";
@@ -122,6 +125,8 @@ class SelectTool extends Tool implements ISelectTool {
     // polygon-edit related
     polygonTracer: Circle | null = null;
 
+    hoveredDoor?: LocalId;
+
     private permittedTools_: ToolPermission[] = [];
 
     get permittedTools(): ToolPermission[] {
@@ -146,7 +151,7 @@ class SelectTool extends Tool implements ISelectTool {
                 const features = getFeatures(this.toolName);
                 if (this.hasFeature(SelectFeatures.PolygonEdit, features)) {
                     const uuid = [...selection.values()][0];
-                    if (UuidMap.get(uuid)!.type === "polygon") {
+                    if (getShape(uuid)!.type === "polygon") {
                         return this.createPolygonEditUi();
                     }
                 }
@@ -214,6 +219,25 @@ class SelectTool extends Tool implements ISelectTool {
             return;
         }
 
+        // Logic Door Check
+        if (this.hoveredDoor !== undefined && activeToolMode.value === ToolMode.Play) {
+            const canUseDoor = doorSystem.canUse(this.hoveredDoor);
+            if (canUseDoor === Access.Enabled) {
+                const shape = getShape(this.hoveredDoor)!;
+                shape.setBlocksMovement(!shape.blocksMovement, SyncTo.SERVER, true);
+                shape.setBlocksVision(!shape.blocksVision, SyncTo.SERVER, true);
+                const state = shape.blocksVision ? "lock-open-solid" : "lock-solid";
+                document.body.style.cursor = `url('${baseAdjust(`static/img/${state}.svg`)}') 16 16, auto`;
+                return;
+            } else if (canUseDoor === Access.Request) {
+                toast.info("Request to open door sent", {
+                    position: POSITION.TOP_RIGHT,
+                });
+                sendRequest({ door: getGlobalId(this.hoveredDoor), logic: "door" });
+                return;
+            }
+        }
+
         this.operationReady = false;
         this.operationList = undefined;
 
@@ -233,8 +257,7 @@ class SelectTool extends Tool implements ISelectTool {
         for (let i = selectionStack.length - 1; i >= 0; i--) {
             const shape = selectionStack[i];
             if (!(shape.options.preFogShape ?? false) && (shape.options.skipDraw ?? false)) continue;
-            if ([this.rotationAnchor?.uuid, this.rotationBox?.uuid, this.rotationEnd?.uuid].includes(shape.uuid))
-                continue;
+            if ([this.rotationAnchor?.id, this.rotationBox?.id, this.rotationEnd?.id].includes(shape.id)) continue;
             if (shape.isInvisible && !shape.ownedBy(false, { movementAccess: true })) continue;
 
             if (this.rotationUiActive && this.hasFeature(SelectFeatures.Rotate, features)) {
@@ -245,7 +268,7 @@ class SelectTool extends Tool implements ISelectTool {
 
                     this.operationList = { type: "rotation", center: toGP(0, 0), shapes: [] };
                     for (const shape of selectionState.get({ includeComposites: false }))
-                        this.operationList.shapes.push({ uuid: shape.uuid, from: shape.angle, to: 0 });
+                        this.operationList.shapes.push({ uuid: shape.id, from: shape.angle, to: 0 });
 
                     break;
                 }
@@ -265,7 +288,7 @@ class SelectTool extends Tool implements ISelectTool {
 
                     this.operationList = {
                         type: "resize",
-                        uuid: shape.uuid,
+                        uuid: shape.id,
                         fromPoint: points[this.resizePoint],
                         toPoint: points[this.resizePoint],
                         resizePoint: this.resizePoint,
@@ -286,24 +309,7 @@ class SelectTool extends Tool implements ISelectTool {
                     this.createRotationUi(features);
                 } else {
                     if (ctrlOrCmdPressed(event)) {
-                        selectionState.remove(shape.uuid);
-                    }
-                }
-                // Logic Door Check
-                if (activeToolMode.value === ToolMode.Play) {
-                    const canUseDoor = logicStore.canUse(shape, "door");
-                    if (canUseDoor === Access.Enabled) {
-                        shape.setBlocksMovement(!shape.blocksMovement, SyncTo.SERVER, true);
-                        shape.setBlocksVision(!shape.blocksVision, SyncTo.SERVER, true);
-                        const state = shape.blocksVision ? "lock-open-solid" : "lock-solid";
-                        document.body.style.cursor = `url('${baseAdjust(`static/img/${state}.svg`)}') 16 16, auto`;
-                        return;
-                    } else if (canUseDoor === Access.Request) {
-                        toast.info("Request to open door sent", {
-                            position: POSITION.TOP_RIGHT,
-                        });
-                        sendRequest({ door: shape.uuid, logic: "door" });
-                        return;
+                        selectionState.remove(shape.id);
                     }
                 }
                 // Drag case, a shape is selected
@@ -316,7 +322,7 @@ class SelectTool extends Tool implements ISelectTool {
                     this.operationList = { type: "movement", shapes: [] };
                     for (const shape of selectionState.get({ includeComposites: false })) {
                         this.operationList.shapes.push({
-                            uuid: shape.uuid,
+                            uuid: shape.id,
                             from: toArrayP(shape.refPoint),
                             to: toArrayP(shape.refPoint),
                         });
@@ -385,6 +391,28 @@ class SelectTool extends Tool implements ISelectTool {
 
         const gp = l2g(lp);
         this.lastMousePosition = gp;
+
+        // Logic hover
+        if (activeToolMode.value === ToolMode.Play) {
+            let foundDoor = false;
+            for (const id of doorSystem.getDoors()) {
+                const shape = getShape(id);
+                if (shape === undefined) continue;
+                if (shape.floor.id !== floorStore.currentFloor.value!.id) continue;
+                if (!shape.contains(gp)) continue;
+                if (doorSystem.canUse(id) === Access.Disabled) continue;
+
+                foundDoor = true;
+                this.hoveredDoor = id;
+                const state = shape.blocksVision ? "lock-open-solid" : "lock-solid";
+                document.body.style.cursor = `url('${baseAdjust(`static/img/${state}.svg`)}') 16 16, auto`;
+                break;
+            }
+            if (!foundDoor) {
+                this.hoveredDoor = undefined;
+                document.body.style.cursor = "default";
+            }
+        }
 
         // We require move for the resize and rotate cursors
         if (
@@ -510,7 +538,7 @@ class SelectTool extends Tool implements ISelectTool {
                 if (!(shape.options.preFogShape ?? false) && (shape.options.skipDraw ?? false)) continue;
                 if (!shape.ownedBy(false, { movementAccess: true })) continue;
                 if (!shape.visibleInCanvas({ w: layer.width, h: layer.height }, { includeAuras: false })) continue;
-                if (layerSelection.some((s) => s.uuid === shape.uuid)) continue;
+                if (layerSelection.some((s) => s.id === shape.id)) continue;
 
                 const points = shape.points; // expensive call
                 if (points.length > 1) {
@@ -565,7 +593,7 @@ class SelectTool extends Tool implements ISelectTool {
                     if (sel.blocksMovement) {
                         visionState.deleteFromTriangulation({
                             target: TriangulationTarget.MOVEMENT,
-                            shape: sel.uuid,
+                            shape: sel.id,
                         });
                     }
                     if (
@@ -577,22 +605,22 @@ class SelectTool extends Tool implements ISelectTool {
                         if (sel.blocksVision) {
                             visionState.deleteFromTriangulation({
                                 target: TriangulationTarget.VISION,
-                                shape: sel.uuid,
+                                shape: sel.id,
                             });
                         }
 
                         sel.snapToGrid();
 
                         if (sel.blocksVision) {
-                            visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: sel.uuid });
+                            visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: sel.id });
                             recalcVision = true;
                         }
                     }
                     // movementBlock is skipped during onMove and definitely has to be done here
                     if (sel.blocksMovement) {
                         if (sel.layer.name === LayerName.Tokens)
-                            visionState.addBlocker(TriangulationTarget.MOVEMENT, sel.uuid, sel.floor.id, false);
-                        visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: sel.uuid });
+                            visionState.addBlocker(TriangulationTarget.MOVEMENT, sel.id, sel.floor.id, false);
+                        visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: sel.id });
                         recalcMovement = true;
                     }
 
@@ -608,7 +636,7 @@ class SelectTool extends Tool implements ISelectTool {
                 }
                 sendShapePositionUpdate(updateList, false);
 
-                await logicStore.checkTeleport(selectionState.get({ includeComposites: true }));
+                await teleportZoneSystem.checkTeleport(selectionState.get({ includeComposites: true }));
             }
             if (this.mode === SelectOperations.Resize) {
                 for (const sel of layerSelection) {
@@ -618,7 +646,7 @@ class SelectTool extends Tool implements ISelectTool {
                     if (sel.blocksMovement)
                         visionState.deleteFromTriangulation({
                             target: TriangulationTarget.MOVEMENT,
-                            shape: sel.uuid,
+                            shape: sel.id,
                         });
 
                     if (
@@ -629,18 +657,18 @@ class SelectTool extends Tool implements ISelectTool {
                         if (sel.blocksVision)
                             visionState.deleteFromTriangulation({
                                 target: TriangulationTarget.VISION,
-                                shape: sel.uuid,
+                                shape: sel.id,
                             });
                         sel.resizeToGrid(this.resizePoint, ctrlOrCmdPressed(event));
                         if (sel.blocksVision) {
-                            visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: sel.uuid });
+                            visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: sel.id });
                             recalcVision = true;
                         }
                     }
 
                     // movementBlock is skipped during onMove and definitely has to be done here
                     if (sel.blocksMovement) {
-                        visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: sel.uuid });
+                        visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: sel.id });
                         recalcMovement = true;
                     }
 

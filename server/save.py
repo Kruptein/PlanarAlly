@@ -13,7 +13,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 68
+SAVE_VERSION = 69
 
 import json
 import logging
@@ -396,6 +396,32 @@ def upgrade(version):
             db.execute_sql(
                 "ALTER TABLE shape ADD COLUMN is_teleport_zone INTEGER DEFAULT 0 NOT NULL"
             )
+    elif version == 68:
+        # Model change in logic options (doorConditions -> door, conditions -> permissions)
+        with db.atomic():
+            data = db.execute_sql("SELECT uuid, options FROM shape")
+            for row in data.fetchall():
+                uuid, options = row
+                if options is None:
+                    continue
+
+                unpacked_options = json.loads(options)
+                changed = False
+
+                for option in unpacked_options:
+                    if option[0] == "doorConditions":
+                        option[0] = "door"
+                        changed = True
+                    elif option[0] == "teleport":
+                        option[1]["permissions"] = option[1]["conditions"]
+                        del option[1]["conditions"]
+                        changed = True
+
+                if changed:
+                    db.execute_sql(
+                        "UPDATE shape SET options=? WHERE uuid=?",
+                        (json.dumps(unpacked_options), uuid),
+                    )
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

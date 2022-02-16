@@ -1,3 +1,5 @@
+import json
+from typing import Any, List
 from typing_extensions import TypedDict
 
 from playhouse.shortcuts import update_model_from_dict
@@ -7,6 +9,7 @@ from api.socket.constants import GAME_NS
 from api.socket.shape.utils import get_owner_sids, get_shape_or_none
 from app import app, sio
 from models import Aura, PlayerRoom, ShapeLabel, Tracker
+from models.shape import Shape
 from models.utils import reduce_data_to_model
 from state.game import game_state
 
@@ -695,6 +698,38 @@ async def set_is_door(sid: str, data: ShapeSetBooleanValue):
     )
 
 
+def set_options(shape: Shape, key: str, value):
+    options = json.loads(shape.options)
+    for option in options:
+        if option[0] == key:
+            option[1] = value
+            break
+    else:
+        options.append([key, value])
+    shape.options = json.dumps(options)
+    shape.save()
+
+
+@sio.on("Shape.Options.DoorPermissions.Set", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def set_door_permissions(sid: str, data):
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = get_shape_or_none(pr, data["shape"], "DoorPermissions.Set")
+    if shape is None:
+        return
+
+    set_options(shape, "door", data["value"])
+
+    await sio.emit(
+        "Shape.Options.DoorPermissions.Set",
+        data,
+        skip_sid=sid,
+        room=pr.active_location.get_path(),
+        namespace=GAME_NS,
+    )
+
+
 @sio.on("Shape.Options.IsTeleportZone.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def set_is_teleport_zone(sid: str, data: ShapeSetBooleanValue):
@@ -709,6 +744,103 @@ async def set_is_teleport_zone(sid: str, data: ShapeSetBooleanValue):
 
     await sio.emit(
         "Shape.Options.IsTeleportZone.Set",
+        data,
+        skip_sid=sid,
+        room=pr.active_location.get_path(),
+        namespace=GAME_NS,
+    )
+
+
+@sio.on("Shape.Options.IsImmediateTeleportZone.Set", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def set_is_immediate_teleport_zone(sid: str, data: ShapeSetBooleanValue):
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = get_shape_or_none(pr, data["shape"], "IsTeleportZone.Set")
+    if shape is None:
+        return
+
+    options: List[Any] = json.loads(shape.options)
+    for option in options:
+        if option[0] == "teleport":
+            option[1]["immediate"] = data["value"]
+    shape.options = json.dumps(options)
+    shape.save()
+
+    await sio.emit(
+        "Shape.Options.IsImmediateTeleportZone.Set",
+        data,
+        skip_sid=sid,
+        room=pr.active_location.get_path(),
+        namespace=GAME_NS,
+    )
+
+
+@sio.on("Shape.Options.TeleportZonePermissions.Set", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def set_tp_permissions(sid: str, data):
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = get_shape_or_none(pr, data["shape"], "TeleportZonePermissions.Set")
+    if shape is None:
+        return
+
+    set_options(shape, "teleport", data["value"])
+
+    await sio.emit(
+        "Shape.Options.TeleportZonePermissions.Set",
+        data,
+        skip_sid=sid,
+        room=pr.active_location.get_path(),
+        namespace=GAME_NS,
+    )
+
+
+@sio.on("Shape.Options.SkipDraw.Set", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def set_skip_draw(sid: str, data: ShapeSetBooleanValue):
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = get_shape_or_none(pr, data["shape"], "SkipDraw.Set")
+    if shape is None:
+        return
+
+    set_options(shape, "skipDraw", data["value"])
+
+    await sio.emit(
+        "Shape.Options.SkipDraw.Set",
+        data,
+        skip_sid=sid,
+        room=pr.active_location.get_path(),
+        namespace=GAME_NS,
+    )
+
+
+@sio.on("Shape.Options.SvgAsset.Set", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def set_skip_draw(sid: str, data: ShapeSetStringValue):
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = get_shape_or_none(pr, data["shape"], "SkipDraw.Set")
+    if shape is None:
+        return
+
+    options: List[Any] = json.loads(shape.options)
+    for i, option in enumerate(options[::-1]):
+        if data["value"] is None and option[0] in [
+            "svgAsset",
+            "svgPaths",
+            "svgWidth",
+            "svgHeight",
+        ]:
+            options.pop(i)
+        elif option[0] == "svgAsset":
+            option[1] = data["value"]
+    shape.options = json.dumps(options)
+    shape.save()
+
+    await sio.emit(
+        "Shape.Options.SvgAsset.Set",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),

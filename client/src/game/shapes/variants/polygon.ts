@@ -6,6 +6,8 @@ import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { uuidv4 } from "../../../core/utils";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { getFogColour } from "../../colour";
+import { getGlobalId } from "../../id";
+import type { GlobalId, LocalId } from "../../id";
 import type { ServerPolygon } from "../../models/shapes";
 import { visionState } from "../../vision/state";
 import { Shape } from "../shape";
@@ -27,7 +29,8 @@ export class Polygon extends Shape {
             strokeColour?: string;
             lineWidth?: number;
             openPolygon?: boolean;
-            uuid?: string;
+            id?: LocalId;
+            uuid?: GlobalId;
         },
     ) {
         super(startPoint, options);
@@ -223,7 +226,7 @@ export class Polygon extends Shape {
             this._vertices.push(nearVertex!);
 
             const newPolygon = new Polygon(nearVertex!, newVertices);
-            const uuid = newPolygon.uuid;
+            const uuid = getGlobalId(newPolygon.id);
             // make sure we copy over all the same properties but retain the correct uuid and vertices
             newPolygon.fromDict({ ...this.asDict(), uuid });
             newPolygon._refPoint = nearVertex!;

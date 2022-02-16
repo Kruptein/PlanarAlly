@@ -29,7 +29,7 @@ const selected = drawTool.isActiveTool;
 const shapes = Object.values(DrawShape);
 const toolStyle = computed(() => ({ "--detailRight": state.right, "--detailArrow": state.arrow } as CSSProperties));
 
-const showConditions = ref(false);
+const showPermissions = ref(false);
 
 const translationMapping = {
     [DrawMode.Normal]: t("game.ui.tools.DrawTool.normal"),
@@ -154,7 +154,10 @@ const showBorderColour = computed(() => {
         </template>
         <template v-else>
             <teleport to="#teleport-modals">
-                <LogicPermissions v-model:visible="showConditions" v-model:conditions="drawTool.state.doorConditions" />
+                <LogicPermissions
+                    v-model:visible="showPermissions"
+                    v-model:permissions="drawTool.state.doorPermissions"
+                />
             </teleport>
             <div class="draw-center-header">{{ t("game.ui.selection.edit_dialog.logic.logic") }}</div>
             <div class="draw-checkbox-options-line">
@@ -166,7 +169,7 @@ const showBorderColour = computed(() => {
                         @click="drawTool.state.isDoor = !drawTool.state.isDoor"
                     />
                 </div>
-                <font-awesome-icon icon="cog" @click="showConditions = true" />
+                <font-awesome-icon icon="cog" @click="showPermissions = true" />
             </div>
         </template>
     </div>

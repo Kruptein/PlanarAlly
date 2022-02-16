@@ -5,7 +5,9 @@ import { SyncTo } from "../../core/models/types";
 import { useModal } from "../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../store/activeShape";
 import { getShape } from "../id";
-import type { Aura, Tracker } from "../shapes/interfaces";
+import type { Aura } from "../shapes/interfaces";
+import type { Tracker } from "../systems/trackers/models";
+import { trackerSystem } from "../systems/trackers/trackers";
 
 const { t } = useI18n();
 const modals = useModal();
@@ -46,7 +48,7 @@ async function changeValue(tracker: Tracker | Aura, isAura: boolean): Promise<vo
         const sh = getShape(shape.id)!;
         sh.invalidate(false);
     } else {
-        activeShapeStore.updateTracker(tracker.uuid, { value }, SyncTo.SERVER);
+        trackerSystem.update(shape.id, tracker.uuid, { value }, SyncTo.SERVER);
     }
 }
 </script>
@@ -68,7 +70,7 @@ async function changeValue(tracker: Tracker | Aura, isAura: boolean): Promise<vo
                 </div>
                 <div id="selection-name">{{ shape.name }}</div>
                 <div id="selection-trackers">
-                    <template v-for="tracker in shape.trackers.slice(0, shape.trackers.length - 1)" :key="tracker.uuid">
+                    <template v-for="tracker in trackerSystem.state.trackers.slice(0, -1)" :key="tracker.uuid">
                         <div>{{ tracker.name }}</div>
                         <div
                             class="selection-tracker-value"

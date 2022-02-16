@@ -20,11 +20,11 @@ import type {
     ServerText,
     ServerAsset,
     ServerToggleComposite,
-    ServerTracker,
     ServerAura,
     ServerShapeOwner,
 } from "../models/shapes";
 import { addOperation } from "../operations/undo";
+import type { ServerTracker } from "../systems/trackers/models";
 import { TriangulationTarget, VisibilityMode, visionState } from "../vision/state";
 
 import type { IShape } from "./interfaces";

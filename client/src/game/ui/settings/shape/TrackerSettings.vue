@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { watch } from "vue";
+import type { DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../../core/components/ColourPicker.vue";
@@ -6,44 +8,66 @@ import RotationSlider from "../../../../core/components/RotationSlider.vue";
 import { SyncTo } from "../../../../core/models/types";
 import { getValue } from "../../../../core/utils";
 import { activeShapeStore } from "../../../../store/activeShape";
-import { sendShapeMoveAura, sendShapeMoveTracker } from "../../../api/emits/shape/options";
+import { sendShapeMoveAura } from "../../../api/emits/shape/options";
 import { getGlobalId } from "../../../id";
-import type { Aura, Tracker } from "../../../shapes/interfaces";
+import type { LocalId } from "../../../id";
+import type { Aura } from "../../../shapes/interfaces";
+import { sendShapeMoveTracker } from "../../../systems/trackers/emits";
+import type { Tracker, TrackerId, UiTracker } from "../../../systems/trackers/models";
+import { trackerSystem } from "../../../systems/trackers/trackers";
 
 const { t } = useI18n();
+
+const props = defineProps<{ activeSelection: boolean }>();
+
+watch(
+    [() => activeShapeStore.state.id, () => props.activeSelection],
+    ([newId, newSelection], [oldId, oldSelection]) => {
+        if (newSelection && newId !== undefined && (!(oldSelection ?? false) || oldId !== newId)) {
+            trackerSystem.loadState(newId);
+        } else if ((!newSelection && (oldSelection ?? false)) || newId === undefined) {
+            trackerSystem.dropState();
+        }
+    },
+    { immediate: true },
+);
 
 const owned = activeShapeStore.hasEditAccess;
 const isComposite = activeShapeStore.isComposite;
 
 // Tracker
 
-function updateTracker(tracker: string, delta: Partial<Tracker>, syncTo = true): void {
-    if (!owned.value) return;
-    if (activeShapeStore.state.id !== undefined)
-        activeShapeStore.updateTracker(tracker, delta, syncTo === true ? SyncTo.SERVER : SyncTo.SHAPE);
+function updateTracker(tracker: DeepReadonly<UiTracker>, delta: Partial<Tracker>, syncTo = true): void {
+    if (!owned.value || activeShapeStore.state.id === undefined) return;
+
+    if (tracker.temporary) {
+        trackerSystem.add(tracker.shape, { ...tracker }, SyncTo.SERVER);
+    }
+    trackerSystem.update(tracker.shape, tracker.uuid, delta, syncTo === true ? SyncTo.SERVER : SyncTo.SHAPE);
 }
 
-function removeTracker(tracker: string): void {
-    if (!owned.value) return;
-    activeShapeStore.removeTracker(tracker, SyncTo.SERVER);
+function removeTracker(tracker: TrackerId): void {
+    const id = activeShapeStore.state.id;
+    if (!owned.value || id === undefined) return;
+    trackerSystem.remove(id, tracker, SyncTo.SERVER);
 }
 
-function toggleCompositeTracker(trackerId: string): void {
-    if (!owned.value) return;
+function toggleCompositeTracker(shape: LocalId, trackerId: TrackerId): void {
+    const id = activeShapeStore.state.id;
+    if (!owned.value || id === undefined) return;
     if (!activeShapeStore.isComposite.value) return;
 
-    const tracker = activeShapeStore.state.trackers.find((t) => t.uuid === trackerId);
+    const tracker = trackerSystem.get(shape, trackerId, true);
     if (tracker === undefined) return;
 
-    activeShapeStore.removeTracker(trackerId, SyncTo.SHAPE);
+    trackerSystem.remove(shape, trackerId, SyncTo.SHAPE);
 
-    const oldShape = tracker.shape;
-    const newShape =
-        oldShape === activeShapeStore.state.id ? activeShapeStore.state.parentUuid! : activeShapeStore.state.id!;
+    const newShape = shape === id ? activeShapeStore.state.parentUuid! : id;
 
-    activeShapeStore.pushTracker(tracker, newShape, SyncTo.SHAPE);
+    trackerSystem.add(newShape, tracker, SyncTo.SHAPE);
+
     sendShapeMoveTracker({
-        shape: getGlobalId(oldShape),
+        shape: getGlobalId(shape),
         new_shape: getGlobalId(newShape),
         tracker: tracker.uuid,
     });
@@ -83,10 +107,14 @@ function toggleCompositeAura(auraId: string): void {
 </script>
 
 <template>
-    <div style="display: contents">
+    <div v-show="activeSelection" style="display: contents">
         <div id="trackers-panel">
             <div class="spanrow header">{{ t("common.trackers") }}</div>
-            <div class="aura" v-for="tracker in activeShapeStore.state.trackers" :key="tracker.uuid">
+            <div
+                class="aura"
+                v-for="tracker in [...trackerSystem.state.parentTrackers, ...trackerSystem.state.trackers]"
+                :key="tracker.uuid"
+            >
                 <div class="summary">
                     <label class="name" :for="'check-' + tracker.uuid">{{ tracker.name }}</label>
                     <div
@@ -106,7 +134,7 @@ function toggleCompositeAura(auraId: string): void {
                         <input
                             type="text"
                             :value="tracker.name"
-                            @change="updateTracker(tracker.uuid, { name: getValue($event) })"
+                            @change="updateTracker(tracker, { name: getValue($event) })"
                             :disabled="!owned"
                         />
                     </div>
@@ -115,7 +143,7 @@ function toggleCompositeAura(auraId: string): void {
                         <input
                             type="number"
                             :value="tracker.value"
-                            @change="updateTracker(tracker.uuid, { value: parseFloat(getValue($event)) })"
+                            @change="updateTracker(tracker, { value: parseFloat(getValue($event)) })"
                             :title="t('game.ui.selection.edit_dialog.dialog.current_value')"
                             :disabled="!owned"
                         />
@@ -124,7 +152,7 @@ function toggleCompositeAura(auraId: string): void {
                             type="number"
                             :value="tracker.maxvalue"
                             min=""
-                            @change="updateTracker(tracker.uuid, { maxvalue: parseFloat(getValue($event)) })"
+                            @change="updateTracker(tracker, { maxvalue: parseFloat(getValue($event)) })"
                             :title="t('game.ui.selection.edit_dialog.dialog.current_value')"
                             :disabled="!owned"
                         />
@@ -134,7 +162,7 @@ function toggleCompositeAura(auraId: string): void {
                         <input
                             type="checkbox"
                             :checked="tracker.visible"
-                            @click="updateTracker(tracker.uuid, { visible: !tracker.visible })"
+                            @click="updateTracker(tracker, { visible: !tracker.visible })"
                             :disabled="!owned"
                             :title="t('common.toggle_public_private')"
                         />
@@ -144,7 +172,7 @@ function toggleCompositeAura(auraId: string): void {
                         v-show="isComposite"
                         type="checkbox"
                         :checked="tracker.shape === activeShapeStore.state.parentUuid"
-                        @click="toggleCompositeTracker(tracker.uuid)"
+                        @click="toggleCompositeTracker(tracker.shape, tracker.uuid)"
                         :disabled="!owned"
                         :title="t('common.toggle_public_private')"
                     />
@@ -153,7 +181,7 @@ function toggleCompositeAura(auraId: string): void {
                         <input
                             type="checkbox"
                             :checked="tracker.draw"
-                            @click="updateTracker(tracker.uuid, { draw: !tracker.draw })"
+                            @click="updateTracker(tracker, { draw: !tracker.draw })"
                             :disabled="!owned"
                             :title="t('common.toggle_draw')"
                         />
@@ -162,8 +190,8 @@ function toggleCompositeAura(auraId: string): void {
                     <div v-if="tracker.draw">
                         <ColourPicker
                             :colour="tracker.primaryColor"
-                            @input:colour="updateTracker(tracker.uuid, { primaryColor: $event }, false)"
-                            @update:colour="updateTracker(tracker.uuid, { primaryColor: $event })"
+                            @input:colour="updateTracker(tracker, { primaryColor: $event }, false)"
+                            @update:colour="updateTracker(tracker, { primaryColor: $event })"
                             :disabled="!owned"
                         />
                     </div>
@@ -171,8 +199,8 @@ function toggleCompositeAura(auraId: string): void {
                     <div v-if="tracker.draw">
                         <ColourPicker
                             :colour="tracker.secondaryColor"
-                            @input:colour="updateTracker(tracker.uuid, { secondaryColor: $event }, false)"
-                            @update:colour="updateTracker(tracker.uuid, { secondaryColor: $event })"
+                            @input:colour="updateTracker(tracker, { secondaryColor: $event }, false)"
+                            @update:colour="updateTracker(tracker, { secondaryColor: $event })"
                             :disabled="!owned"
                         />
                     </div>

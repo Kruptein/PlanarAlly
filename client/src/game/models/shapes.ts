@@ -4,6 +4,7 @@ import type { Label } from "../shapes/interfaces";
 import type { ShapeAccess, ShapeOwner } from "../shapes/owners";
 import type { SHAPE_TYPE } from "../shapes/types";
 import type { Permissions, TeleportOptions } from "../systems/logic/models";
+import type { ServerTracker } from "../systems/trackers/models";
 
 import type { LayerName } from "./floor";
 
@@ -93,18 +94,6 @@ export interface ServerToggleComposite extends ServerShape {
 }
 export interface ServerAsset extends ServerRect {
     src: string;
-}
-
-export interface ServerTracker {
-    shape: GlobalId;
-    uuid: string;
-    visible: boolean;
-    name: string;
-    value: number;
-    maxvalue: number;
-    draw: boolean;
-    primary_color: string;
-    secondary_color: string;
 }
 
 export interface ServerAura {

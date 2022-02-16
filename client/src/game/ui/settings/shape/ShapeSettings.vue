@@ -51,7 +51,7 @@ const SSC = ShapeSettingCategory;
         <template v-slot:default="{ selection }">
             <div v-if="hasShape" style="display: flex; flex-direction: column">
                 <PropertySettings v-show="selection === SSC.Properties" />
-                <TrackerSettings v-show="selection === SSC.Trackers" />
+                <TrackerSettings :activeSelection="selection === SSC.Trackers" />
                 <AccessSettings v-show="selection === SSC.Access" />
                 <LogicSettings :activeSelection="selection === SSC.Logic" />
                 <GroupSettings v-show="owned && selection === SSC.Group" />

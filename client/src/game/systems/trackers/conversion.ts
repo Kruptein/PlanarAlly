@@ -1,6 +1,16 @@
-import type { GlobalId } from "../../id";
-import type { Tracker } from "../../shapes/interfaces";
-import type { ServerTracker } from "../shapes";
+import type { DeepReadonly } from "vue";
+
+import type { GlobalId, LocalId } from "../../id";
+
+import type { ServerTracker, Tracker, UiTracker } from "./models";
+
+export function toUiTrackers(trackers: readonly Tracker[], shape: LocalId): UiTracker[] {
+    return trackers.map((tracker) => ({
+        ...tracker,
+        shape,
+        temporary: false,
+    }));
+}
 
 export const trackersFromServer = (...trackers: ServerTracker[]): Tracker[] => {
     const result = [];
@@ -20,7 +30,7 @@ export const trackersFromServer = (...trackers: ServerTracker[]): Tracker[] => {
     return result;
 };
 
-export const trackersToServer = (shape: GlobalId, trackers: Tracker[]): ServerTracker[] => {
+export const trackersToServer = (shape: GlobalId, trackers: DeepReadonly<Tracker[]>): ServerTracker[] => {
     const result = [];
     for (const tracker of trackers) {
         result.push({

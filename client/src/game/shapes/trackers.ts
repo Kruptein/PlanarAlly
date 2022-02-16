@@ -1,30 +1,8 @@
 import { uuidv4 } from "../../core/utils";
-import type { UiAura, UiTracker } from "../../store/activeShape";
+import type { UiAura } from "../../store/activeShape";
 import type { LocalId } from "../id";
 
-import type { Aura, Tracker } from "./interfaces";
-
-export function createEmptyUiTracker(shape: LocalId): UiTracker {
-    return {
-        shape,
-        temporary: true,
-        ...createEmptyTracker(),
-        name: "New tracker",
-    };
-}
-
-export function createEmptyTracker(): Tracker {
-    return {
-        uuid: uuidv4(),
-        name: "",
-        value: 0,
-        maxvalue: 0,
-        visible: false,
-        draw: false,
-        primaryColor: "#00FF00",
-        secondaryColor: "#888888",
-    };
-}
+import type { Aura } from "./interfaces";
 
 export function createEmptyUiAura(shape: LocalId): UiAura {
     return {

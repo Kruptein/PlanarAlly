@@ -52,7 +52,6 @@ class DoorSystem {
         if (enabled) {
             this.enabled.add(id);
         }
-        if (enabled) console.log(permissions);
         this.permissions.set(id, permissions ?? DEFAULT_PERMISSIONS);
     }
 

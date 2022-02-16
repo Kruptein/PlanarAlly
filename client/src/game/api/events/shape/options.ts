@@ -2,9 +2,8 @@ import { SyncTo } from "../../../../core/models/types";
 import { getLocalId, getShape } from "../../../id";
 import type { GlobalId } from "../../../id";
 import { aurasFromServer, partialAuraFromServer } from "../../../models/conversion/aura";
-import { trackersFromServer, partialTrackerFromServer } from "../../../models/conversion/tracker";
-import type { ServerAura, ServerTracker } from "../../../models/shapes";
-import type { Aura, Tracker } from "../../../shapes/interfaces";
+import type { ServerAura } from "../../../models/shapes";
+import type { Aura } from "../../../shapes/interfaces";
 import { Shape } from "../../../shapes/shape";
 import { doorSystem } from "../../../systems/logic/door";
 import type { Permissions, TeleportOptions } from "../../../systems/logic/models";
@@ -34,32 +33,8 @@ socket.on("Shape.Options.ShowBadge.Set", wrapCall(Shape.prototype.setShowBadge))
 socket.on("Shape.Options.Annotation.Set", wrapCall(Shape.prototype.setAnnotation));
 socket.on("Shape.Options.Label.Add", wrapCall(Shape.prototype.addLabel));
 
-socket.on("Shape.Options.Tracker.Remove", wrapCall(Shape.prototype.removeTracker));
 socket.on("Shape.Options.Aura.Remove", wrapCall(Shape.prototype.removeAura));
 socket.on("Shape.Options.Label.Remove", wrapCall(Shape.prototype.removeLabel));
-
-socket.on("Shape.Options.Tracker.Create", (data: ServerTracker): void => {
-    const shape = getShape(getLocalId(data.shape)!);
-    if (shape === undefined) return;
-    shape.pushTracker(trackersFromServer(data)[0], SyncTo.UI);
-});
-
-socket.on("Shape.Options.Tracker.Update", (data: { uuid: string; shape: GlobalId } & Partial<Tracker>): void => {
-    const shape = getShape(getLocalId(data.shape)!);
-    if (shape === undefined) return;
-    shape.updateTracker(data.uuid, partialTrackerFromServer(data), SyncTo.UI);
-});
-
-socket.on("Shape.Options.Tracker.Move", (data: { shape: GlobalId; tracker: string; new_shape: GlobalId }): void => {
-    const shape = getShape(getLocalId(data.shape)!);
-    const newShape = getShape(getLocalId(data.new_shape)!);
-    if (shape === undefined || newShape === undefined) return;
-    const tracker = shape.getTrackers(false).find((t) => t.uuid === data.tracker);
-    if (tracker === undefined) return;
-
-    shape.removeTracker(tracker.uuid, SyncTo.UI);
-    newShape.pushTracker(tracker, SyncTo.UI);
-});
 
 socket.on("Shape.Options.Aura.Move", (data: { shape: GlobalId; aura: string; new_shape: GlobalId }): void => {
     const shape = getShape(getLocalId(data.shape)!);

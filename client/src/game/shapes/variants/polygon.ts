@@ -228,12 +228,14 @@ export class Polygon extends Shape {
             const newPolygon = new Polygon(nearVertex!, newVertices);
             const uuid = getGlobalId(newPolygon.id);
             // make sure we copy over all the same properties but retain the correct uuid and vertices
-            newPolygon.fromDict({ ...this.asDict(), uuid });
+            const oldDict = this.asDict();
+            newPolygon.fromDict({
+                ...oldDict,
+                uuid,
+                trackers: oldDict.trackers.map((t) => ({ ...t, uuid: uuidv4() })),
+            });
             newPolygon._refPoint = nearVertex!;
             newPolygon._vertices = newVertices;
-            for (const tr of newPolygon._trackers) {
-                tr.uuid = uuidv4();
-            }
             for (const au of newPolygon._auras) {
                 au.uuid = uuidv4();
             }

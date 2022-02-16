@@ -22,10 +22,8 @@ import {
 import {
     sendShapeAddLabel,
     sendShapeCreateAura,
-    sendShapeCreateTracker,
     sendShapeRemoveAura,
     sendShapeRemoveLabel,
-    sendShapeRemoveTracker,
     sendShapeSetAnnotation,
     sendShapeSetAnnotationVisible,
     sendShapeSetBlocksMovement,
@@ -40,7 +38,6 @@ import {
     sendShapeSetShowBadge,
     sendShapeSetStrokeColour,
     sendShapeUpdateAura,
-    sendShapeUpdateTracker,
 } from "../api/emits/shape/options";
 import { getBadgeCharacters } from "../groups";
 import { generateLocalId, getGlobalId } from "../id";
@@ -48,17 +45,18 @@ import type { GlobalId, LocalId } from "../id";
 import { compositeState } from "../layers/state";
 import type { Layer } from "../layers/variants/layer";
 import { aurasFromServer, aurasToServer, partialAuraToServer } from "../models/conversion/aura";
-import { partialTrackerToServer, trackersFromServer, trackersToServer } from "../models/conversion/tracker";
 import type { Floor, LayerName } from "../models/floor";
 import { accessToServer, ownerToClient, ownerToServer } from "../models/shapes";
 import type { ServerShapeOptions } from "../models/shapes";
 import type { ServerShape, ShapeOptions } from "../models/shapes";
 import { doorSystem } from "../systems/logic/door";
 import { teleportZoneSystem } from "../systems/logic/teleportZone";
+import { trackersFromServer, trackersToServer } from "../systems/trackers/conversion";
+import { trackerSystem } from "../systems/trackers/trackers";
 import { initiativeStore } from "../ui/initiative/state";
 import { TriangulationTarget, visionState } from "../vision/state";
 
-import type { Aura, IShape, Label, Tracker } from "./interfaces";
+import type { Aura, IShape, Label } from "./interfaces";
 import type { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
 import type { SHAPE_TYPE } from "./types";
 import { BoundingRect } from "./variants/boundingRect";
@@ -114,7 +112,6 @@ export abstract class Shape implements IShape {
     globalCompositeOperation = "source-over";
 
     // Associated trackers/auras
-    protected _trackers: Tracker[] = [];
     protected _auras: Aura[] = [];
     labels: Label[] = [];
 
@@ -326,7 +323,7 @@ export abstract class Shape implements IShape {
         }
         // Draw tracker bars
         let barOffset = 0;
-        for (const tracker of this._trackers) {
+        for (const tracker of trackerSystem.getAll(this.id, false)) {
             if (tracker.draw && (tracker.visible || this.ownedBy(false, { visionAccess: true }))) {
                 if (bbox === undefined) bbox = this.getBoundingBox();
                 ctx.strokeStyle = "black";
@@ -440,7 +437,7 @@ export abstract class Shape implements IShape {
             movement_obstruction: this.blocksMovement,
             vision_obstruction: this.blocksVision,
             auras: aurasToServer(getGlobalId(this.id), this._auras),
-            trackers: trackersToServer(getGlobalId(this.id), this._trackers),
+            trackers: trackersToServer(getGlobalId(this.id), trackerSystem.getAll(this.id, false)),
             labels: this.labels,
             owners: this._owners.map((owner) => ownerToServer(owner)),
             fill_colour: this.fillColour,
@@ -478,7 +475,6 @@ export abstract class Shape implements IShape {
         this.blocksMovement = data.movement_obstruction;
         this.blocksVision = data.vision_obstruction;
         this._auras = aurasFromServer(...data.auras);
-        this._trackers = trackersFromServer(...data.trackers);
         this.labels = data.labels;
         this._owners = data.owners.map((owner) => ownerToClient(owner));
         this.fillColour = data.fill_colour;
@@ -491,6 +487,8 @@ export abstract class Shape implements IShape {
         this.showBadge = data.show_badge;
         this.isLocked = data.is_locked;
         this.annotationVisible = data.annotation_visible;
+
+        trackerSystem.inform(this.id, trackersFromServer(...data.trackers));
         doorSystem.inform(this.id, data.is_door, options.door);
         teleportZoneSystem.inform(this.id, data.is_teleport_zone, options.teleport);
 
@@ -817,56 +815,6 @@ export abstract class Shape implements IShape {
         }
         if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();
         initiativeStore._forceUpdate();
-    }
-
-    // TRACKERS
-
-    getTrackers(includeParent: boolean): readonly Tracker[] {
-        const tr: Tracker[] = [];
-        if (includeParent) {
-            const parent = compositeState.getCompositeParent(this.id);
-            if (parent !== undefined) {
-                tr.push(...parent.getTrackers(false));
-            }
-        }
-        tr.push(...this._trackers);
-        return tr;
-    }
-
-    pushTracker(tracker: Tracker, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeCreateTracker(trackersToServer(getGlobalId(this.id), [tracker])[0]);
-        else if (syncTo === SyncTo.UI) this._("pushTracker")(tracker, this.id, syncTo);
-
-        this._trackers.push(tracker);
-        this.invalidate(false);
-    }
-
-    updateTracker(trackerId: string, delta: Partial<Tracker>, syncTo: SyncTo): void {
-        const tracker = this._trackers.find((t) => t.uuid === trackerId);
-        if (tracker === undefined) return;
-
-        if (syncTo === SyncTo.SERVER) {
-            sendShapeUpdateTracker({
-                ...partialTrackerToServer({
-                    ...delta,
-                }),
-                shape: getGlobalId(this.id),
-                uuid: trackerId,
-            });
-        } else if (syncTo === SyncTo.UI) {
-            this._("updateTracker")(trackerId, delta, syncTo);
-        }
-
-        Object.assign(tracker, delta);
-        this.invalidate(false);
-    }
-
-    removeTracker(tracker: string, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeRemoveTracker({ shape: getGlobalId(this.id), value: tracker });
-        else if (syncTo === SyncTo.UI) this._("removeTracker")(tracker, syncTo);
-
-        this._trackers = this._trackers.filter((tr) => tr.uuid !== tracker);
-        this.invalidate(false);
     }
 
     // AURAS

@@ -144,13 +144,6 @@ export interface IShape {
     updateOwner(owner: PartialBy<ShapeOwner, "shape">, syncTo: SyncTo): void;
     removeOwner(owner: string, syncTo: SyncTo): void;
 
-    // TRACKERS
-
-    getTrackers(includeParent: boolean): readonly Tracker[];
-    pushTracker(tracker: Tracker, syncTo: SyncTo): void;
-    updateTracker(trackerId: string, delta: Partial<Tracker>, syncTo: SyncTo): void;
-    removeTracker(tracker: string, syncTo: SyncTo): void;
-
     // AURAS
 
     getAuras(includeParent: boolean): readonly Aura[];
@@ -164,17 +157,6 @@ export interface IShape {
     setAnnotationVisible(visible: boolean, syncTo: SyncTo): void;
     addLabel(label: string, syncTo: SyncTo): void;
     removeLabel(label: string, syncTo: SyncTo): void;
-}
-
-export interface Tracker {
-    uuid: string;
-    visible: boolean;
-    name: string;
-    value: number;
-    maxvalue: number;
-    draw: boolean;
-    primaryColor: string;
-    secondaryColor: string;
 }
 
 export interface Aura {

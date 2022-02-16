@@ -32,7 +32,7 @@
         "vue-router": "^4.0.12",
         "vue-toastification": "^2.0.0-rc.5",
         "vue3-markdown-it": "^1.0.10",
-        "vuedraggable": "4.1.0"
+        "vuedraggable": "4.0.3"
     },
     "devDependencies": {
         "@babylonjs/core": "^4.2.1",

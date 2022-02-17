@@ -45,7 +45,7 @@ import type { Polygon } from "../../shapes/variants/polygon";
 import { Rect } from "../../shapes/variants/rect";
 import { doorSystem } from "../../systems/logic/door";
 import { Access } from "../../systems/logic/models";
-import { teleportZoneSystem } from "../../systems/logic/teleportZone";
+import { teleportZoneSystem } from "../../systems/logic/tp";
 import { openDefaultContextMenu, openShapeContextMenu } from "../../ui/contextmenu/state";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { Tool } from "../tool";

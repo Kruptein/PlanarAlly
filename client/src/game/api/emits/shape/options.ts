@@ -1,14 +1,11 @@
 import type { GlobalId } from "../../../id";
-import type { ServerAura, ServerTracker } from "../../../models/shapes";
-import type { Permissions, TeleportOptions } from "../../../systems/logic/models";
 import { wrapSocket } from "../../helpers";
-import { socket } from "../../socket";
 
-function sendShapeOption<T>(event: string): (data: { shape: string } & T) => void {
+export function sendShapeOption<T>(event: string): (data: { shape: string } & T) => void {
     return wrapSocket<{ shape: string } & T>(event);
 }
 
-function sendSimpleShapeOption<T>(event: string): (data: { shape: GlobalId; value: T }) => void {
+export function sendSimpleShapeOption<T>(event: string): (data: { shape: GlobalId; value: T }) => void {
     return sendShapeOption<{ value: T }>(event);
 }
 
@@ -29,40 +26,6 @@ export const sendShapeSetFillColour = sendSimpleShapeOption<string>("Shape.Optio
 export const sendShapeAddLabel = sendSimpleShapeOption<string>("Shape.Options.Label.Add");
 
 export const sendShapeRemoveLabel = sendSimpleShapeOption<string>("Shape.Options.Label.Remove");
-export const sendShapeRemoveAura = sendSimpleShapeOption<string>("Shape.Options.Aura.Remove");
-export const sendShapeRemoveTracker = sendSimpleShapeOption<string>("Shape.Options.Tracker.Remove");
-export const sendShapeMoveTracker =
-    sendShapeOption<{ tracker: string; new_shape: string }>("Shape.Options.Tracker.Move");
-export const sendShapeMoveAura = sendShapeOption<{ aura: string; new_shape: string }>("Shape.Options.Aura.Move");
 
 export const sendShapeSkipDraw = sendSimpleShapeOption<boolean>("Shape.Options.SkipDraw.Set");
 export const sendShapeSvgAsset = sendSimpleShapeOption<string | undefined>("Shape.Options.SvgAsset.Set");
-
-export const sendShapeIsDoor = sendSimpleShapeOption<boolean>("Shape.Options.IsDoor.Set");
-export const sendShapeDoorPermissions = sendSimpleShapeOption<Permissions>("Shape.Options.DoorPermissions.Set");
-export const sendShapeIsTeleportZone = sendSimpleShapeOption<boolean>("Shape.Options.IsTeleportZone.Set");
-export const sendShapeIsImmediateTeleportZone = sendSimpleShapeOption<boolean>(
-    "Shape.Options.IsImmediateTeleportZone.Set",
-);
-export const sendShapeTeleportZonePermissions = sendSimpleShapeOption<Permissions>(
-    "Shape.Options.TeleportZonePermissions.Set",
-);
-export const sendShapeTeleportZoneTarget = sendSimpleShapeOption<TeleportOptions["location"]>(
-    "Shape.Options.TeleportZoneTarget.Set",
-);
-
-export const sendShapeCreateTracker = (data: ServerTracker): void => {
-    socket.emit("Shape.Options.Tracker.Create", data);
-};
-
-export const sendShapeUpdateTracker = (data: { shape: string; uuid: string } & Partial<ServerTracker>): void => {
-    socket.emit("Shape.Options.Tracker.Update", data);
-};
-
-export const sendShapeCreateAura = (data: ServerAura): void => {
-    socket.emit("Shape.Options.Aura.Create", data);
-};
-
-export const sendShapeUpdateAura = (data: { shape: string; uuid: string } & Partial<ServerAura>): void => {
-    socket.emit("Shape.Options.Aura.Update", data);
-};

@@ -8,6 +8,7 @@ import { getShape } from "../../id";
 import { LayerName } from "../../models/floor";
 import type { IShape } from "../../shapes/interfaces";
 import { Circle } from "../../shapes/variants/circle";
+import { auraSystem } from "../../systems/auras";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { computeVisibility } from "../../vision/te";
 
@@ -70,7 +71,7 @@ export class FowLightingLayer extends FowLayer {
             for (const light of visionState.getVisionSources(this.floor)) {
                 const shape = getShape(light.shape);
                 if (shape === undefined) continue;
-                const aura = shape.getAuras(true).find((a) => a.uuid === light.aura);
+                const aura = auraSystem.get(shape.id, light.aura, true);
                 if (aura === undefined) continue;
 
                 if (!shape.ownedBy(true, { visionAccess: true }) && !aura.visible) continue;

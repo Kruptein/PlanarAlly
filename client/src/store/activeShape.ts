@@ -7,34 +7,15 @@ import { getShape } from "../game/id";
 import type { LocalId } from "../game/id";
 import { selectionState } from "../game/layers/selection";
 import { compositeState } from "../game/layers/state";
+import type { FloorId } from "../game/models/floor";
 import type { ShapeOptions } from "../game/models/shapes";
-import type { Aura, IShape, Label, Tracker } from "../game/shapes/interfaces";
+import type { IShape, Label } from "../game/shapes/interfaces";
 import type { ShapeAccess, ShapeOwner } from "../game/shapes/owners";
-import { createEmptyUiAura, createEmptyUiTracker } from "../game/shapes/trackers";
 import type { SHAPE_TYPE } from "../game/shapes/types";
 import type { ToggleComposite } from "../game/shapes/variants/toggleComposite";
 
 import { clientStore } from "./client";
 import { gameStore } from "./game";
-
-export type UiTracker = { shape: LocalId; temporary: boolean } & Tracker;
-export type UiAura = { shape: LocalId; temporary: boolean } & Aura;
-
-function toUiTrackers(trackers: readonly Tracker[], shape: LocalId): UiTracker[] {
-    return trackers.map((tracker) => ({
-        ...tracker,
-        shape,
-        temporary: false,
-    }));
-}
-
-function toUiAuras(auras: readonly Aura[], shape: LocalId): UiAura[] {
-    return auras.map((aura) => ({
-        ...aura,
-        shape,
-        temporary: false,
-    }));
-}
 
 interface ActiveShapeState {
     id?: LocalId;
@@ -62,23 +43,15 @@ interface ActiveShapeState {
     access: ShapeAccess | undefined;
     owners: ShapeOwner[];
 
-    firstRealTrackerIndex: number;
-    trackers: UiTracker[];
-    firstRealAuraIndex: number;
-    auras: UiAura[];
-
     variants: { uuid: LocalId; name: string }[];
 
     annotation: string | undefined;
     annotationVisible: boolean;
     labels: Label[];
-
-    // isDoor: boolean;
-    // isTeleportZone: boolean;
 }
 
 export class ActiveShapeStore extends Store<ActiveShapeState> {
-    floor: ComputedRef<number | undefined>;
+    floor: ComputedRef<FloorId | undefined>;
     isComposite: ComputedRef<boolean>;
 
     hasEditAccess: ComputedRef<boolean>;
@@ -110,19 +83,11 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
             access: undefined,
             owners: [],
 
-            firstRealTrackerIndex: 0,
-            trackers: [],
-            firstRealAuraIndex: 0,
-            auras: [],
-
             variants: [],
 
             annotation: undefined,
             annotationVisible: false,
             labels: [],
-
-            // isDoor: false,
-            // isTeleportZone: false,
         };
     }
 
@@ -403,141 +368,6 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         }
     }
 
-    // TRACKERS
-
-    pushTracker(tracker: Tracker, shape: LocalId, syncTo: SyncTo): void {
-        if (this._state.id === undefined) return;
-
-        const tr = toUiTrackers([tracker], shape)[0];
-        if (this._state.id === shape) {
-            this._state.trackers.splice(this._state.trackers.length - 1, 0, tr);
-        } else if (this._state.parentUuid === shape) {
-            this._state.trackers.splice(this._state.firstRealTrackerIndex, 0, tr);
-            this._state.firstRealTrackerIndex += 1;
-        } else {
-            return;
-        }
-        if (syncTo !== SyncTo.UI) {
-            const sh = getShape(shape);
-            if (sh === undefined) return;
-
-            sh.pushTracker(tracker, syncTo);
-        }
-    }
-
-    updateTracker(trackerId: string, delta: Partial<Tracker>, syncTo: SyncTo): void {
-        if (this._state.id === undefined) return;
-
-        const tracker = this._state.trackers.find((t) => t.uuid === trackerId);
-        if (tracker === undefined) return;
-
-        Object.assign(tracker, delta);
-
-        if (syncTo !== SyncTo.UI) {
-            const shape = getShape(tracker.shape);
-            if (shape === undefined) return;
-
-            if (tracker.temporary) {
-                tracker.temporary = false;
-                shape.pushTracker(tracker, SyncTo.SERVER);
-                this._state.trackers.push(createEmptyUiTracker(this._state.id!));
-            } else {
-                shape.updateTracker(trackerId, delta, syncTo);
-            }
-        }
-    }
-
-    removeTracker(tracker: string, syncTo: SyncTo): void {
-        if (this._state.id === undefined) return;
-
-        const trackerIndex = this._state.trackers.findIndex((t) => t.uuid === tracker);
-        if (trackerIndex < 0) return;
-
-        const tr = this._state.trackers.splice(trackerIndex, 1)[0];
-        if (trackerIndex < this._state.firstRealTrackerIndex) {
-            this._state.firstRealTrackerIndex -= 1;
-        }
-
-        if (syncTo !== SyncTo.UI) {
-            const shape = getShape(tr.shape);
-            if (shape === undefined) return;
-            shape.removeTracker(tracker, syncTo);
-        }
-    }
-
-    setTrackerShape(trackerId: string, shape: LocalId): void {
-        const tracker = this._state.trackers.find((t) => t.uuid === trackerId);
-        if (tracker !== undefined) {
-            tracker.shape = shape;
-        }
-    }
-
-    // AURAS
-
-    pushAura(aura: Aura, shape: LocalId, syncTo: SyncTo): void {
-        if (this._state.id === undefined) return;
-
-        const uiAura = toUiAuras([aura], shape)[0];
-        if (this._state.id === shape) {
-            this._state.auras.splice(this._state.auras.length - 1, 0, uiAura);
-        } else if (this._state.parentUuid === shape) {
-            this._state.auras.splice(this._state.firstRealAuraIndex, 0, uiAura);
-            this._state.firstRealAuraIndex += 1;
-        } else {
-            return;
-        }
-        if (syncTo !== SyncTo.UI) {
-            const sh = getShape(shape)!;
-            sh.pushAura(aura, syncTo);
-        }
-    }
-
-    updateAura(auraId: string, delta: Partial<Aura>, syncTo: SyncTo): void {
-        if (this._state.id === undefined) return;
-
-        const aura = this._state.auras.find((a) => a.uuid === auraId);
-        if (aura === undefined) return;
-
-        Object.assign(aura, delta);
-
-        const shape = getShape(aura.shape);
-        if (shape === undefined) return;
-
-        if (syncTo !== SyncTo.UI) {
-            if (aura.temporary) {
-                aura.temporary = false;
-                shape.pushAura(aura, SyncTo.SERVER);
-                this._state.auras.push(createEmptyUiAura(this._state.id!));
-            } else {
-                shape.updateAura(auraId, delta, syncTo);
-            }
-        }
-    }
-
-    removeAura(auraId: string, syncTo: SyncTo): void {
-        if (this._state.id === undefined) return;
-
-        const auraIndex = this._state.auras.findIndex((t) => t.uuid === auraId);
-        if (auraIndex < 0) return;
-
-        const aura = this._state.auras.splice(auraIndex, 1)[0];
-        if (auraIndex < this._state.firstRealAuraIndex) {
-            this._state.firstRealAuraIndex -= 1;
-        }
-
-        const shape = getShape(aura.shape);
-        if (shape === undefined) return;
-
-        if (syncTo !== SyncTo.UI) shape.removeAura(auraId, syncTo);
-    }
-
-    setAuraShape(auraId: string, shape: LocalId): void {
-        const aura = this._state.auras.find((a) => a.uuid === auraId);
-        if (aura !== undefined) {
-            aura.shape = shape;
-        }
-    }
-
     // VARIANTS
 
     renameVariant(uuid: LocalId, name: string, syncTo: SyncTo): void {
@@ -643,23 +473,9 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.access = { ...shape.defaultAccess };
         this._state.owners = shape.owners.map((o) => ({ ...o, access: { ...o.access } }));
 
-        if (parent !== undefined) {
-            this._state.trackers.push(...toUiTrackers(parent.getTrackers(false), parent.id));
-            this._state.firstRealTrackerIndex = this._state.trackers.length;
-            this._state.auras.push(...toUiAuras(parent.getAuras(false), parent.id));
-            this._state.firstRealAuraIndex = this._state.auras.length;
-        }
-        this._state.trackers.push(...toUiTrackers(shape.getTrackers(false), shape.id));
-        this._state.trackers.push(createEmptyUiTracker(this._state.id));
-        this._state.auras.push(...toUiAuras(shape.getAuras(false), shape.id));
-        this._state.auras.push(createEmptyUiAura(this._state.id));
-
         this._state.annotation = shape.annotation;
         this._state.annotationVisible = shape.annotationVisible;
         this._state.labels = [...shape.labels];
-
-        // this._state.isDoor = shape.isDoor;
-        // this._state.isTeleportZone = shape.isTeleportZone;
 
         if (this._state.parentUuid !== undefined) {
             const composite = getShape(this._state.parentUuid) as ToggleComposite;
@@ -694,19 +510,11 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
         this._state.owners = [];
 
-        this._state.firstRealTrackerIndex = 0;
-        this._state.trackers = [];
-        this._state.firstRealAuraIndex = 0;
-        this._state.auras = [];
-
         this._state.variants = [];
 
         this._state.annotation = undefined;
         this._state.annotationVisible = false;
         this._state.labels = [];
-
-        // this._state.isDoor = false;
-        // this._state.isTeleportZone = false;
     }
 }
 

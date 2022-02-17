@@ -1,14 +1,14 @@
 import { reactive } from "vue";
 import type { DeepReadonly } from "vue";
 
-import { SyncTo } from "../../../core/models/types";
-import { sendShapeIsDoor, sendShapeDoorPermissions } from "../../api/emits/shape/options";
-import { getGlobalId } from "../../id";
-import type { LocalId } from "../../id";
+import { SyncTo } from "../../../../core/models/types";
+import { getGlobalId } from "../../../id";
+import type { LocalId } from "../../../id";
+import { canUse } from "../common";
+import { DEFAULT_PERMISSIONS } from "../models";
+import type { Access, Permissions } from "../models";
 
-import { canUse } from "./common";
-import { DEFAULT_PERMISSIONS } from "./models";
-import type { Access, Permissions } from "./models";
+import { sendShapeIsDoor, sendShapeDoorPermissions } from "./emits";
 
 interface ReactiveDoorState {
     id: LocalId | undefined;
@@ -52,7 +52,6 @@ class DoorSystem {
         if (enabled) {
             this.enabled.add(id);
         }
-        if (enabled) console.log(permissions);
         this.permissions.set(id, permissions ?? DEFAULT_PERMISSIONS);
     }
 

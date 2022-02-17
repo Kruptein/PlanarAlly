@@ -1,5 +1,6 @@
 import type { GlobalPoint } from "../../core/geometry";
 import { drawPolygon } from "../draw";
+import type { FloorId } from "../models/floor";
 
 import type { Edge } from "./cdt";
 import { visionState } from "./state";
@@ -11,7 +12,7 @@ import { ccw, cw, orientation } from "./triag";
 export function computeVisibility(
     q: GlobalPoint,
     target: TriangulationTarget,
-    floor: number,
+    floor: FloorId,
     drawt?: boolean,
 ): number[][] {
     if (drawt === undefined) drawt = visionState.drawTeContour;

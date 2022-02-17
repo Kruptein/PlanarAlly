@@ -21,6 +21,7 @@ import { GridLayer } from "../game/layers/variants/grid";
 import { Layer } from "../game/layers/variants/layer";
 import { MapLayer } from "../game/layers/variants/map";
 import { LayerName } from "../game/models/floor";
+import type { FloorId } from "../game/models/floor";
 import type { Floor, FloorType } from "../game/models/floor";
 import type { ServerFloor, ServerLayer } from "../game/models/general";
 import { groupToClient } from "../game/models/groups";
@@ -30,7 +31,7 @@ import { gameStore } from "./game";
 
 interface FloorState {
     floors: Floor[];
-    floorIndex: number;
+    floorIndex: FloorId;
 
     layerIndex: number;
 }
@@ -61,7 +62,7 @@ class FloorStore extends Store<FloorState> {
     protected data(): FloorState {
         return {
             floors: [],
-            floorIndex: -1,
+            floorIndex: -1 as FloorId,
 
             layerIndex: -1,
         };
@@ -70,14 +71,14 @@ class FloorStore extends Store<FloorState> {
     clear(): void {
         this._state.floors = [];
         this.indices = [];
-        this._state.floorIndex = -1;
+        this._state.floorIndex = -1 as FloorId;
         this._state.layerIndex = -1;
         this.layerMap.clear();
     }
 
     // FLOOR
 
-    private _parseFloor(mode: "index", data: FloorRepresentation): number | undefined;
+    private _parseFloor(mode: "index", data: FloorRepresentation): FloorId | undefined;
     private _parseFloor(mode: "object", data: FloorRepresentation, readonly?: true): DeepReadonly<Floor> | undefined;
     private _parseFloor(mode: "object", data: FloorRepresentation, readonly: false): Floor | undefined;
     private _parseFloor(
@@ -98,12 +99,12 @@ class FloorStore extends Store<FloorState> {
         return this._parseFloor("object", data, readonly as any); // any cast needed because overload signature is not visible
     }
 
-    getFloorIndex(data: FloorRepresentation): number | undefined {
+    getFloorIndex(data: FloorRepresentation): FloorId | undefined {
         return this._parseFloor("index", data);
     }
 
-    generateFloorId(): number {
-        return this.lastFloorId++;
+    generateFloorId(): FloorId {
+        return this.lastFloorId++ as FloorId;
     }
 
     addServerFloor(serverFloor: ServerFloor): void {
@@ -130,7 +131,7 @@ class FloorStore extends Store<FloorState> {
             if (I >= 0) {
                 this.indices.splice(I, 0, targetIndex);
                 this._state.floors.splice(I, 0, floor);
-                if (I <= this._state.floorIndex) this._state.floorIndex += 1;
+                if (I <= this._state.floorIndex) this._state.floorIndex = (this._state.floorIndex + 1) as FloorId;
             } else {
                 this.indices.push(targetIndex);
                 this._state.floors.push(floor);

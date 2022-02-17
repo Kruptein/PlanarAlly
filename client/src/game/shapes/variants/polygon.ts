@@ -9,6 +9,8 @@ import { getFogColour } from "../../colour";
 import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import type { ServerPolygon } from "../../models/shapes";
+import type { AuraId } from "../../systems/auras/models";
+import type { TrackerId } from "../../systems/trackers/models";
 import { visionState } from "../../vision/state";
 import { Shape } from "../shape";
 import type { SHAPE_TYPE } from "../types";
@@ -228,15 +230,15 @@ export class Polygon extends Shape {
             const newPolygon = new Polygon(nearVertex!, newVertices);
             const uuid = getGlobalId(newPolygon.id);
             // make sure we copy over all the same properties but retain the correct uuid and vertices
-            newPolygon.fromDict({ ...this.asDict(), uuid });
+            const oldDict = this.asDict();
+            newPolygon.fromDict({
+                ...oldDict,
+                uuid,
+                trackers: oldDict.trackers.map((t) => ({ ...t, uuid: uuidv4() as unknown as TrackerId })),
+                auras: oldDict.auras.map((a) => ({ ...a, uuid: uuidv4() as unknown as AuraId })),
+            });
             newPolygon._refPoint = nearVertex!;
             newPolygon._vertices = newVertices;
-            for (const tr of newPolygon._trackers) {
-                tr.uuid = uuidv4();
-            }
-            for (const au of newPolygon._auras) {
-                au.uuid = uuidv4();
-            }
 
             this.layer.addShape(
                 newPolygon,

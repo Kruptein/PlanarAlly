@@ -1,6 +1,16 @@
-import type { GlobalId } from "../../id";
-import type { Aura } from "../../shapes/interfaces";
-import type { ServerAura } from "../shapes";
+import type { DeepReadonly } from "vue";
+
+import type { GlobalId, LocalId } from "../../id";
+
+import type { Aura, ServerAura, UiAura } from "./models";
+
+export function toUiAuras(auras: readonly Aura[], shape: LocalId): UiAura[] {
+    return auras.map((aura) => ({
+        ...aura,
+        shape,
+        temporary: false,
+    }));
+}
 
 export const aurasFromServer = (...auras: ServerAura[]): Aura[] => {
     const result = [];
@@ -23,7 +33,7 @@ export const aurasFromServer = (...auras: ServerAura[]): Aura[] => {
     return result;
 };
 
-export const aurasToServer = (shape: GlobalId, auras: Aura[]): ServerAura[] => {
+export const aurasToServer = (shape: GlobalId, auras: DeepReadonly<Aura[]>): ServerAura[] => {
     const result = [];
     for (const aura of auras) {
         result.push({

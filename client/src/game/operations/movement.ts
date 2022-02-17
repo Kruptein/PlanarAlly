@@ -4,7 +4,7 @@ import { sendShapePositionUpdate } from "../api/emits/shape/core";
 import { moveClient } from "../client";
 import { selectionState } from "../layers/selection";
 import type { IShape } from "../shapes/interfaces";
-import { teleportZoneSystem } from "../systems/logic/teleportZone";
+import { teleportZoneSystem } from "../systems/logic/tp";
 import { TriangulationTarget, visionState } from "../vision/state";
 
 import type { MovementOperation, ShapeMovementOperation } from "./model";

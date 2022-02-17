@@ -10,6 +10,7 @@ import { removeGroupMember } from "../../groups";
 import { dropId, getGlobalId } from "../../id";
 import type { LocalId } from "../../id";
 import { LayerName } from "../../models/floor";
+import type { FloorId } from "../../models/floor";
 import type { ServerShape } from "../../models/shapes";
 import { addOperation } from "../../operations/undo";
 import type { IShape } from "../../shapes/interfaces";
@@ -46,7 +47,7 @@ export class Layer {
     constructor(
         public canvas: HTMLCanvasElement,
         public name: LayerName,
-        public floor: number,
+        public floor: FloorId,
         protected index: number,
     ) {
         this.ctx = canvas.getContext("2d")!;

@@ -3,28 +3,29 @@ import type { DeepReadonly } from "vue";
 import { POSITION, useToast } from "vue-toastification";
 import type { ToastID } from "vue-toastification/dist/types/types";
 
-import SingleButtonToast from "../../../core/components/toasts/SingleButtonToast.vue";
-import { SyncTo } from "../../../core/models/types";
-import { floorStore } from "../../../store/floor";
-import { gameStore } from "../../../store/game";
-import { settingsStore } from "../../../store/settings";
-import { sendRequest } from "../../api/emits/logic";
-import { requestShapeInfo, sendShapesMove } from "../../api/emits/shape/core";
+import SingleButtonToast from "../../../../core/components/toasts/SingleButtonToast.vue";
+import { SyncTo } from "../../../../core/models/types";
+import { floorStore } from "../../../../store/floor";
+import { gameStore } from "../../../../store/game";
+import { settingsStore } from "../../../../store/settings";
+import { sendRequest } from "../../../api/emits/logic";
+import { requestShapeInfo, sendShapesMove } from "../../../api/emits/shape/core";
+import { getGlobalId, getLocalId, getShape } from "../../../id";
+import type { GlobalId, LocalId } from "../../../id";
+import { LayerName } from "../../../models/floor";
+import { setCenterPosition } from "../../../position";
+import type { IShape } from "../../../shapes/interfaces";
+import { canUse } from "../common";
+import { Access, DEFAULT_PERMISSIONS } from "../models";
+import type { Permissions } from "../models";
+
 import {
     sendShapeIsImmediateTeleportZone,
     sendShapeIsTeleportZone,
     sendShapeTeleportZonePermissions,
     sendShapeTeleportZoneTarget,
-} from "../../api/emits/shape/options";
-import { getGlobalId, getLocalId, getShape } from "../../id";
-import type { GlobalId, LocalId } from "../../id";
-import { LayerName } from "../../models/floor";
-import { setCenterPosition } from "../../position";
-import type { IShape } from "../../shapes/interfaces";
-
-import { canUse } from "./common";
-import { Access, DEFAULT_PERMISSIONS } from "./models";
-import type { Permissions, TeleportOptions } from "./models";
+} from "./emits";
+import type { TeleportOptions } from "./models";
 
 const toast = useToast();
 
@@ -224,7 +225,7 @@ function getTpZoneShapes(fromZone: LocalId): LocalId[] {
     return shapes;
 }
 
-async function teleport(fromZone: LocalId, toZone: GlobalId, transfers?: readonly LocalId[]): Promise<void> {
+export async function teleport(fromZone: LocalId, toZone: GlobalId, transfers?: readonly LocalId[]): Promise<void> {
     const activeLocation = settingsStore.state.activeLocation;
     const tpTargetId = getLocalId(toZone);
     const tpTargetShape = tpTargetId === undefined ? undefined : getShape(tpTargetId);

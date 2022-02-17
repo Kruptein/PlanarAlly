@@ -12,7 +12,7 @@ import type { GlobalId } from "../../../id";
 import { doorSystem } from "../../../systems/logic/door";
 import { DEFAULT_PERMISSIONS } from "../../../systems/logic/models";
 import type { LOGIC_TYPES, Permissions } from "../../../systems/logic/models";
-import { teleportZoneSystem } from "../../../systems/logic/teleportZone";
+import { teleportZoneSystem } from "../../../systems/logic/tp";
 
 import LogicPermissions from "./LogicPermissions.vue";
 

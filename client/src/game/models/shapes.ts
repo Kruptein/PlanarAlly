@@ -3,7 +3,10 @@ import type { GlobalId } from "../id";
 import type { Label } from "../shapes/interfaces";
 import type { ShapeAccess, ShapeOwner } from "../shapes/owners";
 import type { SHAPE_TYPE } from "../shapes/types";
-import type { Permissions, TeleportOptions } from "../systems/logic/models";
+import type { ServerAura } from "../systems/auras/models";
+import type { Permissions } from "../systems/logic/models";
+import type { TeleportOptions } from "../systems/logic/tp/models";
+import type { ServerTracker } from "../systems/trackers/models";
 
 import type { LayerName } from "./floor";
 
@@ -93,33 +96,6 @@ export interface ServerToggleComposite extends ServerShape {
 }
 export interface ServerAsset extends ServerRect {
     src: string;
-}
-
-export interface ServerTracker {
-    shape: GlobalId;
-    uuid: string;
-    visible: boolean;
-    name: string;
-    value: number;
-    maxvalue: number;
-    draw: boolean;
-    primary_color: string;
-    secondary_color: string;
-}
-
-export interface ServerAura {
-    shape: GlobalId;
-    uuid: string;
-    active: boolean;
-    vision_source: boolean;
-    visible: boolean;
-    name: string;
-    value: number;
-    dim: number;
-    colour: string;
-    border_colour: string;
-    angle: number;
-    direction: number;
 }
 
 export const accessToServer = (access: ShapeAccess): ServerShapeAccess => ({

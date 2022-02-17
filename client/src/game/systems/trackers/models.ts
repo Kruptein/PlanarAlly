@@ -1,6 +1,6 @@
 import type { GlobalId, LocalId } from "../../id";
 
-export type TrackerId = string & { __brand: "globalId" };
+export type TrackerId = string & { __brand: "trackerId" };
 
 export interface Tracker {
     uuid: TrackerId;

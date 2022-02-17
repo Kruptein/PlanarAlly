@@ -1,9 +1,6 @@
 import { SyncTo } from "../../../../core/models/types";
 import { getLocalId, getShape } from "../../../id";
 import type { GlobalId } from "../../../id";
-import { aurasFromServer, partialAuraFromServer } from "../../../models/conversion/aura";
-import type { ServerAura } from "../../../models/shapes";
-import type { Aura } from "../../../shapes/interfaces";
 import { Shape } from "../../../shapes/shape";
 import { doorSystem } from "../../../systems/logic/door";
 import type { Permissions, TeleportOptions } from "../../../systems/logic/models";
@@ -33,31 +30,7 @@ socket.on("Shape.Options.ShowBadge.Set", wrapCall(Shape.prototype.setShowBadge))
 socket.on("Shape.Options.Annotation.Set", wrapCall(Shape.prototype.setAnnotation));
 socket.on("Shape.Options.Label.Add", wrapCall(Shape.prototype.addLabel));
 
-socket.on("Shape.Options.Aura.Remove", wrapCall(Shape.prototype.removeAura));
 socket.on("Shape.Options.Label.Remove", wrapCall(Shape.prototype.removeLabel));
-
-socket.on("Shape.Options.Aura.Move", (data: { shape: GlobalId; aura: string; new_shape: GlobalId }): void => {
-    const shape = getShape(getLocalId(data.shape)!);
-    const newShape = getShape(getLocalId(data.new_shape)!);
-    if (shape === undefined || newShape === undefined) return;
-    const aura = shape.getAuras(false).find((a) => a.uuid === data.aura);
-    if (aura === undefined) return;
-
-    shape.removeAura(aura.uuid, SyncTo.UI);
-    newShape.pushAura(aura, SyncTo.UI);
-});
-
-socket.on("Shape.Options.Aura.Create", (data: ServerAura): void => {
-    const shape = getShape(getLocalId(data.shape)!);
-    if (shape === undefined) return;
-    shape.pushAura(aurasFromServer(data)[0], SyncTo.UI);
-});
-
-socket.on("Shape.Options.Aura.Update", (data: { uuid: string; shape: GlobalId } & Partial<Aura>): void => {
-    const shape = getShape(getLocalId(data.shape)!);
-    if (shape === undefined) return;
-    shape.updateAura(data.uuid, partialAuraFromServer(data), SyncTo.UI);
-});
 
 socket.on("Shape.Options.Invisible.Set", (data: { shape: GlobalId; value: boolean }) => {
     const shape = getShape(getLocalId(data.shape)!);

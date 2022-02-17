@@ -1,5 +1,7 @@
+export type FloorId = number & { __brand: "floorId" };
+
 export interface Floor {
-    id: number; // This is only kept client side at the moment
+    id: FloorId; // This is only kept client side at the moment
     name: string;
     playerVisible: boolean;
     type: FloorType;

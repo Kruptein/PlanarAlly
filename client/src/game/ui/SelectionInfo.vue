@@ -5,8 +5,9 @@ import { SyncTo } from "../../core/models/types";
 import { useModal } from "../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../store/activeShape";
 import { getShape } from "../id";
-import type { Aura } from "../shapes/interfaces";
-import type { Tracker } from "../systems/trackers/models";
+import { auraSystem } from "../systems/auras/auras";
+import type { Aura, AuraId } from "../systems/auras/models";
+import type { Tracker, TrackerId } from "../systems/trackers/models";
 import { trackerSystem } from "../systems/trackers/trackers";
 
 const { t } = useI18n();
@@ -44,11 +45,11 @@ async function changeValue(tracker: Tracker | Aura, isAura: boolean): Promise<vo
     }
 
     if (isAura) {
-        activeShapeStore.updateAura(tracker.uuid, { value }, SyncTo.SERVER);
+        auraSystem.update(shape.id, tracker.uuid as AuraId, { value }, SyncTo.SERVER);
         const sh = getShape(shape.id)!;
         sh.invalidate(false);
     } else {
-        trackerSystem.update(shape.id, tracker.uuid, { value }, SyncTo.SERVER);
+        trackerSystem.update(shape.id, tracker.uuid as TrackerId, { value }, SyncTo.SERVER);
     }
 }
 </script>
@@ -85,7 +86,7 @@ async function changeValue(tracker: Tracker | Aura, isAura: boolean): Promise<vo
                     </template>
                 </div>
                 <div id="selection-auras">
-                    <template v-for="aura in shape.auras.slice(0, shape.auras.length - 1)" :key="aura.uuid">
+                    <template v-for="aura in auraSystem.state.auras.slice(0, -1)" :key="aura.uuid">
                         <div>{{ aura.name }}</div>
                         <div
                             class="selection-tracker-value"

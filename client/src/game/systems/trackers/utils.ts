@@ -1,7 +1,7 @@
 import { uuidv4 } from "../../../core/utils";
 import type { LocalId } from "../../id";
 
-import type { Tracker, UiTracker } from "./models";
+import type { Tracker, TrackerId, UiTracker } from "./models";
 
 export function createEmptyUiTracker(shape: LocalId): UiTracker {
     return {
@@ -14,7 +14,7 @@ export function createEmptyUiTracker(shape: LocalId): UiTracker {
 
 export function createEmptyTracker(): Tracker {
     return {
-        uuid: uuidv4(),
+        uuid: uuidv4() as unknown as TrackerId,
         name: "",
         value: 0,
         maxvalue: 0,

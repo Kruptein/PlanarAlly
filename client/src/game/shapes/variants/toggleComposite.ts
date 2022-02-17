@@ -13,6 +13,7 @@ import type { GlobalId, LocalId } from "../../id";
 import { selectionState } from "../../layers/selection";
 import { compositeState } from "../../layers/state";
 import type { ServerToggleComposite } from "../../models/shapes";
+import { auraSystem } from "../../systems/auras/auras";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { Shape } from "../shape";
 import type { SHAPE_TYPE } from "../types";
@@ -94,7 +95,8 @@ export class ToggleComposite extends Shape {
                 visionState.removeBlocker(TriangulationTarget.MOVEMENT, variant.floor.id, variant, true);
             if (variant.blocksVision)
                 visionState.removeBlocker(TriangulationTarget.VISION, variant.floor.id, variant, true);
-            if (variant.getAuras(false).length > 0) visionState.removeVisionSources(variant.floor.id, variant.id);
+            if (auraSystem.getAll(variant.id, false).length > 0)
+                visionState.removeVisionSources(variant.floor.id, variant.id);
         }
     }
 
@@ -111,7 +113,7 @@ export class ToggleComposite extends Shape {
         if (newVariant.blocksVision)
             visionState.addBlocker(TriangulationTarget.VISION, newVariant.id, newVariant.floor.id, true);
 
-        for (const au of newVariant.getAuras(false)) {
+        for (const au of auraSystem.getAll(newVariant.id, false)) {
             if (au.visionSource && au.active) {
                 visionState.addVisionSource({ shape: newVariant.id, aura: au.uuid }, newVariant.floor.id);
             }

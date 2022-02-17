@@ -16,10 +16,11 @@ import { sendShapeSvgAsset } from "../../../api/emits/shape/options";
 import { getGlobalId, getShape } from "../../../id";
 import type { DDraftData } from "../../../models/ddraft";
 import { LayerName } from "../../../models/floor";
-import type { Aura } from "../../../shapes/interfaces";
 import type { Asset } from "../../../shapes/variants/asset";
 import { Circle } from "../../../shapes/variants/circle";
 import { Polygon } from "../../../shapes/variants/polygon";
+import { auraSystem } from "../../../systems/auras/auras";
+import type { Aura, AuraId } from "../../../systems/auras/models";
 import { visionState } from "../../../vision/state";
 import LabelManager from "../../LabelManager.vue";
 
@@ -141,7 +142,7 @@ function applyDDraft(): void {
         shape.isInvisible = true;
 
         const aura: Aura = {
-            uuid: uuidv4(),
+            uuid: uuidv4() as unknown as AuraId,
             active: true,
             visionSource: true,
             visible: true,
@@ -154,7 +155,7 @@ function applyDDraft(): void {
             direction: 0,
         };
 
-        shape.pushAura(aura, SyncTo.UI);
+        auraSystem.add(shape.id, aura, SyncTo.UI);
         shape.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.UI);
 
         realShape.layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);

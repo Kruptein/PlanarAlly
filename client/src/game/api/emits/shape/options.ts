@@ -1,8 +1,6 @@
 import type { GlobalId } from "../../../id";
-import type { ServerAura } from "../../../models/shapes";
 import type { Permissions, TeleportOptions } from "../../../systems/logic/models";
 import { wrapSocket } from "../../helpers";
-import { socket } from "../../socket";
 
 export function sendShapeOption<T>(event: string): (data: { shape: string } & T) => void {
     return wrapSocket<{ shape: string } & T>(event);
@@ -29,8 +27,6 @@ export const sendShapeSetFillColour = sendSimpleShapeOption<string>("Shape.Optio
 export const sendShapeAddLabel = sendSimpleShapeOption<string>("Shape.Options.Label.Add");
 
 export const sendShapeRemoveLabel = sendSimpleShapeOption<string>("Shape.Options.Label.Remove");
-export const sendShapeRemoveAura = sendSimpleShapeOption<string>("Shape.Options.Aura.Remove");
-export const sendShapeMoveAura = sendShapeOption<{ aura: string; new_shape: string }>("Shape.Options.Aura.Move");
 
 export const sendShapeSkipDraw = sendSimpleShapeOption<boolean>("Shape.Options.SkipDraw.Set");
 export const sendShapeSvgAsset = sendSimpleShapeOption<string | undefined>("Shape.Options.SvgAsset.Set");
@@ -47,11 +43,3 @@ export const sendShapeTeleportZonePermissions = sendSimpleShapeOption<Permission
 export const sendShapeTeleportZoneTarget = sendSimpleShapeOption<TeleportOptions["location"]>(
     "Shape.Options.TeleportZoneTarget.Set",
 );
-
-export const sendShapeCreateAura = (data: ServerAura): void => {
-    socket.emit("Shape.Options.Aura.Create", data);
-};
-
-export const sendShapeUpdateAura = (data: { shape: string; uuid: string } & Partial<ServerAura>): void => {
-    socket.emit("Shape.Options.Aura.Update", data);
-};

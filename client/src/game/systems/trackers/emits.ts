@@ -5,7 +5,7 @@ import type { ServerTracker, TrackerId } from "./models";
 
 export const sendShapeRemoveTracker = sendSimpleShapeOption<TrackerId>("Shape.Options.Tracker.Remove");
 export const sendShapeMoveTracker =
-    sendShapeOption<{ tracker: string; new_shape: string }>("Shape.Options.Tracker.Move");
+    sendShapeOption<{ tracker: TrackerId; new_shape: string }>("Shape.Options.Tracker.Move");
 
 export const sendShapeCreateTracker = (data: ServerTracker): void => {
     socket.emit("Shape.Options.Tracker.Create", data);

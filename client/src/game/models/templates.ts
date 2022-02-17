@@ -1,7 +1,8 @@
 import type { SHAPE_TYPE } from "../shapes/types";
+import type { ServerAura } from "../systems/auras/models";
 import type { ServerTracker } from "../systems/trackers/models";
 
-import type { ServerAura, ServerShape } from "./shapes";
+import type { ServerShape } from "./shapes";
 
 // Some of these keys are added later but with restrictions
 export const BaseTemplateStrings = [

@@ -7,6 +7,7 @@ import type { Layer } from "./layers/variants/layer";
 import { LayerName } from "./models/floor";
 import type { Floor } from "./models/floor";
 import type { IShape } from "./shapes/interfaces";
+import { auraSystem } from "./systems/auras/auras";
 import { TriangulationTarget } from "./vision/state";
 import { EdgeIterator } from "./vision/tds";
 import type { Edge, TDS } from "./vision/tds";
@@ -62,7 +63,7 @@ export function drawAuras(shape: IShape, ctx: CanvasRenderingContext2D): void {
     const center = shape.center();
     const lCenter = g2l(center);
 
-    for (const aura of shape.getAuras(true)) {
+    for (const aura of auraSystem.getAll(shape.id, true)) {
         if (!aura.active) continue;
 
         const value = aura.value > 0 && !isNaN(aura.value) ? aura.value : 0;

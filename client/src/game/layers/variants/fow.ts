@@ -1,5 +1,6 @@
 import { floorStore } from "../../../store/floor";
 import { LayerName } from "../../models/floor";
+import type { FloorId } from "../../models/floor";
 import type { IShape } from "../../shapes/interfaces";
 import { createCanvas, setCanvasDimensions } from "../canvas";
 
@@ -11,7 +12,7 @@ export class FowLayer extends Layer {
     virtualCanvas: HTMLCanvasElement;
     vCtx: CanvasRenderingContext2D;
 
-    constructor(canvas: HTMLCanvasElement, public name: LayerName, public floor: number, protected index: number) {
+    constructor(canvas: HTMLCanvasElement, public name: LayerName, public floor: FloorId, protected index: number) {
         super(canvas, name, floor, index);
         this.virtualCanvas = createCanvas();
         this.vCtx = this.virtualCanvas.getContext("2d")!;

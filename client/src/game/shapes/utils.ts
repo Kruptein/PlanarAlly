@@ -20,11 +20,11 @@ import type {
     ServerText,
     ServerAsset,
     ServerToggleComposite,
-    ServerAura,
     ServerShapeOwner,
 } from "../models/shapes";
 import { addOperation } from "../operations/undo";
-import type { ServerTracker } from "../systems/trackers/models";
+import type { AuraId, ServerAura } from "../systems/auras/models";
+import type { ServerTracker, TrackerId } from "../systems/trackers/models";
 import { TriangulationTarget, VisibilityMode, visionState } from "../vision/state";
 
 import type { IShape } from "./interfaces";
@@ -190,7 +190,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
         for (const tracker of clip.trackers) {
             const newTracker: ServerTracker = {
                 ...tracker,
-                uuid: uuidv4(),
+                uuid: uuidv4() as unknown as TrackerId,
             };
             newShape.trackers.push(newTracker);
         }
@@ -200,7 +200,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
         for (const aura of clip.auras) {
             const newAura: ServerAura = {
                 ...aura,
-                uuid: uuidv4(),
+                uuid: uuidv4() as unknown as AuraId,
             };
             newShape.auras.push(newAura);
         }

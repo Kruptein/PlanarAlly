@@ -1,8 +1,7 @@
-import { uuidv4 } from "../../core/utils";
-import type { UiAura } from "../../store/activeShape";
-import type { LocalId } from "../id";
+import { uuidv4 } from "../../../core/utils";
+import type { LocalId } from "../../id";
 
-import type { Aura } from "./interfaces";
+import type { Aura, AuraId, UiAura } from "./models";
 
 export function createEmptyUiAura(shape: LocalId): UiAura {
     return {
@@ -15,7 +14,7 @@ export function createEmptyUiAura(shape: LocalId): UiAura {
 
 export function createEmptyAura(): Aura {
     return {
-        uuid: uuidv4(),
+        uuid: uuidv4() as unknown as AuraId,
         active: false,
         name: "",
         value: 0,

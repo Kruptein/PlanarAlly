@@ -1,5 +1,4 @@
 import type { GlobalId } from "../../../id";
-import type { Permissions, TeleportOptions } from "../../../systems/logic/models";
 import { wrapSocket } from "../../helpers";
 
 export function sendShapeOption<T>(event: string): (data: { shape: string } & T) => void {
@@ -30,16 +29,3 @@ export const sendShapeRemoveLabel = sendSimpleShapeOption<string>("Shape.Options
 
 export const sendShapeSkipDraw = sendSimpleShapeOption<boolean>("Shape.Options.SkipDraw.Set");
 export const sendShapeSvgAsset = sendSimpleShapeOption<string | undefined>("Shape.Options.SvgAsset.Set");
-
-export const sendShapeIsDoor = sendSimpleShapeOption<boolean>("Shape.Options.IsDoor.Set");
-export const sendShapeDoorPermissions = sendSimpleShapeOption<Permissions>("Shape.Options.DoorPermissions.Set");
-export const sendShapeIsTeleportZone = sendSimpleShapeOption<boolean>("Shape.Options.IsTeleportZone.Set");
-export const sendShapeIsImmediateTeleportZone = sendSimpleShapeOption<boolean>(
-    "Shape.Options.IsImmediateTeleportZone.Set",
-);
-export const sendShapeTeleportZonePermissions = sendSimpleShapeOption<Permissions>(
-    "Shape.Options.TeleportZonePermissions.Set",
-);
-export const sendShapeTeleportZoneTarget = sendSimpleShapeOption<TeleportOptions["location"]>(
-    "Shape.Options.TeleportZoneTarget.Set",
-);

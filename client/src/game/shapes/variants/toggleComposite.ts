@@ -13,7 +13,7 @@ import type { GlobalId, LocalId } from "../../id";
 import { selectionState } from "../../layers/selection";
 import { compositeState } from "../../layers/state";
 import type { ServerToggleComposite } from "../../models/shapes";
-import { auraSystem } from "../../systems/auras/auras";
+import { auraSystem } from "../../systems/auras";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { Shape } from "../shape";
 import type { SHAPE_TYPE } from "../types";

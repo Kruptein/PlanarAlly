@@ -44,13 +44,13 @@ import type { Floor, FloorId, LayerName } from "../models/floor";
 import { accessToServer, ownerToClient, ownerToServer } from "../models/shapes";
 import type { ServerShapeOptions } from "../models/shapes";
 import type { ServerShape, ShapeOptions } from "../models/shapes";
-import { auraSystem } from "../systems/auras/auras";
+import { auraSystem } from "../systems/auras";
 import { aurasFromServer, aurasToServer } from "../systems/auras/conversion";
 import type { AuraId } from "../systems/auras/models";
 import { doorSystem } from "../systems/logic/door";
-import { teleportZoneSystem } from "../systems/logic/teleportZone";
+import { teleportZoneSystem } from "../systems/logic/tp";
+import { trackerSystem } from "../systems/trackers";
 import { trackersFromServer, trackersToServer } from "../systems/trackers/conversion";
-import { trackerSystem } from "../systems/trackers/trackers";
 import { initiativeStore } from "../ui/initiative/state";
 import { TriangulationTarget, visionState } from "../vision/state";
 

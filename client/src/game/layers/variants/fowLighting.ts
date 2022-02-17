@@ -8,7 +8,7 @@ import { getShape } from "../../id";
 import { LayerName } from "../../models/floor";
 import type { IShape } from "../../shapes/interfaces";
 import { Circle } from "../../shapes/variants/circle";
-import { auraSystem } from "../../systems/auras/auras";
+import { auraSystem } from "../../systems/auras";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { computeVisibility } from "../../vision/te";
 

@@ -3,9 +3,10 @@ import { socket } from "../../api/socket";
 import { getLocalId } from "../../id";
 import type { GlobalId } from "../../id";
 
-import { auraSystem } from "./auras";
 import { aurasFromServer, partialAuraFromServer } from "./conversion";
 import type { Aura, AuraId, ServerAura } from "./models";
+
+import { auraSystem } from ".";
 
 socket.on("Shape.Options.Aura.Remove", (data: { shape: GlobalId; value: AuraId }) => {
     const shape = getLocalId(data.shape);

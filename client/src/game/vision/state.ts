@@ -8,7 +8,7 @@ import type { FloorId } from "../models/floor";
 import type { IShape } from "../shapes/interfaces";
 import type { Asset } from "../shapes/variants/asset";
 import { getPaths, pathToArray } from "../svg";
-import { auraSystem } from "../systems/auras/auras";
+import { auraSystem } from "../systems/auras";
 import type { Aura, AuraId } from "../systems/auras/models";
 
 import { CDT } from "./cdt";

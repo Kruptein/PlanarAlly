@@ -10,12 +10,12 @@ import { getValue } from "../../../../core/utils";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { getGlobalId } from "../../../id";
 import type { LocalId } from "../../../id";
-import { auraSystem } from "../../../systems/auras/auras";
+import { auraSystem } from "../../../systems/auras";
 import { sendShapeMoveAura } from "../../../systems/auras/emits";
 import type { Aura, AuraId, UiAura } from "../../../systems/auras/models";
+import { trackerSystem } from "../../../systems/trackers";
 import { sendShapeMoveTracker } from "../../../systems/trackers/emits";
 import type { Tracker, TrackerId, UiTracker } from "../../../systems/trackers/models";
-import { trackerSystem } from "../../../systems/trackers/trackers";
 
 const { t } = useI18n();
 

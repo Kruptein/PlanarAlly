@@ -2,9 +2,6 @@ import { SyncTo } from "../../../../core/models/types";
 import { getLocalId, getShape } from "../../../id";
 import type { GlobalId } from "../../../id";
 import { Shape } from "../../../shapes/shape";
-import { doorSystem } from "../../../systems/logic/door";
-import type { Permissions, TeleportOptions } from "../../../systems/logic/models";
-import { teleportZoneSystem } from "../../../systems/logic/teleportZone";
 import { socket } from "../../socket";
 
 function wrapCall<T>(func: (value: T, syncTo: SyncTo) => void): (data: { shape: GlobalId; value: T }) => void {
@@ -42,42 +39,6 @@ socket.on("Shape.Options.Defeated.Set", (data: { shape: GlobalId; value: boolean
     const shape = getShape(getLocalId(data.shape)!);
     if (shape === undefined) return;
     shape.setDefeated(data.value, SyncTo.UI);
-});
-
-socket.on("Shape.Options.IsDoor.Set", (data: { shape: GlobalId; value: boolean }) => {
-    const shape = getLocalId(data.shape);
-    if (shape === undefined) return;
-    doorSystem.toggle(shape, data.value, SyncTo.UI);
-});
-
-socket.on("Shape.Options.DoorPermissions.Set", (data: { shape: GlobalId; value: Permissions }) => {
-    const shape = getLocalId(data.shape);
-    if (shape === undefined) return;
-    doorSystem.setPermissions(shape, data.value, SyncTo.UI);
-});
-
-socket.on("Shape.Options.IsTeleportZone.Set", (data: { shape: GlobalId; value: boolean }) => {
-    const shape = getLocalId(data.shape);
-    if (shape === undefined) return;
-    teleportZoneSystem.toggle(shape, data.value, SyncTo.UI);
-});
-
-socket.on("Shape.Options.IsImmediateTeleportZone.Set", (data: { shape: GlobalId; value: boolean }) => {
-    const shape = getLocalId(data.shape);
-    if (shape === undefined) return;
-    teleportZoneSystem.toggleImmediate(shape, data.value, SyncTo.UI);
-});
-
-socket.on("Shape.Options.TeleportZonePermissions.Set", (data: { shape: GlobalId; value: Permissions }) => {
-    const shape = getLocalId(data.shape);
-    if (shape === undefined) return;
-    teleportZoneSystem.setPermissions(shape, data.value, SyncTo.UI);
-});
-
-socket.on("Shape.Options.TeleportZoneTarget.Set", (data: { shape: GlobalId; value: TeleportOptions["location"] }) => {
-    const shape = getLocalId(data.shape);
-    if (shape === undefined) return;
-    teleportZoneSystem.setTarget(shape, data.value, SyncTo.UI);
 });
 
 socket.on("Shape.Options.SkipDraw.Set", (data: { shape: GlobalId; value: boolean }) => {

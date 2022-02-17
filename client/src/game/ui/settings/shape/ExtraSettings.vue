@@ -19,7 +19,7 @@ import { LayerName } from "../../../models/floor";
 import type { Asset } from "../../../shapes/variants/asset";
 import { Circle } from "../../../shapes/variants/circle";
 import { Polygon } from "../../../shapes/variants/polygon";
-import { auraSystem } from "../../../systems/auras/auras";
+import { auraSystem } from "../../../systems/auras";
 import type { Aura, AuraId } from "../../../systems/auras/models";
 import { visionState } from "../../../vision/state";
 import LabelManager from "../../LabelManager.vue";

@@ -5,7 +5,8 @@ import type { GlobalId } from "../../id";
 
 import { partialTrackerFromServer, trackersFromServer } from "./conversion";
 import type { ServerTracker, Tracker, TrackerId } from "./models";
-import { trackerSystem } from "./trackers";
+
+import { trackerSystem } from ".";
 
 socket.on("Shape.Options.Tracker.Remove", (data: { shape: GlobalId; value: TrackerId }): void => {
     const shape = getLocalId(data.shape);

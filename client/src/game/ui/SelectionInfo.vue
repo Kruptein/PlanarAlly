@@ -5,10 +5,10 @@ import { SyncTo } from "../../core/models/types";
 import { useModal } from "../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../store/activeShape";
 import { getShape } from "../id";
-import { auraSystem } from "../systems/auras/auras";
+import { auraSystem } from "../systems/auras";
 import type { Aura, AuraId } from "../systems/auras/models";
+import { trackerSystem } from "../systems/trackers";
 import type { Tracker, TrackerId } from "../systems/trackers/models";
-import { trackerSystem } from "../systems/trackers/trackers";
 
 const { t } = useI18n();
 const modals = useModal();

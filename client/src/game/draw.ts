@@ -7,7 +7,7 @@ import type { Layer } from "./layers/variants/layer";
 import { LayerName } from "./models/floor";
 import type { Floor } from "./models/floor";
 import type { IShape } from "./shapes/interfaces";
-import { auraSystem } from "./systems/auras/auras";
+import { auraSystem } from "./systems/auras";
 import { TriangulationTarget } from "./vision/state";
 import { EdgeIterator } from "./vision/tds";
 import type { Edge, TDS } from "./vision/tds";

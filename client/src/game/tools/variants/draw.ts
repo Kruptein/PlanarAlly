@@ -25,6 +25,7 @@ import { Line } from "../../shapes/variants/line";
 import { Polygon } from "../../shapes/variants/polygon";
 import { Rect } from "../../shapes/variants/rect";
 import { Text } from "../../shapes/variants/text";
+import { accessSystem } from "../../systems/access";
 import { doorSystem } from "../../systems/logic/door";
 import { DEFAULT_PERMISSIONS } from "../../systems/logic/models";
 import type { Permissions } from "../../systems/logic/models";
@@ -378,7 +379,7 @@ class DrawTool extends Tool {
             else if (this.state.selectedMode === DrawMode.Erase)
                 this.shape.globalCompositeOperation = "destination-out";
 
-            this.shape.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.UI);
+            accessSystem.addAccess(this.shape.id, clientStore.state.username, { edit: true }, SyncTo.UI);
             if (this.state.selectedMode === DrawMode.Normal) {
                 if (this.state.blocksMovement) {
                     this.shape.setBlocksMovement(true, SyncTo.UI, false);

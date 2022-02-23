@@ -13,6 +13,7 @@ import type { GlobalId, LocalId } from "../../id";
 import { selectionState } from "../../layers/selection";
 import { compositeState } from "../../layers/state";
 import type { ServerToggleComposite } from "../../models/shapes";
+import { accessSystem } from "../../systems/access";
 import { auraSystem } from "../../systems/auras";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { Shape } from "../shape";
@@ -106,7 +107,7 @@ export class ToggleComposite extends Shape {
         this.active_variant = variant;
         const newVariant = getShape(this.active_variant)!;
 
-        if (newVariant.isToken && newVariant.ownedBy(false, { visionAccess: true }))
+        if (newVariant.isToken && accessSystem.hasAccessTo(newVariant.id, false, { visionAccess: true }))
             gameStore.addOwnedToken(newVariant.id);
         if (newVariant.blocksMovement)
             visionState.addBlocker(TriangulationTarget.MOVEMENT, newVariant.id, newVariant.floor.id, true);

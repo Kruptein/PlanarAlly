@@ -10,6 +10,7 @@ import { getValue } from "../../../../core/utils";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { getGlobalId } from "../../../id";
 import type { LocalId } from "../../../id";
+import { accessSystem } from "../../../systems/access";
 import { auraSystem } from "../../../systems/auras";
 import { sendShapeMoveAura } from "../../../systems/auras/emits";
 import type { Aura, AuraId, UiAura } from "../../../systems/auras/models";
@@ -35,7 +36,7 @@ watch(
     { immediate: true },
 );
 
-const owned = activeShapeStore.hasEditAccess;
+const owned = accessSystem.$.hasEditAccess;
 const isComposite = activeShapeStore.isComposite;
 
 // Tracker

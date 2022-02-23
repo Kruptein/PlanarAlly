@@ -1,6 +1,9 @@
+import "../systems/access/events";
+import "../systems/auras/events";
+import "../systems/logic/door/events";
+import "../systems/logic/tp/events";
 import "../systems/trackers/events";
 
-import "./events/access";
 import "./events/dice";
 import "./events/floor";
 import "./events/groups";

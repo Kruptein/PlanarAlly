@@ -17,6 +17,7 @@ import type { InitiativeData } from "../../models/initiative";
 import { InitiativeEffectMode, InitiativeSort } from "../../models/initiative";
 import type { IShape } from "../../shapes/interfaces";
 import type { Asset } from "../../shapes/variants/asset";
+import { accessSystem } from "../../systems/access";
 import { ClientSettingCategory } from "../settings/client/categories";
 
 import { initiativeStore } from "./state";
@@ -42,7 +43,7 @@ function getName(actor: InitiativeData): string {
     const shape = getShape(actor.shape);
     if (shape !== undefined) {
         if (shape.nameVisible) return shape.name;
-        if (shape.ownedBy(false, { editAccess: true })) return shape.name;
+        if (accessSystem.hasAccessTo(shape.id, false, { editAccess: true })) return shape.name;
     }
     return "?";
 }
@@ -101,9 +102,7 @@ function getImage(actor: InitiativeData): string {
 
 function canSee(actor: InitiativeData): boolean {
     if (isDm.value || actor.isVisible) return true;
-    const shape = getShape(actor.shape);
-    if (shape === undefined) return false;
-    return shape.ownedBy(false, { editAccess: true });
+    return accessSystem.hasAccessTo(actor.shape, false, { editAccess: true });
 }
 
 function reset(): void {

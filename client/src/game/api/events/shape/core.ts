@@ -1,21 +1,32 @@
 import { SyncMode } from "../../../../core/models/types";
+import { activeShapeStore } from "../../../../store/activeShape";
 import { floorStore } from "../../../../store/floor";
-import { getShapeFromGlobal } from "../../../id";
+import { getLocalId, getShapeFromGlobal } from "../../../id";
 import type { GlobalId } from "../../../id";
+import { selectionState } from "../../../layers/selection";
 import type { LayerName } from "../../../models/floor";
 import type { ServerShape } from "../../../models/shapes";
 import type { IShape } from "../../../shapes/interfaces";
 import { deleteShapes } from "../../../shapes/utils";
 import type { Circle } from "../../../shapes/variants/circle";
 import type { Rect } from "../../../shapes/variants/rect";
+import { accessSystem } from "../../../systems/access";
 import { addShape, moveFloor, moveLayer } from "../../../temp";
 import { socket } from "../../socket";
 
 socket.on("Shape.Set", (data: ServerShape) => {
     // hard reset a shape
     const old = getShapeFromGlobal(data.uuid);
+    const isActive = activeShapeStore.state.id === getLocalId(data.uuid);
+    const hasEditDialogOpen = isActive && activeShapeStore.state.showEditDialog;
     if (old) old.layer.removeShape(old, SyncMode.NO_SYNC, true);
-    addShape(data, SyncMode.NO_SYNC);
+    const shape = addShape(data, SyncMode.NO_SYNC);
+
+    if (shape && isActive) {
+        selectionState.push(shape);
+        activeShapeStore.setActiveShape(shape);
+        if (hasEditDialogOpen) activeShapeStore.setShowEditDialog(true);
+    }
 });
 
 socket.on("Shape.Add", (shape: ServerShape) => {
@@ -59,7 +70,9 @@ socket.on("Shapes.Floor.Change", (data: { uuids: GlobalId[]; floor: string }) =>
     const shapes = data.uuids.map((u) => getShapeFromGlobal(u) ?? undefined).filter((s) => s !== undefined) as IShape[];
     if (shapes.length === 0) return;
     moveFloor(shapes, floorStore.getFloor({ name: data.floor })!, false);
-    if (shapes.some((s) => s.ownedBy(false, { editAccess: true }))) floorStore.selectFloor({ name: data.floor }, false);
+    if (shapes.some((s) => accessSystem.hasAccessTo(s.id, false, { editAccess: true }))) {
+        floorStore.selectFloor({ name: data.floor }, false);
+    }
 });
 
 socket.on("Shapes.Layer.Change", (data: { uuids: GlobalId[]; floor: string; layer: LayerName }) => {

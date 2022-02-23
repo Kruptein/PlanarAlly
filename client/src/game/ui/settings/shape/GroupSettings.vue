@@ -21,6 +21,7 @@ import type { CREATION_ORDER_TYPES } from "../../../models/groups";
 import { CREATION_ORDER_OPTIONS } from "../../../models/groups";
 import { setCenterPosition } from "../../../position";
 import type { IShape } from "../../../shapes/interfaces";
+import { accessSystem } from "../../../systems/access";
 
 const groupId = toRef(activeShapeStore.state, "groupId");
 const id = toRef(activeShapeStore.state, "id");
@@ -32,7 +33,7 @@ let characterSetSelected = 0;
 let customText: string[] = [];
 let defaultCreationOrder: CREATION_ORDER_TYPES = "incrementing";
 
-const owned = activeShapeStore.hasEditAccess;
+const owned = accessSystem.$.hasEditAccess;
 
 const group = computed(() => {
     const groupId = activeShapeStore.state.groupId;

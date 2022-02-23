@@ -25,6 +25,7 @@ import type { Floor, LayerName } from "../../models/floor";
 import type { ServerAsset } from "../../models/shapes";
 import { toTemplate } from "../../shapes/templates";
 import { deleteShapes } from "../../shapes/utils";
+import { accessSystem } from "../../systems/access";
 import { moveFloor, moveLayer } from "../../temp";
 import { initiativeStore } from "../initiative/state";
 import { layerTranslationMapping } from "../translations";
@@ -44,7 +45,7 @@ const selectionIncludesSpawnToken = computed(() =>
 );
 
 const isOwned = computed(() =>
-    [...selectionState.state.selection].every((s) => getShape(s)?.ownedBy(false, { editAccess: true })),
+    [...selectionState.state.selection].every((s) => accessSystem.hasAccessTo(s, false, { editAccess: true })),
 );
 
 function close(): void {
@@ -215,7 +216,7 @@ async function setLocation(newLocation: number): Promise<void> {
         const users: Set<string> = new Set();
         for (const shape of selectionState.get({ includeComposites: true })) {
             if (shape.isLocked) continue;
-            for (const owner of shape.owners) users.add(owner.user);
+            for (const owner of accessSystem.getOwners(shape.id)) users.add(owner);
         }
         gameStore.updatePlayersLocation([...users], newLocation, true, { ...targetPosition });
     }

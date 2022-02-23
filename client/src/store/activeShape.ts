@@ -10,11 +10,9 @@ import { compositeState } from "../game/layers/state";
 import type { FloorId } from "../game/models/floor";
 import type { ShapeOptions } from "../game/models/shapes";
 import type { IShape, Label } from "../game/shapes/interfaces";
-import type { ShapeAccess, ShapeOwner } from "../game/shapes/owners";
 import type { SHAPE_TYPE } from "../game/shapes/types";
 import type { ToggleComposite } from "../game/shapes/variants/toggleComposite";
 
-import { clientStore } from "./client";
 import { gameStore } from "./game";
 
 interface ActiveShapeState {
@@ -40,9 +38,6 @@ interface ActiveShapeState {
     isDefeated: boolean;
     isLocked: boolean;
 
-    access: ShapeAccess | undefined;
-    owners: ShapeOwner[];
-
     variants: { uuid: LocalId; name: string }[];
 
     annotation: string | undefined;
@@ -53,11 +48,6 @@ interface ActiveShapeState {
 export class ActiveShapeStore extends Store<ActiveShapeState> {
     floor: ComputedRef<FloorId | undefined>;
     isComposite: ComputedRef<boolean>;
-
-    hasEditAccess: ComputedRef<boolean>;
-    hasDefaultEditAccess: ComputedRef<boolean>;
-    hasDefaultMovementAccess: ComputedRef<boolean>;
-    hasDefaultVisionAccess: ComputedRef<boolean>;
 
     protected data(): ActiveShapeState {
         return {
@@ -80,9 +70,6 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
             isDefeated: false,
             isLocked: false,
 
-            access: undefined,
-            owners: [],
-
             variants: [],
 
             annotation: undefined,
@@ -95,21 +82,6 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         super();
         this.floor = computed(() => (this._state.id !== undefined ? getShape(this._state.id)?.floor.id : undefined));
         this.isComposite = computed(() => this._state.parentUuid !== undefined);
-
-        this.hasEditAccess = computed(() => {
-            if (this._state.id === undefined) return false;
-            const gameState = gameStore.state;
-            if (gameState.isDm) return true;
-            if (gameState.isFakePlayer && gameStore.activeTokens.value.has(this._state.id)) return true;
-            if (this._state.access?.edit === true) return true;
-            return this._state.owners.some((u) => u.user === clientStore.state.username && u.access.edit === true);
-        });
-
-        this.hasDefaultEditAccess = computed(() => this._state.access?.edit ?? false);
-
-        this.hasDefaultMovementAccess = computed(() => this._state.access?.movement ?? false);
-
-        this.hasDefaultVisionAccess = computed(() => this._state.access?.vision ?? false);
 
         watchEffect(() => {
             const selection = selectionState.state.selection;
@@ -276,98 +248,6 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         }
     }
 
-    // ACCESS
-
-    setDefaultAccess(access: ShapeAccess, syncTo: SyncTo): void {
-        if (this._state.id === undefined) return;
-
-        this._state.access = { ...access };
-
-        if (syncTo !== SyncTo.UI) {
-            const shape = getShape(this._state.id)!;
-            shape.updateDefaultOwner(this._state.access, syncTo);
-        }
-    }
-
-    setDefaultEditAccess(editAccess: boolean, syncTo: SyncTo): void {
-        if (this._state.id === undefined) return;
-
-        this._state.access!.edit = editAccess;
-        if (editAccess) {
-            this._state.access!.movement = true;
-            this._state.access!.vision = true;
-        }
-
-        if (syncTo !== SyncTo.UI) {
-            const shape = getShape(this._state.id)!;
-            shape.updateDefaultOwner(this._state.access!, syncTo);
-        }
-    }
-
-    setDefaultMovementAccess(movementAccess: boolean, syncTo: SyncTo): void {
-        if (this._state.id === undefined) return;
-
-        this._state.access!.movement = movementAccess;
-        if (movementAccess) this._state.access!.vision = true;
-        else this._state.access!.edit = false;
-
-        if (syncTo !== SyncTo.UI) {
-            const shape = getShape(this._state.id)!;
-            shape.updateDefaultOwner(this._state.access!, syncTo);
-        }
-    }
-
-    setDefaultVisionAccess(visionAccess: boolean, syncTo: SyncTo): void {
-        if (this._state.id === undefined) return;
-
-        this._state.access!.vision = visionAccess;
-        if (!visionAccess) {
-            this._state.access!.movement = false;
-            this._state.access!.edit = false;
-        }
-
-        if (syncTo !== SyncTo.UI) {
-            const shape = getShape(this._state.id)!;
-            shape.updateDefaultOwner(this._state.access!, syncTo);
-        }
-    }
-
-    addOwner(owner: ShapeOwner, syncTo: SyncTo): void {
-        if (this._state.id === undefined) return;
-
-        this._state.owners.push(owner);
-
-        if (syncTo !== SyncTo.UI) {
-            const shape = getShape(this._state.id)!;
-            shape.addOwner(owner, syncTo);
-        }
-    }
-
-    updateOwner(owner: ShapeOwner, syncTo: SyncTo): void {
-        if (this._state.id === undefined) return;
-
-        const index = this._state.owners.findIndex((o) => o.user === owner.user);
-        if (index < 0) return;
-
-        Object.assign(this._state.owners[index], owner);
-
-        if (syncTo !== SyncTo.UI) {
-            const shape = getShape(this._state.id)!;
-            shape.updateOwner({ ...owner, access: { ...owner.access } }, syncTo);
-        }
-    }
-
-    removeOwner(owner: string, syncTo: SyncTo): void {
-        if (this._state.id === undefined) return;
-
-        this._state.owners = this._state.owners.filter((o) => o.user !== owner);
-
-        if (syncTo !== SyncTo.UI) {
-            const shape = getShape(this._state.id)!;
-            shape.removeOwner(owner, syncTo);
-        }
-    }
-
     // VARIANTS
 
     renameVariant(uuid: LocalId, name: string, syncTo: SyncTo): void {
@@ -470,9 +350,6 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.isDefeated = shape.isDefeated;
         this._state.isLocked = shape.isLocked;
 
-        this._state.access = { ...shape.defaultAccess };
-        this._state.owners = shape.owners.map((o) => ({ ...o, access: { ...o.access } }));
-
         this._state.annotation = shape.annotation;
         this._state.annotationVisible = shape.annotationVisible;
         this._state.labels = [...shape.labels];
@@ -491,7 +368,6 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.showEditDialog = false;
         this._state.type = undefined;
 
-        this._state.access = undefined;
         this._state.options = undefined;
 
         this._state.groupId = undefined;
@@ -507,8 +383,6 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.blocksVision = false;
         this._state.showBadge = false;
         this._state.isDefeated = false;
-
-        this._state.owners = [];
 
         this._state.variants = [];
 

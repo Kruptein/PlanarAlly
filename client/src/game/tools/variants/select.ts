@@ -43,6 +43,7 @@ import { Circle } from "../../shapes/variants/circle";
 import { Line } from "../../shapes/variants/line";
 import type { Polygon } from "../../shapes/variants/polygon";
 import { Rect } from "../../shapes/variants/rect";
+import { accessSystem } from "../../systems/access";
 import { doorSystem } from "../../systems/logic/door";
 import { Access } from "../../systems/logic/models";
 import { teleportZoneSystem } from "../../systems/logic/tp";
@@ -258,7 +259,7 @@ class SelectTool extends Tool implements ISelectTool {
             const shape = selectionStack[i];
             if (!(shape.options.preFogShape ?? false) && (shape.options.skipDraw ?? false)) continue;
             if ([this.rotationAnchor?.id, this.rotationBox?.id, this.rotationEnd?.id].includes(shape.id)) continue;
-            if (shape.isInvisible && !shape.ownedBy(false, { movementAccess: true })) continue;
+            if (shape.isInvisible && !accessSystem.hasAccessTo(shape.id, false, { movementAccess: true })) continue;
 
             if (this.rotationUiActive && this.hasFeature(SelectFeatures.Rotate, features)) {
                 const anchor = this.rotationAnchor!.points[1];
@@ -354,8 +355,10 @@ class SelectTool extends Tool implements ISelectTool {
                 });
                 this.selectionHelper.strokeWidth = 2;
                 this.selectionHelper.options.UiHelper = true;
-                this.selectionHelper.addOwner(
-                    { user: clientStore.state.username, access: { edit: true } },
+                accessSystem.addAccess(
+                    this.selectionHelper.id,
+                    clientStore.state.username,
+                    { edit: true },
                     SyncTo.SHAPE,
                 );
                 layer.addShape(this.selectionHelper, SyncMode.NO_SYNC, InvalidationMode.NO, { snappable: false });
@@ -457,7 +460,7 @@ class SelectTool extends Tool implements ISelectTool {
                 // If we are on the tokens layer do a movement block check.
                 if (layer.name === "tokens" && !(event.shiftKey && gameStore.state.isDm)) {
                     for (const sel of layerSelection) {
-                        if (!sel.ownedBy(false, { movementAccess: true })) continue;
+                        if (!accessSystem.hasAccessTo(sel.id, false, { movementAccess: true })) continue;
                         delta = calculateDelta(delta, sel, true);
                         if (delta !== ogDelta) this.deltaChanged = true;
                     }
@@ -482,7 +485,7 @@ class SelectTool extends Tool implements ISelectTool {
             } else if (this.mode === SelectOperations.Resize) {
                 const shape = layerSelection[0];
 
-                if (!shape.ownedBy(false, { movementAccess: true })) return;
+                if (!accessSystem.hasAccessTo(shape.id, false, { movementAccess: true })) return;
 
                 let ignorePoint: GlobalPoint | undefined;
                 if (this.resizePoint >= 0) ignorePoint = toGP(this.originalResizePoints[this.resizePoint]);
@@ -536,7 +539,7 @@ class SelectTool extends Tool implements ISelectTool {
             const cbbox = this.selectionHelper!.getBoundingBox();
             for (const shape of layer.getShapes({ includeComposites: false })) {
                 if (!(shape.options.preFogShape ?? false) && (shape.options.skipDraw ?? false)) continue;
-                if (!shape.ownedBy(false, { movementAccess: true })) continue;
+                if (!accessSystem.hasAccessTo(shape.id, false, { movementAccess: true })) continue;
                 if (!shape.visibleInCanvas({ w: layer.width, h: layer.height }, { includeAuras: false })) continue;
                 if (layerSelection.some((s) => s.id === shape.id)) continue;
 
@@ -581,7 +584,7 @@ class SelectTool extends Tool implements ISelectTool {
             if (this.mode === SelectOperations.Drag) {
                 const updateList = [];
                 for (const [s, sel] of layerSelection.entries()) {
-                    if (!sel.ownedBy(false, { movementAccess: true })) continue;
+                    if (!accessSystem.hasAccessTo(sel.id, false, { movementAccess: true })) continue;
 
                     if (
                         this.dragRay.origin!.x === g2lx(sel.refPoint.x) &&
@@ -640,7 +643,7 @@ class SelectTool extends Tool implements ISelectTool {
             }
             if (this.mode === SelectOperations.Resize) {
                 for (const sel of layerSelection) {
-                    if (!sel.ownedBy(false, { movementAccess: true })) continue;
+                    if (!accessSystem.hasAccessTo(sel.id, false, { movementAccess: true })) continue;
 
                     // movementBlock is skipped during onMove and definitely has to be done here
                     if (sel.blocksMovement)
@@ -690,7 +693,7 @@ class SelectTool extends Tool implements ISelectTool {
                 const rotationCenter = this.rotationBox!.center();
 
                 for (const [s, sel] of layerSelection.entries()) {
-                    if (!sel.ownedBy(false, { movementAccess: true })) continue;
+                    if (!accessSystem.hasAccessTo(sel.id, false, { movementAccess: true })) continue;
 
                     const newAngle = Math.round(this.angle / ANGLE_SNAP) * ANGLE_SNAP;
                     if (
@@ -804,7 +807,7 @@ class SelectTool extends Tool implements ISelectTool {
         this.rotationEnd = new Circle(topCenterPlus, l2gz(4), { fillColour: "#7c253e", strokeColour: "rgba(0,0,0,0)" });
 
         for (const rotationShape of [this.rotationAnchor, this.rotationBox, this.rotationEnd]) {
-            rotationShape.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.SHAPE);
+            accessSystem.addAccess(rotationShape.id, clientStore.state.username, { edit: true }, SyncTo.SHAPE);
             layer.addShape(rotationShape, SyncMode.NO_SYNC, InvalidationMode.NO, { snappable: false });
         }
 

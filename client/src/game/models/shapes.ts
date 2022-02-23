@@ -1,8 +1,7 @@
-import { getGlobalId, getLocalId } from "../id";
 import type { GlobalId } from "../id";
 import type { Label } from "../shapes/interfaces";
-import type { ShapeAccess, ShapeOwner } from "../shapes/owners";
 import type { SHAPE_TYPE } from "../shapes/types";
+import type { ServerShapeOwner } from "../systems/access/models";
 import type { ServerAura } from "../systems/auras/models";
 import type { Permissions } from "../systems/logic/models";
 import type { TeleportOptions } from "../systems/logic/tp/models";
@@ -49,17 +48,6 @@ export interface ServerShape {
     is_teleport_zone: boolean;
 }
 
-interface ServerShapeAccess {
-    edit_access: boolean;
-    movement_access: boolean;
-    vision_access: boolean;
-}
-
-export interface ServerShapeOwner extends ServerShapeAccess {
-    shape: GlobalId;
-    user: string;
-}
-
 export interface ServerRect extends ServerShape {
     width: number;
     height: number;
@@ -97,30 +85,6 @@ export interface ServerToggleComposite extends ServerShape {
 export interface ServerAsset extends ServerRect {
     src: string;
 }
-
-export const accessToServer = (access: ShapeAccess): ServerShapeAccess => ({
-    edit_access: access.edit || false,
-    movement_access: access.movement || false,
-    vision_access: access.vision || false,
-});
-
-export const ownerToServer = (owner: ShapeOwner): ServerShapeOwner => ({
-    user: owner.user,
-    shape: getGlobalId(owner.shape),
-    ...accessToServer(owner.access),
-});
-
-const accessToClient = (access: ServerShapeAccess): ShapeAccess => ({
-    edit: access.edit_access,
-    movement: access.movement_access,
-    vision: access.vision_access,
-});
-
-export const ownerToClient = (owner: ServerShapeOwner): ShapeOwner => ({
-    user: owner.user,
-    shape: getLocalId(owner.shape)!,
-    access: accessToClient(owner),
-});
 
 export interface ShapeOptions {
     isPlayerRect: boolean;

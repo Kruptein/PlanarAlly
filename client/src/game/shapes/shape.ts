@@ -5,20 +5,13 @@ import { addP, cloneP, equalsP, subtractP, toArrayP, toGP } from "../../core/geo
 import type { GlobalPoint, Vector } from "../../core/geometry";
 import { rotateAroundPoint } from "../../core/math";
 import { SyncTo } from "../../core/models/types";
-import type { FunctionPropertyNames, PartialBy } from "../../core/types";
+import type { FunctionPropertyNames } from "../../core/types";
 import { mostReadable } from "../../core/utils";
 import { activeShapeStore } from "../../store/activeShape";
 import type { ActiveShapeStore } from "../../store/activeShape";
 import { clientStore } from "../../store/client";
 import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
-import { settingsStore } from "../../store/settings";
-import {
-    sendShapeAddOwner,
-    sendShapeDeleteOwner,
-    sendShapeUpdateDefaultOwner,
-    sendShapeUpdateOwner,
-} from "../api/emits/access";
 import {
     sendShapeAddLabel,
     sendShapeRemoveLabel,
@@ -41,9 +34,10 @@ import { generateLocalId, getGlobalId } from "../id";
 import type { GlobalId, LocalId } from "../id";
 import type { Layer } from "../layers/variants/layer";
 import type { Floor, FloorId, LayerName } from "../models/floor";
-import { accessToServer, ownerToClient, ownerToServer } from "../models/shapes";
 import type { ServerShapeOptions } from "../models/shapes";
 import type { ServerShape, ShapeOptions } from "../models/shapes";
+import { accessSystem } from "../systems/access";
+import { ownerToClient, ownerToServer } from "../systems/access/helpers";
 import { auraSystem } from "../systems/auras";
 import { aurasFromServer, aurasToServer } from "../systems/auras/conversion";
 import type { AuraId } from "../systems/auras/models";
@@ -51,11 +45,9 @@ import { doorSystem } from "../systems/logic/door";
 import { teleportZoneSystem } from "../systems/logic/tp";
 import { trackerSystem } from "../systems/trackers";
 import { trackersFromServer, trackersToServer } from "../systems/trackers/conversion";
-import { initiativeStore } from "../ui/initiative/state";
 import { TriangulationTarget, visionState } from "../vision/state";
 
 import type { IShape, Label } from "./interfaces";
-import type { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
 import type { SHAPE_TYPE } from "./types";
 import { BoundingRect } from "./variants/boundingRect";
 
@@ -110,10 +102,6 @@ export abstract class Shape implements IShape {
     globalCompositeOperation = "source-over";
 
     labels: Label[] = [];
-
-    // Access
-    defaultAccess: ShapeAccess = { vision: false, movement: false, edit: false };
-    protected _owners: ShapeOwner[] = [];
 
     // Mouseover annotation
     annotation = "";
@@ -320,7 +308,7 @@ export abstract class Shape implements IShape {
         // Draw tracker bars
         let barOffset = 0;
         for (const tracker of trackerSystem.getAll(this.id, false)) {
-            if (tracker.draw && (tracker.visible || this.ownedBy(false, { visionAccess: true }))) {
+            if (tracker.draw && (tracker.visible || accessSystem.hasAccessTo(this.id, false, { visionAccess: true }))) {
                 if (bbox === undefined) bbox = this.getBoundingBox();
                 ctx.strokeStyle = "black";
                 ctx.lineWidth = g2lz(0.5);
@@ -421,6 +409,7 @@ export abstract class Shape implements IShape {
     // STATE
     abstract asDict(): ServerShape;
     getBaseDict(): ServerShape {
+        const defaultAccess = accessSystem.getDefault(this.id);
         return {
             type_: this.type,
             uuid: getGlobalId(this.id),
@@ -435,7 +424,7 @@ export abstract class Shape implements IShape {
             auras: aurasToServer(getGlobalId(this.id), auraSystem.getAll(this.id, false)),
             trackers: trackersToServer(getGlobalId(this.id), trackerSystem.getAll(this.id, false)),
             labels: this.labels,
-            owners: this._owners.map((owner) => ownerToServer(owner)),
+            owners: accessSystem.getOwnersFull(this.id).map((o) => ownerToServer(o)),
             fill_colour: this.fillColour,
             stroke_colour: this.strokeColour,
             stroke_width: this.strokeWidth,
@@ -450,9 +439,9 @@ export abstract class Shape implements IShape {
             badge: this.badge,
             show_badge: this.showBadge,
             is_locked: this.isLocked,
-            default_edit_access: this.defaultAccess.edit,
-            default_movement_access: this.defaultAccess.movement,
-            default_vision_access: this.defaultAccess.vision,
+            default_edit_access: defaultAccess.edit,
+            default_movement_access: defaultAccess.movement,
+            default_vision_access: defaultAccess.vision,
             asset: this.assetId,
             group: this.groupId,
             ignore_zoom_size: this.ignoreZoomSize,
@@ -471,7 +460,6 @@ export abstract class Shape implements IShape {
         this.blocksMovement = data.movement_obstruction;
         this.blocksVision = data.vision_obstruction;
         this.labels = data.labels;
-        this._owners = data.owners.map((owner) => ownerToClient(owner));
         this.fillColour = data.fill_colour;
         this.strokeColour = data.stroke_colour;
         this.isToken = data.is_token;
@@ -483,6 +471,16 @@ export abstract class Shape implements IShape {
         this.isLocked = data.is_locked;
         this.annotationVisible = data.annotation_visible;
 
+        const defaultAccess = {
+            edit: data.default_edit_access,
+            vision: data.default_vision_access,
+            movement: data.default_movement_access,
+        };
+        accessSystem.inform(
+            this.id,
+            defaultAccess,
+            data.owners.map((owner) => ownerToClient(owner)),
+        );
         auraSystem.inform(this.id, aurasFromServer(...data.auras));
         trackerSystem.inform(this.id, trackersFromServer(...data.trackers));
         doorSystem.inform(this.id, data.is_door, options.door);
@@ -497,15 +495,6 @@ export abstract class Shape implements IShape {
         if (data.options !== undefined) this.options = options;
         if (data.asset !== undefined) this.assetId = data.asset;
         if (data.group !== undefined) this.groupId = data.group;
-        // retain reactivity
-        this.updateDefaultOwner(
-            {
-                edit: data.default_edit_access,
-                vision: data.default_vision_access,
-                movement: data.default_movement_access,
-            },
-            SyncTo.UI,
-        );
     }
 
     // UTILITY
@@ -573,7 +562,7 @@ export abstract class Shape implements IShape {
         if (syncTo === SyncTo.UI) this._("setIsToken")(isToken, syncTo);
 
         this.isToken = isToken;
-        if (this.ownedBy(false, { visionAccess: true })) {
+        if (accessSystem.hasAccessTo(this.id, false, { visionAccess: true })) {
             if (this.isToken) gameStore.addOwnedToken(this.id);
             else gameStore.removeOwnedToken(this.id);
         }
@@ -668,149 +657,6 @@ export abstract class Shape implements IShape {
         if (syncTo === SyncTo.UI) this._("setLocked")(isLocked, syncTo);
 
         this.isLocked = isLocked;
-    }
-
-    // ACCESS
-
-    get owners(): readonly ShapeOwner[] {
-        return this._owners;
-    }
-
-    /**
-     * This function returns true if the active user owns the given shape in the provided settings.
-     * This always returns true for the DM, or for the DM faking the specific token.
-     * For regular players the default rights and the personal rights are checked.
-     *
-     * @param limitToActiveTokens If this is set to true, everything not in the activeTokens store will always return false
-     * @param options The requested rights to be checked
-     */
-    ownedBy(
-        limitToActiveTokens: boolean,
-        options: Partial<{ editAccess: boolean; visionAccess: boolean; movementAccess: boolean }>,
-    ): boolean {
-        const state = gameStore.state;
-        if (state.isDm) return true;
-
-        const isActiveToken = gameStore.activeTokens.value.has(this.id);
-
-        if (this.isToken && limitToActiveTokens && !isActiveToken) return false;
-
-        return (
-            state.isFakePlayer ||
-            ((options.editAccess ?? false) && this.defaultAccess.edit) ||
-            ((options.movementAccess ?? false) && this.defaultAccess.movement) ||
-            ((options.visionAccess ?? false) && this.defaultAccess.vision) ||
-            this._owners.some(
-                (u) =>
-                    u.user === clientStore.state.username &&
-                    (options.editAccess ?? false ? u.access.edit === true : true) &&
-                    (options.movementAccess ?? false ? u.access.movement === true : true) &&
-                    (options.visionAccess ?? false ? u.access.vision === true : true),
-            )
-        );
-    }
-
-    updateDefaultOwner(access: ShapeAccess, syncTo: SyncTo): void {
-        if (!this.defaultAccess.edit && access.edit) {
-            // Force other permissions to true if edit access is granted
-            access.movement = true;
-            access.vision = true;
-        }
-        if (this.defaultAccess.edit && (!access.vision || !access.movement)) {
-            // Force remove edit permission if a specific permission is toggled off
-            access.edit = false;
-        }
-        this.defaultAccess = access;
-
-        if (syncTo === SyncTo.SERVER)
-            sendShapeUpdateDefaultOwner({ ...accessToServer(this.defaultAccess), shape: getGlobalId(this.id) });
-        if (syncTo === SyncTo.UI) this._("setDefaultAccess")(this.defaultAccess, syncTo);
-
-        if (this.isToken) {
-            if (this.defaultAccess.vision) {
-                if (this.ownedBy(false, { visionAccess: true })) gameStore.addOwnedToken(this.id);
-            } else {
-                if (!this.ownedBy(false, { visionAccess: true })) gameStore.removeOwnedToken(this.id);
-            }
-        }
-        if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();
-        initiativeStore._forceUpdate();
-    }
-
-    hasOwner(username: string): boolean {
-        return this._owners.some((u) => u.user === username);
-    }
-
-    addOwner(owner: PartialBy<PartialShapeOwner, "shape">, syncTo: SyncTo): void {
-        // Force other permissions to true if edit access is granted
-        if (owner.access.edit ?? false) {
-            owner.access.movement = true;
-            owner.access.vision = true;
-        }
-        const fullOwner: ShapeOwner = {
-            shape: this.id,
-            ...owner,
-            access: { edit: false, vision: false, movement: false, ...owner.access },
-        };
-        if (fullOwner.shape !== this.id) return;
-        if (!this.hasOwner(owner.user)) {
-            if (syncTo === SyncTo.SERVER) sendShapeAddOwner(ownerToServer(fullOwner));
-            if (syncTo === SyncTo.UI) this._("addOwner")(fullOwner, syncTo);
-
-            this._owners.push(fullOwner);
-            if ((owner.access.vision ?? false) && this.isToken && owner.user === clientStore.state.username)
-                gameStore.addOwnedToken(this.id);
-            if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();
-        }
-        initiativeStore._forceUpdate();
-    }
-
-    updateOwner(owner: PartialBy<ShapeOwner, "shape">, syncTo: SyncTo): void {
-        const fullOwner: ShapeOwner = { shape: this.id, ...owner };
-        if (fullOwner.shape !== this.id) return;
-        if (!this.hasOwner(owner.user)) return;
-
-        const targetOwner = this._owners.find((o) => o.user === owner.user)!;
-        if (!targetOwner.access.edit && fullOwner.access.edit) {
-            // Force other permissions to true if edit access is granted
-            fullOwner.access.movement = true;
-            fullOwner.access.vision = true;
-        }
-        if (targetOwner.access.edit && Object.values(fullOwner.access).some((a: boolean) => !a)) {
-            // Force remove edit permission if a specific permission is toggled off
-            fullOwner.access.edit = false;
-        }
-
-        if (syncTo === SyncTo.SERVER) sendShapeUpdateOwner(ownerToServer(fullOwner));
-        if (syncTo === SyncTo.UI) this._("updateOwner")(fullOwner, syncTo);
-
-        if (targetOwner.access.vision !== fullOwner.access.vision) {
-            if (targetOwner.user === clientStore.state.username) {
-                if (fullOwner.access.vision) {
-                    gameStore.addOwnedToken(this.id);
-                } else {
-                    gameStore.removeOwnedToken(this.id);
-                }
-            }
-        }
-        targetOwner.access = fullOwner.access;
-        if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();
-        initiativeStore._forceUpdate();
-    }
-
-    removeOwner(owner: string, syncTo: SyncTo): void {
-        const ownerIndex = this._owners.findIndex((o) => o.user === owner);
-        if (ownerIndex < 0) return;
-        const removed = this._owners.splice(ownerIndex, 1)[0];
-
-        if (syncTo === SyncTo.SERVER) sendShapeDeleteOwner(ownerToServer(removed));
-        if (syncTo === SyncTo.UI) this._("removeOwner")(owner, syncTo);
-
-        if (owner === clientStore.state.username) {
-            gameStore.removeOwnedToken(this.id);
-        }
-        if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();
-        initiativeStore._forceUpdate();
     }
 
     // EXTRA

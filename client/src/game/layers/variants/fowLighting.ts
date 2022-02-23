@@ -8,6 +8,7 @@ import { getShape } from "../../id";
 import { LayerName } from "../../models/floor";
 import type { IShape } from "../../shapes/interfaces";
 import { Circle } from "../../shapes/variants/circle";
+import { accessSystem } from "../../systems/access";
 import { auraSystem } from "../../systems/auras";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { computeVisibility } from "../../vision/te";
@@ -74,7 +75,7 @@ export class FowLightingLayer extends FowLayer {
                 const aura = auraSystem.get(shape.id, light.aura, true);
                 if (aura === undefined) continue;
 
-                if (!shape.ownedBy(true, { visionAccess: true }) && !aura.visible) continue;
+                if (!accessSystem.hasAccessTo(light.shape, true, { visionAccess: true }) && !aura.visible) continue;
 
                 const auraValue = aura.value > 0 && !isNaN(aura.value) ? aura.value : 0;
                 const auraDim = aura.dim > 0 && !isNaN(aura.dim) ? aura.dim : 0;

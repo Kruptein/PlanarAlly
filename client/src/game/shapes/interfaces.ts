@@ -1,12 +1,10 @@
 import type { GlobalPoint, Vector } from "../../core/geometry";
 import type { SyncTo } from "../../core/models/types";
-import type { PartialBy } from "../../core/types";
 import type { LocalId } from "../id";
 import type { Layer } from "../layers/variants/layer";
 import type { Floor, LayerName } from "../models/floor";
 import type { ServerShape, ShapeOptions } from "../models/shapes";
 
-import type { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
 import type { SHAPE_TYPE } from "./types";
 import type { BoundingRect } from "./variants/boundingRect";
 
@@ -44,8 +42,6 @@ export interface IShape {
     globalCompositeOperation: string;
 
     labels: Label[];
-
-    defaultAccess: ShapeAccess;
 
     annotation: string;
     annotationVisible: boolean;
@@ -130,19 +126,6 @@ export interface IShape {
     setShowBadge(showBadge: boolean, syncTo: SyncTo): void;
     setDefeated(isDefeated: boolean, syncTo: SyncTo): void;
     setLocked(isLocked: boolean, syncTo: SyncTo): void;
-
-    // ACCESS
-
-    get owners(): readonly ShapeOwner[];
-    ownedBy(
-        limitToActiveTokens: boolean,
-        options: Partial<{ editAccess: boolean; visionAccess: boolean; movementAccess: boolean }>,
-    ): boolean;
-    updateDefaultOwner(access: ShapeAccess, syncTo: SyncTo): void;
-    hasOwner(username: string): boolean;
-    addOwner(owner: PartialBy<PartialShapeOwner, "shape">, syncTo: SyncTo): void;
-    updateOwner(owner: PartialBy<ShapeOwner, "shape">, syncTo: SyncTo): void;
-    removeOwner(owner: string, syncTo: SyncTo): void;
 
     // EXTRA
 

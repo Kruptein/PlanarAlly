@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
 import { activeShapeStore } from "../../../../store/activeShape";
+import { accessSystem } from "../../../systems/access";
 
 import AccessSettings from "./AccessSettings.vue";
 import { ShapeSettingCategory } from "./categories";
@@ -28,7 +29,7 @@ const visible = computed({
 const hasShape = computed(() => activeShapeStore.state.id !== undefined);
 
 const categoryNames = computed(() => {
-    if (activeShapeStore.hasEditAccess.value) {
+    if (accessSystem.$.hasEditAccess.value) {
         return [
             ShapeSettingCategory.Properties,
             ShapeSettingCategory.Trackers,
@@ -41,7 +42,7 @@ const categoryNames = computed(() => {
     return [ShapeSettingCategory.Properties, ShapeSettingCategory.Trackers, ShapeSettingCategory.Access];
 });
 
-const owned = activeShapeStore.hasEditAccess;
+const owned = accessSystem.$.hasEditAccess;
 const SSC = ShapeSettingCategory;
 </script>
 
@@ -52,7 +53,7 @@ const SSC = ShapeSettingCategory;
             <div v-if="hasShape" style="display: flex; flex-direction: column">
                 <PropertySettings v-show="selection === SSC.Properties" />
                 <TrackerSettings :activeSelection="selection === SSC.Trackers" />
-                <AccessSettings v-show="selection === SSC.Access" />
+                <AccessSettings :activeSelection="selection === SSC.Access" />
                 <LogicSettings :activeSelection="selection === SSC.Logic" />
                 <GroupSettings v-show="owned && selection === SSC.Group" />
                 <ExtraSettings v-show="owned && selection === SSC.Extra" />

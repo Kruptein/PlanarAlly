@@ -9,8 +9,7 @@ import { gameStore } from "../../../../store/game";
 import { Role } from "../../../models/role";
 import { accessSystem } from "../../../systems/access";
 import { DEFAULT_ACCESS, DEFAULT_ACCESS_SYMBOL } from "../../../systems/access/models";
-import type { ACCESS_KEY } from "../../../systems/access/models";
-import type { ShapeAccess } from "../../../systems/access/models";
+import type { ACCESS_KEY, ShapeAccess } from "../../../systems/access/models";
 
 const { t } = useI18n();
 defineProps<{ activeSelection: boolean }>();

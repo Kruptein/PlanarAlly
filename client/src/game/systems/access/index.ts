@@ -12,8 +12,7 @@ import type { LocalId } from "../../id";
 import { sendShapeAddOwner, sendShapeDeleteOwner, sendShapeUpdateDefaultOwner, sendShapeUpdateOwner } from "./emits";
 import { accessToServer, ownerToServer } from "./helpers";
 import { DEFAULT_ACCESS, DEFAULT_ACCESS_SYMBOL } from "./models";
-import type { ACCESS_KEY } from "./models";
-import type { ShapeAccess, ShapeOwner } from "./models";
+import type { ACCESS_KEY, ShapeAccess, ShapeOwner } from "./models";
 
 interface AccessState {
     id: LocalId | undefined;

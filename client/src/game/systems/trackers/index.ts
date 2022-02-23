@@ -1,6 +1,7 @@
 import { reactive } from "vue";
 import type { DeepReadonly } from "vue";
 
+import { registerSystem } from "..";
 import { SyncTo } from "../../../core/models/types";
 import { getGlobalId, getShape } from "../../id";
 import type { LocalId } from "../../id";
@@ -130,3 +131,4 @@ class TrackerSystem {
 }
 
 export const trackerSystem = new TrackerSystem();
+registerSystem("trackers", trackerSystem);

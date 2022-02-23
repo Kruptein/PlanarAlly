@@ -15,6 +15,7 @@ import type { ServerShape } from "../../models/shapes";
 import { addOperation } from "../../operations/undo";
 import type { IShape } from "../../shapes/interfaces";
 import { createShapeFromDict } from "../../shapes/utils";
+import { accessSystem } from "../../systems/access";
 import { initiativeStore } from "../../ui/initiative/state";
 import { TriangulationTarget, VisibilityMode, visionState } from "../../vision/state";
 import { setCanvasDimensions } from "../canvas";
@@ -101,7 +102,8 @@ export class Layer {
             }
         }
 
-        if (shape.ownedBy(false, { visionAccess: true }) && shape.isToken) gameStore.addOwnedToken(shape.id);
+        if (accessSystem.hasAccessTo(shape.id, false, { visionAccess: true }) && shape.isToken)
+            gameStore.addOwnedToken(shape.id);
         if (shape.annotation.length) gameStore.addAnnotation(shape.id);
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync) {
             sendShapeAdd({ shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
@@ -275,7 +277,7 @@ export class Layer {
             }
             // Normal shape draw loop
             for (const shape of visibleShapes) {
-                if (shape.isInvisible && !shape.ownedBy(true, { visionAccess: true })) continue;
+                if (shape.isInvisible && !accessSystem.hasAccessTo(shape.id, true, { visionAccess: true })) continue;
                 if (shape.labels.length === 0 && gameState.filterNoLabel) continue;
                 if (
                     shape.labels.length &&

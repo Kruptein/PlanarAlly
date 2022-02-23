@@ -22,6 +22,7 @@ import type { LocalId } from "../../id";
 import { InitiativeSort } from "../../models/initiative";
 import type { InitiativeData, InitiativeEffect, InitiativeSettings } from "../../models/initiative";
 import { setCenterPosition } from "../../position";
+import { accessSystem } from "../../systems/access";
 
 let activeTokensBackup: Set<LocalId> | undefined = undefined;
 
@@ -253,9 +254,9 @@ class InitiativeStore extends Store<InitiativeState> {
     handleCameraLock(): void {
         if (clientStore.state.initiativeCameraLock) {
             const actor = this.getDataSet()[this._state.turnCounter];
-            const shape = getShape(actor.shape);
-            if (shape?.ownedBy(false, { visionAccess: true }) ?? false) {
-                setCenterPosition(shape!.center());
+            if (accessSystem.hasAccessTo(actor.shape, false, { visionAccess: true }) ?? false) {
+                const shape = getShape(actor.shape)!;
+                setCenterPosition(shape.center());
             }
         }
     }
@@ -288,10 +289,7 @@ class InitiativeStore extends Store<InitiativeState> {
             if (shapeId === undefined) return false;
         }
         if (gameStore.state.isDm) return true;
-        const shape = getShape(shapeId);
-        // Shapes that are unknown to this client are hidden from this client but owned by other clients
-        if (shape === undefined) return false;
-        return shape.ownedBy(false, { editAccess: true });
+        return accessSystem.hasAccessTo(shapeId, false, { editAccess: true });
     }
 
     toggleOption(index: number, option: "isVisible" | "isGroup"): void {

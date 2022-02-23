@@ -15,6 +15,7 @@ import { ToolName } from "../../models/tools";
 import type { ToolFeatures, ToolPermission } from "../../models/tools";
 import { Line } from "../../shapes/variants/line";
 import { Text } from "../../shapes/variants/text";
+import { accessSystem } from "../../systems/access";
 import { Tool } from "../tool";
 
 import { SelectFeatures } from "./select";
@@ -61,7 +62,7 @@ class RulerTool extends Tool {
             return;
         }
 
-        ruler.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.SHAPE);
+        accessSystem.addAccess(ruler.id, clientStore.state.username, { edit: true }, SyncTo.SHAPE);
         layer.addShape(ruler, this.syncMode, InvalidationMode.NORMAL, { snappable: false });
         this.rulers.push(ruler);
     }
@@ -87,7 +88,7 @@ class RulerTool extends Tool {
             strokeColour: "#fff",
         });
         this.text.ignoreZoomSize = true;
-        this.text.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.SHAPE);
+        accessSystem.addAccess(this.text.id, clientStore.state.username, { edit: true }, SyncTo.SHAPE);
         layer.addShape(this.text, this.syncMode, InvalidationMode.NORMAL, { snappable: false });
     }
 

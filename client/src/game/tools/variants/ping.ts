@@ -10,6 +10,7 @@ import { ToolName } from "../../models/tools";
 import type { ToolPermission } from "../../models/tools";
 import { deleteShapes } from "../../shapes/utils";
 import { Circle } from "../../shapes/variants/circle";
+import { accessSystem } from "../../systems/access";
 import { Tool } from "../tool";
 
 import { SelectFeatures } from "./select";
@@ -59,8 +60,8 @@ class PingTool extends Tool {
         });
         this.ping.ignoreZoomSize = true;
         this.border.ignoreZoomSize = true;
-        this.ping.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.SHAPE);
-        this.border.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.SHAPE);
+        accessSystem.addAccess(this.ping.id, clientStore.state.username, { edit: true }, SyncTo.SHAPE);
+        accessSystem.addAccess(this.border.id, clientStore.state.username, { edit: true }, SyncTo.SHAPE);
         layer.addShape(this.ping, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL, { snappable: false });
         layer.addShape(this.border, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL, { snappable: false });
     }

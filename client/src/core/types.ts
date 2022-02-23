@@ -1,4 +1,5 @@
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+export type PartialPick<T, K extends keyof T> = Partial<T> & Pick<T, K>;
 
 export type FunctionPropertyNames<T> = {
     // eslint-disable-next-line @typescript-eslint/ban-types

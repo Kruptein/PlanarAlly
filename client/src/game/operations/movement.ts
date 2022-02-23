@@ -4,6 +4,7 @@ import { sendShapePositionUpdate } from "../api/emits/shape/core";
 import { moveClient } from "../client";
 import { selectionState } from "../layers/selection";
 import type { IShape } from "../shapes/interfaces";
+import { accessSystem } from "../systems/access";
 import { teleportZoneSystem } from "../systems/logic/tp";
 import { TriangulationTarget, visionState } from "../vision/state";
 
@@ -18,7 +19,7 @@ export async function moveShapes(shapes: readonly IShape[], delta: Vector, tempo
     const operationList: MovementOperation = { type: "movement", shapes: [] };
 
     for (const shape of shapes) {
-        if (!shape.ownedBy(false, { movementAccess: true })) continue;
+        if (!accessSystem.hasAccessTo(shape.id, false, { movementAccess: true })) continue;
 
         if (shape.blocksMovement && !temporary) {
             recalculateMovement = true;

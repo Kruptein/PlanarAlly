@@ -20,9 +20,10 @@ import type {
     ServerText,
     ServerAsset,
     ServerToggleComposite,
-    ServerShapeOwner,
 } from "../models/shapes";
 import { addOperation } from "../operations/undo";
+import { accessSystem } from "../systems/access";
+import type { ServerShapeOwner } from "../systems/access/models";
 import type { AuraId, ServerAura } from "../systems/auras/models";
 import type { ServerTracker, TrackerId } from "../systems/trackers/models";
 import { TriangulationTarget, VisibilityMode, visionState } from "../vision/state";
@@ -139,7 +140,7 @@ export function copyShapes(): void {
     if (!selectionState.hasSelection) return;
     const clipboard: ServerShape[] = [];
     for (const shape of selectionState.get({ includeComposites: true })) {
-        if (!shape.ownedBy(false, { editAccess: true })) continue;
+        if (!accessSystem.hasAccessTo(shape.id, false, { editAccess: true })) continue;
         if (shape.groupId === undefined) {
             createNewGroupForShapes([shape.id]);
         }
@@ -272,7 +273,7 @@ export function deleteShapes(shapes: readonly IShape[], sync: SyncMode): void {
     let recalculateMovement = false;
     for (let i = shapes.length - 1; i >= 0; i--) {
         const sel = shapes[i];
-        if (sync !== SyncMode.NO_SYNC && !sel.ownedBy(false, { editAccess: true })) continue;
+        if (sync !== SyncMode.NO_SYNC && !accessSystem.hasAccessTo(sel.id, false, { editAccess: true })) continue;
         removed.push(getGlobalId(sel.id));
         if (sel.blocksVision) recalculateVision = true;
         if (sel.blocksMovement) recalculateMovement = true;

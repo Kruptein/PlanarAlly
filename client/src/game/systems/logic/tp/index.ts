@@ -15,6 +15,7 @@ import type { GlobalId, LocalId } from "../../../id";
 import { LayerName } from "../../../models/floor";
 import { setCenterPosition } from "../../../position";
 import type { IShape } from "../../../shapes/interfaces";
+import { accessSystem } from "../../access";
 import { canUse } from "../common";
 import { Access, DEFAULT_PERMISSIONS } from "../models";
 import type { Permissions } from "../models";
@@ -218,7 +219,11 @@ function getTpZoneShapes(fromZone: LocalId): LocalId[] {
     if (fromShape === undefined) return [];
 
     for (const shape of tokenLayer.getShapes({ includeComposites: true })) {
-        if (!shape.isLocked && shape.ownedBy(false, { movementAccess: true }) && fromShape.contains(shape.center())) {
+        if (
+            !shape.isLocked &&
+            accessSystem.hasAccessTo(shape.id, false, { movementAccess: true }) &&
+            fromShape.contains(shape.center())
+        ) {
             shapes.push(shape.id);
         }
     }
@@ -262,9 +267,7 @@ export async function teleport(fromZone: LocalId, toZone: GlobalId, transfers?: 
         } else {
             const users: Set<string> = new Set();
             for (const sh of shapes) {
-                const shape = getShape(sh);
-                if (shape === undefined) continue;
-                for (const owner of shape.owners) users.add(owner.user);
+                for (const owner of accessSystem.getOwners(sh)) users.add(owner);
             }
             gameStore.updatePlayersLocation([...users], location, true, position);
         }

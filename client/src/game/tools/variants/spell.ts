@@ -15,6 +15,7 @@ import type { ToolPermission } from "../../models/tools";
 import type { IShape } from "../../shapes/interfaces";
 import { Circle } from "../../shapes/variants/circle";
 import { Rect } from "../../shapes/variants/rect";
+import { accessSystem } from "../../systems/access";
 import { Tool } from "../tool";
 import { activateTool } from "../tools";
 
@@ -113,7 +114,7 @@ class SpellTool extends Tool {
 
         this.shape.fillColour = this.state.colour.replace(")", ", 0.7)");
         this.shape.strokeColour = this.state.colour;
-        this.shape.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.UI);
+        accessSystem.addAccess(this.shape.id, clientStore.state.username, { edit: true }, SyncTo.UI);
 
         if (selectionState.hasSelection && (this.state.range === 0 || equalsP(startPosition, ogPoint))) {
             const selection = [...selectionState.state.selection.values()];

@@ -8,10 +8,11 @@ import { activeShapeStore } from "../../../../store/activeShape";
 import { getShape } from "../../../id";
 import type { CircularToken } from "../../../shapes/variants/circularToken";
 import type { Text } from "../../../shapes/variants/text";
+import { accessSystem } from "../../../systems/access";
 
 const { t } = useI18n();
 
-const owned = activeShapeStore.hasEditAccess;
+const owned = accessSystem.$.hasEditAccess;
 
 function updateName(event: Event): void {
     if (!owned.value) return;

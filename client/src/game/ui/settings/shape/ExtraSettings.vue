@@ -19,6 +19,7 @@ import { LayerName } from "../../../models/floor";
 import type { Asset } from "../../../shapes/variants/asset";
 import { Circle } from "../../../shapes/variants/circle";
 import { Polygon } from "../../../shapes/variants/polygon";
+import { accessSystem } from "../../../systems/access";
 import { auraSystem } from "../../../systems/auras";
 import type { Aura, AuraId } from "../../../systems/auras/models";
 import { visionState } from "../../../vision/state";
@@ -29,7 +30,7 @@ const modals = useModal();
 
 const textarea = ref<HTMLTextAreaElement | null>(null);
 
-const owned = activeShapeStore.hasEditAccess;
+const owned = accessSystem.$.hasEditAccess;
 
 // ANNOTATIONS
 
@@ -116,7 +117,7 @@ function applyDDraft(): void {
     for (const wall of dDraftData.ddraft_line_of_sight) {
         const points = wall.map((w) => toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH));
         const shape = new Polygon(points[0], points.slice(1), { openPolygon: true, strokeColour: "red" });
-        shape.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.UI);
+        accessSystem.addAccess(shape.id, clientStore.state.username, { edit: true }, SyncTo.UI);
 
         shape.setBlocksVision(true, SyncTo.UI, false);
         shape.setBlocksMovement(true, SyncTo.UI, false);
@@ -126,7 +127,7 @@ function applyDDraft(): void {
     for (const portal of dDraftData.ddraft_portals) {
         const points = portal.bounds.map((w) => toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH));
         const shape = new Polygon(points[0], points.slice(1), { openPolygon: true, strokeColour: "blue" });
-        shape.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.UI);
+        accessSystem.addAccess(shape.id, clientStore.state.username, { edit: true }, SyncTo.UI);
 
         if (portal.closed) {
             shape.setBlocksVision(true, SyncTo.UI, false);
@@ -156,7 +157,7 @@ function applyDDraft(): void {
         };
 
         auraSystem.add(shape.id, aura, SyncTo.UI);
-        shape.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.UI);
+        accessSystem.addAccess(shape.id, clientStore.state.username, { edit: true }, SyncTo.UI);
 
         realShape.layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
     }

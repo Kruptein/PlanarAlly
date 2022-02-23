@@ -1,6 +1,7 @@
 import { reactive } from "vue";
 import type { DeepReadonly } from "vue";
 
+import { registerSystem } from "..";
 import { SyncTo } from "../../../core/models/types";
 import { getGlobalId, getShape } from "../../id";
 import type { LocalId } from "../../id";
@@ -154,3 +155,4 @@ class AuraSystem {
 }
 
 export const auraSystem = new AuraSystem();
+registerSystem("auras", auraSystem);

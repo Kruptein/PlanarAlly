@@ -1,6 +1,7 @@
 import { reactive } from "vue";
 import type { DeepReadonly } from "vue";
 
+import { registerSystem } from "../..";
 import { SyncTo } from "../../../../core/models/types";
 import { getGlobalId } from "../../../id";
 import type { LocalId } from "../../../id";
@@ -91,3 +92,4 @@ class DoorSystem {
 }
 
 export const doorSystem = new DoorSystem();
+registerSystem("door", doorSystem);

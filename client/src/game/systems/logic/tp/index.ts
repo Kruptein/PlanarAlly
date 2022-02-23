@@ -3,6 +3,7 @@ import type { DeepReadonly } from "vue";
 import { POSITION, useToast } from "vue-toastification";
 import type { ToastID } from "vue-toastification/dist/types/types";
 
+import { registerSystem } from "../..";
 import SingleButtonToast from "../../../../core/components/toasts/SingleButtonToast.vue";
 import { SyncTo } from "../../../../core/models/types";
 import { floorStore } from "../../../../store/floor";
@@ -275,3 +276,4 @@ export async function teleport(fromZone: LocalId, toZone: GlobalId, transfers?: 
 }
 
 export const teleportZoneSystem = new TeleportZoneSystem();
+registerSystem("tp", teleportZoneSystem);

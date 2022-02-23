@@ -1,6 +1,7 @@
 import { computed, reactive } from "vue";
 import type { ComputedRef, DeepReadonly } from "vue";
 
+import { registerSystem } from "..";
 import { SyncTo } from "../../../core/models/types";
 import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
@@ -8,6 +9,7 @@ import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
 import { getGlobalId, getShape } from "../../id";
 import type { LocalId } from "../../id";
+import { initiativeStore } from "../../ui/initiative/state";
 
 import { sendShapeAddOwner, sendShapeDeleteOwner, sendShapeUpdateDefaultOwner, sendShapeUpdateOwner } from "./emits";
 import { accessToServer, ownerToServer } from "./helpers";
@@ -108,9 +110,8 @@ class AccessSystem {
         }
 
         // Commit
-        if (access.size > 0) {
-            this.access.set(id, access);
-        }
+        this.access.set(id, access);
+        initiativeStore._forceUpdate();
     }
 
     getDefault(id: LocalId): DeepReadonly<ShapeAccess> {
@@ -197,6 +198,7 @@ class AccessSystem {
         }
 
         if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();
+        initiativeStore._forceUpdate();
     }
 
     updateAccess(shapeId: LocalId, user: ACCESS_KEY, access: Partial<ShapeAccess>, syncTo: SyncTo): void {
@@ -205,7 +207,7 @@ class AccessSystem {
             return;
         }
 
-        const oldAccess = this.access.get(shapeId)!.get(user) ?? DEFAULT_ACCESS;
+        const oldAccess = this.access.get(shapeId)?.get(user) ?? DEFAULT_ACCESS;
 
         // Check owned-token changes
         if (
@@ -250,6 +252,7 @@ class AccessSystem {
         }
 
         if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();
+        initiativeStore._forceUpdate();
     }
 
     removeAccess(shapeId: LocalId, user: string, syncTo: SyncTo): void {
@@ -277,6 +280,7 @@ class AccessSystem {
         }
 
         if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();
+        initiativeStore._forceUpdate();
     }
 
     getOwners(id: LocalId): DeepReadonly<string[]> {
@@ -295,4 +299,4 @@ class AccessSystem {
 }
 
 export const accessSystem = new AccessSystem();
-(window as any).accessSystem = accessSystem;
+registerSystem("access", accessSystem);

@@ -165,7 +165,7 @@ class AccessSystem implements System {
         );
     }
 
-    getAccess(shapeId: LocalId, user: ACCESS_KEY): DeepReadonly<ShapeAccess> | undefined {
+    getAccess(shapeId: LocalId, user: string): DeepReadonly<ShapeAccess> | undefined {
         return this.access.get(shapeId)?.get(user);
     }
 
@@ -177,7 +177,7 @@ class AccessSystem implements System {
 
         const userAccess = { ...DEFAULT_ACCESS, ...access };
 
-        const shapeMap: AccessMap = new Map();
+        const shapeMap: AccessMap = this.access.get(shapeId) ?? new Map();
         shapeMap.set(user, userAccess);
         this.access.set(shapeId, shapeMap);
 
@@ -282,7 +282,10 @@ class AccessSystem implements System {
         }
 
         if (oldAccess.vision && user === clientStore.state.username) {
-            gameStore.removeOwnedToken(shapeId);
+            const shape = getShape(shapeId);
+            if (shape !== undefined && shape.isToken) {
+                gameStore.removeOwnedToken(shapeId);
+            }
         }
 
         if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();

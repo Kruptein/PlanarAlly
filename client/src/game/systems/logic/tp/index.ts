@@ -4,6 +4,7 @@ import { POSITION, useToast } from "vue-toastification";
 import type { ToastID } from "vue-toastification/dist/types/types";
 
 import { registerSystem } from "../..";
+import type { System } from "../..";
 import SingleButtonToast from "../../../../core/components/toasts/SingleButtonToast.vue";
 import { SyncTo } from "../../../../core/models/types";
 import { floorStore } from "../../../../store/floor";
@@ -50,7 +51,7 @@ interface ReactiveTpState {
     target?: TeleportOptions["location"];
 }
 
-class TeleportZoneSystem {
+class TeleportZoneSystem implements System {
     private enabled: Set<LocalId> = new Set();
     private data: Map<LocalId, ClientTeleportOptions> = new Map();
 
@@ -84,6 +85,12 @@ class TeleportZoneSystem {
     }
 
     // BEHAVIOUR
+
+    clear(): void {
+        this.dropState();
+        this.enabled.clear();
+        this.data.clear();
+    }
 
     // Inform the system about the state of a certain LocalId
     inform(id: LocalId, enabled: boolean, options?: TeleportOptions): void {

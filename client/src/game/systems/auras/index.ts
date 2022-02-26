@@ -2,6 +2,7 @@ import { reactive } from "vue";
 import type { DeepReadonly } from "vue";
 
 import { registerSystem } from "..";
+import type { System } from "..";
 import { SyncTo } from "../../../core/models/types";
 import { getGlobalId, getShape } from "../../id";
 import type { LocalId } from "../../id";
@@ -20,7 +21,7 @@ interface AuraState {
     parentAuras: UiAura[];
 }
 
-class AuraSystem {
+class AuraSystem implements System {
     private data: Map<LocalId, Aura[]> = new Map();
 
     // REACTIVE STATE
@@ -62,6 +63,11 @@ class AuraSystem {
     }
 
     // BEHAVIOUR
+
+    clear(): void {
+        this.dropState();
+        this.data.clear();
+    }
 
     // Inform the system about the state of a certain LocalId
     inform(id: LocalId, auras: Aura[]): void {

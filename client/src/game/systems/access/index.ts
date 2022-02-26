@@ -2,6 +2,7 @@ import { computed, reactive } from "vue";
 import type { ComputedRef, DeepReadonly } from "vue";
 
 import { registerSystem } from "..";
+import type { System } from "..";
 import { SyncTo } from "../../../core/models/types";
 import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
@@ -24,7 +25,7 @@ interface AccessState {
 
 type AccessMap = Map<ACCESS_KEY, ShapeAccess>;
 
-class AccessSystem {
+class AccessSystem implements System {
     // If a LocalId is NOT in the access map,
     // it is assumed to have default access settings
     // this is the case for the vast majority of shapes
@@ -84,33 +85,38 @@ class AccessSystem {
 
     // BEHAVIOUR
 
+    clear(): void {
+        this.dropState();
+        this.access.clear();
+    }
+
     // Inform the system about the state of a certain LocalId
-    inform(id: LocalId, defaultAccess: ShapeAccess, extraAccess: ShapeOwner[]): void {
-        const access: AccessMap = new Map();
+    inform(id: LocalId, access: { default: ShapeAccess; extra: ShapeOwner[] }): void {
+        const accessMap: AccessMap = new Map();
 
         // Default Access
-        if (defaultAccess.edit || defaultAccess.movement || defaultAccess.vision) {
-            access.set(DEFAULT_ACCESS_SYMBOL, defaultAccess);
+        if (access.default.edit || access.default.movement || access.default.vision) {
+            accessMap.set(DEFAULT_ACCESS_SYMBOL, access.default);
             if (this._state.id === id) {
-                this._state.defaultAccess = defaultAccess;
+                this._state.defaultAccess = access.default;
             }
         } else {
-            access.delete(DEFAULT_ACCESS_SYMBOL);
+            accessMap.delete(DEFAULT_ACCESS_SYMBOL);
             if (this._state.id === id) {
-                this._state.defaultAccess = defaultAccess;
+                this._state.defaultAccess = access.default;
             }
         }
 
         // Player Access
-        for (const extra of extraAccess) {
-            access.set(extra.user, extra.access);
+        for (const extra of access.extra) {
+            accessMap.set(extra.user, extra.access);
             if (this._state.id === id) {
                 this._state.playerAccess.set(extra.user, extra.access);
             }
         }
 
         // Commit
-        this.access.set(id, access);
+        this.access.set(id, accessMap);
         initiativeStore._forceUpdate();
     }
 

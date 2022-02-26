@@ -476,11 +476,10 @@ export abstract class Shape implements IShape {
             vision: data.default_vision_access,
             movement: data.default_movement_access,
         };
-        accessSystem.inform(
-            this.id,
-            defaultAccess,
-            data.owners.map((owner) => ownerToClient(owner)),
-        );
+        accessSystem.inform(this.id, {
+            default: defaultAccess,
+            extra: data.owners.map((owner) => ownerToClient(owner)),
+        });
         auraSystem.inform(this.id, aurasFromServer(...data.auras));
         trackerSystem.inform(this.id, trackersFromServer(...data.trackers));
         doorSystem.inform(this.id, data.is_door, options.door);

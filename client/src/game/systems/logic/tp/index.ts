@@ -222,7 +222,7 @@ function getTpZoneShapes(fromZone: LocalId): LocalId[] {
     for (const shape of tokenLayer.getShapes({ includeComposites: true })) {
         if (
             !shape.isLocked &&
-            accessSystem.hasAccessTo(shape.id, false, { movementAccess: true }) &&
+            accessSystem.hasAccessTo(shape.id, false, { movement: true }) &&
             fromShape.contains(shape.center())
         ) {
             shapes.push(shape.id);

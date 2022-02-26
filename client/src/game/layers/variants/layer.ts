@@ -102,7 +102,7 @@ export class Layer {
             }
         }
 
-        if (accessSystem.hasAccessTo(shape.id, false, { visionAccess: true }) && shape.isToken)
+        if (accessSystem.hasAccessTo(shape.id, false, { vision: true }) && shape.isToken)
             gameStore.addOwnedToken(shape.id);
         if (shape.annotation.length) gameStore.addAnnotation(shape.id);
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync) {
@@ -277,7 +277,7 @@ export class Layer {
             }
             // Normal shape draw loop
             for (const shape of visibleShapes) {
-                if (shape.isInvisible && !accessSystem.hasAccessTo(shape.id, true, { visionAccess: true })) continue;
+                if (shape.isInvisible && !accessSystem.hasAccessTo(shape.id, true, { vision: true })) continue;
                 if (shape.labels.length === 0 && gameState.filterNoLabel) continue;
                 if (
                     shape.labels.length &&

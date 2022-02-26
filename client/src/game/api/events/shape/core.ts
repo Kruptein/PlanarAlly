@@ -70,7 +70,7 @@ socket.on("Shapes.Floor.Change", (data: { uuids: GlobalId[]; floor: string }) =>
     const shapes = data.uuids.map((u) => getShapeFromGlobal(u) ?? undefined).filter((s) => s !== undefined) as IShape[];
     if (shapes.length === 0) return;
     moveFloor(shapes, floorStore.getFloor({ name: data.floor })!, false);
-    if (shapes.some((s) => accessSystem.hasAccessTo(s.id, false, { editAccess: true }))) {
+    if (shapes.some((s) => accessSystem.hasAccessTo(s.id, false, { edit: true }))) {
         floorStore.selectFloor({ name: data.floor }, false);
     }
 });

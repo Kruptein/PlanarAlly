@@ -254,7 +254,7 @@ class InitiativeStore extends Store<InitiativeState> {
     handleCameraLock(): void {
         if (clientStore.state.initiativeCameraLock) {
             const actor = this.getDataSet()[this._state.turnCounter];
-            if (accessSystem.hasAccessTo(actor.shape, false, { visionAccess: true }) ?? false) {
+            if (accessSystem.hasAccessTo(actor.shape, false, { vision: true }) ?? false) {
                 const shape = getShape(actor.shape)!;
                 setCenterPosition(shape.center());
             }
@@ -289,7 +289,7 @@ class InitiativeStore extends Store<InitiativeState> {
             if (shapeId === undefined) return false;
         }
         if (gameStore.state.isDm) return true;
-        return accessSystem.hasAccessTo(shapeId, false, { editAccess: true });
+        return accessSystem.hasAccessTo(shapeId, false, { edit: true });
     }
 
     toggleOption(index: number, option: "isVisible" | "isGroup"): void {

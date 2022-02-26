@@ -19,7 +19,7 @@ export async function moveShapes(shapes: readonly IShape[], delta: Vector, tempo
     const operationList: MovementOperation = { type: "movement", shapes: [] };
 
     for (const shape of shapes) {
-        if (!accessSystem.hasAccessTo(shape.id, false, { movementAccess: true })) continue;
+        if (!accessSystem.hasAccessTo(shape.id, false, { movement: true })) continue;
 
         if (shape.blocksMovement && !temporary) {
             recalculateMovement = true;

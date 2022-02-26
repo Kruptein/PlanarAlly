@@ -308,7 +308,7 @@ export abstract class Shape implements IShape {
         // Draw tracker bars
         let barOffset = 0;
         for (const tracker of trackerSystem.getAll(this.id, false)) {
-            if (tracker.draw && (tracker.visible || accessSystem.hasAccessTo(this.id, false, { visionAccess: true }))) {
+            if (tracker.draw && (tracker.visible || accessSystem.hasAccessTo(this.id, false, { vision: true }))) {
                 if (bbox === undefined) bbox = this.getBoundingBox();
                 ctx.strokeStyle = "black";
                 ctx.lineWidth = g2lz(0.5);
@@ -562,7 +562,7 @@ export abstract class Shape implements IShape {
         if (syncTo === SyncTo.UI) this._("setIsToken")(isToken, syncTo);
 
         this.isToken = isToken;
-        if (accessSystem.hasAccessTo(this.id, false, { visionAccess: true })) {
+        if (accessSystem.hasAccessTo(this.id, false, { vision: true })) {
             if (this.isToken) gameStore.addOwnedToken(this.id);
             else gameStore.removeOwnedToken(this.id);
         }

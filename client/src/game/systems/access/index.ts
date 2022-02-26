@@ -121,7 +121,7 @@ class AccessSystem {
     hasAccessTo(
         id: LocalId,
         limitToActiveTokens: boolean,
-        options: Partial<{ editAccess: boolean; visionAccess: boolean; movementAccess: boolean }>,
+        access: Partial<{ edit: boolean; vision: boolean; movement: boolean }>,
     ): boolean {
         if (gameStore.state.isDm) return true;
 
@@ -136,26 +136,26 @@ class AccessSystem {
 
         if (gameStore.state.isFakePlayer) return true;
 
-        const access = this.access.get(id);
-        if (access === undefined) return false;
+        const accessMap = this.access.get(id);
+        if (accessMap === undefined) return false;
 
-        const defaultAccess = access.get(DEFAULT_ACCESS_SYMBOL) ?? DEFAULT_ACCESS;
+        const defaultAccess = accessMap.get(DEFAULT_ACCESS_SYMBOL) ?? DEFAULT_ACCESS;
 
         if (
-            ((options.editAccess ?? false) && defaultAccess.edit) ||
-            ((options.movementAccess ?? false) && defaultAccess.movement) ||
-            ((options.visionAccess ?? false) && defaultAccess.vision)
+            ((access.edit ?? false) && defaultAccess.edit) ||
+            ((access.movement ?? false) && defaultAccess.movement) ||
+            ((access.vision ?? false) && defaultAccess.vision)
         ) {
             return true;
         }
 
-        const userAccess = access.get(clientStore.state.username);
+        const userAccess = accessMap.get(clientStore.state.username);
         if (userAccess === undefined) return false;
 
         return (
-            (options.editAccess ?? false ? userAccess.edit : true) &&
-            (options.movementAccess ?? false ? userAccess.movement : true) &&
-            (options.visionAccess ?? false ? userAccess.vision : true)
+            (access.edit ?? false ? userAccess.edit : true) &&
+            (access.movement ?? false ? userAccess.movement : true) &&
+            (access.vision ?? false ? userAccess.vision : true)
         );
     }
 

@@ -100,13 +100,14 @@ class AuraSystem implements System {
 
         if (id === this._state.id) this.updateAuraState();
 
-        if (aura.visionSource) {
-            const floor = getShape(id)!.floor;
-            visionState.addVisionSource({ aura: aura.uuid, shape: id }, floor.id);
-        }
-
         if (aura.active) {
             const shape = getShape(id);
+
+            if (shape && aura.visionSource) {
+                const floor = shape.floor;
+                visionState.addVisionSource({ aura: aura.uuid, shape: id }, floor.id);
+            }
+
             shape?.invalidate(false);
         }
     }
@@ -114,6 +115,9 @@ class AuraSystem implements System {
     update(id: LocalId, auraId: AuraId, delta: Partial<Aura>, syncTo: SyncTo): void {
         const aura = this.data.get(id)?.find((t) => t.uuid === auraId);
         if (aura === undefined) return;
+
+        const shape = getShape(id);
+        if (shape === undefined) return;
 
         if (syncTo === SyncTo.SERVER) {
             sendShapeUpdateAura({
@@ -130,15 +134,14 @@ class AuraSystem implements System {
 
         Object.assign(aura, delta);
 
-        const floor = getShape(id)!.floor;
         if (oldAuraActive) {
             if (!aura.active || (oldAuraVisionSource && !aura.visionSource)) {
-                visionState.removeVisionSource(floor.id, aura.uuid);
+                visionState.removeVisionSource(shape.floor.id, aura.uuid);
             } else if (!oldAuraVisionSource && aura.visionSource) {
-                visionState.addVisionSource({ aura: aura.uuid, shape: id }, floor.id);
+                visionState.addVisionSource({ aura: aura.uuid, shape: id }, shape.floor.id);
             }
         } else if (!oldAuraActive && aura.active) {
-            visionState.addVisionSource({ aura: aura.uuid, shape: id }, floor.id);
+            visionState.addVisionSource({ aura: aura.uuid, shape: id }, shape.floor.id);
         }
 
         if (id === this._state.id) this.updateAuraState();
@@ -155,11 +158,13 @@ class AuraSystem implements System {
 
         if (id === this._state.id) this.updateAuraState();
 
-        const shape = getShape(id)!;
-        if (oldAura?.active === true && oldAura?.visionSource === true)
-            visionState.removeVisionSource(shape.floor.id, auraId);
-
-        if (oldAura?.active === true) shape.invalidate(false);
+        if (oldAura?.active === true) {
+            const shape = getShape(id);
+            if (shape && oldAura?.visionSource === true) {
+                visionState.removeVisionSource(shape.floor.id, auraId);
+            }
+            shape?.invalidate(false);
+        }
     }
 }
 

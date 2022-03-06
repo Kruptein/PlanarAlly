@@ -40,7 +40,6 @@ import { accessSystem } from "../systems/access";
 import { ownerToClient, ownerToServer } from "../systems/access/helpers";
 import { auraSystem } from "../systems/auras";
 import { aurasFromServer, aurasToServer } from "../systems/auras/conversion";
-import type { AuraId } from "../systems/auras/models";
 import { doorSystem } from "../systems/logic/door";
 import { teleportZoneSystem } from "../systems/logic/tp";
 import { trackerSystem } from "../systems/trackers";
@@ -99,7 +98,7 @@ export abstract class Shape implements IShape {
     blocksMovement = false;
 
     // Draw mode to use
-    globalCompositeOperation = "source-over";
+    globalCompositeOperation: GlobalCompositeOperation = "source-over";
 
     labels: Label[] = [];
 
@@ -308,7 +307,7 @@ export abstract class Shape implements IShape {
         // Draw tracker bars
         let barOffset = 0;
         for (const tracker of trackerSystem.getAll(this.id, false)) {
-            if (tracker.draw && (tracker.visible || accessSystem.hasAccessTo(this.id, false, { visionAccess: true }))) {
+            if (tracker.draw && (tracker.visible || accessSystem.hasAccessTo(this.id, false, { vision: true }))) {
                 if (bbox === undefined) bbox = this.getBoundingBox();
                 ctx.strokeStyle = "black";
                 ctx.lineWidth = g2lz(0.5);
@@ -476,11 +475,10 @@ export abstract class Shape implements IShape {
             vision: data.default_vision_access,
             movement: data.default_movement_access,
         };
-        accessSystem.inform(
-            this.id,
-            defaultAccess,
-            data.owners.map((owner) => ownerToClient(owner)),
-        );
+        accessSystem.inform(this.id, {
+            default: defaultAccess,
+            extra: data.owners.map((owner) => ownerToClient(owner)),
+        });
         auraSystem.inform(this.id, aurasFromServer(...data.auras));
         trackerSystem.inform(this.id, trackersFromServer(...data.trackers));
         doorSystem.inform(this.id, data.is_door, options.door);
@@ -562,7 +560,7 @@ export abstract class Shape implements IShape {
         if (syncTo === SyncTo.UI) this._("setIsToken")(isToken, syncTo);
 
         this.isToken = isToken;
-        if (accessSystem.hasAccessTo(this.id, false, { visionAccess: true })) {
+        if (accessSystem.hasAccessTo(this.id, false, { vision: true })) {
             if (this.isToken) gameStore.addOwnedToken(this.id);
             else gameStore.removeOwnedToken(this.id);
         }
@@ -722,29 +720,6 @@ export abstract class Shape implements IShape {
             );
             alteredVision = true;
         }
-
-        // Check if the visionsource auras are in the gameManager
-        const visionSources: { shape: LocalId; aura: AuraId }[] = [
-            ...visionState.getVisionSources(this._floor ?? floorStore.currentFloor.value!.id),
-        ];
-        for (const au of auraSystem.getAll(this.id, true)) {
-            const i = visionSources.findIndex((o) => o.aura === au.uuid);
-            const isVisionSource = au.visionSource && au.active;
-            if (isVisionSource && i === -1) {
-                visionSources.push({ shape: this.id, aura: au.uuid });
-            } else if (!isVisionSource && i >= 0) {
-                visionSources.splice(i, 1);
-            }
-        }
-        // Check if anything in the gameManager referencing this shape is in fact still a visionsource
-        for (let i = visionSources.length - 1; i >= 0; i--) {
-            const ls = visionSources[i];
-            if (ls.shape === this.id) {
-                if (!auraSystem.getAll(this.id, true).some((a) => a.uuid === ls.aura && a.visionSource && a.active))
-                    visionSources.splice(i, 1);
-            }
-        }
-        visionState.setVisionSources(visionSources, this._floor ?? floorStore.currentFloor.value!.id);
         return alteredVision;
     }
 }

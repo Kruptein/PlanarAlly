@@ -2,6 +2,7 @@ import { reactive } from "vue";
 import type { DeepReadonly } from "vue";
 
 import { registerSystem } from "../..";
+import type { System } from "../..";
 import { SyncTo } from "../../../../core/models/types";
 import { getGlobalId } from "../../../id";
 import type { LocalId } from "../../../id";
@@ -17,7 +18,7 @@ interface ReactiveDoorState {
     permissions?: Permissions;
 }
 
-class DoorSystem {
+class DoorSystem implements System {
     private enabled: Set<LocalId> = new Set();
     private permissions: Map<LocalId, Permissions> = new Map();
 
@@ -47,6 +48,12 @@ class DoorSystem {
     }
 
     // BEHAVIOUR
+
+    clear(): void {
+        this.dropState();
+        this.enabled.clear();
+        this.permissions.clear();
+    }
 
     // Inform the system about the state of a certain LocalId
     inform(id: LocalId, enabled: boolean, permissions?: Permissions): void {

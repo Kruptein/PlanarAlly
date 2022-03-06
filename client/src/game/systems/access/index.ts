@@ -2,6 +2,7 @@ import { computed, reactive } from "vue";
 import type { ComputedRef, DeepReadonly } from "vue";
 
 import { registerSystem } from "..";
+import type { System } from "..";
 import { SyncTo } from "../../../core/models/types";
 import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
@@ -24,7 +25,7 @@ interface AccessState {
 
 type AccessMap = Map<ACCESS_KEY, ShapeAccess>;
 
-class AccessSystem {
+class AccessSystem implements System {
     // If a LocalId is NOT in the access map,
     // it is assumed to have default access settings
     // this is the case for the vast majority of shapes
@@ -84,33 +85,38 @@ class AccessSystem {
 
     // BEHAVIOUR
 
+    clear(): void {
+        this.dropState();
+        this.access.clear();
+    }
+
     // Inform the system about the state of a certain LocalId
-    inform(id: LocalId, defaultAccess: ShapeAccess, extraAccess: ShapeOwner[]): void {
-        const access: AccessMap = new Map();
+    inform(id: LocalId, access: { default: ShapeAccess; extra: ShapeOwner[] }): void {
+        const accessMap: AccessMap = new Map();
 
         // Default Access
-        if (defaultAccess.edit || defaultAccess.movement || defaultAccess.vision) {
-            access.set(DEFAULT_ACCESS_SYMBOL, defaultAccess);
+        if (access.default.edit || access.default.movement || access.default.vision) {
+            accessMap.set(DEFAULT_ACCESS_SYMBOL, access.default);
             if (this._state.id === id) {
-                this._state.defaultAccess = defaultAccess;
+                this._state.defaultAccess = access.default;
             }
         } else {
-            access.delete(DEFAULT_ACCESS_SYMBOL);
+            accessMap.delete(DEFAULT_ACCESS_SYMBOL);
             if (this._state.id === id) {
-                this._state.defaultAccess = defaultAccess;
+                this._state.defaultAccess = access.default;
             }
         }
 
         // Player Access
-        for (const extra of extraAccess) {
-            access.set(extra.user, extra.access);
+        for (const extra of access.extra) {
+            accessMap.set(extra.user, extra.access);
             if (this._state.id === id) {
                 this._state.playerAccess.set(extra.user, extra.access);
             }
         }
 
         // Commit
-        this.access.set(id, access);
+        this.access.set(id, accessMap);
         initiativeStore._forceUpdate();
     }
 
@@ -121,7 +127,7 @@ class AccessSystem {
     hasAccessTo(
         id: LocalId,
         limitToActiveTokens: boolean,
-        options: Partial<{ editAccess: boolean; visionAccess: boolean; movementAccess: boolean }>,
+        access: Partial<{ edit: boolean; vision: boolean; movement: boolean }>,
     ): boolean {
         if (gameStore.state.isDm) return true;
 
@@ -136,30 +142,30 @@ class AccessSystem {
 
         if (gameStore.state.isFakePlayer) return true;
 
-        const access = this.access.get(id);
-        if (access === undefined) return false;
+        const accessMap = this.access.get(id);
+        if (accessMap === undefined) return false;
 
-        const defaultAccess = access.get(DEFAULT_ACCESS_SYMBOL) ?? DEFAULT_ACCESS;
+        const defaultAccess = accessMap.get(DEFAULT_ACCESS_SYMBOL) ?? DEFAULT_ACCESS;
 
         if (
-            ((options.editAccess ?? false) && defaultAccess.edit) ||
-            ((options.movementAccess ?? false) && defaultAccess.movement) ||
-            ((options.visionAccess ?? false) && defaultAccess.vision)
+            ((access.edit ?? false) && defaultAccess.edit) ||
+            ((access.movement ?? false) && defaultAccess.movement) ||
+            ((access.vision ?? false) && defaultAccess.vision)
         ) {
             return true;
         }
 
-        const userAccess = access.get(clientStore.state.username);
+        const userAccess = accessMap.get(clientStore.state.username);
         if (userAccess === undefined) return false;
 
         return (
-            (options.editAccess ?? false ? userAccess.edit : true) &&
-            (options.movementAccess ?? false ? userAccess.movement : true) &&
-            (options.visionAccess ?? false ? userAccess.vision : true)
+            (access.edit ?? false ? userAccess.edit : true) &&
+            (access.movement ?? false ? userAccess.movement : true) &&
+            (access.vision ?? false ? userAccess.vision : true)
         );
     }
 
-    getAccess(shapeId: LocalId, user: ACCESS_KEY): DeepReadonly<ShapeAccess> | undefined {
+    getAccess(shapeId: LocalId, user: string): DeepReadonly<ShapeAccess> | undefined {
         return this.access.get(shapeId)?.get(user);
     }
 
@@ -171,7 +177,7 @@ class AccessSystem {
 
         const userAccess = { ...DEFAULT_ACCESS, ...access };
 
-        const shapeMap: AccessMap = new Map();
+        const shapeMap: AccessMap = this.access.get(shapeId) ?? new Map();
         shapeMap.set(user, userAccess);
         this.access.set(shapeId, shapeMap);
 
@@ -276,7 +282,10 @@ class AccessSystem {
         }
 
         if (oldAccess.vision && user === clientStore.state.username) {
-            gameStore.removeOwnedToken(shapeId);
+            const shape = getShape(shapeId);
+            if (shape !== undefined && shape.isToken) {
+                gameStore.removeOwnedToken(shapeId);
+            }
         }
 
         if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();

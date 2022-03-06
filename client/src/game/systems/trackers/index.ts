@@ -2,6 +2,7 @@ import { reactive } from "vue";
 import type { DeepReadonly } from "vue";
 
 import { registerSystem } from "..";
+import type { System } from "..";
 import { SyncTo } from "../../../core/models/types";
 import { getGlobalId, getShape } from "../../id";
 import type { LocalId } from "../../id";
@@ -19,7 +20,7 @@ interface TrackerState {
     parentTrackers: UiTracker[];
 }
 
-class TrackerSystem {
+class TrackerSystem implements System {
     private data: Map<LocalId, Tracker[]> = new Map();
 
     // REACTIVE STATE
@@ -62,6 +63,11 @@ class TrackerSystem {
     }
 
     // BEHAVIOUR
+
+    clear(): void {
+        this.dropState();
+        this.data.clear();
+    }
 
     // Inform the system about the state of a certain LocalId
     inform(id: LocalId, trackers: Tracker[]): void {

@@ -45,7 +45,7 @@ type SortableChanged<T> = {
     removed?: { element: T; oldIndex: number };
 };
 
-function change(change: SortableChanged<string>, target: "enabled" | "request" | "disabled"): void {
+function change(change: Event & SortableChanged<string>, target: "enabled" | "request" | "disabled"): void {
     const _target =
         target === "enabled" ? permissions.enabled : target === "disabled" ? permissions.disabled : permissions.request;
     if (change.added) {

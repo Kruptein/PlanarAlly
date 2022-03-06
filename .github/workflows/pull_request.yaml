@@ -17,10 +17,10 @@ jobs:
               working-directory: client
               run: |
                   npm run lint:ci
-            # - name: test
-            #   working-directory: client
-            #   run: |
-            #       npm run test
+            - name: test
+              working-directory: client
+              run: |
+                  npm run test
             - name: build
               working-directory: client
               run: |

@@ -259,7 +259,7 @@ class SelectTool extends Tool implements ISelectTool {
             const shape = selectionStack[i];
             if (!(shape.options.preFogShape ?? false) && (shape.options.skipDraw ?? false)) continue;
             if ([this.rotationAnchor?.id, this.rotationBox?.id, this.rotationEnd?.id].includes(shape.id)) continue;
-            if (shape.isInvisible && !accessSystem.hasAccessTo(shape.id, false, { movementAccess: true })) continue;
+            if (shape.isInvisible && !accessSystem.hasAccessTo(shape.id, false, { movement: true })) continue;
 
             if (this.rotationUiActive && this.hasFeature(SelectFeatures.Rotate, features)) {
                 const anchor = this.rotationAnchor!.points[1];
@@ -460,7 +460,7 @@ class SelectTool extends Tool implements ISelectTool {
                 // If we are on the tokens layer do a movement block check.
                 if (layer.name === "tokens" && !(event.shiftKey && gameStore.state.isDm)) {
                     for (const sel of layerSelection) {
-                        if (!accessSystem.hasAccessTo(sel.id, false, { movementAccess: true })) continue;
+                        if (!accessSystem.hasAccessTo(sel.id, false, { movement: true })) continue;
                         delta = calculateDelta(delta, sel, true);
                         if (delta !== ogDelta) this.deltaChanged = true;
                     }
@@ -485,7 +485,7 @@ class SelectTool extends Tool implements ISelectTool {
             } else if (this.mode === SelectOperations.Resize) {
                 const shape = layerSelection[0];
 
-                if (!accessSystem.hasAccessTo(shape.id, false, { movementAccess: true })) return;
+                if (!accessSystem.hasAccessTo(shape.id, false, { movement: true })) return;
 
                 let ignorePoint: GlobalPoint | undefined;
                 if (this.resizePoint >= 0) ignorePoint = toGP(this.originalResizePoints[this.resizePoint]);
@@ -539,7 +539,7 @@ class SelectTool extends Tool implements ISelectTool {
             const cbbox = this.selectionHelper!.getBoundingBox();
             for (const shape of layer.getShapes({ includeComposites: false })) {
                 if (!(shape.options.preFogShape ?? false) && (shape.options.skipDraw ?? false)) continue;
-                if (!accessSystem.hasAccessTo(shape.id, false, { movementAccess: true })) continue;
+                if (!accessSystem.hasAccessTo(shape.id, false, { movement: true })) continue;
                 if (!shape.visibleInCanvas({ w: layer.width, h: layer.height }, { includeAuras: false })) continue;
                 if (layerSelection.some((s) => s.id === shape.id)) continue;
 
@@ -584,7 +584,7 @@ class SelectTool extends Tool implements ISelectTool {
             if (this.mode === SelectOperations.Drag) {
                 const updateList = [];
                 for (const [s, sel] of layerSelection.entries()) {
-                    if (!accessSystem.hasAccessTo(sel.id, false, { movementAccess: true })) continue;
+                    if (!accessSystem.hasAccessTo(sel.id, false, { movement: true })) continue;
 
                     if (
                         this.dragRay.origin!.x === g2lx(sel.refPoint.x) &&
@@ -643,7 +643,7 @@ class SelectTool extends Tool implements ISelectTool {
             }
             if (this.mode === SelectOperations.Resize) {
                 for (const sel of layerSelection) {
-                    if (!accessSystem.hasAccessTo(sel.id, false, { movementAccess: true })) continue;
+                    if (!accessSystem.hasAccessTo(sel.id, false, { movement: true })) continue;
 
                     // movementBlock is skipped during onMove and definitely has to be done here
                     if (sel.blocksMovement)
@@ -693,7 +693,7 @@ class SelectTool extends Tool implements ISelectTool {
                 const rotationCenter = this.rotationBox!.center();
 
                 for (const [s, sel] of layerSelection.entries()) {
-                    if (!accessSystem.hasAccessTo(sel.id, false, { movementAccess: true })) continue;
+                    if (!accessSystem.hasAccessTo(sel.id, false, { movement: true })) continue;
 
                     const newAngle = Math.round(this.angle / ANGLE_SNAP) * ANGLE_SNAP;
                     if (

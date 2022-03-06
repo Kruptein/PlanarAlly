@@ -19,7 +19,7 @@ export interface ServerShape {
     layer: LayerName;
     movement_obstruction: boolean;
     vision_obstruction: boolean;
-    draw_operator: string;
+    draw_operator: GlobalCompositeOperation;
     trackers: ServerTracker[];
     auras: ServerAura[];
     labels: Label[];
@@ -91,7 +91,7 @@ export interface ShapeOptions {
 
     preFogShape: boolean;
     skipDraw: boolean;
-    borderOperation: string;
+    borderOperation: GlobalCompositeOperation;
 
     // legacy svg stuff
     svgHeight: number;

@@ -40,7 +40,6 @@ import { accessSystem } from "../systems/access";
 import { ownerToClient, ownerToServer } from "../systems/access/helpers";
 import { auraSystem } from "../systems/auras";
 import { aurasFromServer, aurasToServer } from "../systems/auras/conversion";
-import type { AuraId } from "../systems/auras/models";
 import { doorSystem } from "../systems/logic/door";
 import { teleportZoneSystem } from "../systems/logic/tp";
 import { trackerSystem } from "../systems/trackers";
@@ -721,29 +720,6 @@ export abstract class Shape implements IShape {
             );
             alteredVision = true;
         }
-
-        // Check if the visionsource auras are in the gameManager
-        const visionSources: { shape: LocalId; aura: AuraId }[] = [
-            ...visionState.getVisionSources(this._floor ?? floorStore.currentFloor.value!.id),
-        ];
-        for (const au of auraSystem.getAll(this.id, true)) {
-            const i = visionSources.findIndex((o) => o.aura === au.uuid);
-            const isVisionSource = au.visionSource && au.active;
-            if (isVisionSource && i === -1) {
-                visionSources.push({ shape: this.id, aura: au.uuid });
-            } else if (!isVisionSource && i >= 0) {
-                visionSources.splice(i, 1);
-            }
-        }
-        // Check if anything in the gameManager referencing this shape is in fact still a visionsource
-        for (let i = visionSources.length - 1; i >= 0; i--) {
-            const ls = visionSources[i];
-            if (ls.shape === this.id) {
-                if (!auraSystem.getAll(this.id, true).some((a) => a.uuid === ls.aura && a.visionSource && a.active))
-                    visionSources.splice(i, 1);
-            }
-        }
-        visionState.setVisionSources(visionSources, this._floor ?? floorStore.currentFloor.value!.id);
         return alteredVision;
     }
 }

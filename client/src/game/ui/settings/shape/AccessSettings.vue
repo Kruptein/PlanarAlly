@@ -62,7 +62,12 @@ function toggleEditAccess(user?: ACCESS_KEY): void {
     if (!owned.value || accessSystem.state.id === undefined) return;
     user ??= DEFAULT_ACCESS_SYMBOL;
 
-    const oldAccess = accessSystem.getAccess(accessSystem.state.id, user) ?? DEFAULT_ACCESS;
+    let oldAccess = DEFAULT_ACCESS;
+    if (user === DEFAULT_ACCESS_SYMBOL) {
+        oldAccess = accessSystem.getDefault(accessSystem.state.id) ?? oldAccess;
+    } else {
+        oldAccess = accessSystem.getAccess(accessSystem.state.id, user) ?? oldAccess;
+    }
     const access: PartialPick<ShapeAccess, "edit"> = { edit: !oldAccess.edit };
 
     if (access.edit) {
@@ -76,7 +81,12 @@ function toggleMovementAccess(user?: ACCESS_KEY): void {
     if (!owned.value || accessSystem.state.id === undefined) return;
     user ??= DEFAULT_ACCESS_SYMBOL;
 
-    const oldAccess = accessSystem.getAccess(accessSystem.state.id, user) ?? DEFAULT_ACCESS;
+    let oldAccess = DEFAULT_ACCESS;
+    if (user === DEFAULT_ACCESS_SYMBOL) {
+        oldAccess = accessSystem.getDefault(accessSystem.state.id) ?? oldAccess;
+    } else {
+        oldAccess = accessSystem.getAccess(accessSystem.state.id, user) ?? oldAccess;
+    }
     const access: PartialPick<ShapeAccess, "movement"> = { movement: !oldAccess.movement };
 
     if (access.movement) {
@@ -91,7 +101,12 @@ function toggleVisionAccess(user?: ACCESS_KEY): void {
     if (!owned.value || accessSystem.state.id === undefined) return;
     user ??= DEFAULT_ACCESS_SYMBOL;
 
-    const oldAccess = accessSystem.getAccess(accessSystem.state.id, user) ?? DEFAULT_ACCESS;
+    let oldAccess = DEFAULT_ACCESS;
+    if (user === DEFAULT_ACCESS_SYMBOL) {
+        oldAccess = accessSystem.getDefault(accessSystem.state.id) ?? oldAccess;
+    } else {
+        oldAccess = accessSystem.getAccess(accessSystem.state.id, user) ?? oldAccess;
+    }
     const access: PartialPick<ShapeAccess, "vision"> = { vision: !oldAccess.vision };
 
     if (!access.vision) {

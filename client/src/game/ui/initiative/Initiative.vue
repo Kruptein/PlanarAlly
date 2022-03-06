@@ -43,7 +43,7 @@ function getName(actor: InitiativeData): string {
     const shape = getShape(actor.shape);
     if (shape !== undefined) {
         if (shape.nameVisible) return shape.name;
-        if (accessSystem.hasAccessTo(shape.id, false, { editAccess: true })) return shape.name;
+        if (accessSystem.hasAccessTo(shape.id, false, { edit: true })) return shape.name;
     }
     return "?";
 }
@@ -102,7 +102,7 @@ function getImage(actor: InitiativeData): string {
 
 function canSee(actor: InitiativeData): boolean {
     if (isDm.value || actor.isVisible) return true;
-    return accessSystem.hasAccessTo(actor.shape, false, { editAccess: true });
+    return accessSystem.hasAccessTo(actor.shape, false, { edit: true });
 }
 
 function reset(): void {
@@ -125,7 +125,7 @@ function setInitiative(shape: LocalId, value: string): void {
     if (initiativeStore.owns(shape)) initiativeStore.setInitiative(shape, numValue, true);
 }
 
-function changeOrder(data: { moved?: { element: InitiativeData; newIndex: number; oldIndex: number } }): void {
+function changeOrder(data: Event & { moved?: { element: InitiativeData; newIndex: number; oldIndex: number } }): void {
     if (isDm.value && data.moved)
         initiativeStore.changeOrder(data.moved.element.shape, data.moved.oldIndex, data.moved.newIndex);
 }

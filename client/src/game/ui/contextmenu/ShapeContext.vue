@@ -45,7 +45,7 @@ const selectionIncludesSpawnToken = computed(() =>
 );
 
 const isOwned = computed(() =>
-    [...selectionState.state.selection].every((s) => accessSystem.hasAccessTo(s, false, { editAccess: true })),
+    [...selectionState.state.selection].every((s) => accessSystem.hasAccessTo(s, false, { edit: true })),
 );
 
 function close(): void {

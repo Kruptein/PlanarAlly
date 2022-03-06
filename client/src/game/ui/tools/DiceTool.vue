@@ -38,7 +38,7 @@ function add(die: number): void {
         button.value?.classList.add("transition");
 
         clearTimeout(timeout);
-        timeout = setTimeout(go, 1000);
+        timeout = window.setTimeout(go, 1000);
     }
     const d = diceArray.value.find((d) => d.die === die);
     if (d === undefined) {

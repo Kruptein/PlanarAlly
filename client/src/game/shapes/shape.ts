@@ -98,7 +98,7 @@ export abstract class Shape implements IShape {
     blocksMovement = false;
 
     // Draw mode to use
-    globalCompositeOperation = "source-over";
+    globalCompositeOperation: GlobalCompositeOperation = "source-over";
 
     labels: Label[] = [];
 

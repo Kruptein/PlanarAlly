@@ -71,7 +71,10 @@ class AuraSystem implements System {
 
     // Inform the system about the state of a certain LocalId
     inform(id: LocalId, auras: Aura[]): void {
-        this.data.set(id, auras);
+        this.data.set(id, []);
+        for (const aura of auras) {
+            this.add(id, aura, SyncTo.SHAPE);
+        }
     }
 
     get(id: LocalId, auraId: AuraId, includeParent: boolean): DeepReadonly<Aura> | undefined {

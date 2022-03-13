@@ -25,6 +25,7 @@ For server owners using a subpath, some important changes are made, so make sure
     -   this uses the API endpoint and requires a token
     -   lists users + reset password + delete
     -   lists campaigns
+-   container (Docker) build instructions for arm64
 
 ### Changed
 

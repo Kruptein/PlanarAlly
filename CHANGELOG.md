@@ -50,6 +50,7 @@ For server owners using a subpath, some important changes are made, so make sure
 -   Fix scroll bars being visible due to dice canvas not being sized strictly
 -   Fix movement blockers intersecting with themselves when moving on the token layer
 -   Fix assets becoming invisible when using a subpath setup (only applies to new assets)
+-   Fix colour picker not allowing to change the rgba/hsla/hex values manually
 -   [asset-manager] Asset manager would not check for stale files when removing a folder
 
 ### Performance

@@ -1,9 +1,10 @@
-import { reactive } from "vue";
+import { reactive, watchEffect } from "vue";
 import type { DeepReadonly } from "vue";
 
 import { registerSystem } from "..";
 import type { System } from "..";
 import { SyncTo } from "../../../core/models/types";
+import { activeShapeStore } from "../../../store/activeShape";
 import { getGlobalId, getShape } from "../../id";
 import type { LocalId } from "../../id";
 import { compositeState } from "../../layers/state";
@@ -177,3 +178,11 @@ class AuraSystem implements System {
 
 export const auraSystem = new AuraSystem();
 registerSystem("auras", auraSystem);
+
+// Aura System state is active whenever a shape is selected due to the quick selection info
+
+watchEffect(() => {
+    const id = activeShapeStore.state.id;
+    if (id) auraSystem.loadState(id);
+    else auraSystem.dropState();
+});

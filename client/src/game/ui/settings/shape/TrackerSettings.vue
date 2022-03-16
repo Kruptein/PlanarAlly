@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { watch } from "vue";
 import type { DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -20,21 +19,7 @@ import type { Tracker, TrackerId, UiTracker } from "../../../systems/trackers/mo
 
 const { t } = useI18n();
 
-const props = defineProps<{ activeSelection: boolean }>();
-
-watch(
-    [() => activeShapeStore.state.id, () => props.activeSelection],
-    ([newId, newSelection], [oldId, oldSelection]) => {
-        if (newSelection && newId !== undefined && (!(oldSelection ?? false) || oldId !== newId)) {
-            trackerSystem.loadState(newId);
-            auraSystem.loadState(newId);
-        } else if ((!newSelection && (oldSelection ?? false)) || newId === undefined) {
-            trackerSystem.dropState();
-            auraSystem.dropState();
-        }
-    },
-    { immediate: true },
-);
+defineProps<{ activeSelection: boolean }>();
 
 const owned = accessSystem.$.hasEditAccess;
 const isComposite = activeShapeStore.isComposite;

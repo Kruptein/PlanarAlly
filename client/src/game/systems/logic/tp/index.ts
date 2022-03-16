@@ -100,6 +100,14 @@ class TeleportZoneSystem implements System {
         this.data.set(id, options ?? DEFAULT_OPTIONS);
     }
 
+    drop(id: LocalId): void {
+        this.enabled.delete(id);
+        this.data.delete(id);
+        if (this._state.id === id) {
+            this.dropState();
+        }
+    }
+
     toggle(id: LocalId, enabled: boolean, syncTo: SyncTo): void {
         if (syncTo === SyncTo.SERVER) sendShapeIsTeleportZone({ shape: getGlobalId(id), value: enabled });
         if (this._state.id === id) this._state.enabled = enabled;

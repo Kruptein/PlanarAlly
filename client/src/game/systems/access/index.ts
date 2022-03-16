@@ -120,6 +120,13 @@ class AccessSystem implements System {
         initiativeStore._forceUpdate();
     }
 
+    drop(id: LocalId): void {
+        this.access.delete(id);
+        if (this._state.id === id) {
+            this.dropState();
+        }
+    }
+
     getDefault(id: LocalId): DeepReadonly<ShapeAccess> {
         return this.access.get(id)?.get(DEFAULT_ACCESS_SYMBOL) ?? DEFAULT_ACCESS;
     }

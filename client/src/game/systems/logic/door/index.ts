@@ -63,6 +63,14 @@ class DoorSystem implements System {
         this.permissions.set(id, permissions ?? DEFAULT_PERMISSIONS);
     }
 
+    drop(id: LocalId): void {
+        this.enabled.delete(id);
+        this.permissions.delete(id);
+        if (this._state.id === id) {
+            this.dropState();
+        }
+    }
+
     toggle(id: LocalId, enabled: boolean, syncTo: SyncTo): void {
         if (syncTo === SyncTo.SERVER) sendShapeIsDoor({ shape: getGlobalId(id), value: enabled });
         if (this._state.id === id) this._state.enabled = enabled;

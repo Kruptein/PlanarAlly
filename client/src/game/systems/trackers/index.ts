@@ -74,6 +74,13 @@ class TrackerSystem implements System {
         this.data.set(id, trackers);
     }
 
+    drop(id: LocalId): void {
+        this.data.delete(id);
+        if (this._state.id === id) {
+            this.dropState();
+        }
+    }
+
     get(id: LocalId, trackerId: TrackerId, includeParent: boolean): DeepReadonly<Tracker> | undefined {
         return this.getAll(id, includeParent).find((t) => t.uuid === trackerId);
     }

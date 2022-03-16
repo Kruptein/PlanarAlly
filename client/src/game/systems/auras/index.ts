@@ -77,6 +77,13 @@ class AuraSystem implements System {
         }
     }
 
+    drop(id: LocalId): void {
+        this.data.delete(id);
+        if (this._state.id === id) {
+            this.dropState();
+        }
+    }
+
     get(id: LocalId, auraId: AuraId, includeParent: boolean): DeepReadonly<Aura> | undefined {
         return this.getAll(id, includeParent).find((t) => t.uuid === auraId);
     }

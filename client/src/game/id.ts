@@ -1,6 +1,7 @@
 import { uuidv4 } from "../core/utils";
 
 import type { IShape } from "./shapes/interfaces";
+import { dropFromSystems } from "./systems";
 
 export type Global<T> = {
     [key in keyof T]: T[key] extends LocalId ? GlobalId : T[key] extends LocalId[] ? GlobalId[] : T[key];
@@ -45,6 +46,8 @@ export function generateLocalId(shape: IShape, global?: GlobalId): LocalId {
 }
 
 export function dropId(id: LocalId): void {
+    dropFromSystems(id);
+
     reservedIds.delete(uuids[id]);
     delete uuids[id];
     idMap.delete(id);

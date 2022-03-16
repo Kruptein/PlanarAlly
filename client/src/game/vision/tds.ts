@@ -890,8 +890,8 @@ export class TDS {
                 hole.shift();
                 hole.unshift([newf, 1]);
             } else {
-                fn = hole[hole.length - 1][0];
-                inn = hole[hole.length - 1][1];
+                fn = hole.at(-1)![0];
+                inn = hole.at(-1)![1];
                 const indx = fn.indexV(v2);
                 if (indx >= 0 && indx === cw(inn)) {
                     newf = this.createTriangle2(fn, inn, ff, ii);

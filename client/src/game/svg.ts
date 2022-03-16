@@ -207,7 +207,7 @@ function handleBezierCurve(
         [cp2g.x, cp2g.y],
     )) {
         points.push(l[1]);
-        if (DEBUG_SVG) drawLine(points[points.length - 2], l[1], true, false);
+        if (DEBUG_SVG) drawLine(points.at(-2)!, l[1], true, false);
     }
     return endg;
 }

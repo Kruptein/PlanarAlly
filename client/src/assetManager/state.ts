@@ -32,17 +32,11 @@ class AssetStore extends Store<AssetState> {
     constructor() {
         super();
         this.currentFolder = computed(() => {
-            const path = this._state.folderPath;
-            if (path.length > 0) {
-                return path[path.length - 1];
-            }
-            return this._state.root;
+            return this._state.folderPath.at(-1) ?? this._state.root;
         });
 
         this.parentFolder = computed(() => {
-            const path = this._state.folderPath;
-            if (path.length > 1) return path[path.length - 2];
-            return this._state.root;
+            return this._state.folderPath.at(-2) ?? this._state.root;
         });
 
         this.currentFilePath = computed(() =>

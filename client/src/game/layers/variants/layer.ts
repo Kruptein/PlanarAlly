@@ -302,7 +302,7 @@ export class Layer {
                 const lowerFloor = floorState.floors[floorState.floorIndex - 1];
                 if (lowerFloor.id === this.floor) {
                     const layers = floorStore.getLayers(lowerFloor);
-                    if (layers[layers.length - 1].name === this.name) {
+                    if (layers.at(-1)?.name === this.name) {
                         ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
                         ctx.fillRect(0, 0, this.width, this.height);
                     }

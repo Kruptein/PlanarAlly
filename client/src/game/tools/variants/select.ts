@@ -914,8 +914,8 @@ class SelectTool extends Tool implements ISelectTool {
             }
         }
         //check last vertex
-        if (getPointDistance(pv[pv.length - 1], gp) < polygon.lineWidth / 2) {
-            smallest = { distance: 0, nearest: pv[pv.length - 1], point: true, angle: smallest.angle };
+        if (getPointDistance(pv.at(-1)!, gp) < polygon.lineWidth / 2) {
+            smallest = { distance: 0, nearest: pv.at(-1)!, point: true, angle: smallest.angle };
         }
         // Show the UI
         if (smallest.distance <= polygon.lineWidth) {

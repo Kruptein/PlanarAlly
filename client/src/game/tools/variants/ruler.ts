@@ -106,7 +106,7 @@ class RulerTool extends Tool {
 
         if (clientStore.useSnapping(event)) [endPoint] = snapToGridPoint(endPoint);
 
-        const ruler = this.rulers[this.rulers.length - 1];
+        const ruler = this.rulers.at(-1)!;
         ruler.endPoint = endPoint;
         sendShapePositionUpdate([ruler], true);
 
@@ -140,7 +140,7 @@ class RulerTool extends Tool {
     onKeyUp(event: KeyboardEvent, features: ToolFeatures): void {
         if (event.defaultPrevented) return;
         if (event.key === " " && this.active) {
-            const lastRuler = this.rulers[this.rulers.length - 1];
+            const lastRuler = this.rulers.at(-1)!;
             this.createNewRuler(lastRuler.endPoint, lastRuler.endPoint);
             this.previousLength += this.currentLength;
 

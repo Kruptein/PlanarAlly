@@ -11,9 +11,6 @@ enum InputMode {
     Rgba,
 }
 
-// enums are not properly exported yet with setup https://github.com/vuejs/vue-next/issues/3571
-const IM = InputMode;
-
 const props = withDefaults(defineProps<{ colour?: string; showAlpha?: boolean; vShow?: boolean }>(), {
     colour: "rgba(0, 0, 0, 1)",
     showAlpha: true,
@@ -196,6 +193,32 @@ function onSaturationUp(event: PointerEvent): void {
     saturationActive.value = false;
     emit("update:colour", rgbaString.value);
 }
+
+function setRgba(options: { r?: number; g?: number; b?: number; a?: number }): void {
+    const rgb = tc.value.toRgb();
+    tc.value = tinycolor({
+        ...rgb,
+        ...options,
+    });
+    emit("update:colour", rgbaString.value);
+}
+
+function setHsla(options: { h?: number; s?: string; l?: string; a?: number }): void {
+    const hsl = tc.value.toHsl();
+
+    tc.value = tinycolor({
+        h: options.h ?? hsl.h,
+        s: options.s !== undefined ? Number.parseInt(options.s.slice(0, -1)) / 100 : hsl.s,
+        l: options.l !== undefined ? Number.parseInt(options.l.slice(0, -1)) / 100 : hsl.l,
+        a: options.a ?? hsl.a,
+    });
+    emit("update:colour", rgbaString.value);
+}
+
+function setHex(hex: string): void {
+    tc.value = tinycolor(hex);
+    emit("update:colour", rgbaString.value);
+}
 </script>
 
 <template>
@@ -270,30 +293,78 @@ function onSaturationUp(event: PointerEvent): void {
                 <div class="mode">
                     <div
                         class="content"
-                        :style="{ gridTemplateColumns: `repeat(${inputMode === IM.Hex ? 1 : 4}, 1fr)` }"
+                        :style="{ gridTemplateColumns: `repeat(${inputMode === InputMode.Hex ? 1 : 4}, 1fr)` }"
                     >
-                        <template v-if="inputMode === IM.Rgba">
-                            <input type="text" :value="rgb.r" />
-                            <input type="text" :value="rgb.g" />
-                            <input type="text" :value="rgb.b" />
-                            <input type="text" :value="rgb.a" />
+                        <template v-if="inputMode === InputMode.Rgba">
+                            <input
+                                type="number"
+                                min="0"
+                                max="255"
+                                :value="rgb.r"
+                                @change="setRgba({ r: ($event.target as HTMLInputElement).valueAsNumber })"
+                            />
+                            <input
+                                type="number"
+                                min="0"
+                                max="255"
+                                :value="rgb.g"
+                                @change="setRgba({ g: ($event.target as HTMLInputElement).valueAsNumber })"
+                            />
+                            <input
+                                type="number"
+                                min="0"
+                                max="255"
+                                :value="rgb.b"
+                                @change="setRgba({ b: ($event.target as HTMLInputElement).valueAsNumber })"
+                            />
+                            <input
+                                type="number"
+                                min="0"
+                                max="1"
+                                :value="rgb.a"
+                                @change="setRgba({ a: ($event.target as HTMLInputElement).valueAsNumber })"
+                            />
                             <div>R</div>
                             <div>G</div>
                             <div>B</div>
                             <div>A</div>
                         </template>
-                        <template v-else-if="inputMode === IM.Hsla">
-                            <input type="text" :value="hsl.h.toFixed(0)" />
-                            <input type="text" :value="(100 * hsl.s).toFixed(0) + '%'" />
-                            <input type="text" :value="(100 * hsl.l).toFixed(0) + '%'" />
-                            <input type="text" :value="hsl.a" />
+                        <template v-else-if="inputMode === InputMode.Hsla">
+                            <input
+                                type="number"
+                                min="0"
+                                max="360"
+                                :value="hsl.h.toFixed(0)"
+                                @change="setHsla({ h: ($event.target as HTMLInputElement).valueAsNumber })"
+                            />
+                            <input
+                                type="text"
+                                :value="(100 * hsl.s).toFixed(0) + '%'"
+                                @change="setHsla({ s: ($event.target as HTMLInputElement).value })"
+                            />
+                            <input
+                                type="text"
+                                :value="(100 * hsl.l).toFixed(0) + '%'"
+                                @change="setHsla({ l: ($event.target as HTMLInputElement).value })"
+                            />
+                            <input
+                                type="number"
+                                min="0"
+                                max="1"
+                                :value="hsl.a"
+                                @change="setHsla({ a: ($event.target as HTMLInputElement).valueAsNumber })"
+                            />
                             <div>H</div>
                             <div>S</div>
                             <div>L</div>
                             <div>A</div>
                         </template>
                         <template v-else>
-                            <input type="text" :value="hex" />
+                            <input
+                                type="text"
+                                :value="hex"
+                                @change="setHex(($event.target as HTMLInputElement).value)"
+                            />
                             <div>HEX</div>
                         </template>
                     </div>
@@ -328,6 +399,17 @@ function onSaturationUp(event: PointerEvent): void {
         background-color: #000;
         border: solid 1px black;
     }
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    /* display: none; <- Crashes Chrome on hover */
+    -webkit-appearance: none;
+    margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+}
+
+input[type="number"] {
+    -moz-appearance: textfield; /* Firefox */
 }
 
 .modal {

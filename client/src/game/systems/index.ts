@@ -6,8 +6,15 @@ export function registerSystem(key: string, system: System): void {
     SYSTEMS[key] = system;
 }
 
+export function dropFromSystems(id: LocalId): void {
+    for (const system of Object.values(SYSTEMS)) {
+        system.drop(id);
+    }
+}
+
 export interface System {
     clear(): void;
+    drop(id: LocalId): void;
     inform(id: LocalId, data: any): void;
 }
 

@@ -424,19 +424,9 @@ class DrawTool extends Tool {
             }
             const points = this.shape.points; // expensive call
             if (this.shape.blocksVision && points.length > 1)
-                visionState.insertConstraint(
-                    TriangulationTarget.VISION,
-                    this.shape,
-                    points[points.length - 2],
-                    points[points.length - 1],
-                );
+                visionState.insertConstraint(TriangulationTarget.VISION, this.shape, points.at(-2)!, points.at(-1)!);
             if (this.shape.blocksMovement && points.length > 1)
-                visionState.insertConstraint(
-                    TriangulationTarget.MOVEMENT,
-                    this.shape,
-                    points[points.length - 2],
-                    points[points.length - 1],
-                );
+                visionState.insertConstraint(TriangulationTarget.MOVEMENT, this.shape, points.at(-2)!, points.at(-1)!);
             layer.invalidate(false);
             if (!this.shape.preventSync) sendShapeSizeUpdate({ shape: this.shape, temporary: true });
         }
@@ -500,7 +490,7 @@ class DrawTool extends Tool {
             case DrawShape.Brush: {
                 const br = this.shape as Polygon;
                 const points = br.points; // expensive call
-                if (equalPoints(points[points.length - 1], [endPoint.x, endPoint.y])) return;
+                if (equalPoints(points.at(-1)!, [endPoint.x, endPoint.y])) return;
                 br.pushPoint(endPoint);
                 break;
             }
@@ -582,19 +572,9 @@ class DrawTool extends Tool {
             if (this.state.isClosedPolygon) {
                 const points = this.shape.points; // expensive call
                 if (this.shape.blocksVision && points.length > 1)
-                    visionState.insertConstraint(
-                        TriangulationTarget.VISION,
-                        this.shape,
-                        points[0],
-                        points[points.length - 1],
-                    );
+                    visionState.insertConstraint(TriangulationTarget.VISION, this.shape, points[0], points.at(-1)!);
                 if (this.shape.blocksMovement && points.length > 1)
-                    visionState.insertConstraint(
-                        TriangulationTarget.MOVEMENT,
-                        this.shape,
-                        points[0],
-                        points[points.length - 1],
-                    );
+                    visionState.insertConstraint(TriangulationTarget.MOVEMENT, this.shape, points[0], points.at(-1)!);
             }
             this.finaliseShape();
         } else if (!this.active) {

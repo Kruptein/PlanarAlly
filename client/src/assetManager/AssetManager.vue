@@ -110,7 +110,7 @@ async function createDirectory(): Promise<void> {
 function select(event: MouseEvent, inode: number): void {
     if (event.shiftKey && state.selected.length > 0) {
         const inodes = [...state.folders, ...state.files];
-        const start = inodes.indexOf(state.selected[state.selected.length - 1]);
+        const start = inodes.indexOf(state.selected.at(-1)!);
         const end = inodes.indexOf(inode);
         for (let i = start; i !== end; start < end ? i++ : i--) {
             if (i === start) continue;

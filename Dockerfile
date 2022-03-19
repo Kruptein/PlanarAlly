@@ -23,7 +23,7 @@ COPY Dockerfiles/server_config_docker.cfg /usr/src/server/server_config.cfg
 ###############
 # Final stage #
 ###############
-FROM python:3.6-slim
+FROM python:3.9-slim
 
 ARG DOCKER_TAG
 ARG SOURCE_COMMIT

@@ -72,7 +72,7 @@ async function deleteAccount(): Promise<void> {
         const response = await postFetch("/api/users/delete");
         if (response.ok) {
             coreStore.setAuthenticated(false);
-            router.push("/");
+            await router.push("/auth/login");
         } else {
             errorMessage.value = t("settings.AccountSettings.delete_request_error");
         }

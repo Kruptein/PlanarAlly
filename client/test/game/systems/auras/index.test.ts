@@ -1,5 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+// temporary mock fix until activeshape is less circular import-y
+vi.mock("../../../../src/store/activeShape", () => ({
+    activeShapeStore: {
+        state: {},
+    },
+}));
+
 import { SyncTo } from "../../../../src/core/models/types";
 import { socket } from "../../../../src/game/api/socket";
 import { compositeState } from "../../../../src/game/layers/state";

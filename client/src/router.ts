@@ -30,6 +30,7 @@ const routes: Array<RouteRecordRaw> = [
     {
         path: "/auth/login",
         component: Login,
+        name: "login", // name used for transition
     },
     {
         path: "/auth/logout",
@@ -37,7 +38,7 @@ const routes: Array<RouteRecordRaw> = [
     },
     {
         path: "/dashboard",
-        name: "dashboard",
+        name: "dashboard", // name used for transition
         component: Dashboard,
         meta: {
             auth: true,

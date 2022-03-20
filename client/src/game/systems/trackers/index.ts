@@ -128,7 +128,7 @@ class TrackerSystem implements System {
 
         if (id === this._state.id) this.updateTrackerState();
 
-        if (tracker.draw !== oldDrawTracker) getShape(id)?.invalidate(false);
+        if (tracker.draw || oldDrawTracker) getShape(id)?.invalidate(false);
     }
 
     remove(id: LocalId, trackerId: TrackerId, syncTo: SyncTo): void {

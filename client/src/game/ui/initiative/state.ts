@@ -17,7 +17,7 @@ import {
     sendInitiativeReorder,
     sendInitiativeSetSort,
 } from "../../api/emits/initiative";
-import { getGlobalId, getShape } from "../../id";
+import { getGlobalId, getLocalId, getShape } from "../../id";
 import type { LocalId } from "../../id";
 import { InitiativeSort } from "../../models/initiative";
 import type { InitiativeData, InitiativeEffect, InitiativeSettings } from "../../models/initiative";
@@ -70,8 +70,9 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     setData(data: InitiativeSettings): void {
-        if (this._state.editLock !== -1) this._state.newData = data.data;
-        else this._state.locationData = data.data;
+        const initiativeData = data.data.map((d) => ({ ...d, shape: getLocalId(d.shape)! }));
+        if (this._state.editLock !== -1) this._state.newData = initiativeData;
+        else this._state.locationData = initiativeData;
 
         this.setRoundCounter(data.round, false);
         this.setTurnCounter(data.turn, false);

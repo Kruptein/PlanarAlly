@@ -62,7 +62,12 @@ class RulerTool extends Tool {
             return;
         }
 
-        accessSystem.addAccess(ruler.id, clientStore.state.username, { edit: true }, SyncTo.SHAPE);
+        accessSystem.addAccess(
+            ruler.id,
+            clientStore.state.username,
+            { edit: true, movement: true, vision: true },
+            SyncTo.SHAPE,
+        );
         layer.addShape(ruler, this.syncMode, InvalidationMode.NORMAL, { snappable: false });
         this.rulers.push(ruler);
     }
@@ -88,7 +93,12 @@ class RulerTool extends Tool {
             strokeColour: "#fff",
         });
         this.text.ignoreZoomSize = true;
-        accessSystem.addAccess(this.text.id, clientStore.state.username, { edit: true }, SyncTo.SHAPE);
+        accessSystem.addAccess(
+            this.text.id,
+            clientStore.state.username,
+            { edit: true, movement: true, vision: true },
+            SyncTo.SHAPE,
+        );
         layer.addShape(this.text, this.syncMode, InvalidationMode.NORMAL, { snappable: false });
     }
 

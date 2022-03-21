@@ -52,7 +52,12 @@ function submit(): void {
         "10px serif",
         { fillColour: fillColour.value, strokeColour: borderColour.value },
     );
-    accessSystem.addAccess(token.id, clientStore.state.username, { edit: true }, SyncTo.UI);
+    accessSystem.addAccess(
+        token.id,
+        clientStore.state.username,
+        { edit: true, movement: true, vision: true },
+        SyncTo.UI,
+    );
     layer.addShape(token, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
     close();
 }

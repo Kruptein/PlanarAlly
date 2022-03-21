@@ -60,8 +60,18 @@ class PingTool extends Tool {
         });
         this.ping.ignoreZoomSize = true;
         this.border.ignoreZoomSize = true;
-        accessSystem.addAccess(this.ping.id, clientStore.state.username, { edit: true }, SyncTo.SHAPE);
-        accessSystem.addAccess(this.border.id, clientStore.state.username, { edit: true }, SyncTo.SHAPE);
+        accessSystem.addAccess(
+            this.ping.id,
+            clientStore.state.username,
+            { edit: true, movement: true, vision: true },
+            SyncTo.SHAPE,
+        );
+        accessSystem.addAccess(
+            this.border.id,
+            clientStore.state.username,
+            { edit: true, movement: true, vision: true },
+            SyncTo.SHAPE,
+        );
         layer.addShape(this.ping, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL, { snappable: false });
         layer.addShape(this.border, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL, { snappable: false });
     }

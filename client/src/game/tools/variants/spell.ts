@@ -114,7 +114,12 @@ class SpellTool extends Tool {
 
         this.shape.fillColour = this.state.colour.replace(")", ", 0.7)");
         this.shape.strokeColour = this.state.colour;
-        accessSystem.addAccess(this.shape.id, clientStore.state.username, { edit: true }, SyncTo.UI);
+        accessSystem.addAccess(
+            this.shape.id,
+            clientStore.state.username,
+            { edit: true, movement: true, vision: true },
+            SyncTo.UI,
+        );
 
         if (selectionState.hasSelection && (this.state.range === 0 || equalsP(startPosition, ogPoint))) {
             const selection = [...selectionState.state.selection.values()];

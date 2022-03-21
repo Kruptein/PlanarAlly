@@ -358,7 +358,7 @@ class SelectTool extends Tool implements ISelectTool {
                 accessSystem.addAccess(
                     this.selectionHelper.id,
                     clientStore.state.username,
-                    { edit: true },
+                    { edit: true, movement: true, vision: true },
                     SyncTo.SHAPE,
                 );
                 layer.addShape(this.selectionHelper, SyncMode.NO_SYNC, InvalidationMode.NO, { snappable: false });
@@ -807,7 +807,12 @@ class SelectTool extends Tool implements ISelectTool {
         this.rotationEnd = new Circle(topCenterPlus, l2gz(4), { fillColour: "#7c253e", strokeColour: "rgba(0,0,0,0)" });
 
         for (const rotationShape of [this.rotationAnchor, this.rotationBox, this.rotationEnd]) {
-            accessSystem.addAccess(rotationShape.id, clientStore.state.username, { edit: true }, SyncTo.SHAPE);
+            accessSystem.addAccess(
+                rotationShape.id,
+                clientStore.state.username,
+                { edit: true, movement: true, vision: true },
+                SyncTo.SHAPE,
+            );
             layer.addShape(rotationShape, SyncMode.NO_SYNC, InvalidationMode.NO, { snappable: false });
         }
 

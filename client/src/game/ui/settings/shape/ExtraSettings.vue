@@ -117,7 +117,12 @@ function applyDDraft(): void {
     for (const wall of dDraftData.ddraft_line_of_sight) {
         const points = wall.map((w) => toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH));
         const shape = new Polygon(points[0], points.slice(1), { openPolygon: true, strokeColour: "red" });
-        accessSystem.addAccess(shape.id, clientStore.state.username, { edit: true }, SyncTo.UI);
+        accessSystem.addAccess(
+            shape.id,
+            clientStore.state.username,
+            { edit: true, movement: true, vision: true },
+            SyncTo.UI,
+        );
 
         shape.setBlocksVision(true, SyncTo.UI, false);
         shape.setBlocksMovement(true, SyncTo.UI, false);
@@ -127,7 +132,12 @@ function applyDDraft(): void {
     for (const portal of dDraftData.ddraft_portals) {
         const points = portal.bounds.map((w) => toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH));
         const shape = new Polygon(points[0], points.slice(1), { openPolygon: true, strokeColour: "blue" });
-        accessSystem.addAccess(shape.id, clientStore.state.username, { edit: true }, SyncTo.UI);
+        accessSystem.addAccess(
+            shape.id,
+            clientStore.state.username,
+            { edit: true, movement: true, vision: true },
+            SyncTo.UI,
+        );
 
         if (portal.closed) {
             shape.setBlocksVision(true, SyncTo.UI, false);
@@ -157,7 +167,12 @@ function applyDDraft(): void {
         };
 
         auraSystem.add(shape.id, aura, SyncTo.UI);
-        accessSystem.addAccess(shape.id, clientStore.state.username, { edit: true }, SyncTo.UI);
+        accessSystem.addAccess(
+            shape.id,
+            clientStore.state.username,
+            { edit: true, movement: true, vision: true },
+            SyncTo.UI,
+        );
 
         realShape.layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
     }

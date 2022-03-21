@@ -379,7 +379,12 @@ class DrawTool extends Tool {
             else if (this.state.selectedMode === DrawMode.Erase)
                 this.shape.globalCompositeOperation = "destination-out";
 
-            accessSystem.addAccess(this.shape.id, clientStore.state.username, { edit: true }, SyncTo.UI);
+            accessSystem.addAccess(
+                this.shape.id,
+                clientStore.state.username,
+                { edit: true, movement: true, vision: true },
+                SyncTo.UI,
+            );
             if (this.state.selectedMode === DrawMode.Normal) {
                 if (this.state.blocksMovement) {
                     this.shape.setBlocksMovement(true, SyncTo.UI, false);

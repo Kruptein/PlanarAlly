@@ -23,12 +23,12 @@ export class FowLightingLayer extends FowLayer {
         }
     }
 
-    removeShape(shape: IShape, sync: SyncMode, recalculate: boolean): boolean {
+    removeShape(shape: IShape, options: { sync: SyncMode; recalculate: boolean; dropShapeId: boolean }): boolean {
         let idx = -1;
         if (shape.options.preFogShape ?? false) {
             idx = this.preFogShapes.findIndex((s) => s.id === shape.id);
         }
-        const remove = super.removeShape(shape, sync, recalculate);
+        const remove = super.removeShape(shape, options);
         if (remove && idx >= 0) this.preFogShapes.splice(idx, 1);
         return remove;
     }

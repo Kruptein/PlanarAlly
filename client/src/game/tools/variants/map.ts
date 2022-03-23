@@ -80,7 +80,7 @@ class MapTool extends Tool {
         }
         if (this.rect !== undefined) {
             const layer = floorStore.currentLayer.value!;
-            layer.removeShape(this.rect, SyncMode.NO_SYNC, true);
+            layer.removeShape(this.rect, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
             this.rect = undefined;
             this.state.hasRect = false;
         }

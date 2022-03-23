@@ -83,7 +83,7 @@ export class ToggleComposite extends Shape {
         this.setActiveVariant(newVariant, true);
 
         const oldVariant = getShape(id)!;
-        oldVariant.layer.removeShape(oldVariant, SyncMode.FULL_SYNC, true);
+        oldVariant.layer.removeShape(oldVariant, { sync: SyncMode.FULL_SYNC, recalculate: true, dropShapeId: true });
     }
 
     private resetVariants(...variants: LocalId[]): void {

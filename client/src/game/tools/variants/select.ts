@@ -561,7 +561,7 @@ class SelectTool extends Tool implements ISelectTool {
 
             layerSelection = selectionState.get({ includeComposites: false });
 
-            layer.removeShape(this.selectionHelper!, SyncMode.NO_SYNC, true);
+            layer.removeShape(this.selectionHelper!, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
             this.selectionHelper = undefined;
 
             if (layerSelection.some((s) => !s.isLocked)) {
@@ -831,9 +831,9 @@ class SelectTool extends Tool implements ISelectTool {
     removeRotationUi(): void {
         if (this.rotationUiActive) {
             const layer = this.rotationAnchor!.layer;
-            layer.removeShape(this.rotationAnchor!, SyncMode.NO_SYNC, true);
-            layer.removeShape(this.rotationBox!, SyncMode.NO_SYNC, true);
-            layer.removeShape(this.rotationEnd!, SyncMode.NO_SYNC, true);
+            layer.removeShape(this.rotationAnchor!, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
+            layer.removeShape(this.rotationBox!, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
+            layer.removeShape(this.rotationEnd!, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
             this.rotationAnchor = this.rotationBox = this.rotationEnd = undefined;
             this.rotationUiActive = false;
 
@@ -880,7 +880,11 @@ class SelectTool extends Tool implements ISelectTool {
     removePolygonEditUi(): void {
         if (this.polygonTracer !== null) {
             const drawLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw)!;
-            drawLayer.removeShape(this.polygonTracer, SyncMode.NO_SYNC, false);
+            drawLayer.removeShape(this.polygonTracer, {
+                sync: SyncMode.NO_SYNC,
+                recalculate: false,
+                dropShapeId: true,
+            });
             drawLayer.invalidate(true);
             this.polygonTracer = null;
             this.polygonUiVisible.value = "hidden";

@@ -82,6 +82,15 @@ class TrackerSystem implements System {
         }
     }
 
+    private getOrCreate(id: LocalId): Tracker[] {
+        let idTrackers = this.data.get(id);
+        if (idTrackers === undefined) {
+            this.inform(id, []);
+            idTrackers = this.data.get(id)!;
+        }
+        return idTrackers;
+    }
+
     get(id: LocalId, trackerId: TrackerId, includeParent: boolean): DeepReadonly<Tracker> | undefined {
         return this.getAll(id, includeParent).find((t) => t.uuid === trackerId);
     }
@@ -101,7 +110,7 @@ class TrackerSystem implements System {
     add(id: LocalId, tracker: Tracker, syncTo: SyncTo): void {
         if (syncTo === SyncTo.SERVER) sendShapeCreateTracker(trackersToServer(getGlobalId(id), [tracker])[0]);
 
-        this.data.get(id)!.push(tracker);
+        this.getOrCreate(id).push(tracker);
 
         if (id === this._state.id) this.updateTrackerState();
 

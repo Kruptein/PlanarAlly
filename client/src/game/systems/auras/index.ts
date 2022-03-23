@@ -85,6 +85,15 @@ class AuraSystem implements System {
         }
     }
 
+    private getOrCreate(id: LocalId): Aura[] {
+        let idAuras = this.data.get(id);
+        if (idAuras === undefined) {
+            this.inform(id, []);
+            idAuras = this.data.get(id)!;
+        }
+        return idAuras;
+    }
+
     get(id: LocalId, auraId: AuraId, includeParent: boolean): DeepReadonly<Aura> | undefined {
         return this.getAll(id, includeParent).find((t) => t.uuid === auraId);
     }
@@ -104,7 +113,7 @@ class AuraSystem implements System {
     add(id: LocalId, aura: Aura, syncTo: SyncTo): void {
         if (syncTo === SyncTo.SERVER) sendShapeCreateAura(aurasToServer(getGlobalId(id), [aura])[0]);
 
-        this.data.get(id)!.push(aura);
+        this.getOrCreate(id).push(aura);
 
         if (id === this._state.id) this.updateAuraState();
 

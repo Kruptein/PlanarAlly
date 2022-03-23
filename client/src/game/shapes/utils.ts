@@ -277,7 +277,7 @@ export function deleteShapes(shapes: readonly IShape[], sync: SyncMode): void {
         removed.push(getGlobalId(sel.id));
         if (sel.blocksVision) recalculateVision = true;
         if (sel.blocksMovement) recalculateMovement = true;
-        sel.layer.removeShape(sel, SyncMode.NO_SYNC, recalculateIterative);
+        sel.layer.removeShape(sel, { sync: SyncMode.NO_SYNC, recalculate: recalculateIterative, dropShapeId: true });
     }
     if (sync !== SyncMode.NO_SYNC) sendRemoveShapes({ uuids: removed, temporary: sync === SyncMode.TEMP_SYNC });
     if (!recalculateIterative) {

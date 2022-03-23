@@ -172,7 +172,7 @@ export class Layer {
         this.addShape(shape, SyncMode.NO_SYNC, invalidate);
     }
 
-    removeShape(shape: IShape, sync: SyncMode, recalculate: boolean): boolean {
+    removeShape(shape: IShape, options: { sync: SyncMode; recalculate: boolean; dropShapeId: boolean }): boolean {
         const idx = this.shapes.indexOf(shape);
         if (idx < 0) {
             console.error("attempted to remove shape not in layer.");
@@ -192,18 +192,18 @@ export class Layer {
             removeGroupMember(shape.groupId, shape.id, false);
         }
 
-        if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
-            sendRemoveShapes({ uuids: [getGlobalId(shape.id)], temporary: sync === SyncMode.TEMP_SYNC });
+        if (options.sync !== SyncMode.NO_SYNC && !shape.preventSync)
+            sendRemoveShapes({ uuids: [getGlobalId(shape.id)], temporary: options.sync === SyncMode.TEMP_SYNC });
 
-        visionState.removeBlocker(TriangulationTarget.VISION, this.floor, shape, recalculate);
-        visionState.removeBlocker(TriangulationTarget.MOVEMENT, this.floor, shape, recalculate);
+        visionState.removeBlocker(TriangulationTarget.VISION, this.floor, shape, options.recalculate);
+        visionState.removeBlocker(TriangulationTarget.MOVEMENT, this.floor, shape, options.recalculate);
         visionState.removeVisionSources(this.floor, shape.id);
 
         gameStore.removeAnnotation(shape.id);
 
         gameStore.removeOwnedToken(shape.id);
 
-        dropId(shape.id);
+        if (options.dropShapeId) dropId(shape.id);
         gameStore.removeMarker(shape.id, true);
 
         for (const point of shape.points) {
@@ -215,7 +215,7 @@ export class Layer {
 
         if (this.isActiveLayer) selectionState.remove(shape.id);
 
-        if (sync === SyncMode.FULL_SYNC) initiativeStore.removeInitiative(shape.id, false);
+        if (options.sync === SyncMode.FULL_SYNC) initiativeStore.removeInitiative(shape.id, false);
         this.invalidate(!shape.triggersVisionRecalc);
         return true;
     }

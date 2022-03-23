@@ -89,7 +89,7 @@ class SpellTool extends Tool {
         if (this.shape !== undefined) {
             startPosition = this.shape.refPoint;
             const syncMode = this.state.showPublic !== syncChanged ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC;
-            layer.removeShape(this.shape, syncMode, false);
+            layer.removeShape(this.shape, { sync: syncMode, recalculate: false, dropShapeId: true });
         }
 
         switch (this.state.selectedSpellShape) {
@@ -140,7 +140,7 @@ class SpellTool extends Tool {
         const layer = floorStore.currentLayer.value!;
 
         if (this.rangeShape !== undefined) {
-            layer.removeShape(this.rangeShape, SyncMode.NO_SYNC, false);
+            layer.removeShape(this.rangeShape, { sync: SyncMode.NO_SYNC, recalculate: false, dropShapeId: true });
         }
 
         if (!selectionState.hasSelection || this.state.range === 0) return;
@@ -165,11 +165,19 @@ class SpellTool extends Tool {
         const layer = floorStore.currentLayer.value!;
 
         if (this.shape !== undefined) {
-            layer.removeShape(this.shape, this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC, false);
+            layer.removeShape(this.shape, {
+                sync: this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC,
+                recalculate: false,
+                dropShapeId: true,
+            });
             this.shape = undefined;
         }
         if (this.rangeShape !== undefined) {
-            layer.removeShape(this.rangeShape, this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC, false);
+            layer.removeShape(this.rangeShape, {
+                sync: this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC,
+                recalculate: false,
+                dropShapeId: true,
+            });
             this.rangeShape = undefined;
         }
     }
@@ -179,7 +187,11 @@ class SpellTool extends Tool {
         if (this.shape === undefined) return;
         const layer = floorStore.currentLayer.value!;
 
-        layer.removeShape(this.shape, this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC, false);
+        layer.removeShape(this.shape, {
+            sync: this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC,
+            recalculate: false,
+            dropShapeId: false,
+        });
         this.shape.isInvisible = !this.state.showPublic;
         layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NORMAL, { snappable: false });
         this.shape = undefined;
@@ -211,7 +223,11 @@ class SpellTool extends Tool {
         if (this.shape !== undefined) {
             const layer = floorStore.currentLayer.value!;
 
-            layer.removeShape(this.shape, this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC, false);
+            layer.removeShape(this.shape, {
+                sync: this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC,
+                recalculate: false,
+                dropShapeId: true,
+            });
             this.shape = undefined;
         }
         activateTool(ToolName.Select);

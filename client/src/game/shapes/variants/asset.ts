@@ -72,7 +72,7 @@ export class Asset extends BaseRect {
                 visionState.recalculateMovement(this._floor!);
                 visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: this.id });
             }
-            this.layer.removeShape(cover, SyncMode.NO_SYNC, false);
+            this.layer.removeShape(cover, { sync: SyncMode.NO_SYNC, recalculate: false, dropShapeId: true });
             this.invalidate(false);
         }
     }

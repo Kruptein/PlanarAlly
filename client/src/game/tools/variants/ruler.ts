@@ -180,8 +180,10 @@ class RulerTool extends Tool {
         }
         this.active = false;
 
-        for (const ruler of this.rulers) layer.removeShape(ruler, this.syncMode, true);
-        layer.removeShape(this.text, this.syncMode, true);
+        for (const ruler of this.rulers) {
+            layer.removeShape(ruler, { sync: this.syncMode, recalculate: true, dropShapeId: true });
+        }
+        layer.removeShape(this.text, { sync: this.syncMode, recalculate: true, dropShapeId: true });
         this.startPoint = this.text = undefined;
         this.rulers = [];
         this.previousLength = 0;

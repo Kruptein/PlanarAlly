@@ -214,11 +214,15 @@ class DrawTool extends Tool {
         // Removal
 
         if (oldValue === DrawMode.Normal) {
-            normalLayer.removeShape(this.brushHelper, SyncMode.NO_SYNC, true);
+            normalLayer.removeShape(this.brushHelper, {
+                sync: SyncMode.NO_SYNC,
+                recalculate: true,
+                dropShapeId: false,
+            });
         } else if (oldValue === DrawMode.Erase) {
-            mapLayer.removeShape(this.brushHelper, SyncMode.NO_SYNC, true);
+            mapLayer.removeShape(this.brushHelper, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: false });
         } else {
-            fowLayer.removeShape(this.brushHelper, SyncMode.NO_SYNC, true);
+            fowLayer.removeShape(this.brushHelper, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: false });
         }
 
         // Adding
@@ -275,20 +279,20 @@ class DrawTool extends Tool {
         const layer = this.getLayer(data);
         if (layer === undefined) return;
         if (this.brushHelper !== undefined) {
-            layer.removeShape(this.brushHelper, SyncMode.NO_SYNC, true);
+            layer.removeShape(this.brushHelper, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
             this.brushHelper = undefined;
         }
         if (this.pointer !== undefined) {
             const drawLayer = floorStore.getLayer(data?.floor ?? floorStore.currentFloor.value!, LayerName.Draw);
-            drawLayer!.removeShape(this.pointer, SyncMode.NO_SYNC, true);
+            drawLayer!.removeShape(this.pointer, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
             this.pointer = undefined;
         }
         if (this.ruler !== undefined) {
-            layer.removeShape(this.ruler, SyncMode.NO_SYNC, true);
+            layer.removeShape(this.ruler, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
             this.ruler = undefined;
         }
         if (this.active && this.shape !== undefined) {
-            layer.removeShape(this.shape, SyncMode.FULL_SYNC, true);
+            layer.removeShape(this.shape, { sync: SyncMode.FULL_SYNC, recalculate: true, dropShapeId: true });
             this.shape = undefined;
             this.active = false;
             layer.invalidate(false);
@@ -572,7 +576,7 @@ class DrawTool extends Tool {
                 console.log("No active layer!");
                 return;
             }
-            layer.removeShape(this.ruler!, SyncMode.NO_SYNC, true);
+            layer.removeShape(this.ruler!, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
             this.ruler = undefined;
             if (this.state.isClosedPolygon) {
                 const points = this.shape.points; // expensive call
@@ -660,7 +664,9 @@ class DrawTool extends Tool {
         }
         const refPoint = this.brushHelper?.refPoint;
         const bs = this.brushHelper?.r;
-        if (this.brushHelper !== undefined) layer.removeShape(this.brushHelper, SyncMode.NO_SYNC, true);
+        if (this.brushHelper !== undefined) {
+            layer.removeShape(this.brushHelper, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
+        }
         this.brushHelper = this.createBrush(toGP(-1000, -1000), bs);
         this.setupBrush();
         layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false }); // during mode change the shape is already added

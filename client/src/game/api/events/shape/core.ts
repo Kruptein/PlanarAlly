@@ -19,7 +19,7 @@ socket.on("Shape.Set", (data: ServerShape) => {
     const old = getShapeFromGlobal(data.uuid);
     const isActive = activeShapeStore.state.id === getLocalId(data.uuid);
     const hasEditDialogOpen = isActive && activeShapeStore.state.showEditDialog;
-    if (old) old.layer.removeShape(old, SyncMode.NO_SYNC, true);
+    if (old) old.layer.removeShape(old, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
     const shape = addShape(data, SyncMode.NO_SYNC);
 
     if (shape && isActive) {

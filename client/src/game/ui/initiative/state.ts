@@ -100,7 +100,7 @@ class InitiativeStore extends Store<InitiativeState> {
         } else {
             actor.initiative = initiative;
         }
-        sendInitiativeAdd(actor);
+        sendInitiativeAdd({ ...actor, shape: getGlobalId(actor.shape) });
     }
 
     setInitiative(shapeId: LocalId, value: number, sync: boolean): void {
@@ -285,11 +285,11 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     owns(shapeId?: LocalId): boolean {
+        if (gameStore.state.isDm) return true;
         if (shapeId === undefined) {
             shapeId = this._state.locationData[this._state.turnCounter]?.shape;
             if (shapeId === undefined) return false;
         }
-        if (gameStore.state.isDm) return true;
         return accessSystem.hasAccessTo(shapeId, false, { edit: true });
     }
 

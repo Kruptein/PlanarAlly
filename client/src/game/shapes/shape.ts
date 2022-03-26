@@ -332,6 +332,8 @@ export abstract class Shape implements IShape {
     }
 
     drawSelection(ctx: CanvasRenderingContext2D): void {
+        const ogOp = this.layer.ctx.globalCompositeOperation;
+        if (ogOp !== "source-over") this.layer.ctx.globalCompositeOperation = "source-over";
         const bb = this.getBoundingBox();
         ctx.beginPath();
         ctx.moveTo(g2lx(bb.points[0][0]), g2ly(bb.points[0][1]));
@@ -359,6 +361,8 @@ export abstract class Shape implements IShape {
             ctx.lineTo(g2lx(vertex[0]), g2ly(vertex[1]));
         }
         ctx.stroke();
+
+        if (ogOp !== "source-over") this.layer.ctx.globalCompositeOperation = ogOp;
     }
 
     // VISION

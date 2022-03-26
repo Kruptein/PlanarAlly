@@ -26,7 +26,7 @@ export interface ITool {
     readonly toolTranslation: string;
 
     alert: Ref<boolean>;
-    active: boolean;
+    active: Ref<boolean>;
     scaling: boolean;
 
     permittedTools: ToolPermission[];

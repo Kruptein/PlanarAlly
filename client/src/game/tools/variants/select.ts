@@ -146,7 +146,7 @@ class SelectTool extends Tool implements ISelectTool {
             }
 
             // polygon edit ui logic
-            if (selection.size !== 1) {
+            if (this.active.value || selection.size !== 1) {
                 this.removePolygonEditUi();
             } else {
                 const features = getFeatures(this.toolName);
@@ -381,7 +381,7 @@ class SelectTool extends Tool implements ISelectTool {
         if (this.checkRuler()) {
             rulerTool.onDown(lp, event);
         }
-        if (this.mode !== SelectOperations.Noop) this.active = true;
+        if (this.mode !== SelectOperations.Noop) this.active.value = true;
     }
 
     async onMove(
@@ -419,7 +419,7 @@ class SelectTool extends Tool implements ISelectTool {
 
         // We require move for the resize and rotate cursors
         if (
-            !this.active &&
+            !this.active.value &&
             !(
                 this.hasFeature(SelectFeatures.Resize, features) ||
                 this.hasFeature(SelectFeatures.Rotate, features) ||
@@ -517,8 +517,8 @@ class SelectTool extends Tool implements ISelectTool {
             return;
         }
 
-        if (!this.active) return;
-        this.active = false;
+        if (!this.active.value) return;
+        this.active.value = false;
 
         if (floorStore.currentLayer === undefined) {
             console.log("No active layer!");
@@ -768,7 +768,7 @@ class SelectTool extends Tool implements ISelectTool {
 
     onKeyUp(event: KeyboardEvent, features: ToolFeatures): void {
         if (event.defaultPrevented) return;
-        if (event.key === " " && this.active) {
+        if (event.key === " " && this.active.value) {
             event.preventDefault();
         }
         super.onKeyUp(event, features);

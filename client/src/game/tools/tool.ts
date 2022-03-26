@@ -12,7 +12,7 @@ export abstract class Tool implements ITool {
     abstract readonly toolName: ToolName;
     abstract readonly toolTranslation: string;
 
-    active = false;
+    active = ref(false);
     scaling = false;
     alert = ref(false);
 

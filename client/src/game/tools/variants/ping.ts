@@ -28,10 +28,10 @@ class PingTool extends Tool {
     }
 
     cleanup(): void {
-        if (!this.active || this.ping === undefined || this.border === undefined || this.startPoint === undefined)
+        if (!this.active.value || this.ping === undefined || this.border === undefined || this.startPoint === undefined)
             return;
 
-        this.active = false;
+        this.active.value = false;
         deleteShapes([this.ping, this.border], SyncMode.TEMP_SYNC);
         this.ping = undefined;
         this.startPoint = undefined;
@@ -52,7 +52,7 @@ class PingTool extends Tool {
             return;
         }
 
-        this.active = true;
+        this.active.value = true;
         this.ping = new Circle(this.startPoint, 20, { fillColour: clientStore.state.rulerColour });
         this.border = new Circle(this.startPoint, 40, {
             fillColour: "#0000",
@@ -78,7 +78,7 @@ class PingTool extends Tool {
 
     // eslint-disable-next-line @typescript-eslint/require-await
     async onMove(lp: LocalPoint): Promise<void> {
-        if (!this.active || this.ping === undefined || this.border === undefined || this.startPoint === undefined)
+        if (!this.active.value || this.ping === undefined || this.border === undefined || this.startPoint === undefined)
             return;
 
         const gp = l2g(lp);

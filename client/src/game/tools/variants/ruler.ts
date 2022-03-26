@@ -86,7 +86,7 @@ class RulerTool extends Tool {
             console.log("No draw layer!");
             return;
         }
-        this.active = true;
+        this.active.value = true;
         this.createNewRuler(cloneP(this.startPoint), cloneP(this.startPoint));
         this.text = new Text(cloneP(this.startPoint), "", 20, {
             fillColour: "#000",
@@ -105,7 +105,7 @@ class RulerTool extends Tool {
     // eslint-disable-next-line @typescript-eslint/require-await
     async onMove(lp: LocalPoint, event: MouseEvent | TouchEvent): Promise<void> {
         let endPoint = l2g(lp);
-        if (!this.active || this.rulers.length === 0 || this.startPoint === undefined || this.text === undefined)
+        if (!this.active.value || this.rulers.length === 0 || this.startPoint === undefined || this.text === undefined)
             return;
 
         const layer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
@@ -149,7 +149,7 @@ class RulerTool extends Tool {
 
     onKeyUp(event: KeyboardEvent, features: ToolFeatures): void {
         if (event.defaultPrevented) return;
-        if (event.key === " " && this.active) {
+        if (event.key === " " && this.active.value) {
             const lastRuler = this.rulers.at(-1)!;
             this.createNewRuler(lastRuler.endPoint, lastRuler.endPoint);
             this.previousLength += this.currentLength;
@@ -170,7 +170,7 @@ class RulerTool extends Tool {
     // HELPERS
 
     private cleanup(): void {
-        if (!this.active || this.rulers.length === 0 || this.startPoint === undefined || this.text === undefined)
+        if (!this.active.value || this.rulers.length === 0 || this.startPoint === undefined || this.text === undefined)
             return;
 
         const layer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
@@ -178,7 +178,7 @@ class RulerTool extends Tool {
             console.log("No active layer!");
             return;
         }
-        this.active = false;
+        this.active.value = false;
 
         for (const ruler of this.rulers) {
             layer.removeShape(ruler, { sync: this.syncMode, recalculate: true, dropShapeId: true });

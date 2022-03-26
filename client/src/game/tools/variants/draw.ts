@@ -131,7 +131,7 @@ class DrawTool extends Tool {
             },
         );
         watchEffect(() => {
-            if (this.shape !== undefined && this.active) {
+            if (this.shape !== undefined && this.active.value) {
                 (this.shape as Polygon).openPolygon = !this.state.isClosedPolygon;
             }
         });
@@ -179,7 +179,7 @@ class DrawTool extends Tool {
         if (this.state.isDoor) {
             doorSystem.toggle(this.shape.id, true, SyncTo.SERVER);
         }
-        this.active = false;
+        this.active.value = false;
         const layer = this.getLayer();
         if (layer !== undefined) {
             layer.invalidate(false);
@@ -291,10 +291,10 @@ class DrawTool extends Tool {
             layer.removeShape(this.ruler, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
             this.ruler = undefined;
         }
-        if (this.active && this.shape !== undefined) {
+        if (this.active.value && this.shape !== undefined) {
             layer.removeShape(this.shape, { sync: SyncMode.FULL_SYNC, recalculate: true, dropShapeId: true });
             this.shape = undefined;
-            this.active = false;
+            this.active.value = false;
             layer.invalidate(false);
         }
         layer.canvas.parentElement!.style.removeProperty("cursor");
@@ -312,9 +312,9 @@ class DrawTool extends Tool {
         }
         if (this.brushHelper === undefined) return;
 
-        if (!this.active) {
+        if (!this.active.value) {
             this.startPoint = startPoint;
-            this.active = true;
+            this.active.value = true;
             switch (this.state.selectedShape) {
                 case DrawShape.Square: {
                     this.shape = new Rect(cloneP(startPoint), 0, 0, {
@@ -357,7 +357,7 @@ class DrawTool extends Tool {
                     event.preventDefault();
                     const text = await this.promptFunction!("What should the text say?", "New text");
                     if (text === undefined) {
-                        this.active = false;
+                        this.active.value = false;
                         return;
                     }
                     this.shape = new Text(cloneP(this.brushHelper.refPoint), text, this.state.fontSize, {
@@ -468,10 +468,10 @@ class DrawTool extends Tool {
         if (this.brushHelper !== undefined) {
             this.brushHelper.r = this.helperSize;
             this.brushHelper.refPoint = endPoint;
-            if (!this.active) layer.invalidate(false);
+            if (!this.active.value) layer.invalidate(false);
         }
 
-        if (!this.active || this.startPoint === undefined || this.shape === undefined) return;
+        if (!this.active.value || this.startPoint === undefined || this.shape === undefined) return;
 
         switch (this.state.selectedShape) {
             case DrawShape.Square: {
@@ -531,7 +531,7 @@ class DrawTool extends Tool {
     // eslint-disable-next-line @typescript-eslint/require-await
     async onUp(lp: LocalPoint, event: MouseEvent | TouchEvent): Promise<void> {
         if (
-            !this.active ||
+            !this.active.value ||
             this.shape === undefined ||
             (this.shape instanceof Polygon && this.state.selectedShape === DrawShape.Polygon)
         ) {
@@ -566,7 +566,7 @@ class DrawTool extends Tool {
 
     onContextMenu(event: MouseEvent): void {
         if (
-            this.active &&
+            this.active.value &&
             this.shape !== undefined &&
             this.state.selectedShape === DrawShape.Polygon &&
             this.shape instanceof Polygon
@@ -586,14 +586,14 @@ class DrawTool extends Tool {
                     visionState.insertConstraint(TriangulationTarget.MOVEMENT, this.shape, points[0], points.at(-1)!);
             }
             this.finaliseShape();
-        } else if (!this.active) {
+        } else if (!this.active.value) {
             openDefaultContextMenu(event);
         }
     }
 
     onKeyUp(event: KeyboardEvent, features: ToolFeatures): void {
         if (event.defaultPrevented) return;
-        if (event.key === "Escape" && this.active) {
+        if (event.key === "Escape" && this.active.value) {
             let mouse: { x: number; y: number } | undefined = undefined;
             if (this.brushHelper !== undefined) {
                 mouse = { x: this.brushHelper.refPoint.x, y: this.brushHelper.refPoint.y };

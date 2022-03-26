@@ -32,6 +32,7 @@ For server owners using a subpath, some important changes are made, so make sure
 -   Draw tool UI now has a tabbed interface
     -   a shape tab to configure shape and colours
     -   a visibility tab to configure advanced vision modes as well as blocksVision and blocksMovement changes
+-   Polygon edit tool will hide UI while dragging a point/shape
 -   [server] Change subpath handling
     -   the client now MUST also set the PA_BASEPATH env variable in production mode
     -   this means the env variable needs to be set at build time

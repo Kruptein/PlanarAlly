@@ -52,6 +52,7 @@ For server owners using a subpath, some important changes are made, so make sure
 -   Fix assets becoming invisible when using a subpath setup (only applies to new assets)
 -   Fix colour picker not allowing to change the rgba/hsla/hex values manually
 -   Account removal not properly redirecting to login
+-   Selecting a shape that was drawn in reveal mode no longer removes shadow during selection
 -   [asset-manager] Asset manager would not check for stale files when removing a folder
 
 ### Performance

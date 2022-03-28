@@ -165,7 +165,7 @@ async def assetmgmt_rm(sid: str, data):
         logger.warning(f"{user.name} attempted to remove a file it doesn't own.")
         return
     asset_dict = asset.as_dict(children=True, recursive=True)
-    asset.delete_instance(recursive=True, delete_nullable=True)
+    asset.delete_instance()
 
     await update_live_game(user)
     cleanup_assets([asset_dict])

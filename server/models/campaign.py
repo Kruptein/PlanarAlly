@@ -62,7 +62,7 @@ class Room(BaseModel):
     invitation_code = TextField(default=uuid.uuid4, unique=True)
     is_locked = BooleanField(default=False)
     default_options = ForeignKeyField(LocationOptions, on_delete="CASCADE")
-    logo = ForeignKeyField(Asset, null=True, on_delete="CASCADE")
+    logo = ForeignKeyField(Asset, null=True, on_delete="SET NULL")
 
     def __repr__(self):
         return f"<Room {self.get_path()}>"

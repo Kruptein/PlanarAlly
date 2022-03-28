@@ -13,7 +13,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 69
+SAVE_VERSION = 70
 
 import json
 import logging
@@ -55,187 +55,14 @@ def check_existence() -> bool:
 
 
 def upgrade(version):
-    if version < 49:
+    if version < 61:
         raise OldVersionException(
             f"Upgrade code for this version is >1 year old and is no longer in the active codebase to reduce clutter. You can still find this code on github, contact me for more info."
         )
 
     db.foreign_keys = False
 
-    if version == 49:
-        # Extend Aura
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE aura ADD COLUMN active INTEGER NOT NULL DEFAULT 1"
-            )
-            db.execute_sql(
-                "ALTER TABLE aura ADD COLUMN border_colour TEXT NOT NULL DEFAULT 'rgba(0,0,0,0)'"
-            )
-            db.execute_sql(
-                "ALTER TABLE aura ADD COLUMN angle INTEGER NOT NULL DEFAULT 360"
-            )
-            db.execute_sql(
-                "ALTER TABLE aura ADD COLUMN direction INTEGER NOT NULL DEFAULT 0"
-            )
-    elif version == 50:
-        # Add Location.archived
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE location ADD COLUMN archived INTEGER NOT NULL DEFAULT 0"
-            )
-    elif version == 51:
-        # Add Circle.viewing_angle
-        with db.atomic():
-            db.execute_sql("ALTER TABLE circle ADD COLUMN viewing_angle REAL")
-            db.execute_sql("ALTER TABLE circular_token ADD COLUMN viewing_angle REAL")
-    elif version == 52:
-        # Move user customisable settings to a separate UserOptions table
-        # Add a default_options field to User and user_options to PlayerRoom
-
-        with db.atomic():
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "user_options" ("id" INTEGER NOT NULL PRIMARY KEY, "fow_colour" TEXT DEFAULT "#000", "grid_colour" TEXT DEFAULT "#000", "ruler_colour" TEXT DEFAULT "#F00", "invert_alt" INTEGER DEFAULT 0, "grid_size" INTEGER DEFAULT 50)'
-            )
-
-            # Add PlayerRoom.user_options
-            db.execute_sql(
-                "CREATE TEMPORARY TABLE _player_room_52 AS SELECT * FROM player_room"
-            )
-            db.execute_sql("DROP TABLE player_room")
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "player_room" ("id" INTEGER NOT NULL PRIMARY KEY, "role" INTEGER DEFAULT 0, "player_id" INTEGER NOT NULL, "room_id" INTEGER NOT NULL, "active_location_id" INTEGER NOT NULL, "user_options_id" INTEGER, FOREIGN KEY ("player_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("room_id") REFERENCES "room" ("id") ON DELETE CASCADE, FOREIGN KEY ("active_location_id") REFERENCES "location" ("id") ON DELETE CASCADE, FOREIGN KEY ("user_options_id") REFERENCES "user_options" ("id") ON DELETE CASCADE)'
-            )
-            db.execute_sql(
-                "INSERT INTO player_room (id, role, player_id, room_id, active_location_id) SELECT id, role, player_id, room_id, active_location_id FROM _player_room_52"
-            )
-
-            # Add User.default_options
-            db.execute_sql("CREATE TEMPORARY TABLE _user_52 AS SELECT * FROM user")
-            db.execute_sql("DROP TABLE user")
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "user" ("id" INTEGER NOT NULL PRIMARY KEY, "name" TEXT NOT NULL, "email" TEXT, "password_hash" TEXT NOT NULL, "default_options_id" INTEGER NOT NULL, FOREIGN KEY ("default_options_id") REFERENCES "user_options" ("id") ON DELETE CASCADE)'
-            )
-
-            data = db.execute_sql("SELECT * FROM _user_52")
-            for row in data.fetchall():
-                (
-                    id_,
-                    name,
-                    email,
-                    password_hash,
-                    fow_colour,
-                    grid_colour,
-                    ruler_colour,
-                    invert_alt,
-                    grid_size,
-                ) = row
-                default_id = db.execute_sql(
-                    "INSERT INTO user_options (fow_colour, grid_colour, ruler_colour, invert_alt, grid_size) VALUES (?, ?, ?, ?, ?)",
-                    (fow_colour, grid_colour, ruler_colour, invert_alt, grid_size),
-                ).lastrowid
-                db.execute_sql(
-                    "INSERT INTO user (id, name, email, password_hash, default_options_id) VALUES (?, ?, ?, ?, ?)",
-                    (id_, name, email, password_hash, default_id),
-                )
-
-            db.execute_sql("DROP TABLE _player_room_52")
-            db.execute_sql("DROP TABLE _user_52")
-    elif version == 53:
-        # Add UserOptions.disable_scroll_to_zoom
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN disable_scroll_to_zoom INTEGER DEFAULT 0"
-            )
-            data = db.execute_sql(
-                "UPDATE user_options SET disable_scroll_to_zoom = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
-            )
-    elif version == 54:
-        # Add Shape.ignore_zoom_size
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE shape ADD COLUMN ignore_zoom_size INTEGER DEFAULT 0"
-            )
-    elif version == 55:
-        # Remove Text.font and add Text.font_size
-        with db.atomic():
-            db.execute_sql("CREATE TEMPORARY TABLE _text_55 AS SELECT * FROM text")
-            db.execute_sql("DROP TABLE text")
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "text" ("shape_id" TEXT NOT NULL PRIMARY KEY, "text" TEXT NOT NULL, "font_size" INTEGER NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE);'
-            )
-            db.execute_sql(
-                "INSERT INTO text (shape_id, text, font_size) SELECT shape_id, text, 20 FROM _text_55"
-            )
-
-    elif version == 56:
-        # Add defeated toggle to shapes
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE shape ADD COLUMN is_defeated INTEGER NOT NULL DEFAULT 0"
-            )
-    elif version == 57:
-        # Add Room.logo, PlayerRoom.notes and PlayerRoom.last_played
-        with db.atomic():
-            db.execute_sql("CREATE TEMPORARY TABLE _room_57 AS SELECT * FROM room")
-            db.execute_sql("DROP TABLE room")
-            db.execute_sql(
-                'CREATE TABLE "room" ("id" INTEGER NOT NULL PRIMARY KEY, "name" TEXT NOT NULL, "creator_id" INTEGER NOT NULL, "invitation_code" TEXT NOT NULL, "is_locked" INTEGER NOT NULL, "default_options_id" INTEGER NOT NULL, "logo_id" INTEGER, FOREIGN KEY ("creator_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("default_options_id") REFERENCES "location_options" ("id") ON DELETE CASCADE, FOREIGN KEY ("logo_id") REFERENCES "asset" ("id") ON DELETE CASCADE)'
-            )
-            db.execute_sql(
-                'INSERT INTO "room" ("id", name, creator_id, invitation_code, is_locked, default_options_id) SELECT "id", name, creator_id, invitation_code, is_locked, default_options_id FROM _room_57'
-            )
-
-            db.execute_sql(
-                'ALTER TABLE player_room ADD COLUMN notes TEXT NOT NULL DEFAULT ""'
-            )
-            db.execute_sql("ALTER TABLE player_room ADD COLUMN last_played TEXT")
-    elif version == 58:
-        # Add additional fields to trackers for drawing bars on tokens
-        with db.atomic():
-            db.execute_sql("ALTER TABLE tracker ADD COLUMN draw Boolean DEFAULT FALSE")
-            db.execute_sql(
-                "ALTER TABLE tracker ADD COLUMN primary_color TEXT DEFAULT '#00FF00'"
-            )
-            db.execute_sql(
-                "ALTER TABLE tracker ADD COLUMN secondary_color TEXT DEFAULT '#888888'"
-            )
-    elif version == 59:
-        # Fix Trackers.draw type
-        with db.atomic():
-            db.execute_sql(
-                "CREATE TEMPORARY TABLE _tracker_59 AS SELECT * FROM tracker"
-            )
-            db.execute_sql("DROP TABLE tracker")
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "tracker" ("uuid" TEXT NOT NULL PRIMARY KEY, "shape_id" TEXT NOT NULL, "visible" INTEGER NOT NULL, "name" TEXT NOT NULL, "value" INTEGER NOT NULL, "maxvalue" INTEGER NOT NULL, draw INTEGER NOT NULL DEFAULT 0, primary_color TEXT DEFAULT \'#00FF00\', secondary_color TEXT DEFAULT \'#888888\', FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)'
-            )
-            db.execute_sql(
-                'INSERT INTO "tracker" ("uuid", shape_id, visible, name, value, maxvalue, draw, primary_color, secondary_color) SELECT "uuid", shape_id, visible, name, value, maxvalue, 0, primary_color, secondary_color FROM _tracker_59'
-            )
-    elif version == 60:
-        # Fix Room.logo NOT NULL error
-        # Fix PlayerRoom.notes having no default value
-        with db.atomic():
-            db.execute_sql("CREATE TEMPORARY TABLE _room_60 AS SELECT * FROM room")
-            db.execute_sql("DROP TABLE room")
-            db.execute_sql(
-                'CREATE TABLE "room" ("id" INTEGER NOT NULL PRIMARY KEY, "name" TEXT NOT NULL, "creator_id" INTEGER NOT NULL, "invitation_code" TEXT NOT NULL, "is_locked" INTEGER NOT NULL, "default_options_id" INTEGER NOT NULL, "logo_id" INTEGER, FOREIGN KEY ("creator_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("default_options_id") REFERENCES "location_options" ("id") ON DELETE CASCADE, FOREIGN KEY ("logo_id") REFERENCES "asset" ("id") ON DELETE CASCADE)'
-            )
-            db.execute_sql(
-                'INSERT INTO "room" ("id", name, creator_id, invitation_code, is_locked, default_options_id, logo_id) SELECT "id", name, creator_id, invitation_code, is_locked, default_options_id, logo_id FROM _room_60'
-            )
-
-            db.execute_sql(
-                "CREATE TEMPORARY TABLE _player_room_60 AS SELECT * FROM player_room"
-            )
-            db.execute_sql("DROP TABLE player_room")
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "player_room" ("id" INTEGER NOT NULL PRIMARY KEY, "role" INTEGER DEFAULT 0, "player_id" INTEGER NOT NULL, "room_id" INTEGER NOT NULL, "active_location_id" INTEGER NOT NULL, "user_options_id" INTEGER, "notes" TEXT, "last_played" TEXT, FOREIGN KEY ("player_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("room_id") REFERENCES "room" ("id") ON DELETE CASCADE, FOREIGN KEY ("active_location_id") REFERENCES "location" ("id") ON DELETE CASCADE, FOREIGN KEY ("user_options_id") REFERENCES "user_options" ("id") ON DELETE CASCADE)'
-            )
-            db.execute_sql(
-                "INSERT INTO player_room (id, role, player_id, room_id, active_location_id, notes, last_played) SELECT id, role, player_id, room_id, active_location_id, notes, last_played FROM _player_room_60"
-            )
-    elif version == 61:
+    if version == 61:
         # Initiative changes
         # Add UserOptions initiative settings
         with db.atomic():
@@ -422,6 +249,17 @@ def upgrade(version):
                         "UPDATE shape SET options=? WHERE uuid=?",
                         (json.dumps(unpacked_options), uuid),
                     )
+    elif version == 69:
+        # Change Room.logo on_delete logic from cascade to set null
+        with db.atomic():
+            db.execute_sql("CREATE TEMPORARY TABLE _room_69 AS SELECT * FROM room")
+            db.execute_sql("DROP TABLE room")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "room" ("id" INTEGER NOT NULL PRIMARY KEY, "name" TEXT NOT NULL, "creator_id" INTEGER NOT NULL, "invitation_code" TEXT NOT NULL, "is_locked" INTEGER NOT NULL, "default_options_id" INTEGER NOT NULL, "logo_id" INTEGER, FOREIGN KEY ("creator_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("default_options_id") REFERENCES "location_options" ("id") ON DELETE CASCADE, FOREIGN KEY ("logo_id") REFERENCES "asset" ("id") ON DELETE SET NULL);'
+            )
+            db.execute_sql(
+                'INSERT INTO "room" (id, name, creator_id, invitation_code, is_locked, default_options_id, logo_id) SELECT id, name, creator_id, invitation_code, is_locked, default_options_id, logo_id FROM _room_69'
+            )
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

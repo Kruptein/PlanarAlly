@@ -31,12 +31,12 @@ export type LocalPoint = Point & { __brand: "LocalPoint" };
 export function toGP(array: [number, number]): GlobalPoint;
 export function toGP(x: number, y: number): GlobalPoint;
 export function toGP(first: number | [number, number], second?: number): GlobalPoint {
-    if (first instanceof Array) return { x: first[0], y: first[1], __brand: "GlobalPoint" };
-    return { x: first, y: second!, __brand: "GlobalPoint" };
+    if (first instanceof Array) return { x: first[0], y: first[1] } as GlobalPoint;
+    return { x: first, y: second! } as GlobalPoint;
 }
 
 export function toLP(x: number, y: number): LocalPoint {
-    return { x, y, __brand: "LocalPoint" };
+    return { x, y } as LocalPoint;
 }
 
 export function toArrayP<T extends Point>(a: T): [number, number] {

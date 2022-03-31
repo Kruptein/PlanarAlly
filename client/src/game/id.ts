@@ -15,7 +15,10 @@ const uuids: GlobalId[] = [];
 const idMap: Map<LocalId, IShape> = new Map();
 (window as any).idMap = idMap;
 
-let lastId = -1;
+// we're not giving id 0 on purpose to prevent potential unsafe if checks against this
+// Usually our explicit undefined check catches this, but because of our LocalId typing
+// this can go wrong, preventing 0 from being obtainable solves a lot of future headaches.
+let lastId = 0;
 const freeIds: LocalId[] = [];
 const reservedIds: Map<GlobalId, LocalId> = new Map();
 

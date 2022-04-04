@@ -74,6 +74,7 @@ class FloorStore extends Store<FloorState> {
         this._state.floorIndex = -1 as FloorId;
         this._state.layerIndex = -1;
         this.layerMap.clear();
+        this.lastFloorId = 0;
     }
 
     // FLOOR

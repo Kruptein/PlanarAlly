@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRouter } from "vue-router";
 
 import type { AssetFile } from "../../../core/models/types";
 import { baseAdjust, uuidv4 } from "../../../core/utils";
 import { gameStore } from "../../../store/game";
 import { uiStore } from "../../../store/ui";
+import { clearGame } from "../../clear";
 import { getShape } from "../../id";
 import type { LocalId } from "../../id";
 import type { Note } from "../../models/general";
@@ -13,6 +15,7 @@ import NoteDialog from "../NoteDialog.vue";
 
 import AssetParentNode from "./AssetParentNode.vue";
 
+const router = useRouter();
 const { t } = useI18n();
 
 const showNote = ref(false);
@@ -27,6 +30,11 @@ const markers = toRef(gameState, "markers");
 const noAssets = computed(() => {
     return gameState.assets.size === 1 && (gameState.assets.get("__files") as AssetFile[]).length <= 0;
 });
+
+async function exit(): Promise<void> {
+    clearGame();
+    await router.push({ name: "dashboard" });
+}
 
 function settingsClick(event: MouseEvent): void {
     const target = event.target as HTMLDivElement;
@@ -134,13 +142,13 @@ const openClientSettings = (): void => uiStore.showClientSettings(!uiStore.state
                 {{ t("game.ui.menu.MenuBar.client_settings") }}
             </button>
         </div>
-        <router-link
-            to="/dashboard"
+        <div
+            @click="exit"
             class="menu-accordion"
             style="width: 200px; box-sizing: border-box; text-decoration: none; display: inline-block"
         >
             {{ t("common.exit") }}
-        </router-link>
+        </div>
     </div>
 </template>
 

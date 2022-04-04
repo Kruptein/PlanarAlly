@@ -56,6 +56,7 @@ For server owners using a subpath, some important changes are made, so make sure
 -   Selecting a shape that was drawn in reveal mode no longer removes shadow during selection
 -   Removing an asset would remove any campaign using it as their logo
 -   Aura direction number input not synching change to server
+-   Some memory leaks when changing locations
 -   [asset-manager] Asset manager would not check for stale files when removing a folder
 
 ### Performance

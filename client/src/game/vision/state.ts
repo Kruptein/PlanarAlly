@@ -47,6 +47,7 @@ class VisionState extends Store<State> {
         this.visionBlockers.clear();
         this.movementBlockers.clear();
         this.visionSources.clear();
+        this.cdt.clear();
     }
 
     setVisionMode(mode: VisibilityMode, sync: boolean): void {

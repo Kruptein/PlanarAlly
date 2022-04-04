@@ -10,7 +10,7 @@ export type GlobalId = string & { __brand: "globalId" };
 export type LocalId = number & { __brand: "localId" };
 
 // Array of GlobalId indexed by localId
-const uuids: GlobalId[] = [];
+let uuids: GlobalId[] = [];
 
 const idMap: Map<LocalId, IShape> = new Map();
 (window as any).idMap = idMap;
@@ -19,8 +19,16 @@ const idMap: Map<LocalId, IShape> = new Map();
 // Usually our explicit undefined check catches this, but because of our LocalId typing
 // this can go wrong, preventing 0 from being obtainable solves a lot of future headaches.
 let lastId = 0;
-const freeIds: LocalId[] = [];
+let freeIds: LocalId[] = [];
 const reservedIds: Map<GlobalId, LocalId> = new Map();
+
+export function clearIds(): void {
+    uuids = [];
+    idMap.clear();
+    lastId = 0;
+    freeIds = [];
+    reservedIds.clear();
+}
 
 function generateId(): LocalId {
     return freeIds.pop() ?? (++lastId as LocalId);

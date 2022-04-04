@@ -30,16 +30,14 @@ import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
 import { locationStore } from "../../store/location";
 import { convertAssetListToMap } from "../assets/utils";
-import { startDrawLoop, stopDrawLoop } from "../draw";
+import { clearGame } from "../clear";
+import { startDrawLoop } from "../draw";
 import { getLocalId, getShapeFromGlobal } from "../id";
 import type { GlobalId } from "../id";
-import { compositeState } from "../layers/state";
 import type { Note, ServerFloor } from "../models/general";
 import type { Location } from "../models/settings";
 import { setCenterPosition } from "../position";
 import { deleteShapes } from "../shapes/utils";
-import { initiativeStore } from "../ui/initiative/state";
-import { visionState } from "../vision/state";
 
 import { sendClientLocationOptions } from "./emits/client";
 import { activeLayerToselect } from "./events/client";
@@ -76,14 +74,8 @@ socket.on("redirect", (destination: string) => {
 // Bootup events
 
 socket.on("Board.Locations.Set", (locationInfo: Location[]) => {
-    stopDrawLoop();
-    gameStore.clear();
-    visionState.clear();
+    clearGame();
     locationStore.setLocations(locationInfo, false);
-    document.getElementById("layers")!.innerHTML = "";
-    floorStore.clear();
-    compositeState.clear();
-    initiativeStore.clear();
 });
 
 socket.on("Board.Floor.Set", (floor: ServerFloor) => {

@@ -137,8 +137,9 @@ export async function dropAsset(
             const pathname = new URL(image.src).pathname;
             asset.src = pathname.replace(import.meta.env.BASE_URL, "/");
 
+            asset.setLayer(layer.floor, layer.name); // set this early to avoid conflicts
+
             if (options) {
-                asset.setLayer(layer.floor, layer.name); // if we don't set this the asDict will fail
                 asset.fromDict(applyTemplate(asset.asDict(), options));
             }
 

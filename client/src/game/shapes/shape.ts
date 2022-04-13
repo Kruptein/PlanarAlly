@@ -376,7 +376,7 @@ export abstract class Shape implements IShape {
             visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.id });
             visionState.recalculateVision(this.floor.id);
         }
-        this.invalidate(false);
+        this.invalidate(true);
         floorStore.invalidateLightAllFloors();
         if (this.blocksMovement && !alteredMovement) {
             visionState.deleteFromTriangulation({

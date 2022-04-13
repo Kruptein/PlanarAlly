@@ -56,7 +56,7 @@ export class Layer {
     }
 
     invalidate(skipLightUpdate: boolean): void {
-        if (debugLayers()) {
+        if (debugLayers) {
             console.groupCollapsed(`🗑 [${this.floor}] ${this.name}`);
             console.trace();
             console.groupEnd();
@@ -257,7 +257,7 @@ export class Layer {
 
     draw(doClear = true): void {
         if (!this.valid) {
-            if (debugLayers()) {
+            if (debugLayers) {
                 console.groupCollapsed(`🖌 [${this.floor}] ${this.name}`);
                 console.trace();
                 console.groupEnd();

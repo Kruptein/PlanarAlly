@@ -23,6 +23,7 @@ import "./events/shape/togglecomposite";
 import { toGP } from "../../core/geometry";
 import { SyncMode } from "../../core/models/types";
 import type { AssetList } from "../../core/models/types";
+import { debugLayers } from "../../localStorageHelpers";
 import { router } from "../../router";
 import { clientStore } from "../../store/client";
 import { coreStore } from "../../store/core";
@@ -83,7 +84,12 @@ socket.on("Board.Floor.Set", (floor: ServerFloor) => {
     // The very first floor that arrives is the one we want to select
     // When this condition is evaluated after the await, we are at the mercy of the async scheduler
     const selectFloor = floorStore.state.floors.length === 0;
+    if (debugLayers())
+        console.log(
+            `Adding floor ${floor.name} [${floor.layers.reduce((acc, cur) => acc + cur.shapes.length, 0)} shapes]`,
+        );
     floorStore.addServerFloor(floor);
+    if (debugLayers()) console.log("Done.");
 
     if (selectFloor) {
         floorStore.selectFloor({ name: floor.name }, false);

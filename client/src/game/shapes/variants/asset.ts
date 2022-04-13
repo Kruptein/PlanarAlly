@@ -2,6 +2,8 @@ import { g2l, g2lx, g2ly, g2lz } from "../../../core/conversions";
 import { toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
+import { floorStore } from "../../../store/floor";
+import { getFogColour } from "../../colour";
 import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import type { ServerAsset } from "../../models/shapes";
@@ -17,6 +19,7 @@ export class Asset extends BaseRect {
     img: HTMLImageElement;
     src = "";
     strokeColour = "white";
+    #loaded = false;
 
     svgData?: { svg: Node; rp: GlobalPoint; paths?: [number, number][][][] }[];
 
@@ -44,6 +47,13 @@ export class Asset extends BaseRect {
     fromDict(data: ServerAsset): void {
         super.fromDict(data);
         this.src = data.src;
+    }
+
+    setLoaded(): void {
+        // Late image loading affects floor lighting
+        this.layer.invalidate(true);
+        floorStore.invalidateLightAllFloors();
+        this.#loaded = true;
     }
 
     onLayerAdd(): void {
@@ -80,16 +90,26 @@ export class Asset extends BaseRect {
     draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
         const center = g2l(this.center());
-        try {
-            ctx.drawImage(
-                this.img,
+        if (!this.#loaded) {
+            ctx.fillStyle = getFogColour();
+            ctx.fillRect(
                 g2lx(this.refPoint.x) - center.x,
                 g2ly(this.refPoint.y) - center.y,
                 g2lz(this.w),
                 g2lz(this.h),
             );
-        } catch (error) {
-            console.warn(`Shape ${getGlobalId(this.id)} could not load the image ${this.src}`);
+        } else {
+            try {
+                ctx.drawImage(
+                    this.img,
+                    g2lx(this.refPoint.x) - center.x,
+                    g2ly(this.refPoint.y) - center.y,
+                    g2lz(this.w),
+                    g2lz(this.h),
+                );
+            } catch (error) {
+                console.warn(`Shape ${getGlobalId(this.id)} could not load the image ${this.src}`);
+            }
         }
         super.drawPost(ctx);
     }

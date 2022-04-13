@@ -1,4 +1,5 @@
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
+import { debugLayers } from "../../../localStorageHelpers";
 import { activeShapeStore } from "../../../store/activeShape";
 import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
@@ -55,6 +56,11 @@ export class Layer {
     }
 
     invalidate(skipLightUpdate: boolean): void {
+        if (debugLayers) {
+            console.groupCollapsed(`🗑 [${this.floor}] ${this.name}`);
+            console.trace();
+            console.groupEnd();
+        }
         this.valid = false;
         if (!skipLightUpdate) {
             floorStore.invalidateLight(this.floor);
@@ -251,6 +257,11 @@ export class Layer {
 
     draw(doClear = true): void {
         if (!this.valid) {
+            if (debugLayers) {
+                console.groupCollapsed(`🖌 [${this.floor}] ${this.name}`);
+                console.trace();
+                console.groupEnd();
+            }
             const ctx = this.ctx;
             const ogOP = ctx.globalCompositeOperation;
 

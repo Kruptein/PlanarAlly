@@ -115,7 +115,7 @@ export function createShapeFromDict(shape: ServerShape): IShape | undefined {
         else img.src = baseAdjust(asset.src);
         sh = new Asset(img, refPoint, asset.width, asset.height, { uuid: asset.uuid });
         img.onload = () => {
-            floorStore.getLayer(floorStore.getFloor({ name: shape.floor })!, shape.layer)!.invalidate(true);
+            (sh as Asset).setLoaded();
         };
     } else if (shape.type_ === "togglecomposite") {
         const toggleComposite = shape as ServerToggleComposite;

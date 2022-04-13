@@ -57,6 +57,7 @@ For server owners using a subpath, some important changes are made, so make sure
 -   Removing an asset would remove any campaign using it as their logo
 -   Aura direction number input not synching change to server
 -   Some memory leaks when changing locations
+-   Floor lighting behaviour for late loading images
 -   [asset-manager] Asset manager would not check for stale files when removing a folder
 
 ### Performance

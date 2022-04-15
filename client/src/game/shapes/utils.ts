@@ -113,7 +113,7 @@ export function createShapeFromDict(shape: ServerShape): IShape | undefined {
         const img = new Image(asset.width, asset.height);
         if (asset.src.startsWith("http")) img.src = baseAdjust(new URL(asset.src).pathname);
         else img.src = baseAdjust(asset.src);
-        sh = new Asset(img, refPoint, asset.width, asset.height, { uuid: asset.uuid });
+        sh = new Asset(img, refPoint, asset.width, asset.height, { uuid: asset.uuid, loaded: false });
         img.onload = () => {
             (sh as Asset).setLoaded();
         };

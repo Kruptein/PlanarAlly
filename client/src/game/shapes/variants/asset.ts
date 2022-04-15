@@ -19,7 +19,7 @@ export class Asset extends BaseRect {
     img: HTMLImageElement;
     src = "";
     strokeColour = "white";
-    #loaded = false;
+    #loaded: boolean;
 
     svgData?: { svg: Node; rp: GlobalPoint; paths?: [number, number][][][] }[];
 
@@ -28,10 +28,11 @@ export class Asset extends BaseRect {
         topleft: GlobalPoint,
         w: number,
         h: number,
-        options?: { id?: LocalId; uuid?: GlobalId; assetId?: number },
+        options?: { id?: LocalId; uuid?: GlobalId; assetId?: number; loaded?: boolean },
     ) {
         super(topleft, w, h, options);
         this.img = img;
+        this.#loaded = options?.loaded ?? true;
     }
 
     get isClosed(): boolean {

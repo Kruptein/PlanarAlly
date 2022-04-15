@@ -72,4 +72,9 @@ async def handle_ddraft_file(upload_data: UploadData, data: bytes, sid: str):
         options=json.dumps(template),
     )
 
-    await sio.emit("Asset.Upload.Finish", asset.as_dict(), room=sid, namespace=ASSET_NS)
+    await sio.emit(
+        "Asset.Upload.Finish",
+        {"asset": asset.as_dict(), "parent": upload_data["directory"]},
+        room=sid,
+        namespace=ASSET_NS,
+    )

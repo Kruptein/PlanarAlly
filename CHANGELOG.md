@@ -58,6 +58,7 @@ For server owners using a subpath, some important changes are made, so make sure
 -   Aura direction number input not synching change to server
 -   Some memory leaks when changing locations
 -   Floor lighting behaviour for late loading images
+-   DDraft uploads not progressing in the asset manager
 -   [asset-manager] Asset manager would not check for stale files when removing a folder
 
 ### Performance

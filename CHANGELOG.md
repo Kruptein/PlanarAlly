@@ -59,6 +59,7 @@ For server owners using a subpath, some important changes are made, so make sure
 -   Some memory leaks when changing locations
 -   Floor lighting behaviour for late loading images
 -   DDraft uploads not progressing in the asset manager
+-   DDraft lights not properly being configured
 -   [asset-manager] Asset manager would not check for stale files when removing a folder
 
 ### Performance

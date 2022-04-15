@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import tinycolor from "tinycolor2";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -112,6 +113,7 @@ function applyDDraft(): void {
     const dW = realShape.w / (dDraftData.ddraft_resolution.map_size.x * size);
     const dH = realShape.h / (dDraftData.ddraft_resolution.map_size.y * size);
 
+    const tokenLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Tokens)!;
     const fowLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Lighting)!;
 
     for (const wall of dDraftData.ddraft_line_of_sight) {
@@ -158,23 +160,25 @@ function applyDDraft(): void {
             visionSource: true,
             visible: true,
             name: "ddraft light source",
-            value: light.range * settingsStore.unitSize.value * (DEFAULT_GRID_SIZE / size),
+            value: (light.range * DEFAULT_GRID_SIZE) / settingsStore.unitSize.value,
             dim: 0,
-            colour: `#${light.color}`,
+            colour: tinycolor(light.color)
+                .setAlpha(0.05 * light.intensity)
+                .toRgbString(),
             borderColour: "rgba(0, 0, 0, 0)",
             angle: 360,
             direction: 0,
         };
 
-        auraSystem.add(shape.id, aura, SyncTo.UI);
+        tokenLayer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
+
+        auraSystem.add(shape.id, aura, SyncTo.SERVER);
         accessSystem.addAccess(
             shape.id,
             clientStore.state.username,
             { edit: true, movement: true, vision: true },
-            SyncTo.UI,
+            SyncTo.SERVER,
         );
-
-        realShape.layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
     }
 
     visionState.recalculateVision(realShape.floor.id);

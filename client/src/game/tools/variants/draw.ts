@@ -92,21 +92,26 @@ class DrawTool extends Tool {
         watch(
             () => gameStore.state.boardInitialized,
             () => {
-                watch(floorStore.currentLayer, (newLayer, oldLayer) => {
-                    if (oldLayer === undefined) return;
-                    if (newLayer?.floor !== oldLayer.floor) {
-                        this.onFloorChange(floorStore.getFloor({ id: oldLayer.floor })!);
-                    } else if (newLayer?.name !== oldLayer.name) {
-                        this.onLayerChange(oldLayer);
-                    }
-                    if (newLayer?.isVisionLayer ?? false) {
-                        this.state.blocksMovement = true;
-                        this.state.blocksVision = true;
-                    } else if (oldLayer.isVisionLayer) {
-                        this.state.blocksMovement = false;
-                        this.state.blocksVision = false;
-                    }
-                });
+                watch(
+                    floorStore.currentLayer,
+                    (newLayer, oldLayer) => {
+                        if (oldLayer !== undefined) {
+                            if (newLayer?.floor !== oldLayer.floor) {
+                                this.onFloorChange(floorStore.getFloor({ id: oldLayer.floor })!);
+                            } else if (newLayer?.name !== oldLayer.name) {
+                                this.onLayerChange(oldLayer);
+                            }
+                        }
+                        if (newLayer?.isVisionLayer ?? false) {
+                            this.state.blocksMovement = true;
+                            this.state.blocksVision = true;
+                        } else if (oldLayer?.isVisionLayer === true) {
+                            this.state.blocksMovement = false;
+                            this.state.blocksVision = false;
+                        }
+                    },
+                    { immediate: true },
+                );
             },
         );
         watch(

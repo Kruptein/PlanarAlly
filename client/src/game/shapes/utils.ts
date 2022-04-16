@@ -128,7 +128,6 @@ export function createShapeFromDict(shape: ServerShape): IShape | undefined {
                 uuid: toggleComposite.uuid,
             },
         );
-        gameStore.addOwnedToken(sh.id);
     } else {
         return undefined;
     }

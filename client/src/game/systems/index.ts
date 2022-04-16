@@ -13,6 +13,12 @@ export function dropFromSystems(id: LocalId): void {
     }
 }
 
+export function clearSystems(): void {
+    for (const system of Object.values(SYSTEMS)) {
+        system.clear();
+    }
+}
+
 export interface System {
     clear(): void;
     drop(id: LocalId): void;

@@ -5,6 +5,7 @@ import { locationStore } from "../store/location";
 import { stopDrawLoop } from "./draw";
 import { clearIds } from "./id";
 import { compositeState } from "./layers/state";
+import { clearSystems } from "./systems";
 import { initiativeStore } from "./ui/initiative/state";
 import { visionState } from "./vision/state";
 
@@ -17,5 +18,6 @@ export function clearGame(): void {
     floorStore.clear();
     compositeState.clear();
     initiativeStore.clear();
+    clearSystems();
     clearIds();
 }

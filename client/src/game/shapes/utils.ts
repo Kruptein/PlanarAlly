@@ -7,7 +7,7 @@ import { gameStore } from "../../store/game";
 import { sendRemoveShapes } from "../api/emits/shape/core";
 import { addGroupMembers, createNewGroupForShapes, hasGroup } from "../groups";
 import { getGlobalId, getLocalId, reserveLocalId } from "../id";
-import type { GlobalId, LocalId } from "../id";
+import type { GlobalId } from "../id";
 import { selectionState } from "../layers/selection";
 import type { LayerName } from "../models/floor";
 import type {
@@ -168,7 +168,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
     const composites: ServerToggleComposite[] = [];
     const serverShapes: ServerShape[] = [];
 
-    const groupShapes: Record<string, LocalId[]> = {};
+    const groupShapes: Record<string, GlobalId[]> = {};
 
     for (const clip of gameState.clipboard) {
         const newShape: ServerShape = Object.assign({}, clip, { auras: [], labels: [], owners: [], trackers: [] });
@@ -222,7 +222,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
             if (!(clip.group in groupShapes)) {
                 groupShapes[clip.group] = [];
             }
-            groupShapes[clip.group].push(getLocalId(newShape.uuid)!);
+            groupShapes[clip.group].push(newShape.uuid);
         }
         if (clip.type_ === "togglecomposite") {
             composites.push(newShape as ServerToggleComposite);
@@ -252,7 +252,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
     for (const [group, shapes] of Object.entries(groupShapes)) {
         addGroupMembers(
             group,
-            shapes.map((uuid) => ({ uuid })),
+            shapes.map((uuid) => ({ uuid: getLocalId(uuid)! })),
             true,
         );
     }

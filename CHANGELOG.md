@@ -19,6 +19,7 @@ For server owners using a subpath, some important changes are made, so make sure
             -   Automatically toggle blocking settings for a shape with a single click
         -   teleport zones
             -   Automatically move shapes to spawn points
+-   Dropping an asset with dimension info in its name (e.g. 50x30) will automatically size the asset
 -   [asset-manager] drop support for folders
 -   [server] Added `allow_signups` option in the `General` config section that can be disabled to prevent users from signing up themselves
 -   [server] Added barebones admin dashboard

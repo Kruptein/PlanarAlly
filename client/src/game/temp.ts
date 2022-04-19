@@ -4,6 +4,7 @@ import { SyncMode, InvalidationMode } from "../core/models/types";
 import type { SelectionBoxFunction } from "../core/plugins/modals/selectionBox";
 import { baseAdjust, uuidv4 } from "../core/utils";
 import { i18n } from "../i18n";
+import { DEFAULT_GRID_SIZE } from "../store/client";
 import { floorStore } from "../store/floor";
 import { settingsStore } from "../store/settings";
 
@@ -103,9 +104,20 @@ export async function dropAsset(
 
     let options: BaseTemplate | undefined;
     if (data.assetId) {
-        const response = await requestAssetOptions(data.assetId);
-        if (response.success) {
-            const choices = Object.keys(response.options?.templates ?? {});
+        const assetInfo = await requestAssetOptions(data.assetId);
+        if (assetInfo.success) {
+            // check if map dimensions in asset name
+            const dimensions = assetInfo.name.match(/(?<x>\d+)x(?<y>\d+)/);
+            if (dimensions?.groups !== undefined) {
+                const dimX = Number.parseInt(dimensions.groups.x);
+                const dimY = Number.parseInt(dimensions.groups.y);
+                options = {
+                    width: dimX * DEFAULT_GRID_SIZE,
+                    height: dimY * DEFAULT_GRID_SIZE,
+                } as BaseTemplate;
+            }
+
+            const choices = Object.keys(assetInfo.options?.templates ?? {});
             if (choices.length > 0) {
                 try {
                     const choice = await selectionBoxFunction!(
@@ -113,7 +125,7 @@ export async function dropAsset(
                         choices,
                     );
                     if (choice === undefined) return;
-                    options = response.options!.templates[choice[0]];
+                    options = assetInfo.options!.templates[choice[0]];
                 } catch {
                     // no-op ; action cancelled
                 }

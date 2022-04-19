@@ -1,4 +1,5 @@
-import type { LocalId } from "../id";
+import { getLocalId } from "../id";
+import type { GlobalId, LocalId } from "../id";
 
 import type { InitiativeEffectMode } from "./initiative";
 
@@ -106,6 +107,11 @@ export interface UserOptions {
     initiativeEffectVisibility: InitiativeEffectMode;
 }
 
+function parseSpawnLocations(spawn_locations: string): LocalId[] {
+    const spawnLocations: GlobalId[] = JSON.parse(spawn_locations);
+    return spawnLocations.map((s) => getLocalId(s)!);
+}
+
 export const optionsToClient = (options: ServerLocationOptions): LocationOptions => ({
     useGrid: options.use_grid,
     gridType: options.grid_type ?? "SQUARE",
@@ -117,7 +123,7 @@ export const optionsToClient = (options: ServerLocationOptions): LocationOptions
     fowLos: options.fow_los,
     visionMinRange: options.vision_min_range,
     visionMaxRange: options.vision_max_range,
-    spawnLocations: JSON.parse(options.spawn_locations),
+    spawnLocations: parseSpawnLocations(options.spawn_locations),
     movePlayerOnTokenChange: options.move_player_on_token_change,
 
     airMapBackground: options.air_map_background ?? null,

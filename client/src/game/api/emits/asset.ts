@@ -2,8 +2,9 @@ import type { AssetOptions } from "../../models/asset";
 import { socket } from "../socket";
 
 type AssetOptionsRequest<T extends AssetOptions | string> =
-    | { success: true; options: T | null }
+    | { success: true; name: string; options: T | null }
     | { success: false; error: string };
+
 export async function requestAssetOptions(assetId: number): Promise<AssetOptionsRequest<AssetOptions>> {
     socket.emit("Asset.Options.Get", assetId);
     return new Promise((resolve: (value: AssetOptionsRequest<AssetOptions>) => void) =>

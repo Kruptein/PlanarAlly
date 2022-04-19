@@ -1,3 +1,4 @@
+from typing import Optional
 from typing_extensions import TypedDict
 
 import auth
@@ -23,12 +24,12 @@ async def get_asset_options(sid: str, asset_id: int):
         logger.warning(f"{pr.player.name} attempted to request asset options")
         return
 
-    asset = Asset.get_or_none(id=asset_id)
+    asset: Optional[Asset] = Asset.get_or_none(id=asset_id)
 
     if asset is None:
         options = {"success": False, "error": "AssetNotFound"}
     else:
-        options = {"success": True, "options": asset.options}
+        options = {"success": True, "name": asset.name, "options": asset.options}
 
     await sio.emit("Asset.Options.Info", options, room=sid, namespace=GAME_NS)
 

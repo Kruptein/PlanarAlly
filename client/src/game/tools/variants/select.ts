@@ -396,7 +396,7 @@ class SelectTool extends Tool implements ISelectTool {
         this.lastMousePosition = gp;
 
         // Logic hover
-        if (activeToolMode.value === ToolMode.Play) {
+        if (!this.active.value && activeToolMode.value === ToolMode.Play) {
             let foundDoor = false;
             for (const id of doorSystem.getDoors()) {
                 const shape = getShape(id);

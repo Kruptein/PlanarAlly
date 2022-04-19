@@ -5,6 +5,7 @@ import { Store } from "../core/store";
 import { getValueOrDefault } from "../core/types";
 import { toSnakeCase } from "../core/utils";
 import { sendLocationOptions } from "../game/api/emits/location";
+import { getGlobalId } from "../game/id";
 import type { LocalId } from "../game/id";
 import type { LocationOptions } from "../game/models/settings";
 
@@ -181,7 +182,7 @@ class SettingsStore extends Store<SettingsState> {
             floorStore.invalidateAllFloors();
             if (sync)
                 sendLocationOptions({
-                    options: { spawn_locations: JSON.stringify(spawnLocations) },
+                    options: { spawn_locations: JSON.stringify(spawnLocations.map((s) => getGlobalId(s))) },
                     location,
                 });
         }

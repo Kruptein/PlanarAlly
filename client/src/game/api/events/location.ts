@@ -5,6 +5,8 @@ import { coreStore } from "../../../store/core";
 import { gameStore } from "../../../store/game";
 import { locationStore } from "../../../store/location";
 import { settingsStore } from "../../../store/settings";
+import { getLocalId } from "../../id";
+import type { GlobalId } from "../../id";
 import type { ServerLocation } from "../../models/general";
 import type { Location, ServerLocationOptions } from "../../models/settings";
 import { VisibilityMode, visionState } from "../../vision/state";
@@ -61,5 +63,12 @@ export function setLocationOptions(id: number | undefined, options: Partial<Serv
         settingsStore.setGroundMapBackground(options.ground_map_background, id, false);
     if (options?.underground_map_background !== undefined)
         settingsStore.setUndergroundMapBackground(options.underground_map_background, id, false);
-    if (id !== undefined) settingsStore.setSpawnLocations(JSON.parse(options.spawn_locations ?? "[]"), id, false);
+    if (id !== undefined) {
+        const spawnLocations: GlobalId[] = JSON.parse(options.spawn_locations ?? "[]");
+        settingsStore.setSpawnLocations(
+            spawnLocations.map((s) => getLocalId(s)!),
+            id,
+            false,
+        );
+    }
 }

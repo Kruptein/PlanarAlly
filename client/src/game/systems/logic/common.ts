@@ -29,7 +29,7 @@ export function canUse(shapeId: LocalId, target: LOGIC_TYPES): Access {
         const permissions =
             target === "door"
                 ? doorSystem.getPermissions(shapeId)
-                : teleportZoneSystem.getPermissions(shapeId) ?? DEFAULT_PERMISSIONS;
+                : teleportZoneSystem.getPermissions(shapeId) ?? DEFAULT_PERMISSIONS();
         if (permissions === undefined) return Access.Disabled;
 
         // First specific user permissions

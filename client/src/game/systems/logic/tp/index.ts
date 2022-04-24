@@ -36,12 +36,12 @@ type ClientTeleportOptions = TeleportOptions & {
     toastId?: ToastID;
 };
 
-const DEFAULT_OPTIONS: ClientTeleportOptions = {
-    permissions: DEFAULT_PERMISSIONS,
+const DEFAULT_OPTIONS: () => ClientTeleportOptions = () => ({
+    permissions: DEFAULT_PERMISSIONS(),
     immediate: false,
     location: undefined,
     toastId: undefined,
-};
+});
 
 interface ReactiveTpState {
     id: LocalId | undefined;
@@ -97,7 +97,7 @@ class TeleportZoneSystem implements System {
         if (enabled) {
             this.enabled.add(id);
         }
-        this.data.set(id, options ?? DEFAULT_OPTIONS);
+        this.data.set(id, { ...DEFAULT_OPTIONS(), ...options });
     }
 
     drop(id: LocalId): void {

@@ -60,7 +60,7 @@ class DoorSystem implements System {
         if (enabled) {
             this.enabled.add(id);
         }
-        this.permissions.set(id, permissions ?? DEFAULT_PERMISSIONS);
+        this.permissions.set(id, permissions ?? DEFAULT_PERMISSIONS());
     }
 
     drop(id: LocalId): void {

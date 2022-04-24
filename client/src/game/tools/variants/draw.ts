@@ -75,7 +75,7 @@ class DrawTool extends Tool {
         fontSize: 20,
 
         isDoor: false,
-        doorPermissions: DEFAULT_PERMISSIONS,
+        doorPermissions: DEFAULT_PERMISSIONS(),
     });
     hasBrushSize = computed(() => [DrawShape.Brush, DrawShape.Polygon].includes(this.state.selectedShape));
 

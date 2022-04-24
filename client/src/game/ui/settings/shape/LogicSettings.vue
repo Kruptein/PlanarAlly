@@ -44,7 +44,7 @@ const activePermissions = computed(() => {
     } else {
         permissions = teleportZoneSystem.state.permissions;
     }
-    return permissions ?? DEFAULT_PERMISSIONS;
+    return permissions ?? DEFAULT_PERMISSIONS();
 });
 
 function openPermissions(target: LOGIC_TYPES): void {

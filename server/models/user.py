@@ -1,5 +1,5 @@
-from logging import disable
 import bcrypt
+from typing import List, TYPE_CHECKING
 from peewee import (
     FloatField,
     ForeignKeyField,
@@ -11,6 +11,9 @@ from peewee import (
 from playhouse.shortcuts import model_to_dict
 
 from .base import BaseModel
+
+if TYPE_CHECKING:
+    from models.label import Label
 
 
 __all__ = ["User", "UserOptions"]
@@ -61,6 +64,9 @@ class UserOptions(BaseModel):
 
 
 class User(BaseModel):
+    id: int
+    labels: List["Label"]
+
     name = TextField()
     email = TextField(null=True)
     password_hash = TextField()

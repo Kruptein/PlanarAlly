@@ -9,7 +9,11 @@ from peewee import (
     TextField,
 )
 from playhouse.shortcuts import model_to_dict
-from typing import Set
+from typing import List, Optional, Set, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from models.initiative import Initiative
+    from models.shape import Shape
 
 from .asset import Asset
 from .base import BaseModel
@@ -57,6 +61,10 @@ class LocationOptions(BaseModel):
 
 
 class Room(BaseModel):
+    logo_id: Optional[int]
+    players: List["PlayerRoom"]
+    locations: List["Location"]
+
     name = TextField()
     creator = ForeignKeyField(User, backref="rooms_created", on_delete="CASCADE")
     invitation_code = TextField(default=uuid.uuid4, unique=True)
@@ -86,6 +94,11 @@ class Room(BaseModel):
 
 
 class Location(BaseModel):
+    id: int
+    floors: List["Floor"]
+    initiative: List["Initiative"]
+    user_options: List["LocationUserOption"]
+
     room = ForeignKeyField(Room, backref="locations", on_delete="CASCADE")
     name = TextField()
     options = ForeignKeyField(LocationOptions, on_delete="CASCADE", null=True)
@@ -210,6 +223,9 @@ class Note(BaseModel):
 
 
 class Floor(BaseModel):
+    id: int
+    layers: List["Layer"]
+
     location = ForeignKeyField(Location, backref="floors", on_delete="CASCADE")
     index = IntegerField()
     name = TextField()
@@ -235,6 +251,9 @@ class Floor(BaseModel):
 
 
 class Layer(BaseModel):
+    id: int
+    shapes: List["Shape"]
+
     floor = ForeignKeyField(Floor, backref="layers", on_delete="CASCADE")
     name = TextField()
     type_ = TextField()

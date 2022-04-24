@@ -1,7 +1,7 @@
+import asyncio
 from typing import Union
 from aiohttp import web
 from aiohttp_security import check_authorized
-from multidict import MultiDict
 from export.campaign import export_campaign
 
 from models import Location, LocationOptions, PlayerRoom, Room, User
@@ -185,8 +185,9 @@ async def export(request: web.Request):
         if room is None:
             return web.HTTPBadRequest()
 
-        fp, fl = export_campaign(room)
-        return web.FileResponse(
-            fp, headers=MultiDict({"Content-Disposition": f"Attachment;filename={fl}"})
+        asyncio.create_task(export_campaign(room))
+
+        return web.HTTPAccepted(
+            text=f"Processing started. Check /static/temp/{room.name}-{room.creator.name}.pac soon."
         )
     return web.HTTPUnauthorized()

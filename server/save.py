@@ -17,12 +17,11 @@ SAVE_VERSION = 70
 
 import json
 import logging
-import os
 import secrets
 import shutil
 import sys
 from pathlib import Path
-from uuid import uuid4
+from playhouse.sqlite_ext import SqliteExtDatabase
 
 from config import SAVE_FILE
 from models import ALL_MODELS, Constants
@@ -41,15 +40,19 @@ def inc_save_version():
     db.execute_sql("UPDATE constants SET save_version = save_version + 1")
 
 
+def create_new_db(db: SqliteExtDatabase, version: int):
+    db.create_tables(ALL_MODELS)
+    Constants.create(
+        save_version=version,
+        secret_token=secrets.token_bytes(32),
+        api_token=secrets.token_hex(32),
+    )
+
+
 def check_existence() -> bool:
-    if not os.path.isfile(SAVE_FILE):
+    if not SAVE_FILE.exists():
         logger.warning("Provided save file does not exist.  Creating a new one.")
-        db.create_tables(ALL_MODELS)
-        Constants.create(
-            save_version=SAVE_VERSION,
-            secret_token=secrets.token_bytes(32),
-            api_token=secrets.token_hex(32),
-        )
+        create_new_db(db, SAVE_VERSION)
         return True
     return False
 

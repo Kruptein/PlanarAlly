@@ -9,7 +9,6 @@ import getpass
 import os
 import sys
 from urllib.parse import quote, unquote
-from export.campaign import import_campaign
 from utils import FILE_DIR
 from types import SimpleNamespace
 
@@ -213,10 +212,6 @@ def reset_password_main(args):
     user.save()
 
 
-def import_main(args):
-    import_campaign(args.file)
-
-
 def add_subcommand(name, func, parent_parser, args):
     sub_parser = parent_parser.add_parser(name, help=func.__doc__)
     for arg in args:
@@ -281,18 +276,6 @@ def main():
             ("name", {"help": "The name of the user."}),
             (
                 "--password",
-                {"help": "The new password. Will be prompted for if not provided."},
-            ),
-        ],
-    )
-
-    add_subcommand(
-        "import",
-        import_main,
-        subparsers,
-        [
-            (
-                "--file",
                 {"help": "The new password. Will be prompted for if not provided."},
             ),
         ],

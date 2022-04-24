@@ -31,6 +31,21 @@ __all__ = [
 
 
 class Shape(BaseModel):
+    labels: List["ShapeLabel"]
+    trackers: List["Tracker"]
+    auras: List["Aura"]
+    owners: List["ShapeOwner"]
+    assetrect_set: List["AssetRect"]
+    circle_set: List["Circle"]
+    circulartoken_set: List["CircularToken"]
+    line_set: List["Line"]
+    polygon_set: List["Polygon"]
+    rect_set: List["Rect"]
+    text_set: List["Text"]
+    togglecomposite_set: List["ToggleComposite"]
+    composite_parent: List["CompositeShapeAssociation"]
+    shape_variants: List["CompositeShapeAssociation"]
+
     uuid = TextField(primary_key=True)
     layer = ForeignKeyField(Layer, backref="shapes", on_delete="CASCADE")
     type_ = TextField()

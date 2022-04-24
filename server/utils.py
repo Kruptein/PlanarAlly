@@ -10,13 +10,18 @@ def all_subclasses(cls):
     )
 
 
-def get_file_dir():
+def get_file_dir() -> Path:
     if getattr(sys, "frozen", False):
         return Path(sys.executable).resolve().parent
     return Path(__file__).resolve().parent
 
 
+def get_save_dir() -> Path:
+    return FILE_DIR
+
+
 FILE_DIR = get_file_dir()
+SAVE_DIR = get_save_dir()
 
 # SETUP PATHS
 os.chdir(FILE_DIR)

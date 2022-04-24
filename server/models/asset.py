@@ -11,6 +11,8 @@ __all__ = ["Asset"]
 
 
 class Asset(BaseModel):
+    id: int
+
     owner = ForeignKeyField(User, backref="assets", on_delete="CASCADE")
     parent = ForeignKeyField("self", backref="children", null=True, on_delete="CASCADE")
     name = TextField()

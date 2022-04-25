@@ -1,4 +1,4 @@
-<p align="center"><a href="https://planarally.io" target="_blank" rel="noopener noreferrer"><img width="200" src="https://planarally.io/assets/general/Logo_PlanarAlly_V1.png" alt="PlanarAlly logo"></a></p>
+<p align="center"><a href="https://planarally.io" target="_blank" rel="noopener noreferrer"><img width="200" src="https://planarally.io/assets/general/Logo_with_background.png" alt="PlanarAlly logo"></a></p>
 
 <p align="center">
     <a href="https://github.com/Kruptein/PlanarAlly/releases"><img src="https://img.shields.io/github/downloads/kruptein/planarally/total.svg" alt="Downloads"></a>
@@ -10,11 +10,9 @@
 
 # PlanarAlly
 
-_This project is still in active development; multiple bugs or structure changes can and will happen_
-
 A companion tool for when you travel into the planes.
 
-PlanarAlly is a web tool that adds virtual battlemaps with various extras to your D&D toolbox.
+PlanarAlly is a web tool that adds virtual battlemaps with various extras to your TTRPG/D&D toolbox.
 
 Some key features are:
 
@@ -25,7 +23,8 @@ Some key features are:
 **Infinite canvas**: When a limited workspace is still not enough!\
 **Dynamic lighting**: Increase your immersion by working with light and shadows.\
 **Player vision**: Limit vision to what your token(s) can see. Is your companion in a different room, no light for you!\
-**Initiative tracker**: Simple initiative tracker
+**Initiative tracker**: Simple initiative tracker\
+**Floors!**: Look down upon lower floors when standing on a balcony!
 
 This tool is provided free to use and is open source.
 
@@ -41,7 +40,7 @@ For more information on how to use/install PA, see the documentation.
 
 User documentation can be found [here](https://planarally.io/docs/).
 
-This is still a work in progress, so some elements may still be undocumented or outdated. If you wish to contribute to the docs, they are hosted in a different [repository](https://github.com/Kruptein/planarally-docs).
+If you wish to contribute to the docs, they are hosted in a different [repository](https://github.com/Kruptein/planarally-docs).
 
 # Contributing
 

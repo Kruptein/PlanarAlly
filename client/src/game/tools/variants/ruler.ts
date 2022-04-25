@@ -15,6 +15,7 @@ import { ToolName } from "../../models/tools";
 import type { ToolFeatures, ToolPermission } from "../../models/tools";
 import { Line } from "../../shapes/variants/line";
 import { Text } from "../../shapes/variants/text";
+import { accessSystem } from "../../systems/access";
 import { Tool } from "../tool";
 
 import { SelectFeatures } from "./select";
@@ -61,7 +62,12 @@ class RulerTool extends Tool {
             return;
         }
 
-        ruler.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.SHAPE);
+        accessSystem.addAccess(
+            ruler.id,
+            clientStore.state.username,
+            { edit: true, movement: true, vision: true },
+            SyncTo.SHAPE,
+        );
         layer.addShape(ruler, this.syncMode, InvalidationMode.NORMAL, { snappable: false });
         this.rulers.push(ruler);
     }
@@ -80,20 +86,26 @@ class RulerTool extends Tool {
             console.log("No draw layer!");
             return;
         }
-        this.active = true;
+        this.active.value = true;
         this.createNewRuler(cloneP(this.startPoint), cloneP(this.startPoint));
         this.text = new Text(cloneP(this.startPoint), "", 20, {
             fillColour: "#000",
             strokeColour: "#fff",
         });
         this.text.ignoreZoomSize = true;
-        this.text.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.SHAPE);
+        accessSystem.addAccess(
+            this.text.id,
+            clientStore.state.username,
+            { edit: true, movement: true, vision: true },
+            SyncTo.SHAPE,
+        );
         layer.addShape(this.text, this.syncMode, InvalidationMode.NORMAL, { snappable: false });
     }
 
-    onMove(lp: LocalPoint, event: MouseEvent | TouchEvent): void {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onMove(lp: LocalPoint, event: MouseEvent | TouchEvent): Promise<void> {
         let endPoint = l2g(lp);
-        if (!this.active || this.rulers.length === 0 || this.startPoint === undefined || this.text === undefined)
+        if (!this.active.value || this.rulers.length === 0 || this.startPoint === undefined || this.text === undefined)
             return;
 
         const layer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
@@ -104,7 +116,7 @@ class RulerTool extends Tool {
 
         if (clientStore.useSnapping(event)) [endPoint] = snapToGridPoint(endPoint);
 
-        const ruler = this.rulers[this.rulers.length - 1];
+        const ruler = this.rulers.at(-1)!;
         ruler.endPoint = endPoint;
         sendShapePositionUpdate([ruler], true);
 
@@ -130,14 +142,15 @@ class RulerTool extends Tool {
         layer.invalidate(true);
     }
 
-    onUp(): void {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onUp(): Promise<void> {
         this.cleanup();
     }
 
     onKeyUp(event: KeyboardEvent, features: ToolFeatures): void {
         if (event.defaultPrevented) return;
-        if (event.key === " " && this.active) {
-            const lastRuler = this.rulers[this.rulers.length - 1];
+        if (event.key === " " && this.active.value) {
+            const lastRuler = this.rulers.at(-1)!;
             this.createNewRuler(lastRuler.endPoint, lastRuler.endPoint);
             this.previousLength += this.currentLength;
 
@@ -157,7 +170,7 @@ class RulerTool extends Tool {
     // HELPERS
 
     private cleanup(): void {
-        if (!this.active || this.rulers.length === 0 || this.startPoint === undefined || this.text === undefined)
+        if (!this.active.value || this.rulers.length === 0 || this.startPoint === undefined || this.text === undefined)
             return;
 
         const layer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
@@ -165,10 +178,12 @@ class RulerTool extends Tool {
             console.log("No active layer!");
             return;
         }
-        this.active = false;
+        this.active.value = false;
 
-        for (const ruler of this.rulers) layer.removeShape(ruler, this.syncMode, true);
-        layer.removeShape(this.text, this.syncMode, true);
+        for (const ruler of this.rulers) {
+            layer.removeShape(ruler, { sync: this.syncMode, recalculate: true, dropShapeId: true });
+        }
+        layer.removeShape(this.text, { sync: this.syncMode, recalculate: true, dropShapeId: true });
         this.startPoint = this.text = undefined;
         this.rulers = [];
         this.previousLength = 0;

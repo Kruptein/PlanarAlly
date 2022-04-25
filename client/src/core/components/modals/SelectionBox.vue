@@ -18,8 +18,14 @@ const props = defineProps<{
 // don't use useI18n here, the modals plugin is loaded earlier
 const t = i18n.global.t;
 
-const state = reactive({
-    activeSelection: 0,
+interface State {
+    activeSelection: Set<number>;
+    customName: string;
+    error: string;
+}
+
+const state: State = reactive({
+    activeSelection: new Set(),
     customName: "",
     error: "",
 });
@@ -30,9 +36,23 @@ const text = computed(() => props.options?.text ?? "");
 
 function close(): void {
     emit("close");
-    state.activeSelection = 0;
+    state.activeSelection.clear();
+    state.activeSelection.add(0);
     state.customName = "";
     state.error = "";
+}
+
+function toggle(index: number): void {
+    if (props.options?.multiSelect === true) {
+        if (state.activeSelection.has(index)) {
+            state.activeSelection.delete(index);
+        } else {
+            state.activeSelection.add(index);
+        }
+    } else {
+        state.activeSelection.clear();
+        state.activeSelection.add(index);
+    }
 }
 
 function create(): void {
@@ -47,7 +67,10 @@ function create(): void {
 }
 
 function submit(): void {
-    emit("submit", props.choices[state.activeSelection]);
+    emit(
+        "submit",
+        [...state.activeSelection].map((i) => props.choices[i]),
+    );
 }
 </script>
 
@@ -61,22 +84,28 @@ function submit(): void {
         <div class="modal-body">
             <VueMarkdownIt :source="text" />
             <div id="error" v-if="state.error.length > 0">{{ state.error }}</div>
-            <div id="selectionbox">
-                <template v-for="[i, choice] of choices.entries()" :key="choice">
-                    <div :class="{ selected: i === state.activeSelection }" @click="state.activeSelection = i">
-                        {{ choice }}
-                    </div>
+            <template v-if="choices.length > 0">
+                <div id="selectionbox">
+                    <template v-for="[i, choice] of choices.entries()" :key="choice">
+                        <div :class="{ selected: state.activeSelection.has(i) }" @click="toggle(i)">
+                            {{ choice }}
+                        </div>
+                    </template>
+                </div>
+                <div class="button" @click="submit">{{ defaultButton }}</div>
+                <template v-if="customButton.length > 0">
+                    <h4>
+                        <span>
+                            {{ t("common.or").toLocaleUpperCase().toString() }}
+                        </span>
+                    </h4>
+                    <input type="text" class="input" v-model="state.customName" />
+                    <div class="button" @click="create">{{ customButton }}</div>
                 </template>
-            </div>
-            <div class="button" @click="submit">{{ defaultButton }}</div>
-            <template v-if="customButton.length > 0">
-                <h4>
-                    <span>
-                        {{ t("common.or").toLocaleUpperCase().toString() }}
-                    </span>
-                </h4>
-                <input type="text" class="input" v-model="state.customName" />
-                <div class="button" @click="create">{{ customButton }}</div>
+            </template>
+            <template v-else>
+                <div>No possible selection targets found</div>
+                <div class="button" @click="close">Ok</div>
             </template>
         </div>
     </Modal>

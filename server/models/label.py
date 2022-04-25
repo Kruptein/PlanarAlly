@@ -1,3 +1,4 @@
+from typing import List
 from uuid import uuid4
 
 from peewee import BooleanField, ForeignKeyField, TextField
@@ -12,6 +13,8 @@ __all__ = ["Label", "LabelSelection"]
 
 
 class Label(BaseModel):
+    labelselection_set: List["LabelSelection"]
+
     uuid = TextField(primary_key=True)
     user = ForeignKeyField(User, backref="labels", on_delete="CASCADE")
     category = TextField(null=True)

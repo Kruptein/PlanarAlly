@@ -4,11 +4,13 @@ import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
 import { activeShapeStore } from "../../../../store/activeShape";
+import { accessSystem } from "../../../systems/access";
 
 import AccessSettings from "./AccessSettings.vue";
 import { ShapeSettingCategory } from "./categories";
 import ExtraSettings from "./ExtraSettings.vue";
 import GroupSettings from "./GroupSettings.vue";
+import LogicSettings from "./LogicSettings.vue";
 import PropertySettings from "./PropertySettings.vue";
 import TrackerSettings from "./TrackerSettings.vue";
 import VariantSwitcher from "./VariantSwitcher.vue";
@@ -24,13 +26,14 @@ const visible = computed({
     },
 });
 
-const hasShape = computed(() => activeShapeStore.state.uuid !== undefined);
+const hasShape = computed(() => activeShapeStore.state.id !== undefined);
 
 const categoryNames = computed(() => {
-    if (activeShapeStore.hasEditAccess.value) {
+    if (accessSystem.$.hasEditAccess.value) {
         return [
             ShapeSettingCategory.Properties,
             ShapeSettingCategory.Trackers,
+            ShapeSettingCategory.Logic,
             ShapeSettingCategory.Access,
             ShapeSettingCategory.Group,
             ShapeSettingCategory.Extra,
@@ -39,7 +42,7 @@ const categoryNames = computed(() => {
     return [ShapeSettingCategory.Properties, ShapeSettingCategory.Trackers, ShapeSettingCategory.Access];
 });
 
-const owned = activeShapeStore.hasEditAccess;
+const owned = accessSystem.$.hasEditAccess;
 const SSC = ShapeSettingCategory;
 </script>
 
@@ -49,8 +52,9 @@ const SSC = ShapeSettingCategory;
         <template v-slot:default="{ selection }">
             <div v-if="hasShape" style="display: flex; flex-direction: column">
                 <PropertySettings v-show="selection === SSC.Properties" />
-                <TrackerSettings v-show="selection === SSC.Trackers" />
-                <AccessSettings v-show="selection === SSC.Access" />
+                <TrackerSettings :activeSelection="selection === SSC.Trackers" />
+                <AccessSettings :activeSelection="selection === SSC.Access" />
+                <LogicSettings :activeSelection="selection === SSC.Logic" />
                 <GroupSettings v-show="owned && selection === SSC.Group" />
                 <ExtraSettings v-show="owned && selection === SSC.Extra" />
                 <VariantSwitcher v-show="owned" />

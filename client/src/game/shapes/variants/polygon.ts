@@ -6,7 +6,11 @@ import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { uuidv4 } from "../../../core/utils";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { getFogColour } from "../../colour";
+import { getGlobalId } from "../../id";
+import type { GlobalId, LocalId } from "../../id";
 import type { ServerPolygon } from "../../models/shapes";
+import type { AuraId } from "../../systems/auras/models";
+import type { TrackerId } from "../../systems/trackers/models";
 import { visionState } from "../../vision/state";
 import { Shape } from "../shape";
 import type { SHAPE_TYPE } from "../types";
@@ -15,7 +19,7 @@ import { BoundingRect } from "./boundingRect";
 
 export class Polygon extends Shape {
     type: SHAPE_TYPE = "polygon";
-    _vertices: GlobalPoint[] = [];
+    private _vertices: GlobalPoint[] = [];
     openPolygon = false;
     lineWidth: number;
 
@@ -27,7 +31,8 @@ export class Polygon extends Shape {
             strokeColour?: string;
             lineWidth?: number;
             openPolygon?: boolean;
-            uuid?: string;
+            id?: LocalId;
+            uuid?: GlobalId;
         },
     ) {
         super(startPoint, options);
@@ -47,10 +52,17 @@ export class Polygon extends Shape {
         const delta = subtractP(point, this._refPoint);
         this._refPoint = point;
         for (let i = 0; i < this._vertices.length; i++) this._vertices[i] = addP(this._vertices[i], delta);
+        this.invalidatePoints();
     }
 
     get vertices(): GlobalPoint[] {
         return [this._refPoint, ...this._vertices];
+    }
+
+    set vertices(v: GlobalPoint[]) {
+        this._refPoint = v[0];
+        this._vertices = v.slice(1);
+        this.invalidatePoints();
     }
 
     get uniqueVertices(): GlobalPoint[] {
@@ -98,9 +110,13 @@ export class Polygon extends Shape {
         super.setPositionRepresentation(position);
     }
 
-    get points(): [number, number][] {
+    private invalidatePoint(point: GlobalPoint, center: GlobalPoint): [number, number] {
+        return toArrayP(rotateAroundPoint(point, center, this.angle));
+    }
+
+    invalidatePoints(): void {
         const center = this.center();
-        return this.vertices.map((point) => toArrayP(rotateAroundPoint(point, center, this.angle)));
+        this._points = this.vertices.map((point) => this.invalidatePoint(point, center));
     }
 
     draw(ctx: CanvasRenderingContext2D): void {
@@ -164,10 +180,13 @@ export class Polygon extends Shape {
         if (super.visibleInCanvas(max, options)) return true;
         return this.getBoundingBox().visibleInCanvas(max);
     }
+
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     snapToGrid(): void {}
+
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     resizeToGrid(): void {}
+
     resize(resizePoint: number, point: GlobalPoint): number {
         if (this.angle === 0) {
             if (resizePoint === 0) this._refPoint = point;
@@ -184,6 +203,7 @@ export class Polygon extends Shape {
                 this._vertices[i] = rotateAroundPoint(newPoints[i + 1], newCenter, -this.angle);
             }
         }
+        this.invalidatePoints();
         return resizePoint;
     }
 
@@ -208,28 +228,36 @@ export class Polygon extends Shape {
             this._vertices.push(nearVertex!);
 
             const newPolygon = new Polygon(nearVertex!, newVertices);
-            const uuid = newPolygon.uuid;
+            const uuid = getGlobalId(newPolygon.id);
             // make sure we copy over all the same properties but retain the correct uuid and vertices
-            newPolygon.fromDict({ ...this.asDict(), uuid });
+            const oldDict = this.asDict();
+            newPolygon.fromDict({
+                ...oldDict,
+                uuid,
+                trackers: oldDict.trackers.map((t) => ({ ...t, uuid: uuidv4() as unknown as TrackerId })),
+                auras: oldDict.auras.map((a) => ({ ...a, uuid: uuidv4() as unknown as AuraId })),
+            });
             newPolygon._refPoint = nearVertex!;
             newPolygon._vertices = newVertices;
-            for (const tr of newPolygon._trackers) {
-                tr.uuid = uuidv4();
-            }
-            for (const au of newPolygon._auras) {
-                au.uuid = uuidv4();
-            }
 
             this.layer.addShape(
                 newPolygon,
                 SyncMode.FULL_SYNC,
                 this.blocksVision ? InvalidationMode.WITH_LIGHT : InvalidationMode.NORMAL,
             );
+
+            this.invalidatePoints();
+
             // Do the OG shape update AFTER sending the new polygon or there might (depending on network)
             // be a couple of frames where the new polygon is not shown and the old one is already cut
             // potentially showing hidden stuff
             if (!this.preventSync) sendShapePositionUpdate([this], false);
         }
+    }
+
+    pushPoint(point: GlobalPoint): void {
+        this._vertices.push(point);
+        this._points.push(this.invalidatePoint(point, this.center()));
     }
 
     addPoint(point: GlobalPoint): void {
@@ -247,6 +275,7 @@ export class Polygon extends Shape {
                 break;
             }
         }
+        this.invalidatePoints();
     }
 
     removePoint(point: GlobalPoint): void {
@@ -271,6 +300,7 @@ export class Polygon extends Shape {
             if (this.blocksMovement) visionState.recalculateMovement(this.floor.id);
             if (!this.preventSync) sendShapePositionUpdate([this], false);
 
+            this.invalidatePoints();
             this.invalidate(true);
         }
     }

@@ -2,7 +2,8 @@ import { toGP, Vector } from "../../core/geometry";
 import type { GlobalPoint } from "../../core/geometry";
 import { SyncMode } from "../../core/models/types";
 import { floorStore } from "../../store/floor";
-import { UuidMap } from "../../store/shapeMap";
+import { getLocalId, getShape } from "../id";
+import type { LocalId } from "../id";
 import type { LayerName } from "../models/floor";
 import type { ServerShape } from "../models/shapes";
 import { ToolName } from "../models/tools";
@@ -86,7 +87,7 @@ function handleOperation(direction: "undo" | "redo"): void {
 }
 
 function handleMovement(shapes: ShapeMovementOperation[], direction: "undo" | "redo"): void {
-    const fullShapes = shapes.map((s) => UuidMap.get(s.uuid)!);
+    const fullShapes = shapes.map((s) => getShape(s.uuid)!);
     let delta = Vector.fromPoints(toGP(shapes[0].to), toGP(shapes[0].from));
     if (direction === "redo") delta = delta.reverse();
     moveShapes(fullShapes, delta, true);
@@ -94,7 +95,7 @@ function handleMovement(shapes: ShapeMovementOperation[], direction: "undo" | "r
 }
 
 function handleRotation(shapes: ShapeRotationOperation[], center: GlobalPoint, direction: "undo" | "redo"): void {
-    const fullShapes = shapes.map((s) => UuidMap.get(s.uuid)!);
+    const fullShapes = shapes.map((s) => getShape(s.uuid)!);
     let angle = shapes[0].from - shapes[0].to;
     if (direction === "redo") angle *= -1;
     rotateShapes(fullShapes, angle, center, true);
@@ -102,28 +103,28 @@ function handleRotation(shapes: ShapeRotationOperation[], center: GlobalPoint, d
 }
 
 function handleResize(
-    uuid: string,
+    uuid: LocalId,
     fromPoint: [number, number],
     toPoint: [number, number],
     resizePoint: number,
     retainAspectRatio: boolean,
     direction: "undo" | "redo",
 ): void {
-    const shape = UuidMap.get(uuid)!;
+    const shape = getShape(uuid)!;
     const targetPoint = direction === "undo" ? fromPoint : toPoint;
     resizeShape(shape, toGP(targetPoint), resizePoint, retainAspectRatio, false);
 }
 
-function handleFloorMove(shapes: string[], from: number, to: number, direction: "undo" | "redo"): void {
-    const fullShapes = shapes.map((s) => UuidMap.get(s)!);
+function handleFloorMove(shapes: LocalId[], from: number, to: number, direction: "undo" | "redo"): void {
+    const fullShapes = shapes.map((s) => getShape(s)!);
     let floorId = from;
     if (direction === "redo") floorId = to;
     const floor = floorStore.getFloor({ id: floorId })!;
     moveFloor(fullShapes, floor, true);
 }
 
-function handleLayerMove(shapes: string[], from: LayerName, to: LayerName, direction: "undo" | "redo"): void {
-    const fullShapes = shapes.map((s) => UuidMap.get(s)!);
+function handleLayerMove(shapes: LocalId[], from: LayerName, to: LayerName, direction: "undo" | "redo"): void {
+    const fullShapes = shapes.map((s) => getShape(s)!);
     let layerName = from;
     if (direction === "redo") layerName = to;
     const floor = floorStore.getFloor({ id: fullShapes[0].floor.id })!;
@@ -136,7 +137,7 @@ function handleShapeRemove(shapes: ServerShape[], direction: "undo" | "redo"): v
         for (const shape of shapes) addShape(shape, SyncMode.FULL_SYNC);
     } else {
         deleteShapes(
-            shapes.map((s) => UuidMap.get(s.uuid)!),
+            shapes.map((s) => getShape(getLocalId(s.uuid)!)!),
             SyncMode.FULL_SYNC,
         );
     }

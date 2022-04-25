@@ -58,7 +58,7 @@ async function onCloneClick(): Promise<void> {
             t("game.ui.settings.LocationBar.LocationAdminSettings.choose_room"),
             owned.map((room: RoomInfo) => room.name),
         );
-        const chosenRoom = owned.find((room) => room.name === choice);
+        const chosenRoom = owned.find((room) => room.name === choice?.[0]);
         if (!chosenRoom) return;
 
         const roomName = chosenRoom.name;

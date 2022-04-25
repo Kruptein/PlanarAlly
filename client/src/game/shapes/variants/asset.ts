@@ -2,6 +2,10 @@ import { g2l, g2lx, g2ly, g2lz } from "../../../core/conversions";
 import { toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
+import { floorStore } from "../../../store/floor";
+import { getFogColour } from "../../colour";
+import { getGlobalId } from "../../id";
+import type { GlobalId, LocalId } from "../../id";
 import type { ServerAsset } from "../../models/shapes";
 import { loadSvgData } from "../../svg";
 import { TriangulationTarget, visionState } from "../../vision/state";
@@ -15,6 +19,7 @@ export class Asset extends BaseRect {
     img: HTMLImageElement;
     src = "";
     strokeColour = "white";
+    #loaded: boolean;
 
     svgData?: { svg: Node; rp: GlobalPoint; paths?: [number, number][][][] }[];
 
@@ -23,10 +28,11 @@ export class Asset extends BaseRect {
         topleft: GlobalPoint,
         w: number,
         h: number,
-        options?: { uuid?: string; assetId?: number },
+        options?: { id?: LocalId; uuid?: GlobalId; assetId?: number; loaded?: boolean },
     ) {
         super(topleft, w, h, options);
         this.img = img;
+        this.#loaded = options?.loaded ?? true;
     }
 
     get isClosed(): boolean {
@@ -42,6 +48,13 @@ export class Asset extends BaseRect {
     fromDict(data: ServerAsset): void {
         super.fromDict(data);
         this.src = data.src;
+    }
+
+    setLoaded(): void {
+        // Late image loading affects floor lighting
+        this.layer.invalidate(true);
+        floorStore.invalidateLightAllFloors();
+        this.#loaded = true;
     }
 
     onLayerAdd(): void {
@@ -64,13 +77,13 @@ export class Asset extends BaseRect {
             this.svgData = [...svgs.values()].map((svg) => ({ svg, rp: this.refPoint, paths: undefined }));
             if (this.blocksVision) {
                 visionState.recalculateVision(this._floor!);
-                visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.uuid });
+                visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.id });
             }
             if (this.blocksMovement) {
                 visionState.recalculateMovement(this._floor!);
-                visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: this.uuid });
+                visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: this.id });
             }
-            this.layer.removeShape(cover, SyncMode.NO_SYNC, false);
+            this.layer.removeShape(cover, { sync: SyncMode.NO_SYNC, recalculate: false, dropShapeId: true });
             this.invalidate(false);
         }
     }
@@ -78,16 +91,26 @@ export class Asset extends BaseRect {
     draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
         const center = g2l(this.center());
-        try {
-            ctx.drawImage(
-                this.img,
+        if (!this.#loaded) {
+            ctx.fillStyle = getFogColour();
+            ctx.fillRect(
                 g2lx(this.refPoint.x) - center.x,
                 g2ly(this.refPoint.y) - center.y,
                 g2lz(this.w),
                 g2lz(this.h),
             );
-        } catch (error) {
-            console.warn(`Shape ${this.uuid} could not load the image ${this.src}`);
+        } else {
+            try {
+                ctx.drawImage(
+                    this.img,
+                    g2lx(this.refPoint.x) - center.x,
+                    g2ly(this.refPoint.y) - center.y,
+                    g2lz(this.w),
+                    g2lz(this.h),
+                );
+            } catch (error) {
+                console.warn(`Shape ${getGlobalId(this.id)} could not load the image ${this.src}`);
+            }
         }
         super.drawPost(ctx);
     }

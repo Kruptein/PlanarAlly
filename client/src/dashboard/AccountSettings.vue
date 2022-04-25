@@ -72,7 +72,7 @@ async function deleteAccount(): Promise<void> {
         const response = await postFetch("/api/users/delete");
         if (response.ok) {
             coreStore.setAuthenticated(false);
-            router.push("/");
+            await router.push("/auth/login");
         } else {
             errorMessage.value = t("settings.AccountSettings.delete_request_error");
         }
@@ -189,7 +189,7 @@ async function deleteAccount(): Promise<void> {
             text-shadow: 0px 0px 1px black;
         }
 
-        > {
+        > * {
             display: flex;
             align-items: center;
             padding: 0.5em;

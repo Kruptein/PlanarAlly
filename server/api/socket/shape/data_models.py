@@ -122,6 +122,7 @@ class ServerShapeLocationMoveTarget(TypedDict):
 class ServerShapeLocationMove(TypedDict):
     shapes: List[str]
     target: ServerShapeLocationMoveTarget
+    tp_zone: bool
 
 
 class GroupMemberAddData(TypedDict):

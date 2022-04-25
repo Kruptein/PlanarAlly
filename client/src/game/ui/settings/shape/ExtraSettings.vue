@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import tinycolor from "tinycolor2";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -12,14 +13,16 @@ import { clientStore, DEFAULT_GRID_SIZE } from "../../../../store/client";
 import { floorStore } from "../../../../store/floor";
 import { gameStore } from "../../../../store/game";
 import { settingsStore } from "../../../../store/settings";
-import { UuidMap } from "../../../../store/shapeMap";
+import { sendShapeSvgAsset } from "../../../api/emits/shape/options";
+import { getGlobalId, getShape } from "../../../id";
 import type { DDraftData } from "../../../models/ddraft";
 import { LayerName } from "../../../models/floor";
-import type { ShapeOptions } from "../../../models/shapes";
-import type { Aura } from "../../../shapes/interfaces";
 import type { Asset } from "../../../shapes/variants/asset";
 import { Circle } from "../../../shapes/variants/circle";
 import { Polygon } from "../../../shapes/variants/polygon";
+import { accessSystem } from "../../../systems/access";
+import { auraSystem } from "../../../systems/auras";
+import type { Aura, AuraId } from "../../../systems/auras/models";
 import { visionState } from "../../../vision/state";
 import LabelManager from "../../LabelManager.vue";
 
@@ -28,7 +31,7 @@ const modals = useModal();
 
 const textarea = ref<HTMLTextAreaElement | null>(null);
 
-const owned = activeShapeStore.hasEditAccess;
+const owned = accessSystem.$.hasEditAccess;
 
 // ANNOTATIONS
 
@@ -76,21 +79,25 @@ async function uploadSvg(): Promise<void> {
     const asset = await modals.assetPicker();
     if (asset === undefined || asset.file_hash === undefined) return;
 
-    const options: Partial<Omit<ShapeOptions, "svgPaths">> = {
-        ...activeShapeStore.state.options!,
-        svgAsset: asset.file_hash,
-    };
-    activeShapeStore.setOptions(options, SyncTo.SERVER);
-    (UuidMap.get(activeShapeStore.state.uuid!)! as Asset).loadSvgs();
+    const shape = getShape(activeShapeStore.state.id!)!;
+    if (shape.options === undefined) {
+        shape.options = {};
+    }
+    shape.options.svgAsset = asset.file_hash;
+    sendShapeSvgAsset({ shape: getGlobalId(shape.id), value: asset.file_hash });
+    (shape as Asset).loadSvgs();
 }
 
 function removeSvg(): void {
-    const options = { ...activeShapeStore.state.options! };
-    delete options.svgPaths;
-    delete options.svgWidth;
-    delete options.svgHeight;
-    delete options.svgAsset;
-    activeShapeStore.setOptions(options as Omit<ShapeOptions, "svgPaths">, SyncTo.SERVER);
+    const shape = getShape(activeShapeStore.state.id!)!;
+    if (shape.options === undefined) {
+        shape.options = {};
+    }
+    delete shape.options.svgPaths;
+    delete shape.options.svgWidth;
+    delete shape.options.svgHeight;
+    delete shape.options.svgAsset;
+    sendShapeSvgAsset({ shape: getGlobalId(shape.id), value: undefined });
     visionState.recalculateVision(activeShapeStore.floor.value!);
     floorStore.invalidate({ id: activeShapeStore.floor.value! });
 }
@@ -99,19 +106,25 @@ function applyDDraft(): void {
     const dDraftData = activeShapeStore.state.options! as DDraftData;
     const size = dDraftData.ddraft_resolution.pixels_per_grid;
 
-    const realShape = UuidMap.get(activeShapeStore.state.uuid!)! as Asset;
+    const realShape = getShape(activeShapeStore.state.id!)! as Asset;
 
     const targetRP = realShape.refPoint;
 
     const dW = realShape.w / (dDraftData.ddraft_resolution.map_size.x * size);
     const dH = realShape.h / (dDraftData.ddraft_resolution.map_size.y * size);
 
+    const tokenLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Tokens)!;
     const fowLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Lighting)!;
 
     for (const wall of dDraftData.ddraft_line_of_sight) {
         const points = wall.map((w) => toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH));
         const shape = new Polygon(points[0], points.slice(1), { openPolygon: true, strokeColour: "red" });
-        shape.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.UI);
+        accessSystem.addAccess(
+            shape.id,
+            clientStore.state.username,
+            { edit: true, movement: true, vision: true },
+            SyncTo.UI,
+        );
 
         shape.setBlocksVision(true, SyncTo.UI, false);
         shape.setBlocksMovement(true, SyncTo.UI, false);
@@ -121,7 +134,12 @@ function applyDDraft(): void {
     for (const portal of dDraftData.ddraft_portals) {
         const points = portal.bounds.map((w) => toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH));
         const shape = new Polygon(points[0], points.slice(1), { openPolygon: true, strokeColour: "blue" });
-        shape.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.UI);
+        accessSystem.addAccess(
+            shape.id,
+            clientStore.state.username,
+            { edit: true, movement: true, vision: true },
+            SyncTo.UI,
+        );
 
         if (portal.closed) {
             shape.setBlocksVision(true, SyncTo.UI, false);
@@ -137,23 +155,30 @@ function applyDDraft(): void {
         shape.isInvisible = true;
 
         const aura: Aura = {
-            uuid: uuidv4(),
+            uuid: uuidv4() as unknown as AuraId,
             active: true,
             visionSource: true,
             visible: true,
             name: "ddraft light source",
-            value: light.range * settingsStore.unitSize.value * (DEFAULT_GRID_SIZE / size),
+            value: (light.range * DEFAULT_GRID_SIZE) / settingsStore.unitSize.value,
             dim: 0,
-            colour: `#${light.color}`,
+            colour: tinycolor(light.color)
+                .setAlpha(0.05 * light.intensity)
+                .toRgbString(),
             borderColour: "rgba(0, 0, 0, 0)",
             angle: 360,
             direction: 0,
         };
 
-        shape.pushAura(aura, SyncTo.UI);
-        shape.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.UI);
+        tokenLayer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
 
-        realShape.layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
+        auraSystem.add(shape.id, aura, SyncTo.SERVER);
+        accessSystem.addAccess(
+            shape.id,
+            clientStore.state.username,
+            { edit: true, movement: true, vision: true },
+            SyncTo.SERVER,
+        );
     }
 
     visionState.recalculateVision(realShape.floor.id);

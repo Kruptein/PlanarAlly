@@ -1,11 +1,16 @@
+import type { GlobalId } from "../id";
 import type { Label } from "../shapes/interfaces";
-import type { ShapeAccess, ShapeOwner } from "../shapes/owners";
 import type { SHAPE_TYPE } from "../shapes/types";
+import type { ServerShapeOwner } from "../systems/access/models";
+import type { ServerAura } from "../systems/auras/models";
+import type { Permissions } from "../systems/logic/models";
+import type { TeleportOptions } from "../systems/logic/tp/models";
+import type { ServerTracker } from "../systems/trackers/models";
 
 import type { LayerName } from "./floor";
 
 export interface ServerShape {
-    uuid: string;
+    uuid: GlobalId;
     type_: SHAPE_TYPE;
     x: number;
     y: number;
@@ -14,7 +19,7 @@ export interface ServerShape {
     layer: LayerName;
     movement_obstruction: boolean;
     vision_obstruction: boolean;
-    draw_operator: string;
+    draw_operator: GlobalCompositeOperation;
     trackers: ServerTracker[];
     auras: ServerAura[];
     labels: Label[];
@@ -39,17 +44,8 @@ export interface ServerShape {
     asset?: number;
     group?: string;
     ignore_zoom_size: boolean;
-}
-
-interface ServerShapeAccess {
-    edit_access: boolean;
-    movement_access: boolean;
-    vision_access: boolean;
-}
-
-export interface ServerShapeOwner extends ServerShapeAccess {
-    shape: string;
-    user: string;
+    is_door: boolean;
+    is_teleport_zone: boolean;
 }
 
 export interface ServerRect extends ServerShape {
@@ -83,70 +79,19 @@ export interface ServerText extends ServerShape {
 }
 
 export interface ServerToggleComposite extends ServerShape {
-    active_variant: string;
-    variants: { uuid: string; name: string }[];
+    active_variant: GlobalId;
+    variants: { uuid: GlobalId; name: string }[];
 }
 export interface ServerAsset extends ServerRect {
     src: string;
 }
-
-export interface ServerTracker {
-    shape: string;
-    uuid: string;
-    visible: boolean;
-    name: string;
-    value: number;
-    maxvalue: number;
-    draw: boolean;
-    primary_color: string;
-    secondary_color: string;
-}
-
-export interface ServerAura {
-    shape: string;
-    uuid: string;
-    active: boolean;
-    vision_source: boolean;
-    visible: boolean;
-    name: string;
-    value: number;
-    dim: number;
-    colour: string;
-    border_colour: string;
-    angle: number;
-    direction: number;
-}
-
-export const accessToServer = (access: ShapeAccess): ServerShapeAccess => ({
-    edit_access: access.edit || false,
-    movement_access: access.movement || false,
-    vision_access: access.vision || false,
-});
-
-export const ownerToServer = (owner: ShapeOwner): ServerShapeOwner => ({
-    user: owner.user,
-    shape: owner.shape,
-    ...accessToServer(owner.access),
-});
-
-const accessToClient = (access: ServerShapeAccess): ShapeAccess => ({
-    edit: access.edit_access,
-    movement: access.movement_access,
-    vision: access.vision_access,
-});
-
-export const ownerToClient = (owner: ServerShapeOwner): ShapeOwner => ({
-    user: owner.user,
-    shape: owner.shape,
-    access: accessToClient(owner),
-});
 
 export interface ShapeOptions {
     isPlayerRect: boolean;
 
     preFogShape: boolean;
     skipDraw: boolean;
-    borderOperation: string;
+    borderOperation: GlobalCompositeOperation;
 
     // legacy svg stuff
     svgHeight: number;
@@ -156,4 +101,10 @@ export interface ShapeOptions {
     svgAsset: string;
 
     UiHelper: boolean;
+}
+
+export interface ServerShapeOptions extends ShapeOptions {
+    // logic
+    door: Permissions;
+    teleport: TeleportOptions;
 }

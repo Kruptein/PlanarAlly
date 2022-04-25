@@ -8,7 +8,6 @@ import Dashboard from "./dashboard/Dashboard.vue";
 import Invitation from "./invitation";
 import { handleNotifications } from "./notifications";
 import { coreStore } from "./store/core";
-import { BASE_PATH } from "./utils";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const AssetManager = () => import("./assetManager/AssetManager.vue");
@@ -31,6 +30,7 @@ const routes: Array<RouteRecordRaw> = [
     {
         path: "/auth/login",
         component: Login,
+        name: "login", // name used for transition
     },
     {
         path: "/auth/logout",
@@ -38,7 +38,7 @@ const routes: Array<RouteRecordRaw> = [
     },
     {
         path: "/dashboard",
-        name: "dashboard",
+        name: "dashboard", // name used for transition
         component: Dashboard,
         meta: {
             auth: true,
@@ -62,7 +62,7 @@ const routes: Array<RouteRecordRaw> = [
 ];
 
 export const router = createRouter({
-    history: createWebHistory(BASE_PATH),
+    history: createWebHistory(import.meta.env.BASE_URL),
     routes,
 });
 

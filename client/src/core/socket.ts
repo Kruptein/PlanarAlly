@@ -1,11 +1,9 @@
 import { Manager } from "socket.io-client";
 
-import { BASE_PATH } from "../utils";
-
 function createNewManager(): Manager {
     return new Manager(location.protocol + "//" + location.host, {
         autoConnect: false,
-        path: BASE_PATH + "socket.io",
+        path: import.meta.env.BASE_URL + "socket.io",
         transports: ["websocket", "polling"],
     });
 }

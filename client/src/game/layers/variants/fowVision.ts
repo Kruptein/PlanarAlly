@@ -2,7 +2,7 @@ import { g2l, g2lr, g2lx, g2ly } from "../../../core/conversions";
 import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
-import { UuidMap } from "../../../store/shapeMap";
+import { getShape } from "../../id";
 import { LayerName } from "../../models/floor";
 import { TriangulationTarget } from "../../vision/state";
 import { computeVisibility } from "../../vision/te";
@@ -34,7 +34,7 @@ export class FowVisionLayer extends FowLayer {
             }
 
             for (const tokenId of gameStore.activeTokens.value) {
-                const token = UuidMap.get(tokenId);
+                const token = getShape(tokenId);
                 if (token === undefined || token.floor.id !== this.floor) continue;
                 const center = token.center();
                 const lcenter = g2l(center);

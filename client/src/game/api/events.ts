@@ -1,10 +1,16 @@
-import "./events/access";
+import "../systems/access/events";
+import "../systems/auras/events";
+import "../systems/logic/door/events";
+import "../systems/logic/tp/events";
+import "../systems/trackers/events";
+
 import "./events/dice";
 import "./events/floor";
 import "./events/groups";
 import "./events/initiative";
 import "./events/labels";
 import "./events/location";
+import "./events/logic";
 import "./events/notification";
 import "./events/player";
 import "./events/room";
@@ -17,22 +23,22 @@ import "./events/shape/togglecomposite";
 import { toGP } from "../../core/geometry";
 import { SyncMode } from "../../core/models/types";
 import type { AssetList } from "../../core/models/types";
+import { debugLayers } from "../../localStorageHelpers";
 import { router } from "../../router";
 import { clientStore } from "../../store/client";
 import { coreStore } from "../../store/core";
 import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
 import { locationStore } from "../../store/location";
-import { UuidMap } from "../../store/shapeMap";
 import { convertAssetListToMap } from "../assets/utils";
-import { startDrawLoop, stopDrawLoop } from "../draw";
-import { compositeState } from "../layers/state";
+import { clearGame } from "../clear";
+import { startDrawLoop } from "../draw";
+import { getLocalId, getShapeFromGlobal } from "../id";
+import type { GlobalId } from "../id";
 import type { Note, ServerFloor } from "../models/general";
 import type { Location } from "../models/settings";
 import { setCenterPosition } from "../position";
 import { deleteShapes } from "../shapes/utils";
-import { initiativeStore } from "../ui/initiative/state";
-import { visionState } from "../vision/state";
 
 import { sendClientLocationOptions } from "./emits/client";
 import { activeLayerToselect } from "./events/client";
@@ -69,14 +75,8 @@ socket.on("redirect", (destination: string) => {
 // Bootup events
 
 socket.on("Board.Locations.Set", (locationInfo: Location[]) => {
-    stopDrawLoop();
-    gameStore.clear();
-    visionState.clear();
+    clearGame();
     locationStore.setLocations(locationInfo, false);
-    document.getElementById("layers")!.innerHTML = "";
-    floorStore.clear();
-    compositeState.clear();
-    initiativeStore.clear();
 });
 
 socket.on("Board.Floor.Set", (floor: ServerFloor) => {
@@ -84,7 +84,12 @@ socket.on("Board.Floor.Set", (floor: ServerFloor) => {
     // The very first floor that arrives is the one we want to select
     // When this condition is evaluated after the await, we are at the mercy of the async scheduler
     const selectFloor = floorStore.state.floors.length === 0;
+    if (debugLayers)
+        console.log(
+            `Adding floor ${floor.name} [${floor.layers.reduce((acc, cur) => acc + cur.shapes.length, 0)} shapes]`,
+        );
     floorStore.addServerFloor(floor);
+    if (debugLayers) console.log("Done.");
 
     if (selectFloor) {
         floorStore.selectFloor({ name: floor.name }, false);
@@ -100,7 +105,7 @@ socket.on("Board.Floor.Set", (floor: ServerFloor) => {
 // Varia
 
 socket.on("Position.Set", (data: { floor?: string; x: number; y: number; zoom?: number }) => {
-    if (data.floor !== undefined) floorStore.selectFloor({ name: data.floor }, false);
+    if (data.floor !== undefined) floorStore.selectFloor({ name: data.floor }, true);
     if (data.zoom !== undefined) clientStore.setZoomDisplay(data.zoom);
     setCenterPosition(toGP(data.x, data.y));
 });
@@ -113,11 +118,11 @@ socket.on("Asset.List.Set", (assets: AssetList) => {
     gameStore.setAssets(convertAssetListToMap(assets));
 });
 
-socket.on("Markers.Set", (markers: string[]) => {
-    for (const marker of markers) gameStore.newMarker(marker, false);
+socket.on("Markers.Set", (markers: GlobalId[]) => {
+    for (const marker of markers) gameStore.newMarker(getLocalId(marker)!, false);
 });
 
-socket.on("Temp.Clear", (shapeIds: string[]) => {
-    const shapes = shapeIds.map((s) => UuidMap.get(s)!).filter((s) => s !== undefined);
+socket.on("Temp.Clear", (shapeIds: GlobalId[]) => {
+    const shapes = shapeIds.map((s) => getShapeFromGlobal(s)!).filter((s) => s !== undefined);
     deleteShapes(shapes, SyncMode.NO_SYNC);
 });

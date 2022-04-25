@@ -4,6 +4,7 @@ import type { GlobalPoint } from "../../../core/geometry";
 import { rotateAroundPoint } from "../../../core/math";
 import { DEFAULT_GRID_SIZE } from "../../../store/client";
 import { calculateDelta } from "../../drag";
+import type { GlobalId, LocalId } from "../../id";
 import type { ServerShape } from "../../models/shapes";
 import { Shape } from "../shape";
 
@@ -19,7 +20,7 @@ export abstract class BaseRect extends Shape {
         topleft: GlobalPoint,
         w: number,
         h: number,
-        options?: { fillColour?: string; strokeColour?: string; uuid?: string; assetId?: number },
+        options?: { fillColour?: string; strokeColour?: string; id?: LocalId; uuid?: GlobalId; assetId?: number },
     ) {
         super(topleft, options);
         this._w = w;
@@ -31,7 +32,10 @@ export abstract class BaseRect extends Shape {
     }
 
     set w(width: number) {
-        if (width > 0) this._w = width;
+        if (width > 0) {
+            this._w = width;
+            this.invalidatePoints();
+        }
     }
 
     get h(): number {
@@ -39,7 +43,10 @@ export abstract class BaseRect extends Shape {
     }
 
     set h(height: number) {
-        if (height > 0) this._h = height;
+        if (height > 0) {
+            this._h = height;
+            this.invalidatePoints();
+        }
     }
 
     getBaseDict(): ServerBaseRect {
@@ -61,8 +68,11 @@ export abstract class BaseRect extends Shape {
         return bbox;
     }
 
-    get points(): [number, number][] {
-        if (this.w === 0 || this.h === 0) return [[this.refPoint.x, this.refPoint.y]];
+    invalidatePoints(): void {
+        if (this.w === 0 || this.h === 0) {
+            this._points = [[this.refPoint.x, this.refPoint.y]];
+            return;
+        }
 
         const center = this.center();
 
@@ -70,7 +80,7 @@ export abstract class BaseRect extends Shape {
         const botleft = rotateAroundPoint(addP(this.refPoint, new Vector(0, this.h)), center, this.angle);
         const botright = rotateAroundPoint(addP(this.refPoint, new Vector(this.w, this.h)), center, this.angle);
         const topright = rotateAroundPoint(addP(this.refPoint, new Vector(this.w, 0)), center, this.angle);
-        return [
+        this._points = [
             [topleft.x, topleft.y],
             [botleft.x, botleft.y],
             [botright.x, botright.y],
@@ -87,6 +97,7 @@ export abstract class BaseRect extends Shape {
             this.refPoint.y + this.h >= point.y
         );
     }
+
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
     center(centerPoint?: GlobalPoint): GlobalPoint | void {
@@ -105,6 +116,7 @@ export abstract class BaseRect extends Shape {
         if (coreVisible) return true;
         return false;
     }
+
     snapToGrid(): void {
         const gs = DEFAULT_GRID_SIZE;
         const center = this.center();
@@ -130,6 +142,7 @@ export abstract class BaseRect extends Shape {
 
         this.invalidate(false);
     }
+
     resizeToGrid(resizePoint: number, retainAspectRatio: boolean): void {
         const targetPoint = toGP(
             this.refPoint.x + (resizePoint > 1 ? this.w : 0),
@@ -207,6 +220,9 @@ export abstract class BaseRect extends Shape {
 
         const newResizePoint = (resizePoint + 4) % 4;
         const oppositeNRP = (newResizePoint + 2) % 4;
+
+        // this call needs to happen BEFORE the below code
+        this.invalidatePoints();
 
         const vec = Vector.fromPoints(toGP(this.points[oppositeNRP]), toGP(oldPoints[oppositeNRP]));
         this.refPoint = addP(this.refPoint, vec);

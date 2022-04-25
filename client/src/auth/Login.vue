@@ -25,6 +25,7 @@ const username = ref("");
 const password = ref("");
 const email = ref("");
 const registerMode = ref(false);
+const allowRegister = (document.querySelector("meta[name='PA-signup']")?.getAttribute("content") ?? "true") === "true";
 
 const showLanguageDropdown = ref(false);
 
@@ -79,7 +80,7 @@ function focusout(event: FocusEvent): void {
     }
 }
 
-function slideNext(swiper: Swiper): void {
+function slideNext(swiper: any): void {
     swiper.slideNext();
 }
 </script>
@@ -188,11 +189,13 @@ function slideNext(swiper: Swiper): void {
                     <span v-else>enter</span>
                 </button>
             </form>
-            <h4><span>OR</span></h4>
-            <button class="submit" @click="registerMode = !registerMode" :title="t('auth.login.register')">
-                <span v-if="registerMode">return</span>
-                <span v-else>register</span>
-            </button>
+            <template v-if="allowRegister">
+                <h4><span>OR</span></h4>
+                <button class="submit" @click="registerMode = !registerMode" :title="t('auth.login.register')">
+                    <span v-if="registerMode">return</span>
+                    <span v-else>register</span>
+                </button>
+            </template>
         </div>
     </div>
 </template>

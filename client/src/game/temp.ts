@@ -4,11 +4,13 @@ import { SyncMode, InvalidationMode } from "../core/models/types";
 import type { SelectionBoxFunction } from "../core/plugins/modals/selectionBox";
 import { baseAdjust, uuidv4 } from "../core/utils";
 import { i18n } from "../i18n";
+import { DEFAULT_GRID_SIZE } from "../store/client";
 import { floorStore } from "../store/floor";
 import { settingsStore } from "../store/settings";
 
 import { requestAssetOptions } from "./api/emits/asset";
 import { sendFloorChange, sendLayerChange } from "./api/emits/shape/core";
+import { getGlobalId } from "./id";
 import type { Layer } from "./layers/variants/layer";
 import type { Floor } from "./models/floor";
 import type { ServerShape } from "./models/shapes";
@@ -39,8 +41,8 @@ export function moveFloor(shapes: IShape[], newFloor: Floor, sync: boolean): voi
     oldLayer.invalidate(false);
     newLayer.invalidate(false);
     if (sync) {
-        const uuids = shapes.map((s) => s.uuid);
-        sendFloorChange({ uuids, floor: newFloor.name });
+        const uuids = shapes.map((s) => s.id);
+        sendFloorChange({ uuids: shapes.map((s) => getGlobalId(s.id)), floor: newFloor.name });
         addOperation({ type: "floormovement", shapes: uuids, from: oldFloor.id, to: newFloor.id });
     }
 }
@@ -62,9 +64,9 @@ export function moveLayer(shapes: readonly IShape[], newLayer: Layer, sync: bool
     newLayer.invalidate(false);
     // Sync!
     if (sync) {
-        const uuids = shapes.map((s) => s.uuid);
+        const uuids = shapes.map((s) => s.id);
         sendLayerChange({
-            uuids,
+            uuids: shapes.map((s) => getGlobalId(s.id)),
             layer: newLayer.name,
             floor: floorStore.getFloor({ id: newLayer.floor })!.name,
         });
@@ -102,9 +104,20 @@ export async function dropAsset(
 
     let options: BaseTemplate | undefined;
     if (data.assetId) {
-        const response = await requestAssetOptions(data.assetId);
-        if (response.success) {
-            const choices = Object.keys(response.options?.templates ?? {});
+        const assetInfo = await requestAssetOptions(data.assetId);
+        if (assetInfo.success) {
+            // check if map dimensions in asset name
+            const dimensions = assetInfo.name.match(/(?<x>\d+)x(?<y>\d+)/);
+            if (dimensions?.groups !== undefined) {
+                const dimX = Number.parseInt(dimensions.groups.x);
+                const dimY = Number.parseInt(dimensions.groups.y);
+                options = {
+                    width: dimX * DEFAULT_GRID_SIZE,
+                    height: dimY * DEFAULT_GRID_SIZE,
+                } as BaseTemplate;
+            }
+
+            const choices = Object.keys(assetInfo.options?.templates ?? {});
             if (choices.length > 0) {
                 try {
                     const choice = await selectionBoxFunction!(
@@ -112,7 +125,7 @@ export async function dropAsset(
                         choices,
                     );
                     if (choice === undefined) return;
-                    options = response.options!.templates[choice];
+                    options = assetInfo.options!.templates[choice[0]];
                 } catch {
                     // no-op ; action cancelled
                 }
@@ -132,10 +145,13 @@ export async function dropAsset(
                 assetId: data.assetId,
                 uuid,
             });
-            asset.src = new URL(image.src).pathname;
+
+            const pathname = new URL(image.src).pathname;
+            asset.src = pathname.replace(import.meta.env.BASE_URL, "/");
+
+            asset.setLayer(layer.floor, layer.name); // set this early to avoid conflicts
 
             if (options) {
-                asset.setLayer(layer.floor, layer.name); // if we don't set this the asDict will fail
                 asset.fromDict(applyTemplate(asset.asDict(), options));
             }
 

@@ -17,14 +17,14 @@ export function resizeShape(
         recalculateMovement = true;
         visionState.deleteFromTriangulation({
             target: TriangulationTarget.MOVEMENT,
-            shape: shape.uuid,
+            shape: shape.id,
         });
     }
     if (shape.blocksVision) {
         recalculateVision = true;
         visionState.deleteFromTriangulation({
             target: TriangulationTarget.VISION,
-            shape: shape.uuid,
+            shape: shape.id,
         });
     }
 
@@ -32,8 +32,8 @@ export function resizeShape(
 
     // todo: think about calling deleteIntersectVertex directly on the corner point
     if (shape.blocksMovement && !temporary)
-        visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: shape.uuid });
-    if (shape.blocksVision) visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: shape.uuid });
+        visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: shape.id });
+    if (shape.blocksVision) visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: shape.id });
 
     if (!shape.preventSync) sendShapeSizeUpdate({ shape, temporary });
 

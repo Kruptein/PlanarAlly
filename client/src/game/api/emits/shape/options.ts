@@ -1,12 +1,11 @@
-import type { ServerAura, ServerTracker } from "../../../models/shapes";
+import type { GlobalId } from "../../../id";
 import { wrapSocket } from "../../helpers";
-import { socket } from "../../socket";
 
-function sendShapeOption<T>(event: string): (data: { shape: string } & T) => void {
+export function sendShapeOption<T>(event: string): (data: { shape: string } & T) => void {
     return wrapSocket<{ shape: string } & T>(event);
 }
 
-function sendSimpleShapeOption<T>(event: string): (data: { shape: string; value: T }) => void {
+export function sendSimpleShapeOption<T>(event: string): (data: { shape: GlobalId; value: T }) => void {
     return sendShapeOption<{ value: T }>(event);
 }
 
@@ -27,24 +26,6 @@ export const sendShapeSetFillColour = sendSimpleShapeOption<string>("Shape.Optio
 export const sendShapeAddLabel = sendSimpleShapeOption<string>("Shape.Options.Label.Add");
 
 export const sendShapeRemoveLabel = sendSimpleShapeOption<string>("Shape.Options.Label.Remove");
-export const sendShapeRemoveAura = sendSimpleShapeOption<string>("Shape.Options.Aura.Remove");
-export const sendShapeRemoveTracker = sendSimpleShapeOption<string>("Shape.Options.Tracker.Remove");
-export const sendShapeMoveTracker =
-    sendShapeOption<{ tracker: string; new_shape: string }>("Shape.Options.Tracker.Move");
-export const sendShapeMoveAura = sendShapeOption<{ aura: string; new_shape: string }>("Shape.Options.Aura.Move");
 
-export const sendShapeCreateTracker = (data: ServerTracker): void => {
-    socket.emit("Shape.Options.Tracker.Create", data);
-};
-
-export const sendShapeUpdateTracker = (data: { shape: string; uuid: string } & Partial<ServerTracker>): void => {
-    socket.emit("Shape.Options.Tracker.Update", data);
-};
-
-export const sendShapeCreateAura = (data: ServerAura): void => {
-    socket.emit("Shape.Options.Aura.Create", data);
-};
-
-export const sendShapeUpdateAura = (data: { shape: string; uuid: string } & Partial<ServerAura>): void => {
-    socket.emit("Shape.Options.Aura.Update", data);
-};
+export const sendShapeSkipDraw = sendSimpleShapeOption<boolean>("Shape.Options.SkipDraw.Set");
+export const sendShapeSvgAsset = sendSimpleShapeOption<string | undefined>("Shape.Options.SvgAsset.Set");

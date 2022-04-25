@@ -1,18 +1,22 @@
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
+import { debugLayers } from "../../../localStorageHelpers";
 import { activeShapeStore } from "../../../store/activeShape";
 import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
-import { UuidMap } from "../../../store/shapeMap";
 import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../../api/emits/shape/core";
 import { drawAuras } from "../../draw";
 import { removeGroupMember } from "../../groups";
+import { dropId, getGlobalId } from "../../id";
+import type { LocalId } from "../../id";
 import { LayerName } from "../../models/floor";
+import type { FloorId } from "../../models/floor";
 import type { ServerShape } from "../../models/shapes";
 import { addOperation } from "../../operations/undo";
 import type { IShape } from "../../shapes/interfaces";
 import { createShapeFromDict } from "../../shapes/utils";
+import { accessSystem } from "../../systems/access";
 import { initiativeStore } from "../../ui/initiative/state";
 import { TriangulationTarget, VisibilityMode, visionState } from "../../vision/state";
 import { setCanvasDimensions } from "../canvas";
@@ -34,7 +38,7 @@ export class Layer {
     // These are ordered on a depth basis.
     protected shapes: IShape[] = [];
 
-    points: Map<string, Set<string>> = new Map();
+    points: Map<string, Set<LocalId>> = new Map();
 
     // Extra selection highlighting settings
     protected selectionColor = "#CC0000";
@@ -45,13 +49,18 @@ export class Layer {
     constructor(
         public canvas: HTMLCanvasElement,
         public name: LayerName,
-        public floor: number,
+        public floor: FloorId,
         protected index: number,
     ) {
         this.ctx = canvas.getContext("2d")!;
     }
 
     invalidate(skipLightUpdate: boolean): void {
+        if (debugLayers) {
+            console.groupCollapsed(`🗑 [${this.floor}] ${this.name}`);
+            console.trace();
+            console.groupEnd();
+        }
         this.valid = false;
         if (!skipLightUpdate) {
             floorStore.invalidateLight(this.floor);
@@ -88,17 +97,20 @@ export class Layer {
 
         this.shapes.push(shape);
 
-        UuidMap.set(shape.uuid, shape);
         shape.setBlocksVision(shape.blocksVision, SyncTo.UI, invalidate !== InvalidationMode.NO);
         shape.setBlocksMovement(shape.blocksMovement, SyncTo.UI, invalidate !== InvalidationMode.NO);
+
+        shape.invalidatePoints();
         if (options?.snappable ?? true) {
             for (const point of shape.points) {
                 const strp = JSON.stringify(point);
-                this.points.set(strp, (this.points.get(strp) || new Set()).add(shape.uuid));
+                this.points.set(strp, (this.points.get(strp) || new Set()).add(shape.id));
             }
         }
-        if (shape.ownedBy(false, { visionAccess: true }) && shape.isToken) gameStore.addOwnedToken(shape.uuid);
-        if (shape.annotation.length) gameStore.addAnnotation(shape.uuid);
+
+        if (accessSystem.hasAccessTo(shape.id, false, { vision: true }) && shape.isToken)
+            gameStore.addOwnedToken(shape.id);
+        if (shape.annotation.length) gameStore.addAnnotation(shape.id);
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync) {
             sendShapeAdd({ shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
         }
@@ -106,8 +118,8 @@ export class Layer {
 
         if (
             this.isActiveLayer &&
-            activeShapeStore.state.uuid === undefined &&
-            activeShapeStore.state.lastUuid === shape.uuid
+            activeShapeStore.state.id === undefined &&
+            activeShapeStore.state.lastUuid === shape.id
         ) {
             selectionState.push(shape);
         }
@@ -166,16 +178,16 @@ export class Layer {
         this.addShape(shape, SyncMode.NO_SYNC, invalidate);
     }
 
-    removeShape(shape: IShape, sync: SyncMode, recalculate: boolean): boolean {
+    removeShape(shape: IShape, options: { sync: SyncMode; recalculate: boolean; dropShapeId: boolean }): boolean {
         const idx = this.shapes.indexOf(shape);
         if (idx < 0) {
             console.error("attempted to remove shape not in layer.");
             return false;
         }
         const locationOptions = settingsStore.currentLocationOptions.value;
-        if (locationOptions.spawnLocations!.includes(shape.uuid)) {
+        if (locationOptions.spawnLocations!.includes(shape.id)) {
             settingsStore.setSpawnLocations(
-                locationOptions.spawnLocations!.filter((s) => s !== shape.uuid),
+                locationOptions.spawnLocations!.filter((s) => s !== shape.id),
                 settingsStore.state.activeLocation,
                 true,
             );
@@ -183,33 +195,33 @@ export class Layer {
         this.shapes.splice(idx, 1);
 
         if (shape.groupId !== undefined) {
-            removeGroupMember(shape.groupId, shape.uuid, false);
+            removeGroupMember(shape.groupId, shape.id, false);
         }
 
-        if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
-            sendRemoveShapes({ uuids: [shape.uuid], temporary: sync === SyncMode.TEMP_SYNC });
+        if (options.sync !== SyncMode.NO_SYNC && !shape.preventSync)
+            sendRemoveShapes({ uuids: [getGlobalId(shape.id)], temporary: options.sync === SyncMode.TEMP_SYNC });
 
-        visionState.removeBlocker(TriangulationTarget.VISION, this.floor, shape, recalculate);
-        visionState.removeBlocker(TriangulationTarget.MOVEMENT, this.floor, shape, recalculate);
-        visionState.removeVisionSources(this.floor, shape.uuid);
+        visionState.removeBlocker(TriangulationTarget.VISION, this.floor, shape, options.recalculate);
+        visionState.removeBlocker(TriangulationTarget.MOVEMENT, this.floor, shape, options.recalculate);
+        visionState.removeVisionSources(this.floor, shape.id);
 
-        gameStore.removeAnnotation(shape.uuid);
+        gameStore.removeAnnotation(shape.id);
 
-        gameStore.removeOwnedToken(shape.uuid);
+        gameStore.removeOwnedToken(shape.id);
 
-        UuidMap.delete(shape.uuid);
-        gameStore.removeMarker(shape.uuid, true);
+        if (options.dropShapeId) dropId(shape.id);
+        gameStore.removeMarker(shape.id, true);
 
         for (const point of shape.points) {
             const strp = JSON.stringify(point);
             const val = this.points.get(strp);
             if (val === undefined || val.size === 1) this.points.delete(strp);
-            else val.delete(shape.uuid);
+            else val.delete(shape.id);
         }
 
-        if (this.isActiveLayer) selectionState.remove(shape.uuid);
+        if (this.isActiveLayer) selectionState.remove(shape.id);
 
-        if (sync === SyncMode.FULL_SYNC) initiativeStore.removeInitiative(shape.uuid, false);
+        if (options.sync === SyncMode.FULL_SYNC) initiativeStore.removeInitiative(shape.id, false);
         this.invalidate(!shape.triggersVisionRecalc);
         return true;
     }
@@ -221,7 +233,11 @@ export class Layer {
         this.shapes.splice(oldIdx, 1);
         this.shapes.splice(destinationIndex, 0, shape);
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
-            sendShapeOrder({ uuid: shape.uuid, index: destinationIndex, temporary: sync === SyncMode.TEMP_SYNC });
+            sendShapeOrder({
+                uuid: getGlobalId(shape.id),
+                index: destinationIndex,
+                temporary: sync === SyncMode.TEMP_SYNC,
+            });
         this.invalidate(true);
     }
 
@@ -241,6 +257,11 @@ export class Layer {
 
     draw(doClear = true): void {
         if (!this.valid) {
+            if (debugLayers) {
+                console.groupCollapsed(`🖌 [${this.floor}] ${this.name}`);
+                console.trace();
+                console.groupEnd();
+            }
             const ctx = this.ctx;
             const ogOP = ctx.globalCompositeOperation;
 
@@ -267,7 +288,7 @@ export class Layer {
             }
             // Normal shape draw loop
             for (const shape of visibleShapes) {
-                if (shape.isInvisible && !shape.ownedBy(true, { visionAccess: true })) continue;
+                if (shape.isInvisible && !accessSystem.hasAccessTo(shape.id, true, { vision: true })) continue;
                 if (shape.labels.length === 0 && gameState.filterNoLabel) continue;
                 if (
                     shape.labels.length &&
@@ -292,7 +313,7 @@ export class Layer {
                 const lowerFloor = floorState.floors[floorState.floorIndex - 1];
                 if (lowerFloor.id === this.floor) {
                     const layers = floorStore.getLayers(lowerFloor);
-                    if (layers[layers.length - 1].name === this.name) {
+                    if (layers.at(-1)?.name === this.name) {
                         ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
                         ctx.fillRect(0, 0, this.width, this.height);
                     }

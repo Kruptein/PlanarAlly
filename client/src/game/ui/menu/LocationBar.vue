@@ -59,7 +59,7 @@ async function showArchivedLocations(): Promise<void> {
         "Select a location to retore",
         locations.map((l) => l.name),
     );
-    const location = locations.find((l) => l.name === choice);
+    const location = locations.find((l) => l.name === choice?.[0]);
     if (choice !== undefined && location !== undefined) {
         locationStore.unarchiveLocation(location.id, true);
     }

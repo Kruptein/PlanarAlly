@@ -6,9 +6,9 @@ import { clientStore, DEFAULT_GRID_SIZE } from "../../store/client";
 import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
 import { settingsStore } from "../../store/settings";
-import { UuidMap } from "../../store/shapeMap";
 import { sendClientLocationOptions } from "../api/emits/client";
 import { calculateDelta } from "../drag";
+import { getShape } from "../id";
 import { selectionState } from "../layers/selection";
 import { moveShapes } from "../operations/movement";
 import { undoOperation, redoOperation } from "../operations/undo";
@@ -28,7 +28,7 @@ export function onKeyUp(event: KeyboardEvent): void {
         if (event.key === " " || (event.code === "Numpad0" && !ctrlOrCmdPressed(event))) {
             // Spacebar or numpad-zero: cycle through own tokens
             // numpad-zero only if Ctrl is not pressed, as this would otherwise conflict with Ctrl + 0
-            const tokens = [...gameStore.state.ownedTokens].map((o) => UuidMap.get(o)!);
+            const tokens = [...gameStore.state.ownedTokens].map((o) => getShape(o)!);
             if (tokens.length === 0) return;
             const i = tokens.findIndex((o) => equalsP(o.center(), clientStore.screenCenter));
             const token = tokens[(i + 1) % tokens.length];
@@ -43,7 +43,7 @@ export function onKeyUp(event: KeyboardEvent): void {
     }
 }
 
-export function onKeyDown(event: KeyboardEvent): void {
+export async function onKeyDown(event: KeyboardEvent): Promise<void> {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         // Ctrl-a with a HTMLInputElement or a HTMLTextAreaElement selected - select all the text
         if (event.key === "a" && ctrlOrCmdPressed(event)) event.target.select();
@@ -111,7 +111,7 @@ export function onKeyDown(event: KeyboardEvent): void {
                 }
                 if (delta.length() === 0) return;
 
-                moveShapes(selection, delta, false);
+                await moveShapes(selection, delta, false);
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.
                 clientStore.increasePanX(offsetX * -1);
@@ -129,7 +129,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             for (const shape of selection) {
                 const isDefeated = !shape.isDefeated;
                 shape.setDefeated(isDefeated, SyncTo.SERVER);
-                if (activeShapeStore.state.uuid === shape.uuid) {
+                if (activeShapeStore.state.id === shape.id) {
                     activeShapeStore.setIsDefeated(isDefeated, SyncTo.UI);
                 }
             }
@@ -142,7 +142,7 @@ export function onKeyDown(event: KeyboardEvent): void {
                 // Might need to introduce a SyncTo.BOTH
                 const isLocked = !shape.isLocked;
                 shape.setLocked(isLocked, SyncTo.SERVER);
-                if (activeShapeStore.state.uuid === shape.uuid) {
+                if (activeShapeStore.state.id === shape.id) {
                     activeShapeStore.setLocked(isLocked, SyncTo.UI);
                 }
             }

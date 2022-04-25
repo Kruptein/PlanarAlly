@@ -54,10 +54,12 @@ async def handle_ddraft_file(upload_data: UploadData, data: bytes, sid: str):
         "version": "0",
         "shape": "assetrect",
         "templates": {
-            "default": {
+            "ddraft/uvtt": {
+                "width": ddraft_file["resolution"]["map_size"]["x"] * 50,
+                "height": ddraft_file["resolution"]["map_size"]["y"] * 50,
                 "options": json.dumps(
                     [[f"ddraft_{k}", v] for k, v in ddraft_file.items() if k != "image"]
-                )
+                ),
             }
         },
     }
@@ -72,4 +74,9 @@ async def handle_ddraft_file(upload_data: UploadData, data: bytes, sid: str):
         options=json.dumps(template),
     )
 
-    await sio.emit("Asset.Upload.Finish", asset.as_dict(), room=sid, namespace=ASSET_NS)
+    await sio.emit(
+        "Asset.Upload.Finish",
+        {"asset": asset.as_dict(), "parent": upload_data["directory"]},
+        room=sid,
+        namespace=ASSET_NS,
+    )

@@ -21,7 +21,6 @@ export interface ServerLayer {
     type_: string;
     index: number;
     name: string;
-    layer: string;
     groups: ServerGroup[];
     shapes: ServerShape[];
     selectable: boolean;

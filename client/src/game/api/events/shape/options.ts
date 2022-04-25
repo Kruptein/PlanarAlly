@@ -1,15 +1,12 @@
 import { SyncTo } from "../../../../core/models/types";
-import { UuidMap } from "../../../../store/shapeMap";
-import { aurasFromServer, partialAuraFromServer } from "../../../models/conversion/aura";
-import { trackersFromServer, partialTrackerFromServer } from "../../../models/conversion/tracker";
-import type { ServerAura, ServerTracker } from "../../../models/shapes";
-import type { Aura, Tracker } from "../../../shapes/interfaces";
+import { getLocalId, getShape } from "../../../id";
+import type { GlobalId } from "../../../id";
 import { Shape } from "../../../shapes/shape";
 import { socket } from "../../socket";
 
-function wrapCall<T>(func: (value: T, syncTo: SyncTo) => void): (data: { shape: string; value: T }) => void {
+function wrapCall<T>(func: (value: T, syncTo: SyncTo) => void): (data: { shape: GlobalId; value: T }) => void {
     return (data) => {
-        const shape = UuidMap.get(data.shape);
+        const shape = getShape(getLocalId(data.shape)!);
         if (shape === undefined) return;
         func.bind(shape)(data.value, SyncTo.UI);
     };
@@ -30,64 +27,45 @@ socket.on("Shape.Options.ShowBadge.Set", wrapCall(Shape.prototype.setShowBadge))
 socket.on("Shape.Options.Annotation.Set", wrapCall(Shape.prototype.setAnnotation));
 socket.on("Shape.Options.Label.Add", wrapCall(Shape.prototype.addLabel));
 
-socket.on("Shape.Options.Tracker.Remove", wrapCall(Shape.prototype.removeTracker));
-socket.on("Shape.Options.Aura.Remove", wrapCall(Shape.prototype.removeAura));
 socket.on("Shape.Options.Label.Remove", wrapCall(Shape.prototype.removeLabel));
 
-socket.on("Shape.Options.Tracker.Create", (data: ServerTracker): void => {
-    const shape = UuidMap.get(data.shape);
-    if (shape === undefined) return;
-    shape.pushTracker(trackersFromServer(data)[0], SyncTo.UI);
-});
-
-socket.on("Shape.Options.Tracker.Update", (data: { uuid: string; shape: string } & Partial<Tracker>): void => {
-    const shape = UuidMap.get(data.shape);
-    if (shape === undefined) return;
-    shape.updateTracker(data.uuid, partialTrackerFromServer(data), SyncTo.UI);
-});
-
-socket.on("Shape.Options.Tracker.Move", (data: { shape: string; tracker: string; new_shape: string }): void => {
-    const shape = UuidMap.get(data.shape);
-    const newShape = UuidMap.get(data.new_shape);
-    if (shape === undefined || newShape === undefined) return;
-    const tracker = shape.getTrackers(false).find((t) => t.uuid === data.tracker);
-    if (tracker === undefined) return;
-
-    shape.removeTracker(tracker.uuid, SyncTo.UI);
-    newShape.pushTracker(tracker, SyncTo.UI);
-});
-
-socket.on("Shape.Options.Aura.Move", (data: { shape: string; aura: string; new_shape: string }): void => {
-    const shape = UuidMap.get(data.shape);
-    const newShape = UuidMap.get(data.new_shape);
-    if (shape === undefined || newShape === undefined) return;
-    const aura = shape.getAuras(false).find((a) => a.uuid === data.aura);
-    if (aura === undefined) return;
-
-    shape.removeAura(aura.uuid, SyncTo.UI);
-    newShape.pushAura(aura, SyncTo.UI);
-});
-
-socket.on("Shape.Options.Aura.Create", (data: ServerAura): void => {
-    const shape = UuidMap.get(data.shape);
-    if (shape === undefined) return;
-    shape.pushAura(aurasFromServer(data)[0], SyncTo.UI);
-});
-
-socket.on("Shape.Options.Aura.Update", (data: { uuid: string; shape: string } & Partial<Aura>): void => {
-    const shape = UuidMap.get(data.shape);
-    if (shape === undefined) return;
-    shape.updateAura(data.uuid, partialAuraFromServer(data), SyncTo.UI);
-});
-
-socket.on("Shape.Options.Invisible.Set", (data: { shape: string; value: boolean }) => {
-    const shape = UuidMap.get(data.shape);
+socket.on("Shape.Options.Invisible.Set", (data: { shape: GlobalId; value: boolean }) => {
+    const shape = getShape(getLocalId(data.shape)!);
     if (shape === undefined) return;
     shape.setInvisible(data.value, SyncTo.UI);
 });
 
-socket.on("Shape.Options.Defeated.Set", (data: { shape: string; value: boolean }) => {
-    const shape = UuidMap.get(data.shape);
+socket.on("Shape.Options.Defeated.Set", (data: { shape: GlobalId; value: boolean }) => {
+    const shape = getShape(getLocalId(data.shape)!);
     if (shape === undefined) return;
     shape.setDefeated(data.value, SyncTo.UI);
+});
+
+socket.on("Shape.Options.SkipDraw.Set", (data: { shape: GlobalId; value: boolean }) => {
+    const shapeId = getLocalId(data.shape);
+    if (shapeId === undefined) return;
+    const shape = getShape(shapeId);
+    if (shape === undefined) return;
+    if (shape.options === undefined) {
+        shape.options = {};
+    }
+    shape.options.skipDraw = data.value;
+});
+
+socket.on("Shape.Options.SvgAsset.Set", (data: { shape: GlobalId; value: string | undefined }) => {
+    const shapeId = getLocalId(data.shape);
+    if (shapeId === undefined) return;
+    const shape = getShape(shapeId);
+    if (shape === undefined) return;
+    if (shape.options === undefined) {
+        shape.options = {};
+    }
+    if (data.value === undefined) {
+        delete shape.options.svgAsset;
+        delete shape.options.svgHeight;
+        delete shape.options.svgPaths;
+        delete shape.options.svgWidth;
+    } else {
+        shape.options.svgAsset = data.value;
+    }
 });

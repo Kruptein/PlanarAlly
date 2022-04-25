@@ -1,3 +1,4 @@
+import { getGlobalId } from "../../../id";
 import type { ServerShape } from "../../../models/shapes";
 import type { IShape } from "../../../shapes/interfaces";
 import type { Circle } from "../../../shapes/variants/circle";
@@ -13,26 +14,15 @@ export const sendFloorChange = wrapSocket<{ uuids: string[]; floor: string }>("S
 export const sendLayerChange = wrapSocket<{ uuids: string[]; layer: string; floor: string }>("Shapes.Layer.Change");
 
 export const sendShapesMove = wrapSocket<{
-    shapes: string[];
+    shapes: readonly string[];
     target: { location: number; floor: string; x: number; y: number };
+    tp_zone: boolean;
 }>("Shapes.Location.Move");
-
-export function sendShapeOptionsUpdate(shapes: readonly IShape[], temporary: boolean): void {
-    const options = shapes
-        .filter((s) => !s.preventSync)
-        .map((s) => ({ uuid: s.uuid, option: JSON.stringify(Object.entries(s.options)) }));
-    if (options.length > 0) {
-        socket.emit("Shapes.Options.Update", {
-            options,
-            temporary,
-        });
-    }
-}
 
 export function sendShapePositionUpdate(shapes: readonly IShape[], temporary: boolean): void {
     const positions = shapes
         .filter((s) => !s.preventSync)
-        .map((s) => ({ uuid: s.uuid, position: s.getPositionRepresentation() }));
+        .map((s) => ({ uuid: getGlobalId(s.id), position: s.getPositionRepresentation() }));
     if (positions.length > 0) _sendShapePositionUpdate(positions, temporary);
 }
 
@@ -43,13 +33,13 @@ export function sendShapeSizeUpdate(data: { shape: IShape; temporary: boolean })
             const shape = data.shape as Rect;
             // a shape resize can move the refpoint!
             sendShapePositionUpdate([data.shape], data.temporary);
-            _sendRectSizeUpdate({ uuid: shape.uuid, w: shape.w, h: shape.h, temporary: data.temporary });
+            _sendRectSizeUpdate({ uuid: getGlobalId(shape.id), w: shape.w, h: shape.h, temporary: data.temporary });
             break;
         }
         case "circulartoken":
         case "circle": {
             const shape = data.shape as Circle;
-            _sendCircleSizeUpdate({ uuid: shape.uuid, r: shape.r, temporary: data.temporary });
+            _sendCircleSizeUpdate({ uuid: getGlobalId(shape.id), r: shape.r, temporary: data.temporary });
             break;
         }
         case "polygon": {
@@ -58,19 +48,28 @@ export function sendShapeSizeUpdate(data: { shape: IShape; temporary: boolean })
         }
         case "text": {
             const shape = data.shape as Text;
-            _sendTextSizeUpdate({ uuid: shape.uuid, font_size: shape.fontSize, temporary: data.temporary });
+            _sendTextSizeUpdate({ uuid: getGlobalId(shape.id), font_size: shape.fontSize, temporary: data.temporary });
         }
     }
 }
 
+export async function requestShapeInfo(shape: string): Promise<{ shape: ServerShape; location: number }> {
+    socket.emit("Shape.Info.Get", shape);
+    return new Promise((resolve: (value: { shape: ServerShape; location: number }) => void) =>
+        socket.once("Shape.Info", resolve),
+    );
+}
+
 // helpers
 
-const _sendRectSizeUpdate =
-    wrapSocket<{ uuid: string; w: number; h: number; temporary: boolean }>("Shape.Rect.Size.Update");
+const _sendRectSizeUpdate = wrapSocket<{ uuid: string; w: number; h: number; temporary: boolean }>(
+    "Shape.Rect.Size.Update",
+);
 const _sendCircleSizeUpdate = wrapSocket<{ uuid: string; r: number; temporary: boolean }>("Shape.Circle.Size.Update");
 
-const _sendTextSizeUpdate =
-    wrapSocket<{ uuid: string; font_size: number; temporary: boolean }>("Shape.Text.Size.Update");
+const _sendTextSizeUpdate = wrapSocket<{ uuid: string; font_size: number; temporary: boolean }>(
+    "Shape.Text.Size.Update",
+);
 
 function _sendShapePositionUpdate(
     shapes: { uuid: string; position: { angle: number; points: number[][] } }[],

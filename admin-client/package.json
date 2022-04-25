@@ -1,0 +1,30 @@
+{
+    "name": "admin-client",
+    "version": "0.0.0",
+    "scripts": {
+        "dev": "vite",
+        "preview": "vite preview",
+        "clean": "rimraf ../server/static/vite-admin/",
+        "build": "npm run clean && vue-tsc --noEmit && vite build && mv ../server/index.html ../server/templates/admin-index.html",
+        "build:ci": "npm run clean && vue-tsc --noEmit && vite build --outDir dist",
+        "lint": "eslint src --fix",
+        "lint:ci": "CI=1 eslint src --no-fix"
+    },
+    "dependencies": {
+        "vue": "^3.2.26",
+        "vue-router": "^4.0.12"
+    },
+    "devDependencies": {
+        "@typescript-eslint/parser": "^5.9.1",
+        "@vitejs/plugin-vue": "^2.0.1",
+        "eslint": "^8.6.0",
+        "eslint-config-prettier": "^8.3.0",
+        "eslint-plugin-vue": "^8.3.0",
+        "prettier": "^2.5.1",
+        "sass": "^1.47.0",
+        "typescript": "^4.5.4",
+        "vite": "^2.7.10",
+        "vue-eslint-parser": "^8.0.1",
+        "vue-tsc": "^0.30.2"
+    }
+}

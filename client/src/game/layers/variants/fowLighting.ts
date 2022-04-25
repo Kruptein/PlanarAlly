@@ -3,11 +3,13 @@ import type { SyncMode, InvalidationMode } from "../../../core/models/types";
 import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
-import { UuidMap } from "../../../store/shapeMap";
 import { getFogColour } from "../../colour";
+import { getShape } from "../../id";
 import { LayerName } from "../../models/floor";
 import type { IShape } from "../../shapes/interfaces";
 import { Circle } from "../../shapes/variants/circle";
+import { accessSystem } from "../../systems/access";
+import { auraSystem } from "../../systems/auras";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { computeVisibility } from "../../vision/te";
 
@@ -21,12 +23,12 @@ export class FowLightingLayer extends FowLayer {
         }
     }
 
-    removeShape(shape: IShape, sync: SyncMode, recalculate: boolean): boolean {
+    removeShape(shape: IShape, options: { sync: SyncMode; recalculate: boolean; dropShapeId: boolean }): boolean {
         let idx = -1;
         if (shape.options.preFogShape ?? false) {
-            idx = this.preFogShapes.findIndex((s) => s.uuid === shape.uuid);
+            idx = this.preFogShapes.findIndex((s) => s.id === shape.id);
         }
-        const remove = super.removeShape(shape, sync, recalculate);
+        const remove = super.removeShape(shape, options);
         if (remove && idx >= 0) this.preFogShapes.splice(idx, 1);
         return remove;
     }
@@ -43,7 +45,7 @@ export class FowLightingLayer extends FowLayer {
                 floorStore.currentFloor.value!.id === this.floor
             ) {
                 for (const sh of gameStore.activeTokens.value) {
-                    const shape = UuidMap.get(sh)!;
+                    const shape = getShape(sh)!;
                     if (shape.options.skipDraw ?? false) continue;
                     if (shape.floor.id !== floorStore.currentFloor.value!.id) continue;
                     const bb = shape.getBoundingBox();
@@ -68,12 +70,12 @@ export class FowLightingLayer extends FowLayer {
 
             // First cut out all the light sources
             for (const light of visionState.getVisionSources(this.floor)) {
-                const shape = UuidMap.get(light.shape);
+                const shape = getShape(light.shape);
                 if (shape === undefined) continue;
-                const aura = shape.getAuras(true).find((a) => a.uuid === light.aura);
+                const aura = auraSystem.get(shape.id, light.aura, true);
                 if (aura === undefined) continue;
 
-                if (!shape.ownedBy(true, { visionAccess: true }) && !aura.visible) continue;
+                if (!accessSystem.hasAccessTo(light.shape, true, { vision: true }) && !aura.visible) continue;
 
                 const auraValue = aura.value > 0 && !isNaN(aura.value) ? aura.value : 0;
                 const auraDim = aura.dim > 0 && !isNaN(aura.dim) ? aura.dim : 0;

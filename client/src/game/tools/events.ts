@@ -1,8 +1,8 @@
 import { l2g } from "../../core/conversions";
 import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
-import { UuidMap } from "../../store/shapeMap";
 import { uiStore } from "../../store/ui";
+import { getShape } from "../id";
 import { getLocalPointFromEvent } from "../input/mouse";
 import { LayerName } from "../models/floor";
 import { ToolName } from "../models/tools";
@@ -34,7 +34,7 @@ export function mouseDown(event: MouseEvent): void {
     }
 }
 
-export function mouseMove(event: MouseEvent): void {
+export async function mouseMove(event: MouseEvent): Promise<void> {
     if ((event.target as HTMLElement).tagName !== "CANVAS") return;
 
     let targetTool = activeTool.value;
@@ -49,36 +49,35 @@ export function mouseMove(event: MouseEvent): void {
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
-        toolMap[permitted.name].onMouseMove(event, permitted.features);
+        await toolMap[permitted.name].onMouseMove(event, permitted.features);
     }
 
-    tool.onMouseMove(event, getFeatures(targetTool));
+    await tool.onMouseMove(event, getFeatures(targetTool));
 
     for (const permitted of tool.permittedTools) {
         if (permitted.early ?? false) continue;
-        toolMap[permitted.name].onMouseMove(event, permitted.features);
+        await toolMap[permitted.name].onMouseMove(event, permitted.features);
     }
 
+    // HOVER code
+    const eventPoint = l2g(getLocalPointFromEvent(event));
     // Annotation hover
-    let found = false;
+    let foundAnnotation = false;
     for (const uuid of gameStore.state.annotations) {
-        if (UuidMap.has(uuid) && floorStore.hasLayer(floorStore.currentFloor.value!, LayerName.Draw)) {
-            const shape = UuidMap.get(uuid)!;
-            if (
-                shape.floor.id === floorStore.currentFloor.value!.id &&
-                shape.contains(l2g(getLocalPointFromEvent(event)))
-            ) {
-                found = true;
+        if (floorStore.hasLayer(floorStore.currentFloor.value!, LayerName.Draw)) {
+            const shape = getShape(uuid);
+            if (shape && shape.floor.id === floorStore.currentFloor.value!.id && shape.contains(eventPoint)) {
+                foundAnnotation = true;
                 uiStore.setAnnotationText(shape.annotation);
             }
         }
     }
-    if (!found && uiStore.state.annotationText.length > 0) {
+    if (!foundAnnotation && uiStore.state.annotationText.length > 0) {
         uiStore.setAnnotationText("");
     }
 }
 
-export function mouseUp(event: MouseEvent): void {
+export async function mouseUp(event: MouseEvent): Promise<void> {
     if ((event.target as HTMLElement).tagName !== "CANVAS") return;
 
     let targetTool = activeTool.value;
@@ -92,30 +91,30 @@ export function mouseUp(event: MouseEvent): void {
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
-        toolMap[permitted.name].onMouseUp(event, permitted.features);
+        await toolMap[permitted.name].onMouseUp(event, permitted.features);
     }
 
-    tool.onMouseUp(event, getFeatures(targetTool));
+    await tool.onMouseUp(event, getFeatures(targetTool));
 
     for (const permitted of tool.permittedTools) {
         if (permitted.early ?? false) continue;
-        toolMap[permitted.name].onMouseUp(event, permitted.features);
+        await toolMap[permitted.name].onMouseUp(event, permitted.features);
     }
 }
 
-export function mouseLeave(event: MouseEvent): void {
+export async function mouseLeave(event: MouseEvent): Promise<void> {
     const tool = getActiveTool();
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
-        toolMap[permitted.name].onMouseUp(event, permitted.features);
+        await toolMap[permitted.name].onMouseUp(event, permitted.features);
     }
 
-    tool.onMouseUp(event, getFeatures(activeTool.value));
+    await tool.onMouseUp(event, getFeatures(activeTool.value));
 
     for (const permitted of tool.permittedTools) {
         if (permitted.early ?? false) continue;
-        toolMap[permitted.name].onMouseUp(event, permitted.features);
+        await toolMap[permitted.name].onMouseUp(event, permitted.features);
     }
 }
 
@@ -181,7 +180,7 @@ export function touchStart(event: TouchEvent): void {
     }
 }
 
-export function touchMove(event: TouchEvent): void {
+export async function touchMove(event: TouchEvent): Promise<void> {
     if ((event.target as HTMLElement).tagName !== "CANVAS") return;
 
     const tool = getActiveTool();
@@ -191,7 +190,7 @@ export function touchMove(event: TouchEvent): void {
         const otherTool = toolMap[permitted.name];
         if (otherTool.scaling) otherTool.onPinchMove(event, permitted.features);
         else if (event.touches.length >= 3) otherTool.onThreeTouchMove(event, permitted.features);
-        else otherTool.onTouchMove(event, permitted.features);
+        else await otherTool.onTouchMove(event, permitted.features);
     }
 
     if (tool.scaling) {
@@ -200,7 +199,7 @@ export function touchMove(event: TouchEvent): void {
     } else if (event.touches.length >= 3) {
         tool.onThreeTouchMove(event, getFeatures(activeTool.value));
     } else {
-        tool.onTouchMove(event, getFeatures(activeTool.value));
+        await tool.onTouchMove(event, getFeatures(activeTool.value));
     }
 
     for (const permitted of tool.permittedTools) {
@@ -208,15 +207,16 @@ export function touchMove(event: TouchEvent): void {
         const otherTool = toolMap[permitted.name];
         if (otherTool.scaling) otherTool.onPinchMove(event, permitted.features);
         else if (event.touches.length >= 3) otherTool.onThreeTouchMove(event, permitted.features);
-        else otherTool.onTouchMove(event, permitted.features);
+        else await otherTool.onTouchMove(event, permitted.features);
     }
 
     // Annotation hover
     let found = false;
     for (const uuid of gameStore.state.annotations) {
-        if (UuidMap.has(uuid) && floorStore.hasLayer(floorStore.currentFloor.value!, LayerName.Draw)) {
-            const shape = UuidMap.get(uuid)!;
+        if (floorStore.hasLayer(floorStore.currentFloor.value!, LayerName.Draw)) {
+            const shape = getShape(uuid);
             if (
+                shape &&
                 shape.floor.id === floorStore.currentFloor.value!.id &&
                 shape.contains(l2g(getLocalPointFromEvent(event)))
             ) {

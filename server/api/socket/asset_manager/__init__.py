@@ -115,9 +115,14 @@ async def create_folder(sid: str, data):
     user = asset_state.get_user(sid)
     parent = data.get("parent", None)
     if parent is None:
-        parent = Asset.get_root_folder(user)
+        parent = Asset.get_root_folder(user).id
     asset = Asset.create(name=data["name"], owner=user, parent=parent)
-    await sio.emit("Folder.Create", asset.as_dict(), room=sid, namespace=ASSET_NS)
+    await sio.emit(
+        "Folder.Create",
+        {"asset": asset.as_dict(), "parent": parent},
+        room=sid,
+        namespace=ASSET_NS,
+    )
     await update_live_game(user)
 
 
@@ -155,20 +160,30 @@ async def assetmgmt_rename(sid: str, data):
 @auth.login_required(app, sio)
 async def assetmgmt_rm(sid: str, data):
     user = asset_state.get_user(sid)
-    asset = Asset.get_by_id(data)
+    asset: Asset = Asset.get_by_id(data)
     if asset.owner != user:
         logger.warning(f"{user.name} attempted to remove a file it doesn't own.")
         return
-    asset.delete_instance(recursive=True, delete_nullable=True)
+    asset_dict = asset.as_dict(children=True, recursive=True)
+    asset.delete_instance()
 
     await update_live_game(user)
+    cleanup_assets([asset_dict])
 
-    if asset.file_hash is not None and (ASSETS_DIR / asset.file_hash).exists():
-        if Asset.select().where(Asset.file_hash == asset.file_hash).count() == 0:
-            logger.info(
-                f"No asset maps to file {asset.file_hash}, removing from server"
-            )
-            (ASSETS_DIR / asset.file_hash).unlink()
+
+def cleanup_assets(assets):
+    for asset in assets:
+        if (
+            asset["file_hash"] is not None
+            and (ASSETS_DIR / asset["file_hash"]).exists()
+        ):
+            if Asset.select().where(Asset.file_hash == asset["file_hash"]).count() == 0:
+                logger.info(
+                    f"No asset maps to file {asset['file_hash']}, removing from server"
+                )
+                (ASSETS_DIR / asset["file_hash"]).unlink()
+        if "children" in asset:
+            cleanup_assets(asset["children"])
 
 
 def get_safe_members(
@@ -234,14 +249,32 @@ async def handle_regular_file(upload_data: UploadData, data: bytes, sid: str):
 
     user = asset_state.get_user(sid)
 
+    target = upload_data["directory"]
+
+    for directory in upload_data["newDirectories"]:
+        asset, created = Asset.get_or_create(name=directory, owner=user, parent=target)
+        if created:
+            await sio.emit(
+                "Folder.Create",
+                {"asset": asset.as_dict(), "parent": target},
+                room=sid,
+                namespace=ASSET_NS,
+            )
+        target = asset.id
+
     asset = Asset.create(
         name=upload_data["name"],
         file_hash=hashname,
         owner=user,
-        parent=upload_data["directory"],
+        parent=target,
     )
 
-    await sio.emit("Asset.Upload.Finish", asset.as_dict(), room=sid, namespace=ASSET_NS)
+    await sio.emit(
+        "Asset.Upload.Finish",
+        {"asset": asset.as_dict(), "parent": target},
+        room=sid,
+        namespace=ASSET_NS,
+    )
 
 
 @sio.on("Asset.Upload", namespace=ASSET_NS)

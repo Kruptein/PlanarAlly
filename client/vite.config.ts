@@ -1,3 +1,5 @@
+/// <reference types="vitest" />
+
 import path from "path";
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
@@ -26,6 +28,14 @@ export default defineConfig({
         chunkSizeWarningLimit: 2500,
         rollupOptions: {
             external: ["ammo.js"],
+        },
+    },
+    css: { preprocessorOptions: { scss: { charset: false } } },
+    test: {
+        environment: "happy-dom",
+        setupFiles: ["./test/setup.ts"],
+        coverage: {
+            reporter: ["text", "html"],
         },
     },
 });

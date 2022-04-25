@@ -42,9 +42,10 @@ sio = socketio.AsyncServer(
 app = setup_app()
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader("templates"))
 basepath = os.environ.get("PA_BASEPATH", "/")[1:]
-socketio_path = basepath + ("/" if len(basepath) > 0 else "") + "socket.io"
+socketio_path = basepath + "socket.io"
 sio.attach(app, socketio_path=socketio_path)
 app["state"] = {}
 
 # API APP
+admin_app = web.Application()
 api_app = setup_app([auth.token_middleware])

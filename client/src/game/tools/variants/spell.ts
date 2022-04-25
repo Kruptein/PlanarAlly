@@ -7,14 +7,15 @@ import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
-import { UuidMap } from "../../../store/shapeMap";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
+import { getShape } from "../../id";
 import { selectionState } from "../../layers/selection";
 import { ToolName } from "../../models/tools";
 import type { ToolPermission } from "../../models/tools";
 import type { IShape } from "../../shapes/interfaces";
 import { Circle } from "../../shapes/variants/circle";
 import { Rect } from "../../shapes/variants/rect";
+import { accessSystem } from "../../systems/access";
 import { Tool } from "../tool";
 import { activateTool } from "../tools";
 
@@ -88,7 +89,7 @@ class SpellTool extends Tool {
         if (this.shape !== undefined) {
             startPosition = this.shape.refPoint;
             const syncMode = this.state.showPublic !== syncChanged ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC;
-            layer.removeShape(this.shape, syncMode, false);
+            layer.removeShape(this.shape, { sync: syncMode, recalculate: false, dropShapeId: true });
         }
 
         switch (this.state.selectedSpellShape) {
@@ -113,11 +114,16 @@ class SpellTool extends Tool {
 
         this.shape.fillColour = this.state.colour.replace(")", ", 0.7)");
         this.shape.strokeColour = this.state.colour;
-        this.shape.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.UI);
+        accessSystem.addAccess(
+            this.shape.id,
+            clientStore.state.username,
+            { edit: true, movement: true, vision: true },
+            SyncTo.UI,
+        );
 
         if (selectionState.hasSelection && (this.state.range === 0 || equalsP(startPosition, ogPoint))) {
             const selection = [...selectionState.state.selection.values()];
-            this.shape.center(UuidMap.get(selection[0])!.center());
+            this.shape.center(getShape(selection[0])!.center());
         }
 
         layer.addShape(
@@ -134,13 +140,13 @@ class SpellTool extends Tool {
         const layer = floorStore.currentLayer.value!;
 
         if (this.rangeShape !== undefined) {
-            layer.removeShape(this.rangeShape, SyncMode.NO_SYNC, false);
+            layer.removeShape(this.rangeShape, { sync: SyncMode.NO_SYNC, recalculate: false, dropShapeId: true });
         }
 
         if (!selectionState.hasSelection || this.state.range === 0) return;
 
         const selection = [...selectionState.state.selection.values()];
-        this.rangeShape = new Circle(UuidMap.get(selection[0])!.center(), getUnitDistance(this.state.range), {
+        this.rangeShape = new Circle(getShape(selection[0])!.center(), getUnitDistance(this.state.range), {
             fillColour: "rgba(0,0,0,0)",
             strokeColour: "black",
         });
@@ -159,11 +165,19 @@ class SpellTool extends Tool {
         const layer = floorStore.currentLayer.value!;
 
         if (this.shape !== undefined) {
-            layer.removeShape(this.shape, this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC, false);
+            layer.removeShape(this.shape, {
+                sync: this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC,
+                recalculate: false,
+                dropShapeId: true,
+            });
             this.shape = undefined;
         }
         if (this.rangeShape !== undefined) {
-            layer.removeShape(this.rangeShape, this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC, false);
+            layer.removeShape(this.rangeShape, {
+                sync: this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC,
+                recalculate: false,
+                dropShapeId: true,
+            });
             this.rangeShape = undefined;
         }
     }
@@ -173,14 +187,19 @@ class SpellTool extends Tool {
         if (this.shape === undefined) return;
         const layer = floorStore.currentLayer.value!;
 
-        layer.removeShape(this.shape, this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC, false);
+        layer.removeShape(this.shape, {
+            sync: this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC,
+            recalculate: false,
+            dropShapeId: false,
+        });
         this.shape.isInvisible = !this.state.showPublic;
         layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NORMAL, { snappable: false });
         this.shape = undefined;
         activateTool(ToolName.Select);
     }
 
-    onMove(lp: LocalPoint): void {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onMove(lp: LocalPoint): Promise<void> {
         if (this.shape === undefined) return;
 
         const endPoint = l2g(lp);
@@ -204,7 +223,11 @@ class SpellTool extends Tool {
         if (this.shape !== undefined) {
             const layer = floorStore.currentLayer.value!;
 
-            layer.removeShape(this.shape, this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC, false);
+            layer.removeShape(this.shape, {
+                sync: this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC,
+                recalculate: false,
+                dropShapeId: true,
+            });
             this.shape = undefined;
         }
         activateTool(ToolName.Select);

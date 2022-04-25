@@ -1,4 +1,5 @@
 import { equalPoints } from "../../core/math";
+import type { LocalId } from "../id";
 import type { IShape } from "../shapes/interfaces";
 
 import type { CDT } from "./cdt";
@@ -6,6 +7,7 @@ import { ccw, cw, orientation, sideOfOrientedCircleP, ulp } from "./triag";
 
 export type Point = number[];
 
+// eslint-disable-next-line @typescript-eslint/no-loss-of-precision
 const INFINITE = -7e310;
 
 let _INFINITE_VERTEX: Vertex;
@@ -502,7 +504,7 @@ export enum LocateType {
 }
 
 export class TDS {
-    private triagVertices: Map<string, Vertex[]> = new Map();
+    private triagVertices: Map<LocalId, Vertex[]> = new Map();
     dimension = -1;
     vertices: Vertex[] = [];
     triangles: Triangle[] = [];
@@ -888,8 +890,8 @@ export class TDS {
                 hole.shift();
                 hole.unshift([newf, 1]);
             } else {
-                fn = hole[hole.length - 1][0];
-                inn = hole[hole.length - 1][1];
+                fn = hole.at(-1)![0];
+                inn = hole.at(-1)![1];
                 const indx = fn.indexV(v2);
                 if (indx >= 0 && indx === cw(inn)) {
                     newf = this.createTriangle2(fn, inn, ff, ii);
@@ -955,7 +957,7 @@ export class TDS {
         this.dimension--;
     }
 
-    addTriagVertices(shape: string, ...vertices: Vertex[]): void {
+    addTriagVertices(shape: LocalId, ...vertices: Vertex[]): void {
         const tv = this.triagVertices.get(shape) || this.triagVertices.set(shape, []).get(shape)!;
         for (const vertex of vertices) {
             if (tv.some((v) => equalPoints(vertex.point!, v.point!))) continue;
@@ -963,12 +965,12 @@ export class TDS {
         }
     }
 
-    getTriagVertices(shape: string): Vertex[] {
+    getTriagVertices(shape: LocalId): Vertex[] {
         const tv = this.triagVertices.get(shape);
         return tv === undefined ? [] : [...tv];
     }
 
-    clearTriagVertices(shape: string): void {
+    clearTriagVertices(shape: LocalId): void {
         this.triagVertices.set(shape, []);
     }
 }

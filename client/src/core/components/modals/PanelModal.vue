@@ -8,7 +8,8 @@ const props = withDefaults(
     defineProps<{ visible: boolean; categories: string[]; applyTranslation?: boolean; initialSelection?: string }>(),
     { applyTranslation: false },
 );
-const emit = defineEmits(["update:visible"]);
+const emit =
+    defineEmits<{ (e: "update:visible", visible: boolean): void; (e: "update:selection", selection: string): void }>();
 
 const { t } = useI18n();
 
@@ -19,6 +20,11 @@ watchEffect(() => {
         selection.value = props.initialSelection;
     }
 });
+
+function setSelection(category: string): void {
+    selection.value = category;
+    emit("update:selection", category);
+}
 
 function hideModal(): void {
     emit("update:visible", false);
@@ -42,7 +48,7 @@ function hideModal(): void {
                     :class="{ selected: selection === category }"
                     v-for="category in categories"
                     :key="category"
-                    @click="selection = category"
+                    @click="setSelection(category)"
                 >
                     {{ applyTranslation ? t(category) : category }}
                 </div>

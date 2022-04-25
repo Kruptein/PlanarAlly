@@ -1,11 +1,11 @@
 import { settingsStore } from "../../store/settings";
-import { aurasToServer } from "../models/conversion/aura";
-import { trackersToServer } from "../models/conversion/tracker";
 import type { ServerRect, ServerShape } from "../models/shapes";
 import { BaseAuraStrings, BaseTemplateStrings, BaseTrackerStrings, getTemplateKeys } from "../models/templates";
 import type { BaseAuraTemplate, BaseTemplate, BaseTrackerTemplate } from "../models/templates";
-
-import { createEmptyAura, createEmptyTracker } from "./trackers";
+import { aurasToServer } from "../systems/auras/conversion";
+import { createEmptyAura } from "../systems/auras/utils";
+import { trackersToServer } from "../systems/trackers/conversion";
+import { createEmptyTracker } from "../systems/trackers/utils";
 
 export function applyTemplate<T extends ServerShape>(shape: T, template: BaseTemplate & { options?: string }): T {
     // should be shape[key], but this is something that TS cannot correctly infer (issue #31445)

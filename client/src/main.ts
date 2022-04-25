@@ -15,6 +15,7 @@ loadFontAwesome();
 
 const toastOptions: PluginOptions = {
     position: POSITION.BOTTOM_RIGHT,
+    shareAppContext: true,
 };
 
 const app = createApp(App);

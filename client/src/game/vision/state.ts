@@ -1,11 +1,15 @@
 import { equalsP } from "../../core/geometry";
 import { Store } from "../../core/store";
 import { floorStore } from "../../store/floor";
-import { UuidMap } from "../../store/shapeMap";
 import { sendLocationOptions } from "../api/emits/location";
-import type { Aura, IShape } from "../shapes/interfaces";
+import { getShape } from "../id";
+import type { LocalId } from "../id";
+import type { FloorId } from "../models/floor";
+import type { IShape } from "../shapes/interfaces";
 import type { Asset } from "../shapes/variants/asset";
 import { getPaths, pathToArray } from "../svg";
+import { auraSystem } from "../systems/auras";
+import type { Aura, AuraId } from "../systems/auras/models";
 
 import { CDT } from "./cdt";
 import { IterativeDelete } from "./iterative";
@@ -25,11 +29,11 @@ interface State {
 }
 
 class VisionState extends Store<State> {
-    private visionBlockers: Map<number, string[]> = new Map();
-    private movementBlockers: Map<number, string[]> = new Map();
-    private visionSources: Map<number, { shape: string; aura: string }[]> = new Map();
+    private visionBlockers: Map<FloorId, LocalId[]> = new Map();
+    private movementBlockers: Map<FloorId, LocalId[]> = new Map();
+    private visionSources: Map<FloorId, { shape: LocalId; aura: AuraId }[]> = new Map();
 
-    private cdt: Map<number, { vision: CDT; movement: CDT }> = new Map();
+    private cdt: Map<FloorId, { vision: CDT; movement: CDT }> = new Map();
 
     drawTeContour = false;
 
@@ -43,6 +47,7 @@ class VisionState extends Store<State> {
         this.visionBlockers.clear();
         this.movementBlockers.clear();
         this.visionSources.clear();
+        this.cdt.clear();
     }
 
     setVisionMode(mode: VisibilityMode, sync: boolean): void {
@@ -61,21 +66,21 @@ class VisionState extends Store<State> {
             });
     }
 
-    recalculate(data: { target: TriangulationTarget; floor: number }): void {
+    recalculate(data: { target: TriangulationTarget; floor: FloorId }): void {
         if (this._state.mode === VisibilityMode.TRIANGLE) this.triangulate(data.target, data.floor);
     }
 
-    recalculateVision(floor: number): void {
+    recalculateVision(floor: FloorId): void {
         if (this._state.mode === VisibilityMode.TRIANGLE) this.triangulate(TriangulationTarget.VISION, floor);
     }
 
-    recalculateMovement(floor: number): void {
+    recalculateMovement(floor: FloorId): void {
         if (this._state.mode === VisibilityMode.TRIANGLE) this.triangulate(TriangulationTarget.MOVEMENT, floor);
     }
 
     // CDT
 
-    addCdt(floor: number): void {
+    addCdt(floor: FloorId): void {
         const vision = new CDT();
         const movement = new CDT();
         this.cdt.set(floor, { vision, movement });
@@ -86,27 +91,27 @@ class VisionState extends Store<State> {
         this.addWalls(movement);
     }
 
-    getCDT(target: TriangulationTarget, floor: number): CDT {
+    getCDT(target: TriangulationTarget, floor: FloorId): CDT {
         return this.cdt.get(floor)![target];
     }
 
-    setCDT(target: TriangulationTarget, floor: number, cdt: CDT): void {
+    setCDT(target: TriangulationTarget, floor: FloorId, cdt: CDT): void {
         this.cdt.set(floor, { ...this.cdt.get(floor)!, [target]: cdt });
     }
 
-    removeCdt(floor: number): void {
+    removeCdt(floor: FloorId): void {
         this.cdt.delete(floor);
     }
 
     // TRIANGULATION
 
-    private triangulate(target: TriangulationTarget, floor: number): void {
+    private triangulate(target: TriangulationTarget, floor: FloorId): void {
         const cdt = new CDT();
         this.setCDT(target, floor, cdt);
         const shapes = this.getBlockers(target, floor);
 
         for (const sh of shapes) {
-            const shape = UuidMap.get(sh)!;
+            const shape = getShape(sh)!;
             if (shape.floor.id !== floor) continue;
 
             this.triangulateShape(target, shape);
@@ -199,19 +204,19 @@ class VisionState extends Store<State> {
         const { va, vb } = cdt.insertConstraint(pa, pb);
         va.shapes.add(shape);
         vb.shapes.add(shape);
-        cdt.tds.addTriagVertices(shape.uuid, va, vb);
+        cdt.tds.addTriagVertices(shape.id, va, vb);
     }
 
-    addToTriangulation(data: { target: TriangulationTarget; shape: string }): void {
+    addToTriangulation(data: { target: TriangulationTarget; shape: LocalId }): void {
         if (this._state.mode === VisibilityMode.TRIANGLE_ITERATIVE) {
-            const shape = UuidMap.get(data.shape);
+            const shape = getShape(data.shape);
             if (shape) this.triangulateShape(data.target, shape);
         }
     }
 
-    deleteFromTriangulation(data: { target: TriangulationTarget; shape: string }): void {
+    deleteFromTriangulation(data: { target: TriangulationTarget; shape: LocalId }): void {
         if (this._state.mode === VisibilityMode.TRIANGLE_ITERATIVE) {
-            const shape = UuidMap.get(data.shape);
+            const shape = getShape(data.shape);
             if (shape) this.deleteShapesFromTriangulation(data.target, shape);
         }
     }
@@ -221,42 +226,42 @@ class VisionState extends Store<State> {
         new IterativeDelete(target, shape);
     }
 
-    moveShape(shape: IShape, oldFloor: number, newFloor: number): void {
+    moveShape(shape: IShape, oldFloor: FloorId, newFloor: FloorId): void {
         if (shape.blocksMovement) {
-            this.moveBlocker(TriangulationTarget.MOVEMENT, shape.uuid, oldFloor, newFloor, true);
+            this.moveBlocker(TriangulationTarget.MOVEMENT, shape.id, oldFloor, newFloor, true);
         }
         if (shape.blocksVision) {
-            this.moveBlocker(TriangulationTarget.VISION, shape.uuid, oldFloor, newFloor, true);
+            this.moveBlocker(TriangulationTarget.VISION, shape.id, oldFloor, newFloor, true);
         }
-        this.moveVisionSource(shape.uuid, shape.getAuras(true), oldFloor, newFloor);
+        this.moveVisionSource(shape.id, auraSystem.getAll(shape.id, true), oldFloor, newFloor);
     }
 
     // HELPERS
 
-    getBlockers(target: TriangulationTarget, floor: number): readonly string[] {
+    getBlockers(target: TriangulationTarget, floor: FloorId): readonly LocalId[] {
         const blockers = target === TriangulationTarget.VISION ? this.visionBlockers : this.movementBlockers;
         return blockers.get(floor) ?? [];
     }
 
-    getVisionSources(floor: number): readonly { shape: string; aura: string }[] {
+    getVisionSources(floor: FloorId): readonly { shape: LocalId; aura: AuraId }[] {
         return this.visionSources.get(floor) ?? [];
     }
 
-    setVisionSources(sources: { shape: string; aura: string }[], floor: number): void {
+    setVisionSources(sources: { shape: LocalId; aura: AuraId }[], floor: FloorId): void {
         this.visionSources.set(floor, sources);
     }
 
-    setBlockers(target: TriangulationTarget, blockers: string[], floor: number): void {
+    setBlockers(target: TriangulationTarget, blockers: LocalId[], floor: FloorId): void {
         const targetBlockers = target === TriangulationTarget.VISION ? this.visionBlockers : this.movementBlockers;
         targetBlockers.set(floor, blockers);
     }
 
-    sliceVisionSources(index: number, floor: number): void {
+    sliceVisionSources(index: number, floor: FloorId): void {
         const sources = this.getVisionSources(floor);
         this.setVisionSources([...sources.slice(0, index), ...sources.slice(index + 1)], floor);
     }
 
-    sliceBlockers(target: TriangulationTarget, index: number, floor: number, recalculate: boolean): void {
+    sliceBlockers(target: TriangulationTarget, index: number, floor: FloorId, recalculate: boolean): void {
         const blockers = this.getBlockers(target, floor);
         const shape = blockers[index];
         this.setBlockers(target, [...blockers.slice(0, index), ...blockers.slice(index + 1)], floor);
@@ -269,12 +274,12 @@ class VisionState extends Store<State> {
         }
     }
 
-    addVisionSource(source: { shape: string; aura: string }, floor: number): void {
+    addVisionSource(source: { shape: LocalId; aura: AuraId }, floor: FloorId): void {
         const sources = this.getVisionSources(floor);
         this.setVisionSources([...sources, source], floor);
     }
 
-    addBlocker(target: TriangulationTarget, blocker: string, floor: number, recalculate: boolean): void {
+    addBlocker(target: TriangulationTarget, blocker: LocalId, floor: FloorId, recalculate: boolean): void {
         const blockers = this.getBlockers(target, floor);
         this.setBlockers(target, [...blockers, blocker], floor);
         if (recalculate) {
@@ -285,9 +290,9 @@ class VisionState extends Store<State> {
 
     moveBlocker(
         target: TriangulationTarget,
-        blocker: string,
-        oldFloor: number,
-        newFloor: number,
+        blocker: LocalId,
+        oldFloor: FloorId,
+        newFloor: FloorId,
         recalculate: boolean,
     ): void {
         this.sliceBlockers(
@@ -299,7 +304,7 @@ class VisionState extends Store<State> {
         this.addBlocker(target, blocker, newFloor, recalculate);
     }
 
-    moveVisionSource(source: string, auras: readonly Aura[], oldFloor: number, newFloor: number): void {
+    moveVisionSource(source: LocalId, auras: readonly Aura[], oldFloor: FloorId, newFloor: FloorId): void {
         for (const aura of auras) {
             if (!aura.visionSource) continue;
             this.sliceVisionSources(
@@ -310,20 +315,28 @@ class VisionState extends Store<State> {
         }
     }
 
-    removeBlocker(target: TriangulationTarget, floor: number, shape: IShape, recalculate: boolean): void {
+    removeBlocker(target: TriangulationTarget, floor: FloorId, shape: IShape, recalculate: boolean): void {
         const blockers = this.getBlockers(target, floor);
-        const index = blockers.findIndex((ls) => ls === shape.uuid);
+        const index = blockers.findIndex((ls) => ls === shape.id);
         if (index >= 0) {
             this.sliceBlockers(target, index, floor, recalculate);
         }
     }
 
-    removeBlockers(target: TriangulationTarget, floor: number): void {
+    removeBlockers(target: TriangulationTarget, floor: FloorId): void {
         if (target === TriangulationTarget.MOVEMENT) this.movementBlockers.delete(floor);
         else this.visionBlockers.delete(floor);
     }
 
-    removeVisionSources(floor: number, shape: string): void {
+    removeVisionSource(floor: FloorId, aura: AuraId): void {
+        const sources = this.getVisionSources(floor);
+        const newSources = sources.filter((s) => s.aura !== aura);
+        if (newSources.length !== sources.length) {
+            this.setVisionSources(newSources, floor);
+        }
+    }
+
+    removeVisionSources(floor: FloorId, shape: LocalId): void {
         const sources = this.getVisionSources(floor);
         const newSources = sources.filter((s) => s.shape !== shape);
         if (newSources.length !== sources.length) {

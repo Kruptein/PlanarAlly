@@ -3,10 +3,71 @@
 All notable changes to this project will be documented in this file.
 
 [DM] denotes changes only useful for the dungeon master
-[tech] denotes technical changes or changes specifically for the server owner.
+[tech]/[server] denotes technical changes or changes specifically for the server owner.
 These usually have no immediately visible impact on regular users
 
 ## Unreleased
+
+## [2022.1] - 2022-04-25
+
+For server owners using a subpath, some important changes are made, so make sure to check the changed section before upgrading
+
+### Added
+
+-   simple logic systems to attach to shapes
+    -   these logic systems can be configured with permissions
+    -   current set of logic systems:
+        -   door
+            -   Automatically toggle blocking settings for a shape with a single click
+        -   teleport zones
+            -   Automatically move shapes to spawn points
+-   Dropping an asset with dimension info in its name (e.g. 50x30) will automatically size the asset
+-   [asset-manager] drop support for folders
+-   [server] Added `allow_signups` option in the `General` config section that can be disabled to prevent users from signing up themselves
+-   [server] Added barebones admin dashboard
+    -   this uses the API endpoint and requires a token
+    -   lists users + reset password + delete
+    -   lists campaigns
+-   container (Docker) build instructions for arm64
+
+### Changed
+
+-   Draw tool UI now has a tabbed interface
+    -   a shape tab to configure shape and colours
+    -   a visibility tab to configure advanced vision modes as well as blocksVision and blocksMovement changes
+-   Polygon edit tool will hide UI while dragging a point/shape
+-   [server] Change subpath handling
+    -   the client now MUST also set the PA_BASEPATH env variable in production mode
+    -   this means the env variable needs to be set at build time
+    -   the basepath now HAS TO END with a slash
+    -   for docker this means you need to manually build the image
+        -   use `--build-arg PA_BASEPATH='/subpath/'
+        -   you no longer need the `--env PA_BASEPATH` flag
+
+### Fixed
+
+-   Floor not being remembered on reload after "Bring Players" action
+-   Shape pasting not properly increasing badge counters
+-   Default vision shapes always acting as tokens (regardless of isToken)
+-   Map tool aspect ratio lock no longer working
+-   Modals will now change location when resizing the window would put them out of the visible screen area
+-   Fix scroll bars being visible due to dice canvas not being sized strictly
+-   Fix movement blockers intersecting with themselves when moving on the token layer
+-   Fix assets becoming invisible when using a subpath setup (only applies to new assets)
+-   Fix colour picker not allowing to change the rgba/hsla/hex values manually
+-   Account removal not properly redirecting to login
+-   Selecting a shape that was drawn in reveal mode no longer removes shadow during selection
+-   Removing an asset would remove any campaign using it as their logo
+-   Aura direction number input not synching change to server
+-   Some memory leaks when changing locations
+-   Floor lighting behaviour for late loading images
+-   DDraft uploads not progressing in the asset manager
+-   DDraft lights not properly being configured
+-   [asset-manager] Asset manager would not check for stale files when removing a folder
+
+### Performance
+
+-   Cache Shape.points to prevent frequent recalculations
 
 ## [0.29.0] - 2021-10-28
 

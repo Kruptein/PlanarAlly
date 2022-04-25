@@ -52,6 +52,8 @@
         "markers": "Markers",
         "border_color": "Border colour",
         "fill_color": "Fill colour",
+        "fill_color_short": "Fill",
+        "stroke_color_short": "Stroke",
         "trackers": "Trackers",
         "auras": "Auras",
         "labels": "Labels",
@@ -177,6 +179,10 @@
                         "access": "Access",
                         "default": "Default",
                         "add_access": "Add access"
+                    },
+                    "logic": {
+                        "logic": "Logic",
+                        "door": "Door"
                     },
                     "dialog": {
                         "current_value": "Current value",
@@ -355,14 +361,18 @@
                     "font_size": "Font size",
                     "square": "square",
                     "circle": "circle",
-                    "draw-polygon": "draw-polygon",
-                    "paint-brush": "paint-brush",
+                    "draw-polygon": "polygon",
+                    "paint-brush": "brush",
                     "normal": "normal",
                     "reveal": "reveal",
                     "hide": "hide",
                     "erase": "erase",
                     "cone": "cone",
-                    "text": "text"
+                    "text": "text",
+                    "shape-category": "Basic settings",
+                    "vision-category": "Vision settings",
+                    "logic-category": "Logic settings",
+                    "door": "Add simple door logic"
                 },
                 "FilterTool": {
                     "no_category": "no category"

@@ -69,7 +69,7 @@ class MapTool extends Tool {
     }
 
     removeRect(reset = true): void {
-        if (this.shape && reset && this.active) {
+        if (this.shape && reset && this.active.value) {
             this.shape.refPoint = this.ogRP!;
             this.shape.w = this.ogW!;
             this.shape.h = this.ogH!;
@@ -80,7 +80,7 @@ class MapTool extends Tool {
         }
         if (this.rect !== undefined) {
             const layer = floorStore.currentLayer.value!;
-            layer.removeShape(this.rect, SyncMode.NO_SYNC, true);
+            layer.removeShape(this.rect, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
             this.rect = undefined;
             this.state.hasRect = false;
         }
@@ -101,7 +101,7 @@ class MapTool extends Tool {
         this.startPoint = startPoint;
         const layer = floorStore.currentLayer.value!;
 
-        this.active = true;
+        this.active.value = true;
 
         this.rect = new Rect(cloneP(this.startPoint), 0, 0, { fillColour: "rgba(0,0,0,0)", strokeColour: "black" });
         this.state.hasRect = true;
@@ -110,8 +110,9 @@ class MapTool extends Tool {
         selectionState.set(this.rect);
     }
 
-    onMove(lp: LocalPoint): void {
-        if (!this.active || this.rect === undefined || this.startPoint === undefined) return;
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onMove(lp: LocalPoint): Promise<void> {
+        if (!this.active.value || this.rect === undefined || this.startPoint === undefined) return;
 
         const endPoint = l2g(lp);
 
@@ -123,10 +124,11 @@ class MapTool extends Tool {
         layer.invalidate(false);
     }
 
-    onUp(): void {
-        if (!this.active || this.rect === undefined) return;
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onUp(): Promise<void> {
+        if (!this.active.value || this.rect === undefined) return;
 
-        this.active = false;
+        this.active.value = false;
 
         if (selectionState.state.selection.size !== 1) {
             this.removeRect();

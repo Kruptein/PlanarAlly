@@ -1,14 +1,14 @@
 import tinycolor from "tinycolor2";
 
-import { BASE_PATH } from "../utils";
+import type { GlobalId } from "../game/id";
 
 // Reference: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
-export function uuidv4(): string {
+export function uuidv4(): GlobalId {
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
         const r = (Math.random() * 16) | 0;
         const v = c === "x" ? r : (r & 0x3) | 0x8;
         return v.toString(16);
-    });
+    }) as GlobalId;
 }
 
 export function alphSort(a: string, b: string): number {
@@ -36,13 +36,13 @@ export function calcFontScale(ctx: CanvasRenderingContext2D, text: string, r: nu
 
 export async function baseAdjustedFetch(url: string): Promise<Response> {
     if (url.startsWith("/")) url = url.slice(1);
-    return fetch(BASE_PATH + url);
+    return fetch(import.meta.env.BASE_URL + url);
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function postFetch(url: string, data?: any): Promise<Response> {
     if (url.startsWith("/")) url = url.slice(1);
-    return fetch(BASE_PATH + url, {
+    return fetch(import.meta.env.BASE_URL + url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data ?? {}),
@@ -52,7 +52,7 @@ export async function postFetch(url: string, data?: any): Promise<Response> {
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function patchFetch(url: string, data?: any): Promise<Response> {
     if (url.startsWith("/")) url = url.slice(1);
-    return fetch(BASE_PATH + url, {
+    return fetch(import.meta.env.BASE_URL + url, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data ?? {}),
@@ -62,14 +62,14 @@ export async function patchFetch(url: string, data?: any): Promise<Response> {
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function deleteFetch(url: string): Promise<Response> {
     if (url.startsWith("/")) url = url.slice(1);
-    return fetch(BASE_PATH + url, {
+    return fetch(import.meta.env.BASE_URL + url, {
         method: "DELETE",
     });
 }
 
 export function baseAdjust(url: string): string {
     if (url.startsWith("/")) url = url.slice(1);
-    return BASE_PATH + url;
+    return import.meta.env.BASE_URL + url;
 }
 
 export async function getErrorReason(response: Response): Promise<string> {

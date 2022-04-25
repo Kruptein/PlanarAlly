@@ -8,14 +8,16 @@ import { useModal } from "../../../core/plugins/modals/plugin";
 import { getTarget, getValue } from "../../../core/utils";
 import { clientStore } from "../../../store/client";
 import { gameStore } from "../../../store/game";
-import { UuidMap } from "../../../store/shapeMap";
 import { uiStore } from "../../../store/ui";
 import { sendRequestInitiatives } from "../../api/emits/initiative";
 import { getGroupMembers } from "../../groups";
+import { getShape } from "../../id";
+import type { LocalId } from "../../id";
 import type { InitiativeData } from "../../models/initiative";
 import { InitiativeEffectMode, InitiativeSort } from "../../models/initiative";
 import type { IShape } from "../../shapes/interfaces";
 import type { Asset } from "../../shapes/variants/asset";
+import { accessSystem } from "../../systems/access";
 import { ClientSettingCategory } from "../settings/client/categories";
 
 import { initiativeStore } from "./state";
@@ -29,7 +31,7 @@ const close = (): void => initiativeStore.show(false);
 const clearValues = (): void => initiativeStore.clearValues(true);
 const nextTurn = (): void => initiativeStore.nextTurn();
 const previousTurn = (): void => initiativeStore.previousTurn();
-const owns = (actorId?: string): boolean => initiativeStore.owns(actorId);
+const owns = (actorId?: LocalId): boolean => initiativeStore.owns(actorId);
 const toggleOption = (index: number, option: "isVisible" | "isGroup"): void =>
     initiativeStore.toggleOption(index, option);
 
@@ -38,10 +40,10 @@ onMounted(() => initiativeStore.show(false));
 const alwaysShowEffects = computed(() => clientStore.state.initiativeEffectVisibility === InitiativeEffectMode.Always);
 
 function getName(actor: InitiativeData): string {
-    const shape = UuidMap.get(actor.shape);
+    const shape = getShape(actor.shape);
     if (shape !== undefined) {
         if (shape.nameVisible) return shape.name;
-        if (shape.ownedBy(false, { editAccess: true })) return shape.name;
+        if (accessSystem.hasAccessTo(shape.id, false, { edit: true })) return shape.name;
     }
     return "?";
 }
@@ -59,24 +61,24 @@ async function removeInitiative(actor: InitiativeData): Promise<void> {
     initiativeStore.removeInitiative(actor.shape, true);
 }
 
-function setEffectName(shape: string, index: number, name: string): void {
+function setEffectName(shape: LocalId, index: number, name: string): void {
     if (initiativeStore.owns(shape)) initiativeStore.setEffectName(shape, index, name, true);
 }
 
-function setEffectTurns(shape: string, index: number, turns: string): void {
+function setEffectTurns(shape: LocalId, index: number, turns: string): void {
     if (initiativeStore.owns(shape)) initiativeStore.setEffectTurns(shape, index, turns, true);
 }
 
-function createEffect(shape: string): void {
+function createEffect(shape: LocalId): void {
     if (initiativeStore.owns(shape)) initiativeStore.createEffect(shape, undefined, true);
 }
 
-function removeEffect(shape: string, index: number): void {
+function removeEffect(shape: LocalId, index: number): void {
     if (initiativeStore.owns(shape)) initiativeStore.removeEffect(shape, index, true);
 }
 
-function toggleHighlight(actorId: string, show: boolean): void {
-    const shape = UuidMap.get(actorId);
+function toggleHighlight(actorId: LocalId, show: boolean): void {
+    const shape = getShape(actorId);
     if (shape === undefined) return;
     let shapeArray: IShape[];
     if (shape.groupId === undefined) {
@@ -91,18 +93,16 @@ function toggleHighlight(actorId: string, show: boolean): void {
 }
 
 function hasImage(actor: InitiativeData): boolean {
-    return UuidMap.get(actor.shape)?.type === "assetrect" ?? false;
+    return getShape(actor.shape)?.type === "assetrect" ?? false;
 }
 
 function getImage(actor: InitiativeData): string {
-    return (UuidMap.get(actor.shape)! as Asset).src;
+    return (getShape(actor.shape)! as Asset).src;
 }
 
 function canSee(actor: InitiativeData): boolean {
     if (isDm.value || actor.isVisible) return true;
-    const shape = UuidMap.get(actor.shape);
-    if (shape === undefined) return false;
-    return shape.ownedBy(false, { editAccess: true });
+    return accessSystem.hasAccessTo(actor.shape, false, { edit: true });
 }
 
 function reset(): void {
@@ -110,22 +110,22 @@ function reset(): void {
     sendRequestInitiatives();
 }
 
-function lock(shape: string): void {
+function lock(shape: LocalId): void {
     if (initiativeStore.owns(shape)) initiativeStore.lock(shape);
 }
 
 function unlock(): void {
-    if (initiativeStore.state.editLock !== "") initiativeStore.unlock();
+    if (initiativeStore.state.editLock !== -1) initiativeStore.unlock();
 }
 
-function setInitiative(shape: string, value: string): void {
+function setInitiative(shape: LocalId, value: string): void {
     const numValue = Number.parseInt(value);
     if (isNaN(numValue)) return;
 
     if (initiativeStore.owns(shape)) initiativeStore.setInitiative(shape, numValue, true);
 }
 
-function changeOrder(data: { moved?: { element: InitiativeData; newIndex: number; oldIndex: number } }): void {
+function changeOrder(data: Event & { moved?: { element: InitiativeData; newIndex: number; oldIndex: number } }): void {
     if (isDm.value && data.moved)
         initiativeStore.changeOrder(data.moved.element.shape, data.moved.oldIndex, data.moved.newIndex);
 }
@@ -184,7 +184,7 @@ function n(e: any): number {
                             :class="{
                                 'initiative-selected': initiativeStore.state.turnCounter === index,
                                 blurred:
-                                    initiativeStore.state.editLock !== '' &&
+                                    initiativeStore.state.editLock !== -1 &&
                                     initiativeStore.state.editLock !== actor.shape,
                             }"
                             :style="{ cursor: isDm ? 'move' : 'auto' }"

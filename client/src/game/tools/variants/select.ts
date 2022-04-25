@@ -1,4 +1,5 @@
 import { ref, watchEffect } from "vue";
+import { POSITION, useToast } from "vue-toastification";
 
 import { g2l, g2lx, g2ly, g2lz, l2g, l2gz, toDegrees, toRadians } from "../../../core/conversions";
 import {
@@ -15,15 +16,17 @@ import {
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { equalPoints, snapToPoint } from "../../../core/math";
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
-import { ctrlOrCmdPressed } from "../../../core/utils";
+import { baseAdjust, ctrlOrCmdPressed } from "../../../core/utils";
 import { i18n } from "../../../i18n";
 import { clientStore, DEFAULT_GRID_SIZE } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
-import { UuidMap } from "../../../store/shapeMap";
+import { sendRequest } from "../../api/emits/logic";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import { calculateDelta } from "../../drag";
+import { getGlobalId, getShape } from "../../id";
+import type { LocalId } from "../../id";
 import { getLocalPointFromEvent } from "../../input/mouse";
 import { selectionState } from "../../layers/selection";
 import { LayerName } from "../../models/floor";
@@ -40,6 +43,10 @@ import { Circle } from "../../shapes/variants/circle";
 import { Line } from "../../shapes/variants/line";
 import type { Polygon } from "../../shapes/variants/polygon";
 import { Rect } from "../../shapes/variants/rect";
+import { accessSystem } from "../../systems/access";
+import { doorSystem } from "../../systems/logic/door";
+import { Access } from "../../systems/logic/models";
+import { teleportZoneSystem } from "../../systems/logic/tp";
 import { openDefaultContextMenu, openShapeContextMenu } from "../../ui/contextmenu/state";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { Tool } from "../tool";
@@ -65,6 +72,8 @@ export enum SelectFeatures {
     Rotate,
     PolygonEdit,
 }
+
+const toast = useToast();
 
 // Calculate 45 degrees in radians just once
 const ANGLE_SNAP = (45 * Math.PI) / 180;
@@ -117,6 +126,8 @@ class SelectTool extends Tool implements ISelectTool {
     // polygon-edit related
     polygonTracer: Circle | null = null;
 
+    hoveredDoor?: LocalId;
+
     private permittedTools_: ToolPermission[] = [];
 
     get permittedTools(): ToolPermission[] {
@@ -135,13 +146,13 @@ class SelectTool extends Tool implements ISelectTool {
             }
 
             // polygon edit ui logic
-            if (selection.size !== 1) {
+            if (this.active.value || selection.size !== 1) {
                 this.removePolygonEditUi();
             } else {
                 const features = getFeatures(this.toolName);
                 if (this.hasFeature(SelectFeatures.PolygonEdit, features)) {
                     const uuid = [...selection.values()][0];
-                    if (UuidMap.get(uuid)!.type === "polygon") {
+                    if (getShape(uuid)!.type === "polygon") {
                         return this.createPolygonEditUi();
                     }
                 }
@@ -209,6 +220,25 @@ class SelectTool extends Tool implements ISelectTool {
             return;
         }
 
+        // Logic Door Check
+        if (this.hoveredDoor !== undefined && activeToolMode.value === ToolMode.Play) {
+            const canUseDoor = doorSystem.canUse(this.hoveredDoor);
+            if (canUseDoor === Access.Enabled) {
+                const shape = getShape(this.hoveredDoor)!;
+                shape.setBlocksMovement(!shape.blocksMovement, SyncTo.SERVER, true);
+                shape.setBlocksVision(!shape.blocksVision, SyncTo.SERVER, true);
+                const state = shape.blocksVision ? "lock-open-solid" : "lock-solid";
+                document.body.style.cursor = `url('${baseAdjust(`static/img/${state}.svg`)}') 16 16, auto`;
+                return;
+            } else if (canUseDoor === Access.Request) {
+                toast.info("Request to open door sent", {
+                    position: POSITION.TOP_RIGHT,
+                });
+                sendRequest({ door: getGlobalId(this.hoveredDoor), logic: "door" });
+                return;
+            }
+        }
+
         this.operationReady = false;
         this.operationList = undefined;
 
@@ -228,9 +258,8 @@ class SelectTool extends Tool implements ISelectTool {
         for (let i = selectionStack.length - 1; i >= 0; i--) {
             const shape = selectionStack[i];
             if (!(shape.options.preFogShape ?? false) && (shape.options.skipDraw ?? false)) continue;
-            if ([this.rotationAnchor?.uuid, this.rotationBox?.uuid, this.rotationEnd?.uuid].includes(shape.uuid))
-                continue;
-            if (shape.isInvisible && !shape.ownedBy(false, { movementAccess: true })) continue;
+            if ([this.rotationAnchor?.id, this.rotationBox?.id, this.rotationEnd?.id].includes(shape.id)) continue;
+            if (shape.isInvisible && !accessSystem.hasAccessTo(shape.id, false, { movement: true })) continue;
 
             if (this.rotationUiActive && this.hasFeature(SelectFeatures.Rotate, features)) {
                 const anchor = this.rotationAnchor!.points[1];
@@ -240,7 +269,7 @@ class SelectTool extends Tool implements ISelectTool {
 
                     this.operationList = { type: "rotation", center: toGP(0, 0), shapes: [] };
                     for (const shape of selectionState.get({ includeComposites: false }))
-                        this.operationList.shapes.push({ uuid: shape.uuid, from: shape.angle, to: 0 });
+                        this.operationList.shapes.push({ uuid: shape.id, from: shape.angle, to: 0 });
 
                     break;
                 }
@@ -260,7 +289,7 @@ class SelectTool extends Tool implements ISelectTool {
 
                     this.operationList = {
                         type: "resize",
-                        uuid: shape.uuid,
+                        uuid: shape.id,
                         fromPoint: points[this.resizePoint],
                         toPoint: points[this.resizePoint],
                         resizePoint: this.resizePoint,
@@ -281,7 +310,7 @@ class SelectTool extends Tool implements ISelectTool {
                     this.createRotationUi(features);
                 } else {
                     if (ctrlOrCmdPressed(event)) {
-                        selectionState.remove(shape.uuid);
+                        selectionState.remove(shape.id);
                     }
                 }
                 // Drag case, a shape is selected
@@ -292,12 +321,16 @@ class SelectTool extends Tool implements ISelectTool {
 
                     // don't use layerSelection here as it can be outdated by the pushSelection setSelection above
                     this.operationList = { type: "movement", shapes: [] };
-                    for (const shape of selectionState.get({ includeComposites: false }))
+                    for (const shape of selectionState.get({ includeComposites: false })) {
                         this.operationList.shapes.push({
-                            uuid: shape.uuid,
+                            uuid: shape.id,
                             from: toArrayP(shape.refPoint),
                             to: toArrayP(shape.refPoint),
                         });
+                        if (shape.blocksMovement && shape.layer.name === LayerName.Tokens) {
+                            visionState.removeBlocker(TriangulationTarget.MOVEMENT, shape.floor.id, shape, true);
+                        }
+                    }
                 }
                 layer.invalidate(true);
                 hit = true;
@@ -322,8 +355,10 @@ class SelectTool extends Tool implements ISelectTool {
                 });
                 this.selectionHelper.strokeWidth = 2;
                 this.selectionHelper.options.UiHelper = true;
-                this.selectionHelper.addOwner(
-                    { user: clientStore.state.username, access: { edit: true } },
+                accessSystem.addAccess(
+                    this.selectionHelper.id,
+                    clientStore.state.username,
+                    { edit: true, movement: true, vision: true },
                     SyncTo.SHAPE,
                 );
                 layer.addShape(this.selectionHelper, SyncMode.NO_SYNC, InvalidationMode.NO, { snappable: false });
@@ -346,19 +381,45 @@ class SelectTool extends Tool implements ISelectTool {
         if (this.checkRuler()) {
             rulerTool.onDown(lp, event);
         }
-        if (this.mode !== SelectOperations.Noop) this.active = true;
+        if (this.mode !== SelectOperations.Noop) this.active.value = true;
     }
 
-    onMove(lp: LocalPoint, event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): void {
+    async onMove(
+        lp: LocalPoint,
+        event: MouseEvent | TouchEvent,
+        features: ToolFeatures<SelectFeatures>,
+    ): Promise<void> {
         // if we only have context capabilities, immediately skip
         if (features.enabled?.length === 1 && features.enabled[0] === SelectFeatures.Context) return;
 
         const gp = l2g(lp);
         this.lastMousePosition = gp;
 
+        // Logic hover
+        if (!this.active.value && activeToolMode.value === ToolMode.Play) {
+            let foundDoor = false;
+            for (const id of doorSystem.getDoors()) {
+                const shape = getShape(id);
+                if (shape === undefined) continue;
+                if (shape.floor.id !== floorStore.currentFloor.value!.id) continue;
+                if (!shape.contains(gp)) continue;
+                if (doorSystem.canUse(id) === Access.Disabled) continue;
+
+                foundDoor = true;
+                this.hoveredDoor = id;
+                const state = shape.blocksVision ? "lock-open-solid" : "lock-solid";
+                document.body.style.cursor = `url('${baseAdjust(`static/img/${state}.svg`)}') 16 16, auto`;
+                break;
+            }
+            if (!foundDoor) {
+                this.hoveredDoor = undefined;
+                document.body.style.cursor = "default";
+            }
+        }
+
         // We require move for the resize and rotate cursors
         if (
-            !this.active &&
+            !this.active.value &&
             !(
                 this.hasFeature(SelectFeatures.Resize, features) ||
                 this.hasFeature(SelectFeatures.Rotate, features) ||
@@ -399,13 +460,13 @@ class SelectTool extends Tool implements ISelectTool {
                 // If we are on the tokens layer do a movement block check.
                 if (layer.name === "tokens" && !(event.shiftKey && gameStore.state.isDm)) {
                     for (const sel of layerSelection) {
-                        if (!sel.ownedBy(false, { movementAccess: true })) continue;
+                        if (!accessSystem.hasAccessTo(sel.id, false, { movement: true })) continue;
                         delta = calculateDelta(delta, sel, true);
                         if (delta !== ogDelta) this.deltaChanged = true;
                     }
                 }
 
-                moveShapes(layerSelection, delta, true);
+                await moveShapes(layerSelection, delta, true);
 
                 if (!this.deltaChanged) {
                     this.dragRay = Ray.fromPoints(this.dragRay.origin, lp);
@@ -424,7 +485,7 @@ class SelectTool extends Tool implements ISelectTool {
             } else if (this.mode === SelectOperations.Resize) {
                 const shape = layerSelection[0];
 
-                if (!shape.ownedBy(false, { movementAccess: true })) return;
+                if (!accessSystem.hasAccessTo(shape.id, false, { movement: true })) return;
 
                 let ignorePoint: GlobalPoint | undefined;
                 if (this.resizePoint >= 0) ignorePoint = toGP(this.originalResizePoints[this.resizePoint]);
@@ -447,7 +508,7 @@ class SelectTool extends Tool implements ISelectTool {
         }
     }
 
-    onUp(lp: LocalPoint, event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): void {
+    async onUp(lp: LocalPoint, event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): Promise<void> {
         // if we only have context capabilities, immediately skip
         if (features.enabled?.length === 1 && features.enabled[0] === SelectFeatures.Context) {
             // When using pan during select, the dragray will use a wrong lp to to the drag calculation in move
@@ -456,8 +517,8 @@ class SelectTool extends Tool implements ISelectTool {
             return;
         }
 
-        if (!this.active) return;
-        this.active = false;
+        if (!this.active.value) return;
+        this.active.value = false;
 
         if (floorStore.currentLayer === undefined) {
             console.log("No active layer!");
@@ -478,9 +539,9 @@ class SelectTool extends Tool implements ISelectTool {
             const cbbox = this.selectionHelper!.getBoundingBox();
             for (const shape of layer.getShapes({ includeComposites: false })) {
                 if (!(shape.options.preFogShape ?? false) && (shape.options.skipDraw ?? false)) continue;
-                if (!shape.ownedBy(false, { movementAccess: true })) continue;
+                if (!accessSystem.hasAccessTo(shape.id, false, { movement: true })) continue;
                 if (!shape.visibleInCanvas({ w: layer.width, h: layer.height }, { includeAuras: false })) continue;
-                if (layerSelection.some((s) => s.uuid === shape.uuid)) continue;
+                if (layerSelection.some((s) => s.id === shape.id)) continue;
 
                 const points = shape.points; // expensive call
                 if (points.length > 1) {
@@ -500,7 +561,7 @@ class SelectTool extends Tool implements ISelectTool {
 
             layerSelection = selectionState.get({ includeComposites: false });
 
-            layer.removeShape(this.selectionHelper!, SyncMode.NO_SYNC, true);
+            layer.removeShape(this.selectionHelper!, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
             this.selectionHelper = undefined;
 
             if (layerSelection.some((s) => !s.isLocked)) {
@@ -523,7 +584,7 @@ class SelectTool extends Tool implements ISelectTool {
             if (this.mode === SelectOperations.Drag) {
                 const updateList = [];
                 for (const [s, sel] of layerSelection.entries()) {
-                    if (!sel.ownedBy(false, { movementAccess: true })) continue;
+                    if (!accessSystem.hasAccessTo(sel.id, false, { movement: true })) continue;
 
                     if (
                         this.dragRay.origin!.x === g2lx(sel.refPoint.x) &&
@@ -535,7 +596,7 @@ class SelectTool extends Tool implements ISelectTool {
                     if (sel.blocksMovement) {
                         visionState.deleteFromTriangulation({
                             target: TriangulationTarget.MOVEMENT,
-                            shape: sel.uuid,
+                            shape: sel.id,
                         });
                     }
                     if (
@@ -547,20 +608,22 @@ class SelectTool extends Tool implements ISelectTool {
                         if (sel.blocksVision) {
                             visionState.deleteFromTriangulation({
                                 target: TriangulationTarget.VISION,
-                                shape: sel.uuid,
+                                shape: sel.id,
                             });
                         }
 
                         sel.snapToGrid();
 
                         if (sel.blocksVision) {
-                            visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: sel.uuid });
+                            visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: sel.id });
                             recalcVision = true;
                         }
                     }
                     // movementBlock is skipped during onMove and definitely has to be done here
                     if (sel.blocksMovement) {
-                        visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: sel.uuid });
+                        if (sel.layer.name === LayerName.Tokens)
+                            visionState.addBlocker(TriangulationTarget.MOVEMENT, sel.id, sel.floor.id, false);
+                        visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: sel.id });
                         recalcMovement = true;
                     }
 
@@ -572,19 +635,21 @@ class SelectTool extends Tool implements ISelectTool {
                     if (sel.blocksVision) recalcVision = true;
                     if (sel.blocksMovement) recalcMovement = true;
                     if (!sel.preventSync) updateList.push(sel);
-                    sel.updatePoints();
+                    sel.updateLayerPoints();
                 }
                 sendShapePositionUpdate(updateList, false);
+
+                await teleportZoneSystem.checkTeleport(selectionState.get({ includeComposites: true }));
             }
             if (this.mode === SelectOperations.Resize) {
                 for (const sel of layerSelection) {
-                    if (!sel.ownedBy(false, { movementAccess: true })) continue;
+                    if (!accessSystem.hasAccessTo(sel.id, false, { movement: true })) continue;
 
                     // movementBlock is skipped during onMove and definitely has to be done here
                     if (sel.blocksMovement)
                         visionState.deleteFromTriangulation({
                             target: TriangulationTarget.MOVEMENT,
-                            shape: sel.uuid,
+                            shape: sel.id,
                         });
 
                     if (
@@ -595,18 +660,18 @@ class SelectTool extends Tool implements ISelectTool {
                         if (sel.blocksVision)
                             visionState.deleteFromTriangulation({
                                 target: TriangulationTarget.VISION,
-                                shape: sel.uuid,
+                                shape: sel.id,
                             });
                         sel.resizeToGrid(this.resizePoint, ctrlOrCmdPressed(event));
                         if (sel.blocksVision) {
-                            visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: sel.uuid });
+                            visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: sel.id });
                             recalcVision = true;
                         }
                     }
 
                     // movementBlock is skipped during onMove and definitely has to be done here
                     if (sel.blocksMovement) {
-                        visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: sel.uuid });
+                        visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: sel.id });
                         recalcMovement = true;
                     }
 
@@ -621,14 +686,14 @@ class SelectTool extends Tool implements ISelectTool {
                         this.operationReady = true;
                     }
 
-                    sel.updatePoints();
+                    sel.updateLayerPoints();
                 }
             }
             if (this.mode === SelectOperations.Rotate) {
                 const rotationCenter = this.rotationBox!.center();
 
                 for (const [s, sel] of layerSelection.entries()) {
-                    if (!sel.ownedBy(false, { movementAccess: true })) continue;
+                    if (!accessSystem.hasAccessTo(sel.id, false, { movement: true })) continue;
 
                     const newAngle = Math.round(this.angle / ANGLE_SNAP) * ANGLE_SNAP;
                     if (
@@ -644,7 +709,7 @@ class SelectTool extends Tool implements ISelectTool {
                         this.operationReady = true;
                     }
 
-                    sel.updatePoints();
+                    sel.updateLayerPoints();
                 }
 
                 if (this.operationList?.type === "rotation") {
@@ -703,7 +768,7 @@ class SelectTool extends Tool implements ISelectTool {
 
     onKeyUp(event: KeyboardEvent, features: ToolFeatures): void {
         if (event.defaultPrevented) return;
-        if (event.key === " " && this.active) {
+        if (event.key === " " && this.active.value) {
             event.preventDefault();
         }
         super.onKeyUp(event, features);
@@ -742,7 +807,12 @@ class SelectTool extends Tool implements ISelectTool {
         this.rotationEnd = new Circle(topCenterPlus, l2gz(4), { fillColour: "#7c253e", strokeColour: "rgba(0,0,0,0)" });
 
         for (const rotationShape of [this.rotationAnchor, this.rotationBox, this.rotationEnd]) {
-            rotationShape.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.SHAPE);
+            accessSystem.addAccess(
+                rotationShape.id,
+                clientStore.state.username,
+                { edit: true, movement: true, vision: true },
+                SyncTo.SHAPE,
+            );
             layer.addShape(rotationShape, SyncMode.NO_SYNC, InvalidationMode.NO, { snappable: false });
         }
 
@@ -761,9 +831,9 @@ class SelectTool extends Tool implements ISelectTool {
     removeRotationUi(): void {
         if (this.rotationUiActive) {
             const layer = this.rotationAnchor!.layer;
-            layer.removeShape(this.rotationAnchor!, SyncMode.NO_SYNC, true);
-            layer.removeShape(this.rotationBox!, SyncMode.NO_SYNC, true);
-            layer.removeShape(this.rotationEnd!, SyncMode.NO_SYNC, true);
+            layer.removeShape(this.rotationAnchor!, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
+            layer.removeShape(this.rotationBox!, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
+            layer.removeShape(this.rotationEnd!, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
             this.rotationAnchor = this.rotationBox = this.rotationEnd = undefined;
             this.rotationUiActive = false;
 
@@ -810,7 +880,11 @@ class SelectTool extends Tool implements ISelectTool {
     removePolygonEditUi(): void {
         if (this.polygonTracer !== null) {
             const drawLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw)!;
-            drawLayer.removeShape(this.polygonTracer, SyncMode.NO_SYNC, false);
+            drawLayer.removeShape(this.polygonTracer, {
+                sync: SyncMode.NO_SYNC,
+                recalculate: false,
+                dropShapeId: true,
+            });
             drawLayer.invalidate(true);
             this.polygonTracer = null;
             this.polygonUiVisible.value = "hidden";
@@ -849,8 +923,8 @@ class SelectTool extends Tool implements ISelectTool {
             }
         }
         //check last vertex
-        if (getPointDistance(pv[pv.length - 1], gp) < polygon.lineWidth / 2) {
-            smallest = { distance: 0, nearest: pv[pv.length - 1], point: true, angle: smallest.angle };
+        if (getPointDistance(pv.at(-1)!, gp) < polygon.lineWidth / 2) {
+            smallest = { distance: 0, nearest: pv.at(-1)!, point: true, angle: smallest.angle };
         }
         // Show the UI
         if (smallest.distance <= polygon.lineWidth) {

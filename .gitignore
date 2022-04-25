@@ -1,3 +1,4 @@
+*.zip
 # editors
 .idea/**
 .vscode/**
@@ -20,11 +21,12 @@ server/build/**
 # JS
 client/coverage/**
 client/node_modules/**
+admin-client/node_modules/**
 
 # PlanarAlly
 server/planarallyserver.log
 server/planar.save*
-server/planar.sqlite*
+server/*.sqlite*
 server/save_backups
 server/server_config.cfg
 
@@ -34,6 +36,7 @@ server/static/css/**
 server/static/js/**
 server/static/img/assets/**
 server/static/vite/**
+server/static/vite-admin/**
 server/templates/**
 
 # docs

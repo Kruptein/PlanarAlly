@@ -4,6 +4,8 @@ import type { GlobalPoint } from "../../../core/geometry";
 import { rotateAroundPoint } from "../../../core/math";
 import { SyncMode } from "../../../core/models/types";
 import { sendTextUpdate } from "../../api/emits/shape/text";
+import { getGlobalId } from "../../id";
+import type { GlobalId, LocalId } from "../../id";
 import type { ServerText } from "../../models/shapes";
 import { Shape } from "../shape";
 import type { SHAPE_TYPE } from "../types";
@@ -23,7 +25,8 @@ export class Text extends Shape {
         options?: {
             fillColour?: string;
             strokeColour?: string;
-            uuid?: string;
+            id?: LocalId;
+            uuid?: GlobalId;
         },
     ) {
         super(position, options);
@@ -41,8 +44,8 @@ export class Text extends Shape {
         });
     }
 
-    get points(): [number, number][] {
-        return this.getBoundingBox().points;
+    invalidatePoints(): void {
+        this._points = this.getBoundingBox().points;
     }
 
     getBoundingBox(): BoundingRect {
@@ -102,10 +105,13 @@ export class Text extends Shape {
         if (super.visibleInCanvas(max, options)) return true;
         return this.getBoundingBox().visibleInCanvas(max);
     }
+
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     snapToGrid(): void {}
+
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     resizeToGrid(): void {}
+
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     resize(resizePoint: number, point: GlobalPoint): number {
         point = rotateAroundPoint(point, this.center(), -this.angle);
@@ -185,7 +191,7 @@ export class Text extends Shape {
     setText(text: string, sync: SyncMode): void {
         this.text = text;
         if (sync !== SyncMode.NO_SYNC) {
-            sendTextUpdate({ uuid: this.uuid, text, temporary: sync === SyncMode.TEMP_SYNC });
+            sendTextUpdate({ uuid: getGlobalId(this.id), text, temporary: sync === SyncMode.TEMP_SYNC });
         }
     }
 }

@@ -1,163 +1,188 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, toRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { SyncTo } from "../../../../core/models/types";
+import type { PartialPick } from "../../../../core/types";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { gameStore } from "../../../../store/game";
-import type { ShapeOwner } from "../../../shapes/owners";
+import { Role } from "../../../models/role";
+import { accessSystem } from "../../../systems/access";
+import { DEFAULT_ACCESS, DEFAULT_ACCESS_SYMBOL } from "../../../systems/access/models";
+import type { ACCESS_KEY, ShapeAccess } from "../../../systems/access/models";
 
 const { t } = useI18n();
+defineProps<{ activeSelection: boolean }>();
+
+watch(
+    () => activeShapeStore.state.id,
+    (newId, oldId) => {
+        if (newId !== undefined && oldId !== newId) {
+            accessSystem.loadState(newId);
+        } else if (newId === undefined) {
+            accessSystem.dropState();
+        }
+    },
+    { immediate: true },
+);
 
 const accessDropdown = ref<HTMLSelectElement | null>(null);
 
-const owned = activeShapeStore.hasEditAccess;
-const hasDefaultEditAccess = activeShapeStore.hasDefaultEditAccess;
-const hasDefaultMovementAccess = activeShapeStore.hasDefaultMovementAccess;
-const hasDefaultVisionAccess = activeShapeStore.hasDefaultVisionAccess;
+const owned = accessSystem.$.hasEditAccess;
+const defaultAccess = toRef(accessSystem.state, "defaultAccess");
 
-const playersWithoutAccess = computed(() =>
-    gameStore.state.players.filter((p) => !activeShapeStore.state.owners.some((o) => o.user === p.name)),
-);
+const playersWithoutAccess = computed(() => {
+    const id = accessSystem.state.id;
+    if (id === undefined) return [];
+    return gameStore.state.players.filter(
+        (p) => p.role !== Role.DM && !accessSystem.$.owners.value.some((o) => o === p.name),
+    );
+});
 
 function addOwner(): void {
-    if (!owned.value) return;
+    if (!owned.value || accessSystem.state.id === undefined) return;
     const dropdown = accessDropdown.value!;
     const selectedUser = dropdown.options[dropdown.selectedIndex].value;
     if (selectedUser === "") return;
-    activeShapeStore.addOwner(
-        {
-            shape: activeShapeStore.state.uuid!,
-            user: selectedUser,
-            access: { edit: true, movement: true, vision: true },
-        },
+
+    accessSystem.addAccess(
+        accessSystem.state.id,
+        selectedUser,
+        { edit: true, movement: true, vision: true },
         SyncTo.SERVER,
     );
 }
 
-function removeOwner(owner: string): void {
-    if (!owned.value) return;
-    activeShapeStore.removeOwner(owner, SyncTo.SERVER);
+function removeOwner(user: string): void {
+    if (!owned.value || accessSystem.state.id === undefined) return;
+    accessSystem.removeAccess(accessSystem.state.id, user, SyncTo.SERVER);
 }
 
-function toggleDefaultEditAccess(): void {
-    if (!owned.value) return;
-    activeShapeStore.setDefaultEditAccess(!activeShapeStore.hasDefaultEditAccess.value, SyncTo.SERVER);
-}
+function toggleEditAccess(user?: ACCESS_KEY): void {
+    if (!owned.value || accessSystem.state.id === undefined) return;
+    user ??= DEFAULT_ACCESS_SYMBOL;
 
-function toggleDefaultMovementAccess(): void {
-    if (!owned.value) return;
-    activeShapeStore.setDefaultMovementAccess(!activeShapeStore.hasDefaultMovementAccess.value, SyncTo.SERVER);
-}
-
-function toggleDefaultVisionAccess(): void {
-    if (!owned.value) return;
-    activeShapeStore.setDefaultVisionAccess(!activeShapeStore.hasDefaultVisionAccess.value, SyncTo.SERVER);
-}
-
-function toggleOwnerEditAccess(owner: ShapeOwner): void {
-    if (!owned.value) return;
-    // un-reactify it, because we want to check on access permissions in updateOwner
-    // otherwise one would never be able to remove their edit access rights
-    const copy = { ...owner, access: { ...owner.access } };
-    copy.access.edit = !copy.access.edit;
-    if (copy.access.edit) {
-        copy.access.movement = true;
-        copy.access.vision = true;
-    }
-    activeShapeStore.updateOwner(copy, SyncTo.SERVER);
-}
-
-function toggleOwnerMovementAccess(owner: ShapeOwner): void {
-    if (!owned.value) return;
-    const copy = { ...owner, access: { ...owner.access } };
-    copy.access.movement = !copy.access.movement;
-    if (copy.access.movement) {
-        copy.access.vision = true;
+    let oldAccess = DEFAULT_ACCESS;
+    if (user === DEFAULT_ACCESS_SYMBOL) {
+        oldAccess = accessSystem.getDefault(accessSystem.state.id) ?? oldAccess;
     } else {
-        copy.access.edit = false;
+        oldAccess = accessSystem.getAccess(accessSystem.state.id, user) ?? oldAccess;
     }
-    activeShapeStore.updateOwner(copy, SyncTo.SERVER);
+    const access: PartialPick<ShapeAccess, "edit"> = { edit: !oldAccess.edit };
+
+    if (access.edit) {
+        access.movement = true;
+        access.vision = true;
+    }
+    accessSystem.updateAccess(accessSystem.state.id, user, access, SyncTo.SERVER);
 }
 
-function toggleOwnerVisionAccess(owner: ShapeOwner): void {
-    if (!owned.value) return;
-    const copy = { ...owner, access: { ...owner.access } };
-    copy.access.vision = !copy.access.vision;
-    if (!copy.access.vision) {
-        copy.access.edit = false;
-        copy.access.movement = false;
+function toggleMovementAccess(user?: ACCESS_KEY): void {
+    if (!owned.value || accessSystem.state.id === undefined) return;
+    user ??= DEFAULT_ACCESS_SYMBOL;
+
+    let oldAccess = DEFAULT_ACCESS;
+    if (user === DEFAULT_ACCESS_SYMBOL) {
+        oldAccess = accessSystem.getDefault(accessSystem.state.id) ?? oldAccess;
+    } else {
+        oldAccess = accessSystem.getAccess(accessSystem.state.id, user) ?? oldAccess;
     }
-    activeShapeStore.updateOwner(copy, SyncTo.SERVER);
+    const access: PartialPick<ShapeAccess, "movement"> = { movement: !oldAccess.movement };
+
+    if (access.movement) {
+        access.vision = true;
+    } else {
+        access.edit = false;
+    }
+    accessSystem.updateAccess(accessSystem.state.id, user, access, SyncTo.SERVER);
+}
+
+function toggleVisionAccess(user?: ACCESS_KEY): void {
+    if (!owned.value || accessSystem.state.id === undefined) return;
+    user ??= DEFAULT_ACCESS_SYMBOL;
+
+    let oldAccess = DEFAULT_ACCESS;
+    if (user === DEFAULT_ACCESS_SYMBOL) {
+        oldAccess = accessSystem.getDefault(accessSystem.state.id) ?? oldAccess;
+    } else {
+        oldAccess = accessSystem.getAccess(accessSystem.state.id, user) ?? oldAccess;
+    }
+    const access: PartialPick<ShapeAccess, "vision"> = { vision: !oldAccess.vision };
+
+    if (!access.vision) {
+        access.edit = false;
+        access.movement = false;
+    }
+    accessSystem.updateAccess(accessSystem.state.id, user, access, SyncTo.SERVER);
 }
 </script>
 
 <template>
-    <div class="panel restore-panel">
+    <div class="panel restore-panel" v-show="activeSelection">
         <div class="spanrow header">{{ t("game.ui.selection.edit_dialog.access.access") }}</div>
         <div class="owner">
             <em>{{ t("game.ui.selection.edit_dialog.access.default") }}</em>
         </div>
         <div
             :style="{
-                opacity: hasDefaultEditAccess ? 1.0 : 0.3,
+                opacity: defaultAccess.edit ? 1.0 : 0.3,
                 textAlign: 'center',
             }"
             :disabled="!owned"
-            @click="toggleDefaultEditAccess"
+            @click="toggleEditAccess()"
             :title="t('game.ui.selection.edit_dialog.access.toggle_edit_access')"
         >
             <font-awesome-icon icon="pencil-alt" />
         </div>
         <div
-            :style="{ opacity: hasDefaultMovementAccess ? 1.0 : 0.3, textAlign: 'center' }"
+            :style="{ opacity: defaultAccess.movement ? 1.0 : 0.3, textAlign: 'center' }"
             :disabled="!owned"
-            @click="toggleDefaultMovementAccess"
+            @click="toggleMovementAccess()"
             :title="t('game.ui.selection.edit_dialog.access.toggle_movement_access')"
         >
             <font-awesome-icon icon="arrows-alt" />
         </div>
         <div
-            :style="{ opacity: hasDefaultVisionAccess ? 1.0 : 0.3, textAlign: 'center' }"
+            :style="{ opacity: defaultAccess.vision ? 1.0 : 0.3, textAlign: 'center' }"
             :disabled="!owned"
-            @click="toggleDefaultVisionAccess"
+            @click="toggleVisionAccess()"
             :title="t('game.ui.selection.edit_dialog.access.toggle_vision_access')"
         >
             <font-awesome-icon icon="lightbulb" />
         </div>
-        <template v-for="owner in activeShapeStore.state.owners" :key="owner.user">
+        <template v-for="[user, access] of accessSystem.state.playerAccess" :key="user">
             <div class="owner">
-                {{ owner.user }}
+                {{ user }}
             </div>
             <div
                 :style="{
-                    opacity: owner.access.edit ? 1.0 : 0.3,
+                    opacity: access.edit ? 1.0 : 0.3,
                     textAlign: 'center',
                 }"
                 :disabled="!owned"
-                @click="toggleOwnerEditAccess(owner)"
+                @click="toggleEditAccess(user)"
                 :title="t('game.ui.selection.edit_dialog.access.toggle_edit_access')"
             >
                 <font-awesome-icon icon="pencil-alt" />
             </div>
             <div
-                :style="{ opacity: owner.access.movement ? 1.0 : 0.3, textAlign: 'center' }"
+                :style="{ opacity: access.movement ? 1.0 : 0.3, textAlign: 'center' }"
                 :disabled="!owned"
-                @click="toggleOwnerMovementAccess(owner)"
+                @click="toggleMovementAccess(user)"
                 :title="t('game.ui.selection.edit_dialog.access.toggle_movement_access')"
             >
                 <font-awesome-icon icon="arrows-alt" />
             </div>
             <div
-                :style="{ opacity: owner.access.vision ? 1.0 : 0.3, textAlign: 'center' }"
+                :style="{ opacity: access.vision ? 1.0 : 0.3, textAlign: 'center' }"
                 :disabled="!owned"
-                @click="toggleOwnerVisionAccess(owner)"
+                @click="toggleVisionAccess(user)"
                 :title="t('game.ui.selection.edit_dialog.access.toggle_vision_access')"
             >
                 <font-awesome-icon icon="lightbulb" />
             </div>
             <div
-                @click="removeOwner(owner.user)"
+                @click="removeOwner(user)"
                 :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center', gridColumnStart: 'remove' }"
                 :disabled="!owned"
                 :title="t('game.ui.selection.edit_dialog.access.remove_owner_access')"

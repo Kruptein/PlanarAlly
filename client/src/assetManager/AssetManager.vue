@@ -57,10 +57,45 @@ function stopDrag(event: DragEvent, target: number): void {
             }
         }
         assetStore.clearSelected();
-    } else if (event.dataTransfer && event.dataTransfer.files.length > 0) {
-        assetStore.upload(event.dataTransfer.files, target);
+    } else if (event.dataTransfer && event.dataTransfer.items.length > 0) {
+        parseDirectoryUpload(
+            [...event.dataTransfer.items].map((i) => i.webkitGetAsEntry()),
+            target,
+        );
     }
     draggingSelection = false;
+}
+
+// eslint-disable-next-line no-undef
+function fsToFile(fl: FileSystemFileEntry): Promise<File> {
+    return new Promise((resolve) => fl.file(resolve));
+}
+
+async function parseDirectoryUpload(
+    // eslint-disable-next-line no-undef
+    fileSystemEntries: (FileSystemEntry | null)[],
+    target: number,
+    targetOffset: string[] = [],
+): Promise<void> {
+    // eslint-disable-next-line no-undef
+    const files: FileSystemFileEntry[] = [];
+    for (const entry of fileSystemEntries) {
+        if (entry === null) continue;
+        if (entry.isDirectory) {
+            // eslint-disable-next-line no-undef
+            const fwk = entry as FileSystemDirectoryEntry;
+            const reader = fwk.createReader();
+            reader.readEntries(async (entries) => parseDirectoryUpload(entries, target, [...targetOffset, entry.name]));
+        } else if (entry.isFile) {
+            // eslint-disable-next-line no-undef
+            files.push(entry as FileSystemFileEntry);
+        }
+    }
+    if (files.length > 0) {
+        const fileList = await Promise.all(files.map((f) => fsToFile(f)));
+        console.log("Uploading", fileList, targetOffset);
+        assetStore.upload(fileList as unknown as FileList, target, targetOffset);
+    }
 }
 
 // INODE MANAGEMENT
@@ -75,7 +110,7 @@ async function createDirectory(): Promise<void> {
 function select(event: MouseEvent, inode: number): void {
     if (event.shiftKey && state.selected.length > 0) {
         const inodes = [...state.folders, ...state.files];
-        const start = inodes.indexOf(state.selected[state.selected.length - 1]);
+        const start = inodes.indexOf(state.selected.at(-1)!);
         const end = inodes.indexOf(inode);
         for (let i = start; i !== end; start < end ? i++ : i--) {
             if (i === start) continue;

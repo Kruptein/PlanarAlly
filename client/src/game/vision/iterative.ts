@@ -42,7 +42,7 @@ function mergeConstraints(constraintA: Constraint, constraintB: Constraint): Con
     }
     if (iA >= 0) newSegmentList.unshift(...constraintA.segments.slice(0, iA + 1));
     if (iB >= 0) newSegmentList.unshift(...constraintB.segments.slice(0, iB + 1));
-    return { combined: [newSegmentList[0][0], newSegmentList[newSegmentList.length - 1][1]], segments: newSegmentList };
+    return { combined: [newSegmentList[0][0], newSegmentList.at(-1)![1]], segments: newSegmentList };
 }
 
 interface NewConstraint {
@@ -77,7 +77,7 @@ export class IterativeDelete {
     }
 
     private deleteVertices(): void {
-        const vertices = this.cdt.tds.getTriagVertices(this.shape.uuid);
+        const vertices = this.cdt.tds.getTriagVertices(this.shape.id);
         const np = vertices.length;
         let from = vertices[np - 1];
         for (const [i, vertex] of vertices.entries()) {
@@ -119,7 +119,7 @@ export class IterativeDelete {
             }
             while (constraint.segments.length > 1 && this.vertices.includes(constraint.combined[1])) {
                 constraint.segments.pop();
-                constraint.combined[1] = constraint.segments[constraint.segments.length - 1][1];
+                constraint.combined[1] = constraint.segments.at(-1)![1];
             }
             if (constraint.segments.length > 1) this.finalConstraints.push(constraint.combined);
         }
@@ -145,7 +145,7 @@ export class IterativeDelete {
         }
         for (const vertex of this.vertices) this.cdt.removeVertex(vertex);
         for (const [from_, to] of this.finalConstraints) this.cdt.insertConstraintV(from_, to);
-        this.cdt.tds.clearTriagVertices(this.shape.uuid);
+        this.cdt.tds.clearTriagVertices(this.shape.id);
     }
 
     private deleteVertex(vertex: Vertex, from: Vertex, target: Vertex, isCorner: boolean): Vertex {

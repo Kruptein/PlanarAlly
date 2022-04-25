@@ -4,8 +4,12 @@ import { useI18n } from "vue-i18n";
 import { SyncTo } from "../../core/models/types";
 import { useModal } from "../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../store/activeShape";
-import { UuidMap } from "../../store/shapeMap";
-import type { Aura, Tracker } from "../shapes/interfaces";
+import { getShape } from "../id";
+import { accessSystem } from "../systems/access";
+import { auraSystem } from "../systems/auras";
+import type { Aura, AuraId } from "../systems/auras/models";
+import { trackerSystem } from "../systems/trackers";
+import type { Tracker, TrackerId } from "../systems/trackers/models";
 
 const { t } = useI18n();
 const modals = useModal();
@@ -13,7 +17,7 @@ const modals = useModal();
 const shape = activeShapeStore.state;
 
 function setLocked(): void {
-    if (activeShapeStore.hasEditAccess.value) {
+    if (accessSystem.$.hasEditAccess.value) {
         activeShapeStore.setLocked(!shape.isLocked, SyncTo.SERVER);
     }
 }
@@ -23,14 +27,14 @@ function openEditDialog(): void {
 }
 
 async function changeValue(tracker: Tracker | Aura, isAura: boolean): Promise<void> {
-    if (shape.uuid === undefined) return;
+    if (shape.id === undefined) return;
 
     const input = await modals.prompt(
         t("game.ui.selection.SelectionInfo.new_value_NAME", { name: tracker.name }),
         t("game.ui.selection.SelectionInfo.updating_NAME", { name: tracker.name }),
     );
 
-    if (input === undefined || shape.uuid === undefined) return;
+    if (input === undefined || shape.id === undefined) return;
 
     let value = parseInt(input, 10);
     if (isNaN(value)) {
@@ -42,18 +46,18 @@ async function changeValue(tracker: Tracker | Aura, isAura: boolean): Promise<vo
     }
 
     if (isAura) {
-        activeShapeStore.updateAura(tracker.uuid, { value }, SyncTo.SERVER);
-        const sh = UuidMap.get(shape.uuid)!;
+        auraSystem.update(shape.id, tracker.uuid as AuraId, { value }, SyncTo.SERVER);
+        const sh = getShape(shape.id)!;
         sh.invalidate(false);
     } else {
-        activeShapeStore.updateTracker(tracker.uuid, { value }, SyncTo.SERVER);
+        trackerSystem.update(shape.id, tracker.uuid as TrackerId, { value }, SyncTo.SERVER);
     }
 }
 </script>
 
 <template>
     <div>
-        <template v-if="shape.uuid !== undefined">
+        <template v-if="shape.id !== undefined">
             <div id="selection-menu">
                 <div id="selection-lock-button" @click="setLocked" :title="t('game.ui.selection.SelectionInfo.lock')">
                     <font-awesome-icon v-if="shape.isLocked" icon="lock" />
@@ -68,7 +72,7 @@ async function changeValue(tracker: Tracker | Aura, isAura: boolean): Promise<vo
                 </div>
                 <div id="selection-name">{{ shape.name }}</div>
                 <div id="selection-trackers">
-                    <template v-for="tracker in shape.trackers.slice(0, shape.trackers.length - 1)" :key="tracker.uuid">
+                    <template v-for="tracker in trackerSystem.state.trackers.slice(0, -1)" :key="tracker.uuid">
                         <div>{{ tracker.name }}</div>
                         <div
                             class="selection-tracker-value"
@@ -83,7 +87,7 @@ async function changeValue(tracker: Tracker | Aura, isAura: boolean): Promise<vo
                     </template>
                 </div>
                 <div id="selection-auras">
-                    <template v-for="aura in shape.auras.slice(0, shape.auras.length - 1)" :key="aura.uuid">
+                    <template v-for="aura in auraSystem.state.auras.slice(0, -1)" :key="aura.uuid">
                         <div>{{ aura.name }}</div>
                         <div
                             class="selection-tracker-value"

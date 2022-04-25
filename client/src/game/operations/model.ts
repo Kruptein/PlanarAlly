@@ -1,4 +1,5 @@
 import type { GlobalPoint } from "../../core/geometry";
+import type { LocalId } from "../id";
 import type { LayerName } from "../models/floor";
 import type { ServerShape } from "../models/shapes";
 
@@ -13,7 +14,7 @@ export type Operation =
 
 // MOVEMENT
 export interface ShapeMovementOperation {
-    uuid: string;
+    uuid: LocalId;
     from: [number, number];
     to: [number, number];
 }
@@ -27,7 +28,7 @@ export interface MovementOperation {
 interface ResizeOperation {
     type: "resize";
     // shapes: (RectResizeOperation | CircleResizeOperation | PolygonResizeOperation)[];
-    uuid: string;
+    uuid: LocalId;
     fromPoint: [number, number];
     toPoint: [number, number];
     resizePoint: number;
@@ -37,7 +38,7 @@ interface ResizeOperation {
 // ROTATION
 
 export interface ShapeRotationOperation {
-    uuid: string;
+    uuid: LocalId;
     from: number;
     to: number;
 }
@@ -54,7 +55,7 @@ interface FloorMoveOperation {
     type: "floormovement";
     from: number;
     to: number;
-    shapes: string[];
+    shapes: LocalId[];
 }
 
 // LAYER CHANGE
@@ -63,7 +64,7 @@ interface LayerMoveOperation {
     type: "layermovement";
     from: LayerName;
     to: LayerName;
-    shapes: string[];
+    shapes: LocalId[];
 }
 
 // SHAPE REMOVE

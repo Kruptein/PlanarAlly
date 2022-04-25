@@ -46,6 +46,10 @@ function mouseUp(): void {
     active = false;
 }
 
+function syncDegreeAngle(): void {
+    emit("change", toDegrees(radianAngle.value));
+}
+
 function mouseMove(event: MouseEvent): void {
     if (active) {
         const circleRect = circle.value!.getBoundingClientRect();
@@ -71,7 +75,7 @@ function mouseMove(event: MouseEvent): void {
         >
             <div class="slider" :style="{ left: `${left}px`, top: `${top}px` }"></div>
         </div>
-        <div v-if="showNumberInput"><input type="number" v-model.number="degreeAngle" /></div>
+        <div v-if="showNumberInput"><input type="number" v-model.number="degreeAngle" @change="syncDegreeAngle" /></div>
     </div>
 </template>
 

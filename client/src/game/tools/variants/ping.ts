@@ -10,6 +10,7 @@ import { ToolName } from "../../models/tools";
 import type { ToolPermission } from "../../models/tools";
 import { deleteShapes } from "../../shapes/utils";
 import { Circle } from "../../shapes/variants/circle";
+import { accessSystem } from "../../systems/access";
 import { Tool } from "../tool";
 
 import { SelectFeatures } from "./select";
@@ -27,10 +28,10 @@ class PingTool extends Tool {
     }
 
     cleanup(): void {
-        if (!this.active || this.ping === undefined || this.border === undefined || this.startPoint === undefined)
+        if (!this.active.value || this.ping === undefined || this.border === undefined || this.startPoint === undefined)
             return;
 
-        this.active = false;
+        this.active.value = false;
         deleteShapes([this.ping, this.border], SyncMode.TEMP_SYNC);
         this.ping = undefined;
         this.startPoint = undefined;
@@ -51,7 +52,7 @@ class PingTool extends Tool {
             return;
         }
 
-        this.active = true;
+        this.active.value = true;
         this.ping = new Circle(this.startPoint, 20, { fillColour: clientStore.state.rulerColour });
         this.border = new Circle(this.startPoint, 40, {
             fillColour: "#0000",
@@ -59,14 +60,25 @@ class PingTool extends Tool {
         });
         this.ping.ignoreZoomSize = true;
         this.border.ignoreZoomSize = true;
-        this.ping.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.SHAPE);
-        this.border.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.SHAPE);
+        accessSystem.addAccess(
+            this.ping.id,
+            clientStore.state.username,
+            { edit: true, movement: true, vision: true },
+            SyncTo.SHAPE,
+        );
+        accessSystem.addAccess(
+            this.border.id,
+            clientStore.state.username,
+            { edit: true, movement: true, vision: true },
+            SyncTo.SHAPE,
+        );
         layer.addShape(this.ping, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL, { snappable: false });
         layer.addShape(this.border, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL, { snappable: false });
     }
 
-    onMove(lp: LocalPoint): void {
-        if (!this.active || this.ping === undefined || this.border === undefined || this.startPoint === undefined)
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onMove(lp: LocalPoint): Promise<void> {
+        if (!this.active.value || this.ping === undefined || this.border === undefined || this.startPoint === undefined)
             return;
 
         const gp = l2g(lp);
@@ -85,7 +97,8 @@ class PingTool extends Tool {
         layer.invalidate(true);
     }
 
-    onUp(): void {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onUp(): Promise<void> {
         this.cleanup();
     }
 }

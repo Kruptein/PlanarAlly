@@ -12,6 +12,7 @@ import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
 import { settingsStore } from "../../../store/settings";
 import { CircularToken } from "../../shapes/variants/circularToken";
+import { accessSystem } from "../../systems/access";
 
 import { tokenDialogLeft, tokenDialogTop, tokenDialogVisible } from "./state";
 
@@ -51,7 +52,12 @@ function submit(): void {
         "10px serif",
         { fillColour: fillColour.value, strokeColour: borderColour.value },
     );
-    token.addOwner({ user: clientStore.state.username, access: { edit: true } }, SyncTo.UI);
+    accessSystem.addAccess(
+        token.id,
+        clientStore.state.username,
+        { edit: true, movement: true, vision: true },
+        SyncTo.UI,
+    );
     layer.addShape(token, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
     close();
 }

@@ -8,6 +8,10 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+### Fixed
+
+-   Exporting a campaign where there are images that have no specific asset associated with them, would fail
+
 ## [2022.1] - 2022-04-25
 
 For server owners using a subpath, some important changes are made, so make sure to check the changed section before upgrading

@@ -3,7 +3,7 @@ import secrets
 from pathlib import Path
 import tarfile
 from time import time
-from typing import Dict, List, Set, cast
+from typing import Dict, List, Optional, Set, cast
 from playhouse.shortcuts import model_to_dict
 
 from models import ALL_MODELS
@@ -431,11 +431,15 @@ class CampaignExporter:
 
         self.groups_exported.add(group_id)
 
-    def export_asset(self, asset_id: int) -> int:
+    def export_asset(self, asset_id: int) -> Optional[int]:
         if asset_id in self.asset_mapping:
             return self.asset_mapping[asset_id]
 
-        asset: Asset = Asset[asset_id]
+        try:
+            asset: Asset = Asset[asset_id]
+        except Asset.DoesNotExist:
+            return None
+
         asset_data = model_to_dict(asset, recurse=False)
         del asset_data["id"]
         asset_data["owner"] = self.user_mapping[asset_data["owner"]]

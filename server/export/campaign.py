@@ -196,7 +196,8 @@ class CampaignExporter:
                 location_options_data = model_to_dict(location.options, recurse=False)
                 del location_options_data["id"]
 
-            with self.db.bind_ctx([Location, LocationOptions]):
+            # signals trigger on this, so to be sure we bind extra
+            with self.db.bind_ctx([Location, LocationOptions, PlayerRoom, Room, User]):
                 if location_options_data:
                     lo = LocationOptions.create(**location_options_data)
                     location_data["options"] = lo
@@ -214,20 +215,26 @@ class CampaignExporter:
     ):
         for user_option in user_options:
             user_option_data = model_to_dict(user_option, recurse=False)
+
+            user = self.user_mapping[user_option_data["user"]]
+
             del user_option_data["id"]
             user_option_data["location"] = location_id
-            user_option_data["user"] = self.user_mapping[user_option_data["user"]]
+            user_option_data["user"] = user
             if user_option_data["active_layer"]:
                 user_option_data["active_layer"] = self.layer_mapping[
                     user_option_data["active_layer"]
                 ]
 
             with self.db.bind_ctx([LocationUserOption]):
-                LocationUserOption.update(**user_option_data).where(
+                q = LocationUserOption.select().where(
                     (LocationUserOption.location == location_id)
-                    & (LocationUserOption.user == user_option_data["user"])
-                ).execute()
-                # SIGNAL already creates a default LUO!
+                    & (LocationUserOption.user == user)
+                )
+                if q.exists():
+                    q[0].update(**user_option_data).execute()
+                else:
+                    LocationUserOption.create(**user_option_data)
 
     def export_initiative(self, location_id: int, initiative: Initiative):
         initiative_data = model_to_dict(initiative, recurse=False)
@@ -239,6 +246,10 @@ class CampaignExporter:
 
     def export_players(self):
         for player_room in self.room.players:
+            # The Creator player room is automatically created on Room creation
+            if self.room.creator == player_room.player:
+                continue
+
             player_data = model_to_dict(player_room, recurse=False)
             del player_data["id"]
 

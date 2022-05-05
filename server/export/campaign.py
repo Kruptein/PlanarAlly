@@ -246,10 +246,6 @@ class CampaignExporter:
 
     def export_players(self):
         for player_room in self.room.players:
-            # The Creator player room is automatically created on Room creation
-            if self.room.creator == player_room.player:
-                continue
-
             player_data = model_to_dict(player_room, recurse=False)
             del player_data["id"]
 

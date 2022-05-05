@@ -223,9 +223,11 @@ class CampaignExporter:
                 ]
 
             with self.db.bind_ctx([LocationUserOption]):
-                LocationUserOption.update(
-                    **user_option_data
-                )  # SIGNAL already creates a default LUO!
+                LocationUserOption.update(**user_option_data).where(
+                    (LocationUserOption.location == location_id)
+                    & (LocationUserOption.user == user_option_data["user"])
+                ).execute()
+                # SIGNAL already creates a default LUO!
 
     def export_initiative(self, location_id: int, initiative: Initiative):
         initiative_data = model_to_dict(initiative, recurse=False)

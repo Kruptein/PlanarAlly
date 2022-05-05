@@ -11,6 +11,7 @@ These usually have no immediately visible impact on regular users
 ### Fixed
 
 -   Exporting a campaign where there are images that have no specific asset associated with them, would fail
+-   Exporting a campaign was not properly copying the active pan and zoom info for users
 
 ## [2022.1] - 2022-04-25
 

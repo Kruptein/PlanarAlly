@@ -232,7 +232,10 @@ class CampaignExporter:
                     & (LocationUserOption.user == user)
                 )
                 if q.exists():
-                    q[0].update(**user_option_data).execute()
+                    q[0].update(**user_option_data).where(
+                        (LocationUserOption.location == location_id)
+                        & (LocationUserOption.user == user)
+                    ).execute()
                 else:
                     LocationUserOption.create(**user_option_data)
 

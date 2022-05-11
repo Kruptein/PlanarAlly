@@ -187,6 +187,9 @@ class Shape(BaseModel):
         for label in self.labels:
             label.make_copy(new_shape)
 
+        for owner in self.owners:
+            owner.make_copy(new_shape)
+
         return new_shape
 
 
@@ -268,6 +271,12 @@ class ShapeOwner(BaseModel):
             "movement_access": self.movement_access,
             "vision_access": self.vision_access,
         }
+
+    def make_copy(self, new_shape):
+        _dict = self.as_dict()
+        _dict["shape"] = new_shape.uuid
+        _dict["user"] = self.user
+        type(self).create(**_dict)
 
 
 class ShapeType(BaseModel):

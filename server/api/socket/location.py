@@ -393,10 +393,14 @@ async def clone_location(sid: str, data: LocationCloneData):
 
     new_groups = {}
 
+    floor_map = {}
+
     for prev_floor in src_location.floors.order_by(Floor.index):
         new_floor = new_location.create_floor(prev_floor.name)
+        floor_map[prev_floor.name] = {}
         for prev_layer in prev_floor.layers:
             new_layer = new_floor.layers.where(Layer.name == prev_layer.name).get()
+            floor_map[prev_floor.name][prev_layer.name] = new_layer.id
             for src_shape in prev_layer.shapes:
                 new_group = None
                 if src_shape.group:
@@ -406,6 +410,36 @@ async def clone_location(sid: str, data: LocationCloneData):
                     new_group = new_groups[group_id]
 
                 src_shape.make_copy(new_layer, new_group)
+
+    for luo in src_location.user_options:
+        lduo = luo.as_dict()
+        lduo["location"] = new_location
+        lduo["user"] = luo.user
+        if lduo["active_layer"]:
+            lduo["active_layer"] = floor_map[lduo["active_floor"]][lduo["active_layer"]]
+            del lduo["active_floor"]
+
+        q = LocationUserOption.select().where(
+            (LocationUserOption.location == new_location)
+            & (LocationUserOption.user == luo.user)
+        )
+        if q.exists():
+            q[0].update(**lduo).where(
+                (LocationUserOption.location == new_location)
+                & (LocationUserOption.user == luo.user)
+            ).execute()
+        else:
+            LocationUserOption.create(**lduo)
+
+    if room == pr.room:
+        for psid in game_state.get_sids(
+            player=pr.player, active_location=pr.active_location
+        ):
+            sio.leave_room(psid, pr.active_location.get_path(), namespace=GAME_NS)
+            sio.enter_room(psid, new_location.get_path(), namespace=GAME_NS)
+            await load_location(psid, new_location)
+        pr.active_location = new_location
+        pr.save()
 
 
 @sio.on("Locations.Order.Set", namespace=GAME_NS)

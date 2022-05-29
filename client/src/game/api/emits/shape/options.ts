@@ -28,4 +28,4 @@ export const sendShapeAddLabel = sendSimpleShapeOption<string>("Shape.Options.La
 export const sendShapeRemoveLabel = sendSimpleShapeOption<string>("Shape.Options.Label.Remove");
 
 export const sendShapeSkipDraw = sendSimpleShapeOption<boolean>("Shape.Options.SkipDraw.Set");
-export const sendShapeSvgAsset = sendSimpleShapeOption<string | undefined>("Shape.Options.SvgAsset.Set");
+export const sendShapeSvgAsset = sendSimpleShapeOption<string | null>("Shape.Options.SvgAsset.Set");

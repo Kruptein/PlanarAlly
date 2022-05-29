@@ -12,6 +12,9 @@ These usually have no immediately visible impact on regular users
 
 -   Exporting a campaign where there are images that have no specific asset associated with them, would fail
 -   Exporting a campaign was not properly copying the active pan and zoom info for users
+-   ExtraSettings svg section not updating immediately until changing tabs
+-   ExtraSettings remove svg not properly working
+-   ExtraSettings add svg not working for shapes with no prior svg properties
 
 ## [2022.1] - 2022-04-25
 

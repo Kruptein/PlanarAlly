@@ -13,8 +13,7 @@ import { clientStore, DEFAULT_GRID_SIZE } from "../../../../store/client";
 import { floorStore } from "../../../../store/floor";
 import { gameStore } from "../../../../store/game";
 import { settingsStore } from "../../../../store/settings";
-import { sendShapeSvgAsset } from "../../../api/emits/shape/options";
-import { getGlobalId, getShape } from "../../../id";
+import { getShape } from "../../../id";
 import type { DDraftData } from "../../../models/ddraft";
 import { LayerName } from "../../../models/floor";
 import type { Asset } from "../../../shapes/variants/asset";
@@ -70,9 +69,14 @@ function removeLabel(uuid: string): void {
 // SVG / DDRAFT
 
 const hasDDraftInfo = computed(() => "ddraft_format" in (activeShapeStore.state.options ?? {}));
-const hasPath = computed(
-    () => "svgPaths" in (activeShapeStore.state.options ?? {}) || "svgAsset" in (activeShapeStore.state.options ?? {}),
-);
+const hasPath = computed(() => {
+    if ("svgPaths" in (activeShapeStore.state.options ?? {})) {
+        return activeShapeStore.state.options?.svgPaths !== undefined;
+    } else if ("svgAsset" in (activeShapeStore.state.options ?? {})) {
+        return activeShapeStore.state.options?.svgAsset !== undefined;
+    }
+    return false;
+});
 const showSvgSection = computed(() => gameStore.state.isDm && activeShapeStore.state.type === "assetrect");
 
 async function uploadSvg(): Promise<void> {
@@ -83,9 +87,7 @@ async function uploadSvg(): Promise<void> {
     if (shape.options === undefined) {
         shape.options = {};
     }
-    shape.options.svgAsset = asset.file_hash;
-    sendShapeSvgAsset({ shape: getGlobalId(shape.id), value: asset.file_hash });
-    (shape as Asset).loadSvgs();
+    activeShapeStore.setSvgAsset(asset.file_hash, SyncTo.SERVER);
 }
 
 function removeSvg(): void {
@@ -97,9 +99,7 @@ function removeSvg(): void {
     delete shape.options.svgWidth;
     delete shape.options.svgHeight;
     delete shape.options.svgAsset;
-    sendShapeSvgAsset({ shape: getGlobalId(shape.id), value: undefined });
-    visionState.recalculateVision(activeShapeStore.floor.value!);
-    floorStore.invalidate({ id: activeShapeStore.floor.value! });
+    activeShapeStore.setSvgAsset(undefined, SyncTo.SERVER);
 }
 
 function applyDDraft(): void {

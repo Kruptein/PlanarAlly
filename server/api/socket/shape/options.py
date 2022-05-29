@@ -868,6 +868,7 @@ async def set_skip_draw(sid: str, data: ShapeSetStringValue):
         return
 
     options: List[Any] = json.loads(shape.options)
+
     for i, option in enumerate(options[::-1]):
         if data["value"] is None and option[0] in [
             "svgAsset",
@@ -876,8 +877,13 @@ async def set_skip_draw(sid: str, data: ShapeSetStringValue):
             "svgHeight",
         ]:
             options.pop(i)
+            break
         elif option[0] == "svgAsset":
             option[1] = data["value"]
+            break
+    else:
+        options.append(["svgAsset", data["value"]])
+
     shape.options = json.dumps(options)
     shape.save()
 

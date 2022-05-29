@@ -3,7 +3,8 @@ import type { ComputedRef } from "vue";
 
 import { SyncTo } from "../core/models/types";
 import { Store } from "../core/store";
-import { getShape } from "../game/id";
+import { sendShapeSvgAsset } from "../game/api/emits/shape/options";
+import { getGlobalId, getShape } from "../game/id";
 import type { LocalId } from "../game/id";
 import { selectionState } from "../game/layers/selection";
 import { compositeState } from "../game/layers/state";
@@ -11,8 +12,11 @@ import type { FloorId } from "../game/models/floor";
 import type { ShapeOptions } from "../game/models/shapes";
 import type { IShape, Label } from "../game/shapes/interfaces";
 import type { SHAPE_TYPE } from "../game/shapes/types";
+import type { Asset } from "../game/shapes/variants/asset";
 import type { ToggleComposite } from "../game/shapes/variants/toggleComposite";
+import { visionState } from "../game/vision/state";
 
+import { floorStore } from "./floor";
 import { gameStore } from "./game";
 
 interface ActiveShapeState {
@@ -321,6 +325,30 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         if (syncTo !== SyncTo.UI) {
             const shape = getShape(this._state.id)!;
             shape.removeLabel(label, syncTo);
+        }
+    }
+
+    setSvgAsset(hash: string | undefined, syncTo: SyncTo): void {
+        if (this._state.id === undefined) return;
+
+        if (this._state.options === undefined) this._state.options = {};
+
+        this._state.options.svgAsset = hash;
+
+        const shape = getShape(this._state.id)!;
+
+        if (syncTo !== SyncTo.UI) {
+            if (hash === undefined) {
+                visionState.recalculateVision(activeShapeStore.floor.value!);
+                floorStore.invalidate({ id: activeShapeStore.floor.value! });
+            } else {
+                shape.options.svgAsset = hash;
+                (shape as Asset).loadSvgs();
+            }
+        }
+
+        if (syncTo === SyncTo.SERVER) {
+            sendShapeSvgAsset({ shape: getGlobalId(shape.id), value: hash ?? null });
         }
     }
 

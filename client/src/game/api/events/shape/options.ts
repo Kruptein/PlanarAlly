@@ -1,7 +1,10 @@
 import { SyncTo } from "../../../../core/models/types";
+import { floorStore } from "../../../../store/floor";
 import { getLocalId, getShape } from "../../../id";
 import type { GlobalId } from "../../../id";
 import { Shape } from "../../../shapes/shape";
+import type { Asset } from "../../../shapes/variants/asset";
+import { visionState } from "../../../vision/state";
 import { socket } from "../../socket";
 
 function wrapCall<T>(func: (value: T, syncTo: SyncTo) => void): (data: { shape: GlobalId; value: T }) => void {
@@ -65,7 +68,10 @@ socket.on("Shape.Options.SvgAsset.Set", (data: { shape: GlobalId; value: string 
         delete shape.options.svgHeight;
         delete shape.options.svgPaths;
         delete shape.options.svgWidth;
+        visionState.recalculateVision(shape.floor.id);
+        floorStore.invalidate({ id: shape.floor.id });
     } else {
         shape.options.svgAsset = data.value;
+        (shape as Asset).loadSvgs();
     }
 });

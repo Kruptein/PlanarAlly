@@ -69,6 +69,8 @@ export function getGlobalId(local: LocalId): GlobalId {
     return uuids[local];
 }
 
+(window as any).getGlobalId = getGlobalId;
+
 export function getLocalId(global: GlobalId): LocalId | undefined {
     for (const [i, value] of uuids.entries()) {
         if (value === global) return i as LocalId;

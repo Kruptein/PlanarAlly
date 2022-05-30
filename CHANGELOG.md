@@ -11,6 +11,7 @@ These usually have no immediately visible impact on regular users
 ### Changed
 
 -   Add white outline to the door logic (un)lock icons
+-   Door logic can now specify which block settings to toggle
 
 ### Fixed
 

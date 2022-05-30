@@ -4,23 +4,30 @@ import type { DeepReadonly } from "vue";
 import { registerSystem } from "../..";
 import type { System } from "../..";
 import { SyncTo } from "../../../../core/models/types";
-import { getGlobalId } from "../../../id";
+import { getGlobalId, getShape } from "../../../id";
 import type { LocalId } from "../../../id";
 import { canUse } from "../common";
 import { DEFAULT_PERMISSIONS } from "../models";
 import type { Access, Permissions } from "../models";
 
 import { sendShapeIsDoor, sendShapeDoorPermissions } from "./emits";
+import type { DoorOptions, DOOR_TOGGLE_MODE } from "./models";
+
+const DEFAULT_OPTIONS: () => DoorOptions = () => ({
+    permissions: DEFAULT_PERMISSIONS(),
+    toggleMode: "both",
+});
 
 interface ReactiveDoorState {
     id: LocalId | undefined;
     enabled: boolean;
     permissions?: Permissions;
+    toggleMode: DOOR_TOGGLE_MODE;
 }
 
 class DoorSystem implements System {
     private enabled: Set<LocalId> = new Set();
-    private permissions: Map<LocalId, Permissions> = new Map();
+    private data: Map<LocalId, DoorOptions> = new Map();
 
     // REACTIVE STATE
 
@@ -30,6 +37,7 @@ class DoorSystem implements System {
         this._state = reactive({
             id: undefined,
             enabled: false,
+            toggleMode: "both",
         });
     }
 
@@ -38,9 +46,11 @@ class DoorSystem implements System {
     }
 
     loadState(id: LocalId): void {
+        const data = this.data.get(id)!;
         this._state.id = id;
         this._state.enabled = this.enabled.has(id);
-        this._state.permissions = this.permissions.get(id);
+        this._state.permissions = data.permissions;
+        this._state.toggleMode = data.toggleMode;
     }
 
     dropState(): void {
@@ -52,20 +62,21 @@ class DoorSystem implements System {
     clear(): void {
         this.dropState();
         this.enabled.clear();
-        this.permissions.clear();
+        this.data.clear();
     }
 
     // Inform the system about the state of a certain LocalId
-    inform(id: LocalId, enabled: boolean, permissions?: Permissions): void {
+    inform(id: LocalId, enabled: boolean, options?: DoorOptions): void {
+        console.log(id, enabled, options);
         if (enabled) {
             this.enabled.add(id);
         }
-        this.permissions.set(id, permissions ?? DEFAULT_PERMISSIONS());
+        this.data.set(id, { ...DEFAULT_OPTIONS(), ...options });
     }
 
     drop(id: LocalId): void {
         this.enabled.delete(id);
-        this.permissions.delete(id);
+        this.data.delete(id);
         if (this._state.id === id) {
             this.dropState();
         }
@@ -87,14 +98,46 @@ class DoorSystem implements System {
     }
 
     getPermissions(id: LocalId): Readonly<Permissions> | undefined {
-        return this.permissions.get(id);
+        return this.data.get(id)?.permissions;
     }
 
     setPermissions(id: LocalId, permissions: Permissions, syncTo: SyncTo): void {
+        const options = this.data.get(id);
+        if (options === undefined) return;
+
         if (syncTo === SyncTo.SERVER) sendShapeDoorPermissions({ shape: getGlobalId(id), value: permissions });
         if (this._state.id === id) this._state.permissions = permissions;
 
-        this.permissions.set(id, permissions);
+        options.permissions = permissions;
+    }
+
+    setToggleMode(id: LocalId, mode: DOOR_TOGGLE_MODE, syncTo: SyncTo): void {
+        const options = this.data.get(id);
+        if (options === undefined) return;
+
+        // if (syncTo === SyncTo.SERVER) sendShapeDoorPermissions({ shape: getGlobalId(id), value: permissions });
+        if (this._state.id === id) this._state.toggleMode = mode;
+
+        options.toggleMode = mode;
+    }
+
+    // returns new cursor state
+    toggleDoor(id: LocalId): "lock-solid" | "lock-open-solid" | undefined {
+        const shape = getShape(id);
+        const options = this.data.get(id);
+        if (shape === undefined || options === undefined) return;
+
+        if (options.toggleMode === "both") {
+            shape.setBlocksMovement(!shape.blocksMovement, SyncTo.SERVER, true);
+            shape.setBlocksVision(!shape.blocksVision, SyncTo.SERVER, true);
+            return shape.blocksMovement ? "lock-open-solid" : "lock-solid";
+        } else if (options.toggleMode === "movement") {
+            shape.setBlocksMovement(!shape.blocksMovement, SyncTo.SERVER, true);
+            return shape.blocksMovement ? "lock-open-solid" : "lock-solid";
+        } else {
+            shape.setBlocksVision(!shape.blocksVision, SyncTo.SERVER, true);
+            return shape.blocksVision ? "lock-open-solid" : "lock-solid";
+        }
     }
 
     canUse(id: LocalId): Access {

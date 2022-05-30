@@ -224,11 +224,10 @@ class SelectTool extends Tool implements ISelectTool {
         if (this.hoveredDoor !== undefined && activeToolMode.value === ToolMode.Play) {
             const canUseDoor = doorSystem.canUse(this.hoveredDoor);
             if (canUseDoor === Access.Enabled) {
-                const shape = getShape(this.hoveredDoor)!;
-                shape.setBlocksMovement(!shape.blocksMovement, SyncTo.SERVER, true);
-                shape.setBlocksVision(!shape.blocksVision, SyncTo.SERVER, true);
-                const state = shape.blocksVision ? "lock-open-solid" : "lock-solid";
-                document.body.style.cursor = `url('${baseAdjust(`static/img/${state}.svg`)}') 16 16, auto`;
+                const state = doorSystem.toggleDoor(this.hoveredDoor);
+                if (state !== undefined) {
+                    document.body.style.cursor = `url('${baseAdjust(`static/img/${state}.svg`)}') 16 16, auto`;
+                }
                 return;
             } else if (canUseDoor === Access.Request) {
                 toast.info("Request to open door sent", {

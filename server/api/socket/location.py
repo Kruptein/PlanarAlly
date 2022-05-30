@@ -85,6 +85,10 @@ async def load_location(sid: str, location: Location, *, complete=False):
         pr.active_location = location
         pr.save()
 
+    # 0. CLEAR
+
+    await sio.emit("CLEAR", room=sid, namespace=GAME_NS)
+
     # 1. Load client options
 
     client_options = pr.player.as_dict()

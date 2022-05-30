@@ -15,6 +15,7 @@ These usually have no immediately visible impact on regular users
 -   ExtraSettings svg section not updating immediately until changing tabs
 -   ExtraSettings remove svg not properly working
 -   ExtraSettings add svg not working for shapes with no prior svg properties
+-   Spawn locations loading wrong
 
 ## [2022.1] - 2022-04-25
 

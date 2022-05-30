@@ -74,8 +74,9 @@ socket.on("redirect", (destination: string) => {
 
 // Bootup events
 
+socket.on("CLEAR", clearGame);
+
 socket.on("Board.Locations.Set", (locationInfo: Location[]) => {
-    clearGame();
     locationStore.setLocations(locationInfo, false);
 });
 

@@ -49,11 +49,7 @@ export function createShapeFromDict(shape: ServerShape): IShape | undefined {
         if (group === undefined) {
             console.log("Missing group info detected");
         } else {
-            addGroupMembers(
-                shape.group,
-                [{ uuid: getLocalId(shape.uuid) ?? reserveLocalId(shape.uuid), badge: shape.badge }],
-                false,
-            );
+            addGroupMembers(shape.group, [{ uuid: reserveLocalId(shape.uuid), badge: shape.badge }], false);
         }
     }
 

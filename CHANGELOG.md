@@ -8,6 +8,10 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+### Changed
+
+-   Add white outline to the door logic (un)lock icons
+
 ### Fixed
 
 -   Exporting a campaign where there are images that have no specific asset associated with them, would fail

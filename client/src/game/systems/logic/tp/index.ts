@@ -178,7 +178,7 @@ class TeleportZoneSystem implements System {
                     shape.id === tp
                 )
                     continue;
-                if (tpShape.contains(shape.center())) {
+                if (tpShape.floor.id === shape.floor.id && tpShape.contains(shape.center())) {
                     shapesToMove.push(shape.id);
                 }
             }

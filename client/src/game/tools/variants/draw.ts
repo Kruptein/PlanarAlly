@@ -4,7 +4,7 @@ import { clampGridLine, getUnitDistance, l2g, l2gz } from "../../../core/convers
 import { addP, cloneP, subtractP, toArrayP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { equalPoints, snapToPoint } from "../../../core/math";
-import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
+import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
 import type { PromptFunction } from "../../../core/plugins/modals/prompt";
 import { ctrlOrCmdPressed, mostReadable } from "../../../core/utils";
 import { i18n } from "../../../i18n";
@@ -402,14 +402,14 @@ class DrawTool extends Tool {
                 this.shape.id,
                 clientStore.state.username,
                 { edit: true, movement: true, vision: true },
-                SyncTo.UI,
+                UI_SYNC,
             );
             if (this.state.selectedMode === DrawMode.Normal) {
                 if (this.state.blocksMovement) {
-                    this.shape.setBlocksMovement(true, SyncTo.UI, false);
+                    this.shape.setBlocksMovement(true, UI_SYNC, false);
                 }
                 if (this.state.blocksVision) {
-                    this.shape.setBlocksVision(true, SyncTo.UI, false);
+                    this.shape.setBlocksVision(true, UI_SYNC, false);
                 }
             }
             layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NO);

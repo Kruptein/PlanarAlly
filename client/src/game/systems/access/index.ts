@@ -3,7 +3,7 @@ import type { ComputedRef, DeepReadonly } from "vue";
 
 import { registerSystem } from "..";
 import type { System } from "..";
-import { SyncTo } from "../../../core/models/types";
+import type { Sync } from "../../../core/models/types";
 import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
@@ -176,7 +176,7 @@ class AccessSystem implements System {
         return this.access.get(shapeId)?.get(user);
     }
 
-    addAccess(shapeId: LocalId, user: string, access: Partial<ShapeAccess>, syncTo: SyncTo): void {
+    addAccess(shapeId: LocalId, user: string, access: Partial<ShapeAccess>, syncTo: Sync): void {
         if (this.access.get(shapeId)?.has(user) === true) {
             console.error("[ACCESS] Attempt to add access for user with access");
             return;
@@ -188,7 +188,7 @@ class AccessSystem implements System {
         shapeMap.set(user, userAccess);
         this.access.set(shapeId, shapeMap);
 
-        if (syncTo === SyncTo.SERVER) {
+        if (syncTo.server) {
             sendShapeAddOwner(
                 ownerToServer({
                     access: userAccess,
@@ -214,7 +214,7 @@ class AccessSystem implements System {
         initiativeStore._forceUpdate();
     }
 
-    updateAccess(shapeId: LocalId, user: ACCESS_KEY, access: Partial<ShapeAccess>, syncTo: SyncTo): void {
+    updateAccess(shapeId: LocalId, user: ACCESS_KEY, access: Partial<ShapeAccess>, syncTo: Sync): void {
         if (user !== DEFAULT_ACCESS_SYMBOL && this.access.get(shapeId)?.has(user) !== true) {
             console.error("[ACCESS] Attempt to update access for user without access");
             return;
@@ -250,7 +250,7 @@ class AccessSystem implements System {
             }
         }
 
-        if (syncTo === SyncTo.SERVER) {
+        if (syncTo.server) {
             if (user === DEFAULT_ACCESS_SYMBOL) {
                 sendShapeUpdateDefaultOwner({ ...accessToServer(newAccess), shape: getGlobalId(shapeId) });
             } else {
@@ -268,7 +268,7 @@ class AccessSystem implements System {
         initiativeStore._forceUpdate();
     }
 
-    removeAccess(shapeId: LocalId, user: string, syncTo: SyncTo): void {
+    removeAccess(shapeId: LocalId, user: string, syncTo: Sync): void {
         if (this.access.get(shapeId)?.has(user) !== true) {
             console.error("[ACCESS] Attempt to remove access for user without access");
             return;
@@ -277,7 +277,7 @@ class AccessSystem implements System {
         const oldAccess = this.access.get(shapeId)!.get(user)!;
         this.access.get(shapeId)!.delete(user);
 
-        if (syncTo === SyncTo.SERVER) {
+        if (syncTo.server) {
             sendShapeDeleteOwner({
                 user,
                 shape: getGlobalId(shapeId),

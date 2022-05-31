@@ -1,5 +1,5 @@
 import type { GlobalPoint, Vector } from "../../core/geometry";
-import type { SyncTo } from "../../core/models/types";
+import type { Sync } from "../../core/models/types";
 import type { LocalId } from "../id";
 import type { Layer } from "../layers/variants/layer";
 import type { Floor, LayerName } from "../models/floor";
@@ -111,28 +111,28 @@ export interface IShape {
 
     // GROUP
 
-    setGroupId(groupId: string | undefined, syncTo: SyncTo): void;
+    setGroupId(groupId: string | undefined, syncTo: Sync): void;
 
     // PROPERTIES
 
-    setName(name: string, syncTo: SyncTo): void;
-    setNameVisible(visible: boolean, syncTo: SyncTo): void;
-    setIsToken(isToken: boolean, syncTo: SyncTo): void;
-    setInvisible(isInvisible: boolean, syncTo: SyncTo): void;
-    setStrokeColour(colour: string, syncTo: SyncTo): void;
-    setFillColour(colour: string, syncTo: SyncTo): void;
-    setBlocksVision(blocksVision: boolean, syncTo: SyncTo, recalculate?: boolean): void;
-    setBlocksMovement(blocksMovement: boolean, syncTo: SyncTo, recalculate?: boolean): boolean;
-    setShowBadge(showBadge: boolean, syncTo: SyncTo): void;
-    setDefeated(isDefeated: boolean, syncTo: SyncTo): void;
-    setLocked(isLocked: boolean, syncTo: SyncTo): void;
+    setName(name: string, syncTo: Sync): void;
+    setNameVisible(visible: boolean, syncTo: Sync): void;
+    setIsToken(isToken: boolean, syncTo: Sync): void;
+    setInvisible(isInvisible: boolean, syncTo: Sync): void;
+    setStrokeColour(colour: string, syncTo: Sync): void;
+    setFillColour(colour: string, syncTo: Sync): void;
+    setBlocksVision(blocksVision: boolean, syncTo: Sync, recalculate?: boolean): void;
+    setBlocksMovement(blocksMovement: boolean, syncTo: Sync, recalculate?: boolean): boolean;
+    setShowBadge(showBadge: boolean, syncTo: Sync): void;
+    setDefeated(isDefeated: boolean, syncTo: Sync): void;
+    setLocked(isLocked: boolean, syncTo: Sync): void;
 
     // EXTRA
 
-    setAnnotation(text: string, syncTo: SyncTo): void;
-    setAnnotationVisible(visible: boolean, syncTo: SyncTo): void;
-    addLabel(label: string, syncTo: SyncTo): void;
-    removeLabel(label: string, syncTo: SyncTo): void;
+    setAnnotation(text: string, syncTo: Sync): void;
+    setAnnotationVisible(visible: boolean, syncTo: Sync): void;
+    addLabel(label: string, syncTo: Sync): void;
+    removeLabel(label: string, syncTo: Sync): void;
 }
 
 export interface Label {

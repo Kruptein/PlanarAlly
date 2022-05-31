@@ -1,4 +1,4 @@
-import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
+import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
 import { debugLayers } from "../../../localStorageHelpers";
 import { activeShapeStore } from "../../../store/activeShape";
 import { clientStore } from "../../../store/client";
@@ -97,8 +97,8 @@ export class Layer {
 
         this.shapes.push(shape);
 
-        shape.setBlocksVision(shape.blocksVision, SyncTo.UI, invalidate !== InvalidationMode.NO);
-        shape.setBlocksMovement(shape.blocksMovement, SyncTo.UI, invalidate !== InvalidationMode.NO);
+        shape.setBlocksVision(shape.blocksVision, UI_SYNC, invalidate !== InvalidationMode.NO);
+        shape.setBlocksMovement(shape.blocksMovement, UI_SYNC, invalidate !== InvalidationMode.NO);
 
         shape.invalidatePoints();
         if (options?.snappable ?? true) {

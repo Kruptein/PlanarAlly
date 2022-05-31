@@ -1,5 +1,6 @@
 import type { GlobalPoint } from "../../../core/geometry";
-import { SyncTo, SyncMode } from "../../../core/models/types";
+import { SyncMode } from "../../../core/models/types";
+import type { Sync } from "../../../core/models/types";
 import { gameStore } from "../../../store/game";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { sendShapeSkipDraw } from "../../api/emits/shape/options";
@@ -58,20 +59,19 @@ export class ToggleComposite extends Shape {
         compositeState.addComposite(this.id, variant, sync);
     }
 
-    renameVariant(uuid: LocalId, name: string, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER)
+    renameVariant(uuid: LocalId, name: string, syncTo: Sync): void {
+        if (syncTo.server)
             sendToggleCompositeRenameVariant({ shape: getGlobalId(this.id), variant: getGlobalId(uuid), name });
-        if (syncTo === SyncTo.UI) this._("renameVariant")(uuid, name, syncTo);
+        if (syncTo.ui) this._("renameVariant")(uuid, name, syncTo);
 
         const variant = this._variants.find((v) => v.uuid === uuid);
         if (variant === undefined) return;
         variant.name = name;
     }
 
-    removeVariant(id: LocalId, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER)
-            sendToggleCompositeRemoveVariant({ shape: getGlobalId(this.id), variant: getGlobalId(id) });
-        if (syncTo === SyncTo.UI) this._("removeVariant")(id, syncTo);
+    removeVariant(id: LocalId, syncTo: Sync): void {
+        if (syncTo.server) sendToggleCompositeRemoveVariant({ shape: getGlobalId(this.id), variant: getGlobalId(id) });
+        if (syncTo.ui) this._("removeVariant")(id, syncTo);
 
         const v = this._variants.findIndex((v) => v.uuid === id);
         if (v === undefined) {

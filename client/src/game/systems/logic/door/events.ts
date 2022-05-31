@@ -1,4 +1,4 @@
-import { SyncTo } from "../../../../core/models/types";
+import { UI_SYNC } from "../../../../core/models/types";
 import { socket } from "../../../api/socket";
 import { getLocalId } from "../../../id";
 import type { GlobalId } from "../../../id";
@@ -11,17 +11,17 @@ import { doorSystem } from ".";
 socket.on("Shape.Options.IsDoor.Set", (data: { shape: GlobalId; value: boolean }) => {
     const shape = getLocalId(data.shape);
     if (shape === undefined) return;
-    doorSystem.toggle(shape, data.value, SyncTo.UI);
+    doorSystem.toggle(shape, data.value, UI_SYNC);
 });
 
 socket.on("Shape.Options.Door.Permissions.Set", (data: { shape: GlobalId; value: Permissions }) => {
     const shape = getLocalId(data.shape);
     if (shape === undefined) return;
-    doorSystem.setPermissions(shape, data.value, SyncTo.UI);
+    doorSystem.setPermissions(shape, data.value, UI_SYNC);
 });
 
 socket.on("Shape.Options.Door.ToggleMode.Set", (data: { shape: GlobalId; value: DOOR_TOGGLE_MODE }) => {
     const shape = getLocalId(data.shape);
     if (shape === undefined) return;
-    doorSystem.setToggleMode(shape, data.value, SyncTo.UI);
+    doorSystem.setToggleMode(shape, data.value, UI_SYNC);
 });

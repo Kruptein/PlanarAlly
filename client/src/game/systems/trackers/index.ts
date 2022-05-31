@@ -3,7 +3,7 @@ import type { DeepReadonly } from "vue";
 
 import { registerSystem } from "..";
 import type { System } from "..";
-import { SyncTo } from "../../../core/models/types";
+import type { Sync } from "../../../core/models/types";
 import { activeShapeStore } from "../../../store/activeShape";
 import { getGlobalId, getShape } from "../../id";
 import type { LocalId } from "../../id";
@@ -107,8 +107,8 @@ class TrackerSystem implements System {
         return trackers;
     }
 
-    add(id: LocalId, tracker: Tracker, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeCreateTracker(trackersToServer(getGlobalId(id), [tracker])[0]);
+    add(id: LocalId, tracker: Tracker, syncTo: Sync): void {
+        if (syncTo.server) sendShapeCreateTracker(trackersToServer(getGlobalId(id), [tracker])[0]);
 
         this.getOrCreate(id).push(tracker);
 
@@ -117,11 +117,11 @@ class TrackerSystem implements System {
         if (tracker.draw) getShape(id)?.invalidate(false);
     }
 
-    update(id: LocalId, trackerId: TrackerId, delta: Partial<Tracker>, syncTo: SyncTo): void {
+    update(id: LocalId, trackerId: TrackerId, delta: Partial<Tracker>, syncTo: Sync): void {
         const tracker = this.data.get(id)?.find((t) => t.uuid === trackerId);
         if (tracker === undefined) return;
 
-        if (syncTo === SyncTo.SERVER) {
+        if (syncTo.server) {
             sendShapeUpdateTracker({
                 ...partialTrackerToServer({
                     ...delta,
@@ -140,8 +140,8 @@ class TrackerSystem implements System {
         if (tracker.draw || oldDrawTracker) getShape(id)?.invalidate(false);
     }
 
-    remove(id: LocalId, trackerId: TrackerId, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeRemoveTracker({ shape: getGlobalId(id), value: trackerId });
+    remove(id: LocalId, trackerId: TrackerId, syncTo: Sync): void {
+        if (syncTo.server) sendShapeRemoveTracker({ shape: getGlobalId(id), value: trackerId });
 
         const oldTracker = this.get(id, trackerId, false);
 

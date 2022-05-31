@@ -3,7 +3,8 @@ import type { DeepReadonly } from "vue";
 
 import { registerSystem } from "../..";
 import type { System } from "../..";
-import { SyncTo } from "../../../../core/models/types";
+import { FULL_SYNC } from "../../../../core/models/types";
+import type { Sync } from "../../../../core/models/types";
 import { getGlobalId, getShape } from "../../../id";
 import type { LocalId } from "../../../id";
 import { canUse } from "../common";
@@ -89,8 +90,8 @@ class DoorSystem implements System {
         }
     }
 
-    toggle(id: LocalId, enabled: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeIsDoor({ shape: getGlobalId(id), value: enabled });
+    toggle(id: LocalId, enabled: boolean, syncTo: Sync): void {
+        if (syncTo.server) sendShapeIsDoor({ shape: getGlobalId(id), value: enabled });
         if (this._state.id === id) this._state.enabled = enabled;
 
         if (enabled) {
@@ -108,21 +109,21 @@ class DoorSystem implements System {
         return this.data.get(id)?.permissions;
     }
 
-    setPermissions(id: LocalId, permissions: Permissions, syncTo: SyncTo): void {
+    setPermissions(id: LocalId, permissions: Permissions, syncTo: Sync): void {
         const options = this.data.get(id);
         if (options === undefined) return;
 
-        if (syncTo === SyncTo.SERVER) sendShapeDoorPermissions({ shape: getGlobalId(id), value: permissions });
+        if (syncTo.server) sendShapeDoorPermissions({ shape: getGlobalId(id), value: permissions });
         if (this._state.id === id) this._state.permissions = permissions;
 
         options.permissions = permissions;
     }
 
-    setToggleMode(id: LocalId, mode: DOOR_TOGGLE_MODE, syncTo: SyncTo): void {
+    setToggleMode(id: LocalId, mode: DOOR_TOGGLE_MODE, syncTo: Sync): void {
         const options = this.data.get(id);
         if (options === undefined) return;
 
-        if (syncTo === SyncTo.SERVER) sendShapeDoorToggleMode({ shape: getGlobalId(id), value: mode });
+        if (syncTo.server) sendShapeDoorToggleMode({ shape: getGlobalId(id), value: mode });
         if (this._state.id === id) this._state.toggleMode = mode;
 
         options.toggleMode = mode;
@@ -134,12 +135,12 @@ class DoorSystem implements System {
         if (shape === undefined || options === undefined) return;
 
         if (options.toggleMode === "both") {
-            shape.setBlocksMovement(!shape.blocksMovement, SyncTo.SERVER, true);
-            shape.setBlocksVision(!shape.blocksVision, SyncTo.SERVER, true);
+            shape.setBlocksMovement(!shape.blocksMovement, FULL_SYNC, true);
+            shape.setBlocksVision(!shape.blocksVision, FULL_SYNC, true);
         } else if (options.toggleMode === "movement") {
-            shape.setBlocksMovement(!shape.blocksMovement, SyncTo.SERVER, true);
+            shape.setBlocksMovement(!shape.blocksMovement, FULL_SYNC, true);
         } else {
-            shape.setBlocksVision(!shape.blocksVision, SyncTo.SERVER, true);
+            shape.setBlocksVision(!shape.blocksVision, FULL_SYNC, true);
         }
     }
 

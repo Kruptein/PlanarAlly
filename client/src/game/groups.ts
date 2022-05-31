@@ -1,7 +1,7 @@
 import { ref } from "vue";
 import type { Ref } from "vue";
 
-import { SyncTo } from "../core/models/types";
+import { UI_SYNC } from "../core/models/types";
 import { uuidv4 } from "../core/utils";
 
 import {
@@ -41,7 +41,7 @@ export function removeGroup(groupId: string, sync: boolean): void {
     const members = getGroupMembers(groupId);
     for (const member of members) {
         member.groupId = undefined;
-        member.setShowBadge(false, SyncTo.UI);
+        member.setShowBadge(false, UI_SYNC);
     }
     if (sync) sendRemoveGroup(groupId);
     memberMap.value.delete(groupId);
@@ -92,7 +92,7 @@ export function addGroupMembers(groupId: string, members: { uuid: LocalId; badge
             if (shape.groupId !== undefined) {
                 memberMap.value.get(shape.groupId)?.delete(shape.id);
             }
-            shape.setGroupId(groupId, SyncTo.UI);
+            shape.setGroupId(groupId, UI_SYNC);
             shape.badge = member.badge;
             shape.invalidate(true);
         }
@@ -110,7 +110,7 @@ export function removeGroupMember(groupId: string, member: LocalId, sync: boolea
     const members = memberMap.value.get(groupId);
     members?.delete(member);
     const shape = getShape(member);
-    if (shape !== undefined) shape.setShowBadge(false, SyncTo.UI);
+    if (shape !== undefined) shape.setShowBadge(false, UI_SYNC);
     if (sync) {
         sendGroupLeave([{ uuid: getGlobalId(member), group_id: groupId }]);
     }

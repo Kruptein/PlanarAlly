@@ -3,7 +3,7 @@ import { reactive, watch, watchEffect } from "vue";
 import { g2l, getUnitDistance, l2g, toRadians } from "../../../core/conversions";
 import { equalsP, toGP } from "../../../core/geometry";
 import type { LocalPoint } from "../../../core/geometry";
-import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
+import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
@@ -118,7 +118,7 @@ class SpellTool extends Tool {
             this.shape.id,
             clientStore.state.username,
             { edit: true, movement: true, vision: true },
-            SyncTo.UI,
+            UI_SYNC,
         );
 
         if (selectionState.hasSelection && (this.state.range === 0 || equalsP(startPosition, ogPoint))) {

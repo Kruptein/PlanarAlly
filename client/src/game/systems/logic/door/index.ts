@@ -10,7 +10,7 @@ import { canUse } from "../common";
 import { DEFAULT_PERMISSIONS } from "../models";
 import type { Access, Permissions } from "../models";
 
-import { sendShapeIsDoor, sendShapeDoorPermissions } from "./emits";
+import { sendShapeIsDoor, sendShapeDoorPermissions, sendShapeDoorToggleMode } from "./emits";
 import type { DoorOptions, DOOR_TOGGLE_MODE } from "./models";
 
 const DEFAULT_OPTIONS: () => DoorOptions = () => ({
@@ -115,7 +115,7 @@ class DoorSystem implements System {
         const options = this.data.get(id);
         if (options === undefined) return;
 
-        // if (syncTo === SyncTo.SERVER) sendShapeDoorPermissions({ shape: getGlobalId(id), value: permissions });
+        if (syncTo === SyncTo.SERVER) sendShapeDoorToggleMode({ shape: getGlobalId(id), value: mode });
         if (this._state.id === id) this._state.toggleMode = mode;
 
         options.toggleMode = mode;

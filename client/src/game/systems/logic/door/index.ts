@@ -66,12 +66,19 @@ class DoorSystem implements System {
     }
 
     // Inform the system about the state of a certain LocalId
-    inform(id: LocalId, enabled: boolean, options?: DoorOptions): void {
-        console.log(id, enabled, options);
+    inform(id: LocalId, enabled: boolean, options?: DoorOptions, syncToServer = false): void {
         if (enabled) {
             this.enabled.add(id);
         }
         this.data.set(id, { ...DEFAULT_OPTIONS(), ...options });
+
+        if (syncToServer) {
+            const options = this.data.get(id)!;
+            const shape = getGlobalId(id);
+            sendShapeIsDoor({ shape, value: enabled });
+            if (options.permissions) sendShapeDoorPermissions({ shape, value: options.permissions });
+            if (options.toggleMode !== "both") sendShapeDoorToggleMode({ shape, value: options.toggleMode });
+        }
     }
 
     drop(id: LocalId): void {

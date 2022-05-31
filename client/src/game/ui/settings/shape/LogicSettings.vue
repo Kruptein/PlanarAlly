@@ -10,6 +10,7 @@ import { locationStore } from "../../../../store/location";
 import { requestSpawnInfo } from "../../../api/emits/location";
 import type { GlobalId } from "../../../id";
 import { doorSystem } from "../../../systems/logic/door";
+import { DOOR_TOGGLE_MODES } from "../../../systems/logic/door/models";
 import type { DOOR_TOGGLE_MODE } from "../../../systems/logic/door/models";
 import { DEFAULT_PERMISSIONS } from "../../../systems/logic/models";
 import type { LOGIC_TYPES, Permissions } from "../../../systems/logic/models";
@@ -73,7 +74,6 @@ function toggleDoor(): void {
     doorSystem.toggle(doorSystem.state.id, !doorSystem.state.enabled, SyncTo.SERVER);
 }
 
-const toggleModes: DOOR_TOGGLE_MODE[] = ["vision", "movement", "both"];
 const activeToggleMode = computed(() => doorSystem.state.toggleMode);
 
 function setToggleMode(mode: DOOR_TOGGLE_MODE): void {
@@ -160,7 +160,7 @@ async function chooseTarget(): Promise<void> {
         />
         <label for="logic-dialog-door-toggles">Toggle</label>
         <div class="selection-box">
-            <template v-for="mode of toggleModes" :key="mode">
+            <template v-for="mode of DOOR_TOGGLE_MODES" :key="mode">
                 <div
                     :class="{ 'selection-box-active': mode === activeToggleMode }"
                     style="text-transform: capitalize"

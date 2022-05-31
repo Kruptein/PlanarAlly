@@ -10,6 +10,8 @@ import { locationStore } from "../../../../store/location";
 import { requestSpawnInfo } from "../../../api/emits/location";
 import type { GlobalId } from "../../../id";
 import { doorSystem } from "../../../systems/logic/door";
+import { DOOR_TOGGLE_MODES } from "../../../systems/logic/door/models";
+import type { DOOR_TOGGLE_MODE } from "../../../systems/logic/door/models";
 import { DEFAULT_PERMISSIONS } from "../../../systems/logic/models";
 import type { LOGIC_TYPES, Permissions } from "../../../systems/logic/models";
 import { teleportZoneSystem } from "../../../systems/logic/tp";
@@ -34,8 +36,11 @@ watch(
     { immediate: true },
 );
 
-const showPermissions = ref(false);
 const activeLogic = ref<LOGIC_TYPES>("door");
+
+// Permissions
+
+const showPermissions = ref(false);
 
 const activePermissions = computed(() => {
     let permissions: DeepReadonly<Permissions> | undefined;
@@ -67,6 +72,13 @@ function setPermissions(permissions: Permissions): void {
 function toggleDoor(): void {
     if (doorSystem.state.id === undefined) return;
     doorSystem.toggle(doorSystem.state.id, !doorSystem.state.enabled, SyncTo.SERVER);
+}
+
+const activeToggleMode = computed(() => doorSystem.state.toggleMode);
+
+function setToggleMode(mode: DOOR_TOGGLE_MODE): void {
+    if (doorSystem.state.id === undefined) return;
+    doorSystem.setToggleMode(doorSystem.state.id, mode, SyncTo.SERVER);
 }
 
 // Teleport Zone
@@ -146,6 +158,18 @@ async function chooseTarget(): Promise<void> {
             :checked="doorSystem.state.enabled"
             @click="toggleDoor"
         />
+        <label for="logic-dialog-door-toggles">Toggle</label>
+        <div class="selection-box">
+            <template v-for="mode of DOOR_TOGGLE_MODES" :key="mode">
+                <div
+                    :class="{ 'selection-box-active': mode === activeToggleMode }"
+                    style="text-transform: capitalize"
+                    @click="setToggleMode(mode)"
+                >
+                    {{ mode }}
+                </div>
+            </template>
+        </div>
         <label for="logic-dialog-door-config">Permissions</label>
         <button id="logic-dialog-door-config" class="center" @click="openPermissions('door')">
             <font-awesome-icon icon="cog" />
@@ -180,7 +204,6 @@ async function chooseTarget(): Promise<void> {
 
 <style lang="scss" scoped>
 .panel {
-    grid-template-columns: [name] 1fr [toggle] 100px [end];
     grid-column-gap: 5px;
     align-items: center;
     padding-bottom: 1em;
@@ -196,5 +219,33 @@ async function chooseTarget(): Promise<void> {
     .center {
         justify-self: center;
     }
+}
+
+.selection-box {
+    display: flex;
+    flex-direction: row;
+
+    > div {
+        border: solid 1px;
+        border-left: 0;
+        padding: 7px;
+
+        &:first-child {
+            border: solid 1px;
+            border-top-left-radius: 8px;
+            border-bottom-left-radius: 8px;
+        }
+
+        &:last-child {
+            border-top-right-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+    }
+}
+
+.selection-box > div:hover,
+.selection-box-active {
+    background-color: #82c8a0;
+    cursor: pointer;
 }
 </style>

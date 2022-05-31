@@ -8,6 +8,11 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+### Changed
+
+-   Add white outline to the door logic (un)lock icons
+-   Door logic can now specify which block settings to toggle
+
 ### Fixed
 
 -   Exporting a campaign where there are images that have no specific asset associated with them, would fail
@@ -17,6 +22,7 @@ These usually have no immediately visible impact on regular users
 -   ExtraSettings add svg not working for shapes with no prior svg properties
 -   Spawn locations loading wrong
 -   Teleport zones triggering from other floors
+-   Draw tool door permissions not saving
 
 ## [2022.1] - 2022-04-25
 

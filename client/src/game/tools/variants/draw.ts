@@ -27,6 +27,7 @@ import { Rect } from "../../shapes/variants/rect";
 import { Text } from "../../shapes/variants/text";
 import { accessSystem } from "../../systems/access";
 import { doorSystem } from "../../systems/logic/door";
+import type { DOOR_TOGGLE_MODE } from "../../systems/logic/door/models";
 import { DEFAULT_PERMISSIONS } from "../../systems/logic/models";
 import type { Permissions } from "../../systems/logic/models";
 import { openDefaultContextMenu } from "../../ui/contextmenu/state";
@@ -76,6 +77,7 @@ class DrawTool extends Tool {
 
         isDoor: false,
         doorPermissions: DEFAULT_PERMISSIONS(),
+        toggleMode: "both" as DOOR_TOGGLE_MODE,
     });
     hasBrushSize = computed(() => [DrawShape.Brush, DrawShape.Polygon].includes(this.state.selectedShape));
 
@@ -182,7 +184,15 @@ class DrawTool extends Tool {
             if (!this.shape.preventSync) sendShapeSizeUpdate({ shape: this.shape, temporary: false });
         }
         if (this.state.isDoor) {
-            doorSystem.toggle(this.shape.id, true, SyncTo.SERVER);
+            doorSystem.inform(
+                this.shape.id,
+                true,
+                {
+                    permissions: this.state.doorPermissions,
+                    toggleMode: this.state.toggleMode,
+                },
+                true,
+            );
         }
         this.active.value = false;
         const layer = this.getLayer();

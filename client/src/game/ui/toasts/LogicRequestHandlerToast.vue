@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import { computed } from "vue";
 
-import { SyncTo } from "../../../core/models/types";
 import { sendDeclineRequest } from "../../api/emits/logic";
 import { getLocalId, getShapeFromGlobal } from "../../id";
 import type { Global } from "../../id";
 import { setCenterPosition } from "../../position";
+import { doorSystem } from "../../systems/logic/door";
 import type { DoorRequest } from "../../systems/logic/door/models";
 import type { RequestTypeResponse } from "../../systems/logic/models";
 import { teleport } from "../../systems/logic/tp";
@@ -33,11 +33,9 @@ function accept(): void {
 }
 
 function approveDoor(request: Global<DoorRequest> & { requester: string }): void {
-    const shape = getShapeFromGlobal(request.door);
+    const shape = getLocalId(request.door);
     if (shape === undefined) return;
-
-    shape.setBlocksVision(!shape.blocksVision, SyncTo.SERVER, true);
-    shape.setBlocksMovement(!shape.blocksMovement, SyncTo.SERVER, true);
+    doorSystem.toggleDoor(shape);
 }
 
 function approveTp(request: Global<TpRequest> & { requester: string }): void {

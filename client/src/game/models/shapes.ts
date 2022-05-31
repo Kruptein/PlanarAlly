@@ -3,7 +3,7 @@ import type { Label } from "../shapes/interfaces";
 import type { SHAPE_TYPE } from "../shapes/types";
 import type { ServerShapeOwner } from "../systems/access/models";
 import type { ServerAura } from "../systems/auras/models";
-import type { Permissions } from "../systems/logic/models";
+import type { DoorOptions } from "../systems/logic/door/models";
 import type { TeleportOptions } from "../systems/logic/tp/models";
 import type { ServerTracker } from "../systems/trackers/models";
 
@@ -105,6 +105,6 @@ export interface ShapeOptions {
 
 export interface ServerShapeOptions extends ShapeOptions {
     // logic
-    door: Permissions;
+    door: DoorOptions;
     teleport: TeleportOptions;
 }

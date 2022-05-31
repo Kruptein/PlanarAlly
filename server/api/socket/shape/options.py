@@ -710,19 +710,52 @@ def set_options(shape: Shape, key: str, value):
     shape.save()
 
 
-@sio.on("Shape.Options.DoorPermissions.Set", namespace=GAME_NS)
+def set_options_deep(shape: Shape, key: str, subkey: str, value):
+    options: List[Any] = json.loads(shape.options)
+    for option in options:
+        if option[0] == key:
+            option[1][subkey] = value
+            break
+    else:
+        options.append([key, {subkey: value}])
+
+    shape.options = json.dumps(options)
+    shape.save()
+
+
+@sio.on("Shape.Options.Door.Permissions.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def set_door_permissions(sid: str, data):
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "DoorPermissions.Set")
+    shape = get_shape_or_none(pr, data["shape"], "Door.Permissions.Set")
     if shape is None:
         return
 
-    set_options(shape, "door", data["value"])
+    set_options_deep(shape, "door", "permissions", data["value"])
 
     await sio.emit(
-        "Shape.Options.DoorPermissions.Set",
+        "Shape.Options.Door.Permissions.Set",
+        data,
+        skip_sid=sid,
+        room=pr.active_location.get_path(),
+        namespace=GAME_NS,
+    )
+
+
+@sio.on("Shape.Options.Door.ToggleMode.Set", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def set_door_toggle_mode(sid: str, data: ShapeSetStringValue):
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = get_shape_or_none(pr, data["shape"], "Door.ToggleMode.Set")
+    if shape is None:
+        return
+
+    set_options_deep(shape, "door", "toggleMode", data["value"])
+
+    await sio.emit(
+        "Shape.Options.Door.ToggleMode.Set",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
@@ -760,16 +793,7 @@ async def set_is_immediate_teleport_zone(sid: str, data: ShapeSetBooleanValue):
     if shape is None:
         return
 
-    options: List[Any] = json.loads(shape.options)
-    for option in options:
-        if option[0] == "teleport":
-            option[1]["immediate"] = data["value"]
-            break
-    else:
-        options.append(["teleport", {"immediate": data["value"]}])
-
-    shape.options = json.dumps(options)
-    shape.save()
+    set_options_deep(shape, "teleport", "immediate", data["value"])
 
     await sio.emit(
         "Shape.Options.IsImmediateTeleportZone.Set",
@@ -789,16 +813,7 @@ async def set_tp_permissions(sid: str, data):
     if shape is None:
         return
 
-    options: List[Any] = json.loads(shape.options)
-    for option in options:
-        if option[0] == "teleport":
-            option[1]["permissions"] = data["value"]
-            break
-    else:
-        options.append(["teleport", {"permissions": data["value"]}])
-
-    shape.options = json.dumps(options)
-    shape.save()
+    set_options_deep(shape, "teleport", "permissions", data["value"])
 
     await sio.emit(
         "Shape.Options.TeleportZonePermissions.Set",
@@ -818,16 +833,7 @@ async def set_tp_permissions(sid: str, data):
     if shape is None:
         return
 
-    options: List[Any] = json.loads(shape.options)
-    for option in options:
-        if option[0] == "teleport":
-            option[1]["location"] = data["value"]
-            break
-    else:
-        options.append(["teleport", {"location": data["value"]}])
-
-    shape.options = json.dumps(options)
-    shape.save()
+    set_options_deep(shape, "teleport", "location", data["value"])
 
     await sio.emit(
         "Shape.Options.TeleportZoneTarget.Set",

@@ -121,8 +121,7 @@ class DoorSystem implements System {
         options.toggleMode = mode;
     }
 
-    // returns new cursor state
-    toggleDoor(id: LocalId): "lock-solid" | "lock-open-solid" | undefined {
+    toggleDoor(id: LocalId): undefined {
         const shape = getShape(id);
         const options = this.data.get(id);
         if (shape === undefined || options === undefined) return;
@@ -130,14 +129,22 @@ class DoorSystem implements System {
         if (options.toggleMode === "both") {
             shape.setBlocksMovement(!shape.blocksMovement, SyncTo.SERVER, true);
             shape.setBlocksVision(!shape.blocksVision, SyncTo.SERVER, true);
-            return shape.blocksMovement ? "lock-open-solid" : "lock-solid";
         } else if (options.toggleMode === "movement") {
             shape.setBlocksMovement(!shape.blocksMovement, SyncTo.SERVER, true);
-            return shape.blocksMovement ? "lock-open-solid" : "lock-solid";
         } else {
             shape.setBlocksVision(!shape.blocksVision, SyncTo.SERVER, true);
-            return shape.blocksVision ? "lock-open-solid" : "lock-solid";
         }
+    }
+
+    getCursorState(id: LocalId): "lock-solid" | "lock-open-solid" | "eye-solid" | "eye-slash-solid" | undefined {
+        const shape = getShape(id);
+        const options = this.data.get(id);
+        if (shape === undefined || options === undefined) return;
+
+        if (options.toggleMode === "vision") {
+            return shape.blocksVision ? "eye-solid" : "eye-slash-solid";
+        }
+        return shape.blocksMovement ? "lock-open-solid" : "lock-solid";
     }
 
     canUse(id: LocalId): Access {

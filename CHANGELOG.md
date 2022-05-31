@@ -3,8 +3,8 @@
 All notable changes to this project will be documented in this file.
 
 [DM] denotes changes only useful for the dungeon master
-[tech]/[server] denotes technical changes or changes specifically for the server owner.
-These usually have no immediately visible impact on regular users
+[server] denotes changes only useful for the server owner
+[tech] denotes internal changes that are only useful for code contributors
 
 ## Unreleased
 
@@ -12,6 +12,7 @@ These usually have no immediately visible impact on regular users
 
 -   Add white outline to the door logic (un)lock icons
 -   Door logic can now specify which block settings to toggle
+-   [tech] SyncTo primitive modified to an alternative Sync structure
 
 ### Fixed
 
@@ -23,6 +24,7 @@ These usually have no immediately visible impact on regular users
 -   Spawn locations loading wrong
 -   Teleport zones triggering from other floors
 -   Draw tool door permissions not saving
+-   Door logic toggle not immediately updating UI when shape properties are open
 
 ## [2022.1] - 2022-04-25
 

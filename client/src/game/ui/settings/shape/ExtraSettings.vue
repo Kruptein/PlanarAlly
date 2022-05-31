@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 
 import { l2gz } from "../../../../core/conversions";
 import { toGP } from "../../../../core/geometry";
-import { InvalidationMode, SyncMode, SyncTo } from "../../../../core/models/types";
+import { InvalidationMode, NO_SYNC, SERVER_SYNC, SyncMode, UI_SYNC } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { getChecked, getValue, uuidv4 } from "../../../../core/utils";
 import { activeShapeStore } from "../../../../store/activeShape";
@@ -44,12 +44,12 @@ function calcHeight(): void {
 function updateAnnotation(event: Event, sync = true): void {
     if (!owned.value) return;
     calcHeight();
-    activeShapeStore.setAnnotation(getValue(event), sync ? SyncTo.SERVER : SyncTo.SHAPE);
+    activeShapeStore.setAnnotation(getValue(event), sync ? SERVER_SYNC : NO_SYNC);
 }
 
 function setAnnotationVisible(event: Event): void {
     if (!owned.value) return;
-    activeShapeStore.setAnnotationVisible(getChecked(event), SyncTo.SERVER);
+    activeShapeStore.setAnnotationVisible(getChecked(event), SERVER_SYNC);
 }
 
 // LABELS
@@ -58,12 +58,12 @@ const showLabelManager = ref(false);
 
 function addLabel(label: string): void {
     if (!owned.value) return;
-    activeShapeStore.addLabel(label, SyncTo.SERVER);
+    activeShapeStore.addLabel(label, SERVER_SYNC);
 }
 
 function removeLabel(uuid: string): void {
     if (!owned.value) return;
-    activeShapeStore.removeLabel(uuid, SyncTo.SERVER);
+    activeShapeStore.removeLabel(uuid, SERVER_SYNC);
 }
 
 // SVG / DDRAFT
@@ -87,7 +87,7 @@ async function uploadSvg(): Promise<void> {
     if (shape.options === undefined) {
         shape.options = {};
     }
-    activeShapeStore.setSvgAsset(asset.file_hash, SyncTo.SERVER);
+    activeShapeStore.setSvgAsset(asset.file_hash, SERVER_SYNC);
 }
 
 function removeSvg(): void {
@@ -99,7 +99,7 @@ function removeSvg(): void {
     delete shape.options.svgWidth;
     delete shape.options.svgHeight;
     delete shape.options.svgAsset;
-    activeShapeStore.setSvgAsset(undefined, SyncTo.SERVER);
+    activeShapeStore.setSvgAsset(undefined, SERVER_SYNC);
 }
 
 function applyDDraft(): void {
@@ -123,11 +123,11 @@ function applyDDraft(): void {
             shape.id,
             clientStore.state.username,
             { edit: true, movement: true, vision: true },
-            SyncTo.UI,
+            UI_SYNC,
         );
 
-        shape.setBlocksVision(true, SyncTo.UI, false);
-        shape.setBlocksMovement(true, SyncTo.UI, false);
+        shape.setBlocksVision(true, NO_SYNC, false);
+        shape.setBlocksMovement(true, NO_SYNC, false);
         fowLayer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
     }
 
@@ -138,12 +138,12 @@ function applyDDraft(): void {
             shape.id,
             clientStore.state.username,
             { edit: true, movement: true, vision: true },
-            SyncTo.UI,
+            UI_SYNC,
         );
 
         if (portal.closed) {
-            shape.setBlocksVision(true, SyncTo.UI, false);
-            shape.setBlocksMovement(true, SyncTo.UI, false);
+            shape.setBlocksVision(true, NO_SYNC, false);
+            shape.setBlocksMovement(true, NO_SYNC, false);
         }
         fowLayer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
     }
@@ -172,12 +172,12 @@ function applyDDraft(): void {
 
         tokenLayer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
 
-        auraSystem.add(shape.id, aura, SyncTo.SERVER);
+        auraSystem.add(shape.id, aura, SERVER_SYNC);
         accessSystem.addAccess(
             shape.id,
             clientStore.state.username,
             { edit: true, movement: true, vision: true },
-            SyncTo.SERVER,
+            SERVER_SYNC,
         );
     }
 

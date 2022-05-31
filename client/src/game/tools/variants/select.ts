@@ -15,7 +15,7 @@ import {
 } from "../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { equalPoints, snapToPoint } from "../../../core/math";
-import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
+import { InvalidationMode, NO_SYNC, SyncMode } from "../../../core/models/types";
 import { baseAdjust, ctrlOrCmdPressed } from "../../../core/utils";
 import { i18n } from "../../../i18n";
 import { clientStore, DEFAULT_GRID_SIZE } from "../../../store/client";
@@ -359,7 +359,7 @@ class SelectTool extends Tool implements ISelectTool {
                     this.selectionHelper.id,
                     clientStore.state.username,
                     { edit: true, movement: true, vision: true },
-                    SyncTo.SHAPE,
+                    NO_SYNC,
                 );
                 layer.addShape(this.selectionHelper, SyncMode.NO_SYNC, InvalidationMode.NO, { snappable: false });
             } else {
@@ -811,7 +811,7 @@ class SelectTool extends Tool implements ISelectTool {
                 rotationShape.id,
                 clientStore.state.username,
                 { edit: true, movement: true, vision: true },
-                SyncTo.SHAPE,
+                NO_SYNC,
             );
             layer.addShape(rotationShape, SyncMode.NO_SYNC, InvalidationMode.NO, { snappable: false });
         }

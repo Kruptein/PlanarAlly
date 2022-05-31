@@ -3,7 +3,8 @@ import type { DeepReadonly } from "vue";
 
 import { registerSystem } from "..";
 import type { System } from "..";
-import { SyncTo } from "../../../core/models/types";
+import { NO_SYNC } from "../../../core/models/types";
+import type { Sync } from "../../../core/models/types";
 import { activeShapeStore } from "../../../store/activeShape";
 import { getGlobalId, getShape } from "../../id";
 import type { LocalId } from "../../id";
@@ -74,7 +75,7 @@ class AuraSystem implements System {
     inform(id: LocalId, auras: Aura[]): void {
         this.data.set(id, []);
         for (const aura of auras) {
-            this.add(id, aura, SyncTo.SHAPE);
+            this.add(id, aura, NO_SYNC);
         }
     }
 
@@ -110,8 +111,8 @@ class AuraSystem implements System {
         return auras;
     }
 
-    add(id: LocalId, aura: Aura, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeCreateAura(aurasToServer(getGlobalId(id), [aura])[0]);
+    add(id: LocalId, aura: Aura, syncTo: Sync): void {
+        if (syncTo.server) sendShapeCreateAura(aurasToServer(getGlobalId(id), [aura])[0]);
 
         this.getOrCreate(id).push(aura);
 
@@ -129,14 +130,14 @@ class AuraSystem implements System {
         }
     }
 
-    update(id: LocalId, auraId: AuraId, delta: Partial<Aura>, syncTo: SyncTo): void {
+    update(id: LocalId, auraId: AuraId, delta: Partial<Aura>, syncTo: Sync): void {
         const aura = this.data.get(id)?.find((t) => t.uuid === auraId);
         if (aura === undefined) return;
 
         const shape = getShape(id);
         if (shape === undefined) return;
 
-        if (syncTo === SyncTo.SERVER) {
+        if (syncTo.server) {
             sendShapeUpdateAura({
                 ...partialAuraToServer({
                     ...delta,
@@ -166,8 +167,8 @@ class AuraSystem implements System {
         if (aura.active || oldAuraActive) getShape(id)?.invalidate(false);
     }
 
-    remove(id: LocalId, auraId: AuraId, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeRemoveAura({ shape: getGlobalId(id), value: auraId });
+    remove(id: LocalId, auraId: AuraId, syncTo: Sync): void {
+        if (syncTo.server) sendShapeRemoveAura({ shape: getGlobalId(id), value: auraId });
 
         const oldAura = this.get(id, auraId, false);
 

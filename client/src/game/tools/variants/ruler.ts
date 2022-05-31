@@ -4,7 +4,7 @@ import { l2g } from "../../../core/conversions";
 import { cloneP, toGP } from "../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { snapToGridPoint } from "../../../core/math";
-import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
+import { InvalidationMode, NO_SYNC, SyncMode } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { clientStore, DEFAULT_GRID_SIZE } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
@@ -66,7 +66,7 @@ class RulerTool extends Tool {
             ruler.id,
             clientStore.state.username,
             { edit: true, movement: true, vision: true },
-            SyncTo.SHAPE,
+            NO_SYNC,
         );
         layer.addShape(ruler, this.syncMode, InvalidationMode.NORMAL, { snappable: false });
         this.rulers.push(ruler);
@@ -97,7 +97,7 @@ class RulerTool extends Tool {
             this.text.id,
             clientStore.state.username,
             { edit: true, movement: true, vision: true },
-            SyncTo.SHAPE,
+            NO_SYNC,
         );
         layer.addShape(this.text, this.syncMode, InvalidationMode.NORMAL, { snappable: false });
     }

@@ -1,4 +1,5 @@
-import { SyncTo } from "../../../../core/models/types";
+import { UI_SYNC } from "../../../../core/models/types";
+import type { Sync } from "../../../../core/models/types";
 import { floorStore } from "../../../../store/floor";
 import { getLocalId, getShape } from "../../../id";
 import type { GlobalId } from "../../../id";
@@ -7,11 +8,11 @@ import type { Asset } from "../../../shapes/variants/asset";
 import { visionState } from "../../../vision/state";
 import { socket } from "../../socket";
 
-function wrapCall<T>(func: (value: T, syncTo: SyncTo) => void): (data: { shape: GlobalId; value: T }) => void {
+function wrapCall<T>(func: (value: T, syncTo: Sync) => void): (data: { shape: GlobalId; value: T }) => void {
     return (data) => {
         const shape = getShape(getLocalId(data.shape)!);
         if (shape === undefined) return;
-        func.bind(shape)(data.value, SyncTo.UI);
+        func.bind(shape)(data.value, UI_SYNC);
     };
 }
 
@@ -35,13 +36,13 @@ socket.on("Shape.Options.Label.Remove", wrapCall(Shape.prototype.removeLabel));
 socket.on("Shape.Options.Invisible.Set", (data: { shape: GlobalId; value: boolean }) => {
     const shape = getShape(getLocalId(data.shape)!);
     if (shape === undefined) return;
-    shape.setInvisible(data.value, SyncTo.UI);
+    shape.setInvisible(data.value, UI_SYNC);
 });
 
 socket.on("Shape.Options.Defeated.Set", (data: { shape: GlobalId; value: boolean }) => {
     const shape = getShape(getLocalId(data.shape)!);
     if (shape === undefined) return;
-    shape.setDefeated(data.value, SyncTo.UI);
+    shape.setDefeated(data.value, UI_SYNC);
 });
 
 socket.on("Shape.Options.SkipDraw.Set", (data: { shape: GlobalId; value: boolean }) => {

@@ -2,7 +2,7 @@
 import { computed, toRef } from "vue";
 
 import { cloneP } from "../../../../core/geometry";
-import { InvalidationMode, SyncMode, SyncTo } from "../../../../core/models/types";
+import { InvalidationMode, SERVER_SYNC, SyncMode } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { getShape } from "../../../id";
@@ -84,7 +84,7 @@ async function renameVariant(): Promise<void> {
     const name = await modals.prompt("What name should this variant have?", "Name variant");
     if (name === undefined) return;
 
-    activeShapeStore.renameVariant(vState.id!, name, SyncTo.SERVER);
+    activeShapeStore.renameVariant(vState.id!, name, SERVER_SYNC);
 }
 
 async function removeVariant(): Promise<void> {
@@ -96,7 +96,7 @@ async function removeVariant(): Promise<void> {
     );
     if (remove !== true) return;
 
-    activeShapeStore.removeVariant(vState.id!, SyncTo.SERVER);
+    activeShapeStore.removeVariant(vState.id!, SERVER_SYNC);
 }
 
 const variants = toRef(vState, "variants");

@@ -3,7 +3,7 @@ import { computed, ref, watch } from "vue";
 import type { DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { SyncTo } from "../../../../core/models/types";
+import { SERVER_SYNC } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { locationStore } from "../../../../store/location";
@@ -60,10 +60,10 @@ function openPermissions(target: LOGIC_TYPES): void {
 function setPermissions(permissions: Permissions): void {
     if (activeLogic.value === "door") {
         if (doorSystem.state.id === undefined) return;
-        doorSystem.setPermissions(doorSystem.state.id, permissions, SyncTo.SERVER);
+        doorSystem.setPermissions(doorSystem.state.id, permissions, SERVER_SYNC);
     } else {
         if (teleportZoneSystem.state.id === undefined) return;
-        teleportZoneSystem.setPermissions(teleportZoneSystem.state.id, permissions, SyncTo.SERVER);
+        teleportZoneSystem.setPermissions(teleportZoneSystem.state.id, permissions, SERVER_SYNC);
     }
 }
 
@@ -71,26 +71,26 @@ function setPermissions(permissions: Permissions): void {
 
 function toggleDoor(): void {
     if (doorSystem.state.id === undefined) return;
-    doorSystem.toggle(doorSystem.state.id, !doorSystem.state.enabled, SyncTo.SERVER);
+    doorSystem.toggle(doorSystem.state.id, !doorSystem.state.enabled, SERVER_SYNC);
 }
 
 const activeToggleMode = computed(() => doorSystem.state.toggleMode);
 
 function setToggleMode(mode: DOOR_TOGGLE_MODE): void {
     if (doorSystem.state.id === undefined) return;
-    doorSystem.setToggleMode(doorSystem.state.id, mode, SyncTo.SERVER);
+    doorSystem.setToggleMode(doorSystem.state.id, mode, SERVER_SYNC);
 }
 
 // Teleport Zone
 
 function toggleTeleportZone(): void {
     if (teleportZoneSystem.state.id === undefined) return;
-    teleportZoneSystem.toggle(teleportZoneSystem.state.id, !teleportZoneSystem.state.enabled, SyncTo.SERVER);
+    teleportZoneSystem.toggle(teleportZoneSystem.state.id, !teleportZoneSystem.state.enabled, SERVER_SYNC);
 }
 
 function toggleTpImmediate(): void {
     if (teleportZoneSystem.state.id === undefined) return;
-    teleportZoneSystem.toggleImmediate(teleportZoneSystem.state.id, !teleportZoneSystem.state.immediate, SyncTo.SERVER);
+    teleportZoneSystem.toggleImmediate(teleportZoneSystem.state.id, !teleportZoneSystem.state.immediate, SERVER_SYNC);
 }
 
 async function chooseTarget(): Promise<void> {
@@ -136,7 +136,7 @@ async function chooseTarget(): Promise<void> {
 
     // Save tp zone info
 
-    teleportZoneSystem.setTarget(teleportZoneSystem.state.id, targetLocation, SyncTo.SERVER);
+    teleportZoneSystem.setTarget(teleportZoneSystem.state.id, targetLocation, SERVER_SYNC);
 }
 </script>
 

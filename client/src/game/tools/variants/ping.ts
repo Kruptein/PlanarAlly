@@ -1,6 +1,6 @@
 import { l2g } from "../../../core/conversions";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
-import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
+import { InvalidationMode, NO_SYNC, SyncMode } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
@@ -64,13 +64,13 @@ class PingTool extends Tool {
             this.ping.id,
             clientStore.state.username,
             { edit: true, movement: true, vision: true },
-            SyncTo.SHAPE,
+            NO_SYNC,
         );
         accessSystem.addAccess(
             this.border.id,
             clientStore.state.username,
             { edit: true, movement: true, vision: true },
-            SyncTo.SHAPE,
+            NO_SYNC,
         );
         layer.addShape(this.ping, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL, { snappable: false });
         layer.addShape(this.border, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL, { snappable: false });

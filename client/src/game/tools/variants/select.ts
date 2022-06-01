@@ -680,7 +680,7 @@ class SelectTool extends Tool implements ISelectTool {
                     }
 
                     if (this.operationList?.type === "resize") {
-                        this.operationList.toPoint = toArrayP(l2g(lp));
+                        this.operationList.toPoint = sel.points[this.resizePoint];
                         this.operationList.resizePoint = this.resizePoint;
                         this.operationList.retainAspectRatio = ctrlOrCmdPressed(event);
                         this.operationReady = true;

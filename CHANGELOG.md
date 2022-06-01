@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 -   Teleport zones triggering from other floors
 -   Draw tool door permissions not saving
 -   Door logic toggle not immediately updating UI when shape properties are open
+-   Logic init edge cases breaking UI until refresh
 
 ## [2022.1] - 2022-04-25
 

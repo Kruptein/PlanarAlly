@@ -47,7 +47,7 @@ class DoorSystem implements System {
     }
 
     loadState(id: LocalId): void {
-        const data = this.data.get(id)!;
+        const data = this.data.get(id) ?? DEFAULT_OPTIONS();
         this._state.id = id;
         this._state.enabled = this.enabled.has(id);
         this._state.permissions = data.permissions;
@@ -110,8 +110,11 @@ class DoorSystem implements System {
     }
 
     setPermissions(id: LocalId, permissions: Permissions, syncTo: Sync): void {
-        const options = this.data.get(id);
-        if (options === undefined) return;
+        let options = this.data.get(id);
+        if (options === undefined) {
+            options = DEFAULT_OPTIONS();
+            this.data.set(id, options);
+        }
 
         if (syncTo.server) sendShapeDoorPermissions({ shape: getGlobalId(id), value: permissions });
         if (this._state.id === id) this._state.permissions = permissions;
@@ -120,8 +123,11 @@ class DoorSystem implements System {
     }
 
     setToggleMode(id: LocalId, mode: DOOR_TOGGLE_MODE, syncTo: Sync): void {
-        const options = this.data.get(id);
-        if (options === undefined) return;
+        let options = this.data.get(id);
+        if (options === undefined) {
+            options = DEFAULT_OPTIONS();
+            this.data.set(id, options);
+        }
 
         if (syncTo.server) sendShapeDoorToggleMode({ shape: getGlobalId(id), value: mode });
         if (this._state.id === id) this._state.toggleMode = mode;

@@ -36,7 +36,7 @@ from config import config
 from models import User, Room
 from utils import logger
 
-loop = asyncio.get_event_loop()
+loop = asyncio.new_event_loop()
 
 # This is a fix for asyncio problems on windows that make it impossible to do ctrl+c
 if sys.platform.startswith("win"):

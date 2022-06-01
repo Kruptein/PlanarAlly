@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file.
 -   Draw tool door permissions not saving
 -   Door logic toggle not immediately updating UI when shape properties are open
 -   Logic init edge cases breaking UI until refresh
+-   Redo logic on resize operation not remembering correct location when it was snapped
 
 ## [2022.1] - 2022-04-25
 

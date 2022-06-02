@@ -95,7 +95,7 @@ router.beforeEach(async (to, _from, next) => {
             }
             coreStore.setVersion(versionData);
             coreStore.setInitialized(true);
-            router.push(to.path);
+            await router.push(to.path);
             next();
         } else {
             console.error("Authentication check could not be fulfilled.");

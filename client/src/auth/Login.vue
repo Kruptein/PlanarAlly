@@ -44,7 +44,7 @@ async function login(): Promise<void> {
         coreStore.setAuthenticated(true);
         const data: { email?: string } = await response.json();
         if (data.email !== undefined) coreStore.setEmail(data.email);
-        router.push((route.query.redirect as string) ?? "/");
+        await router.push((route.query.redirect as string) ?? "/");
     } else {
         toast.error(await getErrorReason(response));
     }
@@ -58,7 +58,7 @@ async function register(): Promise<void> {
     if (response.ok) {
         coreStore.setUsername(username.value);
         coreStore.setAuthenticated(true);
-        router.push((route.query.redirect as string) ?? "/");
+        await router.push((route.query.redirect as string) ?? "/");
     } else {
         toast.error(await getErrorReason(response));
     }

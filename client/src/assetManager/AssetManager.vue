@@ -5,12 +5,13 @@ import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from "vue-router";
 import type { RouteLocationNormalized } from "vue-router";
 
 import { useModal } from "../core/plugins/modals/plugin";
-import { baseAdjust, ctrlOrCmdPressed } from "../core/utils";
+import { ctrlOrCmdPressed } from "../core/utils";
 
 import AssetContextMenu from "./AssetContext.vue";
 import { openAssetContextMenu } from "./context";
 import { socket } from "./socket";
 import { assetStore } from "./state";
+import { changeDirectory, getIdImageSrc, showIdName } from "./utils";
 
 const route = useRoute();
 
@@ -152,14 +153,6 @@ function exportData(): void {
     if (state.selected.length > 0) socket.emit("Asset.Export", state.selected);
 }
 
-function showIdName(dir: number): string {
-    return state.idMap.get(dir)?.name ?? "";
-}
-
-function getIdImageSrc(file: number): string {
-    return baseAdjust("/static/assets/" + state.idMap.get(file)!.file_hash);
-}
-
 function prepareUpload(): void {
     document.getElementById("files")!.click();
 }
@@ -169,7 +162,6 @@ function prepareUpload(): void {
 const currentFolder = assetStore.currentFolder;
 const parentFolder = assetStore.parentFolder;
 const upload = (): Promise<void> => assetStore.upload();
-const changeDirectory = (folder: number): void => assetStore.changeDirectory(folder);
 </script>
 
 <template>

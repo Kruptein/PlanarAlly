@@ -4,8 +4,8 @@ import { watchEffect } from "vue";
 
 import { socket } from "../../../assetManager/socket";
 import { assetStore } from "../../../assetManager/state";
+import { changeDirectory, getIdImageSrc, showIdName } from "../../../assetManager/utils";
 import { i18n } from "../../../i18n";
-import { baseAdjust } from "../../utils";
 
 import Modal from "./Modal.vue";
 
@@ -29,23 +29,11 @@ watchEffect(() => {
     }
 });
 
-function showIdName(dir: number): string {
-    return state.idMap.get(dir)?.name ?? "";
-}
-
-function getIdImageSrc(file: number): string {
-    return baseAdjust("/static/assets/" + state.idMap.get(file)!.file_hash);
-}
-
 function select(event: MouseEvent, inode: number): void {
     assetStore.clearSelected();
     if (assetStore.state.files.includes(inode)) {
         assetStore.addSelectedInode(inode);
     }
-}
-
-function changeDirectory(folder: number): void {
-    assetStore.changeDirectory(folder);
 }
 </script>
 

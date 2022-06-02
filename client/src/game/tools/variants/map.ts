@@ -1,4 +1,4 @@
-import { reactive } from "@vue/reactivity";
+import { reactive } from "vue";
 
 import { l2g } from "../../../core/conversions";
 import { addP, cloneP, subtractP, toGP, Vector } from "../../../core/geometry";

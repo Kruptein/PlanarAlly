@@ -1,5 +1,5 @@
-import type { ComputedRef } from "@vue/reactivity";
-import { computed } from "@vue/runtime-core";
+import type { ComputedRef } from "vue";
+import { computed } from "vue";
 
 import { toGP } from "../core/geometry";
 import type { GlobalPoint } from "../core/geometry";

@@ -1,5 +1,5 @@
-import { computed } from "@vue/runtime-core";
-import type { ComputedRef, DeepReadonly } from "@vue/runtime-core";
+import { computed } from "vue";
+import type { ComputedRef, DeepReadonly } from "vue";
 
 import { Store } from "../core/store";
 import {

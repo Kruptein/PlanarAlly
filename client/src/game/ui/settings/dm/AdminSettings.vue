@@ -72,7 +72,7 @@ async function deleteSession(): Promise<void> {
     );
     if (value !== `${gameState.roomCreator}/${gameState.roomName}`) return;
     sendDeleteRoom();
-    router.push("/");
+    await router.push("/");
 }
 
 const toggleLock = (): void => gameStore.setIsLocked(!gameState.isLocked, true);

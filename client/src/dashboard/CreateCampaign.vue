@@ -24,7 +24,7 @@ async function create(): Promise<void> {
         logo: logo.id,
     });
     if (response.ok) {
-        router.push(`/game/${encodeURIComponent(coreStore.state.username)}/${encodeURIComponent(name.value)}`);
+        await router.push(`/game/${encodeURIComponent(coreStore.state.username)}/${encodeURIComponent(name.value)}`);
     } else if (response.statusText === "Conflict") {
         toast.error("A campaign with that name already exists!");
     } else {

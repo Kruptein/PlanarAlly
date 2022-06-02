@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file.
 -   Door logic toggle not immediately updating UI when shape properties are open
 -   Logic init edge cases breaking UI until refresh
 -   Redo logic on resize operation not remembering correct location when it was snapped
+-   Asset Manager correctly updates UI when using browser back/forward buttons
 -   [tech] Ensure router.push calls are always awaited
 
 ## [2022.1] - 2022-04-25

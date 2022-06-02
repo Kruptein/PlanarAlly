@@ -1,6 +1,7 @@
 import type { Asset } from "../core/models/types";
 import { socketManager } from "../core/socket";
 import { baseAdjust } from "../core/utils";
+import { router } from "../router";
 
 import { assetStore } from "./state";
 
@@ -23,12 +24,15 @@ socket.on("redirect", (destination: string) => {
 socket.on("Folder.Root.Set", (root: number) => {
     assetStore.setRoot(root);
 });
-socket.on("Folder.Set", (data: { folder: Asset; path?: number[] }) => {
+socket.on("Folder.Set", async (data: { folder: Asset; path?: number[] }) => {
     assetStore.clear();
     assetStore.setFolderData(data.folder.id, data.folder);
     if (!assetStore.state.modalActive) {
         if (data.path) assetStore.setPath(data.path);
-        window.history.pushState(null, "Asset Manager", baseAdjust(`/assets${assetStore.currentFilePath.value}`));
+        const path = baseAdjust(`/assets${assetStore.currentFilePath.value}`);
+        if (path !== router.currentRoute.value.path) {
+            await router.push({ path });
+        }
     }
 });
 socket.on("Folder.Create", (data: { asset: Asset; parent: number }) => {

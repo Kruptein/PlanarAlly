@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { onMounted } from "vue";
 import { useI18n } from "vue-i18n";
-import { onBeforeRouteLeave, useRoute } from "vue-router";
+import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from "vue-router";
+import type { RouteLocationNormalized } from "vue-router";
 
 import { useModal } from "../core/plugins/modals/plugin";
 import { baseAdjust, ctrlOrCmdPressed } from "../core/utils";
@@ -13,12 +15,31 @@ import { assetStore } from "./state";
 const route = useRoute();
 
 assetStore.setModalActive(false);
-socket.connect();
-socket.emit("Folder.GetByPath", route.path.slice("/assets".length));
+
+function getCurrentPath(path?: string): string {
+    path ??= route.path;
+    const i = path.indexOf("/assets");
+    return path.slice(i + "/assets".length);
+}
+
+function loadFolder(path: string): void {
+    if (!socket.connected) socket.connect();
+    socket.emit("Folder.GetByPath", path);
+}
+
+onMounted(() => {
+    loadFolder(getCurrentPath());
+});
 
 onBeforeRouteLeave((_to, _from, next) => {
     socket.disconnect();
     next();
+});
+
+onBeforeRouteUpdate((to: RouteLocationNormalized) => {
+    if (getCurrentPath(to.path) !== assetStore.currentFilePath.value) {
+        loadFolder(getCurrentPath(to.path));
+    }
 });
 
 const { t } = useI18n();

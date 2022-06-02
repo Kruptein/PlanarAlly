@@ -2,8 +2,8 @@ import type { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGener
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { Dice, DieOptions } from "@planarally/dice";
-import { watch } from "@vue/runtime-core";
 import tinycolor from "tinycolor2";
+import { watch } from "vue";
 import { reactive } from "vue";
 
 import { randomInterval } from "../../../core/utils";

@@ -1,4 +1,4 @@
-import { defineComponent } from "@vue/runtime-core";
+import { defineComponent } from "vue";
 
 import { postFetch } from "../core/utils";
 import { coreStore } from "../store/core";

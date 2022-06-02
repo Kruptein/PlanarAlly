@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import type { StyleValue } from "vue";
+
 withDefaults(
     defineProps<{
-        dotStyle?: Record<string, unknown>;
+        dotStyle?: StyleValue;
         dotSize?: [number, number];
         position: number;
         value?: number;

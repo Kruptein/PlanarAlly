@@ -13,7 +13,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 70
+SAVE_VERSION = 71
 
 import json
 import logging
@@ -58,129 +58,14 @@ def check_existence() -> bool:
 
 
 def upgrade(version):
-    if version < 61:
+    if version < 64:
         raise OldVersionException(
             f"Upgrade code for this version is >1 year old and is no longer in the active codebase to reduce clutter. You can still find this code on github, contact me for more info."
         )
 
     db.foreign_keys = False
 
-    if version == 61:
-        # Initiative changes
-        # Add UserOptions initiative settings
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN initiative_camera_lock INTEGER DEFAULT 0"
-            )
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN initiative_vision_lock INTEGER DEFAULT 0"
-            )
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN initiative_effect_visibility TEXT DEFAULT 'active'"
-            )
-            data = db.execute_sql(
-                "UPDATE user_options SET initiative_camera_lock = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
-            )
-            data = db.execute_sql(
-                "UPDATE user_options SET initiative_vision_lock = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
-            )
-            data = db.execute_sql(
-                "UPDATE user_options SET initiative_effect_visibility = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
-            )
-
-            db.execute_sql(
-                "CREATE TEMPORARY TABLE _initiative_61 AS SELECT * FROM initiative"
-            )
-            db.execute_sql("DROP TABLE initiative")
-            db.execute_sql(
-                'CREATE TABLE "initiative" ("id" INTEGER NOT NULL PRIMARY KEY, "location_id" INTEGER NOT NULL, "round" INTEGER NOT NULL, "sort" INTEGER NOT NULL DEFAULT 0, "turn" INTEGER NOT NULL, "data" TEXT NOT NULL, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE)'
-            )
-
-            location_data = db.execute_sql(
-                "SELECT id, location_id, round, turn FROM initiative_location_data"
-            )
-            for raw_location in location_data.fetchall():
-                initiative_data = db.execute_sql(
-                    'SELECT uuid, initiative, visible, "group" FROM _initiative_61 as i WHERE i.location_data_id = ?',
-                    (raw_location[0],),
-                )
-                turn = 0
-
-                initiative_list = []
-                for i, raw_initiative in enumerate(initiative_data.fetchall()):
-                    if raw_initiative[0] == raw_location[3]:
-                        turn = i
-
-                    initiative = {
-                        "shape": raw_initiative[0],
-                        "initiative": raw_initiative[1],
-                        "isVisible": raw_initiative[2],
-                        "isGroup": raw_initiative[3],
-                        "effects": [],
-                    }
-                    effect_data = db.execute_sql(
-                        "SELECT name, turns FROM initiative_effect WHERE initiative_id = ?",
-                        (raw_initiative[0],),
-                    )
-                    for raw_effect in effect_data.fetchall():
-                        effect = {
-                            "name": raw_effect[0],
-                            "turns": raw_effect[1],
-                            "highlightsActor": False,
-                        }
-                        initiative["effects"].append(effect)
-                    initiative_list.append(initiative)
-                db.execute_sql(
-                    "INSERT INTO initiative (location_id, round, turn, data) VALUES (?, ?, ?, ?)",
-                    (
-                        raw_location[1],
-                        raw_location[2],
-                        turn,
-                        json.dumps(initiative_list),
-                    ),
-                )
-            db.execute_sql("DROP TABLE initiative_effect")
-            db.execute_sql("DROP TABLE _initiative_61")
-            db.execute_sql("DROP TABLE initiative_location_data")
-    elif version == 62:
-        # Add UserOptions.use_as_physical_board .ppi and .mini_size
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN use_as_physical_board INTEGER DEFAULT 0"
-            )
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN mini_size REAL DEFAULT 1"
-            )
-            db.execute_sql("ALTER TABLE user_options ADD COLUMN ppi INTEGER DEFAULT 96")
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN use_high_dpi INTEGER DEFAULT 0"
-            )
-            data = db.execute_sql(
-                "UPDATE user_options SET use_as_physical_board = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
-            )
-            data = db.execute_sql(
-                "UPDATE user_options SET mini_size = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
-            )
-            data = db.execute_sql(
-                "UPDATE user_options SET ppi = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
-            )
-            data = db.execute_sql(
-                "UPDATE user_options SET use_high_dpi = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
-            )
-    elif version == 63:
-        # Rename LocationUserOption.zoom_factor to zoom_display
-        with db.atomic():
-            db.execute_sql(
-                "CREATE TEMPORARY TABLE _location_user_option_27 AS SELECT * FROM location_user_option"
-            )
-            db.execute_sql("DROP TABLE location_user_option")
-            db.execute_sql(
-                'CREATE TABLE "location_user_option" ("id" INTEGER NOT NULL PRIMARY KEY, "location_id" INTEGER NOT NULL, "user_id" INTEGER NOT NULL, "pan_x" INTEGER NOT NULL, "pan_y" INTEGER NOT NULL, "zoom_display" REAL NOT NULL, "active_layer_id" INTEGER, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("active_layer_id") REFERENCES "layer" ("id"))'
-            )
-            db.execute_sql(
-                'INSERT INTO "location_user_option" (id, location_id, user_id, pan_x, pan_y, zoom_display, active_layer_id) SELECT id, location_id, user_id, pan_x, pan_y, zoom_factor, active_layer_id FROM _location_user_option_27 '
-            )
-    elif version == 64:
+    if version == 64:
         # Add LocationOptions.map_background_{air/ground/underground}
         # Add Floor.type_ and Floor.background_color
         with db.atomic():
@@ -263,6 +148,28 @@ def upgrade(version):
             db.execute_sql(
                 'INSERT INTO "room" (id, name, creator_id, invitation_code, is_locked, default_options_id, logo_id) SELECT id, name, creator_id, invitation_code, is_locked, default_options_id, logo_id FROM _room_69'
             )
+    elif version == 70:
+        # Move door logic permissions to door logic options block
+        with db.atomic():
+            data = db.execute_sql("SELECT uuid, options FROM shape")
+            for row in data.fetchall():
+                uuid, options = row
+                if options is None:
+                    continue
+
+                unpacked_options = json.loads(options)
+                changed = False
+
+                for option in unpacked_options:
+                    if option[0] == "door" and "toggleMode" not in option[1]:
+                        option[1] = {"permissions": option[1], "toggleMode": "both"}
+                        changed = True
+
+                if changed:
+                    db.execute_sql(
+                        "UPDATE shape SET options=? WHERE uuid=?",
+                        (json.dumps(unpacked_options), uuid),
+                    )
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watchEffect } from "vue";
+import type { StyleValue } from "vue";
 
 import SliderDot from "./SliderDot.vue";
 import { getPosByEvent } from "./utils";
@@ -9,8 +10,8 @@ const props = withDefaults(
         height?: string;
         width?: string;
         dotSize?: [number, number];
-        dotStyle?: Record<string, unknown>;
-        railStyle?: Record<string, unknown>;
+        dotStyle?: StyleValue;
+        railStyle?: StyleValue;
         min?: number;
         max?: number;
         interval?: number;

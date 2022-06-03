@@ -4,12 +4,14 @@ from typing import Optional
 
 from aiohttp import web
 
+from utils import FILE_DIR
+
 release_version: Optional[str]
 env_version: Optional[str]
 changelog: Optional[str]
 
 try:
-    with open("VERSION", "r") as version_file:
+    with open(FILE_DIR / "VERSION", "r") as version_file:
         release_version, _, *changelog = version_file.read().splitlines()
 
     env_version = release_version

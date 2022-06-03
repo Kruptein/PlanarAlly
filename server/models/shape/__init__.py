@@ -5,7 +5,7 @@ from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, Text
 from playhouse.shortcuts import model_to_dict, update_model_from_dict
 from typing import Any, Dict, List, Tuple
 
-from utils import logger
+from logs import logger
 from ..asset import Asset
 from ..base import BaseModel
 from ..campaign import Layer

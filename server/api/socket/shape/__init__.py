@@ -28,7 +28,7 @@ from models.role import Role
 from models.shape.access import has_ownership
 from models.utils import get_table, reduce_data_to_model
 from state.game import game_state
-from utils import logger
+from logs import logger
 
 from . import access, options, toggle_composite
 

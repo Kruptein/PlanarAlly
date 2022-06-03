@@ -24,7 +24,7 @@ from models.asset import Asset
 from models.label import Label, LabelSelection
 from models.role import Role
 from state.game import game_state
-from utils import logger
+from logs import logger
 
 from config import config
 

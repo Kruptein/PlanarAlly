@@ -7,7 +7,7 @@ from models import PlayerRoom
 from models.role import Role
 from models.user import User
 from state.game import game_state
-from utils import logger
+from logs import logger
 
 
 @sio.on("Room.Info.InviteCode.Refresh", namespace=GAME_NS)

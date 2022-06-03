@@ -7,7 +7,7 @@ from api.socket.constants import GAME_NS
 from app import app, sio
 from models import Group, PlayerRoom, Shape
 from state.game import game_state
-from utils import logger
+from logs import logger
 
 
 class ServerGroup(TypedDict):

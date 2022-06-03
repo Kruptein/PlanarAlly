@@ -12,7 +12,7 @@ from app import admin_app, api_app, app as main_app
 from config import config
 from models import Room, User
 from models.role import Role
-from utils import logger
+from logs import logger
 
 
 subpath = os.environ.get("PA_BASEPATH", "/")

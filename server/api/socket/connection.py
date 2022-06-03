@@ -8,7 +8,7 @@ from app import sio
 from models import PlayerRoom, Room, User
 from models.role import Role
 from state.game import game_state
-from utils import logger
+from logs import logger
 
 
 @sio.on("connect", namespace=GAME_NS)

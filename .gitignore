@@ -24,7 +24,7 @@ client/node_modules/**
 admin-client/node_modules/**
 
 # PlanarAlly
-server/planarallyserver.log
+server/planarallyserver.log*
 server/planar.save*
 server/*.sqlite*
 server/save_backups

@@ -6,7 +6,7 @@ from app import app, sio
 from models import Note, PlayerRoom
 from models.db import db
 from state.game import game_state
-from utils import logger
+from logs import logger
 
 
 @sio.on("Note.New", namespace=GAME_NS)

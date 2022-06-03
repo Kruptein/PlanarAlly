@@ -8,7 +8,7 @@ from models import Floor, PlayerRoom
 from models.db import db
 from models.role import Role
 from state.game import game_state
-from utils import logger
+from logs import logger
 
 # DATA CLASSES FOR TYPE CHECKING
 class FloorRename(TypedDict):

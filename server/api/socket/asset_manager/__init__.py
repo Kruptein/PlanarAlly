@@ -21,7 +21,7 @@ from models import Asset
 from models.user import User
 from state.asset import asset_state
 from state.game import game_state
-from utils import logger
+from logs import logger
 from ..constants import ASSET_NS, GAME_NS
 from .common import UploadData
 from .ddraft import ASSETS_DIR, handle_ddraft_file

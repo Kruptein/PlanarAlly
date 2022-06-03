@@ -20,6 +20,7 @@ these changes will usually be stripped from release notes for the public
 -   Add double stroke to client viewport
 -   Show campaign loading animation earlier (in dashboard)
 -   [server] Added log rotation
+-   [server] Restructure server files
 -   [tech] SyncTo primitive modified to an alternative Sync structure
 -   [tech] Polygon can now have client-side multi-stroke
 

@@ -1,20 +1,12 @@
+import urllib.parse
 from aiohttp import web
 from aiohttp_security import check_authorized
-
-import api.http.admin
-import api.http.auth
-import api.http.notifications
-import api.http.rooms
-import api.http.users
-import api.http.version
 
 from api.socket.constants import GAME_NS
 from app import sio
 from models import PlayerRoom, Room
 from models.role import Role
 from state.game import game_state
-
-import urllib.parse
 
 
 async def claim_invite(request):

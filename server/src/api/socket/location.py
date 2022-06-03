@@ -248,7 +248,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
         for psid, player in game_state.get_users(
             skip_sid=sid, active_location=pr.active_location
         ):
-            if not psid in game_state.client_locations:
+            if psid not in game_state.client_locations:
                 continue
             data = game_state.client_locations[psid]
             await sio.emit(
@@ -270,7 +270,7 @@ async def change_location(sid: str, data: LocationChangeData):
 
     # Send an anouncement to show loading state
     for room_player in pr.room.players:
-        if not room_player.player.name in data["users"]:
+        if room_player.player.name not in data["users"]:
             continue
 
         for psid in game_state.get_sids(player=room_player.player, room=pr.room):
@@ -279,7 +279,7 @@ async def change_location(sid: str, data: LocationChangeData):
     new_location = Location.get_by_id(data["location"])
 
     for room_player in pr.room.players:
-        if not room_player.player.name in data["users"]:
+        if room_player.player.name not in data["users"]:
             continue
 
         for psid in game_state.get_sids(player=room_player.player, room=pr.room):

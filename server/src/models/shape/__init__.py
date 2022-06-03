@@ -222,9 +222,9 @@ class Tracker(BaseModel):
         return model_to_dict(self, recurse=False, exclude=[Tracker.shape])
 
     def make_copy(self, new_shape):
-        dict = self.as_dict()
-        dict["uuid"] = str(uuid4())
-        type(self).create(shape=new_shape, **dict)
+        _dict = self.as_dict()
+        _dict["uuid"] = str(uuid4())
+        type(self).create(shape=new_shape, **_dict)
 
 
 class Aura(BaseModel):
@@ -248,9 +248,9 @@ class Aura(BaseModel):
         return model_to_dict(self, recurse=False, exclude=[Aura.shape])
 
     def make_copy(self, new_shape):
-        dict = self.as_dict()
-        dict["uuid"] = str(uuid4())
-        type(self).create(shape=new_shape, **dict)
+        _dict = self.as_dict()
+        _dict["uuid"] = str(uuid4())
+        type(self).create(shape=new_shape, **_dict)
 
 
 class ShapeOwner(BaseModel):
@@ -307,8 +307,8 @@ class ShapeType(BaseModel):
 
     def make_copy(self, new_shape):
         table = type(self)
-        dict = self.as_dict(exclude=[table.shape])
-        table.create(shape=new_shape, **dict)
+        _dict = self.as_dict(exclude=[table.shape])
+        table.create(shape=new_shape, **_dict)
 
 
 class BaseRect(ShapeType):

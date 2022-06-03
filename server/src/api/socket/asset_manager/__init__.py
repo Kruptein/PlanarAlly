@@ -187,7 +187,7 @@ def cleanup_assets(assets):
 
 
 def get_safe_members(
-    members: List[tarfile.TarInfo], directory: str
+    members: List[tarfile.TarInfo]
 ) -> List[tarfile.TarInfo]:
     safe_members: List[tarfile.TarInfo] = []
     for member in members:
@@ -210,7 +210,7 @@ async def handle_paa_file(upload_data: UploadData, data: bytes, sid: str):
             # We need to explicitly list our members for security reasons
             # this is upload data so people could upload malicious stuff that breaks out of the path etc
             tar.extractall(
-                path=tmpdir, members=get_safe_members(tar.getmembers(), tmpdir)
+                path=tmpdir, members=get_safe_members(tar.getmembers())
             )
 
         tmp_path = Path(tmpdir)

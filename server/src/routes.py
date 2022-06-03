@@ -132,9 +132,10 @@ api_app.router.add_get(f"{subpath}/campaigns", api.http.admin.campaigns.collect)
 admin_app.router.add_static(f"{subpath}/static", FILE_DIR / "static")
 admin_app.add_subapp("/api/", api_app)
 
+TAIL_REGEX = "/{tail:.*}"
 if "dev" in sys.argv:
-    main_app.router.add_route("*", "/{tail:.*}", root_dev)
-    admin_app.router.add_route("*", "/{tail:.*}", partial(root_dev, admin_api=True))
+    main_app.router.add_route("*", TAIL_REGEX, root_dev)
+    admin_app.router.add_route("*", TAIL_REGEX, partial(root_dev, admin_api=True))
 else:
-    main_app.router.add_route("*", "/{tail:.*}", root)
-    admin_app.router.add_route("*", "/{tail:.*}", partial(root, admin_api=True))
+    main_app.router.add_route("*", TAIL_REGEX, root)
+    admin_app.router.add_route("*", TAIL_REGEX, partial(root, admin_api=True))

@@ -32,14 +32,14 @@ except:
     env_version = None
 
 
-async def get_version(request: web.Request):
+async def get_version():
     if env_version is None:
         return web.HTTPInternalServerError(reason="Version file could not be loaded")
 
     return web.json_response({"release": release_version, "env": env_version})
 
 
-async def get_changelog(request: web.Request):
+async def get_changelog():
     if changelog is None:
         return web.HTTPInternalServerError(reason="Version file could not be loaded")
 

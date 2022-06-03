@@ -1,8 +1,10 @@
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from peewee import Case
+from socketio import AsyncServer
 
 import auth
+from api import _send_game
 from api.socket.constants import GAME_NS
 from api.socket.groups import remove_group_if_empty
 from api.socket.shape.data_models import *
@@ -142,6 +144,10 @@ async def update_shape_positions(sid: str, data: PositionUpdateList):
     )
 
 
+async def send_remove_shapes(sio: AsyncServer, data: List[str], room: str, skip_sid: Optional[str] = None):
+    await _send_game(sio, "Shapes.Remove", data, room, skip_sid)
+
+
 @sio.on("Shapes.Remove", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def remove_shapes(sid: str, data: TemporaryShapesList):
@@ -184,13 +190,7 @@ async def remove_shapes(sid: str, data: TemporaryShapesList):
         for group_id in group_ids:
             await remove_group_if_empty(group_id)
 
-    await sio.emit(
-        "Shapes.Remove",
-        data["uuids"],
-        room=pr.active_location.get_path(),
-        skip_sid=sid,
-        namespace=GAME_NS,
-    )
+    await send_remove_shapes(sio, data["uuids"], pr.active_location.get_path(), sid)
 
 
 @sio.on("Shapes.Floor.Change", namespace=GAME_NS)
@@ -249,12 +249,7 @@ async def change_shape_layer(sid: str, data: Dict[str, Any]):
                 active_location=pr.active_location,
                 skip_sid=sid,
             ):
-                await sio.emit(
-                    "Shapes.Remove",
-                    data["uuids"],
-                    room=psid,
-                    namespace=GAME_NS,
-                )
+                await send_remove_shapes(sio, data["uuids"], psid)
 
     for shape in shapes:
         old_index = shape.index
@@ -354,12 +349,7 @@ async def move_shapes(sid: str, data: ServerShapeLocationMove):
 
     shapes = [Shape.get_by_id(sh) for sh in data["shapes"]]
 
-    await sio.emit(
-        "Shapes.Remove",
-        [sh.uuid for sh in shapes],
-        room=pr.active_location.get_path(),
-        namespace=GAME_NS,
-    )
+    await send_remove_shapes(sio, [sh.uuid for sh in shapes], pr.active_location.get_path())
 
     for shape in shapes:
         shape.layer = floor.layers.where(Layer.name == shape.layer.name)[0]

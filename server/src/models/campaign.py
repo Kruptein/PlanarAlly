@@ -32,6 +32,8 @@ __all__ = [
 ]
 
 
+TRANSPARENT_COLOR = "rgba(0, 0, 0, 0)"
+
 class LocationOptions(BaseModel):
     unit_size = FloatField(default=5, null=True)
     unit_size_unit = TextField(default="ft", null=True)
@@ -46,9 +48,9 @@ class LocationOptions(BaseModel):
     spawn_locations = TextField(default="[]")
     move_player_on_token_change = BooleanField(default=True, null=True)
     grid_type = TextField(default="SQUARE", null=True)
-    air_map_background = TextField(default="rgba(0, 0, 0, 0)", null=True)
-    ground_map_background = TextField(default="rgba(0, 0, 0, 0)", null=True)
-    underground_map_background = TextField(default="rgba(0, 0, 0, 0)", null=True)
+    air_map_background = TextField(default=TRANSPARENT_COLOR, null=True)
+    ground_map_background = TextField(default=TRANSPARENT_COLOR, null=True)
+    underground_map_background = TextField(default=TRANSPARENT_COLOR, null=True)
 
     def as_dict(self):
         return {
@@ -284,7 +286,7 @@ class Layer(BaseModel):
         data["shapes"] = []
         for shape in self.shapes.order_by(Shape.index):
             data["shapes"].append(shape.as_dict(user, dm))
-            if shape.group and not shape.group.uuid in groups_added:
+            if shape.group and shape.group.uuid not in groups_added:
                 data["groups"].append(model_to_dict(shape.group))
         return data
 

@@ -14,6 +14,7 @@ these changes will usually be stripped from release notes for the public
 -   Add white outline to the door logic (un)lock icons
 -   Door logic can now specify which block settings to toggle
 -   Add double stroke to client viewport
+-   Show campaign loading animation earlier (in dashboard)
 -   [tech] SyncTo primitive modified to an alternative Sync structure
 -   [tech] Polygon can now have client-side multi-stroke
 

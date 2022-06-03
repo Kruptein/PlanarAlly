@@ -44,14 +44,16 @@ from models.user import User, UserOptions
 from save import SAVE_VERSION
 
 
-async def export_campaign(room: Room):
-    CampaignExporter(room).pack()
+async def export_campaign(name: str, rooms: List[Room]):
+    CampaignExporter(name, rooms).pack()
 
 
 class CampaignExporter:
-    def __init__(self, room: Room) -> None:
-        self.room = room
+    def __init__(self, name: str, rooms: List[Room]) -> None:
+        self.filename = name
+        self.rooms = rooms
 
+        self.room_mapping: Dict[int, int] = {}
         self.user_mapping: Dict[int, int] = {}
         self.asset_mapping: Dict[int, int] = {}
         self.location_mapping: Dict[int, int] = {}
@@ -59,18 +61,20 @@ class CampaignExporter:
         self.groups_exported: Set[str] = set()
 
         self.generate_empty_db()
-        self.export_users()
-        self.export_room()
-        self.export_label_selections()
-        self.export_locations()
-        self.export_players()
-        self.export_notes()
+        for room in self.rooms:
+            print(f"[ROOM] {room.name}")
+            self.export_users(room)
+            self.export_room(room)
+            self.export_label_selections(room)
+            self.export_locations(room)
+            self.export_players(room)
+            self.export_notes(room)
+        self.export_all_assets()
 
     def generate_empty_db(self):
         static_folder = Path("static")
         self.output_folder = static_folder / "temp"
         os.makedirs(self.output_folder, exist_ok=True)
-        self.filename = f"{self.room.name}-{self.room.creator.name}"
         self.sqlite_name = f"{self.filename}.sqlite"
         self.sqlite_path = self.output_folder / self.sqlite_name
         if self.sqlite_path.exists():
@@ -133,9 +137,12 @@ class CampaignExporter:
 
         return tarpath, tarname
 
-    def export_users(self):
-        for player_room in self.room.players:
+    def export_users(self, room: Room):
+        for player_room in room.players:
             user = cast(User, player_room.player)
+            if user.id in self.user_mapping:
+                continue
+
             user_data = model_to_dict(user, recurse=False)
             user_options_data = model_to_dict(user.default_options, recurse=False)
             del user_data["id"]
@@ -159,21 +166,21 @@ class CampaignExporter:
             with self.db.bind_ctx([Label]):
                 Label.create(**label_data)
 
-    def export_label_selections(self):
-        for label_selection in LabelSelection.filter(room=self.room):
+    def export_label_selections(self, room: Room):
+        for label_selection in LabelSelection.filter(room=room):
             label_selection_data = model_to_dict(label_selection, recurse=False)
             del label_selection_data["id"]
             label_selection_data["user"] = self.user_mapping[
                 label_selection_data["user"]
             ]
-            label_selection_data["room"] = self.new_room
+            label_selection_data["room"] = self.room_mapping[room.id]
 
             with self.db.bind_ctx([LabelSelection]):
                 LabelSelection.create(**label_selection_data)
 
-    def export_room(self):
-        room_data = model_to_dict(self.room, recurse=False)
-        room_options_data = model_to_dict(self.room.default_options, recurse=False)
+    def export_room(self, room: Room):
+        room_data = model_to_dict(room, recurse=False)
+        room_options_data = model_to_dict(room.default_options, recurse=False)
         del room_data["id"]
         del room_options_data["id"]
         room_data["creator"] = self.user_mapping[room_data["creator"]]
@@ -182,14 +189,14 @@ class CampaignExporter:
         with self.db.bind_ctx([Room, LocationOptions]):
             lo = LocationOptions.create(**room_options_data)
             room_data["default_options"] = lo
-            self.new_room = Room.create(**room_data)
+            self.room_mapping[room.id] = Room.create(**room_data).id
 
-    def export_locations(self):
-        for location in self.room.locations:
-            print(f"[LOC] {location.name}")
+    def export_locations(self, room: Room):
+        for location in room.locations:
+            print(f" [LOC] {location.name}")
             location_data = model_to_dict(location, recurse=False)
             del location_data["id"]
-            location_data["room"] = self.new_room
+            location_data["room"] = self.room_mapping[room.id]
 
             location_options_data = None
             if location.options:
@@ -247,8 +254,8 @@ class CampaignExporter:
         with self.db.bind_ctx([Initiative]):
             Initiative.create(**initiative_data)
 
-    def export_players(self):
-        for player_room in self.room.players:
+    def export_players(self, room: Room):
+        for player_room in room.players:
             player_data = model_to_dict(player_room, recurse=False)
             del player_data["id"]
 
@@ -259,7 +266,7 @@ class CampaignExporter:
                 )
                 del player_options_data["id"]
 
-            player_data["room"] = self.new_room
+            player_data["room"] = self.room_mapping[room.id]
             player_data["player"] = self.user_mapping[player_data["player"]]
             player_data["active_location"] = self.location_mapping[
                 player_data["active_location"]
@@ -271,11 +278,11 @@ class CampaignExporter:
                     player_data["user_options"] = uo
                 PlayerRoom.create(**player_data)
 
-    def export_notes(self):
-        for note in Note.filter(room=self.room):
+    def export_notes(self, room: Room):
+        for note in Note.filter(room=room):
             note_data = model_to_dict(note, recurse=False)
             del note_data["id"]
-            note_data["room"] = self.new_room
+            note_data["room"] = self.room_mapping[room.id]
             note_data["user"] = self.user_mapping[note_data["user"]]
             if note_data["location"]:
                 note_data["location"] = self.location_mapping[note_data["location"]]
@@ -285,7 +292,7 @@ class CampaignExporter:
 
     def export_floors(self, location_id: int, floors: List[Floor]):
         for floor in floors:
-            print(f" [FL] {floor.name}")
+            print(f"  [FL] {floor.name}")
             floor_data = model_to_dict(floor, recurse=False)
             del floor_data["id"]
             floor_data["location"] = location_id
@@ -297,7 +304,7 @@ class CampaignExporter:
 
     def export_layers(self, floor_id: int, layers: List[Layer]):
         for layer in layers:
-            print(f"  [LAY] {layer.name}")
+            print(f"   [LAY] {layer.name}")
             layer_data = model_to_dict(layer, recurse=False)
             del layer_data["id"]
             layer_data["floor"] = floor_id
@@ -464,3 +471,7 @@ class CampaignExporter:
             asset = Asset.create(**asset_data)
             self.asset_mapping[asset_id] = asset.id
         return asset.id
+
+    def export_all_assets(self):
+        for asset in Asset.filter(owner=self.rooms[0].creator):
+            self.export_asset(asset.id)

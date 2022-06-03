@@ -61,6 +61,7 @@ class LocationOptions(BaseModel):
 
 
 class Room(BaseModel):
+    id: int
     logo_id: Optional[int]
     players: List["PlayerRoom"]
     locations: List["Location"]

@@ -14,6 +14,7 @@ from .base import BaseModel
 
 if TYPE_CHECKING:
     from models.label import Label
+    from models.campaign import Room
 
 
 __all__ = ["User", "UserOptions"]
@@ -66,6 +67,7 @@ class UserOptions(BaseModel):
 class User(BaseModel):
     id: int
     labels: List["Label"]
+    rooms_created: List["Room"]
 
     name = TextField()
     email = TextField(null=True)

@@ -9,6 +9,10 @@ these changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Added
+
+-   Export all campaigns endpoint
+
 ### Changed
 
 -   Add white outline to the door logic (un)lock icons

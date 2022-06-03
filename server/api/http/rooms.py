@@ -185,9 +185,25 @@ async def export(request: web.Request):
         if room is None:
             return web.HTTPBadRequest()
 
-        asyncio.create_task(export_campaign(room))
+        asyncio.create_task(export_campaign(f"{roomname}-{creator}", [room]))
 
         return web.HTTPAccepted(
             text=f"Processing started. Check /static/temp/{room.name}-{room.creator.name}.pac soon."
+        )
+    return web.HTTPUnauthorized()
+
+
+async def export_all(request: web.Request):
+    user: User = await check_authorized(request)
+
+    creator = request.match_info["creator"]
+
+    if creator == user.name:
+        rooms = [r for r in user.rooms_created]
+
+        asyncio.create_task(export_campaign(f"{creator}-all", rooms))
+
+        return web.HTTPAccepted(
+            text=f"Processing started. Check /static/temp/{creator}-all.pac soon."
         )
     return web.HTTPUnauthorized()

@@ -125,7 +125,7 @@ class DrawTool extends Tool {
             () => {
                 if (this.brushHelper) {
                     this.brushHelper.fillColour = this.state.fillColour;
-                    this.brushHelper.strokeColour = mostReadable(this.state.fillColour);
+                    this.brushHelper.strokeColour = [mostReadable(this.state.fillColour)];
                 }
             },
         );
@@ -334,21 +334,21 @@ class DrawTool extends Tool {
                 case DrawShape.Square: {
                     this.shape = new Rect(cloneP(startPoint), 0, 0, {
                         fillColour: this.state.fillColour,
-                        strokeColour: this.state.borderColour,
+                        strokeColour: [this.state.borderColour],
                     });
                     break;
                 }
                 case DrawShape.Circle: {
                     this.shape = new Circle(cloneP(startPoint), this.helperSize, {
                         fillColour: this.state.fillColour,
-                        strokeColour: this.state.borderColour,
+                        strokeColour: [this.state.borderColour],
                     });
                     break;
                 }
                 case DrawShape.Brush: {
                     this.shape = new Polygon(cloneP(startPoint), [], {
-                        strokeColour: this.state.fillColour,
-                        lineWidth: this.state.brushSize,
+                        strokeColour: [this.state.fillColour],
+                        lineWidth: [this.state.brushSize],
                         openPolygon: true,
                     });
                     this.shape.fillColour = this.state.fillColour;
@@ -362,8 +362,8 @@ class DrawTool extends Tool {
                     }
                     this.shape = new Polygon(cloneP(this.brushHelper.refPoint), [], {
                         fillColour: fill,
-                        strokeColour: stroke,
-                        lineWidth: this.state.brushSize,
+                        strokeColour: [stroke],
+                        lineWidth: [this.state.brushSize],
                         openPolygon: !this.state.isClosedPolygon,
                     });
                     break;
@@ -377,7 +377,7 @@ class DrawTool extends Tool {
                     }
                     this.shape = new Text(cloneP(this.brushHelper.refPoint), text, this.state.fontSize, {
                         fillColour: this.state.fillColour,
-                        strokeColour: this.state.borderColour,
+                        strokeColour: [this.state.borderColour],
                     });
                     break;
                 }
@@ -439,7 +439,7 @@ class DrawTool extends Tool {
             if (this.ruler === undefined) {
                 this.ruler = new Line(lastPoint, lastPoint, {
                     lineWidth: this.state.brushSize,
-                    strokeColour: this.state.fillColour,
+                    strokeColour: [this.state.fillColour],
                 });
                 layer.addShape(this.ruler, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
             } else {
@@ -626,7 +626,7 @@ class DrawTool extends Tool {
         const size = brushSize ?? this.state.brushSize / 2;
         const brush = new Circle(position, size, {
             fillColour: this.state.fillColour,
-            strokeColour: mostReadable(this.state.fillColour),
+            strokeColour: [mostReadable(this.state.fillColour)],
             strokeWidth: Math.max(1, size * 0.05),
         });
         // Make sure we can see the border of the reveal brush
@@ -642,7 +642,7 @@ class DrawTool extends Tool {
             vertices.map((v) => addP(v, vec)),
             {
                 fillColour: "white",
-                strokeColour: "black",
+                strokeColour: ["black"],
                 openPolygon: false,
             },
         );

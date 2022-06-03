@@ -351,7 +351,7 @@ class SelectTool extends Tool implements ISelectTool {
             if (this.selectionHelper === undefined) {
                 this.selectionHelper = new Rect(this.selectionStartPoint, 0, 0, {
                     fillColour: "rgba(0, 0, 0, 0)",
-                    strokeColour: "#7c253e",
+                    strokeColour: ["#7c253e"],
                 });
                 this.selectionHelper.strokeWidth = 2;
                 this.selectionHelper.options.UiHelper = true;
@@ -798,13 +798,16 @@ class SelectTool extends Tool implements ISelectTool {
         const topCenterPlus = addP(topCenter, new Vector(0, -DEFAULT_GRID_SIZE));
 
         this.angle = 0;
-        this.rotationAnchor = new Line(topCenter, topCenterPlus, { lineWidth: l2gz(1.5), strokeColour: "#7c253e" });
+        this.rotationAnchor = new Line(topCenter, topCenterPlus, { lineWidth: l2gz(1.5), strokeColour: ["#7c253e"] });
         this.rotationBox = new Rect(bbox.topLeft, bbox.w, bbox.h, {
             fillColour: "rgba(0,0,0,0)",
-            strokeColour: "#7c253e",
+            strokeColour: ["#7c253e"],
         });
         this.rotationBox.strokeWidth = 1.5;
-        this.rotationEnd = new Circle(topCenterPlus, l2gz(4), { fillColour: "#7c253e", strokeColour: "rgba(0,0,0,0)" });
+        this.rotationEnd = new Circle(topCenterPlus, l2gz(4), {
+            fillColour: "#7c253e",
+            strokeColour: ["rgba(0,0,0,0)"],
+        });
 
         for (const rotationShape of [this.rotationAnchor, this.rotationBox, this.rotationEnd]) {
             accessSystem.addAccess(
@@ -870,7 +873,7 @@ class SelectTool extends Tool implements ISelectTool {
 
         this.removePolygonEditUi();
 
-        this.polygonTracer = new Circle(toGP(0, 0), 3, { fillColour: "rgba(0,0,0,0)", strokeColour: "black" });
+        this.polygonTracer = new Circle(toGP(0, 0), 3, { fillColour: "rgba(0,0,0,0)", strokeColour: ["black"] });
         const drawLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw)!;
         drawLayer.addShape(this.polygonTracer, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
         this.updatePolygonEditUi(this.lastMousePosition);
@@ -896,15 +899,15 @@ class SelectTool extends Tool implements ISelectTool {
         const selection = selectionState.get({ includeComposites: false });
         const polygon = selection[0] as Polygon;
 
-        const pw = g2lz(polygon.lineWidth);
+        const pw = g2lz(polygon.lineWidth[0]);
 
         const pv = polygon.vertices;
-        let smallest = { distance: polygon.lineWidth * 2, nearest: gp, angle: 0, point: false };
+        let smallest = { distance: polygon.lineWidth[0] * 2, nearest: gp, angle: 0, point: false };
         for (let i = 1; i < pv.length; i++) {
             const prevVertex = pv[i - 1];
             const vertex = pv[i];
             // check prev-vertex
-            if (getPointDistance(prevVertex, gp) < polygon.lineWidth / 1.5) {
+            if (getPointDistance(prevVertex, gp) < polygon.lineWidth[0] / 1.5) {
                 const vec = Vector.fromPoints(prevVertex, vertex);
                 let angle;
                 if (i === 1) {
@@ -918,16 +921,16 @@ class SelectTool extends Tool implements ISelectTool {
             }
             // check edge
             const info = getDistanceToSegment(gp, [prevVertex, vertex]);
-            if (info.distance < polygon.lineWidth / 1.5 && info.distance < smallest.distance) {
+            if (info.distance < polygon.lineWidth[0] / 1.5 && info.distance < smallest.distance) {
                 smallest = { ...info, angle: Vector.fromPoints(prevVertex, vertex).deg(), point: false };
             }
         }
         //check last vertex
-        if (getPointDistance(pv.at(-1)!, gp) < polygon.lineWidth / 2) {
+        if (getPointDistance(pv.at(-1)!, gp) < polygon.lineWidth[0] / 2) {
             smallest = { distance: 0, nearest: pv.at(-1)!, point: true, angle: smallest.angle };
         }
         // Show the UI
-        if (smallest.distance <= polygon.lineWidth) {
+        if (smallest.distance <= polygon.lineWidth[0]) {
             this.polygonUiVisible.value = "visible";
             this.polygonTracer!.refPoint = smallest.nearest;
             this.polygonTracer!.layer.invalidate(true);

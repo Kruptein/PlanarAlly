@@ -34,7 +34,7 @@ interface ActiveShapeState {
     nameVisible: boolean;
     isToken: boolean;
     isInvisible: boolean;
-    strokeColour: string | undefined;
+    strokeColour: string[] | undefined;
     fillColour: string | undefined;
     blocksMovement: boolean;
     blocksVision: boolean;
@@ -179,7 +179,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
     setStrokeColour(colour: string, syncTo: Sync): void {
         if (this._state.id === undefined) return;
 
-        this._state.strokeColour = colour;
+        this._state.strokeColour = [colour];
 
         if (!syncTo.ui) {
             const shape = getShape(this._state.id)!;

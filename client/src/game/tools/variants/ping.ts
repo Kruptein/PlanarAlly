@@ -56,7 +56,7 @@ class PingTool extends Tool {
         this.ping = new Circle(this.startPoint, 20, { fillColour: clientStore.state.rulerColour });
         this.border = new Circle(this.startPoint, 40, {
             fillColour: "#0000",
-            strokeColour: clientStore.state.rulerColour,
+            strokeColour: [clientStore.state.rulerColour],
         });
         this.ping.ignoreZoomSize = true;
         this.border.ignoreZoomSize = true;

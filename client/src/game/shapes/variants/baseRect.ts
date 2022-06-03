@@ -20,7 +20,7 @@ export abstract class BaseRect extends Shape {
         topleft: GlobalPoint,
         w: number,
         h: number,
-        options?: { fillColour?: string; strokeColour?: string; id?: LocalId; uuid?: GlobalId; assetId?: number },
+        options?: { fillColour?: string; strokeColour?: string[]; id?: LocalId; uuid?: GlobalId; assetId?: number },
     ) {
         super(topleft, options);
         this._w = w;

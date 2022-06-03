@@ -30,7 +30,7 @@ export interface IShape {
     isLocked: boolean;
 
     fillColour: string;
-    strokeColour: string;
+    strokeColour: string[];
     strokeWidth: number;
 
     assetId?: number;

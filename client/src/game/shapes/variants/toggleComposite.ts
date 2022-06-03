@@ -31,7 +31,7 @@ export class ToggleComposite extends Shape {
         private _variants: { uuid: LocalId; name: string }[],
         options?: {
             fillColour?: string;
-            strokeColour?: string;
+            strokeColour?: string[];
             id?: LocalId;
             uuid?: GlobalId;
         },

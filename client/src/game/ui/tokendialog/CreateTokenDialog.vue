@@ -50,7 +50,7 @@ function submit(): void {
         getUnitDistance(settingsStore.unitSize.value / 2),
         text.value || "X",
         "10px serif",
-        { fillColour: fillColour.value, strokeColour: borderColour.value },
+        { fillColour: fillColour.value, strokeColour: [borderColour.value] },
     );
     accessSystem.addAccess(token.id, clientStore.state.username, { edit: true, movement: true, vision: true }, UI_SYNC);
     layer.addShape(token, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);

@@ -30,7 +30,7 @@ if subpath[-1] == "/":
 
 async def root(request, admin_api=False):
     template = "admin-index.html" if admin_api else "index.html"
-    with open(f"./templates/{template}", "rb") as f:
+    with open(FILE_DIR / "templates" / template, "rb") as f:
         data = f.read()
 
         if not config.getboolean("General", "allow_signups"):

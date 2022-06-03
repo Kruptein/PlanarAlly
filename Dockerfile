@@ -56,4 +56,4 @@ ARG PA_BASEPATH="/"
 ENV PA_BASEPATH=$PA_BASEPATH
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-CMD [ "python", "-u", "planarserver.py"]
+CMD [ "python", "-u", "src/planarserver.py"]

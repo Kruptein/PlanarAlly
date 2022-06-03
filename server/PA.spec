@@ -4,17 +4,21 @@ import sys
 from pathlib import Path
 
 pa_dir = Path(SPECPATH).resolve()
+src_dir = pa_dir / "src"
 
 
 def _(arg):
     return pa_dir / arg
 
+def __(arg):
+    return src_dir / arg
+
 
 block_cipher = None
 
 
-a = Analysis([_('planarserver.py')],
-             pathex=[pa_dir],
+a = Analysis([__('planarserver.py')],
+             pathex=[src_dir],
              datas=[
     (_('VERSION'), '.'),
     (_('server_config.cfg'), '.'),

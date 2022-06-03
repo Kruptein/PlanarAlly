@@ -8,6 +8,13 @@ from aiohttp import web
 from aiohttp_security import check_authorized
 
 import api.http
+import api.http.admin.campaigns
+import api.http.admin.users
+import api.http.auth
+import api.http.notifications
+import api.http.rooms
+import api.http.users
+import api.http.version
 from app import admin_app, api_app, app as main_app
 from config import config
 from models import Room, User

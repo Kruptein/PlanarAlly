@@ -32,6 +32,7 @@ these changes will usually be stripped from release notes for the public
 -   Redo logic on resize operation not remembering correct location when it was snapped
 -   Asset Manager correctly updates UI when using browser back/forward buttons
 -   Clear client viewports when changing location
+-   Dashboard navigation headers sometimes being wrongly styled
 -   [tech] Ensure router.push calls are always awaited
 
 ## [2022.1] - 2022-04-25

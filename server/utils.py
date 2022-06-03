@@ -1,4 +1,3 @@
-import logging
 import os
 import sys
 from pathlib import Path
@@ -25,21 +24,6 @@ SAVE_DIR = get_save_dir()
 
 # SETUP PATHS
 os.chdir(FILE_DIR)
-
-# SETUP LOGGING
-
-logger = logging.getLogger("PlanarAllyServer")
-logger.setLevel(logging.INFO)
-file_handler = logging.FileHandler(str(FILE_DIR / "planarallyserver.log"))
-file_handler.setLevel(logging.INFO)
-formatter = logging.Formatter(
-    "%(asctime)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
-)
-file_handler.setFormatter(formatter)
-stream_handler = logging.StreamHandler(sys.stdout)
-stream_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
-logger.addHandler(stream_handler)
 
 
 class OldVersionException(Exception):

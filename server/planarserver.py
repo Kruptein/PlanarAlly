@@ -33,8 +33,8 @@ from api.socket import *
 from api.socket.constants import GAME_NS
 from app import admin_app, app as main_app, runners, setup_runner, sio
 from config import config
+from logs import logger
 from models import User, Room
-from utils import logger
 
 loop = asyncio.new_event_loop()
 

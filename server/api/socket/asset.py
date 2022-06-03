@@ -7,7 +7,7 @@ from app import app, sio
 from models import Asset, PlayerRoom
 from models.role import Role
 from state.game import game_state
-from utils import logger
+from logs import logger
 
 
 class AssetOptions(TypedDict):

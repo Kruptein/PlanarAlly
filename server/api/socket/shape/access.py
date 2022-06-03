@@ -6,7 +6,7 @@ from models import PlayerRoom, Shape, ShapeOwner, User
 from models.role import Role
 from models.shape.access import has_ownership
 from state.game import game_state
-from utils import logger
+from logs import logger
 
 
 @sio.on("Shape.Owner.Add", namespace=GAME_NS)

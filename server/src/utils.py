@@ -9,21 +9,22 @@ def all_subclasses(cls):
     )
 
 
-def get_file_dir() -> Path:
+def get_src_dir() -> Path:
     if getattr(sys, "frozen", False):
         return Path(sys.executable).resolve().parent
-    return Path(__file__).resolve().parent.parent
+    return Path(__file__).resolve().parent
 
 
 def get_save_dir() -> Path:
     return FILE_DIR
 
 
-FILE_DIR = get_file_dir()
+SRC_DIR = get_src_dir()
+FILE_DIR = SRC_DIR.parent
 SAVE_DIR = get_save_dir()
 
 # SETUP PATHS
-os.chdir(FILE_DIR)
+os.chdir(SRC_DIR)
 
 
 class OldVersionException(Exception):

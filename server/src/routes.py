@@ -20,6 +20,7 @@ from config import config
 from models import Room, User
 from models.role import Role
 from logs import logger
+from utils import FILE_DIR
 
 
 subpath = os.environ.get("PA_BASEPATH", "/")
@@ -83,7 +84,7 @@ async def show_assets(request):
 
 # MAIN ROUTES
 
-main_app.router.add_static(f"{subpath}/static", "static")
+main_app.router.add_static(f"{subpath}/static", FILE_DIR / "static")
 main_app.router.add_get(f"{subpath}/api/auth", api.http.auth.is_authed)
 main_app.router.add_post(f"{subpath}/api/users/email", api.http.users.set_email)
 main_app.router.add_post(f"{subpath}/api/users/password", api.http.users.set_password)
@@ -128,7 +129,7 @@ api_app.router.add_post(f"{subpath}/users/reset", api.http.admin.users.reset)
 api_app.router.add_post(f"{subpath}/users/remove", api.http.admin.users.remove)
 api_app.router.add_get(f"{subpath}/campaigns", api.http.admin.campaigns.collect)
 
-admin_app.router.add_static(f"{subpath}/static", "static")
+admin_app.router.add_static(f"{subpath}/static", FILE_DIR / "static")
 admin_app.add_subapp("/api/", api_app)
 
 if "dev" in sys.argv:

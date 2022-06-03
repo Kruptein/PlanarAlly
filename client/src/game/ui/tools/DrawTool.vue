@@ -292,24 +292,6 @@ const showBorderColour = computed(() => {
     }
 }
 
-.header {
-    display: flex;
-    line-height: 0.1em;
-    font-style: italic;
-    overflow: hidden;
-    padding: 0.5em;
-
-    &:after {
-        position: relative;
-        width: 100%;
-        border-bottom: 1px solid #000;
-        content: "";
-        margin-right: -100%;
-        margin-left: 10px;
-        display: inline-block;
-    }
-}
-
 .draw-logic-flex {
     display: flex;
     align-items: center;
@@ -361,5 +343,23 @@ const showBorderColour = computed(() => {
 .tool-detail {
     display: block;
     min-height: 125px;
+}
+
+.header {
+    display: flex;
+    line-height: 0.1em;
+    font-style: italic;
+    overflow: hidden;
+    padding: 0.5em;
+
+    &:after {
+        position: relative;
+        width: 100%;
+        border-bottom: 1px solid #000;
+        content: "";
+        margin-right: -100%;
+        margin-left: 10px;
+        display: inline-block;
+    }
 }
 </style>

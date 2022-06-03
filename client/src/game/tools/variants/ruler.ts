@@ -52,7 +52,7 @@ class RulerTool extends Tool {
     private createNewRuler(start: GlobalPoint, end: GlobalPoint): void {
         const ruler = new Line(start, end, {
             lineWidth: 5,
-            strokeColour: clientStore.state.rulerColour,
+            strokeColour: [clientStore.state.rulerColour],
         });
         ruler.ignoreZoomSize = true;
 
@@ -90,7 +90,7 @@ class RulerTool extends Tool {
         this.createNewRuler(cloneP(this.startPoint), cloneP(this.startPoint));
         this.text = new Text(cloneP(this.startPoint), "", 20, {
             fillColour: "#000",
-            strokeColour: "#fff",
+            strokeColour: ["#fff"],
         });
         this.text.ignoreZoomSize = true;
         accessSystem.addAccess(

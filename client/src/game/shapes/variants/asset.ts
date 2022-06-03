@@ -18,7 +18,7 @@ export class Asset extends BaseRect {
     type: SHAPE_TYPE = "assetrect";
     img: HTMLImageElement;
     src = "";
-    strokeColour = "white";
+    strokeColour = ["white"];
     #loaded: boolean;
 
     svgData?: { svg: Node; rp: GlobalPoint; paths?: [number, number][][][] }[];

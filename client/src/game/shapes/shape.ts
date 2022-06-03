@@ -87,7 +87,7 @@ export abstract class Shape implements IShape {
 
     // Fill colour of the shape
     fillColour: string;
-    strokeColour: string;
+    strokeColour: string[];
     strokeWidth: number;
 
     assetId?: number;
@@ -126,7 +126,7 @@ export abstract class Shape implements IShape {
         refPoint: GlobalPoint,
         options?: {
             fillColour?: string;
-            strokeColour?: string;
+            strokeColour?: string[];
             id?: LocalId;
             uuid?: GlobalId;
             assetId?: number;
@@ -136,7 +136,7 @@ export abstract class Shape implements IShape {
         this._refPoint = refPoint;
         this.id = options?.id ?? generateLocalId(this, options?.uuid);
         this.fillColour = options?.fillColour ?? "#000";
-        this.strokeColour = options?.strokeColour ?? "rgba(0,0,0,0)";
+        this.strokeColour = options?.strokeColour ?? ["rgba(0,0,0,0)"];
         this.assetId = options?.assetId;
         this.strokeWidth = options?.strokeWidth ?? 5;
     }
@@ -270,13 +270,13 @@ export abstract class Shape implements IShape {
             const location = g2l(bbox.botRight);
             const r = g2lz(10);
             ctx.strokeStyle = "black";
-            ctx.fillStyle = this.strokeColour;
+            ctx.fillStyle = this.strokeColour[0];
             ctx.lineWidth = g2lz(2);
             ctx.beginPath();
             ctx.arc(location.x - r, location.y - r, r, 0, 2 * Math.PI);
             ctx.stroke();
             ctx.fill();
-            ctx.fillStyle = mostReadable(this.strokeColour);
+            ctx.fillStyle = mostReadable(this.strokeColour[0]);
 
             const badgeChars = getBadgeCharacters(this);
             const scalingFactor = 2.3 - 0.5 * badgeChars.length;
@@ -296,7 +296,7 @@ export abstract class Shape implements IShape {
             const crossBR = g2l(bbox.botRight);
             const r = g2lz(10);
             ctx.strokeStyle = "red";
-            ctx.fillStyle = this.strokeColour;
+            ctx.fillStyle = this.strokeColour[0];
             ctx.lineWidth = g2lz(2);
             ctx.beginPath();
             ctx.moveTo(crossTL.x + r, crossTL.y + r);
@@ -430,7 +430,7 @@ export abstract class Shape implements IShape {
             labels: this.labels,
             owners: accessSystem.getOwnersFull(this.id).map((o) => ownerToServer(o)),
             fill_colour: this.fillColour,
-            stroke_colour: this.strokeColour,
+            stroke_colour: this.strokeColour[0],
             stroke_width: this.strokeWidth,
             name: this.name,
             name_visible: this.nameVisible,
@@ -465,7 +465,7 @@ export abstract class Shape implements IShape {
         this.blocksVision = data.vision_obstruction;
         this.labels = data.labels;
         this.fillColour = data.fill_colour;
-        this.strokeColour = data.stroke_colour;
+        this.strokeColour = [data.stroke_colour];
         this.isToken = data.is_token;
         this.isInvisible = data.is_invisible;
         this.isDefeated = data.is_defeated;
@@ -584,7 +584,7 @@ export abstract class Shape implements IShape {
         if (syncTo.server) sendShapeSetStrokeColour({ shape: getGlobalId(this.id), value: colour });
         if (syncTo.ui) this._("setStrokeColour")(colour, syncTo);
 
-        this.strokeColour = colour;
+        this.strokeColour = [colour];
         this.invalidate(true);
     }
 

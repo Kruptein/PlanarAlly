@@ -118,7 +118,7 @@ function applyDDraft(): void {
 
     for (const wall of dDraftData.ddraft_line_of_sight) {
         const points = wall.map((w) => toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH));
-        const shape = new Polygon(points[0], points.slice(1), { openPolygon: true, strokeColour: "red" });
+        const shape = new Polygon(points[0], points.slice(1), { openPolygon: true, strokeColour: ["red"] });
         accessSystem.addAccess(
             shape.id,
             clientStore.state.username,
@@ -133,7 +133,7 @@ function applyDDraft(): void {
 
     for (const portal of dDraftData.ddraft_portals) {
         const points = portal.bounds.map((w) => toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH));
-        const shape = new Polygon(points[0], points.slice(1), { openPolygon: true, strokeColour: "blue" });
+        const shape = new Polygon(points[0], points.slice(1), { openPolygon: true, strokeColour: ["blue"] });
         accessSystem.addAccess(
             shape.id,
             clientStore.state.username,

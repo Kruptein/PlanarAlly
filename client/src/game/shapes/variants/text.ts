@@ -24,7 +24,7 @@ export class Text extends Shape {
         public fontSize: number,
         options?: {
             fillColour?: string;
-            strokeColour?: string;
+            strokeColour?: string[];
             id?: LocalId;
             uuid?: GlobalId;
         },
@@ -75,8 +75,8 @@ export class Text extends Shape {
             if (textInfo.width > this.width) this.width = textInfo.width;
             this.height += textInfo.actualBoundingBoxAscent + textInfo.actualBoundingBoxDescent;
 
-            if (this.strokeColour !== "rgba(0,0,0,0)") {
-                ctx.strokeStyle = this.strokeColour;
+            if (this.strokeColour[0] !== "rgba(0,0,0,0)") {
+                ctx.strokeStyle = this.strokeColour[0];
                 ctx.strokeText(line.text, line.x, line.y);
             }
             ctx.fillText(line.text, line.x, line.y);

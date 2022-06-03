@@ -37,8 +37,8 @@ export function moveClientRect(player: number, data: ServerUserLocationOptions):
     if (polygon === undefined) {
         polygon = new Polygon(toGP(0, 0), undefined, {
             fillColour: "rgba(0, 0, 0, 0)",
-            strokeColour: "rgba(0, 0, 0, 1)",
-            lineWidth: 5,
+            strokeColour: ["rgba(0, 0, 0, 1)", "rgba(255, 255, 255, 1)"],
+            lineWidth: [30, 15],
             openPolygon: true,
             uuid: uuidv4(),
         });

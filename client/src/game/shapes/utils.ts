@@ -60,28 +60,28 @@ export function createShapeFromDict(shape: ServerShape): IShape | undefined {
         const rect = shape as ServerRect;
         sh = new Rect(refPoint, rect.width, rect.height, {
             fillColour: rect.fill_colour,
-            strokeColour: rect.stroke_colour,
+            strokeColour: [rect.stroke_colour],
             uuid: rect.uuid,
         });
     } else if (shape.type_ === "circle") {
         const circ = shape as ServerCircle;
         sh = new Circle(refPoint, circ.radius, {
             fillColour: circ.fill_colour,
-            strokeColour: circ.stroke_colour,
+            strokeColour: [circ.stroke_colour],
             uuid: circ.uuid,
         });
     } else if (shape.type_ === "circulartoken") {
         const token = shape as ServerCircularToken;
         sh = new CircularToken(refPoint, token.radius, token.text, token.font, {
             fillColour: token.fill_colour,
-            strokeColour: token.stroke_colour,
+            strokeColour: [token.stroke_colour],
             uuid: token.uuid,
         });
     } else if (shape.type_ === "line") {
         const line = shape as ServerLine;
         sh = new Line(refPoint, toGP(line.x2, line.y2), {
             lineWidth: line.line_width,
-            strokeColour: line.stroke_colour,
+            strokeColour: [line.stroke_colour],
             uuid: line.uuid,
         });
     } else if (shape.type_ === "polygon") {
@@ -91,8 +91,8 @@ export function createShapeFromDict(shape: ServerShape): IShape | undefined {
             polygon.vertices.map((v) => toGP(v)),
             {
                 fillColour: polygon.fill_colour,
-                strokeColour: polygon.stroke_colour,
-                lineWidth: polygon.line_width,
+                strokeColour: [polygon.stroke_colour],
+                lineWidth: [polygon.line_width],
                 openPolygon: polygon.open_polygon,
                 uuid: polygon.uuid,
             },
@@ -101,7 +101,7 @@ export function createShapeFromDict(shape: ServerShape): IShape | undefined {
         const text = shape as ServerText;
         sh = new Text(refPoint, text.text, text.font_size, {
             fillColour: text.fill_colour,
-            strokeColour: text.stroke_colour,
+            strokeColour: [text.stroke_colour],
             uuid: text.uuid,
         });
     } else if (shape.type_ === "assetrect") {

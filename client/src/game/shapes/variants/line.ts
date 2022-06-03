@@ -18,12 +18,12 @@ export class Line extends Shape {
         endPoint: GlobalPoint,
         options?: {
             lineWidth?: number;
-            strokeColour?: string;
+            strokeColour?: string[];
             id?: LocalId;
             uuid?: GlobalId;
         },
     ) {
-        super(startPoint, { fillColour: "rgba(0, 0, 0, 0)", strokeColour: "#000", ...options });
+        super(startPoint, { fillColour: "rgba(0, 0, 0, 0)", strokeColour: ["#000"], ...options });
         this._endPoint = endPoint;
         this.lineWidth = options?.lineWidth ?? 1;
     }
@@ -78,7 +78,7 @@ export class Line extends Shape {
 
         const center = g2l(this.center());
 
-        ctx.strokeStyle = this.strokeColour;
+        ctx.strokeStyle = this.strokeColour[0];
         ctx.beginPath();
         ctx.moveTo(g2lx(this.refPoint.x) - center.x, g2ly(this.refPoint.y) - center.y);
         ctx.lineTo(g2lx(this.endPoint.x) - center.x, g2ly(this.endPoint.y) - center.y);

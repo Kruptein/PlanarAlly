@@ -2,9 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
-[DM] denotes changes only useful for the dungeon master
-[server] denotes changes only useful for the server owner
-[tech] denotes internal changes that are only useful for code contributors
+[DM] denotes changes only useful for the dungeon master\
+[server] denotes changes only useful for the server owner\
+[tech] denotes internal changes that are only useful for code contributors\
+these changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
@@ -12,7 +13,9 @@ All notable changes to this project will be documented in this file.
 
 -   Add white outline to the door logic (un)lock icons
 -   Door logic can now specify which block settings to toggle
+-   Add double stroke to client viewport
 -   [tech] SyncTo primitive modified to an alternative Sync structure
+-   [tech] Polygon can now have client-side multi-stroke
 
 ### Fixed
 

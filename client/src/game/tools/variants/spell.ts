@@ -113,7 +113,7 @@ class SpellTool extends Tool {
         if (this.shape === undefined) return;
 
         this.shape.fillColour = this.state.colour.replace(")", ", 0.7)");
-        this.shape.strokeColour = this.state.colour;
+        this.shape.strokeColour = [this.state.colour];
         accessSystem.addAccess(
             this.shape.id,
             clientStore.state.username,
@@ -148,7 +148,7 @@ class SpellTool extends Tool {
         const selection = [...selectionState.state.selection.values()];
         this.rangeShape = new Circle(getShape(selection[0])!.center(), getUnitDistance(this.state.range), {
             fillColour: "rgba(0,0,0,0)",
-            strokeColour: "black",
+            strokeColour: ["black"],
         });
         layer.addShape(this.rangeShape, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
     }

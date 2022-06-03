@@ -22,7 +22,7 @@ export class CircularToken extends Circle {
         font: string,
         options?: {
             fillColour?: string;
-            strokeColour?: string;
+            strokeColour?: string[];
             id?: LocalId;
             uuid?: GlobalId;
         },

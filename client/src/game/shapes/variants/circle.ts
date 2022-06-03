@@ -22,7 +22,7 @@ export class Circle extends Shape {
         r: number,
         options?: {
             fillColour?: string;
-            strokeColour?: string;
+            strokeColour?: string[];
             viewingAngle?: number;
             id?: LocalId;
             uuid?: GlobalId;
@@ -79,12 +79,12 @@ export class Circle extends Shape {
         this.drawArc(ctx, this.ignoreZoomSize ? this.r : g2lz(this.r));
         ctx.fill();
 
-        if (this.strokeColour !== "rgba(0, 0, 0, 0)") {
+        if (this.strokeColour[0] !== "rgba(0, 0, 0, 0)") {
             const ogOperation = ctx.globalCompositeOperation;
             if (this.options.borderOperation !== undefined) ctx.globalCompositeOperation = this.options.borderOperation;
             ctx.beginPath();
             ctx.lineWidth = this.ignoreZoomSize ? this.strokeWidth : g2lz(this.strokeWidth);
-            ctx.strokeStyle = this.strokeColour;
+            ctx.strokeStyle = this.strokeColour[0];
             // Inset the border with - borderWidth / 2
             // Slight imperfection added to account for zoom subpixel differences
             const r = this.r - this.strokeWidth / 2.5;

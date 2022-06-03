@@ -174,7 +174,7 @@ function setValue(event: Event): void {
         <div class="row">
             <label for="shapeselectiondialog-strokecolour">{{ t("common.border_color") }}</label>
             <ColourPicker
-                :colour="activeShapeStore.state.strokeColour"
+                :colour="activeShapeStore.state.strokeColour?.[0]"
                 @input:colour="setStrokeColour($event, true)"
                 @update:colour="setStrokeColour($event)"
                 style="grid-column-start: toggle"

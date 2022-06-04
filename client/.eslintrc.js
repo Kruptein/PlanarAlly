@@ -36,6 +36,7 @@ module.exports = {
         "no-empty-function": "off",
         "no-unused-vars": "off",
         "prettier/prettier": [process.env.CI === undefined ? 1 : 2],
+        "vue/multi-word-component-names": "off",
     },
     overrides: [
         {

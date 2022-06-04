@@ -8,8 +8,10 @@ const props = withDefaults(
     defineProps<{ visible: boolean; categories: string[]; applyTranslation?: boolean; initialSelection?: string }>(),
     { applyTranslation: false },
 );
-const emit =
-    defineEmits<{ (e: "update:visible", visible: boolean): void; (e: "update:selection", selection: string): void }>();
+const emit = defineEmits<{
+    (e: "update:visible", visible: boolean): void;
+    (e: "update:selection", selection: string): void;
+}>();
 
 const { t } = useI18n();
 

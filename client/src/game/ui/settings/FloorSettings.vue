@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, toRef } from "@vue/runtime-core";
+import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../core/components/ColourPicker.vue";

@@ -26,7 +26,7 @@ async def create(request: web.Request) -> web.Response:
         return web.HTTPBadRequest(reason="Missing mandatory field 'message'")
 
 
-async def collect() -> web.Response:
+async def collect(_request: web.Request) -> web.Response:
     notifications = [
         {"uuid": str(n.uuid), "message": n.message} for n in Notification.select()
     ]

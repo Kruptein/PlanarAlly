@@ -9,7 +9,7 @@ from peewee import (
     TextField,
 )
 from playhouse.shortcuts import model_to_dict
-from typing import List, Optional, Set, TYPE_CHECKING
+from typing import List, Optional, Set, TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
     from models.initiative import Initiative
@@ -68,7 +68,7 @@ class Room(BaseModel):
     players: List["PlayerRoom"]
     locations: List["Location"]
 
-    name = TextField()
+    name = cast(str, TextField())
     creator = ForeignKeyField(User, backref="rooms_created", on_delete="CASCADE")
     invitation_code = TextField(default=uuid.uuid4, unique=True)
     is_locked = BooleanField(default=False)
@@ -196,7 +196,7 @@ class Location(BaseModel):
 class PlayerRoom(BaseModel):
     role = IntegerField(default=0)
     player = ForeignKeyField(User, backref="rooms_joined", on_delete="CASCADE")
-    room = ForeignKeyField(Room, backref="players", on_delete="CASCADE")
+    room = cast(Room, ForeignKeyField(Room, backref="players", on_delete="CASCADE"))
     active_location = ForeignKeyField(Location, backref="players", on_delete="CASCADE")
     user_options = ForeignKeyField(UserOptions, on_delete="CASCADE", null=True)
     notes = TextField(null=True)

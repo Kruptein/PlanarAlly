@@ -3,9 +3,7 @@ import os
 import sys
 
 import aiohttp
-import aiohttp_jinja2
 from aiohttp import web
-from aiohttp_security import check_authorized
 
 import api.http
 import api.http.admin.campaigns
@@ -17,9 +15,6 @@ import api.http.users
 import api.http.version
 from app import admin_app, api_app, app as main_app
 from config import config
-from models import Room, User
-from models.role import Role
-from logs import logger
 from utils import FILE_DIR
 
 
@@ -56,30 +51,6 @@ async def root_dev(request, admin_api=False):
                 )
 
     return web.Response(body=raw, status=response.status, headers=response.headers)
-
-
-@aiohttp_jinja2.template("planarally.jinja2")
-async def show_room(request):
-    user = await check_authorized(request)
-    creator = User.by_name(request.match_info["username"])
-    try:
-        room = Room.select().where(
-            (Room.creator == creator) & (Room.name == request.match_info["roomname"])
-        )[0]
-    except IndexError:
-        logger.info(
-            f"{user.name} attempted to load non existing room {request.match_info['username']}/{request.match_info['roomname']}"
-        )
-    else:
-        for pr in room.players:
-            if pr.user == user:
-                return {"dm": pr.role == Role.DM}
-    return web.HTTPFound("/rooms")
-
-
-@aiohttp_jinja2.template("assets.jinja2")
-async def show_assets(request):
-    await check_authorized(request)
 
 
 # MAIN ROUTES

@@ -4,7 +4,7 @@ from peewee import Case
 from socketio import AsyncServer
 
 import auth
-from api import _send_game
+from api.helpers import _send_game
 from api.socket.constants import GAME_NS
 from api.socket.groups import remove_group_if_empty
 from api.socket.shape.data_models import *

@@ -24,11 +24,12 @@ class AuthPolicy(AbstractAuthorizationPolicy):
         Return True if the identity is allowed the permission in the
         current context, else return False.
         """
-        # pylint: disable=unused-argument
-        user = User.by_name(identity)
-        if not user:
-            return False
-        return permission in user.permissions
+        return False
+        # # pylint: disable=unused-argument
+        # user = User.by_name(identity)
+        # if not user:
+        #     return False
+        # return permission in user.permissions
 
 
 def login_required(app, sio):

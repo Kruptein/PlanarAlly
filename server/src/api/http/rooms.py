@@ -1,5 +1,6 @@
 import asyncio
-from typing import Union
+from datetime import datetime
+from typing import Type, Union, cast
 from aiohttp import web
 from aiohttp_security import check_authorized
 from export.campaign import export_campaign
@@ -15,13 +16,12 @@ async def get_list(request: web.Request):
     return web.json_response(
         {
             "owned": [
-                r.as_dashboard_dict() for r in user.rooms_created.select().join(User)
+                r.as_dashboard_dict() for r in user.rooms_created
             ],
             "joined": [
                 r.room.as_dashboard_dict()
-                for r in user.rooms_joined.select()
+                for r in user.rooms_joined
                 .join(Room)
-                .join(User)
                 .where(Room.creator != user)
             ],
         }
@@ -34,23 +34,20 @@ async def get_info(request: web.Request):
     creator = request.match_info["creator"]
     roomname = request.match_info["roomname"]
 
-    room = (
-        PlayerRoom.select()
-        .join(Room)
-        .join(User)
-        .filter(player=user)
-        .where((User.name == creator) & (Room.name == roomname))
-    )
+    room = PlayerRoom.select().join(Room).join(User).filter(player=user).where((User.name == creator) & (Room.name == roomname))
+    
 
     if len(room) != 1:
         return web.HTTPNotFound()
+    
+    last_played = cast(datetime, room[0].last_played)
 
     return web.json_response(
         {
             "notes": room[0].notes,
             "last_played": None
-            if room[0].last_played is None
-            else room[0].last_played.strftime("%Y/%m/%d"),
+            if last_played is None
+            else last_played.strftime("%Y/%m/%d"),
         }
     )
 
@@ -153,13 +150,14 @@ async def delete(request: web.Request):
     roomname = request.match_info["roomname"]
 
     if creator == user.name:
-        room: Room = Room.get_or_none(name=roomname, creator=user)
+        room = Room.get_or_none(name=roomname, creator=user)
         if room is None:
             return web.HTTPBadRequest()
 
         room.delete_instance(True)
         return web.HTTPOk()
     else:
+        p = PlayerRoom.select()
         pr = (
             PlayerRoom.select()
             .join(Room)

@@ -1,5 +1,5 @@
 import bcrypt
-from typing import List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, Type
 from peewee import (
     FloatField,
     ForeignKeyField,
@@ -10,11 +10,13 @@ from peewee import (
 )
 from playhouse.shortcuts import model_to_dict
 
+from models.typed import SelectSequence
+
 from .base import BaseModel
 
 if TYPE_CHECKING:
     from models.label import Label
-    from models.campaign import Room
+    from models.campaign import PlayerRoom, Room
 
 
 __all__ = ["User", "UserOptions"]
@@ -67,7 +69,8 @@ class UserOptions(BaseModel):
 class User(BaseModel):
     id: int
     labels: List["Label"]
-    rooms_created: List["Room"]
+    rooms_created: SelectSequence["Room"]
+    rooms_joined: SelectSequence["PlayerRoom"]
 
     name = TextField()
     email = TextField(null=True)

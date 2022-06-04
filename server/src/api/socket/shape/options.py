@@ -6,7 +6,7 @@ from playhouse.shortcuts import update_model_from_dict
 from socketio import AsyncServer
 
 import auth
-from api import _send_game
+from api.helpers import _send_game
 from api.socket.constants import GAME_NS
 from api.socket.shape.utils import get_owner_sids, get_shape_or_none
 from app import app, sio

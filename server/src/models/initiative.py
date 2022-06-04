@@ -1,6 +1,7 @@
 import json
 from peewee import ForeignKeyField, IntegerField, TextField
 from playhouse.shortcuts import model_to_dict
+from typing import cast
 
 from . import Location
 from .base import BaseModel
@@ -10,11 +11,13 @@ __all__ = ["Initiative"]
 
 
 class Initiative(BaseModel):
+    id: int
+
     location = ForeignKeyField(Location, backref="initiative", on_delete="CASCADE")
     round = IntegerField()
-    turn = IntegerField()
+    turn = cast(int, IntegerField())
     sort = IntegerField(default=0)
-    data = TextField()
+    data = cast(str, TextField())
 
     def as_dict(self):
         initiative = model_to_dict(self, recurse=False, exclude=[Initiative.id])

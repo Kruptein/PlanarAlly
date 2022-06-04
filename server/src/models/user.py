@@ -1,5 +1,5 @@
 import bcrypt
-from typing import List, TYPE_CHECKING, Type
+from typing import List, TYPE_CHECKING, Type, cast
 from peewee import (
     FloatField,
     ForeignKeyField,
@@ -23,6 +23,8 @@ __all__ = ["User", "UserOptions"]
 
 
 class UserOptions(BaseModel):
+    id: int
+
     fow_colour = TextField(default="#000", null=True)
     grid_colour = TextField(default="#000", null=True)
     ruler_colour = TextField(default="#F00", null=True)
@@ -60,7 +62,7 @@ class UserOptions(BaseModel):
         return {
             k: v
             for k, v in model_to_dict(
-                self, backrefs=None, recurse=None, exclude=[UserOptions.id]
+                self, backrefs=False, recurse=False, exclude=[UserOptions.id]
             ).items()
             if v is not None
         }
@@ -72,9 +74,9 @@ class User(BaseModel):
     rooms_created: SelectSequence["Room"]
     rooms_joined: SelectSequence["PlayerRoom"]
 
-    name = TextField()
+    name = cast(str, TextField())
     email = TextField(null=True)
-    password_hash = TextField()
+    password_hash = cast(str, TextField())
     default_options = ForeignKeyField(UserOptions, on_delete="CASCADE")
 
     def __repr__(self):

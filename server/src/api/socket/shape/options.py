@@ -788,7 +788,7 @@ async def set_tp_permissions(sid: str, data):
 
 @sio.on("Shape.Options.TeleportZoneTarget.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def set_tp_permissions(sid: str, data):
+async def set_tp_target(sid: str, data):
     pr: PlayerRoom = game_state.get(sid)
 
     shape = get_shape_or_none(pr, data["shape"], "TeleportZoneTarget.Set")
@@ -828,7 +828,7 @@ async def set_skip_draw(sid: str, data: ShapeSetBooleanValue):
 
 @sio.on("Shape.Options.SvgAsset.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def set_skip_draw(sid: str, data: ShapeSetStringValue):
+async def set_svg_asset(sid: str, data: ShapeSetStringValue):
     pr: PlayerRoom = game_state.get(sid)
 
     shape = get_shape_or_none(pr, data["shape"], "SkipDraw.Set")

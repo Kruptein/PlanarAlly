@@ -9,6 +9,7 @@ __all__ = ["Marker"]
 
 class Marker(BaseModel):
     from .shape import Shape
+    shape_id: str
 
     shape = ForeignKeyField(Shape, backref="markers", on_delete="CASCADE")
     user = ForeignKeyField(User, backref="markers", on_delete="CASCADE")

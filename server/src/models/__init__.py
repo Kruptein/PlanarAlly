@@ -1,3 +1,5 @@
+from typing import List, Type
+from models.typed import TypedModel
 from utils import all_subclasses
 from .asset import *
 from .base import BaseModel as _BaseModel
@@ -12,4 +14,4 @@ from .signals import *
 from .user import *
 from .marker import *
 
-ALL_MODELS = [model for model in all_subclasses(_BaseModel)]
+ALL_MODELS: List[Type[TypedModel]] = [model for model in all_subclasses(_BaseModel)]

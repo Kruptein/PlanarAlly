@@ -1,5 +1,6 @@
 import json
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional, Union, cast
+from typing_extensions import TypedDict
 
 from peewee import ForeignKeyField, TextField
 from playhouse.shortcuts import model_to_dict
@@ -10,14 +11,27 @@ from .user import User
 __all__ = ["Asset"]
 
 
+class FileStructure(TypedDict):
+    __files: List["FileStructureElement"]
+
+
+class FileStructureElement(TypedDict):
+    id: int
+    name: str
+    hash: str
+
+
+AssetStructure = Union[FileStructure, Dict[str, "AssetStructure"]]
+
+
 class Asset(BaseModel):
     id: int
 
     owner = ForeignKeyField(User, backref="assets", on_delete="CASCADE")
-    parent = ForeignKeyField("self", backref="children", null=True, on_delete="CASCADE")
-    name = TextField()
-    file_hash = TextField(null=True)
-    options = TextField(null=True)
+    parent = cast(Optional["Asset"], ForeignKeyField("self", backref="children", null=True, on_delete="CASCADE"))
+    name = cast(str, TextField())
+    file_hash = cast(Optional[str], TextField(null=True))
+    options = cast(Optional[str], TextField(null=True))
 
     def __repr__(self):
         return f"<Asset {self.owner.name} - {self.name}>"
@@ -57,7 +71,7 @@ class Asset(BaseModel):
         if parent is None:
             parent = cls.get_root_folder(user)
         # ideally we change this to a single query to get all assets and process them as such
-        data = {"__files": []}
+        data: AssetStructure = {"__files": []}
         for asset in Asset.select().where(
             (Asset.owner == user) & (Asset.parent == parent)
         ):

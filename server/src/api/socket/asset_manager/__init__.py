@@ -51,7 +51,7 @@ async def update_live_game(user: User):
             )
 
 
-@sio.on("connect", namespace=ASSET_NS)
+# @sio.on("connect", namespace=ASSET_NS)
 async def assetmgmt_connect(sid: str, environ):
     user = await authorized_userid(environ["aiohttp.request"])
     if user is None:
@@ -60,6 +60,8 @@ async def assetmgmt_connect(sid: str, environ):
         await asset_state.add_sid(sid, user)
         root = Asset.get_root_folder(user)
         await sio.emit("Folder.Root.Set", root.id, room=sid, namespace=ASSET_NS)
+
+sio.on('connect', namespace=ASSET_NS, handler=assetmgmt_connect)
 
 
 @sio.on("Folder.Get", namespace=ASSET_NS)

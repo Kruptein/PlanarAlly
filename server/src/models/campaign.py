@@ -1,4 +1,5 @@
 import uuid
+from datetime import date
 from peewee import (
     DateField,
     fn,
@@ -10,6 +11,8 @@ from peewee import (
 )
 from playhouse.shortcuts import model_to_dict
 from typing import List, Optional, Set, TYPE_CHECKING, cast
+
+from models.typed import SelectSequence
 
 if TYPE_CHECKING:
     from models.initiative import Initiative
@@ -35,6 +38,8 @@ __all__ = [
 TRANSPARENT_COLOR = "rgba(0, 0, 0, 0)"
 
 class LocationOptions(BaseModel):
+    id: int
+
     unit_size = FloatField(default=5, null=True)
     unit_size_unit = TextField(default="ft", null=True)
     use_grid = BooleanField(default=True, null=True)
@@ -45,7 +50,7 @@ class LocationOptions(BaseModel):
     # default is 1km max, 0.5km min
     vision_min_range = FloatField(default=1640, null=True)
     vision_max_range = FloatField(default=3281, null=True)
-    spawn_locations = TextField(default="[]")
+    spawn_locations = cast(str, TextField(default="[]"))
     move_player_on_token_change = BooleanField(default=True, null=True)
     grid_type = TextField(default="SQUARE", null=True)
     air_map_background = TextField(default=TRANSPARENT_COLOR, null=True)
@@ -56,7 +61,7 @@ class LocationOptions(BaseModel):
         return {
             k: v
             for k, v in model_to_dict(
-                self, backrefs=None, recurse=None, exclude=[LocationOptions.id]
+                self, backrefs=False, recurse=False, exclude=[LocationOptions.id]
             ).items()
             if v is not None
         }
@@ -65,13 +70,13 @@ class LocationOptions(BaseModel):
 class Room(BaseModel):
     id: int
     logo_id: Optional[int]
-    players: List["PlayerRoom"]
-    locations: List["Location"]
+    players: SelectSequence["PlayerRoom"]
+    locations: SelectSequence["Location"]
 
     name = cast(str, TextField())
-    creator = ForeignKeyField(User, backref="rooms_created", on_delete="CASCADE")
-    invitation_code = TextField(default=uuid.uuid4, unique=True)
-    is_locked = BooleanField(default=False)
+    creator = cast(User, ForeignKeyField(User, backref="rooms_created", on_delete="CASCADE"))
+    invitation_code = cast(uuid.UUID, TextField(default=uuid.uuid4, unique=True))
+    is_locked = cast(bool, BooleanField(default=False))
     default_options = ForeignKeyField(LocationOptions, on_delete="CASCADE")
     logo = ForeignKeyField(Asset, null=True, on_delete="SET NULL")
 
@@ -98,15 +103,16 @@ class Room(BaseModel):
 
 class Location(BaseModel):
     id: int
-    floors: List["Floor"]
+    floors: SelectSequence["Floor"]
     initiative: List["Initiative"]
+    players: SelectSequence["PlayerRoom"]
     user_options: List["LocationUserOption"]
 
     room = ForeignKeyField(Room, backref="locations", on_delete="CASCADE")
-    name = TextField()
-    options = ForeignKeyField(LocationOptions, on_delete="CASCADE", null=True)
-    index = IntegerField()
-    archived = BooleanField(default=False)
+    name = cast(str, TextField())
+    options = cast(Optional[LocationOptions], ForeignKeyField(LocationOptions, on_delete="CASCADE", null=True))
+    index = cast(int, IntegerField())
+    archived = cast(bool, BooleanField(default=False))
 
     def __repr__(self):
         return f"<Location {self.get_path()}>"
@@ -194,13 +200,13 @@ class Location(BaseModel):
 
 
 class PlayerRoom(BaseModel):
-    role = IntegerField(default=0)
-    player = ForeignKeyField(User, backref="rooms_joined", on_delete="CASCADE")
+    role = cast(int, IntegerField(default=0))
+    player = cast(User, ForeignKeyField(User, backref="rooms_joined", on_delete="CASCADE"))
     room = cast(Room, ForeignKeyField(Room, backref="players", on_delete="CASCADE"))
-    active_location = ForeignKeyField(Location, backref="players", on_delete="CASCADE")
-    user_options = ForeignKeyField(UserOptions, on_delete="CASCADE", null=True)
+    active_location = cast(Location, ForeignKeyField(Location, backref="players", on_delete="CASCADE"))
+    user_options = cast(Optional[UserOptions], ForeignKeyField(UserOptions, on_delete="CASCADE", null=True))
     notes = TextField(null=True)
-    last_played = DateField(null=True)
+    last_played = cast(Optional[date], DateField(null=True))
 
     def __repr__(self):
         return f"<PlayerRoom {self.room.get_path()} - {self.player.name}>"
@@ -227,14 +233,14 @@ class Note(BaseModel):
 
 class Floor(BaseModel):
     id: int
-    layers: List["Layer"]
+    layers: SelectSequence["Layer"]
 
     location = ForeignKeyField(Location, backref="floors", on_delete="CASCADE")
-    index = IntegerField()
-    name = TextField()
-    player_visible = BooleanField(default=False)
-    type_ = IntegerField(default=1)
-    background_color = TextField(default=None, null=True)
+    index = cast(int, IntegerField())
+    name = cast(str, TextField())
+    player_visible = cast(bool, BooleanField(default=False))
+    type_ = cast(int, IntegerField(default=1))
+    background_color = cast(Optional[str], TextField(default=None, null=True))
 
     def __repr__(self):
         return f"<Floor {self.name} {[self.index]}>"
@@ -255,16 +261,16 @@ class Floor(BaseModel):
 
 class Layer(BaseModel):
     id: int
-    shapes: List["Shape"]
+    shapes: SelectSequence["Shape"]
 
     floor = ForeignKeyField(Floor, backref="layers", on_delete="CASCADE")
-    name = TextField()
+    name = cast(str, TextField())
     type_ = TextField()
     # TYPE = IntegerField()  # normal/grid/dm/lighting ???????????
     player_visible = BooleanField(default=False)
     player_editable = BooleanField(default=False)
     selectable = BooleanField(default=True)
-    index = IntegerField()
+    index = cast(int, IntegerField())
 
     def __repr__(self):
         return f"<Layer {self.get_path()}>"
@@ -295,6 +301,8 @@ class Layer(BaseModel):
 
 
 class LocationUserOption(BaseModel):
+    id: int
+
     location = ForeignKeyField(Location, backref="user_options", on_delete="CASCADE")
     user = ForeignKeyField(User, backref="location_options", on_delete="CASCADE")
     pan_x = IntegerField(default=0)

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, cast
 from typing_extensions import TypedDict
 
 from socketio import AsyncServer
@@ -36,7 +36,7 @@ async def set_toggle_composite_active_variant(sid: str, data: VariantMessage):
     if shape is None:
         return
 
-    composite: ToggleComposite = shape.subtype
+    composite = cast(ToggleComposite, shape.subtype)
 
     composite.active_variant = data["variant"]
     composite.save()

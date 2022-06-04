@@ -1,9 +1,15 @@
 import json
 from uuid import uuid4
+from __future__ import annotations
 
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
 from playhouse.shortcuts import model_to_dict, update_model_from_dict
-from typing import Any, Dict, List, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, cast
+from api.socket.shape.data_models import ServerShapeOwner
+from models.typed import SelectSequence, TypedModel
+
+if TYPE_CHECKING:
+    from api.socket.shape.data_models import ShapeKeys
 
 from logs import logger
 from ..asset import Asset
@@ -31,53 +37,53 @@ __all__ = [
 
 
 class Shape(BaseModel):
-    labels: List["ShapeLabel"]
-    trackers: List["Tracker"]
-    auras: List["Aura"]
-    owners: List["ShapeOwner"]
-    assetrect_set: List["AssetRect"]
-    circle_set: List["Circle"]
-    circulartoken_set: List["CircularToken"]
-    line_set: List["Line"]
-    polygon_set: List["Polygon"]
-    rect_set: List["Rect"]
-    text_set: List["Text"]
-    togglecomposite_set: List["ToggleComposite"]
-    composite_parent: List["CompositeShapeAssociation"]
-    shape_variants: List["CompositeShapeAssociation"]
+    labels: SelectSequence["ShapeLabel"]
+    trackers: SelectSequence["Tracker"]
+    auras: SelectSequence["Aura"]
+    owners: SelectSequence["ShapeOwner"]
+    assetrect_set: SelectSequence["AssetRect"]
+    circle_set: SelectSequence["Circle"]
+    circulartoken_set: SelectSequence["CircularToken"]
+    line_set: SelectSequence["Line"]
+    polygon_set: SelectSequence["Polygon"]
+    rect_set: SelectSequence["Rect"]
+    text_set: SelectSequence["Text"]
+    togglecomposite_set: SelectSequence["ToggleComposite"]
+    composite_parent: SelectSequence["CompositeShapeAssociation"]
+    shape_variants: SelectSequence["CompositeShapeAssociation"]
 
-    uuid = TextField(primary_key=True)
-    layer = ForeignKeyField(Layer, backref="shapes", on_delete="CASCADE")
-    type_ = TextField()
-    x = FloatField()
-    y = FloatField()
-    name = TextField(null=True)
-    name_visible = BooleanField(default=True)
-    fill_colour = TextField(default="#000")
-    stroke_colour = TextField(default="#fff")
-    vision_obstruction = BooleanField(default=False)
-    movement_obstruction = BooleanField(default=False)
-    is_token = BooleanField(default=False)
-    annotation = TextField(default="")
+    uuid = cast(str, TextField(primary_key=True))
+    layer = cast(Layer, ForeignKeyField(Layer, backref="shapes", on_delete="CASCADE"))
+    type_ = cast(str, TextField())
+    x = cast(float, FloatField())
+    y = cast(float, FloatField())
+    name = cast(Optional[str], TextField(null=True))
+    name_visible = cast(bool, BooleanField(default=False))
+    fill_colour = cast(str, TextField(default="#000"))
+    stroke_colour = cast(str, TextField(default="#fff"))
+    vision_obstruction = cast(bool, BooleanField(default=False))
+    movement_obstruction = cast(bool, BooleanField(default=False))
+    is_token = cast(bool, BooleanField(default=False))
+    annotation = cast(str, TextField(default=""))
     draw_operator = TextField(default="source-over")
-    index = IntegerField()
-    options = TextField(null=True)
-    badge = IntegerField(default=1)
-    show_badge = BooleanField(default=False)
-    default_edit_access = BooleanField(default=False)
-    default_vision_access = BooleanField(default=False)
-    is_invisible = BooleanField(default=False)
-    is_defeated = BooleanField(default=False)
-    default_movement_access = BooleanField(default=False)
-    is_locked = BooleanField(default=False)
-    angle = FloatField(default=0)
+    index = cast(int, IntegerField())
+    options = cast(Optional[str], TextField(null=True))
+    badge = cast(int, IntegerField(default=1))
+    show_badge = cast(bool, BooleanField(default=False))
+    default_edit_access = cast(bool, BooleanField(default=False))
+    default_vision_access = cast(bool, BooleanField(default=False))
+    is_invisible = cast(bool, BooleanField(default=False))
+    is_defeated = cast(bool, BooleanField(default=False))
+    default_movement_access = cast(bool, BooleanField(default=False))
+    is_locked = cast(bool, BooleanField(default=False))
+    angle = cast(float, FloatField(default=0))
     stroke_width = IntegerField(default=2)
     asset = ForeignKeyField(Asset, backref="shapes", null=True, default=None)
-    group = ForeignKeyField(Group, backref="members", null=True, default=None)
-    annotation_visible = BooleanField(default=False)
+    group = cast(Optional[Group], ForeignKeyField(Group, backref="members", null=True, default=None))
+    annotation_visible = cast(bool, BooleanField(default=False))
     ignore_zoom_size = BooleanField(default=False)
-    is_door = BooleanField(default=False)
-    is_teleport_zone = BooleanField(default=False)
+    is_door = cast(bool, BooleanField(default=False))
+    is_teleport_zone = cast(bool, BooleanField(default=False))
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"
@@ -95,14 +101,14 @@ class Shape(BaseModel):
         self.options = json.dumps([[k, v] for k, v in options.items()])
 
     # todo: Change this API to accept a PlayerRoom instead
-    def as_dict(self, user: User, dm: bool):
-        data = {
+    def as_dict(self, user: User, dm: bool) -> "ShapeKeys":
+        data = cast(ShapeKeys, {
             k: v
             for k, v in model_to_dict(
                 self, recurse=False, exclude=[Shape.layer, Shape.index]
             ).items()
             if v is not None
-        }
+        })
         # Owner query > list of usernames
         data["owners"] = [owner.as_dict() for owner in self.owners]
         # Layer query > layer name
@@ -139,7 +145,7 @@ class Shape(BaseModel):
         self.y = y - y_off
 
     @property
-    def subtype(self):
+    def subtype(self) -> ShapeType:
         return getattr(self, f"{self.type_}_set").get()
 
     def make_copy(self, dst_layer, new_group):
@@ -255,7 +261,7 @@ class Aura(BaseModel):
 
 class ShapeOwner(BaseModel):
     shape = ForeignKeyField(Shape, backref="owners", on_delete="CASCADE")
-    user = ForeignKeyField(User, backref="shapes", on_delete="CASCADE")
+    user = cast(User, ForeignKeyField(User, backref="shapes", on_delete="CASCADE"))
     edit_access = BooleanField()
     vision_access = BooleanField()
     movement_access = BooleanField()
@@ -263,14 +269,14 @@ class ShapeOwner(BaseModel):
     def __repr__(self):
         return f"<ShapeOwner {self.user.name} {self.shape.get_path()}>"
 
-    def as_dict(self):
-        return {
+    def as_dict(self) -> ServerShapeOwner:
+        return cast(ServerShapeOwner, {
             "shape": self.shape.uuid,
             "user": self.user.name,
             "edit_access": self.edit_access,
             "movement_access": self.movement_access,
             "vision_access": self.vision_access,
-        }
+        })
 
     def make_copy(self, new_shape):
         _dict = self.as_dict()
@@ -293,7 +299,7 @@ class ShapeType(BaseModel):
         """
         pass
 
-    def as_dict(self, *args, **kwargs):
+    def as_dict(self, *args, **kwargs) -> Dict[Any, Any]:
         return model_to_dict(self, *args, **kwargs)
 
     def update_from_dict(self, data, *args, **kwargs):
@@ -302,7 +308,7 @@ class ShapeType(BaseModel):
     def get_center_offset(self, x: int, y: int) -> Tuple[int, int]:
         return 0, 0
 
-    def set_location(self, points: List[List[int]]) -> None:
+    def set_location(self, points: List[List[float]]) -> None:
         logger.error("Attempt to set location on shape without location info")
 
     def make_copy(self, new_shape):
@@ -312,10 +318,10 @@ class ShapeType(BaseModel):
 
 
 class BaseRect(ShapeType):
-    width = FloatField()
-    height = FloatField()
+    width = cast(float, FloatField())
+    height = cast(float, FloatField())
 
-    def get_center_offset(self, x: int, y: int) -> Tuple[int, int]:
+    def get_center_offset(self, x: int, y: int) -> Tuple[float, float]:
         return self.width / 2, self.height / 2
 
 
@@ -324,12 +330,12 @@ class AssetRect(BaseRect):
 
 
 class Circle(ShapeType):
-    radius = FloatField()
+    radius = cast(float, FloatField())
     viewing_angle = FloatField(null=True)
 
 
 class CircularToken(Circle):
-    text = TextField()
+    text = cast(str, TextField())
     font = TextField()
 
 
@@ -338,7 +344,7 @@ class Line(ShapeType):
     y2 = FloatField()
     line_width = IntegerField()
 
-    def get_center_offset(self, x: int, y: int) -> Tuple[int, int]:
+    def get_center_offset(self, x: int, y: int) -> Tuple[float, float]:
         return (self.x2 - self.x) / 2, (self.y2 - self.y) / 2
 
 
@@ -361,7 +367,7 @@ class Polygon(ShapeType):
         data["vertices"] = json.dumps(data["vertices"])
         return update_model_from_dict(self, data, *args, **kwargs)
 
-    def set_location(self, points: List[List[int]]) -> None:
+    def set_location(self, points: List[List[float]]) -> None:
         self.vertices = json.dumps(points)
         self.save()
 
@@ -371,8 +377,8 @@ class Rect(BaseRect):
 
 
 class Text(ShapeType):
-    text = TextField()
-    font_size = IntegerField()
+    text = cast(str, TextField())
+    font_size = cast(int, IntegerField())
 
 
 class ToggleComposite(ShapeType):
@@ -380,7 +386,7 @@ class ToggleComposite(ShapeType):
     Toggle shapes are composites that have multiple variants but only show one at a time.
     """
 
-    active_variant = TextField(null=True)
+    active_variant = cast(Optional[str], TextField(null=True))
 
     @staticmethod
     def post_create(subshape, **kwargs):

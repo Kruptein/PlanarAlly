@@ -1,4 +1,9 @@
-def get_table(name):
+from typing import Optional, Type
+
+from models.typed import TypedModel
+
+
+def get_table(name: str):
     from . import ALL_MODELS
 
     for model in ALL_MODELS:

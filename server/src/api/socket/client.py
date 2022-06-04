@@ -110,8 +110,8 @@ async def set_layer(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     try:
-        floor = pr.active_location.floors.select().where(Floor.name == data["floor"])[0]
-        layer = floor.layers.select().where(Layer.name == data["layer"])[0]
+        floor = pr.active_location.floors.where(Floor.name == data["floor"])[0]
+        layer = floor.layers.where(Layer.name == data["layer"])[0]
     except IndexError:
         pass
     else:

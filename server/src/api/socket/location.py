@@ -1,5 +1,5 @@
 import json
-from typing import List, Union
+from typing import List, Union, cast
 
 from playhouse.shortcuts import update_model_from_dict
 from typing_extensions import TypedDict
@@ -168,7 +168,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
     for floor in floors:
         await sio.emit(
             "Board.Floor.Set",
-            floor.as_dict(pr.player, pr.role == Role.DM),
+            floor.as_dict(pr.player, cast(bool, pr.role == Role.DM)),
             room=sid,
             namespace=GAME_NS,
         )

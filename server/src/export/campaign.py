@@ -40,6 +40,7 @@ from models.shape import (
     ToggleComposite,
     Tracker,
 )
+from models.typed import SelectSequence
 from models.user import User, UserOptions
 from save import SAVE_VERSION
 
@@ -290,7 +291,7 @@ class CampaignExporter:
             with self.db.bind_ctx([Note]):
                 Note.create(**note_data)
 
-    def export_floors(self, location_id: int, floors: List[Floor]):
+    def export_floors(self, location_id: int, floors: SelectSequence[Floor]):
         for floor in floors:
             print(f"  [FL] {floor.name}")
             floor_data = model_to_dict(floor, recurse=False)
@@ -302,7 +303,7 @@ class CampaignExporter:
 
             self.export_layers(new_floor.id, floor.layers)
 
-    def export_layers(self, floor_id: int, layers: List[Layer]):
+    def export_layers(self, floor_id: int, layers: SelectSequence[Layer]):
         for layer in layers:
             print(f"   [LAY] {layer.name}")
             layer_data = model_to_dict(layer, recurse=False)
@@ -315,7 +316,7 @@ class CampaignExporter:
 
             self.export_shapes(new_layer.id, layer.shapes)
 
-    def export_shapes(self, layer_id: int, shapes: List[Shape]):
+    def export_shapes(self, layer_id: int, shapes: SelectSequence[Shape]):
         for shape in shapes:
             shape_data = model_to_dict(shape, recurse=False)
             shape_data["layer"] = layer_id
@@ -342,7 +343,7 @@ class CampaignExporter:
             self.export_composite_shape_associations(shape.shape_variants)
 
     def export_composite_shape_associations(
-        self, associations: List[CompositeShapeAssociation]
+        self, associations: SelectSequence[CompositeShapeAssociation]
     ):
         for association in associations:
             association_data = model_to_dict(association, recurse=False)
@@ -351,77 +352,77 @@ class CampaignExporter:
             with self.db.bind_ctx([CompositeShapeAssociation]):
                 CompositeShapeAssociation.create(**association_data)
 
-    def export_assetrect(self, rects: List[AssetRect]):
+    def export_assetrect(self, rects: SelectSequence[AssetRect]):
         for rect in rects:
             rect_data = model_to_dict(rect, recurse=False)
 
             with self.db.bind_ctx([AssetRect]):
                 AssetRect.create(**rect_data)
 
-    def export_circle(self, circles: List[Circle]):
+    def export_circle(self, circles: SelectSequence[Circle]):
         for circle in circles:
             circle_data = model_to_dict(circle, recurse=False)
 
             with self.db.bind_ctx([Circle]):
                 Circle.create(**circle_data)
 
-    def export_circulartoken(self, circulartokens: List[CircularToken]):
+    def export_circulartoken(self, circulartokens: SelectSequence[CircularToken]):
         for circulartoken in circulartokens:
             circulartoken_data = model_to_dict(circulartoken, recurse=False)
 
             with self.db.bind_ctx([CircularToken]):
                 CircularToken.create(**circulartoken_data)
 
-    def export_line(self, lines: List[Line]):
+    def export_line(self, lines: SelectSequence[Line]):
         for line in lines:
             line_data = model_to_dict(line, recurse=False)
 
             with self.db.bind_ctx([Line]):
                 Line.create(**line_data)
 
-    def export_polygon(self, polygons: List[Polygon]):
+    def export_polygon(self, polygons: SelectSequence[Polygon]):
         for polygon in polygons:
             polygon_data = model_to_dict(polygon, recurse=False)
 
             with self.db.bind_ctx([Polygon]):
                 Polygon.create(**polygon_data)
 
-    def export_rect(self, rects: List[Rect]):
+    def export_rect(self, rects: SelectSequence[Rect]):
         for rect in rects:
             rect_data = model_to_dict(rect, recurse=False)
 
             with self.db.bind_ctx([Rect]):
                 Rect.create(**rect_data)
 
-    def export_text(self, texts: List[Text]):
+    def export_text(self, texts: SelectSequence[Text]):
         for text in texts:
             text_data = model_to_dict(text, recurse=False)
 
             with self.db.bind_ctx([Text]):
                 Text.create(**text_data)
 
-    def export_togglecomposite(self, togglecomposites: List[ToggleComposite]):
+    def export_togglecomposite(self, togglecomposites: SelectSequence[ToggleComposite]):
         for togglecomposite in togglecomposites:
             togglecomposite_data = model_to_dict(togglecomposite, recurse=False)
 
             with self.db.bind_ctx([ToggleComposite]):
                 ToggleComposite.create(**togglecomposite_data)
 
-    def export_trackers(self, trackers: List[Tracker]):
+    def export_trackers(self, trackers: SelectSequence[Tracker]):
         for tracker in trackers:
             tracker_data = model_to_dict(tracker, recurse=False)
 
             with self.db.bind_ctx([Tracker]):
                 Tracker.create(**tracker_data)
 
-    def export_auras(self, auras: List[Aura]):
+    def export_auras(self, auras: SelectSequence[Aura]):
         for aura in auras:
             aura_data = model_to_dict(aura, recurse=False)
 
             with self.db.bind_ctx([Aura]):
                 Aura.create(**aura_data)
 
-    def export_shape_owners(self, owners: List[ShapeOwner]):
+    def export_shape_owners(self, owners: SelectSequence[ShapeOwner]):
         for owner in owners:
             owner_data = model_to_dict(owner, recurse=False)
             del owner_data["id"]
@@ -430,7 +431,7 @@ class CampaignExporter:
             with self.db.bind_ctx([ShapeOwner]):
                 ShapeOwner.create(**owner_data)
 
-    def export_shape_labels(self, labels: List[ShapeLabel]):
+    def export_shape_labels(self, labels: SelectSequence[ShapeLabel]):
         for label in labels:
             label_data = model_to_dict(label, recurse=False)
             del label_data["id"]
@@ -442,7 +443,7 @@ class CampaignExporter:
         if group_id in self.groups_exported:
             return
 
-        group = Group[group_id]
+        group = Group.get_by_id(group_id)
         group_data = model_to_dict(group, recurse=False)
 
         with self.db.bind_ctx([Group]):
@@ -455,7 +456,7 @@ class CampaignExporter:
             return self.asset_mapping[asset_id]
 
         try:
-            asset: Asset = Asset[asset_id]
+            asset = Asset.get_by_id(asset_id)
         except Asset.DoesNotExist:
             return None
 

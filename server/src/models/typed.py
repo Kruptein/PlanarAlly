@@ -9,8 +9,6 @@ if TYPE_CHECKING:
 
 T = TypeVar('T', bound='TypedModel')
 U = TypeVar('U', bound='TypedModel')
-# Self = TypeVar("Self", bound="MS[Any]")
-
 
 class SelectSequence(Generic[T], Sequence[T], ModelSelect):
     def count(self) -> int: ...

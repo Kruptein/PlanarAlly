@@ -157,7 +157,6 @@ async def delete(request: web.Request):
         room.delete_instance(True)
         return web.HTTPOk()
     else:
-        p = PlayerRoom.select()
         pr = (
             PlayerRoom.select()
             .join(Room)

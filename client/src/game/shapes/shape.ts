@@ -300,10 +300,11 @@ export abstract class Shape implements IShape {
             if (bbox === undefined) bbox = this.getBoundingBox();
             const crossTL = g2l(bbox.topLeft);
             const crossBR = g2l(bbox.botRight);
-            const r = g2lz(10);
+            const crossLength = g2lz(Math.max(bbox.w, bbox.h));
+            const r = crossLength * 0.2;
             ctx.strokeStyle = "red";
             ctx.fillStyle = this.strokeColour[0];
-            ctx.lineWidth = g2lz(2);
+            ctx.lineWidth = r / 5;
             ctx.beginPath();
             ctx.moveTo(crossTL.x + r, crossTL.y + r);
             ctx.lineTo(crossBR.x - r, crossBR.y - r);

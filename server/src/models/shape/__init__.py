@@ -1,15 +1,14 @@
+from __future__ import annotations
 import json
 from uuid import uuid4
-from __future__ import annotations
 
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
 from playhouse.shortcuts import model_to_dict, update_model_from_dict
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, cast
-from api.socket.shape.data_models import ServerShapeOwner
-from models.typed import SelectSequence, TypedModel
+from models.typed import SelectSequence
 
 if TYPE_CHECKING:
-    from api.socket.shape.data_models import ShapeKeys
+    from api.socket.shape.data_models import ServerShapeOwner, ShapeKeys
 
 from logs import logger
 from ..asset import Asset
@@ -102,7 +101,7 @@ class Shape(BaseModel):
 
     # todo: Change this API to accept a PlayerRoom instead
     def as_dict(self, user: User, dm: bool) -> "ShapeKeys":
-        data = cast(ShapeKeys, {
+        data = cast("ShapeKeys", {
             k: v
             for k, v in model_to_dict(
                 self, recurse=False, exclude=[Shape.layer, Shape.index]
@@ -269,8 +268,8 @@ class ShapeOwner(BaseModel):
     def __repr__(self):
         return f"<ShapeOwner {self.user.name} {self.shape.get_path()}>"
 
-    def as_dict(self) -> ServerShapeOwner:
-        return cast(ServerShapeOwner, {
+    def as_dict(self) -> "ServerShapeOwner":
+        return cast("ServerShapeOwner", {
             "shape": self.shape.uuid,
             "user": self.user.name,
             "edit_access": self.edit_access,

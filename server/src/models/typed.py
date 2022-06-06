@@ -1,7 +1,7 @@
+from __future__ import annotations
 from peewee import ModelDelete, ModelSelect, ModelUpdate
 from typing import TYPE_CHECKING, Any, Dict, Generic, Sequence, Type, TypeVar
 from typing_extensions import Self
-from __future__ import annotations
 
 if TYPE_CHECKING:
     from .base import BaseModel

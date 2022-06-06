@@ -210,7 +210,6 @@ export abstract class Shape implements IShape {
     }
 
     updateLayerPoints(): void {
-        console.trace("Upading layer points");
         for (const point of this.layer.points) {
             if (point[1].has(this.id)) {
                 if (point[1].size === 1) this.layer.points.delete(point[0]);

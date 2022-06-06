@@ -274,7 +274,8 @@ export abstract class Shape implements IShape {
         if (this.showBadge) {
             bbox = this.getBoundingBox();
             const location = g2l(bbox.botRight);
-            const r = g2lz(10);
+            const crossLength = g2lz(Math.min(bbox.w, bbox.h));
+            const r = crossLength * 0.2;
             ctx.strokeStyle = "black";
             ctx.fillStyle = this.strokeColour[0];
             ctx.lineWidth = g2lz(2);

@@ -94,18 +94,20 @@ class SpellTool extends Tool {
 
         switch (this.state.selectedSpellShape) {
             case SpellShape.Circle:
-                this.shape = new Circle(startPosition, getUnitDistance(this.state.size));
+                this.shape = new Circle(startPosition, getUnitDistance(this.state.size), { isSnappable: false });
                 break;
             case SpellShape.Square:
                 this.shape = new Rect(
                     startPosition,
                     getUnitDistance(this.state.size),
                     getUnitDistance(this.state.size),
+                    { isSnappable: false },
                 );
                 break;
             case SpellShape.Cone:
                 this.shape = new Circle(startPosition, getUnitDistance(this.state.size), {
                     viewingAngle: toRadians(60),
+                    isSnappable: false,
                 });
                 break;
         }
@@ -130,7 +132,6 @@ class SpellTool extends Tool {
             this.shape,
             this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC,
             InvalidationMode.NORMAL,
-            { snappable: false },
         );
 
         this.drawRangeShape();
@@ -149,8 +150,9 @@ class SpellTool extends Tool {
         this.rangeShape = new Circle(getShape(selection[0])!.center(), getUnitDistance(this.state.range), {
             fillColour: "rgba(0,0,0,0)",
             strokeColour: ["black"],
+            isSnappable: false,
         });
-        layer.addShape(this.rangeShape, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
+        layer.addShape(this.rangeShape, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
     }
 
     // eslint-disable-next-line @typescript-eslint/require-await
@@ -193,7 +195,7 @@ class SpellTool extends Tool {
             dropShapeId: false,
         });
         this.shape.isInvisible = !this.state.showPublic;
-        layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NORMAL, { snappable: false });
+        layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NORMAL);
         this.shape = undefined;
         activateTool(ToolName.Select);
     }

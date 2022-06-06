@@ -23,6 +23,7 @@ these changes will usually be stripped from release notes for the public
 -   [server] Restructure server files
 -   [tech] SyncTo primitive modified to an alternative Sync structure
 -   [tech] Polygon can now have client-side multi-stroke
+-   [tech] Snappable points are calculated less often
 
 ### Fixed
 

@@ -27,6 +27,7 @@ export class Circle extends Shape {
             id?: LocalId;
             uuid?: GlobalId;
             strokeWidth?: number;
+            isSnappable?: boolean;
         },
     ) {
         super(center, options);

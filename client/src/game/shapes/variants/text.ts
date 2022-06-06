@@ -27,6 +27,7 @@ export class Text extends Shape {
             strokeColour?: string[];
             id?: LocalId;
             uuid?: GlobalId;
+            isSnappable?: boolean;
         },
     ) {
         super(position, options);

@@ -68,13 +68,13 @@ async function createSpawnLocation(): Promise<void> {
 
     const loc = toLP(defaultContextLeft.value, defaultContextTop.value);
 
-    const shape = new Asset(img, l2g(loc), 50, 50, { uuid });
+    const shape = new Asset(img, l2g(loc), 50, 50, { uuid, isSnappable: false });
     shape.name = spawnName;
     shape.src = src;
 
     floorStore
         .getLayer(floorStore.currentFloor.value!, LayerName.Dm)!
-        .addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO, { snappable: false });
+        .addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
     img.onload = () => (gameState.boardInitialized ? shape.layer.invalidate(true) : undefined);
 
     settingsStore.setSpawnLocations([...spawnLocations, shape.id], settingsStore.state.activeLocation, true);

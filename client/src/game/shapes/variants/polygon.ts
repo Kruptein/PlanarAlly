@@ -33,6 +33,7 @@ export class Polygon extends Shape {
             openPolygon?: boolean;
             id?: LocalId;
             uuid?: GlobalId;
+            isSnappable?: boolean;
         },
     ) {
         super(startPoint, options);
@@ -117,7 +118,7 @@ export class Polygon extends Shape {
     invalidatePoints(): void {
         const center = this.center();
         this._points = this.vertices.map((point) => this.invalidatePoint(point, center));
-        this.updateLayerPoints();
+        if (this.isSnappable) this.updateLayerPoints();
     }
 
     draw(ctx: CanvasRenderingContext2D): void {

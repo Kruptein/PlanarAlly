@@ -15,7 +15,13 @@ export class Rect extends BaseRect {
         topleft: GlobalPoint,
         w: number,
         h: number,
-        options?: { fillColour?: string; strokeColour?: string[]; id?: LocalId; uuid?: GlobalId },
+        options?: {
+            fillColour?: string;
+            strokeColour?: string[];
+            id?: LocalId;
+            uuid?: GlobalId;
+            isSnappable?: boolean;
+        },
     ) {
         super(topleft, w, h, options);
     }

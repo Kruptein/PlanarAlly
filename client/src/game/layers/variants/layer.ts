@@ -92,7 +92,7 @@ export class Layer {
         return this.getShapes(options).length;
     }
 
-    addShape(shape: IShape, sync: SyncMode, invalidate: InvalidationMode, options?: { snappable?: boolean }): void {
+    addShape(shape: IShape, sync: SyncMode, invalidate: InvalidationMode): void {
         shape.setLayer(this.floor, this.name);
 
         this.shapes.push(shape);
@@ -101,7 +101,7 @@ export class Layer {
         shape.setBlocksMovement(shape.blocksMovement, UI_SYNC, invalidate !== InvalidationMode.NO);
 
         shape.invalidatePoints();
-        if (options?.snappable ?? true) {
+        if (shape.isSnappable) {
             for (const point of shape.points) {
                 const strp = JSON.stringify(point);
                 this.points.set(strp, (this.points.get(strp) || new Set()).add(shape.id));

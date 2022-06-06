@@ -16,8 +16,8 @@ import { computeVisibility } from "../../vision/te";
 import { FowLayer } from "./fow";
 
 export class FowLightingLayer extends FowLayer {
-    addShape(shape: IShape, sync: SyncMode, invalidate: InvalidationMode, options?: { snappable?: boolean }): void {
-        super.addShape(shape, sync, invalidate, options);
+    addShape(shape: IShape, sync: SyncMode, invalidate: InvalidationMode): void {
+        super.addShape(shape, sync, invalidate);
         if (shape.options.preFogShape ?? false) {
             this.preFogShapes.push(shape);
         }

@@ -352,6 +352,7 @@ class SelectTool extends Tool implements ISelectTool {
                 this.selectionHelper = new Rect(this.selectionStartPoint, 0, 0, {
                     fillColour: "rgba(0, 0, 0, 0)",
                     strokeColour: ["#7c253e"],
+                    isSnappable: false,
                 });
                 this.selectionHelper.strokeWidth = 2;
                 this.selectionHelper.options.UiHelper = true;
@@ -361,7 +362,7 @@ class SelectTool extends Tool implements ISelectTool {
                     { edit: true, movement: true, vision: true },
                     NO_SYNC,
                 );
-                layer.addShape(this.selectionHelper, SyncMode.NO_SYNC, InvalidationMode.NO, { snappable: false });
+                layer.addShape(this.selectionHelper, SyncMode.NO_SYNC, InvalidationMode.NO);
             } else {
                 this.selectionHelper.refPoint = this.selectionStartPoint;
                 this.selectionHelper.w = 0;
@@ -798,15 +799,21 @@ class SelectTool extends Tool implements ISelectTool {
         const topCenterPlus = addP(topCenter, new Vector(0, -DEFAULT_GRID_SIZE));
 
         this.angle = 0;
-        this.rotationAnchor = new Line(topCenter, topCenterPlus, { lineWidth: l2gz(1.5), strokeColour: ["#7c253e"] });
+        this.rotationAnchor = new Line(topCenter, topCenterPlus, {
+            lineWidth: l2gz(1.5),
+            strokeColour: ["#7c253e"],
+            isSnappable: false,
+        });
         this.rotationBox = new Rect(bbox.topLeft, bbox.w, bbox.h, {
             fillColour: "rgba(0,0,0,0)",
             strokeColour: ["#7c253e"],
+            isSnappable: false,
         });
         this.rotationBox.strokeWidth = 1.5;
         this.rotationEnd = new Circle(topCenterPlus, l2gz(4), {
             fillColour: "#7c253e",
             strokeColour: ["rgba(0,0,0,0)"],
+            isSnappable: false,
         });
 
         for (const rotationShape of [this.rotationAnchor, this.rotationBox, this.rotationEnd]) {
@@ -816,7 +823,7 @@ class SelectTool extends Tool implements ISelectTool {
                 { edit: true, movement: true, vision: true },
                 NO_SYNC,
             );
-            layer.addShape(rotationShape, SyncMode.NO_SYNC, InvalidationMode.NO, { snappable: false });
+            layer.addShape(rotationShape, SyncMode.NO_SYNC, InvalidationMode.NO);
         }
 
         if (layerSelection.length === 1) {
@@ -873,9 +880,13 @@ class SelectTool extends Tool implements ISelectTool {
 
         this.removePolygonEditUi();
 
-        this.polygonTracer = new Circle(toGP(0, 0), 3, { fillColour: "rgba(0,0,0,0)", strokeColour: ["black"] });
+        this.polygonTracer = new Circle(toGP(0, 0), 3, {
+            fillColour: "rgba(0,0,0,0)",
+            strokeColour: ["black"],
+            isSnappable: false,
+        });
         const drawLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw)!;
-        drawLayer.addShape(this.polygonTracer, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
+        drawLayer.addShape(this.polygonTracer, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         this.updatePolygonEditUi(this.lastMousePosition);
         drawLayer.invalidate(true);
     }

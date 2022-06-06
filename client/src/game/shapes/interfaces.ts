@@ -55,6 +55,8 @@ export interface IShape {
 
     preventSync: boolean;
 
+    isSnappable: boolean;
+
     options: Partial<ShapeOptions>;
 
     center(): GlobalPoint;

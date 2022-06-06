@@ -41,12 +41,13 @@ export function moveClientRect(player: number, data: ServerUserLocationOptions):
             lineWidth: [30, 15],
             openPolygon: true,
             uuid: uuidv4(),
+            isSnappable: false,
         });
         playerRectIds.set(player, polygon.id);
         polygon.options.isPlayerRect = true;
         polygon.options.skipDraw = !(gameStore.state.players.find((p) => p.id === player)?.showRect ?? false);
         polygon.preventSync = true;
-        layer.addShape(polygon, SyncMode.NO_SYNC, InvalidationMode.NO, { snappable: false });
+        layer.addShape(polygon, SyncMode.NO_SYNC, InvalidationMode.NO);
     }
     const h = data.client_h / data.zoom_factor;
     const w = data.client_w / data.zoom_factor;

@@ -21,6 +21,7 @@ export class Line extends Shape {
             strokeColour?: string[];
             id?: LocalId;
             uuid?: GlobalId;
+            isSnappable?: boolean;
         },
     ) {
         super(startPoint, { fillColour: "rgba(0, 0, 0, 0)", strokeColour: ["#000"], ...options });

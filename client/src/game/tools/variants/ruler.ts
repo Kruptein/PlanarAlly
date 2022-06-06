@@ -53,6 +53,7 @@ class RulerTool extends Tool {
         const ruler = new Line(start, end, {
             lineWidth: 5,
             strokeColour: [clientStore.state.rulerColour],
+            isSnappable: false,
         });
         ruler.ignoreZoomSize = true;
 
@@ -68,7 +69,7 @@ class RulerTool extends Tool {
             { edit: true, movement: true, vision: true },
             NO_SYNC,
         );
-        layer.addShape(ruler, this.syncMode, InvalidationMode.NORMAL, { snappable: false });
+        layer.addShape(ruler, this.syncMode, InvalidationMode.NORMAL);
         this.rulers.push(ruler);
     }
 
@@ -91,6 +92,7 @@ class RulerTool extends Tool {
         this.text = new Text(cloneP(this.startPoint), "", 20, {
             fillColour: "#000",
             strokeColour: ["#fff"],
+            isSnappable: false,
         });
         this.text.ignoreZoomSize = true;
         accessSystem.addAccess(
@@ -99,7 +101,7 @@ class RulerTool extends Tool {
             { edit: true, movement: true, vision: true },
             NO_SYNC,
         );
-        layer.addShape(this.text, this.syncMode, InvalidationMode.NORMAL, { snappable: false });
+        layer.addShape(this.text, this.syncMode, InvalidationMode.NORMAL);
     }
 
     // eslint-disable-next-line @typescript-eslint/require-await

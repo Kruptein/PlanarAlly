@@ -242,11 +242,11 @@ class DrawTool extends Tool {
         // Adding
 
         if (newValue === DrawMode.Normal) {
-            normalLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
+            normalLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         } else if (newValue === DrawMode.Erase) {
-            mapLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
+            mapLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         } else {
-            fowLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
+            fowLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         }
     }
 
@@ -281,11 +281,11 @@ class DrawTool extends Tool {
         layer.canvas.parentElement!.style.cursor = "none";
         this.brushHelper = this.createBrush(toGP(mouse?.x ?? -1000, mouse?.y ?? -1000));
         this.setupBrush();
-        layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false }); // during mode change the shape is already added
+        layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL); // during mode change the shape is already added
         // if (gameStore.state.isDm) this.showLayerPoints();
         this.pointer = this.createPointer(toGP(mouse?.x ?? -1000, mouse?.y ?? -1000));
         const drawLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
-        drawLayer!.addShape(this.pointer, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
+        drawLayer!.addShape(this.pointer, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         drawLayer!.invalidate(true);
     }
 
@@ -439,8 +439,9 @@ class DrawTool extends Tool {
                 this.ruler = new Line(lastPoint, lastPoint, {
                     lineWidth: this.state.brushSize,
                     strokeColour: [this.state.fillColour],
+                    isSnappable: false,
                 });
-                layer.addShape(this.ruler, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
+                layer.addShape(this.ruler, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
             } else {
                 this.ruler.refPoint = lastPoint;
                 this.ruler.endPoint = lastPoint;
@@ -627,6 +628,7 @@ class DrawTool extends Tool {
             fillColour: this.state.fillColour,
             strokeColour: [mostReadable(this.state.fillColour)],
             strokeWidth: Math.max(1, size * 0.05),
+            isSnappable: false,
         });
         // Make sure we can see the border of the reveal brush
         brush.options.borderOperation = "source-over";
@@ -643,6 +645,7 @@ class DrawTool extends Tool {
                 fillColour: "white",
                 strokeColour: ["black"],
                 openPolygon: false,
+                isSnappable: false,
             },
         );
         // Make sure we can see the border of the reveal brush
@@ -683,7 +686,7 @@ class DrawTool extends Tool {
         }
         this.brushHelper = this.createBrush(toGP(-1000, -1000), bs);
         this.setupBrush();
-        layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false }); // during mode change the shape is already added
+        layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL); // during mode change the shape is already added
         if (refPoint) this.brushHelper.refPoint = refPoint;
     }
 

@@ -119,6 +119,9 @@ export abstract class Shape implements IShape {
     // Explicitly prevent any sync to the server
     preventSync = false;
 
+    // Decides whether its points can be snapped to
+    isSnappable = true;
+
     // Additional options for specialized uses
     options: Partial<ShapeOptions> = {};
 
@@ -131,6 +134,7 @@ export abstract class Shape implements IShape {
             uuid?: GlobalId;
             assetId?: number;
             strokeWidth?: number;
+            isSnappable?: boolean;
         },
     ) {
         this._refPoint = refPoint;
@@ -139,6 +143,7 @@ export abstract class Shape implements IShape {
         this.strokeColour = options?.strokeColour ?? ["rgba(0,0,0,0)"];
         this.assetId = options?.assetId;
         this.strokeWidth = options?.strokeWidth ?? 5;
+        this.isSnappable = options?.isSnappable ?? true;
     }
 
     abstract center(): GlobalPoint;
@@ -205,6 +210,7 @@ export abstract class Shape implements IShape {
     }
 
     updateLayerPoints(): void {
+        console.trace("Upading layer points");
         for (const point of this.layer.points) {
             if (point[1].has(this.id)) {
                 if (point[1].size === 1) this.layer.points.delete(point[0]);

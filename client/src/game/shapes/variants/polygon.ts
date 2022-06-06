@@ -117,6 +117,7 @@ export class Polygon extends Shape {
     invalidatePoints(): void {
         const center = this.center();
         this._points = this.vertices.map((point) => this.invalidatePoint(point, center));
+        this.updateLayerPoints();
     }
 
     draw(ctx: CanvasRenderingContext2D): void {

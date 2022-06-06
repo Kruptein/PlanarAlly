@@ -26,7 +26,7 @@ from playhouse.sqlite_ext import SqliteExtDatabase
 from config import SAVE_FILE
 from models import ALL_MODELS, Constants
 from models.db import db
-from utils import OldVersionException, UnknownVersionException
+from utils import FILE_DIR, OldVersionException, UnknownVersionException
 
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
@@ -193,7 +193,7 @@ def check_outdated():
     updated = False
     while save_version != SAVE_VERSION:
         updated = True
-        save_backups = Path("save_backups")
+        save_backups = FILE_DIR / "save_backups"
         if not save_backups.is_dir():
             save_backups.mkdir()
         backup_path = save_backups.resolve() / f"{Path(SAVE_FILE).name}.{save_version}"

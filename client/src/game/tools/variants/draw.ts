@@ -170,7 +170,6 @@ class DrawTool extends Tool {
 
     private finaliseShape(): void {
         if (this.shape === undefined) return;
-        this.shape.updateLayerPoints();
         if (this.shape.points.length <= 1) {
             let mouse: { x: number; y: number } | undefined = undefined;
             if (this.brushHelper !== undefined) {
@@ -179,28 +178,28 @@ class DrawTool extends Tool {
             this.onDeselect();
             this.onSelect(mouse);
         } else {
+            this.shape.updateLayerPoints();
             if (this.shape.blocksVision) visionState.recalculateVision(this.shape.floor.id);
             if (this.shape.blocksMovement) visionState.recalculateMovement(this.shape.floor.id);
             if (!this.shape.preventSync) sendShapeSizeUpdate({ shape: this.shape, temporary: false });
-        }
-        if (this.state.isDoor) {
-            doorSystem.inform(
-                this.shape.id,
-                true,
-                {
-                    permissions: this.state.doorPermissions,
-                    toggleMode: this.state.toggleMode,
-                },
-                true,
-            );
+            if (this.state.isDoor) {
+                doorSystem.inform(
+                    this.shape.id,
+                    true,
+                    {
+                        permissions: this.state.doorPermissions,
+                        toggleMode: this.state.toggleMode,
+                    },
+                    true,
+                );
+            }
+            overrideLastOperation({ type: "shapeadd", shapes: [this.shape.asDict()] });
         }
         this.active.value = false;
         const layer = this.getLayer();
         if (layer !== undefined) {
             layer.invalidate(false);
         }
-
-        overrideLastOperation({ type: "shapeadd", shapes: [this.shape.asDict()] });
     }
 
     // private async showLayerPoints(): Promise<void> {

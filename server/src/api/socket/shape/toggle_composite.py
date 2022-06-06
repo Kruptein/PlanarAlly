@@ -1,6 +1,10 @@
+from typing import Optional, cast
 from typing_extensions import TypedDict
 
+from socketio import AsyncServer
+
 import auth
+from api.helpers import _send_game
 from api.socket.constants import GAME_NS
 from api.socket.shape.utils import get_shape_or_none
 from app import app, sio
@@ -18,6 +22,11 @@ class NewVariantMessage(VariantMessage):
     name: str
 
 
+VARIANT_ADD = "ToggleComposite.Variants.Add"
+async def send_new_variant(sio: AsyncServer, data: NewVariantMessage, room: str, skip_sid: Optional[str] = None):
+    await _send_game(sio, VARIANT_ADD, data, room, skip_sid)
+
+
 @sio.on("ToggleComposite.Variants.Active.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def set_toggle_composite_active_variant(sid: str, data: VariantMessage):
@@ -27,7 +36,7 @@ async def set_toggle_composite_active_variant(sid: str, data: VariantMessage):
     if shape is None:
         return
 
-    composite: ToggleComposite = shape.subtype
+    composite = cast(ToggleComposite, shape.subtype)
 
     composite.active_variant = data["variant"]
     composite.save()
@@ -46,20 +55,14 @@ async def set_toggle_composite_active_variant(sid: str, data: VariantMessage):
 async def add_toggle_composite_variant(sid: str, data: NewVariantMessage):
     pr: PlayerRoom = game_state.get(sid)
 
-    parent = get_shape_or_none(pr, data["shape"], "ToggleComposite.Variants.Add")
-    variant = get_shape_or_none(pr, data["variant"], "ToggleComposite.Variants.Add")
+    parent = get_shape_or_none(pr, data["shape"], VARIANT_ADD)
+    variant = get_shape_or_none(pr, data["variant"], VARIANT_ADD)
     if parent is None or variant is None:
         return
 
     CompositeShapeAssociation.create(parent=parent, variant=variant, name=data["name"])
 
-    await sio.emit(
-        "ToggleComposite.Variants.Add",
-        data,
-        skip_sid=sid,
-        room=pr.active_location.get_path(),
-        namespace=GAME_NS,
-    )
+    await send_new_variant(sio, data, pr.active_location.get_path(), sid)
 
 
 @sio.on("ToggleComposite.Variants.Rename", namespace=GAME_NS)

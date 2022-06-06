@@ -19,16 +19,12 @@ class AuthPolicy(AbstractAuthorizationPolicy):
         if user:
             return user
 
-    async def permits(self, identity, permission, context=None):
+    async def permits(self, _identity, _permission, _context=None):
         """Check user permissions.
         Return True if the identity is allowed the permission in the
         current context, else return False.
         """
-        # pylint: disable=unused-argument
-        user = User.by_name(identity)
-        if not user:
-            return False
-        return permission in user.permissions
+        return False
 
 
 def login_required(app, sio):

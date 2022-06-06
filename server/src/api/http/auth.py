@@ -60,7 +60,7 @@ async def register(request):
                     u.email = email
                 default_options = UserOptions()
                 default_options.save()
-                u.default_options = default_options
+                u.default_options = default_options # type: ignore
                 u.save()
         except:
             return web.HTTPServerError(

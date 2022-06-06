@@ -5,7 +5,7 @@ from aiohttp.web_exceptions import HTTPBadRequest
 from models import User
 
 
-async def collect(request: web.Request) -> web.Response:
+async def collect(_request: web.Request) -> web.Response:
     users = [{"name": u.name, "email": u.email} for u in User.select()]
     return web.json_response(users)
 

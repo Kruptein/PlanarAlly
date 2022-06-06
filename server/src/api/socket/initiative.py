@@ -1,6 +1,8 @@
 import json
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from typing_extensions import TypedDict
+
+from socketio import AsyncServer
 
 import auth
 from api.socket.constants import GAME_NS
@@ -74,6 +76,15 @@ def sort_initiative(data, sort: int):
     if sort == 2:
         return data
     return sorted(data, key=lambda x: x.get("initiative", 0) or 0, reverse=sort == 0)
+
+
+async def send_initiative(sio: AsyncServer, data: Dict[str, Any], pr: PlayerRoom):
+    await sio.emit(
+        "Initiative.Set",
+        data,
+        room=pr.active_location.get_path(),
+        namespace=GAME_NS,
+    )
 
 
 @sio.on("Initiative.Request", namespace=GAME_NS)
@@ -156,12 +167,7 @@ async def add_initiative(sid: str, data: ServerInitiativeData):
         location_data.data = json.dumps(json_data)
         location_data.save()
 
-    await sio.emit(
-        "Initiative.Set",
-        location_data.as_dict(),
-        room=pr.active_location.get_path(),
-        namespace=GAME_NS,
-    )
+    await send_initiative(sio, location_data.as_dict(), pr)
 
 
 @sio.on("Initiative.Value.Set", namespace=GAME_NS)
@@ -191,12 +197,7 @@ async def set_initiative_value(sid: str, data: ServerSetInitiativeValue):
         location_data.data = json.dumps(json_data)
         location_data.save()
 
-    await sio.emit(
-        "Initiative.Set",
-        location_data.as_dict(),
-        room=pr.active_location.get_path(),
-        namespace=GAME_NS,
-    )
+    await send_initiative(sio, location_data.as_dict(), pr)
 
 
 @sio.on("Initiative.Clear", namespace=GAME_NS)
@@ -286,12 +287,7 @@ async def change_initiative_order(sid: str, data: ServerInitiativeOrderChange):
         location_data.data = json.dumps(json_data)
         location_data.save()
 
-    await sio.emit(
-        "Initiative.Set",
-        location_data.as_dict(),
-        room=pr.active_location.get_path(),
-        namespace=GAME_NS,
-    )
+    await send_initiative(sio, location_data.as_dict(), pr)
 
 
 @sio.on("Initiative.Turn.Update", namespace=GAME_NS)
@@ -309,15 +305,15 @@ async def update_initiative_turn(sid: str, turn: int):
         return
 
     with db.atomic():
-        nextTurn = turn > location_data.turn
+        next_turn = turn > location_data.turn
         location_data.turn = turn
 
         for i, effect in enumerate(json_data[turn]["effects"][-1:]):
             try:
                 turns = int(effect["turns"])
-                if turns <= 0 and nextTurn:
+                if turns <= 0 and next_turn:
                     json_data[turn]["effects"].pop(i)
-                elif turns > 0 and nextTurn:
+                elif turns > 0 and next_turn:
                     effect["turns"] = str(turns - 1)
                 else:
                     effect["turns"] = str(turns + 1)
@@ -392,12 +388,7 @@ async def set_initiative_sort(sid: str, sort: int):
         room=pr.active_location.get_path(),
         namespace=GAME_NS,
     )
-    await sio.emit(
-        "Initiative.Set",
-        location_data.as_dict(),
-        room=pr.active_location.get_path(),
-        namespace=GAME_NS,
-    )
+    await send_initiative(sio, location_data.as_dict(), pr)
 
 
 @sio.on("Initiative.Effect.New", namespace=GAME_NS)

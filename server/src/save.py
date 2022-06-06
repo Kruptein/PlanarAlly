@@ -78,7 +78,7 @@ def upgrade(version):
             db.execute_sql(
                 "ALTER TABLE location_options ADD COLUMN underground_map_background TEXT DEFAULT NULL"
             )
-            data = db.execute_sql("SELECT default_options_id FROM room")
+            db.execute_sql("SELECT default_options_id FROM room")
 
             db.execute_sql(
                 "ALTER TABLE floor ADD COLUMN type_ INTEGER NOT NULL DEFAULT 1"

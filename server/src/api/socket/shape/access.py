@@ -1,3 +1,4 @@
+from typing import cast
 import auth
 from api.socket.constants import GAME_NS
 from api.socket.shape.data_models import ServerShapeDefaultOwner, ServerShapeOwner
@@ -195,7 +196,7 @@ async def update_default_shape_owner(sid: str, data: ServerShapeDefaultOwner):
     ):
         await sio.emit(
             "Shape.Set",
-            shape.as_dict(player, game_state.get(sid).role == Role.DM),
+            shape.as_dict(player, cast(bool, game_state.get(sid).role == Role.DM)),
             room=sid,
             namespace=GAME_NS,
         )

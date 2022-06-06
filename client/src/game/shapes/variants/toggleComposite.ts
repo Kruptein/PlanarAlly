@@ -102,10 +102,18 @@ export class ToggleComposite extends Shape {
     }
 
     setActiveVariant(variant: LocalId, sync: boolean): void {
-        const oldVariant = getShape(this.active_variant)!;
+        const oldVariant = getShape(this.active_variant);
+        if (oldVariant === undefined) {
+            console.error("COULD NOT FIND OLD VARIANT!");
+            return;
+        }
         this.resetVariants(this.active_variant);
         this.active_variant = variant;
-        const newVariant = getShape(this.active_variant)!;
+        const newVariant = getShape(this.active_variant);
+        if (newVariant === undefined) {
+            console.error("COULD NOT FIND NEW VARIANT!");
+            return;
+        }
 
         if (newVariant.isToken && accessSystem.hasAccessTo(newVariant.id, false, { vision: true }))
             gameStore.addOwnedToken(newVariant.id);

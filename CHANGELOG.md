@@ -42,6 +42,7 @@ these changes will usually be stripped from release notes for the public
 -   Dashboard navigation headers sometimes being wrongly styled
 -   Modal handling on firefox
 -   Color picker resetting saturation panel to red when clicking
+-   Drawtool trying to add shape creation operation to undo stack when the shape was not valid
 -   [tech] Ensure router.push calls are always awaited
 
 ## [2022.1] - 2022-04-25

@@ -84,6 +84,10 @@ function close(): void {
     visible.value = false;
 }
 
+function isEmptyHsv(data: { h: number; s: number; v: number }): boolean {
+    return data.h === 0 && data.s === 0 && data.v === 0;
+}
+
 function onBlur(event: FocusEvent): void {
     if (event.relatedTarget === null || modal.value === null) {
         close();
@@ -179,7 +183,7 @@ function onSaturationMove(event: PointerEvent): void {
     const dY = Math.min(y - el.y, el.height);
 
     tc.value = tinycolor({
-        ...hsv.value,
+        h: isEmptyHsv(hsv.value) ? hueFallback.value : hsv.value.h,
         s: dX / el.width,
         v: clamp(1 - dY / el.height, 0, 1),
     });

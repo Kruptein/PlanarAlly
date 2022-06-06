@@ -19,6 +19,7 @@ these changes will usually be stripped from release notes for the public
 -   Door logic can now specify which block settings to toggle
 -   Add double stroke to client viewport
 -   Show campaign loading animation earlier (in dashboard)
+-   Defeat cross now scales better with shape size
 -   [server] Added log rotation
 -   [server] Restructure server files
 -   [tech] SyncTo primitive modified to an alternative Sync structure

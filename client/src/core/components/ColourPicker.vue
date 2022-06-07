@@ -95,6 +95,9 @@ function close(): void {
             colourHistory.value.splice(idx, 1);
         }
         colourHistory.value.unshift(color);
+        if (colourHistory.value.length > 20) {
+            colourHistory.value = colourHistory.value.slice(0, 20);
+        }
         sendColourHistoryChanged(JSON.stringify(colourHistory.value));
     }
 }
@@ -201,6 +204,7 @@ function onSaturationMove(event: PointerEvent): void {
         h: isEmptyHsv(hsv.value) ? hueFallback.value : hsv.value.h,
         s: dX / el.width,
         v: clamp(1 - dY / el.height, 0, 1),
+        a: tc.value.getAlpha(),
     });
     emit("input:colour", rgbaString.value);
 }

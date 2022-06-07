@@ -63,9 +63,9 @@ async def start_https(app: web.Application, host, port, chain: Path, key: Path):
 
     ctx = ssl.SSLContext()
     try:
-        if not chain.is_absolute:
+        if not chain.is_absolute():
             chain = FILE_DIR / chain
-        if not key.is_absolute:
+        if not key.is_absolute():
             key = FILE_DIR / key
         ctx.load_cert_chain(chain, key)
     except FileNotFoundError:

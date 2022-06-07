@@ -35,6 +35,7 @@ async def setup_runner(app: web.Application, site: Type[web.BaseSite], **kwargs)
 # MAIN APP
 
 sio = TypedAsyncServer(cors_allowed_origins=config.get("Webserver", "cors_allowed_origins", fallback=None))
+print(sio.eio.cors_allowed_origins)
 app = setup_app()
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader("templates"))
 basepath = os.environ.get("PA_BASEPATH", "/")[1:]

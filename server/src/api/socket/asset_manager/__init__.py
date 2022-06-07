@@ -22,6 +22,7 @@ from models.user import User
 from state.asset import asset_state
 from state.game import game_state
 from logs import logger
+from utils import TEMP_DIR
 from ..constants import ASSET_NS, GAME_NS
 from .common import UploadData
 from .ddraft import ASSETS_DIR, handle_ddraft_file
@@ -359,14 +360,13 @@ async def assetmgmt_export(sid: str, selection: List[int]):
     files_tar_info.mtime = time.time()  # type: ignore
 
     uuid = uuid4()
-    static_folder = Path("static")
-    os.makedirs(static_folder / "temp", exist_ok=True)
-    with tarfile.open(static_folder / "temp" / f"{uuid}.paa", "w:bz2") as tar:
+    os.makedirs(TEMP_DIR, exist_ok=True)
+    with tarfile.open(TEMP_DIR / f"{uuid}.paa", "w:bz2") as tar:
         tar.addfile(data_tar_info, io.BytesIO(json_data.encode("utf-8")))
         tar.addfile(files_tar_info)
         for file_hash in asset_data["file_hashes"]:
             try:
-                file_path = static_folder / "assets" / file_hash
+                file_path = ASSETS_DIR / file_hash
                 info = tar.gettarinfo(str(file_path))
                 info.name = f"files/{file_hash}"
                 info.mtime = time.time()  # type: ignore

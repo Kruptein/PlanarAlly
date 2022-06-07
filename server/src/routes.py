@@ -15,7 +15,7 @@ import api.http.users
 import api.http.version
 from app import admin_app, api_app, app as main_app
 from config import config
-from utils import FILE_DIR
+from utils import FILE_DIR, STATIC_DIR
 
 
 subpath = os.environ.get("PA_BASEPATH", "/")
@@ -55,7 +55,7 @@ async def root_dev(request, admin_api=False):
 
 # MAIN ROUTES
 
-main_app.router.add_static(f"{subpath}/static", FILE_DIR / "static")
+main_app.router.add_static(f"{subpath}/static", STATIC_DIR)
 main_app.router.add_get(f"{subpath}/api/auth", api.http.auth.is_authed)
 main_app.router.add_post(f"{subpath}/api/users/email", api.http.users.set_email)
 main_app.router.add_post(f"{subpath}/api/users/password", api.http.users.set_password)
@@ -100,7 +100,7 @@ api_app.router.add_post(f"{subpath}/users/reset", api.http.admin.users.reset)
 api_app.router.add_post(f"{subpath}/users/remove", api.http.admin.users.remove)
 api_app.router.add_get(f"{subpath}/campaigns", api.http.admin.campaigns.collect)
 
-admin_app.router.add_static(f"{subpath}/static", FILE_DIR / "static")
+admin_app.router.add_static(f"{subpath}/static", STATIC_DIR)
 admin_app.add_subapp("/api/", api_app)
 
 TAIL_REGEX = "/{tail:.*}"

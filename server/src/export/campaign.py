@@ -1,6 +1,5 @@
 import os
 import secrets
-from pathlib import Path
 import tarfile
 from time import time
 from typing import Dict, List, Optional, Set, cast
@@ -43,6 +42,7 @@ from models.shape import (
 from models.typed import SelectSequence
 from models.user import User, UserOptions
 from save import SAVE_VERSION
+from utils import ASSETS_DIR, TEMP_DIR
 
 
 async def export_campaign(name: str, rooms: List[Room]):
@@ -73,8 +73,7 @@ class CampaignExporter:
         self.export_all_assets()
 
     def generate_empty_db(self):
-        static_folder = Path("static")
-        self.output_folder = static_folder / "temp"
+        self.output_folder = TEMP_DIR
         os.makedirs(self.output_folder, exist_ok=True)
         self.sqlite_name = f"{self.filename}.sqlite"
         self.sqlite_path = self.output_folder / self.sqlite_name
@@ -97,7 +96,6 @@ class CampaignExporter:
     def pack(self):
         self.db.close()
 
-        static_folder = Path("static")
         tarname = f"{self.filename}.pac"
         tarpath = self.output_folder / tarname
 
@@ -127,7 +125,7 @@ class CampaignExporter:
                 if not asset.file_hash:
                     continue
                 try:
-                    file_path = static_folder / "assets" / asset.file_hash
+                    file_path = ASSETS_DIR / asset.file_hash
                     info = tar.gettarinfo(str(file_path))
                     info.name = f"assets/{asset.file_hash}"
                     info.mtime = time()  # type: ignore

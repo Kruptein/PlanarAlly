@@ -7,6 +7,7 @@ This is the code responsible for starting the backend and reacting to socket IO 
 from argparse import ArgumentParser
 import getpass
 import os
+from pathlib import Path
 import sys
 from urllib.parse import quote, unquote
 from utils import FILE_DIR
@@ -57,11 +58,15 @@ async def start_http(app: web.Application, host, port):
     await setup_runner(app, web.TCPSite, host=host, port=port)
 
 
-async def start_https(app: web.Application, host, port, chain, key):
+async def start_https(app: web.Application, host, port, chain: Path, key: Path):
     import ssl
 
     ctx = ssl.SSLContext()
     try:
+        if not chain.is_absolute():
+            chain = FILE_DIR / chain
+        if not key.is_absolute():
+            key = FILE_DIR / key
         ctx.load_cert_chain(chain, key)
     except FileNotFoundError:
         logger.critical("SSL FILES ARE NOT FOUND. ABORTING LAUNCH.")
@@ -98,8 +103,8 @@ async def start_server(server_section: str):
 
         if config.getboolean(server_section, "ssl"):
             try:
-                chain = config.get(server_section, "ssl_fullchain")
-                key = config.get(server_section, "ssl_privkey")
+                chain = Path(config.get(server_section, "ssl_fullchain"))
+                key = Path(config.get(server_section, "ssl_privkey"))
             except configparser.NoOptionError:
                 logger.critical(
                     "SSL CONFIGURATION IS NOT CORRECTLY CONFIGURED. ABORTING LAUNCH."

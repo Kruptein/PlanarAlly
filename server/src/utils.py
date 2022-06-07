@@ -21,6 +21,9 @@ def get_save_dir() -> Path:
 
 SRC_DIR = get_src_dir()
 FILE_DIR = SRC_DIR.parent
+STATIC_DIR = FILE_DIR / "static"
+ASSETS_DIR = STATIC_DIR / "assets"
+TEMP_DIR = STATIC_DIR / "temp"
 SAVE_DIR = get_save_dir()
 
 # SETUP PATHS

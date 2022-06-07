@@ -1,3 +1,4 @@
+import { colourHistory } from "../../../core/components/store";
 import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
@@ -23,6 +24,7 @@ socket.on("Client.Move", (data: { player: number } & ServerUserLocationOptions) 
 
 socket.on("Client.Options.Set", (options: ServerClient) => {
     clientStore.setUsername(options.name);
+    colourHistory.value = options.colour_history === null ? [] : JSON.parse(options.colour_history);
 
     clientStore.setDefaultClientOptions(userOptionsToClient(options.default_user_options));
 

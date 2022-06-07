@@ -49,6 +49,7 @@ export interface LocationOptions {
 
 export interface ServerClient {
     name: string;
+    colour_history: string | null;
     location_user_options: ServerUserLocationOptions;
     default_user_options: ServerUserOptions;
     room_user_options?: ServerUserOptions;

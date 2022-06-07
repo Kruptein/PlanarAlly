@@ -15,4 +15,5 @@ from . import (
     player,
     room,
     shape,
+    user,
 )

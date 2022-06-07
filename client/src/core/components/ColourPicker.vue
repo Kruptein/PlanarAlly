@@ -3,7 +3,10 @@ import clamp from "lodash/clamp";
 import tinycolor from "tinycolor2";
 import { computed, nextTick, ref, watchEffect } from "vue";
 
+import { sendColourHistoryChanged } from "../../game/api/emits/user";
 import { getInputPosition } from "../events";
+
+import { colourHistory } from "./store";
 
 enum InputMode {
     Hex,
@@ -37,6 +40,8 @@ const hsl = computed(() => tc.value.toHsl());
 const hsv = computed(() => tc.value.toHsv());
 const rgb = computed(() => tc.value.toRgb());
 const rgbaString = computed(() => tc.value.toRgbString());
+
+let originalColor = tc.value.toRgbString();
 
 watchEffect(() => (tc.value = tinycolor(props.colour)));
 
@@ -74,6 +79,7 @@ function setPosition(): void {
 }
 
 function open(event: Event): void {
+    originalColor = tc.value.toRgbString();
     setPosition();
     visible.value = true;
     nextTick(() => modal.value!.focus());
@@ -82,6 +88,15 @@ function open(event: Event): void {
 
 function close(): void {
     visible.value = false;
+    const color = tc.value.toRgbString();
+    if (color !== originalColor && (color !== colourHistory.value?.[0] ?? "")) {
+        const idx = colourHistory.value.findIndex((col) => col === color);
+        if (idx >= 0) {
+            colourHistory.value.splice(idx, 1);
+        }
+        colourHistory.value.unshift(color);
+        sendColourHistoryChanged(JSON.stringify(colourHistory.value));
+    }
 }
 
 function isEmptyHsv(data: { h: number; s: number; v: number }): boolean {
@@ -204,6 +219,11 @@ function setRgba(options: { r?: number; g?: number; b?: number; a?: number }): v
         ...rgb,
         ...options,
     });
+    emit("update:colour", rgbaString.value);
+}
+
+function setRgbaString(rgba: string): void {
+    tc.value = tinycolor(rgba);
     emit("update:colour", rgbaString.value);
 }
 
@@ -381,6 +401,16 @@ function setHex(hex: string): void {
                         </svg>
                     </div>
                 </div>
+                <div class="history">
+                    <div
+                        class="color-history"
+                        v-for="color of colourHistory"
+                        :key="color"
+                        @click="setRgbaString(color)"
+                        :style="{ backgroundColor: color }"
+                        :title="color"
+                    ></div>
+                </div>
             </div>
         </div>
     </teleport>
@@ -418,7 +448,7 @@ input[type="number"] {
 
 .modal {
     position: fixed;
-    height: 240px;
+    height: 290px;
     width: 225px;
     display: grid;
     grid-template-rows: 1fr 1fr;
@@ -558,6 +588,23 @@ input[type="number"] {
             box-shadow: 0 0 0 1.5px #fff, inset 0 0 1px 1px rgba(0, 0, 0, 0.3), 0 0 1px 2px rgba(0, 0, 0, 0.4);
             border-radius: 50%;
             transform: translate(-2px, -2px);
+        }
+    }
+
+    .history {
+        margin: 10px 10px;
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: row;
+        .color-history {
+            width: 20px;
+            height: 20px;
+            background-color: #000;
+            border: solid 1px black;
+
+            &:hover {
+                cursor: pointer;
+            }
         }
     }
 }

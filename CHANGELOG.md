@@ -12,6 +12,7 @@ these changes will usually be stripped from release notes for the public
 ### Added
 
 -   Export all campaigns endpoint
+-   Colour picker now remembers the last 20 used colours for each user.
 
 ### Changed
 

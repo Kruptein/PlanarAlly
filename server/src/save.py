@@ -13,7 +13,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 71
+SAVE_VERSION = 72
 
 import json
 import logging
@@ -170,6 +170,12 @@ def upgrade(version):
                         "UPDATE shape SET options=? WHERE uuid=?",
                         (json.dumps(unpacked_options), uuid),
                     )
+    elif version == 71:
+        # Add User.colour_history
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE user ADD COLUMN colour_history TEXT DEFAULT NULL"
+            )
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

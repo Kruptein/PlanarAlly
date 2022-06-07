@@ -45,7 +45,8 @@ these changes will usually be stripped from release notes for the public
 -   Clear client viewports when changing location
 -   Dashboard navigation headers sometimes being wrongly styled
 -   Modal handling on firefox
--   Color picker resetting saturation panel to red when clicking
+-   Colour picker resetting saturation panel to red when clicking
+-   Colour picker resetting opacity when setting hsv color
 -   Drawtool trying to add shape creation operation to undo stack when the shape was not valid
 -   Points modified by the polygon edit UI are not snappable until a refresh
 -   [server] Admin client was not built in docker

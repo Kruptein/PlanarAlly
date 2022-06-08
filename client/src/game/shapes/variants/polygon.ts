@@ -156,7 +156,6 @@ export class Polygon extends Shape {
             ctx.stroke();
         }
 
-        ctx.stroke();
         super.drawPost(ctx);
     }
 

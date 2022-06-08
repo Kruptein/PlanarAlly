@@ -15,5 +15,5 @@ const assets = computed(() =>
 </script>
 
 <template>
-    <AssetNode :assets="assets" />
+    <AssetNode :assets="assets" :visible="true" />
 </template>

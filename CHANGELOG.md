@@ -27,6 +27,7 @@ these changes will usually be stripped from release notes for the public
 -   [tech] SyncTo primitive modified to an alternative Sync structure
 -   [tech] Polygon can now have client-side multi-stroke
 -   [tech] Snappable points are calculated less often
+-   [tech] In-game asset list rendering
 
 ### Fixed
 

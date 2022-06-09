@@ -3,8 +3,9 @@ import { ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 
+import { http } from "../core/http";
 import { useModal } from "../core/plugins/modals/plugin";
-import { getErrorReason, getValue, postFetch } from "../core/utils";
+import { getErrorReason, getValue } from "../core/utils";
 import { coreStore } from "../store/core";
 
 const { t } = useI18n();
@@ -24,7 +25,7 @@ async function setEmail(event: Event): Promise<void> {
     if (event.target === undefined) return;
     const value = getValue(event);
     if ((event.target as HTMLInputElement).checkValidity() && value !== email.value) {
-        const result = await postFetch("/api/users/email", {
+        const result = await http.postJson("/api/users/email", {
             email: value,
         });
         if (result.ok) {
@@ -46,7 +47,7 @@ async function changePassword(): Promise<void> {
             errorMessage.value = t("settings.AccountSettings.pwd_not_match");
             return;
         }
-        const response = await postFetch("/api/users/password", {
+        const response = await http.postJson("/api/users/password", {
             password: passwordResetField.value,
         });
         if (response.ok) {
@@ -69,7 +70,7 @@ function hidePasswordChange(): void {
 async function deleteAccount(): Promise<void> {
     const result = await modals.confirm(t("settings.AccountSettings.remove_account_msg"));
     if (result === true) {
-        const response = await postFetch("/api/users/delete");
+        const response = await http.postJson("/api/users/delete");
         if (response.ok) {
             coreStore.setAuthenticated(false);
             await router.push("/auth/login");

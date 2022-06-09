@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, reactive } from "vue";
 
+import { baseAdjust } from "../../../core/http";
 import type { AssetFile, AssetListMap } from "../../../core/models/types";
-import { baseAdjust } from "../../../core/utils";
 
 interface State {
     hoveredHash: string;

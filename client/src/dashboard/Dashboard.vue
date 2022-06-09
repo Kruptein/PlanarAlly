@@ -3,8 +3,9 @@ import { computed, onMounted, reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import LanguageDropdown from "../core/components/LanguageDropdown.vue";
+import { baseAdjust, http } from "../core/http";
 import { useModal } from "../core/plugins/modals/plugin";
-import { baseAdjust, baseAdjustedFetch, getErrorReason } from "../core/utils";
+import { getErrorReason } from "../core/utils";
 
 import AccountSettings from "./AccountSettings.vue";
 import CreateCampaign from "./CreateCampaign.vue";
@@ -46,7 +47,7 @@ onMounted(async () => {
         );
     }
 
-    const response = await baseAdjustedFetch("/api/rooms");
+    const response = await http.get("/api/rooms");
     if (response.ok) {
         const data: { owned: RoomInfo[]; joined: RoomInfo[] } = await response.json();
         state.owned = data.owned;

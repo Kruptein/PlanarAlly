@@ -1,8 +1,9 @@
 import { clampGridLine, l2gx, l2gy, l2gz } from "../core/conversions";
 import { toGP } from "../core/geometry";
+import { baseAdjust } from "../core/http";
 import { SyncMode, InvalidationMode } from "../core/models/types";
 import type { SelectionBoxFunction } from "../core/plugins/modals/selectionBox";
-import { baseAdjust, uuidv4 } from "../core/utils";
+import { uuidv4 } from "../core/utils";
 import { i18n } from "../i18n";
 import { DEFAULT_GRID_SIZE } from "../store/client";
 import { floorStore } from "../store/floor";

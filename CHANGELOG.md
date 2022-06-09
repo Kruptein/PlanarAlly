@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 [DM] denotes changes only useful for the dungeon master\
 [server] denotes changes only useful for the server owner\
 [tech] denotes internal changes that are only useful for code contributors\
-these changes will usually be stripped from release notes for the public
+tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
@@ -28,6 +28,7 @@ these changes will usually be stripped from release notes for the public
 -   [tech] Polygon can now have client-side multi-stroke
 -   [tech] Snappable points are calculated less often
 -   [tech] In-game asset list rendering
+-   [tech] Moved http utils to core/http file from core/utils
 
 ### Fixed
 

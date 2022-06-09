@@ -3,8 +3,8 @@ import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useToast } from "vue-toastification";
 
+import { baseAdjust, http } from "../core/http";
 import { useModal } from "../core/plugins/modals/plugin";
-import { baseAdjust, postFetch } from "../core/utils";
 import { coreStore } from "../store/core";
 
 const modals = useModal();
@@ -19,7 +19,7 @@ async function create(): Promise<void> {
         toast.error("Fill in a name!");
         return;
     }
-    const response = await postFetch("/api/rooms", {
+    const response = await http.postJson("/api/rooms", {
         name: name.value,
         logo: logo.id,
     });

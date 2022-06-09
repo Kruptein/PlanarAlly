@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 
 import MarkdownModal from "../../core/components/modals/MarkdownModal.vue";
 import SliderComponent from "../../core/components/slider/SliderComponent.vue";
-import { baseAdjust } from "../../core/utils";
+import { baseAdjust } from "../../core/http";
 import { activeShapeStore } from "../../store/activeShape";
 import { clientStore } from "../../store/client";
 import { coreStore } from "../../store/core";

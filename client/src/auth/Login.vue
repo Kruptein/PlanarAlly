@@ -11,7 +11,8 @@ import { useRoute, useRouter } from "vue-router";
 import { useToast } from "vue-toastification";
 
 import LanguageDropdown from "../core/components/LanguageDropdown.vue";
-import { baseAdjust, getErrorReason, postFetch } from "../core/utils";
+import { baseAdjust, http } from "../core/http";
+import { getErrorReason } from "../core/utils";
 import { coreStore } from "../store/core";
 
 const swiperModules = [Pagination];
@@ -35,7 +36,7 @@ async function submit(): Promise<void> {
 }
 
 async function login(): Promise<void> {
-    const response = await postFetch("/api/login", {
+    const response = await http.postJson("/api/login", {
         username: username.value,
         password: password.value,
     });
@@ -50,7 +51,7 @@ async function login(): Promise<void> {
     }
 }
 async function register(): Promise<void> {
-    const response = await postFetch("/api/register", {
+    const response = await http.postJson("/api/register", {
         username: username.value,
         password: password.value,
         email: email.value,

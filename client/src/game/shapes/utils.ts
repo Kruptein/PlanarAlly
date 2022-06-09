@@ -1,6 +1,7 @@
 import { subtractP, toGP, Vector } from "../../core/geometry";
+import { baseAdjust } from "../../core/http";
 import { SyncMode, InvalidationMode } from "../../core/models/types";
-import { baseAdjust, uuidv4 } from "../../core/utils";
+import { uuidv4 } from "../../core/utils";
 import { clientStore } from "../../store/client";
 import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";

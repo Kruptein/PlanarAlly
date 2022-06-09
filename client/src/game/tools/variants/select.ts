@@ -14,9 +14,10 @@ import {
     getAngleBetween,
 } from "../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
+import { baseAdjust } from "../../../core/http";
 import { equalPoints, snapToPoint } from "../../../core/math";
 import { InvalidationMode, NO_SYNC, SyncMode } from "../../../core/models/types";
-import { baseAdjust, ctrlOrCmdPressed } from "../../../core/utils";
+import { ctrlOrCmdPressed } from "../../../core/utils";
 import { i18n } from "../../../i18n";
 import { clientStore, DEFAULT_GRID_SIZE } from "../../../store/client";
 import { floorStore } from "../../../store/floor";

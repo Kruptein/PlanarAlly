@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
+import { baseAdjust } from "../../../../core/http";
 import { useModal } from "../../../../core/plugins/modals/plugin";
-import { baseAdjust, getValue } from "../../../../core/utils";
+import { getValue } from "../../../../core/utils";
 import { getPattern, patternToString } from "../../../layers/floor";
 import type { BackgroundPattern } from "../../../models/floor";
 

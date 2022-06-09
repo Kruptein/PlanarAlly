@@ -1,11 +1,12 @@
 import asyncio
+import io
 from datetime import datetime
 from typing import Union, cast
 
 from aiohttp import web
 from aiohttp_security import check_authorized
 
-from export.campaign import export_campaign
+from export.campaign import export_campaign, import_campaign
 from models import Location, LocationOptions, PlayerRoom, Room, User
 from models.db import db
 from models.role import Role
@@ -206,3 +207,14 @@ async def export_all(request: web.Request):
             text=f"Processing started. Check /static/temp/{creator}-all.pac soon."
         )
     return web.HTTPUnauthorized()
+
+
+async def import_(request: web.Request):
+    user: User = await check_authorized(request)
+
+    data = await request.read()
+
+    if len(data) > 0:
+        asyncio.create_task(import_campaign(user, io.BytesIO(data)))
+
+    return web.HTTPOk()

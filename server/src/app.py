@@ -15,7 +15,7 @@ runners: List[web.AppRunner] = []
 
 
 def setup_app(middlewares: Iterable[Callable] = ()) -> web.Application:
-    app = web.Application(middlewares=middlewares)
+    app = web.Application(middlewares=middlewares, client_max_size=500 * 1024**2)
     app["AuthzPolicy"] = auth.AuthPolicy()
     aiohttp_security.setup(app, SessionIdentityPolicy(), app["AuthzPolicy"])
     aiohttp_session.setup(app, EncryptedCookieStorage(auth.get_secret_token()))

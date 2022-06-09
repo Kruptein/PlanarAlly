@@ -9,6 +9,7 @@ import { getErrorReason } from "../core/utils";
 
 import AccountSettings from "./AccountSettings.vue";
 import CreateCampaign from "./CreateCampaign.vue";
+import ImportGame from "./ImportGame.vue";
 import SessionList from "./SessionList.vue";
 import { Navigation } from "./types";
 import type { NavigationEntry, RoomInfo } from "./types";
@@ -62,6 +63,7 @@ const mainNavigation: NavigationEntry[] = [
     { type: "action", navigation: Navigation.Play, fn: setActiveNavigation },
     { type: "action", navigation: Navigation.Run, fn: setActiveNavigation },
     { type: "action", navigation: Navigation.Create, fn: setActiveNavigation },
+    { type: "action", navigation: Navigation.Import, fn: setActiveNavigation },
     { type: "separator" },
     { text: "assets", type: "header" },
     { type: "action", navigation: Navigation.AssetManage, fn: openAssetManager },
@@ -88,6 +90,7 @@ const navigationTranslation: Record<Navigation, string> = {
     [Navigation.Play]: "play",
     [Navigation.Run]: "run",
     [Navigation.Create]: "create",
+    [Navigation.Import]: "import",
     [Navigation.Settings]: "settings",
     [Navigation.AssetManage]: "manage",
     [Navigation.AssetCreate]: "create",
@@ -151,6 +154,7 @@ function updateLogo(index: number, logo: string): void {
             @remove-room="removeRoom"
             @update-logo="updateLogo"
         />
+        <ImportGame v-else-if="state.activeNavigation === Navigation.Import" />
         <CreateCampaign v-else-if="state.activeNavigation === Navigation.Create" />
         <AccountSettings v-else-if="state.activeNavigation === Navigation.Account" />
         <div v-else id="not-implemented">

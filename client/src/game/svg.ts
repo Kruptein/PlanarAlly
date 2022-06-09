@@ -1,14 +1,14 @@
 import "path-data-polyfill";
 import { addP, getCenterLine, toArrayP, toGP, Vector } from "../core/geometry";
 import type { GlobalPoint } from "../core/geometry";
-import { baseAdjustedFetch } from "../core/utils";
+import { http } from "../core/http";
 import { floorStore } from "../store/floor";
 
 import { drawLine } from "./draw";
 import type { Asset } from "./shapes/variants/asset";
 
 export async function loadSvgData(url: string): Promise<NodeList> {
-    const response = await baseAdjustedFetch(url);
+    const response = await http.get(url);
     const data = await response.text();
 
     const template = document.createElement("template");

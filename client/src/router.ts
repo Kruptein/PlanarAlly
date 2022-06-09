@@ -3,7 +3,7 @@ import type { RouteRecordRaw } from "vue-router";
 
 import Login from "./auth/Login.vue";
 import { Logout } from "./auth/logout";
-import { baseAdjustedFetch } from "./core/utils";
+import { http } from "./core/http";
 import Dashboard from "./dashboard/Dashboard.vue";
 import Invitation from "./invitation";
 import { handleNotifications } from "./notifications";
@@ -71,14 +71,14 @@ router.beforeEach(async (to, _from, next) => {
     // coreStore.setLoading(true);
     if (!coreStore.state.initialized) {
         // Launch core requests
-        const promiseArray = [baseAdjustedFetch("/api/auth"), baseAdjustedFetch("/api/version")];
+        const promiseArray = [http.get("/api/auth"), http.get("/api/version")];
 
         // Launch extra requests (changelog & notifications)
-        baseAdjustedFetch("/api/changelog").then(async (response) => {
+        http.get("/api/changelog").then(async (response) => {
             const data = await response.json();
             coreStore.setChangelog(data.changelog);
         });
-        baseAdjustedFetch("/api/notifications").then(async (response) => {
+        http.get("/api/notifications").then(async (response) => {
             const data = await response.json();
             handleNotifications(data);
         });

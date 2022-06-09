@@ -2,8 +2,9 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { baseAdjust, http } from "../core/http";
 import { useModal } from "../core/plugins/modals/plugin";
-import { baseAdjust, baseAdjustedFetch, deleteFetch, getValue, patchFetch } from "../core/utils";
+import { getValue } from "../core/utils";
 import { router } from "../router";
 import { coreStore } from "../store/core";
 
@@ -45,7 +46,7 @@ async function open(session: RoomInfo): Promise<void> {
 }
 
 async function updateInfo(): Promise<void> {
-    const response = await baseAdjustedFetch(`/api/rooms/${selected.value!.creator}/${selected.value!.name}/info`);
+    const response = await http.get(`/api/rooms/${selected.value!.creator}/${selected.value!.name}/info`);
     const data = await response.json();
     notes.value = data.notes;
     lastPlayed.value = data.last_played;
@@ -63,7 +64,7 @@ async function rename(): Promise<void> {
         }),
     );
     if (name === undefined) return;
-    const success = await patchFetch(`/api/rooms/${selected.value.creator}/${selected.value.name}`, { name });
+    const success = await http.patchJson(`/api/rooms/${selected.value.creator}/${selected.value.name}`, { name });
     if (success.ok) {
         emit("rename", selectedIndex.value, name);
     }
@@ -74,7 +75,7 @@ async function setLogo(): Promise<void> {
 
     const data = await modals.assetPicker();
     if (data === undefined) return;
-    const success = await patchFetch(`/api/rooms/${selected.value.creator}/${selected.value.name}`, {
+    const success = await http.patchJson(`/api/rooms/${selected.value.creator}/${selected.value.name}`, {
         logo: data.id,
     });
     if (success.ok) {
@@ -85,7 +86,7 @@ async function setLogo(): Promise<void> {
 async function setNotes(text: string): Promise<void> {
     if (selected.value === undefined) return;
 
-    const success = await patchFetch(`/api/rooms/${selected.value.creator}/${selected.value.name}/info`, {
+    const success = await http.patchJson(`/api/rooms/${selected.value.creator}/${selected.value.name}/info`, {
         notes: text,
     });
     if (success.ok) {
@@ -101,7 +102,7 @@ async function leaveOrDelete(): Promise<void> {
         showNo: false,
     });
     if (answer !== true) return;
-    const response = await deleteFetch(`/api/rooms/${selected.value.creator}/${selected.value.name}`);
+    const response = await http.delete(`/api/rooms/${selected.value.creator}/${selected.value.name}`);
     if (response.ok) {
         emit("remove-room", selectedIndex.value);
     }

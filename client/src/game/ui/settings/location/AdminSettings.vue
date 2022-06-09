@@ -2,8 +2,8 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { http } from "../../../../core/http";
 import { useModal } from "../../../../core/plugins/modals/plugin";
-import { baseAdjustedFetch } from "../../../../core/utils";
 import type { RoomInfo } from "../../../../dashboard/types";
 import { gameStore } from "../../../../store/game";
 import { locationStore } from "../../../../store/location";
@@ -49,7 +49,7 @@ async function deleteLocation(): Promise<void> {
 }
 
 async function onCloneClick(): Promise<void> {
-    const response = await baseAdjustedFetch("/api/rooms");
+    const response = await http.get("/api/rooms");
     if (response.ok) {
         const data = await response.json();
         var owned: RoomInfo[] = data.owned;

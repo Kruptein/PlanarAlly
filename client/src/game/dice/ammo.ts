@@ -1,4 +1,4 @@
-import { baseAdjust } from "../../core/utils";
+import { baseAdjust } from "../../core/http";
 
 const loadScriptAsync = (url: string): Promise<void> => {
     return new Promise((resolve) => {

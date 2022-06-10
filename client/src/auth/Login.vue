@@ -108,15 +108,15 @@ function slideNext(swiper: any): void {
             >
                 <swiper-slide>
                     <video autoplay loop muted :poster="baseAdjust('/static/img/carousel_vision.png')">
-                        <source src="https://planarally.io/assets/media/vision.8eab5657.webm" type="video/webm" />
-                        <source src="https://planarally.io/assets/media/vision.06d14f50.mp4" type="video/mp4" />
+                        <source src="https://www.planarally.io/learn/first-session/vision.webm" type="video/webm" />
+                        <source src="https://www.planarally.io/learn/first-session/vision.mp4" type="video/mp4" />
                     </video>
                     <div class="carousel-details">Immersive lighting & vision system</div>
                 </swiper-slide>
                 <swiper-slide>
                     <video autoplay loop muted :poster="baseAdjust('/static/img/carousel_floors.png')">
-                        <source src="https://www.planarally.io/assets/0.19.0/floors.webm" type="video/webm" />
-                        <source src="https://www.planarally.io/assets/0.19.0/floors.mp4" type="video/mp4" />
+                        <source src="https://www.planarally.io/blog/release-0.19/newfloors.webm" type="video/webm" />
+                        <source src="https://www.planarally.io/blog/release-0.19/newfloors.mp4" type="video/mp4" />
                     </video>
                     <div class="carousel-details">Use floors to enhance immersion</div>
                 </swiper-slide>

@@ -11,8 +11,11 @@ tech changes will usually be stripped from release notes for the public
 
 ### Added
 
--   Export all campaigns endpoint
 -   Colour picker now remembers the last 20 used colours for each user.
+-   [DM] Export all campaigns endpoint
+-   [DM] UI export campaign option in room details
+-   [DM] Import campaign support
+    -   Can import older saves (if the migration code is still available (i.e. < 1 year old))
 
 ### Changed
 

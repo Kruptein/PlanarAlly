@@ -48,8 +48,8 @@ from save import SAVE_VERSION, upgrade_save
 from utils import ASSETS_DIR, STATIC_DIR, TEMP_DIR
 
 
-async def export_campaign(name: str, rooms: List[Room]):
-    CampaignExporter(name, rooms).pack()
+async def export_campaign(name: str, rooms: List[Room], *, export_all_assets=False):
+    CampaignExporter(name, rooms, export_all_assets=export_all_assets).pack()
 
 
 async def import_campaign(user: User, pac: BytesIO):
@@ -57,19 +57,22 @@ async def import_campaign(user: User, pac: BytesIO):
 
 
 class CampaignExporter:
-    def __init__(self, name: str, rooms: List[Room]) -> None:
+    def __init__(
+        self, name: str, rooms: List[Room], *, export_all_assets=False
+    ) -> None:
         self.filename = name
 
         self.generate_empty_db(rooms)
         for room in self.migrator.rooms:
-            print(f"[ROOM] {room.name}")
             self.export_users(room)
             self.migrator.migrate_room(room)
             self.migrator.migrate_label_selections(room)
             self.migrator.migrate_locations(room)
             self.migrator.migrate_players(room)
             self.migrator.migrate_notes(room)
-        self.migrator.migrate_all_assets()
+
+        if export_all_assets:
+            self.migrator.migrate_all_assets()
 
     def generate_empty_db(self, rooms: List[Room]):
         self.output_folder = TEMP_DIR
@@ -272,9 +275,9 @@ class CampaignMigrator:
             del asset_data["id"]
             asset_data["owner"] = self.user_mapping[asset_data["owner"]]
 
-        if asset.parent is not None:
-            self.migrate_asset(asset_data["parent"])
-            asset_data["parent"] = self.asset_mapping[asset_data["parent"]]
+            if asset.parent is not None:
+                self.migrate_asset(asset_data["parent"])
+                asset_data["parent"] = self.asset_mapping[asset_data["parent"]]
 
         with self.to_db.bind_ctx([Asset]):
             asset = Asset.create(**asset_data)

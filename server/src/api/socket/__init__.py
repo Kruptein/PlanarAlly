@@ -3,6 +3,7 @@ from . import (
     asset_manager,
     client,
     connection,
+    dashboard,
     dice,
     floor,
     groups,

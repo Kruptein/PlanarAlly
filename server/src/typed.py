@@ -5,7 +5,9 @@ import socketio
 
 class TypedAsyncServer(socketio.AsyncServer):
     def __init__(self, **kwargs):
-        super().__init__(async_mode="aiohttp", engineio_logger=False, **kwargs)
+        super().__init__(
+            async_mode="aiohttp", engineio_logger=False, logger=False, **kwargs
+        )
 
     if TYPE_CHECKING:
 

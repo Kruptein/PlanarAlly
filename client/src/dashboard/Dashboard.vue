@@ -11,6 +11,7 @@ import AccountSettings from "./AccountSettings.vue";
 import CreateCampaign from "./CreateCampaign.vue";
 import ImportGame from "./ImportGame.vue";
 import SessionList from "./SessionList.vue";
+import { socket } from "./socket";
 import { Navigation } from "./types";
 import type { NavigationEntry, RoomInfo } from "./types";
 
@@ -39,6 +40,10 @@ const modals = useModal();
 const route = useRoute();
 const router = useRouter();
 
+socket.on("Campaign.Import.Done", async (name: string) => {
+    await getRooms();
+});
+
 onMounted(async () => {
     if (route.params?.error === "join_game") {
         await modals.confirm(
@@ -48,6 +53,10 @@ onMounted(async () => {
         );
     }
 
+    await getRooms();
+});
+
+async function getRooms(): Promise<void> {
     const response = await http.get("/api/rooms");
     if (response.ok) {
         const data: { owned: RoomInfo[]; joined: RoomInfo[] } = await response.json();
@@ -56,7 +65,7 @@ onMounted(async () => {
     } else {
         state.error = await getErrorReason(response);
     }
-});
+}
 
 const mainNavigation: NavigationEntry[] = [
     { text: "game", type: "header" },

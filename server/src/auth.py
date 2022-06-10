@@ -28,7 +28,9 @@ class AuthPolicy(AbstractAuthorizationPolicy):
         return False
 
 
-def login_required(app, sio, state: Union[Literal["game"], Literal["asset"]]):
+def login_required(
+    app, sio, state: Union[Literal["game"], Literal["asset"], Literal["dashboard"]]
+):
     """
     Decorator that restrict access only for authorized users in a websocket context.
     """

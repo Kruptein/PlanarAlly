@@ -8,6 +8,7 @@ vi.mock("../src/core/socket", () => {
     return {
         socketManager: {
             socket: () => ({
+                connect: vi.fn(),
                 on: vi.fn(),
                 emit: vi.fn(),
             }),

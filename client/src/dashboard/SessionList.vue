@@ -8,6 +8,7 @@ import { getValue } from "../core/utils";
 import { router } from "../router";
 import { coreStore } from "../store/core";
 
+import { socket } from "./socket";
 import type { RoomInfo } from "./types";
 
 const props = defineProps<{
@@ -105,6 +106,12 @@ async function leaveOrDelete(): Promise<void> {
         emit("remove-room", selectedIndex.value);
     }
 }
+
+function exportCampaign(): void {
+    if (selected.value === undefined) return;
+
+    socket.emit("Campaign.Export", selected.value.name);
+}
 </script>
 
 <template>
@@ -151,6 +158,7 @@ async function leaveOrDelete(): Promise<void> {
             <div class="header">Notes</div>
             <textarea :style="{ flexGrow: 1 }" :value="notes" @change="setNotes(getValue($event))"></textarea>
             <div :style="{ flexGrow: 2 }"></div>
+            <div class="leave" v-if="dmMode" @click="exportCampaign">EXPORT</div>
             <div class="leave" @click="leaveOrDelete">{{ dmMode ? "DELETE" : "LEAVE" }}</div>
         </div>
     </div>

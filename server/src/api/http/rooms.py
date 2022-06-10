@@ -1,14 +1,19 @@
 import asyncio
+import io
 from datetime import datetime
-from typing import Union, cast
+from typing import Dict, List, Optional, cast
+from typing_extensions import TypedDict
 
 from aiohttp import web
 from aiohttp_security import check_authorized
+from api.socket.constants import DASHBOARD_NS
 
-from export.campaign import export_campaign
+from app import sio
+from export.campaign import export_campaign, import_campaign
 from models import Location, LocationOptions, PlayerRoom, Room, User
 from models.db import db
 from models.role import Role
+from state.dashboard import dashboard_state
 
 
 async def get_list(request: web.Request):
@@ -180,7 +185,7 @@ async def export(request: web.Request):
     roomname = request.match_info["roomname"]
 
     if creator == user.name:
-        room: Union[Room, None] = Room.get_or_none(name=roomname, creator=user)
+        room: Optional[Room] = Room.get_or_none(name=roomname, creator=user)
         if room is None:
             return web.HTTPBadRequest()
 
@@ -200,9 +205,78 @@ async def export_all(request: web.Request):
     if creator == user.name:
         rooms = [r for r in user.rooms_created]
 
-        asyncio.create_task(export_campaign(f"{creator}-all", rooms))
+        asyncio.create_task(
+            export_campaign(f"{creator}-all", rooms, export_all_assets=True)
+        )
 
         return web.HTTPAccepted(
             text=f"Processing started. Check /static/temp/{creator}-all.pac soon."
         )
     return web.HTTPUnauthorized()
+
+
+class ImportData(TypedDict):
+    totalLength: int
+    chunks: List[Optional[bytes]]
+
+
+import_mapping: Dict[str, ImportData] = {}
+
+
+async def import_info(request: web.Request):
+    await check_authorized(request)
+
+    name = request.match_info["name"]
+
+    data = await request.json()
+    length = data["totalChunks"]
+
+    try:
+        length = int(length)
+    except ValueError:
+        return web.HTTPBadRequest()
+
+    import_mapping[name] = {
+        "totalLength": length,
+        "chunks": [None for _ in range(length)],
+    }
+
+    # todo: some timer / or other condition to clear the import_mapping
+
+    return web.HTTPOk()
+
+
+async def import_chunk(request: web.Request):
+    user: User = await check_authorized(request)
+
+    name = request.match_info["name"]
+    try:
+        chunk = int(request.match_info["chunk"])
+    except ValueError:
+        return web.HTTPBadRequest()
+
+    print(f"Got chunk {chunk} for {name}")
+
+    if name not in import_mapping:
+        return web.HTTPNotFound()
+    if not (0 <= chunk < import_mapping[name]["totalLength"]):
+        return web.HTTPBadRequest()
+
+    data = await request.read()
+
+    import_mapping[name]["chunks"][chunk] = data
+
+    chunks = import_mapping[name]["chunks"]
+    if all(chunks):
+        print(f"Got all chunks for {name}")
+        asyncio.create_task(
+            import_campaign(user, io.BytesIO(b"".join(cast(List[bytes], chunks))))
+        )
+        del import_mapping[name]
+
+        for sid in dashboard_state.get_sids(id=user.id):
+            await sio.emit(
+                "Campaign.Import.Done", name, room=sid, namespace=DASHBOARD_NS
+            )
+
+    return web.HTTPOk()

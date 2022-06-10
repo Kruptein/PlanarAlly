@@ -9,6 +9,7 @@ export enum Navigation {
     Play,
     Run,
     Create,
+    Import,
     Settings,
     AssetManage,
     AssetCreate,

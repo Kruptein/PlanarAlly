@@ -1,8 +1,8 @@
 import type { RouteLocationNormalized } from "vue-router";
 
-import { socketManager } from "../../core/socket";
+import { createNewManager } from "../../core/socket";
 
-export const socket = socketManager.socket("/planarally");
+export const socket = createNewManager().socket("/planarally");
 
 export function createConnection(route: RouteLocationNormalized): void {
     // since socket.io v3 this is private, couldn't find an immediate 'clean' fix

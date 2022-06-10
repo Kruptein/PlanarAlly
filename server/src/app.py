@@ -1,10 +1,8 @@
 import os
 from typing import Callable, Iterable, List, Type
 
-import aiohttp_jinja2
 import aiohttp_security
 import aiohttp_session
-import jinja2
 from aiohttp import web
 from aiohttp_security import SessionIdentityPolicy
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
@@ -38,7 +36,6 @@ sio = TypedAsyncServer(
     cors_allowed_origins=config.get("Webserver", "cors_allowed_origins", fallback=None)
 )
 app = setup_app()
-aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader("templates"))
 basepath = os.environ.get("PA_BASEPATH", "/")[1:]
 socketio_path = basepath + "socket.io"
 sio.attach(app, socketio_path=socketio_path)

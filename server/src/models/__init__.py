@@ -1,4 +1,5 @@
 from typing import List, Type
+
 from models.typed import TypedModel
 from utils import all_subclasses
 from .asset import *

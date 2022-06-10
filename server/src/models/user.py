@@ -1,5 +1,6 @@
 import bcrypt
 from typing import List, TYPE_CHECKING, Optional, cast
+
 from peewee import (
     FloatField,
     ForeignKeyField,
@@ -78,7 +79,7 @@ class User(BaseModel):
     email = TextField(null=True)
     password_hash = cast(str, TextField())
     default_options = ForeignKeyField(UserOptions, on_delete="CASCADE")
-    
+
     colour_history = cast(Optional[str], TextField(null=True))
 
     def __repr__(self):

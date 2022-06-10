@@ -1,10 +1,11 @@
 import asyncio
 from datetime import datetime
-from typing import Type, Union, cast
+from typing import Union, cast
+
 from aiohttp import web
 from aiohttp_security import check_authorized
-from export.campaign import export_campaign
 
+from export.campaign import export_campaign
 from models import Location, LocationOptions, PlayerRoom, Room, User
 from models.db import db
 from models.role import Role
@@ -15,14 +16,10 @@ async def get_list(request: web.Request):
 
     return web.json_response(
         {
-            "owned": [
-                r.as_dashboard_dict() for r in user.rooms_created
-            ],
+            "owned": [r.as_dashboard_dict() for r in user.rooms_created],
             "joined": [
                 r.room.as_dashboard_dict()
-                for r in user.rooms_joined
-                .join(Room)
-                .where(Room.creator != user)
+                for r in user.rooms_joined.join(Room).where(Room.creator != user)
             ],
         }
     )
@@ -34,12 +31,17 @@ async def get_info(request: web.Request):
     creator = request.match_info["creator"]
     roomname = request.match_info["roomname"]
 
-    room = PlayerRoom.select().join(Room).join(User).filter(player=user).where((User.name == creator) & (Room.name == roomname))
-    
+    room = (
+        PlayerRoom.select()
+        .join(Room)
+        .join(User)
+        .filter(player=user)
+        .where((User.name == creator) & (Room.name == roomname))
+    )
 
     if len(room) != 1:
         return web.HTTPNotFound()
-    
+
     last_played = cast(datetime, room[0].last_played)
 
     return web.json_response(

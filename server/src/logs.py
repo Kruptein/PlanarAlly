@@ -12,7 +12,7 @@ logger.setLevel(logging.INFO)
 file_handler = RotatingFileHandler(
     str(FILE_DIR / "planarallyserver.log"),
     maxBytes=config.getint("General", "max_log_size_in_bytes"),
-    backupCount=config.getint("General", "max_log_backups")
+    backupCount=config.getint("General", "max_log_backups"),
 )
 file_handler.setLevel(logging.INFO)
 formatter = logging.Formatter(

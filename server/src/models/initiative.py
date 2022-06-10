@@ -1,7 +1,8 @@
 import json
+from typing import cast
+
 from peewee import ForeignKeyField, IntegerField, TextField
 from playhouse.shortcuts import model_to_dict
-from typing import cast
 
 from . import Location
 from .base import BaseModel

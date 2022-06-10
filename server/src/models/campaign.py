@@ -1,5 +1,7 @@
 import uuid
 from datetime import date
+from typing import List, Optional, Set, TYPE_CHECKING, cast
+
 from peewee import (
     DateField,
     fn,
@@ -10,7 +12,6 @@ from peewee import (
     TextField,
 )
 from playhouse.shortcuts import model_to_dict
-from typing import List, Optional, Set, TYPE_CHECKING, cast
 
 from models.typed import SelectSequence
 
@@ -36,6 +37,7 @@ __all__ = [
 
 
 TRANSPARENT_COLOR = "rgba(0, 0, 0, 0)"
+
 
 class LocationOptions(BaseModel):
     id: int
@@ -74,7 +76,9 @@ class Room(BaseModel):
     locations: SelectSequence["Location"]
 
     name = cast(str, TextField())
-    creator = cast(User, ForeignKeyField(User, backref="rooms_created", on_delete="CASCADE"))
+    creator = cast(
+        User, ForeignKeyField(User, backref="rooms_created", on_delete="CASCADE")
+    )
     invitation_code = cast(uuid.UUID, TextField(default=uuid.uuid4, unique=True))
     is_locked = cast(bool, BooleanField(default=False))
     default_options = ForeignKeyField(LocationOptions, on_delete="CASCADE")
@@ -110,7 +114,10 @@ class Location(BaseModel):
 
     room = ForeignKeyField(Room, backref="locations", on_delete="CASCADE")
     name = cast(str, TextField())
-    options = cast(Optional[LocationOptions], ForeignKeyField(LocationOptions, on_delete="CASCADE", null=True))
+    options = cast(
+        Optional[LocationOptions],
+        ForeignKeyField(LocationOptions, on_delete="CASCADE", null=True),
+    )
     index = cast(int, IntegerField())
     archived = cast(bool, BooleanField(default=False))
 
@@ -201,10 +208,17 @@ class Location(BaseModel):
 
 class PlayerRoom(BaseModel):
     role = cast(int, IntegerField(default=0))
-    player = cast(User, ForeignKeyField(User, backref="rooms_joined", on_delete="CASCADE"))
+    player = cast(
+        User, ForeignKeyField(User, backref="rooms_joined", on_delete="CASCADE")
+    )
     room = cast(Room, ForeignKeyField(Room, backref="players", on_delete="CASCADE"))
-    active_location = cast(Location, ForeignKeyField(Location, backref="players", on_delete="CASCADE"))
-    user_options = cast(Optional[UserOptions], ForeignKeyField(UserOptions, on_delete="CASCADE", null=True))
+    active_location = cast(
+        Location, ForeignKeyField(Location, backref="players", on_delete="CASCADE")
+    )
+    user_options = cast(
+        Optional[UserOptions],
+        ForeignKeyField(UserOptions, on_delete="CASCADE", null=True),
+    )
     notes = TextField(null=True)
     last_played = cast(Optional[date], DateField(null=True))
 

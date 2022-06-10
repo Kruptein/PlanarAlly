@@ -46,7 +46,9 @@ async def create_floor(sid: str, data: str):
         await sio.emit(
             "Floor.Create",
             {
-                "floor": floor.as_dict(player, cast(bool, game_state.get(psid).role == Role.DM)),
+                "floor": floor.as_dict(
+                    player, cast(bool, game_state.get(psid).role == Role.DM)
+                ),
                 "creator": pr.player.name,
             },
             room=psid,

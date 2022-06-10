@@ -1,6 +1,7 @@
-from playhouse.shortcuts import model_to_dict, update_model_from_dict
 from typing import List
 from typing_extensions import TypedDict
+
+from playhouse.shortcuts import model_to_dict, update_model_from_dict
 
 import auth
 from api.socket.constants import GAME_NS

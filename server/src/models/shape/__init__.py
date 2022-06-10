@@ -1,10 +1,10 @@
 from __future__ import annotations
 import json
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, cast
 from uuid import uuid4
 
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
 from playhouse.shortcuts import model_to_dict, update_model_from_dict
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, cast
 from models.typed import SelectSequence
 
 if TYPE_CHECKING:
@@ -78,7 +78,10 @@ class Shape(BaseModel):
     angle = cast(float, FloatField(default=0))
     stroke_width = IntegerField(default=2)
     asset = ForeignKeyField(Asset, backref="shapes", null=True, default=None)
-    group = cast(Optional[Group], ForeignKeyField(Group, backref="members", null=True, default=None))
+    group = cast(
+        Optional[Group],
+        ForeignKeyField(Group, backref="members", null=True, default=None),
+    )
     annotation_visible = cast(bool, BooleanField(default=False))
     ignore_zoom_size = BooleanField(default=False)
     is_door = cast(bool, BooleanField(default=False))
@@ -101,13 +104,16 @@ class Shape(BaseModel):
 
     # todo: Change this API to accept a PlayerRoom instead
     def as_dict(self, user: User, dm: bool) -> "ShapeKeys":
-        data = cast("ShapeKeys", {
-            k: v
-            for k, v in model_to_dict(
-                self, recurse=False, exclude=[Shape.layer, Shape.index]
-            ).items()
-            if v is not None
-        })
+        data = cast(
+            "ShapeKeys",
+            {
+                k: v
+                for k, v in model_to_dict(
+                    self, recurse=False, exclude=[Shape.layer, Shape.index]
+                ).items()
+                if v is not None
+            },
+        )
         # Owner query > list of usernames
         data["owners"] = [owner.as_dict() for owner in self.owners]
         # Layer query > layer name
@@ -269,13 +275,16 @@ class ShapeOwner(BaseModel):
         return f"<ShapeOwner {self.user.name} {self.shape.get_path()}>"
 
     def as_dict(self) -> "ServerShapeOwner":
-        return cast("ServerShapeOwner", {
-            "shape": self.shape.uuid,
-            "user": self.user.name,
-            "edit_access": self.edit_access,
-            "movement_access": self.movement_access,
-            "vision_access": self.vision_access,
-        })
+        return cast(
+            "ServerShapeOwner",
+            {
+                "shape": self.shape.uuid,
+                "user": self.user.name,
+                "edit_access": self.edit_access,
+                "movement_access": self.movement_access,
+                "vision_access": self.vision_access,
+            },
+        )
 
     def make_copy(self, new_shape):
         _dict = self.as_dict()

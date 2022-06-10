@@ -1,4 +1,5 @@
 import urllib.parse
+
 from aiohttp import web
 from aiohttp_security import check_authorized
 

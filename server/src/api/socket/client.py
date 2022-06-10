@@ -1,5 +1,4 @@
 from typing import Any, Dict
-
 from typing_extensions import TypedDict
 
 import auth

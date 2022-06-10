@@ -28,7 +28,10 @@ class Asset(BaseModel):
     id: int
 
     owner = ForeignKeyField(User, backref="assets", on_delete="CASCADE")
-    parent = cast(Optional["Asset"], ForeignKeyField("self", backref="children", null=True, on_delete="CASCADE"))
+    parent = cast(
+        Optional["Asset"],
+        ForeignKeyField("self", backref="children", null=True, on_delete="CASCADE"),
+    )
     name = cast(str, TextField())
     file_hash = cast(Optional[str], TextField(null=True))
     options = cast(Optional[str], TextField(null=True))

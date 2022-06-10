@@ -44,9 +44,7 @@ async def add_shape(sid: str, data: ShapeAdd):
         data["temporary"] = False
 
     try:
-        floor = pr.active_location.floors.where(
-            Floor.name == data["shape"]["floor"]
-        )[0]
+        floor = pr.active_location.floors.where(Floor.name == data["shape"]["floor"])[0]
         layer = floor.layers.where(Layer.name == data["shape"]["layer"])[0]
     except IndexError:
         return
@@ -105,7 +103,7 @@ async def add_shape(sid: str, data: ShapeAdd):
             if not is_dm and not layer.player_visible:
                 continue
             if not data["temporary"]:
-                data["shape"] = shape.as_dict(room_player.player, is_dm) # type: ignore
+                data["shape"] = shape.as_dict(room_player.player, is_dm)  # type: ignore
             await sio.emit("Shape.Add", data["shape"], room=psid, namespace=GAME_NS)
 
 
@@ -148,7 +146,9 @@ async def update_shape_positions(sid: str, data: PositionUpdateList):
     )
 
 
-async def send_remove_shapes(sio: AsyncServer, data: List[str], room: str, skip_sid: Optional[str] = None):
+async def send_remove_shapes(
+    sio: AsyncServer, data: List[str], room: str, skip_sid: Optional[str] = None
+):
     await _send_game(sio, "Shapes.Remove", data, room, skip_sid)
 
 
@@ -353,7 +353,9 @@ async def move_shapes(sid: str, data: ServerShapeLocationMove):
 
     shapes = [Shape.get_by_id(sh) for sh in data["shapes"]]
 
-    await send_remove_shapes(sio, [sh.uuid for sh in shapes], pr.active_location.get_path())
+    await send_remove_shapes(
+        sio, [sh.uuid for sh in shapes], pr.active_location.get_path()
+    )
 
     for shape in shapes:
         shape.layer = floor.layers.where(Layer.name == shape.layer.name)[0]

@@ -1,4 +1,5 @@
 from typing import List, cast
+
 from aiohttp import web
 
 from models.campaign import Room

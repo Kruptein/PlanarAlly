@@ -23,7 +23,11 @@ class NewVariantMessage(VariantMessage):
 
 
 VARIANT_ADD = "ToggleComposite.Variants.Add"
-async def send_new_variant(sio: AsyncServer, data: NewVariantMessage, room: str, skip_sid: Optional[str] = None):
+
+
+async def send_new_variant(
+    sio: AsyncServer, data: NewVariantMessage, room: str, skip_sid: Optional[str] = None
+):
     await _send_game(sio, VARIANT_ADD, data, room, skip_sid)
 
 

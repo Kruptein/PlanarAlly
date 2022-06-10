@@ -10,10 +10,10 @@ from collections import defaultdict
 from pathlib import Path
 from typing import cast, Dict, List, Optional, Union
 from typing_extensions import TypedDict
+from uuid import uuid4
 
 from aiohttp import web
 from aiohttp_security import authorized_userid
-from uuid import uuid4
 
 import auth
 from app import app, sio
@@ -62,7 +62,8 @@ async def assetmgmt_connect(sid: str, environ):
         root = Asset.get_root_folder(user)
         await sio.emit("Folder.Root.Set", root.id, room=sid, namespace=ASSET_NS)
 
-sio.on('connect', namespace=ASSET_NS, handler=assetmgmt_connect)
+
+sio.on("connect", namespace=ASSET_NS, handler=assetmgmt_connect)
 
 
 @sio.on("Folder.Get", namespace=ASSET_NS)
@@ -189,9 +190,7 @@ def cleanup_assets(assets):
             cleanup_assets(asset["children"])
 
 
-def get_safe_members(
-    members: List[tarfile.TarInfo]
-) -> List[tarfile.TarInfo]:
+def get_safe_members(members: List[tarfile.TarInfo]) -> List[tarfile.TarInfo]:
     safe_members: List[tarfile.TarInfo] = []
     for member in members:
         if member.islnk() or member.issym():
@@ -212,9 +211,7 @@ async def handle_paa_file(upload_data: UploadData, data: bytes, sid: str):
             files.type = tarfile.DIRTYPE
             # We need to explicitly list our members for security reasons
             # this is upload data so people could upload malicious stuff that breaks out of the path etc
-            tar.extractall(
-                path=tmpdir, members=get_safe_members(tar.getmembers())
-            )
+            tar.extractall(path=tmpdir, members=get_safe_members(tar.getmembers()))
 
         tmp_path = Path(tmpdir)
         for asset in os.listdir(tmp_path / "files"):

@@ -73,19 +73,33 @@ class AuraDelta(AuraData, total=False):
     colour: str
 
 
-async def send_annotation(sio: AsyncServer, data: ShapeSetStringValue, room: str, skip_sid: Optional[str] = None):
+async def send_annotation(
+    sio: AsyncServer,
+    data: ShapeSetStringValue,
+    room: str,
+    skip_sid: Optional[str] = None,
+):
     await _send_game(sio, "Shape.Options.Annotation.Set", data, room, skip_sid)
 
 
-async def send_name(sio: AsyncServer, data: ShapeSetStringValue, room: str, skip_sid: Optional[str] = None):
+async def send_name(
+    sio: AsyncServer,
+    data: ShapeSetStringValue,
+    room: str,
+    skip_sid: Optional[str] = None,
+):
     await _send_game(sio, "Shape.Options.Name.Set", data, room, skip_sid)
 
 
-async def send_new_tracker(sio: AsyncServer, data: TrackerDelta, room: str, skip_sid: Optional[str] = None):
+async def send_new_tracker(
+    sio: AsyncServer, data: TrackerDelta, room: str, skip_sid: Optional[str] = None
+):
     await _send_game(sio, "Shape.Options.Tracker.Create", data, room, skip_sid)
 
 
-async def send_new_aura(sio: AsyncServer, data: AuraDelta, room: str, skip_sid: Optional[str] = None):
+async def send_new_aura(
+    sio: AsyncServer, data: AuraDelta, room: str, skip_sid: Optional[str] = None
+):
     await _send_game(sio, "Shape.Options.Aura.Create", data, room, skip_sid)
 
 
@@ -259,8 +273,12 @@ async def set_annotation_visible(sid: str, data: ShapeSetBooleanValue):
     for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=sid):
         if psid in owners:
             continue
-        await send_annotation(sio, 
-            {"shape": cast(str, shape.uuid), "value": cast(str, shape.annotation) if data["value"] else ""},
+        await send_annotation(
+            sio,
+            {
+                "shape": cast(str, shape.uuid),
+                "value": cast(str, shape.annotation) if data["value"] else "",
+            },
             psid,
         )
 
@@ -388,7 +406,10 @@ async def set_name_visible(sid: str, data: ShapeSetBooleanValue):
     for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=sid):
         if psid in owners:
             continue
-        _data: ShapeSetStringValue = {"shape": cast(str, shape.uuid), "value": cast(str, shape.name) if data["value"] else "?"}
+        _data: ShapeSetStringValue = {
+            "shape": cast(str, shape.uuid),
+            "value": cast(str, shape.name) if data["value"] else "?",
+        }
         await send_name(sio, _data, psid)
 
 

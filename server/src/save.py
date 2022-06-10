@@ -21,6 +21,7 @@ import secrets
 import shutil
 import sys
 from pathlib import Path
+
 from playhouse.sqlite_ext import SqliteExtDatabase
 
 from config import SAVE_FILE

@@ -3,18 +3,16 @@ PlanarAlly backend server code.
 This is the code responsible for starting the backend and reacting to socket IO events.
 """
 
-# Check for existence of './templates/' as it is not present if client was not built before
-from argparse import ArgumentParser
 import getpass
+import mimetypes
 import os
-from pathlib import Path
 import sys
+from argparse import ArgumentParser
+from pathlib import Path
+from types import SimpleNamespace
 from urllib.parse import quote, unquote
 from utils import FILE_DIR
-from types import SimpleNamespace
 
-# Mimetype recognition for js files apparently is not always properly setup out of the box for some users out there.
-import mimetypes
 import save
 
 save_newly_created = save.check_existence()
@@ -136,12 +134,14 @@ async def start_servers():
 def server_main(args):
     """Start the PlanarAlly server."""
 
+    # Check for existence of './templates/' as it is not present if client was not built before
     if (not (FILE_DIR / "templates").exists()) and args.dev:
         print(
             "You must gather your par— you must build the client, before starting the server.\nSee https://www.planarally.io/server/setup/self-hosting/ on how to build the client or import a pre-built client."
         )
         sys.exit(1)
 
+    # Mimetype recognition for js files apparently is not always properly setup out of the box for some users out there.
     mimetypes.init()
     mimetypes.types_map[".js"] = "application/javascript; charset=utf-8"
 

@@ -1,4 +1,5 @@
 from typing import cast
+
 import auth
 from api.socket.constants import GAME_NS
 from api.socket.shape.data_models import ServerShapeDefaultOwner, ServerShapeOwner

@@ -1,6 +1,6 @@
 import secrets
+
 from aiohttp import web
-from aiohttp.web_exceptions import HTTPBadRequest
 
 from models import User
 

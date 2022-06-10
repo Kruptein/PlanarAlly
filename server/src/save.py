@@ -21,23 +21,24 @@ import secrets
 import shutil
 import sys
 from pathlib import Path
+from typing import Optional
 
 from playhouse.sqlite_ext import SqliteExtDatabase
 
 from config import SAVE_FILE
 from models import ALL_MODELS, Constants
-from models.db import db
+from models.db import db as ACTIVE_DB
 from utils import FILE_DIR, OldVersionException, UnknownVersionException
 
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
 
 
-def get_save_version():
+def get_save_version(db: SqliteExtDatabase):
     return db.execute_sql("SELECT save_version FROM constants").fetchone()[0]
 
 
-def inc_save_version():
+def inc_save_version(db: SqliteExtDatabase):
     db.execute_sql("UPDATE constants SET save_version = save_version + 1")
 
 
@@ -53,12 +54,12 @@ def create_new_db(db: SqliteExtDatabase, version: int):
 def check_existence() -> bool:
     if not SAVE_FILE.exists():
         logger.warning("Provided save file does not exist.  Creating a new one.")
-        create_new_db(db, SAVE_VERSION)
+        create_new_db(ACTIVE_DB, SAVE_VERSION)
         return True
     return False
 
 
-def upgrade(version):
+def upgrade(db: SqliteExtDatabase, version: int):
     if version < 64:
         raise OldVersionException(
             f"Upgrade code for this version is >1 year old and is no longer in the active codebase to reduce clutter. You can still find this code on github, contact me for more info."
@@ -181,41 +182,61 @@ def upgrade(version):
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."
         )
-    inc_save_version()
+    inc_save_version(db)
     db.foreign_keys = True
 
 
-def check_outdated():
+def upgrade_save(db: Optional[SqliteExtDatabase] = None, *, is_import=False):
+    if db is None:
+        db = ACTIVE_DB
     try:
-        save_version = get_save_version()
+        save_version = get_save_version(db)
     except:
-        logger.error("Database does not conform to expected format. Failed to start.")
-        sys.exit(2)
-    if save_version != SAVE_VERSION:
+        if is_import:
+            raise Exception(
+                "The import save database is not correctly formatted. Failed to import"
+            )
+        else:
+            logger.error(
+                "Database does not conform to expected format. Failed to start."
+            )
+            sys.exit(2)
+
+    if save_version == SAVE_VERSION:
+        return
+    else:
         logger.warning(
             f"Save format {save_version} does not match the required version {SAVE_VERSION}!"
         )
         logger.warning("Attempting upgrade")
 
-    updated = False
     while save_version != SAVE_VERSION:
-        updated = True
-        save_backups = FILE_DIR / "save_backups"
-        if not save_backups.is_dir():
-            save_backups.mkdir()
-        backup_path = save_backups.resolve() / f"{Path(SAVE_FILE).name}.{save_version}"
-        logger.warning(f"Backing up old save as {backup_path}")
-        shutil.copyfile(SAVE_FILE, backup_path)
-        logger.warning(f"Starting upgrade to {save_version + 1}")
+        if not is_import:
+            backup_save(save_version)
+
+        if is_import:
+            logger.warning(f"Upgrading import save to {save_version + 1}")
+        else:
+            logger.warning(f"Starting upgrade to {save_version + 1}")
         try:
-            upgrade(save_version)
+            upgrade(db, save_version)
         except Exception as e:
             logger.exception(e)
-            logger.error("ERROR: Could not start server")
-            sys.exit(2)
+            if is_import:
+                logger.error("ERROR: Failed to upgrade iport save")
+            else:
+                logger.error("ERROR: Could not start server")
+                sys.exit(2)
         else:
             logger.warning(f"Upgrade to {save_version + 1} done.")
-            save_version = get_save_version()
-    else:
-        if updated:
-            logger.warning("Upgrade process completed successfully.")
+            save_version = get_save_version(db)
+    logger.warning("Upgrade process completed successfully.")
+
+
+def backup_save(version: int):
+    save_backups = FILE_DIR / "save_backups"
+    if not save_backups.is_dir():
+        save_backups.mkdir()
+    backup_path = save_backups.resolve() / f"{Path(SAVE_FILE).name}.{version}"
+    logger.warning(f"Backing up old save as {backup_path}")
+    shutil.copyfile(SAVE_FILE, backup_path)

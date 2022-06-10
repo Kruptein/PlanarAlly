@@ -44,7 +44,7 @@ from models.shape import (
 )
 from models.typed import SelectSequence
 from models.user import User, UserOptions
-from save import SAVE_VERSION
+from save import SAVE_VERSION, upgrade_save
 from utils import ASSETS_DIR, STATIC_DIR, TEMP_DIR
 
 
@@ -175,6 +175,7 @@ class CampaignImporter:
             self.migrator.migrate_players(room)
             self.migrator.migrate_notes(room)
         print("Completed campaign import")
+        self.db.close()
 
     def unpack(self, pac: BytesIO):
         # TODO: SAVE_VERSION CHECK
@@ -210,6 +211,9 @@ class CampaignImporter:
                         f.write(sqlite_f.read())
                     self.db = open_db(TEMP_DIR / f"import-{member.name}")
                     self.db.foreign_keys = False
+
+                    upgrade_save(self.db, is_import=True)
+
                     self.migrator = CampaignMigrator(self.db, ACTIVE_DB)
 
             if len(assets) > 0:

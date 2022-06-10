@@ -15,7 +15,10 @@ runners: List[web.AppRunner] = []
 
 
 def setup_app(middlewares: Iterable[Callable] = ()) -> web.Application:
-    app = web.Application(middlewares=middlewares, client_max_size=500 * 1024**2)
+    # We add 1 due to a bug in aiohttp uses >= instead of >. This has been fixed on master
+    # but is not part of any release
+    max_size = config.getint("Webserver", "max_upload_size_in_bytes") + 1
+    app = web.Application(middlewares=middlewares, client_max_size=max_size)
     app["AuthzPolicy"] = auth.AuthPolicy()
     aiohttp_security.setup(app, SessionIdentityPolicy(), app["AuthzPolicy"])
     aiohttp_session.setup(app, EncryptedCookieStorage(auth.get_secret_token()))

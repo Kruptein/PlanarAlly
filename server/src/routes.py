@@ -11,6 +11,7 @@ import api.http.admin.users
 import api.http.auth
 import api.http.notifications
 import api.http.rooms
+import api.http.server
 import api.http.users
 import api.http.version
 from app import admin_app, api_app, app as main_app
@@ -63,6 +64,7 @@ main_app.router.add_post(f"{subpath}/api/users/delete", api.http.users.delete_ac
 main_app.router.add_post(f"{subpath}/api/login", api.http.auth.login)
 main_app.router.add_post(f"{subpath}/api/register", api.http.auth.register)
 main_app.router.add_post(f"{subpath}/api/logout", api.http.auth.logout)
+main_app.router.add_get(f"{subpath}/api/server/upload_limit", api.http.server.get_limit)
 main_app.router.add_get(f"{subpath}/api/rooms", api.http.rooms.get_list)
 main_app.router.add_post(f"{subpath}/api/rooms", api.http.rooms.create)
 main_app.router.add_patch(
@@ -83,7 +85,12 @@ main_app.router.add_get(
 main_app.router.add_get(
     f"{subpath}/api/rooms/{{creator}}/export", api.http.rooms.export_all
 )
-main_app.router.add_post(f"{subpath}/api/rooms/import/{{name}}", api.http.rooms.import_)
+main_app.router.add_post(
+    f"{subpath}/api/rooms/import/{{name}}", api.http.rooms.import_info
+)
+main_app.router.add_post(
+    f"{subpath}/api/rooms/import/{{name}}/{{chunk}}", api.http.rooms.import_chunk
+)
 main_app.router.add_post(f"{subpath}/api/invite", api.http.claim_invite)
 main_app.router.add_get(f"{subpath}/api/version", api.http.version.get_version)
 main_app.router.add_get(f"{subpath}/api/changelog", api.http.version.get_changelog)

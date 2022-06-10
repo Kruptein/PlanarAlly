@@ -9,7 +9,19 @@ async function uploadSave(): Promise<void> {
     const files = (document.getElementById("files") as HTMLInputElement).files;
     if (files === null || files.length === 0) return;
 
-    await http.post(`/api/rooms/import/${files[0].name}`, files[0]);
+    const data = await http.get("/api/server/upload_limit");
+    const chunkSize: number = await data.json();
+
+    const pac = files[0];
+    const totalChunks = Math.ceil(pac.size / chunkSize);
+    await http.postJson(`/api/rooms/import/${pac.name}`, { totalChunks });
+
+    const chunks: Promise<Response>[] = [];
+    for (let i = 0; i < totalChunks; i++) {
+        const chunk = pac.slice(i * chunkSize, (i + 1) * chunkSize);
+        chunks.push(http.post(`/api/rooms/import/${pac.name}/${i}`, chunk));
+    }
+    await Promise.all(chunks);
 }
 </script>
 

@@ -53,6 +53,7 @@ tech changes will usually be stripped from release notes for the public
 -   Drawtool trying to add shape creation operation to undo stack when the shape was not valid
 -   Points modified by the polygon edit UI are not snappable until a refresh
 -   Logic Permission selector showing error in edgecase
+-   Asset socket was not cleaning up past connections
 -   [server] Admin client was not built in docker
 -   [tech] Ensure router.push calls are always awaited
 

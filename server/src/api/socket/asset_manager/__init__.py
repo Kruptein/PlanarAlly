@@ -63,6 +63,14 @@ async def assetmgmt_connect(sid: str, environ):
         await sio.emit("Folder.Root.Set", root.id, room=sid, namespace=ASSET_NS)
 
 
+@sio.on("disconnect", namespace=ASSET_NS)
+async def disconnect(sid):
+    if not asset_state.has_sid(sid):
+        return
+
+    await asset_state.remove_sid(sid)
+
+
 @sio.on("Folder.Get", namespace=ASSET_NS)
 @auth.login_required(app, sio, "asset")
 async def get_folder(sid: str, folder=None):

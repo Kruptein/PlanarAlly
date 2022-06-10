@@ -11,7 +11,7 @@ from logs import logger
 
 
 @sio.on("Room.Info.InviteCode.Refresh", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def refresh_invite_code(sid: str):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -39,7 +39,7 @@ async def refresh_invite_code(sid: str):
 
 
 @sio.on("Room.Info.Players.Kick", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def kick_player(sid: str, player_id: int):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -63,7 +63,7 @@ async def kick_player(sid: str, player_id: int):
 
 
 @sio.on("Room.Delete", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def delete_session(sid: str):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -75,7 +75,7 @@ async def delete_session(sid: str):
 
 
 @sio.on("Room.Info.Set.Locked", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_locked_game_state(sid: str, is_locked: bool):
     pr: PlayerRoom = game_state.get(sid)
 

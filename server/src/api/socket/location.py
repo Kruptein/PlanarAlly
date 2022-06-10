@@ -71,14 +71,14 @@ class LocationCloneData(TypedDict):
 
 
 @sio.on("Location.Load", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def _load_location(sid: str):
     pr: PlayerRoom = game_state.get(sid)
 
     await load_location(sid, pr.active_location, complete=True)
 
 
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def load_location(sid: str, location: Location, *, complete=False):
     pr: PlayerRoom = game_state.get(sid)
     if pr.active_location != location:
@@ -260,7 +260,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
 
 
 @sio.on("Location.Change", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def change_location(sid: str, data: LocationChangeData):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -307,7 +307,7 @@ async def change_location(sid: str, data: LocationChangeData):
 
 
 @sio.on("Location.Options.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_location_options(sid: str, data: LocationOptionsData):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -352,7 +352,7 @@ async def set_location_options(sid: str, data: LocationOptionsData):
 
 
 @sio.on("Location.New", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def add_new_location(sid: str, location: str):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -376,7 +376,7 @@ async def add_new_location(sid: str, location: str):
 
 
 @sio.on("Location.Clone", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def clone_location(sid: str, data: LocationCloneData):
     pr: PlayerRoom = game_state.get(sid)
     if pr.role != Role.DM:
@@ -447,7 +447,7 @@ async def clone_location(sid: str, data: LocationCloneData):
 
 
 @sio.on("Locations.Order.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_locations_order(sid: str, locations: List[int]):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -470,7 +470,7 @@ async def set_locations_order(sid: str, locations: List[int]):
 
 
 @sio.on("Location.Rename", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def rename_location(sid: str, data: LocationRenameData):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -488,7 +488,7 @@ async def rename_location(sid: str, data: LocationRenameData):
 
 
 @sio.on("Location.Delete", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def delete_location(sid: str, location_id: int):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -508,7 +508,7 @@ async def delete_location(sid: str, location_id: int):
 
 
 @sio.on("Location.Archive", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def archive_location(sid: str, location_id: int):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -528,7 +528,7 @@ async def archive_location(sid: str, location_id: int):
 
 
 @sio.on("Location.Unarchive", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def unarchive_location(sid: str, location_id: int):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -548,7 +548,7 @@ async def unarchive_location(sid: str, location_id: int):
 
 
 @sio.on("Location.Spawn.Info.Get", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def get_location_spawn_info(sid: str, location_id: int):
     pr: PlayerRoom = game_state.get(sid)
 

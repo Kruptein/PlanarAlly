@@ -6,7 +6,7 @@ from state.game import game_state
 
 
 @sio.on("Marker.New", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def new_marker(sid: str, data):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -19,7 +19,7 @@ async def new_marker(sid: str, data):
 
 
 @sio.on("Marker.Remove", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def delete_marker(sid: str, uuid: str):
     pr: PlayerRoom = game_state.get(sid)
 

@@ -36,7 +36,7 @@ from . import access, options, toggle_composite
 
 
 @sio.on("Shape.Add", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def add_shape(sid: str, data: ShapeAdd):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -108,7 +108,7 @@ async def add_shape(sid: str, data: ShapeAdd):
 
 
 @sio.on("Shapes.Position.Update", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def update_shape_positions(sid: str, data: PositionUpdateList):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -153,7 +153,7 @@ async def send_remove_shapes(
 
 
 @sio.on("Shapes.Remove", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def remove_shapes(sid: str, data: TemporaryShapesList):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -198,7 +198,7 @@ async def remove_shapes(sid: str, data: TemporaryShapesList):
 
 
 @sio.on("Shapes.Floor.Change", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def change_shape_floor(sid: str, data: ShapeFloorChange):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -231,7 +231,7 @@ async def change_shape_floor(sid: str, data: ShapeFloorChange):
 
 
 @sio.on("Shapes.Layer.Change", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def change_shape_layer(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -299,7 +299,7 @@ async def change_shape_layer(sid: str, data: Dict[str, Any]):
 
 
 @sio.on("Shape.Order.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def move_shape_order(sid: str, data: ShapeOrder):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -338,7 +338,7 @@ async def move_shape_order(sid: str, data: ShapeOrder):
 
 
 @sio.on("Shapes.Location.Move", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def move_shapes(sid: str, data: ServerShapeLocationMove):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -372,7 +372,7 @@ async def move_shapes(sid: str, data: ServerShapeLocationMove):
 
 
 @sio.on("Shape.CircularToken.Value.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_circular_token_value(sid: str, data: TextUpdateData):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -391,7 +391,7 @@ async def set_circular_token_value(sid: str, data: TextUpdateData):
 
 
 @sio.on("Shape.Text.Value.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_text_value(sid: str, data: TextUpdateData):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -410,7 +410,7 @@ async def set_text_value(sid: str, data: TextUpdateData):
 
 
 @sio.on("Shape.Rect.Size.Update", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def update_rect_size(sid: str, data: RectSizeData):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -434,7 +434,7 @@ async def update_rect_size(sid: str, data: RectSizeData):
 
 
 @sio.on("Shape.Circle.Size.Update", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def update_circle_size(sid: str, data: CircleSizeData):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -457,7 +457,7 @@ async def update_circle_size(sid: str, data: CircleSizeData):
 
 
 @sio.on("Shape.Text.Size.Update", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def update_text_size(sid: str, data: TextSizeData):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -477,7 +477,7 @@ async def update_text_size(sid: str, data: TextSizeData):
 
 
 @sio.on("Shapes.Options.Update", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def update_shape_options(sid: str, data: OptionUpdateList):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -508,7 +508,7 @@ async def update_shape_options(sid: str, data: OptionUpdateList):
 
 
 @sio.on("Shape.Info.Get", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def get_shape_info(sid: str, shape_id: str):
     pr: PlayerRoom = game_state.get(sid)
 

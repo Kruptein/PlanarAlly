@@ -15,7 +15,7 @@ class LabelVisibilityMessage(TypedDict):
 
 
 @sio.on("Label.Add", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def add(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -40,7 +40,7 @@ async def add(sid: str, data: Dict[str, Any]):
 
 
 @sio.on("Label.Delete", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def delete(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -66,7 +66,7 @@ async def delete(sid: str, data: Dict[str, Any]):
 
 
 @sio.on("Label.Visibility.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_visibility(sid: str, data: LabelVisibilityMessage):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -106,7 +106,7 @@ async def set_visibility(sid: str, data: LabelVisibilityMessage):
 
 
 @sio.on("Labels.Filter.Add", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def add_filter(sid: str, uuid: str):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -120,7 +120,7 @@ async def add_filter(sid: str, uuid: str):
 
 
 @sio.on("Labels.Filter.Remove", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def remove_filter(sid: str, uuid: str):
     pr: PlayerRoom = game_state.get(sid)
 

@@ -12,7 +12,7 @@ from logs import logger
 
 
 @sio.on("Shape.Owner.Add", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def add_shape_owner(sid: str, data: ServerShapeOwner):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -69,7 +69,7 @@ async def add_shape_owner(sid: str, data: ServerShapeOwner):
 
 
 @sio.on("Shape.Owner.Update", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def update_shape_owner(sid: str, data: ServerShapeOwner):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -119,7 +119,7 @@ async def update_shape_owner(sid: str, data: ServerShapeOwner):
 
 
 @sio.on("Shape.Owner.Delete", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def delete_shape_owner(sid: str, data: ServerShapeOwner):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -161,7 +161,7 @@ async def delete_shape_owner(sid: str, data: ServerShapeOwner):
 
 
 @sio.on("Shape.Owner.Default.Update", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def update_default_shape_owner(sid: str, data: ServerShapeDefaultOwner):
     pr: PlayerRoom = game_state.get(sid)
 

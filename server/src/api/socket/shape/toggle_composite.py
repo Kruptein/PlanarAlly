@@ -32,7 +32,7 @@ async def send_new_variant(
 
 
 @sio.on("ToggleComposite.Variants.Active.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_toggle_composite_active_variant(sid: str, data: VariantMessage):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -55,7 +55,7 @@ async def set_toggle_composite_active_variant(sid: str, data: VariantMessage):
 
 
 @sio.on("ToggleComposite.Variants.Add", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def add_toggle_composite_variant(sid: str, data: NewVariantMessage):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -70,7 +70,7 @@ async def add_toggle_composite_variant(sid: str, data: NewVariantMessage):
 
 
 @sio.on("ToggleComposite.Variants.Rename", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def rename_toggle_composite_variant(sid: str, data: NewVariantMessage):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -90,7 +90,7 @@ async def rename_toggle_composite_variant(sid: str, data: NewVariantMessage):
 
 
 @sio.on("ToggleComposite.Variants.Remove", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def remove_toggle_composite_variant(sid: str, data: VariantMessage):
     pr: PlayerRoom = game_state.get(sid)
 

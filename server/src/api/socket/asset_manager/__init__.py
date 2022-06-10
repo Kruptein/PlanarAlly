@@ -52,7 +52,7 @@ async def update_live_game(user: User):
             )
 
 
-# @sio.on("connect", namespace=ASSET_NS)
+@sio.on("connect", namespace=ASSET_NS)
 async def assetmgmt_connect(sid: str, environ):
     user = await authorized_userid(environ["aiohttp.request"])
     if user is None:
@@ -63,10 +63,8 @@ async def assetmgmt_connect(sid: str, environ):
         await sio.emit("Folder.Root.Set", root.id, room=sid, namespace=ASSET_NS)
 
 
-sio.on("connect", namespace=ASSET_NS, handler=assetmgmt_connect)
-
-
 @sio.on("Folder.Get", namespace=ASSET_NS)
+@auth.login_required(app, sio, "asset")
 async def get_folder(sid: str, folder=None):
     if folder is not None and folder < 0:
         return
@@ -89,6 +87,7 @@ async def get_folder(sid: str, folder=None):
 
 
 @sio.on("Folder.GetByPath", namespace=ASSET_NS)
+@auth.login_required(app, sio, "asset")
 async def get_folder_by_path(sid: str, folder):
     user = asset_state.get_user(sid)
 
@@ -114,7 +113,7 @@ async def get_folder_by_path(sid: str, folder):
 
 
 @sio.on("Folder.Create", namespace=ASSET_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "asset")
 async def create_folder(sid: str, data):
     user = asset_state.get_user(sid)
     parent = data.get("parent", None)
@@ -131,7 +130,7 @@ async def create_folder(sid: str, data):
 
 
 @sio.on("Inode.Move", namespace=ASSET_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "asset")
 async def move_inode(sid: str, data):
     user = asset_state.get_user(sid)
     target = data.get("target", None)
@@ -148,7 +147,7 @@ async def move_inode(sid: str, data):
 
 
 @sio.on("Asset.Rename", namespace=ASSET_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "asset")
 async def assetmgmt_rename(sid: str, data):
     user = asset_state.get_user(sid)
     asset = Asset.get_by_id(data["asset"])
@@ -161,7 +160,7 @@ async def assetmgmt_rename(sid: str, data):
 
 
 @sio.on("Asset.Remove", namespace=ASSET_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "asset")
 async def assetmgmt_rm(sid: str, data):
     user = asset_state.get_user(sid)
     asset: Asset = Asset.get_by_id(data)
@@ -278,7 +277,7 @@ async def handle_regular_file(upload_data: UploadData, data: bytes, sid: str):
 
 
 @sio.on("Asset.Upload", namespace=ASSET_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "asset")
 async def assetmgmt_upload(sid: str, upload_data: UploadData):
     uuid = upload_data["uuid"]
 
@@ -334,7 +333,7 @@ def export_asset(asset: Union[AssetDict, List[AssetDict]], parent=-1) -> AssetEx
 
 
 @sio.on("Asset.Export", namespace=ASSET_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "asset")
 async def assetmgmt_export(sid: str, selection: List[int]):
 
     full_selection: List[AssetDict] = [

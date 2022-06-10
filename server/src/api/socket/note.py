@@ -10,7 +10,7 @@ from logs import logger
 
 
 @sio.on("Note.New", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def new_note(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -31,7 +31,7 @@ async def new_note(sid: str, data: Dict[str, Any]):
 
 
 @sio.on("Note.Update", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def update_note(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -53,7 +53,7 @@ async def update_note(sid: str, data: Dict[str, Any]):
 
 
 @sio.on("Note.Remove", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def delete_note(sid, uuid):
     pr: PlayerRoom = game_state.get(sid)
 

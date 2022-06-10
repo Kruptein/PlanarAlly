@@ -32,7 +32,7 @@ class FloorBackgroundData(TypedDict):
 
 
 @sio.on("Floor.Create", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def create_floor(sid: str, data: str):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -57,7 +57,7 @@ async def create_floor(sid: str, data: str):
 
 
 @sio.on("Floor.Remove", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def remove_floor(sid: str, data: str):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -78,7 +78,7 @@ async def remove_floor(sid: str, data: str):
 
 
 @sio.on("Floor.Visible.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_floor_visibility(sid: str, data: FloorVisibleData):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -100,7 +100,7 @@ async def set_floor_visibility(sid: str, data: FloorVisibleData):
 
 
 @sio.on("Floor.Rename", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def rename_floor(sid: str, data: FloorRename):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -122,7 +122,7 @@ async def rename_floor(sid: str, data: FloorRename):
 
 
 @sio.on("Floor.Type.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_floor_type(sid: str, data: FloorTypeData):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -144,7 +144,7 @@ async def set_floor_type(sid: str, data: FloorTypeData):
 
 
 @sio.on("Floor.Background.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_floor_background(sid: str, data: FloorBackgroundData):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -166,7 +166,7 @@ async def set_floor_background(sid: str, data: FloorBackgroundData):
 
 
 @sio.on("Floors.Reorder", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def reorder_floors(sid: str, data: List[str]):
     pr: PlayerRoom = game_state.get(sid)
 

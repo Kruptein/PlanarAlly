@@ -98,9 +98,7 @@ async function leaveOrDelete(): Promise<void> {
     if (selected.value === undefined) return;
 
     const actionWord = props.dmMode ? "Removing" : "Leaving";
-    const answer = await modals.confirm(`${actionWord} ${selected.value.name}!`, "Are you sure?", {
-        showNo: false,
-    });
+    const answer = await modals.confirm(`${actionWord} ${selected.value.name}!`, "Are you sure?");
     if (answer !== true) return;
     const response = await http.delete(`/api/rooms/${selected.value.creator}/${selected.value.name}`);
     if (response.ok) {

@@ -22,6 +22,7 @@ tech changes will usually be stripped from release notes for the public
 -   Show campaign loading animation earlier (in dashboard)
 -   Defeat cross now scales better with shape size
 -   Shape badge now scales better with shape size
+-   Show default "no" button in delete/leave campaign prompt
 -   [server] Added log rotation
 -   [server] Restructure server files
 -   [tech] SyncTo primitive modified to an alternative Sync structure

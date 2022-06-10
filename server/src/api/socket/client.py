@@ -39,7 +39,7 @@ class ClientOptions(TypedDict, total=False):
 
 
 @sio.on("Client.Options.Default.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_client_default_options(sid: str, data: ClientOptions):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -49,7 +49,7 @@ async def set_client_default_options(sid: str, data: ClientOptions):
 
 
 @sio.on("Client.Options.Room.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_client_room_options(sid: str, data: ClientOptions):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -87,7 +87,7 @@ async def update_client_location(
 
 
 @sio.on("Client.Options.Location.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_client_location_options(sid: str, data: LocationOptions):
     pr: PlayerRoom = game_state.get(sid)
     game_state.client_locations[sid] = data
@@ -96,7 +96,7 @@ async def set_client_location_options(sid: str, data: LocationOptions):
 
 
 @sio.on("Client.Move", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def move_client(sid: str, data: MoveClientData):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -104,7 +104,7 @@ async def move_client(sid: str, data: MoveClientData):
 
 
 @sio.on("Client.ActiveLayer.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_layer(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 

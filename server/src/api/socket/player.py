@@ -23,7 +23,7 @@ class PlayerRoleChange(TypedDict):
 
 
 @sio.on("Players.Bring", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def bring_players(sid: str, data: BringPlayersData):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -41,7 +41,7 @@ async def bring_players(sid: str, data: BringPlayersData):
 
 
 @sio.on("Player.Role.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_player_role(sid: str, data: PlayerRoleChange):
     pr: PlayerRoom = game_state.get(sid)
 

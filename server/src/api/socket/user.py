@@ -6,7 +6,7 @@ from state.game import game_state
 
 
 @sio.on("User.ColourHistory.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_colour_history(sid: str, data: str):
     pr: PlayerRoom = game_state.get(sid)
 

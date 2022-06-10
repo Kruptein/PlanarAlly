@@ -16,7 +16,7 @@ class RollInfo(TypedDict):
 
 
 @sio.on("Dice.Roll.Result", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def on_dice_roll(sid: str, roll_info: RollInfo):
     pr: PlayerRoom = game_state.get(sid)
     for p_sid, p_pr in game_state.get_t(room=pr.room):

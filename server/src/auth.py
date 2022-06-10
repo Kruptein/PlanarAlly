@@ -1,5 +1,6 @@
 import logging
 from functools import wraps
+from typing import Literal, Union
 
 from aiohttp import web
 from aiohttp_security.abc import AbstractAuthorizationPolicy
@@ -27,7 +28,7 @@ class AuthPolicy(AbstractAuthorizationPolicy):
         return False
 
 
-def login_required(app, sio):
+def login_required(app, sio, state: Union[Literal["game"], Literal["asset"]]):
     """
     Decorator that restrict access only for authorized users in a websocket context.
     """
@@ -37,7 +38,7 @@ def login_required(app, sio):
         async def wrapped(*args, **kwargs):
             sid = args[0]
             if not app["state"]["asset"].has_sid(sid) and not app["state"][
-                "game"
+                state
             ].has_sid(sid):
                 await sio.emit("redirect", "/")
                 return

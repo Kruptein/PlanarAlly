@@ -33,7 +33,7 @@ class LeaveGroup(TypedDict):
 
 
 @sio.on("Group.Info.Get", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def get_group_info(sid: str, group_id: str):
     try:
         group = Group.get_by_id(group_id)
@@ -47,7 +47,7 @@ async def get_group_info(sid: str, group_id: str):
 
 
 @sio.on("Group.Update", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def update_group(sid: str, group_info: ServerGroup):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -72,7 +72,7 @@ async def update_group(sid: str, group_info: ServerGroup):
 
 
 @sio.on("Group.Members.Update", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def update_group_badges(sid: str, member_badges: List[MemberBadge]):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -98,7 +98,7 @@ async def update_group_badges(sid: str, member_badges: List[MemberBadge]):
 
 
 @sio.on("Group.Create", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def create_group(sid: str, group_info: ServerGroup):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -120,7 +120,7 @@ async def create_group(sid: str, group_info: ServerGroup):
 
 
 @sio.on("Group.Join", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def join_group(sid: str, group_join: GroupJoin):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -155,7 +155,7 @@ async def join_group(sid: str, group_join: GroupJoin):
 
 
 @sio.on("Group.Leave", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def leave_group(sid: str, client_shapes: List[LeaveGroup]):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -188,7 +188,7 @@ async def leave_group(sid: str, client_shapes: List[LeaveGroup]):
 
 
 @sio.on("Group.Remove", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def remove_group(sid: str, group_id: str):
     pr: PlayerRoom = game_state.get(sid)
 

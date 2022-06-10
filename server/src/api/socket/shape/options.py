@@ -104,7 +104,7 @@ async def send_new_aura(
 
 
 @sio.on("Shape.Options.Invisible.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_invisible(sid: str, data: ShapeSetBooleanValue):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -125,7 +125,7 @@ async def set_invisible(sid: str, data: ShapeSetBooleanValue):
 
 
 @sio.on("Shape.Options.Defeated.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_defeated(sid: str, data: ShapeSetBooleanValue):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -146,7 +146,7 @@ async def set_defeated(sid: str, data: ShapeSetBooleanValue):
 
 
 @sio.on("Shape.Options.Locked.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_locked(sid: str, data: ShapeSetBooleanValue):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -167,7 +167,7 @@ async def set_locked(sid: str, data: ShapeSetBooleanValue):
 
 
 @sio.on("Shape.Options.Token.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_token(sid: str, data: ShapeSetBooleanValue):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -188,7 +188,7 @@ async def set_token(sid: str, data: ShapeSetBooleanValue):
 
 
 @sio.on("Shape.Options.MovementBlock.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_movement_block(sid: str, data: ShapeSetBooleanValue):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -209,7 +209,7 @@ async def set_movement_block(sid: str, data: ShapeSetBooleanValue):
 
 
 @sio.on("Shape.Options.VisionBlock.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_vision_block(sid: str, data: ShapeSetBooleanValue):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -230,7 +230,7 @@ async def set_vision_block(sid: str, data: ShapeSetBooleanValue):
 
 
 @sio.on("Shape.Options.Annotation.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_annotation(sid: str, data: ShapeSetStringValue):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -249,7 +249,7 @@ async def set_annotation(sid: str, data: ShapeSetStringValue):
 
 
 @sio.on("Shape.Options.AnnotationVisible.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_annotation_visible(sid: str, data: ShapeSetBooleanValue):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -284,7 +284,7 @@ async def set_annotation_visible(sid: str, data: ShapeSetBooleanValue):
 
 
 @sio.on("Shape.Options.Tracker.Remove", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def remove_tracker(sid: str, data: ShapeSetStringValue):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -305,7 +305,7 @@ async def remove_tracker(sid: str, data: ShapeSetStringValue):
 
 
 @sio.on("Shape.Options.Aura.Remove", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def remove_aura(sid: str, data: ShapeSetStringValue):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -326,7 +326,7 @@ async def remove_aura(sid: str, data: ShapeSetStringValue):
 
 
 @sio.on("Shape.Options.Label.Add", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def add_label(sid: str, data: ShapeSetStringValue):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -346,7 +346,7 @@ async def add_label(sid: str, data: ShapeSetStringValue):
 
 
 @sio.on("Shape.Options.Label.Remove", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def remove_label(sid: str, data: ShapeSetStringValue):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -363,7 +363,7 @@ async def remove_label(sid: str, data: ShapeSetStringValue):
 
 
 @sio.on("Shape.Options.Name.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_name(sid: str, data: ShapeSetStringValue):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -382,7 +382,7 @@ async def set_name(sid: str, data: ShapeSetStringValue):
 
 
 @sio.on("Shape.Options.NameVisible.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_name_visible(sid: str, data: ShapeSetBooleanValue):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -414,7 +414,7 @@ async def set_name_visible(sid: str, data: ShapeSetBooleanValue):
 
 
 @sio.on("Shape.Options.ShowBadge.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_show_badge(sid: str, data: ShapeSetBooleanValue):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -435,7 +435,7 @@ async def set_show_badge(sid: str, data: ShapeSetBooleanValue):
 
 
 @sio.on("Shape.Options.StrokeColour.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_stroke_colour(sid: str, data: ShapeSetStringValue):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -456,7 +456,7 @@ async def set_stroke_colour(sid: str, data: ShapeSetStringValue):
 
 
 @sio.on("Shape.Options.FillColour.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_fill_colour(sid: str, data: ShapeSetStringValue):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -477,7 +477,7 @@ async def set_fill_colour(sid: str, data: ShapeSetStringValue):
 
 
 @sio.on("Shape.Options.Tracker.Create", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def create_tracker(sid: str, data: TrackerDelta):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -502,7 +502,7 @@ async def create_tracker(sid: str, data: TrackerDelta):
 
 
 @sio.on("Shape.Options.Tracker.Update", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def update_tracker(sid: str, data: TrackerDelta):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -547,7 +547,7 @@ async def update_tracker(sid: str, data: TrackerDelta):
 
 
 @sio.on("Shape.Options.Tracker.Move", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def move_tracker(sid: str, data: TrackerMove):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -569,7 +569,7 @@ async def move_tracker(sid: str, data: TrackerMove):
 
 
 @sio.on("Shape.Options.Aura.Create", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def create_aura(sid: str, data: AuraDelta):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -594,7 +594,7 @@ async def create_aura(sid: str, data: AuraDelta):
 
 
 @sio.on("Shape.Options.Aura.Update", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def update_aura(sid: str, data: AuraDelta):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -639,7 +639,7 @@ async def update_aura(sid: str, data: AuraDelta):
 
 
 @sio.on("Shape.Options.Aura.Move", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def move_aura(sid: str, data: AuraMove):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -661,7 +661,7 @@ async def move_aura(sid: str, data: AuraMove):
 
 
 @sio.on("Shape.Options.IsDoor.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_is_door(sid: str, data: ShapeSetBooleanValue):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -707,7 +707,7 @@ def set_options_deep(shape: Shape, key: str, subkey: str, value):
 
 
 @sio.on("Shape.Options.Door.Permissions.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_door_permissions(sid: str, data):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -727,7 +727,7 @@ async def set_door_permissions(sid: str, data):
 
 
 @sio.on("Shape.Options.Door.ToggleMode.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_door_toggle_mode(sid: str, data: ShapeSetStringValue):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -747,7 +747,7 @@ async def set_door_toggle_mode(sid: str, data: ShapeSetStringValue):
 
 
 @sio.on("Shape.Options.IsTeleportZone.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_is_teleport_zone(sid: str, data: ShapeSetBooleanValue):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -768,7 +768,7 @@ async def set_is_teleport_zone(sid: str, data: ShapeSetBooleanValue):
 
 
 @sio.on("Shape.Options.IsImmediateTeleportZone.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_is_immediate_teleport_zone(sid: str, data: ShapeSetBooleanValue):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -788,7 +788,7 @@ async def set_is_immediate_teleport_zone(sid: str, data: ShapeSetBooleanValue):
 
 
 @sio.on("Shape.Options.TeleportZonePermissions.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_tp_permissions(sid: str, data):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -808,7 +808,7 @@ async def set_tp_permissions(sid: str, data):
 
 
 @sio.on("Shape.Options.TeleportZoneTarget.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_tp_target(sid: str, data):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -828,7 +828,7 @@ async def set_tp_target(sid: str, data):
 
 
 @sio.on("Shape.Options.SkipDraw.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_skip_draw(sid: str, data: ShapeSetBooleanValue):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -848,7 +848,7 @@ async def set_skip_draw(sid: str, data: ShapeSetBooleanValue):
 
 
 @sio.on("Shape.Options.SvgAsset.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_svg_asset(sid: str, data: ShapeSetStringValue):
     pr: PlayerRoom = game_state.get(sid)
 

@@ -9,7 +9,7 @@ from state.game import game_state
 
 
 @sio.on("Logic.Request", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def request(sid: str, data: Dict):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -24,7 +24,7 @@ async def request(sid: str, data: Dict):
 
 
 @sio.on("Logic.Request.Decline", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def decline_request(sid: str, name: str):
     pr: PlayerRoom = game_state.get(sid)
 

@@ -88,7 +88,7 @@ async def send_initiative(sio: AsyncServer, data: Dict[str, Any], pr: PlayerRoom
 
 
 @sio.on("Initiative.Request", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def request_initiatives(sid: str):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -101,7 +101,7 @@ async def request_initiatives(sid: str):
 
 
 @sio.on("Initiative.Option.Update", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def update_initiative_option(sid: str, data: ServerInitiativeOption):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -139,7 +139,7 @@ async def update_initiative_option(sid: str, data: ServerInitiativeOption):
 
 
 @sio.on("Initiative.Add", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def add_initiative(sid: str, data: ServerInitiativeData):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -171,7 +171,7 @@ async def add_initiative(sid: str, data: ServerInitiativeData):
 
 
 @sio.on("Initiative.Value.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_initiative_value(sid: str, data: ServerSetInitiativeValue):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -201,7 +201,7 @@ async def set_initiative_value(sid: str, data: ServerSetInitiativeValue):
 
 
 @sio.on("Initiative.Clear", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def clear_initiatives(sid: str):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -227,7 +227,7 @@ async def clear_initiatives(sid: str):
 
 
 @sio.on("Initiative.Remove", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def remove_initiative(sid: str, data: str):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -257,7 +257,7 @@ async def remove_initiative(sid: str, data: str):
 
 
 @sio.on("Initiative.Order.Change", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def change_initiative_order(sid: str, data: ServerInitiativeOrderChange):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -291,7 +291,7 @@ async def change_initiative_order(sid: str, data: ServerInitiativeOrderChange):
 
 
 @sio.on("Initiative.Turn.Update", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def update_initiative_turn(sid: str, turn: int):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -335,7 +335,7 @@ async def update_initiative_turn(sid: str, turn: int):
 
 
 @sio.on("Initiative.Round.Update", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def update_initiative_round(sid: str, data: int):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -365,7 +365,7 @@ async def update_initiative_round(sid: str, data: int):
 
 
 @sio.on("Initiative.Sort.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_initiative_sort(sid: str, sort: int):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -392,7 +392,7 @@ async def set_initiative_sort(sid: str, sort: int):
 
 
 @sio.on("Initiative.Effect.New", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def new_initiative_effect(sid: str, data: ServerInitiativeEffectActor):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -421,7 +421,7 @@ async def new_initiative_effect(sid: str, data: ServerInitiativeEffectActor):
 
 
 @sio.on("Initiative.Effect.Rename", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def rename_initiative_effect(sid: str, data: ServerRenameInitiativeEffect):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -450,7 +450,7 @@ async def rename_initiative_effect(sid: str, data: ServerRenameInitiativeEffect)
 
 
 @sio.on("Initiative.Effect.Turns", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_initiative_effect_tuns(sid: str, data: ServerInitiativeEffectTurns):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -479,7 +479,7 @@ async def set_initiative_effect_tuns(sid: str, data: ServerInitiativeEffectTurns
 
 
 @sio.on("Initiative.Effect.Remove", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def remove_initiative_effect(sid: str, data: ServerRemoveInitiativeEffectActor):
     pr: PlayerRoom = game_state.get(sid)
 

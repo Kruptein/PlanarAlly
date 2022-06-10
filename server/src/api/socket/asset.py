@@ -16,7 +16,7 @@ class AssetOptions(TypedDict):
 
 
 @sio.on("Asset.Options.Get", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def get_asset_options(sid: str, asset_id: int):
     pr: PlayerRoom = game_state.get(sid)
 
@@ -35,7 +35,7 @@ async def get_asset_options(sid: str, asset_id: int):
 
 
 @sio.on("Asset.Options.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
+@auth.login_required(app, sio, "game")
 async def set_asset_options(sid: str, asset_options: AssetOptions):
     pr: PlayerRoom = game_state.get(sid)
 

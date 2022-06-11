@@ -58,6 +58,7 @@ tech changes will usually be stripped from release notes for the public
 -   Logic Permission selector showing error in edgecase
 -   Asset socket was not cleaning up past connections
 -   Auras that are light sources, no longer appear as a black circle of doom when FOW is not turned on
+-   Undo/Redo not persisting to server for movement and rotation
 -   [server] Admin client was not built in docker
 -   [tech] Ensure router.push calls are always awaited
 

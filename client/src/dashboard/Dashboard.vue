@@ -40,8 +40,9 @@ const modals = useModal();
 const route = useRoute();
 const router = useRouter();
 
-socket.on("Campaign.Import.Done", async (name: string) => {
+socket.on("Campaign.Import.Done", async () => {
     await getRooms();
+    state.activeNavigation = Navigation.Run;
 });
 
 onMounted(async () => {

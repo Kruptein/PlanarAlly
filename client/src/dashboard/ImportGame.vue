@@ -28,6 +28,8 @@ async function uploadSave(): Promise<void> {
 <template>
     <div id="content">
         <div class="spanrow header">IMPORT CAMPAIGN</div>
+        <div>This is an experimental feature!</div>
+        <div>If you discover any problems let me know :)</div>
         <button @click="prepareUpload">Upload</button>
         <input id="files" type="file" hidden @change="uploadSave" accept=".pac" />
     </div>
@@ -53,6 +55,7 @@ async function uploadSave(): Promise<void> {
     }
 
     button {
+        margin-top: 15px;
         padding: 6px 12px;
         border: 1px solid lightgray;
         border-radius: 0.25em;

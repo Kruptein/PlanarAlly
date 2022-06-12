@@ -6,7 +6,7 @@ import type { ToastID } from "vue-toastification/dist/types/types";
 import { registerSystem } from "../..";
 import type { System } from "../..";
 import SingleButtonToast from "../../../../core/components/toasts/SingleButtonToast.vue";
-import { SyncTo } from "../../../../core/models/types";
+import type { Sync } from "../../../../core/models/types";
 import { floorStore } from "../../../../store/floor";
 import { gameStore } from "../../../../store/game";
 import { settingsStore } from "../../../../store/settings";
@@ -108,8 +108,8 @@ class TeleportZoneSystem implements System {
         }
     }
 
-    toggle(id: LocalId, enabled: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeIsTeleportZone({ shape: getGlobalId(id), value: enabled });
+    toggle(id: LocalId, enabled: boolean, syncTo: Sync): void {
+        if (syncTo.server) sendShapeIsTeleportZone({ shape: getGlobalId(id), value: enabled });
         if (this._state.id === id) this._state.enabled = enabled;
 
         if (enabled) {
@@ -119,11 +119,14 @@ class TeleportZoneSystem implements System {
         }
     }
 
-    toggleImmediate(id: LocalId, immediate: boolean, syncTo: SyncTo): void {
-        const options = this.data.get(id);
-        if (options === undefined) return;
+    toggleImmediate(id: LocalId, immediate: boolean, syncTo: Sync): void {
+        let options = this.data.get(id);
+        if (options === undefined) {
+            options = DEFAULT_OPTIONS();
+            this.data.set(id, options);
+        }
 
-        if (syncTo === SyncTo.SERVER) sendShapeIsImmediateTeleportZone({ shape: getGlobalId(id), value: immediate });
+        if (syncTo.server) sendShapeIsImmediateTeleportZone({ shape: getGlobalId(id), value: immediate });
         if (this._state.id === id) this._state.immediate = immediate;
 
         options.immediate = immediate;
@@ -137,11 +140,14 @@ class TeleportZoneSystem implements System {
         return this.data.get(id)?.permissions;
     }
 
-    setPermissions(id: LocalId, permissions: Permissions, syncTo: SyncTo): void {
-        const options = this.data.get(id);
-        if (options === undefined) return;
+    setPermissions(id: LocalId, permissions: Permissions, syncTo: Sync): void {
+        let options = this.data.get(id);
+        if (options === undefined) {
+            options = DEFAULT_OPTIONS();
+            this.data.set(id, options);
+        }
 
-        if (syncTo === SyncTo.SERVER) sendShapeTeleportZonePermissions({ shape: getGlobalId(id), value: permissions });
+        if (syncTo.server) sendShapeTeleportZonePermissions({ shape: getGlobalId(id), value: permissions });
         if (this._state.id === id) this._state.permissions = permissions;
         options.permissions = permissions;
     }
@@ -150,11 +156,14 @@ class TeleportZoneSystem implements System {
         return canUse(id, "tp");
     }
 
-    setTarget(id: LocalId, target: TeleportOptions["location"], syncTo: SyncTo): void {
-        const options = this.data.get(id);
-        if (options === undefined) return;
+    setTarget(id: LocalId, target: TeleportOptions["location"], syncTo: Sync): void {
+        let options = this.data.get(id);
+        if (options === undefined) {
+            options = DEFAULT_OPTIONS();
+            this.data.set(id, options);
+        }
 
-        if (syncTo === SyncTo.SERVER) sendShapeTeleportZoneTarget({ shape: getGlobalId(id), value: target });
+        if (syncTo.server) sendShapeTeleportZoneTarget({ shape: getGlobalId(id), value: target });
         if (this._state.id === id) this._state.target = target;
 
         options.location = target;
@@ -178,7 +187,7 @@ class TeleportZoneSystem implements System {
                     shape.id === tp
                 )
                     continue;
-                if (tpShape.contains(shape.center())) {
+                if (tpShape.floor.id === shape.floor.id && tpShape.contains(shape.center())) {
                     shapesToMove.push(shape.id);
                 }
             }

@@ -4,13 +4,19 @@ import { vi } from "vitest";
 
 vi.mock("path-data-polyfill", vi.fn());
 
+function createMockManager(): { socket: () => { connect: () => void; on: () => void; emit: () => void } } {
+    return {
+        socket: () => ({
+            connect: vi.fn(),
+            on: vi.fn(),
+            emit: vi.fn(),
+        }),
+    };
+}
+
 vi.mock("../src/core/socket", () => {
     return {
-        socketManager: {
-            socket: () => ({
-                on: vi.fn(),
-                emit: vi.fn(),
-            }),
-        },
+        createNewManager: createMockManager,
+        socketManager: createMockManager(),
     };
 });

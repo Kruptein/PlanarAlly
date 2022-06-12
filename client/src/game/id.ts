@@ -37,6 +37,11 @@ function generateId(): LocalId {
 // Prepare a LocalId for a GlobalId
 // This is used when a shape is not fully created yet, but already requires some LocalId knowledge
 export function reserveLocalId(uuid: GlobalId): LocalId {
+    // double check if there is no local id already attached
+    // can happen if multiple regions reserve for the same global id
+    const localId = getLocalId(uuid, false);
+    if (localId !== undefined) return localId;
+
     const local = generateId();
     uuids[local] = uuid;
     reservedIds.set(uuid, local);
@@ -69,11 +74,16 @@ export function getGlobalId(local: LocalId): GlobalId {
     return uuids[local];
 }
 
-export function getLocalId(global: GlobalId): LocalId | undefined {
+(window as any).getGlobalId = getGlobalId;
+
+export function getLocalId(global: GlobalId, _warn = true): LocalId | undefined {
     for (const [i, value] of uuids.entries()) {
         if (value === global) return i as LocalId;
     }
+    if (_warn) console.warn("No local ID found for global id; This is likely a bug.");
 }
+
+(window as any).getLocalId = getLocalId;
 
 export function getShape(local: LocalId): IShape | undefined {
     return idMap.get(local);

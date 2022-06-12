@@ -1,11 +1,11 @@
 import { defineComponent } from "vue";
 import type { NavigationGuardNext, RouteLocationNormalized } from "vue-router";
 
-import { postFetch } from "./core/utils";
+import { http } from "./core/http";
 
 export default defineComponent({
     async beforeRouteEnter(to: RouteLocationNormalized, _from: RouteLocationNormalized, next: NavigationGuardNext) {
-        const response = await postFetch("/api/invite", {
+        const response = await http.postJson("/api/invite", {
             code: to.params.code,
         });
         if (response.ok) {

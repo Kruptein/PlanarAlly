@@ -1,4 +1,4 @@
-import { reactive } from "@vue/reactivity";
+import { reactive } from "vue";
 
 import { l2g } from "../../../core/conversions";
 import { addP, cloneP, subtractP, toGP, Vector } from "../../../core/geometry";
@@ -103,10 +103,14 @@ class MapTool extends Tool {
 
         this.active.value = true;
 
-        this.rect = new Rect(cloneP(this.startPoint), 0, 0, { fillColour: "rgba(0,0,0,0)", strokeColour: "black" });
+        this.rect = new Rect(cloneP(this.startPoint), 0, 0, {
+            fillColour: "rgba(0,0,0,0)",
+            strokeColour: ["black"],
+            isSnappable: false,
+        });
         this.state.hasRect = true;
         this.rect.preventSync = true;
-        layer.addShape(this.rect, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
+        layer.addShape(this.rect, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         selectionState.set(this.rect);
     }
 

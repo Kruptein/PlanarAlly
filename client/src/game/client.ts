@@ -13,30 +13,41 @@ import { LayerName } from "./models/floor";
 import type { ServerUserLocationOptions } from "./models/settings";
 import { Polygon } from "./shapes/variants/polygon";
 
-const playerRectUuids: Map<number, LocalId> = new Map();
+const playerRectIds: Map<number, LocalId> = new Map();
 const playerLocationData: Map<number, ServerUserLocationOptions> = new Map();
 
 const sendMoveClientThrottled = throttle(sendMoveClient, 50, { trailing: true });
 
+export function clearClientRects(): void {
+    for (const id of playerRectIds.values()) {
+        const p = getShape(id)!;
+        p.layer.removeShape(p, { sync: SyncMode.NO_SYNC, recalculate: false, dropShapeId: true });
+    }
+    playerRectIds.clear();
+    playerLocationData.clear();
+}
+
 export function moveClientRect(player: number, data: ServerUserLocationOptions): void {
     playerLocationData.set(player, data);
+
+    const id = playerRectIds.get(player);
     const layer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Dm)!;
-    let polygon: Polygon;
-    if (playerRectUuids.has(player)) {
-        polygon = getShape(playerRectUuids.get(player)!)! as Polygon;
-    } else {
+
+    let polygon: Polygon | undefined = id ? (getShape(id) as Polygon) : undefined;
+    if (polygon === undefined) {
         polygon = new Polygon(toGP(0, 0), undefined, {
             fillColour: "rgba(0, 0, 0, 0)",
-            strokeColour: "rgba(0, 0, 0, 1)",
-            lineWidth: 5,
+            strokeColour: ["rgba(0, 0, 0, 1)", "rgba(255, 255, 255, 1)"],
+            lineWidth: [30, 15],
             openPolygon: true,
             uuid: uuidv4(),
+            isSnappable: false,
         });
-        playerRectUuids.set(player, polygon.id);
+        playerRectIds.set(player, polygon.id);
         polygon.options.isPlayerRect = true;
         polygon.options.skipDraw = !(gameStore.state.players.find((p) => p.id === player)?.showRect ?? false);
         polygon.preventSync = true;
-        layer.addShape(polygon, SyncMode.NO_SYNC, InvalidationMode.NO, { snappable: false });
+        layer.addShape(polygon, SyncMode.NO_SYNC, InvalidationMode.NO);
     }
     const h = data.client_h / data.zoom_factor;
     const w = data.client_w / data.zoom_factor;
@@ -46,7 +57,7 @@ export function moveClientRect(player: number, data: ServerUserLocationOptions):
 }
 
 export function moveClient(rectUuid: LocalId): void {
-    const player = [...playerRectUuids.entries()].find(([_, uuid]) => uuid === rectUuid)?.[0] ?? -1;
+    const player = [...playerRectIds.entries()].find(([_, uuid]) => uuid === rectUuid)?.[0] ?? -1;
     if (player < 0) return;
     const rect = getShape(rectUuid)!;
     if (rect === undefined) return;
@@ -62,7 +73,7 @@ export function moveClient(rectUuid: LocalId): void {
 }
 
 export function showClientRect(player: number, show: boolean): void {
-    const rectUuid = playerRectUuids.get(player);
+    const rectUuid = playerRectIds.get(player);
     if (rectUuid === undefined) return;
     const rect = getShape(rectUuid)!;
     if (rect === undefined) return;

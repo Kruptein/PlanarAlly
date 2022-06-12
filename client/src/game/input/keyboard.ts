@@ -1,5 +1,5 @@
 import { equalsP, toGP, Vector } from "../../core/geometry";
-import { SyncMode, SyncTo } from "../../core/models/types";
+import { FULL_SYNC, SyncMode } from "../../core/models/types";
 import { ctrlOrCmdPressed } from "../../core/utils";
 import { activeShapeStore } from "../../store/activeShape";
 import { clientStore, DEFAULT_GRID_SIZE } from "../../store/client";
@@ -128,10 +128,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             const selection = selectionState.get({ includeComposites: true });
             for (const shape of selection) {
                 const isDefeated = !shape.isDefeated;
-                shape.setDefeated(isDefeated, SyncTo.SERVER);
-                if (activeShapeStore.state.id === shape.id) {
-                    activeShapeStore.setIsDefeated(isDefeated, SyncTo.UI);
-                }
+                shape.setDefeated(isDefeated, FULL_SYNC);
             }
             event.preventDefault();
             event.stopPropagation();
@@ -141,10 +138,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                 // This and GroupSettings are the only places currently where we would need to update both UI and Server.
                 // Might need to introduce a SyncTo.BOTH
                 const isLocked = !shape.isLocked;
-                shape.setLocked(isLocked, SyncTo.SERVER);
-                if (activeShapeStore.state.id === shape.id) {
-                    activeShapeStore.setLocked(isLocked, SyncTo.UI);
-                }
+                shape.setLocked(isLocked, FULL_SYNC);
             }
             event.preventDefault();
             event.stopPropagation();

@@ -4,7 +4,7 @@ import { clampGridLine, getUnitDistance, l2g, l2gz } from "../../../core/convers
 import { addP, cloneP, subtractP, toArrayP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { equalPoints, snapToPoint } from "../../../core/math";
-import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
+import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
 import type { PromptFunction } from "../../../core/plugins/modals/prompt";
 import { ctrlOrCmdPressed, mostReadable } from "../../../core/utils";
 import { i18n } from "../../../i18n";
@@ -27,6 +27,7 @@ import { Rect } from "../../shapes/variants/rect";
 import { Text } from "../../shapes/variants/text";
 import { accessSystem } from "../../systems/access";
 import { doorSystem } from "../../systems/logic/door";
+import type { DOOR_TOGGLE_MODE } from "../../systems/logic/door/models";
 import { DEFAULT_PERMISSIONS } from "../../systems/logic/models";
 import type { Permissions } from "../../systems/logic/models";
 import { openDefaultContextMenu } from "../../ui/contextmenu/state";
@@ -76,6 +77,7 @@ class DrawTool extends Tool {
 
         isDoor: false,
         doorPermissions: DEFAULT_PERMISSIONS(),
+        toggleMode: "both" as DOOR_TOGGLE_MODE,
     });
     hasBrushSize = computed(() => [DrawShape.Brush, DrawShape.Polygon].includes(this.state.selectedShape));
 
@@ -123,7 +125,7 @@ class DrawTool extends Tool {
             () => {
                 if (this.brushHelper) {
                     this.brushHelper.fillColour = this.state.fillColour;
-                    this.brushHelper.strokeColour = mostReadable(this.state.fillColour);
+                    this.brushHelper.strokeColour = [mostReadable(this.state.fillColour)];
                 }
             },
         );
@@ -168,7 +170,6 @@ class DrawTool extends Tool {
 
     private finaliseShape(): void {
         if (this.shape === undefined) return;
-        this.shape.updateLayerPoints();
         if (this.shape.points.length <= 1) {
             let mouse: { x: number; y: number } | undefined = undefined;
             if (this.brushHelper !== undefined) {
@@ -177,20 +178,28 @@ class DrawTool extends Tool {
             this.onDeselect();
             this.onSelect(mouse);
         } else {
+            this.shape.updateLayerPoints();
             if (this.shape.blocksVision) visionState.recalculateVision(this.shape.floor.id);
             if (this.shape.blocksMovement) visionState.recalculateMovement(this.shape.floor.id);
             if (!this.shape.preventSync) sendShapeSizeUpdate({ shape: this.shape, temporary: false });
-        }
-        if (this.state.isDoor) {
-            doorSystem.toggle(this.shape.id, true, SyncTo.SERVER);
+            if (this.state.isDoor) {
+                doorSystem.inform(
+                    this.shape.id,
+                    true,
+                    {
+                        permissions: this.state.doorPermissions,
+                        toggleMode: this.state.toggleMode,
+                    },
+                    true,
+                );
+            }
+            overrideLastOperation({ type: "shapeadd", shapes: [this.shape.asDict()] });
         }
         this.active.value = false;
         const layer = this.getLayer();
         if (layer !== undefined) {
             layer.invalidate(false);
         }
-
-        overrideLastOperation({ type: "shapeadd", shapes: [this.shape.asDict()] });
     }
 
     // private async showLayerPoints(): Promise<void> {
@@ -233,11 +242,11 @@ class DrawTool extends Tool {
         // Adding
 
         if (newValue === DrawMode.Normal) {
-            normalLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
+            normalLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         } else if (newValue === DrawMode.Erase) {
-            mapLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
+            mapLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         } else {
-            fowLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
+            fowLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         }
     }
 
@@ -272,11 +281,11 @@ class DrawTool extends Tool {
         layer.canvas.parentElement!.style.cursor = "none";
         this.brushHelper = this.createBrush(toGP(mouse?.x ?? -1000, mouse?.y ?? -1000));
         this.setupBrush();
-        layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false }); // during mode change the shape is already added
+        layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL); // during mode change the shape is already added
         // if (gameStore.state.isDm) this.showLayerPoints();
         this.pointer = this.createPointer(toGP(mouse?.x ?? -1000, mouse?.y ?? -1000));
         const drawLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
-        drawLayer!.addShape(this.pointer, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
+        drawLayer!.addShape(this.pointer, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         drawLayer!.invalidate(true);
     }
 
@@ -324,21 +333,21 @@ class DrawTool extends Tool {
                 case DrawShape.Square: {
                     this.shape = new Rect(cloneP(startPoint), 0, 0, {
                         fillColour: this.state.fillColour,
-                        strokeColour: this.state.borderColour,
+                        strokeColour: [this.state.borderColour],
                     });
                     break;
                 }
                 case DrawShape.Circle: {
                     this.shape = new Circle(cloneP(startPoint), this.helperSize, {
                         fillColour: this.state.fillColour,
-                        strokeColour: this.state.borderColour,
+                        strokeColour: [this.state.borderColour],
                     });
                     break;
                 }
                 case DrawShape.Brush: {
                     this.shape = new Polygon(cloneP(startPoint), [], {
-                        strokeColour: this.state.fillColour,
-                        lineWidth: this.state.brushSize,
+                        strokeColour: [this.state.fillColour],
+                        lineWidth: [this.state.brushSize],
                         openPolygon: true,
                     });
                     this.shape.fillColour = this.state.fillColour;
@@ -352,8 +361,8 @@ class DrawTool extends Tool {
                     }
                     this.shape = new Polygon(cloneP(this.brushHelper.refPoint), [], {
                         fillColour: fill,
-                        strokeColour: stroke,
-                        lineWidth: this.state.brushSize,
+                        strokeColour: [stroke],
+                        lineWidth: [this.state.brushSize],
                         openPolygon: !this.state.isClosedPolygon,
                     });
                     break;
@@ -367,7 +376,7 @@ class DrawTool extends Tool {
                     }
                     this.shape = new Text(cloneP(this.brushHelper.refPoint), text, this.state.fontSize, {
                         fillColour: this.state.fillColour,
-                        strokeColour: this.state.borderColour,
+                        strokeColour: [this.state.borderColour],
                     });
                     break;
                 }
@@ -392,14 +401,14 @@ class DrawTool extends Tool {
                 this.shape.id,
                 clientStore.state.username,
                 { edit: true, movement: true, vision: true },
-                SyncTo.UI,
+                UI_SYNC,
             );
             if (this.state.selectedMode === DrawMode.Normal) {
                 if (this.state.blocksMovement) {
-                    this.shape.setBlocksMovement(true, SyncTo.UI, false);
+                    this.shape.setBlocksMovement(true, UI_SYNC, false);
                 }
                 if (this.state.blocksVision) {
-                    this.shape.setBlocksVision(true, SyncTo.UI, false);
+                    this.shape.setBlocksVision(true, UI_SYNC, false);
                 }
             }
             layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
@@ -429,9 +438,10 @@ class DrawTool extends Tool {
             if (this.ruler === undefined) {
                 this.ruler = new Line(lastPoint, lastPoint, {
                     lineWidth: this.state.brushSize,
-                    strokeColour: this.state.fillColour,
+                    strokeColour: [this.state.fillColour],
+                    isSnappable: false,
                 });
-                layer.addShape(this.ruler, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
+                layer.addShape(this.ruler, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
             } else {
                 this.ruler.refPoint = lastPoint;
                 this.ruler.endPoint = lastPoint;
@@ -616,8 +626,9 @@ class DrawTool extends Tool {
         const size = brushSize ?? this.state.brushSize / 2;
         const brush = new Circle(position, size, {
             fillColour: this.state.fillColour,
-            strokeColour: mostReadable(this.state.fillColour),
+            strokeColour: [mostReadable(this.state.fillColour)],
             strokeWidth: Math.max(1, size * 0.05),
+            isSnappable: false,
         });
         // Make sure we can see the border of the reveal brush
         brush.options.borderOperation = "source-over";
@@ -632,8 +643,9 @@ class DrawTool extends Tool {
             vertices.map((v) => addP(v, vec)),
             {
                 fillColour: "white",
-                strokeColour: "black",
+                strokeColour: ["black"],
                 openPolygon: false,
+                isSnappable: false,
             },
         );
         // Make sure we can see the border of the reveal brush
@@ -674,7 +686,7 @@ class DrawTool extends Tool {
         }
         this.brushHelper = this.createBrush(toGP(-1000, -1000), bs);
         this.setupBrush();
-        layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false }); // during mode change the shape is already added
+        layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL); // during mode change the shape is already added
         if (refPoint) this.brushHelper.refPoint = refPoint;
     }
 

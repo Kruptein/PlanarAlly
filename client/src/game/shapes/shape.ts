@@ -4,7 +4,8 @@ import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "../../core/conversions";
 import { addP, cloneP, equalsP, subtractP, toArrayP, toGP } from "../../core/geometry";
 import type { GlobalPoint, Vector } from "../../core/geometry";
 import { rotateAroundPoint } from "../../core/math";
-import { SyncTo } from "../../core/models/types";
+import { UI_SYNC } from "../../core/models/types";
+import type { Sync } from "../../core/models/types";
 import type { FunctionPropertyNames } from "../../core/types";
 import { mostReadable } from "../../core/utils";
 import { activeShapeStore } from "../../store/activeShape";
@@ -86,7 +87,7 @@ export abstract class Shape implements IShape {
 
     // Fill colour of the shape
     fillColour: string;
-    strokeColour: string;
+    strokeColour: string[];
     strokeWidth: number;
 
     assetId?: number;
@@ -118,6 +119,9 @@ export abstract class Shape implements IShape {
     // Explicitly prevent any sync to the server
     preventSync = false;
 
+    // Decides whether its points can be snapped to
+    isSnappable = true;
+
     // Additional options for specialized uses
     options: Partial<ShapeOptions> = {};
 
@@ -125,19 +129,21 @@ export abstract class Shape implements IShape {
         refPoint: GlobalPoint,
         options?: {
             fillColour?: string;
-            strokeColour?: string;
+            strokeColour?: string[];
             id?: LocalId;
             uuid?: GlobalId;
             assetId?: number;
             strokeWidth?: number;
+            isSnappable?: boolean;
         },
     ) {
         this._refPoint = refPoint;
         this.id = options?.id ?? generateLocalId(this, options?.uuid);
         this.fillColour = options?.fillColour ?? "#000";
-        this.strokeColour = options?.strokeColour ?? "rgba(0,0,0,0)";
+        this.strokeColour = options?.strokeColour ?? ["rgba(0,0,0,0)"];
         this.assetId = options?.assetId;
         this.strokeWidth = options?.strokeWidth ?? 5;
+        this.isSnappable = options?.isSnappable ?? true;
     }
 
     abstract center(): GlobalPoint;
@@ -267,15 +273,16 @@ export abstract class Shape implements IShape {
         if (this.showBadge) {
             bbox = this.getBoundingBox();
             const location = g2l(bbox.botRight);
-            const r = g2lz(10);
+            const crossLength = g2lz(Math.min(bbox.w, bbox.h));
+            const r = crossLength * 0.2;
             ctx.strokeStyle = "black";
-            ctx.fillStyle = this.strokeColour;
+            ctx.fillStyle = this.strokeColour[0];
             ctx.lineWidth = g2lz(2);
             ctx.beginPath();
             ctx.arc(location.x - r, location.y - r, r, 0, 2 * Math.PI);
             ctx.stroke();
             ctx.fill();
-            ctx.fillStyle = mostReadable(this.strokeColour);
+            ctx.fillStyle = mostReadable(this.strokeColour[0]);
 
             const badgeChars = getBadgeCharacters(this);
             const scalingFactor = 2.3 - 0.5 * badgeChars.length;
@@ -293,10 +300,11 @@ export abstract class Shape implements IShape {
             if (bbox === undefined) bbox = this.getBoundingBox();
             const crossTL = g2l(bbox.topLeft);
             const crossBR = g2l(bbox.botRight);
-            const r = g2lz(10);
+            const crossLength = g2lz(Math.max(bbox.w, bbox.h));
+            const r = crossLength * 0.2;
             ctx.strokeStyle = "red";
-            ctx.fillStyle = this.strokeColour;
-            ctx.lineWidth = g2lz(2);
+            ctx.fillStyle = this.strokeColour[0];
+            ctx.lineWidth = r / 5;
             ctx.beginPath();
             ctx.moveTo(crossTL.x + r, crossTL.y + r);
             ctx.lineTo(crossBR.x - r, crossBR.y - r);
@@ -429,7 +437,7 @@ export abstract class Shape implements IShape {
             labels: this.labels,
             owners: accessSystem.getOwnersFull(this.id).map((o) => ownerToServer(o)),
             fill_colour: this.fillColour,
-            stroke_colour: this.strokeColour,
+            stroke_colour: this.strokeColour[0],
             stroke_width: this.strokeWidth,
             name: this.name,
             name_visible: this.nameVisible,
@@ -464,7 +472,7 @@ export abstract class Shape implements IShape {
         this.blocksVision = data.vision_obstruction;
         this.labels = data.labels;
         this.fillColour = data.fill_colour;
-        this.strokeColour = data.stroke_colour;
+        this.strokeColour = [data.stroke_colour];
         this.isToken = data.is_token;
         this.isInvisible = data.is_invisible;
         this.isDefeated = data.is_defeated;
@@ -534,17 +542,17 @@ export abstract class Shape implements IShape {
 
     // GROUP
 
-    setGroupId(groupId: string | undefined, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.UI) this._("setGroupId")(groupId, syncTo);
+    setGroupId(groupId: string | undefined, syncTo: Sync): void {
+        if (syncTo.ui) this._("setGroupId")(groupId, syncTo);
 
         this.groupId = groupId;
     }
 
     // PROPERTIES
 
-    setName(name: string, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetName({ shape: getGlobalId(this.id), value: name });
-        if (syncTo === SyncTo.UI) this._("setName")(name, syncTo);
+    setName(name: string, syncTo: Sync): void {
+        if (syncTo.server) sendShapeSetName({ shape: getGlobalId(this.id), value: name });
+        if (syncTo.ui) this._("setName")(name, syncTo);
 
         this.name = name;
         // Initiative names are not always updated when renaming shapes
@@ -552,16 +560,16 @@ export abstract class Shape implements IShape {
         // EventBus.$emit("Initiative.ForceUpdate");
     }
 
-    setNameVisible(visible: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetNameVisible({ shape: getGlobalId(this.id), value: visible });
-        if (syncTo === SyncTo.UI) this._("setNameVisible")(visible, syncTo);
+    setNameVisible(visible: boolean, syncTo: Sync): void {
+        if (syncTo.server) sendShapeSetNameVisible({ shape: getGlobalId(this.id), value: visible });
+        if (syncTo.ui) this._("setNameVisible")(visible, syncTo);
 
         this.nameVisible = visible;
     }
 
-    setIsToken(isToken: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetIsToken({ shape: getGlobalId(this.id), value: isToken });
-        if (syncTo === SyncTo.UI) this._("setIsToken")(isToken, syncTo);
+    setIsToken(isToken: boolean, syncTo: Sync): void {
+        if (syncTo.server) sendShapeSetIsToken({ shape: getGlobalId(this.id), value: isToken });
+        if (syncTo.ui) this._("setIsToken")(isToken, syncTo);
 
         this.isToken = isToken;
         if (accessSystem.hasAccessTo(this.id, false, { vision: true })) {
@@ -571,43 +579,42 @@ export abstract class Shape implements IShape {
         this.invalidate(false);
     }
 
-    setInvisible(isInvisible: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetInvisible({ shape: getGlobalId(this.id), value: isInvisible });
-        if (syncTo === SyncTo.UI) this._("setIsInvisible")(isInvisible, syncTo);
+    setInvisible(isInvisible: boolean, syncTo: Sync): void {
+        if (syncTo.server) sendShapeSetInvisible({ shape: getGlobalId(this.id), value: isInvisible });
+        if (syncTo.ui) this._("setIsInvisible")(isInvisible, syncTo);
 
         this.isInvisible = isInvisible;
         this.invalidate(!this.triggersVisionRecalc);
     }
 
-    setStrokeColour(colour: string, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetStrokeColour({ shape: getGlobalId(this.id), value: colour });
-        if (syncTo === SyncTo.UI) this._("setStrokeColour")(colour, syncTo);
+    setStrokeColour(colour: string, syncTo: Sync): void {
+        if (syncTo.server) sendShapeSetStrokeColour({ shape: getGlobalId(this.id), value: colour });
+        if (syncTo.ui) this._("setStrokeColour")(colour, syncTo);
 
-        this.strokeColour = colour;
+        this.strokeColour = [colour];
         this.invalidate(true);
     }
 
-    setFillColour(colour: string, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetFillColour({ shape: getGlobalId(this.id), value: colour });
-        if (syncTo === SyncTo.UI) this._("setFillColour")(colour, syncTo);
+    setFillColour(colour: string, syncTo: Sync): void {
+        if (syncTo.server) sendShapeSetFillColour({ shape: getGlobalId(this.id), value: colour });
+        if (syncTo.ui) this._("setFillColour")(colour, syncTo);
 
         this.fillColour = colour;
         this.invalidate(true);
     }
 
-    setBlocksVision(blocksVision: boolean, syncTo: SyncTo, recalculate = true): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetBlocksVision({ shape: getGlobalId(this.id), value: blocksVision });
-        if (syncTo === SyncTo.UI) this._("setBlocksVision")(blocksVision, syncTo);
+    setBlocksVision(blocksVision: boolean, syncTo: Sync, recalculate = true): void {
+        if (syncTo.server) sendShapeSetBlocksVision({ shape: getGlobalId(this.id), value: blocksVision });
+        if (syncTo.ui) this._("setBlocksVision")(blocksVision, UI_SYNC);
 
         this.blocksVision = blocksVision;
         const alteredVision = this.checkVisionSources(recalculate);
         if (alteredVision && recalculate) this.invalidate(false);
     }
 
-    setBlocksMovement(blocksMovement: boolean, syncTo: SyncTo, recalculate = true): boolean {
-        if (syncTo === SyncTo.SERVER)
-            sendShapeSetBlocksMovement({ shape: getGlobalId(this.id), value: blocksMovement });
-        if (syncTo === SyncTo.UI) this._("setBlocksMovement")(blocksMovement, syncTo);
+    setBlocksMovement(blocksMovement: boolean, syncTo: Sync, recalculate = true): boolean {
+        if (syncTo.server) sendShapeSetBlocksMovement({ shape: getGlobalId(this.id), value: blocksMovement });
+        if (syncTo.ui) this._("setBlocksMovement")(blocksMovement, syncTo);
 
         let alteredMovement = false;
         this.blocksMovement = blocksMovement;
@@ -637,35 +644,35 @@ export abstract class Shape implements IShape {
         return alteredMovement;
     }
 
-    setShowBadge(showBadge: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetShowBadge({ shape: getGlobalId(this.id), value: showBadge });
-        if (syncTo === SyncTo.UI) this._("setShowBadge")(showBadge, syncTo);
+    setShowBadge(showBadge: boolean, syncTo: Sync): void {
+        if (syncTo.server) sendShapeSetShowBadge({ shape: getGlobalId(this.id), value: showBadge });
+        if (syncTo.ui) this._("setShowBadge")(showBadge, syncTo);
 
         this.showBadge = showBadge;
         this.invalidate(!this.triggersVisionRecalc);
         // EventBus.$emit("EditDialog.Group.Update");
     }
 
-    setDefeated(isDefeated: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetDefeated({ shape: getGlobalId(this.id), value: isDefeated });
-        if (syncTo === SyncTo.UI) this._("setIsDefeated")(isDefeated, syncTo);
+    setDefeated(isDefeated: boolean, syncTo: Sync): void {
+        if (syncTo.server) sendShapeSetDefeated({ shape: getGlobalId(this.id), value: isDefeated });
+        if (syncTo.ui) this._("setIsDefeated")(isDefeated, syncTo);
 
         this.isDefeated = isDefeated;
         this.invalidate(!this.triggersVisionRecalc);
     }
 
-    setLocked(isLocked: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetLocked({ shape: getGlobalId(this.id), value: isLocked });
-        if (syncTo === SyncTo.UI) this._("setLocked")(isLocked, syncTo);
+    setLocked(isLocked: boolean, syncTo: Sync): void {
+        if (syncTo.server) sendShapeSetLocked({ shape: getGlobalId(this.id), value: isLocked });
+        if (syncTo.ui) this._("setLocked")(isLocked, syncTo);
 
         this.isLocked = isLocked;
     }
 
     // EXTRA
 
-    setAnnotation(text: string, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetAnnotation({ shape: getGlobalId(this.id), value: text });
-        if (syncTo === SyncTo.UI) this._("setAnnotation")(text, syncTo);
+    setAnnotation(text: string, syncTo: Sync): void {
+        if (syncTo.server) sendShapeSetAnnotation({ shape: getGlobalId(this.id), value: text });
+        if (syncTo.ui) this._("setAnnotation")(text, syncTo);
 
         const hadAnnotation = this.annotation !== "";
         this.annotation = text;
@@ -676,24 +683,24 @@ export abstract class Shape implements IShape {
         }
     }
 
-    setAnnotationVisible(visible: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetAnnotationVisible({ shape: getGlobalId(this.id), value: visible });
-        if (syncTo === SyncTo.UI) this._("setAnnotationVisible")(visible, syncTo);
+    setAnnotationVisible(visible: boolean, syncTo: Sync): void {
+        if (syncTo.server) sendShapeSetAnnotationVisible({ shape: getGlobalId(this.id), value: visible });
+        if (syncTo.ui) this._("setAnnotationVisible")(visible, syncTo);
 
         this.annotationVisible = visible;
     }
 
-    addLabel(label: string, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeAddLabel({ shape: getGlobalId(this.id), value: label });
-        if (syncTo === SyncTo.UI) this._("addLabel")(label, syncTo);
+    addLabel(label: string, syncTo: Sync): void {
+        if (syncTo.server) sendShapeAddLabel({ shape: getGlobalId(this.id), value: label });
+        if (syncTo.ui) this._("addLabel")(label, syncTo);
 
         const l = gameStore.state.labels.get(label)!;
         this.labels.push(l);
     }
 
-    removeLabel(label: string, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeRemoveLabel({ shape: getGlobalId(this.id), value: label });
-        if (syncTo === SyncTo.UI) this._("removeLabel")(label, syncTo);
+    removeLabel(label: string, syncTo: Sync): void {
+        if (syncTo.server) sendShapeRemoveLabel({ shape: getGlobalId(this.id), value: label });
+        if (syncTo.ui) this._("removeLabel")(label, syncTo);
 
         this.labels = this.labels.filter((l) => l.uuid !== label);
     }

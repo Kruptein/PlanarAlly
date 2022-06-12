@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../../core/components/ColourPicker.vue";
 import RotationSlider from "../../../../core/components/RotationSlider.vue";
-import { SyncTo } from "../../../../core/models/types";
+import { NO_SYNC, SERVER_SYNC } from "../../../../core/models/types";
 import { getValue } from "../../../../core/utils";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { getGlobalId } from "../../../id";
@@ -30,15 +30,15 @@ function updateTracker(tracker: DeepReadonly<UiTracker>, delta: Partial<Tracker>
     if (!owned.value || activeShapeStore.state.id === undefined) return;
 
     if (tracker.temporary) {
-        trackerSystem.add(tracker.shape, { ...tracker }, SyncTo.SERVER);
+        trackerSystem.add(tracker.shape, { ...tracker }, SERVER_SYNC);
     }
-    trackerSystem.update(tracker.shape, tracker.uuid, delta, syncTo === true ? SyncTo.SERVER : SyncTo.SHAPE);
+    trackerSystem.update(tracker.shape, tracker.uuid, delta, syncTo === true ? SERVER_SYNC : NO_SYNC);
 }
 
 function removeTracker(tracker: TrackerId): void {
     const id = activeShapeStore.state.id;
     if (!owned.value || id === undefined) return;
-    trackerSystem.remove(id, tracker, SyncTo.SERVER);
+    trackerSystem.remove(id, tracker, SERVER_SYNC);
 }
 
 function toggleCompositeTracker(shape: LocalId, trackerId: TrackerId): void {
@@ -49,11 +49,11 @@ function toggleCompositeTracker(shape: LocalId, trackerId: TrackerId): void {
     const tracker = trackerSystem.get(shape, trackerId, true);
     if (tracker === undefined) return;
 
-    trackerSystem.remove(shape, trackerId, SyncTo.SHAPE);
+    trackerSystem.remove(shape, trackerId, NO_SYNC);
 
     const newShape = shape === id ? activeShapeStore.state.parentUuid! : id;
 
-    trackerSystem.add(newShape, tracker, SyncTo.SHAPE);
+    trackerSystem.add(newShape, tracker, NO_SYNC);
 
     sendShapeMoveTracker({
         shape: getGlobalId(shape),
@@ -71,15 +71,15 @@ function updateAura(aura: DeepReadonly<UiAura>, delta: Partial<Aura>, syncTo = t
     if (delta.dim !== undefined && (isNaN(delta.dim) || delta.dim < 0)) delta.dim = 0;
 
     if (aura.temporary) {
-        auraSystem.add(aura.shape, { ...aura }, SyncTo.SERVER);
+        auraSystem.add(aura.shape, { ...aura }, SERVER_SYNC);
     }
-    auraSystem.update(aura.shape, aura.uuid, delta, syncTo === true ? SyncTo.SERVER : SyncTo.SHAPE);
+    auraSystem.update(aura.shape, aura.uuid, delta, syncTo === true ? SERVER_SYNC : NO_SYNC);
 }
 
 function removeAura(aura: AuraId): void {
     const id = activeShapeStore.state.id;
     if (!owned.value || id === undefined) return;
-    auraSystem.remove(id, aura, SyncTo.SERVER);
+    auraSystem.remove(id, aura, SERVER_SYNC);
 }
 
 function toggleCompositeAura(shape: LocalId, auraId: AuraId): void {
@@ -90,11 +90,11 @@ function toggleCompositeAura(shape: LocalId, auraId: AuraId): void {
     const aura = auraSystem.get(shape, auraId, true);
     if (aura === undefined) return;
 
-    auraSystem.remove(shape, auraId, SyncTo.SHAPE);
+    auraSystem.remove(shape, auraId, NO_SYNC);
 
     const newShape = shape === id ? activeShapeStore.state.parentUuid! : id;
 
-    auraSystem.add(newShape, aura, SyncTo.SHAPE);
+    auraSystem.add(newShape, aura, NO_SYNC);
 
     sendShapeMoveAura({
         shape: getGlobalId(shape),

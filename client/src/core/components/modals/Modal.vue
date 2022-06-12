@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 
+import { clearDropCallback, registerDropCallback } from "../../../game/ui/firefox";
+
 const props = withDefaults(defineProps<{ colour?: string; mask?: boolean; visible: boolean }>(), {
     colour: "white",
     mask: true,
@@ -64,6 +66,7 @@ function updatePosition(): void {
 
 function dragStart(event: DragEvent): void {
     if (event === null || event.dataTransfer === null) return;
+    registerDropCallback(dragEnd);
     event.dataTransfer.setData("Hack", "");
     // Because the drag event is happening on the header, we have to change the drag image
     // in order to give the impression that the entire modal is dragged.
@@ -76,20 +79,23 @@ function dragStart(event: DragEvent): void {
 }
 
 function dragEnd(event: DragEvent): void {
-    dragging = false;
-    containerX = event.clientX - offsetX;
-    containerY = event.clientY - offsetY;
-    if (event.clientX === 0 && event.clientY === 0 && event.pageX === 0 && event.pageY === 0) {
-        containerX = parseInt(container.value!.style.left, 10) - (screenX - event.screenX);
-        containerY = parseInt(container.value!.style.top, 10) - (screenY - event.screenY);
+    if (dragging) {
+        dragging = false;
+        clearDropCallback();
+        containerX = event.clientX - offsetX;
+        containerY = event.clientY - offsetY;
+        if (event.clientX === 0 && event.clientY === 0 && event.pageX === 0 && event.pageY === 0) {
+            containerX = parseInt(container.value!.style.left, 10) - (screenX - event.screenX);
+            containerY = parseInt(container.value!.style.top, 10) - (screenY - event.screenY);
+        }
+        if (containerX < 0) containerX = 0;
+        if (containerX > window.innerWidth - 100) containerX = window.innerWidth - 100;
+        if (containerY < 0) containerY = 0;
+        if (containerY > window.innerHeight - 100) containerY = window.innerHeight - 100;
+        container.value!.style.left = `${containerX}px`;
+        container.value!.style.top = `${containerY}px`;
+        container.value!.style.display = "block";
     }
-    if (containerX < 0) containerX = 0;
-    if (containerX > window.innerWidth - 100) containerX = window.innerWidth - 100;
-    if (containerY < 0) containerY = 0;
-    if (containerY > window.innerHeight - 100) containerY = window.innerHeight - 100;
-    container.value!.style.left = `${containerX}px`;
-    container.value!.style.top = `${containerY}px`;
-    container.value!.style.display = "block";
 }
 
 function dragOver(_event: DragEvent): void {

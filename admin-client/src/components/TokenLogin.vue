@@ -17,7 +17,7 @@ async function submit(): Promise<void> {
     if (data.status === 200) {
         error.value = "";
         set_access_token(button.value);
-        router.push((route.query.redirect as string) ?? "/users");
+        await router.push((route.query.redirect as string) ?? "/users");
     } else {
         error.value = "AUTHENTICATION FAILED";
     }

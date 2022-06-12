@@ -1,60 +1,49 @@
-2022.1.0
-
-For server owners using a subpath, some important changes are made, so make sure to check the changed section before upgrading
+2022.2.0
 
 ### Added
 
--   simple logic systems to attach to shapes
-    -   these logic systems can be configured with permissions
-    -   current set of logic systems:
-        -   door
-            -   Automatically toggle blocking settings for a shape with a single click
-        -   teleport zones
-            -   Automatically move shapes to spawn points
--   Dropping an asset with dimension info in its name (e.g. 50x30) will automatically size the asset
--   [asset-manager] drop support for folders
--   [server] Added `allow_signups` option in the `General` config section that can be disabled to prevent users from signing up themselves
--   [server] Added barebones admin dashboard
-    -   this uses the API endpoint and requires a token
-    -   lists users + reset password + delete
-    -   lists campaigns
--   container (Docker) build instructions for arm64
+-   Colour picker now remembers the last 20 used colours for each user.
+-   [DM] Export all campaigns endpoint
+-   [DM] UI export campaign option in room details
+-   [DM] Import campaign support
+    -   Can import older saves (if the migration code is still available (i.e. < 1 year old))
 
 ### Changed
 
--   Draw tool UI now has a tabbed interface
-    -   a shape tab to configure shape and colours
-    -   a visibility tab to configure advanced vision modes as well as blocksVision and blocksMovement changes
--   Polygon edit tool will hide UI while dragging a point/shape
--   [server] Change subpath handling
-    -   the client now MUST also set the PA_BASEPATH env variable in production mode
-    -   this means the env variable needs to be set at build time
-    -   the basepath now HAS TO END with a slash
-    -   for docker this means you need to manually build the image
-        -   use `--build-arg PA_BASEPATH='/subpath/'
-        -   you no longer need the `--env PA_BASEPATH` flag
+-   Add white outline to the door logic (un)lock icons
+-   Door logic can now specify which block settings to toggle
+-   Add double stroke to client viewport
+-   Show campaign loading animation earlier (in dashboard)
+-   Defeat cross now scales better with shape size
+-   Shape badge now scales better with shape size
+-   Show default "no" button in delete/leave campaign prompt
+-   Default location zoom level is now 0.2 instead of 1.0
+-   [server] Added log rotation
+-   [server] Restructure server files
 
 ### Fixed
 
--   Floor not being remembered on reload after "Bring Players" action
--   Shape pasting not properly increasing badge counters
--   Default vision shapes always acting as tokens (regardless of isToken)
--   Map tool aspect ratio lock no longer working
--   Modals will now change location when resizing the window would put them out of the visible screen area
--   Fix scroll bars being visible due to dice canvas not being sized strictly
--   Fix movement blockers intersecting with themselves when moving on the token layer
--   Fix assets becoming invisible when using a subpath setup (only applies to new assets)
--   Fix colour picker not allowing to change the rgba/hsla/hex values manually
--   Account removal not properly redirecting to login
--   Selecting a shape that was drawn in reveal mode no longer removes shadow during selection
--   Removing an asset would remove any campaign using it as their logo
--   Aura direction number input not synching change to server
--   Some memory leaks when changing locations
--   Floor lighting behaviour for late loading images
--   DDraft uploads not progressing in the asset manager
--   DDraft lights not properly being configured
--   [asset-manager] Asset manager would not check for stale files when removing a folder
-
-### Performance
-
--   Cache Shape.points to prevent frequent recalculations
+-   Exporting a campaign where there are images that have no specific asset associated with them, would fail
+-   Exporting a campaign was not properly copying the active pan and zoom info for users
+-   ExtraSettings svg section not updating immediately until changing tabs
+-   ExtraSettings remove svg not properly working
+-   ExtraSettings add svg not working for shapes with no prior svg properties
+-   Spawn locations loading wrong
+-   Teleport zones triggering from other floors
+-   Draw tool door permissions not saving
+-   Door logic toggle not immediately updating UI when shape properties are open
+-   Logic init edge cases breaking UI until refresh
+-   Redo logic on resize operation not remembering correct location when it was snapped
+-   Asset Manager correctly updates UI when using browser back/forward buttons
+-   Clear client viewports when changing location
+-   Dashboard navigation headers sometimes being wrongly styled
+-   Modal handling on firefox
+-   Colour picker resetting saturation panel to red when clicking
+-   Colour picker resetting opacity when setting hsv color
+-   Drawtool trying to add shape creation operation to undo stack when the shape was not valid
+-   Points modified by the polygon edit UI are not snappable until a refresh
+-   Logic Permission selector showing error in edgecase
+-   Asset socket was not cleaning up past connections
+-   Auras that are light sources, no longer appear as a black circle of doom when FOW is not turned on
+-   Undo/Redo not persisting to server for movement and rotation
+-   [server] Admin client was not built in docker

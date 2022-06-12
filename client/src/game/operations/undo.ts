@@ -90,7 +90,7 @@ function handleMovement(shapes: ShapeMovementOperation[], direction: "undo" | "r
     const fullShapes = shapes.map((s) => getShape(s.uuid)!);
     let delta = Vector.fromPoints(toGP(shapes[0].to), toGP(shapes[0].from));
     if (direction === "redo") delta = delta.reverse();
-    moveShapes(fullShapes, delta, true);
+    moveShapes(fullShapes, delta, false);
     (toolMap[ToolName.Select] as ISelectTool).resetRotationHelper();
 }
 
@@ -98,7 +98,7 @@ function handleRotation(shapes: ShapeRotationOperation[], center: GlobalPoint, d
     const fullShapes = shapes.map((s) => getShape(s.uuid)!);
     let angle = shapes[0].from - shapes[0].to;
     if (direction === "redo") angle *= -1;
-    rotateShapes(fullShapes, angle, center, true);
+    rotateShapes(fullShapes, angle, center, false);
     (toolMap[ToolName.Select] as ISelectTool).resetRotationHelper();
 }
 

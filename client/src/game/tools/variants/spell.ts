@@ -3,7 +3,7 @@ import { reactive, watch, watchEffect } from "vue";
 import { g2l, getUnitDistance, l2g, toRadians } from "../../../core/conversions";
 import { equalsP, toGP } from "../../../core/geometry";
 import type { LocalPoint } from "../../../core/geometry";
-import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
+import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
@@ -94,18 +94,20 @@ class SpellTool extends Tool {
 
         switch (this.state.selectedSpellShape) {
             case SpellShape.Circle:
-                this.shape = new Circle(startPosition, getUnitDistance(this.state.size));
+                this.shape = new Circle(startPosition, getUnitDistance(this.state.size), { isSnappable: false });
                 break;
             case SpellShape.Square:
                 this.shape = new Rect(
                     startPosition,
                     getUnitDistance(this.state.size),
                     getUnitDistance(this.state.size),
+                    { isSnappable: false },
                 );
                 break;
             case SpellShape.Cone:
                 this.shape = new Circle(startPosition, getUnitDistance(this.state.size), {
                     viewingAngle: toRadians(60),
+                    isSnappable: false,
                 });
                 break;
         }
@@ -113,12 +115,12 @@ class SpellTool extends Tool {
         if (this.shape === undefined) return;
 
         this.shape.fillColour = this.state.colour.replace(")", ", 0.7)");
-        this.shape.strokeColour = this.state.colour;
+        this.shape.strokeColour = [this.state.colour];
         accessSystem.addAccess(
             this.shape.id,
             clientStore.state.username,
             { edit: true, movement: true, vision: true },
-            SyncTo.UI,
+            UI_SYNC,
         );
 
         if (selectionState.hasSelection && (this.state.range === 0 || equalsP(startPosition, ogPoint))) {
@@ -130,7 +132,6 @@ class SpellTool extends Tool {
             this.shape,
             this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC,
             InvalidationMode.NORMAL,
-            { snappable: false },
         );
 
         this.drawRangeShape();
@@ -148,9 +149,10 @@ class SpellTool extends Tool {
         const selection = [...selectionState.state.selection.values()];
         this.rangeShape = new Circle(getShape(selection[0])!.center(), getUnitDistance(this.state.range), {
             fillColour: "rgba(0,0,0,0)",
-            strokeColour: "black",
+            strokeColour: ["black"],
+            isSnappable: false,
         });
-        layer.addShape(this.rangeShape, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
+        layer.addShape(this.rangeShape, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
     }
 
     // eslint-disable-next-line @typescript-eslint/require-await
@@ -193,7 +195,7 @@ class SpellTool extends Tool {
             dropShapeId: false,
         });
         this.shape.isInvisible = !this.state.showPublic;
-        layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NORMAL, { snappable: false });
+        layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NORMAL);
         this.shape = undefined;
         activateTool(ToolName.Select);
     }

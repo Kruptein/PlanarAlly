@@ -18,7 +18,7 @@ export class Asset extends BaseRect {
     type: SHAPE_TYPE = "assetrect";
     img: HTMLImageElement;
     src = "";
-    strokeColour = "white";
+    strokeColour = ["white"];
     #loaded: boolean;
 
     svgData?: { svg: Node; rp: GlobalPoint; paths?: [number, number][][][] }[];
@@ -28,9 +28,9 @@ export class Asset extends BaseRect {
         topleft: GlobalPoint,
         w: number,
         h: number,
-        options?: { id?: LocalId; uuid?: GlobalId; assetId?: number; loaded?: boolean },
+        options?: { id?: LocalId; uuid?: GlobalId; assetId?: number; loaded?: boolean; isSnappable?: boolean },
     ) {
-        super(topleft, w, h, options);
+        super(topleft, w, h, { isSnappable: false, ...options });
         this.img = img;
         this.#loaded = options?.loaded ?? true;
     }
@@ -68,11 +68,9 @@ export class Asset extends BaseRect {
             const cover = new Polygon(
                 this.refPoint,
                 this.points.slice(1).map((p) => toGP(p)),
-                { openPolygon: false },
+                { openPolygon: false, isSnappable: false },
             );
-            this.layer.addShape(cover, SyncMode.NO_SYNC, InvalidationMode.NORMAL, {
-                snappable: false,
-            });
+            this.layer.addShape(cover, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
             const svgs = await loadSvgData(`/static/assets/${this.options.svgAsset}`);
             this.svgData = [...svgs.values()].map((svg) => ({ svg, rp: this.refPoint, paths: undefined }));
             if (this.blocksVision) {

@@ -1,24 +1,46 @@
 <script setup lang="ts">
+import { onMounted } from "vue";
 import { useI18n } from "vue-i18n";
-import { onBeforeRouteLeave, useRoute } from "vue-router";
+import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from "vue-router";
+import type { RouteLocationNormalized } from "vue-router";
 
 import { useModal } from "../core/plugins/modals/plugin";
-import { baseAdjust, ctrlOrCmdPressed } from "../core/utils";
+import { ctrlOrCmdPressed } from "../core/utils";
 
 import AssetContextMenu from "./AssetContext.vue";
 import { openAssetContextMenu } from "./context";
 import { socket } from "./socket";
 import { assetStore } from "./state";
+import { changeDirectory, getIdImageSrc, showIdName } from "./utils";
 
 const route = useRoute();
 
 assetStore.setModalActive(false);
-socket.connect();
-socket.emit("Folder.GetByPath", route.path.slice("/assets".length));
+
+function getCurrentPath(path?: string): string {
+    path ??= route.path;
+    const i = path.indexOf("/assets");
+    return path.slice(i + "/assets".length);
+}
+
+function loadFolder(path: string): void {
+    if (!socket.connected) socket.connect();
+    socket.emit("Folder.GetByPath", path);
+}
+
+onMounted(() => {
+    loadFolder(getCurrentPath());
+});
 
 onBeforeRouteLeave((_to, _from, next) => {
     socket.disconnect();
     next();
+});
+
+onBeforeRouteUpdate((to: RouteLocationNormalized) => {
+    if (getCurrentPath(to.path) !== assetStore.currentFilePath.value) {
+        loadFolder(getCurrentPath(to.path));
+    }
 });
 
 const { t } = useI18n();
@@ -131,14 +153,6 @@ function exportData(): void {
     if (state.selected.length > 0) socket.emit("Asset.Export", state.selected);
 }
 
-function showIdName(dir: number): string {
-    return state.idMap.get(dir)?.name ?? "";
-}
-
-function getIdImageSrc(file: number): string {
-    return baseAdjust("/static/assets/" + state.idMap.get(file)!.file_hash);
-}
-
 function prepareUpload(): void {
     document.getElementById("files")!.click();
 }
@@ -148,7 +162,6 @@ function prepareUpload(): void {
 const currentFolder = assetStore.currentFolder;
 const parentFolder = assetStore.parentFolder;
 const upload = (): Promise<void> => assetStore.upload();
-const changeDirectory = (folder: number): void => assetStore.changeDirectory(folder);
 </script>
 
 <template>

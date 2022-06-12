@@ -2,7 +2,7 @@
 import { computed, ref, toRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { SyncTo } from "../../../../core/models/types";
+import { SERVER_SYNC } from "../../../../core/models/types";
 import type { PartialPick } from "../../../../core/types";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { gameStore } from "../../../../store/game";
@@ -49,13 +49,13 @@ function addOwner(): void {
         accessSystem.state.id,
         selectedUser,
         { edit: true, movement: true, vision: true },
-        SyncTo.SERVER,
+        SERVER_SYNC,
     );
 }
 
 function removeOwner(user: string): void {
     if (!owned.value || accessSystem.state.id === undefined) return;
-    accessSystem.removeAccess(accessSystem.state.id, user, SyncTo.SERVER);
+    accessSystem.removeAccess(accessSystem.state.id, user, SERVER_SYNC);
 }
 
 function toggleEditAccess(user?: ACCESS_KEY): void {
@@ -74,7 +74,7 @@ function toggleEditAccess(user?: ACCESS_KEY): void {
         access.movement = true;
         access.vision = true;
     }
-    accessSystem.updateAccess(accessSystem.state.id, user, access, SyncTo.SERVER);
+    accessSystem.updateAccess(accessSystem.state.id, user, access, SERVER_SYNC);
 }
 
 function toggleMovementAccess(user?: ACCESS_KEY): void {
@@ -94,7 +94,7 @@ function toggleMovementAccess(user?: ACCESS_KEY): void {
     } else {
         access.edit = false;
     }
-    accessSystem.updateAccess(accessSystem.state.id, user, access, SyncTo.SERVER);
+    accessSystem.updateAccess(accessSystem.state.id, user, access, SERVER_SYNC);
 }
 
 function toggleVisionAccess(user?: ACCESS_KEY): void {
@@ -113,7 +113,7 @@ function toggleVisionAccess(user?: ACCESS_KEY): void {
         access.edit = false;
         access.movement = false;
     }
-    accessSystem.updateAccess(accessSystem.state.id, user, access, SyncTo.SERVER);
+    accessSystem.updateAccess(accessSystem.state.id, user, access, SERVER_SYNC);
 }
 </script>
 

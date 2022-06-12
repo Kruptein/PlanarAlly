@@ -1,4 +1,4 @@
-import { SyncTo } from "../../../../core/models/types";
+import { UI_SYNC } from "../../../../core/models/types";
 import { getLocalId, getShape } from "../../../id";
 import type { GlobalId } from "../../../id";
 import type { ToggleComposite } from "../../../shapes/variants/toggleComposite";
@@ -19,11 +19,11 @@ socket.on("ToggleComposite.Variants.Add", (data: { shape: GlobalId; variant: Glo
 socket.on("ToggleComposite.Variants.Rename", (data: { shape: GlobalId; variant: GlobalId; name: string }): void => {
     const shape = getShape(getLocalId(data.shape)!) as ToggleComposite;
     if (shape === undefined) return;
-    shape.renameVariant(getLocalId(data.variant)!, data.name, SyncTo.UI);
+    shape.renameVariant(getLocalId(data.variant)!, data.name, UI_SYNC);
 });
 
 socket.on("ToggleComposite.Variants.Remove", (data: { shape: GlobalId; variant: GlobalId }): void => {
     const shape = getShape(getLocalId(data.shape)!) as ToggleComposite;
     if (shape === undefined) return;
-    shape.removeVariant(getLocalId(data.variant)!, SyncTo.UI);
+    shape.removeVariant(getLocalId(data.variant)!, UI_SYNC);
 });

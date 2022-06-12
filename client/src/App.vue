@@ -2,7 +2,7 @@
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
-import { baseAdjust } from "./core/utils";
+import { baseAdjust } from "./core/http";
 import { coreStore } from "./store/core";
 
 const route = useRoute();

@@ -3,7 +3,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../../core/components/ColourPicker.vue";
-import { SyncMode, SyncTo } from "../../../../core/models/types";
+import { NO_SYNC, SERVER_SYNC, SyncMode } from "../../../../core/models/types";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { getShape } from "../../../id";
 import type { CircularToken } from "../../../shapes/variants/circularToken";
@@ -16,57 +16,57 @@ const owned = accessSystem.$.hasEditAccess;
 
 function updateName(event: Event): void {
     if (!owned.value) return;
-    activeShapeStore.setName((event.target as HTMLInputElement).value, SyncTo.SERVER);
+    activeShapeStore.setName((event.target as HTMLInputElement).value, SERVER_SYNC);
 }
 
 function toggleNameVisible(): void {
     if (!owned.value) return;
-    activeShapeStore.setNameVisible(!activeShapeStore.state.nameVisible, SyncTo.SERVER);
+    activeShapeStore.setNameVisible(!activeShapeStore.state.nameVisible, SERVER_SYNC);
 }
 
 function setToken(event: Event): void {
     if (!owned.value) return;
-    activeShapeStore.setIsToken((event.target as HTMLInputElement).checked, SyncTo.SERVER);
+    activeShapeStore.setIsToken((event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
 function setInvisible(event: Event): void {
     if (!owned.value) return;
-    activeShapeStore.setIsInvisible((event.target as HTMLInputElement).checked, SyncTo.SERVER);
+    activeShapeStore.setIsInvisible((event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
 function setDefeated(event: Event): void {
     if (!owned.value) return;
-    activeShapeStore.setIsDefeated((event.target as HTMLInputElement).checked, SyncTo.SERVER);
+    activeShapeStore.setIsDefeated((event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
 function setLocked(event: Event): void {
     if (!owned.value) return;
-    activeShapeStore.setLocked((event.target as HTMLInputElement).checked, SyncTo.SERVER);
+    activeShapeStore.setLocked((event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
 function toggleBadge(event: Event): void {
     if (!owned.value) return;
-    activeShapeStore.setShowBadge((event.target as HTMLInputElement).checked, SyncTo.SERVER);
+    activeShapeStore.setShowBadge((event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
 function setBlocksVision(event: Event): void {
     if (!owned.value) return;
-    activeShapeStore.setBlocksVision((event.target as HTMLInputElement).checked, SyncTo.SERVER);
+    activeShapeStore.setBlocksVision((event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
 function setBlocksMovement(event: Event): void {
     if (!owned.value) return;
-    activeShapeStore.setBlocksMovement((event.target as HTMLInputElement).checked, SyncTo.SERVER);
+    activeShapeStore.setBlocksMovement((event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
 function setStrokeColour(event: string, temporary = false): void {
     if (!owned.value) return;
-    activeShapeStore.setStrokeColour(event, temporary ? SyncTo.SHAPE : SyncTo.SERVER);
+    activeShapeStore.setStrokeColour(event, temporary ? NO_SYNC : SERVER_SYNC);
 }
 
 function setFillColour(colour: string, temporary = false): void {
     if (!owned.value) return;
-    activeShapeStore.setFillColour(colour, temporary ? SyncTo.SHAPE : SyncTo.SERVER);
+    activeShapeStore.setFillColour(colour, temporary ? NO_SYNC : SERVER_SYNC);
 }
 
 const hasValue = computed(() => {
@@ -174,7 +174,7 @@ function setValue(event: Event): void {
         <div class="row">
             <label for="shapeselectiondialog-strokecolour">{{ t("common.border_color") }}</label>
             <ColourPicker
-                :colour="activeShapeStore.state.strokeColour"
+                :colour="activeShapeStore.state.strokeColour?.[0]"
                 @input:colour="setStrokeColour($event, true)"
                 @update:colour="setStrokeColour($event)"
                 style="grid-column-start: toggle"

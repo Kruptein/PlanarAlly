@@ -3,12 +3,15 @@ import { computed, onMounted, reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import LanguageDropdown from "../core/components/LanguageDropdown.vue";
+import { baseAdjust, http } from "../core/http";
 import { useModal } from "../core/plugins/modals/plugin";
-import { baseAdjust, baseAdjustedFetch, getErrorReason } from "../core/utils";
+import { getErrorReason } from "../core/utils";
 
 import AccountSettings from "./AccountSettings.vue";
 import CreateCampaign from "./CreateCampaign.vue";
+import ImportGame from "./ImportGame.vue";
 import SessionList from "./SessionList.vue";
+import { socket } from "./socket";
 import { Navigation } from "./types";
 import type { NavigationEntry, RoomInfo } from "./types";
 
@@ -37,6 +40,11 @@ const modals = useModal();
 const route = useRoute();
 const router = useRouter();
 
+socket.on("Campaign.Import.Done", async () => {
+    await getRooms();
+    state.activeNavigation = Navigation.Run;
+});
+
 onMounted(async () => {
     if (route.params?.error === "join_game") {
         await modals.confirm(
@@ -46,7 +54,11 @@ onMounted(async () => {
         );
     }
 
-    const response = await baseAdjustedFetch("/api/rooms");
+    await getRooms();
+});
+
+async function getRooms(): Promise<void> {
+    const response = await http.get("/api/rooms");
     if (response.ok) {
         const data: { owned: RoomInfo[]; joined: RoomInfo[] } = await response.json();
         state.owned = data.owned;
@@ -54,13 +66,14 @@ onMounted(async () => {
     } else {
         state.error = await getErrorReason(response);
     }
-});
+}
 
 const mainNavigation: NavigationEntry[] = [
     { text: "game", type: "header" },
     { type: "action", navigation: Navigation.Play, fn: setActiveNavigation },
     { type: "action", navigation: Navigation.Run, fn: setActiveNavigation },
     { type: "action", navigation: Navigation.Create, fn: setActiveNavigation },
+    { type: "action", navigation: Navigation.Import, fn: setActiveNavigation },
     { type: "separator" },
     { text: "assets", type: "header" },
     { type: "action", navigation: Navigation.AssetManage, fn: openAssetManager },
@@ -87,6 +100,7 @@ const navigationTranslation: Record<Navigation, string> = {
     [Navigation.Play]: "play",
     [Navigation.Run]: "run",
     [Navigation.Create]: "create",
+    [Navigation.Import]: "import",
     [Navigation.Settings]: "settings",
     [Navigation.AssetManage]: "manage",
     [Navigation.AssetCreate]: "create",
@@ -150,6 +164,7 @@ function updateLogo(index: number, logo: string): void {
             @remove-room="removeRoom"
             @update-logo="updateLogo"
         />
+        <ImportGame v-else-if="state.activeNavigation === Navigation.Import" />
         <CreateCampaign v-else-if="state.activeNavigation === Navigation.Create" />
         <AccountSettings v-else-if="state.activeNavigation === Navigation.Account" />
         <div v-else id="not-implemented">

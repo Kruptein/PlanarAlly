@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { SyncTo } from "../../../../src/core/models/types";
+import { NO_SYNC, SERVER_SYNC, UI_SYNC } from "../../../../src/core/models/types";
 import { socket } from "../../../../src/game/api/socket";
 import type { LocalId } from "../../../../src/game/id";
 import type { IShape } from "../../../../src/game/shapes/interfaces";
@@ -248,7 +248,7 @@ describe("Access System", () => {
             const access: ShapeAccess = { edit: false, movement: false, vision: true };
             accessSystem.inform(id, { default: DEFAULT_ACCESS, extra: [{ user: "some user", shape: id, access }] });
             // test
-            accessSystem.addAccess(id, "some user", access, SyncTo.SERVER);
+            accessSystem.addAccess(id, "some user", access, SERVER_SYNC);
             expect(errorSpy).toBeCalled();
             expect(emitSpy).not.toBeCalled();
             expect(addOwnedTokenSpy).not.toBeCalled();
@@ -263,7 +263,7 @@ describe("Access System", () => {
                 extra: [{ user: "some user", shape: id, access: someUserAccess }],
             });
             // test
-            accessSystem.addAccess(id, "new user", newUserAccess, SyncTo.SERVER);
+            accessSystem.addAccess(id, "new user", newUserAccess, SERVER_SYNC);
             expect(errorSpy).not.toBeCalled();
             expect(emitSpy).toBeCalled();
             expect(addOwnedTokenSpy).not.toBeCalled();
@@ -282,8 +282,8 @@ describe("Access System", () => {
                 extra: [],
             });
             // test
-            accessSystem.addAccess(id, "some user", someUserAccess, SyncTo.UI);
-            accessSystem.addAccess(id, "new user", newUserAccess, SyncTo.SHAPE);
+            accessSystem.addAccess(id, "some user", someUserAccess, UI_SYNC);
+            accessSystem.addAccess(id, "new user", newUserAccess, NO_SYNC);
             expect(errorSpy).not.toBeCalled();
             expect(emitSpy).not.toBeCalled();
             expect(addOwnedTokenSpy).not.toBeCalled();
@@ -304,8 +304,8 @@ describe("Access System", () => {
             });
             accessSystem.loadState(id);
             // test
-            accessSystem.addAccess(id, "some user", someUserAccess, SyncTo.UI);
-            accessSystem.addAccess(id2, "new user", newUserAccess, SyncTo.SHAPE);
+            accessSystem.addAccess(id, "some user", someUserAccess, UI_SYNC);
+            accessSystem.addAccess(id2, "new user", newUserAccess, NO_SYNC);
             expect(accessSystem.state.playerAccess.get("some user")).toEqual(someUserAccess);
             expect(accessSystem.state.playerAccess.get("new user")).toBeUndefined();
         });
@@ -321,16 +321,16 @@ describe("Access System", () => {
             // test
             // 1. vision: false && username is ok && !isToken
             clientStore.setUsername("some user");
-            accessSystem.addAccess(id, "some user", userWithoutVision, SyncTo.UI);
+            accessSystem.addAccess(id, "some user", userWithoutVision, UI_SYNC);
             expect(addOwnedTokenSpy).not.toBeCalled();
             // 2. vision: true && username is ok && !isToken
             clientStore.setUsername("vision user wo isToken");
-            accessSystem.addAccess(id, "vision user wo isToken", userWithVision, SyncTo.UI);
+            accessSystem.addAccess(id, "vision user wo isToken", userWithVision, UI_SYNC);
             expect(addOwnedTokenSpy).not.toBeCalled();
             // 3. vision: true && username is ok && isToken
             GET_SHAPE_OVERRIDE = () => ({ isToken: true });
             clientStore.setUsername("vision user w isToken");
-            accessSystem.addAccess(id, "vision user w isToken", userWithVision, SyncTo.UI);
+            accessSystem.addAccess(id, "vision user w isToken", userWithVision, UI_SYNC);
             expect(addOwnedTokenSpy).toBeCalled();
         });
     });
@@ -338,7 +338,7 @@ describe("Access System", () => {
         it("should error if the shape is not known to the system", () => {
             // setup
             const id = generateTestLocalId();
-            accessSystem.updateAccess(id, "some user", { edit: true }, SyncTo.SERVER);
+            accessSystem.updateAccess(id, "some user", { edit: true }, SERVER_SYNC);
             // test
             expect(errorSpy).toBeCalled();
         });
@@ -346,7 +346,7 @@ describe("Access System", () => {
             // setup
             const id = generateTestLocalId();
             accessSystem.inform(id, { default: DEFAULT_ACCESS, extra: [] });
-            accessSystem.updateAccess(id, "some user", { edit: true }, SyncTo.SERVER);
+            accessSystem.updateAccess(id, "some user", { edit: true }, SERVER_SYNC);
             // test
             expect(errorSpy).toBeCalled();
         });
@@ -356,7 +356,7 @@ describe("Access System", () => {
             accessSystem.inform(id, { default: DEFAULT_ACCESS, extra: [] });
             // test
             expect(accessSystem.getDefault(id)).toEqual({ edit: false, movement: false, vision: false });
-            accessSystem.updateAccess(id, DEFAULT_ACCESS_SYMBOL, { edit: true }, SyncTo.SERVER);
+            accessSystem.updateAccess(id, DEFAULT_ACCESS_SYMBOL, { edit: true }, SERVER_SYNC);
             expect(accessSystem.getDefault(id)).toEqual({ edit: true, movement: false, vision: false });
             expect(errorSpy).not.toBeCalled();
             expect(emitSpy).toBeCalled();
@@ -370,7 +370,7 @@ describe("Access System", () => {
             });
             // test
             expect(accessSystem.getAccess(id, "some user")).toEqual({ edit: false, movement: false, vision: false });
-            accessSystem.updateAccess(id, "some user", { edit: true }, SyncTo.SERVER);
+            accessSystem.updateAccess(id, "some user", { edit: true }, SERVER_SYNC);
             expect(accessSystem.getAccess(id, "some user")).toEqual({ edit: true, movement: false, vision: false });
             expect(errorSpy).not.toBeCalled();
             expect(emitSpy).toBeCalled();
@@ -384,19 +384,19 @@ describe("Access System", () => {
             });
             // test
             // 1. without correct username
-            accessSystem.updateAccess(id, "some user", { vision: true }, SyncTo.SERVER);
+            accessSystem.updateAccess(id, "some user", { vision: true }, SERVER_SYNC);
             expect(addOwnedTokenSpy).not.toBeCalled();
-            accessSystem.updateAccess(id, "some user", { vision: false }, SyncTo.SERVER); // reset
+            accessSystem.updateAccess(id, "some user", { vision: false }, SERVER_SYNC); // reset
             // 2. without isToken
             clientStore.setUsername("some user");
-            accessSystem.updateAccess(id, "some user", { vision: true }, SyncTo.SERVER);
+            accessSystem.updateAccess(id, "some user", { vision: true }, SERVER_SYNC);
             expect(addOwnedTokenSpy).not.toBeCalled();
-            accessSystem.updateAccess(id, "some user", { vision: false }, SyncTo.SERVER); // reset
+            accessSystem.updateAccess(id, "some user", { vision: false }, SERVER_SYNC); // reset
             // 3. correct
             GET_SHAPE_OVERRIDE = () => ({
                 isToken: true,
             });
-            accessSystem.updateAccess(id, "some user", { vision: true }, SyncTo.SERVER);
+            accessSystem.updateAccess(id, "some user", { vision: true }, SERVER_SYNC);
             expect(addOwnedTokenSpy).toBeCalled();
         });
         it("should remove from the owned tokens if vision is toggled off for the current user", () => {
@@ -408,19 +408,19 @@ describe("Access System", () => {
             });
             // test
             // 1. without correct username
-            accessSystem.updateAccess(id, "some user", { vision: false }, SyncTo.SERVER);
+            accessSystem.updateAccess(id, "some user", { vision: false }, SERVER_SYNC);
             expect(removeOwnedTokenSpy).not.toBeCalled();
-            accessSystem.updateAccess(id, "some user", { vision: true }, SyncTo.SERVER); // reset
+            accessSystem.updateAccess(id, "some user", { vision: true }, SERVER_SYNC); // reset
             // 2. without isToken
             clientStore.setUsername("some user");
-            accessSystem.updateAccess(id, "some user", { vision: false }, SyncTo.SERVER);
+            accessSystem.updateAccess(id, "some user", { vision: false }, SERVER_SYNC);
             expect(removeOwnedTokenSpy).not.toBeCalled();
-            accessSystem.updateAccess(id, "some user", { vision: true }, SyncTo.SERVER); // reset
+            accessSystem.updateAccess(id, "some user", { vision: true }, SERVER_SYNC); // reset
             // 3. correct
             GET_SHAPE_OVERRIDE = () => ({
                 isToken: true,
             });
-            accessSystem.updateAccess(id, "some user", { vision: false }, SyncTo.SERVER);
+            accessSystem.updateAccess(id, "some user", { vision: false }, SERVER_SYNC);
             expect(removeOwnedTokenSpy).toBeCalled();
         });
         it("should update $state", () => {
@@ -437,7 +437,7 @@ describe("Access System", () => {
                 movement: false,
                 vision: true,
             });
-            accessSystem.updateAccess(id, "some user", { edit: true }, SyncTo.SERVER);
+            accessSystem.updateAccess(id, "some user", { edit: true }, SERVER_SYNC);
             expect(accessSystem.state.playerAccess.get("some user")).toEqual({
                 edit: true,
                 movement: false,
@@ -449,7 +449,7 @@ describe("Access System", () => {
         it("should error if the shape is not known to the system", () => {
             // setup
             const id = generateTestLocalId();
-            accessSystem.removeAccess(id, "some user", SyncTo.SERVER);
+            accessSystem.removeAccess(id, "some user", SERVER_SYNC);
             // test
             expect(errorSpy).toBeCalled();
         });
@@ -457,7 +457,7 @@ describe("Access System", () => {
             // setup
             const id = generateTestLocalId();
             accessSystem.inform(id, { default: DEFAULT_ACCESS, extra: [] });
-            accessSystem.removeAccess(id, "some user", SyncTo.SERVER);
+            accessSystem.removeAccess(id, "some user", SERVER_SYNC);
             // test
             expect(errorSpy).toBeCalled();
         });
@@ -470,7 +470,7 @@ describe("Access System", () => {
             });
             // test
             expect(accessSystem.getAccess(id, "some user")).toEqual({ edit: false, movement: false, vision: false });
-            accessSystem.removeAccess(id, "some user", SyncTo.SERVER);
+            accessSystem.removeAccess(id, "some user", SERVER_SYNC);
             expect(accessSystem.getAccess(id, "some user")).toBeUndefined();
             expect(errorSpy).not.toBeCalled();
             expect(emitSpy).toBeCalled();
@@ -484,19 +484,19 @@ describe("Access System", () => {
             });
             // test
             // 1. without correct username
-            accessSystem.removeAccess(id, "some user", SyncTo.SERVER);
+            accessSystem.removeAccess(id, "some user", SERVER_SYNC);
             expect(removeOwnedTokenSpy).not.toBeCalled();
-            accessSystem.addAccess(id, "some user", { vision: true }, SyncTo.SERVER); // reset
+            accessSystem.addAccess(id, "some user", { vision: true }, SERVER_SYNC); // reset
             // 2. without isToken
             clientStore.setUsername("some user");
-            accessSystem.removeAccess(id, "some user", SyncTo.SERVER);
+            accessSystem.removeAccess(id, "some user", SERVER_SYNC);
             expect(removeOwnedTokenSpy).not.toBeCalled();
-            accessSystem.addAccess(id, "some user", { vision: true }, SyncTo.SERVER); // reset
+            accessSystem.addAccess(id, "some user", { vision: true }, SERVER_SYNC); // reset
             // 3. correct
             GET_SHAPE_OVERRIDE = () => ({
                 isToken: true,
             });
-            accessSystem.removeAccess(id, "some user", SyncTo.SERVER);
+            accessSystem.removeAccess(id, "some user", SERVER_SYNC);
             expect(removeOwnedTokenSpy).toBeCalled();
         });
         it("should update $state", () => {
@@ -509,7 +509,7 @@ describe("Access System", () => {
             accessSystem.loadState(id);
             // test
             expect(accessSystem.state.playerAccess.has("some user")).toBe(true);
-            accessSystem.removeAccess(id, "some user", SyncTo.SERVER);
+            accessSystem.removeAccess(id, "some user", SERVER_SYNC);
             expect(accessSystem.state.playerAccess.has("some user")).toBe(false);
         });
     });
@@ -539,7 +539,7 @@ describe("Access System", () => {
             });
             // test
             expect(accessSystem.getOwners(id)).toEqual(["some user"]);
-            accessSystem.addAccess(id, "other user", DEFAULT_ACCESS, SyncTo.UI);
+            accessSystem.addAccess(id, "other user", DEFAULT_ACCESS, UI_SYNC);
             expect(accessSystem.getOwners(id)).toEqual(["some user", "other user"]);
         });
     });
@@ -571,7 +571,7 @@ describe("Access System", () => {
             expect(accessSystem.getOwnersFull(id)).toEqual([
                 { user: "some user", shape: id, access: { edit: false, movement: false, vision: true } },
             ]);
-            accessSystem.addAccess(id, "other user", DEFAULT_ACCESS, SyncTo.UI);
+            accessSystem.addAccess(id, "other user", DEFAULT_ACCESS, UI_SYNC);
             expect(accessSystem.getOwnersFull(id)).toEqual([
                 { user: "some user", shape: id, access: { edit: false, movement: false, vision: true } },
                 { user: "other user", shape: id, access: { edit: false, movement: false, vision: false } },

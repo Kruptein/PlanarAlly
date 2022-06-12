@@ -24,6 +24,7 @@ import {
     touchMove,
     touchStart,
 } from "./tools/events";
+import { handleDrop } from "./ui/firefox";
 import UI from "./ui/UI.vue";
 
 import "./api/events";
@@ -107,6 +108,7 @@ export default defineComponent({
 
         async function drop(event: DragEvent): Promise<void> {
             if (event === null || event.dataTransfer === null) return;
+            handleDrop(event); // FF modal handling workaround
             if (event.dataTransfer.files.length > 0) {
                 await modals.confirm("Warning", "Uploading files should be done through the asset manager.", {
                     yes: "Ok",

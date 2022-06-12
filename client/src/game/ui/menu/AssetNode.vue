@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { computed, reactive } from "vue";
 
+import { baseAdjust } from "../../../core/http";
 import type { AssetFile, AssetListMap } from "../../../core/models/types";
-import { baseAdjust } from "../../../core/utils";
 
 interface State {
     hoveredHash: string;
+    openFolders: Set<string>;
 }
 
-const props = defineProps<{ assets: AssetListMap }>();
+const props = defineProps<{ assets: AssetListMap; visible: boolean }>();
 const state: State = reactive({
     hoveredHash: "",
+    openFolders: new Set(),
 });
 
 function childAssets(folder: string): AssetListMap {
@@ -26,11 +28,11 @@ const folders = computed(() => {
     return [...props.assets.keys()].filter((el) => "__files" !== el);
 });
 
-function toggle(event: MouseEvent): void {
-    const children = (event.target as HTMLLIElement).children;
-    for (const child of children) {
-        const el = child as HTMLElement;
-        el.style.display = el.style.display === "" ? "block" : "";
+function toggle(folder: string): void {
+    if (state.openFolders.has(folder)) {
+        state.openFolders.delete(folder);
+    } else {
+        state.openFolders.add(folder);
     }
 }
 
@@ -45,10 +47,10 @@ function dragStart(event: DragEvent, imageSource: string, assetId: number): void
 </script>
 
 <template>
-    <ul>
-        <li v-for="folder in folders" :key="folder" class="folder" @click.stop="toggle">
+    <ul v-if="visible">
+        <li v-for="folder in folders" :key="folder" class="folder" @click.stop="toggle(folder)">
             {{ folder }}
-            <AssetNode :assets="childAssets(folder)" />
+            <AssetNode :assets="childAssets(folder)" :visible="state.openFolders.has(folder)" />
         </li>
         <li
             v-for="file in files"
@@ -111,10 +113,6 @@ DIRECTORY.CSS changes
 
 */
 .folder {
-    > * {
-        display: none;
-    }
-
     &:hover {
         font-weight: bold;
         cursor: pointer;

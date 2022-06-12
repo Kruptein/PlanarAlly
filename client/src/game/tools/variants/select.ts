@@ -14,9 +14,10 @@ import {
     getAngleBetween,
 } from "../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
+import { baseAdjust } from "../../../core/http";
 import { equalPoints, snapToPoint } from "../../../core/math";
-import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
-import { baseAdjust, ctrlOrCmdPressed } from "../../../core/utils";
+import { InvalidationMode, NO_SYNC, SyncMode } from "../../../core/models/types";
+import { ctrlOrCmdPressed } from "../../../core/utils";
 import { i18n } from "../../../i18n";
 import { clientStore, DEFAULT_GRID_SIZE } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
@@ -224,11 +225,11 @@ class SelectTool extends Tool implements ISelectTool {
         if (this.hoveredDoor !== undefined && activeToolMode.value === ToolMode.Play) {
             const canUseDoor = doorSystem.canUse(this.hoveredDoor);
             if (canUseDoor === Access.Enabled) {
-                const shape = getShape(this.hoveredDoor)!;
-                shape.setBlocksMovement(!shape.blocksMovement, SyncTo.SERVER, true);
-                shape.setBlocksVision(!shape.blocksVision, SyncTo.SERVER, true);
-                const state = shape.blocksVision ? "lock-open-solid" : "lock-solid";
-                document.body.style.cursor = `url('${baseAdjust(`static/img/${state}.svg`)}') 16 16, auto`;
+                doorSystem.toggleDoor(this.hoveredDoor);
+                const state = doorSystem.getCursorState(this.hoveredDoor);
+                if (state !== undefined) {
+                    document.body.style.cursor = `url('${baseAdjust(`static/img/${state}.svg`)}') 16 16, auto`;
+                }
                 return;
             } else if (canUseDoor === Access.Request) {
                 toast.info("Request to open door sent", {
@@ -351,7 +352,8 @@ class SelectTool extends Tool implements ISelectTool {
             if (this.selectionHelper === undefined) {
                 this.selectionHelper = new Rect(this.selectionStartPoint, 0, 0, {
                     fillColour: "rgba(0, 0, 0, 0)",
-                    strokeColour: "#7c253e",
+                    strokeColour: ["#7c253e"],
+                    isSnappable: false,
                 });
                 this.selectionHelper.strokeWidth = 2;
                 this.selectionHelper.options.UiHelper = true;
@@ -359,9 +361,9 @@ class SelectTool extends Tool implements ISelectTool {
                     this.selectionHelper.id,
                     clientStore.state.username,
                     { edit: true, movement: true, vision: true },
-                    SyncTo.SHAPE,
+                    NO_SYNC,
                 );
-                layer.addShape(this.selectionHelper, SyncMode.NO_SYNC, InvalidationMode.NO, { snappable: false });
+                layer.addShape(this.selectionHelper, SyncMode.NO_SYNC, InvalidationMode.NO);
             } else {
                 this.selectionHelper.refPoint = this.selectionStartPoint;
                 this.selectionHelper.w = 0;
@@ -407,7 +409,7 @@ class SelectTool extends Tool implements ISelectTool {
 
                 foundDoor = true;
                 this.hoveredDoor = id;
-                const state = shape.blocksVision ? "lock-open-solid" : "lock-solid";
+                const state = doorSystem.getCursorState(id);
                 document.body.style.cursor = `url('${baseAdjust(`static/img/${state}.svg`)}') 16 16, auto`;
                 break;
             }
@@ -680,7 +682,7 @@ class SelectTool extends Tool implements ISelectTool {
                     }
 
                     if (this.operationList?.type === "resize") {
-                        this.operationList.toPoint = toArrayP(l2g(lp));
+                        this.operationList.toPoint = sel.points[this.resizePoint];
                         this.operationList.resizePoint = this.resizePoint;
                         this.operationList.retainAspectRatio = ctrlOrCmdPressed(event);
                         this.operationReady = true;
@@ -798,22 +800,31 @@ class SelectTool extends Tool implements ISelectTool {
         const topCenterPlus = addP(topCenter, new Vector(0, -DEFAULT_GRID_SIZE));
 
         this.angle = 0;
-        this.rotationAnchor = new Line(topCenter, topCenterPlus, { lineWidth: l2gz(1.5), strokeColour: "#7c253e" });
+        this.rotationAnchor = new Line(topCenter, topCenterPlus, {
+            lineWidth: l2gz(1.5),
+            strokeColour: ["#7c253e"],
+            isSnappable: false,
+        });
         this.rotationBox = new Rect(bbox.topLeft, bbox.w, bbox.h, {
             fillColour: "rgba(0,0,0,0)",
-            strokeColour: "#7c253e",
+            strokeColour: ["#7c253e"],
+            isSnappable: false,
         });
         this.rotationBox.strokeWidth = 1.5;
-        this.rotationEnd = new Circle(topCenterPlus, l2gz(4), { fillColour: "#7c253e", strokeColour: "rgba(0,0,0,0)" });
+        this.rotationEnd = new Circle(topCenterPlus, l2gz(4), {
+            fillColour: "#7c253e",
+            strokeColour: ["rgba(0,0,0,0)"],
+            isSnappable: false,
+        });
 
         for (const rotationShape of [this.rotationAnchor, this.rotationBox, this.rotationEnd]) {
             accessSystem.addAccess(
                 rotationShape.id,
                 clientStore.state.username,
                 { edit: true, movement: true, vision: true },
-                SyncTo.SHAPE,
+                NO_SYNC,
             );
-            layer.addShape(rotationShape, SyncMode.NO_SYNC, InvalidationMode.NO, { snappable: false });
+            layer.addShape(rotationShape, SyncMode.NO_SYNC, InvalidationMode.NO);
         }
 
         if (layerSelection.length === 1) {
@@ -870,9 +881,13 @@ class SelectTool extends Tool implements ISelectTool {
 
         this.removePolygonEditUi();
 
-        this.polygonTracer = new Circle(toGP(0, 0), 3, { fillColour: "rgba(0,0,0,0)", strokeColour: "black" });
+        this.polygonTracer = new Circle(toGP(0, 0), 3, {
+            fillColour: "rgba(0,0,0,0)",
+            strokeColour: ["black"],
+            isSnappable: false,
+        });
         const drawLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw)!;
-        drawLayer.addShape(this.polygonTracer, SyncMode.NO_SYNC, InvalidationMode.NORMAL, { snappable: false });
+        drawLayer.addShape(this.polygonTracer, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         this.updatePolygonEditUi(this.lastMousePosition);
         drawLayer.invalidate(true);
     }
@@ -896,15 +911,15 @@ class SelectTool extends Tool implements ISelectTool {
         const selection = selectionState.get({ includeComposites: false });
         const polygon = selection[0] as Polygon;
 
-        const pw = g2lz(polygon.lineWidth);
+        const pw = g2lz(polygon.lineWidth[0]);
 
         const pv = polygon.vertices;
-        let smallest = { distance: polygon.lineWidth * 2, nearest: gp, angle: 0, point: false };
+        let smallest = { distance: polygon.lineWidth[0] * 2, nearest: gp, angle: 0, point: false };
         for (let i = 1; i < pv.length; i++) {
             const prevVertex = pv[i - 1];
             const vertex = pv[i];
             // check prev-vertex
-            if (getPointDistance(prevVertex, gp) < polygon.lineWidth / 1.5) {
+            if (getPointDistance(prevVertex, gp) < polygon.lineWidth[0] / 1.5) {
                 const vec = Vector.fromPoints(prevVertex, vertex);
                 let angle;
                 if (i === 1) {
@@ -918,16 +933,16 @@ class SelectTool extends Tool implements ISelectTool {
             }
             // check edge
             const info = getDistanceToSegment(gp, [prevVertex, vertex]);
-            if (info.distance < polygon.lineWidth / 1.5 && info.distance < smallest.distance) {
+            if (info.distance < polygon.lineWidth[0] / 1.5 && info.distance < smallest.distance) {
                 smallest = { ...info, angle: Vector.fromPoints(prevVertex, vertex).deg(), point: false };
             }
         }
         //check last vertex
-        if (getPointDistance(pv.at(-1)!, gp) < polygon.lineWidth / 2) {
+        if (getPointDistance(pv.at(-1)!, gp) < polygon.lineWidth[0] / 2) {
             smallest = { distance: 0, nearest: pv.at(-1)!, point: true, angle: smallest.angle };
         }
         // Show the UI
-        if (smallest.distance <= polygon.lineWidth) {
+        if (smallest.distance <= polygon.lineWidth[0]) {
             this.polygonUiVisible.value = "visible";
             this.polygonTracer!.refPoint = smallest.nearest;
             this.polygonTracer!.layer.invalidate(true);

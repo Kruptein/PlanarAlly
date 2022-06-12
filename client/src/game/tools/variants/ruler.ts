@@ -4,7 +4,7 @@ import { l2g } from "../../../core/conversions";
 import { cloneP, toGP } from "../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { snapToGridPoint } from "../../../core/math";
-import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
+import { InvalidationMode, NO_SYNC, SyncMode } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { clientStore, DEFAULT_GRID_SIZE } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
@@ -52,7 +52,8 @@ class RulerTool extends Tool {
     private createNewRuler(start: GlobalPoint, end: GlobalPoint): void {
         const ruler = new Line(start, end, {
             lineWidth: 5,
-            strokeColour: clientStore.state.rulerColour,
+            strokeColour: [clientStore.state.rulerColour],
+            isSnappable: false,
         });
         ruler.ignoreZoomSize = true;
 
@@ -66,9 +67,9 @@ class RulerTool extends Tool {
             ruler.id,
             clientStore.state.username,
             { edit: true, movement: true, vision: true },
-            SyncTo.SHAPE,
+            NO_SYNC,
         );
-        layer.addShape(ruler, this.syncMode, InvalidationMode.NORMAL, { snappable: false });
+        layer.addShape(ruler, this.syncMode, InvalidationMode.NORMAL);
         this.rulers.push(ruler);
     }
 
@@ -90,16 +91,17 @@ class RulerTool extends Tool {
         this.createNewRuler(cloneP(this.startPoint), cloneP(this.startPoint));
         this.text = new Text(cloneP(this.startPoint), "", 20, {
             fillColour: "#000",
-            strokeColour: "#fff",
+            strokeColour: ["#fff"],
+            isSnappable: false,
         });
         this.text.ignoreZoomSize = true;
         accessSystem.addAccess(
             this.text.id,
             clientStore.state.username,
             { edit: true, movement: true, vision: true },
-            SyncTo.SHAPE,
+            NO_SYNC,
         );
-        layer.addShape(this.text, this.syncMode, InvalidationMode.NORMAL, { snappable: false });
+        layer.addShape(this.text, this.syncMode, InvalidationMode.NORMAL);
     }
 
     // eslint-disable-next-line @typescript-eslint/require-await

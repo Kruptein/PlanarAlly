@@ -34,44 +34,6 @@ export function calcFontScale(ctx: CanvasRenderingContext2D, text: string, r: nu
     return (Math.cos(Math.atan(fontSize / fontWidth)) * 2 * r) / fontWidth;
 }
 
-export async function baseAdjustedFetch(url: string): Promise<Response> {
-    if (url.startsWith("/")) url = url.slice(1);
-    return fetch(import.meta.env.BASE_URL + url);
-}
-
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export async function postFetch(url: string, data?: any): Promise<Response> {
-    if (url.startsWith("/")) url = url.slice(1);
-    return fetch(import.meta.env.BASE_URL + url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data ?? {}),
-    });
-}
-
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export async function patchFetch(url: string, data?: any): Promise<Response> {
-    if (url.startsWith("/")) url = url.slice(1);
-    return fetch(import.meta.env.BASE_URL + url, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data ?? {}),
-    });
-}
-
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export async function deleteFetch(url: string): Promise<Response> {
-    if (url.startsWith("/")) url = url.slice(1);
-    return fetch(import.meta.env.BASE_URL + url, {
-        method: "DELETE",
-    });
-}
-
-export function baseAdjust(url: string): string {
-    if (url.startsWith("/")) url = url.slice(1);
-    return import.meta.env.BASE_URL + url;
-}
-
 export async function getErrorReason(response: Response): Promise<string> {
     const responseText: string = await response.text();
     // responseText will be "<statusCode>: <error message>"

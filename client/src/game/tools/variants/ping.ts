@@ -1,6 +1,6 @@
 import { l2g } from "../../../core/conversions";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
-import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
+import { InvalidationMode, NO_SYNC, SyncMode } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
@@ -53,10 +53,11 @@ class PingTool extends Tool {
         }
 
         this.active.value = true;
-        this.ping = new Circle(this.startPoint, 20, { fillColour: clientStore.state.rulerColour });
+        this.ping = new Circle(this.startPoint, 20, { fillColour: clientStore.state.rulerColour, isSnappable: false });
         this.border = new Circle(this.startPoint, 40, {
             fillColour: "#0000",
-            strokeColour: clientStore.state.rulerColour,
+            strokeColour: [clientStore.state.rulerColour],
+            isSnappable: false,
         });
         this.ping.ignoreZoomSize = true;
         this.border.ignoreZoomSize = true;
@@ -64,16 +65,16 @@ class PingTool extends Tool {
             this.ping.id,
             clientStore.state.username,
             { edit: true, movement: true, vision: true },
-            SyncTo.SHAPE,
+            NO_SYNC,
         );
         accessSystem.addAccess(
             this.border.id,
             clientStore.state.username,
             { edit: true, movement: true, vision: true },
-            SyncTo.SHAPE,
+            NO_SYNC,
         );
-        layer.addShape(this.ping, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL, { snappable: false });
-        layer.addShape(this.border, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL, { snappable: false });
+        layer.addShape(this.ping, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
+        layer.addShape(this.border, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
     }
 
     // eslint-disable-next-line @typescript-eslint/require-await

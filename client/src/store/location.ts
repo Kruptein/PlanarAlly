@@ -1,4 +1,4 @@
-import { computed, ref, watchEffect } from "@vue/runtime-core";
+import { computed, ref, watchEffect } from "vue";
 
 import { Store } from "../core/store";
 import {

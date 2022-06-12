@@ -2,11 +2,68 @@
 
 All notable changes to this project will be documented in this file.
 
-[DM] denotes changes only useful for the dungeon master
-[tech]/[server] denotes technical changes or changes specifically for the server owner.
-These usually have no immediately visible impact on regular users
+[DM] denotes changes only useful for the dungeon master\
+[server] denotes changes only useful for the server owner\
+[tech] denotes internal changes that are only useful for code contributors\
+tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
+
+## [2022.2] - 2022-06-12
+
+### Added
+
+-   Colour picker now remembers the last 20 used colours for each user.
+-   [DM] Export all campaigns endpoint
+-   [DM] UI export campaign option in room details
+-   [DM] Import campaign support
+    -   Can import older saves (if the migration code is still available (i.e. < 1 year old))
+
+### Changed
+
+-   Add white outline to the door logic (un)lock icons
+-   Door logic can now specify which block settings to toggle
+-   Add double stroke to client viewport
+-   Show campaign loading animation earlier (in dashboard)
+-   Defeat cross now scales better with shape size
+-   Shape badge now scales better with shape size
+-   Show default "no" button in delete/leave campaign prompt
+-   Default location zoom level is now 0.2 instead of 1.0
+-   [server] Added log rotation
+-   [server] Restructure server files
+-   [tech] SyncTo primitive modified to an alternative Sync structure
+-   [tech] Polygon can now have client-side multi-stroke
+-   [tech] Snappable points are calculated less often
+-   [tech] In-game asset list rendering
+-   [tech] Moved http utils to core/http file from core/utils
+
+### Fixed
+
+-   Exporting a campaign where there are images that have no specific asset associated with them, would fail
+-   Exporting a campaign was not properly copying the active pan and zoom info for users
+-   ExtraSettings svg section not updating immediately until changing tabs
+-   ExtraSettings remove svg not properly working
+-   ExtraSettings add svg not working for shapes with no prior svg properties
+-   Spawn locations loading wrong
+-   Teleport zones triggering from other floors
+-   Draw tool door permissions not saving
+-   Door logic toggle not immediately updating UI when shape properties are open
+-   Logic init edge cases breaking UI until refresh
+-   Redo logic on resize operation not remembering correct location when it was snapped
+-   Asset Manager correctly updates UI when using browser back/forward buttons
+-   Clear client viewports when changing location
+-   Dashboard navigation headers sometimes being wrongly styled
+-   Modal handling on firefox
+-   Colour picker resetting saturation panel to red when clicking
+-   Colour picker resetting opacity when setting hsv color
+-   Drawtool trying to add shape creation operation to undo stack when the shape was not valid
+-   Points modified by the polygon edit UI are not snappable until a refresh
+-   Logic Permission selector showing error in edgecase
+-   Asset socket was not cleaning up past connections
+-   Auras that are light sources, no longer appear as a black circle of doom when FOW is not turned on
+-   Undo/Redo not persisting to server for movement and rotation
+-   [server] Admin client was not built in docker
+-   [tech] Ensure router.push calls are always awaited
 
 ## [2022.1] - 2022-04-25
 

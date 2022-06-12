@@ -6,6 +6,7 @@ import { useI18n } from "vue-i18n";
 import ColourPicker from "../../../core/components/ColourPicker.vue";
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { gameStore } from "../../../store/game";
+import { DOOR_TOGGLE_MODES } from "../../systems/logic/door/models";
 import { DrawCategory, DrawMode, DrawShape, drawTool } from "../../tools/variants/draw";
 import LogicPermissions from "../settings/shape/LogicPermissions.vue";
 
@@ -160,16 +161,34 @@ const showBorderColour = computed(() => {
                 />
             </teleport>
             <div class="draw-center-header">{{ t("game.ui.selection.edit_dialog.logic.logic") }}</div>
-            <div class="draw-checkbox-options-line">
-                <div>{{ t("game.ui.tools.DrawTool.door") }}</div>
-                <div>
-                    <input
-                        type="checkbox"
-                        v-model="drawTool.state.isDoor"
-                        @click="drawTool.state.isDoor = !drawTool.state.isDoor"
-                    />
+            <div class="header">Door</div>
+            <div class="draw-logic-flex">
+                <label class="draw-logic-label" for="logic-dialog-door-toggle">Enabled</label>
+                <input
+                    class="draw-logic-checkbox"
+                    id="logic-dialog-door-toggle"
+                    type="checkbox"
+                    v-model="drawTool.state.isDoor"
+                    @click="drawTool.state.isDoor = !drawTool.state.isDoor"
+                />
+            </div>
+            <div class="draw-logic-flex">
+                <label for="logic-dialog-door-toggles">Toggle</label>
+                <div class="selection-box">
+                    <template v-for="mode of DOOR_TOGGLE_MODES" :key="mode">
+                        <div
+                            :class="{ 'selection-box-active': mode === drawTool.state.toggleMode }"
+                            @click="drawTool.state.toggleMode = mode"
+                            style="text-transform: capitalize"
+                        >
+                            {{ mode }}
+                        </div>
+                    </template>
                 </div>
-                <font-awesome-icon icon="cog" @click="showPermissions = true" />
+            </div>
+            <div class="draw-logic-flex">
+                <label for="logic-dialog-door-config">Permissions</label>
+                <font-awesome-icon id="logic-dialog-door-config" icon="cog" @click="showPermissions = true" />
             </div>
         </template>
     </div>
@@ -272,11 +291,75 @@ const showBorderColour = computed(() => {
         cursor: pointer;
     }
 }
+
+.draw-logic-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    > label {
+        margin-right: 25px;
+    }
+
+    > svg,
+    > input {
+        justify-self: center;
+        width: 200px !important;
+    }
+}
+
+.selection-box {
+    display: flex;
+    flex-direction: row;
+    margin: 16px 0;
+    margin-left: 50px;
+
+    > div {
+        border: solid 1px;
+        border-left: 0;
+        padding: 7px;
+
+        &:first-child {
+            border: solid 1px;
+            border-top-left-radius: 8px;
+            border-bottom-left-radius: 8px;
+        }
+
+        &:last-child {
+            border-top-right-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+    }
+}
+
+.selection-box > div:hover,
+.selection-box-active {
+    background-color: #82c8a0;
+    cursor: pointer;
+}
 </style>
 
 <style scoped lang="scss">
 .tool-detail {
     display: block;
     min-height: 125px;
+}
+
+.header {
+    display: flex;
+    line-height: 0.1em;
+    font-style: italic;
+    overflow: hidden;
+    padding: 0.5em;
+
+    &:after {
+        position: relative;
+        width: 100%;
+        border-bottom: 1px solid #000;
+        content: "";
+        margin-right: -100%;
+        margin-left: 10px;
+        display: inline-block;
+    }
 }
 </style>

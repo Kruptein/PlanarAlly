@@ -15,7 +15,13 @@ export class Rect extends BaseRect {
         topleft: GlobalPoint,
         w: number,
         h: number,
-        options?: { fillColour?: string; strokeColour?: string; id?: LocalId; uuid?: GlobalId },
+        options?: {
+            fillColour?: string;
+            strokeColour?: string[];
+            id?: LocalId;
+            uuid?: GlobalId;
+            isSnappable?: boolean;
+        },
     ) {
         super(topleft, w, h, options);
     }
@@ -36,8 +42,8 @@ export class Rect extends BaseRect {
         const loc = g2l(this.refPoint);
         const center = g2l(this.center());
         ctx.fillRect(loc.x - center.x, loc.y - center.y, this.w * z, this.h * z);
-        if (this.strokeColour !== "rgba(0, 0, 0, 0)") {
-            ctx.strokeStyle = this.strokeColour;
+        if (this.strokeColour[0] !== "rgba(0, 0, 0, 0)") {
+            ctx.strokeStyle = this.strokeColour[0];
             ctx.lineWidth = this.strokeWidth;
             ctx.strokeRect(loc.x - center.x, loc.y - center.y, this.w * z, this.h * z);
         }

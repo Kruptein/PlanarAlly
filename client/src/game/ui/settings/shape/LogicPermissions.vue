@@ -112,7 +112,7 @@ function hideModal(): void {
 
             <draggable
                 class="condition-sorter"
-                :modelValue="props.permissions.enabled"
+                :modelValue="props.permissions.enabled.filter((x) => x !== null)"
                 group="door"
                 @change="change($event, 'enabled')"
                 item-key="uuid"
@@ -127,7 +127,7 @@ function hideModal(): void {
             </draggable>
             <draggable
                 class="condition-sorter"
-                :modelValue="props.permissions.request"
+                :modelValue="props.permissions.request.filter((x) => x !== null)"
                 group="door"
                 @change="change($event, 'request')"
                 item-key="uuid"
@@ -142,7 +142,7 @@ function hideModal(): void {
             </draggable>
             <draggable
                 class="condition-sorter"
-                :modelValue="props.permissions.disabled"
+                :modelValue="props.permissions.disabled.filter((x) => x !== null)"
                 group="door"
                 @change="change($event, 'disabled')"
                 item-key="uuid"

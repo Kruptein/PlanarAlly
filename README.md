@@ -1,4 +1,4 @@
-<p align="center"><a href="https://planarally.io" target="_blank" rel="noopener noreferrer"><img width="200" src="https://planarally.io/assets/general/Logo_with_background.png" alt="PlanarAlly logo"></a></p>
+<p align="center"><a href="https://planarally.io" target="_blank" rel="noopener noreferrer"><img width="200" src="https://www.planarally.io/logos/pa-logo-background.svg" alt="PlanarAlly logo"></a></p>
 
 <p align="center">
     <a href="https://github.com/Kruptein/PlanarAlly/releases"><img src="https://img.shields.io/github/downloads/kruptein/planarally/total.svg" alt="Downloads"></a>

@@ -1,7 +1,7 @@
 on: pull_request
 name: PR
 jobs:
-    PR_flow:
+    CLIENT:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@master
@@ -25,3 +25,8 @@ jobs:
               working-directory: client
               run: |
                   npm run build:ci
+    SERVER:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@master
+            - uses: psf/black@stable

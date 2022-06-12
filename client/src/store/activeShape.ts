@@ -1,9 +1,10 @@
 import { computed, watchEffect } from "vue";
 import type { ComputedRef } from "vue";
 
-import { SyncTo } from "../core/models/types";
+import type { Sync } from "../core/models/types";
 import { Store } from "../core/store";
-import { getShape } from "../game/id";
+import { sendShapeSvgAsset } from "../game/api/emits/shape/options";
+import { getGlobalId, getShape } from "../game/id";
 import type { LocalId } from "../game/id";
 import { selectionState } from "../game/layers/selection";
 import { compositeState } from "../game/layers/state";
@@ -11,8 +12,11 @@ import type { FloorId } from "../game/models/floor";
 import type { ShapeOptions } from "../game/models/shapes";
 import type { IShape, Label } from "../game/shapes/interfaces";
 import type { SHAPE_TYPE } from "../game/shapes/types";
+import type { Asset } from "../game/shapes/variants/asset";
 import type { ToggleComposite } from "../game/shapes/variants/toggleComposite";
+import { visionState } from "../game/vision/state";
 
+import { floorStore } from "./floor";
 import { gameStore } from "./game";
 
 interface ActiveShapeState {
@@ -30,7 +34,7 @@ interface ActiveShapeState {
     nameVisible: boolean;
     isToken: boolean;
     isInvisible: boolean;
-    strokeColour: string | undefined;
+    strokeColour: string[] | undefined;
     fillColour: string | undefined;
     blocksMovement: boolean;
     blocksVision: boolean;
@@ -115,12 +119,12 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
     // GROUP
 
-    setGroupId(groupId: string | undefined, syncTo: SyncTo): void {
+    setGroupId(groupId: string | undefined, syncTo: Sync): void {
         if (this._state.id === undefined) return;
 
         this._state.groupId = groupId;
 
-        if (syncTo !== SyncTo.UI) {
+        if (!syncTo.ui) {
             const shape = getShape(this._state.id)!;
             shape.setGroupId(groupId, syncTo);
         }
@@ -128,121 +132,121 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
     // PROPERTIES
 
-    setName(name: string, syncTo: SyncTo): void {
+    setName(name: string, syncTo: Sync): void {
         if (this._state.id === undefined) return;
 
         this._state.name = name;
 
-        if (syncTo !== SyncTo.UI) {
+        if (!syncTo.ui) {
             const shape = getShape(this._state.id)!;
             shape.setName(name, syncTo);
         }
     }
 
-    setNameVisible(visible: boolean, syncTo: SyncTo): void {
+    setNameVisible(visible: boolean, syncTo: Sync): void {
         if (this._state.id === undefined) return;
 
         this._state.nameVisible = visible;
 
-        if (syncTo !== SyncTo.UI) {
+        if (!syncTo.ui) {
             const shape = getShape(this._state.id)!;
             shape.setNameVisible(visible, syncTo);
         }
     }
 
-    setIsToken(isToken: boolean, syncTo: SyncTo): void {
+    setIsToken(isToken: boolean, syncTo: Sync): void {
         if (this._state.id === undefined) return;
 
         this._state.isToken = isToken;
 
-        if (syncTo !== SyncTo.UI) {
+        if (!syncTo.ui) {
             const shape = getShape(this._state.id)!;
             shape.setIsToken(isToken, syncTo);
         }
     }
 
-    setIsInvisible(isInvisible: boolean, syncTo: SyncTo): void {
+    setIsInvisible(isInvisible: boolean, syncTo: Sync): void {
         if (this._state.id === undefined) return;
 
         this._state.isInvisible = isInvisible;
 
-        if (syncTo !== SyncTo.UI) {
+        if (!syncTo.ui) {
             const shape = getShape(this._state.id)!;
             shape.setInvisible(isInvisible, syncTo);
         }
     }
 
-    setStrokeColour(colour: string, syncTo: SyncTo): void {
+    setStrokeColour(colour: string, syncTo: Sync): void {
         if (this._state.id === undefined) return;
 
-        this._state.strokeColour = colour;
+        this._state.strokeColour = [colour];
 
-        if (syncTo !== SyncTo.UI) {
+        if (!syncTo.ui) {
             const shape = getShape(this._state.id)!;
             shape.setStrokeColour(colour, syncTo);
         }
     }
 
-    setFillColour(colour: string, syncTo: SyncTo): void {
+    setFillColour(colour: string, syncTo: Sync): void {
         if (this._state.id === undefined) return;
 
         this._state.fillColour = colour;
 
-        if (syncTo !== SyncTo.UI) {
+        if (!syncTo.ui) {
             const shape = getShape(this._state.id)!;
             shape.setFillColour(colour, syncTo);
         }
     }
 
-    setBlocksMovement(blocksMovement: boolean, syncTo: SyncTo): void {
+    setBlocksMovement(blocksMovement: boolean, syncTo: Sync): void {
         if (this._state.id === undefined) return;
 
         this._state.blocksMovement = blocksMovement;
 
-        if (syncTo !== SyncTo.UI) {
+        if (!syncTo.ui) {
             const shape = getShape(this._state.id)!;
             shape.setBlocksMovement(blocksMovement, syncTo);
         }
     }
 
-    setBlocksVision(blocksVision: boolean, syncTo: SyncTo): void {
+    setBlocksVision(blocksVision: boolean, syncTo: Sync): void {
         if (this._state.id === undefined) return;
 
         this._state.blocksVision = blocksVision;
-        if (syncTo !== SyncTo.UI) {
+        if (!syncTo.ui) {
             const shape = getShape(this._state.id)!;
             shape.setBlocksVision(blocksVision, syncTo);
         }
     }
 
-    setShowBadge(showBadge: boolean, syncTo: SyncTo): void {
+    setShowBadge(showBadge: boolean, syncTo: Sync): void {
         if (this._state.id === undefined) return;
 
         this._state.showBadge = showBadge;
 
-        if (syncTo !== SyncTo.UI) {
+        if (!syncTo.ui) {
             const shape = getShape(this._state.id)!;
             shape.setShowBadge(showBadge, syncTo);
         }
     }
 
-    setIsDefeated(isDefeated: boolean, syncTo: SyncTo): void {
+    setIsDefeated(isDefeated: boolean, syncTo: Sync): void {
         if (this._state.id === undefined) return;
 
         this._state.isDefeated = isDefeated;
 
-        if (syncTo !== SyncTo.UI) {
+        if (!syncTo.ui) {
             const shape = getShape(this._state.id)!;
             shape.setDefeated(isDefeated, syncTo);
         }
     }
 
-    setLocked(isLocked: boolean, syncTo: SyncTo): void {
+    setLocked(isLocked: boolean, syncTo: Sync): void {
         if (this._state.id === undefined) return;
 
         this._state.isLocked = isLocked;
 
-        if (syncTo !== SyncTo.UI) {
+        if (!syncTo.ui) {
             const shape = getShape(this._state.id)!;
             shape.setLocked(isLocked, syncTo);
         }
@@ -250,7 +254,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
     // VARIANTS
 
-    renameVariant(uuid: LocalId, name: string, syncTo: SyncTo): void {
+    renameVariant(uuid: LocalId, name: string, syncTo: Sync): void {
         if (this._state.id === undefined || this._state.parentUuid === undefined) return;
 
         const variant = this._state.variants.find((v) => v.uuid === uuid);
@@ -258,13 +262,13 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
         variant.name = name;
 
-        if (syncTo !== SyncTo.UI) {
+        if (!syncTo.ui) {
             const parent = getShape(this._state.parentUuid) as ToggleComposite;
             parent.renameVariant(uuid, name, syncTo);
         }
     }
 
-    removeVariant(uuid: LocalId, syncTo: SyncTo): void {
+    removeVariant(uuid: LocalId, syncTo: Sync): void {
         if (this._state.id === undefined || this._state.parentUuid === undefined) return;
 
         const index = this._state.variants.findIndex((v) => v.uuid === uuid);
@@ -272,7 +276,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
         this._state.variants.splice(index, 1);
 
-        if (syncTo !== SyncTo.UI) {
+        if (!syncTo.ui) {
             const parent = getShape(this._state.parentUuid) as ToggleComposite;
             parent.removeVariant(uuid, syncTo);
         }
@@ -280,47 +284,71 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
     // EXTRA
 
-    setAnnotation(annotation: string, syncTo: SyncTo): void {
+    setAnnotation(annotation: string, syncTo: Sync): void {
         if (this._state.id === undefined) return;
 
         this._state.annotation = annotation;
 
-        if (syncTo !== SyncTo.UI) {
+        if (!syncTo.ui) {
             const shape = getShape(this._state.id)!;
             shape.setAnnotation(annotation, syncTo);
         }
     }
 
-    setAnnotationVisible(visible: boolean, syncTo: SyncTo): void {
+    setAnnotationVisible(visible: boolean, syncTo: Sync): void {
         if (this._state.id === undefined) return;
 
         this._state.annotationVisible = visible;
 
-        if (syncTo !== SyncTo.UI) {
+        if (!syncTo.ui) {
             const shape = getShape(this._state.id)!;
             shape.setAnnotationVisible(visible, syncTo);
         }
     }
 
-    addLabel(label: string, syncTo: SyncTo): void {
+    addLabel(label: string, syncTo: Sync): void {
         if (this._state.id === undefined) return;
 
         this._state.labels.push({ ...gameStore.state.labels.get(label)! });
 
-        if (syncTo !== SyncTo.UI) {
+        if (!syncTo.ui) {
             const shape = getShape(this._state.id)!;
             shape.addLabel(label, syncTo);
         }
     }
 
-    removeLabel(label: string, syncTo: SyncTo): void {
+    removeLabel(label: string, syncTo: Sync): void {
         if (this._state.id === undefined) return;
 
         this._state.labels = this._state.labels.filter((l) => l.uuid !== label);
 
-        if (syncTo !== SyncTo.UI) {
+        if (!syncTo.ui) {
             const shape = getShape(this._state.id)!;
             shape.removeLabel(label, syncTo);
+        }
+    }
+
+    setSvgAsset(hash: string | undefined, syncTo: Sync): void {
+        if (this._state.id === undefined) return;
+
+        if (this._state.options === undefined) this._state.options = {};
+
+        this._state.options.svgAsset = hash;
+
+        const shape = getShape(this._state.id)!;
+
+        if (!syncTo.ui) {
+            if (hash === undefined) {
+                visionState.recalculateVision(activeShapeStore.floor.value!);
+                floorStore.invalidate({ id: activeShapeStore.floor.value! });
+            } else {
+                shape.options.svgAsset = hash;
+                (shape as Asset).loadSvgs();
+            }
+        }
+
+        if (syncTo.server) {
+            sendShapeSvgAsset({ shape: getGlobalId(shape.id), value: hash ?? null });
         }
     }
 

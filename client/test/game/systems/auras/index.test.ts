@@ -7,7 +7,7 @@ vi.mock("../../../../src/store/activeShape", () => ({
     },
 }));
 
-import { SyncTo } from "../../../../src/core/models/types";
+import { NO_SYNC, SERVER_SYNC, UI_SYNC } from "../../../../src/core/models/types";
 import { socket } from "../../../../src/game/api/socket";
 import { compositeState } from "../../../../src/game/layers/state";
 import { auraSystem } from "../../../../src/game/systems/auras";
@@ -110,7 +110,7 @@ describe("Aura System", () => {
             auraSystem.inform(id, []);
             const invalidateSpy = vi.spyOn(shape, "invalidate");
             // test
-            auraSystem.add(id, aura, SyncTo.SHAPE);
+            auraSystem.add(id, aura, NO_SYNC);
             expect(auraSystem.get(id, aura.uuid, false)).toEqual(aura);
             expect(invalidateSpy).not.toBeCalled();
             expect(addVisionSpy).not.toBeCalled();
@@ -124,7 +124,7 @@ describe("Aura System", () => {
             const aura = generateTestAura({ active: false, visionSource: true });
             auraSystem.inform(id, []);
             // test
-            auraSystem.add(id, aura, SyncTo.SERVER);
+            auraSystem.add(id, aura, SERVER_SYNC);
             expect(auraSystem.get(id, aura.uuid, false)).toEqual(aura);
             expect(emitSpy).toBeCalled();
         });
@@ -137,7 +137,7 @@ describe("Aura System", () => {
             auraSystem.inform(id, []);
             const invalidateSpy = vi.spyOn(shape, "invalidate");
             // test
-            auraSystem.add(id, aura, SyncTo.SHAPE);
+            auraSystem.add(id, aura, NO_SYNC);
             expect(auraSystem.get(id, aura.uuid, false)).toEqual(aura);
             expect(invalidateSpy).toBeCalled();
             expect(addVisionSpy).not.toBeCalled();
@@ -152,7 +152,7 @@ describe("Aura System", () => {
             auraSystem.inform(id, []);
             const invalidateSpy = vi.spyOn(shape, "invalidate");
             // test
-            auraSystem.add(id, aura, SyncTo.UI);
+            auraSystem.add(id, aura, UI_SYNC);
             expect(auraSystem.get(id, aura.uuid, false)).toEqual(aura);
             expect(invalidateSpy).toBeCalled();
             expect(addVisionSpy).toBeCalled();
@@ -183,7 +183,7 @@ describe("Aura System", () => {
                 id,
                 aura.uuid,
                 { angle: 90, borderColour: "blue", direction: -20, name: "changed test aura", visible: true },
-                SyncTo.SHAPE,
+                NO_SYNC,
             );
             expect(auraSystem.get(id, aura.uuid, false)).toMatchObject({
                 active: false,
@@ -214,7 +214,7 @@ describe("Aura System", () => {
             auraSystem.inform(id, [aura]);
             const invalidateSpy = vi.spyOn(shape, "invalidate");
             // test
-            auraSystem.update(id, aura.uuid, { angle: 90, visible: true }, SyncTo.SERVER);
+            auraSystem.update(id, aura.uuid, { angle: 90, visible: true }, SERVER_SYNC);
             expect(auraSystem.get(id, aura.uuid, false)).toMatchObject({
                 active: false,
                 visionSource: true,
@@ -239,7 +239,7 @@ describe("Aura System", () => {
             addVisionSpy.mockClear();
             const invalidateSpy = vi.spyOn(shape, "invalidate");
             // test
-            auraSystem.update(id, aura.uuid, { angle: 90, visible: true }, SyncTo.SHAPE);
+            auraSystem.update(id, aura.uuid, { angle: 90, visible: true }, NO_SYNC);
             expect(auraSystem.get(id, aura.uuid, false)).toMatchObject({
                 active: true,
                 visionSource: true,
@@ -263,7 +263,7 @@ describe("Aura System", () => {
             auraSystem.inform(id, [aura]);
             const invalidateSpy = vi.spyOn(shape, "invalidate");
             // test
-            auraSystem.update(id, aura.uuid, { active: true, angle: 90, visible: true }, SyncTo.SHAPE);
+            auraSystem.update(id, aura.uuid, { active: true, angle: 90, visible: true }, NO_SYNC);
             expect(auraSystem.get(id, aura.uuid, false)).toMatchObject({
                 active: true,
                 visionSource: true,
@@ -288,7 +288,7 @@ describe("Aura System", () => {
             addVisionSpy.mockClear();
             const invalidateSpy = vi.spyOn(shape, "invalidate");
             // test
-            auraSystem.update(id, aura.uuid, { visionSource: true, angle: 90, visible: true }, SyncTo.SHAPE);
+            auraSystem.update(id, aura.uuid, { visionSource: true, angle: 90, visible: true }, NO_SYNC);
             expect(auraSystem.get(id, aura.uuid, false)).toMatchObject({
                 active: true,
                 visionSource: true,
@@ -313,12 +313,7 @@ describe("Aura System", () => {
             addVisionSpy.mockClear();
             const invalidateSpy = vi.spyOn(shape, "invalidate");
             // test
-            auraSystem.update(
-                id,
-                aura.uuid,
-                { active: false, visionSource: true, angle: 90, visible: true },
-                SyncTo.SHAPE,
-            );
+            auraSystem.update(id, aura.uuid, { active: false, visionSource: true, angle: 90, visible: true }, NO_SYNC);
             expect(auraSystem.get(id, aura.uuid, false)).toMatchObject({
                 active: false,
                 visionSource: true,
@@ -343,7 +338,7 @@ describe("Aura System", () => {
             addVisionSpy.mockClear();
             const invalidateSpy = vi.spyOn(shape, "invalidate");
             // test
-            auraSystem.update(id, aura.uuid, { visionSource: false, angle: 90, visible: true }, SyncTo.SHAPE);
+            auraSystem.update(id, aura.uuid, { visionSource: false, angle: 90, visible: true }, NO_SYNC);
             expect(auraSystem.get(id, aura.uuid, false)).toMatchObject({
                 active: true,
                 visionSource: false,
@@ -365,7 +360,7 @@ describe("Aura System", () => {
             auraSystem.inform(id, [aura]);
             const invalidateSpy = vi.spyOn(shape, "invalidate");
             // test
-            auraSystem.remove(id, aura.uuid, SyncTo.SHAPE);
+            auraSystem.remove(id, aura.uuid, NO_SYNC);
             expect(auraSystem.get(id, aura.uuid, false)).toBeUndefined();
             expect(invalidateSpy).not.toBeCalled();
             expect(removeVisionSpy).not.toBeCalled();
@@ -378,7 +373,7 @@ describe("Aura System", () => {
             const aura = generateTestAura({ active: false, visionSource: true });
             auraSystem.inform(id, [aura]);
             // test
-            auraSystem.remove(id, aura.uuid, SyncTo.SERVER);
+            auraSystem.remove(id, aura.uuid, SERVER_SYNC);
             expect(auraSystem.get(id, aura.uuid, false)).toBeUndefined();
             expect(emitSpy).toBeCalled();
         });
@@ -391,7 +386,7 @@ describe("Aura System", () => {
             auraSystem.inform(id, [aura]);
             const invalidateSpy = vi.spyOn(shape, "invalidate");
             // test
-            auraSystem.remove(id, aura.uuid, SyncTo.SHAPE);
+            auraSystem.remove(id, aura.uuid, NO_SYNC);
             expect(auraSystem.get(id, aura.uuid, false)).toBeUndefined();
             expect(invalidateSpy).toBeCalled();
             expect(removeVisionSpy).not.toBeCalled();
@@ -406,7 +401,7 @@ describe("Aura System", () => {
             auraSystem.inform(id, [aura]);
             const invalidateSpy = vi.spyOn(shape, "invalidate");
             // test
-            auraSystem.remove(id, aura.uuid, SyncTo.UI);
+            auraSystem.remove(id, aura.uuid, UI_SYNC);
             expect(auraSystem.get(id, aura.uuid, false)).toBeUndefined();
             expect(invalidateSpy).toBeCalled();
             expect(removeVisionSpy).toBeCalled();

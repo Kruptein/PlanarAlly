@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, toRef } from "vue";
 
-import { SyncTo } from "../../../../core/models/types";
+import { SERVER_SYNC, UI_SYNC } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { getChecked, getValue } from "../../../../core/utils";
 import { activeShapeStore } from "../../../../store/activeShape";
@@ -131,7 +131,7 @@ const creationOrder = computed({
 function updateToggles(checked: boolean): void {
     if (!owned.value) return;
     for (const member of groupMembers.value) {
-        if (member.showBadge !== checked) member.setShowBadge(checked, SyncTo.SERVER);
+        if (member.showBadge !== checked) member.setShowBadge(checked, SERVER_SYNC);
     }
 }
 
@@ -150,8 +150,8 @@ function showBadge(member: IShape, checked: boolean): void {
     if (!owned.value) return;
     // This and Keyboard are the only places currently where we would need to update both UI and Server.
     // Might need to introduce a SyncTo.BOTH
-    member.setShowBadge(checked, SyncTo.SERVER);
-    if (member.id === activeShapeStore.state.id) activeShapeStore.setShowBadge(checked, SyncTo.UI);
+    member.setShowBadge(checked, SERVER_SYNC);
+    if (member.id === activeShapeStore.state.id) activeShapeStore.setShowBadge(checked, UI_SYNC);
 }
 
 function removeMember(member: IShape): void {

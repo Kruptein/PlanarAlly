@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 
 import { l2gz } from "../../../../core/conversions";
 import { toGP } from "../../../../core/geometry";
-import { InvalidationMode, SyncMode, SyncTo } from "../../../../core/models/types";
+import { InvalidationMode, NO_SYNC, SERVER_SYNC, SyncMode, UI_SYNC } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { getChecked, getValue, uuidv4 } from "../../../../core/utils";
 import { activeShapeStore } from "../../../../store/activeShape";
@@ -13,8 +13,7 @@ import { clientStore, DEFAULT_GRID_SIZE } from "../../../../store/client";
 import { floorStore } from "../../../../store/floor";
 import { gameStore } from "../../../../store/game";
 import { settingsStore } from "../../../../store/settings";
-import { sendShapeSvgAsset } from "../../../api/emits/shape/options";
-import { getGlobalId, getShape } from "../../../id";
+import { getShape } from "../../../id";
 import type { DDraftData } from "../../../models/ddraft";
 import { LayerName } from "../../../models/floor";
 import type { Asset } from "../../../shapes/variants/asset";
@@ -45,12 +44,12 @@ function calcHeight(): void {
 function updateAnnotation(event: Event, sync = true): void {
     if (!owned.value) return;
     calcHeight();
-    activeShapeStore.setAnnotation(getValue(event), sync ? SyncTo.SERVER : SyncTo.SHAPE);
+    activeShapeStore.setAnnotation(getValue(event), sync ? SERVER_SYNC : NO_SYNC);
 }
 
 function setAnnotationVisible(event: Event): void {
     if (!owned.value) return;
-    activeShapeStore.setAnnotationVisible(getChecked(event), SyncTo.SERVER);
+    activeShapeStore.setAnnotationVisible(getChecked(event), SERVER_SYNC);
 }
 
 // LABELS
@@ -59,20 +58,25 @@ const showLabelManager = ref(false);
 
 function addLabel(label: string): void {
     if (!owned.value) return;
-    activeShapeStore.addLabel(label, SyncTo.SERVER);
+    activeShapeStore.addLabel(label, SERVER_SYNC);
 }
 
 function removeLabel(uuid: string): void {
     if (!owned.value) return;
-    activeShapeStore.removeLabel(uuid, SyncTo.SERVER);
+    activeShapeStore.removeLabel(uuid, SERVER_SYNC);
 }
 
 // SVG / DDRAFT
 
 const hasDDraftInfo = computed(() => "ddraft_format" in (activeShapeStore.state.options ?? {}));
-const hasPath = computed(
-    () => "svgPaths" in (activeShapeStore.state.options ?? {}) || "svgAsset" in (activeShapeStore.state.options ?? {}),
-);
+const hasPath = computed(() => {
+    if ("svgPaths" in (activeShapeStore.state.options ?? {})) {
+        return activeShapeStore.state.options?.svgPaths !== undefined;
+    } else if ("svgAsset" in (activeShapeStore.state.options ?? {})) {
+        return activeShapeStore.state.options?.svgAsset !== undefined;
+    }
+    return false;
+});
 const showSvgSection = computed(() => gameStore.state.isDm && activeShapeStore.state.type === "assetrect");
 
 async function uploadSvg(): Promise<void> {
@@ -83,9 +87,7 @@ async function uploadSvg(): Promise<void> {
     if (shape.options === undefined) {
         shape.options = {};
     }
-    shape.options.svgAsset = asset.file_hash;
-    sendShapeSvgAsset({ shape: getGlobalId(shape.id), value: asset.file_hash });
-    (shape as Asset).loadSvgs();
+    activeShapeStore.setSvgAsset(asset.file_hash, SERVER_SYNC);
 }
 
 function removeSvg(): void {
@@ -97,9 +99,7 @@ function removeSvg(): void {
     delete shape.options.svgWidth;
     delete shape.options.svgHeight;
     delete shape.options.svgAsset;
-    sendShapeSvgAsset({ shape: getGlobalId(shape.id), value: undefined });
-    visionState.recalculateVision(activeShapeStore.floor.value!);
-    floorStore.invalidate({ id: activeShapeStore.floor.value! });
+    activeShapeStore.setSvgAsset(undefined, SERVER_SYNC);
 }
 
 function applyDDraft(): void {
@@ -118,32 +118,32 @@ function applyDDraft(): void {
 
     for (const wall of dDraftData.ddraft_line_of_sight) {
         const points = wall.map((w) => toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH));
-        const shape = new Polygon(points[0], points.slice(1), { openPolygon: true, strokeColour: "red" });
+        const shape = new Polygon(points[0], points.slice(1), { openPolygon: true, strokeColour: ["red"] });
         accessSystem.addAccess(
             shape.id,
             clientStore.state.username,
             { edit: true, movement: true, vision: true },
-            SyncTo.UI,
+            UI_SYNC,
         );
 
-        shape.setBlocksVision(true, SyncTo.UI, false);
-        shape.setBlocksMovement(true, SyncTo.UI, false);
+        shape.setBlocksVision(true, NO_SYNC, false);
+        shape.setBlocksMovement(true, NO_SYNC, false);
         fowLayer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
     }
 
     for (const portal of dDraftData.ddraft_portals) {
         const points = portal.bounds.map((w) => toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH));
-        const shape = new Polygon(points[0], points.slice(1), { openPolygon: true, strokeColour: "blue" });
+        const shape = new Polygon(points[0], points.slice(1), { openPolygon: true, strokeColour: ["blue"] });
         accessSystem.addAccess(
             shape.id,
             clientStore.state.username,
             { edit: true, movement: true, vision: true },
-            SyncTo.UI,
+            UI_SYNC,
         );
 
         if (portal.closed) {
-            shape.setBlocksVision(true, SyncTo.UI, false);
-            shape.setBlocksMovement(true, SyncTo.UI, false);
+            shape.setBlocksVision(true, NO_SYNC, false);
+            shape.setBlocksMovement(true, NO_SYNC, false);
         }
         fowLayer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
     }
@@ -172,12 +172,12 @@ function applyDDraft(): void {
 
         tokenLayer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
 
-        auraSystem.add(shape.id, aura, SyncTo.SERVER);
+        auraSystem.add(shape.id, aura, SERVER_SYNC);
         accessSystem.addAccess(
             shape.id,
             clientStore.state.username,
             { edit: true, movement: true, vision: true },
-            SyncTo.SERVER,
+            SERVER_SYNC,
         );
     }
 

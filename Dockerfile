@@ -3,10 +3,16 @@
 ################################
 FROM node:16-alpine as BUILDER
 
-WORKDIR /usr/src/client
-
 # Install additional dependencies
 RUN apk add --no-cache python3 make g++
+
+WORKDIR /usr/src/admin-client
+
+# Copy first package.json so changes in code dont require to reinstall all npm modules
+COPY admin-client/package.json admin-client/package-lock.json ./
+RUN npm i
+
+WORKDIR /usr/src/client
 
 # Copy first package.json so changes in code dont require to reinstall all npm modules
 COPY client/package.json client/package-lock.json ./
@@ -15,6 +21,13 @@ RUN npm i
 ARG PA_BASEPATH="/"
 
 COPY . /usr/src
+
+WORKDIR /usr/src/admin-client
+
+RUN npm run build
+
+WORKDIR /usr/src/client
+
 RUN npm run build
 
 # Added here to avoid an extra layer in the final stage
@@ -56,4 +69,4 @@ ARG PA_BASEPATH="/"
 ENV PA_BASEPATH=$PA_BASEPATH
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-CMD [ "python", "-u", "planarserver.py"]
+CMD [ "python", "-u", "src/planarserver.py"]

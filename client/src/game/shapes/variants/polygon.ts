@@ -21,24 +21,25 @@ export class Polygon extends Shape {
     type: SHAPE_TYPE = "polygon";
     private _vertices: GlobalPoint[] = [];
     openPolygon = false;
-    lineWidth: number;
+    lineWidth: number[];
 
     constructor(
         startPoint: GlobalPoint,
         vertices?: GlobalPoint[],
         options?: {
             fillColour?: string;
-            strokeColour?: string;
-            lineWidth?: number;
+            strokeColour?: string[];
+            lineWidth?: number[];
             openPolygon?: boolean;
             id?: LocalId;
             uuid?: GlobalId;
+            isSnappable?: boolean;
         },
     ) {
         super(startPoint, options);
         this._vertices = vertices || [];
         this.openPolygon = options?.openPolygon ?? false;
-        this.lineWidth = options?.lineWidth ?? 2;
+        this.lineWidth = options?.lineWidth ?? [2];
     }
 
     get isClosed(): boolean {
@@ -73,7 +74,7 @@ export class Polygon extends Shape {
         return Object.assign(this.getBaseDict(), {
             vertices: this._vertices.map((v) => toArrayP(v)),
             open_polygon: this.openPolygon,
-            line_width: this.lineWidth,
+            line_width: this.lineWidth[0],
         });
     }
 
@@ -81,7 +82,7 @@ export class Polygon extends Shape {
         super.fromDict(data);
         this._vertices = data.vertices.map((v) => toGP(v));
         this.openPolygon = data.open_polygon;
-        this.lineWidth = data.line_width;
+        this.lineWidth = [data.line_width];
     }
 
     getBoundingBox(delta = 0): BoundingRect {
@@ -117,6 +118,7 @@ export class Polygon extends Shape {
     invalidatePoints(): void {
         const center = this.center();
         this._points = this.vertices.map((point) => this.invalidatePoint(point, center));
+        if (this.isSnappable) this.updateLayerPoints();
     }
 
     draw(ctx: CanvasRenderingContext2D): void {
@@ -126,10 +128,7 @@ export class Polygon extends Shape {
 
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
-        ctx.lineWidth = this.ignoreZoomSize ? this.lineWidth : g2lz(this.lineWidth);
 
-        if (this.strokeColour === "fog") ctx.strokeStyle = getFogColour();
-        else ctx.strokeStyle = this.strokeColour;
         if (this.fillColour === "fog") ctx.fillStyle = getFogColour();
         else ctx.fillStyle = this.fillColour;
 
@@ -147,12 +146,21 @@ export class Polygon extends Shape {
         }
 
         if (!this.openPolygon) ctx.fill();
-        ctx.stroke();
+
+        for (const [i, c] of this.strokeColour.entries()) {
+            const lw = this.lineWidth[i] ?? this.lineWidth[0];
+            ctx.lineWidth = this.ignoreZoomSize ? lw : g2lz(lw);
+
+            if (c === "fog") ctx.strokeStyle = getFogColour();
+            else ctx.strokeStyle = c;
+            ctx.stroke();
+        }
+
         super.drawPost(ctx);
     }
 
     contains(point: GlobalPoint, nearbyThreshold?: number): boolean {
-        if (nearbyThreshold === undefined) nearbyThreshold = this.lineWidth;
+        if (nearbyThreshold === undefined) nearbyThreshold = this.lineWidth[0];
         const bbox = this.getBoundingBox(nearbyThreshold);
         if (!bbox.contains(point)) return false;
         if (this.isClosed) return true;
@@ -216,7 +224,7 @@ export class Polygon extends Shape {
             const vertex = this.vertices[i % this.vertices.length];
 
             const info = getDistanceToSegment(point, [prevVertex, vertex]);
-            if (info.distance < this.lineWidth) {
+            if (info.distance < this.lineWidth[0]) {
                 lastVertex = i - 1;
                 nearVertex = info.nearest;
                 break;
@@ -266,7 +274,7 @@ export class Polygon extends Shape {
             const vertex = this.vertices[i % this.vertices.length];
 
             const info = getDistanceToSegment(point, [prevVertex, vertex]);
-            if (info.distance < this.lineWidth) {
+            if (info.distance < this.lineWidth[0]) {
                 this._vertices.splice(i - 1, 0, info.nearest);
 
                 if (!this.preventSync) sendShapePositionUpdate([this], false);

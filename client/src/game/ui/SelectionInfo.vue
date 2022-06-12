@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 
-import { SyncTo } from "../../core/models/types";
+import { SERVER_SYNC } from "../../core/models/types";
 import { useModal } from "../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../store/activeShape";
 import { getShape } from "../id";
@@ -18,7 +18,7 @@ const shape = activeShapeStore.state;
 
 function setLocked(): void {
     if (accessSystem.$.hasEditAccess.value) {
-        activeShapeStore.setLocked(!shape.isLocked, SyncTo.SERVER);
+        activeShapeStore.setLocked(!shape.isLocked, SERVER_SYNC);
     }
 }
 
@@ -46,11 +46,11 @@ async function changeValue(tracker: Tracker | Aura, isAura: boolean): Promise<vo
     }
 
     if (isAura) {
-        auraSystem.update(shape.id, tracker.uuid as AuraId, { value }, SyncTo.SERVER);
+        auraSystem.update(shape.id, tracker.uuid as AuraId, { value }, SERVER_SYNC);
         const sh = getShape(shape.id)!;
         sh.invalidate(false);
     } else {
-        trackerSystem.update(shape.id, tracker.uuid as TrackerId, { value }, SyncTo.SERVER);
+        trackerSystem.update(shape.id, tracker.uuid as TrackerId, { value }, SERVER_SYNC);
     }
 }
 </script>

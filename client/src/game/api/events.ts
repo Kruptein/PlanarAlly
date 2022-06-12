@@ -19,6 +19,7 @@ import "./events/shape/core";
 import "./events/shape/options";
 import "./events/shape/text";
 import "./events/shape/togglecomposite";
+import "./events/user";
 
 import { toGP } from "../../core/geometry";
 import { SyncMode } from "../../core/models/types";
@@ -57,25 +58,26 @@ socket.on("disconnect", (reason: string) => {
     console.log("Disconnected");
     if (reason === "io server disconnect") socket.open();
 });
-socket.on("connect_error", (error: any) => {
+socket.on("connect_error", async (error: any) => {
     console.error("Could not connect to game session.");
     if (error.message === "Connection rejected by server") {
-        router.push({ name: "dashboard", params: { error: "join_game" } });
+        await router.push({ name: "dashboard", params: { error: "join_game" } });
     }
 });
-socket.on("error", (_error: any) => {
+socket.on("error", async (_error: any) => {
     console.error("Game session does not exist.");
-    router.push({ name: "dashboard", params: { error: "join_game" } });
+    await router.push({ name: "dashboard", params: { error: "join_game" } });
 });
-socket.on("redirect", (destination: string) => {
+socket.on("redirect", async (destination: string) => {
     console.log("redirecting");
-    router.push(destination);
+    await router.push(destination);
 });
 
 // Bootup events
 
+socket.on("CLEAR", clearGame);
+
 socket.on("Board.Locations.Set", (locationInfo: Location[]) => {
-    clearGame();
     locationStore.setLocations(locationInfo, false);
 });
 

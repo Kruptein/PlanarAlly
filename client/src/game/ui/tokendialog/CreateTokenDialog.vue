@@ -6,7 +6,7 @@ import ColourPicker from "../../../core/components/ColourPicker.vue";
 import Modal from "../../../core/components/modals/Modal.vue";
 import { getUnitDistance, l2g } from "../../../core/conversions";
 import { toLP } from "../../../core/geometry";
-import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
+import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
 import { calcFontScale, mostReadable } from "../../../core/utils";
 import { clientStore } from "../../../store/client";
 import { floorStore } from "../../../store/floor";
@@ -50,14 +50,9 @@ function submit(): void {
         getUnitDistance(settingsStore.unitSize.value / 2),
         text.value || "X",
         "10px serif",
-        { fillColour: fillColour.value, strokeColour: borderColour.value },
+        { fillColour: fillColour.value, strokeColour: [borderColour.value] },
     );
-    accessSystem.addAccess(
-        token.id,
-        clientStore.state.username,
-        { edit: true, movement: true, vision: true },
-        SyncTo.UI,
-    );
+    accessSystem.addAccess(token.id, clientStore.state.username, { edit: true, movement: true, vision: true }, UI_SYNC);
     layer.addShape(token, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
     close();
 }

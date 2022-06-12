@@ -2,9 +2,13 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { baseAdjust, http } from "../core/http";
 import { useModal } from "../core/plugins/modals/plugin";
-import { baseAdjust, baseAdjustedFetch, deleteFetch, getValue, patchFetch } from "../core/utils";
+import { getValue } from "../core/utils";
+import { router } from "../router";
+import { coreStore } from "../store/core";
 
+import { socket } from "./socket";
 import type { RoomInfo } from "./types";
 
 const props = defineProps<{
@@ -37,8 +41,13 @@ async function select(index: number): Promise<void> {
     await updateInfo();
 }
 
+async function open(session: RoomInfo): Promise<void> {
+    coreStore.setLoading(true);
+    await router.push(`/game/${encodeURIComponent(session.creator)}/${encodeURIComponent(session.name)}`);
+}
+
 async function updateInfo(): Promise<void> {
-    const response = await baseAdjustedFetch(`/api/rooms/${selected.value!.creator}/${selected.value!.name}/info`);
+    const response = await http.get(`/api/rooms/${selected.value!.creator}/${selected.value!.name}/info`);
     const data = await response.json();
     notes.value = data.notes;
     lastPlayed.value = data.last_played;
@@ -56,7 +65,7 @@ async function rename(): Promise<void> {
         }),
     );
     if (name === undefined) return;
-    const success = await patchFetch(`/api/rooms/${selected.value.creator}/${selected.value.name}`, { name });
+    const success = await http.patchJson(`/api/rooms/${selected.value.creator}/${selected.value.name}`, { name });
     if (success.ok) {
         emit("rename", selectedIndex.value, name);
     }
@@ -67,7 +76,7 @@ async function setLogo(): Promise<void> {
 
     const data = await modals.assetPicker();
     if (data === undefined) return;
-    const success = await patchFetch(`/api/rooms/${selected.value.creator}/${selected.value.name}`, {
+    const success = await http.patchJson(`/api/rooms/${selected.value.creator}/${selected.value.name}`, {
         logo: data.id,
     });
     if (success.ok) {
@@ -78,7 +87,7 @@ async function setLogo(): Promise<void> {
 async function setNotes(text: string): Promise<void> {
     if (selected.value === undefined) return;
 
-    const success = await patchFetch(`/api/rooms/${selected.value.creator}/${selected.value.name}/info`, {
+    const success = await http.patchJson(`/api/rooms/${selected.value.creator}/${selected.value.name}/info`, {
         notes: text,
     });
     if (success.ok) {
@@ -90,14 +99,18 @@ async function leaveOrDelete(): Promise<void> {
     if (selected.value === undefined) return;
 
     const actionWord = props.dmMode ? "Removing" : "Leaving";
-    const answer = await modals.confirm(`${actionWord} ${selected.value.name}!`, "Are you sure?", {
-        showNo: false,
-    });
+    const answer = await modals.confirm(`${actionWord} ${selected.value.name}!`, "Are you sure?");
     if (answer !== true) return;
-    const response = await deleteFetch(`/api/rooms/${selected.value.creator}/${selected.value.name}`);
+    const response = await http.delete(`/api/rooms/${selected.value.creator}/${selected.value.name}`);
     if (response.ok) {
         emit("remove-room", selectedIndex.value);
     }
+}
+
+function exportCampaign(): void {
+    if (selected.value === undefined) return;
+
+    socket.emit("Campaign.Export", selected.value.name);
 }
 </script>
 
@@ -119,13 +132,9 @@ async function leaveOrDelete(): Promise<void> {
                 <div class="name">{{ room.name }}</div>
                 <div class="logo">
                     <img :src="baseAdjust(room.logo ? `/static/assets/${room.logo}` : '/static/img/d20.svg')" />
-                    <router-link
-                        v-if="dmMode || !room.is_locked"
-                        class="launch"
-                        :to="'/game/' + encodeURIComponent(room.creator) + '/' + encodeURIComponent(room.name)"
-                    >
+                    <div v-if="dmMode || !room.is_locked" class="launch" @click="open(room)">
                         <font-awesome-icon icon="play" />
-                    </router-link>
+                    </div>
                     <div v-else class="launch"><font-awesome-icon icon="lock" /></div>
                 </div>
             </div>
@@ -140,13 +149,7 @@ async function leaveOrDelete(): Promise<void> {
                 <font-awesome-icon v-if="dmMode" @click="rename" icon="pencil-alt" />
             </div>
             <div class="creator">by {{ selected.creator }}</div>
-            <router-link
-                v-if="dmMode || !selected.is_locked"
-                class="launch"
-                :to="'/game/' + encodeURIComponent(selected.creator) + '/' + encodeURIComponent(selected.name)"
-            >
-                LAUNCH!
-            </router-link>
+            <div v-if="dmMode || !selected.is_locked" class="launch" @click="open(selected!)">LAUNCH!</div>
             <div v-else class="launch">ROOM LOCKED</div>
             <div :style="{ flexGrow: 1 }"></div>
             <div class="header">Last playtime</div>
@@ -155,6 +158,7 @@ async function leaveOrDelete(): Promise<void> {
             <div class="header">Notes</div>
             <textarea :style="{ flexGrow: 1 }" :value="notes" @change="setNotes(getValue($event))"></textarea>
             <div :style="{ flexGrow: 2 }"></div>
+            <div class="leave" v-if="dmMode" @click="exportCampaign">EXPORT</div>
             <div class="leave" @click="leaveOrDelete">{{ dmMode ? "DELETE" : "LEAVE" }}</div>
         </div>
     </div>

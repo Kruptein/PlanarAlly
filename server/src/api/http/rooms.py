@@ -6,9 +6,10 @@ from typing_extensions import TypedDict
 
 from aiohttp import web
 from aiohttp_security import check_authorized
-from api.socket.constants import DASHBOARD_NS
 
+from api.socket.constants import DASHBOARD_NS
 from app import sio
+from config import config
 from export.campaign import export_campaign, import_campaign
 from models import Location, LocationOptions, PlayerRoom, Room, User
 from models.db import db
@@ -179,6 +180,9 @@ async def delete(request: web.Request):
 
 
 async def export(request: web.Request):
+    if not config.getboolean("General", "enable_export"):
+        return web.HTTPForbidden()
+
     user: User = await check_authorized(request)
 
     creator = request.match_info["creator"]
@@ -189,7 +193,7 @@ async def export(request: web.Request):
         if room is None:
             return web.HTTPBadRequest()
 
-        asyncio.create_task(export_campaign(f"{roomname}-{creator}", [room]))
+        await asyncio.create_task(export_campaign(f"{roomname}-{creator}", [room]))
 
         return web.HTTPAccepted(
             text=f"Processing started. Check /static/temp/{room.name}-{room.creator.name}.pac soon."
@@ -198,6 +202,9 @@ async def export(request: web.Request):
 
 
 async def export_all(request: web.Request):
+    if not config.getboolean("General", "enable_export"):
+        return web.HTTPForbidden()
+
     user: User = await check_authorized(request)
 
     creator = request.match_info["creator"]
@@ -224,6 +231,9 @@ import_mapping: Dict[str, ImportData] = {}
 
 
 async def import_info(request: web.Request):
+    if not config.getboolean("General", "enable_export"):
+        return web.HTTPForbidden()
+
     await check_authorized(request)
 
     name = request.match_info["name"]
@@ -247,6 +257,9 @@ async def import_info(request: web.Request):
 
 
 async def import_chunk(request: web.Request):
+    if not config.getboolean("General", "enable_export"):
+        return web.HTTPForbidden()
+
     user: User = await check_authorized(request)
 
     name = request.match_info["name"]
@@ -269,14 +282,15 @@ async def import_chunk(request: web.Request):
     chunks = import_mapping[name]["chunks"]
     if all(chunks):
         print(f"Got all chunks for {name}")
-        asyncio.create_task(
-            import_campaign(user, io.BytesIO(b"".join(cast(List[bytes], chunks))))
+        await asyncio.create_task(
+            handle_import(user, name, io.BytesIO(b"".join(cast(List[bytes], chunks))))
         )
         del import_mapping[name]
 
-        for sid in dashboard_state.get_sids(id=user.id):
-            await sio.emit(
-                "Campaign.Import.Done", name, room=sid, namespace=DASHBOARD_NS
-            )
-
     return web.HTTPOk()
+
+
+async def handle_import(user: User, name: str, pac: io.BytesIO):
+    await import_campaign(user, pac)
+    for sid in dashboard_state.get_sids(id=user.id):
+        await sio.emit("Campaign.Import.Done", name, room=sid, namespace=DASHBOARD_NS)

@@ -1,4 +1,5 @@
 import { Store } from "../core/store";
+import { socket } from "../dashboard/socket";
 
 interface CoreState {
     authenticated: boolean;
@@ -28,6 +29,8 @@ class CoreStore extends Store<CoreState> {
 
     setAuthenticated(authenticated: boolean): void {
         this._state.authenticated = authenticated;
+        if (authenticated && !socket.connected) socket.connect();
+        else if (!authenticated && socket.connected) socket.disconnect();
     }
 
     setLoading(loading: boolean): void {

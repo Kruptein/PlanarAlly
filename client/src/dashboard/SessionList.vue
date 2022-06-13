@@ -14,6 +14,7 @@ import type { RoomInfo } from "./types";
 const props = defineProps<{
     dmMode: boolean;
     sessions: RoomInfo[];
+    exportEnabled: boolean;
 }>();
 const emit = defineEmits(["remove-room", "rename", "update-logo"]);
 
@@ -158,7 +159,7 @@ function exportCampaign(): void {
             <div class="header">Notes</div>
             <textarea :style="{ flexGrow: 1 }" :value="notes" @change="setNotes(getValue($event))"></textarea>
             <div :style="{ flexGrow: 2 }"></div>
-            <div class="leave" v-if="dmMode" @click="exportCampaign">EXPORT</div>
+            <div class="leave" v-if="dmMode && exportEnabled" @click="exportCampaign">EXPORT</div>
             <div class="leave" @click="leaveOrDelete">{{ dmMode ? "DELETE" : "LEAVE" }}</div>
         </div>
     </div>

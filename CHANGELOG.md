@@ -9,6 +9,27 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+## [2022.2.1] - 2022-06-13
+
+This hides the export/import behind a server config option as I found an important underlying concurrency problem,
+which is undesirable for a server with multiple active users.
+In order to prevent these servers from running into issues due to upgrading to 2022.2,
+I'm already publishing these changes.
+
+Depending on the complexity of the concurrency issues,
+I may release a 2022.2.2 soon-ish or it will end up being part of a later 2022.3 release.
+
+### Added
+
+-   [server] server config option to enable import/export, defaulting to False
+    -   given the experimental nature, it's better to not enable this by default
+    -   it's strongly recommended to only enable this if you run a private server for the moment
+
+### Fixed
+
+-   Note export failing
+-   Markers not being exported
+
 ## [2022.2] - 2022-06-12
 
 ### Added

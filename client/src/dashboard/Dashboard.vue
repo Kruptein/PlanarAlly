@@ -26,6 +26,7 @@ interface DashboardState {
     joined: RoomInfo[];
     error: string;
     activeNavigation: Navigation;
+    exportEnabled: boolean;
 }
 
 const state: DashboardState = reactive({
@@ -34,6 +35,7 @@ const state: DashboardState = reactive({
     joined: [],
     error: "",
     activeNavigation: Navigation.Play,
+    exportEnabled: false,
 });
 
 const modals = useModal();
@@ -43,6 +45,10 @@ const router = useRouter();
 socket.on("Campaign.Import.Done", async () => {
     await getRooms();
     state.activeNavigation = Navigation.Run;
+});
+
+socket.on("Export.Enabled", () => {
+    state.exportEnabled = true;
 });
 
 onMounted(async () => {
@@ -73,7 +79,6 @@ const mainNavigation: NavigationEntry[] = [
     { type: "action", navigation: Navigation.Play, fn: setActiveNavigation },
     { type: "action", navigation: Navigation.Run, fn: setActiveNavigation },
     { type: "action", navigation: Navigation.Create, fn: setActiveNavigation },
-    { type: "action", navigation: Navigation.Import, fn: setActiveNavigation },
     { type: "separator" },
     { text: "assets", type: "header" },
     { type: "action", navigation: Navigation.AssetManage, fn: openAssetManager },
@@ -92,9 +97,19 @@ const settingsNavigation: NavigationEntry[] = [
 ];
 
 const activeNavigation = ref(NavigationMode.Main);
-const navigation = computed(() =>
-    activeNavigation.value === NavigationMode.Main ? mainNavigation : settingsNavigation,
-);
+const navigation = computed(() => {
+    if (activeNavigation.value === NavigationMode.Main) {
+        if (state.exportEnabled) {
+            return [
+                ...mainNavigation.slice(0, 4),
+                { type: "action", navigation: Navigation.Import, fn: setActiveNavigation },
+                ...mainNavigation.slice(4),
+            ] as NavigationEntry[];
+        }
+        return mainNavigation;
+    }
+    return settingsNavigation;
+});
 
 const navigationTranslation: Record<Navigation, string> = {
     [Navigation.Play]: "play",
@@ -154,12 +169,14 @@ function updateLogo(index: number, logo: string): void {
             v-if="state.activeNavigation === Navigation.Play"
             :sessions="state.joined"
             :dmMode="false"
+            :exportEnabled="state.exportEnabled"
             @remove-room="leaveRoom"
         />
         <SessionList
             v-else-if="state.activeNavigation === Navigation.Run"
             :sessions="state.owned"
             :dmMode="true"
+            :exportEnabled="state.exportEnabled"
             @rename="rename"
             @remove-room="removeRoom"
             @update-logo="updateLogo"

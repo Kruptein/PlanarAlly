@@ -17,6 +17,7 @@ from models.typed import SelectSequence
 
 if TYPE_CHECKING:
     from models.initiative import Initiative
+    from models.marker import Marker
     from models.shape import Shape
 
 from .asset import Asset
@@ -109,6 +110,7 @@ class Location(BaseModel):
     id: int
     floors: SelectSequence["Floor"]
     initiative: List["Initiative"]
+    markers: SelectSequence["Marker"]
     players: SelectSequence["PlayerRoom"]
     user_options: List["LocationUserOption"]
 

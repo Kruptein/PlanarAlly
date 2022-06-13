@@ -617,7 +617,6 @@ class CampaignMigrator:
         with self.from_db.bind_ctx([Note]):
             for note in Note.filter(room=room):
                 note_data = model_to_dict(note, recurse=False)
-                del note_data["id"]
                 note_data["room"] = self.room_mapping[room.id]
                 note_data["user"] = self.user_mapping.get(note_data["user"])
                 if note_data["user"] is None:

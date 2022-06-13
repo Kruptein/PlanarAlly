@@ -6,8 +6,9 @@ from typing_extensions import TypedDict
 
 from aiohttp import web
 from aiohttp_security import check_authorized
-from api.socket.constants import DASHBOARD_NS
+from aiojobs.aiohttp import spawn
 
+from api.socket.constants import DASHBOARD_NS
 from app import sio
 from export.campaign import export_campaign, import_campaign
 from models import Location, LocationOptions, PlayerRoom, Room, User
@@ -269,14 +270,16 @@ async def import_chunk(request: web.Request):
     chunks = import_mapping[name]["chunks"]
     if all(chunks):
         print(f"Got all chunks for {name}")
-        asyncio.create_task(
-            import_campaign(user, io.BytesIO(b"".join(cast(List[bytes], chunks))))
+        await spawn(
+            request,
+            handle_import(user, name, io.BytesIO(b"".join(cast(List[bytes], chunks)))),
         )
         del import_mapping[name]
 
-        for sid in dashboard_state.get_sids(id=user.id):
-            await sio.emit(
-                "Campaign.Import.Done", name, room=sid, namespace=DASHBOARD_NS
-            )
-
     return web.HTTPOk()
+
+
+async def handle_import(user: User, name: str, pac: io.BytesIO):
+    await import_campaign(user, pac)
+    for sid in dashboard_state.get_sids(id=user.id):
+        await sio.emit("Campaign.Import.Done", name, room=sid, namespace=DASHBOARD_NS)

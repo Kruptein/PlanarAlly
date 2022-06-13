@@ -8,6 +8,7 @@ from typing import Dict, List, Optional, Set, cast
 from playhouse.shortcuts import model_to_dict
 from playhouse.sqlite_ext import SqliteExtDatabase
 
+from logs import logger
 from models import ALL_MODELS
 from models.asset import Asset
 from models.campaign import (
@@ -49,11 +50,17 @@ from utils import ASSETS_DIR, STATIC_DIR, TEMP_DIR
 
 
 async def export_campaign(name: str, rooms: List[Room], *, export_all_assets=False):
-    CampaignExporter(name, rooms, export_all_assets=export_all_assets).pack()
+    try:
+        CampaignExporter(name, rooms, export_all_assets=export_all_assets).pack()
+    except:
+        logger.exception("Export Failed")
 
 
 async def import_campaign(user: User, pac: BytesIO):
-    CampaignImporter(user, pac)
+    try:
+        CampaignImporter(user, pac)
+    except:
+        logger.exception("Import Failed")
 
 
 class CampaignExporter:
@@ -170,18 +177,18 @@ class CampaignImporter:
         self.target_db = ACTIVE_DB
 
         self.unpack(pac)
-        for room in self.migrator.rooms:
-            self.import_users(room)
-            self.migrator.migrate_room(room)
-            self.migrator.migrate_label_selections(room)
-            self.migrator.migrate_locations(room)
-            self.migrator.migrate_players(room)
-            self.migrator.migrate_notes(room)
+        with self.migrator.to_db.atomic():
+            for room in self.migrator.rooms:
+                self.import_users(room)
+                self.migrator.migrate_room(room)
+                self.migrator.migrate_label_selections(room)
+                self.migrator.migrate_locations(room)
+                self.migrator.migrate_players(room)
+                self.migrator.migrate_notes(room)
         print("Completed campaign import")
         self.db.close()
 
     def unpack(self, pac: BytesIO):
-        # TODO: SAVE_VERSION CHECK
         with tarfile.open(fileobj=pac, mode="r") as tar:
             assets = []
             for member in tar.getmembers():

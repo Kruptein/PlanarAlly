@@ -1,13 +1,20 @@
-from io import BytesIO
+import asyncio
 import os
 import secrets
+import shutil
 import tarfile
+import uuid
+from functools import partial
+from io import BytesIO
 from time import time
-from typing import Dict, List, Optional, Set, cast
+from typing import Dict, List, Optional, cast
 
 from playhouse.shortcuts import model_to_dict
 from playhouse.sqlite_ext import SqliteExtDatabase
 
+from api.socket.constants import DASHBOARD_NS
+from app import sio
+from config import SAVE_FILE
 from logs import logger
 from models import ALL_MODELS
 from models.asset import Asset
@@ -26,6 +33,7 @@ from models.general import Constants
 from models.groups import Group
 from models.initiative import Initiative
 from models.label import LabelSelection
+from models.marker import Marker
 from models.shape import (
     AssetRect,
     Aura,
@@ -46,17 +54,43 @@ from models.shape import (
 from models.typed import SelectSequence
 from models.user import User, UserOptions
 from save import SAVE_VERSION, upgrade_save
-from utils import ASSETS_DIR, STATIC_DIR, TEMP_DIR
+from utils import ASSETS_DIR, SAVE_DIR, STATIC_DIR, TEMP_DIR
+
+debug_log = False
 
 
-async def export_campaign(name: str, rooms: List[Room], *, export_all_assets=False):
+async def export_campaign(
+    filename: str,
+    rooms: List[Room],
+    *,
+    sid: Optional[str] = None,
+    export_all_assets=False,
+):
+    loop = asyncio.get_running_loop()
+    task = loop.run_in_executor(
+        None,
+        partial(__export_campaign, export_all_assets=export_all_assets),
+        filename,
+        rooms,
+    )
+    await asyncio.wait([task])
+    await sio.emit("Campaign.Export.Done", filename, room=sid, namespace=DASHBOARD_NS)
+
+
+async def import_campaign(user: User, pac: BytesIO):
+    loop = asyncio.get_running_loop()
+    task = loop.run_in_executor(None, __import_campaign, user, pac)
+    await asyncio.wait([task])
+
+
+def __export_campaign(name: str, rooms: List[Room], *, export_all_assets=False):
     try:
         CampaignExporter(name, rooms, export_all_assets=export_all_assets).pack()
     except:
         logger.exception("Export Failed")
 
 
-async def import_campaign(user: User, pac: BytesIO):
+def __import_campaign(user: User, pac: BytesIO):
     try:
         CampaignImporter(user, pac)
     except:
@@ -68,6 +102,7 @@ class CampaignExporter:
         self, name: str, rooms: List[Room], *, export_all_assets=False
     ) -> None:
         self.filename = name
+        self.copy_name = TEMP_DIR / f"{str(uuid.uuid4())}.sqlite"
 
         self.generate_empty_db(rooms)
         for room in self.migrator.rooms:
@@ -92,6 +127,8 @@ class CampaignExporter:
         self.db = open_db(self.sqlite_path)
         self.db.foreign_keys = False
 
+        shutil.copyfile(SAVE_FILE, self.copy_name)
+
         # Base model creation
         with self.db.bind_ctx(ALL_MODELS):
             self.db.create_tables(ALL_MODELS)
@@ -101,7 +138,7 @@ class CampaignExporter:
                 secret_token=secrets.token_bytes(32),
                 api_token=secrets.token_hex(32),
             )
-            self.migrator = CampaignMigrator(ACTIVE_DB, self.db, rooms)
+            self.migrator = CampaignMigrator(open_db(self.copy_name), self.db, rooms)
 
     def pack(self):
         self.db.close()
@@ -143,6 +180,9 @@ class CampaignExporter:
                     tar.addfile(info, open(file_path, "rb"))  # type: ignore
                 except FileNotFoundError:
                     pass
+
+        self.migrator.from_db.close()
+        self.copy_name.unlink()
 
         return tarpath, tarname
 
@@ -256,12 +296,16 @@ class CampaignMigrator:
         self.rooms = rooms if rooms else self.__rooms
 
         self.asset_mapping: Dict[int, int] = {}
+        self.aura_mapping: Dict[uuid.UUID, uuid.UUID] = {}
+        self.group_mapping: Dict[uuid.UUID, uuid.UUID] = {}
+        self.label_mapping: Dict[uuid.UUID, uuid.UUID] = {}
         self.layer_mapping: Dict[int, int] = {}
         self.location_mapping: Dict[int, int] = {}
+        self.note_mapping: Dict[uuid.UUID, uuid.UUID] = {}
         self.room_mapping: Dict[int, int] = {}
+        self.shape_mapping: Dict[uuid.UUID, uuid.UUID] = {}
+        self.tracker_mapping: Dict[uuid.UUID, uuid.UUID] = {}
         self.user_mapping: Dict[int, int] = {}
-
-        self.groups_exported: Set[str] = set()
 
     @property
     def __rooms(self) -> SelectSequence[Room]:
@@ -296,17 +340,21 @@ class CampaignMigrator:
             for asset in Asset.filter(owner=self.rooms[0].creator):
                 self.migrate_asset(asset.id)
 
-    def migrate_labels(self, user_id: int, labels: List[Label]):
+    def migrate_labels(self, new_user_id: int, labels: List[Label]):
         with self.from_db.bind_ctx([Label]):
             for label in labels:
                 label_data = model_to_dict(label, recurse=False)
-                label_data["user"] = user_id
+                label_data["user"] = new_user_id
+                new_uuid = uuid.uuid4()
+                self.label_mapping[label_data["uuid"]] = new_uuid
+                label_data["uuid"] = new_uuid
 
                 with self.to_db.bind_ctx([Label]):
                     Label.create(**label_data)
 
     def migrate_room(self, room: Room):
-        print(f"[ROOM] {room.name}")
+        if debug_log:
+            print(f"[ROOM] {room.name}")
         with self.from_db.bind_ctx([LocationOptions, Room]):
             room_options_data = model_to_dict(room.default_options, recurse=False)
             del room_options_data["id"]
@@ -320,6 +368,7 @@ class CampaignMigrator:
             room_data["creator"] = self.user_mapping[room_data["creator"]]
             room_data["default_options"] = lo
             room_data["logo"] = self.migrate_asset(room_data["logo"])
+            room_data["invitation_code"] = uuid.uuid4()
 
             self.room_mapping[room.id] = Room.create(**room_data).id
 
@@ -331,6 +380,9 @@ class CampaignMigrator:
                 target_user = self.user_mapping.get(label_selection_data["user"])
                 if target_user is None:
                     continue
+                label_selection_data["label"] = self.label_mapping[
+                    label_selection_data["label"]
+                ]
                 label_selection_data["user"] = target_user
                 label_selection_data["room"] = self.room_mapping[room.id]
 
@@ -340,7 +392,8 @@ class CampaignMigrator:
     def migrate_locations(self, room: Room):
         with self.from_db.bind_ctx([Location, LocationOptions]):
             for location in room.locations:
-                print(f" [LOC] {location.name}")
+                if debug_log:
+                    print(f" [LOC] {location.name}")
                 location_data = model_to_dict(location, recurse=False)
                 del location_data["id"]
                 location_data["room"] = self.room_mapping[room.id]
@@ -368,11 +421,13 @@ class CampaignMigrator:
                     self.migrate_initiative(new_location, location.initiative[0])
 
                 self.migrate_location_user_options(new_location, location.user_options)
+                self.migrate_markers(new_location, location.markers)
 
     def migrate_floors(self, location_id: int, floors: SelectSequence[Floor]):
         with self.from_db.bind_ctx([Floor]):
             for floor in floors:
-                print(f"  [FL] {floor.name}")
+                if debug_log:
+                    print(f"  [FL] {floor.name}")
                 floor_data = model_to_dict(floor, recurse=False)
                 del floor_data["id"]
                 floor_data["location"] = location_id
@@ -385,7 +440,8 @@ class CampaignMigrator:
     def migrate_layers(self, floor_id: int, layers: SelectSequence[Layer]):
         with self.from_db.bind_ctx([Layer]):
             for layer in layers:
-                print(f"   [LAY] {layer.name}")
+                if debug_log:
+                    print(f"   [LAY] {layer.name}")
                 layer_data = model_to_dict(layer, recurse=False)
                 del layer_data["id"]
                 layer_data["floor"] = floor_id
@@ -400,11 +456,14 @@ class CampaignMigrator:
         with self.from_db.bind_ctx([Shape]):
             for shape in shapes:
                 shape_data = model_to_dict(shape, recurse=False)
+                new_uuid = uuid.uuid4()
+                self.shape_mapping[shape_data["uuid"]] = new_uuid
+                shape_data["uuid"] = new_uuid
                 shape_data["layer"] = layer_id
                 if shape_data["asset"]:
                     shape_data["asset"] = self.migrate_asset(shape_data["asset"])
                 if shape_data["group"]:
-                    self.migrate_group(shape_data["group"])
+                    shape_data["group"] = self.migrate_group(shape_data["group"])
 
                 with self.to_db.bind_ctx([Shape]):
                     Shape.create(**shape_data)
@@ -424,23 +483,28 @@ class CampaignMigrator:
                 self.migrate_composite_shape_associations(shape.shape_variants)
 
     def migrate_group(self, group_id: str):
-        if group_id in self.groups_exported:
-            return
+        if group_id in self.group_mapping:
+            return self.group_mapping[group_id]
 
         with self.from_db.bind_ctx([Group]):
             group = Group.get_by_id(group_id)
             group_data = model_to_dict(group, recurse=False)
+            new_uuid = uuid.uuid4()
+            self.group_mapping[group_data["uuid"]] = new_uuid
+            group_data["uuid"] = new_uuid
 
         with self.to_db.bind_ctx([Group]):
             Group.create(**group_data)
 
-        self.groups_exported.add(group_id)
+        return new_uuid
 
     def migrate_shape_labels(self, labels: SelectSequence[ShapeLabel]):
         with self.from_db.bind_ctx([ShapeLabel]):
             for label in labels:
                 label_data = model_to_dict(label, recurse=False)
                 del label_data["id"]
+                label_data["shape"] = self.shape_mapping[label_data["shape"]]
+                label_data["label"] = self.label_mapping[label_data["label"]]
 
                 with self.to_db.bind_ctx([ShapeLabel]):
                     ShapeLabel.create(**label_data)
@@ -449,6 +513,10 @@ class CampaignMigrator:
         with self.from_db.bind_ctx([Tracker]):
             for tracker in trackers:
                 tracker_data = model_to_dict(tracker, recurse=False)
+                new_uuid = uuid.uuid4()
+                self.tracker_mapping[tracker_data["uuid"]] = new_uuid
+                tracker_data["uuid"] = new_uuid
+                tracker_data["shape"] = self.shape_mapping[tracker_data["shape"]]
 
                 with self.to_db.bind_ctx([Tracker]):
                     Tracker.create(**tracker_data)
@@ -457,6 +525,10 @@ class CampaignMigrator:
         with self.from_db.bind_ctx([Aura]):
             for aura in auras:
                 aura_data = model_to_dict(aura, recurse=False)
+                new_uuid = uuid.uuid4()
+                self.aura_mapping[aura_data["uuid"]] = new_uuid
+                aura_data["uuid"] = new_uuid
+                aura_data["shape"] = self.shape_mapping[aura_data["shape"]]
 
                 with self.to_db.bind_ctx([Aura]):
                     Aura.create(**aura_data)
@@ -466,6 +538,7 @@ class CampaignMigrator:
             for owner in owners:
                 owner_data = model_to_dict(owner, recurse=False)
                 del owner_data["id"]
+                owner_data["shape"] = self.shape_mapping[owner_data["shape"]]
                 owner_data["user"] = self.user_mapping.get(owner_data["user"])
                 if owner_data["user"] is None:
                     continue
@@ -480,6 +553,17 @@ class CampaignMigrator:
             for association in associations:
                 association_data = model_to_dict(association, recurse=False)
                 del association_data["id"]
+                association_data["variant"] = self.shape_mapping.get(
+                    association_data["variant"]
+                )
+                association_data["parent"] = self.shape_mapping.get(
+                    association_data["parent"]
+                )
+                if (
+                    association_data["variant"] is None
+                    or association_data["parent"] is None
+                ):
+                    continue
 
                 with self.to_db.bind_ctx([CompositeShapeAssociation]):
                     CompositeShapeAssociation.create(**association_data)
@@ -488,6 +572,7 @@ class CampaignMigrator:
         with self.from_db.bind_ctx([AssetRect]):
             for rect in rects:
                 rect_data = model_to_dict(rect, recurse=False)
+                rect_data["shape"] = self.shape_mapping[rect_data["shape"]]
 
                 with self.to_db.bind_ctx([AssetRect]):
                     AssetRect.create(**rect_data)
@@ -496,6 +581,7 @@ class CampaignMigrator:
         with self.from_db.bind_ctx([Circle]):
             for circle in circles:
                 circle_data = model_to_dict(circle, recurse=False)
+                circle_data["shape"] = self.shape_mapping[circle_data["shape"]]
 
                 with self.to_db.bind_ctx([Circle]):
                     Circle.create(**circle_data)
@@ -504,6 +590,9 @@ class CampaignMigrator:
         with self.from_db.bind_ctx([CircularToken]):
             for circulartoken in circulartokens:
                 circulartoken_data = model_to_dict(circulartoken, recurse=False)
+                circulartoken_data["shape"] = self.shape_mapping[
+                    circulartoken_data["shape"]
+                ]
 
                 with self.to_db.bind_ctx([CircularToken]):
                     CircularToken.create(**circulartoken_data)
@@ -512,6 +601,7 @@ class CampaignMigrator:
         with self.from_db.bind_ctx([Line]):
             for line in lines:
                 line_data = model_to_dict(line, recurse=False)
+                line_data["shape"] = self.shape_mapping[line_data["shape"]]
 
                 with self.to_db.bind_ctx([Line]):
                     Line.create(**line_data)
@@ -520,6 +610,7 @@ class CampaignMigrator:
         with self.from_db.bind_ctx([Polygon]):
             for polygon in polygons:
                 polygon_data = model_to_dict(polygon, recurse=False)
+                polygon_data["shape"] = self.shape_mapping[polygon_data["shape"]]
 
                 with self.to_db.bind_ctx([Polygon]):
                     Polygon.create(**polygon_data)
@@ -528,6 +619,7 @@ class CampaignMigrator:
         with self.from_db.bind_ctx([Rect]):
             for rect in rects:
                 rect_data = model_to_dict(rect, recurse=False)
+                rect_data["shape"] = self.shape_mapping[rect_data["shape"]]
 
                 with self.to_db.bind_ctx([Rect]):
                     Rect.create(**rect_data)
@@ -536,6 +628,7 @@ class CampaignMigrator:
         with self.from_db.bind_ctx([Text]):
             for text in texts:
                 text_data = model_to_dict(text, recurse=False)
+                text_data["shape"] = self.shape_mapping[text_data["shape"]]
 
                 with self.to_db.bind_ctx([Text]):
                     Text.create(**text_data)
@@ -546,6 +639,12 @@ class CampaignMigrator:
         with self.from_db.bind_ctx([ToggleComposite]):
             for togglecomposite in togglecomposites:
                 togglecomposite_data = model_to_dict(togglecomposite, recurse=False)
+                togglecomposite_data["shape"] = self.shape_mapping[
+                    togglecomposite_data["shape"]
+                ]
+                togglecomposite_data["active_variant"] = self.shape_mapping[
+                    togglecomposite_data["active_variant"]
+                ]
 
                 with self.to_db.bind_ctx([ToggleComposite]):
                     ToggleComposite.create(**togglecomposite_data)
@@ -560,7 +659,7 @@ class CampaignMigrator:
                 Initiative.create(**initiative_data)
 
     def migrate_location_user_options(
-        self, location_id: int, user_options: List[LocationUserOption]
+        self, new_location_id: int, user_options: List[LocationUserOption]
     ):
         with self.from_db.bind_ctx([LocationUserOption]):
             for user_option in user_options:
@@ -571,7 +670,7 @@ class CampaignMigrator:
                     continue
 
                 del user_option_data["id"]
-                user_option_data["location"] = location_id
+                user_option_data["location"] = new_location_id
                 user_option_data["user"] = user
                 if user_option_data["active_layer"]:
                     user_option_data["active_layer"] = self.layer_mapping[
@@ -580,16 +679,37 @@ class CampaignMigrator:
 
                 with self.to_db.bind_ctx([LocationUserOption]):
                     q = LocationUserOption.select().where(
-                        (LocationUserOption.location == location_id)
+                        (LocationUserOption.location == new_location_id)
                         & (LocationUserOption.user == user)
                     )
                     if q.exists():
                         q[0].update(**user_option_data).where(
-                            (LocationUserOption.location == location_id)
+                            (LocationUserOption.location == new_location_id)
                             & (LocationUserOption.user == user)
                         ).execute()
                     else:
                         LocationUserOption.create(**user_option_data)
+
+    def migrate_markers(self, new_location_id: int, markers: SelectSequence[Marker]):
+        with self.from_db.bind_ctx([Marker]):
+            for marker in markers:
+                marker_data = model_to_dict(marker, recurse=False)
+
+                user = self.user_mapping.get(marker_data["user"])
+                if user is None:
+                    continue
+
+                del marker_data["id"]
+                marker_data["location"] = new_location_id
+                marker_data["user"] = user
+                marker_data["shape"] = self.shape_mapping.get(marker_data["shape"])
+                if marker_data["shape"] is None:
+                    # Technically possible, but not intended
+                    # This happens when a marker is set to shape that is later moved to a different location
+                    continue
+
+                with self.to_db.bind_ctx([Marker]):
+                    Marker.create(**marker_data)
 
     def migrate_players(self, room: Room):
         with self.from_db.bind_ctx([PlayerRoom, User, UserOptions]):
@@ -624,6 +744,9 @@ class CampaignMigrator:
         with self.from_db.bind_ctx([Note]):
             for note in Note.filter(room=room):
                 note_data = model_to_dict(note, recurse=False)
+                new_uuid = uuid.uuid4()
+                self.note_mapping[note_data["uuid"]] = new_uuid
+                note_data["uuid"] = new_uuid
                 note_data["room"] = self.room_mapping[room.id]
                 note_data["user"] = self.user_mapping.get(note_data["user"])
                 if note_data["user"] is None:

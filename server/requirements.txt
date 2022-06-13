@@ -1,7 +1,6 @@
 aiohttp==3.8.1
 aiohttp_security==0.4.0
 aiohttp_session==2.11.0
-aiojobs==1.0.0
 bcrypt==3.2.0
 cryptography==36.0.2
 python-socketio==5.5.2

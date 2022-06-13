@@ -13,7 +13,6 @@ __all__ = ["Label", "LabelSelection"]
 
 
 class Label(BaseModel):
-    id: int
     labelselection_set: List["LabelSelection"]
 
     uuid = TextField(primary_key=True)
@@ -23,7 +22,7 @@ class Label(BaseModel):
     visible = cast(bool, BooleanField())
 
     def as_dict(self):
-        d = model_to_dict(self, recurse=False, exclude=[Label.id])
+        d = model_to_dict(self, recurse=False)
         d["user"] = self.user.name
         return d
 

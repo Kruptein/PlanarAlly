@@ -3,7 +3,6 @@ from typing import Callable, Iterable, List, Type
 
 import aiohttp_security
 import aiohttp_session
-import aiojobs.aiohttp
 from aiohttp import web
 from aiohttp_security import SessionIdentityPolicy
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
@@ -23,7 +22,6 @@ def setup_app(middlewares: Iterable[Callable] = ()) -> web.Application:
     app["AuthzPolicy"] = auth.AuthPolicy()
     aiohttp_security.setup(app, SessionIdentityPolicy(), app["AuthzPolicy"])
     aiohttp_session.setup(app, EncryptedCookieStorage(auth.get_secret_token()))
-    aiojobs.aiohttp.setup(app)
     return app
 
 

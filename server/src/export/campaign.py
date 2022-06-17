@@ -217,14 +217,14 @@ class CampaignImporter:
         self.target_db = ACTIVE_DB
 
         self.unpack(pac)
-        with self.migrator.to_db.atomic():
-            for room in self.migrator.rooms:
-                self.import_users(room)
-                self.migrator.migrate_room(room)
-                self.migrator.migrate_label_selections(room)
-                self.migrator.migrate_locations(room)
-                self.migrator.migrate_players(room)
-                self.migrator.migrate_notes(room)
+        # with self.migrator.to_db.atomic():
+        for room in self.migrator.rooms:
+            self.import_users(room)
+            self.migrator.migrate_room(room)
+            self.migrator.migrate_label_selections(room)
+            self.migrator.migrate_locations(room)
+            self.migrator.migrate_players(room)
+            self.migrator.migrate_notes(room)
         print("Completed campaign import")
         self.db.close()
 
@@ -282,6 +282,9 @@ class CampaignImporter:
         with self.db.bind_ctx([Room, User]):
             creator = cast(User, room.creator)
             self.migrator.user_mapping[creator.id] = self.root_user.id
+
+            with self.migrator.from_db.bind_ctx([Room, User, Label]):
+                self.migrator.migrate_labels(self.root_user.id, room.creator.labels)
 
 
 class CampaignMigrator:

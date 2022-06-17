@@ -1,4 +1,4 @@
-2022.2.0
+2022.2.2
 
 ### Added
 
@@ -7,6 +7,9 @@
 -   [DM] UI export campaign option in room details
 -   [DM] Import campaign support
     -   Can import older saves (if the migration code is still available (i.e. < 1 year old))
+-   [2022.2.1][server] server config option to enable import/export, defaulting to False
+    -   given the experimental nature, it's better to not enable this by default
+    -   it's strongly recommended to only enable this if you run a private server for the moment
 
 ### Changed
 
@@ -47,3 +50,8 @@
 -   Auras that are light sources, no longer appear as a black circle of doom when FOW is not turned on
 -   Undo/Redo not persisting to server for movement and rotation
 -   [server] Admin client was not built in docker
+-   [2022.2.1] Note export failing
+-   [2022.2.1] Markers not being exported
+-   [2022.2.2] Auras giving light when light source is turned off
+-   [2022.2.2] Ghost initiative entries showing up as ? that cannot be removed
+-   [2022.2.2] Database lock errors while importing during load

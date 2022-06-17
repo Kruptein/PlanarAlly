@@ -9,7 +9,7 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
-## [2022.2.2] - 2022-06-16
+## [2022.2.2] - 2022-06-17
 
 ### Changed
 

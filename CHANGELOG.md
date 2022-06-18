@@ -9,6 +9,19 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+## [2022.2.2] - 2022-06-17
+
+### Changed
+
+-   [tech] Use WAL mode for database
+
+### Fixed
+
+-   Auras giving light when light source is turned off
+-   Ghost initiative entries showing up as ? that cannot be removed
+-   Database lock errors while importing during load
+-   [server] Server not being able to start due to ModuleNotFoundError
+
 ## [2022.2.1] - 2022-06-13
 
 This hides the export/import behind a server config option as I found an important underlying concurrency problem,

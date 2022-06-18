@@ -56,6 +56,17 @@ const showBorderColour = computed(() => {
     if (drawTool.state.selectedShape === DrawShape.Polygon && !drawTool.state.isClosedPolygon) return false;
     return true;
 });
+
+const alerts = computed(() => {
+    const a: Set<string> = new Set();
+    if (drawTool.state.blocksMovement || drawTool.state.blocksVision) {
+        a.add("eye");
+    }
+    if (drawTool.state.isDoor) {
+        a.add("cogs");
+    }
+    return a;
+});
 </script>
 
 <template>
@@ -65,7 +76,10 @@ const showBorderColour = computed(() => {
                 v-for="category in categories"
                 :key="category"
                 class="draw-category-option"
-                :class="{ 'draw-category-option-selected': drawTool.state.selectedCategory === category }"
+                :class="{
+                    'draw-category-option-selected': drawTool.state.selectedCategory === category,
+                    'draw-category-alert': drawTool.state.selectedCategory !== category && alerts.has(category),
+                }"
                 @click="drawTool.state.selectedCategory = category"
                 :title="translationMapping[category]"
             >
@@ -222,6 +236,10 @@ const showBorderColour = computed(() => {
 
     .draw-category-option-selected {
         background-color: #82c8a0;
+    }
+
+    .draw-category-alert {
+        background-color: orangered;
     }
 }
 

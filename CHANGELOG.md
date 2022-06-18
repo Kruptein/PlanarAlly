@@ -9,6 +9,10 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Changed
+
+-   Draw tool vision and logic tabs will now have a background colour if they are active as a reminder
+
 ### Fixed
 
 -   Assets not being able to moved up to parent folder

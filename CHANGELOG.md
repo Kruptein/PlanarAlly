@@ -20,6 +20,7 @@ tech changes will usually be stripped from release notes for the public
 -   Auras giving light when light source is turned off
 -   Ghost initiative entries showing up as ? that cannot be removed
 -   Database lock errors while importing during load
+-   [server] Server not being able to start due to ModuleNotFoundError
 
 ## [2022.2.1] - 2022-06-13
 

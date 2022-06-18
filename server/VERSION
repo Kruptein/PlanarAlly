@@ -55,3 +55,4 @@
 -   [2022.2.2] Auras giving light when light source is turned off
 -   [2022.2.2] Ghost initiative entries showing up as ? that cannot be removed
 -   [2022.2.2] Database lock errors while importing during load
+-   [2022.2.2][server] Server not being able to start due to ModuleNotFoundError

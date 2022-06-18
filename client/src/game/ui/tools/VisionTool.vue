@@ -30,12 +30,6 @@ const selection = computed(() => {
 function toggle(uuid: LocalId): void {
     if (selection.value.has(uuid)) gameStore.removeActiveToken(uuid);
     else gameStore.addActiveToken(uuid);
-
-    if (gameStore.state.activeTokenFilters !== undefined) {
-        visionTool.alert.value = true;
-    } else {
-        visionTool.alert.value = false;
-    }
 }
 
 function getImageSrc(token: IShape): string {

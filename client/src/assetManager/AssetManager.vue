@@ -73,7 +73,8 @@ function leaveDrag(event: DragEvent): void {
 function stopDrag(event: DragEvent, target: number): void {
     (event.target as HTMLElement).classList.remove("inode-selected");
     if (draggingSelection) {
-        if ((target === state.root || state.folders.includes(target)) && !state.selected.includes(target)) {
+        if (state.selected.includes(target)) return;
+        if (target === parentFolder.value || target === state.root || state.folders.includes(target)) {
             for (const inode of state.selected) {
                 assetStore.moveInode(inode, target);
             }

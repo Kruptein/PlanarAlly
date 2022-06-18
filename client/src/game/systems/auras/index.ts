@@ -152,13 +152,13 @@ class AuraSystem implements System {
 
         Object.assign(aura, delta);
 
-        if (oldAuraActive) {
-            if (!aura.active || (oldAuraVisionSource && !aura.visionSource)) {
-                visionState.removeVisionSource(shape.floor.id, aura.uuid);
-            } else if (!oldAuraVisionSource && aura.visionSource) {
-                visionState.addVisionSource({ aura: aura.uuid, shape: id }, shape.floor.id);
-            }
-        } else if (!oldAuraActive && aura.active) {
+        if (oldAuraVisionSource && !aura.visionSource && aura.active) {
+            visionState.removeVisionSource(shape.floor.id, aura.uuid);
+        } else if (!oldAuraVisionSource && aura.visionSource && aura.active) {
+            visionState.addVisionSource({ aura: aura.uuid, shape: id }, shape.floor.id);
+        } else if (oldAuraActive && !aura.active && aura.visionSource) {
+            visionState.removeVisionSource(shape.floor.id, aura.uuid);
+        } else if (!oldAuraActive && aura.active && aura.visionSource) {
             visionState.addVisionSource({ aura: aura.uuid, shape: id }, shape.floor.id);
         }
 

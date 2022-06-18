@@ -77,7 +77,9 @@ class Shape(BaseModel):
     is_locked = cast(bool, BooleanField(default=False))
     angle = cast(float, FloatField(default=0))
     stroke_width = IntegerField(default=2)
-    asset = ForeignKeyField(Asset, backref="shapes", null=True, default=None)
+    asset = ForeignKeyField(
+        Asset, backref="shapes", null=True, default=None, on_delete="SET NULL"
+    )
     group = cast(
         Optional[Group],
         ForeignKeyField(Group, backref="members", null=True, default=None),

@@ -12,6 +12,7 @@ tech changes will usually be stripped from release notes for the public
 ### Fixed
 
 -   Assets not being able to moved up to parent folder
+-   Assets not being removable if a shape with a link to the asset exists
 
 ## [2022.2.2] - 2022-06-17
 

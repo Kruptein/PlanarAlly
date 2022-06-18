@@ -9,6 +9,10 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Fixed
+
+-   Assets not being able to moved up to parent folder
+
 ## [2022.2.2] - 2022-06-17
 
 ### Changed

@@ -11,7 +11,7 @@ def all_subclasses(cls):
 
 def get_src_dir() -> Path:
     if getattr(sys, "frozen", False):
-        return Path(sys.executable).resolve().parent
+        return Path(sys.executable).resolve()
     return Path(__file__).resolve().parent
 
 
@@ -25,9 +25,6 @@ STATIC_DIR = FILE_DIR / "static"
 ASSETS_DIR = STATIC_DIR / "assets"
 TEMP_DIR = STATIC_DIR / "temp"
 SAVE_DIR = get_save_dir()
-
-# SETUP PATHS
-os.chdir(SRC_DIR)
 
 
 class OldVersionException(Exception):

@@ -25,10 +25,10 @@ from typing import Optional
 
 from playhouse.sqlite_ext import SqliteExtDatabase
 
-from config import SAVE_FILE
-from models import ALL_MODELS, Constants
-from models.db import db as ACTIVE_DB
-from utils import FILE_DIR, OldVersionException, UnknownVersionException
+from .config import SAVE_FILE
+from .models import ALL_MODELS, Constants
+from .models.db import db as ACTIVE_DB
+from .utils import FILE_DIR, OldVersionException, UnknownVersionException
 
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)

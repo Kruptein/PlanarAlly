@@ -7,9 +7,9 @@ from aiohttp import web
 from aiohttp_security import SessionIdentityPolicy
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
 
-import auth
-from config import config
-from typed import TypedAsyncServer
+from . import auth
+from .config import config
+from .typed import TypedAsyncServer
 
 runners: List[web.AppRunner] = []
 

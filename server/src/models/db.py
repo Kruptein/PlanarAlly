@@ -2,7 +2,7 @@ from pathlib import Path
 
 from playhouse.sqlite_ext import SqliteExtDatabase
 
-from config import SAVE_FILE
+from ..config import SAVE_FILE
 
 
 def open_db(path: Path) -> SqliteExtDatabase:

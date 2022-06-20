@@ -13,16 +13,15 @@ from peewee import (
 )
 from playhouse.shortcuts import model_to_dict
 
-from models.typed import SelectSequence
-
 if TYPE_CHECKING:
-    from models.initiative import Initiative
-    from models.marker import Marker
-    from models.shape import Shape
+    from .initiative import Initiative
+    from .marker import Marker
+    from .shape import Shape
 
 from .asset import Asset
 from .base import BaseModel
 from .groups import Group
+from .typed import SelectSequence
 from .user import User, UserOptions
 
 __all__ = [

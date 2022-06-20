@@ -1,10 +1,10 @@
 from aiohttp import web
 from aiohttp_security import authorized_userid, forget, remember
 
-from config import config
-from models import User
-from models.db import db
-from models.user import UserOptions
+from ...config import config
+from ...models import User
+from ...models.db import db
+from ...models.user import UserOptions
 
 
 async def is_authed(request):

@@ -1,6 +1,6 @@
 from aiohttp import web
 
-from config import config
+from ...config import config
 
 
 async def get_limit(_request: web.Request):

@@ -12,6 +12,8 @@ tech changes will usually be stripped from release notes for the public
 ### Changed
 
 -   Draw tool vision and logic tabs will now have a background colour if they are active as a reminder
+-   [server] moved all python imports to proper relative imports
+    -   this changes the way to manually run the server (again) (sorry)
 
 ### Fixed
 

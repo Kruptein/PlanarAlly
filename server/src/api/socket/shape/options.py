@@ -5,15 +5,15 @@ from typing_extensions import TypedDict
 from playhouse.shortcuts import update_model_from_dict
 from socketio import AsyncServer
 
-import auth
-from api.helpers import _send_game
-from api.socket.constants import GAME_NS
-from api.socket.shape.utils import get_owner_sids, get_shape_or_none
-from app import app, sio
-from models import Aura, PlayerRoom, ShapeLabel, Tracker
-from models.shape import Shape
-from models.utils import reduce_data_to_model
-from state.game import game_state
+from .... import auth
+from ....api.helpers import _send_game
+from ....app import app, sio
+from ....models import Aura, PlayerRoom, ShapeLabel, Tracker
+from ....models.shape import Shape
+from ....models.utils import reduce_data_to_model
+from ....state.game import game_state
+from ..constants import GAME_NS
+from .utils import get_owner_sids, get_shape_or_none
 
 
 class ShapeSetBooleanValue(TypedDict):

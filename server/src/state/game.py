@@ -1,10 +1,10 @@
 from typing import Dict, Set
 
+from ..api.socket.constants import GAME_NS
+from ..app import app, sio
+from ..data_types.location import LocationOptions
+from ..models import PlayerRoom, User
 from . import State
-from api.socket.constants import GAME_NS
-from app import app, sio
-from data_types.location import LocationOptions
-from models import PlayerRoom, User
 
 
 class GameState(State[PlayerRoom]):

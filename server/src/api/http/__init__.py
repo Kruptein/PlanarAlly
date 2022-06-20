@@ -3,11 +3,11 @@ import urllib.parse
 from aiohttp import web
 from aiohttp_security import check_authorized
 
-from api.socket.constants import GAME_NS
-from app import sio
-from models import PlayerRoom, Room
-from models.role import Role
-from state.game import game_state
+from ...app import sio
+from ...models import PlayerRoom, Room
+from ...models.role import Role
+from ...state.game import game_state
+from ..socket.constants import GAME_NS
 
 
 async def claim_invite(request):

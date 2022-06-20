@@ -3,12 +3,12 @@ from urllib.parse import unquote
 
 from aiohttp_security import authorized_userid
 
-from api.socket.constants import GAME_NS
-from app import sio
-from models import PlayerRoom, Room, User
-from models.role import Role
-from state.game import game_state
-from logs import logger
+from ...api.socket.constants import GAME_NS
+from ...app import sio
+from ...logs import logger
+from ...models import PlayerRoom, Room, User
+from ...models.role import Role
+from ...state.game import game_state
 
 
 @sio.on("connect", namespace=GAME_NS)

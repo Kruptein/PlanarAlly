@@ -4,9 +4,9 @@ import hashlib
 from typing import List
 from typing_extensions import TypedDict
 
-from app import sio
-from models import Asset
-from state.asset import asset_state
+from ....app import sio
+from ....models import Asset
+from ....state.asset import asset_state
 from ..constants import ASSET_NS
 from .common import ASSETS_DIR, UploadData
 

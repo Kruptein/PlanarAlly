@@ -4,10 +4,11 @@ from typing import List, Union, cast
 from playhouse.shortcuts import update_model_from_dict
 from typing_extensions import TypedDict
 
-import auth
-from api.socket.constants import GAME_NS
-from app import app, sio
-from models import (
+from ... import auth
+from ...api.socket.constants import GAME_NS
+from ...app import app, sio
+from ...config import config
+from ...models import (
     Floor,
     Initiative,
     Layer,
@@ -20,13 +21,11 @@ from models import (
     Room,
     Shape,
 )
-from models.asset import Asset
-from models.label import Label, LabelSelection
-from models.role import Role
-from state.game import game_state
-from logs import logger
-
-from config import config
+from ...models.asset import Asset
+from ...models.label import Label, LabelSelection
+from ...models.role import Role
+from ...state.game import game_state
+from ...logs import logger
 
 
 # DATA CLASSES FOR TYPE CHECKING

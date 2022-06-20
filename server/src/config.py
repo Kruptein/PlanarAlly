@@ -1,7 +1,7 @@
 import configparser
 from pathlib import Path
 
-from utils import FILE_DIR, SAVE_DIR
+from .utils import FILE_DIR, SAVE_DIR
 
 config = configparser.ConfigParser()
 config.read([FILE_DIR / "server_config.cfg", FILE_DIR / "data" / "server_config.cfg"])

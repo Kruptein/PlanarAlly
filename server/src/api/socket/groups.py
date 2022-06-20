@@ -3,12 +3,12 @@ from typing_extensions import TypedDict
 
 from playhouse.shortcuts import model_to_dict, update_model_from_dict
 
-import auth
-from api.socket.constants import GAME_NS
-from app import app, sio
-from models import Group, PlayerRoom, Shape
-from state.game import game_state
-from logs import logger
+from ... import auth
+from ...api.socket.constants import GAME_NS
+from ...app import app, sio
+from ...logs import logger
+from ...models import Group, PlayerRoom, Shape
+from ...state.game import game_state
 
 
 class ServerGroup(TypedDict):

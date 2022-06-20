@@ -10,14 +10,11 @@ src_dir = pa_dir / "src"
 def _(arg):
     return pa_dir / arg
 
-def __(arg):
-    return src_dir / arg
-
 
 block_cipher = None
 
 
-a = Analysis([__('planarserver.py')],
+a = Analysis([_('planarally.py')],
              pathex=[src_dir],
              datas=[
     (_('VERSION'), '.'),

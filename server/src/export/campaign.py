@@ -12,13 +12,13 @@ from typing import Dict, List, Optional, cast
 from playhouse.shortcuts import model_to_dict
 from playhouse.sqlite_ext import SqliteExtDatabase
 
-from api.socket.constants import DASHBOARD_NS
-from app import sio
-from config import SAVE_FILE
-from logs import logger
-from models import ALL_MODELS
-from models.asset import Asset
-from models.campaign import (
+from ..api.socket.constants import DASHBOARD_NS
+from ..app import sio
+from ..config import SAVE_FILE
+from ..logs import logger
+from ..models import ALL_MODELS
+from ..models.asset import Asset
+from ..models.campaign import (
     Floor,
     Layer,
     Location,
@@ -28,13 +28,13 @@ from models.campaign import (
     PlayerRoom,
     Room,
 )
-from models.db import db as ACTIVE_DB, open_db
-from models.general import Constants
-from models.groups import Group
-from models.initiative import Initiative
-from models.label import LabelSelection
-from models.marker import Marker
-from models.shape import (
+from ..models.db import db as ACTIVE_DB, open_db
+from ..models.general import Constants
+from ..models.groups import Group
+from ..models.initiative import Initiative
+from ..models.label import LabelSelection
+from ..models.marker import Marker
+from ..models.shape import (
     AssetRect,
     Aura,
     Circle,
@@ -51,10 +51,10 @@ from models.shape import (
     ToggleComposite,
     Tracker,
 )
-from models.typed import SelectSequence
-from models.user import User, UserOptions
-from save import SAVE_VERSION, upgrade_save
-from utils import ASSETS_DIR, SAVE_DIR, STATIC_DIR, TEMP_DIR
+from ..models.typed import SelectSequence
+from ..models.user import User, UserOptions
+from ..save import SAVE_VERSION, upgrade_save
+from ..utils import ASSETS_DIR, STATIC_DIR, TEMP_DIR
 
 debug_log = False
 

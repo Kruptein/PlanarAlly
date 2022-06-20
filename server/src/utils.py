@@ -26,9 +26,6 @@ ASSETS_DIR = STATIC_DIR / "assets"
 TEMP_DIR = STATIC_DIR / "temp"
 SAVE_DIR = get_save_dir()
 
-# SETUP PATHS
-os.chdir(SRC_DIR)
-
 
 class OldVersionException(Exception):
     pass

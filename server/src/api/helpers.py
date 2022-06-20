@@ -2,7 +2,7 @@ from typing import Any, Optional
 
 from socketio import AsyncServer
 
-from api.socket.constants import GAME_NS
+from .socket.constants import GAME_NS
 
 
 async def _send_game(

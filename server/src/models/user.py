@@ -11,13 +11,12 @@ from peewee import (
 )
 from playhouse.shortcuts import model_to_dict
 
-from models.typed import SelectSequence
-
 from .base import BaseModel
+from .typed import SelectSequence
 
 if TYPE_CHECKING:
-    from models.label import Label
-    from models.campaign import PlayerRoom, Room
+    from .campaign import PlayerRoom, Room
+    from .label import Label
 
 
 __all__ = ["User", "UserOptions"]

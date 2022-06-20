@@ -1,8 +1,8 @@
-import auth
-from api.socket.constants import GAME_NS
-from app import app, sio
-from models import PlayerRoom
-from state.game import game_state
+from ... import auth
+from ...app import app, sio
+from ...models import PlayerRoom
+from ...state.game import game_state
+from .constants import GAME_NS
 
 
 @sio.on("User.ColourHistory.Set", namespace=GAME_NS)

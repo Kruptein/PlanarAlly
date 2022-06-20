@@ -1,9 +1,9 @@
 from typing import Generator, Union
 
-from models import PlayerRoom, Shape
-from models.shape.access import has_ownership
-from state.game import game_state
-from logs import logger
+from ....logs import logger
+from ....models import PlayerRoom, Shape
+from ....models.shape.access import has_ownership
+from ....state.game import game_state
 
 
 def get_shape_or_none(pr: PlayerRoom, shape_id: str, action: str) -> Union[Shape, None]:

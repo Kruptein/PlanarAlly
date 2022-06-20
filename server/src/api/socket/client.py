@@ -1,16 +1,15 @@
 from typing import Any, Dict
 from typing_extensions import TypedDict
 
-import auth
-
-from api.socket.constants import GAME_NS
-from app import app, sio
-from data_types.location import LocationOptions
-from models import Floor, Layer, LocationUserOption, PlayerRoom
-from models.db import db
-from models.role import Role
-from models.user import UserOptions
-from state.game import game_state
+from ... import auth
+from ...api.socket.constants import GAME_NS
+from ...app import app, sio
+from ...data_types.location import LocationOptions
+from ...models import Floor, Layer, LocationUserOption, PlayerRoom
+from ...models.db import db
+from ...models.role import Role
+from ...models.user import UserOptions
+from ...state.game import game_state
 
 
 # DATA CLASSES FOR TYPE CHECKING

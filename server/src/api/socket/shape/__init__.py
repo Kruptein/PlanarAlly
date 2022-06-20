@@ -3,13 +3,11 @@ from typing import Any, Dict, List, Optional, Tuple, Union, cast
 from peewee import Case
 from socketio import AsyncServer
 
-import auth
-from api.helpers import _send_game
-from api.socket.constants import GAME_NS
-from api.socket.groups import remove_group_if_empty
-from api.socket.shape.data_models import *
-from app import app, sio
-from models import (
+from .... import auth
+from ....api.helpers import _send_game
+from ....app import app, sio
+from ....logs import logger
+from ....models import (
     AssetRect,
     Aura,
     Circle,
@@ -24,14 +22,15 @@ from models import (
     Tracker,
     User,
 )
-from models.campaign import Location
-from models.db import db
-from models.role import Role
-from models.shape.access import has_ownership
-from models.utils import get_table, reduce_data_to_model
-from state.game import game_state
-from logs import logger
-
+from ....models.campaign import Location
+from ....models.db import db
+from ....models.role import Role
+from ....models.shape.access import has_ownership
+from ....models.utils import get_table, reduce_data_to_model
+from ....state.game import game_state
+from ..constants import GAME_NS
+from ..groups import remove_group_if_empty
+from .data_models import *
 from . import access, options, toggle_composite
 
 

@@ -1,8 +1,8 @@
-import auth
-from api.socket.constants import GAME_NS
-from app import app, sio
-from models import Marker, PlayerRoom
-from state.game import game_state
+from ... import auth
+from ...api.socket.constants import GAME_NS
+from ...app import app, sio
+from ...models import Marker, PlayerRoom
+from ...state.game import game_state
 
 
 @sio.on("Marker.New", namespace=GAME_NS)

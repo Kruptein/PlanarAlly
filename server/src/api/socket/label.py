@@ -1,12 +1,12 @@
 from typing import Any, Dict
 from typing_extensions import TypedDict
 
-import auth
-from api.socket.constants import GAME_NS
-from app import app, sio
-from models import Label, LabelSelection, PlayerRoom, User
-from state.game import game_state
-from logs import logger
+from ... import auth
+from ...api.socket.constants import GAME_NS
+from ...app import app, sio
+from ...logs import logger
+from ...models import Label, LabelSelection, PlayerRoom, User
+from ...state.game import game_state
 
 
 class LabelVisibilityMessage(TypedDict):

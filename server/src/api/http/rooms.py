@@ -7,14 +7,14 @@ from typing_extensions import TypedDict
 from aiohttp import web
 from aiohttp_security import check_authorized
 
-from api.socket.constants import DASHBOARD_NS
-from app import sio
-from config import config
-from export.campaign import export_campaign, import_campaign
-from models import Location, LocationOptions, PlayerRoom, Room, User
-from models.db import db
-from models.role import Role
-from state.dashboard import dashboard_state
+from ...app import sio
+from ...config import config
+from ...export.campaign import export_campaign, import_campaign
+from ...models import Location, LocationOptions, PlayerRoom, Room, User
+from ...models.db import db
+from ...models.role import Role
+from ...state.dashboard import dashboard_state
+from ..socket.constants import DASHBOARD_NS
 
 
 async def get_list(request: web.Request):

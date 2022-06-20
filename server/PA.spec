@@ -4,7 +4,6 @@ import sys
 from pathlib import Path
 
 pa_dir = Path(SPECPATH).resolve()
-src_dir = pa_dir / "src"
 
 
 def _(arg):
@@ -15,7 +14,7 @@ block_cipher = None
 
 
 a = Analysis([_('planarally.py')],
-             pathex=[src_dir],
+             pathex=[pa_dir]],
              datas=[
     (_('VERSION'), '.'),
     (_('server_config.cfg'), '.'),

@@ -11,7 +11,7 @@ def all_subclasses(cls):
 
 def get_src_dir() -> Path:
     if getattr(sys, "frozen", False):
-        return Path(sys.executable).resolve().parent
+        return Path(sys.executable).resolve()
     return Path(__file__).resolve().parent
 
 

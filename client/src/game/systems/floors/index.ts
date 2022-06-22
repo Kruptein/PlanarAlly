@@ -96,9 +96,9 @@ class FloorSystem implements System {
 
         _$.floorIndex = targetFloorIndex;
         _$.layers = this.getLayers(floor);
-        for (const [f, floor] of _$.floors.entries()) {
-            for (const layer of this.getLayers(floor)) {
-                if (f > targetFloorIndex) layer.canvas.style.display = "none";
+        for (const [fI, f] of _$.floors.entries()) {
+            for (const layer of this.getLayers(f)) {
+                if (fI > targetFloorIndex) layer.canvas.style.display = "none";
                 else layer.canvas.style.removeProperty("display");
             }
         }

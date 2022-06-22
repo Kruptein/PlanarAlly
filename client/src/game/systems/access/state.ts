@@ -7,7 +7,7 @@ import type { LocalId } from "../../id";
 import { DEFAULT_ACCESS } from "./models";
 import type { ShapeAccess } from "./models";
 
-export interface AccessState {
+interface AccessState {
     id: LocalId | undefined;
     defaultAccess: ShapeAccess;
     playerAccess: Map<string, ShapeAccess>;

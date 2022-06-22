@@ -6,9 +6,9 @@ import draggable from "vuedraggable";
 
 import Modal from "../../../../core/components/modals/Modal.vue";
 import { useModal } from "../../../../core/plugins/modals/plugin";
-import { gameStore } from "../../../../store/game";
 import { copyPermissions } from "../../../systems/logic/common";
 import type { Permissions } from "../../../systems/logic/models";
+import { playerState } from "../../../systems/players/state";
 
 const { t } = useI18n();
 
@@ -64,7 +64,7 @@ function change(change: Event & SortableChanged<string>, target: "enabled" | "re
 }
 
 async function add(target: "enabled" | "request" | "disabled"): Promise<void> {
-    const players = gameStore.state.players;
+    const players = playerState.$.players;
     const selection = await modals.selectionBox(
         "Select a player",
         players

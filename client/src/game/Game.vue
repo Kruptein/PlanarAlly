@@ -3,16 +3,17 @@ import throttle from "lodash/throttle";
 import { defineComponent, onMounted, onUnmounted, toRef, watchEffect } from "vue";
 
 import { useModal } from "../core/plugins/modals/plugin";
+import { getGameState } from "../store/_game";
 import { clientStore } from "../store/client";
 import { coreStore } from "../store/core";
-import { floorStore } from "../store/floor";
-import { gameStore } from "../store/game";
 
 import { createConnection, socket } from "./api/socket";
+import { dropAsset } from "./dropAsset";
 import { onKeyDown } from "./input/keyboard";
 import { scrollZoom } from "./input/mouse";
 import { clearUndoStacks } from "./operations/undo";
-import { dropAsset, setSelectionBoxFunction } from "./temp";
+import { floorSystem } from "./systems/floors";
+import { setSelectionBoxFunction } from "./temp";
 import {
     contextMenu,
     keyUp,
@@ -46,7 +47,7 @@ export default defineComponent({
         const modals = useModal();
         setSelectionBoxFunction(modals.selectionBox);
 
-        const gameState = gameStore.state;
+        const gameState = getGameState();
 
         const mediaQuery = matchMedia(`(resolution: ${devicePixelRatio}dppx)`);
         let throttledMoveSet = false;
@@ -55,7 +56,7 @@ export default defineComponent({
         let throttledTouchMove: (event: TouchEvent) => void = (_event: TouchEvent) => {};
 
         watchEffect(() => {
-            if (!gameStore.state.boardInitialized) {
+            if (!getGameState().boardInitialized) {
                 throttledMoveSet = false;
                 throttledTouchMoveSet = false;
             }
@@ -83,7 +84,7 @@ export default defineComponent({
         }
 
         function resizeWindow(): void {
-            floorStore.resize(window.innerWidth, window.innerHeight);
+            floorSystem.resize(window.innerWidth, window.innerHeight);
         }
 
         // Touch events

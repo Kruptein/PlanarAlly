@@ -9,7 +9,7 @@ import { getValue } from "../../../../core/utils";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { getGlobalId } from "../../../id";
 import type { LocalId } from "../../../id";
-import { accessSystem } from "../../../systems/access";
+import { accessState } from "../../../systems/access/state";
 import { auraSystem } from "../../../systems/auras";
 import { sendShapeMoveAura } from "../../../systems/auras/emits";
 import type { Aura, AuraId, UiAura } from "../../../systems/auras/models";
@@ -21,7 +21,7 @@ const { t } = useI18n();
 
 defineProps<{ activeSelection: boolean }>();
 
-const owned = accessSystem.$.hasEditAccess;
+const owned = accessState.hasEditAccess;
 const isComposite = activeShapeStore.isComposite;
 
 // Tracker

@@ -1,133 +1,13 @@
-import tinycolor from "tinycolor2";
-
-import { g2l, g2lr, g2lx, g2ly, toRadians } from "../core/conversions";
-import { floorStore } from "../store/floor";
-
-import type { Layer } from "./layers/variants/layer";
-import { LayerName } from "./models/floor";
-import type { Floor } from "./models/floor";
-import type { IShape } from "./shapes/interfaces";
-import { auraSystem } from "./systems/auras";
-import { TriangulationTarget } from "./vision/state";
-import { EdgeIterator } from "./vision/tds";
-import type { Edge, TDS } from "./vision/tds";
-import { computeVisibility } from "./vision/te";
-import { ccw, cw } from "./vision/triag";
-
-let _animationFrameId = 0;
-
-export function startDrawLoop(): void {
-    _animationFrameId = requestAnimationFrame(drawLoop);
-}
-
-export function stopDrawLoop(): void {
-    cancelAnimationFrame(_animationFrameId);
-}
-
-function drawLoop(): void {
-    const state = floorStore.state;
-    // First process all other floors
-    for (const [f, floor] of state.floors.entries()) {
-        if (f === state.floorIndex) continue;
-        drawFloor(floor);
-    }
-    // Then process the current floor
-    if (floorStore.currentFloor !== undefined) {
-        drawFloor(floorStore.currentFloor.value!);
-    }
-    for (let i = state.floorIndex; i >= 0; i--) {
-        const floor = state.floors[i];
-        for (const layer of floorStore.getLayers(floor)) {
-            if (i === state.floorIndex || !layer.isVisionLayer) layer.show();
-        }
-    }
-    _animationFrameId = requestAnimationFrame(drawLoop);
-}
-
-function drawFloor(floor: Floor): void {
-    let fowLayer: Layer | undefined;
-    for (const layer of floorStore.getLayers(floor)) {
-        layer.hide();
-        // we need to draw fow later because it depends on fow-players
-        // and historically we did the draw loop in the other direction
-        if (layer.name === LayerName.Lighting) {
-            fowLayer = layer;
-            continue;
-        }
-        layer.draw();
-    }
-    if (fowLayer) fowLayer.draw();
-}
-
-export function drawAuras(shape: IShape, ctx: CanvasRenderingContext2D): void {
-    const center = shape.center();
-    const lCenter = g2l(center);
-
-    for (const aura of auraSystem.getAll(shape.id, true)) {
-        if (!aura.active) continue;
-
-        const value = aura.value > 0 && !isNaN(aura.value) ? aura.value : 0;
-        const dim = aura.dim > 0 && !isNaN(aura.dim) ? aura.dim : 0;
-        if (value === 0 && dim === 0) continue;
-        ctx.beginPath();
-
-        const innerRange = g2lr(value + dim);
-
-        ctx.strokeStyle = aura.borderColour;
-        ctx.lineWidth = 5;
-
-        if (dim === 0) ctx.fillStyle = aura.colour;
-        else {
-            const gradient = ctx.createRadialGradient(
-                lCenter.x,
-                lCenter.y,
-                g2lr(value),
-                lCenter.x,
-                lCenter.y,
-                innerRange,
-            );
-            const tc = tinycolor(aura.colour);
-            ctx.fillStyle = gradient;
-            gradient.addColorStop(0, aura.colour);
-            gradient.addColorStop(1, tc.setAlpha(0).toRgbString());
-        }
-
-        const angleA = aura.angle === 360 ? 0 : shape.angle + toRadians(aura.direction - aura.angle / 2);
-        const angleB = aura.angle === 360 ? Math.PI * 2 : shape.angle + toRadians(aura.direction + aura.angle / 2);
-
-        // Set visibility polygon as clipping path
-        if (aura.visionSource) {
-            ctx.save();
-
-            const polygon = computeVisibility(center, TriangulationTarget.VISION, shape.floor.id);
-
-            ctx.beginPath();
-            ctx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
-            for (const point of polygon) ctx.lineTo(g2lx(point[0]), g2ly(point[1]));
-            ctx.clip();
-        }
-
-        // Draw aura
-
-        ctx.beginPath();
-
-        if (aura.angle < 360) {
-            ctx.moveTo(lCenter.x, lCenter.y);
-            ctx.lineTo(lCenter.x + innerRange * Math.cos(angleA), lCenter.y + innerRange * Math.sin(angleA));
-        }
-        ctx.arc(lCenter.x, lCenter.y, innerRange, angleA, angleB);
-        if (aura.angle < 360) {
-            ctx.lineTo(lCenter.x, lCenter.y);
-        }
-        ctx.fill();
-        ctx.stroke();
-
-        if (aura.visionSource) ctx.restore();
-    }
-}
+import { g2lx, g2ly } from "../../core/conversions";
+import { LayerName } from "../models/floor";
+import { floorSystem } from "../systems/floors";
+import { floorState } from "../systems/floors/state";
+import { EdgeIterator } from "../vision/tds";
+import type { Edge, TDS } from "../vision/tds";
+import { ccw, cw } from "../vision/triag";
 
 function drawPoint(point: number[], r: number, colour?: string): void {
-    const dl = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
+    const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
     const ctx = dl.ctx;
     ctx.lineJoin = "round";
@@ -141,7 +21,7 @@ function drawPoint(point: number[], r: number, colour?: string): void {
 }
 
 function drawPointL(point: number[], r: number, colour?: string): void {
-    const dl = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
+    const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
     const ctx = dl.ctx;
     ctx.lineJoin = "round";
@@ -155,7 +35,7 @@ function drawPointL(point: number[], r: number, colour?: string): void {
 }
 
 export function drawPolygon(polygon: number[][], colour?: string): void {
-    const dl = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
+    const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
     const ctx = dl.ctx;
     ctx.lineJoin = "round";
@@ -173,7 +53,7 @@ export function drawPolygon(polygon: number[][], colour?: string): void {
 }
 
 function drawPolygonL(polygon: number[][], colour?: string): void {
-    const dl = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
+    const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
     const ctx = dl.ctx;
     ctx.lineJoin = "round";
@@ -211,7 +91,7 @@ export function drawLine(from: number[], to: number[], constrained: boolean, loc
     // } else {
     //     console.log(" ", from, to);
     // }
-    const dl = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
+    const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
     const ctx = dl.ctx;
     ctx.beginPath();
@@ -225,7 +105,7 @@ export function drawLine(from: number[], to: number[], constrained: boolean, loc
 function drawEdge(edge: Edge, colour: string, local = false): void {
     const from = edge.first!.vertices[edge.second === 0 ? 1 : 0]!.point!;
     const to = edge.first!.vertices[edge.second === 2 ? 1 : 2]!.point!;
-    const dl = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
+    const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
     const ctx = dl.ctx;
     ctx.beginPath();
@@ -240,7 +120,7 @@ function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0)
     I = 0;
     J = 0;
     let T = 0;
-    const dl = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
+    const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
     const ctx = dl.ctx;
     if (clear) ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
@@ -318,7 +198,7 @@ function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0)
 //     const POINTS = 	[[[2204.40109629713,1502.9370921248671],[2194.4969483467376,1501.8032381745284],[2182.960505429924,849.4588854915166],[2195.2603028653853,848.4339023718949],[2195.2603028653853,1094.4298510811182],[2221.909863975551,1099.554766679227],[2220.8848808559296,1105.7046653969574],[2190.135387267276,1107.7546316362009],[2197.310269104629,1306.6013568428232],[2254.7093238034477,1302.5014243643361],[2255.734306923069,1306.6013568428232],[2193.2103366261417,1314.8012217997973]],
 //         [[200,-1350],[200,4350],[750,4350],[750,-1350]],
 //         [[3556.1308949025706,368.2067431718624],[3556.1308949025706,4099.326575833981],[4125.828761825174,4099.326575833981],[4125.828761825174,368.2067431718624]]];
-//     for (const [i, shape] of (<Polygon[]>floorStore.getLayer(floorStore.currentFloor.name, )!.shapes).entries()) {
+//     for (const [i, shape] of (<Polygon[]>floorSystem.getLayer(floorState.currentFloor.name, )!.shapes).entries()) {
 //         shape.refPoint = toGP(POINTS[i][0]);
 //         shape._vertices = POINTS[i].slice(1).map(p => toGP(p));
 //         socket.emit("Shape.Position.Update", { shape: shape.asDict(), redraw: true, temporary: false });
@@ -331,5 +211,5 @@ function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0)
 //         s += `${triag.uid}\t${triag.vertices.map(v => v === null ? '0,0' : v.point!.join(",")).join("\t")}\t${triag.neighbours.map(n=>n!.uid).join("\t")}\n`;
 //     }
 //     console.log(s);
-//     deleteShapeFromTriag(TriangulationTarget.VISION, floorStore.getLayer(floorStore.currentFloor.name, )!.shapes[2]);
+//     deleteShapeFromTriag(TriangulationTarget.VISION, floorSystem.getLayer(floorState.currentFloor.name, )!.shapes[2]);
 // }

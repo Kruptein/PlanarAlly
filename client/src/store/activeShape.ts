@@ -6,18 +6,19 @@ import { Store } from "../core/store";
 import { sendShapeSvgAsset } from "../game/api/emits/shape/options";
 import { getGlobalId, getShape } from "../game/id";
 import type { LocalId } from "../game/id";
+import type { Label } from "../game/interfaces/label";
+import type { IShape } from "../game/interfaces/shape";
+import type { IAsset } from "../game/interfaces/shapes/asset";
+import type { IToggleComposite } from "../game/interfaces/shapes/toggleComposite";
 import { selectionState } from "../game/layers/selection";
 import { compositeState } from "../game/layers/state";
 import type { FloorId } from "../game/models/floor";
 import type { ShapeOptions } from "../game/models/shapes";
-import type { IShape, Label } from "../game/shapes/interfaces";
 import type { SHAPE_TYPE } from "../game/shapes/types";
-import type { Asset } from "../game/shapes/variants/asset";
-import type { ToggleComposite } from "../game/shapes/variants/toggleComposite";
+import { floorSystem } from "../game/systems/floors";
 import { visionState } from "../game/vision/state";
 
-import { floorStore } from "./floor";
-import { gameStore } from "./game";
+import { getGameState } from "./_game";
 
 interface ActiveShapeState {
     id?: LocalId;
@@ -263,7 +264,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         variant.name = name;
 
         if (!syncTo.ui) {
-            const parent = getShape(this._state.parentUuid) as ToggleComposite;
+            const parent = getShape(this._state.parentUuid) as IToggleComposite;
             parent.renameVariant(uuid, name, syncTo);
         }
     }
@@ -277,7 +278,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.variants.splice(index, 1);
 
         if (!syncTo.ui) {
-            const parent = getShape(this._state.parentUuid) as ToggleComposite;
+            const parent = getShape(this._state.parentUuid) as IToggleComposite;
             parent.removeVariant(uuid, syncTo);
         }
     }
@@ -309,7 +310,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
     addLabel(label: string, syncTo: Sync): void {
         if (this._state.id === undefined) return;
 
-        this._state.labels.push({ ...gameStore.state.labels.get(label)! });
+        this._state.labels.push({ ...getGameState().labels.get(label)! });
 
         if (!syncTo.ui) {
             const shape = getShape(this._state.id)!;
@@ -340,10 +341,10 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         if (!syncTo.ui) {
             if (hash === undefined) {
                 visionState.recalculateVision(activeShapeStore.floor.value!);
-                floorStore.invalidate({ id: activeShapeStore.floor.value! });
+                floorSystem.invalidate({ id: activeShapeStore.floor.value! });
             } else {
                 shape.options.svgAsset = hash;
-                (shape as Asset).loadSvgs();
+                (shape as IAsset).loadSvgs();
             }
         }
 
@@ -383,7 +384,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.labels = [...shape.labels];
 
         if (this._state.parentUuid !== undefined) {
-            const composite = getShape(this._state.parentUuid) as ToggleComposite;
+            const composite = getShape(this._state.parentUuid) as IToggleComposite;
             this._state.variants = composite.variants.map((v) => ({ ...v }));
         }
     }

@@ -8,24 +8,27 @@ import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types"
 import type { PromptFunction } from "../../../core/plugins/modals/prompt";
 import { ctrlOrCmdPressed, mostReadable } from "../../../core/utils";
 import { i18n } from "../../../i18n";
+import { getGameState } from "../../../store/_game";
 import { clientStore } from "../../../store/client";
-import { floorStore } from "../../../store/floor";
-import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
 import { sendShapeSizeUpdate } from "../../api/emits/shape/core";
-import type { Layer } from "../../layers/variants/layer";
+import type { ILayer } from "../../interfaces/layer";
+import type { IShape } from "../../interfaces/shape";
+import type { ICircle } from "../../interfaces/shapes/circle";
+import type { IRect } from "../../interfaces/shapes/rect";
 import { LayerName } from "../../models/floor";
 import type { Floor } from "../../models/floor";
 import { ToolName } from "../../models/tools";
 import type { ToolFeatures } from "../../models/tools";
 import { overrideLastOperation } from "../../operations/undo";
-import type { IShape } from "../../shapes/interfaces";
 import { Circle } from "../../shapes/variants/circle";
 import { Line } from "../../shapes/variants/line";
 import { Polygon } from "../../shapes/variants/polygon";
 import { Rect } from "../../shapes/variants/rect";
 import { Text } from "../../shapes/variants/text";
 import { accessSystem } from "../../systems/access";
+import { floorSystem } from "../../systems/floors";
+import { floorState } from "../../systems/floors/state";
 import { doorSystem } from "../../systems/logic/door";
 import type { DOOR_TOGGLE_MODE } from "../../systems/logic/door/models";
 import { DEFAULT_PERMISSIONS } from "../../systems/logic/models";
@@ -92,14 +95,14 @@ class DrawTool extends Tool {
     constructor() {
         super();
         watch(
-            () => gameStore.state.boardInitialized,
+            () => getGameState().boardInitialized,
             () => {
                 watch(
-                    floorStore.currentLayer,
+                    floorState.currentLayer,
                     (newLayer, oldLayer) => {
                         if (oldLayer !== undefined) {
                             if (newLayer?.floor !== oldLayer.floor) {
-                                this.onFloorChange(floorStore.getFloor({ id: oldLayer.floor })!);
+                                this.onFloorChange(floorSystem.getFloor({ id: oldLayer.floor })!);
                             } else if (newLayer?.name !== oldLayer.name) {
                                 this.onLayerChange(oldLayer);
                             }
@@ -159,13 +162,13 @@ class DrawTool extends Tool {
         return getUnitDistance(settingsStore.unitSize.value) / 8;
     }
 
-    private getLayer(data?: { floor?: Floor; layer?: LayerName }): Layer | undefined {
+    private getLayer(data?: { floor?: Floor; layer?: LayerName }): ILayer | undefined {
         if (this.state.selectedMode === DrawMode.Normal)
-            return floorStore.getLayer(data?.floor ?? floorStore.currentFloor.value!, data?.layer);
+            return floorSystem.getLayer(data?.floor ?? floorState.currentFloor.value!, data?.layer);
         else if (this.state.selectedMode === DrawMode.Erase) {
-            return floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Map);
+            return floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Map);
         }
-        return floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Lighting);
+        return floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Lighting);
     }
 
     private finaliseShape(): void {
@@ -206,7 +209,7 @@ class DrawTool extends Tool {
     //     const layer = this.getLayer()!;
     //     await layer.waitValid();
     //     if (!this.isActiveTool.value) return;
-    //     const dL = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw)!;
+    //     const dL = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw)!;
     //     for (const point of layer.points.keys()) {
     //         const parsedPoint = JSON.parse(point);
     //         dL.ctx.beginPath();
@@ -218,9 +221,9 @@ class DrawTool extends Tool {
     private onModeChange(newValue: string, oldValue: string): void {
         if (this.brushHelper === undefined) return;
 
-        const fowLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Lighting);
-        const normalLayer = floorStore.currentLayer.value;
-        const mapLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Map)!;
+        const fowLayer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Lighting);
+        const normalLayer = floorState.currentLayer.value;
+        const mapLayer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Map)!;
         if (fowLayer === undefined || normalLayer === undefined) return;
 
         this.setupBrush();
@@ -261,7 +264,7 @@ class DrawTool extends Tool {
         }
     }
 
-    private onLayerChange(oldValue: Layer): void {
+    private onLayerChange(oldValue: ILayer): void {
         if (this.isActiveTool.value) {
             let mouse: { x: number; y: number } | undefined = undefined;
             if (this.brushHelper !== undefined) {
@@ -282,9 +285,9 @@ class DrawTool extends Tool {
         this.brushHelper = this.createBrush(toGP(mouse?.x ?? -1000, mouse?.y ?? -1000));
         this.setupBrush();
         layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL); // during mode change the shape is already added
-        // if (gameStore.state.isDm) this.showLayerPoints();
+        // if (getGameState().isDm) this.showLayerPoints();
         this.pointer = this.createPointer(toGP(mouse?.x ?? -1000, mouse?.y ?? -1000));
-        const drawLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
+        const drawLayer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
         drawLayer!.addShape(this.pointer, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         drawLayer!.invalidate(true);
     }
@@ -297,7 +300,7 @@ class DrawTool extends Tool {
             this.brushHelper = undefined;
         }
         if (this.pointer !== undefined) {
-            const drawLayer = floorStore.getLayer(data?.floor ?? floorStore.currentFloor.value!, LayerName.Draw);
+            const drawLayer = floorSystem.getLayer(data?.floor ?? floorState.currentFloor.value!, LayerName.Draw);
             drawLayer!.removeShape(this.pointer, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
             this.pointer = undefined;
         }
@@ -312,7 +315,7 @@ class DrawTool extends Tool {
             layer.invalidate(false);
         }
         layer.canvas.parentElement!.style.removeProperty("cursor");
-        floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw)?.invalidate(true);
+        floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw)?.invalidate(true);
     }
 
     // MOUSE HANDLERS
@@ -476,7 +479,7 @@ class DrawTool extends Tool {
 
         if (this.pointer !== undefined) {
             this.pointer.refPoint = endPoint;
-            const dl = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw)!;
+            const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw)!;
             dl.invalidate(true);
         }
 
@@ -490,7 +493,7 @@ class DrawTool extends Tool {
 
         switch (this.state.selectedShape) {
             case DrawShape.Square: {
-                const rect = this.shape as Rect;
+                const rect = this.shape as IRect;
                 const newW = Math.abs(endPoint.x - this.startPoint.x);
                 const newH = Math.abs(endPoint.y - this.startPoint.y);
                 if (newW === rect.w && newH === rect.h) return;
@@ -505,7 +508,7 @@ class DrawTool extends Tool {
                 break;
             }
             case DrawShape.Circle: {
-                const circ = this.shape as Circle;
+                const circ = this.shape as ICircle;
                 const newR = Math.abs(subtractP(endPoint, this.startPoint).length());
                 if (circ.r === newR) return;
                 circ.r = newR;

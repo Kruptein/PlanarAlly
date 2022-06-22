@@ -1,10 +1,10 @@
 import { UI_SYNC } from "../../../../core/models/types";
 import type { Sync } from "../../../../core/models/types";
-import { floorStore } from "../../../../store/floor";
 import { getLocalId, getShape } from "../../../id";
 import type { GlobalId } from "../../../id";
+import type { IAsset } from "../../../interfaces/shapes/asset";
 import { Shape } from "../../../shapes/shape";
-import type { Asset } from "../../../shapes/variants/asset";
+import { floorSystem } from "../../../systems/floors";
 import { visionState } from "../../../vision/state";
 import { socket } from "../../socket";
 
@@ -70,9 +70,9 @@ socket.on("Shape.Options.SvgAsset.Set", (data: { shape: GlobalId; value: string 
         delete shape.options.svgPaths;
         delete shape.options.svgWidth;
         visionState.recalculateVision(shape.floor.id);
-        floorStore.invalidate({ id: shape.floor.id });
+        floorSystem.invalidate({ id: shape.floor.id });
     } else {
         shape.options.svgAsset = data.value;
-        (shape as Asset).loadSvgs();
+        (shape as IAsset).loadSvgs();
     }
 });

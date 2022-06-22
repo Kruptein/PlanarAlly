@@ -8,7 +8,7 @@ import type { GlobalId, LocalId } from "../../id";
 import type { ServerShape } from "../../models/shapes";
 import { Shape } from "../shape";
 
-import { BoundingRect } from "./boundingRect";
+import { BoundingRect } from "./simple/boundingRect";
 
 type ServerBaseRect = ServerShape & { width: number; height: number };
 

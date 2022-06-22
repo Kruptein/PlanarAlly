@@ -1,6 +1,6 @@
 import { clientStore, DEFAULT_GRID_SIZE } from "../../../store/client";
-import { floorStore } from "../../../store/floor";
 import { settingsStore } from "../../../store/settings";
+import { floorState } from "../../systems/floors/state";
 
 import { Layer } from "./layer";
 
@@ -9,13 +9,13 @@ export class GridLayer extends Layer {
         this.valid = false;
     }
     show(): void {
-        if (settingsStore.useGrid.value && this.floor === floorStore.currentFloor.value!.id)
+        if (settingsStore.useGrid.value && this.floor === floorState.currentFloor.value!.id)
             this.canvas.style.removeProperty("display");
     }
     draw(_doClear?: boolean): void {
         if (!this.valid) {
             if (settingsStore.useGrid.value) {
-                const activeFowFloor = floorStore.currentFloor.value!.id;
+                const activeFowFloor = floorState.currentFloor.value!.id;
 
                 if (this.floor === activeFowFloor && this.canvas.style.display === "none")
                     this.canvas.style.removeProperty("display");

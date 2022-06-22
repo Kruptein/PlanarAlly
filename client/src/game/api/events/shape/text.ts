@@ -1,10 +1,10 @@
 import { getLocalId, getShape } from "../../../id";
 import type { GlobalId } from "../../../id";
-import type { Text } from "../../../shapes/variants/text";
+import type { IText } from "../../../interfaces/shapes/text";
 import { socket } from "../../socket";
 
 socket.on("Shape.Text.Value.Set", (data: { uuid: GlobalId; text: string }) => {
-    const shape = getShape(getLocalId(data.uuid)!) as Text | undefined;
+    const shape = getShape(getLocalId(data.uuid)!) as IText | undefined;
     if (shape === undefined) return;
 
     shape.text = data.text;
@@ -12,7 +12,7 @@ socket.on("Shape.Text.Value.Set", (data: { uuid: GlobalId; text: string }) => {
 });
 
 socket.on("Shape.Text.Size.Update", (data: { uuid: GlobalId; font_size: number }) => {
-    const shape = getShape(getLocalId(data.uuid)!) as Text | undefined;
+    const shape = getShape(getLocalId(data.uuid)!) as IText | undefined;
     if (shape === undefined) return;
 
     shape.fontSize = data.font_size;

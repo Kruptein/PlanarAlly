@@ -1,7 +1,8 @@
-import { computed } from "vue";
-import type { ComputedRef, DeepReadonly } from "vue";
+import type { DeepReadonly } from "vue";
 
-import { Store } from "../core/store";
+import { registerSystem } from "..";
+import type { System } from "..";
+import { getGameState } from "../../../store/_game";
 import {
     sendActiveLayer,
     sendFloorReorder,
@@ -10,71 +11,33 @@ import {
     sendFloorSetVisible,
     sendRemoveFloor,
     sendRenameFloor,
-} from "../game/api/emits/floor";
-import { addNewGroup, hasGroup } from "../game/groups";
-import { createCanvas } from "../game/layers/canvas";
-import { recalculateZIndices } from "../game/layers/floor";
-import { selectionState } from "../game/layers/selection";
-import { FowLightingLayer } from "../game/layers/variants/fowLighting";
-import { FowVisionLayer } from "../game/layers/variants/fowVision";
-import { GridLayer } from "../game/layers/variants/grid";
-import { Layer } from "../game/layers/variants/layer";
-import { MapLayer } from "../game/layers/variants/map";
-import { LayerName } from "../game/models/floor";
-import type { FloorId } from "../game/models/floor";
-import type { Floor, FloorType } from "../game/models/floor";
-import type { ServerFloor, ServerLayer } from "../game/models/general";
-import { groupToClient } from "../game/models/groups";
-import { TriangulationTarget, visionState } from "../game/vision/state";
+} from "../../api/emits/floor";
+import type { ILayer } from "../../interfaces/layer";
+import type { IGridLayer } from "../../interfaces/layers/grid";
+import { recalculateZIndices } from "../../layers/floor";
+import { selectionState } from "../../layers/selection";
+import { LayerName } from "../../models/floor";
+import type { Floor, FloorId, FloorType } from "../../models/floor";
+import { TriangulationTarget, visionState } from "../../vision/state";
 
-import { gameStore } from "./game";
-
-interface FloorState {
-    floors: Floor[];
-    floorIndex: FloorId;
-
-    layerIndex: number;
-}
+import { floorState } from "./state";
 
 type FloorRepresentation = { name: string } | { id: number } | { position: number };
 
-class FloorStore extends Store<FloorState> {
+const { $, _$, currentFloor, currentLayer } = floorState;
+
+class FloorSystem implements System {
     private indices: number[] = [];
     private lastFloorId = 0;
-    private layerMap: Map<number, Layer[]> = new Map();
-
-    currentFloor: ComputedRef<Floor | undefined>;
-    currentLayer: ComputedRef<Layer | undefined>;
-
-    constructor() {
-        super();
-        this.currentFloor = computed(() => {
-            if (this._state.floorIndex < 0) return undefined;
-            return this._state.floors[this._state.floorIndex];
-        });
-        this.currentLayer = computed(() => {
-            const floor = this.currentFloor.value;
-            if (floor === undefined) return undefined;
-            return this.getLayer(floor);
-        });
-    }
-
-    protected data(): FloorState {
-        return {
-            floors: [],
-            floorIndex: -1 as FloorId,
-
-            layerIndex: -1,
-        };
-    }
+    private layerMap: Map<number, ILayer[]> = new Map();
 
     clear(): void {
-        this._state.floors = [];
+        _$.floors = [];
+        _$.floorIndex = -1 as FloorId;
+        _$.layerIndex = -1;
         this.indices = [];
-        this._state.floorIndex = -1 as FloorId;
-        this._state.layerIndex = -1;
-        this.layerMap.clear();
         this.lastFloorId = 0;
+        this.layerMap.clear();
     }
 
     // FLOOR
@@ -88,7 +51,7 @@ class FloorStore extends Store<FloorState> {
         readonly = true,
     ): number | DeepReadonly<Floor> | undefined {
         const method = mode === "index" ? "findIndex" : "find";
-        const target = readonly === false ? floorStore._state : floorStore.state;
+        const target = readonly === false ? _$ : $;
         if ("name" in data) return target.floors[method]((f) => f.name === data.name);
         if ("id" in data) return target.floors[method]((f) => f.id === data.id);
         return mode === "index" ? data.position : target.floors[data.position];
@@ -108,66 +71,51 @@ class FloorStore extends Store<FloorState> {
         return this.lastFloorId++ as FloorId;
     }
 
-    addServerFloor(serverFloor: ServerFloor): void {
-        const floor: Floor = {
-            id: floorStore.generateFloorId(),
-            name: serverFloor.name,
-            playerVisible: serverFloor.player_visible,
-            type: serverFloor.type_,
-            backgroundValue: serverFloor.background_color ?? undefined,
-        };
-        this.addFloor(floor, serverFloor.index);
-        visionState.addCdt(this.getFloor({ name: serverFloor.name })!.id);
-        for (const layer of serverFloor.layers) this.addServerLayer(layer, floor);
-        visionState.recalculateVision(this.getFloor({ name: floor.name })!.id);
-        visionState.recalculateMovement(this.getFloor({ name: floor.name })!.id);
-
-        recalculateZIndices();
-    }
-
-    private addFloor(floor: Floor, targetIndex?: number): void {
+    addFloor(floor: Floor, targetIndex?: number): void {
         // We do some special magic here to allow out of order loading of floors on startup
         if (targetIndex !== undefined) {
             const I = this.indices.findIndex((i) => i > targetIndex);
             if (I >= 0) {
                 this.indices.splice(I, 0, targetIndex);
-                this._state.floors.splice(I, 0, floor);
-                if (I <= this._state.floorIndex) this._state.floorIndex = (this._state.floorIndex + 1) as FloorId;
+                _$.floors.splice(I, 0, floor);
+                if (I <= _$.floorIndex) _$.floorIndex = (_$.floorIndex + 1) as FloorId;
             } else {
                 this.indices.push(targetIndex);
-                this._state.floors.push(floor);
+                _$.floors.push(floor);
             }
         } else {
-            this._state.floors.push(floor);
+            _$.floors.push(floor);
         }
         this.layerMap.set(floor.id, []);
     }
 
     selectFloor(targetFloor: FloorRepresentation, sync: boolean): void {
         const targetFloorIndex = this.getFloorIndex(targetFloor);
-        if (targetFloorIndex === this._state.floorIndex || targetFloorIndex === undefined) return;
+        if (targetFloorIndex === _$.floorIndex || targetFloorIndex === undefined) return;
+        const floor = this.getFloor(targetFloor)!;
 
-        this._state.floorIndex = targetFloorIndex;
-        for (const [f, floor] of floorStore.state.floors.entries()) {
+        _$.floorIndex = targetFloorIndex;
+        _$.layers = this.getLayers(floor);
+        for (const [f, floor] of _$.floors.entries()) {
             for (const layer of this.getLayers(floor)) {
                 if (f > targetFloorIndex) layer.canvas.style.display = "none";
                 else layer.canvas.style.removeProperty("display");
             }
         }
-        this.selectLayer(this.currentLayer.value!.name, sync, false);
+        this.selectLayer(currentLayer.value!.name, sync, false);
         this.invalidateAllFloors();
     }
 
     renameFloor(index: number, name: string, sync: boolean): void {
-        this._state.floors[index].name = name;
-        if (index === this._state.floorIndex) this.invalidateAllFloors();
+        _$.floors[index].name = name;
+        if (index === _$.floorIndex) this.invalidateAllFloors();
         if (sync) sendRenameFloor({ index, name });
     }
 
     removeFloor(floorRepresentation: FloorRepresentation, sync: boolean): void {
         const floorIndex = this.getFloorIndex(floorRepresentation);
         if (floorIndex === undefined) throw new Error("Could not remove unknown floor");
-        const floor = this._state.floors[floorIndex];
+        const floor = _$.floors[floorIndex];
 
         visionState.removeCdt(floor.id);
         visionState.removeBlockers(TriangulationTarget.MOVEMENT, floor.id);
@@ -175,11 +123,11 @@ class FloorStore extends Store<FloorState> {
 
         for (const layer of this.getLayers(floor)) layer.canvas.remove();
 
-        this._state.floors.splice(floorIndex, 1);
+        _$.floors.splice(floorIndex, 1);
         this.layerMap.delete(floor.id);
 
-        if (this._state.floorIndex === floorIndex) this.selectFloor({ position: floorIndex - 1 }, true);
-        else if (this._state.floorIndex > floorIndex) this._state.floorIndex--;
+        if (_$.floorIndex === floorIndex) this.selectFloor({ position: floorIndex - 1 }, true);
+        else if (_$.floorIndex > floorIndex) _$.floorIndex--;
         if (sync) sendRemoveFloor(floor.name);
     }
 
@@ -192,15 +140,15 @@ class FloorStore extends Store<FloorState> {
     }
 
     reorderFloors(floors: string[], sync: boolean): void {
-        const activeFloorName = this._state.floors[this._state.floorIndex].name;
-        this._state.floors = floors.map((name) => this._state.floors.find((f) => f.name === name)!);
-        this._state.floorIndex = this.getFloorIndex({ name: activeFloorName })!;
+        const activeFloorName = _$.floors[_$.floorIndex].name;
+        _$.floors = floors.map((name) => _$.floors.find((f) => f.name === name)!);
+        _$.floorIndex = this.getFloorIndex({ name: activeFloorName })!;
         recalculateZIndices();
         if (sync) sendFloorReorder(floors);
     }
 
     setFloorType(floorRepr: FloorRepresentation, floorType: FloorType, sync: boolean): void {
-        if (!gameStore.state.isDm) return;
+        if (!getGameState().isDm) return;
         const floor = this.getFloor(floorRepr, false);
         if (floor === undefined) return;
 
@@ -209,7 +157,7 @@ class FloorStore extends Store<FloorState> {
     }
 
     setFloorBackground(floorRepr: FloorRepresentation, backgroundValue: string | undefined, sync: boolean): void {
-        if (!gameStore.state.isDm) return;
+        if (!getGameState().isDm) return;
         const floor = this.getFloor(floorRepr, false);
         if (floor === undefined) return;
 
@@ -220,55 +168,12 @@ class FloorStore extends Store<FloorState> {
 
     // LAYERS
 
-    addServerLayer(layerInfo: ServerLayer, floor: Floor): void {
-        const canvas = createCanvas();
-
-        const layerName = layerInfo.name as LayerName;
-
-        // Create the Layer instance
-        let layer: Layer;
-        if (layerInfo.type_ === LayerName.Grid) {
-            layer = new GridLayer(canvas, layerName, floor.id, layerInfo.index);
-        } else if (layerInfo.type_ === LayerName.Lighting) {
-            layer = new FowLightingLayer(canvas, layerName, floor.id, layerInfo.index);
-        } else if (layerInfo.type_ === LayerName.Vision) {
-            layer = new FowVisionLayer(canvas, layerName, floor.id, layerInfo.index);
-        } else if (layerName === LayerName.Map) {
-            layer = new MapLayer(canvas, layerName, floor.id, layerInfo.index);
-        } else {
-            layer = new Layer(canvas, layerName, floor.id, layerInfo.index);
-        }
-        layer.selectable = layerInfo.selectable;
-        layer.playerEditable = layerInfo.player_editable;
-        this.addLayer(layer, floor.id);
-
-        // Add the element to the DOM
-        const layers = document.getElementById("layers");
-        if (layers === null) {
-            console.warn("Layers div is missing, this will prevent the main game board from loading!");
-            return;
-        }
-        if (layerInfo.name !== "fow-players") layers.appendChild(canvas);
-
-        // Load layer groups
-
-        for (const serverGroup of layerInfo.groups) {
-            const group = groupToClient(serverGroup);
-            if (!hasGroup(group.uuid)) {
-                addNewGroup(group, false);
-            }
-        }
-
-        // Load layer shapes
-        layer.setServerShapes(layerInfo.shapes);
-    }
-
-    addLayer(layer: Layer, floorId: number): void {
-        for (const floor of this._state.floors) {
+    addLayer(layer: ILayer, floorId: number): void {
+        for (const floor of _$.floors) {
             if (floor.id === floorId) {
                 this.layerMap.get(floor.id)!.push(layer);
-                if (this._state.layerIndex < 0) {
-                    this._state.layerIndex = 2;
+                if (_$.layerIndex < 0) {
+                    _$.layerIndex = 2;
                 }
                 return;
             }
@@ -276,15 +181,15 @@ class FloorStore extends Store<FloorState> {
         console.error(`Attempt to add layer to unknown floor ${floorId}`);
     }
 
-    getLayer(floor: Floor, name?: LayerName): Layer | undefined {
+    getLayer(floor: Floor, name?: LayerName): ILayer | undefined {
         const layers = this.layerMap.get(floor.id)!;
-        if (name === undefined) return layers[this._state.layerIndex];
+        if (name === undefined) return layers[_$.layerIndex];
         for (const layer of layers) {
             if (layer.name === name) return layer;
         }
     }
 
-    getLayers(floor: Floor): Layer[] {
+    getLayers(floor: Floor): ILayer[] {
         return this.layerMap.get(floor.id)!;
     }
 
@@ -295,13 +200,13 @@ class FloorStore extends Store<FloorState> {
     selectLayer(name: string, sync = true, invalidate = true): void {
         let found = false;
         selectionState.clear();
-        for (const [index, layer] of this.getLayers(this.currentFloor.value!).entries()) {
+        for (const [index, layer] of this.getLayers(currentFloor.value!).entries()) {
             if (!layer.selectable) continue;
             if (found && layer.name !== LayerName.Lighting) layer.ctx.globalAlpha = 0.3;
             else layer.ctx.globalAlpha = 1.0;
 
             if (name === layer.name) {
-                this._state.layerIndex = index;
+                _$.layerIndex = index;
                 found = true;
                 if (sync) sendActiveLayer({ layer: layer.name, floor: this.getFloor({ id: layer.floor })!.name });
             }
@@ -310,8 +215,8 @@ class FloorStore extends Store<FloorState> {
         }
     }
 
-    getGridLayer(floor: Floor): GridLayer | undefined {
-        return this.getLayer(floor, LayerName.Grid) as GridLayer;
+    getGridLayer(floor: Floor): IGridLayer | undefined {
+        return this.getLayer(floor, LayerName.Grid) as IGridLayer;
     }
 
     // INVALIDATE
@@ -325,17 +230,17 @@ class FloorStore extends Store<FloorState> {
     }
 
     invalidateAllFloors(): void {
-        for (const floor of this._state.floors) {
+        for (const floor of _$.floors) {
             this.invalidate(floor);
         }
     }
 
     invalidateVisibleFloors(): void {
         let floorFound = false;
-        for (const floor of this._state.floors) {
+        for (const floor of _$.floors) {
             if (floorFound) this.invalidateLight(floor.id);
             else this.invalidate(floor);
-            if (floor === this.currentFloor.value) floorFound = true;
+            if (floor === currentFloor.value) floorFound = true;
         }
     }
 
@@ -349,8 +254,8 @@ class FloorStore extends Store<FloorState> {
     }
 
     invalidateLightAllFloors(): void {
-        for (const [f, floor] of this._state.floors.entries()) {
-            if (f > this._state.floorIndex) return;
+        for (const [f, floor] of _$.floors.entries()) {
+            if (f > _$.floorIndex) return;
             this.invalidateLight(floor.id);
         }
     }
@@ -361,9 +266,9 @@ class FloorStore extends Store<FloorState> {
         for (const layer of [...this.layerMap.values()].flat()) {
             layer.resize(width, height);
         }
-        floorStore.invalidateAllFloors();
+        this.invalidateAllFloors();
     }
 }
 
-export const floorStore = new FloorStore();
-(window as any).floorStore = floorStore;
+export const floorSystem = new FloorSystem();
+registerSystem("floors", floorSystem, false);

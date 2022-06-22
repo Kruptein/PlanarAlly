@@ -5,7 +5,6 @@ import { useI18n } from "vue-i18n";
 import ColourPicker from "../../../core/components/ColourPicker.vue";
 import Modal from "../../../core/components/modals/Modal.vue";
 import { useModal } from "../../../core/plugins/modals/plugin";
-import { floorStore } from "../../../store/floor";
 import { settingsStore } from "../../../store/settings";
 import { uiStore } from "../../../store/ui";
 import {
@@ -15,6 +14,8 @@ import {
     getBackgroundTypes,
     getFloorTypes,
 } from "../../models/floor";
+import { floorSystem } from "../../systems/floors";
+import { floorState } from "../../systems/floors/state";
 
 import PatternSettings from "./floor/PatternSettings.vue";
 
@@ -24,33 +25,33 @@ const modals = useModal();
 const visible = toRef(uiStore.state, "showFloorSettings");
 const close = uiStore.hideFloorSettings.bind(uiStore);
 
-const floor = computed(() => floorStore.getFloor({ id: uiStore.state.selectedFloor }));
+const floor = computed(() => floorSystem.getFloor({ id: uiStore.state.selectedFloor }));
 
 const floorTypes = getFloorTypes();
 
 function updateName(event: Event): void {
     const name = (event.target as HTMLInputElement).value;
-    if (floorStore.getFloor({ name }) !== undefined) return;
+    if (floorSystem.getFloor({ name }) !== undefined) return;
 
-    floorStore.renameFloor(uiStore.state.selectedFloor, name, true);
+    floorSystem.renameFloor(uiStore.state.selectedFloor, name, true);
 }
 
 function setFloorType(event: Event): void {
     if (floor.value === undefined) return;
 
     const type = Number.parseInt((event.target as HTMLSelectElement).value);
-    floorStore.setFloorType({ id: floor.value.id }, type, true);
+    floorSystem.setFloorType({ id: floor.value.id }, type, true);
 }
 
 async function removeFloor(): Promise<void> {
-    if (floor.value === undefined || floorStore.state.floors.length <= 1) return;
+    if (floor.value === undefined || floorState.$.floors.length <= 1) return;
 
     const doRemove = await modals.confirm(
         t("common.warning"),
         t("game.ui.FloorSelect.warning_msg_Z", { z: floor.value.name }),
     );
     if (doRemove === true) {
-        floorStore.removeFloor(floor.value, true);
+        floorSystem.removeFloor(floor.value, true);
         close();
     }
 }
@@ -85,22 +86,22 @@ function setBackgroundType(event: Event): void {
     } else {
         value = "none";
     }
-    floorStore.setFloorBackground({ id: floor.value.id }, value, true);
+    floorSystem.setFloorBackground({ id: floor.value.id }, value, true);
 }
 
 function setBackground(background: string): void {
     if (floor.value === undefined) return;
-    floorStore.setFloorBackground({ id: floor.value.id }, background, true);
+    floorSystem.setFloorBackground({ id: floor.value.id }, background, true);
 }
 
 function resetBackground(): void {
     if (floor.value === undefined) return;
-    floorStore.setFloorBackground({ id: floor.value.id }, undefined, true);
+    floorSystem.setFloorBackground({ id: floor.value.id }, undefined, true);
 }
 
 function setPatternData(data: string): void {
     if (floor.value === undefined) return;
-    floorStore.setFloorBackground({ id: floor.value.id }, data, true);
+    floorSystem.setFloorBackground({ id: floor.value.id }, data, true);
 }
 </script>
 

@@ -9,7 +9,7 @@ import type { ServerCircle } from "../../models/shapes";
 import { Shape } from "../shape";
 import type { SHAPE_TYPE } from "../types";
 
-import { BoundingRect } from "./boundingRect";
+import { BoundingRect } from "./simple/boundingRect";
 
 export class Circle extends Shape {
     type: SHAPE_TYPE = "circle";

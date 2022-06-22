@@ -2,14 +2,14 @@ import { reactive, watchEffect } from "vue";
 import type { DeepReadonly } from "vue";
 
 import { registerSystem } from "..";
-import type { System } from "..";
+import type { ShapeSystem } from "..";
 import { NO_SYNC } from "../../../core/models/types";
 import type { Sync } from "../../../core/models/types";
-import { activeShapeStore } from "../../../store/activeShape";
 import { getGlobalId, getShape } from "../../id";
 import type { LocalId } from "../../id";
 import { compositeState } from "../../layers/state";
 import { visionState } from "../../vision/state";
+import { selectedSystem } from "../selected";
 
 import { aurasToServer, partialAuraToServer, toUiAuras } from "./conversion";
 import { sendShapeCreateAura, sendShapeRemoveAura, sendShapeUpdateAura } from "./emits";
@@ -23,7 +23,7 @@ interface AuraState {
     parentAuras: UiAura[];
 }
 
-class AuraSystem implements System {
+class AuraSystem implements ShapeSystem {
     private data: Map<LocalId, Aura[]> = new Map();
 
     // REACTIVE STATE
@@ -187,12 +187,14 @@ class AuraSystem implements System {
 }
 
 export const auraSystem = new AuraSystem();
-registerSystem("auras", auraSystem);
+registerSystem("auras", auraSystem, true);
 
 // Aura System state is active whenever a shape is selected due to the quick selection info
 
 watchEffect(() => {
-    const id = activeShapeStore.state.id;
-    if (id) auraSystem.loadState(id);
-    else auraSystem.dropState();
+    const id = selectedSystem.getFocus();
+    if (id.value) {
+        console.log("Selected :eyes:");
+        auraSystem.loadState(id.value);
+    } else auraSystem.dropState();
 });

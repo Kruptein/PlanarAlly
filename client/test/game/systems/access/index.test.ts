@@ -3,18 +3,19 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NO_SYNC, SERVER_SYNC, UI_SYNC } from "../../../../src/core/models/types";
 import { socket } from "../../../../src/game/api/socket";
 import type { LocalId } from "../../../../src/game/id";
-import type { IShape } from "../../../../src/game/shapes/interfaces";
+import type { IShape } from "../../../../src/game/interfaces/shape";
 import { accessSystem } from "../../../../src/game/systems/access";
 import { DEFAULT_ACCESS, DEFAULT_ACCESS_SYMBOL } from "../../../../src/game/systems/access/models";
 import type { ShapeAccess } from "../../../../src/game/systems/access/models";
+import { accessState } from "../../../../src/game/systems/access/state";
 import { clientStore } from "../../../../src/store/client";
 import { gameStore } from "../../../../src/store/game";
 import { generateTestLocalId } from "../../../helpers";
 
 const errorSpy = vi.spyOn(console, "error");
 const emitSpy = vi.spyOn(socket, "emit");
-const addOwnedTokenSpy = vi.spyOn(gameStore, "addOwnedToken");
-const removeOwnedTokenSpy = vi.spyOn(gameStore, "removeOwnedToken");
+const addOwnedTokenSpy = vi.spyOn(accessSystem, "addOwnedToken");
+const removeOwnedTokenSpy = vi.spyOn(accessSystem, "removeOwnedToken");
 
 let GET_SHAPE_OVERRIDE: (() => Partial<IShape> | undefined) | undefined = undefined;
 vi.mock("../../../../src/game/id", async () => {
@@ -48,15 +49,15 @@ describe("Access System", () => {
                 default: { edit: false, movement: true, vision: true },
                 extra: [{ access: { edit: true, movement: false, vision: true }, shape: id2, user: "testUser" }],
             });
-            expect(accessSystem.state.defaultAccess).toEqual(DEFAULT_ACCESS);
-            expect(accessSystem.state.playerAccess.size).toBe(0);
+            expect(accessState.$.defaultAccess).toEqual(DEFAULT_ACCESS);
+            expect(accessState.$.playerAccess.size).toBe(0);
 
             accessSystem.inform(id, {
                 default: { edit: false, movement: true, vision: true },
                 extra: [{ access: { edit: true, movement: false, vision: true }, shape: id2, user: "testUser" }],
             });
-            expect(accessSystem.state.defaultAccess).toEqual({ edit: false, movement: true, vision: true });
-            expect(accessSystem.state.playerAccess.get("testUser")).toEqual({
+            expect(accessState.$.defaultAccess).toEqual({ edit: false, movement: true, vision: true });
+            expect(accessState.$.playerAccess.get("testUser")).toEqual({
                 edit: true,
                 movement: false,
                 vision: true,
@@ -131,7 +132,7 @@ describe("Access System", () => {
             expect(accessSystem.hasAccessTo(id, false, { edit: true })).toBe(true);
             // 2. shape is a token that is not active and the limiter is active
             GET_SHAPE_OVERRIDE = () => ({ isToken: true });
-            gameStore.setActiveTokens();
+            accessSystem.setActiveTokens();
             expect(accessSystem.hasAccessTo(id, true, { edit: true })).toBe(true);
             GET_SHAPE_OVERRIDE = undefined;
             // 3. the current user would otherwise not have access
@@ -160,7 +161,7 @@ describe("Access System", () => {
         it("should return false if the shape is a token and NOT an active token with the limiter active", () => {
             // setup
             GET_SHAPE_OVERRIDE = () => ({ isToken: true });
-            gameStore.setActiveTokens();
+            accessSystem.setActiveTokens();
             // test
             expect(accessSystem.hasAccessTo(id, true, { edit: true })).toBe(false);
             // without limiter
@@ -170,9 +171,9 @@ describe("Access System", () => {
             expect(accessSystem.hasAccessTo(id, true, { edit: true })).toBe(true);
             // with active token
             GET_SHAPE_OVERRIDE = () => ({ isToken: true });
-            gameStore.setActiveTokens(id);
+            accessSystem.setActiveTokens(id);
             expect(accessSystem.hasAccessTo(id, true, { edit: true })).toBe(true);
-            gameStore.setActiveTokens();
+            accessSystem.setActiveTokens();
             // extra checks
             // 1. fake player
             gameStore.setFakePlayer(true);
@@ -306,8 +307,8 @@ describe("Access System", () => {
             // test
             accessSystem.addAccess(id, "some user", someUserAccess, UI_SYNC);
             accessSystem.addAccess(id2, "new user", newUserAccess, NO_SYNC);
-            expect(accessSystem.state.playerAccess.get("some user")).toEqual(someUserAccess);
-            expect(accessSystem.state.playerAccess.get("new user")).toBeUndefined();
+            expect(accessState.$.playerAccess.get("some user")).toEqual(someUserAccess);
+            expect(accessState.$.playerAccess.get("new user")).toBeUndefined();
         });
         it("should call addOwnedToken if access is vision AND username matches AND isToken", () => {
             // setup
@@ -432,13 +433,13 @@ describe("Access System", () => {
             });
             accessSystem.loadState(id);
             // test
-            expect(accessSystem.state.playerAccess.get("some user")).toEqual({
+            expect(accessState.$.playerAccess.get("some user")).toEqual({
                 edit: false,
                 movement: false,
                 vision: true,
             });
             accessSystem.updateAccess(id, "some user", { edit: true }, SERVER_SYNC);
-            expect(accessSystem.state.playerAccess.get("some user")).toEqual({
+            expect(accessState.$.playerAccess.get("some user")).toEqual({
                 edit: true,
                 movement: false,
                 vision: true,
@@ -508,9 +509,9 @@ describe("Access System", () => {
             });
             accessSystem.loadState(id);
             // test
-            expect(accessSystem.state.playerAccess.has("some user")).toBe(true);
+            expect(accessState.$.playerAccess.has("some user")).toBe(true);
             accessSystem.removeAccess(id, "some user", SERVER_SYNC);
-            expect(accessSystem.state.playerAccess.has("some user")).toBe(false);
+            expect(accessState.$.playerAccess.has("some user")).toBe(false);
         });
     });
     describe("getOwners", () => {

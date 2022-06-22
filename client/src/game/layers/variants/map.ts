@@ -1,8 +1,8 @@
 import { baseAdjust } from "../../../core/http";
 import { clientStore } from "../../../store/client";
-import { floorStore } from "../../../store/floor";
 import { settingsStore } from "../../../store/settings";
 import { FloorType } from "../../models/floor";
+import { floorSystem } from "../../systems/floors";
 import { getPattern } from "../floor";
 
 import { Layer } from "./layer";
@@ -14,7 +14,7 @@ export class MapLayer extends Layer {
         if (!this.valid) {
             this.clear();
 
-            const floor = floorStore.getFloor({ id: this.floor });
+            const floor = floorSystem.getFloor({ id: this.floor });
 
             let floorBackground = floor?.backgroundValue;
             if (floorBackground === undefined) {

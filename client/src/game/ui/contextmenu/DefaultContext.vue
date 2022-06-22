@@ -9,14 +9,15 @@ import { baseAdjust } from "../../../core/http";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { uuidv4 } from "../../../core/utils";
+import { getGameState } from "../../../store/_game";
 import { clientStore } from "../../../store/client";
-import { floorStore } from "../../../store/floor";
-import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
 import { sendBringPlayers } from "../../api/emits/players";
 import { getShape } from "../../id";
 import { LayerName } from "../../models/floor";
 import { Asset } from "../../shapes/variants/asset";
+import { floorSystem } from "../../systems/floors";
+import { floorState } from "../../systems/floors/state";
 import { initiativeStore } from "../initiative/state";
 import { openCreateTokenDialog } from "../tokendialog/state";
 
@@ -25,7 +26,7 @@ import { defaultContextLeft, defaultContextTop, showDefaultContextMenu } from ".
 const { t } = useI18n();
 const modals = useModal();
 
-const gameState = gameStore.state;
+const gameState = getGameState();
 const isDm = toRef(gameState, "isDm");
 
 function close(): void {
@@ -36,7 +37,7 @@ function bringPlayers(): void {
     if (!isDm.value) return;
 
     sendBringPlayers({
-        floor: floorStore.currentFloor.value!.name,
+        floor: floorState.currentFloor.value!.name,
         x: l2gx(defaultContextLeft.value),
         // eslint-disable-next-line no-undef
         y: l2gy(defaultContextTop.value),
@@ -73,8 +74,8 @@ async function createSpawnLocation(): Promise<void> {
     shape.name = spawnName;
     shape.src = src;
 
-    floorStore
-        .getLayer(floorStore.currentFloor.value!, LayerName.Dm)!
+    floorSystem
+        .getLayer(floorState.currentFloor.value!, LayerName.Dm)!
         .addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
     img.onload = () => (gameState.boardInitialized ? shape.layer.invalidate(true) : undefined);
 

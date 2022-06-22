@@ -4,69 +4,71 @@ import { useI18n } from "vue-i18n";
 import draggable from "vuedraggable";
 
 import { useModal } from "../../core/plugins/modals/plugin";
-import { floorStore } from "../../store/floor";
-import { gameStore } from "../../store/game";
+import { getGameState } from "../../store/_game";
 import { uiStore } from "../../store/ui";
 import { sendCreateFloor } from "../api/emits/floor";
 import type { Floor } from "../models/floor";
+import { floorSystem } from "../systems/floors";
+import { floorState } from "../systems/floors/state";
 
 import { layerTranslationMapping } from "./translations";
 
 const { t } = useI18n();
 const modals = useModal();
 
-const floorState = floorStore.state;
-const isDm = toRef(gameStore.state, "isDm");
+const isDm = toRef(getGameState(), "isDm");
 
-const selectFloor = floorStore.selectFloor.bind(floorStore);
-const selectLayer = floorStore.selectLayer.bind(floorStore);
+const selectFloor = floorSystem.selectFloor.bind(floorSystem);
+const selectLayer = floorSystem.selectLayer.bind(floorSystem);
 const openSettings = uiStore.showFloorSettings.bind(uiStore);
 
-const visible = computed(() => floorState.floors.length > 1 || isDm.value);
+const visible = computed(() => floorState.$.floors.length > 1 || isDm.value);
 const detailsOpen = ref(false);
 
 // FLOORS
 
-const floorIndex = toRef(floorState, "floorIndex");
+const floorIndex = toRef(floorState.$, "floorIndex");
 
 const floors = computed({
     get() {
-        return [...floorState.floors]
+        return [...floorState.$.floors]
             .reverse()
             .filter((f) => f.playerVisible || isDm.value)
-            .map((f) => ({ reverseIndex: floorStore.getFloorIndex({ id: f.id })!, floor: f }));
+            .map((f) => ({ reverseIndex: floorSystem.getFloorIndex({ id: f.id })!, floor: f }));
     },
     set(floors: { reverseIndex: number; floor: Floor }[]) {
-        floorStore.reorderFloors(floors.map((f) => f.floor.name).reverse(), true);
+        floorSystem.reorderFloors(floors.map((f) => f.floor.name).reverse(), true);
     },
 });
 
 async function addFloor(): Promise<void> {
     const value = await modals.prompt(t("game.ui.FloorSelect.new_name"), t("game.ui.FloorSelect.creation"), (value) => {
-        if (floorState.floors.some((f) => f.name === value)) {
+        if (floorState.$.floors.some((f) => f.name === value)) {
             return { valid: false, reason: "This name is already in use!" };
         }
         return { valid: true };
     });
-    if (value === undefined || floorStore.getFloor({ name: value }) !== undefined) return;
+    if (value === undefined || floorSystem.getFloor({ name: value }) !== undefined) return;
     sendCreateFloor(value);
 }
 
 function toggleVisible(floor: Floor): void {
-    floorStore.setFloorPlayerVisible({ id: floor.id }, !floor.playerVisible, true);
+    floorSystem.setFloorPlayerVisible({ id: floor.id }, !floor.playerVisible, true);
 }
 
 // LAYERS
 
 const layers = computed(() => {
-    if (!gameStore.state.boardInitialized) return [];
-    return floorStore
-        .getLayers(floorStore.currentFloor.value!)
+    if (!getGameState().boardInitialized) return [];
+    return floorSystem
+        .getLayers(floorState.currentFloor.value!)
         .filter((l) => l.selectable && (isDm.value || l.playerEditable))
         .map((l) => l.name);
 });
 
-const selectedLayer = computed(() => floorStore.getLayers(floorStore.currentFloor.value!)[floorState.layerIndex].name);
+const selectedLayer = computed(
+    () => floorSystem.getLayers(floorState.currentFloor.value!)[floorState.$.layerIndex].name,
+);
 </script>
 
 <template>

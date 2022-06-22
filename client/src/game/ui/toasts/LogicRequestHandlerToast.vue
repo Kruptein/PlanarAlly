@@ -8,7 +8,7 @@ import { setCenterPosition } from "../../position";
 import { doorSystem } from "../../systems/logic/door";
 import type { DoorRequest } from "../../systems/logic/door/models";
 import type { RequestTypeResponse } from "../../systems/logic/models";
-import { teleport } from "../../systems/logic/tp";
+import { teleport } from "../../systems/logic/tp/core";
 import type { TpRequest } from "../../systems/logic/tp/models";
 
 const emit = defineEmits(["close-toast"]);

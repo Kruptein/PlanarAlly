@@ -1,19 +1,20 @@
 import { toGP } from "../src/core/geometry";
+import { addServerFloor } from "../src/game/floor/server";
 import type { LocalId } from "../src/game/id";
 import { generateLocalId } from "../src/game/id";
+import type { IShape } from "../src/game/interfaces/shape";
 import { LayerName } from "../src/game/models/floor";
 import type { ServerFloor } from "../src/game/models/general";
-import type { IShape } from "../src/game/shapes/interfaces";
 import { Rect } from "../src/game/shapes/variants/rect";
-import { floorStore } from "../src/store/floor";
+import { floorSystem } from "../src/game/systems/floors";
 
 export function generateTestShape(options?: { floor?: string }): IShape {
     const rect = new Rect(toGP(0, 0), 0, 0);
     if (options?.floor !== undefined) {
-        let floor = floorStore.getFloor({ name: options.floor });
+        let floor = floorSystem.getFloor({ name: options.floor });
         if (floor === undefined) {
-            floorStore.addServerFloor(generateTestFloor(options.floor));
-            floor = floorStore.getFloor({ name: options.floor })!;
+            addServerFloor(generateTestFloor(options.floor));
+            floor = floorSystem.getFloor({ name: options.floor })!;
         }
         rect.setLayer(floor.id, LayerName.Tokens);
     }

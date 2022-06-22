@@ -1,9 +1,9 @@
 import { equalsP, toGP, Vector } from "../../core/geometry";
 import { FULL_SYNC, SyncMode } from "../../core/models/types";
 import { ctrlOrCmdPressed } from "../../core/utils";
+import { getGameState } from "../../store/_game";
 import { activeShapeStore } from "../../store/activeShape";
 import { clientStore, DEFAULT_GRID_SIZE } from "../../store/client";
-import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
 import { settingsStore } from "../../store/settings";
 import { sendClientLocationOptions } from "../api/emits/client";
@@ -14,6 +14,9 @@ import { moveShapes } from "../operations/movement";
 import { undoOperation, redoOperation } from "../operations/undo";
 import { setCenterPosition } from "../position";
 import { deleteShapes, copyShapes, pasteShapes } from "../shapes/utils";
+import { accessState } from "../systems/access/state";
+import { floorSystem } from "../systems/floors";
+import { floorState } from "../systems/floors/state";
 import { moveFloor } from "../temp";
 import { toggleActiveMode } from "../tools/tools";
 
@@ -28,12 +31,12 @@ export function onKeyUp(event: KeyboardEvent): void {
         if (event.key === " " || (event.code === "Numpad0" && !ctrlOrCmdPressed(event))) {
             // Spacebar or numpad-zero: cycle through own tokens
             // numpad-zero only if Ctrl is not pressed, as this would otherwise conflict with Ctrl + 0
-            const tokens = [...gameStore.state.ownedTokens].map((o) => getShape(o)!);
+            const tokens = [...accessState.$.ownedTokens].map((o) => getShape(o)!);
             if (tokens.length === 0) return;
             const i = tokens.findIndex((o) => equalsP(o.center(), clientStore.screenCenter));
             const token = tokens[(i + 1) % tokens.length];
             setCenterPosition(token.center());
-            floorStore.selectFloor({ name: token.floor.name }, true);
+            floorSystem.selectFloor({ name: token.floor.name }, true);
         }
         if (event.key === "Enter") {
             if (selectionState.hasSelection) {
@@ -103,7 +106,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                 }
                 const selection = selectionState.get({ includeComposites: false });
                 let delta = new Vector(offsetX, offsetY);
-                if (!event.shiftKey || !gameStore.state.isDm) {
+                if (!event.shiftKey || !getGameState().isDm) {
                     // First check for collisions.  Using the smooth wall slide collision check used on mouse move is overkill here.
                     for (const sel of selection) {
                         delta = calculateDelta(delta, sel, true);
@@ -116,13 +119,13 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                 // The pan offsets should be in the opposite direction to give the correct feel.
                 clientStore.increasePanX(offsetX * -1);
                 clientStore.increasePanY(offsetY * -1);
-                floorStore.invalidateAllFloors();
+                floorSystem.invalidateAllFloors();
                 sendClientLocationOptions();
             }
         } else if (event.key === "d") {
             // d - Deselect all
             selectionState.clear();
-            floorStore.currentLayer.value!.invalidate(true);
+            floorState.currentLayer.value!.invalidate(true);
         } else if (event.key === "x") {
             // x - Mark Defeated
             const selection = selectionState.get({ includeComposites: true });
@@ -151,7 +154,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             // Ctrl-0 or numpad 0 - Re-center/reset the viewport
             setCenterPosition(toGP(0, 0));
             sendClientLocationOptions();
-            floorStore.invalidateAllFloors();
+            floorSystem.invalidateAllFloors();
         } else if (event.code === "Numpad5") {
             // numpad 5 will center on selected shape(s) or on origin
             let targetX = 0;
@@ -167,7 +170,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             }
             setCenterPosition(toGP(targetX, targetY));
             sendClientLocationOptions();
-            floorStore.invalidateAllFloors();
+            floorSystem.invalidateAllFloors();
         } else if (event.key === "c" && ctrlOrCmdPressed(event)) {
             // Ctrl-c - Copy
             copyShapes();
@@ -182,28 +185,28 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             undoOperation();
             event.preventDefault();
             event.stopPropagation();
-        } else if (event.key === "PageUp" && floorStore.state.floorIndex < floorStore.state.floors.length - 1) {
+        } else if (event.key === "PageUp" && floorState.$.floorIndex < floorState.$.floors.length - 1) {
             // Page Up - Move floor up
             // Alt + Page Up - Move selected shapes floor up
             // Alt + Shift + Page Up - Move selected shapes floor up AND move floor up
             event.preventDefault();
             event.stopPropagation();
-            const targetFloor = floorStore.state.floors.findIndex(
-                (f, i) => i > floorStore.state.floorIndex && (gameStore.state.isDm || f.playerVisible),
+            const targetFloor = floorState.$.floors.findIndex(
+                (f, i) => i > floorState.$.floorIndex && (getGameState().isDm || f.playerVisible),
             );
 
             changeFloor(event, targetFloor);
-        } else if (event.key === "PageDown" && floorStore.state.floorIndex > 0) {
+        } else if (event.key === "PageDown" && floorState.$.floorIndex > 0) {
             // Page Down - Move floor down
             // Alt + Page Down - Move selected shape floor down
             // Alt + Shift + Page Down - Move selected shapes floor down AND move floor down
             event.preventDefault();
             event.stopPropagation();
-            const maxLength = floorStore.state.floors.length - 1;
-            let targetFloor = [...floorStore.state.floors]
+            const maxLength = floorState.$.floors.length - 1;
+            let targetFloor = [...floorState.$.floors]
                 .reverse()
                 .findIndex(
-                    (f, i) => maxLength - i < floorStore.state.floorIndex && (gameStore.state.isDm || f.playerVisible),
+                    (f, i) => maxLength - i < floorState.$.floorIndex && (getGameState().isDm || f.playerVisible),
                 );
             targetFloor = maxLength - targetFloor;
 
@@ -216,17 +219,17 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
 }
 
 function changeFloor(event: KeyboardEvent, targetFloor: number): void {
-    if (targetFloor < 0 || targetFloor > floorStore.state.floors.length - 1) return;
+    if (targetFloor < 0 || targetFloor > floorState.$.floors.length - 1) return;
     const selection = selectionState.get({ includeComposites: true });
-    const newFloor = floorStore.state.floors[targetFloor];
+    const newFloor = floorState.$.floors[targetFloor];
 
     if (event.altKey) {
         moveFloor([...selection], newFloor, true);
     }
     selectionState.clear();
-    floorStore.currentLayer.value!.invalidate(true);
+    floorState.currentLayer.value!.invalidate(true);
     if (!event.altKey || event.shiftKey) {
-        floorStore.selectFloor({ position: targetFloor }, true);
+        floorSystem.selectFloor({ position: targetFloor }, true);
     }
     if (event.shiftKey) for (const shape of selection) selectionState.push(shape);
 }

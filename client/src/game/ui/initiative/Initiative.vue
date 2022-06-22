@@ -6,17 +6,17 @@ import draggable from "vuedraggable";
 import Modal from "../../../core/components/modals/Modal.vue";
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { getTarget, getValue } from "../../../core/utils";
+import { getGameState } from "../../../store/_game";
 import { clientStore } from "../../../store/client";
-import { gameStore } from "../../../store/game";
 import { uiStore } from "../../../store/ui";
 import { sendRequestInitiatives } from "../../api/emits/initiative";
 import { getGroupMembers } from "../../groups";
 import { getShape } from "../../id";
 import type { LocalId } from "../../id";
+import type { IShape } from "../../interfaces/shape";
+import type { IAsset } from "../../interfaces/shapes/asset";
 import type { InitiativeData } from "../../models/initiative";
 import { InitiativeEffectMode, InitiativeSort } from "../../models/initiative";
-import type { IShape } from "../../shapes/interfaces";
-import type { Asset } from "../../shapes/variants/asset";
 import { accessSystem } from "../../systems/access";
 import { ClientSettingCategory } from "../settings/client/categories";
 
@@ -25,7 +25,7 @@ import { initiativeStore } from "./state";
 const { t } = useI18n();
 const modals = useModal();
 
-const isDm = toRef(gameStore.state, "isDm");
+const isDm = toRef(getGameState(), "isDm");
 
 const close = (): void => initiativeStore.show(false);
 const clearValues = (): void => initiativeStore.clearValues(true);
@@ -97,7 +97,7 @@ function hasImage(actor: InitiativeData): boolean {
 }
 
 function getImage(actor: InitiativeData): string {
-    return (getShape(actor.shape)! as Asset).src;
+    return (getShape(actor.shape)! as IAsset).src;
 }
 
 function canSee(actor: InitiativeData): boolean {

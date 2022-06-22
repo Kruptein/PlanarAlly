@@ -14,9 +14,9 @@ import {
 } from "./api/emits/groups";
 import { getGlobalId, getShape } from "./id";
 import type { LocalId } from "./id";
+import type { IShape } from "./interfaces/shape";
 import { groupToClient, groupToServer } from "./models/groups";
 import type { CREATION_ORDER_TYPES, Group, ServerGroup } from "./models/groups";
-import type { IShape } from "./shapes/interfaces";
 
 const numberCharacterSet = "0123456789".split("");
 const latinCharacterSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");

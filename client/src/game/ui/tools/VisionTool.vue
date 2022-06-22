@@ -2,11 +2,12 @@
 import type { CSSProperties } from "vue";
 import { computed, onMounted, ref } from "vue";
 
-import { gameStore } from "../../../store/game";
 import { getShape } from "../../id";
 import type { LocalId } from "../../id";
-import type { IShape } from "../../shapes/interfaces";
-import type { Asset } from "../../shapes/variants/asset";
+import type { IShape } from "../../interfaces/shape";
+import type { IAsset } from "../../interfaces/shapes/asset";
+import { accessSystem } from "../../systems/access";
+import { accessState } from "../../systems/access/state";
 import { visionTool } from "../../tools/variants/vision";
 
 import { useToolPosition } from "./toolPosition";
@@ -21,20 +22,20 @@ onMounted(() => {
     ({ right: right.value, arrow: arrow.value } = useToolPosition(visionTool.toolName));
 });
 
-const tokens = computed(() => [...gameStore.state.ownedTokens].map((t) => getShape(t)!));
+const tokens = computed(() => [...accessState.$.ownedTokens].map((t) => getShape(t)!));
 const selection = computed(() => {
-    if (gameStore.state.activeTokenFilters === undefined) return gameStore.state.ownedTokens;
-    return gameStore.state.activeTokenFilters;
+    if (accessState.$.activeTokenFilters === undefined) return accessState.$.ownedTokens;
+    return accessState.$.activeTokenFilters;
 });
 
 function toggle(uuid: LocalId): void {
-    if (selection.value.has(uuid)) gameStore.removeActiveToken(uuid);
-    else gameStore.addActiveToken(uuid);
+    if (selection.value.has(uuid)) accessSystem.removeActiveToken(uuid);
+    else accessSystem.addActiveToken(uuid);
 }
 
 function getImageSrc(token: IShape): string {
     if (token.type === "assetrect") {
-        return (token as Asset).src;
+        return (token as IAsset).src;
     }
     return "";
 }

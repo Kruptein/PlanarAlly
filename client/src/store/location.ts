@@ -10,9 +10,10 @@ import {
     sendLocationUnarchive,
 } from "../game/api/emits/location";
 import type { Location } from "../game/models/settings";
+import { playerState } from "../game/systems/players/state";
 
+import { getGameState } from "./_game";
 import { clientStore } from "./client";
-import { gameStore } from "./game";
 import { settingsStore } from "./settings";
 
 interface LocationState {
@@ -25,9 +26,9 @@ class LocationStore extends Store<LocationState> {
     constructor() {
         super();
         watchEffect(() => {
-            const state = gameStore.state;
+            const state = getGameState();
             const newLocations = new Map();
-            for (const player of gameStore.state.players) {
+            for (const player of playerState.$.players) {
                 if (player.name === clientStore.state.username && state.isDm) continue;
                 if (!newLocations.has(player.location)) {
                     newLocations.set(player.location, new Set());

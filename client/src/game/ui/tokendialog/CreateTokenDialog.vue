@@ -9,10 +9,10 @@ import { toLP } from "../../../core/geometry";
 import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
 import { calcFontScale, mostReadable } from "../../../core/utils";
 import { clientStore } from "../../../store/client";
-import { floorStore } from "../../../store/floor";
 import { settingsStore } from "../../../store/settings";
 import { CircularToken } from "../../shapes/variants/circularToken";
 import { accessSystem } from "../../systems/access";
+import { floorState } from "../../systems/floors/state";
 
 import { tokenDialogLeft, tokenDialogTop, tokenDialogVisible } from "./state";
 
@@ -43,7 +43,7 @@ function close(): void {
 }
 
 function submit(): void {
-    const layer = floorStore.currentLayer.value!;
+    const layer = floorState.currentLayer.value!;
 
     const token = new CircularToken(
         l2g(toLP(tokenDialogLeft, tokenDialogTop)),

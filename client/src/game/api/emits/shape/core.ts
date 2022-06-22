@@ -1,9 +1,9 @@
 import { getGlobalId } from "../../../id";
+import type { IShape } from "../../../interfaces/shape";
+import type { ICircle } from "../../../interfaces/shapes/circle";
+import type { IRect } from "../../../interfaces/shapes/rect";
+import type { IText } from "../../../interfaces/shapes/text";
 import type { ServerShape } from "../../../models/shapes";
-import type { IShape } from "../../../shapes/interfaces";
-import type { Circle } from "../../../shapes/variants/circle";
-import type { Rect } from "../../../shapes/variants/rect";
-import type { Text } from "../../../shapes/variants/text";
 import { wrapSocket } from "../../helpers";
 import { socket } from "../../socket";
 
@@ -30,7 +30,7 @@ export function sendShapeSizeUpdate(data: { shape: IShape; temporary: boolean })
     switch (data.shape.type) {
         case "assetrect":
         case "rect": {
-            const shape = data.shape as Rect;
+            const shape = data.shape as IRect;
             // a shape resize can move the refpoint!
             sendShapePositionUpdate([data.shape], data.temporary);
             _sendRectSizeUpdate({ uuid: getGlobalId(shape.id), w: shape.w, h: shape.h, temporary: data.temporary });
@@ -38,7 +38,7 @@ export function sendShapeSizeUpdate(data: { shape: IShape; temporary: boolean })
         }
         case "circulartoken":
         case "circle": {
-            const shape = data.shape as Circle;
+            const shape = data.shape as ICircle;
             _sendCircleSizeUpdate({ uuid: getGlobalId(shape.id), r: shape.r, temporary: data.temporary });
             break;
         }
@@ -47,7 +47,7 @@ export function sendShapeSizeUpdate(data: { shape: IShape; temporary: boolean })
             break;
         }
         case "text": {
-            const shape = data.shape as Text;
+            const shape = data.shape as IText;
             _sendTextSizeUpdate({ uuid: getGlobalId(shape.id), font_size: shape.fontSize, temporary: data.temporary });
         }
     }

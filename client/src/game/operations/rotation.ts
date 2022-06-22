@@ -1,6 +1,6 @@
 import type { GlobalPoint } from "../../core/geometry";
 import { sendShapePositionUpdate } from "../api/emits/shape/core";
-import type { IShape } from "../shapes/interfaces";
+import type { IShape } from "../interfaces/shape";
 import { TriangulationTarget, visionState } from "../vision/state";
 
 export function rotateShapes(

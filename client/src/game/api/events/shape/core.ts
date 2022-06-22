@@ -1,16 +1,16 @@
 import { SyncMode } from "../../../../core/models/types";
 import { activeShapeStore } from "../../../../store/activeShape";
-import { floorStore } from "../../../../store/floor";
 import { getLocalId, getShapeFromGlobal } from "../../../id";
 import type { GlobalId } from "../../../id";
+import type { IShape } from "../../../interfaces/shape";
+import type { ICircle } from "../../../interfaces/shapes/circle";
+import type { IRect } from "../../../interfaces/shapes/rect";
 import { selectionState } from "../../../layers/selection";
 import type { LayerName } from "../../../models/floor";
 import type { ServerShape } from "../../../models/shapes";
-import type { IShape } from "../../../shapes/interfaces";
 import { deleteShapes } from "../../../shapes/utils";
-import type { Circle } from "../../../shapes/variants/circle";
-import type { Rect } from "../../../shapes/variants/rect";
 import { accessSystem } from "../../../systems/access";
+import { floorSystem } from "../../../systems/floors";
 import { addShape, moveFloor, moveLayer } from "../../../temp";
 import { socket } from "../../socket";
 
@@ -69,20 +69,20 @@ socket.on("Shape.Order.Set", (data: { uuid: GlobalId; index: number }) => {
 socket.on("Shapes.Floor.Change", (data: { uuids: GlobalId[]; floor: string }) => {
     const shapes = data.uuids.map((u) => getShapeFromGlobal(u) ?? undefined).filter((s) => s !== undefined) as IShape[];
     if (shapes.length === 0) return;
-    moveFloor(shapes, floorStore.getFloor({ name: data.floor })!, false);
+    moveFloor(shapes, floorSystem.getFloor({ name: data.floor })!, false);
     if (shapes.some((s) => accessSystem.hasAccessTo(s.id, false, { edit: true }))) {
-        floorStore.selectFloor({ name: data.floor }, false);
+        floorSystem.selectFloor({ name: data.floor }, false);
     }
 });
 
 socket.on("Shapes.Layer.Change", (data: { uuids: GlobalId[]; floor: string; layer: LayerName }) => {
     const shapes = data.uuids.map((u) => getShapeFromGlobal(u) ?? undefined).filter((s) => s !== undefined) as IShape[];
     if (shapes.length === 0) return;
-    moveLayer(shapes, floorStore.getLayer(floorStore.getFloor({ name: data.floor })!, data.layer)!, false);
+    moveLayer(shapes, floorSystem.getLayer(floorSystem.getFloor({ name: data.floor })!, data.layer)!, false);
 });
 
 socket.on("Shape.Rect.Size.Update", (data: { uuid: GlobalId; w: number; h: number }) => {
-    const shape = getShapeFromGlobal(data.uuid) as Rect | undefined;
+    const shape = getShapeFromGlobal(data.uuid) as IRect | undefined;
     if (shape === undefined) return;
 
     shape.w = data.w;
@@ -91,7 +91,7 @@ socket.on("Shape.Rect.Size.Update", (data: { uuid: GlobalId; w: number; h: numbe
 });
 
 socket.on("Shape.Circle.Size.Update", (data: { uuid: GlobalId; r: number }) => {
-    const shape = getShapeFromGlobal(data.uuid) as Circle | undefined;
+    const shape = getShapeFromGlobal(data.uuid) as ICircle | undefined;
     if (shape === undefined) return;
 
     shape.r = data.r;

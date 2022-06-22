@@ -1,29 +1,34 @@
+import { toRaw } from "vue";
+
 import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
 import { debugLayers } from "../../../localStorageHelpers";
+import { getGameState } from "../../../store/_game";
 import { activeShapeStore } from "../../../store/activeShape";
 import { clientStore } from "../../../store/client";
-import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
 import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../../api/emits/shape/core";
-import { drawAuras } from "../../draw";
 import { removeGroupMember } from "../../groups";
 import { dropId, getGlobalId } from "../../id";
 import type { LocalId } from "../../id";
+import type { ILayer } from "../../interfaces/layer";
+import type { IShape } from "../../interfaces/shape";
 import { LayerName } from "../../models/floor";
 import type { FloorId } from "../../models/floor";
 import type { ServerShape } from "../../models/shapes";
 import { addOperation } from "../../operations/undo";
-import type { IShape } from "../../shapes/interfaces";
-import { createShapeFromDict } from "../../shapes/utils";
+import { drawAuras } from "../../rendering/auras";
+import { createShapeFromDict } from "../../shapes/create";
 import { accessSystem } from "../../systems/access";
+import { floorSystem } from "../../systems/floors";
+import { floorState } from "../../systems/floors/state";
 import { initiativeStore } from "../../ui/initiative/state";
 import { TriangulationTarget, VisibilityMode, visionState } from "../../vision/state";
 import { setCanvasDimensions } from "../canvas";
 import { selectionState } from "../selection";
 import { compositeState } from "../state";
 
-export class Layer {
+export class Layer implements ILayer {
     ctx: CanvasRenderingContext2D;
 
     // When set to false, the layer will be redrawn on the next tick
@@ -63,12 +68,12 @@ export class Layer {
         }
         this.valid = false;
         if (!skipLightUpdate) {
-            floorStore.invalidateLight(this.floor);
+            floorSystem.invalidateLight(this.floor);
         }
     }
 
     get isActiveLayer(): boolean {
-        return floorStore.currentLayer.value === this;
+        return toRaw(floorState.currentLayer.value) === this;
     }
 
     get width(): number {
@@ -109,7 +114,7 @@ export class Layer {
         }
 
         if (accessSystem.hasAccessTo(shape.id, false, { vision: true }) && shape.isToken)
-            gameStore.addOwnedToken(shape.id);
+            accessSystem.addOwnedToken(shape.id);
         if (shape.annotation.length) gameStore.addAnnotation(shape.id);
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync) {
             sendShapeAdd({ shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
@@ -207,7 +212,7 @@ export class Layer {
 
         gameStore.removeAnnotation(shape.id);
 
-        gameStore.removeOwnedToken(shape.id);
+        accessSystem.removeOwnedToken(shape.id);
 
         if (options.dropShapeId) dropId(shape.id);
         gameStore.removeMarker(shape.id, true);
@@ -267,14 +272,13 @@ export class Layer {
 
             if (doClear) this.clear();
 
-            const floorState = floorStore.state;
-            const gameState = gameStore.state;
+            const gameState = getGameState();
 
             // We iterate twice over all shapes
             // First to draw the auras and a second time to draw the shapes themselves
             // Otherwise auras from one shape could overlap another shape.
 
-            const currentLayer = floorStore.currentLayer.value;
+            const currentLayer = floorState.currentLayer.value;
             // To optimize things slightly, we keep track of the shapes that passed the first round
             const visibleShapes: IShape[] = [];
 
@@ -309,10 +313,10 @@ export class Layer {
             }
 
             // If this is the last layer of the floor below, render some shadow
-            if (floorState.floorIndex > 0) {
-                const lowerFloor = floorState.floors[floorState.floorIndex - 1];
+            if (floorState.$.floorIndex > 0) {
+                const lowerFloor = floorState.$.floors[floorState.$.floorIndex - 1];
                 if (lowerFloor.id === this.floor) {
-                    const layers = floorStore.getLayers(lowerFloor);
+                    const layers = floorSystem.getLayers(lowerFloor);
                     if (layers.at(-1)?.name === this.name) {
                         ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
                         ctx.fillRect(0, 0, this.width, this.height);

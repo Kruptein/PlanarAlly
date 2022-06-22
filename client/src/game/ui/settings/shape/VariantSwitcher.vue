@@ -5,11 +5,11 @@ import { cloneP } from "../../../../core/geometry";
 import { InvalidationMode, SERVER_SYNC, SyncMode } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../../../store/activeShape";
+import { dropAsset } from "../../../dropAsset";
 import { getShape } from "../../../id";
 import type { LocalId } from "../../../id";
 import { compositeState } from "../../../layers/state";
 import { ToggleComposite } from "../../../shapes/variants/toggleComposite";
-import { dropAsset } from "../../../temp";
 
 const modals = useModal();
 

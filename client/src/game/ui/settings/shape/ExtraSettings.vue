@@ -8,20 +8,22 @@ import { toGP } from "../../../../core/geometry";
 import { InvalidationMode, NO_SYNC, SERVER_SYNC, SyncMode, UI_SYNC } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { getChecked, getValue, uuidv4 } from "../../../../core/utils";
+import { getGameState } from "../../../../store/_game";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { clientStore, DEFAULT_GRID_SIZE } from "../../../../store/client";
-import { floorStore } from "../../../../store/floor";
-import { gameStore } from "../../../../store/game";
 import { settingsStore } from "../../../../store/settings";
 import { getShape } from "../../../id";
+import type { IAsset } from "../../../interfaces/shapes/asset";
 import type { DDraftData } from "../../../models/ddraft";
 import { LayerName } from "../../../models/floor";
-import type { Asset } from "../../../shapes/variants/asset";
 import { Circle } from "../../../shapes/variants/circle";
 import { Polygon } from "../../../shapes/variants/polygon";
 import { accessSystem } from "../../../systems/access";
+import { accessState } from "../../../systems/access/state";
 import { auraSystem } from "../../../systems/auras";
 import type { Aura, AuraId } from "../../../systems/auras/models";
+import { floorSystem } from "../../../systems/floors";
+import { floorState } from "../../../systems/floors/state";
 import { visionState } from "../../../vision/state";
 import LabelManager from "../../LabelManager.vue";
 
@@ -30,7 +32,7 @@ const modals = useModal();
 
 const textarea = ref<HTMLTextAreaElement | null>(null);
 
-const owned = accessSystem.$.hasEditAccess;
+const owned = accessState.hasEditAccess;
 
 // ANNOTATIONS
 
@@ -77,7 +79,7 @@ const hasPath = computed(() => {
     }
     return false;
 });
-const showSvgSection = computed(() => gameStore.state.isDm && activeShapeStore.state.type === "assetrect");
+const showSvgSection = computed(() => getGameState().isDm && activeShapeStore.state.type === "assetrect");
 
 async function uploadSvg(): Promise<void> {
     const asset = await modals.assetPicker();
@@ -106,15 +108,15 @@ function applyDDraft(): void {
     const dDraftData = activeShapeStore.state.options! as DDraftData;
     const size = dDraftData.ddraft_resolution.pixels_per_grid;
 
-    const realShape = getShape(activeShapeStore.state.id!)! as Asset;
+    const realShape = getShape(activeShapeStore.state.id!)! as IAsset;
 
     const targetRP = realShape.refPoint;
 
     const dW = realShape.w / (dDraftData.ddraft_resolution.map_size.x * size);
     const dH = realShape.h / (dDraftData.ddraft_resolution.map_size.y * size);
 
-    const tokenLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Tokens)!;
-    const fowLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Lighting)!;
+    const tokenLayer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Tokens)!;
+    const fowLayer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Lighting)!;
 
     for (const wall of dDraftData.ddraft_line_of_sight) {
         const points = wall.map((w) => toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH));

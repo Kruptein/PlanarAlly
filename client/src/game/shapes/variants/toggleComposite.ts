@@ -1,7 +1,6 @@
 import type { GlobalPoint } from "../../../core/geometry";
 import { SyncMode } from "../../../core/models/types";
 import type { Sync } from "../../../core/models/types";
-import { gameStore } from "../../../store/game";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { sendShapeSkipDraw } from "../../api/emits/shape/options";
 import {
@@ -20,7 +19,7 @@ import { TriangulationTarget, visionState } from "../../vision/state";
 import { Shape } from "../shape";
 import type { SHAPE_TYPE } from "../types";
 
-import { BoundingRect } from "./boundingRect";
+import { BoundingRect } from "./simple/boundingRect";
 
 export class ToggleComposite extends Shape {
     type: SHAPE_TYPE = "togglecomposite";
@@ -91,7 +90,7 @@ export class ToggleComposite extends Shape {
             const variant = getShape(variantId);
             if (variant === undefined) continue;
 
-            if (variant.isToken) gameStore.removeOwnedToken(variant.id);
+            if (variant.isToken) accessSystem.removeOwnedToken(variant.id);
             if (variant.blocksMovement)
                 visionState.removeBlocker(TriangulationTarget.MOVEMENT, variant.floor.id, variant, true);
             if (variant.blocksVision)
@@ -116,7 +115,7 @@ export class ToggleComposite extends Shape {
         }
 
         if (newVariant.isToken && accessSystem.hasAccessTo(newVariant.id, false, { vision: true }))
-            gameStore.addOwnedToken(newVariant.id);
+            accessSystem.addOwnedToken(newVariant.id);
         if (newVariant.blocksMovement)
             visionState.addBlocker(TriangulationTarget.MOVEMENT, newVariant.id, newVariant.floor.id, true);
         if (newVariant.blocksVision)

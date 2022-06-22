@@ -9,12 +9,13 @@ import { reserveLocalId } from "../../id";
 import type { GlobalId } from "../../id";
 import type { ServerLocation } from "../../models/general";
 import type { Location, ServerLocationOptions } from "../../models/settings";
+import { playerSystem } from "../../systems/players";
 import { VisibilityMode, visionState } from "../../vision/state";
 import { socket } from "../socket";
 
 socket.on("Location.Set", (data: ServerLocation) => {
     settingsStore.setActiveLocation(data.id);
-    gameStore.updatePlayersLocation([clientStore.state.username], data.id, false);
+    playerSystem.updatePlayersLocation([clientStore.state.username], data.id, false);
     setLocationOptions(data.id, data.options);
 });
 

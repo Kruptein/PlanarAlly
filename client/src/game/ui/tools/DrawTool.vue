@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../core/components/ColourPicker.vue";
 import { useModal } from "../../../core/plugins/modals/plugin";
-import { gameStore } from "../../../store/game";
+import { getGameState } from "../../../store/_game";
 import { DOOR_TOGGLE_MODES } from "../../systems/logic/door/models";
 import { DrawCategory, DrawMode, DrawShape, drawTool } from "../../tools/variants/draw";
 import LogicPermissions from "../settings/shape/LogicPermissions.vue";
@@ -23,7 +23,7 @@ const state = reactive({
 });
 
 const hasBrushSize = drawTool.hasBrushSize;
-const isDm = toRef(gameStore.state, "isDm");
+const isDm = toRef(getGameState(), "isDm");
 const modes = Object.values(DrawMode);
 const categories = Object.values(DrawCategory);
 const selected = drawTool.isActiveTool;

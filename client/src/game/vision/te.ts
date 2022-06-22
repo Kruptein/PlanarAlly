@@ -1,6 +1,6 @@
 import type { GlobalPoint } from "../../core/geometry";
-import { drawPolygon } from "../draw";
 import type { FloorId } from "../models/floor";
+import { drawPolygon } from "../rendering/basic";
 
 import type { Edge } from "./cdt";
 import { visionState } from "./state";

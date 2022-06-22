@@ -1,4 +1,4 @@
-import type { Label } from "../../shapes/interfaces";
+import type { Label } from "../../interfaces/label";
 import { wrapSocket } from "../helpers";
 
 export const sendLabelVisibility = wrapSocket<{ uuid: string; visible: boolean }>("Label.Visibility.Set");

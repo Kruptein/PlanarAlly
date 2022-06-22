@@ -7,7 +7,6 @@ import { snapToGridPoint } from "../../../core/math";
 import { InvalidationMode, NO_SYNC, SyncMode } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { clientStore, DEFAULT_GRID_SIZE } from "../../../store/client";
-import { floorStore } from "../../../store/floor";
 import { settingsStore } from "../../../store/settings";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { LayerName } from "../../models/floor";
@@ -16,9 +15,10 @@ import type { ToolFeatures, ToolPermission } from "../../models/tools";
 import { Line } from "../../shapes/variants/line";
 import { Text } from "../../shapes/variants/text";
 import { accessSystem } from "../../systems/access";
+import { floorSystem } from "../../systems/floors";
+import { floorState } from "../../systems/floors/state";
+import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
-
-import { SelectFeatures } from "./select";
 
 export enum RulerFeatures {
     All,
@@ -57,7 +57,7 @@ class RulerTool extends Tool {
         });
         ruler.ignoreZoomSize = true;
 
-        const layer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
+        const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
         if (layer === undefined) {
             console.log("No draw layer!");
             return;
@@ -82,7 +82,7 @@ class RulerTool extends Tool {
 
         if (clientStore.useSnapping(event)) [this.startPoint] = snapToGridPoint(this.startPoint);
 
-        const layer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
+        const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
         if (layer === undefined) {
             console.log("No draw layer!");
             return;
@@ -110,7 +110,7 @@ class RulerTool extends Tool {
         if (!this.active.value || this.rulers.length === 0 || this.startPoint === undefined || this.text === undefined)
             return;
 
-        const layer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
+        const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
         if (layer === undefined) {
             console.log("No draw layer!");
             return;
@@ -156,7 +156,7 @@ class RulerTool extends Tool {
             this.createNewRuler(lastRuler.endPoint, lastRuler.endPoint);
             this.previousLength += this.currentLength;
 
-            const layer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
+            const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
             if (layer === undefined) {
                 console.log("No draw layer!");
                 return;
@@ -175,7 +175,7 @@ class RulerTool extends Tool {
         if (!this.active.value || this.rulers.length === 0 || this.startPoint === undefined || this.text === undefined)
             return;
 
-        const layer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
+        const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
         if (layer === undefined) {
             console.log("No active layer!");
             return;

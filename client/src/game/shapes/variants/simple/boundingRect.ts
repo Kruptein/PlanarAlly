@@ -1,9 +1,10 @@
-import { g2lx, g2ly } from "../../../core/conversions";
-import { Vector, toGP, addP } from "../../../core/geometry";
-import type { GlobalPoint, Point, Ray } from "../../../core/geometry";
-import { rotateAroundPoint } from "../../../core/math";
+import { g2lx, g2ly } from "../../../../core/conversions";
+import { Vector, toGP, addP } from "../../../../core/geometry";
+import type { GlobalPoint, Point, Ray } from "../../../../core/geometry";
+import { rotateAroundPoint } from "../../../../core/math";
+import type { SimpleShape } from "../../../interfaces/shape";
 
-export class BoundingRect {
+export class BoundingRect implements SimpleShape {
     readonly w: number;
     readonly h: number;
     readonly topLeft: GlobalPoint;

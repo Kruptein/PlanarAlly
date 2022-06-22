@@ -6,13 +6,13 @@ import ColourPicker from "../../../../core/components/ColourPicker.vue";
 import { NO_SYNC, SERVER_SYNC, SyncMode } from "../../../../core/models/types";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { getShape } from "../../../id";
+import type { IText } from "../../../interfaces/shapes/text";
 import type { CircularToken } from "../../../shapes/variants/circularToken";
-import type { Text } from "../../../shapes/variants/text";
-import { accessSystem } from "../../../systems/access";
+import { accessState } from "../../../systems/access/state";
 
 const { t } = useI18n();
 
-const owned = accessSystem.$.hasEditAccess;
+const owned = accessState.hasEditAccess;
 
 function updateName(event: Event): void {
     if (!owned.value) return;
@@ -79,7 +79,7 @@ function getValue(): string {
         if (activeShapeStore.state.type === "circulartoken") {
             return (getShape(activeShapeStore.state.id) as CircularToken).text;
         } else if (activeShapeStore.state.type === "text") {
-            return (getShape(activeShapeStore.state.id) as Text).text;
+            return (getShape(activeShapeStore.state.id) as IText).text;
         }
     }
     return "";
@@ -92,7 +92,7 @@ function setValue(event: Event): void {
         if (activeShapeStore.state.type === "circulartoken") {
             (shape as CircularToken).setText((event.target as HTMLInputElement).value, SyncMode.FULL_SYNC);
         } else if (activeShapeStore.state.type === "text") {
-            (shape as Text).setText((event.target as HTMLInputElement).value, SyncMode.FULL_SYNC);
+            (shape as IText).setText((event.target as HTMLInputElement).value, SyncMode.FULL_SYNC);
         }
         shape?.invalidate(true);
     }

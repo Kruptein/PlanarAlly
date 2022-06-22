@@ -2,12 +2,12 @@ import { g2l, g2lx, g2ly, g2lz } from "../../../core/conversions";
 import { toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
-import { floorStore } from "../../../store/floor";
 import { getFogColour } from "../../colour";
 import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import type { ServerAsset } from "../../models/shapes";
 import { loadSvgData } from "../../svg";
+import { floorSystem } from "../../systems/floors";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import type { SHAPE_TYPE } from "../types";
 
@@ -53,7 +53,7 @@ export class Asset extends BaseRect {
     setLoaded(): void {
         // Late image loading affects floor lighting
         this.layer.invalidate(true);
-        floorStore.invalidateLightAllFloors();
+        floorSystem.invalidateLightAllFloors();
         this.#loaded = true;
     }
 

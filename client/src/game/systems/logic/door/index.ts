@@ -2,7 +2,7 @@ import { reactive } from "vue";
 import type { DeepReadonly } from "vue";
 
 import { registerSystem } from "../..";
-import type { System } from "../..";
+import type { ShapeSystem } from "../..";
 import { FULL_SYNC } from "../../../../core/models/types";
 import type { Sync } from "../../../../core/models/types";
 import { getGlobalId, getShape } from "../../../id";
@@ -26,7 +26,7 @@ interface ReactiveDoorState {
     toggleMode: DOOR_TOGGLE_MODE;
 }
 
-class DoorSystem implements System {
+class DoorSystem implements ShapeSystem {
     private enabled: Set<LocalId> = new Set();
     private data: Map<LocalId, DoorOptions> = new Map();
 
@@ -171,4 +171,4 @@ class DoorSystem implements System {
 }
 
 export const doorSystem = new DoorSystem();
-registerSystem("door", doorSystem);
+registerSystem("door", doorSystem, true);

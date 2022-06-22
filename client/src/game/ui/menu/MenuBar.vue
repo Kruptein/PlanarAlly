@@ -6,6 +6,7 @@ import { useRouter } from "vue-router";
 import { baseAdjust } from "../../../core/http";
 import type { AssetFile } from "../../../core/models/types";
 import { uuidv4 } from "../../../core/utils";
+import { getGameState } from "../../../store/_game";
 import { gameStore } from "../../../store/game";
 import { uiStore } from "../../../store/ui";
 import { clearGame } from "../../clear";
@@ -22,7 +23,7 @@ const { t } = useI18n();
 const showNote = ref(false);
 
 const assetSearch = ref("");
-const gameState = gameStore.state;
+const gameState = getGameState();
 
 const isDm = toRef(gameState, "isDm");
 const notes = toRef(gameState, "notes");

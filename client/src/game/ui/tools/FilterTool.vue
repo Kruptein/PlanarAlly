@@ -4,8 +4,9 @@ import { computed, onMounted, reactive } from "vue";
 import { useI18n } from "vue-i18n";
 
 import Accordion from "../../../core/components/Accordion.vue";
+import { getGameState } from "../../../store/_game";
 import { gameStore } from "../../../store/game";
-import type { Label } from "../../shapes/interfaces";
+import type { Label } from "../../interfaces/label";
 import { filterTool } from "../../tools/variants/filter";
 
 import { useToolPosition } from "./toolPosition";
@@ -27,7 +28,7 @@ onMounted(() => {
 const categories = computed(() => {
     const cat: Map<string, Label[]> = new Map();
     cat.set("", []);
-    for (const label of gameStore.state.labels.values()) {
+    for (const label of getGameState().labels.values()) {
         if (!label.category) {
             cat.get("")!.push(label);
         } else {
@@ -46,7 +47,7 @@ const initialValues = computed(() => {
     for (const [category, labels] of categories.value) {
         values.set(
             category,
-            gameStore.state.labelFilters.filter((f) => labels.map((l) => l.uuid).includes(f)),
+            getGameState().labelFilters.filter((f) => labels.map((l) => l.uuid).includes(f)),
         );
     }
     return values;
@@ -55,7 +56,7 @@ const initialValues = computed(() => {
 function updateSelection(category: string, selection: string[]): void {
     for (const label of categories.value.get(category)!) {
         const inSelection = selection.includes(label.uuid);
-        const activeFilter = gameStore.state.labelFilters.includes(label.uuid);
+        const activeFilter = getGameState().labelFilters.includes(label.uuid);
 
         if (activeFilter && !inSelection) {
             gameStore.removeLabelFilter(label.uuid, true);

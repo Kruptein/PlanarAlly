@@ -1,7 +1,7 @@
 import { Store } from "../../../core/store";
 import { i18n } from "../../../i18n";
+import { getGameState } from "../../../store/_game";
 import { clientStore } from "../../../store/client";
-import { gameStore } from "../../../store/game";
 import {
     sendInitiativeNewEffect,
     sendInitiativeOptionUpdate,
@@ -23,6 +23,7 @@ import { InitiativeSort } from "../../models/initiative";
 import type { InitiativeData, InitiativeEffect, InitiativeSettings } from "../../models/initiative";
 import { setCenterPosition } from "../../position";
 import { accessSystem } from "../../systems/access";
+import { accessState } from "../../systems/access/state";
 
 let activeTokensBackup: Set<LocalId> | undefined = undefined;
 
@@ -97,7 +98,7 @@ class InitiativeStore extends Store<InitiativeState> {
             actor = {
                 effects: [],
                 isGroup,
-                isVisible: !gameStore.state.isDm,
+                isVisible: !getGameState().isDm,
                 shape,
                 initiative,
             };
@@ -148,7 +149,7 @@ class InitiativeStore extends Store<InitiativeState> {
     // TURN / ROUND TRACKING
 
     setTurnCounter(turn: number, sync: boolean): void {
-        if (sync && !gameStore.state.isDm && !this.owns()) return;
+        if (sync && !getGameState().isDm && !this.owns()) return;
         this._state.turnCounter = turn;
 
         const actor = this.getDataSet()[this._state.turnCounter];
@@ -169,7 +170,7 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     setRoundCounter(round: number, sync: boolean): void {
-        if (sync && !gameStore.state.isDm && !this.owns()) return;
+        if (sync && !getGameState().isDm && !this.owns()) return;
         this._state.roundCounter = round;
         if (sync) {
             sendInitiativeRoundUpdate(round);
@@ -180,7 +181,7 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     nextTurn(): void {
-        if (!gameStore.state.isDm && !this.owns()) return;
+        if (!getGameState().isDm && !this.owns()) return;
         if (this._state.turnCounter === this.getDataSet().length - 1) {
             this.setRoundCounter(this._state.roundCounter + 1, true);
         } else {
@@ -189,7 +190,7 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     previousTurn(): void {
-        if (!gameStore.state.isDm) return;
+        if (!getGameState().isDm) return;
         if (this._state.turnCounter === 0) {
             this.setRoundCounter(this._state.roundCounter - 1, true);
             this.setTurnCounter(this.getDataSet().length - 1, true);
@@ -270,16 +271,16 @@ class InitiativeStore extends Store<InitiativeState> {
     handleVisionLock(): void {
         if (clientStore.state.initiativeVisionLock) {
             const actor = this.getDataSet()[this._state.turnCounter];
-            if (gameStore.state.activeTokenFilters === undefined) activeTokensBackup = undefined;
-            else activeTokensBackup = new Set(gameStore.state.activeTokenFilters);
-            if (gameStore.state.ownedTokens.has(actor.shape)) {
-                gameStore.setActiveTokens(actor.shape);
+            if (accessState.$.activeTokenFilters === undefined) activeTokensBackup = undefined;
+            else activeTokensBackup = new Set(accessState.$.activeTokenFilters);
+            if (accessState.$.ownedTokens.has(actor.shape)) {
+                accessSystem.setActiveTokens(actor.shape);
             } else {
-                gameStore.unsetActiveTokens();
+                accessSystem.unsetActiveTokens();
             }
         } else {
-            if (activeTokensBackup === undefined) gameStore.unsetActiveTokens();
-            else gameStore.setActiveTokens(...activeTokensBackup.values());
+            if (activeTokensBackup === undefined) accessSystem.unsetActiveTokens();
+            else accessSystem.setActiveTokens(...activeTokensBackup.values());
         }
     }
 
@@ -290,7 +291,7 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     owns(shapeId?: LocalId): boolean {
-        if (gameStore.state.isDm) return true;
+        if (getGameState().isDm) return true;
         if (shapeId === undefined) {
             shapeId = this._state.locationData[this._state.turnCounter]?.shape;
             if (shapeId === undefined) return false;

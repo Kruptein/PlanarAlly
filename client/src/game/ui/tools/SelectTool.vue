@@ -5,24 +5,24 @@ import { computed, onMounted, ref, toRef, watch } from "vue";
 import { selectionState } from "../../layers/selection";
 import type { Polygon } from "../../shapes/variants/polygon";
 import { selectTool } from "../../tools/variants/select";
+import { selectToolState } from "../../tools/variants/select/state";
 
 import { useToolPosition } from "./toolPosition";
 
 const right = ref("0px");
 const arrow = ref("0px");
 
-const hasSelection = selectTool.hasSelection;
+const { $, _$ } = selectToolState;
+
 const selected = selectTool.isActiveTool;
-const showRuler = selectTool.showRuler;
 const toolStyle = computed(() => ({ "--detailRight": right.value, "--detailArrow": arrow.value } as CSSProperties));
 
-const polygonUiLeft = selectTool.polygonUiLeft;
-const polygonUiTop = selectTool.polygonUiTop;
-const polygonUiAngle = selectTool.polygonUiAngle;
-const polygonUiVisible = selectTool.polygonUiVisible;
-const polygonUiSizeX = selectTool.polygonUiSizeX;
-const polygonUiSizeY = selectTool.polygonUiSizeY;
-const polygonUiVertex = selectTool.polygonUiVertex;
+const polygonUiLeft = $.polygonUiLeft;
+const polygonUiTop = $.polygonUiTop;
+const polygonUiAngle = $.polygonUiAngle;
+const polygonUiVisible = $.polygonUiVisible;
+const polygonUiSizeX = $.polygonUiSizeX;
+const polygonUiSizeY = $.polygonUiSizeY;
 
 onMounted(() => {
     ({ right: right.value, arrow: arrow.value } = useToolPosition(selectTool.toolName));
@@ -34,7 +34,7 @@ onMounted(() => {
 
 function toggleShowRuler(event: MouseEvent): void {
     const state = (event.target as HTMLButtonElement).getAttribute("aria-pressed") ?? "false";
-    selectTool.showRuler.value = state === "false";
+    _$.showRuler = state === "false";
     selectTool.checkRuler();
 }
 
@@ -56,13 +56,13 @@ function removePoint(): void {
 
 <template>
     <div id="polygon-edit">
-        <div @click="removePoint" v-if="polygonUiVertex"><font-awesome-icon icon="trash-alt" /></div>
+        <div @click="removePoint" v-if="$.polygonUiVertex"><font-awesome-icon icon="trash-alt" /></div>
         <div @click="addPoint" v-else><font-awesome-icon icon="plus-square" /></div>
         <div @click="cutPolygon"><font-awesome-icon icon="cut" /></div>
     </div>
 
-    <div id="ruler" class="tool-detail" v-if="selected && hasSelection" :style="toolStyle">
-        <button @click="toggleShowRuler" :aria-pressed="showRuler">Show ruler</button>
+    <div id="ruler" class="tool-detail" v-if="selected && $.hasSelection" :style="toolStyle">
+        <button @click="toggleShowRuler" :aria-pressed="$.showRuler">Show ruler</button>
     </div>
 </template>
 

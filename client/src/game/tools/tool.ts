@@ -2,7 +2,7 @@ import { computed } from "vue";
 import { ref } from "vue";
 
 import type { LocalPoint } from "../../core/geometry";
-import { onKeyUp } from "../input/keyboard";
+import { onKeyUp } from "../input/keyboard/up";
 import { getLocalPointFromEvent } from "../input/mouse";
 import type { ToolFeatures, ITool, ToolMode, ToolName, ToolPermission } from "../models/tools";
 

@@ -20,6 +20,8 @@ tech changes will usually be stripped from release notes for the public
 -   Assets not being able to moved up to parent folder
 -   Assets not being removable if a shape with a link to the asset exists
 -   Vision tool alert state was not always accurate
+-   Teleport zone not properly triggering when initiated as a player
+-   Teleport zone not properly landing in the center of the target
 
 ## [2022.2.2] - 2022-06-17
 

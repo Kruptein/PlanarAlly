@@ -1,16 +1,21 @@
 import type { GlobalPoint, Vector } from "../../core/geometry";
 import type { Sync } from "../../core/models/types";
 import type { LocalId } from "../id";
-import type { Layer } from "../layers/variants/layer";
 import type { Floor, LayerName } from "../models/floor";
-import type { ServerShape, ShapeOptions } from "../models/shapes";
+import type { ShapeOptions, ServerShape } from "../models/shapes";
+import type { SHAPE_TYPE } from "../shapes/types";
+import type { BoundingRect } from "../shapes/variants/simple/boundingRect";
 
-import type { SHAPE_TYPE } from "./types";
-import type { BoundingRect } from "./variants/boundingRect";
+import type { Label } from "./label";
+import type { ILayer } from "./layer";
 
-export interface IShape {
-    readonly type: SHAPE_TYPE;
+export interface SimpleShape {
+    center(): GlobalPoint;
+}
+
+export interface IShape extends SimpleShape {
     readonly id: LocalId;
+    readonly type: SHAPE_TYPE;
 
     get points(): [number, number][];
     invalidatePoints(): void;
@@ -71,7 +76,7 @@ export interface IShape {
     // POSITION
 
     get floor(): Floor;
-    get layer(): Layer;
+    get layer(): ILayer;
     get refPoint(): GlobalPoint;
     set refPoint(point: GlobalPoint);
     get angle(): number;
@@ -135,12 +140,4 @@ export interface IShape {
     setAnnotationVisible(visible: boolean, syncTo: Sync): void;
     addLabel(label: string, syncTo: Sync): void;
     removeLabel(label: string, syncTo: Sync): void;
-}
-
-export interface Label {
-    uuid: string;
-    category: string;
-    name: string;
-    visible: boolean;
-    user: string;
 }

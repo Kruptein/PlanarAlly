@@ -1,15 +1,16 @@
 import { g2l, g2lz, getUnitDistance, g2lr, g2lx, g2ly, toRadians } from "../../../core/conversions";
 import type { SyncMode, InvalidationMode } from "../../../core/models/types";
-import { floorStore } from "../../../store/floor";
-import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
 import { getFogColour } from "../../colour";
 import { getShape } from "../../id";
+import type { IShape } from "../../interfaces/shape";
 import { LayerName } from "../../models/floor";
-import type { IShape } from "../../shapes/interfaces";
-import { Circle } from "../../shapes/variants/circle";
+import { SimpleCircle } from "../../shapes/variants/simple/circle";
 import { accessSystem } from "../../systems/access";
+import { accessState } from "../../systems/access/state";
 import { auraSystem } from "../../systems/auras";
+import { floorSystem } from "../../systems/floors";
+import { floorState } from "../../systems/floors/state";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { computeVisibility } from "../../vision/te";
 
@@ -41,13 +42,13 @@ export class FowLightingLayer extends FowLayer {
             // At all times provide a minimal vision range to prevent losing your tokens in fog.
             if (
                 settingsStore.fullFow.value &&
-                floorStore.hasLayer(floorStore.currentFloor.value!, LayerName.Tokens) &&
-                floorStore.currentFloor.value!.id === this.floor
+                floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Tokens) &&
+                floorState.currentFloor.value!.id === this.floor
             ) {
-                for (const sh of gameStore.activeTokens.value) {
+                for (const sh of accessState.activeTokens.value) {
                     const shape = getShape(sh)!;
                     if (shape.options.skipDraw ?? false) continue;
-                    if (shape.floor.id !== floorStore.currentFloor.value!.id) continue;
+                    if (shape.floor.id !== floorState.currentFloor.value!.id) continue;
                     const bb = shape.getBoundingBox();
                     const lcenter = g2l(shape.center());
                     const alm = 0.8 * g2lz(bb.w);
@@ -86,9 +87,8 @@ export class FowLightingLayer extends FowLayer {
                     const lcenter = g2l(center);
                     const innerRange = g2lr(auraValue + auraDim);
 
-                    const auraCircle = new Circle(center, auraLength);
-                    if (!auraCircle.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: true }))
-                        continue;
+                    const auraCircle = new SimpleCircle(center, auraLength);
+                    if (!auraCircle.visibleInCanvas({ w: this.width, h: this.height })) continue;
 
                     this.vCtx.globalCompositeOperation = "source-over";
                     this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
@@ -137,11 +137,11 @@ export class FowLightingLayer extends FowLayer {
                 }
             }
 
-            const activeFloor = floorStore.currentFloor.value!.id;
+            const activeFloor = floorState.currentFloor.value!.id;
             if (settingsStore.fowLos.value && this.floor === activeFloor) {
                 this.ctx.globalCompositeOperation = "source-in";
                 this.ctx.drawImage(
-                    floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Vision)!.canvas,
+                    floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Vision)!.canvas,
                     0,
                     0,
                     window.innerWidth,

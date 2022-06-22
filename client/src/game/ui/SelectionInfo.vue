@@ -5,7 +5,7 @@ import { SERVER_SYNC } from "../../core/models/types";
 import { useModal } from "../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../store/activeShape";
 import { getShape } from "../id";
-import { accessSystem } from "../systems/access";
+import { accessState } from "../systems/access/state";
 import { auraSystem } from "../systems/auras";
 import type { Aura, AuraId } from "../systems/auras/models";
 import { trackerSystem } from "../systems/trackers";
@@ -17,7 +17,7 @@ const modals = useModal();
 const shape = activeShapeStore.state;
 
 function setLocked(): void {
-    if (accessSystem.$.hasEditAccess.value) {
+    if (accessState.hasEditAccess.value) {
         activeShapeStore.setLocked(!shape.isLocked, SERVER_SYNC);
     }
 }

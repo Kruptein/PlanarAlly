@@ -3,6 +3,7 @@ import { computed, ref, watch } from "vue";
 import { ToolMode, ToolName } from "../models/tools";
 import type { ITool, ToolFeatures } from "../models/tools";
 
+import { SelectFeatures } from "./models/select";
 import { diceTool } from "./variants/dice";
 import { drawTool } from "./variants/draw";
 import { filterTool } from "./variants/filter";
@@ -10,7 +11,7 @@ import { mapTool } from "./variants/map";
 import { panTool } from "./variants/pan";
 import { pingTool } from "./variants/ping";
 import { rulerTool } from "./variants/ruler";
-import { SelectFeatures, selectTool } from "./variants/select";
+import { selectTool } from "./variants/select";
 import { spellTool } from "./variants/spell";
 import { visionTool } from "./variants/vision";
 

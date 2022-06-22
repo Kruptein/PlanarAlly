@@ -8,8 +8,8 @@ import { sendLocationOptions } from "../game/api/emits/location";
 import { getGlobalId } from "../game/id";
 import type { LocalId } from "../game/id";
 import type { LocationOptions } from "../game/models/settings";
-
-import { floorStore } from "./floor";
+import { floorSystem } from "../game/systems/floors";
+import { floorState } from "../game/systems/floors/state";
 
 const defaultLocationOptions: LocationOptions = {
     fowLos: false,
@@ -143,17 +143,17 @@ class SettingsStore extends Store<SettingsState> {
                     "undergroundMapBackground",
                 ].includes(key)
             ) {
-                floorStore.invalidateAllFloors();
+                floorSystem.invalidateAllFloors();
             } else if (["fullFow", "fowOpacity"].includes(key)) {
-                floorStore.invalidateLightAllFloors();
+                floorSystem.invalidateLightAllFloors();
             } else if (key === "gridType") {
-                for (const floor of floorStore.state.floors) {
-                    const gridLayer = floorStore.getGridLayer(floor)!;
+                for (const floor of floorState.$.floors) {
+                    const gridLayer = floorSystem.getGridLayer(floor)!;
                     gridLayer.invalidate();
                 }
             } else if (key === "useGrid") {
-                for (const floor of floorStore.state.floors) {
-                    const gridLayer = floorStore.getGridLayer(floor)!;
+                for (const floor of floorState.$.floors) {
+                    const gridLayer = floorSystem.getGridLayer(floor)!;
                     if (this.useGrid.value) gridLayer.canvas.style.display = "block";
                     else gridLayer.canvas.style.display = "none";
                     gridLayer.invalidate();
@@ -172,14 +172,14 @@ class SettingsStore extends Store<SettingsState> {
 
     setLineOfSight(lineOfSight: boolean, location: number | undefined, sync: boolean): void {
         if (this.mutate("fowLos", lineOfSight, location)) {
-            floorStore.invalidateAllFloors();
+            floorSystem.invalidateAllFloors();
             if (sync) sendLocationOptions({ options: { fow_los: lineOfSight }, location });
         }
     }
 
     setSpawnLocations(spawnLocations: LocalId[], location: number, sync: boolean): void {
         if (this.mutate("spawnLocations", spawnLocations, location)) {
-            floorStore.invalidateAllFloors();
+            floorSystem.invalidateAllFloors();
             if (sync)
                 sendLocationOptions({
                     options: { spawn_locations: JSON.stringify(spawnLocations.map((s) => getGlobalId(s))) },
@@ -193,8 +193,8 @@ class SettingsStore extends Store<SettingsState> {
             throw new Error("Unknown grid type set");
         }
         if (this.mutate("gridType", gridType, location)) {
-            for (const floor of floorStore.state.floors) {
-                const gridLayer = floorStore.getGridLayer(floor)!;
+            for (const floor of floorState.$.floors) {
+                const gridLayer = floorSystem.getGridLayer(floor)!;
                 gridLayer.invalidate();
             }
 
@@ -204,14 +204,14 @@ class SettingsStore extends Store<SettingsState> {
 
     setUnitSize(unitSize: number, location: number | undefined, sync: boolean): void {
         if (this.mutate("unitSize", unitSize, location)) {
-            floorStore.invalidateAllFloors();
+            floorSystem.invalidateAllFloors();
             if (sync) sendLocationOptions({ options: { unit_size: unitSize }, location: location });
         }
     }
 
     setUnitSizeUnit(unitSizeUnit: string, location: number | undefined, sync: boolean): void {
         if (this.mutate("unitSizeUnit", unitSizeUnit, location)) {
-            floorStore.invalidateAllFloors();
+            floorSystem.invalidateAllFloors();
             if (sync)
                 sendLocationOptions({
                     options: { unit_size_unit: unitSizeUnit },
@@ -222,8 +222,8 @@ class SettingsStore extends Store<SettingsState> {
 
     setUseGrid(useGrid: boolean, location: number | undefined, sync: boolean): void {
         if (this.mutate("useGrid", useGrid, location)) {
-            for (const floor of floorStore.state.floors) {
-                const gridLayer = floorStore.getGridLayer(floor)!;
+            for (const floor of floorState.$.floors) {
+                const gridLayer = floorSystem.getGridLayer(floor)!;
                 if (useGrid) gridLayer.canvas.style.display = "block";
                 else gridLayer.canvas.style.display = "none";
                 gridLayer.invalidate();
@@ -235,14 +235,14 @@ class SettingsStore extends Store<SettingsState> {
 
     setFullFow(fullFow: boolean, location: number | undefined, sync: boolean): void {
         if (this.mutate("fullFow", fullFow, location)) {
-            floorStore.invalidateLightAllFloors();
+            floorSystem.invalidateLightAllFloors();
             if (sync) sendLocationOptions({ options: { full_fow: fullFow }, location });
         }
     }
 
     setFowOpacity(fowOpacity: number, location: number | undefined, sync: boolean): void {
         if (this.mutate("fowOpacity", fowOpacity, location)) {
-            floorStore.invalidateLightAllFloors();
+            floorSystem.invalidateLightAllFloors();
             if (sync)
                 sendLocationOptions({
                     options: { fow_opacity: fowOpacity },
@@ -253,7 +253,7 @@ class SettingsStore extends Store<SettingsState> {
 
     setVisionRangeMin(visionMinRange: number, location: number | undefined, sync: boolean): void {
         if (this.mutate("visionMinRange", visionMinRange, location)) {
-            floorStore.invalidateLightAllFloors();
+            floorSystem.invalidateLightAllFloors();
             if (sync)
                 sendLocationOptions({
                     options: { vision_min_range: visionMinRange },
@@ -264,7 +264,7 @@ class SettingsStore extends Store<SettingsState> {
 
     setVisionRangeMax(visionMaxRange: number, location: number | undefined, sync: boolean): void {
         if (this.mutate("visionMaxRange", visionMaxRange, location)) {
-            floorStore.invalidateLightAllFloors();
+            floorSystem.invalidateLightAllFloors();
             if (sync)
                 sendLocationOptions({
                     options: { vision_max_range: visionMaxRange },
@@ -285,7 +285,7 @@ class SettingsStore extends Store<SettingsState> {
 
     setAirMapBackground(airMapBackground: string | null, location: number | undefined, sync: boolean): void {
         if (this.mutate("airMapBackground", airMapBackground, location)) {
-            floorStore.invalidateAllFloors();
+            floorSystem.invalidateAllFloors();
             if (sync)
                 sendLocationOptions({
                     options: { air_map_background: airMapBackground },
@@ -296,7 +296,7 @@ class SettingsStore extends Store<SettingsState> {
 
     setGroundMapBackground(groundMapBackground: string | null, location: number | undefined, sync: boolean): void {
         if (this.mutate("groundMapBackground", groundMapBackground, location)) {
-            floorStore.invalidateAllFloors();
+            floorSystem.invalidateAllFloors();
             if (sync)
                 sendLocationOptions({
                     options: { ground_map_background: groundMapBackground },
@@ -311,7 +311,7 @@ class SettingsStore extends Store<SettingsState> {
         sync: boolean,
     ): void {
         if (this.mutate("undergroundMapBackground", undergroundMapBackground, location)) {
-            floorStore.invalidateAllFloors();
+            floorSystem.invalidateAllFloors();
             if (sync)
                 sendLocationOptions({
                     options: { underground_map_background: undergroundMapBackground },

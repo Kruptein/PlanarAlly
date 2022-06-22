@@ -3,8 +3,9 @@ import { computed } from "vue";
 import type { CSSProperties } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { gameStore } from "../../../store/game";
+import { getGameState } from "../../../store/_game";
 import { ToolMode, ToolName } from "../../models/tools";
+import { accessState } from "../../systems/access/state";
 import { activeModeTools, activeTool, activeToolMode, dmTools, toggleActiveMode, toolMap } from "../../tools/tools";
 
 import DiceTool from "./DiceTool.vue";
@@ -20,9 +21,9 @@ const { t } = useI18n();
 
 function isToolVisible(tool: ToolName): boolean {
     if (tool === ToolName.Filter) {
-        return gameStore.state.labels.size > 0;
+        return getGameState().labels.size > 0;
     } else if (tool === ToolName.Vision) {
-        return gameStore.state.ownedTokens.size > 1;
+        return accessState.$.ownedTokens.size > 1;
     }
     return true;
 }
@@ -31,7 +32,7 @@ const visibleTools = computed(() => {
     {
         const tools = [];
         for (const [toolName] of activeModeTools.value) {
-            if (dmTools.includes(toolName) && !gameStore.state.isDm) continue;
+            if (dmTools.includes(toolName) && !getGameState().isDm) continue;
             if (!isToolVisible(toolName)) continue;
 
             const tool = toolMap[toolName];

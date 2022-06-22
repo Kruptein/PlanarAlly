@@ -1,15 +1,16 @@
 import { equalsP } from "../../core/geometry";
 import { Store } from "../../core/store";
-import { floorStore } from "../../store/floor";
 import { sendLocationOptions } from "../api/emits/location";
 import { getShape } from "../id";
 import type { LocalId } from "../id";
+import type { IShape } from "../interfaces/shape";
+import type { IAsset } from "../interfaces/shapes/asset";
 import type { FloorId } from "../models/floor";
-import type { IShape } from "../shapes/interfaces";
-import type { Asset } from "../shapes/variants/asset";
 import { getPaths, pathToArray } from "../svg";
 import { auraSystem } from "../systems/auras";
 import type { Aura, AuraId } from "../systems/auras/models";
+import { floorSystem } from "../systems/floors";
+import { floorState } from "../systems/floors/state";
 
 import { CDT } from "./cdt";
 import { IterativeDelete } from "./iterative";
@@ -53,11 +54,11 @@ class VisionState extends Store<State> {
     setVisionMode(mode: VisibilityMode, sync: boolean): void {
         this._state.mode = mode;
 
-        for (const floor of floorStore.state.floors) {
+        for (const floor of floorState.$.floors) {
             visionState.recalculateVision(floor.id);
             visionState.recalculateMovement(floor.id);
         }
-        floorStore.invalidateAllFloors();
+        floorSystem.invalidateAllFloors();
 
         if (sync)
             sendLocationOptions({
@@ -124,7 +125,7 @@ class VisionState extends Store<State> {
         const points = shape.points; // expensive call
         if (points.length === 0) return;
         if (shape.type === "assetrect") {
-            const asset = shape as Asset;
+            const asset = shape as IAsset;
             if (shape.options.svgAsset !== undefined && asset.svgData !== undefined) {
                 for (const svgData of asset.svgData) {
                     if (!equalsP(shape.refPoint, svgData.rp) || svgData.paths === undefined) {
@@ -155,7 +156,7 @@ class VisionState extends Store<State> {
 
                     const pathElement = document.createElementNS("http://www.w3.org/2000/svg", "path");
                     pathElement.setAttribute("d", pathString);
-                    const paths = pathToArray(shape as Asset, pathElement, dW, dH);
+                    const paths = pathToArray(shape as IAsset, pathElement, dW, dH);
                     for (const path of paths) {
                         this.triangulatePath(target, shape, path, false);
                         break;

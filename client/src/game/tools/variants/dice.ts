@@ -12,9 +12,8 @@ import { clientStore } from "../../../store/client";
 import { diceStore } from "../../dice/state";
 import { ToolName } from "../../models/tools";
 import type { ToolPermission } from "../../models/tools";
+import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
-
-import { SelectFeatures } from "./select";
 
 class DiceTool extends Tool {
     readonly toolName = ToolName.Dice;

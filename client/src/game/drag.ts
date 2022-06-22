@@ -1,6 +1,6 @@
 import { Vector, toGP, toArrayP, addP, subtractP } from "../core/geometry";
 
-import type { IShape } from "./shapes/interfaces";
+import type { IShape } from "./interfaces/shape";
 import { TriangulationTarget, visionState } from "./vision/state";
 import { Sign } from "./vision/tds";
 import type { Triangle, Point } from "./vision/tds";

@@ -5,8 +5,8 @@ import { useI18n } from "vue-i18n";
 import { http } from "../../../../core/http";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import type { RoomInfo } from "../../../../dashboard/types";
-import { gameStore } from "../../../../store/game";
 import { locationStore } from "../../../../store/location";
+import { playerState } from "../../../systems/players/state";
 
 const emit = defineEmits(["update:location", "close"]);
 const props = defineProps<{ location: number }>();
@@ -14,7 +14,7 @@ const props = defineProps<{ location: number }>();
 const { t } = useI18n();
 const modals = useModal();
 
-const hasPlayers = computed(() => gameStore.state.players.some((p) => p.location === props.location));
+const hasPlayers = computed(() => playerState.$.players.some((p) => p.location === props.location));
 
 const name = computed({
     get() {

@@ -1,4 +1,4 @@
-import type { Layer } from "../game/layers/variants/layer";
+import type { ILayer } from "../game/interfaces/layer";
 import { DEFAULT_GRID_SIZE } from "../store/client";
 
 import { l2gz } from "./conversions";
@@ -36,7 +36,7 @@ export function getPointsCenter(points: GlobalPoint[]): GlobalPoint {
     return toGP(vertexAvg.asArray());
 }
 
-export function snapToPoint(layer: Layer, endPoint: GlobalPoint, ignore?: GlobalPoint): [GlobalPoint, boolean] {
+export function snapToPoint(layer: ILayer, endPoint: GlobalPoint, ignore?: GlobalPoint): [GlobalPoint, boolean] {
     const snapDistance = l2gz(20);
     let smallestPoint: [number, GlobalPoint] | undefined;
     for (const point of layer.points.keys()) {

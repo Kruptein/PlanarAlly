@@ -6,20 +6,20 @@ import type { LocalPoint } from "../../../core/geometry";
 import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { clientStore } from "../../../store/client";
-import { floorStore } from "../../../store/floor";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { getShape } from "../../id";
+import type { IShape } from "../../interfaces/shape";
+import type { ICircle } from "../../interfaces/shapes/circle";
 import { selectionState } from "../../layers/selection";
 import { ToolName } from "../../models/tools";
 import type { ToolPermission } from "../../models/tools";
-import type { IShape } from "../../shapes/interfaces";
 import { Circle } from "../../shapes/variants/circle";
 import { Rect } from "../../shapes/variants/rect";
 import { accessSystem } from "../../systems/access";
+import { floorState } from "../../systems/floors/state";
+import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
 import { activateTool } from "../tools";
-
-import { SelectFeatures } from "./select";
 
 export enum SpellShape {
     Square = "square",
@@ -81,7 +81,7 @@ class SpellTool extends Tool {
     drawShape(syncChanged = false): void {
         if (!selectionState.hasSelection && this.state.selectedSpellShape === SpellShape.Cone) return;
 
-        const layer = floorStore.currentLayer.value!;
+        const layer = floorState.currentLayer.value!;
 
         const ogPoint = toGP(0, 0);
         let startPosition = ogPoint;
@@ -138,7 +138,7 @@ class SpellTool extends Tool {
     }
 
     drawRangeShape(): void {
-        const layer = floorStore.currentLayer.value!;
+        const layer = floorState.currentLayer.value!;
 
         if (this.rangeShape !== undefined) {
             layer.removeShape(this.rangeShape, { sync: SyncMode.NO_SYNC, recalculate: false, dropShapeId: true });
@@ -164,7 +164,7 @@ class SpellTool extends Tool {
     }
 
     onDeselect(): void {
-        const layer = floorStore.currentLayer.value!;
+        const layer = floorState.currentLayer.value!;
 
         if (this.shape !== undefined) {
             layer.removeShape(this.shape, {
@@ -187,7 +187,7 @@ class SpellTool extends Tool {
     // eslint-disable-next-line @typescript-eslint/require-await
     async onDown(): Promise<void> {
         if (this.shape === undefined) return;
-        const layer = floorStore.currentLayer.value!;
+        const layer = floorState.currentLayer.value!;
 
         layer.removeShape(this.shape, {
             sync: this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC,
@@ -205,12 +205,12 @@ class SpellTool extends Tool {
         if (this.shape === undefined) return;
 
         const endPoint = l2g(lp);
-        const layer = floorStore.currentLayer.value!;
+        const layer = floorState.currentLayer.value!;
 
         if (selectionState.hasSelection && this.state.range === 0) {
             if (this.state.selectedSpellShape === SpellShape.Cone) {
                 const center = g2l(this.shape.center());
-                (this.shape as Circle).angle = -Math.atan2(lp.y - center.y, center.x - lp.x) + Math.PI;
+                (this.shape as ICircle).angle = -Math.atan2(lp.y - center.y, center.x - lp.x) + Math.PI;
                 if (this.state.showPublic) sendShapePositionUpdate([this.shape], true);
                 layer.invalidate(true);
             }
@@ -223,7 +223,7 @@ class SpellTool extends Tool {
 
     onContextMenu(): void {
         if (this.shape !== undefined) {
-            const layer = floorStore.currentLayer.value!;
+            const layer = floorState.currentLayer.value!;
 
             layer.removeShape(this.shape, {
                 sync: this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC,

@@ -4,24 +4,19 @@ import { POSITION, useToast } from "vue-toastification";
 import type { ToastID } from "vue-toastification/dist/types/types";
 
 import { registerSystem } from "../..";
-import type { System } from "../..";
+import type { ShapeSystem } from "../..";
 import SingleButtonToast from "../../../../core/components/toasts/SingleButtonToast.vue";
 import type { Sync } from "../../../../core/models/types";
-import { floorStore } from "../../../../store/floor";
-import { gameStore } from "../../../../store/game";
 import { settingsStore } from "../../../../store/settings";
 import { sendRequest } from "../../../api/emits/logic";
-import { requestShapeInfo, sendShapesMove } from "../../../api/emits/shape/core";
-import { getGlobalId, getLocalId, getShape } from "../../../id";
-import type { GlobalId, LocalId } from "../../../id";
-import { LayerName } from "../../../models/floor";
-import { setCenterPosition } from "../../../position";
-import type { IShape } from "../../../shapes/interfaces";
-import { accessSystem } from "../../access";
+import { getGlobalId, getShape } from "../../../id";
+import type { LocalId } from "../../../id";
+import type { IShape } from "../../../interfaces/shape";
 import { canUse } from "../common";
 import { Access, DEFAULT_PERMISSIONS } from "../models";
 import type { Permissions } from "../models";
 
+import { getTpZoneShapes, teleport } from "./core";
 import {
     sendShapeIsImmediateTeleportZone,
     sendShapeIsTeleportZone,
@@ -51,7 +46,7 @@ interface ReactiveTpState {
     target?: TeleportOptions["location"];
 }
 
-class TeleportZoneSystem implements System {
+class TeleportZoneSystem implements ShapeSystem {
     private enabled: Set<LocalId> = new Set();
     private data: Map<LocalId, ClientTeleportOptions> = new Map();
 
@@ -237,67 +232,5 @@ class TeleportZoneSystem implements System {
     }
 }
 
-function getTpZoneShapes(fromZone: LocalId): LocalId[] {
-    const tokenLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Tokens)!;
-    const shapes: LocalId[] = [];
-    const fromShape = getShape(fromZone);
-    if (fromShape === undefined) return [];
-
-    for (const shape of tokenLayer.getShapes({ includeComposites: true })) {
-        if (
-            !shape.isLocked &&
-            accessSystem.hasAccessTo(shape.id, false, { movement: true }) &&
-            fromShape.contains(shape.center())
-        ) {
-            shapes.push(shape.id);
-        }
-    }
-    return shapes;
-}
-
-export async function teleport(fromZone: LocalId, toZone: GlobalId, transfers?: readonly LocalId[]): Promise<void> {
-    const activeLocation = settingsStore.state.activeLocation;
-    const tpTargetId = getLocalId(toZone);
-    const tpTargetShape = tpTargetId === undefined ? undefined : getShape(tpTargetId);
-    let target: { location: number; floor: string; x: number; y: number };
-    if (tpTargetShape === undefined) {
-        const { location, shape } = await requestShapeInfo(toZone);
-        target = {
-            location,
-            floor: shape.floor,
-            x: shape.x,
-            y: shape.y,
-        };
-    } else {
-        target = {
-            location: activeLocation,
-            floor: tpTargetShape.floor.name,
-            x: tpTargetShape.refPoint.x,
-            y: tpTargetShape.refPoint.y,
-        };
-    }
-
-    const shapes = transfers ? transfers : getTpZoneShapes(fromZone);
-    if (shapes.length === 0) return;
-
-    sendShapesMove({
-        shapes: shapes.map((s) => getGlobalId(s)),
-        target,
-        tp_zone: true,
-    });
-    const { location, ...position } = target;
-    if (settingsStore.movePlayerOnTokenChange.value) {
-        if (location === activeLocation) {
-            setCenterPosition(tpTargetShape!.center());
-        } else {
-            const users: Set<string> = new Set();
-            for (const sh of shapes) {
-                for (const owner of accessSystem.getOwners(sh)) users.add(owner);
-            }
-            gameStore.updatePlayersLocation([...users], location, true, position);
-        }
-    }
-}
-
 export const teleportZoneSystem = new TeleportZoneSystem();
-registerSystem("tp", teleportZoneSystem);
+registerSystem("tp", teleportZoneSystem, true);

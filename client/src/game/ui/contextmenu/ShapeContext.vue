@@ -6,8 +6,8 @@ import { useI18n } from "vue-i18n";
 import ContextMenu from "../../../core/components/ContextMenu.vue";
 import { SyncMode } from "../../../core/models/types";
 import { useModal } from "../../../core/plugins/modals/plugin";
+import { getGameState } from "../../../store/_game";
 import { activeShapeStore } from "../../../store/activeShape";
-import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
 import { locationStore } from "../../../store/location";
 import { settingsStore } from "../../../store/settings";
@@ -17,15 +17,18 @@ import { sendShapesMove } from "../../api/emits/shape/core";
 import { addGroupMembers, createNewGroupForShapes, getGroupSize, removeGroup } from "../../groups";
 import { getGlobalId, getShape } from "../../id";
 import type { LocalId } from "../../id";
+import type { ILayer } from "../../interfaces/layer";
 import { selectionState } from "../../layers/selection";
 import { compositeState } from "../../layers/state";
-import type { Layer } from "../../layers/variants/layer";
 import type { AssetOptions } from "../../models/asset";
 import type { Floor, LayerName } from "../../models/floor";
 import type { ServerAsset } from "../../models/shapes";
 import { toTemplate } from "../../shapes/templates";
 import { deleteShapes } from "../../shapes/utils";
 import { accessSystem } from "../../systems/access";
+import { floorSystem } from "../../systems/floors";
+import { floorState } from "../../systems/floors/state";
+import { playerSystem } from "../../systems/players";
 import { moveFloor, moveLayer } from "../../temp";
 import { initiativeStore } from "../initiative/state";
 import { layerTranslationMapping } from "../translations";
@@ -35,8 +38,7 @@ import { shapeContextLeft, shapeContextTop, showShapeContextMenu } from "./state
 const { t } = useI18n();
 const modals = useModal();
 
-const floorState = floorStore.state;
-const isDm = toRef(gameStore.state, "isDm");
+const isDm = toRef(getGameState(), "isDm");
 
 const selectionIncludesSpawnToken = computed(() =>
     [...selectionState.state.selection].some(
@@ -63,7 +65,7 @@ function openEditDialog(): void {
 const isMarker = computed(() => {
     const sel = selectionState.state.selection;
     if (sel.size !== 1) return false;
-    return gameStore.state.markers.has([...sel][0]);
+    return getGameState().markers.has([...sel][0]);
 });
 
 function deleteMarker(): void {
@@ -122,7 +124,7 @@ function getInitiativeWord(): string {
 
 const layers = computed(() => {
     if (isDm.value && !selectionIncludesSpawnToken.value) {
-        return floorStore.getLayers(floorStore.currentFloor.value!).filter((l) => l.selectable);
+        return floorSystem.getLayers(floorState.currentFloor.value!).filter((l) => l.selectable);
     }
     return [];
 });
@@ -130,12 +132,12 @@ const layers = computed(() => {
 function setLayer(newLayer: LayerName): void {
     const oldSelection = [...selectionState.get({ includeComposites: true })];
     selectionState.clear();
-    moveLayer(oldSelection, floorStore.getLayer(floorStore.currentFloor.value!, newLayer)!, true);
+    moveLayer(oldSelection, floorSystem.getLayer(floorState.currentFloor.value!, newLayer)!, true);
     close();
 }
 
 function moveToBack(): void {
-    const layer = floorStore.currentLayer.value!;
+    const layer = floorState.currentLayer.value!;
     for (const shape of selectionState.get({ includeComposites: false })) {
         layer.moveShapeOrder(shape, 0, SyncMode.FULL_SYNC);
     }
@@ -143,7 +145,7 @@ function moveToBack(): void {
 }
 
 function moveToFront(): void {
-    const layer = floorStore.currentLayer.value!;
+    const layer = floorState.currentLayer.value!;
     for (const shape of selectionState.get({ includeComposites: false })) {
         layer.moveShapeOrder(shape, layer.size({ includeComposites: true }) - 1, SyncMode.FULL_SYNC);
     }
@@ -218,7 +220,7 @@ async function setLocation(newLocation: number): Promise<void> {
             if (shape.isLocked) continue;
             for (const owner of accessSystem.getOwners(shape.id)) users.add(owner);
         }
-        gameStore.updatePlayersLocation([...users], newLocation, true, { ...targetPosition });
+        playerSystem.updatePlayersLocation([...users], newLocation, true, { ...targetPosition });
     }
 
     close();
@@ -340,10 +342,10 @@ function enlargeGroup(): void {
     close();
 }
 
-const activeLayer = floorStore.currentLayer as ComputedRef<Layer>;
+const activeLayer = floorState.currentLayer as ComputedRef<ILayer>;
 const activeLocation = toRef(settingsStore.state, "activeLocation");
-const currentFloorIndex = toRef(floorState, "floorIndex");
-const floors = toRef(floorState, "floors");
+const currentFloorIndex = toRef(floorState.$, "floorIndex");
+const floors = toRef(floorState.$, "floors");
 </script>
 
 <template>

@@ -1,5 +1,5 @@
 import { equalPoints } from "../../core/math";
-import type { IShape } from "../shapes/interfaces";
+import type { IShape } from "../interfaces/shape";
 
 import type { CDT } from "./cdt";
 import { visionState } from "./state";

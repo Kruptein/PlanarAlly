@@ -1,10 +1,10 @@
 import { addP, toArrayP } from "../../core/geometry";
 import type { Vector } from "../../core/geometry";
 import { sendShapePositionUpdate } from "../api/emits/shape/core";
-import { moveClient } from "../client";
+import type { IShape } from "../interfaces/shape";
 import { selectionState } from "../layers/selection";
-import type { IShape } from "../shapes/interfaces";
 import { accessSystem } from "../systems/access";
+import { clientSystem } from "../systems/client";
 import { teleportZoneSystem } from "../systems/logic/tp";
 import { TriangulationTarget, visionState } from "../vision/state";
 
@@ -55,7 +55,7 @@ export async function moveShapes(shapes: readonly IShape[], delta: Vector, tempo
         // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
         if (!shape.preventSync) updateList.push(shape);
         if (shape.options.isPlayerRect ?? false) {
-            moveClient(shape.id);
+            clientSystem.moveClient(shape.id);
         }
     }
 

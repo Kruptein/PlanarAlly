@@ -1,8 +1,8 @@
 import { sendToggleCompositeAddVariant } from "../api/emits/shape/toggleComposite";
 import { getGlobalId, getShape } from "../id";
 import type { LocalId } from "../id";
-import type { IShape } from "../shapes/interfaces";
-import type { ToggleComposite } from "../shapes/variants/toggleComposite";
+import type { IShape } from "../interfaces/shape";
+import type { IToggleComposite } from "../interfaces/shapes/toggleComposite";
 
 class CompositeState {
     private compositeMap: Map<LocalId, LocalId> = new Map();
@@ -11,10 +11,10 @@ class CompositeState {
         this.compositeMap.clear();
     }
 
-    getCompositeParent(variant: LocalId): ToggleComposite | undefined {
+    getCompositeParent(variant: LocalId): IToggleComposite | undefined {
         const shape_uuid = this.compositeMap.get(variant);
         if (shape_uuid !== undefined) {
-            return getShape(shape_uuid) as ToggleComposite;
+            return getShape(shape_uuid) as IToggleComposite;
         }
         return undefined;
     }

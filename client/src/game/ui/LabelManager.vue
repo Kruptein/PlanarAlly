@@ -4,10 +4,11 @@ import { useI18n } from "vue-i18n";
 
 import Modal from "../../core/components/modals/Modal.vue";
 import { uuidv4 } from "../../core/utils";
+import { getGameState } from "../../store/_game";
 import { clientStore } from "../../store/client";
 import { gameStore } from "../../store/game";
 import { sendLabelVisibility } from "../api/emits/labels";
-import type { Label } from "../shapes/interfaces";
+import type { Label } from "../interfaces/label";
 
 const emit = defineEmits(["update:visible", "addLabel"]);
 defineProps<{ visible: boolean }>();
@@ -24,12 +25,12 @@ function close(): void {
     emit("update:visible", false);
 }
 
-const hasLabels = computed(() => gameStore.state.labels.size > 0);
+const hasLabels = computed(() => getGameState().labels.size > 0);
 
 const categories = computed(() => {
     const cat: Map<string, Label[]> = new Map();
     cat.set("", []);
-    for (const label of gameStore.state.labels.values()) {
+    for (const label of getGameState().labels.values()) {
         if (label.user !== clientStore.state.username) continue;
         const fullName = `${label.category.toLowerCase()}${label.name.toLowerCase()}`;
         if (state.search.length > 0 && fullName.search(state.search.toLowerCase()) < 0) {

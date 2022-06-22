@@ -19,9 +19,8 @@ import { equalPoints, snapToPoint } from "../../../core/math";
 import { InvalidationMode, NO_SYNC, SyncMode } from "../../../core/models/types";
 import { ctrlOrCmdPressed } from "../../../core/utils";
 import { i18n } from "../../../i18n";
+import { getGameState } from "../../../store/_game";
 import { clientStore, DEFAULT_GRID_SIZE } from "../../../store/client";
-import { floorStore } from "../../../store/floor";
-import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
 import { sendRequest } from "../../api/emits/logic";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
@@ -29,6 +28,7 @@ import { calculateDelta } from "../../drag";
 import { getGlobalId, getShape } from "../../id";
 import type { LocalId } from "../../id";
 import { getLocalPointFromEvent } from "../../input/mouse";
+import type { IShape } from "../../interfaces/shape";
 import { selectionState } from "../../layers/selection";
 import { LayerName } from "../../models/floor";
 import { ToolMode, ToolName } from "../../models/tools";
@@ -38,18 +38,20 @@ import { moveShapes } from "../../operations/movement";
 import { resizeShape } from "../../operations/resize";
 import { rotateShapes } from "../../operations/rotation";
 import { addOperation } from "../../operations/undo";
-import type { IShape } from "../../shapes/interfaces";
-import type { BoundingRect } from "../../shapes/variants/boundingRect";
 import { Circle } from "../../shapes/variants/circle";
 import { Line } from "../../shapes/variants/line";
 import type { Polygon } from "../../shapes/variants/polygon";
 import { Rect } from "../../shapes/variants/rect";
+import type { BoundingRect } from "../../shapes/variants/simple/boundingRect";
 import { accessSystem } from "../../systems/access";
+import { floorSystem } from "../../systems/floors";
+import { floorState } from "../../systems/floors/state";
 import { doorSystem } from "../../systems/logic/door";
 import { Access } from "../../systems/logic/models";
 import { teleportZoneSystem } from "../../systems/logic/tp";
 import { openDefaultContextMenu, openShapeContextMenu } from "../../ui/contextmenu/state";
 import { TriangulationTarget, visionState } from "../../vision/state";
+import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
 import { activeToolMode, getFeatures } from "../tools";
 
@@ -61,17 +63,6 @@ enum SelectOperations {
     Drag,
     GroupSelect,
     Rotate,
-}
-
-export enum SelectFeatures {
-    ChangeSelection,
-    Context,
-    Drag,
-    GroupSelect,
-    Resize,
-    Snapping,
-    Rotate,
-    PolygonEdit,
 }
 
 const toast = useToast();
@@ -215,7 +206,7 @@ class SelectTool extends Tool implements ISelectTool {
         if (features.enabled?.length === 1 && features.enabled[0] === SelectFeatures.Context) return;
 
         const gp = l2g(lp);
-        const layer = floorStore.currentLayer.value;
+        const layer = floorState.currentLayer.value;
         if (layer === undefined) {
             console.log("No active layer!");
             return;
@@ -403,7 +394,7 @@ class SelectTool extends Tool implements ISelectTool {
             for (const id of doorSystem.getDoors()) {
                 const shape = getShape(id);
                 if (shape === undefined) continue;
-                if (shape.floor.id !== floorStore.currentFloor.value!.id) continue;
+                if (shape.floor.id !== floorState.currentFloor.value!.id) continue;
                 if (!shape.contains(gp)) continue;
                 if (doorSystem.canUse(id) === Access.Disabled) continue;
 
@@ -430,7 +421,7 @@ class SelectTool extends Tool implements ISelectTool {
         )
             return;
 
-        const layer = floorStore.currentLayer.value;
+        const layer = floorState.currentLayer.value;
         if (layer === undefined) {
             console.log("No active layer!");
             return;
@@ -460,7 +451,7 @@ class SelectTool extends Tool implements ISelectTool {
             if (this.mode === SelectOperations.Drag) {
                 if (ogDelta.length() === 0) return;
                 // If we are on the tokens layer do a movement block check.
-                if (layer.name === "tokens" && !(event.shiftKey && gameStore.state.isDm)) {
+                if (layer.name === "tokens" && !(event.shiftKey && getGameState().isDm)) {
                     for (const sel of layerSelection) {
                         if (!accessSystem.hasAccessTo(sel.id, false, { movement: true })) continue;
                         delta = calculateDelta(delta, sel, true);
@@ -493,7 +484,7 @@ class SelectTool extends Tool implements ISelectTool {
                 if (this.resizePoint >= 0) ignorePoint = toGP(this.originalResizePoints[this.resizePoint]);
                 let targetPoint = gp;
                 if (clientStore.useSnapping(event) && this.hasFeature(SelectFeatures.Snapping, features))
-                    [targetPoint, this.snappedToPoint] = snapToPoint(floorStore.currentLayer.value!, gp, ignorePoint);
+                    [targetPoint, this.snappedToPoint] = snapToPoint(floorState.currentLayer.value!, gp, ignorePoint);
                 else this.snappedToPoint = false;
 
                 this.resizePoint = resizeShape(shape, targetPoint, this.resizePoint, ctrlOrCmdPressed(event), true);
@@ -522,11 +513,11 @@ class SelectTool extends Tool implements ISelectTool {
         if (!this.active.value) return;
         this.active.value = false;
 
-        if (floorStore.currentLayer === undefined) {
+        if (floorState.currentLayer === undefined) {
             console.log("No active layer!");
             return;
         }
-        const layer = floorStore.currentLayer.value!;
+        const layer = floorState.currentLayer.value!;
 
         let layerSelection = selectionState.get({ includeComposites: false });
 
@@ -738,11 +729,11 @@ class SelectTool extends Tool implements ISelectTool {
 
     onContextMenu(event: MouseEvent, features: ToolFeatures<SelectFeatures>): void {
         if (!this.hasFeature(SelectFeatures.Context, features)) return;
-        if (floorStore.currentLayer === undefined) {
+        if (floorState.currentLayer === undefined) {
             console.log("No active layer!");
             return;
         }
-        const layer = floorStore.currentLayer.value!;
+        const layer = floorState.currentLayer.value!;
         const layerSelection = selectionState.get({ includeComposites: false });
         const mouse = getLocalPointFromEvent(event);
         const globalMouse = l2g(mouse);
@@ -779,7 +770,7 @@ class SelectTool extends Tool implements ISelectTool {
     // ROTATION
 
     createRotationUi(features: ToolFeatures<SelectFeatures>): void {
-        const layer = floorStore.currentLayer.value!;
+        const layer = floorState.currentLayer.value!;
 
         const layerSelection = selectionState.get({ includeComposites: false });
 
@@ -860,7 +851,7 @@ class SelectTool extends Tool implements ISelectTool {
     }
 
     rotateSelection(newAngle: number, center: GlobalPoint, temporary: boolean): void {
-        const layer = floorStore.currentLayer.value!;
+        const layer = floorState.currentLayer.value!;
         const dA = newAngle - this.angle;
         this.angle = newAngle;
         const layerSelection = selectionState.get({ includeComposites: false });
@@ -886,7 +877,7 @@ class SelectTool extends Tool implements ISelectTool {
             strokeColour: ["black"],
             isSnappable: false,
         });
-        const drawLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw)!;
+        const drawLayer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw)!;
         drawLayer.addShape(this.polygonTracer, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         this.updatePolygonEditUi(this.lastMousePosition);
         drawLayer.invalidate(true);
@@ -894,7 +885,7 @@ class SelectTool extends Tool implements ISelectTool {
 
     removePolygonEditUi(): void {
         if (this.polygonTracer !== null) {
-            const drawLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw)!;
+            const drawLayer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw)!;
             drawLayer.removeShape(this.polygonTracer, {
                 sync: SyncMode.NO_SYNC,
                 recalculate: false,

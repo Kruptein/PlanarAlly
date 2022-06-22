@@ -1,10 +1,10 @@
 import { colourHistory } from "../../../core/components/store";
+import { getGameState } from "../../../store/_game";
 import { clientStore } from "../../../store/client";
-import { floorStore } from "../../../store/floor";
-import { gameStore } from "../../../store/game";
-import { moveClientRect } from "../../client";
 import { userOptionsToClient } from "../../models/settings";
 import type { ServerClient, ServerUserLocationOptions } from "../../models/settings";
+import { moveClientRect } from "../../systems/client/move";
+import { floorSystem } from "../../systems/floors";
 import { socket } from "../socket";
 
 // eslint-disable-next-line import/no-unused-modules
@@ -12,13 +12,13 @@ export let activeLayerToselect: string | undefined;
 
 socket.on("Client.Move", (data: { player: number } & ServerUserLocationOptions) => {
     const { player, ...locationData } = data;
-    if (gameStore.state.isDm) {
+    if (getGameState().isDm) {
         moveClientRect(player, locationData);
     } else {
         clientStore.setPanX(data.pan_x);
         clientStore.setPanY(data.pan_y);
         clientStore.setZoomDisplay(data.zoom_display);
-        floorStore.invalidateAllFloors();
+        floorSystem.invalidateAllFloors();
     }
 });
 

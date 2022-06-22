@@ -28,18 +28,20 @@ import { debugLayers } from "../../localStorageHelpers";
 import { router } from "../../router";
 import { clientStore } from "../../store/client";
 import { coreStore } from "../../store/core";
-import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
 import { locationStore } from "../../store/location";
 import { convertAssetListToMap } from "../assets/utils";
 import { clearGame } from "../clear";
-import { startDrawLoop } from "../draw";
+import { addServerFloor } from "../floor/server";
 import { getLocalId, getShapeFromGlobal } from "../id";
 import type { GlobalId } from "../id";
 import type { Note, ServerFloor } from "../models/general";
 import type { Location } from "../models/settings";
 import { setCenterPosition } from "../position";
+import { startDrawLoop } from "../rendering/core";
 import { deleteShapes } from "../shapes/utils";
+import { floorSystem } from "../systems/floors";
+import { floorState } from "../systems/floors/state";
 
 import { sendClientLocationOptions } from "./emits/client";
 import { activeLayerToselect } from "./events/client";
@@ -85,20 +87,20 @@ socket.on("Board.Floor.Set", (floor: ServerFloor) => {
     // It is important that this condition is evaluated before the async addFloor call.
     // The very first floor that arrives is the one we want to select
     // When this condition is evaluated after the await, we are at the mercy of the async scheduler
-    const selectFloor = floorStore.state.floors.length === 0;
+    const selectFloor = floorState.$.floors.length === 0;
     if (debugLayers)
         console.log(
             `Adding floor ${floor.name} [${floor.layers.reduce((acc, cur) => acc + cur.shapes.length, 0)} shapes]`,
         );
-    floorStore.addServerFloor(floor);
+    addServerFloor(floor);
     if (debugLayers) console.log("Done.");
 
     if (selectFloor) {
-        floorStore.selectFloor({ name: floor.name }, false);
+        floorSystem.selectFloor({ name: floor.name }, false);
         startDrawLoop();
         coreStore.setLoading(false);
         gameStore.setBoardInitialized(true);
-        if (activeLayerToselect !== undefined) floorStore.selectLayer(activeLayerToselect, false);
+        if (activeLayerToselect !== undefined) floorSystem.selectLayer(activeLayerToselect, false);
         // Send initial viewport on connect (this can change due to other monitors etc)
         sendClientLocationOptions();
     }
@@ -107,7 +109,7 @@ socket.on("Board.Floor.Set", (floor: ServerFloor) => {
 // Varia
 
 socket.on("Position.Set", (data: { floor?: string; x: number; y: number; zoom?: number }) => {
-    if (data.floor !== undefined) floorStore.selectFloor({ name: data.floor }, true);
+    if (data.floor !== undefined) floorSystem.selectFloor({ name: data.floor }, true);
     if (data.zoom !== undefined) clientStore.setZoomDisplay(data.zoom);
     setCenterPosition(toGP(data.x, data.y));
 });

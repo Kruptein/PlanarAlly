@@ -1,7 +1,8 @@
-import { floorStore } from "../../../store/floor";
+import type { IShape } from "../../interfaces/shape";
 import { LayerName } from "../../models/floor";
 import type { FloorId } from "../../models/floor";
-import type { IShape } from "../../shapes/interfaces";
+import { floorSystem } from "../../systems/floors";
+import { floorState } from "../../systems/floors/state";
 import { createCanvas, setCanvasDimensions } from "../canvas";
 
 import { Layer } from "./layer";
@@ -29,22 +30,22 @@ export class FowLayer extends Layer {
 
         this.ctx.fillStyle = "rgba(0, 0, 0, 1)";
 
-        const activeFloor = floorStore.currentFloor.value!.id;
+        const activeFloor = floorState.currentFloor.value!.id;
 
         if (this.floor === activeFloor && this.canvas.style.display === "none")
             this.canvas.style.removeProperty("display");
         else if (this.floor !== activeFloor && this.canvas.style.display !== "none") this.canvas.style.display = "none";
 
-        if (this.floor === activeFloor && floorStore.state.floors.length > 1) {
-            for (const floor of floorStore.state.floors) {
-                if (floor.name !== floorStore.state.floors[0].name) {
-                    const mapl = floorStore.getLayer(floor, LayerName.Map);
+        if (this.floor === activeFloor && floorState.$.floors.length > 1) {
+            for (const floor of floorState.$.floors) {
+                if (floor.name !== floorState.$.floors[0].name) {
+                    const mapl = floorSystem.getLayer(floor, LayerName.Map);
                     if (mapl === undefined) continue;
                     this.ctx.globalCompositeOperation = "destination-out";
                     this.ctx.drawImage(mapl.canvas, 0, 0, window.innerWidth, window.innerHeight);
                 }
                 if (floor.id !== activeFloor) {
-                    const fowl = floorStore.getLayer(floor, this.name);
+                    const fowl = floorSystem.getLayer(floor, this.name);
                     if (fowl === undefined) continue;
                     this.ctx.globalCompositeOperation = "source-over";
                     this.ctx.drawImage(fowl.canvas, 0, 0, window.innerWidth, window.innerHeight);

@@ -1,7 +1,6 @@
 import { toGP, Vector } from "../../core/geometry";
 import type { GlobalPoint } from "../../core/geometry";
 import { SyncMode } from "../../core/models/types";
-import { floorStore } from "../../store/floor";
 import { getLocalId, getShape } from "../id";
 import type { LocalId } from "../id";
 import type { LayerName } from "../models/floor";
@@ -9,6 +8,7 @@ import type { ServerShape } from "../models/shapes";
 import { ToolName } from "../models/tools";
 import type { ISelectTool } from "../models/tools";
 import { deleteShapes } from "../shapes/utils";
+import { floorSystem } from "../systems/floors";
 import { addShape, moveFloor, moveLayer } from "../temp";
 import { toolMap } from "../tools/tools";
 
@@ -119,7 +119,7 @@ function handleFloorMove(shapes: LocalId[], from: number, to: number, direction:
     const fullShapes = shapes.map((s) => getShape(s)!);
     let floorId = from;
     if (direction === "redo") floorId = to;
-    const floor = floorStore.getFloor({ id: floorId })!;
+    const floor = floorSystem.getFloor({ id: floorId })!;
     moveFloor(fullShapes, floor, true);
 }
 
@@ -127,8 +127,8 @@ function handleLayerMove(shapes: LocalId[], from: LayerName, to: LayerName, dire
     const fullShapes = shapes.map((s) => getShape(s)!);
     let layerName = from;
     if (direction === "redo") layerName = to;
-    const floor = floorStore.getFloor({ id: fullShapes[0].floor.id })!;
-    const layer = floorStore.getLayer(floor, layerName)!;
+    const floor = floorSystem.getFloor({ id: fullShapes[0].floor.id })!;
+    const layer = floorSystem.getLayer(floor, layerName)!;
     moveLayer(fullShapes, layer, true);
 }
 

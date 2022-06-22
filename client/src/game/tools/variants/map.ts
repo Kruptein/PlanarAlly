@@ -6,16 +6,16 @@ import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { DEFAULT_GRID_SIZE } from "../../../store/client";
-import { floorStore } from "../../../store/floor";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
+import type { IShape } from "../../interfaces/shape";
+import type { IRect } from "../../interfaces/shapes/rect";
 import { selectionState } from "../../layers/selection";
 import { ToolName } from "../../models/tools";
 import type { ToolPermission } from "../../models/tools";
-import type { IShape } from "../../shapes/interfaces";
 import { Rect } from "../../shapes/variants/rect";
+import { floorState } from "../../systems/floors/state";
+import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
-
-import { SelectFeatures } from "./select";
 
 class MapTool extends Tool {
     readonly toolName = ToolName.Map;
@@ -36,7 +36,7 @@ class MapTool extends Tool {
         error: "",
     });
 
-    shape?: Rect;
+    shape?: IRect;
     rect?: Rect;
     startPoint?: GlobalPoint;
     ogRP?: GlobalPoint;
@@ -53,7 +53,7 @@ class MapTool extends Tool {
 
     setSelection(shapes: readonly IShape[]): void {
         if (shapes.length === 1 && this.shape === undefined && ["assetrect", "rect"].includes(shapes[0].type)) {
-            this.shape = shapes[0] as Rect;
+            this.shape = shapes[0] as IRect;
             this.state.hasShape = true;
             this.ogRP = this.shape.refPoint;
             this.ogW = this.shape.w;
@@ -79,7 +79,7 @@ class MapTool extends Tool {
             this.shape.invalidate(true);
         }
         if (this.rect !== undefined) {
-            const layer = floorStore.currentLayer.value!;
+            const layer = floorState.currentLayer.value!;
             layer.removeShape(this.rect, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
             this.rect = undefined;
             this.state.hasRect = false;
@@ -99,7 +99,7 @@ class MapTool extends Tool {
         const startPoint = l2g(lp);
 
         this.startPoint = startPoint;
-        const layer = floorStore.currentLayer.value!;
+        const layer = floorState.currentLayer.value!;
 
         this.active.value = true;
 
@@ -120,7 +120,7 @@ class MapTool extends Tool {
 
         const endPoint = l2g(lp);
 
-        const layer = floorStore.currentLayer.value!;
+        const layer = floorState.currentLayer.value!;
 
         this.rect.w = Math.abs(endPoint.x - this.startPoint.x);
         this.rect.h = Math.abs(endPoint.y - this.startPoint.y);

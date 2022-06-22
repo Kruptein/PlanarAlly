@@ -9,8 +9,8 @@ import { toSnakeCase } from "../core/utils";
 import { sendClientLocationOptions, sendDefaultClientOptions, sendRoomClientOptions } from "../game/api/emits/client";
 import { InitiativeEffectMode } from "../game/models/initiative";
 import type { UserOptions } from "../game/models/settings";
-
-import { floorStore } from "./floor";
+import { floorSystem } from "../game/systems/floors";
+import { floorState } from "../game/systems/floors/state";
 
 export const DEFAULT_GRID_SIZE = 50;
 // export const ZOOM_1_SOLUTION = 0.194904;
@@ -142,7 +142,7 @@ class ClientStore extends Store<State> {
         if (zoom < 0) zoom = 0;
         if (zoom > 1) zoom = 1;
         this._state.zoomDisplay = zoom;
-        floorStore.invalidateAllFloors();
+        floorSystem.invalidateAllFloors();
     }
 
     updateZoom(newZoomDisplay: number, zoomLocation: GlobalPoint): void {
@@ -156,7 +156,7 @@ class ClientStore extends Store<State> {
         const diff = subtractP(newLoc, zoomLocation);
         this._state.panX += diff.x;
         this._state.panY += diff.y;
-        floorStore.invalidateAllFloors();
+        floorSystem.invalidateAllFloors();
         sendClientLocationOptions();
     }
 
@@ -179,14 +179,14 @@ class ClientStore extends Store<State> {
 
     setFowColour(colour: string, sync: boolean): void {
         this._state.fowColour = colour;
-        floorStore.invalidateAllFloors();
+        floorSystem.invalidateAllFloors();
         if (sync) sendRoomClientOptions({ fow_colour: colour });
     }
 
     setGridColour(colour: string, sync: boolean): void {
         this._state.gridColour = colour;
-        for (const floor of floorStore.state.floors) {
-            floorStore.getGridLayer(floor)!.invalidate();
+        for (const floor of floorState.$.floors) {
+            floorSystem.getGridLayer(floor)!.invalidate();
         }
         if (sync) sendRoomClientOptions({ grid_colour: colour });
     }
@@ -212,31 +212,31 @@ class ClientStore extends Store<State> {
 
     setUseHighDpi(useHighDpi: boolean, sync: boolean): void {
         this._state.useHighDpi = useHighDpi;
-        floorStore.resize(window.innerWidth, window.innerHeight);
+        floorSystem.resize(window.innerWidth, window.innerHeight);
         if (sync) sendRoomClientOptions({ use_high_dpi: useHighDpi });
     }
 
     setGridSize(size: number, sync: boolean): void {
         this._state.gridSize = size;
-        floorStore.invalidateAllFloors();
+        floorSystem.invalidateAllFloors();
         if (sync) sendRoomClientOptions({ grid_size: size });
     }
 
     setUseAsPhysicalBoard(useAsPhysicalBoard: boolean, sync: boolean): void {
         this._state.useAsPhysicalBoard = useAsPhysicalBoard;
-        floorStore.invalidateAllFloors();
+        floorSystem.invalidateAllFloors();
         if (sync) sendRoomClientOptions({ use_as_physical_board: useAsPhysicalBoard });
     }
 
     setMiniSize(size: number, sync: boolean): void {
         this._state.miniSize = size;
-        floorStore.invalidateAllFloors();
+        floorSystem.invalidateAllFloors();
         if (sync) sendRoomClientOptions({ mini_size: size });
     }
 
     setPpi(ppi: number, sync: boolean): void {
         this._state.ppi = ppi;
-        floorStore.invalidateAllFloors();
+        floorSystem.invalidateAllFloors();
         if (sync) sendRoomClientOptions({ ppi });
     }
 

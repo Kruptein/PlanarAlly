@@ -2,7 +2,7 @@
 import { computed } from "vue";
 
 import type { ReadonlyAssetListMap } from "../../../core/models/types";
-import { gameStore } from "../../../store/game";
+import { getGameState } from "../../../store/_game";
 import { filterAssetMap } from "../../assets/utils";
 
 import AssetNode from "./AssetNode.vue";
@@ -10,7 +10,7 @@ import AssetNode from "./AssetNode.vue";
 const props = defineProps<{ search: string }>();
 
 const assets = computed(() =>
-    filterAssetMap(gameStore.state.assets as ReadonlyAssetListMap, props.search.toLocaleLowerCase()),
+    filterAssetMap(getGameState().assets as ReadonlyAssetListMap, props.search.toLocaleLowerCase()),
 );
 </script>
 

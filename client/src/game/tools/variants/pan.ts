@@ -2,13 +2,12 @@ import { subtractP, toLP } from "../../../core/geometry";
 import type { LocalPoint } from "../../../core/geometry";
 import { i18n } from "../../../i18n";
 import { clientStore } from "../../../store/client";
-import { floorStore } from "../../../store/floor";
 import { sendClientLocationOptions } from "../../api/emits/client";
 import { ToolName } from "../../models/tools";
 import type { ToolPermission } from "../../models/tools";
+import { floorSystem } from "../../systems/floors";
+import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
-
-import { SelectFeatures } from "./select";
 
 class PanTool extends Tool {
     readonly toolName = ToolName.Pan;
@@ -26,8 +25,8 @@ class PanTool extends Tool {
         clientStore.increasePanY(Math.round(distance.y));
         this.panStart = target;
 
-        if (full) floorStore.invalidateAllFloors();
-        else floorStore.invalidateVisibleFloors();
+        if (full) floorSystem.invalidateAllFloors();
+        else floorSystem.invalidateVisibleFloors();
     }
 
     // eslint-disable-next-line @typescript-eslint/require-await

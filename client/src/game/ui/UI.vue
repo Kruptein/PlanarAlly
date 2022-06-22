@@ -5,10 +5,10 @@ import { useI18n } from "vue-i18n";
 import MarkdownModal from "../../core/components/modals/MarkdownModal.vue";
 import SliderComponent from "../../core/components/slider/SliderComponent.vue";
 import { baseAdjust } from "../../core/http";
+import { getGameState } from "../../store/_game";
 import { activeShapeStore } from "../../store/activeShape";
 import { clientStore } from "../../store/client";
 import { coreStore } from "../../store/core";
-import { gameStore } from "../../store/game";
 import { sendClientLocationOptions } from "../api/emits/client";
 
 import Annotation from "./Annotation.vue";
@@ -116,7 +116,7 @@ function setTempZoomDisplay(value: number): void {
 </script>
 
 <template>
-    <div id="ui" ref="uiEl" v-show="gameStore.state.showUi">
+    <div id="ui" ref="uiEl" v-show="getGameState().showUi">
         <div id="logo" v-show="topLeft">
             <div id="logo-icons">
                 <a href="https://www.planarally.io" target="_blank" rel="noopener noreferrer">
@@ -158,10 +158,10 @@ function setTempZoomDisplay(value: number): void {
         <div id="radialmenu">
             <div class="rm-wrapper">
                 <div class="rm-toggler">
-                    <ul class="rm-list" :class="{ 'rm-list-dm': gameStore.state.isDm }">
+                    <ul class="rm-list" :class="{ 'rm-list-dm': getGameState().isDm }">
                         <li
                             @click="toggleLocations"
-                            v-if="gameStore.state.isDm"
+                            v-if="getGameState().isDm"
                             class="rm-item"
                             id="rm-locations"
                             :title="t('game.ui.ui.open_loc_menu')"
@@ -182,16 +182,16 @@ function setTempZoomDisplay(value: number): void {
         </div>
         <MenuBar />
         <Tools />
-        <LocationBar v-if="gameStore.state.isDm" :active="visible.locations" :menuActive="visible.settings" />
+        <LocationBar v-if="getGameState().isDm" :active="visible.locations" :menuActive="visible.settings" />
         <Floors />
         <CreateTokenDialog />
         <Initiative />
         <DefaultContext />
         <ShapeContext />
         <ShapeSettings />
-        <DmSettings v-if="gameStore.state.isDm || gameStore.state.isFakePlayer" />
-        <FloorSettings v-if="gameStore.state.isDm || gameStore.state.isFakePlayer" />
-        <LocationSettings v-if="gameStore.state.isDm || gameStore.state.isFakePlayer" />
+        <DmSettings v-if="getGameState().isDm || getGameState().isFakePlayer" />
+        <FloorSettings v-if="getGameState().isDm || getGameState().isFakePlayer" />
+        <LocationSettings v-if="getGameState().isDm || getGameState().isFakePlayer" />
         <ClientSettings />
         <SelectionInfo />
         <Annotation />

@@ -8,10 +8,10 @@ import { UI_SYNC } from "../../core/models/types";
 import type { Sync } from "../../core/models/types";
 import type { FunctionPropertyNames } from "../../core/types";
 import { mostReadable } from "../../core/utils";
+import { getGameState } from "../../store/_game";
 import { activeShapeStore } from "../../store/activeShape";
 import type { ActiveShapeStore } from "../../store/activeShape";
 import { clientStore } from "../../store/client";
-import { floorStore } from "../../store/floor";
 import { gameStore } from "../../store/game";
 import {
     sendShapeAddLabel,
@@ -33,7 +33,9 @@ import {
 import { getBadgeCharacters } from "../groups";
 import { generateLocalId, getGlobalId } from "../id";
 import type { GlobalId, LocalId } from "../id";
-import type { Layer } from "../layers/variants/layer";
+import type { Label } from "../interfaces/label";
+import type { ILayer } from "../interfaces/layer";
+import type { IShape } from "../interfaces/shape";
 import type { Floor, FloorId, LayerName } from "../models/floor";
 import type { ServerShapeOptions } from "../models/shapes";
 import type { ServerShape, ShapeOptions } from "../models/shapes";
@@ -41,15 +43,16 @@ import { accessSystem } from "../systems/access";
 import { ownerToClient, ownerToServer } from "../systems/access/helpers";
 import { auraSystem } from "../systems/auras";
 import { aurasFromServer, aurasToServer } from "../systems/auras/conversion";
+import { floorSystem } from "../systems/floors";
+import { floorState } from "../systems/floors/state";
 import { doorSystem } from "../systems/logic/door";
 import { teleportZoneSystem } from "../systems/logic/tp";
 import { trackerSystem } from "../systems/trackers";
 import { trackersFromServer, trackersToServer } from "../systems/trackers/conversion";
 import { TriangulationTarget, visionState } from "../vision/state";
 
-import type { IShape, Label } from "./interfaces";
 import type { SHAPE_TYPE } from "./types";
-import { BoundingRect } from "./variants/boundingRect";
+import { BoundingRect } from "./variants/simple/boundingRect";
 
 export abstract class Shape implements IShape {
     // Used to create class instance from server shape data
@@ -165,11 +168,11 @@ export abstract class Shape implements IShape {
     // POSITION
 
     get floor(): Floor {
-        return floorStore.getFloor({ id: this._floor! })!;
+        return floorSystem.getFloor({ id: this._floor! })!;
     }
 
-    get layer(): Layer {
-        return floorStore.getLayer(this.floor, this._layer)!;
+    get layer(): ILayer {
+        return floorSystem.getLayer(this.floor, this._layer)!;
     }
 
     get refPoint(): GlobalPoint {
@@ -385,7 +388,7 @@ export abstract class Shape implements IShape {
             visionState.recalculateVision(this.floor.id);
         }
         this.invalidate(true);
-        floorStore.invalidateLightAllFloors();
+        floorSystem.invalidateLightAllFloors();
         if (this.blocksMovement && !alteredMovement) {
             visionState.deleteFromTriangulation({
                 target: TriangulationTarget.MOVEMENT,
@@ -427,7 +430,7 @@ export abstract class Shape implements IShape {
             x: this.refPoint.x,
             y: this.refPoint.y,
             angle: this.angle,
-            floor: floorStore.getFloor({ id: this._floor! })!.name,
+            floor: floorSystem.getFloor({ id: this._floor! })!.name,
             layer: this._layer,
             draw_operator: this.globalCompositeOperation,
             movement_obstruction: this.blocksMovement,
@@ -465,7 +468,7 @@ export abstract class Shape implements IShape {
             data.options === undefined ? {} : Object.fromEntries(JSON.parse(data.options));
 
         this._layer = data.layer;
-        this._floor = floorStore.getFloor({ name: data.floor })!.id;
+        this._floor = floorSystem.getFloor({ name: data.floor })!.id;
         this.angle = data.angle;
         this.globalCompositeOperation = data.draw_operator;
         this.blocksMovement = data.movement_obstruction;
@@ -573,8 +576,8 @@ export abstract class Shape implements IShape {
 
         this.isToken = isToken;
         if (accessSystem.hasAccessTo(this.id, false, { vision: true })) {
-            if (this.isToken) gameStore.addOwnedToken(this.id);
-            else gameStore.removeOwnedToken(this.id);
+            if (this.isToken) accessSystem.addOwnedToken(this.id);
+            else accessSystem.removeOwnedToken(this.id);
         }
         this.invalidate(false);
     }
@@ -620,14 +623,14 @@ export abstract class Shape implements IShape {
         this.blocksMovement = blocksMovement;
         const movementBlockers = visionState.getBlockers(
             TriangulationTarget.MOVEMENT,
-            this._floor ?? floorStore.currentFloor.value!.id,
+            this._floor ?? floorState.currentFloor.value!.id,
         );
         const obstructionIndex = movementBlockers.indexOf(this.id);
         if (this.blocksMovement && obstructionIndex === -1) {
             visionState.addBlocker(
                 TriangulationTarget.MOVEMENT,
                 this.id,
-                this._floor ?? floorStore.currentFloor.value!.id,
+                this._floor ?? floorState.currentFloor.value!.id,
                 recalculate,
             );
             alteredMovement = true;
@@ -635,7 +638,7 @@ export abstract class Shape implements IShape {
             visionState.sliceBlockers(
                 TriangulationTarget.MOVEMENT,
                 obstructionIndex,
-                this._floor ?? floorStore.currentFloor.value!.id,
+                this._floor ?? floorState.currentFloor.value!.id,
                 recalculate,
             );
             alteredMovement = true;
@@ -694,7 +697,7 @@ export abstract class Shape implements IShape {
         if (syncTo.server) sendShapeAddLabel({ shape: getGlobalId(this.id), value: label });
         if (syncTo.ui) this._("addLabel")(label, syncTo);
 
-        const l = gameStore.state.labels.get(label)!;
+        const l = getGameState().labels.get(label)!;
         this.labels.push(l);
     }
 
@@ -711,14 +714,14 @@ export abstract class Shape implements IShape {
         let alteredVision = false;
         const visionBlockers = visionState.getBlockers(
             TriangulationTarget.VISION,
-            this._floor ?? floorStore.currentFloor.value!.id,
+            this._floor ?? floorState.currentFloor.value!.id,
         );
         const obstructionIndex = visionBlockers.indexOf(this.id);
         if (this.blocksVision && obstructionIndex === -1) {
             visionState.addBlocker(
                 TriangulationTarget.VISION,
                 this.id,
-                this._floor ?? floorStore.currentFloor.value!.id,
+                this._floor ?? floorState.currentFloor.value!.id,
                 recalculate,
             );
             alteredVision = true;
@@ -726,7 +729,7 @@ export abstract class Shape implements IShape {
             visionState.sliceBlockers(
                 TriangulationTarget.VISION,
                 obstructionIndex,
-                this._floor ?? floorStore.currentFloor.value!.id,
+                this._floor ?? floorState.currentFloor.value!.id,
                 recalculate,
             );
             alteredVision = true;

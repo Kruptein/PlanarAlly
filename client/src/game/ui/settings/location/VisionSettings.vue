@@ -3,6 +3,7 @@ import { computed, ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { getValue } from "../../../../core/utils";
+import { getGameState } from "../../../../store/_game";
 import { gameStore } from "../../../../store/game";
 import { settingsStore } from "../../../../store/settings";
 import type { LocationOptions } from "../../../models/settings";
@@ -28,7 +29,7 @@ const options = computed(() => {
 
 const fakePlayer = computed({
     get() {
-        return gameStore.state.isFakePlayer;
+        return getGameState().isFakePlayer;
     },
     set(isFakePlayer: boolean) {
         gameStore.setFakePlayer(isFakePlayer);

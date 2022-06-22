@@ -4,6 +4,7 @@ import { settingsStore } from "../../../store/settings";
 import { Role } from "../../models/role";
 import { optionsToClient } from "../../models/settings";
 import type { ServerLocationOptions } from "../../models/settings";
+import { playerSystem } from "../../systems/players";
 import { socket } from "../socket";
 
 import { setLocationOptions } from "./location";
@@ -35,7 +36,7 @@ socket.on(
         gameStore.setRoomCreator(data.creator);
         gameStore.setInvitationCode(data.invitationCode);
         gameStore.setIsLocked(data.isLocked, false);
-        gameStore.setPlayers(data.players.map((p) => ({ ...p, showRect: false })));
+        playerSystem.setPlayers(data.players.map((p) => ({ ...p, showRect: false })));
         gameStore.setPublicName(data.publicName);
         settingsStore.setDefaultLocationOptions(optionsToClient(data.default_options));
         setLocationOptions(undefined, data.default_options);
@@ -47,5 +48,5 @@ socket.on("Room.Info.InvitationCode.Set", (invitationCode: string) => {
 });
 
 socket.on("Room.Info.Players.Add", (data: { id: number; name: string; location: number; role: number }) => {
-    gameStore.addPlayer({ ...data, showRect: false });
+    playerSystem.addPlayer({ ...data, showRect: false });
 });

@@ -1,7 +1,8 @@
 import { Store } from "../../core/store";
 import { getShape } from "../id";
 import type { LocalId } from "../id";
-import type { IShape } from "../shapes/interfaces";
+import type { IShape } from "../interfaces/shape";
+import { selectedSystem } from "../systems/selected";
 
 import { compositeState } from "./state";
 
@@ -44,16 +45,19 @@ class SelectionState extends Store<State> {
     push(...selection: IShape[]): void {
         for (const sel of selection) {
             this._state.selection.add(sel.id);
+            selectedSystem.inform(sel.id, false);
         }
     }
 
     set(...selection: IShape[]): void {
         this._state.selection.clear();
+        selectedSystem.clear();
         this.push(...selection);
     }
 
     remove(shape: LocalId): void {
         this._state.selection.delete(shape);
+        selectedSystem.drop(shape);
     }
 }
 

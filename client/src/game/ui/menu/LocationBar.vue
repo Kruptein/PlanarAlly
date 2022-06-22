@@ -4,14 +4,16 @@ import { useI18n } from "vue-i18n";
 import draggable from "vuedraggable";
 
 import { useModal } from "../../../core/plugins/modals/plugin";
+import { getGameState } from "../../../store/_game";
 import { clientStore } from "../../../store/client";
 import { coreStore } from "../../../store/core";
-import { gameStore } from "../../../store/game";
 import { locationStore } from "../../../store/location";
 import { settingsStore } from "../../../store/settings";
 import { uiStore } from "../../../store/ui";
 import { sendLocationChange, sendNewLocation } from "../../api/emits/location";
 import type { Location } from "../../models/settings";
+import { playerSystem } from "../../systems/players";
+import { playerState } from "../../systems/players/state";
 
 const props = defineProps<{ active: boolean; menuActive: boolean }>();
 
@@ -20,7 +22,7 @@ const modals = useModal();
 
 const locations = ref<{ $el: HTMLDivElement } | null>(null);
 
-const isDm = toRef(gameStore.state, "isDm");
+const isDm = toRef(getGameState(), "isDm");
 
 const activeLocations = computed({
     get() {
@@ -98,9 +100,9 @@ function endPlayerDrag(e: { item: HTMLDivElement; from: HTMLDivElement; to: HTML
     if (toLocation === undefined || fromLocation === toLocation) return;
     const targetPlayer = e.item.textContent!.trim();
 
-    for (const player of gameStore.state.players) {
+    for (const player of playerState.$.players) {
         if (player.name === targetPlayer) {
-            gameStore.updatePlayersLocation([player.name], toLocation, true);
+            playerSystem.updatePlayersLocation([player.name], toLocation, true);
             break;
         }
     }
@@ -113,12 +115,12 @@ function endPlayersDrag(e: { item: HTMLDivElement; from: HTMLDivElement; to: HTM
     if (toLocation === undefined || fromLocation === toLocation) return;
 
     const players = [];
-    for (const player of gameStore.state.players) {
+    for (const player of playerState.$.players) {
         if (player.location === fromLocation && player.role !== 1) {
             players.push(player.name);
         }
     }
-    gameStore.updatePlayersLocation(players, toLocation, true);
+    playerSystem.updatePlayersLocation(players, toLocation, true);
 
     if (expanded.value.has(fromLocation)) {
         expanded.value.delete(fromLocation);

@@ -1,6 +1,6 @@
 import { uuidv4 } from "../core/utils";
 
-import type { IShape } from "./shapes/interfaces";
+import type { IShape } from "./interfaces/shape";
 import { dropFromSystems } from "./systems";
 
 export type Global<T> = {

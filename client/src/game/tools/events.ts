@@ -1,11 +1,12 @@
 import { l2g } from "../../core/conversions";
-import { floorStore } from "../../store/floor";
-import { gameStore } from "../../store/game";
+import { getGameState } from "../../store/_game";
 import { uiStore } from "../../store/ui";
 import { getShape } from "../id";
 import { getLocalPointFromEvent } from "../input/mouse";
 import { LayerName } from "../models/floor";
 import { ToolName } from "../models/tools";
+import { floorSystem } from "../systems/floors";
+import { floorState } from "../systems/floors/state";
 
 import { activeTool, getActiveTool, getFeatures, toolMap } from "./tools";
 
@@ -63,10 +64,10 @@ export async function mouseMove(event: MouseEvent): Promise<void> {
     const eventPoint = l2g(getLocalPointFromEvent(event));
     // Annotation hover
     let foundAnnotation = false;
-    for (const uuid of gameStore.state.annotations) {
-        if (floorStore.hasLayer(floorStore.currentFloor.value!, LayerName.Draw)) {
+    for (const uuid of getGameState().annotations) {
+        if (floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Draw)) {
             const shape = getShape(uuid);
-            if (shape && shape.floor.id === floorStore.currentFloor.value!.id && shape.contains(eventPoint)) {
+            if (shape && shape.floor.id === floorState.currentFloor.value!.id && shape.contains(eventPoint)) {
                 foundAnnotation = true;
                 uiStore.setAnnotationText(shape.annotation);
             }
@@ -212,12 +213,12 @@ export async function touchMove(event: TouchEvent): Promise<void> {
 
     // Annotation hover
     let found = false;
-    for (const uuid of gameStore.state.annotations) {
-        if (floorStore.hasLayer(floorStore.currentFloor.value!, LayerName.Draw)) {
+    for (const uuid of getGameState().annotations) {
+        if (floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Draw)) {
             const shape = getShape(uuid);
             if (
                 shape &&
-                shape.floor.id === floorStore.currentFloor.value!.id &&
+                shape.floor.id === floorState.currentFloor.value!.id &&
                 shape.contains(l2g(getLocalPointFromEvent(event)))
             ) {
                 found = true;

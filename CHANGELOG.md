@@ -22,6 +22,7 @@ tech changes will usually be stripped from release notes for the public
 -   Vision tool alert state was not always accurate
 -   Teleport zone not properly triggering when initiated as a player
 -   Teleport zone not properly landing in the center of the target
+-   Player door toggles not syncing to the server/persisting
 
 ## [2022.2.2] - 2022-06-17
 

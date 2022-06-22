@@ -9,7 +9,7 @@ import { coreStore } from "../store/core";
 
 import { createConnection, socket } from "./api/socket";
 import { dropAsset } from "./dropAsset";
-import { onKeyDown } from "./input/keyboard";
+import { onKeyDown } from "./input/keyboard/down";
 import { scrollZoom } from "./input/mouse";
 import { clearUndoStacks } from "./operations/undo";
 import { floorSystem } from "./systems/floors";

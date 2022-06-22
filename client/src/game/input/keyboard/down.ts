@@ -1,50 +1,21 @@
-import { equalsP, toGP, Vector } from "../../core/geometry";
-import { FULL_SYNC, SyncMode } from "../../core/models/types";
-import { ctrlOrCmdPressed } from "../../core/utils";
-import { getGameState } from "../../store/_game";
-import { activeShapeStore } from "../../store/activeShape";
-import { clientStore, DEFAULT_GRID_SIZE } from "../../store/client";
-import { gameStore } from "../../store/game";
-import { settingsStore } from "../../store/settings";
-import { sendClientLocationOptions } from "../api/emits/client";
-import { calculateDelta } from "../drag";
-import { getShape } from "../id";
-import { selectionState } from "../layers/selection";
-import { moveShapes } from "../operations/movement";
-import { undoOperation, redoOperation } from "../operations/undo";
-import { setCenterPosition } from "../position";
-import { deleteShapes, copyShapes, pasteShapes } from "../shapes/utils";
-import { accessState } from "../systems/access/state";
-import { floorSystem } from "../systems/floors";
-import { floorState } from "../systems/floors/state";
-import { moveFloor } from "../temp";
-import { toggleActiveMode } from "../tools/tools";
-
-export function onKeyUp(event: KeyboardEvent): void {
-    if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
-        // no-op (condition is cleaner this way)
-    } else {
-        if (event.key === "Delete" || event.key === "Del" || event.key === "Backspace") {
-            const selection = selectionState.get({ includeComposites: true });
-            deleteShapes(selection, SyncMode.FULL_SYNC);
-        }
-        if (event.key === " " || (event.code === "Numpad0" && !ctrlOrCmdPressed(event))) {
-            // Spacebar or numpad-zero: cycle through own tokens
-            // numpad-zero only if Ctrl is not pressed, as this would otherwise conflict with Ctrl + 0
-            const tokens = [...accessState.$.ownedTokens].map((o) => getShape(o)!);
-            if (tokens.length === 0) return;
-            const i = tokens.findIndex((o) => equalsP(o.center(), clientStore.screenCenter));
-            const token = tokens[(i + 1) % tokens.length];
-            setCenterPosition(token.center());
-            floorSystem.selectFloor({ name: token.floor.name }, true);
-        }
-        if (event.key === "Enter") {
-            if (selectionState.hasSelection) {
-                activeShapeStore.setShowEditDialog(true);
-            }
-        }
-    }
-}
+import { toGP, Vector } from "../../../core/geometry";
+import { FULL_SYNC } from "../../../core/models/types";
+import { ctrlOrCmdPressed } from "../../../core/utils";
+import { getGameState } from "../../../store/_game";
+import { clientStore, DEFAULT_GRID_SIZE } from "../../../store/client";
+import { gameStore } from "../../../store/game";
+import { settingsStore } from "../../../store/settings";
+import { sendClientLocationOptions } from "../../api/emits/client";
+import { calculateDelta } from "../../drag";
+import { selectionState } from "../../layers/selection";
+import { moveShapes } from "../../operations/movement";
+import { redoOperation, undoOperation } from "../../operations/undo";
+import { setCenterPosition } from "../../position";
+import { copyShapes, pasteShapes } from "../../shapes/utils";
+import { floorSystem } from "../../systems/floors";
+import { floorState } from "../../systems/floors/state";
+import { moveFloor } from "../../temp";
+import { toggleActiveMode } from "../../tools/tools";
 
 export async function onKeyDown(event: KeyboardEvent): Promise<void> {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {

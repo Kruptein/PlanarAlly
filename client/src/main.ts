@@ -10,6 +10,9 @@ import { PlanarAllyModalsPlugin } from "./core/plugins/modals/plugin";
 import { loadFontAwesome } from "./fa";
 import { i18n } from "./i18n";
 import { router } from "./router";
+import { bootstrapRouter } from "./router/bootstrap";
+
+bootstrapRouter();
 
 loadFontAwesome();
 

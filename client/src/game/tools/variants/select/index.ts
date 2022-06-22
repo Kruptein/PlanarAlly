@@ -1,7 +1,7 @@
-import { ref, watchEffect } from "vue";
+import { watchEffect } from "vue";
 import { POSITION, useToast } from "vue-toastification";
 
-import { g2l, g2lx, g2ly, g2lz, l2g, l2gz, toDegrees, toRadians } from "../../../core/conversions";
+import { g2l, g2lx, g2ly, g2lz, l2g, l2gz, toDegrees, toRadians } from "../../../../core/conversions";
 import {
     addP,
     toArrayP,
@@ -12,50 +12,50 @@ import {
     getPointDistance,
     getDistanceToSegment,
     getAngleBetween,
-} from "../../../core/geometry";
-import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
-import { baseAdjust } from "../../../core/http";
-import { equalPoints, snapToPoint } from "../../../core/math";
-import { InvalidationMode, NO_SYNC, SyncMode } from "../../../core/models/types";
-import { ctrlOrCmdPressed } from "../../../core/utils";
-import { i18n } from "../../../i18n";
-import { getGameState } from "../../../store/_game";
-import { clientStore, DEFAULT_GRID_SIZE } from "../../../store/client";
-import { settingsStore } from "../../../store/settings";
-import { sendRequest } from "../../api/emits/logic";
-import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
-import { calculateDelta } from "../../drag";
-import { getGlobalId, getShape } from "../../id";
-import type { LocalId } from "../../id";
-import { getLocalPointFromEvent } from "../../input/mouse";
-import type { IShape } from "../../interfaces/shape";
-import { selectionState } from "../../layers/selection";
-import { LayerName } from "../../models/floor";
-import { ToolMode, ToolName } from "../../models/tools";
-import type { ISelectTool, ToolFeatures, ToolPermission } from "../../models/tools";
-import type { Operation } from "../../operations/model";
-import { moveShapes } from "../../operations/movement";
-import { resizeShape } from "../../operations/resize";
-import { rotateShapes } from "../../operations/rotation";
-import { addOperation } from "../../operations/undo";
-import { Circle } from "../../shapes/variants/circle";
-import { Line } from "../../shapes/variants/line";
-import type { Polygon } from "../../shapes/variants/polygon";
-import { Rect } from "../../shapes/variants/rect";
-import type { BoundingRect } from "../../shapes/variants/simple/boundingRect";
-import { accessSystem } from "../../systems/access";
-import { floorSystem } from "../../systems/floors";
-import { floorState } from "../../systems/floors/state";
-import { doorSystem } from "../../systems/logic/door";
-import { Access } from "../../systems/logic/models";
-import { teleportZoneSystem } from "../../systems/logic/tp";
-import { openDefaultContextMenu, openShapeContextMenu } from "../../ui/contextmenu/state";
-import { TriangulationTarget, visionState } from "../../vision/state";
-import { SelectFeatures } from "../models/select";
-import { Tool } from "../tool";
-import { activeToolMode, getFeatures } from "../tools";
+} from "../../../../core/geometry";
+import type { GlobalPoint, LocalPoint } from "../../../../core/geometry";
+import { baseAdjust } from "../../../../core/http";
+import { equalPoints, snapToPoint } from "../../../../core/math";
+import { InvalidationMode, NO_SYNC, SyncMode } from "../../../../core/models/types";
+import { ctrlOrCmdPressed } from "../../../../core/utils";
+import { i18n } from "../../../../i18n";
+import { getGameState } from "../../../../store/_game";
+import { clientStore, DEFAULT_GRID_SIZE } from "../../../../store/client";
+import { settingsStore } from "../../../../store/settings";
+import { sendRequest } from "../../../api/emits/logic";
+import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../../api/emits/shape/core";
+import { calculateDelta } from "../../../drag";
+import { getGlobalId, getShape } from "../../../id";
+import { getLocalPointFromEvent } from "../../../input/mouse";
+import type { IShape } from "../../../interfaces/shape";
+import { selectionState } from "../../../layers/selection";
+import { LayerName } from "../../../models/floor";
+import { ToolMode, ToolName } from "../../../models/tools";
+import type { ISelectTool, ToolFeatures, ToolPermission } from "../../../models/tools";
+import type { Operation } from "../../../operations/model";
+import { moveShapes } from "../../../operations/movement";
+import { resizeShape } from "../../../operations/resize";
+import { rotateShapes } from "../../../operations/rotation";
+import { addOperation } from "../../../operations/undo";
+import { Circle } from "../../../shapes/variants/circle";
+import { Line } from "../../../shapes/variants/line";
+import type { Polygon } from "../../../shapes/variants/polygon";
+import { Rect } from "../../../shapes/variants/rect";
+import type { BoundingRect } from "../../../shapes/variants/simple/boundingRect";
+import { accessSystem } from "../../../systems/access";
+import { floorSystem } from "../../../systems/floors";
+import { floorState } from "../../../systems/floors/state";
+import { doorSystem } from "../../../systems/logic/door";
+import { Access } from "../../../systems/logic/models";
+import { teleportZoneSystem } from "../../../systems/logic/tp";
+import { openDefaultContextMenu, openShapeContextMenu } from "../../../ui/contextmenu/state";
+import { TriangulationTarget, visionState } from "../../../vision/state";
+import { SelectFeatures } from "../../models/select";
+import { Tool } from "../../tool";
+import { activeToolMode, getFeatures } from "../../tools";
+import { RulerFeatures, rulerTool } from "../ruler";
 
-import { RulerFeatures, rulerTool } from "./ruler";
+import { selectToolState } from "./state";
 
 enum SelectOperations {
     Noop,
@@ -72,21 +72,11 @@ const ANGLE_SNAP = (45 * Math.PI) / 180;
 
 const rulerPermission = { name: ToolName.Ruler, features: { enabled: [RulerFeatures.All] }, early: true };
 
+const { _, _$ } = selectToolState;
+
 class SelectTool extends Tool implements ISelectTool {
     readonly toolName = ToolName.Select;
     readonly toolTranslation = i18n.global.t("tool.Select");
-
-    // REACTIVE PROPERTIES
-    hasSelection = ref(false);
-    showRuler = ref(false);
-
-    polygonUiLeft = ref("0px");
-    polygonUiTop = ref("0px");
-    polygonUiAngle = ref("0deg");
-    polygonUiVisible = ref("hidden");
-    polygonUiSizeX = ref("25px");
-    polygonUiSizeY = ref("25px");
-    polygonUiVertex = ref(false);
 
     // NON REACTIVE PROPERTIES
 
@@ -117,8 +107,6 @@ class SelectTool extends Tool implements ISelectTool {
 
     // polygon-edit related
     polygonTracer: Circle | null = null;
-
-    hoveredDoor?: LocalId;
 
     private permittedTools_: ToolPermission[] = [];
 
@@ -155,7 +143,7 @@ class SelectTool extends Tool implements ISelectTool {
 
     checkRuler(): boolean {
         const rulerEnabled = this.permittedTools_.some((t) => t.name === ToolName.Ruler);
-        if (this.showRuler.value && this.hasSelection.value) {
+        if (_$.showRuler && _$.hasSelection) {
             if (!rulerEnabled) {
                 this.permittedTools_.push(rulerPermission);
                 return true;
@@ -190,7 +178,7 @@ class SelectTool extends Tool implements ISelectTool {
         const features = getFeatures(this.toolName);
         if (this.hasFeature(SelectFeatures.PolygonEdit, features)) {
             this.createPolygonEditUi();
-            this.polygonUiVisible.value = "hidden";
+            _$.polygonUiVisible = "hidden";
         }
     }
 
@@ -213,20 +201,17 @@ class SelectTool extends Tool implements ISelectTool {
         }
 
         // Logic Door Check
-        if (this.hoveredDoor !== undefined && activeToolMode.value === ToolMode.Play) {
-            const canUseDoor = doorSystem.canUse(this.hoveredDoor);
-            if (canUseDoor === Access.Enabled) {
-                doorSystem.toggleDoor(this.hoveredDoor);
-                const state = doorSystem.getCursorState(this.hoveredDoor);
-                if (state !== undefined) {
-                    document.body.style.cursor = `url('${baseAdjust(`static/img/${state}.svg`)}') 16 16, auto`;
-                }
+        if (_.hoveredDoor !== undefined && activeToolMode.value === ToolMode.Play) {
+            if (getGameState().isDm) {
+                doorSystem.toggleDoor(_.hoveredDoor);
                 return;
-            } else if (canUseDoor === Access.Request) {
-                toast.info("Request to open door sent", {
-                    position: POSITION.TOP_RIGHT,
-                });
-                sendRequest({ door: getGlobalId(this.hoveredDoor), logic: "door" });
+            } else {
+                if (doorSystem.canUse(_.hoveredDoor) === Access.Request) {
+                    toast.info("Request to open door sent", {
+                        position: POSITION.TOP_RIGHT,
+                    });
+                }
+                sendRequest({ door: getGlobalId(_.hoveredDoor), logic: "door" });
                 return;
             }
         }
@@ -330,7 +315,7 @@ class SelectTool extends Tool implements ISelectTool {
             }
         }
 
-        this.hasSelection.value = hit;
+        _$.hasSelection = hit;
 
         // GroupSelect case, draw a selection box to select multiple shapes
         if (!hit) {
@@ -399,13 +384,13 @@ class SelectTool extends Tool implements ISelectTool {
                 if (doorSystem.canUse(id) === Access.Disabled) continue;
 
                 foundDoor = true;
-                this.hoveredDoor = id;
+                _.hoveredDoor = id;
                 const state = doorSystem.getCursorState(id);
                 document.body.style.cursor = `url('${baseAdjust(`static/img/${state}.svg`)}') 16 16, auto`;
                 break;
             }
             if (!foundDoor) {
-                this.hoveredDoor = undefined;
+                _.hoveredDoor = undefined;
                 document.body.style.cursor = "default";
             }
         }
@@ -722,7 +707,7 @@ class SelectTool extends Tool implements ISelectTool {
 
         if (this.operationReady) addOperation(this.operationList!);
 
-        this.hasSelection.value = layerSelection.length > 0;
+        _$.hasSelection = layerSelection.length > 0;
 
         this.mode = SelectOperations.Noop;
     }
@@ -893,7 +878,7 @@ class SelectTool extends Tool implements ISelectTool {
             });
             drawLayer.invalidate(true);
             this.polygonTracer = null;
-            this.polygonUiVisible.value = "hidden";
+            _$.polygonUiVisible = "hidden";
         }
     }
 
@@ -934,18 +919,18 @@ class SelectTool extends Tool implements ISelectTool {
         }
         // Show the UI
         if (smallest.distance <= polygon.lineWidth[0]) {
-            this.polygonUiVisible.value = "visible";
+            _$.polygonUiVisible = "visible";
             this.polygonTracer!.refPoint = smallest.nearest;
             this.polygonTracer!.layer.invalidate(true);
             const lp = g2l(smallest.nearest);
             const radians = toRadians(smallest.angle);
-            this.polygonUiLeft.value = `${lp.x - 25}px`;
-            this.polygonUiTop.value = `${lp.y - 25 / 2}px`;
-            this.polygonUiAngle.value = `${smallest.angle}deg`;
+            _$.polygonUiLeft = `${lp.x - 25}px`;
+            _$.polygonUiTop = `${lp.y - 25 / 2}px`;
+            _$.polygonUiAngle = `${smallest.angle}deg`;
             // 12.5 + pw/2 is the exact border, additional scaling to give a bit of air
-            this.polygonUiSizeX.value = `${-Math.sin(radians) * (15 + (1.5 * pw) / 2)}px`;
-            this.polygonUiSizeY.value = `${Math.cos(radians) * (15 + (1.5 * pw) / 2)}px`;
-            this.polygonUiVertex.value = smallest.point;
+            _$.polygonUiSizeX = `${-Math.sin(radians) * (15 + (1.5 * pw) / 2)}px`;
+            _$.polygonUiSizeY = `${Math.cos(radians) * (15 + (1.5 * pw) / 2)}px`;
+            _$.polygonUiVertex = smallest.point;
         }
     }
 

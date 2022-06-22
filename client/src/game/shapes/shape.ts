@@ -613,6 +613,7 @@ export abstract class Shape implements IShape {
         this.blocksVision = blocksVision;
         const alteredVision = this.checkVisionSources(recalculate);
         if (alteredVision && recalculate) this.invalidate(false);
+        doorSystem.checkCursorState(this.id);
     }
 
     setBlocksMovement(blocksMovement: boolean, syncTo: Sync, recalculate = true): boolean {
@@ -643,6 +644,8 @@ export abstract class Shape implements IShape {
             );
             alteredMovement = true;
         }
+
+        doorSystem.checkCursorState(this.id);
 
         return alteredMovement;
     }

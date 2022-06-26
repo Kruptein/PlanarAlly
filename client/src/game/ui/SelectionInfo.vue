@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from "@vue/reactivity";
 import { useI18n } from "vue-i18n";
 
 import { SERVER_SYNC } from "../../core/models/types";
@@ -15,6 +16,10 @@ const { t } = useI18n();
 const modals = useModal();
 
 const shape = activeShapeStore.state;
+
+const trackers = computed(() => [...trackerSystem.state.parentTrackers, ...trackerSystem.state.trackers.slice(0, -1)]);
+
+const auras = computed(() => [...auraSystem.state.parentAuras, ...auraSystem.state.auras.slice(0, -1)]);
 
 function setLocked(): void {
     if (accessState.hasEditAccess.value) {
@@ -72,7 +77,7 @@ async function changeValue(tracker: Tracker | Aura, isAura: boolean): Promise<vo
                 </div>
                 <div id="selection-name">{{ shape.name }}</div>
                 <div id="selection-trackers">
-                    <template v-for="tracker in trackerSystem.state.trackers.slice(0, -1)" :key="tracker.uuid">
+                    <template v-for="tracker in trackers" :key="tracker.uuid">
                         <div>{{ tracker.name }}</div>
                         <div
                             class="selection-tracker-value"
@@ -87,7 +92,7 @@ async function changeValue(tracker: Tracker | Aura, isAura: boolean): Promise<vo
                     </template>
                 </div>
                 <div id="selection-auras">
-                    <template v-for="aura in auraSystem.state.auras.slice(0, -1)" :key="aura.uuid">
+                    <template v-for="aura in auras" :key="aura.uuid">
                         <div>{{ aura.name }}</div>
                         <div
                             class="selection-tracker-value"

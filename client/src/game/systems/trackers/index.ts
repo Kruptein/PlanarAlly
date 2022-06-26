@@ -112,7 +112,7 @@ class TrackerSystem implements ShapeSystem {
 
         this.getOrCreate(id).push(tracker);
 
-        if (id === this._state.id) this.updateTrackerState();
+        if (id === this._state.id || id === this._state.parentId) this.updateTrackerState();
 
         if (tracker.draw) getShape(id)?.invalidate(false);
     }
@@ -135,7 +135,7 @@ class TrackerSystem implements ShapeSystem {
 
         Object.assign(tracker, delta);
 
-        if (id === this._state.id) this.updateTrackerState();
+        if (id === this._state.id || id === this._state.parentId) this.updateTrackerState();
 
         if (tracker.draw || oldDrawTracker) getShape(id)?.invalidate(false);
     }
@@ -147,7 +147,7 @@ class TrackerSystem implements ShapeSystem {
 
         this.data.set(id, this.data.get(id)?.filter((tr) => tr.uuid !== trackerId) ?? []);
 
-        if (id === this._state.id) this.updateTrackerState();
+        if (id === this._state.id || id === this._state.parentId) this.updateTrackerState();
 
         if (oldTracker?.draw === true) getShape(id)?.invalidate(false);
     }

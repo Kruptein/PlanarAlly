@@ -116,7 +116,7 @@ class AuraSystem implements ShapeSystem {
 
         this.getOrCreate(id).push(aura);
 
-        if (id === this._state.id) this.updateAuraState();
+        if (id === this._state.id || id === this._state.parentId) this.updateAuraState();
 
         if (aura.active) {
             const shape = getShape(id);
@@ -162,7 +162,7 @@ class AuraSystem implements ShapeSystem {
             visionState.addVisionSource({ aura: aura.uuid, shape: id }, shape.floor.id);
         }
 
-        if (id === this._state.id) this.updateAuraState();
+        if (id === this._state.id || id === this._state.parentId) this.updateAuraState();
 
         if (aura.active || oldAuraActive) getShape(id)?.invalidate(false);
     }
@@ -174,7 +174,7 @@ class AuraSystem implements ShapeSystem {
 
         this.data.set(id, this.data.get(id)?.filter((au) => au.uuid !== auraId) ?? []);
 
-        if (id === this._state.id) this.updateAuraState();
+        if (id === this._state.id || id === this._state.parentId) this.updateAuraState();
 
         if (oldAura?.active === true) {
             const shape = getShape(id);

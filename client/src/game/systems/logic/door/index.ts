@@ -112,7 +112,6 @@ class DoorSystem implements ShapeSystem {
 
     checkCursorState(id: LocalId): void {
         const hoverId = selectToolState._.hoveredDoor;
-        console.log(id === hoverId);
         if (id === hoverId) {
             const state = this.getCursorState(hoverId);
             if (state !== undefined) {

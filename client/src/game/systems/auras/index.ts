@@ -194,7 +194,6 @@ registerSystem("auras", auraSystem, true);
 watchEffect(() => {
     const id = selectedSystem.getFocus();
     if (id.value) {
-        console.log("Selected :eyes:");
         auraSystem.loadState(id.value);
     } else auraSystem.dropState();
 });

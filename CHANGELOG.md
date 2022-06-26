@@ -23,6 +23,7 @@ tech changes will usually be stripped from release notes for the public
 -   Teleport zone not properly triggering when initiated as a player
 -   Teleport zone not properly landing in the center of the target
 -   Player door toggles not syncing to the server/persisting
+-   Shared trackers/auras not showing up in selection info
 
 ## [2022.2.2] - 2022-06-17
 

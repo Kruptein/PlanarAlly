@@ -45,14 +45,14 @@ class AccessSystem implements ShapeSystem {
 
     dropState(): void {
         _$.id = undefined;
-        _$.activeTokenFilters?.clear();
-        _$.ownedTokens.clear();
     }
 
     // BEHAVIOUR
 
     clear(): void {
         this.dropState();
+        _$.activeTokenFilters?.clear();
+        _$.ownedTokens.clear();
         this.access.clear();
     }
 
@@ -316,4 +316,4 @@ class AccessSystem implements ShapeSystem {
 }
 
 export const accessSystem = new AccessSystem();
-registerSystem("access", accessSystem, true);
+registerSystem("access", accessSystem, true, accessState);

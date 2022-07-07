@@ -3,10 +3,13 @@ import type { LocalId } from "../id";
 const SYSTEMS: Record<string, System> = {};
 (window as any).systems = SYSTEMS;
 const SHAPE_SYSTEMS: Set<string> = new Set();
+const STATE: Record<string, any> = {};
+(window as any).state = STATE;
 
-export function registerSystem(key: string, system: System, isShapeSystem: boolean): void {
+export function registerSystem(key: string, system: System, isShapeSystem: boolean, state?: any): void {
     SYSTEMS[key] = system;
     if (isShapeSystem) SHAPE_SYSTEMS.add(key);
+    if (state !== undefined) STATE[key] = state;
 }
 
 export function dropFromSystems(id: LocalId): void {

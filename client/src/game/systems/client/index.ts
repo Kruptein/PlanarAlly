@@ -2,7 +2,6 @@ import { throttle } from "lodash";
 
 import { registerSystem } from "..";
 import type { System } from "..";
-import { SyncMode } from "../../../core/models/types";
 import { sendMoveClient } from "../../api/emits/client";
 import { getShape } from "../../id";
 import type { LocalId } from "../../id";
@@ -19,11 +18,6 @@ class ClientSystem implements System {
     }
 
     clearClientRects(): void {
-        for (const id of _$.playerRectIds.values()) {
-            const p = getShape(id);
-            if (p === undefined) continue;
-            p.layer.removeShape(p, { sync: SyncMode.NO_SYNC, recalculate: false, dropShapeId: true });
-        }
         _$.playerRectIds.clear();
         _$.playerLocationData.clear();
     }

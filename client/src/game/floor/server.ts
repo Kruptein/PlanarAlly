@@ -25,7 +25,16 @@ export function addServerFloor(serverFloor: ServerFloor): void {
     floorSystem.addFloor(floor, serverFloor.index);
     const floorId = floorSystem.getFloor({ name: serverFloor.name })!.id;
     visionState.addCdt(floorId);
-    for (const layer of serverFloor.layers) addServerLayer(layer, floor);
+
+    // we need to draw fow later because it depends on fow-players
+    // and historically we did the draw loop in the other direction
+    let fowLayer: ServerLayer | undefined;
+    for (const layer of serverFloor.layers) {
+        if (layer.name === LayerName.Lighting) fowLayer = layer;
+        else addServerLayer(layer, floor);
+    }
+    if (fowLayer) addServerLayer(fowLayer, floor);
+
     visionState.recalculateVision(floorId);
     visionState.recalculateMovement(floorId);
 

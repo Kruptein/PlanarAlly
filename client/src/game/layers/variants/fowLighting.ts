@@ -39,16 +39,18 @@ export class FowLightingLayer extends FowLayer {
             const originalOperation = this.ctx.globalCompositeOperation;
             super._draw();
 
+            const activeFloor = floorState.currentFloor.value!;
+
             // At all times provide a minimal vision range to prevent losing your tokens in fog.
             if (
                 settingsStore.fullFow.value &&
-                floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Tokens) &&
-                floorState.currentFloor.value!.id === this.floor
+                floorSystem.hasLayer(activeFloor, LayerName.Tokens) &&
+                activeFloor.id === this.floor
             ) {
                 for (const sh of accessState.activeTokens.value) {
                     const shape = getShape(sh)!;
                     if (shape.options.skipDraw ?? false) continue;
-                    if (shape.floor.id !== floorState.currentFloor.value!.id) continue;
+                    if (shape.floor.id !== activeFloor.id) continue;
                     const bb = shape.getBoundingBox();
                     const lcenter = g2l(shape.center());
                     const alm = 0.8 * g2lz(bb.w);
@@ -137,11 +139,10 @@ export class FowLightingLayer extends FowLayer {
                 }
             }
 
-            const activeFloor = floorState.currentFloor.value!.id;
-            if (settingsStore.fowLos.value && this.floor === activeFloor) {
+            if (settingsStore.fowLos.value && this.floor === activeFloor.id) {
                 this.ctx.globalCompositeOperation = "source-in";
                 this.ctx.drawImage(
-                    floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Vision)!.canvas,
+                    floorSystem.getLayer(activeFloor, LayerName.Vision)!.canvas,
                     0,
                     0,
                     window.innerWidth,
@@ -162,7 +163,7 @@ export class FowLightingLayer extends FowLayer {
                 preShape.globalCompositeOperation = ogComposite;
             }
 
-            if (settingsStore.fullFow.value && this.floor === activeFloor) {
+            if (settingsStore.fullFow.value && this.floor === activeFloor.id) {
                 this.ctx.globalCompositeOperation = "source-out";
                 this.ctx.fillStyle = getFogColour();
                 this.ctx.fillRect(0, 0, this.width, this.height);

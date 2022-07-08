@@ -1,5 +1,3 @@
-import type { ILayer } from "../interfaces/layer";
-import { LayerName } from "../models/floor";
 import type { Floor } from "../models/floor";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
@@ -15,7 +13,7 @@ export function stopDrawLoop(): void {
 }
 
 function drawLoop(): void {
-    const state = floorState.$;
+    const state = floorState.__$;
     // First process all other floors
     for (const [f, floor] of state.floors.entries()) {
         if (f === state.floorIndex) continue;
@@ -35,16 +33,8 @@ function drawLoop(): void {
 }
 
 function drawFloor(floor: Floor): void {
-    let fowLayer: ILayer | undefined;
     for (const layer of floorSystem.getLayers(floor)) {
         layer.hide();
-        // we need to draw fow later because it depends on fow-players
-        // and historically we did the draw loop in the other direction
-        if (layer.name === LayerName.Lighting) {
-            fowLayer = layer;
-            continue;
-        }
         layer.draw();
     }
-    if (fowLayer) fowLayer.draw();
 }

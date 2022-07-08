@@ -1,4 +1,4 @@
-import { computed, reactive, readonly } from "vue";
+import { computed, reactive, readonly, toRaw } from "vue";
 
 import type { ILayer } from "../../interfaces/layer";
 import type { Floor, FloorId } from "../../models/floor";
@@ -21,6 +21,7 @@ const state = reactive<FloorState>({
 export const floorState = {
     $: readonly(state),
     _$: state,
+    __$: toRaw(state),
 
     currentFloor: computed(() => {
         if (state.floorIndex < 0) return undefined;

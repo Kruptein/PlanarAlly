@@ -313,8 +313,8 @@ export class Layer implements ILayer {
             }
 
             // If this is the last layer of the floor below, render some shadow
-            if (floorState.$.floorIndex > 0) {
-                const lowerFloor = floorState.$.floors[floorState.$.floorIndex - 1];
+            if (floorState.__$.floorIndex > 0) {
+                const lowerFloor = floorState.__$.floors[floorState.__$.floorIndex - 1];
                 if (lowerFloor.id === this.floor) {
                     const layers = floorSystem.getLayers(lowerFloor);
                     if (layers.at(-1)?.name === this.name) {

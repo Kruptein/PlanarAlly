@@ -8,10 +8,12 @@ export class GridLayer extends Layer {
     invalidate(): void {
         this.valid = false;
     }
+
     show(): void {
         if (settingsStore.useGrid.value && this.floor === floorState.currentFloor.value!.id)
             this.canvas.style.removeProperty("display");
     }
+
     draw(_doClear?: boolean): void {
         if (!this.valid) {
             if (settingsStore.useGrid.value) {

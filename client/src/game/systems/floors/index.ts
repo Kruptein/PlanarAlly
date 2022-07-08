@@ -24,7 +24,7 @@ import { floorState } from "./state";
 
 type FloorRepresentation = { name: string } | { id: number } | { position: number };
 
-const { $, _$, currentFloor, currentLayer } = floorState;
+const { $, _$, __$, currentFloor, currentLayer } = floorState;
 
 class FloorSystem implements System {
     private indices: number[] = [];
@@ -78,7 +78,7 @@ class FloorSystem implements System {
             if (I >= 0) {
                 this.indices.splice(I, 0, targetIndex);
                 _$.floors.splice(I, 0, floor);
-                if (I <= _$.floorIndex) _$.floorIndex = (_$.floorIndex + 1) as FloorId;
+                if (I <= __$.floorIndex) _$.floorIndex = (__$.floorIndex + 1) as FloorId;
             } else {
                 this.indices.push(targetIndex);
                 _$.floors.push(floor);
@@ -91,12 +91,12 @@ class FloorSystem implements System {
 
     selectFloor(targetFloor: FloorRepresentation, sync: boolean): void {
         const targetFloorIndex = this.getFloorIndex(targetFloor);
-        if (targetFloorIndex === _$.floorIndex || targetFloorIndex === undefined) return;
+        if (targetFloorIndex === __$.floorIndex || targetFloorIndex === undefined) return;
         const floor = this.getFloor(targetFloor)!;
 
         _$.floorIndex = targetFloorIndex;
         _$.layers = this.getLayers(floor);
-        for (const [fI, f] of _$.floors.entries()) {
+        for (const [fI, f] of __$.floors.entries()) {
             for (const layer of this.getLayers(f)) {
                 if (fI > targetFloorIndex) layer.canvas.style.display = "none";
                 else layer.canvas.style.removeProperty("display");
@@ -108,14 +108,14 @@ class FloorSystem implements System {
 
     renameFloor(index: number, name: string, sync: boolean): void {
         _$.floors[index].name = name;
-        if (index === _$.floorIndex) this.invalidateAllFloors();
+        if (index === __$.floorIndex) this.invalidateAllFloors();
         if (sync) sendRenameFloor({ index, name });
     }
 
     removeFloor(floorRepresentation: FloorRepresentation, sync: boolean): void {
         const floorIndex = this.getFloorIndex(floorRepresentation);
         if (floorIndex === undefined) throw new Error("Could not remove unknown floor");
-        const floor = _$.floors[floorIndex];
+        const floor = __$.floors[floorIndex];
 
         visionState.removeCdt(floor.id);
         visionState.removeBlockers(TriangulationTarget.MOVEMENT, floor.id);
@@ -126,8 +126,8 @@ class FloorSystem implements System {
         _$.floors.splice(floorIndex, 1);
         this.layerMap.delete(floor.id);
 
-        if (_$.floorIndex === floorIndex) this.selectFloor({ position: floorIndex - 1 }, true);
-        else if (_$.floorIndex > floorIndex) _$.floorIndex--;
+        if (__$.floorIndex === floorIndex) this.selectFloor({ position: floorIndex - 1 }, true);
+        else if (__$.floorIndex > floorIndex) _$.floorIndex--;
         if (sync) sendRemoveFloor(floor.name);
     }
 
@@ -140,8 +140,8 @@ class FloorSystem implements System {
     }
 
     reorderFloors(floors: string[], sync: boolean): void {
-        const activeFloorName = _$.floors[_$.floorIndex].name;
-        _$.floors = floors.map((name) => _$.floors.find((f) => f.name === name)!);
+        const activeFloorName = __$.floors[__$.floorIndex].name;
+        _$.floors = floors.map((name) => __$.floors.find((f) => f.name === name)!);
         _$.floorIndex = this.getFloorIndex({ name: activeFloorName })!;
         recalculateZIndices();
         if (sync) sendFloorReorder(floors);
@@ -169,10 +169,10 @@ class FloorSystem implements System {
     // LAYERS
 
     addLayer(layer: ILayer, floorId: number): void {
-        for (const floor of _$.floors) {
+        for (const floor of __$.floors) {
             if (floor.id === floorId) {
                 this.layerMap.get(floor.id)!.push(layer);
-                if (_$.layerIndex < 0) {
+                if (__$.layerIndex < 0) {
                     _$.layerIndex = 2;
                 }
                 return;
@@ -183,7 +183,7 @@ class FloorSystem implements System {
 
     getLayer(floor: Floor, name?: LayerName): ILayer | undefined {
         const layers = this.layerMap.get(floor.id)!;
-        if (name === undefined) return layers[_$.layerIndex];
+        if (name === undefined) return layers[__$.layerIndex];
         for (const layer of layers) {
             if (layer.name === name) return layer;
         }
@@ -230,14 +230,14 @@ class FloorSystem implements System {
     }
 
     invalidateAllFloors(): void {
-        for (const floor of _$.floors) {
+        for (const floor of __$.floors) {
             this.invalidate(floor);
         }
     }
 
     invalidateVisibleFloors(): void {
         let floorFound = false;
-        for (const floor of _$.floors) {
+        for (const floor of __$.floors) {
             if (floorFound) this.invalidateLight(floor.id);
             else this.invalidate(floor);
             if (floor === currentFloor.value) floorFound = true;
@@ -254,8 +254,8 @@ class FloorSystem implements System {
     }
 
     invalidateLightAllFloors(): void {
-        for (const [f, floor] of _$.floors.entries()) {
-            if (f > _$.floorIndex) return;
+        for (const [f, floor] of __$.floors.entries()) {
+            if (f > __$.floorIndex) return;
             this.invalidateLight(floor.id);
         }
     }
@@ -271,4 +271,4 @@ class FloorSystem implements System {
 }
 
 export const floorSystem = new FloorSystem();
-registerSystem("floors", floorSystem, false);
+registerSystem("floors", floorSystem, false, floorState);

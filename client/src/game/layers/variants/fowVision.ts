@@ -67,9 +67,9 @@ export class FowVisionLayer extends FowLayer {
             }
 
             const activeFloor = floorState.currentFloor.value!.id;
-            if (this.floor === activeFloor && floorState.$.floors.length > 1) {
-                for (let f = floorState.$.floors.length - 1; f > floorState.$.floorIndex; f--) {
-                    const floor = floorState.$.floors[f];
+            if (this.floor === activeFloor && floorState.__$.floors.length > 1) {
+                for (let f = floorState.__$.floors.length - 1; f > floorState.__$.floorIndex; f--) {
+                    const floor = floorState.__$.floors[f];
                     if (floor.id === activeFloor) break;
                     const fowl = floorSystem.getLayer(floor, this.name);
                     if (fowl === undefined) continue;

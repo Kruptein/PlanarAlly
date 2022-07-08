@@ -278,7 +278,7 @@ export class Layer implements ILayer {
             // First to draw the auras and a second time to draw the shapes themselves
             // Otherwise auras from one shape could overlap another shape.
 
-            const currentLayer = floorState.currentLayer.value;
+            const currentLayer = toRaw(floorState.currentLayer.value);
             // To optimize things slightly, we keep track of the shapes that passed the first round
             const visibleShapes: IShape[] = [];
 

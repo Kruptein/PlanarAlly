@@ -287,19 +287,24 @@ export class Layer implements ILayer {
                 if (shape.options.skipDraw ?? false) continue;
                 if (!shape.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: true })) continue;
                 if (this.name === LayerName.Lighting && currentLayer !== this) continue;
+
                 drawAuras(shape, ctx);
-                visibleShapes.push(shape);
-            }
-            // Normal shape draw loop
-            for (const shape of visibleShapes) {
+
                 if (shape.isInvisible && !accessSystem.hasAccessTo(shape.id, true, { vision: true })) continue;
                 if (shape.labels.length === 0 && gameState.filterNoLabel) continue;
                 if (
                     shape.labels.length &&
                     gameState.labelFilters.length &&
                     !shape.labels.some((l) => gameState.labelFilters.includes(l.uuid))
-                )
+                ) {
                     continue;
+                }
+
+                visibleShapes.push(shape);
+            }
+
+            // Normal shape draw loop
+            for (const shape of visibleShapes) {
                 shape.draw(ctx);
             }
 

@@ -12,6 +12,7 @@ tech changes will usually be stripped from release notes for the public
 ### Changed
 
 -   Draw tool vision and logic tabs will now have a background colour if they are active as a reminder
+-   [DM] Hiding a token using the vision tool will now also hide their private light auras
 -   [server] moved all python imports to proper relative imports
     -   this changes the way to manually run the server (again) (sorry)
 

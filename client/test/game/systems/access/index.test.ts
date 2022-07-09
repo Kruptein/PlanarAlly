@@ -121,7 +121,7 @@ describe("Access System", () => {
                 extra: [id2TestUser, id2DmUser],
             });
         });
-        it("should always return true if the player is a DM", () => {
+        it("should return correctly if the player is a DM", () => {
             // setup
             gameStore.setDm(true);
             // test
@@ -133,7 +133,7 @@ describe("Access System", () => {
             // 2. shape is a token that is not active and the limiter is active
             GET_PROPERTIES_OVERRIDE = () => ({ isToken: true });
             accessSystem.setActiveTokens();
-            expect(accessSystem.hasAccessTo(id, true, { edit: true })).toBe(true);
+            expect(accessSystem.hasAccessTo(id, true, { edit: true })).toBe(false);
             GET_PROPERTIES_OVERRIDE = undefined;
             // 3. the current user would otherwise not have access
             clientStore.setUsername("userWithNoRights");

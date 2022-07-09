@@ -147,7 +147,7 @@ export default defineComponent({
 </script>
 
 <template>
-    <div id="main" @mouseleave="mouseLeave" @wheel="zoom">
+    <div id="main" @mouseleave="mouseLeave" @wheel.passive="zoom">
         <canvas id="babylon"></canvas>
         <div id="board" :class="{ disconnected: !isConnected }">
             <div

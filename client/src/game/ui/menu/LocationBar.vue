@@ -38,7 +38,7 @@ const activeLocations = computed({
 watchEffect(() => {
     if (locations.value) {
         locations.value.$el.addEventListener("scroll", () => fixDisplays());
-        locations.value.$el.addEventListener("wheel", (e) => horizontalWheel(e));
+        locations.value.$el.addEventListener("wheel", (e) => horizontalWheel(e), { passive: true });
     }
 });
 

@@ -155,6 +155,10 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
 }
 
 export function deleteShapes(shapes: readonly IShape[], sync: SyncMode): void {
+    if (sync === SyncMode.FULL_SYNC) {
+        addOperation({ type: "shaperemove", shapes: shapes.map((s) => s.asDict()) });
+    }
+
     const removed: GlobalId[] = [];
     const recalculateIterative = visionState.state.mode === VisibilityMode.TRIANGLE_ITERATIVE;
     let recalculateVision = false;
@@ -175,9 +179,5 @@ export function deleteShapes(shapes: readonly IShape[], sync: SyncMode): void {
         if (recalculateVision)
             visionState.recalculate({ target: TriangulationTarget.VISION, floor: floorState.$.floorIndex });
         floorSystem.invalidateVisibleFloors();
-    }
-
-    if (sync === SyncMode.FULL_SYNC) {
-        addOperation({ type: "shaperemove", shapes: shapes.map((s) => s.asDict()) });
     }
 }

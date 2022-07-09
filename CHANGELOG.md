@@ -25,6 +25,7 @@ tech changes will usually be stripped from release notes for the public
 -   Player door toggles not syncing to the server/persisting
 -   Shared trackers/auras not showing up in selection info
 -   Shared trackers/aruas removal not showing in client until refresh
+-   Errors in prompt modals were not visible
 
 ## [2022.2.2] - 2022-06-17
 

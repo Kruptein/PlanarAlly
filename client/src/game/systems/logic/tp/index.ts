@@ -12,6 +12,7 @@ import { sendRequest } from "../../../api/emits/logic";
 import { getGlobalId, getShape } from "../../../id";
 import type { LocalId } from "../../../id";
 import type { IShape } from "../../../interfaces/shape";
+import { getProperties } from "../../properties/state";
 import { canUse } from "../common";
 import { Access, DEFAULT_PERMISSIONS } from "../models";
 import type { Permissions } from "../models";
@@ -177,9 +178,9 @@ class TeleportZoneSystem implements ShapeSystem {
 
             for (const shape of shapes) {
                 if (
-                    shape.isLocked ||
-                    (settingsStore.currentLocationOptions.value.spawnLocations?.includes(shape.id) ?? false) ||
-                    shape.id === tp
+                    shape.id === tp ||
+                    getProperties(shape.id)!.isLocked ||
+                    (settingsStore.currentLocationOptions.value.spawnLocations?.includes(shape.id) ?? false)
                 )
                     continue;
                 if (tpShape.floor.id === shape.floor.id && tpShape.contains(shape.center())) {

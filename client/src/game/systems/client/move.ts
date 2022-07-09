@@ -19,14 +19,17 @@ export function moveClientRect(player: number, data: ServerUserLocationOptions):
 
     let polygon: Polygon | undefined = id ? (getShape(id) as Polygon) : undefined;
     if (polygon === undefined) {
-        polygon = new Polygon(toGP(0, 0), undefined, {
-            fillColour: "rgba(0, 0, 0, 0)",
-            strokeColour: ["rgba(0, 0, 0, 1)", "rgba(255, 255, 255, 1)"],
-            lineWidth: [30, 15],
-            openPolygon: true,
-            uuid: uuidv4(),
-            isSnappable: false,
-        });
+        polygon = new Polygon(
+            toGP(0, 0),
+            undefined,
+            {
+                lineWidth: [30, 15],
+                openPolygon: true,
+                uuid: uuidv4(),
+                isSnappable: false,
+            },
+            { fillColour: "rgba(0, 0, 0, 0)", strokeColour: ["rgba(0, 0, 0, 1)", "rgba(255, 255, 255, 1)"] },
+        );
         clientState._$.playerRectIds.set(player, polygon.id);
         polygon.options.isPlayerRect = true;
         polygon.options.skipDraw = !(playerState.$.players.find((p) => p.id === player)?.showRect ?? false);

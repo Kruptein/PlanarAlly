@@ -10,6 +10,8 @@ import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import type { ServerPolygon } from "../../models/shapes";
 import type { AuraId } from "../../systems/auras/models";
+import { getProperties } from "../../systems/properties/state";
+import type { ShapeProperties } from "../../systems/properties/state";
 import type { TrackerId } from "../../systems/trackers/models";
 import { visionState } from "../../vision/state";
 import { Shape } from "../shape";
@@ -27,16 +29,15 @@ export class Polygon extends Shape {
         startPoint: GlobalPoint,
         vertices?: GlobalPoint[],
         options?: {
-            fillColour?: string;
-            strokeColour?: string[];
             lineWidth?: number[];
             openPolygon?: boolean;
             id?: LocalId;
             uuid?: GlobalId;
             isSnappable?: boolean;
         },
+        properties?: Partial<ShapeProperties>,
     ) {
-        super(startPoint, options);
+        super(startPoint, options, properties);
         this._vertices = vertices || [];
         this.openPolygon = options?.openPolygon ?? false;
         this.lineWidth = options?.lineWidth ?? [2];
@@ -128,9 +129,10 @@ export class Polygon extends Shape {
 
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
+        const props = getProperties(this.id)!;
 
-        if (this.fillColour === "fog") ctx.fillStyle = getFogColour();
-        else ctx.fillStyle = this.fillColour;
+        if (props.fillColour === "fog") ctx.fillStyle = getFogColour();
+        else ctx.fillStyle = props.fillColour;
 
         ctx.beginPath();
         let localVertex = subtractP(g2l(this.vertices[0]), center);
@@ -147,7 +149,7 @@ export class Polygon extends Shape {
 
         if (!this.openPolygon) ctx.fill();
 
-        for (const [i, c] of this.strokeColour.entries()) {
+        for (const [i, c] of props.strokeColour.entries()) {
             const lw = this.lineWidth[i] ?? this.lineWidth[0];
             ctx.lineWidth = this.ignoreZoomSize ? lw : g2lz(lw);
 
@@ -248,10 +250,12 @@ export class Polygon extends Shape {
             newPolygon._refPoint = nearVertex!;
             newPolygon._vertices = newVertices;
 
+            const props = getProperties(this.id)!;
+
             this.layer.addShape(
                 newPolygon,
                 SyncMode.FULL_SYNC,
-                this.blocksVision ? InvalidationMode.WITH_LIGHT : InvalidationMode.NORMAL,
+                props.blocksVision ? InvalidationMode.WITH_LIGHT : InvalidationMode.NORMAL,
             );
 
             this.invalidatePoints();
@@ -304,8 +308,9 @@ export class Polygon extends Shape {
         }
 
         if (invalidate) {
-            if (this.blocksVision) visionState.recalculateVision(this.floor.id);
-            if (this.blocksMovement) visionState.recalculateMovement(this.floor.id);
+            const props = getProperties(this.id)!;
+            if (props.blocksVision) visionState.recalculateVision(this.floor.id);
+            if (props.blocksMovement) visionState.recalculateMovement(this.floor.id);
             if (!this.preventSync) sendShapePositionUpdate([this], false);
 
             this.invalidatePoints();

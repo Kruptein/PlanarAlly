@@ -11,6 +11,7 @@ import { auraSystem } from "../systems/auras";
 import type { Aura, AuraId } from "../systems/auras/models";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
+import { getProperties } from "../systems/properties/state";
 
 import { CDT } from "./cdt";
 import { IterativeDelete } from "./iterative";
@@ -227,14 +228,15 @@ class VisionState extends Store<State> {
         new IterativeDelete(target, shape);
     }
 
-    moveShape(shape: IShape, oldFloor: FloorId, newFloor: FloorId): void {
-        if (shape.blocksMovement) {
-            this.moveBlocker(TriangulationTarget.MOVEMENT, shape.id, oldFloor, newFloor, true);
+    moveShape(id: LocalId, oldFloor: FloorId, newFloor: FloorId): void {
+        const props = getProperties(id)!;
+        if (props.blocksMovement) {
+            this.moveBlocker(TriangulationTarget.MOVEMENT, id, oldFloor, newFloor, true);
         }
-        if (shape.blocksVision) {
-            this.moveBlocker(TriangulationTarget.VISION, shape.id, oldFloor, newFloor, true);
+        if (props.blocksVision) {
+            this.moveBlocker(TriangulationTarget.VISION, id, oldFloor, newFloor, true);
         }
-        this.moveVisionSource(shape.id, auraSystem.getAll(shape.id, true), oldFloor, newFloor);
+        this.moveVisionSource(id, auraSystem.getAll(id, true), oldFloor, newFloor);
     }
 
     // HELPERS

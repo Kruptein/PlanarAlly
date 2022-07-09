@@ -6,6 +6,7 @@ import { DEFAULT_GRID_SIZE } from "../../../store/client";
 import { calculateDelta } from "../../drag";
 import type { GlobalId, LocalId } from "../../id";
 import type { ServerShape } from "../../models/shapes";
+import type { ShapeProperties } from "../../systems/properties/state";
 import { Shape } from "../shape";
 
 import { BoundingRect } from "./simple/boundingRect";
@@ -21,15 +22,14 @@ export abstract class BaseRect extends Shape {
         w: number,
         h: number,
         options?: {
-            fillColour?: string;
-            strokeColour?: string[];
             id?: LocalId;
             uuid?: GlobalId;
             assetId?: number;
             isSnappable?: boolean;
         },
+        properties?: Partial<ShapeProperties>,
     ) {
-        super(topleft, options);
+        super(topleft, options, properties);
         this._w = w;
         this._h = h;
     }

@@ -4,7 +4,7 @@ import { clampGridLine, getUnitDistance, l2g, l2gz } from "../../../core/convers
 import { addP, cloneP, subtractP, toArrayP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { equalPoints, snapToPoint } from "../../../core/math";
-import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
+import { InvalidationMode, NO_SYNC, SyncMode, UI_SYNC } from "../../../core/models/types";
 import type { PromptFunction } from "../../../core/plugins/modals/prompt";
 import { ctrlOrCmdPressed, mostReadable } from "../../../core/utils";
 import { i18n } from "../../../i18n";
@@ -33,6 +33,8 @@ import { doorSystem } from "../../systems/logic/door";
 import type { DOOR_TOGGLE_MODE } from "../../systems/logic/door/models";
 import { DEFAULT_PERMISSIONS } from "../../systems/logic/models";
 import type { Permissions } from "../../systems/logic/models";
+import { propertiesSystem } from "../../systems/properties";
+import { getProperties } from "../../systems/properties/state";
 import { openDefaultContextMenu } from "../../ui/contextmenu/state";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { Tool } from "../tool";
@@ -127,8 +129,8 @@ class DrawTool extends Tool {
             () => this.state.fillColour,
             () => {
                 if (this.brushHelper) {
-                    this.brushHelper.fillColour = this.state.fillColour;
-                    this.brushHelper.strokeColour = [mostReadable(this.state.fillColour)];
+                    propertiesSystem.setFillColour(this.brushHelper.id, this.state.fillColour, NO_SYNC);
+                    propertiesSystem.setStrokeColour(this.brushHelper.id, mostReadable(this.state.fillColour), NO_SYNC);
                 }
             },
         );
@@ -182,8 +184,9 @@ class DrawTool extends Tool {
             this.onSelect(mouse);
         } else {
             this.shape.updateLayerPoints();
-            if (this.shape.blocksVision) visionState.recalculateVision(this.shape.floor.id);
-            if (this.shape.blocksMovement) visionState.recalculateMovement(this.shape.floor.id);
+            const props = getProperties(this.shape.id)!;
+            if (props.blocksVision) visionState.recalculateVision(this.shape.floor.id);
+            if (props.blocksMovement) visionState.recalculateMovement(this.shape.floor.id);
             if (!this.shape.preventSync) sendShapeSizeUpdate({ shape: this.shape, temporary: false });
             if (this.state.isDoor) {
                 doorSystem.inform(
@@ -334,26 +337,29 @@ class DrawTool extends Tool {
             this.active.value = true;
             switch (this.state.selectedShape) {
                 case DrawShape.Square: {
-                    this.shape = new Rect(cloneP(startPoint), 0, 0, {
+                    this.shape = new Rect(cloneP(startPoint), 0, 0, undefined, {
                         fillColour: this.state.fillColour,
                         strokeColour: [this.state.borderColour],
                     });
                     break;
                 }
                 case DrawShape.Circle: {
-                    this.shape = new Circle(cloneP(startPoint), this.helperSize, {
+                    this.shape = new Circle(cloneP(startPoint), this.helperSize, undefined, {
                         fillColour: this.state.fillColour,
                         strokeColour: [this.state.borderColour],
                     });
                     break;
                 }
                 case DrawShape.Brush: {
-                    this.shape = new Polygon(cloneP(startPoint), [], {
-                        strokeColour: [this.state.fillColour],
-                        lineWidth: [this.state.brushSize],
-                        openPolygon: true,
-                    });
-                    this.shape.fillColour = this.state.fillColour;
+                    this.shape = new Polygon(
+                        cloneP(startPoint),
+                        [],
+                        { openPolygon: true, lineWidth: [this.state.brushSize] },
+                        {
+                            strokeColour: [this.state.fillColour],
+                        },
+                    );
+                    propertiesSystem.setFillColour(this.shape.id, this.state.fillColour, NO_SYNC);
                     break;
                 }
                 case DrawShape.Polygon: {
@@ -362,12 +368,15 @@ class DrawTool extends Tool {
                     if (clientStore.useSnapping(event) && !this.snappedToPoint) {
                         this.brushHelper.refPoint = toGP(clampGridLine(startPoint.x), clampGridLine(startPoint.y));
                     }
-                    this.shape = new Polygon(cloneP(this.brushHelper.refPoint), [], {
-                        fillColour: fill,
-                        strokeColour: [stroke],
-                        lineWidth: [this.state.brushSize],
-                        openPolygon: !this.state.isClosedPolygon,
-                    });
+                    this.shape = new Polygon(
+                        cloneP(this.brushHelper.refPoint),
+                        [],
+                        { lineWidth: [this.state.brushSize], openPolygon: !this.state.isClosedPolygon },
+                        {
+                            fillColour: fill,
+                            strokeColour: [stroke],
+                        },
+                    );
                     break;
                 }
                 case DrawShape.Text: {
@@ -377,7 +386,7 @@ class DrawTool extends Tool {
                         this.active.value = false;
                         return;
                     }
-                    this.shape = new Text(cloneP(this.brushHelper.refPoint), text, this.state.fontSize, {
+                    this.shape = new Text(cloneP(this.brushHelper.refPoint), text, this.state.fontSize, undefined, {
                         fillColour: this.state.fillColour,
                         strokeColour: [this.state.borderColour],
                     });
@@ -388,12 +397,12 @@ class DrawTool extends Tool {
             }
 
             if (this.state.selectedMode === DrawMode.Erase) {
-                this.shape.fillColour = "rgba(0, 0, 0, 1)";
+                propertiesSystem.setFillColour(this.shape.id, "rgba(0, 0, 0, 1)", NO_SYNC);
             }
             if (this.state.selectedMode === DrawMode.Hide || this.state.selectedMode === DrawMode.Reveal) {
                 this.shape.options.preFogShape = true;
                 this.shape.options.skipDraw = true;
-                this.shape.fillColour = "rgba(0, 0, 0, 1)";
+                propertiesSystem.setFillColour(this.shape.id, "rgba(0, 0, 0, 1)", NO_SYNC);
             }
             if (this.state.selectedMode === DrawMode.Reveal) this.shape.globalCompositeOperation = "source-over";
             else if (this.state.selectedMode === DrawMode.Hide) this.shape.globalCompositeOperation = "destination-out";
@@ -408,10 +417,10 @@ class DrawTool extends Tool {
             );
             if (this.state.selectedMode === DrawMode.Normal) {
                 if (this.state.blocksMovement) {
-                    this.shape.setBlocksMovement(true, UI_SYNC, false);
+                    propertiesSystem.setBlocksMovement(this.shape.id, true, UI_SYNC, false);
                 }
                 if (this.state.blocksVision) {
-                    this.shape.setBlocksVision(true, UI_SYNC, false);
+                    propertiesSystem.setBlocksVision(this.shape.id, true, UI_SYNC, false);
                 }
             }
             layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
@@ -439,20 +448,25 @@ class DrawTool extends Tool {
         ) {
             const lastPoint = this.brushHelper.refPoint;
             if (this.ruler === undefined) {
-                this.ruler = new Line(lastPoint, lastPoint, {
-                    lineWidth: this.state.brushSize,
-                    strokeColour: [this.state.fillColour],
-                    isSnappable: false,
-                });
+                this.ruler = new Line(
+                    lastPoint,
+                    lastPoint,
+                    {
+                        lineWidth: this.state.brushSize,
+                        isSnappable: false,
+                    },
+                    { strokeColour: [this.state.fillColour] },
+                );
                 layer.addShape(this.ruler, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
             } else {
                 this.ruler.refPoint = lastPoint;
                 this.ruler.endPoint = lastPoint;
             }
             const points = this.shape.points; // expensive call
-            if (this.shape.blocksVision && points.length > 1)
+            const props = getProperties(this.shape.id)!;
+            if (props.blocksVision && points.length > 1)
                 visionState.insertConstraint(TriangulationTarget.VISION, this.shape, points.at(-2)!, points.at(-1)!);
-            if (this.shape.blocksMovement && points.length > 1)
+            if (props.blocksMovement && points.length > 1)
                 visionState.insertConstraint(TriangulationTarget.MOVEMENT, this.shape, points.at(-2)!, points.at(-1)!);
             layer.invalidate(false);
             if (!this.shape.preventSync) sendShapeSizeUpdate({ shape: this.shape, temporary: true });
@@ -528,8 +542,9 @@ class DrawTool extends Tool {
         }
 
         if (this.state.selectedShape !== DrawShape.Polygon) {
+            const props = getProperties(this.shape.id)!;
             if (!this.shape.preventSync) sendShapeSizeUpdate({ shape: this.shape, temporary: true });
-            if (this.shape.blocksVision) {
+            if (props.blocksVision) {
                 if (
                     visionState
                         .getCDT(TriangulationTarget.VISION, this.shape.floor.id)
@@ -563,17 +578,18 @@ class DrawTool extends Tool {
 
         // TODO: handle touch event different than altKey, long press
         if (clientStore.useSnapping(event) && settingsStore.useGrid.value && !this.snappedToPoint) {
-            if (this.shape.blocksVision)
+            const props = getProperties(this.shape.id)!;
+            if (props.blocksVision)
                 visionState.deleteFromTriangulation({
                     target: TriangulationTarget.VISION,
                     shape: this.shape.id,
                 });
             this.shape.resizeToGrid(this.shape.getPointIndex(endPoint, l2gz(5)), ctrlOrCmdPressed(event));
-            if (this.shape.blocksVision) {
+            if (props.blocksVision) {
                 visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.shape.id });
                 visionState.recalculateVision(this.shape.floor.id);
             }
-            if (this.shape.blocksMovement) {
+            if (props.blocksMovement) {
                 visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: this.shape.id });
                 visionState.recalculateMovement(this.shape.floor.id);
             }
@@ -597,10 +613,11 @@ class DrawTool extends Tool {
             layer.removeShape(this.ruler!, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
             this.ruler = undefined;
             if (this.state.isClosedPolygon) {
+                const props = getProperties(this.shape.id)!;
                 const points = this.shape.points; // expensive call
-                if (this.shape.blocksVision && points.length > 1)
+                if (props.blocksVision && points.length > 1)
                     visionState.insertConstraint(TriangulationTarget.VISION, this.shape, points[0], points.at(-1)!);
-                if (this.shape.blocksMovement && points.length > 1)
+                if (props.blocksMovement && points.length > 1)
                     visionState.insertConstraint(TriangulationTarget.MOVEMENT, this.shape, points[0], points.at(-1)!);
             }
             this.finaliseShape();
@@ -627,12 +644,15 @@ class DrawTool extends Tool {
 
     private createBrush(position: GlobalPoint, brushSize?: number): Circle {
         const size = brushSize ?? this.state.brushSize / 2;
-        const brush = new Circle(position, size, {
-            fillColour: this.state.fillColour,
-            strokeColour: [mostReadable(this.state.fillColour)],
-            strokeWidth: Math.max(1, size * 0.05),
-            isSnappable: false,
-        });
+        const brush = new Circle(
+            position,
+            size,
+            {
+                strokeWidth: Math.max(1, size * 0.05),
+                isSnappable: false,
+            },
+            { fillColour: this.state.fillColour, strokeColour: [mostReadable(this.state.fillColour)] },
+        );
         // Make sure we can see the border of the reveal brush
         brush.options.borderOperation = "source-over";
         return brush;
@@ -645,11 +665,10 @@ class DrawTool extends Tool {
             position,
             vertices.map((v) => addP(v, vec)),
             {
-                fillColour: "white",
-                strokeColour: ["black"],
                 openPolygon: false,
                 isSnappable: false,
             },
+            { fillColour: "white", strokeColour: ["black"] },
         );
         // Make sure we can see the border of the reveal brush
         pointer.options.borderOperation = "source-over";
@@ -662,7 +681,7 @@ class DrawTool extends Tool {
         if (this.state.selectedMode === DrawMode.Reveal || this.state.selectedMode === DrawMode.Hide) {
             this.brushHelper.options.preFogShape = true;
             this.brushHelper.options.skipDraw = true;
-            this.brushHelper.fillColour = "rgba(0, 0, 0, 1)";
+            propertiesSystem.setFillColour(this.brushHelper.id, "rgba(0, 0, 0, 1)", NO_SYNC);
 
             if (this.state.selectedMode === DrawMode.Reveal) this.brushHelper.globalCompositeOperation = "source-over";
             else if (this.state.selectedMode === DrawMode.Hide)
@@ -671,7 +690,7 @@ class DrawTool extends Tool {
             delete this.brushHelper.options.preFogShape;
             delete this.brushHelper.options.skipDraw;
             this.brushHelper.globalCompositeOperation = "source-over";
-            this.brushHelper.fillColour = this.state.fillColour;
+            propertiesSystem.setFillColour(this.brushHelper.id, this.state.fillColour, NO_SYNC);
         }
         this.brushHelper.r = this.helperSize;
     }

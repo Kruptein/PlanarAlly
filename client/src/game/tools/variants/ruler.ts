@@ -50,11 +50,15 @@ class RulerTool extends Tool {
     }
 
     private createNewRuler(start: GlobalPoint, end: GlobalPoint): void {
-        const ruler = new Line(start, end, {
-            lineWidth: 5,
-            strokeColour: [clientStore.state.rulerColour],
-            isSnappable: false,
-        });
+        const ruler = new Line(
+            start,
+            end,
+            {
+                lineWidth: 5,
+                isSnappable: false,
+            },
+            { strokeColour: [clientStore.state.rulerColour] },
+        );
         ruler.ignoreZoomSize = true;
 
         const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
@@ -89,11 +93,15 @@ class RulerTool extends Tool {
         }
         this.active.value = true;
         this.createNewRuler(cloneP(this.startPoint), cloneP(this.startPoint));
-        this.text = new Text(cloneP(this.startPoint), "", 20, {
-            fillColour: "#000",
-            strokeColour: ["#fff"],
-            isSnappable: false,
-        });
+        this.text = new Text(
+            cloneP(this.startPoint),
+            "",
+            20,
+            {
+                isSnappable: false,
+            },
+            { fillColour: "#000", strokeColour: ["#fff"] },
+        );
         this.text.ignoreZoomSize = true;
         accessSystem.addAccess(
             this.text.id,

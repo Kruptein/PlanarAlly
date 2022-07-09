@@ -7,6 +7,8 @@ import { sendTextUpdate } from "../../api/emits/shape/text";
 import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import type { ServerText } from "../../models/shapes";
+import { getProperties } from "../../systems/properties/state";
+import type { ShapeProperties } from "../../systems/properties/state";
 import { Shape } from "../shape";
 import type { SHAPE_TYPE } from "../types";
 
@@ -23,14 +25,13 @@ export class Text extends Shape {
         public text: string,
         public fontSize: number,
         options?: {
-            fillColour?: string;
-            strokeColour?: string[];
             id?: LocalId;
             uuid?: GlobalId;
             isSnappable?: boolean;
         },
+        properties?: Partial<ShapeProperties>,
     ) {
-        super(position, options);
+        super(position, options, properties);
     }
 
     get isClosed(): boolean {
@@ -63,9 +64,10 @@ export class Text extends Shape {
         super.draw(ctx);
 
         const size = this.ignoreZoomSize ? this.fontSize : g2lz(this.fontSize);
+        const props = getProperties(this.id)!;
 
         ctx.font = `${size}px serif`;
-        ctx.fillStyle = this.fillColour;
+        ctx.fillStyle = props.fillColour;
         ctx.textAlign = "center";
 
         this.width = 0;
@@ -76,8 +78,8 @@ export class Text extends Shape {
             if (textInfo.width > this.width) this.width = textInfo.width;
             this.height += textInfo.actualBoundingBoxAscent + textInfo.actualBoundingBoxDescent;
 
-            if (this.strokeColour[0] !== "rgba(0,0,0,0)") {
-                ctx.strokeStyle = this.strokeColour[0];
+            if (props.strokeColour[0] !== "rgba(0,0,0,0)") {
+                ctx.strokeStyle = props.strokeColour[0];
                 ctx.strokeText(line.text, line.x, line.y);
             }
             ctx.fillText(line.text, line.x, line.y);

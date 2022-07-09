@@ -4,6 +4,8 @@ import type { GlobalPoint } from "../../../core/geometry";
 import { rotateAroundPoint } from "../../../core/math";
 import type { GlobalId, LocalId } from "../../id";
 import type { ServerLine } from "../../models/shapes";
+import { getProperties } from "../../systems/properties/state";
+import type { ShapeProperties } from "../../systems/properties/state";
 import { Shape } from "../shape";
 import type { SHAPE_TYPE } from "../types";
 
@@ -18,13 +20,13 @@ export class Line extends Shape {
         endPoint: GlobalPoint,
         options?: {
             lineWidth?: number;
-            strokeColour?: string[];
             id?: LocalId;
             uuid?: GlobalId;
             isSnappable?: boolean;
         },
+        properties?: Partial<ShapeProperties>,
     ) {
-        super(startPoint, { fillColour: "rgba(0, 0, 0, 0)", strokeColour: ["#000"], ...options });
+        super(startPoint, options, { fillColour: "rgba(0, 0, 0, 0)", strokeColour: ["#000"], ...properties });
         this._endPoint = endPoint;
         this.lineWidth = options?.lineWidth ?? 1;
     }
@@ -78,8 +80,9 @@ export class Line extends Shape {
         super.draw(ctx);
 
         const center = g2l(this.center());
+        const props = getProperties(this.id)!;
 
-        ctx.strokeStyle = this.strokeColour[0];
+        ctx.strokeStyle = props.strokeColour[0];
         ctx.beginPath();
         ctx.moveTo(g2lx(this.refPoint.x) - center.x, g2ly(this.refPoint.y) - center.y);
         ctx.lineTo(g2lx(this.endPoint.x) - center.x, g2ly(this.endPoint.y) - center.y);

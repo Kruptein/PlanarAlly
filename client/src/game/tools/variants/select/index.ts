@@ -48,6 +48,7 @@ import { floorState } from "../../../systems/floors/state";
 import { doorSystem } from "../../../systems/logic/door";
 import { Access } from "../../../systems/logic/models";
 import { teleportZoneSystem } from "../../../systems/logic/tp";
+import { getProperties } from "../../../systems/properties/state";
 import { openDefaultContextMenu, openShapeContextMenu } from "../../../ui/contextmenu/state";
 import { TriangulationTarget, visionState } from "../../../vision/state";
 import { SelectFeatures } from "../../models/select";
@@ -236,7 +237,8 @@ class SelectTool extends Tool implements ISelectTool {
             const shape = selectionStack[i];
             if (!(shape.options.preFogShape ?? false) && (shape.options.skipDraw ?? false)) continue;
             if ([this.rotationAnchor?.id, this.rotationBox?.id, this.rotationEnd?.id].includes(shape.id)) continue;
-            if (shape.isInvisible && !accessSystem.hasAccessTo(shape.id, false, { movement: true })) continue;
+            const props = getProperties(shape.id)!;
+            if (props.isInvisible && !accessSystem.hasAccessTo(shape.id, false, { movement: true })) continue;
 
             if (this.rotationUiActive && this.hasFeature(SelectFeatures.Rotate, features)) {
                 const anchor = this.rotationAnchor!.points[1];
@@ -304,7 +306,7 @@ class SelectTool extends Tool implements ISelectTool {
                             from: toArrayP(shape.refPoint),
                             to: toArrayP(shape.refPoint),
                         });
-                        if (shape.blocksMovement && shape.layer.name === LayerName.Tokens) {
+                        if (props.blocksMovement && shape.layer.name === LayerName.Tokens) {
                             visionState.removeBlocker(TriangulationTarget.MOVEMENT, shape.floor.id, shape, true);
                         }
                     }
@@ -326,11 +328,15 @@ class SelectTool extends Tool implements ISelectTool {
             this.selectionStartPoint = gp;
 
             if (this.selectionHelper === undefined) {
-                this.selectionHelper = new Rect(this.selectionStartPoint, 0, 0, {
-                    fillColour: "rgba(0, 0, 0, 0)",
-                    strokeColour: ["#7c253e"],
-                    isSnappable: false,
-                });
+                this.selectionHelper = new Rect(
+                    this.selectionStartPoint,
+                    0,
+                    0,
+                    {
+                        isSnappable: false,
+                    },
+                    { fillColour: "rgba(0, 0, 0, 0)", strokeColour: ["#7c253e"] },
+                );
                 this.selectionHelper.strokeWidth = 2;
                 this.selectionHelper.options.UiHelper = true;
                 accessSystem.addAccess(
@@ -413,7 +419,7 @@ class SelectTool extends Tool implements ISelectTool {
         }
 
         const layerSelection = selectionState.get({ includeComposites: false });
-        if (layerSelection.some((s) => s.isLocked)) return;
+        if (layerSelection.some((s) => getProperties(s.id)!.isLocked)) return;
 
         this.deltaChanged = false;
 
@@ -506,7 +512,7 @@ class SelectTool extends Tool implements ISelectTool {
 
         let layerSelection = selectionState.get({ includeComposites: false });
 
-        if (layerSelection.some((s) => s.isLocked)) return;
+        if (layerSelection.some((s) => getProperties(s.id)!.isLocked)) return;
 
         if (this.mode === SelectOperations.GroupSelect) {
             if (ctrlOrCmdPressed(event)) {
@@ -542,8 +548,8 @@ class SelectTool extends Tool implements ISelectTool {
             layer.removeShape(this.selectionHelper!, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
             this.selectionHelper = undefined;
 
-            if (layerSelection.some((s) => !s.isLocked)) {
-                selectionState.set(...layerSelection.filter((s) => !s.isLocked));
+            if (layerSelection.some((s) => !getProperties(s.id)!.isLocked)) {
+                selectionState.set(...layerSelection.filter((s) => !getProperties(s.id)!.isLocked));
             }
 
             if (
@@ -570,8 +576,10 @@ class SelectTool extends Tool implements ISelectTool {
                     )
                         continue;
 
+                    const props = getProperties(sel.id)!;
+
                     // movementBlock is skipped during onMove and definitely has to be done here
-                    if (sel.blocksMovement) {
+                    if (props.blocksMovement) {
                         visionState.deleteFromTriangulation({
                             target: TriangulationTarget.MOVEMENT,
                             shape: sel.id,
@@ -583,7 +591,7 @@ class SelectTool extends Tool implements ISelectTool {
                         this.hasFeature(SelectFeatures.Snapping, features) &&
                         !this.deltaChanged
                     ) {
-                        if (sel.blocksVision) {
+                        if (props.blocksVision) {
                             visionState.deleteFromTriangulation({
                                 target: TriangulationTarget.VISION,
                                 shape: sel.id,
@@ -592,13 +600,13 @@ class SelectTool extends Tool implements ISelectTool {
 
                         sel.snapToGrid();
 
-                        if (sel.blocksVision) {
+                        if (props.blocksVision) {
                             visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: sel.id });
                             recalcVision = true;
                         }
                     }
                     // movementBlock is skipped during onMove and definitely has to be done here
-                    if (sel.blocksMovement) {
+                    if (props.blocksMovement) {
                         if (sel.layer.name === LayerName.Tokens)
                             visionState.addBlocker(TriangulationTarget.MOVEMENT, sel.id, sel.floor.id, false);
                         visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: sel.id });
@@ -610,8 +618,8 @@ class SelectTool extends Tool implements ISelectTool {
                         this.operationReady = true;
                     }
 
-                    if (sel.blocksVision) recalcVision = true;
-                    if (sel.blocksMovement) recalcMovement = true;
+                    if (props.blocksVision) recalcVision = true;
+                    if (props.blocksMovement) recalcMovement = true;
                     if (!sel.preventSync) updateList.push(sel);
                     sel.updateLayerPoints();
                 }
@@ -623,8 +631,10 @@ class SelectTool extends Tool implements ISelectTool {
                 for (const sel of layerSelection) {
                     if (!accessSystem.hasAccessTo(sel.id, false, { movement: true })) continue;
 
+                    const props = getProperties(sel.id)!;
+
                     // movementBlock is skipped during onMove and definitely has to be done here
-                    if (sel.blocksMovement)
+                    if (props.blocksMovement)
                         visionState.deleteFromTriangulation({
                             target: TriangulationTarget.MOVEMENT,
                             shape: sel.id,
@@ -635,20 +645,20 @@ class SelectTool extends Tool implements ISelectTool {
                         clientStore.useSnapping(event) &&
                         this.hasFeature(SelectFeatures.Snapping, features)
                     ) {
-                        if (sel.blocksVision)
+                        if (props.blocksVision)
                             visionState.deleteFromTriangulation({
                                 target: TriangulationTarget.VISION,
                                 shape: sel.id,
                             });
                         sel.resizeToGrid(this.resizePoint, ctrlOrCmdPressed(event));
-                        if (sel.blocksVision) {
+                        if (props.blocksVision) {
                             visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: sel.id });
                             recalcVision = true;
                         }
                     }
 
                     // movementBlock is skipped during onMove and definitely has to be done here
-                    if (sel.blocksMovement) {
+                    if (props.blocksMovement) {
                         visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: sel.id });
                         recalcMovement = true;
                     }
@@ -776,22 +786,33 @@ class SelectTool extends Tool implements ISelectTool {
         const topCenterPlus = addP(topCenter, new Vector(0, -DEFAULT_GRID_SIZE));
 
         this.angle = 0;
-        this.rotationAnchor = new Line(topCenter, topCenterPlus, {
-            lineWidth: l2gz(1.5),
-            strokeColour: ["#7c253e"],
-            isSnappable: false,
-        });
-        this.rotationBox = new Rect(bbox.topLeft, bbox.w, bbox.h, {
-            fillColour: "rgba(0,0,0,0)",
-            strokeColour: ["#7c253e"],
-            isSnappable: false,
-        });
+        this.rotationAnchor = new Line(
+            topCenter,
+            topCenterPlus,
+            {
+                lineWidth: l2gz(1.5),
+                isSnappable: false,
+            },
+            { strokeColour: ["#7c253e"] },
+        );
+        this.rotationBox = new Rect(
+            bbox.topLeft,
+            bbox.w,
+            bbox.h,
+            {
+                isSnappable: false,
+            },
+            { fillColour: "rgba(0,0,0,0)", strokeColour: ["#7c253e"] },
+        );
         this.rotationBox.strokeWidth = 1.5;
-        this.rotationEnd = new Circle(topCenterPlus, l2gz(4), {
-            fillColour: "#7c253e",
-            strokeColour: ["rgba(0,0,0,0)"],
-            isSnappable: false,
-        });
+        this.rotationEnd = new Circle(
+            topCenterPlus,
+            l2gz(4),
+            {
+                isSnappable: false,
+            },
+            { fillColour: "#7c253e", strokeColour: ["rgba(0,0,0,0)"] },
+        );
 
         for (const rotationShape of [this.rotationAnchor, this.rotationBox, this.rotationEnd]) {
             accessSystem.addAccess(
@@ -857,11 +878,14 @@ class SelectTool extends Tool implements ISelectTool {
 
         this.removePolygonEditUi();
 
-        this.polygonTracer = new Circle(toGP(0, 0), 3, {
-            fillColour: "rgba(0,0,0,0)",
-            strokeColour: ["black"],
-            isSnappable: false,
-        });
+        this.polygonTracer = new Circle(
+            toGP(0, 0),
+            3,
+            {
+                isSnappable: false,
+            },
+            { fillColour: "rgba(0,0,0,0)", strokeColour: ["black"] },
+        );
         const drawLayer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw)!;
         drawLayer.addShape(this.polygonTracer, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         this.updatePolygonEditUi(this.lastMousePosition);

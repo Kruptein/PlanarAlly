@@ -18,6 +18,7 @@ import type { IAsset } from "../../interfaces/shapes/asset";
 import type { InitiativeData } from "../../models/initiative";
 import { InitiativeEffectMode, InitiativeSort } from "../../models/initiative";
 import { accessSystem } from "../../systems/access";
+import { getProperties } from "../../systems/properties/state";
 import { ClientSettingCategory } from "../settings/client/categories";
 
 import { initiativeStore } from "./state";
@@ -40,10 +41,10 @@ onMounted(() => initiativeStore.show(false));
 const alwaysShowEffects = computed(() => clientStore.state.initiativeEffectVisibility === InitiativeEffectMode.Always);
 
 function getName(actor: InitiativeData): string {
-    const shape = getShape(actor.shape);
-    if (shape !== undefined) {
-        if (shape.nameVisible) return shape.name;
-        if (accessSystem.hasAccessTo(shape.id, false, { edit: true })) return shape.name;
+    const props = getProperties(actor.shape);
+    if (props !== undefined) {
+        if (props.nameVisible) return props.name;
+        if (accessSystem.hasAccessTo(actor.shape, false, { edit: true })) return props.name;
     }
     return "?";
 }

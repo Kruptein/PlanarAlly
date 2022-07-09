@@ -15,6 +15,8 @@ import { compositeState } from "../../layers/state";
 import type { ServerToggleComposite } from "../../models/shapes";
 import { accessSystem } from "../../systems/access";
 import { auraSystem } from "../../systems/auras";
+import { getProperties } from "../../systems/properties/state";
+import type { ShapeProperties } from "../../systems/properties/state";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { Shape } from "../shape";
 import type { SHAPE_TYPE } from "../types";
@@ -29,13 +31,12 @@ export class ToggleComposite extends Shape {
         private active_variant: LocalId,
         private _variants: { uuid: LocalId; name: string }[],
         options?: {
-            fillColour?: string;
-            strokeColour?: string[];
             id?: LocalId;
             uuid?: GlobalId;
         },
+        properties?: Partial<ShapeProperties>,
     ) {
-        super(position, options);
+        super(position, options, properties);
         this.options.skipDraw = true;
         for (const variant of _variants) {
             compositeState.addComposite(this.id, variant, false);
@@ -88,12 +89,13 @@ export class ToggleComposite extends Shape {
     private resetVariants(...variants: LocalId[]): void {
         for (const variantId of variants) {
             const variant = getShape(variantId);
-            if (variant === undefined) continue;
+            const props = getProperties(variantId);
+            if (variant === undefined || props === undefined) continue;
 
-            if (variant.isToken) accessSystem.removeOwnedToken(variant.id);
-            if (variant.blocksMovement)
+            if (props.isToken) accessSystem.removeOwnedToken(variant.id);
+            if (props.blocksMovement)
                 visionState.removeBlocker(TriangulationTarget.MOVEMENT, variant.floor.id, variant, true);
-            if (variant.blocksVision)
+            if (props.blocksVision)
                 visionState.removeBlocker(TriangulationTarget.VISION, variant.floor.id, variant, true);
             if (auraSystem.getAll(variant.id, false).length > 0)
                 visionState.removeVisionSources(variant.floor.id, variant.id);
@@ -113,12 +115,13 @@ export class ToggleComposite extends Shape {
             console.error("COULD NOT FIND NEW VARIANT!");
             return;
         }
+        const props = getProperties(newVariant.id)!;
 
-        if (newVariant.isToken && accessSystem.hasAccessTo(newVariant.id, false, { vision: true }))
+        if (props.isToken && accessSystem.hasAccessTo(newVariant.id, false, { vision: true }))
             accessSystem.addOwnedToken(newVariant.id);
-        if (newVariant.blocksMovement)
+        if (props.blocksMovement)
             visionState.addBlocker(TriangulationTarget.MOVEMENT, newVariant.id, newVariant.floor.id, true);
-        if (newVariant.blocksVision)
+        if (props.blocksVision)
             visionState.addBlocker(TriangulationTarget.VISION, newVariant.id, newVariant.floor.id, true);
 
         for (const au of auraSystem.getAll(newVariant.id, false)) {

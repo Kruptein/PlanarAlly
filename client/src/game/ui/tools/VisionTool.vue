@@ -8,6 +8,7 @@ import type { IShape } from "../../interfaces/shape";
 import type { IAsset } from "../../interfaces/shapes/asset";
 import { accessSystem } from "../../systems/access";
 import { accessState } from "../../systems/access/state";
+import { getProperties } from "../../systems/properties/state";
 import { visionTool } from "../../tools/variants/vision";
 
 import { useToolPosition } from "./toolPosition";
@@ -51,7 +52,7 @@ function getImageSrc(token: IShape): string {
             @click="toggle(token.id)"
         >
             <img :src="getImageSrc(token)" width="30px" height="30px" v-if="getImageSrc(token) !== ''" alt="" />
-            <div>{{ token.name }}</div>
+            <div>{{ getProperties(token.id)!.name }}</div>
         </div>
     </div>
 </template>

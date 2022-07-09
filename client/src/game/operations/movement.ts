@@ -6,6 +6,7 @@ import { selectionState } from "../layers/selection";
 import { accessSystem } from "../systems/access";
 import { clientSystem } from "../systems/client";
 import { teleportZoneSystem } from "../systems/logic/tp";
+import { getProperties } from "../systems/properties/state";
 import { TriangulationTarget, visionState } from "../vision/state";
 
 import type { MovementOperation, ShapeMovementOperation } from "./model";
@@ -20,15 +21,16 @@ export async function moveShapes(shapes: readonly IShape[], delta: Vector, tempo
 
     for (const shape of shapes) {
         if (!accessSystem.hasAccessTo(shape.id, false, { movement: true })) continue;
+        const props = getProperties(shape.id)!;
 
-        if (shape.blocksMovement && !temporary) {
+        if (props.blocksMovement && !temporary) {
             recalculateMovement = true;
             visionState.deleteFromTriangulation({
                 target: TriangulationTarget.MOVEMENT,
                 shape: shape.id,
             });
         }
-        if (shape.blocksVision) {
+        if (props.blocksVision) {
             recalculateVision = true;
             visionState.deleteFromTriangulation({
                 target: TriangulationTarget.VISION,
@@ -47,9 +49,9 @@ export async function moveShapes(shapes: readonly IShape[], delta: Vector, tempo
         operation.to = toArrayP(shape.refPoint);
         operationList.shapes.push(operation);
 
-        if (shape.blocksMovement && !temporary)
+        if (props.blocksMovement && !temporary)
             visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: shape.id });
-        if (shape.blocksVision) visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: shape.id });
+        if (props.blocksVision) visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: shape.id });
 
         // todo: Fix again
         // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();

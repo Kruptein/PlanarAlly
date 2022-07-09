@@ -11,10 +11,11 @@ import type { ServerShape } from "./models/shapes";
 import { addOperation } from "./operations/undo";
 import { createShapeFromDict } from "./shapes/create";
 import { floorSystem } from "./systems/floors";
+import { getProperties } from "./systems/properties/state";
 import { visionState } from "./vision/state";
 
 export function moveFloor(shapes: IShape[], newFloor: Floor, sync: boolean): void {
-    shapes = shapes.filter((s) => !s.isLocked);
+    shapes = shapes.filter((s) => !getProperties(s.id)!.isLocked);
     if (shapes.length === 0) return;
     const oldLayer = shapes[0].layer;
     const oldFloor = shapes[0].floor;
@@ -24,7 +25,7 @@ export function moveFloor(shapes: IShape[], newFloor: Floor, sync: boolean): voi
 
     const newLayer = floorSystem.getLayer(newFloor, oldLayer.name)!;
     for (const shape of shapes) {
-        visionState.moveShape(shape, oldFloor.id, newFloor.id);
+        visionState.moveShape(shape.id, oldFloor.id, newFloor.id);
         shape.setLayer(newFloor.id, oldLayer.name);
     }
     oldLayer.setShapes(...oldLayer.getShapes({ includeComposites: true }).filter((s) => !shapes.includes(s)));

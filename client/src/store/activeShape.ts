@@ -31,18 +31,6 @@ interface ActiveShapeState {
 
     groupId: string | undefined;
 
-    name: string | undefined;
-    nameVisible: boolean;
-    isToken: boolean;
-    isInvisible: boolean;
-    strokeColour: string[] | undefined;
-    fillColour: string | undefined;
-    blocksMovement: boolean;
-    blocksVision: boolean;
-    showBadge: boolean;
-    isDefeated: boolean;
-    isLocked: boolean;
-
     variants: { uuid: LocalId; name: string }[];
 
     annotation: string | undefined;
@@ -62,18 +50,6 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
             options: undefined,
 
             groupId: undefined,
-
-            name: undefined,
-            nameVisible: false,
-            isToken: false,
-            isInvisible: false,
-            strokeColour: undefined,
-            fillColour: undefined,
-            blocksMovement: false,
-            blocksVision: false,
-            showBadge: false,
-            isDefeated: false,
-            isLocked: false,
 
             variants: [],
 
@@ -128,128 +104,6 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         if (!syncTo.ui) {
             const shape = getShape(this._state.id)!;
             shape.setGroupId(groupId, syncTo);
-        }
-    }
-
-    // PROPERTIES
-
-    setName(name: string, syncTo: Sync): void {
-        if (this._state.id === undefined) return;
-
-        this._state.name = name;
-
-        if (!syncTo.ui) {
-            const shape = getShape(this._state.id)!;
-            shape.setName(name, syncTo);
-        }
-    }
-
-    setNameVisible(visible: boolean, syncTo: Sync): void {
-        if (this._state.id === undefined) return;
-
-        this._state.nameVisible = visible;
-
-        if (!syncTo.ui) {
-            const shape = getShape(this._state.id)!;
-            shape.setNameVisible(visible, syncTo);
-        }
-    }
-
-    setIsToken(isToken: boolean, syncTo: Sync): void {
-        if (this._state.id === undefined) return;
-
-        this._state.isToken = isToken;
-
-        if (!syncTo.ui) {
-            const shape = getShape(this._state.id)!;
-            shape.setIsToken(isToken, syncTo);
-        }
-    }
-
-    setIsInvisible(isInvisible: boolean, syncTo: Sync): void {
-        if (this._state.id === undefined) return;
-
-        this._state.isInvisible = isInvisible;
-
-        if (!syncTo.ui) {
-            const shape = getShape(this._state.id)!;
-            shape.setInvisible(isInvisible, syncTo);
-        }
-    }
-
-    setStrokeColour(colour: string, syncTo: Sync): void {
-        if (this._state.id === undefined) return;
-
-        this._state.strokeColour = [colour];
-
-        if (!syncTo.ui) {
-            const shape = getShape(this._state.id)!;
-            shape.setStrokeColour(colour, syncTo);
-        }
-    }
-
-    setFillColour(colour: string, syncTo: Sync): void {
-        if (this._state.id === undefined) return;
-
-        this._state.fillColour = colour;
-
-        if (!syncTo.ui) {
-            const shape = getShape(this._state.id)!;
-            shape.setFillColour(colour, syncTo);
-        }
-    }
-
-    setBlocksMovement(blocksMovement: boolean, syncTo: Sync): void {
-        if (this._state.id === undefined) return;
-
-        this._state.blocksMovement = blocksMovement;
-
-        if (!syncTo.ui) {
-            const shape = getShape(this._state.id)!;
-            shape.setBlocksMovement(blocksMovement, syncTo);
-        }
-    }
-
-    setBlocksVision(blocksVision: boolean, syncTo: Sync): void {
-        if (this._state.id === undefined) return;
-
-        this._state.blocksVision = blocksVision;
-        if (!syncTo.ui) {
-            const shape = getShape(this._state.id)!;
-            shape.setBlocksVision(blocksVision, syncTo);
-        }
-    }
-
-    setShowBadge(showBadge: boolean, syncTo: Sync): void {
-        if (this._state.id === undefined) return;
-
-        this._state.showBadge = showBadge;
-
-        if (!syncTo.ui) {
-            const shape = getShape(this._state.id)!;
-            shape.setShowBadge(showBadge, syncTo);
-        }
-    }
-
-    setIsDefeated(isDefeated: boolean, syncTo: Sync): void {
-        if (this._state.id === undefined) return;
-
-        this._state.isDefeated = isDefeated;
-
-        if (!syncTo.ui) {
-            const shape = getShape(this._state.id)!;
-            shape.setDefeated(isDefeated, syncTo);
-        }
-    }
-
-    setLocked(isLocked: boolean, syncTo: Sync): void {
-        if (this._state.id === undefined) return;
-
-        this._state.isLocked = isLocked;
-
-        if (!syncTo.ui) {
-            const shape = getShape(this._state.id)!;
-            shape.setLocked(isLocked, syncTo);
         }
     }
 
@@ -367,18 +221,6 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
         this._state.groupId = shape.groupId;
 
-        this._state.name = shape.name;
-        this._state.nameVisible = shape.nameVisible;
-        this._state.isToken = shape.isToken;
-        this._state.isInvisible = shape.isInvisible;
-        this._state.strokeColour = shape.strokeColour;
-        this._state.fillColour = shape.fillColour;
-        this._state.showBadge = shape.showBadge;
-        this._state.blocksMovement = shape.blocksMovement;
-        this._state.blocksVision = shape.blocksVision;
-        this._state.isDefeated = shape.isDefeated;
-        this._state.isLocked = shape.isLocked;
-
         this._state.annotation = shape.annotation;
         this._state.annotationVisible = shape.annotationVisible;
         this._state.labels = [...shape.labels];
@@ -400,18 +242,6 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.options = undefined;
 
         this._state.groupId = undefined;
-
-        this._state.name = undefined;
-        this._state.nameVisible = false;
-        this._state.isToken = false;
-        this._state.isInvisible = false;
-        this._state.strokeColour = undefined;
-        this._state.fillColour = undefined;
-        this._state.isLocked = false;
-        this._state.blocksMovement = false;
-        this._state.blocksVision = false;
-        this._state.showBadge = false;
-        this._state.isDefeated = false;
 
         this._state.variants = [];
 

@@ -6,6 +6,8 @@ import { getFogColour } from "../../colour";
 import { calculateDelta } from "../../drag";
 import type { GlobalId, LocalId } from "../../id";
 import type { ServerCircle } from "../../models/shapes";
+import { getProperties } from "../../systems/properties/state";
+import type { ShapeProperties } from "../../systems/properties/state";
 import { Shape } from "../shape";
 import type { SHAPE_TYPE } from "../types";
 
@@ -21,16 +23,15 @@ export class Circle extends Shape {
         center: GlobalPoint,
         r: number,
         options?: {
-            fillColour?: string;
-            strokeColour?: string[];
             viewingAngle?: number;
             id?: LocalId;
             uuid?: GlobalId;
             strokeWidth?: number;
             isSnappable?: boolean;
         },
+        properties?: Partial<ShapeProperties>,
     ) {
-        super(center, options);
+        super(center, options, properties);
         this._r = r || 1;
         this.viewingAngle = options?.viewingAngle ?? null;
     }
@@ -73,19 +74,20 @@ export class Circle extends Shape {
 
     draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
+        const props = getProperties(this.id)!;
         ctx.beginPath();
-        if (this.fillColour === "fog") ctx.fillStyle = getFogColour();
-        else ctx.fillStyle = this.fillColour;
+        if (props.fillColour === "fog") ctx.fillStyle = getFogColour();
+        else ctx.fillStyle = props.fillColour;
 
         this.drawArc(ctx, this.ignoreZoomSize ? this.r : g2lz(this.r));
         ctx.fill();
 
-        if (this.strokeColour[0] !== "rgba(0, 0, 0, 0)") {
+        if (props.strokeColour[0] !== "rgba(0, 0, 0, 0)") {
             const ogOperation = ctx.globalCompositeOperation;
             if (this.options.borderOperation !== undefined) ctx.globalCompositeOperation = this.options.borderOperation;
             ctx.beginPath();
             ctx.lineWidth = this.ignoreZoomSize ? this.strokeWidth : g2lz(this.strokeWidth);
-            ctx.strokeStyle = this.strokeColour[0];
+            ctx.strokeStyle = props.strokeColour[0];
             // Inset the border with - borderWidth / 2
             // Slight imperfection added to account for zoom subpixel differences
             const r = this.r - this.strokeWidth / 2.5;

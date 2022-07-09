@@ -7,6 +7,8 @@ import { sendCircularTokenUpdate } from "../../api/emits/shape/circularToken";
 import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import type { ServerCircularToken } from "../../models/shapes";
+import { getProperties } from "../../systems/properties/state";
+import type { ShapeProperties } from "../../systems/properties/state";
 import type { SHAPE_TYPE } from "../types";
 
 import { Circle } from "./circle";
@@ -21,16 +23,14 @@ export class CircularToken extends Circle {
         text: string,
         font: string,
         options?: {
-            fillColour?: string;
-            strokeColour?: string[];
             id?: LocalId;
             uuid?: GlobalId;
         },
+        properties?: Partial<ShapeProperties>,
     ) {
-        super(center, r, options);
+        super(center, r, options, { name: text, ...properties });
         this.text = text;
         this.font = font;
-        this.name = this.text;
     }
 
     asDict(): ServerCircularToken {
@@ -54,6 +54,7 @@ export class CircularToken extends Circle {
         super.draw(ctx);
 
         const center = g2l(this.center());
+        const props = getProperties(this.id)!;
 
         ctx.font = this.font;
 
@@ -63,7 +64,7 @@ export class CircularToken extends Circle {
         const pixelRatio = clientStore.devicePixelRatio.value;
         ctx.setTransform(fontScale, 0, 0, fontScale, center.x * pixelRatio, center.y * pixelRatio);
         ctx.rotate(this.angle);
-        ctx.fillStyle = mostReadable(this.fillColour);
+        ctx.fillStyle = mostReadable(props.fillColour);
         ctx.fillText(this.text, 0, 0);
 
         super.drawPost(ctx);

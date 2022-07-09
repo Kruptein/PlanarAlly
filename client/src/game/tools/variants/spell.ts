@@ -3,7 +3,7 @@ import { reactive, watch, watchEffect } from "vue";
 import { g2l, getUnitDistance, l2g, toRadians } from "../../../core/conversions";
 import { equalsP, toGP } from "../../../core/geometry";
 import type { LocalPoint } from "../../../core/geometry";
-import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
+import { InvalidationMode, NO_SYNC, SyncMode, UI_SYNC } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { clientStore } from "../../../store/client";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
@@ -17,6 +17,7 @@ import { Circle } from "../../shapes/variants/circle";
 import { Rect } from "../../shapes/variants/rect";
 import { accessSystem } from "../../systems/access";
 import { floorState } from "../../systems/floors/state";
+import { propertiesSystem } from "../../systems/properties";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
 import { activateTool } from "../tools";
@@ -114,8 +115,9 @@ class SpellTool extends Tool {
 
         if (this.shape === undefined) return;
 
-        this.shape.fillColour = this.state.colour.replace(")", ", 0.7)");
-        this.shape.strokeColour = [this.state.colour];
+        propertiesSystem.setFillColour(this.shape.id, this.state.colour.replace(")", ", 0.7)"), NO_SYNC);
+        propertiesSystem.setStrokeColour(this.shape.id, this.state.colour, NO_SYNC);
+
         accessSystem.addAccess(
             this.shape.id,
             clientStore.state.username,
@@ -147,11 +149,14 @@ class SpellTool extends Tool {
         if (!selectionState.hasSelection || this.state.range === 0) return;
 
         const selection = [...selectionState.state.selection.values()];
-        this.rangeShape = new Circle(getShape(selection[0])!.center(), getUnitDistance(this.state.range), {
-            fillColour: "rgba(0,0,0,0)",
-            strokeColour: ["black"],
-            isSnappable: false,
-        });
+        this.rangeShape = new Circle(
+            getShape(selection[0])!.center(),
+            getUnitDistance(this.state.range),
+            {
+                isSnappable: false,
+            },
+            { fillColour: "rgba(0,0,0,0)", strokeColour: ["black"] },
+        );
         layer.addShape(this.rangeShape, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
     }
 
@@ -194,7 +199,7 @@ class SpellTool extends Tool {
             recalculate: false,
             dropShapeId: false,
         });
-        this.shape.isInvisible = !this.state.showPublic;
+        propertiesSystem.setIsInvisible(this.shape.id, !this.state.showPublic, NO_SYNC);
         layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NORMAL);
         this.shape = undefined;
         activateTool(ToolName.Select);

@@ -14,6 +14,8 @@ import { setCenterPosition } from "../../position";
 import { copyShapes, pasteShapes } from "../../shapes/utils";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
+import { propertiesSystem } from "../../systems/properties";
+import { getProperties } from "../../systems/properties/state";
 import { moveFloor } from "../../temp";
 import { toggleActiveMode } from "../../tools/tools";
 
@@ -101,8 +103,8 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             // x - Mark Defeated
             const selection = selectionState.get({ includeComposites: true });
             for (const shape of selection) {
-                const isDefeated = !shape.isDefeated;
-                shape.setDefeated(isDefeated, FULL_SYNC);
+                const isDefeated = getProperties(shape.id)!.isDefeated;
+                propertiesSystem.setIsDefeated(shape.id, !isDefeated, FULL_SYNC);
             }
             event.preventDefault();
             event.stopPropagation();
@@ -111,8 +113,8 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             for (const shape of selection) {
                 // This and GroupSettings are the only places currently where we would need to update both UI and Server.
                 // Might need to introduce a SyncTo.BOTH
-                const isLocked = !shape.isLocked;
-                shape.setLocked(isLocked, FULL_SYNC);
+                const isLocked = getProperties(shape.id)!.isLocked;
+                propertiesSystem.setLocked(shape.id, !isLocked, FULL_SYNC);
             }
             event.preventDefault();
             event.stopPropagation();

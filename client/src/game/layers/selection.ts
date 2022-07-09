@@ -25,6 +25,7 @@ class SelectionState extends Store<State> {
 
     clear(): void {
         this._state.selection.clear();
+        selectedSystem.clear();
     }
 
     // UI helpers are objects that are created for UI reaons but that are not pertinent to the actual state

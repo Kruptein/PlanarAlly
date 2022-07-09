@@ -24,6 +24,7 @@ export function generateTestShape(options?: { floor?: string }): IShape {
 
 export function generateTestLocalId(shape?: IShape): LocalId {
     shape ??= generateTestShape();
+    if (shape.id !== undefined) return shape.id;
     const id = generateLocalId(shape);
     (shape as any).id = id;
     return id;

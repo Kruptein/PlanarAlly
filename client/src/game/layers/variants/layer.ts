@@ -22,6 +22,8 @@ import { createShapeFromDict } from "../../shapes/create";
 import { accessSystem } from "../../systems/access";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
+import { propertiesSystem } from "../../systems/properties";
+import { getProperties } from "../../systems/properties/state";
 import { initiativeStore } from "../../ui/initiative/state";
 import { TriangulationTarget, VisibilityMode, visionState } from "../../vision/state";
 import { setCanvasDimensions } from "../canvas";
@@ -102,8 +104,11 @@ export class Layer implements ILayer {
 
         this.shapes.push(shape);
 
-        shape.setBlocksVision(shape.blocksVision, UI_SYNC, invalidate !== InvalidationMode.NO);
-        shape.setBlocksMovement(shape.blocksMovement, UI_SYNC, invalidate !== InvalidationMode.NO);
+        const props = getProperties(shape.id);
+        if (props === undefined) return console.error("Missing shape properties");
+
+        propertiesSystem.setBlocksVision(shape.id, props.blocksVision, UI_SYNC, invalidate !== InvalidationMode.NO);
+        propertiesSystem.setBlocksMovement(shape.id, props.blocksMovement, UI_SYNC, invalidate !== InvalidationMode.NO);
 
         shape.invalidatePoints();
         if (shape.isSnappable) {
@@ -113,7 +118,7 @@ export class Layer implements ILayer {
             }
         }
 
-        if (accessSystem.hasAccessTo(shape.id, false, { vision: true }) && shape.isToken)
+        if (accessSystem.hasAccessTo(shape.id, false, { vision: true }) && props.isToken)
             accessSystem.addOwnedToken(shape.id);
         if (shape.annotation.length) gameStore.addAnnotation(shape.id);
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync) {
@@ -214,6 +219,9 @@ export class Layer implements ILayer {
 
         accessSystem.removeOwnedToken(shape.id);
 
+        // Needs to be retrieved before dropping the ID
+        const triggersVisionRecalc = shape.triggersVisionRecalc;
+
         if (options.dropShapeId) dropId(shape.id);
         gameStore.removeMarker(shape.id, true);
 
@@ -227,7 +235,7 @@ export class Layer implements ILayer {
         if (this.isActiveLayer) selectionState.remove(shape.id);
 
         if (options.sync === SyncMode.FULL_SYNC) initiativeStore.removeInitiative(shape.id, false);
-        this.invalidate(!shape.triggersVisionRecalc);
+        this.invalidate(!triggersVisionRecalc);
         return true;
     }
 
@@ -290,7 +298,8 @@ export class Layer implements ILayer {
 
                 drawAuras(shape, ctx);
 
-                if (shape.isInvisible && !accessSystem.hasAccessTo(shape.id, true, { vision: true })) continue;
+                if (getProperties(shape.id)!.isInvisible && !accessSystem.hasAccessTo(shape.id, true, { vision: true }))
+                    continue;
                 if (shape.labels.length === 0 && gameState.filterNoLabel) continue;
                 if (
                     shape.labels.length &&

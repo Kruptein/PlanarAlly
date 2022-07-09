@@ -26,23 +26,10 @@ export interface IShape extends SimpleShape {
     resizeToGrid(resizePoint: number, retainAspectRatio: boolean): void;
     resize(resizePoint: number, point: GlobalPoint, retainAspectRatio: boolean): number;
 
-    name: string;
-    nameVisible: boolean;
-
-    isToken: boolean;
-    isInvisible: boolean;
-    isDefeated: boolean;
-    isLocked: boolean;
-
-    fillColour: string;
-    strokeColour: string[];
     strokeWidth: number;
 
     assetId?: number;
     groupId?: string;
-
-    blocksVision: boolean;
-    blocksMovement: boolean;
 
     globalCompositeOperation: string;
 
@@ -52,7 +39,6 @@ export interface IShape extends SimpleShape {
     annotationVisible: boolean;
 
     badge: number;
-    showBadge: boolean;
 
     showHighlight: boolean;
 
@@ -119,20 +105,6 @@ export interface IShape extends SimpleShape {
     // GROUP
 
     setGroupId(groupId: string | undefined, syncTo: Sync): void;
-
-    // PROPERTIES
-
-    setName(name: string, syncTo: Sync): void;
-    setNameVisible(visible: boolean, syncTo: Sync): void;
-    setIsToken(isToken: boolean, syncTo: Sync): void;
-    setInvisible(isInvisible: boolean, syncTo: Sync): void;
-    setStrokeColour(colour: string, syncTo: Sync): void;
-    setFillColour(colour: string, syncTo: Sync): void;
-    setBlocksVision(blocksVision: boolean, syncTo: Sync, recalculate?: boolean): void;
-    setBlocksMovement(blocksMovement: boolean, syncTo: Sync, recalculate?: boolean): boolean;
-    setShowBadge(showBadge: boolean, syncTo: Sync): void;
-    setDefeated(isDefeated: boolean, syncTo: Sync): void;
-    setLocked(isLocked: boolean, syncTo: Sync): void;
 
     // EXTRA
 

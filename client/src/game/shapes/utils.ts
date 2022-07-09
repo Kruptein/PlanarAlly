@@ -18,6 +18,7 @@ import type { ServerShapeOwner } from "../systems/access/models";
 import type { AuraId, ServerAura } from "../systems/auras/models";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
+import { getProperties } from "../systems/properties/state";
 import type { ServerTracker, TrackerId } from "../systems/trackers/models";
 import { TriangulationTarget, VisibilityMode, visionState } from "../vision/state";
 
@@ -162,8 +163,9 @@ export function deleteShapes(shapes: readonly IShape[], sync: SyncMode): void {
         const sel = shapes[i];
         if (sync !== SyncMode.NO_SYNC && !accessSystem.hasAccessTo(sel.id, false, { edit: true })) continue;
         removed.push(getGlobalId(sel.id));
-        if (sel.blocksVision) recalculateVision = true;
-        if (sel.blocksMovement) recalculateMovement = true;
+        const props = getProperties(sel.id)!;
+        if (props.blocksVision) recalculateVision = true;
+        if (props.blocksMovement) recalculateMovement = true;
         sel.layer.removeShape(sel, { sync: SyncMode.NO_SYNC, recalculate: recalculateIterative, dropShapeId: true });
     }
     if (sync !== SyncMode.NO_SYNC) sendRemoveShapes({ uuids: removed, temporary: sync === SyncMode.TEMP_SYNC });

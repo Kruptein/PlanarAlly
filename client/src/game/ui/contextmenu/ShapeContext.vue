@@ -29,6 +29,7 @@ import { accessSystem } from "../../systems/access";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { playerSystem } from "../../systems/players";
+import { getProperties } from "../../systems/properties/state";
 import { moveFloor, moveLayer } from "../../temp";
 import { initiativeStore } from "../initiative/state";
 import { layerTranslationMapping } from "../translations";
@@ -170,7 +171,7 @@ const locations = computed(() => {
 });
 
 async function setLocation(newLocation: number): Promise<void> {
-    const shapes = selectionState.get({ includeComposites: true }).filter((s) => !s.isLocked);
+    const shapes = selectionState.get({ includeComposites: true }).filter((s) => !getProperties(s.id)!.isLocked);
     if (shapes.length === 0) {
         return;
     }
@@ -217,7 +218,7 @@ async function setLocation(newLocation: number): Promise<void> {
     if (settingsStore.movePlayerOnTokenChange.value) {
         const users: Set<string> = new Set();
         for (const shape of selectionState.get({ includeComposites: true })) {
-            if (shape.isLocked) continue;
+            if (getProperties(shape.id)!.isLocked) continue;
             for (const owner of accessSystem.getOwners(shape.id)) users.add(owner);
         }
         playerSystem.updatePlayersLocation([...users], newLocation, true, { ...targetPosition });

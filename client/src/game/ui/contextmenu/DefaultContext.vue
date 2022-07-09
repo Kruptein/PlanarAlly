@@ -6,18 +6,19 @@ import ContextMenu from "../../../core/components/ContextMenu.vue";
 import { l2g, l2gx, l2gy } from "../../../core/conversions";
 import { toLP } from "../../../core/geometry";
 import { baseAdjust } from "../../../core/http";
-import { InvalidationMode, SyncMode } from "../../../core/models/types";
+import { InvalidationMode, NO_SYNC, SyncMode } from "../../../core/models/types";
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { uuidv4 } from "../../../core/utils";
 import { getGameState } from "../../../store/_game";
 import { clientStore } from "../../../store/client";
 import { settingsStore } from "../../../store/settings";
 import { sendBringPlayers } from "../../api/emits/players";
-import { getShape } from "../../id";
 import { LayerName } from "../../models/floor";
 import { Asset } from "../../shapes/variants/asset";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
+import { propertiesSystem } from "../../systems/properties";
+import { getProperties } from "../../systems/properties/state";
 import { initiativeStore } from "../initiative/state";
 import { openCreateTokenDialog } from "../tokendialog/state";
 
@@ -55,7 +56,7 @@ async function createSpawnLocation(): Promise<void> {
         t("game.ui.tools.DefaultContext.new_spawn_title").toString(),
         (value: string) => {
             if (value === "") return { valid: false, reason: t("common.insert_one_character").toString() };
-            const spawnNames = spawnLocations.map((uuid) => getShape(uuid)?.name ?? "");
+            const spawnNames = spawnLocations.map((uuid) => getProperties(uuid)?.name ?? "");
             if (spawnNames.some((name) => name === value))
                 return { valid: false, reason: t("common.name_already_in_use").toString() };
             return { valid: true };
@@ -71,7 +72,7 @@ async function createSpawnLocation(): Promise<void> {
     const loc = toLP(defaultContextLeft.value, defaultContextTop.value);
 
     const shape = new Asset(img, l2g(loc), 50, 50, { uuid, isSnappable: false });
-    shape.name = spawnName;
+    propertiesSystem.setName(shape.id, spawnName, NO_SYNC);
     shape.src = src;
 
     floorSystem

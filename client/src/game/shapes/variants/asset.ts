@@ -8,6 +8,7 @@ import type { GlobalId, LocalId } from "../../id";
 import type { ServerAsset } from "../../models/shapes";
 import { loadSvgData } from "../../svg";
 import { floorSystem } from "../../systems/floors";
+import { getProperties } from "../../systems/properties/state";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import type { SHAPE_TYPE } from "../types";
 
@@ -73,11 +74,12 @@ export class Asset extends BaseRect {
             this.layer.addShape(cover, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
             const svgs = await loadSvgData(`/static/assets/${this.options.svgAsset}`);
             this.svgData = [...svgs.values()].map((svg) => ({ svg, rp: this.refPoint, paths: undefined }));
-            if (this.blocksVision) {
+            const props = getProperties(this.id)!;
+            if (props.blocksVision) {
                 visionState.recalculateVision(this._floor!);
                 visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.id });
             }
-            if (this.blocksMovement) {
+            if (props.blocksMovement) {
                 visionState.recalculateMovement(this._floor!);
                 visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: this.id });
             }

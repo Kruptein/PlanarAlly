@@ -24,6 +24,7 @@ import { auraSystem } from "../../../systems/auras";
 import type { Aura, AuraId } from "../../../systems/auras/models";
 import { floorSystem } from "../../../systems/floors";
 import { floorState } from "../../../systems/floors/state";
+import { propertiesSystem } from "../../../systems/properties";
 import { visionState } from "../../../vision/state";
 import LabelManager from "../../LabelManager.vue";
 
@@ -120,7 +121,7 @@ function applyDDraft(): void {
 
     for (const wall of dDraftData.ddraft_line_of_sight) {
         const points = wall.map((w) => toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH));
-        const shape = new Polygon(points[0], points.slice(1), { openPolygon: true, strokeColour: ["red"] });
+        const shape = new Polygon(points[0], points.slice(1), { openPolygon: true }, { strokeColour: ["red"] });
         accessSystem.addAccess(
             shape.id,
             clientStore.state.username,
@@ -128,14 +129,14 @@ function applyDDraft(): void {
             UI_SYNC,
         );
 
-        shape.setBlocksVision(true, NO_SYNC, false);
-        shape.setBlocksMovement(true, NO_SYNC, false);
+        propertiesSystem.setBlocksVision(shape.id, true, NO_SYNC, false);
+        propertiesSystem.setBlocksMovement(shape.id, true, NO_SYNC, false);
         fowLayer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
     }
 
     for (const portal of dDraftData.ddraft_portals) {
         const points = portal.bounds.map((w) => toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH));
-        const shape = new Polygon(points[0], points.slice(1), { openPolygon: true, strokeColour: ["blue"] });
+        const shape = new Polygon(points[0], points.slice(1), { openPolygon: true }, { strokeColour: ["blue"] });
         accessSystem.addAccess(
             shape.id,
             clientStore.state.username,
@@ -144,8 +145,8 @@ function applyDDraft(): void {
         );
 
         if (portal.closed) {
-            shape.setBlocksVision(true, NO_SYNC, false);
-            shape.setBlocksMovement(true, NO_SYNC, false);
+            propertiesSystem.setBlocksVision(shape.id, true, NO_SYNC, false);
+            propertiesSystem.setBlocksMovement(shape.id, true, NO_SYNC, false);
         }
         fowLayer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
     }
@@ -154,7 +155,7 @@ function applyDDraft(): void {
         const refPoint = toGP(targetRP.x + light.position.x * size * dW, targetRP.y + light.position.y * size * dH);
 
         const shape = new Circle(refPoint, l2gz(10));
-        shape.isInvisible = true;
+        propertiesSystem.setIsInvisible(shape.id, true, NO_SYNC);
 
         const aura: Aura = {
             uuid: uuidv4() as unknown as AuraId,

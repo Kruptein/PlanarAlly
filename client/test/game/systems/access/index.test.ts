@@ -3,11 +3,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NO_SYNC, SERVER_SYNC, UI_SYNC } from "../../../../src/core/models/types";
 import { socket } from "../../../../src/game/api/socket";
 import type { LocalId } from "../../../../src/game/id";
-import type { IShape } from "../../../../src/game/interfaces/shape";
 import { accessSystem } from "../../../../src/game/systems/access";
 import { DEFAULT_ACCESS, DEFAULT_ACCESS_SYMBOL } from "../../../../src/game/systems/access/models";
 import type { ShapeAccess } from "../../../../src/game/systems/access/models";
 import { accessState } from "../../../../src/game/systems/access/state";
+import type { ShapeProperties } from "../../../../src/game/systems/properties/state";
 import { clientStore } from "../../../../src/store/client";
 import { gameStore } from "../../../../src/store/game";
 import { generateTestLocalId } from "../../../helpers";
@@ -17,13 +17,13 @@ const emitSpy = vi.spyOn(socket, "emit");
 const addOwnedTokenSpy = vi.spyOn(accessSystem, "addOwnedToken");
 const removeOwnedTokenSpy = vi.spyOn(accessSystem, "removeOwnedToken");
 
-let GET_SHAPE_OVERRIDE: (() => Partial<IShape> | undefined) | undefined = undefined;
-vi.mock("../../../../src/game/id", async () => {
-    const id: Record<string, any> = await vi.importActual("../../../../src/game/id");
+let GET_PROPERTIES_OVERRIDE: (() => Partial<ShapeProperties> | undefined) | undefined = undefined;
+vi.mock("../../../../src/game/systems/properties/state", async () => {
+    const state: Record<string, any> = await vi.importActual("../../../../src/game/systems/properties/state");
     return {
-        ...id,
-        getShape: (localId: LocalId) => {
-            return GET_SHAPE_OVERRIDE === undefined ? id.getShape(localId) : GET_SHAPE_OVERRIDE();
+        ...state,
+        getProperties: (localId: LocalId) => {
+            return GET_PROPERTIES_OVERRIDE === undefined ? state.getProperties(localId) : GET_PROPERTIES_OVERRIDE();
         },
     };
 });
@@ -35,7 +35,7 @@ describe("Access System", () => {
         emitSpy.mockClear();
         addOwnedTokenSpy.mockClear();
         removeOwnedTokenSpy.mockClear();
-        GET_SHAPE_OVERRIDE = undefined;
+        GET_PROPERTIES_OVERRIDE = undefined;
         clientStore.setUsername("");
     });
     describe("inform", () => {
@@ -128,13 +128,13 @@ describe("Access System", () => {
             expect(accessSystem.hasAccessTo(id, false, { edit: true })).toBe(true);
             // extra checks
             // 1. shape does not exist
-            GET_SHAPE_OVERRIDE = () => undefined;
+            GET_PROPERTIES_OVERRIDE = () => undefined;
             expect(accessSystem.hasAccessTo(id, false, { edit: true })).toBe(true);
             // 2. shape is a token that is not active and the limiter is active
-            GET_SHAPE_OVERRIDE = () => ({ isToken: true });
+            GET_PROPERTIES_OVERRIDE = () => ({ isToken: true });
             accessSystem.setActiveTokens();
             expect(accessSystem.hasAccessTo(id, true, { edit: true })).toBe(true);
-            GET_SHAPE_OVERRIDE = undefined;
+            GET_PROPERTIES_OVERRIDE = undefined;
             // 3. the current user would otherwise not have access
             clientStore.setUsername("userWithNoRights");
             expect(accessSystem.hasAccessTo(id2, false, { edit: true })).toBe(true);
@@ -143,7 +143,7 @@ describe("Access System", () => {
         });
         it("should return false if the shape does not exist", () => {
             // setup
-            GET_SHAPE_OVERRIDE = () => undefined;
+            GET_PROPERTIES_OVERRIDE = () => undefined;
             // test
             expect(accessSystem.hasAccessTo(id, false, { movement: true })).toBe(false);
             // extra checks
@@ -160,17 +160,17 @@ describe("Access System", () => {
         });
         it("should return false if the shape is a token and NOT an active token with the limiter active", () => {
             // setup
-            GET_SHAPE_OVERRIDE = () => ({ isToken: true });
+            GET_PROPERTIES_OVERRIDE = () => ({ isToken: true });
             accessSystem.setActiveTokens();
             // test
             expect(accessSystem.hasAccessTo(id, true, { edit: true })).toBe(false);
             // without limiter
             expect(accessSystem.hasAccessTo(id, false, { edit: true })).toBe(true);
             // without isToken
-            GET_SHAPE_OVERRIDE = undefined;
+            GET_PROPERTIES_OVERRIDE = undefined;
             expect(accessSystem.hasAccessTo(id, true, { edit: true })).toBe(true);
             // with active token
-            GET_SHAPE_OVERRIDE = () => ({ isToken: true });
+            GET_PROPERTIES_OVERRIDE = () => ({ isToken: true });
             accessSystem.setActiveTokens(id);
             expect(accessSystem.hasAccessTo(id, true, { edit: true })).toBe(true);
             accessSystem.setActiveTokens();
@@ -329,7 +329,7 @@ describe("Access System", () => {
             accessSystem.addAccess(id, "vision user wo isToken", userWithVision, UI_SYNC);
             expect(addOwnedTokenSpy).not.toBeCalled();
             // 3. vision: true && username is ok && isToken
-            GET_SHAPE_OVERRIDE = () => ({ isToken: true });
+            GET_PROPERTIES_OVERRIDE = () => ({ isToken: true });
             clientStore.setUsername("vision user w isToken");
             accessSystem.addAccess(id, "vision user w isToken", userWithVision, UI_SYNC);
             expect(addOwnedTokenSpy).toBeCalled();
@@ -394,7 +394,7 @@ describe("Access System", () => {
             expect(addOwnedTokenSpy).not.toBeCalled();
             accessSystem.updateAccess(id, "some user", { vision: false }, SERVER_SYNC); // reset
             // 3. correct
-            GET_SHAPE_OVERRIDE = () => ({
+            GET_PROPERTIES_OVERRIDE = () => ({
                 isToken: true,
             });
             accessSystem.updateAccess(id, "some user", { vision: true }, SERVER_SYNC);
@@ -418,7 +418,7 @@ describe("Access System", () => {
             expect(removeOwnedTokenSpy).not.toBeCalled();
             accessSystem.updateAccess(id, "some user", { vision: true }, SERVER_SYNC); // reset
             // 3. correct
-            GET_SHAPE_OVERRIDE = () => ({
+            GET_PROPERTIES_OVERRIDE = () => ({
                 isToken: true,
             });
             accessSystem.updateAccess(id, "some user", { vision: false }, SERVER_SYNC);
@@ -494,7 +494,7 @@ describe("Access System", () => {
             expect(removeOwnedTokenSpy).not.toBeCalled();
             accessSystem.addAccess(id, "some user", { vision: true }, SERVER_SYNC); // reset
             // 3. correct
-            GET_SHAPE_OVERRIDE = () => ({
+            GET_PROPERTIES_OVERRIDE = () => ({
                 isToken: true,
             });
             accessSystem.removeAccess(id, "some user", SERVER_SYNC);

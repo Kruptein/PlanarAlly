@@ -6,10 +6,11 @@ import type { Sync } from "../../../core/models/types";
 import { getGameState } from "../../../store/_game";
 import { clientStore } from "../../../store/client";
 import { settingsStore } from "../../../store/settings";
-import { getGlobalId, getShape } from "../../id";
+import { getGlobalId } from "../../id";
 import type { LocalId } from "../../id";
 import { initiativeStore } from "../../ui/initiative/state";
 import { floorSystem } from "../floors";
+import { getProperties } from "../properties/state";
 
 import { sendShapeAddOwner, sendShapeDeleteOwner, sendShapeUpdateDefaultOwner, sendShapeUpdateOwner } from "./emits";
 import { accessToServer, ownerToServer } from "./helpers";
@@ -104,10 +105,10 @@ class AccessSystem implements ShapeSystem {
     ): boolean {
         if (getGameState().isDm) return true;
 
-        const shape = getShape(id);
-        if (shape === undefined) return false;
+        const props = getProperties(id);
+        if (props === undefined) return false;
 
-        if (shape.isToken && limitToActiveTokens) {
+        if (props.isToken && limitToActiveTokens) {
             if (!activeTokens.value.has(id)) {
                 return false;
             }
@@ -170,8 +171,8 @@ class AccessSystem implements ShapeSystem {
 
         // todo: some sort of event register instead of calling these other systems manually ?
         if (userAccess.vision && user === clientStore.state.username) {
-            const shape = getShape(shapeId);
-            if (shape !== undefined && shape.isToken) {
+            const props = getProperties(shapeId);
+            if (props !== undefined && props.isToken) {
                 this.addOwnedToken(shapeId);
             }
         }
@@ -194,8 +195,8 @@ class AccessSystem implements ShapeSystem {
             access.vision !== oldAccess.vision &&
             (user === clientStore.state.username || user === DEFAULT_ACCESS_SYMBOL)
         ) {
-            const shape = getShape(shapeId);
-            if (shape !== undefined && shape.isToken) {
+            const props = getProperties(shapeId);
+            if (props !== undefined && props.isToken) {
                 if (access.vision) {
                     this.addOwnedToken(shapeId);
                 } else {
@@ -255,8 +256,8 @@ class AccessSystem implements ShapeSystem {
         }
 
         if (oldAccess.vision && user === clientStore.state.username) {
-            const shape = getShape(shapeId);
-            if (shape !== undefined && shape.isToken) {
+            const props = getProperties(shapeId);
+            if (props !== undefined && props.isToken) {
                 this.removeOwnedToken(shapeId);
             }
         }

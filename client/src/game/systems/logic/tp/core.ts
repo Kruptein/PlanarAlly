@@ -10,6 +10,7 @@ import { accessSystem } from "../../access";
 import { floorSystem } from "../../floors";
 import { floorState } from "../../floors/state";
 import { playerSystem } from "../../players";
+import { getProperties } from "../../properties/state";
 
 export function getTpZoneShapes(fromZone: LocalId): LocalId[] {
     const tokenLayer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Tokens)!;
@@ -19,7 +20,7 @@ export function getTpZoneShapes(fromZone: LocalId): LocalId[] {
 
     for (const shape of tokenLayer.getShapes({ includeComposites: true })) {
         if (
-            !shape.isLocked &&
+            !getProperties(shape.id)!.isLocked &&
             accessSystem.hasAccessTo(shape.id, false, { movement: true }) &&
             fromShape.contains(shape.center())
         ) {

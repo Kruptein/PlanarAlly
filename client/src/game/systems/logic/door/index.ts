@@ -3,9 +3,11 @@ import type { ShapeSystem } from "../..";
 import { baseAdjust } from "../../../../core/http";
 import { FULL_SYNC } from "../../../../core/models/types";
 import type { Sync } from "../../../../core/models/types";
-import { getGlobalId, getShape } from "../../../id";
+import { getGlobalId } from "../../../id";
 import type { LocalId } from "../../../id";
 import { selectToolState } from "../../../tools/variants/select/state";
+import { propertiesSystem } from "../../properties";
+import { getProperties } from "../../properties/state";
 import { canUse } from "../common";
 import type { Access, Permissions } from "../models";
 
@@ -94,17 +96,17 @@ class DoorSystem implements ShapeSystem {
     }
 
     toggleDoor(id: LocalId): undefined {
-        const shape = getShape(id);
+        const props = getProperties(id);
         const options = _.data.get(id);
-        if (shape === undefined || options === undefined) return;
+        if (props === undefined || options === undefined) return;
 
         if (options.toggleMode === "both") {
-            shape.setBlocksMovement(!shape.blocksMovement, FULL_SYNC, true);
-            shape.setBlocksVision(!shape.blocksVision, FULL_SYNC, true);
+            propertiesSystem.setBlocksMovement(id, !props.blocksMovement, FULL_SYNC, true);
+            propertiesSystem.setBlocksVision(id, !props.blocksVision, FULL_SYNC, true);
         } else if (options.toggleMode === "movement") {
-            shape.setBlocksMovement(!shape.blocksMovement, FULL_SYNC, true);
+            propertiesSystem.setBlocksMovement(id, !props.blocksMovement, FULL_SYNC, true);
         } else {
-            shape.setBlocksVision(!shape.blocksVision, FULL_SYNC, true);
+            propertiesSystem.setBlocksVision(id, !props.blocksVision, FULL_SYNC, true);
         }
 
         this.checkCursorState(id);
@@ -121,14 +123,14 @@ class DoorSystem implements ShapeSystem {
     }
 
     getCursorState(id: LocalId): "lock-solid" | "lock-open-solid" | "eye-solid" | "eye-slash-solid" | undefined {
-        const shape = getShape(id);
+        const props = getProperties(id);
         const options = _.data.get(id);
-        if (shape === undefined || options === undefined) return;
+        if (props === undefined || options === undefined) return;
 
         if (options.toggleMode === "vision") {
-            return shape.blocksVision ? "eye-solid" : "eye-slash-solid";
+            return props.blocksVision ? "eye-solid" : "eye-slash-solid";
         }
-        return shape.blocksMovement ? "lock-open-solid" : "lock-solid";
+        return props.blocksMovement ? "lock-open-solid" : "lock-solid";
     }
 
     canUse(id: LocalId): Access {

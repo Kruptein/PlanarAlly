@@ -10,9 +10,9 @@ import { getGameState } from "../../../store/_game";
 import { gameStore } from "../../../store/game";
 import { uiStore } from "../../../store/ui";
 import { clearGame } from "../../clear";
-import { getShape } from "../../id";
 import type { LocalId } from "../../id";
 import type { Note } from "../../models/general";
+import { getProperties } from "../../systems/properties/state";
 import NoteDialog from "../NoteDialog.vue";
 
 import AssetParentNode from "./AssetParentNode.vue";
@@ -68,9 +68,9 @@ function jumpToMarker(marker: LocalId): void {
 }
 
 function nameMarker(marker: LocalId): string {
-    const shape = getShape(marker);
-    if (shape !== undefined) {
-        return shape.name;
+    const props = getProperties(marker);
+    if (props !== undefined) {
+        return props.name;
     } else {
         return "";
     }

@@ -103,7 +103,7 @@ class AccessSystem implements ShapeSystem {
         limitToActiveTokens: boolean,
         access: Partial<{ edit: boolean; vision: boolean; movement: boolean }>,
     ): boolean {
-        if (getGameState().isDm) return true;
+        if (getGameState().isDm && !limitToActiveTokens) return true;
 
         const props = getProperties(id);
         if (props === undefined) return false;
@@ -114,7 +114,7 @@ class AccessSystem implements ShapeSystem {
             }
         }
 
-        if (getGameState().isFakePlayer) return true;
+        if (getGameState().isDm || getGameState().isFakePlayer) return true;
 
         const accessMap = this.access.get(id);
         if (accessMap === undefined) return false;

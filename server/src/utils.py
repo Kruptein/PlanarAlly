@@ -15,12 +15,18 @@ def get_src_dir() -> Path:
     return Path(__file__).resolve().parent
 
 
+def get_file_dir() -> Path:
+    if getattr(sys, "frozen", False):
+        return SRC_DIR
+    return SRC_DIR.parent
+
+
 def get_save_dir() -> Path:
     return FILE_DIR
 
 
 SRC_DIR = get_src_dir()
-FILE_DIR = SRC_DIR.parent
+FILE_DIR = get_file_dir()
 STATIC_DIR = FILE_DIR / "static"
 ASSETS_DIR = STATIC_DIR / "assets"
 TEMP_DIR = STATIC_DIR / "temp"

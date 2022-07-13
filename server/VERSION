@@ -1,4 +1,4 @@
-2022.2.2
+2022.2.3
 
 ### Added
 
@@ -56,3 +56,4 @@
 -   [2022.2.2] Ghost initiative entries showing up as ? that cannot be removed
 -   [2022.2.2] Database lock errors while importing during load
 -   [2022.2.2][server] Server not being able to start due to ModuleNotFoundError
+-   [2022.2.3][server] Windows executable builds not using the correct directory for certain files (e.g. config/assets)

@@ -9,6 +9,12 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+## [2022.2.3] - 2022-07-13
+
+### Fixed
+
+-   [server] Windows executable builds not using the correct directory for certain files (e.g. config/assets)
+
 ## [2022.2.2] - 2022-06-17
 
 ### Changed

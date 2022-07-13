@@ -1,6 +1,7 @@
 import logging
 from functools import wraps
-from typing import Literal, Union
+from typing import Union
+from typing_extensions import Literal
 
 from aiohttp import web
 from aiohttp_security.abc import AbstractAuthorizationPolicy

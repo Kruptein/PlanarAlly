@@ -7,6 +7,7 @@ export const sendLocationOptions = wrapSocket<{
     options: Partial<ServerLocationOptions>;
     location: number | undefined;
 }>("Location.Options.Set");
+export const sendResetLocationOption = wrapSocket<{ key: string; location: number }>("Location.Options.Reset");
 export const sendLocationOrder = wrapSocket<number[]>("Locations.Order.Set");
 export const sendLocationChange = wrapSocket<{
     location: number;

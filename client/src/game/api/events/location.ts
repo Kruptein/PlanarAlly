@@ -8,7 +8,7 @@ import { settingsStore } from "../../../store/settings";
 import { reserveLocalId } from "../../id";
 import type { GlobalId } from "../../id";
 import type { ServerLocation } from "../../models/general";
-import type { Location, ServerLocationOptions } from "../../models/settings";
+import type { Location, LocationOptions, ServerLocationOptions } from "../../models/settings";
 import { playerSystem } from "../../systems/players";
 import { VisibilityMode, visionState } from "../../vision/state";
 import { socket } from "../socket";
@@ -27,6 +27,10 @@ socket.on("Locations.Settings.Set", (data: { [key: number]: Partial<ServerLocati
 
 socket.on("Location.Options.Set", (data: { options: Partial<ServerLocationOptions>; location: number | null }) => {
     setLocationOptions(data.location ?? undefined, data.options);
+});
+
+socket.on("Location.Options.Reset", (data: { key: keyof LocationOptions; location: number }) => {
+    settingsStore.reset(data.key, data.location, false);
 });
 
 socket.on("Locations.Order.Set", (locations: Location[]) => {

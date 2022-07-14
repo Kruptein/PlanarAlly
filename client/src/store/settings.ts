@@ -3,8 +3,7 @@ import type { ComputedRef } from "vue";
 
 import { Store } from "../core/store";
 import { getValueOrDefault } from "../core/types";
-import { toSnakeCase } from "../core/utils";
-import { sendLocationOptions } from "../game/api/emits/location";
+import { sendLocationOptions, sendResetLocationOption } from "../game/api/emits/location";
 import { getGlobalId } from "../game/id";
 import type { LocalId } from "../game/id";
 import type { LocationOptions } from "../game/models/settings";
@@ -122,14 +121,16 @@ class SettingsStore extends Store<SettingsState> {
         );
     }
 
-    reset(key: keyof LocationOptions, location: number): void {
+    reset(key: keyof LocationOptions, location: number, sync: boolean): void {
         const options = this._state.locationOptions.get(location)!;
         if (key in options) {
             delete options[key];
-            sendLocationOptions({
-                options: { [toSnakeCase(key)]: null },
-                location: location,
-            });
+            if (sync) {
+                sendResetLocationOption({
+                    key,
+                    location: location,
+                });
+            }
 
             if (
                 [

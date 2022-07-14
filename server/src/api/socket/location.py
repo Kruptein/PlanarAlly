@@ -48,6 +48,11 @@ class LocationOptionsData(TypedDict):
     location: Union[int, None]
 
 
+class LocationOptionsResetData(TypedDict):
+    key: str
+    location: int
+
+
 class PositionTuple(TypedDict):
     x: int
     y: int
@@ -348,6 +353,31 @@ async def set_location_options(sid: str, data: LocationOptionsData):
             skip_sid=sid,
             namespace=GAME_NS,
         )
+
+
+@sio.on("Location.Options.Reset", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def reset_location_options(sid: str, data: LocationOptionsResetData):
+    pr: PlayerRoom = game_state.get(sid)
+
+    if pr.role != Role.DM:
+        logger.warning(f"{pr.player.name} attempted to reset a room option")
+        return
+
+    loc = Location.get_by_id(data["location"])
+    if loc.options is None:
+        return
+    options = loc.options
+    setattr(options, data["key"], None)
+    options.save()
+
+    await sio.emit(
+        "Location.Options.Reset",
+        data,
+        room=pr.active_location.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )
 
 
 @sio.on("Location.New", namespace=GAME_NS)

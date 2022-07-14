@@ -117,7 +117,7 @@ function setUndergroundBackgroundFromEvent(event: Event): void {
 
 function reset(key: keyof LocationOptions): void {
     if (isGlobal.value) return;
-    settingsStore.reset(key, props.location);
+    settingsStore.reset(key, props.location, true);
 }
 
 function e(k: any): boolean {

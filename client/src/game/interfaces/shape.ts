@@ -35,9 +35,6 @@ export interface IShape extends SimpleShape {
 
     labels: Label[];
 
-    annotation: string;
-    annotationVisible: boolean;
-
     badge: number;
 
     showHighlight: boolean;
@@ -108,8 +105,6 @@ export interface IShape extends SimpleShape {
 
     // EXTRA
 
-    setAnnotation(text: string, syncTo: Sync): void;
-    setAnnotationVisible(visible: boolean, syncTo: Sync): void;
     addLabel(label: string, syncTo: Sync): void;
     removeLabel(label: string, syncTo: Sync): void;
 }

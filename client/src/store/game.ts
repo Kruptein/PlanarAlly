@@ -28,7 +28,6 @@ class GameStore {
     }
 
     clear(): void {
-        this._state.annotations.clear();
         this._state.notes = [];
         this._state.markers.clear();
         this._state.boardInitialized = false;
@@ -85,15 +84,6 @@ class GameStore {
     // ASSETS
     setAssets(assets: AssetListMap): void {
         this._state.assets = assets;
-    }
-
-    // ANNOTATIONS
-    addAnnotation(shape: LocalId): void {
-        this._state.annotations.add(shape);
-    }
-
-    removeAnnotation(shape: LocalId): void {
-        this._state.annotations.delete(shape);
     }
 
     // MARKERS

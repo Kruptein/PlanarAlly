@@ -120,7 +120,7 @@ export class Layer implements ILayer {
 
         if (accessSystem.hasAccessTo(shape.id, false, { vision: true }) && props.isToken)
             accessSystem.addOwnedToken(shape.id);
-        if (shape.annotation.length) gameStore.addAnnotation(shape.id);
+
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync) {
             sendShapeAdd({ shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
         }
@@ -214,8 +214,6 @@ export class Layer implements ILayer {
         visionState.removeBlocker(TriangulationTarget.VISION, this.floor, shape, options.recalculate);
         visionState.removeBlocker(TriangulationTarget.MOVEMENT, this.floor, shape, options.recalculate);
         visionState.removeVisionSources(this.floor, shape.id);
-
-        gameStore.removeAnnotation(shape.id);
 
         accessSystem.removeOwnedToken(shape.id);
 

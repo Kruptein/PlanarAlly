@@ -27,6 +27,8 @@ tech changes will usually be stripped from release notes for the public
 -   Shared trackers/auras not showing up in selection info
 -   Shared trackers/aruas removal not showing in client until refresh
 -   Errors in prompt modals were not visible
+-   Annotation visible info not syncing to other clients until refresh (UI only)
+-   Annotations still being visible until refresh after removing player access
 -   Resetting location specific settings was not immediately synchronizing to clients until a refresh
 -   The asset manager was no longer useable when using a subpath setup
 

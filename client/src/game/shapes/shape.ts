@@ -11,13 +11,7 @@ import { getGameState } from "../../store/_game";
 import { activeShapeStore } from "../../store/activeShape";
 import type { ActiveShapeStore } from "../../store/activeShape";
 import { clientStore } from "../../store/client";
-import { gameStore } from "../../store/game";
-import {
-    sendShapeAddLabel,
-    sendShapeRemoveLabel,
-    sendShapeSetAnnotation,
-    sendShapeSetAnnotationVisible,
-} from "../api/emits/shape/options";
+import { sendShapeAddLabel, sendShapeRemoveLabel } from "../api/emits/shape/options";
 import { getBadgeCharacters } from "../groups";
 import { generateLocalId, getGlobalId } from "../id";
 import type { GlobalId, LocalId } from "../id";
@@ -29,6 +23,8 @@ import type { ServerShapeOptions } from "../models/shapes";
 import type { ServerShape, ShapeOptions } from "../models/shapes";
 import { accessSystem } from "../systems/access";
 import { ownerToClient, ownerToServer } from "../systems/access/helpers";
+import { annotationSystem } from "../systems/annotations";
+import { annotationState } from "../systems/annotations/state";
 import { auraSystem } from "../systems/auras";
 import { aurasFromServer, aurasToServer } from "../systems/auras/conversion";
 import { floorSystem } from "../systems/floors";
@@ -78,10 +74,6 @@ export abstract class Shape implements IShape {
     globalCompositeOperation: GlobalCompositeOperation = "source-over";
 
     labels: Label[] = [];
-
-    // Mouseover annotation
-    annotation = "";
-    annotationVisible = false;
 
     badge = 0;
 
@@ -400,6 +392,7 @@ export abstract class Shape implements IShape {
     getBaseDict(): ServerShape {
         const defaultAccess = accessSystem.getDefault(this.id);
         const props = getProperties(this.id)!;
+        const annotationInfo = annotationState.get(this.id);
         return {
             type_: this.type,
             uuid: getGlobalId(this.id),
@@ -420,8 +413,8 @@ export abstract class Shape implements IShape {
             stroke_width: this.strokeWidth,
             name: props.name,
             name_visible: props.nameVisible,
-            annotation: this.annotation,
-            annotation_visible: this.annotationVisible,
+            annotation: annotationInfo.annotation,
+            annotation_visible: annotationInfo.annotationVisible,
             is_token: props.isToken,
             is_invisible: props.isInvisible,
             is_defeated: props.isDefeated,
@@ -449,7 +442,6 @@ export abstract class Shape implements IShape {
         this.globalCompositeOperation = data.draw_operator;
         this.labels = data.labels;
         this.badge = data.badge;
-        this.annotationVisible = data.annotation_visible;
 
         propertiesSystem.inform(this.id, {
             name: data.name,
@@ -464,6 +456,8 @@ export abstract class Shape implements IShape {
             showBadge: data.show_badge,
             isLocked: data.is_locked,
         });
+
+        annotationSystem.inform(this.id, { annotation: data.annotation, annotationVisible: data.annotation_visible });
 
         const defaultAccess = {
             edit: data.default_edit_access,
@@ -481,9 +475,6 @@ export abstract class Shape implements IShape {
 
         this.ignoreZoomSize = data.ignore_zoom_size;
 
-        if (data.annotation) {
-            this.annotation = data.annotation;
-        }
         if (data.options !== undefined) this.options = options;
         if (data.asset !== undefined) this.assetId = data.asset;
         if (data.group !== undefined) this.groupId = data.group;
@@ -531,26 +522,6 @@ export abstract class Shape implements IShape {
     }
 
     // EXTRA
-
-    setAnnotation(text: string, syncTo: Sync): void {
-        if (syncTo.server) sendShapeSetAnnotation({ shape: getGlobalId(this.id), value: text });
-        if (syncTo.ui) this._("setAnnotation")(text, syncTo);
-
-        const hadAnnotation = this.annotation !== "";
-        this.annotation = text;
-        if (this.annotation !== "" && !hadAnnotation) {
-            gameStore.addAnnotation(this.id);
-        } else if (this.annotation === "" && hadAnnotation) {
-            gameStore.removeAnnotation(this.id);
-        }
-    }
-
-    setAnnotationVisible(visible: boolean, syncTo: Sync): void {
-        if (syncTo.server) sendShapeSetAnnotationVisible({ shape: getGlobalId(this.id), value: visible });
-        if (syncTo.ui) this._("setAnnotationVisible")(visible, syncTo);
-
-        this.annotationVisible = visible;
-    }
 
     addLabel(label: string, syncTo: Sync): void {
         if (syncTo.server) sendShapeAddLabel({ shape: getGlobalId(this.id), value: label });

@@ -2,6 +2,7 @@ import type { DeepReadonly } from "vue";
 
 import { registerSystem } from "..";
 import type { ShapeSystem } from "..";
+import { NO_SYNC } from "../../../core/models/types";
 import type { Sync } from "../../../core/models/types";
 import { getGameState } from "../../../store/_game";
 import { clientStore } from "../../../store/client";
@@ -9,6 +10,8 @@ import { settingsStore } from "../../../store/settings";
 import { getGlobalId } from "../../id";
 import type { LocalId } from "../../id";
 import { initiativeStore } from "../../ui/initiative/state";
+import { annotationSystem } from "../annotations";
+import { annotationState } from "../annotations/state";
 import { floorSystem } from "../floors";
 import { getProperties } from "../properties/state";
 
@@ -243,6 +246,11 @@ class AccessSystem implements ShapeSystem {
 
         const oldAccess = this.access.get(shapeId)!.get(user)!;
         this.access.get(shapeId)!.delete(user);
+
+        // annotation check
+        if (!annotationState._.visible.has(shapeId)) {
+            annotationSystem.setAnnotation(shapeId, "", NO_SYNC);
+        }
 
         if (syncTo.server) {
             sendShapeDeleteOwner({

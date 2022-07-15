@@ -1,10 +1,10 @@
 import { l2g } from "../../core/conversions";
-import { getGameState } from "../../store/_game";
 import { uiStore } from "../../store/ui";
 import { getShape } from "../id";
 import { getLocalPointFromEvent } from "../input/mouse";
 import { LayerName } from "../models/floor";
 import { ToolName } from "../models/tools";
+import { annotationState } from "../systems/annotations/state";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
 
@@ -64,12 +64,12 @@ export async function mouseMove(event: MouseEvent): Promise<void> {
     const eventPoint = l2g(getLocalPointFromEvent(event));
     // Annotation hover
     let foundAnnotation = false;
-    for (const uuid of getGameState().annotations) {
+    for (const [uuid, annotation] of annotationState._.annotations.entries()) {
         if (floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Draw)) {
             const shape = getShape(uuid);
             if (shape && shape.floor.id === floorState.currentFloor.value!.id && shape.contains(eventPoint)) {
                 foundAnnotation = true;
-                uiStore.setAnnotationText(shape.annotation);
+                uiStore.setAnnotationText(annotation);
             }
         }
     }
@@ -213,7 +213,7 @@ export async function touchMove(event: TouchEvent): Promise<void> {
 
     // Annotation hover
     let found = false;
-    for (const uuid of getGameState().annotations) {
+    for (const [uuid, annotation] of annotationState._.annotations.entries()) {
         if (floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Draw)) {
             const shape = getShape(uuid);
             if (
@@ -222,7 +222,7 @@ export async function touchMove(event: TouchEvent): Promise<void> {
                 shape.contains(l2g(getLocalPointFromEvent(event)))
             ) {
                 found = true;
-                uiStore.setAnnotationText(shape.annotation);
+                uiStore.setAnnotationText(annotation);
             }
         }
     }

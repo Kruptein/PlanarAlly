@@ -33,8 +33,6 @@ interface ActiveShapeState {
 
     variants: { uuid: LocalId; name: string }[];
 
-    annotation: string | undefined;
-    annotationVisible: boolean;
     labels: Label[];
 }
 
@@ -53,8 +51,6 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
             variants: [],
 
-            annotation: undefined,
-            annotationVisible: false,
             labels: [],
         };
     }
@@ -139,28 +135,6 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
     // EXTRA
 
-    setAnnotation(annotation: string, syncTo: Sync): void {
-        if (this._state.id === undefined) return;
-
-        this._state.annotation = annotation;
-
-        if (!syncTo.ui) {
-            const shape = getShape(this._state.id)!;
-            shape.setAnnotation(annotation, syncTo);
-        }
-    }
-
-    setAnnotationVisible(visible: boolean, syncTo: Sync): void {
-        if (this._state.id === undefined) return;
-
-        this._state.annotationVisible = visible;
-
-        if (!syncTo.ui) {
-            const shape = getShape(this._state.id)!;
-            shape.setAnnotationVisible(visible, syncTo);
-        }
-    }
-
     addLabel(label: string, syncTo: Sync): void {
         if (this._state.id === undefined) return;
 
@@ -221,8 +195,6 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
         this._state.groupId = shape.groupId;
 
-        this._state.annotation = shape.annotation;
-        this._state.annotationVisible = shape.annotationVisible;
         this._state.labels = [...shape.labels];
 
         if (this._state.parentUuid !== undefined) {
@@ -245,8 +217,6 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
         this._state.variants = [];
 
-        this._state.annotation = undefined;
-        this._state.annotationVisible = false;
         this._state.labels = [];
     }
 }

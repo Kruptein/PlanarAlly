@@ -25,8 +25,6 @@ export interface GameState {
 
     assets: AssetListMap;
 
-    annotations: Set<LocalId>;
-
     markers: Set<LocalId>;
 
     notes: Note[];
@@ -53,8 +51,6 @@ const data = reactive<GameState>({
     isLocked: false,
 
     assets: new Map(),
-
-    annotations: new Set(),
 
     markers: new Set(),
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import tinycolor from "tinycolor2";
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { l2gz } from "../../../../core/conversions";
@@ -20,16 +20,31 @@ import { Circle } from "../../../shapes/variants/circle";
 import { Polygon } from "../../../shapes/variants/polygon";
 import { accessSystem } from "../../../systems/access";
 import { accessState } from "../../../systems/access/state";
+import { annotationSystem } from "../../../systems/annotations";
+import { annotationState } from "../../../systems/annotations/state";
 import { auraSystem } from "../../../systems/auras";
 import type { Aura, AuraId } from "../../../systems/auras/models";
 import { floorSystem } from "../../../systems/floors";
 import { floorState } from "../../../systems/floors/state";
 import { propertiesSystem } from "../../../systems/properties";
+import { selectedSystem } from "../../../systems/selected";
 import { visionState } from "../../../vision/state";
 import LabelManager from "../../LabelManager.vue";
 
 const { t } = useI18n();
 const modals = useModal();
+
+watch(
+    () => selectedSystem.getFocus().value,
+    (newId, oldId) => {
+        if (newId !== undefined && oldId !== newId) {
+            annotationSystem.loadState(newId);
+        } else if (newId === undefined) {
+            annotationSystem.dropState();
+        }
+    },
+    { immediate: true },
+);
 
 const textarea = ref<HTMLTextAreaElement | null>(null);
 
@@ -47,12 +62,12 @@ function calcHeight(): void {
 function updateAnnotation(event: Event, sync = true): void {
     if (!owned.value) return;
     calcHeight();
-    activeShapeStore.setAnnotation(getValue(event), sync ? SERVER_SYNC : NO_SYNC);
+    annotationSystem.setAnnotation(annotationState.$.id!, getValue(event), sync ? SERVER_SYNC : NO_SYNC);
 }
 
 function setAnnotationVisible(event: Event): void {
     if (!owned.value) return;
-    activeShapeStore.setAnnotationVisible(getChecked(event), SERVER_SYNC);
+    annotationSystem.setAnnotationVisible(annotationState.$.id!, getChecked(event), SERVER_SYNC);
 }
 
 // LABELS
@@ -215,7 +230,7 @@ function applyDDraft(): void {
         <input
             id="edit_dialog-extra-show_annotation"
             type="checkbox"
-            :checked="activeShapeStore.state.annotationVisible"
+            :checked="annotationState.$.annotationVisible"
             @click="setAnnotationVisible"
             class="styled-checkbox"
             :disabled="!owned"
@@ -223,7 +238,7 @@ function applyDDraft(): void {
         <textarea
             class="spanrow"
             ref="textarea"
-            :value="activeShapeStore.state.annotation"
+            :value="annotationState.$.annotation"
             @input="updateAnnotation($event, false)"
             @change="updateAnnotation"
             :disabled="!owned"

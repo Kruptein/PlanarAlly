@@ -28,6 +28,7 @@ tech changes will usually be stripped from release notes for the public
 -   Shared trackers/aruas removal not showing in client until refresh
 -   Errors in prompt modals were not visible
 -   Resetting location specific settings was not immediately synchronizing to clients until a refresh
+-   The asset manager was no longer useable when using a subpath setup
 
 ## [2022.2.3] - 2022-07-13
 

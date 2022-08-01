@@ -29,7 +29,7 @@ socket.on("Folder.Set", async (data: { folder: Asset; path?: number[] }) => {
     assetStore.setFolderData(data.folder.id, data.folder);
     if (!assetStore.state.modalActive) {
         if (data.path) assetStore.setPath(data.path);
-        const path = baseAdjust(`/assets${assetStore.currentFilePath.value}`);
+        const path = `/assets${assetStore.currentFilePath.value}/`;
         if (path !== router.currentRoute.value.path) {
             await router.push({ path });
         }

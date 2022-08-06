@@ -28,7 +28,9 @@ import { accessState } from "../../systems/access/state";
 let activeTokensBackup: Set<LocalId> | undefined = undefined;
 
 function getDefaultEffect(): InitiativeEffect {
-    return { name: i18n.global.t("game.ui.initiative.new_effect"), turns: "10", highlightsActor: false };
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    const name = i18n.global.t("game.ui.initiative.new_effect"); // @ts-ignore
+    return { name, turns: "10", highlightsActor: false };
 }
 
 interface InitiativeState {

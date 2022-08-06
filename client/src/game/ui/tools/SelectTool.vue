@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { CSSProperties } from "vue";
-import { computed, onMounted, ref, toRef, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 
-import { selectionState } from "../../layers/selection";
 import type { Polygon } from "../../shapes/variants/polygon";
+import { selectedSystem } from "../../systems/selected";
 import { selectTool } from "../../tools/variants/select";
 import { selectToolState } from "../../tools/variants/select/state";
 
@@ -27,7 +27,7 @@ const polygonUiSizeY = $.polygonUiSizeY;
 onMounted(() => {
     ({ right: right.value, arrow: arrow.value } = useToolPosition(selectTool.toolName));
     selectTool.checkRuler();
-    watch(toRef(selectionState.state, "selection"), () => {
+    watch(selectedSystem.$, () => {
         selectTool.resetRotationHelper();
     });
 });
@@ -39,17 +39,17 @@ function toggleShowRuler(event: MouseEvent): void {
 }
 
 function cutPolygon(): void {
-    const selection = selectionState.get({ includeComposites: false })[0] as Polygon;
+    const selection = selectedSystem.get({ includeComposites: false })[0] as Polygon;
     selection.cutPolygon(selectTool.polygonTracer!.refPoint);
 }
 
 function addPoint(): void {
-    const selection = selectionState.get({ includeComposites: false })[0] as Polygon;
+    const selection = selectedSystem.get({ includeComposites: false })[0] as Polygon;
     selection.addPoint(selectTool.polygonTracer!.refPoint);
 }
 
 function removePoint(): void {
-    const selection = selectionState.get({ includeComposites: false })[0] as Polygon;
+    const selection = selectedSystem.get({ includeComposites: false })[0] as Polygon;
     selection.removePoint(selectTool.polygonTracer!.refPoint);
 }
 </script>

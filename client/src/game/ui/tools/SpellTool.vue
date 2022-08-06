@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { CSSProperties } from "vue";
-import { computed, onMounted, reactive, toRef } from "vue";
+import { computed, onMounted, reactive } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../core/components/ColourPicker.vue";
 import { baseAdjust } from "../../../core/http";
-import { selectionState } from "../../layers/selection";
+import { selectedSystem } from "../../systems/selected";
 import { SpellShape, spellTool } from "../../tools/variants/spell";
 
 import { useToolPosition } from "./toolPosition";
@@ -18,7 +18,7 @@ const state = reactive({
 });
 
 const selected = spellTool.isActiveTool;
-const selection = toRef(selectionState.state, "selection");
+const selection = selectedSystem.$;
 const shapes = Object.values(SpellShape);
 const toolStyle = computed(() => ({ "--detailRight": state.right, "--detailArrow": state.arrow } as CSSProperties));
 
@@ -26,7 +26,7 @@ onMounted(() => {
     ({ right: state.right, arrow: state.arrow } = useToolPosition(spellTool.toolName));
 });
 
-const canConeBeCast = computed(() => selectionState.state.selection.size > 0 && spellTool.state.range === 0);
+const canConeBeCast = computed(() => selection.value.size > 0 && spellTool.state.range === 0);
 
 const translationMapping = {
     [SpellShape.Square]: t("game.ui.tools.DrawTool.square"),

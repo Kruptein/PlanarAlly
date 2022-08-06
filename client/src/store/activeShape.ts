@@ -10,12 +10,12 @@ import type { Label } from "../game/interfaces/label";
 import type { IShape } from "../game/interfaces/shape";
 import type { IAsset } from "../game/interfaces/shapes/asset";
 import type { IToggleComposite } from "../game/interfaces/shapes/toggleComposite";
-import { selectionState } from "../game/layers/selection";
 import { compositeState } from "../game/layers/state";
 import type { FloorId } from "../game/models/floor";
 import type { ShapeOptions } from "../game/models/shapes";
 import type { SHAPE_TYPE } from "../game/shapes/types";
 import { floorSystem } from "../game/systems/floors";
+import { selectedSystem } from "../game/systems/selected";
 import { visionState } from "../game/vision/state";
 
 import { getGameState } from "./_game";
@@ -61,7 +61,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this.isComposite = computed(() => this._state.parentUuid !== undefined);
 
         watchEffect(() => {
-            const selection = selectionState.state.selection;
+            const selection = selectedSystem.$.value;
             if (selection.size === 0) {
                 this.clear();
             } else if (this._state.id === undefined) {

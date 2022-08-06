@@ -10,7 +10,6 @@ import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { getShape } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import type { ICircle } from "../../interfaces/shapes/circle";
-import { selectionState } from "../../layers/selection";
 import { ToolName } from "../../models/tools";
 import type { ToolPermission } from "../../models/tools";
 import { Circle } from "../../shapes/variants/circle";
@@ -18,6 +17,7 @@ import { Rect } from "../../shapes/variants/rect";
 import { accessSystem } from "../../systems/access";
 import { floorState } from "../../systems/floors/state";
 import { propertiesSystem } from "../../systems/properties";
+import { selectedSystem } from "../../systems/selected";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
 import { activateTool } from "../tools";
@@ -80,7 +80,7 @@ class SpellTool extends Tool {
     }
 
     drawShape(syncChanged = false): void {
-        if (!selectionState.hasSelection && this.state.selectedSpellShape === SpellShape.Cone) return;
+        if (!selectedSystem.hasSelection && this.state.selectedSpellShape === SpellShape.Cone) return;
 
         const layer = floorState.currentLayer.value!;
 
@@ -125,8 +125,8 @@ class SpellTool extends Tool {
             UI_SYNC,
         );
 
-        if (selectionState.hasSelection && (this.state.range === 0 || equalsP(startPosition, ogPoint))) {
-            const selection = [...selectionState.state.selection.values()];
+        if (selectedSystem.hasSelection && (this.state.range === 0 || equalsP(startPosition, ogPoint))) {
+            const selection = [...selectedSystem.$.value];
             this.shape.center(getShape(selection[0])!.center());
         }
 
@@ -146,9 +146,9 @@ class SpellTool extends Tool {
             layer.removeShape(this.rangeShape, { sync: SyncMode.NO_SYNC, recalculate: false, dropShapeId: true });
         }
 
-        if (!selectionState.hasSelection || this.state.range === 0) return;
+        if (!selectedSystem.hasSelection || this.state.range === 0) return;
 
-        const selection = [...selectionState.state.selection.values()];
+        const selection = [...selectedSystem.$.value];
         this.rangeShape = new Circle(
             getShape(selection[0])!.center(),
             getUnitDistance(this.state.range),
@@ -162,7 +162,7 @@ class SpellTool extends Tool {
 
     // eslint-disable-next-line @typescript-eslint/require-await
     async onSelect(): Promise<void> {
-        if (!selectionState.hasSelection && this.state.selectedSpellShape === SpellShape.Cone) {
+        if (!selectedSystem.hasSelection && this.state.selectedSpellShape === SpellShape.Cone) {
             this.state.selectedSpellShape = SpellShape.Circle;
         }
         this.drawShape();
@@ -212,7 +212,7 @@ class SpellTool extends Tool {
         const endPoint = l2g(lp);
         const layer = floorState.currentLayer.value!;
 
-        if (selectionState.hasSelection && this.state.range === 0) {
+        if (selectedSystem.hasSelection && this.state.range === 0) {
             if (this.state.selectedSpellShape === SpellShape.Cone) {
                 const center = g2l(this.shape.center());
                 (this.shape as ICircle).angle = -Math.atan2(lp.y - center.y, center.x - lp.x) + Math.PI;

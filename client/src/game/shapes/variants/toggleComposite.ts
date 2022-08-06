@@ -10,13 +10,13 @@ import {
 } from "../../api/emits/shape/toggleComposite";
 import { getGlobalId, getShape } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
-import { selectionState } from "../../layers/selection";
 import { compositeState } from "../../layers/state";
 import type { ServerToggleComposite } from "../../models/shapes";
 import { accessSystem } from "../../systems/access";
 import { auraSystem } from "../../systems/auras";
 import { getProperties } from "../../systems/properties/state";
 import type { ShapeProperties } from "../../systems/properties/state";
+import { selectedSystem } from "../../systems/selected";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { Shape } from "../shape";
 import type { SHAPE_TYPE } from "../types";
@@ -143,11 +143,11 @@ export class ToggleComposite extends Shape {
         }
 
         if (this._layer !== undefined && this.layer.isActiveLayer) {
-            const selection = [...selectionState.get({ includeComposites: false })];
+            const selection = [...selectedSystem.get({ includeComposites: false })];
             const index = selection.findIndex((s) => s.id === oldVariant.id);
             if (index >= 0) {
                 selection.splice(index, 1, newVariant);
-                selectionState.set(...selection);
+                selectedSystem.set(...selection.map((s) => s.id));
             }
         }
 

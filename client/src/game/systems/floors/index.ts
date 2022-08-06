@@ -15,10 +15,10 @@ import {
 import type { ILayer } from "../../interfaces/layer";
 import type { IGridLayer } from "../../interfaces/layers/grid";
 import { recalculateZIndices } from "../../layers/floor";
-import { selectionState } from "../../layers/selection";
 import { LayerName } from "../../models/floor";
 import type { Floor, FloorId, FloorType } from "../../models/floor";
 import { TriangulationTarget, visionState } from "../../vision/state";
+import { selectedSystem } from "../selected";
 
 import { floorState } from "./state";
 
@@ -199,7 +199,7 @@ class FloorSystem implements System {
 
     selectLayer(name: string, sync = true, invalidate = true): void {
         let found = false;
-        selectionState.clear();
+        selectedSystem.clear();
         for (const [index, layer] of this.getLayers(currentFloor.value!).entries()) {
             if (!layer.selectable) continue;
             if (found && layer.name !== LayerName.Lighting) layer.ctx.globalAlpha = 0.3;

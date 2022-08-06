@@ -5,12 +5,12 @@ import type { GlobalId } from "../../../id";
 import type { IShape } from "../../../interfaces/shape";
 import type { ICircle } from "../../../interfaces/shapes/circle";
 import type { IRect } from "../../../interfaces/shapes/rect";
-import { selectionState } from "../../../layers/selection";
 import type { LayerName } from "../../../models/floor";
 import type { ServerShape } from "../../../models/shapes";
 import { deleteShapes } from "../../../shapes/utils";
 import { accessSystem } from "../../../systems/access";
 import { floorSystem } from "../../../systems/floors";
+import { selectedSystem } from "../../../systems/selected";
 import { addShape, moveFloor, moveLayer } from "../../../temp";
 import { socket } from "../../socket";
 
@@ -23,7 +23,7 @@ socket.on("Shape.Set", (data: ServerShape) => {
     const shape = addShape(data, SyncMode.NO_SYNC);
 
     if (shape && isActive) {
-        selectionState.push(shape);
+        selectedSystem.push(shape.id);
         activeShapeStore.setActiveShape(shape);
         if (hasEditDialogOpen) activeShapeStore.setShowEditDialog(true);
     }

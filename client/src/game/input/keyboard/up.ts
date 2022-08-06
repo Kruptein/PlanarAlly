@@ -4,18 +4,18 @@ import { ctrlOrCmdPressed } from "../../../core/utils";
 import { activeShapeStore } from "../../../store/activeShape";
 import { clientStore } from "../../../store/client";
 import { getShape } from "../../id";
-import { selectionState } from "../../layers/selection";
 import { setCenterPosition } from "../../position";
 import { deleteShapes } from "../../shapes/utils";
 import { accessState } from "../../systems/access/state";
 import { floorSystem } from "../../systems/floors";
+import { selectedSystem } from "../../systems/selected";
 
 export function onKeyUp(event: KeyboardEvent): void {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         // no-op (condition is cleaner this way)
     } else {
         if (event.key === "Delete" || event.key === "Del" || event.key === "Backspace") {
-            const selection = selectionState.get({ includeComposites: true });
+            const selection = selectedSystem.get({ includeComposites: true });
             deleteShapes(selection, SyncMode.FULL_SYNC);
         }
         if (event.key === " " || (event.code === "Numpad0" && !ctrlOrCmdPressed(event))) {
@@ -29,7 +29,7 @@ export function onKeyUp(event: KeyboardEvent): void {
             floorSystem.selectFloor({ name: token.floor.name }, true);
         }
         if (event.key === "Enter") {
-            if (selectionState.hasSelection) {
+            if (selectedSystem.hasSelection) {
                 activeShapeStore.setShowEditDialog(true);
             }
         }

@@ -9,7 +9,6 @@ import { addGroupMembers, createNewGroupForShapes } from "../groups";
 import { getGlobalId, getLocalId } from "../id";
 import type { GlobalId } from "../id";
 import type { IShape } from "../interfaces/shape";
-import { selectionState } from "../layers/selection";
 import type { LayerName } from "../models/floor";
 import type { ServerShape, ServerPolygon, ServerToggleComposite } from "../models/shapes";
 import { addOperation } from "../operations/undo";
@@ -19,15 +18,16 @@ import type { AuraId, ServerAura } from "../systems/auras/models";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
 import { getProperties } from "../systems/properties/state";
+import { selectedSystem } from "../systems/selected";
 import type { ServerTracker, TrackerId } from "../systems/trackers/models";
 import { TriangulationTarget, VisibilityMode, visionState } from "../vision/state";
 
 import { createShapeFromDict } from "./create";
 
 export function copyShapes(): void {
-    if (!selectionState.hasSelection) return;
+    if (!selectedSystem.hasSelection) return;
     const clipboard: ServerShape[] = [];
-    for (const shape of selectionState.get({ includeComposites: true })) {
+    for (const shape of selectedSystem.get({ includeComposites: true })) {
         if (!accessSystem.hasAccessTo(shape.id, false, { edit: true })) continue;
         if (shape.groupId === undefined) {
             createNewGroupForShapes([shape.id]);
@@ -44,7 +44,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
     const gameState = getGameState();
     if (gameState.clipboard.length === 0) return [];
 
-    selectionState.clear();
+    selectedSystem.clear();
 
     gameStore.setClipboardPosition(clientStore.screenCenter);
     let offset = subtractP(clientStore.screenCenter, gameState.clipboardPosition);
@@ -135,7 +135,9 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
 
         layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
 
-        if (!(shape.options.skipDraw ?? false)) selectionState.push(shape);
+        if (!(shape.options.skipDraw ?? false)) {
+            selectedSystem.push(shape.id);
+        }
     }
 
     for (const [group, shapes] of Object.entries(groupShapes)) {
@@ -151,7 +153,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
     //     }
 
     layer.invalidate(false);
-    return selectionState.get({ includeComposites: false });
+    return selectedSystem.get({ includeComposites: false });
 }
 
 export function deleteShapes(shapes: readonly IShape[], sync: SyncMode): void {

@@ -7,7 +7,6 @@ import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
 import { sendClientLocationOptions } from "../../api/emits/client";
 import { calculateDelta } from "../../drag";
-import { selectionState } from "../../layers/selection";
 import { moveShapes } from "../../operations/movement";
 import { redoOperation, undoOperation } from "../../operations/undo";
 import { setCenterPosition } from "../../position";
@@ -16,6 +15,7 @@ import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { propertiesSystem } from "../../systems/properties";
 import { getProperties } from "../../systems/properties/state";
+import { selectedSystem } from "../../systems/selected";
 import { moveFloor } from "../../temp";
 import { toggleActiveMode } from "../../tools/tools";
 
@@ -68,7 +68,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                 offsetX *= 0.5;
                 offsetY = (1.5 * offsetY) / Math.sqrt(3);
             }
-            if (selectionState.hasSelection) {
+            if (selectedSystem.hasSelection) {
                 // if in hex-mode, first invalidate invalid axis
                 const flatHexInvalid = ["ArrowLeft", "ArrowRight", "Numpad4", "Numpad6"];
                 const pointyHexInvalid = ["ArrowUp", "ArrowDown", "Numpad2", "Numpad8"];
@@ -77,7 +77,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                 } else if (settingsStore.gridType.value === "POINTY_HEX" && pointyHexInvalid.includes(event.code)) {
                     offsetY = 0;
                 }
-                const selection = selectionState.get({ includeComposites: false });
+                const selection = selectedSystem.get({ includeComposites: false });
                 let delta = new Vector(offsetX, offsetY);
                 if (!event.shiftKey || !getGameState().isDm) {
                     // First check for collisions.  Using the smooth wall slide collision check used on mouse move is overkill here.
@@ -97,11 +97,11 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             }
         } else if (event.key === "d") {
             // d - Deselect all
-            selectionState.clear();
+            selectedSystem.clear();
             floorState.currentLayer.value!.invalidate(true);
         } else if (event.key === "x") {
             // x - Mark Defeated
-            const selection = selectionState.get({ includeComposites: true });
+            const selection = selectedSystem.get({ includeComposites: true });
             for (const shape of selection) {
                 const isDefeated = getProperties(shape.id)!.isDefeated;
                 propertiesSystem.setIsDefeated(shape.id, !isDefeated, FULL_SYNC);
@@ -109,7 +109,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             event.preventDefault();
             event.stopPropagation();
         } else if (event.key === "l" && ctrlOrCmdPressed(event)) {
-            const selection = selectionState.get({ includeComposites: true });
+            const selection = selectedSystem.get({ includeComposites: true });
             for (const shape of selection) {
                 // This and GroupSettings are the only places currently where we would need to update both UI and Server.
                 // Might need to introduce a SyncTo.BOTH
@@ -132,8 +132,8 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             // numpad 5 will center on selected shape(s) or on origin
             let targetX = 0;
             let targetY = 0;
-            if (selectionState.hasSelection) {
-                const selection = selectionState.get({ includeComposites: false });
+            if (selectedSystem.hasSelection) {
+                const selection = selectedSystem.get({ includeComposites: false });
                 for (const sel of selection) {
                     targetX += sel.refPoint.x;
                     targetY += sel.refPoint.y;
@@ -193,16 +193,18 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
 
 function changeFloor(event: KeyboardEvent, targetFloor: number): void {
     if (targetFloor < 0 || targetFloor > floorState.$.floors.length - 1) return;
-    const selection = selectionState.get({ includeComposites: true });
+    const selection = selectedSystem.get({ includeComposites: true });
     const newFloor = floorState.$.floors[targetFloor];
 
     if (event.altKey) {
         moveFloor([...selection], newFloor, true);
     }
-    selectionState.clear();
+    selectedSystem.clear();
     floorState.currentLayer.value!.invalidate(true);
     if (!event.altKey || event.shiftKey) {
         floorSystem.selectFloor({ position: targetFloor }, true);
     }
-    if (event.shiftKey) for (const shape of selection) selectionState.push(shape);
+    if (event.shiftKey) {
+        selectedSystem.push(...selection.map((s) => s.id));
+    }
 }

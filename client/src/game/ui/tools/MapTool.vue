@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 
 import { DEFAULT_GRID_SIZE } from "../../../store/client";
 import { getShape } from "../../id";
-import { selectionState } from "../../layers/selection";
+import { selectedSystem } from "../../systems/selected";
 import { mapTool } from "../../tools/variants/map";
 
 import { useToolPosition } from "./toolPosition";
@@ -35,7 +35,7 @@ watchEffect(() => {
 });
 
 watchEffect(() => {
-    const selection = [...selectionState.state.selection].map((s) => getShape(s)!);
+    const selection = [...selectedSystem.$.value].map((s) => getShape(s)!);
     mapTool.setSelection(selection);
 });
 

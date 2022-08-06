@@ -2,11 +2,11 @@ import { addP, toArrayP } from "../../core/geometry";
 import type { Vector } from "../../core/geometry";
 import { sendShapePositionUpdate } from "../api/emits/shape/core";
 import type { IShape } from "../interfaces/shape";
-import { selectionState } from "../layers/selection";
 import { accessSystem } from "../systems/access";
 import { clientSystem } from "../systems/client";
 import { teleportZoneSystem } from "../systems/logic/tp";
 import { getProperties } from "../systems/properties/state";
+import { selectedSystem } from "../systems/selected";
 import { TriangulationTarget, visionState } from "../vision/state";
 
 import type { MovementOperation, ShapeMovementOperation } from "./model";
@@ -65,7 +65,7 @@ export async function moveShapes(shapes: readonly IShape[], delta: Vector, tempo
     if (!temporary) {
         addOperation(operationList);
 
-        await teleportZoneSystem.checkTeleport(selectionState.get({ includeComposites: true }));
+        await teleportZoneSystem.checkTeleport(selectedSystem.get({ includeComposites: true }));
     }
 
     const floorId = shapes[0].floor.id;

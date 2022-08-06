@@ -9,11 +9,11 @@ import { DEFAULT_GRID_SIZE } from "../../../store/client";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import type { IShape } from "../../interfaces/shape";
 import type { IRect } from "../../interfaces/shapes/rect";
-import { selectionState } from "../../layers/selection";
 import { ToolName } from "../../models/tools";
 import type { ToolPermission } from "../../models/tools";
 import { Rect } from "../../shapes/variants/rect";
 import { floorState } from "../../systems/floors/state";
+import { selectedSystem } from "../../systems/selected";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
 
@@ -94,7 +94,7 @@ class MapTool extends Tool {
     // eslint-disable-next-line @typescript-eslint/require-await
     async onDown(lp: LocalPoint): Promise<void> {
         if (!this.state.manualDrag) return;
-        if (this.rect !== undefined || !selectionState.hasSelection) return;
+        if (this.rect !== undefined || !selectedSystem.hasSelection) return;
 
         const startPoint = l2g(lp);
 
@@ -115,7 +115,7 @@ class MapTool extends Tool {
         this.state.hasRect = true;
         this.rect.preventSync = true;
         layer.addShape(this.rect, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
-        selectionState.set(this.rect);
+        selectedSystem.set(this.rect.id);
     }
 
     // eslint-disable-next-line @typescript-eslint/require-await
@@ -138,7 +138,7 @@ class MapTool extends Tool {
 
         this.active.value = false;
 
-        if (selectionState.state.selection.size !== 1) {
+        if (selectedSystem.$.value.size !== 1) {
             this.removeRect();
             return;
         }

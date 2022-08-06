@@ -24,10 +24,10 @@ import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { propertiesSystem } from "../../systems/properties";
 import { getProperties } from "../../systems/properties/state";
+import { selectedSystem } from "../../systems/selected";
 import { initiativeStore } from "../../ui/initiative/state";
 import { TriangulationTarget, VisibilityMode, visionState } from "../../vision/state";
 import { setCanvasDimensions } from "../canvas";
-import { selectionState } from "../selection";
 import { compositeState } from "../state";
 
 export class Layer implements ILayer {
@@ -131,7 +131,7 @@ export class Layer implements ILayer {
             activeShapeStore.state.id === undefined &&
             activeShapeStore.state.lastUuid === shape.id
         ) {
-            selectionState.push(shape);
+            selectedSystem.push(shape.id);
         }
 
         if (sync === SyncMode.FULL_SYNC) {
@@ -162,7 +162,7 @@ export class Layer implements ILayer {
     }
 
     setServerShapes(shapes: ServerShape[]): void {
-        if (this.isActiveLayer) selectionState.clear(); // TODO: Fix keeping selection on those items that are not moved.
+        if (this.isActiveLayer) selectedSystem.clear(); // TODO: Fix keeping selection on those items that are not moved.
         // We need to ensure composites are added after all their variants have been added
         const composites = [];
         for (const serverShape of shapes) {
@@ -230,7 +230,7 @@ export class Layer implements ILayer {
             else val.delete(shape.id);
         }
 
-        if (this.isActiveLayer) selectionState.remove(shape.id);
+        if (this.isActiveLayer) selectedSystem.remove(shape.id);
 
         if (options.sync === SyncMode.FULL_SYNC) initiativeStore.removeInitiative(shape.id, false);
         this.invalidate(!triggersVisionRecalc);
@@ -315,11 +315,11 @@ export class Layer implements ILayer {
                 shape.draw(ctx);
             }
 
-            if (this.isActiveLayer && selectionState.hasSelection) {
+            if (this.isActiveLayer && selectedSystem.hasSelection) {
                 ctx.fillStyle = this.selectionColor;
                 ctx.strokeStyle = this.selectionColor;
                 ctx.lineWidth = this.selectionWidth;
-                for (const shape of selectionState.get({ includeComposites: false })) {
+                for (const shape of selectedSystem.get({ includeComposites: false })) {
                     shape.drawSelection(ctx);
                 }
             }

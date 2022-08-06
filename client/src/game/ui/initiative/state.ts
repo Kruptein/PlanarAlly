@@ -73,7 +73,7 @@ class InitiativeStore extends Store<InitiativeState> {
     setData(data: InitiativeSettings): void {
         const initiativeData: InitiativeData<LocalId>[] = [];
         for (const d of data.data) {
-            const shape = getLocalId(d.shape);
+            const shape = getLocalId(d.shape, false);
             if (shape === undefined) continue;
             initiativeData.push({ ...d, shape });
         }

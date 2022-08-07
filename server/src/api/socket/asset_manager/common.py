@@ -12,8 +12,3 @@ class UploadData(TypedDict):
     slice: int
     totalSlices: int
     data: bytes
-
-
-ASSETS_DIR = FILE_DIR / "static" / "assets"
-if not ASSETS_DIR.exists():
-    ASSETS_DIR.mkdir()

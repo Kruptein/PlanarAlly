@@ -16,7 +16,7 @@ from .api.http import users
 from .api.http import version
 from .app import admin_app, api_app, app as main_app
 from .config import config
-from .utils import FILE_DIR, STATIC_DIR
+from .utils import ASSETS_DIR, FILE_DIR, STATIC_DIR
 
 
 subpath = os.environ.get("PA_BASEPATH", "/")
@@ -56,6 +56,7 @@ async def root_dev(request, admin_api=False):
 
 # MAIN ROUTES
 
+main_app.router.add_static(f"{subpath}/static/assets", ASSETS_DIR)
 main_app.router.add_static(f"{subpath}/static", STATIC_DIR)
 main_app.router.add_get(f"{subpath}/api/auth", auth.is_authed)
 main_app.router.add_post(f"{subpath}/api/users/email", users.set_email)

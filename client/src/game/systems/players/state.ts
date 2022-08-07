@@ -1,16 +1,14 @@
-import { reactive, readonly } from "vue";
-
 import type { Player } from "../../models/player";
+import { buildState } from "../state";
 
 interface PlayerState {
     players: Player[];
 }
 
-const state = reactive<PlayerState>({
+const state = buildState<PlayerState>({
     players: [],
 });
 
 export const playerState = {
-    $: readonly(state),
-    _$: state,
+    ...state,
 };

@@ -35,7 +35,7 @@ const defaultAccess = toRef(accessState.reactive, "defaultAccess");
 const playersWithoutAccess = computed(() => {
     const id = accessState.reactive.id;
     if (id === undefined) return [];
-    return playerState.$.players.filter(
+    return playerState.reactive.players.filter(
         (p) => p.role !== Role.DM && !accessState.owners.value.some((o) => o === p.name),
     );
 });

@@ -32,7 +32,7 @@ export function moveClientRect(player: number, data: ServerUserLocationOptions):
         );
         clientState.mutableReactive.playerRectIds.set(player, polygon.id);
         polygon.options.isPlayerRect = true;
-        polygon.options.skipDraw = !(playerState.$.players.find((p) => p.id === player)?.showRect ?? false);
+        polygon.options.skipDraw = !(playerState.reactive.players.find((p) => p.id === player)?.showRect ?? false);
         polygon.preventSync = true;
         layer.addShape(polygon, SyncMode.NO_SYNC, InvalidationMode.NO);
     }

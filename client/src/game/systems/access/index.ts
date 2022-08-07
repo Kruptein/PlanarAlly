@@ -248,7 +248,7 @@ class AccessSystem implements ShapeSystem {
         this.access.get(shapeId)!.delete(user);
 
         // annotation check
-        if (!annotationState._.visible.has(shapeId)) {
+        if (!annotationState.readonly.visible.has(shapeId)) {
             annotationSystem.setAnnotation(shapeId, "", NO_SYNC);
         }
 

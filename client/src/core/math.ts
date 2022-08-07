@@ -1,3 +1,5 @@
+import type { DeepReadonly } from "vue";
+
 import type { ILayer } from "../game/interfaces/layer";
 import { DEFAULT_GRID_SIZE } from "../store/client";
 
@@ -36,7 +38,11 @@ export function getPointsCenter(points: GlobalPoint[]): GlobalPoint {
     return toGP(vertexAvg.asArray());
 }
 
-export function snapToPoint(layer: ILayer, endPoint: GlobalPoint, ignore?: GlobalPoint): [GlobalPoint, boolean] {
+export function snapToPoint(
+    layer: DeepReadonly<ILayer>,
+    endPoint: GlobalPoint,
+    ignore?: GlobalPoint,
+): [GlobalPoint, boolean] {
     const snapDistance = l2gz(20);
     let smallestPoint: [number, GlobalPoint] | undefined;
     for (const point of layer.points.keys()) {

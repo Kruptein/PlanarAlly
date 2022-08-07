@@ -1,4 +1,5 @@
 import { computed, reactive, watch, watchEffect } from "vue";
+import type { DeepReadonly } from "vue";
 
 import { clampGridLine, getUnitDistance, l2g, l2gz } from "../../../core/conversions";
 import { addP, cloneP, subtractP, toArrayP, toGP, Vector } from "../../../core/geometry";
@@ -267,7 +268,7 @@ class DrawTool extends Tool {
         }
     }
 
-    private onLayerChange(oldValue: ILayer): void {
+    private onLayerChange(oldValue: DeepReadonly<ILayer>): void {
         if (this.isActiveTool.value) {
             let mouse: { x: number; y: number } | undefined = undefined;
             if (this.brushHelper !== undefined) {

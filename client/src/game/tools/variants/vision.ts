@@ -11,7 +11,7 @@ class VisionTool extends Tool {
     readonly toolName = ToolName.Vision;
     readonly toolTranslation = i18n.global.t("tool.Vision");
 
-    alert = computed(() => accessState.$.activeTokenFilters !== undefined);
+    alert = computed(() => accessState.reactive.activeTokenFilters !== undefined);
 
     get permittedTools(): ToolPermission[] {
         return [{ name: ToolName.Select, features: { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate] } }];

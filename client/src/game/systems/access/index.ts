@@ -21,7 +21,7 @@ import { DEFAULT_ACCESS, DEFAULT_ACCESS_SYMBOL } from "./models";
 import type { ACCESS_KEY, ShapeAccess, ShapeOwner } from "./models";
 import { accessState } from "./state";
 
-const { _$, activeTokens } = accessState;
+const { mutableReactive: $, activeTokens } = accessState;
 
 type AccessMap = Map<ACCESS_KEY, ShapeAccess>;
 
@@ -35,28 +35,28 @@ class AccessSystem implements ShapeSystem {
     // REACTIVE
 
     loadState(id: LocalId): void {
-        _$.id = id;
-        _$.id = id;
-        _$.playerAccess.clear();
+        $.id = id;
+        $.id = id;
+        $.playerAccess.clear();
         for (const [user, access] of this.access.get(id) ?? []) {
             if (user === DEFAULT_ACCESS_SYMBOL) {
-                _$.defaultAccess = { ...access };
+                $.defaultAccess = { ...access };
             } else {
-                _$.playerAccess.set(user, { ...access });
+                $.playerAccess.set(user, { ...access });
             }
         }
     }
 
     dropState(): void {
-        _$.id = undefined;
+        $.id = undefined;
     }
 
     // BEHAVIOUR
 
     clear(): void {
         this.dropState();
-        _$.activeTokenFilters?.clear();
-        _$.ownedTokens.clear();
+        $.activeTokenFilters?.clear();
+        $.ownedTokens.clear();
         this.access.clear();
     }
 
@@ -67,21 +67,21 @@ class AccessSystem implements ShapeSystem {
         // Default Access
         if (access.default.edit || access.default.movement || access.default.vision) {
             accessMap.set(DEFAULT_ACCESS_SYMBOL, access.default);
-            if (_$.id === id) {
-                _$.defaultAccess = access.default;
+            if ($.id === id) {
+                $.defaultAccess = access.default;
             }
         } else {
             accessMap.delete(DEFAULT_ACCESS_SYMBOL);
-            if (_$.id === id) {
-                _$.defaultAccess = access.default;
+            if ($.id === id) {
+                $.defaultAccess = access.default;
             }
         }
 
         // Player Access
         for (const extra of access.extra) {
             accessMap.set(extra.user, extra.access);
-            if (_$.id === id) {
-                _$.playerAccess.set(extra.user, extra.access);
+            if ($.id === id) {
+                $.playerAccess.set(extra.user, extra.access);
             }
         }
 
@@ -92,7 +92,7 @@ class AccessSystem implements ShapeSystem {
 
     drop(id: LocalId): void {
         this.access.delete(id);
-        if (_$.id === id) {
+        if ($.id === id) {
             this.dropState();
         }
     }
@@ -168,8 +168,8 @@ class AccessSystem implements ShapeSystem {
             );
         }
 
-        if (_$.id === shapeId) {
-            _$.playerAccess.set(user, userAccess);
+        if ($.id === shapeId) {
+            $.playerAccess.set(user, userAccess);
         }
 
         // todo: some sort of event register instead of calling these other systems manually ?
@@ -212,11 +212,11 @@ class AccessSystem implements ShapeSystem {
         const newAccess = { ...oldAccess, ...access };
         this.access.get(shapeId)!.set(user, newAccess);
 
-        if (_$.id === shapeId) {
+        if ($.id === shapeId) {
             if (user === DEFAULT_ACCESS_SYMBOL) {
-                _$.defaultAccess = newAccess;
+                $.defaultAccess = newAccess;
             } else {
-                _$.playerAccess.set(user, newAccess);
+                $.playerAccess.set(user, newAccess);
             }
         }
 
@@ -259,8 +259,8 @@ class AccessSystem implements ShapeSystem {
             });
         }
 
-        if (_$.id === shapeId) {
-            _$.playerAccess.delete(user);
+        if ($.id === shapeId) {
+            $.playerAccess.delete(user);
         }
 
         if (oldAccess.vision && user === clientStore.state.username) {
@@ -291,36 +291,36 @@ class AccessSystem implements ShapeSystem {
     // Owned/Active Tokens
 
     setActiveTokens(...tokens: LocalId[]): void {
-        _$.activeTokenFilters = new Set(tokens);
+        $.activeTokenFilters = new Set(tokens);
         floorSystem.invalidateLightAllFloors();
     }
 
     unsetActiveTokens(): void {
-        _$.activeTokenFilters = undefined;
+        $.activeTokenFilters = undefined;
         floorSystem.invalidateLightAllFloors();
     }
 
     addActiveToken(token: LocalId): void {
-        if (_$.activeTokenFilters === undefined) return;
-        _$.activeTokenFilters.add(token);
-        if (_$.activeTokenFilters.size === _$.ownedTokens.size) _$.activeTokenFilters = undefined;
+        if ($.activeTokenFilters === undefined) return;
+        $.activeTokenFilters.add(token);
+        if ($.activeTokenFilters.size === $.ownedTokens.size) $.activeTokenFilters = undefined;
         floorSystem.invalidateLightAllFloors();
     }
 
     removeActiveToken(token: LocalId): void {
-        if (_$.activeTokenFilters === undefined) {
-            _$.activeTokenFilters = new Set([..._$.ownedTokens]);
+        if ($.activeTokenFilters === undefined) {
+            $.activeTokenFilters = new Set([...$.ownedTokens]);
         }
-        _$.activeTokenFilters.delete(token);
+        $.activeTokenFilters.delete(token);
         floorSystem.invalidateLightAllFloors();
     }
 
     addOwnedToken(token: LocalId): void {
-        _$.ownedTokens.add(token);
+        $.ownedTokens.add(token);
     }
 
     removeOwnedToken(token: LocalId): void {
-        _$.ownedTokens.delete(token);
+        $.ownedTokens.delete(token);
     }
 }
 

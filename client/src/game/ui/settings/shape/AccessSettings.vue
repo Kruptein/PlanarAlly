@@ -30,10 +30,10 @@ watch(
 const accessDropdown = ref<HTMLSelectElement | null>(null);
 
 const owned = accessState.hasEditAccess;
-const defaultAccess = toRef(accessState.$, "defaultAccess");
+const defaultAccess = toRef(accessState.reactive, "defaultAccess");
 
 const playersWithoutAccess = computed(() => {
-    const id = accessState.$.id;
+    const id = accessState.reactive.id;
     if (id === undefined) return [];
     return playerState.$.players.filter(
         (p) => p.role !== Role.DM && !accessState.owners.value.some((o) => o === p.name),
@@ -41,28 +41,33 @@ const playersWithoutAccess = computed(() => {
 });
 
 function addOwner(): void {
-    if (!owned.value || accessState.$.id === undefined) return;
+    if (!owned.value || accessState.reactive.id === undefined) return;
     const dropdown = accessDropdown.value!;
     const selectedUser = dropdown.options[dropdown.selectedIndex].value;
     if (selectedUser === "") return;
 
-    accessSystem.addAccess(accessState.$.id, selectedUser, { edit: true, movement: true, vision: true }, SERVER_SYNC);
+    accessSystem.addAccess(
+        accessState.reactive.id,
+        selectedUser,
+        { edit: true, movement: true, vision: true },
+        SERVER_SYNC,
+    );
 }
 
 function removeOwner(user: string): void {
-    if (!owned.value || accessState.$.id === undefined) return;
-    accessSystem.removeAccess(accessState.$.id, user, SERVER_SYNC);
+    if (!owned.value || accessState.reactive.id === undefined) return;
+    accessSystem.removeAccess(accessState.reactive.id, user, SERVER_SYNC);
 }
 
 function toggleEditAccess(user?: ACCESS_KEY): void {
-    if (!owned.value || accessState.$.id === undefined) return;
+    if (!owned.value || accessState.reactive.id === undefined) return;
     user ??= DEFAULT_ACCESS_SYMBOL;
 
     let oldAccess = DEFAULT_ACCESS;
     if (user === DEFAULT_ACCESS_SYMBOL) {
-        oldAccess = accessSystem.getDefault(accessState.$.id) ?? oldAccess;
+        oldAccess = accessSystem.getDefault(accessState.reactive.id) ?? oldAccess;
     } else {
-        oldAccess = accessSystem.getAccess(accessState.$.id, user) ?? oldAccess;
+        oldAccess = accessSystem.getAccess(accessState.reactive.id, user) ?? oldAccess;
     }
     const access: PartialPick<ShapeAccess, "edit"> = { edit: !oldAccess.edit };
 
@@ -70,18 +75,18 @@ function toggleEditAccess(user?: ACCESS_KEY): void {
         access.movement = true;
         access.vision = true;
     }
-    accessSystem.updateAccess(accessState.$.id, user, access, SERVER_SYNC);
+    accessSystem.updateAccess(accessState.reactive.id, user, access, SERVER_SYNC);
 }
 
 function toggleMovementAccess(user?: ACCESS_KEY): void {
-    if (!owned.value || accessState.$.id === undefined) return;
+    if (!owned.value || accessState.reactive.id === undefined) return;
     user ??= DEFAULT_ACCESS_SYMBOL;
 
     let oldAccess = DEFAULT_ACCESS;
     if (user === DEFAULT_ACCESS_SYMBOL) {
-        oldAccess = accessSystem.getDefault(accessState.$.id) ?? oldAccess;
+        oldAccess = accessSystem.getDefault(accessState.reactive.id) ?? oldAccess;
     } else {
-        oldAccess = accessSystem.getAccess(accessState.$.id, user) ?? oldAccess;
+        oldAccess = accessSystem.getAccess(accessState.reactive.id, user) ?? oldAccess;
     }
     const access: PartialPick<ShapeAccess, "movement"> = { movement: !oldAccess.movement };
 
@@ -90,18 +95,18 @@ function toggleMovementAccess(user?: ACCESS_KEY): void {
     } else {
         access.edit = false;
     }
-    accessSystem.updateAccess(accessState.$.id, user, access, SERVER_SYNC);
+    accessSystem.updateAccess(accessState.reactive.id, user, access, SERVER_SYNC);
 }
 
 function toggleVisionAccess(user?: ACCESS_KEY): void {
-    if (!owned.value || accessState.$.id === undefined) return;
+    if (!owned.value || accessState.reactive.id === undefined) return;
     user ??= DEFAULT_ACCESS_SYMBOL;
 
     let oldAccess = DEFAULT_ACCESS;
     if (user === DEFAULT_ACCESS_SYMBOL) {
-        oldAccess = accessSystem.getDefault(accessState.$.id) ?? oldAccess;
+        oldAccess = accessSystem.getDefault(accessState.reactive.id) ?? oldAccess;
     } else {
-        oldAccess = accessSystem.getAccess(accessState.$.id, user) ?? oldAccess;
+        oldAccess = accessSystem.getAccess(accessState.reactive.id, user) ?? oldAccess;
     }
     const access: PartialPick<ShapeAccess, "vision"> = { vision: !oldAccess.vision };
 
@@ -109,7 +114,7 @@ function toggleVisionAccess(user?: ACCESS_KEY): void {
         access.edit = false;
         access.movement = false;
     }
-    accessSystem.updateAccess(accessState.$.id, user, access, SERVER_SYNC);
+    accessSystem.updateAccess(accessState.reactive.id, user, access, SERVER_SYNC);
 }
 </script>
 
@@ -146,7 +151,7 @@ function toggleVisionAccess(user?: ACCESS_KEY): void {
         >
             <font-awesome-icon icon="lightbulb" />
         </div>
-        <template v-for="[user, access] of accessState.$.playerAccess" :key="user">
+        <template v-for="[user, access] of accessState.reactive.playerAccess" :key="user">
             <div class="owner">
                 {{ user }}
             </div>

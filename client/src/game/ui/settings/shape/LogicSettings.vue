@@ -46,7 +46,7 @@ const showPermissions = ref(false);
 const activePermissions = computed(() => {
     let permissions: DeepReadonly<Permissions> | undefined;
     if (activeLogic.value === "door") {
-        permissions = doorLogicState.$.permissions;
+        permissions = doorLogicState.reactive.permissions;
     } else {
         permissions = teleportZoneSystem.state.permissions;
     }
@@ -60,8 +60,8 @@ function openPermissions(target: LOGIC_TYPES): void {
 
 function setPermissions(permissions: Permissions): void {
     if (activeLogic.value === "door") {
-        if (doorLogicState.$.id === undefined) return;
-        doorSystem.setPermissions(doorLogicState.$.id, permissions, SERVER_SYNC);
+        if (doorLogicState.reactive.id === undefined) return;
+        doorSystem.setPermissions(doorLogicState.reactive.id, permissions, SERVER_SYNC);
     } else {
         if (teleportZoneSystem.state.id === undefined) return;
         teleportZoneSystem.setPermissions(teleportZoneSystem.state.id, permissions, SERVER_SYNC);
@@ -71,15 +71,15 @@ function setPermissions(permissions: Permissions): void {
 // Door
 
 function toggleDoor(): void {
-    if (doorLogicState.$.id === undefined) return;
-    doorSystem.toggle(doorLogicState.$.id, !doorLogicState.$.enabled, SERVER_SYNC);
+    if (doorLogicState.reactive.id === undefined) return;
+    doorSystem.toggle(doorLogicState.reactive.id, !doorLogicState.reactive.enabled, SERVER_SYNC);
 }
 
-const activeToggleMode = computed(() => doorLogicState.$.toggleMode);
+const activeToggleMode = computed(() => doorLogicState.reactive.toggleMode);
 
 function setToggleMode(mode: DOOR_TOGGLE_MODE): void {
-    if (doorLogicState.$.id === undefined) return;
-    doorSystem.setToggleMode(doorLogicState.$.id, mode, SERVER_SYNC);
+    if (doorLogicState.reactive.id === undefined) return;
+    doorSystem.setToggleMode(doorLogicState.reactive.id, mode, SERVER_SYNC);
 }
 
 // Teleport Zone
@@ -156,7 +156,7 @@ async function chooseTarget(): Promise<void> {
             id="logic-dialog-door-toggle"
             type="checkbox"
             class="styled-checkbox center"
-            :checked="doorLogicState.$.enabled"
+            :checked="doorLogicState.reactive.enabled"
             @click="toggleDoor"
         />
         <label for="logic-dialog-door-toggles">Toggle</label>

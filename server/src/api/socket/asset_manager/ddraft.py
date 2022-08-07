@@ -7,8 +7,9 @@ from typing_extensions import TypedDict
 from ....app import sio
 from ....models import Asset
 from ....state.asset import asset_state
+from ....utils import ASSETS_DIR
 from ..constants import ASSET_NS
-from .common import ASSETS_DIR, UploadData
+from .common import UploadData
 
 
 class Coord(TypedDict):

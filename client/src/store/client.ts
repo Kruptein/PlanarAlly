@@ -185,7 +185,7 @@ class ClientStore extends Store<State> {
 
     setGridColour(colour: string, sync: boolean): void {
         this._state.gridColour = colour;
-        for (const floor of floorState.$.floors) {
+        for (const floor of floorState.readonly.floors) {
             floorSystem.getGridLayer(floor)!.invalidate();
         }
         if (sync) sendRoomClientOptions({ grid_colour: colour });

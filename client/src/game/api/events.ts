@@ -87,7 +87,7 @@ socket.on("Board.Floor.Set", (floor: ServerFloor) => {
     // It is important that this condition is evaluated before the async addFloor call.
     // The very first floor that arrives is the one we want to select
     // When this condition is evaluated after the await, we are at the mercy of the async scheduler
-    const selectFloor = floorState.$.floors.length === 0;
+    const selectFloor = floorState.readonly.floors.length === 0;
     if (debugLayers)
         console.log(
             `Adding floor ${floor.name} [${floor.layers.reduce((acc, cur) => acc + cur.shapes.length, 0)} shapes]`,

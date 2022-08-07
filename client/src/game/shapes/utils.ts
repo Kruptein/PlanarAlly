@@ -177,9 +177,9 @@ export function deleteShapes(shapes: readonly IShape[], sync: SyncMode): void {
     if (sync !== SyncMode.NO_SYNC) sendRemoveShapes({ uuids: removed, temporary: sync === SyncMode.TEMP_SYNC });
     if (!recalculateIterative) {
         if (recalculateMovement)
-            visionState.recalculate({ target: TriangulationTarget.MOVEMENT, floor: floorState.$.floorIndex });
+            visionState.recalculate({ target: TriangulationTarget.MOVEMENT, floor: floorState.readonly.floorIndex });
         if (recalculateVision)
-            visionState.recalculate({ target: TriangulationTarget.VISION, floor: floorState.$.floorIndex });
+            visionState.recalculate({ target: TriangulationTarget.VISION, floor: floorState.readonly.floorIndex });
         floorSystem.invalidateVisibleFloors();
     }
 }

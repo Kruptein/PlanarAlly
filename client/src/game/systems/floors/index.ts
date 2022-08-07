@@ -24,7 +24,7 @@ import { floorState } from "./state";
 
 type FloorRepresentation = { name: string } | { id: number } | { position: number };
 
-const { $, _$, __$, currentFloor, currentLayer } = floorState;
+const { mutableReactive: $, currentFloor, currentLayer } = floorState;
 
 class FloorSystem implements System {
     private indices: number[] = [];
@@ -32,9 +32,9 @@ class FloorSystem implements System {
     private layerMap: Map<number, ILayer[]> = new Map();
 
     clear(): void {
-        _$.floors = [];
-        _$.floorIndex = -1 as FloorId;
-        _$.layerIndex = -1;
+        $.floors = [];
+        $.floorIndex = -1 as FloorId;
+        $.layerIndex = -1;
         this.indices = [];
         this.lastFloorId = 0;
         this.layerMap.clear();
@@ -51,7 +51,7 @@ class FloorSystem implements System {
         readonly = true,
     ): number | DeepReadonly<Floor> | undefined {
         const method = mode === "index" ? "findIndex" : "find";
-        const target = readonly === false ? _$ : $;
+        const target = readonly === false ? $ : floorState.readonly;
         if ("name" in data) return target.floors[method]((f) => f.name === data.name);
         if ("id" in data) return target.floors[method]((f) => f.id === data.id);
         return mode === "index" ? data.position : target.floors[data.position];
@@ -77,26 +77,26 @@ class FloorSystem implements System {
             const I = this.indices.findIndex((i) => i > targetIndex);
             if (I >= 0) {
                 this.indices.splice(I, 0, targetIndex);
-                _$.floors.splice(I, 0, floor);
-                if (I <= __$.floorIndex) _$.floorIndex = (__$.floorIndex + 1) as FloorId;
+                $.floors.splice(I, 0, floor);
+                if (I <= floorState.readonly.floorIndex) $.floorIndex = (floorState.readonly.floorIndex + 1) as FloorId;
             } else {
                 this.indices.push(targetIndex);
-                _$.floors.push(floor);
+                $.floors.push(floor);
             }
         } else {
-            _$.floors.push(floor);
+            $.floors.push(floor);
         }
         this.layerMap.set(floor.id, []);
     }
 
     selectFloor(targetFloor: FloorRepresentation, sync: boolean): void {
         const targetFloorIndex = this.getFloorIndex(targetFloor);
-        if (targetFloorIndex === __$.floorIndex || targetFloorIndex === undefined) return;
+        if (targetFloorIndex === floorState.readonly.floorIndex || targetFloorIndex === undefined) return;
         const floor = this.getFloor(targetFloor)!;
 
-        _$.floorIndex = targetFloorIndex;
-        _$.layers = this.getLayers(floor);
-        for (const [fI, f] of __$.floors.entries()) {
+        $.floorIndex = targetFloorIndex;
+        $.layers = this.getLayers(floor);
+        for (const [fI, f] of floorState.readonly.floors.entries()) {
             for (const layer of this.getLayers(f)) {
                 if (fI > targetFloorIndex) layer.canvas.style.display = "none";
                 else layer.canvas.style.removeProperty("display");
@@ -107,15 +107,15 @@ class FloorSystem implements System {
     }
 
     renameFloor(index: number, name: string, sync: boolean): void {
-        _$.floors[index].name = name;
-        if (index === __$.floorIndex) this.invalidateAllFloors();
+        $.floors[index].name = name;
+        if (index === floorState.readonly.floorIndex) this.invalidateAllFloors();
         if (sync) sendRenameFloor({ index, name });
     }
 
     removeFloor(floorRepresentation: FloorRepresentation, sync: boolean): void {
         const floorIndex = this.getFloorIndex(floorRepresentation);
         if (floorIndex === undefined) throw new Error("Could not remove unknown floor");
-        const floor = __$.floors[floorIndex];
+        const floor = floorState.readonly.floors[floorIndex];
 
         visionState.removeCdt(floor.id);
         visionState.removeBlockers(TriangulationTarget.MOVEMENT, floor.id);
@@ -123,11 +123,11 @@ class FloorSystem implements System {
 
         for (const layer of this.getLayers(floor)) layer.canvas.remove();
 
-        _$.floors.splice(floorIndex, 1);
+        $.floors.splice(floorIndex, 1);
         this.layerMap.delete(floor.id);
 
-        if (__$.floorIndex === floorIndex) this.selectFloor({ position: floorIndex - 1 }, true);
-        else if (__$.floorIndex > floorIndex) _$.floorIndex--;
+        if (floorState.readonly.floorIndex === floorIndex) this.selectFloor({ position: floorIndex - 1 }, true);
+        else if (floorState.readonly.floorIndex > floorIndex) $.floorIndex--;
         if (sync) sendRemoveFloor(floor.name);
     }
 
@@ -140,9 +140,9 @@ class FloorSystem implements System {
     }
 
     reorderFloors(floors: string[], sync: boolean): void {
-        const activeFloorName = __$.floors[__$.floorIndex].name;
-        _$.floors = floors.map((name) => __$.floors.find((f) => f.name === name)!);
-        _$.floorIndex = this.getFloorIndex({ name: activeFloorName })!;
+        const activeFloorName = floorState.readonly.floors[floorState.readonly.floorIndex].name;
+        $.floors = floors.map((name) => floorState.readonly.floors.find((f) => f.name === name)!);
+        $.floorIndex = this.getFloorIndex({ name: activeFloorName })!;
         recalculateZIndices();
         if (sync) sendFloorReorder(floors);
     }
@@ -169,11 +169,11 @@ class FloorSystem implements System {
     // LAYERS
 
     addLayer(layer: ILayer, floorId: number): void {
-        for (const floor of __$.floors) {
+        for (const floor of floorState.readonly.floors) {
             if (floor.id === floorId) {
                 this.layerMap.get(floor.id)!.push(layer);
-                if (__$.layerIndex < 0) {
-                    _$.layerIndex = 2;
+                if (floorState.readonly.layerIndex < 0) {
+                    $.layerIndex = 2;
                 }
                 return;
             }
@@ -183,7 +183,7 @@ class FloorSystem implements System {
 
     getLayer(floor: Floor, name?: LayerName): ILayer | undefined {
         const layers = this.layerMap.get(floor.id)!;
-        if (name === undefined) return layers[__$.layerIndex];
+        if (name === undefined) return layers[floorState.readonly.layerIndex];
         for (const layer of layers) {
             if (layer.name === name) return layer;
         }
@@ -206,7 +206,7 @@ class FloorSystem implements System {
             else layer.ctx.globalAlpha = 1.0;
 
             if (name === layer.name) {
-                _$.layerIndex = index;
+                $.layerIndex = index;
                 found = true;
                 if (sync) sendActiveLayer({ layer: layer.name, floor: this.getFloor({ id: layer.floor })!.name });
             }
@@ -230,14 +230,14 @@ class FloorSystem implements System {
     }
 
     invalidateAllFloors(): void {
-        for (const floor of __$.floors) {
+        for (const floor of floorState.readonly.floors) {
             this.invalidate(floor);
         }
     }
 
     invalidateVisibleFloors(): void {
         let floorFound = false;
-        for (const floor of __$.floors) {
+        for (const floor of floorState.readonly.floors) {
             if (floorFound) this.invalidateLight(floor.id);
             else this.invalidate(floor);
             if (floor === currentFloor.value) floorFound = true;
@@ -254,8 +254,8 @@ class FloorSystem implements System {
     }
 
     invalidateLightAllFloors(): void {
-        for (const [f, floor] of __$.floors.entries()) {
-            if (f > __$.floorIndex) return;
+        for (const [f, floor] of floorState.readonly.floors.entries()) {
+            if (f > floorState.readonly.floorIndex) return;
             this.invalidateLight(floor.id);
         }
     }

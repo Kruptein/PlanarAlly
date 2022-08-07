@@ -22,16 +22,16 @@ const selectFloor = floorSystem.selectFloor.bind(floorSystem);
 const selectLayer = floorSystem.selectLayer.bind(floorSystem);
 const openSettings = uiStore.showFloorSettings.bind(uiStore);
 
-const visible = computed(() => floorState.$.floors.length > 1 || isDm.value);
+const visible = computed(() => floorState.reactive.floors.length > 1 || isDm.value);
 const detailsOpen = ref(false);
 
 // FLOORS
 
-const floorIndex = toRef(floorState.$, "floorIndex");
+const floorIndex = toRef(floorState.reactive, "floorIndex");
 
 const floors = computed({
     get() {
-        return [...floorState.$.floors]
+        return [...floorState.reactive.floors]
             .reverse()
             .filter((f) => f.playerVisible || isDm.value)
             .map((f) => ({ reverseIndex: floorSystem.getFloorIndex({ id: f.id })!, floor: f }));
@@ -43,7 +43,7 @@ const floors = computed({
 
 async function addFloor(): Promise<void> {
     const value = await modals.prompt(t("game.ui.FloorSelect.new_name"), t("game.ui.FloorSelect.creation"), (value) => {
-        if (floorState.$.floors.some((f) => f.name === value)) {
+        if (floorState.reactive.floors.some((f) => f.name === value)) {
             return { valid: false, reason: "This name is already in use!" };
         }
         return { valid: true };
@@ -67,7 +67,7 @@ const layers = computed(() => {
 });
 
 const selectedLayer = computed(
-    () => floorSystem.getLayers(floorState.currentFloor.value!)[floorState.$.layerIndex].name,
+    () => floorSystem.getLayers(floorState.currentFloor.value!)[floorState.reactive.layerIndex].name,
 );
 </script>
 

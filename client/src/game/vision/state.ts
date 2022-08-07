@@ -55,7 +55,7 @@ class VisionState extends Store<State> {
     setVisionMode(mode: VisibilityMode, sync: boolean): void {
         this._state.mode = mode;
 
-        for (const floor of floorState.$.floors) {
+        for (const floor of floorState.readonly.floors) {
             visionState.recalculateVision(floor.id);
             visionState.recalculateMovement(floor.id);
         }

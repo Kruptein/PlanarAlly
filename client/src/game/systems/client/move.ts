@@ -12,9 +12,9 @@ import { playerState } from "../players/state";
 import { clientState } from "./state";
 
 export function moveClientRect(player: number, data: ServerUserLocationOptions): void {
-    clientState._$.playerLocationData.set(player, data);
+    clientState.mutableReactive.playerLocationData.set(player, data);
 
-    const id = clientState._$.playerRectIds.get(player);
+    const id = clientState.reactive.playerRectIds.get(player);
     const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Dm)!;
 
     let polygon: Polygon | undefined = id ? (getShape(id) as Polygon) : undefined;
@@ -30,7 +30,7 @@ export function moveClientRect(player: number, data: ServerUserLocationOptions):
             },
             { fillColour: "rgba(0, 0, 0, 0)", strokeColour: ["rgba(0, 0, 0, 1)", "rgba(255, 255, 255, 1)"] },
         );
-        clientState._$.playerRectIds.set(player, polygon.id);
+        clientState.mutableReactive.playerRectIds.set(player, polygon.id);
         polygon.options.isPlayerRect = true;
         polygon.options.skipDraw = !(playerState.$.players.find((p) => p.id === player)?.showRect ?? false);
         polygon.preventSync = true;

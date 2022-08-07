@@ -5,17 +5,21 @@ interface ReactiveAnnotationState {
     id: LocalId | undefined;
     annotation: string | undefined;
     annotationVisible: boolean;
+}
+
+interface AnnotationState {
     annotations: Map<LocalId, string>;
     visible: Set<LocalId>;
 }
 
-const state = buildState<ReactiveAnnotationState>({
-    id: undefined,
-    annotation: undefined,
-    annotationVisible: false,
-    annotations: new Map(),
-    visible: new Set(),
-});
+const state = buildState<ReactiveAnnotationState, AnnotationState>(
+    {
+        id: undefined,
+        annotation: undefined,
+        annotationVisible: false,
+    },
+    { annotations: new Map(), visible: new Set() },
+);
 
 function get(id: LocalId): { annotation: string; annotationVisible: boolean } {
     return {

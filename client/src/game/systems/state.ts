@@ -30,10 +30,11 @@ export function buildState<T extends object, U = void>(
     reactive: DeepReadonly<UnwrapNestedRefs<T>>;
     mutableReactive: UnwrapNestedRefs<T>;
 } {
-    const reactiveState = reactive(state);
+    const fullState = { ...state, ...nonReactiveProperties };
+    const reactiveState = reactive(fullState);
     return {
-        readonly: { ...state, ...nonReactiveProperties } as DeepReadonly<T & U>,
-        mutable: nonReactiveProperties,
+        readonly: fullState as DeepReadonly<T & U>,
+        mutable: fullState as unknown as U,
         reactive: reactiveState as DeepReadonly<UnwrapNestedRefs<T>>,
         mutableReactive: reactiveState,
     };

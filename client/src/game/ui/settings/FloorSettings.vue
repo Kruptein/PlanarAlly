@@ -44,7 +44,7 @@ function setFloorType(event: Event): void {
 }
 
 async function removeFloor(): Promise<void> {
-    if (floor.value === undefined || floorState.readonly.floors.length <= 1) return;
+    if (floor.value === undefined || floorState.raw.floors.length <= 1) return;
 
     const doRemove = await modals.confirm(
         t("common.warning"),

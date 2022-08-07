@@ -36,9 +36,9 @@ export class FowLayer extends Layer {
             this.canvas.style.removeProperty("display");
         else if (this.floor !== activeFloor && this.canvas.style.display !== "none") this.canvas.style.display = "none";
 
-        if (this.floor === activeFloor && floorState.readonly.floors.length > 1) {
-            for (const floor of floorState.readonly.floors) {
-                if (floor.name !== floorState.readonly.floors[0].name) {
+        if (this.floor === activeFloor && floorState.raw.floors.length > 1) {
+            for (const floor of floorState.raw.floors) {
+                if (floor.name !== floorState.raw.floors[0].name) {
                     const mapl = floorSystem.getLayer(floor, LayerName.Map);
                     if (mapl === undefined) continue;
                     this.ctx.globalCompositeOperation = "destination-out";

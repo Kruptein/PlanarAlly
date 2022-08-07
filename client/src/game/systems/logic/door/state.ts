@@ -1,6 +1,7 @@
-import { reactive, readonly } from "vue";
+import type { DeepReadonly } from "vue";
 
 import type { LocalId } from "../../../id";
+import { buildState } from "../../state";
 import { DEFAULT_PERMISSIONS } from "../models";
 import type { Permissions } from "../models";
 
@@ -14,31 +15,32 @@ interface DoorState {
 interface ReactiveDoorState {
     id: LocalId | undefined;
     enabled: boolean;
-    permissions?: Permissions;
+    permissions?: DeepReadonly<Permissions>;
     toggleMode: DOOR_TOGGLE_MODE;
 }
 
-const reactiveState = reactive<ReactiveDoorState>({
-    id: undefined,
-    enabled: false,
-    toggleMode: "both",
-});
-
-const state: DoorState = {
-    data: new Map(),
-    enabled: new Set(),
-};
+const state = buildState<ReactiveDoorState, DoorState>(
+    {
+        id: undefined,
+        enabled: false,
+        toggleMode: "both",
+    },
+    {
+        data: new Map(),
+        enabled: new Set(),
+    },
+);
 
 function loadState(id: LocalId): void {
-    const data = state.data.get(id) ?? DEFAULT_OPTIONS();
-    reactiveState.id = id;
-    reactiveState.enabled = state.enabled.has(id);
-    reactiveState.permissions = data.permissions;
-    reactiveState.toggleMode = data.toggleMode;
+    const data = state.readonly.data.get(id) ?? DEFAULT_OPTIONS();
+    state.mutableReactive.id = id;
+    state.mutableReactive.enabled = state.readonly.enabled.has(id);
+    state.mutableReactive.permissions = data.permissions;
+    state.mutableReactive.toggleMode = data.toggleMode;
 }
 
 function dropState(): void {
-    reactiveState.id = undefined;
+    state.mutableReactive.id = undefined;
 }
 
 const DEFAULT_OPTIONS: () => DoorOptions = () => ({
@@ -47,9 +49,7 @@ const DEFAULT_OPTIONS: () => DoorOptions = () => ({
 });
 
 export const doorLogicState = {
-    $: readonly(reactiveState),
-    _$: reactiveState,
-    _: state,
+    ...state,
     dropState,
     loadState,
     DEFAULT_OPTIONS,

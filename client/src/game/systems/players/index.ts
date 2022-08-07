@@ -10,19 +10,19 @@ import { clientSystem } from "../client";
 
 import { playerState } from "./state";
 
-const { _$ } = playerState;
+const { mutableReactive: $ } = playerState;
 
 class PlayerSystem implements System {
     clear(): void {
-        _$.players = [];
+        $.players = [];
     }
 
     setPlayers(players: Player[]): void {
-        _$.players = players;
+        $.players = players;
     }
 
     addPlayer(player: Player): void {
-        _$.players.push(player);
+        $.players.push(player);
     }
 
     updatePlayersLocation(
@@ -31,17 +31,17 @@ class PlayerSystem implements System {
         sync: boolean,
         targetPosition?: { x: number; y: number },
     ): void {
-        for (const player of _$.players) {
+        for (const player of $.players) {
             if (players.includes(player.name)) {
                 player.location = location;
             }
         }
-        _$.players = [..._$.players];
+        $.players = [...$.players];
         if (sync) sendLocationChange({ location, users: players, position: targetPosition });
     }
 
     kickPlayer(playerId: number): void {
-        const player = _$.players.find((p) => p.id === playerId);
+        const player = $.players.find((p) => p.id === playerId);
         if (player === undefined) return;
 
         if (player.name === router.currentRoute.value.params.creator && coreStore.state.username !== player.name) {
@@ -49,11 +49,11 @@ class PlayerSystem implements System {
         }
 
         sendRoomKickPlayer(playerId);
-        _$.players = _$.players.filter((p) => p.id !== playerId);
+        $.players = $.players.filter((p) => p.id !== playerId);
     }
 
     setPlayerRole(playerId: number, role: number, sync: boolean): void {
-        const player = _$.players.find((p) => p.id === playerId);
+        const player = $.players.find((p) => p.id === playerId);
         if (player === undefined) return;
 
         if (player.name === router.currentRoute.value.params.creator && coreStore.state.username !== player.name) {
@@ -65,7 +65,7 @@ class PlayerSystem implements System {
     }
 
     setShowPlayerRect(playerId: number, showPlayerRect: boolean): void {
-        const player = _$.players.find((p) => p.id === playerId);
+        const player = $.players.find((p) => p.id === playerId);
         if (player === undefined) return;
 
         player.showRect = showPlayerRect;

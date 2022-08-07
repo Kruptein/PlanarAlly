@@ -24,7 +24,7 @@ const roles = getRoles();
 const refreshState = ref("pending");
 const showRefreshState = ref(false);
 
-const players = toRef(playerState.$, "players");
+const players = toRef(playerState.reactive, "players");
 const locked = toRef(gameState, "isLocked");
 
 watch(
@@ -59,7 +59,7 @@ function changePlayerRole(event: Event, player: number): void {
 }
 
 function togglePlayerRect(player: number): void {
-    const p = playerState.$.players.find((p) => p.id === player)?.showRect;
+    const p = playerState.reactive.players.find((p) => p.id === player)?.showRect;
     if (p === undefined) return;
 
     playerSystem.setShowPlayerRect(player, !p);

@@ -1,7 +1,8 @@
-import { computed, reactive, readonly, toRaw } from "vue";
+import { computed } from "vue";
 
 import type { ILayer } from "../../interfaces/layer";
 import type { Floor, FloorId } from "../../models/floor";
+import { buildState } from "../state";
 
 interface FloorState {
     floors: Floor[];
@@ -11,7 +12,7 @@ interface FloorState {
     layerIndex: number;
 }
 
-const state = reactive<FloorState>({
+const state = buildState<FloorState>({
     floors: [],
     floorIndex: -1 as FloorId,
     layers: [],
@@ -19,17 +20,14 @@ const state = reactive<FloorState>({
 });
 
 export const floorState = {
-    $: readonly(state),
-    _$: state,
-    __$: toRaw(state),
-
+    ...state,
     currentFloor: computed(() => {
-        if (state.floorIndex < 0) return undefined;
-        return state.floors[state.floorIndex];
+        if (state.reactive.floorIndex < 0) return undefined;
+        return state.reactive.floors[state.reactive.floorIndex];
     }),
 
     currentLayer: computed(() => {
-        if (state.layerIndex < 0) return undefined;
-        return state.layers[state.layerIndex];
+        if (state.reactive.layerIndex < 0) return undefined;
+        return state.reactive.layers[state.reactive.layerIndex];
     }),
 };

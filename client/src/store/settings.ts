@@ -149,12 +149,12 @@ class SettingsStore extends Store<SettingsState> {
             } else if (["fullFow", "fowOpacity"].includes(key)) {
                 floorSystem.invalidateLightAllFloors();
             } else if (key === "gridType") {
-                for (const floor of floorState.$.floors) {
+                for (const floor of floorState.readonly.floors) {
                     const gridLayer = floorSystem.getGridLayer(floor)!;
                     gridLayer.invalidate();
                 }
             } else if (key === "useGrid") {
-                for (const floor of floorState.$.floors) {
+                for (const floor of floorState.readonly.floors) {
                     const gridLayer = floorSystem.getGridLayer(floor)!;
                     if (this.useGrid.value) gridLayer.canvas.style.display = "block";
                     else gridLayer.canvas.style.display = "none";
@@ -195,7 +195,7 @@ class SettingsStore extends Store<SettingsState> {
             throw new Error("Unknown grid type set");
         }
         if (this.mutate("gridType", gridType, location)) {
-            for (const floor of floorState.$.floors) {
+            for (const floor of floorState.readonly.floors) {
                 const gridLayer = floorSystem.getGridLayer(floor)!;
                 gridLayer.invalidate();
             }
@@ -224,7 +224,7 @@ class SettingsStore extends Store<SettingsState> {
 
     setUseGrid(useGrid: boolean, location: number | undefined, sync: boolean): void {
         if (this.mutate("useGrid", useGrid, location)) {
-            for (const floor of floorState.$.floors) {
+            for (const floor of floorState.readonly.floors) {
                 const gridLayer = floorSystem.getGridLayer(floor)!;
                 if (useGrid) gridLayer.canvas.style.display = "block";
                 else gridLayer.canvas.style.display = "none";

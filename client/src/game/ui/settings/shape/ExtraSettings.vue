@@ -62,12 +62,12 @@ function calcHeight(): void {
 function updateAnnotation(event: Event, sync = true): void {
     if (!owned.value) return;
     calcHeight();
-    annotationSystem.setAnnotation(annotationState.$.id!, getValue(event), sync ? SERVER_SYNC : NO_SYNC);
+    annotationSystem.setAnnotation(annotationState.reactive.id!, getValue(event), sync ? SERVER_SYNC : NO_SYNC);
 }
 
 function setAnnotationVisible(event: Event): void {
     if (!owned.value) return;
-    annotationSystem.setAnnotationVisible(annotationState.$.id!, getChecked(event), SERVER_SYNC);
+    annotationSystem.setAnnotationVisible(annotationState.reactive.id!, getChecked(event), SERVER_SYNC);
 }
 
 // LABELS
@@ -230,7 +230,7 @@ function applyDDraft(): void {
         <input
             id="edit_dialog-extra-show_annotation"
             type="checkbox"
-            :checked="annotationState.$.annotationVisible"
+            :checked="annotationState.reactive.annotationVisible"
             @click="setAnnotationVisible"
             class="styled-checkbox"
             :disabled="!owned"
@@ -238,7 +238,7 @@ function applyDDraft(): void {
         <textarea
             class="spanrow"
             ref="textarea"
-            :value="annotationState.$.annotation"
+            :value="annotationState.reactive.annotation"
             @input="updateAnnotation($event, false)"
             @change="updateAnnotation"
             :disabled="!owned"

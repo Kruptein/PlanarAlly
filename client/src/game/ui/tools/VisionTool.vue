@@ -23,10 +23,10 @@ onMounted(() => {
     ({ right: right.value, arrow: arrow.value } = useToolPosition(visionTool.toolName));
 });
 
-const tokens = computed(() => [...accessState.$.ownedTokens].map((t) => getShape(t)!));
+const tokens = computed(() => [...accessState.reactive.ownedTokens].map((t) => getShape(t)!));
 const selection = computed(() => {
-    if (accessState.$.activeTokenFilters === undefined) return accessState.$.ownedTokens;
-    return accessState.$.activeTokenFilters;
+    if (accessState.reactive.activeTokenFilters === undefined) return accessState.reactive.ownedTokens;
+    return accessState.reactive.activeTokenFilters;
 });
 
 function toggle(uuid: LocalId): void {

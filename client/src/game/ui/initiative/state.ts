@@ -273,9 +273,9 @@ class InitiativeStore extends Store<InitiativeState> {
     handleVisionLock(): void {
         if (clientStore.state.initiativeVisionLock) {
             const actor = this.getDataSet()[this._state.turnCounter];
-            if (accessState.$.activeTokenFilters === undefined) activeTokensBackup = undefined;
-            else activeTokensBackup = new Set(accessState.$.activeTokenFilters);
-            if (accessState.$.ownedTokens.has(actor.shape)) {
+            if (accessState.reactive.activeTokenFilters === undefined) activeTokensBackup = undefined;
+            else activeTokensBackup = new Set(accessState.reactive.activeTokenFilters);
+            if (accessState.reactive.ownedTokens.has(actor.shape)) {
                 accessSystem.setActiveTokens(actor.shape);
             } else {
                 accessSystem.unsetActiveTokens();

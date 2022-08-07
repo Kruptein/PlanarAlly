@@ -49,15 +49,15 @@ describe("Access System", () => {
                 default: { edit: false, movement: true, vision: true },
                 extra: [{ access: { edit: true, movement: false, vision: true }, shape: id2, user: "testUser" }],
             });
-            expect(accessState.$.defaultAccess).toEqual(DEFAULT_ACCESS);
-            expect(accessState.$.playerAccess.size).toBe(0);
+            expect(accessState.reactive.defaultAccess).toEqual(DEFAULT_ACCESS);
+            expect(accessState.reactive.playerAccess.size).toBe(0);
 
             accessSystem.inform(id, {
                 default: { edit: false, movement: true, vision: true },
                 extra: [{ access: { edit: true, movement: false, vision: true }, shape: id2, user: "testUser" }],
             });
-            expect(accessState.$.defaultAccess).toEqual({ edit: false, movement: true, vision: true });
-            expect(accessState.$.playerAccess.get("testUser")).toEqual({
+            expect(accessState.reactive.defaultAccess).toEqual({ edit: false, movement: true, vision: true });
+            expect(accessState.reactive.playerAccess.get("testUser")).toEqual({
                 edit: true,
                 movement: false,
                 vision: true,
@@ -307,8 +307,8 @@ describe("Access System", () => {
             // test
             accessSystem.addAccess(id, "some user", someUserAccess, UI_SYNC);
             accessSystem.addAccess(id2, "new user", newUserAccess, NO_SYNC);
-            expect(accessState.$.playerAccess.get("some user")).toEqual(someUserAccess);
-            expect(accessState.$.playerAccess.get("new user")).toBeUndefined();
+            expect(accessState.reactive.playerAccess.get("some user")).toEqual(someUserAccess);
+            expect(accessState.reactive.playerAccess.get("new user")).toBeUndefined();
         });
         it("should call addOwnedToken if access is vision AND username matches AND isToken", () => {
             // setup
@@ -433,13 +433,13 @@ describe("Access System", () => {
             });
             accessSystem.loadState(id);
             // test
-            expect(accessState.$.playerAccess.get("some user")).toEqual({
+            expect(accessState.reactive.playerAccess.get("some user")).toEqual({
                 edit: false,
                 movement: false,
                 vision: true,
             });
             accessSystem.updateAccess(id, "some user", { edit: true }, SERVER_SYNC);
-            expect(accessState.$.playerAccess.get("some user")).toEqual({
+            expect(accessState.reactive.playerAccess.get("some user")).toEqual({
                 edit: true,
                 movement: false,
                 vision: true,
@@ -509,9 +509,9 @@ describe("Access System", () => {
             });
             accessSystem.loadState(id);
             // test
-            expect(accessState.$.playerAccess.has("some user")).toBe(true);
+            expect(accessState.reactive.playerAccess.has("some user")).toBe(true);
             accessSystem.removeAccess(id, "some user", SERVER_SYNC);
-            expect(accessState.$.playerAccess.has("some user")).toBe(false);
+            expect(accessState.reactive.playerAccess.has("some user")).toBe(false);
         });
     });
     describe("getOwners", () => {

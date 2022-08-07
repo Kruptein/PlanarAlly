@@ -1,8 +1,9 @@
-import { computed, reactive, readonly } from "vue";
+import { computed } from "vue";
 
 import { getGameState } from "../../../store/_game";
 import { clientStore } from "../../../store/client";
 import type { LocalId } from "../../id";
+import { buildState } from "../state";
 
 import { DEFAULT_ACCESS } from "./models";
 import type { ShapeAccess } from "./models";
@@ -16,7 +17,7 @@ interface AccessState {
     activeTokenFilters: Set<LocalId> | undefined;
 }
 
-const state = reactive<AccessState>({
+const state = buildState<AccessState>({
     id: undefined,
     defaultAccess: DEFAULT_ACCESS,
     playerAccess: new Map(),
@@ -26,27 +27,26 @@ const state = reactive<AccessState>({
 });
 
 const activeTokens = computed(() => {
-    if (state.activeTokenFilters !== undefined) return state.activeTokenFilters;
-    return state.ownedTokens;
+    if (state.reactive.activeTokenFilters !== undefined) return state.reactive.activeTokenFilters;
+    return state.reactive.ownedTokens;
 });
 
 export const accessState = {
-    $: readonly(state),
-    _$: state,
+    ...state,
 
     activeTokens,
 
     hasEditAccess: computed(() => {
-        if (state.id === undefined) return false;
+        if (state.reactive.id === undefined) return false;
         if (getGameState().isDm) return true;
-        if (getGameState().isFakePlayer && activeTokens.value.has(state.id)) return true;
-        if (state.defaultAccess.edit) return true;
+        if (getGameState().isFakePlayer && activeTokens.value.has(state.reactive.id)) return true;
+        if (state.reactive.defaultAccess.edit) return true;
         const username = clientStore.state.username;
-        return [...state.playerAccess.entries()].some(([u, a]) => u === username && a.edit === true);
+        return [...state.reactive.playerAccess.entries()].some(([u, a]) => u === username && a.edit === true);
     }),
 
     owners: computed(() => {
-        if (state.id === undefined) return [];
-        return [...state.playerAccess.keys()];
+        if (state.reactive.id === undefined) return [];
+        return [...state.reactive.playerAccess.keys()];
     }),
 };

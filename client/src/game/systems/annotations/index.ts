@@ -7,57 +7,57 @@ import type { LocalId } from "../../id";
 
 import { annotationState } from "./state";
 
-const { _$, _ } = annotationState;
+const { mutableReactive: $, mutable, readonly } = annotationState;
 
 export class AnnotationSystem implements ShapeSystem {
     // BEHAVIOUR
 
     clear(): void {
-        _$.id = undefined;
-        _.visible.clear();
-        _.annotations.clear();
+        $.id = undefined;
+        mutable.visible.clear();
+        mutable.annotations.clear();
     }
 
     // Inform the system about the state of a certain LocalId
     inform(id: LocalId, data: { annotation: string; annotationVisible: boolean }): void {
-        if (data.annotationVisible) _.visible.add(id);
-        if (data.annotation !== "") _.annotations.set(id, data.annotation);
+        if (data.annotationVisible) mutable.visible.add(id);
+        if (data.annotation !== "") mutable.annotations.set(id, data.annotation);
     }
 
     drop(id: LocalId): void {
-        _.visible.delete(id);
-        _.annotations.delete(id);
-        if (_$.id === id) {
-            _$.id = undefined;
+        mutable.visible.delete(id);
+        mutable.annotations.delete(id);
+        if ($.id === id) {
+            $.id = undefined;
         }
     }
 
     loadState(id: LocalId): void {
-        _$.id = id;
-        _$.annotation = _.annotations.get(id) ?? "";
-        _$.annotationVisible = _.visible.has(id);
+        $.id = id;
+        $.annotation = readonly.annotations.get(id) ?? "";
+        $.annotationVisible = readonly.visible.has(id);
     }
 
     dropState(): void {
-        _$.id = undefined;
-        _$.annotation = undefined;
-        _$.annotationVisible = false;
+        $.id = undefined;
+        $.annotation = undefined;
+        $.annotationVisible = false;
     }
 
     setAnnotation(id: LocalId, annotation: string, syncTo: Sync): void {
-        if (annotation === "") _.annotations.delete(id);
-        else _.annotations.set(id, annotation);
+        if (annotation === "") mutable.annotations.delete(id);
+        else mutable.annotations.set(id, annotation);
 
         if (syncTo.server) sendShapeSetAnnotation({ shape: getGlobalId(id), value: annotation });
-        if (_$.id === id) _$.annotation = annotation;
+        if ($.id === id) $.annotation = annotation;
     }
 
     setAnnotationVisible(id: LocalId, annotationVisible: boolean, syncTo: Sync): void {
-        if (annotationVisible) _.visible.add(id);
-        else _.visible.delete(id);
+        if (annotationVisible) mutable.visible.add(id);
+        else mutable.visible.delete(id);
 
         if (syncTo.server) sendShapeSetAnnotationVisible({ shape: getGlobalId(id), value: annotationVisible });
-        if (_$.id === id) _$.annotationVisible = annotationVisible;
+        if ($.id === id) $.annotationVisible = annotationVisible;
     }
 }
 

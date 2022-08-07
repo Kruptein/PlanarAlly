@@ -27,17 +27,5 @@ For example: when you click on a door in select mode, the select tool who handle
 (1) The name `system` is possibly confusing here, but `component` has a naming conflict with vue components. Another name might be used in the future.
 (2) This is handled with vue reactivity, so it doesn't really actively check the UI, but just updates a reactive object
 
-Most systems have a separate state object that usually has a form similar to:
-```
-{
-    $: {...}
-    _$: {...}
-    __$: {...}
-
-    someComputedValue: ...,
-    someOtherComputedValue: ...
-}
-```
-The `state.$` contains a readonly reactive view to the state, which is what most external users of the state should be using.
-`state._$` is a mutable view into the state (still reactive) and is typically exclusively used by the system the state belongs to.
-Lastly `state.__$` is a raw non-reactive view into the state, this should only be used in special cases where performance matters.
+Most systems have a separate state that has a readonly reactive and a non-reactive view into the state, accessible with `.reactive` and `.readonly` respectively. The reactive view also has a mutable variant `.mutableReactive`, which should be used to alter the state.
+A pure non-reactive mutable view is not directly accessible as it will not update any reactive watchers, but could be accessible for a specific system.

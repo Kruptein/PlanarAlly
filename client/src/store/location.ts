@@ -28,7 +28,7 @@ class LocationStore extends Store<LocationState> {
         watchEffect(() => {
             const state = getGameState();
             const newLocations = new Map();
-            for (const player of playerState.$.players) {
+            for (const player of playerState.reactive.players) {
                 if (player.name === clientStore.state.username && state.isDm) continue;
                 if (!newLocations.has(player.location)) {
                     newLocations.set(player.location, new Set());

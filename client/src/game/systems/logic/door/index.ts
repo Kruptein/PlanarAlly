@@ -1,3 +1,5 @@
+import type { DeepReadonly } from "vue";
+
 import { registerSystem } from "../..";
 import type { ShapeSystem } from "../..";
 import { baseAdjust } from "../../../../core/http";
@@ -15,26 +17,26 @@ import { sendShapeIsDoor, sendShapeDoorPermissions, sendShapeDoorToggleMode } fr
 import type { DoorOptions, DOOR_TOGGLE_MODE } from "./models";
 import { doorLogicState } from "./state";
 
-const { _, _$, dropState, DEFAULT_OPTIONS } = doorLogicState;
+const { readonly, mutable, mutableReactive: $, dropState, DEFAULT_OPTIONS } = doorLogicState;
 
 class DoorSystem implements ShapeSystem {
     // BEHAVIOUR
 
     clear(): void {
         dropState();
-        _.enabled.clear();
-        _.data.clear();
+        mutable.enabled.clear();
+        mutable.data.clear();
     }
 
     // Inform the system about the state of a certain LocalId
     inform(id: LocalId, enabled: boolean, options?: DoorOptions, syncToServer = false): void {
         if (enabled) {
-            _.enabled.add(id);
+            mutable.enabled.add(id);
         }
-        _.data.set(id, { ...DEFAULT_OPTIONS(), ...options });
+        mutable.data.set(id, { ...DEFAULT_OPTIONS(), ...options });
 
         if (syncToServer) {
-            const options = _.data.get(id)!;
+            const options = readonly.data.get(id)!;
             const shape = getGlobalId(id);
             sendShapeIsDoor({ shape, value: enabled });
             if (options.permissions) sendShapeDoorPermissions({ shape, value: options.permissions });
@@ -43,61 +45,61 @@ class DoorSystem implements ShapeSystem {
     }
 
     drop(id: LocalId): void {
-        _.enabled.delete(id);
-        _.data.delete(id);
-        if (_$.id === id) {
+        mutable.enabled.delete(id);
+        mutable.data.delete(id);
+        if ($.id === id) {
             dropState();
         }
     }
 
     toggle(id: LocalId, enabled: boolean, syncTo: Sync): void {
         if (syncTo.server) sendShapeIsDoor({ shape: getGlobalId(id), value: enabled });
-        if (_$.id === id) _$.enabled = enabled;
+        if ($.id === id) $.enabled = enabled;
 
         if (enabled) {
-            _.enabled.add(id);
+            mutable.enabled.add(id);
         } else {
-            _.enabled.delete(id);
+            mutable.enabled.delete(id);
         }
     }
 
     isDoor(id: LocalId): boolean {
-        return _.enabled.has(id);
+        return readonly.enabled.has(id);
     }
 
-    getPermissions(id: LocalId): Readonly<Permissions> | undefined {
-        return _.data.get(id)?.permissions;
+    getPermissions(id: LocalId): DeepReadonly<Permissions> | undefined {
+        return readonly.data.get(id)?.permissions;
     }
 
     setPermissions(id: LocalId, permissions: Permissions, syncTo: Sync): void {
-        let options = _.data.get(id);
+        let options = mutable.data.get(id);
         if (options === undefined) {
             options = DEFAULT_OPTIONS();
-            _.data.set(id, options);
+            mutable.data.set(id, options);
         }
 
         if (syncTo.server) sendShapeDoorPermissions({ shape: getGlobalId(id), value: permissions });
-        if (_$.id === id) _$.permissions = permissions;
+        if ($.id === id) $.permissions = permissions;
 
         options.permissions = permissions;
     }
 
     setToggleMode(id: LocalId, mode: DOOR_TOGGLE_MODE, syncTo: Sync): void {
-        let options = _.data.get(id);
+        let options = mutable.data.get(id);
         if (options === undefined) {
             options = DEFAULT_OPTIONS();
-            _.data.set(id, options);
+            mutable.data.set(id, options);
         }
 
         if (syncTo.server) sendShapeDoorToggleMode({ shape: getGlobalId(id), value: mode });
-        if (_$.id === id) _$.toggleMode = mode;
+        if ($.id === id) $.toggleMode = mode;
 
         options.toggleMode = mode;
     }
 
     toggleDoor(id: LocalId): undefined {
         const props = getProperties(id);
-        const options = _.data.get(id);
+        const options = readonly.data.get(id);
         if (props === undefined || options === undefined) return;
 
         if (options.toggleMode === "both") {
@@ -124,7 +126,7 @@ class DoorSystem implements ShapeSystem {
 
     getCursorState(id: LocalId): "lock-solid" | "lock-open-solid" | "eye-solid" | "eye-slash-solid" | undefined {
         const props = getProperties(id);
-        const options = _.data.get(id);
+        const options = readonly.data.get(id);
         if (props === undefined || options === undefined) return;
 
         if (options.toggleMode === "vision") {
@@ -138,7 +140,7 @@ class DoorSystem implements ShapeSystem {
     }
 
     getDoors(): Readonly<IterableIterator<LocalId>> {
-        return _.enabled.values();
+        return readonly.enabled.values();
     }
 }
 

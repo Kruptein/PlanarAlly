@@ -343,8 +343,8 @@ function enlargeGroup(): void {
 
 const activeLayer = floorState.currentLayer as ComputedRef<ILayer>;
 const activeLocation = toRef(settingsStore.state, "activeLocation");
-const currentFloorIndex = toRef(floorState.$, "floorIndex");
-const floors = toRef(floorState.$, "floors");
+const currentFloorIndex = toRef(floorState.reactive, "floorIndex");
+const floors = toRef(floorState.reactive, "floors");
 </script>
 
 <template>

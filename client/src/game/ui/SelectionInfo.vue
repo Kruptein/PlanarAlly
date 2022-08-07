@@ -68,7 +68,7 @@ async function changeValue(tracker: Tracker | Aura, isAura: boolean): Promise<vo
         <template v-if="shapeId !== undefined">
             <div id="selection-menu">
                 <div id="selection-lock-button" @click="setLocked" :title="t('game.ui.selection.SelectionInfo.lock')">
-                    <font-awesome-icon v-if="propertiesState.$.isLocked" icon="lock" />
+                    <font-awesome-icon v-if="propertiesState.reactive.isLocked" icon="lock" />
                     <font-awesome-icon v-else icon="unlock" />
                 </div>
                 <div
@@ -78,7 +78,7 @@ async function changeValue(tracker: Tracker | Aura, isAura: boolean): Promise<vo
                 >
                     <font-awesome-icon icon="edit" />
                 </div>
-                <div id="selection-name">{{ propertiesState.$.name }}</div>
+                <div id="selection-name">{{ propertiesState.reactive.name }}</div>
                 <div id="selection-trackers">
                     <template v-for="tracker in trackers" :key="tracker.uuid">
                         <div>{{ tracker.name }}</div>

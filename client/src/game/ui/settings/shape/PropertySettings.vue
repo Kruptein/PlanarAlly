@@ -18,58 +18,78 @@ const owned = accessState.hasEditAccess;
 
 function updateName(event: Event): void {
     if (!owned.value) return;
-    propertiesSystem.setName(propertiesState.$.id!, (event.target as HTMLInputElement).value, SERVER_SYNC);
+    propertiesSystem.setName(propertiesState.reactive.id!, (event.target as HTMLInputElement).value, SERVER_SYNC);
 }
 
 function toggleNameVisible(): void {
     if (!owned.value) return;
-    const id = propertiesState.$.id!;
+    const id = propertiesState.reactive.id!;
     propertiesSystem.setNameVisible(id, !getProperties(id)!.nameVisible, SERVER_SYNC);
 }
 
 function setToken(event: Event): void {
     if (!owned.value) return;
-    propertiesSystem.setIsToken(propertiesState.$.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
+    propertiesSystem.setIsToken(propertiesState.reactive.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
 function setInvisible(event: Event): void {
     if (!owned.value) return;
-    propertiesSystem.setIsInvisible(propertiesState.$.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
+    propertiesSystem.setIsInvisible(
+        propertiesState.reactive.id!,
+        (event.target as HTMLInputElement).checked,
+        SERVER_SYNC,
+    );
 }
 
 function setDefeated(event: Event): void {
     if (!owned.value) return;
-    propertiesSystem.setIsDefeated(propertiesState.$.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
+    propertiesSystem.setIsDefeated(
+        propertiesState.reactive.id!,
+        (event.target as HTMLInputElement).checked,
+        SERVER_SYNC,
+    );
 }
 
 function setLocked(event: Event): void {
     if (!owned.value) return;
-    propertiesSystem.setLocked(propertiesState.$.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
+    propertiesSystem.setLocked(propertiesState.reactive.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
 function toggleBadge(event: Event): void {
     if (!owned.value) return;
-    propertiesSystem.setShowBadge(propertiesState.$.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
+    propertiesSystem.setShowBadge(
+        propertiesState.reactive.id!,
+        (event.target as HTMLInputElement).checked,
+        SERVER_SYNC,
+    );
 }
 
 function setBlocksVision(event: Event): void {
     if (!owned.value) return;
-    propertiesSystem.setBlocksVision(propertiesState.$.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
+    propertiesSystem.setBlocksVision(
+        propertiesState.reactive.id!,
+        (event.target as HTMLInputElement).checked,
+        SERVER_SYNC,
+    );
 }
 
 function setBlocksMovement(event: Event): void {
     if (!owned.value) return;
-    propertiesSystem.setBlocksMovement(propertiesState.$.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
+    propertiesSystem.setBlocksMovement(
+        propertiesState.reactive.id!,
+        (event.target as HTMLInputElement).checked,
+        SERVER_SYNC,
+    );
 }
 
 function setStrokeColour(event: string, temporary = false): void {
     if (!owned.value) return;
-    propertiesSystem.setStrokeColour(propertiesState.$.id!, event, temporary ? NO_SYNC : SERVER_SYNC);
+    propertiesSystem.setStrokeColour(propertiesState.reactive.id!, event, temporary ? NO_SYNC : SERVER_SYNC);
 }
 
 function setFillColour(colour: string, temporary = false): void {
     if (!owned.value) return;
-    propertiesSystem.setFillColour(propertiesState.$.id!, colour, temporary ? NO_SYNC : SERVER_SYNC);
+    propertiesSystem.setFillColour(propertiesState.reactive.id!, colour, temporary ? NO_SYNC : SERVER_SYNC);
 }
 
 const hasValue = computed(() => {
@@ -110,12 +130,12 @@ function setValue(event: Event): void {
             <input
                 type="text"
                 id="shapeselectiondialog-name"
-                :value="propertiesState.$.name"
+                :value="propertiesState.reactive.name"
                 @change="updateName"
                 :disabled="!owned"
             />
             <div
-                :style="{ opacity: propertiesState.$.nameVisible ? 1.0 : 0.3, textAlign: 'center' }"
+                :style="{ opacity: propertiesState.reactive.nameVisible ? 1.0 : 0.3, textAlign: 'center' }"
                 @click="toggleNameVisible"
                 :disabled="!owned"
                 :title="t('common.toggle_public_private')"
@@ -139,7 +159,7 @@ function setValue(event: Event): void {
             <input
                 type="checkbox"
                 id="shapeselectiondialog-istoken"
-                :checked="propertiesState.$.isToken"
+                :checked="propertiesState.reactive.isToken"
                 @click="setToken"
                 style="grid-column-start: toggle"
                 class="styled-checkbox"
@@ -153,7 +173,7 @@ function setValue(event: Event): void {
             <input
                 type="checkbox"
                 id="shapeselectiondialog-is-invisible"
-                :checked="propertiesState.$.isInvisible"
+                :checked="propertiesState.reactive.isInvisible"
                 @click="setInvisible"
                 style="grid-column-start: toggle"
                 class="styled-checkbox"
@@ -167,7 +187,7 @@ function setValue(event: Event): void {
             <input
                 type="checkbox"
                 id="shapeselectiondialog-is-defeated"
-                :checked="propertiesState.$.isDefeated"
+                :checked="propertiesState.reactive.isDefeated"
                 @click="setDefeated"
                 style="grid-column-start: toggle"
                 class="styled-checkbox"
@@ -177,7 +197,7 @@ function setValue(event: Event): void {
         <div class="row">
             <label for="shapeselectiondialog-strokecolour">{{ t("common.border_color") }}</label>
             <ColourPicker
-                :colour="propertiesState.$.strokeColour?.[0]"
+                :colour="propertiesState.reactive.strokeColour?.[0]"
                 @input:colour="setStrokeColour($event, true)"
                 @update:colour="setStrokeColour($event)"
                 style="grid-column-start: toggle"
@@ -187,7 +207,7 @@ function setValue(event: Event): void {
         <div class="row">
             <label for="shapeselectiondialog-fillcolour">{{ t("common.fill_color") }}</label>
             <ColourPicker
-                :colour="propertiesState.$.fillColour"
+                :colour="propertiesState.reactive.fillColour"
                 @input:colour="setFillColour($event, true)"
                 @update:colour="setFillColour($event)"
                 style="grid-column-start: toggle"
@@ -202,7 +222,7 @@ function setValue(event: Event): void {
             <input
                 type="checkbox"
                 id="shapeselectiondialog-visionblocker"
-                :checked="propertiesState.$.blocksVision"
+                :checked="propertiesState.reactive.blocksVision"
                 @click="setBlocksVision"
                 style="grid-column-start: toggle"
                 :disabled="!owned"
@@ -215,7 +235,7 @@ function setValue(event: Event): void {
             <input
                 type="checkbox"
                 id="shapeselectiondialog-moveblocker"
-                :checked="propertiesState.$.blocksMovement"
+                :checked="propertiesState.reactive.blocksMovement"
                 @click="setBlocksMovement"
                 style="grid-column-start: toggle"
                 :disabled="!owned"
@@ -228,7 +248,7 @@ function setValue(event: Event): void {
             <input
                 type="checkbox"
                 id="shapeselectiondialog-is-locked"
-                :checked="propertiesState.$.isLocked"
+                :checked="propertiesState.reactive.isLocked"
                 @click="setLocked"
                 style="grid-column-start: toggle"
                 class="styled-checkbox"
@@ -242,7 +262,7 @@ function setValue(event: Event): void {
             <input
                 type="checkbox"
                 id="shapeselectiondialog-showBadge"
-                :checked="propertiesState.$.showBadge"
+                :checked="propertiesState.reactive.showBadge"
                 @click="toggleBadge"
                 style="grid-column-start: toggle"
                 class="styled-checkbox"

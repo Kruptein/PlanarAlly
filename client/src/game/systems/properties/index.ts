@@ -27,40 +27,40 @@ import { getProperties, propertiesState } from "./state";
 import type { ShapeProperties } from "./state";
 import { checkVisionSources } from "./vision";
 
-const { _, _$, DEFAULT } = propertiesState;
+const { mutable, mutableReactive: $, DEFAULT } = propertiesState;
 
 export class PropertiesSystem implements ShapeSystem {
     // BEHAVIOUR
 
     clear(): void {
-        _$.id = undefined;
-        _.data.clear();
+        $.id = undefined;
+        mutable.data.clear();
     }
 
     // Inform the system about the state of a certain LocalId
     inform(id: LocalId, data?: Partial<ShapeProperties>): void {
-        _.data.set(id, { ...DEFAULT(), ...data });
+        mutable.data.set(id, { ...DEFAULT(), ...data });
     }
 
     drop(id: LocalId): void {
-        _.data.delete(id);
-        if (_$.id === id) {
-            _$.id = undefined;
+        mutable.data.delete(id);
+        if ($.id === id) {
+            $.id = undefined;
         }
     }
 
     loadState(id: LocalId): void {
         const props = getProperties(id)!;
-        Object.assign(_$, props);
-        _$.id = id;
+        Object.assign($, props);
+        $.id = id;
     }
 
     dropState(): void {
-        _$.id = undefined;
+        $.id = undefined;
     }
 
     setName(id: LocalId, name: string, syncTo: Sync): void {
-        const shape = _.data.get(id);
+        const shape = mutable.data.get(id);
         if (shape === undefined) {
             return console.error("[Properties.setName] Unknown local shape.");
         }
@@ -68,11 +68,11 @@ export class PropertiesSystem implements ShapeSystem {
         shape.name = name;
 
         if (syncTo.server) sendShapeSetName({ shape: getGlobalId(id), value: name });
-        if (_$.id === id) _$.name = name;
+        if ($.id === id) $.name = name;
     }
 
     setNameVisible(id: LocalId, visible: boolean, syncTo: Sync): void {
-        const shape = _.data.get(id);
+        const shape = mutable.data.get(id);
         if (shape === undefined) {
             return console.error("[Properties.setNameVisible] Unknown local shape.");
         }
@@ -80,11 +80,11 @@ export class PropertiesSystem implements ShapeSystem {
         shape.nameVisible = visible;
 
         if (syncTo.server) sendShapeSetNameVisible({ shape: getGlobalId(id), value: visible });
-        if (_$.id === id) _$.nameVisible = visible;
+        if ($.id === id) $.nameVisible = visible;
     }
 
     setIsToken(id: LocalId, isToken: boolean, syncTo: Sync): void {
-        const shape = _.data.get(id);
+        const shape = mutable.data.get(id);
         if (shape === undefined) {
             return console.error("[Properties.setIsToken] Unknown local shape.");
         }
@@ -92,7 +92,7 @@ export class PropertiesSystem implements ShapeSystem {
         shape.isToken = isToken;
 
         if (syncTo.server) sendShapeSetIsToken({ shape: getGlobalId(id), value: isToken });
-        if (_$.id === id) _$.isToken = isToken;
+        if ($.id === id) $.isToken = isToken;
 
         if (accessSystem.hasAccessTo(id, false, { vision: true })) {
             if (isToken) accessSystem.addOwnedToken(id);
@@ -102,7 +102,7 @@ export class PropertiesSystem implements ShapeSystem {
     }
 
     setIsInvisible(id: LocalId, isInvisible: boolean, syncTo: Sync): void {
-        const shape = _.data.get(id);
+        const shape = mutable.data.get(id);
         if (shape === undefined) {
             return console.error("[Properties.setIsInvisible] Unknown local shape.");
         }
@@ -110,14 +110,14 @@ export class PropertiesSystem implements ShapeSystem {
         shape.isInvisible = isInvisible;
 
         if (syncTo.server) sendShapeSetInvisible({ shape: getGlobalId(id), value: isInvisible });
-        if (_$.id === id) _$.isInvisible = isInvisible;
+        if ($.id === id) $.isInvisible = isInvisible;
 
         const _shape = getShape(id)!;
         _shape.invalidate(!_shape.triggersVisionRecalc);
     }
 
     setStrokeColour(id: LocalId, strokeColour: string, syncTo: Sync): void {
-        const shape = _.data.get(id);
+        const shape = mutable.data.get(id);
         if (shape === undefined) {
             return console.error("[Properties.setStrokeColour] Unknown local shape.");
         }
@@ -125,13 +125,13 @@ export class PropertiesSystem implements ShapeSystem {
         shape.strokeColour = [strokeColour];
 
         if (syncTo.server) sendShapeSetStrokeColour({ shape: getGlobalId(id), value: strokeColour });
-        if (_$.id === id) _$.strokeColour = [strokeColour];
+        if ($.id === id) $.strokeColour = [strokeColour];
 
         getShape(id)?.invalidate(true);
     }
 
     setFillColour(id: LocalId, fillColour: string, syncTo: Sync): void {
-        const shape = _.data.get(id);
+        const shape = mutable.data.get(id);
         if (shape === undefined) {
             return console.error("[Properties.setFillColour] Unknown local shape.");
         }
@@ -139,13 +139,13 @@ export class PropertiesSystem implements ShapeSystem {
         shape.fillColour = fillColour;
 
         if (syncTo.server) sendShapeSetFillColour({ shape: getGlobalId(id), value: fillColour });
-        if (_$.id === id) _$.fillColour = fillColour;
+        if ($.id === id) $.fillColour = fillColour;
 
         getShape(id)?.invalidate(true);
     }
 
     setBlocksMovement(id: LocalId, blocksMovement: boolean, syncTo: Sync, recalculate = true): boolean {
-        const shape = _.data.get(id);
+        const shape = mutable.data.get(id);
         if (shape === undefined) {
             console.error("[Properties.setBlocksMovement] Unknown local shape.");
             return false;
@@ -154,7 +154,7 @@ export class PropertiesSystem implements ShapeSystem {
         shape.blocksMovement = blocksMovement;
 
         if (syncTo.server) sendShapeSetBlocksMovement({ shape: getGlobalId(id), value: blocksMovement });
-        if (_$.id === id) _$.blocksMovement = blocksMovement;
+        if ($.id === id) $.blocksMovement = blocksMovement;
 
         const alteredMovement = checkMovementSources(id, blocksMovement, recalculate);
         doorSystem.checkCursorState(id);
@@ -163,7 +163,7 @@ export class PropertiesSystem implements ShapeSystem {
     }
 
     setBlocksVision(id: LocalId, blocksVision: boolean, syncTo: Sync, recalculate = true): void {
-        const shape = _.data.get(id);
+        const shape = mutable.data.get(id);
         if (shape === undefined) {
             return console.error("[Properties.setBlocksVision] Unknown local shape.");
         }
@@ -171,7 +171,7 @@ export class PropertiesSystem implements ShapeSystem {
         shape.blocksVision = blocksVision;
 
         if (syncTo.server) sendShapeSetBlocksVision({ shape: getGlobalId(id), value: blocksVision });
-        if (_$.id === id) _$.blocksVision = blocksVision;
+        if ($.id === id) $.blocksVision = blocksVision;
 
         const alteredVision = checkVisionSources(id, blocksVision, recalculate);
         if (alteredVision && recalculate) getShape(id)?.invalidate(false);
@@ -179,7 +179,7 @@ export class PropertiesSystem implements ShapeSystem {
     }
 
     setShowBadge(id: LocalId, showBadge: boolean, syncTo: Sync): void {
-        const shape = _.data.get(id);
+        const shape = mutable.data.get(id);
         if (shape === undefined) {
             return console.error("[Properties.setShowBadge] Unknown local shape.");
         }
@@ -187,14 +187,14 @@ export class PropertiesSystem implements ShapeSystem {
         shape.showBadge = showBadge;
 
         if (syncTo.server) sendShapeSetShowBadge({ shape: getGlobalId(id), value: showBadge });
-        if (_$.id === id) _$.showBadge = showBadge;
+        if ($.id === id) $.showBadge = showBadge;
 
         const _shape = getShape(id)!;
         _shape.invalidate(!_shape.triggersVisionRecalc);
     }
 
     setIsDefeated(id: LocalId, isDefeated: boolean, syncTo: Sync): void {
-        const shape = _.data.get(id);
+        const shape = mutable.data.get(id);
         if (shape === undefined) {
             return console.error("[Properties.setIsDefeated] Unknown local shape.");
         }
@@ -202,14 +202,14 @@ export class PropertiesSystem implements ShapeSystem {
         shape.isDefeated = isDefeated;
 
         if (syncTo.server) sendShapeSetDefeated({ shape: getGlobalId(id), value: isDefeated });
-        if (_$.id === id) _$.isDefeated = isDefeated;
+        if ($.id === id) $.isDefeated = isDefeated;
 
         const _shape = getShape(id)!;
         _shape.invalidate(!_shape.triggersVisionRecalc);
     }
 
     setLocked(id: LocalId, isLocked: boolean, syncTo: Sync): void {
-        const shape = _.data.get(id);
+        const shape = mutable.data.get(id);
         if (shape === undefined) {
             return console.error("[Properties.setLocked] Unknown local shape.");
         }
@@ -217,7 +217,7 @@ export class PropertiesSystem implements ShapeSystem {
         shape.isLocked = isLocked;
 
         if (syncTo.server) sendShapeSetLocked({ shape: getGlobalId(id), value: isLocked });
-        if (_$.id === id) _$.isLocked = isLocked;
+        if ($.id === id) $.isLocked = isLocked;
     }
 }
 

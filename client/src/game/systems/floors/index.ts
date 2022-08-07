@@ -51,7 +51,7 @@ class FloorSystem implements System {
         readonly = true,
     ): number | DeepReadonly<Floor> | undefined {
         const method = mode === "index" ? "findIndex" : "find";
-        const target = readonly === false ? $ : floorState.readonly;
+        const target = readonly === false ? $ : floorState.reactive;
         if ("name" in data) return target.floors[method]((f) => f.name === data.name);
         if ("id" in data) return target.floors[method]((f) => f.id === data.id);
         return mode === "index" ? data.position : target.floors[data.position];
@@ -78,7 +78,7 @@ class FloorSystem implements System {
             if (I >= 0) {
                 this.indices.splice(I, 0, targetIndex);
                 $.floors.splice(I, 0, floor);
-                if (I <= floorState.readonly.floorIndex) $.floorIndex = (floorState.readonly.floorIndex + 1) as FloorId;
+                if (I <= floorState.raw.floorIndex) $.floorIndex = (floorState.raw.floorIndex + 1) as FloorId;
             } else {
                 this.indices.push(targetIndex);
                 $.floors.push(floor);
@@ -91,12 +91,12 @@ class FloorSystem implements System {
 
     selectFloor(targetFloor: FloorRepresentation, sync: boolean): void {
         const targetFloorIndex = this.getFloorIndex(targetFloor);
-        if (targetFloorIndex === floorState.readonly.floorIndex || targetFloorIndex === undefined) return;
+        if (targetFloorIndex === floorState.raw.floorIndex || targetFloorIndex === undefined) return;
         const floor = this.getFloor(targetFloor)!;
 
         $.floorIndex = targetFloorIndex;
         $.layers = this.getLayers(floor);
-        for (const [fI, f] of floorState.readonly.floors.entries()) {
+        for (const [fI, f] of floorState.raw.floors.entries()) {
             for (const layer of this.getLayers(f)) {
                 if (fI > targetFloorIndex) layer.canvas.style.display = "none";
                 else layer.canvas.style.removeProperty("display");
@@ -108,14 +108,14 @@ class FloorSystem implements System {
 
     renameFloor(index: number, name: string, sync: boolean): void {
         $.floors[index].name = name;
-        if (index === floorState.readonly.floorIndex) this.invalidateAllFloors();
+        if (index === floorState.raw.floorIndex) this.invalidateAllFloors();
         if (sync) sendRenameFloor({ index, name });
     }
 
     removeFloor(floorRepresentation: FloorRepresentation, sync: boolean): void {
         const floorIndex = this.getFloorIndex(floorRepresentation);
         if (floorIndex === undefined) throw new Error("Could not remove unknown floor");
-        const floor = floorState.readonly.floors[floorIndex];
+        const floor = floorState.raw.floors[floorIndex];
 
         visionState.removeCdt(floor.id);
         visionState.removeBlockers(TriangulationTarget.MOVEMENT, floor.id);
@@ -126,8 +126,8 @@ class FloorSystem implements System {
         $.floors.splice(floorIndex, 1);
         this.layerMap.delete(floor.id);
 
-        if (floorState.readonly.floorIndex === floorIndex) this.selectFloor({ position: floorIndex - 1 }, true);
-        else if (floorState.readonly.floorIndex > floorIndex) $.floorIndex--;
+        if (floorState.raw.floorIndex === floorIndex) this.selectFloor({ position: floorIndex - 1 }, true);
+        else if (floorState.raw.floorIndex > floorIndex) $.floorIndex--;
         if (sync) sendRemoveFloor(floor.name);
     }
 
@@ -140,8 +140,8 @@ class FloorSystem implements System {
     }
 
     reorderFloors(floors: string[], sync: boolean): void {
-        const activeFloorName = floorState.readonly.floors[floorState.readonly.floorIndex].name;
-        $.floors = floors.map((name) => floorState.readonly.floors.find((f) => f.name === name)!);
+        const activeFloorName = floorState.raw.floors[floorState.raw.floorIndex].name;
+        $.floors = floors.map((name) => floorState.raw.floors.find((f) => f.name === name)!);
         $.floorIndex = this.getFloorIndex({ name: activeFloorName })!;
         recalculateZIndices();
         if (sync) sendFloorReorder(floors);
@@ -169,10 +169,10 @@ class FloorSystem implements System {
     // LAYERS
 
     addLayer(layer: ILayer, floorId: number): void {
-        for (const floor of floorState.readonly.floors) {
+        for (const floor of floorState.raw.floors) {
             if (floor.id === floorId) {
                 this.layerMap.get(floor.id)!.push(layer);
-                if (floorState.readonly.layerIndex < 0) {
+                if (floorState.raw.layerIndex < 0) {
                     $.layerIndex = 2;
                 }
                 return;
@@ -183,7 +183,7 @@ class FloorSystem implements System {
 
     getLayer(floor: Floor, name?: LayerName): ILayer | undefined {
         const layers = this.layerMap.get(floor.id)!;
-        if (name === undefined) return layers[floorState.readonly.layerIndex];
+        if (name === undefined) return layers[floorState.raw.layerIndex];
         for (const layer of layers) {
             if (layer.name === name) return layer;
         }
@@ -230,14 +230,14 @@ class FloorSystem implements System {
     }
 
     invalidateAllFloors(): void {
-        for (const floor of floorState.readonly.floors) {
+        for (const floor of floorState.raw.floors) {
             this.invalidate(floor);
         }
     }
 
     invalidateVisibleFloors(): void {
         let floorFound = false;
-        for (const floor of floorState.readonly.floors) {
+        for (const floor of floorState.raw.floors) {
             if (floorFound) this.invalidateLight(floor.id);
             else this.invalidate(floor);
             if (floor === currentFloor.value) floorFound = true;
@@ -254,8 +254,8 @@ class FloorSystem implements System {
     }
 
     invalidateLightAllFloors(): void {
-        for (const [f, floor] of floorState.readonly.floors.entries()) {
-            if (f > floorState.readonly.floorIndex) return;
+        for (const [f, floor] of floorState.raw.floors.entries()) {
+            if (f > floorState.raw.floorIndex) return;
             this.invalidateLight(floor.id);
         }
     }

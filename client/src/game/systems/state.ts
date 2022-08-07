@@ -5,35 +5,32 @@ import type { DeepReadonly, UnwrapNestedRefs } from "vue";
 // we can work with readonly purely as typing
 // and not bother with explicit readonly() calls
 
-export function buildState<T extends object>(
-    state: T,
-): {
-    readonly: DeepReadonly<T>;
+interface ReactiveState<T extends object> {
+    raw: DeepReadonly<T>;
     reactive: DeepReadonly<UnwrapNestedRefs<T>>;
     mutableReactive: UnwrapNestedRefs<T>;
-};
+}
+
+export function buildState<T extends object>(state: T): ReactiveState<T>;
 export function buildState<T extends object, U>(
     state: T,
     nonReactiveProperties: U,
-): {
-    readonly: DeepReadonly<T & U>;
+): ReactiveState<T> & {
+    readonly: DeepReadonly<U>;
     mutable: U;
-    reactive: DeepReadonly<UnwrapNestedRefs<T>>;
-    mutableReactive: UnwrapNestedRefs<T>;
 };
 export function buildState<T extends object, U = void>(
     state: T,
     nonReactiveProperties?: U,
-): {
-    readonly: DeepReadonly<T & U>;
+): ReactiveState<T> & {
+    readonly: DeepReadonly<U>;
     mutable: U | undefined;
-    reactive: DeepReadonly<UnwrapNestedRefs<T>>;
-    mutableReactive: UnwrapNestedRefs<T>;
 } {
     const reactiveState = reactive(state);
     return {
-        readonly: { ...state, ...nonReactiveProperties } as DeepReadonly<T & U>,
+        readonly: nonReactiveProperties as DeepReadonly<U>,
         mutable: nonReactiveProperties,
+        raw: state as DeepReadonly<T>,
         reactive: reactiveState as DeepReadonly<UnwrapNestedRefs<T>>,
         mutableReactive: reactiveState,
     };

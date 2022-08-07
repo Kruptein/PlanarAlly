@@ -13,7 +13,7 @@ export function stopDrawLoop(): void {
 }
 
 function drawLoop(): void {
-    const state = floorState.readonly;
+    const state = floorState.raw;
     // First process all other floors
     for (const [f, floor] of state.floors.entries()) {
         if (f === state.floorIndex) continue;

@@ -158,29 +158,28 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             undoOperation();
             event.preventDefault();
             event.stopPropagation();
-        } else if (event.key === "PageUp" && floorState.readonly.floorIndex < floorState.readonly.floors.length - 1) {
+        } else if (event.key === "PageUp" && floorState.raw.floorIndex < floorState.raw.floors.length - 1) {
             // Page Up - Move floor up
             // Alt + Page Up - Move selected shapes floor up
             // Alt + Shift + Page Up - Move selected shapes floor up AND move floor up
             event.preventDefault();
             event.stopPropagation();
-            const targetFloor = floorState.readonly.floors.findIndex(
-                (f, i) => i > floorState.readonly.floorIndex && (getGameState().isDm || f.playerVisible),
+            const targetFloor = floorState.raw.floors.findIndex(
+                (f, i) => i > floorState.raw.floorIndex && (getGameState().isDm || f.playerVisible),
             );
 
             changeFloor(event, targetFloor);
-        } else if (event.key === "PageDown" && floorState.readonly.floorIndex > 0) {
+        } else if (event.key === "PageDown" && floorState.raw.floorIndex > 0) {
             // Page Down - Move floor down
             // Alt + Page Down - Move selected shape floor down
             // Alt + Shift + Page Down - Move selected shapes floor down AND move floor down
             event.preventDefault();
             event.stopPropagation();
-            const maxLength = floorState.readonly.floors.length - 1;
-            let targetFloor = [...floorState.readonly.floors]
+            const maxLength = floorState.raw.floors.length - 1;
+            let targetFloor = [...floorState.raw.floors]
                 .reverse()
                 .findIndex(
-                    (f, i) =>
-                        maxLength - i < floorState.readonly.floorIndex && (getGameState().isDm || f.playerVisible),
+                    (f, i) => maxLength - i < floorState.raw.floorIndex && (getGameState().isDm || f.playerVisible),
                 );
             targetFloor = maxLength - targetFloor;
 
@@ -193,9 +192,9 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
 }
 
 function changeFloor(event: KeyboardEvent, targetFloor: number): void {
-    if (targetFloor < 0 || targetFloor > floorState.readonly.floors.length - 1) return;
+    if (targetFloor < 0 || targetFloor > floorState.raw.floors.length - 1) return;
     const selection = selectedSystem.get({ includeComposites: true });
-    const newFloor = floorState.readonly.floors[targetFloor];
+    const newFloor = floorState.raw.floors[targetFloor];
 
     if (event.altKey) {
         moveFloor([...selection], newFloor, true);

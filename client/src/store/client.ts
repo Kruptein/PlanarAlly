@@ -119,20 +119,14 @@ class ClientStore extends Store<State> {
     }
 
     // POSITION
-    setPanX(x: number): void {
+    setPan(x: number, y: number): void {
         this._state.panX = x;
-    }
-
-    setPanY(y: number): void {
         this._state.panY = y;
     }
 
-    increasePanX(increase: number): void {
-        this._state.panX += increase;
-    }
-
-    increasePanY(increase: number): void {
-        this._state.panY += increase;
+    increasePan(x: number, y: number): void {
+        this._state.panX += x;
+        this._state.panY += y;
     }
 
     // ZOOM

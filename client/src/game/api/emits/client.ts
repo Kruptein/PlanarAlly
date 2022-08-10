@@ -1,4 +1,4 @@
-import { clientStore } from "../../../store/client";
+import { clientStore, ZOOM } from "../../../store/client";
 import type { ServerUserOptions, ServerUserLocationOptions } from "../../models/settings";
 import { wrapSocket } from "../helpers";
 import { socket } from "../socket";
@@ -9,7 +9,7 @@ export function sendClientLocationOptions(): void {
         pan_x: state.panX,
         pan_y: state.panY,
         zoom_display: state.zoomDisplay,
-        zoom_factor: clientStore.zoomFactor.value,
+        zoom_factor: ZOOM,
         client_h: window.innerHeight,
         client_w: window.innerWidth,
     });

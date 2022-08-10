@@ -14,6 +14,7 @@ import { floorState } from "../game/systems/floors/state";
 
 export const DEFAULT_GRID_SIZE = 50;
 // export const ZOOM_1_SOLUTION = 0.194904;
+export let ZOOM = 0;
 
 interface State extends UserOptions {
     username: string;
@@ -25,24 +26,27 @@ interface State extends UserOptions {
     zoomDisplay: number;
 }
 
+export function setZoomFactor(zoomDisplay: number): void {
+    const gf = clientStore.gridSize.value / DEFAULT_GRID_SIZE;
+    if (clientStore.state.useAsPhysicalBoard) {
+        if (ZOOM !== gf) {
+            ZOOM = gf;
+        }
+    } else {
+        // Powercurve 0.2/3/10
+        // Based on https://stackoverflow.com/a/17102320
+        const zoomValue = 1 / (-5 / 3 + (28 / 15) * Math.exp(1.83 * zoomDisplay));
+        const newZoomFactor = zoomValue * gf;
+        ZOOM = newZoomFactor;
+    }
+}
+
 class ClientStore extends Store<State> {
-    zoomFactor: ComputedRef<number>;
     gridSize: ComputedRef<number>;
     devicePixelRatio: ComputedRef<number>;
 
     constructor() {
         super();
-        this.zoomFactor = computed(() => {
-            const gf = this.gridSize.value / DEFAULT_GRID_SIZE;
-            if (this._state.useAsPhysicalBoard) {
-                return gf;
-            } else {
-                // Powercurve 0.2/3/10
-                // Based on https://stackoverflow.com/a/17102320
-                const zoomValue = 1 / (-5 / 3 + (28 / 15) * Math.exp(1.83 * this._state.zoomDisplay));
-                return zoomValue * gf;
-            }
-        });
         this.gridSize = computed(() => {
             if (this._state.useAsPhysicalBoard) {
                 return (this._state.ppi * this._state.miniSize) / this.devicePixelRatio.value;
@@ -131,25 +135,21 @@ class ClientStore extends Store<State> {
 
     // ZOOM
 
-    setZoomDisplay(zoom: number): void {
-        if (zoom === this._state.zoomDisplay) return;
+    setZoomDisplay(zoom: number, invalidate: boolean): void {
         if (zoom < 0) zoom = 0;
         if (zoom > 1) zoom = 1;
         this._state.zoomDisplay = zoom;
-        floorSystem.invalidateAllFloors();
+        setZoomFactor(zoom);
+        if (invalidate) floorSystem.invalidateAllFloors();
     }
 
     updateZoom(newZoomDisplay: number, zoomLocation: GlobalPoint): void {
-        if (newZoomDisplay === this._state.zoomDisplay) return;
-        if (newZoomDisplay < 0) newZoomDisplay = 0;
-        if (newZoomDisplay > 1) newZoomDisplay = 1;
         const oldLoc = g2l(zoomLocation);
-        this._state.zoomDisplay = newZoomDisplay;
+        this.setZoomDisplay(newZoomDisplay, false);
         const newLoc = l2g(oldLoc);
         // Change the pan settings to keep the zoomLocation in the same exact location before and after the zoom.
         const diff = subtractP(newLoc, zoomLocation);
-        this._state.panX += diff.x;
-        this._state.panY += diff.y;
+        this.increasePan(diff.x, diff.y);
         floorSystem.invalidateAllFloors();
         sendClientLocationOptions();
     }

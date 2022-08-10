@@ -4,7 +4,6 @@ import { clientStore } from "../../../store/client";
 import { userOptionsToClient } from "../../models/settings";
 import type { ServerClient, ServerUserLocationOptions } from "../../models/settings";
 import { moveClientRect } from "../../systems/client/move";
-import { floorSystem } from "../../systems/floors";
 import { socket } from "../socket";
 
 // eslint-disable-next-line import/no-unused-modules
@@ -16,8 +15,7 @@ socket.on("Client.Move", (data: { player: number } & ServerUserLocationOptions) 
         moveClientRect(player, locationData);
     } else {
         clientStore.setPan(data.pan_x, data.pan_y);
-        clientStore.setZoomDisplay(data.zoom_display);
-        floorSystem.invalidateAllFloors();
+        clientStore.setZoomDisplay(data.zoom_display, true);
     }
 });
 
@@ -74,7 +72,7 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
     else clientStore.setInitiativeEffectVisibility(options.default_user_options.initiative_effect_visibility, false);
 
     clientStore.setPan(options.location_user_options.pan_x, options.location_user_options.pan_y);
-    clientStore.setZoomDisplay(options.location_user_options.zoom_display);
+    clientStore.setZoomDisplay(options.location_user_options.zoom_display, true);
 
     activeLayerToselect = options.location_user_options.active_layer;
 });

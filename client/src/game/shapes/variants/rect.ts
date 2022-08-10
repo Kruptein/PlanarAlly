@@ -1,6 +1,6 @@
 import { g2l } from "../../../core/conversions";
 import type { GlobalPoint } from "../../../core/geometry";
-import { clientStore } from "../../../store/client";
+import { ZOOM } from "../../../store/client";
 import { getFogColour } from "../../colour";
 import type { GlobalId, LocalId } from "../../id";
 import type { ServerRect } from "../../models/shapes";
@@ -40,14 +40,13 @@ export class Rect extends BaseRect {
         const props = getProperties(this.id)!;
         if (props.fillColour === "fog") ctx.fillStyle = getFogColour();
         else ctx.fillStyle = props.fillColour;
-        const z = clientStore.zoomFactor.value;
         const loc = g2l(this.refPoint);
         const center = g2l(this.center());
-        ctx.fillRect(loc.x - center.x, loc.y - center.y, this.w * z, this.h * z);
+        ctx.fillRect(loc.x - center.x, loc.y - center.y, this.w * ZOOM, this.h * ZOOM);
         if (props.strokeColour[0] !== "rgba(0, 0, 0, 0)") {
             ctx.strokeStyle = props.strokeColour[0];
             ctx.lineWidth = this.strokeWidth;
-            ctx.strokeRect(loc.x - center.x, loc.y - center.y, this.w * z, this.h * z);
+            ctx.strokeRect(loc.x - center.x, loc.y - center.y, this.w * ZOOM, this.h * ZOOM);
         }
 
         super.drawPost(ctx);

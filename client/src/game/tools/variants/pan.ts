@@ -21,8 +21,7 @@ class PanTool extends Tool {
 
     panScreen(target: LocalPoint, full: boolean): void {
         const distance = subtractP(target, this.panStart).multiply(1 / clientStore.zoomFactor.value);
-        clientStore.increasePanX(Math.round(distance.x));
-        clientStore.increasePanY(Math.round(distance.y));
+        clientStore.increasePan(Math.round(distance.x), Math.round(distance.y));
         this.panStart = target;
 
         if (full) floorSystem.invalidateAllFloors();

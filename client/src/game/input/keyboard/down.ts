@@ -90,8 +90,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                 await moveShapes(selection, delta, false);
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.
-                clientStore.increasePanX(offsetX * -1);
-                clientStore.increasePanY(offsetY * -1);
+                clientStore.increasePan(offsetX * -1, offsetY * -1);
                 floorSystem.invalidateAllFloors();
                 sendClientLocationOptions();
             }

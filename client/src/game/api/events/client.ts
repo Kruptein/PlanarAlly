@@ -15,8 +15,7 @@ socket.on("Client.Move", (data: { player: number } & ServerUserLocationOptions) 
     if (getGameState().isDm) {
         moveClientRect(player, locationData);
     } else {
-        clientStore.setPanX(data.pan_x);
-        clientStore.setPanY(data.pan_y);
+        clientStore.setPan(data.pan_x, data.pan_y);
         clientStore.setZoomDisplay(data.zoom_display);
         floorSystem.invalidateAllFloors();
     }
@@ -74,8 +73,7 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
         clientStore.setInitiativeEffectVisibility(options.room_user_options.initiative_effect_visibility, false);
     else clientStore.setInitiativeEffectVisibility(options.default_user_options.initiative_effect_visibility, false);
 
-    clientStore.setPanX(options.location_user_options.pan_x);
-    clientStore.setPanY(options.location_user_options.pan_y);
+    clientStore.setPan(options.location_user_options.pan_x, options.location_user_options.pan_y);
     clientStore.setZoomDisplay(options.location_user_options.zoom_display);
 
     activeLayerToselect = options.location_user_options.active_layer;

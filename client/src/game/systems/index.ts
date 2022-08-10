@@ -18,14 +18,14 @@ export function dropFromSystems(id: LocalId): void {
     }
 }
 
-export function clearSystems(): void {
+export function clearSystems(partial: boolean): void {
     for (const system of Object.values(SYSTEMS)) {
-        system.clear();
+        system.clear(partial);
     }
 }
 
 export interface System {
-    clear(): void;
+    clear(partial: boolean): void;
 }
 
 export interface ShapeSystem extends System {

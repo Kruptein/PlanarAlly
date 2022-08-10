@@ -91,7 +91,10 @@ async def load_location(sid: str, location: Location, *, complete=False):
 
     # 0. CLEAR
 
-    await sio.emit("CLEAR", room=sid, namespace=GAME_NS)
+    if complete:
+        await sio.emit("CLEAR", room=sid, namespace=GAME_NS)
+    else:
+        await sio.emit("PARTIAL-CLEAR", room=sid, namespace=GAME_NS)
 
     # 1. Load client options
 

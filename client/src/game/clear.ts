@@ -8,7 +8,7 @@ import { clearSystems } from "./systems";
 import { initiativeStore } from "./ui/initiative/state";
 import { visionState } from "./vision/state";
 
-export function clearGame(): void {
+export function clearGame(partial: boolean): void {
     stopDrawLoop();
     gameStore.clear();
     visionState.clear();
@@ -16,6 +16,6 @@ export function clearGame(): void {
     document.getElementById("layers")!.innerHTML = "";
     compositeState.clear();
     initiativeStore.clear();
-    clearSystems();
+    clearSystems(partial);
     clearIds();
 }

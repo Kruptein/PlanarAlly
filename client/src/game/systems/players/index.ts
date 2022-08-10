@@ -13,8 +13,8 @@ import { playerState } from "./state";
 const { mutableReactive: $ } = playerState;
 
 class PlayerSystem implements System {
-    clear(): void {
-        $.players = [];
+    clear(partial: boolean): void {
+        if (!partial) $.players = [];
     }
 
     setPlayers(players: Player[]): void {

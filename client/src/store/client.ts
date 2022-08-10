@@ -26,7 +26,7 @@ interface State extends UserOptions {
     zoomDisplay: number;
 }
 
-export function setZoomFactor(zoomDisplay: number): void {
+function setZoomFactor(zoomDisplay: number): void {
     const gf = clientStore.gridSize.value / DEFAULT_GRID_SIZE;
     if (clientStore.state.useAsPhysicalBoard) {
         if (ZOOM !== gf) {

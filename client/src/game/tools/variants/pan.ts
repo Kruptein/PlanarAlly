@@ -1,7 +1,7 @@
 import { subtractP, toLP } from "../../../core/geometry";
 import type { LocalPoint } from "../../../core/geometry";
 import { i18n } from "../../../i18n";
-import { clientStore } from "../../../store/client";
+import { clientStore, ZOOM } from "../../../store/client";
 import { sendClientLocationOptions } from "../../api/emits/client";
 import { ToolName } from "../../models/tools";
 import type { ToolPermission } from "../../models/tools";
@@ -20,7 +20,7 @@ class PanTool extends Tool {
     }
 
     panScreen(target: LocalPoint, full: boolean): void {
-        const distance = subtractP(target, this.panStart).multiply(1 / clientStore.zoomFactor.value);
+        const distance = subtractP(target, this.panStart).multiply(1 / ZOOM);
         clientStore.increasePan(Math.round(distance.x), Math.round(distance.y));
         this.panStart = target;
 

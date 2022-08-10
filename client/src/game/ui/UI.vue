@@ -105,13 +105,13 @@ const zoomDisplay = computed({
         return clientStore.state.zoomDisplay;
     },
     set(zoom: number) {
-        clientStore.setZoomDisplay(zoom);
+        clientStore.setZoomDisplay(zoom, true);
         sendClientLocationOptions();
     },
 });
 
 function setTempZoomDisplay(value: number): void {
-    clientStore.setZoomDisplay(value);
+    clientStore.setZoomDisplay(value, true);
 }
 </script>
 

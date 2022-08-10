@@ -20,7 +20,7 @@ import { InvalidationMode, NO_SYNC, SyncMode } from "../../../../core/models/typ
 import { ctrlOrCmdPressed } from "../../../../core/utils";
 import { i18n } from "../../../../i18n";
 import { getGameState } from "../../../../store/_game";
-import { clientStore, DEFAULT_GRID_SIZE } from "../../../../store/client";
+import { clientStore, DEFAULT_GRID_SIZE, ZOOM } from "../../../../store/client";
 import { settingsStore } from "../../../../store/settings";
 import { sendRequest } from "../../../api/emits/logic";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../../api/emits/shape/core";
@@ -435,9 +435,7 @@ class SelectTool extends Tool implements ISelectTool {
             );
             layer.invalidate(true);
         } else if (layerSelection.length) {
-            let delta = Ray.fromPoints(this.dragRay.get(this.dragRay.tMax), lp).direction.multiply(
-                1 / clientStore.zoomFactor.value,
-            );
+            let delta = Ray.fromPoints(this.dragRay.get(this.dragRay.tMax), lp).direction.multiply(1 / ZOOM);
             const ogDelta = delta;
             if (this.mode === SelectOperations.Drag) {
                 if (ogDelta.length() === 0) return;

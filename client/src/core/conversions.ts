@@ -1,4 +1,4 @@
-import { clientStore, DEFAULT_GRID_SIZE } from "../store/client";
+import { clientStore, DEFAULT_GRID_SIZE, ZOOM } from "../store/client";
 import { settingsStore } from "../store/settings";
 
 import { Ray, toGP, toLP } from "./geometry";
@@ -6,10 +6,9 @@ import type { GlobalPoint, LocalPoint } from "./geometry";
 
 export function g2l(obj: GlobalPoint): LocalPoint {
     const state = clientStore.state;
-    const z = clientStore.zoomFactor.value;
     const panX = state.panX;
     const panY = state.panY;
-    return toLP((obj.x + panX) * z, (obj.y + panY) * z);
+    return toLP((obj.x + panX) * ZOOM, (obj.y + panY) * ZOOM);
 }
 
 export function g2lx(x: number): number {
@@ -21,7 +20,7 @@ export function g2ly(y: number): number {
 }
 
 export function g2lz(z: number): number {
-    return z * clientStore.zoomFactor.value;
+    return z * ZOOM;
 }
 
 export function getUnitDistance(r: number): number {
@@ -36,7 +35,7 @@ export function l2g(obj: LocalPoint): GlobalPoint;
 export function l2g(obj: Ray<LocalPoint>): Ray<GlobalPoint>;
 export function l2g(obj: LocalPoint | Ray<LocalPoint>): GlobalPoint | Ray<GlobalPoint> {
     const state = clientStore.state;
-    const z = clientStore.zoomFactor.value;
+    const z = ZOOM;
     const panX = state.panX;
     const panY = state.panY;
     if (obj instanceof Ray) {
@@ -55,7 +54,7 @@ export function l2gy(y: number): number {
 }
 
 export function l2gz(z: number): number {
-    return z / clientStore.zoomFactor.value;
+    return z / ZOOM;
 }
 
 export function clampGridLine(point: number): number {

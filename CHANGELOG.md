@@ -35,6 +35,7 @@ tech changes will usually be stripped from release notes for the public
 -   Annotations still being visible until refresh after removing player access
 -   Resetting location specific settings was not immediately synchronizing to clients until a refresh
 -   The asset manager was no longer useable when using a subpath setup
+-   Player state clearing on location change
 
 ## [2022.2.3] - 2022-07-13
 

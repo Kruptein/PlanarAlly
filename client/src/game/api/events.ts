@@ -77,7 +77,8 @@ socket.on("redirect", async (destination: string) => {
 
 // Bootup events
 
-socket.on("CLEAR", clearGame);
+socket.on("CLEAR", () => clearGame(false));
+socket.on("PARTIAL-CLEAR", () => clearGame(true));
 
 socket.on("Board.Locations.Set", (locationInfo: Location[]) => {
     locationStore.setLocations(locationInfo, false);

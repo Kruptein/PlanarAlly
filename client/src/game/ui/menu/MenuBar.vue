@@ -34,7 +34,7 @@ const noAssets = computed(() => {
 });
 
 async function exit(): Promise<void> {
-    clearGame();
+    clearGame(false);
     await router.push({ name: "dashboard" });
 }
 

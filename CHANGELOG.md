@@ -37,6 +37,7 @@ tech changes will usually be stripped from release notes for the public
 -   Resetting location specific settings was not immediately synchronizing to clients until a refresh
 -   The asset manager was no longer useable when using a subpath setup
 -   Player state clearing on location change
+-   Zoom sensitivity on touchpad
 
 ## [2022.2.3] - 2022-07-13
 

@@ -14,8 +14,9 @@ export function mouseDown(event: MouseEvent): void {
     if ((event.target as HTMLElement).tagName !== "CANVAS") return;
 
     let targetTool = activeTool.value;
-    if (event.button === 1) {
+    if (event.button === 1 || event.button === 2) {
         targetTool = ToolName.Pan;
+        uiStore.preventContextMenu(false);
     } else if (event.button !== 0) {
         return;
     }
@@ -40,8 +41,9 @@ export async function mouseMove(event: MouseEvent): Promise<void> {
 
     let targetTool = activeTool.value;
     // force targetTool to pan if hitting mouse wheel
-    if ((event.buttons & 4) !== 0) {
+    if ((event.buttons & 4) !== 0 || (event.buttons & 2) !== 0) {
         targetTool = ToolName.Pan;
+        uiStore.preventContextMenu(true);
     } else if ((event.button & 1) > 1) {
         return;
     }
@@ -82,7 +84,12 @@ export async function mouseUp(event: MouseEvent): Promise<void> {
     if ((event.target as HTMLElement).tagName !== "CANVAS") return;
 
     let targetTool = activeTool.value;
-    if (event.button === 1) {
+    if (event.button === 1 || event.buttons === 2) {
+        if (event.button === 2) {
+            if (!uiStore.state.preventContextMenu) {
+                return contextMenu(event);
+            }
+        }
         targetTool = ToolName.Pan;
     } else if (event.button !== 0) {
         return;
@@ -121,7 +128,8 @@ export async function mouseLeave(event: MouseEvent): Promise<void> {
 
 export function contextMenu(event: MouseEvent): void {
     if ((event.target as HTMLElement).tagName !== "CANVAS") return;
-    if (event.button !== 2 || (event.target as HTMLElement).tagName !== "CANVAS") return;
+    if (uiStore.state.preventContextMenu) return;
+    if (event.button !== 2) return;
     const tool = getActiveTool();
 
     for (const permitted of tool.permittedTools) {

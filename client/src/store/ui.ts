@@ -16,6 +16,8 @@ interface UiState {
 
     showFloorSettings: boolean;
     selectedFloor: number;
+
+    preventContextMenu: boolean;
 }
 
 class UiStore extends Store<UiState> {
@@ -34,6 +36,8 @@ class UiStore extends Store<UiState> {
 
             showFloorSettings: false,
             selectedFloor: 0,
+
+            preventContextMenu: false,
         };
     }
 
@@ -68,6 +72,10 @@ class UiStore extends Store<UiState> {
 
     hideFloorSettings(): void {
         this._state.showFloorSettings = false;
+    }
+
+    preventContextMenu(prevent: boolean): void {
+        this._state.preventContextMenu = prevent;
     }
 }
 

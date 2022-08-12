@@ -155,7 +155,7 @@ export default defineComponent({
                 @mousedown="mouseDown"
                 @mouseup="mouseUp"
                 @mousemove="mousemove"
-                @contextmenu.prevent.stop="contextMenu"
+                @contextmenu.prevent.stop
                 @dragover.prevent
                 @drop.prevent.stop="drop"
                 @touchmove="touchmove"

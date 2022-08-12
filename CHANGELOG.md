@@ -11,6 +11,7 @@ tech changes will usually be stripped from release notes for the public
 
 ### Added
 
+-   Pan with rightclick drag
 -   [server] option to specify alternative location for static files
 
 ### Changed

@@ -125,7 +125,8 @@ function getInitiativeWord(): string {
 
 const layers = computed(() => {
     if (isDm.value && !selectionIncludesSpawnToken.value) {
-        return floorSystem.getLayers(floorState.currentFloor.value!).filter((l) => l.selectable);
+        const currentFloor = floorState.currentFloor.value;
+        if (currentFloor !== undefined) return floorSystem.getLayers(currentFloor).filter((l) => l.selectable);
     }
     return [];
 });

@@ -84,7 +84,7 @@ export async function mouseUp(event: MouseEvent): Promise<void> {
     if ((event.target as HTMLElement).tagName !== "CANVAS") return;
 
     let targetTool = activeTool.value;
-    if (event.button === 1 || event.buttons === 2) {
+    if (event.button === 1 || event.button === 2) {
         if (event.button === 2) {
             if (!uiStore.state.preventContextMenu) {
                 return contextMenu(event);

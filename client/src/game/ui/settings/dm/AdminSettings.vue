@@ -11,6 +11,7 @@ import { gameStore } from "../../../../store/game";
 import { sendDeleteRoom, sendRefreshInviteCode } from "../../../api/emits/room";
 import { getRoles } from "../../../models/role";
 import { playerSystem } from "../../../systems/players";
+import type { PlayerId } from "../../../systems/players/models";
 import { playerState } from "../../../systems/players/state";
 
 const { t } = useI18n();
@@ -45,12 +46,12 @@ function refreshInviteCode(): void {
     showRefreshState.value = true;
 }
 
-async function kickPlayer(playerId: number): Promise<void> {
+async function kickPlayer(playerId: PlayerId): Promise<void> {
     const value = await modals.confirm("Kicking player", "Are you sure you wish to kick this player?");
     if (value === true) playerSystem.kickPlayer(playerId);
 }
 
-function changePlayerRole(event: Event, player: number): void {
+function changePlayerRole(event: Event, player: PlayerId): void {
     const value = (event.target as HTMLSelectElement).value;
     const role = parseInt(value);
     if (isNaN(role) || role < 0 || role >= roles.length) return;
@@ -58,8 +59,8 @@ function changePlayerRole(event: Event, player: number): void {
     playerSystem.setPlayerRole(player, role, true);
 }
 
-function togglePlayerRect(player: number): void {
-    const p = playerState.reactive.players.find((p) => p.id === player)?.showRect;
+function togglePlayerRect(player: PlayerId): void {
+    const p = playerSystem.getPlayer(player)?.showRect;
     if (p === undefined) return;
 
     playerSystem.setShowPlayerRect(player, !p);
@@ -84,7 +85,7 @@ const toggleLock = (): void => gameStore.setIsLocked(!gameState.isLocked, true);
 <template>
     <div class="panel">
         <div class="spanrow header">{{ t("common.players") }}</div>
-        <div class="row smallrow" v-for="player of players" :key="player.id">
+        <div class="row smallrow" v-for="player of players.values()" :key="player.id">
             <div>{{ player.name }}</div>
             <div class="player-actions">
                 <select
@@ -115,7 +116,7 @@ const toggleLock = (): void => gameStore.setIsLocked(!gameState.isLocked, true);
                 </div>
             </div>
         </div>
-        <div class="row smallrow" v-if="players.length === 0">
+        <div class="row smallrow" v-if="players.size === 0">
             <div class="spanrow">{{ t("game.ui.settings.dm.AdminSettings.no_players_invite_msg") }}</div>
         </div>
         <div class="spanrow header">{{ t("game.ui.settings.dm.AdminSettings.invite_code") }}</div>

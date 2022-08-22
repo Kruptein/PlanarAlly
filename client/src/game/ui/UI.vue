@@ -106,7 +106,7 @@ const zoomDisplay = computed({
     },
     set(zoom: number) {
         clientStore.setZoomDisplay(zoom, true);
-        sendClientLocationOptions();
+        sendClientLocationOptions(false);
     },
 });
 

@@ -1,7 +1,7 @@
 import { computed } from "vue";
 import type { ComputedRef } from "vue";
 
-import { g2l, l2g } from "../core/conversions";
+import { g2l, l2g, zoomDisplayToFactor } from "../core/conversions";
 import { addP, subtractP, toGP, Vector } from "../core/geometry";
 import type { GlobalPoint } from "../core/geometry";
 import { Store } from "../core/store";
@@ -33,11 +33,7 @@ function setZoomFactor(zoomDisplay: number): void {
             ZOOM = gf;
         }
     } else {
-        // Powercurve 0.2/3/10
-        // Based on https://stackoverflow.com/a/17102320
-        const zoomValue = 1 / (-5 / 3 + (28 / 15) * Math.exp(1.83 * zoomDisplay));
-        const newZoomFactor = zoomValue * gf;
-        ZOOM = newZoomFactor;
+        ZOOM = zoomDisplayToFactor(zoomDisplay);
     }
 }
 
@@ -151,7 +147,7 @@ class ClientStore extends Store<State> {
         const diff = subtractP(newLoc, zoomLocation);
         this.increasePan(diff.x, diff.y);
         floorSystem.invalidateAllFloors();
-        sendClientLocationOptions();
+        sendClientLocationOptions(false);
     }
 
     // OPTIONS

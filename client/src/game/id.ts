@@ -6,8 +6,17 @@ import { dropFromSystems } from "./systems";
 export type Global<T> = {
     [key in keyof T]: T[key] extends LocalId ? GlobalId : T[key] extends LocalId[] ? GlobalId[] : T[key];
 };
-export type GlobalId = string & { __brand: "globalId" };
-export type LocalId = number & { __brand: "localId" };
+export type NumberId<T extends string> = number & { __brand: T };
+export type StringId<T extends string> = string & { __brand: T };
+export type GlobalId = StringId<"globalId">;
+export type LocalId = NumberId<"localId">;
+
+export function asId<T extends string>(x: number, type: T): NumberId<T>;
+export function asId<T extends string>(x: string, type: T): StringId<T>;
+export function asId<T extends string>(x: number | string, type: T): NumberId<T> | StringId<T> {
+    if (typeof x === "string") return x as StringId<T>;
+    return x as NumberId<T>;
+}
 
 // Array of GlobalId indexed by localId
 let uuids: GlobalId[] = [];

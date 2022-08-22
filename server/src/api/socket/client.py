@@ -4,6 +4,7 @@ from typing_extensions import TypedDict
 from ... import auth
 from ...api.socket.constants import GAME_NS
 from ...app import app, sio
+from ...data_types.client import Viewport
 from ...data_types.location import LocationOptions
 from ...models import Floor, Layer, LocationUserOption, PlayerRoom
 from ...models.db import db
@@ -14,8 +15,13 @@ from ...state.game import game_state
 
 # DATA CLASSES FOR TYPE CHECKING
 class MoveClientData(TypedDict):
-    player: int
+    client: str
     data: LocationOptions
+
+
+class TempLocationOptions(TypedDict):
+    temp: bool
+    options: LocationOptions
 
 
 class ClientOptions(TypedDict, total=False):
@@ -61,45 +67,63 @@ async def set_client_room_options(sid: str, data: ClientOptions):
 
 
 async def update_client_location(
-    player: int, room: int, sid: str, data: LocationOptions
+    sid: str, target_client: str, data: TempLocationOptions
 ):
-    pr = PlayerRoom.get(player=player, room=room)
+    pr = game_state.get(target_client)
 
-    LocationUserOption.update(
-        pan_x=data["pan_x"],
-        pan_y=data["pan_y"],
-        zoom_display=data["zoom_display"],
-    ).where(
-        (LocationUserOption.location == pr.active_location)
-        & (LocationUserOption.user == pr.player)
-    ).execute()
+    if not data["temp"]:
+        LocationUserOption.update(
+            pan_x=data["options"]["pan_x"],
+            pan_y=data["options"]["pan_y"],
+            zoom_display=data["options"]["zoom_display"],
+        ).where(
+            (LocationUserOption.location == pr.active_location)
+            & (LocationUserOption.user == pr.player)
+        ).execute()
 
-    if pr.role != Role.DM:
-        for p_sid, p_player in game_state.get_t(skip_sid=sid):
-            if p_player.role == Role.DM or p_player.player.id == player:
-                await sio.emit(
-                    "Client.Move",
-                    {"player": pr.player.id, **data},
-                    room=p_sid,
-                    namespace=GAME_NS,
-                )
+    for p_sid, p_player in game_state.get_t(skip_sid=sid):
+        is_dm = p_player.role == Role.DM
+        is_in_active_location = p_player.active_location == pr.active_location
+        if (is_dm and is_in_active_location) or p_player.player.id == pr.player.id:
+            await sio.emit(
+                "Client.Move",
+                {
+                    "player": pr.player.id,
+                    "client": sid,
+                    **data["options"],
+                },
+                room=p_sid,
+                namespace=GAME_NS,
+            )
 
 
 @sio.on("Client.Options.Location.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_client_location_options(sid: str, data: LocationOptions):
-    pr: PlayerRoom = game_state.get(sid)
-    game_state.client_locations[sid] = data
-
-    await update_client_location(pr.player.id, pr.room.id, sid, data)
+async def set_client_location_options(sid: str, data: TempLocationOptions):
+    await update_client_location(sid, sid, data)
 
 
 @sio.on("Client.Move", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def move_client(sid: str, data: MoveClientData):
-    pr: PlayerRoom = game_state.get(sid)
+    await update_client_location(
+        sid, data["client"], {"temp": False, "options": data["data"]}
+    )
 
-    await update_client_location(data["player"], pr.room.id, sid, data["data"])
+
+@sio.on("Client.Viewport.Set", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def set_viewport(sid: str, data: Viewport):
+    pr = game_state.get(sid)
+
+    game_state.client_locations[sid] = data
+
+    await sio.emit(
+        "Client.Viewport.Set",
+        {"viewport": data, "client": sid},
+        room=pr.room.get_path(),
+        namespace=GAME_NS,
+    )
 
 
 @sio.on("Client.ActiveLayer.Set", namespace=GAME_NS)

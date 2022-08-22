@@ -2,7 +2,6 @@ import type { DeepReadonly } from "vue";
 
 import type { GlobalPoint } from "../core/geometry";
 import type { AssetListMap } from "../core/models/types";
-import { sendClientLocationOptions } from "../game/api/emits/client";
 import { sendLabelAdd, sendLabelDelete, sendLabelFilterAdd, sendLabelFilterDelete } from "../game/api/emits/labels";
 import { sendMarkerCreate, sendMarkerRemove } from "../game/api/emits/marker";
 import { sendNewNote, sendRemoveNote, sendUpdateNote } from "../game/api/emits/note";
@@ -99,8 +98,6 @@ class GameStore {
         const shape = getShape(marker);
         if (shape == undefined) return;
         setCenterPosition(shape.center());
-        sendClientLocationOptions();
-        floorSystem.invalidateAllFloors();
     }
 
     removeMarker(marker: LocalId, sync: boolean): void {

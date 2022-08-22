@@ -3,20 +3,33 @@ import { getGameState } from "../../../store/_game";
 import { clientStore } from "../../../store/client";
 import { userOptionsToClient } from "../../models/settings";
 import type { ServerClient, ServerUserLocationOptions } from "../../models/settings";
-import { moveClientRect } from "../../systems/client/move";
+import { clientSystem } from "../../systems/client";
+import type { ClientId, Viewport } from "../../systems/client/models";
+import { playerSystem } from "../../systems/players";
+import type { PlayerId } from "../../systems/players/models";
 import { socket } from "../socket";
 
-// eslint-disable-next-line import/no-unused-modules
-export let activeLayerToselect: string | undefined;
+socket.on("Client.Connected", (data: { player: PlayerId; client: ClientId }) => {
+    clientSystem.addClient(data.player, data.client);
+});
 
-socket.on("Client.Move", (data: { player: number } & ServerUserLocationOptions) => {
+socket.on("Client.Disconnected", (data: ClientId) => {
+    clientSystem.removeClient(data);
+});
+
+socket.on("Client.Move", (data: { player: PlayerId; client: ClientId } & ServerUserLocationOptions) => {
     const { player, ...locationData } = data;
-    if (getGameState().isDm) {
-        moveClientRect(player, locationData);
-    } else {
+    const isCurrentPlayer = playerSystem.getCurrentPlayer().id === data.player;
+    if (getGameState().isDm && !isCurrentPlayer) {
+        playerSystem.setPosition(player, locationData);
+    } else if (isCurrentPlayer) {
         clientStore.setPan(data.pan_x, data.pan_y);
         clientStore.setZoomDisplay(data.zoom_display, true);
     }
+});
+
+socket.on("Client.Viewport.Set", (data: { client: ClientId; viewport: Viewport }) => {
+    clientSystem.setClientViewport(data.client, data.viewport);
 });
 
 socket.on("Client.Options.Set", (options: ServerClient) => {
@@ -70,9 +83,4 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
     if (options.room_user_options?.initiative_effect_visibility !== undefined)
         clientStore.setInitiativeEffectVisibility(options.room_user_options.initiative_effect_visibility, false);
     else clientStore.setInitiativeEffectVisibility(options.default_user_options.initiative_effect_visibility, false);
-
-    clientStore.setPan(options.location_user_options.pan_x, options.location_user_options.pan_y);
-    clientStore.setZoomDisplay(options.location_user_options.zoom_display, true);
-
-    activeLayerToselect = options.location_user_options.active_layer;
 });

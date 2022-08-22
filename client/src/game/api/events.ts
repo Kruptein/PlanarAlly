@@ -4,6 +4,7 @@ import "../systems/logic/door/events";
 import "../systems/logic/tp/events";
 import "../systems/trackers/events";
 
+import "./events/client";
 import "./events/dice";
 import "./events/floor";
 import "./events/groups";
@@ -13,6 +14,7 @@ import "./events/location";
 import "./events/logic";
 import "./events/notification";
 import "./events/player";
+import "./events/players";
 import "./events/room";
 import "./events/shape/circularToken";
 import "./events/shape/core";
@@ -38,13 +40,11 @@ import type { GlobalId } from "../id";
 import type { Note, ServerFloor } from "../models/general";
 import type { Location } from "../models/settings";
 import { setCenterPosition } from "../position";
-import { startDrawLoop } from "../rendering/core";
 import { deleteShapes } from "../shapes/utils";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
 
-import { sendClientLocationOptions } from "./emits/client";
-import { activeLayerToselect } from "./events/client";
+import { sendViewportInfo } from "./emits/client";
 import { socket } from "./socket";
 
 // Core WS events
@@ -98,12 +98,9 @@ socket.on("Board.Floor.Set", (floor: ServerFloor) => {
 
     if (selectFloor) {
         floorSystem.selectFloor({ name: floor.name }, false);
-        startDrawLoop();
         coreStore.setLoading(false);
         gameStore.setBoardInitialized(true);
-        if (activeLayerToselect !== undefined) floorSystem.selectLayer(activeLayerToselect, false);
-        // Send initial viewport on connect (this can change due to other monitors etc)
-        sendClientLocationOptions();
+        sendViewportInfo();
     }
 });
 

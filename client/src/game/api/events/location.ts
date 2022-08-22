@@ -9,6 +9,7 @@ import { reserveLocalId } from "../../id";
 import type { GlobalId } from "../../id";
 import type { ServerLocation } from "../../models/general";
 import type { Location, LocationOptions, ServerLocationOptions } from "../../models/settings";
+import { clientSystem } from "../../systems/client";
 import { playerSystem } from "../../systems/players";
 import { VisibilityMode, visionState } from "../../vision/state";
 import { socket } from "../socket";
@@ -16,6 +17,7 @@ import { socket } from "../socket";
 socket.on("Location.Set", (data: ServerLocation) => {
     settingsStore.setActiveLocation(data.id);
     playerSystem.updatePlayersLocation([clientStore.state.username], data.id, false);
+    clientSystem.updateAllClientRects();
     setLocationOptions(data.id, data.options);
 });
 

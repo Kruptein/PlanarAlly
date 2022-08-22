@@ -12,11 +12,15 @@ tech changes will usually be stripped from release notes for the public
 ### Added
 
 -   Pan with rightclick drag
+-   Players section in the left in-game dm sidebar
+    -   Lists players connected to the session
+    -   Clicking on a name, centers your screen on their current view (if on the same location)
 -   [server] option to specify alternative location for static files
 
 ### Changed
 
 -   Draw tool vision and logic tabs will now have a background colour if they are active as a reminder
+-   Player viewport rectangles are now shown per client connected for that player instead of 1 rectangle following the latest move
 -   [DM] Hiding a token using the vision tool will now also hide their private light auras
 -   [server] moved all python imports to proper relative imports
     -   this changes the way to manually run the server (again) (sorry)

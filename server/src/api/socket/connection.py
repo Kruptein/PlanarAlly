@@ -48,6 +48,15 @@ async def connect(sid, environ):
     logger.info(f"User {user.name} connected with identifier {sid}")
 
     sio.enter_room(sid, pr.active_location.get_path(), namespace=GAME_NS)
+    sio.enter_room(sid, pr.room.get_path(), namespace=GAME_NS)
+
+    await sio.emit(
+        "Client.Connected",
+        data={"player": user.id, "client": sid},
+        room=pr.room.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )
 
 
 @sio.on("disconnect", namespace=GAME_NS)
@@ -55,7 +64,15 @@ async def disconnect(sid):
     if not game_state.has_sid(sid):
         return
 
-    user = game_state.get_user(sid)
+    pr = game_state.get(sid)
 
-    logger.info(f"User {user.name} disconnected with identifier {sid}")
+    logger.info(f"User {pr.player.name} disconnected with identifier {sid}")
     await game_state.remove_sid(sid)
+
+    await sio.emit(
+        "Client.Disconnected",
+        data=sid,
+        room=pr.room.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )

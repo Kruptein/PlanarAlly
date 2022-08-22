@@ -92,7 +92,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                 // The pan offsets should be in the opposite direction to give the correct feel.
                 clientStore.increasePan(offsetX * -1, offsetY * -1);
                 floorSystem.invalidateAllFloors();
-                sendClientLocationOptions();
+                sendClientLocationOptions(false);
             }
         } else if (event.key === "d") {
             // d - Deselect all
@@ -125,8 +125,6 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
         } else if (event.key === "0" && ctrlOrCmdPressed(event)) {
             // Ctrl-0 or numpad 0 - Re-center/reset the viewport
             setCenterPosition(toGP(0, 0));
-            sendClientLocationOptions();
-            floorSystem.invalidateAllFloors();
         } else if (event.code === "Numpad5") {
             // numpad 5 will center on selected shape(s) or on origin
             let targetX = 0;
@@ -141,8 +139,6 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                 targetY /= selection.length;
             }
             setCenterPosition(toGP(targetX, targetY));
-            sendClientLocationOptions();
-            floorSystem.invalidateAllFloors();
         } else if (event.key === "c" && ctrlOrCmdPressed(event)) {
             // Ctrl-c - Copy
             copyShapes();

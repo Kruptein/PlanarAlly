@@ -3,6 +3,7 @@ import type { DeepReadonly } from "vue";
 import { registerSystem } from "..";
 import type { System } from "..";
 import { getGameState } from "../../../store/_game";
+import { sendViewportInfo } from "../../api/emits/client";
 import {
     sendActiveLayer,
     sendFloorReorder,
@@ -266,6 +267,7 @@ class FloorSystem implements System {
         for (const layer of [...this.layerMap.values()].flat()) {
             layer.resize(width, height);
         }
+        sendViewportInfo();
         this.invalidateAllFloors();
     }
 }

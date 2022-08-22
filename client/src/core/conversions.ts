@@ -73,3 +73,10 @@ export function toRadians(degrees: number): number {
 export function toDegrees(radians: number): number {
     return (radians * 180) / Math.PI;
 }
+
+// Powercurve 0.2/3/10
+// Based on https://stackoverflow.com/a/17102320
+export function zoomDisplayToFactor(display: number): number {
+    const zoomValue = 1 / (-5 / 3 + (28 / 15) * Math.exp(1.83 * display));
+    return (zoomValue * clientStore.gridSize.value) / DEFAULT_GRID_SIZE;
+}

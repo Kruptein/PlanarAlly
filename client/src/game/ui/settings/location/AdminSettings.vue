@@ -14,7 +14,9 @@ const props = defineProps<{ location: number }>();
 const { t } = useI18n();
 const modals = useModal();
 
-const hasPlayers = computed(() => playerState.reactive.players.some((p) => p.location === props.location));
+const hasPlayers = computed(() =>
+    [...playerState.reactive.players.values()].some((p) => p.location === props.location),
+);
 
 const name = computed({
     get() {

@@ -1,8 +1,7 @@
-import type { Player } from "../../models/player";
 import type { ServerUserLocationOptions } from "../../models/settings";
 import { buildState } from "../state";
 
-import type { PlayerId } from "./models";
+import type { Player, PlayerId } from "./models";
 
 interface PlayerState {
     players: Map<PlayerId, Player>;

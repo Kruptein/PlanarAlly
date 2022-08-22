@@ -45,7 +45,6 @@ class PlayerSystem implements System {
                 player.location = location;
             }
         }
-        // $.players = [...$.players];
         if (sync) sendLocationChange({ location, users: players, position: targetPosition });
     }
 

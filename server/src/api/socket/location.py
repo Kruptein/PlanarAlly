@@ -119,7 +119,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
             client_data = []
             for client in game_state.get_sids(player=rp.player, room=pr.room):
                 client_info: Dict[str, Union[str, Viewport]] = {"sid": client}
-                viewport = game_state.client_locations.get(client)
+                viewport = game_state.client_viewports.get(client)
                 if viewport is not None:
                     client_info["viewport"] = viewport
                 client_data.append(client_info)

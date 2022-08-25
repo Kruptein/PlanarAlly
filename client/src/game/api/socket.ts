@@ -1,6 +1,7 @@
 import type { RouteLocationNormalized } from "vue-router";
 
 import { createNewManager } from "../../core/socket";
+import type { ClientId } from "../systems/client/models";
 
 export const socket = createNewManager().socket("/planarally");
 
@@ -10,4 +11,8 @@ export function createConnection(route: RouteLocationNormalized): void {
         route.params.creator as string,
     )}&room=${decodeURIComponent(route.params.room as string)}`;
     socket.connect();
+}
+
+export function getClientId(): ClientId {
+    return socket.id as ClientId;
 }

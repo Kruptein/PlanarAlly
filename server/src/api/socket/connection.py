@@ -67,7 +67,10 @@ async def disconnect(sid):
     pr = game_state.get(sid)
 
     logger.info(f"User {pr.player.name} disconnected with identifier {sid}")
-    await game_state.remove_sid(sid)
+    try:
+        await game_state.remove_sid(sid)
+    except:
+        logger.exception("Failed to remove client sid properly")
 
     await sio.emit(
         "Client.Disconnected",

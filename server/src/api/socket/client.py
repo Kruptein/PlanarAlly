@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from typing_extensions import TypedDict
 
 from ... import auth
@@ -22,6 +22,12 @@ class MoveClientData(TypedDict):
 class TempLocationOptions(TypedDict):
     temp: bool
     options: LocationOptions
+
+
+class OffsetMessage(TypedDict):
+    client: str
+    x: Optional[int]
+    y: Optional[int]
 
 
 class ClientOptions(TypedDict, total=False):
@@ -116,12 +122,13 @@ async def move_client(sid: str, data: MoveClientData):
 async def set_viewport(sid: str, data: Viewport):
     pr = game_state.get(sid)
 
-    game_state.client_locations[sid] = data
+    game_state.client_viewports[sid] = data
 
     await sio.emit(
         "Client.Viewport.Set",
         {"viewport": data, "client": sid},
         room=pr.room.get_path(),
+        skip_sid=sid,
         namespace=GAME_NS,
     )
 
@@ -140,3 +147,25 @@ async def set_layer(sid: str, data: Dict[str, Any]):
         luo = LocationUserOption.get(user=pr.player, location=pr.active_location)
         luo.active_layer = layer
         luo.save()
+
+
+@sio.on("Client.Offset.Set", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def set_offset(sid: str, data: OffsetMessage):
+    pr = game_state.get(sid)
+
+    viewport = game_state.client_viewports.get(data["client"])
+
+    if viewport is not None:
+        viewport["offset_x"] = data.get("x", viewport.get("offset_x", None))
+        viewport["offset_y"] = data.get("y", viewport.get("offset_y", None))
+    else:
+        print("Unknown client viewport")
+        
+    await sio.emit(
+        "Client.Offset.Set",
+        data,
+        room=pr.active_location.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )

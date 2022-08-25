@@ -1,3 +1,4 @@
+import { getLocalStorageObject } from "../../../localStorageHelpers";
 import { clientStore } from "../../../store/client";
 import { gameStore } from "../../../store/game";
 import { Role } from "../../models/role";
@@ -8,7 +9,7 @@ import type { ClientId, Viewport } from "../../systems/client/models";
 import { floorSystem } from "../../systems/floors";
 import { playerSystem } from "../../systems/players";
 import type { Player } from "../../systems/players/models";
-import { socket } from "../socket";
+import { getClientId, socket } from "../socket";
 
 socket.on(
     "Players.Info.Set",
@@ -32,10 +33,14 @@ socket.on(
                 found = true;
                 gameStore.setDm(player.core.role === Role.DM);
                 if (player.position !== undefined) {
-                    clientStore.setZoomDisplay(player.position.zoom_display, true);
-                    clientStore.setPan(player.position.pan_x, player.position.pan_y);
+                    clientStore.setZoomDisplay(player.position.zoom_display, { invalidate: true, sync: false });
+                    clientStore.setPan(player.position.pan_x, player.position.pan_y, { needsOffset: false });
                     if (player.position.active_layer !== undefined)
                         floorSystem.selectLayer(player.position.active_layer, false);
+                    const offset = getLocalStorageObject("PA_OFFST") as { x?: number; y?: number } | undefined;
+                    clientSystem.initViewport();
+                    if (offset !== undefined) clientSystem.setOffset(getClientId(), offset, false);
+                    clientSystem.sendViewportInfo();
                 }
             }
         }

@@ -44,7 +44,6 @@ import { deleteShapes } from "../shapes/utils";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
 
-import { sendViewportInfo } from "./emits/client";
 import { socket } from "./socket";
 
 // Core WS events
@@ -100,7 +99,6 @@ socket.on("Board.Floor.Set", (floor: ServerFloor) => {
         floorSystem.selectFloor({ name: floor.name }, false);
         coreStore.setLoading(false);
         gameStore.setBoardInitialized(true);
-        sendViewportInfo();
     }
 });
 
@@ -108,7 +106,7 @@ socket.on("Board.Floor.Set", (floor: ServerFloor) => {
 
 socket.on("Position.Set", (data: { floor?: string; x: number; y: number; zoom?: number }) => {
     if (data.floor !== undefined) floorSystem.selectFloor({ name: data.floor }, true);
-    if (data.zoom !== undefined) clientStore.setZoomDisplay(data.zoom, true);
+    if (data.zoom !== undefined) clientStore.setZoomDisplay(data.zoom, { invalidate: false, sync: false });
     setCenterPosition(toGP(data.x, data.y));
 });
 

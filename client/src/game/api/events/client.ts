@@ -23,13 +23,17 @@ socket.on("Client.Move", (data: { player: PlayerId; client: ClientId } & ServerU
     if (getGameState().isDm && !isCurrentPlayer) {
         playerSystem.setPosition(player, locationData);
     } else if (isCurrentPlayer) {
-        clientStore.setPan(data.pan_x, data.pan_y);
-        clientStore.setZoomDisplay(data.zoom_display, true);
+        clientStore.setPan(data.pan_x, data.pan_y, { needsOffset: false });
+        clientStore.setZoomDisplay(data.zoom_display, { invalidate: true, sync: false });
     }
 });
 
 socket.on("Client.Viewport.Set", (data: { client: ClientId; viewport: Viewport }) => {
     clientSystem.setClientViewport(data.client, data.viewport);
+});
+
+socket.on("Client.Offset.Set", (data: { client: ClientId } & { x?: number; y?: number }) => {
+    clientSystem.setOffset(data.client, { x: data.x, y: data.y }, false);
 });
 
 socket.on("Client.Options.Set", (options: ServerClient) => {

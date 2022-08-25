@@ -20,13 +20,8 @@ function _sendClientLocationOptions(locationOptions: ServerUserLocationOptions, 
     socket.emit("Client.Options.Location.Set", { options: locationOptions, temp });
 }
 
-export function sendViewportInfo(): void {
-    const viewport: Viewport = {
-        height: window.innerHeight,
-        width: window.innerWidth,
-    };
-    socket.emit("Client.Viewport.Set", viewport);
-}
+export const sendViewport = wrapSocket<Viewport>("Client.Viewport.Set");
+export const sendOffset = wrapSocket<{ client: ClientId; x?: number; y?: number }>("Client.Offset.Set");
 
 export const sendRoomClientOptions = wrapSocket<Partial<ServerUserOptions>>("Client.Options.Room.Set");
 export const sendDefaultClientOptions = wrapSocket<Partial<ServerUserOptions>>("Client.Options.Default.Set");

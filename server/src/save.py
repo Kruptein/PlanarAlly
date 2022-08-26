@@ -221,7 +221,6 @@ def upgrade(db: SqliteExtDatabase, version: int):
                     ):
                         initiative_data.pop(index)
                         modified = True
-                        print("Error")
                 if modified:
                     db.execute_sql(
                         "UPDATE initiative SET data=? WHERE id=?",

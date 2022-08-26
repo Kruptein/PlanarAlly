@@ -13,7 +13,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 74
+SAVE_VERSION = 75
 
 import json
 import logging
@@ -21,7 +21,7 @@ import secrets
 import shutil
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Any, List, Optional
 
 from playhouse.sqlite_ext import SqliteExtDatabase
 
@@ -203,6 +203,30 @@ def upgrade(db: SqliteExtDatabase, version: int):
                 'INSERT INTO "shape" ("uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "is_token", "annotation", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "annotation_visible", "ignore_zoom_size", "is_defeated", "is_door", "is_teleport_zone") SELECT "uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "is_token", "annotation", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "annotation_visible", "ignore_zoom_size", "is_defeated", "is_door", "is_teleport_zone" FROM _shape_73'
             )
             db.execute_sql("DROP TABLE _shape_73")
+    elif version == 74:
+        # Just an initiative fixer
+        with db.atomic():
+            db_data = db.execute_sql("SELECT id, data FROM initiative")
+            for row in db_data.fetchall():
+                _id, raw_data = row
+                initiative_data: List[Any] = json.loads(raw_data)
+                modified = False
+                for index, info in reversed(list(enumerate(initiative_data))):
+                    if (
+                        db.execute_sql(
+                            "SELECT EXISTS(SELECT 1 FROM shape WHERE uuid=?)",
+                            (info["shape"],),
+                        ).fetchone()[0]
+                        == 0
+                    ):
+                        initiative_data.pop(index)
+                        modified = True
+                        print("Error")
+                if modified:
+                    db.execute_sql(
+                        "UPDATE initiative SET data=? WHERE id=?",
+                        (json.dumps(initiative_data), _id),
+                    )
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

@@ -8,7 +8,17 @@ import { wrapSocket } from "../../helpers";
 import { socket } from "../../socket";
 
 export const sendShapeAdd = wrapSocket<{ shape: ServerShape; temporary: boolean }>("Shape.Add");
-export const sendRemoveShapes = wrapSocket<{ uuids: string[]; temporary: boolean }>("Shapes.Remove");
+export const sendRemoveShapes = (data: { uuids: string[]; temporary: boolean }): void => {
+    if (data.uuids.length === 0) {
+        if (process.env.NODE_ENV === "production") {
+            console.error(
+                "Attempted to send shape removal request for 0 shapes. If you think this is a bug, please report this!",
+            );
+        } else {
+            debugger;
+        }
+    } else wrapSocket<{ uuids: string[]; temporary: boolean }>("Shapes.Remove")(data);
+};
 export const sendShapeOrder = wrapSocket<{ uuid: string; index: number; temporary: boolean }>("Shape.Order.Set");
 export const sendFloorChange = wrapSocket<{ uuids: string[]; floor: string }>("Shapes.Floor.Change");
 export const sendLayerChange = wrapSocket<{ uuids: string[]; layer: string; floor: string }>("Shapes.Layer.Change");

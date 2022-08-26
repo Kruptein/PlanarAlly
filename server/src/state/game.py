@@ -28,7 +28,8 @@ class GameState(State[PlayerRoom]):
                 list(self.client_temporaries[sid]),
                 namespace=GAME_NS,
             )
-            del self.client_temporaries[sid]
+            if sid in self.client_temporaries:
+                del self.client_temporaries[sid]
 
     def add_temp(self, sid: str, uid: str) -> None:
         if sid not in self.client_temporaries:

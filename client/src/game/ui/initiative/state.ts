@@ -76,7 +76,10 @@ class InitiativeStore extends Store<InitiativeState> {
         const initiativeData: InitiativeData<LocalId>[] = [];
         for (const d of data.data) {
             const shape = getLocalId(d.shape, false);
-            if (shape === undefined) continue;
+            if (shape === undefined) {
+                console.debug("Initiative contains unknown shapes");
+                continue;
+            }
             initiativeData.push({ ...d, shape });
         }
         if (this._state.editLock !== -1) this._state.newData = initiativeData;

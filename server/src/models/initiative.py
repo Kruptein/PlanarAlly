@@ -17,7 +17,7 @@ class Initiative(BaseModel):
     location = ForeignKeyField(Location, backref="initiative", on_delete="CASCADE")
     round = IntegerField()
     turn = cast(int, IntegerField())
-    sort = IntegerField(default=0)
+    sort = cast(int, IntegerField(default=0))
     data = cast(str, TextField())
 
     def as_dict(self):

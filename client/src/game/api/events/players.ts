@@ -37,7 +37,7 @@ socket.on(
                     clientStore.setPan(player.position.pan_x, player.position.pan_y, { needsOffset: false });
                     if (player.position.active_layer !== undefined)
                         floorSystem.selectLayer(player.position.active_layer, false);
-                    const offset = getLocalStorageObject("PA_OFFST") as { x?: number; y?: number } | undefined;
+                    const offset = getLocalStorageObject("PA_OFFSET") as { x?: number; y?: number } | undefined;
                     clientSystem.initViewport();
                     if (offset !== undefined) clientSystem.setOffset(getClientId(), offset, false);
                     clientSystem.sendViewportInfo();

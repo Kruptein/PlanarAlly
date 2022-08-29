@@ -33,6 +33,7 @@ ASSETS_DIR = STATIC_DIR / "assets"
 TEMP_DIR = STATIC_DIR / "temp"
 SAVE_DIR = get_save_dir()
 
+
 if not ASSETS_DIR.exists():
     ASSETS_DIR.mkdir()
 

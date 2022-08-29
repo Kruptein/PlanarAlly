@@ -4,12 +4,11 @@ from typing import Dict, List, Union, cast
 from playhouse.shortcuts import update_model_from_dict
 from typing_extensions import TypedDict
 
-from data_types.client import Viewport
-
 from ... import auth
 from ...api.socket.constants import GAME_NS
 from ...app import app, sio
 from ...config import config
+from ...data_types.client import Viewport
 from ...models import (
     Floor,
     Initiative,
@@ -307,7 +306,6 @@ async def change_location(sid: str, data: LocationChangeData):
         room_player.save()
 
     # Then send out updates
-
     for room_player in pr.room.players:
         if room_player.player.name not in data["users"]:
             continue

@@ -1,4 +1,4 @@
-import { clientStore } from "../../../store/client";
+import { clientStore, GRID_OFFSET } from "../../../store/client";
 import type { ServerUserOptions, ServerUserLocationOptions } from "../../models/settings";
 import type { ClientId, Viewport } from "../../systems/client/models";
 import { wrapSocket } from "../helpers";
@@ -8,8 +8,8 @@ export function sendClientLocationOptions(temp: boolean): void {
     const state = clientStore.state;
     _sendClientLocationOptions(
         {
-            pan_x: state.panX,
-            pan_y: state.panY,
+            pan_x: state.panX - GRID_OFFSET.x,
+            pan_y: state.panY - GRID_OFFSET.y,
             zoom_display: state.zoomDisplay,
         },
         temp,

@@ -161,7 +161,7 @@ async def set_offset(sid: str, data: OffsetMessage):
         viewport["offset_y"] = data.get("y", viewport.get("offset_y", None))
     else:
         print("Unknown client viewport")
-        
+
     await sio.emit(
         "Client.Offset.Set",
         data,

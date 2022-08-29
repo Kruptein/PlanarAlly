@@ -10,8 +10,8 @@ import { setGridOffset, ZOOM } from "../../../store/client";
 import { settingsStore } from "../../../store/settings";
 import { sendMoveClient, sendOffset, sendViewport } from "../../api/emits/client";
 import { getClientId } from "../../api/socket";
-import type { LocalId } from "../../id";
 import { getShape } from "../../id";
+import type { LocalId } from "../../id";
 import { LayerName } from "../../models/floor";
 import type { ServerUserLocationOptions } from "../../models/settings";
 import { Polygon } from "../../shapes/variants/polygon";
@@ -72,6 +72,7 @@ class ClientSystem implements System {
             let shape: Polygon;
             if (shapeId === undefined) {
                 shape = this.createClientRect(client) as Polygon;
+                if (shape === undefined) return;
             } else {
                 shape = getShape(shapeId) as Polygon;
                 if (shape === undefined) return;
@@ -279,4 +280,4 @@ class ClientSystem implements System {
 }
 
 export const clientSystem = new ClientSystem();
-registerSystem("client", clientSystem, false);
+registerSystem("client", clientSystem, false, clientState);

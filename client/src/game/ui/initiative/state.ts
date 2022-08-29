@@ -28,8 +28,7 @@ import { accessState } from "../../systems/access/state";
 let activeTokensBackup: Set<LocalId> | undefined = undefined;
 
 function getDefaultEffect(): InitiativeEffect {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    const name = i18n.global.t("game.ui.initiative.new_effect"); // @ts-ignore
+    const name = i18n.global.t("game.ui.initiative.new_effect");
     return { name, turns: "10", highlightsActor: false };
 }
 

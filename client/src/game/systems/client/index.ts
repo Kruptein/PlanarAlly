@@ -1,53 +1,290 @@
 import { throttle } from "lodash";
 
-import { registerSystem } from "..";
 import type { System } from "..";
-import { sendMoveClient } from "../../api/emits/client";
+import { registerSystem } from "..";
+import type { GlobalPoint } from "../../../core/geometry";
+import { toGP } from "../../../core/geometry";
+import { InvalidationMode, SyncMode } from "../../../core/models/types";
+import { setLocalStorageObject } from "../../../localStorageHelpers";
+import { setGridOffset, ZOOM } from "../../../store/client";
+import { settingsStore } from "../../../store/settings";
+import { sendMoveClient, sendOffset, sendViewport } from "../../api/emits/client";
+import { getClientId } from "../../api/socket";
 import { getShape } from "../../id";
 import type { LocalId } from "../../id";
+import { LayerName } from "../../models/floor";
+import type { ServerUserLocationOptions } from "../../models/settings";
+import { Polygon } from "../../shapes/variants/polygon";
+import { floorSystem } from "../floors";
+import { floorState } from "../floors/state";
+import { playerSystem } from "../players";
+import type { PlayerId } from "../players/models";
+import { playerState } from "../players/state";
 
+import type { ClientId, Viewport } from "./models";
 import { clientState } from "./state";
 
-const { mutableReactive: $, reactive } = clientState;
+const { mutableReactive: $ } = clientState;
 
 const sendMoveClientThrottled = throttle(sendMoveClient, 50, { trailing: true });
 
 class ClientSystem implements System {
     clear(): void {
-        this.clearClientRects();
+        $.clientIds.clear();
+        $.clientRectIds.clear();
+        $.clientViewports.clear();
+        $.clientBoards.clear();
     }
 
-    clearClientRects(): void {
-        $.playerRectIds.clear();
-        $.playerLocationData.clear();
+    addClient(player: PlayerId, client: ClientId): void {
+        $.clientIds.set(client, player);
+    }
+
+    removeClient(client: ClientId): void {
+        $.clientIds.delete(client);
+        this.removeClientRect(client);
+        $.clientViewports.delete(client);
+        $.clientBoards.delete(client);
+    }
+
+    getClients(player: PlayerId): ClientId[] {
+        return [...$.clientIds.entries()].filter(([, p]) => p === player).map(([c, _]) => c);
+    }
+
+    updatePlayerRect(player: PlayerId): void {
+        for (const [c, p] of $.clientIds.entries()) {
+            if (player === p) this.updateClientRect(c);
+        }
+    }
+
+    updateAllClientRects(): void {
+        for (const client of $.clientIds.keys()) {
+            this.updateClientRect(client);
+        }
+    }
+
+    private updateClientRect(client: ClientId): void {
+        const shapeId = $.clientRectIds.get(client);
+        const playerId = $.clientIds.get(client);
+        if (playerId === undefined) return;
+
+        if (playerState.mutableReactive.players.get(playerId)?.location === settingsStore.state.activeLocation) {
+            let shape: Polygon;
+            if (shapeId === undefined) {
+                shape = this.createClientRect(client) as Polygon;
+                if (shape === undefined) return;
+            } else {
+                shape = getShape(shapeId) as Polygon;
+                if (shape === undefined) return;
+                this.moveClientRect(client, shape);
+            }
+            if ($.clientBoards.has(client) && shape.options.skipDraw === true) this.showClientRect(client, true);
+        } else if (shapeId !== undefined) {
+            this.removeClientRect(client);
+        }
+    }
+
+    private removeClientRect(client: ClientId): void {
+        const rect = $.clientRectIds.get(client);
+        if (rect !== undefined) {
+            const shape = getShape(rect);
+            if (shape !== undefined) {
+                shape.layer.removeShape(shape, { sync: SyncMode.NO_SYNC, recalculate: false, dropShapeId: true });
+            }
+            $.clientRectIds.delete(client);
+        }
+    }
+
+    private moveClientRect(client: ClientId, polygon: Polygon): void {
+        const dimensions = this.getDimensions(client);
+        if (dimensions === undefined) return;
+        const { center, h, w } = dimensions;
+        polygon.vertices = [toGP(0, 0), toGP(0, h), toGP(w, h), toGP(w, 0), toGP(0, 0)];
+        polygon.center(center);
+        polygon.invalidate(true);
+    }
+
+    private getClientPosition(client: ClientId): ServerUserLocationOptions | undefined {
+        const player = $.clientIds.get(client);
+        if (player === undefined) return undefined;
+        return playerSystem.getPosition(player);
+    }
+
+    private createClientRect(client: ClientId): Polygon | undefined {
+        const locationData = this.getClientPosition(client);
+        const viewport = $.clientViewports.get(client);
+        if (locationData === undefined || viewport === undefined) {
+            console.error("Could not create new client rect: missing data.");
+            return;
+        }
+        if ($.clientRectIds.has(client)) {
+            console.error("Could not create new client rect: already exists.");
+            return;
+        }
+        const playerId = $.clientIds.get(client);
+        if (playerId === undefined) {
+            console.error("Could not find player for client");
+            return;
+        }
+
+        const polygon = new Polygon(
+            toGP(0, 0),
+            undefined,
+            {
+                lineWidth: [30, 15],
+                openPolygon: true,
+                isSnappable: false,
+            },
+            { fillColour: "rgba(0, 0, 0, 0)", strokeColour: ["rgba(0, 0, 0, 1)", "rgba(255, 255, 255, 1)"] },
+        );
+        $.clientRectIds.set(client, polygon.id);
+        polygon.options.isPlayerRect = true;
+        polygon.options.skipDraw = !(playerSystem.getPlayer(playerId)?.showRect ?? false);
+        polygon.preventSync = true;
+
+        const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Dm)!;
+        layer.addShape(polygon, SyncMode.NO_SYNC, InvalidationMode.NO);
+
+        this.moveClientRect(client, polygon);
+
+        return polygon;
+    }
+
+    setClientViewport(client: ClientId, viewport: Viewport): void {
+        $.clientViewports.set(client, viewport);
+        this.updateClientRect(client);
     }
 
     moveClient(rectUuid: LocalId): void {
-        const player = [...reactive.playerRectIds.entries()].find(([_, uuid]) => uuid === rectUuid)?.[0] ?? -1;
-        if (player < 0) return;
+        const client = [...$.clientRectIds.entries()].find(([_, uuid]) => uuid === rectUuid)?.[0];
+        if (client === undefined) return;
+
         const rect = getShape(rectUuid)!;
         if (rect === undefined) return;
-        const playerData = reactive.playerLocationData.get(player);
-        if (playerData === undefined) return;
+        const locationData = this.getClientPosition(client);
+        const viewport = $.clientViewports.get(client);
+        const offset = this.getOffset(client);
+        if (locationData === undefined || viewport === undefined || offset === undefined) return;
 
-        const h = playerData.client_h / playerData.zoom_factor;
-        const w = playerData.client_w / playerData.zoom_factor;
+        const dimensions = this.getDimensions(client);
+        if (dimensions === undefined) return;
+        const { h, w } = dimensions;
 
         const center = rect.center();
+        const newPosition = { ...locationData, pan_x: w / 2 - center.x - offset.x, pan_y: h / 2 - center.y - offset.y };
 
-        sendMoveClientThrottled({ player, data: { ...playerData, pan_x: w / 2 - center.x, pan_y: h / 2 - center.y } });
+        sendMoveClientThrottled({
+            client,
+            data: newPosition,
+        });
+        const player = $.clientIds.get(client);
+        if (player !== undefined) {
+            playerSystem.setPosition(player, newPosition);
+        }
     }
 
-    showClientRect(player: number, show: boolean): void {
-        const rectUuid = reactive.playerRectIds.get(player);
+    showClientRect(client: ClientId, show: boolean): void {
+        const rectUuid = $.clientRectIds.get(client);
         if (rectUuid === undefined) return;
-        const rect = getShape(rectUuid)!;
+        const rect = getShape(rectUuid);
         if (rect === undefined) return;
 
         rect.options.skipDraw = !show;
         rect.layer.invalidate(true);
     }
+
+    getClientLocation(client: ClientId): GlobalPoint | undefined {
+        return this.getDimensions(client)?.center;
+    }
+
+    private getDimensions(client: ClientId): { w: number; h: number; center: GlobalPoint } | undefined {
+        const viewport = $.clientViewports.get(client);
+        const offset = this.getOffset(client);
+        const locationData = this.getClientPosition(client);
+        const player = $.clientIds.get(client);
+        if (viewport === undefined || locationData === undefined || offset === undefined || player === undefined) {
+            return undefined;
+        }
+
+        if (playerSystem.getCurrentPlayer().location !== playerSystem.getPlayer(player)?.location) {
+            return undefined;
+        }
+
+        const factor = viewport.zoom_factor;
+        const h = viewport.height / factor;
+        const w = viewport.width / factor;
+        return { w, h, center: toGP(w / 2 - locationData.pan_x - offset.x, h / 2 - locationData.pan_y - offset.y) };
+    }
+
+    initViewport(): void {
+        const client = getClientId();
+        $.clientViewports.set(client, {
+            height: window.innerHeight,
+            width: window.innerWidth,
+            zoom_factor: ZOOM,
+        });
+    }
+
+    getViewport(client?: ClientId): Viewport | undefined {
+        return $.clientViewports.get(client ?? getClientId());
+    }
+
+    sendViewportInfo(): void {
+        if (Number.isNaN(ZOOM)) return;
+        const viewport = this.getViewport()!;
+        sendViewport(viewport);
+    }
+
+    updateZoomFactor(): void {
+        const viewport = $.clientViewports.get(getClientId());
+        if (viewport === undefined) {
+            console.error("Setting offset without viewport");
+            return;
+        }
+
+        viewport.zoom_factor = ZOOM;
+        this.sendViewportInfo();
+    }
+
+    // Offset
+
+    private getRelativeOffset(): { x: number; y: number } {
+        const viewport = this.getViewport()!;
+        return {
+            x: viewport.offset_x ?? 0,
+            y: viewport.offset_y ?? 0,
+        };
+    }
+
+    getOffset(client?: ClientId): { x: number; y: number } {
+        const viewport = this.getViewport(client ?? getClientId());
+        if (viewport === undefined) return { x: 0, y: 0 };
+        return {
+            x: (-viewport.width / viewport.zoom_factor) * (viewport.offset_x ?? 0),
+            y: (-viewport.height / viewport.zoom_factor) * (viewport.offset_y ?? 0),
+        };
+    }
+
+    setOffset(client: ClientId, offset: { x?: number; y?: number }, sync: boolean): void {
+        if (offset.x === undefined && offset.y === undefined) return;
+        const viewport = $.clientViewports.get(client);
+        if (viewport === undefined) {
+            console.error("Setting offset without viewport");
+            return;
+        }
+
+        if (offset.x !== undefined) viewport.offset_x = offset.x;
+        if (offset.y !== undefined) viewport.offset_y = offset.y;
+
+        this.updateClientRect(client);
+
+        if (sync) sendOffset({ client, x: viewport.offset_x, y: viewport.offset_y });
+        if (client === getClientId()) {
+            setGridOffset(this.getOffset());
+            setLocalStorageObject("PA_OFFSET", this.getRelativeOffset());
+        }
+    }
 }
 
 export const clientSystem = new ClientSystem();
-registerSystem("client", clientSystem, false);
+registerSystem("client", clientSystem, false, clientState);

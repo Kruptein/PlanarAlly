@@ -2,7 +2,7 @@ from typing import Dict, Set
 
 from ..api.socket.constants import GAME_NS
 from ..app import app, sio
-from ..data_types.location import LocationOptions
+from ..data_types.client import Viewport
 from ..models import PlayerRoom, User
 from . import State
 
@@ -11,14 +11,15 @@ class GameState(State[PlayerRoom]):
     def __init__(self) -> None:
         super().__init__()
         self.client_temporaries: Dict[str, Set[str]] = {}
-        self.client_locations: Dict[str, LocationOptions] = {}
+        self.client_viewports: Dict[str, Viewport] = {}
 
     def get_user(self, sid: str) -> User:
         return self._sid_map[sid].player
 
     async def remove_sid(self, sid: str) -> None:
         await self.clear_temporaries(sid)
-        del self.client_locations[sid]
+        if sid in self.client_viewports:
+            del self.client_viewports[sid]
         await super().remove_sid(sid)
 
     async def clear_temporaries(self, sid: str) -> None:

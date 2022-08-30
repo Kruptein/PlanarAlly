@@ -9,7 +9,6 @@ import { getGameState } from "../../store/_game";
 import { activeShapeStore } from "../../store/activeShape";
 import { clientStore } from "../../store/client";
 import { coreStore } from "../../store/core";
-import { sendClientLocationOptions } from "../api/emits/client";
 
 import Annotation from "./Annotation.vue";
 import DefaultContext from "./contextmenu/DefaultContext.vue";
@@ -105,13 +104,12 @@ const zoomDisplay = computed({
         return clientStore.state.zoomDisplay;
     },
     set(zoom: number) {
-        clientStore.setZoomDisplay(zoom, true);
-        sendClientLocationOptions();
+        clientStore.setZoomDisplay(zoom, { invalidate: true, sync: true });
     },
 });
 
 function setTempZoomDisplay(value: number): void {
-    clientStore.setZoomDisplay(value, true);
+    clientStore.setZoomDisplay(value, { invalidate: true, sync: false });
 }
 </script>
 

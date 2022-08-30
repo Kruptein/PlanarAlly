@@ -67,7 +67,7 @@ async function add(target: "enabled" | "request" | "disabled"): Promise<void> {
     const players = playerState.reactive.players;
     const selection = await modals.selectionBox(
         "Select a player",
-        players
+        [...players.values()]
             .map((p) => p.name)
             .filter(
                 (p) =>

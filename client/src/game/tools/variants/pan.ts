@@ -26,6 +26,7 @@ class PanTool extends Tool {
 
         if (full) floorSystem.invalidateAllFloors();
         else floorSystem.invalidateVisibleFloors();
+        sendClientLocationOptions(!full);
     }
 
     // eslint-disable-next-line @typescript-eslint/require-await
@@ -45,7 +46,6 @@ class PanTool extends Tool {
         if (!this.active.value) return;
         this.active.value = false;
         this.panScreen(lp, true);
-        sendClientLocationOptions();
     }
 }
 

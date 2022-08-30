@@ -7,11 +7,16 @@ import { baseAdjust } from "../../../core/http";
 import type { AssetFile } from "../../../core/models/types";
 import { uuidv4 } from "../../../core/utils";
 import { getGameState } from "../../../store/_game";
+import { coreStore } from "../../../store/core";
 import { gameStore } from "../../../store/game";
 import { uiStore } from "../../../store/ui";
 import { clearGame } from "../../clear";
 import type { LocalId } from "../../id";
 import type { Note } from "../../models/general";
+import { setCenterPosition } from "../../position";
+import { clientSystem } from "../../systems/client";
+import type { ClientId } from "../../systems/client/models";
+import { playerState } from "../../systems/players/state";
 import { getProperties } from "../../systems/properties/state";
 import NoteDialog from "../NoteDialog.vue";
 
@@ -28,6 +33,8 @@ const gameState = getGameState();
 const isDm = toRef(gameState, "isDm");
 const notes = toRef(gameState, "notes");
 const markers = toRef(gameState, "markers");
+
+const username = toRef(coreStore.state, "username");
 
 const noAssets = computed(() => {
     return gameState.assets.size === 1 && (gameState.assets.get("__files") as AssetFile[]).length <= 0;
@@ -74,6 +81,22 @@ function nameMarker(marker: LocalId): string {
     } else {
         return "";
     }
+}
+
+const clientInfo = computed(() => {
+    const info = [];
+    for (const [playerId, player] of playerState.reactive.players) {
+        const clients = clientSystem.getClients(playerId);
+        info.push({ player, client: clients[0] });
+    }
+    return info;
+});
+
+function jumpToClient(client: ClientId): void {
+    const location = clientSystem.getClientLocation(client);
+    if (location === undefined) return;
+
+    setCenterPosition(location);
 }
 
 const openDmSettings = (): void => uiStore.showDmSettings(!uiStore.state.showDmSettings);
@@ -123,6 +146,20 @@ const openClientSettings = (): void => uiStore.showClientSettings(!uiStore.state
                 <button class="menu-accordion" @click="openDmSettings">
                     {{ t("game.ui.menu.MenuBar.dm_settings") }}
                 </button>
+                <!-- PLAYERS -->
+                <button class="menu-accordion">Players</button>
+                <div class="menu-accordion-panel">
+                    <div class="menu-accordion-subpanel" id="menu-players">
+                        <template v-for="info of clientInfo" :key="info.client">
+                            <div v-if="info.player.name !== username" style="cursor: pointer">
+                                <div @click="jumpToClient(info.client)" class="menu-accordion-subpanel-text">
+                                    {{ info.player.name }}
+                                </div>
+                            </div>
+                        </template>
+                        <div v-if="clientInfo.length === 0">No players connected</div>
+                    </div>
+                </div>
             </template>
             <!-- MARKERS -->
             <button class="menu-accordion">{{ t("common.markers") }}</button>

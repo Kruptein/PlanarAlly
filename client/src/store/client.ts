@@ -1,7 +1,7 @@
 import { computed } from "vue";
 import type { ComputedRef } from "vue";
 
-import { g2l, l2g } from "../core/conversions";
+import { g2l, l2g, zoomDisplayToFactor } from "../core/conversions";
 import { addP, subtractP, toGP, Vector } from "../core/geometry";
 import type { GlobalPoint } from "../core/geometry";
 import { Store } from "../core/store";
@@ -9,12 +9,25 @@ import { toSnakeCase } from "../core/utils";
 import { sendClientLocationOptions, sendDefaultClientOptions, sendRoomClientOptions } from "../game/api/emits/client";
 import { InitiativeEffectMode } from "../game/models/initiative";
 import type { UserOptions } from "../game/models/settings";
+import { clientSystem } from "../game/systems/client";
 import { floorSystem } from "../game/systems/floors";
 import { floorState } from "../game/systems/floors/state";
 
 export const DEFAULT_GRID_SIZE = 50;
 // export const ZOOM_1_SOLUTION = 0.194904;
-export let ZOOM = 0;
+export let GRID_OFFSET = { x: 0, y: 0 };
+export let ZOOM = NaN;
+
+export function clear(): void {
+    GRID_OFFSET = { x: 0, y: 0 };
+    ZOOM = NaN;
+}
+
+export function setGridOffset(offset: { x: number; y: number }): void {
+    console.log("Setting offset", offset);
+    GRID_OFFSET = offset;
+    floorSystem.invalidateAllFloors();
+}
 
 interface State extends UserOptions {
     username: string;
@@ -33,11 +46,7 @@ function setZoomFactor(zoomDisplay: number): void {
             ZOOM = gf;
         }
     } else {
-        // Powercurve 0.2/3/10
-        // Based on https://stackoverflow.com/a/17102320
-        const zoomValue = 1 / (-5 / 3 + (28 / 15) * Math.exp(1.83 * zoomDisplay));
-        const newZoomFactor = zoomValue * gf;
-        ZOOM = newZoomFactor;
+        ZOOM = zoomDisplayToFactor(zoomDisplay);
     }
 }
 
@@ -123,9 +132,9 @@ class ClientStore extends Store<State> {
     }
 
     // POSITION
-    setPan(x: number, y: number): void {
-        this._state.panX = x;
-        this._state.panY = y;
+    setPan(x: number, y: number, options: { needsOffset: boolean }): void {
+        this._state.panX = x - (options.needsOffset ? GRID_OFFSET.x : 0);
+        this._state.panY = y - (options.needsOffset ? GRID_OFFSET.y : 0);
     }
 
     increasePan(x: number, y: number): void {
@@ -135,23 +144,28 @@ class ClientStore extends Store<State> {
 
     // ZOOM
 
-    setZoomDisplay(zoom: number, invalidate: boolean): void {
+    setZoomDisplay(zoom: number, options: { invalidate: boolean; sync: boolean }): void {
         if (zoom < 0) zoom = 0;
         if (zoom > 1) zoom = 1;
         this._state.zoomDisplay = zoom;
         setZoomFactor(zoom);
-        if (invalidate) floorSystem.invalidateAllFloors();
+        if (options.invalidate) floorSystem.invalidateAllFloors();
+        if (options.sync) {
+            sendClientLocationOptions(false);
+            clientSystem.updateZoomFactor();
+        }
     }
 
     updateZoom(newZoomDisplay: number, zoomLocation: GlobalPoint): void {
         const oldLoc = g2l(zoomLocation);
-        this.setZoomDisplay(newZoomDisplay, false);
+        this.setZoomDisplay(newZoomDisplay, { invalidate: false, sync: false });
         const newLoc = l2g(oldLoc);
         // Change the pan settings to keep the zoomLocation in the same exact location before and after the zoom.
         const diff = subtractP(newLoc, zoomLocation);
         this.increasePan(diff.x, diff.y);
         floorSystem.invalidateAllFloors();
-        sendClientLocationOptions();
+        sendClientLocationOptions(false);
+        clientSystem.updateZoomFactor();
     }
 
     // OPTIONS

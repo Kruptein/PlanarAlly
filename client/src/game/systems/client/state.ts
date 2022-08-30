@@ -1,15 +1,21 @@
 import type { LocalId } from "../../id";
-import type { ServerUserLocationOptions } from "../../models/settings";
+import type { PlayerId } from "../players/models";
 import { buildState } from "../state";
 
+import type { BoardId, ClientId, Viewport } from "./models";
+
 interface ClientState {
-    playerRectIds: Map<number, LocalId>;
-    playerLocationData: Map<number, ServerUserLocationOptions>;
+    clientIds: Map<ClientId, PlayerId>; // maps client id to player id  <N:1>
+    clientViewports: Map<ClientId, Viewport>;
+    clientRectIds: Map<ClientId, LocalId>;
+    clientBoards: Map<ClientId, BoardId>;
 }
 
 const state = buildState<ClientState>({
-    playerRectIds: new Map(),
-    playerLocationData: new Map(),
+    clientIds: new Map(),
+    clientViewports: new Map(),
+    clientRectIds: new Map(),
+    clientBoards: new Map(),
 });
 
 export const clientState = {

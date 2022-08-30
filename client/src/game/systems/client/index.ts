@@ -96,7 +96,9 @@ class ClientSystem implements System {
     }
 
     private moveClientRect(client: ClientId, polygon: Polygon): void {
-        const { center, h, w } = this.getDimensions(client);
+        const dimensions = this.getDimensions(client);
+        if (dimensions === undefined) return;
+        const { center, h, w } = dimensions;
         polygon.vertices = [toGP(0, 0), toGP(0, h), toGP(w, h), toGP(w, 0), toGP(0, 0)];
         polygon.center(center);
         polygon.invalidate(true);
@@ -164,7 +166,9 @@ class ClientSystem implements System {
         const offset = this.getOffset(client);
         if (locationData === undefined || viewport === undefined || offset === undefined) return;
 
-        const { h, w } = this.getDimensions(client);
+        const dimensions = this.getDimensions(client);
+        if (dimensions === undefined) return;
+        const { h, w } = dimensions;
 
         const center = rect.center();
         const newPosition = { ...locationData, pan_x: w / 2 - center.x - offset.x, pan_y: h / 2 - center.y - offset.y };
@@ -190,16 +194,20 @@ class ClientSystem implements System {
     }
 
     getClientLocation(client: ClientId): GlobalPoint | undefined {
-        return this.getDimensions(client).center;
+        return this.getDimensions(client)?.center;
     }
 
-    private getDimensions(client: ClientId): { w: number; h: number; center: GlobalPoint } {
+    private getDimensions(client: ClientId): { w: number; h: number; center: GlobalPoint } | undefined {
         const viewport = $.clientViewports.get(client);
         const offset = this.getOffset(client);
         const locationData = this.getClientPosition(client);
-        if (viewport === undefined || locationData === undefined || offset === undefined) {
-            console.error("CLIENT DIMENSION FAILED");
-            return { h: 0, w: 0, center: toGP([0, 0]) };
+        const player = $.clientIds.get(client);
+        if (viewport === undefined || locationData === undefined || offset === undefined || player === undefined) {
+            return undefined;
+        }
+
+        if (playerSystem.getCurrentPlayer().location !== playerSystem.getPlayer(player)?.location) {
+            return undefined;
         }
 
         const factor = viewport.zoom_factor;
@@ -224,7 +232,6 @@ class ClientSystem implements System {
     sendViewportInfo(): void {
         if (Number.isNaN(ZOOM)) return;
         const viewport = this.getViewport()!;
-        console.log("Sending viewport", viewport);
         sendViewport(viewport);
     }
 

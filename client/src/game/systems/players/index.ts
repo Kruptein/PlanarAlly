@@ -99,4 +99,4 @@ class PlayerSystem implements System {
 }
 
 export const playerSystem = new PlayerSystem();
-registerSystem("players", playerSystem, false);
+registerSystem("players", playerSystem, false, playerState);

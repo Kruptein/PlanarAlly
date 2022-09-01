@@ -1,6 +1,7 @@
 import { registerSystem } from "../..";
 import type { System } from "../..";
 import { sendRoomClientOptions } from "../../../api/emits/client";
+import { updateFogColour } from "../../../colour";
 import type { InitiativeEffectMode } from "../../../models/initiative";
 import { floorSystem } from "../../floors";
 import { floorState } from "../../floors/state";
@@ -30,6 +31,7 @@ class PlayerSettingsSystem implements System {
         $.fowColour.override = fowColour;
         if (options.default !== undefined) $.fowColour.default = options.default;
         $.fowColour.value = fowColour ?? $.fowColour.default;
+        updateFogColour();
         floorSystem.invalidateAllFloors();
         if (options.sync) sendRoomClientOptions("fow_colour", fowColour, options.default);
     }

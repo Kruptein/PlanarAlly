@@ -6,6 +6,7 @@ import { sendLabelAdd, sendLabelDelete, sendLabelFilterAdd, sendLabelFilterDelet
 import { sendMarkerCreate, sendMarkerRemove } from "../game/api/emits/marker";
 import { sendNewNote, sendRemoveNote, sendUpdateNote } from "../game/api/emits/note";
 import { sendRoomLock } from "../game/api/emits/room";
+import { updateFogColour } from "../game/colour";
 import { getAllShapes, getGlobalId, getShape } from "../game/id";
 import type { LocalId } from "../game/id";
 import type { Label } from "../game/interfaces/label";
@@ -44,11 +45,13 @@ class GameStore {
 
     setDm(isDm: boolean): void {
         this._state.isDm = isDm;
+        updateFogColour();
     }
 
     setFakePlayer(isFakePlayer: boolean): void {
         this._state.isFakePlayer = isFakePlayer;
         this._state.isDm = !isFakePlayer;
+        updateFogColour();
         floorSystem.invalidateAllFloors();
     }
 

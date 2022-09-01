@@ -1,6 +1,6 @@
 import { g2l } from "../../../core/conversions";
 import type { GlobalPoint } from "../../../core/geometry";
-import { getFogColour } from "../../colour";
+import { FOG_COLOUR } from "../../colour";
 import type { GlobalId, LocalId } from "../../id";
 import type { ServerRect } from "../../models/shapes";
 import { positionState } from "../../systems/position/state";
@@ -38,7 +38,7 @@ export class Rect extends BaseRect {
     draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
         const props = getProperties(this.id)!;
-        if (props.fillColour === "fog") ctx.fillStyle = getFogColour();
+        if (props.fillColour === "fog") ctx.fillStyle = FOG_COLOUR;
         else ctx.fillStyle = props.fillColour;
         const loc = g2l(this.refPoint);
         const center = g2l(this.center());

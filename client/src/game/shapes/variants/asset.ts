@@ -2,7 +2,7 @@ import { g2l, g2lx, g2ly, g2lz } from "../../../core/conversions";
 import { toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
-import { getFogColour } from "../../colour";
+import { FOG_COLOUR } from "../../colour";
 import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import type { ServerAsset } from "../../models/shapes";
@@ -92,7 +92,7 @@ export class Asset extends BaseRect {
         super.draw(ctx);
         const center = g2l(this.center());
         if (!this.#loaded) {
-            ctx.fillStyle = getFogColour();
+            ctx.fillStyle = FOG_COLOUR;
             ctx.fillRect(
                 g2lx(this.refPoint.x) - center.x,
                 g2ly(this.refPoint.y) - center.y,

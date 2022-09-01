@@ -1,7 +1,7 @@
 import { g2lz, clampGridLine } from "../../../core/conversions";
 import { addP, subtractP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
-import { getFogColour } from "../../colour";
+import { FOG_COLOUR } from "../../colour";
 import { calculateDelta } from "../../drag";
 import type { GlobalId, LocalId } from "../../id";
 import type { ServerCircle } from "../../models/shapes";
@@ -76,7 +76,7 @@ export class Circle extends Shape {
         super.draw(ctx);
         const props = getProperties(this.id)!;
         ctx.beginPath();
-        if (props.fillColour === "fog") ctx.fillStyle = getFogColour();
+        if (props.fillColour === "fog") ctx.fillStyle = FOG_COLOUR;
         else ctx.fillStyle = props.fillColour;
 
         this.drawArc(ctx, this.ignoreZoomSize ? this.r : g2lz(this.r));

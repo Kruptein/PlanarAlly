@@ -41,7 +41,7 @@ export const accessState = {
         if (getGameState().isDm) return true;
         if (getGameState().isFakePlayer && activeTokens.value.has(state.reactive.id)) return true;
         if (state.reactive.defaultAccess.edit) return true;
-        const username = playerSystem.getCurrentPlayer().name;
+        const username = playerSystem.getCurrentPlayer()?.name;
         return [...state.reactive.playerAccess.entries()].some(([u, a]) => u === username && a.edit === true);
     }),
 

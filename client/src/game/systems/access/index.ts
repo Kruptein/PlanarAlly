@@ -132,7 +132,7 @@ class AccessSystem implements ShapeSystem {
             return true;
         }
 
-        const userAccess = accessMap.get(playerSystem.getCurrentPlayer().name);
+        const userAccess = accessMap.get(playerSystem.getCurrentPlayer()!.name);
         if (userAccess === undefined) return false;
 
         return (
@@ -173,7 +173,7 @@ class AccessSystem implements ShapeSystem {
         }
 
         // todo: some sort of event register instead of calling these other systems manually ?
-        if (userAccess.vision && user === playerSystem.getCurrentPlayer().name) {
+        if (userAccess.vision && user === playerSystem.getCurrentPlayer()?.name) {
             const props = getProperties(shapeId);
             if (props !== undefined && props.isToken) {
                 this.addOwnedToken(shapeId);
@@ -196,7 +196,7 @@ class AccessSystem implements ShapeSystem {
         if (
             access.vision !== undefined &&
             access.vision !== oldAccess.vision &&
-            (user === playerSystem.getCurrentPlayer().name || user === DEFAULT_ACCESS_SYMBOL)
+            (user === playerSystem.getCurrentPlayer()?.name || user === DEFAULT_ACCESS_SYMBOL)
         ) {
             const props = getProperties(shapeId);
             if (props !== undefined && props.isToken) {
@@ -263,7 +263,7 @@ class AccessSystem implements ShapeSystem {
             $.playerAccess.delete(user);
         }
 
-        if (oldAccess.vision && user === playerSystem.getCurrentPlayer().name) {
+        if (oldAccess.vision && user === playerSystem.getCurrentPlayer()?.name) {
             const props = getProperties(shapeId);
             if (props !== undefined && props.isToken) {
                 this.removeOwnedToken(shapeId);

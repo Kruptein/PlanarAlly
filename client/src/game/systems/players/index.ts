@@ -93,17 +93,16 @@ class PlayerSystem implements System {
         return $.players.get(playerId);
     }
 
-    getCurrentPlayer(): Player {
+    getCurrentPlayer(): Player | undefined {
         for (const player of $.players.values()) {
             if (player.name === coreStore.state.username) {
                 return player;
             }
         }
-        throw new Error("Current player does not exist");
     }
 
     loadPosition(): void {
-        const position = $.playerLocation.get(this.getCurrentPlayer().id)!;
+        const position = $.playerLocation.get(this.getCurrentPlayer()!.id)!;
         positionSystem.setZoomDisplay(position.zoom_display, { invalidate: true, sync: false });
         positionSystem.setPan(position.pan_x, position.pan_y, { needsOffset: false });
         if (position.active_layer !== undefined) floorSystem.selectLayer(position.active_layer, false);

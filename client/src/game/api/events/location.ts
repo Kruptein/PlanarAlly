@@ -15,7 +15,7 @@ import { socket } from "../socket";
 
 socket.on("Location.Set", (data: ServerLocation) => {
     settingsStore.setActiveLocation(data.id);
-    playerSystem.updatePlayersLocation([playerSystem.getCurrentPlayer().name], data.id, false);
+    playerSystem.updatePlayersLocation([playerSystem.getCurrentPlayer()!.name], data.id, false);
     clientSystem.updateAllClientRects();
     setLocationOptions(data.id, data.options);
 });

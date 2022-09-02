@@ -71,7 +71,7 @@ class RulerTool extends Tool {
 
         accessSystem.addAccess(
             ruler.id,
-            playerSystem.getCurrentPlayer().name,
+            playerSystem.getCurrentPlayer()!.name,
             { edit: true, movement: true, vision: true },
             NO_SYNC,
         );
@@ -107,7 +107,7 @@ class RulerTool extends Tool {
         this.text.ignoreZoomSize = true;
         accessSystem.addAccess(
             this.text.id,
-            playerSystem.getCurrentPlayer().name,
+            playerSystem.getCurrentPlayer()!.name,
             { edit: true, movement: true, vision: true },
             NO_SYNC,
         );

@@ -343,7 +343,7 @@ class SelectTool extends Tool implements ISelectTool {
                 this.selectionHelper.options.UiHelper = true;
                 accessSystem.addAccess(
                     this.selectionHelper.id,
-                    playerSystem.getCurrentPlayer().name,
+                    playerSystem.getCurrentPlayer()!.name,
                     { edit: true, movement: true, vision: true },
                     NO_SYNC,
                 );
@@ -819,7 +819,7 @@ class SelectTool extends Tool implements ISelectTool {
         for (const rotationShape of [this.rotationAnchor, this.rotationBox, this.rotationEnd]) {
             accessSystem.addAccess(
                 rotationShape.id,
-                playerSystem.getCurrentPlayer().name,
+                playerSystem.getCurrentPlayer()!.name,
                 { edit: true, movement: true, vision: true },
                 NO_SYNC,
             );

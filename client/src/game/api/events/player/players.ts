@@ -25,7 +25,7 @@ socket.on(
                 playerSystem.setPosition(player.core.id, player.position);
             }
 
-            if (player.core.name === playerSystem.getCurrentPlayer().name) {
+            if (player.core.name === playerSystem.getCurrentPlayer()?.name) {
                 found = true;
                 gameStore.setDm(player.core.role === Role.DM);
             }

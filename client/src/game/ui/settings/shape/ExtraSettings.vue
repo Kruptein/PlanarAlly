@@ -140,7 +140,7 @@ function applyDDraft(): void {
         const shape = new Polygon(points[0], points.slice(1), { openPolygon: true }, { strokeColour: ["red"] });
         accessSystem.addAccess(
             shape.id,
-            playerSystem.getCurrentPlayer().name,
+            playerSystem.getCurrentPlayer()!.name,
             { edit: true, movement: true, vision: true },
             UI_SYNC,
         );
@@ -155,7 +155,7 @@ function applyDDraft(): void {
         const shape = new Polygon(points[0], points.slice(1), { openPolygon: true }, { strokeColour: ["blue"] });
         accessSystem.addAccess(
             shape.id,
-            playerSystem.getCurrentPlayer().name,
+            playerSystem.getCurrentPlayer()!.name,
             { edit: true, movement: true, vision: true },
             UI_SYNC,
         );
@@ -194,7 +194,7 @@ function applyDDraft(): void {
         auraSystem.add(shape.id, aura, SERVER_SYNC);
         accessSystem.addAccess(
             shape.id,
-            playerSystem.getCurrentPlayer().name,
+            playerSystem.getCurrentPlayer()!.name,
             { edit: true, movement: true, vision: true },
             SERVER_SYNC,
         );

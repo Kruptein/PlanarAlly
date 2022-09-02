@@ -17,7 +17,7 @@ socket.on("Client.Disconnected", (data: ClientId) => {
 
 socket.on("Client.Move", (data: { player: PlayerId; client: ClientId } & ServerUserLocationOptions) => {
     const { player, client, ...locationData } = data;
-    const isCurrentPlayer = playerSystem.getCurrentPlayer().id === data.player;
+    const isCurrentPlayer = playerSystem.getCurrentPlayer()?.id === data.player;
     if (getGameState().isDm && !isCurrentPlayer) {
         playerSystem.setPosition(player, locationData);
     } else if (isCurrentPlayer) {

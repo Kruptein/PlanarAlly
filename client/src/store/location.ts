@@ -29,7 +29,7 @@ class LocationStore extends Store<LocationState> {
             const state = getGameState();
             const newLocations = new Map();
             for (const player of playerState.reactive.players.values()) {
-                if (player.name === playerSystem.getCurrentPlayer().name && state.isDm) continue;
+                if (player.name === playerSystem.getCurrentPlayer()?.name && state.isDm) continue;
                 if (!newLocations.has(player.location)) {
                     newLocations.set(player.location, new Set());
                 }

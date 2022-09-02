@@ -55,7 +55,7 @@ function submit(): void {
     );
     accessSystem.addAccess(
         token.id,
-        playerSystem.getCurrentPlayer().name,
+        playerSystem.getCurrentPlayer()!.name,
         { edit: true, movement: true, vision: true },
         UI_SYNC,
     );

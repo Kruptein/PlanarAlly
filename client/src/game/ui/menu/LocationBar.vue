@@ -75,7 +75,7 @@ async function createLocation(): Promise<void> {
 }
 
 function changeLocation(id: number): void {
-    sendLocationChange({ location: id, users: [playerSystem.getCurrentPlayer().name] });
+    sendLocationChange({ location: id, users: [playerSystem.getCurrentPlayer()!.name] });
     coreStore.setLoading(true);
 }
 

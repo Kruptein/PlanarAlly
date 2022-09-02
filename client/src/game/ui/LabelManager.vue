@@ -31,7 +31,7 @@ const categories = computed(() => {
     const cat: Map<string, Label[]> = new Map();
     cat.set("", []);
     for (const label of getGameState().labels.values()) {
-        if (label.user !== playerSystem.getCurrentPlayer().name) continue;
+        if (label.user !== playerSystem.getCurrentPlayer()?.name) continue;
         const fullName = `${label.category.toLowerCase()}${label.name.toLowerCase()}`;
         if (state.search.length > 0 && fullName.search(state.search.toLowerCase()) < 0) {
             continue;
@@ -66,7 +66,7 @@ function addLabel(): void {
         category: state.newCategory,
         name: state.newName,
         visible: false,
-        user: playerSystem.getCurrentPlayer().name,
+        user: playerSystem.getCurrentPlayer()!.name,
     };
     gameStore.addLabel(label, true);
     state.newCategory = "";

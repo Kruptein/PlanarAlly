@@ -207,7 +207,7 @@ class ClientSystem implements System {
             return undefined;
         }
 
-        if (playerSystem.getCurrentPlayer().location !== playerSystem.getPlayer(player)?.location) {
+        if (playerSystem.getCurrentPlayer()?.location !== playerSystem.getPlayer(player)?.location) {
             return undefined;
         }
 

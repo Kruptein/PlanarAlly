@@ -413,7 +413,7 @@ class DrawTool extends Tool {
 
             accessSystem.addAccess(
                 this.shape.id,
-                playerSystem.getCurrentPlayer().name,
+                playerSystem.getCurrentPlayer()!.name,
                 { edit: true, movement: true, vision: true },
                 UI_SYNC,
             );

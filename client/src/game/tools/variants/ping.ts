@@ -72,13 +72,13 @@ class PingTool extends Tool {
         this.border.ignoreZoomSize = true;
         accessSystem.addAccess(
             this.ping.id,
-            playerSystem.getCurrentPlayer().name,
+            playerSystem.getCurrentPlayer()!.name,
             { edit: true, movement: true, vision: true },
             NO_SYNC,
         );
         accessSystem.addAccess(
             this.border.id,
-            playerSystem.getCurrentPlayer().name,
+            playerSystem.getCurrentPlayer()!.name,
             { edit: true, movement: true, vision: true },
             NO_SYNC,
         );

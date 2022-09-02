@@ -1,6 +1,5 @@
 // Bootup Sequence
 
-import { clientStore } from "../../../store/client";
 import { coreStore } from "../../../store/core";
 import { gameStore } from "../../../store/game";
 import { locationStore } from "../../../store/location";
@@ -16,7 +15,7 @@ import { socket } from "../socket";
 
 socket.on("Location.Set", (data: ServerLocation) => {
     settingsStore.setActiveLocation(data.id);
-    playerSystem.updatePlayersLocation([clientStore.state.username], data.id, false);
+    playerSystem.updatePlayersLocation([playerSystem.getCurrentPlayer().name], data.id, false);
     clientSystem.updateAllClientRects();
     setLocationOptions(data.id, data.options);
 });

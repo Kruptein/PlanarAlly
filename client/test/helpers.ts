@@ -5,8 +5,10 @@ import { generateLocalId } from "../src/game/id";
 import type { IShape } from "../src/game/interfaces/shape";
 import { LayerName } from "../src/game/models/floor";
 import type { ServerFloor } from "../src/game/models/general";
+import { Role } from "../src/game/models/role";
 import { Rect } from "../src/game/shapes/variants/rect";
 import { floorSystem } from "../src/game/systems/floors";
+import type { Player, PlayerId } from "../src/game/systems/players/models";
 
 export function generateTestShape(options?: { floor?: string }): IShape {
     const rect = new Rect(toGP(0, 0), 0, 0);
@@ -28,6 +30,16 @@ export function generateTestLocalId(shape?: IShape): LocalId {
     const id = generateLocalId(shape);
     (shape as any).id = id;
     return id;
+}
+
+export function generatePlayer(name: string): Player {
+    return {
+        id: (100 * Math.random()) as PlayerId,
+        name,
+        location: 1,
+        role: Role.Player,
+        showRect: false,
+    };
 }
 
 function generateTestFloor(name?: string): ServerFloor {

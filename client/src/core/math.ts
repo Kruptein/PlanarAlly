@@ -1,7 +1,7 @@
 import type { DeepReadonly } from "vue";
 
 import type { ILayer } from "../game/interfaces/layer";
-import { DEFAULT_GRID_SIZE } from "../store/client";
+import { DEFAULT_GRID_SIZE } from "../game/systems/position/state";
 
 import { l2gz } from "./conversions";
 import { addP, equalsP, subtractP, toArrayP, toGP, Vector } from "./geometry";

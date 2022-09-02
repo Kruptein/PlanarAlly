@@ -1,35 +1,32 @@
 <script setup lang="ts">
-import { computed, toRef } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { clientStore } from "../../../../store/client";
-import type { UserOptions } from "../../../models/settings";
+import { playerSettingsSystem } from "../../../systems/settings/players";
+import { playerSettingsState } from "../../../systems/settings/players/state";
 
 const { t } = useI18n();
 
-const defaultOptions = toRef(clientStore.state, "defaultClientOptions");
+const { reactive: $ } = playerSettingsState;
+const pss = playerSettingsSystem;
 
 const invertAlt = computed({
     get() {
-        return clientStore.state.invertAlt;
+        return $.invertAlt.value;
     },
-    set(invertAlt: boolean) {
-        clientStore.setInvertAlt(invertAlt, true);
+    set(invertAlt: boolean | undefined) {
+        pss.setInvertAlt(invertAlt, { sync: true });
     },
 });
 
 const disableScrollToZoom = computed({
     get() {
-        return clientStore.state.disableScrollToZoom;
+        return $.disableScrollToZoom.value;
     },
-    set(disableScrollToZoom: boolean) {
-        clientStore.setDisableScrollToZoom(disableScrollToZoom, true);
+    set(disableScrollToZoom: boolean | undefined) {
+        pss.setDisableScrollToZoom(disableScrollToZoom, { sync: true });
     },
 });
-
-function setDefault(key: keyof UserOptions): void {
-    clientStore.setDefaultClientOption(key, clientStore.state[key], true);
-}
 </script>
 
 <template>
@@ -38,11 +35,14 @@ function setDefault(key: keyof UserOptions): void {
         <div class="row">
             <label for="invertAlt">{{ t("game.ui.settings.client.BehaviourSettings.invert_alt_set") }}</label>
             <div><input id="invertAlt" type="checkbox" v-model="invertAlt" /></div>
-            <template v-if="invertAlt !== defaultOptions.invertAlt">
-                <div :title="t('game.ui.settings.common.reset_default')" @click="invertAlt = defaultOptions.invertAlt">
+            <template v-if="$.invertAlt.override !== undefined">
+                <div :title="t('game.ui.settings.common.reset_default')" @click="invertAlt = undefined">
                     <font-awesome-icon icon="times-circle" />
                 </div>
-                <div :title="t('game.ui.settings.common.sync_default')" @click="setDefault('invertAlt')">
+                <div
+                    :title="t('game.ui.settings.common.sync_default')"
+                    @click="pss.setInvertAlt(undefined, { sync: true, default: $.invertAlt.override })"
+                >
                     <font-awesome-icon icon="sync-alt" />
                 </div>
             </template>
@@ -53,14 +53,16 @@ function setDefault(key: keyof UserOptions): void {
                 {{ t("game.ui.settings.client.BehaviourSettings.disable_scroll_to_zoom") }}
             </label>
             <div><input id="disableScrollToZoom" type="checkbox" v-model="disableScrollToZoom" /></div>
-            <template v-if="disableScrollToZoom !== defaultOptions.disableScrollToZoom">
-                <div
-                    :title="t('game.ui.settings.common.reset_default')"
-                    @click="disableScrollToZoom = defaultOptions.disableScrollToZoom"
-                >
+            <template v-if="$.disableScrollToZoom.override !== undefined">
+                <div :title="t('game.ui.settings.common.reset_default')" @click="disableScrollToZoom = undefined">
                     <font-awesome-icon icon="times-circle" />
                 </div>
-                <div :title="t('game.ui.settings.common.sync_default')" @click="setDefault('disableScrollToZoom')">
+                <div
+                    :title="t('game.ui.settings.common.sync_default')"
+                    @click="
+                        pss.setDisableScrollToZoom(undefined, { sync: true, default: $.disableScrollToZoom.override })
+                    "
+                >
                     <font-awesome-icon icon="sync-alt" />
                 </div>
             </template>

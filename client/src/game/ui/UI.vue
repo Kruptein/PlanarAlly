@@ -7,8 +7,9 @@ import SliderComponent from "../../core/components/slider/SliderComponent.vue";
 import { baseAdjust } from "../../core/http";
 import { getGameState } from "../../store/_game";
 import { activeShapeStore } from "../../store/activeShape";
-import { clientStore } from "../../store/client";
 import { coreStore } from "../../store/core";
+import { positionSystem } from "../systems/position";
+import { positionState } from "../systems/position/state";
 
 import Annotation from "./Annotation.vue";
 import DefaultContext from "./contextmenu/DefaultContext.vue";
@@ -101,15 +102,15 @@ function toggleMenu(): void {
 
 const zoomDisplay = computed({
     get(): number {
-        return clientStore.state.zoomDisplay;
+        return positionState.reactive.zoomDisplay;
     },
     set(zoom: number) {
-        clientStore.setZoomDisplay(zoom, { invalidate: true, sync: true });
+        positionSystem.setZoomDisplay(zoom, { invalidate: true, sync: true });
     },
 });
 
 function setTempZoomDisplay(value: number): void {
-    clientStore.setZoomDisplay(value, { invalidate: true, sync: false });
+    positionSystem.setZoomDisplay(value, { invalidate: true, sync: false });
 }
 </script>
 

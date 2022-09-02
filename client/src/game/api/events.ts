@@ -13,8 +13,9 @@ import "./events/labels";
 import "./events/location";
 import "./events/logic";
 import "./events/notification";
-import "./events/player";
-import "./events/players";
+import "./events/player/options";
+import "./events/player/player";
+import "./events/player/players";
 import "./events/room";
 import "./events/shape/circularToken";
 import "./events/shape/core";
@@ -28,7 +29,6 @@ import { SyncMode } from "../../core/models/types";
 import type { AssetList } from "../../core/models/types";
 import { debugLayers } from "../../localStorageHelpers";
 import { router } from "../../router";
-import { clientStore } from "../../store/client";
 import { coreStore } from "../../store/core";
 import { gameStore } from "../../store/game";
 import { locationStore } from "../../store/location";
@@ -43,6 +43,8 @@ import { setCenterPosition } from "../position";
 import { deleteShapes } from "../shapes/utils";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
+import { playerSystem } from "../systems/players";
+import { positionSystem } from "../systems/position";
 
 import { socket } from "./socket";
 
@@ -99,6 +101,7 @@ socket.on("Board.Floor.Set", (floor: ServerFloor) => {
         floorSystem.selectFloor({ name: floor.name }, false);
         coreStore.setLoading(false);
         gameStore.setBoardInitialized(true);
+        playerSystem.loadPosition();
     }
 });
 
@@ -106,7 +109,7 @@ socket.on("Board.Floor.Set", (floor: ServerFloor) => {
 
 socket.on("Position.Set", (data: { floor?: string; x: number; y: number; zoom?: number }) => {
     if (data.floor !== undefined) floorSystem.selectFloor({ name: data.floor }, true);
-    if (data.zoom !== undefined) clientStore.setZoomDisplay(data.zoom, { invalidate: false, sync: false });
+    if (data.zoom !== undefined) positionSystem.setZoomDisplay(data.zoom, { invalidate: false, sync: false });
     setCenterPosition(toGP(data.x, data.y));
 });
 

@@ -133,17 +133,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
     else:
         await sio.emit("PARTIAL-CLEAR", room=sid, namespace=GAME_NS)
 
-    # 1. Load client options
-
-    client_options = pr.player.as_dict()
-    client_options["default_user_options"] = pr.player.default_options.as_dict()
-
-    if pr.user_options:
-        client_options["room_user_options"] = pr.user_options.as_dict()
-
-    await sio.emit("Client.Options.Set", client_options, room=sid, namespace=GAME_NS)
-
-    # 2. Load room info
+    # 1. Load room info
 
     if complete:
         await sio.emit(
@@ -159,6 +149,19 @@ async def load_location(sid: str, location: Location, *, complete=False):
             room=sid,
             namespace=GAME_NS,
         )
+
+    # 2. Load player info & options
+
+    client_options = {
+        "colour_history": pr.player.colour_history,
+        "default_user_options": pr.player.default_options.as_dict(),
+    }
+
+    if pr.user_options:
+        client_options["room_user_options"] = pr.user_options.as_dict()
+
+    await sio.emit("Players.Info.Set", player_data, room=sid, namespace=GAME_NS)
+    await sio.emit("Player.Options.Set", client_options, room=sid, namespace=GAME_NS)
 
     # 3. Load location
 
@@ -177,7 +180,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
             namespace=GAME_NS,
         )
 
-    # 5. Load Board && Player Info
+    # 5. Load Board
 
     locations = [
         {"id": l.id, "name": l.name, "archived": l.archived}
@@ -197,16 +200,13 @@ async def load_location(sid: str, location: Location, *, complete=False):
         higher_floors = floors[index + 1 :] if index < len(floors) else []
         floors = [floors[index], *lower_floors, *higher_floors]
 
-    for i, floor in enumerate(floors):
+    for floor in floors:
         await sio.emit(
             "Board.Floor.Set",
             floor.as_dict(pr.player, cast(bool, IS_DM)),
             room=sid,
             namespace=GAME_NS,
         )
-
-        if i == 0:
-            await sio.emit("Players.Info.Set", player_data, room=sid, namespace=GAME_NS)
 
     # 6. Load Initiative
 

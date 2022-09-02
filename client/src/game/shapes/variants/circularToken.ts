@@ -2,13 +2,13 @@ import { g2l, g2lz } from "../../../core/conversions";
 import type { GlobalPoint } from "../../../core/geometry";
 import { SyncMode } from "../../../core/models/types";
 import { calcFontScale, mostReadable } from "../../../core/utils";
-import { clientStore } from "../../../store/client";
 import { sendCircularTokenUpdate } from "../../api/emits/shape/circularToken";
 import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import type { ServerCircularToken } from "../../models/shapes";
 import { getProperties } from "../../systems/properties/state";
 import type { ShapeProperties } from "../../systems/properties/state";
+import { playerSettingsState } from "../../systems/settings/players/state";
 import type { SHAPE_TYPE } from "../types";
 
 import { Circle } from "./circle";
@@ -61,7 +61,7 @@ export class CircularToken extends Circle {
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         const fontScale = calcFontScale(ctx, this.text, g2lz(this.r - 5));
-        const pixelRatio = clientStore.devicePixelRatio.value;
+        const pixelRatio = playerSettingsState.devicePixelRatio.value;
         ctx.setTransform(fontScale, 0, 0, fontScale, center.x * pixelRatio, center.y * pixelRatio);
         ctx.rotate(this.angle);
         ctx.fillStyle = mostReadable(props.fillColour);

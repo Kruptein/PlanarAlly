@@ -4,7 +4,6 @@ import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types"
 import { debugLayers } from "../../../localStorageHelpers";
 import { getGameState } from "../../../store/_game";
 import { activeShapeStore } from "../../../store/activeShape";
-import { clientStore } from "../../../store/client";
 import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
 import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../../api/emits/shape/core";
@@ -25,6 +24,7 @@ import { floorState } from "../../systems/floors/state";
 import { propertiesSystem } from "../../systems/properties";
 import { getProperties } from "../../systems/properties/state";
 import { selectedSystem } from "../../systems/selected";
+import { playerSettingsState } from "../../systems/settings/players/state";
 import { initiativeStore } from "../../ui/initiative/state";
 import { TriangulationTarget, VisibilityMode, visionState } from "../../vision/state";
 import { setCanvasDimensions } from "../canvas";
@@ -34,7 +34,7 @@ export class Layer implements ILayer {
     ctx: CanvasRenderingContext2D;
 
     // When set to false, the layer will be redrawn on the next tick
-    protected valid = false;
+    protected valid = true;
 
     playerEditable = false;
     selectable = false;
@@ -79,11 +79,11 @@ export class Layer implements ILayer {
     }
 
     get width(): number {
-        return this.canvas.width / clientStore.devicePixelRatio.value;
+        return this.canvas.width / playerSettingsState.devicePixelRatio.value;
     }
 
     get height(): number {
-        return this.canvas.height / clientStore.devicePixelRatio.value;
+        return this.canvas.height / playerSettingsState.devicePixelRatio.value;
     }
 
     resize(width: number, height: number): void {

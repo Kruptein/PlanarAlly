@@ -1,16 +1,17 @@
-import { clientStore, GRID_OFFSET } from "../../../store/client";
-import type { ServerUserOptions, ServerUserLocationOptions } from "../../models/settings";
+import type { ServerUserLocationOptions } from "../../models/settings";
 import type { ClientId, Viewport } from "../../systems/client/models";
+import { positionState } from "../../systems/position/state";
+import type { ServerPlayerOptions } from "../../systems/settings/players/models";
 import { wrapSocket } from "../helpers";
 import { socket } from "../socket";
 
 export function sendClientLocationOptions(temp: boolean): void {
-    const state = clientStore.state;
+    const state = positionState.readonly;
     _sendClientLocationOptions(
         {
-            pan_x: state.panX - GRID_OFFSET.x,
-            pan_y: state.panY - GRID_OFFSET.y,
-            zoom_display: state.zoomDisplay,
+            pan_x: state.panX - state.gridOffset.x,
+            pan_y: state.panY - state.gridOffset.y,
+            zoom_display: positionState.raw.zoomDisplay,
         },
         temp,
     );
@@ -23,7 +24,14 @@ function _sendClientLocationOptions(locationOptions: ServerUserLocationOptions, 
 export const sendViewport = wrapSocket<Viewport>("Client.Viewport.Set");
 export const sendOffset = wrapSocket<{ client: ClientId; x?: number; y?: number }>("Client.Offset.Set");
 
-export const sendRoomClientOptions = wrapSocket<Partial<ServerUserOptions>>("Client.Options.Room.Set");
-export const sendDefaultClientOptions = wrapSocket<Partial<ServerUserOptions>>("Client.Options.Default.Set");
+export function sendRoomClientOptions<T extends keyof ServerPlayerOptions>(
+    key: T,
+    value: ServerPlayerOptions[T] | undefined,
+    defaultValue: ServerPlayerOptions[T] | undefined,
+): void {
+    const event = defaultValue !== undefined ? "Client.Options.Default.Set" : "Client.Options.Room.Set";
+    const val = defaultValue !== undefined ? defaultValue : value ?? null;
+    socket.emit(event, { [key]: val });
+}
 
 export const sendMoveClient = wrapSocket<{ client: ClientId; data: ServerUserLocationOptions }>("Client.Move");

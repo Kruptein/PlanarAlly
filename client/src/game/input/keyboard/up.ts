@@ -2,12 +2,12 @@ import { equalsP } from "../../../core/geometry";
 import { SyncMode } from "../../../core/models/types";
 import { ctrlOrCmdPressed } from "../../../core/utils";
 import { activeShapeStore } from "../../../store/activeShape";
-import { clientStore } from "../../../store/client";
 import { getShape } from "../../id";
 import { setCenterPosition } from "../../position";
 import { deleteShapes } from "../../shapes/utils";
 import { accessState } from "../../systems/access/state";
 import { floorSystem } from "../../systems/floors";
+import { positionSystem } from "../../systems/position";
 import { selectedSystem } from "../../systems/selected";
 
 export function onKeyUp(event: KeyboardEvent): void {
@@ -23,7 +23,7 @@ export function onKeyUp(event: KeyboardEvent): void {
             // numpad-zero only if Ctrl is not pressed, as this would otherwise conflict with Ctrl + 0
             const tokens = [...accessState.reactive.ownedTokens].map((o) => getShape(o)!);
             if (tokens.length === 0) return;
-            const i = tokens.findIndex((o) => equalsP(o.center(), clientStore.screenCenter));
+            const i = tokens.findIndex((o) => equalsP(o.center(), positionSystem.screenCenter));
             const token = tokens[(i + 1) % tokens.length];
             setCenterPosition(token.center());
             floorSystem.selectFloor({ name: token.floor.name }, true);

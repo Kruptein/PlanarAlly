@@ -7,10 +7,11 @@ import { accessSystem } from "../../../../src/game/systems/access";
 import { DEFAULT_ACCESS, DEFAULT_ACCESS_SYMBOL } from "../../../../src/game/systems/access/models";
 import type { ShapeAccess } from "../../../../src/game/systems/access/models";
 import { accessState } from "../../../../src/game/systems/access/state";
+import { playerSystem } from "../../../../src/game/systems/players";
 import type { ShapeProperties } from "../../../../src/game/systems/properties/state";
-import { clientStore } from "../../../../src/store/client";
+import { coreStore } from "../../../../src/store/core";
 import { gameStore } from "../../../../src/store/game";
-import { generateTestLocalId } from "../../../helpers";
+import { generatePlayer, generateTestLocalId } from "../../../helpers";
 
 const errorSpy = vi.spyOn(console, "error");
 const emitSpy = vi.spyOn(socket, "emit");
@@ -36,7 +37,6 @@ describe("Access System", () => {
         addOwnedTokenSpy.mockClear();
         removeOwnedTokenSpy.mockClear();
         GET_PROPERTIES_OVERRIDE = undefined;
-        clientStore.setUsername("");
     });
     describe("inform", () => {
         it("should update $state if active", () => {
@@ -109,11 +109,13 @@ describe("Access System", () => {
                 shape: id2,
                 user: "userWithFullRights",
             };
+            playerSystem.addPlayer(generatePlayer("userWithFullRights"));
             const id2DmUser = {
                 access: { edit: false, movement: false, vision: false },
                 shape: id2,
                 user: "userWithNoRights",
             };
+            playerSystem.addPlayer(generatePlayer("userWithNoRights"));
 
             accessSystem.inform(id, { default: id1Default, extra: [] });
             accessSystem.inform(id2, {
@@ -136,7 +138,7 @@ describe("Access System", () => {
             expect(accessSystem.hasAccessTo(id, true, { edit: true })).toBe(false);
             GET_PROPERTIES_OVERRIDE = undefined;
             // 3. the current user would otherwise not have access
-            clientStore.setUsername("userWithNoRights");
+            coreStore.setUsername("userWithNoRights");
             expect(accessSystem.hasAccessTo(id2, false, { edit: true })).toBe(true);
             // teardown
             gameStore.setDm(false);
@@ -155,7 +157,7 @@ describe("Access System", () => {
             // 2. default access is granted
             expect(accessSystem.hasAccessTo(id, false, { edit: true })).toBe(false);
             // 3. user access is granted
-            clientStore.setUsername("userWithFullRights");
+            coreStore.setUsername("userWithFullRights");
             expect(accessSystem.hasAccessTo(id2, false, { edit: true })).toBe(false);
         });
         it("should return false if the shape is a token and NOT an active token with the limiter active", () => {
@@ -183,7 +185,7 @@ describe("Access System", () => {
             // 2. default access is granted
             expect(accessSystem.hasAccessTo(id, true, { edit: true })).toBe(false);
             // 3. user access is granted
-            clientStore.setUsername("userWithFullRights");
+            coreStore.setUsername("userWithFullRights");
             expect(accessSystem.hasAccessTo(id2, true, { edit: true })).toBe(false);
         });
         it("should return true if fake player is activated", () => {
@@ -193,7 +195,7 @@ describe("Access System", () => {
             expect(accessSystem.hasAccessTo(id, false, { movement: true })).toBe(true);
             // extra checks
             // 1. user access is not granted
-            clientStore.setUsername("userWithNoRights");
+            coreStore.setUsername("userWithNoRights");
             expect(accessSystem.hasAccessTo(id2, false, { edit: true })).toBe(true);
             // teardown
             gameStore.setFakePlayer(false);
@@ -206,19 +208,19 @@ describe("Access System", () => {
             expect(accessSystem.hasAccessTo(id, false, { vision: true })).toBe(true);
             // extra checks
             // 1. user access is not granted
-            clientStore.setUsername("userWithNoRights");
+            coreStore.setUsername("userWithNoRights");
             expect(accessSystem.hasAccessTo(id2, false, { movement: true })).toBe(true);
         });
         it("should return true if user access is granted", () => {
             // setup
-            clientStore.setUsername("userWithFullRights");
+            coreStore.setUsername("userWithFullRights");
             // test
             expect(accessSystem.hasAccessTo(id2, false, { edit: true })).toBe(true);
             expect(accessSystem.hasAccessTo(id2, false, { vision: true })).toBe(true);
         });
-        it("should return fakse if user access is not granted", () => {
+        it("should return false if user access is not granted", () => {
             // setup
-            clientStore.setUsername("userWithNoRights");
+            coreStore.setUsername("userWithNoRights");
             // test
             expect(accessSystem.hasAccessTo(id, false, { movement: true })).toBe(false);
             expect(accessSystem.hasAccessTo(id2, false, { edit: true })).toBe(false);
@@ -319,18 +321,21 @@ describe("Access System", () => {
                 default: DEFAULT_ACCESS,
                 extra: [],
             });
+            playerSystem.addPlayer(generatePlayer("some user"));
+            playerSystem.addPlayer(generatePlayer("vision user wo isToken"));
+            playerSystem.addPlayer(generatePlayer("vision user w isToken"));
             // test
             // 1. vision: false && username is ok && !isToken
-            clientStore.setUsername("some user");
+            coreStore.setUsername("some user");
             accessSystem.addAccess(id, "some user", userWithoutVision, UI_SYNC);
             expect(addOwnedTokenSpy).not.toBeCalled();
             // 2. vision: true && username is ok && !isToken
-            clientStore.setUsername("vision user wo isToken");
+            coreStore.setUsername("vision user wo isToken");
             accessSystem.addAccess(id, "vision user wo isToken", userWithVision, UI_SYNC);
             expect(addOwnedTokenSpy).not.toBeCalled();
             // 3. vision: true && username is ok && isToken
             GET_PROPERTIES_OVERRIDE = () => ({ isToken: true });
-            clientStore.setUsername("vision user w isToken");
+            coreStore.setUsername("vision user w isToken");
             accessSystem.addAccess(id, "vision user w isToken", userWithVision, UI_SYNC);
             expect(addOwnedTokenSpy).toBeCalled();
         });
@@ -389,7 +394,7 @@ describe("Access System", () => {
             expect(addOwnedTokenSpy).not.toBeCalled();
             accessSystem.updateAccess(id, "some user", { vision: false }, SERVER_SYNC); // reset
             // 2. without isToken
-            clientStore.setUsername("some user");
+            coreStore.setUsername("some user");
             accessSystem.updateAccess(id, "some user", { vision: true }, SERVER_SYNC);
             expect(addOwnedTokenSpy).not.toBeCalled();
             accessSystem.updateAccess(id, "some user", { vision: false }, SERVER_SYNC); // reset
@@ -413,7 +418,7 @@ describe("Access System", () => {
             expect(removeOwnedTokenSpy).not.toBeCalled();
             accessSystem.updateAccess(id, "some user", { vision: true }, SERVER_SYNC); // reset
             // 2. without isToken
-            clientStore.setUsername("some user");
+            coreStore.setUsername("some user");
             accessSystem.updateAccess(id, "some user", { vision: false }, SERVER_SYNC);
             expect(removeOwnedTokenSpy).not.toBeCalled();
             accessSystem.updateAccess(id, "some user", { vision: true }, SERVER_SYNC); // reset
@@ -489,7 +494,7 @@ describe("Access System", () => {
             expect(removeOwnedTokenSpy).not.toBeCalled();
             accessSystem.addAccess(id, "some user", { vision: true }, SERVER_SYNC); // reset
             // 2. without isToken
-            clientStore.setUsername("some user");
+            coreStore.setUsername("some user");
             accessSystem.removeAccess(id, "some user", SERVER_SYNC);
             expect(removeOwnedTokenSpy).not.toBeCalled();
             accessSystem.addAccess(id, "some user", { vision: true }, SERVER_SYNC); // reset

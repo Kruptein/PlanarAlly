@@ -8,10 +8,10 @@ import { reactive } from "vue";
 
 import { randomInterval } from "../../../core/utils";
 import { i18n } from "../../../i18n";
-import { clientStore } from "../../../store/client";
 import { diceStore } from "../../dice/state";
 import { ToolName } from "../../models/tools";
 import type { ToolPermission } from "../../models/tools";
+import { playerSettingsState } from "../../systems/settings/players/state";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
 
@@ -62,7 +62,7 @@ class DiceTool extends Tool {
         const w = (diceStore.state.dimensions.width / 2) * 0.85;
         const h = (diceStore.state.dimensions.height / 2) * 0.85;
 
-        const color = tinycolor(clientStore.state.rulerColour).toHexString();
+        const color = tinycolor(playerSettingsState.raw.rulerColour.value).toHexString();
 
         const position = new Vector3(signX * (side ? w : xDir * w), 4.5, signY * (side ? yDir * h : h));
 

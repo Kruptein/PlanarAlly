@@ -5,7 +5,6 @@ import draggable from "vuedraggable";
 
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { getGameState } from "../../../store/_game";
-import { clientStore } from "../../../store/client";
 import { coreStore } from "../../../store/core";
 import { locationStore } from "../../../store/location";
 import { settingsStore } from "../../../store/settings";
@@ -76,7 +75,7 @@ async function createLocation(): Promise<void> {
 }
 
 function changeLocation(id: number): void {
-    sendLocationChange({ location: id, users: [clientStore.state.username] });
+    sendLocationChange({ location: id, users: [playerSystem.getCurrentPlayer().name] });
     coreStore.setLoading(true);
 }
 

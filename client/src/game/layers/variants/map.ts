@@ -1,8 +1,8 @@
 import { baseAdjust } from "../../../core/http";
-import { clientStore, ZOOM } from "../../../store/client";
 import { settingsStore } from "../../../store/settings";
 import { FloorType } from "../../models/floor";
 import { floorSystem } from "../../systems/floors";
+import { positionState } from "../../systems/position/state";
 import { getPattern } from "../floor";
 
 import { Layer } from "./layer";
@@ -62,10 +62,11 @@ export class MapLayer extends Layer {
             };
         } else if (patternImage.loading) {
             const pattern = this.ctx.createPattern(patternImage, "repeat");
-            const panX = (patternData.offsetX + clientStore.state.panX) * ZOOM;
-            const panY = (patternData.offsetY + clientStore.state.panY) * ZOOM;
-            const scaleX = patternData.scaleX * ZOOM;
-            const scaleY = patternData.scaleY * ZOOM;
+            const state = positionState.readonly;
+            const panX = (patternData.offsetX + state.panX) * state.zoom;
+            const panY = (patternData.offsetY + state.panY) * state.zoom;
+            const scaleX = patternData.scaleX * state.zoom;
+            const scaleY = patternData.scaleY * state.zoom;
 
             pattern?.setTransform(new DOMMatrix([scaleX, 0, 0, scaleY, panX, panY]));
             return pattern;

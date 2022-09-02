@@ -1,12 +1,13 @@
 import { l2g } from "../../core/conversions";
 import { toLP } from "../../core/geometry";
 import type { LocalPoint } from "../../core/geometry";
-import { clientStore } from "../../store/client";
+import { positionSystem } from "../systems/position";
+import { positionState } from "../systems/position/state";
 
 export function scrollZoom(e: WheelEvent): void {
     if (!e.target || !(e.target as HTMLElement).tagName || (e.target as HTMLElement).tagName !== "CANVAS") return;
     const delta = e.deltaY / 1000;
-    clientStore.updateZoom(clientStore.state.zoomDisplay + delta, l2g(getLocalPointFromEvent(e)));
+    positionSystem.updateZoom(positionState.raw.zoomDisplay + delta, l2g(getLocalPointFromEvent(e)));
 }
 
 export function getLocalPointFromEvent(e: MouseEvent | TouchEvent): LocalPoint {

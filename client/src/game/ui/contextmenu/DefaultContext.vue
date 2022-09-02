@@ -10,13 +10,13 @@ import { InvalidationMode, NO_SYNC, SyncMode } from "../../../core/models/types"
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { uuidv4 } from "../../../core/utils";
 import { getGameState } from "../../../store/_game";
-import { clientStore } from "../../../store/client";
 import { settingsStore } from "../../../store/settings";
 import { sendBringPlayers } from "../../api/emits/players";
 import { LayerName } from "../../models/floor";
 import { Asset } from "../../shapes/variants/asset";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
+import { positionState } from "../../systems/position/state";
 import { propertiesSystem } from "../../systems/properties";
 import { getProperties } from "../../systems/properties/state";
 import { initiativeStore } from "../initiative/state";
@@ -42,7 +42,7 @@ function bringPlayers(): void {
         x: l2gx(defaultContextLeft.value),
         // eslint-disable-next-line no-undef
         y: l2gy(defaultContextTop.value),
-        zoom: clientStore.state.zoomDisplay,
+        zoom: positionState.raw.zoomDisplay,
     });
     close();
 }

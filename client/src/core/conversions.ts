@@ -1,14 +1,13 @@
-import { clientStore, DEFAULT_GRID_SIZE, ZOOM } from "../store/client";
+import { DEFAULT_GRID_SIZE, positionState } from "../game/systems/position/state";
+import { playerSettingsState } from "../game/systems/settings/players/state";
 import { settingsStore } from "../store/settings";
 
 import { Ray, toGP, toLP } from "./geometry";
 import type { GlobalPoint, LocalPoint } from "./geometry";
 
 export function g2l(obj: GlobalPoint): LocalPoint {
-    const state = clientStore.state;
-    const panX = state.panX;
-    const panY = state.panY;
-    return toLP((obj.x + panX) * ZOOM, (obj.y + panY) * ZOOM);
+    const state = positionState.readonly;
+    return toLP((obj.x + state.panX) * state.zoom, (obj.y + state.panY) * state.zoom);
 }
 
 export function g2lx(x: number): number {
@@ -20,7 +19,7 @@ export function g2ly(y: number): number {
 }
 
 export function g2lz(z: number): number {
-    return z * ZOOM;
+    return z * positionState.readonly.zoom;
 }
 
 export function getUnitDistance(r: number): number {
@@ -34,14 +33,12 @@ export function g2lr(r: number): number {
 export function l2g(obj: LocalPoint): GlobalPoint;
 export function l2g(obj: Ray<LocalPoint>): Ray<GlobalPoint>;
 export function l2g(obj: LocalPoint | Ray<LocalPoint>): GlobalPoint | Ray<GlobalPoint> {
-    const state = clientStore.state;
-    const z = ZOOM;
-    const panX = state.panX;
-    const panY = state.panY;
+    const state = positionState.readonly;
+    const z = state.zoom;
     if (obj instanceof Ray) {
         return new Ray<GlobalPoint>(l2g(obj.origin), obj.direction.multiply(1 / z), obj.tMax);
     } else {
-        return toGP(obj.x / z - panX, obj.y / z - panY);
+        return toGP(obj.x / z - state.panX, obj.y / z - state.panY);
     }
 }
 
@@ -54,7 +51,7 @@ export function l2gy(y: number): number {
 }
 
 export function l2gz(z: number): number {
-    return z / ZOOM;
+    return z / positionState.readonly.zoom;
 }
 
 export function clampGridLine(point: number): number {
@@ -78,5 +75,5 @@ export function toDegrees(radians: number): number {
 // Based on https://stackoverflow.com/a/17102320
 export function zoomDisplayToFactor(display: number): number {
     const zoomValue = 1 / (-5 / 3 + (28 / 15) * Math.exp(1.83 * display));
-    return (zoomValue * clientStore.gridSize.value) / DEFAULT_GRID_SIZE;
+    return (zoomValue * playerSettingsState.gridSize.value) / DEFAULT_GRID_SIZE;
 }

@@ -5,7 +5,6 @@ import { equalsP, toGP } from "../../../core/geometry";
 import type { LocalPoint } from "../../../core/geometry";
 import { InvalidationMode, NO_SYNC, SyncMode, UI_SYNC } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
-import { clientStore } from "../../../store/client";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { getShape } from "../../id";
 import type { IShape } from "../../interfaces/shape";
@@ -16,6 +15,7 @@ import { Circle } from "../../shapes/variants/circle";
 import { Rect } from "../../shapes/variants/rect";
 import { accessSystem } from "../../systems/access";
 import { floorState } from "../../systems/floors/state";
+import { playerSystem } from "../../systems/players";
 import { propertiesSystem } from "../../systems/properties";
 import { selectedSystem } from "../../systems/selected";
 import { SelectFeatures } from "../models/select";
@@ -120,7 +120,7 @@ class SpellTool extends Tool {
 
         accessSystem.addAccess(
             this.shape.id,
-            clientStore.state.username,
+            playerSystem.getCurrentPlayer().name,
             { edit: true, movement: true, vision: true },
             UI_SYNC,
         );

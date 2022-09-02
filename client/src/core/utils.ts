@@ -50,8 +50,14 @@ export function ctrlOrCmdPressed(event: KeyboardEvent | MouseEvent | TouchEvent)
     return event.ctrlKey;
 }
 
+const readableMemory: Map<string, string> = new Map();
+
 export function mostReadable(colour: string): string {
-    return tinycolor.mostReadable(colour, ["#000", "#fff"]).toHexString();
+    const mem = readableMemory.get(colour);
+    if (mem !== undefined) return mem;
+    const col = tinycolor.mostReadable(colour, ["#000", "#fff"]).toHexString();
+    readableMemory.set(colour, col);
+    return col;
 }
 
 export function getTarget(event: Event): HTMLInputElement {

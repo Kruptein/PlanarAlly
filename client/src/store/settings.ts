@@ -5,6 +5,7 @@ import { Store } from "../core/store";
 import { getValueOrDefault } from "../core/types";
 import { toSnakeCase } from "../core/utils";
 import { sendLocationOptions, sendResetLocationOption } from "../game/api/emits/location";
+import { updateFogColour } from "../game/colour";
 import { getGlobalId } from "../game/id";
 import type { LocalId } from "../game/id";
 import type { LocationOptions } from "../game/models/settings";
@@ -147,6 +148,7 @@ class SettingsStore extends Store<SettingsState> {
             ) {
                 floorSystem.invalidateAllFloors();
             } else if (["fullFow", "fowOpacity"].includes(key)) {
+                updateFogColour();
                 floorSystem.invalidateLightAllFloors();
             } else if (key === "gridType") {
                 for (const floor of floorState.raw.floors) {
@@ -166,6 +168,7 @@ class SettingsStore extends Store<SettingsState> {
 
     setDefaultLocationOptions(data: LocationOptions): void {
         this._state.defaultLocationOptions = data;
+        updateFogColour();
     }
 
     setActiveLocation(location: number): void {
@@ -244,6 +247,7 @@ class SettingsStore extends Store<SettingsState> {
 
     setFowOpacity(fowOpacity: number, location: number | undefined, sync: boolean): void {
         if (this.mutate("fowOpacity", fowOpacity, location)) {
+            updateFogColour();
             floorSystem.invalidateLightAllFloors();
             if (sync)
                 sendLocationOptions({

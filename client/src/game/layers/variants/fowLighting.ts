@@ -1,7 +1,7 @@
 import { g2l, g2lz, getUnitDistance, g2lr, g2lx, g2ly, toRadians } from "../../../core/conversions";
 import type { SyncMode, InvalidationMode } from "../../../core/models/types";
 import { settingsStore } from "../../../store/settings";
-import { getFogColour } from "../../colour";
+import { FOG_COLOUR } from "../../colour";
 import { getShape } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import { LayerName } from "../../models/floor";
@@ -165,7 +165,7 @@ export class FowLightingLayer extends FowLayer {
 
             if (settingsStore.fullFow.value && this.floor === activeFloor.id) {
                 this.ctx.globalCompositeOperation = "source-out";
-                this.ctx.fillStyle = getFogColour();
+                this.ctx.fillStyle = FOG_COLOUR;
                 this.ctx.fillRect(0, 0, this.width, this.height);
             }
 

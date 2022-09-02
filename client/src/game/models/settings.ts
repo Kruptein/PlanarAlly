@@ -1,8 +1,6 @@
 import { getLocalId } from "../id";
 import type { GlobalId, LocalId } from "../id";
 
-import type { InitiativeEffectMode } from "./initiative";
-
 export interface ServerLocationOptions {
     use_grid: boolean;
     grid_type: string;
@@ -47,61 +45,12 @@ export interface LocationOptions {
     undergroundMapBackground: string | null;
 }
 
-export interface ServerClient {
-    name: string;
-    colour_history: string | null;
-    default_user_options: ServerUserOptions;
-    room_user_options?: ServerUserOptions;
-}
-
 export interface ServerUserLocationOptions {
     pan_x: number;
     pan_y: number;
     zoom_display: number;
     active_floor?: string;
     active_layer?: string;
-}
-
-export interface ServerUserOptions {
-    grid_colour: string;
-    fow_colour: string;
-    ruler_colour: string;
-
-    invert_alt: boolean;
-    disable_scroll_to_zoom: boolean;
-
-    use_high_dpi: boolean;
-    grid_size: number;
-    use_as_physical_board: boolean;
-    mini_size: number;
-    ppi: number;
-
-    initiative_camera_lock: boolean;
-    initiative_vision_lock: boolean;
-    initiative_effect_visibility: InitiativeEffectMode;
-}
-
-export interface UserOptions {
-    // Appearance
-    gridColour: string;
-    fowColour: string;
-    rulerColour: string;
-
-    // Behaviour
-    invertAlt: boolean;
-    disableScrollToZoom: boolean;
-
-    // Display
-    useHighDpi: boolean;
-    useAsPhysicalBoard: boolean;
-    gridSize: number;
-    miniSize: number;
-    ppi: number;
-
-    // Initiative
-    initiativeCameraLock: boolean;
-    initiativeVisionLock: boolean;
-    initiativeEffectVisibility: InitiativeEffectMode;
 }
 
 function parseSpawnLocations(spawn_locations: string): LocalId[] {
@@ -126,23 +75,4 @@ export const optionsToClient = (options: ServerLocationOptions): LocationOptions
     airMapBackground: options.air_map_background ?? null,
     groundMapBackground: options.ground_map_background ?? null,
     undergroundMapBackground: options.underground_map_background ?? null,
-});
-
-export const userOptionsToClient = (options: ServerUserOptions): UserOptions => ({
-    fowColour: options.fow_colour,
-    gridColour: options.grid_colour,
-    rulerColour: options.ruler_colour,
-
-    invertAlt: options.invert_alt,
-    disableScrollToZoom: options.disable_scroll_to_zoom,
-
-    useHighDpi: options.use_high_dpi,
-    gridSize: options.grid_size,
-    useAsPhysicalBoard: options.use_as_physical_board,
-    miniSize: options.mini_size,
-    ppi: options.ppi,
-
-    initiativeCameraLock: options.initiative_camera_lock,
-    initiativeVisionLock: options.initiative_vision_lock,
-    initiativeEffectVisibility: options.initiative_effect_visibility,
 });

@@ -4,7 +4,6 @@ import { defineComponent, onMounted, onUnmounted, toRef, watchEffect } from "vue
 
 import { useModal } from "../core/plugins/modals/plugin";
 import { getGameState } from "../store/_game";
-import { clientStore } from "../store/client";
 import { coreStore } from "../store/core";
 
 import { createConnection, socket } from "./api/socket";
@@ -13,6 +12,7 @@ import { onKeyDown } from "./input/keyboard/down";
 import { scrollZoom } from "./input/mouse";
 import { clearUndoStacks } from "./operations/undo";
 import { floorSystem } from "./systems/floors";
+import { playerSettingsState } from "./systems/settings/players/state";
 import { setSelectionBoxFunction } from "./temp";
 import {
     contextMenu,
@@ -79,7 +79,7 @@ export default defineComponent({
 
         // Window events
         function zoom(event: WheelEvent): void {
-            if (clientStore.state.disableScrollToZoom) return;
+            if (playerSettingsState.raw.disableScrollToZoom.value) return;
             throttle(scrollZoom)(event);
         }
 

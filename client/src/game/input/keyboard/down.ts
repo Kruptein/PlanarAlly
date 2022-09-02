@@ -2,7 +2,6 @@ import { toGP, Vector } from "../../../core/geometry";
 import { FULL_SYNC } from "../../../core/models/types";
 import { ctrlOrCmdPressed } from "../../../core/utils";
 import { getGameState } from "../../../store/_game";
-import { clientStore, DEFAULT_GRID_SIZE } from "../../../store/client";
 import { gameStore } from "../../../store/game";
 import { settingsStore } from "../../../store/settings";
 import { sendClientLocationOptions } from "../../api/emits/client";
@@ -13,6 +12,8 @@ import { setCenterPosition } from "../../position";
 import { copyShapes, pasteShapes } from "../../shapes/utils";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
+import { positionSystem } from "../../systems/position";
+import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
 import { propertiesSystem } from "../../systems/properties";
 import { getProperties } from "../../systems/properties/state";
 import { selectedSystem } from "../../systems/selected";
@@ -90,7 +91,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                 await moveShapes(selection, delta, false);
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.
-                clientStore.increasePan(offsetX * -1, offsetY * -1);
+                positionSystem.increasePan(offsetX * -1, offsetY * -1);
                 floorSystem.invalidateAllFloors();
                 sendClientLocationOptions(false);
             }

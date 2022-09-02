@@ -10,7 +10,6 @@ import type { PromptFunction } from "../../../core/plugins/modals/prompt";
 import { ctrlOrCmdPressed, mostReadable } from "../../../core/utils";
 import { i18n } from "../../../i18n";
 import { getGameState } from "../../../store/_game";
-import { clientStore } from "../../../store/client";
 import { settingsStore } from "../../../store/settings";
 import { sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import type { ILayer } from "../../interfaces/layer";
@@ -34,8 +33,10 @@ import { doorSystem } from "../../systems/logic/door";
 import type { DOOR_TOGGLE_MODE } from "../../systems/logic/door/models";
 import { DEFAULT_PERMISSIONS } from "../../systems/logic/models";
 import type { Permissions } from "../../systems/logic/models";
+import { playerSystem } from "../../systems/players";
 import { propertiesSystem } from "../../systems/properties";
 import { getProperties } from "../../systems/properties/state";
+import { playerSettingsState } from "../../systems/settings/players/state";
 import { openDefaultContextMenu } from "../../ui/contextmenu/state";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { Tool } from "../tool";
@@ -366,7 +367,7 @@ class DrawTool extends Tool {
                 case DrawShape.Polygon: {
                     const fill = this.state.isClosedPolygon ? this.state.fillColour : undefined;
                     const stroke = this.state.isClosedPolygon ? this.state.borderColour : this.state.fillColour;
-                    if (clientStore.useSnapping(event) && !this.snappedToPoint) {
+                    if (playerSettingsState.useSnapping(event) && !this.snappedToPoint) {
                         this.brushHelper.refPoint = toGP(clampGridLine(startPoint.x), clampGridLine(startPoint.y));
                     }
                     this.shape = new Polygon(
@@ -412,7 +413,7 @@ class DrawTool extends Tool {
 
             accessSystem.addAccess(
                 this.shape.id,
-                clientStore.state.username,
+                playerSystem.getCurrentPlayer().name,
                 { edit: true, movement: true, vision: true },
                 UI_SYNC,
             );
@@ -435,7 +436,7 @@ class DrawTool extends Tool {
         ) {
             // draw tool already active in polygon mode, add a new point to the polygon
 
-            if (clientStore.useSnapping(event) && !this.snappedToPoint)
+            if (playerSettingsState.useSnapping(event) && !this.snappedToPoint)
                 this.brushHelper.refPoint = toGP(clampGridLine(startPoint.x), clampGridLine(startPoint.y));
             this.shape.pushPoint(cloneP(this.brushHelper.refPoint));
             this.shape.updateLayerPoints();
@@ -488,7 +489,7 @@ class DrawTool extends Tool {
             return;
         }
 
-        if (clientStore.useSnapping(event))
+        if (playerSettingsState.useSnapping(event))
             [endPoint, this.snappedToPoint] = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
         else this.snappedToPoint = false;
 
@@ -573,12 +574,12 @@ class DrawTool extends Tool {
         }
 
         let endPoint = l2g(lp);
-        if (clientStore.useSnapping(event))
+        if (playerSettingsState.useSnapping(event))
             [endPoint, this.snappedToPoint] = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
         else this.snappedToPoint = false;
 
         // TODO: handle touch event different than altKey, long press
-        if (clientStore.useSnapping(event) && settingsStore.useGrid.value && !this.snappedToPoint) {
+        if (playerSettingsState.useSnapping(event) && settingsStore.useGrid.value && !this.snappedToPoint) {
             const props = getProperties(this.shape.id)!;
             if (props.blocksVision)
                 visionState.deleteFromTriangulation({

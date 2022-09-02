@@ -2,7 +2,6 @@ import { l2g } from "../../../core/conversions";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { InvalidationMode, NO_SYNC, SyncMode } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
-import { clientStore } from "../../../store/client";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { LayerName } from "../../models/floor";
 import { ToolName } from "../../models/tools";
@@ -12,6 +11,8 @@ import { Circle } from "../../shapes/variants/circle";
 import { accessSystem } from "../../systems/access";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
+import { playerSystem } from "../../systems/players";
+import { playerSettingsState } from "../../systems/settings/players/state";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
 
@@ -57,7 +58,7 @@ class PingTool extends Tool {
             this.startPoint,
             20,
             { isSnappable: false },
-            { fillColour: clientStore.state.rulerColour },
+            { fillColour: playerSettingsState.raw.rulerColour.value },
         );
         this.border = new Circle(
             this.startPoint,
@@ -65,19 +66,19 @@ class PingTool extends Tool {
             {
                 isSnappable: false,
             },
-            { fillColour: "#0000", strokeColour: [clientStore.state.rulerColour] },
+            { fillColour: "#0000", strokeColour: [playerSettingsState.raw.rulerColour.value] },
         );
         this.ping.ignoreZoomSize = true;
         this.border.ignoreZoomSize = true;
         accessSystem.addAccess(
             this.ping.id,
-            clientStore.state.username,
+            playerSystem.getCurrentPlayer().name,
             { edit: true, movement: true, vision: true },
             NO_SYNC,
         );
         accessSystem.addAccess(
             this.border.id,
-            clientStore.state.username,
+            playerSystem.getCurrentPlayer().name,
             { edit: true, movement: true, vision: true },
             NO_SYNC,
         );

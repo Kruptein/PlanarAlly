@@ -1,4 +1,4 @@
-import { clientStore } from "../../store/client";
+import { playerSettingsState } from "../systems/settings/players/state";
 
 export function createCanvas(): HTMLCanvasElement {
     // Create canvas element
@@ -8,7 +8,7 @@ export function createCanvas(): HTMLCanvasElement {
 }
 
 export function setCanvasDimensions(canvas: HTMLCanvasElement, width: number, height: number): void {
-    const pixelRatio = clientStore.devicePixelRatio.value;
+    const pixelRatio = playerSettingsState.devicePixelRatio.value;
     // Set display size in css pixels
     canvas.style.width = `${width}px`;
     canvas.style.height = `${height}px`;

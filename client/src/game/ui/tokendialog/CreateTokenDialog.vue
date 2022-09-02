@@ -8,11 +8,11 @@ import { getUnitDistance, l2g } from "../../../core/conversions";
 import { toLP } from "../../../core/geometry";
 import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
 import { calcFontScale, mostReadable } from "../../../core/utils";
-import { clientStore } from "../../../store/client";
 import { settingsStore } from "../../../store/settings";
 import { CircularToken } from "../../shapes/variants/circularToken";
 import { accessSystem } from "../../systems/access";
 import { floorState } from "../../systems/floors/state";
+import { playerSystem } from "../../systems/players";
 
 import { tokenDialogLeft, tokenDialogTop, tokenDialogVisible } from "./state";
 
@@ -53,7 +53,12 @@ function submit(): void {
         undefined,
         { fillColour: fillColour.value, strokeColour: [borderColour.value] },
     );
-    accessSystem.addAccess(token.id, clientStore.state.username, { edit: true, movement: true, vision: true }, UI_SYNC);
+    accessSystem.addAccess(
+        token.id,
+        playerSystem.getCurrentPlayer().name,
+        { edit: true, movement: true, vision: true },
+        UI_SYNC,
+    );
     layer.addShape(token, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
     close();
 }

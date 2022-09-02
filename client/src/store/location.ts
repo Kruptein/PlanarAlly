@@ -10,10 +10,10 @@ import {
     sendLocationUnarchive,
 } from "../game/api/emits/location";
 import type { Location } from "../game/models/settings";
+import { playerSystem } from "../game/systems/players";
 import { playerState } from "../game/systems/players/state";
 
 import { getGameState } from "./_game";
-import { clientStore } from "./client";
 import { settingsStore } from "./settings";
 
 interface LocationState {
@@ -29,7 +29,7 @@ class LocationStore extends Store<LocationState> {
             const state = getGameState();
             const newLocations = new Map();
             for (const player of playerState.reactive.players.values()) {
-                if (player.name === clientStore.state.username && state.isDm) continue;
+                if (player.name === playerSystem.getCurrentPlayer().name && state.isDm) continue;
                 if (!newLocations.has(player.location)) {
                     newLocations.set(player.location, new Set());
                 }

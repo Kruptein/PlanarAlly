@@ -4,7 +4,6 @@ import { baseAdjust } from "../core/http";
 import { SyncMode, InvalidationMode } from "../core/models/types";
 import { uuidv4 } from "../core/utils";
 import { i18n } from "../i18n";
-import { DEFAULT_GRID_SIZE } from "../store/client";
 import { settingsStore } from "../store/settings";
 
 import { requestAssetOptions } from "./api/emits/asset";
@@ -12,6 +11,7 @@ import type { BaseTemplate } from "./models/templates";
 import { applyTemplate } from "./shapes/templates";
 import { Asset } from "./shapes/variants/asset";
 import { floorState } from "./systems/floors/state";
+import { DEFAULT_GRID_SIZE } from "./systems/position/state";
 import { selectionBoxFunction } from "./temp";
 
 export async function dropAsset(

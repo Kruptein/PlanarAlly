@@ -1,8 +1,8 @@
 import { computed } from "vue";
 
 import { getGameState } from "../../../store/_game";
-import { clientStore } from "../../../store/client";
 import type { LocalId } from "../../id";
+import { playerSystem } from "../players";
 import { buildState } from "../state";
 
 import { DEFAULT_ACCESS } from "./models";
@@ -41,7 +41,7 @@ export const accessState = {
         if (getGameState().isDm) return true;
         if (getGameState().isFakePlayer && activeTokens.value.has(state.reactive.id)) return true;
         if (state.reactive.defaultAccess.edit) return true;
-        const username = clientStore.state.username;
+        const username = playerSystem.getCurrentPlayer().name;
         return [...state.reactive.playerAccess.entries()].some(([u, a]) => u === username && a.edit === true);
     }),
 

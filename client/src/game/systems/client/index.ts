@@ -6,7 +6,6 @@ import type { GlobalPoint } from "../../../core/geometry";
 import { toGP } from "../../../core/geometry";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { setLocalStorageObject } from "../../../localStorageHelpers";
-import { setGridOffset, ZOOM } from "../../../store/client";
 import { settingsStore } from "../../../store/settings";
 import { sendMoveClient, sendOffset, sendViewport } from "../../api/emits/client";
 import { getClientId } from "../../api/socket";
@@ -20,6 +19,8 @@ import { floorState } from "../floors/state";
 import { playerSystem } from "../players";
 import type { PlayerId } from "../players/models";
 import { playerState } from "../players/state";
+import { positionSystem } from "../position";
+import { positionState } from "../position/state";
 
 import type { ClientId, Viewport } from "./models";
 import { clientState } from "./state";
@@ -221,7 +222,7 @@ class ClientSystem implements System {
         $.clientViewports.set(client, {
             height: window.innerHeight,
             width: window.innerWidth,
-            zoom_factor: ZOOM,
+            zoom_factor: positionState.readonly.zoom,
         });
     }
 
@@ -230,7 +231,7 @@ class ClientSystem implements System {
     }
 
     sendViewportInfo(): void {
-        if (Number.isNaN(ZOOM)) return;
+        if (Number.isNaN(positionState.readonly.zoom)) return;
         const viewport = this.getViewport()!;
         sendViewport(viewport);
     }
@@ -242,7 +243,7 @@ class ClientSystem implements System {
             return;
         }
 
-        viewport.zoom_factor = ZOOM;
+        viewport.zoom_factor = positionState.readonly.zoom;
         this.sendViewportInfo();
     }
 
@@ -280,7 +281,7 @@ class ClientSystem implements System {
 
         if (sync) sendOffset({ client, x: viewport.offset_x, y: viewport.offset_y });
         if (client === getClientId()) {
-            setGridOffset(this.getOffset());
+            positionSystem.setGridOffset(this.getOffset());
             setLocalStorageObject("PA_OFFSET", this.getRelativeOffset());
         }
     }

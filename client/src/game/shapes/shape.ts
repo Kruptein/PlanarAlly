@@ -10,7 +10,6 @@ import { mostReadable } from "../../core/utils";
 import { getGameState } from "../../store/_game";
 import { activeShapeStore } from "../../store/activeShape";
 import type { ActiveShapeStore } from "../../store/activeShape";
-import { clientStore } from "../../store/client";
 import { sendShapeAddLabel, sendShapeRemoveLabel } from "../api/emits/shape/options";
 import { getBadgeCharacters } from "../groups";
 import { generateLocalId, getGlobalId } from "../id";
@@ -33,6 +32,7 @@ import { teleportZoneSystem } from "../systems/logic/tp";
 import { propertiesSystem } from "../systems/properties";
 import { getProperties } from "../systems/properties/state";
 import type { ShapeProperties } from "../systems/properties/state";
+import { playerSettingsState } from "../systems/settings/players/state";
 import { trackerSystem } from "../systems/trackers";
 import { trackersFromServer, trackersToServer } from "../systems/trackers/conversion";
 import { TriangulationTarget, visionState } from "../vision/state";
@@ -226,14 +226,14 @@ export abstract class Shape implements IShape {
         else ctx.globalCompositeOperation = "source-over";
 
         const center = g2l(this.center());
-        const pixelRatio = clientStore.devicePixelRatio.value;
+        const pixelRatio = playerSettingsState.devicePixelRatio.value;
 
         ctx.setTransform(pixelRatio, 0, 0, pixelRatio, center.x * pixelRatio, center.y * pixelRatio);
         ctx.rotate(this.angle);
     }
 
     drawPost(ctx: CanvasRenderingContext2D): void {
-        const pixelRatio = clientStore.devicePixelRatio.value;
+        const pixelRatio = playerSettingsState.devicePixelRatio.value;
         ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
         const props = getProperties(this.id);
         if (props === undefined) return console.error("Missing props");

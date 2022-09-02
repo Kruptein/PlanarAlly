@@ -2,10 +2,10 @@ import { clampGridLine, clampToGrid, g2lx, g2ly } from "../../../core/conversion
 import { addP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { rotateAroundPoint } from "../../../core/math";
-import { DEFAULT_GRID_SIZE } from "../../../store/client";
 import { calculateDelta } from "../../drag";
 import type { GlobalId, LocalId } from "../../id";
 import type { ServerShape } from "../../models/shapes";
+import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
 import type { ShapeProperties } from "../../systems/properties/state";
 import { Shape } from "../shape";
 

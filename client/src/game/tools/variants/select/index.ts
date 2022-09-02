@@ -20,7 +20,6 @@ import { InvalidationMode, NO_SYNC, SyncMode } from "../../../../core/models/typ
 import { ctrlOrCmdPressed } from "../../../../core/utils";
 import { i18n } from "../../../../i18n";
 import { getGameState } from "../../../../store/_game";
-import { clientStore, DEFAULT_GRID_SIZE, ZOOM } from "../../../../store/client";
 import { settingsStore } from "../../../../store/settings";
 import { sendRequest } from "../../../api/emits/logic";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../../api/emits/shape/core";
@@ -47,8 +46,11 @@ import { floorState } from "../../../systems/floors/state";
 import { doorSystem } from "../../../systems/logic/door";
 import { Access } from "../../../systems/logic/models";
 import { teleportZoneSystem } from "../../../systems/logic/tp";
+import { playerSystem } from "../../../systems/players";
+import { DEFAULT_GRID_SIZE, positionState } from "../../../systems/position/state";
 import { getProperties } from "../../../systems/properties/state";
 import { selectedSystem } from "../../../systems/selected";
+import { playerSettingsState } from "../../../systems/settings/players/state";
 import { openDefaultContextMenu, openShapeContextMenu } from "../../../ui/contextmenu/state";
 import { TriangulationTarget, visionState } from "../../../vision/state";
 import { SelectFeatures } from "../../models/select";
@@ -341,7 +343,7 @@ class SelectTool extends Tool implements ISelectTool {
                 this.selectionHelper.options.UiHelper = true;
                 accessSystem.addAccess(
                     this.selectionHelper.id,
-                    clientStore.state.username,
+                    playerSystem.getCurrentPlayer().name,
                     { edit: true, movement: true, vision: true },
                     NO_SYNC,
                 );
@@ -435,7 +437,9 @@ class SelectTool extends Tool implements ISelectTool {
             );
             layer.invalidate(true);
         } else if (layerSelection.length) {
-            let delta = Ray.fromPoints(this.dragRay.get(this.dragRay.tMax), lp).direction.multiply(1 / ZOOM);
+            let delta = Ray.fromPoints(this.dragRay.get(this.dragRay.tMax), lp).direction.multiply(
+                1 / positionState.readonly.zoom,
+            );
             const ogDelta = delta;
             if (this.mode === SelectOperations.Drag) {
                 if (ogDelta.length() === 0) return;
@@ -472,7 +476,7 @@ class SelectTool extends Tool implements ISelectTool {
                 let ignorePoint: GlobalPoint | undefined;
                 if (this.resizePoint >= 0) ignorePoint = toGP(this.originalResizePoints[this.resizePoint]);
                 let targetPoint = gp;
-                if (clientStore.useSnapping(event) && this.hasFeature(SelectFeatures.Snapping, features))
+                if (playerSettingsState.useSnapping(event) && this.hasFeature(SelectFeatures.Snapping, features))
                     [targetPoint, this.snappedToPoint] = snapToPoint(floorState.currentLayer.value!, gp, ignorePoint);
                 else this.snappedToPoint = false;
 
@@ -585,7 +589,7 @@ class SelectTool extends Tool implements ISelectTool {
                     }
                     if (
                         settingsStore.useGrid.value &&
-                        clientStore.useSnapping(event) &&
+                        playerSettingsState.useSnapping(event) &&
                         this.hasFeature(SelectFeatures.Snapping, features) &&
                         !this.deltaChanged
                     ) {
@@ -640,7 +644,7 @@ class SelectTool extends Tool implements ISelectTool {
 
                     if (
                         settingsStore.useGrid.value &&
-                        clientStore.useSnapping(event) &&
+                        playerSettingsState.useSnapping(event) &&
                         this.hasFeature(SelectFeatures.Snapping, features)
                     ) {
                         if (props.blocksVision)
@@ -684,7 +688,7 @@ class SelectTool extends Tool implements ISelectTool {
                     const newAngle = Math.round(this.angle / ANGLE_SNAP) * ANGLE_SNAP;
                     if (
                         newAngle !== this.angle &&
-                        clientStore.useSnapping(event) &&
+                        playerSettingsState.useSnapping(event) &&
                         this.hasFeature(SelectFeatures.Snapping, features)
                     ) {
                         this.rotateSelection(newAngle, rotationCenter, false);
@@ -815,7 +819,7 @@ class SelectTool extends Tool implements ISelectTool {
         for (const rotationShape of [this.rotationAnchor, this.rotationBox, this.rotationEnd]) {
             accessSystem.addAccess(
                 rotationShape.id,
-                clientStore.state.username,
+                playerSystem.getCurrentPlayer().name,
                 { edit: true, movement: true, vision: true },
                 NO_SYNC,
             );

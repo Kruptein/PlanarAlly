@@ -1,11 +1,11 @@
 import { g2lz, clampGridLine } from "../../../core/conversions";
 import { addP, subtractP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
-import { DEFAULT_GRID_SIZE } from "../../../store/client";
 import { getFogColour } from "../../colour";
 import { calculateDelta } from "../../drag";
 import type { GlobalId, LocalId } from "../../id";
 import type { ServerCircle } from "../../models/shapes";
+import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
 import { getProperties } from "../../systems/properties/state";
 import type { ShapeProperties } from "../../systems/properties/state";
 import { Shape } from "../shape";

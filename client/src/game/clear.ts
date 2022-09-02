@@ -1,4 +1,3 @@
-import { clear } from "../store/client";
 import { gameStore } from "../store/game";
 import { locationStore } from "../store/location";
 
@@ -19,5 +18,4 @@ export function clearGame(partial: boolean): void {
     initiativeStore.clear();
     clearSystems(partial);
     clearIds();
-    clear();
 }

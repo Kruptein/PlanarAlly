@@ -6,7 +6,6 @@ import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { snapToGridPoint } from "../../../core/math";
 import { InvalidationMode, NO_SYNC, SyncMode } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
-import { clientStore, DEFAULT_GRID_SIZE } from "../../../store/client";
 import { settingsStore } from "../../../store/settings";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { LayerName } from "../../models/floor";
@@ -17,6 +16,9 @@ import { Text } from "../../shapes/variants/text";
 import { accessSystem } from "../../systems/access";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
+import { playerSystem } from "../../systems/players";
+import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
+import { playerSettingsState } from "../../systems/settings/players/state";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
 
@@ -57,7 +59,7 @@ class RulerTool extends Tool {
                 lineWidth: 5,
                 isSnappable: false,
             },
-            { strokeColour: [clientStore.state.rulerColour] },
+            { strokeColour: [playerSettingsState.raw.rulerColour.value] },
         );
         ruler.ignoreZoomSize = true;
 
@@ -69,7 +71,7 @@ class RulerTool extends Tool {
 
         accessSystem.addAccess(
             ruler.id,
-            clientStore.state.username,
+            playerSystem.getCurrentPlayer().name,
             { edit: true, movement: true, vision: true },
             NO_SYNC,
         );
@@ -84,7 +86,7 @@ class RulerTool extends Tool {
         this.cleanup();
         this.startPoint = l2g(lp);
 
-        if (clientStore.useSnapping(event)) [this.startPoint] = snapToGridPoint(this.startPoint);
+        if (playerSettingsState.useSnapping(event)) [this.startPoint] = snapToGridPoint(this.startPoint);
 
         const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
         if (layer === undefined) {
@@ -105,7 +107,7 @@ class RulerTool extends Tool {
         this.text.ignoreZoomSize = true;
         accessSystem.addAccess(
             this.text.id,
-            clientStore.state.username,
+            playerSystem.getCurrentPlayer().name,
             { edit: true, movement: true, vision: true },
             NO_SYNC,
         );
@@ -124,7 +126,7 @@ class RulerTool extends Tool {
             return;
         }
 
-        if (clientStore.useSnapping(event)) [endPoint] = snapToGridPoint(endPoint);
+        if (playerSettingsState.useSnapping(event)) [endPoint] = snapToGridPoint(endPoint);
 
         const ruler = this.rulers.at(-1)!;
         ruler.endPoint = endPoint;

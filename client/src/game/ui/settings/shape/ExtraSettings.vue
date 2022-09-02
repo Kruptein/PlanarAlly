@@ -10,7 +10,6 @@ import { useModal } from "../../../../core/plugins/modals/plugin";
 import { getChecked, getValue, uuidv4 } from "../../../../core/utils";
 import { getGameState } from "../../../../store/_game";
 import { activeShapeStore } from "../../../../store/activeShape";
-import { clientStore, DEFAULT_GRID_SIZE } from "../../../../store/client";
 import { settingsStore } from "../../../../store/settings";
 import { getShape } from "../../../id";
 import type { IAsset } from "../../../interfaces/shapes/asset";
@@ -26,6 +25,8 @@ import { auraSystem } from "../../../systems/auras";
 import type { Aura, AuraId } from "../../../systems/auras/models";
 import { floorSystem } from "../../../systems/floors";
 import { floorState } from "../../../systems/floors/state";
+import { playerSystem } from "../../../systems/players";
+import { DEFAULT_GRID_SIZE } from "../../../systems/position/state";
 import { propertiesSystem } from "../../../systems/properties";
 import { selectedSystem } from "../../../systems/selected";
 import { visionState } from "../../../vision/state";
@@ -139,7 +140,7 @@ function applyDDraft(): void {
         const shape = new Polygon(points[0], points.slice(1), { openPolygon: true }, { strokeColour: ["red"] });
         accessSystem.addAccess(
             shape.id,
-            clientStore.state.username,
+            playerSystem.getCurrentPlayer().name,
             { edit: true, movement: true, vision: true },
             UI_SYNC,
         );
@@ -154,7 +155,7 @@ function applyDDraft(): void {
         const shape = new Polygon(points[0], points.slice(1), { openPolygon: true }, { strokeColour: ["blue"] });
         accessSystem.addAccess(
             shape.id,
-            clientStore.state.username,
+            playerSystem.getCurrentPlayer().name,
             { edit: true, movement: true, vision: true },
             UI_SYNC,
         );
@@ -193,7 +194,7 @@ function applyDDraft(): void {
         auraSystem.add(shape.id, aura, SERVER_SYNC);
         accessSystem.addAccess(
             shape.id,
-            clientStore.state.username,
+            playerSystem.getCurrentPlayer().name,
             { edit: true, movement: true, vision: true },
             SERVER_SYNC,
         );

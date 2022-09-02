@@ -1,46 +1,42 @@
 <script setup lang="ts">
-import { computed, toRef } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../../core/components/ColourPicker.vue";
 import LanguageSelect from "../../../../core/components/LanguageSelect.vue";
-import { clientStore } from "../../../../store/client";
-import type { UserOptions } from "../../../models/settings";
-
+import { playerSettingsSystem } from "../../../systems/settings/players";
+import { playerSettingsState } from "../../../systems/settings/players/state";
 const { t } = useI18n();
 
-const defaultOptions = toRef(clientStore.state, "defaultClientOptions");
+const { reactive: $ } = playerSettingsState;
+const pss = playerSettingsSystem;
 
 const gridColour = computed({
     get() {
-        return clientStore.state.gridColour;
+        return $.gridColour.value;
     },
-    set(gridColour: string) {
-        clientStore.setGridColour(gridColour, true);
+    set(gridColour: string | undefined) {
+        pss.setGridColour(gridColour, { sync: true });
     },
 });
 
 const fowColour = computed({
     get() {
-        return clientStore.state.fowColour;
+        return $.fowColour.value;
     },
-    set(fowColour: string) {
-        clientStore.setFowColour(fowColour, true);
+    set(fowColour: string | undefined) {
+        pss.setFowColour(fowColour, { sync: true });
     },
 });
 
 const rulerColour = computed({
     get() {
-        return clientStore.state.rulerColour;
+        return $.rulerColour.value;
     },
-    set(rulerColour: string) {
-        clientStore.setRulerColour(rulerColour, true);
+    set(rulerColour: string | undefined) {
+        pss.setRulerColour(rulerColour, { sync: true });
     },
 });
-
-function setDefault(key: keyof UserOptions): void {
-    clientStore.setDefaultClientOption(key, clientStore.state[key], true);
-}
 </script>
 
 <template>
@@ -57,14 +53,14 @@ function setDefault(key: keyof UserOptions): void {
             <div>
                 <ColourPicker id="gridColour" v-model:colour="gridColour" />
             </div>
-            <template v-if="gridColour !== defaultOptions.gridColour">
-                <div
-                    :title="t('game.ui.settings.common.reset_default')"
-                    @click="gridColour = defaultOptions.gridColour"
-                >
+            <template v-if="$.gridColour.override !== undefined">
+                <div :title="t('game.ui.settings.common.reset_default')" @click="gridColour = undefined">
                     <font-awesome-icon icon="times-circle" />
                 </div>
-                <div :title="t('game.ui.settings.common.sync_default')" @click="setDefault('gridColour')">
+                <div
+                    :title="t('game.ui.settings.common.sync_default')"
+                    @click="pss.setGridColour(undefined, { sync: true, default: $.gridColour.override })"
+                >
                     <font-awesome-icon icon="sync-alt" />
                 </div>
             </template>
@@ -75,14 +71,14 @@ function setDefault(key: keyof UserOptions): void {
             <div>
                 <ColourPicker id="rulerColour" v-model:colour="rulerColour" />
             </div>
-            <template v-if="rulerColour !== defaultOptions.rulerColour">
-                <div
-                    :title="t('game.ui.settings.common.reset_default')"
-                    @click="rulerColour = defaultOptions.rulerColour"
-                >
+            <template v-if="$.rulerColour.override !== undefined">
+                <div :title="t('game.ui.settings.common.reset_default')" @click="rulerColour = undefined">
                     <font-awesome-icon icon="times-circle" />
                 </div>
-                <div :title="t('game.ui.settings.common.sync_default')" @click="setDefault('rulerColour')">
+                <div
+                    :title="t('game.ui.settings.common.sync_default')"
+                    @click="pss.setRulerColour(undefined, { sync: true, default: $.rulerColour.override })"
+                >
                     <font-awesome-icon icon="sync-alt" />
                 </div>
             </template>
@@ -93,11 +89,14 @@ function setDefault(key: keyof UserOptions): void {
             <div>
                 <ColourPicker id="fowColour" :disableAlpha="true" v-model:colour="fowColour" />
             </div>
-            <template v-if="fowColour !== defaultOptions.fowColour">
-                <div :title="t('game.ui.settings.common.reset_default')" @click="fowColour = defaultOptions.fowColour">
+            <template v-if="$.fowColour.override !== undefined">
+                <div :title="t('game.ui.settings.common.reset_default')" @click="fowColour = undefined">
                     <font-awesome-icon icon="times-circle" />
                 </div>
-                <div :title="t('game.ui.settings.common.sync_default')" @click="setDefault('fowColour')">
+                <div
+                    :title="t('game.ui.settings.common.sync_default')"
+                    @click="pss.setFowColour(undefined, { sync: true, default: $.fowColour.override })"
+                >
                     <font-awesome-icon icon="sync-alt" />
                 </div>
             </template>

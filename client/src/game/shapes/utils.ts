@@ -2,7 +2,6 @@ import { subtractP, Vector } from "../../core/geometry";
 import { SyncMode, InvalidationMode } from "../../core/models/types";
 import { uuidv4 } from "../../core/utils";
 import { getGameState } from "../../store/_game";
-import { clientStore } from "../../store/client";
 import { gameStore } from "../../store/game";
 import { sendRemoveShapes } from "../api/emits/shape/core";
 import { addGroupMembers, createNewGroupForShapes } from "../groups";
@@ -17,6 +16,7 @@ import type { ServerShapeOwner } from "../systems/access/models";
 import type { AuraId, ServerAura } from "../systems/auras/models";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
+import { positionSystem } from "../systems/position";
 import { getProperties } from "../systems/properties/state";
 import { selectedSystem } from "../systems/selected";
 import type { ServerTracker, TrackerId } from "../systems/trackers/models";
@@ -35,7 +35,7 @@ export function copyShapes(): void {
         clipboard.push(shape.asDict());
     }
     gameStore.setClipboard(clipboard);
-    gameStore.setClipboardPosition(clientStore.screenCenter);
+    gameStore.setClipboardPosition(positionSystem.screenCenter);
 }
 
 export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
@@ -46,8 +46,8 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
 
     selectedSystem.clear();
 
-    gameStore.setClipboardPosition(clientStore.screenCenter);
-    let offset = subtractP(clientStore.screenCenter, gameState.clipboardPosition);
+    gameStore.setClipboardPosition(positionSystem.screenCenter);
+    let offset = subtractP(positionSystem.screenCenter, gameState.clipboardPosition);
     // Check against 200 as that is the squared length of a vector with size 10, 10
     if (offset.squaredLength() < 200) {
         offset = new Vector(10, 10);

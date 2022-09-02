@@ -1,7 +1,6 @@
 import { Store } from "../../../core/store";
 import { i18n } from "../../../i18n";
 import { getGameState } from "../../../store/_game";
-import { clientStore } from "../../../store/client";
 import {
     sendInitiativeNewEffect,
     sendInitiativeOptionUpdate,
@@ -24,6 +23,7 @@ import type { InitiativeData, InitiativeEffect, InitiativeSettings } from "../..
 import { setCenterPosition } from "../../position";
 import { accessSystem } from "../../systems/access";
 import { accessState } from "../../systems/access/state";
+import { playerSettingsState } from "../../systems/settings/players/state";
 
 let activeTokensBackup: Set<LocalId> | undefined = undefined;
 
@@ -263,7 +263,7 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     handleCameraLock(): void {
-        if (clientStore.state.initiativeCameraLock) {
+        if (playerSettingsState.raw.initiativeCameraLock.value) {
             const actor = this.getDataSet()[this._state.turnCounter];
             if (accessSystem.hasAccessTo(actor.shape, false, { vision: true }) ?? false) {
                 const shape = getShape(actor.shape)!;
@@ -273,7 +273,7 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     handleVisionLock(): void {
-        if (clientStore.state.initiativeVisionLock) {
+        if (playerSettingsState.raw.initiativeVisionLock.value) {
             const actor = this.getDataSet()[this._state.turnCounter];
             if (accessState.reactive.activeTokenFilters === undefined) activeTokensBackup = undefined;
             else activeTokensBackup = new Set(accessState.reactive.activeTokenFilters);

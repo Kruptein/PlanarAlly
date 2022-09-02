@@ -7,7 +7,6 @@ import Modal from "../../../core/components/modals/Modal.vue";
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { getTarget, getValue } from "../../../core/utils";
 import { getGameState } from "../../../store/_game";
-import { clientStore } from "../../../store/client";
 import { uiStore } from "../../../store/ui";
 import { sendRequestInitiatives } from "../../api/emits/initiative";
 import { getGroupMembers } from "../../groups";
@@ -19,6 +18,7 @@ import type { InitiativeData } from "../../models/initiative";
 import { InitiativeEffectMode, InitiativeSort } from "../../models/initiative";
 import { accessSystem } from "../../systems/access";
 import { getProperties } from "../../systems/properties/state";
+import { playerSettingsState } from "../../systems/settings/players/state";
 import { ClientSettingCategory } from "../settings/client/categories";
 
 import { initiativeStore } from "./state";
@@ -38,7 +38,9 @@ const toggleOption = (index: number, option: "isVisible" | "isGroup"): void =>
 
 onMounted(() => initiativeStore.show(false));
 
-const alwaysShowEffects = computed(() => clientStore.state.initiativeEffectVisibility === InitiativeEffectMode.Always);
+const alwaysShowEffects = computed(
+    () => playerSettingsState.reactive.initiativeEffectVisibility.value === InitiativeEffectMode.Always,
+);
 
 function getName(actor: InitiativeData): string {
     const props = getProperties(actor.shape);

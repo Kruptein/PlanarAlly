@@ -3,8 +3,8 @@ import type { CSSProperties } from "vue";
 import { computed, onMounted, reactive, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { DEFAULT_GRID_SIZE } from "../../../store/client";
 import { getShape } from "../../id";
+import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
 import { selectedSystem } from "../../systems/selected";
 import { mapTool } from "../../tools/variants/map";
 

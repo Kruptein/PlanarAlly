@@ -5,10 +5,10 @@ import { useI18n } from "vue-i18n";
 import Modal from "../../core/components/modals/Modal.vue";
 import { uuidv4 } from "../../core/utils";
 import { getGameState } from "../../store/_game";
-import { clientStore } from "../../store/client";
 import { gameStore } from "../../store/game";
 import { sendLabelVisibility } from "../api/emits/labels";
 import type { Label } from "../interfaces/label";
+import { playerSystem } from "../systems/players";
 
 const emit = defineEmits(["update:visible", "addLabel"]);
 defineProps<{ visible: boolean }>();
@@ -31,7 +31,7 @@ const categories = computed(() => {
     const cat: Map<string, Label[]> = new Map();
     cat.set("", []);
     for (const label of getGameState().labels.values()) {
-        if (label.user !== clientStore.state.username) continue;
+        if (label.user !== playerSystem.getCurrentPlayer().name) continue;
         const fullName = `${label.category.toLowerCase()}${label.name.toLowerCase()}`;
         if (state.search.length > 0 && fullName.search(state.search.toLowerCase()) < 0) {
             continue;
@@ -66,7 +66,7 @@ function addLabel(): void {
         category: state.newCategory,
         name: state.newName,
         visible: false,
-        user: clientStore.state.username,
+        user: playerSystem.getCurrentPlayer().name,
     };
     gameStore.addLabel(label, true);
     state.newCategory = "";

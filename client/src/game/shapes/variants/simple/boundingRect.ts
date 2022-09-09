@@ -33,7 +33,7 @@ export class BoundingRect implements SimpleShape {
     }
 
     contains(point: GlobalPoint): boolean {
-        if (this.angle !== 0) point = rotateAroundPoint(point, this.center(), -this.angle);
+        if (this.angle !== 0) point = rotateAroundPoint(point, this.center, -this.angle);
         return (
             this.topLeft.x <= point.x &&
             this.topRight.x >= point.x &&
@@ -45,7 +45,7 @@ export class BoundingRect implements SimpleShape {
     get points(): [number, number][] {
         if (this.w === 0 || this.h === 0) return [[this.topLeft.x, this.topLeft.y]];
 
-        const center = this.center();
+        const center = this.center;
 
         const topleft = rotateAroundPoint(this.topLeft, center, this.angle);
         const botleft = rotateAroundPoint(this.botLeft, center, this.angle);
@@ -114,10 +114,11 @@ export class BoundingRect implements SimpleShape {
         return { hit: txmin < ray.tMax && txmax > 0, min: txmin, max: txmax };
     }
 
-    center(): GlobalPoint;
-    center(centerPoint: GlobalPoint): BoundingRect;
-    center(centerPoint?: GlobalPoint): GlobalPoint | BoundingRect {
-        if (centerPoint === undefined) return addP(this.topLeft, new Vector(this.w / 2, this.h / 2));
+    get center(): GlobalPoint {
+        return addP(this.topLeft, new Vector(this.w / 2, this.h / 2));
+    }
+
+    centerOn(centerPoint: GlobalPoint): BoundingRect {
         return new BoundingRect(toGP(centerPoint.x - this.w / 2, centerPoint.y - this.h / 2), this.w, this.h);
     }
 
@@ -136,7 +137,7 @@ export class BoundingRect implements SimpleShape {
     }
 
     rotateAround(point: GlobalPoint, angle: number): BoundingRect {
-        const center = this.center();
+        const center = this.center;
         const newCenter = rotateAroundPoint(center, point, angle);
 
         const bb = new BoundingRect(

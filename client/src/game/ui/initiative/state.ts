@@ -267,7 +267,7 @@ class InitiativeStore extends Store<InitiativeState> {
             const actor = this.getDataSet()[this._state.turnCounter];
             if (accessSystem.hasAccessTo(actor.shape, false, { vision: true }) ?? false) {
                 const shape = getShape(actor.shape)!;
-                setCenterPosition(shape.center());
+                setCenterPosition(shape.center);
             }
         }
     }

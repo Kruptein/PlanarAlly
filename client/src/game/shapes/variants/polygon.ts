@@ -40,6 +40,7 @@ export class Polygon extends Shape {
         super(startPoint, options, properties);
         this._vertices = vertices || [];
         this.openPolygon = options?.openPolygon ?? false;
+        this._center = this.__center();
         this.lineWidth = options?.lineWidth ?? [2];
     }
 
@@ -54,6 +55,7 @@ export class Polygon extends Shape {
         const delta = subtractP(point, this._refPoint);
         this._refPoint = point;
         for (let i = 0; i < this._vertices.length; i++) this._vertices[i] = addP(this._vertices[i], delta);
+        this._center = this.__center();
         this.invalidatePoints();
     }
 
@@ -64,6 +66,7 @@ export class Polygon extends Shape {
     set vertices(v: GlobalPoint[]) {
         this._refPoint = v[0];
         this._vertices = v.slice(1);
+        this._center = this.__center();
         this.invalidatePoints();
     }
 
@@ -98,7 +101,7 @@ export class Polygon extends Shape {
             if (p.y > maxy) maxy = p.y;
         }
         let bbox = new BoundingRect(toGP(minx - delta, miny - delta), maxx - minx + 2 * delta, maxy - miny + 2 * delta);
-        bbox = bbox.center(rotateAroundPoint(bbox.center(), this.center(), this.angle));
+        bbox = bbox.centerOn(rotateAroundPoint(bbox.center, this.center, this.angle));
         bbox.angle = this.angle;
         return bbox;
     }
@@ -117,7 +120,7 @@ export class Polygon extends Shape {
     }
 
     invalidatePoints(): void {
-        const center = this.center();
+        const center = this.center;
         this._points = this.vertices.map((point) => this.invalidatePoint(point, center));
         if (this.isSnappable) this.updateLayerPoints();
     }
@@ -125,7 +128,7 @@ export class Polygon extends Shape {
     draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
 
-        const center = g2l(this.center());
+        const center = g2l(this.center);
 
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
@@ -166,7 +169,7 @@ export class Polygon extends Shape {
         const bbox = this.getBoundingBox(nearbyThreshold);
         if (!bbox.contains(point)) return false;
         if (this.isClosed) return true;
-        if (this.angle !== 0) point = rotateAroundPoint(point, this.center(), -this.angle);
+        if (this.angle !== 0) point = rotateAroundPoint(point, this.center, -this.angle);
         const vertices = this.uniqueVertices;
         for (const [i, v] of vertices.entries()) {
             const nv = vertices[(i + 1) % vertices.length];
@@ -176,14 +179,16 @@ export class Polygon extends Shape {
         return false;
     }
 
-    center(): GlobalPoint;
-    center(centerPoint: GlobalPoint): void;
-    center(centerPoint?: GlobalPoint): GlobalPoint | void {
-        if (centerPoint === undefined) {
-            return getPointsCenter(this.uniqueVertices);
-        }
-        const oldCenter = this.center();
-        this.refPoint = toGP(subtractP(centerPoint, subtractP(oldCenter, this.refPoint)).asArray());
+    __center(): GlobalPoint {
+        return getPointsCenter(this.uniqueVertices);
+    }
+
+    get center(): GlobalPoint {
+        return this._center;
+    }
+
+    set center(centerPoint: GlobalPoint) {
+        this.refPoint = toGP(subtractP(centerPoint, subtractP(this.center, this.refPoint)).asArray());
     }
 
     visibleInCanvas(max: { w: number; h: number }, options: { includeAuras: boolean }): boolean {
@@ -269,7 +274,7 @@ export class Polygon extends Shape {
 
     pushPoint(point: GlobalPoint): void {
         this._vertices.push(point);
-        this._points.push(this.invalidatePoint(point, this.center()));
+        this._points.push(this.invalidatePoint(point, this.center));
     }
 
     addPoint(point: GlobalPoint): void {

@@ -7,7 +7,7 @@ import { TriangulationTarget } from "../vision/state";
 import { computeVisibility } from "../vision/te";
 
 export function drawAuras(shape: IShape, ctx: CanvasRenderingContext2D): void {
-    const center = shape.center();
+    const center = shape.center;
     const lCenter = g2l(center);
 
     for (const aura of auraSystem.getAll(shape.id, true)) {

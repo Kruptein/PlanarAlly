@@ -32,6 +32,7 @@ export abstract class BaseRect extends Shape {
         super(topleft, options, properties);
         this._w = w;
         this._h = h;
+        this._center = this.__center();
     }
 
     get w(): number {
@@ -81,7 +82,7 @@ export abstract class BaseRect extends Shape {
             return;
         }
 
-        const center = this.center();
+        const center = this.center;
 
         const topleft = rotateAroundPoint(this.refPoint, center, this.angle);
         const botleft = rotateAroundPoint(addP(this.refPoint, new Vector(0, this.h)), center, this.angle);
@@ -96,7 +97,7 @@ export abstract class BaseRect extends Shape {
     }
 
     contains(point: GlobalPoint): boolean {
-        if (this.angle !== 0) point = rotateAroundPoint(point, this.center(), -this.angle);
+        if (this.angle !== 0) point = rotateAroundPoint(point, this.center, -this.angle);
         return (
             this.refPoint.x <= point.x &&
             this.refPoint.x + this.w >= point.x &&
@@ -105,10 +106,15 @@ export abstract class BaseRect extends Shape {
         );
     }
 
-    center(): GlobalPoint;
-    center(centerPoint: GlobalPoint): void;
-    center(centerPoint?: GlobalPoint): GlobalPoint | void {
-        if (centerPoint === undefined) return addP(this.refPoint, new Vector(this.w / 2, this.h / 2));
+    __center(): GlobalPoint {
+        return addP(this.refPoint, new Vector(this.w / 2, this.h / 2));
+    }
+
+    get center(): GlobalPoint {
+        return this._center;
+    }
+
+    set center(centerPoint: GlobalPoint) {
         this.refPoint = toGP(centerPoint.x - this.w / 2, centerPoint.y - this.h / 2);
     }
 
@@ -126,7 +132,7 @@ export abstract class BaseRect extends Shape {
 
     snapToGrid(): void {
         const gs = DEFAULT_GRID_SIZE;
-        const center = this.center();
+        const center = this.center;
         const mx = center.x;
         const my = center.y;
 
@@ -157,14 +163,14 @@ export abstract class BaseRect extends Shape {
         );
         this.resize(
             resizePoint,
-            clampToGrid(rotateAroundPoint(targetPoint, this.center(), this.angle)),
+            clampToGrid(rotateAroundPoint(targetPoint, this.center, this.angle)),
             retainAspectRatio,
         );
     }
 
     // point is expected to be the point as on the map, irregardless of rotation
     resize(resizePoint: number, point: GlobalPoint, retainAspectRatio: boolean): number {
-        point = rotateAroundPoint(point, this.center(), -this.angle);
+        point = rotateAroundPoint(point, this.center, -this.angle);
 
         const aspectRatio = this.w / this.h;
         const oldW = this.w;

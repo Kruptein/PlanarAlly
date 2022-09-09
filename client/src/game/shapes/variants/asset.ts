@@ -90,7 +90,7 @@ export class Asset extends BaseRect {
 
     draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
-        const center = g2l(this.center());
+        const center = g2l(this.center);
         if (!this.#loaded) {
             ctx.fillStyle = FOG_COLOUR;
             ctx.fillRect(

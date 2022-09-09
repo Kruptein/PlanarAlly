@@ -483,7 +483,7 @@ class SelectTool extends Tool implements ISelectTool {
                 this.resizePoint = resizeShape(shape, targetPoint, this.resizePoint, ctrlOrCmdPressed(event), true);
                 this.updateCursor(gp, features);
             } else if (this.mode === SelectOperations.Rotate) {
-                const center = this.rotationBox!.center();
+                const center = this.rotationBox!.center;
                 const newAngle = -Math.atan2(center.y - gp.y, gp.x - center.x) + Math.PI / 2;
                 this.rotateSelection(newAngle, center, true);
             } else {
@@ -680,7 +680,7 @@ class SelectTool extends Tool implements ISelectTool {
                 }
             }
             if (this.mode === SelectOperations.Rotate) {
-                const rotationCenter = this.rotationBox!.center();
+                const rotationCenter = this.rotationBox!.center;
 
                 for (const [s, sel] of layerSelection.entries()) {
                     if (!accessSystem.hasAccessTo(sel.id, false, { movement: true })) continue;
@@ -830,8 +830,8 @@ class SelectTool extends Tool implements ISelectTool {
             const angle = layerSelection[0].angle;
             this.angle = angle;
             this.rotationBox.angle = angle;
-            this.rotationAnchor.rotateAround(bbox.center(), angle);
-            this.rotationEnd.rotateAround(bbox.center(), angle);
+            this.rotationAnchor.rotateAround(bbox.center, angle);
+            this.rotationEnd.rotateAround(bbox.center, angle);
         }
 
         this.rotationUiActive = true;

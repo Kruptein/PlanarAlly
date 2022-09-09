@@ -43,7 +43,7 @@ const floors = computed({
 
 async function addFloor(): Promise<void> {
     const value = await modals.prompt(t("game.ui.FloorSelect.new_name"), t("game.ui.FloorSelect.creation"), (value) => {
-        if (floorState.reactive.floors.some((f) => f.name === value)) {
+        if (floorState.raw.floors.some((f) => f.name === value)) {
             return { valid: false, reason: "This name is already in use!" };
         }
         return { valid: true };

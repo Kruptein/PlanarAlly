@@ -54,7 +54,7 @@ from ..models.shape import (
 from ..models.typed import SelectSequence
 from ..models.user import User, UserOptions
 from ..save import SAVE_VERSION, upgrade_save
-from ..utils import ASSETS_DIR, STATIC_DIR, TEMP_DIR
+from ..utils import ASSETS_DIR, TEMP_DIR
 
 debug_log = False
 
@@ -268,7 +268,7 @@ class CampaignImporter:
 
             if len(assets) > 0:
                 print(f"Extracting {len(assets)} asset(s)")
-                tar.extractall(path=STATIC_DIR, members=assets)
+                tar.extractall(path=ASSETS_DIR.parent, members=assets)
 
     def import_users(self, room: Room):
         # Different modes should be available

@@ -23,7 +23,7 @@ function isToolVisible(tool: ToolName): boolean {
     if (tool === ToolName.Filter) {
         return getGameState().labels.size > 0;
     } else if (tool === ToolName.Vision) {
-        return accessState.reactive.ownedTokens.size > 1;
+        return accessState.raw.ownedTokens.size > 1;
     }
     return true;
 }

@@ -6,18 +6,21 @@ import { EdgeIterator } from "../vision/tds";
 import type { Edge, TDS } from "../vision/tds";
 import { ccw, cw } from "../vision/triag";
 
-function drawPoint(point: number[], r: number, colour?: string): void {
+function drawPoint(point: number[], r: number, options?: { colour?: string; fill?: boolean }): void {
     const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
     const ctx = dl.ctx;
     ctx.lineJoin = "round";
     ctx.strokeStyle =
-        colour === undefined ? `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})` : colour;
+        options?.colour === undefined
+            ? `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})`
+            : options.colour;
     ctx.moveTo(g2lx(point[0]), g2ly(point[1]));
     ctx.beginPath();
     ctx.arc(g2lx(point[0]), g2ly(point[1]), r, 0, Math.PI * 2);
     ctx.closePath();
     ctx.stroke();
+    if (options?.fill === true) ctx.fill();
 }
 
 function drawPointL(point: number[], r: number, colour?: string): void {
@@ -34,7 +37,7 @@ function drawPointL(point: number[], r: number, colour?: string): void {
     ctx.stroke();
 }
 
-export function drawPolygon(polygon: number[][], colour?: string): void {
+export function drawPolygon(polygon: number[][], colour?: string, close = true): void {
     const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
     const ctx = dl.ctx;
@@ -48,7 +51,7 @@ export function drawPolygon(polygon: number[][], colour?: string): void {
     for (const point of polygon) {
         ctx.lineTo(g2lx(point[0]), g2ly(point[1]));
     }
-    ctx.closePath();
+    if (close) ctx.closePath();
     ctx.stroke();
 }
 

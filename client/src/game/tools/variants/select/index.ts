@@ -506,7 +506,7 @@ class SelectTool extends Tool implements ISelectTool {
         if (!this.active.value) return;
         this.active.value = false;
 
-        if (floorState.currentLayer === undefined) {
+        if (floorState.currentLayer.value === undefined) {
             console.log("No active layer!");
             return;
         }
@@ -726,7 +726,7 @@ class SelectTool extends Tool implements ISelectTool {
 
     onContextMenu(event: MouseEvent, features: ToolFeatures<SelectFeatures>): void {
         if (!this.hasFeature(SelectFeatures.Context, features)) return;
-        if (floorState.currentLayer === undefined) {
+        if (floorState.currentLayer.value === undefined) {
             console.log("No active layer!");
             return;
         }

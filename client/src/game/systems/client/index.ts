@@ -69,7 +69,7 @@ class ClientSystem implements System {
         const playerId = $.clientIds.get(client);
         if (playerId === undefined) return;
 
-        if (playerState.mutableReactive.players.get(playerId)?.location === locationSettingsState.raw.activeLocation) {
+        if (playerState.raw.players.get(playerId)?.location === locationSettingsState.raw.activeLocation) {
             let shape: Polygon;
             if (shapeId === undefined) {
                 shape = this.createClientRect(client) as Polygon;

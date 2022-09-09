@@ -29,9 +29,9 @@ class PositionSystem implements System {
 
     // PAN
 
-    setPan(x: number, y: number, options: { needsOffset: boolean }): void {
-        mutable.panX = x - (options.needsOffset ? readonly.gridOffset.x : 0);
-        mutable.panY = y - (options.needsOffset ? readonly.gridOffset.y : 0);
+    setPan(x: number, y: number): void {
+        mutable.panX = x - readonly.gridOffset.x;
+        mutable.panY = y - readonly.gridOffset.y;
     }
 
     increasePan(x: number, y: number): void {
@@ -44,6 +44,8 @@ class PositionSystem implements System {
     setGridOffset(offset: { x: number; y: number }): void {
         console.log("Setting offset", offset);
         mutable.gridOffset = offset;
+        mutable.panX -= offset.x;
+        mutable.panY -= offset.y;
         floorSystem.invalidateAllFloors();
     }
 

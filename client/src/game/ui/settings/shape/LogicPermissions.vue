@@ -64,7 +64,7 @@ function change(change: Event & SortableChanged<string>, target: "enabled" | "re
 }
 
 async function add(target: "enabled" | "request" | "disabled"): Promise<void> {
-    const players = playerState.reactive.players;
+    const players = playerState.raw.players;
     const selection = await modals.selectionBox(
         "Select a player",
         [...players.values()]

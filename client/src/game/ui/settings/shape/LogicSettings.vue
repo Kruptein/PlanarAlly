@@ -60,8 +60,8 @@ function openPermissions(target: LOGIC_TYPES): void {
 
 function setPermissions(permissions: Permissions): void {
     if (activeLogic.value === "door") {
-        if (doorLogicState.reactive.id === undefined) return;
-        doorSystem.setPermissions(doorLogicState.reactive.id, permissions, SERVER_SYNC);
+        if (doorLogicState.raw.id === undefined) return;
+        doorSystem.setPermissions(doorLogicState.raw.id, permissions, SERVER_SYNC);
     } else {
         if (teleportZoneSystem.state.id === undefined) return;
         teleportZoneSystem.setPermissions(teleportZoneSystem.state.id, permissions, SERVER_SYNC);
@@ -71,15 +71,15 @@ function setPermissions(permissions: Permissions): void {
 // Door
 
 function toggleDoor(): void {
-    if (doorLogicState.reactive.id === undefined) return;
-    doorSystem.toggle(doorLogicState.reactive.id, !doorLogicState.reactive.enabled, SERVER_SYNC);
+    if (doorLogicState.raw.id === undefined) return;
+    doorSystem.toggle(doorLogicState.raw.id, !doorLogicState.raw.enabled, SERVER_SYNC);
 }
 
 const activeToggleMode = computed(() => doorLogicState.reactive.toggleMode);
 
 function setToggleMode(mode: DOOR_TOGGLE_MODE): void {
-    if (doorLogicState.reactive.id === undefined) return;
-    doorSystem.setToggleMode(doorLogicState.reactive.id, mode, SERVER_SYNC);
+    if (doorLogicState.raw.id === undefined) return;
+    doorSystem.setToggleMode(doorLogicState.raw.id, mode, SERVER_SYNC);
 }
 
 // Teleport Zone

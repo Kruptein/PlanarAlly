@@ -42,7 +42,7 @@ const modals = useModal();
 const isDm = toRef(getGameState(), "isDm");
 
 const selectionIncludesSpawnToken = computed(() =>
-    [...selectedSystem.$.value].some((s) => locationSettingsState.raw.spawnLocations.value.includes(s) ?? false),
+    [...selectedSystem.$.value].some((s) => locationSettingsState.reactive.spawnLocations.value.includes(s) ?? false),
 );
 
 const isOwned = computed(() =>

@@ -99,7 +99,7 @@ function endPlayerDrag(e: { item: HTMLDivElement; from: HTMLDivElement; to: HTML
     if (toLocation === undefined || fromLocation === toLocation) return;
     const targetPlayer = e.item.textContent!.trim();
 
-    for (const player of playerState.reactive.players.values()) {
+    for (const player of playerState.raw.players.values()) {
         if (player.name === targetPlayer) {
             playerSystem.updatePlayersLocation([player.name], toLocation, true);
             break;
@@ -114,7 +114,7 @@ function endPlayersDrag(e: { item: HTMLDivElement; from: HTMLDivElement; to: HTM
     if (toLocation === undefined || fromLocation === toLocation) return;
 
     const players = [];
-    for (const player of playerState.reactive.players.values()) {
+    for (const player of playerState.raw.players.values()) {
         if (player.location === fromLocation && player.role !== 1) {
             players.push(player.name);
         }

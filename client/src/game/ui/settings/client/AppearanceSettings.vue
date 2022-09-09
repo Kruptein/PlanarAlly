@@ -6,6 +6,7 @@ import ColourPicker from "../../../../core/components/ColourPicker.vue";
 import LanguageSelect from "../../../../core/components/LanguageSelect.vue";
 import { playerSettingsSystem } from "../../../systems/settings/players";
 import { playerSettingsState } from "../../../systems/settings/players/state";
+
 const { t } = useI18n();
 
 const { reactive: $ } = playerSettingsState;

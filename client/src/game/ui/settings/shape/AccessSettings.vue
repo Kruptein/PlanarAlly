@@ -41,33 +41,28 @@ const playersWithoutAccess = computed(() => {
 });
 
 function addOwner(): void {
-    if (!owned.value || accessState.reactive.id === undefined) return;
+    if (!owned.value || accessState.raw.id === undefined) return;
     const dropdown = accessDropdown.value!;
     const selectedUser = dropdown.options[dropdown.selectedIndex].value;
     if (selectedUser === "") return;
 
-    accessSystem.addAccess(
-        accessState.reactive.id,
-        selectedUser,
-        { edit: true, movement: true, vision: true },
-        SERVER_SYNC,
-    );
+    accessSystem.addAccess(accessState.raw.id, selectedUser, { edit: true, movement: true, vision: true }, SERVER_SYNC);
 }
 
 function removeOwner(user: string): void {
-    if (!owned.value || accessState.reactive.id === undefined) return;
-    accessSystem.removeAccess(accessState.reactive.id, user, SERVER_SYNC);
+    if (!owned.value || accessState.raw.id === undefined) return;
+    accessSystem.removeAccess(accessState.raw.id, user, SERVER_SYNC);
 }
 
 function toggleEditAccess(user?: ACCESS_KEY): void {
-    if (!owned.value || accessState.reactive.id === undefined) return;
+    if (!owned.value || accessState.raw.id === undefined) return;
     user ??= DEFAULT_ACCESS_SYMBOL;
 
     let oldAccess = DEFAULT_ACCESS;
     if (user === DEFAULT_ACCESS_SYMBOL) {
-        oldAccess = accessSystem.getDefault(accessState.reactive.id) ?? oldAccess;
+        oldAccess = accessSystem.getDefault(accessState.raw.id) ?? oldAccess;
     } else {
-        oldAccess = accessSystem.getAccess(accessState.reactive.id, user) ?? oldAccess;
+        oldAccess = accessSystem.getAccess(accessState.raw.id, user) ?? oldAccess;
     }
     const access: PartialPick<ShapeAccess, "edit"> = { edit: !oldAccess.edit };
 
@@ -75,18 +70,18 @@ function toggleEditAccess(user?: ACCESS_KEY): void {
         access.movement = true;
         access.vision = true;
     }
-    accessSystem.updateAccess(accessState.reactive.id, user, access, SERVER_SYNC);
+    accessSystem.updateAccess(accessState.raw.id, user, access, SERVER_SYNC);
 }
 
 function toggleMovementAccess(user?: ACCESS_KEY): void {
-    if (!owned.value || accessState.reactive.id === undefined) return;
+    if (!owned.value || accessState.raw.id === undefined) return;
     user ??= DEFAULT_ACCESS_SYMBOL;
 
     let oldAccess = DEFAULT_ACCESS;
     if (user === DEFAULT_ACCESS_SYMBOL) {
-        oldAccess = accessSystem.getDefault(accessState.reactive.id) ?? oldAccess;
+        oldAccess = accessSystem.getDefault(accessState.raw.id) ?? oldAccess;
     } else {
-        oldAccess = accessSystem.getAccess(accessState.reactive.id, user) ?? oldAccess;
+        oldAccess = accessSystem.getAccess(accessState.raw.id, user) ?? oldAccess;
     }
     const access: PartialPick<ShapeAccess, "movement"> = { movement: !oldAccess.movement };
 
@@ -95,18 +90,18 @@ function toggleMovementAccess(user?: ACCESS_KEY): void {
     } else {
         access.edit = false;
     }
-    accessSystem.updateAccess(accessState.reactive.id, user, access, SERVER_SYNC);
+    accessSystem.updateAccess(accessState.raw.id, user, access, SERVER_SYNC);
 }
 
 function toggleVisionAccess(user?: ACCESS_KEY): void {
-    if (!owned.value || accessState.reactive.id === undefined) return;
+    if (!owned.value || accessState.raw.id === undefined) return;
     user ??= DEFAULT_ACCESS_SYMBOL;
 
     let oldAccess = DEFAULT_ACCESS;
     if (user === DEFAULT_ACCESS_SYMBOL) {
-        oldAccess = accessSystem.getDefault(accessState.reactive.id) ?? oldAccess;
+        oldAccess = accessSystem.getDefault(accessState.raw.id) ?? oldAccess;
     } else {
-        oldAccess = accessSystem.getAccess(accessState.reactive.id, user) ?? oldAccess;
+        oldAccess = accessSystem.getAccess(accessState.raw.id, user) ?? oldAccess;
     }
     const access: PartialPick<ShapeAccess, "vision"> = { vision: !oldAccess.vision };
 
@@ -114,7 +109,7 @@ function toggleVisionAccess(user?: ACCESS_KEY): void {
         access.edit = false;
         access.movement = false;
     }
-    accessSystem.updateAccess(accessState.reactive.id, user, access, SERVER_SYNC);
+    accessSystem.updateAccess(accessState.raw.id, user, access, SERVER_SYNC);
 }
 </script>
 

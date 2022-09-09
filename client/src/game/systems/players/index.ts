@@ -104,7 +104,7 @@ class PlayerSystem implements System {
     loadPosition(): void {
         const position = $.playerLocation.get(this.getCurrentPlayer()!.id)!;
         positionSystem.setZoomDisplay(position.zoom_display, { invalidate: true, sync: false });
-        positionSystem.setPan(position.pan_x, position.pan_y, { needsOffset: false });
+        positionSystem.setPan(position.pan_x, position.pan_y);
         if (position.active_layer !== undefined) floorSystem.selectLayer(position.active_layer, false);
         const offset = getLocalStorageObject("PA_OFFSET") as { x?: number; y?: number } | undefined;
         clientSystem.initViewport();

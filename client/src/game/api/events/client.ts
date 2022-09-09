@@ -21,7 +21,7 @@ socket.on("Client.Move", (data: { player: PlayerId; client: ClientId } & ServerU
     if (getGameState().isDm && !isCurrentPlayer) {
         playerSystem.setPosition(player, locationData);
     } else if (isCurrentPlayer) {
-        positionSystem.setPan(data.pan_x, data.pan_y, { needsOffset: false });
+        positionSystem.setPan(data.pan_x, data.pan_y);
         positionSystem.setZoomDisplay(data.zoom_display, { invalidate: true, sync: false });
     }
 });

@@ -18,65 +18,49 @@ const owned = accessState.hasEditAccess;
 
 function updateName(event: Event): void {
     if (!owned.value) return;
-    propertiesSystem.setName(propertiesState.reactive.id!, (event.target as HTMLInputElement).value, SERVER_SYNC);
+    propertiesSystem.setName(propertiesState.raw.id!, (event.target as HTMLInputElement).value, SERVER_SYNC);
 }
 
 function toggleNameVisible(): void {
     if (!owned.value) return;
-    const id = propertiesState.reactive.id!;
+    const id = propertiesState.raw.id!;
     propertiesSystem.setNameVisible(id, !getProperties(id)!.nameVisible, SERVER_SYNC);
 }
 
 function setToken(event: Event): void {
     if (!owned.value) return;
-    propertiesSystem.setIsToken(propertiesState.reactive.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
+    propertiesSystem.setIsToken(propertiesState.raw.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
 function setInvisible(event: Event): void {
     if (!owned.value) return;
-    propertiesSystem.setIsInvisible(
-        propertiesState.reactive.id!,
-        (event.target as HTMLInputElement).checked,
-        SERVER_SYNC,
-    );
+    propertiesSystem.setIsInvisible(propertiesState.raw.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
 function setDefeated(event: Event): void {
     if (!owned.value) return;
-    propertiesSystem.setIsDefeated(
-        propertiesState.reactive.id!,
-        (event.target as HTMLInputElement).checked,
-        SERVER_SYNC,
-    );
+    propertiesSystem.setIsDefeated(propertiesState.raw.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
 function setLocked(event: Event): void {
     if (!owned.value) return;
-    propertiesSystem.setLocked(propertiesState.reactive.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
+    propertiesSystem.setLocked(propertiesState.raw.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
 function toggleBadge(event: Event): void {
     if (!owned.value) return;
-    propertiesSystem.setShowBadge(
-        propertiesState.reactive.id!,
-        (event.target as HTMLInputElement).checked,
-        SERVER_SYNC,
-    );
+    propertiesSystem.setShowBadge(propertiesState.raw.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
 function setBlocksVision(event: Event): void {
     if (!owned.value) return;
-    propertiesSystem.setBlocksVision(
-        propertiesState.reactive.id!,
-        (event.target as HTMLInputElement).checked,
-        SERVER_SYNC,
-    );
+    propertiesSystem.setBlocksVision(propertiesState.raw.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
 function setBlocksMovement(event: Event): void {
     if (!owned.value) return;
     propertiesSystem.setBlocksMovement(
-        propertiesState.reactive.id!,
+        propertiesState.raw.id!,
         (event.target as HTMLInputElement).checked,
         SERVER_SYNC,
     );
@@ -84,12 +68,12 @@ function setBlocksMovement(event: Event): void {
 
 function setStrokeColour(event: string, temporary = false): void {
     if (!owned.value) return;
-    propertiesSystem.setStrokeColour(propertiesState.reactive.id!, event, temporary ? NO_SYNC : SERVER_SYNC);
+    propertiesSystem.setStrokeColour(propertiesState.raw.id!, event, temporary ? NO_SYNC : SERVER_SYNC);
 }
 
 function setFillColour(colour: string, temporary = false): void {
     if (!owned.value) return;
-    propertiesSystem.setFillColour(propertiesState.reactive.id!, colour, temporary ? NO_SYNC : SERVER_SYNC);
+    propertiesSystem.setFillColour(propertiesState.raw.id!, colour, temporary ? NO_SYNC : SERVER_SYNC);
 }
 
 const hasValue = computed(() => {

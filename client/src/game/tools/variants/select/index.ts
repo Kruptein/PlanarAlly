@@ -20,7 +20,6 @@ import { InvalidationMode, NO_SYNC, SyncMode } from "../../../../core/models/typ
 import { ctrlOrCmdPressed } from "../../../../core/utils";
 import { i18n } from "../../../../i18n";
 import { getGameState } from "../../../../store/_game";
-import { settingsStore } from "../../../../store/settings";
 import { sendRequest } from "../../../api/emits/logic";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../../api/emits/shape/core";
 import { calculateDelta } from "../../../drag";
@@ -50,6 +49,7 @@ import { playerSystem } from "../../../systems/players";
 import { DEFAULT_GRID_SIZE, positionState } from "../../../systems/position/state";
 import { getProperties } from "../../../systems/properties/state";
 import { selectedSystem } from "../../../systems/selected";
+import { locationSettingsState } from "../../../systems/settings/location/state";
 import { playerSettingsState } from "../../../systems/settings/players/state";
 import { openDefaultContextMenu, openShapeContextMenu } from "../../../ui/contextmenu/state";
 import { TriangulationTarget, visionState } from "../../../vision/state";
@@ -588,7 +588,7 @@ class SelectTool extends Tool implements ISelectTool {
                         });
                     }
                     if (
-                        settingsStore.useGrid.value &&
+                        locationSettingsState.raw.useGrid.value &&
                         playerSettingsState.useSnapping(event) &&
                         this.hasFeature(SelectFeatures.Snapping, features) &&
                         !this.deltaChanged
@@ -643,7 +643,7 @@ class SelectTool extends Tool implements ISelectTool {
                         });
 
                     if (
-                        settingsStore.useGrid.value &&
+                        locationSettingsState.raw.useGrid.value &&
                         playerSettingsState.useSnapping(event) &&
                         this.hasFeature(SelectFeatures.Snapping, features)
                     ) {

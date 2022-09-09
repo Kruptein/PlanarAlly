@@ -143,7 +143,6 @@ async def load_location(sid: str, location: Location, *, complete=False):
                 "creator": pr.room.creator.name,
                 "invitationCode": str(pr.room.invitation_code),
                 "isLocked": pr.room.is_locked,
-                "default_options": pr.room.default_options.as_dict(),
                 "publicName": config.get("General", "public_name", fallback=""),
             },
             room=sid,
@@ -165,7 +164,9 @@ async def load_location(sid: str, location: Location, *, complete=False):
 
     # 3. Load location
 
-    await sio.emit("Location.Set", location.as_dict(), room=sid, namespace=GAME_NS)
+    location_data = location.as_dict()
+
+    await sio.emit("Location.Set", location_data, room=sid, namespace=GAME_NS)
 
     # 4. Load all location settings (DM)
 
@@ -173,8 +174,12 @@ async def load_location(sid: str, location: Location, *, complete=False):
         await sio.emit(
             "Locations.Settings.Set",
             {
-                l.id: {} if l.options is None else l.options.as_dict()
-                for l in pr.room.locations
+                "default": pr.room.default_options.as_dict(),
+                "active": location_data["id"],
+                "locations": {
+                    l.id: {} if l.options is None else l.options.as_dict()
+                    for l in pr.room.locations
+                },
             },
             room=sid,
             namespace=GAME_NS,
@@ -210,10 +215,10 @@ async def load_location(sid: str, location: Location, *, complete=False):
 
     # 6. Load Initiative
 
-    location_data = Initiative.get_or_none(location=location)
-    if location_data:
+    initiative_data = Initiative.get_or_none(location=location)
+    if initiative_data:
         await sio.emit(
-            "Initiative.Set", location_data.as_dict(), room=sid, namespace=GAME_NS
+            "Initiative.Set", initiative_data.as_dict(), room=sid, namespace=GAME_NS
         )
 
     # 7. Load labels
@@ -346,18 +351,7 @@ async def set_location_options(sid: str, data: LocationOptionsData):
     else:
         loc = Location.get_by_id(data["location"])
         if loc.options is None:
-            loc.options = LocationOptions.create(
-                unit_size=None,
-                unit_size_unit=None,
-                grid_type=None,
-                use_grid=None,
-                full_fow=None,
-                fow_opacity=None,
-                fow_los=None,
-                vision_mode=None,
-                vision_min_range=None,
-                vision_max_range=None,
-            )
+            loc.options = LocationOptions.create_empty()
             loc.save()
         options = loc.options
 

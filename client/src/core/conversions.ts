@@ -1,6 +1,6 @@
 import { DEFAULT_GRID_SIZE, positionState } from "../game/systems/position/state";
+import { locationSettingsState } from "../game/systems/settings/location/state";
 import { playerSettingsState } from "../game/systems/settings/players/state";
-import { settingsStore } from "../store/settings";
 
 import { Ray, toGP, toLP } from "./geometry";
 import type { GlobalPoint, LocalPoint } from "./geometry";
@@ -23,7 +23,7 @@ export function g2lz(z: number): number {
 }
 
 export function getUnitDistance(r: number): number {
-    return (r / settingsStore.unitSize.value) * DEFAULT_GRID_SIZE;
+    return (r / locationSettingsState.raw.unitSize.value) * DEFAULT_GRID_SIZE;
 }
 
 export function g2lr(r: number): number {

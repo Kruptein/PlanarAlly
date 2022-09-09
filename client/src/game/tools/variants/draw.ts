@@ -10,7 +10,6 @@ import type { PromptFunction } from "../../../core/plugins/modals/prompt";
 import { ctrlOrCmdPressed, mostReadable } from "../../../core/utils";
 import { i18n } from "../../../i18n";
 import { getGameState } from "../../../store/_game";
-import { settingsStore } from "../../../store/settings";
 import { sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import type { ILayer } from "../../interfaces/layer";
 import type { IShape } from "../../interfaces/shape";
@@ -36,6 +35,7 @@ import type { Permissions } from "../../systems/logic/models";
 import { playerSystem } from "../../systems/players";
 import { propertiesSystem } from "../../systems/properties";
 import { getProperties } from "../../systems/properties/state";
+import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { openDefaultContextMenu } from "../../ui/contextmenu/state";
 import { TriangulationTarget, visionState } from "../../vision/state";
@@ -163,7 +163,7 @@ class DrawTool extends Tool {
 
     private get helperSize(): number {
         if (this.hasBrushSize.value) return this.state.brushSize / 2;
-        return getUnitDistance(settingsStore.unitSize.value) / 8;
+        return getUnitDistance(locationSettingsState.raw.unitSize.value) / 8;
     }
 
     private getLayer(data?: { floor?: Floor; layer?: LayerName }): ILayer | undefined {
@@ -579,7 +579,7 @@ class DrawTool extends Tool {
         else this.snappedToPoint = false;
 
         // TODO: handle touch event different than altKey, long press
-        if (playerSettingsState.useSnapping(event) && settingsStore.useGrid.value && !this.snappedToPoint) {
+        if (playerSettingsState.useSnapping(event) && locationSettingsState.raw.useGrid.value && !this.snappedToPoint) {
             const props = getProperties(this.shape.id)!;
             if (props.blocksVision)
                 visionState.deleteFromTriangulation({

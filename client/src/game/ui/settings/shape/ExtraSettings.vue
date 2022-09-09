@@ -10,7 +10,6 @@ import { useModal } from "../../../../core/plugins/modals/plugin";
 import { getChecked, getValue, uuidv4 } from "../../../../core/utils";
 import { getGameState } from "../../../../store/_game";
 import { activeShapeStore } from "../../../../store/activeShape";
-import { settingsStore } from "../../../../store/settings";
 import { getShape } from "../../../id";
 import type { IAsset } from "../../../interfaces/shapes/asset";
 import type { DDraftData } from "../../../models/ddraft";
@@ -29,6 +28,7 @@ import { playerSystem } from "../../../systems/players";
 import { DEFAULT_GRID_SIZE } from "../../../systems/position/state";
 import { propertiesSystem } from "../../../systems/properties";
 import { selectedSystem } from "../../../systems/selected";
+import { locationSettingsState } from "../../../systems/settings/location/state";
 import { visionState } from "../../../vision/state";
 import LabelManager from "../../LabelManager.vue";
 
@@ -179,7 +179,7 @@ function applyDDraft(): void {
             visionSource: true,
             visible: true,
             name: "ddraft light source",
-            value: (light.range * DEFAULT_GRID_SIZE) / settingsStore.unitSize.value,
+            value: (light.range * DEFAULT_GRID_SIZE) / locationSettingsState.raw.unitSize.value,
             dim: 0,
             colour: tinycolor(light.color)
                 .setAlpha(0.05 * light.intensity)

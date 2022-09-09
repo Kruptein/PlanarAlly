@@ -7,12 +7,12 @@ import { registerSystem } from "../..";
 import type { ShapeSystem } from "../..";
 import SingleButtonToast from "../../../../core/components/toasts/SingleButtonToast.vue";
 import type { Sync } from "../../../../core/models/types";
-import { settingsStore } from "../../../../store/settings";
 import { sendRequest } from "../../../api/emits/logic";
 import { getGlobalId, getShape } from "../../../id";
 import type { LocalId } from "../../../id";
 import type { IShape } from "../../../interfaces/shape";
 import { getProperties } from "../../properties/state";
+import { locationSettingsState } from "../../settings/location/state";
 import { canUse } from "../common";
 import { Access, DEFAULT_PERMISSIONS } from "../models";
 import type { Permissions } from "../models";
@@ -180,7 +180,7 @@ class TeleportZoneSystem implements ShapeSystem {
                 if (
                     shape.id === tp ||
                     getProperties(shape.id)!.isLocked ||
-                    (settingsStore.currentLocationOptions.value.spawnLocations?.includes(shape.id) ?? false)
+                    (locationSettingsState.raw.spawnLocations.value.includes(shape.id) ?? false)
                 )
                     continue;
                 if (tpShape.floor.id === shape.floor.id && tpShape.contains(shape.center())) {

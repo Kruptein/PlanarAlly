@@ -6,7 +6,6 @@ import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { snapToGridPoint } from "../../../core/math";
 import { InvalidationMode, NO_SYNC, SyncMode } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
-import { settingsStore } from "../../../store/settings";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { LayerName } from "../../models/floor";
 import { ToolName } from "../../models/tools";
@@ -18,6 +17,7 @@ import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { playerSystem } from "../../systems/players";
 import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
+import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
@@ -138,12 +138,14 @@ class RulerTool extends Tool {
         const diffsign = Math.sign(end.x - start.x) * Math.sign(end.y - start.y);
         const xdiff = Math.abs(end.x - start.x);
         const ydiff = Math.abs(end.y - start.y);
-        let distance = (Math.sqrt(xdiff ** 2 + ydiff ** 2) * settingsStore.unitSize.value) / DEFAULT_GRID_SIZE;
+        let distance =
+            (Math.sqrt(xdiff ** 2 + ydiff ** 2) * locationSettingsState.raw.unitSize.value) / DEFAULT_GRID_SIZE;
         this.currentLength = distance;
         distance += this.previousLength;
 
         // round to 1 decimal
-        const label = i18n.global.n(Math.round(10 * distance) / 10) + " " + settingsStore.unitSizeUnit.value;
+        const label =
+            i18n.global.n(Math.round(10 * distance) / 10) + " " + locationSettingsState.raw.unitSizeUnit.value;
         const angle = Math.atan2(diffsign * ydiff, xdiff);
         const xmid = Math.min(start.x, end.x) + xdiff / 2;
         const ymid = Math.min(start.y, end.y) + ydiff / 2;

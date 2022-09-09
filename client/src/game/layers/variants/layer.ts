@@ -5,7 +5,6 @@ import { debugLayers } from "../../../localStorageHelpers";
 import { getGameState } from "../../../store/_game";
 import { activeShapeStore } from "../../../store/activeShape";
 import { gameStore } from "../../../store/game";
-import { settingsStore } from "../../../store/settings";
 import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../../api/emits/shape/core";
 import { removeGroupMember } from "../../groups";
 import { dropId, getGlobalId } from "../../id";
@@ -24,6 +23,8 @@ import { floorState } from "../../systems/floors/state";
 import { propertiesSystem } from "../../systems/properties";
 import { getProperties } from "../../systems/properties/state";
 import { selectedSystem } from "../../systems/selected";
+import { locationSettingsSystem } from "../../systems/settings/location";
+import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { initiativeStore } from "../../ui/initiative/state";
 import { TriangulationTarget, VisibilityMode, visionState } from "../../vision/state";
@@ -194,11 +195,10 @@ export class Layer implements ILayer {
             console.error("attempted to remove shape not in layer.");
             return false;
         }
-        const locationOptions = settingsStore.currentLocationOptions.value;
-        if (locationOptions.spawnLocations!.includes(shape.id)) {
-            settingsStore.setSpawnLocations(
-                locationOptions.spawnLocations!.filter((s) => s !== shape.id),
-                settingsStore.state.activeLocation,
+        if (locationSettingsState.raw.spawnLocations.value.includes(shape.id)) {
+            locationSettingsSystem.setSpawnLocations(
+                locationSettingsState.raw.spawnLocations.value.filter((s) => s !== shape.id),
+                locationSettingsState.raw.activeLocation,
                 true,
             );
         }

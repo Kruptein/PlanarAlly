@@ -53,6 +53,8 @@ class UserOptions(BaseModel):
             use_high_dpi=None,
             grid_size=None,
             use_as_physical_board=None,
+            mini_size=None,
+            ppi=None,
             initiative_camera_lock=None,
             initiative_vision_lock=None,
             initiative_effect_visibility=None,

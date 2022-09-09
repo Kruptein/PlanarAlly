@@ -1,5 +1,4 @@
 import type { GlobalPoint } from "../../../../core/geometry";
-import { settingsStore } from "../../../../store/settings";
 import { requestShapeInfo, sendShapesMove } from "../../../api/emits/shape/core";
 import { getShape, getLocalId, getGlobalId } from "../../../id";
 import type { LocalId, GlobalId } from "../../../id";
@@ -11,6 +10,7 @@ import { floorSystem } from "../../floors";
 import { floorState } from "../../floors/state";
 import { playerSystem } from "../../players";
 import { getProperties } from "../../properties/state";
+import { locationSettingsState } from "../../settings/location/state";
 
 export function getTpZoneShapes(fromZone: LocalId): LocalId[] {
     const tokenLayer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Tokens)!;
@@ -34,7 +34,7 @@ export async function teleport(fromZone: LocalId, toZone: GlobalId, transfers?: 
     const shapes = transfers ? transfers : getTpZoneShapes(fromZone);
     if (shapes.length === 0) return;
 
-    const activeLocation = settingsStore.state.activeLocation;
+    const activeLocation = locationSettingsState.raw.activeLocation;
     let targetLocation = activeLocation;
     const tpTargetId = getLocalId(toZone);
     const targetShape = tpTargetId === undefined ? undefined : getShape(tpTargetId);
@@ -64,7 +64,7 @@ export async function teleport(fromZone: LocalId, toZone: GlobalId, transfers?: 
         tp_zone: true,
     });
     const { location, ...position } = target;
-    if (settingsStore.movePlayerOnTokenChange.value) {
+    if (locationSettingsState.raw.movePlayerOnTokenChange.value) {
         if (location === activeLocation) {
             setCenterPosition(center);
         } else {

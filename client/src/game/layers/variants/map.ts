@@ -1,8 +1,8 @@
 import { baseAdjust } from "../../../core/http";
-import { settingsStore } from "../../../store/settings";
 import { FloorType } from "../../models/floor";
 import { floorSystem } from "../../systems/floors";
 import { positionState } from "../../systems/position/state";
+import { locationSettingsState } from "../../systems/settings/location/state";
 import { getPattern } from "../floor";
 
 import { Layer } from "./layer";
@@ -19,11 +19,11 @@ export class MapLayer extends Layer {
             let floorBackground = floor?.backgroundValue;
             if (floorBackground === undefined) {
                 if (floor?.type === FloorType.Air) {
-                    floorBackground = settingsStore.airMapBackground.value ?? undefined;
+                    floorBackground = locationSettingsState.raw.airMapBackground.value ?? undefined;
                 } else if (floor?.type === FloorType.Ground) {
-                    floorBackground = settingsStore.groundMapBackground.value ?? undefined;
+                    floorBackground = locationSettingsState.raw.groundMapBackground.value ?? undefined;
                 } else {
-                    floorBackground = settingsStore.undergroundMapBackground.value ?? undefined;
+                    floorBackground = locationSettingsState.raw.undergroundMapBackground.value ?? undefined;
                 }
             }
 

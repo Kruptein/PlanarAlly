@@ -1,6 +1,6 @@
-import { settingsStore } from "../../../store/settings";
 import { floorState } from "../../systems/floors/state";
 import { DEFAULT_GRID_SIZE, positionState } from "../../systems/position/state";
+import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 
 import { Layer } from "./layer";
@@ -11,13 +11,13 @@ export class GridLayer extends Layer {
     }
 
     show(): void {
-        if (settingsStore.useGrid.value && this.floor === floorState.currentFloor.value!.id)
+        if (locationSettingsState.raw.useGrid.value && this.floor === floorState.currentFloor.value!.id)
             this.canvas.style.removeProperty("display");
     }
 
     draw(_doClear?: boolean): void {
         if (!this.valid) {
-            if (settingsStore.useGrid.value) {
+            if (locationSettingsState.raw.useGrid.value) {
                 const activeFowFloor = floorState.currentFloor.value!.id;
 
                 if (this.floor === activeFowFloor && this.canvas.style.display === "none")
@@ -31,7 +31,7 @@ export class GridLayer extends Layer {
 
                 const state = positionState.readonly;
 
-                if (settingsStore.gridType.value === "SQUARE") {
+                if (locationSettingsState.raw.gridType.value === "SQUARE") {
                     for (let i = 0; i < this.width; i += DEFAULT_GRID_SIZE * state.zoom) {
                         ctx.moveTo(i + (state.panX % DEFAULT_GRID_SIZE) * state.zoom, 0);
                         ctx.lineTo(i + (state.panX % DEFAULT_GRID_SIZE) * state.zoom, this.height);
@@ -53,7 +53,7 @@ export class GridLayer extends Layer {
                      * but differ in primary axis.
                      */
 
-                    const flat = settingsStore.gridType.value === "FLAT_HEX";
+                    const flat = locationSettingsState.raw.gridType.value === "FLAT_HEX";
 
                     const pX = (state.panX % ((flat ? 3 / s3 : 1) * DEFAULT_GRID_SIZE)) * state.zoom;
                     const pY = (state.panY % ((flat ? 1 : 3 / s3) * DEFAULT_GRID_SIZE)) * state.zoom;

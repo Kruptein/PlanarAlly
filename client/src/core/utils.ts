@@ -16,13 +16,13 @@ export function alphSort(a: string, b: string): number {
     else return 1;
 }
 
-export function toSnakeCase(s: string): string {
-    return s
-        .replace(/\.?([A-Z]+)/g, function (x, y) {
-            return "_" + y.toLowerCase();
-        })
-        .replace(/^_/, "");
-}
+// export function toSnakeCase(s: string): string {
+//     return s
+//         .replace(/\.?([A-Z]+)/g, function (x, y) {
+//             return "_" + y.toLowerCase();
+//         })
+//         .replace(/^_/, "");
+// }
 
 export function randomInterval(min: number, max: number): number {
     return Math.random() * (max - min) + min;

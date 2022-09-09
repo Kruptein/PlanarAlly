@@ -45,7 +45,7 @@ socket.on("Location.Rename", (data: { location: number; name: string }) => {
     locationStore.renameLocation(data.location, data.name, false);
 });
 
-export function setLocationOptions(id: number | undefined, options: Partial<ServerLocationOptions>): void {
+function setLocationOptions(id: number | undefined, options: Partial<ServerLocationOptions>): void {
     // GRID
     locationSettingsSystem.setUseGrid(options.use_grid, id, false);
     locationSettingsSystem.setGridType(options.grid_type, id, false);

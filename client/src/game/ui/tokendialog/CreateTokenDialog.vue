@@ -8,11 +8,11 @@ import { getUnitDistance, l2g } from "../../../core/conversions";
 import { toLP } from "../../../core/geometry";
 import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
 import { calcFontScale, mostReadable } from "../../../core/utils";
-import { settingsStore } from "../../../store/settings";
 import { CircularToken } from "../../shapes/variants/circularToken";
 import { accessSystem } from "../../systems/access";
 import { floorState } from "../../systems/floors/state";
 import { playerSystem } from "../../systems/players";
+import { locationSettingsState } from "../../systems/settings/location/state";
 
 import { tokenDialogLeft, tokenDialogTop, tokenDialogVisible } from "./state";
 
@@ -47,7 +47,7 @@ function submit(): void {
 
     const token = new CircularToken(
         l2g(toLP(tokenDialogLeft, tokenDialogTop)),
-        getUnitDistance(settingsStore.unitSize.value / 2),
+        getUnitDistance(locationSettingsState.raw.unitSize.value / 2),
         text.value || "X",
         "10px serif",
         undefined,

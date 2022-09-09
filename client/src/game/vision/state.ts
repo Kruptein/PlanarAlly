@@ -1,6 +1,6 @@
 import { equalsP } from "../../core/geometry";
 import { Store } from "../../core/store";
-import { sendLocationOptions } from "../api/emits/location";
+import { sendLocationOption } from "../api/emits/location";
 import { getShape } from "../id";
 import type { LocalId } from "../id";
 import type { IShape } from "../interfaces/shape";
@@ -24,6 +24,13 @@ export enum TriangulationTarget {
 export enum VisibilityMode {
     TRIANGLE,
     TRIANGLE_ITERATIVE,
+}
+
+export function visibilityModeFromString(mode: string): VisibilityMode | undefined {
+    if (mode.toUpperCase() === VisibilityMode[VisibilityMode.TRIANGLE]) return VisibilityMode.TRIANGLE;
+    else if (mode.toUpperCase() === VisibilityMode[VisibilityMode.TRIANGLE_ITERATIVE])
+        return VisibilityMode.TRIANGLE_ITERATIVE;
+    return undefined;
 }
 
 interface State {
@@ -61,11 +68,7 @@ class VisionState extends Store<State> {
         }
         floorSystem.invalidateAllFloors();
 
-        if (sync)
-            sendLocationOptions({
-                options: { vision_mode: VisibilityMode[mode] },
-                location: undefined,
-            });
+        if (sync) sendLocationOption("vision_mode", VisibilityMode[mode], undefined);
     }
 
     recalculate(data: { target: TriangulationTarget; floor: FloorId }): void {

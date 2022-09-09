@@ -2,68 +2,58 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { settingsStore } from "../../../../store/settings";
-import type { LocationOptions } from "../../../models/settings";
+import { locationSettingsSystem } from "../../../systems/settings/location";
+import { locationSettingsState } from "../../../systems/settings/location/state";
 
 const props = withDefaults(defineProps<{ location?: number }>(), { location: -1 });
 
 const { t } = useI18n();
 
-const isGlobal = computed(() => props.location < 0);
+const { reactive: $, getOption } = locationSettingsState;
+const lss = locationSettingsSystem;
 
-const options = computed(() => {
-    if (isGlobal.value) {
-        return settingsStore.state.defaultLocationOptions!;
-    } else {
-        return settingsStore.state.locationOptions.get(props.location) ?? {};
-    }
-});
+const isGlobal = computed(() => props.location < 0);
 
 const location = computed(() => (isGlobal.value ? undefined : props.location));
 
 const useGrid = computed({
     get() {
-        return settingsStore.getLocationOptions("useGrid", location.value);
+        return getOption($.useGrid, location.value).value;
     },
-    set(useGrid: boolean) {
-        settingsStore.setUseGrid(useGrid, location.value, true);
+    set(useGrid: boolean | undefined) {
+        lss.setUseGrid(useGrid, location.value, true);
     },
 });
 
 const gridType = computed({
     get() {
-        return settingsStore.getLocationOptions("gridType", location.value);
+        return getOption($.gridType, location.value).value;
     },
-    set(gridType: string) {
-        settingsStore.setGridType(gridType, location.value, true);
+    set(gridType: string | undefined) {
+        lss.setGridType(gridType, location.value, true);
     },
 });
 
 const unitSize = computed({
     get() {
-        return settingsStore.getLocationOptions("unitSize", location.value);
+        return getOption($.unitSize, location.value).value;
     },
-    set(unitSize: number) {
-        if (unitSize >= 1) settingsStore.setUnitSize(unitSize, location.value, true);
+    set(unitSize: number | undefined) {
+        if (unitSize === undefined || unitSize >= 1) lss.setUnitSize(unitSize, location.value, true);
     },
 });
 
 const unitSizeUnit = computed({
     get() {
-        return settingsStore.getLocationOptions("unitSizeUnit", location.value);
+        return getOption($.unitSizeUnit, location.value).value;
     },
-    set(unitSizeUnit: string) {
-        settingsStore.setUnitSizeUnit(unitSizeUnit, location.value, true);
+    set(unitSizeUnit: string | undefined) {
+        lss.setUnitSizeUnit(unitSizeUnit, location.value, true);
     },
 });
 
-function reset(key: keyof LocationOptions): void {
-    if (isGlobal.value) return;
-    settingsStore.reset(key, props.location, true);
-}
-
-function e(k: any): boolean {
-    return k !== undefined && k !== null;
+function o(k: any): boolean {
+    return getOption(k, location.value).override !== undefined;
 }
 </script>
 
@@ -81,21 +71,21 @@ function e(k: any): boolean {
                 </i18n-t>
             </template>
         </div>
-        <div class="row" :class="{ overwritten: !isGlobal && e(options.useGrid) }">
+        <div class="row" :class="{ overwritten: !isGlobal && o($.useGrid) }">
             <label :for="'useGridInput-' + location">{{ t("game.ui.settings.GridSettings.use_grid") }}</label>
             <div>
                 <input :id="'useGridInput-' + location" type="checkbox" v-model="useGrid" />
             </div>
             <div
-                v-if="!isGlobal && e(options.useGrid)"
-                @click="reset('useGrid')"
+                v-if="!isGlobal && o($.useGrid)"
+                @click="useGrid = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
             >
                 <font-awesome-icon icon="times-circle" />
             </div>
             <div v-else></div>
         </div>
-        <div class="row" :class="{ overwritten: !isGlobal && e(options.gridType) }">
+        <div class="row" :class="{ overwritten: !isGlobal && o($.gridType) }">
             <label :for="'gridType-' + location">{{ t("game.ui.settings.GridSettings.grid_type") }}</label>
             <div>
                 <select :id="'gridType-' + location" v-model="gridType">
@@ -105,15 +95,15 @@ function e(k: any): boolean {
                 </select>
             </div>
             <div
-                v-if="!isGlobal && e(options.gridType)"
-                @click="reset('gridType')"
+                v-if="!isGlobal && o($.gridType)"
+                @click="gridType = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
             >
                 <font-awesome-icon icon="times-circle" />
             </div>
             <div v-else></div>
         </div>
-        <div class="row" :class="{ overwritten: !isGlobal && e(options.unitSizeUnit) }">
+        <div class="row" :class="{ overwritten: !isGlobal && o($.unitSizeUnit) }">
             <div>
                 <label :for="'unitSizeUnit-' + location">{{ t("game.ui.settings.GridSettings.size_unit") }}</label>
             </div>
@@ -121,15 +111,15 @@ function e(k: any): boolean {
                 <input :id="'unitSizeUnit-' + location" type="text" v-model="unitSizeUnit" />
             </div>
             <div
-                v-if="!isGlobal && e(options.unitSizeUnit)"
-                @click="reset('unitSizeUnit')"
+                v-if="!isGlobal && o($.unitSizeUnit)"
+                @click="unitSizeUnit = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
             >
                 <font-awesome-icon icon="times-circle" />
             </div>
             <div v-else></div>
         </div>
-        <div class="row" :class="{ overwritten: !isGlobal && e(options.unitSize) }">
+        <div class="row" :class="{ overwritten: !isGlobal && o($.unitSize) }">
             <div>
                 <label :for="'unitSizeInput-' + location">
                     {{ t("game.ui.settings.GridSettings.unit_size_in_UNIT", { unit: unitSizeUnit }) }}
@@ -139,8 +129,8 @@ function e(k: any): boolean {
                 <input :id="'unitSizeInput-' + location" type="number" step="any" v-model.number="unitSize" />
             </div>
             <div
-                v-if="!isGlobal && e(options.unitSize)"
-                @click="reset('unitSize')"
+                v-if="!isGlobal && o($.unitSize)"
+                @click="unitSize = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
             >
                 <font-awesome-icon icon="times-circle" />

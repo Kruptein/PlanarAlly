@@ -5,7 +5,6 @@ import type { ShapeSystem } from "..";
 import { NO_SYNC } from "../../../core/models/types";
 import type { Sync } from "../../../core/models/types";
 import { getGameState } from "../../../store/_game";
-import { settingsStore } from "../../../store/settings";
 import { getGlobalId } from "../../id";
 import type { LocalId } from "../../id";
 import { initiativeStore } from "../../ui/initiative/state";
@@ -14,6 +13,7 @@ import { annotationState } from "../annotations/state";
 import { floorSystem } from "../floors";
 import { playerSystem } from "../players";
 import { getProperties } from "../properties/state";
+import { locationSettingsState } from "../settings/location/state";
 
 import { sendShapeAddOwner, sendShapeDeleteOwner, sendShapeUpdateDefaultOwner, sendShapeUpdateOwner } from "./emits";
 import { accessToServer, ownerToServer } from "./helpers";
@@ -180,7 +180,7 @@ class AccessSystem implements ShapeSystem {
             }
         }
 
-        if (settingsStore.fowLos.value) floorSystem.invalidateLightAllFloors();
+        if (locationSettingsState.raw.fowLos.value) floorSystem.invalidateLightAllFloors();
         initiativeStore._forceUpdate();
     }
 
@@ -234,7 +234,7 @@ class AccessSystem implements ShapeSystem {
             }
         }
 
-        if (settingsStore.fowLos.value) floorSystem.invalidateLightAllFloors();
+        if (locationSettingsState.raw.fowLos.value) floorSystem.invalidateLightAllFloors();
         initiativeStore._forceUpdate();
     }
 
@@ -270,7 +270,7 @@ class AccessSystem implements ShapeSystem {
             }
         }
 
-        if (settingsStore.fowLos.value) floorSystem.invalidateLightAllFloors();
+        if (locationSettingsState.raw.fowLos.value) floorSystem.invalidateLightAllFloors();
         initiativeStore._forceUpdate();
     }
 

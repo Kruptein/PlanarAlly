@@ -4,7 +4,6 @@ import { baseAdjust } from "../core/http";
 import { SyncMode, InvalidationMode } from "../core/models/types";
 import { uuidv4 } from "../core/utils";
 import { i18n } from "../i18n";
-import { settingsStore } from "../store/settings";
 
 import { requestAssetOptions } from "./api/emits/asset";
 import type { BaseTemplate } from "./models/templates";
@@ -12,6 +11,7 @@ import { applyTemplate } from "./shapes/templates";
 import { Asset } from "./shapes/variants/asset";
 import { floorState } from "./systems/floors/state";
 import { DEFAULT_GRID_SIZE } from "./systems/position/state";
+import { locationSettingsState } from "./systems/settings/location/state";
 import { selectionBoxFunction } from "./temp";
 
 export async function dropAsset(
@@ -73,7 +73,7 @@ export async function dropAsset(
                 asset.fromDict(applyTemplate(asset.asDict(), options));
             }
 
-            if (settingsStore.useGrid.value) {
+            if (locationSettingsState.raw.useGrid.value) {
                 asset.refPoint = toGP(clampGridLine(asset.refPoint.x), clampGridLine(asset.refPoint.y));
             }
 

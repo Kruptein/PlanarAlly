@@ -3,7 +3,6 @@ import { FULL_SYNC } from "../../../core/models/types";
 import { ctrlOrCmdPressed } from "../../../core/utils";
 import { getGameState } from "../../../store/_game";
 import { gameStore } from "../../../store/game";
-import { settingsStore } from "../../../store/settings";
 import { sendClientLocationOptions } from "../../api/emits/client";
 import { calculateDelta } from "../../drag";
 import { moveShapes } from "../../operations/movement";
@@ -17,6 +16,7 @@ import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
 import { propertiesSystem } from "../../systems/properties";
 import { getProperties } from "../../systems/properties/state";
 import { selectedSystem } from "../../systems/selected";
+import { locationSettingsState } from "../../systems/settings/location/state";
 import { moveFloor } from "../../temp";
 import { toggleActiveMode } from "../../tools/tools";
 
@@ -62,10 +62,10 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                 offsetY += gridSize;
             }
             // in hex mode, if movement is diagonal, offsets have to be modified
-            if (settingsStore.gridType.value === "FLAT_HEX" && offsetX != 0) {
+            if (locationSettingsState.raw.gridType.value === "FLAT_HEX" && offsetX != 0) {
                 offsetX = (1.5 * offsetX) / Math.sqrt(3);
                 offsetY *= 0.5;
-            } else if (settingsStore.gridType.value === "POINTY_HEX" && offsetY != 0) {
+            } else if (locationSettingsState.raw.gridType.value === "POINTY_HEX" && offsetY != 0) {
                 offsetX *= 0.5;
                 offsetY = (1.5 * offsetY) / Math.sqrt(3);
             }
@@ -73,9 +73,12 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                 // if in hex-mode, first invalidate invalid axis
                 const flatHexInvalid = ["ArrowLeft", "ArrowRight", "Numpad4", "Numpad6"];
                 const pointyHexInvalid = ["ArrowUp", "ArrowDown", "Numpad2", "Numpad8"];
-                if (settingsStore.gridType.value === "FLAT_HEX" && flatHexInvalid.includes(event.code)) {
+                if (locationSettingsState.raw.gridType.value === "FLAT_HEX" && flatHexInvalid.includes(event.code)) {
                     offsetX = 0;
-                } else if (settingsStore.gridType.value === "POINTY_HEX" && pointyHexInvalid.includes(event.code)) {
+                } else if (
+                    locationSettingsState.raw.gridType.value === "POINTY_HEX" &&
+                    pointyHexInvalid.includes(event.code)
+                ) {
                     offsetY = 0;
                 }
                 const selection = selectedSystem.get({ includeComposites: false });

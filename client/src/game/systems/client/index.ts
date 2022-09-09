@@ -6,7 +6,6 @@ import type { GlobalPoint } from "../../../core/geometry";
 import { toGP } from "../../../core/geometry";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { setLocalStorageObject } from "../../../localStorageHelpers";
-import { settingsStore } from "../../../store/settings";
 import { sendMoveClient, sendOffset, sendViewport } from "../../api/emits/client";
 import { getClientId } from "../../api/socket";
 import { getShape } from "../../id";
@@ -21,6 +20,7 @@ import type { PlayerId } from "../players/models";
 import { playerState } from "../players/state";
 import { positionSystem } from "../position";
 import { positionState } from "../position/state";
+import { locationSettingsState } from "../settings/location/state";
 
 import type { ClientId, Viewport } from "./models";
 import { clientState } from "./state";
@@ -69,7 +69,7 @@ class ClientSystem implements System {
         const playerId = $.clientIds.get(client);
         if (playerId === undefined) return;
 
-        if (playerState.mutableReactive.players.get(playerId)?.location === settingsStore.state.activeLocation) {
+        if (playerState.mutableReactive.players.get(playerId)?.location === locationSettingsState.raw.activeLocation) {
             let shape: Polygon;
             if (shapeId === undefined) {
                 shape = this.createClientRect(client) as Polygon;

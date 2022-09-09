@@ -10,7 +10,6 @@ import { getGameState } from "../../../store/_game";
 import { activeShapeStore } from "../../../store/activeShape";
 import { gameStore } from "../../../store/game";
 import { locationStore } from "../../../store/location";
-import { settingsStore } from "../../../store/settings";
 import { requestAssetOptions, sendAssetOptions } from "../../api/emits/asset";
 import { requestSpawnInfo } from "../../api/emits/location";
 import { sendShapesMove } from "../../api/emits/shape/core";
@@ -30,6 +29,7 @@ import { floorState } from "../../systems/floors/state";
 import { playerSystem } from "../../systems/players";
 import { getProperties } from "../../systems/properties/state";
 import { selectedSystem } from "../../systems/selected";
+import { locationSettingsState } from "../../systems/settings/location/state";
 import { moveFloor, moveLayer } from "../../temp";
 import { initiativeStore } from "../initiative/state";
 import { layerTranslationMapping } from "../translations";
@@ -42,9 +42,7 @@ const modals = useModal();
 const isDm = toRef(getGameState(), "isDm");
 
 const selectionIncludesSpawnToken = computed(() =>
-    [...selectedSystem.$.value].some(
-        (s) => settingsStore.currentLocationOptions.value.spawnLocations?.includes(s) ?? false,
-    ),
+    [...selectedSystem.$.value].some((s) => locationSettingsState.raw.spawnLocations.value.includes(s) ?? false),
 );
 
 const isOwned = computed(() =>
@@ -216,7 +214,7 @@ async function setLocation(newLocation: number): Promise<void> {
         target: { location: newLocation, ...targetPosition },
         tp_zone: false,
     });
-    if (settingsStore.movePlayerOnTokenChange.value) {
+    if (locationSettingsState.raw.movePlayerOnTokenChange.value) {
         const users: Set<string> = new Set();
         for (const shape of selectedSystem.get({ includeComposites: true })) {
             if (getProperties(shape.id)!.isLocked) continue;
@@ -343,7 +341,7 @@ function enlargeGroup(): void {
 }
 
 const activeLayer = floorState.currentLayer as ComputedRef<ILayer>;
-const activeLocation = toRef(settingsStore.state, "activeLocation");
+const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
 const currentFloorIndex = toRef(floorState.reactive, "floorIndex");
 const floors = toRef(floorState.reactive, "floors");
 </script>

@@ -13,7 +13,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 75
+SAVE_VERSION = 76
 
 import json
 import logging
@@ -226,6 +226,18 @@ def upgrade(db: SqliteExtDatabase, version: int):
                         "UPDATE initiative SET data=? WHERE id=?",
                         (json.dumps(initiative_data), _id),
                     )
+    elif version == 75:
+        # Cleanup of background null values for default locations
+        with db.atomic():
+            db.execute_sql(
+                "UPDATE location_options SET air_map_background = 'none' WHERE id IN (SELECT default_options_id FROM room) AND (air_map_background IS NULL OR air_map_background = 'rgba(0, 0, 0, 0)')"
+            )
+            db.execute_sql(
+                "UPDATE location_options SET ground_map_background = 'none' WHERE id IN (SELECT default_options_id FROM room) AND (ground_map_background IS NULL OR ground_map_background = 'rgba(0, 0, 0, 0)')"
+            )
+            db.execute_sql(
+                "UPDATE location_options SET underground_map_background = 'none' WHERE id IN (SELECT default_options_id FROM room) AND (underground_map_background IS NULL OR underground_map_background = 'rgba(0, 0, 0, 0)')"
+            )
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

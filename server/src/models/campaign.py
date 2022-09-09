@@ -36,9 +36,6 @@ __all__ = [
 ]
 
 
-TRANSPARENT_COLOR = "rgba(0, 0, 0, 0)"
-
-
 class LocationOptions(BaseModel):
     id: int
 
@@ -55,9 +52,28 @@ class LocationOptions(BaseModel):
     spawn_locations = cast(str, TextField(default="[]"))
     move_player_on_token_change = BooleanField(default=True, null=True)
     grid_type = TextField(default="SQUARE", null=True)
-    air_map_background = TextField(default=TRANSPARENT_COLOR, null=True)
-    ground_map_background = TextField(default=TRANSPARENT_COLOR, null=True)
-    underground_map_background = TextField(default=TRANSPARENT_COLOR, null=True)
+    air_map_background = TextField(default="none", null=True)
+    ground_map_background = TextField(default="none", null=True)
+    underground_map_background = TextField(default="none", null=True)
+
+    @classmethod
+    def create_empty(cls):
+        return LocationOptions.create(
+            unit_size=None,
+            unit_size_unit=None,
+            grid_type=None,
+            use_grid=None,
+            full_fow=None,
+            fow_opacity=None,
+            fow_los=None,
+            vision_mode=None,
+            vision_min_range=None,
+            vision_max_range=None,
+            move_player_on_token_change=None,
+            air_map_background=None,
+            ground_map_background=None,
+            underground_map_background=None,
+        )
 
     def as_dict(self):
         return {

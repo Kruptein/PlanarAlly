@@ -2,37 +2,30 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { settingsStore } from "../../../../store/settings";
-import type { LocationOptions } from "../../../models/settings";
+import { locationSettingsSystem } from "../../../systems/settings/location";
+import { locationSettingsState } from "../../../systems/settings/location/state";
 
 const props = withDefaults(defineProps<{ location?: number }>(), { location: -1 });
 
 const { t } = useI18n();
 
 const isGlobal = computed(() => props.location < 0);
-
-const options = computed(() => {
-    if (isGlobal.value) {
-        return settingsStore.state.defaultLocationOptions!;
-    } else {
-        return settingsStore.state.locationOptions.get(props.location) ?? {};
-    }
-});
-
 const location = computed(() => (isGlobal.value ? undefined : props.location));
+
+const { reactive: $, getOption } = locationSettingsState;
+const lss = locationSettingsSystem;
 
 const movePlayerOnTokenChange = computed({
     get() {
-        return settingsStore.getLocationOptions("movePlayerOnTokenChange", location.value);
+        return getOption($.movePlayerOnTokenChange, location.value).value;
     },
-    set(movePlayerOnTokenChange: boolean) {
-        settingsStore.setMovePlayerOnTokenChange(movePlayerOnTokenChange, location.value, true);
+    set(movePlayerOnTokenChange: boolean | undefined) {
+        lss.setMovePlayerOnTokenChange(movePlayerOnTokenChange, location.value, true);
     },
 });
 
-function reset(key: keyof LocationOptions): void {
-    if (isGlobal.value) return;
-    settingsStore.reset(key, props.location, true);
+function o(k: any): boolean {
+    return getOption(k, location.value).override !== undefined;
 }
 </script>
 
@@ -50,7 +43,7 @@ function reset(key: keyof LocationOptions): void {
                 </i18n-t>
             </template>
         </div>
-        <div class="row" :class="{ overwritten: !isGlobal && options.movePlayerOnTokenChange !== undefined }">
+        <div class="row" :class="{ overwritten: !isGlobal && o($.movePlayerOnTokenChange) }">
             <label :for="'movePlayerOnTokenChangeInput-' + location">
                 {{ t("game.ui.settings.VariaSettings.movePlayerOnTokenChange") }}
             </label>
@@ -62,8 +55,8 @@ function reset(key: keyof LocationOptions): void {
                 />
             </div>
             <div
-                v-if="!isGlobal && options.movePlayerOnTokenChange !== undefined"
-                @click="reset('movePlayerOnTokenChange')"
+                v-if="!isGlobal && o($.movePlayerOnTokenChange)"
+                @click="movePlayerOnTokenChange = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
             >
                 <font-awesome-icon icon="times-circle" />

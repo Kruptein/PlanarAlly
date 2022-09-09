@@ -1,6 +1,5 @@
 import { g2l, g2lz, getUnitDistance, g2lr, g2lx, g2ly, toRadians } from "../../../core/conversions";
 import type { SyncMode, InvalidationMode } from "../../../core/models/types";
-import { settingsStore } from "../../../store/settings";
 import { FOG_COLOUR } from "../../colour";
 import { getShape } from "../../id";
 import type { IShape } from "../../interfaces/shape";
@@ -11,6 +10,7 @@ import { accessState } from "../../systems/access/state";
 import { auraSystem } from "../../systems/auras";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
+import { locationSettingsState } from "../../systems/settings/location/state";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { computeVisibility } from "../../vision/te";
 
@@ -43,7 +43,7 @@ export class FowLightingLayer extends FowLayer {
 
             // At all times provide a minimal vision range to prevent losing your tokens in fog.
             if (
-                settingsStore.fullFow.value &&
+                locationSettingsState.raw.fullFow.value &&
                 floorSystem.hasLayer(activeFloor, LayerName.Tokens) &&
                 activeFloor.id === this.floor
             ) {
@@ -72,7 +72,7 @@ export class FowLightingLayer extends FowLayer {
             }
 
             // First cut out all the light sources
-            if (settingsStore.fullFow.value) {
+            if (locationSettingsState.raw.fullFow.value) {
                 for (const light of visionState.getVisionSources(this.floor)) {
                     const shape = getShape(light.shape);
                     if (shape === undefined) continue;
@@ -139,7 +139,7 @@ export class FowLightingLayer extends FowLayer {
                 }
             }
 
-            if (settingsStore.fowLos.value && this.floor === activeFloor.id) {
+            if (locationSettingsState.raw.fowLos.value && this.floor === activeFloor.id) {
                 this.ctx.globalCompositeOperation = "source-in";
                 this.ctx.drawImage(
                     floorSystem.getLayer(activeFloor, LayerName.Vision)!.canvas,
@@ -153,7 +153,7 @@ export class FowLightingLayer extends FowLayer {
             for (const preShape of this.preFogShapes) {
                 if (!preShape.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: true })) continue;
                 const ogComposite = preShape.globalCompositeOperation;
-                if (!settingsStore.fullFow.value) {
+                if (!locationSettingsState.raw.fullFow.value) {
                     if (preShape.globalCompositeOperation === "source-over")
                         preShape.globalCompositeOperation = "destination-out";
                     else if (preShape.globalCompositeOperation === "destination-out")
@@ -163,7 +163,7 @@ export class FowLightingLayer extends FowLayer {
                 preShape.globalCompositeOperation = ogComposite;
             }
 
-            if (settingsStore.fullFow.value && this.floor === activeFloor.id) {
+            if (locationSettingsState.raw.fullFow.value && this.floor === activeFloor.id) {
                 this.ctx.globalCompositeOperation = "source-out";
                 this.ctx.fillStyle = FOG_COLOUR;
                 this.ctx.fillRect(0, 0, this.width, this.height);

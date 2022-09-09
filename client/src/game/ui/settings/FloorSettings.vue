@@ -5,7 +5,6 @@ import { useI18n } from "vue-i18n";
 import ColourPicker from "../../../core/components/ColourPicker.vue";
 import Modal from "../../../core/components/modals/Modal.vue";
 import { useModal } from "../../../core/plugins/modals/plugin";
-import { settingsStore } from "../../../store/settings";
 import { uiStore } from "../../../store/ui";
 import {
     BackgroundType,
@@ -16,6 +15,7 @@ import {
 } from "../../models/floor";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
+import { locationSettingsState } from "../../systems/settings/location/state";
 
 import PatternSettings from "./floor/PatternSettings.vue";
 
@@ -62,11 +62,11 @@ const backgroundTypes = getBackgroundTypes();
 
 const defaultBackground = computed(() => {
     if (floor.value?.type === FloorType.Air) {
-        return settingsStore.airMapBackground.value;
+        return locationSettingsState.reactive.airMapBackground.value;
     } else if (floor.value?.type === FloorType.Ground) {
-        return settingsStore.groundMapBackground.value;
+        return locationSettingsState.reactive.groundMapBackground.value;
     } else {
-        return settingsStore.undergroundMapBackground.value;
+        return locationSettingsState.reactive.undergroundMapBackground.value;
     }
 });
 

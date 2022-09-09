@@ -7,12 +7,12 @@ import { useModal } from "../../../core/plugins/modals/plugin";
 import { getGameState } from "../../../store/_game";
 import { coreStore } from "../../../store/core";
 import { locationStore } from "../../../store/location";
-import { settingsStore } from "../../../store/settings";
 import { uiStore } from "../../../store/ui";
 import { sendLocationChange, sendNewLocation } from "../../api/emits/location";
 import type { Location } from "../../models/settings";
 import { playerSystem } from "../../systems/players";
 import { playerState } from "../../systems/players/state";
+import { locationSettingsState } from "../../systems/settings/location/state";
 
 const props = defineProps<{ active: boolean; menuActive: boolean }>();
 
@@ -156,7 +156,7 @@ function fixDisplays(): void {
     }
 }
 
-const activeLocation = toRef(settingsStore.state, "activeLocation");
+const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
 </script>
 
 <template>

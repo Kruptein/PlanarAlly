@@ -10,7 +10,6 @@ import { InvalidationMode, NO_SYNC, SyncMode } from "../../../core/models/types"
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { uuidv4 } from "../../../core/utils";
 import { getGameState } from "../../../store/_game";
-import { settingsStore } from "../../../store/settings";
 import { sendBringPlayers } from "../../api/emits/players";
 import { LayerName } from "../../models/floor";
 import { Asset } from "../../shapes/variants/asset";
@@ -19,6 +18,8 @@ import { floorState } from "../../systems/floors/state";
 import { positionState } from "../../systems/position/state";
 import { propertiesSystem } from "../../systems/properties";
 import { getProperties } from "../../systems/properties/state";
+import { locationSettingsSystem } from "../../systems/settings/location";
+import { locationSettingsState } from "../../systems/settings/location/state";
 import { initiativeStore } from "../initiative/state";
 import { openCreateTokenDialog } from "../tokendialog/state";
 
@@ -50,7 +51,7 @@ function bringPlayers(): void {
 async function createSpawnLocation(): Promise<void> {
     if (!isDm.value) return;
 
-    const spawnLocations = settingsStore.spawnLocations.value;
+    const spawnLocations = locationSettingsState.raw.spawnLocations.value;
     const spawnName = await modals.prompt(
         t("game.ui.tools.DefaultContext.new_spawn_question").toString(),
         t("game.ui.tools.DefaultContext.new_spawn_title").toString(),
@@ -80,7 +81,11 @@ async function createSpawnLocation(): Promise<void> {
         .addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
     img.onload = () => (gameState.boardInitialized ? shape.layer.invalidate(true) : undefined);
 
-    settingsStore.setSpawnLocations([...spawnLocations, shape.id], settingsStore.state.activeLocation, true);
+    locationSettingsSystem.setSpawnLocations(
+        [...spawnLocations, shape.id],
+        locationSettingsState.raw.activeLocation,
+        true,
+    );
 }
 
 function showInitiativeDialog(): void {

@@ -12,9 +12,10 @@ import {
 import type { Location } from "../game/models/settings";
 import { playerSystem } from "../game/systems/players";
 import { playerState } from "../game/systems/players/state";
+import { locationSettingsSystem } from "../game/systems/settings/location";
+import { locationSettingsState } from "../game/systems/settings/location/state";
 
 import { getGameState } from "./_game";
-import { settingsStore } from "./settings";
 
 interface LocationState {
     playerLocations: Map<number, Set<string>>;
@@ -85,7 +86,7 @@ class LocationStore extends Store<LocationState> {
         if (location === undefined) {
             throw new Error("unknown location rename attempt");
         }
-        if (settingsStore.state.activeLocation === id) settingsStore.setActiveLocation(id);
+        if (locationSettingsState.raw.activeLocation === id) locationSettingsSystem.setActiveLocation(id);
         location.name = name;
         if (sync) sendLocationRename({ location: id, name });
     }

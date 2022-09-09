@@ -1,11 +1,11 @@
 import { g2l, g2lr, g2lx, g2ly } from "../../../core/conversions";
 import { getGameState } from "../../../store/_game";
-import { settingsStore } from "../../../store/settings";
 import { getShape } from "../../id";
 import { LayerName } from "../../models/floor";
 import { accessState } from "../../systems/access/state";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
+import { locationSettingsState } from "../../systems/settings/location/state";
 import { TriangulationTarget } from "../../vision/state";
 import { computeVisibility } from "../../vision/te";
 
@@ -16,7 +16,7 @@ export class FowVisionLayer extends FowLayer {
         if (!this.valid) {
             const originalOperation = this.ctx.globalCompositeOperation;
 
-            if (!settingsStore.fowLos.value) {
+            if (!locationSettingsState.raw.fowLos.value) {
                 this.ctx.clearRect(0, 0, this.width, this.height);
                 this.valid = true;
                 return;
@@ -28,8 +28,8 @@ export class FowVisionLayer extends FowLayer {
             // This was done in commit be1e65cff1e7369375fe11cfa1643fab1d11beab.
             if (!getGameState().isDm) super.draw(false);
 
-            const visionMin = g2lr(settingsStore.visionMinRange.value);
-            let visionMax = g2lr(settingsStore.visionMaxRange.value);
+            const visionMin = g2lr(locationSettingsState.raw.visionMinRange.value);
+            let visionMax = g2lr(locationSettingsState.raw.visionMaxRange.value);
             // The radial-gradient doesn't handle equal radii properly.
             if (visionMax === visionMin) {
                 visionMax += 0.01;

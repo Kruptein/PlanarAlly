@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, toRef } from "vue";
+import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { getValue } from "../../../../core/utils";
@@ -19,9 +19,6 @@ const visionMode = toRef(visionState.state, "mode");
 
 const isGlobal = computed(() => props.location < 0);
 const location = computed(() => (isGlobal.value ? undefined : props.location));
-
-// TODO: Clean up this hack around locationSettingsState not being reactive when setting things
-const invalidateHack = ref(0);
 
 const fakePlayer = computed({
     get() {
@@ -61,13 +58,11 @@ const fowOpacity = computed({
 
 const visionMinRange = computed({
     get() {
-        invalidateHack.value;
         return getOption($.visionMinRange, location.value).value;
     },
     set(newMin: number | undefined) {
         if (newMin !== undefined && visionMaxRange.value !== undefined && newMin > visionMaxRange.value) {
             newMin = visionMaxRange.value;
-            invalidateHack.value++;
         }
         lss.setVisionMinRange(newMin, location.value, true);
     },
@@ -75,13 +70,11 @@ const visionMinRange = computed({
 
 const visionMaxRange = computed({
     get() {
-        invalidateHack.value;
         return getOption($.visionMaxRange, location.value).value;
     },
     set(newMax: number | undefined) {
         if (newMax !== undefined && visionMinRange.value !== undefined && newMax < visionMinRange.value) {
             newMax = visionMinRange.value;
-            invalidateHack.value++;
         }
         lss.setVisionMaxRange(newMax, location.value, true);
     },

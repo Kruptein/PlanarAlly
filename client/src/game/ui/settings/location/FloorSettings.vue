@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../../core/components/ColourPicker.vue";
@@ -31,14 +31,10 @@ function getBackgroundValueFromType(type: BackgroundType): string {
     }
 }
 
-// TODO: Clean up this hack around settingsstore not being reactive when setting things
-const invalidateHack = ref(0);
-
 // AIR
 
 const airBackground = computed({
     get() {
-        invalidateHack.value;
         return getOption($.airMapBackground, location.value).value;
     },
     set(airBackground: string | undefined) {
@@ -52,14 +48,12 @@ const airBackgroundType = computed(() => {
 function setAirBackgroundFromEvent(event: Event): void {
     const type = Number.parseInt((event.target as HTMLSelectElement).value);
     airBackground.value = getBackgroundValueFromType(type);
-    invalidateHack.value++;
 }
 
 // GROUND
 
 const groundBackground = computed({
     get() {
-        invalidateHack.value;
         return getOption($.groundMapBackground, location.value).value;
     },
     set(groundBackground: string | undefined) {
@@ -73,14 +67,12 @@ const groundBackgroundType = computed(() => {
 function setGroundBackgroundFromEvent(event: Event): void {
     const type = Number.parseInt((event.target as HTMLSelectElement).value);
     groundBackground.value = getBackgroundValueFromType(type);
-    invalidateHack.value++;
 }
 
 // UNDERGROUND
 
 const undergroundBackground = computed({
     get() {
-        invalidateHack.value;
         return getOption($.undergroundMapBackground, location.value).value;
     },
     set(undergroundBackground: string | undefined) {
@@ -94,7 +86,6 @@ const undergroundBackgroundType = computed(() => {
 function setUndergroundBackgroundFromEvent(event: Event): void {
     const type = Number.parseInt((event.target as HTMLSelectElement).value);
     undergroundBackground.value = getBackgroundValueFromType(type);
-    invalidateHack.value++;
 }
 
 function o(k: any): boolean {

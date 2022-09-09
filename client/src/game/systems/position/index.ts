@@ -30,8 +30,8 @@ class PositionSystem implements System {
     // PAN
 
     setPan(x: number, y: number): void {
-        mutable.panX = x - readonly.gridOffset.x;
-        mutable.panY = y - readonly.gridOffset.y;
+        mutable.panX = x + readonly.gridOffset.x;
+        mutable.panY = y + readonly.gridOffset.y;
     }
 
     increasePan(x: number, y: number): void {
@@ -44,15 +44,15 @@ class PositionSystem implements System {
     setGridOffset(offset: { x: number; y: number }): void {
         console.log("Setting offset", offset);
         mutable.gridOffset = offset;
-        mutable.panX -= offset.x;
-        mutable.panY -= offset.y;
+        mutable.panX += offset.x;
+        mutable.panY += offset.y;
         floorSystem.invalidateAllFloors();
     }
 
     // ZOOM
 
     setZoomFactor(zoomDisplay: number): void {
-        const gf = playerSettingsState.raw.gridSize.value / DEFAULT_GRID_SIZE;
+        const gf = playerSettingsState.gridSize.value / DEFAULT_GRID_SIZE;
         if (playerSettingsState.raw.useAsPhysicalBoard.value) {
             if (readonly.zoom !== gf) {
                 mutable.zoom = gf;

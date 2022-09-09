@@ -9,7 +9,9 @@ import type { PlayerOptions } from "./models";
 type WithDefault<T> = { default: T; override?: T; value: T };
 const init = <T>(x: T): WithDefault<T> => ({ default: x, override: undefined, value: x });
 
-const state = buildState<{ [key in keyof PlayerOptions]: WithDefault<PlayerOptions[key]> }>({
+type PlayerState = { [key in keyof PlayerOptions]: WithDefault<PlayerOptions[key]> };
+
+const state = buildState<PlayerState, "gridSize">({
     gridColour: init("rgba(0, 0, 0, 1)"),
     fowColour: init("rgba(0, 0, 0, 1)"),
     rulerColour: init("rgba(255, 0, 0, 1)"),

@@ -13,7 +13,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 76
+SAVE_VERSION = 77
 
 import json
 import logging
@@ -237,6 +237,12 @@ def upgrade(db: SqliteExtDatabase, version: int):
             )
             db.execute_sql(
                 "UPDATE location_options SET underground_map_background = 'none' WHERE id IN (SELECT default_options_id FROM room) AND (underground_map_background IS NULL OR underground_map_background = 'rgba(0, 0, 0, 0)')"
+            )
+    elif version == 76:
+        # Add UserOptions.render_all_floors
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN render_all_floors INTEGER DEFAULT 1"
             )
     else:
         raise UnknownVersionException(

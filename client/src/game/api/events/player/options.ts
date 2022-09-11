@@ -70,4 +70,11 @@ socket.on("Player.Options.Set", (options: ServerPlayerInfo) => {
         sync: false,
         default: defaultOptions.initiativeEffectVisibility,
     });
+
+    // Performance
+
+    playerSettingsSystem.setRenderAllFloors(roomOptions?.renderAllFloors, {
+        sync: false,
+        default: defaultOptions.renderAllFloors,
+    });
 });

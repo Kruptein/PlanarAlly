@@ -3,4 +3,5 @@ export enum ClientSettingCategory {
     Behaviour = "Behaviour",
     Display = "Display",
     Initiative = "Initiative",
+    Performance = "Performance",
 }

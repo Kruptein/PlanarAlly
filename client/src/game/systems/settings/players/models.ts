@@ -21,6 +21,9 @@ export interface PlayerOptions {
     initiativeCameraLock: boolean;
     initiativeVisionLock: boolean;
     initiativeEffectVisibility: InitiativeEffectMode;
+
+    // Performance
+    renderAllFloors: boolean;
 }
 
 export interface ServerPlayerOptions {
@@ -40,6 +43,8 @@ export interface ServerPlayerOptions {
     initiative_camera_lock: boolean;
     initiative_vision_lock: boolean;
     initiative_effect_visibility: InitiativeEffectMode;
+
+    render_all_floors: boolean;
 }
 
 export interface ServerPlayerInfo {

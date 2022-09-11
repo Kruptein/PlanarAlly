@@ -3,6 +3,7 @@ import { LayerName } from "../../models/floor";
 import type { FloorId } from "../../models/floor";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
+import { playerSettingsState } from "../../systems/settings/players/state";
 import { createCanvas, setCanvasDimensions } from "../canvas";
 
 import { Layer } from "./layer";
@@ -36,7 +37,11 @@ export class FowLayer extends Layer {
             this.canvas.style.removeProperty("display");
         else if (this.floor !== activeFloor && this.canvas.style.display !== "none") this.canvas.style.display = "none";
 
-        if (this.floor === activeFloor && floorState.raw.floors.length > 1) {
+        if (
+            playerSettingsState.raw.renderAllFloors.value &&
+            this.floor === activeFloor &&
+            floorState.raw.floors.length > 1
+        ) {
             for (const floor of floorState.raw.floors) {
                 if (floor.name !== floorState.raw.floors[0].name) {
                     const mapl = floorSystem.getLayer(floor, LayerName.Map);

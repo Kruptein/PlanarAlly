@@ -6,6 +6,7 @@ import { accessState } from "../../systems/access/state";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
+import { playerSettingsState } from "../../systems/settings/players/state";
 import { TriangulationTarget } from "../../vision/state";
 import { computeVisibility } from "../../vision/te";
 
@@ -67,7 +68,11 @@ export class FowVisionLayer extends FowLayer {
             }
 
             const activeFloor = floorState.currentFloor.value!.id;
-            if (this.floor === activeFloor && floorState.raw.floors.length > 1) {
+            if (
+                playerSettingsState.raw.renderAllFloors.value &&
+                this.floor === activeFloor &&
+                floorState.raw.floors.length > 1
+            ) {
                 for (let f = floorState.raw.floors.length - 1; f > floorState.raw.floorIndex; f--) {
                     const floor = floorState.raw.floors[f];
                     if (floor.id === activeFloor) break;

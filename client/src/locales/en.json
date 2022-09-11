@@ -245,6 +245,9 @@
                         "effect_visibility": "When to show effects",
                         "effect_always": "Always",
                         "effect_active": "Active and on-hover"
+                    },
+                    "PerformanceSettings": {
+                        "only_render_active_floor": "Only render active floor"
                     }
                 },
                 "dm": {

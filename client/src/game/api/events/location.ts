@@ -7,7 +7,6 @@ import { reserveLocalId } from "../../id";
 import type { GlobalId } from "../../id";
 import type { ServerLocation } from "../../models/general";
 import type { Location } from "../../models/settings";
-import { clientSystem } from "../../systems/client";
 import { playerSystem } from "../../systems/players";
 import { locationSettingsSystem } from "../../systems/settings/location";
 import type { ServerLocationInfo, ServerLocationOptions } from "../../systems/settings/location/models";
@@ -17,7 +16,6 @@ import { socket } from "../socket";
 socket.on("Location.Set", (data: ServerLocation) => {
     locationSettingsSystem.setActiveLocation(data.id);
     playerSystem.updatePlayersLocation([playerSystem.getCurrentPlayer()!.name], data.id, false);
-    clientSystem.updateAllClientRects();
 });
 
 socket.on("Locations.Settings.Set", (data: ServerLocationInfo) => {

@@ -110,6 +110,7 @@ class PlayerSystem implements System {
         clientSystem.initViewport();
         if (offset !== undefined) clientSystem.setOffset(getClientId(), offset, false);
         clientSystem.sendViewportInfo();
+        clientSystem.updateAllClientRects();
         // then we can start the draw loop
         startDrawLoop();
     }

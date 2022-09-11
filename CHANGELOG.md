@@ -15,6 +15,7 @@ tech changes will usually be stripped from release notes for the public
 -   Players section in the left in-game dm sidebar
     -   Lists players connected to the session
     -   Clicking on a name, centers your screen on their current view (if on the same location)
+-   User configuration option to limit rendering to only the active floor
 -   [server] option to specify alternative location for static files
 
 ### Changed

@@ -20,6 +20,7 @@ import type { Floor, FloorId, FloorType } from "../../models/floor";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { clientSystem } from "../client";
 import { selectedSystem } from "../selected";
+import { playerSettingsState } from "../settings/players/state";
 
 import { floorState } from "./state";
 
@@ -90,6 +91,18 @@ class FloorSystem implements System {
         this.layerMap.set(floor.id, []);
     }
 
+    updateLayerVisibility(): void {
+        for (const [fI, f] of floorState.raw.floors.entries()) {
+            const hideFloor = playerSettingsState.raw.renderAllFloors.value
+                ? fI > floorState.raw.floorIndex
+                : fI !== floorState.raw.floorIndex;
+            for (const layer of this.getLayers(f)) {
+                if (hideFloor) layer.canvas.style.display = "none";
+                else layer.canvas.style.removeProperty("display");
+            }
+        }
+    }
+
     selectFloor(targetFloor: FloorRepresentation, sync: boolean): void {
         const targetFloorIndex = this.getFloorIndex(targetFloor);
         if (targetFloorIndex === floorState.raw.floorIndex || targetFloorIndex === undefined) return;
@@ -97,12 +110,9 @@ class FloorSystem implements System {
 
         $.floorIndex = targetFloorIndex;
         $.layers = this.getLayers(floor);
-        for (const [fI, f] of floorState.raw.floors.entries()) {
-            for (const layer of this.getLayers(f)) {
-                if (fI > targetFloorIndex) layer.canvas.style.display = "none";
-                else layer.canvas.style.removeProperty("display");
-            }
-        }
+
+        this.updateLayerVisibility();
+
         this.selectLayer(currentLayer.value!.name, sync, false);
         this.invalidateAllFloors();
     }
@@ -231,14 +241,16 @@ class FloorSystem implements System {
     }
 
     invalidateAllFloors(): void {
-        for (const floor of floorState.raw.floors) {
+        for (const [i, floor] of floorState.raw.floors.entries()) {
+            if (!playerSettingsState.raw.renderAllFloors.value && floorState.raw.floorIndex !== i) continue;
             this.invalidate(floor);
         }
     }
 
     invalidateVisibleFloors(): void {
         let floorFound = false;
-        for (const floor of floorState.raw.floors) {
+        for (const [i, floor] of floorState.raw.floors.entries()) {
+            if (!playerSettingsState.raw.renderAllFloors.value && floorState.raw.floorIndex !== i) continue;
             if (floorFound) this.invalidateLight(floor.id);
             else this.invalidate(floor);
             if (floor === currentFloor.value) floorFound = true;
@@ -251,7 +263,11 @@ class FloorSystem implements System {
     invalidateLight(floorId: number): void {
         const layers = this.layerMap.get(floorId)!;
         for (let i = layers.length - 1; i >= 0; i--)
-            if (layers[i].isVisionLayer || layers[i].name === "map") layers[i].invalidate(true);
+            if (layers[i].isVisionLayer) {
+                layers[i].invalidate(true);
+            } else if (layers[i].name === "map" && playerSettingsState.raw.renderAllFloors.value) {
+                layers[i].invalidate(true);
+            }
     }
 
     invalidateLightAllFloors(): void {

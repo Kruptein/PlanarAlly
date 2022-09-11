@@ -10,6 +10,7 @@ import BehaviourSettings from "./BehaviourSettings.vue";
 import { ClientSettingCategory } from "./categories";
 import DisplaySettings from "./DisplaySettings.vue";
 import InitiativeSettings from "./InitiativeSettings.vue";
+import PerformanceSettings from "./PerformanceSettings.vue";
 
 const { t } = useI18n();
 
@@ -27,6 +28,7 @@ const categoryNames = [
     ClientSettingCategory.Behaviour,
     ClientSettingCategory.Display,
     ClientSettingCategory.Initiative,
+    ClientSettingCategory.Performance,
 ];
 
 const activeClientTab = toRef(uiStore.state, "clientSettingsTab");
@@ -40,6 +42,7 @@ const activeClientTab = toRef(uiStore.state, "clientSettingsTab");
             <DisplaySettings v-show="selection === ClientSettingCategory.Display" />
             <BehaviourSettings v-show="selection === ClientSettingCategory.Behaviour" />
             <InitiativeSettings v-show="selection === ClientSettingCategory.Initiative" />
+            <PerformanceSettings v-show="selection === ClientSettingCategory.Performance" />
         </template>
     </PanelModal>
 </template>

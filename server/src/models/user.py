@@ -42,6 +42,8 @@ class UserOptions(BaseModel):
     initiative_vision_lock = BooleanField(default=False, null=True)
     initiative_effect_visibility = TextField(default="active", null=True)
 
+    render_all_floors = BooleanField(default=True, null=True)
+
     @classmethod
     def create_empty(cls):
         return UserOptions.create(
@@ -58,6 +60,7 @@ class UserOptions(BaseModel):
             initiative_camera_lock=None,
             initiative_vision_lock=None,
             initiative_effect_visibility=None,
+            render_all_floors=None,
         )
 
     def as_dict(self):

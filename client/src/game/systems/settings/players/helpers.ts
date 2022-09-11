@@ -20,5 +20,7 @@ export function playerOptionsToClient(options: Partial<ServerPlayerOptions>): Pa
         initiativeCameraLock: options.initiative_camera_lock,
         initiativeVisionLock: options.initiative_vision_lock,
         initiativeEffectVisibility: options.initiative_effect_visibility,
+
+        renderAllFloors: options.render_all_floors,
     };
 }

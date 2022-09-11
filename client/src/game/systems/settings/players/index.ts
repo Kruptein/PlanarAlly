@@ -139,6 +139,19 @@ class PlayerSettingsSystem implements System {
         if (options.sync)
             sendRoomClientOptions("initiative_effect_visibility", initiativeEffectVisibility, options.default);
     }
+
+    // PERFORMANCE
+
+    setRenderAllFloors(renderAllFloors: boolean | undefined, options: { sync: boolean; default?: boolean }): void {
+        $.renderAllFloors.override = renderAllFloors;
+        if (options.default !== undefined) $.renderAllFloors.default = options.default;
+        $.renderAllFloors.value = renderAllFloors ?? $.renderAllFloors.default;
+
+        floorSystem.updateLayerVisibility();
+        floorSystem.invalidateAllFloors();
+
+        if (options.sync) sendRoomClientOptions("render_all_floors", renderAllFloors, options.default);
+    }
 }
 
 export const playerSettingsSystem = new PlayerSettingsSystem();

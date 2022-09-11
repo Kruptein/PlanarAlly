@@ -28,6 +28,8 @@ const state = buildState<PlayerState, "gridSize">({
     initiativeCameraLock: init(false),
     initiativeVisionLock: init(false),
     initiativeEffectVisibility: init(InitiativeEffectMode.ActiveAndHover),
+
+    renderAllFloors: init(true),
 });
 
 const devicePixelRatio = computed(() => {

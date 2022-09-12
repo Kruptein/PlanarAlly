@@ -57,7 +57,7 @@ async function showArchivedLocations(): Promise<void> {
     if (locations.length === 0) return;
 
     const choice = await modals.selectionBox(
-        "Select a location to retore",
+        "Select a location to restore",
         locations.map((l) => l.name),
     );
     const location = locations.find((l) => l.name === choice?.[0]);

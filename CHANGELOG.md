@@ -43,6 +43,7 @@ tech changes will usually be stripped from release notes for the public
 -   The asset manager was no longer useable when using a subpath setup
 -   Player state clearing on location change
 -   Zoom sensitivity on touchpad
+-   Typo in location menu
 -   Multiple Initiative bugs
     -   Server should detect client errors in initiative listings better and reject wrong data
     -   Modification of the initiative should retain the current active actor under more circumstances

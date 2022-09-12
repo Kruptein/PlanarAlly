@@ -1,3 +1,4 @@
+import { getUnitDistance } from "../../core/conversions";
 import { equalsP } from "../../core/geometry";
 import { Store } from "../../core/store";
 import { sendLocationOption } from "../api/emits/location";
@@ -5,8 +6,10 @@ import { getShape } from "../id";
 import type { LocalId } from "../id";
 import type { IShape } from "../interfaces/shape";
 import type { IAsset } from "../interfaces/shapes/asset";
-import type { FloorId } from "../models/floor";
+import type { FloorId, LayerName } from "../models/floor";
+import { SimpleCircle } from "../shapes/variants/simple/circle";
 import { getPaths, pathToArray } from "../svg";
+import { accessSystem } from "../systems/access";
 import { auraSystem } from "../systems/auras";
 import type { Aura, AuraId } from "../systems/auras/models";
 import { floorSystem } from "../systems/floors";
@@ -37,10 +40,18 @@ interface State {
     mode: VisibilityMode;
 }
 
+interface VisionSource {
+    shape: LocalId;
+    aura: AuraId;
+    path?: Path2D;
+}
+
 class VisionState extends Store<State> {
     private visionBlockers: Map<FloorId, LocalId[]> = new Map();
     private movementBlockers: Map<FloorId, LocalId[]> = new Map();
     private visionSources: Map<FloorId, { shape: LocalId; aura: AuraId }[]> = new Map();
+
+    private visionSourcesInView: Map<FloorId, { shape: LocalId; aura: AuraId }[]> = new Map();
 
     private visionIteration: Map<FloorId, number> = new Map();
 
@@ -58,6 +69,7 @@ class VisionState extends Store<State> {
         this.visionBlockers.clear();
         this.movementBlockers.clear();
         this.visionSources.clear();
+        this.visionSourcesInView.clear();
         this.visionIteration.clear();
         this.cdt.clear();
     }
@@ -270,15 +282,75 @@ class VisionState extends Store<State> {
         return blockers.get(floor) ?? [];
     }
 
-    getVisionSources(floor: FloorId): readonly { shape: LocalId; aura: AuraId }[] {
+    getVisionSourcesInView(floor: FloorId): readonly VisionSource[] {
+        return this.visionSourcesInView.get(floor) ?? [];
+    }
+
+    updateSourcesInSector(floor: FloorId, layer: LayerName, shapeIds: Set<LocalId>): void {
+        let sources = this.visionSourcesInView.get(floor);
+        if (sources === undefined) {
+            sources = [];
+            this.visionSourcesInView.set(floor, sources);
+        }
+        const found: Set<LocalId> = new Set();
+        // 1. Wipe all layer sources no longer in view
+        for (let i = sources.length - 1; i >= 0; i--) {
+            const source = sources[i];
+            const shape = getShape(source.shape);
+            if (shape === undefined) continue;
+            if (shape.layer.name === layer) {
+                if (shapeIds.has(shape.id)) {
+                    found.add(shape.id);
+                } else {
+                    sources.splice(i, 1);
+                }
+            }
+        }
+        // 2. Add layer sources new to view
+        for (const source of this.visionSources.get(floor)!) {
+            if (found.has(source.shape)) continue;
+            if (shapeIds.has(source.shape)) sources.push(source);
+        }
+    }
+
+    // todo: to be removed, but it's no longer on the hot path currently so not priority
+    invalidateView(floor: FloorId): void {
+        const layer = floorState.currentLayer.value!;
+        if (layer === undefined) return;
+        const viv = [];
+        for (const source of this.getVisionSources(floor)) {
+            const aura = auraSystem.get(source.shape, source.aura, true);
+            if (aura === undefined) continue;
+
+            if (!accessSystem.hasAccessTo(source.shape, true, { vision: true }) && !aura.visible) continue;
+
+            const auraValue = aura.value > 0 && !isNaN(aura.value) ? aura.value : 0;
+            const auraDim = aura.dim > 0 && !isNaN(aura.dim) ? aura.dim : 0;
+
+            const shape = getShape(source.shape);
+            if (shape === undefined) continue;
+
+            const auraLength = getUnitDistance(auraValue + auraDim);
+            const center = shape.center();
+
+            const auraCircle = new SimpleCircle(center, auraLength);
+            if (auraCircle.visibleInCanvas({ w: layer.width, h: layer.height })) {
+                viv.push(source);
+            }
+        }
+        this.visionSourcesInView.set(floor, viv);
+    }
+
+    private getVisionSources(floor: FloorId): readonly { shape: LocalId; aura: AuraId }[] {
         return this.visionSources.get(floor) ?? [];
     }
 
-    setVisionSources(sources: { shape: LocalId; aura: AuraId }[], floor: FloorId): void {
+    private setVisionSources(sources: { shape: LocalId; aura: AuraId }[], floor: FloorId): void {
         this.visionSources.set(floor, sources);
+        this.invalidateView(floor);
     }
 
-    setBlockers(target: TriangulationTarget, blockers: LocalId[], floor: FloorId): void {
+    private setBlockers(target: TriangulationTarget, blockers: LocalId[], floor: FloorId): void {
         const targetBlockers = target === TriangulationTarget.VISION ? this.visionBlockers : this.movementBlockers;
         targetBlockers.set(floor, blockers);
     }

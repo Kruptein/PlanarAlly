@@ -1,5 +1,7 @@
 import { toRaw } from "vue";
 
+import { l2g } from "../../../core/conversions";
+import { toLP } from "../../../core/geometry";
 import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
 import { debugLayers } from "../../../localStorageHelpers";
 import { getGameState } from "../../../store/_game";
@@ -17,6 +19,7 @@ import type { ServerShape } from "../../models/shapes";
 import { addOperation } from "../../operations/undo";
 import { drawAuras } from "../../rendering/auras";
 import { createShapeFromDict } from "../../shapes/create";
+import type { BoundingRect } from "../../shapes/variants/simple/boundingRect";
 import { accessSystem } from "../../systems/access";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
@@ -30,6 +33,18 @@ import { initiativeStore } from "../../ui/initiative/state";
 import { TriangulationTarget, VisibilityMode, visionState } from "../../vision/state";
 import { setCanvasDimensions } from "../canvas";
 import { compositeState } from "../state";
+
+const SECTOR_SIZE = 200;
+
+// js does negative modulo different than expected
+function mod(n: number, m: number): number {
+    return ((n % m) + m) % m;
+}
+
+function getSector(val: number): number {
+    const round = Math.floor(val);
+    return round - mod(round, SECTOR_SIZE);
+}
 
 export class Layer implements ILayer {
     ctx: CanvasRenderingContext2D;
@@ -45,6 +60,11 @@ export class Layer implements ILayer {
     // The collection of shapes that this layer contains.
     // These are ordered on a depth basis.
     protected shapes: IShape[] = [];
+    protected shapesInSector: IShape[] = [];
+    protected xSectors: Map<number, Set<LocalId>> = new Map();
+    protected ySectors: Map<number, Set<LocalId>> = new Map();
+
+    protected shapeIdsInSector: Set<LocalId> = new Set();
 
     points: Map<string, Set<LocalId>> = new Map();
 
@@ -61,6 +81,52 @@ export class Layer implements ILayer {
         protected index: number,
     ) {
         this.ctx = canvas.getContext("2d")!;
+    }
+
+    isValid(): boolean {
+        return this.valid;
+    }
+
+    updateView(): void {
+        if (!getGameState().boardInitialized) return;
+
+        this.shapeIdsInSector.clear();
+
+        const topLeft = l2g(toLP(0, 0));
+        const botRight = l2g(toLP(this.width, this.height));
+        const sectorLeft = getSector(topLeft.x);
+        const sectorRight = getSector(botRight.x);
+        const sectorTop = getSector(topLeft.y);
+        const sectorBot = getSector(botRight.y);
+
+        let i = 0;
+        let j = 0;
+
+        for (i = sectorLeft; i <= sectorRight; i += SECTOR_SIZE) {
+            for (j = sectorTop; j <= sectorBot; j += SECTOR_SIZE) {
+                const x = this.xSectors.get(i);
+                const y = this.ySectors.get(j);
+                if (x !== undefined && y !== undefined) {
+                    for (const id of [...x].filter((x) => y.has(x))) {
+                        this.shapeIdsInSector.add(id);
+                    }
+                    for (const id of [...y].filter((y) => x.has(y))) {
+                        this.shapeIdsInSector.add(id);
+                    }
+                }
+            }
+        }
+        this.shapesInSector = [];
+        for (const shape of this.shapes) {
+            if (this.shapeIdsInSector.has(shape.id)) this.shapesInSector.push(shape);
+        }
+        visionState.updateSourcesInSector(this.floor, this.name, this.shapeIdsInSector);
+    }
+
+    updateSectors(shapeId: LocalId, aabb: BoundingRect): void {
+        this.removeShapeFromSectors(shapeId);
+        this.addShapeToSectors(shapeId, aabb);
+        this.updateView();
     }
 
     invalidate(skipLightUpdate: boolean): void {
@@ -100,10 +166,32 @@ export class Layer implements ILayer {
         return this.getShapes(options).length;
     }
 
+    private addShapeToSectors(shapeId: LocalId, aabb: BoundingRect): void {
+        for (let i = getSector(aabb.topLeft.x); i <= getSector(aabb.topRight.x); i += SECTOR_SIZE) {
+            if (!this.xSectors.has(i)) this.xSectors.set(i, new Set());
+            this.xSectors.get(i)!.add(shapeId);
+        }
+        for (let i = getSector(aabb.topLeft.y); i <= getSector(aabb.botLeft.y); i += SECTOR_SIZE) {
+            if (!this.ySectors.has(i)) this.ySectors.set(i, new Set());
+            this.ySectors.get(i)!.add(shapeId);
+        }
+    }
+
+    private removeShapeFromSectors(shapeId: LocalId): void {
+        for (const sector of this.xSectors.values()) {
+            sector.delete(shapeId);
+        }
+        for (const sector of this.ySectors.values()) {
+            sector.delete(shapeId);
+        }
+    }
+
     addShape(shape: IShape, sync: SyncMode, invalidate: InvalidationMode): void {
         shape.setLayer(this.floor, this.name);
 
         this.shapes.push(shape);
+        this.addShapeToSectors(shape.id, shape.getAuraAABB());
+        this.updateView(); // todo: other method that only adds instead of rechecking all existing
 
         const props = getProperties(shape.id);
         if (props === undefined) return console.error("Missing shape properties");
@@ -143,11 +231,14 @@ export class Layer implements ILayer {
 
     // UI helpers are objects that are created for UI reaons but that are not pertinent to the actual state
     // They are often not desired unless in specific circumstances
-    getShapes(options: { skipUiHelpers?: boolean; includeComposites: boolean }): readonly IShape[] {
+    getShapes(options: {
+        includeComposites: boolean;
+        skipUiHelpers?: boolean;
+        onlyInView?: boolean;
+    }): readonly IShape[] {
         const skipUiHelpers = options.skipUiHelpers ?? true;
-        let shapes: readonly IShape[] = skipUiHelpers
-            ? this.shapes.filter((s) => !(s.options.UiHelper ?? false))
-            : this.shapes;
+        const target = options?.onlyInView ?? false ? this.shapes : this.shapesInSector;
+        let shapes: readonly IShape[] = skipUiHelpers ? target.filter((s) => !(s.options.UiHelper ?? false)) : target;
         if (options.includeComposites) {
             shapes = compositeState.addAllCompositeShapes(shapes);
         }
@@ -156,10 +247,18 @@ export class Layer implements ILayer {
 
     pushShapes(...shapes: IShape[]): void {
         this.shapes.push(...shapes);
+        for (const shape of shapes) {
+            this.addShapeToSectors(shape.id, shape.getAuraAABB());
+        }
+        this.updateView();
     }
 
     setShapes(...shapes: IShape[]): void {
         this.shapes = shapes;
+        for (const shape of shapes) {
+            this.addShapeToSectors(shape.id, shape.getAuraAABB());
+        }
+        this.updateView();
     }
 
     setServerShapes(shapes: ServerShape[]): void {
@@ -203,6 +302,8 @@ export class Layer implements ILayer {
             );
         }
         this.shapes.splice(idx, 1);
+        this.removeShapeFromSectors(shape.id);
+        this.updateView();
 
         if (shape.groupId !== undefined) {
             removeGroupMember(shape.groupId, shape.id, false);
@@ -284,38 +385,38 @@ export class Layer implements ILayer {
             // First to draw the auras and a second time to draw the shapes themselves
             // Otherwise auras from one shape could overlap another shape.
 
-            const currentLayer = toRaw(floorState.currentLayer.value);
-            // To optimize things slightly, we keep track of the shapes that passed the first round
-            const visibleShapes: IShape[] = [];
+            const isActiveLayer = this.isActiveLayer;
 
-            // Aura draw loop
-            for (const shape of this.shapes) {
-                if (shape.options.skipDraw ?? false) continue;
-                if (!shape.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: true })) continue;
-                if (this.name === LayerName.Lighting && currentLayer !== this) continue;
+            if (this.name !== LayerName.Lighting || isActiveLayer) {
+                // Aura draw loop
+                for (const shape of this.shapesInSector) {
+                    if (shape.options.skipDraw ?? false) continue;
 
-                drawAuras(shape, ctx);
-
-                if (getProperties(shape.id)!.isInvisible && !accessSystem.hasAccessTo(shape.id, true, { vision: true }))
-                    continue;
-                if (shape.labels.length === 0 && gameState.filterNoLabel) continue;
-                if (
-                    shape.labels.length &&
-                    gameState.labelFilters.length &&
-                    !shape.labels.some((l) => gameState.labelFilters.includes(l.uuid))
-                ) {
-                    continue;
+                    drawAuras(shape, ctx);
                 }
 
-                visibleShapes.push(shape);
+                // Normal shape draw loop
+                for (const shape of this.shapesInSector) {
+                    if (shape.options.skipDraw ?? false) continue;
+                    if (
+                        getProperties(shape.id)!.isInvisible &&
+                        !accessSystem.hasAccessTo(shape.id, true, { vision: true })
+                    )
+                        continue;
+                    if (shape.labels.length === 0 && gameState.filterNoLabel) continue;
+                    if (
+                        shape.labels.length &&
+                        gameState.labelFilters.length &&
+                        !shape.labels.some((l) => gameState.labelFilters.includes(l.uuid))
+                    ) {
+                        continue;
+                    }
+
+                    shape.draw(ctx);
+                }
             }
 
-            // Normal shape draw loop
-            for (const shape of visibleShapes) {
-                shape.draw(ctx);
-            }
-
-            if (this.isActiveLayer && selectedSystem.hasSelection) {
+            if (isActiveLayer && selectedSystem.hasSelection) {
                 ctx.fillStyle = this.selectionColor;
                 ctx.strokeStyle = this.selectionColor;
                 ctx.lineWidth = this.selectionWidth;
@@ -339,6 +440,8 @@ export class Layer implements ILayer {
             ctx.globalCompositeOperation = ogOP;
             this.valid = true;
             this.resolveCallbacks();
+        } else {
+            this.ctx.clearRect(0, 0, 1, 1);
         }
     }
 

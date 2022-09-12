@@ -2,7 +2,8 @@ import clamp from "lodash/clamp";
 
 import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "../../core/conversions";
 import { addP, cloneP, equalsP, subtractP, toArrayP, toGP } from "../../core/geometry";
-import type { GlobalPoint, Vector } from "../../core/geometry";
+import { Vector } from "../../core/geometry";
+import type { GlobalPoint } from "../../core/geometry";
 import { rotateAroundPoint } from "../../core/math";
 import type { Sync } from "../../core/models/types";
 import type { FunctionPropertyNames } from "../../core/types";
@@ -179,6 +180,7 @@ export abstract class Shape implements IShape {
         this._refPoint = point;
         this._center = this.__center();
         this.visionIteration = -1;
+        this.layer.updateSectors(this.id, this.getAuraAABB());
         this.invalidatePoints();
     }
 
@@ -206,6 +208,7 @@ export abstract class Shape implements IShape {
         this._center = this.__center();
         this.angle = position.angle;
         this.visionIteration = -1;
+        this.layer.updateSectors(this.id, this.getAuraAABB());
         this.updateShapeVision(false, false);
     }
 
@@ -407,6 +410,10 @@ export abstract class Shape implements IShape {
 
     getAABB(delta = 0): BoundingRect {
         const points = this.points; // expensive call
+        if (points.length === 0) {
+            return new BoundingRect(this.refPoint, 5, 5);
+        }
+
         let minx = points[0][0];
         let maxx = points[0][0];
         let miny = points[0][1];
@@ -418,6 +425,15 @@ export abstract class Shape implements IShape {
             if (p[1] > maxy) maxy = p[1];
         }
         return new BoundingRect(toGP(minx - delta, miny - delta), maxx - minx + 2 * delta, maxy - miny + 2 * delta);
+    }
+
+    getAuraAABB(): BoundingRect {
+        let aabb = this.getAABB();
+        for (const aura of auraSystem.getAll(this.id, true)) {
+            const range = getUnitDistance(aura.value + aura.dim);
+            aabb = aabb.union(new BoundingRect(addP(this.refPoint, new Vector(-range, -range)), range * 2, range * 2));
+        }
+        return aabb;
     }
 
     getBoundingBox(delta = 0): BoundingRect {

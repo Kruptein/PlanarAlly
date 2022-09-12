@@ -109,7 +109,8 @@ socket.on("Board.Floor.Set", (floor: ServerFloor) => {
 
 socket.on("Position.Set", (data: { floor?: string; x: number; y: number; zoom?: number }) => {
     if (data.floor !== undefined) floorSystem.selectFloor({ name: data.floor }, true);
-    if (data.zoom !== undefined) positionSystem.setZoomDisplay(data.zoom, { invalidate: false, sync: false });
+    if (data.zoom !== undefined)
+        positionSystem.setZoomDisplay(data.zoom, { invalidate: false, updateSectors: false, sync: false });
     setCenterPosition(toGP(data.x, data.y));
 });
 

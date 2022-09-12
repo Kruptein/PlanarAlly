@@ -73,7 +73,7 @@ export class FowLightingLayer extends FowLayer {
 
             // First cut out all the light sources
             if (locationSettingsState.raw.fullFow.value) {
-                for (const light of visionState.getVisionSources(this.floor)) {
+                for (const light of visionState.getVisionSourcesInView(this.floor)) {
                     const shape = getShape(light.shape);
                     if (shape === undefined) continue;
                     const aura = auraSystem.get(shape.id, light.aura, true);

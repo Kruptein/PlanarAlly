@@ -105,12 +105,12 @@ const zoomDisplay = computed({
         return positionState.reactive.zoomDisplay;
     },
     set(zoom: number) {
-        positionSystem.setZoomDisplay(zoom, { invalidate: true, sync: true });
+        positionSystem.setZoomDisplay(zoom, { invalidate: true, updateSectors: true, sync: true });
     },
 });
 
 function setTempZoomDisplay(value: number): void {
-    positionSystem.setZoomDisplay(value, { invalidate: true, sync: false });
+    positionSystem.setZoomDisplay(value, { invalidate: true, updateSectors: true, sync: false });
 }
 </script>
 

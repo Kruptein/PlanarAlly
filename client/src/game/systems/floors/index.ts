@@ -277,6 +277,14 @@ class FloorSystem implements System {
         }
     }
 
+    invalidateSectors(): void {
+        for (const floor of $.floors.values()) {
+            for (const layer of this.layerMap.get(floor.id)?.values() ?? []) {
+                layer.updateView();
+            }
+        }
+    }
+
     updateIteration(): void {
         floorState.mutable.iteration++;
     }

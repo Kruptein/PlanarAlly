@@ -87,7 +87,7 @@ const toolModes = computed(() => {
                 >
                     <a href="#" :title="tool.translation">
                         <template v-if="playerSettingsState.reactive.useToolIcons.value">
-                            <img :src="getStaticToolImg(`${tool.name.toLowerCase()}.svg`)" />
+                            <img :src="getStaticToolImg(`${tool.name.toLowerCase()}.svg`)" :alt="tool.translation" />
                         </template>
                         <template v-else>{{ tool.translation }}</template>
                     </a>

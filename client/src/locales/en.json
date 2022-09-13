@@ -235,6 +235,11 @@
                         "mini_size_in_inches": "Mini size (in inches)",
                         "ppi": "Pixel density (PPI)"
                     },
+                    "AppearanceSettings": {
+                        "toolbars": "Toolbars",
+                        "use_tool_icons": "Use icons",
+                        "fog": "Fog"
+                    },
                     "BehaviourSettings": {
                         "invert_alt_set": "Invert ALT behaviour",
                         "disable_scroll_to_zoom": "Disable scroll to zoom"

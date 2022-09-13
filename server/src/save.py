@@ -13,7 +13,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 77
+SAVE_VERSION = 78
 
 import json
 import logging
@@ -243,6 +243,18 @@ def upgrade(db: SqliteExtDatabase, version: int):
         with db.atomic():
             db.execute_sql(
                 "ALTER TABLE user_options ADD COLUMN render_all_floors INTEGER DEFAULT 1"
+            )
+            db.execute_sql(
+                "UPDATE user_options SET render_all_floors = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
+            )
+    elif version == 77:
+        # Add UserOptions.use_tool_icons
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN use_tool_icons INTEGER DEFAULT 1"
+            )
+            db.execute_sql(
+                "UPDATE user_options SET use_tool_icons = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
             )
     else:
         raise UnknownVersionException(

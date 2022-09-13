@@ -28,6 +28,7 @@ class UserOptions(BaseModel):
     fow_colour = TextField(default="#000", null=True)
     grid_colour = TextField(default="#000", null=True)
     ruler_colour = TextField(default="#F00", null=True)
+    use_tool_icons = BooleanField(default=True, null=True)
 
     invert_alt = BooleanField(default=False, null=True)
     disable_scroll_to_zoom = BooleanField(default=False, null=True)
@@ -50,6 +51,7 @@ class UserOptions(BaseModel):
             fow_colour=None,
             grid_colour=None,
             ruler_colour=None,
+            use_tool_icons=None,
             invert_alt=None,
             disable_scroll_to_zoom=None,
             use_high_dpi=None,

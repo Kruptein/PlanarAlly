@@ -5,6 +5,7 @@ export interface PlayerOptions {
     gridColour: string;
     fowColour: string;
     rulerColour: string;
+    useToolIcons: boolean;
 
     // Behaviour
     invertAlt: boolean;
@@ -30,6 +31,7 @@ export interface ServerPlayerOptions {
     grid_colour: string;
     fow_colour: string;
     ruler_colour: string;
+    use_tool_icons: boolean;
 
     invert_alt: boolean;
     disable_scroll_to_zoom: boolean;

@@ -12,6 +12,15 @@ const { t } = useI18n();
 const { reactive: $ } = playerSettingsState;
 const pss = playerSettingsSystem;
 
+const useToolIcons = computed({
+    get() {
+        return $.useToolIcons.value;
+    },
+    set(useToolIcons: boolean | undefined) {
+        pss.setUseToolIcons(useToolIcons, { sync: true });
+    },
+});
+
 const gridColour = computed({
     get() {
         return $.gridColour.value;
@@ -48,7 +57,23 @@ const rulerColour = computed({
                 <div><LanguageSelect id="languageSelect" /></div>
             </div>
         </div>
-        <div class="spanrow header">Grid</div>
+        <div class="spanrow header">{{ t("game.ui.settings.client.AppearanceSettings.toolbars") }}</div>
+        <div class="row">
+            <label for="useToolIcons">{{ t("game.ui.settings.client.AppearanceSettings.use_tool_icons") }}</label>
+            <div><input id="useToolIcons" type="checkbox" v-model="useToolIcons" /></div>
+            <template v-if="$.useToolIcons.override !== undefined">
+                <div :title="t('game.ui.settings.common.reset_default')" @click="useToolIcons = undefined">
+                    <font-awesome-icon icon="times-circle" />
+                </div>
+                <div
+                    :title="t('game.ui.settings.common.sync_default')"
+                    @click="pss.setUseToolIcons(undefined, { sync: true, default: $.useToolIcons.override })"
+                >
+                    <font-awesome-icon icon="sync-alt" />
+                </div>
+            </template>
+        </div>
+        <div class="spanrow header">{{ t("common.grid") }}</div>
         <div class="row">
             <label for="gridColour">{{ t("common.colour") }}</label>
             <div>
@@ -66,7 +91,7 @@ const rulerColour = computed({
                 </div>
             </template>
         </div>
-        <div class="spanrow header">Ruler</div>
+        <div class="spanrow header">{{ t("tool.Ruler") }}</div>
         <div class="row">
             <label for="rulerColour">{{ t("common.colour") }}</label>
             <div>
@@ -84,7 +109,7 @@ const rulerColour = computed({
                 </div>
             </template>
         </div>
-        <div class="spanrow header">Fog</div>
+        <div class="spanrow header">{{ t("game.ui.settings.client.AppearanceSettings.fog") }}</div>
         <div class="row">
             <label for="fowColour">{{ t("common.colour") }}</label>
             <div>

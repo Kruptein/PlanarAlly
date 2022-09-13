@@ -85,7 +85,7 @@ const toolModes = computed(() => {
                     :id="tool.name + '-selector'"
                     @mousedown="activeTool = tool.name"
                 >
-                    <a href="#">
+                    <a href="#" :title="tool.translation">
                         <template v-if="playerSettingsState.reactive.useToolIcons.value">
                             <img :src="getStaticToolImg(`${tool.name.toLowerCase()}.svg`)" />
                         </template>

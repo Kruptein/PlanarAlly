@@ -79,7 +79,7 @@ const selectedLayer = computed(
 
 <template>
     <div id="floor-layer">
-        <div id="floor-selector" @click="detailsOpen = !detailsOpen" v-if="visible">
+        <div id="floor-selector" @click="detailsOpen = !detailsOpen" v-if="visible" title="Floor selection">
             <a href="#">
                 <template v-if="playerSettingsState.reactive.useToolIcons.value">
                     <img :src="getStaticFloorImg('floors.svg')" />
@@ -121,7 +121,7 @@ const selectedLayer = computed(
                 :class="{ 'layer-selected': layer === selectedLayer }"
                 @mousedown="selectLayer(layer)"
             >
-                <a href="#">
+                <a href="#" :title="layerTranslationMapping[layer]">
                     <template v-if="playerSettingsState.reactive.useToolIcons.value">
                         <img :src="getStaticFloorImg(`${layer.toLowerCase()}.svg`)" />
                     </template>

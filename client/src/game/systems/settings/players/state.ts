@@ -15,6 +15,7 @@ const state = buildState<PlayerState, "gridSize">({
     gridColour: init("rgba(0, 0, 0, 1)"),
     fowColour: init("rgba(0, 0, 0, 1)"),
     rulerColour: init("rgba(255, 0, 0, 1)"),
+    useToolIcons: init(true),
 
     invertAlt: init(false),
     disableScrollToZoom: init(false),

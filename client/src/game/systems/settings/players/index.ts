@@ -43,6 +43,13 @@ class PlayerSettingsSystem implements System {
         if (options.sync) sendRoomClientOptions("ruler_colour", rulerColour, options.default);
     }
 
+    setUseToolIcons(useToolIcons: boolean | undefined, options: { sync: boolean; default?: boolean }): void {
+        $.useToolIcons.override = useToolIcons;
+        if (options.default !== undefined) $.useToolIcons.default = options.default;
+        $.useToolIcons.value = useToolIcons ?? $.useToolIcons.default;
+        if (options.sync) sendRoomClientOptions("use_tool_icons", useToolIcons, options.default);
+    }
+
     // BEHAVIOUR
 
     setInvertAlt(invertAlt: boolean | undefined, options: { sync: boolean; default?: boolean }): void {

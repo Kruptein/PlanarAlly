@@ -3,9 +3,11 @@ import { computed } from "vue";
 import type { CSSProperties } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { baseAdjust } from "../../../core/http";
 import { getGameState } from "../../../store/_game";
 import { ToolMode, ToolName } from "../../models/tools";
 import { accessState } from "../../systems/access/state";
+import { playerSettingsState } from "../../systems/settings/players/state";
 import { activeModeTools, activeTool, activeToolMode, dmTools, toggleActiveMode, toolMap } from "../../tools/tools";
 
 import DiceTool from "./DiceTool.vue";
@@ -59,6 +61,10 @@ function getStyle(tool: ToolMode): CSSProperties {
     return { fontStyle: "italic" };
 }
 
+function getStaticToolImg(img: string): string {
+    return baseAdjust(`/static/img/tools/${img}`);
+}
+
 const toolModes = computed(() => {
     return [
         { name: t("tool.Build"), style: getStyle(ToolMode.Build) },
@@ -79,7 +85,12 @@ const toolModes = computed(() => {
                     :id="tool.name + '-selector'"
                     @mousedown="activeTool = tool.name"
                 >
-                    <a href="#">{{ tool.translation }}</a>
+                    <a href="#" :title="tool.translation">
+                        <template v-if="playerSettingsState.reactive.useToolIcons.value">
+                            <img :src="getStaticToolImg(`${tool.name.toLowerCase()}.svg`)" :alt="tool.translation" />
+                        </template>
+                        <template v-else>{{ tool.translation }}</template>
+                    </a>
                 </li>
                 <li id="tool-mode"></li>
             </ul>
@@ -174,9 +185,16 @@ const toolModes = computed(() => {
     }
 
     a {
-        display: block;
-        padding: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0.625rem;
         text-decoration: none;
+
+        > img {
+            height: 2.5rem;
+            width: 2.5rem;
+        }
     }
 }
 </style>

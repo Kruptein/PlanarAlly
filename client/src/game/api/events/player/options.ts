@@ -24,6 +24,10 @@ socket.on("Player.Options.Set", (options: ServerPlayerInfo) => {
         sync: false,
         default: defaultOptions.rulerColour,
     });
+    playerSettingsSystem.setUseToolIcons(roomOptions?.useToolIcons, {
+        sync: false,
+        default: defaultOptions.useToolIcons,
+    });
 
     // Behaviour
     playerSettingsSystem.setInvertAlt(roomOptions?.invertAlt, {

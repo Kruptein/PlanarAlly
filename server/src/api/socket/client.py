@@ -58,6 +58,10 @@ async def set_client_default_options(sid: str, data: ClientOptions):
         UserOptions.id == pr.player.default_options
     ).execute()
 
+    UserOptions.update({k: None for k in data}).where(
+        UserOptions.id == pr.user_options
+    ).execute()
+
 
 @sio.on("Client.Options.Room.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")

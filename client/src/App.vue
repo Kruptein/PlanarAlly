@@ -58,6 +58,22 @@ watch(
     src: local("OpenSans"), url("./core/fonts/OpenSans-Regular.ttf") format("truetype");
 }
 
+* {
+    box-sizing: border-box;
+}
+
+@media (width: 2560px) and (height: 2560px) {
+    html {
+        font-size: calc(100% * 4 / 3);
+    }
+}
+
+@media (max-device-width: 1024px) {
+    html {
+        font-size: calc(100% * 2 / 3);
+    }
+}
+
 body {
     overscroll-behavior: contain;
 }

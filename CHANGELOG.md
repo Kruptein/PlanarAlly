@@ -24,6 +24,8 @@ tech changes will usually be stripped from release notes for the public
 -   Draw tool vision and logic tabs will now have a background colour if they are active as a reminder
 -   Player viewport rectangles are now shown per client connected for that player instead of 1 rectangle following the latest move
 -   [DM] Hiding a token using the vision tool will now also hide their private light auras
+-   Dashboard UI has been updated (once again)
+-   Asset Manager UI has been updated and is now integrated with the main dashboard
 -   [server] moved all python imports to proper relative imports
     -   this changes the way to manually run the server (again) (sorry)
 

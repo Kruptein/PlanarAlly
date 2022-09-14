@@ -211,6 +211,7 @@ async function deleteSelection(): Promise<void> {
                     :src="baseAdjust('/static/img/assetmanager/add_file.png')"
                     @click.stop="prepareUpload"
                     :title="t('assetManager.AssetManager.upload_files')"
+                    :alt="t('assetManager.AssetManager.upload_files')"
                 />
                 <img
                     :src="baseAdjust('/static/img/assetmanager/delete_selection.png')"

@@ -193,6 +193,7 @@ async function createCampaign(): Promise<void> {
                     <img
                         class="logo"
                         :src="baseAdjust(session.logo ? `/static/assets/${session.logo}` : '/static/img/dice.svg')"
+                        alt="Campaign logo"
                     />
                     <div class="data">
                         <div class="name">{{ session.name }}</div>
@@ -208,11 +209,11 @@ async function createCampaign(): Promise<void> {
                     <div class="edit"></div>
                     <div class="actions">
                         <button @mousedown="open(session)">
-                            <img :src="getStaticImg('play.svg')" />
+                            <img :src="getStaticImg('play.svg')" alt="Play" />
                             LAUNCH
                         </button>
                         <button @click.stop="leaveOrDelete">
-                            <img :src="getStaticImg('cross.svg')" />
+                            <img :src="getStaticImg('cross.svg')" alt="Leave" />
                             LEAVE
                         </button>
                     </div>

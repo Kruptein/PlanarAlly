@@ -150,9 +150,10 @@ async function createCampaign(): Promise<void> {
                     <img
                         class="logo"
                         :src="baseAdjust(session.logo ? `/static/assets/${session.logo}` : '/static/img/dice.svg')"
+                        alt="Campaign logo"
                     />
                     <div v-if="state.focussed?.name === session.name" class="logo-edit" @click.stop="setLogo">
-                        <img :src="baseAdjust('/static/img/edit.svg')" />
+                        <img :src="baseAdjust('/static/img/edit.svg')" alt="Edit" />
                     </div>
                     <div class="data">
                         <div class="name">{{ session.name }}</div>
@@ -162,15 +163,15 @@ async function createCampaign(): Promise<void> {
                         </div>
                     </div>
                     <div class="edit" @click.stop="rename">
-                        <img :src="baseAdjust('/static/img/edit.svg')" />
+                        <img :src="baseAdjust('/static/img/edit.svg')" alt="Rename" />
                     </div>
                     <div class="actions">
                         <button @mousedown="open(session)">
-                            <img :src="getStaticImg('play.svg')" />
+                            <img :src="getStaticImg('play.svg')" alt="Play" />
                             LAUNCH
                         </button>
                         <button @click.stop="leaveOrDelete">
-                            <img :src="getStaticImg('cross.svg')" />
+                            <img :src="getStaticImg('cross.svg')" alt="Remove" />
                             DELETE
                         </button>
                     </div>

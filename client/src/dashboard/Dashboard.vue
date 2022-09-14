@@ -57,7 +57,7 @@ async function logout(): Promise<void> {
         <div id="background" :style="{ backgroundImage }"></div>
         <main>
             <section id="sidebar">
-                <img id="icon" :src="getStaticImg('pa_game_icon.png')" />
+                <img id="icon" :src="getStaticImg('pa_game_icon.png')" alt="PlanarAlly logo" />
                 <nav>
                     <template v-for="section of sections" :key="section.nav">
                         <div
@@ -70,7 +70,7 @@ async function logout(): Promise<void> {
                     </template>
                     <div style="flex-grow: 1; height: 10.4rem"></div>
                     <button @click="logout">
-                        <img :src="getStaticImg('cross.svg')" />
+                        <img :src="getStaticImg('cross.svg')" alt="Cross" />
                         LOG OUT
                     </button>
                 </nav>

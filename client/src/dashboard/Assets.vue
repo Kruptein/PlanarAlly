@@ -205,6 +205,7 @@ async function deleteSelection(): Promise<void> {
                     :src="baseAdjust('/static/img/assetmanager/create_folder.png')"
                     @click.stop="createDirectory"
                     :title="t('assetManager.AssetManager.create_folder')"
+                    :alt="t('assetManager.AssetManager.create_folder')"
                 />
                 <img
                     :src="baseAdjust('/static/img/assetmanager/add_file.png')"
@@ -215,6 +216,7 @@ async function deleteSelection(): Promise<void> {
                     :src="baseAdjust('/static/img/assetmanager/delete_selection.png')"
                     @click.stop="deleteSelection"
                     :title="t('common.remove')"
+                    :alt="t('common.remove')"
                 />
             </div>
         </div>

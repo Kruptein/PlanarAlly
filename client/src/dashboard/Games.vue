@@ -274,6 +274,7 @@ async function createCampaign(): Promise<void> {
             margin-top: 2.75rem;
             padding-top: 1rem;
             overflow-y: auto;
+            z-index: 0; // force stacking context
 
             > div {
                 background-color: rgba(77, 59, 64, 1);
@@ -379,7 +380,7 @@ async function createCampaign(): Promise<void> {
 
                 &.focus {
                     height: 15rem;
-                    z-index: 5;
+                    z-index: 1;
                     overflow: visible;
 
                     &:hover {

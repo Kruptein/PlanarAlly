@@ -25,6 +25,7 @@ import {
     touchMove,
     touchStart,
 } from "./tools/events";
+// import DebugInfo from "./ui/DebugInfo.vue";
 import { handleDrop } from "./ui/firefox";
 import UI from "./ui/UI.vue";
 
@@ -33,7 +34,7 @@ import "./api/events";
 export default defineComponent({
     // eslint-disable-next-line vue/multi-word-component-names
     name: "Game",
-    components: { UI },
+    components: { UI }, // DebugInfo
     beforeRouteEnter(to, _from, next) {
         coreStore.setLoading(true);
         createConnection(to);
@@ -164,6 +165,7 @@ export default defineComponent({
             ></div>
         </div>
         <UI ref="ui" />
+        <!-- <DebugInfo /> -->
     </div>
 </template>
 

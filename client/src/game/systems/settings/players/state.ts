@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { InitiativeEffectMode } from "../../../models/initiative";
 import { DEFAULT_GRID_SIZE } from "../../position/state";
 import { buildState } from "../../state";
+import { locationSettingsState } from "../location/state";
 
 import type { PlayerOptions } from "./models";
 
@@ -46,7 +47,13 @@ export const playerSettingsState = {
     devicePixelRatio,
     gridSize: computed(() => {
         if (state.reactive.useAsPhysicalBoard.value) {
-            return (state.reactive.ppi.value * state.reactive.miniSize.value) / devicePixelRatio.value;
+            return (
+                (state.reactive.ppi.value *
+                    state.reactive.miniSize.value *
+                    locationSettingsState.reactive.unitSize.value) /
+                5 /
+                devicePixelRatio.value
+            );
         } else {
             return state.reactive.gridSize.value;
         }

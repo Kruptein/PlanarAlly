@@ -252,12 +252,12 @@ async function createCampaign(): Promise<void> {
             align-items: center;
             font-size: 3.125rem;
             color: white;
-            border-bottom: 5px solid rgba(219, 0, 59, 1);
+            border-bottom: 5px solid #ffa8bf;
             font-weight: bold;
 
             > span:last-child {
                 font-size: 2.25rem;
-                color: rgba(219, 0, 59, 1);
+                color: #ffa8bf;
 
                 &:hover {
                     cursor: pointer;
@@ -275,6 +275,7 @@ async function createCampaign(): Promise<void> {
             padding-top: 1rem;
             overflow-y: auto;
             z-index: 0; // force stacking context
+            overflow: visible;
 
             > div {
                 background-color: rgba(77, 59, 64, 1);
@@ -322,7 +323,7 @@ async function createCampaign(): Promise<void> {
 
                     .played {
                         span:first-of-type {
-                            color: rgba(219, 0, 59, 1);
+                            color: #ffa8bf;
                             font-weight: bold;
                             margin-right: 0.3rem;
                         }

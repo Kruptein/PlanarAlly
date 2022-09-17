@@ -134,7 +134,7 @@ main {
 
             .nav-active,
             .nav-item:hover {
-                border-bottom: 5px solid rgba(219, 0, 59, 1);
+                border-bottom: 5px solid #ffa8bf;
                 cursor: pointer;
             }
 
@@ -148,7 +148,7 @@ main {
                 line-height: 1.75rem;
 
                 > span:first-child {
-                    color: rgba(219, 0, 59, 1);
+                    color: #ffa8bf;
                     margin-right: 0.3rem;
                 }
             }

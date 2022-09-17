@@ -304,7 +304,7 @@ async function deleteSelection(): Promise<void> {
         align-items: center;
         font-size: 3.125rem;
         color: white;
-        border-bottom: 5px solid rgba(219, 0, 59, 1);
+        border-bottom: 5px solid #ffa8bf;
         font-weight: bold;
 
         > div {
@@ -319,7 +319,7 @@ async function deleteSelection(): Promise<void> {
 
         > span:last-child {
             font-size: 2.25rem;
-            color: rgba(219, 0, 59, 1);
+            color: #ffa8bf;
 
             &:hover {
                 cursor: pointer;
@@ -340,14 +340,13 @@ async function deleteSelection(): Promise<void> {
         height: inherit;
         margin-top: 0.875rem;
         padding-top: 1rem;
-        overflow-y: auto;
-        overflow-x: hidden;
+        overflow: visible;
 
         // border: solid 2px transparent;
         border: 5px dotted transparent;
 
         &.dropzone {
-            border-color: rgba(219, 0, 59, 1);
+            border-color: #ffa8bf;
         }
 
         > .inode {

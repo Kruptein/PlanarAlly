@@ -44,8 +44,7 @@ class PositionSystem implements System {
     setGridOffset(offset: { x: number; y: number }): void {
         console.log("Setting offset", offset);
         mutable.gridOffset = offset;
-        mutable.panX += offset.x;
-        mutable.panY += offset.y;
+        this.increasePan(offset.x, offset.y);
         floorSystem.invalidateAllFloors();
     }
 

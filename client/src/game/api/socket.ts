@@ -2,6 +2,7 @@ import type { RouteLocationNormalized } from "vue-router";
 
 import { createNewManager } from "../../core/socket";
 import type { ClientId } from "../systems/client/models";
+// import { debugInfo } from "../ui/debug";
 
 export const socket = createNewManager().socket("/planarally");
 
@@ -16,3 +17,10 @@ export function createConnection(route: RouteLocationNormalized): void {
 export function getClientId(): ClientId {
     return socket.id as ClientId;
 }
+
+// setInterval(() => {
+//     const start = performance.now();
+//     socket.emit("ping", () => {
+//         debugInfo.addSocketLatency(performance.now() - start);
+//     });
+// }, 1000);

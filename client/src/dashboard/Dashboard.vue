@@ -45,7 +45,7 @@ onMounted(() => {
     if (route.name === "assets") activeSection.value = 1;
 });
 
-const backgroundImage = `url(${getStaticImg("background.png")})`;
+const backgroundImage = `url(${getStaticImg("background-borderless.png")})`;
 
 async function logout(): Promise<void> {
     await router.push("/auth/logout");
@@ -53,7 +53,7 @@ async function logout(): Promise<void> {
 </script>
 
 <template>
-    <div>
+    <div style="width: 100%">
         <div id="background" :style="{ backgroundImage }"></div>
         <main>
             <section id="sidebar">
@@ -87,23 +87,23 @@ async function logout(): Promise<void> {
     height: 100vh;
     width: 100%;
     background-size: cover;
+    clip-path: inset(5px, 5px, 5px, 5px);
 }
 
 main {
     $margin: 2.5rem;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: calc(100vw - 2 * $margin);
+
+    position: relative;
+    display: flex;
+
+    width: calc(100vw - (100vw - 100%) - 2 * $margin); // (100vw - 100%) is to account for scrollbar
 
     color: white;
+    background-color: rgba(0, 0, 0, 0.6);
 
     margin: $margin;
     padding: $margin;
     border-radius: 40px;
-    background-color: rgba(0, 0, 0, 0.6);
-
-    display: flex;
 
     #sidebar {
         width: 16.25rem;

@@ -96,9 +96,16 @@ class AssetStore extends Store<AssetState> {
         socket.emit("Inode.Move", { inode, target: targetFolder });
     }
 
-    changeDirectory(nextFolder: number): void {
-        if (nextFolder < 0) this._state.folderPath.pop();
-        else this._state.folderPath.push(nextFolder);
+    changeDirectory(targetFolder: number): void {
+        if (targetFolder < 0) {
+            this._state.folderPath.pop();
+        } else if (targetFolder === this._state.root) {
+            this._state.folderPath = [];
+        } else if (this._state.folderPath.includes(targetFolder)) {
+            while (this.currentFolder.value !== targetFolder) this._state.folderPath.pop();
+        } else {
+            this._state.folderPath.push(targetFolder);
+        }
         this.clearSelected();
         socket.emit("Folder.Get", this.currentFolder.value);
     }

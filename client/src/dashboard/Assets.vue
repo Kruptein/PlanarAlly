@@ -202,19 +202,19 @@ async function deleteSelection(): Promise<void> {
             <div>
                 <input id="files" type="file" multiple hidden @change="upload()" />
                 <img
-                    :src="baseAdjust('/static/img/assetmanager/create_folder.png')"
+                    :src="baseAdjust('/static/img/assetmanager/create_folder.svg')"
                     @click.stop="createDirectory"
                     :title="t('assetManager.AssetManager.create_folder')"
                     :alt="t('assetManager.AssetManager.create_folder')"
                 />
                 <img
-                    :src="baseAdjust('/static/img/assetmanager/add_file.png')"
+                    :src="baseAdjust('/static/img/assetmanager/add_file.svg')"
                     @click.stop="prepareUpload"
                     :title="t('assetManager.AssetManager.upload_files')"
                     :alt="t('assetManager.AssetManager.upload_files')"
                 />
                 <img
-                    :src="baseAdjust('/static/img/assetmanager/delete_selection.png')"
+                    :src="baseAdjust('/static/img/assetmanager/delete_selection.svg')"
                     @click.stop="deleteSelection"
                     :title="t('common.remove')"
                     :alt="t('common.remove')"
@@ -222,8 +222,8 @@ async function deleteSelection(): Promise<void> {
             </div>
         </div>
         <div id="path">
-            <div>/</div>
-            <div v-for="dir in state.folderPath" :key="dir">{{ showIdName(dir) }}/</div>
+            <div @click="changeDirectory(state.root)">/</div>
+            <div @click="changeDirectory(dir)" v-for="dir in state.folderPath" :key="dir">{{ showIdName(dir) }}</div>
         </div>
         <div id="assets" :class="{ dropzone: dragState > 0 }" @dragover.prevent @drop.prevent.stop="onDrop">
             <div
@@ -328,8 +328,17 @@ async function deleteSelection(): Promise<void> {
     }
 
     #path {
-        margin: 1.875rem 0;
+        margin: 1rem 0;
         display: flex;
+
+        // credit: https://stackoverflow.com/questions/46755021/how-to-create-css-breadcrumbs-with-clip-path
+        > div {
+            padding: 3px 20px;
+            background-color: #666;
+            color: white;
+            display: inline-block;
+            clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%, 10px 50%);
+        }
     }
 
     #assets {

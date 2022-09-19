@@ -72,9 +72,6 @@ main_app.router.add_patch(f"{subpath}/api/rooms/{{creator}}/{{roomname}}", rooms
 main_app.router.add_delete(
     f"{subpath}/api/rooms/{{creator}}/{{roomname}}", rooms.delete
 )
-main_app.router.add_get(
-    f"{subpath}/api/rooms/{{creator}}/{{roomname}}/info", rooms.get_info
-)
 main_app.router.add_patch(
     f"{subpath}/api/rooms/{{creator}}/{{roomname}}/info", rooms.set_info
 )

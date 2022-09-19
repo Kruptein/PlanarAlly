@@ -20,44 +20,31 @@ from ..socket.constants import DASHBOARD_NS
 async def get_list(request: web.Request):
     user: User = await check_authorized(request)
 
+    # We should rework this to a playerroom.as_dashboard_dict
+    # to prevent these extra queries we're doing for the info
     return web.json_response(
         {
-            "owned": [r.as_dashboard_dict() for r in user.rooms_created],
+            "owned": [
+                {**r.as_dashboard_dict(), "last_played": get_info(r, user)}
+                for r in user.rooms_created
+            ],
             "joined": [
-                r.room.as_dashboard_dict()
+                {**r.room.as_dashboard_dict(), "last_played": get_info(r.room, user)}
                 for r in user.rooms_joined.join(Room).where(Room.creator != user)
             ],
         }
     )
 
 
-async def get_info(request: web.Request):
-    user: User = await check_authorized(request)
+def get_info(room: Room, user: User):
+    info = room.players.where(PlayerRoom.player == user)
 
-    creator = request.match_info["creator"]
-    roomname = request.match_info["roomname"]
+    last_played = cast(datetime, info[0].last_played)
 
-    room = (
-        PlayerRoom.select()
-        .join(Room)
-        .join(User)
-        .filter(player=user)
-        .where((User.name == creator) & (Room.name == roomname))
-    )
-
-    if len(room) != 1:
-        return web.HTTPNotFound()
-
-    last_played = cast(datetime, room[0].last_played)
-
-    return web.json_response(
-        {
-            "notes": room[0].notes,
-            "last_played": None
-            if last_played is None
-            else last_played.strftime("%Y/%m/%d"),
-        }
-    )
+    if last_played is None:
+        return None
+    else:
+        return last_played.strftime("%Y/%m/%d")
 
 
 async def set_info(request: web.Request):

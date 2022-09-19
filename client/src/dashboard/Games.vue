@@ -159,7 +159,7 @@ async function createCampaign(): Promise<void> {
                         <div class="name">{{ session.name }}</div>
                         <div class="played">
                             <span>LAST PLAYED:</span>
-                            <span>unknown</span>
+                            <span>{{ session.last_played ?? "unknown" }}</span>
                         </div>
                     </div>
                     <div class="edit" @click.stop="rename">
@@ -203,7 +203,7 @@ async function createCampaign(): Promise<void> {
                         </div>
                         <div class="played">
                             <span>LAST PLAYED:</span>
-                            <span>unknown</span>
+                            <span>{{ session.last_played ?? "unknown" }}</span>
                         </div>
                     </div>
                     <div class="edit"></div>

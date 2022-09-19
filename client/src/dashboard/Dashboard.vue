@@ -4,8 +4,8 @@ import { useRoute, useRouter } from "vue-router";
 
 import { getStaticImg } from "../core/http";
 
-import LgAssets from "./Assets.vue";
-import LgGames from "./Games.vue";
+import Assets from "./Assets.vue";
+import Games from "./Games.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -16,12 +16,12 @@ type Section = { nav: string; component: any; router: string };
 const sections: Section[] = [
     {
         nav: "GAMES",
-        component: LgGames,
+        component: Games,
         router: "dashboard",
     },
     {
         nav: "ASSETS",
-        component: LgAssets,
+        component: Assets,
         router: "assets",
     },
 ];
@@ -75,8 +75,8 @@ async function logout(): Promise<void> {
                     </button>
                 </nav>
             </section>
-            <LgGames v-if="activeSection === 0" />
-            <LgAssets v-else-if="activeSection === 1" />
+            <Games v-if="activeSection === 0" />
+            <Assets v-else-if="activeSection === 1" />
         </main>
     </div>
 </template>

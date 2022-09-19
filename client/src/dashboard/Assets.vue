@@ -338,6 +338,10 @@ async function deleteSelection(): Promise<void> {
             color: white;
             display: inline-block;
             clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%, 10px 50%);
+
+            &:hover {
+                cursor: pointer;
+            }
         }
     }
 

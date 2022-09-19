@@ -241,7 +241,6 @@ async function createCampaign(): Promise<void> {
         padding-right: 2rem; // adjust for scroll bar
 
         min-height: 40vh;
-        // height: min(70vh, 53.75rem);
 
         display: flex;
         flex-direction: column;
@@ -273,7 +272,6 @@ async function createCampaign(): Promise<void> {
             height: inherit;
             margin-top: 2.75rem;
             padding-top: 1rem;
-            overflow-y: auto;
             z-index: 0; // force stacking context
             overflow: visible;
 

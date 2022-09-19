@@ -87,7 +87,6 @@ async function logout(): Promise<void> {
     height: 100vh;
     width: 100%;
     background-size: cover;
-    clip-path: inset(5px, 5px, 5px, 5px);
 }
 
 main {

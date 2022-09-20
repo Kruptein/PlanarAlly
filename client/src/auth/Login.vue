@@ -1,10 +1,4 @@
 <script setup lang="ts">
-import "swiper/css";
-import "swiper/css/pagination";
-
-import { Pagination } from "swiper";
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-import { Swiper, SwiperSlide } from "swiper/vue";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
@@ -15,8 +9,6 @@ import { baseAdjust, http } from "../core/http";
 import { getErrorReason } from "../core/utils";
 import { coreStore } from "../store/core";
 
-const swiperModules = [Pagination];
-
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
@@ -25,15 +17,15 @@ const toast = useToast();
 const username = ref("");
 const password = ref("");
 const email = ref("");
-const registerMode = ref(false);
+const mode = ref(0);
+const showLanguageDropdown = ref(false);
 const allowRegister = (document.querySelector("meta[name='PA-signup']")?.getAttribute("content") ?? "true") === "true";
 
-const showLanguageDropdown = ref(false);
-
-async function submit(): Promise<void> {
-    if (registerMode.value) await register();
-    else await login();
+function getStaticImg(img: string): string {
+    return baseAdjust(`/static/img/${img}`);
 }
+
+const backgroundImage = `url(${getStaticImg("background-borderless.png")})`;
 
 async function login(): Promise<void> {
     const response = await http.postJson("/api/login", {
@@ -50,6 +42,7 @@ async function login(): Promise<void> {
         toast.error(await getErrorReason(response));
     }
 }
+
 async function register(): Promise<void> {
     const response = await http.postJson("/api/register", {
         username: username.value,
@@ -64,375 +57,244 @@ async function register(): Promise<void> {
         toast.error(await getErrorReason(response));
     }
 }
-
-function focusin(event: FocusEvent): void {
-    const target = event.target as HTMLFormElement | null;
-    if (target && target.nextElementSibling) {
-        const span = target.nextElementSibling as HTMLElement;
-        span.style.opacity = "0";
-    }
-}
-
-function focusout(event: FocusEvent): void {
-    const target = event.target as HTMLFormElement | null;
-    if (target && target.nextElementSibling) {
-        const span = target.nextElementSibling as HTMLElement;
-        span.style.opacity = "1";
-    }
-}
-
-function slideNext(swiper: any): void {
-    swiper.slideNext();
-}
 </script>
 
 <template>
-    <div id="page">
-        <main>
-            <div id="intro">
-                <span>Welcome to Planar</span>
-                <span style="color: #7c253e">Ally</span>
-                !
-            </div>
-            <div id="description">
-                PlanarAlly is an opensource virtual tabletop that aims to help you and your players discover the various
-                fictive worlds out there.
-            </div>
-            <swiper
-                class="swiper"
-                :pagination="{ clickable: true, el: '.swiper-pagination', type: 'bullets' }"
-                :slides-per-view="1"
-                :loop="true"
-                :modules="swiperModules"
-                @click="slideNext"
-            >
-                <swiper-slide>
-                    <video autoplay loop muted :poster="baseAdjust('/static/img/carousel_vision.png')">
-                        <source src="https://www.planarally.io/learn/first-session/vision.webm" type="video/webm" />
-                        <source src="https://www.planarally.io/learn/first-session/vision.mp4" type="video/mp4" />
-                    </video>
-                    <div class="carousel-details">Immersive lighting & vision system</div>
-                </swiper-slide>
-                <swiper-slide>
-                    <video autoplay loop muted :poster="baseAdjust('/static/img/carousel_floors.png')">
-                        <source src="https://www.planarally.io/blog/release-0.19/newfloors.webm" type="video/webm" />
-                        <source src="https://www.planarally.io/blog/release-0.19/newfloors.mp4" type="video/mp4" />
-                    </video>
-                    <div class="carousel-details">Use floors to enhance immersion</div>
-                </swiper-slide>
-                <div class="swiper-pagination"></div>
-            </swiper>
-        </main>
-        <footer>
-            Need help? Visit our user documentation over on
-            <a href="https://planarally.io" target="blank">planarally.io</a>
-            or join the community on
-            <a href="https://discord.gg/mubGnTe" target="blank">discord!</a>
-        </footer>
-        <div id="login-panel">
-            <div id="language-selector">
-                <font-awesome-icon icon="language" @click="showLanguageDropdown = !showLanguageDropdown" />
-            </div>
-            <LanguageDropdown id="language-dropdown" v-if="showLanguageDropdown" />
-            <div id="logo">
-                <img :src="baseAdjust('/static/favicon.png')" alt="PA logo" />
-            </div>
-            <form @focusin="focusin" @focusout="focusout" @submit.prevent="submit">
-                <label>{{ t("common.username") }}</label>
-                <div class="input">
-                    <input
-                        id="username"
-                        type="text"
-                        name="username"
-                        v-model="username"
-                        :placeholder="t('common.username')"
-                        autocomplete="username"
-                        required
-                        autofocus
-                    />
-                    <span>
-                        <font-awesome-icon icon="user-circle" />
-                    </span>
-                </div>
-                <label>{{ t("common.password") }}</label>
-                <div class="input">
-                    <input
-                        id="password"
-                        type="password"
-                        name="password"
-                        v-model="password"
-                        :placeholder="t('common.password')"
-                        autocomplete="current-password"
-                        required
-                    />
-                    <span>
-                        <font-awesome-icon icon="lock" />
-                    </span>
-                </div>
-                <template v-if="registerMode">
-                    <label>Email (optional)</label>
-                    <div class="input">
-                        <input
-                            id="email"
-                            type="email"
-                            name="email"
-                            v-model="email"
-                            :placeholder="t('settings.AccountSettings.email')"
-                            autocomplete="email"
-                        />
-                        <span>
-                            <font-awesome-icon icon="at" />
-                        </span>
-                    </div>
-                </template>
-                <button id="login" type="submit" name="login" class="submit" :title="t('auth.login.login')">
-                    <span v-if="registerMode">sign up</span>
-                    <span v-else>enter</span>
-                </button>
-            </form>
-            <template v-if="allowRegister">
-                <h4><span>OR</span></h4>
-                <button class="submit" @click="registerMode = !registerMode" :title="t('auth.login.register')">
-                    <span v-if="registerMode">return</span>
-                    <span v-else>register</span>
-                </button>
-            </template>
+    <div>
+        <div id="background" :style="{ backgroundImage }">
+            <img id="icon" :src="getStaticImg('pa_game_icon.png')" />
         </div>
+        <main>
+            <form @submit.prevent>
+                <template v-if="mode === 0">
+                    <div id="title">
+                        LOG INTO PLANARALLY
+                        <span style="flex-grow: 1"></span>
+                        <a href="https://planarally.io" target="blank">
+                            <font-awesome-icon icon="book" title="Show documentation" />
+                        </a>
+                        <a href="https://discord.gg/mubGnTe" target="blank">
+                            <font-awesome-icon :icon="['fab', 'discord']" title="Join the discord server!" />
+                        </a>
+                        <div style="position: relative">
+                            <font-awesome-icon
+                                icon="language"
+                                @click="showLanguageDropdown = !showLanguageDropdown"
+                                title="Change language"
+                            />
+                            <LanguageDropdown id="language-dropdown" v-if="showLanguageDropdown" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <label for="username">{{ t("common.username") }}</label>
+                        <input
+                            id="username"
+                            type="text"
+                            v-model="username"
+                            autocomplete="username"
+                            required
+                            autofocus
+                        />
+                    </div>
+                    <div class="form-row">
+                        <label for="password">{{ t("common.password") }}</label>
+                        <input
+                            id="password"
+                            type="password"
+                            v-model="password"
+                            autocomplete="current-password"
+                            required
+                        />
+                    </div>
+                    <button type="submit" @click="login">
+                        <img :src="getStaticImg('check_small.svg')" />
+                        {{ t("auth.login.login") }}
+                    </button>
+                    <button type="button" @click="mode = 1" v-if="allowRegister">
+                        <img :src="getStaticImg('plus.svg')" />
+                        {{ t("auth.login.register") }}
+                    </button>
+                </template>
+                <template v-else-if="mode === 1">
+                    <div id="title">
+                        {{ t("auth.login.register") }}
+                        <span style="flex-grow: 1"></span>
+                        <a href="https://planarally.io" target="blank">
+                            <font-awesome-icon icon="book" title="Show documentation" />
+                        </a>
+                        <a href="https://discord.gg/mubGnTe" target="blank">
+                            <font-awesome-icon :icon="['fab', 'discord']" title="Join the discord server!" />
+                        </a>
+                        <div style="position: relative">
+                            <font-awesome-icon
+                                icon="language"
+                                @click="showLanguageDropdown = !showLanguageDropdown"
+                                title="Change language"
+                            />
+                            <LanguageDropdown id="language-dropdown" v-if="showLanguageDropdown" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <label for="username">{{ t("common.username") }}</label>
+                        <input
+                            id="username"
+                            type="text"
+                            v-model="username"
+                            autocomplete="username"
+                            required
+                            autofocus
+                        />
+                    </div>
+                    <div class="form-row">
+                        <label for="password">{{ t("common.password") }}</label>
+                        <input id="password" type="password" v-model="password" autocomplete="new-password" required />
+                    </div>
+                    <div class="form-row">
+                        <label for="email">{{ t("settings.AccountSettings.email") }}</label>
+                        <input id="email" type="email" v-model="email" autocomplete="email" />
+                    </div>
+                    <button type="submit" @click="register">
+                        <img :src="getStaticImg('plus.svg')" />
+                        {{ t("auth.login.register") }}
+                    </button>
+                    <button type="button" @click="mode = 0">
+                        <img :src="getStaticImg('min.svg')" />
+                        RETURN TO LOGIN
+                    </button>
+                </template>
+            </form>
+        </main>
     </div>
 </template>
 
-<style lang="scss">
-.swiper-pagination-bullet-active {
-    background-color: var(--primary);
-}
-
-.swiper {
-    margin-top: 60px;
-    width: calc(80vw - 20em);
-    min-width: 0;
-
-    video {
-        height: 50vh;
-    }
-
-    .swiper-slide {
-        min-width: 0;
-        width: calc(80vw - 20em);
-        display: flex !important;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .carousel-details {
-        font-weight: bold;
-        font-size: 30px;
-        margin-top: 10px;
-        margin-bottom: 30px;
-
-        em {
-            font-weight: bold;
-            text-decoration: underline;
-            font-size: x-large;
-            display: block;
-            margin-bottom: 0.5em;
-        }
-    }
-}
-</style>
-
 <style scoped lang="scss">
-* {
-    box-sizing: border-box;
+$width: max(25vmax, 500px);
+
+#background,
+main {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100vw;
+    border-radius: 0;
+    padding: 0;
+    margin: 0;
+
+    color: white;
 }
 
-#page {
-    display: grid;
-    grid-template-areas:
-        "server   login"
-        "carousel login"
-        "footer   login";
-    --primary: #7c253e;
-    --secondary: #9c455e;
-    --primaryBG: rgb(43, 43, 43);
-    --secondaryBG: #c4c4c4;
-    background-color: var(--secondaryBG);
-    grid-template-columns: minmax(0, 1fr) 20vw;
-    grid-template-rows: auto 1fr 3em;
-    width: 100%;
-}
+#background {
+    background-size: cover;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 
-#server-message {
-    grid-area: server;
+    #icon {
+        margin-top: 10%;
+        width: $width;
+    }
 }
 
 main {
-    grid-area: carousel;
+    background-color: rgba(77, 0, 21, 0.8);
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border-radius: 0;
+
     display: flex;
     flex-direction: column;
-    padding: 5em;
-    overflow: hidden;
-}
-
-#intro {
-    font-weight: bold;
-    font-size: 5vh;
-}
-
-#description {
-    margin-top: 20px;
-    font-size: 2vh;
-}
-
-footer {
-    grid-area: footer;
-    color: white;
-    background-color: #7c253e;
-    display: flex;
-    align-items: center;
     justify-content: center;
-}
-
-#login-panel {
-    grid-area: login;
-    background-color: rgb(43, 43, 43);
-
-    display: flex;
-    flex-direction: column;
     align-items: center;
-    padding-top: 5em;
 
-    box-shadow: -10px 0 50px rgb(43, 43, 43);
-}
+    form {
+        width: $width;
 
-#language-selector {
-    position: absolute;
-    top: 0;
-    right: calc(19vw - 45px);
-    font-size: 40px;
-    color: white;
+        display: flex;
+        flex-direction: column;
+
+        > * {
+            margin-bottom: 2.5rem;
+        }
+
+        #title {
+            display: flex;
+
+            font-size: 1.5em;
+
+            padding-bottom: 0.5rem;
+            border-bottom: calc(5px * 2560 / 1920) solid rgba(219, 0, 59, 1);
+
+            svg {
+                padding-left: 10px;
+            }
+        }
+
+        .form-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            label {
+                height: 1.5rem;
+                font-size: 1.2rem;
+                text-transform: uppercase;
+            }
+
+            input {
+                width: 65%;
+                height: 3.3rem;
+                padding: 1rem;
+
+                font-size: 1.6em;
+                color: white;
+                background-color: rgba(255, 255, 255, 0.1);
+
+                border-color: rgba(255, 255, 255, 0.1);
+                border-radius: calc(5px * 2560 / 1920);
+            }
+        }
+
+        .save-row {
+            justify-content: flex-start;
+
+            label {
+                flex-grow: 1;
+                font-size: 1.6em;
+            }
+
+            button {
+                width: 6.25rem;
+            }
+        }
+
+        button {
+            height: 3.3rem;
+            width: $width;
+            background-color: rgba(219, 0, 59, 1);
+            border-radius: calc(5px * 2560 / 1920);
+            box-shadow: 0 0 calc(10px * 2560 / 1920) 0 rgba(6, 6, 6, 0.5);
+            color: white;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 1.5em;
+            text-transform: uppercase;
+
+            &:hover {
+                cursor: pointer;
+            }
+
+            img {
+                margin-right: 0.42rem;
+            }
+        }
+    }
 }
 
 #language-dropdown {
     position: absolute;
-    top: 50px;
-    right: calc(19vw - 40px);
-    margin-right: -20px;
-}
-
-#logo {
-    height: 12vw;
-    position: relative;
-
-    img {
-        position: relative;
-        height: 10vw;
-    }
-
-    &::before {
-        content: "";
-        background-color: white;
-        position: absolute;
-        left: calc(50% - 6.1vw);
-        top: calc(50% - 7vw);
-        width: 12vw;
-        height: 12vw;
-        border-radius: 6vw;
-    }
-}
-
-form {
-    display: contents;
-}
-
-label {
-    margin-top: 15px;
-    color: white;
-    font-weight: bold;
-    font-size: 20px;
-    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-}
-
-.input {
-    position: relative;
-    width: 12vw;
-    margin-top: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    span {
-        position: absolute;
-        display: block;
-        color: #d4d4d4;
-        left: 10px;
-        font-size: 20px;
-    }
-
-    input {
-        width: 100%;
-        padding: 10px 5px 10px 40px;
-        display: block;
-        border: 1px solid #ededed;
-        border-radius: 4px;
-        transition: 0.2s ease-out;
-        color: #a1a1a1;
-
-        &:focus {
-            padding: 10px 5px 10px 10px;
-            outline: 0;
-            background-color: var(--primary);
-            color: white;
-        }
-    }
-}
-
-.submit {
-    margin-top: 15px;
-    width: 120px;
-    height: 40px;
-    display: flex;
-    justify-content: space-evenly;
-    align-items: center;
-    background: #fff;
-    border: 2px solid var(--primaryBG);
-    color: var(--primaryBG);
-    font-size: 24px;
-    cursor: pointer;
-    transition: 0.2s ease-out;
-
-    &:hover,
-    &:focus {
-        background: var(--primary);
-        color: #fff;
-        border: 2px solid white;
-        outline: 0;
-    }
-}
-
-#login {
-    margin-top: 45px;
-}
-
-h4 {
-    font-weight: normal;
-    color: white;
-    text-align: center;
-    border-bottom: 1px solid white;
-    line-height: 0.1em;
-    width: 12vw;
-    margin-top: 30px;
-
-    span {
-        padding: 0 10px;
-        background-color: var(--secondary);
-    }
-}
-
-a {
-    margin: 0 5px;
-}
-
-.black {
-    color: rgb(43, 43, 43);
 }
 </style>

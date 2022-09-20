@@ -51,6 +51,7 @@ tech changes will usually be stripped from release notes for the public
     -   Server should detect client errors in initiative listings better and reject wrong data
     -   Modification of the initiative should retain the current active actor under more circumstances
 -   In-game AssetPicker modal UI fixes
+-   Prompt modal not clearing error message properly
 
 ## [2022.2.3] - 2022-07-13
 

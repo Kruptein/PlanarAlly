@@ -98,7 +98,14 @@ async function leaveOrDelete(): Promise<void> {
 
     const isOwner = state.focussed.creator === coreStore.state.username;
     if (isOwner) {
-        const name = await modals.prompt(`Type the room name to confirm: ${state.focussed.name}`, "Removing Campaign");
+        const name = await modals.prompt(
+            `Type the room name to confirm: ${state.focussed.name}`,
+            "Removing Campaign",
+            (val) => ({
+                valid: val === state.focussed?.name,
+                reason: "Room name does not match!",
+            }),
+        );
         if (name !== state.focussed.name) return;
     } else {
         const answer = await modals.confirm(`Leaving ${state.focussed.name}!`, "Are you sure?");

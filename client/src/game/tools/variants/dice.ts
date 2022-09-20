@@ -8,12 +8,15 @@ import { reactive } from "vue";
 
 import { randomInterval } from "../../../core/utils";
 import { i18n } from "../../../i18n";
+import { coreStore } from "../../../store/core";
 import { diceStore } from "../../dice/state";
 import { ToolName } from "../../models/tools";
 import type { ToolPermission } from "../../models/tools";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
+
+const hasGameboard = coreStore.state.boardId !== undefined;
 
 class DiceTool extends Tool {
     readonly toolName = ToolName.Dice;
@@ -51,8 +54,11 @@ class DiceTool extends Tool {
         return [{ name: ToolName.Select, features: { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate] } }];
     }
 
-    async roll(inp: string): Promise<number> {
-        diceStore.setIsPending(true);
+    async roll(
+        inp: string,
+        options?: { color?: string; startPosition?: [number, number]; throwKey: string },
+    ): Promise<number> {
+        if (!hasGameboard) diceStore.setIsPending(true);
         const xDir = Math.random();
         const yDir = Math.random();
         const side = Math.random() > 0.5 ? true : false;
@@ -62,9 +68,31 @@ class DiceTool extends Tool {
         const w = (diceStore.state.dimensions.width / 2) * 0.85;
         const h = (diceStore.state.dimensions.height / 2) * 0.85;
 
-        const color = tinycolor(playerSettingsState.raw.rulerColour.value).toHexString();
+        const targetColor = options?.color ?? playerSettingsState.raw.rulerColour.value;
+        const color = tinycolor(targetColor).toHexString();
 
-        const position = new Vector3(signX * (side ? w : xDir * w), 4.5, signY * (side ? yDir * h : h));
+        let position = new Vector3(signX * (side ? 0.9 * w : xDir * w), 4.5, signY * (side ? yDir * h : 0.9 * h));
+        /*
+        babylon:
+        (maxX, minY)   (minX, minY)
+                    0,0
+        (maxX, maxY)   (minX, maxY)
+
+        gameboard:
+        (0, 0)   (1, 0)
+        (0, 1)   (1, 1)
+        */
+        if (hasGameboard && options?.startPosition !== undefined) {
+            if (options.startPosition[0] === undefined || options.startPosition[1] === undefined) {
+                console.error("DICE ROLL START_POSITION WAS PASSED BUT INVALID");
+            } else {
+                position = new Vector3(
+                    2 * w * (0.5 - options.startPosition[0]),
+                    4.5,
+                    2 * h * (options.startPosition[1] - 0.5),
+                );
+            }
+        }
 
         // Aim from side to center
         const linear = Vector3.Zero()
@@ -73,19 +101,35 @@ class DiceTool extends Tool {
             .add(new Vector3(randomInterval(0, 20) - 10, randomInterval(0, 5) - 2.5, randomInterval(0, 20) - 10))
             // Power up
             .multiplyByFloats(randomInterval(3, 6), 1, randomInterval(3, 6));
-        const options: Omit<DieOptions, "die"> = {
+        const dieOptions: Omit<DieOptions, "die"> = {
             position,
             linear,
-            angular: new Vector3(linear.x / 2, 0, 0),
+            angular: hasGameboard
+                ? new Vector3(randomInterval(-3, 3), randomInterval(-3, 3), randomInterval(-3, 3))
+                : new Vector3(linear.x / 2, 0, 0),
             color,
         };
 
         const parser = await diceStore.getDndParser();
-        const results = await parser.fromString(inp, options, (die, mesh) => this.addShadow(die, mesh));
-        diceStore.setResults(results);
-        diceStore.setIsPending(false);
-        diceStore.setShowDiceResults(true);
-        return results[0].total;
+        const results = await parser.fromString(inp, dieOptions, {
+            cb: (die, mesh) => this.addShadow(die, mesh),
+            key: options?.throwKey,
+            resetAllDice: false,
+        });
+        window.GameboardAnalytics?.sendEvent("DICE_ROLL_RESULTS", JSON.stringify(results));
+        diceStore.setResults(results.key, results.data, options?.startPosition);
+        if (!hasGameboard) {
+            diceStore.setIsPending(false);
+            diceStore.setShowDiceResults(true);
+        }
+        setTimeout(async () => (await diceStore.getDiceThrower()).reset(results.key), 10_000);
+
+        let total = 0;
+        for (const result of results.data) {
+            total += result.total;
+        }
+
+        return total;
     }
 
     addShadow(die: Dice, mesh: Mesh): void {

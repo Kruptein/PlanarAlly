@@ -24,7 +24,7 @@
         "@fortawesome/free-solid-svg-icons": "^6.1.2",
         "@fortawesome/vue-fontawesome": "^3.0.1",
         "@lastgameboard/boardservice-client": "^0.3.0",
-        "@planarally/dice": "^0.4.0-alpha.7",
+        "@planarally/dice": "^0.5.0",
         "core-js": "^3.24.1",
         "path-data-polyfill": "^1.0.3",
         "socket.io-client": "^4.5.1",

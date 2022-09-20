@@ -1,4 +1,4 @@
-import { g2l, g2lr, g2lx, g2ly } from "../../../core/conversions";
+import { g2l, g2lr } from "../../../core/conversions";
 import { getGameState } from "../../../store/_game";
 import { getShape } from "../../id";
 import { LayerName } from "../../models/floor";
@@ -7,8 +7,6 @@ import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
-import { TriangulationTarget } from "../../vision/state";
-import { computeVisibility } from "../../vision/te";
 
 import { FowLayer } from "./fow";
 
@@ -55,16 +53,7 @@ export class FowVisionLayer extends FowLayer {
                 gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
                 this.ctx.fillStyle = gradient;
 
-                try {
-                    const polygon = computeVisibility(token.center, TriangulationTarget.VISION, token.floor.id);
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
-                    for (const point of polygon) this.ctx.lineTo(g2lx(point[0]), g2ly(point[1]));
-                    this.ctx.closePath();
-                    this.ctx.fill();
-                } catch {
-                    // no-op
-                }
+                this.ctx.fill(token.visionPolygon);
             }
 
             const activeFloor = floorState.currentFloor.value!.id;

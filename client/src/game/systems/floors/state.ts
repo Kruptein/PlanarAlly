@@ -4,7 +4,7 @@ import type { ILayer } from "../../interfaces/layer";
 import type { Floor, FloorId } from "../../models/floor";
 import { buildState } from "../state";
 
-interface FloorState {
+interface ReactiveFloorState {
     floors: Floor[];
     floorIndex: FloorId;
 
@@ -12,12 +12,19 @@ interface FloorState {
     layerIndex: number;
 }
 
-const state = buildState<FloorState>({
-    floors: [],
-    floorIndex: -1 as FloorId,
-    layers: [],
-    layerIndex: -1,
-});
+interface StaticFloorState {
+    iteration: number;
+}
+
+const state = buildState<ReactiveFloorState, StaticFloorState>(
+    {
+        floors: [],
+        floorIndex: -1 as FloorId,
+        layers: [],
+        layerIndex: -1,
+    },
+    { iteration: 0 },
+);
 
 export const floorState = {
     ...state,

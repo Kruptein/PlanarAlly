@@ -32,11 +32,13 @@ class PositionSystem implements System {
     setPan(x: number, y: number): void {
         mutable.panX = x + readonly.gridOffset.x;
         mutable.panY = y + readonly.gridOffset.y;
+        floorSystem.updateIteration();
     }
 
     increasePan(x: number, y: number): void {
         mutable.panX += x;
         mutable.panY += y;
+        floorSystem.updateIteration();
     }
 
     // OFFSET
@@ -55,9 +57,11 @@ class PositionSystem implements System {
         if (playerSettingsState.raw.useAsPhysicalBoard.value) {
             if (readonly.zoom !== gf) {
                 mutable.zoom = gf;
+                floorSystem.updateIteration();
             }
         } else {
             mutable.zoom = zoomDisplayToFactor(zoomDisplay);
+            floorSystem.updateIteration();
         }
     }
 

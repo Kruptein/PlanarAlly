@@ -1,10 +1,8 @@
 import tinycolor from "tinycolor2";
 
-import { g2l, g2lr, toRadians, g2lx, g2ly } from "../../core/conversions";
+import { g2l, g2lr, toRadians } from "../../core/conversions";
 import type { IShape } from "../interfaces/shape";
 import { auraSystem } from "../systems/auras";
-import { TriangulationTarget } from "../vision/state";
-import { computeVisibility } from "../vision/te";
 
 export function drawAuras(shape: IShape, ctx: CanvasRenderingContext2D): void {
     const center = shape.center;
@@ -46,12 +44,9 @@ export function drawAuras(shape: IShape, ctx: CanvasRenderingContext2D): void {
         if (aura.visionSource) {
             ctx.save();
 
-            const polygon = computeVisibility(center, TriangulationTarget.VISION, shape.floor.id);
+            const polygon = shape.visionPolygon;
 
-            ctx.beginPath();
-            ctx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
-            for (const point of polygon) ctx.lineTo(g2lx(point[0]), g2ly(point[1]));
-            ctx.clip();
+            ctx.clip(polygon);
         }
 
         // Draw aura
@@ -69,6 +64,8 @@ export function drawAuras(shape: IShape, ctx: CanvasRenderingContext2D): void {
         ctx.fill();
         ctx.stroke();
 
-        if (aura.visionSource) ctx.restore();
+        if (aura.visionSource) {
+            ctx.restore();
+        }
     }
 }

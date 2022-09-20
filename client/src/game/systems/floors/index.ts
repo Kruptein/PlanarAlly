@@ -277,6 +277,10 @@ class FloorSystem implements System {
         }
     }
 
+    updateIteration(): void {
+        floorState.mutable.iteration++;
+    }
+
     // WINDOW
 
     resize(width: number, height: number): void {

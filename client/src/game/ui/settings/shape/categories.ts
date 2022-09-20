@@ -4,7 +4,6 @@ export enum ShapeSettingCategory {
     Access = "Access",
     Logic = "Logic",
     Group = "Group",
-    LG = "Gameboard",
     Extra = "Extra",
     Variant = "Variant",
 }

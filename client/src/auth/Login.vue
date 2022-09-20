@@ -62,7 +62,7 @@ async function register(): Promise<void> {
 <template>
     <div>
         <div id="background" :style="{ backgroundImage }">
-            <img id="icon" :src="getStaticImg('pa_game_icon.png')" />
+            <img id="icon" :src="getStaticImg('pa_game_icon.png')" alt="PlanarAlly logo" />
         </div>
         <main>
             <form @submit.prevent>

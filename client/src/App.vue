@@ -1,35 +1,18 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
-import { useRoute } from "vue-router";
+import { computed, ref } from "vue";
 
 import { baseAdjust } from "./core/http";
 import { coreStore } from "./store/core";
 
-const route = useRoute();
-
-const transitionName = ref("");
 const webmError = ref(false);
 const webmStart = 2 * Math.floor(Math.random() * 5);
 
 const loading = computed(() => coreStore.state.loading);
-
-watch(
-    () => route.name,
-    (toRoute, fromRoute) => {
-        if (fromRoute === "login" && toRoute === "dashboard") {
-            transitionName.value = "slide-left";
-        } else if (fromRoute === "dashboard" && toRoute === "login") {
-            transitionName.value = "slide-right";
-        } else {
-            transitionName.value = "";
-        }
-    },
-);
 </script>
 
 <template>
     <div id="app">
-        <div id="loading" v-if="transitionName === '' && loading">
+        <div id="loading" v-if="loading">
             <video
                 v-if="!webmError"
                 autoplay
@@ -43,9 +26,7 @@ watch(
             <img v-else :src="baseAdjust('/static/img/loading.gif')" style="height: 20vh" />
         </div>
         <router-view v-slot="{ Component }">
-            <transition :name="transitionName" mode="out-in">
-                <component :is="Component" />
-            </transition>
+            <component :is="Component" />
         </router-view>
     </div>
 </template>
@@ -114,18 +95,5 @@ a:visited,
 a:hover,
 a:active {
     color: inherit;
-}
-
-.slide-right-leave-active,
-.slide-left-leave-active {
-    transition: 0.5s ease-in-out;
-}
-
-.slide-left-leave-to {
-    transform: translateX(-80vw);
-}
-
-.slide-right-leave-to {
-    transform: translateX(80vw);
 }
 </style>

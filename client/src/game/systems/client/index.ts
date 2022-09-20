@@ -1,9 +1,9 @@
 import { throttle } from "lodash";
 
-import type { System } from "..";
 import { registerSystem } from "..";
-import type { GlobalPoint } from "../../../core/geometry";
+import type { System } from "..";
 import { toGP } from "../../../core/geometry";
+import type { GlobalPoint } from "../../../core/geometry";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { setLocalStorageObject } from "../../../localStorageHelpers";
 import { sendMoveClient, sendOffset, sendViewport } from "../../api/emits/client";
@@ -22,7 +22,7 @@ import { positionSystem } from "../position";
 import { positionState } from "../position/state";
 import { locationSettingsState } from "../settings/location/state";
 
-import type { ClientId, Viewport } from "./models";
+import type { BoardId, ClientId, Viewport } from "./models";
 import { clientState } from "./state";
 
 const { mutableReactive: $ } = clientState;
@@ -284,6 +284,13 @@ class ClientSystem implements System {
             positionSystem.setGridOffset(this.getOffset());
             setLocalStorageObject("PA_OFFSET", this.getRelativeOffset());
         }
+    }
+
+    // Gameboard
+
+    addBoardId(client: ClientId, board: BoardId): void {
+        $.clientBoards.set(client, board);
+        if ($.clientRectIds.has(client)) this.updateClientRect(client);
     }
 }
 

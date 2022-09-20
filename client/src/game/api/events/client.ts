@@ -1,7 +1,7 @@
 import { getGameState } from "../../../store/_game";
 import type { ServerUserLocationOptions } from "../../models/settings";
 import { clientSystem } from "../../systems/client";
-import type { ClientId, Viewport } from "../../systems/client/models";
+import type { BoardId, ClientId, Viewport } from "../../systems/client/models";
 import { playerSystem } from "../../systems/players";
 import type { PlayerId } from "../../systems/players/models";
 import { positionSystem } from "../../systems/position";
@@ -32,4 +32,8 @@ socket.on("Client.Viewport.Set", (data: { client: ClientId; viewport: Viewport }
 
 socket.on("Client.Offset.Set", (data: { client: ClientId } & { x?: number; y?: number }) => {
     clientSystem.setOffset(data.client, { x: data.x, y: data.y }, false);
+});
+
+socket.on("Client.Gameboard.Set", (data: { client: ClientId; boardId: BoardId }) => {
+    clientSystem.addBoardId(data.client, data.boardId);
 });

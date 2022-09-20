@@ -10,6 +10,7 @@ import "./events/floor";
 import "./events/groups";
 import "./events/initiative";
 import "./events/labels";
+import "./events/lg";
 import "./events/location";
 import "./events/logic";
 import "./events/notification";
@@ -23,6 +24,8 @@ import "./events/shape/options";
 import "./events/shape/text";
 import "./events/shape/togglecomposite";
 import "./events/user";
+
+import "./gbsocket"; // Start tuio listener
 
 import { toGP } from "../../core/geometry";
 import { SyncMode } from "../../core/models/types";
@@ -53,6 +56,12 @@ import { socket } from "./socket";
 socket.on("connect", () => {
     console.log("Connected");
     gameStore.setConnected(true);
+
+    if (coreStore.state.boardId !== undefined) {
+        console.log("BOARDID FOUND, SENDING TO SERVER", coreStore.state.boardId);
+        socket.emit("Client.Gameboard.Set", coreStore.state.boardId);
+    }
+
     socket.emit("Location.Load");
     coreStore.setLoading(true);
 });

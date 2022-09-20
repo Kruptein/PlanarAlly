@@ -1,4 +1,5 @@
 import { colourHistory } from "../../../../core/components/store";
+import { coreStore } from "../../../../store/core";
 import { playerSettingsSystem } from "../../../systems/settings/players";
 import { playerOptionsToClient } from "../../../systems/settings/players/helpers";
 import type { ServerPlayerInfo } from "../../../systems/settings/players/models";
@@ -10,6 +11,8 @@ socket.on("Player.Options.Set", (options: ServerPlayerInfo) => {
     const defaultOptions = playerOptionsToClient(options.default_user_options);
     const roomOptions =
         options.room_user_options !== undefined ? playerOptionsToClient(options.room_user_options) : undefined;
+
+    const hasGameboard = coreStore.state.boardId !== undefined;
 
     // Appearance
     playerSettingsSystem.setGridColour(roomOptions?.gridColour, {
@@ -40,26 +43,34 @@ socket.on("Player.Options.Set", (options: ServerPlayerInfo) => {
     });
 
     // Display
-    playerSettingsSystem.setUseHighDpi(roomOptions?.useHighDpi, {
-        sync: false,
-        default: defaultOptions.useHighDpi,
-    });
     playerSettingsSystem.setGridSize(roomOptions?.gridSize, {
         sync: false,
         default: defaultOptions.gridSize,
     });
-    playerSettingsSystem.setUseAsPhysicalBoard(roomOptions?.useAsPhysicalBoard, {
-        sync: false,
-        default: defaultOptions.useAsPhysicalBoard,
-    });
-    playerSettingsSystem.setMiniSize(roomOptions?.miniSize, {
-        sync: false,
-        default: defaultOptions.miniSize,
-    });
-    playerSettingsSystem.setPpi(roomOptions?.ppi, {
-        sync: false,
-        default: defaultOptions.ppi,
-    });
+
+    // When using the gameboard ignore client settings from other sources and hardcode the correct values
+    if (hasGameboard) {
+        playerSettingsSystem.setUseAsPhysicalBoard(true, { sync: false, default: true });
+        playerSettingsSystem.setPpi(123, { sync: false, default: 123 });
+        playerSettingsSystem.setUseHighDpi(true, { sync: false, default: true });
+    } else {
+        playerSettingsSystem.setUseAsPhysicalBoard(roomOptions?.useAsPhysicalBoard, {
+            sync: false,
+            default: defaultOptions.useAsPhysicalBoard,
+        });
+        playerSettingsSystem.setMiniSize(roomOptions?.miniSize, {
+            sync: false,
+            default: defaultOptions.miniSize,
+        });
+        playerSettingsSystem.setPpi(roomOptions?.ppi, {
+            sync: false,
+            default: defaultOptions.ppi,
+        });
+        playerSettingsSystem.setUseHighDpi(roomOptions?.useHighDpi, {
+            sync: false,
+            default: defaultOptions.useHighDpi,
+        });
+    }
 
     // Initiative
     playerSettingsSystem.setInitiativeCameraLock(roomOptions?.initiativeCameraLock, {
@@ -77,8 +88,15 @@ socket.on("Player.Options.Set", (options: ServerPlayerInfo) => {
 
     // Performance
 
-    playerSettingsSystem.setRenderAllFloors(roomOptions?.renderAllFloors, {
-        sync: false,
-        default: defaultOptions.renderAllFloors,
-    });
+    if (hasGameboard) {
+        playerSettingsSystem.setRenderAllFloors(false, {
+            sync: false,
+            default: false,
+        });
+    } else {
+        playerSettingsSystem.setRenderAllFloors(roomOptions?.renderAllFloors, {
+            sync: false,
+            default: defaultOptions.renderAllFloors,
+        });
+    }
 });

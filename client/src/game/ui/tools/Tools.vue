@@ -5,6 +5,7 @@ import { useI18n } from "vue-i18n";
 
 import { baseAdjust } from "../../../core/http";
 import { getGameState } from "../../../store/_game";
+import { coreStore } from "../../../store/core";
 import { ToolMode, ToolName } from "../../models/tools";
 import { accessState } from "../../systems/access/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
@@ -21,6 +22,8 @@ import { useToolPosition } from "./toolPosition";
 import VisionTool from "./VisionTool.vue";
 
 const { t } = useI18n();
+
+const hasGameboard = coreStore.state.boardId !== undefined;
 
 const detailBottom = computed(() => (playerSettingsState.reactive.useToolIcons.value ? "7.8rem" : "6.6rem"));
 const detailRight = ref("0px");
@@ -117,7 +120,9 @@ const toolModes = computed(() => {
                 <li id="tool-mode"></li>
             </ul>
             <div id="tool-mode-full" @click="toggleActiveMode" :title="t('game.ui.tools.tools.change_mode')">
-                <span v-for="mode of toolModes" :style="mode.style" :key="mode.name">{{ mode.name }}</span>
+                <template v-if="!hasGameboard">
+                    <span v-for="mode of toolModes" :style="mode.style" :key="mode.name">{{ mode.name }}</span>
+                </template>
             </div>
         </div>
         <div>

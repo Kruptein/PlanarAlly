@@ -2,10 +2,13 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { coreStore } from "../../../../store/core";
 import { playerSettingsSystem } from "../../../systems/settings/players";
 import { playerSettingsState } from "../../../systems/settings/players/state";
 
 const { t } = useI18n();
+
+const hasGameboard = coreStore.state.boardId !== undefined;
 
 const { reactive: $ } = playerSettingsState;
 const pss = playerSettingsSystem;
@@ -61,6 +64,9 @@ const ppi = computed({
 
 <template>
     <div class="panel restore-panel">
+        <div v-if="hasGameboard" style="grid-column: 1/-1">
+            <em>Most display settings are hardcoded based on the detected device (last-gameboard).</em>
+        </div>
         <div class="row">
             <label for="useHighDpi">{{ t("game.ui.settings.client.DisplaySettings.use_high_dpi") }}</label>
             <div><input id="useHighDpi" type="checkbox" v-model="useHighDpi" /></div>
@@ -81,7 +87,9 @@ const ppi = computed({
             <label for="useAsPhysicalBoard">
                 {{ t("game.ui.settings.client.DisplaySettings.use_as_physical_gameboard") }}
             </label>
-            <div><input id="useAsPhysicalBoard" type="checkbox" v-model="useAsPhysicalBoard" /></div>
+            <div>
+                <input id="useAsPhysicalBoard" type="checkbox" v-model="useAsPhysicalBoard" :disabled="hasGameboard" />
+            </div>
             <template v-if="$.useAsPhysicalBoard.override !== undefined">
                 <div :title="t('game.ui.settings.common.reset_default')" @click="useAsPhysicalBoard = undefined">
                     <font-awesome-icon icon="times-circle" />
@@ -116,7 +124,7 @@ const ppi = computed({
         <div class="row" :class="{ 'row-disabled': !useAsPhysicalBoard }">
             <label for="ppi">{{ t("game.ui.settings.client.DisplaySettings.ppi") }}</label>
             <div>
-                <input id="ppi" type="number" v-model="ppi" :disabled="!useAsPhysicalBoard" />
+                <input id="ppi" type="number" v-model="ppi" :disabled="!useAsPhysicalBoard || hasGameboard" />
             </div>
             <template v-if="$.ppi.override !== undefined">
                 <div :title="t('game.ui.settings.common.reset_default')" @click="ppi = undefined">

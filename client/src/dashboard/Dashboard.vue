@@ -1,371 +1,177 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from "vue";
+import { onMounted, ref, watchEffect } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
-import LanguageDropdown from "../core/components/LanguageDropdown.vue";
-import { baseAdjust, http } from "../core/http";
-import { useModal } from "../core/plugins/modals/plugin";
-import { getErrorReason } from "../core/utils";
+import { getStaticImg } from "../core/http";
 
-import AccountSettings from "./AccountSettings.vue";
-import CreateCampaign from "./CreateCampaign.vue";
-import ImportGame from "./ImportGame.vue";
-import SessionList from "./SessionList.vue";
-import { socket } from "./socket";
-import { Navigation } from "./types";
-import type { NavigationEntry, RoomInfo } from "./types";
+import Assets from "./Assets.vue";
+import Games from "./Games.vue";
 
-enum NavigationMode {
-    Main,
-    Settings,
-}
-
-interface DashboardState {
-    showLanguageDropdown: boolean;
-    owned: RoomInfo[];
-    joined: RoomInfo[];
-    error: string;
-    activeNavigation: Navigation;
-    exportEnabled: boolean;
-}
-
-const state: DashboardState = reactive({
-    showLanguageDropdown: false,
-    owned: [],
-    joined: [],
-    error: "",
-    activeNavigation: Navigation.Play,
-    exportEnabled: false,
-});
-
-const modals = useModal();
 const route = useRoute();
 const router = useRouter();
 
-socket.on("Campaign.Import.Done", async () => {
-    await getRooms();
-    state.activeNavigation = Navigation.Run;
-});
+const activeSection = ref(0);
 
-socket.on("Export.Enabled", () => {
-    state.exportEnabled = true;
-});
-
-onMounted(async () => {
-    if (route.params?.error === "join_game") {
-        await modals.confirm(
-            "Failed to join session",
-            "It was not possible to join the game session. This might be because the DM has locked the session.",
-            { showNo: false, yes: "Ok" },
-        );
-    }
-
-    await getRooms();
-});
-
-async function getRooms(): Promise<void> {
-    const response = await http.get("/api/rooms");
-    if (response.ok) {
-        const data: { owned: RoomInfo[]; joined: RoomInfo[] } = await response.json();
-        state.owned = data.owned;
-        state.joined = data.joined;
-    } else {
-        state.error = await getErrorReason(response);
-    }
-}
-
-const mainNavigation: NavigationEntry[] = [
-    { text: "game", type: "header" },
-    { type: "action", navigation: Navigation.Play, fn: setActiveNavigation },
-    { type: "action", navigation: Navigation.Run, fn: setActiveNavigation },
-    { type: "action", navigation: Navigation.Create, fn: setActiveNavigation },
-    { type: "separator" },
-    { text: "assets", type: "header" },
-    { type: "action", navigation: Navigation.AssetManage, fn: openAssetManager },
-    { type: "action", navigation: Navigation.AssetCreate, fn: setActiveNavigation },
-    { type: "separator" },
-    { type: "action", navigation: Navigation.Settings, fn: toggleNavigation },
-    { type: "separator" },
-    { type: "action", navigation: Navigation.Logout, fn: logout },
+type Section = { nav: string; component: any; router: string };
+const sections: Section[] = [
+    {
+        nav: "GAMES",
+        component: Games,
+        router: "dashboard",
+    },
+    {
+        nav: "ASSETS",
+        component: Assets,
+        router: "assets",
+    },
 ];
 
-const settingsNavigation: NavigationEntry[] = [
-    { text: "settings", type: "header" },
-    { type: "action", navigation: Navigation.Account, fn: setActiveNavigation },
-    { type: "separator" },
-    { type: "action", navigation: Navigation.Back, fn: toggleNavigation },
-];
+function isActiveSection(section: Section): boolean {
+    return sections[activeSection.value].nav === section.nav;
+}
 
-const activeNavigation = ref(NavigationMode.Main);
-const navigation = computed(() => {
-    if (activeNavigation.value === NavigationMode.Main) {
-        if (state.exportEnabled) {
-            return [
-                ...mainNavigation.slice(0, 4),
-                { type: "action", navigation: Navigation.Import, fn: setActiveNavigation },
-                ...mainNavigation.slice(4),
-            ] as NavigationEntry[];
-        }
-        return mainNavigation;
+async function activate(section: Section): Promise<void> {
+    activeSection.value = sections.findIndex((s) => s.nav === section.nav);
+    await router.push({ name: section.router });
+}
+
+watchEffect(() => {
+    if (route.name !== sections[activeSection.value].router) {
+        activeSection.value = sections.findIndex((s) => s.router === route.name);
     }
-    return settingsNavigation;
 });
 
-const navigationTranslation: Record<Navigation, string> = {
-    [Navigation.Play]: "play",
-    [Navigation.Run]: "run",
-    [Navigation.Create]: "create",
-    [Navigation.Import]: "import",
-    [Navigation.Settings]: "settings",
-    [Navigation.AssetManage]: "manage",
-    [Navigation.AssetCreate]: "create",
-    [Navigation.Logout]: "logout",
+onMounted(() => {
+    if (route.name === "assets") activeSection.value = 1;
+});
 
-    [Navigation.Account]: "account",
-    [Navigation.Back]: "back",
-};
-
-function setActiveNavigation(navigationIndex: Navigation): void {
-    if (navigationIndex === Navigation.Run && state.owned.length === 0) navigationIndex = Navigation.Create;
-    state.activeNavigation = navigationIndex;
-}
-
-function toggleNavigation(): void {
-    if (activeNavigation.value === NavigationMode.Main) {
-        activeNavigation.value = NavigationMode.Settings;
-    } else {
-        activeNavigation.value = NavigationMode.Main;
-    }
-}
-
-async function openAssetManager(): Promise<void> {
-    await router.push("/assets");
-}
+const backgroundImage = `url(${getStaticImg("background-borderless.png")})`;
 
 async function logout(): Promise<void> {
     await router.push("/auth/logout");
 }
-
-function leaveRoom(index: number): void {
-    state.joined.splice(index, 1);
-}
-
-function rename(index: number, name: string): void {
-    state.owned[index].name = name;
-}
-
-function removeRoom(index: number): void {
-    state.owned.splice(index, 1);
-}
-
-function updateLogo(index: number, logo: string): void {
-    state.owned[index].logo = logo;
-}
 </script>
 
 <template>
-    <div id="page">
-        <SessionList
-            v-if="state.activeNavigation === Navigation.Play"
-            :sessions="state.joined"
-            :dmMode="false"
-            :exportEnabled="state.exportEnabled"
-            @remove-room="leaveRoom"
-        />
-        <SessionList
-            v-else-if="state.activeNavigation === Navigation.Run"
-            :sessions="state.owned"
-            :dmMode="true"
-            :exportEnabled="state.exportEnabled"
-            @rename="rename"
-            @remove-room="removeRoom"
-            @update-logo="updateLogo"
-        />
-        <ImportGame v-else-if="state.activeNavigation === Navigation.Import" />
-        <CreateCampaign v-else-if="state.activeNavigation === Navigation.Create" />
-        <AccountSettings v-else-if="state.activeNavigation === Navigation.Account" />
-        <div v-else id="not-implemented">
-            <img :src="baseAdjust('/static/img/d20-fail.svg')" />
-            <div class="padding bold">OOF, That's a critical one!</div>
-            <div>This feature is still in development,</div>
-            <div>come back later!</div>
-        </div>
-
-        <div id="nav-panel">
-            <div id="language-selector">
-                <font-awesome-icon icon="language" @click="state.showLanguageDropdown = !state.showLanguageDropdown" />
-            </div>
-            <LanguageDropdown id="language-dropdown" v-if="state.showLanguageDropdown" />
-            <div id="logo">
-                <img :src="baseAdjust('/static/favicon.png')" alt="PA logo" />
-            </div>
-            <nav>
-                <template v-for="nav of navigation">
-                    <div
-                        v-if="nav.type === 'action'"
-                        :key="nav.navigation"
-                        @click="nav.fn(nav.navigation)"
-                        :class="{
-                            selected: state.activeNavigation === nav.navigation,
-                        }"
-                    >
-                        {{ navigationTranslation[nav.navigation] }}
-                    </div>
-                    <div v-else-if="nav.type === 'header'" :key="nav.text" class="header">
-                        {{ nav.text }}
-                    </div>
-                    <div v-else class="separator" :key="nav.type"></div>
-                </template>
-            </nav>
-        </div>
+    <div style="width: 100%">
+        <div id="background" :style="{ backgroundImage }"></div>
+        <main>
+            <section id="sidebar">
+                <img id="icon" :src="getStaticImg('pa_game_icon.png')" alt="PlanarAlly logo" />
+                <nav>
+                    <template v-for="section of sections" :key="section.nav">
+                        <div
+                            class="nav-item"
+                            :class="{ 'nav-active': isActiveSection(section) }"
+                            @click="activate(section)"
+                        >
+                            {{ section.nav }}
+                        </div>
+                    </template>
+                    <div style="flex-grow: 1; height: 10.4rem"></div>
+                    <button @click="logout">
+                        <img :src="getStaticImg('cross.svg')" alt="Cross" />
+                        LOG OUT
+                    </button>
+                </nav>
+            </section>
+            <Games v-if="activeSection === 0" />
+            <Assets v-else-if="activeSection === 1" />
+        </main>
     </div>
 </template>
 
 <style scoped lang="scss">
-* {
-    box-sizing: border-box;
-}
-
-#page {
-    display: grid;
-    grid-template-areas: "nav content";
-    --primary: #7c253e;
-    --secondary: #9c455e;
-    --primaryBG: rgb(43, 43, 43);
-    --secondaryBG: #c4c4c4;
-    background-color: var(--secondaryBG);
-    grid-template-columns: 20vw minmax(0, 1fr);
+#background {
+    position: fixed;
+    height: 100vh;
     width: 100%;
+    background-size: cover;
 }
 
-#not-implemented {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
+main {
+    $margin: 2.5rem;
 
-    background-color: #7c253e;
-    color: white;
-
-    margin: auto;
-    padding: 50px;
-
-    font-size: 20px;
-
-    > div {
-        padding-bottom: 10px;
-    }
-
-    .bold {
-        font-weight: bold;
-    }
-
-    .padding {
-        padding-bottom: 20px;
-    }
-
-    img {
-        filter: invert(100%) sepia(0%) saturate(6492%) hue-rotate(348deg) brightness(107%) contrast(99%);
-        width: 10vw;
-    }
-}
-
-#nav-panel {
-    grid-area: nav;
-    background-color: rgb(43, 43, 43);
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 5em;
-
-    box-shadow: -10px 0 50px rgb(43, 43, 43);
-}
-
-#logo {
-    height: 12vw;
     position: relative;
-
-    img {
-        height: 10vw;
-        position: relative;
-    }
-
-    &::before {
-        content: "";
-        background-color: white;
-        position: absolute;
-        left: calc(50% - 6.1vw);
-        top: calc(50% - 7vw);
-        width: 12vw;
-        height: 12vw;
-        border-radius: 6vw;
-    }
-}
-
-#language-selector {
-    position: absolute;
-    top: 0;
-    left: 25px;
-    font-size: 40px;
-    color: white;
-}
-
-#language-dropdown {
-    position: absolute;
-    top: 50px;
-    left: 20px;
-    margin-right: -20px;
-}
-
-nav {
     display: flex;
-    flex-direction: column;
-    justify-content: space-around;
 
-    // align-self: flex-end;
-    margin-top: 2em;
-    align-items: center;
+    width: calc(100vw - (100vw - 100%) - 2 * $margin); // (100vw - 100%) is to account for scrollbar
 
     color: white;
-    font-weight: bold;
-    font-size: 25px;
+    background-color: rgba(0, 0, 0, 0.6);
 
-    div {
-        text-align: center;
-        width: 20vw;
-        // padding-left: 2em;
-        // padding-right: 3em;
-        padding-top: 5px;
-        padding-bottom: 5px;
+    margin: $margin;
+    padding: $margin;
+    border-radius: 40px;
 
-        text-transform: capitalize;
+    #sidebar {
+        width: 16.25rem;
+        margin-right: calc(2 * $margin);
+        display: flex;
+        flex-direction: column;
 
-        &:hover:not(.header):not(.separator) {
-            cursor: pointer;
-            color: black;
-            background-color: white;
+        #icon {
+            margin-bottom: $margin;
+        }
+
+        nav {
+            background-color: rgba(77, 0, 21, 0.8);
+            border-radius: 20px;
+            padding: 1.875rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            .nav-item {
+                color: white;
+                font-size: 1.5rem;
+                margin-bottom: 1.875rem;
+                font-weight: bold;
+                border-bottom: 5px solid transparent;
+                padding: 0 1.5rem;
+            }
+
+            .nav-active,
+            .nav-item:hover {
+                border-bottom: 5px solid #ffa8bf;
+                cursor: pointer;
+            }
+
+            .nav-data {
+                justify-self: flex-start;
+                width: 100%;
+                margin-bottom: 0.3rem;
+                display: flex;
+                align-items: center;
+                font-size: 1.125rem;
+                line-height: 1.75rem;
+
+                > span:first-child {
+                    color: #ffa8bf;
+                    margin-right: 0.3rem;
+                }
+            }
+
+            button {
+                margin-top: 1.25rem;
+                width: 100%;
+                height: 2.5rem;
+                color: white;
+                font-size: 1.125rem;
+                background-color: rgba(137, 0, 37, 1);
+                border: 3px solid rgba(219, 0, 59, 1);
+                border-radius: 5px;
+                box-shadow: 0 0 10px 0 rgba(6, 6, 6, 0.5);
+
+                display: flex;
+                align-items: center;
+                justify-content: center;
+
+                &:hover {
+                    cursor: pointer;
+                }
+            }
         }
     }
-
-    .header {
-        // padding-left: 0;
-        font-style: italic;
-        text-transform: uppercase;
-    }
-
-    .separator {
-        margin-bottom: 25px;
-    }
-
-    .selected {
-        color: black;
-        background-color: white;
-    }
-}
-
-.black {
-    color: rgb(43, 43, 43);
 }
 </style>

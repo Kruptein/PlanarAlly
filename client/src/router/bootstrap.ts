@@ -2,13 +2,12 @@ import type { RouteRecordRaw } from "vue-router";
 
 import Login from "../auth/Login.vue";
 import { Logout } from "../auth/logout";
-import Dashboard from "../dashboard/Dashboard.vue";
 import Invitation from "../invitation";
 
 import { router } from ".";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const AssetManager = () => import("../assetManager/AssetManager.vue");
+const Dashboard = () => import("../dashboard/Dashboard.vue");
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const Game = () => import("../game/Game.vue");
 
@@ -19,7 +18,7 @@ const routes: Array<RouteRecordRaw> = [
     },
     {
         path: "/assets/:folder*",
-        component: AssetManager,
+        component: Dashboard,
         name: "assets",
         meta: {
             auth: true,

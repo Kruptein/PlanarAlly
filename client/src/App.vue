@@ -12,7 +12,6 @@ const webmError = ref(false);
 const webmStart = 2 * Math.floor(Math.random() * 5);
 
 const loading = computed(() => coreStore.state.loading);
-const backgroundImage = `url('${import.meta.env.BASE_URL}static/img/login_background.png')`;
 
 watch(
     () => route.name,
@@ -29,7 +28,7 @@ watch(
 </script>
 
 <template>
-    <div id="app" :style="{ backgroundImage }">
+    <div id="app">
         <div id="loading" v-if="transitionName === '' && loading">
             <video
                 v-if="!webmError"
@@ -58,6 +57,22 @@ watch(
     src: local("OpenSans"), url("./core/fonts/OpenSans-Regular.ttf") format("truetype");
 }
 
+* {
+    box-sizing: border-box;
+}
+
+@media (width: 2560px) and (height: 2560px) {
+    html {
+        font-size: calc(100% * 4 / 3);
+    }
+}
+
+@media (max-device-width: 1024px) {
+    html {
+        font-size: calc(100% * 2 / 3);
+    }
+}
+
 body {
     overscroll-behavior: contain;
 }
@@ -68,8 +83,8 @@ body,
     margin: 0;
     padding: 0;
     border: 0;
-    width: 100%;
-    height: 100%;
+    min-width: 100%;
+    min-height: 100%;
     font-family: "Open Sans", sans-serif;
     font-weight: 200;
 

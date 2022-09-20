@@ -3,6 +3,10 @@ export function baseAdjust(url: string): string {
     return import.meta.env.BASE_URL + url;
 }
 
+export function getStaticImg(img: string): string {
+    return baseAdjust(`/static/img/${img}`);
+}
+
 export const http = {
     delete: _delete,
     get,

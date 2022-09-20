@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="60"
+   height="60"
+   viewBox="0 0 60 60"
+   version="1.1"
+   id="svg24"
+   sodipodi:docname="delete_selection.svg"
+   inkscape:version="1.1.2 (b8e25be833, 2022-02-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview26"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     showgrid="false"
+     inkscape:zoom="14.55"
+     inkscape:cx="30"
+     inkscape:cy="30.034364"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="2552"
+     inkscape:window-y="352"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g20" />
+  <defs
+     id="defs4">
+    <style
+       id="style2">.a{fill:#db003b;}.b,.c,.d{fill:none;}.b,.c{stroke:#db003b;stroke-width:3px;}.c{stroke-linecap:round;}.e{stroke:none;}</style>
+  </defs>
+  <g
+     transform="translate(-4 4.649)"
+     id="g20">
+    <path
+       class="a"
+       d="M6,36.469a3.927,3.927,0,0,1-4-3.84V7.677A1.964,1.964,0,0,1,0,5.758V3.839A3.925,3.925,0,0,1,4,0H32a3.925,3.925,0,0,1,4,3.839V5.758a1.963,1.963,0,0,1-2,1.919V32.629a3.925,3.925,0,0,1-4,3.84Zm-2-3.84A1.965,1.965,0,0,0,6,34.55H30a1.964,1.964,0,0,0,2-1.921V7.677H4ZM33,5.758A.981.981,0,0,0,34,4.8v-.96a1.962,1.962,0,0,0-2-1.919H4A1.963,1.963,0,0,0,2,3.839V4.8a.981.981,0,0,0,.961.959H4v0Z"
+       transform="translate(16 8.881)"
+       id="path6"
+       style="fill:#ffa8bf;fill-opacity:1" />
+    <g
+       class="b"
+       transform="translate(27.646 5.351)"
+       id="g12"
+       style="stroke:#ffa8bf;stroke-opacity:1">
+      <path
+         class="e"
+         d="M2,0h8.71a2,2,0,0,1,2,2V3.531a0,0,0,0,1,0,0H0a0,0,0,0,1,0,0V2A2,2,0,0,1,2,0Z"
+         id="path8"
+         style="stroke:#ffa8bf;stroke-opacity:1" />
+      <path
+         class="d"
+         d="M2,1.5h8.71a.5.5,0,0,1,.5.5v.031a0,0,0,0,1,0,0H1.5a0,0,0,0,1,0,0V2A.5.5,0,0,1,2,1.5Z"
+         id="path10"
+         style="stroke:#ffa8bf;stroke-opacity:1" />
+    </g>
+    <line
+       class="c"
+       y2="19.313"
+       transform="translate(24.409 20.598)"
+       id="line14"
+       style="stroke:#ffa8bf;stroke-opacity:1" />
+    <line
+       class="c"
+       y2="19.313"
+       transform="translate(34 20.598)"
+       id="line16"
+       style="stroke:#ffa8bf;stroke-opacity:1" />
+    <line
+       class="c"
+       y2="19.313"
+       transform="translate(43.592 20.598)"
+       id="line18"
+       style="stroke:#ffa8bf;stroke-opacity:1" />
+  </g>
+  <rect
+     class="d"
+     width="60"
+     height="60"
+     id="rect22" />
+</svg>

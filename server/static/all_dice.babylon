@@ -3,7 +3,7 @@
         "name": "Blender",
         "version": "2.92.0",
         "exporter_version": "2.80.1",
-        "file": "Babylon_test6.babylon"
+        "file": "all_dice.babylon"
     },
     "autoClear": true,
     "clearColor": [

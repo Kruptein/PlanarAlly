@@ -32,7 +32,7 @@ export async function loadDiceEnv(): Promise<DiceThrower> {
     const Ammo = (window as any).Ammo;
 
     diceThrower = new DiceThrower({ canvas, tresholds: { linear: 0.05, angular: 0.1 } });
-    await diceThrower.load("/static/babylon_test6.babylon", Ammo());
+    await diceThrower.load("/static/all_dice.babylon", Ammo());
 
     /*
      * Currently the camera looks in such a way that the x-axis goes from negative right to positive left
@@ -75,7 +75,8 @@ export async function loadDiceEnv(): Promise<DiceThrower> {
     (window as any).V3 = Vector3;
     (window as any).r = async (inp: string, options?: DieOptions[]): Promise<void> => {
         diceStore.setIsPending(true);
-        diceStore.setResults(await dndParser!.fromString(inp, options));
+        const results = await dndParser!.fromString(inp, options);
+        diceStore.setResults(results.key, results.data);
         diceStore.setIsPending(false);
         diceStore.setShowDiceResults(true);
     };
@@ -144,6 +145,11 @@ function loadDiceBox(scene: Scene): void {
         friction: 0.5,
     });
     new PhysicsImpostor(wall4, PhysicsImpostor.BoxImpostor, {
+        mass: 0,
+        restitution: 0.9,
+        friction: 0.5,
+    });
+    new PhysicsImpostor(roof, PhysicsImpostor.BoxImpostor, {
         mass: 0,
         restitution: 0.9,
         friction: 0.5,

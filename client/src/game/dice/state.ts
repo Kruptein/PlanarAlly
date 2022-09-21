@@ -10,7 +10,7 @@ const dice = () => import("@planarally/dice");
 interface DiceState {
     showUi: boolean;
     pending: boolean;
-    results: DndResult[];
+    results: Map<string, { position?: [number, number]; results: DndResult[] }>;
     dimensions: { width: number; height: number };
     loaded: boolean;
 }
@@ -23,7 +23,7 @@ class DiceStore extends Store<DiceState> {
         return {
             showUi: false,
             pending: false,
-            results: [],
+            results: new Map(),
             dimensions: { width: 0, height: 0 },
             loaded: false,
         };
@@ -55,8 +55,8 @@ class DiceStore extends Store<DiceState> {
         return this.dndParser;
     }
 
-    setResults(results: DndResult[]): void {
-        this._state.results = results;
+    setResults(key: string, results: DndResult[], position?: [number, number]): void {
+        this._state.results.set(key, { position, results });
     }
 
     setShowDiceResults(show: boolean): void {

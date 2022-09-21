@@ -16,6 +16,7 @@ import DefaultContext from "./contextmenu/DefaultContext.vue";
 import ShapeContext from "./contextmenu/ShapeContext.vue";
 import { showDefaultContextMenu, showShapeContextMenu } from "./contextmenu/state";
 import DiceResults from "./dice/DiceResults.vue";
+import LgDiceResults from "./dice/LgDiceResults.vue";
 import Floors from "./Floors.vue";
 import Initiative from "./initiative/Initiative.vue";
 import { initiativeStore } from "./initiative/state";
@@ -30,6 +31,8 @@ import ShapeSettings from "./settings/shape/ShapeSettings.vue";
 import CreateTokenDialog from "./tokendialog/CreateTokenDialog.vue";
 import { tokenDialogVisible } from "./tokendialog/state";
 import Tools from "./tools/Tools.vue";
+
+const hasGameboard = coreStore.state.boardId !== undefined;
 
 const uiEl = ref<HTMLDivElement | null>(null);
 
@@ -194,7 +197,8 @@ function setTempZoomDisplay(value: number): void {
         <ClientSettings />
         <SelectionInfo />
         <Annotation />
-        <DiceResults />
+        <template v-if="!hasGameboard"><DiceResults /></template>
+        <template v-else><LgDiceResults /></template>
         <div id="teleport-modals"></div>
         <MarkdownModal v-if="showChangelog" :title="t('game.ui.ui.new_ver_msg')" :source="changelogText" />
         <!-- When updating zoom boundaries, also update store updateZoom function;

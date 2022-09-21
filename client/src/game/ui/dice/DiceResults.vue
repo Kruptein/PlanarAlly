@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import Modal from "../../../core/components/modals/Modal.vue";
 import { diceStore } from "../../dice/state";
 
 const { t } = useI18n();
+
+const results = computed(() => [...diceStore.state.results.values()][0].results[0]);
 
 function close(): void {
     diceStore.setShowDiceResults(false);
@@ -30,10 +33,10 @@ function sum(data: readonly number[]): number {
                 <template v-if="diceStore.state.pending">
                     <div id="total">...</div>
                 </template>
-                <template v-else-if="diceStore.state.results.length > 0">
-                    <div id="total">{{ diceStore.state.results[0].total }}</div>
+                <template v-else-if="diceStore.state.results.size > 0">
+                    <div id="total">{{ results.total }}</div>
                     <div id="breakdown">
-                        <template v-for="result of diceStore.state.results[0].details.entries()" :key="result[0]">
+                        <template v-for="result of results.details.entries()" :key="result[0]">
                             <div v-if="result[1].type === 'dice'">
                                 <div class="input">{{ result[1].input }}</div>
                                 <div class="value">{{ sum(result[1].output) }}</div>

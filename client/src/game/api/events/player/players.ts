@@ -39,7 +39,7 @@ socket.on(
         for (const player of data) {
             for (const client of player.clients ?? []) {
                 clientSystem.addClient(player.core.id, client.sid);
-                if (client.viewport) clientSystem.setClientViewport(client.sid, client.viewport);
+                if (client.viewport) clientSystem.setClientViewport(client.sid, client.viewport, false);
             }
         }
     },

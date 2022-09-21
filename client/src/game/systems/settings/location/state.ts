@@ -4,28 +4,32 @@ import type { LocationOptions, WithDefault, WithLocationDefault } from "./models
 
 const init = <T>(x: T): WithLocationDefault<T> => ({ default: x, location: {}, value: x });
 
-const state = buildState<
-    { activeLocation: number } & { [key in keyof LocationOptions]: WithLocationDefault<LocationOptions[key]> }
->({
-    activeLocation: 0,
+type State = { activeLocation: number } & { [key in keyof LocationOptions]: WithLocationDefault<LocationOptions[key]> };
 
-    fowLos: init(false),
-    fowOpacity: init(0),
-    gridType: init("SQUARE"),
-    fullFow: init(false),
-    movePlayerOnTokenChange: init(false),
-    spawnLocations: init([]),
-    useGrid: init(false),
-    unitSize: init(5), // gridSize computed is not triggering on setDefault for some reason
-    unitSizeUnit: init("ft"),
-    visionMaxRange: init(0),
-    visionMinRange: init(0),
-    visionMode: init(""),
+function getInitState(): State {
+    return {
+        activeLocation: 0,
 
-    airMapBackground: init("none"),
-    groundMapBackground: init("none"),
-    undergroundMapBackground: init("none"),
-});
+        fowLos: init(false),
+        fowOpacity: init(0),
+        gridType: init("SQUARE"),
+        fullFow: init(false),
+        movePlayerOnTokenChange: init(false),
+        spawnLocations: init([]),
+        useGrid: init(false),
+        unitSize: init(5), // gridSize computed is not triggering on setDefault for some reason
+        unitSizeUnit: init("ft"),
+        visionMaxRange: init(0),
+        visionMinRange: init(0),
+        visionMode: init(""),
+
+        airMapBackground: init("none"),
+        groundMapBackground: init("none"),
+        undergroundMapBackground: init("none"),
+    };
+}
+
+const state = buildState<State>(getInitState());
 
 function getOption<T>(key: WithLocationDefault<T>, location: number | undefined): WithDefault<T> {
     if (location === undefined) return { value: key.default, default: key.default };
@@ -36,4 +40,11 @@ function getOption<T>(key: WithLocationDefault<T>, location: number | undefined)
 export const locationSettingsState = {
     ...state,
     getOption,
+    reset: () => {
+        const i = getInitState();
+        for (const key of Object.keys(i)) {
+            const a = key as keyof State;
+            state.mutableReactive[a] = i[a] as any; // typing cannot infer Key<>Value relation per key
+        }
+    },
 };

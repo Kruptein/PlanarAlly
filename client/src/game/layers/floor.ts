@@ -10,6 +10,8 @@ export function recalculateZIndices(): void {
             i += 1;
         }
     }
+    floorSystem.updateLayerVisibility();
+    floorSystem.invalidateAllFloors();
 }
 
 export function getPattern(pattern: string): BackgroundPattern | undefined {

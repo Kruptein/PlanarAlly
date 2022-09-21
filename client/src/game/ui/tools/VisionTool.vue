@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { CSSProperties } from "vue";
-import { computed, onMounted, ref } from "vue";
+import { computed } from "vue";
 
 import { getShape } from "../../id";
 import type { LocalId } from "../../id";
@@ -11,17 +10,7 @@ import { accessState } from "../../systems/access/state";
 import { getProperties } from "../../systems/properties/state";
 import { visionTool } from "../../tools/variants/vision";
 
-import { useToolPosition } from "./toolPosition";
-
-const right = ref("0px");
-const arrow = ref("0px");
-
 const selected = visionTool.isActiveTool;
-const toolStyle = computed(() => ({ "--detailRight": right.value, "--detailArrow": arrow.value } as CSSProperties));
-
-onMounted(() => {
-    ({ right: right.value, arrow: arrow.value } = useToolPosition(visionTool.toolName));
-});
 
 const tokens = computed(() => [...accessState.reactive.ownedTokens].map((t) => getShape(t)!));
 const selection = computed(() => {
@@ -43,7 +32,7 @@ function getImageSrc(token: IShape): string {
 </script>
 
 <template>
-    <div class="tool-detail" v-if="selected" :style="toolStyle">
+    <div class="tool-detail" v-if="selected">
         <div
             v-for="token in tokens"
             :key="token.id"

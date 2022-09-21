@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import type { CSSProperties } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -17,18 +17,14 @@ import MapTool from "./MapTool.vue";
 import RulerTool from "./RulerTool.vue";
 import SelectTool from "./SelectTool.vue";
 import SpellTool from "./SpellTool.vue";
+import { useToolPosition } from "./toolPosition";
 import VisionTool from "./VisionTool.vue";
 
 const { t } = useI18n();
 
-function isToolVisible(tool: ToolName): boolean {
-    if (tool === ToolName.Filter) {
-        return getGameState().labels.size > 0;
-    } else if (tool === ToolName.Vision) {
-        return accessState.raw.ownedTokens.size > 1;
-    }
-    return true;
-}
+const detailBottom = computed(() => (playerSettingsState.reactive.useToolIcons.value ? "7.8rem" : "6.6rem"));
+const detailRight = ref("0px");
+const detailArrow = ref("0px");
 
 const visibleTools = computed(() => {
     {
@@ -47,6 +43,32 @@ const visibleTools = computed(() => {
         return tools;
     }
 });
+
+watch(
+    [() => playerSettingsState.reactive.useToolIcons.value, activeTool, activeToolMode, visibleTools],
+    () => {
+        console.log(visibleTools.value);
+        updateDetails();
+    },
+    { flush: "post" },
+);
+
+onMounted(() => updateDetails());
+
+function updateDetails(): void {
+    const pos = useToolPosition(activeTool.value);
+    detailRight.value = pos.right;
+    detailArrow.value = pos.arrow;
+}
+
+function isToolVisible(tool: ToolName): boolean {
+    if (tool === ToolName.Filter) {
+        return getGameState().labels.size > 0;
+    } else if (tool === ToolName.Vision) {
+        return accessState.raw.ownedTokens.size > 1;
+    }
+    return true;
+}
 
 function getStyle(tool: ToolMode): CSSProperties {
     if (tool === activeToolMode.value) {
@@ -74,7 +96,10 @@ const toolModes = computed(() => {
 </script>
 
 <template>
-    <div id="tools">
+    <div
+        id="tools"
+        :style="{ '--detailBottom': detailBottom, '--detailRight': detailRight, '--detailArrow': detailArrow }"
+    >
         <div id="toolselect">
             <ul>
                 <li
@@ -203,7 +228,7 @@ const toolModes = computed(() => {
 .tool-detail {
     position: absolute;
     right: var(--detailRight);
-    bottom: 105px;
+    bottom: var(--detailBottom);
     /* width: 150px; */
     border: solid 1px #2b2b2b;
     background-color: white;

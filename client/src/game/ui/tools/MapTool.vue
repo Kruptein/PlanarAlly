@@ -1,14 +1,11 @@
 <script setup lang="ts">
-import type { CSSProperties } from "vue";
-import { computed, onMounted, reactive, watchEffect } from "vue";
+import { reactive, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { getShape } from "../../id";
 import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
 import { selectedSystem } from "../../systems/selected";
 import { mapTool } from "../../tools/variants/map";
-
-import { useToolPosition } from "./toolPosition";
 
 const { t } = useI18n();
 
@@ -22,11 +19,6 @@ const state = reactive({
 const selected = mapTool.isActiveTool;
 const removeRect = (): void => mapTool.removeRect();
 const skipManualDrag = (): void => mapTool.skipManualDrag();
-const toolStyle = computed(() => ({ "--detailRight": state.right, "--detailArrow": state.arrow } as CSSProperties));
-
-onMounted(() => {
-    ({ right: state.right, arrow: state.arrow } = useToolPosition(mapTool.toolName));
-});
 
 watchEffect(() => {
     if (state.lock) {
@@ -89,7 +81,7 @@ function updateSizeY(): void {
 }
 </script>
 <template>
-    <div class="tool-detail map" v-if="selected" :style="toolStyle">
+    <div class="tool-detail map" v-if="selected">
         <template v-if="mapTool.state.hasShape">
             <div class="row">{{ mapTool.state.error }}</div>
             <template v-if="!mapTool.state.hasRect && mapTool.state.manualDrag === true">

@@ -1,21 +1,14 @@
 <script setup lang="ts">
-import type { CSSProperties } from "vue";
-import { computed, onMounted, ref, watch } from "vue";
+import { onMounted, watch } from "vue";
 
 import type { Polygon } from "../../shapes/variants/polygon";
 import { selectedSystem } from "../../systems/selected";
 import { selectTool } from "../../tools/variants/select";
 import { selectToolState } from "../../tools/variants/select/state";
 
-import { useToolPosition } from "./toolPosition";
-
-const right = ref("0px");
-const arrow = ref("0px");
-
 const { $, _$ } = selectToolState;
 
 const selected = selectTool.isActiveTool;
-const toolStyle = computed(() => ({ "--detailRight": right.value, "--detailArrow": arrow.value } as CSSProperties));
 
 const polygonUiLeft = $.polygonUiLeft;
 const polygonUiTop = $.polygonUiTop;
@@ -25,7 +18,6 @@ const polygonUiSizeX = $.polygonUiSizeX;
 const polygonUiSizeY = $.polygonUiSizeY;
 
 onMounted(() => {
-    ({ right: right.value, arrow: arrow.value } = useToolPosition(selectTool.toolName));
     selectTool.checkRuler();
     watch(selectedSystem.$, () => {
         selectTool.resetRotationHelper();
@@ -61,7 +53,7 @@ function removePoint(): void {
         <div @click="cutPolygon"><font-awesome-icon icon="cut" /></div>
     </div>
 
-    <div id="ruler" class="tool-detail" v-if="selected && $.hasSelection" :style="toolStyle">
+    <div id="ruler" class="tool-detail" v-if="selected && $.hasSelection">
         <button @click="toggleShowRuler" :aria-pressed="$.showRuler">Show ruler</button>
     </div>
 </template>

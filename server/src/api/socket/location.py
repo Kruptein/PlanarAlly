@@ -168,7 +168,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
 
     await sio.emit("Location.Set", location_data, room=sid, namespace=GAME_NS)
 
-    # 4. Load all location settings (DM)
+    # 4. Load location settings
 
     if complete and IS_DM:
         await sio.emit(
@@ -179,6 +179,20 @@ async def load_location(sid: str, location: Location, *, complete=False):
                 "locations": {
                     l.id: {} if l.options is None else l.options.as_dict()
                     for l in pr.room.locations
+                },
+            },
+            room=sid,
+            namespace=GAME_NS,
+        )
+    elif not IS_DM:
+        loc = pr.active_location
+        await sio.emit(
+            "Locations.Settings.Set",
+            {
+                "default": pr.room.default_options.as_dict(),
+                "active": location_data["id"],
+                "locations": {
+                    loc.id: {} if loc.options is None else loc.options.as_dict()
                 },
             },
             room=sid,

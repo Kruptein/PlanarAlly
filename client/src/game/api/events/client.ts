@@ -27,7 +27,7 @@ socket.on("Client.Move", (data: { player: PlayerId; client: ClientId } & ServerU
 });
 
 socket.on("Client.Viewport.Set", (data: { client: ClientId; viewport: Viewport }) => {
-    clientSystem.setClientViewport(data.client, data.viewport);
+    clientSystem.setClientViewport(data.client, data.viewport, true);
 });
 
 socket.on("Client.Offset.Set", (data: { client: ClientId } & { x?: number; y?: number }) => {

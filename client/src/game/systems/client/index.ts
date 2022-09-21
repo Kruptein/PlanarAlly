@@ -151,9 +151,9 @@ class ClientSystem implements System {
         return polygon;
     }
 
-    setClientViewport(client: ClientId, viewport: Viewport): void {
+    setClientViewport(client: ClientId, viewport: Viewport, update: boolean): void {
         $.clientViewports.set(client, viewport);
-        this.updateClientRect(client);
+        if (update) this.updateClientRect(client);
     }
 
     moveClient(rectUuid: LocalId): void {

@@ -11,11 +11,11 @@ import { isDefaultWrapper } from "./helpers";
 import type { WithLocationDefault } from "./models";
 import { locationSettingsState } from "./state";
 
-const { mutableReactive: $, raw } = locationSettingsState;
+const { mutableReactive: $, raw, reset } = locationSettingsState;
 
 class LocationSettingsSystem implements System {
     clear(partial: boolean): void {
-        //
+        if (!partial) reset();
     }
 
     private resetValue(setting: WithLocationDefault<unknown>): void {

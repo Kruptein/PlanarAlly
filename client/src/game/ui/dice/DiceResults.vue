@@ -7,10 +7,14 @@ import { diceStore } from "../../dice/state";
 
 const { t } = useI18n();
 
-const results = computed(() => [...diceStore.state.results.values()][0].results[0]);
+const results = computed(() => {
+    const key = diceStore.state.showKey;
+    if (key === undefined) return { total: 0, details: [] };
+    return diceStore.state.results.get(key)?.results[0] ?? { total: 0, details: [] };
+});
 
 function close(): void {
-    diceStore.setShowDiceResults(false);
+    diceStore.setShowDiceResults(undefined);
 }
 
 function sum(data: readonly number[]): number {
@@ -19,7 +23,7 @@ function sum(data: readonly number[]): number {
 </script>
 
 <template>
-    <Modal :visible="diceStore.state.showUi" @close="close" :mask="false">
+    <Modal :visible="diceStore.state.showKey !== undefined" @close="close" :mask="false">
         <template v-slot:header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 <div>Dice Results</div>

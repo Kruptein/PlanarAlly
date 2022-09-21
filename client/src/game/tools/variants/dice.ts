@@ -35,9 +35,9 @@ class DiceTool extends Tool {
     constructor() {
         super();
         watch(
-            () => diceStore.state.showUi,
-            async (showUi) => {
-                if (!showUi) {
+            () => diceStore.state.showKey,
+            async (showKey) => {
+                if (showKey === undefined) {
                     (await diceStore.getDiceThrower()).reset();
                 }
             },
@@ -57,7 +57,7 @@ class DiceTool extends Tool {
     async roll(
         inp: string,
         options?: { color?: string; startPosition?: [number, number]; throwKey: string },
-    ): Promise<number> {
+    ): Promise<string> {
         if (!hasGameboard) diceStore.setIsPending(true);
         const xDir = Math.random();
         const yDir = Math.random();
@@ -120,16 +120,11 @@ class DiceTool extends Tool {
         diceStore.setResults(results.key, results.data, options?.startPosition);
         if (!hasGameboard) {
             diceStore.setIsPending(false);
-            diceStore.setShowDiceResults(true);
+            diceStore.setShowDiceResults(results.key);
         }
         setTimeout(async () => (await diceStore.getDiceThrower()).reset(results.key), 10_000);
 
-        let total = 0;
-        for (const result of results.data) {
-            total += result.total;
-        }
-
-        return total;
+        return results.key;
     }
 
     addShadow(die: Dice, mesh: Mesh): void {

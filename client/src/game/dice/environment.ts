@@ -78,7 +78,7 @@ export async function loadDiceEnv(): Promise<DiceThrower> {
         const results = await dndParser!.fromString(inp, options);
         diceStore.setResults(results.key, results.data);
         diceStore.setIsPending(false);
-        diceStore.setShowDiceResults(true);
+        diceStore.setShowDiceResults(results.key);
     };
 
     return diceThrower;

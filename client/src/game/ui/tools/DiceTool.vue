@@ -3,6 +3,7 @@ import { computed, nextTick, ref, watch } from "vue";
 
 import { coreStore } from "../../../store/core";
 import { sendDiceRollResult } from "../../api/emits/dice";
+import { diceStore } from "../../dice/state";
 import { diceTool } from "../../tools/variants/dice";
 
 const button = ref<HTMLButtonElement | null>(null);
@@ -47,7 +48,8 @@ const diceText = computed(() => {
 });
 
 async function reroll(roll: string): Promise<void> {
-    const result = await diceTool.roll(roll);
+    const key = await diceTool.roll(roll);
+    const result = diceStore.getTotal(key);
     diceTool.state.history.push({ roll, result, player: coreStore.state.username });
     sendDiceRollResult({
         player: coreStore.state.username,
@@ -61,7 +63,8 @@ async function go(): Promise<void> {
     clearTimeout(timeout);
     button.value?.classList.remove("transition");
     const roll = diceText.value;
-    const result = await diceTool.roll(roll);
+    const key = await diceTool.roll(roll);
+    const result = diceStore.getTotal(key);
     diceTool.state.history.push({ roll, result, player: coreStore.state.username });
     sendDiceRollResult({
         player: coreStore.state.username,

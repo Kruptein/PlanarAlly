@@ -55,6 +55,7 @@ const changelogText = computed(() =>
 const releaseVersion = computed(() => coreState.version.release);
 
 const showChangelog = computed(() => {
+    if (hasGameboard) return false;
     const version = localStorage.getItem("last-version");
     if (version !== coreState.version.release) {
         localStorage.setItem("last-version", coreState.version.release);

@@ -8,7 +8,7 @@ const env = () => import("./environment");
 const dice = () => import("@planarally/dice");
 
 interface DiceState {
-    showUi: boolean;
+    showKey: string | undefined;
     pending: boolean;
     results: Map<string, { position?: [number, number]; results: DndResult[] }>;
     dimensions: { width: number; height: number };
@@ -21,7 +21,7 @@ class DiceStore extends Store<DiceState> {
 
     protected data(): DiceState {
         return {
-            showUi: false,
+            showKey: undefined,
             pending: false,
             results: new Map(),
             dimensions: { width: 0, height: 0 },
@@ -55,12 +55,20 @@ class DiceStore extends Store<DiceState> {
         return this.dndParser;
     }
 
+    getTotal(key: string): number {
+        let result = 0;
+        for (const data of this._state.results.get(key)?.results ?? []) {
+            result += data.total;
+        }
+        return result;
+    }
+
     setResults(key: string, results: DndResult[], position?: [number, number]): void {
         this._state.results.set(key, { position, results });
     }
 
-    setShowDiceResults(show: boolean): void {
-        this._state.showUi = show;
+    setShowDiceResults(key: string | undefined): void {
+        this._state.showKey = key;
     }
 
     setIsPending(pending: boolean): void {

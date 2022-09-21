@@ -10,6 +10,7 @@ def load_socket_commands():
         groups,
         initiative,
         label,
+        lg,
         location,
         logic,
         marker,

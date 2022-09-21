@@ -296,6 +296,22 @@ async def load_location(sid: str, location: Location, *, complete=False):
             namespace=GAME_NS,
         )
 
+    # 11. Sync Gameboards
+
+    for psid in game_state.get_sids(active_location=pr.active_location):
+        if psid in game_state.client_gameboards:
+            board_id = game_state.client_gameboards[psid]
+            if IS_DM or sid == psid:
+                await sio.emit(
+                    "Client.Gameboard.Set",
+                    {
+                        "client": psid,
+                        "boardId": board_id,
+                    },
+                    room=sid,
+                    namespace=GAME_NS,
+                )
+
 
 @sio.on("Location.Change", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")

@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { CSSProperties } from "vue";
-import { computed, onMounted, reactive } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import Accordion from "../../../core/components/Accordion.vue";
@@ -9,21 +8,9 @@ import { gameStore } from "../../../store/game";
 import type { Label } from "../../interfaces/label";
 import { filterTool } from "../../tools/variants/filter";
 
-import { useToolPosition } from "./toolPosition";
-
 const { t } = useI18n();
 
-const state = reactive({
-    arrow: "0px",
-    right: "0px",
-});
-
 const selected = filterTool.isActiveTool;
-const toolStyle = computed(() => ({ "--detailRight": state.right, "--detailArrow": state.arrow } as CSSProperties));
-
-onMounted(() => {
-    ({ right: state.right, arrow: state.arrow } = useToolPosition(filterTool.toolName));
-});
 
 const categories = computed(() => {
     const cat: Map<string, Label[]> = new Map();
@@ -72,7 +59,7 @@ function getCategoryInitValues(category: string): string[] {
 </script>
 
 <template>
-    <div class="tool-detail" v-if="selected" :style="toolStyle">
+    <div class="tool-detail" v-if="selected">
         <div id="accordion-container">
             <Accordion
                 v-for="[category, labels] of categories"

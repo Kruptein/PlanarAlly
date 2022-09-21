@@ -52,6 +52,7 @@ tech changes will usually be stripped from release notes for the public
     -   Modification of the initiative should retain the current active actor under more circumstances
 -   In-game AssetPicker modal UI fixes
 -   Prompt modal not clearing error message properly
+-   Tool details not always being in the correct location (e.g. when changing mode)
 
 ## [2022.2.3] - 2022-07-13
 

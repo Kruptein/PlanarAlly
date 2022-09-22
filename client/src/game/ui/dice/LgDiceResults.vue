@@ -45,7 +45,7 @@ function getTotalRoll(results: DeepReadonly<DndResult[]>): number {
         :key="key"
         :style="getPosition(position)"
     >
-        <img :src="baseAdjust('/static/img/d20-shelf.svg')" />
+        <img :src="baseAdjust('/static/img/d20-shelf.svg')" alt="D20 result icon" />
         <span>{{ getTotalRoll(results) }}</span>
     </div>
 </template>

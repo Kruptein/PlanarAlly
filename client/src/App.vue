@@ -4,15 +4,18 @@ import { computed, ref } from "vue";
 import { baseAdjust } from "./core/http";
 import { coreStore } from "./store/core";
 
+const hasGameboard = coreStore.state.boardId !== undefined;
+
 const webmError = ref(false);
-const webmStart = 2 * Math.floor(Math.random() * 5);
+const webmStart = hasGameboard ? 0 : 2 * Math.floor(Math.random() * 5);
+const webmPath = baseAdjust("/static/img/loading.webm" + (hasGameboard ? "" : `#t=${webmStart}`));
 
 const loading = computed(() => coreStore.state.loading);
 </script>
 
 <template>
     <div id="app">
-        <div id="loading" v-if="loading">
+        <div id="loading" v-show="loading">
             <video
                 v-if="!webmError"
                 autoplay
@@ -20,7 +23,7 @@ const loading = computed(() => coreStore.state.loading);
                 muted
                 playsinline
                 style="height: 20vh"
-                :src="baseAdjust('/static/img/loading.webm#t=' + webmStart)"
+                :src="webmPath"
                 @error="webmError = true"
             />
             <img v-else :src="baseAdjust('/static/img/loading.gif')" style="height: 20vh" />
@@ -82,6 +85,7 @@ body,
         display: flex;
         justify-content: center;
         align-items: center;
+        z-index: 1;
     }
 
     svg {

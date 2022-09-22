@@ -48,12 +48,20 @@ const loading = computed(() => coreStore.state.loading);
 @media (width: 2560px) and (height: 2560px) {
     html {
         font-size: calc(100% * 4 / 3);
+
+        * {
+            font-size: 1em;
+        }
     }
 }
 
 @media (max-device-width: 1024px) {
     html {
         font-size: calc(100% * 2 / 3);
+
+        * {
+            font-size: 1em;
+        }
     }
 }
 

@@ -107,7 +107,7 @@ const openClientSettings = (): void => uiStore.showClientSettings(!uiStore.state
     <NoteDialog v-model:visible="showNote" />
     <!-- SETTINGS -->
     <div id="menu" @click="settingsClick">
-        <div style="width: 200px; overflow-y: auto; overflow-x: hidden">
+        <div style="width: 12.5rem; overflow-y: auto; overflow-x: hidden">
             <!-- ASSETS -->
             <template v-if="isDm">
                 <button class="menu-accordion">{{ t("common.assets") }}</button>
@@ -184,7 +184,7 @@ const openClientSettings = (): void => uiStore.showClientSettings(!uiStore.state
         <div
             @click="exit"
             class="menu-accordion"
-            style="width: 200px; box-sizing: border-box; text-decoration: none; display: inline-block"
+            style="width: 12.5rem; box-sizing: border-box; text-decoration: none; display: inline-block"
         >
             {{ t("common.exit") }}
         </div>
@@ -250,7 +250,7 @@ DIRECTORY.CSS changes
     background-color: #fa5a5a;
     overflow: auto;
     pointer-events: auto;
-    max-width: 200px;
+    max-width: 12.5rem;
 }
 
 .actionButton {
@@ -263,7 +263,7 @@ DIRECTORY.CSS changes
     background-color: #eee;
     color: #444;
     cursor: pointer;
-    padding: 18px;
+    padding: 1rem;
     text-align: left;
     border: none;
     outline: none;

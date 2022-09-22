@@ -235,7 +235,7 @@ async function deleteSelection(): Promise<void> {
                 @drop.prevent.stop="stopDrag($event, parentFolder)"
                 @mousedown.prevent
             >
-                <font-awesome-icon icon="folder" style="font-size: 12.5rem" />
+                <font-awesome-icon icon="folder" style="font-size: 12.5em" />
                 <div class="title">..</div>
             </div>
             <div
@@ -255,7 +255,7 @@ async function deleteSelection(): Promise<void> {
                 @dragleave.prevent="leaveDrag"
                 @drop.prevent.stop="stopDrag($event, key)"
             >
-                <font-awesome-icon icon="folder" style="font-size: 12.5rem" />
+                <font-awesome-icon icon="folder" style="font-size: 12.5em" />
                 <div class="title">{{ showIdName(key) }}</div>
             </div>
             <div
@@ -302,7 +302,7 @@ async function deleteSelection(): Promise<void> {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 3.125rem;
+        font-size: 3.125em;
         color: white;
         border-bottom: 5px solid #ffa8bf;
         font-weight: bold;
@@ -318,7 +318,7 @@ async function deleteSelection(): Promise<void> {
         }
 
         > span:last-child {
-            font-size: 2.25rem;
+            font-size: 2.25em;
             color: #ffa8bf;
 
             &:hover {
@@ -383,7 +383,7 @@ async function deleteSelection(): Promise<void> {
             }
 
             > .title {
-                font-size: 1.5rem;
+                font-size: 1.5em;
                 word-break: break-all;
             }
         }

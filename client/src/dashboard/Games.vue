@@ -270,13 +270,13 @@ async function createCampaign(): Promise<void> {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 3.125rem;
+            font-size: 3.125em;
             color: white;
             border-bottom: 5px solid #ffa8bf;
             font-weight: bold;
 
             > span:last-child {
-                font-size: 2.25rem;
+                font-size: 2.25em;
                 color: #ffa8bf;
 
                 &:hover {
@@ -337,7 +337,7 @@ async function createCampaign(): Promise<void> {
                     .name {
                         width: 12rem;
                         font-weight: bold;
-                        font-size: 1.2rem;
+                        font-size: 1.2em;
                     }
 
                     .played {
@@ -378,7 +378,7 @@ async function createCampaign(): Promise<void> {
                         border-radius: 10px;
                         color: white;
                         border: solid 3px rgb(190, 59, 64);
-                        font-size: 1.25rem;
+                        font-size: 1.25em;
                         display: flex;
                         justify-content: center;
                         align-items: center;

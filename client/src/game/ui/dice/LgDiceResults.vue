@@ -70,7 +70,7 @@ function getTotalRoll(results: DeepReadonly<DndResult[]>): number {
     span {
         color: white;
         font-weight: bold;
-        font-size: 1.25rem;
+        font-size: 1.25em;
         position: relative;
         top: -6.25rem;
     }

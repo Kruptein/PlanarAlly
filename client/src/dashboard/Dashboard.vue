@@ -148,7 +148,7 @@ main {
 
             .nav-item {
                 color: white;
-                font-size: 1.5rem;
+                font-size: 1.5em;
                 margin-bottom: 1.875rem;
                 font-weight: bold;
                 border-bottom: 5px solid transparent;
@@ -167,7 +167,7 @@ main {
                 margin-bottom: 0.3rem;
                 display: flex;
                 align-items: center;
-                font-size: 1.125rem;
+                font-size: 1.125em;
                 line-height: 1.75rem;
 
                 > span:first-child {
@@ -181,7 +181,7 @@ main {
                 width: 100%;
                 height: 2.5rem;
                 color: white;
-                font-size: 1.125rem;
+                font-size: 1.125em;
                 background-color: rgba(137, 0, 37, 1);
                 border: 3px solid rgba(219, 0, 59, 1);
                 border-radius: 5px;

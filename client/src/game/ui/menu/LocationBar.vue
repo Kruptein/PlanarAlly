@@ -44,7 +44,7 @@ watchEffect(() => {
 // :style with `menuActive` did not update properly on the draggable
 watchEffect(() => {
     if (locations.value !== null) {
-        locations.value.$el.style.maxWidth = `calc(100vw - 105px - ${props.menuActive ? "200px" : "0px"})`;
+        locations.value.$el.style.maxWidth = `calc(100vw - 6.6rem - ${props.menuActive ? "12.5rem" : "0rem"})`;
     }
 });
 
@@ -268,14 +268,14 @@ const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
     #archive-locations {
         box-sizing: border-box;
         display: inline-grid;
-        width: 85px;
+        width: 5.3rem;
         color: white;
         border: solid 2px transparent;
         background-color: rgb(var(--secondary));
-        font-size: 30px;
+        font-size: 1.875em;
         place-items: center center;
-        margin: 10px;
-        padding: 10px 0;
+        margin: 0.625rem;
+        padding: 0.625rem 0;
 
         &:hover {
             font-weight: bold;
@@ -300,9 +300,9 @@ const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
     pointer-events: auto;
     display: grid;
     grid-auto-flow: column;
-    grid-gap: 10px;
+    grid-gap: 0.625rem;
     overflow-y: hidden;
-    max-width: calc(100vw - 105px); /* 105 = width of the #create-location div */
+    max-width: calc(100vw - 6.6rem); /* 105 = width of the #create-location div */
 
     scrollbar-width: thin;
     scrollbar-color: rgb(var(--secondary)) var(--primary);
@@ -324,7 +324,7 @@ const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
 
 .location {
     display: flex;
-    margin-top: 10px;
+    margin-top: 0.625rem;
     flex-direction: column;
     user-select: none;
 }
@@ -343,7 +343,7 @@ const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
 }
 
 .location-settings-icon {
-    padding-left: 10px;
+    padding-left: 0.625rem;
 
     svg {
         transition: transform 0.8s ease-in-out;
@@ -356,16 +356,16 @@ const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
 }
 
 .drag-handle {
-    width: 25px;
-    height: 20px;
+    width: 1.6rem;
+    height: 1.25rem;
 
     &::before {
         position: absolute;
         top: 8px;
         content: ".";
         color: white;
-        font-size: 20px;
-        line-height: 20px;
+        font-size: 1.25em;
+        line-height: 1.25rem;
         text-shadow: 0 5px white, 0 10px white, 5px 0 white, 5px 5px white, 5px 10px white, 10px 0 white, 10px 5px white,
             10px 10px white;
     }
@@ -384,11 +384,11 @@ const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
     border-top: 0;
     display: flex;
     flex-direction: column;
-    min-width: 150px;
+    min-width: 9.375rem;
 }
 
 .location-players-empty {
-    height: 25px;
+    height: 1.6rem;
 }
 
 .player-collapse-header {
@@ -403,13 +403,13 @@ const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
 
 .player-collapse-content {
     position: absolute;
-    margin-top: 90px;
+    margin-top: 5.625rem;
     margin-left: 0.5em;
     color: white;
 }
 
 .player-collapse-item {
-    margin-top: 10px;
+    margin-top: 0.625rem;
     padding: 0.5em 1em;
     border-radius: 5px;
     background-color: rgb(var(--secondary));

@@ -63,7 +63,7 @@
         "upath": "^2.0.1",
         "vite": "^3.0.9",
         "vitest": "^0.21.0",
-        "vue-tsc": "^0.39.4"
+        "vue-tsc": "^0.40.13"
     },
     "madge": {
         "detectiveOptions": {

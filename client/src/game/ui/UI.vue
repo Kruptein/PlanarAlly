@@ -80,9 +80,9 @@ function toggleLocations(): void {
     let i = 0;
     const interval = setInterval(() => {
         if (uiEl.value === null) return;
-        i += 10;
-        uiEl.value.style.gridTemplateRows = `${!oldState ? i : 100 - i}px auto 1fr auto`;
-        if (i >= 100) {
+        i += 0.625;
+        uiEl.value.style.gridTemplateRows = `${!oldState ? i : 6.25 - i}rem auto 1fr auto`;
+        if (i >= 6.25) {
             clearInterval(interval);
             // Force height to become auto instead of harcoding it to 100px
             uiEl.value.style.gridTemplateRows = `${!oldState ? "auto" : 0} auto 1fr auto`;
@@ -96,9 +96,9 @@ function toggleMenu(): void {
     let i = 0;
     const interval = setInterval(() => {
         if (uiEl.value === null) return;
-        i += 10;
-        uiEl.value.style.gridTemplateColumns = `${visible.settings ? i : 200 - i}px repeat(3, 1fr)`;
-        if (i >= 200) {
+        i += 0.625;
+        uiEl.value.style.gridTemplateColumns = `${visible.settings ? i : 12.5 - i}rem repeat(3, 1fr)`;
+        if (i >= 12.5) {
             clearInterval(interval);
         }
     }, 20);
@@ -205,6 +205,7 @@ function setTempZoomDisplay(value: number): void {
         <!-- When updating zoom boundaries, also update store updateZoom function;
             should probably do this using a store variable-->
         <SliderComponent
+            v-if="!hasGameboard"
             id="zoom"
             height="6px"
             width="200px"
@@ -282,8 +283,8 @@ function setTempZoomDisplay(value: number): void {
 #zoom {
     pointer-events: auto;
     justify-self: end;
-    top: 15px;
-    right: 25px;
+    top: 1rem;
+    right: 1.6rem;
     grid-area: zoom;
 }
 
@@ -299,39 +300,39 @@ function setTempZoomDisplay(value: number): void {
 /* The svg is added by Font Awesome */
 
 .rm-list-dm #rm-locations svg {
-    margin-left: 50px;
+    margin-left: 3rem;
 }
 
 .rm-list-dm #rm-settings svg {
-    margin-bottom: 50px;
+    margin-bottom: 3rem;
 }
 
 /* https://codepen.io/jonigiuro/pen/kclIu/ */
 
 .rm-wrapper {
     position: relative;
-    width: 200px;
-    height: 200px;
-    top: -100px;
-    left: -100px;
+    width: 12.5rem;
+    height: 12.5rem;
+    top: -6.25rem;
+    left: -6.25rem;
 
     .rm-topper {
         pointer-events: none;
         text-align: center;
-        line-height: 50px;
-        font-size: 25px;
+        line-height: 3rem;
+        font-size: 1.6em;
     }
 
     .rm-toggler,
     .rm-topper {
         display: block;
         position: absolute;
-        width: 50px;
-        height: 50px;
+        width: 3rem;
+        height: 3rem;
         left: 50%;
         top: 50%;
-        margin-left: -25px;
-        margin-top: -25px;
+        margin-left: -1.6rem;
+        margin-top: -1.6rem;
         background: #fa5a5a;
         color: white;
         border-radius: 50%;
@@ -340,14 +341,14 @@ function setTempZoomDisplay(value: number): void {
             opacity: 0.5;
             list-style: none;
             padding: 0;
-            width: 200px;
-            height: 200px;
+            width: 12.5rem;
+            height: 12.5rem;
             overflow: hidden;
             display: block;
             border-radius: 50%;
             transform: rotate(180deg);
             box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
-            margin: -75px 0 0 -75px;
+            margin: -4.7rem 0 0 -4.7rem;
 
             .rm-item {
                 display: table;
@@ -371,7 +372,7 @@ function setTempZoomDisplay(value: number): void {
                     vertical-align: middle;
                     transform: rotate(-45deg);
                     text-decoration: none;
-                    font-size: 25px;
+                    font-size: 1.6em;
                     color: #82c8a0;
                     border: none;
                     outline: none;

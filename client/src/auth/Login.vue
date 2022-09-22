@@ -237,7 +237,7 @@ main {
 
             label {
                 height: 1.5rem;
-                font-size: 1.2rem;
+                font-size: 1.2em;
                 text-transform: uppercase;
             }
 

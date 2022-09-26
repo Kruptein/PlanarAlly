@@ -90,6 +90,7 @@ export interface IShape extends SimpleShape {
     // BOUNDING BOX
 
     getAABB(delta?: number): BoundingRect;
+    getAuraAABB(): BoundingRect;
     getBoundingBox(delta?: number): BoundingRect;
 
     // STATE

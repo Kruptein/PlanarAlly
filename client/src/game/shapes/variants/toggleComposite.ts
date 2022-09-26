@@ -165,7 +165,7 @@ export class ToggleComposite extends Shape {
         return;
     }
 
-    getBoundingBox(): BoundingRect {
+    getAABB(delta = 0): BoundingRect {
         return new BoundingRect(this.refPoint, 5, 5);
     }
 

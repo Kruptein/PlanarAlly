@@ -2,6 +2,7 @@ import type { InvalidationMode, SyncMode } from "../../core/models/types";
 import type { LocalId } from "../id";
 import type { FloorId, LayerName } from "../models/floor";
 import type { ServerShape } from "../models/shapes";
+import type { BoundingRect } from "../shapes/variants/simple/boundingRect";
 
 import type { IShape } from "./shape";
 
@@ -22,9 +23,15 @@ export interface ILayer {
     addShape(shape: IShape, sync: SyncMode, invalidate: InvalidationMode): void;
     clear(): void;
     draw(doClear?: boolean): void;
-    getShapes(options: { skipUiHelpers?: boolean; includeComposites: boolean }): readonly IShape[];
+    getShapes(options: {
+        skipUiHelpers?: boolean;
+        onlyInView?: boolean;
+        includeComposites: boolean;
+    }): readonly IShape[];
     hide(): void;
     invalidate(skipLightUpdate: boolean): void;
+    updateView(): void;
+    isValid(): boolean;
     moveShapeOrder(shape: IShape, destinationIndex: number, sync: SyncMode): void;
     pushShapes(...shapes: IShape[]): void;
     removeShape(shape: IShape, options: { sync: SyncMode; recalculate: boolean; dropShapeId: boolean }): boolean;
@@ -33,4 +40,5 @@ export interface ILayer {
     setShapes(...shapes: IShape[]): void;
     show(): void;
     size(options: { skipUiHelpers?: boolean; includeComposites: boolean }): number;
+    updateSectors(shapeId: LocalId, aabb: BoundingRect): void;
 }

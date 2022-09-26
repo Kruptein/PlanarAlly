@@ -29,15 +29,19 @@ class PositionSystem implements System {
 
     // PAN
 
-    setPan(x: number, y: number): void {
+    setPan(x: number, y: number, options: { updateSectors: boolean }): void {
         mutable.panX = x + readonly.gridOffset.x;
         mutable.panY = y + readonly.gridOffset.y;
+        if (options.updateSectors) {
+            floorSystem.invalidateSectors();
+        }
         floorSystem.updateIteration();
     }
 
     increasePan(x: number, y: number): void {
         mutable.panX += x;
         mutable.panY += y;
+        floorSystem.invalidateSectors();
         floorSystem.updateIteration();
     }
 
@@ -65,11 +69,12 @@ class PositionSystem implements System {
         }
     }
 
-    setZoomDisplay(zoom: number, options: { invalidate: boolean; sync: boolean }): void {
+    setZoomDisplay(zoom: number, options: { invalidate: boolean; updateSectors: boolean; sync: boolean }): void {
         if (zoom < 0) zoom = 0;
         if (zoom > 1) zoom = 1;
         $.zoomDisplay = zoom;
         this.setZoomFactor(zoom);
+        if (options.updateSectors) floorSystem.invalidateSectors();
         if (options.invalidate) floorSystem.invalidateAllFloors();
         if (options.sync) {
             sendClientLocationOptions(false);
@@ -79,7 +84,7 @@ class PositionSystem implements System {
 
     updateZoom(newZoomDisplay: number, zoomLocation: GlobalPoint): void {
         const oldLoc = g2l(zoomLocation);
-        this.setZoomDisplay(newZoomDisplay, { invalidate: false, sync: false });
+        this.setZoomDisplay(newZoomDisplay, { invalidate: false, updateSectors: false, sync: false });
         const newLoc = l2g(oldLoc);
         // Change the pan settings to keep the zoomLocation in the same exact location before and after the zoom.
         const diff = subtractP(newLoc, zoomLocation);

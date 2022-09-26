@@ -117,7 +117,7 @@ class LastGameboardStore extends Store<LastGameboardState> {
         const shape = getShape(uuid);
         if (shape === undefined) return;
 
-        shape.center(position);
+        shape.center = position;
         shape.invalidate(false);
         sendPosUpdate([shape], false);
         // sendShapePositionUpdate([shape], false);
@@ -134,7 +134,7 @@ class LastGameboardStore extends Store<LastGameboardState> {
         // if (shape === undefined || !(shape.options.canRotate ?? false)) return;
         if (shape === undefined) return;
 
-        rotateShapes([shape], angle - shape.angle - Math.PI / 2, shape.center(), false);
+        rotateShapes([shape], angle - shape.angle - Math.PI / 2, shape.center, false);
         sendPosUpdate([shape], false);
     }
 }

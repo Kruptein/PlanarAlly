@@ -42,6 +42,8 @@ class VisionState extends Store<State> {
     private movementBlockers: Map<FloorId, LocalId[]> = new Map();
     private visionSources: Map<FloorId, { shape: LocalId; aura: AuraId }[]> = new Map();
 
+    private visionIteration: Map<FloorId, number> = new Map();
+
     private cdt: Map<FloorId, { vision: CDT; movement: CDT }> = new Map();
 
     drawTeContour = false;
@@ -56,6 +58,7 @@ class VisionState extends Store<State> {
         this.visionBlockers.clear();
         this.movementBlockers.clear();
         this.visionSources.clear();
+        this.visionIteration.clear();
         this.cdt.clear();
     }
 
@@ -83,6 +86,15 @@ class VisionState extends Store<State> {
         if (this._state.mode === VisibilityMode.TRIANGLE) this.triangulate(TriangulationTarget.MOVEMENT, floor);
     }
 
+    increaseVisionIteration(floor: FloorId): void {
+        const i = this.visionIteration.get(floor)!;
+        this.visionIteration.set(floor, i > 1000 ? 0 : i + 1);
+    }
+
+    getVisionIteration(floor: FloorId): number {
+        return this.visionIteration.get(floor)!;
+    }
+
     // CDT
 
     addCdt(floor: FloorId): void {
@@ -92,6 +104,7 @@ class VisionState extends Store<State> {
         this.movementBlockers.set(floor, []);
         this.visionBlockers.set(floor, []);
         this.visionSources.set(floor, []);
+        this.visionIteration.set(floor, 0);
         this.addWalls(vision);
         this.addWalls(movement);
     }
@@ -123,6 +136,8 @@ class VisionState extends Store<State> {
         }
         this.addWalls(cdt);
         (window as any).CDT = this.cdt;
+
+        if (target === TriangulationTarget.VISION) this.increaseVisionIteration(floor);
     }
 
     private triangulateShape(target: TriangulationTarget, shape: IShape): void {
@@ -215,14 +230,20 @@ class VisionState extends Store<State> {
     addToTriangulation(data: { target: TriangulationTarget; shape: LocalId }): void {
         if (this._state.mode === VisibilityMode.TRIANGLE_ITERATIVE) {
             const shape = getShape(data.shape);
-            if (shape) this.triangulateShape(data.target, shape);
+            if (shape) {
+                this.triangulateShape(data.target, shape);
+                if (data.target === TriangulationTarget.VISION) this.increaseVisionIteration(shape.floor.id);
+            }
         }
     }
 
     deleteFromTriangulation(data: { target: TriangulationTarget; shape: LocalId }): void {
         if (this._state.mode === VisibilityMode.TRIANGLE_ITERATIVE) {
             const shape = getShape(data.shape);
-            if (shape) this.deleteShapesFromTriangulation(data.target, shape);
+            if (shape) {
+                this.deleteShapesFromTriangulation(data.target, shape);
+                if (data.target === TriangulationTarget.VISION) this.increaseVisionIteration(shape.floor.id);
+            }
         }
     }
 

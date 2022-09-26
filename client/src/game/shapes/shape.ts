@@ -27,6 +27,7 @@ import { annotationState } from "../systems/annotations/state";
 import { auraSystem } from "../systems/auras";
 import { aurasFromServer, aurasToServer } from "../systems/auras/conversion";
 import { floorSystem } from "../systems/floors";
+import { floorState } from "../systems/floors/state";
 import { doorSystem } from "../systems/logic/door";
 import { teleportZoneSystem } from "../systems/logic/tp";
 import { propertiesSystem } from "../systems/properties";
@@ -36,6 +37,7 @@ import { playerSettingsState } from "../systems/settings/players/state";
 import { trackerSystem } from "../systems/trackers";
 import { trackersFromServer, trackersToServer } from "../systems/trackers/conversion";
 import { TriangulationTarget, visionState } from "../vision/state";
+import { computeVisibility } from "../vision/te";
 
 import type { SHAPE_TYPE } from "./types";
 import { BoundingRect } from "./variants/simple/boundingRect";
@@ -93,6 +95,11 @@ export abstract class Shape implements IShape {
     // Additional options for specialized uses
     options: Partial<ShapeOptions> = {};
 
+    private floorIteration = -1;
+    private visionIteration = -1;
+    private _visionPolygon: number[][] | undefined = undefined;
+    private _visionPath: Path2D | undefined = undefined;
+
     constructor(
         refPoint: GlobalPoint,
         options?: {
@@ -119,6 +126,7 @@ export abstract class Shape implements IShape {
     }
     set center(centerPoint: GlobalPoint) {
         this._center = centerPoint;
+        this._visionPolygon = undefined;
     }
 
     // Informs whether `points` forms a close loop
@@ -131,6 +139,25 @@ export abstract class Shape implements IShape {
     get triggersVisionRecalc(): boolean {
         const props = getProperties(this.id)!;
         return props.isToken || props.blocksMovement || auraSystem.getAll(this.id, true).some((a) => a.visionSource);
+    }
+
+    get visionPolygon(): Path2D {
+        const floorIteration = floorState.readonly.iteration;
+        const visionIteration = visionState.getVisionIteration(this._floor!);
+        const visionAltered = visionIteration !== this.visionIteration;
+        if (this._visionPolygon === undefined || visionAltered) {
+            this._visionPolygon = computeVisibility(this.center, TriangulationTarget.VISION, this._floor!);
+            this.visionIteration = visionIteration;
+        }
+        if (this._visionPath === undefined || floorIteration != this.floorIteration || visionAltered) {
+            const path = new Path2D();
+            path.moveTo(g2lx(this._visionPolygon[0][0]), g2ly(this._visionPolygon[0][1]));
+            for (const point of this._visionPolygon) path.lineTo(g2lx(point[0]), g2ly(point[1]));
+            path.closePath();
+            this._visionPath = path;
+            this.floorIteration = floorIteration;
+        }
+        return this._visionPath;
     }
 
     onLayerAdd(): void {}
@@ -151,6 +178,7 @@ export abstract class Shape implements IShape {
     set refPoint(point: GlobalPoint) {
         this._refPoint = point;
         this._center = this.__center();
+        this.visionIteration = -1;
         this.invalidatePoints();
     }
 
@@ -177,6 +205,7 @@ export abstract class Shape implements IShape {
         this._refPoint = toGP(position.points[0]);
         this._center = this.__center();
         this.angle = position.angle;
+        this.visionIteration = -1;
         this.updateShapeVision(false, false);
     }
 

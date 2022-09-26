@@ -57,6 +57,8 @@ export interface IShape extends SimpleShape {
 
     onLayerAdd(): void;
 
+    get visionPolygon(): Path2D;
+
     // POSITION
 
     get floor(): Floor;

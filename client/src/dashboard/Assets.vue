@@ -318,7 +318,6 @@ async function deleteSelection(): Promise<void> {
         }
 
         > span:last-child {
-            font-size: 2.25em;
             color: #ffa8bf;
 
             &:hover {

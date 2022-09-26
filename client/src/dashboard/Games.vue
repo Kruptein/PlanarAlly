@@ -276,7 +276,6 @@ async function createCampaign(): Promise<void> {
             font-weight: bold;
 
             > span:last-child {
-                font-size: 2.25em;
                 color: #ffa8bf;
 
                 &:hover {

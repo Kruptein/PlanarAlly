@@ -10,7 +10,7 @@ import type { Label } from "./label";
 import type { ILayer } from "./layer";
 
 export interface SimpleShape {
-    center(): GlobalPoint;
+    get center(): GlobalPoint;
 }
 
 export interface IShape extends SimpleShape {
@@ -47,8 +47,9 @@ export interface IShape extends SimpleShape {
 
     options: Partial<ShapeOptions>;
 
-    center(): GlobalPoint;
-    center(centerPoint: GlobalPoint): void;
+    __center(): GlobalPoint;
+    get center(): GlobalPoint;
+    set center(centerPoint: GlobalPoint);
 
     get isClosed(): boolean;
 

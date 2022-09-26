@@ -140,7 +140,7 @@ function updateToggles(checked: boolean): void {
 
 function centerMember(member: IShape): void {
     if (!owned.value) return;
-    setCenterPosition(member.center());
+    setCenterPosition(member.center);
 }
 
 function toggleHighlight(member: IShape, show: boolean): void {

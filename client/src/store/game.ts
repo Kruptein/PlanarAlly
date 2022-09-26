@@ -100,7 +100,7 @@ class GameStore {
     jumpToMarker(marker: LocalId): void {
         const shape = getShape(marker);
         if (shape == undefined) return;
-        setCenterPosition(shape.center());
+        setCenterPosition(shape.center);
     }
 
     removeMarker(marker: LocalId, sync: boolean): void {

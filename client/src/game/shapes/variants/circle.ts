@@ -33,6 +33,7 @@ export class Circle extends Shape {
     ) {
         super(center, options, properties);
         this._r = r || 1;
+        this._center = this.__center();
         this.viewingAngle = options?.viewingAngle ?? null;
     }
 
@@ -118,10 +119,15 @@ export class Circle extends Shape {
         return (point.x - this.refPoint.x) ** 2 + (point.y - this.refPoint.y) ** 2 < this.r ** 2;
     }
 
-    center(): GlobalPoint;
-    center(centerPoint: GlobalPoint): void;
-    center(centerPoint?: GlobalPoint): GlobalPoint | void {
-        if (centerPoint === undefined) return this.refPoint;
+    __center(): GlobalPoint {
+        return this.refPoint;
+    }
+
+    get center(): GlobalPoint {
+        return this._center;
+    }
+
+    set center(centerPoint: GlobalPoint) {
         this.refPoint = centerPoint;
     }
 

@@ -28,6 +28,7 @@ tech changes will usually be stripped from release notes for the public
 -   Asset Manager UI has been updated and is now integrated with the main dashboard
 -   [server] moved all python imports to proper relative imports
     -   this changes the way to manually run the server (again) (sorry)
+-   [tech] keep shape centers in memory instead of recalculating on the fly
 
 ### Fixed
 

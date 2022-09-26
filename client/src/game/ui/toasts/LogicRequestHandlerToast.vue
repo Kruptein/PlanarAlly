@@ -52,7 +52,7 @@ function showArea(): void {
     if (shape === undefined) return;
 
     shape.showHighlight = true;
-    setCenterPosition(shape.center());
+    setCenterPosition(shape.center);
 }
 </script>
 

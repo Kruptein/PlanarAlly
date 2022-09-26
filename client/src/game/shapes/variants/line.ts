@@ -28,6 +28,7 @@ export class Line extends Shape {
     ) {
         super(startPoint, options, { fillColour: "rgba(0, 0, 0, 0)", strokeColour: ["#000"], ...properties });
         this._endPoint = endPoint;
+        this._center = this.__center();
         this.lineWidth = options?.lineWidth ?? 1;
     }
 
@@ -63,8 +64,8 @@ export class Line extends Shape {
 
     invalidatePoints(): void {
         this._points = [
-            toArrayP(rotateAroundPoint(this.refPoint, this.center(), this.angle)),
-            toArrayP(rotateAroundPoint(this.endPoint, this.center(), this.angle)),
+            toArrayP(rotateAroundPoint(this.refPoint, this.center, this.angle)),
+            toArrayP(rotateAroundPoint(this.endPoint, this.center, this.angle)),
         ];
     }
 
@@ -79,7 +80,7 @@ export class Line extends Shape {
     draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
 
-        const center = g2l(this.center());
+        const center = g2l(this.center);
         const props = getProperties(this.id)!;
 
         ctx.strokeStyle = props.strokeColour[0];
@@ -95,14 +96,18 @@ export class Line extends Shape {
         return false; // TODO
     }
 
-    center(): GlobalPoint;
-    center(centerPoint: GlobalPoint): void;
-    center(centerPoint?: GlobalPoint): GlobalPoint | void {
-        if (centerPoint === undefined)
-            return addP(this.refPoint, subtractP(this.endPoint, this.refPoint).multiply(1 / 2));
-        const oldCenter = this.center();
-        this.refPoint = toGP(subtractP(centerPoint, subtractP(oldCenter, this.refPoint)).asArray());
+    __center(): GlobalPoint {
+        return addP(this.refPoint, subtractP(this.endPoint, this.refPoint).multiply(1 / 2));
+    }
+
+    get center(): GlobalPoint {
+        return this._center;
+    }
+
+    set center(centerPoint: GlobalPoint) {
+        const oldCenter = this.center;
         this.endPoint = toGP(subtractP(centerPoint, subtractP(oldCenter, this.endPoint)).asArray());
+        this.refPoint = toGP(subtractP(centerPoint, subtractP(oldCenter, this.refPoint)).asArray());
     }
 
     visibleInCanvas(max: { w: number; h: number }, options: { includeAuras: boolean }): boolean {

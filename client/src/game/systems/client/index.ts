@@ -101,7 +101,7 @@ class ClientSystem implements System {
         if (dimensions === undefined) return;
         const { center, h, w } = dimensions;
         polygon.vertices = [toGP(0, 0), toGP(0, h), toGP(w, h), toGP(w, 0), toGP(0, 0)];
-        polygon.center(center);
+        polygon.center = center;
         polygon.invalidate(true);
     }
 
@@ -171,7 +171,7 @@ class ClientSystem implements System {
         if (dimensions === undefined) return;
         const { h, w } = dimensions;
 
-        const center = rect.center();
+        const center = rect.center;
         const newPosition = { ...locationData, pan_x: w / 2 - center.x - offset.x, pan_y: h / 2 - center.y - offset.y };
 
         sendMoveClientThrottled({

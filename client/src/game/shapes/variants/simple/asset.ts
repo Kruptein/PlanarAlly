@@ -4,7 +4,7 @@ import type { GlobalPoint } from "../../../../core/geometry";
 export class SimpleAsset {
     constructor(public topleft: GlobalPoint, public w: number, public h: number) {}
 
-    center(): GlobalPoint {
+    get center(): GlobalPoint {
         return addP(this.topleft, new Vector(this.w / 2, this.h / 2));
     }
 }

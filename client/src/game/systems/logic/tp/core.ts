@@ -22,7 +22,7 @@ export function getTpZoneShapes(fromZone: LocalId): LocalId[] {
         if (
             !getProperties(shape.id)!.isLocked &&
             accessSystem.hasAccessTo(shape.id, false, { movement: true }) &&
-            fromShape.contains(shape.center())
+            fromShape.contains(shape.center)
         ) {
             shapes.push(shape.id);
         }
@@ -38,7 +38,7 @@ export async function teleport(fromZone: LocalId, toZone: GlobalId, transfers?: 
     let targetLocation = activeLocation;
     const tpTargetId = getLocalId(toZone);
     const targetShape = tpTargetId === undefined ? undefined : getShape(tpTargetId);
-    let center: GlobalPoint | undefined = targetShape?.center();
+    let center: GlobalPoint | undefined = targetShape?.center;
     let floor: string | undefined = targetShape?.floor.name;
 
     if (targetShape === undefined) {
@@ -46,7 +46,7 @@ export async function teleport(fromZone: LocalId, toZone: GlobalId, transfers?: 
         targetLocation = location;
         const simpleShape = createSimpleShapeFromDict(shape);
         if (simpleShape === undefined) return;
-        center = simpleShape.center();
+        center = simpleShape.center;
         floor = shape.floor;
     }
     if (floor === undefined || center === undefined) return;

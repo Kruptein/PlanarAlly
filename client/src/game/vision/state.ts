@@ -331,7 +331,7 @@ class VisionState extends Store<State> {
             if (shape === undefined) continue;
 
             const auraLength = getUnitDistance(auraValue + auraDim);
-            const center = shape.center();
+            const center = shape.center;
 
             const auraCircle = new SimpleCircle(center, auraLength);
             if (auraCircle.visibleInCanvas({ w: layer.width, h: layer.height })) {

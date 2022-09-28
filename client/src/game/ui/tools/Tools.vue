@@ -46,10 +46,7 @@ const visibleTools = computed(() => {
 
 watch(
     [() => playerSettingsState.reactive.useToolIcons.value, activeTool, activeToolMode, visibleTools],
-    () => {
-        console.log(visibleTools.value);
-        updateDetails();
-    },
+    () => updateDetails(),
     { flush: "post" },
 );
 

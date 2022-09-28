@@ -1,18 +1,15 @@
-import { g2l, g2lz, getUnitDistance, g2lr, g2lx, g2ly, toRadians } from "../../../core/conversions";
+import { g2l, g2lz, g2lr, toRadians } from "../../../core/conversions";
 import type { SyncMode, InvalidationMode } from "../../../core/models/types";
 import { FOG_COLOUR } from "../../colour";
 import { getShape } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import { LayerName } from "../../models/floor";
-import { SimpleCircle } from "../../shapes/variants/simple/circle";
-import { accessSystem } from "../../systems/access";
 import { accessState } from "../../systems/access/state";
 import { auraSystem } from "../../systems/auras";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
-import { TriangulationTarget, visionState } from "../../vision/state";
-import { computeVisibility } from "../../vision/te";
+import { visionState } from "../../vision/state";
 
 import { FowLayer } from "./fow";
 
@@ -79,27 +76,16 @@ export class FowLightingLayer extends FowLayer {
                     const aura = auraSystem.get(shape.id, light.aura, true);
                     if (aura === undefined) continue;
 
-                    if (!accessSystem.hasAccessTo(light.shape, true, { vision: true }) && !aura.visible) continue;
-
                     const auraValue = aura.value > 0 && !isNaN(aura.value) ? aura.value : 0;
                     const auraDim = aura.dim > 0 && !isNaN(aura.dim) ? aura.dim : 0;
 
-                    const auraLength = getUnitDistance(auraValue + auraDim);
                     const center = shape.center;
                     const lcenter = g2l(center);
                     const innerRange = g2lr(auraValue + auraDim);
 
-                    const auraCircle = new SimpleCircle(center, auraLength);
-                    if (!auraCircle.visibleInCanvas({ w: this.width, h: this.height })) continue;
-
                     this.vCtx.globalCompositeOperation = "source-over";
                     this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
-                    const polygon = computeVisibility(center, TriangulationTarget.VISION, shape.floor.id);
-                    this.vCtx.beginPath();
-                    this.vCtx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
-                    for (const point of polygon) this.vCtx.lineTo(g2lx(point[0]), g2ly(point[1]));
-                    this.vCtx.closePath();
-                    this.vCtx.fill();
+                    this.vCtx.fill(shape.visionPolygon);
                     if (auraDim > 0) {
                         // Fill the light aura with a radial dropoff towards the outside.
                         const gradient = this.vCtx.createRadialGradient(

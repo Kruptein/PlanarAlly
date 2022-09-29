@@ -10,9 +10,6 @@ import { mapTool } from "../../tools/variants/map";
 const { t } = useI18n();
 
 const state = reactive({
-    arrow: "0px",
-    right: "0px",
-
     lock: false,
 });
 

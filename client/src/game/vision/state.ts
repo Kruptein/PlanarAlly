@@ -52,7 +52,6 @@ class VisionState extends Store<State> {
     private visionSources: Map<FloorId, { shape: LocalId; aura: AuraId }[]> = new Map();
 
     private visionSourcesInView: Map<FloorId, { shape: LocalId; aura: AuraId }[]> = new Map();
-
     private visionIteration: Map<FloorId, number> = new Map();
 
     private cdt: Map<FloorId, { vision: CDT; movement: CDT }> = new Map();

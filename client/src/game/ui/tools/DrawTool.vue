@@ -213,7 +213,7 @@ const alerts = computed(() => {
         justify-content: center;
 
         padding: 10px;
-        width: 20px;
+        width: 40px;
 
         &:hover {
             cursor: pointer;
@@ -282,7 +282,7 @@ const alerts = computed(() => {
         justify-content: center;
         align-items: center;
         font-size: 13px;
-        min-width: 25px;
+        min-width: 37px;
     }
 
     .radius-right {
@@ -347,7 +347,7 @@ const alerts = computed(() => {
 <style scoped lang="scss">
 .tool-detail {
     display: block;
-    min-height: 125px;
+    min-height: 135px;
 }
 
 .header {

@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 
+import { coreStore } from "../../../store/core";
 import { rulerTool } from "../../tools/variants/ruler";
 
 const { t } = useI18n();
 
-const selected = rulerTool.isActiveTool;
+const hasGameboard = coreStore.state.boardId !== undefined;
+if (hasGameboard) rulerTool.showPublic.value = true;
+
+const selected = hasGameboard ? false : rulerTool.isActiveTool;
 const showPublic = rulerTool.showPublic;
 
 function toggle(event: MouseEvent): void {

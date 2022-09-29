@@ -75,7 +75,7 @@ class LastGameboardStore extends Store<LastGameboardState> {
 
     canAttach(position: GlobalPoint, typeId: number): IShape | null {
         const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Tokens);
-        for (const shape of layer?.getShapes({ includeComposites: false }) ?? []) {
+        for (const shape of layer?.getShapes({ includeComposites: false, onlyInView: true }) ?? []) {
             // skip if we're already attached
             if (this.shapeMap.get(typeId) === shape.id && shape.contains(position)) return null;
             if (!accessSystem.hasAccessTo(shape.id, false, { movement: true })) continue;

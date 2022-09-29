@@ -21,11 +21,14 @@ const mode = ref(0);
 const showLanguageDropdown = ref(false);
 const allowRegister = (document.querySelector("meta[name='PA-signup']")?.getAttribute("content") ?? "true") === "true";
 
+const hasGameboard = coreStore.state.boardId !== undefined;
+
 function getStaticImg(img: string): string {
     return baseAdjust(`/static/img/${img}`);
 }
 
-const backgroundImage = `url(${getStaticImg("background-borderless.png")})`;
+const image = hasGameboard ? "background.png" : "background-borderless.png";
+const backgroundImage = `url(${getStaticImg(image)})`;
 
 async function login(): Promise<void> {
     const response = await http.postJson("/api/login", {
@@ -56,6 +59,10 @@ async function register(): Promise<void> {
     } else {
         toast.error(await getErrorReason(response));
     }
+}
+
+function exit(): void {
+    window.Gameboard?.returnToServerSelect();
 }
 </script>
 
@@ -162,6 +169,10 @@ async function register(): Promise<void> {
                         RETURN TO LOGIN
                     </button>
                 </template>
+                <button type="button" @click="exit" v-if="hasGameboard">
+                    <img :src="getStaticImg('min.svg')" />
+                    RETURN TO SERVER OPTIONS
+                </button>
             </form>
         </main>
     </div>

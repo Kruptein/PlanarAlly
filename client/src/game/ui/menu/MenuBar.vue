@@ -101,6 +101,7 @@ function jumpToClient(client: ClientId): void {
 
 const openDmSettings = (): void => uiStore.showDmSettings(!uiStore.state.showDmSettings);
 const openClientSettings = (): void => uiStore.showClientSettings(!uiStore.state.showClientSettings);
+const openLgSettings = (): void => uiStore.showLgSettings(!uiStore.state.showLgSettings);
 </script>
 
 <template>
@@ -145,6 +146,10 @@ const openClientSettings = (): void => uiStore.showClientSettings(!uiStore.state
                 <!-- DM SETTINGS -->
                 <button class="menu-accordion" @click="openDmSettings">
                     {{ t("game.ui.menu.MenuBar.dm_settings") }}
+                </button>
+                <!-- GAMEBOARD SETTINGS -->
+                <button class="menu-accordion" @click="openLgSettings">
+                    {{ t("game.ui.menu.MenuBar.gameboard_settings") }}
                 </button>
                 <!-- PLAYERS -->
                 <button class="menu-accordion">Players</button>

@@ -3,7 +3,7 @@ import { throttle } from "lodash";
 import type { GlobalPoint } from "../core/geometry";
 import { SyncMode } from "../core/models/types";
 import { Store } from "../core/store";
-import { sendLgTokenConnect } from "../game/api/emits/lg";
+import { sendLgHideGridIds, sendLgShowGridIds, sendLgTokenConnect } from "../game/api/emits/lg";
 import { sendShapePositionUpdate } from "../game/api/emits/shape/core";
 import { getGlobalId, getShape } from "../game/id";
 import type { LocalId } from "../game/id";
@@ -21,6 +21,7 @@ interface LastGameboardState {
     lastGameboardShapes: number[];
     spawnMap: Map<number, { imageSource: string; assetId: number }>;
     boardInfo: BoardInfo;
+    showGridId: boolean;
 }
 
 const sendPosUpdate = throttle(sendShapePositionUpdate, 50);
@@ -45,6 +46,7 @@ class LastGameboardStore extends Store<LastGameboardState> {
             lastGameboardShapes: [],
             spawnMap: new Map(),
             boardInfo,
+            showGridId: false,
         };
     }
 
@@ -136,6 +138,16 @@ class LastGameboardStore extends Store<LastGameboardState> {
 
         rotateShapes([shape], angle - shape.angle - Math.PI / 2, shape.center, false);
         sendPosUpdate([shape], false);
+    }
+
+    // Grid
+
+    showGridId(show: boolean, sync: boolean): void {
+        this._state.showGridId = show;
+        if (sync) {
+            if (show) sendLgShowGridIds();
+            else sendLgHideGridIds();
+        }
     }
 }
 

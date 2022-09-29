@@ -20,12 +20,14 @@ import LgDiceResults from "./dice/LgDiceResults.vue";
 import Floors from "./Floors.vue";
 import Initiative from "./initiative/Initiative.vue";
 import { initiativeStore } from "./initiative/state";
+import LgGridId from "./lg/GridId.vue";
 import LocationBar from "./menu/LocationBar.vue";
 import MenuBar from "./menu/MenuBar.vue";
 import SelectionInfo from "./SelectionInfo.vue";
 import ClientSettings from "./settings/client/ClientSettings.vue";
 import DmSettings from "./settings/dm/DmSettings.vue";
 import FloorSettings from "./settings/FloorSettings.vue";
+import LgSettings from "./settings/lg/LgSettings.vue";
 import LocationSettings from "./settings/location/LocationSettings.vue";
 import ShapeSettings from "./settings/shape/ShapeSettings.vue";
 import CreateTokenDialog from "./tokendialog/CreateTokenDialog.vue";
@@ -193,6 +195,8 @@ function setTempZoomDisplay(value: number): void {
         <ShapeContext />
         <ShapeSettings />
         <DmSettings v-if="getGameState().isDm || getGameState().isFakePlayer" />
+        <LgSettings v-if="getGameState().isDm || getGameState().isFakePlayer" />
+        <LgGridId v-if="hasGameboard" />
         <FloorSettings v-if="getGameState().isDm || getGameState().isFakePlayer" />
         <LocationSettings v-if="getGameState().isDm || getGameState().isFakePlayer" />
         <ClientSettings />

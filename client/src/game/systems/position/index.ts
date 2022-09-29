@@ -49,8 +49,10 @@ class PositionSystem implements System {
 
     setGridOffset(offset: { x: number; y: number }): void {
         console.log("Setting offset", offset);
+        const deltaX = offset.x - readonly.gridOffset.x;
+        const deltaY = offset.y - readonly.gridOffset.y;
         mutable.gridOffset = offset;
-        this.increasePan(offset.x, offset.y);
+        this.increasePan(deltaX, deltaY);
         floorSystem.invalidateAllFloors();
     }
 

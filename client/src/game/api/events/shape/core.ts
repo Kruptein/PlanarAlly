@@ -12,6 +12,7 @@ import { accessSystem } from "../../../systems/access";
 import { floorSystem } from "../../../systems/floors";
 import { selectedSystem } from "../../../systems/selected";
 import { addShape, moveFloor, moveLayer } from "../../../temp";
+import { initiativeStore } from "../../../ui/initiative/state";
 import { socket } from "../../socket";
 
 socket.on("Shape.Set", (data: ServerShape) => {
@@ -31,17 +32,20 @@ socket.on("Shape.Set", (data: ServerShape) => {
 
 socket.on("Shape.Add", (shape: ServerShape) => {
     addShape(shape, SyncMode.NO_SYNC);
+    initiativeStore._forceUpdate();
 });
 
 socket.on("Shapes.Add", (shapes: ServerShape[]) => {
     for (const shape of shapes) {
         addShape(shape, SyncMode.NO_SYNC);
     }
+    initiativeStore._forceUpdate();
 });
 
 socket.on("Shapes.Remove", (shapeIds: GlobalId[]) => {
     const shapes = shapeIds.map((s) => getShapeFromGlobal(s)!).filter((s) => s !== undefined);
     deleteShapes(shapes, SyncMode.NO_SYNC);
+    initiativeStore._forceUpdate();
 });
 
 socket.on(

@@ -298,6 +298,7 @@ async def change_shape_layer(sid: str, data: Dict[str, Any]):
                         room=psid,
                         namespace=GAME_NS,
                     )
+                    await initiative.check_initiative(sio, [s.uuid for s in shapes], pr)
 
 
 @sio.on("Shape.Order.Set", namespace=GAME_NS)

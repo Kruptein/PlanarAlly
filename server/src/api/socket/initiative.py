@@ -89,6 +89,14 @@ async def send_initiative(sio: AsyncServer, data: Dict[str, Any], pr: PlayerRoom
     )
 
 
+async def check_initiative(sio: AsyncServer, uuids: List[str], pr: PlayerRoom):
+    location_data = Initiative.get_or_none(location=pr.active_location)
+    if location_data is not None:
+        json_data = json.loads(location_data.data)
+        if any(data["shape"] in uuids for data in json_data):
+            await send_initiative(sio, location_data.as_dict(), pr)
+
+
 def get_turn_order(data: List[Dict[str, Any]], shape: str) -> int:
     for i, info in enumerate(data):
         if info["shape"] == shape:

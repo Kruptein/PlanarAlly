@@ -30,6 +30,7 @@ from ....models.utils import get_table, reduce_data_to_model
 from ....state.game import game_state
 from ..constants import GAME_NS
 from ..groups import remove_group_if_empty
+from .. import initiative
 from .data_models import *
 from . import access, options, toggle_composite
 
@@ -167,7 +168,7 @@ async def remove_shapes(sid: str, data: TemporaryShapesList):
                 s for s in Shape.select().where(Shape.uuid << data["uuids"])  # type: ignore
             ]
         except Shape.DoesNotExist:
-            logger.warning(f"Attempt to update unknown shape by {pr.player.name}")
+            logger.warning(f"Attempt to remove unknown shape by {pr.player.name}")
             return
 
         layer = shapes[0].layer
@@ -177,9 +178,11 @@ async def remove_shapes(sid: str, data: TemporaryShapesList):
         for shape in shapes:
             if not has_ownership(shape, pr):
                 logger.warning(
-                    f"User {pr.player.name} tried to update a shape it does not own."
+                    f"User {pr.player.name} tried to remove a shape it does not own."
                 )
                 return
+
+            await initiative.remove_shape(pr, shape.uuid, shape.group)
 
             if shape.group:
                 group_ids.add(shape.group)
@@ -295,6 +298,7 @@ async def change_shape_layer(sid: str, data: Dict[str, Any]):
                         room=psid,
                         namespace=GAME_NS,
                     )
+                    await initiative.check_initiative(sio, [s.uuid for s in shapes], pr)
 
 
 @sio.on("Shape.Order.Set", namespace=GAME_NS)

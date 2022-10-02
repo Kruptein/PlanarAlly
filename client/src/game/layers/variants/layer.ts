@@ -29,7 +29,6 @@ import { selectedSystem } from "../../systems/selected";
 import { locationSettingsSystem } from "../../systems/settings/location";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
-import { initiativeStore } from "../../ui/initiative/state";
 import { TriangulationTarget, VisibilityMode, visionState } from "../../vision/state";
 import { setCanvasDimensions } from "../canvas";
 import { compositeState } from "../state";
@@ -333,7 +332,6 @@ export class Layer implements ILayer {
 
         if (this.isActiveLayer) selectedSystem.remove(shape.id);
 
-        if (options.sync === SyncMode.FULL_SYNC) initiativeStore.removeInitiative(shape.id, false);
         this.invalidate(!triggersVisionRecalc);
         return true;
     }

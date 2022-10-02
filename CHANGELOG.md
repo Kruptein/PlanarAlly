@@ -51,6 +51,7 @@ tech changes will usually be stripped from release notes for the public
 -   Multiple Initiative bugs
     -   Server should detect client errors in initiative listings better and reject wrong data
     -   Modification of the initiative should retain the current active actor under more circumstances
+    -   Removal of shape caused some initiative inconsistencies
 -   In-game AssetPicker modal UI fixes
 -   Prompt modal not clearing error message properly
 -   Tool details not always being in the correct location (e.g. when changing mode)

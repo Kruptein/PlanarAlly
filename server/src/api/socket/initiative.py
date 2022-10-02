@@ -14,7 +14,9 @@ from ...models import (
     Shape,
 )
 from ...models.db import db
+from ...models.groups import Group
 from ...models.role import Role
+from ...models.shape import Shape
 from ...models.shape.access import has_ownership
 from ...state.game import game_state
 
@@ -251,6 +253,33 @@ async def clear_initiatives(sid: str):
     )
 
 
+async def remove_shape(pr: PlayerRoom, uuid: str, group: Optional[Group]):
+    location_data = Initiative.get(location=pr.active_location)
+    json_data = json.loads(location_data.data)
+
+    modified = False
+    new_json_data = []
+    for data in json_data:
+        if data["shape"] == uuid:
+            if group is not None and data["isGroup"]:
+                members = group.members.where(Shape.uuid != uuid)
+                if len(members) > 0:
+                    # change initiative member
+                    data["shape"] = members[0].uuid
+                    modified = True
+                    new_json_data.append(data)
+                    continue
+            # remove shape (either because not group OR last group member)
+            modified = True
+            continue
+        else:
+            new_json_data.append(data)
+    if modified:
+        location_data.data = json.dumps(new_json_data)
+        location_data.save()
+        await send_initiative(sio, location_data.as_dict(), pr)
+
+
 @sio.on("Initiative.Remove", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def remove_initiative(sid: str, data: str):
@@ -341,9 +370,8 @@ async def update_initiative_turn(sid: str, turn: int):
 
     if shape is None:
         logger.warning("Attempt to modify the initiative turn for an unknown shape")
-        return
 
-    if pr.role != Role.DM and not has_ownership(shape, pr):
+    if shape is not None and pr.role != Role.DM and not has_ownership(shape, pr):
         logger.warning(f"{pr.player.name} attempted to advance the initiative tracker")
         return
 

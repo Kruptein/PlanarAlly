@@ -23,11 +23,7 @@ export interface ILayer {
     addShape(shape: IShape, sync: SyncMode, invalidate: InvalidationMode): void;
     clear(): void;
     draw(doClear?: boolean): void;
-    getShapes(options: {
-        skipUiHelpers?: boolean;
-        onlyInView?: boolean;
-        includeComposites: boolean;
-    }): readonly IShape[];
+    getShapes(options: { onlyInView?: boolean; includeComposites: boolean }): readonly IShape[];
     hide(): void;
     invalidate(skipLightUpdate: boolean): void;
     updateView(): void;
@@ -39,6 +35,6 @@ export interface ILayer {
     setServerShapes(shapes: ServerShape[]): void;
     setShapes(...shapes: IShape[]): void;
     show(): void;
-    size(options: { skipUiHelpers?: boolean; includeComposites: boolean }): number;
+    size(options: { includeComposites: boolean }): number;
     updateSectors(shapeId: LocalId, aabb: BoundingRect): void;
 }

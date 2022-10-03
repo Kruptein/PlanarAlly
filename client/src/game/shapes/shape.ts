@@ -361,6 +361,7 @@ export abstract class Shape implements IShape {
         ctx.stroke();
 
         const points = this.points; // expensive call
+        if (points.length === 0) return; // can trigger mid-floor change
 
         // Draw vertices
         for (const p of points) {

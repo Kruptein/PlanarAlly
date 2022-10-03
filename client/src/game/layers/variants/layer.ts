@@ -236,7 +236,7 @@ export class Layer implements ILayer {
         onlyInView?: boolean;
     }): readonly IShape[] {
         const skipUiHelpers = options.skipUiHelpers ?? true;
-        const target = options?.onlyInView ?? false ? this.shapes : this.shapesInSector;
+        const target = options?.onlyInView ?? false ? this.shapesInSector : this.shapes;
         let shapes: readonly IShape[] = skipUiHelpers ? target.filter((s) => !(s.options.UiHelper ?? false)) : target;
         if (options.includeComposites) {
             shapes = compositeState.addAllCompositeShapes(shapes);
@@ -254,6 +254,8 @@ export class Layer implements ILayer {
 
     setShapes(...shapes: IShape[]): void {
         this.shapes = shapes;
+        this.xSectors.clear();
+        this.ySectors.clear();
         for (const shape of shapes) {
             this.addShapeToSectors(shape.id, shape.getAuraAABB());
         }

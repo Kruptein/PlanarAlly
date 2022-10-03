@@ -10,6 +10,7 @@ import {
 } from "../../api/emits/shape/toggleComposite";
 import { getGlobalId, getShape } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
+import type { IToggleComposite } from "../../interfaces/shapes/toggleComposite";
 import { compositeState } from "../../layers/state";
 import type { ServerToggleComposite } from "../../models/shapes";
 import { accessSystem } from "../../systems/access";
@@ -23,13 +24,13 @@ import type { SHAPE_TYPE } from "../types";
 
 import { BoundingRect } from "./simple/boundingRect";
 
-export class ToggleComposite extends Shape {
+export class ToggleComposite extends Shape implements IToggleComposite {
     type: SHAPE_TYPE = "togglecomposite";
 
     constructor(
         position: GlobalPoint,
         private active_variant: LocalId,
-        private _variants: { uuid: LocalId; name: string }[],
+        private _variants: { id: LocalId; name: string }[],
         options?: {
             id?: LocalId;
             uuid?: GlobalId;
@@ -41,7 +42,7 @@ export class ToggleComposite extends Shape {
         for (const variant of _variants) {
             compositeState.addComposite(this.id, variant, false);
         }
-        this.resetVariants(...this._variants.map((v) => v.uuid));
+        this.resetVariants(...this._variants.map((v) => v.id));
         this.setActiveVariant(this.active_variant, false);
     }
 
@@ -49,12 +50,12 @@ export class ToggleComposite extends Shape {
         return true;
     }
 
-    get variants(): readonly { uuid: LocalId; name: string }[] {
+    get variants(): readonly { id: LocalId; name: string }[] {
         return this._variants;
     }
 
-    addVariant(uuid: LocalId, name: string, sync: boolean): void {
-        const variant = { uuid, name };
+    addVariant(id: LocalId, name: string, sync: boolean): void {
+        const variant = { id, name };
         this._variants.push(variant);
         compositeState.addComposite(this.id, variant, sync);
     }
@@ -64,7 +65,7 @@ export class ToggleComposite extends Shape {
             sendToggleCompositeRenameVariant({ shape: getGlobalId(this.id), variant: getGlobalId(uuid), name });
         if (syncTo.ui) this._("renameVariant")(uuid, name, syncTo);
 
-        const variant = this._variants.find((v) => v.uuid === uuid);
+        const variant = this._variants.find((v) => v.id === uuid);
         if (variant === undefined) return;
         variant.name = name;
     }
@@ -73,12 +74,12 @@ export class ToggleComposite extends Shape {
         if (syncTo.server) sendToggleCompositeRemoveVariant({ shape: getGlobalId(this.id), variant: getGlobalId(id) });
         if (syncTo.ui) this._("removeVariant")(id, syncTo);
 
-        const v = this._variants.findIndex((v) => v.uuid === id);
+        const v = this._variants.findIndex((v) => v.id === id);
         if (v === undefined) {
             console.error("Variant not found during variant removal");
             return;
         }
-        const newVariant = this._variants[(v + 1) % this._variants.length].uuid;
+        const newVariant = this._variants[(v + 1) % this._variants.length].id;
         this._variants.splice(v, 1);
         this.setActiveVariant(newVariant, true);
 
@@ -157,7 +158,7 @@ export class ToggleComposite extends Shape {
     asDict(): ServerToggleComposite {
         return Object.assign(this.getBaseDict(), {
             active_variant: getGlobalId(this.active_variant)!,
-            variants: this._variants.map((v) => ({ uuid: getGlobalId(v.uuid)!, name: v.name })),
+            variants: this._variants.map((v) => ({ uuid: getGlobalId(v.id)!, name: v.name })),
         });
     }
 

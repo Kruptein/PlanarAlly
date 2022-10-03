@@ -157,6 +157,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
 }
 
 export function deleteShapes(shapes: readonly IShape[], sync: SyncMode): void {
+    if (shapes.length === 0) return;
     if (sync === SyncMode.FULL_SYNC) {
         addOperation({ type: "shaperemove", shapes: shapes.map((s) => s.asDict()) });
     }

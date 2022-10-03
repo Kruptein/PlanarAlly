@@ -17,6 +17,7 @@ let uuids: GlobalId[] = [];
 
 const idMap: Map<LocalId, IShape> = new Map();
 (window as any).idMap = idMap;
+(window as any).uuids = uuids;
 
 // we're not giving id 0 on purpose to prevent potential unsafe if checks against this
 // Usually our explicit undefined check catches this, but because of our LocalId typing

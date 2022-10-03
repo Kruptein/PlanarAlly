@@ -31,7 +31,7 @@ interface ActiveShapeState {
 
     groupId: string | undefined;
 
-    variants: { uuid: LocalId; name: string }[];
+    variants: { id: LocalId; name: string }[];
 
     labels: Label[];
 }
@@ -108,7 +108,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
     renameVariant(uuid: LocalId, name: string, syncTo: Sync): void {
         if (this._state.id === undefined || this._state.parentUuid === undefined) return;
 
-        const variant = this._state.variants.find((v) => v.uuid === uuid);
+        const variant = this._state.variants.find((v) => v.id === uuid);
         if (variant === undefined) return;
 
         variant.name = name;
@@ -122,7 +122,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
     removeVariant(uuid: LocalId, syncTo: Sync): void {
         if (this._state.id === undefined || this._state.parentUuid === undefined) return;
 
-        const index = this._state.variants.findIndex((v) => v.uuid === uuid);
+        const index = this._state.variants.findIndex((v) => v.id === uuid);
         if (index < 0) return;
 
         this._state.variants.splice(index, 1);

@@ -93,7 +93,7 @@ export function createShapeFromDict(shape: ServerShape): IShape | undefined {
         sh = new ToggleComposite(
             refPoint,
             getLocalId(toggleComposite.active_variant)!,
-            toggleComposite.variants.map((v) => ({ uuid: getLocalId(v.uuid)!, name: v.name })),
+            toggleComposite.variants.map((v) => ({ id: reserveLocalId(v.uuid), name: v.name })),
             {
                 uuid: toggleComposite.uuid,
             },

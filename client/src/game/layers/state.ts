@@ -19,12 +19,12 @@ class CompositeState {
         return undefined;
     }
 
-    addComposite(parent: LocalId, variant: { uuid: LocalId; name: string }, sync: boolean): void {
-        this.compositeMap.set(variant.uuid, parent);
+    addComposite(parent: LocalId, variant: { id: LocalId; name: string }, sync: boolean): void {
+        this.compositeMap.set(variant.id, parent);
         if (sync) {
             sendToggleCompositeAddVariant({
                 shape: getGlobalId(parent),
-                variant: getGlobalId(variant.uuid),
+                variant: getGlobalId(variant.id),
                 name: variant.name,
             });
         }
@@ -40,11 +40,11 @@ class CompositeState {
                 shapeUuids.add(parent.id);
                 allShapes.push(parent);
                 for (const variant of parent.variants) {
-                    if (shapeUuids.has(variant.uuid)) {
+                    if (shapeUuids.has(variant.id)) {
                         continue;
                     } else {
-                        shapeUuids.add(variant.uuid);
-                        allShapes.push(getShape(variant.uuid)!);
+                        shapeUuids.add(variant.id);
+                        allShapes.push(getShape(variant.id)!);
                     }
                 }
             }

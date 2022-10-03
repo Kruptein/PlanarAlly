@@ -61,7 +61,7 @@ describe("Aura System", () => {
             const id = generateTestLocalId(generateTestShape({ floor: "test" }));
             const id2 = generateTestLocalId();
             const aura = generateTestAura();
-            compositeState.addComposite(id, { uuid: id2, name: "variant" }, false);
+            compositeState.addComposite(id, { id: id2, name: "variant" }, false);
             auraSystem.inform(id, [aura]);
             // test
             expect(auraSystem.get(id2, aura.uuid, false)).toBeUndefined();
@@ -91,7 +91,7 @@ describe("Aura System", () => {
             // setup
             const id = generateTestLocalId(generateTestShape({ floor: "test" }));
             const id2 = generateTestLocalId();
-            compositeState.addComposite(id, { uuid: id2, name: "variant" }, false);
+            compositeState.addComposite(id, { id: id2, name: "variant" }, false);
             const aura = generateTestAura();
             auraSystem.inform(id, [aura]);
             const aura2 = generateTestAura({ visible: false, visionSource: false });

@@ -262,8 +262,18 @@ async def clear_initiatives(sid: str):
 
 
 async def remove_shape(pr: PlayerRoom, uuid: str, group: Optional[Group]):
-    location_data = Initiative.get(location=pr.active_location)
-    json_data = json.loads(location_data.data)
+    location_data = Initiative.get_or_none(location=pr.active_location)
+    if location_data is None:
+        return
+    try:
+        json_data = json.loads(location_data.data)
+    except json.JSONDecodeError:
+        logger.warning(
+            "Invalid initiative data found during shape removal",
+            pr.room.id,
+            pr.active_location.id,
+        )
+        return
 
     modified = False
     new_json_data = []

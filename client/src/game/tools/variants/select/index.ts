@@ -545,10 +545,10 @@ class SelectTool extends Tool implements ISelectTool {
                 }
             }
 
-            layerSelection = selectedSystem.get({ includeComposites: false });
-
             layer.removeShape(this.selectionHelper!, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
             this.selectionHelper = undefined;
+
+            layerSelection = selectedSystem.get({ includeComposites: false });
 
             if (layerSelection.some((s) => !getProperties(s.id)!.isLocked)) {
                 selectedSystem.set(...layerSelection.filter((s) => !getProperties(s.id)!.isLocked).map((s) => s.id));

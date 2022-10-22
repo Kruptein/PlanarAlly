@@ -142,6 +142,10 @@ export abstract class Shape implements IShape {
         return props.isToken || props.blocksMovement || auraSystem.getAll(this.id, true).some((a) => a.visionSource);
     }
 
+    resetVisionIteration(): void {
+        this.visionIteration = -1;
+    }
+
     get visionPolygon(): Path2D {
         const floorIteration = floorState.readonly.iteration;
         const visionIteration = visionState.getVisionIteration(this._floor!);
@@ -179,7 +183,7 @@ export abstract class Shape implements IShape {
     set refPoint(point: GlobalPoint) {
         this._refPoint = point;
         this._center = this.__center();
-        this.visionIteration = -1;
+        this.resetVisionIteration();
         this.layer.updateSectors(this.id, this.getAuraAABB());
         this.invalidatePoints();
     }
@@ -207,7 +211,7 @@ export abstract class Shape implements IShape {
         this._refPoint = toGP(position.points[0]);
         this._center = this.__center();
         this.angle = position.angle;
-        this.visionIteration = -1;
+        this.resetVisionIteration();
         this.layer.updateSectors(this.id, this.getAuraAABB());
         this.updateShapeVision(false, false);
     }

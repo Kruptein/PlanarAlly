@@ -241,6 +241,7 @@ export class Layer implements ILayer {
     pushShapes(...shapes: IShape[]): void {
         this.shapes.push(...shapes);
         for (const shape of shapes) {
+            shape.resetVisionIteration();
             this.addShapeToSectors(shape.id, shape.getAuraAABB());
         }
         this.updateView();
@@ -251,6 +252,7 @@ export class Layer implements ILayer {
         this.xSectors.clear();
         this.ySectors.clear();
         for (const shape of shapes) {
+            shape.resetVisionIteration();
             this.addShapeToSectors(shape.id, shape.getAuraAABB());
         }
         this.updateView();
@@ -392,11 +394,8 @@ export class Layer implements ILayer {
                 // Normal shape draw loop
                 for (const shape of this.shapesInSector) {
                     if (shape.options.skipDraw ?? false) continue;
-                    if (
-                        getProperties(shape.id)!.isInvisible &&
-                        !accessSystem.hasAccessTo(shape.id, true, { vision: true })
-                    )
-                        continue;
+                    const props = getProperties(shape.id)!;
+                    if (props.isInvisible && !accessSystem.hasAccessTo(shape.id, true, { vision: true })) continue;
                     if (shape.labels.length === 0 && gameState.filterNoLabel) continue;
                     if (
                         shape.labels.length &&

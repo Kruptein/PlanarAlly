@@ -19,6 +19,7 @@ export interface IShape extends SimpleShape {
 
     get points(): [number, number][];
     invalidatePoints(): void;
+    resetVisionIteration(): void;
 
     contains(point: GlobalPoint, nearbyThreshold?: number): boolean;
 

@@ -79,7 +79,7 @@ async function changeValue(tracker: Tracker | Aura, isAura: boolean): Promise<vo
                     <font-awesome-icon icon="edit" />
                 </div>
                 <div id="selection-name">{{ propertiesState.reactive.name }}</div>
-                <div id="selection-trackers">
+                <div id="selection-values">
                     <template v-for="tracker in trackers" :key="tracker.uuid">
                         <div>{{ tracker.name }}</div>
                         <div
@@ -93,8 +93,6 @@ async function changeValue(tracker: Tracker | Aura, isAura: boolean): Promise<vo
                             <template v-else>{{ tracker.value }} / {{ tracker.maxvalue }}</template>
                         </div>
                     </template>
-                </div>
-                <div id="selection-auras">
                     <template v-for="aura in auras" :key="aura.uuid">
                         <div>{{ aura.name }}</div>
                         <div
@@ -151,10 +149,9 @@ async function changeValue(tracker: Tracker | Aura, isAura: boolean): Promise<vo
     cursor: pointer;
 }
 
-#selection-trackers,
-#selection-auras {
+#selection-values {
     display: grid;
-    grid-template-columns: [name] 1fr [value] 1fr;
+    grid-template-columns: [name] 1fr [value] max-content;
 }
 
 .selection-tracker-value,

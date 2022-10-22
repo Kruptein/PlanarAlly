@@ -15,6 +15,8 @@ import { ShadowOnlyMaterial } from "@babylonjs/materials/shadowOnly";
 import { Dice, DiceThrower, DndParser } from "@planarally/dice";
 import type { DieOptions } from "@planarally/dice";
 
+import { baseAdjust } from "../../core/http";
+
 import { loadAmmoModule } from "./ammo";
 import { diceStore } from "./state";
 
@@ -32,7 +34,7 @@ export async function loadDiceEnv(): Promise<DiceThrower> {
     const Ammo = (window as any).Ammo;
 
     diceThrower = new DiceThrower({ canvas, tresholds: { linear: 0.05, angular: 0.1 } });
-    await diceThrower.load("/static/babylon_test6.babylon", Ammo());
+    await diceThrower.load(baseAdjust("/static/babylon_test6.babylon"), Ammo());
 
     /*
      * Currently the camera looks in such a way that the x-axis goes from negative right to positive left

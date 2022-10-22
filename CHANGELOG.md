@@ -56,6 +56,7 @@ tech changes will usually be stripped from release notes for the public
 -   In-game AssetPicker modal UI fixes
 -   Prompt modal not clearing error message properly
 -   Tool details not always being in the correct location (e.g. when changing mode)
+-   Diceroller not working on subpath server
 
 ## [2022.2.3] - 2022-07-13
 

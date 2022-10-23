@@ -10,6 +10,7 @@ export interface PlayerOptions {
     // Behaviour
     invertAlt: boolean;
     disableScrollToZoom: boolean;
+    defaultTrackerMode: boolean;
 
     // Display
     useHighDpi: boolean;
@@ -35,6 +36,7 @@ export interface ServerPlayerOptions {
 
     invert_alt: boolean;
     disable_scroll_to_zoom: boolean;
+    default_tracker_mode: boolean;
 
     use_high_dpi: boolean;
     grid_size: number;

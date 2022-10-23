@@ -32,6 +32,8 @@ class UserOptions(BaseModel):
 
     invert_alt = BooleanField(default=False, null=True)
     disable_scroll_to_zoom = BooleanField(default=False, null=True)
+    # false = use absolute mode ; true = use relative mode
+    default_tracker_mode = BooleanField(default=False, null=True)
 
     use_high_dpi = BooleanField(default=False, null=True)
     grid_size = IntegerField(default=50, null=True)

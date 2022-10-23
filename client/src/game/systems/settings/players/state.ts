@@ -20,6 +20,7 @@ const state = buildState<PlayerState, "gridSize">({
 
     invertAlt: init(false),
     disableScrollToZoom: init(false),
+    defaultTrackerMode: init(false),
 
     useHighDpi: init(true),
     gridSize: init(DEFAULT_GRID_SIZE),

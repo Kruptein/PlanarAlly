@@ -26,6 +26,10 @@ tech changes will usually be stripped from release notes for the public
 -   [DM] Hiding a token using the vision tool will now also hide their private light auras
 -   Dashboard UI has been updated (once again)
 -   Asset Manager UI has been updated and is now integrated with the main dashboard
+-   Quick tracker/aura changes
+    -   Now supports more complex expressions (most mathematical expressions should work)
+    -   Now has a toggle between absolute and relative mode
+    -   A new Client Setting - Behaviour has been added to set the default update mode (absolute vs relative)
 -   [server] moved all python imports to proper relative imports
     -   this changes the way to manually run the server (again) (sorry)
 -   [tech] keep shape centers in memory instead of recalculating on the fly

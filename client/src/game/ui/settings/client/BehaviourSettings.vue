@@ -27,6 +27,27 @@ const disableScrollToZoom = computed({
         pss.setDisableScrollToZoom(disableScrollToZoom, { sync: true });
     },
 });
+
+const defaultTrackerMode = computed({
+    get() {
+        return $.defaultTrackerMode.value;
+    },
+    set(defaultTrackerMode: boolean | undefined) {
+        pss.setDefaultTrackerMode(defaultTrackerMode, { sync: true });
+    },
+});
+
+enum TrackerMode {
+    Absolute = "absolute",
+    Relative = "relative",
+}
+
+const trackerModeOptions = Object.values(TrackerMode);
+
+function setDefaultTrackerMode(event: Event): void {
+    const mode = (event.target as HTMLSelectElement).value as TrackerMode;
+    defaultTrackerMode.value = mode !== TrackerMode.Absolute;
+}
 </script>
 
 <template>
@@ -61,6 +82,39 @@ const disableScrollToZoom = computed({
                     :title="t('game.ui.settings.common.sync_default')"
                     @click="
                         pss.setDisableScrollToZoom(undefined, { sync: true, default: $.disableScrollToZoom.override })
+                    "
+                >
+                    <font-awesome-icon icon="sync-alt" />
+                </div>
+            </template>
+        </div>
+        <div class="spanrow header">Selection Info</div>
+        <div class="row">
+            <label for="defaultTrackerMode">
+                {{ t("game.ui.settings.client.BehaviourSettings.selection_info_tracker_mode") }}
+            </label>
+            <!-- <div><input id="defaultTrackerMode" type="checkbox" v-model="defaultTrackerMode" /></div> -->
+            <div>
+                <select @change="setDefaultTrackerMode">
+                    <option
+                        v-for="option in trackerModeOptions"
+                        :key="option"
+                        :value="option"
+                        :label="t('game.ui.settings.client.BehaviourSettings.selection_info_tracker_mode_' + option)"
+                        :selected="
+                            defaultTrackerMode ? option === TrackerMode.Relative : option === TrackerMode.Absolute
+                        "
+                    ></option>
+                </select>
+            </div>
+            <template v-if="$.defaultTrackerMode.override !== undefined">
+                <div :title="t('game.ui.settings.common.reset_default')" @click="defaultTrackerMode = undefined">
+                    <font-awesome-icon icon="times-circle" />
+                </div>
+                <div
+                    :title="t('game.ui.settings.common.sync_default')"
+                    @click="
+                        pss.setDefaultTrackerMode(undefined, { sync: true, default: $.defaultTrackerMode.override })
                     "
                 >
                     <font-awesome-icon icon="sync-alt" />

@@ -242,7 +242,10 @@
                     },
                     "BehaviourSettings": {
                         "invert_alt_set": "Invert ALT behaviour",
-                        "disable_scroll_to_zoom": "Disable scroll to zoom"
+                        "disable_scroll_to_zoom": "Disable scroll to zoom",
+                        "selection_info_tracker_mode": "Default tracker mode",
+                        "selection_info_tracker_mode_absolute": "Absolute",
+                        "selection_info_tracker_mode_relative": "Relative"
                     },
                     "InitiativeSettings": {
                         "camera_lock": "Lock camera to active (owned) tokens",

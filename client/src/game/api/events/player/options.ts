@@ -38,6 +38,10 @@ socket.on("Player.Options.Set", (options: ServerPlayerInfo) => {
         sync: false,
         default: defaultOptions.disableScrollToZoom,
     });
+    playerSettingsSystem.setDefaultTrackerMode(roomOptions?.defaultTrackerMode, {
+        sync: false,
+        default: defaultOptions.defaultTrackerMode,
+    });
 
     // Display
     playerSettingsSystem.setUseHighDpi(roomOptions?.useHighDpi, {

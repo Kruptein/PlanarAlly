@@ -69,6 +69,16 @@ class PlayerSettingsSystem implements System {
         if (options.sync) sendRoomClientOptions("disable_scroll_to_zoom", disableScrollToZoom, options.default);
     }
 
+    setDefaultTrackerMode(
+        defaultTrackerMode: boolean | undefined,
+        options: { sync: boolean; default?: boolean },
+    ): void {
+        $.defaultTrackerMode.override = defaultTrackerMode;
+        if (options.default !== undefined) $.defaultTrackerMode.default = options.default;
+        $.defaultTrackerMode.value = defaultTrackerMode ?? $.defaultTrackerMode.default;
+        if (options.sync) sendRoomClientOptions("default_tracker_mode", defaultTrackerMode, options.default);
+    }
+
     // DISPLAY
 
     setUseHighDpi(useHighDpi: boolean | undefined, options: { sync: boolean; default?: boolean }): void {

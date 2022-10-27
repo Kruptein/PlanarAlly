@@ -5,6 +5,7 @@ import { sendDeclineRequest } from "../../api/emits/logic";
 import { getLocalId, getShapeFromGlobal } from "../../id";
 import type { Global } from "../../id";
 import { setCenterPosition } from "../../position";
+import { floorSystem } from "../../systems/floors";
 import { doorSystem } from "../../systems/logic/door";
 import type { DoorRequest } from "../../systems/logic/door/models";
 import type { RequestTypeResponse } from "../../systems/logic/models";
@@ -53,6 +54,7 @@ function showArea(): void {
 
     shape.showHighlight = true;
     setCenterPosition(shape.center);
+    floorSystem.selectFloor({ name: shape.floor.name }, true);
 }
 </script>
 

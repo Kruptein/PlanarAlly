@@ -101,6 +101,7 @@ class GameStore {
         const shape = getShape(marker);
         if (shape == undefined) return;
         setCenterPosition(shape.center);
+        floorSystem.selectFloor({ name: shape.floor.name }, true);
     }
 
     removeMarker(marker: LocalId, sync: boolean): void {

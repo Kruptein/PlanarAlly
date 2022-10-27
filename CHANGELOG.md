@@ -62,6 +62,9 @@ tech changes will usually be stripped from release notes for the public
 -   Tool details not always being in the correct location (e.g. when changing mode)
 -   Diceroller not working on subpath server
 -   Trim down noisy whitespace in selection info
+-   Initiative camera-lock not changing floors
+-   Door/Tp area preview not changing floors
+-   Jump to marker not changing floors
 
 ## [2022.2.3] - 2022-07-13
 

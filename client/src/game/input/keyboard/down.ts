@@ -192,11 +192,11 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
 
 function changeFloor(event: KeyboardEvent, targetFloor: number): void {
     if (targetFloor < 0 || targetFloor > floorState.raw.floors.length - 1) return;
-    const selection = selectedSystem.get({ includeComposites: true });
+    const selection = selectedSystem.get({ includeComposites: false });
     const newFloor = floorState.raw.floors[targetFloor];
 
     if (event.altKey) {
-        moveFloor([...selection], newFloor, true);
+        moveFloor([...selectedSystem.get({ includeComposites: true })], newFloor, true);
     }
     selectedSystem.clear();
     floorState.currentLayer.value!.invalidate(true);

@@ -65,6 +65,7 @@ tech changes will usually be stripped from release notes for the public
 -   Initiative camera-lock not changing floors
 -   Door/Tp area preview not changing floors
 -   Jump to marker not changing floors
+-   Moving composite/variant shape to other floor and following would show extra selection boxes
 
 ## [2022.2.3] - 2022-07-13
 

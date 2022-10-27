@@ -23,6 +23,7 @@ import type { InitiativeData, InitiativeEffect, InitiativeSettings } from "../..
 import { setCenterPosition } from "../../position";
 import { accessSystem } from "../../systems/access";
 import { accessState } from "../../systems/access/state";
+import { floorSystem } from "../../systems/floors";
 import { playerSettingsState } from "../../systems/settings/players/state";
 
 let activeTokensBackup: Set<LocalId> | undefined = undefined;
@@ -266,8 +267,10 @@ class InitiativeStore extends Store<InitiativeState> {
         if (playerSettingsState.raw.initiativeCameraLock.value) {
             const actor = this.getDataSet()[this._state.turnCounter];
             if (accessSystem.hasAccessTo(actor.shape, false, { vision: true }) ?? false) {
-                const shape = getShape(actor.shape)!;
+                const shape = getShape(actor.shape);
+                if (shape === undefined) return;
                 setCenterPosition(shape.center);
+                floorSystem.selectFloor({ name: shape.floor.name }, true);
             }
         }
     }

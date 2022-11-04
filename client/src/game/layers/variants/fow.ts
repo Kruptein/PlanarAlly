@@ -13,6 +13,7 @@ export class FowLayer extends Layer {
     preFogShapes: IShape[] = [];
     virtualCanvas: HTMLCanvasElement;
     vCtx: CanvasRenderingContext2D;
+    isEmpty = false;
 
     constructor(canvas: HTMLCanvasElement, public name: LayerName, public floor: FloorId, protected index: number) {
         super(canvas, name, floor, index);

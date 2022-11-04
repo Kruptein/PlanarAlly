@@ -2,6 +2,7 @@ import { g2l, g2lz, g2lr, toRadians } from "../../../core/conversions";
 import type { SyncMode, InvalidationMode } from "../../../core/models/types";
 import { FOG_COLOUR } from "../../colour";
 import { getShape } from "../../id";
+import type { LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import { LayerName } from "../../models/floor";
 import { accessState } from "../../systems/access/state";
@@ -35,6 +36,7 @@ export class FowLightingLayer extends FowLayer {
         if (!this.valid) {
             const originalOperation = this.ctx.globalCompositeOperation;
             super._draw();
+            this.isEmpty = true;
 
             const activeFloor = floorState.currentFloor.value!;
 
@@ -45,7 +47,8 @@ export class FowLightingLayer extends FowLayer {
                 activeFloor.id === this.floor
             ) {
                 for (const sh of accessState.activeTokens.value) {
-                    const shape = getShape(sh)!;
+                    const shape = getShape(sh);
+                    if (shape === undefined) continue;
                     if (shape.options.skipDraw ?? false) continue;
                     if (shape.floor.id !== activeFloor.id) continue;
                     const bb = shape.getBoundingBox();
@@ -65,16 +68,36 @@ export class FowLightingLayer extends FowLayer {
                     gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
                     this.ctx.fillStyle = gradient;
                     this.ctx.fill();
+
+                    // Out of Bounds check
+                    if (
+                        // It's overkill to check this if fowLos is set
+                        !locationSettingsState.raw.fowLos.value &&
+                        bb.visibleInCanvas({ w: this.width, h: this.height })
+                    ) {
+                        this.isEmpty = false;
+                    }
                 }
             }
 
             // First cut out all the light sources
             if (locationSettingsState.raw.fullFow.value) {
+                const shapesBoundChecked: Set<LocalId> = new Set();
                 for (const light of visionState.getVisionSourcesInView(this.floor)) {
                     const shape = getShape(light.shape);
                     if (shape === undefined) continue;
                     const aura = auraSystem.get(shape.id, light.aura, true);
                     if (aura === undefined) continue;
+
+                    // Out of Bounds check
+                    if (!locationSettingsState.raw.fowLos.value) {
+                        if (!shapesBoundChecked.has(shape.id)) {
+                            shapesBoundChecked.add(shape.id);
+                            if (shape._visionBbox?.visibleInCanvas({ w: this.width, h: this.height }) ?? false) {
+                                this.isEmpty = false;
+                            }
+                        }
+                    }
 
                     const auraValue = aura.value > 0 && !isNaN(aura.value) ? aura.value : 0;
                     const auraDim = aura.dim > 0 && !isNaN(aura.dim) ? aura.dim : 0;

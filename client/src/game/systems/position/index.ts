@@ -1,11 +1,20 @@
 import { registerSystem } from "..";
 import type { System } from "..";
 import { g2l, l2g, zoomDisplayToFactor } from "../../../core/conversions";
-import { addP, subtractP, toGP, Vector } from "../../../core/geometry";
+import { addP, getPointDistance, subtractP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { sendClientLocationOptions } from "../../api/emits/client";
+import { getAllShapes, getShape } from "../../id";
+import type { IShape } from "../../interfaces/shape";
+import type { FowLayer } from "../../layers/variants/fow";
+import { LayerName } from "../../models/floor";
+import { setCenterPosition } from "../../position";
+import { visionState } from "../../vision/state";
+import { accessState } from "../access/state";
 import { clientSystem } from "../client";
 import { floorSystem } from "../floors";
+import { floorState } from "../floors/state";
+import { locationSettingsState } from "../settings/location/state";
 import { playerSettingsState } from "../settings/players/state";
 
 import { DEFAULT_GRID_SIZE, positionState } from "./state";
@@ -34,6 +43,7 @@ class PositionSystem implements System {
         mutable.panY = y + readonly.gridOffset.y;
         if (options.updateSectors) {
             floorSystem.invalidateSectors();
+            this.checkOutOfBounds();
         }
         floorSystem.updateIteration();
     }
@@ -43,6 +53,7 @@ class PositionSystem implements System {
         mutable.panY += y;
         floorSystem.invalidateSectors();
         floorSystem.updateIteration();
+        this.checkOutOfBounds();
     }
 
     // OFFSET
@@ -58,7 +69,7 @@ class PositionSystem implements System {
 
     // ZOOM
 
-    setZoomFactor(zoomDisplay: number): void {
+    private setZoomFactor(zoomDisplay: number): void {
         const gf = playerSettingsState.gridSize.value / DEFAULT_GRID_SIZE;
         if (playerSettingsState.raw.useAsPhysicalBoard.value) {
             if (readonly.zoom !== gf) {
@@ -76,7 +87,10 @@ class PositionSystem implements System {
         if (zoom > 1) zoom = 1;
         $.zoomDisplay = zoom;
         this.setZoomFactor(zoom);
-        if (options.updateSectors) floorSystem.invalidateSectors();
+        if (options.updateSectors) {
+            floorSystem.invalidateSectors();
+            this.checkOutOfBounds();
+        }
         if (options.invalidate) floorSystem.invalidateAllFloors();
         if (options.sync) {
             sendClientLocationOptions(false);
@@ -94,6 +108,75 @@ class PositionSystem implements System {
         floorSystem.invalidateAllFloors();
         sendClientLocationOptions(false);
         clientSystem.updateZoomFactor();
+    }
+
+    // OOB
+
+    private checkOutOfBounds(): void {
+        $.outOfBounds = true;
+        if (locationSettingsState.raw.fullFow.value) {
+            for (const layer of floorState.raw.layers) {
+                if (locationSettingsState.raw.fowLos.value) {
+                    if (layer.name === LayerName.Vision && !(layer as FowLayer).isEmpty) {
+                        $.outOfBounds = false;
+                        return;
+                    }
+                } else {
+                    if (layer.name === LayerName.Lighting && !(layer as FowLayer).isEmpty) {
+                        $.outOfBounds = false;
+                        return;
+                    }
+                }
+            }
+            if ($.outOfBounds) return;
+        }
+        for (const layer of floorState.raw.layers) {
+            for (const sh of layer.shapesInSector) {
+                if (!(sh.options.skipDraw ?? false)) {
+                    $.outOfBounds = false;
+                    return;
+                }
+            }
+        }
+    }
+
+    returnToBounds(): void {
+        let nearest: GlobalPoint | undefined;
+        if (locationSettingsState.raw.fullFow.value) {
+            if (locationSettingsState.raw.fowLos.value) {
+                // find nearest token
+                nearest = this.findNearest(accessState.activeTokens.value, (i) => getShape(i));
+            } else {
+                // find nearest lightsource
+                nearest = this.findNearest(visionState.getAllVisionSources(), (s) => getShape(s.shape));
+            }
+        } else {
+            // find nearest shape
+            nearest = this.findNearest(getAllShapes(), (x) => x);
+        }
+
+        if (nearest !== undefined) {
+            setCenterPosition(nearest);
+            $.outOfBounds = false;
+        }
+    }
+
+    private findNearest<T>(shapes: Iterable<T>, fn: (x: T) => IShape | undefined): GlobalPoint | undefined {
+        let nearest: { position: GlobalPoint; distance: number } | null = null;
+        for (const sh of shapes) {
+            const shape = fn(sh);
+            if (
+                shape === undefined ||
+                (shape.options?.skipDraw ?? false) ||
+                shape.floor !== floorState.currentFloor.value
+            )
+                continue;
+            const distance = getPointDistance(this.screenCenter, shape.center);
+            if (nearest === null || distance < nearest.distance) {
+                nearest = { position: shape.center, distance };
+            }
+        }
+        return nearest?.position;
     }
 }
 

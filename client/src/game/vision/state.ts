@@ -340,6 +340,10 @@ class VisionState extends Store<State> {
         this.visionSourcesInView.set(floor, viv);
     }
 
+    getAllVisionSources(): readonly { shape: LocalId; aura: AuraId }[] {
+        return [...this.visionSources.values()].flat();
+    }
+
     private getVisionSources(floor: FloorId): readonly { shape: LocalId; aura: AuraId }[] {
         return this.visionSources.get(floor) ?? [];
     }

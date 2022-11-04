@@ -59,11 +59,11 @@ export class Layer implements ILayer {
     // The collection of shapes that this layer contains.
     // These are ordered on a depth basis.
     protected shapes: IShape[] = [];
-    protected shapesInSector: IShape[] = [];
+    shapesInSector: IShape[] = [];
     protected xSectors: Map<number, Set<LocalId>> = new Map();
     protected ySectors: Map<number, Set<LocalId>> = new Map();
 
-    protected shapeIdsInSector: Set<LocalId> = new Set();
+    shapeIdsInSector: Set<LocalId> = new Set();
 
     points: Map<string, Set<LocalId>> = new Map();
 

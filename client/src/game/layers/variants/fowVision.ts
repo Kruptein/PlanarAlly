@@ -21,6 +21,7 @@ export class FowVisionLayer extends FowLayer {
                 return;
             }
 
+            this.isEmpty = true;
             super._draw();
 
             // For the DM this is done at the end of this function.  TODO: why the split up ???
@@ -54,6 +55,11 @@ export class FowVisionLayer extends FowLayer {
                 this.ctx.fillStyle = gradient;
 
                 this.ctx.fill(token.visionPolygon);
+
+                // Out of Bounds check
+                if (token._visionBbox?.visibleInCanvas({ w: this.width, h: this.height }) ?? false) {
+                    this.isEmpty = false;
+                }
             }
 
             const activeFloor = floorState.currentFloor.value!.id;

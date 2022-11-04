@@ -59,6 +59,7 @@ export interface IShape extends SimpleShape {
     onLayerAdd(): void;
 
     get visionPolygon(): Path2D;
+    _visionBbox: BoundingRect | undefined;
 
     // POSITION
 

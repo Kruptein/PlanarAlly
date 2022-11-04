@@ -42,7 +42,7 @@ export function addServerFloor(serverFloor: ServerFloor): void {
 }
 
 function addServerLayer(layerInfo: ServerLayer, floor: Floor): void {
-    const canvas = createCanvas();
+    const canvas = createCanvas(layerInfo.name);
 
     const layerName = layerInfo.name as LayerName;
 

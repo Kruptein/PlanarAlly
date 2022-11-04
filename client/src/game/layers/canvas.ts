@@ -1,9 +1,10 @@
 import { playerSettingsState } from "../systems/settings/players/state";
 
-export function createCanvas(): HTMLCanvasElement {
+export function createCanvas(layerName?: string): HTMLCanvasElement {
     // Create canvas element
     const canvas = document.createElement("canvas");
     canvas.style.display = "none";
+    if (layerName !== undefined) canvas.classList.add(layerName);
     setCanvasDimensions(canvas, window.innerWidth, window.innerHeight);
     return canvas;
 }

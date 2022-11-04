@@ -39,7 +39,7 @@ function drawPointL(point: number[], r: number, colour?: string): void {
 
 export function drawPolygon(
     polygon: number[][],
-    options?: { colour?: string; strokeWidth?: number; close?: boolean },
+    options?: { colour?: string; strokeWidth?: number; close?: boolean; debug?: boolean },
 ): void {
     const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
@@ -52,9 +52,15 @@ export function drawPolygon(
         options?.colour === undefined
             ? `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})`
             : options.colour;
-    ctx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
+    const x = g2lx(polygon[0][0]);
+    const y = g2ly(polygon[0][1]);
+    ctx.moveTo(x, y);
+    if (options?.debug ?? false) console.log(x, y);
     for (const point of polygon) {
-        ctx.lineTo(g2lx(point[0]), g2ly(point[1]));
+        const x = g2lx(point[0]);
+        const y = g2ly(point[1]);
+        ctx.lineTo(x, y);
+        if (options?.debug ?? false) console.log(x, y);
     }
     if (options?.close ?? true) ctx.closePath();
     if (options?.strokeWidth !== undefined) ctx.lineWidth = options.strokeWidth;

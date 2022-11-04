@@ -32,8 +32,8 @@ export function addServerFloor(serverFloor: ServerFloor): void {
     for (const layer of serverFloor.layers) {
         if (layer.name === LayerName.Lighting) fowLayer = layer;
         else addServerLayer(layer, floor);
+        if (layer.name === LayerName.Vision) addServerLayer(fowLayer!, floor);
     }
-    if (fowLayer) addServerLayer(fowLayer, floor);
 
     visionState.recalculateVision(floorId);
     visionState.recalculateMovement(floorId);

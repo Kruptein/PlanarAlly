@@ -67,6 +67,7 @@ tech changes will usually be stripped from release notes for the public
 -   Door/Tp area preview not changing floors
 -   Jump to marker not changing floors
 -   Moving composite/variant shape to other floor and following would show extra selection boxes
+-   Draw layer being rendered below the fog (e.g. rulers/ping etc)
 
 ## [2022.2.3] - 2022-07-13
 

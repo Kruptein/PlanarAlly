@@ -4,6 +4,7 @@ export const DEFAULT_GRID_SIZE = 50;
 
 const state = buildState(
     {
+        outOfBounds: false,
         zoomDisplay: 0.5,
     },
     {

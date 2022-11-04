@@ -100,6 +100,7 @@ export abstract class Shape implements IShape {
     private visionIteration = -1;
     private _visionPolygon: number[][] | undefined = undefined;
     private _visionPath: Path2D | undefined = undefined;
+    _visionBbox: BoundingRect | undefined = undefined;
 
     constructor(
         refPoint: GlobalPoint,
@@ -146,6 +147,32 @@ export abstract class Shape implements IShape {
         this.visionIteration = -1;
     }
 
+    // todo: Currently Aura changes do not trigger this, investigate if we want to do the extra effort
+    private recalcVisionBbox(): void {
+        if (this._visionPolygon === undefined) {
+            this._visionBbox = undefined;
+            return;
+        }
+
+        let x = this._visionPolygon[0][0];
+        let y = this._visionPolygon[0][1];
+        let leftX = x;
+        let rightX = x;
+        let topY = y;
+        let botY = y;
+        for (const point of this._visionPolygon) {
+            x = point[0];
+            y = point[1];
+            if (leftX > x) leftX = x;
+            else if (rightX < x) rightX = x;
+            if (topY > y) topY = y;
+            else if (botY < y) botY = y;
+        }
+        this._visionBbox = new BoundingRect(toGP(leftX, topY), rightX - leftX, botY - topY).intersect(
+            this.getAuraAABB({ onlyVisionSources: true }),
+        );
+    }
+
     get visionPolygon(): Path2D {
         const floorIteration = floorState.readonly.iteration;
         const visionIteration = visionState.getVisionIteration(this._floor!);
@@ -153,6 +180,7 @@ export abstract class Shape implements IShape {
         if (this._visionPolygon === undefined || visionAltered) {
             this._visionPolygon = computeVisibility(this.center, TriangulationTarget.VISION, this._floor!);
             this.visionIteration = visionIteration;
+            this.recalcVisionBbox();
         }
         if (this._visionPath === undefined || floorIteration != this.floorIteration || visionAltered) {
             const path = new Path2D();
@@ -432,9 +460,10 @@ export abstract class Shape implements IShape {
         return new BoundingRect(toGP(minx - delta, miny - delta), maxx - minx + 2 * delta, maxy - miny + 2 * delta);
     }
 
-    getAuraAABB(): BoundingRect {
+    getAuraAABB(options?: { onlyVisionSources?: boolean }): BoundingRect {
         let aabb = this.getAABB();
         for (const aura of auraSystem.getAll(this.id, true)) {
+            if ((options?.onlyVisionSources ?? false) && !aura.visionSource) continue;
             const range = getUnitDistance(aura.value + aura.dim);
             aabb = aabb.union(new BoundingRect(addP(this.refPoint, new Vector(-range, -range)), range * 2, range * 2));
         }

@@ -79,6 +79,14 @@ export class BoundingRect implements SimpleShape {
         return new BoundingRect(toGP(xmin, ymin), xmax - xmin, ymax - ymin);
     }
 
+    intersect(other: BoundingRect): BoundingRect {
+        const xmin = Math.max(this.topLeft.x, other.topLeft.x);
+        const xmax = Math.min(this.topRight.x, other.topRight.x);
+        const ymin = Math.max(this.topLeft.y, other.topLeft.y);
+        const ymax = Math.min(this.botLeft.y, other.botLeft.y);
+        return new BoundingRect(toGP(xmin, ymin), xmax - xmin, ymax - ymin);
+    }
+
     getDiagCorner(botright: boolean): GlobalPoint {
         return botright ? this.botRight : this.topLeft;
     }

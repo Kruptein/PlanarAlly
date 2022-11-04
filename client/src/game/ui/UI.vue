@@ -197,6 +197,9 @@ function setTempZoomDisplay(value: number): void {
         <DiceResults />
         <div id="teleport-modals"></div>
         <MarkdownModal v-if="showChangelog" :title="t('game.ui.ui.new_ver_msg')" :source="changelogText" />
+        <div id="oob" v-if="positionState.reactive.outOfBounds" @click="positionSystem.returnToBounds">
+            Click to return to content
+        </div>
         <!-- When updating zoom boundaries, also update store updateZoom function;
             should probably do this using a store variable-->
         <SliderComponent
@@ -280,6 +283,24 @@ function setTempZoomDisplay(value: number): void {
     top: 15px;
     right: 25px;
     grid-area: zoom;
+}
+
+#oob {
+    position: fixed;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: auto;
+
+    background-color: white;
+    padding: 20px 50px;
+    border-radius: 15px;
+    border: solid 3px black;
+
+    &:hover {
+        font-weight: bold;
+        cursor: pointer;
+    }
 }
 
 #radialmenu {

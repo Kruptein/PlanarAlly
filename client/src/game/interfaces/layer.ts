@@ -15,6 +15,8 @@ export interface ILayer {
     playerEditable: boolean;
     points: Map<string, Set<LocalId>>;
     selectable: boolean;
+    shapeIdsInSector: Set<LocalId>;
+    shapesInSector: IShape[];
 
     get height(): number;
     get isActiveLayer(): boolean;

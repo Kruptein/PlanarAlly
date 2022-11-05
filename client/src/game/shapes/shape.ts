@@ -61,7 +61,6 @@ export abstract class Shape implements IShape {
     get points(): [number, number][] {
         return this._points;
     }
-    abstract invalidatePoints(): void;
 
     abstract contains(point: GlobalPoint, nearbyThreshold?: number): boolean;
 
@@ -212,7 +211,6 @@ export abstract class Shape implements IShape {
         this._refPoint = point;
         this._center = this.__center();
         this.resetVisionIteration();
-        this.layer.updateSectors(this.id, this.getAuraAABB());
         this.invalidatePoints();
     }
 
@@ -223,7 +221,6 @@ export abstract class Shape implements IShape {
     set angle(angle: number) {
         this._angle = angle;
         this.invalidatePoints();
-        this.updateLayerPoints();
     }
 
     setLayer(floor: FloorId, layer: LayerName): void {
@@ -240,12 +237,17 @@ export abstract class Shape implements IShape {
         this._center = this.__center();
         this.angle = position.angle;
         this.resetVisionIteration();
-        this.layer.updateSectors(this.id, this.getAuraAABB());
         this.updateShapeVision(false, false);
     }
 
     invalidate(skipLightUpdate: boolean): void {
         if (this._layer !== undefined) this.layer.invalidate(skipLightUpdate);
+    }
+
+    // @mustOverride
+    invalidatePoints(): void {
+        this.layer.updateSectors(this.id, this.getAuraAABB());
+        if (this.isSnappable) this.updateLayerPoints();
     }
 
     updateLayerPoints(): void {
@@ -257,9 +259,8 @@ export abstract class Shape implements IShape {
         }
         for (const point of this.points) {
             const strp = JSON.stringify(point);
-            if (this.layer.points.has(strp) && !this.layer.points.get(strp)!.has(this.id))
-                this.layer.points.get(strp)!.add(this.id);
-            else if (!this.layer.points.has(strp)) this.layer.points.set(strp, new Set([this.id]));
+            if (this.layer.points.has(strp)) this.layer.points.get(strp)!.add(this.id);
+            else this.layer.points.set(strp, new Set([this.id]));
         }
     }
 
@@ -267,7 +268,6 @@ export abstract class Shape implements IShape {
         const center = this.center;
         if (!equalsP(point, center)) this.center = rotateAroundPoint(center, point, angle);
         this.angle += angle;
-        this.updateLayerPoints();
     }
 
     rotateAroundAbsolute(point: GlobalPoint, angle: number): void {

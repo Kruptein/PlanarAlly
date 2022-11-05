@@ -94,6 +94,7 @@ export abstract class BaseRect extends Shape {
             [botright.x, botright.y],
             [topright.x, topright.y],
         ];
+        super.invalidatePoints();
     }
 
     contains(point: GlobalPoint): boolean {

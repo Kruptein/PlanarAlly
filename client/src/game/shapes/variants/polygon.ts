@@ -56,6 +56,7 @@ export class Polygon extends Shape {
         this._refPoint = point;
         for (let i = 0; i < this._vertices.length; i++) this._vertices[i] = addP(this._vertices[i], delta);
         this._center = this.__center();
+        this.resetVisionIteration();
         this.invalidatePoints();
     }
 
@@ -122,8 +123,7 @@ export class Polygon extends Shape {
     invalidatePoints(): void {
         const center = this.center;
         this._points = this.vertices.map((point) => this.invalidatePoint(point, center));
-        this.layer.updateSectors(this.id, this.getAuraAABB());
-        if (this.isSnappable) this.updateLayerPoints();
+        super.invalidatePoints();
     }
 
     draw(ctx: CanvasRenderingContext2D): void {
@@ -276,6 +276,8 @@ export class Polygon extends Shape {
     pushPoint(point: GlobalPoint): void {
         this._vertices.push(point);
         this._points.push(this.invalidatePoint(point, this.center));
+        this.layer.updateSectors(this.id, this.getAuraAABB());
+        if (this.isSnappable) this.updateLayerPoints();
     }
 
     addPoint(point: GlobalPoint): void {

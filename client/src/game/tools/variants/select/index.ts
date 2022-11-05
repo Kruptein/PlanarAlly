@@ -623,7 +623,6 @@ class SelectTool extends Tool implements ISelectTool {
                     if (props.blocksVision) recalcVision = true;
                     if (props.blocksMovement) recalcMovement = true;
                     if (!sel.preventSync) updateList.push(sel);
-                    sel.updateLayerPoints();
                 }
                 sendShapePositionUpdate(updateList, false);
 
@@ -675,8 +674,6 @@ class SelectTool extends Tool implements ISelectTool {
                         this.operationList.retainAspectRatio = ctrlOrCmdPressed(event);
                         this.operationReady = true;
                     }
-
-                    sel.updateLayerPoints();
                 }
             }
             if (this.mode === SelectOperations.Rotate) {
@@ -698,8 +695,6 @@ class SelectTool extends Tool implements ISelectTool {
                         this.operationList.shapes[s].to = sel.angle;
                         this.operationReady = true;
                     }
-
-                    sel.updateLayerPoints();
                 }
 
                 if (this.operationList?.type === "rotation") {

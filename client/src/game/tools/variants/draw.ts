@@ -231,8 +231,6 @@ class DrawTool extends Tool {
         const mapLayer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Map)!;
         if (fowLayer === undefined || normalLayer === undefined) return;
 
-        this.setupBrush();
-
         // Removal
 
         if (oldValue === DrawMode.Normal) {
@@ -256,6 +254,8 @@ class DrawTool extends Tool {
         } else {
             fowLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         }
+
+        this.setupBrush();
     }
 
     private onFloorChange(oldValue: Floor): void {
@@ -288,8 +288,8 @@ class DrawTool extends Tool {
         if (layer === undefined) return;
         layer.canvas.parentElement!.style.cursor = "none";
         this.brushHelper = this.createBrush(toGP(mouse?.x ?? -1000, mouse?.y ?? -1000));
-        this.setupBrush();
         layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL); // during mode change the shape is already added
+        this.setupBrush();
         // if (getGameState().isDm) this.showLayerPoints();
         this.pointer = this.createPointer(toGP(mouse?.x ?? -1000, mouse?.y ?? -1000));
         const drawLayer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
@@ -439,7 +439,6 @@ class DrawTool extends Tool {
             if (playerSettingsState.useSnapping(event) && !this.snappedToPoint)
                 this.brushHelper.refPoint = toGP(clampGridLine(startPoint.x), clampGridLine(startPoint.y));
             this.shape.pushPoint(cloneP(this.brushHelper.refPoint));
-            this.shape.updateLayerPoints();
         }
 
         // Start a ruler in polygon mode from the last point
@@ -709,8 +708,8 @@ class DrawTool extends Tool {
             layer.removeShape(this.brushHelper, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
         }
         this.brushHelper = this.createBrush(toGP(-1000, -1000), bs);
-        this.setupBrush();
         layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL); // during mode change the shape is already added
+        this.setupBrush();
         if (refPoint) this.brushHelper.refPoint = refPoint;
     }
 

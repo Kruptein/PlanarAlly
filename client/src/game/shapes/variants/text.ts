@@ -49,6 +49,7 @@ export class Text extends Shape {
 
     invalidatePoints(): void {
         this._points = this.getBoundingBox().points;
+        super.invalidatePoints();
     }
 
     getBoundingBox(): BoundingRect {

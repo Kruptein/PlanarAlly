@@ -67,6 +67,7 @@ export class Line extends Shape {
             toArrayP(rotateAroundPoint(this.refPoint, this.center, this.angle)),
             toArrayP(rotateAroundPoint(this.endPoint, this.center, this.angle)),
         ];
+        super.invalidatePoints();
     }
 
     getBoundingBox(): BoundingRect {

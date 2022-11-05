@@ -71,6 +71,7 @@ export class Circle extends Shape {
 
     invalidatePoints(): void {
         this._points = this.getBoundingBox().points;
+        super.invalidatePoints();
     }
 
     draw(ctx: CanvasRenderingContext2D): void {

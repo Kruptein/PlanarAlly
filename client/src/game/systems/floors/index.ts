@@ -16,7 +16,7 @@ import type { ILayer } from "../../interfaces/layer";
 import type { IGridLayer } from "../../interfaces/layers/grid";
 import { recalculateZIndices } from "../../layers/floor";
 import { LayerName } from "../../models/floor";
-import type { Floor, FloorId, FloorType } from "../../models/floor";
+import type { Floor, FloorId, FloorIndex, FloorType } from "../../models/floor";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { clientSystem } from "../client";
 import { selectedSystem } from "../selected";
@@ -35,7 +35,7 @@ class FloorSystem implements System {
 
     clear(): void {
         $.floors = [];
-        $.floorIndex = -1 as FloorId;
+        $.floorIndex = -1 as FloorIndex;
         $.layerIndex = -1;
         this.indices = [];
         this.lastFloorId = 0;
@@ -44,7 +44,7 @@ class FloorSystem implements System {
 
     // FLOOR
 
-    private _parseFloor(mode: "index", data: FloorRepresentation): FloorId | undefined;
+    private _parseFloor(mode: "index", data: FloorRepresentation): FloorIndex | undefined;
     private _parseFloor(mode: "object", data: FloorRepresentation, readonly?: true): DeepReadonly<Floor> | undefined;
     private _parseFloor(mode: "object", data: FloorRepresentation, readonly: false): Floor | undefined;
     private _parseFloor(
@@ -65,7 +65,7 @@ class FloorSystem implements System {
         return this._parseFloor("object", data, readonly as any); // any cast needed because overload signature is not visible
     }
 
-    getFloorIndex(data: FloorRepresentation): FloorId | undefined {
+    getFloorIndex(data: FloorRepresentation): FloorIndex | undefined {
         return this._parseFloor("index", data);
     }
 
@@ -80,7 +80,7 @@ class FloorSystem implements System {
             if (I >= 0) {
                 this.indices.splice(I, 0, targetIndex);
                 $.floors.splice(I, 0, floor);
-                if (I <= floorState.raw.floorIndex) $.floorIndex = (floorState.raw.floorIndex + 1) as FloorId;
+                if (I <= floorState.raw.floorIndex) $.floorIndex = (floorState.raw.floorIndex + 1) as FloorIndex;
             } else {
                 this.indices.push(targetIndex);
                 $.floors.push(floor);

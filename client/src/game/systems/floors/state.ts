@@ -1,12 +1,12 @@
 import { computed } from "vue";
 
 import type { ILayer } from "../../interfaces/layer";
-import type { Floor, FloorId } from "../../models/floor";
+import type { Floor, FloorIndex } from "../../models/floor";
 import { buildState } from "../state";
 
 interface ReactiveFloorState {
     floors: Floor[];
-    floorIndex: FloorId;
+    floorIndex: FloorIndex;
 
     layers: ILayer[];
     layerIndex: number;
@@ -19,7 +19,7 @@ interface StaticFloorState {
 const state = buildState<ReactiveFloorState, StaticFloorState>(
     {
         floors: [],
-        floorIndex: -1 as FloorId,
+        floorIndex: -1 as FloorIndex,
         layers: [],
         layerIndex: -1,
     },

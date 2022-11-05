@@ -62,6 +62,7 @@ tech changes will usually be stripped from release notes for the public
 -   Jump to marker not changing floors
 -   Moving composite/variant shape to other floor and following would show extra selection boxes
 -   Draw layer being rendered below the fog (e.g. rulers/ping etc)
+-   Vision not properly recalculating when removing blocking shapes on multifloor setups
 -   [DM] Assets not being able to moved up to parent folder
 -   [DM] Assets not being removable if a shape with a link to the asset exists
 -   [DM] Annotations still being visible until refresh after removing player access

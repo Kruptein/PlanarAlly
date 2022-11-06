@@ -140,8 +140,8 @@ class VisionState extends Store<State> {
         const shapes = this.getBlockers(target, floor);
 
         for (const sh of shapes) {
-            const shape = getShape(sh)!;
-            if (shape.floor.id !== floor) continue;
+            const shape = getShape(sh);
+            if (shape === undefined || shape.floor.id !== floor) continue;
 
             this.triangulateShape(target, shape);
         }

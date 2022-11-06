@@ -200,6 +200,18 @@ function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0)
     }
 }
 
+function showLayerPoints(): void {
+    const layer = floorState.currentLayer.value!;
+    const dL = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw)!;
+    dL.ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    for (const point of layer.points.keys()) {
+        const parsedPoint = JSON.parse(point);
+        dL.ctx.beginPath();
+        dL.ctx.arc(g2lx(parsedPoint[0]), g2ly(parsedPoint[1]), 5, 0, 2 * Math.PI);
+        dL.ctx.fill();
+    }
+}
+
 (window as any).drawPoint = drawPoint;
 (window as any).drawPointLocal = drawPointL;
 (window as any).drawLine = drawLine;
@@ -207,6 +219,7 @@ function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0)
 (window as any).DP = drawPolygon;
 (window as any).DPL = drawPolygonL;
 (window as any).DPT = drawPolygonT;
+(window as any).showLayerPoints = showLayerPoints;
 
 // COMMON DEBUG CODE
 // (window as any).load = () => {

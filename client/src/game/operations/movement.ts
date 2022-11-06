@@ -12,6 +12,14 @@ import { TriangulationTarget, visionState } from "../vision/state";
 import type { MovementOperation, ShapeMovementOperation } from "./model";
 import { addOperation } from "./undo";
 
+/**
+ * Move the provided shapes in the provided direction.
+ * It is implicitly assumed that all shapes provided are on the same layer.
+ *
+ * @param shapes A list of shapes all belonging to the same layer
+ * @param delta The direction in which the shapes should be moved
+ * @param temporary Flag to indicate near-future override
+ */
 export async function moveShapes(shapes: readonly IShape[], delta: Vector, temporary: boolean): Promise<void> {
     let recalculateMovement = false;
     let recalculateVision = false;
@@ -21,7 +29,8 @@ export async function moveShapes(shapes: readonly IShape[], delta: Vector, tempo
 
     for (const shape of shapes) {
         if (!accessSystem.hasAccessTo(shape.id, false, { movement: true })) continue;
-        const props = getProperties(shape.id)!;
+        const props = getProperties(shape.id);
+        if (props === undefined) continue;
 
         if (props.blocksMovement && !temporary) {
             recalculateMovement = true;

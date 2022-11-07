@@ -53,7 +53,10 @@ async function setLogo(): Promise<void> {
         <div class="entry">
             <label for="logo">Logo:</label>
             <div class="logo">
-                <img :src="baseAdjust(logo.id >= 0 ? `/static/assets/${logo.path}` : '/static/img/d20.svg')" />
+                <img
+                    alt="Campaign Logo Preview"
+                    :src="baseAdjust(logo.id >= 0 ? `/static/assets/${logo.path}` : '/static/img/d20.svg')"
+                />
                 <div class="edit" @click="setLogo"><font-awesome-icon icon="pencil-alt" /></div>
             </div>
         </div>
@@ -77,17 +80,13 @@ async function setLogo(): Promise<void> {
 #content {
     display: flex;
     flex-direction: column;
+    height: 100%;
     width: 100%;
 
     background-color: rgba(77, 59, 64, 0.6);
     border-radius: 20px;
     padding: 3.75rem;
     padding-right: 2rem; // adjust for scroll bar
-
-    height: 100%;
-
-    display: flex;
-    flex-direction: column;
 
     .title {
         display: flex;

@@ -5,7 +5,7 @@ import { useRoute, useRouter } from "vue-router";
 import { getStaticImg } from "../core/http";
 
 import Assets from "./Assets.vue";
-import Games from "./Games.vue";
+import Games from "./games/Games.vue";
 
 const route = useRoute();
 const router = useRouter();

@@ -1,21 +1,21 @@
 <script setup lang="ts">
 import { onMounted, reactive } from "vue";
 import { useI18n } from "vue-i18n";
-import { useRoute, useRouter } from "vue-router";
-import { useToast } from "vue-toastification";
+import { useRoute } from "vue-router";
 
-import { baseAdjust, getStaticImg, http } from "../core/http";
-import { useModal } from "../core/plugins/modals/plugin";
-import { getErrorReason } from "../core/utils";
-import { coreStore } from "../store/core";
+import { baseAdjust, getStaticImg, http } from "../../core/http";
+import { useModal } from "../../core/plugins/modals/plugin";
+import { getErrorReason } from "../../core/utils";
+import { coreStore } from "../../store/core";
 
 import type { RoomInfo } from "./types";
+import { open } from "./utils";
 
 const modals = useModal();
 const route = useRoute();
-const router = useRouter();
 const { t } = useI18n();
-const toast = useToast();
+
+const emit = defineEmits<{ (e: "create"): void }>();
 
 interface SessionState {
     owned: RoomInfo[];
@@ -48,11 +48,6 @@ onMounted(async () => {
         state.error = await getErrorReason(response);
     }
 });
-
-async function open(session: RoomInfo): Promise<void> {
-    coreStore.setLoading(true);
-    await router.push(`/game/${encodeURIComponent(session.creator)}/${encodeURIComponent(session.name)}`);
-}
 
 function focus(session: RoomInfo): void {
     if (state.focussed?.name === session.name) {
@@ -118,26 +113,6 @@ async function leaveOrDelete(): Promise<void> {
         state.focussed = undefined;
     }
 }
-
-async function createCampaign(): Promise<void> {
-    const name = await modals.prompt(`Campaign name`, "Creating Campaign", (val) => ({
-        valid: !state.owned.some((s) => s.name === val),
-        reason: t("common.name_already_in_use").toString(),
-    }));
-    if (name === undefined) return;
-
-    const response = await http.postJson("/api/rooms", {
-        name: name,
-        logo: -1,
-    });
-    if (response.ok) {
-        await open({ creator: coreStore.state.username, name, is_locked: false });
-    } else if (response.statusText === "Conflict") {
-        toast.error("A campaign with that name already exists!");
-    } else {
-        toast.error(`An unknown error occured :( ${response.statusText})`);
-    }
-}
 </script>
 
 <template>
@@ -145,7 +120,7 @@ async function createCampaign(): Promise<void> {
         <div id="dm">
             <div class="title">
                 <span>DUNGEON MASTER</span>
-                <span @click="createCampaign">NEW GAME +</span>
+                <span @click="emit('create')">NEW GAME +</span>
             </div>
             <div class="sessions">
                 <div
@@ -173,7 +148,7 @@ async function createCampaign(): Promise<void> {
                         <img :src="baseAdjust('/static/img/edit.svg')" alt="Rename" />
                     </div>
                     <div class="actions">
-                        <button @mousedown="open(session)">
+                        <button @click.stop="open(session)">
                             <img :src="getStaticImg('play.svg')" alt="Play" />
                             LAUNCH
                         </button>
@@ -215,7 +190,7 @@ async function createCampaign(): Promise<void> {
                     </div>
                     <div class="edit"></div>
                     <div class="actions">
-                        <button @mousedown="open(session)">
+                        <button @click.stop="open(session)">
                             <img :src="getStaticImg('play.svg')" alt="Play" />
                             LAUNCH
                         </button>

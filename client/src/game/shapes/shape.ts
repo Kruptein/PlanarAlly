@@ -1,8 +1,7 @@
 import clamp from "lodash/clamp";
 
 import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "../../core/conversions";
-import { addP, cloneP, equalsP, subtractP, toArrayP, toGP } from "../../core/geometry";
-import { Vector } from "../../core/geometry";
+import { addP, cloneP, equalsP, subtractP, toArrayP, toGP, Vector } from "../../core/geometry";
 import type { GlobalPoint } from "../../core/geometry";
 import { rotateAroundPoint } from "../../core/math";
 import type { Sync } from "../../core/models/types";
@@ -19,8 +18,7 @@ import type { Label } from "../interfaces/label";
 import type { ILayer } from "../interfaces/layer";
 import type { IShape } from "../interfaces/shape";
 import type { Floor, FloorId, LayerName } from "../models/floor";
-import type { ServerShapeOptions } from "../models/shapes";
-import type { ServerShape, ShapeOptions } from "../models/shapes";
+import type { ServerShape, ServerShapeOptions, ShapeOptions } from "../models/shapes";
 import { accessSystem } from "../systems/access";
 import { ownerToClient, ownerToServer } from "../systems/access/helpers";
 import { annotationSystem } from "../systems/annotations";

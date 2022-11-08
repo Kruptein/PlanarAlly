@@ -1,5 +1,4 @@
-import { computed } from "vue";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 
 import type { LocalPoint } from "../../core/geometry";
 import { onKeyUp } from "../input/keyboard/up";

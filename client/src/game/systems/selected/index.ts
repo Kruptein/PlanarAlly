@@ -1,6 +1,5 @@
 import { readonly, ref } from "vue";
-import type { DeepReadonly } from "vue";
-import type { Ref } from "vue";
+import type { DeepReadonly, Ref } from "vue";
 
 import { registerSystem } from "..";
 import type { ShapeSystem } from "..";

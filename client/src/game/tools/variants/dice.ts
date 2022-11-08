@@ -3,8 +3,7 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { Dice, DieOptions } from "@planarally/dice";
 import tinycolor from "tinycolor2";
-import { watch } from "vue";
-import { reactive } from "vue";
+import { reactive, watch } from "vue";
 
 import { randomInterval } from "../../../core/utils";
 import { i18n } from "../../../i18n";

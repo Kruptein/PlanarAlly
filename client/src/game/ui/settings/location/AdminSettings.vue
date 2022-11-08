@@ -54,7 +54,7 @@ async function onCloneClick(): Promise<void> {
     const response = await http.get("/api/rooms");
     if (response.ok) {
         const data = await response.json();
-        var owned: RoomInfo[] = data.owned;
+        const owned: RoomInfo[] = data.owned;
 
         const choice = await modals.selectionBox(
             t("game.ui.settings.LocationBar.LocationAdminSettings.choose_room"),

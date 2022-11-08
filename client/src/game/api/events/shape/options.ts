@@ -1,8 +1,7 @@
 import { UI_SYNC } from "../../../../core/models/types";
 import type { Sync } from "../../../../core/models/types";
 import { getLocalId, getShape } from "../../../id";
-import type { LocalId } from "../../../id";
-import type { GlobalId } from "../../../id";
+import type { GlobalId, LocalId } from "../../../id";
 import type { IAsset } from "../../../interfaces/shapes/asset";
 import { Shape } from "../../../shapes/shape";
 import { AnnotationSystem } from "../../../systems/annotations";

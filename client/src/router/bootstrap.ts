@@ -42,6 +42,14 @@ const routes: Array<RouteRecordRaw> = [
         },
     },
     {
+        path: "/dashboard/settings",
+        component: Dashboard,
+        name: "dashboard-settings",
+        meta: {
+            auth: true,
+        },
+    },
+    {
         path: "/invite/:code",
         component: Invitation,
         meta: {

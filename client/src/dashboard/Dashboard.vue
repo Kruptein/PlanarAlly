@@ -6,6 +6,7 @@ import { getStaticImg } from "../core/http";
 
 import Assets from "./Assets.vue";
 import Games from "./games/Games.vue";
+import Settings from "./Settings.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -23,6 +24,11 @@ const sections: Section[] = [
         nav: "ASSETS",
         component: Assets,
         router: "assets",
+    },
+    {
+        nav: "SETTINGS",
+        component: Settings,
+        router: "dashboard-settings",
     },
 ];
 
@@ -77,6 +83,7 @@ async function logout(): Promise<void> {
             </section>
             <Games v-if="activeSection === 0" />
             <Assets v-else-if="activeSection === 1" />
+            <Settings v-else-if="activeSection === 2" />
         </main>
     </div>
 </template>

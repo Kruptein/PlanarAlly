@@ -65,4 +65,6 @@ export abstract class Tool implements ITool {
     async onMove(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): Promise<void> {}
 
     onToolsModeChange(_mode: ToolMode, _features: ToolFeatures): void {}
+    onPanStart(): void {}
+    onPanEnd(): void {}
 }

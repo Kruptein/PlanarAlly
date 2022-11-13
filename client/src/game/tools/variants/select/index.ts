@@ -172,6 +172,17 @@ class SelectTool extends Tool implements ISelectTool {
         }
     }
 
+    onPanStart(): void {
+        if (this.polygonTracer !== null) _$.polygonUiVisible = "hidden";
+    }
+
+    onPanEnd(): void {
+        if (this.polygonTracer !== null) {
+            this.updatePolygonEditUi(this.polygonTracer!.refPoint);
+            _$.polygonUiVisible = "visible";
+        }
+    }
+
     onDeselect(): void {
         this.removePolygonEditUi();
     }

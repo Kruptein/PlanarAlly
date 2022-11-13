@@ -10,8 +10,8 @@ import { getGameState } from "../../../store/_game";
 import { uiStore } from "../../../store/ui";
 import { sendRequestInitiatives } from "../../api/emits/initiative";
 import { getGroupMembers } from "../../groups";
-import { getShape } from "../../id";
-import type { LocalId } from "../../id";
+import { getGlobalId, getShape } from "../../id";
+import type { GlobalId, LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import type { IAsset } from "../../interfaces/shapes/asset";
 import type { InitiativeData } from "../../models/initiative";
@@ -32,7 +32,7 @@ const close = (): void => initiativeStore.show(false);
 const clearValues = (): void => initiativeStore.clearValues(true);
 const nextTurn = (): void => initiativeStore.nextTurn();
 const previousTurn = (): void => initiativeStore.previousTurn();
-const owns = (actorId?: LocalId): boolean => initiativeStore.owns(actorId);
+const owns = (actorId?: GlobalId): boolean => initiativeStore.owns(actorId);
 const toggleOption = (index: number, option: "isVisible" | "isGroup"): void =>
     initiativeStore.toggleOption(index, option);
 
@@ -43,10 +43,11 @@ const alwaysShowEffects = computed(
 );
 
 function getName(actor: InitiativeData): string {
-    const props = getProperties(actor.shape);
+    if (actor.localId === undefined) return "?";
+    const props = getProperties(actor.localId);
     if (props !== undefined) {
         if (props.nameVisible) return props.name;
-        if (accessSystem.hasAccessTo(actor.shape, false, { edit: true })) return props.name;
+        if (accessSystem.hasAccessTo(actor.localId, false, { edit: true })) return props.name;
     }
     return "?";
 }
@@ -61,22 +62,22 @@ async function removeInitiative(actor: InitiativeData): Promise<void> {
             return;
         }
     }
-    initiativeStore.removeInitiative(actor.shape, true);
+    initiativeStore.removeInitiative(actor.globalId, true);
 }
 
-function setEffectName(shape: LocalId, index: number, name: string): void {
+function setEffectName(shape: GlobalId, index: number, name: string): void {
     if (initiativeStore.owns(shape)) initiativeStore.setEffectName(shape, index, name, true);
 }
 
-function setEffectTurns(shape: LocalId, index: number, turns: string): void {
+function setEffectTurns(shape: GlobalId, index: number, turns: string): void {
     if (initiativeStore.owns(shape)) initiativeStore.setEffectTurns(shape, index, turns, true);
 }
 
-function createEffect(shape: LocalId): void {
+function createEffect(shape: GlobalId): void {
     if (initiativeStore.owns(shape)) initiativeStore.createEffect(shape, undefined, true);
 }
 
-function removeEffect(shape: LocalId, index: number): void {
+function removeEffect(shape: GlobalId, index: number): void {
     if (initiativeStore.owns(shape)) initiativeStore.removeEffect(shape, index, true);
 }
 
@@ -96,16 +97,19 @@ function toggleHighlight(actorId: LocalId, show: boolean): void {
 }
 
 function hasImage(actor: InitiativeData): boolean {
-    return getShape(actor.shape)?.type === "assetrect" ?? false;
+    if (actor.localId === undefined) return false;
+    return getShape(actor.localId)?.type === "assetrect" ?? false;
 }
 
 function getImage(actor: InitiativeData): string {
-    return (getShape(actor.shape)! as IAsset).src;
+    if (actor.localId === undefined) return "";
+    return (getShape(actor.localId) as IAsset).src;
 }
 
 function canSee(actor: InitiativeData): boolean {
     if (isDm.value || actor.isVisible) return true;
-    return accessSystem.hasAccessTo(actor.shape, false, { edit: true });
+    if (actor.localId === undefined) return false;
+    return accessSystem.hasAccessTo(actor.localId, false, { edit: true });
 }
 
 function reset(): void {
@@ -114,14 +118,15 @@ function reset(): void {
 }
 
 function lock(shape: LocalId): void {
-    if (initiativeStore.owns(shape)) initiativeStore.lock(shape);
+    const globalId = getGlobalId(shape);
+    if (initiativeStore.owns(globalId)) initiativeStore.lock(shape);
 }
 
 function unlock(): void {
     if (initiativeStore.state.editLock !== -1) initiativeStore.unlock();
 }
 
-function setInitiative(shape: LocalId, value: string): void {
+function setInitiative(shape: GlobalId, value: string): void {
     const numValue = Number.parseInt(value);
     if (isNaN(numValue)) return;
 
@@ -130,7 +135,7 @@ function setInitiative(shape: LocalId, value: string): void {
 
 function changeOrder(data: Event & { moved?: { element: InitiativeData; newIndex: number; oldIndex: number } }): void {
     if (isDm.value && data.moved)
-        initiativeStore.changeOrder(data.moved.element.shape, data.moved.oldIndex, data.moved.newIndex);
+        initiativeStore.changeOrder(data.moved.element.globalId, data.moved.oldIndex, data.moved.newIndex);
 }
 
 function changeSort(): void {
@@ -188,17 +193,17 @@ function n(e: any): number {
                                 'initiative-selected': initiativeStore.state.turnCounter === index,
                                 blurred:
                                     initiativeStore.state.editLock !== -1 &&
-                                    initiativeStore.state.editLock !== actor.shape,
+                                    initiativeStore.state.editLock !== actor.localId,
                             }"
                             :style="{ cursor: isDm ? 'move' : 'auto' }"
-                            @mouseenter="toggleHighlight(actor.shape, true)"
-                            @mouseleave="toggleHighlight(actor.shape, false)"
+                            @mouseenter="toggleHighlight(actor.localId, true)"
+                            @mouseleave="toggleHighlight(actor.localId, false)"
                         >
                             <div
-                                v-if="owns(actor.shape)"
+                                v-if="owns(actor.localId)"
                                 class="remove"
                                 @click="removeInitiative(actor)"
-                                :class="{ notAllowed: !owns(actor.shape) }"
+                                :class="{ notAllowed: !owns(actor.localId) }"
                             >
                                 &#215;
                             </div>
@@ -213,16 +218,16 @@ function n(e: any): number {
                                 type="text"
                                 :placeholder="t('common.value')"
                                 :value="actor.initiative"
-                                :disabled="!owns(actor.shape)"
-                                :class="{ notAllowed: !owns(actor.shape) }"
-                                @focus="lock(actor.shape)"
+                                :disabled="!owns(actor.localId)"
+                                :class="{ notAllowed: !owns(actor.localId) }"
+                                @focus="lock(actor.localId)"
                                 @blur="unlock"
-                                @change="setInitiative(actor.shape, getValue($event))"
+                                @change="setInitiative(actor.localId, getValue($event))"
                                 @keyup.enter="getTarget($event).blur()"
                             />
                             <div
                                 :style="{ opacity: actor.isVisible ? '1.0' : '0.3' }"
-                                :class="{ notAllowed: !owns(actor.shape) }"
+                                :class="{ notAllowed: !owns(actor.localId) }"
                                 @click="toggleOption(index, 'isVisible')"
                                 :title="t('common.toggle_public_private')"
                             >
@@ -230,7 +235,7 @@ function n(e: any): number {
                             </div>
                             <div
                                 :style="{ opacity: actor.isGroup ? '1.0' : '0.3' }"
-                                :class="{ notAllowed: !owns(actor.shape) }"
+                                :class="{ notAllowed: !owns(actor.localId) }"
                                 @click="toggleOption(index, 'isGroup')"
                                 :title="t('game.ui.initiative.toggle_group')"
                             >
@@ -239,8 +244,8 @@ function n(e: any): number {
                             <div
                                 class="initiative-effects-icon"
                                 style="opacity: 0.6"
-                                :class="{ notAllowed: !owns(actor.shape) }"
-                                @click="createEffect(actor.shape)"
+                                :class="{ notAllowed: !owns(actor.localId) }"
+                                @click="createEffect(actor.localId)"
                                 :title="t('game.ui.initiative.add_timed_effect')"
                             >
                                 <font-awesome-icon icon="stopwatch" />
@@ -260,22 +265,22 @@ function n(e: any): number {
                                     type="text"
                                     v-model="effect.name"
                                     :style="{ width: '100px' }"
-                                    :class="{ notAllowed: !owns(actor.shape) }"
-                                    :disabled="!owns(actor.shape)"
-                                    @change="setEffectName(actor.shape, n(e), getValue($event))"
+                                    :class="{ notAllowed: !owns(actor.localId) }"
+                                    :disabled="!owns(actor.localId)"
+                                    @change="setEffectName(actor.localId, n(e), getValue($event))"
                                 />
                                 <input
                                     type="text"
                                     v-model="effect.turns"
                                     :style="{ width: '25px' }"
-                                    :class="{ notAllowed: !owns(actor.shape) }"
-                                    :disabled="!owns(actor.shape)"
-                                    @change="setEffectTurns(actor.shape, n(e), getValue($event))"
+                                    :class="{ notAllowed: !owns(actor.localId) }"
+                                    :disabled="!owns(actor.localId)"
+                                    @change="setEffectTurns(actor.localId, n(e), getValue($event))"
                                 />
                                 <div
-                                    :style="{ opacity: owns(actor.shape) ? '1.0' : '0.3' }"
-                                    :class="{ notAllowed: !owns(actor.shape) }"
-                                    @click="removeEffect(actor.shape, n(e))"
+                                    :style="{ opacity: owns(actor.localId) ? '1.0' : '0.3' }"
+                                    :class="{ notAllowed: !owns(actor.localId) }"
+                                    @click="removeEffect(actor.localId, n(e))"
                                     :title="t('game.ui.initiative.delete_effect')"
                                 >
                                     <font-awesome-icon icon="trash-alt" />

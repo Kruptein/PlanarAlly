@@ -69,6 +69,7 @@ tech changes will usually be stripped from release notes for the public
 -   [DM] Assets not being removable if a shape with a link to the asset exists
 -   [DM] Annotations still being visible until refresh after removing player access
 -   [DM] Resetting location specific settings was not immediately synchronizing to clients until a refresh
+-   [DM] Enabling fake-player mode would hide the DM entries from the left sidebar
 -   [DM|server] The asset manager was no longer useable when using a subpath setup
 -   [server] Diceroller not working on subpath server
 

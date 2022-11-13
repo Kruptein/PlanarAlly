@@ -1,9 +1,9 @@
 import type { GlobalId } from "../../id";
-import type { InitiativeData, InitiativeEffect, InitiativeSort } from "../../models/initiative";
+import type { InitiativeEffect, InitiativeSort, RawInitiativeData } from "../../models/initiative";
 import { wrapSocket } from "../helpers";
 import { socket } from "../socket";
 
-export const sendInitiativeAdd = wrapSocket<InitiativeData<GlobalId>>("Initiative.Add");
+export const sendInitiativeAdd = wrapSocket<RawInitiativeData>("Initiative.Add");
 export const sendInitiativeRemove = wrapSocket<GlobalId>("Initiative.Remove");
 export const sendInitiativeSetValue = wrapSocket<{ shape: GlobalId; value: number }>("Initiative.Value.Set");
 export const sendInitiativeTurnUpdate = wrapSocket<number>("Initiative.Turn.Update");

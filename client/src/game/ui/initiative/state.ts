@@ -17,7 +17,7 @@ import {
     sendInitiativeSetSort,
 } from "../../api/emits/initiative";
 import { getGlobalId, getLocalId, getShape } from "../../id";
-import type { LocalId } from "../../id";
+import type { GlobalId, LocalId } from "../../id";
 import { InitiativeSort } from "../../models/initiative";
 import type { InitiativeData, InitiativeEffect, InitiativeSettings } from "../../models/initiative";
 import { setCenterPosition } from "../../position";
@@ -73,14 +73,11 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     setData(data: InitiativeSettings): void {
-        const initiativeData: InitiativeData<LocalId>[] = [];
+        const initiativeData: InitiativeData[] = [];
         for (const d of data.data) {
-            const shape = getLocalId(d.shape, false);
-            if (shape === undefined) {
-                console.debug("Initiative contains unknown shapes");
-                continue;
-            }
-            initiativeData.push({ ...d, shape });
+            const { shape: globalId, ...shapeData } = d;
+            const localId = getLocalId(globalId, false);
+            initiativeData.push({ ...shapeData, globalId, localId });
         }
         if (this._state.editLock !== -1) this._state.newData = initiativeData;
         else this._state.locationData = initiativeData;
@@ -97,40 +94,45 @@ class InitiativeStore extends Store<InitiativeState> {
 
     // PURE INITIATIVE
 
-    addInitiative(shape: LocalId, initiative: number | undefined, isGroup = false): void {
-        let actor = this._state.locationData.find((a) => a.shape === shape);
+    addInitiative(localId: LocalId, initiative: number | undefined, isGroup = false): void {
+        const globalId = getGlobalId(localId);
+        let actor = this._state.locationData.find((a) => a.globalId === globalId);
         if (actor === undefined) {
             actor = {
+                globalId,
+                localId,
                 effects: [],
                 isGroup,
                 isVisible: !getGameState().isDm,
-                shape,
                 initiative,
             };
             this._state.locationData.push(actor);
         } else {
             actor.initiative = initiative;
         }
-        sendInitiativeAdd({ ...actor, shape: getGlobalId(actor.shape) });
+        const { globalId: shape, localId: _, ...actorData } = actor;
+        sendInitiativeAdd({ ...actorData, shape });
     }
 
-    setInitiative(shapeId: LocalId, value: number, sync: boolean): void {
-        const actor = this.getDataSet().find((a) => a.shape === shapeId);
+    setInitiative(globalId: GlobalId, value: number, sync: boolean): void {
+        const actor = this.getDataSet().find((a) => a.globalId === globalId);
         if (actor === undefined) return;
 
         actor.initiative = value;
-        if (sync) sendInitiativeSetValue({ shape: getGlobalId(shapeId), value });
+        if (sync) sendInitiativeSetValue({ shape: globalId, value });
     }
 
-    removeInitiative(shapeId: LocalId, sync: boolean): void {
+    removeInitiative(globalId: GlobalId, sync: boolean): void {
         const data = this.getDataSet();
-        const index = data.findIndex((i) => i.shape === shapeId);
+        const index = data.findIndex((i) => i.globalId === globalId);
         if (index < 0) return;
 
         data.splice(index, 1);
-        if (sync) sendInitiativeRemove(getGlobalId(shapeId));
+        if (sync) sendInitiativeRemove(globalId);
         // Remove highlight
-        const shape = getShape(shapeId);
+        const localId = getLocalId(globalId);
+        if (localId === undefined) return;
+        const shape = getShape(localId);
         if (shape === undefined) return;
         if (shape.showHighlight) {
             shape.showHighlight = false;
@@ -145,9 +147,9 @@ class InitiativeStore extends Store<InitiativeState> {
         if (sync) sendInitiativeClear();
     }
 
-    changeOrder(shape: LocalId, oldIndex: number, newIndex: number): void {
-        if (this.getDataSet()[oldIndex].shape === shape) {
-            sendInitiativeReorder({ shape: getGlobalId(shape), oldIndex, newIndex });
+    changeOrder(globalId: GlobalId, oldIndex: number, newIndex: number): void {
+        if (this.getDataSet()[oldIndex].globalId === globalId) {
+            sendInitiativeReorder({ shape: globalId, oldIndex, newIndex });
         }
     }
 
@@ -211,44 +213,44 @@ class InitiativeStore extends Store<InitiativeState> {
 
     // EFFECTS
 
-    createEffect(shape: LocalId, effect: InitiativeEffect | undefined, sync: boolean): void {
-        const actor = this.getDataSet().find((i) => i.shape === shape);
+    createEffect(globalId: GlobalId, effect: InitiativeEffect | undefined, sync: boolean): void {
+        const actor = this.getDataSet().find((i) => i.globalId === globalId);
         if (actor === undefined) return;
 
         if (effect === undefined) effect = getDefaultEffect();
         actor.effects.push(effect);
 
-        if (sync) sendInitiativeNewEffect({ actor: getGlobalId(actor.shape), effect });
+        if (sync) sendInitiativeNewEffect({ actor: globalId, effect });
     }
 
-    setEffectName(shape: LocalId, index: number, name: string, sync: boolean): void {
-        const actor = this.getDataSet().find((i) => i.shape === shape);
+    setEffectName(globalId: GlobalId, index: number, name: string, sync: boolean): void {
+        const actor = this.getDataSet().find((i) => i.globalId === globalId);
         if (actor === undefined) return;
 
         const effect = actor.effects[index];
         if (effect === undefined) return;
 
         effect.name = name;
-        if (sync) sendInitiativeRenameEffect({ shape: getGlobalId(shape), index, name });
+        if (sync) sendInitiativeRenameEffect({ shape: globalId, index, name });
     }
 
-    setEffectTurns(shape: LocalId, index: number, turns: string, sync: boolean): void {
-        const actor = this.getDataSet().find((i) => i.shape === shape);
+    setEffectTurns(globalId: GlobalId, index: number, turns: string, sync: boolean): void {
+        const actor = this.getDataSet().find((i) => i.globalId === globalId);
         if (actor === undefined) return;
 
         const effect = actor.effects[index];
         if (effect === undefined) return;
 
         effect.turns = turns;
-        if (sync) sendInitiativeTurnsEffect({ shape: getGlobalId(shape), index, turns });
+        if (sync) sendInitiativeTurnsEffect({ shape: globalId, index, turns });
     }
 
-    removeEffect(shape: LocalId, index: number, sync: boolean): void {
-        const actor = this.getDataSet().find((i) => i.shape === shape);
+    removeEffect(globalId: GlobalId, index: number, sync: boolean): void {
+        const actor = this.getDataSet().find((i) => i.globalId === globalId);
         if (actor === undefined) return;
 
         actor.effects.splice(index, 1);
-        if (sync) sendInitiativeRemoveEffect({ shape: getGlobalId(shape), index });
+        if (sync) sendInitiativeRemoveEffect({ shape: globalId, index });
     }
 
     // Locks
@@ -266,8 +268,9 @@ class InitiativeStore extends Store<InitiativeState> {
     handleCameraLock(): void {
         if (playerSettingsState.raw.initiativeCameraLock.value) {
             const actor = this.getDataSet()[this._state.turnCounter];
-            if (accessSystem.hasAccessTo(actor.shape, false, { vision: true }) ?? false) {
-                const shape = getShape(actor.shape);
+            if (actor.localId === undefined) return;
+            if (accessSystem.hasAccessTo(actor.localId, false, { vision: true }) ?? false) {
+                const shape = getShape(actor.localId);
                 if (shape === undefined) return;
                 setCenterPosition(shape.center);
                 floorSystem.selectFloor({ name: shape.floor.name }, true);
@@ -278,10 +281,11 @@ class InitiativeStore extends Store<InitiativeState> {
     handleVisionLock(): void {
         if (playerSettingsState.raw.initiativeVisionLock.value) {
             const actor = this.getDataSet()[this._state.turnCounter];
+            if (actor.localId === undefined) return;
             if (accessState.raw.activeTokenFilters === undefined) activeTokensBackup = undefined;
             else activeTokensBackup = new Set(accessState.raw.activeTokenFilters);
-            if (accessState.raw.ownedTokens.has(actor.shape)) {
-                accessSystem.setActiveTokens(actor.shape);
+            if (accessState.raw.ownedTokens.has(actor.localId)) {
+                accessSystem.setActiveTokens(actor.localId);
             } else {
                 accessSystem.unsetActiveTokens();
             }
@@ -297,24 +301,27 @@ class InitiativeStore extends Store<InitiativeState> {
         return this._state[this._state.editLock === -1 ? "locationData" : "newData"];
     }
 
-    owns(shapeId?: LocalId): boolean {
+    owns(globalId?: GlobalId): boolean {
         if (getGameState().isDm) return true;
-        if (shapeId === undefined) {
-            shapeId = this._state.locationData[this._state.turnCounter]?.shape;
-            if (shapeId === undefined) return false;
+        if (globalId === undefined) {
+            const actor = this._state.locationData[this._state.turnCounter];
+            if (actor === undefined) return false;
+            globalId = actor.globalId;
         }
-        return accessSystem.hasAccessTo(shapeId, false, { edit: true });
+        const localId = getLocalId(globalId, false);
+        if (localId === undefined) return false;
+        return accessSystem.hasAccessTo(localId, false, { edit: true });
     }
 
     toggleOption(index: number, option: "isVisible" | "isGroup"): void {
         const actor = this.getDataSet()[index];
-        if (actor === undefined || !this.owns(actor.shape)) return;
+        if (actor === undefined || !this.owns(actor.globalId)) return;
         actor[option] = !actor[option];
-        sendInitiativeOptionUpdate({ shape: getGlobalId(actor.shape), option, value: actor[option] });
+        sendInitiativeOptionUpdate({ shape: actor.globalId, option, value: actor[option] });
     }
 
-    setOption(shape: LocalId, option: "isVisible" | "isGroup", value: boolean): void {
-        const actor = this.getDataSet().find((i) => i.shape === shape);
+    setOption(globalId: GlobalId, option: "isVisible" | "isGroup", value: boolean): void {
+        const actor = this.getDataSet().find((i) => i.globalId === globalId);
         if (actor === undefined) return;
         actor[option] = value;
     }

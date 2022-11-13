@@ -5,7 +5,7 @@ import { addP, getPointDistance, subtractP, toGP, Vector } from "../../../core/g
 import type { GlobalPoint } from "../../../core/geometry";
 import { getGameState } from "../../../store/_game";
 import { sendClientLocationOptions } from "../../api/emits/client";
-import { getAllShapes, getShape } from "../../id";
+import { getAllShapes, getShape, getShapeCount } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import type { FowLayer } from "../../layers/variants/fow";
 import { LayerName } from "../../models/floor";
@@ -114,6 +114,24 @@ class PositionSystem implements System {
     // OOB
 
     private checkOutOfBounds(): void {
+        // First check if there are any shapes at all
+        // Displaying a "return to content" when there is no content is pretty silly.
+        // We however don't want to iterate over _all_ shapes if there are a lot
+        // Chances are extremely high that one of the shapes will have !skipDraw in that case
+        if (getShapeCount() < 25) {
+            let foundShape = false;
+            for (const shape of getAllShapes()) {
+                if (!(shape.options.skipDraw ?? false)) {
+                    foundShape = true;
+                    break;
+                }
+            }
+            if (!foundShape) {
+                $.outOfBounds = false;
+                return;
+            }
+        }
+
         $.outOfBounds = true;
         if (!getGameState().isDm && locationSettingsState.raw.fullFow.value) {
             for (const layer of floorState.raw.layers) {

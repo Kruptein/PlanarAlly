@@ -65,6 +65,7 @@ tech changes will usually be stripped from release notes for the public
 -   Vision not properly recalculating when removing blocking shapes on multifloor setups
 -   AssetPicker UI appearing too low
 -   Polygon edit UI being left behind when panning
+-   Moving polygon point when polyon is rotated
 -   [DM] Assets not being able to moved up to parent folder
 -   [DM] Assets not being removable if a shape with a link to the asset exists
 -   [DM] Annotations still being visible until refresh after removing player access

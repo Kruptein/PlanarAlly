@@ -204,21 +204,8 @@ export class Polygon extends Shape {
     resizeToGrid(): void {}
 
     resize(resizePoint: number, point: GlobalPoint): number {
-        if (this.angle === 0) {
-            if (resizePoint === 0) this._refPoint = point;
-            else this._vertices[resizePoint - 1] = point;
-        } else {
-            const newPoints = this.points.map((p) => toGP(p));
-
-            newPoints[resizePoint] = point;
-
-            const newCenter = getPointsCenter(filterEqualPoints(newPoints));
-
-            this._refPoint = rotateAroundPoint(newPoints[0], newCenter, -this.angle);
-            for (let i = 0; i < this._vertices.length; i++) {
-                this._vertices[i] = rotateAroundPoint(newPoints[i + 1], newCenter, -this.angle);
-            }
-        }
+        if (resizePoint === 0) this._refPoint = rotateAroundPoint(point, this.center, -this.angle);
+        else this._vertices[resizePoint - 1] = rotateAroundPoint(point, this.center, -this.angle);
         this.invalidatePoints();
         return resizePoint;
     }

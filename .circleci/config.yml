@@ -110,7 +110,7 @@ jobs:
                   name: Download PyInstaller
                   command: Invoke-WebRequest https://github.com/pyinstaller/pyinstaller/archive/refs/tags/v5.6.2.zip -OutFile .\pyinstaller.zip
 
-            - run: unzip.exe .\pyinstaller.exe
+            - run: unzip.exe .\pyinstaller.zip
 
             - run: cd .\pyinstaller-5.6.2\bootloader
 

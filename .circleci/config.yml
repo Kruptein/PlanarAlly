@@ -1,12 +1,12 @@
 version: 2.1
 
 orbs:
-    windows: circleci/windows@2.4.0
+    win: circleci/windows@5.0
 
 jobs:
     build-client:
         docker:
-            - image: circleci/node:12
+            - image: circleci/node:16
 
         working_directory: ~/PlanarAlly/client
 
@@ -69,7 +69,7 @@ jobs:
                       ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace ${VERSION} /tmp/archives
 
     build-windows:
-        executor: windows/default
+        executor: win/server-2022
 
         working_directory: ~/PlanarAlly/server
 
@@ -126,12 +126,14 @@ workflows:
                       - build-client
                   filters:
                       branches:
+                          only: ci-test
                           ignore: /.*/
                       tags:
                           only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
             - build-client:
                   filters:
                       branches:
+                          only: ci-test
                           ignore: /.*/
                       tags:
                           only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
@@ -140,6 +142,7 @@ workflows:
                       - build-client
                   filters:
                       branches:
+                          only: ci-test
                           ignore: /.*/
                       tags:
                           only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/

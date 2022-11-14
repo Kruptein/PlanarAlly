@@ -14,7 +14,7 @@ block_cipher = None
 
 
 a = Analysis([_('planarally.py')],
-             pathex=[pa_dir]],
+             pathex=[pa_dir],
              datas=[
     (_('VERSION'), '.'),
     (_('server_config.cfg'), '.'),

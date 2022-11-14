@@ -6,9 +6,10 @@ orbs:
 jobs:
     build-client:
         docker:
-            - image: circleci/node:16
+            - image: cimg/node:16
 
         working_directory: ~/PlanarAlly/client
+        resource_class: large
 
         steps:
             - checkout:
@@ -41,6 +42,7 @@ jobs:
             - image: cibuilds/github:0.13.0
 
         working_directory: ~/PlanarAlly
+        resource_class: large
 
         steps:
             - attach_workspace:
@@ -72,6 +74,7 @@ jobs:
         executor: win/server-2022
 
         working_directory: ~/PlanarAlly/server
+        resource_class: large
 
         steps:
             - attach_workspace:

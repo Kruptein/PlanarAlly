@@ -108,21 +108,18 @@ jobs:
 
             - run:
                   name: Download PyInstaller
-                  command: Invoke-WebRequest https://github.com/pyinstaller/pyinstaller/archive/refs/tags/v5.6.2.zip -OutFile .\pyinstaller.zip
-
-            - command: unzip.exe .\pyinstaller.exe
-
-            - command: cd .\pyinstaller-5.6.2\bootloader
+                  command: >-
+                      Invoke-WebRequest https://github.com/pyinstaller/pyinstaller/archive/refs/tags/v5.6.2.zip -OutFile .\pyinstaller.zip &&
+                      unzip.exe .\pyinstaller.exe &&
+                      cd .\pyinstaller-5.6.2\bootloader
 
             - run:
                   name: Compile bootloader
-                  command: python .\waf all --target-arch=64bit
-
-            - command: cd ..
-
-            - command: python .\setup.py install
-
-            - command: cd ..
+                  command: >-
+                      python .\waf all --target-arch=64bit &&
+                      cd .. &&
+                      python .\setup.py install &&
+                      cd ..
 
             - run:
                   name: Run pyinstaller

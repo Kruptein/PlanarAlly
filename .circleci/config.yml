@@ -64,15 +64,15 @@ jobs:
                       VERSION=$(head -1 server/VERSION)
                       tar -czf /tmp/archives/planarally-bin-${VERSION}.tar.gz server/*
 
-            - run:
-                  name: "Publish release on github"
-                  when:
-                      condition:
-                          equals: [ci-test, << pipeline.git.branch >>]
-                      steps:
-                          command: |
-                              VERSION=$(head -1 server/VERSION)
-                              ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace ${VERSION} /tmp/archives
+            - when:
+                  condition:
+                      equals: [ci-test, << pipeline.git.branch >>]
+                  steps:
+                      - run:
+                            name: "Publish release on github"
+                            command: |
+                                VERSION=$(head -1 server/VERSION)
+                                ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace ${VERSION} /tmp/archives
 
     build-windows:
         executor: win/server-2022
@@ -117,15 +117,15 @@ jobs:
                   name: Install ghr
                   command: go get -u github.com/tcnksm/ghr
 
-            - run:
-                  name: Publish release on github
-                  when:
-                      condition:
-                          equals: [ci-test, << pipeline.git.branch >>]
-                      steps:
-                          command: |
-                              $VERSION=$(Get-Content -TotalCount 1 VERSION)
-                              C:\Users\circleci\go\bin\ghr.exe -t $env:GITHUB_TOKEN -u $env:CIRCLE_PROJECT_USERNAME -r $env:CIRCLE_PROJECT_REPONAME -c $env:CIRCLE_SHA1 -replace $VERSION C:\Users\circleci\archives
+            - when:
+                  condition:
+                      equals: [ci-test, << pipeline.git.branch >>]
+                  steps:
+                      - run:
+                            name: Publish release on github
+                            command: |
+                                $VERSION=$(Get-Content -TotalCount 1 VERSION)
+                                C:\Users\circleci\go\bin\ghr.exe -t $env:GITHUB_TOKEN -u $env:CIRCLE_PROJECT_USERNAME -r $env:CIRCLE_PROJECT_REPONAME -c $env:CIRCLE_SHA1 -replace $VERSION C:\Users\circleci\archives
 
 workflows:
     version: 2

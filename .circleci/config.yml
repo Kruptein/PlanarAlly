@@ -66,7 +66,8 @@ jobs:
 
             - when:
                   condition:
-                      not: [ci-test, << pipeline.git.branch >>]
+                      not:
+                          equal: [ci-test, << pipeline.git.branch >>]
                   steps:
                       - run:
                             name: "Publish release on github"
@@ -119,7 +120,8 @@ jobs:
 
             - when:
                   condition:
-                      not: [ci-test, << pipeline.git.branch >>]
+                      not:
+                          equal: [ci-test, << pipeline.git.branch >>]
                   steps:
                       - run:
                             name: Publish release on github

@@ -116,7 +116,7 @@ jobs:
 
             - run:
                   name: Install ghr
-                  command: go get -u github.com/tcnksm/ghr
+                  command: go install -u github.com/tcnksm/ghr@latest
 
             - when:
                   condition:

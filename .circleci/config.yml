@@ -74,7 +74,6 @@ jobs:
         executor: win/server-2022
 
         working_directory: ~/PlanarAlly/server
-        resource_class: large
 
         steps:
             - attach_workspace:

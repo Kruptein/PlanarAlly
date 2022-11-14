@@ -112,17 +112,11 @@ jobs:
 
             - run: unzip.exe .\pyinstaller.zip
 
-            - run: cd .\pyinstaller-5.6.2\bootloader
-
             - run:
                   name: Compile bootloader
-                  command: python .\waf all --target-arch=64bit
+                  command: cd .\pyinstaller-5.6.2\bootloader && python .\waf all --target-arch=64bit
 
-            - run: cd ..
-
-            - run: python .\setup.py install
-
-            - run: cd ..
+            - run: cd .\pyinstaller-5.6.2 && python .\setup.py install
 
             - run:
                   name: Run pyinstaller

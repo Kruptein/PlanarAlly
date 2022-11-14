@@ -66,9 +66,13 @@ jobs:
 
             - run:
                   name: "Publish release on github"
-                  command: |
-                      VERSION=$(head -1 server/VERSION)
-                      ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace ${VERSION} /tmp/archives
+                  when:
+                      condition:
+                          equals: [ci-test, << pipeline.git.branch >>]
+                      steps:
+                          command: |
+                              VERSION=$(head -1 server/VERSION)
+                              ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace ${VERSION} /tmp/archives
 
     build-windows:
         executor: win/server-2022
@@ -81,11 +85,11 @@ jobs:
 
             - run:
                   name: Create archives folder
-                  command: mkdir ~/archives
+                  command: mkdir C:\Users\circleci\archives
 
             - run:
                   name: Create dist folder
-                  command: mkdir ~/dist
+                  command: mkdir C:\Users\circleci\dist
 
             - run:
                   name: Upgrade pip
@@ -101,7 +105,7 @@ jobs:
 
             - run:
                   name: Run pyinstaller
-                  command: pyinstaller --clean -y --dist ~/dist/ PA.spec
+                  command: pyinstaller --clean -y --dist C:\Users\circleci\dist\ PA.spec
 
             - run:
                   name: Zip artifacts
@@ -115,9 +119,13 @@ jobs:
 
             - run:
                   name: Publish release on github
-                  command: |
-                      $VERSION=$(Get-Content -TotalCount 1 VERSION)
-                      C:\Users\circleci\go\bin\ghr.exe -t $env:GITHUB_TOKEN -u $env:CIRCLE_PROJECT_USERNAME -r $env:CIRCLE_PROJECT_REPONAME -c $env:CIRCLE_SHA1 -replace $VERSION C:\Users\circleci\archives
+                  when:
+                      condition:
+                          equals: [ci-test, << pipeline.git.branch >>]
+                      steps:
+                          command: |
+                              $VERSION=$(Get-Content -TotalCount 1 VERSION)
+                              C:\Users\circleci\go\bin\ghr.exe -t $env:GITHUB_TOKEN -u $env:CIRCLE_PROJECT_USERNAME -r $env:CIRCLE_PROJECT_REPONAME -c $env:CIRCLE_SHA1 -replace $VERSION C:\Users\circleci\archives
 
 workflows:
     version: 2

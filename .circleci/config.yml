@@ -100,9 +100,29 @@ jobs:
                   name: Install python dependencies
                   command: python -m pip install -r requirements.txt
 
+            - command: python -m pip install wheel
+
+            # - run:
+            #       name: Install pyinstaller
+            #       command: python -m pip install pyinstaller
+
             - run:
-                  name: Install pyinstaller
-                  command: python -m pip install pyinstaller
+                  name: Download PyInstaller
+                  command: Invoke-WebRequest https://github.com/pyinstaller/pyinstaller/archive/refs/tags/v5.6.2.zip -OutFile .\pyinstaller.zip
+
+            - command: unzip.exe .\pyinstaller.exe
+
+            - command: cd .\pyinstaller-5.6.2\bootloader
+
+            - run:
+                  name: Compile bootloader
+                  command: python .\waf all --target-arch=64bit
+
+            - command: cd ..
+
+            - command: python .\setup.py install
+
+            - command: cd ..
 
             - run:
                   name: Run pyinstaller

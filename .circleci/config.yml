@@ -114,7 +114,7 @@ jobs:
 
             - run:
                   name: Compile bootloader
-                  command: cd .\pyinstaller-5.6.2\bootloader; if ($?) { python .\waf all --target-arch=64bit }
+                  command: cd .\pyinstaller-5.6.2\bootloader; if ($?) { python .\waf all }
 
             - run: cd .\pyinstaller-5.6.2; if ($?) {python .\setup.py install}
 

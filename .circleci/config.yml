@@ -78,7 +78,7 @@ jobs:
     build-windows:
         executor: win/server-2022
 
-        working_directory: C:\Users\circleci\PlanarAlly\server
+        working_directory: ~/PlanarAlly/server
 
         steps:
             - attach_workspace:
@@ -141,7 +141,7 @@ jobs:
                   name: Publish release on github
                   command: |
                       $VERSION=$(Get-Content -TotalCount 1 VERSION)
-                      C:\Users\circleci\go\bin\ghr.exe -t $env:GITHUB_TOKEN -u $env:CIRCLE_PROJECT_USERNAME -r $env:CIRCLE_PROJECT_REPONAME -c $env:CIRCLE_SHA1 -replace $VERSION C:\Users\circleci\archives
+                      ~\go\bin\ghr.exe -t $env:GITHUB_TOKEN -u $env:CIRCLE_PROJECT_USERNAME -r $env:CIRCLE_PROJECT_REPONAME -c $env:CIRCLE_SHA1 -replace $VERSION C:\Users\circleci\archives
 
 workflows:
     version: 2

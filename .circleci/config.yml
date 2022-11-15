@@ -134,7 +134,7 @@ jobs:
                   name: Zip artifacts
                   command: |
                       $VERSION=$(Get-Content -TotalCount 1 VERSION)
-                      Compress-Archive -Path .\planarally.dist -DestinationPath C:\Users\circleci\archives\planarally-windows-${VERSION}-temp.zip
+                      Compress-Archive -Path .\planarally.dist -DestinationPath C:\Users\circleci\archives\planarally-windows-${VERSION}.zip
 
             - run:
                   name: Install ghr
@@ -160,14 +160,14 @@ workflows:
                       - build-client
                   filters:
                       branches:
-                          only: ci-test
+                          #   only: ci-test  # MAKE SURE TO CONDITION OR RENAME UPLOADED FILES TO GITHUB!!
                           ignore: /.*/
                       tags:
                           only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
             - build-client:
                   filters:
                       branches:
-                          only: ci-test
+                          #   only: ci-test  # MAKE SURE TO CONDITION OR RENAME UPLOADED FILES TO GITHUB!!
                           ignore: /.*/
                       tags:
                           only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
@@ -176,7 +176,7 @@ workflows:
                       - build-client
                   filters:
                       branches:
-                          only: ci-test
+                          #   only: ci-test  # MAKE SURE TO CONDITION OR RENAME UPLOADED FILES TO GITHUB!!
                           ignore: /.*/
                       tags:
                           only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/

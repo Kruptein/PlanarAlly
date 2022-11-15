@@ -128,7 +128,7 @@ jobs:
             #       name: Run pyinstaller
             #       command: pyinstaller --clean -y --dist C:\Users\circleci\dist\ PA.spec
 
-            - run: python -m nuitka --include-data-files=VERSION=VERSION --include-data-files=server_config.cfg=server_config.cfg --include-data-dir=static=static --include-data-dir=templates=templates --windows-icon-from-ico=static/favicon.ico
+            - run: python -m nuitka --include-data-files=VERSION=VERSION --include-data-files=server_config.cfg=server_config.cfg --include-data-dir=static=static --include-data-dir=templates=templates --windows-icon-from-ico=static/favicon.ico ./planarally.py
 
             - run:
                   name: Zip artifacts

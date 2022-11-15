@@ -78,7 +78,7 @@ jobs:
     build-windows:
         executor: win/server-2022
 
-        working_directory: ~/PlanarAlly/server
+        working_directory: C:\Users\circleci\PlanarAlly\server
 
         steps:
             - attach_workspace:

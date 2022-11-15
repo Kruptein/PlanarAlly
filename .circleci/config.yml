@@ -76,7 +76,9 @@ jobs:
                                 ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace ${VERSION} /tmp/archives
 
     build-windows:
-        executor: win/server-2022
+        executor:
+            name: win/server-2022
+            size: large
 
         working_directory: ~/PlanarAlly/server
 
@@ -102,31 +104,37 @@ jobs:
 
             - run: python -m pip install wheel
 
+            - run: python -m pip install orderedset
+
+            - run: python -m pip install nuitka
+
             # - run:
             #       name: Install pyinstaller
             #       command: python -m pip install pyinstaller
 
-            - run:
-                  name: Download PyInstaller
-                  command: Invoke-WebRequest https://github.com/pyinstaller/pyinstaller/archive/refs/tags/v5.6.2.zip -OutFile .\pyinstaller.zip
+            # - run:
+            #       name: Download PyInstaller
+            #       command: Invoke-WebRequest https://github.com/pyinstaller/pyinstaller/archive/refs/tags/v5.6.2.zip -OutFile .\pyinstaller.zip
 
-            - run: unzip.exe .\pyinstaller.zip
+            # - run: unzip.exe .\pyinstaller.zip
 
-            - run:
-                  name: Compile bootloader
-                  command: cd .\pyinstaller-5.6.2\bootloader; if ($?) { python .\waf all }
+            # - run:
+            #       name: Compile bootloader
+            #       command: cd .\pyinstaller-5.6.2\bootloader; if ($?) { python .\waf all }
 
-            - run: cd .\pyinstaller-5.6.2; if ($?) {python .\setup.py install}
+            # - run: cd .\pyinstaller-5.6.2; if ($?) {python .\setup.py install}
 
-            - run:
-                  name: Run pyinstaller
-                  command: pyinstaller --clean -y --dist C:\Users\circleci\dist\ PA.spec
+            # - run:
+            #       name: Run pyinstaller
+            #       command: pyinstaller --clean -y --dist C:\Users\circleci\dist\ PA.spec
+
+            - run: python -m nuitka --include-data-files=VERSION=VERSION --include-data-files=server_config.cfg=server_config.cfg --include-data-dir=static=static --include-data-dir=templates=templates --windows-icon-from-ico=static/favicon.ico
 
             - run:
                   name: Zip artifacts
                   command: |
                       $VERSION=$(Get-Content -TotalCount 1 VERSION)
-                      Compress-Archive -Path C:\Users\circleci\dist -DestinationPath C:\Users\circleci\archives\planarally-windows-${VERSION}-temp.zip
+                      Compress-Archive -Path .\planarally.dist -DestinationPath C:\Users\circleci\archives\planarally-windows-${VERSION}-temp.zip
 
             - run:
                   name: Install ghr

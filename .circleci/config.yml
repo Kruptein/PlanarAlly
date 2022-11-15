@@ -126,22 +126,22 @@ jobs:
                   name: Zip artifacts
                   command: |
                       $VERSION=$(Get-Content -TotalCount 1 VERSION)
-                      Compress-Archive -Path C:\Users\circleci\dist -DestinationPath C:\Users\circleci\archives\planarally-windows-${VERSION}.zip
+                      Compress-Archive -Path C:\Users\circleci\dist -DestinationPath C:\Users\circleci\archives\planarally-windows-${VERSION}-temp.zip
 
             - run:
                   name: Install ghr
                   command: go install github.com/tcnksm/ghr@latest
 
-            - when:
-                  condition:
-                      not:
-                          equal: [ci-test, << pipeline.git.branch >>]
-                  steps:
-                      - run:
-                            name: Publish release on github
-                            command: |
-                                $VERSION=$(Get-Content -TotalCount 1 VERSION)
-                                C:\Users\circleci\go\bin\ghr.exe -t $env:GITHUB_TOKEN -u $env:CIRCLE_PROJECT_USERNAME -r $env:CIRCLE_PROJECT_REPONAME -c $env:CIRCLE_SHA1 -replace $VERSION C:\Users\circleci\archives
+            # - when:
+            #       condition:
+            #           not:
+            #               equal: [ci-test, << pipeline.git.branch >>]
+            #       steps:
+            - run:
+                  name: Publish release on github
+                  command: |
+                      $VERSION=$(Get-Content -TotalCount 1 VERSION)
+                      C:\Users\circleci\go\bin\ghr.exe -t $env:GITHUB_TOKEN -u $env:CIRCLE_PROJECT_USERNAME -r $env:CIRCLE_PROJECT_REPONAME -c $env:CIRCLE_SHA1 -replace $VERSION C:\Users\circleci\archives
 
 workflows:
     version: 2

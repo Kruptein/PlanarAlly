@@ -15,6 +15,7 @@ tech changes will usually be stripped from release notes for the public
 -   User configuration option to limit rendering to only the active floor
 -   User setting to change toolbar between icons and words (defaults to icons)
 -   Out-of-bounds check with visual UI element to help people get back to their content
+-   Show off-screen token directions
 -   [DM] Players section in the left in-game dm sidebar
     -   Lists players connected to the session
     -   Clicking on a name, centers your screen on their current view (if on the same location)

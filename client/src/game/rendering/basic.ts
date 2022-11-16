@@ -1,4 +1,6 @@
-import { g2lx, g2ly } from "../../core/conversions";
+import { g2lx, g2ly, toRadians } from "../../core/conversions";
+import { toArrayP } from "../../core/geometry";
+import type { LocalPoint, Ray } from "../../core/geometry";
 import { LayerName } from "../models/floor";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
@@ -115,6 +117,42 @@ export function drawLine(from: number[], to: number[], constrained: boolean, loc
     ctx.lineTo(x(to[0], local), y(to[1], local));
     ctx.closePath();
     ctx.stroke();
+}
+
+export function drawTear(ray: Ray<LocalPoint>, options?: { fillColour?: string }): void {
+    const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
+    if (dl === undefined) return;
+    const ctx = dl.ctx;
+
+    // const ray = Ray.fromPoints(toLP(120, 20), toLP(175, 100));
+    // const ray = Ray.fromPoints(toLP(120, 20), toLP(120, 88));
+    const angleRay = ray.direction.angle();
+    const a = toArrayP(ray.get(0));
+    const b = toArrayP(ray.getPointAtDistance(68));
+
+    const r = 34.5;
+    const angleA = angleRay - Math.PI / 2 - toRadians(30);
+    const angleB = angleA + Math.PI + toRadians(60);
+    const c = [b[0] + r * Math.cos(angleA), b[1] + r * Math.sin(angleA)];
+
+    ctx.beginPath();
+    ctx.lineJoin = "miter";
+    ctx.moveTo(a[0], a[1]);
+    ctx.lineTo(c[0], c[1]);
+    ctx.arc(b[0], b[1], r, angleA, angleB, false);
+    ctx.lineTo(a[0], a[1]);
+    ctx.closePath();
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 2;
+    ctx.fillStyle = options?.fillColour ?? "#77CCEE";
+    ctx.stroke();
+    ctx.fill();
+
+    // drawPointL([117.5, 30], 5, "red");
+    // drawPointL([117.5, 35], 5, "orange");
+    // drawPointL(a, 5, "blue");
+    // drawPointL(b, 5, "brown");
+    // drawPointL(c, 5, "green");
 }
 
 function drawEdge(edge: Edge, colour: string, local = false): void {

@@ -28,6 +28,10 @@ socket.on("Player.Options.Set", (options: ServerPlayerInfo) => {
         sync: false,
         default: defaultOptions.useToolIcons,
     });
+    playerSettingsSystem.setShowTokenDirections(roomOptions?.showTokenDirections, {
+        sync: false,
+        default: defaultOptions.showTokenDirections,
+    });
 
     // Behaviour
     playerSettingsSystem.setInvertAlt(roomOptions?.invertAlt, {

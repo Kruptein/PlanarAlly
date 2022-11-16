@@ -81,7 +81,7 @@ export interface IShape extends SimpleShape {
 
     // DRAWING
 
-    draw(ctx: CanvasRenderingContext2D): void;
+    draw(ctx: CanvasRenderingContext2D, customScale?: { center: GlobalPoint; width: number; height: number }): void;
     drawPost(ctx: CanvasRenderingContext2D): void;
     drawSelection(ctx: CanvasRenderingContext2D): void;
 

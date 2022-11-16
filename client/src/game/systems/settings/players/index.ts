@@ -2,6 +2,7 @@ import { registerSystem } from "../..";
 import type { System } from "../..";
 import { sendRoomClientOptions } from "../../../api/emits/client";
 import { updateFogColour } from "../../../colour";
+import { LayerName } from "../../../models/floor";
 import type { InitiativeEffectMode } from "../../../models/initiative";
 import { floorSystem } from "../../floors";
 import { floorState } from "../../floors/state";
@@ -48,6 +49,18 @@ class PlayerSettingsSystem implements System {
         if (options.default !== undefined) $.useToolIcons.default = options.default;
         $.useToolIcons.value = useToolIcons ?? $.useToolIcons.default;
         if (options.sync) sendRoomClientOptions("use_tool_icons", useToolIcons, options.default);
+    }
+
+    setShowTokenDirections(
+        showTokenDirections: boolean | undefined,
+        options: { sync: boolean; default?: boolean },
+    ): void {
+        $.showTokenDirections.override = showTokenDirections;
+        if (options.default !== undefined) $.showTokenDirections.default = options.default;
+        $.showTokenDirections.value = showTokenDirections ?? $.showTokenDirections.default;
+        const floor = floorState.currentFloor.value;
+        if (floor !== undefined) floorSystem.getLayer(floor, LayerName.Draw)?.invalidate(true);
+        if (options.sync) sendRoomClientOptions("show_token_directions", showTokenDirections, options.default);
     }
 
     // BEHAVIOUR

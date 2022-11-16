@@ -238,7 +238,8 @@
                     "AppearanceSettings": {
                         "toolbars": "Toolbars",
                         "use_tool_icons": "Use icons",
-                        "fog": "Fog"
+                        "fog": "Fog",
+                        "show_token_directions": "Show off-screen token directions"
                     },
                     "BehaviourSettings": {
                         "invert_alt_set": "Invert ALT behaviour",

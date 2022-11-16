@@ -434,28 +434,30 @@ export class Layer implements ILayer {
             }
 
             // show nearby tokens
-            if (this.floor === floorState.currentFloor.value?.id && this.name === LayerName.Draw) {
-                const bbox = new BoundingRect(positionSystem.screenTopLeft, l2gz(this.width), l2gz(this.height));
-                const bboxCenter = bbox.center;
-                for (const token of accessState.activeTokens.value) {
-                    let found = false;
-                    const shape = getShape(token);
-                    if (shape !== undefined && shape.floor.id === this.floor && shape.type === "assetrect") {
-                        if (!shape.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: false })) {
-                            const ray = Ray.fromPoints(shape.center, bboxCenter);
-                            const { hit, min } = bbox.containsRay(ray);
-                            if (hit) {
-                                let target = ray.get(min);
-                                const modifiedRay = new Ray(g2l(ray.get(min)), ray.direction);
-                                drawTear(modifiedRay, { fillColour: playerSettingsState.raw.rulerColour.value });
-                                target = ray.getPointAtDistance(l2gz(68), min);
-                                shape.draw(ctx, { center: target, width: 60, height: 60 });
-                                positionSystem.setTokenDirection(token, g2l(target));
-                                found = true;
+            if (playerSettingsState.raw.showTokenDirections.value) {
+                if (this.floor === floorState.currentFloor.value?.id && this.name === LayerName.Draw) {
+                    const bbox = new BoundingRect(positionSystem.screenTopLeft, l2gz(this.width), l2gz(this.height));
+                    const bboxCenter = bbox.center;
+                    for (const token of accessState.activeTokens.value) {
+                        let found = false;
+                        const shape = getShape(token);
+                        if (shape !== undefined && shape.floor.id === this.floor && shape.type === "assetrect") {
+                            if (!shape.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: false })) {
+                                const ray = Ray.fromPoints(shape.center, bboxCenter);
+                                const { hit, min } = bbox.containsRay(ray);
+                                if (hit) {
+                                    let target = ray.get(min);
+                                    const modifiedRay = new Ray(g2l(ray.get(min)), ray.direction);
+                                    drawTear(modifiedRay, { fillColour: playerSettingsState.raw.rulerColour.value });
+                                    target = ray.getPointAtDistance(l2gz(68), min);
+                                    shape.draw(ctx, { center: target, width: 60, height: 60 });
+                                    positionSystem.setTokenDirection(token, g2l(target));
+                                    found = true;
+                                }
                             }
                         }
+                        if (!found) positionSystem.setTokenDirection(token, undefined);
                     }
-                    if (!found) positionSystem.setTokenDirection(token, undefined);
                 }
             }
 

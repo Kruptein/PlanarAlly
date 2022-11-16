@@ -21,6 +21,15 @@ const useToolIcons = computed({
     },
 });
 
+const showTokenDirections = computed({
+    get() {
+        return $.showTokenDirections.value;
+    },
+    set(showTokenDirections: boolean | undefined) {
+        pss.setShowTokenDirections(showTokenDirections, { sync: true });
+    },
+});
+
 const gridColour = computed({
     get() {
         return $.gridColour.value;
@@ -68,6 +77,26 @@ const rulerColour = computed({
                 <div
                     :title="t('game.ui.settings.common.sync_default')"
                     @click="pss.setUseToolIcons(undefined, { sync: true, default: $.useToolIcons.override })"
+                >
+                    <font-awesome-icon icon="sync-alt" />
+                </div>
+            </template>
+        </div>
+        <div class="spanrow header">{{ t("common.tokens") }}</div>
+        <div class="row">
+            <label for="showTokenDirections">
+                {{ t("game.ui.settings.client.AppearanceSettings.show_token_directions") }}
+            </label>
+            <div><input id="showTokenDirections" type="checkbox" v-model="showTokenDirections" /></div>
+            <template v-if="$.showTokenDirections.override !== undefined">
+                <div :title="t('game.ui.settings.common.reset_default')" @click="showTokenDirections = undefined">
+                    <font-awesome-icon icon="times-circle" />
+                </div>
+                <div
+                    :title="t('game.ui.settings.common.sync_default')"
+                    @click="
+                        pss.setShowTokenDirections(undefined, { sync: true, default: $.showTokenDirections.override })
+                    "
                 >
                     <font-awesome-icon icon="sync-alt" />
                 </div>

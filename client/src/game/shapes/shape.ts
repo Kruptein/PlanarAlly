@@ -17,7 +17,8 @@ import type { GlobalId, LocalId } from "../id";
 import type { Label } from "../interfaces/label";
 import type { ILayer } from "../interfaces/layer";
 import type { IShape } from "../interfaces/shape";
-import type { Floor, FloorId, LayerName } from "../models/floor";
+import { LayerName } from "../models/floor";
+import type { Floor, FloorId } from "../models/floor";
 import type { ServerShape, ServerShapeOptions, ShapeOptions } from "../models/shapes";
 import { accessSystem } from "../systems/access";
 import { ownerToClient, ownerToServer } from "../systems/access/helpers";
@@ -210,6 +211,8 @@ export abstract class Shape implements IShape {
         this._center = this.__center();
         this.resetVisionIteration();
         this.invalidatePoints();
+        if (getProperties(this.id)?.isToken === true)
+            floorSystem.getLayer(this.floor, LayerName.Draw)?.invalidate(true);
     }
 
     get angle(): number {
@@ -236,6 +239,8 @@ export abstract class Shape implements IShape {
         this.angle = position.angle;
         this.resetVisionIteration();
         this.updateShapeVision(false, false);
+        if (getProperties(this.id)?.isToken === true)
+            floorSystem.getLayer(this.floor, LayerName.Draw)?.invalidate(true);
     }
 
     invalidate(skipLightUpdate: boolean): void {
@@ -291,11 +296,11 @@ export abstract class Shape implements IShape {
 
     // DRAWING
 
-    draw(ctx: CanvasRenderingContext2D): void {
+    draw(ctx: CanvasRenderingContext2D, customScale?: { center: GlobalPoint; width: number; height: number }): void {
         if (this.globalCompositeOperation !== undefined) ctx.globalCompositeOperation = this.globalCompositeOperation;
         else ctx.globalCompositeOperation = "source-over";
 
-        const center = g2l(this.center);
+        const center = g2l(customScale?.center ?? this.center);
         const pixelRatio = playerSettingsState.devicePixelRatio.value;
 
         ctx.setTransform(pixelRatio, 0, 0, pixelRatio, center.x * pixelRatio, center.y * pixelRatio);

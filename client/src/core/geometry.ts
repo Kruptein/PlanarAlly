@@ -1,3 +1,5 @@
+import { l2g } from "./conversions";
+
 /*
 This module defines some Point classes.
 A strong focus is made to ensure that at no time a global and a local point are mixed up with each other.
@@ -135,6 +137,11 @@ export class Ray<T extends Point> {
         else maxT = (p2.y - p1.y) / vec.y;
         return new Ray(p1, vec, maxT);
     }
+
+    static toGlobalRay(ray: Ray<LocalPoint>): Ray<GlobalPoint> {
+        return new Ray(l2g(ray.origin), ray.direction, ray.tMax);
+    }
+
     get(t: number): T {
         return { x: this.origin.x + t * this.direction.x, y: this.origin.y + t * this.direction.y } as T;
     }
@@ -143,6 +150,9 @@ export class Ray<T extends Point> {
     }
     getT(t1: number, distance: number): number {
         return t1 + Math.sqrt(Math.pow(distance, 2) / (Math.pow(this.direction.x, 2) + Math.pow(this.direction.y, 2)));
+    }
+    getPointAtDistance(distance: number, startT = 0): T {
+        return addP(this.get(startT), this.direction.normalize().multiply(distance));
     }
 }
 

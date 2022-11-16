@@ -1,7 +1,7 @@
 import { toRaw } from "vue";
 
-import { l2g } from "../../../core/conversions";
-import { toLP } from "../../../core/geometry";
+import { g2l, l2g, l2gz } from "../../../core/conversions";
+import { Ray, toLP } from "../../../core/geometry";
 import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
 import { debugLayers } from "../../../localStorageHelpers";
 import { getGameState } from "../../../store/_game";
@@ -9,7 +9,7 @@ import { activeShapeStore } from "../../../store/activeShape";
 import { gameStore } from "../../../store/game";
 import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../../api/emits/shape/core";
 import { removeGroupMember } from "../../groups";
-import { dropId, getGlobalId } from "../../id";
+import { dropId, getGlobalId, getShape } from "../../id";
 import type { LocalId } from "../../id";
 import type { ILayer } from "../../interfaces/layer";
 import type { IShape } from "../../interfaces/shape";
@@ -18,11 +18,14 @@ import type { FloorId } from "../../models/floor";
 import type { ServerShape } from "../../models/shapes";
 import { addOperation } from "../../operations/undo";
 import { drawAuras } from "../../rendering/auras";
+import { drawTear } from "../../rendering/basic";
 import { createShapeFromDict } from "../../shapes/create";
-import type { BoundingRect } from "../../shapes/variants/simple/boundingRect";
+import { BoundingRect } from "../../shapes/variants/simple/boundingRect";
 import { accessSystem } from "../../systems/access";
+import { accessState } from "../../systems/access/state";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
+import { positionSystem } from "../../systems/position";
 import { propertiesSystem } from "../../systems/properties";
 import { getProperties } from "../../systems/properties/state";
 import { selectedSystem } from "../../systems/selected";
@@ -427,6 +430,32 @@ export class Layer implements ILayer {
                         ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
                         ctx.fillRect(0, 0, this.width, this.height);
                     }
+                }
+            }
+
+            // show nearby tokens
+            if (this.floor === floorState.currentFloor.value?.id && this.name === LayerName.Draw) {
+                const bbox = new BoundingRect(positionSystem.screenTopLeft, l2gz(this.width), l2gz(this.height));
+                const bboxCenter = bbox.center;
+                for (const token of accessState.activeTokens.value) {
+                    let found = false;
+                    const shape = getShape(token);
+                    if (shape !== undefined && shape.floor.id === this.floor && shape.type === "assetrect") {
+                        if (!shape.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: false })) {
+                            const ray = Ray.fromPoints(shape.center, bboxCenter);
+                            const { hit, min } = bbox.containsRay(ray);
+                            if (hit) {
+                                let target = ray.get(min);
+                                const modifiedRay = new Ray(g2l(ray.get(min)), ray.direction);
+                                drawTear(modifiedRay, { fillColour: playerSettingsState.raw.rulerColour.value });
+                                target = ray.getPointAtDistance(l2gz(68), min);
+                                shape.draw(ctx, { center: target, width: 60, height: 60 });
+                                positionSystem.setTokenDirection(token, g2l(target));
+                                found = true;
+                            }
+                        }
+                    }
+                    if (!found) positionSystem.setTokenDirection(token, undefined);
                 }
             }
 

@@ -29,6 +29,7 @@ import LocationSettings from "./settings/location/LocationSettings.vue";
 import ShapeSettings from "./settings/shape/ShapeSettings.vue";
 import CreateTokenDialog from "./tokendialog/CreateTokenDialog.vue";
 import { tokenDialogVisible } from "./tokendialog/state";
+import TokenDirections from "./TokenDirections.vue";
 import Tools from "./tools/Tools.vue";
 
 const uiEl = ref<HTMLDivElement | null>(null);
@@ -200,6 +201,7 @@ function setTempZoomDisplay(value: number): void {
         <div id="oob" v-if="positionState.reactive.outOfBounds" @click="positionSystem.returnToBounds">
             Click to return to content
         </div>
+        <TokenDirections />
         <!-- When updating zoom boundaries, also update store updateZoom function;
             should probably do this using a store variable-->
         <SliderComponent

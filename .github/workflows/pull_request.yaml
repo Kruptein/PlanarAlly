@@ -1,7 +1,7 @@
 on: pull_request
 name: PR
 jobs:
-    CLIENT-install:
+    CLIENT-build:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v3
@@ -13,30 +13,42 @@ jobs:
               working-directory: client
               run: |
                   npm install
+            - name: build
+              working-directory: client
+              run: |
+                  npm run build:ci
     CLIENT-lint:
         runs-on: ubuntu-latest
-        needs: [CLIENT-install]
         steps:
+            - uses: actions/checkout@v3
+            - name: Use Node.js 16.x
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 16.x
+            - name: npm i
+              working-directory: client
+              run: |
+                  npm install
             - name: lint
               working-directory: client
               run: |
                   npm run lint:ci
     CLIENT-test:
         runs-on: ubuntu-latest
-        needs: [CLIENT-install]
         steps:
+            - uses: actions/checkout@v3
+            - name: Use Node.js 16.x
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 16.x
+            - name: npm i
+              working-directory: client
+              run: |
+                  npm install
             - name: test
               working-directory: client
               run: |
                   npm run test
-    CLIENT-build:
-        runs-on: ubuntu-latest
-        needs: [CLIENT-install]
-        steps:
-            - name: build
-              working-directory: client
-              run: |
-                  npm run build:ci
     SERVER:
         runs-on: ubuntu-latest
         steps:

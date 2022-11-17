@@ -1,7 +1,7 @@
 on: pull_request
 name: PR
 jobs:
-    CLIENT:install:
+    CLIENT-install:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v3
@@ -13,25 +13,25 @@ jobs:
               working-directory: client
               run: |
                   npm install
-    CLIENT:lint:
+    CLIENT-lint:
         runs-on: ubuntu-latest
-        needs: [CLIENT:install]
+        needs: [CLIENT-install]
         steps:
             - name: lint
               working-directory: client
               run: |
                   npm run lint:ci
-    CLIENT:test:
+    CLIENT-test:
         runs-on: ubuntu-latest
-        needs: [CLIENT:install]
+        needs: [CLIENT-install]
         steps:
             - name: test
               working-directory: client
               run: |
                   npm run test
-    CLIENT:build:
+    CLIENT-build:
         runs-on: ubuntu-latest
-        needs: [CLIENT:install]
+        needs: [CLIENT-install]
         steps:
             - name: build
               working-directory: client

@@ -238,7 +238,12 @@ const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
                         :data-loc="location.id"
                         @add="onDragAdd"
                     >
-                        <template #item><div></div></template>
+                        <template #item>
+                            <div>
+                                <!-- without the {{}} it throws an error because it becomes a null element? -->
+                                {{}}
+                            </div>
+                        </template>
                     </draggable>
                 </div>
             </template>

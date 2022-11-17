@@ -29,6 +29,7 @@ export interface ILayer {
     hide(): void;
     invalidate(skipLightUpdate: boolean): void;
     updateView(): void;
+    waitValid(): Promise<void>;
     isValid(): boolean;
     moveShapeOrder(shape: IShape, destinationIndex: number, sync: SyncMode): void;
     pushShapes(...shapes: IShape[]): void;

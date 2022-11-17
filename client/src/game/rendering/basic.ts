@@ -100,7 +100,13 @@ function y(yy: number, local: boolean): number {
 let I = 0;
 let J = 0;
 
-export function drawLine(from: number[], to: number[], constrained: boolean, local: boolean): void {
+export function drawLine(
+    from: number[],
+    to: number[],
+    local: boolean,
+    options?: { constrained?: boolean; lineWidth?: number; strokeStyle?: string },
+): void {
+    const constrained = options?.constrained ?? false;
     // J++;
     // if (constrained) {
     //     I++;
@@ -111,8 +117,10 @@ export function drawLine(from: number[], to: number[], constrained: boolean, loc
     const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
     const ctx = dl.ctx;
+    if (options?.lineWidth !== undefined) ctx.lineWidth = options?.lineWidth;
     ctx.beginPath();
-    ctx.strokeStyle = constrained ? "rgba(255, 255, 0, 0.30)" : "rgba(0, 0, 0, 0.30)";
+    if (options?.strokeStyle !== undefined) ctx.strokeStyle = options.strokeStyle;
+    else ctx.strokeStyle = constrained ? "rgba(255, 255, 0, 0.30)" : "rgba(0, 0, 0, 0.30)";
     ctx.moveTo(x(from[0], local), y(from[1], local));
     ctx.lineTo(x(to[0], local), y(to[1], local));
     ctx.closePath();
@@ -226,11 +234,11 @@ function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0)
 
         ctx.moveTo(x(t.vertices[0]!.point![0], local), y(t.vertices[0]!.point![1], local));
         if (t.vertices[0] !== undefined && t.vertices[1] !== undefined)
-            drawLine(t.vertices[0]!.point!, t.vertices[1]!.point!, t.constraints[2], local);
+            drawLine(t.vertices[0]!.point!, t.vertices[1]!.point!, local, { constrained: t.constraints[2] });
         if (t.vertices[1] !== undefined && t.vertices[2] !== undefined)
-            drawLine(t.vertices[1]!.point!, t.vertices[2]!.point!, t.constraints[0], local);
+            drawLine(t.vertices[1]!.point!, t.vertices[2]!.point!, local, { constrained: t.constraints[0] });
         if (t.vertices[2] !== undefined && t.vertices[0] !== undefined)
-            drawLine(t.vertices[2]!.point!, t.vertices[0]!.point!, t.constraints[1], local);
+            drawLine(t.vertices[2]!.point!, t.vertices[0]!.point!, local, { constrained: t.constraints[1] });
     }
     if (logs > 0) {
         console.log(`Edges: ${I}/${J}`);

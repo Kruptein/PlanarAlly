@@ -1,4 +1,6 @@
-import { g2lx, g2ly } from "../../core/conversions";
+import { g2lx, g2ly, toRadians } from "../../core/conversions";
+import { toArrayP } from "../../core/geometry";
+import type { LocalPoint, Ray } from "../../core/geometry";
 import { LayerName } from "../models/floor";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
@@ -39,7 +41,7 @@ function drawPointL(point: number[], r: number, colour?: string): void {
 
 export function drawPolygon(
     polygon: number[][],
-    options?: { colour?: string; strokeWidth?: number; close?: boolean },
+    options?: { colour?: string; strokeWidth?: number; close?: boolean; debug?: boolean },
 ): void {
     const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
@@ -52,9 +54,15 @@ export function drawPolygon(
         options?.colour === undefined
             ? `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})`
             : options.colour;
-    ctx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
+    const x = g2lx(polygon[0][0]);
+    const y = g2ly(polygon[0][1]);
+    ctx.moveTo(x, y);
+    if (options?.debug ?? false) console.log(x, y);
     for (const point of polygon) {
-        ctx.lineTo(g2lx(point[0]), g2ly(point[1]));
+        const x = g2lx(point[0]);
+        const y = g2ly(point[1]);
+        ctx.lineTo(x, y);
+        if (options?.debug ?? false) console.log(x, y);
     }
     if (options?.close ?? true) ctx.closePath();
     if (options?.strokeWidth !== undefined) ctx.lineWidth = options.strokeWidth;
@@ -92,7 +100,13 @@ function y(yy: number, local: boolean): number {
 let I = 0;
 let J = 0;
 
-export function drawLine(from: number[], to: number[], constrained: boolean, local: boolean): void {
+export function drawLine(
+    from: number[],
+    to: number[],
+    local: boolean,
+    options?: { constrained?: boolean; lineWidth?: number; strokeStyle?: string },
+): void {
+    const constrained = options?.constrained ?? false;
     // J++;
     // if (constrained) {
     //     I++;
@@ -103,12 +117,50 @@ export function drawLine(from: number[], to: number[], constrained: boolean, loc
     const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
     const ctx = dl.ctx;
+    if (options?.lineWidth !== undefined) ctx.lineWidth = options?.lineWidth;
     ctx.beginPath();
-    ctx.strokeStyle = constrained ? "rgba(255, 255, 0, 0.30)" : "rgba(0, 0, 0, 0.30)";
+    if (options?.strokeStyle !== undefined) ctx.strokeStyle = options.strokeStyle;
+    else ctx.strokeStyle = constrained ? "rgba(255, 255, 0, 0.30)" : "rgba(0, 0, 0, 0.30)";
     ctx.moveTo(x(from[0], local), y(from[1], local));
     ctx.lineTo(x(to[0], local), y(to[1], local));
     ctx.closePath();
     ctx.stroke();
+}
+
+export function drawTear(ray: Ray<LocalPoint>, options?: { fillColour?: string }): void {
+    const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
+    if (dl === undefined) return;
+    const ctx = dl.ctx;
+
+    // const ray = Ray.fromPoints(toLP(120, 20), toLP(175, 100));
+    // const ray = Ray.fromPoints(toLP(120, 20), toLP(120, 88));
+    const angleRay = ray.direction.angle();
+    const a = toArrayP(ray.get(0));
+    const b = toArrayP(ray.getPointAtDistance(68));
+
+    const r = 34.5;
+    const angleA = angleRay - Math.PI / 2 - toRadians(30);
+    const angleB = angleA + Math.PI + toRadians(60);
+    const c = [b[0] + r * Math.cos(angleA), b[1] + r * Math.sin(angleA)];
+
+    ctx.beginPath();
+    ctx.lineJoin = "miter";
+    ctx.moveTo(a[0], a[1]);
+    ctx.lineTo(c[0], c[1]);
+    ctx.arc(b[0], b[1], r, angleA, angleB, false);
+    ctx.lineTo(a[0], a[1]);
+    ctx.closePath();
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 2;
+    ctx.fillStyle = options?.fillColour ?? "#77CCEE";
+    ctx.stroke();
+    ctx.fill();
+
+    // drawPointL([117.5, 30], 5, "red");
+    // drawPointL([117.5, 35], 5, "orange");
+    // drawPointL(a, 5, "blue");
+    // drawPointL(b, 5, "brown");
+    // drawPointL(c, 5, "green");
 }
 
 function drawEdge(edge: Edge, colour: string, local = false): void {
@@ -182,15 +234,27 @@ function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0)
 
         ctx.moveTo(x(t.vertices[0]!.point![0], local), y(t.vertices[0]!.point![1], local));
         if (t.vertices[0] !== undefined && t.vertices[1] !== undefined)
-            drawLine(t.vertices[0]!.point!, t.vertices[1]!.point!, t.constraints[2], local);
+            drawLine(t.vertices[0]!.point!, t.vertices[1]!.point!, local, { constrained: t.constraints[2] });
         if (t.vertices[1] !== undefined && t.vertices[2] !== undefined)
-            drawLine(t.vertices[1]!.point!, t.vertices[2]!.point!, t.constraints[0], local);
+            drawLine(t.vertices[1]!.point!, t.vertices[2]!.point!, local, { constrained: t.constraints[0] });
         if (t.vertices[2] !== undefined && t.vertices[0] !== undefined)
-            drawLine(t.vertices[2]!.point!, t.vertices[0]!.point!, t.constraints[1], local);
+            drawLine(t.vertices[2]!.point!, t.vertices[0]!.point!, local, { constrained: t.constraints[1] });
     }
     if (logs > 0) {
         console.log(`Edges: ${I}/${J}`);
         console.log(`Faces: ${T}`);
+    }
+}
+
+function showLayerPoints(): void {
+    const layer = floorState.currentLayer.value!;
+    const dL = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw)!;
+    dL.ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    for (const point of layer.points.keys()) {
+        const parsedPoint = JSON.parse(point);
+        dL.ctx.beginPath();
+        dL.ctx.arc(g2lx(parsedPoint[0]), g2ly(parsedPoint[1]), 5, 0, 2 * Math.PI);
+        dL.ctx.fill();
     }
 }
 
@@ -201,6 +265,7 @@ function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0)
 (window as any).DP = drawPolygon;
 (window as any).DPL = drawPolygonL;
 (window as any).DPT = drawPolygonT;
+(window as any).showLayerPoints = showLayerPoints;
 
 // COMMON DEBUG CODE
 // (window as any).load = () => {

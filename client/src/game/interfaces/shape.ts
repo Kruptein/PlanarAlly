@@ -19,6 +19,7 @@ export interface IShape extends SimpleShape {
 
     get points(): [number, number][];
     invalidatePoints(): void;
+    resetVisionIteration(): void;
 
     contains(point: GlobalPoint, nearbyThreshold?: number): boolean;
 
@@ -58,6 +59,7 @@ export interface IShape extends SimpleShape {
     onLayerAdd(): void;
 
     get visionPolygon(): Path2D;
+    _visionBbox: BoundingRect | undefined;
 
     // POSITION
 
@@ -79,7 +81,7 @@ export interface IShape extends SimpleShape {
 
     // DRAWING
 
-    draw(ctx: CanvasRenderingContext2D): void;
+    draw(ctx: CanvasRenderingContext2D, customScale?: { center: GlobalPoint; width: number; height: number }): void;
     drawPost(ctx: CanvasRenderingContext2D): void;
     drawSelection(ctx: CanvasRenderingContext2D): void;
 

@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 
 import { http } from "../../../../core/http";
 import { useModal } from "../../../../core/plugins/modals/plugin";
-import type { RoomInfo } from "../../../../dashboard/types";
+import type { RoomInfo } from "../../../../dashboard/games/types";
 import { locationStore } from "../../../../store/location";
 import { playerState } from "../../../systems/players/state";
 
@@ -54,7 +54,7 @@ async function onCloneClick(): Promise<void> {
     const response = await http.get("/api/rooms");
     if (response.ok) {
         const data = await response.json();
-        var owned: RoomInfo[] = data.owned;
+        const owned: RoomInfo[] = data.owned;
 
         const choice = await modals.selectionBox(
             t("game.ui.settings.LocationBar.LocationAdminSettings.choose_room"),

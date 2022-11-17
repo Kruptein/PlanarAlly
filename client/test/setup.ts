@@ -2,7 +2,9 @@ import { vi } from "vitest";
 
 (HTMLCanvasElement.prototype as any).getContext = () => {};
 
-vi.mock("path-data-polyfill", vi.fn());
+vi.mock("path-data-polyfill", () => {
+    return { default: vi.fn() };
+});
 
 function createMockManager(): { socket: () => { connect: () => void; on: () => void; emit: () => void } } {
     return {

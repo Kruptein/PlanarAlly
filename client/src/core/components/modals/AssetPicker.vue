@@ -117,7 +117,7 @@ function select(event: MouseEvent, inode: number): void {
 
 #assets {
     display: flex;
-    max-height: 50vh;
+    height: 40vh;
     width: 30vw;
     flex-grow: 1;
     background-color: white;
@@ -176,6 +176,7 @@ function select(event: MouseEvent, inode: number): void {
         left: 0;
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+        grid-auto-rows: 105px;
         max-width: 100%;
         max-height: 54vh;
         overflow: auto;

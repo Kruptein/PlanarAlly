@@ -56,6 +56,7 @@ export class Polygon extends Shape {
         this._refPoint = point;
         for (let i = 0; i < this._vertices.length; i++) this._vertices[i] = addP(this._vertices[i], delta);
         this._center = this.__center();
+        this.resetVisionIteration();
         this.invalidatePoints();
     }
 
@@ -122,8 +123,7 @@ export class Polygon extends Shape {
     invalidatePoints(): void {
         const center = this.center;
         this._points = this.vertices.map((point) => this.invalidatePoint(point, center));
-        this.layer.updateSectors(this.id, this.getAuraAABB());
-        if (this.isSnappable) this.updateLayerPoints();
+        super.invalidatePoints();
     }
 
     draw(ctx: CanvasRenderingContext2D): void {
@@ -204,21 +204,8 @@ export class Polygon extends Shape {
     resizeToGrid(): void {}
 
     resize(resizePoint: number, point: GlobalPoint): number {
-        if (this.angle === 0) {
-            if (resizePoint === 0) this._refPoint = point;
-            else this._vertices[resizePoint - 1] = point;
-        } else {
-            const newPoints = this.points.map((p) => toGP(p));
-
-            newPoints[resizePoint] = point;
-
-            const newCenter = getPointsCenter(filterEqualPoints(newPoints));
-
-            this._refPoint = rotateAroundPoint(newPoints[0], newCenter, -this.angle);
-            for (let i = 0; i < this._vertices.length; i++) {
-                this._vertices[i] = rotateAroundPoint(newPoints[i + 1], newCenter, -this.angle);
-            }
-        }
+        if (resizePoint === 0) this._refPoint = rotateAroundPoint(point, this.center, -this.angle);
+        else this._vertices[resizePoint - 1] = rotateAroundPoint(point, this.center, -this.angle);
         this.invalidatePoints();
         return resizePoint;
     }
@@ -276,6 +263,8 @@ export class Polygon extends Shape {
     pushPoint(point: GlobalPoint): void {
         this._vertices.push(point);
         this._points.push(this.invalidatePoint(point, this.center));
+        this.layer.updateSectors(this.id, this.getAuraAABB());
+        if (this.isSnappable) this.updateLayerPoints();
     }
 
     addPoint(point: GlobalPoint): void {

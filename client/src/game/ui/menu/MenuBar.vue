@@ -31,6 +31,7 @@ const assetSearch = ref("");
 const gameState = getGameState();
 
 const isDm = toRef(gameState, "isDm");
+const isFakePlayer = toRef(gameState, "isFakePlayer");
 const notes = toRef(gameState, "notes");
 const markers = toRef(gameState, "markers");
 
@@ -110,7 +111,7 @@ const openLgSettings = (): void => uiStore.showLgSettings(!uiStore.state.showLgS
     <div id="menu" @click="settingsClick">
         <div style="width: 12.5rem; overflow-y: auto; overflow-x: hidden">
             <!-- ASSETS -->
-            <template v-if="isDm">
+            <template v-if="isDm || isFakePlayer">
                 <button class="menu-accordion">{{ t("common.assets") }}</button>
                 <div id="menu-assets" class="menu-accordion-panel" style="position: relative">
                     <input id="asset-search" v-model="assetSearch" :placeholder="t('common.search')" />

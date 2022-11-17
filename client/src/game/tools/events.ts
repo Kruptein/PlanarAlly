@@ -15,6 +15,7 @@ export function mouseDown(event: MouseEvent): void {
 
     let targetTool = activeTool.value;
     if (event.button === 1 || event.button === 2) {
+        toolMap[targetTool].onPanStart();
         targetTool = ToolName.Pan;
         uiStore.preventContextMenu(false);
     } else if (event.button !== 0) {
@@ -90,6 +91,7 @@ export async function mouseUp(event: MouseEvent): Promise<void> {
                 return contextMenu(event);
             }
         }
+        toolMap[targetTool].onPanEnd();
         targetTool = ToolName.Pan;
     } else if (event.button !== 0) {
         return;

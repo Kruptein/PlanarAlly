@@ -30,6 +30,7 @@ try:
 except:
     release_version = None
     env_version = None
+    changelog = None
 
 
 async def get_version(_request: web.Request):

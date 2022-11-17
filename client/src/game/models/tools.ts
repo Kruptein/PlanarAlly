@@ -33,6 +33,8 @@ export interface ITool {
     permittedTools: ToolPermission[];
 
     onToolsModeChange(mode: ToolMode, features: ToolFeatures): void;
+    onPanStart(): void;
+    onPanEnd(): void;
 
     onSelect(): void;
     onDeselect(): void;

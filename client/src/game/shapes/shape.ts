@@ -1,8 +1,7 @@
 import clamp from "lodash/clamp";
 
 import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "../../core/conversions";
-import { addP, cloneP, equalsP, subtractP, toArrayP, toGP } from "../../core/geometry";
-import { Vector } from "../../core/geometry";
+import { addP, cloneP, equalsP, subtractP, toArrayP, toGP, Vector } from "../../core/geometry";
 import type { GlobalPoint } from "../../core/geometry";
 import { rotateAroundPoint } from "../../core/math";
 import type { Sync } from "../../core/models/types";
@@ -18,9 +17,9 @@ import type { GlobalId, LocalId } from "../id";
 import type { Label } from "../interfaces/label";
 import type { ILayer } from "../interfaces/layer";
 import type { IShape } from "../interfaces/shape";
-import type { Floor, FloorId, LayerName } from "../models/floor";
-import type { ServerShapeOptions } from "../models/shapes";
-import type { ServerShape, ShapeOptions } from "../models/shapes";
+import { LayerName } from "../models/floor";
+import type { Floor, FloorId } from "../models/floor";
+import type { ServerShape, ServerShapeOptions, ShapeOptions } from "../models/shapes";
 import { accessSystem } from "../systems/access";
 import { ownerToClient, ownerToServer } from "../systems/access/helpers";
 import { annotationSystem } from "../systems/annotations";
@@ -61,7 +60,6 @@ export abstract class Shape implements IShape {
     get points(): [number, number][] {
         return this._points;
     }
-    abstract invalidatePoints(): void;
 
     abstract contains(point: GlobalPoint, nearbyThreshold?: number): boolean;
 
@@ -100,6 +98,7 @@ export abstract class Shape implements IShape {
     private visionIteration = -1;
     private _visionPolygon: number[][] | undefined = undefined;
     private _visionPath: Path2D | undefined = undefined;
+    _visionBbox: BoundingRect | undefined = undefined;
 
     constructor(
         refPoint: GlobalPoint,
@@ -142,6 +141,36 @@ export abstract class Shape implements IShape {
         return props.isToken || props.blocksMovement || auraSystem.getAll(this.id, true).some((a) => a.visionSource);
     }
 
+    resetVisionIteration(): void {
+        this.visionIteration = -1;
+    }
+
+    // todo: Currently Aura changes do not trigger this, investigate if we want to do the extra effort
+    private recalcVisionBbox(): void {
+        if (this._visionPolygon === undefined) {
+            this._visionBbox = undefined;
+            return;
+        }
+
+        let x = this._visionPolygon[0][0];
+        let y = this._visionPolygon[0][1];
+        let leftX = x;
+        let rightX = x;
+        let topY = y;
+        let botY = y;
+        for (const point of this._visionPolygon) {
+            x = point[0];
+            y = point[1];
+            if (leftX > x) leftX = x;
+            else if (rightX < x) rightX = x;
+            if (topY > y) topY = y;
+            else if (botY < y) botY = y;
+        }
+        this._visionBbox = new BoundingRect(toGP(leftX, topY), rightX - leftX, botY - topY).intersect(
+            this.getAuraAABB({ onlyVisionSources: true }),
+        );
+    }
+
     get visionPolygon(): Path2D {
         const floorIteration = floorState.readonly.iteration;
         const visionIteration = visionState.getVisionIteration(this._floor!);
@@ -149,6 +178,7 @@ export abstract class Shape implements IShape {
         if (this._visionPolygon === undefined || visionAltered) {
             this._visionPolygon = computeVisibility(this.center, TriangulationTarget.VISION, this._floor!);
             this.visionIteration = visionIteration;
+            this.recalcVisionBbox();
         }
         if (this._visionPath === undefined || floorIteration != this.floorIteration || visionAltered) {
             const path = new Path2D();
@@ -179,9 +209,10 @@ export abstract class Shape implements IShape {
     set refPoint(point: GlobalPoint) {
         this._refPoint = point;
         this._center = this.__center();
-        this.visionIteration = -1;
-        this.layer.updateSectors(this.id, this.getAuraAABB());
+        this.resetVisionIteration();
         this.invalidatePoints();
+        if (getProperties(this.id)?.isToken === true)
+            floorSystem.getLayer(this.floor, LayerName.Draw)?.invalidate(true);
     }
 
     get angle(): number {
@@ -191,7 +222,6 @@ export abstract class Shape implements IShape {
     set angle(angle: number) {
         this._angle = angle;
         this.invalidatePoints();
-        this.updateLayerPoints();
     }
 
     setLayer(floor: FloorId, layer: LayerName): void {
@@ -207,13 +237,20 @@ export abstract class Shape implements IShape {
         this._refPoint = toGP(position.points[0]);
         this._center = this.__center();
         this.angle = position.angle;
-        this.visionIteration = -1;
-        this.layer.updateSectors(this.id, this.getAuraAABB());
+        this.resetVisionIteration();
         this.updateShapeVision(false, false);
+        if (getProperties(this.id)?.isToken === true)
+            floorSystem.getLayer(this.floor, LayerName.Draw)?.invalidate(true);
     }
 
     invalidate(skipLightUpdate: boolean): void {
         if (this._layer !== undefined) this.layer.invalidate(skipLightUpdate);
+    }
+
+    // @mustOverride
+    invalidatePoints(): void {
+        this.layer.updateSectors(this.id, this.getAuraAABB());
+        if (this.isSnappable) this.updateLayerPoints();
     }
 
     updateLayerPoints(): void {
@@ -225,9 +262,8 @@ export abstract class Shape implements IShape {
         }
         for (const point of this.points) {
             const strp = JSON.stringify(point);
-            if (this.layer.points.has(strp) && !this.layer.points.get(strp)!.has(this.id))
-                this.layer.points.get(strp)!.add(this.id);
-            else if (!this.layer.points.has(strp)) this.layer.points.set(strp, new Set([this.id]));
+            if (this.layer.points.has(strp)) this.layer.points.get(strp)!.add(this.id);
+            else this.layer.points.set(strp, new Set([this.id]));
         }
     }
 
@@ -235,7 +271,6 @@ export abstract class Shape implements IShape {
         const center = this.center;
         if (!equalsP(point, center)) this.center = rotateAroundPoint(center, point, angle);
         this.angle += angle;
-        this.updateLayerPoints();
     }
 
     rotateAroundAbsolute(point: GlobalPoint, angle: number): void {
@@ -261,11 +296,11 @@ export abstract class Shape implements IShape {
 
     // DRAWING
 
-    draw(ctx: CanvasRenderingContext2D): void {
+    draw(ctx: CanvasRenderingContext2D, customScale?: { center: GlobalPoint; width: number; height: number }): void {
         if (this.globalCompositeOperation !== undefined) ctx.globalCompositeOperation = this.globalCompositeOperation;
         else ctx.globalCompositeOperation = "source-over";
 
-        const center = g2l(this.center);
+        const center = g2l(customScale?.center ?? this.center);
         const pixelRatio = playerSettingsState.devicePixelRatio.value;
 
         ctx.setTransform(pixelRatio, 0, 0, pixelRatio, center.x * pixelRatio, center.y * pixelRatio);
@@ -428,9 +463,10 @@ export abstract class Shape implements IShape {
         return new BoundingRect(toGP(minx - delta, miny - delta), maxx - minx + 2 * delta, maxy - miny + 2 * delta);
     }
 
-    getAuraAABB(): BoundingRect {
+    getAuraAABB(options?: { onlyVisionSources?: boolean }): BoundingRect {
         let aabb = this.getAABB();
         for (const aura of auraSystem.getAll(this.id, true)) {
+            if ((options?.onlyVisionSources ?? false) && !aura.visionSource) continue;
             const range = getUnitDistance(aura.value + aura.dim);
             aabb = aabb.union(new BoundingRect(addP(this.refPoint, new Vector(-range, -range)), range * 2, range * 2));
         }

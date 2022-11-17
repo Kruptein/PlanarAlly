@@ -1,5 +1,4 @@
-import { computed } from "vue";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 
 import type { LocalPoint } from "../../core/geometry";
 import { onKeyUp } from "../input/keyboard/up";
@@ -66,4 +65,6 @@ export abstract class Tool implements ITool {
     async onMove(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): Promise<void> {}
 
     onToolsModeChange(_mode: ToolMode, _features: ToolFeatures): void {}
+    onPanStart(): void {}
+    onPanEnd(): void {}
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, watch } from "vue";
+import { onMounted, toRef, watch } from "vue";
 
 import type { Polygon } from "../../shapes/variants/polygon";
 import { selectedSystem } from "../../systems/selected";
@@ -10,12 +10,12 @@ const { $, _$ } = selectToolState;
 
 const selected = selectTool.isActiveTool;
 
-const polygonUiLeft = $.polygonUiLeft;
-const polygonUiTop = $.polygonUiTop;
-const polygonUiAngle = $.polygonUiAngle;
-const polygonUiVisible = $.polygonUiVisible;
-const polygonUiSizeX = $.polygonUiSizeX;
-const polygonUiSizeY = $.polygonUiSizeY;
+const polygonUiLeft = toRef($, "polygonUiLeft");
+const polygonUiTop = toRef($, "polygonUiTop");
+const polygonUiAngle = toRef($, "polygonUiAngle");
+const polygonUiVisible = toRef($, "polygonUiVisible");
+const polygonUiSizeX = toRef($, "polygonUiSizeX");
+const polygonUiSizeY = toRef($, "polygonUiSizeY");
 
 onMounted(() => {
     selectTool.checkRuler();

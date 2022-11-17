@@ -2,6 +2,9 @@ import { computed } from "vue";
 
 import { getGameState } from "../../../store/_game";
 import type { LocalId } from "../../id";
+import { LayerName } from "../../models/floor";
+import { floorSystem } from "../floors";
+import { floorState } from "../floors/state";
 import { playerSystem } from "../players";
 import { buildState } from "../state";
 
@@ -27,6 +30,8 @@ const state = buildState<AccessState>({
 });
 
 const activeTokens = computed(() => {
+    const floor = floorState.currentFloor.value;
+    if (floor !== undefined) floorSystem.getLayer(floor, LayerName.Draw)?.invalidate(true);
     if (state.reactive.activeTokenFilters !== undefined) return state.reactive.activeTokenFilters;
     return state.reactive.ownedTokens;
 });

@@ -2,6 +2,7 @@ import { registerSystem } from "../..";
 import type { System } from "../..";
 import { sendRoomClientOptions } from "../../../api/emits/client";
 import { updateFogColour } from "../../../colour";
+import { LayerName } from "../../../models/floor";
 import type { InitiativeEffectMode } from "../../../models/initiative";
 import { floorSystem } from "../../floors";
 import { floorState } from "../../floors/state";
@@ -50,6 +51,18 @@ class PlayerSettingsSystem implements System {
         if (options.sync) sendRoomClientOptions("use_tool_icons", useToolIcons, options.default);
     }
 
+    setShowTokenDirections(
+        showTokenDirections: boolean | undefined,
+        options: { sync: boolean; default?: boolean },
+    ): void {
+        $.showTokenDirections.override = showTokenDirections;
+        if (options.default !== undefined) $.showTokenDirections.default = options.default;
+        $.showTokenDirections.value = showTokenDirections ?? $.showTokenDirections.default;
+        const floor = floorState.currentFloor.value;
+        if (floor !== undefined) floorSystem.getLayer(floor, LayerName.Draw)?.invalidate(true);
+        if (options.sync) sendRoomClientOptions("show_token_directions", showTokenDirections, options.default);
+    }
+
     // BEHAVIOUR
 
     setInvertAlt(invertAlt: boolean | undefined, options: { sync: boolean; default?: boolean }): void {
@@ -67,6 +80,16 @@ class PlayerSettingsSystem implements System {
         if (options.default !== undefined) $.disableScrollToZoom.default = options.default;
         $.disableScrollToZoom.value = disableScrollToZoom ?? $.disableScrollToZoom.default;
         if (options.sync) sendRoomClientOptions("disable_scroll_to_zoom", disableScrollToZoom, options.default);
+    }
+
+    setDefaultTrackerMode(
+        defaultTrackerMode: boolean | undefined,
+        options: { sync: boolean; default?: boolean },
+    ): void {
+        $.defaultTrackerMode.override = defaultTrackerMode;
+        if (options.default !== undefined) $.defaultTrackerMode.default = options.default;
+        $.defaultTrackerMode.value = defaultTrackerMode ?? $.defaultTrackerMode.default;
+        if (options.sync) sendRoomClientOptions("default_tracker_mode", defaultTrackerMode, options.default);
     }
 
     // DISPLAY

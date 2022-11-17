@@ -8,9 +8,11 @@ export function playerOptionsToClient(options: Partial<ServerPlayerOptions>): Pa
         gridColour: options.grid_colour,
         rulerColour: options.ruler_colour,
         useToolIcons: options.use_tool_icons,
+        showTokenDirections: options.show_token_directions,
 
         invertAlt: options.invert_alt,
         disableScrollToZoom: options.disable_scroll_to_zoom,
+        defaultTrackerMode: options.default_tracker_mode,
 
         useHighDpi: options.use_high_dpi,
         gridSize: options.grid_size,

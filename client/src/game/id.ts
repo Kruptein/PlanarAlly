@@ -101,3 +101,7 @@ export function getShapeFromGlobal(global: GlobalId): IShape | undefined {
 export function getAllShapes(): IterableIterator<IShape> {
     return idMap.values();
 }
+
+export function getShapeCount(): number {
+    return idMap.size;
+}

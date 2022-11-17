@@ -12,28 +12,32 @@ tech changes will usually be stripped from release notes for the public
 ### Added
 
 -   Pan with rightclick drag
--   Players section in the left in-game dm sidebar
-    -   Lists players connected to the session
-    -   Clicking on a name, centers your screen on their current view (if on the same location)
 -   User configuration option to limit rendering to only the active floor
 -   User setting to change toolbar between icons and words (defaults to icons)
+-   Out-of-bounds check with visual UI element to help people get back to their content
+-   Show off-screen token directions
+-   [DM] Players section in the left in-game dm sidebar
+    -   Lists players connected to the session
+    -   Clicking on a name, centers your screen on their current view (if on the same location)
 -   [server] option to specify alternative location for static files
 
 ### Changed
 
 -   Draw tool vision and logic tabs will now have a background colour if they are active as a reminder
--   Player viewport rectangles are now shown per client connected for that player instead of 1 rectangle following the latest move
--   [DM] Hiding a token using the vision tool will now also hide their private light auras
 -   Dashboard UI has been updated (once again)
--   Asset Manager UI has been updated and is now integrated with the main dashboard
+-   Quick tracker/aura changes
+    -   Now supports more complex expressions (most mathematical expressions should work)
+    -   Now has a toggle between absolute and relative mode
+    -   A new Client Setting - Behaviour has been added to set the default update mode (absolute vs relative)
+-   [DM] Asset Manager UI has been updated and is now integrated with the main dashboard
+-   [DM] Player viewport rectangles are now shown per client connected for that player instead of 1 rectangle following the latest move
+-   [DM] Hiding a token using the vision tool will now also hide their private light auras
 -   [server] moved all python imports to proper relative imports
     -   this changes the way to manually run the server (again) (sorry)
 -   [tech] keep shape centers in memory instead of recalculating on the fly
 
 ### Fixed
 
--   Assets not being able to moved up to parent folder
--   Assets not being removable if a shape with a link to the asset exists
 -   Vision tool alert state was not always accurate
 -   Teleport zone not properly triggering when initiated as a player
 -   Teleport zone not properly landing in the center of the target
@@ -42,9 +46,6 @@ tech changes will usually be stripped from release notes for the public
 -   Shared trackers/aruas removal not showing in client until refresh
 -   Errors in prompt modals were not visible
 -   Annotation visible info not syncing to other clients until refresh (UI only)
--   Annotations still being visible until refresh after removing player access
--   Resetting location specific settings was not immediately synchronizing to clients until a refresh
--   The asset manager was no longer useable when using a subpath setup
 -   Player state clearing on location change
 -   Zoom sensitivity on touchpad
 -   Typo in location menu
@@ -56,6 +57,23 @@ tech changes will usually be stripped from release notes for the public
 -   In-game AssetPicker modal UI fixes
 -   Prompt modal not clearing error message properly
 -   Tool details not always being in the correct location (e.g. when changing mode)
+-   Trim down noisy whitespace in selection info
+-   Initiative camera-lock not changing floors
+-   Door/Tp area preview not changing floors
+-   Jump to marker not changing floors
+-   Moving composite/variant shape to other floor and following would show extra selection boxes
+-   Draw layer being rendered below the fog (e.g. rulers/ping etc)
+-   Vision not properly recalculating when removing blocking shapes on multifloor setups
+-   AssetPicker UI appearing too low
+-   Polygon edit UI being left behind when panning
+-   Moving polygon point when polyon is rotated
+-   [DM] Assets not being able to moved up to parent folder
+-   [DM] Assets not being removable if a shape with a link to the asset exists
+-   [DM] Annotations still being visible until refresh after removing player access
+-   [DM] Resetting location specific settings was not immediately synchronizing to clients until a refresh
+-   [DM] Enabling fake-player mode would hide the DM entries from the left sidebar
+-   [DM|server] The asset manager was no longer useable when using a subpath setup
+-   [server] Diceroller not working on subpath server
 
 ## [2022.2.3] - 2022-07-13
 

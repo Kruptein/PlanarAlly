@@ -77,3 +77,6 @@ export function zoomDisplayToFactor(display: number): number {
     const zoomValue = 1 / (-5 / 3 + (28 / 15) * Math.exp(1.83 * display));
     return (zoomValue * playerSettingsState.gridSize.value) / DEFAULT_GRID_SIZE;
 }
+
+(window as any).g2l = g2l;
+(window as any).l2g = l2g;

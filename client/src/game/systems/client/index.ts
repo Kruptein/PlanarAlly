@@ -1,4 +1,4 @@
-import { throttle } from "lodash";
+import throttle from "lodash/throttle";
 
 import { registerSystem } from "..";
 import type { System } from "..";

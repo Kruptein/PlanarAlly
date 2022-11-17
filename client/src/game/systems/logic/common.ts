@@ -6,8 +6,7 @@ import type { LocalId } from "../../id";
 
 import { doorSystem } from "./door";
 import { Access, DEFAULT_PERMISSIONS } from "./models";
-import type { Permissions } from "./models";
-import type { LOGIC_TYPES } from "./models";
+import type { LOGIC_TYPES, Permissions } from "./models";
 import { teleportZoneSystem } from "./tp";
 
 export function copyPermissions(permission: DeepReadonly<Permissions>): Permissions {

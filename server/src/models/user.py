@@ -29,9 +29,12 @@ class UserOptions(BaseModel):
     grid_colour = TextField(default="#000", null=True)
     ruler_colour = TextField(default="#F00", null=True)
     use_tool_icons = BooleanField(default=True, null=True)
+    show_token_directions = BooleanField(default=True, null=True)
 
     invert_alt = BooleanField(default=False, null=True)
     disable_scroll_to_zoom = BooleanField(default=False, null=True)
+    # false = use absolute mode ; true = use relative mode
+    default_tracker_mode = BooleanField(default=False, null=True)
 
     use_high_dpi = BooleanField(default=False, null=True)
     grid_size = IntegerField(default=50, null=True)

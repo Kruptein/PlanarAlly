@@ -15,6 +15,8 @@ export interface ILayer {
     playerEditable: boolean;
     points: Map<string, Set<LocalId>>;
     selectable: boolean;
+    shapeIdsInSector: Set<LocalId>;
+    shapesInSector: IShape[];
 
     get height(): number;
     get isActiveLayer(): boolean;
@@ -27,6 +29,7 @@ export interface ILayer {
     hide(): void;
     invalidate(skipLightUpdate: boolean): void;
     updateView(): void;
+    waitValid(): Promise<void>;
     isValid(): boolean;
     moveShapeOrder(shape: IShape, destinationIndex: number, sync: SyncMode): void;
     pushShapes(...shapes: IShape[]): void;

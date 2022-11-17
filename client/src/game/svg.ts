@@ -173,7 +173,7 @@ export function pathToArray(
             const l = points.length;
             if (floorState.currentFloor.value !== undefined) {
                 if (l > 1) {
-                    drawLine(points[l - 2], points[l - 1], true, false);
+                    drawLine(points[l - 2], points[l - 1], false, { constrained: true });
                 }
             }
         }
@@ -207,7 +207,7 @@ function handleBezierCurve(
         [cp2g.x, cp2g.y],
     )) {
         points.push(l[1]);
-        if (DEBUG_SVG) drawLine(points.at(-2)!, l[1], true, false);
+        if (DEBUG_SVG) drawLine(points.at(-2)!, l[1], false, { constrained: true });
     }
     return endg;
 }

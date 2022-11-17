@@ -35,7 +35,11 @@ class CompositeState {
         const allShapes = [...shapes];
         for (const shape of this.compositeMap.keys()) {
             if (shapes.some((s) => s.id === shape)) {
-                const parent = this.getCompositeParent(shape)!;
+                const parent = this.getCompositeParent(shape);
+                if (parent === undefined) {
+                    console.warn("Missing composite parent");
+                    continue;
+                }
                 if (shapeUuids.has(parent.id)) continue;
                 shapeUuids.add(parent.id);
                 allShapes.push(parent);

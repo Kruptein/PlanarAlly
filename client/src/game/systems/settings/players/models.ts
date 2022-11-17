@@ -6,10 +6,12 @@ export interface PlayerOptions {
     fowColour: string;
     rulerColour: string;
     useToolIcons: boolean;
+    showTokenDirections: boolean;
 
     // Behaviour
     invertAlt: boolean;
     disableScrollToZoom: boolean;
+    defaultTrackerMode: boolean;
 
     // Display
     useHighDpi: boolean;
@@ -32,9 +34,11 @@ export interface ServerPlayerOptions {
     fow_colour: string;
     ruler_colour: string;
     use_tool_icons: boolean;
+    show_token_directions: boolean;
 
     invert_alt: boolean;
     disable_scroll_to_zoom: boolean;
+    default_tracker_mode: boolean;
 
     use_high_dpi: boolean;
     grid_size: number;

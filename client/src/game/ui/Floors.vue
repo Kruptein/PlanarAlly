@@ -119,7 +119,7 @@ const selectedLayer = computed(
                 class="layer"
                 :key="layer"
                 :class="{ 'layer-selected': layer === selectedLayer }"
-                @mousedown="selectLayer(layer)"
+                @click="selectLayer(layer)"
             >
                 <a href="#" :title="layerTranslationMapping[layer]">
                     <template v-if="playerSettingsState.reactive.useToolIcons.value">

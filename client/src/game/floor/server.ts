@@ -1,9 +1,7 @@
-import { coreStore } from "../../store/core";
 import { hasGroup, addNewGroup } from "../groups";
 import type { ILayer } from "../interfaces/layer";
 import { createCanvas } from "../layers/canvas";
 import { recalculateZIndices } from "../layers/floor";
-import { FowLgLightingLayer } from "../layers/variants/fowLgLighting";
 import { FowLightingLayer } from "../layers/variants/fowLighting";
 import { FowVisionLayer } from "../layers/variants/fowVision";
 import { GridLayer } from "../layers/variants/grid";
@@ -44,8 +42,6 @@ export function addServerFloor(serverFloor: ServerFloor): void {
 }
 
 function addServerLayer(layerInfo: ServerLayer, floor: Floor): void {
-    const hasGameboard = coreStore.state.boardId !== undefined;
-
     const canvas = createCanvas(layerInfo.name);
 
     const layerName = layerInfo.name as LayerName;
@@ -55,10 +51,8 @@ function addServerLayer(layerInfo: ServerLayer, floor: Floor): void {
     if (layerInfo.type_ === LayerName.Grid) {
         layer = new GridLayer(canvas, layerName, floor.id, layerInfo.index);
     } else if (layerInfo.type_ === LayerName.Lighting) {
-        if (hasGameboard) layer = new FowLgLightingLayer(canvas, layerName, floor.id, layerInfo.index);
-        else layer = new FowLightingLayer(canvas, layerName, floor.id, layerInfo.index);
+        layer = new FowLightingLayer(canvas, layerName, floor.id, layerInfo.index);
     } else if (layerInfo.type_ === LayerName.Vision) {
-        if (hasGameboard) return;
         layer = new FowVisionLayer(canvas, layerName, floor.id, layerInfo.index);
     } else if (layerName === LayerName.Map) {
         layer = new MapLayer(canvas, layerName, floor.id, layerInfo.index);

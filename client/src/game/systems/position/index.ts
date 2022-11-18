@@ -45,7 +45,7 @@ class PositionSystem implements System {
         mutable.panY = y + readonly.gridOffset.y;
         if (options.updateSectors) {
             floorSystem.invalidateSectors();
-            this.checkOutOfBounds();
+            mutable.performOobCheck = true;
         }
         floorSystem.updateIteration();
     }
@@ -55,7 +55,7 @@ class PositionSystem implements System {
         mutable.panY += y;
         floorSystem.invalidateSectors();
         floorSystem.updateIteration();
-        this.checkOutOfBounds();
+        mutable.performOobCheck = true;
     }
 
     // OFFSET
@@ -91,7 +91,7 @@ class PositionSystem implements System {
         this.setZoomFactor(zoom);
         if (options.updateSectors) {
             floorSystem.invalidateSectors();
-            this.checkOutOfBounds();
+            mutable.performOobCheck = true;
         }
         if (options.invalidate) floorSystem.invalidateAllFloors();
         if (options.sync) {
@@ -114,7 +114,8 @@ class PositionSystem implements System {
 
     // OOB
 
-    private checkOutOfBounds(): void {
+    checkOutOfBounds(): void {
+        mutable.performOobCheck = false;
         // First check if there are any shapes at all
         // Displaying a "return to content" when there is no content is pretty silly.
         // We however don't want to iterate over _all_ shapes if there are a lot

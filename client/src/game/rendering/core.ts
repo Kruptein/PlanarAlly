@@ -1,6 +1,8 @@
 import type { Floor } from "../models/floor";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
+import { positionSystem } from "../systems/position";
+import { positionState } from "../systems/position/state";
 import { playerSettingsState } from "../systems/settings/players/state";
 
 let _animationFrameId = 0;
@@ -27,6 +29,10 @@ function drawLoop(): void {
     // Then process the current floor
     if (floorState.currentFloor !== undefined) {
         drawFloor(floorState.currentFloor.value!);
+    }
+
+    if (positionState.readonly.performOobCheck) {
+        positionSystem.checkOutOfBounds();
     }
 
     _animationFrameId = requestAnimationFrame(drawLoop);

@@ -48,6 +48,15 @@ function setDefaultTrackerMode(event: Event): void {
     const mode = (event.target as HTMLSelectElement).value as TrackerMode;
     defaultTrackerMode.value = mode !== TrackerMode.Absolute;
 }
+
+const mousePanMode = computed({
+    get() {
+        return $.mousePanMode.value;
+    },
+    set(mousePanMode: number | undefined) {
+        pss.setMousePanMode(mousePanMode, { sync: true });
+    },
+});
 </script>
 
 <template>
@@ -87,13 +96,37 @@ function setDefaultTrackerMode(event: Event): void {
                     <font-awesome-icon icon="sync-alt" />
                 </div>
             </template>
+            <label for="mousePanMode">
+                {{ t("game.ui.settings.client.BehaviourSettings.mouse_pan_mode") }}
+            </label>
+            <div>
+                <select v-model="mousePanMode">
+                    <option
+                        v-for="option in [0, 1, 2, 3]"
+                        :key="option"
+                        :value="option"
+                        :label="t('game.ui.settings.client.BehaviourSettings.mouse_pan_mode_' + option)"
+                        :selected="option === mousePanMode"
+                    ></option>
+                </select>
+            </div>
+            <template v-if="$.mousePanMode.override !== undefined">
+                <div :title="t('game.ui.settings.common.reset_default')" @click="mousePanMode = undefined">
+                    <font-awesome-icon icon="times-circle" />
+                </div>
+                <div
+                    :title="t('game.ui.settings.common.sync_default')"
+                    @click="pss.setMousePanMode(undefined, { sync: true, default: $.mousePanMode.override })"
+                >
+                    <font-awesome-icon icon="sync-alt" />
+                </div>
+            </template>
         </div>
         <div class="spanrow header">Selection Info</div>
         <div class="row">
             <label for="defaultTrackerMode">
                 {{ t("game.ui.settings.client.BehaviourSettings.selection_info_tracker_mode") }}
             </label>
-            <!-- <div><input id="defaultTrackerMode" type="checkbox" v-model="defaultTrackerMode" /></div> -->
             <div>
                 <select @change="setDefaultTrackerMode">
                     <option

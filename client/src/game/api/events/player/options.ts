@@ -46,6 +46,10 @@ socket.on("Player.Options.Set", (options: ServerPlayerInfo) => {
         sync: false,
         default: defaultOptions.defaultTrackerMode,
     });
+    playerSettingsSystem.setMousePanMode(roomOptions?.mousePanMode, {
+        sync: false,
+        default: defaultOptions.mousePanMode,
+    });
 
     // Display
     playerSettingsSystem.setUseHighDpi(roomOptions?.useHighDpi, {

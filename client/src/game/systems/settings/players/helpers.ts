@@ -13,6 +13,7 @@ export function playerOptionsToClient(options: Partial<ServerPlayerOptions>): Pa
         invertAlt: options.invert_alt,
         disableScrollToZoom: options.disable_scroll_to_zoom,
         defaultTrackerMode: options.default_tracker_mode,
+        mousePanMode: options.mouse_pan_mode,
 
         useHighDpi: options.use_high_dpi,
         gridSize: options.grid_size,

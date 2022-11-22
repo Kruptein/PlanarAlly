@@ -14,17 +14,7 @@ import { clearUndoStacks } from "./operations/undo";
 import { floorSystem } from "./systems/floors";
 import { playerSettingsState } from "./systems/settings/players/state";
 import { setSelectionBoxFunction } from "./temp";
-import {
-    contextMenu,
-    keyUp,
-    mouseDown,
-    mouseLeave,
-    mouseMove,
-    mouseUp,
-    touchEnd,
-    touchMove,
-    touchStart,
-} from "./tools/events";
+import { keyUp, mouseDown, mouseLeave, mouseMove, mouseUp, touchEnd, touchMove, touchStart } from "./tools/events";
 // import DebugInfo from "./ui/DebugInfo.vue";
 import { handleDrop } from "./ui/firefox";
 import UI from "./ui/UI.vue";
@@ -131,7 +121,6 @@ export default defineComponent({
         }
 
         return {
-            contextMenu,
             drop,
             isConnected: toRef(gameState, "isConnected"),
             mouseDown,

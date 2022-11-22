@@ -11,7 +11,7 @@ tech changes will usually be stripped from release notes for the public
 
 ### Added
 
--   Pan with rightclick drag
+-   Pan with right-click drag
 -   User configuration option to limit rendering to only the active floor
 -   User setting to change toolbar between icons and words (defaults to icons)
 -   Out-of-bounds check with visual UI element to help people get back to their content

@@ -150,7 +150,7 @@ export async function mouseLeave(event: MouseEvent): Promise<void> {
     }
 }
 
-export function contextMenu(event: MouseEvent): void {
+function contextMenu(event: MouseEvent): void {
     if ((event.target as HTMLElement).tagName !== "CANVAS") return;
     if (uiStore.state.preventContextMenu) return;
     if (event.button !== 2) return;

@@ -7,17 +7,35 @@ import { ToolName } from "../models/tools";
 import { annotationState } from "../systems/annotations/state";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
+import { playerSettingsState } from "../systems/settings/players/state";
 
 import { activeTool, getActiveTool, getFeatures, toolMap } from "./tools";
+
+function isPanModeButton(button: number): boolean {
+    const mode = playerSettingsState.raw.mousePanMode.value;
+    if (mode === 3) return [1, 2].includes(button);
+    else if (mode === 0) return false;
+    return button === mode;
+}
+
+function isPanModeButtons(buttons: number): boolean {
+    const mode = playerSettingsState.raw.mousePanMode.value;
+    const middle = (buttons & 4) !== 0;
+    const right = (buttons & 2) !== 0;
+    if (mode === 3) return middle || right;
+    else if (mode === 2) return right;
+    else if (mode === 1) return middle;
+    return false;
+}
 
 export function mouseDown(event: MouseEvent): void {
     if ((event.target as HTMLElement).tagName !== "CANVAS") return;
 
     let targetTool = activeTool.value;
-    if (event.button === 1 || event.button === 2) {
+    if (isPanModeButton(event.button)) {
         toolMap[targetTool].onPanStart();
         targetTool = ToolName.Pan;
-        uiStore.preventContextMenu(false);
+        if (event.button === 2) uiStore.preventContextMenu(false);
     } else if (event.button !== 0) {
         return;
     }
@@ -42,9 +60,10 @@ export async function mouseMove(event: MouseEvent): Promise<void> {
 
     let targetTool = activeTool.value;
     // force targetTool to pan if hitting mouse wheel
-    if ((event.buttons & 4) !== 0 || (event.buttons & 2) !== 0) {
+    // if ((event.buttons & 4) !== 0 || (event.buttons & 2) !== 0) {
+    if (isPanModeButtons(event.buttons)) {
         targetTool = ToolName.Pan;
-        uiStore.preventContextMenu(true);
+        if ((event.buttons & 2) !== 0) uiStore.preventContextMenu(true);
     } else if ((event.button & 1) > 1) {
         return;
     }
@@ -85,7 +104,7 @@ export async function mouseUp(event: MouseEvent): Promise<void> {
     if ((event.target as HTMLElement).tagName !== "CANVAS") return;
 
     let targetTool = activeTool.value;
-    if (event.button === 1 || event.button === 2) {
+    if (isPanModeButton(event.button)) {
         if (event.button === 2) {
             if (!uiStore.state.preventContextMenu) {
                 return contextMenu(event);
@@ -93,6 +112,9 @@ export async function mouseUp(event: MouseEvent): Promise<void> {
         }
         toolMap[targetTool].onPanEnd();
         targetTool = ToolName.Pan;
+    } else if (event.button === 2) {
+        uiStore.preventContextMenu(false);
+        return contextMenu(event);
     } else if (event.button !== 0) {
         return;
     }
@@ -128,7 +150,7 @@ export async function mouseLeave(event: MouseEvent): Promise<void> {
     }
 }
 
-export function contextMenu(event: MouseEvent): void {
+function contextMenu(event: MouseEvent): void {
     if ((event.target as HTMLElement).tagName !== "CANVAS") return;
     if (uiStore.state.preventContextMenu) return;
     if (event.button !== 2) return;

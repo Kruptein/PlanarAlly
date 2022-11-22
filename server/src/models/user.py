@@ -35,6 +35,8 @@ class UserOptions(BaseModel):
     disable_scroll_to_zoom = BooleanField(default=False, null=True)
     # false = use absolute mode ; true = use relative mode
     default_tracker_mode = BooleanField(default=False, null=True)
+    # 0 = no pan  1 = middle mouse only  2 = right mouse only 3 = both
+    mouse_pan_mode = IntegerField(default=3, null=True)
 
     use_high_dpi = BooleanField(default=False, null=True)
     grid_size = IntegerField(default=50, null=True)
@@ -55,8 +57,11 @@ class UserOptions(BaseModel):
             grid_colour=None,
             ruler_colour=None,
             use_tool_icons=None,
+            show_token_directions=None,
             invert_alt=None,
             disable_scroll_to_zoom=None,
+            default_tracker_mode=None,
+            mouse_pan_mode=None,
             use_high_dpi=None,
             grid_size=None,
             use_as_physical_board=None,

@@ -117,7 +117,7 @@ function hideModal(): void {
                 @change="change($event, 'enabled')"
                 item-key="uuid"
             >
-                <template #item="{ element }">
+                <template #item="{ element }: { element: string }">
                     <div>{{ element }}</div>
                 </template>
 
@@ -132,7 +132,7 @@ function hideModal(): void {
                 @change="change($event, 'request')"
                 item-key="uuid"
             >
-                <template #item="{ element }">
+                <template #item="{ element }: { element: string }">
                     <div>{{ element }}</div>
                 </template>
 
@@ -147,7 +147,7 @@ function hideModal(): void {
                 @change="change($event, 'disabled')"
                 item-key="uuid"
             >
-                <template #item="{ element }">
+                <template #item="{ element }: { element: string }">
                     <div>{{ element }}</div>
                 </template>
 

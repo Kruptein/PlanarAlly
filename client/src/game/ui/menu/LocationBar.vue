@@ -175,7 +175,7 @@ const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
             </div>
         </div>
         <draggable id="locations" v-model="activeLocations" item-key="id" ref="locations" handle=".drag-handle">
-            <template #item="{ element: location }">
+            <template #item="{ element: location }: { element: Location }">
                 <div class="location">
                     <div class="location-name" :class="{ 'active-location': activeLocation === location.id }">
                         <div class="drag-handle"></div>
@@ -223,7 +223,7 @@ const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
                         group="player"
                         @end="endPlayerDrag"
                     >
-                        <template #item="{ element: player }">
+                        <template #item="{ element: player }: { element: string }">
                             <div class="player-collapse-item" :data-loc="location.id">
                                 {{ player }}
                             </div>

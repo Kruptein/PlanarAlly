@@ -135,20 +135,21 @@ class PositionSystem implements System {
         }
 
         $.outOfBounds = true;
-        if (!getGameState().isDm && locationSettingsState.raw.fullFow.value) {
-            for (const layer of floorState.raw.layers) {
-                if (locationSettingsState.raw.fowLos.value) {
-                    if (layer.name === LayerName.Vision && !(layer as FowLayer).isEmpty) {
-                        $.outOfBounds = false;
-                        return;
-                    }
-                } else {
-                    if (layer.name === LayerName.Lighting && !(layer as FowLayer).isEmpty) {
-                        $.outOfBounds = false;
-                        return;
-                    }
+        const floor = floorState.currentFloor.value;
+        if (floor !== undefined && !getGameState().isDm && locationSettingsState.raw.fullFow.value) {
+            if (locationSettingsState.raw.fowLos.value) {
+                const visionLayer = floorSystem.getLayer(floor, LayerName.Vision)! as FowLayer;
+                if (!visionLayer.isEmpty) {
+                    $.outOfBounds = false;
+                    return;
                 }
             }
+            const lightingLayer = floorSystem.getLayer(floor, LayerName.Lighting)! as FowLayer;
+            if (!lightingLayer.isEmpty) {
+                $.outOfBounds = false;
+                return;
+            }
+
             if ($.outOfBounds) return;
         }
         for (const layer of floorState.raw.layers) {
@@ -167,11 +168,14 @@ class PositionSystem implements System {
             if (locationSettingsState.raw.fowLos.value) {
                 // find nearest token
                 nearest = this.findNearest(accessState.activeTokens.value, (i) => getShape(i));
-            } else {
+            }
+
+            if (nearest === undefined) {
                 // find nearest lightsource
                 nearest = this.findNearest(visionState.getAllVisionSources(), (s) => getShape(s.shape));
             }
-        } else {
+        }
+        if (nearest === undefined) {
             // find nearest shape
             nearest = this.findNearest(getAllShapes(), (x) => x);
         }

@@ -42,7 +42,7 @@ interface InitiativeState {
     turnCounter: number;
     sort: InitiativeSort;
 
-    editLock: LocalId;
+    editLock: GlobalId | undefined;
 }
 
 class InitiativeStore extends Store<InitiativeState> {
@@ -60,7 +60,7 @@ class InitiativeStore extends Store<InitiativeState> {
             turnCounter: 0,
             sort: InitiativeSort.Down,
 
-            editLock: -1 as LocalId,
+            editLock: undefined,
         };
     }
 
@@ -79,7 +79,7 @@ class InitiativeStore extends Store<InitiativeState> {
             const localId = getLocalId(globalId, false);
             initiativeData.push({ ...shapeData, globalId, localId });
         }
-        if (this._state.editLock !== -1) this._state.newData = initiativeData;
+        if (this._state.editLock !== undefined) this._state.newData = initiativeData;
         else this._state.locationData = initiativeData;
 
         this.setRoundCounter(data.round, false);
@@ -255,13 +255,13 @@ class InitiativeStore extends Store<InitiativeState> {
 
     // Locks
 
-    lock(shape: LocalId): void {
+    lock(shape: GlobalId): void {
         this._state.editLock = shape;
         this._state.newData = this._state.locationData.map((d) => ({ ...d, effects: [...d.effects] }));
     }
 
     unlock(): void {
-        this._state.editLock = -1 as LocalId;
+        this._state.editLock = undefined;
         this._state.locationData = this._state.newData;
     }
 
@@ -298,7 +298,7 @@ class InitiativeStore extends Store<InitiativeState> {
     // EXTRA
 
     getDataSet(): InitiativeData[] {
-        return this._state[this._state.editLock === -1 ? "locationData" : "newData"];
+        return this._state[this._state.editLock === undefined ? "locationData" : "newData"];
     }
 
     owns(globalId?: GlobalId): boolean {

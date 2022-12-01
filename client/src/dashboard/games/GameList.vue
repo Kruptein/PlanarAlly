@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, reactive } from "vue";
 import { useI18n } from "vue-i18n";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 import { baseAdjust, getStaticImg, http } from "../../core/http";
 import { useModal } from "../../core/plugins/modals/plugin";
@@ -13,9 +13,8 @@ import { open } from "./utils";
 
 const modals = useModal();
 const route = useRoute();
+const router = useRouter();
 const { t } = useI18n();
-
-const emit = defineEmits<{ (e: "create"): void }>();
 
 interface SessionState {
     owned: RoomInfo[];
@@ -120,7 +119,7 @@ async function leaveOrDelete(): Promise<void> {
         <div id="dm">
             <div class="title">
                 <span>DUNGEON MASTER</span>
-                <span @click="emit('create')">NEW GAME +</span>
+                <span @click="router.push({ name: 'create-game' })">NEW GAME +</span>
             </div>
             <div class="sessions">
                 <div

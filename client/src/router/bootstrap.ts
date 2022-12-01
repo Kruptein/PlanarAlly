@@ -1,14 +1,20 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import type { RouteRecordRaw } from "vue-router";
 
-import Login from "../auth/Login.vue";
 import { Logout } from "../auth/logout";
 import Invitation from "../invitation";
 
 import { router } from ".";
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// Auth
+const Login = () => import("../auth/Login.vue");
+// Dashboard
+const DashboardSettings = () => import("../dashboard/Settings.vue");
+const DashboardGames = () => import("../dashboard/games/GameList.vue");
+const CreateGame = () => import("../dashboard/games/CreateGame.vue");
+const Assets = () => import("../dashboard/Assets.vue");
 const Dashboard = () => import("../dashboard/Dashboard.vue");
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// Main game
 const Game = () => import("../game/Game.vue");
 
 const routes: Array<RouteRecordRaw> = [
@@ -17,37 +23,71 @@ const routes: Array<RouteRecordRaw> = [
         redirect: "/dashboard",
     },
     {
-        path: "/assets/:folder*",
-        component: Dashboard,
-        name: "assets",
-        meta: {
-            auth: true,
-        },
-    },
-    {
-        path: "/auth/login",
-        component: Login,
-        name: "login", // name used for transition
-    },
-    {
-        path: "/auth/logout",
-        component: Logout,
+        path: "/auth",
+        children: [
+            {
+                path: "login",
+                component: Login,
+                name: "login",
+            },
+            {
+                path: "logout",
+                component: Logout,
+            },
+        ],
     },
     {
         path: "/dashboard",
-        name: "dashboard", // name used for transition
+        name: "dashboard",
         component: Dashboard,
         meta: {
             auth: true,
         },
-    },
-    {
-        path: "/dashboard/settings",
-        component: Dashboard,
-        name: "dashboard-settings",
-        meta: {
-            auth: true,
-        },
+        children: [
+            {
+                path: "",
+                redirect: { name: "games" },
+            },
+            {
+                path: "games",
+                children: [
+                    {
+                        path: "",
+                        redirect: { name: "games" },
+                    },
+                    {
+                        path: "list",
+                        name: "games",
+                        component: DashboardGames,
+                    },
+                    {
+                        path: "new",
+                        children: [
+                            {
+                                path: "",
+                                name: "create-game",
+                                component: CreateGame,
+                            },
+                            {
+                                path: "blank",
+                                name: "create-blank-game",
+                                component: CreateGame,
+                            },
+                        ],
+                    },
+                ],
+            },
+            {
+                path: "/assets/:folder?",
+                name: "assets",
+                component: Assets,
+            },
+            {
+                path: "settings",
+                component: DashboardSettings,
+                name: "dashboard-settings",
+            },
+        ],
     },
     {
         path: "/invite/:code",

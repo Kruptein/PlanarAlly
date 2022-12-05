@@ -331,7 +331,6 @@ def upgrade(db: SqliteExtDatabase, version: int):
                             unpacked_spawn_locations = [
                                 sl for sl in unpacked_spawn_locations if sl != shape_id
                             ]
-                            print(f"Removing {shape_type}")
                             changed = True
                             continue
                     else:
@@ -340,7 +339,6 @@ def upgrade(db: SqliteExtDatabase, version: int):
                             (shape_id,),
                         ).fetchone()
                         if not shape_src_data:
-                            print(f"Missing subshape for {shape_id}")
                             continue
                         shape_src = shape_src_data[0]
                         if not shape_src.endswith("/static/img/spawn.png"):
@@ -351,7 +349,6 @@ def upgrade(db: SqliteExtDatabase, version: int):
                                     for sl in unpacked_spawn_locations
                                     if sl != shape_id
                                 ]
-                                print(f"Removing {shape_src}")
                                 changed = True
                         elif (
                             layer_type != "dm"
@@ -359,7 +356,6 @@ def upgrade(db: SqliteExtDatabase, version: int):
                         ):
                             # add to spawn locations
                             unpacked_spawn_locations.append(shape_id)
-                            print(f"Adding")
                             changed = True
 
                 if changed:

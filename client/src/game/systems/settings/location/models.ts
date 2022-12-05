@@ -1,4 +1,4 @@
-import type { LocalId } from "../../../id";
+import type { GlobalId } from "../../../id";
 
 export type WithDefault<T> = { default: T; override?: T; value: T };
 export type WithLocationDefault<T> = { default: T; value: T; location: { [key: number]: T | undefined } };
@@ -33,7 +33,9 @@ export interface LocationOptions {
     visionMode: string;
     visionMinRange: number;
     visionMaxRange: number;
-    spawnLocations: LocalId[];
+    // too much hassle to work with localId here.
+    // when switching locations this can be completely wrong
+    spawnLocations: GlobalId[];
     movePlayerOnTokenChange: boolean;
 
     airMapBackground: string;

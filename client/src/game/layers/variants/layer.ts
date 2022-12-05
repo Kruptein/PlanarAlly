@@ -294,9 +294,10 @@ export class Layer implements ILayer {
             console.error("attempted to remove shape not in layer.");
             return false;
         }
-        if (locationSettingsState.raw.spawnLocations.value.includes(shape.id)) {
+        const gId = getGlobalId(shape.id);
+        if (locationSettingsState.raw.spawnLocations.value.includes(gId)) {
             locationSettingsSystem.setSpawnLocations(
-                locationSettingsState.raw.spawnLocations.value.filter((s) => s !== shape.id),
+                locationSettingsState.raw.spawnLocations.value.filter((s) => s !== gId),
                 locationSettingsState.raw.activeLocation,
                 true,
             );
@@ -310,7 +311,7 @@ export class Layer implements ILayer {
         }
 
         if (options.sync !== SyncMode.NO_SYNC && !shape.preventSync)
-            sendRemoveShapes({ uuids: [getGlobalId(shape.id)], temporary: options.sync === SyncMode.TEMP_SYNC });
+            sendRemoveShapes({ uuids: [gId], temporary: options.sync === SyncMode.TEMP_SYNC });
 
         visionState.removeBlocker(TriangulationTarget.VISION, this.floor, shape, options.recalculate);
         visionState.removeBlocker(TriangulationTarget.MOVEMENT, this.floor, shape, options.recalculate);

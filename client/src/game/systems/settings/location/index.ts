@@ -2,8 +2,7 @@ import { registerSystem } from "../..";
 import type { System } from "../..";
 import { sendLocationOption } from "../../../api/emits/location";
 import { updateFogColour } from "../../../colour";
-import { getGlobalId } from "../../../id";
-import type { LocalId } from "../../../id";
+import type { GlobalId } from "../../../id";
 import { floorSystem } from "../../floors";
 import { floorState } from "../../floors/state";
 
@@ -183,14 +182,13 @@ class LocationSettingsSystem implements System {
 
     // SPAWN LOCATIONS
 
-    setSpawnLocations(spawnLocations: LocalId[], location: number, sync: boolean): void {
+    setSpawnLocations(spawnLocations: GlobalId[], location: number, sync: boolean): void {
         $.spawnLocations.location[location] = spawnLocations;
         if (location === $.activeLocation) $.spawnLocations.value = spawnLocations;
 
         floorSystem.invalidateAllFloors();
 
-        if (sync)
-            sendLocationOption("spawn_locations", JSON.stringify(spawnLocations.map((s) => getGlobalId(s))), location);
+        if (sync) sendLocationOption("spawn_locations", JSON.stringify(spawnLocations), location);
     }
 }
 

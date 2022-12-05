@@ -3,7 +3,6 @@
 import { coreStore } from "../../../store/core";
 import { gameStore } from "../../../store/game";
 import { locationStore } from "../../../store/location";
-import { reserveLocalId } from "../../id";
 import type { GlobalId } from "../../id";
 import type { ServerLocation } from "../../models/general";
 import type { Location } from "../../models/settings";
@@ -94,10 +93,6 @@ function setLocationOptions(
 
     if (id !== undefined && (overwrite_all || options.spawn_locations !== undefined)) {
         const spawnLocations: GlobalId[] = JSON.parse(options.spawn_locations ?? "[]");
-        locationSettingsSystem.setSpawnLocations(
-            spawnLocations.map((s) => reserveLocalId(s)!),
-            id,
-            false,
-        );
+        locationSettingsSystem.setSpawnLocations(spawnLocations, id, false);
     }
 }

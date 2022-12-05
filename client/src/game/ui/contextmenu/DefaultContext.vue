@@ -11,6 +11,7 @@ import { useModal } from "../../../core/plugins/modals/plugin";
 import { uuidv4 } from "../../../core/utils";
 import { getGameState } from "../../../store/_game";
 import { sendBringPlayers } from "../../api/emits/players";
+import { getGlobalId, getLocalId } from "../../id";
 import { LayerName } from "../../models/floor";
 import { Asset } from "../../shapes/variants/asset";
 import { floorSystem } from "../../systems/floors";
@@ -57,7 +58,9 @@ async function createSpawnLocation(): Promise<void> {
         t("game.ui.tools.DefaultContext.new_spawn_title").toString(),
         (value: string) => {
             if (value === "") return { valid: false, reason: t("common.insert_one_character").toString() };
-            const spawnNames = spawnLocations.map((uuid) => getProperties(uuid)?.name ?? "");
+            const spawnNames = spawnLocations
+                .map((uuid) => getLocalId(uuid))
+                .map((i) => (i ? getProperties(i)?.name : undefined) ?? "");
             if (spawnNames.some((name) => name === value))
                 return { valid: false, reason: t("common.name_already_in_use").toString() };
             return { valid: true };
@@ -82,7 +85,7 @@ async function createSpawnLocation(): Promise<void> {
     img.onload = () => (gameState.boardInitialized ? shape.layer.invalidate(true) : undefined);
 
     locationSettingsSystem.setSpawnLocations(
-        [...spawnLocations, shape.id],
+        [...spawnLocations, getGlobalId(shape.id)],
         locationSettingsState.raw.activeLocation,
         true,
     );

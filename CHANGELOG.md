@@ -67,6 +67,7 @@ tech changes will usually be stripped from release notes for the public
 -   AssetPicker UI appearing too low
 -   Polygon edit UI being left behind when panning
 -   Moving polygon point when polyon is rotated
+-   Normal shapes sometimes wrongly being identified as spawn locations
 -   [DM] Assets not being able to moved up to parent folder
 -   [DM] Assets not being removable if a shape with a link to the asset exists
 -   [DM] Annotations still being visible until refresh after removing player access

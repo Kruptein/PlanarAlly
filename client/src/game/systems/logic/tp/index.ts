@@ -180,7 +180,7 @@ class TeleportZoneSystem implements ShapeSystem {
                 if (
                     shape.id === tp ||
                     getProperties(shape.id)!.isLocked ||
-                    (locationSettingsState.raw.spawnLocations.value.includes(shape.id) ?? false)
+                    (locationSettingsState.raw.spawnLocations.value.includes(getGlobalId(shape.id)) ?? false)
                 )
                     continue;
                 if (tpShape.floor.id === shape.floor.id && tpShape.contains(shape.center)) {

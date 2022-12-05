@@ -78,7 +78,7 @@ const routes: Array<RouteRecordRaw> = [
                 ],
             },
             {
-                path: "/assets/:folder?",
+                path: "/assets/:folder*",
                 name: "assets",
                 component: Assets,
             },

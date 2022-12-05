@@ -64,12 +64,12 @@ socket.on("disconnect", (reason: string) => {
 socket.on("connect_error", async (error: any) => {
     console.error("Could not connect to game session.");
     if (error.message === "Connection rejected by server") {
-        await router.push({ name: "dashboard", params: { error: "join_game" } });
+        await router.push({ name: "games", params: { error: "join_game" } });
     }
 });
 socket.on("error", async (_error: any) => {
     console.error("Game session does not exist.");
-    await router.push({ name: "dashboard", params: { error: "join_game" } });
+    await router.push({ name: "games", params: { error: "join_game" } });
 });
 socket.on("redirect", async (destination: string) => {
     console.log("redirecting");

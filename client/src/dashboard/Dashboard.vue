@@ -1,55 +1,36 @@
 <script setup lang="ts">
-import { onMounted, ref, watchEffect } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import { getStaticImg } from "../core/http";
 
-import Assets from "./Assets.vue";
-import Games from "./games/Games.vue";
-import Settings from "./Settings.vue";
-
 const route = useRoute();
 const router = useRouter();
 
-const activeSection = ref(0);
-
-type Section = { nav: string; component: any; router: string };
+type Section = { nav: string; routerPath: string; routerName?: string };
 const sections: Section[] = [
     {
         nav: "GAMES",
-        component: Games,
-        router: "dashboard",
+        routerPath: "games",
     },
     {
         nav: "ASSETS",
-        component: Assets,
-        router: "assets",
+        routerPath: "assets",
     },
     {
         nav: "SETTINGS",
-        component: Settings,
-        router: "dashboard-settings",
+        routerPath: "settings",
+        routerName: "dashboard-settings",
     },
 ];
 
 function isActiveSection(section: Section): boolean {
-    return sections[activeSection.value].nav === section.nav;
+    const path = route.path;
+    return path.startsWith(`/dashboard/${section.routerPath}`) || path.startsWith(`/${section.routerPath}`);
 }
 
 async function activate(section: Section): Promise<void> {
-    activeSection.value = sections.findIndex((s) => s.nav === section.nav);
-    await router.push({ name: section.router });
+    await router.push({ name: section.routerName ?? section.routerPath });
 }
-
-watchEffect(() => {
-    if (route.name !== sections[activeSection.value].router) {
-        activeSection.value = sections.findIndex((s) => s.router === route.name);
-    }
-});
-
-onMounted(() => {
-    if (route.name === "assets") activeSection.value = 1;
-});
 
 const backgroundImage = `url(${getStaticImg("background-borderless.png")})`;
 
@@ -81,9 +62,7 @@ async function logout(): Promise<void> {
                     </button>
                 </nav>
             </section>
-            <Games v-if="activeSection === 0" />
-            <Assets v-else-if="activeSection === 1" />
-            <Settings v-else-if="activeSection === 2" />
+            <router-view></router-view>
         </main>
     </div>
 </template>

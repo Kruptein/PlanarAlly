@@ -38,7 +38,6 @@ const routes: Array<RouteRecordRaw> = [
     },
     {
         path: "/dashboard",
-        name: "dashboard",
         component: Dashboard,
         meta: {
             auth: true,

@@ -1,75 +1,29 @@
 <script setup lang="ts">
-import { reactive, ref } from "vue";
-import { useRouter } from "vue-router";
-import { useToast } from "vue-toastification";
+import { ref } from "vue";
 
-import { baseAdjust, http } from "../../core/http";
-import { useModal } from "../../core/plugins/modals/plugin";
-import { coreStore } from "../../store/core";
+import { socket } from "../socket";
 
-import { open } from "./utils";
+const messages = ref<string[]>([]);
 
-const modals = useModal();
-const router = useRouter();
-const toast = useToast();
-
-const name = ref("");
-const logo = reactive({ path: "", id: -1 });
-
-async function create(): Promise<void> {
-    if (name.value === "") {
-        toast.error("Fill in a name!");
-        return;
-    }
-    const response = await http.postJson("/api/rooms", {
-        name: name.value,
-        logo: logo.id,
-    });
-    if (response.ok) {
-        await open({ creator: coreStore.state.username, name: name.value, is_locked: false });
-        await router.push(`/game/${encodeURIComponent(coreStore.state.username)}/${encodeURIComponent(name.value)}`);
-    } else if (response.statusText === "Conflict") {
-        toast.error("A campaign with that name already exists!");
-    } else {
-        toast.error(`An unknown error occured :( ${response.statusText})`);
-    }
-}
-
-async function setLogo(): Promise<void> {
-    const data = await modals.assetPicker();
-    if (data === undefined || data.file_hash === undefined) return;
-    logo.path = data.file_hash;
-    logo.id = data.id;
-}
+socket.on("Campaign.Export.Status", (status: string) => messages.value.unshift(status));
 </script>
 
 <template>
     <div id="content">
-        <div class="title">Create a new campaign from scratch</div>
-        <div class="entry">
-            <label for="name">Name:</label>
-            <input type="text" id="name" v-model="name" autofocus />
+        <div class="title">Exporting campaign</div>
+        <div>This is an experimental feature! If you discover any problems let me know :)</div>
+        <div class="entry subtitle">Export Status</div>
+        <div>
+            Here you can see the progress of your export. Currently it's recommended to leave this page open until the
+            export is complete.
         </div>
-        <div class="entry">
-            <label for="logo">Logo:</label>
-            <div class="logo">
-                <img
-                    alt="Campaign Logo Preview"
-                    :src="baseAdjust(logo.id >= 0 ? `/static/assets/${logo.path}` : '/static/img/d20.svg')"
-                />
-                <div class="edit" @click="setLogo"><font-awesome-icon icon="pencil-alt" /></div>
-            </div>
-        </div>
-        <div class="entry">
-            <button class="go" @click="$router.push({ name: 'create-game' })">
-                <font-awesome-icon icon="chevron-left" />
-                <span>BACK</span>
-            </button>
-            <button class="go" @click="create">
-                <span>CREATE</span>
-                <font-awesome-icon icon="play" />
-            </button>
-        </div>
+        <pre style="max-height: 30vh; overflow: auto">>
+            <div v-for="message of messages" :key="message">{{ message }}</div>
+        </pre>
+        <button class="go" @click="$router.push({ name: 'create-game' })">
+            <font-awesome-icon icon="chevron-left" />
+            <span>BACK</span>
+        </button>
     </div>
 </template>
 
@@ -108,6 +62,11 @@ async function setLogo(): Promise<void> {
                 cursor: pointer;
             }
         }
+    }
+
+    .subtitle {
+        font-size: 2.5em;
+        margin-top: 1rem;
     }
 
     .entry {

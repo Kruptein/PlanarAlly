@@ -27,4 +27,6 @@ async def _export_campaign(sid: str, campaign_name: str):
         return
 
     filename = f"{campaign_name}-{user.name}"
-    await asyncio.create_task(export_campaign(filename, [room], sid=sid))
+    await asyncio.create_task(
+        export_campaign(filename, [room], sid=sid, loop=asyncio.get_event_loop())
+    )

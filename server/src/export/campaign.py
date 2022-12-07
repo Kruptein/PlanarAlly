@@ -7,7 +7,7 @@ import uuid
 from functools import partial
 from io import BytesIO
 from time import time
-from typing import Dict, List, Optional, cast
+from typing import Dict, List, Literal, Optional, Union, cast
 
 from playhouse.shortcuts import model_to_dict
 from playhouse.sqlite_ext import SqliteExtDatabase
@@ -54,9 +54,8 @@ from ..models.shape import (
 from ..models.typed import SelectSequence
 from ..models.user import User, UserOptions
 from ..save import SAVE_VERSION, upgrade_save
+from ..state.dashboard import dashboard_state
 from ..utils import ASSETS_DIR, TEMP_DIR
-
-debug_log = False
 
 
 async def export_campaign(
@@ -65,52 +64,127 @@ async def export_campaign(
     *,
     sid: Optional[str] = None,
     export_all_assets=False,
+    loop: Optional[asyncio.AbstractEventLoop] = None,
 ):
     loop = asyncio.get_running_loop()
     task = loop.run_in_executor(
         None,
-        partial(__export_campaign, export_all_assets=export_all_assets),
+        partial(__export_campaign, export_all_assets=export_all_assets, loop=loop),
         filename,
         rooms,
+        sid,
     )
     await asyncio.wait([task])
     await sio.emit("Campaign.Export.Done", filename, room=sid, namespace=DASHBOARD_NS)
 
 
-async def import_campaign(user: User, pac: BytesIO):
+async def import_campaign(
+    user: User,
+    name: str,
+    pac: BytesIO,
+    *,
+    sid: Optional[str] = None,
+    loop: Optional[asyncio.AbstractEventLoop] = None,
+):
     loop = asyncio.get_running_loop()
-    task = loop.run_in_executor(None, __import_campaign, user, pac)
+    task = loop.run_in_executor(
+        None, partial(__import_campaign, loop=loop), user, pac, sid
+    )
     await asyncio.wait([task])
+    result = task.result()
+    for _sid in dashboard_state.get_sids(id=user.id):
+        await sio.emit(
+            "Campaign.Import.Done",
+            result,
+            room=_sid,
+            namespace=DASHBOARD_NS,
+        )
 
 
-def __export_campaign(name: str, rooms: List[Room], *, export_all_assets=False):
+def __export_campaign(
+    name: str,
+    rooms: List[Room],
+    sid: Optional[str],
+    *,
+    export_all_assets=False,
+    loop: Optional[asyncio.AbstractEventLoop] = None,
+):
     try:
-        CampaignExporter(name, rooms, export_all_assets=export_all_assets).pack()
+        CampaignExporter(
+            name, rooms, sid, export_all_assets=export_all_assets, loop=loop
+        ).pack()
     except:
         logger.exception("Export Failed")
 
 
-def __import_campaign(user: User, pac: BytesIO):
+def __import_campaign(
+    user: User,
+    pac: BytesIO,
+    sid: Optional[str],
+    *,
+    loop: Optional[asyncio.AbstractEventLoop] = None,
+):
     try:
-        CampaignImporter(user, pac)
+        ci = CampaignImporter(user, pac, sid, loop=loop)
+        room = ci.get_created_room_info()
+        if room is None:
+            return {"success": True}
+        return {"success": True, "name": room.name, "creator": room.creator.name}
     except:
         logger.exception("Import Failed")
+        return {"success": False}
+
+
+def send_status(
+    loop: Optional[asyncio.AbstractEventLoop],
+    mode: Union[Literal["export"], Literal["import"]],
+    sid: Optional[str],
+    status: str,
+):
+    if sid is None or loop is None:
+        return
+
+    if mode == "import":
+        event = "Campaign.Import.Status"
+    else:
+        event = "Campaign.Export.Status"
+    coro = sio.emit(event, status, to=sid, namespace=DASHBOARD_NS)
+    asyncio.run_coroutine_threadsafe(coro, loop)
 
 
 class CampaignExporter:
     def __init__(
-        self, name: str, rooms: List[Room], *, export_all_assets=False
+        self,
+        name: str,
+        rooms: List[Room],
+        sid: Optional[str],
+        *,
+        export_all_assets=False,
+        loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
         self.filename = name
         self.copy_name = TEMP_DIR / f"{str(uuid.uuid4())}.sqlite"
+        self.sid = sid
+        self.loop = loop
 
+        send_status(self.loop, "export", self.sid, f"Starting campaign export {name}")
+        send_status(self.loop, "export", self.sid, "> Generating empty database")
         self.generate_empty_db(rooms)
         for room in self.migrator.rooms:
+            send_status(self.loop, "export", self.sid, f"> Exporting room {room.name}")
+            send_status(self.loop, "export", self.sid, "    > Exporting user info")
             self.export_users(room)
+            send_status(self.loop, "export", self.sid, "    > Exporting room info")
             self.migrator.migrate_room(room)
+            send_status(
+                self.loop, "export", self.sid, "    > Exporting label selections"
+            )
             self.migrator.migrate_label_selections(room)
+            send_status(self.loop, "export", self.sid, "    > Exporting locations")
             self.migrator.migrate_locations(room)
+            send_status(self.loop, "export", self.sid, "    > Exporting player info")
             self.migrator.migrate_players(room)
+            send_status(self.loop, "export", self.sid, "    > Exporting notes")
             self.migrator.migrate_notes(room)
 
         if export_all_assets:
@@ -138,9 +212,12 @@ class CampaignExporter:
                 secret_token=secrets.token_bytes(32),
                 api_token=secrets.token_hex(32),
             )
-            self.migrator = CampaignMigrator(open_db(self.copy_name), self.db, rooms)
+            self.migrator = CampaignMigrator(
+                "export", open_db(self.copy_name), self.db, rooms, self.sid, self.loop
+            )
 
     def pack(self):
+        send_status(self.loop, "export", self.sid, "> Start packing data")
         self.db.close()
 
         tarname = f"{self.filename}.pac"
@@ -184,6 +261,8 @@ class CampaignExporter:
         self.migrator.from_db.close()
         self.copy_name.unlink()
 
+        send_status(self.loop, "export", self.sid, "> Done")
+
         return tarpath, tarname
 
     def export_users(self, room: Room):
@@ -209,26 +288,53 @@ class CampaignExporter:
 
 
 class CampaignImporter:
-    def __init__(self, user: User, pac: BytesIO) -> None:
+    def __init__(
+        self,
+        user: User,
+        pac: BytesIO,
+        sid: Optional[str],
+        *,
+        loop: Optional[asyncio.AbstractEventLoop] = None,
+    ) -> None:
         print("Starting campaign import")
         self.root_user = user
         self.location_mapping: Dict[int, int] = {}
+        self.sid = sid
+        self.loop = loop
 
         self.target_db = ACTIVE_DB
 
+        send_status(
+            self.loop, "import", self.sid, f"Starting campaign import for {user.name}"
+        )
         self.unpack(pac)
         # with self.migrator.to_db.atomic():
         for room in self.migrator.rooms:
+            send_status(self.loop, "import", self.sid, f"> Importing room {room.name}")
+            send_status(self.loop, "import", self.sid, "    > Importing user info")
             self.import_users(room)
+            send_status(self.loop, "import", self.sid, "    > Importing room info")
             self.migrator.migrate_room(room)
+            send_status(
+                self.loop, "import", self.sid, "    > Importing label selections"
+            )
             self.migrator.migrate_label_selections(room)
+            send_status(self.loop, "import", self.sid, "    > Importing locations")
             self.migrator.migrate_locations(room)
+            send_status(self.loop, "import", self.sid, "    > Importing player info")
             self.migrator.migrate_players(room)
+            send_status(self.loop, "import", self.sid, "    > Importing notes")
             self.migrator.migrate_notes(room)
         print("Completed campaign import")
         self.db.close()
 
+    def get_created_room_info(self):
+        with self.target_db.bind_ctx([Room]):
+            for room_id in self.migrator.room_mapping.values():
+                return Room.get_by_id(room_id)
+
     def unpack(self, pac: BytesIO):
+        send_status(self.loop, "import", self.sid, "> Unpack data")
         with tarfile.open(fileobj=pac, mode="r") as tar:
             assets = []
             for member in tar.getmembers():
@@ -264,10 +370,14 @@ class CampaignImporter:
 
                     upgrade_save(self.db, is_import=True)
 
-                    self.migrator = CampaignMigrator(self.db, ACTIVE_DB)
+                    self.migrator = CampaignMigrator(
+                        "import", self.db, ACTIVE_DB, None, self.sid, loop=self.loop
+                    )
 
             if len(assets) > 0:
-                print(f"Extracting {len(assets)} asset(s)")
+                send_status(
+                    self.loop, "import", self.sid, f"> Importing {len(assets)} asset(s)"
+                )
                 tar.extractall(path=ASSETS_DIR.parent, members=assets)
 
     def import_users(self, room: Room):
@@ -290,13 +400,19 @@ class CampaignImporter:
 class CampaignMigrator:
     def __init__(
         self,
+        mode: Union[Literal["export"], Literal["import"]],
         from_db: SqliteExtDatabase,
         to_db: SqliteExtDatabase,
         rooms: Optional[List[Room]] = None,
+        sid: Optional[str] = None,
+        loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
+        self.mode: Union[Literal["export"], Literal["import"]] = mode
         self.from_db = from_db
         self.to_db = to_db
         self.rooms = rooms if rooms else self.__rooms
+        self.sid = sid
+        self.loop = loop
 
         self.asset_mapping: Dict[int, int] = {}
         self.aura_mapping: Dict[uuid.UUID, uuid.UUID] = {}
@@ -356,8 +472,6 @@ class CampaignMigrator:
                     Label.create(**label_data)
 
     def migrate_room(self, room: Room):
-        if debug_log:
-            print(f"[ROOM] {room.name}")
         with self.from_db.bind_ctx([LocationOptions, Room]):
             room_options_data = model_to_dict(room.default_options, recurse=False)
             del room_options_data["id"]
@@ -395,8 +509,9 @@ class CampaignMigrator:
     def migrate_locations(self, room: Room):
         with self.from_db.bind_ctx([Location, LocationOptions]):
             for location in room.locations:
-                if debug_log:
-                    print(f" [LOC] {location.name}")
+                send_status(
+                    self.loop, self.mode, self.sid, f"    > [LOC] {location.name}"
+                )
                 location_data = model_to_dict(location, recurse=False)
                 del location_data["id"]
                 location_data["room"] = self.room_mapping[room.id]
@@ -429,8 +544,7 @@ class CampaignMigrator:
     def migrate_floors(self, location_id: int, floors: SelectSequence[Floor]):
         with self.from_db.bind_ctx([Floor]):
             for floor in floors:
-                if debug_log:
-                    print(f"  [FL] {floor.name}")
+                send_status(self.loop, self.mode, self.sid, f"    >  [FL] {floor.name}")
                 floor_data = model_to_dict(floor, recurse=False)
                 del floor_data["id"]
                 floor_data["location"] = location_id
@@ -443,8 +557,9 @@ class CampaignMigrator:
     def migrate_layers(self, floor_id: int, layers: SelectSequence[Layer]):
         with self.from_db.bind_ctx([Layer]):
             for layer in layers:
-                if debug_log:
-                    print(f"   [LAY] {layer.name}")
+                send_status(
+                    self.loop, self.mode, self.sid, f"    >   [LAY] {layer.name}"
+                )
                 layer_data = model_to_dict(layer, recurse=False)
                 del layer_data["id"]
                 layer_data["floor"] = floor_id

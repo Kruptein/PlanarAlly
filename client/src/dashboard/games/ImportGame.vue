@@ -11,10 +11,10 @@ import { open } from "./utils";
 
 const toast = useToast();
 
-type Done = (RoomInfo & { success: true }) | { success: false };
+type Done = (RoomInfo & { success: true }) | { success: false; reason: string };
 
 const messages = ref<string[]>([]);
-const done = ref<Done>({ success: false });
+const done = ref<Done>({ success: false, reason: "" });
 
 socket.on("Campaign.Import.Status", (status: string) => messages.value.unshift(status));
 socket.on("Campaign.Import.Done", (data: Done) => (done.value = data));

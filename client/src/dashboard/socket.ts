@@ -15,4 +15,10 @@ socket.on("Campaign.Export.Done", (filename: string) => {
 
 socket.on("Campaign.Import.Chunk", (chunk: number) => dashboardState.chunksProcessed.add(chunk));
 
-socket.on("Campaign.Import.Done", () => toast.info("A campaign import just finished!"));
+socket.on("Campaign.Import.Done", (data: { success: true } | { success: false; reason: string }) => {
+    if (data.success) {
+        toast.info("A campaign import just finished!");
+    } else {
+        toast.error(`Something went wrong with the campaign import :( (${data.reason})`);
+    }
+});

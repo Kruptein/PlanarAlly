@@ -130,9 +130,9 @@ def __import_campaign(
         if room is None:
             return {"success": True}
         return {"success": True, "name": room.name, "creator": room.creator.name}
-    except:
+    except Exception as e:
         logger.exception("Import Failed")
-        return {"success": False}
+        return {"success": False, "reason": str(e)}
 
 
 def send_status(
@@ -308,7 +308,12 @@ class CampaignImporter:
             self.loop, "import", self.sid, f"Starting campaign import for {user.name}"
         )
         self.unpack(pac)
-        # with self.migrator.to_db.atomic():
+
+        from_room = self.migrator.rooms[0]
+        with self.target_db.bind_ctx([Room]):
+            if Room.get_or_none(name=from_room.name, creator=user):
+                raise Exception("Room with that name already exists")
+
         for room in self.migrator.rooms:
             send_status(self.loop, "import", self.sid, f"> Importing room {room.name}")
             send_status(self.loop, "import", self.sid, "    > Importing user info")

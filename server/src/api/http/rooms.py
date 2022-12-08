@@ -180,11 +180,7 @@ async def export(request: web.Request):
         if room is None:
             return web.HTTPBadRequest()
 
-        await asyncio.create_task(
-            export_campaign(
-                f"{roomname}-{creator}", [room], loop=asyncio.get_event_loop()
-            )
-        )
+        await asyncio.create_task(export_campaign(f"{roomname}-{creator}", [room]))
 
         return web.HTTPAccepted(
             text=f"Processing started. Check /static/temp/{room.name}-{room.creator.name}.pac soon."
@@ -208,7 +204,6 @@ async def export_all(request: web.Request):
                 f"{creator}-all",
                 rooms,
                 export_all_assets=True,
-                loop=asyncio.get_event_loop(),
             )
         )
 
@@ -294,10 +289,8 @@ async def import_chunk(request: web.Request):
         await asyncio.create_task(
             import_campaign(
                 user,
-                name,
                 io.BytesIO(b"".join(cast(List[bytes], chunks))),
                 sid=sid,
-                loop=asyncio.get_event_loop(),
             )
         )
         del import_mapping[name]

@@ -64,7 +64,6 @@ async def export_campaign(
     *,
     sid: Optional[str] = None,
     export_all_assets=False,
-    loop: Optional[asyncio.AbstractEventLoop] = None,
 ):
     loop = asyncio.get_running_loop()
     task = loop.run_in_executor(
@@ -80,11 +79,9 @@ async def export_campaign(
 
 async def import_campaign(
     user: User,
-    name: str,
     pac: BytesIO,
     *,
     sid: Optional[str] = None,
-    loop: Optional[asyncio.AbstractEventLoop] = None,
 ):
     loop = asyncio.get_running_loop()
     task = loop.run_in_executor(

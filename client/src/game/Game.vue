@@ -63,7 +63,7 @@ export default defineComponent({
             clearUndoStacks();
             mediaQuery.addEventListener("change", resizeWindow);
 
-            await companion.run();
+            if (coreStore.state.boardId !== undefined) await companion.run();
         });
 
         onUnmounted(() => {

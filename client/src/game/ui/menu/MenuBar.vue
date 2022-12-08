@@ -43,7 +43,7 @@ const noAssets = computed(() => {
 
 async function exit(): Promise<void> {
     clearGame(false);
-    await router.push({ name: "dashboard" });
+    await router.push({ name: "games" });
 }
 
 function settingsClick(event: MouseEvent): void {

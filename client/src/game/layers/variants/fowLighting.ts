@@ -176,6 +176,7 @@ export class FowLightingLayer extends FowLayer {
                 }
                 preShape.draw(this.ctx);
                 preShape.globalCompositeOperation = ogComposite;
+                this.isEmpty = false;
             }
 
             if (locationSettingsState.raw.fullFow.value && this.floor === activeFloor.id) {

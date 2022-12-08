@@ -200,7 +200,11 @@ async def export_all(request: web.Request):
         rooms = [r for r in user.rooms_created]
 
         asyncio.create_task(
-            export_campaign(f"{creator}-all", rooms, export_all_assets=True)
+            export_campaign(
+                f"{creator}-all",
+                rooms,
+                export_all_assets=True,
+            )
         )
 
         return web.HTTPAccepted(
@@ -212,6 +216,7 @@ async def export_all(request: web.Request):
 class ImportData(TypedDict):
     totalLength: int
     chunks: List[Optional[bytes]]
+    sid: Optional[str]
 
 
 import_mapping: Dict[str, ImportData] = {}
@@ -219,23 +224,32 @@ import_mapping: Dict[str, ImportData] = {}
 
 async def import_info(request: web.Request):
     if not config.getboolean("General", "enable_export"):
-        return web.HTTPForbidden()
+        return web.HTTPForbidden(reason="Import is disabled by the server.")
 
     await check_authorized(request)
 
     name = request.match_info["name"]
 
     data = await request.json()
-    length = data["totalChunks"]
+
+    try:
+        length = data["totalChunks"]
+    except KeyError:
+        return web.HTTPBadRequest(
+            reason="Bad Request: something went wrong with this import request. (missing chunk length)"
+        )
 
     try:
         length = int(length)
     except ValueError:
-        return web.HTTPBadRequest()
+        return web.HTTPBadRequest(
+            reason="Bad Request: something went wrong with this import request. (Chunk Length is not an integer)"
+        )
 
     import_mapping[name] = {
         "totalLength": length,
         "chunks": [None for _ in range(length)],
+        "sid": data.get("sid", None),
     }
 
     # todo: some timer / or other condition to clear the import_mapping
@@ -265,19 +279,20 @@ async def import_chunk(request: web.Request):
     data = await request.read()
 
     import_mapping[name]["chunks"][chunk] = data
+    sid = import_mapping[name]["sid"]
+
+    await sio.emit("Campaign.Import.Chunk", chunk, room=sid, namespace=DASHBOARD_NS)
 
     chunks = import_mapping[name]["chunks"]
     if all(chunks):
         print(f"Got all chunks for {name}")
         await asyncio.create_task(
-            handle_import(user, name, io.BytesIO(b"".join(cast(List[bytes], chunks))))
+            import_campaign(
+                user,
+                io.BytesIO(b"".join(cast(List[bytes], chunks))),
+                sid=sid,
+            )
         )
         del import_mapping[name]
 
     return web.HTTPOk()
-
-
-async def handle_import(user: User, name: str, pac: io.BytesIO):
-    await import_campaign(user, pac)
-    for sid in dashboard_state.get_sids(id=user.id):
-        await sio.emit("Campaign.Import.Done", name, room=sid, namespace=DASHBOARD_NS)

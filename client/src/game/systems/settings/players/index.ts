@@ -92,6 +92,13 @@ class PlayerSettingsSystem implements System {
         if (options.sync) sendRoomClientOptions("default_tracker_mode", defaultTrackerMode, options.default);
     }
 
+    setMousePanMode(mousePanMode: number | undefined, options: { sync: boolean; default?: number }): void {
+        $.mousePanMode.override = mousePanMode;
+        if (options.default !== undefined) $.mousePanMode.default = options.default;
+        $.mousePanMode.value = mousePanMode ?? $.mousePanMode.default;
+        if (options.sync) sendRoomClientOptions("mouse_pan_mode", mousePanMode, options.default);
+    }
+
     // DISPLAY
 
     setUseHighDpi(useHighDpi: boolean | undefined, options: { sync: boolean; default?: boolean }): void {

@@ -8,7 +8,7 @@ import { useModal } from "../../core/plugins/modals/plugin";
 import { getGameState } from "../../store/_game";
 import { uiStore } from "../../store/ui";
 import { sendCreateFloor } from "../api/emits/floor";
-import type { Floor } from "../models/floor";
+import type { Floor, FloorIndex } from "../models/floor";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
 import { playerSettingsState } from "../systems/settings/players/state";
@@ -89,7 +89,7 @@ const selectedLayer = computed(
         </div>
         <div id="floor-detail" v-if="detailsOpen">
             <draggable v-model="floors" :disabled="!isDm" item-key="reverseIndex">
-                <template #item="{ element: f }">
+                <template #item="{ element: f }: { element: { floor: Floor, reverseIndex: FloorIndex } }">
                     <div class="floor-row" @click="selectFloor({ name: f.floor.name }, true)">
                         <div
                             class="floor-index"

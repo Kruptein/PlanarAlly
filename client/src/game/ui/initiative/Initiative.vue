@@ -10,7 +10,7 @@ import { getGameState } from "../../../store/_game";
 import { uiStore } from "../../../store/ui";
 import { sendRequestInitiatives } from "../../api/emits/initiative";
 import { getGroupMembers } from "../../groups";
-import { getGlobalId, getShape } from "../../id";
+import { getShape } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import type { IAsset } from "../../interfaces/shapes/asset";
@@ -81,7 +81,8 @@ function removeEffect(shape: GlobalId, index: number): void {
     if (initiativeStore.owns(shape)) initiativeStore.removeEffect(shape, index, true);
 }
 
-function toggleHighlight(actorId: LocalId, show: boolean): void {
+function toggleHighlight(actorId: LocalId | undefined, show: boolean): void {
+    if (actorId === undefined) return;
     const shape = getShape(actorId);
     if (shape === undefined) return;
     let shapeArray: IShape[];
@@ -117,13 +118,12 @@ function reset(): void {
     sendRequestInitiatives();
 }
 
-function lock(shape: LocalId): void {
-    const globalId = getGlobalId(shape);
-    if (initiativeStore.owns(globalId)) initiativeStore.lock(shape);
+function lock(globalId: GlobalId): void {
+    if (initiativeStore.owns(globalId)) initiativeStore.lock(globalId);
 }
 
 function unlock(): void {
-    if (initiativeStore.state.editLock !== -1) initiativeStore.unlock();
+    if (initiativeStore.state.editLock !== undefined) initiativeStore.unlock();
 }
 
 function setInitiative(shape: GlobalId, value: string): void {
@@ -185,25 +185,25 @@ function n(e: any): number {
                 :disabled="!isDm"
                 item-key="uuid"
             >
-                <template #item="{ element: actor, index }">
+                <template #item="{ element: actor, index }: { element: InitiativeData, index: number }">
                     <div style="display: flex; flex-direction: column; align-items: flex-end" v-if="canSee(actor)">
                         <div
                             class="initiative-actor"
                             :class="{
                                 'initiative-selected': initiativeStore.state.turnCounter === index,
                                 blurred:
-                                    initiativeStore.state.editLock !== -1 &&
-                                    initiativeStore.state.editLock !== actor.localId,
+                                    initiativeStore.state.editLock !== undefined &&
+                                    initiativeStore.state.editLock !== actor.globalId,
                             }"
                             :style="{ cursor: isDm ? 'move' : 'auto' }"
                             @mouseenter="toggleHighlight(actor.localId, true)"
                             @mouseleave="toggleHighlight(actor.localId, false)"
                         >
                             <div
-                                v-if="owns(actor.localId)"
+                                v-if="owns(actor.globalId)"
                                 class="remove"
                                 @click="removeInitiative(actor)"
-                                :class="{ notAllowed: !owns(actor.localId) }"
+                                :class="{ notAllowed: !owns(actor.globalId) }"
                             >
                                 &#215;
                             </div>
@@ -218,16 +218,16 @@ function n(e: any): number {
                                 type="text"
                                 :placeholder="t('common.value')"
                                 :value="actor.initiative"
-                                :disabled="!owns(actor.localId)"
-                                :class="{ notAllowed: !owns(actor.localId) }"
-                                @focus="lock(actor.localId)"
+                                :disabled="!owns(actor.globalId)"
+                                :class="{ notAllowed: !owns(actor.globalId) }"
+                                @focus="lock(actor.globalId)"
                                 @blur="unlock"
-                                @change="setInitiative(actor.localId, getValue($event))"
+                                @change="setInitiative(actor.globalId, getValue($event))"
                                 @keyup.enter="getTarget($event).blur()"
                             />
                             <div
                                 :style="{ opacity: actor.isVisible ? '1.0' : '0.3' }"
-                                :class="{ notAllowed: !owns(actor.localId) }"
+                                :class="{ notAllowed: !owns(actor.globalId) }"
                                 @click="toggleOption(index, 'isVisible')"
                                 :title="t('common.toggle_public_private')"
                             >
@@ -235,7 +235,7 @@ function n(e: any): number {
                             </div>
                             <div
                                 :style="{ opacity: actor.isGroup ? '1.0' : '0.3' }"
-                                :class="{ notAllowed: !owns(actor.localId) }"
+                                :class="{ notAllowed: !owns(actor.globalId) }"
                                 @click="toggleOption(index, 'isGroup')"
                                 :title="t('game.ui.initiative.toggle_group')"
                             >
@@ -244,8 +244,8 @@ function n(e: any): number {
                             <div
                                 class="initiative-effects-icon"
                                 style="opacity: 0.6"
-                                :class="{ notAllowed: !owns(actor.localId) }"
-                                @click="createEffect(actor.localId)"
+                                :class="{ notAllowed: !owns(actor.globalId) }"
+                                @click="createEffect(actor.globalId)"
                                 :title="t('game.ui.initiative.add_timed_effect')"
                             >
                                 <font-awesome-icon icon="stopwatch" />
@@ -260,27 +260,27 @@ function n(e: any): number {
                             :class="{ 'effect-visible': alwaysShowEffects }"
                             v-if="actor.effects.length > 0"
                         >
-                            <div v-for="(effect, e) of actor.effects" :key="effect.uuid">
+                            <div v-for="(effect, e) of actor.effects" :key="`${actor.globalId}-${effect.name}`">
                                 <input
                                     type="text"
                                     v-model="effect.name"
                                     :style="{ width: '100px' }"
-                                    :class="{ notAllowed: !owns(actor.localId) }"
-                                    :disabled="!owns(actor.localId)"
-                                    @change="setEffectName(actor.localId, n(e), getValue($event))"
+                                    :class="{ notAllowed: !owns(actor.globalId) }"
+                                    :disabled="!owns(actor.globalId)"
+                                    @change="setEffectName(actor.globalId, n(e), getValue($event))"
                                 />
                                 <input
                                     type="text"
                                     v-model="effect.turns"
                                     :style="{ width: '25px' }"
-                                    :class="{ notAllowed: !owns(actor.localId) }"
-                                    :disabled="!owns(actor.localId)"
-                                    @change="setEffectTurns(actor.localId, n(e), getValue($event))"
+                                    :class="{ notAllowed: !owns(actor.globalId) }"
+                                    :disabled="!owns(actor.globalId)"
+                                    @change="setEffectTurns(actor.globalId, n(e), getValue($event))"
                                 />
                                 <div
-                                    :style="{ opacity: owns(actor.localId) ? '1.0' : '0.3' }"
-                                    :class="{ notAllowed: !owns(actor.localId) }"
-                                    @click="removeEffect(actor.localId, n(e))"
+                                    :style="{ opacity: owns(actor.globalId) ? '1.0' : '0.3' }"
+                                    :class="{ notAllowed: !owns(actor.globalId) }"
+                                    @click="removeEffect(actor.globalId, n(e))"
                                     :title="t('game.ui.initiative.delete_effect')"
                                 >
                                     <font-awesome-icon icon="trash-alt" />

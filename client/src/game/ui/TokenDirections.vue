@@ -35,9 +35,9 @@ function center(token: LocalId): void {
 #token-directions > div {
     pointer-events: auto;
     position: absolute;
-    width: 60px;
-    height: 60px;
-    border-radius: 30px;
+    width: 3.75rem;
+    height: 3.75rem;
+    border-radius: 1.875rem;
     border: solid 1px transparent;
 
     &:hover {

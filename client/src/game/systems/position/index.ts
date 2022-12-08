@@ -45,7 +45,7 @@ class PositionSystem implements System {
         mutable.panY = y + readonly.gridOffset.y;
         if (options.updateSectors) {
             floorSystem.invalidateSectors();
-            this.checkOutOfBounds();
+            mutable.performOobCheck = true;
         }
         floorSystem.updateIteration();
     }
@@ -55,7 +55,7 @@ class PositionSystem implements System {
         mutable.panY += y;
         floorSystem.invalidateSectors();
         floorSystem.updateIteration();
-        this.checkOutOfBounds();
+        mutable.performOobCheck = true;
     }
 
     // OFFSET
@@ -91,7 +91,7 @@ class PositionSystem implements System {
         this.setZoomFactor(zoom);
         if (options.updateSectors) {
             floorSystem.invalidateSectors();
-            this.checkOutOfBounds();
+            mutable.performOobCheck = true;
         }
         if (options.invalidate) floorSystem.invalidateAllFloors();
         if (options.sync) {
@@ -114,7 +114,8 @@ class PositionSystem implements System {
 
     // OOB
 
-    private checkOutOfBounds(): void {
+    checkOutOfBounds(): void {
+        mutable.performOobCheck = false;
         // First check if there are any shapes at all
         // Displaying a "return to content" when there is no content is pretty silly.
         // We however don't want to iterate over _all_ shapes if there are a lot
@@ -134,20 +135,21 @@ class PositionSystem implements System {
         }
 
         $.outOfBounds = true;
-        if (!getGameState().isDm && locationSettingsState.raw.fullFow.value) {
-            for (const layer of floorState.raw.layers) {
-                if (locationSettingsState.raw.fowLos.value) {
-                    if (layer.name === LayerName.Vision && !(layer as FowLayer).isEmpty) {
-                        $.outOfBounds = false;
-                        return;
-                    }
-                } else {
-                    if (layer.name === LayerName.Lighting && !(layer as FowLayer).isEmpty) {
-                        $.outOfBounds = false;
-                        return;
-                    }
+        const floor = floorState.currentFloor.value;
+        if (floor !== undefined && !getGameState().isDm && locationSettingsState.raw.fullFow.value) {
+            if (locationSettingsState.raw.fowLos.value) {
+                const visionLayer = floorSystem.getLayer(floor, LayerName.Vision)! as FowLayer;
+                if (!visionLayer.isEmpty) {
+                    $.outOfBounds = false;
+                    return;
                 }
             }
+            const lightingLayer = floorSystem.getLayer(floor, LayerName.Lighting)! as FowLayer;
+            if (!lightingLayer.isEmpty) {
+                $.outOfBounds = false;
+                return;
+            }
+
             if ($.outOfBounds) return;
         }
         for (const layer of floorState.raw.layers) {
@@ -166,11 +168,14 @@ class PositionSystem implements System {
             if (locationSettingsState.raw.fowLos.value) {
                 // find nearest token
                 nearest = this.findNearest(accessState.activeTokens.value, (i) => getShape(i));
-            } else {
+            }
+
+            if (nearest === undefined) {
                 // find nearest lightsource
                 nearest = this.findNearest(visionState.getAllVisionSources(), (s) => getShape(s.shape));
             }
-        } else {
+        }
+        if (nearest === undefined) {
             // find nearest shape
             nearest = this.findNearest(getAllShapes(), (x) => x);
         }

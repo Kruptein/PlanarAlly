@@ -1,21 +1,21 @@
 <script setup lang="ts">
 import { onMounted, reactive } from "vue";
 import { useI18n } from "vue-i18n";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 import { baseAdjust, getStaticImg, http } from "../../core/http";
 import { useModal } from "../../core/plugins/modals/plugin";
 import { getErrorReason } from "../../core/utils";
 import { coreStore } from "../../store/core";
+import { socket } from "../socket";
 
 import type { RoomInfo } from "./types";
 import { open } from "./utils";
 
 const modals = useModal();
 const route = useRoute();
+const router = useRouter();
 const { t } = useI18n();
-
-const emit = defineEmits<{ (e: "create"): void }>();
 
 interface SessionState {
     owned: RoomInfo[];
@@ -113,6 +113,12 @@ async function leaveOrDelete(): Promise<void> {
         state.focussed = undefined;
     }
 }
+
+function exportCampaign(): void {
+    if (state.focussed === undefined) return;
+    socket.emit("Campaign.Export", state.focussed.name);
+    router.push({ name: "export-game" });
+}
 </script>
 
 <template>
@@ -120,7 +126,7 @@ async function leaveOrDelete(): Promise<void> {
         <div id="dm">
             <div class="title">
                 <span>DUNGEON MASTER</span>
-                <span @click="emit('create')">NEW GAME +</span>
+                <span @click="router.push({ name: 'create-game' })">NEW GAME +</span>
             </div>
             <div class="sessions">
                 <div
@@ -151,6 +157,10 @@ async function leaveOrDelete(): Promise<void> {
                         <button @click.stop="open(session)">
                             <img :src="getStaticImg('play.svg')" alt="Play" />
                             LAUNCH
+                        </button>
+                        <button @click.stop="exportCampaign">
+                            <font-awesome-icon icon="download" />
+                            EXPORT
                         </button>
                         <button @click.stop="leaveOrDelete">
                             <img :src="getStaticImg('cross.svg')" alt="Remove" />
@@ -357,7 +367,9 @@ async function leaveOrDelete(): Promise<void> {
                         justify-content: center;
                         align-items: center;
 
-                        img {
+                        img,
+                        svg {
+                            width: 24px;
                             margin-right: 0.3rem;
                         }
 
@@ -373,7 +385,7 @@ async function leaveOrDelete(): Promise<void> {
                 }
 
                 &.focus {
-                    height: 15rem;
+                    height: 18rem;
                     z-index: 1;
                     overflow: visible;
 
@@ -390,11 +402,18 @@ async function leaveOrDelete(): Promise<void> {
                     }
 
                     .actions {
-                        height: 10rem;
+                        height: 12.5rem;
                         display: flex;
                     }
                 }
             }
+        }
+    }
+
+    #player > .sessions > div.focus {
+        height: 15rem;
+        .actions {
+            height: 12.5rem;
         }
     }
 }

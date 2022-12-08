@@ -20,6 +20,7 @@ export function getTpZoneShapes(fromZone: LocalId): LocalId[] {
 
     for (const shape of tokenLayer.getShapes({ includeComposites: true })) {
         if (
+            shape.id !== fromZone &&
             !getProperties(shape.id)!.isLocked &&
             accessSystem.hasAccessTo(shape.id, false, { movement: true }) &&
             fromShape.contains(shape.center)

@@ -247,7 +247,12 @@
                         "disable_scroll_to_zoom": "Disable scroll to zoom",
                         "selection_info_tracker_mode": "Default tracker mode",
                         "selection_info_tracker_mode_absolute": "Absolute",
-                        "selection_info_tracker_mode_relative": "Relative"
+                        "selection_info_tracker_mode_relative": "Relative",
+                        "mouse_pan_mode": "Mouse pan mode",
+                        "mouse_pan_mode_0": "None",
+                        "mouse_pan_mode_1": "Middle click",
+                        "mouse_pan_mode_2": "Right click",
+                        "mouse_pan_mode_3": "Both"
                     },
                     "InitiativeSettings": {
                         "camera_lock": "Lock camera to active (owned) tokens",

@@ -15,6 +15,7 @@ const state = buildState(
         zoom: NaN,
         panX: 0,
         panY: 0,
+        performOobCheck: false,
     },
 );
 

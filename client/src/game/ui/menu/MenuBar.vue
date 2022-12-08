@@ -16,6 +16,7 @@ import type { Note } from "../../models/general";
 import { setCenterPosition } from "../../position";
 import { clientSystem } from "../../systems/client";
 import type { ClientId } from "../../systems/client/models";
+import { clientState } from "../../systems/client/state";
 import { playerState } from "../../systems/players/state";
 import { getProperties } from "../../systems/properties/state";
 import NoteDialog from "../NoteDialog.vue";
@@ -40,6 +41,8 @@ const username = toRef(coreStore.state, "username");
 const noAssets = computed(() => {
     return gameState.assets.size === 1 && (gameState.assets.get("__files") as AssetFile[]).length <= 0;
 });
+
+const hasGameboardClients = computed(() => clientState.reactive.clientBoards.size > 0);
 
 async function exit(): Promise<void> {
     clearGame(false);
@@ -149,7 +152,7 @@ const openLgSettings = (): void => uiStore.showLgSettings(!uiStore.state.showLgS
                     {{ t("game.ui.menu.MenuBar.dm_settings") }}
                 </button>
                 <!-- GAMEBOARD SETTINGS -->
-                <button class="menu-accordion" @click="openLgSettings">
+                <button v-if="hasGameboardClients" class="menu-accordion" @click="openLgSettings">
                     {{ t("game.ui.menu.MenuBar.gameboard_settings") }}
                 </button>
                 <!-- PLAYERS -->

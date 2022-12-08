@@ -8,6 +8,7 @@ import { baseAdjust } from "../../core/http";
 import { getGameState } from "../../store/_game";
 import { activeShapeStore } from "../../store/activeShape";
 import { coreStore } from "../../store/core";
+import { clientState } from "../systems/client/state";
 import { positionSystem } from "../systems/position";
 import { positionState } from "../systems/position/state";
 
@@ -47,6 +48,8 @@ const visible = reactive({
     settings: false,
 });
 const topLeft = computed(() => visible.locations && visible.settings);
+
+const hasGameboardClients = computed(() => clientState.reactive.clientBoards.size > 0);
 
 const changelogText = computed(() =>
     t("game.ui.ui.changelog_RELEASE_LOG", {
@@ -196,7 +199,7 @@ function setTempZoomDisplay(value: number): void {
         <ShapeContext />
         <ShapeSettings />
         <DmSettings v-if="getGameState().isDm || getGameState().isFakePlayer" />
-        <LgSettings v-if="getGameState().isDm || getGameState().isFakePlayer" />
+        <LgSettings v-if="hasGameboardClients && (getGameState().isDm || getGameState().isFakePlayer)" />
         <LgGridId v-if="hasGameboard" />
         <FloorSettings v-if="getGameState().isDm || getGameState().isFakePlayer" />
         <LocationSettings v-if="getGameState().isDm || getGameState().isFakePlayer" />

@@ -11,9 +11,12 @@ const Login = () => import("../auth/Login.vue");
 // Dashboard
 const DashboardSettings = () => import("../dashboard/Settings.vue");
 const DashboardGames = () => import("../dashboard/games/GameList.vue");
+const CreateSwitcher = () => import("../dashboard/games/CreateSwitcher.vue");
 const CreateGame = () => import("../dashboard/games/CreateGame.vue");
 const Assets = () => import("../dashboard/Assets.vue");
 const Dashboard = () => import("../dashboard/Dashboard.vue");
+const ImportGame = () => import("../dashboard/games/ImportGame.vue");
+const ExportGame = () => import("../dashboard/games/ExportGame.vue");
 // Main game
 const Game = () => import("../game/Game.vue");
 
@@ -60,17 +63,27 @@ const routes: Array<RouteRecordRaw> = [
                         component: DashboardGames,
                     },
                     {
+                        path: "export",
+                        name: "export-game",
+                        component: ExportGame,
+                    },
+                    {
                         path: "new",
                         children: [
                             {
                                 path: "",
                                 name: "create-game",
-                                component: CreateGame,
+                                component: CreateSwitcher,
                             },
                             {
                                 path: "blank",
                                 name: "create-blank-game",
                                 component: CreateGame,
+                            },
+                            {
+                                path: "import",
+                                name: "import-game",
+                                component: ImportGame,
                             },
                         ],
                     },

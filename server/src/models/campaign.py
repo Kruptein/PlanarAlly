@@ -42,9 +42,9 @@ class LocationOptions(BaseModel):
     unit_size = FloatField(default=5, null=True)
     unit_size_unit = TextField(default="ft", null=True)
     use_grid = BooleanField(default=True, null=True)
-    full_fow = BooleanField(default=False, null=True)
+    full_fow = cast(bool, BooleanField(default=False, null=True))
     fow_opacity = FloatField(default=0.3, null=True)
-    fow_los = BooleanField(default=False, null=True)
+    fow_los = cast(bool, BooleanField(default=False, null=True))
     vision_mode = TextField(default="triangle", null=True)
     # default is 1km max, 0.5km min
     vision_min_range = FloatField(default=1640, null=True)
@@ -90,6 +90,7 @@ class Room(BaseModel):
     logo_id: Optional[int]
     players: SelectSequence["PlayerRoom"]
     locations: SelectSequence["Location"]
+    default_options: LocationOptions
 
     name = cast(str, TextField())
     creator = cast(
@@ -97,7 +98,9 @@ class Room(BaseModel):
     )
     invitation_code = cast(uuid.UUID, TextField(default=uuid.uuid4, unique=True))
     is_locked = cast(bool, BooleanField(default=False))
-    default_options = ForeignKeyField(LocationOptions, on_delete="CASCADE")
+    default_options = cast(
+        LocationOptions, ForeignKeyField(LocationOptions, on_delete="CASCADE")
+    )
     logo = ForeignKeyField(Asset, null=True, on_delete="SET NULL")
 
     def __repr__(self):

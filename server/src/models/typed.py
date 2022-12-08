@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, Dict, Generic, Sequence, Type, TypeVar
+from typing import TYPE_CHECKING, Any, Dict, Generic, Sequence, Tuple, Type, TypeVar
 from typing_extensions import Self
 
 from peewee import ModelDelete, ModelSelect, ModelUpdate
@@ -73,11 +73,19 @@ class TypedModel:
             ...
 
         @classmethod
+        def get(cls: Type[T], *args, **kwargs) -> T:
+            ...
+
+        @classmethod
         def get_by_id(cls: Type[T], *args, **kwargs) -> T:
             ...
 
         @classmethod
         def get_or_none(cls, *args, **kwargs) -> Self:
+            ...
+
+        @classmethod
+        def get_or_create(cls, *args, **kwargs) -> Tuple[Self, bool]:
             ...
 
         @classmethod

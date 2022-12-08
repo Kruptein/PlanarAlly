@@ -1,6 +1,6 @@
 import json
 from typing import Any, Dict, List, Optional, Union, cast
-from typing_extensions import TypedDict
+from typing_extensions import Self, TypedDict
 
 from peewee import ForeignKeyField, TextField
 from playhouse.shortcuts import model_to_dict
@@ -62,7 +62,7 @@ class Asset(BaseModel):
         )
 
     @classmethod
-    def get_root_folder(cls, user):
+    def get_root_folder(cls, user) -> Self:
         try:
             root = cls.get(name="/", owner=user, parent=None)
         except Asset.DoesNotExist:

@@ -25,10 +25,12 @@ class DiceTool extends Tool {
         shareWithAll: boolean;
         autoRoll: boolean;
         history: { roll: string; result: number; player: string }[];
+        timeouts: Record<string, number>;
     }>({
         shareWithAll: false,
         autoRoll: true,
         history: [],
+        timeouts: {},
     });
 
     constructor() {
@@ -58,6 +60,11 @@ class DiceTool extends Tool {
         options?: { color?: string; startPosition?: [number, number]; throwKey: string },
     ): Promise<string> {
         if (!hasGameboard) diceStore.setIsPending(true);
+        if (options?.throwKey !== undefined && options.throwKey in this.state.timeouts) {
+            clearTimeout(this.state.timeouts[options.throwKey]);
+            delete this.state.timeouts[options.throwKey];
+        }
+
         const xDir = Math.random();
         const yDir = Math.random();
         const side = Math.random() > 0.5 ? true : false;
@@ -121,14 +128,18 @@ class DiceTool extends Tool {
             diceStore.setIsPending(false);
             diceStore.setShowDiceResults(results.key);
         }
-        setTimeout(async () => (await diceStore.getDiceThrower()).reset(results.key), 10_000);
+        const timeoutId = window.setTimeout(async () => {
+            (await diceStore.getDiceThrower()).reset(results.key);
+            delete this.state.timeouts[results.key];
+        }, 10_000);
+        this.state.timeouts[results.key] = timeoutId;
 
         return results.key;
     }
 
     addShadow(die: Dice, mesh: Mesh): void {
         ((window as any).shadowGenerator as ShadowGenerator).addShadowCaster(mesh);
-        ((window as any).shadowGenerator as ShadowGenerator).useExponentialShadowMap = true;
+        ((window as any).shadowGenerator as ShadowGenerator).useCloseExponentialShadowMap = true;
     }
 }
 

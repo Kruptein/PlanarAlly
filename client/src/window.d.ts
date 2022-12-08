@@ -1,5 +1,9 @@
 declare global {
     interface Window {
+        gbCodes?: {
+            dm: string;
+            gb: string;
+        };
         Gameboard?: {
             getBoardId(): string;
             getBoardServiceWebSocketUrl(): string;

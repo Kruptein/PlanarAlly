@@ -5,6 +5,8 @@ import { getGameState } from "../../../store/_game";
 import { gameStore } from "../../../store/game";
 import { sendClientLocationOptions } from "../../api/emits/client";
 import { calculateDelta } from "../../drag";
+import { ToolName } from "../../models/tools";
+import type { ISelectTool } from "../../models/tools";
 import { moveShapes } from "../../operations/movement";
 import { redoOperation, undoOperation } from "../../operations/undo";
 import { setCenterPosition } from "../../position";
@@ -18,7 +20,7 @@ import { getProperties } from "../../systems/properties/state";
 import { selectedSystem } from "../../systems/selected";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import { moveFloor } from "../../temp";
-import { toggleActiveMode } from "../../tools/tools";
+import { toggleActiveMode, toolMap } from "../../tools/tools";
 
 export async function onKeyDown(event: KeyboardEvent): Promise<void> {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
@@ -92,6 +94,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                 if (delta.length() === 0) return;
 
                 await moveShapes(selection, delta, false);
+                (toolMap[ToolName.Select] as ISelectTool).resetRotationHelper();
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.
                 positionSystem.increasePan(offsetX * -1, offsetY * -1);

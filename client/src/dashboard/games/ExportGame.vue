@@ -1,17 +1,27 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
+import { baseAdjust } from "../../core/http";
 import { socket } from "../socket";
 
 const messages = ref<string[]>([]);
+const downloadUrl = ref<string | null>(null);
 
 socket.on("Campaign.Export.Status", (status: string) => messages.value.unshift(status));
+
+socket.on("Campaign.Export.Done", (filename: string) => {
+    downloadUrl.value = baseAdjust(`/static/temp/${filename}.pac`);
+});
 </script>
 
 <template>
     <div id="content">
         <div class="title">Exporting campaign</div>
         <div>This is an experimental feature! If you discover any problems let me know :)</div>
+        <div v-if="downloadUrl" class="complete">
+            The export is complete! If you did not get a download prompt, you can find your file here:
+            <a :href="downloadUrl">{{ downloadUrl }}</a>
+        </div>
         <div class="entry subtitle">Export Status</div>
         <div>
             Here you can see the progress of your export. Currently it's recommended to leave this page open until the
@@ -44,6 +54,11 @@ socket.on("Campaign.Export.Status", (status: string) => messages.value.unshift(s
     border-radius: 20px;
     padding: 3.75rem;
     padding-right: 2rem; // adjust for scroll bar
+
+    .complete {
+        margin-top: 2rem;
+        font-size: 1.5em;
+    }
 
     .title {
         display: flex;

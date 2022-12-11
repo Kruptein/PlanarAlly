@@ -44,6 +44,9 @@ function sum(data: readonly number[]): number {
                             <div v-if="result[1].type === 'dice'">
                                 <div class="input">{{ result[1].input }}</div>
                                 <div class="value">{{ sum(result[1].output) }}</div>
+                                <div class="details">
+                                    <div v-for="res of result[1].output" :key="res">{{ res }}</div>
+                                </div>
                             </div>
                             <div v-else-if="result[1].type === 'op'">
                                 {{ result[1].value }}
@@ -94,7 +97,7 @@ function sum(data: readonly number[]): number {
     #breakdown {
         display: flex;
         flex-wrap: wrap;
-        align-items: center;
+        // align-items: center;
         max-width: 25vw;
         font-size: 20px;
         > div {
@@ -110,6 +113,23 @@ function sum(data: readonly number[]): number {
         }
         .value {
             font-weight: bold;
+        }
+
+        .details {
+            display: flex;
+            font-size: 0.8em;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+            font-style: italic;
+            justify-content: center;
+
+            > div::after {
+                content: ",";
+            }
+
+            > div:last-child::after {
+                content: "";
+            }
         }
     }
 }

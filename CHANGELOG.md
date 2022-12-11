@@ -20,6 +20,7 @@ tech changes will usually be stripped from release notes for the public
     -   Export now redirects to a separate page
     -   Both Import and Export now have a status prompt, giving more clarity that things are happening
     -   New game now offers a selection between an empty campaign or importing a campaign
+-   Individual die results are now also shown
 -   [DM] Players section in the left in-game dm sidebar
     -   Lists players connected to the session
     -   Clicking on a name, centers your screen on their current view (if on the same location)

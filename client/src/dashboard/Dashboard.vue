@@ -1,10 +1,14 @@
 <script setup lang="ts">
+import { onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import { getStaticImg } from "../core/http";
+import { coreStore } from "../store/core";
 
 const route = useRoute();
 const router = useRouter();
+
+const hasGameboard = coreStore.state.boardId !== undefined;
 
 type Section = { nav: string; routerPath: string; routerName?: string };
 const sections: Section[] = [
@@ -32,7 +36,13 @@ async function activate(section: Section): Promise<void> {
     await router.push({ name: section.routerName ?? section.routerPath });
 }
 
-const backgroundImage = `url(${getStaticImg("background-borderless.png")})`;
+onMounted(() => {
+    window.Gameboard?.setDrawerVisibility(true);
+});
+
+const image = hasGameboard ? "background.png" : "background-borderless.png";
+const backgroundImage = `url(${getStaticImg(image)})`;
+const ip = window.Gameboard?.getIpAddress() ?? "localhost";
 
 async function logout(): Promise<void> {
     await router.push("/auth/logout");
@@ -42,7 +52,7 @@ async function logout(): Promise<void> {
 <template>
     <div style="width: 100%">
         <div id="background" :style="{ backgroundImage }"></div>
-        <main>
+        <main :class="{ 'has-gameboard': hasGameboard === true }">
             <section id="sidebar">
                 <img id="icon" :src="getStaticImg('pa_game_icon.png')" alt="PlanarAlly logo" />
                 <nav>
@@ -56,6 +66,20 @@ async function logout(): Promise<void> {
                         </div>
                     </template>
                     <div style="flex-grow: 1; height: 10.4rem"></div>
+                    <template v-if="hasGameboard">
+                        <div class="nav-data">
+                            <span>LAN:</span>
+                            <span>{{ ip }}</span>
+                        </div>
+                        <div class="nav-data">
+                            <span>PORT(S):</span>
+                            <span>8008</span>
+                        </div>
+                        <div class="nav-data">
+                            <span>BOARD ID</span>
+                            <span>{{ coreStore.state.boardId }}</span>
+                        </div>
+                    </template>
                     <button @click="logout">
                         <img :src="getStaticImg('cross.svg')" alt="Cross" />
                         LOG OUT
@@ -90,6 +114,10 @@ main {
     padding: $margin;
     border-radius: 40px;
 
+    &.has-gameboard {
+        height: calc(120em - 2 * $margin);
+    }
+
     #sidebar {
         width: 16.25rem;
         margin-right: calc(2 * $margin);
@@ -110,7 +138,7 @@ main {
 
             .nav-item {
                 color: white;
-                font-size: 1.5rem;
+                font-size: 1.5em;
                 margin-bottom: 1.875rem;
                 font-weight: bold;
                 border-bottom: 5px solid transparent;
@@ -129,7 +157,7 @@ main {
                 margin-bottom: 0.3rem;
                 display: flex;
                 align-items: center;
-                font-size: 1.125rem;
+                font-size: 1.125em;
                 line-height: 1.75rem;
 
                 > span:first-child {
@@ -143,7 +171,7 @@ main {
                 width: 100%;
                 height: 2.5rem;
                 color: white;
-                font-size: 1.125rem;
+                font-size: 1.125em;
                 background-color: rgba(137, 0, 37, 1);
                 border: 3px solid rgba(219, 0, 59, 1);
                 border-radius: 5px;

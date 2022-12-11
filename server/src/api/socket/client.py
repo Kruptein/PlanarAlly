@@ -153,6 +153,26 @@ async def set_layer(sid: str, data: Dict[str, Any]):
         luo.save()
 
 
+@sio.on("Client.Gameboard.Set", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def set_gameboard(sid: str, board_id: str):
+    pr = game_state.get(sid)
+
+    game_state.client_gameboards[sid] = board_id
+
+    for psid, ppr in game_state.get_t(skip_sid=sid, room=pr.room):
+        if ppr.role == Role.DM:
+            await sio.emit(
+                "Client.Gameboard.Set",
+                {
+                    "client": sid,
+                    "boardId": board_id,
+                },
+                room=psid,
+                namespace=GAME_NS,
+            )
+
+
 @sio.on("Client.Offset.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def set_offset(sid: str, data: OffsetMessage):

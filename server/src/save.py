@@ -408,7 +408,7 @@ def upgrade_save(db: Optional[SqliteExtDatabase] = None, *, is_import=False):
         except Exception as e:
             logger.exception(e)
             if is_import:
-                logger.error("ERROR: Failed to upgrade iport save")
+                logger.error("ERROR: Failed to upgrade import save")
             else:
                 logger.error("ERROR: Could not start server")
                 sys.exit(2)

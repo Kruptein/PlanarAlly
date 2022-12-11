@@ -59,7 +59,6 @@ export async function mouseMove(event: MouseEvent): Promise<void> {
     if ((event.target as HTMLElement).tagName !== "CANVAS") return;
 
     let targetTool = activeTool.value;
-    // force targetTool to pan if hitting mouse wheel
     // if ((event.buttons & 4) !== 0 || (event.buttons & 2) !== 0) {
     if (isPanModeButtons(event.buttons)) {
         targetTool = ToolName.Pan;

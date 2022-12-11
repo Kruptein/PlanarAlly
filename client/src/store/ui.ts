@@ -12,6 +12,8 @@ interface UiState {
 
     showDmSettings: boolean;
 
+    showLgSettings: boolean;
+
     openedLocationSettings: number;
 
     showFloorSettings: boolean;
@@ -32,6 +34,8 @@ class UiStore extends Store<UiState> {
 
             showDmSettings: false,
 
+            showLgSettings: false,
+
             openedLocationSettings: -1,
 
             showFloorSettings: false,
@@ -51,6 +55,10 @@ class UiStore extends Store<UiState> {
 
     showDmSettings(show: boolean): void {
         this._state.showDmSettings = show;
+    }
+
+    showLgSettings(show: boolean): void {
+        this._state.showLgSettings = show;
     }
 
     showLocationSettings(location: number): void {

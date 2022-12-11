@@ -1,4 +1,5 @@
 import { gameStore } from "../store/game";
+import { lastGameboardStore } from "../store/lastGameboard";
 import { locationStore } from "../store/location";
 
 import { clearIds } from "./id";
@@ -16,6 +17,7 @@ export function clearGame(partial: boolean): void {
     document.getElementById("layers")!.innerHTML = "";
     compositeState.clear();
     initiativeStore.clear();
+    lastGameboardStore.clear();
     clearSystems(partial);
     clearIds();
 }

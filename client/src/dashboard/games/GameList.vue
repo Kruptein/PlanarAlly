@@ -216,6 +216,20 @@ function exportCampaign(): void {
 </template>
 
 <style scoped lang="scss">
+.has-gameboard {
+    #content {
+        #dm,
+        #player {
+            height: min(70vh, 53.75rem);
+
+            .sessions {
+                overflow-x: hidden;
+                overflow-y: auto;
+            }
+        }
+    }
+}
+
 #content {
     display: flex;
     flex-direction: column;
@@ -241,13 +255,12 @@ function exportCampaign(): void {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 3.125rem;
+            font-size: 3.125em;
             color: white;
             border-bottom: 5px solid #ffa8bf;
             font-weight: bold;
 
             > span:last-child {
-                font-size: 2.25rem;
                 color: #ffa8bf;
 
                 &:hover {
@@ -308,7 +321,7 @@ function exportCampaign(): void {
                     .name {
                         width: 12rem;
                         font-weight: bold;
-                        font-size: 1.2rem;
+                        font-size: 1.2em;
                     }
 
                     .played {
@@ -349,7 +362,7 @@ function exportCampaign(): void {
                         border-radius: 10px;
                         color: white;
                         border: solid 3px rgb(190, 59, 64);
-                        font-size: 1.25rem;
+                        font-size: 1.25em;
                         display: flex;
                         justify-content: center;
                         align-items: center;

@@ -16,6 +16,7 @@ import type { Note } from "../../models/general";
 import { setCenterPosition } from "../../position";
 import { clientSystem } from "../../systems/client";
 import type { ClientId } from "../../systems/client/models";
+import { clientState } from "../../systems/client/state";
 import { playerState } from "../../systems/players/state";
 import { getProperties } from "../../systems/properties/state";
 import NoteDialog from "../NoteDialog.vue";
@@ -40,6 +41,8 @@ const username = toRef(coreStore.state, "username");
 const noAssets = computed(() => {
     return gameState.assets.size === 1 && (gameState.assets.get("__files") as AssetFile[]).length <= 0;
 });
+
+const hasGameboardClients = computed(() => clientState.reactive.clientBoards.size > 0);
 
 async function exit(): Promise<void> {
     clearGame(false);
@@ -102,13 +105,14 @@ function jumpToClient(client: ClientId): void {
 
 const openDmSettings = (): void => uiStore.showDmSettings(!uiStore.state.showDmSettings);
 const openClientSettings = (): void => uiStore.showClientSettings(!uiStore.state.showClientSettings);
+const openLgSettings = (): void => uiStore.showLgSettings(!uiStore.state.showLgSettings);
 </script>
 
 <template>
     <NoteDialog v-model:visible="showNote" />
     <!-- SETTINGS -->
     <div id="menu" @click="settingsClick">
-        <div style="width: 200px; overflow-y: auto; overflow-x: hidden">
+        <div style="width: 12.5rem; overflow-y: auto; overflow-x: hidden">
             <!-- ASSETS -->
             <template v-if="isDm || isFakePlayer">
                 <button class="menu-accordion">{{ t("common.assets") }}</button>
@@ -146,6 +150,10 @@ const openClientSettings = (): void => uiStore.showClientSettings(!uiStore.state
                 <!-- DM SETTINGS -->
                 <button class="menu-accordion" @click="openDmSettings">
                     {{ t("game.ui.menu.MenuBar.dm_settings") }}
+                </button>
+                <!-- GAMEBOARD SETTINGS -->
+                <button v-if="hasGameboardClients" class="menu-accordion" @click="openLgSettings">
+                    {{ t("game.ui.menu.MenuBar.gameboard_settings") }}
                 </button>
                 <!-- PLAYERS -->
                 <button class="menu-accordion">Players</button>
@@ -185,7 +193,7 @@ const openClientSettings = (): void => uiStore.showClientSettings(!uiStore.state
         <div
             @click="exit"
             class="menu-accordion"
-            style="width: 200px; box-sizing: border-box; text-decoration: none; display: inline-block"
+            style="width: 12.5rem; box-sizing: border-box; text-decoration: none; display: inline-block"
         >
             {{ t("common.exit") }}
         </div>
@@ -251,7 +259,7 @@ DIRECTORY.CSS changes
     background-color: #fa5a5a;
     overflow: auto;
     pointer-events: auto;
-    max-width: 200px;
+    max-width: 12.5rem;
 }
 
 .actionButton {
@@ -264,7 +272,7 @@ DIRECTORY.CSS changes
     background-color: #eee;
     color: #444;
     cursor: pointer;
-    padding: 18px;
+    padding: 1rem;
     text-align: left;
     border: none;
     outline: none;

@@ -9,6 +9,7 @@ interface CoreState {
     email?: string;
     version: { release: string; env: string };
     changelog: string;
+    boardId: string | undefined;
 }
 
 class CoreStore extends Store<CoreState> {
@@ -20,6 +21,7 @@ class CoreStore extends Store<CoreState> {
             loading: false,
             version: { release: "", env: "" },
             changelog: "",
+            boardId: window.Gameboard?.getBoardId(),
         };
     }
 

@@ -11,7 +11,6 @@ from ...logs import logger
 from ...models import (
     Initiative,
     PlayerRoom,
-    Shape,
 )
 from ...models.db import db
 from ...models.groups import Group

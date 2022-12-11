@@ -10,6 +10,7 @@ import { createConnection, socket } from "./api/socket";
 import { dropAsset } from "./dropAsset";
 import { onKeyDown } from "./input/keyboard/down";
 import { scrollZoom } from "./input/mouse";
+import { LgCompanion } from "./integrations/lastgameboard/companion";
 import { clearUndoStacks } from "./operations/undo";
 import { floorSystem } from "./systems/floors";
 import { playerSettingsState } from "./systems/settings/players/state";
@@ -39,6 +40,7 @@ export default defineComponent({
         setSelectionBoxFunction(modals.selectionBox);
 
         const gameState = getGameState();
+        const companion = new LgCompanion();
 
         const mediaQuery = matchMedia(`(resolution: ${devicePixelRatio}dppx)`);
         let throttledMoveSet = false;
@@ -53,12 +55,15 @@ export default defineComponent({
             }
         });
 
-        onMounted(() => {
+        onMounted(async () => {
+            window.Gameboard?.setDrawerVisibility(false);
             window.addEventListener("keyup", keyUp);
             window.addEventListener("keydown", onKeyDown);
             window.addEventListener("resize", resizeWindow);
             clearUndoStacks();
             mediaQuery.addEventListener("change", resizeWindow);
+
+            if (coreStore.state.boardId !== undefined) await companion.run();
         });
 
         onUnmounted(() => {
@@ -66,6 +71,7 @@ export default defineComponent({
             window.removeEventListener("keydown", onKeyDown);
             window.removeEventListener("resize", resizeWindow);
             mediaQuery.removeEventListener("change", resizeWindow);
+            companion.disconnect();
         });
 
         // Window events

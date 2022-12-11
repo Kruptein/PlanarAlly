@@ -163,14 +163,14 @@ workflows:
                           #   only: ci-test  # MAKE SURE TO CONDITION OR RENAME UPLOADED FILES TO GITHUB!!
                           ignore: /.*/
                       tags:
-                          only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
+                          only: /^v\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
             - build-client:
                   filters:
                       branches:
                           #   only: ci-test  # MAKE SURE TO CONDITION OR RENAME UPLOADED FILES TO GITHUB!!
                           ignore: /.*/
                       tags:
-                          only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
+                          only: /^v\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
             - release-server:
                   requires:
                       - build-client
@@ -179,4 +179,4 @@ workflows:
                           #   only: ci-test  # MAKE SURE TO CONDITION OR RENAME UPLOADED FILES TO GITHUB!!
                           ignore: /.*/
                       tags:
-                          only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
+                          only: /^v\d+\.\d+\.\d+[-a-zA-Z0-9]*$/

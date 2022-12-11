@@ -9,6 +9,8 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+## [2022.3.0] - 2022-12-12
+
 ### Added
 
 -   Pan with right-click drag

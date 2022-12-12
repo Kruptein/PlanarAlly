@@ -109,22 +109,20 @@ function select(event: MouseEvent, inode: number): void {
 .modal-body {
     max-width: 30vw;
     padding: 10px;
+    padding-top: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
 #assets {
-    max-height: 50vh;
+    display: flex;
+    height: 40vh;
     width: 30vw;
     flex-grow: 1;
     background-color: white;
-    border: solid 1px black;
-    margin: 10px;
     position: relative;
     padding-top: 45px;
-    padding-bottom: 45px;
-    box-shadow: 3px 3px gray;
 
     #breadcrumbs {
         position: absolute;
@@ -178,6 +176,7 @@ function select(event: MouseEvent, inode: number): void {
         left: 0;
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+        grid-auto-rows: 105px;
         max-width: 100%;
         max-height: 54vh;
         overflow: auto;

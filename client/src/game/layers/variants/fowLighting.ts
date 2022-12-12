@@ -1,19 +1,21 @@
-import { g2l, g2lz, getUnitDistance, g2lr, g2lx, g2ly, toRadians } from "../../../core/conversions";
+import { g2l, g2lz, g2lr, toRadians } from "../../../core/conversions";
 import type { SyncMode, InvalidationMode } from "../../../core/models/types";
-import { floorStore } from "../../../store/floor";
-import { gameStore } from "../../../store/game";
-import { settingsStore } from "../../../store/settings";
-import { getFogColour } from "../../colour";
+import { coreStore } from "../../../store/core";
+import { FOG_COLOUR } from "../../colour";
 import { getShape } from "../../id";
+import type { LocalId } from "../../id";
+import type { IShape } from "../../interfaces/shape";
 import { LayerName } from "../../models/floor";
-import type { IShape } from "../../shapes/interfaces";
-import { Circle } from "../../shapes/variants/circle";
-import { accessSystem } from "../../systems/access";
+import { accessState } from "../../systems/access/state";
 import { auraSystem } from "../../systems/auras";
-import { TriangulationTarget, visionState } from "../../vision/state";
-import { computeVisibility } from "../../vision/te";
+import { floorSystem } from "../../systems/floors";
+import { floorState } from "../../systems/floors/state";
+import { locationSettingsState } from "../../systems/settings/location/state";
+import { visionState } from "../../vision/state";
 
 import { FowLayer } from "./fow";
+
+const hasGameboard = coreStore.state.boardId !== undefined;
 
 export class FowLightingLayer extends FowLayer {
     addShape(shape: IShape, sync: SyncMode, invalidate: InvalidationMode): void {
@@ -37,68 +39,85 @@ export class FowLightingLayer extends FowLayer {
         if (!this.valid) {
             const originalOperation = this.ctx.globalCompositeOperation;
             super._draw();
+            this.isEmpty = true;
+
+            const activeFloor = floorState.currentFloor.value!;
 
             // At all times provide a minimal vision range to prevent losing your tokens in fog.
             if (
-                settingsStore.fullFow.value &&
-                floorStore.hasLayer(floorStore.currentFloor.value!, LayerName.Tokens) &&
-                floorStore.currentFloor.value!.id === this.floor
+                locationSettingsState.raw.fullFow.value &&
+                floorSystem.hasLayer(activeFloor, LayerName.Tokens) &&
+                activeFloor.id === this.floor
             ) {
-                for (const sh of gameStore.activeTokens.value) {
-                    const shape = getShape(sh)!;
+                for (const sh of accessState.activeTokens.value) {
+                    const shape = getShape(sh);
+                    if (shape === undefined) continue;
                     if (shape.options.skipDraw ?? false) continue;
-                    if (shape.floor.id !== floorStore.currentFloor.value!.id) continue;
+                    if (shape.floor.id !== activeFloor.id) continue;
                     const bb = shape.getBoundingBox();
-                    const lcenter = g2l(shape.center());
+                    const lcenter = g2l(shape.center);
                     const alm = 0.8 * g2lz(bb.w);
                     this.ctx.beginPath();
                     this.ctx.arc(lcenter.x, lcenter.y, alm, 0, 2 * Math.PI);
-                    const gradient = this.ctx.createRadialGradient(
-                        lcenter.x,
-                        lcenter.y,
-                        alm / 2,
-                        lcenter.x,
-                        lcenter.y,
-                        alm,
-                    );
-                    gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
-                    gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
-                    this.ctx.fillStyle = gradient;
+
+                    if (hasGameboard) {
+                        this.ctx.fillStyle = "rgba(0, 0, 0, 1)";
+                    } else {
+                        const gradient = this.ctx.createRadialGradient(
+                            lcenter.x,
+                            lcenter.y,
+                            alm / 2,
+                            lcenter.x,
+                            lcenter.y,
+                            alm,
+                        );
+                        gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
+                        gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+                        this.ctx.fillStyle = gradient;
+                    }
                     this.ctx.fill();
+
+                    // Out of Bounds check
+                    if (
+                        // It's overkill to check this if fowLos is set
+                        !locationSettingsState.raw.fowLos.value &&
+                        bb.visibleInCanvas({ w: this.width, h: this.height })
+                    ) {
+                        this.isEmpty = false;
+                    }
                 }
             }
 
             // First cut out all the light sources
-            if (settingsStore.fullFow.value) {
-                for (const light of visionState.getVisionSources(this.floor)) {
+            if (locationSettingsState.raw.fullFow.value) {
+                const shapesBoundChecked: Set<LocalId> = new Set();
+                for (const light of visionState.getVisionSourcesInView(this.floor)) {
                     const shape = getShape(light.shape);
                     if (shape === undefined) continue;
                     const aura = auraSystem.get(shape.id, light.aura, true);
                     if (aura === undefined) continue;
 
-                    if (!accessSystem.hasAccessTo(light.shape, true, { vision: true }) && !aura.visible) continue;
+                    // Out of Bounds check
+                    if (!locationSettingsState.raw.fowLos.value) {
+                        if (!shapesBoundChecked.has(shape.id)) {
+                            shapesBoundChecked.add(shape.id);
+                            if (shape._visionBbox?.visibleInCanvas({ w: this.width, h: this.height }) ?? false) {
+                                this.isEmpty = false;
+                            }
+                        }
+                    }
 
                     const auraValue = aura.value > 0 && !isNaN(aura.value) ? aura.value : 0;
                     const auraDim = aura.dim > 0 && !isNaN(aura.dim) ? aura.dim : 0;
 
-                    const auraLength = getUnitDistance(auraValue + auraDim);
-                    const center = shape.center();
+                    const center = shape.center;
                     const lcenter = g2l(center);
                     const innerRange = g2lr(auraValue + auraDim);
 
-                    const auraCircle = new Circle(center, auraLength);
-                    if (!auraCircle.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: true }))
-                        continue;
-
                     this.vCtx.globalCompositeOperation = "source-over";
                     this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
-                    const polygon = computeVisibility(center, TriangulationTarget.VISION, shape.floor.id);
-                    this.vCtx.beginPath();
-                    this.vCtx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
-                    for (const point of polygon) this.vCtx.lineTo(g2lx(point[0]), g2ly(point[1]));
-                    this.vCtx.closePath();
-                    this.vCtx.fill();
-                    if (auraDim > 0) {
+                    this.vCtx.fill(shape.visionPolygon);
+                    if (auraDim > 0 && !hasGameboard) {
                         // Fill the light aura with a radial dropoff towards the outside.
                         const gradient = this.vCtx.createRadialGradient(
                             lcenter.x,
@@ -111,8 +130,6 @@ export class FowLightingLayer extends FowLayer {
                         gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
                         gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
                         this.vCtx.fillStyle = gradient;
-                    } else {
-                        this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
                     }
                     this.vCtx.globalCompositeOperation = "source-in";
                     this.vCtx.beginPath();
@@ -137,11 +154,10 @@ export class FowLightingLayer extends FowLayer {
                 }
             }
 
-            const activeFloor = floorStore.currentFloor.value!.id;
-            if (settingsStore.fowLos.value && this.floor === activeFloor) {
+            if (locationSettingsState.raw.fowLos.value && this.floor === activeFloor.id) {
                 this.ctx.globalCompositeOperation = "source-in";
                 this.ctx.drawImage(
-                    floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Vision)!.canvas,
+                    floorSystem.getLayer(activeFloor, LayerName.Vision)!.canvas,
                     0,
                     0,
                     window.innerWidth,
@@ -152,7 +168,7 @@ export class FowLightingLayer extends FowLayer {
             for (const preShape of this.preFogShapes) {
                 if (!preShape.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: true })) continue;
                 const ogComposite = preShape.globalCompositeOperation;
-                if (!settingsStore.fullFow.value) {
+                if (!locationSettingsState.raw.fullFow.value) {
                     if (preShape.globalCompositeOperation === "source-over")
                         preShape.globalCompositeOperation = "destination-out";
                     else if (preShape.globalCompositeOperation === "destination-out")
@@ -160,11 +176,12 @@ export class FowLightingLayer extends FowLayer {
                 }
                 preShape.draw(this.ctx);
                 preShape.globalCompositeOperation = ogComposite;
+                this.isEmpty = false;
             }
 
-            if (settingsStore.fullFow.value && this.floor === activeFloor) {
+            if (locationSettingsState.raw.fullFow.value && this.floor === activeFloor.id) {
                 this.ctx.globalCompositeOperation = "source-out";
-                this.ctx.fillStyle = getFogColour();
+                this.ctx.fillStyle = FOG_COLOUR;
                 this.ctx.fillRect(0, 0, this.width, this.height);
             }
 

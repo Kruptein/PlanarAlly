@@ -3,80 +3,93 @@ import { computed, ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 import draggable from "vuedraggable";
 
+import { baseAdjust } from "../../core/http";
 import { useModal } from "../../core/plugins/modals/plugin";
-import { floorStore } from "../../store/floor";
-import { gameStore } from "../../store/game";
+import { getGameState } from "../../store/_game";
 import { uiStore } from "../../store/ui";
 import { sendCreateFloor } from "../api/emits/floor";
-import type { Floor } from "../models/floor";
+import type { Floor, FloorIndex } from "../models/floor";
+import { floorSystem } from "../systems/floors";
+import { floorState } from "../systems/floors/state";
+import { playerSettingsState } from "../systems/settings/players/state";
 
 import { layerTranslationMapping } from "./translations";
 
 const { t } = useI18n();
 const modals = useModal();
 
-const floorState = floorStore.state;
-const isDm = toRef(gameStore.state, "isDm");
+const isDm = toRef(getGameState(), "isDm");
 
-const selectFloor = floorStore.selectFloor.bind(floorStore);
-const selectLayer = floorStore.selectLayer.bind(floorStore);
+const selectFloor = floorSystem.selectFloor.bind(floorSystem);
+const selectLayer = floorSystem.selectLayer.bind(floorSystem);
 const openSettings = uiStore.showFloorSettings.bind(uiStore);
 
-const visible = computed(() => floorState.floors.length > 1 || isDm.value);
+const visible = computed(() => floorState.reactive.floors.length > 1 || isDm.value);
 const detailsOpen = ref(false);
+
+function getStaticFloorImg(img: string): string {
+    return baseAdjust(`/static/img/floors/${img}`);
+}
 
 // FLOORS
 
-const floorIndex = toRef(floorState, "floorIndex");
+const floorIndex = toRef(floorState.reactive, "floorIndex");
 
 const floors = computed({
     get() {
-        return [...floorState.floors]
+        return [...floorState.reactive.floors]
             .reverse()
             .filter((f) => f.playerVisible || isDm.value)
-            .map((f) => ({ reverseIndex: floorStore.getFloorIndex({ id: f.id })!, floor: f }));
+            .map((f) => ({ reverseIndex: floorSystem.getFloorIndex({ id: f.id })!, floor: f }));
     },
     set(floors: { reverseIndex: number; floor: Floor }[]) {
-        floorStore.reorderFloors(floors.map((f) => f.floor.name).reverse(), true);
+        floorSystem.reorderFloors(floors.map((f) => f.floor.name).reverse(), true);
     },
 });
 
 async function addFloor(): Promise<void> {
     const value = await modals.prompt(t("game.ui.FloorSelect.new_name"), t("game.ui.FloorSelect.creation"), (value) => {
-        if (floorState.floors.some((f) => f.name === value)) {
+        if (floorState.raw.floors.some((f) => f.name === value)) {
             return { valid: false, reason: "This name is already in use!" };
         }
         return { valid: true };
     });
-    if (value === undefined || floorStore.getFloor({ name: value }) !== undefined) return;
+    if (value === undefined || floorSystem.getFloor({ name: value }) !== undefined) return;
     sendCreateFloor(value);
 }
 
 function toggleVisible(floor: Floor): void {
-    floorStore.setFloorPlayerVisible({ id: floor.id }, !floor.playerVisible, true);
+    floorSystem.setFloorPlayerVisible({ id: floor.id }, !floor.playerVisible, true);
 }
 
 // LAYERS
 
 const layers = computed(() => {
-    if (!gameStore.state.boardInitialized) return [];
-    return floorStore
-        .getLayers(floorStore.currentFloor.value!)
+    if (!getGameState().boardInitialized) return [];
+    return floorSystem
+        .getLayers(floorState.currentFloor.value!)
         .filter((l) => l.selectable && (isDm.value || l.playerEditable))
         .map((l) => l.name);
 });
 
-const selectedLayer = computed(() => floorStore.getLayers(floorStore.currentFloor.value!)[floorState.layerIndex].name);
+const selectedLayer = computed(
+    () => floorSystem.getLayers(floorState.currentFloor.value!)[floorState.reactive.layerIndex].name,
+);
 </script>
 
 <template>
     <div id="floor-layer">
-        <div id="floor-selector" @click="detailsOpen = !detailsOpen" v-if="visible">
-            <a href="#">{{ floorIndex }}</a>
+        <div id="floor-selector" @click="detailsOpen = !detailsOpen" v-if="visible" title="Floor selection">
+            <a href="#">
+                <template v-if="playerSettingsState.reactive.useToolIcons.value">
+                    <img :src="getStaticFloorImg('floors.svg')" alt="Floor Selection" />
+                </template>
+                <template v-else>{{ floorIndex }}</template>
+            </a>
         </div>
         <div id="floor-detail" v-if="detailsOpen">
             <draggable v-model="floors" :disabled="!isDm" item-key="reverseIndex">
-                <template #item="{ element: f }">
+                <template #item="{ element: f }: { element: { floor: Floor, reverseIndex: FloorIndex } }">
                     <div class="floor-row" @click="selectFloor({ name: f.floor.name }, true)">
                         <div
                             class="floor-index"
@@ -106,9 +119,17 @@ const selectedLayer = computed(() => floorStore.getLayers(floorStore.currentFloo
                 class="layer"
                 :key="layer"
                 :class="{ 'layer-selected': layer === selectedLayer }"
-                @mousedown="selectLayer(layer)"
+                @click="selectLayer(layer)"
             >
-                <a href="#">{{ layerTranslationMapping[layer] }}</a>
+                <a href="#" :title="layerTranslationMapping[layer]">
+                    <template v-if="playerSettingsState.reactive.useToolIcons.value">
+                        <img
+                            :src="getStaticFloorImg(`${layer.toLowerCase()}.svg`)"
+                            :alt="layerTranslationMapping[layer]"
+                        />
+                    </template>
+                    <template v-else>{{ layerTranslationMapping[layer] }}</template>
+                </a>
             </div>
         </div>
     </div>
@@ -119,8 +140,8 @@ const selectedLayer = computed(() => floorStore.getLayers(floorStore.currentFloo
     grid-area: layer;
     display: flex;
     list-style: none;
-    margin-left: 25px;
-    margin-bottom: 25px;
+    margin-left: 1.5rem;
+    margin-bottom: 1.5rem;
     -webkit-user-drag: none !important;
 
     * {
@@ -129,7 +150,7 @@ const selectedLayer = computed(() => floorStore.getLayers(floorStore.currentFloo
 }
 
 #floor-selector {
-    margin-right: 50px;
+    margin-right: 3.125rem;
     border-radius: 4px;
 }
 
@@ -147,9 +168,16 @@ const selectedLayer = computed(() => floorStore.getLayers(floorStore.currentFloo
 }
 
 a {
-    padding: 10px;
+    padding: 0.625rem;
     text-decoration: none;
-    display: inline-block;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    > img {
+        height: 2.5rem;
+        width: 2.5rem;
+    }
 }
 
 .layer {
@@ -168,24 +196,24 @@ a {
 #floor-detail {
     pointer-events: auto;
     position: absolute;
-    left: 25px;
-    bottom: 80px;
+    left: 1.5rem;
+    bottom: 6.25rem;
     border: solid 1px #2b2b2b;
     background-color: white;
-    padding: 10px;
+    padding: 0.625rem;
 
     &:after {
         content: "";
         position: absolute;
-        left: 15px;
+        left: 1.75rem;
         bottom: 0;
         width: 0;
         height: 0;
         border: 14px solid transparent;
         border-top-color: black;
         border-bottom: 0;
-        margin-left: -14px;
-        margin-bottom: -14px;
+        margin-left: -0.875rem;
+        margin-bottom: -0.875rem;
     }
 
     input {
@@ -213,7 +241,7 @@ a {
 
 .floor-index {
     grid-column-start: 1;
-    padding-right: 5px;
+    padding-right: 0.3rem;
     border-right: 1px solid black;
     justify-self: end;
     /* width: 25px; */
@@ -231,7 +259,7 @@ a {
 }
 
 .floor-name {
-    padding: 0 10px;
+    padding: 0 0.625rem;
     flex-grow: 2;
 }
 

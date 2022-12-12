@@ -2,7 +2,7 @@ import { reactive, watchEffect } from "vue";
 import type { DeepReadonly } from "vue";
 
 import { registerSystem } from "..";
-import type { System } from "..";
+import type { ShapeSystem } from "..";
 import type { Sync } from "../../../core/models/types";
 import { activeShapeStore } from "../../../store/activeShape";
 import { getGlobalId, getShape } from "../../id";
@@ -21,7 +21,7 @@ interface TrackerState {
     parentTrackers: UiTracker[];
 }
 
-class TrackerSystem implements System {
+class TrackerSystem implements ShapeSystem {
     private data: Map<LocalId, Tracker[]> = new Map();
 
     // REACTIVE STATE
@@ -112,7 +112,7 @@ class TrackerSystem implements System {
 
         this.getOrCreate(id).push(tracker);
 
-        if (id === this._state.id) this.updateTrackerState();
+        if (id === this._state.id || id === this._state.parentId) this.updateTrackerState();
 
         if (tracker.draw) getShape(id)?.invalidate(false);
     }
@@ -135,7 +135,7 @@ class TrackerSystem implements System {
 
         Object.assign(tracker, delta);
 
-        if (id === this._state.id) this.updateTrackerState();
+        if (id === this._state.id || id === this._state.parentId) this.updateTrackerState();
 
         if (tracker.draw || oldDrawTracker) getShape(id)?.invalidate(false);
     }
@@ -147,14 +147,14 @@ class TrackerSystem implements System {
 
         this.data.set(id, this.data.get(id)?.filter((tr) => tr.uuid !== trackerId) ?? []);
 
-        if (id === this._state.id) this.updateTrackerState();
+        if (id === this._state.id || id === this._state.parentId) this.updateTrackerState();
 
         if (oldTracker?.draw === true) getShape(id)?.invalidate(false);
     }
 }
 
 export const trackerSystem = new TrackerSystem();
-registerSystem("trackers", trackerSystem);
+registerSystem("trackers", trackerSystem, true);
 
 // Tracker System state is active whenever a shape is selected due to the quick selection info
 

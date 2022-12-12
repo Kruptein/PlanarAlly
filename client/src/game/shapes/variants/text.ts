@@ -7,10 +7,12 @@ import { sendTextUpdate } from "../../api/emits/shape/text";
 import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import type { ServerText } from "../../models/shapes";
+import { getProperties } from "../../systems/properties/state";
+import type { ShapeProperties } from "../../systems/properties/state";
 import { Shape } from "../shape";
 import type { SHAPE_TYPE } from "../types";
 
-import { BoundingRect } from "./boundingRect";
+import { BoundingRect } from "./simple/boundingRect";
 
 export class Text extends Shape {
     type: SHAPE_TYPE = "text";
@@ -23,14 +25,14 @@ export class Text extends Shape {
         public text: string,
         public fontSize: number,
         options?: {
-            fillColour?: string;
-            strokeColour?: string[];
             id?: LocalId;
             uuid?: GlobalId;
             isSnappable?: boolean;
         },
+        properties?: Partial<ShapeProperties>,
     ) {
-        super(position, options);
+        super(position, options, properties);
+        this._center = this.__center();
     }
 
     get isClosed(): boolean {
@@ -47,6 +49,7 @@ export class Text extends Shape {
 
     invalidatePoints(): void {
         this._points = this.getBoundingBox().points;
+        super.invalidatePoints();
     }
 
     getBoundingBox(): BoundingRect {
@@ -63,9 +66,10 @@ export class Text extends Shape {
         super.draw(ctx);
 
         const size = this.ignoreZoomSize ? this.fontSize : g2lz(this.fontSize);
+        const props = getProperties(this.id)!;
 
         ctx.font = `${size}px serif`;
-        ctx.fillStyle = this.fillColour;
+        ctx.fillStyle = props.fillColour;
         ctx.textAlign = "center";
 
         this.width = 0;
@@ -76,8 +80,8 @@ export class Text extends Shape {
             if (textInfo.width > this.width) this.width = textInfo.width;
             this.height += textInfo.actualBoundingBoxAscent + textInfo.actualBoundingBoxDescent;
 
-            if (this.strokeColour[0] !== "rgba(0,0,0,0)") {
-                ctx.strokeStyle = this.strokeColour[0];
+            if (props.strokeColour[0] !== "rgba(0,0,0,0)") {
+                ctx.strokeStyle = props.strokeColour[0];
                 ctx.strokeText(line.text, line.x, line.y);
             }
             ctx.fillText(line.text, line.x, line.y);
@@ -95,10 +99,15 @@ export class Text extends Shape {
         return this.getBoundingBox().contains(point);
     }
 
-    center(): GlobalPoint;
-    center(centerPoint: GlobalPoint): void;
-    center(centerPoint?: GlobalPoint): GlobalPoint | void {
-        if (centerPoint === undefined) return this.refPoint;
+    __center(): GlobalPoint {
+        return this._refPoint;
+    }
+
+    get center(): GlobalPoint {
+        return this._center;
+    }
+
+    set center(centerPoint: GlobalPoint) {
         this.refPoint = centerPoint;
     }
 
@@ -115,7 +124,7 @@ export class Text extends Shape {
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     resize(resizePoint: number, point: GlobalPoint): number {
-        point = rotateAroundPoint(point, this.center(), -this.angle);
+        point = rotateAroundPoint(point, this.center, -this.angle);
 
         const oldPoints = this.points;
 

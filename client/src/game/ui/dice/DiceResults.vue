@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import Modal from "../../../core/components/modals/Modal.vue";
@@ -6,8 +7,14 @@ import { diceStore } from "../../dice/state";
 
 const { t } = useI18n();
 
+const results = computed(() => {
+    const key = diceStore.state.showKey;
+    if (key === undefined) return { total: 0, details: [] };
+    return diceStore.state.results.get(key)?.results[0] ?? { total: 0, details: [] };
+});
+
 function close(): void {
-    diceStore.setShowDiceResults(false);
+    diceStore.setShowDiceResults(undefined);
 }
 
 function sum(data: readonly number[]): number {
@@ -16,7 +23,7 @@ function sum(data: readonly number[]): number {
 </script>
 
 <template>
-    <Modal :visible="diceStore.state.showUi" @close="close" :mask="false">
+    <Modal :visible="diceStore.state.showKey !== undefined" @close="close" :mask="false">
         <template v-slot:header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 <div>Dice Results</div>
@@ -30,13 +37,16 @@ function sum(data: readonly number[]): number {
                 <template v-if="diceStore.state.pending">
                     <div id="total">...</div>
                 </template>
-                <template v-else-if="diceStore.state.results.length > 0">
-                    <div id="total">{{ diceStore.state.results[0].total }}</div>
+                <template v-else-if="diceStore.state.results.size > 0">
+                    <div id="total">{{ results.total }}</div>
                     <div id="breakdown">
-                        <template v-for="result of diceStore.state.results[0].details.entries()" :key="result[0]">
+                        <template v-for="result of results.details.entries()" :key="result[0]">
                             <div v-if="result[1].type === 'dice'">
                                 <div class="input">{{ result[1].input }}</div>
                                 <div class="value">{{ sum(result[1].output) }}</div>
+                                <div class="details">
+                                    <div v-for="res of result[1].output" :key="res">{{ res }}</div>
+                                </div>
                             </div>
                             <div v-else-if="result[1].type === 'op'">
                                 {{ result[1].value }}
@@ -87,7 +97,7 @@ function sum(data: readonly number[]): number {
     #breakdown {
         display: flex;
         flex-wrap: wrap;
-        align-items: center;
+        // align-items: center;
         max-width: 25vw;
         font-size: 20px;
         > div {
@@ -103,6 +113,23 @@ function sum(data: readonly number[]): number {
         }
         .value {
             font-weight: bold;
+        }
+
+        .details {
+            display: flex;
+            font-size: 0.8em;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+            font-style: italic;
+            justify-content: center;
+
+            > div::after {
+                content: ",";
+            }
+
+            > div:last-child::after {
+                content: "";
+            }
         }
     }
 }

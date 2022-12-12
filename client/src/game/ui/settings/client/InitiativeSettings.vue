@@ -1,47 +1,44 @@
 <script setup lang="ts">
-import { computed, toRef } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { clientStore } from "../../../../store/client";
 import { InitiativeEffectMode } from "../../../models/initiative";
-import type { UserOptions } from "../../../models/settings";
+import { playerSettingsSystem } from "../../../systems/settings/players";
+import { playerSettingsState } from "../../../systems/settings/players/state";
 
 const { t } = useI18n();
 
-const effectVisibilityOptions = Object.values(InitiativeEffectMode);
+const { reactive: $ } = playerSettingsState;
+const pss = playerSettingsSystem;
 
-const defaultOptions = toRef(clientStore.state, "defaultClientOptions");
+const effectVisibilityOptions = Object.values(InitiativeEffectMode);
 
 const cameraLock = computed({
     get() {
-        return clientStore.state.initiativeCameraLock;
+        return $.initiativeCameraLock.value;
     },
-    set(cameraLock: boolean) {
-        clientStore.setInitiativeCameraLock(cameraLock, true);
+    set(cameraLock: boolean | undefined) {
+        pss.setInitiativeCameraLock(cameraLock, { sync: true });
     },
 });
 
 const visionLock = computed({
     get() {
-        return clientStore.state.initiativeVisionLock;
+        return $.initiativeVisionLock.value;
     },
-    set(visionLock: boolean) {
-        clientStore.setInitiativeVisionLock(visionLock, true);
+    set(visionLock: boolean | undefined) {
+        pss.setInitiativeVisionLock(visionLock, { sync: true });
     },
 });
 
 const effectVisibility = computed({
     get() {
-        return clientStore.state.initiativeEffectVisibility;
+        return $.initiativeEffectVisibility.value;
     },
-    set(effectVisibility: InitiativeEffectMode) {
-        clientStore.setInitiativeEffectVisibility(effectVisibility, true);
+    set(effectVisibility: InitiativeEffectMode | undefined) {
+        pss.setInitiativeEffectVisibility(effectVisibility, { sync: true });
     },
 });
-
-function setDefault(key: keyof UserOptions): void {
-    clientStore.setDefaultClientOption(key, clientStore.state[key], true);
-}
 
 function setEffectVisibility(event: Event): void {
     effectVisibility.value = (event.target as HTMLSelectElement).value as InitiativeEffectMode;
@@ -53,14 +50,16 @@ function setEffectVisibility(event: Event): void {
         <div class="row">
             <label for="cameraLock">{{ t("game.ui.settings.client.InitiativeSettings.camera_lock") }}</label>
             <div><input id="cameraLock" type="checkbox" v-model="cameraLock" /></div>
-            <template v-if="cameraLock !== defaultOptions.initiativeCameraLock">
-                <div
-                    :title="t('game.ui.settings.common.reset_default')"
-                    @click="cameraLock = defaultOptions.initiativeCameraLock"
-                >
+            <template v-if="$.initiativeCameraLock.override !== undefined">
+                <div :title="t('game.ui.settings.common.reset_default')" @click="cameraLock = undefined">
                     <font-awesome-icon icon="times-circle" />
                 </div>
-                <div :title="t('game.ui.settings.common.sync_default')" @click="setDefault('initiativeCameraLock')">
+                <div
+                    :title="t('game.ui.settings.common.sync_default')"
+                    @click="
+                        pss.setInitiativeCameraLock(undefined, { sync: true, default: $.initiativeCameraLock.override })
+                    "
+                >
                     <font-awesome-icon icon="sync-alt" />
                 </div>
             </template>
@@ -68,14 +67,16 @@ function setEffectVisibility(event: Event): void {
         <div class="row">
             <label for="visionLock">{{ t("game.ui.settings.client.InitiativeSettings.vision_lock") }}</label>
             <div><input id="visionLock" type="checkbox" v-model="visionLock" /></div>
-            <template v-if="visionLock !== defaultOptions.initiativeVisionLock">
-                <div
-                    :title="t('game.ui.settings.common.reset_default')"
-                    @click="visionLock = defaultOptions.initiativeVisionLock"
-                >
+            <template v-if="$.initiativeVisionLock.override !== undefined">
+                <div :title="t('game.ui.settings.common.reset_default')" @click="visionLock = undefined">
                     <font-awesome-icon icon="times-circle" />
                 </div>
-                <div :title="t('game.ui.settings.common.sync_default')" @click="setDefault('initiativeVisionLock')">
+                <div
+                    :title="t('game.ui.settings.common.sync_default')"
+                    @click="
+                        pss.setInitiativeVisionLock(undefined, { sync: true, default: $.initiativeVisionLock.override })
+                    "
+                >
                     <font-awesome-icon icon="sync-alt" />
                 </div>
             </template>
@@ -95,16 +96,18 @@ function setEffectVisibility(event: Event): void {
                     ></option>
                 </select>
             </div>
-            <template v-if="effectVisibility !== defaultOptions.initiativeEffectVisibility">
-                <div
-                    :title="t('game.ui.settings.common.reset_default')"
-                    @click="effectVisibility = defaultOptions.initiativeEffectVisibility"
-                >
+            <template v-if="$.initiativeEffectVisibility.override !== undefined">
+                <div :title="t('game.ui.settings.common.reset_default')" @click="effectVisibility = undefined">
                     <font-awesome-icon icon="times-circle" />
                 </div>
                 <div
                     :title="t('game.ui.settings.common.sync_default')"
-                    @click="setDefault('initiativeEffectVisibility')"
+                    @click="
+                        pss.setInitiativeEffectVisibility(undefined, {
+                            sync: true,
+                            default: $.initiativeEffectVisibility.override,
+                        })
+                    "
                 >
                     <font-awesome-icon icon="sync-alt" />
                 </div>

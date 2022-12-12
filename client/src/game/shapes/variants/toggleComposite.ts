@@ -1,7 +1,6 @@
 import type { GlobalPoint } from "../../../core/geometry";
 import { SyncMode } from "../../../core/models/types";
 import type { Sync } from "../../../core/models/types";
-import { gameStore } from "../../../store/game";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { sendShapeSkipDraw } from "../../api/emits/shape/options";
 import {
@@ -11,37 +10,39 @@ import {
 } from "../../api/emits/shape/toggleComposite";
 import { getGlobalId, getShape } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
-import { selectionState } from "../../layers/selection";
+import type { IToggleComposite } from "../../interfaces/shapes/toggleComposite";
 import { compositeState } from "../../layers/state";
 import type { ServerToggleComposite } from "../../models/shapes";
 import { accessSystem } from "../../systems/access";
 import { auraSystem } from "../../systems/auras";
+import { getProperties } from "../../systems/properties/state";
+import type { ShapeProperties } from "../../systems/properties/state";
+import { selectedSystem } from "../../systems/selected";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { Shape } from "../shape";
 import type { SHAPE_TYPE } from "../types";
 
-import { BoundingRect } from "./boundingRect";
+import { BoundingRect } from "./simple/boundingRect";
 
-export class ToggleComposite extends Shape {
+export class ToggleComposite extends Shape implements IToggleComposite {
     type: SHAPE_TYPE = "togglecomposite";
 
     constructor(
         position: GlobalPoint,
         private active_variant: LocalId,
-        private _variants: { uuid: LocalId; name: string }[],
+        private _variants: { id: LocalId; name: string }[],
         options?: {
-            fillColour?: string;
-            strokeColour?: string[];
             id?: LocalId;
             uuid?: GlobalId;
         },
+        properties?: Partial<ShapeProperties>,
     ) {
-        super(position, options);
+        super(position, options, properties);
         this.options.skipDraw = true;
         for (const variant of _variants) {
             compositeState.addComposite(this.id, variant, false);
         }
-        this.resetVariants(...this._variants.map((v) => v.uuid));
+        this.resetVariants(...this._variants.map((v) => v.id));
         this.setActiveVariant(this.active_variant, false);
     }
 
@@ -49,12 +50,12 @@ export class ToggleComposite extends Shape {
         return true;
     }
 
-    get variants(): readonly { uuid: LocalId; name: string }[] {
+    get variants(): readonly { id: LocalId; name: string }[] {
         return this._variants;
     }
 
-    addVariant(uuid: LocalId, name: string, sync: boolean): void {
-        const variant = { uuid, name };
+    addVariant(id: LocalId, name: string, sync: boolean): void {
+        const variant = { id, name };
         this._variants.push(variant);
         compositeState.addComposite(this.id, variant, sync);
     }
@@ -64,7 +65,7 @@ export class ToggleComposite extends Shape {
             sendToggleCompositeRenameVariant({ shape: getGlobalId(this.id), variant: getGlobalId(uuid), name });
         if (syncTo.ui) this._("renameVariant")(uuid, name, syncTo);
 
-        const variant = this._variants.find((v) => v.uuid === uuid);
+        const variant = this._variants.find((v) => v.id === uuid);
         if (variant === undefined) return;
         variant.name = name;
     }
@@ -73,12 +74,12 @@ export class ToggleComposite extends Shape {
         if (syncTo.server) sendToggleCompositeRemoveVariant({ shape: getGlobalId(this.id), variant: getGlobalId(id) });
         if (syncTo.ui) this._("removeVariant")(id, syncTo);
 
-        const v = this._variants.findIndex((v) => v.uuid === id);
+        const v = this._variants.findIndex((v) => v.id === id);
         if (v === undefined) {
             console.error("Variant not found during variant removal");
             return;
         }
-        const newVariant = this._variants[(v + 1) % this._variants.length].uuid;
+        const newVariant = this._variants[(v + 1) % this._variants.length].id;
         this._variants.splice(v, 1);
         this.setActiveVariant(newVariant, true);
 
@@ -89,12 +90,13 @@ export class ToggleComposite extends Shape {
     private resetVariants(...variants: LocalId[]): void {
         for (const variantId of variants) {
             const variant = getShape(variantId);
-            if (variant === undefined) continue;
+            const props = getProperties(variantId);
+            if (variant === undefined || props === undefined) continue;
 
-            if (variant.isToken) gameStore.removeOwnedToken(variant.id);
-            if (variant.blocksMovement)
+            if (props.isToken) accessSystem.removeOwnedToken(variant.id);
+            if (props.blocksMovement)
                 visionState.removeBlocker(TriangulationTarget.MOVEMENT, variant.floor.id, variant, true);
-            if (variant.blocksVision)
+            if (props.blocksVision)
                 visionState.removeBlocker(TriangulationTarget.VISION, variant.floor.id, variant, true);
             if (auraSystem.getAll(variant.id, false).length > 0)
                 visionState.removeVisionSources(variant.floor.id, variant.id);
@@ -114,12 +116,13 @@ export class ToggleComposite extends Shape {
             console.error("COULD NOT FIND NEW VARIANT!");
             return;
         }
+        const props = getProperties(newVariant.id)!;
 
-        if (newVariant.isToken && accessSystem.hasAccessTo(newVariant.id, false, { vision: true }))
-            gameStore.addOwnedToken(newVariant.id);
-        if (newVariant.blocksMovement)
+        if (props.isToken && accessSystem.hasAccessTo(newVariant.id, false, { vision: true }))
+            accessSystem.addOwnedToken(newVariant.id);
+        if (props.blocksMovement)
             visionState.addBlocker(TriangulationTarget.MOVEMENT, newVariant.id, newVariant.floor.id, true);
-        if (newVariant.blocksVision)
+        if (props.blocksVision)
             visionState.addBlocker(TriangulationTarget.VISION, newVariant.id, newVariant.floor.id, true);
 
         for (const au of auraSystem.getAll(newVariant.id, false)) {
@@ -130,9 +133,9 @@ export class ToggleComposite extends Shape {
 
         if (sync) {
             oldVariant.options.skipDraw = true;
-            const oldCenter = oldVariant.center();
+            const oldCenter = oldVariant.center;
             delete newVariant.options.skipDraw;
-            newVariant.center(oldCenter);
+            newVariant.center = oldCenter;
 
             sendShapePositionUpdate([newVariant], false);
             sendShapeSkipDraw({ shape: getGlobalId(oldVariant.id), value: true });
@@ -141,11 +144,11 @@ export class ToggleComposite extends Shape {
         }
 
         if (this._layer !== undefined && this.layer.isActiveLayer) {
-            const selection = [...selectionState.get({ includeComposites: false })];
+            const selection = [...selectedSystem.get({ includeComposites: false })];
             const index = selection.findIndex((s) => s.id === oldVariant.id);
             if (index >= 0) {
                 selection.splice(index, 1, newVariant);
-                selectionState.set(...selection);
+                selectedSystem.set(...selection.map((s) => s.id));
             }
         }
 
@@ -155,7 +158,7 @@ export class ToggleComposite extends Shape {
     asDict(): ServerToggleComposite {
         return Object.assign(this.getBaseDict(), {
             active_variant: getGlobalId(this.active_variant)!,
-            variants: this._variants.map((v) => ({ uuid: getGlobalId(v.uuid)!, name: v.name })),
+            variants: this._variants.map((v) => ({ uuid: getGlobalId(v.id)!, name: v.name })),
         });
     }
 
@@ -163,7 +166,7 @@ export class ToggleComposite extends Shape {
         return;
     }
 
-    getBoundingBox(): BoundingRect {
+    getAABB(delta = 0): BoundingRect {
         return new BoundingRect(this.refPoint, 5, 5);
     }
 
@@ -175,10 +178,15 @@ export class ToggleComposite extends Shape {
         return false;
     }
 
-    center(): GlobalPoint;
-    center(centerPoint: GlobalPoint): void;
-    center(centerPoint?: GlobalPoint): GlobalPoint | void {
-        if (centerPoint === undefined) return getShape(this.active_variant)!.center();
+    __center(): GlobalPoint {
+        return getShape(this.active_variant)!.center;
+    }
+
+    get center(): GlobalPoint {
+        return this.__center();
+    }
+
+    set center(centerPoint: GlobalPoint) {
         this.refPoint = centerPoint;
     }
 

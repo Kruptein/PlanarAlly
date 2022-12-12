@@ -2,8 +2,6 @@ import { l2g } from "../../../core/conversions";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { InvalidationMode, NO_SYNC, SyncMode } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
-import { clientStore } from "../../../store/client";
-import { floorStore } from "../../../store/floor";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { LayerName } from "../../models/floor";
 import { ToolName } from "../../models/tools";
@@ -11,9 +9,12 @@ import type { ToolPermission } from "../../models/tools";
 import { deleteShapes } from "../../shapes/utils";
 import { Circle } from "../../shapes/variants/circle";
 import { accessSystem } from "../../systems/access";
+import { floorSystem } from "../../systems/floors";
+import { floorState } from "../../systems/floors/state";
+import { playerSystem } from "../../systems/players";
+import { playerSettingsState } from "../../systems/settings/players/state";
+import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
-
-import { SelectFeatures } from "./select";
 
 class PingTool extends Tool {
     readonly toolName = ToolName.Ping;
@@ -45,7 +46,7 @@ class PingTool extends Tool {
     async onDown(lp: LocalPoint): Promise<void> {
         this.cleanup();
         this.startPoint = l2g(lp);
-        const layer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
+        const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
 
         if (layer === undefined) {
             console.log("No draw layer!");
@@ -53,23 +54,31 @@ class PingTool extends Tool {
         }
 
         this.active.value = true;
-        this.ping = new Circle(this.startPoint, 20, { fillColour: clientStore.state.rulerColour, isSnappable: false });
-        this.border = new Circle(this.startPoint, 40, {
-            fillColour: "#0000",
-            strokeColour: [clientStore.state.rulerColour],
-            isSnappable: false,
-        });
+        this.ping = new Circle(
+            this.startPoint,
+            20,
+            { isSnappable: false },
+            { fillColour: playerSettingsState.raw.rulerColour.value },
+        );
+        this.border = new Circle(
+            this.startPoint,
+            40,
+            {
+                isSnappable: false,
+            },
+            { fillColour: "#0000", strokeColour: [playerSettingsState.raw.rulerColour.value] },
+        );
         this.ping.ignoreZoomSize = true;
         this.border.ignoreZoomSize = true;
         accessSystem.addAccess(
             this.ping.id,
-            clientStore.state.username,
+            playerSystem.getCurrentPlayer()!.name,
             { edit: true, movement: true, vision: true },
             NO_SYNC,
         );
         accessSystem.addAccess(
             this.border.id,
-            clientStore.state.username,
+            playerSystem.getCurrentPlayer()!.name,
             { edit: true, movement: true, vision: true },
             NO_SYNC,
         );
@@ -84,14 +93,14 @@ class PingTool extends Tool {
 
         const gp = l2g(lp);
 
-        const layer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
+        const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
         if (layer === undefined) {
             console.log("No draw layer!");
             return;
         }
 
-        this.ping.center(gp);
-        this.border.center(gp);
+        this.ping.center = gp;
+        this.border.center = gp;
 
         sendShapePositionUpdate([this.ping, this.border], true);
 

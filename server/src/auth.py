@@ -6,7 +6,7 @@ from typing_extensions import Literal
 from aiohttp import web
 from aiohttp_security.abc import AbstractAuthorizationPolicy
 
-from models import Constants, User
+from .models import Constants, User
 
 logger = logging.getLogger("PlanarAllyServer")
 

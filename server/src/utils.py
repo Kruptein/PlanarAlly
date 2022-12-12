@@ -1,4 +1,3 @@
-import os
 import sys
 from pathlib import Path
 
@@ -11,29 +10,32 @@ def all_subclasses(cls):
 
 def get_src_dir() -> Path:
     if getattr(sys, "frozen", False):
-        return Path(sys.executable).resolve().parent
+        return Path(sys.executable).resolve()
     return Path(__file__).resolve().parent
-
-
-def get_file_dir() -> Path:
-    if getattr(sys, "frozen", False):
-        return SRC_DIR
-    return SRC_DIR.parent
 
 
 def get_save_dir() -> Path:
     return FILE_DIR
 
 
+def set_assets_dir(assets_dir: Path):
+    global ASSETS_DIR
+    ASSETS_DIR = assets_dir
+
+    if not ASSETS_DIR.exists():
+        ASSETS_DIR.mkdir()
+
+
 SRC_DIR = get_src_dir()
-FILE_DIR = get_file_dir()
+FILE_DIR = SRC_DIR.parent
 STATIC_DIR = FILE_DIR / "static"
 ASSETS_DIR = STATIC_DIR / "assets"
 TEMP_DIR = STATIC_DIR / "temp"
 SAVE_DIR = get_save_dir()
 
-# SETUP PATHS
-os.chdir(SRC_DIR)
+
+if not ASSETS_DIR.exists():
+    ASSETS_DIR.mkdir()
 
 
 class OldVersionException(Exception):

@@ -32,9 +32,10 @@ watchEffect(() => {
         ref="menu"
         class="ContextMenu"
         tabindex="-1"
-        v-if="visible"
+        v-show="visible"
         :style="{ left: `${left - deltaLeft}px`, top: `${top - deltaTop}px` }"
         @blur="$emit('cm:close')"
+        @contextmenu.stop.prevent
     >
         <ul>
             <slot></slot>

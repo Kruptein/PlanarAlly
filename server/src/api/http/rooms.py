@@ -7,57 +7,44 @@ from typing_extensions import TypedDict
 from aiohttp import web
 from aiohttp_security import check_authorized
 
-from api.socket.constants import DASHBOARD_NS
-from app import sio
-from config import config
-from export.campaign import export_campaign, import_campaign
-from models import Location, LocationOptions, PlayerRoom, Room, User
-from models.db import db
-from models.role import Role
-from state.dashboard import dashboard_state
+from ...app import sio
+from ...config import config
+from ...export.campaign import export_campaign, import_campaign
+from ...models import Location, LocationOptions, PlayerRoom, Room, User
+from ...models.db import db
+from ...models.role import Role
+from ...state.dashboard import dashboard_state
+from ..socket.constants import DASHBOARD_NS
 
 
 async def get_list(request: web.Request):
     user: User = await check_authorized(request)
 
+    # We should rework this to a playerroom.as_dashboard_dict
+    # to prevent these extra queries we're doing for the info
     return web.json_response(
         {
-            "owned": [r.as_dashboard_dict() for r in user.rooms_created],
+            "owned": [
+                {**r.as_dashboard_dict(), "last_played": get_info(r, user)}
+                for r in user.rooms_created
+            ],
             "joined": [
-                r.room.as_dashboard_dict()
+                {**r.room.as_dashboard_dict(), "last_played": get_info(r.room, user)}
                 for r in user.rooms_joined.join(Room).where(Room.creator != user)
             ],
         }
     )
 
 
-async def get_info(request: web.Request):
-    user: User = await check_authorized(request)
+def get_info(room: Room, user: User):
+    info = room.players.where(PlayerRoom.player == user)
 
-    creator = request.match_info["creator"]
-    roomname = request.match_info["roomname"]
+    last_played = cast(datetime, info[0].last_played)
 
-    room = (
-        PlayerRoom.select()
-        .join(Room)
-        .join(User)
-        .filter(player=user)
-        .where((User.name == creator) & (Room.name == roomname))
-    )
-
-    if len(room) != 1:
-        return web.HTTPNotFound()
-
-    last_played = cast(datetime, room[0].last_played)
-
-    return web.json_response(
-        {
-            "notes": room[0].notes,
-            "last_played": None
-            if last_played is None
-            else last_played.strftime("%Y/%m/%d"),
-        }
-    )
+    if last_played is None:
+        return None
+    else:
+        return last_played.strftime("%Y/%m/%d")
 
 
 async def set_info(request: web.Request):
@@ -213,7 +200,11 @@ async def export_all(request: web.Request):
         rooms = [r for r in user.rooms_created]
 
         asyncio.create_task(
-            export_campaign(f"{creator}-all", rooms, export_all_assets=True)
+            export_campaign(
+                f"{creator}-all",
+                rooms,
+                export_all_assets=True,
+            )
         )
 
         return web.HTTPAccepted(
@@ -225,6 +216,7 @@ async def export_all(request: web.Request):
 class ImportData(TypedDict):
     totalLength: int
     chunks: List[Optional[bytes]]
+    sid: Optional[str]
 
 
 import_mapping: Dict[str, ImportData] = {}
@@ -232,23 +224,32 @@ import_mapping: Dict[str, ImportData] = {}
 
 async def import_info(request: web.Request):
     if not config.getboolean("General", "enable_export"):
-        return web.HTTPForbidden()
+        return web.HTTPForbidden(reason="Import is disabled by the server.")
 
     await check_authorized(request)
 
     name = request.match_info["name"]
 
     data = await request.json()
-    length = data["totalChunks"]
+
+    try:
+        length = data["totalChunks"]
+    except KeyError:
+        return web.HTTPBadRequest(
+            reason="Bad Request: something went wrong with this import request. (missing chunk length)"
+        )
 
     try:
         length = int(length)
     except ValueError:
-        return web.HTTPBadRequest()
+        return web.HTTPBadRequest(
+            reason="Bad Request: something went wrong with this import request. (Chunk Length is not an integer)"
+        )
 
     import_mapping[name] = {
         "totalLength": length,
         "chunks": [None for _ in range(length)],
+        "sid": data.get("sid", None),
     }
 
     # todo: some timer / or other condition to clear the import_mapping
@@ -278,19 +279,20 @@ async def import_chunk(request: web.Request):
     data = await request.read()
 
     import_mapping[name]["chunks"][chunk] = data
+    sid = import_mapping[name]["sid"]
+
+    await sio.emit("Campaign.Import.Chunk", chunk, room=sid, namespace=DASHBOARD_NS)
 
     chunks = import_mapping[name]["chunks"]
     if all(chunks):
         print(f"Got all chunks for {name}")
         await asyncio.create_task(
-            handle_import(user, name, io.BytesIO(b"".join(cast(List[bytes], chunks))))
+            import_campaign(
+                user,
+                io.BytesIO(b"".join(cast(List[bytes], chunks))),
+                sid=sid,
+            )
         )
         del import_mapping[name]
 
     return web.HTTPOk()
-
-
-async def handle_import(user: User, name: str, pac: io.BytesIO):
-    await import_campaign(user, pac)
-    for sid in dashboard_state.get_sids(id=user.id):
-        await sio.emit("Campaign.Import.Done", name, room=sid, namespace=DASHBOARD_NS)

@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import type { CSSProperties } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { gameStore } from "../../../store/game";
+import { baseAdjust } from "../../../core/http";
+import { getGameState } from "../../../store/_game";
+import { coreStore } from "../../../store/core";
 import { ToolMode, ToolName } from "../../models/tools";
+import { accessState } from "../../systems/access/state";
+import { playerSettingsState } from "../../systems/settings/players/state";
 import { activeModeTools, activeTool, activeToolMode, dmTools, toggleActiveMode, toolMap } from "../../tools/tools";
 
 import DiceTool from "./DiceTool.vue";
@@ -14,24 +18,22 @@ import MapTool from "./MapTool.vue";
 import RulerTool from "./RulerTool.vue";
 import SelectTool from "./SelectTool.vue";
 import SpellTool from "./SpellTool.vue";
+import { useToolPosition } from "./toolPosition";
 import VisionTool from "./VisionTool.vue";
 
 const { t } = useI18n();
 
-function isToolVisible(tool: ToolName): boolean {
-    if (tool === ToolName.Filter) {
-        return gameStore.state.labels.size > 0;
-    } else if (tool === ToolName.Vision) {
-        return gameStore.state.ownedTokens.size > 1;
-    }
-    return true;
-}
+const hasGameboard = coreStore.state.boardId !== undefined;
+
+const detailBottom = computed(() => (playerSettingsState.reactive.useToolIcons.value ? "7.8rem" : "6.6rem"));
+const detailRight = ref("0px");
+const detailArrow = ref("0px");
 
 const visibleTools = computed(() => {
     {
         const tools = [];
         for (const [toolName] of activeModeTools.value) {
-            if (dmTools.includes(toolName) && !gameStore.state.isDm) continue;
+            if (dmTools.includes(toolName) && !getGameState().isDm) continue;
             if (!isToolVisible(toolName)) continue;
 
             const tool = toolMap[toolName];
@@ -44,6 +46,29 @@ const visibleTools = computed(() => {
         return tools;
     }
 });
+
+watch(
+    [() => playerSettingsState.reactive.useToolIcons.value, activeTool, activeToolMode, visibleTools],
+    () => updateDetails(),
+    { flush: "post" },
+);
+
+onMounted(() => updateDetails());
+
+function updateDetails(): void {
+    const pos = useToolPosition(activeTool.value);
+    detailRight.value = pos.right;
+    detailArrow.value = pos.arrow;
+}
+
+function isToolVisible(tool: ToolName): boolean {
+    if (tool === ToolName.Filter) {
+        return getGameState().labels.size > 0;
+    } else if (tool === ToolName.Vision) {
+        return accessState.raw.ownedTokens.size > 1;
+    }
+    return true;
+}
 
 function getStyle(tool: ToolMode): CSSProperties {
     if (tool === activeToolMode.value) {
@@ -58,6 +83,10 @@ function getStyle(tool: ToolMode): CSSProperties {
     return { fontStyle: "italic" };
 }
 
+function getStaticToolImg(img: string): string {
+    return baseAdjust(`/static/img/tools/${img}`);
+}
+
 const toolModes = computed(() => {
     return [
         { name: t("tool.Build"), style: getStyle(ToolMode.Build) },
@@ -67,7 +96,10 @@ const toolModes = computed(() => {
 </script>
 
 <template>
-    <div id="tools">
+    <div
+        id="tools"
+        :style="{ '--detailBottom': detailBottom, '--detailRight': detailRight, '--detailArrow': detailArrow }"
+    >
         <div id="toolselect">
             <ul>
                 <li
@@ -76,14 +108,21 @@ const toolModes = computed(() => {
                     class="tool"
                     :class="{ 'tool-selected': activeTool === tool.name, 'tool-alert': tool.alert }"
                     :id="tool.name + '-selector'"
-                    @mousedown="activeTool = tool.name"
+                    @click="activeTool = tool.name"
                 >
-                    <a href="#">{{ tool.translation }}</a>
+                    <a href="#" :title="tool.translation">
+                        <template v-if="playerSettingsState.reactive.useToolIcons.value">
+                            <img :src="getStaticToolImg(`${tool.name.toLowerCase()}.svg`)" :alt="tool.translation" />
+                        </template>
+                        <template v-else>{{ tool.translation }}</template>
+                    </a>
                 </li>
                 <li id="tool-mode"></li>
             </ul>
             <div id="tool-mode-full" @click="toggleActiveMode" :title="t('game.ui.tools.tools.change_mode')">
-                <span v-for="mode of toolModes" :style="mode.style" :key="mode.name">{{ mode.name }}</span>
+                <template v-if="!hasGameboard">
+                    <span v-for="mode of toolModes" :style="mode.style" :key="mode.name">{{ mode.name }}</span>
+                </template>
             </div>
         </div>
         <div>
@@ -173,9 +212,16 @@ const toolModes = computed(() => {
     }
 
     a {
-        display: block;
-        padding: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0.625rem;
         text-decoration: none;
+
+        > img {
+            height: 2.5rem;
+            width: 2.5rem;
+        }
     }
 }
 </style>
@@ -184,7 +230,7 @@ const toolModes = computed(() => {
 .tool-detail {
     position: absolute;
     right: var(--detailRight);
-    bottom: 105px;
+    bottom: var(--detailBottom);
     /* width: 150px; */
     border: solid 1px #2b2b2b;
     background-color: white;

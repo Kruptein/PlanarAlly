@@ -1,6 +1,6 @@
 import { Vector, toGP, toArrayP, addP, subtractP } from "../core/geometry";
 
-import type { IShape } from "./shapes/interfaces";
+import type { IShape } from "./interfaces/shape";
 import { TriangulationTarget, visionState } from "./vision/state";
 import { Sign } from "./vision/tds";
 import type { Triangle, Point } from "./vision/tds";
@@ -11,7 +11,7 @@ import { cw, ccw, intersection, orientation } from "./vision/triag";
 // And it does now, so hey ¯\_(ツ)_/¯
 export function calculateDelta(delta: Vector, sel: IShape, shrink = false): Vector {
     if (delta.x === 0 && delta.y === 0) return delta;
-    const center = toArrayP(sel.center());
+    const center = toArrayP(sel.center);
     const centerTriangle = visionState.getCDT(TriangulationTarget.MOVEMENT, sel.floor.id).locate(center, null).loc;
     for (let point of sel.points) {
         if (shrink) {

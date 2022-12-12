@@ -15,17 +15,17 @@ from uuid import uuid4
 from aiohttp import web
 from aiohttp_security import authorized_userid
 
-import auth
-from app import app, sio
-from models import Asset
-from models.user import User
-from state.asset import asset_state
-from state.game import game_state
-from logs import logger
-from utils import TEMP_DIR
+from .... import auth
+from ....app import app, sio
+from ....logs import logger
+from ....models import Asset
+from ....models.user import User
+from ....state.asset import asset_state
+from ....state.game import game_state
+from ....utils import ASSETS_DIR, TEMP_DIR
 from ..constants import ASSET_NS, GAME_NS
 from .common import UploadData
-from .ddraft import ASSETS_DIR, handle_ddraft_file
+from .ddraft import handle_ddraft_file
 
 
 class AssetDict(TypedDict):

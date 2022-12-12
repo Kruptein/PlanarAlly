@@ -5,31 +5,38 @@ import { useI18n } from "vue-i18n";
 import MarkdownModal from "../../core/components/modals/MarkdownModal.vue";
 import SliderComponent from "../../core/components/slider/SliderComponent.vue";
 import { baseAdjust } from "../../core/http";
+import { getGameState } from "../../store/_game";
 import { activeShapeStore } from "../../store/activeShape";
-import { clientStore } from "../../store/client";
 import { coreStore } from "../../store/core";
-import { gameStore } from "../../store/game";
-import { sendClientLocationOptions } from "../api/emits/client";
+import { clientState } from "../systems/client/state";
+import { positionSystem } from "../systems/position";
+import { positionState } from "../systems/position/state";
 
 import Annotation from "./Annotation.vue";
 import DefaultContext from "./contextmenu/DefaultContext.vue";
 import ShapeContext from "./contextmenu/ShapeContext.vue";
 import { showDefaultContextMenu, showShapeContextMenu } from "./contextmenu/state";
 import DiceResults from "./dice/DiceResults.vue";
+import LgDiceResults from "./dice/LgDiceResults.vue";
 import Floors from "./Floors.vue";
 import Initiative from "./initiative/Initiative.vue";
 import { initiativeStore } from "./initiative/state";
+import LgGridId from "./lg/GridId.vue";
 import LocationBar from "./menu/LocationBar.vue";
 import MenuBar from "./menu/MenuBar.vue";
 import SelectionInfo from "./SelectionInfo.vue";
 import ClientSettings from "./settings/client/ClientSettings.vue";
 import DmSettings from "./settings/dm/DmSettings.vue";
 import FloorSettings from "./settings/FloorSettings.vue";
+import LgSettings from "./settings/lg/LgSettings.vue";
 import LocationSettings from "./settings/location/LocationSettings.vue";
 import ShapeSettings from "./settings/shape/ShapeSettings.vue";
 import CreateTokenDialog from "./tokendialog/CreateTokenDialog.vue";
 import { tokenDialogVisible } from "./tokendialog/state";
+import TokenDirections from "./TokenDirections.vue";
 import Tools from "./tools/Tools.vue";
+
+const hasGameboard = coreStore.state.boardId !== undefined;
 
 const uiEl = ref<HTMLDivElement | null>(null);
 
@@ -42,6 +49,8 @@ const visible = reactive({
 });
 const topLeft = computed(() => visible.locations && visible.settings);
 
+const hasGameboardClients = computed(() => clientState.reactive.clientBoards.size > 0);
+
 const changelogText = computed(() =>
     t("game.ui.ui.changelog_RELEASE_LOG", {
         release: coreState.version.release,
@@ -52,6 +61,7 @@ const changelogText = computed(() =>
 const releaseVersion = computed(() => coreState.version.release);
 
 const showChangelog = computed(() => {
+    if (hasGameboard) return false;
     const version = localStorage.getItem("last-version");
     if (version !== coreState.version.release) {
         localStorage.setItem("last-version", coreState.version.release);
@@ -76,9 +86,9 @@ function toggleLocations(): void {
     let i = 0;
     const interval = setInterval(() => {
         if (uiEl.value === null) return;
-        i += 10;
-        uiEl.value.style.gridTemplateRows = `${!oldState ? i : 100 - i}px auto 1fr auto`;
-        if (i >= 100) {
+        i += 0.625;
+        uiEl.value.style.gridTemplateRows = `${!oldState ? i : 6.25 - i}rem auto 1fr auto`;
+        if (i >= 6.25) {
             clearInterval(interval);
             // Force height to become auto instead of harcoding it to 100px
             uiEl.value.style.gridTemplateRows = `${!oldState ? "auto" : 0} auto 1fr auto`;
@@ -92,9 +102,9 @@ function toggleMenu(): void {
     let i = 0;
     const interval = setInterval(() => {
         if (uiEl.value === null) return;
-        i += 10;
-        uiEl.value.style.gridTemplateColumns = `${visible.settings ? i : 200 - i}px repeat(3, 1fr)`;
-        if (i >= 200) {
+        i += 0.625;
+        uiEl.value.style.gridTemplateColumns = `${visible.settings ? i : 12.5 - i}rem repeat(3, 1fr)`;
+        if (i >= 12.5) {
             clearInterval(interval);
         }
     }, 20);
@@ -102,21 +112,20 @@ function toggleMenu(): void {
 
 const zoomDisplay = computed({
     get(): number {
-        return clientStore.state.zoomDisplay;
+        return positionState.reactive.zoomDisplay;
     },
     set(zoom: number) {
-        clientStore.setZoomDisplay(zoom);
-        sendClientLocationOptions();
+        positionSystem.setZoomDisplay(zoom, { invalidate: true, updateSectors: true, sync: true });
     },
 });
 
 function setTempZoomDisplay(value: number): void {
-    clientStore.setZoomDisplay(value);
+    positionSystem.setZoomDisplay(value, { invalidate: true, updateSectors: true, sync: false });
 }
 </script>
 
 <template>
-    <div id="ui" ref="uiEl" v-show="gameStore.state.showUi">
+    <div id="ui" ref="uiEl" v-show="getGameState().showUi">
         <div id="logo" v-show="topLeft">
             <div id="logo-icons">
                 <a href="https://www.planarally.io" target="_blank" rel="noopener noreferrer">
@@ -158,10 +167,10 @@ function setTempZoomDisplay(value: number): void {
         <div id="radialmenu">
             <div class="rm-wrapper">
                 <div class="rm-toggler">
-                    <ul class="rm-list" :class="{ 'rm-list-dm': gameStore.state.isDm }">
+                    <ul class="rm-list" :class="{ 'rm-list-dm': getGameState().isDm }">
                         <li
                             @click="toggleLocations"
-                            v-if="gameStore.state.isDm"
+                            v-if="getGameState().isDm"
                             class="rm-item"
                             id="rm-locations"
                             :title="t('game.ui.ui.open_loc_menu')"
@@ -182,25 +191,33 @@ function setTempZoomDisplay(value: number): void {
         </div>
         <MenuBar />
         <Tools />
-        <LocationBar v-if="gameStore.state.isDm" :active="visible.locations" :menuActive="visible.settings" />
+        <LocationBar v-if="getGameState().isDm" :active="visible.locations" :menuActive="visible.settings" />
         <Floors />
         <CreateTokenDialog />
         <Initiative />
         <DefaultContext />
         <ShapeContext />
         <ShapeSettings />
-        <DmSettings v-if="gameStore.state.isDm || gameStore.state.isFakePlayer" />
-        <FloorSettings v-if="gameStore.state.isDm || gameStore.state.isFakePlayer" />
-        <LocationSettings v-if="gameStore.state.isDm || gameStore.state.isFakePlayer" />
+        <DmSettings v-if="getGameState().isDm || getGameState().isFakePlayer" />
+        <LgSettings v-if="hasGameboardClients && (getGameState().isDm || getGameState().isFakePlayer)" />
+        <LgGridId v-if="hasGameboard" />
+        <FloorSettings v-if="getGameState().isDm || getGameState().isFakePlayer" />
+        <LocationSettings v-if="getGameState().isDm || getGameState().isFakePlayer" />
         <ClientSettings />
         <SelectionInfo />
         <Annotation />
-        <DiceResults />
+        <template v-if="!hasGameboard"><DiceResults /></template>
+        <template v-else><LgDiceResults /></template>
         <div id="teleport-modals"></div>
         <MarkdownModal v-if="showChangelog" :title="t('game.ui.ui.new_ver_msg')" :source="changelogText" />
+        <div id="oob" v-if="positionState.reactive.outOfBounds" @click="positionSystem.returnToBounds">
+            Click to return to content
+        </div>
+        <TokenDirections />
         <!-- When updating zoom boundaries, also update store updateZoom function;
             should probably do this using a store variable-->
         <SliderComponent
+            v-if="!hasGameboard"
             id="zoom"
             height="6px"
             width="200px"
@@ -278,9 +295,27 @@ function setTempZoomDisplay(value: number): void {
 #zoom {
     pointer-events: auto;
     justify-self: end;
-    top: 15px;
-    right: 25px;
+    top: 1rem;
+    right: 1.6rem;
     grid-area: zoom;
+}
+
+#oob {
+    position: fixed;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: auto;
+
+    background-color: white;
+    padding: 20px 50px;
+    border-radius: 15px;
+    border: solid 3px black;
+
+    &:hover {
+        font-weight: bold;
+        cursor: pointer;
+    }
 }
 
 #radialmenu {
@@ -295,39 +330,39 @@ function setTempZoomDisplay(value: number): void {
 /* The svg is added by Font Awesome */
 
 .rm-list-dm #rm-locations svg {
-    margin-left: 50px;
+    margin-left: 3rem;
 }
 
 .rm-list-dm #rm-settings svg {
-    margin-bottom: 50px;
+    margin-bottom: 3rem;
 }
 
 /* https://codepen.io/jonigiuro/pen/kclIu/ */
 
 .rm-wrapper {
     position: relative;
-    width: 200px;
-    height: 200px;
-    top: -100px;
-    left: -100px;
+    width: 12.5rem;
+    height: 12.5rem;
+    top: -6.25rem;
+    left: -6.25rem;
 
     .rm-topper {
         pointer-events: none;
         text-align: center;
-        line-height: 50px;
-        font-size: 25px;
+        line-height: 3rem;
+        font-size: 1.6em;
     }
 
     .rm-toggler,
     .rm-topper {
         display: block;
         position: absolute;
-        width: 50px;
-        height: 50px;
+        width: 3rem;
+        height: 3rem;
         left: 50%;
         top: 50%;
-        margin-left: -25px;
-        margin-top: -25px;
+        margin-left: -1.6rem;
+        margin-top: -1.6rem;
         background: #fa5a5a;
         color: white;
         border-radius: 50%;
@@ -336,14 +371,14 @@ function setTempZoomDisplay(value: number): void {
             opacity: 0.5;
             list-style: none;
             padding: 0;
-            width: 200px;
-            height: 200px;
+            width: 12.5rem;
+            height: 12.5rem;
             overflow: hidden;
             display: block;
             border-radius: 50%;
             transform: rotate(180deg);
             box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
-            margin: -75px 0 0 -75px;
+            margin: -4.7rem 0 0 -4.7rem;
 
             .rm-item {
                 display: table;
@@ -367,7 +402,7 @@ function setTempZoomDisplay(value: number): void {
                     vertical-align: middle;
                     transform: rotate(-45deg);
                     text-decoration: none;
-                    font-size: 25px;
+                    font-size: 1.6em;
                     color: #82c8a0;
                     border: none;
                     outline: none;

@@ -1,116 +1,33 @@
-import type { ComputedRef } from "vue";
-import { computed } from "vue";
+import type { DeepReadonly } from "vue";
 
-import { toGP } from "../core/geometry";
 import type { GlobalPoint } from "../core/geometry";
 import type { AssetListMap } from "../core/models/types";
-import { Store } from "../core/store";
-import { sendClientLocationOptions } from "../game/api/emits/client";
 import { sendLabelAdd, sendLabelDelete, sendLabelFilterAdd, sendLabelFilterDelete } from "../game/api/emits/labels";
-import { sendLocationChange } from "../game/api/emits/location";
 import { sendMarkerCreate, sendMarkerRemove } from "../game/api/emits/marker";
 import { sendNewNote, sendRemoveNote, sendUpdateNote } from "../game/api/emits/note";
-import { sendChangePlayerRole } from "../game/api/emits/players";
-import { sendRoomKickPlayer, sendRoomLock } from "../game/api/emits/room";
-import { showClientRect } from "../game/client";
+import { sendRoomLock } from "../game/api/emits/room";
+import { updateFogColour } from "../game/colour";
 import { getAllShapes, getGlobalId, getShape } from "../game/id";
 import type { LocalId } from "../game/id";
+import type { Label } from "../game/interfaces/label";
 import type { Note } from "../game/models/general";
-import type { Player } from "../game/models/player";
 import type { ServerShape } from "../game/models/shapes";
 import { setCenterPosition } from "../game/position";
-import type { Label } from "../game/shapes/interfaces";
-import { router } from "../router";
+import { floorSystem } from "../game/systems/floors";
 
-import { coreStore } from "./core";
-import { floorStore } from "./floor";
+import { getGameState, getRawGameState } from "./_game";
+import type { GameState } from "./_game";
 
-interface GameState {
-    isConnected: boolean;
-    isDm: boolean;
-    isFakePlayer: boolean;
-    showUi: boolean;
-    boardInitialized: boolean;
-
-    // Player
-    players: Player[];
-
-    ownedTokens: Set<LocalId>;
-    activeTokenFilters: Set<LocalId> | undefined;
-
-    // Room
-    roomName: string;
-    roomCreator: string;
-    invitationCode: string;
-    publicName: string;
-    isLocked: boolean;
-
-    assets: AssetListMap;
-
-    annotations: Set<LocalId>;
-
-    markers: Set<LocalId>;
-
-    notes: Note[];
-
-    clipboard: ServerShape[];
-    clipboardPosition: GlobalPoint;
-
-    labels: Map<string, Label>;
-    filterNoLabel: boolean;
-    labelFilters: string[];
-}
-
-class GameStore extends Store<GameState> {
-    activeTokens: ComputedRef<Set<LocalId>>;
+class GameStore {
+    _state: GameState;
+    state: DeepReadonly<GameState>;
 
     constructor() {
-        super();
-        this.activeTokens = computed(() => {
-            if (this._state.activeTokenFilters !== undefined) return this._state.activeTokenFilters;
-            return this._state.ownedTokens;
-        });
-    }
-    protected data(): GameState {
-        return {
-            isConnected: false,
-            isDm: false,
-            isFakePlayer: false,
-            showUi: true,
-            boardInitialized: false,
-
-            players: [],
-
-            ownedTokens: new Set(),
-            activeTokenFilters: undefined,
-
-            roomName: "",
-            roomCreator: "",
-            invitationCode: "",
-            publicName: window.location.host,
-            isLocked: false,
-
-            assets: new Map(),
-
-            annotations: new Set(),
-
-            markers: new Set(),
-
-            notes: [],
-
-            clipboard: [],
-            clipboardPosition: toGP(0, 0),
-
-            labels: new Map(),
-            filterNoLabel: false,
-            labelFilters: [],
-        };
+        this._state = getRawGameState();
+        this.state = getGameState();
     }
 
     clear(): void {
-        this._state.activeTokenFilters?.clear();
-        this._state.ownedTokens.clear();
-        this._state.annotations.clear();
         this._state.notes = [];
         this._state.markers.clear();
         this._state.boardInitialized = false;
@@ -128,73 +45,18 @@ class GameStore extends Store<GameState> {
 
     setDm(isDm: boolean): void {
         this._state.isDm = isDm;
+        updateFogColour();
     }
 
     setFakePlayer(isFakePlayer: boolean): void {
         this._state.isFakePlayer = isFakePlayer;
         this._state.isDm = !isFakePlayer;
-        floorStore.invalidateAllFloors();
+        updateFogColour();
+        floorSystem.invalidateAllFloors();
     }
 
     toggleUi(): void {
         this._state.showUi = !this._state.showUi;
-    }
-
-    // PLAYERS
-
-    setPlayers(players: Player[]): void {
-        this._state.players = players;
-    }
-
-    addPlayer(player: Player): void {
-        this._state.players.push(player);
-    }
-
-    updatePlayersLocation(
-        players: string[],
-        location: number,
-        sync: boolean,
-        targetPosition?: { x: number; y: number },
-    ): void {
-        for (const player of this._state.players) {
-            if (players.includes(player.name)) {
-                player.location = location;
-            }
-        }
-        this._state.players = [...this._state.players];
-        if (sync) sendLocationChange({ location, users: players, position: targetPosition });
-    }
-
-    kickPlayer(playerId: number): void {
-        const player = this._state.players.find((p) => p.id === playerId);
-        if (player === undefined) return;
-
-        if (player.name === router.currentRoute.value.params.creator && coreStore.state.username !== player.name) {
-            return;
-        }
-
-        sendRoomKickPlayer(playerId);
-        this._state.players = this._state.players.filter((p) => p.id !== playerId);
-    }
-
-    setPlayerRole(playerId: number, role: number, sync: boolean): void {
-        const player = this._state.players.find((p) => p.id === playerId);
-        if (player === undefined) return;
-
-        if (player.name === router.currentRoute.value.params.creator && coreStore.state.username !== player.name) {
-            return;
-        }
-
-        player.role = role;
-        if (sync) sendChangePlayerRole({ player: playerId, role });
-    }
-
-    setShowPlayerRect(playerId: number, showPlayerRect: boolean): void {
-        const player = this._state.players.find((p) => p.id === playerId);
-        if (player === undefined) return;
-
-        player.showRect = showPlayerRect;
-        showClientRect(playerId, showPlayerRect);
     }
 
     // ROOM
@@ -221,54 +83,9 @@ class GameStore extends Store<GameState> {
         if (sync) sendRoomLock(isLocked);
     }
 
-    // ACCESS
-
-    setActiveTokens(...tokens: LocalId[]): void {
-        this._state.activeTokenFilters = new Set(tokens);
-        floorStore.invalidateLightAllFloors();
-    }
-
-    unsetActiveTokens(): void {
-        this._state.activeTokenFilters = undefined;
-        floorStore.invalidateLightAllFloors();
-    }
-
-    addActiveToken(token: LocalId): void {
-        if (this._state.activeTokenFilters === undefined) return;
-        this._state.activeTokenFilters.add(token);
-        if (this._state.activeTokenFilters.size === this._state.ownedTokens.size)
-            this._state.activeTokenFilters = undefined;
-        floorStore.invalidateLightAllFloors();
-    }
-
-    removeActiveToken(token: LocalId): void {
-        if (this._state.activeTokenFilters === undefined) {
-            this._state.activeTokenFilters = new Set([...this._state.ownedTokens]);
-        }
-        this._state.activeTokenFilters.delete(token);
-        floorStore.invalidateLightAllFloors();
-    }
-
-    addOwnedToken(token: LocalId): void {
-        this._state.ownedTokens.add(token);
-    }
-
-    removeOwnedToken(token: LocalId): void {
-        this._state.ownedTokens.delete(token);
-    }
-
     // ASSETS
     setAssets(assets: AssetListMap): void {
         this._state.assets = assets;
-    }
-
-    // ANNOTATIONS
-    addAnnotation(shape: LocalId): void {
-        this._state.annotations.add(shape);
-    }
-
-    removeAnnotation(shape: LocalId): void {
-        this._state.annotations.delete(shape);
     }
 
     // MARKERS
@@ -283,9 +100,8 @@ class GameStore extends Store<GameState> {
     jumpToMarker(marker: LocalId): void {
         const shape = getShape(marker);
         if (shape == undefined) return;
-        setCenterPosition(shape.center());
-        sendClientLocationOptions();
-        floorStore.invalidateAllFloors();
+        setCenterPosition(shape.center);
+        floorSystem.selectFloor({ name: shape.floor.name }, true);
     }
 
     removeMarker(marker: LocalId, sync: boolean): void {
@@ -333,7 +149,7 @@ class GameStore extends Store<GameState> {
 
     addLabelFilter(filter: string, sync: boolean): void {
         this._state.labelFilters.push(filter);
-        floorStore.invalidateAllFloors();
+        floorSystem.invalidateAllFloors();
         if (sync) sendLabelFilterAdd(filter);
     }
 
@@ -345,7 +161,7 @@ class GameStore extends Store<GameState> {
         const idx = this._state.labelFilters.indexOf(filter);
         if (idx >= 0) {
             this._state.labelFilters.splice(idx, 1);
-            floorStore.invalidateAllFloors();
+            floorSystem.invalidateAllFloors();
 
             if (sync) sendLabelFilterDelete(filter);
         }

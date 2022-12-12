@@ -1,23 +1,16 @@
 <script setup lang="ts">
-import type { CSSProperties } from "vue";
-import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { coreStore } from "../../../store/core";
 import { rulerTool } from "../../tools/variants/ruler";
 
-import { useToolPosition } from "./toolPosition";
-
 const { t } = useI18n();
-const right = ref("0px");
-const arrow = ref("0px");
 
-const selected = rulerTool.isActiveTool;
+const hasGameboard = coreStore.state.boardId !== undefined;
+if (hasGameboard) rulerTool.showPublic.value = true;
+
+const selected = hasGameboard ? false : rulerTool.isActiveTool;
 const showPublic = rulerTool.showPublic;
-const toolStyle = computed(() => ({ "--detailRight": right.value, "--detailArrow": arrow.value } as CSSProperties));
-
-onMounted(() => {
-    ({ right: right.value, arrow: arrow.value } = useToolPosition(rulerTool.toolName));
-});
 
 function toggle(event: MouseEvent): void {
     const state = (event.target as HTMLButtonElement).getAttribute("aria-pressed") ?? "false";
@@ -26,7 +19,7 @@ function toggle(event: MouseEvent): void {
 </script>
 
 <template>
-    <div id="ruler" class="tool-detail" v-if="selected" :style="toolStyle">
+    <div id="ruler" class="tool-detail" v-if="selected">
         <button @click="toggle" :aria-pressed="showPublic">{{ t("game.ui.tools.RulerTool.share") }}</button>
     </div>
 </template>

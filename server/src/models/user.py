@@ -11,13 +11,12 @@ from peewee import (
 )
 from playhouse.shortcuts import model_to_dict
 
-from models.typed import SelectSequence
-
 from .base import BaseModel
+from .typed import SelectSequence
 
 if TYPE_CHECKING:
-    from models.label import Label
-    from models.campaign import PlayerRoom, Room
+    from .campaign import PlayerRoom, Room
+    from .label import Label
 
 
 __all__ = ["User", "UserOptions"]
@@ -29,9 +28,15 @@ class UserOptions(BaseModel):
     fow_colour = TextField(default="#000", null=True)
     grid_colour = TextField(default="#000", null=True)
     ruler_colour = TextField(default="#F00", null=True)
+    use_tool_icons = BooleanField(default=True, null=True)
+    show_token_directions = BooleanField(default=True, null=True)
 
     invert_alt = BooleanField(default=False, null=True)
     disable_scroll_to_zoom = BooleanField(default=False, null=True)
+    # false = use absolute mode ; true = use relative mode
+    default_tracker_mode = BooleanField(default=False, null=True)
+    # 0 = no pan  1 = middle mouse only  2 = right mouse only 3 = both
+    mouse_pan_mode = IntegerField(default=3, null=True)
 
     use_high_dpi = BooleanField(default=False, null=True)
     grid_size = IntegerField(default=50, null=True)
@@ -43,20 +48,29 @@ class UserOptions(BaseModel):
     initiative_vision_lock = BooleanField(default=False, null=True)
     initiative_effect_visibility = TextField(default="active", null=True)
 
+    render_all_floors = BooleanField(default=True, null=True)
+
     @classmethod
     def create_empty(cls):
         return UserOptions.create(
             fow_colour=None,
             grid_colour=None,
             ruler_colour=None,
+            use_tool_icons=None,
+            show_token_directions=None,
             invert_alt=None,
             disable_scroll_to_zoom=None,
+            default_tracker_mode=None,
+            mouse_pan_mode=None,
             use_high_dpi=None,
             grid_size=None,
             use_as_physical_board=None,
+            mini_size=None,
+            ppi=None,
             initiative_camera_lock=None,
             initiative_vision_lock=None,
             initiative_effect_visibility=None,
+            render_all_floors=None,
         )
 
     def as_dict(self):

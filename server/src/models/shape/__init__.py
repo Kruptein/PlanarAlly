@@ -5,17 +5,17 @@ from uuid import uuid4
 
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
 from playhouse.shortcuts import model_to_dict, update_model_from_dict
-from models.typed import SelectSequence
 
 if TYPE_CHECKING:
-    from api.socket.shape.data_models import ServerShapeOwner, ShapeKeys
+    from ...api.socket.shape.data_models import ServerShapeOwner, ShapeKeys
 
-from logs import logger
+from ...logs import logger
 from ..asset import Asset
 from ..base import BaseModel
 from ..campaign import Layer
 from ..groups import Group
 from ..label import Label
+from ..typed import SelectSequence
 from ..user import User
 
 
@@ -77,7 +77,9 @@ class Shape(BaseModel):
     is_locked = cast(bool, BooleanField(default=False))
     angle = cast(float, FloatField(default=0))
     stroke_width = IntegerField(default=2)
-    asset = ForeignKeyField(Asset, backref="shapes", null=True, default=None)
+    asset = ForeignKeyField(
+        Asset, backref="shapes", null=True, default=None, on_delete="SET NULL"
+    )
     group = cast(
         Optional[Group],
         ForeignKeyField(Group, backref="members", null=True, default=None),

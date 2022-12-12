@@ -4,9 +4,9 @@ import { useI18n } from "vue-i18n";
 
 import { http } from "../../../../core/http";
 import { useModal } from "../../../../core/plugins/modals/plugin";
-import type { RoomInfo } from "../../../../dashboard/types";
-import { gameStore } from "../../../../store/game";
+import type { RoomInfo } from "../../../../dashboard/games/types";
 import { locationStore } from "../../../../store/location";
+import { playerState } from "../../../systems/players/state";
 
 const emit = defineEmits(["update:location", "close"]);
 const props = defineProps<{ location: number }>();
@@ -14,7 +14,9 @@ const props = defineProps<{ location: number }>();
 const { t } = useI18n();
 const modals = useModal();
 
-const hasPlayers = computed(() => gameStore.state.players.some((p) => p.location === props.location));
+const hasPlayers = computed(() =>
+    [...playerState.reactive.players.values()].some((p) => p.location === props.location),
+);
 
 const name = computed({
     get() {
@@ -52,7 +54,7 @@ async function onCloneClick(): Promise<void> {
     const response = await http.get("/api/rooms");
     if (response.ok) {
         const data = await response.json();
-        var owned: RoomInfo[] = data.owned;
+        const owned: RoomInfo[] = data.owned;
 
         const choice = await modals.selectionBox(
             t("game.ui.settings.LocationBar.LocationAdminSettings.choose_room"),

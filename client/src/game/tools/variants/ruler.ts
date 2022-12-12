@@ -6,9 +6,6 @@ import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { snapToGridPoint } from "../../../core/math";
 import { InvalidationMode, NO_SYNC, SyncMode } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
-import { clientStore, DEFAULT_GRID_SIZE } from "../../../store/client";
-import { floorStore } from "../../../store/floor";
-import { settingsStore } from "../../../store/settings";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { LayerName } from "../../models/floor";
 import { ToolName } from "../../models/tools";
@@ -16,9 +13,14 @@ import type { ToolFeatures, ToolPermission } from "../../models/tools";
 import { Line } from "../../shapes/variants/line";
 import { Text } from "../../shapes/variants/text";
 import { accessSystem } from "../../systems/access";
+import { floorSystem } from "../../systems/floors";
+import { floorState } from "../../systems/floors/state";
+import { playerSystem } from "../../systems/players";
+import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
+import { locationSettingsState } from "../../systems/settings/location/state";
+import { playerSettingsState } from "../../systems/settings/players/state";
+import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
-
-import { SelectFeatures } from "./select";
 
 export enum RulerFeatures {
     All,
@@ -50,14 +52,18 @@ class RulerTool extends Tool {
     }
 
     private createNewRuler(start: GlobalPoint, end: GlobalPoint): void {
-        const ruler = new Line(start, end, {
-            lineWidth: 5,
-            strokeColour: [clientStore.state.rulerColour],
-            isSnappable: false,
-        });
+        const ruler = new Line(
+            start,
+            end,
+            {
+                lineWidth: 5,
+                isSnappable: false,
+            },
+            { strokeColour: [playerSettingsState.raw.rulerColour.value] },
+        );
         ruler.ignoreZoomSize = true;
 
-        const layer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
+        const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
         if (layer === undefined) {
             console.log("No draw layer!");
             return;
@@ -65,7 +71,7 @@ class RulerTool extends Tool {
 
         accessSystem.addAccess(
             ruler.id,
-            clientStore.state.username,
+            playerSystem.getCurrentPlayer()!.name,
             { edit: true, movement: true, vision: true },
             NO_SYNC,
         );
@@ -80,24 +86,28 @@ class RulerTool extends Tool {
         this.cleanup();
         this.startPoint = l2g(lp);
 
-        if (clientStore.useSnapping(event)) [this.startPoint] = snapToGridPoint(this.startPoint);
+        if (playerSettingsState.useSnapping(event)) [this.startPoint] = snapToGridPoint(this.startPoint);
 
-        const layer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
+        const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
         if (layer === undefined) {
             console.log("No draw layer!");
             return;
         }
         this.active.value = true;
         this.createNewRuler(cloneP(this.startPoint), cloneP(this.startPoint));
-        this.text = new Text(cloneP(this.startPoint), "", 20, {
-            fillColour: "#000",
-            strokeColour: ["#fff"],
-            isSnappable: false,
-        });
+        this.text = new Text(
+            cloneP(this.startPoint),
+            "",
+            20,
+            {
+                isSnappable: false,
+            },
+            { fillColour: "#000", strokeColour: ["#fff"] },
+        );
         this.text.ignoreZoomSize = true;
         accessSystem.addAccess(
             this.text.id,
-            clientStore.state.username,
+            playerSystem.getCurrentPlayer()!.name,
             { edit: true, movement: true, vision: true },
             NO_SYNC,
         );
@@ -110,13 +120,13 @@ class RulerTool extends Tool {
         if (!this.active.value || this.rulers.length === 0 || this.startPoint === undefined || this.text === undefined)
             return;
 
-        const layer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
+        const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
         if (layer === undefined) {
             console.log("No draw layer!");
             return;
         }
 
-        if (clientStore.useSnapping(event)) [endPoint] = snapToGridPoint(endPoint);
+        if (playerSettingsState.useSnapping(event)) [endPoint] = snapToGridPoint(endPoint);
 
         const ruler = this.rulers.at(-1)!;
         ruler.endPoint = endPoint;
@@ -128,12 +138,14 @@ class RulerTool extends Tool {
         const diffsign = Math.sign(end.x - start.x) * Math.sign(end.y - start.y);
         const xdiff = Math.abs(end.x - start.x);
         const ydiff = Math.abs(end.y - start.y);
-        let distance = (Math.sqrt(xdiff ** 2 + ydiff ** 2) * settingsStore.unitSize.value) / DEFAULT_GRID_SIZE;
+        let distance =
+            (Math.sqrt(xdiff ** 2 + ydiff ** 2) * locationSettingsState.raw.unitSize.value) / DEFAULT_GRID_SIZE;
         this.currentLength = distance;
         distance += this.previousLength;
 
         // round to 1 decimal
-        const label = i18n.global.n(Math.round(10 * distance) / 10) + " " + settingsStore.unitSizeUnit.value;
+        const label =
+            i18n.global.n(Math.round(10 * distance) / 10) + " " + locationSettingsState.raw.unitSizeUnit.value;
         const angle = Math.atan2(diffsign * ydiff, xdiff);
         const xmid = Math.min(start.x, end.x) + xdiff / 2;
         const ymid = Math.min(start.y, end.y) + ydiff / 2;
@@ -156,7 +168,7 @@ class RulerTool extends Tool {
             this.createNewRuler(lastRuler.endPoint, lastRuler.endPoint);
             this.previousLength += this.currentLength;
 
-            const layer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
+            const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
             if (layer === undefined) {
                 console.log("No draw layer!");
                 return;
@@ -175,7 +187,7 @@ class RulerTool extends Tool {
         if (!this.active.value || this.rulers.length === 0 || this.startPoint === undefined || this.text === undefined)
             return;
 
-        const layer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Draw);
+        const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
         if (layer === undefined) {
             console.log("No active layer!");
             return;

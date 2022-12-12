@@ -1,14 +1,14 @@
 import { subtractP, toLP } from "../../../core/geometry";
 import type { LocalPoint } from "../../../core/geometry";
 import { i18n } from "../../../i18n";
-import { clientStore } from "../../../store/client";
-import { floorStore } from "../../../store/floor";
 import { sendClientLocationOptions } from "../../api/emits/client";
 import { ToolName } from "../../models/tools";
 import type { ToolPermission } from "../../models/tools";
+import { floorSystem } from "../../systems/floors";
+import { positionSystem } from "../../systems/position";
+import { positionState } from "../../systems/position/state";
+import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
-
-import { SelectFeatures } from "./select";
 
 class PanTool extends Tool {
     readonly toolName = ToolName.Pan;
@@ -21,13 +21,13 @@ class PanTool extends Tool {
     }
 
     panScreen(target: LocalPoint, full: boolean): void {
-        const distance = subtractP(target, this.panStart).multiply(1 / clientStore.zoomFactor.value);
-        clientStore.increasePanX(Math.round(distance.x));
-        clientStore.increasePanY(Math.round(distance.y));
+        const distance = subtractP(target, this.panStart).multiply(1 / positionState.readonly.zoom);
+        positionSystem.increasePan(Math.round(distance.x), Math.round(distance.y));
         this.panStart = target;
 
-        if (full) floorStore.invalidateAllFloors();
-        else floorStore.invalidateVisibleFloors();
+        if (full) floorSystem.invalidateAllFloors();
+        else floorSystem.invalidateVisibleFloors();
+        sendClientLocationOptions(!full);
     }
 
     // eslint-disable-next-line @typescript-eslint/require-await
@@ -47,7 +47,6 @@ class PanTool extends Tool {
         if (!this.active.value) return;
         this.active.value = false;
         this.panScreen(lp, true);
-        sendClientLocationOptions();
     }
 }
 

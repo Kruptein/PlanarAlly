@@ -1,8 +1,8 @@
 import { sendToggleCompositeAddVariant } from "../api/emits/shape/toggleComposite";
 import { getGlobalId, getShape } from "../id";
 import type { LocalId } from "../id";
-import type { IShape } from "../shapes/interfaces";
-import type { ToggleComposite } from "../shapes/variants/toggleComposite";
+import type { IShape } from "../interfaces/shape";
+import type { IToggleComposite } from "../interfaces/shapes/toggleComposite";
 
 class CompositeState {
     private compositeMap: Map<LocalId, LocalId> = new Map();
@@ -11,20 +11,20 @@ class CompositeState {
         this.compositeMap.clear();
     }
 
-    getCompositeParent(variant: LocalId): ToggleComposite | undefined {
+    getCompositeParent(variant: LocalId): IToggleComposite | undefined {
         const shape_uuid = this.compositeMap.get(variant);
         if (shape_uuid !== undefined) {
-            return getShape(shape_uuid) as ToggleComposite;
+            return getShape(shape_uuid) as IToggleComposite;
         }
         return undefined;
     }
 
-    addComposite(parent: LocalId, variant: { uuid: LocalId; name: string }, sync: boolean): void {
-        this.compositeMap.set(variant.uuid, parent);
+    addComposite(parent: LocalId, variant: { id: LocalId; name: string }, sync: boolean): void {
+        this.compositeMap.set(variant.id, parent);
         if (sync) {
             sendToggleCompositeAddVariant({
                 shape: getGlobalId(parent),
-                variant: getGlobalId(variant.uuid),
+                variant: getGlobalId(variant.id),
                 name: variant.name,
             });
         }
@@ -35,16 +35,20 @@ class CompositeState {
         const allShapes = [...shapes];
         for (const shape of this.compositeMap.keys()) {
             if (shapes.some((s) => s.id === shape)) {
-                const parent = this.getCompositeParent(shape)!;
+                const parent = this.getCompositeParent(shape);
+                if (parent === undefined) {
+                    console.warn("Missing composite parent");
+                    continue;
+                }
                 if (shapeUuids.has(parent.id)) continue;
                 shapeUuids.add(parent.id);
                 allShapes.push(parent);
                 for (const variant of parent.variants) {
-                    if (shapeUuids.has(variant.uuid)) {
+                    if (shapeUuids.has(variant.id)) {
                         continue;
                     } else {
-                        shapeUuids.add(variant.uuid);
-                        allShapes.push(getShape(variant.uuid)!);
+                        shapeUuids.add(variant.id);
+                        allShapes.push(getShape(variant.id)!);
                     }
                 }
             }

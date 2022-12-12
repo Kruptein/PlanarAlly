@@ -6,67 +6,74 @@ import ColourPicker from "../../../../core/components/ColourPicker.vue";
 import { NO_SYNC, SERVER_SYNC, SyncMode } from "../../../../core/models/types";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { getShape } from "../../../id";
+import type { IText } from "../../../interfaces/shapes/text";
 import type { CircularToken } from "../../../shapes/variants/circularToken";
-import type { Text } from "../../../shapes/variants/text";
-import { accessSystem } from "../../../systems/access";
+import { accessState } from "../../../systems/access/state";
+import { propertiesSystem } from "../../../systems/properties";
+import { getProperties, propertiesState } from "../../../systems/properties/state";
 
 const { t } = useI18n();
 
-const owned = accessSystem.$.hasEditAccess;
+const owned = accessState.hasEditAccess;
 
 function updateName(event: Event): void {
     if (!owned.value) return;
-    activeShapeStore.setName((event.target as HTMLInputElement).value, SERVER_SYNC);
+    propertiesSystem.setName(propertiesState.raw.id!, (event.target as HTMLInputElement).value, SERVER_SYNC);
 }
 
 function toggleNameVisible(): void {
     if (!owned.value) return;
-    activeShapeStore.setNameVisible(!activeShapeStore.state.nameVisible, SERVER_SYNC);
+    const id = propertiesState.raw.id!;
+    propertiesSystem.setNameVisible(id, !getProperties(id)!.nameVisible, SERVER_SYNC);
 }
 
 function setToken(event: Event): void {
     if (!owned.value) return;
-    activeShapeStore.setIsToken((event.target as HTMLInputElement).checked, SERVER_SYNC);
+    propertiesSystem.setIsToken(propertiesState.raw.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
 function setInvisible(event: Event): void {
     if (!owned.value) return;
-    activeShapeStore.setIsInvisible((event.target as HTMLInputElement).checked, SERVER_SYNC);
+    propertiesSystem.setIsInvisible(propertiesState.raw.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
 function setDefeated(event: Event): void {
     if (!owned.value) return;
-    activeShapeStore.setIsDefeated((event.target as HTMLInputElement).checked, SERVER_SYNC);
+    propertiesSystem.setIsDefeated(propertiesState.raw.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
 function setLocked(event: Event): void {
     if (!owned.value) return;
-    activeShapeStore.setLocked((event.target as HTMLInputElement).checked, SERVER_SYNC);
+    propertiesSystem.setLocked(propertiesState.raw.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
 function toggleBadge(event: Event): void {
     if (!owned.value) return;
-    activeShapeStore.setShowBadge((event.target as HTMLInputElement).checked, SERVER_SYNC);
+    propertiesSystem.setShowBadge(propertiesState.raw.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
 function setBlocksVision(event: Event): void {
     if (!owned.value) return;
-    activeShapeStore.setBlocksVision((event.target as HTMLInputElement).checked, SERVER_SYNC);
+    propertiesSystem.setBlocksVision(propertiesState.raw.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
 function setBlocksMovement(event: Event): void {
     if (!owned.value) return;
-    activeShapeStore.setBlocksMovement((event.target as HTMLInputElement).checked, SERVER_SYNC);
+    propertiesSystem.setBlocksMovement(
+        propertiesState.raw.id!,
+        (event.target as HTMLInputElement).checked,
+        SERVER_SYNC,
+    );
 }
 
 function setStrokeColour(event: string, temporary = false): void {
     if (!owned.value) return;
-    activeShapeStore.setStrokeColour(event, temporary ? NO_SYNC : SERVER_SYNC);
+    propertiesSystem.setStrokeColour(propertiesState.raw.id!, event, temporary ? NO_SYNC : SERVER_SYNC);
 }
 
 function setFillColour(colour: string, temporary = false): void {
     if (!owned.value) return;
-    activeShapeStore.setFillColour(colour, temporary ? NO_SYNC : SERVER_SYNC);
+    propertiesSystem.setFillColour(propertiesState.raw.id!, colour, temporary ? NO_SYNC : SERVER_SYNC);
 }
 
 const hasValue = computed(() => {
@@ -79,7 +86,7 @@ function getValue(): string {
         if (activeShapeStore.state.type === "circulartoken") {
             return (getShape(activeShapeStore.state.id) as CircularToken).text;
         } else if (activeShapeStore.state.type === "text") {
-            return (getShape(activeShapeStore.state.id) as Text).text;
+            return (getShape(activeShapeStore.state.id) as IText).text;
         }
     }
     return "";
@@ -92,7 +99,7 @@ function setValue(event: Event): void {
         if (activeShapeStore.state.type === "circulartoken") {
             (shape as CircularToken).setText((event.target as HTMLInputElement).value, SyncMode.FULL_SYNC);
         } else if (activeShapeStore.state.type === "text") {
-            (shape as Text).setText((event.target as HTMLInputElement).value, SyncMode.FULL_SYNC);
+            (shape as IText).setText((event.target as HTMLInputElement).value, SyncMode.FULL_SYNC);
         }
         shape?.invalidate(true);
     }
@@ -107,12 +114,12 @@ function setValue(event: Event): void {
             <input
                 type="text"
                 id="shapeselectiondialog-name"
-                :value="activeShapeStore.state.name"
+                :value="propertiesState.reactive.name"
                 @change="updateName"
                 :disabled="!owned"
             />
             <div
-                :style="{ opacity: activeShapeStore.state.nameVisible ? 1.0 : 0.3, textAlign: 'center' }"
+                :style="{ opacity: propertiesState.reactive.nameVisible ? 1.0 : 0.3, textAlign: 'center' }"
                 @click="toggleNameVisible"
                 :disabled="!owned"
                 :title="t('common.toggle_public_private')"
@@ -136,7 +143,7 @@ function setValue(event: Event): void {
             <input
                 type="checkbox"
                 id="shapeselectiondialog-istoken"
-                :checked="activeShapeStore.state.isToken"
+                :checked="propertiesState.reactive.isToken"
                 @click="setToken"
                 style="grid-column-start: toggle"
                 class="styled-checkbox"
@@ -150,7 +157,7 @@ function setValue(event: Event): void {
             <input
                 type="checkbox"
                 id="shapeselectiondialog-is-invisible"
-                :checked="activeShapeStore.state.isInvisible"
+                :checked="propertiesState.reactive.isInvisible"
                 @click="setInvisible"
                 style="grid-column-start: toggle"
                 class="styled-checkbox"
@@ -164,7 +171,7 @@ function setValue(event: Event): void {
             <input
                 type="checkbox"
                 id="shapeselectiondialog-is-defeated"
-                :checked="activeShapeStore.state.isDefeated"
+                :checked="propertiesState.reactive.isDefeated"
                 @click="setDefeated"
                 style="grid-column-start: toggle"
                 class="styled-checkbox"
@@ -174,7 +181,7 @@ function setValue(event: Event): void {
         <div class="row">
             <label for="shapeselectiondialog-strokecolour">{{ t("common.border_color") }}</label>
             <ColourPicker
-                :colour="activeShapeStore.state.strokeColour?.[0]"
+                :colour="propertiesState.reactive.strokeColour?.[0]"
                 @input:colour="setStrokeColour($event, true)"
                 @update:colour="setStrokeColour($event)"
                 style="grid-column-start: toggle"
@@ -184,7 +191,7 @@ function setValue(event: Event): void {
         <div class="row">
             <label for="shapeselectiondialog-fillcolour">{{ t("common.fill_color") }}</label>
             <ColourPicker
-                :colour="activeShapeStore.state.fillColour"
+                :colour="propertiesState.reactive.fillColour"
                 @input:colour="setFillColour($event, true)"
                 @update:colour="setFillColour($event)"
                 style="grid-column-start: toggle"
@@ -199,7 +206,7 @@ function setValue(event: Event): void {
             <input
                 type="checkbox"
                 id="shapeselectiondialog-visionblocker"
-                :checked="activeShapeStore.state.blocksVision"
+                :checked="propertiesState.reactive.blocksVision"
                 @click="setBlocksVision"
                 style="grid-column-start: toggle"
                 :disabled="!owned"
@@ -212,7 +219,7 @@ function setValue(event: Event): void {
             <input
                 type="checkbox"
                 id="shapeselectiondialog-moveblocker"
-                :checked="activeShapeStore.state.blocksMovement"
+                :checked="propertiesState.reactive.blocksMovement"
                 @click="setBlocksMovement"
                 style="grid-column-start: toggle"
                 :disabled="!owned"
@@ -225,7 +232,7 @@ function setValue(event: Event): void {
             <input
                 type="checkbox"
                 id="shapeselectiondialog-is-locked"
-                :checked="activeShapeStore.state.isLocked"
+                :checked="propertiesState.reactive.isLocked"
                 @click="setLocked"
                 style="grid-column-start: toggle"
                 class="styled-checkbox"
@@ -239,7 +246,7 @@ function setValue(event: Event): void {
             <input
                 type="checkbox"
                 id="shapeselectiondialog-showBadge"
-                :checked="activeShapeStore.state.showBadge"
+                :checked="propertiesState.reactive.showBadge"
                 @click="toggleBadge"
                 style="grid-column-start: toggle"
                 class="styled-checkbox"

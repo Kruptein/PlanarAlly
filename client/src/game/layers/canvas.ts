@@ -1,14 +1,16 @@
-import { clientStore } from "../../store/client";
+import { playerSettingsState } from "../systems/settings/players/state";
 
-export function createCanvas(): HTMLCanvasElement {
+export function createCanvas(layerName?: string): HTMLCanvasElement {
     // Create canvas element
     const canvas = document.createElement("canvas");
+    canvas.style.display = "none";
+    if (layerName !== undefined) canvas.classList.add(layerName);
     setCanvasDimensions(canvas, window.innerWidth, window.innerHeight);
     return canvas;
 }
 
 export function setCanvasDimensions(canvas: HTMLCanvasElement, width: number, height: number): void {
-    const pixelRatio = clientStore.devicePixelRatio.value;
+    const pixelRatio = playerSettingsState.devicePixelRatio.value;
     // Set display size in css pixels
     canvas.style.width = `${width}px`;
     canvas.style.height = `${height}px`;

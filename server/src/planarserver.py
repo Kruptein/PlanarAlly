@@ -3,6 +3,8 @@ PlanarAlly backend server code.
 This is the code responsible for starting the backend and reacting to socket IO events.
 """
 
+import asyncio
+import configparser
 import getpass
 import mimetypes
 import os
@@ -11,29 +13,28 @@ from argparse import ArgumentParser
 from pathlib import Path
 from types import SimpleNamespace
 from urllib.parse import quote, unquote
-from utils import FILE_DIR
-
-import save
-
-save_newly_created = save.check_existence()
-
-import asyncio
-import configparser
 
 from aiohttp import web
 
-import api.http
-import routes
-from state.asset import asset_state
-from state.game import game_state
+from .utils import FILE_DIR
+from . import save
+
+save_newly_created = save.check_existence()
+
+from .api import http
+from . import routes
+from .state.asset import asset_state
+from .state.game import game_state
 
 # Force loading of socketio routes
-from api.socket import *
-from api.socket.constants import GAME_NS
-from app import admin_app, app as main_app, runners, setup_runner, sio
-from config import config
-from logs import logger
-from models import User, Room
+from .api.socket import load_socket_commands
+from .api.socket.constants import GAME_NS
+from .app import admin_app, app as main_app, runners, setup_runner, sio
+from .config import config
+from .logs import logger
+from .models import User, Room
+
+load_socket_commands()
 
 loop = asyncio.new_event_loop()
 

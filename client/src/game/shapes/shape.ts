@@ -1,55 +1,46 @@
 import clamp from "lodash/clamp";
 
 import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "../../core/conversions";
-import { addP, cloneP, equalsP, subtractP, toArrayP, toGP } from "../../core/geometry";
-import type { GlobalPoint, Vector } from "../../core/geometry";
+import { addP, cloneP, equalsP, subtractP, toArrayP, toGP, Vector } from "../../core/geometry";
+import type { GlobalPoint } from "../../core/geometry";
 import { rotateAroundPoint } from "../../core/math";
-import { UI_SYNC } from "../../core/models/types";
 import type { Sync } from "../../core/models/types";
 import type { FunctionPropertyNames } from "../../core/types";
 import { mostReadable } from "../../core/utils";
+import { getGameState } from "../../store/_game";
 import { activeShapeStore } from "../../store/activeShape";
 import type { ActiveShapeStore } from "../../store/activeShape";
-import { clientStore } from "../../store/client";
-import { floorStore } from "../../store/floor";
-import { gameStore } from "../../store/game";
-import {
-    sendShapeAddLabel,
-    sendShapeRemoveLabel,
-    sendShapeSetAnnotation,
-    sendShapeSetAnnotationVisible,
-    sendShapeSetBlocksMovement,
-    sendShapeSetBlocksVision,
-    sendShapeSetDefeated,
-    sendShapeSetFillColour,
-    sendShapeSetInvisible,
-    sendShapeSetIsToken,
-    sendShapeSetLocked,
-    sendShapeSetName,
-    sendShapeSetNameVisible,
-    sendShapeSetShowBadge,
-    sendShapeSetStrokeColour,
-} from "../api/emits/shape/options";
+import { sendShapeAddLabel, sendShapeRemoveLabel } from "../api/emits/shape/options";
 import { getBadgeCharacters } from "../groups";
 import { generateLocalId, getGlobalId } from "../id";
 import type { GlobalId, LocalId } from "../id";
-import type { Layer } from "../layers/variants/layer";
-import type { Floor, FloorId, LayerName } from "../models/floor";
-import type { ServerShapeOptions } from "../models/shapes";
-import type { ServerShape, ShapeOptions } from "../models/shapes";
+import type { Label } from "../interfaces/label";
+import type { ILayer } from "../interfaces/layer";
+import type { IShape } from "../interfaces/shape";
+import { LayerName } from "../models/floor";
+import type { Floor, FloorId } from "../models/floor";
+import type { ServerShape, ServerShapeOptions, ShapeOptions } from "../models/shapes";
 import { accessSystem } from "../systems/access";
 import { ownerToClient, ownerToServer } from "../systems/access/helpers";
+import { annotationSystem } from "../systems/annotations";
+import { annotationState } from "../systems/annotations/state";
 import { auraSystem } from "../systems/auras";
 import { aurasFromServer, aurasToServer } from "../systems/auras/conversion";
+import { floorSystem } from "../systems/floors";
+import { floorState } from "../systems/floors/state";
 import { doorSystem } from "../systems/logic/door";
 import { teleportZoneSystem } from "../systems/logic/tp";
+import { propertiesSystem } from "../systems/properties";
+import { getProperties } from "../systems/properties/state";
+import type { ShapeProperties } from "../systems/properties/state";
+import { playerSettingsState } from "../systems/settings/players/state";
 import { trackerSystem } from "../systems/trackers";
 import { trackersFromServer, trackersToServer } from "../systems/trackers/conversion";
 import { TriangulationTarget, visionState } from "../vision/state";
+import { computeVisibility } from "../vision/te";
 
-import type { IShape, Label } from "./interfaces";
 import type { SHAPE_TYPE } from "./types";
-import { BoundingRect } from "./variants/boundingRect";
+import { BoundingRect } from "./variants/simple/boundingRect";
 
 export abstract class Shape implements IShape {
     // Used to create class instance from server shape data
@@ -63,12 +54,12 @@ export abstract class Shape implements IShape {
     // A reference point regarding that specific shape's structure
     protected _refPoint: GlobalPoint;
     protected _angle = 0;
+    protected _center!: GlobalPoint;
 
     protected _points: [number, number][] = [];
     get points(): [number, number][] {
         return this._points;
     }
-    abstract invalidatePoints(): void;
 
     abstract contains(point: GlobalPoint, nearbyThreshold?: number): boolean;
 
@@ -76,39 +67,17 @@ export abstract class Shape implements IShape {
     abstract resizeToGrid(resizePoint: number, retainAspectRatio: boolean): void;
     abstract resize(resizePoint: number, point: GlobalPoint, retainAspectRatio: boolean): number;
 
-    // The optional name associated with the shape
-    name = "Unknown shape";
-    nameVisible = true;
-
-    isToken = false;
-    isInvisible = false;
-    isDefeated = false;
-    isLocked = false;
-
-    // Fill colour of the shape
-    fillColour: string;
-    strokeColour: string[];
     strokeWidth: number;
 
     assetId?: number;
     groupId?: string;
-
-    // Block vision sources
-    blocksVision = false;
-    // Prevent shapes from overlapping with this shape
-    blocksMovement = false;
 
     // Draw mode to use
     globalCompositeOperation: GlobalCompositeOperation = "source-over";
 
     labels: Label[] = [];
 
-    // Mouseover annotation
-    annotation = "";
-    annotationVisible = false;
-
     badge = 0;
-    showBadge = false;
 
     showHighlight = false;
 
@@ -125,29 +94,40 @@ export abstract class Shape implements IShape {
     // Additional options for specialized uses
     options: Partial<ShapeOptions> = {};
 
+    private floorIteration = -1;
+    private visionIteration = -1;
+    private _visionPolygon: number[][] | undefined = undefined;
+    private _visionPath: Path2D | undefined = undefined;
+    _visionBbox: BoundingRect | undefined = undefined;
+
     constructor(
         refPoint: GlobalPoint,
         options?: {
-            fillColour?: string;
-            strokeColour?: string[];
             id?: LocalId;
             uuid?: GlobalId;
             assetId?: number;
             strokeWidth?: number;
             isSnappable?: boolean;
         },
+        properties?: Partial<ShapeProperties>,
     ) {
         this._refPoint = refPoint;
         this.id = options?.id ?? generateLocalId(this, options?.uuid);
-        this.fillColour = options?.fillColour ?? "#000";
-        this.strokeColour = options?.strokeColour ?? ["rgba(0,0,0,0)"];
         this.assetId = options?.assetId;
         this.strokeWidth = options?.strokeWidth ?? 5;
         this.isSnappable = options?.isSnappable ?? true;
+
+        propertiesSystem.inform(this.id, properties);
     }
 
-    abstract center(): GlobalPoint;
-    abstract center(centerPoint: GlobalPoint): void;
+    abstract __center(): GlobalPoint;
+    get center(): GlobalPoint {
+        return this._center;
+    }
+    set center(centerPoint: GlobalPoint) {
+        this._center = centerPoint;
+        this._visionPolygon = undefined;
+    }
 
     // Informs whether `points` forms a close loop
     abstract get isClosed(): boolean;
@@ -157,7 +137,58 @@ export abstract class Shape implements IShape {
      * This is the case when it is a token, has an aura that is a vision source or if it blocks vision.
      */
     get triggersVisionRecalc(): boolean {
-        return this.isToken || auraSystem.getAll(this.id, true).some((a) => a.visionSource) || this.blocksMovement;
+        const props = getProperties(this.id)!;
+        return props.isToken || props.blocksMovement || auraSystem.getAll(this.id, true).some((a) => a.visionSource);
+    }
+
+    resetVisionIteration(): void {
+        this.visionIteration = -1;
+    }
+
+    // todo: Currently Aura changes do not trigger this, investigate if we want to do the extra effort
+    private recalcVisionBbox(): void {
+        if (this._visionPolygon === undefined) {
+            this._visionBbox = undefined;
+            return;
+        }
+
+        let x = this._visionPolygon[0][0];
+        let y = this._visionPolygon[0][1];
+        let leftX = x;
+        let rightX = x;
+        let topY = y;
+        let botY = y;
+        for (const point of this._visionPolygon) {
+            x = point[0];
+            y = point[1];
+            if (leftX > x) leftX = x;
+            else if (rightX < x) rightX = x;
+            if (topY > y) topY = y;
+            else if (botY < y) botY = y;
+        }
+        this._visionBbox = new BoundingRect(toGP(leftX, topY), rightX - leftX, botY - topY).intersect(
+            this.getAuraAABB({ onlyVisionSources: true }),
+        );
+    }
+
+    get visionPolygon(): Path2D {
+        const floorIteration = floorState.readonly.iteration;
+        const visionIteration = visionState.getVisionIteration(this._floor!);
+        const visionAltered = visionIteration !== this.visionIteration;
+        if (this._visionPolygon === undefined || visionAltered) {
+            this._visionPolygon = computeVisibility(this.center, TriangulationTarget.VISION, this._floor!);
+            this.visionIteration = visionIteration;
+            this.recalcVisionBbox();
+        }
+        if (this._visionPath === undefined || floorIteration != this.floorIteration || visionAltered) {
+            const path = new Path2D();
+            path.moveTo(g2lx(this._visionPolygon[0][0]), g2ly(this._visionPolygon[0][1]));
+            for (const point of this._visionPolygon) path.lineTo(g2lx(point[0]), g2ly(point[1]));
+            path.closePath();
+            this._visionPath = path;
+            this.floorIteration = floorIteration;
+        }
+        return this._visionPath;
     }
 
     onLayerAdd(): void {}
@@ -165,11 +196,11 @@ export abstract class Shape implements IShape {
     // POSITION
 
     get floor(): Floor {
-        return floorStore.getFloor({ id: this._floor! })!;
+        return floorSystem.getFloor({ id: this._floor! })!;
     }
 
-    get layer(): Layer {
-        return floorStore.getLayer(this.floor, this._layer)!;
+    get layer(): ILayer {
+        return floorSystem.getLayer(this.floor, this._layer)!;
     }
 
     get refPoint(): GlobalPoint {
@@ -177,7 +208,11 @@ export abstract class Shape implements IShape {
     }
     set refPoint(point: GlobalPoint) {
         this._refPoint = point;
+        this._center = this.__center();
+        this.resetVisionIteration();
         this.invalidatePoints();
+        if (getProperties(this.id)?.isToken === true)
+            floorSystem.getLayer(this.floor, LayerName.Draw)?.invalidate(true);
     }
 
     get angle(): number {
@@ -187,7 +222,6 @@ export abstract class Shape implements IShape {
     set angle(angle: number) {
         this._angle = angle;
         this.invalidatePoints();
-        this.updateLayerPoints();
     }
 
     setLayer(floor: FloorId, layer: LayerName): void {
@@ -201,12 +235,22 @@ export abstract class Shape implements IShape {
 
     setPositionRepresentation(position: { angle: number; points: [number, number][] }): void {
         this._refPoint = toGP(position.points[0]);
+        this._center = this.__center();
         this.angle = position.angle;
+        this.resetVisionIteration();
         this.updateShapeVision(false, false);
+        if (getProperties(this.id)?.isToken === true)
+            floorSystem.getLayer(this.floor, LayerName.Draw)?.invalidate(true);
     }
 
     invalidate(skipLightUpdate: boolean): void {
-        this.layer.invalidate(skipLightUpdate);
+        if (this._layer !== undefined) this.layer.invalidate(skipLightUpdate);
+    }
+
+    // @mustOverride
+    invalidatePoints(): void {
+        this.layer.updateSectors(this.id, this.getAuraAABB());
+        if (this.isSnappable) this.updateLayerPoints();
     }
 
     updateLayerPoints(): void {
@@ -218,17 +262,15 @@ export abstract class Shape implements IShape {
         }
         for (const point of this.points) {
             const strp = JSON.stringify(point);
-            if (this.layer.points.has(strp) && !this.layer.points.get(strp)!.has(this.id))
-                this.layer.points.get(strp)!.add(this.id);
-            else if (!this.layer.points.has(strp)) this.layer.points.set(strp, new Set([this.id]));
+            if (this.layer.points.has(strp)) this.layer.points.get(strp)!.add(this.id);
+            else this.layer.points.set(strp, new Set([this.id]));
         }
     }
 
     rotateAround(point: GlobalPoint, angle: number): void {
-        const center = this.center();
-        if (!equalsP(point, center)) this.center(rotateAroundPoint(center, point, angle));
+        const center = this.center;
+        if (!equalsP(point, center)) this.center = rotateAroundPoint(center, point, angle);
         this.angle += angle;
-        this.updateLayerPoints();
     }
 
     rotateAroundAbsolute(point: GlobalPoint, angle: number): void {
@@ -254,35 +296,37 @@ export abstract class Shape implements IShape {
 
     // DRAWING
 
-    draw(ctx: CanvasRenderingContext2D): void {
+    draw(ctx: CanvasRenderingContext2D, customScale?: { center: GlobalPoint; width: number; height: number }): void {
         if (this.globalCompositeOperation !== undefined) ctx.globalCompositeOperation = this.globalCompositeOperation;
         else ctx.globalCompositeOperation = "source-over";
 
-        const center = g2l(this.center());
-        const pixelRatio = clientStore.devicePixelRatio.value;
+        const center = g2l(customScale?.center ?? this.center);
+        const pixelRatio = playerSettingsState.devicePixelRatio.value;
 
         ctx.setTransform(pixelRatio, 0, 0, pixelRatio, center.x * pixelRatio, center.y * pixelRatio);
         ctx.rotate(this.angle);
     }
 
     drawPost(ctx: CanvasRenderingContext2D): void {
-        const pixelRatio = clientStore.devicePixelRatio.value;
+        const pixelRatio = playerSettingsState.devicePixelRatio.value;
         ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+        const props = getProperties(this.id);
+        if (props === undefined) return console.error("Missing props");
 
         let bbox: BoundingRect | undefined;
-        if (this.showBadge) {
+        if (props.showBadge) {
             bbox = this.getBoundingBox();
             const location = g2l(bbox.botRight);
             const crossLength = g2lz(Math.min(bbox.w, bbox.h));
             const r = crossLength * 0.2;
             ctx.strokeStyle = "black";
-            ctx.fillStyle = this.strokeColour[0];
+            ctx.fillStyle = props.strokeColour[0];
             ctx.lineWidth = g2lz(2);
             ctx.beginPath();
             ctx.arc(location.x - r, location.y - r, r, 0, 2 * Math.PI);
             ctx.stroke();
             ctx.fill();
-            ctx.fillStyle = mostReadable(this.strokeColour[0]);
+            ctx.fillStyle = mostReadable(props.strokeColour[0]);
 
             const badgeChars = getBadgeCharacters(this);
             const scalingFactor = 2.3 - 0.5 * badgeChars.length;
@@ -296,14 +340,14 @@ export abstract class Shape implements IShape {
             ctx.strokeStyle = "red";
             ctx.strokeRect(g2lx(bbox.topLeft.x) - 5, g2ly(bbox.topLeft.y) - 5, g2lz(bbox.w) + 10, g2lz(bbox.h) + 10);
         }
-        if (this.isDefeated) {
+        if (props.isDefeated) {
             if (bbox === undefined) bbox = this.getBoundingBox();
             const crossTL = g2l(bbox.topLeft);
             const crossBR = g2l(bbox.botRight);
             const crossLength = g2lz(Math.max(bbox.w, bbox.h));
             const r = crossLength * 0.2;
             ctx.strokeStyle = "red";
-            ctx.fillStyle = this.strokeColour[0];
+            ctx.fillStyle = props.strokeColour[0];
             ctx.lineWidth = r / 5;
             ctx.beginPath();
             ctx.moveTo(crossTL.x + r, crossTL.y + r);
@@ -352,6 +396,7 @@ export abstract class Shape implements IShape {
         ctx.stroke();
 
         const points = this.points; // expensive call
+        if (points.length === 0) return; // can trigger mid-floor change
 
         // Draw vertices
         for (const p of points) {
@@ -376,7 +421,8 @@ export abstract class Shape implements IShape {
     // VISION
 
     updateShapeVision(alteredMovement: boolean, alteredVision: boolean): void {
-        if (this.blocksVision && !alteredVision) {
+        const props = getProperties(this.id)!;
+        if (props.blocksVision && !alteredVision) {
             visionState.deleteFromTriangulation({
                 target: TriangulationTarget.VISION,
                 shape: this.id,
@@ -385,8 +431,8 @@ export abstract class Shape implements IShape {
             visionState.recalculateVision(this.floor.id);
         }
         this.invalidate(true);
-        floorStore.invalidateLightAllFloors();
-        if (this.blocksMovement && !alteredMovement) {
+        floorSystem.invalidateLightAllFloors();
+        if (props.blocksMovement && !alteredMovement) {
             visionState.deleteFromTriangulation({
                 target: TriangulationTarget.MOVEMENT,
                 shape: this.id,
@@ -400,6 +446,10 @@ export abstract class Shape implements IShape {
 
     getAABB(delta = 0): BoundingRect {
         const points = this.points; // expensive call
+        if (points.length === 0) {
+            return new BoundingRect(this.refPoint, 5, 5);
+        }
+
         let minx = points[0][0];
         let maxx = points[0][0];
         let miny = points[0][1];
@@ -413,6 +463,16 @@ export abstract class Shape implements IShape {
         return new BoundingRect(toGP(minx - delta, miny - delta), maxx - minx + 2 * delta, maxy - miny + 2 * delta);
     }
 
+    getAuraAABB(options?: { onlyVisionSources?: boolean }): BoundingRect {
+        let aabb = this.getAABB();
+        for (const aura of auraSystem.getAll(this.id, true)) {
+            if ((options?.onlyVisionSources ?? false) && !aura.visionSource) continue;
+            const range = getUnitDistance(aura.value + aura.dim);
+            aabb = aabb.union(new BoundingRect(addP(this.refPoint, new Vector(-range, -range)), range * 2, range * 2));
+        }
+        return aabb;
+    }
+
     getBoundingBox(delta = 0): BoundingRect {
         return this.getAABB(delta);
     }
@@ -421,35 +481,37 @@ export abstract class Shape implements IShape {
     abstract asDict(): ServerShape;
     getBaseDict(): ServerShape {
         const defaultAccess = accessSystem.getDefault(this.id);
+        const props = getProperties(this.id)!;
+        const annotationInfo = annotationState.get(this.id);
         return {
             type_: this.type,
             uuid: getGlobalId(this.id),
             x: this.refPoint.x,
             y: this.refPoint.y,
             angle: this.angle,
-            floor: floorStore.getFloor({ id: this._floor! })!.name,
+            floor: floorSystem.getFloor({ id: this._floor! })!.name,
             layer: this._layer,
             draw_operator: this.globalCompositeOperation,
-            movement_obstruction: this.blocksMovement,
-            vision_obstruction: this.blocksVision,
+            movement_obstruction: props.blocksMovement,
+            vision_obstruction: props.blocksVision,
             auras: aurasToServer(getGlobalId(this.id), auraSystem.getAll(this.id, false)),
             trackers: trackersToServer(getGlobalId(this.id), trackerSystem.getAll(this.id, false)),
             labels: this.labels,
             owners: accessSystem.getOwnersFull(this.id).map((o) => ownerToServer(o)),
-            fill_colour: this.fillColour,
-            stroke_colour: this.strokeColour[0],
+            fill_colour: props.fillColour,
+            stroke_colour: props.strokeColour[0],
             stroke_width: this.strokeWidth,
-            name: this.name,
-            name_visible: this.nameVisible,
-            annotation: this.annotation,
-            annotation_visible: this.annotationVisible,
-            is_token: this.isToken,
-            is_invisible: this.isInvisible,
-            is_defeated: this.isDefeated,
+            name: props.name,
+            name_visible: props.nameVisible,
+            annotation: annotationInfo.annotation,
+            annotation_visible: annotationInfo.annotationVisible,
+            is_token: props.isToken,
+            is_invisible: props.isInvisible,
+            is_defeated: props.isDefeated,
             options: JSON.stringify(Object.entries(this.options)),
             badge: this.badge,
-            show_badge: this.showBadge,
-            is_locked: this.isLocked,
+            show_badge: props.showBadge,
+            is_locked: props.isLocked,
             default_edit_access: defaultAccess.edit,
             default_movement_access: defaultAccess.movement,
             default_vision_access: defaultAccess.vision,
@@ -465,22 +527,27 @@ export abstract class Shape implements IShape {
             data.options === undefined ? {} : Object.fromEntries(JSON.parse(data.options));
 
         this._layer = data.layer;
-        this._floor = floorStore.getFloor({ name: data.floor })!.id;
+        this._floor = floorSystem.getFloor({ name: data.floor })!.id;
         this.angle = data.angle;
         this.globalCompositeOperation = data.draw_operator;
-        this.blocksMovement = data.movement_obstruction;
-        this.blocksVision = data.vision_obstruction;
         this.labels = data.labels;
-        this.fillColour = data.fill_colour;
-        this.strokeColour = [data.stroke_colour];
-        this.isToken = data.is_token;
-        this.isInvisible = data.is_invisible;
-        this.isDefeated = data.is_defeated;
-        this.nameVisible = data.name_visible;
         this.badge = data.badge;
-        this.showBadge = data.show_badge;
-        this.isLocked = data.is_locked;
-        this.annotationVisible = data.annotation_visible;
+
+        propertiesSystem.inform(this.id, {
+            name: data.name,
+            nameVisible: data.name_visible,
+            blocksMovement: data.movement_obstruction,
+            blocksVision: data.vision_obstruction,
+            fillColour: data.fill_colour,
+            strokeColour: [data.stroke_colour],
+            isToken: data.is_token,
+            isInvisible: data.is_invisible,
+            isDefeated: data.is_defeated,
+            showBadge: data.show_badge,
+            isLocked: data.is_locked,
+        });
+
+        annotationSystem.inform(this.id, { annotation: data.annotation, annotationVisible: data.annotation_visible });
 
         const defaultAccess = {
             edit: data.default_edit_access,
@@ -498,10 +565,6 @@ export abstract class Shape implements IShape {
 
         this.ignoreZoomSize = data.ignore_zoom_size;
 
-        if (data.annotation) {
-            this.annotation = data.annotation;
-        }
-        this.name = data.name;
         if (data.options !== undefined) this.options = options;
         if (data.asset !== undefined) this.assetId = data.asset;
         if (data.group !== undefined) this.groupId = data.group;
@@ -514,7 +577,7 @@ export abstract class Shape implements IShape {
             for (const aura of auraSystem.getAll(this.id, true)) {
                 if (aura.value > 0 || aura.dim > 0) {
                     const r = getUnitDistance(aura.value + aura.dim);
-                    const center = this.center();
+                    const center = this.center;
                     const auraArea = new BoundingRect(toGP(center.x - r, center.y - r), r * 2, r * 2);
                     if (auraArea.visibleInCanvas(max)) {
                         return true;
@@ -548,153 +611,13 @@ export abstract class Shape implements IShape {
         this.groupId = groupId;
     }
 
-    // PROPERTIES
-
-    setName(name: string, syncTo: Sync): void {
-        if (syncTo.server) sendShapeSetName({ shape: getGlobalId(this.id), value: name });
-        if (syncTo.ui) this._("setName")(name, syncTo);
-
-        this.name = name;
-        // Initiative names are not always updated when renaming shapes
-        // This is due to these shapes not yet being reactive
-        // EventBus.$emit("Initiative.ForceUpdate");
-    }
-
-    setNameVisible(visible: boolean, syncTo: Sync): void {
-        if (syncTo.server) sendShapeSetNameVisible({ shape: getGlobalId(this.id), value: visible });
-        if (syncTo.ui) this._("setNameVisible")(visible, syncTo);
-
-        this.nameVisible = visible;
-    }
-
-    setIsToken(isToken: boolean, syncTo: Sync): void {
-        if (syncTo.server) sendShapeSetIsToken({ shape: getGlobalId(this.id), value: isToken });
-        if (syncTo.ui) this._("setIsToken")(isToken, syncTo);
-
-        this.isToken = isToken;
-        if (accessSystem.hasAccessTo(this.id, false, { vision: true })) {
-            if (this.isToken) gameStore.addOwnedToken(this.id);
-            else gameStore.removeOwnedToken(this.id);
-        }
-        this.invalidate(false);
-    }
-
-    setInvisible(isInvisible: boolean, syncTo: Sync): void {
-        if (syncTo.server) sendShapeSetInvisible({ shape: getGlobalId(this.id), value: isInvisible });
-        if (syncTo.ui) this._("setIsInvisible")(isInvisible, syncTo);
-
-        this.isInvisible = isInvisible;
-        this.invalidate(!this.triggersVisionRecalc);
-    }
-
-    setStrokeColour(colour: string, syncTo: Sync): void {
-        if (syncTo.server) sendShapeSetStrokeColour({ shape: getGlobalId(this.id), value: colour });
-        if (syncTo.ui) this._("setStrokeColour")(colour, syncTo);
-
-        this.strokeColour = [colour];
-        this.invalidate(true);
-    }
-
-    setFillColour(colour: string, syncTo: Sync): void {
-        if (syncTo.server) sendShapeSetFillColour({ shape: getGlobalId(this.id), value: colour });
-        if (syncTo.ui) this._("setFillColour")(colour, syncTo);
-
-        this.fillColour = colour;
-        this.invalidate(true);
-    }
-
-    setBlocksVision(blocksVision: boolean, syncTo: Sync, recalculate = true): void {
-        if (syncTo.server) sendShapeSetBlocksVision({ shape: getGlobalId(this.id), value: blocksVision });
-        if (syncTo.ui) this._("setBlocksVision")(blocksVision, UI_SYNC);
-
-        this.blocksVision = blocksVision;
-        const alteredVision = this.checkVisionSources(recalculate);
-        if (alteredVision && recalculate) this.invalidate(false);
-    }
-
-    setBlocksMovement(blocksMovement: boolean, syncTo: Sync, recalculate = true): boolean {
-        if (syncTo.server) sendShapeSetBlocksMovement({ shape: getGlobalId(this.id), value: blocksMovement });
-        if (syncTo.ui) this._("setBlocksMovement")(blocksMovement, syncTo);
-
-        let alteredMovement = false;
-        this.blocksMovement = blocksMovement;
-        const movementBlockers = visionState.getBlockers(
-            TriangulationTarget.MOVEMENT,
-            this._floor ?? floorStore.currentFloor.value!.id,
-        );
-        const obstructionIndex = movementBlockers.indexOf(this.id);
-        if (this.blocksMovement && obstructionIndex === -1) {
-            visionState.addBlocker(
-                TriangulationTarget.MOVEMENT,
-                this.id,
-                this._floor ?? floorStore.currentFloor.value!.id,
-                recalculate,
-            );
-            alteredMovement = true;
-        } else if (!this.blocksMovement && obstructionIndex >= 0) {
-            visionState.sliceBlockers(
-                TriangulationTarget.MOVEMENT,
-                obstructionIndex,
-                this._floor ?? floorStore.currentFloor.value!.id,
-                recalculate,
-            );
-            alteredMovement = true;
-        }
-
-        return alteredMovement;
-    }
-
-    setShowBadge(showBadge: boolean, syncTo: Sync): void {
-        if (syncTo.server) sendShapeSetShowBadge({ shape: getGlobalId(this.id), value: showBadge });
-        if (syncTo.ui) this._("setShowBadge")(showBadge, syncTo);
-
-        this.showBadge = showBadge;
-        this.invalidate(!this.triggersVisionRecalc);
-        // EventBus.$emit("EditDialog.Group.Update");
-    }
-
-    setDefeated(isDefeated: boolean, syncTo: Sync): void {
-        if (syncTo.server) sendShapeSetDefeated({ shape: getGlobalId(this.id), value: isDefeated });
-        if (syncTo.ui) this._("setIsDefeated")(isDefeated, syncTo);
-
-        this.isDefeated = isDefeated;
-        this.invalidate(!this.triggersVisionRecalc);
-    }
-
-    setLocked(isLocked: boolean, syncTo: Sync): void {
-        if (syncTo.server) sendShapeSetLocked({ shape: getGlobalId(this.id), value: isLocked });
-        if (syncTo.ui) this._("setLocked")(isLocked, syncTo);
-
-        this.isLocked = isLocked;
-    }
-
     // EXTRA
-
-    setAnnotation(text: string, syncTo: Sync): void {
-        if (syncTo.server) sendShapeSetAnnotation({ shape: getGlobalId(this.id), value: text });
-        if (syncTo.ui) this._("setAnnotation")(text, syncTo);
-
-        const hadAnnotation = this.annotation !== "";
-        this.annotation = text;
-        if (this.annotation !== "" && !hadAnnotation) {
-            gameStore.addAnnotation(this.id);
-        } else if (this.annotation === "" && hadAnnotation) {
-            gameStore.removeAnnotation(this.id);
-        }
-    }
-
-    setAnnotationVisible(visible: boolean, syncTo: Sync): void {
-        if (syncTo.server) sendShapeSetAnnotationVisible({ shape: getGlobalId(this.id), value: visible });
-        if (syncTo.ui) this._("setAnnotationVisible")(visible, syncTo);
-
-        this.annotationVisible = visible;
-    }
 
     addLabel(label: string, syncTo: Sync): void {
         if (syncTo.server) sendShapeAddLabel({ shape: getGlobalId(this.id), value: label });
         if (syncTo.ui) this._("addLabel")(label, syncTo);
 
-        const l = gameStore.state.labels.get(label)!;
+        const l = getGameState().labels.get(label)!;
         this.labels.push(l);
     }
 
@@ -703,34 +626,5 @@ export abstract class Shape implements IShape {
         if (syncTo.ui) this._("removeLabel")(label, syncTo);
 
         this.labels = this.labels.filter((l) => l.uuid !== label);
-    }
-
-    // Extra Utilities
-
-    private checkVisionSources(recalculate = true): boolean {
-        let alteredVision = false;
-        const visionBlockers = visionState.getBlockers(
-            TriangulationTarget.VISION,
-            this._floor ?? floorStore.currentFloor.value!.id,
-        );
-        const obstructionIndex = visionBlockers.indexOf(this.id);
-        if (this.blocksVision && obstructionIndex === -1) {
-            visionState.addBlocker(
-                TriangulationTarget.VISION,
-                this.id,
-                this._floor ?? floorStore.currentFloor.value!.id,
-                recalculate,
-            );
-            alteredVision = true;
-        } else if (!this.blocksVision && obstructionIndex >= 0) {
-            visionState.sliceBlockers(
-                TriangulationTarget.VISION,
-                obstructionIndex,
-                this._floor ?? floorStore.currentFloor.value!.id,
-                recalculate,
-            );
-            alteredVision = true;
-        }
-        return alteredVision;
     }
 }

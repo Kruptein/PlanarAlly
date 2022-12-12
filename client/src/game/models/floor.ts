@@ -1,4 +1,7 @@
-export type FloorId = number & { __brand: "floorId" };
+import type { NumberId } from "../id";
+
+export type FloorId = NumberId<"floorId">;
+export type FloorIndex = NumberId<"floorIndex">;
 
 export interface Floor {
     id: FloorId; // This is only kept client side at the moment

@@ -1,10 +1,10 @@
 from aiohttp_security import authorized_userid
 
+from ....api.socket.constants import DASHBOARD_NS
+from ....app import sio
+from ....config import config
+from ....state.dashboard import dashboard_state
 from . import campaign
-from api.socket.constants import DASHBOARD_NS
-from app import sio
-from config import config
-from state.dashboard import dashboard_state
 
 
 @sio.on("connect", namespace=DASHBOARD_NS)

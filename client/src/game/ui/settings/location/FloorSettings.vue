@@ -1,30 +1,26 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../../core/components/ColourPicker.vue";
 import { BackgroundType, getBackgroundTypeFromString, getBackgroundTypes } from "../../../../game/models/floor";
-import { settingsStore } from "../../../../store/settings";
-import type { LocationOptions } from "../../../models/settings";
+import { locationSettingsSystem } from "../../../systems/settings/location";
+import { locationSettingsState } from "../../../systems/settings/location/state";
 import PatternSettings from "../floor/PatternSettings.vue";
+
+const props = withDefaults(defineProps<{ location?: number }>(), { location: -1 });
 
 const { t } = useI18n();
 
-const props = withDefaults(defineProps<{ location?: number }>(), { location: -1 });
-const backgroundTypes = getBackgroundTypes();
+const { reactive: $, getOption } = locationSettingsState;
+const lss = locationSettingsSystem;
+
 const isGlobal = computed(() => props.location < 0);
-
-const options = computed(() => {
-    if (isGlobal.value) {
-        return settingsStore.state.defaultLocationOptions!;
-    } else {
-        return settingsStore.state.locationOptions.get(props.location) ?? {};
-    }
-});
-
 const location = computed(() => (isGlobal.value ? undefined : props.location));
 
-function getBackgroundValueFromType(type: BackgroundType): string | null {
+const backgroundTypes = getBackgroundTypes();
+
+function getBackgroundValueFromType(type: BackgroundType): string {
     switch (type) {
         case BackgroundType.Simple:
             return "rgba(255, 255, 255, 1)";
@@ -35,93 +31,65 @@ function getBackgroundValueFromType(type: BackgroundType): string | null {
     }
 }
 
-// TODO: Clean up this hack around settingsstore not being reactive when setting things
-const invalidateHack = ref(0);
-
 // AIR
 
 const airBackground = computed({
     get() {
-        invalidateHack.value;
-        return settingsStore.getLocationOptions("airMapBackground", location.value);
+        return getOption($.airMapBackground, location.value).value;
     },
-    set(airBackground: string | null) {
-        settingsStore.setAirMapBackground(airBackground, location.value, true);
+    set(airBackground: string | undefined) {
+        lss.setAirMapBackground(airBackground, location.value, true);
     },
 });
 const airBackgroundType = computed(() => {
-    return getBackgroundTypeFromString(airBackground.value);
+    return getBackgroundTypeFromString(airBackground.value!);
 });
-
-function setAirBackground(background: string): void {
-    settingsStore.setAirMapBackground(background, location.value, true);
-}
 
 function setAirBackgroundFromEvent(event: Event): void {
     const type = Number.parseInt((event.target as HTMLSelectElement).value);
     airBackground.value = getBackgroundValueFromType(type);
-    invalidateHack.value++;
 }
 
 // GROUND
 
 const groundBackground = computed({
     get() {
-        invalidateHack.value;
-        return settingsStore.getLocationOptions("groundMapBackground", location.value);
+        return getOption($.groundMapBackground, location.value).value;
     },
-    set(groundBackground: string | null) {
-        settingsStore.setGroundMapBackground(groundBackground, location.value, true);
+    set(groundBackground: string | undefined) {
+        lss.setGroundMapBackground(groundBackground, location.value, true);
     },
 });
 const groundBackgroundType = computed(() => {
-    return getBackgroundTypeFromString(groundBackground.value);
+    return getBackgroundTypeFromString(groundBackground.value!);
 });
-
-function setGroundBackground(background: string): void {
-    settingsStore.setGroundMapBackground(background, location.value, true);
-}
 
 function setGroundBackgroundFromEvent(event: Event): void {
     const type = Number.parseInt((event.target as HTMLSelectElement).value);
     groundBackground.value = getBackgroundValueFromType(type);
-    invalidateHack.value++;
 }
 
 // UNDERGROUND
 
 const undergroundBackground = computed({
     get() {
-        invalidateHack.value;
-        return settingsStore.getLocationOptions("undergroundMapBackground", location.value);
+        return getOption($.undergroundMapBackground, location.value).value;
     },
-    set(undergroundBackground: string | null) {
-        settingsStore.setUndergroundMapBackground(undergroundBackground, location.value, true);
+    set(undergroundBackground: string | undefined) {
+        lss.setUndergroundMapBackground(undergroundBackground, location.value, true);
     },
 });
 const undergroundBackgroundType = computed(() => {
-    return getBackgroundTypeFromString(undergroundBackground.value);
+    return getBackgroundTypeFromString(undergroundBackground.value!);
 });
-
-function setUndergroundBackground(background: string): void {
-    settingsStore.setUndergroundMapBackground(background, location.value, true);
-}
 
 function setUndergroundBackgroundFromEvent(event: Event): void {
     const type = Number.parseInt((event.target as HTMLSelectElement).value);
     undergroundBackground.value = getBackgroundValueFromType(type);
-    invalidateHack.value++;
 }
 
-// UTILITY
-
-function reset(key: keyof LocationOptions): void {
-    if (isGlobal.value) return;
-    settingsStore.reset(key, props.location);
-}
-
-function e(k: any): boolean {
-    return k !== undefined;
+function o(k: any): boolean {
+    return getOption(k, location.value).override !== undefined;
 }
 </script>
 
@@ -142,7 +110,7 @@ function e(k: any): boolean {
 
         <div class="spanrow header">{{ t("game.ui.settings.FloorSettings.backgrounds") }}</div>
 
-        <div class="row" :class="{ overwritten: !isGlobal && e(options.airMapBackground) }">
+        <div class="row" :class="{ overwritten: !isGlobal && o($.airMapBackground) }">
             <label :for="'airBackground-' + location">{{ t("game.ui.settings.FloorSettings.air_background") }}</label>
             <div>
                 <select :value="airBackgroundType" @change="setAirBackgroundFromEvent">
@@ -152,8 +120,8 @@ function e(k: any): boolean {
                 </select>
             </div>
             <div
-                v-if="!isGlobal && e(options.airMapBackground)"
-                @click="reset('airMapBackground')"
+                v-if="!isGlobal && o($.airMapBackground)"
+                @click="airBackground = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
             >
                 <font-awesome-icon icon="times-circle" />
@@ -162,14 +130,14 @@ function e(k: any): boolean {
         </div>
         <div class="row" v-show="airBackgroundType === BackgroundType.Simple">
             <div></div>
-            <div><ColourPicker :colour="airBackground ?? undefined" @update:colour="setAirBackground($event)" /></div>
+            <div><ColourPicker :colour="airBackground ?? undefined" @update:colour="airBackground = $event" /></div>
             <div></div>
         </div>
         <div class="row" v-show="airBackgroundType === BackgroundType.Pattern">
-            <PatternSettings :pattern="airBackground ?? ''" @update:pattern="setAirBackground" />
+            <PatternSettings :pattern="airBackground ?? ''" @update:pattern="airBackground = $event" />
         </div>
 
-        <div class="row" :class="{ overwritten: !isGlobal && e(options.groundMapBackground) }">
+        <div class="row" :class="{ overwritten: !isGlobal && o($.groundMapBackground) }">
             <label :for="'groundBackground-' + location">
                 {{ t("game.ui.settings.FloorSettings.ground_background") }}
             </label>
@@ -181,8 +149,8 @@ function e(k: any): boolean {
                 </select>
             </div>
             <div
-                v-if="!isGlobal && e(options.groundMapBackground)"
-                @click="reset('groundMapBackground')"
+                v-if="!isGlobal && o($.groundMapBackground)"
+                @click="groundBackground = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
             >
                 <font-awesome-icon icon="times-circle" />
@@ -192,15 +160,15 @@ function e(k: any): boolean {
         <div class="row" v-show="groundBackgroundType === BackgroundType.Simple">
             <div></div>
             <div>
-                <ColourPicker :colour="groundBackground ?? undefined" @update:colour="setGroundBackground($event)" />
+                <ColourPicker :colour="groundBackground ?? undefined" @update:colour="groundBackground = $event" />
             </div>
             <div></div>
         </div>
         <div class="row" v-show="groundBackgroundType === BackgroundType.Pattern">
-            <PatternSettings :pattern="groundBackground ?? ''" @update:pattern="setGroundBackground" />
+            <PatternSettings :pattern="groundBackground ?? ''" @update:pattern="groundBackground = $event" />
         </div>
 
-        <div class="row" :class="{ overwritten: !isGlobal && e(options.undergroundMapBackground) }">
+        <div class="row" :class="{ overwritten: !isGlobal && o($.undergroundMapBackground) }">
             <label :for="'undergroundBackground-' + location">
                 {{ t("game.ui.settings.FloorSettings.underground_background") }}
             </label>
@@ -216,8 +184,8 @@ function e(k: any): boolean {
                 </select>
             </div>
             <div
-                v-if="!isGlobal && e(options.undergroundMapBackground)"
-                @click="reset('undergroundMapBackground')"
+                v-if="!isGlobal && o($.undergroundMapBackground)"
+                @click="undergroundBackground = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
             >
                 <font-awesome-icon icon="times-circle" />
@@ -229,13 +197,13 @@ function e(k: any): boolean {
             <div>
                 <ColourPicker
                     :colour="undergroundBackground ?? undefined"
-                    @update:colour="setUndergroundBackground($event)"
+                    @update:colour="undergroundBackground = $event"
                 />
             </div>
             <div></div>
         </div>
         <div class="row" v-show="undergroundBackgroundType === BackgroundType.Pattern">
-            <PatternSettings :pattern="undergroundBackground ?? ''" @update:pattern="setUndergroundBackground" />
+            <PatternSettings :pattern="undergroundBackground ?? ''" @update:pattern="undergroundBackground = $event" />
         </div>
     </div>
 </template>

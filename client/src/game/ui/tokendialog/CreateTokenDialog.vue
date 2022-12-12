@@ -8,11 +8,11 @@ import { getUnitDistance, l2g } from "../../../core/conversions";
 import { toLP } from "../../../core/geometry";
 import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
 import { calcFontScale, mostReadable } from "../../../core/utils";
-import { clientStore } from "../../../store/client";
-import { floorStore } from "../../../store/floor";
-import { settingsStore } from "../../../store/settings";
 import { CircularToken } from "../../shapes/variants/circularToken";
 import { accessSystem } from "../../systems/access";
+import { floorState } from "../../systems/floors/state";
+import { playerSystem } from "../../systems/players";
+import { locationSettingsState } from "../../systems/settings/location/state";
 
 import { tokenDialogLeft, tokenDialogTop, tokenDialogVisible } from "./state";
 
@@ -43,16 +43,22 @@ function close(): void {
 }
 
 function submit(): void {
-    const layer = floorStore.currentLayer.value!;
+    const layer = floorState.currentLayer.value!;
 
     const token = new CircularToken(
         l2g(toLP(tokenDialogLeft, tokenDialogTop)),
-        getUnitDistance(settingsStore.unitSize.value / 2),
+        getUnitDistance(locationSettingsState.raw.unitSize.value / 2),
         text.value || "X",
         "10px serif",
+        undefined,
         { fillColour: fillColour.value, strokeColour: [borderColour.value] },
     );
-    accessSystem.addAccess(token.id, clientStore.state.username, { edit: true, movement: true, vision: true }, UI_SYNC);
+    accessSystem.addAccess(
+        token.id,
+        playerSystem.getCurrentPlayer()!.name,
+        { edit: true, movement: true, vision: true },
+        UI_SYNC,
+    );
     layer.addShape(token, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
     close();
 }

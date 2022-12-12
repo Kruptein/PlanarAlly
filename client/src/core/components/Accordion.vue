@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
 
-import type { Label } from "../../game/shapes/interfaces";
+import type { Label } from "../../game/interfaces/label";
 
 const emit = defineEmits<{ (e: "selectionupdate", selection: string[]): void }>();
 const props = defineProps<{ title: string; items: Label[]; initialValues: string[] }>();

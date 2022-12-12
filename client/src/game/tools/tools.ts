@@ -1,22 +1,27 @@
 import { computed, ref, watch } from "vue";
 
+import { coreStore } from "../../store/core";
 import { ToolMode, ToolName } from "../models/tools";
 import type { ITool, ToolFeatures } from "../models/tools";
 
+import { SelectFeatures } from "./models/select";
 import { diceTool } from "./variants/dice";
 import { drawTool } from "./variants/draw";
 import { filterTool } from "./variants/filter";
+import { lastGameboardTool } from "./variants/lastGameboard";
 import { mapTool } from "./variants/map";
 import { panTool } from "./variants/pan";
 import { pingTool } from "./variants/ping";
 import { rulerTool } from "./variants/ruler";
-import { SelectFeatures, selectTool } from "./variants/select";
+import { selectTool } from "./variants/select";
 import { spellTool } from "./variants/spell";
 import { visionTool } from "./variants/vision";
 
 export const activeToolMode = ref(ToolMode.Play);
 
 export const activeTool = ref(ToolName.Select);
+
+const hasGameboard = coreStore.state.boardId !== undefined;
 
 export const toolMap: Record<string, ITool> = {
     [ToolName.Select]: selectTool,
@@ -28,6 +33,7 @@ export const toolMap: Record<string, ITool> = {
     [ToolName.Filter]: filterTool,
     [ToolName.Vision]: visionTool,
     [ToolName.Spell]: spellTool,
+    [ToolName.LastGameboard]: lastGameboardTool,
     [ToolName.Dice]: diceTool,
 };
 
@@ -40,7 +46,7 @@ const buildTools: [ToolName, ToolFeatures][] = [
     [ToolName.Filter, {}],
     [ToolName.Vision, {}],
 ];
-const playTools: [ToolName, ToolFeatures][] = [
+let playTools: [ToolName, ToolFeatures][] = [
     [ToolName.Select, { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate, SelectFeatures.PolygonEdit] }],
     [ToolName.Pan, {}],
     [ToolName.Spell, {}],
@@ -50,6 +56,17 @@ const playTools: [ToolName, ToolFeatures][] = [
     [ToolName.Vision, {}],
     [ToolName.Dice, {}],
 ];
+
+if (hasGameboard) {
+    playTools = [
+        [ToolName.LastGameboard, {}],
+        [ToolName.Select, { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate] }],
+        [ToolName.Pan, {}],
+        [ToolName.Ruler, {}],
+        [ToolName.Ping, {}],
+    ];
+    activeTool.value = ToolName.LastGameboard;
+}
 
 export const dmTools = [ToolName.Map];
 

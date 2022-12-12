@@ -16,13 +16,13 @@ export function alphSort(a: string, b: string): number {
     else return 1;
 }
 
-export function toSnakeCase(s: string): string {
-    return s
-        .replace(/\.?([A-Z]+)/g, function (x, y) {
-            return "_" + y.toLowerCase();
-        })
-        .replace(/^_/, "");
-}
+// export function toSnakeCase(s: string): string {
+//     return s
+//         .replace(/\.?([A-Z]+)/g, function (x, y) {
+//             return "_" + y.toLowerCase();
+//         })
+//         .replace(/^_/, "");
+// }
 
 export function randomInterval(min: number, max: number): number {
     return Math.random() * (max - min) + min;
@@ -50,8 +50,14 @@ export function ctrlOrCmdPressed(event: KeyboardEvent | MouseEvent | TouchEvent)
     return event.ctrlKey;
 }
 
+const readableMemory: Map<string, string> = new Map();
+
 export function mostReadable(colour: string): string {
-    return tinycolor.mostReadable(colour, ["#000", "#fff"]).toHexString();
+    const mem = readableMemory.get(colour);
+    if (mem !== undefined) return mem;
+    const col = tinycolor.mostReadable(colour, ["#000", "#fff"]).toHexString();
+    readableMemory.set(colour, col);
+    return col;
 }
 
 export function getTarget(event: Event): HTMLInputElement {

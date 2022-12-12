@@ -14,9 +14,10 @@ import {
 } from "./api/emits/groups";
 import { getGlobalId, getShape } from "./id";
 import type { LocalId } from "./id";
+import type { IShape } from "./interfaces/shape";
 import { groupToClient, groupToServer } from "./models/groups";
 import type { CREATION_ORDER_TYPES, Group, ServerGroup } from "./models/groups";
-import type { IShape } from "./shapes/interfaces";
+import { propertiesSystem } from "./systems/properties";
 
 const numberCharacterSet = "0123456789".split("");
 const latinCharacterSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
@@ -41,7 +42,7 @@ export function removeGroup(groupId: string, sync: boolean): void {
     const members = getGroupMembers(groupId);
     for (const member of members) {
         member.groupId = undefined;
-        member.setShowBadge(false, UI_SYNC);
+        propertiesSystem.setShowBadge(member.id, false, UI_SYNC);
     }
     if (sync) sendRemoveGroup(groupId);
     memberMap.value.delete(groupId);
@@ -109,8 +110,7 @@ export function addGroupMembers(groupId: string, members: { uuid: LocalId; badge
 export function removeGroupMember(groupId: string, member: LocalId, sync: boolean): void {
     const members = memberMap.value.get(groupId);
     members?.delete(member);
-    const shape = getShape(member);
-    if (shape !== undefined) shape.setShowBadge(false, UI_SYNC);
+    propertiesSystem.setShowBadge(member, false, UI_SYNC);
     if (sync) {
         sendGroupLeave([{ uuid: getGlobalId(member), group_id: groupId }]);
     }

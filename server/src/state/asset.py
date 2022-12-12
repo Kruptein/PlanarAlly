@@ -1,8 +1,8 @@
 from typing import Any, Dict
 
+from ..app import app
+from ..models import User
 from . import State
-from app import app
-from models import User
 
 
 class AssetState(State[User]):

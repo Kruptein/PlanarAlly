@@ -1,31 +1,31 @@
-import { computed, reactive } from "vue";
-import type { ComputedRef, DeepReadonly } from "vue";
+import type { DeepReadonly } from "vue";
 
 import { registerSystem } from "..";
-import type { System } from "..";
+import type { ShapeSystem } from "..";
+import { NO_SYNC } from "../../../core/models/types";
 import type { Sync } from "../../../core/models/types";
-import { clientStore } from "../../../store/client";
-import { floorStore } from "../../../store/floor";
-import { gameStore } from "../../../store/game";
-import { settingsStore } from "../../../store/settings";
-import { getGlobalId, getShape } from "../../id";
+import { getGameState } from "../../../store/_game";
+import { getGlobalId } from "../../id";
 import type { LocalId } from "../../id";
 import { initiativeStore } from "../../ui/initiative/state";
+import { annotationSystem } from "../annotations";
+import { annotationState } from "../annotations/state";
+import { floorSystem } from "../floors";
+import { playerSystem } from "../players";
+import { getProperties } from "../properties/state";
+import { locationSettingsState } from "../settings/location/state";
 
 import { sendShapeAddOwner, sendShapeDeleteOwner, sendShapeUpdateDefaultOwner, sendShapeUpdateOwner } from "./emits";
 import { accessToServer, ownerToServer } from "./helpers";
 import { DEFAULT_ACCESS, DEFAULT_ACCESS_SYMBOL } from "./models";
 import type { ACCESS_KEY, ShapeAccess, ShapeOwner } from "./models";
+import { accessState } from "./state";
 
-interface AccessState {
-    id: LocalId | undefined;
-    defaultAccess: ShapeAccess;
-    playerAccess: Map<string, ShapeAccess>;
-}
+const { mutableReactive: $, activeTokens } = accessState;
 
 type AccessMap = Map<ACCESS_KEY, ShapeAccess>;
 
-class AccessSystem implements System {
+class AccessSystem implements ShapeSystem {
     // If a LocalId is NOT in the access map,
     // it is assumed to have default access settings
     // this is the case for the vast majority of shapes
@@ -34,59 +34,29 @@ class AccessSystem implements System {
 
     // REACTIVE
 
-    private _state: AccessState;
-    $: {
-        hasEditAccess: ComputedRef<boolean>;
-        owners: ComputedRef<string[]>;
-    };
-
-    constructor() {
-        this._state = reactive({
-            id: undefined,
-            defaultAccess: DEFAULT_ACCESS,
-            playerAccess: new Map(),
-        });
-
-        this.$ = {
-            hasEditAccess: computed(() => {
-                if (this._state.id === undefined) return false;
-                if (gameStore.state.isDm) return true;
-                if (gameStore.state.isFakePlayer && gameStore.activeTokens.value.has(this._state.id)) return true;
-                if (this._state.defaultAccess.edit) return true;
-                const username = clientStore.state.username;
-                return [...this._state.playerAccess.entries()].some(([u, a]) => u === username && a.edit === true);
-            }),
-            owners: computed(() => {
-                if (this._state.id === undefined) return [];
-                return [...this._state.playerAccess.keys()];
-            }),
-        };
-    }
-
-    get state(): DeepReadonly<AccessState> {
-        return this._state;
-    }
-
     loadState(id: LocalId): void {
-        this._state.id = id;
-        this._state.playerAccess.clear();
+        $.id = id;
+        $.id = id;
+        $.playerAccess.clear();
         for (const [user, access] of this.access.get(id) ?? []) {
             if (user === DEFAULT_ACCESS_SYMBOL) {
-                this._state.defaultAccess = { ...access };
+                $.defaultAccess = { ...access };
             } else {
-                this._state.playerAccess.set(user, { ...access });
+                $.playerAccess.set(user, { ...access });
             }
         }
     }
 
     dropState(): void {
-        this._state.id = undefined;
+        $.id = undefined;
     }
 
     // BEHAVIOUR
 
     clear(): void {
         this.dropState();
+        $.activeTokenFilters?.clear();
+        $.ownedTokens.clear();
         this.access.clear();
     }
 
@@ -97,21 +67,21 @@ class AccessSystem implements System {
         // Default Access
         if (access.default.edit || access.default.movement || access.default.vision) {
             accessMap.set(DEFAULT_ACCESS_SYMBOL, access.default);
-            if (this._state.id === id) {
-                this._state.defaultAccess = access.default;
+            if ($.id === id) {
+                $.defaultAccess = access.default;
             }
         } else {
             accessMap.delete(DEFAULT_ACCESS_SYMBOL);
-            if (this._state.id === id) {
-                this._state.defaultAccess = access.default;
+            if ($.id === id) {
+                $.defaultAccess = access.default;
             }
         }
 
         // Player Access
         for (const extra of access.extra) {
             accessMap.set(extra.user, extra.access);
-            if (this._state.id === id) {
-                this._state.playerAccess.set(extra.user, extra.access);
+            if ($.id === id) {
+                $.playerAccess.set(extra.user, extra.access);
             }
         }
 
@@ -122,7 +92,7 @@ class AccessSystem implements System {
 
     drop(id: LocalId): void {
         this.access.delete(id);
-        if (this._state.id === id) {
+        if ($.id === id) {
             this.dropState();
         }
     }
@@ -136,18 +106,18 @@ class AccessSystem implements System {
         limitToActiveTokens: boolean,
         access: Partial<{ edit: boolean; vision: boolean; movement: boolean }>,
     ): boolean {
-        if (gameStore.state.isDm) return true;
+        if (getGameState().isDm && !limitToActiveTokens) return true;
 
-        const shape = getShape(id);
-        if (shape === undefined) return false;
+        const props = getProperties(id);
+        if (props === undefined) return false;
 
-        if (shape.isToken && limitToActiveTokens) {
-            if (!gameStore.activeTokens.value.has(id)) {
+        if (props.isToken && limitToActiveTokens) {
+            if (!activeTokens.value.has(id)) {
                 return false;
             }
         }
 
-        if (gameStore.state.isFakePlayer) return true;
+        if (getGameState().isDm || getGameState().isFakePlayer) return true;
 
         const accessMap = this.access.get(id);
         if (accessMap === undefined) return false;
@@ -162,7 +132,7 @@ class AccessSystem implements System {
             return true;
         }
 
-        const userAccess = accessMap.get(clientStore.state.username);
+        const userAccess = accessMap.get(playerSystem.getCurrentPlayer()!.name);
         if (userAccess === undefined) return false;
 
         return (
@@ -198,19 +168,19 @@ class AccessSystem implements System {
             );
         }
 
-        if (this._state.id === shapeId) {
-            this._state.playerAccess.set(user, userAccess);
+        if ($.id === shapeId) {
+            $.playerAccess.set(user, userAccess);
         }
 
         // todo: some sort of event register instead of calling these other systems manually ?
-        if (userAccess.vision && user === clientStore.state.username) {
-            const shape = getShape(shapeId);
-            if (shape !== undefined && shape.isToken) {
-                gameStore.addOwnedToken(shapeId);
+        if (userAccess.vision && user === playerSystem.getCurrentPlayer()?.name) {
+            const props = getProperties(shapeId);
+            if (props !== undefined && props.isToken) {
+                this.addOwnedToken(shapeId);
             }
         }
 
-        if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();
+        if (locationSettingsState.raw.fowLos.value) floorSystem.invalidateLightAllFloors();
         initiativeStore._forceUpdate();
     }
 
@@ -226,14 +196,14 @@ class AccessSystem implements System {
         if (
             access.vision !== undefined &&
             access.vision !== oldAccess.vision &&
-            (user === clientStore.state.username || user === DEFAULT_ACCESS_SYMBOL)
+            (user === playerSystem.getCurrentPlayer()?.name || user === DEFAULT_ACCESS_SYMBOL)
         ) {
-            const shape = getShape(shapeId);
-            if (shape !== undefined && shape.isToken) {
+            const props = getProperties(shapeId);
+            if (props !== undefined && props.isToken) {
                 if (access.vision) {
-                    gameStore.addOwnedToken(shapeId);
+                    this.addOwnedToken(shapeId);
                 } else {
-                    gameStore.removeOwnedToken(shapeId);
+                    this.removeOwnedToken(shapeId);
                 }
             }
         }
@@ -242,11 +212,11 @@ class AccessSystem implements System {
         const newAccess = { ...oldAccess, ...access };
         this.access.get(shapeId)!.set(user, newAccess);
 
-        if (this._state.id === shapeId) {
+        if ($.id === shapeId) {
             if (user === DEFAULT_ACCESS_SYMBOL) {
-                this._state.defaultAccess = newAccess;
+                $.defaultAccess = newAccess;
             } else {
-                this._state.playerAccess.set(user, newAccess);
+                $.playerAccess.set(user, newAccess);
             }
         }
 
@@ -264,7 +234,7 @@ class AccessSystem implements System {
             }
         }
 
-        if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();
+        if (locationSettingsState.raw.fowLos.value) floorSystem.invalidateLightAllFloors();
         initiativeStore._forceUpdate();
     }
 
@@ -277,6 +247,11 @@ class AccessSystem implements System {
         const oldAccess = this.access.get(shapeId)!.get(user)!;
         this.access.get(shapeId)!.delete(user);
 
+        // annotation check
+        if (!annotationState.readonly.visible.has(shapeId)) {
+            annotationSystem.setAnnotation(shapeId, "", NO_SYNC);
+        }
+
         if (syncTo.server) {
             sendShapeDeleteOwner({
                 user,
@@ -284,18 +259,18 @@ class AccessSystem implements System {
             });
         }
 
-        if (this._state.id === shapeId) {
-            this._state.playerAccess.delete(user);
+        if ($.id === shapeId) {
+            $.playerAccess.delete(user);
         }
 
-        if (oldAccess.vision && user === clientStore.state.username) {
-            const shape = getShape(shapeId);
-            if (shape !== undefined && shape.isToken) {
-                gameStore.removeOwnedToken(shapeId);
+        if (oldAccess.vision && user === playerSystem.getCurrentPlayer()?.name) {
+            const props = getProperties(shapeId);
+            if (props !== undefined && props.isToken) {
+                this.removeOwnedToken(shapeId);
             }
         }
 
-        if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();
+        if (locationSettingsState.raw.fowLos.value) floorSystem.invalidateLightAllFloors();
         initiativeStore._forceUpdate();
     }
 
@@ -312,7 +287,42 @@ class AccessSystem implements System {
                 shape: id,
             }));
     }
+
+    // Owned/Active Tokens
+
+    setActiveTokens(...tokens: LocalId[]): void {
+        $.activeTokenFilters = new Set(tokens);
+        floorSystem.invalidateLightAllFloors();
+    }
+
+    unsetActiveTokens(): void {
+        $.activeTokenFilters = undefined;
+        floorSystem.invalidateLightAllFloors();
+    }
+
+    addActiveToken(token: LocalId): void {
+        if ($.activeTokenFilters === undefined) return;
+        $.activeTokenFilters.add(token);
+        if ($.activeTokenFilters.size === $.ownedTokens.size) $.activeTokenFilters = undefined;
+        floorSystem.invalidateLightAllFloors();
+    }
+
+    removeActiveToken(token: LocalId): void {
+        if ($.activeTokenFilters === undefined) {
+            $.activeTokenFilters = new Set([...$.ownedTokens]);
+        }
+        $.activeTokenFilters.delete(token);
+        floorSystem.invalidateLightAllFloors();
+    }
+
+    addOwnedToken(token: LocalId): void {
+        $.ownedTokens.add(token);
+    }
+
+    removeOwnedToken(token: LocalId): void {
+        $.ownedTokens.delete(token);
+    }
 }
 
 export const accessSystem = new AccessSystem();
-registerSystem("access", accessSystem);
+registerSystem("access", accessSystem, true, accessState);

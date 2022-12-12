@@ -1,9 +1,8 @@
 import { i18n } from "../../../i18n";
 import { ToolName } from "../../models/tools";
 import type { ToolPermission } from "../../models/tools";
+import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
-
-import { SelectFeatures } from "./select";
 
 class FilterTool extends Tool {
     readonly toolName = ToolName.Filter;

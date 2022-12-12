@@ -5,17 +5,17 @@ import { cloneP } from "../../../../core/geometry";
 import { InvalidationMode, SERVER_SYNC, SyncMode } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../../../store/activeShape";
+import { dropAsset } from "../../../dropAsset";
 import { getShape } from "../../../id";
 import type { LocalId } from "../../../id";
 import { compositeState } from "../../../layers/state";
 import { ToggleComposite } from "../../../shapes/variants/toggleComposite";
-import { dropAsset } from "../../../temp";
 
 const modals = useModal();
 
 const vState = activeShapeStore.state;
 
-const currentIndex = computed(() => vState.variants.findIndex((v) => v.uuid === vState.id));
+const currentIndex = computed(() => vState.variants.findIndex((v) => v.id === vState.id));
 
 const previousVariant = computed(() => {
     if (currentIndex.value < 0) return { name: "No variant" };
@@ -43,14 +43,14 @@ function activateVariant(variant: LocalId): void {
 }
 
 function swapPrev(): void {
-    if ("uuid" in previousVariant.value) {
-        activateVariant(previousVariant.value.uuid);
+    if ("id" in previousVariant.value) {
+        activateVariant(previousVariant.value.id);
     }
 }
 
 function swapNext(): void {
-    if ("uuid" in nextVariant.value) {
-        activateVariant(nextVariant.value.uuid);
+    if ("id" in nextVariant.value) {
+        activateVariant(nextVariant.value.id);
     }
 }
 
@@ -71,7 +71,7 @@ async function addVariant(): Promise<void> {
 
     let parent = compositeParent.value;
     if (parent === undefined) {
-        parent = new ToggleComposite(cloneP(shape.refPoint), shape.id, [{ uuid: shape.id, name: "base variant" }]);
+        parent = new ToggleComposite(cloneP(shape.refPoint), shape.id, [{ id: shape.id, name: "base variant" }]);
         shape.layer.addShape(parent, SyncMode.FULL_SYNC, InvalidationMode.NO);
     }
     parent.addVariant(newShape.id, name, true);

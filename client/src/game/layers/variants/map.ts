@@ -1,8 +1,8 @@
 import { baseAdjust } from "../../../core/http";
-import { clientStore } from "../../../store/client";
-import { floorStore } from "../../../store/floor";
-import { settingsStore } from "../../../store/settings";
 import { FloorType } from "../../models/floor";
+import { floorSystem } from "../../systems/floors";
+import { positionState } from "../../systems/position/state";
+import { locationSettingsState } from "../../systems/settings/location/state";
 import { getPattern } from "../floor";
 
 import { Layer } from "./layer";
@@ -14,16 +14,16 @@ export class MapLayer extends Layer {
         if (!this.valid) {
             this.clear();
 
-            const floor = floorStore.getFloor({ id: this.floor });
+            const floor = floorSystem.getFloor({ id: this.floor });
 
             let floorBackground = floor?.backgroundValue;
             if (floorBackground === undefined) {
                 if (floor?.type === FloorType.Air) {
-                    floorBackground = settingsStore.airMapBackground.value ?? undefined;
+                    floorBackground = locationSettingsState.raw.airMapBackground.value ?? undefined;
                 } else if (floor?.type === FloorType.Ground) {
-                    floorBackground = settingsStore.groundMapBackground.value ?? undefined;
+                    floorBackground = locationSettingsState.raw.groundMapBackground.value ?? undefined;
                 } else {
-                    floorBackground = settingsStore.undergroundMapBackground.value ?? undefined;
+                    floorBackground = locationSettingsState.raw.undergroundMapBackground.value ?? undefined;
                 }
             }
 
@@ -62,10 +62,11 @@ export class MapLayer extends Layer {
             };
         } else if (patternImage.loading) {
             const pattern = this.ctx.createPattern(patternImage, "repeat");
-            const panX = (patternData.offsetX + clientStore.state.panX) * clientStore.zoomFactor.value;
-            const panY = (patternData.offsetY + clientStore.state.panY) * clientStore.zoomFactor.value;
-            const scaleX = patternData.scaleX * clientStore.zoomFactor.value;
-            const scaleY = patternData.scaleY * clientStore.zoomFactor.value;
+            const state = positionState.readonly;
+            const panX = (patternData.offsetX + state.panX) * state.zoom;
+            const panY = (patternData.offsetY + state.panY) * state.zoom;
+            const scaleX = patternData.scaleX * state.zoom;
+            const scaleY = patternData.scaleY * state.zoom;
 
             pattern?.setTransform(new DOMMatrix([scaleX, 0, 0, scaleY, panX, panY]));
             return pattern;

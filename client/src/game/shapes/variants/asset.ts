@@ -1,13 +1,15 @@
-import { g2l, g2lx, g2ly, g2lz } from "../../../core/conversions";
+import { g2l, g2lz } from "../../../core/conversions";
 import { toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
-import { floorStore } from "../../../store/floor";
-import { getFogColour } from "../../colour";
+import { FOG_COLOUR } from "../../colour";
 import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
+import { LayerName } from "../../models/floor";
 import type { ServerAsset } from "../../models/shapes";
 import { loadSvgData } from "../../svg";
+import { floorSystem } from "../../systems/floors";
+import { getProperties } from "../../systems/properties/state";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import type { SHAPE_TYPE } from "../types";
 
@@ -53,7 +55,9 @@ export class Asset extends BaseRect {
     setLoaded(): void {
         // Late image loading affects floor lighting
         this.layer.invalidate(true);
-        floorStore.invalidateLightAllFloors();
+        if (getProperties(this.id)?.isToken === true)
+            floorSystem.getLayer(this.floor, LayerName.Draw)?.invalidate(true);
+        floorSystem.invalidateLightAllFloors();
         this.#loaded = true;
     }
 
@@ -73,11 +77,12 @@ export class Asset extends BaseRect {
             this.layer.addShape(cover, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
             const svgs = await loadSvgData(`/static/assets/${this.options.svgAsset}`);
             this.svgData = [...svgs.values()].map((svg) => ({ svg, rp: this.refPoint, paths: undefined }));
-            if (this.blocksVision) {
+            const props = getProperties(this.id)!;
+            if (props.blocksVision) {
                 visionState.recalculateVision(this._floor!);
                 visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.id });
             }
-            if (this.blocksMovement) {
+            if (props.blocksMovement) {
                 visionState.recalculateMovement(this._floor!);
                 visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: this.id });
             }
@@ -86,26 +91,22 @@ export class Asset extends BaseRect {
         }
     }
 
-    draw(ctx: CanvasRenderingContext2D): void {
-        super.draw(ctx);
-        const center = g2l(this.center());
+    draw(ctx: CanvasRenderingContext2D, customScale?: { center: GlobalPoint; width: number; height: number }): void {
+        super.draw(ctx, customScale);
+        const center = g2l(this.center);
+        const rp = g2l(this.refPoint);
+        const ogH = g2lz(this.h);
+        const ogW = g2lz(this.w);
+        const h = customScale ? customScale.height : ogH;
+        const w = customScale ? customScale.width : ogW;
+        const deltaH = (ogH - h) / 2;
+        const deltaW = (ogW - w) / 2;
         if (!this.#loaded) {
-            ctx.fillStyle = getFogColour();
-            ctx.fillRect(
-                g2lx(this.refPoint.x) - center.x,
-                g2ly(this.refPoint.y) - center.y,
-                g2lz(this.w),
-                g2lz(this.h),
-            );
+            ctx.fillStyle = FOG_COLOUR;
+            ctx.fillRect(rp.x - center.x, rp.y - center.y, w, h);
         } else {
             try {
-                ctx.drawImage(
-                    this.img,
-                    g2lx(this.refPoint.x) - center.x,
-                    g2ly(this.refPoint.y) - center.y,
-                    g2lz(this.w),
-                    g2lz(this.h),
-                );
+                ctx.drawImage(this.img, rp.x - center.x + deltaW, rp.y - center.y + deltaH, w, h);
             } catch (error) {
                 console.warn(`Shape ${getGlobalId(this.id)} could not load the image ${this.src}`);
             }

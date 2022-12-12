@@ -3,12 +3,12 @@ from urllib.parse import unquote
 
 from aiohttp_security import authorized_userid
 
-from api.socket.constants import GAME_NS
-from app import sio
-from models import PlayerRoom, Room, User
-from models.role import Role
-from state.game import game_state
-from logs import logger
+from ...api.socket.constants import GAME_NS
+from ...app import sio
+from ...logs import logger
+from ...models import PlayerRoom, Room, User
+from ...models.role import Role
+from ...state.game import game_state
 
 
 @sio.on("connect", namespace=GAME_NS)
@@ -48,6 +48,15 @@ async def connect(sid, environ):
     logger.info(f"User {user.name} connected with identifier {sid}")
 
     sio.enter_room(sid, pr.active_location.get_path(), namespace=GAME_NS)
+    sio.enter_room(sid, pr.room.get_path(), namespace=GAME_NS)
+
+    await sio.emit(
+        "Client.Connected",
+        data={"player": user.id, "client": sid},
+        room=pr.room.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )
 
 
 @sio.on("disconnect", namespace=GAME_NS)
@@ -55,7 +64,18 @@ async def disconnect(sid):
     if not game_state.has_sid(sid):
         return
 
-    user = game_state.get_user(sid)
+    pr = game_state.get(sid)
 
-    logger.info(f"User {user.name} disconnected with identifier {sid}")
-    await game_state.remove_sid(sid)
+    logger.info(f"User {pr.player.name} disconnected with identifier {sid}")
+    try:
+        await game_state.remove_sid(sid)
+    except:
+        logger.exception("Failed to remove client sid properly")
+
+    await sio.emit(
+        "Client.Disconnected",
+        data=sid,
+        room=pr.room.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )

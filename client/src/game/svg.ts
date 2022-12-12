@@ -2,10 +2,10 @@ import "path-data-polyfill";
 import { addP, getCenterLine, toArrayP, toGP, Vector } from "../core/geometry";
 import type { GlobalPoint } from "../core/geometry";
 import { http } from "../core/http";
-import { floorStore } from "../store/floor";
 
-import { drawLine } from "./draw";
-import type { Asset } from "./shapes/variants/asset";
+import type { IAsset } from "./interfaces/shapes/asset";
+import { drawLine } from "./rendering/basic";
+import { floorState } from "./systems/floors/state";
 
 export async function loadSvgData(url: string): Promise<NodeList> {
     const response = await http.get(url);
@@ -60,7 +60,7 @@ function parseTransform(oldTransform: Transform | undefined, transformList: SVGT
 }
 
 export function* getPaths(
-    shape: Asset,
+    shape: IAsset,
     svgEl: SVGSVGElement,
     dW: number,
     dH: number,
@@ -82,7 +82,7 @@ export function* getPaths(
 
 const DEBUG_SVG = false;
 export function pathToArray(
-    shape: Asset,
+    shape: IAsset,
     path: SVGPathElement,
     dW: number,
     dH: number,
@@ -171,9 +171,9 @@ export function pathToArray(
         points.push(toArrayP(currentLocation));
         if (DEBUG_SVG) {
             const l = points.length;
-            if (floorStore.currentFloor.value !== undefined) {
+            if (floorState.currentFloor.value !== undefined) {
                 if (l > 1) {
-                    drawLine(points[l - 2], points[l - 1], true, false);
+                    drawLine(points[l - 2], points[l - 1], false, { constrained: true });
                 }
             }
         }
@@ -207,7 +207,7 @@ function handleBezierCurve(
         [cp2g.x, cp2g.y],
     )) {
         points.push(l[1]);
-        if (DEBUG_SVG) drawLine(points.at(-2)!, l[1], true, false);
+        if (DEBUG_SVG) drawLine(points.at(-2)!, l[1], false, { constrained: true });
     }
     return endg;
 }

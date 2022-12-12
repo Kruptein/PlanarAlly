@@ -4,10 +4,12 @@ import type { GlobalPoint } from "../../../core/geometry";
 import { rotateAroundPoint } from "../../../core/math";
 import type { GlobalId, LocalId } from "../../id";
 import type { ServerLine } from "../../models/shapes";
+import { getProperties } from "../../systems/properties/state";
+import type { ShapeProperties } from "../../systems/properties/state";
 import { Shape } from "../shape";
 import type { SHAPE_TYPE } from "../types";
 
-import { BoundingRect } from "./boundingRect";
+import { BoundingRect } from "./simple/boundingRect";
 
 export class Line extends Shape {
     type: SHAPE_TYPE = "line";
@@ -18,14 +20,15 @@ export class Line extends Shape {
         endPoint: GlobalPoint,
         options?: {
             lineWidth?: number;
-            strokeColour?: string[];
             id?: LocalId;
             uuid?: GlobalId;
             isSnappable?: boolean;
         },
+        properties?: Partial<ShapeProperties>,
     ) {
-        super(startPoint, { fillColour: "rgba(0, 0, 0, 0)", strokeColour: ["#000"], ...options });
+        super(startPoint, options, { fillColour: "rgba(0, 0, 0, 0)", strokeColour: ["#000"], ...properties });
         this._endPoint = endPoint;
+        this._center = this.__center();
         this.lineWidth = options?.lineWidth ?? 1;
     }
 
@@ -61,9 +64,10 @@ export class Line extends Shape {
 
     invalidatePoints(): void {
         this._points = [
-            toArrayP(rotateAroundPoint(this.refPoint, this.center(), this.angle)),
-            toArrayP(rotateAroundPoint(this.endPoint, this.center(), this.angle)),
+            toArrayP(rotateAroundPoint(this.refPoint, this.center, this.angle)),
+            toArrayP(rotateAroundPoint(this.endPoint, this.center, this.angle)),
         ];
+        super.invalidatePoints();
     }
 
     getBoundingBox(): BoundingRect {
@@ -77,9 +81,10 @@ export class Line extends Shape {
     draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
 
-        const center = g2l(this.center());
+        const center = g2l(this.center);
+        const props = getProperties(this.id)!;
 
-        ctx.strokeStyle = this.strokeColour[0];
+        ctx.strokeStyle = props.strokeColour[0];
         ctx.beginPath();
         ctx.moveTo(g2lx(this.refPoint.x) - center.x, g2ly(this.refPoint.y) - center.y);
         ctx.lineTo(g2lx(this.endPoint.x) - center.x, g2ly(this.endPoint.y) - center.y);
@@ -92,14 +97,18 @@ export class Line extends Shape {
         return false; // TODO
     }
 
-    center(): GlobalPoint;
-    center(centerPoint: GlobalPoint): void;
-    center(centerPoint?: GlobalPoint): GlobalPoint | void {
-        if (centerPoint === undefined)
-            return addP(this.refPoint, subtractP(this.endPoint, this.refPoint).multiply(1 / 2));
-        const oldCenter = this.center();
-        this.refPoint = toGP(subtractP(centerPoint, subtractP(oldCenter, this.refPoint)).asArray());
+    __center(): GlobalPoint {
+        return addP(this.refPoint, subtractP(this.endPoint, this.refPoint).multiply(1 / 2));
+    }
+
+    get center(): GlobalPoint {
+        return this._center;
+    }
+
+    set center(centerPoint: GlobalPoint) {
+        const oldCenter = this.center;
         this.endPoint = toGP(subtractP(centerPoint, subtractP(oldCenter, this.endPoint)).asArray());
+        this.refPoint = toGP(subtractP(centerPoint, subtractP(oldCenter, this.refPoint)).asArray());
     }
 
     visibleInCanvas(max: { w: number; h: number }, options: { includeAuras: boolean }): boolean {

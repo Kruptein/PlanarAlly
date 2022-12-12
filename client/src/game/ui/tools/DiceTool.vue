@@ -1,25 +1,13 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from "vue";
-import type { CSSProperties } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 
 import { coreStore } from "../../../store/core";
 import { sendDiceRollResult } from "../../api/emits/dice";
+import { diceStore } from "../../dice/state";
 import { diceTool } from "../../tools/variants/dice";
 
-import { useToolPosition } from "./toolPosition";
-
-// Common tool bootup logic
-
-const right = ref("0px");
-const arrow = ref("0px");
 const button = ref<HTMLButtonElement | null>(null);
 const historyDiv = ref<HTMLDivElement | null>(null);
-
-const toolStyle = computed(() => ({ "--detailRight": right.value, "--detailArrow": arrow.value } as CSSProperties));
-
-onMounted(() => {
-    ({ right: right.value, arrow: arrow.value } = useToolPosition(diceTool.toolName));
-});
 
 // Dice logic
 const diceArray = ref<{ die: number; amount: number }[]>([]);
@@ -60,7 +48,8 @@ const diceText = computed(() => {
 });
 
 async function reroll(roll: string): Promise<void> {
-    const result = await diceTool.roll(roll);
+    const key = await diceTool.roll(roll);
+    const result = diceStore.getTotal(key);
     diceTool.state.history.push({ roll, result, player: coreStore.state.username });
     sendDiceRollResult({
         player: coreStore.state.username,
@@ -74,7 +63,8 @@ async function go(): Promise<void> {
     clearTimeout(timeout);
     button.value?.classList.remove("transition");
     const roll = diceText.value;
-    const result = await diceTool.roll(roll);
+    const key = await diceTool.roll(roll);
+    const result = diceStore.getTotal(key);
     diceTool.state.history.push({ roll, result, player: coreStore.state.username });
     sendDiceRollResult({
         player: coreStore.state.username,
@@ -87,7 +77,7 @@ async function go(): Promise<void> {
 </script>
 
 <template>
-    <div id="dice" class="tool-detail" :style="toolStyle">
+    <div id="dice" class="tool-detail">
         <div id="dice-history" ref="historyDiv">
             <template v-for="r of diceTool.state.history" :key="r.roll">
                 <div class="roll" :title="r.player" @click="reroll(r.roll)">{{ r.roll }}</div>

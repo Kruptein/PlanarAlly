@@ -1,13 +1,13 @@
 from typing import Optional
 from typing_extensions import TypedDict
 
-import auth
-from api.socket.constants import GAME_NS
-from app import app, sio
-from models import Asset, PlayerRoom
-from models.role import Role
-from state.game import game_state
-from logs import logger
+from ... import auth
+from ...api.socket.constants import GAME_NS
+from ...app import app, sio
+from ...logs import logger
+from ...models import Asset, PlayerRoom
+from ...models.role import Role
+from ...state.game import game_state
 
 
 class AssetOptions(TypedDict):

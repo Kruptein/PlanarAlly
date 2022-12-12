@@ -1,6 +1,7 @@
-import { clientStore, DEFAULT_GRID_SIZE } from "../../../store/client";
-import { floorStore } from "../../../store/floor";
-import { settingsStore } from "../../../store/settings";
+import { floorState } from "../../systems/floors/state";
+import { DEFAULT_GRID_SIZE, positionState } from "../../systems/position/state";
+import { locationSettingsState } from "../../systems/settings/location/state";
+import { playerSettingsState } from "../../systems/settings/players/state";
 
 import { Layer } from "./layer";
 
@@ -8,14 +9,16 @@ export class GridLayer extends Layer {
     invalidate(): void {
         this.valid = false;
     }
+
     show(): void {
-        if (settingsStore.useGrid.value && this.floor === floorStore.currentFloor.value!.id)
+        if (locationSettingsState.raw.useGrid.value && this.floor === floorState.currentFloor.value!.id)
             this.canvas.style.removeProperty("display");
     }
+
     draw(_doClear?: boolean): void {
         if (!this.valid) {
-            if (settingsStore.useGrid.value) {
-                const activeFowFloor = floorStore.currentFloor.value!.id;
+            if (locationSettingsState.raw.useGrid.value) {
+                const activeFowFloor = floorState.currentFloor.value!.id;
 
                 if (this.floor === activeFowFloor && this.canvas.style.display === "none")
                     this.canvas.style.removeProperty("display");
@@ -26,22 +29,18 @@ export class GridLayer extends Layer {
                 this.clear();
                 ctx.beginPath();
 
-                if (settingsStore.gridType.value === "SQUARE") {
-                    for (let i = 0; i < this.width; i += DEFAULT_GRID_SIZE * clientStore.zoomFactor.value) {
-                        ctx.moveTo(i + (clientStore.state.panX % DEFAULT_GRID_SIZE) * clientStore.zoomFactor.value, 0);
-                        ctx.lineTo(
-                            i + (clientStore.state.panX % DEFAULT_GRID_SIZE) * clientStore.zoomFactor.value,
-                            this.height,
-                        );
-                        ctx.moveTo(0, i + (clientStore.state.panY % DEFAULT_GRID_SIZE) * clientStore.zoomFactor.value);
-                        ctx.lineTo(
-                            this.width,
-                            i + (clientStore.state.panY % DEFAULT_GRID_SIZE) * clientStore.zoomFactor.value,
-                        );
+                const state = positionState.readonly;
+
+                if (locationSettingsState.raw.gridType.value === "SQUARE") {
+                    for (let i = 0; i < this.width; i += DEFAULT_GRID_SIZE * state.zoom) {
+                        ctx.moveTo(i + (state.panX % DEFAULT_GRID_SIZE) * state.zoom, 0);
+                        ctx.lineTo(i + (state.panX % DEFAULT_GRID_SIZE) * state.zoom, this.height);
+                        ctx.moveTo(0, i + (state.panY % DEFAULT_GRID_SIZE) * state.zoom);
+                        ctx.lineTo(this.width, i + (state.panY % DEFAULT_GRID_SIZE) * state.zoom);
                     }
                 } else {
                     const s3 = Math.sqrt(3);
-                    const centerDistance = DEFAULT_GRID_SIZE * clientStore.zoomFactor.value;
+                    const centerDistance = DEFAULT_GRID_SIZE * state.zoom;
                     const side = centerDistance / s3;
                     const SECONDARY_SIZE = s3 * side;
                     const SECONDARY_HALF = SECONDARY_SIZE / 2;
@@ -54,14 +53,10 @@ export class GridLayer extends Layer {
                      * but differ in primary axis.
                      */
 
-                    const flat = settingsStore.gridType.value === "FLAT_HEX";
+                    const flat = locationSettingsState.raw.gridType.value === "FLAT_HEX";
 
-                    const pX =
-                        (clientStore.state.panX % ((flat ? 3 / s3 : 1) * DEFAULT_GRID_SIZE)) *
-                        clientStore.zoomFactor.value;
-                    const pY =
-                        (clientStore.state.panY % ((flat ? 1 : 3 / s3) * DEFAULT_GRID_SIZE)) *
-                        clientStore.zoomFactor.value;
+                    const pX = (state.panX % ((flat ? 3 / s3 : 1) * DEFAULT_GRID_SIZE)) * state.zoom;
+                    const pY = (state.panY % ((flat ? 1 : 3 / s3) * DEFAULT_GRID_SIZE)) * state.zoom;
 
                     const primaryAxisLimit = (flat ? this.width : this.height) / (2 * side);
                     const secondaryAxisLimit = (flat ? this.height : this.width) / SECONDARY_HALF;
@@ -85,7 +80,7 @@ export class GridLayer extends Layer {
                     }
                 }
 
-                ctx.strokeStyle = clientStore.state.gridColour;
+                ctx.strokeStyle = playerSettingsState.raw.gridColour.value;
                 ctx.lineWidth = 1;
                 ctx.stroke();
             }

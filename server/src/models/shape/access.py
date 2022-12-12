@@ -1,6 +1,6 @@
-from models.campaign import PlayerRoom
-from models.role import Role
-from models.shape import Shape, ShapeOwner
+from ..campaign import PlayerRoom
+from ..role import Role
+from . import Shape, ShapeOwner
 
 
 def has_ownership(shape: Shape, pr: PlayerRoom, movement=False) -> bool:

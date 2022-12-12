@@ -1,33 +1,58 @@
+import { toRaw } from "vue";
+
+import { g2l, l2g, l2gz } from "../../../core/conversions";
+import { Ray, toLP } from "../../../core/geometry";
 import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
 import { debugLayers } from "../../../localStorageHelpers";
+import { getGameState } from "../../../store/_game";
 import { activeShapeStore } from "../../../store/activeShape";
-import { clientStore } from "../../../store/client";
-import { floorStore } from "../../../store/floor";
 import { gameStore } from "../../../store/game";
-import { settingsStore } from "../../../store/settings";
 import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../../api/emits/shape/core";
-import { drawAuras } from "../../draw";
 import { removeGroupMember } from "../../groups";
-import { dropId, getGlobalId } from "../../id";
+import { dropId, getGlobalId, getShape } from "../../id";
 import type { LocalId } from "../../id";
+import type { ILayer } from "../../interfaces/layer";
+import type { IShape } from "../../interfaces/shape";
 import { LayerName } from "../../models/floor";
 import type { FloorId } from "../../models/floor";
 import type { ServerShape } from "../../models/shapes";
 import { addOperation } from "../../operations/undo";
-import type { IShape } from "../../shapes/interfaces";
-import { createShapeFromDict } from "../../shapes/utils";
+import { drawAuras } from "../../rendering/auras";
+import { drawTear } from "../../rendering/basic";
+import { createShapeFromDict } from "../../shapes/create";
+import { BoundingRect } from "../../shapes/variants/simple/boundingRect";
 import { accessSystem } from "../../systems/access";
-import { initiativeStore } from "../../ui/initiative/state";
+import { accessState } from "../../systems/access/state";
+import { floorSystem } from "../../systems/floors";
+import { floorState } from "../../systems/floors/state";
+import { positionSystem } from "../../systems/position";
+import { propertiesSystem } from "../../systems/properties";
+import { getProperties } from "../../systems/properties/state";
+import { selectedSystem } from "../../systems/selected";
+import { locationSettingsSystem } from "../../systems/settings/location";
+import { locationSettingsState } from "../../systems/settings/location/state";
+import { playerSettingsState } from "../../systems/settings/players/state";
 import { TriangulationTarget, VisibilityMode, visionState } from "../../vision/state";
 import { setCanvasDimensions } from "../canvas";
-import { selectionState } from "../selection";
 import { compositeState } from "../state";
 
-export class Layer {
+const SECTOR_SIZE = 200;
+
+// js does negative modulo different than expected
+function mod(n: number, m: number): number {
+    return ((n % m) + m) % m;
+}
+
+function getSector(val: number): number {
+    const round = Math.floor(val);
+    return round - mod(round, SECTOR_SIZE);
+}
+
+export class Layer implements ILayer {
     ctx: CanvasRenderingContext2D;
 
     // When set to false, the layer will be redrawn on the next tick
-    protected valid = false;
+    protected valid = true;
 
     playerEditable = false;
     selectable = false;
@@ -37,6 +62,11 @@ export class Layer {
     // The collection of shapes that this layer contains.
     // These are ordered on a depth basis.
     protected shapes: IShape[] = [];
+    shapesInSector: IShape[] = [];
+    protected xSectors: Map<number, Set<LocalId>> = new Map();
+    protected ySectors: Map<number, Set<LocalId>> = new Map();
+
+    shapeIdsInSector: Set<LocalId> = new Set();
 
     points: Map<string, Set<LocalId>> = new Map();
 
@@ -55,6 +85,52 @@ export class Layer {
         this.ctx = canvas.getContext("2d")!;
     }
 
+    isValid(): boolean {
+        return this.valid;
+    }
+
+    updateView(): void {
+        if (!getGameState().boardInitialized) return;
+
+        this.shapeIdsInSector.clear();
+
+        const topLeft = l2g(toLP(0, 0));
+        const botRight = l2g(toLP(this.width, this.height));
+        const sectorLeft = getSector(topLeft.x);
+        const sectorRight = getSector(botRight.x);
+        const sectorTop = getSector(topLeft.y);
+        const sectorBot = getSector(botRight.y);
+
+        let i = 0;
+        let j = 0;
+
+        for (i = sectorLeft; i <= sectorRight; i += SECTOR_SIZE) {
+            for (j = sectorTop; j <= sectorBot; j += SECTOR_SIZE) {
+                const x = this.xSectors.get(i);
+                const y = this.ySectors.get(j);
+                if (x !== undefined && y !== undefined) {
+                    for (const id of [...x].filter((x) => y.has(x))) {
+                        this.shapeIdsInSector.add(id);
+                    }
+                    for (const id of [...y].filter((y) => x.has(y))) {
+                        this.shapeIdsInSector.add(id);
+                    }
+                }
+            }
+        }
+        this.shapesInSector = [];
+        for (const shape of this.shapes) {
+            if (this.shapeIdsInSector.has(shape.id)) this.shapesInSector.push(shape);
+        }
+        visionState.updateSourcesInSector(this.floor, this.name, this.shapeIdsInSector);
+    }
+
+    updateSectors(shapeId: LocalId, aabb: BoundingRect): void {
+        this.removeShapeFromSectors(shapeId);
+        this.addShapeToSectors(shapeId, aabb);
+        this.updateView();
+    }
+
     invalidate(skipLightUpdate: boolean): void {
         if (debugLayers) {
             console.groupCollapsed(`🗑 [${this.floor}] ${this.name}`);
@@ -63,20 +139,20 @@ export class Layer {
         }
         this.valid = false;
         if (!skipLightUpdate) {
-            floorStore.invalidateLight(this.floor);
+            floorSystem.invalidateLight(this.floor);
         }
     }
 
     get isActiveLayer(): boolean {
-        return floorStore.currentLayer.value === this;
+        return toRaw(floorState.currentLayer.value) === this;
     }
 
     get width(): number {
-        return this.canvas.width / clientStore.devicePixelRatio.value;
+        return this.canvas.width / playerSettingsState.devicePixelRatio.value;
     }
 
     get height(): number {
-        return this.canvas.height / clientStore.devicePixelRatio.value;
+        return this.canvas.height / playerSettingsState.devicePixelRatio.value;
     }
 
     resize(width: number, height: number): void {
@@ -88,17 +164,42 @@ export class Layer {
     /**
      * Returns the number of shapes on this layer
      */
-    size(options: { skipUiHelpers?: boolean; includeComposites: boolean }): number {
+    size(options: { includeComposites: boolean }): number {
         return this.getShapes(options).length;
+    }
+
+    private addShapeToSectors(shapeId: LocalId, aabb: BoundingRect): void {
+        for (let i = getSector(aabb.topLeft.x); i <= getSector(aabb.topRight.x); i += SECTOR_SIZE) {
+            if (!this.xSectors.has(i)) this.xSectors.set(i, new Set());
+            this.xSectors.get(i)!.add(shapeId);
+        }
+        for (let i = getSector(aabb.topLeft.y); i <= getSector(aabb.botLeft.y); i += SECTOR_SIZE) {
+            if (!this.ySectors.has(i)) this.ySectors.set(i, new Set());
+            this.ySectors.get(i)!.add(shapeId);
+        }
+    }
+
+    private removeShapeFromSectors(shapeId: LocalId): void {
+        for (const sector of this.xSectors.values()) {
+            sector.delete(shapeId);
+        }
+        for (const sector of this.ySectors.values()) {
+            sector.delete(shapeId);
+        }
     }
 
     addShape(shape: IShape, sync: SyncMode, invalidate: InvalidationMode): void {
         shape.setLayer(this.floor, this.name);
 
         this.shapes.push(shape);
+        this.addShapeToSectors(shape.id, shape.getAuraAABB());
+        this.updateView(); // todo: other method that only adds instead of rechecking all existing
 
-        shape.setBlocksVision(shape.blocksVision, UI_SYNC, invalidate !== InvalidationMode.NO);
-        shape.setBlocksMovement(shape.blocksMovement, UI_SYNC, invalidate !== InvalidationMode.NO);
+        const props = getProperties(shape.id);
+        if (props === undefined) return console.error("Missing shape properties");
+
+        propertiesSystem.setBlocksVision(shape.id, props.blocksVision, UI_SYNC, invalidate !== InvalidationMode.NO);
+        propertiesSystem.setBlocksMovement(shape.id, props.blocksMovement, UI_SYNC, invalidate !== InvalidationMode.NO);
 
         shape.invalidatePoints();
         if (shape.isSnappable) {
@@ -108,9 +209,9 @@ export class Layer {
             }
         }
 
-        if (accessSystem.hasAccessTo(shape.id, false, { vision: true }) && shape.isToken)
-            gameStore.addOwnedToken(shape.id);
-        if (shape.annotation.length) gameStore.addAnnotation(shape.id);
+        if (accessSystem.hasAccessTo(shape.id, false, { vision: true }) && props.isToken)
+            accessSystem.addOwnedToken(shape.id);
+
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync) {
             sendShapeAdd({ shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
         }
@@ -121,7 +222,7 @@ export class Layer {
             activeShapeStore.state.id === undefined &&
             activeShapeStore.state.lastUuid === shape.id
         ) {
-            selectionState.push(shape);
+            selectedSystem.push(shape.id);
         }
 
         if (sync === SyncMode.FULL_SYNC) {
@@ -132,11 +233,8 @@ export class Layer {
 
     // UI helpers are objects that are created for UI reaons but that are not pertinent to the actual state
     // They are often not desired unless in specific circumstances
-    getShapes(options: { skipUiHelpers?: boolean; includeComposites: boolean }): readonly IShape[] {
-        const skipUiHelpers = options.skipUiHelpers ?? true;
-        let shapes: readonly IShape[] = skipUiHelpers
-            ? this.shapes.filter((s) => !(s.options.UiHelper ?? false))
-            : this.shapes;
+    getShapes(options: { includeComposites: boolean; onlyInView?: boolean }): readonly IShape[] {
+        let shapes: readonly IShape[] = options?.onlyInView ?? false ? this.shapesInSector : this.shapes;
         if (options.includeComposites) {
             shapes = compositeState.addAllCompositeShapes(shapes);
         }
@@ -145,14 +243,26 @@ export class Layer {
 
     pushShapes(...shapes: IShape[]): void {
         this.shapes.push(...shapes);
+        for (const shape of shapes) {
+            shape.resetVisionIteration();
+            this.addShapeToSectors(shape.id, shape.getAuraAABB());
+        }
+        this.updateView();
     }
 
     setShapes(...shapes: IShape[]): void {
         this.shapes = shapes;
+        this.xSectors.clear();
+        this.ySectors.clear();
+        for (const shape of shapes) {
+            shape.resetVisionIteration();
+            this.addShapeToSectors(shape.id, shape.getAuraAABB());
+        }
+        this.updateView();
     }
 
     setServerShapes(shapes: ServerShape[]): void {
-        if (this.isActiveLayer) selectionState.clear(); // TODO: Fix keeping selection on those items that are not moved.
+        if (this.isActiveLayer) selectedSystem.clear(); // TODO: Fix keeping selection on those items that are not moved.
         // We need to ensure composites are added after all their variants have been added
         const composites = [];
         for (const serverShape of shapes) {
@@ -184,30 +294,33 @@ export class Layer {
             console.error("attempted to remove shape not in layer.");
             return false;
         }
-        const locationOptions = settingsStore.currentLocationOptions.value;
-        if (locationOptions.spawnLocations!.includes(shape.id)) {
-            settingsStore.setSpawnLocations(
-                locationOptions.spawnLocations!.filter((s) => s !== shape.id),
-                settingsStore.state.activeLocation,
+        const gId = getGlobalId(shape.id);
+        if (locationSettingsState.raw.spawnLocations.value.includes(gId)) {
+            locationSettingsSystem.setSpawnLocations(
+                locationSettingsState.raw.spawnLocations.value.filter((s) => s !== gId),
+                locationSettingsState.raw.activeLocation,
                 true,
             );
         }
         this.shapes.splice(idx, 1);
+        this.removeShapeFromSectors(shape.id);
+        this.updateView();
 
         if (shape.groupId !== undefined) {
             removeGroupMember(shape.groupId, shape.id, false);
         }
 
         if (options.sync !== SyncMode.NO_SYNC && !shape.preventSync)
-            sendRemoveShapes({ uuids: [getGlobalId(shape.id)], temporary: options.sync === SyncMode.TEMP_SYNC });
+            sendRemoveShapes({ uuids: [gId], temporary: options.sync === SyncMode.TEMP_SYNC });
 
         visionState.removeBlocker(TriangulationTarget.VISION, this.floor, shape, options.recalculate);
         visionState.removeBlocker(TriangulationTarget.MOVEMENT, this.floor, shape, options.recalculate);
         visionState.removeVisionSources(this.floor, shape.id);
 
-        gameStore.removeAnnotation(shape.id);
+        accessSystem.removeOwnedToken(shape.id);
 
-        gameStore.removeOwnedToken(shape.id);
+        // Needs to be retrieved before dropping the ID
+        const triggersVisionRecalc = shape.triggersVisionRecalc;
 
         if (options.dropShapeId) dropId(shape.id);
         gameStore.removeMarker(shape.id, true);
@@ -219,10 +332,9 @@ export class Layer {
             else val.delete(shape.id);
         }
 
-        if (this.isActiveLayer) selectionState.remove(shape.id);
+        if (this.isActiveLayer) selectedSystem.remove(shape.id);
 
-        if (options.sync === SyncMode.FULL_SYNC) initiativeStore.removeInitiative(shape.id, false);
-        this.invalidate(!shape.triggersVisionRecalc);
+        this.invalidate(!triggersVisionRecalc);
         return true;
     }
 
@@ -267,52 +379,54 @@ export class Layer {
 
             if (doClear) this.clear();
 
-            const floorState = floorStore.state;
-            const gameState = gameStore.state;
+            const gameState = getGameState();
 
             // We iterate twice over all shapes
             // First to draw the auras and a second time to draw the shapes themselves
             // Otherwise auras from one shape could overlap another shape.
 
-            const currentLayer = floorStore.currentLayer.value;
-            // To optimize things slightly, we keep track of the shapes that passed the first round
-            const visibleShapes: IShape[] = [];
+            const isActiveLayer = this.isActiveLayer;
 
-            // Aura draw loop
-            for (const shape of this.shapes) {
-                if (shape.options.skipDraw ?? false) continue;
-                if (!shape.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: true })) continue;
-                if (this.name === LayerName.Lighting && currentLayer !== this) continue;
-                drawAuras(shape, ctx);
-                visibleShapes.push(shape);
-            }
-            // Normal shape draw loop
-            for (const shape of visibleShapes) {
-                if (shape.isInvisible && !accessSystem.hasAccessTo(shape.id, true, { vision: true })) continue;
-                if (shape.labels.length === 0 && gameState.filterNoLabel) continue;
-                if (
-                    shape.labels.length &&
-                    gameState.labelFilters.length &&
-                    !shape.labels.some((l) => gameState.labelFilters.includes(l.uuid))
-                )
-                    continue;
-                shape.draw(ctx);
+            if (this.name !== LayerName.Lighting || isActiveLayer) {
+                // Aura draw loop
+                for (const shape of this.shapesInSector) {
+                    if (shape.options.skipDraw ?? false) continue;
+
+                    drawAuras(shape, ctx);
+                }
+
+                // Normal shape draw loop
+                for (const shape of this.shapesInSector) {
+                    if (shape.options.skipDraw ?? false) continue;
+                    const props = getProperties(shape.id)!;
+                    if (props.isInvisible && !accessSystem.hasAccessTo(shape.id, true, { vision: true })) continue;
+                    if (shape.labels.length === 0 && gameState.filterNoLabel) continue;
+                    if (
+                        shape.labels.length &&
+                        gameState.labelFilters.length &&
+                        !shape.labels.some((l) => gameState.labelFilters.includes(l.uuid))
+                    ) {
+                        continue;
+                    }
+
+                    shape.draw(ctx);
+                }
             }
 
-            if (this.isActiveLayer && selectionState.hasSelection) {
+            if (isActiveLayer && selectedSystem.hasSelection) {
                 ctx.fillStyle = this.selectionColor;
                 ctx.strokeStyle = this.selectionColor;
                 ctx.lineWidth = this.selectionWidth;
-                for (const shape of selectionState.get({ includeComposites: false })) {
+                for (const shape of selectedSystem.get({ includeComposites: false })) {
                     shape.drawSelection(ctx);
                 }
             }
 
             // If this is the last layer of the floor below, render some shadow
-            if (floorState.floorIndex > 0) {
-                const lowerFloor = floorState.floors[floorState.floorIndex - 1];
+            if (floorState.raw.floorIndex > 0) {
+                const lowerFloor = floorState.raw.floors[floorState.raw.floorIndex - 1];
                 if (lowerFloor.id === this.floor) {
-                    const layers = floorStore.getLayers(lowerFloor);
+                    const layers = floorSystem.getLayers(lowerFloor);
                     if (layers.at(-1)?.name === this.name) {
                         ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
                         ctx.fillRect(0, 0, this.width, this.height);
@@ -320,9 +434,39 @@ export class Layer {
                 }
             }
 
+            // show nearby tokens
+            if (playerSettingsState.raw.showTokenDirections.value) {
+                if (this.floor === floorState.currentFloor.value?.id && this.name === LayerName.Draw) {
+                    const bbox = new BoundingRect(positionSystem.screenTopLeft, l2gz(this.width), l2gz(this.height));
+                    const bboxCenter = bbox.center;
+                    for (const token of accessState.activeTokens.value) {
+                        let found = false;
+                        const shape = getShape(token);
+                        if (shape !== undefined && shape.floor.id === this.floor && shape.type === "assetrect") {
+                            if (!shape.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: false })) {
+                                const ray = Ray.fromPoints(shape.center, bboxCenter);
+                                const { hit, min } = bbox.containsRay(ray);
+                                if (hit) {
+                                    let target = ray.get(min);
+                                    const modifiedRay = new Ray(g2l(ray.get(min)), ray.direction);
+                                    drawTear(modifiedRay, { fillColour: playerSettingsState.raw.rulerColour.value });
+                                    target = ray.getPointAtDistance(l2gz(68), min);
+                                    shape.draw(ctx, { center: target, width: 60, height: 60 });
+                                    positionSystem.setTokenDirection(token, g2l(target));
+                                    found = true;
+                                }
+                            }
+                        }
+                        if (!found) positionSystem.setTokenDirection(token, undefined);
+                    }
+                }
+            }
+
             ctx.globalCompositeOperation = ogOP;
             this.valid = true;
             this.resolveCallbacks();
+        } else {
+            this.ctx.clearRect(0, 0, 1, 1);
         }
     }
 

@@ -3,27 +3,20 @@ import throttle from "lodash/throttle";
 import { defineComponent, onMounted, onUnmounted, toRef, watchEffect } from "vue";
 
 import { useModal } from "../core/plugins/modals/plugin";
-import { clientStore } from "../store/client";
+import { getGameState } from "../store/_game";
 import { coreStore } from "../store/core";
-import { floorStore } from "../store/floor";
-import { gameStore } from "../store/game";
 
 import { createConnection, socket } from "./api/socket";
-import { onKeyDown } from "./input/keyboard";
+import { dropAsset } from "./dropAsset";
+import { onKeyDown } from "./input/keyboard/down";
 import { scrollZoom } from "./input/mouse";
+import { LgCompanion } from "./integrations/lastgameboard/companion";
 import { clearUndoStacks } from "./operations/undo";
-import { dropAsset, setSelectionBoxFunction } from "./temp";
-import {
-    contextMenu,
-    keyUp,
-    mouseDown,
-    mouseLeave,
-    mouseMove,
-    mouseUp,
-    touchEnd,
-    touchMove,
-    touchStart,
-} from "./tools/events";
+import { floorSystem } from "./systems/floors";
+import { playerSettingsState } from "./systems/settings/players/state";
+import { setSelectionBoxFunction } from "./temp";
+import { keyUp, mouseDown, mouseLeave, mouseMove, mouseUp, touchEnd, touchMove, touchStart } from "./tools/events";
+// import DebugInfo from "./ui/DebugInfo.vue";
 import { handleDrop } from "./ui/firefox";
 import UI from "./ui/UI.vue";
 
@@ -32,7 +25,7 @@ import "./api/events";
 export default defineComponent({
     // eslint-disable-next-line vue/multi-word-component-names
     name: "Game",
-    components: { UI },
+    components: { UI }, // DebugInfo
     beforeRouteEnter(to, _from, next) {
         coreStore.setLoading(true);
         createConnection(to);
@@ -46,7 +39,8 @@ export default defineComponent({
         const modals = useModal();
         setSelectionBoxFunction(modals.selectionBox);
 
-        const gameState = gameStore.state;
+        const gameState = getGameState();
+        const companion = new LgCompanion();
 
         const mediaQuery = matchMedia(`(resolution: ${devicePixelRatio}dppx)`);
         let throttledMoveSet = false;
@@ -55,18 +49,21 @@ export default defineComponent({
         let throttledTouchMove: (event: TouchEvent) => void = (_event: TouchEvent) => {};
 
         watchEffect(() => {
-            if (!gameStore.state.boardInitialized) {
+            if (!getGameState().boardInitialized) {
                 throttledMoveSet = false;
                 throttledTouchMoveSet = false;
             }
         });
 
-        onMounted(() => {
+        onMounted(async () => {
+            window.Gameboard?.setDrawerVisibility(false);
             window.addEventListener("keyup", keyUp);
             window.addEventListener("keydown", onKeyDown);
             window.addEventListener("resize", resizeWindow);
             clearUndoStacks();
             mediaQuery.addEventListener("change", resizeWindow);
+
+            if (coreStore.state.boardId !== undefined) await companion.run();
         });
 
         onUnmounted(() => {
@@ -74,16 +71,17 @@ export default defineComponent({
             window.removeEventListener("keydown", onKeyDown);
             window.removeEventListener("resize", resizeWindow);
             mediaQuery.removeEventListener("change", resizeWindow);
+            companion.disconnect();
         });
 
         // Window events
         function zoom(event: WheelEvent): void {
-            if (clientStore.state.disableScrollToZoom) return;
+            if (playerSettingsState.raw.disableScrollToZoom.value) return;
             throttle(scrollZoom)(event);
         }
 
         function resizeWindow(): void {
-            floorStore.resize(window.innerWidth, window.innerHeight);
+            floorSystem.resize(window.innerWidth, window.innerHeight);
         }
 
         // Touch events
@@ -129,7 +127,6 @@ export default defineComponent({
         }
 
         return {
-            contextMenu,
             drop,
             isConnected: toRef(gameState, "isConnected"),
             mouseDown,
@@ -146,7 +143,7 @@ export default defineComponent({
 </script>
 
 <template>
-    <div id="main" @mouseleave="mouseLeave" @wheel="zoom">
+    <div id="main" @mouseleave="mouseLeave" @wheel.passive="zoom">
         <canvas id="babylon"></canvas>
         <div id="board" :class="{ disconnected: !isConnected }">
             <div
@@ -154,7 +151,7 @@ export default defineComponent({
                 @mousedown="mouseDown"
                 @mouseup="mouseUp"
                 @mousemove="mousemove"
-                @contextmenu.prevent.stop="contextMenu"
+                @contextmenu.prevent.stop
                 @dragover.prevent
                 @drop.prevent.stop="drop"
                 @touchmove="touchmove"
@@ -163,6 +160,7 @@ export default defineComponent({
             ></div>
         </div>
         <UI ref="ui" />
+        <!-- <DebugInfo /> -->
     </div>
 </template>
 
@@ -217,6 +215,6 @@ svg {
     z-index: 11;
     pointer-events: none;
     width: 100%;
-    height: 100%;
+    height: 100vh;
 }
 </style>

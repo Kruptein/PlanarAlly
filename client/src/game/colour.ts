@@ -1,12 +1,19 @@
 import tinycolor from "tinycolor2";
 
-import { clientStore } from "../store/client";
-import { gameStore } from "../store/game";
-import { settingsStore } from "../store/settings";
+import { getGameState } from "../store/_game";
 
-export function getFogColour(opposite = false): string {
-    const tc = tinycolor(clientStore.state.fowColour);
-    if (gameStore.state.isDm) tc.setAlpha(opposite ? 1 : settingsStore.fowOpacity.value);
+import { locationSettingsState } from "./systems/settings/location/state";
+import { playerSettingsState } from "./systems/settings/players/state";
+
+export let FOG_COLOUR = getFogColour();
+
+export function updateFogColour(): void {
+    FOG_COLOUR = getFogColour();
+}
+
+function getFogColour(): string {
+    const tc = tinycolor(playerSettingsState.raw.fowColour.value);
+    if (getGameState().isDm) tc.setAlpha(locationSettingsState.raw.fowOpacity.value);
     else tc.setAlpha(1);
     return tc.toRgbString();
 }

@@ -10,10 +10,12 @@ import {
     sendLocationUnarchive,
 } from "../game/api/emits/location";
 import type { Location } from "../game/models/settings";
+import { playerSystem } from "../game/systems/players";
+import { playerState } from "../game/systems/players/state";
+import { locationSettingsSystem } from "../game/systems/settings/location";
+import { locationSettingsState } from "../game/systems/settings/location/state";
 
-import { clientStore } from "./client";
-import { gameStore } from "./game";
-import { settingsStore } from "./settings";
+import { getGameState } from "./_game";
 
 interface LocationState {
     playerLocations: Map<number, Set<string>>;
@@ -25,10 +27,10 @@ class LocationStore extends Store<LocationState> {
     constructor() {
         super();
         watchEffect(() => {
-            const state = gameStore.state;
+            const state = getGameState();
             const newLocations = new Map();
-            for (const player of gameStore.state.players) {
-                if (player.name === clientStore.state.username && state.isDm) continue;
+            for (const player of playerState.reactive.players.values()) {
+                if (player.name === playerSystem.getCurrentPlayer()?.name && state.isDm) continue;
                 if (!newLocations.has(player.location)) {
                     newLocations.set(player.location, new Set());
                 }
@@ -84,7 +86,7 @@ class LocationStore extends Store<LocationState> {
         if (location === undefined) {
             throw new Error("unknown location rename attempt");
         }
-        if (settingsStore.state.activeLocation === id) settingsStore.setActiveLocation(id);
+        if (locationSettingsState.raw.activeLocation === id) locationSettingsSystem.setActiveLocation(id);
         location.name = name;
         if (sync) sendLocationRename({ location: id, name });
     }

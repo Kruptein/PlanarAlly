@@ -37,6 +37,7 @@ export function usePrompt(): PromptModal {
         data.visible = true;
         data.question = question;
         data.title = title;
+        data.error = "";
         if (validation) validationFunction = validation;
         return new Promise((res) => (resolve = res));
     }

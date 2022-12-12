@@ -1,110 +1,84 @@
 <script setup lang="ts">
-import { computed, ref, toRef } from "vue";
+import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { getValue } from "../../../../core/utils";
+import { getGameState } from "../../../../store/_game";
 import { gameStore } from "../../../../store/game";
-import { settingsStore } from "../../../../store/settings";
-import type { LocationOptions } from "../../../models/settings";
+import { locationSettingsSystem } from "../../../systems/settings/location";
+import { locationSettingsState } from "../../../systems/settings/location/state";
 import { VisibilityMode, visionState } from "../../../vision/state";
 
 const props = withDefaults(defineProps<{ location?: number }>(), { location: -1 });
 const { t } = useI18n();
 
+const { reactive: $, getOption } = locationSettingsState;
+const lss = locationSettingsSystem;
+
 const visionMode = toRef(visionState.state, "mode");
 
 const isGlobal = computed(() => props.location < 0);
-
-// TODO: Clean up this hack around settingsstore not being reactive when setting things
-const invalidateHack = ref(0);
-
-const options = computed(() => {
-    if (isGlobal.value) {
-        return settingsStore.state.defaultLocationOptions!;
-    } else {
-        return settingsStore.state.locationOptions.get(props.location) ?? {};
-    }
-});
+const location = computed(() => (isGlobal.value ? undefined : props.location));
 
 const fakePlayer = computed({
     get() {
-        return gameStore.state.isFakePlayer;
+        return getGameState().isFakePlayer;
     },
     set(isFakePlayer: boolean) {
         gameStore.setFakePlayer(isFakePlayer);
     },
 });
 
-const location = computed(() => (isGlobal.value ? undefined : props.location));
-
 const fullFow = computed({
     get() {
-        return settingsStore.getLocationOptions("fullFow", location.value);
+        return getOption($.fullFow, location.value).value;
     },
-    set(fullFow: boolean) {
-        settingsStore.setFullFow(fullFow, location.value, true);
+    set(fullFow: boolean | undefined) {
+        lss.setFullFow(fullFow, location.value, true);
     },
 });
 
 const fowLos = computed({
     get() {
-        return settingsStore.getLocationOptions("fowLos", location.value);
+        return getOption($.fowLos, location.value).value;
     },
-    set(fowLos: boolean) {
-        settingsStore.setLineOfSight(fowLos, location.value, true);
+    set(fowLos: boolean | undefined) {
+        lss.setFowLos(fowLos, location.value, true);
     },
 });
 
 const fowOpacity = computed({
     get() {
-        return settingsStore.getLocationOptions("fowOpacity", location.value);
+        return getOption($.fowOpacity, location.value).value;
     },
-    set(fowOpacity: number) {
-        settingsStore.setFowOpacity(fowOpacity, location.value, true);
-    },
-});
-
-const unitSizeUnit = computed({
-    get() {
-        return settingsStore.getLocationOptions("unitSizeUnit", location.value);
-    },
-    set(unitSizeUnit: string) {
-        settingsStore.setUnitSizeUnit(unitSizeUnit, location.value, true);
+    set(fowOpacity: number | undefined) {
+        lss.setFowOpacity(fowOpacity, location.value, true);
     },
 });
 
 const visionMinRange = computed({
     get() {
-        invalidateHack.value;
-        return settingsStore.getLocationOptions("visionMinRange", location.value);
+        return getOption($.visionMinRange, location.value).value;
     },
-    set(newMin: number) {
-        if (newMin > visionMaxRange.value) {
+    set(newMin: number | undefined) {
+        if (newMin !== undefined && visionMaxRange.value !== undefined && newMin > visionMaxRange.value) {
             newMin = visionMaxRange.value;
-            invalidateHack.value++;
         }
-        settingsStore.setVisionRangeMin(newMin, location.value, true);
+        lss.setVisionMinRange(newMin, location.value, true);
     },
 });
 
 const visionMaxRange = computed({
     get() {
-        invalidateHack.value;
-        return settingsStore.getLocationOptions("visionMaxRange", location.value);
+        return getOption($.visionMaxRange, location.value).value;
     },
-    set(newMax: number) {
-        if (newMax < visionMinRange.value) {
+    set(newMax: number | undefined) {
+        if (newMax !== undefined && visionMinRange.value !== undefined && newMax < visionMinRange.value) {
             newMax = visionMinRange.value;
-            invalidateHack.value++;
         }
-        settingsStore.setVisionRangeMax(newMax, location.value, true);
+        lss.setVisionMaxRange(newMax, location.value, true);
     },
 });
-
-function reset(key: keyof LocationOptions): void {
-    if (isGlobal.value) return;
-    settingsStore.reset(key, props.location);
-}
 
 function changeVisionMode(event: Event): void {
     const value = getValue(event);
@@ -113,6 +87,10 @@ function changeVisionMode(event: Event): void {
     else if (value === t("game.ui.settings.VisionSettings.experimental")) mode = VisibilityMode.TRIANGLE_ITERATIVE;
     else return;
     visionState.setVisionMode(mode, true);
+}
+
+function o(k: any): boolean {
+    return getOption(k, location.value).override !== undefined;
 }
 </script>
 
@@ -138,35 +116,35 @@ function changeVisionMode(event: Event): void {
             </div>
             <div></div>
         </div>
-        <div class="row" :class="{ overwritten: !isGlobal && options.fullFow !== undefined }">
+        <div class="row" :class="{ overwritten: !isGlobal && o($.fullFow) }">
             <label :for="'useFOWInput-' + location">{{ t("game.ui.settings.VisionSettings.fill_fow") }}</label>
             <div>
                 <input :id="'useFOWInput-' + location" type="checkbox" v-model="fullFow" />
             </div>
             <div
-                v-if="!isGlobal && options.fullFow !== undefined"
-                @click="reset('fullFow')"
+                v-if="!isGlobal && o($.fullFow)"
+                @click="fullFow = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
             >
                 <font-awesome-icon icon="times-circle" />
             </div>
             <div v-else></div>
         </div>
-        <div class="row" :class="{ overwritten: !isGlobal && options.fowLos !== undefined }">
+        <div class="row" :class="{ overwritten: !isGlobal && o($.fowLos) }">
             <label :for="'fowLos-' + location">{{ t("game.ui.settings.VisionSettings.only_show_lights_los") }}</label>
             <div>
                 <input :id="'fowLos-' + location" type="checkbox" v-model="fowLos" />
             </div>
             <div
-                v-if="!isGlobal && options.fowLos !== undefined"
-                @click="reset('fowLos')"
+                v-if="!isGlobal && o($.fowLos)"
+                @click="fowLos = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
             >
                 <font-awesome-icon icon="times-circle" />
             </div>
             <div v-else></div>
         </div>
-        <div class="row" :class="{ overwritten: !isGlobal && options.fowOpacity !== undefined }">
+        <div class="row" :class="{ overwritten: !isGlobal && o($.fowOpacity) }">
             <label :for="'fowOpacity-' + location">{{ t("game.ui.settings.VisionSettings.fow_opacity") }}</label>
             <div>
                 <input
@@ -179,8 +157,8 @@ function changeVisionMode(event: Event): void {
                 />
             </div>
             <div
-                v-if="!isGlobal && options.fowOpacity !== undefined"
-                @click="reset('fowOpacity')"
+                v-if="!isGlobal && o($.fowOpacity)"
+                @click="fowOpacity = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
             >
                 <font-awesome-icon icon="times-circle" />
@@ -200,43 +178,43 @@ function changeVisionMode(event: Event): void {
             </div>
             <div></div>
         </div>
-        <div class="row" :class="{ overwritten: !isGlobal && options.visionMinRange !== undefined }">
+        <div class="row" :class="{ overwritten: !isGlobal && o($.visionMinRange) }">
             <label :for="'vmininp-' + location">
-                {{ t("game.ui.settings.VisionSettings.min_full_vision_UNIT", { unit: unitSizeUnit }) }}
+                {{ t("game.ui.settings.VisionSettings.min_full_vision_UNIT", { unit: $.unitSizeUnit.value }) }}
             </label>
             <div>
                 <input
                     :id="'vmininp-' + location"
                     type="number"
                     min="0"
-                    :max="options.visionMaxRange ?? 0"
+                    :max="$.visionMaxRange.value"
                     v-model.lazy.number="visionMinRange"
                 />
             </div>
             <div
-                v-if="!isGlobal && options.visionMinRange !== undefined"
-                @click="reset('visionMinRange')"
+                v-if="!isGlobal && o($.visionMinRange)"
+                @click="visionMinRange = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
             >
                 <font-awesome-icon icon="times-circle" />
             </div>
             <div v-else></div>
         </div>
-        <div class="row" :class="{ overwritten: !isGlobal && options.visionMaxRange !== undefined }">
+        <div class="row" :class="{ overwritten: !isGlobal && o($.visionMaxRange) }">
             <label :for="'vmaxinp-' + location">
-                {{ t("game.ui.settings.VisionSettings.max_vision_UNIT", { unit: unitSizeUnit }) }}
+                {{ t("game.ui.settings.VisionSettings.max_vision_UNIT", { unit: $.unitSizeUnit.value }) }}
             </label>
             <div>
                 <input
                     :id="'vmaxinp-' + location"
                     type="number"
-                    :min="Math.max(0, options.visionMinRange ?? 0)"
+                    :min="Math.max(0, $.visionMinRange.value)"
                     v-model.lazy.number="visionMaxRange"
                 />
             </div>
             <div
-                v-if="!isGlobal && options.visionMaxRange !== undefined"
-                @click="reset('visionMaxRange')"
+                v-if="!isGlobal && o($.visionMaxRange)"
+                @click="visionMaxRange = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
             >
                 <font-awesome-icon icon="times-circle" />

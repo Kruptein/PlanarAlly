@@ -13,16 +13,15 @@ from peewee import (
 )
 from playhouse.shortcuts import model_to_dict
 
-from models.typed import SelectSequence
-
 if TYPE_CHECKING:
-    from models.initiative import Initiative
-    from models.marker import Marker
-    from models.shape import Shape
+    from .initiative import Initiative
+    from .marker import Marker
+    from .shape import Shape
 
 from .asset import Asset
 from .base import BaseModel
 from .groups import Group
+from .typed import SelectSequence
 from .user import User, UserOptions
 
 __all__ = [
@@ -37,18 +36,15 @@ __all__ = [
 ]
 
 
-TRANSPARENT_COLOR = "rgba(0, 0, 0, 0)"
-
-
 class LocationOptions(BaseModel):
     id: int
 
     unit_size = FloatField(default=5, null=True)
     unit_size_unit = TextField(default="ft", null=True)
     use_grid = BooleanField(default=True, null=True)
-    full_fow = BooleanField(default=False, null=True)
+    full_fow = cast(bool, BooleanField(default=False, null=True))
     fow_opacity = FloatField(default=0.3, null=True)
-    fow_los = BooleanField(default=False, null=True)
+    fow_los = cast(bool, BooleanField(default=False, null=True))
     vision_mode = TextField(default="triangle", null=True)
     # default is 1km max, 0.5km min
     vision_min_range = FloatField(default=1640, null=True)
@@ -56,9 +52,28 @@ class LocationOptions(BaseModel):
     spawn_locations = cast(str, TextField(default="[]"))
     move_player_on_token_change = BooleanField(default=True, null=True)
     grid_type = TextField(default="SQUARE", null=True)
-    air_map_background = TextField(default=TRANSPARENT_COLOR, null=True)
-    ground_map_background = TextField(default=TRANSPARENT_COLOR, null=True)
-    underground_map_background = TextField(default=TRANSPARENT_COLOR, null=True)
+    air_map_background = TextField(default="none", null=True)
+    ground_map_background = TextField(default="none", null=True)
+    underground_map_background = TextField(default="none", null=True)
+
+    @classmethod
+    def create_empty(cls):
+        return LocationOptions.create(
+            unit_size=None,
+            unit_size_unit=None,
+            grid_type=None,
+            use_grid=None,
+            full_fow=None,
+            fow_opacity=None,
+            fow_los=None,
+            vision_mode=None,
+            vision_min_range=None,
+            vision_max_range=None,
+            move_player_on_token_change=None,
+            air_map_background=None,
+            ground_map_background=None,
+            underground_map_background=None,
+        )
 
     def as_dict(self):
         return {
@@ -75,6 +90,7 @@ class Room(BaseModel):
     logo_id: Optional[int]
     players: SelectSequence["PlayerRoom"]
     locations: SelectSequence["Location"]
+    default_options: LocationOptions
 
     name = cast(str, TextField())
     creator = cast(
@@ -82,7 +98,9 @@ class Room(BaseModel):
     )
     invitation_code = cast(uuid.UUID, TextField(default=uuid.uuid4, unique=True))
     is_locked = cast(bool, BooleanField(default=False))
-    default_options = ForeignKeyField(LocationOptions, on_delete="CASCADE")
+    default_options = cast(
+        LocationOptions, ForeignKeyField(LocationOptions, on_delete="CASCADE")
+    )
     logo = ForeignKeyField(Asset, null=True, on_delete="SET NULL")
 
     def __repr__(self):

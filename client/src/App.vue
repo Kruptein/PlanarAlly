@@ -1,36 +1,21 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
-import { useRoute } from "vue-router";
+import { computed, ref } from "vue";
 
 import { baseAdjust } from "./core/http";
 import { coreStore } from "./store/core";
 
-const route = useRoute();
+const hasGameboard = coreStore.state.boardId !== undefined;
 
-const transitionName = ref("");
 const webmError = ref(false);
-const webmStart = 2 * Math.floor(Math.random() * 5);
+const webmStart = hasGameboard ? 0 : 2 * Math.floor(Math.random() * 5);
+const webmPath = baseAdjust("/static/img/loading.webm" + (hasGameboard ? "" : `#t=${webmStart}`));
 
 const loading = computed(() => coreStore.state.loading);
-const backgroundImage = `url('${import.meta.env.BASE_URL}static/img/login_background.png')`;
-
-watch(
-    () => route.name,
-    (toRoute, fromRoute) => {
-        if (fromRoute === "login" && toRoute === "dashboard") {
-            transitionName.value = "slide-left";
-        } else if (fromRoute === "dashboard" && toRoute === "login") {
-            transitionName.value = "slide-right";
-        } else {
-            transitionName.value = "";
-        }
-    },
-);
 </script>
 
 <template>
-    <div id="app" :style="{ backgroundImage }">
-        <div id="loading" v-if="transitionName === '' && loading">
+    <div id="app">
+        <div id="loading" v-show="loading">
             <video
                 v-if="!webmError"
                 autoplay
@@ -38,15 +23,13 @@ watch(
                 muted
                 playsinline
                 style="height: 20vh"
-                :src="baseAdjust('/static/img/loading.webm#t=' + webmStart)"
+                :src="webmPath"
                 @error="webmError = true"
             />
             <img v-else :src="baseAdjust('/static/img/loading.gif')" style="height: 20vh" />
         </div>
         <router-view v-slot="{ Component }">
-            <transition :name="transitionName" mode="out-in">
-                <component :is="Component" />
-            </transition>
+            <component :is="Component" />
         </router-view>
     </div>
 </template>
@@ -56,6 +39,30 @@ watch(
 @font-face {
     font-family: "Open Sans";
     src: local("OpenSans"), url("./core/fonts/OpenSans-Regular.ttf") format("truetype");
+}
+
+* {
+    box-sizing: border-box;
+}
+
+@media (width: 2560px) and (height: 2560px) {
+    html {
+        font-size: calc(100% * 4 / 3);
+
+        * {
+            font-size: 1em;
+        }
+    }
+}
+
+@media (max-device-width: 1024px) {
+    html {
+        font-size: calc(100% * 2 / 3);
+
+        * {
+            font-size: 1em;
+        }
+    }
 }
 
 body {
@@ -68,8 +75,8 @@ body,
     margin: 0;
     padding: 0;
     border: 0;
-    width: 100%;
-    height: 100%;
+    min-width: 100%;
+    min-height: 100%;
     font-family: "Open Sans", sans-serif;
     font-weight: 200;
 
@@ -86,6 +93,7 @@ body,
         display: flex;
         justify-content: center;
         align-items: center;
+        z-index: 1;
     }
 
     svg {
@@ -99,18 +107,5 @@ a:visited,
 a:hover,
 a:active {
     color: inherit;
-}
-
-.slide-right-leave-active,
-.slide-left-leave-active {
-    transition: 0.5s ease-in-out;
-}
-
-.slide-left-leave-to {
-    transform: translateX(-80vw);
-}
-
-.slide-right-leave-to {
-    transform: translateX(80vw);
 }
 </style>

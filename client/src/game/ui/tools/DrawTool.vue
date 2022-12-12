@@ -1,34 +1,25 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, toRef } from "vue";
-import type { CSSProperties } from "vue";
+import { computed, ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../core/components/ColourPicker.vue";
 import { useModal } from "../../../core/plugins/modals/plugin";
-import { gameStore } from "../../../store/game";
+import { getGameState } from "../../../store/_game";
 import { DOOR_TOGGLE_MODES } from "../../systems/logic/door/models";
 import { DrawCategory, DrawMode, DrawShape, drawTool } from "../../tools/variants/draw";
 import LogicPermissions from "../settings/shape/LogicPermissions.vue";
-
-import { useToolPosition } from "./toolPosition";
 
 const { t } = useI18n();
 const modals = useModal();
 
 drawTool.setPromptFunction(modals.prompt);
 
-const state = reactive({
-    arrow: "0px",
-    right: "0px",
-});
-
 const hasBrushSize = drawTool.hasBrushSize;
-const isDm = toRef(gameStore.state, "isDm");
+const isDm = toRef(getGameState(), "isDm");
 const modes = Object.values(DrawMode);
 const categories = Object.values(DrawCategory);
 const selected = drawTool.isActiveTool;
 const shapes = Object.values(DrawShape);
-const toolStyle = computed(() => ({ "--detailRight": state.right, "--detailArrow": state.arrow } as CSSProperties));
 
 const showPermissions = ref(false);
 
@@ -47,25 +38,35 @@ const translationMapping = {
     [DrawCategory.Logic]: t("game.ui.tools.DrawTool.logic-category"),
 };
 
-onMounted(() => {
-    ({ right: state.right, arrow: state.arrow } = useToolPosition(drawTool.toolName));
-});
-
 const showBorderColour = computed(() => {
     if (drawTool.state.selectedShape === DrawShape.Brush) return false;
     if (drawTool.state.selectedShape === DrawShape.Polygon && !drawTool.state.isClosedPolygon) return false;
     return true;
 });
+
+const alerts = computed(() => {
+    const a: Set<string> = new Set();
+    if (drawTool.state.blocksMovement || drawTool.state.blocksVision) {
+        a.add("eye");
+    }
+    if (drawTool.state.isDoor) {
+        a.add("cogs");
+    }
+    return a;
+});
 </script>
 
 <template>
-    <div class="tool-detail" v-if="selected" :style="toolStyle">
+    <div class="tool-detail" v-if="selected">
         <div id="draw-tool-categories">
             <div
                 v-for="category in categories"
                 :key="category"
                 class="draw-category-option"
-                :class="{ 'draw-category-option-selected': drawTool.state.selectedCategory === category }"
+                :class="{
+                    'draw-category-option-selected': drawTool.state.selectedCategory === category,
+                    'draw-category-alert': drawTool.state.selectedCategory !== category && alerts.has(category),
+                }"
                 @click="drawTool.state.selectedCategory = category"
                 :title="translationMapping[category]"
             >
@@ -212,7 +213,7 @@ const showBorderColour = computed(() => {
         justify-content: center;
 
         padding: 10px;
-        width: 20px;
+        width: 40px;
 
         &:hover {
             cursor: pointer;
@@ -222,6 +223,10 @@ const showBorderColour = computed(() => {
 
     .draw-category-option-selected {
         background-color: #82c8a0;
+    }
+
+    .draw-category-alert {
+        background-color: orangered;
     }
 }
 
@@ -277,7 +282,7 @@ const showBorderColour = computed(() => {
         justify-content: center;
         align-items: center;
         font-size: 13px;
-        min-width: 25px;
+        min-width: 37px;
     }
 
     .radius-right {
@@ -342,7 +347,7 @@ const showBorderColour = computed(() => {
 <style scoped lang="scss">
 .tool-detail {
     display: block;
-    min-height: 125px;
+    min-height: 135px;
 }
 
 .header {

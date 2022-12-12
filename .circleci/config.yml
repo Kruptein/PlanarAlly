@@ -1,14 +1,15 @@
 version: 2.1
 
 orbs:
-    windows: circleci/windows@2.4.0
+    win: circleci/windows@5.0
 
 jobs:
     build-client:
         docker:
-            - image: circleci/node:12
+            - image: cimg/node:16.18.1
 
         working_directory: ~/PlanarAlly/client
+        resource_class: large
 
         steps:
             - checkout:
@@ -41,6 +42,7 @@ jobs:
             - image: cibuilds/github:0.13.0
 
         working_directory: ~/PlanarAlly
+        resource_class: large
 
         steps:
             - attach_workspace:
@@ -62,14 +64,21 @@ jobs:
                       VERSION=$(head -1 server/VERSION)
                       tar -czf /tmp/archives/planarally-bin-${VERSION}.tar.gz server/*
 
-            - run:
-                  name: "Publish release on github"
-                  command: |
-                      VERSION=$(head -1 server/VERSION)
-                      ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace ${VERSION} /tmp/archives
+            - when:
+                  condition:
+                      not:
+                          equal: [ci-test, << pipeline.git.branch >>]
+                  steps:
+                      - run:
+                            name: "Publish release on github"
+                            command: |
+                                VERSION=$(head -1 server/VERSION)
+                                ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace ${VERSION} /tmp/archives
 
     build-windows:
-        executor: windows/default
+        executor:
+            name: win/server-2022
+            size: large
 
         working_directory: ~/PlanarAlly/server
 
@@ -79,11 +88,11 @@ jobs:
 
             - run:
                   name: Create archives folder
-                  command: mkdir ~/archives
+                  command: mkdir C:\Users\circleci\archives
 
             - run:
                   name: Create dist folder
-                  command: mkdir ~/dist
+                  command: mkdir C:\Users\circleci\dist
 
             - run:
                   name: Upgrade pip
@@ -93,29 +102,54 @@ jobs:
                   name: Install python dependencies
                   command: python -m pip install -r requirements.txt
 
-            - run:
-                  name: Install pyinstaller
-                  command: python -m pip install pyinstaller
+            - run: python -m pip install wheel
 
-            - run:
-                  name: Run pyinstaller
-                  command: pyinstaller --clean -y --dist ~/dist/ PA.spec
+            - run: python -m pip install ordered-set
+
+            - run: python -m pip install nuitka
+
+            # - run:
+            #       name: Install pyinstaller
+            #       command: python -m pip install pyinstaller
+
+            # - run:
+            #       name: Download PyInstaller
+            #       command: Invoke-WebRequest https://github.com/pyinstaller/pyinstaller/archive/refs/tags/v5.6.2.zip -OutFile .\pyinstaller.zip
+
+            # - run: unzip.exe .\pyinstaller.zip
+
+            # - run:
+            #       name: Compile bootloader
+            #       command: cd .\pyinstaller-5.6.2\bootloader; if ($?) { python .\waf all }
+
+            # - run: cd .\pyinstaller-5.6.2; if ($?) {python .\setup.py install}
+
+            # - run:
+            #       name: Run pyinstaller
+            #       command: pyinstaller --clean -y --dist C:\Users\circleci\dist\ PA.spec
+
+            - run: python -m nuitka --standalone --assume-yes-for-downloads --include-data-files=VERSION=VERSION --include-data-files=server_config.cfg=server_config.cfg --include-data-dir=static=static --include-data-dir=templates=templates --windows-icon-from-ico=static/favicon.ico ./planarally.py
 
             - run:
                   name: Zip artifacts
                   command: |
                       $VERSION=$(Get-Content -TotalCount 1 VERSION)
-                      Compress-Archive -Path C:\Users\circleci\dist -DestinationPath C:\Users\circleci\archives\planarally-windows-${VERSION}.zip
+                      Compress-Archive -Path .\planarally.dist -DestinationPath C:\Users\circleci\archives\planarally-windows-${VERSION}.zip
 
             - run:
                   name: Install ghr
-                  command: go get -u github.com/tcnksm/ghr
+                  command: go install github.com/tcnksm/ghr@latest
 
+            # - when:
+            #       condition:
+            #           not:
+            #               equal: [ci-test, << pipeline.git.branch >>]
+            #       steps:
             - run:
                   name: Publish release on github
                   command: |
                       $VERSION=$(Get-Content -TotalCount 1 VERSION)
-                      C:\Users\circleci\go\bin\ghr.exe -t $env:GITHUB_TOKEN -u $env:CIRCLE_PROJECT_USERNAME -r $env:CIRCLE_PROJECT_REPONAME -c $env:CIRCLE_SHA1 -replace $VERSION C:\Users\circleci\archives
+                      ~\go\bin\ghr.exe -t $env:GITHUB_TOKEN -u $env:CIRCLE_PROJECT_USERNAME -r $env:CIRCLE_PROJECT_REPONAME -c $env:CIRCLE_SHA1 -replace $VERSION C:\Users\circleci\archives
 
 workflows:
     version: 2
@@ -126,20 +160,23 @@ workflows:
                       - build-client
                   filters:
                       branches:
+                          #   only: ci-test  # MAKE SURE TO CONDITION OR RENAME UPLOADED FILES TO GITHUB!!
                           ignore: /.*/
                       tags:
-                          only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
+                          only: /^v\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
             - build-client:
                   filters:
                       branches:
+                          #   only: ci-test  # MAKE SURE TO CONDITION OR RENAME UPLOADED FILES TO GITHUB!!
                           ignore: /.*/
                       tags:
-                          only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
+                          only: /^v\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
             - release-server:
                   requires:
                       - build-client
                   filters:
                       branches:
+                          #   only: ci-test  # MAKE SURE TO CONDITION OR RENAME UPLOADED FILES TO GITHUB!!
                           ignore: /.*/
                       tags:
-                          only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
+                          only: /^v\d+\.\d+\.\d+[-a-zA-Z0-9]*$/

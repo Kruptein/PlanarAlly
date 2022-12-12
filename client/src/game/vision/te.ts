@@ -1,6 +1,6 @@
 import type { GlobalPoint } from "../../core/geometry";
-import { drawPolygon } from "../draw";
 import type { FloorId } from "../models/floor";
+import { drawPolygon } from "../rendering/basic";
 
 import type { Edge } from "./cdt";
 import { visionState } from "./state";
@@ -36,7 +36,7 @@ export function computeVisibility(
         expandEdge(Q, triangle.vertices[1]!.point!, triangle.vertices[0]!.point!, triangle, 2, rawOutput);
     // console.timeEnd("CV");
 
-    if (drawt) drawPolygon(rawOutput, "red");
+    if (drawt) drawPolygon(rawOutput, { colour: "red" });
 
     return rawOutput;
 }

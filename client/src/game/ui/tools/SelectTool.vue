@@ -1,68 +1,60 @@
 <script setup lang="ts">
-import type { CSSProperties } from "vue";
-import { computed, onMounted, ref, toRef, watch } from "vue";
+import { onMounted, toRef, watch } from "vue";
 
-import { selectionState } from "../../layers/selection";
 import type { Polygon } from "../../shapes/variants/polygon";
+import { selectedSystem } from "../../systems/selected";
 import { selectTool } from "../../tools/variants/select";
+import { selectToolState } from "../../tools/variants/select/state";
 
-import { useToolPosition } from "./toolPosition";
+const { $, _$ } = selectToolState;
 
-const right = ref("0px");
-const arrow = ref("0px");
-
-const hasSelection = selectTool.hasSelection;
 const selected = selectTool.isActiveTool;
-const showRuler = selectTool.showRuler;
-const toolStyle = computed(() => ({ "--detailRight": right.value, "--detailArrow": arrow.value } as CSSProperties));
 
-const polygonUiLeft = selectTool.polygonUiLeft;
-const polygonUiTop = selectTool.polygonUiTop;
-const polygonUiAngle = selectTool.polygonUiAngle;
-const polygonUiVisible = selectTool.polygonUiVisible;
-const polygonUiSizeX = selectTool.polygonUiSizeX;
-const polygonUiSizeY = selectTool.polygonUiSizeY;
-const polygonUiVertex = selectTool.polygonUiVertex;
+const polygonUiLeft = toRef($, "polygonUiLeft");
+const polygonUiTop = toRef($, "polygonUiTop");
+const polygonUiAngle = toRef($, "polygonUiAngle");
+const polygonUiVisible = toRef($, "polygonUiVisible");
+const polygonUiSizeX = toRef($, "polygonUiSizeX");
+const polygonUiSizeY = toRef($, "polygonUiSizeY");
 
 onMounted(() => {
-    ({ right: right.value, arrow: arrow.value } = useToolPosition(selectTool.toolName));
     selectTool.checkRuler();
-    watch(toRef(selectionState.state, "selection"), () => {
+    watch(selectedSystem.$, () => {
         selectTool.resetRotationHelper();
     });
 });
 
 function toggleShowRuler(event: MouseEvent): void {
     const state = (event.target as HTMLButtonElement).getAttribute("aria-pressed") ?? "false";
-    selectTool.showRuler.value = state === "false";
+    _$.showRuler = state === "false";
     selectTool.checkRuler();
 }
 
 function cutPolygon(): void {
-    const selection = selectionState.get({ includeComposites: false })[0] as Polygon;
+    const selection = selectedSystem.get({ includeComposites: false })[0] as Polygon;
     selection.cutPolygon(selectTool.polygonTracer!.refPoint);
 }
 
 function addPoint(): void {
-    const selection = selectionState.get({ includeComposites: false })[0] as Polygon;
+    const selection = selectedSystem.get({ includeComposites: false })[0] as Polygon;
     selection.addPoint(selectTool.polygonTracer!.refPoint);
 }
 
 function removePoint(): void {
-    const selection = selectionState.get({ includeComposites: false })[0] as Polygon;
+    const selection = selectedSystem.get({ includeComposites: false })[0] as Polygon;
     selection.removePoint(selectTool.polygonTracer!.refPoint);
 }
 </script>
 
 <template>
     <div id="polygon-edit">
-        <div @click="removePoint" v-if="polygonUiVertex"><font-awesome-icon icon="trash-alt" /></div>
+        <div @click="removePoint" v-if="$.polygonUiVertex"><font-awesome-icon icon="trash-alt" /></div>
         <div @click="addPoint" v-else><font-awesome-icon icon="plus-square" /></div>
         <div @click="cutPolygon"><font-awesome-icon icon="cut" /></div>
     </div>
 
-    <div id="ruler" class="tool-detail" v-if="selected && hasSelection" :style="toolStyle">
-        <button @click="toggleShowRuler" :aria-pressed="showRuler">Show ruler</button>
+    <div id="ruler" class="tool-detail" v-if="selected && $.hasSelection">
+        <button @click="toggleShowRuler" :aria-pressed="$.showRuler">Show ruler</button>
     </div>
 </template>
 

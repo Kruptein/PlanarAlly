@@ -1,11 +1,18 @@
 import type { GlobalId, LocalId } from "../id";
 
-export interface InitiativeData<T = LocalId> {
-    shape: T;
+interface CommonInitiativeData {
     initiative?: number;
     isVisible: boolean;
     isGroup: boolean;
     effects: InitiativeEffect[];
+}
+
+export interface RawInitiativeData extends CommonInitiativeData {
+    shape: GlobalId;
+}
+export interface InitiativeData extends CommonInitiativeData {
+    globalId: GlobalId;
+    localId?: LocalId;
 }
 
 export interface InitiativeEffect {
@@ -25,7 +32,7 @@ export type InitiativeSettings = {
     round: number;
     turn: number;
     sort: InitiativeSort;
-    data: InitiativeData<GlobalId>[];
+    data: RawInitiativeData[];
 };
 
 export enum InitiativeEffectMode {

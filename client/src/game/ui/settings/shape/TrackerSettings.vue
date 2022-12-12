@@ -9,7 +9,7 @@ import { getValue } from "../../../../core/utils";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { getGlobalId } from "../../../id";
 import type { LocalId } from "../../../id";
-import { accessSystem } from "../../../systems/access";
+import { accessState } from "../../../systems/access/state";
 import { auraSystem } from "../../../systems/auras";
 import { sendShapeMoveAura } from "../../../systems/auras/emits";
 import type { Aura, AuraId, UiAura } from "../../../systems/auras/models";
@@ -21,7 +21,7 @@ const { t } = useI18n();
 
 defineProps<{ activeSelection: boolean }>();
 
-const owned = accessSystem.$.hasEditAccess;
+const owned = accessState.hasEditAccess;
 const isComposite = activeShapeStore.isComposite;
 
 // Tracker
@@ -36,7 +36,9 @@ function updateTracker(tracker: DeepReadonly<UiTracker>, delta: Partial<Tracker>
 }
 
 function removeTracker(tracker: TrackerId): void {
-    const id = activeShapeStore.state.id;
+    const id = trackerSystem.state.parentTrackers.some((t) => t.uuid === tracker)
+        ? activeShapeStore.state.parentUuid
+        : activeShapeStore.state.id;
     if (!owned.value || id === undefined) return;
     trackerSystem.remove(id, tracker, SERVER_SYNC);
 }
@@ -77,7 +79,9 @@ function updateAura(aura: DeepReadonly<UiAura>, delta: Partial<Aura>, syncTo = t
 }
 
 function removeAura(aura: AuraId): void {
-    const id = activeShapeStore.state.id;
+    const id = auraSystem.state.parentAuras.some((a) => a.uuid === aura)
+        ? activeShapeStore.state.parentUuid
+        : activeShapeStore.state.id;
     if (!owned.value || id === undefined) return;
     auraSystem.remove(id, aura, SERVER_SYNC);
 }

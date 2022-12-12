@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import tinycolor from "tinycolor2";
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { l2gz } from "../../../../core/conversions";
@@ -8,29 +8,48 @@ import { toGP } from "../../../../core/geometry";
 import { InvalidationMode, NO_SYNC, SERVER_SYNC, SyncMode, UI_SYNC } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { getChecked, getValue, uuidv4 } from "../../../../core/utils";
+import { getGameState } from "../../../../store/_game";
 import { activeShapeStore } from "../../../../store/activeShape";
-import { clientStore, DEFAULT_GRID_SIZE } from "../../../../store/client";
-import { floorStore } from "../../../../store/floor";
-import { gameStore } from "../../../../store/game";
-import { settingsStore } from "../../../../store/settings";
 import { getShape } from "../../../id";
+import type { IAsset } from "../../../interfaces/shapes/asset";
 import type { DDraftData } from "../../../models/ddraft";
 import { LayerName } from "../../../models/floor";
-import type { Asset } from "../../../shapes/variants/asset";
 import { Circle } from "../../../shapes/variants/circle";
 import { Polygon } from "../../../shapes/variants/polygon";
 import { accessSystem } from "../../../systems/access";
+import { accessState } from "../../../systems/access/state";
+import { annotationSystem } from "../../../systems/annotations";
+import { annotationState } from "../../../systems/annotations/state";
 import { auraSystem } from "../../../systems/auras";
 import type { Aura, AuraId } from "../../../systems/auras/models";
+import { floorSystem } from "../../../systems/floors";
+import { floorState } from "../../../systems/floors/state";
+import { playerSystem } from "../../../systems/players";
+import { DEFAULT_GRID_SIZE } from "../../../systems/position/state";
+import { propertiesSystem } from "../../../systems/properties";
+import { selectedSystem } from "../../../systems/selected";
+import { locationSettingsState } from "../../../systems/settings/location/state";
 import { visionState } from "../../../vision/state";
 import LabelManager from "../../LabelManager.vue";
 
 const { t } = useI18n();
 const modals = useModal();
 
+watch(
+    () => selectedSystem.getFocus().value,
+    (newId, oldId) => {
+        if (newId !== undefined && oldId !== newId) {
+            annotationSystem.loadState(newId);
+        } else if (newId === undefined) {
+            annotationSystem.dropState();
+        }
+    },
+    { immediate: true },
+);
+
 const textarea = ref<HTMLTextAreaElement | null>(null);
 
-const owned = accessSystem.$.hasEditAccess;
+const owned = accessState.hasEditAccess;
 
 // ANNOTATIONS
 
@@ -44,12 +63,12 @@ function calcHeight(): void {
 function updateAnnotation(event: Event, sync = true): void {
     if (!owned.value) return;
     calcHeight();
-    activeShapeStore.setAnnotation(getValue(event), sync ? SERVER_SYNC : NO_SYNC);
+    annotationSystem.setAnnotation(annotationState.reactive.id!, getValue(event), sync ? SERVER_SYNC : NO_SYNC);
 }
 
 function setAnnotationVisible(event: Event): void {
     if (!owned.value) return;
-    activeShapeStore.setAnnotationVisible(getChecked(event), SERVER_SYNC);
+    annotationSystem.setAnnotationVisible(annotationState.reactive.id!, getChecked(event), SERVER_SYNC);
 }
 
 // LABELS
@@ -77,7 +96,7 @@ const hasPath = computed(() => {
     }
     return false;
 });
-const showSvgSection = computed(() => gameStore.state.isDm && activeShapeStore.state.type === "assetrect");
+const showSvgSection = computed(() => getGameState().isDm && activeShapeStore.state.type === "assetrect");
 
 async function uploadSvg(): Promise<void> {
     const asset = await modals.assetPicker();
@@ -106,44 +125,44 @@ function applyDDraft(): void {
     const dDraftData = activeShapeStore.state.options! as DDraftData;
     const size = dDraftData.ddraft_resolution.pixels_per_grid;
 
-    const realShape = getShape(activeShapeStore.state.id!)! as Asset;
+    const realShape = getShape(activeShapeStore.state.id!)! as IAsset;
 
     const targetRP = realShape.refPoint;
 
     const dW = realShape.w / (dDraftData.ddraft_resolution.map_size.x * size);
     const dH = realShape.h / (dDraftData.ddraft_resolution.map_size.y * size);
 
-    const tokenLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Tokens)!;
-    const fowLayer = floorStore.getLayer(floorStore.currentFloor.value!, LayerName.Lighting)!;
+    const tokenLayer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Tokens)!;
+    const fowLayer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Lighting)!;
 
     for (const wall of dDraftData.ddraft_line_of_sight) {
         const points = wall.map((w) => toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH));
-        const shape = new Polygon(points[0], points.slice(1), { openPolygon: true, strokeColour: ["red"] });
+        const shape = new Polygon(points[0], points.slice(1), { openPolygon: true }, { strokeColour: ["red"] });
         accessSystem.addAccess(
             shape.id,
-            clientStore.state.username,
+            playerSystem.getCurrentPlayer()!.name,
             { edit: true, movement: true, vision: true },
             UI_SYNC,
         );
 
-        shape.setBlocksVision(true, NO_SYNC, false);
-        shape.setBlocksMovement(true, NO_SYNC, false);
+        propertiesSystem.setBlocksVision(shape.id, true, NO_SYNC, false);
+        propertiesSystem.setBlocksMovement(shape.id, true, NO_SYNC, false);
         fowLayer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
     }
 
     for (const portal of dDraftData.ddraft_portals) {
         const points = portal.bounds.map((w) => toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH));
-        const shape = new Polygon(points[0], points.slice(1), { openPolygon: true, strokeColour: ["blue"] });
+        const shape = new Polygon(points[0], points.slice(1), { openPolygon: true }, { strokeColour: ["blue"] });
         accessSystem.addAccess(
             shape.id,
-            clientStore.state.username,
+            playerSystem.getCurrentPlayer()!.name,
             { edit: true, movement: true, vision: true },
             UI_SYNC,
         );
 
         if (portal.closed) {
-            shape.setBlocksVision(true, NO_SYNC, false);
-            shape.setBlocksMovement(true, NO_SYNC, false);
+            propertiesSystem.setBlocksVision(shape.id, true, NO_SYNC, false);
+            propertiesSystem.setBlocksMovement(shape.id, true, NO_SYNC, false);
         }
         fowLayer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
     }
@@ -152,7 +171,7 @@ function applyDDraft(): void {
         const refPoint = toGP(targetRP.x + light.position.x * size * dW, targetRP.y + light.position.y * size * dH);
 
         const shape = new Circle(refPoint, l2gz(10));
-        shape.isInvisible = true;
+        propertiesSystem.setIsInvisible(shape.id, true, NO_SYNC);
 
         const aura: Aura = {
             uuid: uuidv4() as unknown as AuraId,
@@ -160,7 +179,7 @@ function applyDDraft(): void {
             visionSource: true,
             visible: true,
             name: "ddraft light source",
-            value: (light.range * DEFAULT_GRID_SIZE) / settingsStore.unitSize.value,
+            value: (light.range * DEFAULT_GRID_SIZE) / locationSettingsState.raw.unitSize.value,
             dim: 0,
             colour: tinycolor(light.color)
                 .setAlpha(0.05 * light.intensity)
@@ -175,7 +194,7 @@ function applyDDraft(): void {
         auraSystem.add(shape.id, aura, SERVER_SYNC);
         accessSystem.addAccess(
             shape.id,
-            clientStore.state.username,
+            playerSystem.getCurrentPlayer()!.name,
             { edit: true, movement: true, vision: true },
             SERVER_SYNC,
         );
@@ -212,7 +231,7 @@ function applyDDraft(): void {
         <input
             id="edit_dialog-extra-show_annotation"
             type="checkbox"
-            :checked="activeShapeStore.state.annotationVisible"
+            :checked="annotationState.reactive.annotationVisible"
             @click="setAnnotationVisible"
             class="styled-checkbox"
             :disabled="!owned"
@@ -220,7 +239,7 @@ function applyDDraft(): void {
         <textarea
             class="spanrow"
             ref="textarea"
-            :value="activeShapeStore.state.annotation"
+            :value="annotationState.reactive.annotation"
             @input="updateAnnotation($event, false)"
             @change="updateAnnotation"
             :disabled="!owned"

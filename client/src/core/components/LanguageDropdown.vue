@@ -32,6 +32,7 @@ function setLocale(newLocale: string): void {
 
 .element {
     padding: 5px;
+    color: #9c455e;
     background-color: white;
 
     &:first-of-type {
@@ -47,6 +48,7 @@ function setLocale(newLocale: string): void {
 
 .selected,
 .element:hover {
+    color: white;
     background-color: #9c455e;
     cursor: pointer;
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, toRef } from "vue";
 
-import { SERVER_SYNC, UI_SYNC } from "../../../../core/models/types";
+import { FULL_SYNC, SERVER_SYNC } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { getChecked, getValue } from "../../../../core/utils";
 import { activeShapeStore } from "../../../../store/activeShape";
@@ -17,11 +17,13 @@ import {
     setCreationOrder,
 } from "../../../groups";
 import { getShape } from "../../../id";
+import type { IShape } from "../../../interfaces/shape";
 import type { CREATION_ORDER_TYPES } from "../../../models/groups";
 import { CREATION_ORDER_OPTIONS } from "../../../models/groups";
 import { setCenterPosition } from "../../../position";
-import type { IShape } from "../../../shapes/interfaces";
-import { accessSystem } from "../../../systems/access";
+import { accessState } from "../../../systems/access/state";
+import { propertiesSystem } from "../../../systems/properties";
+import { getProperties } from "../../../systems/properties/state";
 
 const groupId = toRef(activeShapeStore.state, "groupId");
 const id = toRef(activeShapeStore.state, "id");
@@ -33,7 +35,7 @@ let characterSetSelected = 0;
 let customText: string[] = [];
 let defaultCreationOrder: CREATION_ORDER_TYPES = "incrementing";
 
-const owned = accessSystem.$.hasEditAccess;
+const owned = accessState.hasEditAccess;
 
 const group = computed(() => {
     const groupId = activeShapeStore.state.groupId;
@@ -131,13 +133,14 @@ const creationOrder = computed({
 function updateToggles(checked: boolean): void {
     if (!owned.value) return;
     for (const member of groupMembers.value) {
-        if (member.showBadge !== checked) member.setShowBadge(checked, SERVER_SYNC);
+        if (getProperties(member.id)?.showBadge !== checked)
+            propertiesSystem.setShowBadge(member.id, checked, SERVER_SYNC);
     }
 }
 
 function centerMember(member: IShape): void {
     if (!owned.value) return;
-    setCenterPosition(member.center());
+    setCenterPosition(member.center);
 }
 
 function toggleHighlight(member: IShape, show: boolean): void {
@@ -148,10 +151,7 @@ function toggleHighlight(member: IShape, show: boolean): void {
 
 function showBadge(member: IShape, checked: boolean): void {
     if (!owned.value) return;
-    // This and Keyboard are the only places currently where we would need to update both UI and Server.
-    // Might need to introduce a SyncTo.BOTH
-    member.setShowBadge(checked, SERVER_SYNC);
-    if (member.id === activeShapeStore.state.id) activeShapeStore.setShowBadge(checked, UI_SYNC);
+    propertiesSystem.setShowBadge(member.id, checked, FULL_SYNC);
 }
 
 function removeMember(member: IShape): void {
@@ -242,7 +242,11 @@ async function deleteGroup(): Promise<void> {
                 </div>
                 <div></div>
                 <div>
-                    <input type="checkbox" :checked="member.showBadge" @click="showBadge(member, getChecked($event))" />
+                    <input
+                        type="checkbox"
+                        :checked="getProperties(member.id)!.showBadge"
+                        @click="showBadge(member, getChecked($event))"
+                    />
                 </div>
                 <div :style="{ textAlign: 'center' }">
                     <font-awesome-icon icon="trash-alt" @click="removeMember(member)" />

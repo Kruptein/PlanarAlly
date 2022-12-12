@@ -2,9 +2,9 @@ import uuid
 
 from aiohttp import web
 
-from app import sio
-from api.socket.constants import GAME_NS
-from models import Notification
+from ...app import sio
+from ...models import Notification
+from ..socket.constants import GAME_NS
 
 
 async def create(request: web.Request) -> web.Response:

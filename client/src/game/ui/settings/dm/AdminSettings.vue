@@ -5,23 +5,27 @@ import { useRoute, useRouter } from "vue-router";
 
 import InputCopyElement from "../../../../core/components/InputCopyElement.vue";
 import { useModal } from "../../../../core/plugins/modals/plugin";
+import { getGameState } from "../../../../store/_game";
 import { coreStore } from "../../../../store/core";
 import { gameStore } from "../../../../store/game";
 import { sendDeleteRoom, sendRefreshInviteCode } from "../../../api/emits/room";
 import { getRoles } from "../../../models/role";
+import { playerSystem } from "../../../systems/players";
+import type { PlayerId } from "../../../systems/players/models";
+import { playerState } from "../../../systems/players/state";
 
 const { t } = useI18n();
 const modals = useModal();
 const route = useRoute();
 const router = useRouter();
 
-const gameState = gameStore.state;
+const gameState = getGameState();
 
 const roles = getRoles();
 const refreshState = ref("pending");
 const showRefreshState = ref(false);
 
-const players = toRef(gameState, "players");
+const players = toRef(playerState.reactive, "players");
 const locked = toRef(gameState, "isLocked");
 
 watch(
@@ -42,24 +46,24 @@ function refreshInviteCode(): void {
     showRefreshState.value = true;
 }
 
-async function kickPlayer(playerId: number): Promise<void> {
+async function kickPlayer(playerId: PlayerId): Promise<void> {
     const value = await modals.confirm("Kicking player", "Are you sure you wish to kick this player?");
-    if (value === true) gameStore.kickPlayer(playerId);
+    if (value === true) playerSystem.kickPlayer(playerId);
 }
 
-function changePlayerRole(event: Event, player: number): void {
+function changePlayerRole(event: Event, player: PlayerId): void {
     const value = (event.target as HTMLSelectElement).value;
     const role = parseInt(value);
     if (isNaN(role) || role < 0 || role >= roles.length) return;
 
-    gameStore.setPlayerRole(player, role, true);
+    playerSystem.setPlayerRole(player, role, true);
 }
 
-function togglePlayerRect(player: number): void {
-    const p = gameStore.state.players.find((p) => p.id === player)?.showRect;
+function togglePlayerRect(player: PlayerId): void {
+    const p = playerSystem.getPlayer(player)?.showRect;
     if (p === undefined) return;
 
-    gameStore.setShowPlayerRect(player, !p);
+    playerSystem.setShowPlayerRect(player, !p);
 }
 
 async function deleteSession(): Promise<void> {
@@ -81,7 +85,7 @@ const toggleLock = (): void => gameStore.setIsLocked(!gameState.isLocked, true);
 <template>
     <div class="panel">
         <div class="spanrow header">{{ t("common.players") }}</div>
-        <div class="row smallrow" v-for="player of players" :key="player.id">
+        <div class="row smallrow" v-for="player of players.values()" :key="player.id">
             <div>{{ player.name }}</div>
             <div class="player-actions">
                 <select
@@ -112,7 +116,7 @@ const toggleLock = (): void => gameStore.setIsLocked(!gameState.isLocked, true);
                 </div>
             </div>
         </div>
-        <div class="row smallrow" v-if="players.length === 0">
+        <div class="row smallrow" v-if="players.size === 0">
             <div class="spanrow">{{ t("game.ui.settings.dm.AdminSettings.no_players_invite_msg") }}</div>
         </div>
         <div class="spanrow header">{{ t("game.ui.settings.dm.AdminSettings.invite_code") }}</div>

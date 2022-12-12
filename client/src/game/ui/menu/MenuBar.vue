@@ -6,12 +6,19 @@ import { useRouter } from "vue-router";
 import { baseAdjust } from "../../../core/http";
 import type { AssetFile } from "../../../core/models/types";
 import { uuidv4 } from "../../../core/utils";
+import { getGameState } from "../../../store/_game";
+import { coreStore } from "../../../store/core";
 import { gameStore } from "../../../store/game";
 import { uiStore } from "../../../store/ui";
 import { clearGame } from "../../clear";
-import { getShape } from "../../id";
 import type { LocalId } from "../../id";
 import type { Note } from "../../models/general";
+import { setCenterPosition } from "../../position";
+import { clientSystem } from "../../systems/client";
+import type { ClientId } from "../../systems/client/models";
+import { clientState } from "../../systems/client/state";
+import { playerState } from "../../systems/players/state";
+import { getProperties } from "../../systems/properties/state";
 import NoteDialog from "../NoteDialog.vue";
 
 import AssetParentNode from "./AssetParentNode.vue";
@@ -22,19 +29,24 @@ const { t } = useI18n();
 const showNote = ref(false);
 
 const assetSearch = ref("");
-const gameState = gameStore.state;
+const gameState = getGameState();
 
 const isDm = toRef(gameState, "isDm");
+const isFakePlayer = toRef(gameState, "isFakePlayer");
 const notes = toRef(gameState, "notes");
 const markers = toRef(gameState, "markers");
+
+const username = toRef(coreStore.state, "username");
 
 const noAssets = computed(() => {
     return gameState.assets.size === 1 && (gameState.assets.get("__files") as AssetFile[]).length <= 0;
 });
 
+const hasGameboardClients = computed(() => clientState.reactive.clientBoards.size > 0);
+
 async function exit(): Promise<void> {
-    clearGame();
-    await router.push({ name: "dashboard" });
+    clearGame(false);
+    await router.push({ name: "games" });
 }
 
 function settingsClick(event: MouseEvent): void {
@@ -67,25 +79,42 @@ function jumpToMarker(marker: LocalId): void {
 }
 
 function nameMarker(marker: LocalId): string {
-    const shape = getShape(marker);
-    if (shape !== undefined) {
-        return shape.name;
+    const props = getProperties(marker);
+    if (props !== undefined) {
+        return props.name;
     } else {
         return "";
     }
 }
 
+const clientInfo = computed(() => {
+    const info = [];
+    for (const [playerId, player] of playerState.reactive.players) {
+        const clients = clientSystem.getClients(playerId);
+        info.push({ player, client: clients[0] });
+    }
+    return info;
+});
+
+function jumpToClient(client: ClientId): void {
+    const location = clientSystem.getClientLocation(client);
+    if (location === undefined) return;
+
+    setCenterPosition(location);
+}
+
 const openDmSettings = (): void => uiStore.showDmSettings(!uiStore.state.showDmSettings);
 const openClientSettings = (): void => uiStore.showClientSettings(!uiStore.state.showClientSettings);
+const openLgSettings = (): void => uiStore.showLgSettings(!uiStore.state.showLgSettings);
 </script>
 
 <template>
     <NoteDialog v-model:visible="showNote" />
     <!-- SETTINGS -->
     <div id="menu" @click="settingsClick">
-        <div style="width: 200px; overflow-y: auto; overflow-x: hidden">
+        <div style="width: 12.5rem; overflow-y: auto; overflow-x: hidden">
             <!-- ASSETS -->
-            <template v-if="isDm">
+            <template v-if="isDm || isFakePlayer">
                 <button class="menu-accordion">{{ t("common.assets") }}</button>
                 <div id="menu-assets" class="menu-accordion-panel" style="position: relative">
                     <input id="asset-search" v-model="assetSearch" :placeholder="t('common.search')" />
@@ -122,6 +151,24 @@ const openClientSettings = (): void => uiStore.showClientSettings(!uiStore.state
                 <button class="menu-accordion" @click="openDmSettings">
                     {{ t("game.ui.menu.MenuBar.dm_settings") }}
                 </button>
+                <!-- GAMEBOARD SETTINGS -->
+                <button v-if="hasGameboardClients" class="menu-accordion" @click="openLgSettings">
+                    {{ t("game.ui.menu.MenuBar.gameboard_settings") }}
+                </button>
+                <!-- PLAYERS -->
+                <button class="menu-accordion">Players</button>
+                <div class="menu-accordion-panel">
+                    <div class="menu-accordion-subpanel" id="menu-players">
+                        <template v-for="info of clientInfo" :key="info.client">
+                            <div v-if="info.player.name !== username" style="cursor: pointer">
+                                <div @click="jumpToClient(info.client)" class="menu-accordion-subpanel-text">
+                                    {{ info.player.name }}
+                                </div>
+                            </div>
+                        </template>
+                        <div v-if="clientInfo.length === 0">No players connected</div>
+                    </div>
+                </div>
             </template>
             <!-- MARKERS -->
             <button class="menu-accordion">{{ t("common.markers") }}</button>
@@ -146,7 +193,7 @@ const openClientSettings = (): void => uiStore.showClientSettings(!uiStore.state
         <div
             @click="exit"
             class="menu-accordion"
-            style="width: 200px; box-sizing: border-box; text-decoration: none; display: inline-block"
+            style="width: 12.5rem; box-sizing: border-box; text-decoration: none; display: inline-block"
         >
             {{ t("common.exit") }}
         </div>
@@ -212,7 +259,7 @@ DIRECTORY.CSS changes
     background-color: #fa5a5a;
     overflow: auto;
     pointer-events: auto;
-    max-width: 200px;
+    max-width: 12.5rem;
 }
 
 .actionButton {
@@ -225,7 +272,7 @@ DIRECTORY.CSS changes
     background-color: #eee;
     color: #444;
     cursor: pointer;
-    padding: 18px;
+    padding: 1rem;
     text-align: left;
     border: none;
     outline: none;

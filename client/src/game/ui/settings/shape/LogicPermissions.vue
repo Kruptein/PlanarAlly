@@ -6,9 +6,9 @@ import draggable from "vuedraggable";
 
 import Modal from "../../../../core/components/modals/Modal.vue";
 import { useModal } from "../../../../core/plugins/modals/plugin";
-import { gameStore } from "../../../../store/game";
 import { copyPermissions } from "../../../systems/logic/common";
 import type { Permissions } from "../../../systems/logic/models";
+import { playerState } from "../../../systems/players/state";
 
 const { t } = useI18n();
 
@@ -64,10 +64,10 @@ function change(change: Event & SortableChanged<string>, target: "enabled" | "re
 }
 
 async function add(target: "enabled" | "request" | "disabled"): Promise<void> {
-    const players = gameStore.state.players;
+    const players = playerState.raw.players;
     const selection = await modals.selectionBox(
         "Select a player",
-        players
+        [...players.values()]
             .map((p) => p.name)
             .filter(
                 (p) =>
@@ -117,7 +117,7 @@ function hideModal(): void {
                 @change="change($event, 'enabled')"
                 item-key="uuid"
             >
-                <template #item="{ element }">
+                <template #item="{ element }: { element: string }">
                     <div>{{ element }}</div>
                 </template>
 
@@ -132,7 +132,7 @@ function hideModal(): void {
                 @change="change($event, 'request')"
                 item-key="uuid"
             >
-                <template #item="{ element }">
+                <template #item="{ element }: { element: string }">
                     <div>{{ element }}</div>
                 </template>
 
@@ -147,7 +147,7 @@ function hideModal(): void {
                 @change="change($event, 'disabled')"
                 item-key="uuid"
             >
-                <template #item="{ element }">
+                <template #item="{ element }: { element: string }">
                     <div>{{ element }}</div>
                 </template>
 

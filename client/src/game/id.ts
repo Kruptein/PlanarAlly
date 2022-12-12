@@ -1,19 +1,23 @@
 import { uuidv4 } from "../core/utils";
 
-import type { IShape } from "./shapes/interfaces";
+import type { IShape } from "./interfaces/shape";
 import { dropFromSystems } from "./systems";
 
 export type Global<T> = {
     [key in keyof T]: T[key] extends LocalId ? GlobalId : T[key] extends LocalId[] ? GlobalId[] : T[key];
 };
-export type GlobalId = string & { __brand: "globalId" };
-export type LocalId = number & { __brand: "localId" };
+
+export type NumberId<T extends string> = number & { __brand: T };
+export type StringId<T extends string> = string & { __brand: T };
+export type GlobalId = StringId<"globalId">;
+export type LocalId = NumberId<"localId">;
 
 // Array of GlobalId indexed by localId
 let uuids: GlobalId[] = [];
 
 const idMap: Map<LocalId, IShape> = new Map();
 (window as any).idMap = idMap;
+(window as any).uuids = uuids;
 
 // we're not giving id 0 on purpose to prevent potential unsafe if checks against this
 // Usually our explicit undefined check catches this, but because of our LocalId typing
@@ -96,4 +100,8 @@ export function getShapeFromGlobal(global: GlobalId): IShape | undefined {
 
 export function getAllShapes(): IterableIterator<IShape> {
     return idMap.values();
+}
+
+export function getShapeCount(): number {
+    return idMap.size;
 }

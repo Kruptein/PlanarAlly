@@ -48,7 +48,7 @@ watchEffect(() => {
     </modal>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .modal-header {
     background-color: #ff7052;
     padding: 10px;
@@ -63,19 +63,40 @@ watchEffect(() => {
     display: flex;
     flex-direction: column;
     align-items: center;
+
+    .buttons {
+        align-self: flex-end;
+        margin-top: 15px;
+
+        button:first-of-type {
+            margin-right: 10px;
+        }
+
+        .focus {
+            color: #7c253e;
+            font-weight: bold;
+        }
+    }
 }
 
-.buttons {
-    align-self: flex-end;
-    margin-top: 15px;
-}
+@media (width: 2560px) and (height: 2560px) {
+    .modal-header {
+        font-size: calc(22px * 2560 / 1920);
+    }
 
-button:first-of-type {
-    margin-right: 10px;
-}
+    .modal-body {
+        font-size: calc(20px * 2560 / 1920);
+        font-weight: normal;
+    }
 
-.focus {
-    color: #7c253e;
-    font-weight: bold;
+    button {
+        font-size: calc(20px * 2560 / 1920);
+        width: calc(60px * 2560 / 1920);
+        height: calc(45px * 2560 / 1920);
+
+        &:first-of-type {
+            margin-right: calc(15px * 2560 / 1920);
+        }
+    }
 }
 </style>

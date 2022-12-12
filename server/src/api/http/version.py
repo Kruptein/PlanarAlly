@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from aiohttp import web
 
-from utils import FILE_DIR
+from ...utils import FILE_DIR
 
 release_version: Optional[str]
 env_version: Optional[str]
@@ -30,6 +30,7 @@ try:
 except:
     release_version = None
     env_version = None
+    changelog = None
 
 
 async def get_version(_request: web.Request):

@@ -7,9 +7,10 @@ from aiohttp import web
 from aiohttp_security import SessionIdentityPolicy
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
 
-import auth
-from config import config
-from typed import TypedAsyncServer
+from . import auth
+from .config import config
+from .logs import handle_async_exception
+from .typed import TypedAsyncServer
 
 runners: List[web.AppRunner] = []
 
@@ -30,6 +31,7 @@ async def setup_runner(app: web.Application, site: Type[web.BaseSite], **kwargs)
     runners.append(runner)
     await runner.setup()
     s = site(runner, **kwargs)
+    app.loop.set_exception_handler(handle_async_exception)
     await s.start()
 
 

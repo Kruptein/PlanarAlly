@@ -1,13 +1,12 @@
 import type { DeepReadonly } from "vue";
 
+import { getGameState } from "../../../store/_game";
 import { coreStore } from "../../../store/core";
-import { gameStore } from "../../../store/game";
 import type { LocalId } from "../../id";
 
 import { doorSystem } from "./door";
 import { Access, DEFAULT_PERMISSIONS } from "./models";
-import type { Permissions } from "./models";
-import type { LOGIC_TYPES } from "./models";
+import type { LOGIC_TYPES, Permissions } from "./models";
 import { teleportZoneSystem } from "./tp";
 
 export function copyPermissions(permission: DeepReadonly<Permissions>): Permissions {
@@ -25,7 +24,7 @@ export function canUse(shapeId: LocalId, target: LOGIC_TYPES): Access {
     ) {
         return Access.Disabled;
     }
-    if (!gameStore.state.isDm) {
+    if (!getGameState().isDm) {
         const permissions =
             target === "door"
                 ? doorSystem.getPermissions(shapeId)

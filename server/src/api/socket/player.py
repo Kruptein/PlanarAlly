@@ -1,13 +1,13 @@
 from typing_extensions import TypedDict
 
-import auth
-from api.socket.constants import GAME_NS
-from app import app, sio
-from models import PlayerRoom
-from models.role import Role
-from models.user import User
-from state.game import game_state
-from logs import logger
+from ... import auth
+from ...api.socket.constants import GAME_NS
+from ...app import app, sio
+from ...logs import logger
+from ...models import PlayerRoom
+from ...models.role import Role
+from ...models.user import User
+from ...state.game import game_state
 
 
 class BringPlayersData(TypedDict):

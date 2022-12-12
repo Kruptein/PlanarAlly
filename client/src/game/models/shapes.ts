@@ -1,5 +1,5 @@
 import type { GlobalId } from "../id";
-import type { Label } from "../shapes/interfaces";
+import type { Label } from "../interfaces/label";
 import type { SHAPE_TYPE } from "../shapes/types";
 import type { ServerShapeOwner } from "../systems/access/models";
 import type { ServerAura } from "../systems/auras/models";

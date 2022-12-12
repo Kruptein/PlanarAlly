@@ -1,53 +1,38 @@
 <script setup lang="ts">
-import type { CSSProperties } from "vue";
-import { computed, onMounted, ref } from "vue";
+import { computed } from "vue";
 
-import { gameStore } from "../../../store/game";
 import { getShape } from "../../id";
 import type { LocalId } from "../../id";
-import type { IShape } from "../../shapes/interfaces";
-import type { Asset } from "../../shapes/variants/asset";
+import type { IShape } from "../../interfaces/shape";
+import type { IAsset } from "../../interfaces/shapes/asset";
+import { accessSystem } from "../../systems/access";
+import { accessState } from "../../systems/access/state";
+import { getProperties } from "../../systems/properties/state";
 import { visionTool } from "../../tools/variants/vision";
 
-import { useToolPosition } from "./toolPosition";
-
-const right = ref("0px");
-const arrow = ref("0px");
-
 const selected = visionTool.isActiveTool;
-const toolStyle = computed(() => ({ "--detailRight": right.value, "--detailArrow": arrow.value } as CSSProperties));
 
-onMounted(() => {
-    ({ right: right.value, arrow: arrow.value } = useToolPosition(visionTool.toolName));
-});
-
-const tokens = computed(() => [...gameStore.state.ownedTokens].map((t) => getShape(t)!));
+const tokens = computed(() => [...accessState.reactive.ownedTokens].map((t) => getShape(t)!));
 const selection = computed(() => {
-    if (gameStore.state.activeTokenFilters === undefined) return gameStore.state.ownedTokens;
-    return gameStore.state.activeTokenFilters;
+    if (accessState.reactive.activeTokenFilters === undefined) return accessState.reactive.ownedTokens;
+    return accessState.reactive.activeTokenFilters;
 });
 
 function toggle(uuid: LocalId): void {
-    if (selection.value.has(uuid)) gameStore.removeActiveToken(uuid);
-    else gameStore.addActiveToken(uuid);
-
-    if (gameStore.state.activeTokenFilters !== undefined) {
-        visionTool.alert.value = true;
-    } else {
-        visionTool.alert.value = false;
-    }
+    if (selection.value.has(uuid)) accessSystem.removeActiveToken(uuid);
+    else accessSystem.addActiveToken(uuid);
 }
 
 function getImageSrc(token: IShape): string {
     if (token.type === "assetrect") {
-        return (token as Asset).src;
+        return (token as IAsset).src;
     }
     return "";
 }
 </script>
 
 <template>
-    <div class="tool-detail" v-if="selected" :style="toolStyle">
+    <div class="tool-detail" v-if="selected">
         <div
             v-for="token in tokens"
             :key="token.id"
@@ -56,7 +41,7 @@ function getImageSrc(token: IShape): string {
             @click="toggle(token.id)"
         >
             <img :src="getImageSrc(token)" width="30px" height="30px" v-if="getImageSrc(token) !== ''" alt="" />
-            <div>{{ token.name }}</div>
+            <div>{{ getProperties(token.id)!.name }}</div>
         </div>
     </div>
 </template>

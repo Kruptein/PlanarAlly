@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
 import { activeShapeStore } from "../../../../store/activeShape";
-import { accessSystem } from "../../../systems/access";
+import { accessState } from "../../../systems/access/state";
 
 import AccessSettings from "./AccessSettings.vue";
 import { ShapeSettingCategory } from "./categories";
@@ -29,7 +29,7 @@ const visible = computed({
 const hasShape = computed(() => activeShapeStore.state.id !== undefined);
 
 const categoryNames = computed(() => {
-    if (accessSystem.$.hasEditAccess.value) {
+    if (accessState.hasEditAccess.value) {
         return [
             ShapeSettingCategory.Properties,
             ShapeSettingCategory.Trackers,
@@ -42,7 +42,7 @@ const categoryNames = computed(() => {
     return [ShapeSettingCategory.Properties, ShapeSettingCategory.Trackers, ShapeSettingCategory.Access];
 });
 
-const owned = accessSystem.$.hasEditAccess;
+const owned = accessState.hasEditAccess;
 const SSC = ShapeSettingCategory;
 </script>
 

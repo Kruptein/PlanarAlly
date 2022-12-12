@@ -1,5 +1,5 @@
 import { equalPoints } from "../../core/math";
-import type { IShape } from "../shapes/interfaces";
+import type { IShape } from "../interfaces/shape";
 
 import type { CDT } from "./cdt";
 import { visionState } from "./state";
@@ -163,8 +163,8 @@ export class IterativeDelete {
             const ccwv = edge.first!.vertices[ccw(edge.second)]!;
             const ccwp = ccwv.point!;
             // layerManager.getLayer(floorStore.currentFloor.name, "draw")!.clear();
-            // drawPoint(vertex.point!, 10, "blue");
-            // drawPoint(ccwp, 10, "green");
+            // drawPoint(vertex.point!, 10, {colour: "blue"});
+            // drawPoint(ccwp, 10, {colour: "green"});
             const edgeCovered = equalPoints(ccwp, from.point!) || collinearInOrder(vertex.point!, ccwp, from.point!);
             const targetEdge = equalPoints(ccwp, target.point!);
             const edgeInterruption =

@@ -1,12 +1,8 @@
-import type { ServerLocationOptions } from "../../models/settings";
 import type { ServerAsset } from "../../models/shapes";
+import type { ServerLocationOptions } from "../../systems/settings/location/models";
 import { wrapSocket } from "../helpers";
 import { socket } from "../socket";
 
-export const sendLocationOptions = wrapSocket<{
-    options: Partial<ServerLocationOptions>;
-    location: number | undefined;
-}>("Location.Options.Set");
 export const sendLocationOrder = wrapSocket<number[]>("Locations.Order.Set");
 export const sendLocationChange = wrapSocket<{
     location: number;
@@ -23,4 +19,12 @@ export const sendLocationClone = wrapSocket<{ location: number; room: string }>(
 export async function requestSpawnInfo(location: number): Promise<ServerAsset[]> {
     socket.emit("Location.Spawn.Info.Get", location);
     return new Promise((resolve: (value: ServerAsset[]) => void) => socket.once("Location.Spawn.Info", resolve));
+}
+
+export function sendLocationOption<T extends keyof ServerLocationOptions>(
+    key: T,
+    value: ServerLocationOptions[T] | undefined,
+    location: number | undefined,
+): void {
+    socket.emit("Location.Options.Set", { options: { [key]: value ?? null }, location });
 }

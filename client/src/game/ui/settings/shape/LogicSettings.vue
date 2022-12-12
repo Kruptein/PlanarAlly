@@ -12,6 +12,7 @@ import type { GlobalId } from "../../../id";
 import { doorSystem } from "../../../systems/logic/door";
 import { DOOR_TOGGLE_MODES } from "../../../systems/logic/door/models";
 import type { DOOR_TOGGLE_MODE } from "../../../systems/logic/door/models";
+import { doorLogicState } from "../../../systems/logic/door/state";
 import { DEFAULT_PERMISSIONS } from "../../../systems/logic/models";
 import type { LOGIC_TYPES, Permissions } from "../../../systems/logic/models";
 import { teleportZoneSystem } from "../../../systems/logic/tp";
@@ -26,10 +27,10 @@ watch(
     [() => activeShapeStore.state.id, () => props.activeSelection],
     ([newId, newSelection], [oldId, oldSelection]) => {
         if (newSelection && newId !== undefined && (!(oldSelection ?? false) || oldId !== newId)) {
-            doorSystem.loadState(newId);
+            doorLogicState.loadState(newId);
             teleportZoneSystem.loadState(newId);
         } else if ((!newSelection && (oldSelection ?? false)) || newId === undefined) {
-            doorSystem.dropState();
+            doorLogicState.dropState();
             teleportZoneSystem.dropState();
         }
     },
@@ -45,7 +46,7 @@ const showPermissions = ref(false);
 const activePermissions = computed(() => {
     let permissions: DeepReadonly<Permissions> | undefined;
     if (activeLogic.value === "door") {
-        permissions = doorSystem.state.permissions;
+        permissions = doorLogicState.reactive.permissions;
     } else {
         permissions = teleportZoneSystem.state.permissions;
     }
@@ -59,8 +60,8 @@ function openPermissions(target: LOGIC_TYPES): void {
 
 function setPermissions(permissions: Permissions): void {
     if (activeLogic.value === "door") {
-        if (doorSystem.state.id === undefined) return;
-        doorSystem.setPermissions(doorSystem.state.id, permissions, SERVER_SYNC);
+        if (doorLogicState.raw.id === undefined) return;
+        doorSystem.setPermissions(doorLogicState.raw.id, permissions, SERVER_SYNC);
     } else {
         if (teleportZoneSystem.state.id === undefined) return;
         teleportZoneSystem.setPermissions(teleportZoneSystem.state.id, permissions, SERVER_SYNC);
@@ -70,15 +71,15 @@ function setPermissions(permissions: Permissions): void {
 // Door
 
 function toggleDoor(): void {
-    if (doorSystem.state.id === undefined) return;
-    doorSystem.toggle(doorSystem.state.id, !doorSystem.state.enabled, SERVER_SYNC);
+    if (doorLogicState.raw.id === undefined) return;
+    doorSystem.toggle(doorLogicState.raw.id, !doorLogicState.raw.enabled, SERVER_SYNC);
 }
 
-const activeToggleMode = computed(() => doorSystem.state.toggleMode);
+const activeToggleMode = computed(() => doorLogicState.reactive.toggleMode);
 
 function setToggleMode(mode: DOOR_TOGGLE_MODE): void {
-    if (doorSystem.state.id === undefined) return;
-    doorSystem.setToggleMode(doorSystem.state.id, mode, SERVER_SYNC);
+    if (doorLogicState.raw.id === undefined) return;
+    doorSystem.setToggleMode(doorLogicState.raw.id, mode, SERVER_SYNC);
 }
 
 // Teleport Zone
@@ -155,7 +156,7 @@ async function chooseTarget(): Promise<void> {
             id="logic-dialog-door-toggle"
             type="checkbox"
             class="styled-checkbox center"
-            :checked="doorSystem.state.enabled"
+            :checked="doorLogicState.reactive.enabled"
             @click="toggleDoor"
         />
         <label for="logic-dialog-door-toggles">Toggle</label>

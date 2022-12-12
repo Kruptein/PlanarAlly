@@ -4,19 +4,20 @@ from typing_extensions import TypedDict
 
 from socketio import AsyncServer
 
-import auth
-from api.socket.constants import GAME_NS
-from app import app, sio
-from models import (
+from ... import auth
+from ...api.socket.constants import GAME_NS
+from ...app import app, sio
+from ...logs import logger
+from ...models import (
     Initiative,
     PlayerRoom,
-    Shape,
 )
-from models.db import db
-from models.role import Role
-from models.shape.access import has_ownership
-from state.game import game_state
-from logs import logger
+from ...models.db import db
+from ...models.groups import Group
+from ...models.role import Role
+from ...models.shape import Shape
+from ...models.shape.access import has_ownership
+from ...state.game import game_state
 
 
 class ServerInitiativeEffect(TypedDict):
@@ -87,10 +88,25 @@ async def send_initiative(sio: AsyncServer, data: Dict[str, Any], pr: PlayerRoom
     )
 
 
+async def check_initiative(sio: AsyncServer, uuids: List[str], pr: PlayerRoom):
+    location_data = Initiative.get_or_none(location=pr.active_location)
+    if location_data is not None:
+        json_data = json.loads(location_data.data)
+        if any(data["shape"] in uuids for data in json_data):
+            await send_initiative(sio, location_data.as_dict(), pr)
+
+
+def get_turn_order(data: List[Dict[str, Any]], shape: str) -> int:
+    for i, info in enumerate(data):
+        if info["shape"] == shape:
+            return i
+    raise IndexError()
+
+
 @sio.on("Initiative.Request", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def request_initiatives(sid: str):
-    pr: PlayerRoom = game_state.get(sid)
+    pr = game_state.get(sid)
 
     await sio.emit(
         "Initiative.Request",
@@ -103,9 +119,13 @@ async def request_initiatives(sid: str):
 @sio.on("Initiative.Option.Update", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def update_initiative_option(sid: str, data: ServerInitiativeOption):
-    pr: PlayerRoom = game_state.get(sid)
+    pr = game_state.get(sid)
 
     shape = Shape.get_or_none(uuid=data["shape"])
+
+    if shape is None:
+        logger.warning("Attempt to update initiative option for unknown shape")
+        return
 
     if not has_ownership(shape, pr):
         logger.warning(
@@ -141,11 +161,15 @@ async def update_initiative_option(sid: str, data: ServerInitiativeOption):
 @sio.on("Initiative.Add", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def add_initiative(sid: str, data: ServerInitiativeData):
-    pr: PlayerRoom = game_state.get(sid)
+    pr = game_state.get(sid)
 
-    shape = Shape.get_or_none(uuid=data)
+    shape = Shape.get_or_none(uuid=data["shape"])
 
-    if shape is not None and not has_ownership(shape, pr):
+    if shape is None:
+        logger.warning("Attempt to add initiative for unknown shape")
+        return
+
+    if not has_ownership(shape, pr):
         logger.warning(
             f"{pr.player.name} attempted to add initiative to an asset it does not own"
         )
@@ -173,19 +197,25 @@ async def add_initiative(sid: str, data: ServerInitiativeData):
 @sio.on("Initiative.Value.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def set_initiative_value(sid: str, data: ServerSetInitiativeValue):
-    pr: PlayerRoom = game_state.get(sid)
+    pr = game_state.get(sid)
 
-    shape = Shape.get_or_none(uuid=data)
+    shape = Shape.get_or_none(uuid=data["shape"])
 
-    if shape is not None and not has_ownership(shape, pr):
+    if shape is None:
+        logger.warning("Attempt to update initiative value for unknown shape")
+        return
+
+    if not has_ownership(shape, pr):
         logger.warning(
             f"{pr.player.name} attempted to remove initiative of an asset it does not own"
         )
         return
 
     with db.atomic():
-        location_data = Initiative.get(location=pr.active_location)
+        location_data: Initiative = Initiative.get(location=pr.active_location)
         json_data = json.loads(location_data.data)
+
+        active_participant = json_data[location_data.turn]
 
         for initiative in json_data:
             if initiative["shape"] == data["shape"]:
@@ -193,6 +223,10 @@ async def set_initiative_value(sid: str, data: ServerSetInitiativeValue):
                 break
 
         json_data = sort_initiative(json_data, location_data.sort)
+
+        turn_order = get_turn_order(json_data, active_participant["shape"])
+        if location_data.turn != turn_order:
+            location_data.turn = turn_order
 
         location_data.data = json.dumps(json_data)
         location_data.save()
@@ -203,7 +237,7 @@ async def set_initiative_value(sid: str, data: ServerSetInitiativeValue):
 @sio.on("Initiative.Clear", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def clear_initiatives(sid: str):
-    pr: PlayerRoom = game_state.get(sid)
+    pr = game_state.get(sid)
 
     if pr.role != Role.DM:
         logger.warning(f"{pr.player.name} attempted to clear all initiatives")
@@ -226,14 +260,55 @@ async def clear_initiatives(sid: str):
     )
 
 
+async def remove_shape(pr: PlayerRoom, uuid: str, group: Optional[Group]):
+    location_data = Initiative.get_or_none(location=pr.active_location)
+    if location_data is None:
+        return
+    try:
+        json_data = json.loads(location_data.data)
+    except json.JSONDecodeError:
+        logger.warning(
+            "Invalid initiative data found during shape removal",
+            pr.room.id,
+            pr.active_location.id,
+        )
+        return
+
+    modified = False
+    new_json_data = []
+    for data in json_data:
+        if data["shape"] == uuid:
+            if group is not None and data["isGroup"]:
+                members = group.members.where(Shape.uuid != uuid)
+                if len(members) > 0:
+                    # change initiative member
+                    data["shape"] = members[0].uuid
+                    modified = True
+                    new_json_data.append(data)
+                    continue
+            # remove shape (either because not group OR last group member)
+            modified = True
+            continue
+        else:
+            new_json_data.append(data)
+    if modified:
+        location_data.data = json.dumps(new_json_data)
+        location_data.save()
+        await send_initiative(sio, location_data.as_dict(), pr)
+
+
 @sio.on("Initiative.Remove", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def remove_initiative(sid: str, data: str):
-    pr: PlayerRoom = game_state.get(sid)
+    pr = game_state.get(sid)
 
     shape = Shape.get_or_none(uuid=data)
 
-    if shape is not None and not has_ownership(shape, pr):
+    if shape is None:
+        logger.warning("Attempt to remove initiative for unknown shape")
+        return
+
+    if not has_ownership(shape, pr):
         logger.warning(
             f"{pr.player.name} attempted to remove initiative of an asset it does not own"
         )
@@ -259,7 +334,11 @@ async def remove_initiative(sid: str, data: str):
 @sio.on("Initiative.Order.Change", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def change_initiative_order(sid: str, data: ServerInitiativeOrderChange):
-    pr: PlayerRoom = game_state.get(sid)
+    pr = game_state.get(sid)
+
+    if Shape.get_or_none(data["shape"]) is None:
+        logger.warning("Attempt to change initiative order for unknown shape")
+        return
 
     if pr.role != Role.DM:
         logger.warning(f"{pr.player.name} attempted to reorder initiatives")
@@ -275,6 +354,8 @@ async def change_initiative_order(sid: str, data: ServerInitiativeOrderChange):
         if json_data[old_index]["shape"] != data["shape"]:
             return
 
+        active_participant = json_data[location_data.turn]
+
         if json_data[new_index].get("initiative", 0) != json_data[old_index].get(
             "initiative", 0
         ):
@@ -283,6 +364,10 @@ async def change_initiative_order(sid: str, data: ServerInitiativeOrderChange):
         json_data.insert(new_index, json_data.pop(old_index))
 
         json_data = sort_initiative(json_data, location_data.sort)
+
+        turn_order = get_turn_order(json_data, active_participant["shape"])
+        if location_data.turn != turn_order:
+            location_data.turn = turn_order
 
         location_data.data = json.dumps(json_data)
         location_data.save()
@@ -293,14 +378,17 @@ async def change_initiative_order(sid: str, data: ServerInitiativeOrderChange):
 @sio.on("Initiative.Turn.Update", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def update_initiative_turn(sid: str, turn: int):
-    pr: PlayerRoom = game_state.get(sid)
+    pr = game_state.get(sid)
 
     location_data: Initiative = Initiative.get(location=pr.active_location)
     json_data = json.loads(location_data.data)
 
-    if pr.role != Role.DM and not has_ownership(
-        Shape.get_or_none(uuid=json_data[location_data.turn]["shape"]), pr
-    ):
+    shape = Shape.get_or_none(uuid=json_data[location_data.turn]["shape"])
+
+    if shape is None:
+        logger.warning("Attempt to modify the initiative turn for an unknown shape")
+
+    if shape is not None and pr.role != Role.DM and not has_ownership(shape, pr):
         logger.warning(f"{pr.player.name} attempted to advance the initiative tracker")
         return
 
@@ -337,15 +425,22 @@ async def update_initiative_turn(sid: str, turn: int):
 @sio.on("Initiative.Round.Update", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def update_initiative_round(sid: str, data: int):
-    pr: PlayerRoom = game_state.get(sid)
+    pr = game_state.get(sid)
 
     location_data = Initiative.get(location=pr.active_location)
 
     if pr.role != Role.DM:
         json_data = json.loads(location_data.data)
-        if not has_ownership(
-            Shape.get_or_none(uuid=json_data[location_data.turn]["shape"]), pr
-        ):
+
+        shape = Shape.get_or_none(uuid=json_data[location_data.turn]["shape"])
+
+        if shape is None:
+            logger.warning(
+                "Attempt to modify the initiative round for an unknown shape"
+            )
+            return
+
+        if not has_ownership(shape, pr):
             logger.warning(
                 f"{pr.player.name} attempted to advance the initiative tracker"
             )
@@ -367,7 +462,7 @@ async def update_initiative_round(sid: str, data: int):
 @sio.on("Initiative.Sort.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def set_initiative_sort(sid: str, sort: int):
-    pr: PlayerRoom = game_state.get(sid)
+    pr = game_state.get(sid)
 
     if pr.role != Role.DM:
         logger.warning(f"{pr.player.name} attempted to change initiative sort")
@@ -378,7 +473,13 @@ async def set_initiative_sort(sid: str, sort: int):
         location_data.sort = sort
         json_data = json.loads(location_data.data)
 
+        active_participant = json_data[location_data.turn]
+
         json_data = sort_initiative(json_data, location_data.sort)
+
+        turn_order = get_turn_order(json_data, active_participant["shape"])
+        if location_data.turn != turn_order:
+            location_data.turn = turn_order
 
         location_data.data = json.dumps(json_data)
         location_data.save()
@@ -394,9 +495,15 @@ async def set_initiative_sort(sid: str, sort: int):
 @sio.on("Initiative.Effect.New", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def new_initiative_effect(sid: str, data: ServerInitiativeEffectActor):
-    pr: PlayerRoom = game_state.get(sid)
+    pr = game_state.get(sid)
 
-    if not has_ownership(Shape.get_or_none(uuid=data["actor"]), pr):
+    shape = Shape.get_or_none(uuid=data["actor"])
+
+    if shape is None:
+        logger.warning("Attempt to create initiative effect for an unknown shape")
+        return
+
+    if not has_ownership(shape, pr):
         logger.warning(f"{pr.player.name} attempted to create a new initiative effect")
         return
 
@@ -423,9 +530,15 @@ async def new_initiative_effect(sid: str, data: ServerInitiativeEffectActor):
 @sio.on("Initiative.Effect.Rename", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def rename_initiative_effect(sid: str, data: ServerRenameInitiativeEffect):
-    pr: PlayerRoom = game_state.get(sid)
+    pr = game_state.get(sid)
 
-    if not has_ownership(Shape.get_or_none(uuid=data["shape"]), pr):
+    shape = Shape.get_or_none(uuid=data["shape"])
+
+    if shape is None:
+        logger.warning("Attempt to rename initiative effect for an unknown shape")
+        return
+
+    if not has_ownership(shape, pr):
         logger.warning(f"{pr.player.name} attempted to create a new initiative effect")
         return
 
@@ -452,9 +565,15 @@ async def rename_initiative_effect(sid: str, data: ServerRenameInitiativeEffect)
 @sio.on("Initiative.Effect.Turns", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def set_initiative_effect_tuns(sid: str, data: ServerInitiativeEffectTurns):
-    pr: PlayerRoom = game_state.get(sid)
+    pr = game_state.get(sid)
 
-    if not has_ownership(Shape.get_or_none(uuid=data["shape"]), pr):
+    shape = Shape.get_or_none(uuid=data["shape"])
+
+    if shape is None:
+        logger.warning("Attempt to modify initiative effect turns for an unknown shape")
+        return
+
+    if not has_ownership(shape, pr):
         logger.warning(f"{pr.player.name} attempted to create a new initiative effect")
         return
 
@@ -481,9 +600,15 @@ async def set_initiative_effect_tuns(sid: str, data: ServerInitiativeEffectTurns
 @sio.on("Initiative.Effect.Remove", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def remove_initiative_effect(sid: str, data: ServerRemoveInitiativeEffectActor):
-    pr: PlayerRoom = game_state.get(sid)
+    pr = game_state.get(sid)
 
-    if not has_ownership(Shape.get_or_none(uuid=data["shape"]), pr):
+    shape = Shape.get_or_none(uuid=data["shape"])
+
+    if shape is None:
+        logger.warning("Attempt to remove initiative effect for an unknown shape")
+        return
+
+    if not has_ownership(shape, pr):
         logger.warning(f"{pr.player.name} attempted to remove an initiative effect")
         return
 

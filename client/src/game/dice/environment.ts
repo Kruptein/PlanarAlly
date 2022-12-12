@@ -15,6 +15,8 @@ import { ShadowOnlyMaterial } from "@babylonjs/materials/shadowOnly";
 import { Dice, DiceThrower, DndParser } from "@planarally/dice";
 import type { DieOptions } from "@planarally/dice";
 
+import { baseAdjust } from "../../core/http";
+
 import { loadAmmoModule } from "./ammo";
 import { diceStore } from "./state";
 
@@ -32,7 +34,7 @@ export async function loadDiceEnv(): Promise<DiceThrower> {
     const Ammo = (window as any).Ammo;
 
     diceThrower = new DiceThrower({ canvas, tresholds: { linear: 0.05, angular: 0.1 } });
-    await diceThrower.load("/static/babylon_test6.babylon", Ammo());
+    await diceThrower.load(baseAdjust("/static/all_dice.babylon"), Ammo());
 
     /*
      * Currently the camera looks in such a way that the x-axis goes from negative right to positive left
@@ -51,13 +53,28 @@ export async function loadDiceEnv(): Promise<DiceThrower> {
     light.intensity = 1;
 
     scene.registerBeforeRender(() => {
-        const meshes = scene.getActiveMeshes();
+        const meshes = scene.getActiveMeshCandidates();
         for (let j = 0; j < meshes.length; j++) {
             const i = meshes.data[j].getPhysicsImpostor();
             if (i === null || i === undefined) continue;
-            if (meshes.data[j].position.y > 3) continue;
-            i.setLinearVelocity(i.getLinearVelocity()!.multiplyByFloats(0.99, 0.99, 0.99));
-            i.setAngularVelocity(i.getAngularVelocity()!.multiplyByFloats(0.99, 0.99, 0.99));
+            const pos = meshes.data[j].position;
+            if (pos.y > 3) continue;
+            const linVel = i.getLinearVelocity()!;
+            const linVelZero = linVel.x === 0 && linVel.y === 0 && linVel.z === 0;
+            if (!linVelZero) i.setLinearVelocity(i.getLinearVelocity()!.multiplyByFloats(0.99, 0.99, 0.99));
+            const angVel = i.getAngularVelocity()!;
+            const angVelZero = angVel.x === 0 && angVel.y === 0 && angVel.z === 0;
+            if (!angVelZero) i.setAngularVelocity(i.getAngularVelocity()!.multiplyByFloats(0.99, 0.99, 0.99));
+
+            if (!(linVelZero && angVelZero)) {
+                const dim = diceStore.state.dimensions;
+                if (pos.y < 0) pos.y = 19;
+                else if (pos.y > 20) pos.y = 1;
+                if (pos.x < -dim.width / 2) pos.x = 0.9 * (dim.width / 2);
+                else if (pos.x > dim.width / 2) pos.x = 0.9 * (-dim.width / 2);
+                if (pos.z < -dim.height / 2) pos.z = 0.9 * (dim.height / 2);
+                else if (pos.z > dim.height / 2) pos.z = 0.9 * (-dim.height / 2);
+            }
         }
     });
 
@@ -75,9 +92,10 @@ export async function loadDiceEnv(): Promise<DiceThrower> {
     (window as any).V3 = Vector3;
     (window as any).r = async (inp: string, options?: DieOptions[]): Promise<void> => {
         diceStore.setIsPending(true);
-        diceStore.setResults(await dndParser!.fromString(inp, options));
+        const results = await dndParser!.fromString(inp, options);
+        diceStore.setResults(results.key, results.data);
         diceStore.setIsPending(false);
-        diceStore.setShowDiceResults(true);
+        diceStore.setShowDiceResults(results.key);
     };
 
     return diceThrower;
@@ -144,6 +162,11 @@ function loadDiceBox(scene: Scene): void {
         friction: 0.5,
     });
     new PhysicsImpostor(wall4, PhysicsImpostor.BoxImpostor, {
+        mass: 0,
+        restitution: 0.9,
+        friction: 0.5,
+    });
+    new PhysicsImpostor(roof, PhysicsImpostor.BoxImpostor, {
         mass: 0,
         restitution: 0.9,
         friction: 0.5,

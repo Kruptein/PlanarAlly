@@ -1,16 +1,25 @@
 import { addP, toArrayP } from "../../core/geometry";
 import type { Vector } from "../../core/geometry";
 import { sendShapePositionUpdate } from "../api/emits/shape/core";
-import { moveClient } from "../client";
-import { selectionState } from "../layers/selection";
-import type { IShape } from "../shapes/interfaces";
+import type { IShape } from "../interfaces/shape";
 import { accessSystem } from "../systems/access";
+import { clientSystem } from "../systems/client";
 import { teleportZoneSystem } from "../systems/logic/tp";
+import { getProperties } from "../systems/properties/state";
+import { selectedSystem } from "../systems/selected";
 import { TriangulationTarget, visionState } from "../vision/state";
 
 import type { MovementOperation, ShapeMovementOperation } from "./model";
 import { addOperation } from "./undo";
 
+/**
+ * Move the provided shapes in the provided direction.
+ * It is implicitly assumed that all shapes provided are on the same layer.
+ *
+ * @param shapes A list of shapes all belonging to the same layer
+ * @param delta The direction in which the shapes should be moved
+ * @param temporary Flag to indicate near-future override
+ */
 export async function moveShapes(shapes: readonly IShape[], delta: Vector, temporary: boolean): Promise<void> {
     let recalculateMovement = false;
     let recalculateVision = false;
@@ -20,15 +29,17 @@ export async function moveShapes(shapes: readonly IShape[], delta: Vector, tempo
 
     for (const shape of shapes) {
         if (!accessSystem.hasAccessTo(shape.id, false, { movement: true })) continue;
+        const props = getProperties(shape.id);
+        if (props === undefined) continue;
 
-        if (shape.blocksMovement && !temporary) {
+        if (props.blocksMovement && !temporary) {
             recalculateMovement = true;
             visionState.deleteFromTriangulation({
                 target: TriangulationTarget.MOVEMENT,
                 shape: shape.id,
             });
         }
-        if (shape.blocksVision) {
+        if (props.blocksVision) {
             recalculateVision = true;
             visionState.deleteFromTriangulation({
                 target: TriangulationTarget.VISION,
@@ -47,15 +58,15 @@ export async function moveShapes(shapes: readonly IShape[], delta: Vector, tempo
         operation.to = toArrayP(shape.refPoint);
         operationList.shapes.push(operation);
 
-        if (shape.blocksMovement && !temporary)
+        if (props.blocksMovement && !temporary)
             visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: shape.id });
-        if (shape.blocksVision) visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: shape.id });
+        if (props.blocksVision) visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: shape.id });
 
         // todo: Fix again
         // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
         if (!shape.preventSync) updateList.push(shape);
         if (shape.options.isPlayerRect ?? false) {
-            moveClient(shape.id);
+            clientSystem.moveClient(shape.id);
         }
     }
 
@@ -63,7 +74,7 @@ export async function moveShapes(shapes: readonly IShape[], delta: Vector, tempo
     if (!temporary) {
         addOperation(operationList);
 
-        await teleportZoneSystem.checkTeleport(selectionState.get({ includeComposites: true }));
+        await teleportZoneSystem.checkTeleport(selectedSystem.get({ includeComposites: true }));
     }
 
     const floorId = shapes[0].floor.id;

@@ -5,18 +5,18 @@ import sys
 import aiohttp
 from aiohttp import web
 
-import api.http
-import api.http.admin.campaigns
-import api.http.admin.users
-import api.http.auth
-import api.http.notifications
-import api.http.rooms
-import api.http.server
-import api.http.users
-import api.http.version
-from app import admin_app, api_app, app as main_app
-from config import config
-from utils import FILE_DIR, STATIC_DIR
+from .api import http
+from .api.http.admin import campaigns
+from .api.http.admin import users as admin_users
+from .api.http import auth
+from .api.http import notifications
+from .api.http import rooms
+from .api.http import server
+from .api.http import users
+from .api.http import version
+from .app import admin_app, api_app, app as main_app
+from .config import config
+from .utils import ASSETS_DIR, FILE_DIR, STATIC_DIR
 
 
 subpath = os.environ.get("PA_BASEPATH", "/")
@@ -56,57 +56,47 @@ async def root_dev(request, admin_api=False):
 
 # MAIN ROUTES
 
+main_app.router.add_static(f"{subpath}/static/assets", ASSETS_DIR)
 main_app.router.add_static(f"{subpath}/static", STATIC_DIR)
-main_app.router.add_get(f"{subpath}/api/auth", api.http.auth.is_authed)
-main_app.router.add_post(f"{subpath}/api/users/email", api.http.users.set_email)
-main_app.router.add_post(f"{subpath}/api/users/password", api.http.users.set_password)
-main_app.router.add_post(f"{subpath}/api/users/delete", api.http.users.delete_account)
-main_app.router.add_post(f"{subpath}/api/login", api.http.auth.login)
-main_app.router.add_post(f"{subpath}/api/register", api.http.auth.register)
-main_app.router.add_post(f"{subpath}/api/logout", api.http.auth.logout)
-main_app.router.add_get(f"{subpath}/api/server/upload_limit", api.http.server.get_limit)
-main_app.router.add_get(f"{subpath}/api/rooms", api.http.rooms.get_list)
-main_app.router.add_post(f"{subpath}/api/rooms", api.http.rooms.create)
-main_app.router.add_patch(
-    f"{subpath}/api/rooms/{{creator}}/{{roomname}}", api.http.rooms.patch
-)
+main_app.router.add_get(f"{subpath}/api/auth", auth.is_authed)
+main_app.router.add_post(f"{subpath}/api/users/email", users.set_email)
+main_app.router.add_post(f"{subpath}/api/users/password", users.set_password)
+main_app.router.add_post(f"{subpath}/api/users/delete", users.delete_account)
+main_app.router.add_post(f"{subpath}/api/login", auth.login)
+main_app.router.add_post(f"{subpath}/api/register", auth.register)
+main_app.router.add_post(f"{subpath}/api/logout", auth.logout)
+main_app.router.add_get(f"{subpath}/api/server/upload_limit", server.get_limit)
+main_app.router.add_get(f"{subpath}/api/rooms", rooms.get_list)
+main_app.router.add_post(f"{subpath}/api/rooms", rooms.create)
+main_app.router.add_patch(f"{subpath}/api/rooms/{{creator}}/{{roomname}}", rooms.patch)
 main_app.router.add_delete(
-    f"{subpath}/api/rooms/{{creator}}/{{roomname}}", api.http.rooms.delete
-)
-main_app.router.add_get(
-    f"{subpath}/api/rooms/{{creator}}/{{roomname}}/info", api.http.rooms.get_info
+    f"{subpath}/api/rooms/{{creator}}/{{roomname}}", rooms.delete
 )
 main_app.router.add_patch(
-    f"{subpath}/api/rooms/{{creator}}/{{roomname}}/info", api.http.rooms.set_info
+    f"{subpath}/api/rooms/{{creator}}/{{roomname}}/info", rooms.set_info
 )
 main_app.router.add_get(
-    f"{subpath}/api/rooms/{{creator}}/{{roomname}}/export", api.http.rooms.export
+    f"{subpath}/api/rooms/{{creator}}/{{roomname}}/export", rooms.export
 )
-main_app.router.add_get(
-    f"{subpath}/api/rooms/{{creator}}/export", api.http.rooms.export_all
-)
+main_app.router.add_get(f"{subpath}/api/rooms/{{creator}}/export", rooms.export_all)
+main_app.router.add_post(f"{subpath}/api/rooms/import/{{name}}", rooms.import_info)
 main_app.router.add_post(
-    f"{subpath}/api/rooms/import/{{name}}", api.http.rooms.import_info
+    f"{subpath}/api/rooms/import/{{name}}/{{chunk}}", rooms.import_chunk
 )
-main_app.router.add_post(
-    f"{subpath}/api/rooms/import/{{name}}/{{chunk}}", api.http.rooms.import_chunk
-)
-main_app.router.add_post(f"{subpath}/api/invite", api.http.claim_invite)
-main_app.router.add_get(f"{subpath}/api/version", api.http.version.get_version)
-main_app.router.add_get(f"{subpath}/api/changelog", api.http.version.get_changelog)
-main_app.router.add_get(f"{subpath}/api/notifications", api.http.notifications.collect)
+main_app.router.add_post(f"{subpath}/api/invite", http.claim_invite)
+main_app.router.add_get(f"{subpath}/api/version", version.get_version)
+main_app.router.add_get(f"{subpath}/api/changelog", version.get_changelog)
+main_app.router.add_get(f"{subpath}/api/notifications", notifications.collect)
 
 # ADMIN ROUTES
 
-api_app.router.add_post(f"{subpath}/notifications", api.http.notifications.create)
-api_app.router.add_get(f"{subpath}/notifications", api.http.notifications.collect)
-api_app.router.add_delete(
-    f"{subpath}/notifications/{{uuid}}", api.http.notifications.delete
-)
-api_app.router.add_get(f"{subpath}/users", api.http.admin.users.collect)
-api_app.router.add_post(f"{subpath}/users/reset", api.http.admin.users.reset)
-api_app.router.add_post(f"{subpath}/users/remove", api.http.admin.users.remove)
-api_app.router.add_get(f"{subpath}/campaigns", api.http.admin.campaigns.collect)
+api_app.router.add_post(f"{subpath}/notifications", notifications.create)
+api_app.router.add_get(f"{subpath}/notifications", notifications.collect)
+api_app.router.add_delete(f"{subpath}/notifications/{{uuid}}", notifications.delete)
+api_app.router.add_get(f"{subpath}/users", admin_users.collect)
+api_app.router.add_post(f"{subpath}/users/reset", admin_users.reset)
+api_app.router.add_post(f"{subpath}/users/remove", admin_users.remove)
+api_app.router.add_get(f"{subpath}/campaigns", campaigns.collect)
 
 admin_app.router.add_static(f"{subpath}/static", STATIC_DIR)
 admin_app.add_subapp("/api/", api_app)

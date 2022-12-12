@@ -1,6 +1,6 @@
 from typing import List, Type
 
-from utils import all_subclasses
+from ..utils import all_subclasses
 from .asset import *
 from .base import BaseModel as _BaseModel
 from .campaign import *

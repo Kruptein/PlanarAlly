@@ -5,17 +5,19 @@ import { equalPoints, filterEqualPoints, getPointsCenter, rotateAroundPoint } fr
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { uuidv4 } from "../../../core/utils";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
-import { getFogColour } from "../../colour";
+import { FOG_COLOUR } from "../../colour";
 import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import type { ServerPolygon } from "../../models/shapes";
 import type { AuraId } from "../../systems/auras/models";
+import { getProperties } from "../../systems/properties/state";
+import type { ShapeProperties } from "../../systems/properties/state";
 import type { TrackerId } from "../../systems/trackers/models";
 import { visionState } from "../../vision/state";
 import { Shape } from "../shape";
 import type { SHAPE_TYPE } from "../types";
 
-import { BoundingRect } from "./boundingRect";
+import { BoundingRect } from "./simple/boundingRect";
 
 export class Polygon extends Shape {
     type: SHAPE_TYPE = "polygon";
@@ -27,18 +29,18 @@ export class Polygon extends Shape {
         startPoint: GlobalPoint,
         vertices?: GlobalPoint[],
         options?: {
-            fillColour?: string;
-            strokeColour?: string[];
             lineWidth?: number[];
             openPolygon?: boolean;
             id?: LocalId;
             uuid?: GlobalId;
             isSnappable?: boolean;
         },
+        properties?: Partial<ShapeProperties>,
     ) {
-        super(startPoint, options);
+        super(startPoint, options, properties);
         this._vertices = vertices || [];
         this.openPolygon = options?.openPolygon ?? false;
+        this._center = this.__center();
         this.lineWidth = options?.lineWidth ?? [2];
     }
 
@@ -53,6 +55,8 @@ export class Polygon extends Shape {
         const delta = subtractP(point, this._refPoint);
         this._refPoint = point;
         for (let i = 0; i < this._vertices.length; i++) this._vertices[i] = addP(this._vertices[i], delta);
+        this._center = this.__center();
+        this.resetVisionIteration();
         this.invalidatePoints();
     }
 
@@ -63,6 +67,7 @@ export class Polygon extends Shape {
     set vertices(v: GlobalPoint[]) {
         this._refPoint = v[0];
         this._vertices = v.slice(1);
+        this._center = this.__center();
         this.invalidatePoints();
     }
 
@@ -97,7 +102,7 @@ export class Polygon extends Shape {
             if (p.y > maxy) maxy = p.y;
         }
         let bbox = new BoundingRect(toGP(minx - delta, miny - delta), maxx - minx + 2 * delta, maxy - miny + 2 * delta);
-        bbox = bbox.center(rotateAroundPoint(bbox.center(), this.center(), this.angle));
+        bbox = bbox.centerOn(rotateAroundPoint(bbox.center, this.center, this.angle));
         bbox.angle = this.angle;
         return bbox;
     }
@@ -116,21 +121,22 @@ export class Polygon extends Shape {
     }
 
     invalidatePoints(): void {
-        const center = this.center();
+        const center = this.center;
         this._points = this.vertices.map((point) => this.invalidatePoint(point, center));
-        if (this.isSnappable) this.updateLayerPoints();
+        super.invalidatePoints();
     }
 
     draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
 
-        const center = g2l(this.center());
+        const center = g2l(this.center);
 
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
+        const props = getProperties(this.id)!;
 
-        if (this.fillColour === "fog") ctx.fillStyle = getFogColour();
-        else ctx.fillStyle = this.fillColour;
+        if (props.fillColour === "fog") ctx.fillStyle = FOG_COLOUR;
+        else ctx.fillStyle = props.fillColour;
 
         ctx.beginPath();
         let localVertex = subtractP(g2l(this.vertices[0]), center);
@@ -147,11 +153,11 @@ export class Polygon extends Shape {
 
         if (!this.openPolygon) ctx.fill();
 
-        for (const [i, c] of this.strokeColour.entries()) {
+        for (const [i, c] of props.strokeColour.entries()) {
             const lw = this.lineWidth[i] ?? this.lineWidth[0];
             ctx.lineWidth = this.ignoreZoomSize ? lw : g2lz(lw);
 
-            if (c === "fog") ctx.strokeStyle = getFogColour();
+            if (c === "fog") ctx.strokeStyle = FOG_COLOUR;
             else ctx.strokeStyle = c;
             ctx.stroke();
         }
@@ -164,7 +170,7 @@ export class Polygon extends Shape {
         const bbox = this.getBoundingBox(nearbyThreshold);
         if (!bbox.contains(point)) return false;
         if (this.isClosed) return true;
-        if (this.angle !== 0) point = rotateAroundPoint(point, this.center(), -this.angle);
+        if (this.angle !== 0) point = rotateAroundPoint(point, this.center, -this.angle);
         const vertices = this.uniqueVertices;
         for (const [i, v] of vertices.entries()) {
             const nv = vertices[(i + 1) % vertices.length];
@@ -174,14 +180,16 @@ export class Polygon extends Shape {
         return false;
     }
 
-    center(): GlobalPoint;
-    center(centerPoint: GlobalPoint): void;
-    center(centerPoint?: GlobalPoint): GlobalPoint | void {
-        if (centerPoint === undefined) {
-            return getPointsCenter(this.uniqueVertices);
-        }
-        const oldCenter = this.center();
-        this.refPoint = toGP(subtractP(centerPoint, subtractP(oldCenter, this.refPoint)).asArray());
+    __center(): GlobalPoint {
+        return getPointsCenter(this.uniqueVertices);
+    }
+
+    get center(): GlobalPoint {
+        return this._center;
+    }
+
+    set center(centerPoint: GlobalPoint) {
+        this.refPoint = toGP(subtractP(centerPoint, subtractP(this.center, this.refPoint)).asArray());
     }
 
     visibleInCanvas(max: { w: number; h: number }, options: { includeAuras: boolean }): boolean {
@@ -196,21 +204,8 @@ export class Polygon extends Shape {
     resizeToGrid(): void {}
 
     resize(resizePoint: number, point: GlobalPoint): number {
-        if (this.angle === 0) {
-            if (resizePoint === 0) this._refPoint = point;
-            else this._vertices[resizePoint - 1] = point;
-        } else {
-            const newPoints = this.points.map((p) => toGP(p));
-
-            newPoints[resizePoint] = point;
-
-            const newCenter = getPointsCenter(filterEqualPoints(newPoints));
-
-            this._refPoint = rotateAroundPoint(newPoints[0], newCenter, -this.angle);
-            for (let i = 0; i < this._vertices.length; i++) {
-                this._vertices[i] = rotateAroundPoint(newPoints[i + 1], newCenter, -this.angle);
-            }
-        }
+        if (resizePoint === 0) this._refPoint = rotateAroundPoint(point, this.center, -this.angle);
+        else this._vertices[resizePoint - 1] = rotateAroundPoint(point, this.center, -this.angle);
         this.invalidatePoints();
         return resizePoint;
     }
@@ -248,10 +243,12 @@ export class Polygon extends Shape {
             newPolygon._refPoint = nearVertex!;
             newPolygon._vertices = newVertices;
 
+            const props = getProperties(this.id)!;
+
             this.layer.addShape(
                 newPolygon,
                 SyncMode.FULL_SYNC,
-                this.blocksVision ? InvalidationMode.WITH_LIGHT : InvalidationMode.NORMAL,
+                props.blocksVision ? InvalidationMode.WITH_LIGHT : InvalidationMode.NORMAL,
             );
 
             this.invalidatePoints();
@@ -265,7 +262,9 @@ export class Polygon extends Shape {
 
     pushPoint(point: GlobalPoint): void {
         this._vertices.push(point);
-        this._points.push(this.invalidatePoint(point, this.center()));
+        this._points.push(this.invalidatePoint(point, this.center));
+        this.layer.updateSectors(this.id, this.getAuraAABB());
+        if (this.isSnappable) this.updateLayerPoints();
     }
 
     addPoint(point: GlobalPoint): void {
@@ -304,8 +303,9 @@ export class Polygon extends Shape {
         }
 
         if (invalidate) {
-            if (this.blocksVision) visionState.recalculateVision(this.floor.id);
-            if (this.blocksMovement) visionState.recalculateMovement(this.floor.id);
+            const props = getProperties(this.id)!;
+            if (props.blocksVision) visionState.recalculateVision(this.floor.id);
+            if (props.blocksMovement) visionState.recalculateMovement(this.floor.id);
             if (!this.preventSync) sendShapePositionUpdate([this], false);
 
             this.invalidatePoints();

@@ -4,14 +4,15 @@ import { useI18n } from "vue-i18n";
 import draggable from "vuedraggable";
 
 import { useModal } from "../../../core/plugins/modals/plugin";
-import { clientStore } from "../../../store/client";
+import { getGameState } from "../../../store/_game";
 import { coreStore } from "../../../store/core";
-import { gameStore } from "../../../store/game";
 import { locationStore } from "../../../store/location";
-import { settingsStore } from "../../../store/settings";
 import { uiStore } from "../../../store/ui";
 import { sendLocationChange, sendNewLocation } from "../../api/emits/location";
 import type { Location } from "../../models/settings";
+import { playerSystem } from "../../systems/players";
+import { playerState } from "../../systems/players/state";
+import { locationSettingsState } from "../../systems/settings/location/state";
 
 const props = defineProps<{ active: boolean; menuActive: boolean }>();
 
@@ -20,7 +21,7 @@ const modals = useModal();
 
 const locations = ref<{ $el: HTMLDivElement } | null>(null);
 
-const isDm = toRef(gameStore.state, "isDm");
+const isDm = toRef(getGameState(), "isDm");
 
 const activeLocations = computed({
     get() {
@@ -36,14 +37,14 @@ const activeLocations = computed({
 watchEffect(() => {
     if (locations.value) {
         locations.value.$el.addEventListener("scroll", () => fixDisplays());
-        locations.value.$el.addEventListener("wheel", (e) => horizontalWheel(e));
+        locations.value.$el.addEventListener("wheel", (e) => horizontalWheel(e), { passive: true });
     }
 });
 
 // :style with `menuActive` did not update properly on the draggable
 watchEffect(() => {
     if (locations.value !== null) {
-        locations.value.$el.style.maxWidth = `calc(100vw - 105px - ${props.menuActive ? "200px" : "0px"})`;
+        locations.value.$el.style.maxWidth = `calc(100vw - 6.6rem - ${props.menuActive ? "12.5rem" : "0rem"})`;
     }
 });
 
@@ -56,7 +57,7 @@ async function showArchivedLocations(): Promise<void> {
     if (locations.length === 0) return;
 
     const choice = await modals.selectionBox(
-        "Select a location to retore",
+        "Select a location to restore",
         locations.map((l) => l.name),
     );
     const location = locations.find((l) => l.name === choice?.[0]);
@@ -74,7 +75,7 @@ async function createLocation(): Promise<void> {
 }
 
 function changeLocation(id: number): void {
-    sendLocationChange({ location: id, users: [clientStore.state.username] });
+    sendLocationChange({ location: id, users: [playerSystem.getCurrentPlayer()!.name] });
     coreStore.setLoading(true);
 }
 
@@ -98,9 +99,9 @@ function endPlayerDrag(e: { item: HTMLDivElement; from: HTMLDivElement; to: HTML
     if (toLocation === undefined || fromLocation === toLocation) return;
     const targetPlayer = e.item.textContent!.trim();
 
-    for (const player of gameStore.state.players) {
+    for (const player of playerState.raw.players.values()) {
         if (player.name === targetPlayer) {
-            gameStore.updatePlayersLocation([player.name], toLocation, true);
+            playerSystem.updatePlayersLocation([player.name], toLocation, true);
             break;
         }
     }
@@ -113,12 +114,12 @@ function endPlayersDrag(e: { item: HTMLDivElement; from: HTMLDivElement; to: HTM
     if (toLocation === undefined || fromLocation === toLocation) return;
 
     const players = [];
-    for (const player of gameStore.state.players) {
+    for (const player of playerState.raw.players.values()) {
         if (player.location === fromLocation && player.role !== 1) {
             players.push(player.name);
         }
     }
-    gameStore.updatePlayersLocation(players, toLocation, true);
+    playerSystem.updatePlayersLocation(players, toLocation, true);
 
     if (expanded.value.has(fromLocation)) {
         expanded.value.delete(fromLocation);
@@ -155,7 +156,7 @@ function fixDisplays(): void {
     }
 }
 
-const activeLocation = toRef(settingsStore.state, "activeLocation");
+const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
 </script>
 
 <template>
@@ -174,7 +175,7 @@ const activeLocation = toRef(settingsStore.state, "activeLocation");
             </div>
         </div>
         <draggable id="locations" v-model="activeLocations" item-key="id" ref="locations" handle=".drag-handle">
-            <template #item="{ element: location }">
+            <template #item="{ element: location }: { element: Location }">
                 <div class="location">
                     <div class="location-name" :class="{ 'active-location': activeLocation === location.id }">
                         <div class="drag-handle"></div>
@@ -222,7 +223,7 @@ const activeLocation = toRef(settingsStore.state, "activeLocation");
                         group="player"
                         @end="endPlayerDrag"
                     >
-                        <template #item="{ element: player }">
+                        <template #item="{ element: player }: { element: string }">
                             <div class="player-collapse-item" :data-loc="location.id">
                                 {{ player }}
                             </div>
@@ -237,7 +238,12 @@ const activeLocation = toRef(settingsStore.state, "activeLocation");
                         :data-loc="location.id"
                         @add="onDragAdd"
                     >
-                        <template #item><div></div></template>
+                        <template #item>
+                            <div>
+                                <!-- without the {{}} it throws an error because it becomes a null element? -->
+                                {{}}
+                            </div>
+                        </template>
                     </draggable>
                 </div>
             </template>
@@ -267,14 +273,14 @@ const activeLocation = toRef(settingsStore.state, "activeLocation");
     #archive-locations {
         box-sizing: border-box;
         display: inline-grid;
-        width: 85px;
+        width: 5.3rem;
         color: white;
         border: solid 2px transparent;
         background-color: rgb(var(--secondary));
-        font-size: 30px;
+        font-size: 1.875em;
         place-items: center center;
-        margin: 10px;
-        padding: 10px 0;
+        margin: 0.625rem;
+        padding: 0.625rem 0;
 
         &:hover {
             font-weight: bold;
@@ -299,9 +305,9 @@ const activeLocation = toRef(settingsStore.state, "activeLocation");
     pointer-events: auto;
     display: grid;
     grid-auto-flow: column;
-    grid-gap: 10px;
+    grid-gap: 0.625rem;
     overflow-y: hidden;
-    max-width: calc(100vw - 105px); /* 105 = width of the #create-location div */
+    max-width: calc(100vw - 6.6rem); /* 105 = width of the #create-location div */
 
     scrollbar-width: thin;
     scrollbar-color: rgb(var(--secondary)) var(--primary);
@@ -323,7 +329,7 @@ const activeLocation = toRef(settingsStore.state, "activeLocation");
 
 .location {
     display: flex;
-    margin-top: 10px;
+    margin-top: 0.625rem;
     flex-direction: column;
     user-select: none;
 }
@@ -342,7 +348,7 @@ const activeLocation = toRef(settingsStore.state, "activeLocation");
 }
 
 .location-settings-icon {
-    padding-left: 10px;
+    padding-left: 0.625rem;
 
     svg {
         transition: transform 0.8s ease-in-out;
@@ -355,16 +361,16 @@ const activeLocation = toRef(settingsStore.state, "activeLocation");
 }
 
 .drag-handle {
-    width: 25px;
-    height: 20px;
+    width: 1.6rem;
+    height: 1.25rem;
 
     &::before {
         position: absolute;
         top: 8px;
         content: ".";
         color: white;
-        font-size: 20px;
-        line-height: 20px;
+        font-size: 1.25em;
+        line-height: 1.25rem;
         text-shadow: 0 5px white, 0 10px white, 5px 0 white, 5px 5px white, 5px 10px white, 10px 0 white, 10px 5px white,
             10px 10px white;
     }
@@ -383,11 +389,11 @@ const activeLocation = toRef(settingsStore.state, "activeLocation");
     border-top: 0;
     display: flex;
     flex-direction: column;
-    min-width: 150px;
+    min-width: 9.375rem;
 }
 
 .location-players-empty {
-    height: 25px;
+    height: 1.6rem;
 }
 
 .player-collapse-header {
@@ -402,13 +408,13 @@ const activeLocation = toRef(settingsStore.state, "activeLocation");
 
 .player-collapse-content {
     position: absolute;
-    margin-top: 90px;
+    margin-top: 5.625rem;
     margin-left: 0.5em;
     color: white;
 }
 
 .player-collapse-item {
-    margin-top: 10px;
+    margin-top: 0.625rem;
     padding: 0.5em 1em;
     border-radius: 5px;
     background-color: rgb(var(--secondary));

@@ -133,8 +133,16 @@ class SpellTool extends Tool {
 
         if (selectedSystem.hasSelection && (this.state.range === 0 || equalsP(startPosition, ogPoint))) {
             const selection = selectedSystem.getFocus().value;
-            if (selection === undefined) console.error("HAHA");
-            else this.shape.center = getShape(selection)!.center;
+            if (selection === undefined) {
+                console.error("SpellTool: No selection found.");
+            } else {
+                const selectionShape = getShape(selection);
+                if (selectionShape === undefined) {
+                    console.error("SpellTool: Selected shape does not exist.");
+                } else {
+                    this.shape.center = selectionShape.center;
+                }
+            }
         }
 
         this.drawRangeShape();

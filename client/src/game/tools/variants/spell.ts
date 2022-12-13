@@ -125,16 +125,25 @@ class SpellTool extends Tool {
             UI_SYNC,
         );
 
-        if (selectedSystem.hasSelection && (this.state.range === 0 || equalsP(startPosition, ogPoint))) {
-            const selection = [...selectedSystem.$.value];
-            this.shape.center = getShape(selection[0])!.center;
-        }
-
         layer.addShape(
             this.shape,
             this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC,
             InvalidationMode.NORMAL,
         );
+
+        if (selectedSystem.hasSelection && (this.state.range === 0 || equalsP(startPosition, ogPoint))) {
+            const selection = selectedSystem.getFocus().value;
+            if (selection === undefined) {
+                console.error("SpellTool: No selection found.");
+            } else {
+                const selectionShape = getShape(selection);
+                if (selectionShape === undefined) {
+                    console.error("SpellTool: Selected shape does not exist.");
+                } else {
+                    this.shape.center = selectionShape.center;
+                }
+            }
+        }
 
         this.drawRangeShape();
     }

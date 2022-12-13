@@ -283,12 +283,14 @@ class Floor(BaseModel):
         data = model_to_dict(self, recurse=False, exclude=[Floor.id, Floor.location])
         if dm:
             data["layers"] = [
-                l.as_dict(user, True) for l in self.layers.order_by(Layer.index)
+                layer.as_dict(user, True) for layer in self.layers.order_by(Layer.index)
             ]
         else:
             data["layers"] = [
-                l.as_dict(user, False)
-                for l in self.layers.order_by(Layer.index).where(Layer.player_visible)
+                layer.as_dict(user, False)
+                for layer in self.layers.order_by(Layer.index).where(
+                    Layer.player_visible
+                )
             ]
         return data
 

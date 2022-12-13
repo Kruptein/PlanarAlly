@@ -231,7 +231,7 @@ class CampaignExporter:
         sqlite_info.mtime = time()  # type: ignore
 
         try:
-            import bz2
+            import bz2  # noqa: F401
 
             write_mode = "w:bz2"
         except ImportError:

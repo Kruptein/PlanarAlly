@@ -53,4 +53,10 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v3
-            - uses: psf/black@stable
+            - name: black
+              uses: psf/black@stable
+              working-directory: server
+            - name: ruff
+              working-directory: server
+              run: /
+                  ruff src

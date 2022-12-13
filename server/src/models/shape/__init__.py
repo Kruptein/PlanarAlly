@@ -141,7 +141,7 @@ class Shape(BaseModel):
                 data["name"] = "?"
         data["trackers"] = [t.as_dict() for t in tracker_query]
         data["auras"] = [a.as_dict() for a in aura_query]
-        data["labels"] = [l.as_dict() for l in label_query]
+        data["labels"] = [label.as_dict() for label in label_query]
         # Subtype
         data.update(**self.subtype.as_dict(exclude=[self.subtype.__class__.shape]))
         return data

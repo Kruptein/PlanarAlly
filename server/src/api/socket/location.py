@@ -177,8 +177,8 @@ async def load_location(sid: str, location: Location, *, complete=False):
                 "default": pr.room.default_options.as_dict(),
                 "active": location_data["id"],
                 "locations": {
-                    l.id: {} if l.options is None else l.options.as_dict()
-                    for l in pr.room.locations
+                    loc.id: {} if loc.options is None else loc.options.as_dict()
+                    for loc in pr.room.locations
                 },
             },
             room=sid,
@@ -202,8 +202,8 @@ async def load_location(sid: str, location: Location, *, complete=False):
     # 5. Load Board
 
     locations = [
-        {"id": l.id, "name": l.name, "archived": l.archived}
-        for l in pr.room.locations.order_by(Location.index)
+        {"id": loc.id, "name": loc.name, "archived": loc.archived}
+        for loc in pr.room.locations.order_by(Location.index)
     ]
     await sio.emit("Board.Locations.Set", locations, room=sid, namespace=GAME_NS)
 
@@ -239,7 +239,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
 
     if complete:
         labels = Label.select().where(
-            (Label.user == pr.player) | (Label.visible == True)
+            (Label.user == pr.player) | (Label.visible == True)  # noqa: E712
         )
         label_filters = LabelSelection.select().where(
             (LabelSelection.user == pr.player) & (LabelSelection.room == pr.room)
@@ -247,13 +247,13 @@ async def load_location(sid: str, location: Location, *, complete=False):
 
         await sio.emit(
             "Labels.Set",
-            [l.as_dict() for l in labels],
+            [label.as_dict() for label in labels],
             room=sid,
             namespace=GAME_NS,
         )
         await sio.emit(
             "Labels.Filters.Set",
-            [l.label.uuid for l in label_filters],
+            [label_filter.label.uuid for label_filter in label_filters],
             room=sid,
             namespace=GAME_NS,
         )
@@ -357,7 +357,8 @@ async def change_location(sid: str, data: LocationChangeData):
             await load_location(psid, new_location)
             # We could send this to all users in the new location, BUT
             # loading times might vary and we don't want to snap people back when they already move around
-            # And it's possible that there are already users on the new location that don't want to be moved to this new position
+            # And it's possible that there are already users on the new location
+            # that don't want to be moved to this new position
             if "position" in data:
                 await sio.emit(
                     "Position.Set",
@@ -531,9 +532,9 @@ async def set_locations_order(sid: str, locations: List[int]):
         return
 
     for i, idx in enumerate(locations):
-        l: Location = Location.get_by_id(idx)
-        l.index = i + 1
-        l.save()
+        loc: Location = Location.get_by_id(idx)
+        loc.index = i + 1
+        loc.save()
 
     for player_room in pr.room.players:
         if player_room.role != Role.DM:

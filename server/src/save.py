@@ -1,3 +1,4 @@
+# ruff: noqa
 """
 This file is responsible for migrating old save files to new versions.
 

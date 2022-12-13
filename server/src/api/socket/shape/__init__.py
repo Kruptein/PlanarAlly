@@ -31,8 +31,22 @@ from ....state.game import game_state
 from ..constants import GAME_NS
 from ..groups import remove_group_if_empty
 from .. import initiative
-from .data_models import *
-from . import access, options, toggle_composite
+from .data_models import (
+    CircleSizeData,
+    OptionUpdate,
+    OptionUpdateList,
+    PositionUpdate,
+    PositionUpdateList,
+    RectSizeData,
+    ServerShapeLocationMove,
+    ShapeAdd,
+    ShapeFloorChange,
+    ShapeOrder,
+    TemporaryShapesList,
+    TextSizeData,
+    TextUpdateData,
+)
+from . import access, options, toggle_composite  # noqa: F401
 
 
 @sio.on("Shape.Add", namespace=GAME_NS)

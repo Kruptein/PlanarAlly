@@ -2,7 +2,6 @@ from typing_extensions import TypedDict
 
 from ... import auth
 from ...app import app, sio
-from ...models import PlayerRoom
 from ...state.game import game_state
 from .constants import GAME_NS
 

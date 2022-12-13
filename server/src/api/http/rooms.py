@@ -13,7 +13,6 @@ from ...export.campaign import export_campaign, import_campaign
 from ...models import Location, LocationOptions, PlayerRoom, Room, User
 from ...models.db import db
 from ...models.role import Role
-from ...state.dashboard import dashboard_state
 from ..socket.constants import DASHBOARD_NS
 
 

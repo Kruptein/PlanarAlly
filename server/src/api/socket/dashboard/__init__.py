@@ -4,7 +4,7 @@ from ....api.socket.constants import DASHBOARD_NS
 from ....app import sio
 from ....config import config
 from ....state.dashboard import dashboard_state
-from . import campaign
+from . import campaign  # noqa: F401.
 
 
 @sio.on("connect", namespace=DASHBOARD_NS)

@@ -57,5 +57,5 @@ jobs:
               uses: psf/black@stable
             - name: ruff
               working-directory: server
-              run: /
+              run: |
                   ruff src

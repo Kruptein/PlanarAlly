@@ -3,6 +3,7 @@ import type {
     ButtonPressed,
     CardButtonPressed,
     CardPlayed,
+    CardsReordered,
     DiceRolled,
     GameBoardClient,
     GameBoardListener,
@@ -123,6 +124,13 @@ export class LgCompanion implements GameBoardListener {
         throw new Error("Method not implemented.");
     }
     onButtonPressed(buttonPressed: ButtonPressed): void {
+        throw new Error("Method not implemented.");
+    }
+
+    onCardTapped(cardPlayed: CardPlayed): void {
+        throw new Error("Method not implemented.");
+    }
+    onCardsReordered(cardsReordered: CardsReordered): void {
         throw new Error("Method not implemented.");
     }
 

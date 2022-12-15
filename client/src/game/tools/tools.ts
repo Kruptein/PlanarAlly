@@ -36,6 +36,7 @@ export const toolMap: Record<string, ITool> = {
     [ToolName.LastGameboard]: lastGameboardTool,
     [ToolName.Dice]: diceTool,
 };
+(window as any).toolMap = toolMap;
 
 const buildTools: [ToolName, ToolFeatures][] = [
     [ToolName.Select, {}],

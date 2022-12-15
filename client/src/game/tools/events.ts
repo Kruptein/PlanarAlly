@@ -160,7 +160,8 @@ function contextMenu(event: MouseEvent): void {
         toolMap[permitted.name].onContextMenu(event, permitted.features);
     }
 
-    tool.onContextMenu(event, getFeatures(activeTool.value));
+    const done = !tool.onContextMenu(event, getFeatures(activeTool.value));
+    if (done) return;
 
     for (const permitted of tool.permittedTools) {
         if (permitted.early ?? false) continue;

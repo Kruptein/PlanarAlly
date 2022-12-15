@@ -13,6 +13,7 @@ tech changes will usually be stripped from release notes for the public
 
 -   Spell tool: spell on selection bugged
 -   Spell tool: fill colour behaving janky when border colour has <1 opacity
+-   Spell tool: right-click was opening the context-menu
 
 ## [2022.3.0] - 2022-12-12
 

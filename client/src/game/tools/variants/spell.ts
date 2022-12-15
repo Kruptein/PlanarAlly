@@ -238,7 +238,7 @@ class SpellTool extends Tool {
         return Promise.resolve();
     }
 
-    onContextMenu(): void {
+    onContextMenu(): boolean {
         if (this.shape !== undefined) {
             const layer = floorState.currentLayer.value!;
 
@@ -250,6 +250,7 @@ class SpellTool extends Tool {
             this.shape = undefined;
         }
         activateTool(ToolName.Select);
+        return false;
     }
 }
 

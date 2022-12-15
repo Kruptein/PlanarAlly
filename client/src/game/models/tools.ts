@@ -54,7 +54,7 @@ export interface ITool {
     onPinchMove(event: TouchEvent, features: ToolFeatures): void;
     onPinchEnd(event: TouchEvent, features: ToolFeatures): void;
 
-    onContextMenu(event: MouseEvent, features: ToolFeatures): void;
+    onContextMenu(event: MouseEvent, features: ToolFeatures): boolean;
 }
 
 export interface ISelectTool extends ITool {

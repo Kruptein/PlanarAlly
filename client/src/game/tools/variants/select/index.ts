@@ -187,38 +187,33 @@ class SelectTool extends Tool implements ISelectTool {
         this.removePolygonEditUi();
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onSelect(): Promise<void> {
+    onSelect(): Promise<void> {
         const features = getFeatures(this.toolName);
         if (this.hasFeature(SelectFeatures.PolygonEdit, features)) {
             this.createPolygonEditUi();
             _$.polygonUiVisible = "hidden";
         }
+        return Promise.resolve();
     }
 
     // INPUT HANDLERS
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onDown(
-        lp: LocalPoint,
-        event: MouseEvent | TouchEvent,
-        features: ToolFeatures<SelectFeatures>,
-    ): Promise<void> {
+    onDown(lp: LocalPoint, event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): Promise<void> {
         // if we only have context capabilities, immediately skip
-        if (features.enabled?.length === 1 && features.enabled[0] === SelectFeatures.Context) return;
+        if (features.enabled?.length === 1 && features.enabled[0] === SelectFeatures.Context) return Promise.resolve();
 
         const gp = l2g(lp);
         const layer = floorState.currentLayer.value;
         if (layer === undefined) {
             console.log("No active layer!");
-            return;
+            return Promise.resolve();
         }
 
         // Logic Door Check
         if (_.hoveredDoor !== undefined && activeToolMode.value === ToolMode.Play) {
             if (getGameState().isDm) {
                 doorSystem.toggleDoor(_.hoveredDoor);
-                return;
+                return Promise.resolve();
             } else {
                 if (doorSystem.canUse(_.hoveredDoor) === Access.Request) {
                     toast.info("Request to open door sent", {
@@ -226,7 +221,7 @@ class SelectTool extends Tool implements ISelectTool {
                     });
                 }
                 sendRequest({ door: getGlobalId(_.hoveredDoor), logic: "door" });
-                return;
+                return Promise.resolve();
             }
         }
 
@@ -334,8 +329,8 @@ class SelectTool extends Tool implements ISelectTool {
 
         // GroupSelect case, draw a selection box to select multiple shapes
         if (!hit) {
-            if (!this.hasFeature(SelectFeatures.ChangeSelection, features)) return;
-            if (!this.hasFeature(SelectFeatures.GroupSelect, features)) return;
+            if (!this.hasFeature(SelectFeatures.ChangeSelection, features)) return Promise.resolve();
+            if (!this.hasFeature(SelectFeatures.GroupSelect, features)) return Promise.resolve();
             this.mode = SelectOperations.GroupSelect;
 
             this.selectionStartPoint = gp;
@@ -379,6 +374,7 @@ class SelectTool extends Tool implements ISelectTool {
             rulerTool.onDown(lp, event);
         }
         if (this.mode !== SelectOperations.Noop) this.active.value = true;
+        return Promise.resolve();
     }
 
     async onMove(

@@ -169,12 +169,12 @@ class SpellTool extends Tool {
         layer.addShape(this.rangeShape, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onSelect(): Promise<void> {
+    onSelect(): Promise<void> {
         if (!selectedSystem.hasSelection && this.state.selectedSpellShape === SpellShape.Cone) {
             this.state.selectedSpellShape = SpellShape.Circle;
         }
         this.drawShape();
+        return Promise.resolve();
     }
 
     onDeselect(): void {
@@ -198,9 +198,8 @@ class SpellTool extends Tool {
         }
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onDown(): Promise<void> {
-        if (this.shape === undefined) return;
+    onDown(): Promise<void> {
+        if (this.shape === undefined) return Promise.resolve();
         const layer = floorState.currentLayer.value!;
 
         layer.removeShape(this.shape, {
@@ -212,11 +211,11 @@ class SpellTool extends Tool {
         layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NORMAL);
         this.shape = undefined;
         activateTool(ToolName.Select);
+        return Promise.resolve();
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onMove(lp: LocalPoint): Promise<void> {
-        if (this.shape === undefined) return;
+    onMove(lp: LocalPoint): Promise<void> {
+        if (this.shape === undefined) return Promise.resolve();
 
         const endPoint = l2g(lp);
         const layer = floorState.currentLayer.value!;
@@ -233,6 +232,7 @@ class SpellTool extends Tool {
             if (this.state.showPublic) sendShapePositionUpdate([this.shape], true);
             layer.invalidate(true);
         }
+        return Promise.resolve();
     }
 
     onContextMenu(): void {

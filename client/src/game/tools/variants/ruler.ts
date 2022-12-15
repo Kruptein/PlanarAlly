@@ -81,8 +81,7 @@ class RulerTool extends Tool {
 
     // EVENT HANDLERS
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onDown(lp: LocalPoint, event: MouseEvent | TouchEvent): Promise<void> {
+    onDown(lp: LocalPoint, event: MouseEvent | TouchEvent): Promise<void> {
         this.cleanup();
         this.startPoint = l2g(lp);
 
@@ -91,7 +90,7 @@ class RulerTool extends Tool {
         const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
         if (layer === undefined) {
             console.log("No draw layer!");
-            return;
+            return Promise.resolve();
         }
         this.active.value = true;
         this.createNewRuler(cloneP(this.startPoint), cloneP(this.startPoint));
@@ -112,18 +111,18 @@ class RulerTool extends Tool {
             NO_SYNC,
         );
         layer.addShape(this.text, this.syncMode, InvalidationMode.NORMAL);
+        return Promise.resolve();
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onMove(lp: LocalPoint, event: MouseEvent | TouchEvent): Promise<void> {
+    onMove(lp: LocalPoint, event: MouseEvent | TouchEvent): Promise<void> {
         let endPoint = l2g(lp);
         if (!this.active.value || this.rulers.length === 0 || this.startPoint === undefined || this.text === undefined)
-            return;
+            return Promise.resolve();
 
         const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
         if (layer === undefined) {
             console.log("No draw layer!");
-            return;
+            return Promise.resolve();
         }
 
         if (playerSettingsState.useSnapping(event)) [endPoint] = snapToGridPoint(endPoint);
@@ -154,11 +153,12 @@ class RulerTool extends Tool {
         this.text.angle = angle;
         sendShapePositionUpdate([this.text], true);
         layer.invalidate(true);
+        return Promise.resolve();
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onUp(): Promise<void> {
+    onUp(): Promise<void> {
         this.cleanup();
+        return Promise.resolve();
     }
 
     onKeyUp(event: KeyboardEvent, features: ToolFeatures): void {

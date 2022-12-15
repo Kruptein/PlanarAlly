@@ -91,10 +91,9 @@ class MapTool extends Tool {
         this.state.manualDrag = true;
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onDown(lp: LocalPoint): Promise<void> {
-        if (!this.state.manualDrag) return;
-        if (this.rect !== undefined || !selectedSystem.hasSelection) return;
+    onDown(lp: LocalPoint): Promise<void> {
+        if (!this.state.manualDrag) return Promise.resolve();
+        if (this.rect !== undefined || !selectedSystem.hasSelection) return Promise.resolve();
 
         const startPoint = l2g(lp);
 
@@ -116,11 +115,11 @@ class MapTool extends Tool {
         this.rect.preventSync = true;
         layer.addShape(this.rect, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         selectedSystem.set(this.rect.id);
+        return Promise.resolve();
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onMove(lp: LocalPoint): Promise<void> {
-        if (!this.active.value || this.rect === undefined || this.startPoint === undefined) return;
+    onMove(lp: LocalPoint): Promise<void> {
+        if (!this.active.value || this.rect === undefined || this.startPoint === undefined) return Promise.resolve();
 
         const endPoint = l2g(lp);
 
@@ -130,22 +129,23 @@ class MapTool extends Tool {
         this.rect.h = Math.abs(endPoint.y - this.startPoint.y);
         this.rect.refPoint = toGP(Math.min(this.startPoint.x, endPoint.x), Math.min(this.startPoint.y, endPoint.y));
         layer.invalidate(false);
+        return Promise.resolve();
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onUp(): Promise<void> {
-        if (!this.active.value || this.rect === undefined) return;
+    onUp(): Promise<void> {
+        if (!this.active.value || this.rect === undefined) return Promise.resolve();
 
         this.active.value = false;
 
         if (selectedSystem.$.value.size !== 1) {
             this.removeRect();
-            return;
+            return Promise.resolve();
         }
 
         this.permittedTools_ = [
             { name: ToolName.Select, features: { enabled: [SelectFeatures.Drag, SelectFeatures.Resize] } },
         ];
+        return Promise.resolve();
     }
 
     preview(temporary: boolean): void {

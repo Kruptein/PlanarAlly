@@ -12,6 +12,7 @@ tech changes will usually be stripped from release notes for the public
 ### Fixed
 
 -   Spell tool: spell on selection bugged
+-   Spell tool: fill colour behaving janky when border colour has <1 opacity
 
 ## [2022.3.0] - 2022-12-12
 

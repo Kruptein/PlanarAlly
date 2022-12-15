@@ -1,3 +1,4 @@
+import tinycolor from "tinycolor2";
 import { reactive, watch, watchEffect } from "vue";
 
 import { g2l, getUnitDistance, l2g, toRadians } from "../../../core/conversions";
@@ -115,7 +116,9 @@ class SpellTool extends Tool {
 
         if (this.shape === undefined) return;
 
-        propertiesSystem.setFillColour(this.shape.id, this.state.colour.replace(")", ", 0.7)"), NO_SYNC);
+        const c = tinycolor(this.state.colour);
+        c.setAlpha(c.getAlpha() * 0.7);
+        propertiesSystem.setFillColour(this.shape.id, c.toRgbString(), NO_SYNC);
         propertiesSystem.setStrokeColour(this.shape.id, this.state.colour, NO_SYNC);
 
         accessSystem.addAccess(

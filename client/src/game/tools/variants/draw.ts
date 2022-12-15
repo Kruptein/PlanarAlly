@@ -599,7 +599,7 @@ class DrawTool extends Tool {
         return Promise.resolve();
     }
 
-    onContextMenu(event: MouseEvent): void {
+    onContextMenu(event: MouseEvent): boolean {
         if (
             this.active.value &&
             this.shape !== undefined &&
@@ -609,7 +609,7 @@ class DrawTool extends Tool {
             const layer = this.getLayer();
             if (layer === undefined) {
                 console.log("No active layer!");
-                return;
+                return true;
             }
             layer.removeShape(this.ruler!, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
             this.ruler = undefined;
@@ -625,6 +625,7 @@ class DrawTool extends Tool {
         } else if (!this.active.value) {
             openDefaultContextMenu(event);
         }
+        return true;
     }
 
     onKeyUp(event: KeyboardEvent, features: ToolFeatures): void {

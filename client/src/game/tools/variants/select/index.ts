@@ -726,11 +726,11 @@ class SelectTool extends Tool implements ISelectTool {
         this.mode = SelectOperations.Noop;
     }
 
-    onContextMenu(event: MouseEvent, features: ToolFeatures<SelectFeatures>): void {
-        if (!this.hasFeature(SelectFeatures.Context, features)) return;
+    onContextMenu(event: MouseEvent, features: ToolFeatures<SelectFeatures>): boolean {
+        if (!this.hasFeature(SelectFeatures.Context, features)) return true;
         if (floorState.currentLayer.value === undefined) {
             console.log("No active layer!");
-            return;
+            return true;
         }
         const layer = floorState.currentLayer.value!;
         const layerSelection = selectedSystem.get({ includeComposites: false });
@@ -740,7 +740,7 @@ class SelectTool extends Tool implements ISelectTool {
             if (shape.contains(globalMouse)) {
                 layer.invalidate(true);
                 openShapeContextMenu(event);
-                return;
+                return true;
             }
         }
 
@@ -751,11 +751,12 @@ class SelectTool extends Tool implements ISelectTool {
                 selectedSystem.set(shape.id);
                 layer.invalidate(true);
                 openShapeContextMenu(event);
-                return;
+                return true;
             }
         }
         // Fallback to default context menu
         openDefaultContextMenu(event);
+        return true;
     }
 
     onKeyUp(event: KeyboardEvent, features: ToolFeatures): void {

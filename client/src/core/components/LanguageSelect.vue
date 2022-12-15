@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 
-const { availableLocales, locale, t } = useI18n({ useScope: "global" });
+const { locale, t } = useI18n({ useScope: "global" });
 
 function setLocale(event: Event): void {
     const newLocale = (event.target as HTMLSelectElement).value;
@@ -13,7 +13,7 @@ function setLocale(event: Event): void {
 <template>
     <select @change="setLocale">
         <option
-            v-for="availableLocale in availableLocales"
+            v-for="availableLocale in $i18n.availableLocales"
             :key="'locale-' + availableLocale"
             :value="availableLocale"
             :label="t('locale.' + availableLocale)"

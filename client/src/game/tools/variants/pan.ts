@@ -30,23 +30,22 @@ class PanTool extends Tool {
         sendClientLocationOptions(!full);
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onDown(lp: LocalPoint): Promise<void> {
+    onDown(lp: LocalPoint): Promise<void> {
         this.panStart = lp;
         this.active.value = true;
+        return Promise.resolve();
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onMove(lp: LocalPoint): Promise<void> {
-        if (!this.active.value) return;
-        this.panScreen(lp, false);
+    onMove(lp: LocalPoint): Promise<void> {
+        if (this.active.value) this.panScreen(lp, false);
+        return Promise.resolve();
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onUp(lp: LocalPoint): Promise<void> {
-        if (!this.active.value) return;
+    onUp(lp: LocalPoint): Promise<void> {
+        if (!this.active.value) return Promise.resolve();
         this.active.value = false;
         this.panScreen(lp, true);
+        return Promise.resolve();
     }
 }
 

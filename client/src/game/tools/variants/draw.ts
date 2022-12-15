@@ -282,10 +282,9 @@ class DrawTool extends Tool {
 
     // STATE HANDLERS
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onSelect(mouse?: { x: number; y: number }): Promise<void> {
+    onSelect(mouse?: { x: number; y: number }): Promise<void> {
         const layer = this.getLayer();
-        if (layer === undefined) return;
+        if (layer === undefined) return Promise.resolve();
         layer.canvas.parentElement!.style.cursor = "none";
         this.brushHelper = this.createBrush(toGP(mouse?.x ?? -1000, mouse?.y ?? -1000));
         layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL); // during mode change the shape is already added
@@ -295,6 +294,7 @@ class DrawTool extends Tool {
         const drawLayer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
         drawLayer!.addShape(this.pointer, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         drawLayer!.invalidate(true);
+        return Promise.resolve();
     }
 
     onDeselect(data?: { floor?: Floor; layer?: LayerName }): void {
@@ -479,13 +479,12 @@ class DrawTool extends Tool {
         }
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onMove(lp: LocalPoint, event: MouseEvent | TouchEvent): Promise<void> {
+    onMove(lp: LocalPoint, event: MouseEvent | TouchEvent): Promise<void> {
         let endPoint = l2g(lp);
         const layer = this.getLayer();
         if (layer === undefined) {
             console.log("No active layer!");
-            return;
+            return Promise.resolve();
         }
 
         if (playerSettingsState.useSnapping(event))
@@ -504,14 +503,14 @@ class DrawTool extends Tool {
             if (!this.active.value) layer.invalidate(false);
         }
 
-        if (!this.active.value || this.startPoint === undefined || this.shape === undefined) return;
+        if (!this.active.value || this.startPoint === undefined || this.shape === undefined) return Promise.resolve();
 
         switch (this.state.selectedShape) {
             case DrawShape.Square: {
                 const rect = this.shape as IRect;
                 const newW = Math.abs(endPoint.x - this.startPoint.x);
                 const newH = Math.abs(endPoint.y - this.startPoint.y);
-                if (newW === rect.w && newH === rect.h) return;
+                if (newW === rect.w && newH === rect.h) return Promise.resolve();
                 rect.w = newW;
                 rect.h = newH;
                 if (endPoint.x < this.startPoint.x || endPoint.y < this.startPoint.y) {
@@ -525,14 +524,14 @@ class DrawTool extends Tool {
             case DrawShape.Circle: {
                 const circ = this.shape as ICircle;
                 const newR = Math.abs(subtractP(endPoint, this.startPoint).length());
-                if (circ.r === newR) return;
+                if (circ.r === newR) return Promise.resolve();
                 circ.r = newR;
                 break;
             }
             case DrawShape.Brush: {
                 const br = this.shape as Polygon;
                 const points = br.points; // expensive call
-                if (equalPoints(points.at(-1)!, [endPoint.x, endPoint.y])) return;
+                if (equalPoints(points.at(-1)!, [endPoint.x, endPoint.y])) return Promise.resolve();
                 br.pushPoint(endPoint);
                 break;
             }
@@ -560,16 +559,16 @@ class DrawTool extends Tool {
             }
         }
         layer.invalidate(false);
+        return Promise.resolve();
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onUp(lp: LocalPoint, event: MouseEvent | TouchEvent): Promise<void> {
+    onUp(lp: LocalPoint, event: MouseEvent | TouchEvent): Promise<void> {
         if (
             !this.active.value ||
             this.shape === undefined ||
             (this.shape instanceof Polygon && this.state.selectedShape === DrawShape.Polygon)
         ) {
-            return;
+            return Promise.resolve();
         }
 
         let endPoint = l2g(lp);
@@ -597,6 +596,7 @@ class DrawTool extends Tool {
         }
 
         this.finaliseShape();
+        return Promise.resolve();
     }
 
     onContextMenu(event: MouseEvent): void {

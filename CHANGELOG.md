@@ -9,6 +9,12 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Changed
+
+-   Spell tool
+    -   range property is removed as it was confusing to people and a bit fiddly
+    -   a ruler is now automatically drawn between the spell shape and the selected shape
+
 ### Fixed
 
 -   Spell tool: spell on selection bugged

@@ -81,11 +81,11 @@ class RulerTool extends Tool {
 
     // EVENT HANDLERS
 
-    onDown(lp: LocalPoint, event: MouseEvent | TouchEvent): Promise<void> {
+    onDown(lp: LocalPoint, event: MouseEvent | TouchEvent | undefined): Promise<void> {
         this.cleanup();
         this.startPoint = l2g(lp);
 
-        if (playerSettingsState.useSnapping(event)) [this.startPoint] = snapToGridPoint(this.startPoint);
+        if (event && playerSettingsState.useSnapping(event)) [this.startPoint] = snapToGridPoint(this.startPoint);
 
         const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
         if (layer === undefined) {
@@ -114,7 +114,7 @@ class RulerTool extends Tool {
         return Promise.resolve();
     }
 
-    onMove(lp: LocalPoint, event: MouseEvent | TouchEvent): Promise<void> {
+    onMove(lp: LocalPoint, event: MouseEvent | TouchEvent | undefined): Promise<void> {
         let endPoint = l2g(lp);
         if (!this.active.value || this.rulers.length === 0 || this.startPoint === undefined || this.text === undefined)
             return Promise.resolve();
@@ -125,7 +125,7 @@ class RulerTool extends Tool {
             return Promise.resolve();
         }
 
-        if (playerSettingsState.useSnapping(event)) [endPoint] = snapToGridPoint(endPoint);
+        if (event && playerSettingsState.useSnapping(event)) [endPoint] = snapToGridPoint(endPoint);
 
         const ruler = this.rulers.at(-1)!;
         ruler.endPoint = endPoint;

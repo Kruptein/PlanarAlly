@@ -2,7 +2,7 @@ import tinycolor from "tinycolor2";
 import { reactive, watch, watchEffect } from "vue";
 
 import { g2l, getUnitDistance, l2g, toRadians } from "../../../core/conversions";
-import { equalsP, toGP } from "../../../core/geometry";
+import { toGP, toLP } from "../../../core/geometry";
 import type { LocalPoint } from "../../../core/geometry";
 import { InvalidationMode, NO_SYNC, SyncMode, UI_SYNC } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
@@ -21,7 +21,7 @@ import { propertiesSystem } from "../../systems/properties";
 import { selectedSystem } from "../../systems/selected";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
-import { activateTool } from "../tools";
+import { activateTool, toolMap } from "../tools";
 
 export enum SpellShape {
     Square = "square",
@@ -34,7 +34,6 @@ class SpellTool extends Tool {
     readonly toolTranslation = i18n.global.t("tool.Spell");
 
     shape?: IShape;
-    rangeShape?: Circle;
 
     state = reactive({
         selectedSpellShape: SpellShape.Square,
@@ -42,7 +41,6 @@ class SpellTool extends Tool {
 
         colour: "rgb(63, 127, 191)",
         size: 5,
-        range: 0,
     });
 
     get permittedTools(): ToolPermission[] {
@@ -59,12 +57,10 @@ class SpellTool extends Tool {
             },
         );
         watchEffect(() => {
-            if (this.state.range < 0) this.state.range = 0;
-            if (this.state.range > 0 && this.state.selectedSpellShape === SpellShape.Cone) {
+            if (selectedSystem.getFocus().value === undefined && this.state.selectedSpellShape === SpellShape.Cone) {
                 this.state.selectedSpellShape = SpellShape.Circle;
             }
             if (this.shape !== undefined) this.drawShape();
-            else if (this.rangeShape !== undefined) this.drawRangeShape();
         });
         watch(
             () => this.state.colour,
@@ -134,7 +130,7 @@ class SpellTool extends Tool {
             InvalidationMode.NORMAL,
         );
 
-        if (selectedSystem.hasSelection && (this.state.range === 0 || equalsP(startPosition, ogPoint))) {
+        if (this.state.selectedSpellShape === SpellShape.Cone) {
             const selection = selectedSystem.getFocus().value;
             if (selection === undefined) {
                 console.error("SpellTool: No selection found.");
@@ -152,24 +148,15 @@ class SpellTool extends Tool {
     }
 
     drawRangeShape(): void {
-        const layer = floorState.currentLayer.value!;
+        const focus = selectedSystem.getFocus().value;
 
-        if (this.rangeShape !== undefined) {
-            layer.removeShape(this.rangeShape, { sync: SyncMode.NO_SYNC, recalculate: false, dropShapeId: true });
-        }
+        if (focus === undefined || this.shape === undefined) return;
 
-        if (!selectedSystem.hasSelection || this.state.range === 0) return;
+        const focusShape = getShape(focus);
+        if (focusShape === undefined) return;
 
-        const selection = [...selectedSystem.$.value];
-        this.rangeShape = new Circle(
-            getShape(selection[0])!.center,
-            getUnitDistance(this.state.range),
-            {
-                isSnappable: false,
-            },
-            { fillColour: "rgba(0,0,0,0)", strokeColour: ["black"] },
-        );
-        layer.addShape(this.rangeShape, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
+        const ruler = toolMap[ToolName.Ruler];
+        ruler.onDown(g2l(focusShape.center), undefined, {});
     }
 
     onSelect(): Promise<void> {
@@ -181,39 +168,11 @@ class SpellTool extends Tool {
     }
 
     onDeselect(): void {
-        const layer = floorState.currentLayer.value!;
-
-        if (this.shape !== undefined) {
-            layer.removeShape(this.shape, {
-                sync: this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC,
-                recalculate: false,
-                dropShapeId: true,
-            });
-            this.shape = undefined;
-        }
-        if (this.rangeShape !== undefined) {
-            layer.removeShape(this.rangeShape, {
-                sync: this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC,
-                recalculate: false,
-                dropShapeId: true,
-            });
-            this.rangeShape = undefined;
-        }
+        this.close(true);
     }
 
     onDown(): Promise<void> {
-        if (this.shape === undefined) return Promise.resolve();
-        const layer = floorState.currentLayer.value!;
-
-        layer.removeShape(this.shape, {
-            sync: this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC,
-            recalculate: false,
-            dropShapeId: false,
-        });
-        propertiesSystem.setIsInvisible(this.shape.id, !this.state.showPublic, NO_SYNC);
-        layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NORMAL);
-        this.shape = undefined;
-        activateTool(ToolName.Select);
+        this.close(false);
         return Promise.resolve();
     }
 
@@ -223,34 +182,53 @@ class SpellTool extends Tool {
         const endPoint = l2g(lp);
         const layer = floorState.currentLayer.value!;
 
-        if (selectedSystem.hasSelection && this.state.range === 0) {
-            if (this.state.selectedSpellShape === SpellShape.Cone) {
-                const center = g2l(this.shape.center);
-                (this.shape as ICircle).angle = -Math.atan2(lp.y - center.y, center.x - lp.x) + Math.PI;
-                if (this.state.showPublic) sendShapePositionUpdate([this.shape], true);
-                layer.invalidate(true);
-            }
+        if (this.state.selectedSpellShape === SpellShape.Cone) {
+            const center = g2l(this.shape.center);
+            (this.shape as ICircle).angle = -Math.atan2(lp.y - center.y, center.x - lp.x) + Math.PI;
+            if (this.state.showPublic) sendShapePositionUpdate([this.shape], true);
+            layer.invalidate(true);
         } else {
             this.shape.center = endPoint;
             if (this.state.showPublic) sendShapePositionUpdate([this.shape], true);
+
+            const focus = selectedSystem.getFocus().value;
+
+            if (focus !== undefined && this.shape !== undefined) {
+                const ruler = toolMap[ToolName.Ruler];
+                ruler.onMove(g2l(this.shape.center), undefined, {});
+            }
+
             layer.invalidate(true);
         }
         return Promise.resolve();
     }
 
     onContextMenu(): boolean {
+        this.close(true);
+        return false;
+    }
+
+    close(dropShapeId: boolean): void {
         if (this.shape !== undefined) {
-            const layer = floorState.currentLayer.value!;
+            const layer = floorState.currentLayer.value;
+            if (layer === undefined) return;
 
             layer.removeShape(this.shape, {
                 sync: this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC,
                 recalculate: false,
-                dropShapeId: true,
+                dropShapeId,
             });
+
+            if (!dropShapeId) {
+                propertiesSystem.setIsInvisible(this.shape.id, !this.state.showPublic, NO_SYNC);
+                layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NORMAL);
+            }
             this.shape = undefined;
+
+            const ruler = toolMap[ToolName.Ruler];
+            ruler.onUp(toLP(0, 0), undefined, {});
         }
         activateTool(ToolName.Select);
-        return false;
     }
 }
 

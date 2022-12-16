@@ -15,6 +15,7 @@ tech changes will usually be stripped from release notes for the public
 -   Spell tool: fill colour behaving janky when border colour has <1 opacity
 -   Spell tool: right-click was opening the context-menu
 -   Spell tool: once used, the select tool was not being properly activated
+-   Spell tool: the 'is public' label was wrongly attached to the range input box
 
 ## [2022.3.0] - 2022-12-12
 

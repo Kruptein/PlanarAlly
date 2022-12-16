@@ -74,8 +74,9 @@ function selectShape(shape: SpellShape): void {
                 v-model:colour="spellTool.state.colour"
                 :title="t('game.ui.tools.DrawTool.background_color')"
             />
-            <label for="range" style="flex: 5">{{ t("game.ui.selection.edit_dialog.dialog.show_annotation") }}</label>
+            <label for="public" style="flex: 5">{{ t("game.ui.selection.edit_dialog.dialog.show_annotation") }}</label>
             <button
+                id="public"
                 class="slider-checkbox"
                 :aria-pressed="spellTool.state.showPublic"
                 @click="spellTool.state.showPublic = !spellTool.state.showPublic"

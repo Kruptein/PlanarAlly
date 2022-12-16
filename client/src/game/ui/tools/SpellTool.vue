@@ -13,7 +13,7 @@ const selected = spellTool.isActiveTool;
 const selection = selectedSystem.$;
 const shapes = Object.values(SpellShape);
 
-const canConeBeCast = computed(() => selection.value.size > 0 && spellTool.state.range === 0);
+const canConeBeCast = computed(() => selection.value.size > 0);
 
 const translationMapping = {
     [SpellShape.Square]: t("game.ui.tools.DrawTool.square"),
@@ -54,19 +54,6 @@ function selectShape(shape: SpellShape): void {
                 v-model.number="spellTool.state.size"
                 min="0"
                 step="5"
-            />
-            <label for="range" style="flex: 5" :class="{ disabled: selection.size === 0 }">
-                {{ t("game.ui.tools.SpellTool.range") }}
-            </label>
-            <input
-                type="number"
-                id="range"
-                style="flex: 1; align-self: center"
-                min="0"
-                step="5"
-                v-model.number="spellTool.state.range"
-                :disabled="selection.size === 0"
-                :class="{ disabled: selection.size === 0 }"
             />
             <label for="colour" style="flex: 5">{{ t("common.fill_color") }}</label>
             <ColourPicker

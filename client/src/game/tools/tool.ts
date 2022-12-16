@@ -64,13 +64,13 @@ export abstract class Tool implements ITool {
         return Promise.resolve();
     }
     onDeselect(): void {}
-    onDown(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): Promise<void> {
+    onDown(_lp: LocalPoint, _event: MouseEvent | TouchEvent | undefined, _features: ToolFeatures): Promise<void> {
         return Promise.resolve();
     }
-    onUp(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): Promise<void> {
+    onUp(_lp: LocalPoint, _event: MouseEvent | TouchEvent | undefined, _features: ToolFeatures): Promise<void> {
         return Promise.resolve();
     }
-    onMove(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): Promise<void> {
+    onMove(_lp: LocalPoint, _event: MouseEvent | TouchEvent | undefined, _features: ToolFeatures): Promise<void> {
         return Promise.resolve();
     }
 

@@ -1,5 +1,7 @@
 import type { Ref } from "vue";
 
+import type { LocalPoint } from "../../core/geometry";
+
 export enum ToolName {
     Select = "Select",
     Pan = "Pan",
@@ -55,6 +57,10 @@ export interface ITool {
     onPinchEnd(event: TouchEvent, features: ToolFeatures): void;
 
     onContextMenu(event: MouseEvent, features: ToolFeatures): boolean;
+
+    onDown(_lp: LocalPoint, _event: MouseEvent | TouchEvent | undefined, _features: ToolFeatures): Promise<void>;
+    onMove(_lp: LocalPoint, _event: MouseEvent | TouchEvent | undefined, _features: ToolFeatures): Promise<void>;
+    onUp(_lp: LocalPoint, _event: MouseEvent | TouchEvent | undefined, _features: ToolFeatures): Promise<void>;
 }
 
 export interface ISelectTool extends ITool {

@@ -18,6 +18,7 @@ import "./events/player/options";
 import "./events/player/player";
 import "./events/player/players";
 import "./events/room";
+import "./events/shape/asset";
 import "./events/shape/circularToken";
 import "./events/shape/core";
 import "./events/shape/options";

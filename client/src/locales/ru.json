@@ -164,7 +164,6 @@
                         "dim_value": "Dim value",
                         "toggle_light_source": "Переключить источник света",
                         "delete_aura": "Удалить ауру",
-                        "edit_asset": "Редактировать объект",
                         "is_a_token": "Это токен",
                         "is_invisible": "Невидимо",
                         "is_locked": "Заблокировано",

@@ -11,7 +11,7 @@ import { getShape } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import type { ICircle } from "../../interfaces/shapes/circle";
 import { ToolName } from "../../models/tools";
-import type { ToolPermission } from "../../models/tools";
+import type { ITool, ToolPermission } from "../../models/tools";
 import { Circle } from "../../shapes/variants/circle";
 import { Rect } from "../../shapes/variants/rect";
 import { accessSystem } from "../../systems/access";
@@ -29,7 +29,7 @@ export enum SpellShape {
     Cone = "cone",
 }
 
-class SpellTool extends Tool {
+class SpellTool extends Tool implements ITool {
     readonly toolName = ToolName.Spell;
     readonly toolTranslation = i18n.global.t("tool.Spell");
 

@@ -9,7 +9,7 @@ import { i18n } from "../../../i18n";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { LayerName } from "../../models/floor";
 import { ToolName } from "../../models/tools";
-import type { ToolFeatures, ToolPermission } from "../../models/tools";
+import type { ITool, ToolFeatures, ToolPermission } from "../../models/tools";
 import { Line } from "../../shapes/variants/line";
 import { Text } from "../../shapes/variants/text";
 import { accessSystem } from "../../systems/access";
@@ -26,7 +26,7 @@ export enum RulerFeatures {
     All,
 }
 
-class RulerTool extends Tool {
+class RulerTool extends Tool implements ITool {
     readonly toolName = ToolName.Ruler;
     readonly toolTranslation = i18n.global.t("tool.Ruler");
 

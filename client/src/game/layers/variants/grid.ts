@@ -1,3 +1,4 @@
+import type { IGridLayer } from "../../interfaces/layers/grid";
 import { floorState } from "../../systems/floors/state";
 import { DEFAULT_GRID_SIZE, positionState } from "../../systems/position/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
@@ -5,7 +6,7 @@ import { playerSettingsState } from "../../systems/settings/players/state";
 
 import { Layer } from "./layer";
 
-export class GridLayer extends Layer {
+export class GridLayer extends Layer implements IGridLayer {
     invalidate(): void {
         this.valid = false;
     }

@@ -5,6 +5,7 @@ import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { FOG_COLOUR } from "../../colour";
 import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
+import type { IAsset } from "../../interfaces/shapes/asset";
 import { LayerName } from "../../models/floor";
 import type { ServerAsset } from "../../models/shapes";
 import { loadSvgData } from "../../svg";
@@ -16,7 +17,7 @@ import type { SHAPE_TYPE } from "../types";
 import { BaseRect } from "./baseRect";
 import { Polygon } from "./polygon";
 
-export class Asset extends BaseRect {
+export class Asset extends BaseRect implements IAsset {
     type: SHAPE_TYPE = "assetrect";
     img: HTMLImageElement;
     src = "";

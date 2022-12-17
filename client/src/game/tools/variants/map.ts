@@ -9,7 +9,7 @@ import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/sh
 import type { IShape } from "../../interfaces/shape";
 import type { IRect } from "../../interfaces/shapes/rect";
 import { ToolName } from "../../models/tools";
-import type { ToolPermission } from "../../models/tools";
+import type { ITool, ToolPermission } from "../../models/tools";
 import { Rect } from "../../shapes/variants/rect";
 import { floorState } from "../../systems/floors/state";
 import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
@@ -17,7 +17,7 @@ import { selectedSystem } from "../../systems/selected";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
 
-class MapTool extends Tool {
+class MapTool extends Tool implements ITool {
     readonly toolName = ToolName.Map;
     readonly toolTranslation = i18n.global.t("tool.Map");
 

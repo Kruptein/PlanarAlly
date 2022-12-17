@@ -10,14 +10,14 @@ import { i18n } from "../../../i18n";
 import { coreStore } from "../../../store/core";
 import { diceStore } from "../../dice/state";
 import { ToolName } from "../../models/tools";
-import type { ToolPermission } from "../../models/tools";
+import type { ITool, ToolPermission } from "../../models/tools";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
 
 const hasGameboard = coreStore.state.boardId !== undefined;
 
-class DiceTool extends Tool {
+class DiceTool extends Tool implements ITool {
     readonly toolName = ToolName.Dice;
     readonly toolTranslation = i18n.global.t("tool.Dice");
 

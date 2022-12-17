@@ -10,6 +10,7 @@ module.exports = {
         "@typescript-eslint/consistent-type-imports": 2,
         "@typescript-eslint/explicit-function-return-type": [2, { allowExpressions: true }],
         "@typescript-eslint/explicit-member-accessibility": [2, { accessibility: "no-public" }],
+        "@typescript-eslint/method-signature-style": "error",
         "@typescript-eslint/no-angle-bracket-type-assertion": "off",
         "@typescript-eslint/no-empty-function": "off",
         "@typescript-eslint/no-explicit-any": "off",

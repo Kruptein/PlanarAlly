@@ -34,35 +34,35 @@ export interface ITool {
 
     permittedTools: ToolPermission[];
 
-    onToolsModeChange(mode: ToolMode, features: ToolFeatures): void;
-    onPanStart(): void;
-    onPanEnd(): void;
+    onToolsModeChange: (mode: ToolMode, features: ToolFeatures) => void;
+    onPanStart: () => void;
+    onPanEnd: () => void;
 
-    onSelect(): void;
-    onDeselect(): void;
+    onSelect: () => void;
+    onDeselect: () => void;
 
-    onKeyUp(event: KeyboardEvent, features: ToolFeatures): void;
+    onKeyUp: (event: KeyboardEvent, features: ToolFeatures) => void;
 
-    onMouseUp(event: MouseEvent, features: ToolFeatures): Promise<void>;
-    onMouseMove(event: MouseEvent, features: ToolFeatures): Promise<void>;
-    onMouseDown(event: MouseEvent, features: ToolFeatures): void;
+    onMouseUp: (event: MouseEvent, features: ToolFeatures) => Promise<void>;
+    onMouseMove: (event: MouseEvent, features: ToolFeatures) => Promise<void>;
+    onMouseDown: (event: MouseEvent, features: ToolFeatures) => void;
 
-    onTouchStart(event: TouchEvent, features: ToolFeatures): void;
-    onThreeTouchMove(event: TouchEvent, features: ToolFeatures): void;
-    onTouchMove(event: TouchEvent, features: ToolFeatures): Promise<void>;
-    onTouchEnd(event: TouchEvent, features: ToolFeatures): void;
+    onTouchStart: (event: TouchEvent, features: ToolFeatures) => void;
+    onThreeTouchMove: (event: TouchEvent, features: ToolFeatures) => void;
+    onTouchMove: (event: TouchEvent, features: ToolFeatures) => Promise<void>;
+    onTouchEnd: (event: TouchEvent, features: ToolFeatures) => void;
 
-    onPinchStart(event: TouchEvent, features: ToolFeatures): void;
-    onPinchMove(event: TouchEvent, features: ToolFeatures): void;
-    onPinchEnd(event: TouchEvent, features: ToolFeatures): void;
+    onPinchStart: (event: TouchEvent, features: ToolFeatures) => void;
+    onPinchMove: (event: TouchEvent, features: ToolFeatures) => void;
+    onPinchEnd: (event: TouchEvent, features: ToolFeatures) => void;
 
-    onContextMenu(event: MouseEvent, features: ToolFeatures): boolean;
+    onContextMenu: (event: MouseEvent, features: ToolFeatures) => boolean;
 
-    onDown(_lp: LocalPoint, _event: MouseEvent | TouchEvent | undefined, _features: ToolFeatures): Promise<void>;
-    onMove(_lp: LocalPoint, _event: MouseEvent | TouchEvent | undefined, _features: ToolFeatures): Promise<void>;
-    onUp(_lp: LocalPoint, _event: MouseEvent | TouchEvent | undefined, _features: ToolFeatures): Promise<void>;
+    onDown: (_lp: LocalPoint, _event: MouseEvent | TouchEvent | undefined, _features: ToolFeatures) => Promise<void>;
+    onMove: (_lp: LocalPoint, _event: MouseEvent | TouchEvent | undefined, _features: ToolFeatures) => Promise<void>;
+    onUp: (_lp: LocalPoint, _event: MouseEvent | TouchEvent | undefined, _features: ToolFeatures) => Promise<void>;
 }
 
 export interface ISelectTool extends ITool {
-    resetRotationHelper(): void;
+    resetRotationHelper: () => void;
 }

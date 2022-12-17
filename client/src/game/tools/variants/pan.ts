@@ -3,14 +3,14 @@ import type { LocalPoint } from "../../../core/geometry";
 import { i18n } from "../../../i18n";
 import { sendClientLocationOptions } from "../../api/emits/client";
 import { ToolName } from "../../models/tools";
-import type { ToolPermission } from "../../models/tools";
+import type { ITool, ToolPermission } from "../../models/tools";
 import { floorSystem } from "../../systems/floors";
 import { positionSystem } from "../../systems/position";
 import { positionState } from "../../systems/position/state";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
 
-class PanTool extends Tool {
+class PanTool extends Tool implements ITool {
     readonly toolName = ToolName.Pan;
     readonly toolTranslation = i18n.global.t("tool.Pan");
 

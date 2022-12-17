@@ -3,6 +3,7 @@ import { addP, subtractP, toArrayP, toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { rotateAroundPoint } from "../../../core/math";
 import type { GlobalId, LocalId } from "../../id";
+import type { IShape } from "../../interfaces/shape";
 import type { ServerLine } from "../../models/shapes";
 import { getProperties } from "../../systems/properties/state";
 import type { ShapeProperties } from "../../systems/properties/state";
@@ -11,7 +12,7 @@ import type { SHAPE_TYPE } from "../types";
 
 import { BoundingRect } from "./simple/boundingRect";
 
-export class Line extends Shape {
+export class Line extends Shape implements IShape {
     type: SHAPE_TYPE = "line";
     private _endPoint: GlobalPoint;
     lineWidth: number;

@@ -9,6 +9,10 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Added
+
+-   Button to change the current asset for a shape to the shape property settings
+
 ### Changed
 
 -   Spell tool

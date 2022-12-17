@@ -3,18 +3,23 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../../core/components/ColourPicker.vue";
+import { baseAdjust } from "../../../../core/http";
 import { NO_SYNC, SERVER_SYNC, SyncMode } from "../../../../core/models/types";
+import { useModal } from "../../../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { getShape } from "../../../id";
 import type { IText } from "../../../interfaces/shapes/text";
+import type { Asset } from "../../../shapes/variants/asset";
 import type { CircularToken } from "../../../shapes/variants/circularToken";
 import { accessState } from "../../../systems/access/state";
 import { propertiesSystem } from "../../../systems/properties";
 import { getProperties, propertiesState } from "../../../systems/properties/state";
 
 const { t } = useI18n();
+const modals = useModal();
 
 const owned = accessState.hasEditAccess;
+const isAsset = computed(() => activeShapeStore.state.type === "assetrect");
 
 function updateName(event: Event): void {
     if (!owned.value) return;
@@ -103,6 +108,16 @@ function setValue(event: Event): void {
         }
         shape?.invalidate(true);
     }
+}
+
+async function changeAsset(): Promise<void> {
+    if (!owned.value) return;
+    if (activeShapeStore.state.id === undefined) return;
+    const data = await modals.assetPicker();
+    if (data === undefined || data.file_hash === undefined) return;
+    const shape = getShape(activeShapeStore.state.id);
+    if (shape === undefined || shape.type !== "assetrect") return;
+    (shape as Asset).setImage(baseAdjust(`/static/assets/${data.file_hash}`), true);
 }
 </script>
 
@@ -198,6 +213,10 @@ function setValue(event: Event): void {
                 :disabled="!owned"
             />
         </div>
+        <div v-if="isAsset" class="row">
+            <label></label>
+            <button @click="changeAsset">Change asset</button>
+        </div>
         <div class="spanrow header">Advanced</div>
         <div class="row">
             <label for="shapeselectiondialog-visionblocker">
@@ -280,5 +299,10 @@ input[type="checkbox"] {
     margin: 0 8px 0 8px;
     white-space: nowrap;
     display: inline-block;
+}
+
+button {
+    grid-column: 2/4;
+    justify-self: flex-end;
 }
 </style>

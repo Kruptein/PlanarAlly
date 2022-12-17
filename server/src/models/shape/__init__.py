@@ -336,7 +336,7 @@ class BaseRect(ShapeType):
 
 
 class AssetRect(BaseRect):
-    src = TextField()
+    src = cast(str, TextField())
 
 
 class Circle(ShapeType):

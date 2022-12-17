@@ -2,6 +2,7 @@ import { g2l, g2lz } from "../../../core/conversions";
 import { toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
+import { sendAssetRectImageChange } from "../../api/emits/shape/asset";
 import { FOG_COLOUR } from "../../colour";
 import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
@@ -113,5 +114,15 @@ export class Asset extends BaseRect implements IAsset {
             }
         }
         super.drawPost(ctx);
+    }
+
+    setImage(url: string, sync: boolean): void {
+        this.#loaded = false;
+        this.src = url;
+        this.img.src = url;
+        this.img.onload = () => {
+            this.setLoaded();
+        };
+        if (sync) sendAssetRectImageChange({ uuid: getGlobalId(this.id), src: url });
     }
 }

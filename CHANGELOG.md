@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 [server] denotes changes only useful for the server owner\
 [tech] denotes internal changes that are only useful for code contributors\
 tech changes will usually be stripped from release notes for the public
+[lang] this is a change to some translation string
 
 ## Unreleased
 
@@ -18,6 +19,7 @@ tech changes will usually be stripped from release notes for the public
 -   Spell tool
     -   range property is removed as it was confusing to people and a bit fiddly
     -   a ruler is now automatically drawn between the spell shape and the selected shape
+-   [lang] The edit dialog for shapes now properly says "Edit shape" instead of "Edit asset"
 
 ### Fixed
 

@@ -15,6 +15,7 @@ import {
     sendInitiativeClear,
     sendInitiativeReorder,
     sendInitiativeSetSort,
+    sendInitiativeActive,
 } from "../../api/emits/initiative";
 import { getGlobalId, getLocalId, getShape } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
@@ -43,6 +44,8 @@ interface InitiativeState {
     sort: InitiativeSort;
 
     editLock: GlobalId | undefined;
+
+    isActive: boolean;
 }
 
 class InitiativeStore extends Store<InitiativeState> {
@@ -61,6 +64,8 @@ class InitiativeStore extends Store<InitiativeState> {
             sort: InitiativeSort.Down,
 
             editLock: undefined,
+
+            isActive: false,
         };
     }
 
@@ -82,6 +87,7 @@ class InitiativeStore extends Store<InitiativeState> {
         if (this._state.editLock !== undefined) this._state.newData = initiativeData;
         else this._state.locationData = initiativeData;
 
+        this.setActive(data.isActive);
         this.setRoundCounter(data.round, false);
         this.setTurnCounter(data.turn, false);
         this._state.sort = data.sort;
@@ -90,6 +96,27 @@ class InitiativeStore extends Store<InitiativeState> {
     // Ideally we get rid of this
     _forceUpdate(): void {
         this._state.locationData = [...this._state.locationData];
+    }
+
+    // ACTIVE
+
+    setActive(isActive: boolean): void {
+        this._state.isActive = isActive;
+        if (playerSettingsState.raw.initiativeOpenOnActivate.value) this.show(isActive);
+        if (isActive) {
+            if (accessState.raw.activeTokenFilters === undefined) activeTokensBackup = undefined;
+            else activeTokensBackup = new Set(accessState.raw.activeTokenFilters);
+            this.handleCameraLock();
+            this.handleVisionLock();
+        } else {
+            if (activeTokensBackup === undefined) accessSystem.unsetActiveTokens();
+            else accessSystem.setActiveTokens(...activeTokensBackup.values());
+        }
+    }
+
+    toggleActive(): void {
+        this.setActive(!this._state.isActive);
+        sendInitiativeActive(this._state.isActive);
     }
 
     // PURE INITIATIVE
@@ -268,7 +295,7 @@ class InitiativeStore extends Store<InitiativeState> {
     handleCameraLock(): void {
         if (playerSettingsState.raw.initiativeCameraLock.value) {
             const actor = this.getDataSet()[this._state.turnCounter];
-            if (actor.localId === undefined) return;
+            if (actor?.localId === undefined) return;
             if (accessSystem.hasAccessTo(actor.localId, false, { vision: true }) ?? false) {
                 const shape = getShape(actor.localId);
                 if (shape === undefined) return;
@@ -279,19 +306,13 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     handleVisionLock(): void {
-        if (playerSettingsState.raw.initiativeVisionLock.value) {
+        if (this._state.isActive && playerSettingsState.raw.initiativeVisionLock.value) {
             const actor = this.getDataSet()[this._state.turnCounter];
-            if (actor.localId === undefined) return;
-            if (accessState.raw.activeTokenFilters === undefined) activeTokensBackup = undefined;
-            else activeTokensBackup = new Set(accessState.raw.activeTokenFilters);
-            if (accessState.raw.ownedTokens.has(actor.localId)) {
+            if (actor?.localId !== undefined && accessState.raw.ownedTokens.has(actor.localId)) {
                 accessSystem.setActiveTokens(actor.localId);
             } else {
                 accessSystem.unsetActiveTokens();
             }
-        } else {
-            if (activeTokensBackup === undefined) accessSystem.unsetActiveTokens();
-            else accessSystem.setActiveTokens(...activeTokensBackup.values());
         }
     }
 

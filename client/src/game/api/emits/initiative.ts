@@ -3,6 +3,7 @@ import type { InitiativeEffect, InitiativeSort, RawInitiativeData } from "../../
 import { wrapSocket } from "../helpers";
 import { socket } from "../socket";
 
+export const sendInitiativeActive = wrapSocket<boolean>("Initiative.Active.Set");
 export const sendInitiativeAdd = wrapSocket<RawInitiativeData>("Initiative.Add");
 export const sendInitiativeRemove = wrapSocket<GlobalId>("Initiative.Remove");
 export const sendInitiativeSetValue = wrapSocket<{ shape: GlobalId; value: number }>("Initiative.Value.Set");

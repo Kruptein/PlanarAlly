@@ -33,6 +33,7 @@ export type InitiativeSettings = {
     turn: number;
     sort: InitiativeSort;
     data: RawInitiativeData[];
+    isActive: boolean;
 };
 
 export enum InitiativeEffectMode {

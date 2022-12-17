@@ -15,6 +15,13 @@ tech changes will usually be stripped from release notes for the public
 -   Button to change the current asset for a shape to the shape property settings
 -   [DM] Quick access togglebar under the tool bar
     -   Fake Player
+    -   Initiative active state (see below)
+-   Initiative now has a specific "active" state
+    -   This streamlines some things and allows some further future things without relying on the initiative window being open
+    -   The Initiative vision lock setting now only triggers when initiative is active
+    -   The above setting now also properly reverts to the original vision lock when initiative is no longer active as was always intended
+    -   The initiative UI is automatically opened for everybody once initiative is started. (and automatically closed as well)
+    -   The above behaviour can be disabled by a new user setting.
 
 ### Changed
 

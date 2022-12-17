@@ -13,6 +13,8 @@ tech changes will usually be stripped from release notes for the public
 ### Added
 
 -   Button to change the current asset for a shape to the shape property settings
+-   [DM] Quick access togglebar under the tool bar
+    -   Fake Player
 
 ### Changed
 

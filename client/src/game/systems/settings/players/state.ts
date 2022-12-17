@@ -33,6 +33,7 @@ const state = buildState<PlayerState, "gridSize">({
     initiativeCameraLock: init(false),
     initiativeVisionLock: init(false),
     initiativeEffectVisibility: init(InitiativeEffectMode.ActiveAndHover),
+    initiativeOpenOnActivate: init(true),
 
     renderAllFloors: init(true),
 });

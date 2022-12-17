@@ -255,6 +255,7 @@
                         "mouse_pan_mode_3": "Both"
                     },
                     "InitiativeSettings": {
+                        "open_on_activate": "Open automatically when initiative is started",
                         "camera_lock": "Lock camera to active (owned) tokens",
                         "vision_lock": "Lock vision to active (owned) tokens",
                         "effect_visibility": "When to show effects",

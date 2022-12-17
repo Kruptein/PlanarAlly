@@ -97,6 +97,10 @@ socket.on("Player.Options.Set", (options: ServerPlayerInfo) => {
         sync: false,
         default: defaultOptions.initiativeEffectVisibility,
     });
+    playerSettingsSystem.setInitiativeOpenOnActivate(roomOptions?.initiativeOpenOnActivate, {
+        sync: false,
+        default: defaultOptions.initiativeOpenOnActivate,
+    });
 
     // Performance
 

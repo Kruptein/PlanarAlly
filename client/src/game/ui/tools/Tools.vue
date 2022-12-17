@@ -11,6 +11,7 @@ import { ToolMode, ToolName } from "../../models/tools";
 import { accessState } from "../../systems/access/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { activeModeTools, activeTool, activeToolMode, dmTools, toggleActiveMode, toolMap } from "../../tools/tools";
+import { initiativeStore } from "../initiative/state";
 
 import DiceTool from "./DiceTool.vue";
 import DrawTool from "./DrawTool.vue";
@@ -128,7 +129,16 @@ function toggleFakePlayer(): void {
             </ul>
             <div v-if="!hasGameboard" id="tool-status">
                 <div id="tool-status-toggles" v-if="getGameState().isDm || getGameState().isFakePlayer">
-                    <div :class="{ active: fakePlayerActive }" @click="toggleFakePlayer">FP</div>
+                    <div :class="{ active: fakePlayerActive }" @click="toggleFakePlayer" title="Toggle fake-player">
+                        FP
+                    </div>
+                    <div
+                        :class="{ active: initiativeStore.state.isActive }"
+                        @click="initiativeStore.toggleActive"
+                        title="Toggle Initiative State"
+                    >
+                        INI
+                    </div>
                 </div>
                 <div style="flex-grow: 1"></div>
                 <div id="tool-status-modes" @click="toggleActiveMode" :title="t('game.ui.tools.tools.change_mode')">

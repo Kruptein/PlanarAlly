@@ -4,6 +4,7 @@ import { initiativeStore } from "../../ui/initiative/state";
 import { socket } from "../socket";
 
 socket.on("Initiative.Set", (data: InitiativeSettings) => initiativeStore.setData(data));
+socket.on("Initiative.Active.Set", (isActive: boolean) => initiativeStore.setActive(isActive));
 socket.on("Initiative.Value.Set", (data: { shape: GlobalId; value: number }) =>
     initiativeStore.setInitiative(data.shape, data.value, false),
 );

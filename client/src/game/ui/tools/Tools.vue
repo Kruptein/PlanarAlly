@@ -6,6 +6,7 @@ import { useI18n } from "vue-i18n";
 import { baseAdjust } from "../../../core/http";
 import { getGameState } from "../../../store/_game";
 import { coreStore } from "../../../store/core";
+import { gameStore } from "../../../store/game";
 import { ToolMode, ToolName } from "../../models/tools";
 import { accessState } from "../../systems/access/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
@@ -28,6 +29,8 @@ const hasGameboard = coreStore.state.boardId !== undefined;
 const detailBottom = computed(() => (playerSettingsState.reactive.useToolIcons.value ? "7.8rem" : "6.6rem"));
 const detailRight = ref("0px");
 const detailArrow = ref("0px");
+
+const fakePlayerActive = computed(() => getGameState().isFakePlayer);
 
 const visibleTools = computed(() => {
     {
@@ -93,6 +96,10 @@ const toolModes = computed(() => {
         { name: t("tool.Play"), style: getStyle(ToolMode.Play) },
     ];
 });
+
+function toggleFakePlayer(): void {
+    gameStore.setFakePlayer(!fakePlayerActive.value);
+}
 </script>
 
 <template>
@@ -119,10 +126,14 @@ const toolModes = computed(() => {
                 </li>
                 <li id="tool-mode"></li>
             </ul>
-            <div id="tool-mode-full" @click="toggleActiveMode" :title="t('game.ui.tools.tools.change_mode')">
-                <template v-if="!hasGameboard">
+            <div v-if="!hasGameboard" id="tool-status">
+                <div id="tool-status-toggles" v-if="getGameState().isDm || getGameState().isFakePlayer">
+                    <div :class="{ active: fakePlayerActive }" @click="toggleFakePlayer">FP</div>
+                </div>
+                <div style="flex-grow: 1"></div>
+                <div id="tool-status-modes" @click="toggleActiveMode" :title="t('game.ui.tools.tools.change_mode')">
                     <span v-for="mode of toolModes" :style="mode.style" :key="mode.name">{{ mode.name }}</span>
-                </template>
+                </div>
             </div>
         </div>
         <div>
@@ -147,11 +158,10 @@ const toolModes = computed(() => {
 
 #toolselect {
     position: absolute;
-    bottom: 15px;
+    bottom: 0.8rem;
     right: 25px;
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
 
     * {
         user-select: none !important;
@@ -192,13 +202,40 @@ const toolModes = computed(() => {
         }
     }
 
-    #tool-mode-full {
-        background-color: cadetblue;
-        padding: 0.3em 0.75em;
-        border-radius: 0 0 10px 10px;
+    #tool-status {
+        display: flex;
 
-        span + span {
-            padding-left: 10px;
+        #tool-status-toggles {
+            padding-top: 0.3em;
+            display: flex;
+
+            > div {
+                margin: 0 0.5rem;
+                background-color: rgba(0, 0, 0, 0.25);
+                padding: 5px;
+                border-radius: 7px;
+                border: solid 2px white;
+                color: white;
+
+                &:hover {
+                    cursor: pointer;
+                }
+
+                &.active {
+                    border-color: #39ff14;
+                    color: #39ff14;
+                }
+            }
+        }
+
+        #tool-status-modes {
+            background-color: cadetblue;
+            padding: 0.3em 0.75em;
+            border-radius: 0 0 10px 10px;
+
+            span + span {
+                padding-left: 10px;
+            }
         }
     }
 }

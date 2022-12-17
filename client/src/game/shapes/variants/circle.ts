@@ -4,6 +4,7 @@ import type { GlobalPoint } from "../../../core/geometry";
 import { FOG_COLOUR } from "../../colour";
 import { calculateDelta } from "../../drag";
 import type { GlobalId, LocalId } from "../../id";
+import type { IShape } from "../../interfaces/shape";
 import type { ServerCircle } from "../../models/shapes";
 import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
 import { getProperties } from "../../systems/properties/state";
@@ -13,7 +14,7 @@ import type { SHAPE_TYPE } from "../types";
 
 import { BoundingRect } from "./simple/boundingRect";
 
-export class Circle extends Shape {
+export class Circle extends Shape implements IShape {
     type: SHAPE_TYPE = "circle";
     private _r: number;
     // circle if 360 otherwise a cone

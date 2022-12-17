@@ -8,6 +8,7 @@ import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { FOG_COLOUR } from "../../colour";
 import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
+import type { IShape } from "../../interfaces/shape";
 import type { ServerPolygon } from "../../models/shapes";
 import type { AuraId } from "../../systems/auras/models";
 import { getProperties } from "../../systems/properties/state";
@@ -19,7 +20,7 @@ import type { SHAPE_TYPE } from "../types";
 
 import { BoundingRect } from "./simple/boundingRect";
 
-export class Polygon extends Shape {
+export class Polygon extends Shape implements IShape {
     type: SHAPE_TYPE = "polygon";
     private _vertices: GlobalPoint[] = [];
     openPolygon = false;

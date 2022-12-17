@@ -6,6 +6,7 @@ import { SyncMode } from "../../../core/models/types";
 import { sendTextUpdate } from "../../api/emits/shape/text";
 import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
+import type { IText } from "../../interfaces/shapes/text";
 import type { ServerText } from "../../models/shapes";
 import { getProperties } from "../../systems/properties/state";
 import type { ShapeProperties } from "../../systems/properties/state";
@@ -14,7 +15,7 @@ import type { SHAPE_TYPE } from "../types";
 
 import { BoundingRect } from "./simple/boundingRect";
 
-export class Text extends Shape {
+export class Text extends Shape implements IText {
     type: SHAPE_TYPE = "text";
 
     private width = 5;

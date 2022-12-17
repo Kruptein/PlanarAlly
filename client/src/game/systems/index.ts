@@ -25,10 +25,10 @@ export function clearSystems(partial: boolean): void {
 }
 
 export interface System {
-    clear(partial: boolean): void;
+    clear: (partial: boolean) => void;
 }
 
 export interface ShapeSystem extends System {
-    drop(id: LocalId): void;
-    inform(id: LocalId, data: any): void;
+    drop: (id: LocalId) => void;
+    inform: (id: LocalId, data: any) => void;
 }

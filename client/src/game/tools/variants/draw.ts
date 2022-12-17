@@ -18,7 +18,7 @@ import type { IRect } from "../../interfaces/shapes/rect";
 import { LayerName } from "../../models/floor";
 import type { Floor } from "../../models/floor";
 import { ToolName } from "../../models/tools";
-import type { ToolFeatures } from "../../models/tools";
+import type { ToolFeatures, ITool } from "../../models/tools";
 import { overrideLastOperation } from "../../operations/undo";
 import { Circle } from "../../shapes/variants/circle";
 import { Line } from "../../shapes/variants/line";
@@ -62,7 +62,7 @@ export enum DrawCategory {
     Logic = "cogs",
 }
 
-class DrawTool extends Tool {
+class DrawTool extends Tool implements ITool {
     readonly toolName = ToolName.Draw;
     readonly toolTranslation = i18n.global.t("tool.Draw");
 
@@ -325,7 +325,7 @@ class DrawTool extends Tool {
 
     // MOUSE HANDLERS
 
-    async onDown(lp: LocalPoint, event: MouseEvent | TouchEvent): Promise<void> {
+    async onDown(lp: LocalPoint, event: MouseEvent | TouchEvent | undefined): Promise<void> {
         const startPoint = l2g(lp);
         const layer = this.getLayer();
         if (layer === undefined) {
@@ -367,7 +367,7 @@ class DrawTool extends Tool {
                 case DrawShape.Polygon: {
                     const fill = this.state.isClosedPolygon ? this.state.fillColour : undefined;
                     const stroke = this.state.isClosedPolygon ? this.state.borderColour : this.state.fillColour;
-                    if (playerSettingsState.useSnapping(event) && !this.snappedToPoint) {
+                    if (event && playerSettingsState.useSnapping(event) && !this.snappedToPoint) {
                         this.brushHelper.refPoint = toGP(clampGridLine(startPoint.x), clampGridLine(startPoint.y));
                     }
                     this.shape = new Polygon(
@@ -382,7 +382,7 @@ class DrawTool extends Tool {
                     break;
                 }
                 case DrawShape.Text: {
-                    event.preventDefault();
+                    event?.preventDefault();
                     const text = await this.promptFunction!("What should the text say?", "New text");
                     if (text === undefined) {
                         this.active.value = false;
@@ -436,7 +436,7 @@ class DrawTool extends Tool {
         ) {
             // draw tool already active in polygon mode, add a new point to the polygon
 
-            if (playerSettingsState.useSnapping(event) && !this.snappedToPoint)
+            if (event && playerSettingsState.useSnapping(event) && !this.snappedToPoint)
                 this.brushHelper.refPoint = toGP(clampGridLine(startPoint.x), clampGridLine(startPoint.y));
             this.shape.pushPoint(cloneP(this.brushHelper.refPoint));
         }
@@ -479,7 +479,7 @@ class DrawTool extends Tool {
         }
     }
 
-    onMove(lp: LocalPoint, event: MouseEvent | TouchEvent): Promise<void> {
+    onMove(lp: LocalPoint, event: MouseEvent | TouchEvent | undefined): Promise<void> {
         let endPoint = l2g(lp);
         const layer = this.getLayer();
         if (layer === undefined) {
@@ -487,7 +487,7 @@ class DrawTool extends Tool {
             return Promise.resolve();
         }
 
-        if (playerSettingsState.useSnapping(event))
+        if (event && playerSettingsState.useSnapping(event))
             [endPoint, this.snappedToPoint] = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
         else this.snappedToPoint = false;
 
@@ -562,7 +562,7 @@ class DrawTool extends Tool {
         return Promise.resolve();
     }
 
-    onUp(lp: LocalPoint, event: MouseEvent | TouchEvent): Promise<void> {
+    onUp(lp: LocalPoint, event: MouseEvent | TouchEvent | undefined): Promise<void> {
         if (
             !this.active.value ||
             this.shape === undefined ||
@@ -572,12 +572,17 @@ class DrawTool extends Tool {
         }
 
         let endPoint = l2g(lp);
-        if (playerSettingsState.useSnapping(event))
+        if (event && playerSettingsState.useSnapping(event))
             [endPoint, this.snappedToPoint] = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
         else this.snappedToPoint = false;
 
         // TODO: handle touch event different than altKey, long press
-        if (playerSettingsState.useSnapping(event) && locationSettingsState.raw.useGrid.value && !this.snappedToPoint) {
+        if (
+            event &&
+            playerSettingsState.useSnapping(event) &&
+            locationSettingsState.raw.useGrid.value &&
+            !this.snappedToPoint
+        ) {
             const props = getProperties(this.shape.id)!;
             if (props.blocksVision)
                 visionState.deleteFromTriangulation({

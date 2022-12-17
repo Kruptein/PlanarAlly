@@ -198,7 +198,11 @@ class SelectTool extends Tool implements ISelectTool {
 
     // INPUT HANDLERS
 
-    onDown(lp: LocalPoint, event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): Promise<void> {
+    onDown(
+        lp: LocalPoint,
+        event: MouseEvent | TouchEvent | undefined,
+        features: ToolFeatures<SelectFeatures>,
+    ): Promise<void> {
         // if we only have context capabilities, immediately skip
         if (features.enabled?.length === 1 && features.enabled[0] === SelectFeatures.Context) return Promise.resolve();
 
@@ -288,7 +292,7 @@ class SelectTool extends Tool implements ISelectTool {
             }
             if (shape.contains(gp)) {
                 if (layerSelection.indexOf(shape) === -1) {
-                    if (ctrlOrCmdPressed(event)) {
+                    if (event && ctrlOrCmdPressed(event)) {
                         selectedSystem.push(shape.id);
                     } else {
                         selectedSystem.set(shape.id);
@@ -296,7 +300,7 @@ class SelectTool extends Tool implements ISelectTool {
                     this.removeRotationUi();
                     this.createRotationUi(features);
                 } else {
-                    if (ctrlOrCmdPressed(event)) {
+                    if (event && ctrlOrCmdPressed(event)) {
                         selectedSystem.remove(shape.id);
                     }
                 }
@@ -360,7 +364,7 @@ class SelectTool extends Tool implements ISelectTool {
                 this.selectionHelper.h = 0;
             }
 
-            if (!ctrlOrCmdPressed(event)) {
+            if (!(event && ctrlOrCmdPressed(event))) {
                 selectedSystem.clear();
             }
 
@@ -379,7 +383,7 @@ class SelectTool extends Tool implements ISelectTool {
 
     async onMove(
         lp: LocalPoint,
-        event: MouseEvent | TouchEvent,
+        event: MouseEvent | TouchEvent | undefined,
         features: ToolFeatures<SelectFeatures>,
     ): Promise<void> {
         // if we only have context capabilities, immediately skip
@@ -451,7 +455,7 @@ class SelectTool extends Tool implements ISelectTool {
             if (this.mode === SelectOperations.Drag) {
                 if (ogDelta.length() === 0) return;
                 // If we are on the tokens layer do a movement block check.
-                if (layer.name === "tokens" && !(event.shiftKey && getGameState().isDm)) {
+                if (layer.name === "tokens" && !(event && event.shiftKey && getGameState().isDm)) {
                     for (const sel of layerSelection) {
                         if (!accessSystem.hasAccessTo(sel.id, false, { movement: true })) continue;
                         delta = calculateDelta(delta, sel, true);
@@ -483,11 +487,21 @@ class SelectTool extends Tool implements ISelectTool {
                 let ignorePoint: GlobalPoint | undefined;
                 if (this.resizePoint >= 0) ignorePoint = toGP(this.originalResizePoints[this.resizePoint]);
                 let targetPoint = gp;
-                if (playerSettingsState.useSnapping(event) && this.hasFeature(SelectFeatures.Snapping, features))
+                if (
+                    event &&
+                    playerSettingsState.useSnapping(event) &&
+                    this.hasFeature(SelectFeatures.Snapping, features)
+                )
                     [targetPoint, this.snappedToPoint] = snapToPoint(floorState.currentLayer.value!, gp, ignorePoint);
                 else this.snappedToPoint = false;
 
-                this.resizePoint = resizeShape(shape, targetPoint, this.resizePoint, ctrlOrCmdPressed(event), true);
+                this.resizePoint = resizeShape(
+                    shape,
+                    targetPoint,
+                    this.resizePoint,
+                    event !== undefined && ctrlOrCmdPressed(event),
+                    true,
+                );
                 this.updateCursor(gp, features);
             } else if (this.mode === SelectOperations.Rotate) {
                 const center = this.rotationBox!.center;
@@ -501,7 +515,11 @@ class SelectTool extends Tool implements ISelectTool {
         }
     }
 
-    async onUp(lp: LocalPoint, event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): Promise<void> {
+    async onUp(
+        lp: LocalPoint,
+        event: MouseEvent | TouchEvent | undefined,
+        features: ToolFeatures<SelectFeatures>,
+    ): Promise<void> {
         // if we only have context capabilities, immediately skip
         if (features.enabled?.length === 1 && features.enabled[0] === SelectFeatures.Context) {
             // When using pan during select, the dragray will use a wrong lp to to the drag calculation in move
@@ -524,7 +542,7 @@ class SelectTool extends Tool implements ISelectTool {
         if (layerSelection.some((s) => getProperties(s.id)!.isLocked)) return;
 
         if (this.mode === SelectOperations.GroupSelect) {
-            if (ctrlOrCmdPressed(event)) {
+            if (event && ctrlOrCmdPressed(event)) {
                 // If either control or shift are pressed, do not remove selection
             } else {
                 selectedSystem.clear();
@@ -595,6 +613,7 @@ class SelectTool extends Tool implements ISelectTool {
                         });
                     }
                     if (
+                        event &&
                         locationSettingsState.raw.useGrid.value &&
                         playerSettingsState.useSnapping(event) &&
                         this.hasFeature(SelectFeatures.Snapping, features) &&
@@ -649,6 +668,7 @@ class SelectTool extends Tool implements ISelectTool {
                         });
 
                     if (
+                        event &&
                         locationSettingsState.raw.useGrid.value &&
                         playerSettingsState.useSnapping(event) &&
                         this.hasFeature(SelectFeatures.Snapping, features)
@@ -678,7 +698,7 @@ class SelectTool extends Tool implements ISelectTool {
                     if (this.operationList?.type === "resize") {
                         this.operationList.toPoint = sel.points[this.resizePoint];
                         this.operationList.resizePoint = this.resizePoint;
-                        this.operationList.retainAspectRatio = ctrlOrCmdPressed(event);
+                        this.operationList.retainAspectRatio = event !== undefined && ctrlOrCmdPressed(event);
                         this.operationReady = true;
                     }
                 }
@@ -691,6 +711,7 @@ class SelectTool extends Tool implements ISelectTool {
 
                     const newAngle = Math.round(this.angle / ANGLE_SNAP) * ANGLE_SNAP;
                     if (
+                        event &&
                         newAngle !== this.angle &&
                         playerSettingsState.useSnapping(event) &&
                         this.hasFeature(SelectFeatures.Snapping, features)

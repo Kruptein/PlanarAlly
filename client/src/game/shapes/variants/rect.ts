@@ -2,6 +2,7 @@ import { g2l } from "../../../core/conversions";
 import type { GlobalPoint } from "../../../core/geometry";
 import { FOG_COLOUR } from "../../colour";
 import type { GlobalId, LocalId } from "../../id";
+import type { IShape } from "../../interfaces/shape";
 import type { ServerRect } from "../../models/shapes";
 import { positionState } from "../../systems/position/state";
 import { getProperties } from "../../systems/properties/state";
@@ -10,7 +11,7 @@ import type { SHAPE_TYPE } from "../types";
 
 import { BaseRect } from "./baseRect";
 
-export class Rect extends BaseRect {
+export class Rect extends BaseRect implements IShape {
     type: SHAPE_TYPE = "rect";
 
     constructor(

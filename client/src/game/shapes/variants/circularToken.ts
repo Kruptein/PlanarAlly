@@ -5,6 +5,7 @@ import { calcFontScale, mostReadable } from "../../../core/utils";
 import { sendCircularTokenUpdate } from "../../api/emits/shape/circularToken";
 import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
+import type { IShape } from "../../interfaces/shape";
 import type { ServerCircularToken } from "../../models/shapes";
 import { getProperties } from "../../systems/properties/state";
 import type { ShapeProperties } from "../../systems/properties/state";
@@ -13,7 +14,7 @@ import type { SHAPE_TYPE } from "../types";
 
 import { Circle } from "./circle";
 
-export class CircularToken extends Circle {
+export class CircularToken extends Circle implements IShape {
     type: SHAPE_TYPE = "circulartoken";
     text: string;
     font: string;

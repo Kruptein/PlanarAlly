@@ -5,7 +5,7 @@ import { i18n } from "../../../i18n";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { LayerName } from "../../models/floor";
 import { ToolName } from "../../models/tools";
-import type { ToolPermission } from "../../models/tools";
+import type { ITool, ToolPermission } from "../../models/tools";
 import { deleteShapes } from "../../shapes/utils";
 import { Circle } from "../../shapes/variants/circle";
 import { accessSystem } from "../../systems/access";
@@ -16,7 +16,7 @@ import { playerSettingsState } from "../../systems/settings/players/state";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
 
-class PingTool extends Tool {
+class PingTool extends Tool implements ITool {
     readonly toolName = ToolName.Ping;
     readonly toolTranslation = i18n.global.t("tool.Ping");
 

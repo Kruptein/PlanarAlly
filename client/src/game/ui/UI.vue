@@ -73,7 +73,7 @@ const showChangelog = computed(() => {
 onMounted(() => {
     // hide all UI elements that were previously open
     activeShapeStore.setShowEditDialog(false);
-    initiativeStore.show(false);
+    initiativeStore.show(false, false);
     showDefaultContextMenu.value = false;
     showShapeContextMenu.value = false;
     tokenDialogVisible.value = false;

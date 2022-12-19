@@ -100,11 +100,11 @@ async function addToInitiative(): Promise<void> {
     const groupsProcessed = new Set();
     for (const shape of selection) {
         if (!groupInitiatives || shape.groupId === undefined || !groupsProcessed.has(shape.groupId)) {
-            initiativeStore.addInitiative(shape.id, undefined, groupInitiatives && shape.groupId !== undefined);
+            initiativeStore.addInitiative(shape.id, groupInitiatives && shape.groupId !== undefined);
             groupsProcessed.add(shape.groupId);
         }
     }
-    initiativeStore.show(true);
+    initiativeStore.show(true, true);
     close();
 }
 

@@ -64,7 +64,7 @@ function setValueByPos(pos: number): void {
 <template>
     <div
         class="vue-slider"
-        :style="{ width, height, padding: `${dotSize[1] / scale}px 0` }"
+        :style="{ width, height, padding: `${dotSize[1] / scale}px 1rem` }"
         @click="onClick"
         @mousedown="dragging = true"
         @mousemove="dragMove"

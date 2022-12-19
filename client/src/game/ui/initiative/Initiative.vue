@@ -28,7 +28,7 @@ const modals = useModal();
 
 const isDm = toRef(getGameState(), "isDm");
 
-const close = (): void => initiativeStore.show(false);
+const close = (): void => initiativeStore.show(false, false);
 const clearValues = (): void => initiativeStore.clearValues(true);
 const nextTurn = (): void => initiativeStore.nextTurn();
 const previousTurn = (): void => initiativeStore.previousTurn();
@@ -36,7 +36,7 @@ const owns = (actorId?: GlobalId): boolean => initiativeStore.owns(actorId);
 const toggleOption = (index: number, option: "isVisible" | "isGroup"): void =>
     initiativeStore.toggleOption(index, option);
 
-onMounted(() => initiativeStore.show(false));
+onMounted(() => initiativeStore.show(false, false));
 
 const alwaysShowEffects = computed(
     () => playerSettingsState.reactive.initiativeEffectVisibility.value === InitiativeEffectMode.Always,

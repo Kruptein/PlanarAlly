@@ -35,6 +35,7 @@ function getDefaultEffect(): InitiativeEffect {
 }
 
 interface InitiativeState {
+    manuallyOpened: boolean;
     showInitiative: boolean;
     locationData: InitiativeData[];
     newData: InitiativeData[];
@@ -55,6 +56,7 @@ class InitiativeStore extends Store<InitiativeState> {
 
     protected data(): InitiativeState {
         return {
+            manuallyOpened: false,
             showInitiative: false,
             locationData: [],
             newData: [],
@@ -73,8 +75,9 @@ class InitiativeStore extends Store<InitiativeState> {
         this._state.locationData = [];
     }
 
-    show(show: boolean): void {
+    show(show: boolean, manuallyOpened: boolean): void {
         this._state.showInitiative = show;
+        this._state.manuallyOpened = manuallyOpened;
     }
 
     setData(data: InitiativeSettings): void {
@@ -87,7 +90,7 @@ class InitiativeStore extends Store<InitiativeState> {
         if (this._state.editLock !== undefined) this._state.newData = initiativeData;
         else this._state.locationData = initiativeData;
 
-        this.setActive(data.isActive);
+        if (!this._state.manuallyOpened) this.setActive(data.isActive);
         this.setRoundCounter(data.round, false);
         this.setTurnCounter(data.turn, false);
         this._state.sort = data.sort;
@@ -102,7 +105,7 @@ class InitiativeStore extends Store<InitiativeState> {
 
     setActive(isActive: boolean): void {
         this._state.isActive = isActive;
-        if (playerSettingsState.raw.initiativeOpenOnActivate.value) this.show(isActive);
+        if (playerSettingsState.raw.initiativeOpenOnActivate.value) this.show(isActive, false);
         if (isActive) {
             if (accessState.raw.activeTokenFilters === undefined) activeTokensBackup = undefined;
             else activeTokensBackup = new Set(accessState.raw.activeTokenFilters);
@@ -121,7 +124,7 @@ class InitiativeStore extends Store<InitiativeState> {
 
     // PURE INITIATIVE
 
-    addInitiative(localId: LocalId, initiative: number | undefined, isGroup = false): void {
+    addInitiative(localId: LocalId, isGroup = false): void {
         const globalId = getGlobalId(localId);
         let actor = this._state.locationData.find((a) => a.globalId === globalId);
         if (actor === undefined) {
@@ -131,11 +134,12 @@ class InitiativeStore extends Store<InitiativeState> {
                 effects: [],
                 isGroup,
                 isVisible: !getGameState().isDm,
-                initiative,
+                initiative: undefined,
             };
             this._state.locationData.push(actor);
         } else {
-            actor.initiative = initiative;
+            // actor already known.
+            return;
         }
         const { globalId: shape, localId: _, ...actorData } = actor;
         sendInitiativeAdd({ ...actorData, shape });

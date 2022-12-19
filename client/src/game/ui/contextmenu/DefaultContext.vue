@@ -92,7 +92,7 @@ async function createSpawnLocation(): Promise<void> {
 }
 
 function showInitiativeDialog(): void {
-    initiativeStore.show(true);
+    initiativeStore.show(true, true);
     close();
 }
 

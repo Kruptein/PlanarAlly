@@ -22,6 +22,7 @@ tech changes will usually be stripped from release notes for the public
     -   The above setting now also properly reverts to the original vision lock when initiative is no longer active as was always intended
     -   The initiative UI is automatically opened for everybody once initiative is started. (and automatically closed as well)
     -   The above behaviour can be disabled by a new user setting.
+-   Most modals will now move to the front when interacted with
 
 ### Changed
 

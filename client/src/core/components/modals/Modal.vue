@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import { nextTick, onMounted, onUnmounted, ref, watch, watchEffect } from "vue";
 
 import { clearDropCallback, registerDropCallback } from "../../../game/ui/firefox";
 
@@ -7,7 +7,7 @@ const props = withDefaults(defineProps<{ colour?: string; mask?: boolean; visibl
     colour: "white",
     mask: true,
 });
-const emit = defineEmits(["close"]);
+const emit = defineEmits(["close", "focus"]);
 
 const container = ref<HTMLDivElement | null>(null);
 
@@ -51,9 +51,14 @@ watch(
     () => props.visible,
     () => positionCheck(),
 );
+watchEffect(() => {
+    if (props.visible) {
+        emit("focus");
+    }
+});
 
 function updatePosition(): void {
-    if (container.value === undefined) return;
+    if (container.value === null) return;
     if (!positioned) {
         if (container.value!.offsetWidth === 0 && container.value!.offsetHeight === 0) return;
         containerX = (window.innerWidth - container.value!.offsetWidth) / 2;
@@ -104,7 +109,6 @@ function dragOver(_event: DragEvent): void {
 </script>
 
 <template>
-    <div ref="test"></div>
     <transition name="modal">
         <div
             class="mask"
@@ -113,7 +117,12 @@ function dragOver(_event: DragEvent): void {
             v-show="visible"
             @dragover.prevent="dragOver"
         >
-            <div class="modal-container" @click.stop ref="container" :style="{ backgroundColor: colour }">
+            <div
+                class="modal-container"
+                @click.stop="emit('focus')"
+                ref="container"
+                :style="{ backgroundColor: colour }"
+            >
                 <slot name="header" :dragStart="dragStart" :dragEnd="dragEnd"></slot>
                 <slot></slot>
             </div>

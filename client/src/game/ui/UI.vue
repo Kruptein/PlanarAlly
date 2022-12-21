@@ -8,7 +8,6 @@ import { baseAdjust } from "../../core/http";
 import { getGameState } from "../../store/_game";
 import { activeShapeStore } from "../../store/activeShape";
 import { coreStore } from "../../store/core";
-import { clientState } from "../systems/client/state";
 import { positionSystem } from "../systems/position";
 import { positionState } from "../systems/position/state";
 
@@ -16,22 +15,12 @@ import Annotation from "./Annotation.vue";
 import DefaultContext from "./contextmenu/DefaultContext.vue";
 import ShapeContext from "./contextmenu/ShapeContext.vue";
 import { showDefaultContextMenu, showShapeContextMenu } from "./contextmenu/state";
-import DiceResults from "./dice/DiceResults.vue";
 import LgDiceResults from "./dice/LgDiceResults.vue";
 import Floors from "./Floors.vue";
-import Initiative from "./initiative/Initiative.vue";
 import { initiativeStore } from "./initiative/state";
-import LgGridId from "./lg/GridId.vue";
 import LocationBar from "./menu/LocationBar.vue";
 import MenuBar from "./menu/MenuBar.vue";
-import SelectionInfo from "./SelectionInfo.vue";
-import ClientSettings from "./settings/client/ClientSettings.vue";
-import DmSettings from "./settings/dm/DmSettings.vue";
-import FloorSettings from "./settings/FloorSettings.vue";
-import LgSettings from "./settings/lg/LgSettings.vue";
-import LocationSettings from "./settings/location/LocationSettings.vue";
-import ShapeSettings from "./settings/shape/ShapeSettings.vue";
-import CreateTokenDialog from "./tokendialog/CreateTokenDialog.vue";
+import ModalStack from "./ModalStack.vue";
 import { tokenDialogVisible } from "./tokendialog/state";
 import TokenDirections from "./TokenDirections.vue";
 import Tools from "./tools/Tools.vue";
@@ -48,8 +37,6 @@ const visible = reactive({
     settings: false,
 });
 const topLeft = computed(() => visible.locations && visible.settings);
-
-const hasGameboardClients = computed(() => clientState.reactive.clientBoards.size > 0);
 
 const changelogText = computed(() =>
     t("game.ui.ui.changelog_RELEASE_LOG", {
@@ -193,21 +180,11 @@ function setTempZoomDisplay(value: number): void {
         <Tools />
         <LocationBar v-if="getGameState().isDm" :active="visible.locations" :menuActive="visible.settings" />
         <Floors />
-        <CreateTokenDialog />
-        <Initiative />
         <DefaultContext />
         <ShapeContext />
-        <ShapeSettings />
-        <DmSettings v-if="getGameState().isDm || getGameState().isFakePlayer" />
-        <LgSettings v-if="hasGameboardClients && (getGameState().isDm || getGameState().isFakePlayer)" />
-        <LgGridId v-if="hasGameboard" />
-        <FloorSettings v-if="getGameState().isDm || getGameState().isFakePlayer" />
-        <LocationSettings v-if="getGameState().isDm || getGameState().isFakePlayer" />
-        <ClientSettings />
-        <SelectionInfo />
         <Annotation />
-        <template v-if="!hasGameboard"><DiceResults /></template>
-        <template v-else><LgDiceResults /></template>
+        <template v-if="hasGameboard"><LgDiceResults /></template>
+        <ModalStack />
         <div id="teleport-modals"></div>
         <MarkdownModal v-if="showChangelog" :title="t('game.ui.ui.new_ver_msg')" :source="changelogText" />
         <div id="oob" v-if="positionState.reactive.outOfBounds" @click="positionSystem.returnToBounds">

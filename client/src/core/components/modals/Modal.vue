@@ -7,7 +7,7 @@ const props = withDefaults(defineProps<{ colour?: string; mask?: boolean; visibl
     colour: "white",
     mask: true,
 });
-const emit = defineEmits(["close", "focus", "modalClick"]);
+const emit = defineEmits(["close", "focus"]);
 
 const container = ref<HTMLDivElement | null>(null);
 
@@ -119,7 +119,7 @@ function dragOver(_event: DragEvent): void {
         >
             <div
                 class="modal-container"
-                @click.stop="emit('modalClick')"
+                @click.stop="emit('focus')"
                 ref="container"
                 :style="{ backgroundColor: colour }"
             >

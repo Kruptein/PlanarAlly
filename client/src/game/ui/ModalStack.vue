@@ -70,7 +70,6 @@ const visibleModals = computed(() => {
         v-for="modal of visibleModals"
         :is="modal.component"
         :key="modal.component"
-        @modalClick="focus(modal.index)"
         @focus="focus(modal.index)"
     />
 </template>

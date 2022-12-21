@@ -26,6 +26,11 @@ const visible = computed({
     },
 });
 
+function close(): void {
+    visible.value = false;
+}
+defineExpose({ close });
+
 const locationName = computed(
     () => locationStore.activeLocations.value.find((l) => l.id === location.value)?.name ?? "",
 );

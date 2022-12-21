@@ -17,6 +17,8 @@ function close(): void {
     diceStore.setShowDiceResults(undefined);
 }
 
+defineExpose({ close });
+
 function sum(data: readonly number[]): number {
     return data.reduce((acc, val) => acc + val);
 }

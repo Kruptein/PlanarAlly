@@ -26,9 +26,16 @@ import { initiativeStore } from "./state";
 const { t } = useI18n();
 const modals = useModal();
 
+const emit = defineEmits(["close"]);
+
 const isDm = toRef(getGameState(), "isDm");
 
-const close = (): void => initiativeStore.show(false, false);
+const close = (): void => {
+    initiativeStore.show(false, false);
+    emit("close");
+};
+defineExpose({ close });
+
 const clearValues = (): void => initiativeStore.clearValues(true);
 const nextTurn = (): void => initiativeStore.nextTurn();
 const previousTurn = (): void => initiativeStore.previousTurn();
@@ -172,7 +179,7 @@ function n(e: any): number {
         <template v-slot:header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 <div>{{ t("common.initiative") }}</div>
-                <div class="header-close" @click="close" :title="t('common.close')">
+                <div class="header-close" @click.stop="close" :title="t('common.close')">
                     <font-awesome-icon :icon="['far', 'window-close']" />
                 </div>
             </div>

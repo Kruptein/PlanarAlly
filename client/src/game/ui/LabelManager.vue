@@ -83,7 +83,7 @@ function deleteLabel(uuid: string): void {
         <template v-slot:header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 <div>{{ t("game.ui.LabelManager.title") }}</div>
-                <div class="header-close" @click="close" :title="t('common.close')">
+                <div class="header-close" @click.stop="close" :title="t('common.close')">
                     <font-awesome-icon :icon="['far', 'window-close']" />
                 </div>
             </div>

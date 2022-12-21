@@ -19,6 +19,11 @@ const visible = computed({
     },
 });
 
+function close(): void {
+    visible.value = false;
+}
+defineExpose({ close });
+
 const categoryNames = [LgSettingCategory.Grid];
 </script>
 

@@ -26,6 +26,11 @@ const visible = computed({
     },
 });
 
+function close(): void {
+    visible.value = false;
+}
+defineExpose({ close });
+
 const hasShape = computed(() => activeShapeStore.state.id !== undefined);
 
 const categoryNames = computed(() => {

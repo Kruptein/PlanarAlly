@@ -100,7 +100,7 @@ function hideModal(): void {
         <template v-slot:header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 Configure logic permissions
-                <div class="header-close" @click="hideModal" :title="t('common.close')">
+                <div class="header-close" @click.stop="hideModal" :title="t('common.close')">
                     <font-awesome-icon :icon="['far', 'window-close']" />
                 </div>
             </div>

@@ -16,6 +16,7 @@ import type { Component, ComputedRef } from "vue";
 
 import { getGameState } from "../../store/_game";
 import { coreStore } from "../../store/core";
+import type { NumberId } from "../id";
 import { clientState } from "../systems/client/state";
 
 import DiceResults from "./dice/DiceResults.vue";
@@ -27,11 +28,10 @@ import LgSettings from "./settings/lg/LgSettings.vue";
 import LocationSettings from "./settings/location/LocationSettings.vue";
 import ShapeSettings from "./settings/shape/ShapeSettings.vue";
 
+// Modal Conditions + Listing
+
 const hasGameboard = coreStore.state.boardId !== undefined;
 const hasGameboardClients = computed(() => clientState.reactive.clientBoards.size > 0);
-
-const refs: Record<number, { close: () => void }> = {};
-(window as any).refs = refs;
 
 const dmOrFake = computed(() => {
     const state = getGameState();
@@ -50,32 +50,18 @@ const modals: (Component | { component: Component; condition: ComputedRef<boolea
 if (!hasGameboard) {
     modals.push(DiceResults);
 }
-const modalOrder = ref(Array.from({ length: modals.length }, (_, i) => i));
-const openModals = new Set<number>();
-(window as any).openModals = openModals;
 
-onMounted(() => {
-    window.addEventListener("keydown", checkEscape);
-});
+// Core logic setup
+
+type ModalIndex = NumberId<"modal">;
+
+const refs: Record<ModalIndex, { close: () => void }> = {};
+
+const modalOrder = ref<ModalIndex[]>(Array.from({ length: modals.length }, (_, i) => i as ModalIndex));
+const openModals = new Set<ModalIndex>();
+
+onMounted(() => window.addEventListener("keydown", checkEscape));
 onUnmounted(() => window.removeEventListener("keydown", checkEscape));
-
-function focus(index: number): void {
-    const idx = modalOrder.value.splice(index, 1)[0];
-    modalOrder.value.push(idx);
-    openModals.add(idx);
-}
-
-function close(index: number): void {
-    openModals.delete(modalOrder.value[index]);
-}
-
-function isComponent(x: Component | { component: Component }): x is Component {
-    return !("component" in x);
-}
-
-function isReffable(x: Component): x is { close: () => void } {
-    return "close" in x;
-}
 
 const visibleModals = computed(() => {
     const _modals: { index: number; component: Component }[] = [];
@@ -90,13 +76,36 @@ const visibleModals = computed(() => {
     return _modals;
 });
 
+// Type guards
+
+function isComponent(x: Component | { component: Component }): x is Component {
+    return !("component" in x);
+}
+
+function isReffable(x: Component): x is { close: () => void } {
+    return "close" in x;
+}
+
+// Event handling
+
+function focus(index: number): void {
+    const idx = modalOrder.value.splice(index, 1)[0];
+    modalOrder.value.push(idx);
+    openModals.add(idx);
+}
+
+function close(index: number): void {
+    openModals.delete(modalOrder.value[index]);
+}
+
 function checkEscape(event: KeyboardEvent): void {
     if (event.key === "Escape") {
-        for (let i = modalOrder.value.length - 1; i--; i >= 0) {
-            if (openModals.has(i)) {
-                refs[i].close();
-                openModals.delete(i);
-                if (!event.ctrlKey) break;
+        for (let i = modalOrder.value.length - 1; i >= 0; i--) {
+            const index = modalOrder.value[i];
+            if (openModals.has(index)) {
+                refs[index].close();
+                openModals.delete(index);
+                break;
             }
         }
     }
@@ -110,7 +119,7 @@ function getComponentName(index: number): string {
 
 function setModalRef(m: Component | null, index: number): void {
     if (m === null) return;
-    if (isReffable(m)) refs[index] = m;
+    if (isReffable(m)) refs[modalOrder.value[index]] = m;
     else console.warn(`Modal without exposed close function found. (${getComponentName(index)})`);
 }
 </script>

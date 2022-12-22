@@ -2,6 +2,7 @@ import { hasGroup, addNewGroup } from "../groups";
 import type { ILayer } from "../interfaces/layer";
 import { createCanvas } from "../layers/canvas";
 import { recalculateZIndices } from "../layers/floor";
+import { DmLayer } from "../layers/variants/dm";
 import { FowLightingLayer } from "../layers/variants/fowLighting";
 import { FowVisionLayer } from "../layers/variants/fowVision";
 import { GridLayer } from "../layers/variants/grid";
@@ -56,6 +57,8 @@ function addServerLayer(layerInfo: ServerLayer, floor: Floor): void {
         layer = new FowVisionLayer(canvas, layerName, floor.id, layerInfo.index);
     } else if (layerName === LayerName.Map) {
         layer = new MapLayer(canvas, layerName, floor.id, layerInfo.index);
+    } else if (layerName === LayerName.Dm) {
+        layer = new DmLayer(canvas, layerName, floor.id, layerInfo.index);
     } else {
         layer = new Layer(canvas, layerName, floor.id, layerInfo.index);
     }

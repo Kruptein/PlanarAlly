@@ -24,6 +24,7 @@ const modals = useModal();
 
 const visible = toRef(uiStore.state, "showFloorSettings");
 const close = uiStore.hideFloorSettings.bind(uiStore);
+defineExpose({ close });
 
 const floor = computed(() => floorSystem.getFloor({ id: uiStore.state.selectedFloor }));
 

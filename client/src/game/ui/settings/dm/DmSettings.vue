@@ -23,6 +23,11 @@ const visible = computed({
     },
 });
 
+function close(): void {
+    visible.value = false;
+}
+defineExpose({ close });
+
 const categoryNames = computed(() => {
     return [
         DmSettingCategory.Admin,

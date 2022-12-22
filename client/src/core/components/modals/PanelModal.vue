@@ -11,6 +11,7 @@ const props = withDefaults(
 const emit = defineEmits<{
     (e: "update:visible", visible: boolean): void;
     (e: "update:selection", selection: string): void;
+    (e: "close"): void;
 }>();
 
 const { t } = useI18n();
@@ -30,6 +31,7 @@ function setSelection(category: string): void {
 
 function hideModal(): void {
     emit("update:visible", false);
+    emit("close");
 }
 </script>
 
@@ -38,7 +40,7 @@ function hideModal(): void {
         <template v-slot:header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 <div><slot name="title"></slot></div>
-                <div class="header-close" @click="hideModal" :title="t('common.close')">
+                <div class="header-close" @click.stop="hideModal" :title="t('common.close')">
                     <font-awesome-icon :icon="['far', 'window-close']" />
                 </div>
             </div>

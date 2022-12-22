@@ -54,7 +54,7 @@ function close(): void {
                     <font-awesome-icon icon="pencil-alt" />
                 </span>
                 <input :value="note.title" ref="title" @change="setTitle" />
-                <div class="header-close" @click="close" :title="t('common.close')">
+                <div class="header-close" @click.stop="close" :title="t('common.close')">
                     <font-awesome-icon :icon="['far', 'window-close']" />
                 </div>
             </div>

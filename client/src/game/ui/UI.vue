@@ -18,9 +18,12 @@ import { showDefaultContextMenu, showShapeContextMenu } from "./contextmenu/stat
 import LgDiceResults from "./dice/LgDiceResults.vue";
 import Floors from "./Floors.vue";
 import { initiativeStore } from "./initiative/state";
+import LgGridId from "./lg/GridId.vue";
 import LocationBar from "./menu/LocationBar.vue";
 import MenuBar from "./menu/MenuBar.vue";
 import ModalStack from "./ModalStack.vue";
+import SelectionInfo from "./SelectionInfo.vue";
+import CreateTokenDialog from "./tokendialog/CreateTokenDialog.vue";
 import { tokenDialogVisible } from "./tokendialog/state";
 import TokenDirections from "./TokenDirections.vue";
 import Tools from "./tools/Tools.vue";
@@ -176,6 +179,7 @@ function setTempZoomDisplay(value: number): void {
                 <span class="rm-topper"></span>
             </div>
         </div>
+        <!-- Core overlays -->
         <MenuBar />
         <Tools />
         <LocationBar v-if="getGameState().isDm" :active="visible.locations" :menuActive="visible.settings" />
@@ -183,10 +187,16 @@ function setTempZoomDisplay(value: number): void {
         <DefaultContext />
         <ShapeContext />
         <Annotation />
+        <LgGridId v-if="hasGameboard" />
+        <SelectionInfo />
         <template v-if="hasGameboard"><LgDiceResults /></template>
+        <!-- Modals that can be rearranged -->
         <ModalStack />
+        <!-- Modals that require immediate attention -->
+        <CreateTokenDialog />
         <div id="teleport-modals"></div>
         <MarkdownModal v-if="showChangelog" :title="t('game.ui.ui.new_ver_msg')" :source="changelogText" />
+        <!-- end of main modals -->
         <div id="oob" v-if="positionState.reactive.outOfBounds" @click="positionSystem.returnToBounds">
             Click to return to content
         </div>

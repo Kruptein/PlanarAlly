@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file.
 tech changes will usually be stripped from release notes for the public
 [lang] this is a change to some translation string
 
-## Unreleaseda
+## Unreleased
 
 ### Added
 

@@ -1,5 +1,8 @@
 on: pull_request
 name: PR
+concurrency:
+    group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+    cancel-in-progress: true
 jobs:
     CLIENT-build:
         runs-on: ubuntu-latest

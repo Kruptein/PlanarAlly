@@ -22,7 +22,6 @@ let containerX = 0;
 let containerY = 0;
 
 function close(): void {
-    console.log(9);
     emit("close");
 }
 

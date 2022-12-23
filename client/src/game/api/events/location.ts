@@ -88,6 +88,8 @@ function setLocationOptions(
 
     if (overwrite_all || options.move_player_on_token_change !== undefined)
         locationSettingsSystem.setMovePlayerOnTokenChange(options.move_player_on_token_change, id, false);
+    if (overwrite_all || options.limit_movement_during_initiative !== undefined)
+        locationSettingsSystem.setLimitMovementDuringInitiative(options.limit_movement_during_initiative, id, false);
 
     // SPAWN LOCATIONS
 

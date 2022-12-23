@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 84
+SAVE_VERSION = 85
 
 import json
 import logging
@@ -376,6 +376,15 @@ def upgrade(db: SqliteExtDatabase, version: int):
             )
             db.execute_sql(
                 "UPDATE user_options SET initiative_open_on_activate = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
+            )
+    elif version == 84:
+        # Add LocationOptions.limit_movement_during_initiative
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE location_options ADD COLUMN limit_movement_during_initiative INTEGER DEFAULT 0"
+            )
+            db.execute_sql(
+                "UPDATE location_options SET limit_movement_during_initiative = NULL WHERE id NOT IN (SELECT default_options_id FROM room)"
             )
     else:
         raise UnknownVersionException(

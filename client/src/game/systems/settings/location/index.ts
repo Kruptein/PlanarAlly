@@ -180,6 +180,16 @@ class LocationSettingsSystem implements System {
         if (sync) sendLocationOption("move_player_on_token_change", movePlayerOnTokenChange, location);
     }
 
+    setLimitMovementDuringInitiative(
+        limitMovementDuringInitiative: boolean | undefined,
+        location: number | undefined,
+        sync: boolean,
+    ): void {
+        if (!this.setValue($.limitMovementDuringInitiative, limitMovementDuringInitiative, location)) return;
+
+        if (sync) sendLocationOption("limit_movement_during_initiative", limitMovementDuringInitiative, location);
+    }
+
     // SPAWN LOCATIONS
 
     setSpawnLocations(spawnLocations: GlobalId[], location: number, sync: boolean): void {

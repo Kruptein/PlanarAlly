@@ -322,6 +322,10 @@ class InitiativeStore extends Store<InitiativeState> {
 
     // EXTRA
 
+    getActor(): InitiativeData | undefined {
+        return this._state.locationData[this._state.turnCounter];
+    }
+
     getDataSet(): InitiativeData[] {
         return this._state[this._state.editLock === undefined ? "locationData" : "newData"];
     }

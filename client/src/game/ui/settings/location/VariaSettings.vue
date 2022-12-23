@@ -24,6 +24,15 @@ const movePlayerOnTokenChange = computed({
     },
 });
 
+const limitMovementDuringInitiative = computed({
+    get() {
+        return getOption($.limitMovementDuringInitiative, location.value).value;
+    },
+    set(limitMovementDuringInitiative: boolean | undefined) {
+        lss.setLimitMovementDuringInitiative(limitMovementDuringInitiative, location.value, true);
+    },
+});
+
 function o(k: any): boolean {
     return getOption(k, location.value).override !== undefined;
 }
@@ -57,6 +66,26 @@ function o(k: any): boolean {
             <div
                 v-if="!isGlobal && o($.movePlayerOnTokenChange)"
                 @click="movePlayerOnTokenChange = undefined"
+                :title="t('game.ui.settings.common.reset_default')"
+            >
+                <font-awesome-icon icon="times-circle" />
+            </div>
+            <div v-else></div>
+        </div>
+        <div class="row" :class="{ overwritten: !isGlobal && o($.limitMovementDuringInitiative) }">
+            <label :for="'limitMovementDuringInitiativeInput-' + location">
+                {{ t("game.ui.settings.VariaSettings.limitMovementDuringInitiative") }}
+            </label>
+            <div>
+                <input
+                    :id="'limitMovementDuringInitiativeInput-' + location"
+                    type="checkbox"
+                    v-model="limitMovementDuringInitiative"
+                />
+            </div>
+            <div
+                v-if="!isGlobal && o($.limitMovementDuringInitiative)"
+                @click="limitMovementDuringInitiative = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
             >
                 <font-awesome-icon icon="times-circle" />

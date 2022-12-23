@@ -314,7 +314,8 @@
                     "underground_background": "Underground floor(s)"
                 },
                 "VariaSettings": {
-                    "movePlayerOnTokenChange": "Move player(s) when a token they own changes location"
+                    "movePlayerOnTokenChange": "Move player(s) when a token they own changes location",
+                    "limitMovementDuringInitiative": "Limit movement during initiative to active shape"
                 },
                 "LocationBar": {
                     "LocationAdminSettings": {

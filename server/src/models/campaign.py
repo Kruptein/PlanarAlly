@@ -55,6 +55,7 @@ class LocationOptions(BaseModel):
     air_map_background = TextField(default="none", null=True)
     ground_map_background = TextField(default="none", null=True)
     underground_map_background = TextField(default="none", null=True)
+    limit_movement_during_initiative = BooleanField(default=False, null=True)
 
     @classmethod
     def create_empty(cls):
@@ -73,6 +74,7 @@ class LocationOptions(BaseModel):
             air_map_background=None,
             ground_map_background=None,
             underground_map_background=None,
+            limit_movement_during_initiative=None,
         )
 
     def as_dict(self):

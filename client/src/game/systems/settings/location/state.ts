@@ -22,6 +22,7 @@ function getInitState(): State {
         visionMaxRange: init(0),
         visionMinRange: init(0),
         visionMode: init(""),
+        limitMovementDuringInitiative: init(false),
 
         airMapBackground: init("none"),
         groundMapBackground: init("none"),

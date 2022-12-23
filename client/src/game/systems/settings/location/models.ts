@@ -16,6 +16,7 @@ export interface ServerLocationOptions {
     vision_max_range: number;
     spawn_locations: string;
     move_player_on_token_change: boolean;
+    limit_movement_during_initiative: boolean;
 
     air_map_background: string;
     ground_map_background: string;
@@ -37,6 +38,7 @@ export interface LocationOptions {
     // when switching locations this can be completely wrong
     spawnLocations: GlobalId[];
     movePlayerOnTokenChange: boolean;
+    limitMovementDuringInitiative: boolean;
 
     airMapBackground: string;
     groundMapBackground: string;

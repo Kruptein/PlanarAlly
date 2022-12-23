@@ -1,12 +1,16 @@
 import { addP, toArrayP } from "../../core/geometry";
 import type { Vector } from "../../core/geometry";
+import { getGameState } from "../../store/_game";
 import { sendShapePositionUpdate } from "../api/emits/shape/core";
+import type { LocalId } from "../id";
 import type { IShape } from "../interfaces/shape";
 import { accessSystem } from "../systems/access";
 import { clientSystem } from "../systems/client";
 import { teleportZoneSystem } from "../systems/logic/tp";
 import { getProperties } from "../systems/properties/state";
 import { selectedSystem } from "../systems/selected";
+import { locationSettingsState } from "../systems/settings/location/state";
+import { initiativeStore } from "../ui/initiative/state";
 import { TriangulationTarget, visionState } from "../vision/state";
 
 import type { MovementOperation, ShapeMovementOperation } from "./model";
@@ -28,7 +32,7 @@ export async function moveShapes(shapes: readonly IShape[], delta: Vector, tempo
     const operationList: MovementOperation = { type: "movement", shapes: [] };
 
     for (const shape of shapes) {
-        if (!accessSystem.hasAccessTo(shape.id, false, { movement: true })) continue;
+        if (!canMove(shape.id)) continue;
         const props = getProperties(shape.id);
         if (props === undefined) continue;
 
@@ -81,4 +85,12 @@ export async function moveShapes(shapes: readonly IShape[], delta: Vector, tempo
     if (recalculateVision) visionState.recalculateVision(floorId);
     if (recalculateMovement) visionState.recalculateMovement(floorId);
     shapes[0].layer.invalidate(false);
+}
+
+function canMove(shapeId: LocalId): boolean {
+    if (!accessSystem.hasAccessTo(shapeId, false, { movement: true })) return false;
+    if (!locationSettingsState.raw.limitMovementDuringInitiative.value) return true;
+    if (!initiativeStore.state.isActive) return true;
+    if (getGameState().isDm) return true;
+    return initiativeStore.getActor()?.localId === shapeId;
 }

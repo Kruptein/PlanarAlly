@@ -1,5 +1,4 @@
 import { l2g } from "../../core/conversions";
-import { uiStore } from "../../store/ui";
 import { getShape } from "../id";
 import { getLocalPointFromEvent } from "../input/mouse";
 import { LayerName } from "../models/floor";
@@ -8,6 +7,8 @@ import { annotationState } from "../systems/annotations/state";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
 import { playerSettingsState } from "../systems/settings/players/state";
+import { uiSystem } from "../systems/ui";
+import { uiState } from "../systems/ui/state";
 
 import { activeTool, getActiveTool, getFeatures, toolMap } from "./tools";
 
@@ -35,7 +36,7 @@ export function mouseDown(event: MouseEvent): void {
     if (isPanModeButton(event.button)) {
         toolMap[targetTool].onPanStart();
         targetTool = ToolName.Pan;
-        if (event.button === 2) uiStore.preventContextMenu(false);
+        if (event.button === 2) uiSystem.preventContextMenu(false);
     } else if (event.button !== 0) {
         return;
     }
@@ -62,7 +63,7 @@ export async function mouseMove(event: MouseEvent): Promise<void> {
     // if ((event.buttons & 4) !== 0 || (event.buttons & 2) !== 0) {
     if (isPanModeButtons(event.buttons)) {
         targetTool = ToolName.Pan;
-        if ((event.buttons & 2) !== 0) uiStore.preventContextMenu(true);
+        if ((event.buttons & 2) !== 0) uiSystem.preventContextMenu(true);
     } else if ((event.button & 1) > 1) {
         return;
     }
@@ -90,12 +91,12 @@ export async function mouseMove(event: MouseEvent): Promise<void> {
             const shape = getShape(uuid);
             if (shape && shape.floor.id === floorState.currentFloor.value!.id && shape.contains(eventPoint)) {
                 foundAnnotation = true;
-                uiStore.setAnnotationText(annotation);
+                uiSystem.setAnnotationText(annotation);
             }
         }
     }
-    if (!foundAnnotation && uiStore.state.annotationText.length > 0) {
-        uiStore.setAnnotationText("");
+    if (!foundAnnotation && uiState.raw.annotationText.length > 0) {
+        uiSystem.setAnnotationText("");
     }
 }
 
@@ -105,14 +106,14 @@ export async function mouseUp(event: MouseEvent): Promise<void> {
     let targetTool = activeTool.value;
     if (isPanModeButton(event.button)) {
         if (event.button === 2) {
-            if (!uiStore.state.preventContextMenu) {
+            if (!uiState.raw.preventContextMenu) {
                 return contextMenu(event);
             }
         }
         toolMap[targetTool].onPanEnd();
         targetTool = ToolName.Pan;
     } else if (event.button === 2) {
-        uiStore.preventContextMenu(false);
+        uiSystem.preventContextMenu(false);
         return contextMenu(event);
     } else if (event.button !== 0) {
         return;
@@ -151,7 +152,7 @@ export async function mouseLeave(event: MouseEvent): Promise<void> {
 
 function contextMenu(event: MouseEvent): void {
     if ((event.target as HTMLElement).tagName !== "CANVAS") return;
-    if (uiStore.state.preventContextMenu) return;
+    if (uiState.raw.preventContextMenu) return;
     if (event.button !== 2) return;
     const tool = getActiveTool();
 
@@ -254,12 +255,12 @@ export async function touchMove(event: TouchEvent): Promise<void> {
                 shape.contains(l2g(getLocalPointFromEvent(event)))
             ) {
                 found = true;
-                uiStore.setAnnotationText(annotation);
+                uiSystem.setAnnotationText(annotation);
             }
         }
     }
-    if (!found && uiStore.state.annotationText.length > 0) {
-        uiStore.setAnnotationText("");
+    if (!found && uiState.raw.annotationText.length > 0) {
+        uiSystem.setAnnotationText("");
     }
 }
 

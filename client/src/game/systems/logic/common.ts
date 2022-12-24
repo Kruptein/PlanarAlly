@@ -1,8 +1,8 @@
 import type { DeepReadonly } from "vue";
 
-import { getGameState } from "../../../store/_game";
 import { coreStore } from "../../../store/core";
 import type { LocalId } from "../../id";
+import { gameState } from "../game/state";
 
 import { doorSystem } from "./door";
 import { Access, DEFAULT_PERMISSIONS } from "./models";
@@ -24,7 +24,7 @@ export function canUse(shapeId: LocalId, target: LOGIC_TYPES): Access {
     ) {
         return Access.Disabled;
     }
-    if (!getGameState().isDm) {
+    if (!gameState.raw.isDm) {
         const permissions =
             target === "door"
                 ? doorSystem.getPermissions(shapeId)

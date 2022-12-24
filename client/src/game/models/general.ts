@@ -29,9 +29,3 @@ export interface ServerLayer {
     player_visible: boolean;
     size?: number;
 }
-
-export interface Note {
-    title: string;
-    text: string;
-    uuid: string;
-}

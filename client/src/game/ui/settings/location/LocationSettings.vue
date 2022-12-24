@@ -4,7 +4,8 @@ import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
 import { locationStore } from "../../../../store/location";
-import { uiStore } from "../../../../store/ui";
+import { uiSystem } from "../../../systems/ui";
+import { uiState } from "../../../systems/ui/state";
 import FloorSettings from "../location/FloorSettings.vue";
 import GridSettings from "../location/GridSettings.vue";
 import VariaSettings from "../location/VariaSettings.vue";
@@ -15,14 +16,14 @@ import { LocationSettingCategory } from "./categories";
 
 const { t } = useI18n();
 
-const location = toRef(uiStore.state, "openedLocationSettings");
+const location = toRef(uiState.reactive, "openedLocationSettings");
 
 const visible = computed({
     get() {
         return location.value >= 0;
     },
     set(visible: boolean) {
-        if (!visible) uiStore.showLocationSettings(-1);
+        if (!visible) uiSystem.showLocationSettings(-1);
     },
 });
 

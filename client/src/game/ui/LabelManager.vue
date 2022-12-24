@@ -4,10 +4,10 @@ import { useI18n } from "vue-i18n";
 
 import Modal from "../../core/components/modals/Modal.vue";
 import { uuidv4 } from "../../core/utils";
-import { getGameState } from "../../store/_game";
-import { gameStore } from "../../store/game";
-import { sendLabelVisibility } from "../api/emits/labels";
-import type { Label } from "../interfaces/label";
+import { labelSystem } from "../systems/labels";
+import { sendLabelVisibility } from "../systems/labels/emits";
+import type { Label } from "../systems/labels/models";
+import { labelState } from "../systems/labels/state";
 import { playerSystem } from "../systems/players";
 
 const emit = defineEmits(["update:visible", "addLabel"]);
@@ -25,12 +25,12 @@ function close(): void {
     emit("update:visible", false);
 }
 
-const hasLabels = computed(() => getGameState().labels.size > 0);
+const hasLabels = computed(() => labelState.reactive.labels.size > 0);
 
 const categories = computed(() => {
     const cat: Map<string, Label[]> = new Map();
     cat.set("", []);
-    for (const label of getGameState().labels.values()) {
+    for (const label of labelState.reactive.labels.values()) {
         if (label.user !== playerSystem.getCurrentPlayer()?.name) continue;
         const fullName = `${label.category.toLowerCase()}${label.name.toLowerCase()}`;
         if (state.search.length > 0 && fullName.search(state.search.toLowerCase()) < 0) {
@@ -68,13 +68,13 @@ function addLabel(): void {
         visible: false,
         user: playerSystem.getCurrentPlayer()!.name,
     };
-    gameStore.addLabel(label, true);
+    labelSystem.addLabel(label, true);
     state.newCategory = "";
     state.newName = "";
 }
 
 function deleteLabel(uuid: string): void {
-    gameStore.deleteLabel(uuid, true);
+    labelSystem.deleteLabel(uuid, true);
 }
 </script>
 

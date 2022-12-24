@@ -9,7 +9,6 @@ import { InvalidationMode, NO_SYNC, SyncMode, UI_SYNC } from "../../../core/mode
 import type { PromptFunction } from "../../../core/plugins/modals/prompt";
 import { ctrlOrCmdPressed, mostReadable } from "../../../core/utils";
 import { i18n } from "../../../i18n";
-import { getGameState } from "../../../store/_game";
 import { sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import type { ILayer } from "../../interfaces/layer";
 import type { IShape } from "../../interfaces/shape";
@@ -28,6 +27,7 @@ import { Text } from "../../shapes/variants/text";
 import { accessSystem } from "../../systems/access";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
+import { gameState } from "../../systems/game/state";
 import { doorSystem } from "../../systems/logic/door";
 import type { DOOR_TOGGLE_MODE } from "../../systems/logic/door/models";
 import { DEFAULT_PERMISSIONS } from "../../systems/logic/models";
@@ -99,7 +99,7 @@ class DrawTool extends Tool implements ITool {
     constructor() {
         super();
         watch(
-            () => getGameState().boardInitialized,
+            () => gameState.reactive.boardInitialized,
             () => {
                 watch(
                     floorState.currentLayer,

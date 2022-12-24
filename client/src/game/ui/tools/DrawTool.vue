@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, ref, toRef } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../core/components/ColourPicker.vue";
 import { useModal } from "../../../core/plugins/modals/plugin";
-import { getGameState } from "../../../store/_game";
+import { gameState } from "../../systems/game/state";
 import { DOOR_TOGGLE_MODES } from "../../systems/logic/door/models";
 import { DrawCategory, DrawMode, DrawShape, drawTool } from "../../tools/variants/draw";
 import LogicPermissions from "../settings/shape/LogicPermissions.vue";
@@ -15,7 +15,6 @@ const modals = useModal();
 drawTool.setPromptFunction(modals.prompt);
 
 const hasBrushSize = drawTool.hasBrushSize;
-const isDm = toRef(getGameState(), "isDm");
 const modes = Object.values(DrawMode);
 const categories = Object.values(DrawCategory);
 const selected = drawTool.isActiveTool;
@@ -120,7 +119,7 @@ const alerts = computed(() => {
         </template>
         <template v-else-if="drawTool.state.selectedCategory === 'eye'">
             <div class="draw-center-header">{{ t("game.ui.tools.DrawTool.mode") }}</div>
-            <div v-show="isDm" class="draw-select-group">
+            <div v-show="gameState.reactive.isDm" class="draw-select-group">
                 <div
                     v-for="mode in modes"
                     :key="mode"

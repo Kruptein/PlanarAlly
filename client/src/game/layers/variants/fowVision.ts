@@ -1,11 +1,11 @@
 import { g2l, g2lr } from "../../../core/conversions";
-import { getGameState } from "../../../store/_game";
 import { coreStore } from "../../../store/core";
 import { getShape } from "../../id";
 import { LayerName } from "../../models/floor";
 import { accessState } from "../../systems/access/state";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
+import { gameState } from "../../systems/game/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 
@@ -29,7 +29,7 @@ export class FowVisionLayer extends FowLayer {
 
             // For the DM this is done at the end of this function.  TODO: why the split up ???
             // This was done in commit be1e65cff1e7369375fe11cfa1643fab1d11beab.
-            if (!getGameState().isDm) super.draw(false);
+            if (!gameState.raw.isDm) super.draw(false);
 
             const visionMin = g2lr(locationSettingsState.raw.visionMinRange.value);
             let visionMax = g2lr(locationSettingsState.raw.visionMaxRange.value);
@@ -93,7 +93,7 @@ export class FowVisionLayer extends FowLayer {
 
             // For the players this is done at the beginning of this function.  TODO: why the split up ???
             // This was done in commit be1e65cff1e7369375fe11cfa1643fab1d11beab.
-            if (getGameState().isDm) super.draw(false);
+            if (gameState.raw.isDm) super.draw(false);
 
             this.ctx.globalCompositeOperation = originalOperation;
         }

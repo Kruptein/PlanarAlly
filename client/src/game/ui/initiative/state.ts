@@ -1,6 +1,5 @@
 import { Store } from "../../../core/store";
 import { i18n } from "../../../i18n";
-import { getGameState } from "../../../store/_game";
 import {
     sendInitiativeNewEffect,
     sendInitiativeOptionUpdate,
@@ -25,6 +24,7 @@ import { setCenterPosition } from "../../position";
 import { accessSystem } from "../../systems/access";
 import { accessState } from "../../systems/access/state";
 import { floorSystem } from "../../systems/floors";
+import { gameState } from "../../systems/game/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 
 let activeTokensBackup: Set<LocalId> | undefined = undefined;
@@ -133,7 +133,7 @@ class InitiativeStore extends Store<InitiativeState> {
                 localId,
                 effects: [],
                 isGroup,
-                isVisible: !getGameState().isDm,
+                isVisible: !gameState.raw.isDm,
                 initiative: undefined,
             };
             this._state.locationData.push(actor);
@@ -187,7 +187,7 @@ class InitiativeStore extends Store<InitiativeState> {
     // TURN / ROUND TRACKING
 
     setTurnCounter(turn: number, sync: boolean): void {
-        if (sync && !getGameState().isDm && !this.owns()) return;
+        if (sync && !gameState.raw.isDm && !this.owns()) return;
         this._state.turnCounter = turn;
 
         const actor = this.getDataSet()[this._state.turnCounter];
@@ -208,7 +208,7 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     setRoundCounter(round: number, sync: boolean): void {
-        if (sync && !getGameState().isDm && !this.owns()) return;
+        if (sync && !gameState.raw.isDm && !this.owns()) return;
         this._state.roundCounter = round;
         if (sync) {
             sendInitiativeRoundUpdate(round);
@@ -219,7 +219,7 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     nextTurn(): void {
-        if (!getGameState().isDm && !this.owns()) return;
+        if (!gameState.raw.isDm && !this.owns()) return;
         if (this._state.turnCounter === this.getDataSet().length - 1) {
             this.setRoundCounter(this._state.roundCounter + 1, true);
         } else {
@@ -228,7 +228,7 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     previousTurn(): void {
-        if (!getGameState().isDm) return;
+        if (!gameState.raw.isDm) return;
         if (this._state.turnCounter === 0) {
             this.setRoundCounter(this._state.roundCounter - 1, true);
             this.setTurnCounter(this.getDataSet().length - 1, true);
@@ -331,7 +331,7 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     owns(globalId?: GlobalId): boolean {
-        if (getGameState().isDm) return true;
+        if (gameState.raw.isDm) return true;
         if (globalId === undefined) {
             const actor = this._state.locationData[this._state.turnCounter];
             if (actor === undefined) return false;

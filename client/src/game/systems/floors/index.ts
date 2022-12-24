@@ -2,7 +2,6 @@ import type { DeepReadonly } from "vue";
 
 import { registerSystem } from "..";
 import type { System } from "..";
-import { getGameState } from "../../../store/_game";
 import {
     sendActiveLayer,
     sendFloorReorder,
@@ -19,6 +18,7 @@ import { LayerName } from "../../models/floor";
 import type { Floor, FloorId, FloorIndex, FloorType } from "../../models/floor";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { clientSystem } from "../client";
+import { gameState } from "../game/state";
 import { selectedSystem } from "../selected";
 import { playerSettingsState } from "../settings/players/state";
 
@@ -159,7 +159,7 @@ class FloorSystem implements System {
     }
 
     setFloorType(floorRepr: FloorRepresentation, floorType: FloorType, sync: boolean): void {
-        if (!getGameState().isDm) return;
+        if (!gameState.raw.isDm) return;
         const floor = this.getFloor(floorRepr, false);
         if (floor === undefined) return;
 
@@ -168,7 +168,7 @@ class FloorSystem implements System {
     }
 
     setFloorBackground(floorRepr: FloorRepresentation, backgroundValue: string | undefined, sync: boolean): void {
-        if (!getGameState().isDm) return;
+        if (!gameState.raw.isDm) return;
         const floor = this.getFloor(floorRepr, false);
         if (floor === undefined) return;
 

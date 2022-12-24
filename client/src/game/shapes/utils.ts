@@ -1,8 +1,6 @@
 import { subtractP, Vector } from "../../core/geometry";
 import { SyncMode, InvalidationMode } from "../../core/models/types";
 import { uuidv4 } from "../../core/utils";
-import { getGameState } from "../../store/_game";
-import { gameStore } from "../../store/game";
 import { sendRemoveShapes } from "../api/emits/shape/core";
 import { addGroupMembers, createNewGroupForShapes } from "../groups";
 import { getGlobalId, getLocalId } from "../id";
@@ -14,6 +12,8 @@ import { addOperation } from "../operations/undo";
 import { accessSystem } from "../systems/access";
 import type { ServerShapeOwner } from "../systems/access/models";
 import type { AuraId, ServerAura } from "../systems/auras/models";
+import { clipboardSystem } from "../systems/clipboard";
+import { clipboardState } from "../systems/clipboard/state";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
 import { positionSystem } from "../systems/position";
@@ -34,20 +34,20 @@ export function copyShapes(): void {
         }
         clipboard.push(shape.asDict());
     }
-    gameStore.setClipboard(clipboard);
-    gameStore.setClipboardPosition(positionSystem.screenCenter);
+    clipboardSystem.setClipboard(clipboard);
+    clipboardSystem.setClipboardPosition(positionSystem.screenCenter);
 }
 
 export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
     const layer = floorSystem.getLayer(floorState.currentFloor.value!, targetLayer);
     if (!layer) return [];
-    const gameState = getGameState();
-    if (gameState.clipboard.length === 0) return [];
+
+    if (clipboardState.raw.clipboard.length === 0) return [];
 
     selectedSystem.clear();
 
-    gameStore.setClipboardPosition(positionSystem.screenCenter);
-    let offset = subtractP(positionSystem.screenCenter, gameState.clipboardPosition);
+    clipboardSystem.setClipboardPosition(positionSystem.screenCenter);
+    let offset = subtractP(positionSystem.screenCenter, clipboardState.raw.clipboardPosition);
     // Check against 200 as that is the squared length of a vector with size 10, 10
     if (offset.squaredLength() < 200) {
         offset = new Vector(10, 10);
@@ -59,7 +59,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
 
     const groupShapes: Record<string, GlobalId[]> = {};
 
-    for (const clip of gameState.clipboard) {
+    for (const clip of clipboardState.raw.clipboard) {
         const newShape: ServerShape = Object.assign({}, clip, { auras: [], labels: [], owners: [], trackers: [] });
         newShape.uuid = uuidv4();
         newShape.x = clip.x + offset.x;

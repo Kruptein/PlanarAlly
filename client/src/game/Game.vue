@@ -1,9 +1,8 @@
 <script lang="ts">
 import throttle from "lodash/throttle";
-import { defineComponent, onMounted, onUnmounted, toRef, watchEffect } from "vue";
+import { defineComponent, onMounted, onUnmounted, watchEffect } from "vue";
 
 import { useModal } from "../core/plugins/modals/plugin";
-import { getGameState } from "../store/_game";
 import { coreStore } from "../store/core";
 
 import { createConnection, socket } from "./api/socket";
@@ -13,6 +12,7 @@ import { scrollZoom } from "./input/mouse";
 import { LgCompanion } from "./integrations/lastgameboard/companion";
 import { clearUndoStacks } from "./operations/undo";
 import { floorSystem } from "./systems/floors";
+import { gameState } from "./systems/game/state";
 import { playerSettingsState } from "./systems/settings/players/state";
 import { setSelectionBoxFunction } from "./temp";
 import { keyUp, mouseDown, mouseLeave, mouseMove, mouseUp, touchEnd, touchMove, touchStart } from "./tools/events";
@@ -39,7 +39,6 @@ export default defineComponent({
         const modals = useModal();
         setSelectionBoxFunction(modals.selectionBox);
 
-        const gameState = getGameState();
         const companion = new LgCompanion();
 
         const mediaQuery = matchMedia(`(resolution: ${devicePixelRatio}dppx)`);
@@ -49,7 +48,7 @@ export default defineComponent({
         let throttledTouchMove: (event: TouchEvent) => void = (_event: TouchEvent) => {};
 
         watchEffect(() => {
-            if (!getGameState().boardInitialized) {
+            if (!gameState.reactive.boardInitialized) {
                 throttledMoveSet = false;
                 throttledTouchMoveSet = false;
             }
@@ -128,7 +127,7 @@ export default defineComponent({
 
         return {
             drop,
-            isConnected: toRef(gameState, "isConnected"),
+            gameState,
             mouseDown,
             mouseLeave,
             mousemove,
@@ -145,7 +144,7 @@ export default defineComponent({
 <template>
     <div id="main" @mouseleave="mouseLeave" @wheel.passive="zoom">
         <canvas id="babylon"></canvas>
-        <div id="board" :class="{ disconnected: !isConnected }">
+        <div id="board" :class="{ disconnected: !gameState.reactive.isConnected }">
             <div
                 id="layers"
                 @mousedown="mouseDown"

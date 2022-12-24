@@ -1,7 +1,6 @@
 import tinycolor from "tinycolor2";
 
-import { getGameState } from "../store/_game";
-
+import { gameState } from "./systems/game/state";
 import { locationSettingsState } from "./systems/settings/location/state";
 import { playerSettingsState } from "./systems/settings/players/state";
 
@@ -13,7 +12,7 @@ export function updateFogColour(): void {
 
 function getFogColour(): string {
     const tc = tinycolor(playerSettingsState.raw.fowColour.value);
-    if (getGameState().isDm) tc.setAlpha(locationSettingsState.raw.fowOpacity.value);
+    if (gameState.raw.isDm) tc.setAlpha(locationSettingsState.raw.fowOpacity.value);
     else tc.setAlpha(1);
     return tc.toRgbString();
 }

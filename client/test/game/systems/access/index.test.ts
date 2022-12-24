@@ -7,10 +7,10 @@ import { accessSystem } from "../../../../src/game/systems/access";
 import { DEFAULT_ACCESS, DEFAULT_ACCESS_SYMBOL } from "../../../../src/game/systems/access/models";
 import type { ShapeAccess } from "../../../../src/game/systems/access/models";
 import { accessState } from "../../../../src/game/systems/access/state";
+import { gameSystem } from "../../../../src/game/systems/game";
 import { playerSystem } from "../../../../src/game/systems/players";
 import type { ShapeProperties } from "../../../../src/game/systems/properties/state";
 import { coreStore } from "../../../../src/store/core";
-import { gameStore } from "../../../../src/store/game";
 import { generatePlayer, generateTestLocalId } from "../../../helpers";
 
 const errorSpy = vi.spyOn(console, "error");
@@ -125,7 +125,7 @@ describe("Access System", () => {
         });
         it("should return correctly if the player is a DM", () => {
             // setup
-            gameStore.setDm(true);
+            gameSystem.setDm(true);
             // test
             expect(accessSystem.hasAccessTo(id, false, { edit: true })).toBe(true);
             // extra checks
@@ -141,7 +141,7 @@ describe("Access System", () => {
             coreStore.setUsername("userWithNoRights");
             expect(accessSystem.hasAccessTo(id2, false, { edit: true })).toBe(true);
             // teardown
-            gameStore.setDm(false);
+            gameSystem.setDm(false);
         });
         it("should return false if the shape does not exist", () => {
             // setup
@@ -150,10 +150,10 @@ describe("Access System", () => {
             expect(accessSystem.hasAccessTo(id, false, { movement: true })).toBe(false);
             // extra checks
             // 1. fake player
-            gameStore.setFakePlayer(true);
+            gameSystem.setFakePlayer(true);
             expect(accessSystem.hasAccessTo(id, false, { movement: true })).toBe(false);
-            gameStore.setFakePlayer(false);
-            gameStore.setDm(false); // fakeplayer resets isDm
+            gameSystem.setFakePlayer(false);
+            gameSystem.setDm(false); // fakeplayer resets isDm
             // 2. default access is granted
             expect(accessSystem.hasAccessTo(id, false, { edit: true })).toBe(false);
             // 3. user access is granted
@@ -178,10 +178,10 @@ describe("Access System", () => {
             accessSystem.setActiveTokens();
             // extra checks
             // 1. fake player
-            gameStore.setFakePlayer(true);
+            gameSystem.setFakePlayer(true);
             expect(accessSystem.hasAccessTo(id, true, { edit: true })).toBe(false);
-            gameStore.setFakePlayer(false);
-            gameStore.setDm(false); // fakeplayer resets isDm
+            gameSystem.setFakePlayer(false);
+            gameSystem.setDm(false); // fakeplayer resets isDm
             // 2. default access is granted
             expect(accessSystem.hasAccessTo(id, true, { edit: true })).toBe(false);
             // 3. user access is granted
@@ -190,7 +190,7 @@ describe("Access System", () => {
         });
         it("should return true if fake player is activated", () => {
             // setup
-            gameStore.setFakePlayer(true);
+            gameSystem.setFakePlayer(true);
             // test
             expect(accessSystem.hasAccessTo(id, false, { movement: true })).toBe(true);
             // extra checks
@@ -198,8 +198,8 @@ describe("Access System", () => {
             coreStore.setUsername("userWithNoRights");
             expect(accessSystem.hasAccessTo(id2, false, { edit: true })).toBe(true);
             // teardown
-            gameStore.setFakePlayer(false);
-            gameStore.setDm(false); // fakeplayer resets isDm
+            gameSystem.setFakePlayer(false);
+            gameSystem.setDm(false); // fakeplayer resets isDm
         });
         it("should return true if default access is granted", () => {
             // test

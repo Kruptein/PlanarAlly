@@ -19,7 +19,6 @@ import { equalPoints, snapToPoint } from "../../../../core/math";
 import { InvalidationMode, NO_SYNC, SyncMode } from "../../../../core/models/types";
 import { ctrlOrCmdPressed } from "../../../../core/utils";
 import { i18n } from "../../../../i18n";
-import { getGameState } from "../../../../store/_game";
 import { sendRequest } from "../../../api/emits/logic";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../../api/emits/shape/core";
 import { calculateDelta } from "../../../drag";
@@ -42,6 +41,7 @@ import type { BoundingRect } from "../../../shapes/variants/simple/boundingRect"
 import { accessSystem } from "../../../systems/access";
 import { floorSystem } from "../../../systems/floors";
 import { floorState } from "../../../systems/floors/state";
+import { gameState } from "../../../systems/game/state";
 import { doorSystem } from "../../../systems/logic/door";
 import { Access } from "../../../systems/logic/models";
 import { teleportZoneSystem } from "../../../systems/logic/tp";
@@ -215,7 +215,7 @@ class SelectTool extends Tool implements ISelectTool {
 
         // Logic Door Check
         if (_.hoveredDoor !== undefined && activeToolMode.value === ToolMode.Play) {
-            if (getGameState().isDm) {
+            if (gameState.raw.isDm) {
                 doorSystem.toggleDoor(_.hoveredDoor);
                 return Promise.resolve();
             } else {
@@ -455,7 +455,7 @@ class SelectTool extends Tool implements ISelectTool {
             if (this.mode === SelectOperations.Drag) {
                 if (ogDelta.length() === 0) return;
                 // If we are on the tokens layer do a movement block check.
-                if (layer.name === "tokens" && !(event && event.shiftKey && getGameState().isDm)) {
+                if (layer.name === "tokens" && !(event && event.shiftKey && gameState.raw.isDm)) {
                     for (const sel of layerSelection) {
                         if (!accessSystem.hasAccessTo(sel.id, false, { movement: true })) continue;
                         delta = calculateDelta(delta, sel, true);

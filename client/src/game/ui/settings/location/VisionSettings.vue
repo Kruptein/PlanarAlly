@@ -3,8 +3,8 @@ import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { getValue } from "../../../../core/utils";
-import { getGameState } from "../../../../store/_game";
-import { gameStore } from "../../../../store/game";
+import { gameSystem } from "../../../systems/game";
+import { gameState } from "../../../systems/game/state";
 import { locationSettingsSystem } from "../../../systems/settings/location";
 import { locationSettingsState } from "../../../systems/settings/location/state";
 import { VisibilityMode, visionState } from "../../../vision/state";
@@ -22,10 +22,10 @@ const location = computed(() => (isGlobal.value ? undefined : props.location));
 
 const fakePlayer = computed({
     get() {
-        return getGameState().isFakePlayer;
+        return gameState.reactive.isFakePlayer;
     },
     set(isFakePlayer: boolean) {
-        gameStore.setFakePlayer(isFakePlayer);
+        gameSystem.setFakePlayer(isFakePlayer);
     },
 });
 

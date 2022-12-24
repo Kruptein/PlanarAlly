@@ -7,14 +7,12 @@ import { rotateAroundPoint } from "../../core/math";
 import type { Sync } from "../../core/models/types";
 import type { FunctionPropertyNames } from "../../core/types";
 import { mostReadable } from "../../core/utils";
-import { getGameState } from "../../store/_game";
 import { activeShapeStore } from "../../store/activeShape";
 import type { ActiveShapeStore } from "../../store/activeShape";
 import { sendShapeAddLabel, sendShapeRemoveLabel } from "../api/emits/shape/options";
 import { getBadgeCharacters } from "../groups";
 import { generateLocalId, getGlobalId } from "../id";
 import type { GlobalId, LocalId } from "../id";
-import type { Label } from "../interfaces/label";
 import type { ILayer } from "../interfaces/layer";
 import type { IShape } from "../interfaces/shape";
 import { LayerName } from "../models/floor";
@@ -28,6 +26,8 @@ import { auraSystem } from "../systems/auras";
 import { aurasFromServer, aurasToServer } from "../systems/auras/conversion";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
+import type { Label } from "../systems/labels/models";
+import { labelState } from "../systems/labels/state";
 import { doorSystem } from "../systems/logic/door";
 import { teleportZoneSystem } from "../systems/logic/tp";
 import { propertiesSystem } from "../systems/properties";
@@ -617,7 +617,7 @@ export abstract class Shape implements IShape {
         if (syncTo.server) sendShapeAddLabel({ shape: getGlobalId(this.id), value: label });
         if (syncTo.ui) this._("addLabel")(label, syncTo);
 
-        const l = getGameState().labels.get(label)!;
+        const l = labelState.raw.labels.get(label)!;
         this.labels.push(l);
     }
 

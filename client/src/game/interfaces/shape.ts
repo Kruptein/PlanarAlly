@@ -5,8 +5,8 @@ import type { Floor, FloorId, LayerName } from "../models/floor";
 import type { ShapeOptions, ServerShape } from "../models/shapes";
 import type { SHAPE_TYPE } from "../shapes/types";
 import type { BoundingRect } from "../shapes/variants/simple/boundingRect";
+import type { Label } from "../systems/labels/models";
 
-import type { Label } from "./label";
 import type { ILayer } from "./layer";
 
 export interface SimpleShape {

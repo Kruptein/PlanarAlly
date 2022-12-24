@@ -3,7 +3,8 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
-import { uiStore } from "../../../../store/ui";
+import { uiSystem } from "../../../systems/ui";
+import { uiState } from "../../../systems/ui/state";
 import FloorSettings from "../location/FloorSettings.vue";
 import GridSettings from "../location/GridSettings.vue";
 import VariaSettings from "../location/VariaSettings.vue";
@@ -16,10 +17,10 @@ const { t } = useI18n();
 
 const visible = computed({
     get() {
-        return uiStore.state.showDmSettings;
+        return uiState.reactive.showDmSettings;
     },
     set(visible: boolean) {
-        uiStore.showDmSettings(visible);
+        uiSystem.showDmSettings(visible);
     },
 });
 

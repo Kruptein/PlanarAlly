@@ -4,9 +4,7 @@ import { g2l, l2g, l2gz } from "../../../core/conversions";
 import { Ray, toLP } from "../../../core/geometry";
 import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
 import { debugLayers } from "../../../localStorageHelpers";
-import { getGameState } from "../../../store/_game";
 import { activeShapeStore } from "../../../store/activeShape";
-import { gameStore } from "../../../store/game";
 import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../../api/emits/shape/core";
 import { removeGroupMember } from "../../groups";
 import { dropId, getGlobalId, getShape } from "../../id";
@@ -25,6 +23,9 @@ import { accessSystem } from "../../systems/access";
 import { accessState } from "../../systems/access/state";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
+import { gameState } from "../../systems/game/state";
+import { labelState } from "../../systems/labels/state";
+import { markerSystem } from "../../systems/markers";
 import { positionSystem } from "../../systems/position";
 import { propertiesSystem } from "../../systems/properties";
 import { getProperties } from "../../systems/properties/state";
@@ -90,7 +91,7 @@ export class Layer implements ILayer {
     }
 
     updateView(): void {
-        if (!getGameState().boardInitialized) return;
+        if (!gameState.raw.boardInitialized) return;
 
         this.shapeIdsInSector.clear();
 
@@ -323,7 +324,7 @@ export class Layer implements ILayer {
         const triggersVisionRecalc = shape.triggersVisionRecalc;
 
         if (options.dropShapeId) dropId(shape.id);
-        gameStore.removeMarker(shape.id, true);
+        markerSystem.removeMarker(shape.id, true);
 
         for (const point of shape.points) {
             const strp = JSON.stringify(point);
@@ -379,8 +380,6 @@ export class Layer implements ILayer {
 
             if (doClear) this.clear();
 
-            const gameState = getGameState();
-
             // We iterate twice over all shapes
             // First to draw the auras and a second time to draw the shapes themselves
             // Otherwise auras from one shape could overlap another shape.
@@ -400,11 +399,12 @@ export class Layer implements ILayer {
                     if (shape.options.skipDraw ?? false) continue;
                     const props = getProperties(shape.id)!;
                     if (props.isInvisible && !accessSystem.hasAccessTo(shape.id, true, { vision: true })) continue;
-                    if (shape.labels.length === 0 && gameState.filterNoLabel) continue;
+                    // todo: move as a call to label system?
+                    if (shape.labels.length === 0 && labelState.raw.filterNoLabel) continue;
                     if (
                         shape.labels.length &&
-                        gameState.labelFilters.length &&
-                        !shape.labels.some((l) => gameState.labelFilters.includes(l.uuid))
+                        labelState.raw.labelFilters.length &&
+                        !shape.labels.some((l) => labelState.raw.labelFilters.includes(l.uuid))
                     ) {
                         continue;
                     }

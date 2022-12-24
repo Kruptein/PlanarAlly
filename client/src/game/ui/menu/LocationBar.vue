@@ -4,15 +4,15 @@ import { useI18n } from "vue-i18n";
 import draggable from "vuedraggable";
 
 import { useModal } from "../../../core/plugins/modals/plugin";
-import { getGameState } from "../../../store/_game";
 import { coreStore } from "../../../store/core";
 import { locationStore } from "../../../store/location";
-import { uiStore } from "../../../store/ui";
 import { sendLocationChange, sendNewLocation } from "../../api/emits/location";
 import type { Location } from "../../models/settings";
+import { gameState } from "../../systems/game/state";
 import { playerSystem } from "../../systems/players";
 import { playerState } from "../../systems/players/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
+import { uiSystem } from "../../systems/ui";
 
 const props = defineProps<{ active: boolean; menuActive: boolean }>();
 
@@ -20,8 +20,6 @@ const { t } = useI18n();
 const modals = useModal();
 
 const locations = ref<{ $el: HTMLDivElement } | null>(null);
-
-const isDm = toRef(getGameState(), "isDm");
 
 const activeLocations = computed({
     get() {
@@ -80,7 +78,7 @@ function changeLocation(id: number): void {
 }
 
 function openLocationSettings(location: number): void {
-    uiStore.showLocationSettings(location);
+    uiSystem.showLocationSettings(location);
 }
 
 function toggleExpanded(id: number): void {
@@ -160,7 +158,7 @@ const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
 </script>
 
 <template>
-    <div id="location-bar" v-if="isDm">
+    <div id="location-bar" v-if="gameState.reactive.isDm">
         <div id="location-actions">
             <div id="create-location" :title="t('game.ui.menu.LocationBar.add_new_location')" @click="createLocation">
                 +

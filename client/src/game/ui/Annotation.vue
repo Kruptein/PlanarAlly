@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { toRef } from "vue";
 import VueMarkdownIt from "vue3-markdown-it";
 
-import { uiStore } from "../../store/ui";
-
-const text = toRef(uiStore.state, "annotationText");
+import { uiState } from "../systems/ui/state";
 </script>
 
 <template>
-    <VueMarkdownIt v-show="text.length > 0" :source="text" id="annotation" :html="true" />
+    <VueMarkdownIt
+        v-show="uiState.reactive.annotationText.length > 0"
+        :source="uiState.reactive.annotationText"
+        id="annotation"
+        :html="true"
+    />
 </template>
 
 <style scoped>

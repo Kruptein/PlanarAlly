@@ -6,9 +6,7 @@ import { useI18n } from "vue-i18n";
 import ContextMenu from "../../../core/components/ContextMenu.vue";
 import { SyncMode } from "../../../core/models/types";
 import { useModal } from "../../../core/plugins/modals/plugin";
-import { getGameState } from "../../../store/_game";
 import { activeShapeStore } from "../../../store/activeShape";
-import { gameStore } from "../../../store/game";
 import { locationStore } from "../../../store/location";
 import { requestAssetOptions, sendAssetOptions } from "../../api/emits/asset";
 import { requestSpawnInfo } from "../../api/emits/location";
@@ -26,6 +24,9 @@ import { deleteShapes } from "../../shapes/utils";
 import { accessSystem } from "../../systems/access";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
+import { gameState } from "../../systems/game/state";
+import { markerSystem } from "../../systems/markers";
+import { markerState } from "../../systems/markers/state";
 import { playerSystem } from "../../systems/players";
 import { getProperties } from "../../systems/properties/state";
 import { selectedSystem } from "../../systems/selected";
@@ -38,8 +39,6 @@ import { shapeContextLeft, shapeContextTop, showShapeContextMenu } from "./state
 
 const { t } = useI18n();
 const modals = useModal();
-
-const isDm = toRef(getGameState(), "isDm");
 
 const selectionIncludesSpawnToken = computed(() =>
     [...selectedSystem.$.value].some(
@@ -66,20 +65,20 @@ function openEditDialog(): void {
 const isMarker = computed(() => {
     const sel = selectedSystem.$.value;
     if (sel.size !== 1) return false;
-    return getGameState().markers.has([...sel][0]);
+    return markerState.reactive.markers.has([...sel][0]);
 });
 
 function deleteMarker(): void {
     const sel = selectedSystem.$.value;
     if (sel.size !== 1) return;
-    gameStore.removeMarker([...sel][0], true);
+    markerSystem.removeMarker([...sel][0], true);
     close();
 }
 
 function setMarker(): void {
     const sel = selectedSystem.$.value;
     if (sel.size !== 1) return;
-    gameStore.newMarker([...sel][0], true);
+    markerSystem.newMarker([...sel][0], true);
     close();
 }
 
@@ -124,7 +123,7 @@ function getInitiativeWord(): string {
 // LAYERS
 
 const layers = computed(() => {
-    if (isDm.value && !selectionIncludesSpawnToken.value) {
+    if (gameState.reactive.isDm && !selectionIncludesSpawnToken.value) {
         const currentFloor = floorState.currentFloor.value;
         if (currentFloor !== undefined) return floorSystem.getLayers(currentFloor).filter((l) => l.selectable);
     }
@@ -165,7 +164,7 @@ function setFloor(floor: Floor): void {
 // LOCATIONS
 
 const locations = computed(() => {
-    if (isDm.value && !selectionIncludesSpawnToken.value) {
+    if (gameState.reactive.isDm && !selectionIncludesSpawnToken.value) {
         return locationStore.activeLocations.value;
     }
     return [];
@@ -350,7 +349,7 @@ const floors = toRef(floorState.reactive, "floors");
 
 <template>
     <ContextMenu :visible="showShapeContextMenu" :left="shapeContextLeft" :top="shapeContextTop" @cm:close="close">
-        <li v-if="isDm && floors.length > 1">
+        <li v-if="gameState.reactive.isDm && floors.length > 1">
             {{ t("common.floor") }}
             <ul>
                 <li
@@ -392,13 +391,13 @@ const floors = toRef(floorState.reactive, "floors");
         <li @click="moveToBack" v-if="isOwned">{{ t("game.ui.selection.ShapeContext.move_back") }}</li>
         <li @click="moveToFront" v-if="isOwned">{{ t("game.ui.selection.ShapeContext.move_front") }}</li>
         <li @click="addToInitiative" v-if="isOwned && !selectionIncludesSpawnToken">{{ getInitiativeWord() }}</li>
-        <li @click="deleteSelection" v-if="!selectionIncludesSpawnToken && (isDm || isOwned)">
+        <li @click="deleteSelection" v-if="!selectionIncludesSpawnToken && (gameState.reactive.isDm || isOwned)">
             {{ t("game.ui.selection.ShapeContext.delete_shapes") }}
         </li>
         <template v-if="hasSingleSelection">
             <li v-if="isMarker" @click="deleteMarker">{{ t("game.ui.selection.ShapeContext.remove_marker") }}</li>
             <li v-else @click="setMarker">{{ t("game.ui.selection.ShapeContext.set_marker") }}</li>
-            <li @click="saveTemplate" v-if="!selectionIncludesSpawnToken && isDm && canBeSaved">
+            <li @click="saveTemplate" v-if="!selectionIncludesSpawnToken && gameState.reactive.isDm && canBeSaved">
                 {{ t("game.ui.templates.save") }}
             </li>
         </template>

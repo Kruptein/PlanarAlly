@@ -1,11 +1,11 @@
 // Bootup Sequence
 
 import { coreStore } from "../../../store/core";
-import { gameStore } from "../../../store/game";
 import { locationStore } from "../../../store/location";
 import type { GlobalId } from "../../id";
 import type { ServerLocation } from "../../models/general";
 import type { Location } from "../../models/settings";
+import { gameSystem } from "../../systems/game";
 import { playerSystem } from "../../systems/players";
 import { locationSettingsSystem } from "../../systems/settings/location";
 import type { ServerLocationInfo, ServerLocationOptions } from "../../systems/settings/location/models";
@@ -36,7 +36,7 @@ socket.on("Locations.Order.Set", (locations: Location[]) => {
 
 socket.on("Location.Change.Start", () => {
     coreStore.setLoading(true);
-    gameStore.setBoardInitialized(false);
+    gameSystem.setBoardInitialized(false);
 });
 
 socket.on("Location.Rename", (data: { location: number; name: string }) => {

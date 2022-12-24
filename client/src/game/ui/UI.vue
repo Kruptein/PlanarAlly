@@ -5,11 +5,12 @@ import { useI18n } from "vue-i18n";
 import MarkdownModal from "../../core/components/modals/MarkdownModal.vue";
 import SliderComponent from "../../core/components/slider/SliderComponent.vue";
 import { baseAdjust } from "../../core/http";
-import { getGameState } from "../../store/_game";
 import { activeShapeStore } from "../../store/activeShape";
 import { coreStore } from "../../store/core";
+import { gameState } from "../systems/game/state";
 import { positionSystem } from "../systems/position";
 import { positionState } from "../systems/position/state";
+import { uiState } from "../systems/ui/state";
 
 import Annotation from "./Annotation.vue";
 import DefaultContext from "./contextmenu/DefaultContext.vue";
@@ -115,7 +116,7 @@ function setTempZoomDisplay(value: number): void {
 </script>
 
 <template>
-    <div id="ui" ref="uiEl" v-show="getGameState().showUi">
+    <div id="ui" ref="uiEl" v-show="uiState.reactive.showUi">
         <div id="logo" v-show="topLeft">
             <div id="logo-icons">
                 <a href="https://www.planarally.io" target="_blank" rel="noopener noreferrer">
@@ -157,10 +158,10 @@ function setTempZoomDisplay(value: number): void {
         <div id="radialmenu">
             <div class="rm-wrapper">
                 <div class="rm-toggler">
-                    <ul class="rm-list" :class="{ 'rm-list-dm': getGameState().isDm }">
+                    <ul class="rm-list" :class="{ 'rm-list-dm': gameState.reactive.isDm }">
                         <li
                             @click="toggleLocations"
-                            v-if="getGameState().isDm"
+                            v-if="gameState.reactive.isDm"
                             class="rm-item"
                             id="rm-locations"
                             :title="t('game.ui.ui.open_loc_menu')"
@@ -182,7 +183,7 @@ function setTempZoomDisplay(value: number): void {
         <!-- Core overlays -->
         <MenuBar />
         <Tools />
-        <LocationBar v-if="getGameState().isDm" :active="visible.locations" :menuActive="visible.settings" />
+        <LocationBar v-if="gameState.reactive.isDm" :active="visible.locations" :menuActive="visible.settings" />
         <Floors />
         <DefaultContext />
         <ShapeContext />

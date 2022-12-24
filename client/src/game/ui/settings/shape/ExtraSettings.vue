@@ -8,7 +8,6 @@ import { toGP } from "../../../../core/geometry";
 import { InvalidationMode, NO_SYNC, SERVER_SYNC, SyncMode, UI_SYNC } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { getChecked, getValue, uuidv4 } from "../../../../core/utils";
-import { getGameState } from "../../../../store/_game";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { getShape } from "../../../id";
 import type { IAsset } from "../../../interfaces/shapes/asset";
@@ -24,6 +23,7 @@ import { auraSystem } from "../../../systems/auras";
 import type { Aura, AuraId } from "../../../systems/auras/models";
 import { floorSystem } from "../../../systems/floors";
 import { floorState } from "../../../systems/floors/state";
+import { gameState } from "../../../systems/game/state";
 import { playerSystem } from "../../../systems/players";
 import { DEFAULT_GRID_SIZE } from "../../../systems/position/state";
 import { propertiesSystem } from "../../../systems/properties";
@@ -96,7 +96,7 @@ const hasPath = computed(() => {
     }
     return false;
 });
-const showSvgSection = computed(() => getGameState().isDm && activeShapeStore.state.type === "assetrect");
+const showSvgSection = computed(() => gameState.reactive.isDm && activeShapeStore.state.type === "assetrect");
 
 async function uploadSvg(): Promise<void> {
     const asset = await modals.assetPicker();

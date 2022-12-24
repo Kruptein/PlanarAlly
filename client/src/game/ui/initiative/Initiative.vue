@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { computed, onMounted, toRef } from "vue";
+import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import draggable from "vuedraggable";
 
 import Modal from "../../../core/components/modals/Modal.vue";
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { getTarget, getValue } from "../../../core/utils";
-import { getGameState } from "../../../store/_game";
-import { uiStore } from "../../../store/ui";
 import { sendRequestInitiatives } from "../../api/emits/initiative";
 import { getGroupMembers } from "../../groups";
 import { getShape } from "../../id";
@@ -17,8 +15,10 @@ import type { IAsset } from "../../interfaces/shapes/asset";
 import type { InitiativeData } from "../../models/initiative";
 import { InitiativeEffectMode, InitiativeSort } from "../../models/initiative";
 import { accessSystem } from "../../systems/access";
+import { gameState } from "../../systems/game/state";
 import { getProperties } from "../../systems/properties/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
+import { uiSystem } from "../../systems/ui";
 import { ClientSettingCategory } from "../settings/client/categories";
 
 import { initiativeStore } from "./state";
@@ -27,8 +27,6 @@ const { t } = useI18n();
 const modals = useModal();
 
 const emit = defineEmits(["close"]);
-
-const isDm = toRef(getGameState(), "isDm");
 
 const close = (): void => {
     initiativeStore.show(false, false);
@@ -115,7 +113,7 @@ function getImage(actor: InitiativeData): string {
 }
 
 function canSee(actor: InitiativeData): boolean {
-    if (isDm.value || actor.isVisible) return true;
+    if (gameState.raw.isDm || actor.isVisible) return true;
     if (actor.localId === undefined) return false;
     return accessSystem.hasAccessTo(actor.localId, false, { edit: true });
 }
@@ -141,12 +139,12 @@ function setInitiative(shape: GlobalId, value: string): void {
 }
 
 function changeOrder(data: Event & { moved?: { element: InitiativeData; newIndex: number; oldIndex: number } }): void {
-    if (isDm.value && data.moved)
+    if (gameState.raw.isDm && data.moved)
         initiativeStore.changeOrder(data.moved.element.globalId, data.moved.oldIndex, data.moved.newIndex);
 }
 
 function changeSort(): void {
-    if (isDm.value) {
+    if (gameState.raw.isDm) {
         const sort = (initiativeStore.state.sort + 1) % (Object.keys(InitiativeSort).length / 2);
         initiativeStore.changeSort(sort, true);
     }
@@ -164,8 +162,8 @@ function translateSort(sort: InitiativeSort): string {
 }
 
 function openSettings(): void {
-    uiStore.setClientTab(ClientSettingCategory.Initiative);
-    uiStore.showClientSettings(true);
+    uiSystem.setClientTab(ClientSettingCategory.Initiative);
+    uiSystem.showClientSettings(true);
 }
 
 // shitty helper because draggable loses all type information :arghfist:
@@ -189,7 +187,7 @@ function n(e: any): number {
                 id="initiative-list"
                 :modelValue="initiativeStore.state.locationData"
                 @change="changeOrder"
-                :disabled="!isDm"
+                :disabled="!gameState.reactive.isDm"
                 item-key="uuid"
             >
                 <template #item="{ element: actor, index }: { element: InitiativeData, index: number }">
@@ -202,7 +200,7 @@ function n(e: any): number {
                                     initiativeStore.state.editLock !== undefined &&
                                     initiativeStore.state.editLock !== actor.globalId,
                             }"
-                            :style="{ cursor: isDm ? 'move' : 'auto' }"
+                            :style="{ cursor: gameState.reactive.isDm ? 'move' : 'auto' }"
                             @mouseenter="toggleHighlight(actor.localId, true)"
                             @mouseleave="toggleHighlight(actor.localId, false)"
                         >
@@ -297,7 +295,7 @@ function n(e: any): number {
                     </div>
                 </template>
             </draggable>
-            <div id="initiative-bar-dm" v-if="isDm">
+            <div id="initiative-bar-dm" v-if="gameState.reactive.isDm">
                 <div class="initiative-bar-button" @click="reset" :title="t('game.ui.initiative.reset_round')">
                     <font-awesome-icon icon="angle-double-left" />
                 </div>
@@ -315,7 +313,7 @@ function n(e: any): number {
                 </div>
                 <div
                     class="initiative-bar-button"
-                    :class="{ notAllowed: !isDm }"
+                    :class="{ notAllowed: !gameState.reactive.isDm }"
                     @click="nextTurn"
                     :title="t('game.ui.initiative.next')"
                 >
@@ -334,7 +332,7 @@ function n(e: any): number {
                     <font-awesome-icon icon="cog" />
                 </div>
                 <div
-                    v-if="!isDm"
+                    v-if="!gameState.reactive.isDm"
                     id="initiative-next-round"
                     class="initiative-bar-button"
                     :class="{ notAllowed: !owns() }"

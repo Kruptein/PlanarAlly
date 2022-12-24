@@ -1,7 +1,7 @@
-import { getGameState } from "../../../store/_game";
 import type { ServerUserLocationOptions } from "../../models/settings";
 import { clientSystem } from "../../systems/client";
 import type { BoardId, ClientId, Viewport } from "../../systems/client/models";
+import { gameState } from "../../systems/game/state";
 import { playerSystem } from "../../systems/players";
 import type { PlayerId } from "../../systems/players/models";
 import { positionSystem } from "../../systems/position";
@@ -18,7 +18,7 @@ socket.on("Client.Disconnected", (data: ClientId) => {
 socket.on("Client.Move", (data: { player: PlayerId; client: ClientId } & ServerUserLocationOptions) => {
     const { player, client, ...locationData } = data;
     const isCurrentPlayer = playerSystem.getCurrentPlayer()?.id === data.player;
-    if (getGameState().isDm && !isCurrentPlayer) {
+    if (gameState.isDmOrFake.value && !isCurrentPlayer) {
         playerSystem.setPosition(player, locationData);
     } else if (isCurrentPlayer) {
         positionSystem.setPan(data.pan_x, data.pan_y, { updateSectors: false });

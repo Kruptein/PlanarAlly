@@ -3,7 +3,6 @@ import type { System } from "..";
 import { g2l, l2g, zoomDisplayToFactor } from "../../../core/conversions";
 import { addP, getPointDistance, subtractP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
-import { getGameState } from "../../../store/_game";
 import { sendClientLocationOptions } from "../../api/emits/client";
 import { getAllShapes, getShape, getShapeCount } from "../../id";
 import type { LocalId } from "../../id";
@@ -16,6 +15,7 @@ import { accessState } from "../access/state";
 import { clientSystem } from "../client";
 import { floorSystem } from "../floors";
 import { floorState } from "../floors/state";
+import { gameState } from "../game/state";
 import { locationSettingsState } from "../settings/location/state";
 import { playerSettingsState } from "../settings/players/state";
 
@@ -136,7 +136,7 @@ class PositionSystem implements System {
 
         $.outOfBounds = true;
         const floor = floorState.currentFloor.value;
-        if (floor !== undefined && !getGameState().isDm && locationSettingsState.raw.fullFow.value) {
+        if (floor !== undefined && !gameState.raw.isDm && locationSettingsState.raw.fullFow.value) {
             if (locationSettingsState.raw.fowLos.value) {
                 const visionLayer = floorSystem.getLayer(floor, LayerName.Vision)! as FowLayer;
                 if (!visionLayer.isEmpty) {
@@ -164,7 +164,7 @@ class PositionSystem implements System {
 
     returnToBounds(): void {
         let nearest: GlobalPoint | undefined;
-        if (!getGameState().isDm && locationSettingsState.raw.fullFow.value) {
+        if (!gameState.raw.isDm && locationSettingsState.raw.fullFow.value) {
             if (locationSettingsState.raw.fowLos.value) {
                 // find nearest token
                 nearest = this.findNearest(accessState.activeTokens.value, (i) => getShape(i));

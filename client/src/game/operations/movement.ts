@@ -1,11 +1,11 @@
 import { addP, toArrayP } from "../../core/geometry";
 import type { Vector } from "../../core/geometry";
-import { getGameState } from "../../store/_game";
 import { sendShapePositionUpdate } from "../api/emits/shape/core";
 import type { LocalId } from "../id";
 import type { IShape } from "../interfaces/shape";
 import { accessSystem } from "../systems/access";
 import { clientSystem } from "../systems/client";
+import { gameState } from "../systems/game/state";
 import { teleportZoneSystem } from "../systems/logic/tp";
 import { getProperties } from "../systems/properties/state";
 import { selectedSystem } from "../systems/selected";
@@ -91,6 +91,6 @@ function canMove(shapeId: LocalId): boolean {
     if (!accessSystem.hasAccessTo(shapeId, false, { movement: true })) return false;
     if (!locationSettingsState.raw.limitMovementDuringInitiative.value) return true;
     if (!initiativeStore.state.isActive) return true;
-    if (getGameState().isDm) return true;
+    if (gameState.raw.isDm) return true;
     return initiativeStore.getActor()?.localId === shapeId;
 }

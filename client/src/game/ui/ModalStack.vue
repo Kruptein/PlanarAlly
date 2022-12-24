@@ -14,10 +14,10 @@
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import type { Component, ComputedRef } from "vue";
 
-import { getGameState } from "../../store/_game";
 import { coreStore } from "../../store/core";
 import type { NumberId } from "../id";
 import { clientState } from "../systems/client/state";
+import { gameState } from "../systems/game/state";
 
 import DiceResults from "./dice/DiceResults.vue";
 import Initiative from "./initiative/Initiative.vue";
@@ -33,18 +33,13 @@ import ShapeSettings from "./settings/shape/ShapeSettings.vue";
 const hasGameboard = coreStore.state.boardId !== undefined;
 const hasGameboardClients = computed(() => clientState.reactive.clientBoards.size > 0);
 
-const dmOrFake = computed(() => {
-    const state = getGameState();
-    return state.isDm || state.isFakePlayer;
-});
-
 const modals: (Component | { component: Component; condition: ComputedRef<boolean> })[] = [
     ClientSettings,
-    { component: DmSettings, condition: dmOrFake },
-    { component: FloorSettings, condition: dmOrFake },
+    { component: DmSettings, condition: gameState.isDmOrFake },
+    { component: FloorSettings, condition: gameState.isDmOrFake },
     Initiative,
-    { component: LgSettings, condition: computed(() => hasGameboardClients.value && dmOrFake.value) },
-    { component: LocationSettings, condition: dmOrFake },
+    { component: LgSettings, condition: computed(() => hasGameboardClients.value && gameState.isDmOrFake.value) },
+    { component: LocationSettings, condition: gameState.isDmOrFake },
     ShapeSettings,
 ];
 if (!hasGameboard) {

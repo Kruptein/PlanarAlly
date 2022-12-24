@@ -1,8 +1,8 @@
-import { gameStore } from "../../../../store/game";
 import { Role } from "../../../models/role";
 import type { ServerUserLocationOptions } from "../../../models/settings";
 import { clientSystem } from "../../../systems/client";
 import type { ClientId, Viewport } from "../../../systems/client/models";
+import { gameSystem } from "../../../systems/game";
 import { playerSystem } from "../../../systems/players";
 import type { Player } from "../../../systems/players/models";
 import { socket } from "../../socket";
@@ -27,7 +27,7 @@ socket.on(
 
             if (player.core.name === playerSystem.getCurrentPlayer()?.name) {
                 found = true;
-                gameStore.setDm(player.core.role === Role.DM);
+                gameSystem.setDm(player.core.role === Role.DM);
             }
         }
         if (!found) {

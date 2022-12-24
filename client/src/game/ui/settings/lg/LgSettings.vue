@@ -3,7 +3,8 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
-import { uiStore } from "../../../../store/ui";
+import { uiSystem } from "../../../systems/ui";
+import { uiState } from "../../../systems/ui/state";
 
 import { LgSettingCategory } from "./categories";
 import LgGridSettings from "./LgGridSettings.vue";
@@ -12,10 +13,10 @@ const { t } = useI18n();
 
 const visible = computed({
     get() {
-        return uiStore.state.showLgSettings;
+        return uiState.reactive.showLgSettings;
     },
     set(visible: boolean) {
-        uiStore.showLgSettings(visible);
+        uiSystem.showLgSettings(visible);
     },
 });
 

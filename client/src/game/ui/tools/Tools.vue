@@ -4,11 +4,12 @@ import type { CSSProperties } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { baseAdjust } from "../../../core/http";
-import { getGameState } from "../../../store/_game";
 import { coreStore } from "../../../store/core";
-import { gameStore } from "../../../store/game";
 import { ToolMode, ToolName } from "../../models/tools";
 import { accessState } from "../../systems/access/state";
+import { gameSystem } from "../../systems/game";
+import { gameState } from "../../systems/game/state";
+import { labelState } from "../../systems/labels/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { activeModeTools, activeTool, activeToolMode, dmTools, toggleActiveMode, toolMap } from "../../tools/tools";
 import { initiativeStore } from "../initiative/state";
@@ -31,13 +32,11 @@ const detailBottom = computed(() => (playerSettingsState.reactive.useToolIcons.v
 const detailRight = ref("0px");
 const detailArrow = ref("0px");
 
-const fakePlayerActive = computed(() => getGameState().isFakePlayer);
-
 const visibleTools = computed(() => {
     {
         const tools = [];
         for (const [toolName] of activeModeTools.value) {
-            if (dmTools.includes(toolName) && !getGameState().isDm) continue;
+            if (dmTools.includes(toolName) && !gameState.reactive.isDm) continue;
             if (!isToolVisible(toolName)) continue;
 
             const tool = toolMap[toolName];
@@ -67,7 +66,7 @@ function updateDetails(): void {
 
 function isToolVisible(tool: ToolName): boolean {
     if (tool === ToolName.Filter) {
-        return getGameState().labels.size > 0;
+        return labelState.raw.labels.size > 0;
     } else if (tool === ToolName.Vision) {
         return accessState.raw.ownedTokens.size > 1;
     }
@@ -99,7 +98,7 @@ const toolModes = computed(() => {
 });
 
 function toggleFakePlayer(): void {
-    gameStore.setFakePlayer(!fakePlayerActive.value);
+    gameSystem.setFakePlayer(!gameState.raw.isFakePlayer);
 }
 </script>
 
@@ -128,8 +127,12 @@ function toggleFakePlayer(): void {
                 <li id="tool-mode"></li>
             </ul>
             <div v-if="!hasGameboard" id="tool-status">
-                <div id="tool-status-toggles" v-if="getGameState().isDm || getGameState().isFakePlayer">
-                    <div :class="{ active: fakePlayerActive }" @click="toggleFakePlayer" title="Toggle fake-player">
+                <div id="tool-status-toggles" v-if="gameState.isDmOrFake">
+                    <div
+                        :class="{ active: gameState.reactive.isFakePlayer }"
+                        @click="toggleFakePlayer"
+                        title="Toggle fake-player"
+                    >
                         FP
                     </div>
                     <div

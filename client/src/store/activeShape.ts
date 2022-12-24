@@ -6,7 +6,6 @@ import { Store } from "../core/store";
 import { sendShapeSvgAsset } from "../game/api/emits/shape/options";
 import { getGlobalId, getShape } from "../game/id";
 import type { LocalId } from "../game/id";
-import type { Label } from "../game/interfaces/label";
 import type { IShape } from "../game/interfaces/shape";
 import type { IAsset } from "../game/interfaces/shapes/asset";
 import type { IToggleComposite } from "../game/interfaces/shapes/toggleComposite";
@@ -15,10 +14,10 @@ import type { FloorId } from "../game/models/floor";
 import type { ShapeOptions } from "../game/models/shapes";
 import type { SHAPE_TYPE } from "../game/shapes/types";
 import { floorSystem } from "../game/systems/floors";
+import type { Label } from "../game/systems/labels/models";
+import { labelState } from "../game/systems/labels/state";
 import { selectedSystem } from "../game/systems/selected";
 import { visionState } from "../game/vision/state";
-
-import { getGameState } from "./_game";
 
 interface ActiveShapeState {
     id?: LocalId;
@@ -138,7 +137,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
     addLabel(label: string, syncTo: Sync): void {
         if (this._state.id === undefined) return;
 
-        this._state.labels.push({ ...getGameState().labels.get(label)! });
+        this._state.labels.push({ ...labelState.raw.labels.get(label)! });
 
         if (!syncTo.ui) {
             const shape = getShape(this._state.id)!;

@@ -4,13 +4,13 @@ import { registerSystem } from "..";
 import type { ShapeSystem } from "..";
 import { NO_SYNC } from "../../../core/models/types";
 import type { Sync } from "../../../core/models/types";
-import { getGameState } from "../../../store/_game";
 import { getGlobalId } from "../../id";
 import type { LocalId } from "../../id";
 import { initiativeStore } from "../../ui/initiative/state";
 import { annotationSystem } from "../annotations";
 import { annotationState } from "../annotations/state";
 import { floorSystem } from "../floors";
+import { gameState } from "../game/state";
 import { playerSystem } from "../players";
 import { getProperties } from "../properties/state";
 import { locationSettingsState } from "../settings/location/state";
@@ -106,7 +106,7 @@ class AccessSystem implements ShapeSystem {
         limitToActiveTokens: boolean,
         access: Partial<{ edit: boolean; vision: boolean; movement: boolean }>,
     ): boolean {
-        if (getGameState().isDm && !limitToActiveTokens) return true;
+        if (gameState.raw.isDm && !limitToActiveTokens) return true;
 
         const props = getProperties(id);
         if (props === undefined) return false;
@@ -117,7 +117,7 @@ class AccessSystem implements ShapeSystem {
             }
         }
 
-        if (getGameState().isDm || getGameState().isFakePlayer) return true;
+        if (gameState.isDmOrFake.value) return true;
 
         const accessMap = this.access.get(id);
         if (accessMap === undefined) return false;

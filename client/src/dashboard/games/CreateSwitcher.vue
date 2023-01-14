@@ -30,8 +30,8 @@ function create(): void {
         <div id="switch">
             <div
                 v-for="[i, mode] of modes.entries()"
-                :class="{ selected: i === selected }"
                 :key="mode.type"
+                :class="{ selected: i === selected }"
                 @click="selected = i"
             >
                 <div class="type">{{ mode.type }}</div>

@@ -82,12 +82,12 @@ const toggleLock = (): void => gameSystem.setIsLocked(!gameState.raw.isLocked, t
 <template>
     <div class="panel">
         <div class="spanrow header">{{ t("common.players") }}</div>
-        <div class="row smallrow" v-for="player of players.values()" :key="player.id">
+        <div v-for="player of players.values()" :key="player.id" class="row smallrow">
             <div>{{ player.name }}</div>
             <div class="player-actions">
                 <select
-                    @change="changePlayerRole($event, player.id)"
                     :disabled="username !== creator && player.name === creator"
+                    @change="changePlayerRole($event, player.id)"
                 >
                     <option
                         v-for="[i, role] of roles.entries()"
@@ -106,14 +106,14 @@ const toggleLock = (): void => gameSystem.setIsLocked(!gameState.raw.isLocked, t
                     <font-awesome-icon icon="eye" />
                 </div>
                 <div
-                    @click="kickPlayer(player.id)"
                     :style="{ opacity: username !== creator && player.name === creator ? 0.3 : 1.0 }"
+                    @click="kickPlayer(player.id)"
                 >
                     {{ t("game.ui.settings.dm.AdminSettings.kick") }}
                 </div>
             </div>
         </div>
-        <div class="row smallrow" v-if="players.size === 0">
+        <div v-if="players.size === 0" class="row smallrow">
             <div class="spanrow">{{ t("game.ui.settings.dm.AdminSettings.no_players_invite_msg") }}</div>
         </div>
         <div class="spanrow header">{{ t("game.ui.settings.dm.AdminSettings.invite_code") }}</div>

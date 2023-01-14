@@ -196,8 +196,8 @@ async function deleteGroup(): Promise<void> {
                 <input
                     type="text"
                     :value="customCharacterSet"
-                    @change="customCharacterSet = getValue($event)"
                     placeholder="α,β,γ,δ,ε"
+                    @change="customCharacterSet = getValue($event)"
                 />
             </div>
         </template>
@@ -217,8 +217,8 @@ async function deleteGroup(): Promise<void> {
             <div>
                 <input
                     id="toggleCheckbox"
-                    type="checkbox"
                     ref="toggleCheckbox"
+                    type="checkbox"
                     @click="updateToggles(getChecked($event))"
                 />
             </div>

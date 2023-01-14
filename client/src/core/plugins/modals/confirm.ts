@@ -5,7 +5,7 @@ type buttons = { yes?: string; no?: string; focus?: "confirm" | "deny"; showNo?:
 
 export type ConfirmFunction = (title: string, text?: string, buttons?: buttons) => Promise<boolean | undefined>;
 
-interface ConfirmModal {
+export interface ConfirmModal {
     visible: DeepReadonly<Ref<boolean>>;
     yes: Ref<string>;
     no: Ref<string>;

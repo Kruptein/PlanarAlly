@@ -78,7 +78,7 @@ function updateSizeY(): void {
 }
 </script>
 <template>
-    <div class="tool-detail map" v-if="selected">
+    <div v-if="selected" class="tool-detail map">
         <template v-if="mapTool.state.hasShape">
             <div class="row">{{ mapTool.state.error }}</div>
             <template v-if="!mapTool.state.hasRect && mapTool.state.manualDrag === true">
@@ -93,50 +93,50 @@ function updateSizeY(): void {
             <template v-else>
                 <div id="map-grid">
                     <div class="explanation">{{ t("game.ui.tools.MapTool.set_target_grid_cells") }}</div>
-                    <div class="map-lock" @click="state.lock = !state.lock" title="(Un)lock aspect ratio">
+                    <div class="map-lock" title="(Un)lock aspect ratio" @click="state.lock = !state.lock">
                         <font-awesome-icon v-if="state.lock" icon="link" />
                         <font-awesome-icon v-else icon="unlink" />
                     </div>
                     <label for="map-g-x">{{ t("game.ui.tools.MapTool.horizontal") }}</label>
                     <input
                         id="map-g-x"
-                        type="number"
-                        @input="updateGridX"
                         v-model.number="mapTool.state.gridX"
+                        type="number"
                         class="hinput"
+                        @input="updateGridX"
                     />
                     <label for="map-g-y">{{ t("game.ui.tools.MapTool.vertical") }}</label>
                     <input
                         id="map-g-y"
-                        type="number"
-                        @input="updateGridY"
                         v-model.number="mapTool.state.gridY"
+                        type="number"
                         class="vinput"
+                        @input="updateGridY"
                     />
                 </div>
                 <div id="map-separator"></div>
-                <div id="map-size" v-show="!mapTool.state.manualDrag">
+                <div v-show="!mapTool.state.manualDrag" id="map-size">
                     <div class="explanation">Set target pixels</div>
 
-                    <div class="map-lock" @click="state.lock = !state.lock" title="(Un)lock aspect ratio">
+                    <div class="map-lock" title="(Un)lock aspect ratio" @click="state.lock = !state.lock">
                         <font-awesome-icon v-if="state.lock" icon="link" />
                         <font-awesome-icon v-else icon="unlink" />
                     </div>
                     <label for="map-s-x">{{ t("game.ui.tools.MapTool.horizontal") }}</label>
                     <input
                         id="map-s-x"
-                        type="number"
-                        @input="updateSizeX"
                         v-model.number="mapTool.state.sizeX"
+                        type="number"
                         class="hinput"
+                        @input="updateSizeX"
                     />
                     <label for="map-s-y">{{ t("game.ui.tools.MapTool.vertical") }}</label>
                     <input
                         id="map-s-y"
-                        type="number"
-                        @input="updateSizeY"
                         v-model.number="mapTool.state.sizeY"
+                        type="number"
                         class="vinput"
+                        @input="updateSizeY"
                     />
                 </div>
                 <div id="map-buttons">

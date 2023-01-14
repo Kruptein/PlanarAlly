@@ -59,14 +59,14 @@ function getCategoryInitValues(category: string): string[] {
 </script>
 
 <template>
-    <div class="tool-detail" v-if="selected">
+    <div v-if="selected" class="tool-detail">
         <div id="accordion-container">
             <Accordion
                 v-for="[category, labels] of categories"
                 :key="category"
                 :title="category === '' ? t('game.ui.tools.FilterTool.no_category') : category"
                 :items="labels"
-                :initialValues="getCategoryInitValues(category)"
+                :initial-values="getCategoryInitValues(category)"
                 @selectionupdate="updateSelection(category, $event)"
             />
         </div>

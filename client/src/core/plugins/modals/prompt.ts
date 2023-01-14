@@ -9,7 +9,7 @@ export type PromptFunction = (
     validation?: validationFunc,
 ) => Promise<string | undefined>;
 
-interface PromptModal {
+export interface PromptModal {
     visible: DeepReadonly<Ref<boolean>>;
     question: Ref<string>;
     title: Ref<string>;

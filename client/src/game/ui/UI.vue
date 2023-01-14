@@ -116,8 +116,8 @@ function setTempZoomDisplay(value: number): void {
 </script>
 
 <template>
-    <div id="ui" ref="uiEl" v-show="uiState.reactive.showUi">
-        <div id="logo" v-show="topLeft">
+    <div v-show="uiState.reactive.showUi" id="ui" ref="uiEl">
+        <div v-show="topLeft" id="logo">
             <div id="logo-icons">
                 <a href="https://www.planarally.io" target="_blank" rel="noopener noreferrer">
                     <img :src="baseAdjust('/static/favicon.png')" alt="" />
@@ -160,17 +160,17 @@ function setTempZoomDisplay(value: number): void {
                 <div class="rm-toggler">
                     <ul class="rm-list" :class="{ 'rm-list-dm': gameState.reactive.isDm }">
                         <li
-                            @click="toggleLocations"
                             v-if="gameState.reactive.isDm"
-                            class="rm-item"
                             id="rm-locations"
+                            class="rm-item"
                             :title="t('game.ui.ui.open_loc_menu')"
+                            @click="toggleLocations"
                         >
                             <a href="#">
                                 <font-awesome-icon :icon="['far', 'compass']" />
                             </a>
                         </li>
-                        <li @click="toggleMenu" class="rm-item" id="rm-settings" :title="t('game.ui.ui.open_settings')">
+                        <li id="rm-settings" class="rm-item" :title="t('game.ui.ui.open_settings')" @click="toggleMenu">
                             <a href="#">
                                 <font-awesome-icon icon="cog" />
                             </a>
@@ -183,7 +183,7 @@ function setTempZoomDisplay(value: number): void {
         <!-- Core overlays -->
         <MenuBar />
         <Tools />
-        <LocationBar v-if="gameState.reactive.isDm" :active="visible.locations" :menuActive="visible.settings" />
+        <LocationBar v-if="gameState.reactive.isDm" :active="visible.locations" :menu-active="visible.settings" />
         <Floors />
         <DefaultContext />
         <ShapeContext />
@@ -198,7 +198,7 @@ function setTempZoomDisplay(value: number): void {
         <div id="teleport-modals"></div>
         <MarkdownModal v-if="showChangelog" :title="t('game.ui.ui.new_ver_msg')" :source="changelogText" />
         <!-- end of main modals -->
-        <div id="oob" v-if="positionState.reactive.outOfBounds" @click="positionSystem.returnToBounds">
+        <div v-if="positionState.reactive.outOfBounds" id="oob" @click="positionSystem.returnToBounds">
             Click to return to content
         </div>
         <TokenDirections />
@@ -207,6 +207,7 @@ function setTempZoomDisplay(value: number): void {
         <SliderComponent
             v-if="!hasGameboard"
             id="zoom"
+            v-model="zoomDisplay"
             height="6px"
             width="200px"
             :dot-size="[8, 20]"
@@ -214,7 +215,6 @@ function setTempZoomDisplay(value: number): void {
             :dot-style="{ 'border-radius': '15%' }"
             :min="0"
             :max="1"
-            v-model="zoomDisplay"
             @change="setTempZoomDisplay"
         />
     </div>

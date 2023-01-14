@@ -211,7 +211,7 @@ function applyDDraft(): void {
     <div class="panel restore-panel">
         <div class="spanrow header">{{ t("common.labels") }}</div>
         <div id="labels" class="spanrow">
-            <div v-for="label in activeShapeStore.state.labels" class="label" :key="label.uuid">
+            <div v-for="label in activeShapeStore.state.labels" :key="label.uuid" class="label">
                 <template v-if="label.category">
                     <div class="label-user">{{ label.category }}</div>
                     <div class="label-main" @click="removeLabel(label.uuid)">{{ label.name }}</div>
@@ -220,7 +220,7 @@ function applyDDraft(): void {
                     <div class="label-main" @click="removeLabel(label.uuid)">{{ label.name }}</div>
                 </template>
             </div>
-            <div class="label" id="label-add" v-if="owned">
+            <div v-if="owned" id="label-add" class="label">
                 <div class="label-main" @click="showLabelManager = true">+</div>
             </div>
         </div>
@@ -232,17 +232,17 @@ function applyDDraft(): void {
             id="edit_dialog-extra-show_annotation"
             type="checkbox"
             :checked="annotationState.reactive.annotationVisible"
-            @click="setAnnotationVisible"
             class="styled-checkbox"
             :disabled="!owned"
+            @click="setAnnotationVisible"
         />
         <textarea
-            class="spanrow"
             ref="textarea"
+            class="spanrow"
             :value="annotationState.reactive.annotation"
+            :disabled="!owned"
             @input="updateAnnotation($event, false)"
             @change="updateAnnotation"
-            :disabled="!owned"
         ></textarea>
         <template v-if="showSvgSection">
             <div class="spanrow header">Lighting & Vision</div>
@@ -259,8 +259,8 @@ function applyDDraft(): void {
                 <button id="edit_dialog-extra-upload_walls" @click="applyDDraft">Apply</button>
             </template>
         </template>
-        <teleport to="#teleport-modals" v-if="showLabelManager">
-            <LabelManager v-model:visible="showLabelManager" @addLabel="addLabel" />
+        <teleport v-if="showLabelManager" to="#teleport-modals">
+            <LabelManager v-model:visible="showLabelManager" @add-label="addLabel" />
         </teleport>
     </div>
 </template>

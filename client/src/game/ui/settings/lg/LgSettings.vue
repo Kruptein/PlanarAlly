@@ -29,9 +29,9 @@ const categoryNames = [LgSettingCategory.Grid];
 </script>
 
 <template>
-    <PanelModal v-model:visible="visible" :categories="categoryNames" :applyTranslation="true">
-        <template v-slot:title>{{ t("game.ui.settings.lg.LgSettings.title") }}</template>
-        <template v-slot:default="{ selection }">
+    <PanelModal v-model:visible="visible" :categories="categoryNames" :apply-translation="true">
+        <template #title>{{ t("game.ui.settings.lg.LgSettings.title") }}</template>
+        <template #default="{ selection }">
             <LgGridSettings :visible="visible && selection === LgSettingCategory.Grid" />
         </template>
     </PanelModal>

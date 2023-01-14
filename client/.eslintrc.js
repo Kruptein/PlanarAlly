@@ -1,9 +1,14 @@
 module.exports = {
-    root: true,
-    env: {
-        node: true,
-    },
-    extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended", "plugin:vue/vue3-essential"],
+    extends: [
+        "plugin:vue/vue3-recommended",
+        "prettier",
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended",
+        // "plugin:@typescript-eslint/recommended-requiring-type-checking",
+        // "plugin:@typescript-eslint/strict",
+        "plugin:import/recommended",
+        "plugin:import/typescript",
+    ],
     rules: {
         "@typescript-eslint/await-thenable": 2,
         "@typescript-eslint/consistent-type-assertions": [2, { assertionStyle: "as" }],
@@ -36,18 +41,17 @@ module.exports = {
         "no-dupe-class-members": "off",
         "no-empty-function": "off",
         "no-unused-vars": "off",
-        "prettier/prettier": [process.env.CI === undefined ? 1 : 2],
+        // "prettier/prettier": [process.env.CI === undefined ? 1 : 2],
         "vue/multi-word-component-names": "off",
     },
     overrides: [
         {
-            files: ["**/__tests__/*.{j,t}s?(x)", "**/tests/unit/**/*.spec.{j,t}s?(x)"],
-            env: {
-                jest: true,
+            files: "*.vue",
+            rules: {
+                "import/default": 0,
             },
         },
     ],
-    plugins: ["@typescript-eslint", "import", "prettier"],
     settings: {
         "import/resolver": {
             typescript: {
@@ -56,6 +60,7 @@ module.exports = {
         },
         "import/extensions": [".ts", ".vue"],
     },
+    parser: "vue-eslint-parser",
     parserOptions: {
         parser: "@typescript-eslint/parser",
         ecmaFeatures: {
@@ -64,11 +69,5 @@ module.exports = {
         project: "./tsconfig.json",
         tsconfigRootDir: __dirname,
         extraFileExtensions: [".vue"],
-    },
-    globals: {
-        defineProps: "readonly",
-        defineEmits: "readonly",
-        defineExpose: "readonly",
-        withDefaults: "readonly",
     },
 };

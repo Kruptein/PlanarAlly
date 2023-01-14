@@ -388,16 +388,16 @@ const floors = toRef(floorState.reactive, "floors");
                 </li>
             </ul>
         </li>
-        <li @click="moveToBack" v-if="isOwned">{{ t("game.ui.selection.ShapeContext.move_back") }}</li>
-        <li @click="moveToFront" v-if="isOwned">{{ t("game.ui.selection.ShapeContext.move_front") }}</li>
-        <li @click="addToInitiative" v-if="isOwned && !selectionIncludesSpawnToken">{{ getInitiativeWord() }}</li>
-        <li @click="deleteSelection" v-if="!selectionIncludesSpawnToken && (gameState.reactive.isDm || isOwned)">
+        <li v-if="isOwned" @click="moveToBack">{{ t("game.ui.selection.ShapeContext.move_back") }}</li>
+        <li v-if="isOwned" @click="moveToFront">{{ t("game.ui.selection.ShapeContext.move_front") }}</li>
+        <li v-if="isOwned && !selectionIncludesSpawnToken" @click="addToInitiative">{{ getInitiativeWord() }}</li>
+        <li v-if="!selectionIncludesSpawnToken && (gameState.reactive.isDm || isOwned)" @click="deleteSelection">
             {{ t("game.ui.selection.ShapeContext.delete_shapes") }}
         </li>
         <template v-if="hasSingleSelection">
             <li v-if="isMarker" @click="deleteMarker">{{ t("game.ui.selection.ShapeContext.remove_marker") }}</li>
             <li v-else @click="setMarker">{{ t("game.ui.selection.ShapeContext.set_marker") }}</li>
-            <li @click="saveTemplate" v-if="!selectionIncludesSpawnToken && gameState.reactive.isDm && canBeSaved">
+            <li v-if="!selectionIncludesSpawnToken && gameState.reactive.isDm && canBeSaved" @click="saveTemplate">
                 {{ t("game.ui.templates.save") }}
             </li>
         </template>

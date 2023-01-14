@@ -111,10 +111,10 @@ function toggleFakePlayer(): void {
             <ul>
                 <li
                     v-for="tool in visibleTools"
+                    :id="tool.name + '-selector'"
                     :key="tool.name"
                     class="tool"
                     :class="{ 'tool-selected': activeTool === tool.name, 'tool-alert': tool.alert }"
-                    :id="tool.name + '-selector'"
                     @click="activeTool = tool.name"
                 >
                     <a href="#" :title="tool.translation">
@@ -127,25 +127,25 @@ function toggleFakePlayer(): void {
                 <li id="tool-mode"></li>
             </ul>
             <div v-if="!hasGameboard" id="tool-status">
-                <div id="tool-status-toggles" v-if="gameState.isDmOrFake">
+                <div v-if="gameState.isDmOrFake" id="tool-status-toggles">
                     <div
                         :class="{ active: gameState.reactive.isFakePlayer }"
-                        @click="toggleFakePlayer"
                         title="Toggle fake-player"
+                        @click="toggleFakePlayer"
                     >
                         FP
                     </div>
                     <div
                         :class="{ active: initiativeStore.state.isActive }"
-                        @click="initiativeStore.toggleActive"
                         title="Toggle Initiative State"
+                        @click="initiativeStore.toggleActive"
                     >
                         INI
                     </div>
                 </div>
                 <div style="flex-grow: 1"></div>
-                <div id="tool-status-modes" @click="toggleActiveMode" :title="t('game.ui.tools.tools.change_mode')">
-                    <span v-for="mode of toolModes" :style="mode.style" :key="mode.name">{{ mode.name }}</span>
+                <div id="tool-status-modes" :title="t('game.ui.tools.tools.change_mode')" @click="toggleActiveMode">
+                    <span v-for="mode of toolModes" :key="mode.name" :style="mode.style">{{ mode.name }}</span>
                 </div>
             </div>
         </div>

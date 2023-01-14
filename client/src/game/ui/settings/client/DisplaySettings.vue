@@ -69,7 +69,7 @@ const ppi = computed({
         </div>
         <div class="row">
             <label for="useHighDpi">{{ t("game.ui.settings.client.DisplaySettings.use_high_dpi") }}</label>
-            <div><input id="useHighDpi" type="checkbox" v-model="useHighDpi" /></div>
+            <div><input id="useHighDpi" v-model="useHighDpi" type="checkbox" /></div>
             <template v-if="$.useHighDpi.override !== undefined">
                 <div :title="t('game.ui.settings.common.reset_default')" @click="useHighDpi = undefined">
                     <font-awesome-icon icon="times-circle" />
@@ -88,7 +88,7 @@ const ppi = computed({
                 {{ t("game.ui.settings.client.DisplaySettings.use_as_physical_gameboard") }}
             </label>
             <div>
-                <input id="useAsPhysicalBoard" type="checkbox" v-model="useAsPhysicalBoard" :disabled="hasGameboard" />
+                <input id="useAsPhysicalBoard" v-model="useAsPhysicalBoard" type="checkbox" :disabled="hasGameboard" />
             </div>
             <template v-if="$.useAsPhysicalBoard.override !== undefined">
                 <div :title="t('game.ui.settings.common.reset_default')" @click="useAsPhysicalBoard = undefined">
@@ -107,7 +107,7 @@ const ppi = computed({
         <div class="row" :class="{ 'row-disabled': !useAsPhysicalBoard }">
             <label for="miniSize">{{ t("game.ui.settings.client.DisplaySettings.mini_size_in_inches") }}</label>
             <div>
-                <input id="miniSize" type="number" v-model="miniSize" :disabled="!useAsPhysicalBoard" />
+                <input id="miniSize" v-model="miniSize" type="number" :disabled="!useAsPhysicalBoard" />
             </div>
             <template v-if="$.miniSize.override !== undefined">
                 <div :title="t('game.ui.settings.common.reset_default')" @click="miniSize = undefined">
@@ -124,7 +124,7 @@ const ppi = computed({
         <div class="row" :class="{ 'row-disabled': !useAsPhysicalBoard }">
             <label for="ppi">{{ t("game.ui.settings.client.DisplaySettings.ppi") }}</label>
             <div>
-                <input id="ppi" type="number" v-model="ppi" :disabled="!useAsPhysicalBoard || hasGameboard" />
+                <input id="ppi" v-model="ppi" type="number" :disabled="!useAsPhysicalBoard || hasGameboard" />
             </div>
             <template v-if="$.ppi.override !== undefined">
                 <div :title="t('game.ui.settings.common.reset_default')" @click="ppi = undefined">
@@ -142,7 +142,7 @@ const ppi = computed({
         <div class="row" :class="{ 'row-disabled': useAsPhysicalBoard }">
             <label for="gridSize">{{ t("game.ui.settings.client.DisplaySettings.grid_size_in_pixels") }}</label>
             <div>
-                <input id="gridSize" type="number" v-model="gridSize" :disabled="useAsPhysicalBoard" />
+                <input id="gridSize" v-model="gridSize" type="number" :disabled="useAsPhysicalBoard" />
             </div>
             <template v-if="$.gridSize.override !== undefined">
                 <div :title="t('game.ui.settings.common.reset_default')" @click="gridSize = undefined">

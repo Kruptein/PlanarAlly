@@ -122,9 +122,9 @@ function setModalRef(m: Component | null, index: number): void {
 <template>
     <div>
         <component
+            :is="modal.component"
             v-for="modal of visibleModals"
             :ref="(m: Component | null) => setModalRef(m, modal.index)"
-            :is="modal.component"
             :key="modal.component"
             @focus="focus(modal.index)"
             @close="close(modal.index)"

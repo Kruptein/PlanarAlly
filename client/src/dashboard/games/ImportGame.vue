@@ -71,7 +71,7 @@ async function uploadSave(): Promise<void> {
         <div class="entry subtitle">Import a file</div>
         <template v-if="dashboardState.chunkLength === 0">
             <button @click="prepareUpload">Upload</button>
-            <input id="files" type="file" hidden @change="uploadSave" accept=".pac" />
+            <input id="files" type="file" hidden accept=".pac" @change="uploadSave" />
         </template>
         <template v-else>
             <div>

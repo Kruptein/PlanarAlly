@@ -158,7 +158,7 @@ const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
 </script>
 
 <template>
-    <div id="location-bar" v-if="gameState.reactive.isDm">
+    <div v-if="gameState.reactive.isDm" id="location-bar">
         <div id="location-actions">
             <div id="create-location" :title="t('game.ui.menu.LocationBar.add_new_location')" @click="createLocation">
                 +
@@ -166,13 +166,13 @@ const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
             <div
                 id="archive-locations"
                 title="Show archived locations"
-                @click="showArchivedLocations"
                 :class="{ noArchived: !hasArchivedLocations }"
+                @click="showArchivedLocations"
             >
                 <font-awesome-icon icon="archive" />
             </div>
         </div>
-        <draggable id="locations" v-model="activeLocations" item-key="id" ref="locations" handle=".drag-handle">
+        <draggable id="locations" ref="locations" v-model="activeLocations" item-key="id" handle=".drag-handle">
             <template #item="{ element: location }: { element: Location }">
                 <div class="location">
                     <div class="location-name" :class="{ 'active-location': activeLocation === location.id }">
@@ -185,8 +185,8 @@ const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
                         </div>
                     </div>
                     <draggable
-                        class="location-players"
                         v-show="locationStore.state.playerLocations.has(location.id)"
+                        class="location-players"
                         :list="[{ id: location.id }]"
                         item-key="id"
                         :group="{ name: 'players', pull: 'clone' }"
@@ -213,8 +213,8 @@ const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
                         </template>
                     </draggable>
                     <draggable
-                        class="player-collapse-content"
                         v-show="active && expanded.has(location.id)"
+                        class="player-collapse-content"
                         :list="[...(locationStore.state.playerLocations.get(location.id) ?? [])]"
                         item-key="id"
                         :data-loc="location.id"
@@ -228,8 +228,8 @@ const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
                         </template>
                     </draggable>
                     <draggable
-                        class="location-players-empty"
                         v-show="!locationStore.state.playerLocations.has(location.id)"
+                        class="location-players-empty"
                         :group="{ name: 'empty-players', put: ['players', 'player'] }"
                         :list="[{ id: location.id }]"
                         item-key="id"

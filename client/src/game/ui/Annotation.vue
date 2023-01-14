@@ -7,8 +7,8 @@ import { uiState } from "../systems/ui/state";
 <template>
     <VueMarkdownIt
         v-show="uiState.reactive.annotationText.length > 0"
-        :source="uiState.reactive.annotationText"
         id="annotation"
+        :source="uiState.reactive.annotationText"
         :html="true"
     />
 </template>

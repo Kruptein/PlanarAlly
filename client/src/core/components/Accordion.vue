@@ -49,7 +49,7 @@ function updateCategory(): void {
 <template>
     <div class="accordion">
         <div id="header" @click.prevent="state.active = !state.active">
-            <input type="checkbox" @click.stop="toggleCategory" ref="overall" />
+            <input ref="overall" type="checkbox" @click.stop="toggleCategory" />
             <strong>{{ title }}</strong>
         </div>
         <div v-show="state.active" id="body">

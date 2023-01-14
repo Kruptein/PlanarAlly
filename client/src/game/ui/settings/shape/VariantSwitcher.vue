@@ -107,29 +107,29 @@ const variants = toRef(vState, "variants");
         <font-awesome-icon
             id="variant-left"
             icon="chevron-left"
-            @click="swapPrev"
             :title="previousVariant.name"
             :style="{ opacity: variants.length > 1 ? '1.0' : '0.3' }"
+            @click="swapPrev"
         />
         <div id="variant-name">{{ currentVariant }}</div>
         <font-awesome-icon
             icon="chevron-right"
-            @click="swapNext"
             :title="nextVariant.name"
             :style="{ opacity: variants.length > 1 ? '1.0' : '0.3' }"
+            @click="swapNext"
         />
         <font-awesome-icon id="add-variant" icon="plus-square" title="Add a variant" @click="addVariant" />
         <font-awesome-icon
             icon="pencil-alt"
             title="Edit variant name"
-            @click="renameVariant"
             :style="{ opacity: compositeParent !== undefined ? '1.0' : '0.3' }"
+            @click="renameVariant"
         />
         <font-awesome-icon
             icon="trash-alt"
             title="Remove variant"
-            @click="removeVariant"
             :style="{ opacity: compositeParent !== undefined ? '1.0' : '0.3' }"
+            @click="removeVariant"
         />
     </div>
 </template>

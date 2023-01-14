@@ -76,7 +76,7 @@ const selectedLayer = computed(
 
 <template>
     <div id="floor-layer">
-        <div id="floor-selector" @click="detailsOpen = !detailsOpen" v-if="visible" title="Floor selection">
+        <div v-if="visible" id="floor-selector" title="Floor selection" @click="detailsOpen = !detailsOpen">
             <a href="#">
                 <template v-if="playerSettingsState.reactive.useToolIcons.value">
                     <img :src="getStaticFloorImg('floors.svg')" alt="Floor Selection" />
@@ -84,7 +84,7 @@ const selectedLayer = computed(
                 <template v-else>{{ floorIndex }}</template>
             </a>
         </div>
-        <div id="floor-detail" v-if="detailsOpen">
+        <div v-if="detailsOpen" id="floor-detail">
             <draggable v-model="floors" :disabled="!gameState.reactive.isDm" item-key="reverseIndex">
                 <template #item="{ element: f }: { element: { floor: Floor, reverseIndex: FloorIndex } }">
                     <div class="floor-row" @click="selectFloor({ name: f.floor.name }, true)">
@@ -95,11 +95,11 @@ const selectedLayer = computed(
                             {{ f.reverseIndex }}
                         </div>
                         <div class="floor-name">{{ f.floor.name }}</div>
-                        <div class="floor-actions" v-if="gameState.reactive.isDm">
+                        <div v-if="gameState.reactive.isDm" class="floor-actions">
                             <div
-                                @click.stop="toggleVisible(f.floor)"
                                 :style="{ opacity: f.floor.playerVisible ? 1.0 : 0.3, marginRight: '5px' }"
                                 :title="t('game.ui.FloorSelect.toggle_visibility')"
+                                @click.stop="toggleVisible(f.floor)"
                             >
                                 <font-awesome-icon icon="eye" />
                             </div>
@@ -108,15 +108,15 @@ const selectedLayer = computed(
                     </div>
                 </template>
             </draggable>
-            <div class="floor-add" @click="addFloor" v-if="gameState.reactive.isDm">
+            <div v-if="gameState.reactive.isDm" class="floor-add" @click="addFloor">
                 {{ t("game.ui.FloorSelect.add_new_floor") }}
             </div>
         </div>
-        <div style="display: contents" v-show="layers.length > 1">
+        <div v-show="layers.length > 1" style="display: contents">
             <div
                 v-for="layer in layers"
-                class="layer"
                 :key="layer"
+                class="layer"
                 :class="{ 'layer-selected': layer === selectedLayer }"
                 @click="selectLayer(layer)"
             >

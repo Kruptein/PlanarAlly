@@ -127,42 +127,42 @@ async function changeAsset(): Promise<void> {
         <div class="row">
             <label for="shapeselectiondialog-name">{{ t("common.name") }}</label>
             <input
-                type="text"
                 id="shapeselectiondialog-name"
+                type="text"
                 :value="propertiesState.reactive.name"
-                @change="updateName"
                 :disabled="!owned"
+                @change="updateName"
             />
             <div
                 :style="{ opacity: propertiesState.reactive.nameVisible ? 1.0 : 0.3, textAlign: 'center' }"
-                @click="toggleNameVisible"
                 :disabled="!owned"
                 :title="t('common.toggle_public_private')"
+                @click="toggleNameVisible"
             >
                 <font-awesome-icon icon="eye" />
             </div>
         </div>
-        <div class="row" v-if="hasValue">
+        <div v-if="hasValue" class="row">
             <label for="shapeselectiondialog-value">{{ t("common.value") }}</label>
             <input
-                type="text"
                 id="shapeselectiondialog-value"
+                type="text"
                 :value="getValue()"
-                @change="setValue"
                 :disabled="!owned"
+                @change="setValue"
             />
             <div></div>
         </div>
         <div class="row">
             <label for="shapeselectiondialog-istoken">{{ t("game.ui.selection.edit_dialog.dialog.is_a_token") }}</label>
             <input
-                type="checkbox"
                 id="shapeselectiondialog-istoken"
+                type="checkbox"
                 :checked="propertiesState.reactive.isToken"
-                @click="setToken"
                 style="grid-column-start: toggle"
                 class="styled-checkbox"
                 :disabled="!owned"
+                @click="setToken"
             />
         </div>
         <div class="row">
@@ -170,13 +170,13 @@ async function changeAsset(): Promise<void> {
                 {{ t("game.ui.selection.edit_dialog.dialog.is_invisible") }}
             </label>
             <input
-                type="checkbox"
                 id="shapeselectiondialog-is-invisible"
+                type="checkbox"
                 :checked="propertiesState.reactive.isInvisible"
-                @click="setInvisible"
                 style="grid-column-start: toggle"
                 class="styled-checkbox"
                 :disabled="!owned"
+                @click="setInvisible"
             />
         </div>
         <div class="row">
@@ -184,33 +184,33 @@ async function changeAsset(): Promise<void> {
                 {{ t("game.ui.selection.edit_dialog.dialog.is_defeated") }}
             </label>
             <input
-                type="checkbox"
                 id="shapeselectiondialog-is-defeated"
+                type="checkbox"
                 :checked="propertiesState.reactive.isDefeated"
-                @click="setDefeated"
                 style="grid-column-start: toggle"
                 class="styled-checkbox"
                 :disabled="!owned"
+                @click="setDefeated"
             />
         </div>
         <div class="row">
             <label for="shapeselectiondialog-strokecolour">{{ t("common.border_color") }}</label>
             <ColourPicker
                 :colour="propertiesState.reactive.strokeColour?.[0]"
-                @input:colour="setStrokeColour($event, true)"
-                @update:colour="setStrokeColour($event)"
                 style="grid-column-start: toggle"
                 :disabled="!owned"
+                @input:colour="setStrokeColour($event, true)"
+                @update:colour="setStrokeColour($event)"
             />
         </div>
         <div class="row">
             <label for="shapeselectiondialog-fillcolour">{{ t("common.fill_color") }}</label>
             <ColourPicker
                 :colour="propertiesState.reactive.fillColour"
-                @input:colour="setFillColour($event, true)"
-                @update:colour="setFillColour($event)"
                 style="grid-column-start: toggle"
                 :disabled="!owned"
+                @input:colour="setFillColour($event, true)"
+                @update:colour="setFillColour($event)"
             />
         </div>
         <div v-if="isAsset" class="row">
@@ -223,12 +223,12 @@ async function changeAsset(): Promise<void> {
                 {{ t("game.ui.selection.edit_dialog.dialog.block_vision_light") }}
             </label>
             <input
-                type="checkbox"
                 id="shapeselectiondialog-visionblocker"
+                type="checkbox"
                 :checked="propertiesState.reactive.blocksVision"
-                @click="setBlocksVision"
                 style="grid-column-start: toggle"
                 :disabled="!owned"
+                @click="setBlocksVision"
             />
         </div>
         <div class="row">
@@ -236,12 +236,12 @@ async function changeAsset(): Promise<void> {
                 {{ t("game.ui.selection.edit_dialog.dialog.block_movement") }}
             </label>
             <input
-                type="checkbox"
                 id="shapeselectiondialog-moveblocker"
+                type="checkbox"
                 :checked="propertiesState.reactive.blocksMovement"
-                @click="setBlocksMovement"
                 style="grid-column-start: toggle"
                 :disabled="!owned"
+                @click="setBlocksMovement"
             />
         </div>
         <div class="row">
@@ -249,13 +249,13 @@ async function changeAsset(): Promise<void> {
                 {{ t("game.ui.selection.edit_dialog.dialog.is_locked") }}
             </label>
             <input
-                type="checkbox"
                 id="shapeselectiondialog-is-locked"
+                type="checkbox"
                 :checked="propertiesState.reactive.isLocked"
-                @click="setLocked"
                 style="grid-column-start: toggle"
                 class="styled-checkbox"
                 :disabled="!owned"
+                @click="setLocked"
             />
         </div>
         <div class="row">
@@ -263,13 +263,13 @@ async function changeAsset(): Promise<void> {
                 {{ t("game.ui.selection.edit_dialog.dialog.show_badge") }}
             </label>
             <input
-                type="checkbox"
                 id="shapeselectiondialog-showBadge"
+                type="checkbox"
                 :checked="propertiesState.reactive.showBadge"
-                @click="toggleBadge"
                 style="grid-column-start: toggle"
                 class="styled-checkbox"
                 :disabled="!owned"
+                @click="toggleBadge"
             />
         </div>
     </div>

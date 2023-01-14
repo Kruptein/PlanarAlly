@@ -41,9 +41,9 @@ const categoryNames = computed(() => {
 </script>
 
 <template>
-    <PanelModal v-model:visible="visible" :categories="categoryNames" :applyTranslation="true">
-        <template v-slot:title>{{ t("game.ui.settings.dm.DmSettings.dm_settings") }}</template>
-        <template v-slot:default="{ selection }">
+    <PanelModal v-model:visible="visible" :categories="categoryNames" :apply-translation="true">
+        <template #title>{{ t("game.ui.settings.dm.DmSettings.dm_settings") }}</template>
+        <template #default="{ selection }">
             <AdminSettings v-show="selection === DmSettingCategory.Admin" />
             <GridSettings v-show="selection === DmSettingCategory.Grid" />
             <VisionSettings v-show="selection === DmSettingCategory.Vision" />

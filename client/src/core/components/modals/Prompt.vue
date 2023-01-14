@@ -36,15 +36,15 @@ function submit(): void {
 
 <template>
     <Modal :visible="visible" @close="close">
-        <template v-slot:header="m">
+        <template #header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 {{ title }}
             </div>
         </template>
         <div class="modal-body">
             <div id="question">{{ question }}</div>
-            <div id="error" v-if="error">{{ error }}</div>
-            <input type="text" ref="input" v-model="answer" @keyup.enter="submit" />
+            <div v-if="error" id="error">{{ error }}</div>
+            <input ref="input" v-model="answer" type="text" @keyup.enter="submit" />
         </div>
         <div class="modal-footer">
             <button @click="submit">{{ t("common.submit") }}</button>

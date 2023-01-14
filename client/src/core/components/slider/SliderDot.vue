@@ -11,6 +11,8 @@ withDefaults(
     }>(),
     {
         dotSize: () => [14, 14],
+        dotStyle: undefined,
+        value: undefined,
         focussed: false,
     },
 );

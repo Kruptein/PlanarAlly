@@ -6,7 +6,7 @@ import type { Asset } from "../../models/types";
 
 export type AssetPickerFunction = () => Promise<DeepReadonly<Asset> | undefined>;
 
-interface AssetPickerModal {
+export interface AssetPickerModal {
     visible: DeepReadonly<Ref<boolean>>;
     close: () => void;
     show: AssetPickerFunction;

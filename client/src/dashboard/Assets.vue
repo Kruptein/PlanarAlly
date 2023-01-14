@@ -203,32 +203,32 @@ async function deleteSelection(): Promise<void> {
                 <input id="files" type="file" multiple hidden @change="upload()" />
                 <img
                     :src="baseAdjust('/static/img/assetmanager/create_folder.svg')"
-                    @click.stop="createDirectory"
                     :title="t('assetManager.AssetManager.create_folder')"
                     :alt="t('assetManager.AssetManager.create_folder')"
+                    @click.stop="createDirectory"
                 />
                 <img
                     :src="baseAdjust('/static/img/assetmanager/add_file.svg')"
-                    @click.stop="prepareUpload"
                     :title="t('assetManager.AssetManager.upload_files')"
                     :alt="t('assetManager.AssetManager.upload_files')"
+                    @click.stop="prepareUpload"
                 />
                 <img
                     :src="baseAdjust('/static/img/assetmanager/delete_selection.svg')"
-                    @click.stop="deleteSelection"
                     :title="t('common.remove')"
                     :alt="t('common.remove')"
+                    @click.stop="deleteSelection"
                 />
             </div>
         </div>
         <div id="path">
             <div @click="changeDirectory(state.root)">/</div>
-            <div @click="changeDirectory(dir)" v-for="dir in state.folderPath" :key="dir">{{ showIdName(dir) }}</div>
+            <div v-for="dir in state.folderPath" :key="dir" @click="changeDirectory(dir)">{{ showIdName(dir) }}</div>
         </div>
         <div id="assets" :class="{ dropzone: dragState > 0 }" @dragover.prevent @drop.prevent.stop="onDrop">
             <div
-                class="inode folder"
                 v-if="state.folderPath.length"
+                class="inode folder"
                 @dblclick="changeDirectory(-1)"
                 @dragover.prevent="moveDrag"
                 @dragleave.prevent="leaveDrag"
@@ -239,10 +239,10 @@ async function deleteSelection(): Promise<void> {
                 <div class="title">..</div>
             </div>
             <div
-                class="inode folder"
-                draggable="true"
                 v-for="key in state.folders"
                 :key="key"
+                class="inode folder"
+                draggable="true"
                 :class="{
                     'inode-selected': state.selected.includes(key),
                     'inode-not-selected': state.selected.length > 0 && !state.selected.includes(key),
@@ -259,10 +259,10 @@ async function deleteSelection(): Promise<void> {
                 <div class="title">{{ showIdName(key) }}</div>
             </div>
             <div
-                class="inode file"
-                draggable="true"
                 v-for="file in state.files"
                 :key="file"
+                class="inode file"
+                draggable="true"
                 :class="{
                     'inode-selected': state.selected.includes(file),
                     'inode-not-selected': state.selected.length > 0 && !state.selected.includes(file),

@@ -250,27 +250,27 @@ function setHex(hex: string): void {
 </script>
 
 <template>
-    <div v-bind="$attrs" v-show="vShow" ref="picker" class="outer" @click="open">
+    <div v-show="vShow" v-bind="$attrs" ref="picker" class="outer" @click="open">
         <div
             class="current-color"
-            @click="open"
             :style="
                 transparent
                     ? 'background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwH+YwCGIasIUwhT25BVBADtzYNYrHvv4gAAAABJRU5ErkJggg==)'
                     : 'background-color:' + rgbaString
             "
+            @click="open"
         ></div>
     </div>
-    <teleport to="#teleport-modals" v-if="visible">
-        <div class="modal" ref="modal" :style="{ left, top }" @blur.capture="onBlur" tabindex="0">
+    <teleport v-if="visible" to="#teleport-modals">
+        <div ref="modal" class="modal" :style="{ left, top }" tabindex="0" @blur.capture="onBlur">
             <div class="saturation-wrapper">
                 <div
                     ref="saturation"
+                    class="saturation"
+                    :style="{ background: saturationBackgroundColour }"
                     @pointerdown="onSaturationDown"
                     @pointermove="onSaturationMove"
                     @pointerup="onSaturationUp"
-                    class="saturation"
-                    :style="{ background: saturationBackgroundColour }"
                 >
                     <div class="saturation--white"></div>
                     <div class="saturation--black"></div>
@@ -286,16 +286,16 @@ function setHex(hex: string): void {
                         <div :style="{ backgroundColor: rgbaString }"></div>
                     </div>
                     <div
-                        class="hue"
                         ref="hue"
-                        @pointerdown="onHueDown"
-                        @pointermove="onHueMove"
-                        @pointerup="onHueUp"
-                        @pointerleave="onHueUp"
+                        class="hue"
                         role="slider"
                         :aria-valuenow="hsl.h"
                         :aria-valuemin="0"
                         :aria-valuemax="360"
+                        @pointerdown="onHueDown"
+                        @pointermove="onHueMove"
+                        @pointerup="onHueUp"
+                        @pointerleave="onHueUp"
                     >
                         <div class="pointer" :style="{ left: hueLeft }" role="presentation">
                             <div class="picker"></div>
@@ -305,13 +305,13 @@ function setHex(hex: string): void {
                         <div class="checker"></div>
                         <div
                             ref="alpha"
+                            :style="{
+                                background: alphaBackground,
+                            }"
                             @pointerdown="onAlphaDown"
                             @pointermove="onAlphaMove"
                             @pointerup="onAlphaUp"
                             @pointerleave="onAlphaUp"
-                            :style="{
-                                background: alphaBackground,
-                            }"
                         ></div>
                         <div class="pointer" :style="{ left: alphaLeft }">
                             <div class="picker"></div>
@@ -407,12 +407,12 @@ function setHex(hex: string): void {
                 </div>
                 <div class="history">
                     <div
-                        class="color-history"
                         v-for="color of colourHistory"
                         :key="color"
-                        @click="setRgbaString(color)"
+                        class="color-history"
                         :style="{ backgroundColor: color }"
                         :title="color"
+                        @click="setRgbaString(color)"
                     ></div>
                 </div>
             </div>

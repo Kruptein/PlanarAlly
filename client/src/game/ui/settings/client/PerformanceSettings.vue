@@ -28,7 +28,7 @@ const onlyRenderActiveFloor = computed({
             <label for="renderAllFloors">
                 {{ t("game.ui.settings.client.PerformanceSettings.only_render_active_floor") }}
             </label>
-            <div><input id="renderAllFloors" type="checkbox" v-model="onlyRenderActiveFloor" /></div>
+            <div><input id="renderAllFloors" v-model="onlyRenderActiveFloor" type="checkbox" /></div>
             <template v-if="$.renderAllFloors.override !== undefined">
                 <div :title="t('game.ui.settings.common.reset_default')" @click="onlyRenderActiveFloor = undefined">
                     <font-awesome-icon icon="times-circle" />

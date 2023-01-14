@@ -25,11 +25,11 @@ function sum(data: readonly number[]): number {
 </script>
 
 <template>
-    <Modal :visible="diceStore.state.showKey !== undefined" @close="close" :mask="false">
-        <template v-slot:header="m">
+    <Modal :visible="diceStore.state.showKey !== undefined" :mask="false" @close="close">
+        <template #header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 <div>Dice Results</div>
-                <div class="header-close" @click="close" :title="t('common.close')">
+                <div class="header-close" :title="t('common.close')" @click="close">
                     <font-awesome-icon :icon="['far', 'window-close']" />
                 </div>
             </div>

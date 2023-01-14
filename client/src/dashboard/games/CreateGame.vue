@@ -48,7 +48,7 @@ async function setLogo(): Promise<void> {
         <div class="title">Create a new campaign from scratch</div>
         <div class="entry">
             <label for="name">Name:</label>
-            <input type="text" id="name" v-model="name" autofocus />
+            <input id="name" v-model="name" type="text" autofocus />
         </div>
         <div class="entry">
             <label for="logo">Logo:</label>

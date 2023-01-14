@@ -42,10 +42,10 @@ const categoryNames = [
     <PanelModal
         v-model:visible="visible"
         :categories="categoryNames"
-        :initialSelection="uiState.reactive.clientSettingsTab"
+        :initial-selection="uiState.reactive.clientSettingsTab"
     >
-        <template v-slot:title>{{ t("game.ui.settings.client.ClientSettings.client_settings") }}</template>
-        <template v-slot:default="{ selection }">
+        <template #title>{{ t("game.ui.settings.client.ClientSettings.client_settings") }}</template>
+        <template #default="{ selection }">
             <AppearanceSettings v-show="selection === ClientSettingCategory.Appearance" />
             <DisplaySettings v-show="selection === ClientSettingCategory.Display" />
             <BehaviourSettings v-show="selection === ClientSettingCategory.Behaviour" />

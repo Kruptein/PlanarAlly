@@ -142,7 +142,7 @@ async function chooseTarget(): Promise<void> {
 </script>
 
 <template>
-    <div class="panel restore-panel" v-show="activeSelection">
+    <div v-show="activeSelection" class="panel restore-panel">
         <teleport to="#teleport-modals">
             <LogicPermissions
                 v-model:visible="showPermissions"

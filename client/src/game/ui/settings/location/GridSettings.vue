@@ -74,12 +74,12 @@ function o(k: any): boolean {
         <div class="row" :class="{ overwritten: !isGlobal && o($.useGrid) }">
             <label :for="'useGridInput-' + location">{{ t("game.ui.settings.GridSettings.use_grid") }}</label>
             <div>
-                <input :id="'useGridInput-' + location" type="checkbox" v-model="useGrid" />
+                <input :id="'useGridInput-' + location" v-model="useGrid" type="checkbox" />
             </div>
             <div
                 v-if="!isGlobal && o($.useGrid)"
-                @click="useGrid = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
+                @click="useGrid = undefined"
             >
                 <font-awesome-icon icon="times-circle" />
             </div>
@@ -96,8 +96,8 @@ function o(k: any): boolean {
             </div>
             <div
                 v-if="!isGlobal && o($.gridType)"
-                @click="gridType = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
+                @click="gridType = undefined"
             >
                 <font-awesome-icon icon="times-circle" />
             </div>
@@ -108,12 +108,12 @@ function o(k: any): boolean {
                 <label :for="'unitSizeUnit-' + location">{{ t("game.ui.settings.GridSettings.size_unit") }}</label>
             </div>
             <div>
-                <input :id="'unitSizeUnit-' + location" type="text" v-model="unitSizeUnit" />
+                <input :id="'unitSizeUnit-' + location" v-model="unitSizeUnit" type="text" />
             </div>
             <div
                 v-if="!isGlobal && o($.unitSizeUnit)"
-                @click="unitSizeUnit = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
+                @click="unitSizeUnit = undefined"
             >
                 <font-awesome-icon icon="times-circle" />
             </div>
@@ -126,12 +126,12 @@ function o(k: any): boolean {
                 </label>
             </div>
             <div>
-                <input :id="'unitSizeInput-' + location" type="number" step="any" v-model.number="unitSize" />
+                <input :id="'unitSizeInput-' + location" v-model.number="unitSize" type="number" step="any" />
             </div>
             <div
                 v-if="!isGlobal && o($.unitSize)"
-                @click="unitSize = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
+                @click="unitSize = undefined"
             >
                 <font-awesome-icon icon="times-circle" />
             </div>

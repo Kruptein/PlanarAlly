@@ -132,8 +132,8 @@ function exportCampaign(): void {
                 <div
                     v-for="session of state.owned"
                     :key="session.creator + '-' + session.name"
-                    @click="focus(session)"
                     :class="{ focus: state.focussed?.name === session.name }"
+                    @click="focus(session)"
                 >
                     <img
                         class="logo"
@@ -179,8 +179,8 @@ function exportCampaign(): void {
                 <div
                     v-for="session of state.joined"
                     :key="session.creator + '-' + session.name"
-                    @click="focus(session)"
                     :class="{ focus: state.focussed?.name === session.name }"
+                    @click="focus(session)"
                 >
                     <img
                         class="logo"

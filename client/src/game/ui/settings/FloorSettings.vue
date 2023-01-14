@@ -111,10 +111,10 @@ function setPatternData(data: string): void {
 
 <template>
     <Modal :visible="uiState.reactive.showFloorSettings" :mask="false" @close="close">
-        <template v-slot:header="m">
+        <template #header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 <div>{{ t("game.ui.settings.floor.title") }}</div>
-                <div class="header-close" @click="close" :title="t('common.close')">
+                <div class="header-close" :title="t('common.close')" @click="close">
                     <font-awesome-icon :icon="['far', 'window-close']" />
                 </div>
             </div>
@@ -146,9 +146,9 @@ function setPatternData(data: string): void {
                 </select>
 
                 <div
-                    @click="resetBackground"
-                    :title="t('game.ui.settings.common.reset_default')"
                     v-if="floor?.backgroundValue !== undefined && defaultBackground !== floor?.backgroundValue"
+                    :title="t('game.ui.settings.common.reset_default')"
+                    @click="resetBackground"
                 >
                     <font-awesome-icon icon="times-circle" />
                 </div>

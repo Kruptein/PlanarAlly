@@ -39,10 +39,10 @@ function select(event: MouseEvent, inode: number): void {
 
 <template>
     <modal :visible="visible" @close="emit('close')">
-        <template v-slot:header="m">
+        <template #header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 Asset Picker
-                <div class="header-close" @click="emit('close')" :title="t('common.close')">
+                <div class="header-close" :title="t('common.close')" @click="emit('close')">
                     <font-awesome-icon :icon="['far', 'window-close']" />
                 </div>
             </div>
@@ -54,15 +54,15 @@ function select(event: MouseEvent, inode: number): void {
                     <div v-for="dir in state.folderPath" :key="dir">{{ showIdName(dir) }}</div>
                 </div>
                 <div id="explorer">
-                    <div class="inode folder" v-if="state.folderPath.length" @dblclick="changeDirectory(-1)">
+                    <div v-if="state.folderPath.length" class="inode folder" @dblclick="changeDirectory(-1)">
                         <font-awesome-icon icon="folder" style="font-size: 50px" />
                         <div class="title">..</div>
                     </div>
                     <div
-                        class="inode folder"
-                        draggable="true"
                         v-for="key in state.folders"
                         :key="key"
+                        class="inode folder"
+                        draggable="true"
                         :class="{ 'inode-selected': state.selected.includes(key) }"
                         @click="select($event, key)"
                         @dblclick="changeDirectory(key)"
@@ -71,10 +71,10 @@ function select(event: MouseEvent, inode: number): void {
                         <div class="title">{{ showIdName(key) }}</div>
                     </div>
                     <div
-                        class="inode file"
-                        draggable="true"
                         v-for="file in state.files"
                         :key="file"
+                        class="inode file"
+                        draggable="true"
                         :class="{ 'inode-selected': state.selected.includes(file) }"
                         @click="select($event, file)"
                     >

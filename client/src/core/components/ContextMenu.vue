@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { nextTick, ref, watchEffect } from "vue";
 
+defineEmits<(e: "cm:close") => void>();
 const props = defineProps<{ left: number; top: number; visible: boolean }>();
 
 const menu = ref<HTMLDivElement | null>(null);
@@ -29,10 +30,10 @@ watchEffect(() => {
 
 <template>
     <div
+        v-show="visible"
         ref="menu"
         class="ContextMenu"
         tabindex="-1"
-        v-show="visible"
         :style="{ left: `${left - deltaLeft}px`, top: `${top - deltaTop}px` }"
         @blur="$emit('cm:close')"
         @contextmenu.stop.prevent

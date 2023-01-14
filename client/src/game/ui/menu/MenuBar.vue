@@ -126,7 +126,7 @@ const openLgSettings = (): void => uiSystem.showLgSettings(!uiState.raw.showLgSe
                     >
                         <font-awesome-icon icon="external-link-alt" />
                     </a>
-                    <div class="directory" id="menu-tokens">
+                    <div id="menu-tokens" class="directory">
                         <AssetParentNode :search="assetSearch.toLowerCase()" />
                         <div v-if="noAssets">
                             {{ t("game.ui.menu.MenuBar.no_assets") }}
@@ -136,17 +136,17 @@ const openLgSettings = (): void => uiSystem.showLgSettings(!uiState.raw.showLgSe
                 <!-- NOTES -->
                 <button class="menu-accordion">{{ t("common.notes") }}</button>
                 <div class="menu-accordion-panel">
-                    <div class="menu-accordion-subpanel" id="menu-notes" style="position: relative">
+                    <div id="menu-notes" class="menu-accordion-subpanel" style="position: relative">
                         <div
                             v-for="note in noteState.reactive.notes"
                             :key="note.uuid"
-                            @click="openNote(note)"
                             style="cursor: pointer"
+                            @click="openNote(note)"
                         >
                             {{ note.title || "[?]" }}
                         </div>
                         <div v-if="!noteState.reactive.notes.length">{{ t("game.ui.menu.MenuBar.no_notes") }}</div>
-                        <a class="actionButton" @click="createNote" :title="t('game.ui.menu.MenuBar.create_note')">
+                        <a class="actionButton" :title="t('game.ui.menu.MenuBar.create_note')" @click="createNote">
                             <font-awesome-icon icon="plus-square" />
                         </a>
                     </div>
@@ -162,10 +162,10 @@ const openLgSettings = (): void => uiSystem.showLgSettings(!uiState.raw.showLgSe
                 <!-- PLAYERS -->
                 <button class="menu-accordion">Players</button>
                 <div class="menu-accordion-panel">
-                    <div class="menu-accordion-subpanel" id="menu-players">
+                    <div id="menu-players" class="menu-accordion-subpanel">
                         <template v-for="info of clientInfo" :key="info.client">
                             <div v-if="info.player.name !== username" style="cursor: pointer">
-                                <div @click="jumpToClient(info.client)" class="menu-accordion-subpanel-text">
+                                <div class="menu-accordion-subpanel-text" @click="jumpToClient(info.client)">
                                     {{ info.player.name }}
                                 </div>
                             </div>
@@ -177,12 +177,12 @@ const openLgSettings = (): void => uiSystem.showLgSettings(!uiState.raw.showLgSe
             <!-- MARKERS -->
             <button class="menu-accordion">{{ t("common.markers") }}</button>
             <div class="menu-accordion-panel">
-                <div class="menu-accordion-subpanel" id="menu-markers">
+                <div id="menu-markers" class="menu-accordion-subpanel">
                     <div v-for="marker of markerState.reactive.markers.values()" :key="marker" style="cursor: pointer">
-                        <div @click="jumpToMarker(marker)" class="menu-accordion-subpanel-text">
+                        <div class="menu-accordion-subpanel-text" @click="jumpToMarker(marker)">
                             {{ nameMarker(marker) || "[?]" }}
                         </div>
-                        <div @click="delMarker(marker)" :title="t('game.ui.menu.MenuBar.delete_marker')">
+                        <div :title="t('game.ui.menu.MenuBar.delete_marker')" @click="delMarker(marker)">
                             <font-awesome-icon icon="minus-square" />
                         </div>
                     </div>
@@ -195,9 +195,9 @@ const openLgSettings = (): void => uiSystem.showLgSettings(!uiState.raw.showLgSe
             </button>
         </div>
         <div
-            @click="exit"
             class="menu-accordion"
             style="width: 12.5rem; box-sizing: border-box; text-decoration: none; display: inline-block"
+            @click="exit"
         >
             {{ t("common.exit") }}
         </div>

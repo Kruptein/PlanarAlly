@@ -42,7 +42,7 @@ function setY(client: ClientId, event: Event): void {
 </script>
 
 <template>
-    <div class="panel" v-show="visible">
+    <div v-show="visible" class="panel">
         <div>board ID</div>
         <div>X offset</div>
         <div>Y Offset</div>

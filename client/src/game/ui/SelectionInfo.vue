@@ -64,14 +64,14 @@ function setValue(data: { solution: number; relativeMode: boolean }): void {
         <TrackerInput :tracker="activeTracker" @submit="setValue" @close="activeTracker = null" />
         <template v-if="shapeId !== undefined">
             <div id="selection-menu">
-                <div id="selection-lock-button" @click="setLocked" :title="t('game.ui.selection.SelectionInfo.lock')">
+                <div id="selection-lock-button" :title="t('game.ui.selection.SelectionInfo.lock')" @click="setLocked">
                     <font-awesome-icon v-if="propertiesState.reactive.isLocked" icon="lock" />
                     <font-awesome-icon v-else icon="unlock" />
                 </div>
                 <div
                     id="selection-edit-button"
-                    @click="openEditDialog"
                     :title="t('game.ui.selection.SelectionInfo.open_shape_props')"
+                    @click="openEditDialog"
                 >
                     <font-awesome-icon icon="edit" />
                 </div>
@@ -81,8 +81,8 @@ function setValue(data: { solution: number; relativeMode: boolean }): void {
                         <div>{{ tracker.name }}</div>
                         <div
                             class="selection-tracker-value"
-                            @click="changeValue(tracker)"
                             :title="t('game.ui.selection.SelectionInfo.quick_edit_tracker')"
+                            @click="changeValue(tracker)"
                         >
                             <template v-if="tracker.maxvalue === 0">
                                 {{ tracker.value }}
@@ -94,8 +94,8 @@ function setValue(data: { solution: number; relativeMode: boolean }): void {
                         <div>{{ aura.name }}</div>
                         <div
                             class="selection-tracker-value"
-                            @click="changeValue(aura)"
                             :title="t('game.ui.selection.SelectionInfo.quick_edit_aura')"
+                            @click="changeValue(aura)"
                         >
                             <template v-if="aura.dim === 0">
                                 {{ aura.value }}

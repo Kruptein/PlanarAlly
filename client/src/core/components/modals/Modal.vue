@@ -111,19 +111,19 @@ function dragOver(_event: DragEvent): void {
 <template>
     <transition name="modal">
         <div
+            v-show="visible"
             class="mask"
             :class="{ 'modal-mask': mask, 'dialog-mask': !mask }"
             @click="close"
-            v-show="visible"
             @dragover.prevent="dragOver"
         >
             <div
-                class="modal-container"
-                @click.stop="emit('focus')"
                 ref="container"
+                class="modal-container"
                 :style="{ backgroundColor: colour }"
+                @click.stop="emit('focus')"
             >
-                <slot name="header" :dragStart="dragStart" :dragEnd="dragEnd"></slot>
+                <slot name="header" :drag-start="dragStart" :drag-end="dragEnd"></slot>
                 <slot></slot>
             </div>
         </div>

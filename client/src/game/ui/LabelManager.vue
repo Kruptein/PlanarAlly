@@ -10,7 +10,7 @@ import type { Label } from "../systems/labels/models";
 import { labelState } from "../systems/labels/state";
 import { playerSystem } from "../systems/players";
 
-const emit = defineEmits(["update:visible", "addLabel"]);
+const emit = defineEmits(["update:visible", "add-label"]);
 defineProps<{ visible: boolean }>();
 
 const { t } = useI18n();
@@ -50,7 +50,7 @@ const categories = computed(() => {
 });
 
 function selectLabel(label: string): void {
-    emit("addLabel", label);
+    emit("add-label", label);
     close();
 }
 
@@ -79,11 +79,11 @@ function deleteLabel(uuid: string): void {
 </script>
 
 <template>
-    <Modal :visible="visible" @close="close" :mask="false">
-        <template v-slot:header="m">
+    <Modal :visible="visible" :mask="false" @close="close">
+        <template #header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 <div>{{ t("game.ui.LabelManager.title") }}</div>
-                <div class="header-close" @click.stop="close" :title="t('common.close')">
+                <div class="header-close" :title="t('common.close')" @click.stop="close">
                     <font-awesome-icon :icon="['far', 'window-close']" />
                 </div>
             </div>
@@ -101,7 +101,7 @@ function deleteLabel(uuid: string): void {
                     <abbr :title="t('game.ui.LabelManager.delete')">{{ t("game.ui.LabelManager.del_abbr") }}</abbr>
                 </div>
                 <div class="separator spanrow" style="margin: 0 0 7px"></div>
-                <input class="spanrow" type="text" :placeholder="t('common.search')" v-model="state.search" />
+                <input v-model="state.search" class="spanrow" type="text" :placeholder="t('common.search')" />
             </div>
             <div class="grid scroll">
                 <template v-for="labels of categories.values()">
@@ -109,25 +109,25 @@ function deleteLabel(uuid: string): void {
                         <div class="row" @click="selectLabel(label.uuid)">
                             <template v-if="label.category">
                                 <div :key="'cat-' + label.uuid">{{ label.category }}</div>
-                                <div class="name" :key="'name-' + label.uuid">{{ label.name }}</div>
+                                <div :key="'name-' + label.uuid" class="name">{{ label.name }}</div>
                             </template>
                             <template v-if="!label.category">
                                 <div :key="'cat-' + label.uuid"></div>
-                                <div class="name" :key="'name-' + label.uuid">{{ label.name }}</div>
+                                <div :key="'name-' + label.uuid" class="name">{{ label.name }}</div>
                             </template>
                             <div
                                 :key="'visible-' + label.uuid"
                                 :style="{ textAlign: 'center' }"
                                 :class="{ 'lower-opacity': !label.visible }"
-                                @click.stop="toggleVisibility(label)"
                                 :title="t('common.toggle_public_private')"
+                                @click.stop="toggleVisibility(label)"
                             >
                                 <font-awesome-icon icon="eye" />
                             </div>
                             <div
                                 :key="'delete-' + label.uuid"
-                                @click.stop="deleteLabel(label.uuid)"
                                 :title="t('game.ui.LabelManager.delete_label')"
+                                @click.stop="deleteLabel(label.uuid)"
                             >
                                 <font-awesome-icon icon="trash-alt" />
                             </div>
@@ -140,8 +140,8 @@ function deleteLabel(uuid: string): void {
             </div>
             <div class="grid">
                 <div class="separator spanrow"></div>
-                <input type="text" v-model.trim="state.newCategory" />
-                <input type="text" v-model.trim="state.newName" />
+                <input v-model.trim="state.newCategory" type="text" />
+                <input v-model.trim="state.newName" type="text" />
                 <button id="addLabelButton" @click.stop="addLabel">{{ t("common.add") }}</button>
             </div>
         </div>

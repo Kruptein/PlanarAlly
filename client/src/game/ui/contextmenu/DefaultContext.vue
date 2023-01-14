@@ -105,10 +105,10 @@ function showTokenDialog(): void {
         :top="defaultContextTop"
         @cm:close="close"
     >
-        <li @click="bringPlayers" v-if="gameState.reactive.isDm">{{ t("game.ui.tools.DefaultContext.bring_pl") }}</li>
+        <li v-if="gameState.reactive.isDm" @click="bringPlayers">{{ t("game.ui.tools.DefaultContext.bring_pl") }}</li>
         <li @click="showTokenDialog">{{ t("game.ui.tools.DefaultContext.create_basic_token") }}</li>
         <li @click="showInitiativeDialog">{{ t("game.ui.tools.DefaultContext.show_initiative") }}</li>
-        <li @click="createSpawnLocation" v-if="gameState.reactive.isDm">
+        <li v-if="gameState.reactive.isDm" @click="createSpawnLocation">
             {{ t("game.ui.tools.DefaultContext.create_spawn_location") }}
         </li>
     </ContextMenu>

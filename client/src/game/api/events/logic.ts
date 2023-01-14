@@ -4,6 +4,7 @@ import { getLocalId } from "../../id";
 import { doorSystem } from "../../systems/logic/door";
 import { Access } from "../../systems/logic/models";
 import type { RequestTypeResponse } from "../../systems/logic/models";
+// eslint-disable-next-line import/default
 import LogicRequestHandlerToast from "../../ui/toasts/LogicRequestHandlerToast.vue";
 import { socket } from "../socket";
 

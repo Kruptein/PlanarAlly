@@ -12,10 +12,10 @@ function setLocale(newLocale: string): void {
 <template>
     <div class="box">
         <div
-            class="element"
-            :class="{ selected: locale === availableLocale }"
             v-for="availableLocale in $i18n.availableLocales"
             :key="`locale-${availableLocale}`"
+            class="element"
+            :class="{ selected: locale === availableLocale }"
             :value="availableLocale"
             @click="setLocale(availableLocale)"
         >

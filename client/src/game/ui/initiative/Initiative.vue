@@ -173,11 +173,11 @@ function n(e: any): number {
 </script>
 
 <template>
-    <Modal :visible="initiativeStore.state.showInitiative" @close="close" :mask="false">
-        <template v-slot:header="m">
+    <Modal :visible="initiativeStore.state.showInitiative" :mask="false" @close="close">
+        <template #header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 <div>{{ t("common.initiative") }}</div>
-                <div class="header-close" @click.stop="close" :title="t('common.close')">
+                <div class="header-close" :title="t('common.close')" @click.stop="close">
                     <font-awesome-icon :icon="['far', 'window-close']" />
                 </div>
             </div>
@@ -185,13 +185,13 @@ function n(e: any): number {
         <div class="modal-body">
             <draggable
                 id="initiative-list"
-                :modelValue="initiativeStore.state.locationData"
-                @change="changeOrder"
+                :model-value="initiativeStore.state.locationData"
                 :disabled="!gameState.reactive.isDm"
                 item-key="uuid"
+                @change="changeOrder"
             >
                 <template #item="{ element: actor, index }: { element: InitiativeData, index: number }">
-                    <div style="display: flex; flex-direction: column; align-items: flex-end" v-if="canSee(actor)">
+                    <div v-if="canSee(actor)" style="display: flex; flex-direction: column; align-items: flex-end">
                         <div
                             class="initiative-actor"
                             :class="{
@@ -207,8 +207,8 @@ function n(e: any): number {
                             <div
                                 v-if="owns(actor.globalId)"
                                 class="remove"
-                                @click="removeInitiative(actor)"
                                 :class="{ notAllowed: !owns(actor.globalId) }"
+                                @click="removeInitiative(actor)"
                             >
                                 &#215;
                             </div>
@@ -233,16 +233,16 @@ function n(e: any): number {
                             <div
                                 :style="{ opacity: actor.isVisible ? '1.0' : '0.3' }"
                                 :class="{ notAllowed: !owns(actor.globalId) }"
-                                @click="toggleOption(index, 'isVisible')"
                                 :title="t('common.toggle_public_private')"
+                                @click="toggleOption(index, 'isVisible')"
                             >
                                 <font-awesome-icon icon="eye" />
                             </div>
                             <div
                                 :style="{ opacity: actor.isGroup ? '1.0' : '0.3' }"
                                 :class="{ notAllowed: !owns(actor.globalId) }"
-                                @click="toggleOption(index, 'isGroup')"
                                 :title="t('game.ui.initiative.toggle_group')"
+                                @click="toggleOption(index, 'isGroup')"
                             >
                                 <font-awesome-icon icon="users" />
                             </div>
@@ -250,8 +250,8 @@ function n(e: any): number {
                                 class="initiative-effects-icon"
                                 style="opacity: 0.6"
                                 :class="{ notAllowed: !owns(actor.globalId) }"
-                                @click="createEffect(actor.globalId)"
                                 :title="t('game.ui.initiative.add_timed_effect')"
+                                @click="createEffect(actor.globalId)"
                             >
                                 <font-awesome-icon icon="stopwatch" />
                                 <template v-if="actor.effects">
@@ -261,22 +261,22 @@ function n(e: any): number {
                             </div>
                         </div>
                         <div
+                            v-if="actor.effects.length > 0"
                             class="initiative-effect"
                             :class="{ 'effect-visible': alwaysShowEffects }"
-                            v-if="actor.effects.length > 0"
                         >
                             <div v-for="(effect, e) of actor.effects" :key="`${actor.globalId}-${effect.name}`">
                                 <input
-                                    type="text"
                                     v-model="effect.name"
+                                    type="text"
                                     :style="{ width: '100px' }"
                                     :class="{ notAllowed: !owns(actor.globalId) }"
                                     :disabled="!owns(actor.globalId)"
                                     @change="setEffectName(actor.globalId, n(e), getValue($event))"
                                 />
                                 <input
-                                    type="text"
                                     v-model="effect.turns"
+                                    type="text"
                                     :style="{ width: '25px' }"
                                     :class="{ notAllowed: !owns(actor.globalId) }"
                                     :disabled="!owns(actor.globalId)"
@@ -285,8 +285,8 @@ function n(e: any): number {
                                 <div
                                     :style="{ opacity: owns(actor.globalId) ? '1.0' : '0.3' }"
                                     :class="{ notAllowed: !owns(actor.globalId) }"
-                                    @click="removeEffect(actor.globalId, n(e))"
                                     :title="t('game.ui.initiative.delete_effect')"
+                                    @click="removeEffect(actor.globalId, n(e))"
                                 >
                                     <font-awesome-icon icon="trash-alt" />
                                 </div>
@@ -295,27 +295,27 @@ function n(e: any): number {
                     </div>
                 </template>
             </draggable>
-            <div id="initiative-bar-dm" v-if="gameState.reactive.isDm">
-                <div class="initiative-bar-button" @click="reset" :title="t('game.ui.initiative.reset_round')">
+            <div v-if="gameState.reactive.isDm" id="initiative-bar-dm">
+                <div class="initiative-bar-button" :title="t('game.ui.initiative.reset_round')" @click="reset">
                     <font-awesome-icon icon="angle-double-left" />
                 </div>
-                <div class="initiative-bar-button" @click="previousTurn" :title="t('game.ui.initiative.previous')">
+                <div class="initiative-bar-button" :title="t('game.ui.initiative.previous')" @click="previousTurn">
                     <font-awesome-icon icon="chevron-left" />
                 </div>
-                <div class="initiative-bar-button" @click="clearValues" :title="t('game.ui.initiative.clear')">
+                <div class="initiative-bar-button" :title="t('game.ui.initiative.clear')" @click="clearValues">
                     <font-awesome-icon icon="sync-alt" />
                 </div>
-                <div class="initiative-bar-button" @click="changeSort" :title="t('game.ui.initiative.change_sort')">
+                <div class="initiative-bar-button" :title="t('game.ui.initiative.change_sort')" @click="changeSort">
                     <font-awesome-icon
-                        :icon="translateSort(initiativeStore.state.sort)"
                         :key="initiativeStore.state.sort"
+                        :icon="translateSort(initiativeStore.state.sort)"
                     />
                 </div>
                 <div
                     class="initiative-bar-button"
                     :class="{ notAllowed: !gameState.reactive.isDm }"
-                    @click="nextTurn"
                     :title="t('game.ui.initiative.next')"
+                    @click="nextTurn"
                 >
                     <font-awesome-icon icon="chevron-right" />
                 </div>
@@ -326,8 +326,8 @@ function n(e: any): number {
                 <div
                     id="initiative-settings"
                     class="initiative-bar-button"
-                    @click="openSettings"
                     :title="t('game.ui.initiative.settings')"
+                    @click="openSettings"
                 >
                     <font-awesome-icon icon="cog" />
                 </div>
@@ -337,8 +337,8 @@ function n(e: any): number {
                     class="initiative-bar-button"
                     :class="{ notAllowed: !owns() }"
                     :style="{ opacity: owns() ? 1.0 : 0.3 }"
-                    @click="nextTurn"
                     :title="t('game.ui.initiative.next')"
+                    @click="nextTurn"
                 >
                     <font-awesome-icon icon="chevron-right" />
                 </div>

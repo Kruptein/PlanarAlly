@@ -22,7 +22,6 @@ export class Asset extends BaseRect implements IAsset {
     type: SHAPE_TYPE = "assetrect";
     img: HTMLImageElement;
     src = "";
-    strokeColour = ["white"];
     #loaded: boolean;
 
     svgData?: { svg: Node; rp: GlobalPoint; paths?: [number, number][][][] }[];
@@ -34,7 +33,7 @@ export class Asset extends BaseRect implements IAsset {
         h: number,
         options?: { id?: LocalId; uuid?: GlobalId; assetId?: number; loaded?: boolean; isSnappable?: boolean },
     ) {
-        super(topleft, w, h, { isSnappable: false, ...options });
+        super(topleft, w, h, { isSnappable: false, ...options }, { strokeColour: ["white"] });
         this.img = img;
         this.#loaded = options?.loaded ?? true;
     }

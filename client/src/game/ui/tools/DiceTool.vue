@@ -109,7 +109,7 @@ async function go(): Promise<void> {
             <div @click="add(6)">6</div>
             <div @click="add(4)">4</div>
         </div>
-        <div>{{ diceText }}</div>
+        <div style="min-height: 1.5rem">{{ diceText }}</div>
         <div id="dice-input">
             <button @click="diceArray = []">clear</button>
             <button ref="button" @click="go">GO</button>

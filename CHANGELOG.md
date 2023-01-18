@@ -31,6 +31,7 @@ tech changes will usually be stripped from release notes for the public
 -   Spell tool
     -   range property is removed as it was confusing to people and a bit fiddly
     -   a ruler is now automatically drawn between the spell shape and the selected shape
+-   Dice tool: Add min-height in dice tool UI where the dice to roll are being prepared
 -   [lang] The edit dialog for shapes now properly says "Edit shape" instead of "Edit asset"
 
 ### Fixed

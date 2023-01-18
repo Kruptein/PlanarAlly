@@ -42,8 +42,8 @@ export abstract class Tool implements ITool {
     async onMouseMove(event: MouseEvent, features: ToolFeatures): Promise<void> {
         await this.onMove(getLocalPointFromEvent(event), event, features);
     }
-    onTouchStart(event: TouchEvent, features: ToolFeatures): void {
-        this.onDown(getLocalPointFromEvent(event), event, features);
+    async onTouchStart(event: TouchEvent, features: ToolFeatures): Promise<void> {
+        await this.onDown(getLocalPointFromEvent(event), event, features);
     }
     async onTouchEnd(event: TouchEvent, features: ToolFeatures): Promise<void> {
         await this.onUp(getLocalPointFromEvent(event), event, features);
@@ -56,8 +56,8 @@ export abstract class Tool implements ITool {
     onPinchStart(_event: TouchEvent, _features: ToolFeatures): void {}
     onPinchMove(_event: TouchEvent, _features: ToolFeatures): void {}
     onPinchEnd(_event: TouchEvent, _features: ToolFeatures): void {}
-    onContextMenu(_event: MouseEvent, _features: ToolFeatures): boolean {
-        return true;
+    onContextMenu(_event: MouseEvent, _features: ToolFeatures): Promise<boolean> {
+        return Promise.resolve(true);
     }
 
     onSelect(): Promise<void> {

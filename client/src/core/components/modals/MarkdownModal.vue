@@ -18,10 +18,10 @@ function close(): void {
 
 <template>
     <Modal :visible="visible" @close="close">
-        <template v-slot:header="m">
+        <template #header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 <div>{{ title }}</div>
-                <div class="header-close" @click="close" :title="t('common.close')">
+                <div class="header-close" :title="t('common.close')" @click="close">
                     <font-awesome-icon :icon="['far', 'window-close']" />
                 </div>
             </div>

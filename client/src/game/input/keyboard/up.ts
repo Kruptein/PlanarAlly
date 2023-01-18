@@ -24,7 +24,7 @@ export function onKeyUp(event: KeyboardEvent): void {
             const tokens = [...accessState.raw.ownedTokens].map((o) => getShape(o)!);
             if (tokens.length === 0) return;
             const i = tokens.findIndex((o) => equalsP(o.center, positionSystem.screenCenter));
-            const token = tokens[(i + 1) % tokens.length];
+            const token = tokens[(i + 1) % tokens.length]!;
             setCenterPosition(token.center);
             floorSystem.selectFloor({ name: token.floor.name }, true);
         }

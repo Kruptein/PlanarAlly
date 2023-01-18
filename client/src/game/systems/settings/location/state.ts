@@ -45,6 +45,7 @@ export const locationSettingsState = {
         const i = getInitState();
         for (const key of Object.keys(i)) {
             const a = key as keyof State;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             state.mutableReactive[a] = i[a] as any; // typing cannot infer Key<>Value relation per key
         }
     },

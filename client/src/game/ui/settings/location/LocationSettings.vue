@@ -46,20 +46,20 @@ const categoryNames = [
 </script>
 
 <template>
-    <PanelModal v-if="location >= 0" v-model:visible="visible" :categories="categoryNames" :applyTranslation="true">
-        <template v-slot:title>
+    <PanelModal v-if="location >= 0" v-model:visible="visible" :categories="categoryNames" :apply-translation="true">
+        <template #title>
             {{ t("game.ui.settings.LocationBar.LocationSettings.location_settings") }} {{ locationName }}
         </template>
-        <template v-slot:default="{ selection }">
+        <template #default="{ selection }">
             <AdminSettings
-                :location="location"
                 v-show="selection === LocationSettingCategory.Admin"
+                :location="location"
                 @close="visible = false"
             />
-            <GridSettings :location="location" v-show="selection === LocationSettingCategory.Grid" />
-            <VisionSettings :location="location" v-show="selection === LocationSettingCategory.Vision" />
-            <FloorSettings :location="location" v-show="selection === LocationSettingCategory.Floor" />
-            <VariaSettings :location="location" v-show="selection === LocationSettingCategory.Varia" />
+            <GridSettings v-show="selection === LocationSettingCategory.Grid" :location="location" />
+            <VisionSettings v-show="selection === LocationSettingCategory.Vision" :location="location" />
+            <FloorSettings v-show="selection === LocationSettingCategory.Floor" :location="location" />
+            <VariaSettings v-show="selection === LocationSettingCategory.Varia" :location="location" />
         </template>
     </PanelModal>
 </template>

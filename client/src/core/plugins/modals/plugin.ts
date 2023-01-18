@@ -21,13 +21,13 @@ interface Modals {
     selectionBox: SelectionBoxFunction;
 }
 
-function createModals(): Modals {
+async function createModals(): Promise<Modals> {
     const assetPicker = useAssetPicker();
     const confirm = useConfirm();
     const prompt = usePrompt();
     const selectionBox = useSelectionBox();
 
-    nextTick(() => {
+    await nextTick(() => {
         const app = createApp(PluginContainer, { assetPicker, confirm, prompt, selectionBox });
         const d = document.createElement("div");
         document.body.appendChild(d);
@@ -43,8 +43,8 @@ function createModals(): Modals {
     };
 }
 
-export const PlanarAllyModalsPlugin: Plugin = (App) => {
-    const modals = createModals();
+export const PlanarAllyModalsPlugin: Plugin = async (App) => {
+    const modals = await createModals();
     App.provide(modalSymbol, modals);
 };
 

@@ -88,16 +88,16 @@ async function deleteAccount(): Promise<void> {
         <div class="entry subtitle">{{ t("settings.AccountSettings.general") }}</div>
         <div class="entry">
             <label for="name">{{ t("settings.AccountSettings.username") }}</label>
-            <input type="text" id="name" :value="username" readonly />
+            <input id="name" type="text" :value="username" readonly />
         </div>
         <div class="entry">
             <label for="email">{{ t("settings.AccountSettings.email") }}</label>
             <input
-                type="email"
                 id="email"
+                type="email"
                 :value="email"
-                @change="setEmail"
                 :placeholder="t('settings.AccountSettings.no_email_set')"
+                @change="setEmail"
             />
         </div>
         <div class="entry subtitle">{{ t("settings.AccountSettings.danger_zone") }}</div>
@@ -106,10 +106,10 @@ async function deleteAccount(): Promise<void> {
                 <label for="password-reset">{{ t("settings.AccountSettings.new_pwd") }}</label>
                 <div>
                     <input
-                        type="password"
                         id="password-reset"
-                        autocomplete="new-password"
                         v-model="passwordResetField"
+                        type="password"
+                        autocomplete="new-password"
                     />
                 </div>
             </div>
@@ -117,16 +117,16 @@ async function deleteAccount(): Promise<void> {
                 <label for="password-repeat">{{ t("settings.AccountSettings.repeat_pwd") }}</label>
                 <div>
                     <input
-                        type="password"
                         id="password-repeat"
-                        autocomplete="new-password"
                         v-model="passwordRepeatField"
+                        type="password"
+                        autocomplete="new-password"
                     />
                 </div>
             </div>
         </template>
         <div class="entry">
-            <button class="go" v-if="showPasswordFields" @click="hidePasswordChange">{{ t("common.cancel") }}</button>
+            <button v-if="showPasswordFields" class="go" @click="hidePasswordChange">{{ t("common.cancel") }}</button>
             <button class="go" @click="changePassword">{{ changePasswordText }}</button>
         </div>
         <div class="entry">

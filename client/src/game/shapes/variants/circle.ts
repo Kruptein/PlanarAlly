@@ -49,9 +49,7 @@ export class Circle extends Shape implements IShape {
         }
     }
 
-    get isClosed(): boolean {
-        return true;
-    }
+    readonly isClosed = true;
 
     asDict(): ServerCircle {
         return Object.assign(this.getBaseDict(), {
@@ -90,7 +88,7 @@ export class Circle extends Shape implements IShape {
             if (this.options.borderOperation !== undefined) ctx.globalCompositeOperation = this.options.borderOperation;
             ctx.beginPath();
             ctx.lineWidth = this.ignoreZoomSize ? this.strokeWidth : g2lz(this.strokeWidth);
-            ctx.strokeStyle = props.strokeColour[0];
+            ctx.strokeStyle = props.strokeColour[0]!;
             // Inset the border with - borderWidth / 2
             // Slight imperfection added to account for zoom subpixel differences
             const r = this.r - this.strokeWidth / 2.5;

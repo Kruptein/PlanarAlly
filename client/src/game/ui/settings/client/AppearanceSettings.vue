@@ -69,7 +69,7 @@ const rulerColour = computed({
         <div class="spanrow header">{{ t("game.ui.settings.client.AppearanceSettings.toolbars") }}</div>
         <div class="row">
             <label for="useToolIcons">{{ t("game.ui.settings.client.AppearanceSettings.use_tool_icons") }}</label>
-            <div><input id="useToolIcons" type="checkbox" v-model="useToolIcons" /></div>
+            <div><input id="useToolIcons" v-model="useToolIcons" type="checkbox" /></div>
             <template v-if="$.useToolIcons.override !== undefined">
                 <div :title="t('game.ui.settings.common.reset_default')" @click="useToolIcons = undefined">
                     <font-awesome-icon icon="times-circle" />
@@ -87,7 +87,7 @@ const rulerColour = computed({
             <label for="showTokenDirections">
                 {{ t("game.ui.settings.client.AppearanceSettings.show_token_directions") }}
             </label>
-            <div><input id="showTokenDirections" type="checkbox" v-model="showTokenDirections" /></div>
+            <div><input id="showTokenDirections" v-model="showTokenDirections" type="checkbox" /></div>
             <template v-if="$.showTokenDirections.override !== undefined">
                 <div :title="t('game.ui.settings.common.reset_default')" @click="showTokenDirections = undefined">
                     <font-awesome-icon icon="times-circle" />
@@ -142,7 +142,7 @@ const rulerColour = computed({
         <div class="row">
             <label for="fowColour">{{ t("common.colour") }}</label>
             <div>
-                <ColourPicker id="fowColour" :disableAlpha="true" v-model:colour="fowColour" />
+                <ColourPicker id="fowColour" v-model:colour="fowColour" :disable-alpha="true" />
             </div>
             <template v-if="$.fowColour.override !== undefined">
                 <div :title="t('game.ui.settings.common.reset_default')" @click="fowColour = undefined">

@@ -5,7 +5,7 @@ import type { Label } from "./models";
 import { labelSystem } from ".";
 
 socket.on("Labels.Set", (labels: Label[]) => {
-    for (const label of labels) labelSystem.addLabel(label, false);
+    for (const label of labels) labelSystem.createLabel(label, false);
 });
 
 socket.on("Label.Visibility.Set", (data: { user: string; uuid: string; visible: boolean }) => {
@@ -13,7 +13,7 @@ socket.on("Label.Visibility.Set", (data: { user: string; uuid: string; visible: 
 });
 
 socket.on("Label.Add", (data: Label) => {
-    labelSystem.addLabel(data, false);
+    labelSystem.createLabel(data, false);
 });
 
 socket.on("Label.Delete", (data: { user: string; uuid: string }) => {

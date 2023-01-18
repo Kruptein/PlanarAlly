@@ -11,7 +11,7 @@ export async function requestAssetOptions(assetId: number): Promise<AssetOptions
         socket.once("Asset.Options.Info", (value: AssetOptionsRequest<string>) => {
             if (value.success) {
                 if (value.options === null) return resolve({ ...value, options: null });
-                return resolve({ ...value, options: JSON.parse(value.options) });
+                return resolve({ ...value, options: JSON.parse(value.options) as AssetOptions });
             }
             return resolve(value);
         }),

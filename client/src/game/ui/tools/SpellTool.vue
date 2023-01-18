@@ -21,14 +21,14 @@ const translationMapping = {
     [SpellShape.Cone]: t("game.ui.tools.DrawTool.cone"),
 };
 
-function selectShape(shape: SpellShape): void {
+async function selectShape(shape: SpellShape): Promise<void> {
     spellTool.state.selectedSpellShape = shape;
-    spellTool.drawShape();
+    await spellTool.drawShape();
 }
 </script>
 
 <template>
-    <div class="tool-detail" v-if="selected">
+    <div v-if="selected" class="tool-detail">
         <div class="selectgroup">
             <div
                 v-for="shape in shapes"
@@ -38,8 +38,8 @@ function selectShape(shape: SpellShape): void {
                     'option-selected': spellTool.state.selectedSpellShape === shape,
                     disabled: !canConeBeCast && shape === SpellShape.Cone,
                 }"
-                @click="selectShape(shape)"
                 :title="translationMapping[shape]"
+                @click="selectShape(shape)"
             >
                 <font-awesome-icon v-if="shape !== 'cone'" :icon="shape" />
                 <img v-else :src="baseAdjust('static/img/cone.svg')" />
@@ -48,17 +48,17 @@ function selectShape(shape: SpellShape): void {
         <div id="grid">
             <label for="size" style="flex: 5">{{ t("game.ui.tools.SpellTool.size") }}</label>
             <input
-                type="number"
                 id="size"
-                style="flex: 1; align-self: center"
                 v-model.number="spellTool.state.size"
+                type="number"
+                style="flex: 1; align-self: center"
                 min="0"
                 step="5"
             />
             <label for="colour" style="flex: 5">{{ t("common.fill_color") }}</label>
             <ColourPicker
-                class="option"
                 v-model:colour="spellTool.state.colour"
+                class="option"
                 :title="t('game.ui.tools.DrawTool.background_color')"
             />
             <label for="public" style="flex: 5">{{ t("game.ui.selection.edit_dialog.dialog.show_annotation") }}</label>

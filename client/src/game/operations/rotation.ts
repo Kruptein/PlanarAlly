@@ -10,6 +10,8 @@ export function rotateShapes(
     center: GlobalPoint,
     temporary: boolean,
 ): void {
+    if (shapes.length === 0) return;
+
     let recalculateMovement = false;
     let recalculateVision = false;
 
@@ -39,7 +41,8 @@ export function rotateShapes(
         if (!shape.preventSync) sendShapePositionUpdate([shape], temporary);
     }
 
-    if (recalculateMovement) visionState.recalculateMovement(shapes[0].floor.id);
-    if (recalculateVision) visionState.recalculateVision(shapes[0].floor.id);
-    shapes[0].layer.invalidate(false);
+    const firstShape = shapes[0]!;
+    if (recalculateMovement) visionState.recalculateMovement(firstShape.floor.id);
+    if (recalculateVision) visionState.recalculateVision(firstShape.floor.id);
+    firstShape.layer.invalidate(false);
 }

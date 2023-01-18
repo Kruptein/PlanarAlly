@@ -39,9 +39,7 @@ export class Asset extends BaseRect implements IAsset {
         this.#loaded = options?.loaded ?? true;
     }
 
-    get isClosed(): boolean {
-        return true;
-    }
+    readonly isClosed = true;
 
     asDict(): ServerAsset {
         return Object.assign(this.getBaseDict(), {
@@ -63,9 +61,9 @@ export class Asset extends BaseRect implements IAsset {
         this.#loaded = true;
     }
 
-    onLayerAdd(): void {
+    async onLayerAdd(): Promise<void> {
         if (this.options.svgAsset !== undefined && this.svgData === undefined) {
-            this.loadSvgs();
+            await this.loadSvgs();
         }
     }
 
@@ -110,7 +108,7 @@ export class Asset extends BaseRect implements IAsset {
             try {
                 ctx.drawImage(this.img, rp.x - center.x + deltaW, rp.y - center.y + deltaH, w, h);
             } catch (error) {
-                console.warn(`Shape ${getGlobalId(this.id)} could not load the image ${this.src}`);
+                console.warn(`Shape ${getGlobalId(this.id) ?? "unknown"} could not load the image ${this.src}`);
             }
         }
         super.drawPost(ctx);
@@ -123,6 +121,7 @@ export class Asset extends BaseRect implements IAsset {
         this.img.onload = () => {
             this.setLoaded();
         };
-        if (sync) sendAssetRectImageChange({ uuid: getGlobalId(this.id), src: url });
+        const uuid = getGlobalId(this.id);
+        if (uuid && sync) sendAssetRectImageChange({ uuid, src: url });
     }
 }

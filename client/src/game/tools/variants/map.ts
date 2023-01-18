@@ -52,7 +52,7 @@ class MapTool extends Tool implements ITool {
     }
 
     setSelection(shapes: readonly IShape[]): void {
-        if (shapes.length === 1 && this.shape === undefined && ["assetrect", "rect"].includes(shapes[0].type)) {
+        if (shapes.length === 1 && this.shape === undefined && ["assetrect", "rect"].includes(shapes[0]!.type)) {
             this.shape = shapes[0] as IRect;
             this.state.hasShape = true;
             this.ogRP = this.shape.refPoint;

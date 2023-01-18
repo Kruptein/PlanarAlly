@@ -13,11 +13,14 @@ const historyDiv = ref<HTMLDivElement | null>(null);
 const diceArray = ref<{ die: number; amount: number }[]>([]);
 let timeout: number | undefined;
 
-watch(diceTool.state.history, () => {
-    nextTick(() => {
-        historyDiv.value!.scrollTop = historyDiv.value!.scrollHeight;
-    });
-});
+watch(
+    () => diceTool.state.history.length,
+    async () => {
+        await nextTick(() => {
+            historyDiv.value!.scrollTop = historyDiv.value!.scrollHeight;
+        });
+    },
+);
 
 function add(die: number): void {
     if (diceTool.state.autoRoll) {
@@ -26,7 +29,7 @@ function add(die: number): void {
         button.value?.classList.add("transition");
 
         clearTimeout(timeout);
-        timeout = window.setTimeout(go, 1000);
+        timeout = window.setTimeout(() => void go(), 1000);
     }
     const d = diceArray.value.find((d) => d.die === die);
     if (d === undefined) {

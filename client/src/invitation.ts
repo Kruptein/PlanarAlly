@@ -9,7 +9,8 @@ export default defineComponent({
             code: to.params.code,
         });
         if (response.ok) {
-            next({ path: (await response.json()).sessionUrl });
+            const data = (await response.json()) as { sessionUrl: string };
+            next({ path: data.sessionUrl });
         } else {
             console.error("Invitation code could not be redeemed");
             next({ path: "/dashboard" });

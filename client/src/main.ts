@@ -5,6 +5,7 @@ import { createApp } from "vue";
 import Toast, { POSITION } from "vue-toastification";
 import type { PluginOptions } from "vue-toastification";
 
+// eslint-disable-next-line import/default
 import App from "./App.vue";
 import { PlanarAllyModalsPlugin } from "./core/plugins/modals/plugin";
 import { loadFontAwesome } from "./fa";

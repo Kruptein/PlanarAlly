@@ -30,7 +30,7 @@ const emit = defineEmits<{
 // so we keep track of pending actions in this set
 // side-note: the order _seems_ deterministic in that it always first sends added and then deleted
 //            but this might be an implementation detail that changes when upgrading the sortable dependency
-const pendingEvents: Set<string> = new Set();
+const pendingEvents = new Set<string>();
 
 let permissions = copyPermissions(props.permissions);
 
@@ -39,11 +39,11 @@ watch(
     () => (permissions = copyPermissions(props.permissions)),
 );
 
-type SortableChanged<T> = {
+interface SortableChanged<T> {
     added?: { element: T; newIndex: number };
     moved?: { element: T; newIndex: number; oldIndex: number };
     removed?: { element: T; oldIndex: number };
-};
+}
 
 function change(change: Event & SortableChanged<string>, target: "enabled" | "request" | "disabled"): void {
     const _target =
@@ -97,10 +97,10 @@ function hideModal(): void {
 
 <template>
     <Modal :visible="visible" @close="emit('close')">
-        <template v-slot:header="m">
+        <template #header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 Configure logic permissions
-                <div class="header-close" @click.stop="hideModal" :title="t('common.close')">
+                <div class="header-close" :title="t('common.close')" @click.stop="hideModal">
                     <font-awesome-icon :icon="['far', 'window-close']" />
                 </div>
             </div>
@@ -112,10 +112,10 @@ function hideModal(): void {
 
             <draggable
                 class="condition-sorter"
-                :modelValue="props.permissions.enabled.filter((x) => x !== null)"
+                :model-value="props.permissions.enabled.filter((x) => x !== null)"
                 group="door"
-                @change="change($event, 'enabled')"
                 item-key="uuid"
+                @change="change($event, 'enabled')"
             >
                 <template #item="{ element }: { element: string }">
                     <div>{{ element }}</div>
@@ -127,10 +127,10 @@ function hideModal(): void {
             </draggable>
             <draggable
                 class="condition-sorter"
-                :modelValue="props.permissions.request.filter((x) => x !== null)"
+                :model-value="props.permissions.request.filter((x) => x !== null)"
                 group="door"
-                @change="change($event, 'request')"
                 item-key="uuid"
+                @change="change($event, 'request')"
             >
                 <template #item="{ element }: { element: string }">
                     <div>{{ element }}</div>
@@ -142,10 +142,10 @@ function hideModal(): void {
             </draggable>
             <draggable
                 class="condition-sorter"
-                :modelValue="props.permissions.disabled.filter((x) => x !== null)"
+                :model-value="props.permissions.disabled.filter((x) => x !== null)"
                 group="door"
-                @change="change($event, 'disabled')"
                 item-key="uuid"
+                @change="change($event, 'disabled')"
             >
                 <template #item="{ element }: { element: string }">
                     <div>{{ element }}</div>

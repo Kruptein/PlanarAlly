@@ -17,7 +17,16 @@ const props = withDefaults(
         interval?: number;
         modelValue: number;
     }>(),
-    { height: "auto", width: "auto", dotSize: () => [14, 14], min: 0, max: 100, interval: 1 },
+    {
+        height: "auto",
+        width: "auto",
+        dotSize: () => [14, 14],
+        dotStyle: undefined,
+        railStyle: undefined,
+        min: 0,
+        max: 100,
+        interval: 1,
+    },
 );
 const emit = defineEmits(["update:modelValue", "change"]);
 
@@ -65,18 +74,18 @@ function setValueByPos(pos: number): void {
     <div
         class="vue-slider"
         :style="{ width, height, padding: `${dotSize[1] / scale}px 1rem` }"
+        tabindex="0"
         @click="onClick"
         @mousedown="dragging = true"
         @mousemove="dragMove"
         @mouseup="dragging = false"
         @focusin="focussed = true"
         @blur="focussed = false"
-        tabindex="0"
     >
         <div ref="rail" class="vue-slider-rail" :style="railStyle">
             <SliderDot
-                :dotStyle="dotStyle"
-                :dotSize="dotSize"
+                :dot-style="dotStyle"
+                :dot-size="dotSize"
                 :position="dotPos / 2"
                 :value="value"
                 :style="{ transition: dragging ? 'none' : undefined }"

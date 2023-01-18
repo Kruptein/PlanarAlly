@@ -13,7 +13,7 @@ const { t } = useI18n();
 const selected = filterTool.isActiveTool;
 
 const categories = computed(() => {
-    const cat: Map<string, Label[]> = new Map();
+    const cat = new Map<string, Label[]>();
     cat.set("", []);
     for (const label of labelState.reactive.labels.values()) {
         if (!label.category) {
@@ -30,7 +30,7 @@ const categories = computed(() => {
 });
 
 const initialValues = computed(() => {
-    const values: Map<string, string[]> = new Map();
+    const values = new Map<string, string[]>();
     for (const [category, labels] of categories.value) {
         values.set(
             category,
@@ -59,14 +59,14 @@ function getCategoryInitValues(category: string): string[] {
 </script>
 
 <template>
-    <div class="tool-detail" v-if="selected">
+    <div v-if="selected" class="tool-detail">
         <div id="accordion-container">
             <Accordion
                 v-for="[category, labels] of categories"
                 :key="category"
                 :title="category === '' ? t('game.ui.tools.FilterTool.no_category') : category"
                 :items="labels"
-                :initialValues="getCategoryInitValues(category)"
+                :initial-values="getCategoryInitValues(category)"
                 @selectionupdate="updateSelection(category, $event)"
             />
         </div>

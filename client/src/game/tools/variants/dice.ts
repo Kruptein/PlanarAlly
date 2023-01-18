@@ -46,7 +46,7 @@ class DiceTool extends Tool implements ITool {
     }
 
     async onSelect(): Promise<void> {
-        if (diceStore.state.loaded === false) {
+        if (!diceStore.state.loaded) {
             await diceStore.loadEnv();
         }
     }
@@ -128,9 +128,17 @@ class DiceTool extends Tool implements ITool {
             diceStore.setIsPending(false);
             diceStore.setShowDiceResults(results.key);
         }
-        const timeoutId = window.setTimeout(async () => {
-            (await diceStore.getDiceThrower()).reset(results.key);
-            delete this.state.timeouts[results.key];
+        const timeoutId = window.setTimeout(() => {
+            diceStore
+                .getDiceThrower()
+                .then((thrower) => {
+                    thrower.reset(results.key);
+                    delete this.state.timeouts[results.key];
+                })
+                .catch(() => {
+                    console.error("Failed to retrieve diceThrower instance");
+                    delete this.state.timeouts[results.key];
+                });
         }, 10_000);
         this.state.timeouts[results.key] = timeoutId;
 
@@ -138,7 +146,9 @@ class DiceTool extends Tool implements ITool {
     }
 
     addShadow(die: Dice, mesh: Mesh): void {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         ((window as any).shadowGenerator as ShadowGenerator).addShadowCaster(mesh);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         ((window as any).shadowGenerator as ShadowGenerator).useCloseExponentialShadowMap = true;
     }
 }

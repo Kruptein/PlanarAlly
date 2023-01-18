@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { create, evaluateDependencies } from "mathjs";
-import { computed, nextTick, ref, watchEffect } from "vue";
+import { computed, nextTick, ref, watch, watchEffect } from "vue";
 
 import Modal from "../../core/components/modals/Modal.vue";
 import { i18n } from "../../i18n";
@@ -37,11 +37,14 @@ const question = computed(() => {
     return "";
 });
 
-watchEffect(() => {
-    if (props.tracker !== null) {
-        nextTick(() => input.value!.focus());
-    }
-});
+watch(
+    () => props.tracker,
+    async () => {
+        if (props.tracker !== null) {
+            await nextTick(() => input.value!.focus());
+        }
+    },
+);
 
 function reset(): void {
     answer.value = "";
@@ -59,6 +62,7 @@ function setError(): void {
 
 function submit(): void {
     try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const solution = math.evaluate(answer.value);
         if (typeof solution !== "number") return setError();
 
@@ -77,7 +81,7 @@ function setMode(mode: boolean): void {
 
 <template>
     <Modal :visible="props.tracker !== null" @close="close">
-        <template v-slot:header="m">
+        <template #header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 {{ title }}
             </div>
@@ -87,14 +91,14 @@ function setMode(mode: boolean): void {
             <div id="error">{{ error }}</div>
             <div id="answer-row">
                 <div id="toggle">
-                    <div :class="{ active: !relativeMode }" @click="setMode(false)" title="Absolute mode">
+                    <div :class="{ active: !relativeMode }" title="Absolute mode" @click="setMode(false)">
                         <font-awesome-icon icon="equals" />
                     </div>
-                    <div :class="{ active: relativeMode }" @click="setMode(true)" title="Relative mode">
+                    <div :class="{ active: relativeMode }" title="Relative mode" @click="setMode(true)">
                         <font-awesome-icon icon="plus-minus" />
                     </div>
                 </div>
-                <input type="text" ref="input" v-model="answer" @keyup.enter="submit" />
+                <input ref="input" v-model="answer" type="text" @keyup.enter="submit" />
             </div>
         </div>
         <div class="modal-footer">

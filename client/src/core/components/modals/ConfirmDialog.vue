@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, ref, watchEffect } from "vue";
+import { nextTick, ref, watch } from "vue";
 
 import Modal from "./Modal.vue";
 
@@ -17,19 +17,22 @@ const emit = defineEmits(["close", "submit"]);
 const confirm = ref<HTMLButtonElement | null>(null);
 const deny = ref<HTMLButtonElement | null>(null);
 
-watchEffect(() => {
-    if (props.visible) {
-        nextTick(() => {
-            if (props.focus === "confirm") confirm.value!.focus();
-            else deny.value!.focus();
-        });
-    }
-});
+watch(
+    () => props.visible,
+    async (visible) => {
+        if (visible) {
+            await nextTick(() => {
+                if (props.focus === "confirm") confirm.value!.focus();
+                else deny.value!.focus();
+            });
+        }
+    },
+);
 </script>
 
 <template>
     <modal :visible="visible" @close="emit('close')">
-        <template v-slot:header="m">
+        <template #header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 {{ title }}
             </div>
@@ -37,10 +40,10 @@ watchEffect(() => {
         <div class="modal-body">
             <slot>{{ text }}</slot>
             <div class="buttons">
-                <button @click="emit('submit', true)" ref="confirm" :class="{ focus: focus === 'confirm' }">
+                <button ref="confirm" :class="{ focus: focus === 'confirm' }" @click="emit('submit', true)">
                     {{ yes }}
                 </button>
-                <button @click="emit('submit', false)" v-if="showNo" ref="deny" :class="{ focus: focus === 'deny' }">
+                <button v-if="showNo" ref="deny" :class="{ focus: focus === 'deny' }" @click="emit('submit', false)">
                     {{ no }}
                 </button>
             </div>

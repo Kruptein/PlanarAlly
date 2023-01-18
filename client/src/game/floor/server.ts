@@ -1,4 +1,3 @@
-import { hasGroup, addNewGroup } from "../groups";
 import type { ILayer } from "../interfaces/layer";
 import { createCanvas } from "../layers/canvas";
 import { recalculateZIndices } from "../layers/floor";
@@ -11,8 +10,9 @@ import { MapLayer } from "../layers/variants/map";
 import { LayerName } from "../models/floor";
 import type { Floor } from "../models/floor";
 import type { ServerFloor, ServerLayer } from "../models/general";
-import { groupToClient } from "../models/groups";
 import { floorSystem } from "../systems/floors";
+import { groupSystem } from "../systems/groups";
+import { groupToClient } from "../systems/groups/models";
 import { visionState } from "../vision/state";
 
 export function addServerFloor(serverFloor: ServerFloor): void {
@@ -78,8 +78,8 @@ function addServerLayer(layerInfo: ServerLayer, floor: Floor): void {
 
     for (const serverGroup of layerInfo.groups) {
         const group = groupToClient(serverGroup);
-        if (!hasGroup(group.uuid)) {
-            addNewGroup(group, false);
+        if (!groupSystem.hasGroup(group.uuid)) {
+            groupSystem.addNewGroup(group, false);
         }
     }
 

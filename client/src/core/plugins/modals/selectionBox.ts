@@ -14,7 +14,7 @@ export type SelectionBoxFunction = (
     options?: SelectionBoxOptions,
 ) => Promise<string[] | undefined>;
 
-interface SelectionBoxModal {
+export interface SelectionBoxModal {
     visible: DeepReadonly<Ref<boolean>>;
     title: Ref<string>;
     choices: Ref<string[]>;

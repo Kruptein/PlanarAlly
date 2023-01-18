@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { nextTick, ref, watchEffect } from "vue";
+import { nextTick, ref, watch } from "vue";
 
+defineEmits<(e: "cm:close") => void>();
 const props = defineProps<{ left: number; top: number; visible: boolean }>();
 
 const menu = ref<HTMLDivElement | null>(null);
@@ -9,30 +10,33 @@ const deltaLeft = ref(0);
 const deltaTop = ref(0);
 
 // Ensure the content is visible when we are at the bottom or right hand side
-watchEffect(() => {
-    if (props.visible) {
-        nextTick(() => {
-            const el = menu.value!;
-            deltaLeft.value = 0;
-            if (props.left + el.clientWidth > window.innerWidth) {
-                deltaLeft.value = el.clientWidth;
-            }
-            deltaTop.value = 0;
-            if (props.top + el.clientHeight > window.innerHeight) {
-                deltaTop.value = el.clientHeight;
-            }
-            el.focus();
-        });
-    }
-});
+watch(
+    () => props.visible,
+    async (visible) => {
+        if (visible) {
+            await nextTick(() => {
+                const el = menu.value!;
+                deltaLeft.value = 0;
+                if (props.left + el.clientWidth > window.innerWidth) {
+                    deltaLeft.value = el.clientWidth;
+                }
+                deltaTop.value = 0;
+                if (props.top + el.clientHeight > window.innerHeight) {
+                    deltaTop.value = el.clientHeight;
+                }
+                el.focus();
+            });
+        }
+    },
+);
 </script>
 
 <template>
     <div
+        v-show="visible"
         ref="menu"
         class="ContextMenu"
         tabindex="-1"
-        v-show="visible"
         :style="{ left: `${left - deltaLeft}px`, top: `${top - deltaTop}px` }"
         @blur="$emit('cm:close')"
         @contextmenu.stop.prevent

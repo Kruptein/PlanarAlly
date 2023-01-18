@@ -60,7 +60,7 @@ export async function teleport(fromZone: LocalId, toZone: GlobalId, transfers?: 
     };
 
     sendShapesMove({
-        shapes: shapes.map((s) => getGlobalId(s)),
+        shapes: shapes.map((s) => getGlobalId(s)!),
         target,
         tp_zone: true,
     });
@@ -69,7 +69,7 @@ export async function teleport(fromZone: LocalId, toZone: GlobalId, transfers?: 
         if (location === activeLocation) {
             setCenterPosition(center);
         } else {
-            const users: Set<string> = new Set();
+            const users = new Set<string>();
             for (const sh of shapes) {
                 for (const owner of accessSystem.getOwners(sh)) users.add(owner);
             }

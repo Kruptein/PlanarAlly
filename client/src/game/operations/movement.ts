@@ -25,6 +25,8 @@ import { addOperation } from "./undo";
  * @param temporary Flag to indicate near-future override
  */
 export async function moveShapes(shapes: readonly IShape[], delta: Vector, temporary: boolean): Promise<void> {
+    if (shapes.length === 0) return;
+
     let recalculateMovement = false;
     let recalculateVision = false;
 
@@ -81,10 +83,10 @@ export async function moveShapes(shapes: readonly IShape[], delta: Vector, tempo
         await teleportZoneSystem.checkTeleport(selectedSystem.get({ includeComposites: true }));
     }
 
-    const floorId = shapes[0].floor.id;
+    const floorId = shapes[0]!.floor.id;
     if (recalculateVision) visionState.recalculateVision(floorId);
     if (recalculateMovement) visionState.recalculateMovement(floorId);
-    shapes[0].layer.invalidate(false);
+    shapes[0]!.layer.invalidate(false);
 }
 
 function canMove(shapeId: LocalId): boolean {

@@ -1,5 +1,6 @@
-import type { GroupJoinPayload, ServerGroup } from "../../models/groups";
-import { wrapSocket } from "../helpers";
+import { wrapSocket } from "../../api/helpers";
+
+import type { GroupJoinPayload, ServerGroup } from "./models";
 
 export const sendGroupUpdate = wrapSocket<ServerGroup>("Group.Update");
 export const sendMemberBadgeUpdate = wrapSocket<{ uuid: string; badge: number }[]>("Group.Members.Update");

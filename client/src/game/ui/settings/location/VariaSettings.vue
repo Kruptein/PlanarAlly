@@ -34,6 +34,7 @@ const limitMovementDuringInitiative = computed({
 });
 
 function o(k: any): boolean {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return getOption(k, location.value).override !== undefined;
 }
 </script>
@@ -59,14 +60,14 @@ function o(k: any): boolean {
             <div>
                 <input
                     :id="'movePlayerOnTokenChangeInput-' + location"
-                    type="checkbox"
                     v-model="movePlayerOnTokenChange"
+                    type="checkbox"
                 />
             </div>
             <div
                 v-if="!isGlobal && o($.movePlayerOnTokenChange)"
-                @click="movePlayerOnTokenChange = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
+                @click="movePlayerOnTokenChange = undefined"
             >
                 <font-awesome-icon icon="times-circle" />
             </div>
@@ -79,14 +80,14 @@ function o(k: any): boolean {
             <div>
                 <input
                     :id="'limitMovementDuringInitiativeInput-' + location"
-                    type="checkbox"
                     v-model="limitMovementDuringInitiative"
+                    type="checkbox"
                 />
             </div>
             <div
                 v-if="!isGlobal && o($.limitMovementDuringInitiative)"
-                @click="limitMovementDuringInitiative = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
+                @click="limitMovementDuringInitiative = undefined"
             >
                 <font-awesome-icon icon="times-circle" />
             </div>

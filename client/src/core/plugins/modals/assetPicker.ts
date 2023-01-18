@@ -6,7 +6,7 @@ import type { Asset } from "../../models/types";
 
 export type AssetPickerFunction = () => Promise<DeepReadonly<Asset> | undefined>;
 
-interface AssetPickerModal {
+export interface AssetPickerModal {
     visible: DeepReadonly<Ref<boolean>>;
     close: () => void;
     show: AssetPickerFunction;
@@ -30,7 +30,7 @@ export function useAssetPicker(): AssetPickerModal {
         if (selected.length !== 1) {
             resolve(undefined);
         } else {
-            const asset = assetStore.state.idMap.get(selected[0]);
+            const asset = assetStore.state.idMap.get(selected[0]!);
             resolve(asset);
         }
         data.visible = false;

@@ -25,9 +25,9 @@ async function copy(): Promise<void> {
 
 <template>
     <div id="input-copy" @mouseleave="state.showPopup = false">
-        <input type="text" disabled :value="value" id="input-element" />
+        <input id="input-element" type="text" disabled :value="value" />
         <div v-show="state.showPopup" id="show-popup">{{ state.popupString }}</div>
-        <div id="copy-button" @click="copy" :title="t('core.components.InputCopyElement.copy')">
+        <div id="copy-button" :title="t('core.components.InputCopyElement.copy')" @click="copy">
             <font-awesome-icon :icon="['far', 'copy']" />
         </div>
     </div>

@@ -73,8 +73,9 @@ export class CircularToken extends Circle implements IShape {
 
     setText(text: string, sync: SyncMode): void {
         this.text = text;
-        if (sync !== SyncMode.NO_SYNC) {
-            sendCircularTokenUpdate({ uuid: getGlobalId(this.id), text, temporary: sync === SyncMode.TEMP_SYNC });
+        const uuid = getGlobalId(this.id);
+        if (uuid && sync !== SyncMode.NO_SYNC) {
+            sendCircularTokenUpdate({ uuid, text, temporary: sync === SyncMode.TEMP_SYNC });
         }
     }
 }

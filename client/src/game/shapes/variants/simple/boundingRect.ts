@@ -111,7 +111,7 @@ export class BoundingRect implements SimpleShape {
 
     containsRay(ray: Ray<Point>): { hit: boolean; min: number; max: number } {
         const invDir = ray.direction.inverse();
-        const dirIsNeg = [invDir.x < 0, invDir.y < 0];
+        const dirIsNeg = [invDir.x < 0, invDir.y < 0] as [boolean, boolean];
         let txmin = invDir.x * (this.getDiagCorner(dirIsNeg[0]).x - ray.origin.x);
         let txmax = invDir.x * (this.getDiagCorner(!dirIsNeg[0]).x - ray.origin.x);
         const tymin = invDir.y * (this.getDiagCorner(dirIsNeg[1]).y - ray.origin.y);

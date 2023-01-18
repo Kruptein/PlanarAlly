@@ -18,7 +18,10 @@ class MarkerSystem implements System {
     newMarker(marker: LocalId, sync: boolean): void {
         if (!$.markers.has(marker)) {
             $.markers.add(marker);
-            if (sync) sendMarkerCreate(getGlobalId(marker));
+            if (sync) {
+                const gId = getGlobalId(marker);
+                if (gId) sendMarkerCreate(gId);
+            }
         }
     }
 
@@ -32,7 +35,10 @@ class MarkerSystem implements System {
     removeMarker(marker: LocalId, sync: boolean): void {
         if ($.markers.has(marker)) {
             $.markers.delete(marker);
-            if (sync) sendMarkerRemove(getGlobalId(marker));
+            if (sync) {
+                const gId = getGlobalId(marker);
+                if (gId) sendMarkerRemove(gId);
+            }
         }
     }
 }

@@ -80,11 +80,14 @@ async function createSpawnLocation(): Promise<void> {
         .addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
     img.onload = () => (gameState.raw.boardInitialized ? shape.layer.invalidate(true) : undefined);
 
-    locationSettingsSystem.setSpawnLocations(
-        [...spawnLocations, getGlobalId(shape.id)],
-        locationSettingsState.raw.activeLocation,
-        true,
-    );
+    const gId = getGlobalId(shape.id);
+
+    if (gId)
+        locationSettingsSystem.setSpawnLocations(
+            [...spawnLocations, gId],
+            locationSettingsState.raw.activeLocation,
+            true,
+        );
 }
 
 function showInitiativeDialog(): void {
@@ -105,10 +108,10 @@ function showTokenDialog(): void {
         :top="defaultContextTop"
         @cm:close="close"
     >
-        <li @click="bringPlayers" v-if="gameState.reactive.isDm">{{ t("game.ui.tools.DefaultContext.bring_pl") }}</li>
+        <li v-if="gameState.reactive.isDm" @click="bringPlayers">{{ t("game.ui.tools.DefaultContext.bring_pl") }}</li>
         <li @click="showTokenDialog">{{ t("game.ui.tools.DefaultContext.create_basic_token") }}</li>
         <li @click="showInitiativeDialog">{{ t("game.ui.tools.DefaultContext.show_initiative") }}</li>
-        <li @click="createSpawnLocation" v-if="gameState.reactive.isDm">
+        <li v-if="gameState.reactive.isDm" @click="createSpawnLocation">
             {{ t("game.ui.tools.DefaultContext.create_spawn_location") }}
         </li>
     </ContextMenu>

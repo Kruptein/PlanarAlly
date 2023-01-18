@@ -1,11 +1,16 @@
 import { readonly, reactive, toRefs } from "vue";
 import type { DeepReadonly, Ref } from "vue";
 
-type buttons = { yes?: string; no?: string; focus?: "confirm" | "deny"; showNo?: boolean };
+interface ConfirmButtons {
+    yes?: string;
+    no?: string;
+    focus?: "confirm" | "deny";
+    showNo?: boolean;
+}
 
-export type ConfirmFunction = (title: string, text?: string, buttons?: buttons) => Promise<boolean | undefined>;
+export type ConfirmFunction = (title: string, text?: string, buttons?: ConfirmButtons) => Promise<boolean | undefined>;
 
-interface ConfirmModal {
+export interface ConfirmModal {
     visible: DeepReadonly<Ref<boolean>>;
     yes: Ref<string>;
     no: Ref<string>;
@@ -31,7 +36,7 @@ export function useConfirm(): ConfirmModal {
 
     let resolve: (value: boolean | undefined) => void = (_value: boolean | undefined) => {};
 
-    async function show(title: string, text = "", buttons?: buttons): Promise<boolean | undefined> {
+    async function show(title: string, text = "", buttons?: ConfirmButtons): Promise<boolean | undefined> {
         data.visible = true;
         data.yes = buttons?.yes ?? "yes";
         data.no = buttons?.no ?? "no";

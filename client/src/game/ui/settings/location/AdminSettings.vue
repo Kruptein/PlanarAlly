@@ -53,8 +53,8 @@ async function deleteLocation(): Promise<void> {
 async function onCloneClick(): Promise<void> {
     const response = await http.get("/api/rooms");
     if (response.ok) {
-        const data = await response.json();
-        const owned: RoomInfo[] = data.owned;
+        const data = (await response.json()) as { owned: RoomInfo[] };
+        const owned = data.owned;
 
         const choice = await modals.selectionBox(
             t("game.ui.settings.LocationBar.LocationAdminSettings.choose_room"),
@@ -81,7 +81,7 @@ async function onCloneClick(): Promise<void> {
                 <label :for="'rename-' + location">{{ t("common.name") }}</label>
             </div>
             <div>
-                <input :id="'rename-' + location" type="text" v-model="name" />
+                <input :id="'rename-' + location" v-model="name" type="text" />
             </div>
         </div>
         <div class="row">
@@ -93,13 +93,13 @@ async function onCloneClick(): Promise<void> {
             <div>
                 <button
                     class="danger"
-                    @click="archiveLocation"
                     :disabled="hasPlayers"
                     :title="
                         hasPlayers
                             ? t('game.ui.settings.LocationBar.LocationAdminSettings.move_existing_pl')
                             : t('game.ui.settings.LocationBar.LocationAdminSettings.archive_this_location')
                     "
+                    @click="archiveLocation"
                 >
                     {{ t("game.ui.settings.LocationBar.LocationAdminSettings.archive_this_location") }}
                 </button>
@@ -107,13 +107,13 @@ async function onCloneClick(): Promise<void> {
             <div>
                 <button
                     class="danger"
-                    @click="deleteLocation"
                     :disabled="hasPlayers"
                     :title="
                         hasPlayers
                             ? t('game.ui.settings.LocationBar.LocationAdminSettings.move_existing_pl')
                             : t('game.ui.settings.LocationBar.LocationAdminSettings.delete_this_location')
                     "
+                    @click="deleteLocation"
                 >
                     {{ t("game.ui.settings.LocationBar.LocationAdminSettings.delete_this_location") }}
                 </button>

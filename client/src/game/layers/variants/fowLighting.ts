@@ -90,7 +90,7 @@ export class FowLightingLayer extends FowLayer {
 
             // First cut out all the light sources
             if (locationSettingsState.raw.fullFow.value) {
-                const shapesBoundChecked: Set<LocalId> = new Set();
+                const shapesBoundChecked = new Set<LocalId>();
                 for (const light of visionState.getVisionSourcesInView(this.floor)) {
                     const shape = getShape(light.shape);
                     if (shape === undefined) continue;

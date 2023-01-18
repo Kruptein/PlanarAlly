@@ -24,7 +24,7 @@ interface AuraState {
 }
 
 class AuraSystem implements ShapeSystem {
-    private data: Map<LocalId, Aura[]> = new Map();
+    private data = new Map<LocalId, Aura[]>();
 
     // REACTIVE STATE
 
@@ -112,7 +112,10 @@ class AuraSystem implements ShapeSystem {
     }
 
     add(id: LocalId, aura: Aura, syncTo: Sync): void {
-        if (syncTo.server) sendShapeCreateAura(aurasToServer(getGlobalId(id), [aura])[0]);
+        if (syncTo.server) {
+            const gId = getGlobalId(id);
+            if (gId) sendShapeCreateAura(aurasToServer(gId, [aura])[0]!);
+        }
 
         this.getOrCreate(id).push(aura);
 
@@ -138,13 +141,15 @@ class AuraSystem implements ShapeSystem {
         if (shape === undefined) return;
 
         if (syncTo.server) {
-            sendShapeUpdateAura({
-                ...partialAuraToServer({
-                    ...delta,
-                }),
-                shape: getGlobalId(id),
-                uuid: auraId,
-            });
+            const gId = getGlobalId(id);
+            if (gId)
+                sendShapeUpdateAura({
+                    ...partialAuraToServer({
+                        ...delta,
+                    }),
+                    shape: gId,
+                    uuid: auraId,
+                });
         }
 
         const oldAuraActive = aura.active;
@@ -168,7 +173,10 @@ class AuraSystem implements ShapeSystem {
     }
 
     remove(id: LocalId, auraId: AuraId, syncTo: Sync): void {
-        if (syncTo.server) sendShapeRemoveAura({ shape: getGlobalId(id), value: auraId });
+        if (syncTo.server) {
+            const gId = getGlobalId(id);
+            if (gId) sendShapeRemoveAura({ shape: gId, value: auraId });
+        }
 
         const oldAura = this.get(id, auraId, false);
 
@@ -178,7 +186,7 @@ class AuraSystem implements ShapeSystem {
 
         if (oldAura?.active === true) {
             const shape = getShape(id);
-            if (shape && oldAura?.visionSource === true) {
+            if (shape && oldAura.visionSource) {
                 visionState.removeVisionSource(shape.floor.id, auraId);
             }
             shape?.invalidate(false);

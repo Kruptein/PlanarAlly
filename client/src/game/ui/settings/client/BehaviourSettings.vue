@@ -64,7 +64,7 @@ const mousePanMode = computed({
         <div class="spanrow header">Snapping</div>
         <div class="row">
             <label for="invertAlt">{{ t("game.ui.settings.client.BehaviourSettings.invert_alt_set") }}</label>
-            <div><input id="invertAlt" type="checkbox" v-model="invertAlt" /></div>
+            <div><input id="invertAlt" v-model="invertAlt" type="checkbox" /></div>
             <template v-if="$.invertAlt.override !== undefined">
                 <div :title="t('game.ui.settings.common.reset_default')" @click="invertAlt = undefined">
                     <font-awesome-icon icon="times-circle" />
@@ -82,7 +82,7 @@ const mousePanMode = computed({
             <label for="disableScrollToZoom">
                 {{ t("game.ui.settings.client.BehaviourSettings.disable_scroll_to_zoom") }}
             </label>
-            <div><input id="disableScrollToZoom" type="checkbox" v-model="disableScrollToZoom" /></div>
+            <div><input id="disableScrollToZoom" v-model="disableScrollToZoom" type="checkbox" /></div>
             <template v-if="$.disableScrollToZoom.override !== undefined">
                 <div :title="t('game.ui.settings.common.reset_default')" @click="disableScrollToZoom = undefined">
                     <font-awesome-icon icon="times-circle" />

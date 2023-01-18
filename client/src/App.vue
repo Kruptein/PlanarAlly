@@ -15,7 +15,7 @@ const loading = computed(() => coreStore.state.loading);
 
 <template>
     <div id="app">
-        <div id="loading" v-show="loading">
+        <div v-show="loading" id="loading">
             <video
                 v-if="!webmError"
                 autoplay

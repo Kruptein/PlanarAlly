@@ -15,8 +15,10 @@ export type LocalId = NumberId<"localId">;
 // Array of GlobalId indexed by localId
 let uuids: GlobalId[] = [];
 
-const idMap: Map<LocalId, IShape> = new Map();
+const idMap = new Map<LocalId, IShape>();
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).idMap = idMap;
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).uuids = uuids;
 
 // we're not giving id 0 on purpose to prevent potential unsafe if checks against this
@@ -24,7 +26,7 @@ const idMap: Map<LocalId, IShape> = new Map();
 // this can go wrong, preventing 0 from being obtainable solves a lot of future headaches.
 let lastId = 0;
 let freeIds: LocalId[] = [];
-const reservedIds: Map<GlobalId, LocalId> = new Map();
+const reservedIds = new Map<GlobalId, LocalId>();
 
 export function clearIds(): void {
     uuids = [];
@@ -68,16 +70,20 @@ export function generateLocalId(shape: IShape, global?: GlobalId): LocalId {
 export function dropId(id: LocalId): void {
     dropFromSystems(id);
 
-    reservedIds.delete(uuids[id]);
+    const gId = getGlobalId(id);
+    if (gId) reservedIds.delete(gId);
     delete uuids[id];
     idMap.delete(id);
     freeIds.push(id);
 }
 
-export function getGlobalId(local: LocalId): GlobalId {
-    return uuids[local];
+export function getGlobalId(local: LocalId): GlobalId | undefined {
+    const uuid = uuids[local];
+    if (uuid === undefined) console.error("Failed to retrieve global ID for", local);
+    return uuid;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).getGlobalId = getGlobalId;
 
 export function getLocalId(global: GlobalId, _warn = true): LocalId | undefined {
@@ -87,6 +93,7 @@ export function getLocalId(global: GlobalId, _warn = true): LocalId | undefined 
     if (_warn) console.warn("No local ID found for global id; This is likely a bug.");
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).getLocalId = getLocalId;
 
 export function getShape(local: LocalId): IShape | undefined {

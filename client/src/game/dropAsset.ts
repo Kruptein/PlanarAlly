@@ -27,8 +27,8 @@ export async function dropAsset(
             // check if map dimensions in asset name
             const dimensions = assetInfo.name.match(/(?<x>\d+)x(?<y>\d+)/);
             if (dimensions?.groups !== undefined) {
-                const dimX = Number.parseInt(dimensions.groups.x);
-                const dimY = Number.parseInt(dimensions.groups.y);
+                const dimX = Number.parseInt(dimensions.groups.x ?? "0");
+                const dimY = Number.parseInt(dimensions.groups.y ?? "0");
                 options = {
                     width: dimX * DEFAULT_GRID_SIZE,
                     height: dimY * DEFAULT_GRID_SIZE,
@@ -42,8 +42,8 @@ export async function dropAsset(
                         i18n.global.t("game.ui.templates.choose").toString(),
                         choices,
                     );
-                    if (choice === undefined) return;
-                    options = assetInfo.options!.templates[choice[0]];
+                    if (choice === undefined || choice.length === 0) return;
+                    options = assetInfo.options!.templates[choice[0]!];
                 } catch {
                     // no-op ; action cancelled
                 }

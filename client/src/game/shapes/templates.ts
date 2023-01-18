@@ -10,6 +10,7 @@ import { createEmptyTracker } from "../systems/trackers/utils";
 export function applyTemplate<T extends ServerShape>(shape: T, template: BaseTemplate & { options?: string }): T {
     // should be shape[key], but this is something that TS cannot correctly infer (issue #31445)
     for (const key of BaseTemplateStrings) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if (key in template) (shape as any)[key] = template[key];
     }
 
@@ -18,12 +19,12 @@ export function applyTemplate<T extends ServerShape>(shape: T, template: BaseTem
     if ("options" in template) shape.options = template.options;
 
     for (const trackerTemplate of template.trackers ?? []) {
-        const defaultTracker = trackersToServer(shape.uuid, [createEmptyTracker()])[0];
+        const defaultTracker = trackersToServer(shape.uuid, [createEmptyTracker()])[0]!;
         shape.trackers.push({ ...defaultTracker, ...trackerTemplate });
     }
 
     for (const auraTemplate of template.auras ?? []) {
-        const defaultAura = aurasToServer(shape.uuid, [createEmptyAura()])[0];
+        const defaultAura = aurasToServer(shape.uuid, [createEmptyAura()])[0]!;
         shape.auras.push({ ...defaultAura, ...auraTemplate });
     }
 
@@ -41,6 +42,7 @@ export function applyTemplate<T extends ServerShape>(shape: T, template: BaseTem
                 rect.height = rectTemplate.height * gridRescale;
             }
         } else {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
             if (key in template) (shape as any)[key] = (template as any)[key];
         }
     }
@@ -51,22 +53,26 @@ export function applyTemplate<T extends ServerShape>(shape: T, template: BaseTem
 export function toTemplate(shape: ServerShape): BaseTemplate {
     const template: BaseTemplate = {};
     // should be template[key], but this is something that TS cannot correctly infer (issue #31445)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     for (const key of BaseTemplateStrings) (template as any)[key] = shape[key];
 
     template.auras = [];
     template.trackers = [];
     for (const aura of shape.auras) {
         const templateAura: Partial<BaseAuraTemplate> = {};
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         for (const key of BaseAuraStrings) (templateAura as any)[key] = aura[key];
         template.auras.push(templateAura);
     }
     for (const tracker of shape.trackers) {
         const templateTracker: Partial<BaseTrackerTemplate> = {};
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         for (const key of BaseTrackerStrings) (templateTracker as any)[key] = tracker[key];
         template.trackers.push(templateTracker);
     }
 
     // Shape specific keys
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     for (const key of getTemplateKeys(shape.type_)) (template as any)[key] = (shape as any)[key];
 
     return template;

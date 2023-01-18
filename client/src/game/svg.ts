@@ -91,6 +91,7 @@ export function pathToArray(
     const paths: [number, number][][] = [];
 
     let currentLocation = toGP(0, 0);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     const pathData = (path as any).getPathData();
 
     let points: [number, number][] = [];
@@ -98,14 +99,17 @@ export function pathToArray(
     const targetRP = shape.refPoint;
 
     for (const seg of pathData) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
         let point = applyTransform(seg.values, transform, true);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         switch (seg.type) {
             case "Z": {
                 //ClosePath
-                currentLocation = toGP(points[0]);
+                if (points.length > 0) currentLocation = toGP(points[0]!);
                 break;
             }
             case "M": {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
                 point = applyTransform(seg.values, transform);
                 //MoveToAbs
                 currentLocation = toGP(targetRP.x + point[0] * dW, targetRP.y + point[1] * dH);
@@ -113,13 +117,16 @@ export function pathToArray(
             }
             case "m": {
                 //MoveToRel
-                points.push(points[0]);
-                paths.push(points);
+                if (points.length > 0) {
+                    points.push(points[0]!);
+                    paths.push(points);
+                }
                 points = [];
                 currentLocation = addP(currentLocation, new Vector(dW * point[0], dH * point[1]));
                 break;
             }
             case "L": {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
                 point = applyTransform(seg.values, transform);
                 //LineToAbs
                 currentLocation = toGP(targetRP.x + dW * point[0], targetRP.y + dH * point[1]);
@@ -131,6 +138,7 @@ export function pathToArray(
                 break;
             }
             case "H": {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
                 point = applyTransform(seg.values, transform);
                 //LineToHorizontalAbs
                 currentLocation = toGP(targetRP.x + dW * point[0], targetRP.y + dH * currentLocation.y);
@@ -142,6 +150,7 @@ export function pathToArray(
                 break;
             }
             case "V": {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
                 point = applyTransform(seg.values, transform);
                 // LineToVerticalAbs
                 currentLocation = toGP(targetRP.x + dW * currentLocation.x, targetRP.y + dH * point[0]);
@@ -154,16 +163,19 @@ export function pathToArray(
             }
             case "C": {
                 // bezier curve
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
                 currentLocation = handleBezierCurve(seg.values, transform, dW, dH, currentLocation, points, true);
                 continue;
             }
             case "c": {
                 // bezier curve
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
                 currentLocation = handleBezierCurve(seg.values, transform, dW, dH, currentLocation, points, false);
                 continue;
             }
             default: {
                 //throw error;
+                // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-unsafe-member-access
                 console.warn("Path contains unsupported segment: " + seg.type);
                 break;
             }
@@ -173,7 +185,7 @@ export function pathToArray(
             const l = points.length;
             if (floorState.currentFloor.value !== undefined) {
                 if (l > 1) {
-                    drawLine(points[l - 2], points[l - 1], false, { constrained: true });
+                    drawLine(points[l - 2]!, points[l - 1]!, false, { constrained: true });
                 }
             }
         }
@@ -206,8 +218,8 @@ function handleBezierCurve(
         [cp1g.x, cp1g.y],
         [cp2g.x, cp2g.y],
     )) {
-        points.push(l[1]);
-        if (DEBUG_SVG) drawLine(points.at(-2)!, l[1], false, { constrained: true });
+        points.push(l[1]!);
+        if (DEBUG_SVG) drawLine(points.at(-2)!, l[1]!, false, { constrained: true });
     }
     return endg;
 }

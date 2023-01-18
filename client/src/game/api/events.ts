@@ -10,7 +10,6 @@ import "../systems/trackers/events";
 import "./events/client";
 import "./events/dice";
 import "./events/floor";
-import "./events/groups";
 import "./events/initiative";
 import "./events/lg";
 import "./events/location";
@@ -73,7 +72,7 @@ socket.on("disconnect", (reason: string) => {
     console.log("Disconnected");
     if (reason === "io server disconnect") socket.open();
 });
-socket.on("connect_error", async (error: any) => {
+socket.on("connect_error", async (error: Error) => {
     console.error("Could not connect to game session.");
     if (error.message === "Connection rejected by server") {
         await router.push({ name: "games", params: { error: "join_game" } });

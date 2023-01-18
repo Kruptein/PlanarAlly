@@ -9,7 +9,7 @@ export function showIdName(dir: number): string {
 }
 
 export function getIdImageSrc(file: number): string {
-    return baseAdjust("/static/assets/" + state.idMap.get(file)!.file_hash);
+    return baseAdjust("/static/assets/" + (state.idMap.get(file)!.file_hash ?? ""));
 }
 
 export function changeDirectory(folder: number): void {

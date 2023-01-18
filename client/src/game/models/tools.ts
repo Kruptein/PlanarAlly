@@ -16,8 +16,15 @@ export enum ToolName {
     Dice = "Dice",
 }
 
-export type ToolPermission = { name: ToolName; features: ToolFeatures; early?: boolean };
-export type ToolFeatures<T = number> = { enabled?: T[]; disabled?: T[] };
+export interface ToolPermission {
+    name: ToolName;
+    features: ToolFeatures;
+    early?: boolean;
+}
+export interface ToolFeatures<T = number> {
+    enabled?: T[];
+    disabled?: T[];
+}
 
 export enum ToolMode {
     Build,
@@ -56,7 +63,7 @@ export interface ITool {
     onPinchMove: (event: TouchEvent, features: ToolFeatures) => void;
     onPinchEnd: (event: TouchEvent, features: ToolFeatures) => void;
 
-    onContextMenu: (event: MouseEvent, features: ToolFeatures) => boolean;
+    onContextMenu: (event: MouseEvent, features: ToolFeatures) => Promise<boolean>;
 
     onDown: (_lp: LocalPoint, _event: MouseEvent | TouchEvent | undefined, _features: ToolFeatures) => Promise<void>;
     onMove: (_lp: LocalPoint, _event: MouseEvent | TouchEvent | undefined, _features: ToolFeatures) => Promise<void>;

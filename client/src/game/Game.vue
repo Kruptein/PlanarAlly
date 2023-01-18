@@ -54,10 +54,11 @@ export default defineComponent({
             }
         });
 
+        const keyDown = (event: KeyboardEvent): void => void onKeyDown(event);
         onMounted(async () => {
             window.Gameboard?.setDrawerVisibility(false);
             window.addEventListener("keyup", keyUp);
-            window.addEventListener("keydown", onKeyDown);
+            window.addEventListener("keydown", keyDown);
             window.addEventListener("resize", resizeWindow);
             clearUndoStacks();
             mediaQuery.addEventListener("change", resizeWindow);
@@ -67,7 +68,7 @@ export default defineComponent({
 
         onUnmounted(() => {
             window.removeEventListener("keyup", keyUp);
-            window.removeEventListener("keydown", onKeyDown);
+            window.removeEventListener("keydown", keyDown);
             window.removeEventListener("resize", resizeWindow);
             mediaQuery.removeEventListener("change", resizeWindow);
             companion.disconnect();
@@ -89,6 +90,7 @@ export default defineComponent({
             // limit the number of touch moves to ease server load
             if (!throttledTouchMoveSet) {
                 throttledTouchMoveSet = true;
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises
                 throttledTouchMove = throttle(touchMove, 5);
             }
             // after throttling pass event to object
@@ -98,6 +100,7 @@ export default defineComponent({
         function mousemove(event: MouseEvent): void {
             if (!throttledMoveSet) {
                 throttledMoveSet = true;
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises
                 throttledMove = throttle(mouseMove, 15);
             }
             throttledMove(event);
@@ -118,9 +121,10 @@ export default defineComponent({
             ) {
                 return;
             } else {
-                const data: { imageSource: string; assetId: number } = JSON.parse(
-                    event.dataTransfer.getData("text/plain"),
-                );
+                const data = JSON.parse(event.dataTransfer.getData("text/plain")) as {
+                    imageSource: string;
+                    assetId: number;
+                };
                 await dropAsset(data, { x: event.clientX, y: event.clientY });
             }
         }

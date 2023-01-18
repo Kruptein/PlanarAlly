@@ -14,11 +14,11 @@ export function computeVisibility(
     target: TriangulationTarget,
     floor: FloorId,
     drawt?: boolean,
-): number[][] {
+): Point[] {
     if (drawt === undefined) drawt = visionState.drawTeContour;
     // console.time("CV");
     const Q: Point = [q.x, q.y];
-    const rawOutput: number[][] = [];
+    const rawOutput: Point[] = [];
     const triangle = visionState.getCDT(target, floor).locate(Q, null).loc;
     if (triangle === null) {
         console.error("Triangle not found");
@@ -41,14 +41,7 @@ export function computeVisibility(
     return rawOutput;
 }
 
-function expandEdge(
-    q: Point,
-    left: number[],
-    right: number[],
-    fh: Triangle,
-    index: number,
-    rawOutput: number[][],
-): void {
+function expandEdge(q: Point, left: Point, right: Point, fh: Triangle, index: number, rawOutput: Point[]): void {
     // fh.edge(index).draw();
     const nfh = fh.neighbours[index]!;
     // nfh.fill("rgba(255, 0, 0, 0.25)");

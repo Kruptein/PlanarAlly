@@ -30,7 +30,7 @@ class AccessSystem implements ShapeSystem {
     // it is assumed to have default access settings
     // this is the case for the vast majority of shapes
     // and would thus just waste memory
-    private access: Map<LocalId, AccessMap> = new Map();
+    private access = new Map<LocalId, AccessMap>();
 
     // REACTIVE
 
@@ -154,7 +154,7 @@ class AccessSystem implements ShapeSystem {
 
         const userAccess = { ...DEFAULT_ACCESS, ...access };
 
-        const shapeMap: AccessMap = this.access.get(shapeId) ?? new Map();
+        const shapeMap = this.access.get(shapeId) ?? (new Map() as AccessMap);
         shapeMap.set(user, userAccess);
         this.access.set(shapeId, shapeMap);
 
@@ -175,7 +175,7 @@ class AccessSystem implements ShapeSystem {
         // todo: some sort of event register instead of calling these other systems manually ?
         if (userAccess.vision && user === playerSystem.getCurrentPlayer()?.name) {
             const props = getProperties(shapeId);
-            if (props !== undefined && props.isToken) {
+            if (props?.isToken === true) {
                 this.addOwnedToken(shapeId);
             }
         }
@@ -199,7 +199,7 @@ class AccessSystem implements ShapeSystem {
             (user === playerSystem.getCurrentPlayer()?.name || user === DEFAULT_ACCESS_SYMBOL)
         ) {
             const props = getProperties(shapeId);
-            if (props !== undefined && props.isToken) {
+            if (props?.isToken === true) {
                 if (access.vision) {
                     this.addOwnedToken(shapeId);
                 } else {
@@ -221,16 +221,19 @@ class AccessSystem implements ShapeSystem {
         }
 
         if (syncTo.server) {
-            if (user === DEFAULT_ACCESS_SYMBOL) {
-                sendShapeUpdateDefaultOwner({ ...accessToServer(newAccess), shape: getGlobalId(shapeId) });
-            } else {
-                sendShapeUpdateOwner(
-                    ownerToServer({
-                        access: newAccess,
-                        user,
-                        shape: shapeId,
-                    }),
-                );
+            const shape = getGlobalId(shapeId);
+            if (shape !== undefined) {
+                if (user === DEFAULT_ACCESS_SYMBOL) {
+                    sendShapeUpdateDefaultOwner({ ...accessToServer(newAccess), shape });
+                } else {
+                    sendShapeUpdateOwner(
+                        ownerToServer({
+                            access: newAccess,
+                            user,
+                            shape: shapeId,
+                        }),
+                    );
+                }
             }
         }
 
@@ -253,10 +256,12 @@ class AccessSystem implements ShapeSystem {
         }
 
         if (syncTo.server) {
-            sendShapeDeleteOwner({
-                user,
-                shape: getGlobalId(shapeId),
-            });
+            const shape = getGlobalId(shapeId);
+            if (shape !== undefined)
+                sendShapeDeleteOwner({
+                    user,
+                    shape,
+                });
         }
 
         if ($.id === shapeId) {
@@ -265,7 +270,7 @@ class AccessSystem implements ShapeSystem {
 
         if (oldAccess.vision && user === playerSystem.getCurrentPlayer()?.name) {
             const props = getProperties(shapeId);
-            if (props !== undefined && props.isToken) {
+            if (props?.isToken === true) {
                 this.removeOwnedToken(shapeId);
             }
         }

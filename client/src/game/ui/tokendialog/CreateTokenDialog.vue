@@ -28,10 +28,10 @@ const text = ref("");
 
 // can't use watchEffect here, because the name focus change will trigger this
 // on colour picker select
-watch(tokenDialogVisible, (isVisible) => {
+watch(tokenDialogVisible, async (isVisible) => {
     if (isVisible) {
         updatePreview();
-        nextTick(() => name.value?.focus());
+        await nextTick(() => name.value?.focus());
     }
 });
 watch(borderColour, updatePreview);
@@ -96,7 +96,7 @@ function updatePreview(): void {
 
 <template>
     <Modal :visible="visible" @close="close">
-        <template v-slot:header="m">
+        <template #header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 {{ t("game.ui.tools.CreateTokenModal.create_basic_token") }}
             </div>
@@ -104,10 +104,10 @@ function updatePreview(): void {
         <div class="modal-body">
             <label for="createtokendialog-text">{{ t("game.ui.tools.CreateTokenModal.text") }}</label>
             <input
-                type="text"
                 id="createtokendialog-name"
-                v-model="text"
                 ref="name"
+                v-model="text"
+                type="text"
                 placeholder="X"
                 @keyup.enter="submit"
             />

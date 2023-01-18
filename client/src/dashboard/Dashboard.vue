@@ -10,7 +10,7 @@ const router = useRouter();
 
 const hasGameboard = coreStore.state.boardId !== undefined;
 
-type Section = { nav: string; routerPath: string; routerName?: string };
+interface Section { nav: string; routerPath: string; routerName?: string }
 const sections: Section[] = [
     {
         nav: "GAMES",

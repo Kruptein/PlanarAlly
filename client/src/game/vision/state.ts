@@ -47,14 +47,14 @@ interface VisionSource {
 }
 
 class VisionState extends Store<State> {
-    private visionBlockers: Map<FloorId, LocalId[]> = new Map();
-    private movementBlockers: Map<FloorId, LocalId[]> = new Map();
-    private visionSources: Map<FloorId, { shape: LocalId; aura: AuraId }[]> = new Map();
+    private visionBlockers = new Map<FloorId, LocalId[]>();
+    private movementBlockers = new Map<FloorId, LocalId[]>();
+    private visionSources = new Map<FloorId, { shape: LocalId; aura: AuraId }[]>();
 
-    private visionSourcesInView: Map<FloorId, { shape: LocalId; aura: AuraId }[]> = new Map();
-    private visionIteration: Map<FloorId, number> = new Map();
+    private visionSourcesInView = new Map<FloorId, { shape: LocalId; aura: AuraId }[]>();
+    private visionIteration = new Map<FloorId, number>();
 
-    private cdt: Map<FloorId, { vision: CDT; movement: CDT }> = new Map();
+    private cdt = new Map<FloorId, { vision: CDT; movement: CDT }>();
 
     drawTeContour = false;
 
@@ -146,6 +146,7 @@ class VisionState extends Store<State> {
             this.triangulateShape(target, shape);
         }
         this.addWalls(cdt);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         (window as any).CDT = this.cdt;
 
         if (target === TriangulationTarget.VISION) this.increaseVisionIteration(floor);
@@ -167,7 +168,7 @@ class VisionState extends Store<State> {
                         const dW = w / (svg.width.animVal.valueInSpecifiedUnits ?? 1);
                         const dH = h / (svg.height.animVal.valueInSpecifiedUnits ?? 1);
 
-                        svgData.paths = [...getPaths(asset, svg as SVGSVGElement, dW, dH)];
+                        svgData.paths = [...getPaths(asset, svg, dW, dH)];
                     }
                     for (const paths of svgData.paths) {
                         for (const path of paths) {
@@ -177,7 +178,7 @@ class VisionState extends Store<State> {
                 }
                 return;
             } else if (shape.options.svgPaths !== undefined) {
-                for (const pathString of shape.options.svgPaths ?? []) {
+                for (const pathString of shape.options.svgPaths) {
                     const w = asset.w;
                     const h = asset.h;
 
@@ -221,16 +222,21 @@ class VisionState extends Store<State> {
         cdt.insertConstraint([-1e8, 1e11], [-1e8, 1e8]);
     }
 
-    private triangulatePath(target: TriangulationTarget, shape: IShape, path: number[][], closed: boolean): void {
+    private triangulatePath(
+        target: TriangulationTarget,
+        shape: IShape,
+        path: [number, number][],
+        closed: boolean,
+    ): void {
         const j = closed ? 0 : 1;
         for (let i = 0; i < path.length - j; i++) {
-            const pa = path[i].map((n) => parseFloat(n.toFixed(10)));
-            const pb = path[(i + 1) % path.length].map((n) => parseFloat(n.toFixed(10)));
+            const pa = path[i]!.map((n) => parseFloat(n.toFixed(10))) as [number, number];
+            const pb = path[(i + 1) % path.length]!.map((n) => parseFloat(n.toFixed(10))) as [number, number];
             this.insertConstraint(target, shape, pa, pb);
         }
     }
 
-    insertConstraint(target: TriangulationTarget, shape: IShape, pa: number[], pb: number[]): void {
+    insertConstraint(target: TriangulationTarget, shape: IShape, pa: [number, number], pb: [number, number]): void {
         const cdt = this.getCDT(target, shape.floor.id);
         const { va, vb } = cdt.insertConstraint(pa, pb);
         va.shapes.add(shape);
@@ -291,10 +297,10 @@ class VisionState extends Store<State> {
             sources = [];
             this.visionSourcesInView.set(floor, sources);
         }
-        const found: Set<LocalId> = new Set();
+        const found = new Set<LocalId>();
         // 1. Wipe all layer sources no longer in view
         for (let i = sources.length - 1; i >= 0; i--) {
-            const source = sources[i];
+            const source = sources[i]!;
             const shape = getShape(source.shape);
             if (shape === undefined) continue;
             if (shape.layer.name === layer) {
@@ -314,7 +320,7 @@ class VisionState extends Store<State> {
 
     // todo: to be removed, but it's no longer on the hot path currently so not priority
     invalidateView(floor: FloorId): void {
-        const layer = floorState.currentLayer.value!;
+        const layer = floorState.currentLayer.value;
         if (layer === undefined) return;
         const viv = [];
         for (const source of this.getVisionSources(floor)) {
@@ -366,6 +372,11 @@ class VisionState extends Store<State> {
     sliceBlockers(target: TriangulationTarget, index: number, floor: FloorId, recalculate: boolean): void {
         const blockers = this.getBlockers(target, floor);
         const shape = blockers[index];
+        if (shape === undefined) {
+            console.error("Failed to find blocker shape while slicing.");
+            return;
+        }
+
         this.setBlockers(target, [...blockers.slice(0, index), ...blockers.slice(index + 1)], floor);
         if (recalculate) {
             this.deleteFromTriangulation({
@@ -448,4 +459,5 @@ class VisionState extends Store<State> {
 }
 
 export const visionState = new VisionState();
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).visionState = visionState;

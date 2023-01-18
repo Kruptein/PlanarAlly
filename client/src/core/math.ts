@@ -11,7 +11,7 @@ export function equalPoint(a: number, b: number, delta = 0.0001): boolean {
     return a - delta < b && a + delta > b;
 }
 
-export function equalPoints(a: number[], b: number[], delta = 0.0001): boolean {
+export function equalPoints(a: [number, number], b: [number, number], delta = 0.0001): boolean {
     return equalPoint(a[0], b[0], delta) && equalPoint(a[1], b[1], delta);
 }
 
@@ -46,7 +46,7 @@ export function snapToPoint(
     const snapDistance = l2gz(20);
     let smallestPoint: [number, GlobalPoint] | undefined;
     for (const point of layer.points.keys()) {
-        const gp = toGP(JSON.parse(point));
+        const gp = toGP(JSON.parse(point) as [number, number]);
         if (ignore && equalsP(gp, ignore)) continue;
         const l = subtractP(endPoint, gp).length();
 

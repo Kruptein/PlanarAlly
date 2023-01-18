@@ -6,7 +6,7 @@ import type { ServerPlayerInfo } from "../../../systems/settings/players/models"
 import { socket } from "../../socket";
 
 socket.on("Player.Options.Set", (options: ServerPlayerInfo) => {
-    colourHistory.value = options.colour_history === null ? [] : JSON.parse(options.colour_history);
+    colourHistory.value = options.colour_history === null ? [] : (JSON.parse(options.colour_history) as string[]);
 
     const defaultOptions = playerOptionsToClient(options.default_user_options);
     const roomOptions =

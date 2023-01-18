@@ -25,6 +25,7 @@ async function post(url: string, body?: any): Promise<Response> {
     if (url.startsWith("/")) url = url.slice(1);
     return fetch(import.meta.env.BASE_URL + url, {
         method: "POST",
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         body,
     });
 }

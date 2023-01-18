@@ -89,6 +89,7 @@ function setUndergroundBackgroundFromEvent(event: Event): void {
 }
 
 function o(k: any): boolean {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return getOption(k, location.value).override !== undefined;
 }
 </script>
@@ -121,19 +122,19 @@ function o(k: any): boolean {
             </div>
             <div
                 v-if="!isGlobal && o($.airMapBackground)"
-                @click="airBackground = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
+                @click="airBackground = undefined"
             >
                 <font-awesome-icon icon="times-circle" />
             </div>
             <div v-else></div>
         </div>
-        <div class="row" v-show="airBackgroundType === BackgroundType.Simple">
+        <div v-show="airBackgroundType === BackgroundType.Simple" class="row">
             <div></div>
             <div><ColourPicker :colour="airBackground ?? undefined" @update:colour="airBackground = $event" /></div>
             <div></div>
         </div>
-        <div class="row" v-show="airBackgroundType === BackgroundType.Pattern">
+        <div v-show="airBackgroundType === BackgroundType.Pattern" class="row">
             <PatternSettings :pattern="airBackground ?? ''" @update:pattern="airBackground = $event" />
         </div>
 
@@ -150,21 +151,21 @@ function o(k: any): boolean {
             </div>
             <div
                 v-if="!isGlobal && o($.groundMapBackground)"
-                @click="groundBackground = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
+                @click="groundBackground = undefined"
             >
                 <font-awesome-icon icon="times-circle" />
             </div>
             <div v-else></div>
         </div>
-        <div class="row" v-show="groundBackgroundType === BackgroundType.Simple">
+        <div v-show="groundBackgroundType === BackgroundType.Simple" class="row">
             <div></div>
             <div>
                 <ColourPicker :colour="groundBackground ?? undefined" @update:colour="groundBackground = $event" />
             </div>
             <div></div>
         </div>
-        <div class="row" v-show="groundBackgroundType === BackgroundType.Pattern">
+        <div v-show="groundBackgroundType === BackgroundType.Pattern" class="row">
             <PatternSettings :pattern="groundBackground ?? ''" @update:pattern="groundBackground = $event" />
         </div>
 
@@ -185,14 +186,14 @@ function o(k: any): boolean {
             </div>
             <div
                 v-if="!isGlobal && o($.undergroundMapBackground)"
-                @click="undergroundBackground = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
+                @click="undergroundBackground = undefined"
             >
                 <font-awesome-icon icon="times-circle" />
             </div>
             <div v-else></div>
         </div>
-        <div class="row" v-show="undergroundBackgroundType === BackgroundType.Simple">
+        <div v-show="undergroundBackgroundType === BackgroundType.Simple" class="row">
             <div></div>
             <div>
                 <ColourPicker
@@ -202,7 +203,7 @@ function o(k: any): boolean {
             </div>
             <div></div>
         </div>
-        <div class="row" v-show="undergroundBackgroundType === BackgroundType.Pattern">
+        <div v-show="undergroundBackgroundType === BackgroundType.Pattern" class="row">
             <PatternSettings :pattern="undergroundBackground ?? ''" @update:pattern="undergroundBackground = $event" />
         </div>
     </div>

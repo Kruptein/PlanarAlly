@@ -32,7 +32,7 @@ function updateTracker(tracker: DeepReadonly<UiTracker>, delta: Partial<Tracker>
     if (tracker.temporary) {
         trackerSystem.add(tracker.shape, { ...tracker }, SERVER_SYNC);
     }
-    trackerSystem.update(tracker.shape, tracker.uuid, delta, syncTo === true ? SERVER_SYNC : NO_SYNC);
+    trackerSystem.update(tracker.shape, tracker.uuid, delta, syncTo ? SERVER_SYNC : NO_SYNC);
 }
 
 function removeTracker(tracker: TrackerId): void {
@@ -48,18 +48,25 @@ function toggleCompositeTracker(shape: LocalId, trackerId: TrackerId): void {
     if (!owned.value || id === undefined) return;
     if (!activeShapeStore.isComposite.value) return;
 
+    const gId = getGlobalId(shape);
+    const newShape = shape === id ? activeShapeStore.state.parentUuid! : id;
+    const gIdNew = getGlobalId(newShape);
+
+    if (gId === undefined || gIdNew === undefined) {
+        console.error("Composite encountered unknown globalId");
+        return;
+    }
+
     const tracker = trackerSystem.get(shape, trackerId, true);
     if (tracker === undefined) return;
 
     trackerSystem.remove(shape, trackerId, NO_SYNC);
 
-    const newShape = shape === id ? activeShapeStore.state.parentUuid! : id;
-
     trackerSystem.add(newShape, tracker, NO_SYNC);
 
     sendShapeMoveTracker({
-        shape: getGlobalId(shape),
-        new_shape: getGlobalId(newShape),
+        shape: gId,
+        new_shape: gIdNew,
         tracker: tracker.uuid,
     });
 }
@@ -75,7 +82,7 @@ function updateAura(aura: DeepReadonly<UiAura>, delta: Partial<Aura>, syncTo = t
     if (aura.temporary) {
         auraSystem.add(aura.shape, { ...aura }, SERVER_SYNC);
     }
-    auraSystem.update(aura.shape, aura.uuid, delta, syncTo === true ? SERVER_SYNC : NO_SYNC);
+    auraSystem.update(aura.shape, aura.uuid, delta, syncTo ? SERVER_SYNC : NO_SYNC);
 }
 
 function removeAura(aura: AuraId): void {
@@ -91,18 +98,24 @@ function toggleCompositeAura(shape: LocalId, auraId: AuraId): void {
     if (!owned.value || id === undefined) return;
     if (!activeShapeStore.isComposite.value) return;
 
+    const gId = getGlobalId(shape);
+    const newShape = shape === id ? activeShapeStore.state.parentUuid! : id;
+    const gIdNew = getGlobalId(newShape);
+
+    if (gId === undefined || gIdNew === undefined) {
+        console.error("Composite encountered unknown globalId");
+        return;
+    }
+
     const aura = auraSystem.get(shape, auraId, true);
     if (aura === undefined) return;
 
     auraSystem.remove(shape, auraId, NO_SYNC);
-
-    const newShape = shape === id ? activeShapeStore.state.parentUuid! : id;
-
     auraSystem.add(newShape, aura, NO_SYNC);
 
     sendShapeMoveAura({
-        shape: getGlobalId(shape),
-        new_shape: getGlobalId(newShape),
+        shape: gId,
+        new_shape: gIdNew,
         aura: aura.uuid,
     });
 }
@@ -113,31 +126,31 @@ function toggleCompositeAura(shape: LocalId, auraId: AuraId): void {
         <div id="trackers-panel">
             <div class="spanrow header">{{ t("common.trackers") }}</div>
             <div
-                class="aura"
                 v-for="tracker in [...trackerSystem.state.parentTrackers, ...trackerSystem.state.trackers]"
                 :key="tracker.uuid"
+                class="aura"
             >
                 <div class="summary">
                     <label class="name" :for="'check-' + tracker.uuid">{{ tracker.name }}</label>
                     <div
                         v-if="!tracker.temporary"
-                        @click="removeTracker(tracker.uuid)"
                         :disabled="!owned"
                         :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center' }"
                         :title="t('game.ui.selection.edit_dialog.dialog.remove_tracker')"
+                        @click="removeTracker(tracker.uuid)"
                     >
                         <font-awesome-icon icon="trash-alt" />
                     </div>
                 </div>
-                <input type="checkbox" :id="'check-' + tracker.uuid" style="display: none" />
+                <input :id="'check-' + tracker.uuid" type="checkbox" style="display: none" />
                 <div class="details">
                     <div>Name</div>
                     <div>
                         <input
                             type="text"
                             :value="tracker.name"
-                            @change="updateTracker(tracker, { name: getValue($event) })"
                             :disabled="!owned"
+                            @change="updateTracker(tracker, { name: getValue($event) })"
                         />
                     </div>
                     <div>Value</div>
@@ -145,18 +158,18 @@ function toggleCompositeAura(shape: LocalId, auraId: AuraId): void {
                         <input
                             type="number"
                             :value="tracker.value"
-                            @change="updateTracker(tracker, { value: parseFloat(getValue($event)) })"
                             :title="t('game.ui.selection.edit_dialog.dialog.current_value')"
                             :disabled="!owned"
+                            @change="updateTracker(tracker, { value: parseFloat(getValue($event)) })"
                         />
                         <span style="padding: 5px">/</span>
                         <input
                             type="number"
                             :value="tracker.maxvalue"
                             min=""
-                            @change="updateTracker(tracker, { maxvalue: parseFloat(getValue($event)) })"
                             :title="t('game.ui.selection.edit_dialog.dialog.current_value')"
                             :disabled="!owned"
+                            @change="updateTracker(tracker, { maxvalue: parseFloat(getValue($event)) })"
                         />
                     </div>
                     <div>Public</div>
@@ -164,9 +177,9 @@ function toggleCompositeAura(shape: LocalId, auraId: AuraId): void {
                         <input
                             type="checkbox"
                             :checked="tracker.visible"
-                            @click="updateTracker(tracker, { visible: !tracker.visible })"
                             :disabled="!owned"
                             :title="t('common.toggle_public_private')"
+                            @click="updateTracker(tracker, { visible: !tracker.visible })"
                         />
                     </div>
                     <div v-show="isComposite">Shared for all variants</div>
@@ -174,72 +187,72 @@ function toggleCompositeAura(shape: LocalId, auraId: AuraId): void {
                         v-show="isComposite"
                         type="checkbox"
                         :checked="tracker.shape === activeShapeStore.state.parentUuid"
-                        @click="toggleCompositeTracker(tracker.shape, tracker.uuid)"
                         :disabled="!owned"
                         :title="t('common.toggle_public_private')"
+                        @click="toggleCompositeTracker(tracker.shape, tracker.uuid)"
                     />
                     <div>Display on token</div>
                     <div>
                         <input
                             type="checkbox"
                             :checked="tracker.draw"
-                            @click="updateTracker(tracker, { draw: !tracker.draw })"
                             :disabled="!owned"
                             :title="t('common.toggle_draw')"
+                            @click="updateTracker(tracker, { draw: !tracker.draw })"
                         />
                     </div>
                     <div v-if="tracker.draw">Primary Colour</div>
                     <div v-if="tracker.draw">
                         <ColourPicker
                             :colour="tracker.primaryColor"
+                            :disabled="!owned"
                             @input:colour="updateTracker(tracker, { primaryColor: $event }, false)"
                             @update:colour="updateTracker(tracker, { primaryColor: $event })"
-                            :disabled="!owned"
                         />
                     </div>
                     <div v-if="tracker.draw">Secondary Colour</div>
                     <div v-if="tracker.draw">
                         <ColourPicker
                             :colour="tracker.secondaryColor"
+                            :disabled="!owned"
                             @input:colour="updateTracker(tracker, { secondaryColor: $event }, false)"
                             @update:colour="updateTracker(tracker, { secondaryColor: $event })"
-                            :disabled="!owned"
                         />
                     </div>
                 </div>
             </div>
             <div class="spanrow header">{{ t("common.auras") }}</div>
             <div
-                class="aura"
                 v-for="aura of [...auraSystem.state.parentAuras, ...auraSystem.state.auras]"
                 :key="aura.uuid"
+                class="aura"
             >
                 <div class="summary">
                     <label class="name" :for="'check-' + aura.uuid">{{ aura.name }}</label>
                     <div
                         v-if="!aura.temporary"
-                        @click="removeAura(aura.uuid)"
                         :disabled="!owned"
                         :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center' }"
                         :title="t('game.ui.selection.edit_dialog.dialog.delete_aura')"
+                        @click="removeAura(aura.uuid)"
                     >
                         <font-awesome-icon icon="trash-alt" />
                     </div>
                     <button
                         class="slider-checkbox"
-                        @click="updateAura(aura, { active: !aura.active })"
                         :aria-pressed="aura.active"
+                        @click="updateAura(aura, { active: !aura.active })"
                     ></button>
                 </div>
-                <input type="checkbox" :id="'check-' + aura.uuid" style="display: none" />
+                <input :id="'check-' + aura.uuid" type="checkbox" style="display: none" />
                 <div class="details">
                     <div>Name</div>
                     <div>
                         <input
                             type="text"
                             :value="aura.name"
-                            @change="updateAura(aura, { name: getValue($event) })"
                             :disabled="!owned"
+                            @change="updateAura(aura, { name: getValue($event) })"
                         />
                     </div>
                     <div>Range</div>
@@ -247,20 +260,20 @@ function toggleCompositeAura(shape: LocalId, auraId: AuraId): void {
                         <input
                             type="number"
                             :value="aura.value"
-                            @input="updateAura(aura, { value: parseFloat(getValue($event)) }, false)"
-                            @change="updateAura(aura, { value: parseFloat(getValue($event)) })"
                             :title="t('game.ui.selection.edit_dialog.dialog.current_value')"
                             :disabled="!owned"
+                            @input="updateAura(aura, { value: parseFloat(getValue($event)) }, false)"
+                            @change="updateAura(aura, { value: parseFloat(getValue($event)) })"
                         />
                         <span>/</span>
                         <input
                             type="number"
                             :value="aura.dim"
                             min="0"
-                            @input="updateAura(aura, { dim: parseFloat(getValue($event)) }, false)"
-                            @change="updateAura(aura, { dim: parseFloat(getValue($event)) })"
                             :title="t('game.ui.selection.edit_dialog.dialog.dim_value')"
                             :disabled="!owned"
+                            @input="updateAura(aura, { dim: parseFloat(getValue($event)) }, false)"
+                            @change="updateAura(aura, { dim: parseFloat(getValue($event)) })"
                         />
                     </div>
                     <div>Angle</div>
@@ -268,9 +281,9 @@ function toggleCompositeAura(shape: LocalId, auraId: AuraId): void {
                         <input
                             type="number"
                             :value="aura.angle"
-                            @change="updateAura(aura, { angle: parseFloat(getValue($event)) })"
                             min="1"
                             max="360"
+                            @change="updateAura(aura, { angle: parseFloat(getValue($event)) })"
                         />
                         <RotationSlider
                             :angle="aura.direction"
@@ -292,16 +305,16 @@ function toggleCompositeAura(shape: LocalId, auraId: AuraId): void {
                         Aura:
                         <ColourPicker
                             :colour="aura.colour"
+                            :disabled="!owned"
                             @input:colour="updateAura(aura, { colour: $event }, false)"
                             @update:colour="updateAura(aura, { colour: $event })"
-                            :disabled="!owned"
                         />
                         Border:
                         <ColourPicker
                             :colour="aura.borderColour"
+                            :disabled="!owned"
                             @input:colour="updateAura(aura, { borderColour: $event }, false)"
                             @update:colour="updateAura(aura, { borderColour: $event })"
-                            :disabled="!owned"
                         />
                     </div>
                     <div class="option">
@@ -309,9 +322,9 @@ function toggleCompositeAura(shape: LocalId, auraId: AuraId): void {
                         <input
                             type="checkbox"
                             :checked="aura.visible"
-                            @click="updateAura(aura, { visible: !aura.visible })"
                             :disabled="!owned"
                             :title="t('common.toggle_public_private')"
+                            @click="updateAura(aura, { visible: !aura.visible })"
                         />
                     </div>
                     <div class="option">
@@ -319,18 +332,18 @@ function toggleCompositeAura(shape: LocalId, auraId: AuraId): void {
                         <input
                             type="checkbox"
                             :checked="aura.visionSource"
-                            @click="updateAura(aura, { visionSource: !aura.visionSource })"
                             :disabled="!owned"
                             :title="t('game.ui.selection.edit_dialog.dialog.toggle_light_source')"
+                            @click="updateAura(aura, { visionSource: !aura.visionSource })"
                         />
                     </div>
                     <div v-show="isComposite">Shared for all variants {{ isComposite }}</div>
                     <input
                         v-show="isComposite"
                         type="checkbox"
-                        @click="toggleCompositeAura(aura.shape, aura.uuid)"
                         :disabled="!owned"
                         :title="t('common.toggle_public_private')"
+                        @click="toggleCompositeAura(aura.shape, aura.uuid)"
                     />
                 </div>
             </div>

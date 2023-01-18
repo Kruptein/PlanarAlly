@@ -3,7 +3,7 @@ import { onMounted, reactive, ref } from "vue";
 
 import type { Label } from "../../game/systems/labels/models";
 
-const emit = defineEmits<{ (e: "selectionupdate", selection: string[]): void }>();
+const emit = defineEmits<(e: "selectionupdate", selection: string[]) => void>();
 const props = defineProps<{ title: string; items: Label[]; initialValues: string[] }>();
 
 const overall = ref<HTMLInputElement | null>(null);
@@ -49,7 +49,7 @@ function updateCategory(): void {
 <template>
     <div class="accordion">
         <div id="header" @click.prevent="state.active = !state.active">
-            <input type="checkbox" @click.stop="toggleCategory" ref="overall" />
+            <input ref="overall" type="checkbox" @click.stop="toggleCategory" />
             <strong>{{ title }}</strong>
         </div>
         <div v-show="state.active" id="body">

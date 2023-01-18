@@ -14,8 +14,6 @@ import type { FloorId } from "../game/models/floor";
 import type { ShapeOptions } from "../game/models/shapes";
 import type { SHAPE_TYPE } from "../game/shapes/types";
 import { floorSystem } from "../game/systems/floors";
-import type { Label } from "../game/systems/labels/models";
-import { labelState } from "../game/systems/labels/state";
 import { selectedSystem } from "../game/systems/selected";
 import { visionState } from "../game/vision/state";
 
@@ -28,14 +26,10 @@ interface ActiveShapeState {
 
     options: Partial<ShapeOptions> | undefined;
 
-    groupId: string | undefined;
-
     variants: { id: LocalId; name: string }[];
-
-    labels: Label[];
 }
 
-export class ActiveShapeStore extends Store<ActiveShapeState> {
+class ActiveShapeStore extends Store<ActiveShapeState> {
     floor: ComputedRef<FloorId | undefined>;
     isComposite: ComputedRef<boolean>;
 
@@ -46,11 +40,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
             options: undefined,
 
-            groupId: undefined,
-
             variants: [],
-
-            labels: [],
         };
     }
 
@@ -64,7 +54,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
             if (selection.size === 0) {
                 this.clear();
             } else if (this._state.id === undefined) {
-                this.setActiveShape(getShape([...selection][0])!);
+                this.setActiveShape(getShape([...selection][0]!)!);
             } else {
                 let sameMainShape = false;
                 for (const sel of selection) {
@@ -76,7 +66,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
                 if (!sameMainShape) {
                     const showEditDialog = this._state.showEditDialog;
                     activeShapeStore.clear();
-                    activeShapeStore.setActiveShape(getShape([...selection][0])!);
+                    activeShapeStore.setActiveShape(getShape([...selection][0]!)!);
                     if (showEditDialog) this._state.showEditDialog = showEditDialog;
                 }
             }
@@ -87,19 +77,6 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
     setShowEditDialog(visible: boolean): void {
         this._state.showEditDialog = visible;
-    }
-
-    // GROUP
-
-    setGroupId(groupId: string | undefined, syncTo: Sync): void {
-        if (this._state.id === undefined) return;
-
-        this._state.groupId = groupId;
-
-        if (!syncTo.ui) {
-            const shape = getShape(this._state.id)!;
-            shape.setGroupId(groupId, syncTo);
-        }
     }
 
     // VARIANTS
@@ -134,29 +111,7 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
     // EXTRA
 
-    addLabel(label: string, syncTo: Sync): void {
-        if (this._state.id === undefined) return;
-
-        this._state.labels.push({ ...labelState.raw.labels.get(label)! });
-
-        if (!syncTo.ui) {
-            const shape = getShape(this._state.id)!;
-            shape.addLabel(label, syncTo);
-        }
-    }
-
-    removeLabel(label: string, syncTo: Sync): void {
-        if (this._state.id === undefined) return;
-
-        this._state.labels = this._state.labels.filter((l) => l.uuid !== label);
-
-        if (!syncTo.ui) {
-            const shape = getShape(this._state.id)!;
-            shape.removeLabel(label, syncTo);
-        }
-    }
-
-    setSvgAsset(hash: string | undefined, syncTo: Sync): void {
+    async setSvgAsset(hash: string | undefined, syncTo: Sync): Promise<void> {
         if (this._state.id === undefined) return;
 
         if (this._state.options === undefined) this._state.options = {};
@@ -171,12 +126,13 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
                 floorSystem.invalidate({ id: activeShapeStore.floor.value! });
             } else {
                 shape.options.svgAsset = hash;
-                (shape as IAsset).loadSvgs();
+                await (shape as IAsset).loadSvgs();
             }
         }
 
         if (syncTo.server) {
-            sendShapeSvgAsset({ shape: getGlobalId(shape.id), value: hash ?? null });
+            const shapeId = getGlobalId(shape.id);
+            if (shapeId) sendShapeSvgAsset({ shape: shapeId, value: hash ?? null });
         }
     }
 
@@ -191,10 +147,6 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
         this._state.type = shape.type;
 
         this._state.options = { ...shape.options };
-
-        this._state.groupId = shape.groupId;
-
-        this._state.labels = [...shape.labels];
 
         if (this._state.parentUuid !== undefined) {
             const composite = getShape(this._state.parentUuid) as IToggleComposite;
@@ -212,13 +164,10 @@ export class ActiveShapeStore extends Store<ActiveShapeState> {
 
         this._state.options = undefined;
 
-        this._state.groupId = undefined;
-
         this._state.variants = [];
-
-        this._state.labels = [];
     }
 }
 
 export const activeShapeStore = new ActiveShapeStore();
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).activeShapeStore = activeShapeStore;

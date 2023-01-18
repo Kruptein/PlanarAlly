@@ -60,6 +60,16 @@ async def set_player_role(sid: str, data: PlayerRoleChange):
         )
         return
 
+    if pr.role == Role.DM and new_role != Role.DM:
+        dm_players = PlayerRoom.filter(room=pr.room, role=Role.DM).where(
+            PlayerRoom.player != data["player"]
+        )
+        if dm_players.count() == 0:
+            logger.warning(
+                f"{pr.player.name} attempted to change the role of the last dm in the campaign"
+            )
+            return
+
     player_pr.role = new_role
     player_pr.save()
 

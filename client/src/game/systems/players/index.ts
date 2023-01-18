@@ -9,6 +9,7 @@ import { sendLocationChange } from "../../api/emits/location";
 import { sendChangePlayerRole } from "../../api/emits/players";
 import { sendRoomKickPlayer } from "../../api/emits/room";
 import { getClientId } from "../../api/socket";
+import { Role } from "../../models/role";
 import type { ServerUserLocationOptions } from "../../models/settings";
 import { startDrawLoop } from "../../rendering/core";
 import { clientSystem } from "../client";
@@ -19,7 +20,7 @@ import { positionSystem } from "../position";
 import type { Player, PlayerId } from "./models";
 import { playerState } from "./state";
 
-const { mutableReactive: $ } = playerState;
+const { mutableReactive: $, raw } = playerState;
 
 class PlayerSystem implements System {
     clear(partial: boolean): void {
@@ -70,7 +71,17 @@ class PlayerSystem implements System {
         const player = this.getPlayer(playerId);
         if (player === undefined) return;
 
+        // Only the creator can demote themselves
         if (player.name === router.currentRoute.value.params.creator && coreStore.state.username !== player.name) {
+            return;
+        }
+
+        // Prevent the last DM role from being removed
+        if (
+            player.role === Role.DM &&
+            role !== Role.DM &&
+            ![...raw.players.values()].some((p) => p.id !== playerId && p.role === Role.DM)
+        ) {
             return;
         }
 

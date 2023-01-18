@@ -168,8 +168,8 @@ export function drawTear(ray: Ray<LocalPoint>, options?: { fillColour?: string }
 }
 
 function drawEdge(edge: Edge, colour: string, local = false): void {
-    const from = edge.first!.vertices[edge.second === 0 ? 1 : 0]!.point! as [number, number];
-    const to = edge.first!.vertices[edge.second === 2 ? 1 : 2]!.point! as [number, number];
+    const from = edge.first!.vertices[edge.second === 0 ? 1 : 0]!.point as [number, number];
+    const to = edge.first!.vertices[edge.second === 2 ? 1 : 2]!.point as [number, number];
     const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
     const ctx = dl.ctx;
@@ -195,8 +195,8 @@ function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0)
     const ei = new EdgeIterator(tds);
     while (!ei.valid) ei.next();
     do {
-        const fromP = ei.edge.first!.vertices[ccw(ei.edge.second)]!.point! as [number, number];
-        const toP = ei.edge.first!.vertices[cw(ei.edge.second)]!.point! as [number, number];
+        const fromP = ei.edge.first!.vertices[ccw(ei.edge.second)]!.point as [number, number];
+        const toP = ei.edge.first!.vertices[cw(ei.edge.second)]!.point as [number, number];
         if (logs > 0) {
             if (fromP[0] === -Infinity || toP[0] === -Infinity) {
                 ei.next();
@@ -240,15 +240,15 @@ function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0)
 
         ctx.moveTo(x(t.vertices[0]!.point![0]!, local), y(t.vertices[0]!.point![1]!, local));
         if (t.vertices[0] !== undefined && t.vertices[1] !== undefined)
-            drawLine(t.vertices[0]!.point! as [number, number], t.vertices[1]!.point! as [number, number], local, {
+            drawLine(t.vertices[0]!.point as [number, number], t.vertices[1]!.point as [number, number], local, {
                 constrained: t.constraints[2],
             });
         if (t.vertices[1] !== undefined && t.vertices[2] !== undefined)
-            drawLine(t.vertices[1]!.point! as [number, number], t.vertices[2]!.point! as [number, number], local, {
+            drawLine(t.vertices[1]!.point as [number, number], t.vertices[2]!.point as [number, number], local, {
                 constrained: t.constraints[0],
             });
         if (t.vertices[2] !== undefined && t.vertices[0] !== undefined)
-            drawLine(t.vertices[2]!.point! as [number, number], t.vertices[0]!.point! as [number, number], local, {
+            drawLine(t.vertices[2]!.point as [number, number], t.vertices[0]!.point as [number, number], local, {
                 constrained: t.constraints[1],
             });
     }

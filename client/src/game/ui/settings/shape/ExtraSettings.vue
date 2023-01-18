@@ -128,10 +128,10 @@ async function removeSvg(): Promise<void> {
 }
 
 function applyDDraft(): void {
-    const dDraftData = activeShapeStore.state.options! as DDraftData;
+    const dDraftData = activeShapeStore.state.options as DDraftData;
     const size = dDraftData.ddraft_resolution.pixels_per_grid;
 
-    const realShape = getShape(activeShapeStore.state.id!)! as IAsset;
+    const realShape = getShape(activeShapeStore.state.id!) as IAsset;
 
     const targetRP = realShape.refPoint;
 

@@ -70,7 +70,6 @@ export class Polygon extends Shape implements IShape {
     set vertices(v: GlobalPoint[]) {
         if (v.length < 2) {
             throw new Error("Setting vertices with not enough elements");
-            return;
         }
 
         this._refPoint = v[0]!;

@@ -195,7 +195,7 @@ class AssetStore extends Store<AssetState> {
 
     async upload(fls?: FileList, target?: number, targetOffset: string[] = []): Promise<void> {
         if (fls === undefined) {
-            const files = (document.getElementById("files")! as HTMLInputElement).files;
+            const files = (document.getElementById("files") as HTMLInputElement).files;
             if (files) fls = files;
             else return;
         }

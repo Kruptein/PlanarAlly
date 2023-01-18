@@ -382,7 +382,6 @@ class SelectTool extends Tool implements ISelectTool {
             await rulerTool.onDown(lp, event);
         }
         if (this.mode !== SelectOperations.Noop) this.active.value = true;
-        return;
     }
 
     async onMove(

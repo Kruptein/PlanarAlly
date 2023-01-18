@@ -111,28 +111,6 @@ class ActiveShapeStore extends Store<ActiveShapeState> {
 
     // EXTRA
 
-    // addLabel(label: string, syncTo: Sync): void {
-    //     if (this._state.id === undefined) return;
-
-    //     this._state.labels.push({ ...labelState.raw.labels.get(label)! });
-
-    //     if (!syncTo.ui) {
-    //         const shape = getShape(this._state.id)!;
-    //         shape.addLabel(label, syncTo);
-    //     }
-    // }
-
-    // removeLabel(label: string, syncTo: Sync): void {
-    //     if (this._state.id === undefined) return;
-
-    //     this._state.labels = this._state.labels.filter((l) => l.uuid !== label);
-
-    //     if (!syncTo.ui) {
-    //         const shape = getShape(this._state.id)!;
-    //         shape.removeLabel(label, syncTo);
-    //     }
-    // }
-
     async setSvgAsset(hash: string | undefined, syncTo: Sync): Promise<void> {
         if (this._state.id === undefined) return;
 

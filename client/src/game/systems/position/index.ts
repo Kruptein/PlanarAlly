@@ -138,13 +138,13 @@ class PositionSystem implements System {
         const floor = floorState.currentFloor.value;
         if (floor !== undefined && !gameState.raw.isDm && locationSettingsState.raw.fullFow.value) {
             if (locationSettingsState.raw.fowLos.value) {
-                const visionLayer = floorSystem.getLayer(floor, LayerName.Vision)! as FowLayer;
+                const visionLayer = floorSystem.getLayer(floor, LayerName.Vision) as FowLayer;
                 if (!visionLayer.isEmpty) {
                     $.outOfBounds = false;
                     return;
                 }
             }
-            const lightingLayer = floorSystem.getLayer(floor, LayerName.Lighting)! as FowLayer;
+            const lightingLayer = floorSystem.getLayer(floor, LayerName.Lighting) as FowLayer;
             if (!lightingLayer.isEmpty) {
                 $.outOfBounds = false;
                 return;

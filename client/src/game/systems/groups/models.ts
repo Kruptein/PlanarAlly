@@ -1,7 +1,14 @@
-import type { GlobalId } from "../id";
+import { type GlobalId } from "../../id";
 
 export const CREATION_ORDER_OPTIONS: CREATION_ORDER_TYPES[] = ["incrementing", "random"];
 export type CREATION_ORDER_TYPES = "incrementing" | "random";
+
+export const CharacterSet = {
+    number: "0123456789".split(""),
+    latin: "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""),
+};
+
+export const CHARACTER_SETS = [CharacterSet.number, CharacterSet.latin];
 
 export interface ServerGroup {
     uuid: string;
@@ -29,4 +36,7 @@ export const groupToClient = (group: ServerGroup): Group => ({
         : "incrementing",
 });
 
-export type GroupJoinPayload = { group_id: string; members: { uuid: GlobalId; badge: number }[] };
+export interface GroupJoinPayload {
+    group_id: string;
+    members: { uuid: GlobalId; badge: number }[];
+}

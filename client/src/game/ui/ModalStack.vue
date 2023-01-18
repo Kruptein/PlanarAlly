@@ -61,7 +61,11 @@ onUnmounted(() => window.removeEventListener("keydown", checkEscape));
 const visibleModals = computed(() => {
     const _modals: { index: number; component: Component }[] = [];
     for (let i = 0; i < modalOrder.value.length; i++) {
-        const modal = modals[modalOrder.value[i]];
+        const modal = modals[modalOrder.value[i]!];
+        if (modal === undefined) {
+            console.error("Error in visible modal handling");
+            continue;
+        }
         if (isComponent(modal)) {
             _modals.push({ index: i, component: modal });
         } else if (modal.condition.value) {
@@ -85,20 +89,29 @@ function isReffable(x: Component): x is { close: () => void } {
 
 function focus(index: number): void {
     const idx = modalOrder.value.splice(index, 1)[0];
+    if (idx === undefined) {
+        console.log("Error in modal focussing");
+        return;
+    }
     modalOrder.value.push(idx);
     openModals.add(idx);
 }
 
 function close(index: number): void {
-    openModals.delete(modalOrder.value[index]);
+    const modalId = modalOrder.value[index];
+    if (modalId === undefined) {
+        console.error("Error in modal closing");
+        return;
+    }
+    openModals.delete(modalId);
 }
 
 function checkEscape(event: KeyboardEvent): void {
     if (event.key === "Escape") {
         for (let i = modalOrder.value.length - 1; i >= 0; i--) {
             const index = modalOrder.value[i];
-            if (openModals.has(index)) {
-                refs[index].close();
+            if (index !== undefined && openModals.has(index)) {
+                refs[index]?.close();
                 openModals.delete(index);
                 break;
             }
@@ -108,13 +121,18 @@ function checkEscape(event: KeyboardEvent): void {
 
 function getComponentName(index: number): string {
     const modal = modals[index];
+    if (modal === undefined) {
+        console.error("Error in getting modal component name");
+        return "<Unknown modal>";
+    }
     const component = (isComponent(modal) ? modal : modal.component) as { __name: string };
     return component.__name;
 }
 
 function setModalRef(m: Component | null, index: number): void {
     if (m === null) return;
-    if (isReffable(m)) refs[modalOrder.value[index]] = m;
+    const modalId = modalOrder.value[index];
+    if (modalId !== undefined && isReffable(m)) refs[modalId] = m;
     else console.warn(`Modal without exposed close function found. (${getComponentName(index)})`);
 }
 </script>

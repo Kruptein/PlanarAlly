@@ -1,11 +1,9 @@
 import type { GlobalPoint, Vector } from "../../core/geometry";
-import type { Sync } from "../../core/models/types";
 import type { LocalId } from "../id";
 import type { Floor, FloorId, LayerName } from "../models/floor";
 import type { ShapeOptions, ServerShape } from "../models/shapes";
 import type { SHAPE_TYPE } from "../shapes/types";
 import type { BoundingRect } from "../shapes/variants/simple/boundingRect";
-import type { Label } from "../systems/labels/models";
 
 import type { ILayer } from "./layer";
 
@@ -30,13 +28,8 @@ export interface IShape extends SimpleShape {
     strokeWidth: number;
 
     assetId?: number;
-    groupId?: string;
 
     globalCompositeOperation: string;
-
-    labels: Label[];
-
-    badge: number;
 
     showHighlight: boolean;
 
@@ -105,13 +98,4 @@ export interface IShape extends SimpleShape {
     // UTILITY
 
     visibleInCanvas: (max: { w: number; h: number }, options: { includeAuras: boolean }) => boolean;
-
-    // GROUP
-
-    setGroupId: (groupId: string | undefined, syncTo: Sync) => void;
-
-    // EXTRA
-
-    addLabel: (label: string, syncTo: Sync) => void;
-    removeLabel: (label: string, syncTo: Sync) => void;
 }

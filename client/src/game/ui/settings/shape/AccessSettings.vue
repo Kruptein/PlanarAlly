@@ -43,7 +43,7 @@ const playersWithoutAccess = computed(() => {
 function addOwner(): void {
     if (!owned.value || accessState.raw.id === undefined) return;
     const dropdown = accessDropdown.value!;
-    const selectedUser = dropdown.options[dropdown.selectedIndex].value;
+    const selectedUser = dropdown.options[dropdown.selectedIndex]?.value ?? "";
     if (selectedUser === "") return;
 
     accessSystem.addAccess(accessState.raw.id, selectedUser, { edit: true, movement: true, vision: true }, SERVER_SYNC);
@@ -60,7 +60,7 @@ function toggleEditAccess(user?: ACCESS_KEY): void {
 
     let oldAccess = DEFAULT_ACCESS;
     if (user === DEFAULT_ACCESS_SYMBOL) {
-        oldAccess = accessSystem.getDefault(accessState.raw.id) ?? oldAccess;
+        oldAccess = accessSystem.getDefault(accessState.raw.id);
     } else {
         oldAccess = accessSystem.getAccess(accessState.raw.id, user) ?? oldAccess;
     }
@@ -79,7 +79,7 @@ function toggleMovementAccess(user?: ACCESS_KEY): void {
 
     let oldAccess = DEFAULT_ACCESS;
     if (user === DEFAULT_ACCESS_SYMBOL) {
-        oldAccess = accessSystem.getDefault(accessState.raw.id) ?? oldAccess;
+        oldAccess = accessSystem.getDefault(accessState.raw.id);
     } else {
         oldAccess = accessSystem.getAccess(accessState.raw.id, user) ?? oldAccess;
     }
@@ -99,7 +99,7 @@ function toggleVisionAccess(user?: ACCESS_KEY): void {
 
     let oldAccess = DEFAULT_ACCESS;
     if (user === DEFAULT_ACCESS_SYMBOL) {
-        oldAccess = accessSystem.getDefault(accessState.raw.id) ?? oldAccess;
+        oldAccess = accessSystem.getDefault(accessState.raw.id);
     } else {
         oldAccess = accessSystem.getAccess(accessState.raw.id, user) ?? oldAccess;
     }

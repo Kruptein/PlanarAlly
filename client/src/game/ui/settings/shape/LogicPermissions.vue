@@ -30,7 +30,7 @@ const emit = defineEmits<{
 // so we keep track of pending actions in this set
 // side-note: the order _seems_ deterministic in that it always first sends added and then deleted
 //            but this might be an implementation detail that changes when upgrading the sortable dependency
-const pendingEvents: Set<string> = new Set();
+const pendingEvents = new Set<string>();
 
 let permissions = copyPermissions(props.permissions);
 
@@ -39,11 +39,11 @@ watch(
     () => (permissions = copyPermissions(props.permissions)),
 );
 
-type SortableChanged<T> = {
+interface SortableChanged<T> {
     added?: { element: T; newIndex: number };
     moved?: { element: T; newIndex: number; oldIndex: number };
     removed?: { element: T; oldIndex: number };
-};
+}
 
 function change(change: Event & SortableChanged<string>, target: "enabled" | "request" | "disabled"): void {
     const _target =

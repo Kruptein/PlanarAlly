@@ -153,11 +153,11 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             // Ctrl-v - Paste
             pasteShapes();
         } else if (event.key.toLocaleLowerCase() === "z" && event.shiftKey && ctrlOrCmdPressed(event)) {
-            redoOperation();
+            await redoOperation();
             event.preventDefault();
             event.stopPropagation();
         } else if (event.key === "z" && ctrlOrCmdPressed(event)) {
-            undoOperation();
+            await undoOperation();
             event.preventDefault();
             event.stopPropagation();
         } else if (event.key === "PageUp" && floorState.raw.floorIndex < floorState.raw.floors.length - 1) {
@@ -194,9 +194,10 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
 }
 
 function changeFloor(event: KeyboardEvent, targetFloor: number): void {
-    if (targetFloor < 0 || targetFloor > floorState.raw.floors.length - 1) return;
-    const selection = selectedSystem.get({ includeComposites: false });
     const newFloor = floorState.raw.floors[targetFloor];
+    if (newFloor === undefined) return;
+
+    const selection = selectedSystem.get({ includeComposites: false });
 
     if (event.altKey) {
         moveFloor([...selectedSystem.get({ includeComposites: true })], newFloor, true);

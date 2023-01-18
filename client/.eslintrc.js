@@ -4,8 +4,8 @@ module.exports = {
         "prettier",
         "eslint:recommended",
         "plugin:@typescript-eslint/recommended",
-        // "plugin:@typescript-eslint/recommended-requiring-type-checking",
-        // "plugin:@typescript-eslint/strict",
+        "plugin:@typescript-eslint/recommended-requiring-type-checking",
+        "plugin:@typescript-eslint/strict",
         "plugin:import/recommended",
         "plugin:import/typescript",
     ],
@@ -24,6 +24,9 @@ module.exports = {
         "@typescript-eslint/no-use-before-define": 0,
         "@typescript-eslint/require-await": "error",
         "@typescript-eslint/strict-boolean-expressions": 2,
+        "@typescript-eslint/no-unnecessary-condition": 0,
+        "@typescript-eslint/no-dynamic-delete": 0, // to check into
+        "@typescript-eslint/consistent-type-imports": "error",
         "prefer-const": [process.env.CI === undefined ? 1 : 2],
         "import/no-unused-modules": [process.env.CI === undefined ? 0 : 2, { unusedExports: true }],
         "import/order": [

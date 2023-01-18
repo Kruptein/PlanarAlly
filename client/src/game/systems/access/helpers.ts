@@ -10,7 +10,7 @@ export const accessToServer = (access: ShapeAccess): ServerShapeAccess => ({
 
 export const ownerToServer = (owner: ShapeOwner): ServerShapeOwner => ({
     user: owner.user,
-    shape: getGlobalId(owner.shape),
+    shape: getGlobalId(owner.shape)!,
     ...accessToServer(owner.access),
 });
 

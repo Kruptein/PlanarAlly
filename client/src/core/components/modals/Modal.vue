@@ -25,9 +25,9 @@ function close(): void {
     emit("close");
 }
 
-function positionCheck(): void {
+async function positionCheck(): Promise<void> {
     if (props.visible && !positioned) {
-        nextTick(() => updatePosition());
+        await nextTick(() => updatePosition());
     }
 }
 
@@ -42,9 +42,9 @@ function checkBounds(): void {
     }
 }
 
-onMounted(() => {
+onMounted(async () => {
     window.addEventListener("resize", checkBounds);
-    positionCheck();
+    await positionCheck();
 });
 onUnmounted(() => window.removeEventListener("resize", checkBounds));
 watch(
@@ -60,11 +60,11 @@ watchEffect(() => {
 function updatePosition(): void {
     if (container.value === null) return;
     if (!positioned) {
-        if (container.value!.offsetWidth === 0 && container.value!.offsetHeight === 0) return;
-        containerX = (window.innerWidth - container.value!.offsetWidth) / 2;
-        containerY = (window.innerHeight - container.value!.offsetHeight) / 2;
-        container.value!.style.left = `${containerX}px`;
-        container.value!.style.top = `${containerY}px`;
+        if (container.value.offsetWidth === 0 && container.value.offsetHeight === 0) return;
+        containerX = (window.innerWidth - container.value.offsetWidth) / 2;
+        containerY = (window.innerHeight - container.value.offsetHeight) / 2;
+        container.value.style.left = `${containerX}px`;
+        container.value.style.top = `${containerY}px`;
         positioned = true;
     }
 }

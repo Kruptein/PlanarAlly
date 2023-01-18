@@ -28,7 +28,7 @@ function close(): void {
 const hasLabels = computed(() => labelState.reactive.labels.size > 0);
 
 const categories = computed(() => {
-    const cat: Map<string, Label[]> = new Map();
+    const cat = new Map<string, Label[]>();
     cat.set("", []);
     for (const label of labelState.reactive.labels.values()) {
         if (label.user !== playerSystem.getCurrentPlayer()?.name) continue;
@@ -59,7 +59,7 @@ function toggleVisibility(label: Label): void {
     sendLabelVisibility({ uuid: label.uuid, visible: label.visible });
 }
 
-function addLabel(): void {
+function createLabel(): void {
     if (state.newName === "") return;
     const label = {
         uuid: uuidv4(),
@@ -68,7 +68,7 @@ function addLabel(): void {
         visible: false,
         user: playerSystem.getCurrentPlayer()!.name,
     };
-    labelSystem.addLabel(label, true);
+    labelSystem.createLabel(label, true);
     state.newCategory = "";
     state.newName = "";
 }
@@ -142,7 +142,7 @@ function deleteLabel(uuid: string): void {
                 <div class="separator spanrow"></div>
                 <input v-model.trim="state.newCategory" type="text" />
                 <input v-model.trim="state.newName" type="text" />
-                <button id="addLabelButton" @click.stop="addLabel">{{ t("common.add") }}</button>
+                <button id="addLabelButton" @click.stop="createLabel">{{ t("common.add") }}</button>
             </div>
         </div>
     </Modal>

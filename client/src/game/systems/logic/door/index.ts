@@ -38,9 +38,11 @@ class DoorSystem implements ShapeSystem {
         if (syncToServer) {
             const options = readonly.data.get(id)!;
             const shape = getGlobalId(id);
-            sendShapeIsDoor({ shape, value: enabled });
-            if (options.permissions) sendShapeDoorPermissions({ shape, value: options.permissions });
-            if (options.toggleMode !== "both") sendShapeDoorToggleMode({ shape, value: options.toggleMode });
+            if (shape) {
+                sendShapeIsDoor({ shape, value: enabled });
+                if (options.permissions) sendShapeDoorPermissions({ shape, value: options.permissions });
+                if (options.toggleMode !== "both") sendShapeDoorToggleMode({ shape, value: options.toggleMode });
+            }
         }
     }
 
@@ -53,7 +55,10 @@ class DoorSystem implements ShapeSystem {
     }
 
     toggle(id: LocalId, enabled: boolean, syncTo: Sync): void {
-        if (syncTo.server) sendShapeIsDoor({ shape: getGlobalId(id), value: enabled });
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeIsDoor({ shape, value: enabled });
+        }
         if ($.id === id) $.enabled = enabled;
 
         if (enabled) {
@@ -78,7 +83,10 @@ class DoorSystem implements ShapeSystem {
             mutable.data.set(id, options);
         }
 
-        if (syncTo.server) sendShapeDoorPermissions({ shape: getGlobalId(id), value: permissions });
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeDoorPermissions({ shape, value: permissions });
+        }
         if ($.id === id) $.permissions = permissions;
 
         options.permissions = permissions;
@@ -91,7 +99,10 @@ class DoorSystem implements ShapeSystem {
             mutable.data.set(id, options);
         }
 
-        if (syncTo.server) sendShapeDoorToggleMode({ shape: getGlobalId(id), value: mode });
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeDoorToggleMode({ shape, value: mode });
+        }
         if ($.id === id) $.toggleMode = mode;
 
         options.toggleMode = mode;

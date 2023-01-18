@@ -41,7 +41,7 @@ class AssetStore extends Store<AssetState> {
 
         this.currentFilePath = computed(() =>
             this._state.folderPath.reduce(
-                (acc: string, val: number) => `${acc}/${this._state.idMap.get(val)?.name}`,
+                (acc: string, val: number) => `${acc}/${this._state.idMap.get(val)!.name}`,
                 "",
             ),
         );
@@ -81,7 +81,12 @@ class AssetStore extends Store<AssetState> {
     setPath(path: number[]): void {
         this._state.folderPath = path;
         for (const [index, part] of router.currentRoute.value.path.slice("/assets/".length).split("/").entries()) {
-            this._state.idMap.set(path[index], { id: path[index], name: part });
+            const pathId = path[index];
+            if (pathId === undefined) {
+                console.error("Incorrect PathIndex encountered.");
+                continue;
+            }
+            this._state.idMap.set(pathId, { id: pathId, name: part });
         }
     }
 
@@ -233,4 +238,5 @@ class AssetStore extends Store<AssetState> {
     }
 }
 export const assetStore = new AssetStore();
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).assetStore = assetStore;

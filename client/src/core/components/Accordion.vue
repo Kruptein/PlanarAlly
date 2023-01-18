@@ -3,7 +3,7 @@ import { onMounted, reactive, ref } from "vue";
 
 import type { Label } from "../../game/systems/labels/models";
 
-const emit = defineEmits<{ (e: "selectionupdate", selection: string[]): void }>();
+const emit = defineEmits<(e: "selectionupdate", selection: string[]) => void>();
 const props = defineProps<{ title: string; items: Label[]; initialValues: string[] }>();
 
 const overall = ref<HTMLInputElement | null>(null);

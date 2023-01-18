@@ -7,7 +7,6 @@ import Modal from "../../../core/components/modals/Modal.vue";
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { getTarget, getValue } from "../../../core/utils";
 import { sendRequestInitiatives } from "../../api/emits/initiative";
-import { getGroupMembers } from "../../groups";
 import { getShape } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
@@ -16,6 +15,7 @@ import type { InitiativeData } from "../../models/initiative";
 import { InitiativeEffectMode, InitiativeSort } from "../../models/initiative";
 import { accessSystem } from "../../systems/access";
 import { gameState } from "../../systems/game/state";
+import { groupSystem } from "../../systems/groups";
 import { getProperties } from "../../systems/properties/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { uiSystem } from "../../systems/ui";
@@ -88,13 +88,14 @@ function removeEffect(shape: GlobalId, index: number): void {
 
 function toggleHighlight(actorId: LocalId | undefined, show: boolean): void {
     if (actorId === undefined) return;
-    const shape = getShape(actorId);
-    if (shape === undefined) return;
     let shapeArray: IShape[];
-    if (shape.groupId === undefined) {
+    const groupId = groupSystem.getGroupId(actorId);
+    if (groupId === undefined) {
+        const shape = getShape(actorId);
+        if (shape === undefined) return;
         shapeArray = [shape];
     } else {
-        shapeArray = getGroupMembers(shape.groupId);
+        shapeArray = [...groupSystem.getGroupMembers(groupId)].map(m => getShape(m)!);
     }
     for (const sh of shapeArray) {
         sh.showHighlight = show;
@@ -168,7 +169,7 @@ function openSettings(): void {
 
 // shitty helper because draggable loses all type information :arghfist:
 function n(e: any): number {
-    return e;
+    return e as number;
 }
 </script>
 

@@ -31,7 +31,7 @@ const state: SessionState = reactive({
 });
 
 onMounted(async () => {
-    if (route.params?.error === "join_game") {
+    if (route.params.error === "join_game") {
         await modals.confirm(
             "Failed to join session",
             "It was not possible to join the game session. This might be because the DM has locked the session.",
@@ -41,7 +41,7 @@ onMounted(async () => {
 
     const response = await http.get("/api/rooms");
     if (response.ok) {
-        const data: { owned: RoomInfo[]; joined: RoomInfo[] } = await response.json();
+        const data = (await response.json()) as { owned: RoomInfo[]; joined: RoomInfo[] };
         state.owned = data.owned;
         state.joined = data.joined;
     } else {
@@ -114,10 +114,10 @@ async function leaveOrDelete(): Promise<void> {
     }
 }
 
-function exportCampaign(): void {
+async function exportCampaign(): Promise<void> {
     if (state.focussed === undefined) return;
     socket.emit("Campaign.Export", state.focussed.name);
-    router.push({ name: "export-game" });
+    await router.push({ name: "export-game" });
 }
 </script>
 

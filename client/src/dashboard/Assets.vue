@@ -18,7 +18,7 @@ const modals = useModal();
 const route = useRoute();
 
 const state = assetStore.state;
-const body = document.getElementsByTagName("body")?.[0];
+const body = document.getElementsByTagName("body")[0];
 const parentFolder = assetStore.parentFolder;
 
 const activeSelectionUrl = `url(${baseAdjust("/static/img/assetmanager/active_selection.png")})`;
@@ -38,14 +38,14 @@ function loadFolder(path: string): void {
 onMounted(() => {
     loadFolder(getCurrentPath());
 
-    body.addEventListener("dragenter", showDropZone);
-    body.addEventListener("dragleave", hideDropZone);
+    body?.addEventListener("dragenter", showDropZone);
+    body?.addEventListener("dragleave", hideDropZone);
 });
 
 onBeforeRouteLeave(() => {
     if (socket.connected) socket.disconnect();
-    body.removeEventListener("dragenter", showDropZone);
-    body.removeEventListener("dragleave", hideDropZone);
+    body?.removeEventListener("dragenter", showDropZone);
+    body?.removeEventListener("dragleave", hideDropZone);
 });
 
 onBeforeRouteUpdate((to: RouteLocationNormalized) => {
@@ -96,7 +96,7 @@ async function parseDirectoryUpload(
         if (entry.isDirectory) {
             const fwk = entry as FileSystemDirectoryEntry;
             const reader = fwk.createReader();
-            reader.readEntries(async (entries) => parseDirectoryUpload(entries, target, [...targetOffset, entry.name]));
+            reader.readEntries((entries) => void parseDirectoryUpload(entries, target, [...targetOffset, entry.name]));
         } else if (entry.isFile) {
             files.push(entry as FileSystemFileEntry);
         }
@@ -104,7 +104,7 @@ async function parseDirectoryUpload(
     if (files.length > 0) {
         const fileList = await Promise.all(files.map((f) => fsToFile(f)));
         console.log("Uploading", fileList, targetOffset);
-        assetStore.upload(fileList as unknown as FileList, target, targetOffset);
+        await assetStore.upload(fileList as unknown as FileList, target, targetOffset);
     }
 }
 
@@ -115,9 +115,9 @@ function select(event: MouseEvent, inode: number): void {
         const end = inodes.indexOf(inode);
         for (let i = start; i !== end; start < end ? i++ : i--) {
             if (i === start) continue;
-            assetStore.addSelectedInode(inodes[i]);
+            assetStore.addSelectedInode(inodes[i]!);
         }
-        assetStore.addSelectedInode(inodes[end]);
+        assetStore.addSelectedInode(inodes[end]!);
     } else {
         if (!ctrlOrCmdPressed(event)) {
             assetStore.clearSelected();
@@ -160,7 +160,7 @@ function leaveDrag(event: DragEvent): void {
         (event.target as HTMLElement).classList.remove("inode-selected");
 }
 
-function stopDrag(event: DragEvent, target: number): void {
+async function stopDrag(event: DragEvent, target: number): Promise<void> {
     (event.target as HTMLElement).classList.remove("inode-selected");
     if (draggingSelection) {
         if (state.selected.includes(target)) return;
@@ -171,7 +171,7 @@ function stopDrag(event: DragEvent, target: number): void {
         }
         assetStore.clearSelected();
     } else if (event.dataTransfer && event.dataTransfer.items.length > 0) {
-        parseDirectoryUpload(
+        await parseDirectoryUpload(
             [...event.dataTransfer.items].map((i) => i.webkitGetAsEntry()),
             target,
         );

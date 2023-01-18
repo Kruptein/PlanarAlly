@@ -17,8 +17,9 @@ import { visionState } from "./vision/state";
 export function moveFloor(shapes: IShape[], newFloor: Floor, sync: boolean): void {
     shapes = shapes.filter((s) => !getProperties(s.id)!.isLocked);
     if (shapes.length === 0) return;
-    const oldLayer = shapes[0].layer;
-    const oldFloor = shapes[0].floor;
+    const firstShape = shapes[0]!;
+    const oldLayer = firstShape.layer;
+    const oldFloor = firstShape.floor;
     if (shapes.some((s) => s.layer !== oldLayer)) {
         throw new Error("Mixing shapes from different floors in shape move");
     }
@@ -34,14 +35,14 @@ export function moveFloor(shapes: IShape[], newFloor: Floor, sync: boolean): voi
     newLayer.invalidate(false);
     if (sync) {
         const uuids = shapes.map((s) => s.id);
-        sendFloorChange({ uuids: shapes.map((s) => getGlobalId(s.id)), floor: newFloor.name });
+        sendFloorChange({ uuids: shapes.map((s) => getGlobalId(s.id)!), floor: newFloor.name });
         addOperation({ type: "floormovement", shapes: uuids, from: oldFloor.id, to: newFloor.id });
     }
 }
 
 export function moveLayer(shapes: readonly IShape[], newLayer: ILayer, sync: boolean): void {
     if (shapes.length === 0) return;
-    const oldLayer = shapes[0].layer;
+    const oldLayer = shapes[0]!.layer;
 
     if (shapes.some((s) => s.layer !== oldLayer)) {
         throw new Error("Mixing shapes from different floors in shape move");
@@ -58,7 +59,7 @@ export function moveLayer(shapes: readonly IShape[], newLayer: ILayer, sync: boo
     if (sync) {
         const uuids = shapes.map((s) => s.id);
         sendLayerChange({
-            uuids: shapes.map((s) => getGlobalId(s.id)),
+            uuids: shapes.map((s) => getGlobalId(s.id)!),
             layer: newLayer.name,
             floor: floorSystem.getFloor({ id: newLayer.floor })!.name,
         });

@@ -28,10 +28,10 @@ const text = ref("");
 
 // can't use watchEffect here, because the name focus change will trigger this
 // on colour picker select
-watch(tokenDialogVisible, (isVisible) => {
+watch(tokenDialogVisible, async (isVisible) => {
     if (isVisible) {
         updatePreview();
-        nextTick(() => name.value?.focus());
+        await nextTick(() => name.value?.focus());
     }
 });
 watch(borderColour, updatePreview);

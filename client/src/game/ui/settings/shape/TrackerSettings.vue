@@ -32,7 +32,7 @@ function updateTracker(tracker: DeepReadonly<UiTracker>, delta: Partial<Tracker>
     if (tracker.temporary) {
         trackerSystem.add(tracker.shape, { ...tracker }, SERVER_SYNC);
     }
-    trackerSystem.update(tracker.shape, tracker.uuid, delta, syncTo === true ? SERVER_SYNC : NO_SYNC);
+    trackerSystem.update(tracker.shape, tracker.uuid, delta, syncTo ? SERVER_SYNC : NO_SYNC);
 }
 
 function removeTracker(tracker: TrackerId): void {
@@ -48,18 +48,25 @@ function toggleCompositeTracker(shape: LocalId, trackerId: TrackerId): void {
     if (!owned.value || id === undefined) return;
     if (!activeShapeStore.isComposite.value) return;
 
+    const gId = getGlobalId(shape);
+    const newShape = shape === id ? activeShapeStore.state.parentUuid! : id;
+    const gIdNew = getGlobalId(newShape);
+
+    if (gId === undefined || gIdNew === undefined) {
+        console.error("Composite encountered unknown globalId");
+        return;
+    }
+
     const tracker = trackerSystem.get(shape, trackerId, true);
     if (tracker === undefined) return;
 
     trackerSystem.remove(shape, trackerId, NO_SYNC);
 
-    const newShape = shape === id ? activeShapeStore.state.parentUuid! : id;
-
     trackerSystem.add(newShape, tracker, NO_SYNC);
 
     sendShapeMoveTracker({
-        shape: getGlobalId(shape),
-        new_shape: getGlobalId(newShape),
+        shape: gId,
+        new_shape: gIdNew,
         tracker: tracker.uuid,
     });
 }
@@ -75,7 +82,7 @@ function updateAura(aura: DeepReadonly<UiAura>, delta: Partial<Aura>, syncTo = t
     if (aura.temporary) {
         auraSystem.add(aura.shape, { ...aura }, SERVER_SYNC);
     }
-    auraSystem.update(aura.shape, aura.uuid, delta, syncTo === true ? SERVER_SYNC : NO_SYNC);
+    auraSystem.update(aura.shape, aura.uuid, delta, syncTo ? SERVER_SYNC : NO_SYNC);
 }
 
 function removeAura(aura: AuraId): void {
@@ -91,18 +98,24 @@ function toggleCompositeAura(shape: LocalId, auraId: AuraId): void {
     if (!owned.value || id === undefined) return;
     if (!activeShapeStore.isComposite.value) return;
 
+    const gId = getGlobalId(shape);
+    const newShape = shape === id ? activeShapeStore.state.parentUuid! : id;
+    const gIdNew = getGlobalId(newShape);
+
+    if (gId === undefined || gIdNew === undefined) {
+        console.error("Composite encountered unknown globalId");
+        return;
+    }
+
     const aura = auraSystem.get(shape, auraId, true);
     if (aura === undefined) return;
 
     auraSystem.remove(shape, auraId, NO_SYNC);
-
-    const newShape = shape === id ? activeShapeStore.state.parentUuid! : id;
-
     auraSystem.add(newShape, aura, NO_SYNC);
 
     sendShapeMoveAura({
-        shape: getGlobalId(shape),
-        new_shape: getGlobalId(newShape),
+        shape: gId,
+        new_shape: gIdNew,
         aura: aura.uuid,
     });
 }

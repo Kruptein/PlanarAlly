@@ -15,7 +15,9 @@
         "outDir": "dist",
         "types": ["vite/client", "@intlify/unplugin-vue-i18n/messages"],
         "lib": ["esnext", "dom", "dom.iterable", "scripthost"],
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "noUncheckedIndexedAccess": true,
+        "importsNotUsedAsValues": "error"
     },
     "include": ["src/**/*.ts", "src/**/*.vue", "test/**/*.ts"],
     "exclude": ["node_modules"]

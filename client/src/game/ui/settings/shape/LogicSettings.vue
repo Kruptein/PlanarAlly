@@ -120,7 +120,7 @@ async function chooseTarget(): Promise<void> {
             );
             return;
         case 1:
-            targetLocation = { id: location, spawnUuid: spawnInfo[0].uuid };
+            targetLocation = { id: location, spawnUuid: spawnInfo[0]!.uuid };
             break;
         default: {
             const choice = await modals.selectionBox(

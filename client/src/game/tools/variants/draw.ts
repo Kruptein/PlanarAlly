@@ -103,12 +103,12 @@ class DrawTool extends Tool implements ITool {
             () => {
                 watch(
                     floorState.currentLayer,
-                    (newLayer, oldLayer) => {
+                    async (newLayer, oldLayer) => {
                         if (oldLayer !== undefined) {
                             if (newLayer?.floor !== oldLayer.floor) {
-                                this.onFloorChange(floorSystem.getFloor({ id: oldLayer.floor })!);
-                            } else if (newLayer?.name !== oldLayer.name) {
-                                this.onLayerChange(oldLayer);
+                                await this.onFloorChange(floorSystem.getFloor({ id: oldLayer.floor })!);
+                            } else if (newLayer.name !== oldLayer.name) {
+                                await this.onLayerChange(oldLayer);
                             }
                         }
                         if (newLayer?.isVisionLayer ?? false) {
@@ -175,7 +175,7 @@ class DrawTool extends Tool implements ITool {
         return floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Lighting);
     }
 
-    private finaliseShape(): void {
+    private async finaliseShape(): Promise<void> {
         if (this.shape === undefined) return;
         if (this.shape.points.length <= 1) {
             let mouse: { x: number; y: number } | undefined = undefined;
@@ -183,7 +183,7 @@ class DrawTool extends Tool implements ITool {
                 mouse = { x: this.brushHelper.refPoint.x, y: this.brushHelper.refPoint.y };
             }
             this.onDeselect();
-            this.onSelect(mouse);
+            await this.onSelect(mouse);
         } else {
             this.shape.updateLayerPoints();
             const props = getProperties(this.shape.id)!;
@@ -258,25 +258,25 @@ class DrawTool extends Tool implements ITool {
         this.setupBrush();
     }
 
-    private onFloorChange(oldValue: Floor): void {
+    private async onFloorChange(oldValue: Floor): Promise<void> {
         if (this.isActiveTool.value) {
             let mouse: { x: number; y: number } | undefined = undefined;
             if (this.brushHelper !== undefined) {
                 mouse = { x: this.brushHelper.refPoint.x, y: this.brushHelper.refPoint.y };
             }
             this.onDeselect({ floor: oldValue });
-            this.onSelect(mouse);
+            await this.onSelect(mouse);
         }
     }
 
-    private onLayerChange(oldValue: DeepReadonly<ILayer>): void {
+    private async onLayerChange(oldValue: DeepReadonly<ILayer>): Promise<void> {
         if (this.isActiveTool.value) {
             let mouse: { x: number; y: number } | undefined = undefined;
             if (this.brushHelper !== undefined) {
                 mouse = { x: this.brushHelper.refPoint.x, y: this.brushHelper.refPoint.y };
             }
             this.onDeselect({ layer: oldValue.name });
-            this.onSelect(mouse);
+            await this.onSelect(mouse);
         }
     }
 
@@ -475,7 +475,7 @@ class DrawTool extends Tool implements ITool {
 
         // Finalize the text shape
         if (this.shape !== undefined && this.state.selectedShape === DrawShape.Text) {
-            this.finaliseShape();
+            await this.finaliseShape();
         }
     }
 
@@ -562,13 +562,13 @@ class DrawTool extends Tool implements ITool {
         return Promise.resolve();
     }
 
-    onUp(lp: LocalPoint, event: MouseEvent | TouchEvent | undefined): Promise<void> {
+    async onUp(lp: LocalPoint, event: MouseEvent | TouchEvent | undefined): Promise<void> {
         if (
             !this.active.value ||
             this.shape === undefined ||
             (this.shape instanceof Polygon && this.state.selectedShape === DrawShape.Polygon)
         ) {
-            return Promise.resolve();
+            return;
         }
 
         let endPoint = l2g(lp);
@@ -600,11 +600,10 @@ class DrawTool extends Tool implements ITool {
             }
         }
 
-        this.finaliseShape();
-        return Promise.resolve();
+        await this.finaliseShape();
     }
 
-    onContextMenu(event: MouseEvent): boolean {
+    async onContextMenu(event: MouseEvent): Promise<boolean> {
         if (
             this.active.value &&
             this.shape !== undefined &&
@@ -622,18 +621,18 @@ class DrawTool extends Tool implements ITool {
                 const props = getProperties(this.shape.id)!;
                 const points = this.shape.points; // expensive call
                 if (props.blocksVision && points.length > 1)
-                    visionState.insertConstraint(TriangulationTarget.VISION, this.shape, points[0], points.at(-1)!);
+                    visionState.insertConstraint(TriangulationTarget.VISION, this.shape, points[0]!, points.at(-1)!);
                 if (props.blocksMovement && points.length > 1)
-                    visionState.insertConstraint(TriangulationTarget.MOVEMENT, this.shape, points[0], points.at(-1)!);
+                    visionState.insertConstraint(TriangulationTarget.MOVEMENT, this.shape, points[0]!, points.at(-1)!);
             }
-            this.finaliseShape();
+            await this.finaliseShape();
         } else if (!this.active.value) {
             openDefaultContextMenu(event);
         }
         return true;
     }
 
-    onKeyUp(event: KeyboardEvent, features: ToolFeatures): void {
+    async onKeyUp(event: KeyboardEvent, features: ToolFeatures): Promise<void> {
         if (event.defaultPrevented) return;
         if (event.key === "Escape" && this.active.value) {
             let mouse: { x: number; y: number } | undefined = undefined;
@@ -641,7 +640,7 @@ class DrawTool extends Tool implements ITool {
                 mouse = { x: this.brushHelper.refPoint.x, y: this.brushHelper.refPoint.y };
             }
             this.onDeselect();
-            this.onSelect(mouse);
+            await this.onSelect(mouse);
             event.preventDefault();
         }
         super.onKeyUp(event, features);

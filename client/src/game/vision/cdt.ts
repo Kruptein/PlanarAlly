@@ -39,19 +39,19 @@ export class CDT {
         const stack = [[va, vb]];
         while (stack.length > 0) {
             const v = stack.pop()!;
-            const info = edgeInfo(v[0], v[1]);
+            const info = edgeInfo(v[0]!, v[1]!);
             if (info.includes) {
                 this.markConstraint(info.fr, info.i);
                 if (info.vi !== v[1]) {
-                    stack.push([info.vi, v[1]]);
+                    stack.push([info.vi, v[1]!]);
                 }
                 continue;
             }
-            const intersectionInfo = this.findIntersectedFaces(v[0], v[1]);
+            const intersectionInfo = this.findIntersectedFaces(v[0]!, v[1]!);
             if (intersectionInfo.found) {
                 if (intersectionInfo.vi !== v[0] && intersectionInfo.vi !== v[1]) {
-                    stack.push([v[0], intersectionInfo.vi]);
-                    stack.push([intersectionInfo.vi, v[1]]);
+                    stack.push([v[0]!, intersectionInfo.vi]);
+                    stack.push([intersectionInfo.vi, v[1]!]);
                 } else {
                     stack.push(v);
                 }
@@ -59,7 +59,7 @@ export class CDT {
             }
             this.triangulateHole(intersectionInfo.intersectedFaces, intersectionInfo.listAB, intersectionInfo.listBA);
             if (intersectionInfo.vi !== v[1]) {
-                stack.push([intersectionInfo.vi, v[1]]);
+                stack.push([intersectionInfo.vi, v[1]!]);
             }
         }
     }
@@ -74,8 +74,8 @@ export class CDT {
         if (listAB.length > 0) {
             this.triangulateHalfHole(listAB, edges);
             this.triangulateHalfHole(listBA, edges);
-            const fl = listAB[0][0];
-            const fr = listBA[0][0];
+            const fl = listAB[0]![0];
+            const fr = listBA[0]![0];
             fl.neighbours[2] = fr;
             fr.neighbours[2] = fl;
             fl.constraints[2] = true;
@@ -91,8 +91,8 @@ export class CDT {
         let iC = 0;
         let iN: number;
         let iT: number;
-        const current = (): [Triangle, number] => conflictBoundaries[iC];
-        const next = (): [Triangle, number] => conflictBoundaries[iN];
+        const current = (): [Triangle, number] => conflictBoundaries[iC]!;
+        const next = (): [Triangle, number] => conflictBoundaries[iN]!;
         // const tempo = (): [Triangle, number] => conflictBoundaries[iT];
 
         const va = current()[0].vertices[ccw(current()[1])]!;
@@ -362,7 +362,7 @@ export class CDT {
         let indf: number;
         do {
             indf = t.indexV(v);
-            if (t.neighbours[indf]!.constraints[this.tds.mirrorIndex(t, indf)]) t.constraints[indf] = true;
+            if (t.neighbours[indf]!.constraints[this.tds.mirrorIndex(t, indf)]!) t.constraints[indf] = true;
             else t.constraints[indf] = false;
             t = t.neighbours[ccw(indf)]!;
         } while (t !== start);
@@ -425,11 +425,11 @@ export class CDT {
         let eni: Edge;
         const edgeSet: Edge[] = [];
         while (eI < edges.length) {
-            t = edges[eI][0];
-            i = edges[eI][1];
+            t = edges[eI]![0];
+            i = edges[eI]![1];
             if (this.isFlipable(t, i)) {
                 eni = [t.neighbours[i]!, this.tds.mirrorIndex(t, i)];
-                if (this.lessEdge(edges[eI], eni)) edgeSet.push(edges[eI]);
+                if (this.lessEdge(edges[eI]!, eni)) edgeSet.push(edges[eI]!);
                 else edgeSet.push(eni);
             }
             ++eI;
@@ -440,8 +440,8 @@ export class CDT {
         let ei: Edge;
         const e: (Edge | null)[] = [null, null, null, null];
         while (edgeSet.length > 0) {
-            t = edgeSet[0][0];
-            indf = edgeSet[0][1];
+            t = edgeSet[0]![0];
+            indf = edgeSet[0]![1];
             ni = t.neighbours[indf]!;
             indn = this.tds.mirrorIndex(t, indf);
             ei = [t, indf];
@@ -505,16 +505,16 @@ export class CDT {
         this.tds.flip(t, i);
         t.constraints[t.indexT(u)] = false;
         u.constraints[u.indexT(t)] = false;
-        t1.neighbours[i1]!.constraints[this.tds.mirrorIndex(t1, i1)] = t1.constraints[i1];
-        t2.neighbours[i2]!.constraints[this.tds.mirrorIndex(t2, i2)] = t2.constraints[i2];
-        t3.neighbours[i3]!.constraints[this.tds.mirrorIndex(t3, i3)] = t3.constraints[i3];
-        t4.neighbours[i4]!.constraints[this.tds.mirrorIndex(t4, i4)] = t4.constraints[i4];
+        t1.neighbours[i1]!.constraints[this.tds.mirrorIndex(t1, i1)] = t1.constraints[i1]!;
+        t2.neighbours[i2]!.constraints[this.tds.mirrorIndex(t2, i2)] = t2.constraints[i2]!;
+        t3.neighbours[i3]!.constraints[this.tds.mirrorIndex(t3, i3)] = t3.constraints[i3]!;
+        t4.neighbours[i4]!.constraints[this.tds.mirrorIndex(t4, i4)] = t4.constraints[i4]!;
     }
 
     isFlipable(t: Triangle, i: number, perturb = true): boolean {
         const ni = t.neighbours[i]!;
         if (t.isInfinite() || ni.isInfinite()) return false;
-        if (t.constraints[i]) return false;
+        if (t.constraints[i]!) return false;
         return sideOfOrientedCircle(ni, t.vertices[i]!.point!, perturb) === Sign.ON_POSITIVE_SIDE;
     }
 
@@ -677,13 +677,13 @@ export class CDT {
         v.point = p;
         let th;
         while (ccwlist.length > 0) {
-            th = ccwlist[0];
+            th = ccwlist[0]!;
             li = ccw(th.indexV(this.tds._infinite));
             this.tds.flip(th, li);
             ccwlist.shift();
         }
         while (cwlist.length > 0) {
-            th = cwlist[0];
+            th = cwlist[0]!;
             li = cw(th.indexV(this.tds._infinite));
             this.tds.flip(th, li);
             cwlist.shift();
@@ -783,7 +783,7 @@ export class CDT {
                     continue;
                 }
             } else if (leftFirst) {
-                if (c.neighbours[0]! === prev) {
+                if (c.neighbours[0] === prev) {
                     prev = c;
                     o0 = orientation(p0, p1, p);
                     if (o0 === Sign.NEGATIVE) {
@@ -796,7 +796,7 @@ export class CDT {
                         continue;
                     }
                     o1 = Sign.POSITIVE;
-                } else if (c.neighbours[1]! === prev) {
+                } else if (c.neighbours[1] === prev) {
                     prev = c;
                     o1 = orientation(p1, p2, p);
                     if (o1 === Sign.NEGATIVE) {
@@ -893,9 +893,9 @@ export class CDT {
         if (this.tds.dimension < 2) return start;
         if (start === null) {
             const t = this.tds._infinite.triangle!;
-            start = t.neighbours[t.indexV(this.tds._infinite)];
+            start = t.neighbours[t.indexV(this.tds._infinite)] ?? null;
         } else if (start.isInfinite()) {
-            start = start.neighbours[start.indexV(this.tds._infinite)];
+            start = start.neighbours[start.indexV(this.tds._infinite)] ?? null;
         }
         let prev = null;
         let c = start!;

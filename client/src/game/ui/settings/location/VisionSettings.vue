@@ -90,6 +90,7 @@ function changeVisionMode(event: Event): void {
 }
 
 function o(k: any): boolean {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return getOption(k, location.value).override !== undefined;
 }
 </script>

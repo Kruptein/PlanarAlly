@@ -3,7 +3,7 @@ import { equalPoint } from "../../core/math";
 import { EdgeCirculator, Sign } from "./tds";
 import type { Point, Triangle, Vertex } from "./tds";
 
-type Line = number[];
+type Line = [number, number, number];
 
 export function cw(index: number): number {
     return (index + 2) % 3;
@@ -51,8 +51,8 @@ export function collinearBetween(p: Point, q: Point, r: Point): boolean {
 }
 
 function compare(index: number, a: Point, b: Point): Sign {
-    if (a[index] < b[index]) return Sign.SMALLER;
-    if (a[index] > b[index]) return Sign.LARGER;
+    if (a[index]! < b[index]!) return Sign.SMALLER;
+    if (a[index]! > b[index]!) return Sign.LARGER;
     return Sign.EQUAL;
 }
 

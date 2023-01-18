@@ -19,17 +19,17 @@ const currentIndex = computed(() => vState.variants.findIndex((v) => v.id === vS
 
 const previousVariant = computed(() => {
     if (currentIndex.value < 0) return { name: "No variant" };
-    return vState.variants[(currentIndex.value + vState.variants.length - 1) % vState.variants.length];
+    return vState.variants[(currentIndex.value + vState.variants.length - 1) % vState.variants.length]!;
 });
 
 const currentVariant = computed(() => {
     if (currentIndex.value < 0) return "No variant";
-    return vState.variants[currentIndex.value].name;
+    return vState.variants[currentIndex.value]!.name;
 });
 
 const nextVariant = computed(() => {
     if (currentIndex.value < 0) return { name: "No variant" };
-    return vState.variants[(currentIndex.value + 1) % vState.variants.length];
+    return vState.variants[(currentIndex.value + 1) % vState.variants.length]!;
 });
 
 const compositeParent = computed(() => {
@@ -59,6 +59,11 @@ async function addVariant(): Promise<void> {
     if (asset === undefined) return;
 
     const shape = getShape(vState.id!)!;
+
+    if (asset.file_hash === undefined) {
+        console.error("Missing file_hash for new variant");
+        return;
+    }
 
     const newShape = await dropAsset(
         { imageSource: `/static/assets/${asset.file_hash}`, assetId: asset.id },

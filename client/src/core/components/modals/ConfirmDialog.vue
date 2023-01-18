@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, ref, watchEffect } from "vue";
+import { nextTick, ref, watch } from "vue";
 
 import Modal from "./Modal.vue";
 
@@ -17,14 +17,17 @@ const emit = defineEmits(["close", "submit"]);
 const confirm = ref<HTMLButtonElement | null>(null);
 const deny = ref<HTMLButtonElement | null>(null);
 
-watchEffect(() => {
-    if (props.visible) {
-        nextTick(() => {
-            if (props.focus === "confirm") confirm.value!.focus();
-            else deny.value!.focus();
-        });
-    }
-});
+watch(
+    () => props.visible,
+    async (visible) => {
+        if (visible) {
+            await nextTick(() => {
+                if (props.focus === "confirm") confirm.value!.focus();
+                else deny.value!.focus();
+            });
+        }
+    },
+);
 </script>
 
 <template>

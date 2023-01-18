@@ -1,6 +1,6 @@
+import type { ServerGroup } from "../systems/groups/models";
 import type { ServerLocationOptions } from "../systems/settings/location/models";
 
-import type { ServerGroup } from "./groups";
 import type { ServerShape } from "./shapes";
 
 export interface ServerLocation {

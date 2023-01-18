@@ -19,7 +19,7 @@ const props = withDefaults(defineProps<{ colour?: string; showAlpha?: boolean; v
     showAlpha: true,
     vShow: true,
 });
-const emit = defineEmits<{ (e: "update:colour", c: string): void; (e: "input:colour", c: string): void }>();
+const emit = defineEmits<(e: "input:colour" | "update:colour", c: string) => void>();
 
 const alpha = ref<HTMLDivElement | null>(null);
 const hue = ref<HTMLDivElement | null>(null);
@@ -78,18 +78,18 @@ function setPosition(): void {
     top.value = `${_top}px`;
 }
 
-function open(event: Event): void {
+async function open(event: Event): Promise<void> {
     originalColor = tc.value.toRgbString();
     setPosition();
     visible.value = true;
-    nextTick(() => modal.value!.focus());
+    await nextTick(() => modal.value!.focus());
     event.preventDefault();
 }
 
 function close(): void {
     visible.value = false;
     const color = tc.value.toRgbString();
-    if (color !== originalColor && (color !== colourHistory.value?.[0] ?? "")) {
+    if (color !== originalColor && color !== (colourHistory.value[0] ?? "")) {
         const idx = colourHistory.value.findIndex((col) => col === color);
         if (idx >= 0) {
             colourHistory.value.splice(idx, 1);
@@ -448,6 +448,7 @@ input::-webkit-inner-spin-button {
 
 input[type="number"] {
     -moz-appearance: textfield; /* Firefox */
+    appearance: textfield;
 }
 
 .modal {

@@ -30,7 +30,7 @@ export function useAssetPicker(): AssetPickerModal {
         if (selected.length !== 1) {
             resolve(undefined);
         } else {
-            const asset = assetStore.state.idMap.get(selected[0]);
+            const asset = assetStore.state.idMap.get(selected[0]!);
             resolve(asset);
         }
         data.visible = false;

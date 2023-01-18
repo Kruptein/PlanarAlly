@@ -72,7 +72,7 @@ class ClientSystem implements System {
         if (playerState.raw.players.get(playerId)?.location === locationSettingsState.raw.activeLocation) {
             let shape: Polygon;
             if (shapeId === undefined) {
-                shape = this.createClientRect(client) as Polygon;
+                shape = this.createClientRect(client)!;
                 if (shape === undefined) return;
             } else {
                 shape = getShape(shapeId) as Polygon;

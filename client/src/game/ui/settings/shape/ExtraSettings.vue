@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import tinycolor from "tinycolor2";
-import { computed, ref, watch } from "vue";
+import { computed, ref, toRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { l2gz } from "../../../../core/conversions";
@@ -24,6 +24,8 @@ import type { Aura, AuraId } from "../../../systems/auras/models";
 import { floorSystem } from "../../../systems/floors";
 import { floorState } from "../../../systems/floors/state";
 import { gameState } from "../../../systems/game/state";
+import { labelSystem } from "../../../systems/labels";
+import { labelState } from "../../../systems/labels/state";
 import { playerSystem } from "../../../systems/players";
 import { DEFAULT_GRID_SIZE } from "../../../systems/position/state";
 import { propertiesSystem } from "../../../systems/properties";
@@ -40,8 +42,10 @@ watch(
     (newId, oldId) => {
         if (newId !== undefined && oldId !== newId) {
             annotationSystem.loadState(newId);
+            labelSystem.loadState(newId);
         } else if (newId === undefined) {
             annotationSystem.dropState();
+            labelSystem.dropState();
         }
     },
     { immediate: true },
@@ -50,13 +54,14 @@ watch(
 const textarea = ref<HTMLTextAreaElement | null>(null);
 
 const owned = accessState.hasEditAccess;
+const id = toRef(activeShapeStore.state, "id");
 
 // ANNOTATIONS
 
 function calcHeight(): void {
     if (textarea.value !== null) {
         textarea.value.style.height = "auto";
-        textarea.value.style.height = textarea.value.scrollHeight + "px";
+        textarea.value.style.height = textarea.value.scrollHeight.toString() + "px";
     }
 }
 
@@ -76,13 +81,13 @@ function setAnnotationVisible(event: Event): void {
 const showLabelManager = ref(false);
 
 function addLabel(label: string): void {
-    if (!owned.value) return;
-    activeShapeStore.addLabel(label, SERVER_SYNC);
+    if (id.value === undefined || !owned.value) return;
+    labelSystem.addLabel(id.value, label, true);
 }
 
 function removeLabel(uuid: string): void {
-    if (!owned.value) return;
-    activeShapeStore.removeLabel(uuid, SERVER_SYNC);
+    if (id.value === undefined || !owned.value) return;
+    labelSystem.removeLabel(id.value, uuid, true);
 }
 
 // SVG / DDRAFT
@@ -102,14 +107,15 @@ async function uploadSvg(): Promise<void> {
     const asset = await modals.assetPicker();
     if (asset === undefined || asset.file_hash === undefined) return;
 
-    const shape = getShape(activeShapeStore.state.id!)!;
+    const shape = getShape(activeShapeStore.state.id!);
+    if (shape === undefined) return;
     if (shape.options === undefined) {
         shape.options = {};
     }
-    activeShapeStore.setSvgAsset(asset.file_hash, SERVER_SYNC);
+    await activeShapeStore.setSvgAsset(asset.file_hash, SERVER_SYNC);
 }
 
-function removeSvg(): void {
+async function removeSvg(): Promise<void> {
     const shape = getShape(activeShapeStore.state.id!)!;
     if (shape.options === undefined) {
         shape.options = {};
@@ -118,7 +124,7 @@ function removeSvg(): void {
     delete shape.options.svgWidth;
     delete shape.options.svgHeight;
     delete shape.options.svgAsset;
-    activeShapeStore.setSvgAsset(undefined, SERVER_SYNC);
+    await activeShapeStore.setSvgAsset(undefined, SERVER_SYNC);
 }
 
 function applyDDraft(): void {
@@ -137,7 +143,9 @@ function applyDDraft(): void {
 
     for (const wall of dDraftData.ddraft_line_of_sight) {
         const points = wall.map((w) => toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH));
-        const shape = new Polygon(points[0], points.slice(1), { openPolygon: true }, { strokeColour: ["red"] });
+        if (points.length === 0) continue;
+
+        const shape = new Polygon(points[0]!, points.slice(1), { openPolygon: true }, { strokeColour: ["red"] });
         accessSystem.addAccess(
             shape.id,
             playerSystem.getCurrentPlayer()!.name,
@@ -152,7 +160,9 @@ function applyDDraft(): void {
 
     for (const portal of dDraftData.ddraft_portals) {
         const points = portal.bounds.map((w) => toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH));
-        const shape = new Polygon(points[0], points.slice(1), { openPolygon: true }, { strokeColour: ["blue"] });
+        if (points.length === 0) continue;
+
+        const shape = new Polygon(points[0]!, points.slice(1), { openPolygon: true }, { strokeColour: ["blue"] });
         accessSystem.addAccess(
             shape.id,
             playerSystem.getCurrentPlayer()!.name,
@@ -211,7 +221,7 @@ function applyDDraft(): void {
     <div class="panel restore-panel">
         <div class="spanrow header">{{ t("common.labels") }}</div>
         <div id="labels" class="spanrow">
-            <div v-for="label in activeShapeStore.state.labels" :key="label.uuid" class="label">
+            <div v-for="label in labelState.reactive.activeShape?.labels" :key="label.uuid" class="label">
                 <template v-if="label.category">
                     <div class="label-user">{{ label.category }}</div>
                     <div class="label-main" @click="removeLabel(label.uuid)">{{ label.name }}</div>

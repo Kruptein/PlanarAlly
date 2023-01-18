@@ -1,6 +1,5 @@
 import { toGP } from "../../core/geometry";
 import { baseAdjust } from "../../core/http";
-import { hasGroup, addGroupMembers } from "../groups";
 import { reserveLocalId, getLocalId } from "../id";
 import type { IShape } from "../interfaces/shape";
 import type {
@@ -14,6 +13,7 @@ import type {
     ServerAsset,
     ServerToggleComposite,
 } from "../models/shapes";
+import { groupSystem } from "../systems/groups";
 
 import { Asset } from "./variants/asset";
 import { Circle } from "./variants/circle";
@@ -30,11 +30,11 @@ export function createShapeFromDict(shape: ServerShape): IShape | undefined {
     // A fromJSON and toJSON on Shape would be cleaner but ts does not allow for static abstracts so yeah.
 
     if (shape.group !== undefined && shape.group !== null) {
-        const group = hasGroup(shape.group);
+        const group = groupSystem.hasGroup(shape.group);
         if (group === undefined) {
             console.log("Missing group info detected");
         } else {
-            addGroupMembers(shape.group, [{ uuid: reserveLocalId(shape.uuid), badge: shape.badge }], false);
+            groupSystem.addGroupMembers(shape.group, [{ uuid: reserveLocalId(shape.uuid), badge: shape.badge }], false);
         }
     }
 

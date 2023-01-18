@@ -78,5 +78,7 @@ export function zoomDisplayToFactor(display: number): number {
     return (zoomValue * playerSettingsState.gridSize.value) / DEFAULT_GRID_SIZE;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).g2l = g2l;
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).l2g = l2g;

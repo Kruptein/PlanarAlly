@@ -21,9 +21,9 @@ const translationMapping = {
     [SpellShape.Cone]: t("game.ui.tools.DrawTool.cone"),
 };
 
-function selectShape(shape: SpellShape): void {
+async function selectShape(shape: SpellShape): Promise<void> {
     spellTool.state.selectedSpellShape = shape;
-    spellTool.drawShape();
+    await spellTool.drawShape();
 }
 </script>
 

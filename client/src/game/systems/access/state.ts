@@ -47,7 +47,7 @@ export const accessState = {
         if (gameState.reactive.isFakePlayer && activeTokens.value.has(state.reactive.id)) return true;
         if (state.reactive.defaultAccess.edit) return true;
         const username = playerSystem.getCurrentPlayer()?.name;
-        return [...state.reactive.playerAccess.entries()].some(([u, a]) => u === username && a.edit === true);
+        return [...state.reactive.playerAccess.entries()].some(([u, a]) => u === username && a.edit);
     }),
 
     owners: computed(() => {

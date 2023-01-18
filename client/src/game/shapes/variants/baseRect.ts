@@ -239,7 +239,7 @@ export abstract class BaseRect extends Shape implements IShape {
         // this call needs to happen BEFORE the below code
         this.invalidatePoints();
 
-        const vec = Vector.fromPoints(toGP(this.points[oppositeNRP]), toGP(oldPoints[oppositeNRP]));
+        const vec = Vector.fromPoints(toGP(this.points[oppositeNRP]!), toGP(oldPoints[oppositeNRP]!));
         this.refPoint = addP(this.refPoint, vec);
 
         return newResizePoint;

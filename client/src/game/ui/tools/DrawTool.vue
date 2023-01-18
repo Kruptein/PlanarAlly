@@ -44,7 +44,7 @@ const showBorderColour = computed(() => {
 });
 
 const alerts = computed(() => {
-    const a: Set<string> = new Set();
+    const a = new Set<string>();
     if (drawTool.state.blocksMovement || drawTool.state.blocksVision) {
         a.add("eye");
     }

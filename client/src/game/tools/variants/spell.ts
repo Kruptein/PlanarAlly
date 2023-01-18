@@ -1,5 +1,5 @@
 import tinycolor from "tinycolor2";
-import { reactive, watch, watchEffect } from "vue";
+import { reactive, watch } from "vue";
 
 import { g2l, getUnitDistance, l2g, toRadians } from "../../../core/conversions";
 import { toGP, toLP } from "../../../core/geometry";
@@ -51,32 +51,38 @@ class SpellTool extends Tool implements ITool {
         super();
         watch(
             () => this.state.size,
-            () => {
+            async () => {
                 if (this.state.size <= 0) this.state.size = 1;
-                if (this.shape !== undefined) this.drawShape();
+                if (this.shape !== undefined) await this.drawShape();
             },
         );
-        watchEffect(() => {
-            if (selectedSystem.getFocus().value === undefined && this.state.selectedSpellShape === SpellShape.Cone) {
-                this.state.selectedSpellShape = SpellShape.Circle;
-            }
-            if (this.shape !== undefined) this.drawShape();
-        });
+        watch(
+            () => this.state.selectedSpellShape,
+            async () => {
+                if (
+                    selectedSystem.getFocus().value === undefined &&
+                    this.state.selectedSpellShape === SpellShape.Cone
+                ) {
+                    this.state.selectedSpellShape = SpellShape.Circle;
+                }
+                if (this.shape !== undefined) await this.drawShape();
+            },
+        );
         watch(
             () => this.state.colour,
-            () => {
-                if (this.shape !== undefined) this.drawShape();
+            async () => {
+                if (this.shape !== undefined) await this.drawShape();
             },
         );
         watch(
             () => this.state.showPublic,
-            () => {
-                if (this.shape !== undefined) this.drawShape(true);
+            async () => {
+                if (this.shape !== undefined) await this.drawShape(true);
             },
         );
     }
 
-    drawShape(syncChanged = false): void {
+    async drawShape(syncChanged = false): Promise<void> {
         if (!selectedSystem.hasSelection && this.state.selectedSpellShape === SpellShape.Cone) return;
 
         const layer = floorState.currentLayer.value!;
@@ -110,8 +116,6 @@ class SpellTool extends Tool implements ITool {
                 break;
         }
 
-        if (this.shape === undefined) return;
-
         const c = tinycolor(this.state.colour);
         c.setAlpha(c.getAlpha() * 0.7);
         propertiesSystem.setFillColour(this.shape.id, c.toRgbString(), NO_SYNC);
@@ -144,10 +148,10 @@ class SpellTool extends Tool implements ITool {
             }
         }
 
-        this.drawRangeShape();
+        await this.drawRangeShape();
     }
 
-    drawRangeShape(): void {
+    async drawRangeShape(): Promise<void> {
         const focus = selectedSystem.getFocus().value;
 
         if (focus === undefined || this.shape === undefined) return;
@@ -156,27 +160,25 @@ class SpellTool extends Tool implements ITool {
         if (focusShape === undefined) return;
 
         const ruler = toolMap[ToolName.Ruler];
-        ruler.onDown(g2l(focusShape.center), undefined, {});
+        await ruler.onDown(g2l(focusShape.center), undefined, {});
     }
 
-    onSelect(): Promise<void> {
+    async onSelect(): Promise<void> {
         if (!selectedSystem.hasSelection && this.state.selectedSpellShape === SpellShape.Cone) {
             this.state.selectedSpellShape = SpellShape.Circle;
         }
-        this.drawShape();
-        return Promise.resolve();
+        await this.drawShape();
     }
 
-    onDeselect(): void {
-        this.close(true);
+    async onDeselect(): Promise<void> {
+        await this.close(true);
     }
 
-    onDown(): Promise<void> {
-        this.close(false);
-        return Promise.resolve();
+    async onDown(): Promise<void> {
+        await this.close(false);
     }
 
-    onMove(lp: LocalPoint): Promise<void> {
+    async onMove(lp: LocalPoint): Promise<void> {
         if (this.shape === undefined) return Promise.resolve();
 
         const endPoint = l2g(lp);
@@ -193,22 +195,21 @@ class SpellTool extends Tool implements ITool {
 
             const focus = selectedSystem.getFocus().value;
 
-            if (focus !== undefined && this.shape !== undefined) {
+            if (focus !== undefined) {
                 const ruler = toolMap[ToolName.Ruler];
-                ruler.onMove(g2l(this.shape.center), undefined, {});
+                await ruler.onMove(g2l(this.shape.center), undefined, {});
             }
 
             layer.invalidate(true);
         }
-        return Promise.resolve();
     }
 
-    onContextMenu(): boolean {
-        this.close(true);
+    async onContextMenu(): Promise<boolean> {
+        await this.close(true);
         return false;
     }
 
-    close(dropShapeId: boolean): void {
+    async close(dropShapeId: boolean): Promise<void> {
         if (this.shape !== undefined) {
             const layer = floorState.currentLayer.value;
             if (layer === undefined) return;
@@ -226,7 +227,7 @@ class SpellTool extends Tool implements ITool {
             this.shape = undefined;
 
             const ruler = toolMap[ToolName.Ruler];
-            ruler.onUp(toLP(0, 0), undefined, {});
+            await ruler.onUp(toLP(0, 0), undefined, {});
         }
         activateTool(ToolName.Select);
     }

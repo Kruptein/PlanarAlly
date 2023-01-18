@@ -150,7 +150,7 @@ export async function mouseLeave(event: MouseEvent): Promise<void> {
     }
 }
 
-function contextMenu(event: MouseEvent): void {
+async function contextMenu(event: MouseEvent): Promise<void> {
     if ((event.target as HTMLElement).tagName !== "CANVAS") return;
     if (uiState.raw.preventContextMenu) return;
     if (event.button !== 2) return;
@@ -158,15 +158,15 @@ function contextMenu(event: MouseEvent): void {
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
-        toolMap[permitted.name].onContextMenu(event, permitted.features);
+        await toolMap[permitted.name].onContextMenu(event, permitted.features);
     }
 
-    const done = !tool.onContextMenu(event, getFeatures(activeTool.value));
+    const done = !(await tool.onContextMenu(event, getFeatures(activeTool.value)));
     if (done) return;
 
     for (const permitted of tool.permittedTools) {
         if (permitted.early ?? false) continue;
-        toolMap[permitted.name].onContextMenu(event, permitted.features);
+        await toolMap[permitted.name].onContextMenu(event, permitted.features);
     }
 }
 

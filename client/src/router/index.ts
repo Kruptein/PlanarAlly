@@ -17,20 +17,24 @@ router.beforeEach(async (to, _from, next) => {
         const promiseArray = [http.get("/api/auth"), http.get("/api/version")];
 
         // Launch extra requests (changelog & notifications)
-        http.get("/api/changelog").then(async (response) => {
-            const data = await response.json();
-            coreStore.setChangelog(data.changelog);
-        });
-        http.get("/api/notifications").then(async (response) => {
-            const data = await response.json();
-            handleNotifications(data);
-        });
+        http.get("/api/changelog")
+            .then(async (response) => {
+                const data = (await response.json()) as { changelog: string };
+                coreStore.setChangelog(data.changelog);
+            })
+            .catch(() => console.warn("Failed to retrieve changelog"));
+        http.get("/api/notifications")
+            .then(async (response) => {
+                const data = (await response.json()) as { uuid: string; message: string }[];
+                handleNotifications(data);
+            })
+            .catch(() => console.warn("Failed to retrieve notifications"));
 
         // Handle core requests
         const [authResponse, versionResponse] = await Promise.all(promiseArray);
-        if (authResponse.ok && versionResponse.ok) {
-            const authData: { auth: boolean; username: string; email: string } = await authResponse.json();
-            const versionData = await versionResponse.json();
+        if (authResponse!.ok && versionResponse!.ok) {
+            const authData = (await authResponse!.json()) as { auth: boolean; username: string; email: string };
+            const versionData = (await versionResponse!.json()) as { release: string; env: string };
             if (authData.auth) {
                 coreStore.setAuthenticated(true);
                 coreStore.setUsername(authData.username);

@@ -38,7 +38,7 @@ function toggle(folder: string): void {
 
 function dragStart(event: DragEvent, imageSource: string, assetId: number): void {
     state.hoveredHash = "";
-    if (event === null || event.dataTransfer === null) return;
+    if (event.dataTransfer === null) return;
 
     const img = (event.target as HTMLElement).querySelector(".preview")!;
     event.dataTransfer.setDragImage(img, 0, 0);

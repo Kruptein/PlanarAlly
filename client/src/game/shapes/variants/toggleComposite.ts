@@ -1,6 +1,7 @@
 import type { GlobalPoint } from "../../../core/geometry";
 import { SyncMode } from "../../../core/models/types";
 import type { Sync } from "../../../core/models/types";
+import { activeShapeStore } from "../../../store/activeShape";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { sendShapeSkipDraw } from "../../api/emits/shape/options";
 import {
@@ -46,9 +47,7 @@ export class ToggleComposite extends Shape implements IToggleComposite {
         this.setActiveVariant(this.active_variant, false);
     }
 
-    get isClosed(): boolean {
-        return true;
-    }
+    readonly isClosed = true;
 
     get variants(): readonly { id: LocalId; name: string }[] {
         return this._variants;
@@ -61,9 +60,18 @@ export class ToggleComposite extends Shape implements IToggleComposite {
     }
 
     renameVariant(uuid: LocalId, name: string, syncTo: Sync): void {
-        if (syncTo.server)
-            sendToggleCompositeRenameVariant({ shape: getGlobalId(this.id), variant: getGlobalId(uuid), name });
-        if (syncTo.ui) this._("renameVariant")(uuid, name, syncTo);
+        const shape = getGlobalId(this.id);
+        const variantId = getGlobalId(uuid);
+
+        if (shape === undefined || variantId === undefined) {
+            console.error("Variant globalid mismatch");
+            return;
+        }
+
+        if (syncTo.server) sendToggleCompositeRenameVariant({ shape, variant: variantId, name });
+        if (syncTo.ui) {
+            if (this.id === activeShapeStore.state.id) activeShapeStore.renameVariant(uuid, name, syncTo);
+        }
 
         const variant = this._variants.find((v) => v.id === uuid);
         if (variant === undefined) return;
@@ -71,15 +79,25 @@ export class ToggleComposite extends Shape implements IToggleComposite {
     }
 
     removeVariant(id: LocalId, syncTo: Sync): void {
-        if (syncTo.server) sendToggleCompositeRemoveVariant({ shape: getGlobalId(this.id), variant: getGlobalId(id) });
-        if (syncTo.ui) this._("removeVariant")(id, syncTo);
+        const shape = getGlobalId(this.id);
+        const variantId = getGlobalId(id);
+
+        if (shape === undefined || variantId === undefined) {
+            console.error("Variant globalid mismatch");
+            return;
+        }
+
+        if (syncTo.server) sendToggleCompositeRemoveVariant({ shape, variant: variantId });
+        if (syncTo.ui) {
+            if (this.id === activeShapeStore.state.id) activeShapeStore.removeVariant(id, syncTo);
+        }
 
         const v = this._variants.findIndex((v) => v.id === id);
-        if (v === undefined) {
+        if (v === -1) {
             console.error("Variant not found during variant removal");
             return;
         }
-        const newVariant = this._variants[(v + 1) % this._variants.length].id;
+        const newVariant = this._variants[(v + 1) % this._variants.length]!.id;
         this._variants.splice(v, 1);
         this.setActiveVariant(newVariant, true);
 
@@ -109,13 +127,24 @@ export class ToggleComposite extends Shape implements IToggleComposite {
             console.error("COULD NOT FIND OLD VARIANT!");
             return;
         }
-        this.resetVariants(this.active_variant);
-        this.active_variant = variant;
-        const newVariant = getShape(this.active_variant);
+        const gIdOldShape = getGlobalId(oldVariant.id);
+
+        const newVariant = getShape(variant);
         if (newVariant === undefined) {
             console.error("COULD NOT FIND NEW VARIANT!");
             return;
         }
+        const gIdNewShape = getGlobalId(newVariant.id);
+
+        const gId = getGlobalId(this.id);
+        if (gId === undefined || gIdOldShape === undefined || gIdNewShape === undefined) {
+            console.error("Globalid mismatch in variant switching");
+            return;
+        }
+
+        this.resetVariants(this.active_variant);
+        this.active_variant = variant;
+
         const props = getProperties(newVariant.id)!;
 
         if (props.isToken && accessSystem.hasAccessTo(newVariant.id, false, { vision: true }))
@@ -138,9 +167,9 @@ export class ToggleComposite extends Shape implements IToggleComposite {
             newVariant.center = oldCenter;
 
             sendShapePositionUpdate([newVariant], false);
-            sendShapeSkipDraw({ shape: getGlobalId(oldVariant.id), value: true });
-            sendShapeSkipDraw({ shape: getGlobalId(newVariant.id), value: false });
-            sendToggleCompositeActiveVariant({ shape: getGlobalId(this.id), variant: getGlobalId(variant) });
+            sendShapeSkipDraw({ shape: gIdOldShape, value: true });
+            sendShapeSkipDraw({ shape: gIdNewShape, value: false });
+            sendToggleCompositeActiveVariant({ shape: gId, variant: gIdNewShape });
         }
 
         if (this._layer !== undefined && this.layer.isActiveLayer) {

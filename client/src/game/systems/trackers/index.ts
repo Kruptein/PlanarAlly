@@ -22,7 +22,7 @@ interface TrackerState {
 }
 
 class TrackerSystem implements ShapeSystem {
-    private data: Map<LocalId, Tracker[]> = new Map();
+    private data = new Map<LocalId, Tracker[]>();
 
     // REACTIVE STATE
 
@@ -108,7 +108,10 @@ class TrackerSystem implements ShapeSystem {
     }
 
     add(id: LocalId, tracker: Tracker, syncTo: Sync): void {
-        if (syncTo.server) sendShapeCreateTracker(trackersToServer(getGlobalId(id), [tracker])[0]);
+        if (syncTo.server) {
+            const gId = getGlobalId(id);
+            if (gId) sendShapeCreateTracker(trackersToServer(gId, [tracker])[0]!);
+        }
 
         this.getOrCreate(id).push(tracker);
 
@@ -122,13 +125,15 @@ class TrackerSystem implements ShapeSystem {
         if (tracker === undefined) return;
 
         if (syncTo.server) {
-            sendShapeUpdateTracker({
-                ...partialTrackerToServer({
-                    ...delta,
-                }),
-                shape: getGlobalId(id),
-                uuid: trackerId,
-            });
+            const shape = getGlobalId(id);
+            if (shape)
+                sendShapeUpdateTracker({
+                    ...partialTrackerToServer({
+                        ...delta,
+                    }),
+                    shape,
+                    uuid: trackerId,
+                });
         }
 
         const oldDrawTracker = tracker.draw;
@@ -141,7 +146,10 @@ class TrackerSystem implements ShapeSystem {
     }
 
     remove(id: LocalId, trackerId: TrackerId, syncTo: Sync): void {
-        if (syncTo.server) sendShapeRemoveTracker({ shape: getGlobalId(id), value: trackerId });
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeRemoveTracker({ shape, value: trackerId });
+        }
 
         const oldTracker = this.get(id, trackerId, false);
 

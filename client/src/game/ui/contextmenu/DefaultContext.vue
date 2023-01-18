@@ -80,11 +80,14 @@ async function createSpawnLocation(): Promise<void> {
         .addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
     img.onload = () => (gameState.raw.boardInitialized ? shape.layer.invalidate(true) : undefined);
 
-    locationSettingsSystem.setSpawnLocations(
-        [...spawnLocations, getGlobalId(shape.id)],
-        locationSettingsState.raw.activeLocation,
-        true,
-    );
+    const gId = getGlobalId(shape.id);
+
+    if (gId)
+        locationSettingsSystem.setSpawnLocations(
+            [...spawnLocations, gId],
+            locationSettingsState.raw.activeLocation,
+            true,
+        );
 }
 
 function showInitiativeDialog(): void {

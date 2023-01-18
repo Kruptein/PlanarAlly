@@ -28,7 +28,7 @@ socket.on("Shape.Options.Aura.Move", (data: { shape: GlobalId; aura: AuraId; new
 socket.on("Shape.Options.Aura.Create", (data: ServerAura): void => {
     const shape = getLocalId(data.shape);
     if (shape === undefined) return;
-    auraSystem.add(shape, aurasFromServer(data)[0], UI_SYNC);
+    auraSystem.add(shape, aurasFromServer(data)[0]!, UI_SYNC);
 });
 
 socket.on("Shape.Options.Aura.Update", (data: { uuid: string; shape: GlobalId } & Partial<Aura>): void => {

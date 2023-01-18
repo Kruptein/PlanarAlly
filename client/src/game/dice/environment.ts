@@ -31,9 +31,11 @@ export async function loadDiceEnv(): Promise<DiceThrower> {
     const canvas = document.getElementById("babylon") as HTMLCanvasElement;
 
     await loadAmmoModule();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const Ammo = (window as any).Ammo;
 
     diceThrower = new DiceThrower({ canvas, tresholds: { linear: 0.05, angular: 0.1 } });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     await diceThrower.load(baseAdjust("/static/all_dice.babylon"), Ammo());
 
     /*
@@ -54,10 +56,10 @@ export async function loadDiceEnv(): Promise<DiceThrower> {
 
     scene.registerBeforeRender(() => {
         const meshes = scene.getActiveMeshCandidates();
-        for (let j = 0; j < meshes.length; j++) {
-            const i = meshes.data[j].getPhysicsImpostor();
+        for (const meshData of meshes.data) {
+            const i = meshData.getPhysicsImpostor();
             if (i === null || i === undefined) continue;
-            const pos = meshes.data[j].position;
+            const pos = meshData.position;
             if (pos.y > 3) continue;
             const linVel = i.getLinearVelocity()!;
             const linVelZero = linVel.x === 0 && linVel.y === 0 && linVel.z === 0;
@@ -78,6 +80,7 @@ export async function loadDiceEnv(): Promise<DiceThrower> {
         }
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     (window as any).shadowGenerator = new ShadowGenerator(1024, light);
 
     loadDiceBox(scene);
@@ -86,10 +89,15 @@ export async function loadDiceEnv(): Promise<DiceThrower> {
 
     dndParser = new DndParser(diceThrower);
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     (window as any).diceThrower = diceThrower;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     (window as any).Dice = Dice;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     (window as any).p = dndParser;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     (window as any).V3 = Vector3;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     (window as any).r = async (inp: string, options?: DieOptions[]): Promise<void> => {
         diceStore.setIsPending(true);
         const results = await dndParser!.fromString(inp, options);

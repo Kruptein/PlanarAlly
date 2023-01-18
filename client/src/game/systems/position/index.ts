@@ -192,7 +192,7 @@ class PositionSystem implements System {
             const shape = fn(sh);
             if (
                 shape === undefined ||
-                (shape.options?.skipDraw ?? false) ||
+                (shape.options.skipDraw ?? false) ||
                 shape.floor !== floorState.currentFloor.value
             )
                 continue;

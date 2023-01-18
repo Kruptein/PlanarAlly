@@ -1,20 +1,76 @@
-import { registerSystem } from "..";
-import type { System } from "..";
-import { getAllShapes } from "../../id";
+import { registerSystem, type ShapeSystem } from "..";
+import { sendShapeAddLabel, sendShapeRemoveLabel } from "../../api/emits/shape/options";
+import { getGlobalId, getShape, type LocalId } from "../../id";
 import { floorSystem } from "../floors";
 
 import { sendLabelAdd, sendLabelDelete, sendLabelFilterAdd, sendLabelFilterDelete } from "./emits";
 import type { Label } from "./models";
 import { labelState } from "./state";
 
-const { mutableReactive: $ } = labelState;
+const { mutableReactive: $, mutable, raw } = labelState;
 
-class LabelSystem implements System {
-    clear(): void {}
+export class LabelSystem implements ShapeSystem {
+    // Inform the system about the state of a certain LocalId
+    inform(id: LocalId, data: Label[]): void {
+        mutable.data.set(id, data);
+    }
 
-    addLabel(label: Label, sync: boolean): void {
+    drop(id: LocalId): void {
+        mutable.data.delete(id);
+        if ($.activeShape?.id === id) {
+            $.activeShape = undefined;
+        }
+    }
+
+    loadState(id: LocalId): void {
+        $.activeShape = {
+            id,
+            labels: [...($.shapeLabels.get(id) ?? [])].map((l) => $.labels.get(l)!),
+        };
+    }
+
+    dropState(): void {
+        $.activeShape = undefined;
+    }
+
+    clear(): void {
+        this.dropState();
+        $.shapeLabels.clear();
+        $.labels.clear();
+    }
+
+    // END OF ACTIVE SHAPE STUFF
+
+    createLabel(label: Label, sync: boolean): void {
         $.labels.set(label.uuid, label);
         if (sync) sendLabelAdd(label);
+    }
+
+    addLabel(id: LocalId, labelId: string, sync: boolean): void {
+        $.shapeLabels.get(id)?.add(labelId);
+        if ($.activeShape?.id === id) {
+            const label = $.labels.get(labelId);
+            if (label === undefined) {
+                console.error("Unknown label being added");
+                return;
+            }
+            $.activeShape.labels.push(label);
+        }
+        if (sync) sendShapeAddLabel({ shape: getGlobalId(id)!, value: labelId });
+    }
+
+    removeLabel(id: LocalId, labelId: string, sync: boolean): void {
+        $.shapeLabels.get(id)?.delete(labelId);
+        if ($.activeShape?.id === id) {
+            $.activeShape.labels = $.activeShape.labels.filter((l) => l.uuid !== labelId);
+        }
+        if (sync) sendShapeRemoveLabel({ shape: getGlobalId(id)!, value: labelId });
+    }
+
+    getLabels(id: LocalId): Label[] {
+        const labels = $.shapeLabels.get(id);
+        if (labels === undefined) return [];
+        return [...labels].map((l) => $.labels.get(l)!);
     }
 
     addLabelFilter(filter: string, sync: boolean): void {
@@ -44,17 +100,25 @@ class LabelSystem implements System {
 
     deleteLabel(uuid: string, sync: boolean): void {
         if (!$.labels.has(uuid)) return;
-        const label = $.labels.get(uuid)!;
-        for (const shape of getAllShapes()) {
-            const i = shape.labels.indexOf(label);
-            if (i >= 0) {
-                shape.labels.splice(i, 1);
-                shape.layer.invalidate(false);
-            }
+        for (const [shapeId, labels] of $.shapeLabels.entries()) {
+            labels.delete(uuid);
+            getShape(shapeId)?.layer.invalidate(false);
         }
         $.labels.delete(uuid);
 
         if (sync) sendLabelDelete({ uuid });
+    }
+
+    isFiltered(id: LocalId): boolean {
+        const shapeLabels = raw.shapeLabels.get(id);
+        if ((shapeLabels === undefined || shapeLabels.size === 0) && raw.filterNoLabel) return true;
+        if (
+            (shapeLabels?.size ?? 0) > 0 &&
+            raw.labelFilters.length &&
+            ![...shapeLabels!].some((l) => raw.labelFilters.includes(l))
+        )
+            return true;
+        return false;
     }
 }
 

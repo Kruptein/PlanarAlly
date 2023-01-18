@@ -38,7 +38,7 @@ async function login(): Promise<void> {
     if (response.ok) {
         coreStore.setUsername(username.value);
         coreStore.setAuthenticated(true);
-        const data: { email?: string } = await response.json();
+        const data = (await response.json()) as { email?: string };
         if (data.email !== undefined) coreStore.setEmail(data.email);
         await router.push((route.query.redirect as string) ?? "/");
     } else {

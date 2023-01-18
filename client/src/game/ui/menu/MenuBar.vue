@@ -90,7 +90,7 @@ const clientInfo = computed(() => {
     const info = [];
     for (const [playerId, player] of playerState.reactive.players) {
         const clients = clientSystem.getClients(playerId);
-        info.push({ player, client: clients[0] });
+        if (clients.length > 0) info.push({ player, client: clients[0]! });
     }
     return info;
 });

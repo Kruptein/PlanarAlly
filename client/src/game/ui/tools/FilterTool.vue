@@ -13,7 +13,7 @@ const { t } = useI18n();
 const selected = filterTool.isActiveTool;
 
 const categories = computed(() => {
-    const cat: Map<string, Label[]> = new Map();
+    const cat = new Map<string, Label[]>();
     cat.set("", []);
     for (const label of labelState.reactive.labels.values()) {
         if (!label.category) {
@@ -30,7 +30,7 @@ const categories = computed(() => {
 });
 
 const initialValues = computed(() => {
-    const values: Map<string, string[]> = new Map();
+    const values = new Map<string, string[]>();
     for (const [category, labels] of categories.value) {
         values.set(
             category,

@@ -26,7 +26,7 @@ class LocationStore extends Store<LocationState> {
     constructor() {
         super();
         watchEffect(() => {
-            const newLocations = new Map();
+            const newLocations = new Map<number, Set<string>>();
             for (const player of playerState.reactive.players.values()) {
                 if (player.name === playerSystem.getCurrentPlayer()?.name && gameState.reactive.isDm) continue;
                 if (!newLocations.has(player.location)) {
@@ -99,4 +99,5 @@ class LocationStore extends Store<LocationState> {
 }
 
 export const locationStore = new LocationStore();
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).locationStore = locationStore;

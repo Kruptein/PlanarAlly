@@ -10,7 +10,7 @@ const props = withDefaults(
     }>(),
     { showNumberInput: false },
 );
-const emit = defineEmits<{ (e: "input", angle: number): void; (e: "change", angle: number): void }>();
+const emit = defineEmits<(e: "change" | "input", angle: number) => void>();
 
 const circle = ref<HTMLDivElement | null>(null);
 

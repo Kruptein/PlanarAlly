@@ -26,12 +26,12 @@ import { floorState } from "./state";
 
 type FloorRepresentation = { name: string } | { id: number } | { position: number };
 
-const { mutableReactive: $, currentFloor, currentLayer } = floorState;
+const { mutableReactive: $, raw, currentFloor, currentLayer } = floorState;
 
 class FloorSystem implements System {
     private indices: number[] = [];
     private lastFloorId = 0;
-    private layerMap: Map<number, ILayer[]> = new Map();
+    private layerMap = new Map<number, ILayer[]>();
 
     clear(): void {
         $.floors = [];
@@ -53,7 +53,7 @@ class FloorSystem implements System {
         readonly = true,
     ): number | DeepReadonly<Floor> | undefined {
         const method = mode === "index" ? "findIndex" : "find";
-        const target = readonly === false ? $ : floorState.reactive;
+        const target = !readonly ? $ : floorState.reactive;
         if ("name" in data) return target.floors[method]((f) => f.name === data.name);
         if ("id" in data) return target.floors[method]((f) => f.id === data.id);
         return mode === "index" ? data.position : target.floors[data.position];
@@ -62,6 +62,7 @@ class FloorSystem implements System {
     getFloor(data: FloorRepresentation, readonly: false): Floor | undefined;
     getFloor(data: FloorRepresentation, readonly?: true): DeepReadonly<Floor> | undefined;
     getFloor(data: FloorRepresentation, readonly = true): Floor | DeepReadonly<Floor> | undefined {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         return this._parseFloor("object", data, readonly as any); // any cast needed because overload signature is not visible
     }
 
@@ -118,7 +119,9 @@ class FloorSystem implements System {
     }
 
     renameFloor(index: number, name: string, sync: boolean): void {
-        $.floors[index].name = name;
+        if (raw.floors[index] === undefined) return;
+
+        $.floors[index]!.name = name;
         if (index === floorState.raw.floorIndex) this.invalidateAllFloors();
         if (sync) sendRenameFloor({ index, name });
     }
@@ -127,6 +130,10 @@ class FloorSystem implements System {
         const floorIndex = this.getFloorIndex(floorRepresentation);
         if (floorIndex === undefined) throw new Error("Could not remove unknown floor");
         const floor = floorState.raw.floors[floorIndex];
+        if (floor === undefined) {
+            console.error("Attempt to remove unknown floor.");
+            return;
+        }
 
         visionState.removeCdt(floor.id);
         visionState.removeBlockers(TriangulationTarget.MOVEMENT, floor.id);
@@ -151,7 +158,12 @@ class FloorSystem implements System {
     }
 
     reorderFloors(floors: string[], sync: boolean): void {
-        const activeFloorName = floorState.raw.floors[floorState.raw.floorIndex].name;
+        const activeFloorName = floorState.raw.floors[floorState.raw.floorIndex]?.name;
+        if (activeFloorName === undefined) {
+            console.error("Current floor info could not be retrieved.");
+            return;
+        }
+
         $.floors = floors.map((name) => floorState.raw.floors.find((f) => f.name === name)!);
         $.floorIndex = this.getFloorIndex({ name: activeFloorName })!;
         recalculateZIndices();
@@ -236,7 +248,7 @@ class FloorSystem implements System {
         const floor = this.getFloor(floorRepr, false)!;
         const layers = this.layerMap.get(floor.id)!;
         for (let i = layers.length - 1; i >= 0; i--) {
-            layers[i].invalidate(true);
+            layers[i]!.invalidate(true);
         }
     }
 
@@ -262,12 +274,14 @@ class FloorSystem implements System {
     // as you typically require the allFloor variant
     invalidateLight(floorId: number): void {
         const layers = this.layerMap.get(floorId)!;
-        for (let i = layers.length - 1; i >= 0; i--)
-            if (layers[i].isVisionLayer) {
-                layers[i].invalidate(true);
-            } else if (layers[i].name === "map" && playerSettingsState.raw.renderAllFloors.value) {
-                layers[i].invalidate(true);
+        for (let i = layers.length - 1; i >= 0; i--) {
+            const layer = layers[i]!;
+            if (layer.isVisionLayer) {
+                layer.invalidate(true);
+            } else if (layer.name === "map" && playerSettingsState.raw.renderAllFloors.value) {
+                layer.invalidate(true);
             }
+        }
     }
 
     invalidateLightAllFloors(): void {

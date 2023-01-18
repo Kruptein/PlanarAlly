@@ -1,7 +1,7 @@
 import { readonly, reactive, toRefs } from "vue";
 import type { DeepReadonly, Ref } from "vue";
 
-type buttons = { yes?: string; no?: string; focus?: "confirm" | "deny"; showNo?: boolean };
+interface buttons { yes?: string; no?: string; focus?: "confirm" | "deny"; showNo?: boolean }
 
 export type ConfirmFunction = (title: string, text?: string, buttons?: buttons) => Promise<boolean | undefined>;
 

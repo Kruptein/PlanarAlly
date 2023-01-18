@@ -20,7 +20,7 @@ socket.on("Location.Set", (data: ServerLocation) => {
 socket.on("Locations.Settings.Set", (data: ServerLocationInfo) => {
     locationSettingsSystem.setActiveLocation(data.active);
     setLocationOptions(undefined, data.default, true);
-    for (const key in data.locations) setLocationOptions(Number.parseInt(key), data.locations[key], true);
+    for (const key in data.locations) setLocationOptions(Number.parseInt(key), data.locations[key]!, true);
 });
 
 // Varia
@@ -94,7 +94,7 @@ function setLocationOptions(
     // SPAWN LOCATIONS
 
     if (id !== undefined && (overwrite_all || options.spawn_locations !== undefined)) {
-        const spawnLocations: GlobalId[] = JSON.parse(options.spawn_locations ?? "[]");
+        const spawnLocations = JSON.parse(options.spawn_locations ?? "[]") as GlobalId[];
         locationSettingsSystem.setSpawnLocations(spawnLocations, id, false);
     }
 }

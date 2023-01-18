@@ -21,7 +21,7 @@ const note = toRef(uiState.reactive, "activeNote");
 function calcHeight(): void {
     if (textarea.value !== null) {
         textarea.value.style.height = "auto";
-        textarea.value.style.height = textarea.value.scrollHeight + "px";
+        textarea.value.style.height = `${textarea.value.scrollHeight}px`;
     }
 }
 

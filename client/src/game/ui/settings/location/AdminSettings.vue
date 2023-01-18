@@ -53,8 +53,8 @@ async function deleteLocation(): Promise<void> {
 async function onCloneClick(): Promise<void> {
     const response = await http.get("/api/rooms");
     if (response.ok) {
-        const data = await response.json();
-        const owned: RoomInfo[] = data.owned;
+        const data = (await response.json()) as { owned: RoomInfo[] };
+        const owned = data.owned;
 
         const choice = await modals.selectionBox(
             t("game.ui.settings.LocationBar.LocationAdminSettings.choose_room"),

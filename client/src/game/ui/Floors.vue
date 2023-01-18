@@ -69,9 +69,11 @@ const layers = computed(() => {
         .map((l) => l.name);
 });
 
-const selectedLayer = computed(
-    () => floorSystem.getLayers(floorState.currentFloor.value!)[floorState.reactive.layerIndex].name,
-);
+const selectedLayer = computed(() => {
+    const floor = floorState.currentFloor.value;
+    if (floor === undefined) return undefined;
+    return floorSystem.getLayers(floor)[floorState.reactive.layerIndex]?.name ?? undefined;
+});
 </script>
 
 <template>

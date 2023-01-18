@@ -5,27 +5,15 @@ import { FULL_SYNC, SERVER_SYNC } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { getChecked, getValue } from "../../../../core/utils";
 import { activeShapeStore } from "../../../../store/activeShape";
-import {
-    CHARACTER_SETS,
-    createNewGroupForShapes,
-    getBadgeCharacters,
-    groupMap,
-    memberMap,
-    removeGroup,
-    removeGroupMember,
-    setCharacterSet,
-    setCreationOrder,
-} from "../../../groups";
-import { getShape } from "../../../id";
-import type { IShape } from "../../../interfaces/shape";
-import type { CREATION_ORDER_TYPES } from "../../../models/groups";
-import { CREATION_ORDER_OPTIONS } from "../../../models/groups";
+import { getShape, type LocalId } from "../../../id";
 import { setCenterPosition } from "../../../position";
 import { accessState } from "../../../systems/access/state";
+import { groupSystem } from "../../../systems/groups";
+import { CHARACTER_SETS, type CREATION_ORDER_TYPES, CREATION_ORDER_OPTIONS } from "../../../systems/groups/models";
+import { groupState } from "../../../systems/groups/state";
 import { propertiesSystem } from "../../../systems/properties";
 import { getProperties } from "../../../systems/properties/state";
 
-const groupId = toRef(activeShapeStore.state, "groupId");
 const id = toRef(activeShapeStore.state, "id");
 
 const modals = useModal();
@@ -37,21 +25,11 @@ let defaultCreationOrder: CREATION_ORDER_TYPES = "incrementing";
 
 const owned = accessState.hasEditAccess;
 
-const group = computed(() => {
-    const groupId = activeShapeStore.state.groupId;
-    if (groupId !== undefined) {
-        return groupMap.value.get(groupId);
-    } else {
-        return undefined;
-    }
-});
-
 const groupMembers = computed(() => {
-    if (group.value === undefined) return [];
-
-    const members = memberMap.value.get(group.value.uuid);
-    if (members === undefined) return [];
-    return [...members].map((m) => getShape(m)!).sort((a, b) => a.badge - b.badge);
+    const groupId = groupState.reactive.activeGroupId;
+    if (groupId === undefined) return [];
+    const members = [...(groupState.readonly.groupMembers.get(groupId) ?? [])];
+    return members.map((m) => ({ ...groupState.readonly.shapeData.get(m)!, id: m })).sort((a, b) => a.badge - b.badge);
 });
 
 function invalidate(): void {
@@ -61,24 +39,26 @@ function invalidate(): void {
 
 const selectedCharacterSet = computed({
     get() {
-        if (group.value === undefined) {
+        const group = groupState.activeGroup.value;
+        if (group === undefined) {
             return characterSetSelected;
         } else {
-            const charset = group.value.characterSet;
+            const charset = group.characterSet;
             const index = CHARACTER_SETS.findIndex((cs) => cs.join(",") === charset.join(","));
             return index >= 0 ? index : 2;
         }
     },
     set(index: number) {
         if (!owned.value) return;
+        const group = groupState.activeGroup.value;
 
-        if (group.value === undefined) {
+        if (group === undefined) {
             characterSetSelected = index;
         } else {
-            if (index === 2) {
-                setCharacterSet(group.value.uuid, []);
-            } else {
-                setCharacterSet(group.value.uuid, CHARACTER_SETS[index]);
+            if (index === CHARACTER_SETS.length) {
+                groupSystem.setCharacterSet(group.uuid, []);
+            } else if (index < CHARACTER_SETS.length) {
+                groupSystem.setCharacterSet(group.uuid, CHARACTER_SETS[index]!);
                 invalidate();
             }
         }
@@ -87,48 +67,51 @@ const selectedCharacterSet = computed({
 
 const customCharacterSet = computed({
     get() {
-        if (group.value === undefined) {
+        const group = groupState.activeGroup.value;
+        if (group === undefined) {
             return customText.join(",");
         }
-        return group.value.characterSet.join(",");
+        return group.characterSet.join(",");
     },
     set(characterSet: string) {
         if (!owned.value) return;
+        const group = groupState.activeGroup.value;
 
         const value = characterSet.split(",");
-        if (group.value === undefined) {
+        if (group === undefined) {
             customText = value;
         } else {
-            setCharacterSet(group.value.uuid, value);
+            groupSystem.setCharacterSet(group.uuid, value);
             invalidate();
         }
     },
 });
 
-const creationOrder = computed({
-    get() {
-        if (group.value === undefined) {
-            return defaultCreationOrder;
-        }
-        return group.value.creationOrder;
-    },
-    async set(creationOrder: CREATION_ORDER_TYPES) {
-        if (!owned.value) return;
-
-        if (group.value === undefined) {
-            defaultCreationOrder = creationOrder;
-        } else {
-            const doChange = await modals.confirm(
-                "Changing creation order",
-                "Are you sure you wish to change the creation order? This will change all badges in this group.",
-            );
-            if (doChange === true) {
-                setCreationOrder(group.value.uuid, creationOrder);
-                invalidate();
-            }
-        }
-    },
+const creationOrder = computed(() => {
+    const group = groupState.activeGroup.value;
+    if (group === undefined) {
+        return defaultCreationOrder;
+    }
+    return group.creationOrder;
 });
+
+async function _setCreationOrder(order: CREATION_ORDER_TYPES): Promise<void> {
+    if (!owned.value) return;
+    const group = groupState.activeGroup.value;
+
+    if (group === undefined) {
+        defaultCreationOrder = order;
+    } else {
+        const doChange = await modals.confirm(
+            "Changing creation order",
+            "Are you sure you wish to change the creation order? This will change all badges in this group.",
+        );
+        if (doChange === true) {
+            groupSystem.setCreationOrder(group.uuid, order);
+            invalidate();
+        }
+    }
+}
 
 function updateToggles(checked: boolean): void {
     if (!owned.value) return;
@@ -138,43 +121,48 @@ function updateToggles(checked: boolean): void {
     }
 }
 
-function centerMember(member: IShape): void {
+function centerMember(member: LocalId): void {
     if (!owned.value) return;
-    setCenterPosition(member.center);
+    const shape = getShape(member);
+    if (shape) setCenterPosition(shape.center);
 }
 
-function toggleHighlight(member: IShape, show: boolean): void {
+function toggleHighlight(member: LocalId, show: boolean): void {
     if (!owned.value) return;
-    member.showHighlight = show;
-    member.layer.invalidate(true);
+    const shape = getShape(member);
+    if (shape) {
+        shape.showHighlight = show;
+        shape.layer.invalidate(true);
+    }
 }
 
-function showBadge(member: IShape, checked: boolean): void {
+function showBadge(member: LocalId, checked: boolean): void {
     if (!owned.value) return;
-    propertiesSystem.setShowBadge(member.id, checked, FULL_SYNC);
+    propertiesSystem.setShowBadge(member, checked, FULL_SYNC);
 }
 
-function removeMember(member: IShape): void {
+function removeMember(memberId: LocalId): void {
     if (!owned.value) return;
-    removeGroupMember(member.groupId!, member.id, true);
+    groupSystem.removeGroupMember(memberId, true);
 }
 
 function createGroup(): void {
     if (!owned.value) return;
-    if (activeShapeStore.state.groupId !== undefined) return;
-    createNewGroupForShapes([activeShapeStore.state.id!]);
+    if (groupState.reactive.activeGroupId !== undefined || id.value === undefined) return;
+    groupSystem.createNewGroupForShapes([id.value]);
 }
 
 async function deleteGroup(): Promise<void> {
     if (!owned.value) return;
-    const groupId = activeShapeStore.state.groupId;
+    const groupId = groupState.reactive.activeGroupId;
     if (groupId === undefined) return;
+
     const remove = await modals.confirm(
         "Removing group",
         "Are you sure you wish to remove this group. There might be shapes in other locations that are associated with this group as well.",
     );
     if (remove === true) {
-        removeGroup(groupId, true);
+        groupSystem.removeGroup(groupId, true);
     }
 }
 </script>
@@ -204,12 +192,12 @@ async function deleteGroup(): Promise<void> {
         <div class="rule">Creation order</div>
         <div class="selection-box">
             <template v-for="co of CREATION_ORDER_OPTIONS" :key="co">
-                <div :class="{ 'selection-box-active': co === creationOrder }" @click="creationOrder = co">
+                <div :class="{ 'selection-box-active': co === creationOrder }" @click="_setCreationOrder(co)">
                     {{ co }}
                 </div>
             </template>
         </div>
-        <template v-if="groupId !== undefined">
+        <template v-if="groupState.reactive.activeId !== undefined">
             <div class="spanrow header">Members</div>
             <label class="rule" style="grid-column: badge/toggle" for="toggleCheckbox">
                 Show badge on all members:
@@ -227,33 +215,32 @@ async function deleteGroup(): Promise<void> {
             <div></div>
             <div class="subheader">Show Badge</div>
             <div class="subheader">Remove</div>
-            <template v-for="member of groupMembers" :key="member.uuid">
+            <template v-for="member of groupMembers" :key="member.id">
                 <div
                     class="badge"
                     title="Center on this member"
-                    @click="centerMember(member)"
-                    @mouseenter="toggleHighlight(member, true)"
-                    @mouseleave="toggleHighlight(member, false)"
+                    @click="centerMember(member.id)"
+                    @mouseenter="toggleHighlight(member.id, true)"
+                    @mouseleave="toggleHighlight(member.id, false)"
                 >
-                    <template v-if="member.id === id">> {{ getBadgeCharacters(member) }} &lt;</template>
-                    <template v-else>
-                        {{ getBadgeCharacters(member) }}
-                    </template>
+                    <template v-if="member.id === id">></template>
+                    {{ groupSystem.getBadgeCharacters(member.id) }}
+                    <template v-if="member.id === id">&lt;</template>
                 </div>
                 <div></div>
                 <div>
                     <input
                         type="checkbox"
                         :checked="getProperties(member.id)!.showBadge"
-                        @click="showBadge(member, getChecked($event))"
+                        @click="showBadge(member.id, getChecked($event))"
                     />
                 </div>
                 <div :style="{ textAlign: 'center' }">
-                    <font-awesome-icon icon="trash-alt" @click="removeMember(member)" />
+                    <font-awesome-icon icon="trash-alt" @click="removeMember(member.id)" />
                 </div>
             </template>
         </template>
-        <template v-if="groupId === undefined">
+        <template v-if="groupState.reactive.activeId === undefined">
             <div class="spanrow header">Actions</div>
             <div></div>
             <div></div>

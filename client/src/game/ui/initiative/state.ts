@@ -50,10 +50,6 @@ interface InitiativeState {
 }
 
 class InitiativeStore extends Store<InitiativeState> {
-    constructor() {
-        super();
-    }
-
     protected data(): InitiativeState {
         return {
             manuallyOpened: false,
@@ -126,6 +122,11 @@ class InitiativeStore extends Store<InitiativeState> {
 
     addInitiative(localId: LocalId, isGroup = false): void {
         const globalId = getGlobalId(localId);
+        if (globalId === undefined) {
+            console.error("Unknown global id for initiative entry found");
+            return;
+        }
+
         let actor = this._state.locationData.find((a) => a.globalId === globalId);
         if (actor === undefined) {
             actor = {
@@ -179,7 +180,7 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     changeOrder(globalId: GlobalId, oldIndex: number, newIndex: number): void {
-        if (this.getDataSet()[oldIndex].globalId === globalId) {
+        if (this.getDataSet()[oldIndex]?.globalId === globalId) {
             sendInitiativeReorder({ shape: globalId, oldIndex, newIndex });
         }
     }
@@ -195,10 +196,10 @@ class InitiativeStore extends Store<InitiativeState> {
 
         if (actor.effects.length > 0) {
             for (let e = actor.effects.length - 1; e >= 0; e--) {
-                const turns = +actor.effects[e].turns;
+                const turns = +actor.effects[e]!.turns;
                 if (!isNaN(turns)) {
                     if (turns <= 0) actor.effects.splice(e, 1);
-                    else actor.effects[e].turns = (turns - 1).toString();
+                    else actor.effects[e]!.turns = (turns - 1).toString();
                 }
             }
         }
@@ -300,7 +301,7 @@ class InitiativeStore extends Store<InitiativeState> {
         if (playerSettingsState.raw.initiativeCameraLock.value) {
             const actor = this.getDataSet()[this._state.turnCounter];
             if (actor?.localId === undefined) return;
-            if (accessSystem.hasAccessTo(actor.localId, false, { vision: true }) ?? false) {
+            if (accessSystem.hasAccessTo(actor.localId, false, { vision: true })) {
                 const shape = getShape(actor.localId);
                 if (shape === undefined) return;
                 setCenterPosition(shape.center);
@@ -357,4 +358,5 @@ class InitiativeStore extends Store<InitiativeState> {
 }
 
 export const initiativeStore = new InitiativeStore();
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).initiativeStore = initiativeStore;

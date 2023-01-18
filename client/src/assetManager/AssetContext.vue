@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, ref, watchEffect } from "vue";
+import { nextTick, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ContextMenu from "../core/components/ContextMenu.vue";
@@ -12,9 +12,9 @@ const cm = ref<{ $el: HTMLDivElement } | null>(null);
 const modals = useModal();
 const { t } = useI18n();
 
-watchEffect(() => {
+watch(showAssetContextMenu, async () => {
     if (showAssetContextMenu.value) {
-        nextTick(() => cm.value!.$el.focus());
+        await nextTick(() => cm.value!.$el.focus());
     }
 });
 
@@ -24,7 +24,11 @@ function close(): void {
 
 async function rename(): Promise<void> {
     if (assetStore.state.selected.length !== 1) return;
-    const asset = assetStore.state.idMap.get(assetStore.state.selected[0])!;
+    const asset = assetStore.state.idMap.get(assetStore.state.selected[0]!);
+    if (asset === undefined) {
+        console.error("Attempt to rename unknown file");
+        return close();
+    }
 
     const name = await modals.prompt(
         t("assetManager.AssetContextMenu.new_name"),

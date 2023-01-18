@@ -41,9 +41,9 @@ async function uploadSave(): Promise<void> {
     if (files === null || files.length === 0) return;
 
     const data = await http.get("/api/server/upload_limit");
-    const chunkSize: number = await data.json();
+    const chunkSize = (await data.json()) as number;
 
-    const pac = files[0];
+    const pac = files[0]!;
     const totalChunks = Math.ceil(pac.size / chunkSize);
     const response = await http.postJson(`/api/rooms/import/${pac.name}`, { totalChunks, sid: socket.id });
     if (!response.ok) {

@@ -19,8 +19,10 @@ const modes = [
     },
 ];
 
-function create(): void {
-    router.push({ name: modes[selected.value].target });
+async function create(): Promise<void> {
+    const mode = modes[selected.value];
+    if (mode === undefined) return;
+    await router.push({ name: mode.target });
 }
 </script>
 

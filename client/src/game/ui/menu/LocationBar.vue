@@ -94,7 +94,7 @@ function endPlayerDrag(e: { item: HTMLDivElement; from: HTMLDivElement; to: HTML
     e.item.style.removeProperty("transform");
     const fromLocation = Number.parseInt(e.from.dataset.loc!);
     const toLocation = Number.parseInt(e.to.dataset.loc!);
-    if (toLocation === undefined || fromLocation === toLocation) return;
+    if (Number.isNaN(toLocation) || fromLocation === toLocation) return;
     const targetPlayer = e.item.textContent!.trim();
 
     for (const player of playerState.raw.players.values()) {
@@ -109,7 +109,7 @@ function endPlayersDrag(e: { item: HTMLDivElement; from: HTMLDivElement; to: HTM
     e.item.style.removeProperty("transform");
     const fromLocation = Number.parseInt(e.from.dataset.loc!);
     const toLocation = Number.parseInt(e.to.dataset.loc!);
-    if (toLocation === undefined || fromLocation === toLocation) return;
+    if (Number.isNaN(toLocation) || fromLocation === toLocation) return;
 
     const players = [];
     for (const player of playerState.raw.players.values()) {

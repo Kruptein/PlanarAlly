@@ -2,7 +2,7 @@ import type { AssetFile, AssetList, AssetListMap, ReadonlyAssetListMap } from ".
 import { alphSort } from "../../core/utils";
 
 export function convertAssetListToMap(assets: AssetList): AssetListMap {
-    const m = new Map();
+    const m = new Map<string, AssetListMap | AssetFile[]>();
     for (const key of Object.keys(assets)) {
         if (key === "__files") {
             m.set(
@@ -18,7 +18,7 @@ export function convertAssetListToMap(assets: AssetList): AssetListMap {
 }
 
 export function filterAssetMap(assets: ReadonlyAssetListMap, filter = ""): AssetListMap {
-    const m = new Map();
+    const m = new Map<string, AssetListMap | AssetFile[]>();
     for (const [key, value] of assets.entries()) {
         if (key === "__files") {
             m.set(

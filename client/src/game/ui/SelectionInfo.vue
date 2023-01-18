@@ -50,10 +50,10 @@ function setValue(data: { solution: number; relativeMode: boolean }): void {
 
     const value = data.relativeMode ? tracker.value + data.solution : data.solution;
     if (trackers.value.some((t) => t.uuid === tracker.uuid)) {
-        trackerSystem.update(shapeId.value!, tracker.uuid as TrackerId, { value }, SERVER_SYNC);
+        trackerSystem.update(shapeId.value, tracker.uuid as TrackerId, { value }, SERVER_SYNC);
     } else {
         auraSystem.update(shapeId.value, tracker.uuid as AuraId, { value }, SERVER_SYNC);
-        const sh = getShape(shapeId.value!)!;
+        const sh = getShape(shapeId.value)!;
         sh.invalidate(false);
     }
 }

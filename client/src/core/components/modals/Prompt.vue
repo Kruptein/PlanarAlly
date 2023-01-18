@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, ref, watchEffect } from "vue";
+import { nextTick, ref, watch } from "vue";
 
 import { i18n } from "../../../i18n";
 
@@ -13,11 +13,14 @@ const { t } = i18n.global;
 const answer = ref("");
 const input = ref<HTMLInputElement | null>(null);
 
-watchEffect(() => {
-    if (props.visible) {
-        nextTick(() => input.value!.focus());
-    }
-});
+watch(
+    () => props.visible,
+    async (visible) => {
+        if (visible) {
+            await nextTick(() => input.value?.focus());
+        }
+    },
+);
 
 function reset(): void {
     answer.value = "";

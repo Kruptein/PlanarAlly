@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { create, evaluateDependencies } from "mathjs";
-import { computed, nextTick, ref, watchEffect } from "vue";
+import { computed, nextTick, ref, watch, watchEffect } from "vue";
 
 import Modal from "../../core/components/modals/Modal.vue";
 import { i18n } from "../../i18n";
@@ -37,11 +37,14 @@ const question = computed(() => {
     return "";
 });
 
-watchEffect(() => {
-    if (props.tracker !== null) {
-        nextTick(() => input.value!.focus());
-    }
-});
+watch(
+    () => props.tracker,
+    async () => {
+        if (props.tracker !== null) {
+            await nextTick(() => input.value!.focus());
+        }
+    },
+);
 
 function reset(): void {
     answer.value = "";
@@ -59,6 +62,7 @@ function setError(): void {
 
 function submit(): void {
     try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const solution = math.evaluate(answer.value);
         if (typeof solution !== "number") return setError();
 

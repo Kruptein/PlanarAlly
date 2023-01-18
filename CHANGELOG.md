@@ -41,6 +41,7 @@ tech changes will usually be stripped from release notes for the public
 -   Spell tool: once used, the select tool was not being properly activated
 -   Spell tool: the 'is public' label was wrongly attached to the range input box
 -   Fake Player: showing DM layer
+-   DM settings: Fix last DM being able to demote themselves to a player
 
 ## [2022.3.0] - 2022-12-12
 

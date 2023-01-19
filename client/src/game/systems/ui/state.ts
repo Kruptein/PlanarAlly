@@ -1,11 +1,11 @@
+import type { ApiNote } from "../../../apiTypes";
 import { ClientSettingCategory } from "../../ui/settings/client/categories";
-import type { Note } from "../notes/models";
 import { buildState } from "../state";
 
 interface UiState {
     showUi: boolean;
 
-    activeNote: Note;
+    activeNote: ApiNote;
 
     annotationText: string;
 

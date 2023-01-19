@@ -8,6 +8,7 @@ from ...models import PlayerRoom
 from ...models.role import Role
 from ...models.user import User
 from ...state.game import game_state
+from ..helpers import _send_game
 
 
 @sio.on("Room.Info.InviteCode.Refresh", namespace=GAME_NS)
@@ -30,11 +31,8 @@ async def refresh_invite_code(sid: str):
             player=room_player.player,
             active_location=pr.active_location,
         ):
-            await sio.emit(
-                "Room.Info.InvitationCode.Set",
-                str(pr.room.invitation_code),
-                room=psid,
-                namespace=GAME_NS,
+            await _send_game(
+                "Room.Info.InvitationCode.Set", str(pr.room.invitation_code), room=psid
             )
 
 

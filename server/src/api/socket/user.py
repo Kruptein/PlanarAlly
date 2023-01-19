@@ -2,6 +2,7 @@ from ... import auth
 from ...app import app, sio
 from ...models import PlayerRoom
 from ...state.game import game_state
+from ..helpers import _send_game
 from .constants import GAME_NS
 
 
@@ -14,4 +15,4 @@ async def set_colour_history(sid: str, data: str):
     pr.player.save()
 
     for psid in game_state.get_sids(player=pr.player, skip_sid=sid):
-        await sio.emit("User.ColourHistory.Set", data, room=psid, namespace=GAME_NS)
+        await _send_game("User.ColourHistory.Set", data, room=psid)

@@ -362,6 +362,16 @@ export interface PlayerOptionsSet {
   default_user_options: ApiUserOptions;
   room_user_options?: ApiOptionalUserOptions;
 }
+export interface PlayerRoleSet {
+  player: number;
+  role: number;
+}
+export interface PlayersBring {
+  x: number;
+  y: number;
+  floor: string;
+  zoom: number;
+}
 export interface PlayersInfoSet {
   core: PlayerInfoCore;
   position?: ApiLocationUserOption;

@@ -1,5 +1,6 @@
+import type { PlayerRoleSet, PlayersBring } from "../../../apiTypes";
 import { wrapSocket } from "../helpers";
 
-export const sendBringPlayers = wrapSocket<{ floor: string; x: number; y: number; zoom: number }>("Players.Bring");
+export const sendBringPlayers = wrapSocket<PlayersBring>("Players.Bring");
 
-export const sendChangePlayerRole = wrapSocket<{ player: number; role: number }>("Player.Role.Set");
+export const sendChangePlayerRole = wrapSocket<PlayerRoleSet>("Player.Role.Set");

@@ -1,4 +1,4 @@
-import type { ClientMove, ClientPosition, TempClientPosition, Viewport } from "../../../apiTypes";
+import type { ClientMove, ClientOptionsSet, ClientPosition, TempClientPosition, Viewport } from "../../../apiTypes";
 import type { ClientId } from "../../systems/client/models";
 import { positionState } from "../../systems/position/state";
 import type { ServerPlayerOptions } from "../../systems/settings/players/models";
@@ -32,7 +32,8 @@ export function sendRoomClientOptions<T extends keyof ServerPlayerOptions>(
 ): void {
     const event = defaultValue !== undefined ? "Client.Options.Default.Set" : "Client.Options.Room.Set";
     const val = defaultValue !== undefined ? defaultValue : value ?? null;
-    socket.emit(event, { [key]: val });
+    const data: ClientOptionsSet = { [key]: val };
+    socket.emit(event, data);
 }
 
 export const sendMoveClient = wrapSocket<ClientMove>("Client.Move");

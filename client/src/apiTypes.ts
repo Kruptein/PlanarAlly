@@ -106,6 +106,26 @@ export interface ApiGroup {
   character_set: string;
   creation_order: string;
 }
+export interface ApiInitiative {
+  location: number;
+  round: number;
+  turn: number;
+  sort: number;
+  data: ApiInitiativeData[];
+  isActive: boolean;
+}
+export interface ApiInitiativeData {
+  shape: string;
+  initiative?: number;
+  isVisible: boolean;
+  isGroup: boolean;
+  effects: ApiInitiativeEffect[];
+}
+export interface ApiInitiativeEffect {
+  name: string;
+  turns: string;
+  highlightsActor: boolean;
+}
 export interface AssetOptionsInfoFail {
   error: string;
   success: false;
@@ -114,6 +134,14 @@ export interface AssetOptionsInfoSuccess {
   name: string;
   options: string | Nullable;
   success: true;
+}
+export interface AssetOptionsSet {
+  asset: number;
+  options: string;
+}
+export interface ClientActiveLayerSet {
+  floor: string;
+  layer: string;
 }
 export interface ClientConnected {
   client: string;
@@ -139,6 +167,21 @@ export interface ClientOffsetSet {
   client: string;
   x?: number;
   y?: number;
+}
+export interface ClientOptionsSet {
+  grid_colour?: string;
+  fow_colour?: string;
+  ruler_colour?: string;
+  invert_alt?: boolean;
+  disable_scroll_to_zoom?: boolean;
+  use_high_dpi?: boolean;
+  grid_size?: number;
+  use_as_physical_board?: boolean;
+  mini_size?: number;
+  ppi?: number;
+  initiative_camera_lock?: boolean;
+  initiative_vision_lock?: boolean;
+  initiative_effect_visibility?: number;
 }
 export interface ClientViewport {
   client: string;
@@ -188,6 +231,45 @@ export interface GroupMemberBadge {
 export interface GroupLeave {
   uuid: string;
   group_id: string;
+}
+export interface InitiativeAdd {
+  shape: string;
+  initiative?: number;
+  isVisible: boolean;
+  isGroup: boolean;
+  effects: ApiInitiativeEffect[];
+}
+export interface InitiativeEffectNew {
+  actor: string;
+  effect: ApiInitiativeEffect;
+}
+export interface InitiativeEffectRemove {
+  shape: string;
+  index: number;
+}
+export interface InitiativeEffectRename {
+  shape: string;
+  index: number;
+  name: string;
+}
+export interface InitiativeEffectTurns {
+  shape: string;
+  index: number;
+  turns: string;
+}
+export interface InitiativeOptionSet {
+  shape: string;
+  option: "isVisible" | "isGroup";
+  value: boolean;
+}
+export interface InitiativeOrderChange {
+  shape: string;
+  oldIndex: number;
+  newIndex: number;
+}
+export interface InitiativeValueSet {
+  shape: string;
+  value: number;
 }
 export interface NotificationShow {
   uuid: string;

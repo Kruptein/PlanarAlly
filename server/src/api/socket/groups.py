@@ -167,14 +167,8 @@ async def remove_group(sid: str, group_id: str):
     # check if group still has members
     await remove_group_if_empty(group_id)
 
-    for psid, _ in game_state.get_users(room=pr.room):
-        await sio.emit(
-            "Group.Remove",
-            group_id,
-            room=psid,
-            skip_sid=sid,
-            namespace=GAME_NS,
-        )
+    for psid in game_state.get_sids(room=pr.room):
+        await _send_game("Group.Remove", group_id, room=psid, skip_sid=sid)
 
 
 async def remove_group_if_empty(group_id: str):

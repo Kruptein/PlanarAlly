@@ -1,4 +1,5 @@
 from typing import Literal
+
 from pydantic import BaseModel
 
 from ..helpers import Nullable
@@ -13,3 +14,8 @@ class AssetOptionsInfoSuccess(BaseModel):
 class AssetOptionsInfoFail(BaseModel):
     error: str
     success: Literal[False]
+
+
+class AssetOptionsSet(BaseModel):
+    asset: int
+    options: str

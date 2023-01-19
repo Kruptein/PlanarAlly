@@ -1,4 +1,4 @@
-import type { AssetOptionsInfoFail, AssetOptionsInfoSuccess } from "../../../apiTypes";
+import type { AssetOptionsInfoFail, AssetOptionsInfoSuccess, AssetOptionsSet } from "../../../apiTypes";
 import type { AssetOptions } from "../../models/asset";
 import { socket } from "../socket";
 
@@ -20,6 +20,7 @@ export async function requestAssetOptions(assetId: number): Promise<AssetOptions
     );
 }
 
-export function sendAssetOptions(asset: number | undefined, options: AssetOptions): void {
-    socket.emit("Asset.Options.Set", { asset, options: JSON.stringify(options) });
+export function sendAssetOptions(asset: number, options: AssetOptions): void {
+    const data: AssetOptionsSet = { asset, options: JSON.stringify(options) };
+    socket.emit("Asset.Options.Set", data);
 }

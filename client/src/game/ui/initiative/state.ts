@@ -1,8 +1,9 @@
+import type { ApiInitiative } from "../../../apiTypes";
 import { Store } from "../../../core/store";
 import { i18n } from "../../../i18n";
 import {
     sendInitiativeNewEffect,
-    sendInitiativeOptionUpdate,
+    sendInitiativeOptionSet,
     sendInitiativeRemove,
     sendInitiativeRemoveEffect,
     sendInitiativeRenameEffect,
@@ -19,7 +20,7 @@ import {
 import { getGlobalId, getLocalId, getShape } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import { InitiativeSort } from "../../models/initiative";
-import type { InitiativeData, InitiativeEffect, InitiativeSettings } from "../../models/initiative";
+import type { InitiativeData, InitiativeEffect } from "../../models/initiative";
 import { setCenterPosition } from "../../position";
 import { accessSystem } from "../../systems/access";
 import { accessState } from "../../systems/access/state";
@@ -76,10 +77,11 @@ class InitiativeStore extends Store<InitiativeState> {
         this._state.manuallyOpened = manuallyOpened;
     }
 
-    setData(data: InitiativeSettings): void {
+    setData(data: ApiInitiative): void {
         const initiativeData: InitiativeData[] = [];
         for (const d of data.data) {
-            const { shape: globalId, ...shapeData } = d;
+            const { shape, ...shapeData } = d;
+            const globalId = shape as GlobalId;
             const localId = getLocalId(globalId, false);
             initiativeData.push({ ...shapeData, globalId, localId });
         }
@@ -347,7 +349,7 @@ class InitiativeStore extends Store<InitiativeState> {
         const actor = this.getDataSet()[index];
         if (actor === undefined || !this.owns(actor.globalId)) return;
         actor[option] = !actor[option];
-        sendInitiativeOptionUpdate({ shape: actor.globalId, option, value: actor[option] });
+        sendInitiativeOptionSet({ shape: actor.globalId, option, value: actor[option] });
     }
 
     setOption(globalId: GlobalId, option: "isVisible" | "isGroup", value: boolean): void {

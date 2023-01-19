@@ -84,7 +84,9 @@ async def set_floor_visibility(sid: str, raw_data: Any):
 
 @sio.on("Floor.Rename", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def rename_floor(sid: str, data: FloorRename):
+async def rename_floor(sid: str, raw_data: Any):
+    data = FloorRename(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -105,7 +107,9 @@ async def rename_floor(sid: str, data: FloorRename):
 
 @sio.on("Floor.Type.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_floor_type(sid: str, data: FloorTypeSet):
+async def set_floor_type(sid: str, raw_data: Any):
+    data = FloorTypeSet(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -126,7 +130,9 @@ async def set_floor_type(sid: str, data: FloorTypeSet):
 
 @sio.on("Floor.Background.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_floor_background(sid: str, data: FloorBackgroundSet):
+async def set_floor_background(sid: str, raw_data: Any):
+    data = FloorBackgroundSet(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:

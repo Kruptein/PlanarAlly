@@ -1,19 +1,6 @@
-from typing import Any, Dict
+from typing import Any
+
 from typing_extensions import TypedDict
-
-from ..models.client.offset import ClientOffsetSet
-
-from ..models.client.gameboard import ClientGameboardSet
-
-from ..models.client import (
-    ClientMove,
-    ClientPosition,
-    ClientViewport,
-    TempClientPosition,
-    Viewport,
-)
-
-from ..helpers import _send_game
 
 from ... import auth
 from ...api.socket.constants import GAME_NS
@@ -24,6 +11,18 @@ from ...models.db import db
 from ...models.role import Role
 from ...models.user import UserOptions
 from ...state.game import game_state
+from ..helpers import _send_game
+from ..models.client import (
+    ClientMove,
+    ClientPosition,
+    ClientViewport,
+    TempClientPosition,
+    Viewport,
+)
+from ..models.client.activeLayer import ClientActiveLayerSet
+from ..models.client.gameboard import ClientGameboardSet
+from ..models.client.offset import ClientOffsetSet
+from ..models.client.options import ClientOptionsSet
 
 
 # DATA CLASSES FOR TYPE CHECKING
@@ -37,31 +36,14 @@ class TempLocationOptions(TypedDict):
     options: LocationOptions
 
 
-class ClientOptions(TypedDict, total=False):
-    grid_colour: str
-    fow_colour: str
-    ruler_colour: str
-
-    invert_alt: bool
-    disable_scroll_to_zoom: bool
-
-    use_high_dpi: bool
-    grid_size: int
-    use_as_physical_board: bool
-    mini_size: int
-    ppi: int
-
-    initiative_camera_lock: bool
-    initiative_vision_lock: bool
-    initiative_effect_visibility: int
-
-
 @sio.on("Client.Options.Default.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_client_default_options(sid: str, data: ClientOptions):
+async def set_client_default_options(sid: str, raw_data: Any):
+    data = ClientOptionsSet(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    UserOptions.update(**data).where(
+    UserOptions.update(**data.dict()).where(
         UserOptions.id == pr.player.default_options
     ).execute()
 
@@ -72,7 +54,9 @@ async def set_client_default_options(sid: str, data: ClientOptions):
 
 @sio.on("Client.Options.Room.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_client_room_options(sid: str, data: ClientOptions):
+async def set_client_room_options(sid: str, raw_data: Any):
+    data = ClientOptionsSet(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
     with db.atomic():
@@ -80,7 +64,9 @@ async def set_client_room_options(sid: str, data: ClientOptions):
             pr.user_options = UserOptions.create_empty()
             pr.save()
 
-        UserOptions.update(**data).where(UserOptions.id == pr.user_options).execute()
+        UserOptions.update(**data.dict()).where(
+            UserOptions.id == pr.user_options
+        ).execute()
 
 
 async def update_client_location(
@@ -151,12 +137,14 @@ async def set_viewport(sid: str, raw_data: Any):
 
 @sio.on("Client.ActiveLayer.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_layer(sid: str, data: Dict[str, Any]):
+async def set_layer(sid: str, raw_data: Any):
+    data = ClientActiveLayerSet(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
     try:
-        floor = pr.active_location.floors.where(Floor.name == data["floor"])[0]
-        layer = floor.layers.where(Layer.name == data["layer"])[0]
+        floor = pr.active_location.floors.where(Floor.name == data.floor)[0]
+        layer = floor.layers.where(Layer.name == data.layer)[0]
     except IndexError:
         pass
     else:

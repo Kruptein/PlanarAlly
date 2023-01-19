@@ -329,6 +329,20 @@ export interface LabelVisibilitySet {
   uuid: string;
   visible: boolean;
 }
+export interface LogicDoorRequest {
+  logic: "door";
+  door: string;
+}
+export interface LogicRequestInfo {
+  requester: string;
+  request: LogicDoorRequest | LogicTeleportRequest;
+}
+export interface LogicTeleportRequest {
+  logic: "tp";
+  fromZone: string;
+  toZone: string;
+  transfers: string[];
+}
 export interface NotificationShow {
   uuid: string;
   message: string;

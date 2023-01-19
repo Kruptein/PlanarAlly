@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
 
-import type { Label } from "../../game/systems/labels/models";
+import type { ApiLabel } from "../../apiTypes";
 
 const emit = defineEmits<(e: "selectionupdate", selection: string[]) => void>();
-const props = defineProps<{ title: string; items: Label[]; initialValues: string[] }>();
+const props = defineProps<{ title: string; items: ApiLabel[]; initialValues: string[] }>();
 
 const overall = ref<HTMLInputElement | null>(null);
 

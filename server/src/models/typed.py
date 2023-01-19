@@ -75,6 +75,10 @@ class TypedModel:
         index: int
 
         @classmethod
+        def DoesNotExist(cls: Type[T]):
+            pass
+
+        @classmethod
         def create(cls: Type[T], *args, **kwargs) -> T:
             ...
 
@@ -112,4 +116,5 @@ class TypedModel:
 
         @classmethod
         def delete(cls) -> DeleteSequence[Self]:
+            ...
             ...

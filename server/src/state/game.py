@@ -1,8 +1,9 @@
 from typing import Dict, Set
 
+from ..api.models.client import Viewport
+
 from ..api.socket.constants import GAME_NS
 from ..app import app, sio
-from ..data_types.client import Viewport
 from ..models import PlayerRoom, User
 from . import State
 

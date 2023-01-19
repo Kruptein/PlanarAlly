@@ -1,17 +1,20 @@
 import uuid
 from datetime import date
-from typing import List, Optional, Set, TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, List, Optional, Set, cast
 
 from peewee import (
-    DateField,
-    fn,
     BooleanField,
+    DateField,
     FloatField,
     ForeignKeyField,
     IntegerField,
     TextField,
+    fn,
 )
 from playhouse.shortcuts import model_to_dict
+
+from ..api.models.floor import ApiFloor, ApiGroup, ApiLayer, ApiShape
+from ..api.models.helpers import _
 
 if TYPE_CHECKING:
     from .initiative import Initiative
@@ -20,7 +23,6 @@ if TYPE_CHECKING:
 
 from .asset import Asset
 from .base import BaseModel
-from .groups import Group
 from .typed import SelectSequence
 from .user import User, UserOptions
 
@@ -296,6 +298,29 @@ class Floor(BaseModel):
             ]
         return data
 
+    def as_pydantic(self, user: User, dm: bool) -> ApiFloor:
+        layers: list[ApiLayer]
+        if dm:
+            layers = [
+                layer.as_pydantic(user, True)
+                for layer in self.layers.order_by(Layer.index)
+            ]
+        else:
+            layers = [
+                layer.as_pydantic(user, False)
+                for layer in self.layers.order_by(Layer.index).where(
+                    Layer.player_visible
+                )
+            ]
+        return ApiFloor(
+            index=self.index,
+            name=self.name,
+            player_visible=self.player_visible,
+            type_=self.type_,
+            background_color=_(self.background_color),
+            layers=layers,
+        )
+
 
 class Layer(BaseModel):
     id: int
@@ -303,11 +328,11 @@ class Layer(BaseModel):
 
     floor = ForeignKeyField(Floor, backref="layers", on_delete="CASCADE")
     name = cast(str, TextField())
-    type_ = TextField()
+    type_ = cast(str, TextField())
     # TYPE = IntegerField()  # normal/grid/dm/lighting ???????????
-    player_visible = BooleanField(default=False)
-    player_editable = BooleanField(default=False)
-    selectable = BooleanField(default=True)
+    player_visible = cast(bool, BooleanField(default=False))
+    player_editable = cast(bool, BooleanField(default=False))
+    selectable = cast(bool, BooleanField(default=True))
     index = cast(int, IntegerField())
 
     def __repr__(self):
@@ -325,14 +350,37 @@ class Layer(BaseModel):
             backrefs=False,
             exclude=[Layer.id, Layer.player_visible],
         )
-        groups_added: Set[Group] = set()
+        groups_added: Set[str] = set()
         data["groups"] = []
         data["shapes"] = []
         for shape in self.shapes.order_by(Shape.index):
             data["shapes"].append(shape.as_dict(user, dm))
             if shape.group and shape.group.uuid not in groups_added:
+                groups_added.add(shape.group.uuid)
                 data["groups"].append(model_to_dict(shape.group))
         return data
+
+    def as_pydantic(self, user: User, dm: bool) -> ApiLayer:
+        from .shape import Shape
+
+        groups_added: Set[str] = set()
+        groups: list[ApiGroup] = []
+        shapes: list[ApiShape] = []
+        for shape in self.shapes.order_by(Shape.index):
+            shapes.append(shape.as_pydantic(user, dm))
+            if shape.group and shape.group.uuid not in groups_added:
+                groups_added.add(shape.group.uuid)
+                groups.append(shape.group.as_pydantic())
+
+        return ApiLayer(
+            name=self.name,
+            type_=self.type_,
+            player_editable=self.player_editable,
+            selectable=self.selectable,
+            index=self.index,
+            groups=groups,
+            shapes=shapes,
+        )
 
     class Meta:
         indexes = ((("floor", "name"), True), (("floor", "index"), True))

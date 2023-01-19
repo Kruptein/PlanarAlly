@@ -1,3 +1,4 @@
+import type { ApiShape } from "../../../../apiTypes";
 import { SyncMode } from "../../../../core/models/types";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { getLocalId, getShapeFromGlobal } from "../../../id";
@@ -6,7 +7,6 @@ import type { IShape } from "../../../interfaces/shape";
 import type { ICircle } from "../../../interfaces/shapes/circle";
 import type { IRect } from "../../../interfaces/shapes/rect";
 import type { LayerName } from "../../../models/floor";
-import type { ServerShape } from "../../../models/shapes";
 import { deleteShapes } from "../../../shapes/utils";
 import { accessSystem } from "../../../systems/access";
 import { floorSystem } from "../../../systems/floors";
@@ -15,10 +15,11 @@ import { addShape, moveFloor, moveLayer } from "../../../temp";
 import { initiativeStore } from "../../../ui/initiative/state";
 import { socket } from "../../socket";
 
-socket.on("Shape.Set", (data: ServerShape) => {
+socket.on("Shape.Set", (data: ApiShape) => {
     // hard reset a shape
-    const old = getShapeFromGlobal(data.uuid);
-    const isActive = activeShapeStore.state.id === getLocalId(data.uuid);
+    const uuid = data.uuid as GlobalId;
+    const old = getShapeFromGlobal(uuid);
+    const isActive = activeShapeStore.state.id === getLocalId(uuid);
     const hasEditDialogOpen = isActive && activeShapeStore.state.showEditDialog;
     if (old) old.layer?.removeShape(old, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
     const shape = addShape(data, SyncMode.NO_SYNC);
@@ -30,12 +31,12 @@ socket.on("Shape.Set", (data: ServerShape) => {
     }
 });
 
-socket.on("Shape.Add", (shape: ServerShape) => {
+socket.on("Shape.Add", (shape: ApiShape) => {
     addShape(shape, SyncMode.NO_SYNC);
     initiativeStore._forceUpdate();
 });
 
-socket.on("Shapes.Add", (shapes: ServerShape[]) => {
+socket.on("Shapes.Add", (shapes: ApiShape[]) => {
     for (const shape of shapes) {
         addShape(shape, SyncMode.NO_SYNC);
     }

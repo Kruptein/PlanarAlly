@@ -1,13 +1,13 @@
+import type { ApiShape } from "../../../../apiTypes";
 import { getGlobalId } from "../../../id";
 import type { IShape } from "../../../interfaces/shape";
 import type { ICircle } from "../../../interfaces/shapes/circle";
 import type { IRect } from "../../../interfaces/shapes/rect";
 import type { IText } from "../../../interfaces/shapes/text";
-import type { ServerShape } from "../../../models/shapes";
 import { wrapSocket } from "../../helpers";
 import { socket } from "../../socket";
 
-export const sendShapeAdd = wrapSocket<{ shape: ServerShape; temporary: boolean }>("Shape.Add");
+export const sendShapeAdd = wrapSocket<{ shape: ApiShape; temporary: boolean }>("Shape.Add");
 export const sendRemoveShapes = (data: { uuids: string[]; temporary: boolean }): void => {
     if (data.uuids.length === 0) {
         if (process.env.NODE_ENV === "production") {
@@ -69,9 +69,9 @@ export function sendShapeSizeUpdate(data: { shape: IShape; temporary: boolean })
     }
 }
 
-export async function requestShapeInfo(shape: string): Promise<{ shape: ServerShape; location: number }> {
+export async function requestShapeInfo(shape: string): Promise<{ shape: ApiShape; location: number }> {
     socket.emit("Shape.Info.Get", shape);
-    return new Promise((resolve: (value: { shape: ServerShape; location: number }) => void) =>
+    return new Promise((resolve: (value: { shape: ApiShape; location: number }) => void) =>
         socket.once("Shape.Info", resolve),
     );
 }

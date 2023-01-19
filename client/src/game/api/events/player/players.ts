@@ -1,7 +1,7 @@
+import type { ClientPosition, Viewport } from "../../../../apiTypes";
 import { Role } from "../../../models/role";
-import type { ServerUserLocationOptions } from "../../../models/settings";
 import { clientSystem } from "../../../systems/client";
-import type { ClientId, Viewport } from "../../../systems/client/models";
+import type { ClientId } from "../../../systems/client/models";
 import { gameSystem } from "../../../systems/game";
 import { playerSystem } from "../../../systems/players";
 import type { Player } from "../../../systems/players/models";
@@ -12,7 +12,7 @@ socket.on(
     (
         data: {
             core: Omit<Player, "showRect">;
-            position?: ServerUserLocationOptions;
+            position?: ClientPosition;
             clients?: { sid: ClientId; viewport?: Viewport }[];
         }[],
     ) => {

@@ -1,10 +1,11 @@
+import type { ApiAura } from "../../../apiTypes";
 import { UI_SYNC } from "../../../core/models/types";
 import { socket } from "../../api/socket";
 import { getLocalId } from "../../id";
 import type { GlobalId } from "../../id";
 
 import { aurasFromServer, partialAuraFromServer } from "./conversion";
-import type { Aura, AuraId, ServerAura } from "./models";
+import type { Aura, AuraId } from "./models";
 
 import { auraSystem } from ".";
 
@@ -25,8 +26,8 @@ socket.on("Shape.Options.Aura.Move", (data: { shape: GlobalId; aura: AuraId; new
     auraSystem.add(newShape, aura, UI_SYNC);
 });
 
-socket.on("Shape.Options.Aura.Create", (data: ServerAura): void => {
-    const shape = getLocalId(data.shape);
+socket.on("Shape.Options.Aura.Create", (data: ApiAura): void => {
+    const shape = getLocalId(data.shape as GlobalId);
     if (shape === undefined) return;
     auraSystem.add(shape, aurasFromServer(data)[0]!, UI_SYNC);
 });

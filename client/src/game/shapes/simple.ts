@@ -1,10 +1,11 @@
+import type { ApiShape } from "../../apiTypes";
 import { toGP } from "../../core/geometry";
 import type { SimpleShape } from "../interfaces/shape";
-import type { ServerAsset, ServerShape } from "../models/shapes";
+import type { ServerAsset } from "../models/shapes";
 
 import { SimpleAsset } from "./variants/simple/asset";
 
-export function createSimpleShapeFromDict(shape: ServerShape): SimpleShape | undefined {
+export function createSimpleShapeFromDict(shape: ApiShape): SimpleShape | undefined {
     let sh: SimpleShape;
     // Shape Type specifics
 

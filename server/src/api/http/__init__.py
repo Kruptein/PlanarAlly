@@ -3,15 +3,16 @@ import urllib.parse
 from aiohttp import web
 from aiohttp_security import check_authorized
 
-from ...app import sio
 from ...models import PlayerRoom, Room
 from ...models.role import Role
+from ...models.user import User
 from ...state.game import game_state
-from ..socket.constants import GAME_NS
+from ..helpers import _send_game
+from ..models.room.info.player import RoomInfoPlayersAdd
 
 
 async def claim_invite(request):
-    user = await check_authorized(request)
+    user: User = await check_authorized(request)
     data = await request.json()
     room = Room.get_or_none(invitation_code=data["code"])
     if room is None:
@@ -28,12 +29,12 @@ async def claim_invite(request):
             )
 
             for csid in game_state.get_sids(player=room.creator, room=room):
-                await sio.emit(
+                await _send_game(
                     "Room.Info.Players.Add",
-                    {"id": user.id, "name": user.name, "location": loc.id},
+                    RoomInfoPlayersAdd(id=user.id, name=user.name, location=loc.id),
                     room=csid,
-                    namespace=GAME_NS,
                 )
+
         creator_url = urllib.parse.quote(room.creator.name, safe="")
         room_url = urllib.parse.quote(room.name, safe="")
         return web.json_response({"sessionUrl": f"/game/{creator_url}/{room_url}"})

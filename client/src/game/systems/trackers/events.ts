@@ -1,10 +1,11 @@
+import type { ApiTracker } from "../../../apiTypes";
 import { UI_SYNC } from "../../../core/models/types";
 import { socket } from "../../api/socket";
 import { getLocalId } from "../../id";
 import type { GlobalId } from "../../id";
 
 import { partialTrackerFromServer, trackersFromServer } from "./conversion";
-import type { ServerTracker, Tracker, TrackerId } from "./models";
+import type { Tracker, TrackerId } from "./models";
 
 import { trackerSystem } from ".";
 
@@ -14,8 +15,8 @@ socket.on("Shape.Options.Tracker.Remove", (data: { shape: GlobalId; value: Track
     trackerSystem.remove(shape, data.value, UI_SYNC);
 });
 
-socket.on("Shape.Options.Tracker.Create", (data: ServerTracker): void => {
-    const shape = getLocalId(data.shape);
+socket.on("Shape.Options.Tracker.Create", (data: ApiTracker): void => {
+    const shape = getLocalId(data.shape as GlobalId);
     if (shape === undefined) return;
     trackerSystem.add(shape, trackersFromServer(data)[0]!, UI_SYNC);
 });

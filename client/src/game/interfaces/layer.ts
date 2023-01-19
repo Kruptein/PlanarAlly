@@ -1,7 +1,7 @@
+import type { ApiShape } from "../../apiTypes";
 import type { InvalidationMode, SyncMode } from "../../core/models/types";
 import type { LocalId } from "../id";
 import type { FloorId, LayerName } from "../models/floor";
-import type { ServerShape } from "../models/shapes";
 import type { BoundingRect } from "../shapes/variants/simple/boundingRect";
 
 import type { IShape } from "./shape";
@@ -35,7 +35,7 @@ export interface ILayer {
     pushShapes: (...shapes: IShape[]) => void;
     removeShape: (shape: IShape, options: { sync: SyncMode; recalculate: boolean; dropShapeId: boolean }) => boolean;
     resize: (width: number, height: number) => void;
-    setServerShapes: (shapes: ServerShape[]) => void;
+    setServerShapes: (shapes: ApiShape[]) => void;
     setShapes: (...shapes: IShape[]) => void;
     show: () => void;
     size: (options: { includeComposites: boolean }) => number;

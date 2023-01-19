@@ -1,8 +1,9 @@
 import type { DeepReadonly } from "vue";
 
+import type { ApiAura } from "../../../apiTypes";
 import type { GlobalId, LocalId } from "../../id";
 
-import type { Aura, ServerAura, UiAura } from "./models";
+import type { Aura, AuraId, UiAura } from "./models";
 
 export function toUiAuras(auras: readonly Aura[], shape: LocalId): UiAura[] {
     return auras.map((aura) => ({
@@ -12,11 +13,11 @@ export function toUiAuras(auras: readonly Aura[], shape: LocalId): UiAura[] {
     }));
 }
 
-export const aurasFromServer = (...auras: ServerAura[]): Aura[] => {
+export const aurasFromServer = (...auras: ApiAura[]): Aura[] => {
     const result = [];
     for (const aura of auras) {
         result.push({
-            uuid: aura.uuid,
+            uuid: aura.uuid as AuraId,
             active: aura.active,
             visionSource: aura.vision_source,
             visible: aura.visible,
@@ -33,7 +34,7 @@ export const aurasFromServer = (...auras: ServerAura[]): Aura[] => {
     return result;
 };
 
-export const aurasToServer = (shape: GlobalId, auras: DeepReadonly<Aura[]>): ServerAura[] => {
+export const aurasToServer = (shape: GlobalId, auras: DeepReadonly<Aura[]>): ApiAura[] => {
     const result = [];
     for (const aura of auras) {
         result.push({
@@ -54,7 +55,7 @@ export const aurasToServer = (shape: GlobalId, auras: DeepReadonly<Aura[]>): Ser
     return result;
 };
 
-export const partialAuraToServer = (aura: Partial<Aura>): Partial<ServerAura> => {
+export const partialAuraToServer = (aura: Partial<Aura>): Partial<ApiAura> => {
     return {
         uuid: aura.uuid,
         active: aura.active,
@@ -70,9 +71,9 @@ export const partialAuraToServer = (aura: Partial<Aura>): Partial<ServerAura> =>
     };
 };
 
-export const partialAuraFromServer = (aura: Partial<ServerAura>): Partial<Aura> => {
+export const partialAuraFromServer = (aura: Partial<ApiAura>): Partial<Aura> => {
     const partial: Partial<Aura> = {};
-    if ("uuid" in aura) partial.uuid = aura.uuid;
+    if ("uuid" in aura) partial.uuid = aura.uuid as AuraId;
     if ("active" in aura) partial.active = aura.active;
     if ("vision_source" in aura) partial.visionSource = aura.vision_source;
     if ("visible" in aura) partial.visible = aura.visible;

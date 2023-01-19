@@ -1,6 +1,8 @@
+import type { RoomInfoPlayersAdd } from "../../../apiTypes";
+import { Role } from "../../models/role";
 import { gameSystem } from "../../systems/game";
 import { playerSystem } from "../../systems/players";
-import type { Player } from "../../systems/players/models";
+import type { PlayerId } from "../../systems/players/models";
 import { socket } from "../socket";
 
 socket.on(
@@ -18,6 +20,6 @@ socket.on("Room.Info.InvitationCode.Set", (invitationCode: string) => {
     gameSystem.setInvitationCode(invitationCode);
 });
 
-socket.on("Room.Info.Players.Add", (data: Omit<Player, "showRect">) => {
-    playerSystem.addPlayer({ ...data, showRect: false });
+socket.on("Room.Info.Players.Add", (data: RoomInfoPlayersAdd) => {
+    playerSystem.addPlayer({ ...data, id: data.id as PlayerId, role: Role.Player, showRect: false });
 });

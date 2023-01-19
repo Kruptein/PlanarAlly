@@ -1,7 +1,5 @@
-import type { ServerGroup } from "../systems/groups/models";
+import type { ApiGroup, ApiShape } from "../../apiTypes";
 import type { ServerLocationOptions } from "../systems/settings/location/models";
-
-import type { ServerShape } from "./shapes";
 
 export interface ServerLocation {
     id: number;
@@ -22,8 +20,8 @@ export interface ServerLayer {
     type_: string;
     index: number;
     name: string;
-    groups: ServerGroup[];
-    shapes: ServerShape[];
+    groups: ApiGroup[];
+    shapes: ApiShape[];
     selectable: boolean;
     player_editable: boolean;
     player_visible: boolean;

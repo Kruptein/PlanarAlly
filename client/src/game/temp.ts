@@ -1,3 +1,4 @@
+import type { ApiShape } from "../apiTypes";
 import { InvalidationMode } from "../core/models/types";
 import type { SyncMode } from "../core/models/types";
 import type { SelectionBoxFunction } from "../core/plugins/modals/selectionBox";
@@ -6,8 +7,7 @@ import { sendFloorChange, sendLayerChange } from "./api/emits/shape/core";
 import { getGlobalId } from "./id";
 import type { ILayer } from "./interfaces/layer";
 import type { IShape } from "./interfaces/shape";
-import type { Floor } from "./models/floor";
-import type { ServerShape } from "./models/shapes";
+import type { Floor, LayerName } from "./models/floor";
 import { addOperation } from "./operations/undo";
 import { createShapeFromDict } from "./shapes/create";
 import { floorSystem } from "./systems/floors";
@@ -76,12 +76,13 @@ export function moveLayer(shapes: readonly IShape[], newLayer: ILayer, sync: boo
     }
 }
 
-export function addShape(shape: ServerShape, sync: SyncMode): IShape | undefined {
-    if (!floorSystem.hasLayer(floorSystem.getFloor({ name: shape.floor })!, shape.layer)) {
-        console.log(`Shape with unknown layer ${shape.layer} could not be added`);
+export function addShape(shape: ApiShape, sync: SyncMode): IShape | undefined {
+    const layerName = shape.layer as LayerName;
+    if (!floorSystem.hasLayer(floorSystem.getFloor({ name: shape.floor })!, layerName)) {
+        console.log(`Shape with unknown layer ${layerName} could not be added`);
         return;
     }
-    const layer = floorSystem.getLayer(floorSystem.getFloor({ name: shape.floor })!, shape.layer)!;
+    const layer = floorSystem.getLayer(floorSystem.getFloor({ name: shape.floor })!, layerName)!;
     const sh = createShapeFromDict(shape);
     if (sh === undefined) {
         console.log(`Shape with unknown type ${shape.type_} could not be added`);

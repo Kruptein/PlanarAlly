@@ -1,8 +1,9 @@
 import type { DeepReadonly } from "vue";
 
+import type { ApiTracker } from "../../../apiTypes";
 import type { GlobalId, LocalId } from "../../id";
 
-import type { ServerTracker, Tracker, UiTracker } from "./models";
+import type { Tracker, TrackerId, UiTracker } from "./models";
 
 export function toUiTrackers(trackers: readonly Tracker[], shape: LocalId): UiTracker[] {
     return trackers.map((tracker) => ({
@@ -12,11 +13,11 @@ export function toUiTrackers(trackers: readonly Tracker[], shape: LocalId): UiTr
     }));
 }
 
-export const trackersFromServer = (...trackers: ServerTracker[]): Tracker[] => {
+export const trackersFromServer = (...trackers: ApiTracker[]): Tracker[] => {
     const result = [];
     for (const tracker of trackers) {
         result.push({
-            uuid: tracker.uuid,
+            uuid: tracker.uuid as TrackerId,
             name: tracker.name,
             visible: tracker.visible,
             value: tracker.value,
@@ -30,7 +31,7 @@ export const trackersFromServer = (...trackers: ServerTracker[]): Tracker[] => {
     return result;
 };
 
-export const trackersToServer = (shape: GlobalId, trackers: DeepReadonly<Tracker[]>): ServerTracker[] => {
+export const trackersToServer = (shape: GlobalId, trackers: DeepReadonly<Tracker[]>): ApiTracker[] => {
     const result = [];
     for (const tracker of trackers) {
         result.push({
@@ -48,7 +49,7 @@ export const trackersToServer = (shape: GlobalId, trackers: DeepReadonly<Tracker
     return result;
 };
 
-export const partialTrackerToServer = (tracker: Partial<Tracker>): Partial<ServerTracker> => {
+export const partialTrackerToServer = (tracker: Partial<Tracker>): Partial<ApiTracker> => {
     return {
         uuid: tracker.uuid,
         visible: tracker.visible,
@@ -61,9 +62,9 @@ export const partialTrackerToServer = (tracker: Partial<Tracker>): Partial<Serve
     };
 };
 
-export const partialTrackerFromServer = (tracker: Partial<ServerTracker>): Partial<Tracker> => {
+export const partialTrackerFromServer = (tracker: Partial<ApiTracker>): Partial<Tracker> => {
     const partial: Partial<Tracker> = {};
-    if ("uuid" in tracker) partial.uuid = tracker.uuid;
+    if ("uuid" in tracker) partial.uuid = tracker.uuid as TrackerId;
     if ("visible" in tracker) partial.visible = tracker.visible;
     if ("name" in tracker) partial.name = tracker.name;
     if ("value" in tracker) partial.value = tracker.value;

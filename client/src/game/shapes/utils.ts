@@ -1,3 +1,4 @@
+import type { ApiAura, ApiShape, ApiTracker } from "../../apiTypes";
 import { subtractP, Vector } from "../../core/geometry";
 import { SyncMode, InvalidationMode } from "../../core/models/types";
 import { uuidv4 } from "../../core/utils";
@@ -6,11 +7,11 @@ import { getGlobalId, getLocalId } from "../id";
 import type { GlobalId } from "../id";
 import type { IShape } from "../interfaces/shape";
 import type { LayerName } from "../models/floor";
-import type { ServerShape, ServerPolygon, ServerToggleComposite } from "../models/shapes";
+import type { ServerPolygon, ServerToggleComposite } from "../models/shapes";
 import { addOperation } from "../operations/undo";
 import { accessSystem } from "../systems/access";
 import type { ServerShapeOwner } from "../systems/access/models";
-import type { AuraId, ServerAura } from "../systems/auras/models";
+import type { AuraId } from "../systems/auras/models";
 import { clipboardSystem } from "../systems/clipboard";
 import { clipboardState } from "../systems/clipboard/state";
 import { floorSystem } from "../systems/floors";
@@ -19,14 +20,14 @@ import { groupSystem } from "../systems/groups";
 import { positionSystem } from "../systems/position";
 import { getProperties } from "../systems/properties/state";
 import { selectedSystem } from "../systems/selected";
-import type { ServerTracker, TrackerId } from "../systems/trackers/models";
+import type { TrackerId } from "../systems/trackers/models";
 import { TriangulationTarget, VisibilityMode, visionState } from "../vision/state";
 
 import { createShapeFromDict } from "./create";
 
 export function copyShapes(): void {
     if (!selectedSystem.hasSelection) return;
-    const clipboard: ServerShape[] = [];
+    const clipboard: ApiShape[] = [];
     for (const shape of selectedSystem.get({ includeComposites: true })) {
         if (!accessSystem.hasAccessTo(shape.id, false, { edit: true })) continue;
         if (groupSystem.getGroupId(shape.id) === undefined) {
@@ -55,17 +56,17 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
 
     const shapeMap = new Map<GlobalId, GlobalId>();
     const composites: ServerToggleComposite[] = [];
-    const serverShapes: ServerShape[] = [];
+    const serverShapes: ApiShape[] = [];
 
     const groupShapes: Record<string, GlobalId[]> = {};
 
     for (const clip of clipboardState.raw.clipboard) {
-        const newShape: ServerShape = Object.assign({}, clip, { auras: [], labels: [], owners: [], trackers: [] });
+        const newShape: ApiShape = Object.assign({}, clip, { auras: [], labels: [], owners: [], trackers: [] });
         newShape.uuid = uuidv4();
         newShape.x = clip.x + offset.x;
         newShape.y = clip.y + offset.y;
 
-        shapeMap.set(clip.uuid, newShape.uuid);
+        shapeMap.set(clip.uuid as GlobalId, newShape.uuid as GlobalId);
 
         if (clip.type_ === "polygon") {
             (newShape as ServerPolygon).vertices = (clip as ServerPolygon).vertices.map((p) => [
@@ -77,7 +78,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
         // Trackers
         newShape.trackers = [];
         for (const tracker of clip.trackers) {
-            const newTracker: ServerTracker = {
+            const newTracker: ApiTracker = {
                 ...tracker,
                 uuid: uuidv4() as unknown as TrackerId,
             };
@@ -87,7 +88,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
         // Auras
         newShape.auras = [];
         for (const aura of clip.auras) {
-            const newAura: ServerAura = {
+            const newAura: ApiAura = {
                 ...aura,
                 uuid: uuidv4() as unknown as AuraId,
             };
@@ -99,19 +100,19 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
         for (const owner of clip.owners) {
             const newOwner: ServerShapeOwner = {
                 ...owner,
-                shape: newShape.uuid,
+                shape: newShape.uuid as GlobalId,
             };
             newShape.owners.push(newOwner);
         }
 
         // Badge
-        if (clip.group !== undefined) {
+        if (clip.group !== null) {
             // group join needs to happen after shape creation
-            newShape.group = undefined;
+            newShape.group = null;
             if (!(clip.group in groupShapes)) {
                 groupShapes[clip.group] = [];
             }
-            groupShapes[clip.group]!.push(newShape.uuid);
+            groupShapes[clip.group]!.push(newShape.uuid as GlobalId);
         }
         if (clip.type_ === "togglecomposite") {
             composites.push(newShape as ServerToggleComposite);

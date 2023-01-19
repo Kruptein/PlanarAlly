@@ -1,4 +1,4 @@
-import type { GlobalId, LocalId } from "../../id";
+import type { LocalId } from "../../id";
 
 export type AuraId = string & { __brand: "auraId" };
 
@@ -17,19 +17,4 @@ export interface Aura {
     angle: number;
     direction: number;
     lastPath?: Path2D;
-}
-
-export interface ServerAura {
-    shape: GlobalId;
-    uuid: AuraId;
-    active: boolean;
-    vision_source: boolean;
-    visible: boolean;
-    name: string;
-    value: number;
-    dim: number;
-    colour: string;
-    border_colour: string;
-    angle: number;
-    direction: number;
 }

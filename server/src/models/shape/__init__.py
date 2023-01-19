@@ -7,6 +7,9 @@ from uuid import uuid4
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
 from playhouse.shortcuts import model_to_dict, update_model_from_dict
 
+from ...api.models.floor import ApiAura, ApiOwner, ApiShape, ApiTracker
+from ...api.models.helpers import _
+
 if TYPE_CHECKING:
     from ...api.common.shapes.data_models import ServerShapeOwner, ShapeKeys
 
@@ -64,7 +67,7 @@ class Shape(BaseModel):
     movement_obstruction = cast(bool, BooleanField(default=False))
     is_token = cast(bool, BooleanField(default=False))
     annotation = cast(str, TextField(default=""))
-    draw_operator = TextField(default="source-over")
+    draw_operator = cast(str, TextField(default="source-over"))
     index = cast(int, IntegerField())
     options = cast(Optional[str], TextField(null=True))
     badge = cast(int, IntegerField(default=1))
@@ -76,16 +79,19 @@ class Shape(BaseModel):
     default_movement_access = cast(bool, BooleanField(default=False))
     is_locked = cast(bool, BooleanField(default=False))
     angle = cast(float, FloatField(default=0))
-    stroke_width = IntegerField(default=2)
-    asset = ForeignKeyField(
-        Asset, backref="shapes", null=True, default=None, on_delete="SET NULL"
+    stroke_width = cast(int, IntegerField(default=2))
+    asset = cast(
+        Optional[Asset],
+        ForeignKeyField(
+            Asset, backref="shapes", null=True, default=None, on_delete="SET NULL"
+        ),
     )
     group = cast(
         Optional[Group],
         ForeignKeyField(Group, backref="members", null=True, default=None),
     )
     annotation_visible = cast(bool, BooleanField(default=False))
-    ignore_zoom_size = BooleanField(default=False)
+    ignore_zoom_size = cast(bool, BooleanField(default=False))
     is_door = cast(bool, BooleanField(default=False))
     is_teleport_zone = cast(bool, BooleanField(default=False))
 
@@ -145,6 +151,74 @@ class Shape(BaseModel):
         # Subtype
         data.update(**self.subtype.as_dict(exclude=[self.subtype.__class__.shape]))
         return data
+
+    # todo: Change this API to accept a PlayerRoom instead
+    def as_pydantic(self, user: User, dm: bool) -> ApiShape:
+        owners = [owner.as_pydantic() for owner in self.owners]
+        # Aura and Tracker queries > json
+        owned = (
+            dm
+            or self.default_edit_access
+            or self.default_vision_access
+            or any(user.name == o.user for o in owners)
+        )
+        tracker_query = self.trackers
+        aura_query = self.auras
+        label_query = self.labels.join(Label)
+        annotation = self.annotation
+        name = self.name
+        if not owned:
+            if not self.annotation_visible:
+                annotation = ""
+            tracker_query = tracker_query.where(Tracker.visible)
+            aura_query = aura_query.where(Aura.visible)
+            label_query = label_query.where(Label.visible)
+            if not self.name_visible:
+                name = "?"
+        trackers = [t.as_pydantic() for t in tracker_query]
+        auras = [a.as_pydantic() for a in aura_query]
+        labels = [sh_label.label.as_pydantic() for sh_label in label_query]
+        # Subtype
+        # data.update(**self.subtype.as_dict(exclude=[self.subtype.__class__.shape]))
+        layer = self.layer
+        return ApiShape(
+            uuid=self.uuid,
+            type_=self.type_,
+            layer=layer.name,
+            floor=layer.floor.name,
+            x=self.x,
+            y=self.y,
+            name=name or "Unknown Shape",
+            name_visible=self.name_visible,
+            fill_colour=self.fill_colour,
+            stroke_colour=self.stroke_colour,
+            vision_obstruction=self.vision_obstruction,
+            movement_obstruction=self.movement_obstruction,
+            is_token=self.is_token,
+            annotation=annotation,
+            draw_operator=self.draw_operator,
+            options=self.options or "[]",
+            badge=self.badge,
+            show_badge=self.show_badge,
+            default_edit_access=self.default_edit_access,
+            default_movement_access=self.default_movement_access,
+            default_vision_access=self.default_vision_access,
+            is_invisible=self.is_invisible,
+            is_defeated=self.is_defeated,
+            is_locked=self.is_locked,
+            angle=self.angle,
+            stroke_width=self.stroke_width,
+            annotation_visible=self.annotation_visible,
+            ignore_zoom_size=self.ignore_zoom_size,
+            is_door=self.is_door,
+            is_teleport_zone=self.is_teleport_zone,
+            asset=_(None if self.asset is None else self.asset.id),
+            group=_(None if self.group is None else self.group.uuid),
+            owners=owners,
+            trackers=trackers,
+            auras=auras,
+            labels=labels,
+        )
 
     def center_at(self, x: int, y: int) -> None:
         x_off, y_off = self.subtype.get_center_offset(x, y)
@@ -218,21 +292,34 @@ class ShapeLabel(BaseModel):
 
 
 class Tracker(BaseModel):
-    uuid = TextField(primary_key=True)
-    shape = ForeignKeyField(Shape, backref="trackers", on_delete="CASCADE")
-    visible = BooleanField()
-    name = TextField()
-    value = IntegerField()
-    maxvalue = IntegerField()
-    draw = BooleanField()
-    primary_color = TextField()
-    secondary_color = TextField()
+    uuid = cast(str, TextField(primary_key=True))
+    shape = cast(Shape, ForeignKeyField(Shape, backref="trackers", on_delete="CASCADE"))
+    visible = cast(bool, BooleanField())
+    name = cast(str, TextField())
+    value = cast(int, IntegerField())
+    maxvalue = cast(int, IntegerField())
+    draw = cast(bool, BooleanField())
+    primary_color = cast(str, TextField())
+    secondary_color = cast(str, TextField())
 
     def __repr__(self):
         return f"<Tracker {self.name} {self.shape.get_path()}>"
 
     def as_dict(self):
         return model_to_dict(self, recurse=False, exclude=[Tracker.shape])
+
+    def as_pydantic(self):
+        return ApiTracker(
+            uuid=self.uuid,
+            shape=self.shape.uuid,
+            visible=self.visible,
+            name=self.name,
+            value=self.value,
+            maxvalue=self.maxvalue,
+            draw=self.draw,
+            primary_color=self.primary_color,
+            secondary_color=self.secondary_color,
+        )
 
     def make_copy(self, new_shape):
         _dict = self.as_dict()
@@ -241,24 +328,40 @@ class Tracker(BaseModel):
 
 
 class Aura(BaseModel):
-    uuid = TextField(primary_key=True)
-    shape = ForeignKeyField(Shape, backref="auras", on_delete="CASCADE")
-    vision_source = BooleanField()
-    visible = BooleanField()
-    name = TextField()
-    value = IntegerField()
-    dim = IntegerField()
-    colour = TextField()
-    active = BooleanField()
-    border_colour = TextField()
-    angle = IntegerField()
-    direction = IntegerField()
+    uuid = cast(str, TextField(primary_key=True))
+    shape = cast(Shape, ForeignKeyField(Shape, backref="auras", on_delete="CASCADE"))
+    vision_source = cast(bool, BooleanField())
+    visible = cast(bool, BooleanField())
+    name = cast(str, TextField())
+    value = cast(int, IntegerField())
+    dim = cast(int, IntegerField())
+    colour = cast(str, TextField())
+    active = cast(bool, BooleanField())
+    border_colour = cast(str, TextField())
+    angle = cast(int, IntegerField())
+    direction = cast(int, IntegerField())
 
     def __repr__(self):
         return f"<Aura {self.name} {self.shape.get_path()}>"
 
     def as_dict(self):
         return model_to_dict(self, recurse=False, exclude=[Aura.shape])
+
+    def as_pydantic(self):
+        return ApiAura(
+            uuid=self.uuid,
+            shape=self.shape.uuid,
+            vision_source=self.vision_source,
+            visible=self.visible,
+            name=self.name,
+            value=self.value,
+            dim=self.dim,
+            colour=self.colour,
+            active=self.active,
+            border_colour=self.border_colour,
+            angle=self.angle,
+            direction=self.direction,
+        )
 
     def make_copy(self, new_shape):
         _dict = self.as_dict()
@@ -269,9 +372,9 @@ class Aura(BaseModel):
 class ShapeOwner(BaseModel):
     shape = ForeignKeyField(Shape, backref="owners", on_delete="CASCADE")
     user = cast(User, ForeignKeyField(User, backref="shapes", on_delete="CASCADE"))
-    edit_access = BooleanField()
-    vision_access = BooleanField()
-    movement_access = BooleanField()
+    edit_access = cast(bool, BooleanField())
+    vision_access = cast(bool, BooleanField())
+    movement_access = cast(bool, BooleanField())
 
     def __repr__(self):
         return f"<ShapeOwner {self.user.name} {self.shape.get_path()}>"
@@ -286,6 +389,15 @@ class ShapeOwner(BaseModel):
                 "movement_access": self.movement_access,
                 "vision_access": self.vision_access,
             },
+        )
+
+    def as_pydantic(self) -> ApiOwner:
+        return ApiOwner(
+            shape=self.shape.uuid,
+            user=self.user.name,
+            edit_access=self.edit_access,
+            movement_access=self.movement_access,
+            vision_access=self.vision_access,
         )
 
     def make_copy(self, new_shape):

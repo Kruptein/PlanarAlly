@@ -1,6 +1,10 @@
 from typing import Optional
 from typing_extensions import TypedDict
 
+from ..helpers import _send_game
+
+from ..models.asset.options import AssetOptionsInfoFail, AssetOptionsInfoSuccess
+
 from ... import auth
 from ...api.socket.constants import GAME_NS
 from ...app import app, sio
@@ -8,6 +12,7 @@ from ...logs import logger
 from ...models import Asset, PlayerRoom
 from ...models.role import Role
 from ...state.game import game_state
+from ..models.helpers import _
 
 
 class AssetOptions(TypedDict):
@@ -27,11 +32,13 @@ async def get_asset_options(sid: str, asset_id: int):
     asset: Optional[Asset] = Asset.get_or_none(id=asset_id)
 
     if asset is None:
-        options = {"success": False, "error": "AssetNotFound"}
+        options = AssetOptionsInfoFail(success=False, error="AssetNotFound")
     else:
-        options = {"success": True, "name": asset.name, "options": asset.options}
+        options = AssetOptionsInfoSuccess(
+            success=True, name=asset.name, options=_(asset.options)
+        )
 
-    await sio.emit("Asset.Options.Info", options, room=sid, namespace=GAME_NS)
+    await _send_game("Asset.Options.Info", options, room=sid)
 
 
 @sio.on("Asset.Options.Set", namespace=GAME_NS)

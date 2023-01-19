@@ -1,7 +1,7 @@
 import { registerSystem } from "..";
 import type { System } from "..";
+import type { ApiShape } from "../../../apiTypes";
 import type { GlobalPoint } from "../../../core/geometry";
-import type { ServerShape } from "../../models/shapes";
 
 import { clipboardState } from "./state";
 
@@ -10,7 +10,7 @@ const { mutableReactive: $ } = clipboardState;
 class ClipboardSystem implements System {
     clear(): void {}
 
-    setClipboard(clipboard: ServerShape[]): void {
+    setClipboard(clipboard: ApiShape[]): void {
         $.clipboard = clipboard;
     }
 

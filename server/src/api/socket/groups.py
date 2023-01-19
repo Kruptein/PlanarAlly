@@ -1,7 +1,6 @@
-from typing import List
-from typing_extensions import TypedDict
+from typing import Any, List
 
-from playhouse.shortcuts import model_to_dict, update_model_from_dict
+from playhouse.shortcuts import update_model_from_dict
 
 from ... import auth
 from ...api.socket.constants import GAME_NS
@@ -9,167 +8,141 @@ from ...app import app, sio
 from ...logs import logger
 from ...models import Group, PlayerRoom, Shape
 from ...state.game import game_state
-
-
-class ServerGroup(TypedDict):
-    uuid: str
-    character_set: List[str]
-    creation_order: str
-
-
-class MemberBadge(TypedDict):
-    uuid: str
-    badge: int
-
-
-class GroupJoin(TypedDict):
-    group_id: str
-    members: List[MemberBadge]
-
-
-class LeaveGroup(TypedDict):
-    uuid: str
-    group_id: str
-
-
-@sio.on("Group.Info.Get", namespace=GAME_NS)
-@auth.login_required(app, sio, "game")
-async def get_group_info(sid: str, group_id: str):
-    try:
-        group = Group.get_by_id(group_id)
-    except Group.DoesNotExist:
-        logger.exception(f"Could not retrieve group information for {group_id}")
-        data = {}
-    else:
-        data = model_to_dict(group)
-
-    await sio.emit("Group.Info", data=data, room=sid, namespace=GAME_NS)
+from ..helpers import _send_game
+from ..models.floor import ApiGroup
+from ..models.groups import GroupJoin, GroupLeave
+from ..models.groups.members import GroupMemberBadge
 
 
 @sio.on("Group.Update", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def update_group(sid: str, group_info: ServerGroup):
+async def update_group(sid: str, raw_data: Any):
+    data = ApiGroup(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
     try:
-        group = Group.get_by_id(group_info["uuid"])
+        group = Group.get_by_id(data.uuid)
     except Group.DoesNotExist:
-        logger.exception(
-            f"Could not retrieve group information for {group_info['uuid']}"
-        )
+        logger.exception(f"Could not retrieve group information for {data.uuid}")
+        return
     else:
-        update_model_from_dict(group, group_info)
+        update_model_from_dict(group, data.dict())
         group.save()
 
-    for psid, _ in game_state.get_users(room=pr.room):
-        await sio.emit(
+    for psid in game_state.get_sids(room=pr.room):
+        await _send_game(
             "Group.Update",
-            group_info,
+            data,
             room=psid,
             skip_sid=sid,
-            namespace=GAME_NS,
         )
 
 
 @sio.on("Group.Members.Update", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def update_group_badges(sid: str, member_badges: List[MemberBadge]):
+async def update_group_badges(sid: str, raw_data: List[Any]):
+    member_badges = [GroupMemberBadge(**data) for data in raw_data]
+
     pr: PlayerRoom = game_state.get(sid)
 
     for member in member_badges:
         try:
-            shape = Shape.get_by_id(member["uuid"])
+            shape = Shape.get_by_id(member.uuid)
         except Shape.DoesNotExist:
             logger.exception(
-                f"Could not update shape badge for unknown shape {member['uuid']}"
+                f"Could not update shape badge for unknown shape {member.uuid}"
             )
         else:
-            shape.badge = member["badge"]
+            shape.badge = member.badge
             shape.save()
 
-    for psid, player in game_state.get_users(room=pr.room):
-        await sio.emit(
+    for psid in game_state.get_sids(room=pr.room):
+        await _send_game(
             "Group.Members.Update",
             member_badges,
             room=psid,
             skip_sid=sid,
-            namespace=GAME_NS,
         )
 
 
 @sio.on("Group.Create", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def create_group(sid: str, group_info: ServerGroup):
+async def create_group(sid: str, raw_data: Any):
+    data = ApiGroup(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
     try:
-        Group.get_by_id(group_info["uuid"])
-        logger.exception(f"Group with {group_info['uuid']} already exists")
+        Group.get_by_id(data.uuid)
+        logger.exception(f"Group with {data.uuid} already exists")
         return
     except Group.DoesNotExist:
-        Group.create(**group_info)
+        Group.create(**data.dict())
 
-    for psid, _ in game_state.get_users(room=pr.room):
-        await sio.emit(
+    for psid in game_state.get_sids(room=pr.room):
+        await _send_game(
             "Group.Create",
-            group_info,
+            data,
             room=psid,
             skip_sid=sid,
-            namespace=GAME_NS,
         )
 
 
 @sio.on("Group.Join", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def join_group(sid: str, group_join: GroupJoin):
+async def join_group(sid: str, raw_data: Any):
+    data = GroupJoin(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
     group_ids = set()
 
-    for member in group_join["members"]:
+    for member in data.members:
         try:
-            shape = Shape.get_by_id(member["uuid"])
+            shape = Shape.get_by_id(member.uuid)
         except Shape.DoesNotExist:
             logger.exception(
-                f"Could not update shape group for unknown shape {member['uuid']}"
+                f"Could not update shape group for unknown shape {member.uuid}"
             )
         else:
-            if shape.group is not None and shape.group != group_join["group_id"]:
+            if shape.group is not None and shape.group != data.group_id:
                 group_ids.add(shape.group)
-            shape.group = group_join["group_id"]
-            shape.badge = member["badge"]
+            shape.group = Group[data.group_id]
+            shape.badge = member.badge
             shape.save()
 
     # Group joining can be the result of a merge or a split and thus other groups might be empty now
     for group_id in group_ids:
         await remove_group_if_empty(group_id)
 
-    for psid, _ in game_state.get_users(room=pr.room):
-        await sio.emit(
+    for psid in game_state.get_sids(room=pr.room):
+        await _send_game(
             "Group.Join",
-            group_join,
+            data,
             room=psid,
             skip_sid=sid,
-            namespace=GAME_NS,
         )
 
 
 @sio.on("Group.Leave", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def leave_group(sid: str, client_shapes: List[LeaveGroup]):
+async def leave_group(sid: str, raw_data: list[Any]):
+    client_shapes = [GroupLeave(**data) for data in raw_data]
+
     pr: PlayerRoom = game_state.get(sid)
 
     group_ids = set()
 
     for client_shape in client_shapes:
         try:
-            shape = Shape.get_by_id(client_shape["uuid"])
+            shape = Shape.get_by_id(client_shape.uuid)
         except Shape.DoesNotExist:
             logger.exception(
-                f"Could not remove shape group for unknown shape {client_shape['uuid']}"
+                f"Could not remove shape group for unknown shape {client_shape.uuid}"
             )
         else:
-            group_ids.add(client_shape["group_id"])
+            group_ids.add(client_shape.group_id)
             shape.group = None
             shape.show_badge = False
             shape.save()
@@ -177,14 +150,8 @@ async def leave_group(sid: str, client_shapes: List[LeaveGroup]):
     for group_id in group_ids:
         await remove_group_if_empty(group_id)
 
-    for psid, _ in game_state.get_users(room=pr.room):
-        await sio.emit(
-            "Group.Leave",
-            client_shapes,
-            room=psid,
-            skip_sid=sid,
-            namespace=GAME_NS,
-        )
+    for psid in game_state.get_sids(room=pr.room):
+        await _send_game("Group.Leave", client_shapes, room=psid, skip_sid=sid)
 
 
 @sio.on("Group.Remove", namespace=GAME_NS)

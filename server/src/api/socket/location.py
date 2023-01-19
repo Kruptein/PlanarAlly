@@ -4,11 +4,16 @@ from typing import Dict, List, Union, cast
 from playhouse.shortcuts import update_model_from_dict
 from typing_extensions import TypedDict
 
+from ..models.client import Viewport
+
+from ..helpers import _send_game
+
+from ..models.client.gameboard import ClientGameboardSet
+
 from ... import auth
 from ...api.socket.constants import GAME_NS
 from ...app import app, sio
 from ...config import config
-from ...data_types.client import Viewport
 from ...models import (
     Floor,
     Initiative,
@@ -302,14 +307,10 @@ async def load_location(sid: str, location: Location, *, complete=False):
         if psid in game_state.client_gameboards:
             board_id = game_state.client_gameboards[psid]
             if IS_DM or sid == psid:
-                await sio.emit(
+                await _send_game(
                     "Client.Gameboard.Set",
-                    {
-                        "client": psid,
-                        "boardId": board_id,
-                    },
+                    ClientGameboardSet(client=psid, boardId=board_id),
                     room=sid,
-                    namespace=GAME_NS,
                 )
 
 

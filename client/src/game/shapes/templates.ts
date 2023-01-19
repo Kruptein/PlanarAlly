@@ -1,4 +1,6 @@
-import type { ServerRect, ServerShape } from "../models/shapes";
+import type { ApiShape } from "../../apiTypes";
+import type { GlobalId } from "../id";
+import type { ServerRect } from "../models/shapes";
 import { BaseAuraStrings, BaseTemplateStrings, BaseTrackerStrings, getTemplateKeys } from "../models/templates";
 import type { BaseAuraTemplate, BaseTemplate, BaseTrackerTemplate } from "../models/templates";
 import { aurasToServer } from "../systems/auras/conversion";
@@ -7,31 +9,35 @@ import { locationSettingsState } from "../systems/settings/location/state";
 import { trackersToServer } from "../systems/trackers/conversion";
 import { createEmptyTracker } from "../systems/trackers/utils";
 
-export function applyTemplate<T extends ServerShape>(shape: T, template: BaseTemplate & { options?: string }): T {
+import type { SHAPE_TYPE } from "./types";
+
+export function applyTemplate<T extends ApiShape>(shape: T, template: BaseTemplate & { options?: string }): T {
     // should be shape[key], but this is something that TS cannot correctly infer (issue #31445)
     for (const key of BaseTemplateStrings) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
         if (key in template) (shape as any)[key] = template[key];
     }
 
+    const uuid = shape.uuid as GlobalId;
+
     // Options are not to be copied to a template by default, which is why they're not part of BaseTemplate
     // Some custom things do add options to a template and they should be set accordingly
-    if ("options" in template) shape.options = template.options;
+    if (template.options !== undefined) shape.options = template.options;
 
     for (const trackerTemplate of template.trackers ?? []) {
-        const defaultTracker = trackersToServer(shape.uuid, [createEmptyTracker()])[0]!;
+        const defaultTracker = trackersToServer(uuid, [createEmptyTracker()])[0]!;
         shape.trackers.push({ ...defaultTracker, ...trackerTemplate });
     }
 
     for (const auraTemplate of template.auras ?? []) {
-        const defaultAura = aurasToServer(shape.uuid, [createEmptyAura()])[0]!;
+        const defaultAura = aurasToServer(uuid, [createEmptyAura()])[0]!;
         shape.auras.push({ ...defaultAura, ...auraTemplate });
     }
 
     const gridRescale = 5 / locationSettingsState.raw.unitSize.value;
 
     // Shape specific keys
-    for (const key of getTemplateKeys(shape.type_)) {
+    for (const key of getTemplateKeys(shape.type_ as SHAPE_TYPE)) {
         if (["assetrect", "rect"].includes(shape.type_)) {
             const rect = shape as any as ServerRect;
             const rectTemplate = template as any as ServerRect;
@@ -50,7 +56,7 @@ export function applyTemplate<T extends ServerShape>(shape: T, template: BaseTem
     return shape;
 }
 
-export function toTemplate(shape: ServerShape): BaseTemplate {
+export function toTemplate(shape: ApiShape): BaseTemplate {
     const template: BaseTemplate = {};
     // should be template[key], but this is something that TS cannot correctly infer (issue #31445)
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -73,7 +79,7 @@ export function toTemplate(shape: ServerShape): BaseTemplate {
 
     // Shape specific keys
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    for (const key of getTemplateKeys(shape.type_)) (template as any)[key] = (shape as any)[key];
+    for (const key of getTemplateKeys(shape.type_ as SHAPE_TYPE)) (template as any)[key] = (shape as any)[key];
 
     return template;
 }

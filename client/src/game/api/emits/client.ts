@@ -1,5 +1,5 @@
-import type { ServerUserLocationOptions } from "../../models/settings";
-import type { ClientId, Viewport } from "../../systems/client/models";
+import type { ClientMove, ClientPosition, TempClientPosition, Viewport } from "../../../apiTypes";
+import type { ClientId } from "../../systems/client/models";
 import { positionState } from "../../systems/position/state";
 import type { ServerPlayerOptions } from "../../systems/settings/players/models";
 import { wrapSocket } from "../helpers";
@@ -17,8 +17,9 @@ export function sendClientLocationOptions(temp: boolean): void {
     );
 }
 
-function _sendClientLocationOptions(locationOptions: ServerUserLocationOptions, temp: boolean): void {
-    socket.emit("Client.Options.Location.Set", { options: locationOptions, temp });
+function _sendClientLocationOptions(locationOptions: ClientPosition, temp: boolean): void {
+    const data: TempClientPosition = { position: locationOptions, temp };
+    socket.emit("Client.Options.Location.Set", data);
 }
 
 export const sendViewport = wrapSocket<Viewport>("Client.Viewport.Set");
@@ -34,4 +35,4 @@ export function sendRoomClientOptions<T extends keyof ServerPlayerOptions>(
     socket.emit(event, { [key]: val });
 }
 
-export const sendMoveClient = wrapSocket<{ client: ClientId; data: ServerUserLocationOptions }>("Client.Move");
+export const sendMoveClient = wrapSocket<ClientMove>("Client.Move");

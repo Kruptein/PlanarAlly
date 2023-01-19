@@ -4,5 +4,6 @@ from .dice import *
 from .floor import *
 from .groups import *
 from .initiative import *
+from .label import *
 from .notification import *
 from .room import *

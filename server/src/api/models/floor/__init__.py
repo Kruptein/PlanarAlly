@@ -1,17 +1,10 @@
 from pydantic import BaseModel
 
 from ..helpers import Nullable
+from ..label import ApiLabel
 from .background import *
 from .type import *
 from .visible import *
-
-
-class ApiLabel(BaseModel):
-    uuid: str
-    user: str
-    category: str
-    name: str
-    visible: bool
 
 
 class ApiTracker(BaseModel):

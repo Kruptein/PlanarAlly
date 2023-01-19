@@ -4,7 +4,7 @@ from uuid import uuid4
 from peewee import BooleanField, ForeignKeyField, TextField
 from playhouse.shortcuts import model_to_dict
 
-from ..api.models.floor import ApiLabel
+from ..api.models.label import ApiLabel
 from .base import BaseModel
 from .campaign import Room
 from .user import User

@@ -271,6 +271,10 @@ export interface InitiativeValueSet {
   shape: string;
   value: number;
 }
+export interface LabelVisibilitySet {
+  uuid: string;
+  visible: boolean;
+}
 export interface NotificationShow {
   uuid: string;
   message: string;

@@ -106,7 +106,7 @@ export class LabelSystem implements ShapeSystem {
         }
         $.labels.delete(uuid);
 
-        if (sync) sendLabelDelete({ uuid });
+        if (sync) sendLabelDelete(uuid);
     }
 
     isFiltered(id: LocalId): boolean {

@@ -1,3 +1,4 @@
+import type { LocationClone, LocationOptionsSet, LocationRename } from "../../../apiTypes";
 import type { ServerAsset } from "../../models/shapes";
 import type { ServerLocationOptions } from "../../systems/settings/location/models";
 import { wrapSocket } from "../helpers";
@@ -10,11 +11,11 @@ export const sendLocationChange = wrapSocket<{
     position?: { x: number; y: number };
 }>("Location.Change");
 export const sendNewLocation = wrapSocket<string>("Location.New");
-export const sendLocationRename = wrapSocket<{ location: number; name: string }>("Location.Rename");
+export const sendLocationRename = wrapSocket<LocationRename>("Location.Rename");
 export const sendLocationRemove = wrapSocket<number>("Location.Delete");
 export const sendLocationArchive = wrapSocket<number>("Location.Archive");
 export const sendLocationUnarchive = wrapSocket<number>("Location.Unarchive");
-export const sendLocationClone = wrapSocket<{ location: number; room: string }>("Location.Clone");
+export const sendLocationClone = wrapSocket<LocationClone>("Location.Clone");
 
 export async function requestSpawnInfo(location: number): Promise<ServerAsset[]> {
     socket.emit("Location.Spawn.Info.Get", location);
@@ -26,5 +27,6 @@ export function sendLocationOption<T extends keyof ServerLocationOptions>(
     value: ServerLocationOptions[T] | undefined,
     location: number | undefined,
 ): void {
-    socket.emit("Location.Options.Set", { options: { [key]: value ?? null }, location });
+    const data: LocationOptionsSet = { options: { [key]: value ?? null }, location };
+    socket.emit("Location.Options.Set", data);
 }

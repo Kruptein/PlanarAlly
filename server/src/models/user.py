@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional, cast
+from typing import TYPE_CHECKING, List, Literal, Optional, cast, overload
 
 import bcrypt
 from peewee import (
@@ -11,6 +11,7 @@ from peewee import (
 )
 from playhouse.shortcuts import model_to_dict
 
+from ..api.models.user import ApiOptionalUserOptions, ApiUserOptions
 from .base import BaseModel
 from .typed import SelectSequence
 
@@ -25,31 +26,35 @@ __all__ = ["User", "UserOptions"]
 class UserOptions(BaseModel):
     id: int
 
-    fow_colour = TextField(default="#000", null=True)
-    grid_colour = TextField(default="#000", null=True)
-    ruler_colour = TextField(default="#F00", null=True)
-    use_tool_icons = BooleanField(default=True, null=True)
-    show_token_directions = BooleanField(default=True, null=True)
+    fow_colour = cast(str | None, TextField(default="#000", null=True))
+    grid_colour = cast(str | None, TextField(default="#000", null=True))
+    ruler_colour = cast(str | None, TextField(default="#F00", null=True))
+    use_tool_icons = cast(bool | None, BooleanField(default=True, null=True))
+    show_token_directions = cast(bool | None, BooleanField(default=True, null=True))
 
-    invert_alt = BooleanField(default=False, null=True)
-    disable_scroll_to_zoom = BooleanField(default=False, null=True)
+    invert_alt = cast(bool | None, BooleanField(default=False, null=True))
+    disable_scroll_to_zoom = cast(bool | None, BooleanField(default=False, null=True))
     # false = use absolute mode ; true = use relative mode
-    default_tracker_mode = BooleanField(default=False, null=True)
+    default_tracker_mode = cast(bool | None, BooleanField(default=False, null=True))
     # 0 = no pan  1 = middle mouse only  2 = right mouse only 3 = both
-    mouse_pan_mode = IntegerField(default=3, null=True)
+    mouse_pan_mode = cast(int | None, IntegerField(default=3, null=True))
 
-    use_high_dpi = BooleanField(default=False, null=True)
-    grid_size = IntegerField(default=50, null=True)
-    use_as_physical_board = BooleanField(default=False, null=True)
-    mini_size = FloatField(default=1, null=True)
-    ppi = IntegerField(default=96, null=True)
+    use_high_dpi = cast(bool | None, BooleanField(default=False, null=True))
+    grid_size = cast(int | None, IntegerField(default=50, null=True))
+    use_as_physical_board = cast(bool | None, BooleanField(default=False, null=True))
+    mini_size = cast(float | None, FloatField(default=1, null=True))
+    ppi = cast(int | None, IntegerField(default=96, null=True))
 
-    initiative_camera_lock = BooleanField(default=False, null=True)
-    initiative_vision_lock = BooleanField(default=False, null=True)
-    initiative_effect_visibility = TextField(default="active", null=True)
-    initiative_open_on_activate = cast(bool, BooleanField(default=True, null=True))
+    initiative_camera_lock = cast(bool | None, BooleanField(default=False, null=True))
+    initiative_vision_lock = cast(bool | None, BooleanField(default=False, null=True))
+    initiative_effect_visibility = cast(
+        str | None, TextField(default="active", null=True)
+    )
+    initiative_open_on_activate = cast(
+        bool | None, BooleanField(default=True, null=True)
+    )
 
-    render_all_floors = BooleanField(default=True, null=True)
+    render_all_floors = cast(bool | None, BooleanField(default=True, null=True))
 
     @classmethod
     def create_empty(cls):
@@ -84,6 +89,44 @@ class UserOptions(BaseModel):
             if v is not None
         }
 
+    @overload
+    def as_pydantic(self, optional: Literal[True]) -> ApiOptionalUserOptions:
+        ...
+
+    @overload
+    def as_pydantic(self, optional: Literal[False]) -> ApiUserOptions:
+        ...
+
+    @overload
+    def as_pydantic(self, optional: bool) -> ApiOptionalUserOptions | ApiUserOptions:
+        ...
+
+    def as_pydantic(self, optional: bool):
+        target = ApiUserOptions if not optional else ApiOptionalUserOptions
+
+        # I tried with an overload and a generic, but the type system just couldn't infer it :(
+        return target(
+            fow_colour=self.fow_colour,  # type: ignore
+            grid_colour=self.grid_colour,  # type: ignore
+            ruler_colour=self.ruler_colour,  # type: ignore
+            use_tool_icons=self.use_as_physical_board,  # type: ignore
+            show_token_directions=self.show_token_directions,  # type: ignore
+            invert_alt=self.invert_alt,  # type: ignore
+            disable_scroll_to_zoom=self.disable_scroll_to_zoom,  # type: ignore
+            default_tracker_mode=self.default_tracker_mode,  # type: ignore
+            mouse_pan_mode=self.mouse_pan_mode,  # type: ignore
+            use_high_dpi=self.use_high_dpi,  # type: ignore
+            grid_size=self.grid_size,  # type: ignore
+            use_as_physical_board=self.use_as_physical_board,  # type: ignore
+            mini_size=self.mini_size,  # type: ignore
+            ppi=self.ppi,  # type: ignore
+            initiative_camera_lock=self.initiative_camera_lock,  # type: ignore
+            initiative_vision_lock=self.initiative_vision_lock,  # type: ignore
+            initiative_effect_visibility=self.initiative_effect_visibility,  # type: ignore
+            initiative_open_on_activate=self.initiative_open_on_activate,  # type: ignore
+            render_all_floors=self.render_all_floors,  # type: ignore
+        )
+
 
 class User(BaseModel):
     id: int
@@ -94,7 +137,9 @@ class User(BaseModel):
     name = cast(str, TextField())
     email = TextField(null=True)
     password_hash = cast(str, TextField())
-    default_options = ForeignKeyField(UserOptions, on_delete="CASCADE")
+    default_options = cast(
+        UserOptions, ForeignKeyField(UserOptions, on_delete="CASCADE")
+    )
 
     colour_history = cast(Optional[str], TextField(null=True))
 

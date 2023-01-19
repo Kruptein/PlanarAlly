@@ -46,6 +46,6 @@ class Label(BaseModel):
 
 
 class LabelSelection(BaseModel):
-    label = ForeignKeyField(Label, on_delete="CASCADE")
-    user = ForeignKeyField(User, on_delete="CASCADE")
-    room = ForeignKeyField(Room, on_delete="CASCADE")
+    label = cast(Label, ForeignKeyField(Label, on_delete="CASCADE"))
+    user = cast(User, ForeignKeyField(User, on_delete="CASCADE"))
+    room = cast(Room, ForeignKeyField(Room, on_delete="CASCADE"))

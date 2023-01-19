@@ -1,6 +1,6 @@
 import uuid
 from datetime import date
-from typing import TYPE_CHECKING, List, Optional, Set, cast
+from typing import TYPE_CHECKING, List, Literal, Optional, Set, cast, overload
 
 from peewee import (
     BooleanField,
@@ -15,6 +15,13 @@ from playhouse.shortcuts import model_to_dict
 
 from ..api.models.floor import ApiFloor, ApiGroup, ApiLayer, ApiShape
 from ..api.models.helpers import _
+from ..api.models.location import (
+    ApiLocation,
+    ApiLocationOptions,
+    ApiOptionalLocationOptions,
+)
+from ..api.models.location.userOption import ApiLocationUserOption
+from ..api.models.note import ApiNote
 
 if TYPE_CHECKING:
     from .initiative import Initiative
@@ -41,23 +48,27 @@ __all__ = [
 class LocationOptions(BaseModel):
     id: int
 
-    unit_size = FloatField(default=5, null=True)
-    unit_size_unit = TextField(default="ft", null=True)
-    use_grid = BooleanField(default=True, null=True)
-    full_fow = cast(bool, BooleanField(default=False, null=True))
-    fow_opacity = FloatField(default=0.3, null=True)
-    fow_los = cast(bool, BooleanField(default=False, null=True))
-    vision_mode = TextField(default="triangle", null=True)
+    unit_size = cast(float | None, FloatField(default=5, null=True))
+    unit_size_unit = cast(str | None, TextField(default="ft", null=True))
+    use_grid = cast(bool | None, BooleanField(default=True, null=True))
+    full_fow = cast(bool | None, BooleanField(default=False, null=True))
+    fow_opacity = cast(float | None, FloatField(default=0.3, null=True))
+    fow_los = cast(bool | None, BooleanField(default=False, null=True))
+    vision_mode = cast(str | None, TextField(default="triangle", null=True))
     # default is 1km max, 0.5km min
-    vision_min_range = FloatField(default=1640, null=True)
-    vision_max_range = FloatField(default=3281, null=True)
-    spawn_locations = cast(str, TextField(default="[]"))
-    move_player_on_token_change = BooleanField(default=True, null=True)
-    grid_type = TextField(default="SQUARE", null=True)
-    air_map_background = TextField(default="none", null=True)
-    ground_map_background = TextField(default="none", null=True)
-    underground_map_background = TextField(default="none", null=True)
-    limit_movement_during_initiative = BooleanField(default=False, null=True)
+    vision_min_range = cast(float | None, FloatField(default=1640, null=True))
+    vision_max_range = cast(float | None, FloatField(default=3281, null=True))
+    spawn_locations = cast(str, cast(str, TextField(default="[]")))
+    move_player_on_token_change = cast(
+        bool | None, BooleanField(default=True, null=True)
+    )
+    grid_type = cast(str | None, TextField(default="SQUARE", null=True))
+    air_map_background = cast(str | None, TextField(default="none", null=True))
+    ground_map_background = cast(str | None, TextField(default="none", null=True))
+    underground_map_background = cast(str | None, TextField(default="none", null=True))
+    limit_movement_during_initiative = cast(
+        bool | None, BooleanField(default=False, null=True)
+    )
 
     @classmethod
     def create_empty(cls):
@@ -87,6 +98,43 @@ class LocationOptions(BaseModel):
             ).items()
             if v is not None
         }
+
+    @overload
+    def as_pydantic(self, optional: Literal[True]) -> ApiOptionalLocationOptions:
+        ...
+
+    @overload
+    def as_pydantic(self, optional: Literal[False]) -> ApiLocationOptions:
+        ...
+
+    @overload
+    def as_pydantic(
+        self, optional: bool
+    ) -> ApiOptionalLocationOptions | ApiLocationOptions:
+        ...
+
+    def as_pydantic(self, optional: bool):
+        target = ApiLocationOptions if not optional else ApiOptionalLocationOptions
+
+        # I tried with an overload and a generic, but the type system just couldn't infer it :(
+        return target(
+            unit_size=self.unit_size,  # type: ignore
+            unit_size_unit=self.unit_size_unit,  # type: ignore
+            grid_type=self.grid_type,  # type: ignore
+            use_grid=self.use_grid,  # type: ignore
+            full_fow=self.full_fow,  # type: ignore
+            fow_opacity=self.fow_opacity,  # type: ignore
+            fow_los=self.fow_los,  # type: ignore
+            vision_mode=self.vision_mode,  # type: ignore
+            vision_min_range=self.vision_min_range,  # type: ignore
+            vision_max_range=self.vision_max_range,  # type: ignore
+            move_player_on_token_change=self.move_player_on_token_change,  # type: ignore
+            air_map_background=self.air_map_background,  # type: ignore
+            ground_map_background=self.ground_map_background,  # type: ignore
+            underground_map_background=self.underground_map_background,  # type: ignore
+            limit_movement_during_initiative=self.limit_movement_during_initiative,  # type: ignore
+            spawn_locations=self.spawn_locations,
+        )
 
 
 class Room(BaseModel):
@@ -163,6 +211,15 @@ class Location(BaseModel):
         else:
             data["options"] = {}
         return data
+
+    def as_pydantic(self):
+        if self.options is not None:
+            options = self.options.as_pydantic(True)
+        else:
+            options = ApiOptionalLocationOptions(spawn_locations="[]")
+        return ApiLocation(
+            id=self.id, name=self.name, options=options, archived=self.archived
+        )
 
     def create_floor(self, name="ground"):
         if Floor.select().where(Floor.location == self).count() > 0:
@@ -251,14 +308,14 @@ class PlayerRoom(BaseModel):
 
 
 class Note(BaseModel):
-    uuid = TextField(primary_key=True)
+    uuid = cast(str, TextField(primary_key=True))
     room = ForeignKeyField(Room, backref="notes", on_delete="CASCADE")
     location = ForeignKeyField(
         Location, null=True, backref="notes", on_delete="CASCADE"
     )
     user = ForeignKeyField(User, backref="notes", on_delete="CASCADE")
-    title = TextField(null=True)
-    text = TextField(null=True)
+    title = cast(str, TextField(null=True))
+    text = cast(str, TextField(null=True))
 
     def __repr__(self):
         return f"<Note {self.title} {self.room.get_path()} - {self.user.name}"
@@ -267,6 +324,9 @@ class Note(BaseModel):
         return model_to_dict(
             self, recurse=False, exclude=[Note.room, Note.location, Note.user]
         )
+
+    def as_pydantic(self):
+        return ApiNote(uuid=self.uuid, title=self.title, text=self.text)
 
 
 class Floor(BaseModel):
@@ -326,7 +386,7 @@ class Layer(BaseModel):
     id: int
     shapes: SelectSequence["Shape"]
 
-    floor = ForeignKeyField(Floor, backref="layers", on_delete="CASCADE")
+    floor = cast(Floor, ForeignKeyField(Floor, backref="layers", on_delete="CASCADE"))
     name = cast(str, TextField())
     type_ = cast(str, TextField())
     # TYPE = IntegerField()  # normal/grid/dm/lighting ???????????
@@ -391,9 +451,9 @@ class LocationUserOption(BaseModel):
 
     location = ForeignKeyField(Location, backref="user_options", on_delete="CASCADE")
     user = ForeignKeyField(User, backref="location_options", on_delete="CASCADE")
-    pan_x = IntegerField(default=0)
-    pan_y = IntegerField(default=0)
-    zoom_display = FloatField(default=0.2)
+    pan_x = cast(int, IntegerField(default=0))
+    pan_y = cast(int, IntegerField(default=0))
+    zoom_display = cast(float, FloatField(default=0.2))
     active_layer = cast(
         Layer, ForeignKeyField(Layer, backref="active_users", null=True)
     )
@@ -415,6 +475,21 @@ class LocationUserOption(BaseModel):
             d["active_layer"] = self.active_layer.name
             d["active_floor"] = self.active_layer.floor.name
         return d
+
+    def as_pydantic(self):
+        active_floor = None
+        active_layer = None
+        if self.active_layer:
+            active_layer = self.active_layer.name
+            active_floor = self.active_layer.floor.name
+
+        return ApiLocationUserOption(
+            pan_x=self.pan_x,
+            pan_y=self.pan_y,
+            zoom_display=self.zoom_display,
+            active_layer=active_layer,
+            active_floor=active_floor,
+        )
 
     class Meta:
         indexes = ((("location", "user"), True),)

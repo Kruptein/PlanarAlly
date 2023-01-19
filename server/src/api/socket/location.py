@@ -1,19 +1,14 @@
 import json
-from typing import Dict, List, Union, cast
+from typing import Any, List, cast
 
 from playhouse.shortcuts import update_model_from_dict
 from typing_extensions import TypedDict
-
-from ..models.client import Viewport
-
-from ..helpers import _send_game
-
-from ..models.client.gameboard import ClientGameboardSet
 
 from ... import auth
 from ...api.socket.constants import GAME_NS
 from ...app import app, sio
 from ...config import config
+from ...logs import logger
 from ...models import (
     Floor,
     Initiative,
@@ -31,7 +26,25 @@ from ...models.asset import Asset
 from ...models.label import Label, LabelSelection
 from ...models.role import Role
 from ...state.game import game_state
-from ...logs import logger
+from ..helpers import _send_game
+from ..models.client import OptionalClientViewport
+from ..models.client.gameboard import ClientGameboardSet
+from ..models.floor import ApiShape
+from ..models.helpers import _
+from ..models.location import (
+    ApiLocationCore,
+    LocationChange,
+    LocationClone,
+    LocationRename,
+)
+from ..models.location.settings import (
+    ApiOptionalLocationOptions,
+    LocationOptionsSet,
+    LocationSettingsSet,
+)
+from ..models.players.info import PlayerInfoCore, PlayersInfoSet
+from ..models.players.options import PlayerOptionsSet
+from ..models.room.info import RoomInfoSet
 
 
 # DATA CLASSES FOR TYPE CHECKING
@@ -47,37 +60,6 @@ class LocationOptionKeys(TypedDict, total=False):
     vision_min_range: float
     vision_max_range: float
     spawn_locations: str
-
-
-class LocationOptionsData(TypedDict):
-    options: LocationOptionKeys
-    location: Union[int, None]
-
-
-class LocationOptionsResetData(TypedDict):
-    key: str
-    location: int
-
-
-class PositionTuple(TypedDict):
-    x: int
-    y: int
-
-
-class LocationChangeData(TypedDict):
-    location: int
-    users: List[str]
-    position: PositionTuple
-
-
-class LocationRenameData(TypedDict):
-    location: int
-    name: str
-
-
-class LocationCloneData(TypedDict):
-    location: int
-    room: str
 
 
 @sio.on("Location.Load", namespace=GAME_NS)
@@ -97,148 +79,138 @@ async def load_location(sid: str, location: Location, *, complete=False):
 
     IS_DM = pr.role == Role.DM
 
-    player_data = []
+    player_data: list[PlayersInfoSet] = []
     current_player_index = -1
     for i, rp in enumerate(pr.room.players):
         if rp.player.id == pr.player.id:
             current_player_index = i
 
-        player_info = {
-            "core": {
-                "id": rp.player.id,
-                "name": rp.player.name,
-                "location": rp.active_location.id,
-                "role": rp.role,
-            }
-        }
+        player_info = PlayersInfoSet(
+            core=PlayerInfoCore(
+                id=rp.player.id,
+                name=rp.player.name,
+                location=rp.active_location.id,
+                role=rp.role,
+            )
+        )
 
         if IS_DM or rp.player.id == pr.player.id:
-            player_info["position"] = (
+            player_info.position = (
                 LocationUserOption.get(
                     user=rp.player, location=rp.active_location
-                ).as_dict(),
+                ).as_pydantic(),
             )[0]
 
         if IS_DM:
-            client_data = []
+            client_data: list[OptionalClientViewport] = []
             for client in game_state.get_sids(player=rp.player, room=pr.room):
-                client_info: Dict[str, Union[str, Viewport]] = {"sid": client}
+                client_info = OptionalClientViewport(client=client)
                 viewport = game_state.client_viewports.get(client)
                 if viewport is not None:
-                    client_info["viewport"] = viewport
+                    client_info.viewport = viewport
                 client_data.append(client_info)
-            player_info["clients"] = client_data
+            player_info.clients = client_data
 
         player_data.append(player_info)
 
     # 0. CLEAR
 
     if complete:
-        await sio.emit("CLEAR", room=sid, namespace=GAME_NS)
+        await _send_game("CLEAR", None, room=sid)
     else:
-        await sio.emit("PARTIAL-CLEAR", room=sid, namespace=GAME_NS)
+        await _send_game("PARTIAL-CLEAR", None, room=sid)
 
     # 1. Load room info
 
     if complete:
-        await sio.emit(
+        await _send_game(
             "Room.Info.Set",
-            {
-                "name": pr.room.name,
-                "creator": pr.room.creator.name,
-                "invitationCode": str(pr.room.invitation_code),
-                "isLocked": pr.room.is_locked,
-                "publicName": config.get("General", "public_name", fallback=""),
-            },
+            RoomInfoSet(
+                name=pr.room.name,
+                creator=pr.room.creator.name,
+                invitationCode=str(pr.room.invitation_code),
+                isLocked=pr.room.is_locked,
+                publicName=config.get("General", "public_name", fallback=""),
+            ),
             room=sid,
-            namespace=GAME_NS,
         )
 
     # 2. Load player info & options
 
-    client_options = {
-        "colour_history": pr.player.colour_history,
-        "default_user_options": pr.player.default_options.as_dict(),
-    }
+    client_options = PlayerOptionsSet(
+        colour_history=_(pr.player.colour_history),
+        default_user_options=pr.player.default_options.as_pydantic(False),
+    )
 
     if pr.user_options:
-        client_options["room_user_options"] = pr.user_options.as_dict()
+        client_options.room_user_options = pr.user_options.as_pydantic(True)
 
-    await sio.emit("Players.Info.Set", player_data, room=sid, namespace=GAME_NS)
-    await sio.emit("Player.Options.Set", client_options, room=sid, namespace=GAME_NS)
+    await _send_game("Players.Info.Set", player_data, room=sid)
+    await _send_game("Player.Options.Set", client_options, room=sid)
 
     # 3. Load location
 
-    location_data = location.as_dict()
+    location_data = location.as_pydantic()
 
-    await sio.emit("Location.Set", location_data, room=sid, namespace=GAME_NS)
+    await _send_game("Location.Set", location_data, room=sid)
 
     # 4. Load location settings
 
+    default_options = pr.room.default_options.as_pydantic(False)
+    location_settings = LocationSettingsSet(
+        default=default_options,
+        active=location_data.id,
+        locations={},
+    )
     if complete and IS_DM:
-        await sio.emit(
-            "Locations.Settings.Set",
-            {
-                "default": pr.room.default_options.as_dict(),
-                "active": location_data["id"],
-                "locations": {
-                    loc.id: {} if loc.options is None else loc.options.as_dict()
-                    for loc in pr.room.locations
-                },
-            },
-            room=sid,
-            namespace=GAME_NS,
-        )
+        location_settings.locations = {
+            loc.id: ApiOptionalLocationOptions(spawn_locations="[]")
+            if loc.options is None
+            else loc.options.as_pydantic(True)
+            for loc in pr.room.locations
+        }
+        await _send_game("Locations.Settings.Set", location_settings, room=sid)
     elif not IS_DM:
         loc = pr.active_location
-        await sio.emit(
-            "Locations.Settings.Set",
-            {
-                "default": pr.room.default_options.as_dict(),
-                "active": location_data["id"],
-                "locations": {
-                    loc.id: {} if loc.options is None else loc.options.as_dict()
-                },
-            },
-            room=sid,
-            namespace=GAME_NS,
-        )
+        location_settings.locations = {
+            loc.id: ApiOptionalLocationOptions(spawn_locations="[]")
+            if loc.options is None
+            else loc.options.as_pydantic(True)
+        }
+        await _send_game("Locations.Settings.Set", location_settings, room=sid)
 
     # 5. Load Board
 
     locations = [
-        {"id": loc.id, "name": loc.name, "archived": loc.archived}
+        ApiLocationCore(id=loc.id, name=loc.name, archived=loc.archived)
         for loc in pr.room.locations.order_by(Location.index)
     ]
-    await sio.emit("Board.Locations.Set", locations, room=sid, namespace=GAME_NS)
+    await _send_game("Board.Locations.Set", locations, room=sid)
 
     floors = [floor for floor in location.floors.order_by(Floor.index)]
 
-    if "active_floor" in player_data[current_player_index].get("position", {}):
-        index = next(
-            i
-            for i, f in enumerate(floors)
-            if f.name == player_data[current_player_index]["position"]["active_floor"]
-        )
-        lower_floors = floors[index - 1 :: -1] if index > 0 else []
-        higher_floors = floors[index + 1 :] if index < len(floors) else []
-        floors = [floors[index], *lower_floors, *higher_floors]
+    player_position = player_data[current_player_index].position
+    if player_position:
+        if player_position.active_floor is not None:
+            index = next(
+                i
+                for i, f in enumerate(floors)
+                if f.name == player_position.active_floor
+            )
+            lower_floors = floors[index - 1 :: -1] if index > 0 else []
+            higher_floors = floors[index + 1 :] if index < len(floors) else []
+            floors = [floors[index], *lower_floors, *higher_floors]
 
     for floor in floors:
-        await sio.emit(
-            "Board.Floor.Set",
-            floor.as_dict(pr.player, cast(bool, IS_DM)),
-            room=sid,
-            namespace=GAME_NS,
+        await _send_game(
+            "Board.Floor.Set", floor.as_pydantic(pr.player, cast(bool, IS_DM)), room=sid
         )
 
     # 6. Load Initiative
 
     initiative_data = Initiative.get_or_none(location=location)
     if initiative_data:
-        await sio.emit(
-            "Initiative.Set", initiative_data.as_dict(), room=sid, namespace=GAME_NS
-        )
+        await _send_game("Initiative.Set", initiative_data.as_pydantic(), room=sid)
 
     # 7. Load labels
 
@@ -250,36 +222,31 @@ async def load_location(sid: str, location: Location, *, complete=False):
             (LabelSelection.user == pr.player) & (LabelSelection.room == pr.room)
         )
 
-        await sio.emit(
-            "Labels.Set",
-            [label.as_dict() for label in labels],
-            room=sid,
-            namespace=GAME_NS,
+        await _send_game(
+            "Labels.Set", [label.as_pydantic() for label in labels], room=sid
         )
-        await sio.emit(
+        await _send_game(
             "Labels.Filters.Set",
             [label_filter.label.uuid for label_filter in label_filters],
             room=sid,
-            namespace=GAME_NS,
         )
 
     # 8. Load Notes
 
-    await sio.emit(
+    await _send_game(
         "Notes.Set",
         [
-            note.as_dict()
+            note.as_pydantic()
             for note in Note.select().where(
                 (Note.user == pr.player) & (Note.room == pr.room)
             )
         ],
         room=sid,
-        namespace=GAME_NS,
     )
 
     # 9. Load Markers
 
-    await sio.emit(
+    await _send_game(
         "Markers.Set",
         [
             marker.as_string()
@@ -288,17 +255,14 @@ async def load_location(sid: str, location: Location, *, complete=False):
             )
         ],
         room=sid,
-        namespace=GAME_NS,
     )
 
     # 10. Load Assets
 
     if complete:
-        await sio.emit(
-            "Asset.List.Set",
-            Asset.get_user_structure(pr.player),
-            room=sid,
-            namespace=GAME_NS,
+        # todo: pydantic
+        await _send_game(
+            "Asset.List.Set", Asset.get_user_structure(pr.player), room=sid
         )
 
     # 11. Sync Gameboards
@@ -316,7 +280,9 @@ async def load_location(sid: str, location: Location, *, complete=False):
 
 @sio.on("Location.Change", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def change_location(sid: str, data: LocationChangeData):
+async def change_location(sid: str, raw_data: Any):
+    data = LocationChange(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -325,17 +291,17 @@ async def change_location(sid: str, data: LocationChangeData):
 
     # Send an anouncement to show loading state
     for room_player in pr.room.players:
-        if room_player.player.name not in data["users"]:
+        if room_player.player.name not in data.users:
             continue
 
         for psid in game_state.get_sids(player=room_player.player, room=pr.room):
-            await sio.emit("Location.Change.Start", room=psid, namespace=GAME_NS)
+            await _send_game("Location.Change.Start", None, room=psid)
 
-    new_location = Location.get_by_id(data["location"])
+    new_location = Location.get_by_id(data.location)
 
     # First update DB for _all_ affected players
     for room_player in pr.room.players:
-        if room_player.player.name not in data["users"]:
+        if room_player.player.name not in data.users:
             continue
 
         room_player.active_location = new_location
@@ -343,7 +309,7 @@ async def change_location(sid: str, data: LocationChangeData):
 
     # Then send out updates
     for room_player in pr.room.players:
-        if room_player.player.name not in data["users"]:
+        if room_player.player.name not in data.users:
             continue
 
         for psid in game_state.get_sids(player=room_player.player, room=pr.room):
@@ -360,10 +326,10 @@ async def change_location(sid: str, data: LocationChangeData):
             # loading times might vary and we don't want to snap people back when they already move around
             # And it's possible that there are already users on the new location
             # that don't want to be moved to this new position
-            if "position" in data:
+            if data.position:
                 await sio.emit(
                     "Position.Set",
-                    data=data["position"],
+                    data=data.position,
                     room=psid,
                     namespace=GAME_NS,
                 )
@@ -371,61 +337,37 @@ async def change_location(sid: str, data: LocationChangeData):
 
 @sio.on("Location.Options.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_location_options(sid: str, data: LocationOptionsData):
+async def set_location_options(sid: str, raw_data: Any):
+    data = LocationOptionsSet(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
         logger.warning(f"{pr.player.name} attempted to set a room option")
         return
 
-    if data.get("location", None) is None:
+    if data.location is None:
         options = pr.room.default_options
     else:
-        loc = Location.get_by_id(data["location"])
+        loc = Location.get_by_id(data.location)
         if loc.options is None:
             loc.options = LocationOptions.create_empty()
             loc.save()
         options = loc.options
 
-    update_model_from_dict(options, data["options"])
+    update_model_from_dict(options, data.options.dict())
     options.save()
 
-    if data.get("location", None) is None:
+    if data.location is None:
         for sid in game_state.get_sids(skip_sid=sid, room=pr.room):
-            await sio.emit("Location.Options.Set", data, room=sid, namespace=GAME_NS)
+            await _send_game("Location.Options.Set", data, room=sid)
     else:
-        await sio.emit(
+        await _send_game(
             "Location.Options.Set",
             data,
             room=pr.active_location.get_path(),
             skip_sid=sid,
-            namespace=GAME_NS,
         )
-
-
-@sio.on("Location.Options.Reset", namespace=GAME_NS)
-@auth.login_required(app, sio, "game")
-async def reset_location_options(sid: str, data: LocationOptionsResetData):
-    pr: PlayerRoom = game_state.get(sid)
-
-    if pr.role != Role.DM:
-        logger.warning(f"{pr.player.name} attempted to reset a room option")
-        return
-
-    loc = Location.get_by_id(data["location"])
-    if loc.options is None:
-        return
-    options = loc.options
-    setattr(options, data["key"], None)
-    options.save()
-
-    await sio.emit(
-        "Location.Options.Reset",
-        data,
-        room=pr.active_location.get_path(),
-        skip_sid=sid,
-        namespace=GAME_NS,
-    )
 
 
 @sio.on("Location.New", namespace=GAME_NS)
@@ -454,20 +396,22 @@ async def add_new_location(sid: str, location: str):
 
 @sio.on("Location.Clone", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def clone_location(sid: str, data: LocationCloneData):
+async def clone_location(sid: str, raw_data: Any):
+    data = LocationClone(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
     if pr.role != Role.DM:
         logger.warning(f"{pr.player.name} attempted to clone locations.")
         return
     try:
         room = Room.select().where(
-            (Room.name == data["room"]) & (Room.creator == pr.player)
+            (Room.name == data.room) & (Room.creator == pr.player)
         )[0]
     except IndexError:
-        logger.warning(f"Destination room {data['room']} not found.")
+        logger.warning(f"Destination room {data.room} not found.")
         return
 
-    src_location = Location.get_by_id(data["location"])
+    src_location = Location.get_by_id(data.location)
     new_location = Location.create(
         room=room, name=src_location.name, index=room.locations.count()
     )
@@ -541,27 +485,27 @@ async def set_locations_order(sid: str, locations: List[int]):
         if player_room.role != Role.DM:
             continue
         for psid in game_state.get_sids(skip_sid=sid, player=player_room.player):
-            await sio.emit(
-                "Locations.Order.Set", locations, room=psid, namespace=GAME_NS
-            )
+            await _send_game("Locations.Order.Set", locations, room=psid)
 
 
 @sio.on("Location.Rename", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def rename_location(sid: str, data: LocationRenameData):
+async def rename_location(sid: str, raw_data: Any):
+    data = LocationRename(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
         logger.warning(f"{pr.player.name} attempted to rename a location.")
         return
 
-    location = Location.get_by_id(data["location"])
-    location.name = data["name"]
+    location = Location.get_by_id(data.location)
+    location.name = data.name
     location.save()
 
     for player_room in pr.room.players:
         for psid in game_state.get_sids(skip_sid=sid, player=player_room.player):
-            await sio.emit("Location.Rename", data, room=psid, namespace=GAME_NS)
+            await _send_game("Location.Rename", data, room=psid)
 
 
 @sio.on("Location.Delete", namespace=GAME_NS)
@@ -599,9 +543,7 @@ async def archive_location(sid: str, location_id: int):
 
     for player_room in pr.room.players:
         for psid in game_state.get_sids(skip_sid=sid, player=player_room.player):
-            await sio.emit(
-                "Location.Archive", location_id, room=psid, namespace=GAME_NS
-            )
+            await _send_game("Location.Archive", location_id, room=psid)
 
 
 @sio.on("Location.Unarchive", namespace=GAME_NS)
@@ -619,9 +561,7 @@ async def unarchive_location(sid: str, location_id: int):
 
     for player_room in pr.room.players:
         for psid in game_state.get_sids(skip_sid=sid, player=player_room.player):
-            await sio.emit(
-                "Location.Unarchive", location_id, room=psid, namespace=GAME_NS
-            )
+            await _send_game("Location.Unarchive", location_id, room=psid)
 
 
 @sio.on("Location.Spawn.Info.Get", namespace=GAME_NS)
@@ -633,7 +573,7 @@ async def get_location_spawn_info(sid: str, location_id: int):
         logger.warning(f"{pr.player.name} attempted to retrieve spawn locations.")
         return
 
-    data = []
+    data: list[ApiShape] = []
 
     try:
         location = Location.get_by_id(location_id)
@@ -644,8 +584,8 @@ async def get_location_spawn_info(sid: str, location_id: int):
                 except Shape.DoesNotExist:
                     pass
                 else:
-                    data.append(shape.as_dict(pr.player, True))
+                    data.append(shape.as_pydantic(pr.player, True))
     except:
         logger.exception("Could not load spawn locations")
 
-    await sio.emit("Location.Spawn.Info", data=data, room=sid, namespace=GAME_NS)
+    await _send_game("Location.Spawn.Info", data, room=sid)

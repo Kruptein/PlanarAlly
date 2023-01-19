@@ -1,8 +1,11 @@
-import type { PlayerOptions, ServerPlayerOptions } from "./models";
+import type { ApiUserOptions } from "../../../../apiTypes";
+import type { InitiativeEffectMode } from "../../../models/initiative";
 
-export function playerOptionsToClient(options: ServerPlayerOptions): PlayerOptions;
-export function playerOptionsToClient(options: Partial<ServerPlayerOptions>): Partial<PlayerOptions>;
-export function playerOptionsToClient(options: Partial<ServerPlayerOptions>): Partial<PlayerOptions> {
+import type { PlayerOptions } from "./models";
+
+export function playerOptionsToClient(options: ApiUserOptions): PlayerOptions;
+export function playerOptionsToClient(options: Partial<ApiUserOptions>): Partial<PlayerOptions>;
+export function playerOptionsToClient(options: Partial<ApiUserOptions>): Partial<PlayerOptions> {
     return {
         fowColour: options.fow_colour,
         gridColour: options.grid_colour,
@@ -23,7 +26,7 @@ export function playerOptionsToClient(options: Partial<ServerPlayerOptions>): Pa
 
         initiativeCameraLock: options.initiative_camera_lock,
         initiativeVisionLock: options.initiative_vision_lock,
-        initiativeEffectVisibility: options.initiative_effect_visibility,
+        initiativeEffectVisibility: options.initiative_effect_visibility as InitiativeEffectMode | undefined,
         initiativeOpenOnActivate: options.initiative_open_on_activate,
 
         renderAllFloors: options.render_all_floors,

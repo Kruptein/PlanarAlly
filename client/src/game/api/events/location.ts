@@ -1,23 +1,21 @@
-// Bootup Sequence
-
+import type { ApiLocation, LocationOptionsSet, LocationRename, LocationSettingsSet } from "../../../apiTypes";
 import { coreStore } from "../../../store/core";
 import { locationStore } from "../../../store/location";
 import type { GlobalId } from "../../id";
-import type { ServerLocation } from "../../models/general";
 import type { Location } from "../../models/settings";
 import { gameSystem } from "../../systems/game";
 import { playerSystem } from "../../systems/players";
 import { locationSettingsSystem } from "../../systems/settings/location";
-import type { ServerLocationInfo, ServerLocationOptions } from "../../systems/settings/location/models";
+import type { ServerLocationOptions } from "../../systems/settings/location/models";
 import { visibilityModeFromString, visionState } from "../../vision/state";
 import { socket } from "../socket";
 
-socket.on("Location.Set", (data: ServerLocation) => {
+socket.on("Location.Set", (data: ApiLocation) => {
     locationSettingsSystem.setActiveLocation(data.id);
     playerSystem.updatePlayersLocation([playerSystem.getCurrentPlayer()!.name], data.id, false);
 });
 
-socket.on("Locations.Settings.Set", (data: ServerLocationInfo) => {
+socket.on("Locations.Settings.Set", (data: LocationSettingsSet) => {
     locationSettingsSystem.setActiveLocation(data.active);
     setLocationOptions(undefined, data.default, true);
     for (const key in data.locations) setLocationOptions(Number.parseInt(key), data.locations[key]!, true);
@@ -26,7 +24,7 @@ socket.on("Locations.Settings.Set", (data: ServerLocationInfo) => {
 // Varia
 
 // This is used to set 1 or more settings, not ALL settings!
-socket.on("Location.Options.Set", (data: { options: Partial<ServerLocationOptions>; location: number | null }) => {
+socket.on("Location.Options.Set", (data: LocationOptionsSet) => {
     setLocationOptions(data.location ?? undefined, data.options, false);
 });
 
@@ -39,7 +37,7 @@ socket.on("Location.Change.Start", () => {
     gameSystem.setBoardInitialized(false);
 });
 
-socket.on("Location.Rename", (data: { location: number; name: string }) => {
+socket.on("Location.Rename", (data: LocationRename) => {
     locationStore.renameLocation(data.location, data.name, false);
 });
 

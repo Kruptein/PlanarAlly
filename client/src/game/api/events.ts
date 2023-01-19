@@ -29,7 +29,7 @@ import "./events/user";
 
 import "./gbsocket"; // Start tuio listener
 
-import type { ApiFloor } from "../../apiTypes";
+import type { ApiFloor, ApiLocationCore } from "../../apiTypes";
 import { toGP } from "../../core/geometry";
 import { SyncMode } from "../../core/models/types";
 import type { AssetList } from "../../core/models/types";
@@ -42,7 +42,6 @@ import { clearGame } from "../clear";
 import { addServerFloor } from "../floor/server";
 import { getShapeFromGlobal } from "../id";
 import type { GlobalId } from "../id";
-import type { Location } from "../models/settings";
 import { setCenterPosition } from "../position";
 import { deleteShapes } from "../shapes/utils";
 import { floorSystem } from "../systems/floors";
@@ -92,7 +91,7 @@ socket.on("redirect", async (destination: string) => {
 socket.on("CLEAR", () => clearGame(false));
 socket.on("PARTIAL-CLEAR", () => clearGame(true));
 
-socket.on("Board.Locations.Set", (locationInfo: Location[]) => {
+socket.on("Board.Locations.Set", (locationInfo: ApiLocationCore[]) => {
     locationStore.setLocations(locationInfo, false);
 });
 

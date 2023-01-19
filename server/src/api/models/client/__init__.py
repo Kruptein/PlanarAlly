@@ -9,7 +9,7 @@ from .options import *
 class ClientPosition(BaseModel):
     pan_x: int
     pan_y: int
-    zoom_display: int
+    zoom_display: float
 
 
 class Viewport(BaseModel):
@@ -18,6 +18,11 @@ class Viewport(BaseModel):
     zoom_factor: int
     offset_x: int | None
     offset_y: int | None
+
+
+class OptionalClientViewport(BaseModel):
+    client: str
+    viewport: Viewport | None = None
 
 
 class ClientViewport(BaseModel):

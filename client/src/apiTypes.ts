@@ -126,6 +126,60 @@ export interface ApiInitiativeEffect {
   turns: string;
   highlightsActor: boolean;
 }
+export interface ApiLocationUserOption {
+  pan_x: number;
+  pan_y: number;
+  zoom_display: number;
+  active_layer?: string;
+  active_floor?: string;
+}
+export interface ApiNote {
+  uuid: string;
+  title: string;
+  text: string;
+}
+export interface ApiOptionalUserOptions {
+  fow_colour?: string;
+  grid_colour?: string;
+  ruler_colour?: string;
+  use_tool_icons?: boolean;
+  show_token_directions?: boolean;
+  invert_alt?: boolean;
+  disable_scroll_to_zoom?: boolean;
+  default_tracker_mode?: boolean;
+  mouse_pan_mode?: number;
+  use_high_dpi?: boolean;
+  grid_size?: number;
+  use_as_physical_board?: boolean;
+  mini_size?: number;
+  ppi?: number;
+  initiative_camera_lock?: boolean;
+  initiative_vision_lock?: boolean;
+  initiative_effect_visibility?: string;
+  initiative_open_on_activate?: boolean;
+  render_all_floors?: boolean;
+}
+export interface ApiUserOptions {
+  fow_colour: string;
+  grid_colour: string;
+  ruler_colour: string;
+  use_tool_icons: boolean;
+  show_token_directions: boolean;
+  invert_alt: boolean;
+  disable_scroll_to_zoom: boolean;
+  default_tracker_mode: boolean;
+  mouse_pan_mode: number;
+  use_high_dpi: boolean;
+  grid_size: number;
+  use_as_physical_board: boolean;
+  mini_size: number;
+  ppi: number;
+  initiative_camera_lock: boolean;
+  initiative_vision_lock: boolean;
+  initiative_effect_visibility: string;
+  initiative_open_on_activate: boolean;
+  render_all_floors: boolean;
+}
 export interface AssetOptionsInfoFail {
   error: string;
   success: false;
@@ -279,12 +333,114 @@ export interface NotificationShow {
   uuid: string;
   message: string;
 }
+export interface OptionalClientViewport {
+  client: string;
+  viewport?: Viewport;
+}
+export interface PlayerInfoCore {
+  id: number;
+  name: string;
+  location: number;
+  role: number;
+}
+export interface PlayerOptionsSet {
+  colour_history: string | Nullable;
+  default_user_options: ApiUserOptions;
+  room_user_options?: ApiOptionalUserOptions;
+}
+export interface PlayersInfoSet {
+  core: PlayerInfoCore;
+  position?: ApiLocationUserOption;
+  clients?: OptionalClientViewport[];
+}
+export interface PositionTuple {
+  x: number;
+  y: number;
+}
 export interface RoomInfoPlayersAdd {
   id: number;
   name: string;
   location: number;
 }
+export interface RoomInfoSet {
+  name: string;
+  creator: string;
+  invitationCode: string;
+  isLocked: boolean;
+  publicName: string;
+}
 export interface TempClientPosition {
   temp: boolean;
   position: ClientPosition;
+}
+export interface ApiLocation {
+  id: number;
+  name: string;
+  archived: boolean;
+  options: ApiOptionalLocationOptions;
+}
+export interface ApiOptionalLocationOptions {
+  unit_size?: number;
+  unit_size_unit?: string;
+  use_grid?: boolean;
+  full_fow?: boolean;
+  fow_opacity?: number;
+  fow_los?: boolean;
+  vision_mode?: string;
+  vision_min_range?: number;
+  vision_max_range?: number;
+  spawn_locations?: string;
+  move_player_on_token_change?: boolean;
+  grid_type?: string;
+  air_map_background?: string;
+  ground_map_background?: string;
+  underground_map_background?: string;
+  limit_movement_during_initiative?: boolean;
+}
+export interface ApiLocationCore {
+  id: number;
+  name: string;
+  archived: boolean;
+}
+export interface ApiLocationOptions {
+  unit_size: number;
+  unit_size_unit: string;
+  use_grid: boolean;
+  full_fow: boolean;
+  fow_opacity: number;
+  fow_los: boolean;
+  vision_mode: string;
+  vision_min_range: number;
+  vision_max_range: number;
+  spawn_locations: string;
+  move_player_on_token_change: boolean;
+  grid_type: string;
+  air_map_background: string;
+  ground_map_background: string;
+  underground_map_background: string;
+  limit_movement_during_initiative: boolean;
+}
+export interface LocationChange {
+  location: number;
+  users: string[];
+  position?: PositionTuple;
+}
+export interface LocationClone {
+  location: number;
+  room: string;
+}
+export interface LocationOptionsSet {
+  options: ApiOptionalLocationOptions;
+  location?: number;
+}
+export interface LocationRename {
+  location: number;
+  name: string;
+}
+export interface LocationSettingsSet {
+  default: ApiLocationOptions;
+  active: number;
+  locations: {
+    [k: string]: ApiOptionalLocationOptions;
+  };
 }

@@ -397,6 +397,15 @@ export interface TempClientPosition {
   temp: boolean;
   position: ClientPosition;
 }
+export interface ToggleCompositeNewVariant {
+  shape: string;
+  variant: string;
+  name: string;
+}
+export interface ToggleCompositeVariant {
+  shape: string;
+  variant: string;
+}
 export interface ApiLocation {
   id: number;
   name: string;

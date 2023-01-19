@@ -11,4 +11,5 @@ from .note import *
 from .notification import *
 from .players import *
 from .room import *
+from .togglecomposite import *
 from .user import *

@@ -529,4 +529,4 @@ class ToggleComposite(ShapeType):
 class CompositeShapeAssociation(BaseModel):
     variant = ForeignKeyField(Shape, backref="composite_parent", on_delete="CASCADE")
     parent = ForeignKeyField(Shape, backref="shape_variants", on_delete="CASCADE")
-    name = TextField()
+    name = cast(str, TextField())

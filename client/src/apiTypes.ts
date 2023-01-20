@@ -26,6 +26,12 @@ export interface ApiAura {
   angle: number;
   direction: number;
 }
+export interface ApiDefaultShapeOwner {
+  edit_access: boolean;
+  movement_access: boolean;
+  vision_access: boolean;
+  shape: GlobalId;
+}
 export interface ApiFloor {
   index: number;
   name: string;
@@ -177,6 +183,13 @@ export interface ApiOptionalUserOptions {
   initiative_effect_visibility?: string;
   initiative_open_on_activate?: boolean;
   render_all_floors?: boolean;
+}
+export interface ApiShapeOwner {
+  edit_access: boolean;
+  movement_access: boolean;
+  vision_access: boolean;
+  shape: GlobalId;
+  user: string;
 }
 export interface ApiUserOptions {
   fow_colour: string;

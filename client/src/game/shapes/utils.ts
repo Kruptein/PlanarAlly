@@ -1,4 +1,4 @@
-import type { ApiAura, ApiShape, ApiTracker } from "../../apiTypes";
+import type { ApiAura, ApiShape, ApiShapeOwner, ApiTracker } from "../../apiTypes";
 import { subtractP, Vector } from "../../core/geometry";
 import { SyncMode, InvalidationMode } from "../../core/models/types";
 import { uuidv4 } from "../../core/utils";
@@ -10,7 +10,6 @@ import type { LayerName } from "../models/floor";
 import type { ServerPolygon, ServerToggleComposite } from "../models/shapes";
 import { addOperation } from "../operations/undo";
 import { accessSystem } from "../systems/access";
-import type { ServerShapeOwner } from "../systems/access/models";
 import type { AuraId } from "../systems/auras/models";
 import { clipboardSystem } from "../systems/clipboard";
 import { clipboardState } from "../systems/clipboard/state";
@@ -98,7 +97,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
         // Owners
         newShape.owners = [];
         for (const owner of clip.owners) {
-            const newOwner: ServerShapeOwner = {
+            const newOwner: ApiShapeOwner = {
                 ...owner,
                 shape: newShape.uuid,
             };

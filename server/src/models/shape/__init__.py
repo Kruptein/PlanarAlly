@@ -371,7 +371,7 @@ class Aura(BaseModel):
 
 
 class ShapeOwner(BaseModel):
-    shape = ForeignKeyField(Shape, backref="owners", on_delete="CASCADE")
+    shape = cast(Shape, ForeignKeyField(Shape, backref="owners", on_delete="CASCADE"))
     user = cast(User, ForeignKeyField(User, backref="shapes", on_delete="CASCADE"))
     edit_access = cast(bool, BooleanField())
     vision_access = cast(bool, BooleanField())

@@ -128,7 +128,7 @@ async def update_shape_positions(sid: str, data: PositionUpdateList):
 async def send_remove_shapes(
     sio: AsyncServer, data: List[str], room: str, skip_sid: Optional[str] = None
 ):
-    await _send_game(sio, "Shapes.Remove", data, room, skip_sid)
+    await _send_game("Shapes.Remove", data, room, skip_sid)
 
 
 @sio.on("Shapes.Remove", namespace=GAME_NS)

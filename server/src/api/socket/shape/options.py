@@ -1,6 +1,5 @@
 import json
-from typing import Any, List, Optional, cast
-from typing_extensions import TypedDict
+from typing import Any, List, Optional
 
 from playhouse.shortcuts import update_model_from_dict
 
@@ -11,65 +10,23 @@ from ....models import Aura, PlayerRoom, ShapeLabel, Tracker
 from ....models.shape import Shape
 from ....models.utils import reduce_data_to_model
 from ....state.game import game_state
+from ...models.aura import ApiAura, ApiOptionalAura, AuraMove, ShapeSetAuraValue
+from ...models.shape.options import (
+    ShapeSetBooleanValue,
+    ShapeSetDoorToggleModeValue,
+    ShapeSetOptionalStringValue,
+    ShapeSetPermissionValue,
+    ShapeSetStringValue,
+    ShapeSetTeleportLocationValue,
+)
+from ...models.tracker import (
+    ApiOptionalTracker,
+    ApiTracker,
+    ShapeSetTrackerValue,
+    TrackerMove,
+)
 from ..constants import GAME_NS
 from .utils import get_owner_sids, get_shape_or_none
-
-
-class ShapeSetBooleanValue(TypedDict):
-    shape: str
-    value: bool
-
-
-class ShapeSetStringValue(TypedDict):
-    shape: str
-    value: str
-
-
-class ShapeAuraSetBooleanValue(TypedDict):
-    shape: str
-    aura: str
-    value: bool
-
-
-class TrackerData(TypedDict):
-    uuid: str
-    shape: str
-
-
-class TrackerDelta(TrackerData, total=False):
-    visible: bool
-    name: str
-    value: int
-    maxvalue: int
-    draw: bool
-    primaryColor: str
-    secondaryColor: str
-
-
-class TrackerMove(TypedDict):
-    shape: str
-    tracker: str
-    new_shape: str
-
-
-class AuraMove(TypedDict):
-    shape: str
-    aura: str
-    new_shape: str
-
-
-class AuraData(TypedDict):
-    uuid: str
-    shape: str
-
-
-class AuraDelta(AuraData, total=False):
-    vision_source: bool
-    visible: bool
-    name: str
-    value: int
-    dim: int
-    colour: str
 
 
 async def send_annotation(
@@ -91,151 +48,159 @@ async def send_name(
 
 
 async def send_new_tracker(
-    data: TrackerDelta, *, room: str, skip_sid: Optional[str] = None
+    data: ApiTracker, *, room: str, skip_sid: Optional[str] = None
 ):
     await _send_game("Shape.Options.Tracker.Create", data, room=room, skip_sid=skip_sid)
 
 
-async def send_new_aura(data: AuraDelta, *, room: str, skip_sid: Optional[str] = None):
+async def send_new_aura(data: ApiAura, *, room: str, skip_sid: Optional[str] = None):
     await _send_game("Shape.Options.Aura.Create", data, room=room, skip_sid=skip_sid)
 
 
 @sio.on("Shape.Options.Invisible.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_invisible(sid: str, data: ShapeSetBooleanValue):
+async def set_invisible(sid: str, raw_data: Any):
+    data = ShapeSetBooleanValue(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "Invisible.Set")
+    shape = get_shape_or_none(pr, data.shape, "Invisible.Set")
     if shape is None:
         return
 
-    shape.is_invisible = data["value"]
+    shape.is_invisible = data.value
     shape.save()
 
-    await sio.emit(
+    await _send_game(
         "Shape.Options.Invisible.Set",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
-        namespace=GAME_NS,
     )
 
 
 @sio.on("Shape.Options.Defeated.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_defeated(sid: str, data: ShapeSetBooleanValue):
+async def set_defeated(sid: str, raw_data: Any):
+    data = ShapeSetBooleanValue(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "Defeated.Set")
+    shape = get_shape_or_none(pr, data.shape, "Defeated.Set")
     if shape is None:
         return
 
-    shape.is_defeated = data["value"]
+    shape.is_defeated = data.value
     shape.save()
 
-    await sio.emit(
+    await _send_game(
         "Shape.Options.Defeated.Set",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
-        namespace=GAME_NS,
     )
 
 
 @sio.on("Shape.Options.Locked.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_locked(sid: str, data: ShapeSetBooleanValue):
+async def set_locked(sid: str, raw_data: Any):
+    data = ShapeSetBooleanValue(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "Locked.Set")
+    shape = get_shape_or_none(pr, data.shape, "Locked.Set")
     if shape is None:
         return
 
-    shape.is_locked = data["value"]
+    shape.is_locked = data.value
     shape.save()
 
-    await sio.emit(
+    await _send_game(
         "Shape.Options.Locked.Set",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
-        namespace=GAME_NS,
     )
 
 
 @sio.on("Shape.Options.Token.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_token(sid: str, data: ShapeSetBooleanValue):
+async def set_token(sid: str, raw_data: Any):
+    data = ShapeSetBooleanValue(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "Token.Set")
+    shape = get_shape_or_none(pr, data.shape, "Token.Set")
     if shape is None:
         return
 
-    shape.is_token = data["value"]
+    shape.is_token = data.value
     shape.save()
 
-    await sio.emit(
+    await _send_game(
         "Shape.Options.Token.Set",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
-        namespace=GAME_NS,
     )
 
 
 @sio.on("Shape.Options.MovementBlock.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_movement_block(sid: str, data: ShapeSetBooleanValue):
+async def set_movement_block(sid: str, raw_data: Any):
+    data = ShapeSetBooleanValue(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "MovementBlock.Set")
+    shape = get_shape_or_none(pr, data.shape, "MovementBlock.Set")
     if shape is None:
         return
 
-    shape.movement_obstruction = data["value"]
+    shape.movement_obstruction = data.value
     shape.save()
 
-    await sio.emit(
+    await _send_game(
         "Shape.Options.MovementBlock.Set",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
-        namespace=GAME_NS,
     )
 
 
 @sio.on("Shape.Options.VisionBlock.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_vision_block(sid: str, data: ShapeSetBooleanValue):
+async def set_vision_block(sid: str, raw_data: Any):
+    data = ShapeSetBooleanValue(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "VisionBlock.Set")
+    shape = get_shape_or_none(pr, data.shape, "VisionBlock.Set")
     if shape is None:
         return
 
-    shape.vision_obstruction = data["value"]
+    shape.vision_obstruction = data.value
     shape.save()
 
-    await sio.emit(
+    await _send_game(
         "Shape.Options.VisionBlock.Set",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
-        namespace=GAME_NS,
     )
 
 
 @sio.on("Shape.Options.Annotation.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_annotation(sid: str, data: ShapeSetStringValue):
+async def set_annotation(sid: str, raw_data: Any):
+    data = ShapeSetStringValue(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "Annotation.Set")
+    shape = get_shape_or_none(pr, data.shape, "Annotation.Set")
     if shape is None:
         return
 
-    shape.annotation = data["value"]
+    shape.annotation = data.value
     shape.save()
 
     if shape.annotation_visible:
@@ -247,127 +212,133 @@ async def set_annotation(sid: str, data: ShapeSetStringValue):
 
 @sio.on("Shape.Options.AnnotationVisible.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_annotation_visible(sid: str, data: ShapeSetBooleanValue):
+async def set_annotation_visible(sid: str, raw_data: Any):
+    data = ShapeSetBooleanValue(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "AnnotationVisible.Set")
+    shape = get_shape_or_none(pr, data.shape, "AnnotationVisible.Set")
     if shape is None:
         return
 
-    shape.annotation_visible = data["value"]
+    shape.annotation_visible = data.value
     shape.save()
 
     owners = [*get_owner_sids(pr, shape, skip_sid=sid)]
 
-    await sio.emit(
+    await _send_game(
         "Shape.Options.AnnotationVisible.Set",
         data,
         room=pr.active_location.get_path(),
         skip_sid=sid,
-        namespace=GAME_NS,
     )
 
     for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=sid):
         if psid in owners:
             continue
         await send_annotation(
-            {
-                "shape": cast(str, shape.uuid),
-                "value": cast(str, shape.annotation) if data["value"] else "",
-            },
+            ShapeSetStringValue(
+                shape=shape.uuid, value=shape.annotation if data.value else ""
+            ),
             room=psid,
         )
 
 
 @sio.on("Shape.Options.Tracker.Remove", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def remove_tracker(sid: str, data: ShapeSetStringValue):
+async def remove_tracker(sid: str, raw_data: Any):
+    data = ShapeSetStringValue(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "Tracker.Remove")
+    shape = get_shape_or_none(pr, data.shape, "Tracker.Remove")
     if shape is None:
         return
 
-    tracker: Tracker = Tracker.get_by_id(data["value"])
+    tracker: Tracker = Tracker.get_by_id(data.value)
     tracker.delete_instance(True)
 
-    await sio.emit(
+    await _send_game(
         "Shape.Options.Tracker.Remove",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
-        namespace=GAME_NS,
     )
 
 
 @sio.on("Shape.Options.Aura.Remove", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def remove_aura(sid: str, data: ShapeSetStringValue):
+async def remove_aura(sid: str, raw_data: Any):
+    data = ShapeSetStringValue(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "Aura.Remove")
+    shape = get_shape_or_none(pr, data.shape, "Aura.Remove")
     if shape is None:
         return
 
-    aura = Aura.get_by_id(data["value"])
+    aura = Aura.get_by_id(data.value)
     aura.delete_instance(True)
 
-    await sio.emit(
+    await _send_game(
         "Shape.Options.Aura.Remove",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
-        namespace=GAME_NS,
     )
 
 
 @sio.on("Shape.Options.Label.Add", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def add_label(sid: str, data: ShapeSetStringValue):
+async def add_label(sid: str, raw_data: Any):
+    data = ShapeSetStringValue(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "Label.Add")
+    shape = get_shape_or_none(pr, data.shape, "Label.Add")
     if shape is None:
         return
 
-    ShapeLabel.create(shape=shape, label=data["value"])
+    ShapeLabel.create(shape=shape, label=data.value)
 
-    await sio.emit(
+    await _send_game(
         "Shape.Options.Label.Add",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
-        namespace=GAME_NS,
     )
 
 
 @sio.on("Shape.Options.Label.Remove", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def remove_label(sid: str, data: ShapeSetStringValue):
+async def remove_label(sid: str, raw_data: Any):
+    data = ShapeSetStringValue(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    label = ShapeLabel.get(shape=data["shape"], label=data["value"])
+    label = ShapeLabel.get(shape=data.shape, label=data.value)
     label.delete_instance(True)
 
-    await sio.emit(
+    await _send_game(
         "Shape.Options.Label.Remove",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
-        namespace=GAME_NS,
     )
 
 
 @sio.on("Shape.Options.Name.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_name(sid: str, data: ShapeSetStringValue):
+async def set_name(sid: str, raw_data: Any):
+    data = ShapeSetStringValue(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "Name.Set")
+    shape = get_shape_or_none(pr, data.shape, "Name.Set")
     if shape is None:
         return
 
-    shape.name = data["value"]
+    shape.name = data.value
     shape.save()
 
     if shape.name_visible:
@@ -379,109 +350,116 @@ async def set_name(sid: str, data: ShapeSetStringValue):
 
 @sio.on("Shape.Options.NameVisible.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_name_visible(sid: str, data: ShapeSetBooleanValue):
+async def set_name_visible(sid: str, raw_data: Any):
+    data = ShapeSetBooleanValue(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "NameVisible.Set")
+    shape = get_shape_or_none(pr, data.shape, "NameVisible.Set")
     if shape is None:
         return
 
-    shape.name_visible = data["value"]
+    shape.name_visible = data.value
     shape.save()
 
     owners = [*get_owner_sids(pr, shape, skip_sid=sid)]
 
-    await sio.emit(
+    await _send_game(
         "Shape.Options.NameVisible.Set",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
-        namespace=GAME_NS,
     )
 
     for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=sid):
         if psid in owners:
             continue
-        _data: ShapeSetStringValue = {
-            "shape": cast(str, shape.uuid),
-            "value": cast(str, shape.name) if data["value"] else "?",
-        }
-        await send_name(_data, room=psid)
+        await send_name(
+            ShapeSetStringValue(
+                shape=shape.uuid, value=(shape.name or "?") if data.value else "?"
+            ),
+            room=psid,
+        )
 
 
 @sio.on("Shape.Options.ShowBadge.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_show_badge(sid: str, data: ShapeSetBooleanValue):
+async def set_show_badge(sid: str, raw_data: Any):
+    data = ShapeSetBooleanValue(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "ShowBadge.Set")
+    shape = get_shape_or_none(pr, data.shape, "ShowBadge.Set")
     if shape is None:
         return
 
-    shape.show_badge = data["value"]
+    shape.show_badge = data.value
     shape.save()
 
-    await sio.emit(
+    await _send_game(
         "Shape.Options.ShowBadge.Set",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
-        namespace=GAME_NS,
     )
 
 
 @sio.on("Shape.Options.StrokeColour.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_stroke_colour(sid: str, data: ShapeSetStringValue):
+async def set_stroke_colour(sid: str, raw_data: Any):
+    data = ShapeSetStringValue(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "StrokeColour.Set")
+    shape = get_shape_or_none(pr, data.shape, "StrokeColour.Set")
     if shape is None:
         return
 
-    shape.stroke_colour = data["value"]
+    shape.stroke_colour = data.value
     shape.save()
 
-    await sio.emit(
+    await _send_game(
         "Shape.Options.StrokeColour.Set",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
-        namespace=GAME_NS,
     )
 
 
 @sio.on("Shape.Options.FillColour.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_fill_colour(sid: str, data: ShapeSetStringValue):
+async def set_fill_colour(sid: str, raw_data: Any):
+    data = ShapeSetStringValue(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "FillColour.Set")
+    shape = get_shape_or_none(pr, data.shape, "FillColour.Set")
     if shape is None:
         return
 
-    shape.fill_colour = data["value"]
+    shape.fill_colour = data.value
     shape.save()
 
-    await sio.emit(
+    await _send_game(
         "Shape.Options.FillColour.Set",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
-        namespace=GAME_NS,
     )
 
 
 @sio.on("Shape.Options.Tracker.Create", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def create_tracker(sid: str, data: TrackerDelta):
+async def create_tracker(sid: str, raw_data: Any):
+    data = ApiTracker(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "Tracker.Create")
+    shape = get_shape_or_none(pr, data.shape, "Tracker.Create")
     if shape is None:
         return
 
-    model = reduce_data_to_model(Tracker, data)
+    model = reduce_data_to_model(Tracker, data.dict())
     tracker = Tracker.create(**model)
     tracker.save()
 
@@ -499,77 +477,74 @@ async def create_tracker(sid: str, data: TrackerDelta):
 
 @sio.on("Shape.Options.Tracker.Update", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def update_tracker(sid: str, data: TrackerDelta):
+async def update_tracker(sid: str, raw_data: Any):
+    data = ApiOptionalTracker(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "Tracker.Update")
+    shape = get_shape_or_none(pr, data.shape, "Tracker.Update")
     if shape is None:
         return
 
-    tracker = Tracker.get_by_id(data["uuid"])
-    changed_visible = tracker.visible != data.get("visible", tracker.visible)
+    tracker = Tracker.get_by_id(data.uuid)
+    changed_visible = tracker.visible != (data.visible or tracker.visible)
     update_model_from_dict(tracker, data)
     tracker.save()
 
     owners = [*get_owner_sids(pr, shape, skip_sid=sid)]
     for psid in owners:
-        await sio.emit(
+        await _send_game(
             "Shape.Options.Tracker.Update",
             data,
             room=psid,
-            namespace=GAME_NS,
         )
     for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=sid):
         if psid in owners:
             continue
         if changed_visible:
             if tracker.visible:
-                _data = cast(TrackerDelta, {"shape": shape.uuid, **tracker.as_dict()})
-                await send_new_tracker(_data, room=psid)
+                await send_new_tracker(tracker.as_pydantic(), room=psid)
             else:
-                await sio.emit(
+                await _send_game(
                     "Shape.Options.Tracker.Remove",
-                    {"shape": shape.uuid, "value": tracker.uuid},
+                    ShapeSetTrackerValue(shape=shape.uuid, value=tracker.uuid),
                     room=psid,
-                    namespace=GAME_NS,
                 )
         else:
-            await sio.emit(
-                "Shape.Options.Tracker.Update",
-                data,
-                room=psid,
-                namespace=GAME_NS,
-            )
+            await _send_game("Shape.Options.Tracker.Update", data, room=psid)
 
 
 @sio.on("Shape.Options.Tracker.Move", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def move_tracker(sid: str, data: TrackerMove):
+async def move_tracker(sid: str, raw_data: Any):
+    data = TrackerMove(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    new_shape = get_shape_or_none(pr, data["new_shape"], "Tracker.Options.Tracker.Move")
+    new_shape = get_shape_or_none(pr, data.new_shape, "Tracker.Options.Tracker.Move")
     if new_shape is None:
         return
 
-    tracker = Tracker.get_by_id(data["tracker"])
+    tracker = Tracker.get_by_id(data.tracker)
     tracker.shape = new_shape
     tracker.save()
 
-    await sio.emit(
+    await _send_game(
         "Shape.Options.Tracker.Move",
-        data,
+        raw_data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
-        namespace=GAME_NS,
     )
 
 
 @sio.on("Shape.Options.Aura.Create", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def create_aura(sid: str, data: AuraDelta):
+async def create_aura(sid: str, raw_data: Any):
+    data = ApiAura(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "Aura.Create")
+    shape = get_shape_or_none(pr, data.shape, "Aura.Create")
     if shape is None:
         return
 
@@ -591,94 +566,86 @@ async def create_aura(sid: str, data: AuraDelta):
 
 @sio.on("Shape.Options.Aura.Update", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def update_aura(sid: str, data: AuraDelta):
+async def update_aura(sid: str, raw_data: Any):
+    data = ApiOptionalAura(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "Aura.Update")
+    shape = get_shape_or_none(pr, data.shape, "Aura.Update")
     if shape is None:
         return
 
-    aura = Aura.get_by_id(data["uuid"])
-    changed_visible = aura.visible != data.get("visible", aura.visible)
+    aura = Aura.get_by_id(data.uuid)
+    changed_visible = aura.visible != (data.visible or aura.visible)
     update_model_from_dict(aura, data)
     aura.save()
 
     owners = [*get_owner_sids(pr, shape, skip_sid=sid)]
     for psid in owners:
-        await sio.emit(
-            "Shape.Options.Aura.Update",
-            data,
-            room=psid,
-            namespace=GAME_NS,
-        )
+        await _send_game("Shape.Options.Aura.Update", data, room=psid)
     for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=sid):
         if psid in owners:
             continue
         if changed_visible:
             if aura.visible:
-                _data = cast(AuraDelta, {"shape": shape.uuid, **aura.as_dict()})
-                await send_new_aura(_data, room=psid)
+                await send_new_aura(aura.as_pydantic(), room=psid)
             else:
-                await sio.emit(
+                await _send_game(
                     "Shape.Options.Aura.Remove",
-                    {"shape": shape.uuid, "value": aura.uuid},
+                    ShapeSetAuraValue(shape=shape.uuid, value=aura.uuid),
                     room=psid,
-                    namespace=GAME_NS,
                 )
         else:
-            await sio.emit(
-                "Shape.Options.Aura.Update",
-                data,
-                room=psid,
-                namespace=GAME_NS,
-            )
+            await _send_game("Shape.Options.Aura.Update", data, room=psid)
 
 
 @sio.on("Shape.Options.Aura.Move", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def move_aura(sid: str, data: AuraMove):
+async def move_aura(sid: str, raw_data: Any):
+    data = AuraMove(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    new_shape = get_shape_or_none(pr, data["new_shape"], "Aura.Options.Tracker.Move")
+    new_shape = get_shape_or_none(pr, data.new_shape, "Aura.Options.Tracker.Move")
     if new_shape is None:
         return
 
-    aura = Aura.get_by_id(data["aura"])
+    aura = Aura.get_by_id(data.aura)
     aura.shape = new_shape
     aura.save()
 
-    await sio.emit(
+    await _send_game(
         "Shape.Options.Aura.Move",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
-        namespace=GAME_NS,
     )
 
 
 @sio.on("Shape.Options.IsDoor.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_is_door(sid: str, data: ShapeSetBooleanValue):
+async def set_is_door(sid: str, raw_data: Any):
+    data = ShapeSetBooleanValue(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "IsDoor.Set")
+    shape = get_shape_or_none(pr, data.shape, "IsDoor.Set")
     if shape is None:
         return
 
-    shape.is_door = data["value"]
+    shape.is_door = data.value
     shape.save()
 
-    await sio.emit(
+    await _send_game(
         "Shape.Options.IsDoor.Set",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
-        namespace=GAME_NS,
     )
 
 
 def set_options(shape: Shape, key: str, value):
-    options = json.loads(shape.options)
+    options: list[list[Any]] = json.loads(shape.options or "[]")
     for option in options:
         if option[0] == key:
             option[1] = value
@@ -690,7 +657,7 @@ def set_options(shape: Shape, key: str, value):
 
 
 def set_options_deep(shape: Shape, key: str, subkey: str, value):
-    options: List[Any] = json.loads(shape.options)
+    options: List[Any] = json.loads(shape.options or "[]")
     for option in options:
         if option[0] == key:
             option[1][subkey] = value
@@ -704,158 +671,167 @@ def set_options_deep(shape: Shape, key: str, subkey: str, value):
 
 @sio.on("Shape.Options.Door.Permissions.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_door_permissions(sid: str, data):
+async def set_door_permissions(sid: str, raw_data: Any):
+    data = ShapeSetPermissionValue(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "Door.Permissions.Set")
+    shape = get_shape_or_none(pr, data.shape, "Door.Permissions.Set")
     if shape is None:
         return
 
-    set_options_deep(shape, "door", "permissions", data["value"])
+    set_options_deep(shape, "door", "permissions", data.value)
 
-    await sio.emit(
+    await _send_game(
         "Shape.Options.Door.Permissions.Set",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
-        namespace=GAME_NS,
     )
 
 
 @sio.on("Shape.Options.Door.ToggleMode.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_door_toggle_mode(sid: str, data: ShapeSetStringValue):
+async def set_door_toggle_mode(sid: str, raw_data: Any):
+    data = ShapeSetDoorToggleModeValue(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "Door.ToggleMode.Set")
+    shape = get_shape_or_none(pr, data.shape, "Door.ToggleMode.Set")
     if shape is None:
         return
 
-    set_options_deep(shape, "door", "toggleMode", data["value"])
+    set_options_deep(shape, "door", "toggleMode", data.value)
 
-    await sio.emit(
+    await _send_game(
         "Shape.Options.Door.ToggleMode.Set",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
-        namespace=GAME_NS,
     )
 
 
 @sio.on("Shape.Options.IsTeleportZone.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_is_teleport_zone(sid: str, data: ShapeSetBooleanValue):
+async def set_is_teleport_zone(sid: str, raw_data: Any):
+    data = ShapeSetBooleanValue(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "IsTeleportZone.Set")
+    shape = get_shape_or_none(pr, data.shape, "IsTeleportZone.Set")
     if shape is None:
         return
 
-    shape.is_teleport_zone = data["value"]
+    shape.is_teleport_zone = data.value
     shape.save()
 
-    await sio.emit(
+    await _send_game(
         "Shape.Options.IsTeleportZone.Set",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
-        namespace=GAME_NS,
     )
 
 
 @sio.on("Shape.Options.IsImmediateTeleportZone.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_is_immediate_teleport_zone(sid: str, data: ShapeSetBooleanValue):
+async def set_is_immediate_teleport_zone(sid: str, raw_data: Any):
+    data = ShapeSetBooleanValue(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "IsTeleportZone.Set")
+    shape = get_shape_or_none(pr, data.shape, "IsTeleportZone.Set")
     if shape is None:
         return
 
-    set_options_deep(shape, "teleport", "immediate", data["value"])
+    set_options_deep(shape, "teleport", "immediate", data.value)
 
-    await sio.emit(
+    await _send_game(
         "Shape.Options.IsImmediateTeleportZone.Set",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
-        namespace=GAME_NS,
     )
 
 
 @sio.on("Shape.Options.TeleportZonePermissions.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_tp_permissions(sid: str, data):
+async def set_tp_permissions(sid: str, raw_data: Any):
+    data = ShapeSetPermissionValue(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "TeleportZonePermissions.Set")
+    shape = get_shape_or_none(pr, data.shape, "TeleportZonePermissions.Set")
     if shape is None:
         return
 
-    set_options_deep(shape, "teleport", "permissions", data["value"])
+    set_options_deep(shape, "teleport", "permissions", data.value)
 
-    await sio.emit(
+    await _send_game(
         "Shape.Options.TeleportZonePermissions.Set",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
-        namespace=GAME_NS,
     )
 
 
 @sio.on("Shape.Options.TeleportZoneTarget.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_tp_target(sid: str, data):
+async def set_tp_target(sid: str, raw_data: Any):
+    data = ShapeSetTeleportLocationValue(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "TeleportZoneTarget.Set")
+    shape = get_shape_or_none(pr, data.shape, "TeleportZoneTarget.Set")
     if shape is None:
         return
 
-    set_options_deep(shape, "teleport", "location", data["value"])
+    set_options_deep(shape, "teleport", "location", data.value)
 
-    await sio.emit(
+    await _send_game(
         "Shape.Options.TeleportZoneTarget.Set",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
-        namespace=GAME_NS,
     )
 
 
 @sio.on("Shape.Options.SkipDraw.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_skip_draw(sid: str, data: ShapeSetBooleanValue):
+async def set_skip_draw(sid: str, raw_data: Any):
+    data = ShapeSetBooleanValue(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "SkipDraw.Set")
+    shape = get_shape_or_none(pr, data.shape, "SkipDraw.Set")
     if shape is None:
         return
 
-    set_options(shape, "skipDraw", data["value"])
+    set_options(shape, "skipDraw", data.value)
 
-    await sio.emit(
+    await _send_game(
         "Shape.Options.SkipDraw.Set",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
-        namespace=GAME_NS,
     )
 
 
 @sio.on("Shape.Options.SvgAsset.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_svg_asset(sid: str, data: ShapeSetStringValue):
+async def set_svg_asset(sid: str, raw_data: Any):
+    data = ShapeSetOptionalStringValue(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "SkipDraw.Set")
+    shape = get_shape_or_none(pr, data.shape, "SkipDraw.Set")
     if shape is None:
         return
 
-    options: List[Any] = json.loads(shape.options)
+    options: List[Any] = json.loads(shape.options or "[]")
 
     for i, option in enumerate(options[::-1]):
-        if data["value"] is None and option[0] in [
+        if data.value is None and option[0] in [
             "svgAsset",
             "svgPaths",
             "svgWidth",
@@ -864,18 +840,17 @@ async def set_svg_asset(sid: str, data: ShapeSetStringValue):
             options.pop(i)
             break
         elif option[0] == "svgAsset":
-            option[1] = data["value"]
+            option[1] = data.value
             break
     else:
-        options.append(["svgAsset", data["value"]])
+        options.append(["svgAsset", data.value])
 
     shape.options = json.dumps(options)
     shape.save()
 
-    await sio.emit(
+    await _send_game(
         "Shape.Options.SvgAsset.Set",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),
-        namespace=GAME_NS,
     )

@@ -1,21 +1,19 @@
-import type { ApiAura } from "../../../apiTypes";
+import type { ApiAura, ApiOptionalAura, AuraMove, ShapeSetAuraValue } from "../../../apiTypes";
 import { UI_SYNC } from "../../../core/models/types";
 import { socket } from "../../api/socket";
 import { getLocalId } from "../../id";
-import type { GlobalId } from "../../id";
 
 import { aurasFromServer, partialAuraFromServer } from "./conversion";
-import type { Aura, AuraId } from "./models";
 
 import { auraSystem } from ".";
 
-socket.on("Shape.Options.Aura.Remove", (data: { shape: GlobalId; value: AuraId }) => {
+socket.on("Shape.Options.Aura.Remove", (data: ShapeSetAuraValue) => {
     const shape = getLocalId(data.shape);
     if (shape === undefined) return;
     auraSystem.remove(shape, data.value, UI_SYNC);
 });
 
-socket.on("Shape.Options.Aura.Move", (data: { shape: GlobalId; aura: AuraId; new_shape: GlobalId }): void => {
+socket.on("Shape.Options.Aura.Move", (data: AuraMove): void => {
     const shape = getLocalId(data.shape);
     const newShape = getLocalId(data.new_shape);
     if (shape === undefined || newShape === undefined) return;
@@ -27,12 +25,12 @@ socket.on("Shape.Options.Aura.Move", (data: { shape: GlobalId; aura: AuraId; new
 });
 
 socket.on("Shape.Options.Aura.Create", (data: ApiAura): void => {
-    const shape = getLocalId(data.shape as GlobalId);
+    const shape = getLocalId(data.shape);
     if (shape === undefined) return;
     auraSystem.add(shape, aurasFromServer(data)[0]!, UI_SYNC);
 });
 
-socket.on("Shape.Options.Aura.Update", (data: { uuid: string; shape: GlobalId } & Partial<Aura>): void => {
+socket.on("Shape.Options.Aura.Update", (data: ApiOptionalAura): void => {
     const shape = getLocalId(data.shape);
     if (shape === undefined) return;
     auraSystem.update(shape, data.uuid, partialAuraFromServer(data), UI_SYNC);

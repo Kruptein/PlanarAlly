@@ -1,3 +1,7 @@
+import type { GlobalId } from "./game/id";
+import type { AuraId } from "./game/systems/auras/models";
+import type { TrackerId } from "./game/systems/trackers/models";
+
 /* tslint:disable */
 /* eslint-disable */
 /**
@@ -8,8 +12,8 @@
 export type Nullable = null;
 
 export interface ApiAura {
-  uuid: string;
-  shape: string;
+  uuid: AuraId;
+  shape: GlobalId;
   vision_source: boolean;
   visible: boolean;
   name: string;
@@ -84,8 +88,8 @@ export interface ApiOwner {
   vision_access: boolean;
 }
 export interface ApiTracker {
-  uuid: string;
-  shape: string;
+  uuid: TrackerId;
+  shape: GlobalId;
   visible: boolean;
   name: string;
   value: number;
@@ -137,6 +141,20 @@ export interface ApiNote {
   uuid: string;
   title: string;
   text: string;
+}
+export interface ApiOptionalAura {
+  uuid: AuraId;
+  shape: GlobalId;
+  vision_source?: boolean;
+  visible?: boolean;
+  name?: string;
+  value?: number;
+  dim?: number;
+  colour?: string;
+  active?: boolean;
+  border_colour?: string;
+  angle?: number;
+  direction?: number;
 }
 export interface ApiOptionalUserOptions {
   fow_colour?: string;
@@ -192,6 +210,15 @@ export interface AssetOptionsInfoSuccess {
 export interface AssetOptionsSet {
   asset: number;
   options: string;
+}
+export interface AuraMove {
+  shape: GlobalId;
+  aura: AuraId;
+  new_shape: GlobalId;
+}
+export interface AuraRef {
+  uuid: AuraId;
+  shape: GlobalId;
 }
 export interface ClientActiveLayerSet {
   floor: string;
@@ -351,6 +378,11 @@ export interface OptionalClientViewport {
   client: string;
   viewport?: Viewport;
 }
+export interface Permissions {
+  enabled: string[];
+  request: string[];
+  disabled: string[];
+}
 export interface PlayerInfoCore {
   id: number;
   name: string;
@@ -393,6 +425,38 @@ export interface RoomInfoSet {
   isLocked: boolean;
   publicName: string;
 }
+export interface ShapeSetAuraValue {
+  shape: GlobalId;
+  value: AuraId;
+}
+export interface ShapeSetBooleanValue {
+  shape: GlobalId;
+  value: boolean;
+}
+export interface ShapeSetDoorToggleModeValue {
+  shape: GlobalId;
+  value: "movement" | "vision" | "both";
+}
+export interface ShapeSetOptionalStringValue {
+  shape: GlobalId;
+  value: string | Nullable;
+}
+export interface ShapeSetPermissionValue {
+  shape: GlobalId;
+  value: Permissions;
+}
+export interface ShapeSetStringValue {
+  shape: GlobalId;
+  value: string;
+}
+export interface ShapeSetTeleportLocationValue {
+  shape: GlobalId;
+  value: TeleportLocation;
+}
+export interface TeleportLocation {
+  id: number;
+  spawnUuid: GlobalId;
+}
 export interface TempClientPosition {
   temp: boolean;
   position: ClientPosition;
@@ -406,6 +470,7 @@ export interface ToggleCompositeVariant {
   shape: string;
   variant: string;
 }
+export interface TypeIdModel {}
 export interface ApiLocation {
   id: number;
   name: string;
@@ -476,4 +541,28 @@ export interface LocationSettingsSet {
   locations: {
     [k: string]: ApiOptionalLocationOptions;
   };
+}
+export interface ApiOptionalTracker {
+  uuid: TrackerId;
+  shape: GlobalId;
+  visible?: boolean;
+  name?: string;
+  value?: number;
+  maxvalue?: number;
+  draw?: boolean;
+  primary_color?: string;
+  secondary_color?: string;
+}
+export interface ShapeSetTrackerValue {
+  shape: GlobalId;
+  value: TrackerId;
+}
+export interface TrackerMove {
+  shape: GlobalId;
+  tracker: TrackerId;
+  new_shape: GlobalId;
+}
+export interface TrackerRef {
+  uuid: TrackerId;
+  shape: GlobalId;
 }

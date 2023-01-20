@@ -7,8 +7,9 @@ from uuid import uuid4
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
 from playhouse.shortcuts import model_to_dict, update_model_from_dict
 
-from ...api.models.floor import ApiAura, ApiOwner, ApiShape, ApiTracker
+from ...api.models.floor import ApiAura, ApiOwner, ApiShape
 from ...api.models.helpers import _
+from ...api.models.tracker import ApiTracker
 
 if TYPE_CHECKING:
     from ...api.common.shapes.data_models import ServerShapeOwner, ShapeKeys

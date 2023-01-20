@@ -1,37 +1,12 @@
 from pydantic import BaseModel
 
+from ..aura import ApiAura
 from ..helpers import Nullable
 from ..label import ApiLabel
+from ..tracker import ApiTracker
 from .background import *
 from .type import *
 from .visible import *
-
-
-class ApiTracker(BaseModel):
-    uuid: str
-    shape: str
-    visible: bool
-    name: str
-    value: int
-    maxvalue: int
-    draw: bool
-    primary_color: str
-    secondary_color: str
-
-
-class ApiAura(BaseModel):
-    uuid: str
-    shape: str
-    vision_source: bool
-    visible: bool
-    name: str
-    value: int
-    dim: int
-    colour: str
-    active: bool
-    border_colour: str
-    angle: int
-    direction: int
 
 
 class ApiOwner(BaseModel):

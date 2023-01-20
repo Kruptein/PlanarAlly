@@ -1,33 +1,31 @@
-import type { ApiTracker } from "../../../apiTypes";
+import type { ApiOptionalTracker, ApiTracker, ShapeSetTrackerValue, TrackerMove } from "../../../apiTypes";
 import { UI_SYNC } from "../../../core/models/types";
 import { socket } from "../../api/socket";
 import { getLocalId } from "../../id";
-import type { GlobalId } from "../../id";
 
 import { partialTrackerFromServer, trackersFromServer } from "./conversion";
-import type { Tracker, TrackerId } from "./models";
 
 import { trackerSystem } from ".";
 
-socket.on("Shape.Options.Tracker.Remove", (data: { shape: GlobalId; value: TrackerId }): void => {
+socket.on("Shape.Options.Tracker.Remove", (data: ShapeSetTrackerValue): void => {
     const shape = getLocalId(data.shape);
     if (shape === undefined) return;
     trackerSystem.remove(shape, data.value, UI_SYNC);
 });
 
 socket.on("Shape.Options.Tracker.Create", (data: ApiTracker): void => {
-    const shape = getLocalId(data.shape as GlobalId);
+    const shape = getLocalId(data.shape);
     if (shape === undefined) return;
     trackerSystem.add(shape, trackersFromServer(data)[0]!, UI_SYNC);
 });
 
-socket.on("Shape.Options.Tracker.Update", (data: { uuid: TrackerId; shape: GlobalId } & Partial<Tracker>): void => {
+socket.on("Shape.Options.Tracker.Update", (data: ApiOptionalTracker): void => {
     const shape = getLocalId(data.shape);
     if (shape === undefined) return;
     trackerSystem.update(shape, data.uuid, partialTrackerFromServer(data), UI_SYNC);
 });
 
-socket.on("Shape.Options.Tracker.Move", (data: { shape: GlobalId; tracker: TrackerId; new_shape: GlobalId }): void => {
+socket.on("Shape.Options.Tracker.Move", (data: TrackerMove): void => {
     const shape = getLocalId(data.shape);
     const newShape = getLocalId(data.new_shape);
     if (shape === undefined || newShape === undefined) return;

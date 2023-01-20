@@ -1,6 +1,20 @@
 from enum import Enum
 from typing import TypeVar
 
+from pydantic import BaseModel
+
+
+class TypeIdModel(BaseModel):
+    class Config:
+        @staticmethod
+        def schema_extra(schema) -> None:
+            for prop in schema["properties"].values():
+                if prop.get("anyOf", False):
+                    if prop.get("typeId", False):
+                        prop["anyOf"][0]["enum"] = [prop["typeId"]]
+                elif prop.get("typeId", False):
+                    prop["enum"] = [prop["typeId"]]
+
 
 class Nullable(Enum):
     null = None

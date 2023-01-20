@@ -1,10 +1,12 @@
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import Field
+
+from ..helpers import TypeIdModel
 
 
-class InitiativeOptionSet(BaseModel):
-    shape: str
+class InitiativeOptionSet(TypeIdModel):
+    shape: str = Field(typeId="GlobalId")
     option: Literal["isVisible"] | Literal["isGroup"]
     value: bool
     value: bool

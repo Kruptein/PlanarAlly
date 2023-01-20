@@ -7,7 +7,7 @@ import type {
     ClientViewport,
 } from "../../../apiTypes";
 import { clientSystem } from "../../systems/client";
-import type { BoardId, ClientId } from "../../systems/client/models";
+import type { BoardId } from "../../systems/client/models";
 import { gameState } from "../../systems/game/state";
 import { playerSystem } from "../../systems/players";
 import type { PlayerId } from "../../systems/players/models";
@@ -15,16 +15,16 @@ import { positionSystem } from "../../systems/position";
 import { socket } from "../socket";
 
 socket.on("Client.Connected", (data: ClientConnected) => {
-    clientSystem.addClient(data.player as PlayerId, data.client as ClientId);
+    clientSystem.addClient(data.player as PlayerId, data.client);
 });
 
 socket.on("Client.Disconnected", (data: ClientDisconnected) => {
-    clientSystem.removeClient(data.client as ClientId);
+    clientSystem.removeClient(data.client);
 });
 
 socket.on("Client.Move", (data: ClientMove) => {
     const { client, position } = data;
-    const player = clientSystem.getPlayer(client as ClientId);
+    const player = clientSystem.getPlayer(client);
     if (player === undefined) return;
 
     const isCurrentPlayer = playerSystem.getCurrentPlayer()?.id === player;
@@ -37,13 +37,13 @@ socket.on("Client.Move", (data: ClientMove) => {
 });
 
 socket.on("Client.Viewport.Set", (data: ClientViewport) => {
-    clientSystem.setClientViewport(data.client as ClientId, data.viewport, true);
+    clientSystem.setClientViewport(data.client, data.viewport, true);
 });
 
 socket.on("Client.Offset.Set", (data: ClientOffsetSet) => {
-    clientSystem.setOffset(data.client as ClientId, { x: data.x, y: data.y }, false);
+    clientSystem.setOffset(data.client, { x: data.x, y: data.y }, false);
 });
 
 socket.on("Client.Gameboard.Set", (data: ClientGameboardSet) => {
-    clientSystem.addBoardId(data.client as ClientId, data.boardId as BoardId);
+    clientSystem.addBoardId(data.client, data.boardId as BoardId);
 });

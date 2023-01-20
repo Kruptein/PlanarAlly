@@ -52,9 +52,3 @@ export interface LocationOptions {
     groundMapBackground: string;
     undergroundMapBackground: string;
 }
-
-export interface ServerLocationInfo {
-    default: ServerLocationOptions;
-    active: number;
-    locations: Record<number, Partial<ServerLocationOptions>>;
-}

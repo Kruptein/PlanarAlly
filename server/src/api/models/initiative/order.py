@@ -1,7 +1,9 @@
-from pydantic import BaseModel
+from pydantic import Field
+
+from ..helpers import TypeIdModel
 
 
-class InitiativeOrderChange(BaseModel):
-    shape: str
+class InitiativeOrderChange(TypeIdModel):
+    shape: str = Field(typeId="GlobalId")
     oldIndex: int
     newIndex: int

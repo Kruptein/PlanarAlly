@@ -7,9 +7,6 @@ interface CommonInitiativeData {
     effects: InitiativeEffect[];
 }
 
-export interface RawInitiativeData extends CommonInitiativeData {
-    shape: GlobalId;
-}
 export interface InitiativeData extends CommonInitiativeData {
     globalId: GlobalId;
     localId?: LocalId;
@@ -25,15 +22,6 @@ export enum InitiativeSort {
     Down,
     Up,
     Manual,
-}
-
-export interface InitiativeSettings {
-    location: number;
-    round: number;
-    turn: number;
-    sort: InitiativeSort;
-    data: RawInitiativeData[];
-    isActive: boolean;
 }
 
 export enum InitiativeEffectMode {

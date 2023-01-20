@@ -1,7 +1,9 @@
-from pydantic import BaseModel
+from pydantic import Field
+
+from ..helpers import TypeIdModel
 
 
-class ClientOffsetSet(BaseModel):
-    client: str
+class ClientOffsetSet(TypeIdModel):
+    client: str = Field(typeId="ClientId")
     x: int | None
     y: int | None

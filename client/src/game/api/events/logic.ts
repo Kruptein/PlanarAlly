@@ -1,7 +1,7 @@
 import { POSITION, useToast } from "vue-toastification";
 
 import type { LogicRequestInfo } from "../../../apiTypes";
-import { getLocalId, type GlobalId } from "../../id";
+import { getLocalId } from "../../id";
 import { doorSystem } from "../../systems/logic/door";
 import { Access } from "../../systems/logic/models";
 // eslint-disable-next-line import/default
@@ -12,7 +12,7 @@ const toast = useToast();
 
 socket.on("Logic.Request", (data: LogicRequestInfo) => {
     if (data.request.logic === "door") {
-        const doorId = getLocalId(data.request.door as GlobalId);
+        const doorId = getLocalId(data.request.door);
         if (doorId === undefined) return;
         const canUse = doorSystem.canUse(doorId);
         if (canUse === Access.Enabled) {

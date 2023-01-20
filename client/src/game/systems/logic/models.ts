@@ -12,7 +12,7 @@ export enum Access {
     Disabled,
 }
 
-export type RequestType = DoorRequest | TpRequest;
+type RequestType = DoorRequest | TpRequest;
 export type RequestTypeResponse = Global<RequestType> & { requester: string };
 
 export interface Permissions {

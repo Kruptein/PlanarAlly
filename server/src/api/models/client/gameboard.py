@@ -1,6 +1,8 @@
-from pydantic import BaseModel
+from pydantic import Field
+
+from ..helpers import TypeIdModel
 
 
-class ClientGameboardSet(BaseModel):
-    client: str
+class ClientGameboardSet(TypeIdModel):
+    client: str = Field(typeId="ClientId")
     boardId: str

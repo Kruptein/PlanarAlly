@@ -66,7 +66,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
         newShape.x = clip.x + offset.x;
         newShape.y = clip.y + offset.y;
 
-        shapeMap.set(clip.uuid as GlobalId, newShape.uuid as GlobalId);
+        shapeMap.set(clip.uuid, newShape.uuid);
 
         if (clip.type_ === "polygon") {
             (newShape as ServerPolygon).vertices = (clip as ServerPolygon).vertices.map((p) => [
@@ -100,7 +100,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
         for (const owner of clip.owners) {
             const newOwner: ServerShapeOwner = {
                 ...owner,
-                shape: newShape.uuid as GlobalId,
+                shape: newShape.uuid,
             };
             newShape.owners.push(newOwner);
         }
@@ -112,7 +112,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
             if (!(clip.group in groupShapes)) {
                 groupShapes[clip.group] = [];
             }
-            groupShapes[clip.group]!.push(newShape.uuid as GlobalId);
+            groupShapes[clip.group]!.push(newShape.uuid);
         }
         if (clip.type_ === "togglecomposite") {
             composites.push(newShape as ServerToggleComposite);

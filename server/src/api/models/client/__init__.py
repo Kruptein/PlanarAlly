@@ -1,5 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
+from ..helpers import TypeIdModel
 from .activeLayer import *
 from .gameboard import *
 from .offset import *
@@ -20,13 +21,13 @@ class Viewport(BaseModel):
     offset_y: int | None
 
 
-class OptionalClientViewport(BaseModel):
-    client: str
+class OptionalClientViewport(TypeIdModel):
+    client: str = Field(typeId="ClientId")
     viewport: Viewport | None = None
 
 
-class ClientViewport(BaseModel):
-    client: str
+class ClientViewport(TypeIdModel):
+    client: str = Field(typeId="ClientId")
     viewport: Viewport
 
 
@@ -35,15 +36,15 @@ class TempClientPosition(BaseModel):
     position: ClientPosition
 
 
-class ClientMove(BaseModel):
-    client: str
+class ClientMove(TypeIdModel):
+    client: str = Field(typeId="ClientId")
     position: ClientPosition
 
 
-class ClientConnected(BaseModel):
-    client: str
+class ClientConnected(TypeIdModel):
+    client: str = Field(typeId="ClientId")
     player: int
 
 
-class ClientDisconnected(BaseModel):
-    client: str
+class ClientDisconnected(TypeIdModel):
+    client: str = Field(typeId="ClientId")

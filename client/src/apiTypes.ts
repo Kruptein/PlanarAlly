@@ -1,5 +1,6 @@
 import type { GlobalId } from "./game/id";
 import type { AuraId } from "./game/systems/auras/models";
+import type { ClientId } from "./game/systems/client/models";
 import type { TrackerId } from "./game/systems/trackers/models";
 
 /* tslint:disable */
@@ -43,7 +44,7 @@ export interface ApiLayer {
   groups: ApiGroup[];
 }
 export interface ApiShape {
-  uuid: string;
+  uuid: GlobalId;
   layer: string;
   floor: string;
   type_: string;
@@ -81,7 +82,7 @@ export interface ApiShape {
   labels: ApiLabel[];
 }
 export interface ApiOwner {
-  shape: string;
+  shape: GlobalId;
   user: string;
   edit_access: boolean;
   movement_access: boolean;
@@ -119,7 +120,7 @@ export interface ApiInitiative {
   isActive: boolean;
 }
 export interface ApiInitiativeData {
-  shape: string;
+  shape: GlobalId;
   initiative?: number;
   isVisible: boolean;
   isGroup: boolean;
@@ -225,18 +226,18 @@ export interface ClientActiveLayerSet {
   layer: string;
 }
 export interface ClientConnected {
-  client: string;
+  client: ClientId;
   player: number;
 }
 export interface ClientDisconnected {
-  client: string;
+  client: ClientId;
 }
 export interface ClientGameboardSet {
-  client: string;
+  client: ClientId;
   boardId: string;
 }
 export interface ClientMove {
-  client: string;
+  client: ClientId;
   position: ClientPosition;
 }
 export interface ClientPosition {
@@ -245,7 +246,7 @@ export interface ClientPosition {
   zoom_display: number;
 }
 export interface ClientOffsetSet {
-  client: string;
+  client: ClientId;
   x?: number;
   y?: number;
 }
@@ -265,7 +266,7 @@ export interface ClientOptionsSet {
   initiative_effect_visibility?: number;
 }
 export interface ClientViewport {
-  client: string;
+  client: ClientId;
   viewport: Viewport;
 }
 export interface Viewport {
@@ -306,50 +307,50 @@ export interface GroupJoin {
   members: GroupMemberBadge[];
 }
 export interface GroupMemberBadge {
-  uuid: string;
+  uuid: GlobalId;
   badge: number;
 }
 export interface GroupLeave {
-  uuid: string;
+  uuid: GlobalId;
   group_id: string;
 }
 export interface InitiativeAdd {
-  shape: string;
+  shape: GlobalId;
   initiative?: number;
   isVisible: boolean;
   isGroup: boolean;
   effects: ApiInitiativeEffect[];
 }
 export interface InitiativeEffectNew {
-  actor: string;
+  actor: GlobalId;
   effect: ApiInitiativeEffect;
 }
 export interface InitiativeEffectRemove {
-  shape: string;
+  shape: GlobalId;
   index: number;
 }
 export interface InitiativeEffectRename {
-  shape: string;
+  shape: GlobalId;
   index: number;
   name: string;
 }
 export interface InitiativeEffectTurns {
-  shape: string;
+  shape: GlobalId;
   index: number;
   turns: string;
 }
 export interface InitiativeOptionSet {
-  shape: string;
+  shape: GlobalId;
   option: "isVisible" | "isGroup";
   value: boolean;
 }
 export interface InitiativeOrderChange {
-  shape: string;
+  shape: GlobalId;
   oldIndex: number;
   newIndex: number;
 }
 export interface InitiativeValueSet {
-  shape: string;
+  shape: GlobalId;
   value: number;
 }
 export interface LabelVisibilitySet {
@@ -358,7 +359,7 @@ export interface LabelVisibilitySet {
 }
 export interface LogicDoorRequest {
   logic: "door";
-  door: string;
+  door: GlobalId;
 }
 export interface LogicRequestInfo {
   requester: string;
@@ -366,8 +367,8 @@ export interface LogicRequestInfo {
 }
 export interface LogicTeleportRequest {
   logic: "tp";
-  fromZone: string;
-  toZone: string;
+  fromZone: GlobalId;
+  toZone: GlobalId;
   transfers: string[];
 }
 export interface NotificationShow {
@@ -375,7 +376,7 @@ export interface NotificationShow {
   message: string;
 }
 export interface OptionalClientViewport {
-  client: string;
+  client: ClientId;
   viewport?: Viewport;
 }
 export interface Permissions {
@@ -462,13 +463,13 @@ export interface TempClientPosition {
   position: ClientPosition;
 }
 export interface ToggleCompositeNewVariant {
-  shape: string;
-  variant: string;
+  shape: GlobalId;
+  variant: GlobalId;
   name: string;
 }
 export interface ToggleCompositeVariant {
-  shape: string;
-  variant: string;
+  shape: GlobalId;
+  variant: GlobalId;
 }
 export interface TypeIdModel {}
 export interface ApiLocation {

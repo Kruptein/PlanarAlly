@@ -1,7 +1,7 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from ..aura import ApiAura
-from ..helpers import Nullable
+from ..helpers import Nullable, TypeIdModel
 from ..label import ApiLabel
 from ..tracker import ApiTracker
 from .background import *
@@ -9,16 +9,16 @@ from .type import *
 from .visible import *
 
 
-class ApiOwner(BaseModel):
-    shape: str
+class ApiOwner(TypeIdModel):
+    shape: str = Field(typeId="GlobalId")
     user: str
     edit_access: bool
     movement_access: bool
     vision_access: bool
 
 
-class ApiShape(BaseModel):
-    uuid: str
+class ApiShape(TypeIdModel):
+    uuid: str = Field(typeId="GlobalId")
     layer: str
     floor: str
     type_: str

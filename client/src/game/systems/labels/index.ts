@@ -9,7 +9,7 @@ import { labelState } from "./state";
 
 const { mutableReactive: $, mutable, raw } = labelState;
 
-export class LabelSystem implements ShapeSystem {
+class LabelSystem implements ShapeSystem {
     // Inform the system about the state of a certain LocalId
     inform(id: LocalId, data: ApiLabel[]): void {
         mutable.data.set(id, data);

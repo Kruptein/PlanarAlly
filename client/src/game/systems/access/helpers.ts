@@ -1,5 +1,5 @@
 import type { ApiOwner } from "../../../apiTypes";
-import { getGlobalId, getLocalId, type GlobalId } from "../../id";
+import { getGlobalId, getLocalId } from "../../id";
 
 import type { ServerShapeAccess, ServerShapeOwner, ShapeAccess, ShapeOwner } from "./models";
 
@@ -23,6 +23,6 @@ export const accessToClient = (access: ServerShapeAccess): ShapeAccess => ({
 
 export const ownerToClient = (owner: ApiOwner): ShapeOwner => ({
     user: owner.user,
-    shape: getLocalId(owner.shape as GlobalId)!,
+    shape: getLocalId(owner.shape)!,
     access: accessToClient(owner),
 });

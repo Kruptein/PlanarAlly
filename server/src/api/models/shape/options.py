@@ -44,4 +44,3 @@ class TeleportLocation(TypeIdModel):
 class ShapeSetTeleportLocationValue(TypeIdModel):
     shape: str = Field(typeId="GlobalId")
     value: TeleportLocation
-    value: TeleportLocation

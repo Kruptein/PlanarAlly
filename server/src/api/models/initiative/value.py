@@ -1,6 +1,8 @@
-from pydantic import BaseModel
+from pydantic import Field
+
+from ..helpers import TypeIdModel
 
 
-class InitiativeValueSet(BaseModel):
-    shape: str
+class InitiativeValueSet(TypeIdModel):
+    shape: str = Field(typeId="GlobalId")
     value: int

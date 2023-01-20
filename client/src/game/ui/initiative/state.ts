@@ -80,8 +80,7 @@ class InitiativeStore extends Store<InitiativeState> {
     setData(data: ApiInitiative): void {
         const initiativeData: InitiativeData[] = [];
         for (const d of data.data) {
-            const { shape, ...shapeData } = d;
-            const globalId = shape as GlobalId;
+            const { shape: globalId, ...shapeData } = d;
             const localId = getLocalId(globalId, false);
             initiativeData.push({ ...shapeData, globalId, localId });
         }

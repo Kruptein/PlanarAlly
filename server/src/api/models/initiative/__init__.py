@@ -1,5 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
+from ..helpers import TypeIdModel
 from .effect import *
 from .effect import ApiInitiativeEffect
 from .option import *
@@ -7,8 +8,8 @@ from .order import *
 from .value import *
 
 
-class ApiInitiativeData(BaseModel):
-    shape: str
+class ApiInitiativeData(TypeIdModel):
+    shape: str = Field(typeId="GlobalId")
     initiative: int | None
     isVisible: bool
     isGroup: bool
@@ -24,8 +25,8 @@ class ApiInitiative(BaseModel):
     isActive: bool
 
 
-class InitiativeAdd(BaseModel):
-    shape: str
+class InitiativeAdd(TypeIdModel):
+    shape: str = Field(typeId="GlobalId")
     initiative: int | None
     isVisible: bool
     isGroup: bool

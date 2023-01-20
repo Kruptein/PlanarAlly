@@ -1,4 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+from ..helpers import TypeIdModel
 
 
 class ApiInitiativeEffect(BaseModel):
@@ -7,24 +9,24 @@ class ApiInitiativeEffect(BaseModel):
     highlightsActor: bool
 
 
-class InitiativeEffectNew(BaseModel):
-    actor: str
+class InitiativeEffectNew(TypeIdModel):
+    actor: str = Field(typeId="GlobalId")
     effect: ApiInitiativeEffect
     effect: ApiInitiativeEffect
 
 
-class InitiativeEffectRename(BaseModel):
-    shape: str
+class InitiativeEffectRename(TypeIdModel):
+    shape: str = Field(typeId="GlobalId")
     index: int
     name: str
 
 
-class InitiativeEffectTurns(BaseModel):
-    shape: str
+class InitiativeEffectTurns(TypeIdModel):
+    shape: str = Field(typeId="GlobalId")
     index: int
     turns: str
 
 
-class InitiativeEffectRemove(BaseModel):
-    shape: str
+class InitiativeEffectRemove(TypeIdModel):
+    shape: str = Field(typeId="GlobalId")
     index: int

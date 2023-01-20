@@ -17,7 +17,7 @@ import { socket } from "../../socket";
 
 socket.on("Shape.Set", (data: ApiShape) => {
     // hard reset a shape
-    const uuid = data.uuid as GlobalId;
+    const uuid = data.uuid;
     const old = getShapeFromGlobal(uuid);
     const isActive = activeShapeStore.state.id === getLocalId(uuid);
     const hasEditDialogOpen = isActive && activeShapeStore.state.showEditDialog;

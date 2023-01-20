@@ -1,5 +1,4 @@
 import type { ApiShape } from "../../apiTypes";
-import type { GlobalId } from "../id";
 import type { ServerRect } from "../models/shapes";
 import { BaseAuraStrings, BaseTemplateStrings, BaseTrackerStrings, getTemplateKeys } from "../models/templates";
 import type { BaseAuraTemplate, BaseTemplate, BaseTrackerTemplate } from "../models/templates";
@@ -18,7 +17,7 @@ export function applyTemplate<T extends ApiShape>(shape: T, template: BaseTempla
         if (key in template) (shape as any)[key] = template[key];
     }
 
-    const uuid = shape.uuid as GlobalId;
+    const uuid = shape.uuid;
 
     // Options are not to be copied to a template by default, which is why they're not part of BaseTemplate
     // Some custom things do add options to a template and they should be set accordingly

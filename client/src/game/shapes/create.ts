@@ -1,7 +1,7 @@
 import type { ApiShape } from "../../apiTypes";
 import { toGP } from "../../core/geometry";
 import { baseAdjust } from "../../core/http";
-import { reserveLocalId, getLocalId, type GlobalId } from "../id";
+import { reserveLocalId, getLocalId } from "../id";
 import type { IShape } from "../interfaces/shape";
 import type {
     ServerRect,
@@ -27,7 +27,7 @@ import { ToggleComposite } from "./variants/toggleComposite";
 export function createShapeFromDict(shape: ApiShape): IShape | undefined {
     let sh: IShape;
 
-    const uuid = shape.uuid as GlobalId;
+    const uuid = shape.uuid;
 
     // A fromJSON and toJSON on Shape would be cleaner but ts does not allow for static abstracts so yeah.
 

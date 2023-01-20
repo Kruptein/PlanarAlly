@@ -56,9 +56,3 @@ export interface ServerPlayerOptions {
 
     render_all_floors: boolean;
 }
-
-export interface ServerPlayerInfo {
-    colour_history: string | null;
-    default_user_options: ServerPlayerOptions;
-    room_user_options?: Partial<ServerPlayerOptions>;
-}

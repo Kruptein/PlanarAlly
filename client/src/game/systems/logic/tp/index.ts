@@ -161,7 +161,7 @@ class TeleportZoneSystem implements ShapeSystem {
         return canUse(id, "tp");
     }
 
-    setTarget(id: LocalId, target: TeleportOptions["location"], syncTo: Sync): void {
+    setTarget(id: LocalId, target: NonNullable<TeleportOptions["location"]>, syncTo: Sync): void {
         let options = this.data.get(id);
         if (options === undefined) {
             options = DEFAULT_OPTIONS();

@@ -1,7 +1,6 @@
 import type { PlayersInfoSet } from "../../../../apiTypes";
 import { Role } from "../../../models/role";
 import { clientSystem } from "../../../systems/client";
-import type { ClientId } from "../../../systems/client/models";
 import { gameSystem } from "../../../systems/game";
 import { playerSystem } from "../../../systems/players";
 import type { PlayerId } from "../../../systems/players/models";
@@ -31,7 +30,7 @@ socket.on("Players.Info.Set", (data: PlayersInfoSet[]) => {
     // then we add client rects if applicable
     for (const player of data) {
         for (const client of player.clients ?? []) {
-            const clientId = client.client as ClientId;
+            const clientId = client.client;
             clientSystem.addClient(player.core.id as PlayerId, clientId);
             if (client.viewport) clientSystem.setClientViewport(clientId, client.viewport, false);
         }

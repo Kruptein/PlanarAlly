@@ -29,7 +29,7 @@ import { checkVisionSources } from "./vision";
 
 const { mutable, mutableReactive: $, DEFAULT } = propertiesState;
 
-export class PropertiesSystem implements ShapeSystem {
+class PropertiesSystem implements ShapeSystem {
     // BEHAVIOUR
 
     clear(): void {

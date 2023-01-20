@@ -2,7 +2,7 @@ import type { ApiShape } from "../../apiTypes";
 import { toGP, Vector } from "../../core/geometry";
 import type { GlobalPoint } from "../../core/geometry";
 import { SyncMode } from "../../core/models/types";
-import { getLocalId, getShape, type GlobalId } from "../id";
+import { getLocalId, getShape } from "../id";
 import type { LocalId } from "../id";
 import type { LayerName } from "../models/floor";
 import { ToolName } from "../models/tools";
@@ -146,7 +146,7 @@ function handleShapeRemove(shapes: ApiShape[], direction: "undo" | "redo"): void
         for (const shape of shapes) addShape(shape, SyncMode.FULL_SYNC);
     } else {
         deleteShapes(
-            shapes.map((s) => getShape(getLocalId(s.uuid as GlobalId)!)!),
+            shapes.map((s) => getShape(getLocalId(s.uuid)!)!),
             SyncMode.FULL_SYNC,
         );
     }

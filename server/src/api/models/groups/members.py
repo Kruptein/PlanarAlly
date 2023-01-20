@@ -1,6 +1,8 @@
-from pydantic import BaseModel
+from pydantic import Field
+
+from ..helpers import TypeIdModel
 
 
-class GroupMemberBadge(BaseModel):
-    uuid: str
+class GroupMemberBadge(TypeIdModel):
+    uuid: str = Field(typeId="GlobalId")
     badge: int

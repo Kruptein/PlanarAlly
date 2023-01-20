@@ -1,5 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
+from ..helpers import TypeIdModel
 from .members import *
 from .members import GroupMemberBadge
 
@@ -9,6 +10,6 @@ class GroupJoin(BaseModel):
     members: list[GroupMemberBadge]
 
 
-class GroupLeave(BaseModel):
-    uuid: str
+class GroupLeave(TypeIdModel):
+    uuid: str = Field(typeId="GlobalId")
     group_id: str

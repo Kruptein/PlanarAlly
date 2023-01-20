@@ -1,4 +1,5 @@
 import type { GlobalId } from "./game/id";
+import type { LayerName } from "./game/models/floor";
 import type { AuraId } from "./game/systems/auras/models";
 import type { ClientId } from "./game/systems/client/models";
 import type { TrackerId } from "./game/systems/trackers/models";
@@ -82,17 +83,17 @@ export interface ApiShape {
   ignore_zoom_size: boolean;
   is_door: boolean;
   is_teleport_zone: boolean;
-  owners: ApiOwner[];
+  owners: ApiShapeOwner[];
   trackers: ApiTracker[];
   auras: ApiAura[];
   labels: ApiLabel[];
 }
-export interface ApiOwner {
-  shape: GlobalId;
-  user: string;
+export interface ApiShapeOwner {
   edit_access: boolean;
   movement_access: boolean;
   vision_access: boolean;
+  shape: GlobalId;
+  user: string;
 }
 export interface ApiTracker {
   uuid: TrackerId;
@@ -183,13 +184,6 @@ export interface ApiOptionalUserOptions {
   initiative_effect_visibility?: string;
   initiative_open_on_activate?: boolean;
   render_all_floors?: boolean;
-}
-export interface ApiShapeOwner {
-  edit_access: boolean;
-  movement_access: boolean;
-  vision_access: boolean;
-  shape: GlobalId;
-  user: string;
 }
 export interface ApiUserOptions {
   fow_colour: string;
@@ -439,6 +433,66 @@ export interface RoomInfoSet {
   isLocked: boolean;
   publicName: string;
 }
+export interface ShapeAdd {
+  temporary: boolean;
+  shape: ApiShape;
+}
+export interface ShapeAssetImageSet {
+  uuid: GlobalId;
+  src: string;
+}
+export interface ShapeCircleSizeUpdate {
+  uuid: GlobalId;
+  r: number;
+  temporary: boolean;
+}
+export interface ShapeFloorChange {
+  uuids: GlobalId[];
+  floor: string;
+}
+export interface ShapeInfo {
+  shape: ApiShape;
+  location: number;
+}
+export interface ShapeLayerChange {
+  uuids: GlobalId[];
+  floor: string;
+  layer: LayerName;
+}
+export interface ShapeLocationMove {
+  shapes: GlobalId[];
+  target: ShapeLocationMoveTarget;
+  tp_zone: boolean;
+}
+export interface ShapeLocationMoveTarget {
+  x: number;
+  y: number;
+  location: number;
+  floor: string;
+}
+export interface ShapeOption {
+  uuid: GlobalId;
+  option: string;
+}
+export interface ShapeOrder {
+  uuid: GlobalId;
+  index: number;
+  temporary: boolean;
+}
+export interface ShapePosition {
+  angle: number;
+  points: [number, number][];
+}
+export interface ShapePositionUpdate {
+  uuid: GlobalId;
+  position: ShapePosition;
+}
+export interface ShapeRectSizeUpdate {
+  uuid: GlobalId;
+  w: number;
+  h: number;
+  temporary: boolean;
+}
 export interface ShapeSetAuraValue {
   shape: GlobalId;
   value: AuraId;
@@ -471,9 +525,31 @@ export interface TeleportLocation {
   id: number;
   spawnUuid: GlobalId;
 }
+export interface ShapeTextSizeUpdate {
+  uuid: GlobalId;
+  font_size: number;
+  temporary: boolean;
+}
+export interface ShapeTextValueSet {
+  uuid: GlobalId;
+  text: string;
+  temporary: boolean;
+}
+export interface ShapesOptionsUpdate {
+  options: ShapeOption[];
+  temporary: boolean;
+}
+export interface ShapesPositionUpdateList {
+  shapes: ShapePositionUpdate[];
+  temporary: boolean;
+}
 export interface TempClientPosition {
   temp: boolean;
   position: ClientPosition;
+}
+export interface TemporaryShapes {
+  uuids: GlobalId[];
+  temporary: boolean;
 }
 export interface ToggleCompositeNewVariant {
   shape: GlobalId;

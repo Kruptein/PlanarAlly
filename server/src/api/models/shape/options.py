@@ -5,6 +5,16 @@ from pydantic import BaseModel, Field
 from ..helpers import Nullable, TypeIdModel
 
 
+class ShapeOption(TypeIdModel):
+    uuid: str = Field(typeId="GlobalId")
+    option: str
+
+
+class ShapesOptionsUpdate(BaseModel):
+    options: list[ShapeOption]
+    temporary: bool
+
+
 class ShapeSetBooleanValue(TypeIdModel):
     shape: str = Field(typeId="GlobalId")
     value: bool
@@ -43,4 +53,5 @@ class TeleportLocation(TypeIdModel):
 
 class ShapeSetTeleportLocationValue(TypeIdModel):
     shape: str = Field(typeId="GlobalId")
+    value: TeleportLocation
     value: TeleportLocation

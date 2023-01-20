@@ -1,60 +1,10 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-from ..aura import ApiAura
-from ..helpers import Nullable, TypeIdModel
-from ..label import ApiLabel
-from ..tracker import ApiTracker
+from ..helpers import Nullable
+from ..shape import ApiShape
 from .background import *
 from .type import *
 from .visible import *
-
-
-class ApiOwner(TypeIdModel):
-    shape: str = Field(typeId="GlobalId")
-    user: str
-    edit_access: bool
-    movement_access: bool
-    vision_access: bool
-
-
-class ApiShape(TypeIdModel):
-    uuid: str = Field(typeId="GlobalId")
-    layer: str
-    floor: str
-    type_: str
-    x: float
-    y: float
-    # todo: make str | Nullable
-    name: str
-    name_visible: bool
-    fill_colour: str
-    stroke_colour: str
-    vision_obstruction: bool
-    movement_obstruction: bool
-    is_token: bool
-    annotation: str
-    draw_operator: str
-    options: str
-    badge: int
-    show_badge: bool
-    default_edit_access: bool
-    default_vision_access: bool
-    is_invisible: bool
-    is_defeated: bool
-    default_movement_access: bool
-    is_locked: bool
-    angle: float
-    stroke_width: int
-    asset: int | Nullable
-    group: str | Nullable
-    annotation_visible: bool
-    ignore_zoom_size: bool
-    is_door: bool
-    is_teleport_zone: bool
-    owners: list[ApiOwner]
-    trackers: list[ApiTracker]
-    auras: list[ApiAura]
-    labels: list[ApiLabel]
 
 
 class ApiGroup(BaseModel):

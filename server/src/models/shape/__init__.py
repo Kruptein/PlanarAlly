@@ -7,12 +7,14 @@ from uuid import uuid4
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
 from playhouse.shortcuts import model_to_dict, update_model_from_dict
 
-from ...api.models.floor import ApiAura, ApiOwner, ApiShape
+from ...api.models.aura import ApiAura
 from ...api.models.helpers import _
+from ...api.models.shape import ApiShape
+from ...api.models.shape.owner import ApiShapeOwner
 from ...api.models.tracker import ApiTracker
 
 if TYPE_CHECKING:
-    from ...api.common.shapes.data_models import ServerShapeOwner, ShapeKeys
+    from ...api.common.shapes.data_models import ShapeKeys
 
 from ...logs import logger
 from ..asset import Asset
@@ -380,7 +382,7 @@ class ShapeOwner(BaseModel):
     def __repr__(self):
         return f"<ShapeOwner {self.user.name} {self.shape.get_path()}>"
 
-    def as_dict(self) -> "ServerShapeOwner":
+    def as_dict(self):
         return cast(
             "ServerShapeOwner",
             {
@@ -392,8 +394,8 @@ class ShapeOwner(BaseModel):
             },
         )
 
-    def as_pydantic(self) -> ApiOwner:
-        return ApiOwner(
+    def as_pydantic(self) -> ApiShapeOwner:
+        return ApiShapeOwner(
             shape=self.shape.uuid,
             user=self.user.name,
             edit_access=self.edit_access,
@@ -431,7 +433,7 @@ class ShapeType(BaseModel):
     def get_center_offset(self, x: int, y: int) -> Tuple[int, int]:
         return 0, 0
 
-    def set_location(self, points: List[List[float]]) -> None:
+    def set_location(self, points: list[tuple[float, float]]) -> None:
         logger.error("Attempt to set location on shape without location info")
 
     def make_copy(self, new_shape):

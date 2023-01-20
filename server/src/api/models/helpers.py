@@ -9,7 +9,11 @@ class TypeIdModel(BaseModel):
         @staticmethod
         def schema_extra(schema) -> None:
             for prop in schema["properties"].values():
-                if prop.get("anyOf", False):
+                if prop.get("type", None) == "array":
+                    items = prop["items"]
+                    if prop.get("typeId", False):
+                        items["enum"] = [prop["typeId"]]
+                elif prop.get("anyOf", False):
                     if prop.get("typeId", False):
                         prop["anyOf"][0]["enum"] = [prop["typeId"]]
                 elif prop.get("typeId", False):

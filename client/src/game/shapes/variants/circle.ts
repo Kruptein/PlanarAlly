@@ -1,3 +1,4 @@
+import type { ApiCircleShape } from "../../../apiTypes";
 import { g2lz, clampGridLine } from "../../../core/conversions";
 import { addP, subtractP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
@@ -5,7 +6,6 @@ import { FOG_COLOUR } from "../../colour";
 import { calculateDelta } from "../../drag";
 import type { GlobalId, LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
-import type { ServerCircle } from "../../models/shapes";
 import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
 import { getProperties } from "../../systems/properties/state";
 import type { ShapeProperties } from "../../systems/properties/state";
@@ -51,14 +51,11 @@ export class Circle extends Shape implements IShape {
 
     readonly isClosed = true;
 
-    asDict(): ServerCircle {
-        return Object.assign(this.getBaseDict(), {
-            radius: this.r,
-            viewing_angle: this.viewingAngle,
-        });
+    asDict(): ApiCircleShape {
+        return { ...this.getBaseDict(), radius: this.r, viewing_angle: this.viewingAngle };
     }
 
-    fromDict(data: ServerCircle): void {
+    fromDict(data: ApiCircleShape): void {
         super.fromDict(data);
         this.r = data.radius;
         this.viewingAngle = data.viewing_angle;

@@ -1,4 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+from ..helpers import TypeIdModel
 
 
 class ApiUserOptions(BaseModel):
@@ -27,27 +29,27 @@ class ApiUserOptions(BaseModel):
     render_all_floors: bool
 
 
-class ApiOptionalUserOptions(BaseModel):
-    fow_colour: str | None
-    grid_colour: str | None
-    ruler_colour: str | None
-    use_tool_icons: bool | None
-    show_token_directions: bool | None
+class ApiOptionalUserOptions(TypeIdModel):
+    fow_colour: str | None = Field(defaul=None, noneAsNull=True)
+    grid_colour: str | None = Field(defaul=None, noneAsNull=True)
+    ruler_colour: str | None = Field(defaul=None, noneAsNull=True)
+    use_tool_icons: bool | None = Field(defaul=None, noneAsNull=True)
+    show_token_directions: bool | None = Field(defaul=None, noneAsNull=True)
 
-    invert_alt: bool | None
-    disable_scroll_to_zoom: bool | None
-    default_tracker_mode: bool | None
-    mouse_pan_mode: int | None
+    invert_alt: bool | None = Field(defaul=None, noneAsNull=True)
+    disable_scroll_to_zoom: bool | None = Field(defaul=None, noneAsNull=True)
+    default_tracker_mode: bool | None = Field(defaul=None, noneAsNull=True)
+    mouse_pan_mode: int | None = Field(defaul=None, noneAsNull=True)
 
-    use_high_dpi: bool | None
-    grid_size: int | None
-    use_as_physical_board: bool | None
-    mini_size: float | None
-    ppi: int | None
+    use_high_dpi: bool | None = Field(defaul=None, noneAsNull=True)
+    grid_size: int | None = Field(defaul=None, noneAsNull=True)
+    use_as_physical_board: bool | None = Field(defaul=None, noneAsNull=True)
+    mini_size: float | None = Field(defaul=None, noneAsNull=True)
+    ppi: int | None = Field(defaul=None, noneAsNull=True)
 
-    initiative_camera_lock: bool | None
-    initiative_vision_lock: bool | None
-    initiative_effect_visibility: str | None
-    initiative_open_on_activate: bool | None
+    initiative_camera_lock: bool | None = Field(defaul=None, noneAsNull=True)
+    initiative_vision_lock: bool | None = Field(defaul=None, noneAsNull=True)
+    initiative_effect_visibility: str | None = Field(defaul=None, noneAsNull=True)
+    initiative_open_on_activate: bool | None = Field(defaul=None, noneAsNull=True)
 
-    render_all_floors: bool | None
+    render_all_floors: bool | None = Field(defaul=None, noneAsNull=True)

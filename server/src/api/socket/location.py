@@ -29,8 +29,6 @@ from ...state.game import game_state
 from ..helpers import _send_game
 from ..models.client import OptionalClientViewport
 from ..models.client.gameboard import ClientGameboardSet
-from ..models.floor import ApiShape
-from ..models.helpers import _
 from ..models.location import (
     ApiLocationCore,
     LocationChange,
@@ -45,6 +43,7 @@ from ..models.location.settings import (
 from ..models.players.info import PlayerInfoCore, PlayersInfoSet
 from ..models.players.options import PlayerOptionsSet
 from ..models.room.info import RoomInfoSet
+from ..models.shape import ApiShape
 
 
 # DATA CLASSES FOR TYPE CHECKING
@@ -138,7 +137,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
     # 2. Load player info & options
 
     client_options = PlayerOptionsSet(
-        colour_history=_(pr.player.colour_history),
+        colour_history=pr.player.colour_history,
         default_user_options=pr.player.default_options.as_pydantic(False),
     )
 
@@ -437,7 +436,7 @@ async def clone_location(sid: str, raw_data: Any):
                 src_shape.make_copy(new_layer, new_group)
 
     for luo in src_location.user_options:
-        lduo = luo.as_dict()
+        lduo = luo.as_pydantic().dict()
         lduo["location"] = new_location
         lduo["user"] = luo.user
         if lduo["active_layer"]:

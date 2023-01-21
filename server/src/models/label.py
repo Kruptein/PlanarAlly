@@ -2,7 +2,6 @@ from typing import List, cast
 from uuid import uuid4
 
 from peewee import BooleanField, ForeignKeyField, TextField
-from playhouse.shortcuts import model_to_dict
 
 from ..api.models.label import ApiLabel
 from .base import BaseModel
@@ -20,11 +19,6 @@ class Label(BaseModel):
     category = cast(str, TextField(null=True))
     name = cast(str, TextField())
     visible = cast(bool, BooleanField())
-
-    def as_dict(self):
-        d = model_to_dict(self, recurse=False)
-        d["user"] = self.user.name
-        return d
 
     def as_pydantic(self):
         return ApiLabel(

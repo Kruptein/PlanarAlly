@@ -4,7 +4,8 @@ from .... import auth
 from ....api.helpers import _send_game
 from ....app import app, sio
 from ....models import PlayerRoom
-from ....models.shape import CompositeShapeAssociation, ToggleComposite
+from ....models.shape import ToggleComposite
+from ....models.shape.subtypes import CompositeShapeAssociation
 from ....state.game import game_state
 from ...models.togglecomposite import ToggleCompositeNewVariant, ToggleCompositeVariant
 from ..constants import GAME_NS

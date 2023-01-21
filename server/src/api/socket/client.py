@@ -22,7 +22,6 @@ from ..models.client import (
 from ..models.client.activeLayer import ClientActiveLayerSet
 from ..models.client.gameboard import ClientGameboardSet
 from ..models.client.offset import ClientOffsetSet
-from ..models.client.options import ClientOptionsSet
 
 
 # DATA CLASSES FOR TYPE CHECKING
@@ -38,24 +37,24 @@ class TempLocationOptions(TypedDict):
 
 @sio.on("Client.Options.Default.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_client_default_options(sid: str, raw_data: Any):
-    data = ClientOptionsSet(**raw_data)
+async def set_client_default_options(sid: str, raw_data: dict[str, Any]):
+    # Don't use the full pydantic model as the returned type is actually Partial<...>
 
     pr: PlayerRoom = game_state.get(sid)
 
-    UserOptions.update(**data.dict()).where(
+    UserOptions.update(**raw_data).where(
         UserOptions.id == pr.player.default_options
     ).execute()
 
-    UserOptions.update({k: None for k in data}).where(
+    UserOptions.update({k: None for k in raw_data}).where(
         UserOptions.id == pr.user_options
     ).execute()
 
 
 @sio.on("Client.Options.Room.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_client_room_options(sid: str, raw_data: Any):
-    data = ClientOptionsSet(**raw_data)
+async def set_client_room_options(sid: str, raw_data: dict[str, Any]):
+    # Don't use the full pydantic model as the returned type is actually Partial<...>
 
     pr: PlayerRoom = game_state.get(sid)
 
@@ -64,7 +63,7 @@ async def set_client_room_options(sid: str, raw_data: Any):
             pr.user_options = UserOptions.create_empty()
             pr.save()
 
-        UserOptions.update(**data.dict()).where(
+        UserOptions.update(**raw_data).where(
             UserOptions.id == pr.user_options
         ).execute()
 

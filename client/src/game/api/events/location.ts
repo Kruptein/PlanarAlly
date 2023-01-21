@@ -1,4 +1,10 @@
-import type { ApiLocation, LocationOptionsSet, LocationRename, LocationSettingsSet } from "../../../apiTypes";
+import type {
+    ApiLocation,
+    ApiOptionalLocationOptions,
+    LocationOptionsSet,
+    LocationRename,
+    LocationSettingsSet,
+} from "../../../apiTypes";
 import { coreStore } from "../../../store/core";
 import { locationStore } from "../../../store/location";
 import type { GlobalId } from "../../id";
@@ -6,7 +12,6 @@ import type { Location } from "../../models/settings";
 import { gameSystem } from "../../systems/game";
 import { playerSystem } from "../../systems/players";
 import { locationSettingsSystem } from "../../systems/settings/location";
-import type { ServerLocationOptions } from "../../systems/settings/location/models";
 import { visibilityModeFromString, visionState } from "../../vision/state";
 import { socket } from "../socket";
 
@@ -41,53 +46,58 @@ socket.on("Location.Rename", (data: LocationRename) => {
     locationStore.renameLocation(data.location, data.name, false);
 });
 
-function setLocationOptions(
-    id: number | undefined,
-    options: Partial<ServerLocationOptions>,
-    overwrite_all: boolean,
-): void {
+function _<T>(x: T | undefined | null): x is T {
+    return x !== undefined && x !== null;
+}
+
+function setLocationOptions(id: number | undefined, options: ApiOptionalLocationOptions, overwrite_all: boolean): void {
     // GRID
-    if (overwrite_all || options.use_grid !== undefined) locationSettingsSystem.setUseGrid(options.use_grid, id, false);
-    if (overwrite_all || options.grid_type !== undefined)
-        locationSettingsSystem.setGridType(options.grid_type, id, false);
-    if (overwrite_all || options.unit_size !== undefined)
-        locationSettingsSystem.setUnitSize(options.unit_size, id, false);
-    if (overwrite_all || options.unit_size_unit !== undefined)
-        locationSettingsSystem.setUnitSizeUnit(options.unit_size_unit, id, false);
+    if (overwrite_all || _(options.use_grid))
+        locationSettingsSystem.setUseGrid(options.use_grid ?? undefined, id, false);
+    if (overwrite_all || _(options.grid_type))
+        locationSettingsSystem.setGridType(options.grid_type ?? undefined, id, false);
+    if (overwrite_all || _(options.unit_size))
+        locationSettingsSystem.setUnitSize(options.unit_size ?? undefined, id, false);
+    if (overwrite_all || _(options.unit_size_unit))
+        locationSettingsSystem.setUnitSizeUnit(options.unit_size_unit ?? undefined, id, false);
 
     // VISION
 
-    if (overwrite_all || options.full_fow !== undefined) locationSettingsSystem.setFullFow(options.full_fow, id, false);
-    if (overwrite_all || options.fow_los !== undefined) locationSettingsSystem.setFowLos(options.fow_los, id, false);
-    if (overwrite_all || options.fow_opacity !== undefined)
-        locationSettingsSystem.setFowOpacity(options.fow_opacity, id, false);
+    if (overwrite_all || _(options.full_fow))
+        locationSettingsSystem.setFullFow(options.full_fow ?? undefined, id, false);
+    if (overwrite_all || _(options.fow_los)) locationSettingsSystem.setFowLos(options.fow_los ?? undefined, id, false);
+    if (overwrite_all || _(options.fow_opacity))
+        locationSettingsSystem.setFowOpacity(options.fow_opacity ?? undefined, id, false);
 
-    if (overwrite_all || options.vision_mode !== undefined) {
-        const visionMode =
-            options.vision_mode !== undefined ? visibilityModeFromString(options.vision_mode) : undefined;
+    if (overwrite_all || _(options.vision_mode)) {
+        const visionMode = _(options.vision_mode) ? visibilityModeFromString(options.vision_mode) : undefined;
         if (visionMode !== undefined) visionState.setVisionMode(visionMode, false);
     }
 
-    if (overwrite_all || options.vision_min_range !== undefined)
-        locationSettingsSystem.setVisionMinRange(options.vision_min_range, id, false);
-    if (overwrite_all || options.vision_max_range !== undefined)
-        locationSettingsSystem.setVisionMaxRange(options.vision_max_range, id, false);
+    if (overwrite_all || _(options.vision_min_range))
+        locationSettingsSystem.setVisionMinRange(options.vision_min_range ?? undefined, id, false);
+    if (overwrite_all || _(options.vision_max_range))
+        locationSettingsSystem.setVisionMaxRange(options.vision_max_range ?? undefined, id, false);
 
     // FLOOR
 
-    if (overwrite_all || options.air_map_background !== undefined)
-        locationSettingsSystem.setAirMapBackground(options.air_map_background, id, false);
-    if (overwrite_all || options.ground_map_background !== undefined)
-        locationSettingsSystem.setGroundMapBackground(options.ground_map_background, id, false);
-    if (overwrite_all || options.underground_map_background !== undefined)
-        locationSettingsSystem.setUndergroundMapBackground(options.underground_map_background, id, false);
+    if (overwrite_all || _(options.air_map_background))
+        locationSettingsSystem.setAirMapBackground(options.air_map_background ?? undefined, id, false);
+    if (overwrite_all || _(options.ground_map_background))
+        locationSettingsSystem.setGroundMapBackground(options.ground_map_background ?? undefined, id, false);
+    if (overwrite_all || _(options.underground_map_background))
+        locationSettingsSystem.setUndergroundMapBackground(options.underground_map_background ?? undefined, id, false);
 
     // VARIA
 
-    if (overwrite_all || options.move_player_on_token_change !== undefined)
-        locationSettingsSystem.setMovePlayerOnTokenChange(options.move_player_on_token_change, id, false);
-    if (overwrite_all || options.limit_movement_during_initiative !== undefined)
-        locationSettingsSystem.setLimitMovementDuringInitiative(options.limit_movement_during_initiative, id, false);
+    if (overwrite_all || options.move_player_on_token_change !== null)
+        locationSettingsSystem.setMovePlayerOnTokenChange(options.move_player_on_token_change ?? undefined, id, false);
+    if (overwrite_all || options.limit_movement_during_initiative !== null)
+        locationSettingsSystem.setLimitMovementDuringInitiative(
+            options.limit_movement_during_initiative ?? undefined,
+            id,
+            false,
+        );
 
     // SPAWN LOCATIONS
 

@@ -11,10 +11,8 @@ from peewee import (
     TextField,
     fn,
 )
-from playhouse.shortcuts import model_to_dict
 
-from ..api.models.floor import ApiFloor, ApiGroup, ApiLayer, ApiShape
-from ..api.models.helpers import _
+from ..api.models.floor import ApiFloor, ApiGroup, ApiLayer
 from ..api.models.location import (
     ApiLocation,
     ApiLocationOptions,
@@ -22,6 +20,7 @@ from ..api.models.location import (
 )
 from ..api.models.location.userOption import ApiLocationUserOption
 from ..api.models.note import ApiNote
+from ..api.models.shape import ApiShape
 
 if TYPE_CHECKING:
     from .initiative import Initiative
@@ -89,15 +88,6 @@ class LocationOptions(BaseModel):
             underground_map_background=None,
             limit_movement_during_initiative=None,
         )
-
-    def as_dict(self):
-        return {
-            k: v
-            for k, v in model_to_dict(
-                self, backrefs=False, recurse=False, exclude=[LocationOptions.id]
-            ).items()
-            if v is not None
-        }
 
     @overload
     def as_pydantic(self, optional: Literal[True]) -> ApiOptionalLocationOptions:
@@ -198,19 +188,6 @@ class Location(BaseModel):
 
     def get_path(self):
         return f"{self.room.get_path()}/{self.name}"
-
-    def as_dict(self):
-        data = model_to_dict(
-            self,
-            backrefs=False,
-            recurse=False,
-            exclude=[Location.room, Location.index, Location.options],
-        )
-        if self.options is not None:
-            data["options"] = self.options.as_dict()
-        else:
-            data["options"] = {}
-        return data
 
     def as_pydantic(self):
         if self.options is not None:
@@ -320,11 +297,6 @@ class Note(BaseModel):
     def __repr__(self):
         return f"<Note {self.title} {self.room.get_path()} - {self.user.name}"
 
-    def as_dict(self):
-        return model_to_dict(
-            self, recurse=False, exclude=[Note.room, Note.location, Note.user]
-        )
-
     def as_pydantic(self):
         return ApiNote(uuid=self.uuid, title=self.title, text=self.text)
 
@@ -345,21 +317,6 @@ class Floor(BaseModel):
     def __repr__(self):
         return f"<Floor {self.name} {[self.index]}>"
 
-    def as_dict(self, user: User, dm: bool):
-        data = model_to_dict(self, recurse=False, exclude=[Floor.id, Floor.location])
-        if dm:
-            data["layers"] = [
-                layer.as_dict(user, True) for layer in self.layers.order_by(Layer.index)
-            ]
-        else:
-            data["layers"] = [
-                layer.as_dict(user, False)
-                for layer in self.layers.order_by(Layer.index).where(
-                    Layer.player_visible
-                )
-            ]
-        return data
-
     def as_pydantic(self, user: User, dm: bool) -> ApiFloor:
         layers: list[ApiLayer]
         if dm:
@@ -379,7 +336,7 @@ class Floor(BaseModel):
             name=self.name,
             player_visible=self.player_visible,
             type_=self.type_,
-            background_color=_(self.background_color),
+            background_color=self.background_color,
             layers=layers,
         )
 
@@ -402,25 +359,6 @@ class Layer(BaseModel):
 
     def get_path(self):
         return f"{self.floor.location.get_path()}/{self.name}"
-
-    def as_dict(self, user: User, dm: bool):
-        from .shape import Shape
-
-        data = model_to_dict(
-            self,
-            recurse=False,
-            backrefs=False,
-            exclude=[Layer.id, Layer.player_visible],
-        )
-        groups_added: Set[str] = set()
-        data["groups"] = []
-        data["shapes"] = []
-        for shape in self.shapes.order_by(Shape.index):
-            data["shapes"].append(shape.as_dict(user, dm))
-            if shape.group and shape.group.uuid not in groups_added:
-                groups_added.add(shape.group.uuid)
-                data["groups"].append(model_to_dict(shape.group))
-        return data
 
     def as_pydantic(self, user: User, dm: bool) -> ApiLayer:
         from .shape import Shape
@@ -462,21 +400,6 @@ class LocationUserOption(BaseModel):
 
     def __repr__(self):
         return f"<LocationUserOption {self.location.get_path()} - {self.user.name}>"
-
-    def as_dict(self):
-        d = model_to_dict(
-            self,
-            recurse=False,
-            exclude=[
-                LocationUserOption.id,
-                LocationUserOption.location,
-                LocationUserOption.user,
-            ],
-        )
-        if self.active_layer:
-            d["active_layer"] = self.active_layer.name
-            d["active_floor"] = self.active_layer.floor.name
-        return d
 
     def as_pydantic(self):
         active_floor = None

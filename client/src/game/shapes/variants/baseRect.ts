@@ -1,4 +1,4 @@
-import type { ApiShape } from "../../../apiTypes";
+import type { ApiBaseRectShape, ApiShape } from "../../../apiTypes";
 import { clampGridLine, clampToGrid, g2lx, g2ly } from "../../../core/conversions";
 import { addP, cloneP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
@@ -58,11 +58,8 @@ export abstract class BaseRect extends Shape implements IShape {
         }
     }
 
-    getBaseDict(): ServerBaseRect {
-        return Object.assign(super.getBaseDict(), {
-            width: this.w,
-            height: this.h,
-        });
+    asDict(): ApiBaseRectShape {
+        return { ...this.getBaseDict(), width: this.w, height: this.h };
     }
 
     fromDict(data: ServerBaseRect): void {

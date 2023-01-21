@@ -1,7 +1,6 @@
-import type { ApiShape } from "../../apiTypes";
+import type { ApiAssetRectShape, ApiShape } from "../../apiTypes";
 import { toGP } from "../../core/geometry";
 import type { SimpleShape } from "../interfaces/shape";
-import type { ServerAsset } from "../models/shapes";
 
 import { SimpleAsset } from "./variants/simple/asset";
 
@@ -11,7 +10,7 @@ export function createSimpleShapeFromDict(shape: ApiShape): SimpleShape | undefi
 
     const refPoint = toGP(shape.x, shape.y);
     if (shape.type_ === "assetrect") {
-        const asset = shape as ServerAsset;
+        const asset = shape as ApiAssetRectShape;
         sh = new SimpleAsset(refPoint, asset.width, asset.height);
     } else {
         console.warn("Simple shape creation attempted for unknown type", shape.type_);

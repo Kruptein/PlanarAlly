@@ -1,6 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from ..helpers import Nullable
+from ..helpers import TypeIdModel
 from ..shape import ApiShape
 from .background import *
 from .type import *
@@ -23,12 +23,12 @@ class ApiLayer(BaseModel):
     groups: list[ApiGroup]
 
 
-class ApiFloor(BaseModel):
+class ApiFloor(TypeIdModel):
     index: int
     name: str
     player_visible: bool
     type_: int
-    background_color: str | Nullable
+    background_color: str | None = Field(..., noneAsNull=True)
     layers: list[ApiLayer]
 
 

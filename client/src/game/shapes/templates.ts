@@ -1,5 +1,4 @@
-import type { ApiShape } from "../../apiTypes";
-import type { ServerRect } from "../models/shapes";
+import type { ApiRectShape, ApiShape } from "../../apiTypes";
 import { BaseAuraStrings, BaseTemplateStrings, BaseTrackerStrings, getTemplateKeys } from "../models/templates";
 import type { BaseAuraTemplate, BaseTemplate, BaseTrackerTemplate } from "../models/templates";
 import { aurasToServer } from "../systems/auras/conversion";
@@ -38,8 +37,8 @@ export function applyTemplate<T extends ApiShape>(shape: T, template: BaseTempla
     // Shape specific keys
     for (const key of getTemplateKeys(shape.type_ as SHAPE_TYPE)) {
         if (["assetrect", "rect"].includes(shape.type_)) {
-            const rect = shape as any as ServerRect;
-            const rectTemplate = template as any as ServerRect;
+            const rect = shape as any as ApiRectShape;
+            const rectTemplate = template as any as ApiRectShape;
 
             if (key === "width") {
                 rect.width = rectTemplate.width * gridRescale;
@@ -59,7 +58,7 @@ export function toTemplate(shape: ApiShape): BaseTemplate {
     const template: BaseTemplate = {};
     // should be template[key], but this is something that TS cannot correctly infer (issue #31445)
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    for (const key of BaseTemplateStrings) (template as any)[key] = shape[key];
+    for (const key of BaseTemplateStrings) (template as any)[key] = shape.core[key];
 
     template.auras = [];
     template.trackers = [];

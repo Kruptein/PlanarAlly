@@ -2,7 +2,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from ..helpers import Nullable, TypeIdModel
+from ..helpers import TypeIdModel
 
 
 class ShapeOption(TypeIdModel):
@@ -27,7 +27,7 @@ class ShapeSetStringValue(TypeIdModel):
 
 class ShapeSetOptionalStringValue(TypeIdModel):
     shape: str = Field(typeId="GlobalId")
-    value: str | Nullable
+    value: str | None = Field(..., noneAsNull=True)
 
 
 class Permissions(BaseModel):

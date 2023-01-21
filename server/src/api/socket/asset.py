@@ -13,7 +13,6 @@ from ..models.asset.options import (
     AssetOptionsInfoSuccess,
     AssetOptionsSet,
 )
-from ..models.helpers import _
 
 
 @sio.on("Asset.Options.Get", namespace=GAME_NS)
@@ -31,7 +30,7 @@ async def get_asset_options(sid: str, asset_id: int):
         options = AssetOptionsInfoFail(success=False, error="AssetNotFound")
     else:
         options = AssetOptionsInfoSuccess(
-            success=True, name=asset.name, options=_(asset.options)
+            success=True, name=asset.name, options=asset.options
         )
 
     await _send_game("Asset.Options.Info", options, room=sid)
@@ -55,4 +54,5 @@ async def set_asset_options(sid: str, raw_data: Any):
             owner=game_state.get_user(sid),
         )
     asset.options = asset_options.options
+    asset.save()
     asset.save()

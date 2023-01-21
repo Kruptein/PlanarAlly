@@ -1,3 +1,4 @@
+import type { ApiAssetRectShape } from "../../../apiTypes";
 import { g2l, g2lz } from "../../../core/conversions";
 import { toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
@@ -8,7 +9,6 @@ import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import type { IAsset } from "../../interfaces/shapes/asset";
 import { LayerName } from "../../models/floor";
-import type { ServerAsset } from "../../models/shapes";
 import { loadSvgData } from "../../svg";
 import { floorSystem } from "../../systems/floors";
 import { getProperties } from "../../systems/properties/state";
@@ -40,13 +40,14 @@ export class Asset extends BaseRect implements IAsset {
 
     readonly isClosed = true;
 
-    asDict(): ServerAsset {
-        return Object.assign(this.getBaseDict(), {
+    asDict(): ApiAssetRectShape {
+        return {
+            ...super.asDict(),
             src: this.src,
-        });
+        };
     }
 
-    fromDict(data: ServerAsset): void {
+    fromDict(data: ApiAssetRectShape): void {
         super.fromDict(data);
         this.src = data.src;
     }

@@ -1,7 +1,13 @@
-import type { ClientMove, ClientOptionsSet, ClientPosition, TempClientPosition, Viewport } from "../../../apiTypes";
+import type {
+    ApiOptionalUserOptions,
+    ApiUserOptions,
+    ClientMove,
+    ClientPosition,
+    TempClientPosition,
+    Viewport,
+} from "../../../apiTypes";
 import type { ClientId } from "../../systems/client/models";
 import { positionState } from "../../systems/position/state";
-import type { ServerPlayerOptions } from "../../systems/settings/players/models";
 import { wrapSocket } from "../helpers";
 import { socket } from "../socket";
 
@@ -25,14 +31,14 @@ function _sendClientLocationOptions(locationOptions: ClientPosition, temp: boole
 export const sendViewport = wrapSocket<Viewport>("Client.Viewport.Set");
 export const sendOffset = wrapSocket<{ client: ClientId; x?: number; y?: number }>("Client.Offset.Set");
 
-export function sendRoomClientOptions<T extends keyof ServerPlayerOptions>(
+export function sendRoomClientOptions<T extends keyof ApiUserOptions>(
     key: T,
-    value: ServerPlayerOptions[T] | undefined,
-    defaultValue: ServerPlayerOptions[T] | undefined,
+    value: ApiUserOptions[T] | undefined,
+    defaultValue: ApiUserOptions[T] | undefined,
 ): void {
     const event = defaultValue !== undefined ? "Client.Options.Default.Set" : "Client.Options.Room.Set";
     const val = defaultValue !== undefined ? defaultValue : value ?? null;
-    const data: ClientOptionsSet = { [key]: val };
+    const data: Partial<ApiOptionalUserOptions> = { [key]: val };
     socket.emit(event, data);
 }
 

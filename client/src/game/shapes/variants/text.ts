@@ -1,3 +1,4 @@
+import type { ApiTextShape } from "../../../apiTypes";
 import { g2lz, l2gz } from "../../../core/conversions";
 import { addP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
@@ -7,7 +8,6 @@ import { sendTextUpdate } from "../../api/emits/shape/text";
 import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import type { IText } from "../../interfaces/shapes/text";
-import type { ServerText } from "../../models/shapes";
 import { getProperties } from "../../systems/properties/state";
 import type { ShapeProperties } from "../../systems/properties/state";
 import { Shape } from "../shape";
@@ -38,12 +38,8 @@ export class Text extends Shape implements IText {
 
     readonly isClosed = true;
 
-    asDict(): ServerText {
-        return Object.assign(this.getBaseDict(), {
-            text: this.text,
-            font_size: this.fontSize,
-            angle: this.angle,
-        });
+    asDict(): ApiTextShape {
+        return { ...this.getBaseDict(), text: this.text, font_size: this.fontSize, angle: this.angle };
     }
 
     invalidatePoints(): void {

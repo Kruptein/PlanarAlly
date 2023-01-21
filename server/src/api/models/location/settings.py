@@ -1,4 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+from ..helpers import TypeIdModel
 
 
 class ApiLocationOptions(BaseModel):
@@ -21,24 +23,24 @@ class ApiLocationOptions(BaseModel):
     limit_movement_during_initiative: bool
 
 
-class ApiOptionalLocationOptions(BaseModel):
-    unit_size: float | None = None
-    unit_size_unit: str | None = None
-    use_grid: bool | None = None
-    full_fow: bool | None = None
-    fow_opacity: float | None = None
-    fow_los: bool | None = None
-    vision_mode: str | None = None
+class ApiOptionalLocationOptions(TypeIdModel):
+    unit_size: float | None = Field(default=None, noneAsNull=True)
+    unit_size_unit: str | None = Field(default=None, noneAsNull=True)
+    use_grid: bool | None = Field(default=None, noneAsNull=True)
+    full_fow: bool | None = Field(default=None, noneAsNull=True)
+    fow_opacity: float | None = Field(default=None, noneAsNull=True)
+    fow_los: bool | None = Field(default=None, noneAsNull=True)
+    vision_mode: str | None = Field(default=None, noneAsNull=True)
     # default is 1km max, 0.5km min
-    vision_min_range: float | None = None
-    vision_max_range: float | None = None
-    spawn_locations: str | None = None
-    move_player_on_token_change: bool | None = None
-    grid_type: str | None = None
-    air_map_background: str | None = None
-    ground_map_background: str | None = None
-    underground_map_background: str | None = None
-    limit_movement_during_initiative: bool | None = None
+    vision_min_range: float | None = Field(default=None, noneAsNull=True)
+    vision_max_range: float | None = Field(default=None, noneAsNull=True)
+    spawn_locations: str | None = Field(default=None, noneAsNull=True)
+    move_player_on_token_change: bool | None = Field(default=None, noneAsNull=True)
+    grid_type: str | None = Field(default=None, noneAsNull=True)
+    air_map_background: str | None = Field(default=None, noneAsNull=True)
+    ground_map_background: str | None = Field(default=None, noneAsNull=True)
+    underground_map_background: str | None = Field(default=None, noneAsNull=True)
+    limit_movement_during_initiative: bool | None = Field(default=None, noneAsNull=True)
 
 
 class LocationSettingsSet(BaseModel):

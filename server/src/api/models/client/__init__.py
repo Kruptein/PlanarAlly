@@ -4,7 +4,6 @@ from ..helpers import TypeIdModel
 from .activeLayer import *
 from .gameboard import *
 from .offset import *
-from .options import *
 
 
 class ClientPosition(BaseModel):

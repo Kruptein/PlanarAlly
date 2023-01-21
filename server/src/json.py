@@ -2,8 +2,6 @@ import json
 
 from pydantic import BaseModel
 
-from .api.models.helpers import Nullable
-
 
 class PydanticJson(object):
     @staticmethod
@@ -21,6 +19,4 @@ class PydanticEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, BaseModel):
             return obj.dict()
-        if isinstance(obj, Nullable):
-            return None
         return json.JSONEncoder.default(self, obj)

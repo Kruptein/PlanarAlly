@@ -1,13 +1,13 @@
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from ..helpers import Nullable
+from ..helpers import TypeIdModel
 
 
-class AssetOptionsInfoSuccess(BaseModel):
+class AssetOptionsInfoSuccess(TypeIdModel):
     name: str
-    options: str | Nullable
+    options: str | None = Field(..., noneAsNull=True)
     success: Literal[True]
 
 

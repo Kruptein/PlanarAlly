@@ -1,18 +1,18 @@
-import type { ApiShape } from "../../apiTypes";
+import type {
+    ApiAssetRectShape,
+    ApiCircleShape,
+    ApiCircularTokenShape,
+    ApiLineShape,
+    ApiPolygonShape,
+    ApiRectShape,
+    ApiShape,
+    ApiTextShape,
+    ApiToggleCompositeShape,
+} from "../../apiTypes";
 import { toGP } from "../../core/geometry";
 import { baseAdjust } from "../../core/http";
 import { reserveLocalId, getLocalId } from "../id";
 import type { IShape } from "../interfaces/shape";
-import type {
-    ServerRect,
-    ServerCircle,
-    ServerCircularToken,
-    ServerLine,
-    ServerPolygon,
-    ServerText,
-    ServerAsset,
-    ServerToggleComposite,
-} from "../models/shapes";
 import { groupSystem } from "../systems/groups";
 
 import { Asset } from "./variants/asset";
@@ -44,31 +44,32 @@ export function createShapeFromDict(shape: ApiShape): IShape | undefined {
 
     const refPoint = toGP(shape.x, shape.y);
     if (shape.type_ === "rect") {
-        const rect = shape as ServerRect;
+        const rect = shape as ApiRectShape;
         sh = new Rect(refPoint, rect.width, rect.height, {
             uuid,
         });
     } else if (shape.type_ === "circle") {
-        const circ = shape as ServerCircle;
+        const circ = shape as ApiCircleShape;
         sh = new Circle(refPoint, circ.radius, {
             uuid,
         });
     } else if (shape.type_ === "circulartoken") {
-        const token = shape as ServerCircularToken;
+        const token = shape as ApiCircularTokenShape;
         sh = new CircularToken(refPoint, token.radius, token.text, token.font, {
             uuid,
         });
     } else if (shape.type_ === "line") {
-        const line = shape as ServerLine;
+        const line = shape as ApiLineShape;
         sh = new Line(refPoint, toGP(line.x2, line.y2), {
             lineWidth: line.line_width,
             uuid,
         });
     } else if (shape.type_ === "polygon") {
-        const polygon = shape as ServerPolygon;
+        const polygon = shape as ApiPolygonShape;
+        const vertices = JSON.parse(polygon.vertices) as [number, number][];
         sh = new Polygon(
             refPoint,
-            polygon.vertices.map((v) => toGP(v)),
+            vertices.map((v) => toGP(v)),
             {
                 lineWidth: [polygon.line_width],
                 openPolygon: polygon.open_polygon,
@@ -76,12 +77,12 @@ export function createShapeFromDict(shape: ApiShape): IShape | undefined {
             },
         );
     } else if (shape.type_ === "text") {
-        const text = shape as ServerText;
+        const text = shape as ApiTextShape;
         sh = new Text(refPoint, text.text, text.font_size, {
             uuid,
         });
     } else if (shape.type_ === "assetrect") {
-        const asset = shape as ServerAsset;
+        const asset = shape as ApiAssetRectShape;
         const img = new Image(asset.width, asset.height);
         if (asset.src.startsWith("http")) img.src = baseAdjust(new URL(asset.src).pathname);
         else img.src = baseAdjust(asset.src);
@@ -90,7 +91,9 @@ export function createShapeFromDict(shape: ApiShape): IShape | undefined {
             (sh as Asset).setLoaded();
         };
     } else if (shape.type_ === "togglecomposite") {
-        const toggleComposite = shape as ServerToggleComposite;
+        const toggleComposite = shape as ApiToggleCompositeShape;
+
+        if (toggleComposite.active_variant === null) throw new Error("ToggleComposite with no active variant found");
 
         sh = new ToggleComposite(
             refPoint,

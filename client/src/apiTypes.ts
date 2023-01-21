@@ -4,6 +4,8 @@ import type { AuraId } from "./game/systems/auras/models";
 import type { ClientId } from "./game/systems/client/models";
 import type { TrackerId } from "./game/systems/trackers/models";
 
+export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiToggleCompositeShape
+
 /* tslint:disable */
 /* eslint-disable */
 /**
@@ -11,46 +13,7 @@ import type { TrackerId } from "./game/systems/trackers/models";
 /* Do not modify it by hand - just update the pydantic models and then re-run the script
 */
 
-export type Nullable = null;
-
-export interface ApiAura {
-  uuid: AuraId;
-  shape: GlobalId;
-  vision_source: boolean;
-  visible: boolean;
-  name: string;
-  value: number;
-  dim: number;
-  colour: string;
-  active: boolean;
-  border_colour: string;
-  angle: number;
-  direction: number;
-}
-export interface ApiDefaultShapeOwner {
-  edit_access: boolean;
-  movement_access: boolean;
-  vision_access: boolean;
-  shape: GlobalId;
-}
-export interface ApiFloor {
-  index: number;
-  name: string;
-  player_visible: boolean;
-  type_: number;
-  background_color: string | Nullable;
-  layers: ApiLayer[];
-}
-export interface ApiLayer {
-  name: string;
-  type_: string;
-  player_editable: boolean;
-  selectable: boolean;
-  index: number;
-  shapes: ApiShape[];
-  groups: ApiGroup[];
-}
-export interface ApiShape {
+export interface ApiAssetRectShape {
   uuid: GlobalId;
   layer: string;
   floor: string;
@@ -77,8 +40,8 @@ export interface ApiShape {
   is_locked: boolean;
   angle: number;
   stroke_width: number;
-  asset: number | Nullable;
-  group: string | Nullable;
+  asset: number | null;
+  group: string | null;
   annotation_visible: boolean;
   ignore_zoom_size: boolean;
   is_door: boolean;
@@ -87,6 +50,9 @@ export interface ApiShape {
   trackers: ApiTracker[];
   auras: ApiAura[];
   labels: ApiLabel[];
+  width: number;
+  height: number;
+  src: string;
 }
 export interface ApiShapeOwner {
   edit_access: boolean;
@@ -106,12 +72,424 @@ export interface ApiTracker {
   primary_color: string;
   secondary_color: string;
 }
+export interface ApiAura {
+  uuid: AuraId;
+  shape: GlobalId;
+  vision_source: boolean;
+  visible: boolean;
+  name: string;
+  value: number;
+  dim: number;
+  colour: string;
+  active: boolean;
+  border_colour: string;
+  angle: number;
+  direction: number;
+}
 export interface ApiLabel {
   uuid: string;
   user: string;
   category: string;
   name: string;
   visible: boolean;
+}
+export interface ApiBaseRectShape {
+  uuid: GlobalId;
+  layer: string;
+  floor: string;
+  type_: string;
+  x: number;
+  y: number;
+  name: string;
+  name_visible: boolean;
+  fill_colour: string;
+  stroke_colour: string;
+  vision_obstruction: boolean;
+  movement_obstruction: boolean;
+  is_token: boolean;
+  annotation: string;
+  draw_operator: string;
+  options: string;
+  badge: number;
+  show_badge: boolean;
+  default_edit_access: boolean;
+  default_vision_access: boolean;
+  is_invisible: boolean;
+  is_defeated: boolean;
+  default_movement_access: boolean;
+  is_locked: boolean;
+  angle: number;
+  stroke_width: number;
+  asset: number | null;
+  group: string | null;
+  annotation_visible: boolean;
+  ignore_zoom_size: boolean;
+  is_door: boolean;
+  is_teleport_zone: boolean;
+  owners: ApiShapeOwner[];
+  trackers: ApiTracker[];
+  auras: ApiAura[];
+  labels: ApiLabel[];
+  width: number;
+  height: number;
+}
+export interface ApiCircleShape {
+  uuid: GlobalId;
+  layer: string;
+  floor: string;
+  type_: string;
+  x: number;
+  y: number;
+  name: string;
+  name_visible: boolean;
+  fill_colour: string;
+  stroke_colour: string;
+  vision_obstruction: boolean;
+  movement_obstruction: boolean;
+  is_token: boolean;
+  annotation: string;
+  draw_operator: string;
+  options: string;
+  badge: number;
+  show_badge: boolean;
+  default_edit_access: boolean;
+  default_vision_access: boolean;
+  is_invisible: boolean;
+  is_defeated: boolean;
+  default_movement_access: boolean;
+  is_locked: boolean;
+  angle: number;
+  stroke_width: number;
+  asset: number | null;
+  group: string | null;
+  annotation_visible: boolean;
+  ignore_zoom_size: boolean;
+  is_door: boolean;
+  is_teleport_zone: boolean;
+  owners: ApiShapeOwner[];
+  trackers: ApiTracker[];
+  auras: ApiAura[];
+  labels: ApiLabel[];
+  radius: number;
+  viewing_angle: number | null;
+}
+export interface ApiCircularTokenShape {
+  uuid: GlobalId;
+  layer: string;
+  floor: string;
+  type_: string;
+  x: number;
+  y: number;
+  name: string;
+  name_visible: boolean;
+  fill_colour: string;
+  stroke_colour: string;
+  vision_obstruction: boolean;
+  movement_obstruction: boolean;
+  is_token: boolean;
+  annotation: string;
+  draw_operator: string;
+  options: string;
+  badge: number;
+  show_badge: boolean;
+  default_edit_access: boolean;
+  default_vision_access: boolean;
+  is_invisible: boolean;
+  is_defeated: boolean;
+  default_movement_access: boolean;
+  is_locked: boolean;
+  angle: number;
+  stroke_width: number;
+  asset: number | null;
+  group: string | null;
+  annotation_visible: boolean;
+  ignore_zoom_size: boolean;
+  is_door: boolean;
+  is_teleport_zone: boolean;
+  owners: ApiShapeOwner[];
+  trackers: ApiTracker[];
+  auras: ApiAura[];
+  labels: ApiLabel[];
+  radius: number;
+  viewing_angle: number | null;
+  text: string;
+  font: string;
+}
+export interface ApiCoreShape {
+  uuid: GlobalId;
+  layer: string;
+  floor: string;
+  type_: string;
+  x: number;
+  y: number;
+  name: string;
+  name_visible: boolean;
+  fill_colour: string;
+  stroke_colour: string;
+  vision_obstruction: boolean;
+  movement_obstruction: boolean;
+  is_token: boolean;
+  annotation: string;
+  draw_operator: string;
+  options: string;
+  badge: number;
+  show_badge: boolean;
+  default_edit_access: boolean;
+  default_vision_access: boolean;
+  is_invisible: boolean;
+  is_defeated: boolean;
+  default_movement_access: boolean;
+  is_locked: boolean;
+  angle: number;
+  stroke_width: number;
+  asset: number | null;
+  group: string | null;
+  annotation_visible: boolean;
+  ignore_zoom_size: boolean;
+  is_door: boolean;
+  is_teleport_zone: boolean;
+  owners: ApiShapeOwner[];
+  trackers: ApiTracker[];
+  auras: ApiAura[];
+  labels: ApiLabel[];
+}
+export interface ApiDefaultShapeOwner {
+  edit_access: boolean;
+  movement_access: boolean;
+  vision_access: boolean;
+  shape: GlobalId;
+}
+export interface ApiFloor {
+  index: number;
+  name: string;
+  player_visible: boolean;
+  type_: number;
+  background_color: string | null;
+  layers: ApiLayer[];
+}
+export interface ApiLayer {
+  name: string;
+  type_: string;
+  player_editable: boolean;
+  selectable: boolean;
+  index: number;
+  shapes: (
+    | ApiAssetRectShape
+    | ApiRectShape
+    | ApiCircleShape
+    | ApiCircularTokenShape
+    | ApiPolygonShape
+    | ApiTextShape
+    | ApiLineShape
+    | ApiToggleCompositeShape
+  )[];
+  groups: ApiGroup[];
+}
+export interface ApiRectShape {
+  uuid: GlobalId;
+  layer: string;
+  floor: string;
+  type_: string;
+  x: number;
+  y: number;
+  name: string;
+  name_visible: boolean;
+  fill_colour: string;
+  stroke_colour: string;
+  vision_obstruction: boolean;
+  movement_obstruction: boolean;
+  is_token: boolean;
+  annotation: string;
+  draw_operator: string;
+  options: string;
+  badge: number;
+  show_badge: boolean;
+  default_edit_access: boolean;
+  default_vision_access: boolean;
+  is_invisible: boolean;
+  is_defeated: boolean;
+  default_movement_access: boolean;
+  is_locked: boolean;
+  angle: number;
+  stroke_width: number;
+  asset: number | null;
+  group: string | null;
+  annotation_visible: boolean;
+  ignore_zoom_size: boolean;
+  is_door: boolean;
+  is_teleport_zone: boolean;
+  owners: ApiShapeOwner[];
+  trackers: ApiTracker[];
+  auras: ApiAura[];
+  labels: ApiLabel[];
+  width: number;
+  height: number;
+}
+export interface ApiPolygonShape {
+  uuid: GlobalId;
+  layer: string;
+  floor: string;
+  type_: string;
+  x: number;
+  y: number;
+  name: string;
+  name_visible: boolean;
+  fill_colour: string;
+  stroke_colour: string;
+  vision_obstruction: boolean;
+  movement_obstruction: boolean;
+  is_token: boolean;
+  annotation: string;
+  draw_operator: string;
+  options: string;
+  badge: number;
+  show_badge: boolean;
+  default_edit_access: boolean;
+  default_vision_access: boolean;
+  is_invisible: boolean;
+  is_defeated: boolean;
+  default_movement_access: boolean;
+  is_locked: boolean;
+  angle: number;
+  stroke_width: number;
+  asset: number | null;
+  group: string | null;
+  annotation_visible: boolean;
+  ignore_zoom_size: boolean;
+  is_door: boolean;
+  is_teleport_zone: boolean;
+  owners: ApiShapeOwner[];
+  trackers: ApiTracker[];
+  auras: ApiAura[];
+  labels: ApiLabel[];
+  vertices: string;
+  line_width: number;
+  open_polygon: boolean;
+}
+export interface ApiTextShape {
+  uuid: GlobalId;
+  layer: string;
+  floor: string;
+  type_: string;
+  x: number;
+  y: number;
+  name: string;
+  name_visible: boolean;
+  fill_colour: string;
+  stroke_colour: string;
+  vision_obstruction: boolean;
+  movement_obstruction: boolean;
+  is_token: boolean;
+  annotation: string;
+  draw_operator: string;
+  options: string;
+  badge: number;
+  show_badge: boolean;
+  default_edit_access: boolean;
+  default_vision_access: boolean;
+  is_invisible: boolean;
+  is_defeated: boolean;
+  default_movement_access: boolean;
+  is_locked: boolean;
+  angle: number;
+  stroke_width: number;
+  asset: number | null;
+  group: string | null;
+  annotation_visible: boolean;
+  ignore_zoom_size: boolean;
+  is_door: boolean;
+  is_teleport_zone: boolean;
+  owners: ApiShapeOwner[];
+  trackers: ApiTracker[];
+  auras: ApiAura[];
+  labels: ApiLabel[];
+  text: string;
+  font_size: number;
+}
+export interface ApiLineShape {
+  uuid: GlobalId;
+  layer: string;
+  floor: string;
+  type_: string;
+  x: number;
+  y: number;
+  name: string;
+  name_visible: boolean;
+  fill_colour: string;
+  stroke_colour: string;
+  vision_obstruction: boolean;
+  movement_obstruction: boolean;
+  is_token: boolean;
+  annotation: string;
+  draw_operator: string;
+  options: string;
+  badge: number;
+  show_badge: boolean;
+  default_edit_access: boolean;
+  default_vision_access: boolean;
+  is_invisible: boolean;
+  is_defeated: boolean;
+  default_movement_access: boolean;
+  is_locked: boolean;
+  angle: number;
+  stroke_width: number;
+  asset: number | null;
+  group: string | null;
+  annotation_visible: boolean;
+  ignore_zoom_size: boolean;
+  is_door: boolean;
+  is_teleport_zone: boolean;
+  owners: ApiShapeOwner[];
+  trackers: ApiTracker[];
+  auras: ApiAura[];
+  labels: ApiLabel[];
+  x2: number;
+  y2: number;
+  line_width: number;
+}
+export interface ApiToggleCompositeShape {
+  uuid: GlobalId;
+  layer: string;
+  floor: string;
+  type_: string;
+  x: number;
+  y: number;
+  name: string;
+  name_visible: boolean;
+  fill_colour: string;
+  stroke_colour: string;
+  vision_obstruction: boolean;
+  movement_obstruction: boolean;
+  is_token: boolean;
+  annotation: string;
+  draw_operator: string;
+  options: string;
+  badge: number;
+  show_badge: boolean;
+  default_edit_access: boolean;
+  default_vision_access: boolean;
+  is_invisible: boolean;
+  is_defeated: boolean;
+  default_movement_access: boolean;
+  is_locked: boolean;
+  angle: number;
+  stroke_width: number;
+  asset: number | null;
+  group: string | null;
+  annotation_visible: boolean;
+  ignore_zoom_size: boolean;
+  is_door: boolean;
+  is_teleport_zone: boolean;
+  owners: ApiShapeOwner[];
+  trackers: ApiTracker[];
+  auras: ApiAura[];
+  labels: ApiLabel[];
+  active_variant: GlobalId;
+  variants: ToggleVariant[];
+}
+export interface ToggleVariant {
+  uuid: GlobalId;
+  name: string;
 }
 export interface ApiGroup {
   uuid: string;
@@ -165,25 +543,25 @@ export interface ApiOptionalAura {
   direction?: number;
 }
 export interface ApiOptionalUserOptions {
-  fow_colour?: string;
-  grid_colour?: string;
-  ruler_colour?: string;
-  use_tool_icons?: boolean;
-  show_token_directions?: boolean;
-  invert_alt?: boolean;
-  disable_scroll_to_zoom?: boolean;
-  default_tracker_mode?: boolean;
-  mouse_pan_mode?: number;
-  use_high_dpi?: boolean;
-  grid_size?: number;
-  use_as_physical_board?: boolean;
-  mini_size?: number;
-  ppi?: number;
-  initiative_camera_lock?: boolean;
-  initiative_vision_lock?: boolean;
-  initiative_effect_visibility?: string;
-  initiative_open_on_activate?: boolean;
-  render_all_floors?: boolean;
+  fow_colour?: string | null;
+  grid_colour?: string | null;
+  ruler_colour?: string | null;
+  use_tool_icons?: boolean | null;
+  show_token_directions?: boolean | null;
+  invert_alt?: boolean | null;
+  disable_scroll_to_zoom?: boolean | null;
+  default_tracker_mode?: boolean | null;
+  mouse_pan_mode?: number | null;
+  use_high_dpi?: boolean | null;
+  grid_size?: number | null;
+  use_as_physical_board?: boolean | null;
+  mini_size?: number | null;
+  ppi?: number | null;
+  initiative_camera_lock?: boolean | null;
+  initiative_vision_lock?: boolean | null;
+  initiative_effect_visibility?: string | null;
+  initiative_open_on_activate?: boolean | null;
+  render_all_floors?: boolean | null;
 }
 export interface ApiUserOptions {
   fow_colour: string;
@@ -212,7 +590,7 @@ export interface AssetOptionsInfoFail {
 }
 export interface AssetOptionsInfoSuccess {
   name: string;
-  options: string | Nullable;
+  options: string | null;
   success: true;
 }
 export interface AssetOptionsSet {
@@ -256,21 +634,6 @@ export interface ClientOffsetSet {
   client: ClientId;
   x?: number;
   y?: number;
-}
-export interface ClientOptionsSet {
-  grid_colour?: string;
-  fow_colour?: string;
-  ruler_colour?: string;
-  invert_alt?: boolean;
-  disable_scroll_to_zoom?: boolean;
-  use_high_dpi?: boolean;
-  grid_size?: number;
-  use_as_physical_board?: boolean;
-  mini_size?: number;
-  ppi?: number;
-  initiative_camera_lock?: boolean;
-  initiative_vision_lock?: boolean;
-  initiative_effect_visibility?: number;
 }
 export interface ClientViewport {
   client: ClientId;
@@ -398,7 +761,7 @@ export interface PlayerInfoCore {
   role: number;
 }
 export interface PlayerOptionsSet {
-  colour_history: string | Nullable;
+  colour_history: string | null;
   default_user_options: ApiUserOptions;
   room_user_options?: ApiOptionalUserOptions;
 }
@@ -435,7 +798,15 @@ export interface RoomInfoSet {
 }
 export interface ShapeAdd {
   temporary: boolean;
-  shape: ApiShape;
+  shape:
+    | ApiAssetRectShape
+    | ApiRectShape
+    | ApiCircleShape
+    | ApiCircularTokenShape
+    | ApiPolygonShape
+    | ApiTextShape
+    | ApiLineShape
+    | ApiToggleCompositeShape;
 }
 export interface ShapeAssetImageSet {
   uuid: GlobalId;
@@ -451,7 +822,15 @@ export interface ShapeFloorChange {
   floor: string;
 }
 export interface ShapeInfo {
-  shape: ApiShape;
+  shape:
+    | ApiAssetRectShape
+    | ApiRectShape
+    | ApiCircleShape
+    | ApiCircularTokenShape
+    | ApiPolygonShape
+    | ApiTextShape
+    | ApiLineShape
+    | ApiToggleCompositeShape;
   location: number;
 }
 export interface ShapeLayerChange {
@@ -507,7 +886,7 @@ export interface ShapeSetDoorToggleModeValue {
 }
 export interface ShapeSetOptionalStringValue {
   shape: GlobalId;
-  value: string | Nullable;
+  value: string | null;
 }
 export interface ShapeSetPermissionValue {
   shape: GlobalId;
@@ -568,22 +947,22 @@ export interface ApiLocation {
   options: ApiOptionalLocationOptions;
 }
 export interface ApiOptionalLocationOptions {
-  unit_size?: number;
-  unit_size_unit?: string;
-  use_grid?: boolean;
-  full_fow?: boolean;
-  fow_opacity?: number;
-  fow_los?: boolean;
-  vision_mode?: string;
-  vision_min_range?: number;
-  vision_max_range?: number;
-  spawn_locations?: string;
-  move_player_on_token_change?: boolean;
-  grid_type?: string;
-  air_map_background?: string;
-  ground_map_background?: string;
-  underground_map_background?: string;
-  limit_movement_during_initiative?: boolean;
+  unit_size?: number | null;
+  unit_size_unit?: string | null;
+  use_grid?: boolean | null;
+  full_fow?: boolean | null;
+  fow_opacity?: number | null;
+  fow_los?: boolean | null;
+  vision_mode?: string | null;
+  vision_min_range?: number | null;
+  vision_max_range?: number | null;
+  spawn_locations?: string | null;
+  move_player_on_token_change?: boolean | null;
+  grid_type?: string | null;
+  air_map_background?: string | null;
+  ground_map_background?: string | null;
+  underground_map_background?: string | null;
+  limit_movement_during_initiative?: boolean | null;
 }
 export interface ApiLocationCore {
   id: number;

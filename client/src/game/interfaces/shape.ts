@@ -1,4 +1,4 @@
-import type { ApiShape } from "../../apiTypes";
+import type { ApiCoreShape, ApiShape } from "../../apiTypes";
 import type { GlobalPoint, Vector } from "../../core/geometry";
 import type { LocalId } from "../id";
 import type { Floor, FloorId, LayerName } from "../models/floor";
@@ -94,7 +94,8 @@ export interface IShape extends SimpleShape {
     // STATE
 
     asDict: () => ApiShape;
-    getBaseDict: () => ApiShape;
+    getBaseDict: () => ApiCoreShape;
+    // getSubtypeDict: () => ApiShape["subtype"];
     // eslint-disable-next-line @typescript-eslint/method-signature-style
     fromDict(data: ApiShape): void;
 

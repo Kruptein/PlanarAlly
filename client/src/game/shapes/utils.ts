@@ -1,4 +1,11 @@
-import type { ApiAura, ApiShape, ApiShapeOwner, ApiTracker } from "../../apiTypes";
+import type {
+    ApiAura,
+    ApiPolygonShape,
+    ApiShape,
+    ApiShapeOwner,
+    ApiToggleCompositeShape,
+    ApiTracker,
+} from "../../apiTypes";
 import { subtractP, Vector } from "../../core/geometry";
 import { SyncMode, InvalidationMode } from "../../core/models/types";
 import { uuidv4 } from "../../core/utils";
@@ -7,7 +14,6 @@ import { getGlobalId, getLocalId } from "../id";
 import type { GlobalId } from "../id";
 import type { IShape } from "../interfaces/shape";
 import type { LayerName } from "../models/floor";
-import type { ServerPolygon, ServerToggleComposite } from "../models/shapes";
 import { addOperation } from "../operations/undo";
 import { accessSystem } from "../systems/access";
 import type { AuraId } from "../systems/auras/models";
@@ -54,13 +60,18 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
     }
 
     const shapeMap = new Map<GlobalId, GlobalId>();
-    const composites: ServerToggleComposite[] = [];
+    const composites: ApiToggleCompositeShape[] = [];
     const serverShapes: ApiShape[] = [];
 
     const groupShapes: Record<string, GlobalId[]> = {};
 
     for (const clip of clipboardState.raw.clipboard) {
-        const newShape: ApiShape = Object.assign({}, clip, { auras: [], labels: [], owners: [], trackers: [] });
+        const newShape: ApiShape = Object.assign({}, clip, {
+            auras: [],
+            labels: [],
+            owners: [],
+            trackers: [],
+        });
         newShape.uuid = uuidv4();
         newShape.x = clip.x + offset.x;
         newShape.y = clip.y + offset.y;
@@ -68,10 +79,11 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
         shapeMap.set(clip.uuid, newShape.uuid);
 
         if (clip.type_ === "polygon") {
-            (newShape as ServerPolygon).vertices = (clip as ServerPolygon).vertices.map((p) => [
-                p[0] + offset.x,
-                p[1] + offset.y,
-            ]);
+            const polygon = clip as ApiPolygonShape;
+            const vertices = JSON.parse(polygon.vertices) as [number, number][];
+            (newShape as ApiPolygonShape).vertices = JSON.stringify(
+                vertices.map((p) => [p[0] + offset.x, p[1] + offset.y]),
+            );
         }
 
         // Trackers
@@ -114,18 +126,19 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
             groupShapes[clip.group]!.push(newShape.uuid);
         }
         if (clip.type_ === "togglecomposite") {
-            composites.push(newShape as ServerToggleComposite);
+            composites.push(newShape as ApiToggleCompositeShape);
         } else {
             serverShapes.push(newShape);
         }
     }
 
     for (const composite of composites) {
+        if (composite.active_variant === null) continue;
         serverShapes.push({
             ...composite,
             active_variant: shapeMap.get(composite.active_variant)!,
             variants: composite.variants.map((v) => ({ ...v, uuid: shapeMap.get(v.uuid)! })),
-        } as ServerToggleComposite); // make sure it's added after the regular shapes
+        } as ApiToggleCompositeShape); // make sure it's added after the regular shapes
     }
 
     // Finalize

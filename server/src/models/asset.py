@@ -1,9 +1,9 @@
 import json
 from typing import Any, Dict, List, Optional, Union, cast
-from typing_extensions import Self, TypedDict
 
 from peewee import ForeignKeyField, TextField
 from playhouse.shortcuts import model_to_dict
+from typing_extensions import Self, TypedDict
 
 from .base import BaseModel
 from .user import User
@@ -40,7 +40,7 @@ class Asset(BaseModel):
         return f"<Asset {self.owner.name} - {self.name}>"
 
     def get_options(self) -> Dict[str, Any]:
-        return dict(json.loads(self.options))
+        return dict(json.loads(self.options or "[]"))
 
     def set_options(self, options: Dict[str, Any]) -> None:
         self.options = json.dumps([[k, v] for k, v in options.items()])

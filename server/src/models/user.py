@@ -80,15 +80,6 @@ class UserOptions(BaseModel):
             render_all_floors=None,
         )
 
-    def as_dict(self):
-        return {
-            k: v
-            for k, v in model_to_dict(
-                self, backrefs=False, recurse=False, exclude=[UserOptions.id]
-            ).items()
-            if v is not None
-        }
-
     @overload
     def as_pydantic(self, optional: Literal[True]) -> ApiOptionalUserOptions:
         ...
@@ -109,7 +100,7 @@ class UserOptions(BaseModel):
             fow_colour=self.fow_colour,  # type: ignore
             grid_colour=self.grid_colour,  # type: ignore
             ruler_colour=self.ruler_colour,  # type: ignore
-            use_tool_icons=self.use_as_physical_board,  # type: ignore
+            use_tool_icons=self.use_tool_icons,  # type: ignore
             show_token_directions=self.show_token_directions,  # type: ignore
             invert_alt=self.invert_alt,  # type: ignore
             disable_scroll_to_zoom=self.disable_scroll_to_zoom,  # type: ignore

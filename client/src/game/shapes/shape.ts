@@ -1,6 +1,6 @@
 import clamp from "lodash/clamp";
 
-import type { ApiShape } from "../../apiTypes";
+import type { ApiCoreShape, ApiShape } from "../../apiTypes";
 import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "../../core/conversions";
 import { addP, cloneP, equalsP, subtractP, toArrayP, toGP, Vector } from "../../core/geometry";
 import type { GlobalPoint } from "../../core/geometry";
@@ -487,7 +487,10 @@ export abstract class Shape implements IShape {
 
     // STATE
     abstract asDict(): ApiShape;
-    getBaseDict(): ApiShape {
+
+    // abstract getSubtypeDict(): Omit<ApiShape, keyof ApiCoreShape>;
+
+    getBaseDict(): ApiCoreShape {
         const defaultAccess = accessSystem.getDefault(this.id);
         const props = getProperties(this.id)!;
         const annotationInfo = annotationState.get(this.id);
@@ -531,7 +534,7 @@ export abstract class Shape implements IShape {
             is_teleport_zone: teleportZoneSystem.isTeleportZone(this.id),
         };
     }
-    fromDict(data: ApiShape): void {
+    fromDict(data: ApiCoreShape): void {
         const options: Partial<ServerShapeOptions> =
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             Object.fromEntries(JSON.parse(data.options));

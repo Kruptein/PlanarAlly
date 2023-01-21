@@ -1,59 +1,30 @@
+from typing import TYPE_CHECKING
+
 from pydantic import BaseModel, Field
 
-from ..aura import ApiAura
 from ..common import PositionTuple
-from ..helpers import Nullable, TypeIdModel
-from ..label import ApiLabel
-from ..tracker import ApiTracker
+from ..helpers import TypeIdModel
 from .options import *
 from .owner import *
-from .owner import ApiShapeOwner
 from .position import *
+from .shape import *
+from .subtypes import *
+
+if TYPE_CHECKING:
+    from .shape import ApiCoreShape
+    from .subtypes import ApiShapeSubType
 
 
-class ApiShape(TypeIdModel):
-    uuid: str = Field(typeId="GlobalId")
-    layer: str
-    floor: str
-    type_: str
-    x: float
-    y: float
-    # todo: make str | Nullable
-    name: str
-    name_visible: bool
-    fill_colour: str
-    stroke_colour: str
-    vision_obstruction: bool
-    movement_obstruction: bool
-    is_token: bool
-    annotation: str
-    draw_operator: str
-    options: str
-    badge: int
-    show_badge: bool
-    default_edit_access: bool
-    default_vision_access: bool
-    is_invisible: bool
-    is_defeated: bool
-    default_movement_access: bool
-    is_locked: bool
-    angle: float
-    stroke_width: int
-    asset: int | Nullable
-    group: str | Nullable
-    annotation_visible: bool
-    ignore_zoom_size: bool
-    is_door: bool
-    is_teleport_zone: bool
-    owners: list[ApiShapeOwner]
-    trackers: list[ApiTracker]
-    auras: list[ApiAura]
-    labels: list[ApiLabel]
+ApiShape = ApiShapeSubType
+
+# class ApiShape(BaseModel):
+#     core: ApiCoreShape
+#     subtype: ApiShapeSubType
 
 
 class ShapeAdd(BaseModel):
     temporary: bool
-    shape: ApiShape
+    shape: "ApiShape"
 
 
 class TemporaryShapes(TypeIdModel):
@@ -119,4 +90,5 @@ class ShapeAssetImageSet(TypeIdModel):
 
 class ShapeInfo(BaseModel):
     shape: ApiShape
+    location: int
     location: int

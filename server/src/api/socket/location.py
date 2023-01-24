@@ -189,16 +189,13 @@ async def load_location(sid: str, location: Location, *, complete=False):
     floors = [floor for floor in location.floors.order_by(Floor.index)]
 
     player_position = player_data[current_player_index].position
-    if player_position:
-        if player_position.active_floor is not None:
-            index = next(
-                i
-                for i, f in enumerate(floors)
-                if f.name == player_position.active_floor
-            )
-            lower_floors = floors[index - 1 :: -1] if index > 0 else []
-            higher_floors = floors[index + 1 :] if index < len(floors) else []
-            floors = [floors[index], *lower_floors, *higher_floors]
+    if player_position and player_position.active_floor is not None:
+        index = next(
+            i for i, f in enumerate(floors) if f.name == player_position.active_floor
+        )
+        lower_floors = floors[index - 1 :: -1] if index > 0 else []
+        higher_floors = floors[index + 1 :] if index < len(floors) else []
+        floors = [floors[index], *lower_floors, *higher_floors]
 
     for floor in floors:
         await _send_game(

@@ -230,5 +230,3 @@ class Shape(BaseModel):
             owner.make_copy(new_shape)
 
         return new_shape
-        return new_shape
-        return new_shape

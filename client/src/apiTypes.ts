@@ -6,7 +6,6 @@ import type { TrackerId } from "./game/systems/trackers/models";
 
 export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiToggleCompositeShape
 
-/* tslint:disable */
 /* eslint-disable */
 /**
 /* This file was automatically generated from pydantic models by running pydantic2ts.

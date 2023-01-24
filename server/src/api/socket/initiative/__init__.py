@@ -255,7 +255,6 @@ async def remove_shape(pr: PlayerRoom, uuid: str, group: Optional[Group]):
                     continue
             # remove shape (either because not group OR last group member)
             modified = True
-            continue
         else:
             new_json_data.append(data)
     if modified:

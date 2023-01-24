@@ -11,15 +11,10 @@ from .shape import *
 from .subtypes import *
 
 if TYPE_CHECKING:
-    from .shape import ApiCoreShape
     from .subtypes import ApiShapeSubType
 
 
 ApiShape = ApiShapeSubType
-
-# class ApiShape(BaseModel):
-#     core: ApiCoreShape
-#     subtype: ApiShapeSubType
 
 
 class ShapeAdd(BaseModel):

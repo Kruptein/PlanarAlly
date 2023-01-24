@@ -57,8 +57,8 @@ export function applyTemplate<T extends ApiShape>(shape: T, template: BaseTempla
 export function toTemplate(shape: ApiShape): BaseTemplate {
     const template: BaseTemplate = {};
     // should be template[key], but this is something that TS cannot correctly infer (issue #31445)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    for (const key of BaseTemplateStrings) (template as any)[key] = shape.core[key];
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+    for (const key of BaseTemplateStrings) (template as any)[key] = shape[key];
 
     template.auras = [];
     template.trackers = [];

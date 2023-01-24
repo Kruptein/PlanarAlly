@@ -65,7 +65,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
 
     const groupShapes: Record<string, GlobalId[]> = {};
 
-    for (const clip of clipboardState.raw.clipboard) {
+    for (const clip of clipboardState.mutableReactive.clipboard) {
         const newShape: ApiShape = Object.assign({}, clip, {
             auras: [],
             labels: [],

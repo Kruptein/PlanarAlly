@@ -44,6 +44,9 @@ tech changes will usually be stripped from release notes for the public
 -   Fake Player: showing DM layer
 -   DM settings: Fix last DM being able to demote themselves to a player
 -   Assets: default stroke colour wrongly set, causing badges to be transparent
+-   Trackers:
+    -   some cases where a client could edit information for shapes they didn't have access to
+        (The above was never accepted by the server or sent to other clients)
 
 ## [2022.3.0] - 2022-12-12
 

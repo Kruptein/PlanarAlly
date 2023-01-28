@@ -14,11 +14,15 @@ enum InputMode {
     Rgba,
 }
 
-const props = withDefaults(defineProps<{ colour?: string; showAlpha?: boolean; vShow?: boolean }>(), {
-    colour: "rgba(0, 0, 0, 1)",
-    showAlpha: true,
-    vShow: true,
-});
+const props = withDefaults(
+    defineProps<{ colour?: string; showAlpha?: boolean; vShow?: boolean; disabled?: boolean }>(),
+    {
+        colour: "rgba(0, 0, 0, 1)",
+        showAlpha: true,
+        vShow: true,
+        disabled: false,
+    },
+);
 const emit = defineEmits<(e: "input:colour" | "update:colour", c: string) => void>();
 
 const alpha = ref<HTMLDivElement | null>(null);
@@ -79,6 +83,7 @@ function setPosition(): void {
 }
 
 async function open(event: Event): Promise<void> {
+    if (props.disabled) return;
     originalColor = tc.value.toRgbString();
     setPosition();
     visible.value = true;
@@ -250,7 +255,7 @@ function setHex(hex: string): void {
 </script>
 
 <template>
-    <div v-show="vShow" v-bind="$attrs" ref="picker" class="outer" @click="open">
+    <div v-show="vShow" v-bind="$attrs" ref="picker" class="outer" :class="{ noAccess: disabled }" @click="open">
         <div
             class="current-color"
             :style="
@@ -436,6 +441,10 @@ function setHex(hex: string): void {
         height: 13px;
         background-color: #000;
         border: solid 1px black;
+    }
+
+    &.noAccess:hover {
+        cursor: not-allowed;
     }
 }
 

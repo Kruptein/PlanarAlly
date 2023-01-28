@@ -281,6 +281,7 @@ function toggleCompositeAura(shape: LocalId, auraId: AuraId): void {
                         <input
                             type="number"
                             :value="aura.angle"
+                            :disabled="!owned"
                             min="1"
                             max="360"
                             @change="updateAura(aura, { angle: parseFloat(getValue($event)) })"
@@ -288,6 +289,7 @@ function toggleCompositeAura(shape: LocalId, auraId: AuraId): void {
                         <RotationSlider
                             :angle="aura.direction"
                             :show-number-input="true"
+                            :disabled="!owned"
                             @input="
                                 (direction) => {
                                     updateAura(aura, { direction }, false);

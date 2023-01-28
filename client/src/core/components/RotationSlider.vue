@@ -7,6 +7,7 @@ const props = withDefaults(
     defineProps<{
         angle: number;
         showNumberInput?: boolean;
+        disabled: boolean;
     }>(),
     { showNumberInput: false },
 );
@@ -36,6 +37,7 @@ onMounted(() => {
 });
 
 function mouseDown(): void {
+    if (props.disabled) return;
     active = true;
 }
 
@@ -75,7 +77,9 @@ function mouseMove(event: MouseEvent): void {
         >
             <div class="slider" :style="{ left: `${left}px`, top: `${top}px` }"></div>
         </div>
-        <div v-if="showNumberInput"><input v-model.number="degreeAngle" type="number" @change="syncDegreeAngle" /></div>
+        <div v-if="showNumberInput">
+            <input v-model.number="degreeAngle" type="number" :disabled="disabled" @change="syncDegreeAngle" />
+        </div>
     </div>
 </template>
 

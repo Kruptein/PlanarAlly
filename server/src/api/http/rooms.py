@@ -82,7 +82,6 @@ async def create(request: web.Request):
     if not roomname:
         return web.HTTPBadRequest()
     else:
-
         if Room.get_or_none(name=roomname, creator=user):
             return web.HTTPConflict()
 

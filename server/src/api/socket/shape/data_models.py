@@ -177,3 +177,4 @@ class OptionUpdate(TypedDict):
 class OptionUpdateList(TypedDict):
     options: List[OptionUpdate]
     temporary: bool
+    temporary: bool

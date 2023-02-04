@@ -343,7 +343,6 @@ def export_asset(asset: Union[AssetDict, List[AssetDict]], parent=-1) -> AssetEx
 @sio.on("Asset.Export", namespace=ASSET_NS)
 @auth.login_required(app, sio, "asset")
 async def assetmgmt_export(sid: str, selection: List[int]):
-
     full_selection: List[AssetDict] = [
         Asset.get_by_id(asset).as_dict(True, True) for asset in selection
     ]

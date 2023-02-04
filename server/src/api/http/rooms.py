@@ -2,10 +2,10 @@ import asyncio
 import io
 from datetime import datetime
 from typing import Dict, List, Optional, cast
-from typing_extensions import TypedDict
 
 from aiohttp import web
 from aiohttp_security import check_authorized
+from typing_extensions import TypedDict
 
 from ...app import sio
 from ...config import config

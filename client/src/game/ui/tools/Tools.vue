@@ -127,7 +127,7 @@ function toggleFakePlayer(): void {
                 <li id="tool-mode"></li>
             </ul>
             <div v-if="!hasGameboard" id="tool-status">
-                <div v-if="gameState.isDmOrFake" id="tool-status-toggles">
+                <div v-if="gameState.isDmOrFake.value" id="tool-status-toggles">
                     <div
                         :class="{ active: gameState.reactive.isFakePlayer }"
                         title="Toggle fake-player"

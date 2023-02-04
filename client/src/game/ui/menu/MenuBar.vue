@@ -113,7 +113,7 @@ const openLgSettings = (): void => uiSystem.showLgSettings(!uiState.raw.showLgSe
     <div id="menu" @click="settingsClick">
         <div style="width: 12.5rem; overflow-y: auto; overflow-x: hidden">
             <!-- ASSETS -->
-            <template v-if="gameState.isDmOrFake">
+            <template v-if="gameState.isDmOrFake.value">
                 <button class="menu-accordion">{{ t("common.assets") }}</button>
                 <div id="menu-assets" class="menu-accordion-panel" style="position: relative">
                     <input id="asset-search" v-model="assetSearch" :placeholder="t('common.search')" />

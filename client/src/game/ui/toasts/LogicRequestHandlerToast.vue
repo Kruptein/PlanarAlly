@@ -50,11 +50,11 @@ async function approveTp(request: Global<TpRequest> & { requester: string }): Pr
 function showArea(): void {
     const uuid = props.data.logic === "door" ? props.data.door : props.data.toZone;
     const shape = getShapeFromGlobal(uuid);
-    if (shape === undefined) return;
+    if (shape?.floorId === undefined) return;
 
     shape.showHighlight = true;
     setCenterPosition(shape.center);
-    floorSystem.selectFloor({ name: shape.floor.name }, true);
+    floorSystem.selectFloor({ id: shape.floorId }, true);
 }
 </script>
 

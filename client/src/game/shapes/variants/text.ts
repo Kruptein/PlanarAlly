@@ -170,7 +170,7 @@ export class Text extends Shape implements IText {
     private getLines(ctx: CanvasRenderingContext2D): { text: string; x: number; y: number }[] {
         const lines = this.text.split("\n");
         const allLines: { text: string; x: number; y: number }[] = [];
-        const maxWidth = this.layer.width;
+        const maxWidth = this.layer?.width ?? 0;
         const lineHeight = 30;
         const x = 0; // this.refPoint.x;
         let y = 0; // this.refPoint.y;

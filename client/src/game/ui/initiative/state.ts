@@ -168,7 +168,7 @@ class InitiativeStore extends Store<InitiativeState> {
         if (shape === undefined) return;
         if (shape.showHighlight) {
             shape.showHighlight = false;
-            shape.layer.invalidate(true);
+            shape.layer?.invalidate(true);
         }
     }
 
@@ -305,7 +305,7 @@ class InitiativeStore extends Store<InitiativeState> {
                 const shape = getShape(actor.localId);
                 if (shape === undefined) return;
                 setCenterPosition(shape.center);
-                floorSystem.selectFloor({ name: shape.floor.name }, true);
+                if (shape.floorId !== undefined) floorSystem.selectFloor({ id: shape.floorId }, true);
             }
         }
     }

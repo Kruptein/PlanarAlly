@@ -83,10 +83,12 @@ export async function moveShapes(shapes: readonly IShape[], delta: Vector, tempo
         await teleportZoneSystem.checkTeleport(selectedSystem.get({ includeComposites: true }));
     }
 
-    const floorId = shapes[0]!.floor.id;
-    if (recalculateVision) visionState.recalculateVision(floorId);
-    if (recalculateMovement) visionState.recalculateMovement(floorId);
-    shapes[0]!.layer.invalidate(false);
+    const layer = shapes[0]?.layer;
+    if (layer !== undefined) {
+        if (recalculateVision) visionState.recalculateVision(layer.floor);
+        if (recalculateMovement) visionState.recalculateMovement(layer.floor);
+        layer.invalidate(false);
+    }
 }
 
 function canMove(shapeId: LocalId): boolean {

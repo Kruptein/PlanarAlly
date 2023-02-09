@@ -107,7 +107,7 @@ class LastGameboardStore extends Store<LastGameboardState> {
             this.contourHistory.delete(typeId);
             this.contourShapes.delete(typeId);
             if (shape === undefined) return;
-            shape.layer.removeShape(shape, { sync: SyncMode.FULL_SYNC, recalculate: true, dropShapeId: true });
+            shape.layer?.removeShape(shape, { sync: SyncMode.FULL_SYNC, recalculate: true, dropShapeId: true });
         }
     }
 

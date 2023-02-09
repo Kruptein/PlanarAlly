@@ -53,7 +53,7 @@ export class FowLightingLayer extends FowLayer {
                     const shape = getShape(sh);
                     if (shape === undefined) continue;
                     if (shape.options.skipDraw ?? false) continue;
-                    if (shape.floor.id !== activeFloor.id) continue;
+                    if (shape.floorId !== activeFloor.id) continue;
                     const bb = shape.getBoundingBox();
                     const lcenter = g2l(shape.center);
                     const alm = 0.8 * g2lz(bb.w);

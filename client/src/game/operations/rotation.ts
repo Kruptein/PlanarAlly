@@ -41,8 +41,10 @@ export function rotateShapes(
         if (!shape.preventSync) sendShapePositionUpdate([shape], temporary);
     }
 
-    const firstShape = shapes[0]!;
-    if (recalculateMovement) visionState.recalculateMovement(firstShape.floor.id);
-    if (recalculateVision) visionState.recalculateVision(firstShape.floor.id);
-    firstShape.layer.invalidate(false);
+    const layer = shapes[0]?.layer;
+    if (layer !== undefined) {
+        if (recalculateMovement) visionState.recalculateMovement(layer.floor);
+        if (recalculateVision) visionState.recalculateVision(layer.floor);
+        layer.invalidate(false);
+    }
 }

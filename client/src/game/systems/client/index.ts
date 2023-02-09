@@ -90,7 +90,7 @@ class ClientSystem implements System {
         if (rect !== undefined) {
             const shape = getShape(rect);
             if (shape !== undefined) {
-                shape.layer.removeShape(shape, { sync: SyncMode.NO_SYNC, recalculate: false, dropShapeId: true });
+                shape.layer?.removeShape(shape, { sync: SyncMode.NO_SYNC, recalculate: false, dropShapeId: true });
             }
             $.clientRectIds.delete(client);
         }
@@ -191,7 +191,7 @@ class ClientSystem implements System {
         if (rect === undefined) return;
 
         rect.options.skipDraw = !show;
-        rect.layer.invalidate(true);
+        rect.layer?.invalidate(true);
     }
 
     getClientLocation(client: ClientId): GlobalPoint | undefined {

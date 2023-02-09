@@ -322,8 +322,9 @@ class SelectTool extends Tool implements ISelectTool {
                             from: toArrayP(shape.refPoint),
                             to: toArrayP(shape.refPoint),
                         });
-                        if (props.blocksMovement && shape.layer.name === LayerName.Tokens) {
-                            visionState.removeBlocker(TriangulationTarget.MOVEMENT, shape.floor.id, shape, true);
+                        if (props.blocksMovement && shape.layerName === LayerName.Tokens) {
+                            if (shape.floorId !== undefined)
+                                visionState.removeBlocker(TriangulationTarget.MOVEMENT, shape.floorId, shape, true);
                         }
                     }
                 }
@@ -401,7 +402,7 @@ class SelectTool extends Tool implements ISelectTool {
             for (const id of doorSystem.getDoors()) {
                 const shape = getShape(id);
                 if (shape === undefined) continue;
-                if (shape.floor.id !== floorState.currentFloor.value!.id) continue;
+                if (shape.floorId !== floorState.currentFloor.value!.id) continue;
                 if (!shape.contains(gp)) continue;
                 if (doorSystem.canUse(id) === Access.Disabled) continue;
 
@@ -642,8 +643,10 @@ class SelectTool extends Tool implements ISelectTool {
                     }
                     // movementBlock is skipped during onMove and definitely has to be done here
                     if (props.blocksMovement) {
-                        if (sel.layer.name === LayerName.Tokens)
-                            visionState.addBlocker(TriangulationTarget.MOVEMENT, sel.id, sel.floor.id, false);
+                        if (sel.layerName === LayerName.Tokens) {
+                            if (sel.floorId !== undefined)
+                                visionState.addBlocker(TriangulationTarget.MOVEMENT, sel.id, sel.floorId, false);
+                        }
                         visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: sel.id });
                         recalcMovement = true;
                     }
@@ -737,9 +740,11 @@ class SelectTool extends Tool implements ISelectTool {
                 }
             }
 
-            const floorId = layerSelection[0]!.floor.id;
-            if (recalcVision) visionState.recalculateVision(floorId);
-            if (recalcMovement) visionState.recalculateMovement(floorId);
+            const floorId = layerSelection[0]?.floorId;
+            if (floorId !== undefined) {
+                if (recalcVision) visionState.recalculateVision(floorId);
+                if (recalcMovement) visionState.recalculateMovement(floorId);
+            }
             layer.invalidate(false);
 
             if (this.mode !== SelectOperations.Rotate) {
@@ -873,6 +878,8 @@ class SelectTool extends Tool implements ISelectTool {
     removeRotationUi(): void {
         if (this.rotationUiActive) {
             const layer = this.rotationAnchor!.layer;
+            if (layer === undefined) return;
+
             layer.removeShape(this.rotationAnchor!, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
             layer.removeShape(this.rotationBox!, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
             layer.removeShape(this.rotationEnd!, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
@@ -979,7 +986,7 @@ class SelectTool extends Tool implements ISelectTool {
         if (smallest.distance <= polygon.lineWidth[0]!) {
             _$.polygonUiVisible = "visible";
             this.polygonTracer.refPoint = smallest.nearest;
-            this.polygonTracer.layer.invalidate(true);
+            this.polygonTracer.layer?.invalidate(true);
             const lp = g2l(smallest.nearest);
             const radians = toRadians(smallest.angle);
             _$.polygonUiLeft = `${lp.x - 25}px`;

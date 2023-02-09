@@ -13,7 +13,7 @@ export function drawAuras(shape: IShape, ctx: CanvasRenderingContext2D): void {
     const lCenter = g2l(center);
 
     for (const aura of auraSystem.getAll(shape.id, true)) {
-        if (!aura.active || (!aura.visionSource && shape.layer.name === LayerName.Lighting)) continue;
+        if (!aura.active || (!aura.visionSource && shape.layerName === LayerName.Lighting)) continue;
 
         const value = aura.value > 0 && !isNaN(aura.value) ? aura.value : 0;
         const dim = aura.dim > 0 && !isNaN(aura.dim) ? aura.dim : 0;

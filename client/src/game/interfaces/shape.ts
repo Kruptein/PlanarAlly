@@ -56,8 +56,10 @@ export interface IShape extends SimpleShape {
 
     // POSITION
 
-    get floor(): Floor;
-    get layer(): ILayer;
+    readonly floorId: FloorId | undefined;
+    readonly layerName: LayerName | undefined;
+    get floor(): Floor | undefined;
+    get layer(): ILayer | undefined;
     get refPoint(): GlobalPoint;
     set refPoint(point: GlobalPoint);
     get angle(): number;

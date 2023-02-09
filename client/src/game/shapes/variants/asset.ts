@@ -53,9 +53,14 @@ export class Asset extends BaseRect implements IAsset {
 
     setLoaded(): void {
         // Late image loading affects floor lighting
-        this.layer.invalidate(true);
-        if (getProperties(this.id)?.isToken === true)
-            floorSystem.getLayer(this.floor, LayerName.Draw)?.invalidate(true);
+        this.layer?.invalidate(true);
+
+        // invalidate token directions
+        if (getProperties(this.id)?.isToken === true) {
+            const floor = this.floor;
+            if (floor !== undefined) floorSystem.getLayer(floor, LayerName.Draw)?.invalidate(true);
+        }
+
         floorSystem.invalidateLightAllFloors();
         this.#loaded = true;
     }
@@ -73,19 +78,19 @@ export class Asset extends BaseRect implements IAsset {
                 this.points.slice(1).map((p) => toGP(p)),
                 { openPolygon: false, isSnappable: false },
             );
-            this.layer.addShape(cover, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
+            this.layer?.addShape(cover, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
             const svgs = await loadSvgData(`/static/assets/${this.options.svgAsset}`);
             this.svgData = [...svgs.values()].map((svg) => ({ svg, rp: this.refPoint, paths: undefined }));
             const props = getProperties(this.id)!;
             if (props.blocksVision) {
-                visionState.recalculateVision(this._floor!);
+                if (this.floorId !== undefined) visionState.recalculateVision(this.floorId);
                 visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.id });
             }
             if (props.blocksMovement) {
-                visionState.recalculateMovement(this._floor!);
+                if (this.floorId !== undefined) visionState.recalculateMovement(this.floorId);
                 visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: this.id });
             }
-            this.layer.removeShape(cover, { sync: SyncMode.NO_SYNC, recalculate: false, dropShapeId: true });
+            this.layer?.removeShape(cover, { sync: SyncMode.NO_SYNC, recalculate: false, dropShapeId: true });
             this.invalidate(false);
         }
     }

@@ -42,8 +42,8 @@ export abstract class Shape implements IShape {
     readonly id: LocalId;
 
     // The layer the shape is currently on
-    protected _floor!: FloorId | undefined;
-    protected _layer!: LayerName;
+    floorId: FloorId | undefined;
+    layerName: LayerName | undefined;
 
     // A reference point regarding that specific shape's structure
     protected _refPoint: GlobalPoint;
@@ -161,11 +161,13 @@ export abstract class Shape implements IShape {
     }
 
     get visionPolygon(): Path2D {
+        if (this.floorId === undefined) return new Path2D();
+
         const floorIteration = floorState.readonly.iteration;
-        const visionIteration = visionState.getVisionIteration(this._floor!);
+        const visionIteration = visionState.getVisionIteration(this.floorId);
         const visionAltered = visionIteration !== this.visionIteration;
         if (this._visionPolygon === undefined || visionAltered) {
-            this._visionPolygon = computeVisibility(this.center, TriangulationTarget.VISION, this._floor!);
+            this._visionPolygon = computeVisibility(this.center, TriangulationTarget.VISION, this.floorId);
             this.visionIteration = visionIteration;
             this.recalcVisionBbox();
         }
@@ -184,12 +186,15 @@ export abstract class Shape implements IShape {
 
     // POSITION
 
-    get floor(): Floor {
-        return floorSystem.getFloor({ id: this._floor! })!;
+    get floor(): Floor | undefined {
+        if (this.floorId === undefined) return undefined;
+        return floorSystem.getFloor({ id: this.floorId });
     }
 
-    get layer(): ILayer {
-        return floorSystem.getLayer(this.floor, this._layer)!;
+    get layer(): ILayer | undefined {
+        const floor = this.floor;
+        if (floor === undefined || this.layerName === undefined) return undefined;
+        return floorSystem.getLayer(floor, this.layerName);
     }
 
     get refPoint(): GlobalPoint {
@@ -200,8 +205,10 @@ export abstract class Shape implements IShape {
         this._center = this.__center();
         this.resetVisionIteration();
         this.invalidatePoints();
-        if (getProperties(this.id)?.isToken === true)
-            floorSystem.getLayer(this.floor, LayerName.Draw)?.invalidate(true);
+        if (getProperties(this.id)?.isToken === true) {
+            const floor = this.floor;
+            if (floor !== undefined) floorSystem.getLayer(floor, LayerName.Draw)?.invalidate(true);
+        }
     }
 
     get angle(): number {
@@ -214,8 +221,8 @@ export abstract class Shape implements IShape {
     }
 
     setLayer(floor: FloorId, layer: LayerName): void {
-        this._floor = floor;
-        this._layer = layer;
+        this.floorId = floor;
+        this.layerName = layer;
     }
 
     getPositionRepresentation(): { angle: number; points: [number, number][] } {
@@ -230,31 +237,36 @@ export abstract class Shape implements IShape {
         this.angle = position.angle;
         this.resetVisionIteration();
         this.updateShapeVision(false, false);
-        if (getProperties(this.id)?.isToken === true)
-            floorSystem.getLayer(this.floor, LayerName.Draw)?.invalidate(true);
+        if (getProperties(this.id)?.isToken === true) {
+            const floor = this.floor;
+            if (floor !== undefined) floorSystem.getLayer(floor, LayerName.Draw)?.invalidate(true);
+        }
     }
 
     invalidate(skipLightUpdate: boolean): void {
-        if (this._layer !== undefined) this.layer.invalidate(skipLightUpdate);
+        if (this.layerName !== undefined) this.layer!.invalidate(skipLightUpdate);
     }
 
     // @mustOverride
     invalidatePoints(): void {
-        this.layer.updateSectors(this.id, this.getAuraAABB());
+        this.layer?.updateSectors(this.id, this.getAuraAABB());
         if (this.isSnappable) this.updateLayerPoints();
     }
 
     updateLayerPoints(): void {
-        for (const point of this.layer.points) {
+        for (const point of this.layer?.points ?? []) {
             if (point[1].has(this.id)) {
-                if (point[1].size === 1) this.layer.points.delete(point[0]);
+                if (point[1].size === 1) this.layer?.points.delete(point[0]);
                 else point[1].delete(this.id);
             }
         }
         for (const point of this.points) {
             const strp = JSON.stringify(point);
-            if (this.layer.points.has(strp)) this.layer.points.get(strp)!.add(this.id);
-            else this.layer.points.set(strp, new Set([this.id]));
+            const layer = this.layer;
+            if (layer !== undefined) {
+                if (layer.points.has(strp)) layer.points.get(strp)!.add(this.id);
+                else layer.points.set(strp, new Set([this.id]));
+            }
         }
     }
 
@@ -375,8 +387,11 @@ export abstract class Shape implements IShape {
     }
 
     drawSelection(ctx: CanvasRenderingContext2D): void {
-        const ogOp = this.layer.ctx.globalCompositeOperation;
-        if (ogOp !== "source-over") this.layer.ctx.globalCompositeOperation = "source-over";
+        const layer = this.layer;
+        if (layer === undefined) return;
+
+        const ogOp = layer.ctx.globalCompositeOperation;
+        if (ogOp !== "source-over") layer.ctx.globalCompositeOperation = "source-over";
         const bb = this.getBoundingBox();
         ctx.beginPath();
         ctx.moveTo(g2lx(bb.points[0]![0]), g2ly(bb.points[0]![1]));
@@ -406,7 +421,7 @@ export abstract class Shape implements IShape {
         }
         ctx.stroke();
 
-        if (ogOp !== "source-over") this.layer.ctx.globalCompositeOperation = ogOp;
+        if (ogOp !== "source-over") layer.ctx.globalCompositeOperation = ogOp;
     }
 
     // VISION
@@ -419,7 +434,7 @@ export abstract class Shape implements IShape {
                 shape: this.id,
             });
             visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.id });
-            visionState.recalculateVision(this.floor.id);
+            if (this.floorId !== undefined) visionState.recalculateVision(this.floorId);
         }
         this.invalidate(true);
         floorSystem.invalidateLightAllFloors();
@@ -429,7 +444,7 @@ export abstract class Shape implements IShape {
                 shape: this.id,
             });
             visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: this.id });
-            visionState.recalculateMovement(this.floor.id);
+            if (this.floorId !== undefined) visionState.recalculateMovement(this.floorId);
         }
     }
 
@@ -482,8 +497,8 @@ export abstract class Shape implements IShape {
             x: this.refPoint.x,
             y: this.refPoint.y,
             angle: this.angle,
-            floor: floorSystem.getFloor({ id: this._floor! })!.name,
-            layer: this._layer,
+            floor: this.floor!.name,
+            layer: this.layerName!,
             draw_operator: this.globalCompositeOperation,
             movement_obstruction: props.blocksMovement,
             vision_obstruction: props.blocksVision,
@@ -520,8 +535,8 @@ export abstract class Shape implements IShape {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             data.options === undefined ? {} : Object.fromEntries(JSON.parse(data.options));
 
-        this._layer = data.layer;
-        this._floor = floorSystem.getFloor({ name: data.floor })!.id;
+        this.layerName = data.layer;
+        this.floorId = floorSystem.getFloor({ name: data.floor })!.id;
         this.angle = data.angle;
         this.globalCompositeOperation = data.draw_operator;
 

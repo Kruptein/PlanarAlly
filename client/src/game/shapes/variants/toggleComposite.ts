@@ -102,7 +102,7 @@ export class ToggleComposite extends Shape implements IToggleComposite {
         this.setActiveVariant(newVariant, true);
 
         const oldVariant = getShape(id)!;
-        oldVariant.layer.removeShape(oldVariant, { sync: SyncMode.FULL_SYNC, recalculate: true, dropShapeId: true });
+        oldVariant.layer?.removeShape(oldVariant, { sync: SyncMode.FULL_SYNC, recalculate: true, dropShapeId: true });
     }
 
     private resetVariants(...variants: LocalId[]): void {
@@ -111,13 +111,15 @@ export class ToggleComposite extends Shape implements IToggleComposite {
             const props = getProperties(variantId);
             if (variant === undefined || props === undefined) continue;
 
-            if (props.isToken) accessSystem.removeOwnedToken(variant.id);
-            if (props.blocksMovement)
-                visionState.removeBlocker(TriangulationTarget.MOVEMENT, variant.floor.id, variant, true);
-            if (props.blocksVision)
-                visionState.removeBlocker(TriangulationTarget.VISION, variant.floor.id, variant, true);
-            if (auraSystem.getAll(variant.id, false).length > 0)
-                visionState.removeVisionSources(variant.floor.id, variant.id);
+            if (variant.floorId !== undefined) {
+                if (props.isToken) accessSystem.removeOwnedToken(variant.id);
+                if (props.blocksMovement)
+                    visionState.removeBlocker(TriangulationTarget.MOVEMENT, variant.floorId, variant, true);
+                if (props.blocksVision)
+                    visionState.removeBlocker(TriangulationTarget.VISION, variant.floorId, variant, true);
+                if (auraSystem.getAll(variant.id, false).length > 0)
+                    visionState.removeVisionSources(variant.floorId, variant.id);
+            }
         }
     }
 
@@ -149,14 +151,17 @@ export class ToggleComposite extends Shape implements IToggleComposite {
 
         if (props.isToken && accessSystem.hasAccessTo(newVariant.id, false, { vision: true }))
             accessSystem.addOwnedToken(newVariant.id);
-        if (props.blocksMovement)
-            visionState.addBlocker(TriangulationTarget.MOVEMENT, newVariant.id, newVariant.floor.id, true);
-        if (props.blocksVision)
-            visionState.addBlocker(TriangulationTarget.VISION, newVariant.id, newVariant.floor.id, true);
 
-        for (const au of auraSystem.getAll(newVariant.id, false)) {
-            if (au.visionSource && au.active) {
-                visionState.addVisionSource({ shape: newVariant.id, aura: au.uuid }, newVariant.floor.id);
+        if (newVariant.floorId !== undefined) {
+            if (props.blocksMovement)
+                visionState.addBlocker(TriangulationTarget.MOVEMENT, newVariant.id, newVariant.floorId, true);
+            if (props.blocksVision)
+                visionState.addBlocker(TriangulationTarget.VISION, newVariant.id, newVariant.floorId, true);
+
+            for (const au of auraSystem.getAll(newVariant.id, false)) {
+                if (au.visionSource && au.active) {
+                    visionState.addVisionSource({ shape: newVariant.id, aura: au.uuid }, newVariant.floorId);
+                }
             }
         }
 
@@ -172,7 +177,7 @@ export class ToggleComposite extends Shape implements IToggleComposite {
             sendToggleCompositeActiveVariant({ shape: gId, variant: gIdNewShape });
         }
 
-        if (this._layer !== undefined && this.layer.isActiveLayer) {
+        if (this.layerName !== undefined && (this.layer?.isActiveLayer ?? false)) {
             const selection = [...selectedSystem.get({ includeComposites: false })];
             const index = selection.findIndex((s) => s.id === oldVariant.id);
             if (index >= 0) {

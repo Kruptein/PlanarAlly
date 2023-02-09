@@ -95,11 +95,11 @@ function toggleHighlight(actorId: LocalId | undefined, show: boolean): void {
         if (shape === undefined) return;
         shapeArray = [shape];
     } else {
-        shapeArray = [...groupSystem.getGroupMembers(groupId)].map(m => getShape(m)!);
+        shapeArray = [...groupSystem.getGroupMembers(groupId)].map((m) => getShape(m)!);
     }
     for (const sh of shapeArray) {
         sh.showHighlight = show;
-        sh.layer.invalidate(true);
+        sh.layer?.invalidate(true);
     }
 }
 

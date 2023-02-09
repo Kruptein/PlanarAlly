@@ -102,7 +102,7 @@ export class LabelSystem implements ShapeSystem {
         if (!$.labels.has(uuid)) return;
         for (const [shapeId, labels] of $.shapeLabels.entries()) {
             labels.delete(uuid);
-            getShape(shapeId)?.layer.invalidate(false);
+            getShape(shapeId)?.layer?.invalidate(false);
         }
         $.labels.delete(uuid);
 

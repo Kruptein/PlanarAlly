@@ -132,7 +132,7 @@ function toggleHighlight(member: LocalId, show: boolean): void {
     const shape = getShape(member);
     if (shape) {
         shape.showHighlight = show;
-        shape.layer.invalidate(true);
+        shape.layer?.invalidate(true);
     }
 }
 

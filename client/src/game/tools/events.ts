@@ -89,7 +89,7 @@ export async function mouseMove(event: MouseEvent): Promise<void> {
     for (const [uuid, annotation] of annotationState.readonly.annotations.entries()) {
         if (floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Draw)) {
             const shape = getShape(uuid);
-            if (shape && shape.floor.id === floorState.currentFloor.value!.id && shape.contains(eventPoint)) {
+            if (shape && shape.floorId === floorState.currentFloor.value!.id && shape.contains(eventPoint)) {
                 foundAnnotation = true;
                 uiSystem.setAnnotationText(annotation);
             }
@@ -251,7 +251,7 @@ export async function touchMove(event: TouchEvent): Promise<void> {
             const shape = getShape(uuid);
             if (
                 shape &&
-                shape.floor.id === floorState.currentFloor.value!.id &&
+                shape.floorId === floorState.currentFloor.value!.id &&
                 shape.contains(l2g(getLocalPointFromEvent(event)))
             ) {
                 found = true;

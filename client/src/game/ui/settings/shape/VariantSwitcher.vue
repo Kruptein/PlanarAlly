@@ -77,7 +77,7 @@ async function addVariant(): Promise<void> {
     let parent = compositeParent.value;
     if (parent === undefined) {
         parent = new ToggleComposite(cloneP(shape.refPoint), shape.id, [{ id: shape.id, name: "base variant" }]);
-        shape.layer.addShape(parent, SyncMode.FULL_SYNC, InvalidationMode.NO);
+        shape.layer?.addShape(parent, SyncMode.FULL_SYNC, InvalidationMode.NO);
     }
     parent.addVariant(newShape.id, name, true);
     parent.setActiveVariant(newShape.id, true);

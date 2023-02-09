@@ -253,7 +253,7 @@ export class Polygon extends Shape implements IShape {
 
             const props = getProperties(this.id)!;
 
-            this.layer.addShape(
+            this.layer?.addShape(
                 newPolygon,
                 SyncMode.FULL_SYNC,
                 props.blocksVision ? InvalidationMode.WITH_LIGHT : InvalidationMode.NORMAL,
@@ -271,7 +271,7 @@ export class Polygon extends Shape implements IShape {
     pushPoint(point: GlobalPoint): void {
         this._vertices.push(point);
         this._points.push(this.invalidatePoint(point, this.center));
-        this.layer.updateSectors(this.id, this.getAuraAABB());
+        this.layer?.updateSectors(this.id, this.getAuraAABB());
         if (this.isSnappable) this.updateLayerPoints();
     }
 
@@ -313,8 +313,10 @@ export class Polygon extends Shape implements IShape {
 
         if (invalidate) {
             const props = getProperties(this.id)!;
-            if (props.blocksVision) visionState.recalculateVision(this.floor.id);
-            if (props.blocksMovement) visionState.recalculateMovement(this.floor.id);
+            if (this.floorId !== undefined) {
+                if (props.blocksVision) visionState.recalculateVision(this.floorId);
+                if (props.blocksMovement) visionState.recalculateMovement(this.floorId);
+            }
             if (!this.preventSync) sendShapePositionUpdate([this], false);
 
             this.invalidatePoints();

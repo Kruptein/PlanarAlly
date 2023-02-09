@@ -29,7 +29,7 @@ class MarkerSystem implements System {
         const shape = getShape(marker);
         if (shape == undefined) return;
         setCenterPosition(shape.center);
-        floorSystem.selectFloor({ name: shape.floor.name }, true);
+        if (shape.floorId !== undefined) floorSystem.selectFloor({ id: shape.floorId }, true);
     }
 
     removeMarker(marker: LocalId, sync: boolean): void {

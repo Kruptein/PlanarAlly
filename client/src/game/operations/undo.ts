@@ -133,9 +133,12 @@ function handleLayerMove(shapes: LocalId[], from: LayerName, to: LayerName, dire
     const fullShapes = shapes.map((s) => getShape(s)!);
     let layerName = from;
     if (direction === "redo") layerName = to;
-    const floor = floorSystem.getFloor({ id: fullShapes[0]!.floor.id })!;
-    const layer = floorSystem.getLayer(floor, layerName)!;
-    moveLayer(fullShapes, layer, true);
+
+    const floor = fullShapes[0]?.floor;
+    if (floor !== undefined) {
+        const layer = floorSystem.getLayer(floor, layerName);
+        if (layer !== undefined) moveLayer(fullShapes, layer, true);
+    }
 }
 
 function handleShapeRemove(shapes: ServerShape[], direction: "undo" | "redo"): void {

@@ -67,7 +67,10 @@ export class IterativeDelete {
         this.handledPoints = [];
         this.finalConstraints = [];
 
-        this.cdt = visionState.getCDT(target, shape.floor.id);
+        if (shape.floorId === undefined) {
+            throw new Error("Shape without floor passed");
+        }
+        this.cdt = visionState.getCDT(target, shape.floorId);
         this.shape = shape;
 
         this.deleteVertices();

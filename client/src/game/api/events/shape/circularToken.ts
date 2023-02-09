@@ -8,5 +8,5 @@ socket.on("Shape.CircularToken.Value.Set", (data: { uuid: GlobalId; text: string
     if (shape === undefined) return;
 
     shape.text = data.text;
-    shape.layer.invalidate(true);
+    shape.layer?.invalidate(true);
 });

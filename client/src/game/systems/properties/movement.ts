@@ -4,7 +4,7 @@ import { TriangulationTarget, visionState } from "../../vision/state";
 import { floorState } from "../floors/state";
 
 export function checkMovementSources(id: LocalId, blocksMovement: boolean, recalculate = true): boolean {
-    const floor = getShape(id)?.floor.id ?? floorState.currentFloor.value!.id;
+    const floor = getShape(id)?.floorId ?? floorState.currentFloor.value!.id;
 
     let alteredMovement = false;
     const movementBlockers = visionState.getBlockers(TriangulationTarget.MOVEMENT, floor);

@@ -12,12 +12,15 @@ import { cw, ccw, intersection, orientation } from "./vision/triag";
 export function calculateDelta(delta: Vector, sel: IShape, shrink = false): Vector {
     if (delta.x === 0 && delta.y === 0) return delta;
     const center = toArrayP(sel.center);
-    const centerTriangle = visionState.getCDT(TriangulationTarget.MOVEMENT, sel.floor.id).locate(center, null).loc;
+
+    if (sel.floorId === undefined) return delta;
+
+    const centerTriangle = visionState.getCDT(TriangulationTarget.MOVEMENT, sel.floorId).locate(center, null).loc;
     for (let point of sel.points) {
         if (shrink) {
             point = [point[0] - (point[0] - center[0]) * 0.75, point[1] - (point[1] - center[1]) * 0.75];
         }
-        const lt = visionState.getCDT(TriangulationTarget.MOVEMENT, sel.floor.id).locate(point, centerTriangle);
+        const lt = visionState.getCDT(TriangulationTarget.MOVEMENT, sel.floorId).locate(point, centerTriangle);
         const triangle = lt.loc;
         if (triangle === null) continue;
         delta = checkTriangle(point, triangle, delta);

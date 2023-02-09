@@ -441,7 +441,7 @@ export class Layer implements ILayer {
                     for (const token of accessState.activeTokens.value) {
                         let found = false;
                         const shape = getShape(token);
-                        if (shape !== undefined && shape.floor.id === this.floor && shape.type === "assetrect") {
+                        if (shape !== undefined && shape.floorId === this.floor && shape.type === "assetrect") {
                             if (!shape.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: false })) {
                                 const ray = Ray.fromPoints(shape.center, bboxCenter);
                                 const { hit, min } = bbox.containsRay(ray);

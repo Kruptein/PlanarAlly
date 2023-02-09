@@ -40,9 +40,12 @@ export function resizeShape(
 
     if (!shape.preventSync) sendShapeSizeUpdate({ shape, temporary });
 
-    if (recalculateMovement) visionState.recalculateMovement(shape.floor.id);
-    if (recalculateVision) visionState.recalculateVision(shape.floor.id);
-    shape.layer.invalidate(false);
+    const layer = shape.layer;
+    if (layer !== undefined) {
+        if (recalculateMovement) visionState.recalculateMovement(layer.floor);
+        if (recalculateVision) visionState.recalculateVision(layer.floor);
+        layer.invalidate(false);
+    }
 
     return newResizePoint;
 }

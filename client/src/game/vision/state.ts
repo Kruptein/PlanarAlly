@@ -141,7 +141,7 @@ class VisionState extends Store<State> {
 
         for (const sh of shapes) {
             const shape = getShape(sh);
-            if (shape === undefined || shape.floor.id !== floor) continue;
+            if (shape === undefined || shape.floorId !== floor) continue;
 
             this.triangulateShape(target, shape);
         }
@@ -237,11 +237,13 @@ class VisionState extends Store<State> {
     }
 
     insertConstraint(target: TriangulationTarget, shape: IShape, pa: [number, number], pb: [number, number]): void {
-        const cdt = this.getCDT(target, shape.floor.id);
-        const { va, vb } = cdt.insertConstraint(pa, pb);
-        va.shapes.add(shape);
-        vb.shapes.add(shape);
-        cdt.tds.addTriagVertices(shape.id, va, vb);
+        if (shape.floorId !== undefined) {
+            const cdt = this.getCDT(target, shape.floorId);
+            const { va, vb } = cdt.insertConstraint(pa, pb);
+            va.shapes.add(shape);
+            vb.shapes.add(shape);
+            cdt.tds.addTriagVertices(shape.id, va, vb);
+        }
     }
 
     addToTriangulation(data: { target: TriangulationTarget; shape: LocalId }): void {
@@ -249,7 +251,9 @@ class VisionState extends Store<State> {
             const shape = getShape(data.shape);
             if (shape) {
                 this.triangulateShape(data.target, shape);
-                if (data.target === TriangulationTarget.VISION) this.increaseVisionIteration(shape.floor.id);
+                if (data.target === TriangulationTarget.VISION) {
+                    if (shape.floorId !== undefined) this.increaseVisionIteration(shape.floorId);
+                }
             }
         }
     }
@@ -259,7 +263,9 @@ class VisionState extends Store<State> {
             const shape = getShape(data.shape);
             if (shape) {
                 this.deleteShapesFromTriangulation(data.target, shape);
-                if (data.target === TriangulationTarget.VISION) this.increaseVisionIteration(shape.floor.id);
+                if (data.target === TriangulationTarget.VISION) {
+                    if (shape.floorId !== undefined) this.increaseVisionIteration(shape.floorId);
+                }
             }
         }
     }
@@ -303,7 +309,7 @@ class VisionState extends Store<State> {
             const source = sources[i]!;
             const shape = getShape(source.shape);
             if (shape === undefined) continue;
-            if (shape.layer.name === layer) {
+            if (shape.layerName === layer) {
                 if (shapeIds.has(shape.id)) {
                     found.add(shape.id);
                 } else {

@@ -174,13 +174,15 @@ export function deleteShapes(shapes: readonly IShape[], sync: SyncMode): void {
         const props = getProperties(sel.id)!;
         if (props.blocksVision) recalculateVision = true;
         if (props.blocksMovement) recalculateMovement = true;
-        sel.layer.removeShape(sel, { sync: SyncMode.NO_SYNC, recalculate: recalculateIterative, dropShapeId: true });
+        sel.layer?.removeShape(sel, { sync: SyncMode.NO_SYNC, recalculate: recalculateIterative, dropShapeId: true });
     }
     if (sync !== SyncMode.NO_SYNC) sendRemoveShapes({ uuids: removed, temporary: sync === SyncMode.TEMP_SYNC });
     if (!recalculateIterative) {
-        const floor = shapes[0]!.floor.id;
-        if (recalculateMovement) visionState.recalculate({ target: TriangulationTarget.MOVEMENT, floor });
-        if (recalculateVision) visionState.recalculate({ target: TriangulationTarget.VISION, floor });
-        floorSystem.invalidateVisibleFloors();
+        const floor = shapes[0]?.floorId;
+        if (floor !== undefined) {
+            if (recalculateMovement) visionState.recalculate({ target: TriangulationTarget.MOVEMENT, floor });
+            if (recalculateVision) visionState.recalculate({ target: TriangulationTarget.VISION, floor });
+            floorSystem.invalidateVisibleFloors();
+        }
     }
 }

@@ -210,10 +210,13 @@ function applyDDraft(): void {
         );
     }
 
-    visionState.recalculateVision(realShape.floor.id);
-    visionState.recalculateMovement(realShape.floor.id);
-    fowLayer.invalidate(false);
-    realShape.layer.invalidate(false);
+    const layer = realShape.layer;
+    if (layer !== undefined) {
+        visionState.recalculateVision(layer.floor);
+        visionState.recalculateMovement(layer.floor);
+        fowLayer.invalidate(false);
+        layer.invalidate(false);
+    }
 }
 </script>
 

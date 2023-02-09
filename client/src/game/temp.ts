@@ -20,6 +20,11 @@ export function moveFloor(shapes: IShape[], newFloor: Floor, sync: boolean): voi
     const firstShape = shapes[0]!;
     const oldLayer = firstShape.layer;
     const oldFloor = firstShape.floor;
+
+    if (oldLayer === undefined || oldFloor === undefined) {
+        throw new Error("No layer information available for shape move");
+    }
+
     if (shapes.some((s) => s.layer !== oldLayer)) {
         throw new Error("Mixing shapes from different floors in shape move");
     }
@@ -42,7 +47,11 @@ export function moveFloor(shapes: IShape[], newFloor: Floor, sync: boolean): voi
 
 export function moveLayer(shapes: readonly IShape[], newLayer: ILayer, sync: boolean): void {
     if (shapes.length === 0) return;
-    const oldLayer = shapes[0]!.layer;
+    const oldLayer = shapes[0]?.layer;
+
+    if (oldLayer === undefined) {
+        throw new Error("No layer information available for shape move");
+    }
 
     if (shapes.some((s) => s.layer !== oldLayer)) {
         throw new Error("Mixing shapes from different floors in shape move");

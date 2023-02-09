@@ -195,7 +195,7 @@ class TeleportZoneSystem implements ShapeSystem {
                     locationSettingsState.raw.spawnLocations.value.includes(getGlobalId(shape.id)!)
                 )
                     continue;
-                if (tpShape.floor.id === shape.floor.id && tpShape.contains(shape.center)) {
+                if (tpShape.floor?.id === shape.floorId && tpShape.contains(shape.center)) {
                     shapesToMove.push(shape.id);
                 }
             }

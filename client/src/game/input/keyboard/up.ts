@@ -26,7 +26,7 @@ export function onKeyUp(event: KeyboardEvent): void {
             const i = tokens.findIndex((o) => equalsP(o.center, positionSystem.screenCenter));
             const token = tokens[(i + 1) % tokens.length]!;
             setCenterPosition(token.center);
-            floorSystem.selectFloor({ name: token.floor.name }, true);
+            if (token.floorId !== undefined) floorSystem.selectFloor({ id: token.floorId }, true);
         }
         if (event.key === "Enter") {
             if (selectedSystem.hasSelection) {

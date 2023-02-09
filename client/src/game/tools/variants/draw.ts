@@ -187,8 +187,11 @@ class DrawTool extends Tool implements ITool {
         } else {
             this.shape.updateLayerPoints();
             const props = getProperties(this.shape.id)!;
-            if (props.blocksVision) visionState.recalculateVision(this.shape.floor.id);
-            if (props.blocksMovement) visionState.recalculateMovement(this.shape.floor.id);
+
+            if (this.shape.floorId !== undefined) {
+                if (props.blocksVision) visionState.recalculateVision(this.shape.floorId);
+                if (props.blocksMovement) visionState.recalculateMovement(this.shape.floorId);
+            }
             if (!this.shape.preventSync) sendShapeSizeUpdate({ shape: this.shape, temporary: false });
             if (this.state.isDoor) {
                 doorSystem.inform(
@@ -545,17 +548,19 @@ class DrawTool extends Tool implements ITool {
             const props = getProperties(this.shape.id)!;
             if (!this.shape.preventSync) sendShapeSizeUpdate({ shape: this.shape, temporary: true });
             if (props.blocksVision) {
-                if (
-                    visionState
-                        .getCDT(TriangulationTarget.VISION, this.shape.floor.id)
-                        .tds.getTriagVertices(this.shape.id).length > 1
-                )
-                    visionState.deleteFromTriangulation({
-                        target: TriangulationTarget.VISION,
-                        shape: this.shape.id,
-                    });
-                visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.shape.id });
-                visionState.recalculateVision(this.shape.floor.id);
+                if (this.shape.floorId !== undefined) {
+                    const vertices = visionState
+                        .getCDT(TriangulationTarget.VISION, this.shape.floorId)
+                        .tds.getTriagVertices(this.shape.id);
+                    if (vertices.length > 1) {
+                        visionState.deleteFromTriangulation({
+                            target: TriangulationTarget.VISION,
+                            shape: this.shape.id,
+                        });
+                    }
+                    visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.shape.id });
+                    visionState.recalculateVision(this.shape.floorId);
+                }
             }
         }
         layer.invalidate(false);
@@ -592,11 +597,11 @@ class DrawTool extends Tool implements ITool {
             this.shape.resizeToGrid(this.shape.getPointIndex(endPoint, l2gz(5)), ctrlOrCmdPressed(event));
             if (props.blocksVision) {
                 visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.shape.id });
-                visionState.recalculateVision(this.shape.floor.id);
+                if (this.shape.floorId !== undefined) visionState.recalculateVision(this.shape.floorId);
             }
             if (props.blocksMovement) {
                 visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: this.shape.id });
-                visionState.recalculateMovement(this.shape.floor.id);
+                if (this.shape.floorId !== undefined) visionState.recalculateMovement(this.shape.floorId);
             }
         }
 

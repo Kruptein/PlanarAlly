@@ -254,7 +254,7 @@ class GroupSystem implements ShapeSystem {
         const group = groupToClient(serverGroup);
         mutable.groups.set(group.uuid, group);
         for (const member of this.getGroupMembers(group.uuid)) {
-            getShape(member)?.layer.invalidate(true);
+            getShape(member)?.layer?.invalidate(true);
         }
     }
 }

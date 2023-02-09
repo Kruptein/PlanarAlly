@@ -1,4 +1,3 @@
-import type { GlobalPoint } from "../../../../core/geometry";
 import { requestShapeInfo, sendShapesMove } from "../../../api/emits/shape/core";
 import { getShape, getLocalId, getGlobalId } from "../../../id";
 import type { LocalId, GlobalId } from "../../../id";
@@ -39,8 +38,8 @@ export async function teleport(fromZone: LocalId, toZone: GlobalId, transfers?: 
     let targetLocation = activeLocation;
     const tpTargetId = getLocalId(toZone);
     const targetShape = tpTargetId === undefined ? undefined : getShape(tpTargetId);
-    let center: GlobalPoint | undefined = targetShape?.center;
-    let floor: string | undefined = targetShape?.floor.name;
+    let center = targetShape?.center;
+    let floor = targetShape?.floor?.name;
 
     if (targetShape === undefined) {
         const { location, shape } = await requestShapeInfo(toZone);

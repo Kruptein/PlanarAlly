@@ -46,7 +46,7 @@ class ActiveShapeStore extends Store<ActiveShapeState> {
 
     constructor() {
         super();
-        this.floor = computed(() => (this._state.id !== undefined ? getShape(this._state.id)?.floor.id : undefined));
+        this.floor = computed(() => (this._state.id !== undefined ? getShape(this._state.id)?.floorId : undefined));
         this.isComposite = computed(() => this._state.parentUuid !== undefined);
 
         watchEffect(() => {

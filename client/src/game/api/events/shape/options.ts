@@ -116,8 +116,11 @@ socket.on("Shape.Options.SvgAsset.Set", async (data: { shape: GlobalId; value: s
         delete shape.options.svgHeight;
         delete shape.options.svgPaths;
         delete shape.options.svgWidth;
-        visionState.recalculateVision(shape.floor.id);
-        floorSystem.invalidate({ id: shape.floor.id });
+        const floorId = shape.floorId;
+        if (floorId !== undefined) {
+            visionState.recalculateVision(floorId);
+            floorSystem.invalidate({ id: floorId });
+        }
     } else {
         shape.options.svgAsset = data.value;
         await (shape as IAsset).loadSvgs();

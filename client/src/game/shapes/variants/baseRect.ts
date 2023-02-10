@@ -1,5 +1,5 @@
 import { clampGridLine, clampToGrid, g2lx, g2ly } from "../../../core/conversions";
-import { addP, toGP, Vector } from "../../../core/geometry";
+import { addP, cloneP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { rotateAroundPoint } from "../../../core/math";
 import { calculateDelta } from "../../drag";
@@ -195,6 +195,7 @@ export abstract class BaseRect extends Shape implements IShape {
             case 2: {
                 this.w = point.x - this.refPoint.x;
                 this.h = point.y - this.refPoint.y;
+                this.refPoint = cloneP(this.refPoint); // required to recalculate center!!
                 break;
             }
             case 3: {

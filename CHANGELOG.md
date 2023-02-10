@@ -47,6 +47,7 @@ tech changes will usually be stripped from release notes for the public
 -   Trackers:
     -   some cases where a client could edit information for shapes they didn't have access to
         (The above was never accepted by the server or sent to other clients)
+-   Prompt modals sometimes still using a validation check from an earlier prompt
 
 ## [2022.3.0] - 2022-12-12
 

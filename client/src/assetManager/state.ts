@@ -80,7 +80,11 @@ class AssetStore extends Store<AssetState> {
 
     setPath(path: number[]): void {
         this._state.folderPath = path;
-        for (const [index, part] of router.currentRoute.value.path.slice("/assets/".length).split("/").entries()) {
+        let assetPath = router.currentRoute.value.path.slice("/assets/".length);
+        if (assetPath.at(-1) === "/") assetPath = assetPath.slice(0, -1);
+        if (assetPath.length === 0) return;
+
+        for (const [index, part] of assetPath.split("/").entries()) {
             const pathId = path[index];
             if (pathId === undefined) {
                 console.error("Incorrect PathIndex encountered.");

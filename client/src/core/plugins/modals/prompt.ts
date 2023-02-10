@@ -41,7 +41,7 @@ export function usePrompt(): PromptModal {
         data.title = title;
         data.error = "";
         if (validation) validationFunction = validation;
-        else validation = defaultValidationFunction;
+        else validationFunction = defaultValidationFunction;
         return new Promise((res) => (resolve = res));
     }
 

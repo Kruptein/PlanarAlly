@@ -309,7 +309,7 @@ class SelectTool extends Tool implements ISelectTool {
                     }
                 }
                 // Drag case, a shape is selected
-                if (this.hasFeature(SelectFeatures.Drag, features)) {
+                if (!props.isLocked && this.hasFeature(SelectFeatures.Drag, features)) {
                     this.mode = SelectOperations.Drag;
                     const localRefPoint = g2l(shape.refPoint);
                     this.dragRay = Ray.fromPoints(localRefPoint, lp);

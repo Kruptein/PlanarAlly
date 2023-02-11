@@ -180,6 +180,10 @@ function setTempZoomDisplay(value: number): void {
                 <span class="rm-topper"></span>
             </div>
         </div>
+        <div v-if="positionState.reactive.outOfBounds" id="oob" @click="positionSystem.returnToBounds">
+            Click to return to content
+        </div>
+        <TokenDirections />
         <!-- Core overlays -->
         <MenuBar />
         <Tools />
@@ -198,10 +202,6 @@ function setTempZoomDisplay(value: number): void {
         <div id="teleport-modals"></div>
         <MarkdownModal v-if="showChangelog" :title="t('game.ui.ui.new_ver_msg')" :source="changelogText" />
         <!-- end of main modals -->
-        <div v-if="positionState.reactive.outOfBounds" id="oob" @click="positionSystem.returnToBounds">
-            Click to return to content
-        </div>
-        <TokenDirections />
         <!-- When updating zoom boundaries, also update store updateZoom function;
             should probably do this using a store variable-->
         <SliderComponent

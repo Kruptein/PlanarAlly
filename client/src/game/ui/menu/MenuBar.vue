@@ -246,24 +246,19 @@ DIRECTORY.CSS changes
     display: block;
 }
 
-#menuContainer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 100%;
-    pointer-events: none;
-}
-
 #menu {
-    grid-area: menu;
     display: flex;
+    position: relative;
+    grid-area: menu;
+
+    max-width: 12.5rem;
+
     flex-direction: column;
     justify-content: space-between;
+
     background-color: #fa5a5a;
     overflow: auto;
     pointer-events: auto;
-    max-width: 12.5rem;
 }
 
 .actionButton {

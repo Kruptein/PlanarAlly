@@ -47,6 +47,7 @@ tech changes will usually be stripped from release notes for the public
 -   Trackers:
     -   some cases where a client could edit information for shapes they didn't have access to
         (The above was never accepted by the server or sent to other clients)
+    -   Display on token not working for trackers that are shared across variants
 -   Prompt modals sometimes still using a validation check from an earlier prompt
 -   Resizing the botright corner of a rectangle-based shape while rotated was moving the shape
 -   Token direction UI triggering when other UI is on top of it

@@ -361,7 +361,7 @@ export abstract class Shape implements IShape {
         }
         // Draw tracker bars
         let barOffset = 0;
-        for (const tracker of trackerSystem.getAll(this.id, false)) {
+        for (const tracker of trackerSystem.getAll(this.id, true)) {
             if (tracker.draw && (tracker.visible || accessSystem.hasAccessTo(this.id, false, { vision: true }))) {
                 if (bbox === undefined) bbox = this.getBoundingBox();
                 ctx.strokeStyle = "black";

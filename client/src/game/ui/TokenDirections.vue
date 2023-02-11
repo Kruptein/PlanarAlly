@@ -43,8 +43,6 @@ function center(token: LocalId): void {
         border-radius: 1.875rem;
         border: solid 1px transparent;
 
-        background-color: red;
-
         &:hover {
             cursor: pointer;
         }

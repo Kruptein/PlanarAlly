@@ -32,16 +32,22 @@ function center(token: LocalId): void {
 </template>
 
 <style lang="scss">
-#token-directions > div {
-    pointer-events: auto;
-    position: absolute;
-    width: 3.75rem;
-    height: 3.75rem;
-    border-radius: 1.875rem;
-    border: solid 1px transparent;
+#token-directions {
+    position: relative;
 
-    &:hover {
-        cursor: pointer;
+    > div {
+        pointer-events: auto;
+        position: absolute;
+        width: 3.75rem;
+        height: 3.75rem;
+        border-radius: 1.875rem;
+        border: solid 1px transparent;
+
+        background-color: red;
+
+        &:hover {
+            cursor: pointer;
+        }
     }
 }
 </style>

@@ -138,6 +138,7 @@ const selectedLayer = computed(() => {
 
 <style scoped lang="scss">
 #floor-layer {
+    position: relative;
     grid-area: layer;
     display: flex;
     list-style: none;
@@ -197,8 +198,7 @@ a {
 #floor-detail {
     pointer-events: auto;
     position: absolute;
-    left: 1.5rem;
-    bottom: 6.25rem;
+    bottom: 4.75rem;
     border: solid 1px #2b2b2b;
     background-color: white;
     padding: 0.625rem;

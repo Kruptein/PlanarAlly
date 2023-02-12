@@ -9,6 +9,7 @@ import { moveShapes } from "../../operations/movement";
 import { redoOperation, undoOperation } from "../../operations/undo";
 import { setCenterPosition } from "../../position";
 import { copyShapes, pasteShapes } from "../../shapes/utils";
+import { accessSystem } from "../../systems/access";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { gameState } from "../../systems/game/state";
@@ -109,18 +110,22 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             // x - Mark Defeated
             const selection = selectedSystem.get({ includeComposites: true });
             for (const shape of selection) {
-                const isDefeated = getProperties(shape.id)!.isDefeated;
-                propertiesSystem.setIsDefeated(shape.id, !isDefeated, FULL_SYNC);
+                if (accessSystem.hasAccessTo(shape.id, false, { edit: true })) {
+                    const isDefeated = getProperties(shape.id)!.isDefeated;
+                    propertiesSystem.setIsDefeated(shape.id, !isDefeated, FULL_SYNC);
+                }
             }
             event.preventDefault();
             event.stopPropagation();
         } else if (event.key === "l" && ctrlOrCmdPressed(event)) {
             const selection = selectedSystem.get({ includeComposites: true });
             for (const shape of selection) {
-                // This and GroupSettings are the only places currently where we would need to update both UI and Server.
-                // Might need to introduce a SyncTo.BOTH
-                const isLocked = getProperties(shape.id)!.isLocked;
-                propertiesSystem.setLocked(shape.id, !isLocked, FULL_SYNC);
+                if (accessSystem.hasAccessTo(shape.id, false, { edit: true })) {
+                    // This and GroupSettings are the only places currently where we would need to update both UI and Server.
+                    // Might need to introduce a SyncTo.BOTH
+                    const isLocked = getProperties(shape.id)!.isLocked;
+                    propertiesSystem.setLocked(shape.id, !isLocked, FULL_SYNC);
+                }
             }
             event.preventDefault();
             event.stopPropagation();

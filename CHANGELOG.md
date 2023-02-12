@@ -44,10 +44,11 @@ tech changes will usually be stripped from release notes for the public
 -   Fake Player: showing DM layer
 -   DM settings: Fix last DM being able to demote themselves to a player
 -   Assets: default stroke colour wrongly set, causing badges to be transparent
--   Trackers:
-    -   some cases where a client could edit information for shapes they didn't have access to
-        (The above was never accepted by the server or sent to other clients)
-    -   Display on token not working for trackers that are shared across variants
+-   Trackers: Display on token not working for trackers that are shared across variants
+-   Some cases where a client could edit shape info without access
+    -   _this was always rejected by the server and never synced_
+    -   most tracker properties
+    -   defeated and locked state using keybinds
 -   Prompt modals sometimes still using a validation check from an earlier prompt
 -   Resizing the botright corner of a rectangle-based shape while rotated was moving the shape
 -   Token direction UI triggering when other UI is on top of it

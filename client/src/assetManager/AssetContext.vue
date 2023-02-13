@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, ref, watch } from "vue";
+import { nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ContextMenu from "../core/components/ContextMenu.vue";
@@ -11,6 +11,14 @@ import { assetStore } from "./state";
 const cm = ref<{ $el: HTMLDivElement } | null>(null);
 const modals = useModal();
 const { t } = useI18n();
+
+onMounted(() => {
+    window.addEventListener("scroll", close);
+});
+
+onUnmounted(() => {
+    window.removeEventListener("scroll", close);
+});
 
 watch(showAssetContextMenu, async () => {
     if (showAssetContextMenu.value) {

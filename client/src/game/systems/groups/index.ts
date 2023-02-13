@@ -120,13 +120,13 @@ class GroupSystem implements ShapeSystem {
             if (groupId !== memberGroupId) {
                 if (memberGroupId !== undefined) {
                     mutable.groupMembers.get(memberGroupId)?.delete(member.uuid);
-                    if (!mutable.shapeData.has(member.uuid)) {
-                        this.inform(member.uuid, { groupId, badge: 0 });
-                    } else {
-                        mutable.shapeData.set(member.uuid, { groupId, badge: member.badge });
-                    }
-                    // todo: invalidate(true) shape
                 }
+                if (!mutable.shapeData.has(member.uuid)) {
+                    this.inform(member.uuid, { groupId, badge: 0 });
+                } else {
+                    mutable.shapeData.set(member.uuid, { groupId, badge: member.badge });
+                }
+                // todo: invalidate(true) shape
             }
             mutable.groupMembers.get(groupId)?.add(member.uuid);
         }

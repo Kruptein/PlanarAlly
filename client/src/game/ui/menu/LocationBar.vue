@@ -54,12 +54,12 @@ async function showArchivedLocations(): Promise<void> {
     const locations = locationStore.archivedLocations.value;
     if (locations.length === 0) return;
 
-    const choice = await modals.selectionBox(
+    const choices = await modals.selectionBox(
         "Select a location to restore",
         locations.map((l) => l.name),
     );
-    const location = locations.find((l) => l.name === choice?.[0]);
-    if (choice !== undefined && location !== undefined) {
+    const location = locations.find((l) => l.name === choices?.[0]);
+    if (choices !== undefined && location !== undefined) {
         locationStore.unarchiveLocation(location.id, true);
     }
 }

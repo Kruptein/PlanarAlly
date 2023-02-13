@@ -7,7 +7,7 @@ import type { SelectionBoxOptions } from "../../plugins/modals/selectionBox";
 
 import Modal from "./Modal.vue";
 
-const emit = defineEmits(["close", "submit"]);
+const emit = defineEmits<{ (e: "submit", choices: string[]): void; (e: "close"): void }>();
 const props = defineProps<{
     visible: boolean;
     title: string;
@@ -61,7 +61,7 @@ function create(): void {
     } else if (props.choices.includes(state.customName)) {
         state.error = t("core.components.selectionbox.already_exists_warning").toString();
     } else {
-        emit("submit", state.customName);
+        emit("submit", [state.customName]);
         close();
     }
 }
@@ -69,7 +69,7 @@ function create(): void {
 function submit(): void {
     emit(
         "submit",
-        [...state.activeSelection].map((i) => props.choices[i]),
+        [...state.activeSelection].map((i) => props.choices[i]!),
     );
 }
 </script>

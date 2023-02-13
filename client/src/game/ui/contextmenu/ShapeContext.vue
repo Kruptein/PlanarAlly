@@ -195,12 +195,12 @@ async function setLocation(newLocation: number): Promise<void> {
             spawnLocation = spawnInfo[0]!;
             break;
         default: {
-            const choice = await modals.selectionBox(
+            const choices = await modals.selectionBox(
                 "Choose the desired spawn location",
                 spawnInfo.map((s) => s.name),
             );
-            if (choice === undefined) return;
-            const choiceShape = spawnInfo.find((s) => s.name === choice[0]);
+            if (choices === undefined) return;
+            const choiceShape = spawnInfo.find((s) => s.name === choices[0]);
             if (choiceShape === undefined) return;
             spawnLocation = choiceShape;
             break;
@@ -265,12 +265,12 @@ async function saveTemplate(): Promise<void> {
     }
     const choices = Object.keys(assetOptions.templates);
     try {
-        const choice = await modals.selectionBox(t("game.ui.templates.save"), choices, {
+        const selection = await modals.selectionBox(t("game.ui.templates.save"), choices, {
             defaultButton: t("game.ui.templates.overwrite"),
             customButton: t("game.ui.templates.create_new"),
         });
-        if (choice === undefined || choice.length > 0) return;
-        assetOptions.templates[choice[0]!] = toTemplate(shape.asDict());
+        if (selection === undefined || selection.length === 0) return;
+        assetOptions.templates[selection[0]!] = toTemplate(shape.asDict());
         sendAssetOptions(shape.assetId, assetOptions);
     } catch {
         // no-op ; action cancelled

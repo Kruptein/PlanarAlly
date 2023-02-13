@@ -103,7 +103,7 @@ async function chooseTarget(): Promise<void> {
         "Select target location",
         locations.map((l) => l.name),
     );
-    if (choices === undefined) return;
+    if (choices === undefined || choices.length === 0) return;
 
     // Select spawn point
 
@@ -123,12 +123,12 @@ async function chooseTarget(): Promise<void> {
             targetLocation = { id: location, spawnUuid: spawnInfo[0]!.uuid };
             break;
         default: {
-            const choice = await modals.selectionBox(
+            const choices = await modals.selectionBox(
                 "Choose the desired teleport target",
                 spawnInfo.map((s) => s.name),
             );
-            if (choice === undefined) return;
-            const choiceShape = spawnInfo.find((s) => s.name === choice[0]);
+            if (choices === undefined || choices.length === 0) return;
+            const choiceShape = spawnInfo.find((s) => s.name === choices[0]);
             if (choiceShape === undefined) return;
             targetLocation = { id: location, spawnUuid: choiceShape.uuid };
             break;

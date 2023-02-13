@@ -56,11 +56,11 @@ async function onCloneClick(): Promise<void> {
         const data = (await response.json()) as { owned: RoomInfo[] };
         const owned = data.owned;
 
-        const choice = await modals.selectionBox(
+        const choices = await modals.selectionBox(
             t("game.ui.settings.LocationBar.LocationAdminSettings.choose_room"),
             owned.map((room: RoomInfo) => room.name),
         );
-        const chosenRoom = owned.find((room) => room.name === choice?.[0]);
+        const chosenRoom = owned.find((room) => room.name === choices?.[0]);
         if (!chosenRoom) return;
 
         const roomName = chosenRoom.name;

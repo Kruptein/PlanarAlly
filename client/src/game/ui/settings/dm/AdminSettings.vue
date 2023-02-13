@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 
 import InputCopyElement from "../../../../core/components/InputCopyElement.vue";
+import { baseAdjust } from "../../../../core/http";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { coreStore } from "../../../../store/core";
 import { sendDeleteRoom, sendRefreshInviteCode } from "../../../api/emits/room";
@@ -31,7 +32,10 @@ watch(
 );
 
 const invitationUrl = computed(
-    () => `${window.location.protocol}//${gameState.reactive.publicName}/invite/${gameState.reactive.invitationCode}`,
+    () =>
+        `${window.location.protocol}//${gameState.reactive.publicName}${baseAdjust("/invite/")}${
+            gameState.reactive.invitationCode
+        }`,
 );
 
 const creator = computed(() => route.params.creator);

@@ -43,6 +43,7 @@ tech changes will usually be stripped from release notes for the public
 -   Spell tool: the 'is public' label was wrongly attached to the range input box
 -   Fake Player: showing DM layer
 -   DM settings: Fix last DM being able to demote themselves to a player
+-   DM settings: Fix invite URL not containing subpath if set
 -   Assets: default stroke colour wrongly set, causing badges to be transparent
 -   Trackers: Display on token not working for trackers that are shared across variants
 -   Some cases where a client could edit shape info without access

@@ -57,6 +57,7 @@ tech changes will usually be stripped from release notes for the public
 -   Unlocking shape could sometimes trigger the shape following your mouse
 -   Templates: only using the first character of the provided template name
 -   Asset manager: close contextmenu when scrolling
+-   Adding multiple shapes to group always prompting group question even if no groups are present
 
 ## [2022.3.0] - 2022-12-12
 

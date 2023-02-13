@@ -89,15 +89,25 @@ function setMarker(): void {
 async function addToInitiative(): Promise<void> {
     let groupInitiatives = false;
     const selection = selectedSystem.get({ includeComposites: false });
-    if (new Set(selection.map((s) => groupSystem.getGroupId(s.id))).size < selectedSystem.$.value.size) {
-        const answer = await modals.confirm(
-            "Adding initiative",
-            "Some of the selected shapes belong to the same group. Do you wish to add 1 entry for these?",
-            { no: "no, create a separate entry for each", focus: "confirm" },
-        );
-        if (answer === undefined) return;
-        groupInitiatives = answer;
+    // First check if there are shapes with the same groupId
+    const groupsFound = new Set();
+    for (const shape of selection) {
+        const group = groupSystem.getGroupId(shape.id);
+        if (group === undefined) continue;
+        if (groupsFound.has(group)) {
+            const answer = await modals.confirm(
+                "Adding initiative",
+                "Some of the selected shapes belong to the same group. Do you wish to add 1 entry for these?",
+                { no: "no, create a separate entry for each", focus: "confirm" },
+            );
+            if (answer === undefined) return;
+            groupInitiatives = answer;
+            break;
+        } else {
+            groupsFound.add(group);
+        }
     }
+    // Handle the actual initiative addition
     const groupsProcessed = new Set();
     for (const shape of selection) {
         const groupId = groupSystem.getGroupId(shape.id);
@@ -424,7 +434,7 @@ const floors = toRef(floorState.reactive, "floors");
         </template>
         <template v-else>
             <li>
-                Group ({{ groups.size }} {{ hasUngrouped }} {{ hasEntireGroup }})
+                Group
                 <ul>
                     <li v-if="groups.size === 0" @click="createGroup">Create group</li>
                     <li v-if="groups.size === 1 && !hasUngrouped && !hasEntireGroup" @click="splitGroup">

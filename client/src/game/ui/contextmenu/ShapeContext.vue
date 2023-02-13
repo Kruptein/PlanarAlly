@@ -279,9 +279,9 @@ async function saveTemplate(): Promise<void> {
 
 // GROUPS
 
-const groups = computed(() =>
-    [...selectedSystem.$.value].map((s) => groupSystem.getGroupId(s)).filter((g) => g !== undefined),
-) as ComputedRef<string[]>;
+const groups = computed(
+    () => new Set([...selectedSystem.$.value].map((s) => groupSystem.getGroupId(s)).filter((g) => g !== undefined)),
+) as ComputedRef<Set<string>>;
 
 const hasEntireGroup = computed(() => {
     const selection = selectedSystem.$.value;
@@ -424,17 +424,17 @@ const floors = toRef(floorState.reactive, "floors");
         </template>
         <template v-else>
             <li>
-                Group
+                Group ({{ groups.size }} {{ hasUngrouped }} {{ hasEntireGroup }})
                 <ul>
-                    <li v-if="groups.length === 0" @click="createGroup">Create group</li>
-                    <li v-if="groups.length === 1 && !hasUngrouped && !hasEntireGroup" @click="splitGroup">
+                    <li v-if="groups.size === 0" @click="createGroup">Create group</li>
+                    <li v-if="groups.size === 1 && !hasUngrouped && !hasEntireGroup" @click="splitGroup">
                         Split from group
                     </li>
-                    <li v-if="groups.length === 1 && !hasUngrouped && hasEntireGroup" @click="removeEntireGroup">
+                    <li v-if="groups.size === 1 && !hasUngrouped && hasEntireGroup" @click="removeEntireGroup">
                         Remove group
                     </li>
-                    <li v-if="groups.length > 1" @click="mergeGroups">Merge groups</li>
-                    <li v-if="groups.length === 1 && hasUngrouped" @click="enlargeGroup">Enlarge group</li>
+                    <li v-if="groups.size > 1" @click="mergeGroups">Merge groups</li>
+                    <li v-if="groups.size === 1 && hasUngrouped" @click="enlargeGroup">Enlarge group</li>
                 </ul>
             </li>
         </template>

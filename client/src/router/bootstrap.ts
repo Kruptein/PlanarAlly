@@ -20,7 +20,7 @@ const ExportGame = () => import("../dashboard/games/ExportGame.vue");
 // Main game
 const Game = () => import("../game/Game.vue");
 
-const routes: Array<RouteRecordRaw> = [
+const routes: RouteRecordRaw[] = [
     {
         path: "/",
         redirect: "/dashboard",

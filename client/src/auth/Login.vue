@@ -38,7 +38,7 @@ async function login(): Promise<void> {
     if (response.ok) {
         coreStore.setUsername(username.value);
         coreStore.setAuthenticated(true);
-        const data: { email?: string } = await response.json();
+        const data = (await response.json()) as { email?: string };
         if (data.email !== undefined) coreStore.setEmail(data.email);
         await router.push((route.query.redirect as string) ?? "/");
     } else {
@@ -86,18 +86,18 @@ function exit(): void {
                         <div style="position: relative">
                             <font-awesome-icon
                                 icon="language"
-                                @click="showLanguageDropdown = !showLanguageDropdown"
                                 title="Change language"
+                                @click="showLanguageDropdown = !showLanguageDropdown"
                             />
-                            <LanguageDropdown id="language-dropdown" v-if="showLanguageDropdown" />
+                            <LanguageDropdown v-if="showLanguageDropdown" id="language-dropdown" />
                         </div>
                     </div>
                     <div class="form-row">
                         <label for="username">{{ t("common.username") }}</label>
                         <input
                             id="username"
-                            type="text"
                             v-model="username"
+                            type="text"
                             autocomplete="username"
                             required
                             autofocus
@@ -107,8 +107,8 @@ function exit(): void {
                         <label for="password">{{ t("common.password") }}</label>
                         <input
                             id="password"
-                            type="password"
                             v-model="password"
+                            type="password"
                             autocomplete="current-password"
                             required
                         />
@@ -117,7 +117,7 @@ function exit(): void {
                         <img :src="getStaticImg('check_small.svg')" />
                         {{ t("auth.login.login") }}
                     </button>
-                    <button type="button" @click="mode = 1" v-if="allowRegister">
+                    <button v-if="allowRegister" type="button" @click="mode = 1">
                         <img :src="getStaticImg('plus.svg')" />
                         {{ t("auth.login.register") }}
                     </button>
@@ -135,18 +135,18 @@ function exit(): void {
                         <div style="position: relative">
                             <font-awesome-icon
                                 icon="language"
-                                @click="showLanguageDropdown = !showLanguageDropdown"
                                 title="Change language"
+                                @click="showLanguageDropdown = !showLanguageDropdown"
                             />
-                            <LanguageDropdown id="language-dropdown" v-if="showLanguageDropdown" />
+                            <LanguageDropdown v-if="showLanguageDropdown" id="language-dropdown" />
                         </div>
                     </div>
                     <div class="form-row">
                         <label for="username">{{ t("common.username") }}</label>
                         <input
                             id="username"
-                            type="text"
                             v-model="username"
+                            type="text"
                             autocomplete="username"
                             required
                             autofocus
@@ -154,11 +154,11 @@ function exit(): void {
                     </div>
                     <div class="form-row">
                         <label for="password">{{ t("common.password") }}</label>
-                        <input id="password" type="password" v-model="password" autocomplete="new-password" required />
+                        <input id="password" v-model="password" type="password" autocomplete="new-password" required />
                     </div>
                     <div class="form-row">
                         <label for="email">{{ t("settings.AccountSettings.email") }}</label>
-                        <input id="email" type="email" v-model="email" autocomplete="email" />
+                        <input id="email" v-model="email" type="email" autocomplete="email" />
                     </div>
                     <button type="submit" @click="register">
                         <img :src="getStaticImg('plus.svg')" />
@@ -169,7 +169,7 @@ function exit(): void {
                         RETURN TO LOGIN
                     </button>
                 </template>
-                <button type="button" @click="exit" v-if="hasGameboard">
+                <button v-if="hasGameboard" type="button" @click="exit">
                     <img :src="getStaticImg('min.svg')" />
                     RETURN TO SERVER OPTIONS
                 </button>

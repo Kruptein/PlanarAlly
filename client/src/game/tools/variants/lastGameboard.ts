@@ -1,8 +1,8 @@
 import { ToolName } from "../../models/tools";
-import type { ToolPermission } from "../../models/tools";
+import type { ITool, ToolPermission } from "../../models/tools";
 import { Tool } from "../tool";
 
-class LastGameboardTool extends Tool {
+class LastGameboardTool extends Tool implements ITool {
     readonly toolName = ToolName.LastGameboard;
     readonly toolTranslation = "Minis";
 

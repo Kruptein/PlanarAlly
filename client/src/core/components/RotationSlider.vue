@@ -7,10 +7,11 @@ const props = withDefaults(
     defineProps<{
         angle: number;
         showNumberInput?: boolean;
+        disabled: boolean;
     }>(),
     { showNumberInput: false },
 );
-const emit = defineEmits<{ (e: "input", angle: number): void; (e: "change", angle: number): void }>();
+const emit = defineEmits<(e: "change" | "input", angle: number) => void>();
 
 const circle = ref<HTMLDivElement | null>(null);
 
@@ -36,6 +37,7 @@ onMounted(() => {
 });
 
 function mouseDown(): void {
+    if (props.disabled) return;
     active = true;
 }
 
@@ -66,8 +68,8 @@ function mouseMove(event: MouseEvent): void {
 <template>
     <div class="rotational-slider" :class="{ withNumber: showNumberInput }">
         <div
-            class="circle"
             ref="circle"
+            class="circle"
             @mousedown="mouseDown"
             @mouseup="mouseUp"
             @mousemove="mouseMove"
@@ -75,7 +77,9 @@ function mouseMove(event: MouseEvent): void {
         >
             <div class="slider" :style="{ left: `${left}px`, top: `${top}px` }"></div>
         </div>
-        <div v-if="showNumberInput"><input type="number" v-model.number="degreeAngle" @change="syncDegreeAngle" /></div>
+        <div v-if="showNumberInput">
+            <input v-model.number="degreeAngle" type="number" :disabled="disabled" @change="syncDegreeAngle" />
+        </div>
     </div>
 </template>
 

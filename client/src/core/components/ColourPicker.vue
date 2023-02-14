@@ -14,12 +14,16 @@ enum InputMode {
     Rgba,
 }
 
-const props = withDefaults(defineProps<{ colour?: string; showAlpha?: boolean; vShow?: boolean }>(), {
-    colour: "rgba(0, 0, 0, 1)",
-    showAlpha: true,
-    vShow: true,
-});
-const emit = defineEmits<{ (e: "update:colour", c: string): void; (e: "input:colour", c: string): void }>();
+const props = withDefaults(
+    defineProps<{ colour?: string; showAlpha?: boolean; vShow?: boolean; disabled?: boolean }>(),
+    {
+        colour: "rgba(0, 0, 0, 1)",
+        showAlpha: true,
+        vShow: true,
+        disabled: false,
+    },
+);
+const emit = defineEmits<(e: "input:colour" | "update:colour", c: string) => void>();
 
 const alpha = ref<HTMLDivElement | null>(null);
 const hue = ref<HTMLDivElement | null>(null);
@@ -78,18 +82,19 @@ function setPosition(): void {
     top.value = `${_top}px`;
 }
 
-function open(event: Event): void {
+async function open(event: Event): Promise<void> {
+    if (props.disabled) return;
     originalColor = tc.value.toRgbString();
     setPosition();
     visible.value = true;
-    nextTick(() => modal.value!.focus());
+    await nextTick(() => modal.value!.focus());
     event.preventDefault();
 }
 
 function close(): void {
     visible.value = false;
     const color = tc.value.toRgbString();
-    if (color !== originalColor && (color !== colourHistory.value?.[0] ?? "")) {
+    if (color !== originalColor && color !== (colourHistory.value[0] ?? "")) {
         const idx = colourHistory.value.findIndex((col) => col === color);
         if (idx >= 0) {
             colourHistory.value.splice(idx, 1);
@@ -250,27 +255,27 @@ function setHex(hex: string): void {
 </script>
 
 <template>
-    <div v-bind="$attrs" v-show="vShow" ref="picker" class="outer" @click="open">
+    <div v-show="vShow" v-bind="$attrs" ref="picker" class="outer" :class="{ noAccess: disabled }" @click="open">
         <div
             class="current-color"
-            @click="open"
             :style="
                 transparent
                     ? 'background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwH+YwCGIasIUwhT25BVBADtzYNYrHvv4gAAAABJRU5ErkJggg==)'
                     : 'background-color:' + rgbaString
             "
+            @click="open"
         ></div>
     </div>
-    <teleport to="#teleport-modals" v-if="visible">
-        <div class="modal" ref="modal" :style="{ left, top }" @blur.capture="onBlur" tabindex="0">
+    <teleport v-if="visible" to="#teleport-modals">
+        <div ref="modal" class="modal" :style="{ left, top }" tabindex="0" @blur.capture="onBlur">
             <div class="saturation-wrapper">
                 <div
                     ref="saturation"
+                    class="saturation"
+                    :style="{ background: saturationBackgroundColour }"
                     @pointerdown="onSaturationDown"
                     @pointermove="onSaturationMove"
                     @pointerup="onSaturationUp"
-                    class="saturation"
-                    :style="{ background: saturationBackgroundColour }"
                 >
                     <div class="saturation--white"></div>
                     <div class="saturation--black"></div>
@@ -286,16 +291,16 @@ function setHex(hex: string): void {
                         <div :style="{ backgroundColor: rgbaString }"></div>
                     </div>
                     <div
-                        class="hue"
                         ref="hue"
-                        @pointerdown="onHueDown"
-                        @pointermove="onHueMove"
-                        @pointerup="onHueUp"
-                        @pointerleave="onHueUp"
+                        class="hue"
                         role="slider"
                         :aria-valuenow="hsl.h"
                         :aria-valuemin="0"
                         :aria-valuemax="360"
+                        @pointerdown="onHueDown"
+                        @pointermove="onHueMove"
+                        @pointerup="onHueUp"
+                        @pointerleave="onHueUp"
                     >
                         <div class="pointer" :style="{ left: hueLeft }" role="presentation">
                             <div class="picker"></div>
@@ -305,13 +310,13 @@ function setHex(hex: string): void {
                         <div class="checker"></div>
                         <div
                             ref="alpha"
+                            :style="{
+                                background: alphaBackground,
+                            }"
                             @pointerdown="onAlphaDown"
                             @pointermove="onAlphaMove"
                             @pointerup="onAlphaUp"
                             @pointerleave="onAlphaUp"
-                            :style="{
-                                background: alphaBackground,
-                            }"
                         ></div>
                         <div class="pointer" :style="{ left: alphaLeft }">
                             <div class="picker"></div>
@@ -407,12 +412,12 @@ function setHex(hex: string): void {
                 </div>
                 <div class="history">
                     <div
-                        class="color-history"
                         v-for="color of colourHistory"
                         :key="color"
-                        @click="setRgbaString(color)"
+                        class="color-history"
                         :style="{ backgroundColor: color }"
                         :title="color"
+                        @click="setRgbaString(color)"
                     ></div>
                 </div>
             </div>
@@ -437,6 +442,10 @@ function setHex(hex: string): void {
         background-color: #000;
         border: solid 1px black;
     }
+
+    &.noAccess:hover {
+        cursor: not-allowed;
+    }
 }
 
 input::-webkit-outer-spin-button,
@@ -448,6 +457,7 @@ input::-webkit-inner-spin-button {
 
 input[type="number"] {
     -moz-appearance: textfield; /* Firefox */
+    appearance: textfield;
 }
 
 .modal {

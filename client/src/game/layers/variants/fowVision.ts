@@ -1,11 +1,11 @@
 import { g2l, g2lr } from "../../../core/conversions";
-import { getGameState } from "../../../store/_game";
 import { coreStore } from "../../../store/core";
 import { getShape } from "../../id";
 import { LayerName } from "../../models/floor";
 import { accessState } from "../../systems/access/state";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
+import { gameState } from "../../systems/game/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 
@@ -29,7 +29,7 @@ export class FowVisionLayer extends FowLayer {
 
             // For the DM this is done at the end of this function.  TODO: why the split up ???
             // This was done in commit be1e65cff1e7369375fe11cfa1643fab1d11beab.
-            if (!getGameState().isDm) super.draw(false);
+            if (!gameState.raw.isDm) super.draw(false);
 
             const visionMin = g2lr(locationSettingsState.raw.visionMinRange.value);
             let visionMax = g2lr(locationSettingsState.raw.visionMaxRange.value);
@@ -40,7 +40,7 @@ export class FowVisionLayer extends FowLayer {
 
             for (const tokenId of accessState.activeTokens.value) {
                 const token = getShape(tokenId);
-                if (token === undefined || token.floor.id !== this.floor) continue;
+                if (token === undefined || token.floorId !== this.floor) continue;
                 const center = token.center;
                 const lcenter = g2l(center);
 
@@ -76,7 +76,7 @@ export class FowVisionLayer extends FowLayer {
                 floorState.raw.floors.length > 1
             ) {
                 for (let f = floorState.raw.floors.length - 1; f > floorState.raw.floorIndex; f--) {
-                    const floor = floorState.raw.floors[f];
+                    const floor = floorState.raw.floors[f]!;
                     if (floor.id === activeFloor) break;
                     const fowl = floorSystem.getLayer(floor, this.name);
                     if (fowl === undefined) continue;
@@ -93,7 +93,7 @@ export class FowVisionLayer extends FowLayer {
 
             // For the players this is done at the beginning of this function.  TODO: why the split up ???
             // This was done in commit be1e65cff1e7369375fe11cfa1643fab1d11beab.
-            if (getGameState().isDm) super.draw(false);
+            if (gameState.raw.isDm) super.draw(false);
 
             this.ctx.globalCompositeOperation = originalOperation;
         }

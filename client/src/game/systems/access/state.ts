@@ -1,10 +1,10 @@
 import { computed } from "vue";
 
-import { getGameState } from "../../../store/_game";
 import type { LocalId } from "../../id";
 import { LayerName } from "../../models/floor";
 import { floorSystem } from "../floors";
 import { floorState } from "../floors/state";
+import { gameState } from "../game/state";
 import { playerSystem } from "../players";
 import { buildState } from "../state";
 
@@ -43,11 +43,11 @@ export const accessState = {
 
     hasEditAccess: computed(() => {
         if (state.reactive.id === undefined) return false;
-        if (getGameState().isDm) return true;
-        if (getGameState().isFakePlayer && activeTokens.value.has(state.reactive.id)) return true;
+        if (gameState.reactive.isDm) return true;
+        if (gameState.reactive.isFakePlayer && activeTokens.value.has(state.reactive.id)) return true;
         if (state.reactive.defaultAccess.edit) return true;
         const username = playerSystem.getCurrentPlayer()?.name;
-        return [...state.reactive.playerAccess.entries()].some(([u, a]) => u === username && a.edit === true);
+        return [...state.reactive.playerAccess.entries()].some(([u, a]) => u === username && a.edit);
     }),
 
     owners: computed(() => {

@@ -4,11 +4,8 @@ import { g2l, l2g, l2gz } from "../../../core/conversions";
 import { Ray, toLP } from "../../../core/geometry";
 import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
 import { debugLayers } from "../../../localStorageHelpers";
-import { getGameState } from "../../../store/_game";
 import { activeShapeStore } from "../../../store/activeShape";
-import { gameStore } from "../../../store/game";
 import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../../api/emits/shape/core";
-import { removeGroupMember } from "../../groups";
 import { dropId, getGlobalId, getShape } from "../../id";
 import type { LocalId } from "../../id";
 import type { ILayer } from "../../interfaces/layer";
@@ -25,6 +22,10 @@ import { accessSystem } from "../../systems/access";
 import { accessState } from "../../systems/access/state";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
+import { gameState } from "../../systems/game/state";
+import { groupSystem } from "../../systems/groups";
+import { labelSystem } from "../../systems/labels";
+import { markerSystem } from "../../systems/markers";
 import { positionSystem } from "../../systems/position";
 import { propertiesSystem } from "../../systems/properties";
 import { getProperties } from "../../systems/properties/state";
@@ -63,12 +64,12 @@ export class Layer implements ILayer {
     // These are ordered on a depth basis.
     protected shapes: IShape[] = [];
     shapesInSector: IShape[] = [];
-    protected xSectors: Map<number, Set<LocalId>> = new Map();
-    protected ySectors: Map<number, Set<LocalId>> = new Map();
+    protected xSectors = new Map<number, Set<LocalId>>();
+    protected ySectors = new Map<number, Set<LocalId>>();
 
-    shapeIdsInSector: Set<LocalId> = new Set();
+    shapeIdsInSector = new Set<LocalId>();
 
-    points: Map<string, Set<LocalId>> = new Map();
+    points = new Map<string, Set<LocalId>>();
 
     // Extra selection highlighting settings
     protected selectionColor = "#CC0000";
@@ -90,7 +91,7 @@ export class Layer implements ILayer {
     }
 
     updateView(): void {
-        if (!getGameState().boardInitialized) return;
+        if (!gameState.raw.boardInitialized) return;
 
         this.shapeIdsInSector.clear();
 
@@ -205,7 +206,7 @@ export class Layer implements ILayer {
         if (shape.isSnappable) {
             for (const point of shape.points) {
                 const strp = JSON.stringify(point);
-                this.points.set(strp, (this.points.get(strp) || new Set()).add(shape.id));
+                this.points.set(strp, (this.points.get(strp) ?? new Set()).add(shape.id));
             }
         }
 
@@ -234,7 +235,7 @@ export class Layer implements ILayer {
     // UI helpers are objects that are created for UI reaons but that are not pertinent to the actual state
     // They are often not desired unless in specific circumstances
     getShapes(options: { includeComposites: boolean; onlyInView?: boolean }): readonly IShape[] {
-        let shapes: readonly IShape[] = options?.onlyInView ?? false ? this.shapesInSector : this.shapes;
+        let shapes: readonly IShape[] = options.onlyInView ?? false ? this.shapesInSector : this.shapes;
         if (options.includeComposites) {
             shapes = compositeState.addAllCompositeShapes(shapes);
         }
@@ -295,6 +296,11 @@ export class Layer implements ILayer {
             return false;
         }
         const gId = getGlobalId(shape.id);
+        if (gId === undefined) {
+            console.error("Removing shape without global id");
+            return false;
+        }
+
         if (locationSettingsState.raw.spawnLocations.value.includes(gId)) {
             locationSettingsSystem.setSpawnLocations(
                 locationSettingsState.raw.spawnLocations.value.filter((s) => s !== gId),
@@ -306,9 +312,7 @@ export class Layer implements ILayer {
         this.removeShapeFromSectors(shape.id);
         this.updateView();
 
-        if (shape.groupId !== undefined) {
-            removeGroupMember(shape.groupId, shape.id, false);
-        }
+        groupSystem.removeGroupMember(shape.id, false);
 
         if (options.sync !== SyncMode.NO_SYNC && !shape.preventSync)
             sendRemoveShapes({ uuids: [gId], temporary: options.sync === SyncMode.TEMP_SYNC });
@@ -323,7 +327,7 @@ export class Layer implements ILayer {
         const triggersVisionRecalc = shape.triggersVisionRecalc;
 
         if (options.dropShapeId) dropId(shape.id);
-        gameStore.removeMarker(shape.id, true);
+        markerSystem.removeMarker(shape.id, true);
 
         for (const point of shape.points) {
             const strp = JSON.stringify(point);
@@ -344,12 +348,15 @@ export class Layer implements ILayer {
         if (oldIdx === destinationIndex) return;
         this.shapes.splice(oldIdx, 1);
         this.shapes.splice(destinationIndex, 0, shape);
-        if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
-            sendShapeOrder({
-                uuid: getGlobalId(shape.id),
-                index: destinationIndex,
-                temporary: sync === SyncMode.TEMP_SYNC,
-            });
+        if (sync !== SyncMode.NO_SYNC && !shape.preventSync) {
+            const uuid = getGlobalId(shape.id);
+            if (uuid)
+                sendShapeOrder({
+                    uuid,
+                    index: destinationIndex,
+                    temporary: sync === SyncMode.TEMP_SYNC,
+                });
+        }
         this.invalidate(true);
     }
 
@@ -379,8 +386,6 @@ export class Layer implements ILayer {
 
             if (doClear) this.clear();
 
-            const gameState = getGameState();
-
             // We iterate twice over all shapes
             // First to draw the auras and a second time to draw the shapes themselves
             // Otherwise auras from one shape could overlap another shape.
@@ -400,14 +405,8 @@ export class Layer implements ILayer {
                     if (shape.options.skipDraw ?? false) continue;
                     const props = getProperties(shape.id)!;
                     if (props.isInvisible && !accessSystem.hasAccessTo(shape.id, true, { vision: true })) continue;
-                    if (shape.labels.length === 0 && gameState.filterNoLabel) continue;
-                    if (
-                        shape.labels.length &&
-                        gameState.labelFilters.length &&
-                        !shape.labels.some((l) => gameState.labelFilters.includes(l.uuid))
-                    ) {
-                        continue;
-                    }
+                    // todo: move as a call to label system?
+                    if (labelSystem.isFiltered(shape.id)) continue;
 
                     shape.draw(ctx);
                 }
@@ -425,7 +424,7 @@ export class Layer implements ILayer {
             // If this is the last layer of the floor below, render some shadow
             if (floorState.raw.floorIndex > 0) {
                 const lowerFloor = floorState.raw.floors[floorState.raw.floorIndex - 1];
-                if (lowerFloor.id === this.floor) {
+                if (lowerFloor?.id === this.floor) {
                     const layers = floorSystem.getLayers(lowerFloor);
                     if (layers.at(-1)?.name === this.name) {
                         ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
@@ -442,7 +441,7 @@ export class Layer implements ILayer {
                     for (const token of accessState.activeTokens.value) {
                         let found = false;
                         const shape = getShape(token);
-                        if (shape !== undefined && shape.floor.id === this.floor && shape.type === "assetrect") {
+                        if (shape !== undefined && shape.floorId === this.floor && shape.type === "assetrect") {
                             if (!shape.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: false })) {
                                 const ray = Ray.fromPoints(shape.center, bboxCenter);
                                 const { hit, min } = bbox.containsRay(ray);

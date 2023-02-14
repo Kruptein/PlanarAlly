@@ -5,6 +5,7 @@ import { calcFontScale, mostReadable } from "../../../core/utils";
 import { sendCircularTokenUpdate } from "../../api/emits/shape/circularToken";
 import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
+import type { IShape } from "../../interfaces/shape";
 import type { ServerCircularToken } from "../../models/shapes";
 import { getProperties } from "../../systems/properties/state";
 import type { ShapeProperties } from "../../systems/properties/state";
@@ -13,7 +14,7 @@ import type { SHAPE_TYPE } from "../types";
 
 import { Circle } from "./circle";
 
-export class CircularToken extends Circle {
+export class CircularToken extends Circle implements IShape {
     type: SHAPE_TYPE = "circulartoken";
     text: string;
     font: string;
@@ -72,8 +73,9 @@ export class CircularToken extends Circle {
 
     setText(text: string, sync: SyncMode): void {
         this.text = text;
-        if (sync !== SyncMode.NO_SYNC) {
-            sendCircularTokenUpdate({ uuid: getGlobalId(this.id), text, temporary: sync === SyncMode.TEMP_SYNC });
+        const uuid = getGlobalId(this.id);
+        if (uuid && sync !== SyncMode.NO_SYNC) {
+            sendCircularTokenUpdate({ uuid, text, temporary: sync === SyncMode.TEMP_SYNC });
         }
     }
 }

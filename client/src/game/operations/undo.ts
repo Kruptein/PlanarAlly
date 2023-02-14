@@ -52,15 +52,15 @@ export function clearUndoStacks(): void {
     redoStack = [];
 }
 
-export function undoOperation(): void {
-    handleOperation("undo");
+export async function undoOperation(): Promise<void> {
+    await handleOperation("undo");
 }
 
-export function redoOperation(): void {
-    handleOperation("redo");
+export async function redoOperation(): Promise<void> {
+    await handleOperation("redo");
 }
 
-function handleOperation(direction: "undo" | "redo"): void {
+async function handleOperation(direction: "undo" | "redo"): Promise<void> {
     operationInProgress = true;
     const op = direction === "undo" ? undoStack.pop() : redoStack.pop();
     if (op !== undefined) {
@@ -68,7 +68,7 @@ function handleOperation(direction: "undo" | "redo"): void {
         else undoStack.push(op);
 
         if (op.type === "movement") {
-            handleMovement(op.shapes, direction);
+            await handleMovement(op.shapes, direction);
         } else if (op.type === "rotation") {
             handleRotation(op.shapes, op.center, direction);
         } else if (op.type === "resize") {
@@ -86,17 +86,21 @@ function handleOperation(direction: "undo" | "redo"): void {
     operationInProgress = false;
 }
 
-function handleMovement(shapes: ShapeMovementOperation[], direction: "undo" | "redo"): void {
+async function handleMovement(shapes: ShapeMovementOperation[], direction: "undo" | "redo"): Promise<void> {
+    if (shapes.length === 0) return;
+
     const fullShapes = shapes.map((s) => getShape(s.uuid)!);
-    let delta = Vector.fromPoints(toGP(shapes[0].to), toGP(shapes[0].from));
+    let delta = Vector.fromPoints(toGP(shapes[0]!.to), toGP(shapes[0]!.from));
     if (direction === "redo") delta = delta.reverse();
-    moveShapes(fullShapes, delta, false);
+    await moveShapes(fullShapes, delta, false);
     (toolMap[ToolName.Select] as ISelectTool).resetRotationHelper();
 }
 
 function handleRotation(shapes: ShapeRotationOperation[], center: GlobalPoint, direction: "undo" | "redo"): void {
+    if (shapes.length === 0) return;
+
     const fullShapes = shapes.map((s) => getShape(s.uuid)!);
-    let angle = shapes[0].from - shapes[0].to;
+    let angle = shapes[0]!.from - shapes[0]!.to;
     if (direction === "redo") angle *= -1;
     rotateShapes(fullShapes, angle, center, false);
     (toolMap[ToolName.Select] as ISelectTool).resetRotationHelper();
@@ -124,12 +128,17 @@ function handleFloorMove(shapes: LocalId[], from: number, to: number, direction:
 }
 
 function handleLayerMove(shapes: LocalId[], from: LayerName, to: LayerName, direction: "undo" | "redo"): void {
+    if (shapes.length === 0) return;
+
     const fullShapes = shapes.map((s) => getShape(s)!);
     let layerName = from;
     if (direction === "redo") layerName = to;
-    const floor = floorSystem.getFloor({ id: fullShapes[0].floor.id })!;
-    const layer = floorSystem.getLayer(floor, layerName)!;
-    moveLayer(fullShapes, layer, true);
+
+    const floor = fullShapes[0]?.floor;
+    if (floor !== undefined) {
+        const layer = floorSystem.getLayer(floor, layerName);
+        if (layer !== undefined) moveLayer(fullShapes, layer, true);
+    }
 }
 
 function handleShapeRemove(shapes: ServerShape[], direction: "undo" | "redo"): void {

@@ -6,6 +6,7 @@ import { SyncMode } from "../../../core/models/types";
 import { sendTextUpdate } from "../../api/emits/shape/text";
 import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
+import type { IText } from "../../interfaces/shapes/text";
 import type { ServerText } from "../../models/shapes";
 import { getProperties } from "../../systems/properties/state";
 import type { ShapeProperties } from "../../systems/properties/state";
@@ -14,7 +15,7 @@ import type { SHAPE_TYPE } from "../types";
 
 import { BoundingRect } from "./simple/boundingRect";
 
-export class Text extends Shape {
+export class Text extends Shape implements IText {
     type: SHAPE_TYPE = "text";
 
     private width = 5;
@@ -35,9 +36,7 @@ export class Text extends Shape {
         this._center = this.__center();
     }
 
-    get isClosed(): boolean {
-        return true;
-    }
+    readonly isClosed = true;
 
     asDict(): ServerText {
         return Object.assign(this.getBaseDict(), {
@@ -81,7 +80,7 @@ export class Text extends Shape {
             this.height += textInfo.actualBoundingBoxAscent + textInfo.actualBoundingBoxDescent;
 
             if (props.strokeColour[0] !== "rgba(0,0,0,0)") {
-                ctx.strokeStyle = props.strokeColour[0];
+                ctx.strokeStyle = props.strokeColour[0]!;
                 ctx.strokeText(line.text, line.x, line.y);
             }
             ctx.fillText(line.text, line.x, line.y);
@@ -150,7 +149,7 @@ export class Text extends Shape {
         const newResizePoint = (resizePoint + 4) % 4;
         const oppositeNRP = (newResizePoint + 2) % 4;
 
-        const vec = Vector.fromPoints(toGP(this.points[oppositeNRP]), toGP(oldPoints[oppositeNRP]));
+        const vec = Vector.fromPoints(toGP(this.points[oppositeNRP]!), toGP(oldPoints[oppositeNRP]!));
         this.refPoint = addP(this.refPoint, vec);
 
         return newResizePoint;
@@ -171,7 +170,7 @@ export class Text extends Shape {
     private getLines(ctx: CanvasRenderingContext2D): { text: string; x: number; y: number }[] {
         const lines = this.text.split("\n");
         const allLines: { text: string; x: number; y: number }[] = [];
-        const maxWidth = this.layer.width;
+        const maxWidth = this.layer?.width ?? 0;
         const lineHeight = 30;
         const x = 0; // this.refPoint.x;
         let y = 0; // this.refPoint.y;
@@ -200,8 +199,9 @@ export class Text extends Shape {
 
     setText(text: string, sync: SyncMode): void {
         this.text = text;
-        if (sync !== SyncMode.NO_SYNC) {
-            sendTextUpdate({ uuid: getGlobalId(this.id), text, temporary: sync === SyncMode.TEMP_SYNC });
+        const uuid = getGlobalId(this.id);
+        if (uuid && sync !== SyncMode.NO_SYNC) {
+            sendTextUpdate({ uuid, text, temporary: sync === SyncMode.TEMP_SYNC });
         }
     }
 }

@@ -40,9 +40,9 @@ function getTotalRoll(results: DeepReadonly<DndResult[]>): number {
 
 <template>
     <div
-        class="die-result"
         v-for="[key, { position, results }] of diceStore.state.results.entries()"
         :key="key"
+        class="die-result"
         :style="getPosition(position)"
     >
         <img :src="baseAdjust('/static/img/d20-shelf.svg')" alt="D20 result icon" />

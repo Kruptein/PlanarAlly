@@ -48,7 +48,10 @@ export class AnnotationSystem implements ShapeSystem {
         if (annotation === "") mutable.annotations.delete(id);
         else mutable.annotations.set(id, annotation);
 
-        if (syncTo.server) sendShapeSetAnnotation({ shape: getGlobalId(id), value: annotation });
+        if (syncTo.server) {
+            const gId = getGlobalId(id);
+            if (gId !== undefined) sendShapeSetAnnotation({ shape: gId, value: annotation });
+        }
         if ($.id === id) $.annotation = annotation;
     }
 
@@ -56,7 +59,10 @@ export class AnnotationSystem implements ShapeSystem {
         if (annotationVisible) mutable.visible.add(id);
         else mutable.visible.delete(id);
 
-        if (syncTo.server) sendShapeSetAnnotationVisible({ shape: getGlobalId(id), value: annotationVisible });
+        if (syncTo.server) {
+            const gId = getGlobalId(id);
+            if (gId !== undefined) sendShapeSetAnnotationVisible({ shape: gId, value: annotationVisible });
+        }
         if ($.id === id) $.annotationVisible = annotationVisible;
     }
 }

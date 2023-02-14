@@ -2,10 +2,10 @@ import asyncio
 import io
 from datetime import datetime
 from typing import Dict, List, Optional, cast
-from typing_extensions import TypedDict
 
 from aiohttp import web
 from aiohttp_security import check_authorized
+from typing_extensions import TypedDict
 
 from ...app import sio
 from ...config import config
@@ -13,7 +13,6 @@ from ...export.campaign import export_campaign, import_campaign
 from ...models import Location, LocationOptions, PlayerRoom, Room, User
 from ...models.db import db
 from ...models.role import Role
-from ...state.dashboard import dashboard_state
 from ..socket.constants import DASHBOARD_NS
 
 
@@ -83,7 +82,6 @@ async def create(request: web.Request):
     if not roomname:
         return web.HTTPBadRequest()
     else:
-
         if Room.get_or_none(name=roomname, creator=user):
             return web.HTTPConflict()
 

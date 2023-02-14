@@ -19,8 +19,10 @@ const modes = [
     },
 ];
 
-function create(): void {
-    router.push({ name: modes[selected.value].target });
+async function create(): Promise<void> {
+    const mode = modes[selected.value];
+    if (mode === undefined) return;
+    await router.push({ name: mode.target });
 }
 </script>
 
@@ -30,8 +32,8 @@ function create(): void {
         <div id="switch">
             <div
                 v-for="[i, mode] of modes.entries()"
-                :class="{ selected: i === selected }"
                 :key="mode.type"
+                :class="{ selected: i === selected }"
                 @click="selected = i"
             >
                 <div class="type">{{ mode.type }}</div>

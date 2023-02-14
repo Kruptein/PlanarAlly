@@ -43,7 +43,7 @@ const playersWithoutAccess = computed(() => {
 function addOwner(): void {
     if (!owned.value || accessState.raw.id === undefined) return;
     const dropdown = accessDropdown.value!;
-    const selectedUser = dropdown.options[dropdown.selectedIndex].value;
+    const selectedUser = dropdown.options[dropdown.selectedIndex]?.value ?? "";
     if (selectedUser === "") return;
 
     accessSystem.addAccess(accessState.raw.id, selectedUser, { edit: true, movement: true, vision: true }, SERVER_SYNC);
@@ -60,7 +60,7 @@ function toggleEditAccess(user?: ACCESS_KEY): void {
 
     let oldAccess = DEFAULT_ACCESS;
     if (user === DEFAULT_ACCESS_SYMBOL) {
-        oldAccess = accessSystem.getDefault(accessState.raw.id) ?? oldAccess;
+        oldAccess = accessSystem.getDefault(accessState.raw.id);
     } else {
         oldAccess = accessSystem.getAccess(accessState.raw.id, user) ?? oldAccess;
     }
@@ -79,7 +79,7 @@ function toggleMovementAccess(user?: ACCESS_KEY): void {
 
     let oldAccess = DEFAULT_ACCESS;
     if (user === DEFAULT_ACCESS_SYMBOL) {
-        oldAccess = accessSystem.getDefault(accessState.raw.id) ?? oldAccess;
+        oldAccess = accessSystem.getDefault(accessState.raw.id);
     } else {
         oldAccess = accessSystem.getAccess(accessState.raw.id, user) ?? oldAccess;
     }
@@ -99,7 +99,7 @@ function toggleVisionAccess(user?: ACCESS_KEY): void {
 
     let oldAccess = DEFAULT_ACCESS;
     if (user === DEFAULT_ACCESS_SYMBOL) {
-        oldAccess = accessSystem.getDefault(accessState.raw.id) ?? oldAccess;
+        oldAccess = accessSystem.getDefault(accessState.raw.id);
     } else {
         oldAccess = accessSystem.getAccess(accessState.raw.id, user) ?? oldAccess;
     }
@@ -114,7 +114,7 @@ function toggleVisionAccess(user?: ACCESS_KEY): void {
 </script>
 
 <template>
-    <div class="panel restore-panel" v-show="activeSelection">
+    <div v-show="activeSelection" class="panel restore-panel">
         <div class="spanrow header">{{ t("game.ui.selection.edit_dialog.access.access") }}</div>
         <div class="owner">
             <em>{{ t("game.ui.selection.edit_dialog.access.default") }}</em>
@@ -125,24 +125,24 @@ function toggleVisionAccess(user?: ACCESS_KEY): void {
                 textAlign: 'center',
             }"
             :disabled="!owned"
-            @click="toggleEditAccess()"
             :title="t('game.ui.selection.edit_dialog.access.toggle_edit_access')"
+            @click="toggleEditAccess()"
         >
             <font-awesome-icon icon="pencil-alt" />
         </div>
         <div
             :style="{ opacity: defaultAccess.movement ? 1.0 : 0.3, textAlign: 'center' }"
             :disabled="!owned"
-            @click="toggleMovementAccess()"
             :title="t('game.ui.selection.edit_dialog.access.toggle_movement_access')"
+            @click="toggleMovementAccess()"
         >
             <font-awesome-icon icon="arrows-alt" />
         </div>
         <div
             :style="{ opacity: defaultAccess.vision ? 1.0 : 0.3, textAlign: 'center' }"
             :disabled="!owned"
-            @click="toggleVisionAccess()"
             :title="t('game.ui.selection.edit_dialog.access.toggle_vision_access')"
+            @click="toggleVisionAccess()"
         >
             <font-awesome-icon icon="lightbulb" />
         </div>
@@ -156,42 +156,42 @@ function toggleVisionAccess(user?: ACCESS_KEY): void {
                     textAlign: 'center',
                 }"
                 :disabled="!owned"
-                @click="toggleEditAccess(user)"
                 :title="t('game.ui.selection.edit_dialog.access.toggle_edit_access')"
+                @click="toggleEditAccess(user)"
             >
                 <font-awesome-icon icon="pencil-alt" />
             </div>
             <div
                 :style="{ opacity: access.movement ? 1.0 : 0.3, textAlign: 'center' }"
                 :disabled="!owned"
-                @click="toggleMovementAccess(user)"
                 :title="t('game.ui.selection.edit_dialog.access.toggle_movement_access')"
+                @click="toggleMovementAccess(user)"
             >
                 <font-awesome-icon icon="arrows-alt" />
             </div>
             <div
                 :style="{ opacity: access.vision ? 1.0 : 0.3, textAlign: 'center' }"
                 :disabled="!owned"
-                @click="toggleVisionAccess(user)"
                 :title="t('game.ui.selection.edit_dialog.access.toggle_vision_access')"
+                @click="toggleVisionAccess(user)"
             >
                 <font-awesome-icon icon="lightbulb" />
             </div>
             <div
-                @click="removeOwner(user)"
                 :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center', gridColumnStart: 'remove' }"
                 :disabled="!owned"
                 :title="t('game.ui.selection.edit_dialog.access.remove_owner_access')"
+                @click="removeOwner(user)"
             >
                 <font-awesome-icon icon="trash-alt" />
             </div>
         </template>
-        <select id="dropdown" ref="accessDropdown" v-show="playersWithoutAccess.length > 0 && owned">
+        <select v-show="playersWithoutAccess.length > 0 && owned" id="dropdown" ref="accessDropdown">
             <option v-for="player in playersWithoutAccess" :key="player.id" :disabled="!owned">
                 {{ player.name }}
             </option>
         </select>
-        <button id="button" @click="addOwner" v-show="playersWithoutAccess.length > 0 && owned">
+        <button v-show="playersWithoutAccess.length > 0 && owned" id="button" @click="addOwner">
             {{ t("game.ui.selection.edit_dialog.access.add_access") }}
         </button>
     </div>

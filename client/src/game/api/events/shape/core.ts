@@ -20,7 +20,7 @@ socket.on("Shape.Set", (data: ServerShape) => {
     const old = getShapeFromGlobal(data.uuid);
     const isActive = activeShapeStore.state.id === getLocalId(data.uuid);
     const hasEditDialogOpen = isActive && activeShapeStore.state.showEditDialog;
-    if (old) old.layer.removeShape(old, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
+    if (old) old.layer?.removeShape(old, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
     const shape = addShape(data, SyncMode.NO_SYNC);
 
     if (shape && isActive) {
@@ -67,7 +67,7 @@ socket.on("Shape.Order.Set", (data: { uuid: GlobalId; index: number }) => {
         console.log(`Attempted to move the shape order of an unknown shape`);
         return;
     }
-    shape.layer.moveShapeOrder(shape, data.index, SyncMode.NO_SYNC);
+    shape.layer?.moveShapeOrder(shape, data.index, SyncMode.NO_SYNC);
 });
 
 socket.on("Shapes.Floor.Change", (data: { uuids: GlobalId[]; floor: string }) => {
@@ -91,7 +91,7 @@ socket.on("Shape.Rect.Size.Update", (data: { uuid: GlobalId; w: number; h: numbe
 
     shape.w = data.w;
     shape.h = data.h;
-    shape.layer.invalidate(!shape.triggersVisionRecalc);
+    shape.layer?.invalidate(!shape.triggersVisionRecalc);
 });
 
 socket.on("Shape.Circle.Size.Update", (data: { uuid: GlobalId; r: number }) => {
@@ -99,5 +99,5 @@ socket.on("Shape.Circle.Size.Update", (data: { uuid: GlobalId; r: number }) => {
     if (shape === undefined) return;
 
     shape.r = data.r;
-    shape.layer.invalidate(!shape.triggersVisionRecalc);
+    shape.layer?.invalidate(!shape.triggersVisionRecalc);
 });

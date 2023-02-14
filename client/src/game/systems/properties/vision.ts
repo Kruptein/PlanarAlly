@@ -4,7 +4,7 @@ import { TriangulationTarget, visionState } from "../../vision/state";
 import { floorState } from "../floors/state";
 
 export function checkVisionSources(id: LocalId, blocksVision: boolean, recalculate = true): boolean {
-    const floor = getShape(id)?.floor?.id ?? floorState.currentFloor.value!.id;
+    const floor = getShape(id)?.floorId ?? floorState.currentFloor.value!.id;
 
     let alteredVision = false;
     const visionBlockers = visionState.getBlockers(TriangulationTarget.VISION, floor);

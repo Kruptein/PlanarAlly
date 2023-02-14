@@ -1,15 +1,16 @@
 import "../systems/access/events";
 import "../systems/auras/events";
+import "../systems/labels/events";
 import "../systems/logic/door/events";
 import "../systems/logic/tp/events";
+import "../systems/markers/events";
+import "../systems/notes/events";
 import "../systems/trackers/events";
 
 import "./events/client";
 import "./events/dice";
 import "./events/floor";
-import "./events/groups";
 import "./events/initiative";
-import "./events/labels";
 import "./events/lg";
 import "./events/location";
 import "./events/logic";
@@ -18,6 +19,7 @@ import "./events/player/options";
 import "./events/player/player";
 import "./events/player/players";
 import "./events/room";
+import "./events/shape/asset";
 import "./events/shape/circularToken";
 import "./events/shape/core";
 import "./events/shape/options";
@@ -33,19 +35,19 @@ import type { AssetList } from "../../core/models/types";
 import { debugLayers } from "../../localStorageHelpers";
 import { router } from "../../router";
 import { coreStore } from "../../store/core";
-import { gameStore } from "../../store/game";
 import { locationStore } from "../../store/location";
 import { convertAssetListToMap } from "../assets/utils";
 import { clearGame } from "../clear";
 import { addServerFloor } from "../floor/server";
-import { getLocalId, getShapeFromGlobal } from "../id";
+import { getShapeFromGlobal } from "../id";
 import type { GlobalId } from "../id";
-import type { Note, ServerFloor } from "../models/general";
+import type { ServerFloor } from "../models/general";
 import type { Location } from "../models/settings";
 import { setCenterPosition } from "../position";
 import { deleteShapes } from "../shapes/utils";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
+import { gameSystem } from "../systems/game";
 import { playerSystem } from "../systems/players";
 import { positionSystem } from "../systems/position";
 
@@ -55,7 +57,7 @@ import { socket } from "./socket";
 
 socket.on("connect", () => {
     console.log("Connected");
-    gameStore.setConnected(true);
+    gameSystem.setConnected(true);
 
     if (coreStore.state.boardId !== undefined) {
         console.log("BOARDID FOUND, SENDING TO SERVER", coreStore.state.boardId);
@@ -66,11 +68,11 @@ socket.on("connect", () => {
     coreStore.setLoading(true);
 });
 socket.on("disconnect", (reason: string) => {
-    gameStore.setConnected(false);
+    gameSystem.setConnected(false);
     console.log("Disconnected");
     if (reason === "io server disconnect") socket.open();
 });
-socket.on("connect_error", async (error: any) => {
+socket.on("connect_error", async (error: Error) => {
     console.error("Could not connect to game session.");
     if (error.message === "Connection rejected by server") {
         await router.push({ name: "games", params: { error: "join_game" } });
@@ -109,7 +111,7 @@ socket.on("Board.Floor.Set", (floor: ServerFloor) => {
     if (selectFloor) {
         floorSystem.selectFloor({ name: floor.name }, false);
         coreStore.setLoading(false);
-        gameStore.setBoardInitialized(true);
+        gameSystem.setBoardInitialized(true);
         playerSystem.loadPosition();
     }
 });
@@ -123,16 +125,8 @@ socket.on("Position.Set", (data: { floor?: string; x: number; y: number; zoom?: 
     setCenterPosition(toGP(data.x, data.y));
 });
 
-socket.on("Notes.Set", (notes: Note[]) => {
-    for (const note of notes) gameStore.newNote(note, false);
-});
-
 socket.on("Asset.List.Set", (assets: AssetList) => {
-    gameStore.setAssets(convertAssetListToMap(assets));
-});
-
-socket.on("Markers.Set", (markers: GlobalId[]) => {
-    for (const marker of markers) gameStore.newMarker(getLocalId(marker)!, false);
+    gameSystem.setAssets(convertAssetListToMap(assets));
 });
 
 socket.on("Temp.Clear", (shapeIds: GlobalId[]) => {

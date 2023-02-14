@@ -1,10 +1,7 @@
 import { subtractP, Vector } from "../../core/geometry";
 import { SyncMode, InvalidationMode } from "../../core/models/types";
 import { uuidv4 } from "../../core/utils";
-import { getGameState } from "../../store/_game";
-import { gameStore } from "../../store/game";
 import { sendRemoveShapes } from "../api/emits/shape/core";
-import { addGroupMembers, createNewGroupForShapes } from "../groups";
 import { getGlobalId, getLocalId } from "../id";
 import type { GlobalId } from "../id";
 import type { IShape } from "../interfaces/shape";
@@ -14,8 +11,11 @@ import { addOperation } from "../operations/undo";
 import { accessSystem } from "../systems/access";
 import type { ServerShapeOwner } from "../systems/access/models";
 import type { AuraId, ServerAura } from "../systems/auras/models";
+import { clipboardSystem } from "../systems/clipboard";
+import { clipboardState } from "../systems/clipboard/state";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
+import { groupSystem } from "../systems/groups";
 import { positionSystem } from "../systems/position";
 import { getProperties } from "../systems/properties/state";
 import { selectedSystem } from "../systems/selected";
@@ -29,37 +29,37 @@ export function copyShapes(): void {
     const clipboard: ServerShape[] = [];
     for (const shape of selectedSystem.get({ includeComposites: true })) {
         if (!accessSystem.hasAccessTo(shape.id, false, { edit: true })) continue;
-        if (shape.groupId === undefined) {
-            createNewGroupForShapes([shape.id]);
+        if (groupSystem.getGroupId(shape.id) === undefined) {
+            groupSystem.createNewGroupForShapes([shape.id]);
         }
         clipboard.push(shape.asDict());
     }
-    gameStore.setClipboard(clipboard);
-    gameStore.setClipboardPosition(positionSystem.screenCenter);
+    clipboardSystem.setClipboard(clipboard);
+    clipboardSystem.setClipboardPosition(positionSystem.screenCenter);
 }
 
 export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
     const layer = floorSystem.getLayer(floorState.currentFloor.value!, targetLayer);
     if (!layer) return [];
-    const gameState = getGameState();
-    if (gameState.clipboard.length === 0) return [];
+
+    if (clipboardState.raw.clipboard.length === 0) return [];
 
     selectedSystem.clear();
 
-    gameStore.setClipboardPosition(positionSystem.screenCenter);
-    let offset = subtractP(positionSystem.screenCenter, gameState.clipboardPosition);
+    clipboardSystem.setClipboardPosition(positionSystem.screenCenter);
+    let offset = subtractP(positionSystem.screenCenter, clipboardState.raw.clipboardPosition);
     // Check against 200 as that is the squared length of a vector with size 10, 10
     if (offset.squaredLength() < 200) {
         offset = new Vector(10, 10);
     }
 
-    const shapeMap: Map<GlobalId, GlobalId> = new Map();
+    const shapeMap = new Map<GlobalId, GlobalId>();
     const composites: ServerToggleComposite[] = [];
     const serverShapes: ServerShape[] = [];
 
     const groupShapes: Record<string, GlobalId[]> = {};
 
-    for (const clip of gameState.clipboard) {
+    for (const clip of clipboardState.raw.clipboard) {
         const newShape: ServerShape = Object.assign({}, clip, { auras: [], labels: [], owners: [], trackers: [] });
         newShape.uuid = uuidv4();
         newShape.x = clip.x + offset.x;
@@ -111,7 +111,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
             if (!(clip.group in groupShapes)) {
                 groupShapes[clip.group] = [];
             }
-            groupShapes[clip.group].push(newShape.uuid);
+            groupShapes[clip.group]!.push(newShape.uuid);
         }
         if (clip.type_ === "togglecomposite") {
             composites.push(newShape as ServerToggleComposite);
@@ -141,7 +141,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
     }
 
     for (const [group, shapes] of Object.entries(groupShapes)) {
-        addGroupMembers(
+        groupSystem.addGroupMembers(
             group,
             shapes.map((uuid) => ({ uuid: getLocalId(uuid)! })),
             true,
@@ -167,19 +167,22 @@ export function deleteShapes(shapes: readonly IShape[], sync: SyncMode): void {
     let recalculateVision = false;
     let recalculateMovement = false;
     for (let i = shapes.length - 1; i >= 0; i--) {
-        const sel = shapes[i];
+        const sel = shapes[i]!;
         if (sync !== SyncMode.NO_SYNC && !accessSystem.hasAccessTo(sel.id, false, { edit: true })) continue;
-        removed.push(getGlobalId(sel.id));
+        const gId = getGlobalId(sel.id);
+        if (gId) removed.push(gId);
         const props = getProperties(sel.id)!;
         if (props.blocksVision) recalculateVision = true;
         if (props.blocksMovement) recalculateMovement = true;
-        sel.layer.removeShape(sel, { sync: SyncMode.NO_SYNC, recalculate: recalculateIterative, dropShapeId: true });
+        sel.layer?.removeShape(sel, { sync: SyncMode.NO_SYNC, recalculate: recalculateIterative, dropShapeId: true });
     }
     if (sync !== SyncMode.NO_SYNC) sendRemoveShapes({ uuids: removed, temporary: sync === SyncMode.TEMP_SYNC });
     if (!recalculateIterative) {
-        const floor = shapes[0].floor.id;
-        if (recalculateMovement) visionState.recalculate({ target: TriangulationTarget.MOVEMENT, floor });
-        if (recalculateVision) visionState.recalculate({ target: TriangulationTarget.VISION, floor });
-        floorSystem.invalidateVisibleFloors();
+        const floor = shapes[0]?.floorId;
+        if (floor !== undefined) {
+            if (recalculateMovement) visionState.recalculate({ target: TriangulationTarget.MOVEMENT, floor });
+            if (recalculateVision) visionState.recalculate({ target: TriangulationTarget.VISION, floor });
+            floorSystem.invalidateVisibleFloors();
+        }
     }
 }

@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { computed, toRef } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../core/components/ColourPicker.vue";
 import Modal from "../../../core/components/modals/Modal.vue";
 import { useModal } from "../../../core/plugins/modals/plugin";
-import { uiStore } from "../../../store/ui";
 import {
     BackgroundType,
     FloorType,
@@ -16,16 +15,21 @@ import {
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
+import { uiSystem } from "../../systems/ui";
+import { uiState } from "../../systems/ui/state";
 
 import PatternSettings from "./floor/PatternSettings.vue";
 
 const { t } = useI18n();
 const modals = useModal();
 
-const visible = toRef(uiStore.state, "showFloorSettings");
-const close = uiStore.hideFloorSettings.bind(uiStore);
+function close(): void {
+    uiSystem.hideFloorSettings();
+}
 
-const floor = computed(() => floorSystem.getFloor({ id: uiStore.state.selectedFloor }));
+defineExpose({ close });
+
+const floor = computed(() => floorSystem.getFloor({ id: uiState.reactive.selectedFloor }));
 
 const floorTypes = getFloorTypes();
 
@@ -33,7 +37,7 @@ function updateName(event: Event): void {
     const name = (event.target as HTMLInputElement).value;
     if (floorSystem.getFloor({ name }) !== undefined) return;
 
-    floorSystem.renameFloor(uiStore.state.selectedFloor, name, true);
+    floorSystem.renameFloor(uiState.reactive.selectedFloor, name, true);
 }
 
 function setFloorType(event: Event): void {
@@ -106,11 +110,11 @@ function setPatternData(data: string): void {
 </script>
 
 <template>
-    <Modal :visible="visible" :mask="false" @close="close">
-        <template v-slot:header="m">
+    <Modal :visible="uiState.reactive.showFloorSettings" :mask="false" @close="close">
+        <template #header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 <div>{{ t("game.ui.settings.floor.title") }}</div>
-                <div class="header-close" @click="close" :title="t('common.close')">
+                <div class="header-close" :title="t('common.close')" @click="close">
                     <font-awesome-icon :icon="['far', 'window-close']" />
                 </div>
             </div>
@@ -142,9 +146,9 @@ function setPatternData(data: string): void {
                 </select>
 
                 <div
-                    @click="resetBackground"
-                    :title="t('game.ui.settings.common.reset_default')"
                     v-if="floor?.backgroundValue !== undefined && defaultBackground !== floor?.backgroundValue"
+                    :title="t('game.ui.settings.common.reset_default')"
+                    @click="resetBackground"
                 >
                     <font-awesome-icon icon="times-circle" />
                 </div>

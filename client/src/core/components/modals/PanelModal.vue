@@ -6,11 +6,12 @@ import Modal from "./Modal.vue";
 
 const props = withDefaults(
     defineProps<{ visible: boolean; categories: string[]; applyTranslation?: boolean; initialSelection?: string }>(),
-    { applyTranslation: false },
+    { applyTranslation: false, initialSelection: undefined },
 );
 const emit = defineEmits<{
     (e: "update:visible", visible: boolean): void;
     (e: "update:selection", selection: string): void;
+    (e: "close"): void;
 }>();
 
 const { t } = useI18n();
@@ -30,15 +31,16 @@ function setSelection(category: string): void {
 
 function hideModal(): void {
     emit("update:visible", false);
+    emit("close");
 }
 </script>
 
 <template>
     <Modal :visible="visible" :colour="'rgba(255, 255, 255, 0.8)'" :mask="false">
-        <template v-slot:header="m">
+        <template #header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 <div><slot name="title"></slot></div>
-                <div class="header-close" @click="hideModal" :title="t('common.close')">
+                <div class="header-close" :title="t('common.close')" @click.stop="hideModal">
                     <font-awesome-icon :icon="['far', 'window-close']" />
                 </div>
             </div>
@@ -46,10 +48,10 @@ function hideModal(): void {
         <div class="modal-body">
             <div id="categories">
                 <div
-                    class="category"
-                    :class="{ selected: selection === category }"
                     v-for="category in categories"
                     :key="category"
+                    class="category"
+                    :class="{ selected: selection === category }"
                     @click="setSelection(category)"
                 >
                     {{ applyTranslation ? t(category) : category }}

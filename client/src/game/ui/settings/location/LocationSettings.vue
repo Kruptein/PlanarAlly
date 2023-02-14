@@ -4,7 +4,8 @@ import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
 import { locationStore } from "../../../../store/location";
-import { uiStore } from "../../../../store/ui";
+import { uiSystem } from "../../../systems/ui";
+import { uiState } from "../../../systems/ui/state";
 import FloorSettings from "../location/FloorSettings.vue";
 import GridSettings from "../location/GridSettings.vue";
 import VariaSettings from "../location/VariaSettings.vue";
@@ -15,16 +16,21 @@ import { LocationSettingCategory } from "./categories";
 
 const { t } = useI18n();
 
-const location = toRef(uiStore.state, "openedLocationSettings");
+const location = toRef(uiState.reactive, "openedLocationSettings");
 
 const visible = computed({
     get() {
         return location.value >= 0;
     },
     set(visible: boolean) {
-        if (!visible) uiStore.showLocationSettings(-1);
+        if (!visible) uiSystem.showLocationSettings(-1);
     },
 });
+
+function close(): void {
+    visible.value = false;
+}
+defineExpose({ close });
 
 const locationName = computed(
     () => locationStore.activeLocations.value.find((l) => l.id === location.value)?.name ?? "",
@@ -40,20 +46,20 @@ const categoryNames = [
 </script>
 
 <template>
-    <PanelModal v-if="location >= 0" v-model:visible="visible" :categories="categoryNames" :applyTranslation="true">
-        <template v-slot:title>
+    <PanelModal v-if="location >= 0" v-model:visible="visible" :categories="categoryNames" :apply-translation="true">
+        <template #title>
             {{ t("game.ui.settings.LocationBar.LocationSettings.location_settings") }} {{ locationName }}
         </template>
-        <template v-slot:default="{ selection }">
+        <template #default="{ selection }">
             <AdminSettings
-                :location="location"
                 v-show="selection === LocationSettingCategory.Admin"
+                :location="location"
                 @close="visible = false"
             />
-            <GridSettings :location="location" v-show="selection === LocationSettingCategory.Grid" />
-            <VisionSettings :location="location" v-show="selection === LocationSettingCategory.Vision" />
-            <FloorSettings :location="location" v-show="selection === LocationSettingCategory.Floor" />
-            <VariaSettings :location="location" v-show="selection === LocationSettingCategory.Varia" />
+            <GridSettings v-show="selection === LocationSettingCategory.Grid" :location="location" />
+            <VisionSettings v-show="selection === LocationSettingCategory.Vision" :location="location" />
+            <FloorSettings v-show="selection === LocationSettingCategory.Floor" :location="location" />
+            <VariaSettings v-show="selection === LocationSettingCategory.Varia" :location="location" />
         </template>
     </PanelModal>
 </template>

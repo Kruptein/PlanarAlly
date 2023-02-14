@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 
-const { availableLocales, locale, t } = useI18n({ useScope: "global" });
+const { locale, t } = useI18n({ useScope: "global" });
 
 function setLocale(newLocale: string): void {
     locale.value = newLocale;
@@ -12,10 +12,10 @@ function setLocale(newLocale: string): void {
 <template>
     <div class="box">
         <div
+            v-for="availableLocale in $i18n.availableLocales"
+            :key="`locale-${availableLocale}`"
             class="element"
             :class="{ selected: locale === availableLocale }"
-            v-for="availableLocale in availableLocales"
-            :key="`locale-${availableLocale}`"
             :value="availableLocale"
             @click="setLocale(availableLocale)"
         >

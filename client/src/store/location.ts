@@ -10,12 +10,11 @@ import {
     sendLocationUnarchive,
 } from "../game/api/emits/location";
 import type { Location } from "../game/models/settings";
+import { gameState } from "../game/systems/game/state";
 import { playerSystem } from "../game/systems/players";
 import { playerState } from "../game/systems/players/state";
 import { locationSettingsSystem } from "../game/systems/settings/location";
 import { locationSettingsState } from "../game/systems/settings/location/state";
-
-import { getGameState } from "./_game";
 
 interface LocationState {
     playerLocations: Map<number, Set<string>>;
@@ -27,10 +26,9 @@ class LocationStore extends Store<LocationState> {
     constructor() {
         super();
         watchEffect(() => {
-            const state = getGameState();
-            const newLocations = new Map();
+            const newLocations = new Map<number, Set<string>>();
             for (const player of playerState.reactive.players.values()) {
-                if (player.name === playerSystem.getCurrentPlayer()?.name && state.isDm) continue;
+                if (player.name === playerSystem.getCurrentPlayer()?.name && gameState.reactive.isDm) continue;
                 if (!newLocations.has(player.location)) {
                     newLocations.set(player.location, new Set());
                 }
@@ -101,4 +99,5 @@ class LocationStore extends Store<LocationState> {
 }
 
 export const locationStore = new LocationStore();
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).locationStore = locationStore;

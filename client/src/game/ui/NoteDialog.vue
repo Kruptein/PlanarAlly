@@ -4,8 +4,8 @@ import { useI18n } from "vue-i18n";
 
 import Modal from "../../core/components/modals/Modal.vue";
 import { useModal } from "../../core/plugins/modals/plugin";
-import { gameStore } from "../../store/game";
-import { uiStore } from "../../store/ui";
+import { noteSystem } from "../systems/notes";
+import { uiState } from "../systems/ui/state";
 
 defineProps<{ visible: boolean }>();
 const emit = defineEmits(["update:visible"]);
@@ -16,27 +16,27 @@ const title = ref<HTMLInputElement | null>(null);
 const { t } = useI18n();
 const modals = useModal();
 
-const note = toRef(uiStore.state, "activeNote");
+const note = toRef(uiState.reactive, "activeNote");
 
 function calcHeight(): void {
     if (textarea.value !== null) {
         textarea.value.style.height = "auto";
-        textarea.value.style.height = textarea.value.scrollHeight + "px";
+        textarea.value.style.height = `${textarea.value.scrollHeight}px`;
     }
 }
 
 function setText(event: Event): void {
-    gameStore.updateNote({ ...note.value, text: (event.target as HTMLTextAreaElement).value }, true);
+    noteSystem.updateNote({ ...note.value, text: (event.target as HTMLTextAreaElement).value }, true);
 }
 
 function setTitle(event: Event): void {
-    gameStore.updateNote({ ...note.value, title: (event.target as HTMLInputElement).value }, true);
+    noteSystem.updateNote({ ...note.value, title: (event.target as HTMLInputElement).value }, true);
 }
 
 async function removeNote(): Promise<void> {
     const doRemove = await modals.confirm(t("game.ui.NoteDialog.warning_msg"));
     if (doRemove === true) {
-        gameStore.removeNote(note.value, true);
+        noteSystem.removeNote(note.value, true);
         close();
     }
 }
@@ -47,14 +47,14 @@ function close(): void {
 </script>
 
 <template>
-    <Modal v-if="note !== undefined" :visible="visible" @close="close" :mask="false">
-        <template v-slot:header="m">
+    <Modal v-if="note !== undefined" :visible="visible" :mask="false" @close="close">
+        <template #header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
-                <span @click="title?.select()" :title="t('game.ui.NoteDialog.edit_title')">
+                <span :title="t('game.ui.NoteDialog.edit_title')" @click="title?.select()">
                     <font-awesome-icon icon="pencil-alt" />
                 </span>
-                <input :value="note.title" ref="title" @change="setTitle" />
-                <div class="header-close" @click="close" :title="t('common.close')">
+                <input ref="title" :value="note.title" @change="setTitle" />
+                <div class="header-close" :title="t('common.close')" @click.stop="close">
                     <font-awesome-icon :icon="['far', 'window-close']" />
                 </div>
             </div>
@@ -63,7 +63,7 @@ function close(): void {
             <textarea ref="textarea" :value="note.text" @input="calcHeight" @change="setText"></textarea>
         </div>
         <div class="modal-footer">
-            <button @click="removeNote" :title="t('game.ui.NoteDialog.remove_note')">
+            <button :title="t('game.ui.NoteDialog.remove_note')" @click="removeNote">
                 <font-awesome-icon icon="trash-alt" />
                 {{ t("game.ui.NoteDialog.remove_note") }}
             </button>

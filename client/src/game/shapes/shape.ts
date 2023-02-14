@@ -4,17 +4,9 @@ import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "../../core/conversions";
 import { addP, cloneP, equalsP, subtractP, toArrayP, toGP, Vector } from "../../core/geometry";
 import type { GlobalPoint } from "../../core/geometry";
 import { rotateAroundPoint } from "../../core/math";
-import type { Sync } from "../../core/models/types";
-import type { FunctionPropertyNames } from "../../core/types";
 import { mostReadable } from "../../core/utils";
-import { getGameState } from "../../store/_game";
-import { activeShapeStore } from "../../store/activeShape";
-import type { ActiveShapeStore } from "../../store/activeShape";
-import { sendShapeAddLabel, sendShapeRemoveLabel } from "../api/emits/shape/options";
-import { getBadgeCharacters } from "../groups";
 import { generateLocalId, getGlobalId } from "../id";
 import type { GlobalId, LocalId } from "../id";
-import type { Label } from "../interfaces/label";
 import type { ILayer } from "../interfaces/layer";
 import type { IShape } from "../interfaces/shape";
 import { LayerName } from "../models/floor";
@@ -28,6 +20,8 @@ import { auraSystem } from "../systems/auras";
 import { aurasFromServer, aurasToServer } from "../systems/auras/conversion";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
+import { groupSystem } from "../systems/groups";
+import { labelSystem } from "../systems/labels";
 import { doorSystem } from "../systems/logic/door";
 import { teleportZoneSystem } from "../systems/logic/tp";
 import { propertiesSystem } from "../systems/properties";
@@ -48,8 +42,8 @@ export abstract class Shape implements IShape {
     readonly id: LocalId;
 
     // The layer the shape is currently on
-    protected _floor!: FloorId | undefined;
-    protected _layer!: LayerName;
+    floorId: FloorId | undefined;
+    layerName: LayerName | undefined;
 
     // A reference point regarding that specific shape's structure
     protected _refPoint: GlobalPoint;
@@ -70,14 +64,9 @@ export abstract class Shape implements IShape {
     strokeWidth: number;
 
     assetId?: number;
-    groupId?: string;
 
     // Draw mode to use
     globalCompositeOperation: GlobalCompositeOperation = "source-over";
-
-    labels: Label[] = [];
-
-    badge = 0;
 
     showHighlight = false;
 
@@ -96,7 +85,7 @@ export abstract class Shape implements IShape {
 
     private floorIteration = -1;
     private visionIteration = -1;
-    private _visionPolygon: number[][] | undefined = undefined;
+    private _visionPolygon: [number, number][] | undefined = undefined;
     private _visionPath: Path2D | undefined = undefined;
     _visionBbox: BoundingRect | undefined = undefined;
 
@@ -147,13 +136,13 @@ export abstract class Shape implements IShape {
 
     // todo: Currently Aura changes do not trigger this, investigate if we want to do the extra effort
     private recalcVisionBbox(): void {
-        if (this._visionPolygon === undefined) {
+        if (this._visionPolygon === undefined || this._visionPolygon.length === 0) {
             this._visionBbox = undefined;
             return;
         }
 
-        let x = this._visionPolygon[0][0];
-        let y = this._visionPolygon[0][1];
+        let x = this._visionPolygon[0]![0];
+        let y = this._visionPolygon[0]![1];
         let leftX = x;
         let rightX = x;
         let topY = y;
@@ -172,17 +161,19 @@ export abstract class Shape implements IShape {
     }
 
     get visionPolygon(): Path2D {
+        if (this.floorId === undefined) return new Path2D();
+
         const floorIteration = floorState.readonly.iteration;
-        const visionIteration = visionState.getVisionIteration(this._floor!);
+        const visionIteration = visionState.getVisionIteration(this.floorId);
         const visionAltered = visionIteration !== this.visionIteration;
         if (this._visionPolygon === undefined || visionAltered) {
-            this._visionPolygon = computeVisibility(this.center, TriangulationTarget.VISION, this._floor!);
+            this._visionPolygon = computeVisibility(this.center, TriangulationTarget.VISION, this.floorId);
             this.visionIteration = visionIteration;
             this.recalcVisionBbox();
         }
         if (this._visionPath === undefined || floorIteration != this.floorIteration || visionAltered) {
             const path = new Path2D();
-            path.moveTo(g2lx(this._visionPolygon[0][0]), g2ly(this._visionPolygon[0][1]));
+            path.moveTo(g2lx(this._visionPolygon[0]![0]), g2ly(this._visionPolygon[0]![1]));
             for (const point of this._visionPolygon) path.lineTo(g2lx(point[0]), g2ly(point[1]));
             path.closePath();
             this._visionPath = path;
@@ -195,12 +186,15 @@ export abstract class Shape implements IShape {
 
     // POSITION
 
-    get floor(): Floor {
-        return floorSystem.getFloor({ id: this._floor! })!;
+    get floor(): Floor | undefined {
+        if (this.floorId === undefined) return undefined;
+        return floorSystem.getFloor({ id: this.floorId });
     }
 
-    get layer(): ILayer {
-        return floorSystem.getLayer(this.floor, this._layer)!;
+    get layer(): ILayer | undefined {
+        const floor = this.floor;
+        if (floor === undefined || this.layerName === undefined) return undefined;
+        return floorSystem.getLayer(floor, this.layerName);
     }
 
     get refPoint(): GlobalPoint {
@@ -211,8 +205,10 @@ export abstract class Shape implements IShape {
         this._center = this.__center();
         this.resetVisionIteration();
         this.invalidatePoints();
-        if (getProperties(this.id)?.isToken === true)
-            floorSystem.getLayer(this.floor, LayerName.Draw)?.invalidate(true);
+        if (getProperties(this.id)?.isToken === true) {
+            const floor = this.floor;
+            if (floor !== undefined) floorSystem.getLayer(floor, LayerName.Draw)?.invalidate(true);
+        }
     }
 
     get angle(): number {
@@ -225,8 +221,8 @@ export abstract class Shape implements IShape {
     }
 
     setLayer(floor: FloorId, layer: LayerName): void {
-        this._floor = floor;
-        this._layer = layer;
+        this.floorId = floor;
+        this.layerName = layer;
     }
 
     getPositionRepresentation(): { angle: number; points: [number, number][] } {
@@ -234,36 +230,43 @@ export abstract class Shape implements IShape {
     }
 
     setPositionRepresentation(position: { angle: number; points: [number, number][] }): void {
-        this._refPoint = toGP(position.points[0]);
+        if (position.points.length === 0) return;
+
+        this._refPoint = toGP(position.points[0]!);
         this._center = this.__center();
         this.angle = position.angle;
         this.resetVisionIteration();
         this.updateShapeVision(false, false);
-        if (getProperties(this.id)?.isToken === true)
-            floorSystem.getLayer(this.floor, LayerName.Draw)?.invalidate(true);
+        if (getProperties(this.id)?.isToken === true) {
+            const floor = this.floor;
+            if (floor !== undefined) floorSystem.getLayer(floor, LayerName.Draw)?.invalidate(true);
+        }
     }
 
     invalidate(skipLightUpdate: boolean): void {
-        if (this._layer !== undefined) this.layer.invalidate(skipLightUpdate);
+        if (this.layerName !== undefined) this.layer!.invalidate(skipLightUpdate);
     }
 
     // @mustOverride
     invalidatePoints(): void {
-        this.layer.updateSectors(this.id, this.getAuraAABB());
+        this.layer?.updateSectors(this.id, this.getAuraAABB());
         if (this.isSnappable) this.updateLayerPoints();
     }
 
     updateLayerPoints(): void {
-        for (const point of this.layer.points) {
+        for (const point of this.layer?.points ?? []) {
             if (point[1].has(this.id)) {
-                if (point[1].size === 1) this.layer.points.delete(point[0]);
+                if (point[1].size === 1) this.layer?.points.delete(point[0]);
                 else point[1].delete(this.id);
             }
         }
         for (const point of this.points) {
             const strp = JSON.stringify(point);
-            if (this.layer.points.has(strp)) this.layer.points.get(strp)!.add(this.id);
-            else this.layer.points.set(strp, new Set([this.id]));
+            const layer = this.layer;
+            if (layer !== undefined) {
+                if (layer.points.has(strp)) layer.points.get(strp)!.add(this.id);
+                else layer.points.set(strp, new Set([this.id]));
+            }
         }
     }
 
@@ -286,9 +289,9 @@ export abstract class Shape implements IShape {
 
     getPointOrientation(i: number): Vector {
         const points = this.points; // this is an expensive function
-        const prev = toGP(points[(points.length + i - 1) % points.length]);
-        const point = toGP(points[i]);
-        const next = toGP(points[(i + 1) % points.length]);
+        const prev = toGP(points[(points.length + i - 1) % points.length]!);
+        const point = toGP(points[i]!);
+        const next = toGP(points[(i + 1) % points.length]!);
         const vec = subtractP(next, prev);
         const mid = addP(prev, vec.multiply(0.5));
         return subtractP(point, mid).normalize();
@@ -320,15 +323,15 @@ export abstract class Shape implements IShape {
             const crossLength = g2lz(Math.min(bbox.w, bbox.h));
             const r = crossLength * 0.2;
             ctx.strokeStyle = "black";
-            ctx.fillStyle = props.strokeColour[0];
+            ctx.fillStyle = props.strokeColour[0]!;
             ctx.lineWidth = g2lz(2);
             ctx.beginPath();
             ctx.arc(location.x - r, location.y - r, r, 0, 2 * Math.PI);
             ctx.stroke();
             ctx.fill();
-            ctx.fillStyle = mostReadable(props.strokeColour[0]);
+            ctx.fillStyle = mostReadable(props.strokeColour[0]!);
 
-            const badgeChars = getBadgeCharacters(this);
+            const badgeChars = groupSystem.getBadgeCharacters(this.id);
             const scalingFactor = 2.3 - 0.5 * badgeChars.length;
             ctx.font = `${scalingFactor * r}px bold Calibri, sans-serif`;
             ctx.textAlign = "center";
@@ -347,7 +350,7 @@ export abstract class Shape implements IShape {
             const crossLength = g2lz(Math.max(bbox.w, bbox.h));
             const r = crossLength * 0.2;
             ctx.strokeStyle = "red";
-            ctx.fillStyle = props.strokeColour[0];
+            ctx.fillStyle = props.strokeColour[0]!;
             ctx.lineWidth = r / 5;
             ctx.beginPath();
             ctx.moveTo(crossTL.x + r, crossTL.y + r);
@@ -358,7 +361,7 @@ export abstract class Shape implements IShape {
         }
         // Draw tracker bars
         let barOffset = 0;
-        for (const tracker of trackerSystem.getAll(this.id, false)) {
+        for (const tracker of trackerSystem.getAll(this.id, true)) {
             if (tracker.draw && (tracker.visible || accessSystem.hasAccessTo(this.id, false, { vision: true }))) {
                 if (bbox === undefined) bbox = this.getBoundingBox();
                 ctx.strokeStyle = "black";
@@ -384,13 +387,16 @@ export abstract class Shape implements IShape {
     }
 
     drawSelection(ctx: CanvasRenderingContext2D): void {
-        const ogOp = this.layer.ctx.globalCompositeOperation;
-        if (ogOp !== "source-over") this.layer.ctx.globalCompositeOperation = "source-over";
+        const layer = this.layer;
+        if (layer === undefined) return;
+
+        const ogOp = layer.ctx.globalCompositeOperation;
+        if (ogOp !== "source-over") layer.ctx.globalCompositeOperation = "source-over";
         const bb = this.getBoundingBox();
         ctx.beginPath();
-        ctx.moveTo(g2lx(bb.points[0][0]), g2ly(bb.points[0][1]));
+        ctx.moveTo(g2lx(bb.points[0]![0]), g2ly(bb.points[0]![1]));
         for (let i = 1; i <= bb.points.length; i++) {
-            const vertex = bb.points[i % bb.points.length];
+            const vertex = bb.points[i % bb.points.length]!;
             ctx.lineTo(g2lx(vertex[0]), g2ly(vertex[1]));
         }
         ctx.stroke();
@@ -407,15 +413,15 @@ export abstract class Shape implements IShape {
 
         // Draw edges
         ctx.beginPath();
-        ctx.moveTo(g2lx(points[0][0]), g2ly(points[0][1]));
+        ctx.moveTo(g2lx(points[0]![0]), g2ly(points[0]![1]));
         const j = this.isClosed ? 0 : 1;
         for (let i = 1; i <= points.length - j; i++) {
-            const vertex = points[i % points.length];
+            const vertex = points[i % points.length]!;
             ctx.lineTo(g2lx(vertex[0]), g2ly(vertex[1]));
         }
         ctx.stroke();
 
-        if (ogOp !== "source-over") this.layer.ctx.globalCompositeOperation = ogOp;
+        if (ogOp !== "source-over") layer.ctx.globalCompositeOperation = ogOp;
     }
 
     // VISION
@@ -428,7 +434,7 @@ export abstract class Shape implements IShape {
                 shape: this.id,
             });
             visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.id });
-            visionState.recalculateVision(this.floor.id);
+            if (this.floorId !== undefined) visionState.recalculateVision(this.floorId);
         }
         this.invalidate(true);
         floorSystem.invalidateLightAllFloors();
@@ -438,7 +444,7 @@ export abstract class Shape implements IShape {
                 shape: this.id,
             });
             visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: this.id });
-            visionState.recalculateMovement(this.floor.id);
+            if (this.floorId !== undefined) visionState.recalculateMovement(this.floorId);
         }
     }
 
@@ -450,10 +456,11 @@ export abstract class Shape implements IShape {
             return new BoundingRect(this.refPoint, 5, 5);
         }
 
-        let minx = points[0][0];
-        let maxx = points[0][0];
-        let miny = points[0][1];
-        let maxy = points[0][1];
+        const firstPoint = points[0]!;
+        let minx = firstPoint[0];
+        let maxx = firstPoint[0];
+        let miny = firstPoint[1];
+        let maxy = firstPoint[1];
         for (const p of points.slice(1)) {
             if (p[0] < minx) minx = p[0];
             if (p[0] > maxx) maxx = p[0];
@@ -483,23 +490,24 @@ export abstract class Shape implements IShape {
         const defaultAccess = accessSystem.getDefault(this.id);
         const props = getProperties(this.id)!;
         const annotationInfo = annotationState.get(this.id);
+        const uuid = getGlobalId(this.id)!;
         return {
             type_: this.type,
-            uuid: getGlobalId(this.id),
+            uuid,
             x: this.refPoint.x,
             y: this.refPoint.y,
             angle: this.angle,
-            floor: floorSystem.getFloor({ id: this._floor! })!.name,
-            layer: this._layer,
+            floor: this.floor!.name,
+            layer: this.layerName!,
             draw_operator: this.globalCompositeOperation,
             movement_obstruction: props.blocksMovement,
             vision_obstruction: props.blocksVision,
-            auras: aurasToServer(getGlobalId(this.id), auraSystem.getAll(this.id, false)),
-            trackers: trackersToServer(getGlobalId(this.id), trackerSystem.getAll(this.id, false)),
-            labels: this.labels,
+            auras: aurasToServer(uuid, auraSystem.getAll(this.id, false)),
+            trackers: trackersToServer(uuid, trackerSystem.getAll(this.id, false)),
+            labels: labelSystem.getLabels(this.id),
             owners: accessSystem.getOwnersFull(this.id).map((o) => ownerToServer(o)),
             fill_colour: props.fillColour,
-            stroke_colour: props.strokeColour[0],
+            stroke_colour: props.strokeColour[0]!,
             stroke_width: this.strokeWidth,
             name: props.name,
             name_visible: props.nameVisible,
@@ -509,14 +517,14 @@ export abstract class Shape implements IShape {
             is_invisible: props.isInvisible,
             is_defeated: props.isDefeated,
             options: JSON.stringify(Object.entries(this.options)),
-            badge: this.badge,
+            badge: groupSystem.getBadge(this.id),
             show_badge: props.showBadge,
             is_locked: props.isLocked,
             default_edit_access: defaultAccess.edit,
             default_movement_access: defaultAccess.movement,
             default_vision_access: defaultAccess.vision,
             asset: this.assetId,
-            group: this.groupId,
+            group: groupSystem.getGroupId(this.id),
             ignore_zoom_size: this.ignoreZoomSize,
             is_door: doorSystem.isDoor(this.id),
             is_teleport_zone: teleportZoneSystem.isTeleportZone(this.id),
@@ -524,14 +532,13 @@ export abstract class Shape implements IShape {
     }
     fromDict(data: ServerShape): void {
         const options: Partial<ServerShapeOptions> =
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             data.options === undefined ? {} : Object.fromEntries(JSON.parse(data.options));
 
-        this._layer = data.layer;
-        this._floor = floorSystem.getFloor({ name: data.floor })!.id;
+        this.layerName = data.layer;
+        this.floorId = floorSystem.getFloor({ name: data.floor })!.id;
         this.angle = data.angle;
         this.globalCompositeOperation = data.draw_operator;
-        this.labels = data.labels;
-        this.badge = data.badge;
 
         propertiesSystem.inform(this.id, {
             name: data.name,
@@ -562,12 +569,13 @@ export abstract class Shape implements IShape {
         trackerSystem.inform(this.id, trackersFromServer(...data.trackers));
         doorSystem.inform(this.id, data.is_door, options.door);
         teleportZoneSystem.inform(this.id, data.is_teleport_zone, options.teleport);
+        labelSystem.inform(this.id, data.labels);
 
         this.ignoreZoomSize = data.ignore_zoom_size;
 
         if (data.options !== undefined) this.options = options;
         if (data.asset !== undefined) this.assetId = data.asset;
-        if (data.group !== undefined) this.groupId = data.group;
+        groupSystem.inform(this.id, { groupId: data.group, badge: data.badge });
     }
 
     // UTILITY
@@ -586,45 +594,5 @@ export abstract class Shape implements IShape {
             }
         }
         return false;
-    }
-
-    /**
-     * This utility function is used to avoid repetitive if checks.
-     * It returns a proper activeShapeStore function, if the current active shape is this shape.
-     * Otherwise it returns an empty function doing nothing.
-     *
-     * Its primary intended use is to update the UI if the current shape is being displayed.
-     *
-     * @param f A funtion name that exists on ActiveShapeStore
-     */
-    protected _<F extends FunctionPropertyNames<ActiveShapeStore>>(f: F): ActiveShapeStore[F] {
-        if (this.id === activeShapeStore.state.id)
-            return activeShapeStore[f].bind(activeShapeStore) as ActiveShapeStore[F];
-        return (..._: unknown[]) => {};
-    }
-
-    // GROUP
-
-    setGroupId(groupId: string | undefined, syncTo: Sync): void {
-        if (syncTo.ui) this._("setGroupId")(groupId, syncTo);
-
-        this.groupId = groupId;
-    }
-
-    // EXTRA
-
-    addLabel(label: string, syncTo: Sync): void {
-        if (syncTo.server) sendShapeAddLabel({ shape: getGlobalId(this.id), value: label });
-        if (syncTo.ui) this._("addLabel")(label, syncTo);
-
-        const l = getGameState().labels.get(label)!;
-        this.labels.push(l);
-    }
-
-    removeLabel(label: string, syncTo: Sync): void {
-        if (syncTo.server) sendShapeRemoveLabel({ shape: getGlobalId(this.id), value: label });
-        if (syncTo.ui) this._("removeLabel")(label, syncTo);
-
-        this.labels = this.labels.filter((l) => l.uuid !== label);
     }
 }

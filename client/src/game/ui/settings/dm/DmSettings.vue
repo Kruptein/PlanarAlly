@@ -3,7 +3,8 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
-import { uiStore } from "../../../../store/ui";
+import { uiSystem } from "../../../systems/ui";
+import { uiState } from "../../../systems/ui/state";
 import FloorSettings from "../location/FloorSettings.vue";
 import GridSettings from "../location/GridSettings.vue";
 import VariaSettings from "../location/VariaSettings.vue";
@@ -16,12 +17,17 @@ const { t } = useI18n();
 
 const visible = computed({
     get() {
-        return uiStore.state.showDmSettings;
+        return uiState.reactive.showDmSettings;
     },
     set(visible: boolean) {
-        uiStore.showDmSettings(visible);
+        uiSystem.showDmSettings(visible);
     },
 });
+
+function close(): void {
+    visible.value = false;
+}
+defineExpose({ close });
 
 const categoryNames = computed(() => {
     return [
@@ -35,9 +41,9 @@ const categoryNames = computed(() => {
 </script>
 
 <template>
-    <PanelModal v-model:visible="visible" :categories="categoryNames" :applyTranslation="true">
-        <template v-slot:title>{{ t("game.ui.settings.dm.DmSettings.dm_settings") }}</template>
-        <template v-slot:default="{ selection }">
+    <PanelModal v-model:visible="visible" :categories="categoryNames" :apply-translation="true">
+        <template #title>{{ t("game.ui.settings.dm.DmSettings.dm_settings") }}</template>
+        <template #default="{ selection }">
             <AdminSettings v-show="selection === DmSettingCategory.Admin" />
             <GridSettings v-show="selection === DmSettingCategory.Grid" />
             <VisionSettings v-show="selection === DmSettingCategory.Vision" />

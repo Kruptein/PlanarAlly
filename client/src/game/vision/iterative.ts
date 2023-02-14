@@ -26,7 +26,7 @@ function mergeConstraints(constraintA: Constraint, constraintB: Constraint): Con
     let iA = constraintA.segments.length - 1;
     let iB = constraintB.segments.length - 1;
     while (iA >= 0 && iB >= 0) {
-        const comp = xyCompare(constraintA.segments[iA][1].point!, constraintB.segments[iB][1].point!);
+        const comp = xyCompare(constraintA.segments[iA]![1].point!, constraintB.segments[iB]![1].point!);
         if (comp === Sign.SMALLER) {
             newSegmentList.unshift(constraintB.segments.pop()!);
             iB--;
@@ -42,7 +42,7 @@ function mergeConstraints(constraintA: Constraint, constraintB: Constraint): Con
     }
     if (iA >= 0) newSegmentList.unshift(...constraintA.segments.slice(0, iA + 1));
     if (iB >= 0) newSegmentList.unshift(...constraintB.segments.slice(0, iB + 1));
-    return { combined: [newSegmentList[0][0], newSegmentList.at(-1)![1]], segments: newSegmentList };
+    return { combined: [newSegmentList[0]![0], newSegmentList.at(-1)![1]], segments: newSegmentList };
 }
 
 interface NewConstraint {
@@ -55,7 +55,7 @@ export class IterativeDelete {
     private vertices: Vertex[];
     private edges: Edge[];
     private newConstraints: NewConstraint[];
-    private handledPoints: number[][];
+    private handledPoints: [number, number][];
     private cdt: CDT;
     private shape: IShape;
     private finalConstraints: [Vertex, Vertex][];
@@ -67,7 +67,10 @@ export class IterativeDelete {
         this.handledPoints = [];
         this.finalConstraints = [];
 
-        this.cdt = visionState.getCDT(target, shape.floor.id);
+        if (shape.floorId === undefined) {
+            throw new Error("Shape without floor passed");
+        }
+        this.cdt = visionState.getCDT(target, shape.floorId);
         this.shape = shape;
 
         this.deleteVertices();
@@ -79,9 +82,9 @@ export class IterativeDelete {
     private deleteVertices(): void {
         const vertices = this.cdt.tds.getTriagVertices(this.shape.id);
         const np = vertices.length;
-        let from = vertices[np - 1];
+        let from = vertices[np - 1]!;
         for (const [i, vertex] of vertices.entries()) {
-            const n = vertices[(i + 1) % np];
+            const n = vertices[(i + 1) % np]!;
             from = this.deleteVertex(vertex, from, n, true);
         }
     }
@@ -89,8 +92,8 @@ export class IterativeDelete {
     private joinConstraints(): void {
         for (let i = this.newConstraints.length - 1; i >= 0; i--) {
             for (let j = i - 1; j >= 0; j--) {
-                const A = this.newConstraints[i].edge;
-                const B = this.newConstraints[j].edge;
+                const A = this.newConstraints[i]!.edge;
+                const B = this.newConstraints[j]!.edge;
                 if (
                     equalPoints(A.combined[0].point!, B.combined[0].point!) &&
                     equalPoints(A.combined[1].point!, B.combined[1].point!)
@@ -109,13 +112,12 @@ export class IterativeDelete {
     }
 
     private trimConstraints(): void {
-        for (let i = 0; i < this.newConstraints.length; i++) {
-            const newConstraint = this.newConstraints[i];
+        for (const newConstraint of this.newConstraints) {
             if (!newConstraint.changed) continue;
             const constraint = newConstraint.edge;
             while (constraint.segments.length > 1 && this.vertices.includes(constraint.combined[0])) {
                 constraint.segments.shift();
-                constraint.combined[0] = constraint.segments[0][0];
+                constraint.combined[0] = constraint.segments[0]![0];
             }
             while (constraint.segments.length > 1 && this.vertices.includes(constraint.combined[1])) {
                 constraint.segments.pop();

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, ref, toRef } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../core/components/ColourPicker.vue";
 import { useModal } from "../../../core/plugins/modals/plugin";
-import { getGameState } from "../../../store/_game";
+import { gameState } from "../../systems/game/state";
 import { DOOR_TOGGLE_MODES } from "../../systems/logic/door/models";
 import { DrawCategory, DrawMode, DrawShape, drawTool } from "../../tools/variants/draw";
 import LogicPermissions from "../settings/shape/LogicPermissions.vue";
@@ -15,7 +15,6 @@ const modals = useModal();
 drawTool.setPromptFunction(modals.prompt);
 
 const hasBrushSize = drawTool.hasBrushSize;
-const isDm = toRef(getGameState(), "isDm");
 const modes = Object.values(DrawMode);
 const categories = Object.values(DrawCategory);
 const selected = drawTool.isActiveTool;
@@ -45,7 +44,7 @@ const showBorderColour = computed(() => {
 });
 
 const alerts = computed(() => {
-    const a: Set<string> = new Set();
+    const a = new Set<string>();
     if (drawTool.state.blocksMovement || drawTool.state.blocksVision) {
         a.add("eye");
     }
@@ -57,7 +56,7 @@ const alerts = computed(() => {
 </script>
 
 <template>
-    <div class="tool-detail" v-if="selected">
+    <div v-if="selected" class="tool-detail">
         <div id="draw-tool-categories">
             <div
                 v-for="category in categories"
@@ -67,8 +66,8 @@ const alerts = computed(() => {
                     'draw-category-option-selected': drawTool.state.selectedCategory === category,
                     'draw-category-alert': drawTool.state.selectedCategory !== category && alerts.has(category),
                 }"
-                @click="drawTool.state.selectedCategory = category"
                 :title="translationMapping[category]"
+                @click="drawTool.state.selectedCategory = category"
             >
                 <font-awesome-icon :icon="category" />
             </div>
@@ -81,8 +80,8 @@ const alerts = computed(() => {
                     :key="shape"
                     class="draw-select-option"
                     :class="{ 'draw-select-option-selected': drawTool.state.selectedShape === shape }"
-                    @click="drawTool.state.selectedShape = shape"
                     :title="translationMapping[shape]"
+                    @click="drawTool.state.selectedShape = shape"
                 >
                     <font-awesome-icon :icon="shape" />
                 </div>
@@ -93,34 +92,34 @@ const alerts = computed(() => {
             </div>
             <div class="draw-select-group">
                 <ColourPicker
+                    v-model:colour="drawTool.state.fillColour"
                     class="draw-select-option"
                     :class="{ 'radius-right': !showBorderColour }"
                     :title="t('game.ui.tools.DrawTool.foreground_color')"
-                    v-model:colour="drawTool.state.fillColour"
                 />
                 <ColourPicker
-                    class="draw-select-option"
-                    :vShow="showBorderColour"
-                    :title="t('game.ui.tools.DrawTool.background_color')"
                     v-model:colour="drawTool.state.borderColour"
+                    class="draw-select-option"
+                    :v-show="showBorderColour"
+                    :title="t('game.ui.tools.DrawTool.background_color')"
                 />
             </div>
             <div v-show="drawTool.state.selectedShape === DrawShape.Polygon" class="draw-checkbox-line">
                 <label for="polygon-close">{{ t("game.ui.tools.DrawTool.closed_polygon") }}</label>
-                <input type="checkbox" id="polygon-close" v-model="drawTool.state.isClosedPolygon" />
+                <input id="polygon-close" v-model="drawTool.state.isClosedPolygon" type="checkbox" />
             </div>
             <div v-show="hasBrushSize" class="draw-input-line">
                 <label for="brush-size">{{ t("game.ui.tools.DrawTool.brush_size") }}</label>
-                <input type="input" id="brush-size" v-model="drawTool.state.brushSize" />
+                <input id="brush-size" v-model="drawTool.state.brushSize" type="input" />
             </div>
             <div v-show="drawTool.state.selectedShape === DrawShape.Text" class="draw-input-line">
                 <label for="font-size">{{ t("game.ui.tools.DrawTool.font_size") }}</label>
-                <input type="number" id="font-size" v-model="drawTool.state.fontSize" />
+                <input id="font-size" v-model="drawTool.state.fontSize" type="number" />
             </div>
         </template>
         <template v-else-if="drawTool.state.selectedCategory === 'eye'">
             <div class="draw-center-header">{{ t("game.ui.tools.DrawTool.mode") }}</div>
-            <div v-show="isDm" class="draw-select-group">
+            <div v-show="gameState.reactive.isDm" class="draw-select-group">
                 <div
                     v-for="mode in modes"
                     :key="mode"
@@ -135,10 +134,10 @@ const alerts = computed(() => {
                 <div>{{ t("game.ui.selection.edit_dialog.dialog.block_vision_light") }}</div>
                 <div>
                     <input
-                        type="checkbox"
                         v-model="drawTool.state.blocksVision"
-                        @click="drawTool.state.blocksVision = !drawTool.state.blocksVision"
+                        type="checkbox"
                         :disabled="drawTool.state.selectedMode !== 'normal'"
+                        @click="drawTool.state.blocksVision = !drawTool.state.blocksVision"
                     />
                 </div>
             </div>
@@ -146,10 +145,10 @@ const alerts = computed(() => {
                 <div>{{ t("game.ui.selection.edit_dialog.dialog.block_movement") }}</div>
                 <div>
                     <input
-                        type="checkbox"
                         v-model="drawTool.state.blocksMovement"
-                        @click="drawTool.state.blocksMovement = !drawTool.state.blocksMovement"
+                        type="checkbox"
                         :disabled="drawTool.state.selectedMode !== 'normal'"
+                        @click="drawTool.state.blocksMovement = !drawTool.state.blocksMovement"
                     />
                 </div>
             </div>
@@ -166,10 +165,10 @@ const alerts = computed(() => {
             <div class="draw-logic-flex">
                 <label class="draw-logic-label" for="logic-dialog-door-toggle">Enabled</label>
                 <input
-                    class="draw-logic-checkbox"
                     id="logic-dialog-door-toggle"
-                    type="checkbox"
                     v-model="drawTool.state.isDoor"
+                    class="draw-logic-checkbox"
+                    type="checkbox"
                     @click="drawTool.state.isDoor = !drawTool.state.isDoor"
                 />
             </div>
@@ -179,8 +178,8 @@ const alerts = computed(() => {
                     <template v-for="mode of DOOR_TOGGLE_MODES" :key="mode">
                         <div
                             :class="{ 'selection-box-active': mode === drawTool.state.toggleMode }"
-                            @click="drawTool.state.toggleMode = mode"
                             style="text-transform: capitalize"
+                            @click="drawTool.state.toggleMode = mode"
                         >
                             {{ mode }}
                         </div>

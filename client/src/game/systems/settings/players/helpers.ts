@@ -24,6 +24,7 @@ export function playerOptionsToClient(options: Partial<ServerPlayerOptions>): Pa
         initiativeCameraLock: options.initiative_camera_lock,
         initiativeVisionLock: options.initiative_vision_lock,
         initiativeEffectVisibility: options.initiative_effect_visibility,
+        initiativeOpenOnActivate: options.initiative_open_on_activate,
 
         renderAllFloors: options.render_all_floors,
     };

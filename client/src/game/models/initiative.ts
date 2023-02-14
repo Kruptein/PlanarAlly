@@ -27,13 +27,14 @@ export enum InitiativeSort {
     Manual,
 }
 
-export type InitiativeSettings = {
+export interface InitiativeSettings {
     location: number;
     round: number;
     turn: number;
     sort: InitiativeSort;
     data: RawInitiativeData[];
-};
+    isActive: boolean;
+}
 
 export enum InitiativeEffectMode {
     ActiveAndHover = "active",

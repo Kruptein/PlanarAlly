@@ -23,7 +23,7 @@ export const activeTool = ref(ToolName.Select);
 
 const hasGameboard = coreStore.state.boardId !== undefined;
 
-export const toolMap: Record<string, ITool> = {
+export const toolMap: Record<ToolName, ITool> = {
     [ToolName.Select]: selectTool,
     [ToolName.Pan]: panTool,
     [ToolName.Draw]: drawTool,
@@ -36,6 +36,8 @@ export const toolMap: Record<string, ITool> = {
     [ToolName.LastGameboard]: lastGameboardTool,
     [ToolName.Dice]: diceTool,
 };
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+(window as any).toolMap = toolMap;
 
 const buildTools: [ToolName, ToolFeatures][] = [
     [ToolName.Select, {}],
@@ -105,5 +107,5 @@ export function getFeatures(tool: ToolName): ToolFeatures {
 }
 
 export function activateTool(tool: ToolName): void {
-    toolMap[tool].onSelect();
+    activeTool.value = tool;
 }

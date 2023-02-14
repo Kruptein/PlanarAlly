@@ -7,7 +7,7 @@ import { locationSettingsState } from "../location/state";
 
 import type { PlayerOptions } from "./models";
 
-type WithDefault<T> = { default: T; override?: T; value: T };
+interface WithDefault<T> { default: T; override?: T; value: T }
 const init = <T>(x: T): WithDefault<T> => ({ default: x, override: undefined, value: x });
 
 type PlayerState = { [key in keyof PlayerOptions]: WithDefault<PlayerOptions[key]> };
@@ -33,6 +33,7 @@ const state = buildState<PlayerState, "gridSize">({
     initiativeCameraLock: init(false),
     initiativeVisionLock: init(false),
     initiativeEffectVisibility: init(InitiativeEffectMode.ActiveAndHover),
+    initiativeOpenOnActivate: init(true),
 
     renderAllFloors: init(true),
 });

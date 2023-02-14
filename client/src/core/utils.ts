@@ -50,7 +50,7 @@ export function ctrlOrCmdPressed(event: KeyboardEvent | MouseEvent | TouchEvent)
     return event.ctrlKey;
 }
 
-const readableMemory: Map<string, string> = new Map();
+const readableMemory = new Map<string, string>();
 
 export function mostReadable(colour: string): string {
     const mem = readableMemory.get(colour);

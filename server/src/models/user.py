@@ -47,6 +47,7 @@ class UserOptions(BaseModel):
     initiative_camera_lock = BooleanField(default=False, null=True)
     initiative_vision_lock = BooleanField(default=False, null=True)
     initiative_effect_visibility = TextField(default="active", null=True)
+    initiative_open_on_activate = cast(bool, BooleanField(default=True, null=True))
 
     render_all_floors = BooleanField(default=True, null=True)
 
@@ -70,6 +71,7 @@ class UserOptions(BaseModel):
             initiative_camera_lock=None,
             initiative_vision_lock=None,
             initiative_effect_visibility=None,
+            initiative_open_on_activate=None,
             render_all_floors=None,
         )
 

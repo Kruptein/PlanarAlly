@@ -42,4 +42,5 @@ export const debugInfo = {
     },
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).layers = layers;

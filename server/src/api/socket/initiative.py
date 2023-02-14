@@ -158,6 +158,31 @@ async def update_initiative_option(sid: str, data: ServerInitiativeOption):
     )
 
 
+@sio.on("Initiative.Active.Set", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def set_initiative_active(sid: str, is_active: bool):
+    pr = game_state.get(sid)
+
+    if pr.role != Role.DM:
+        logger.warning(f"{pr.player.name} attempted to set initiative active state")
+        return
+
+    with db.atomic():
+        location_data, _ = Initiative.get_or_create(
+            location=pr.active_location, defaults={"round": 0, "turn": 0, "data": "[]"}
+        )
+        location_data.is_active = is_active
+        location_data.save()
+
+    await sio.emit(
+        "Initiative.Active.Set",
+        is_active,
+        pr.active_location.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )
+
+
 @sio.on("Initiative.Add", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def add_initiative(sid: str, data: ServerInitiativeData):

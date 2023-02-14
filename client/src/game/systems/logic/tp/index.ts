@@ -48,8 +48,8 @@ interface ReactiveTpState {
 }
 
 class TeleportZoneSystem implements ShapeSystem {
-    private enabled: Set<LocalId> = new Set();
-    private data: Map<LocalId, ClientTeleportOptions> = new Map();
+    private enabled = new Set<LocalId>();
+    private data = new Map<LocalId, ClientTeleportOptions>();
 
     // REACTIVE STATE
 
@@ -105,7 +105,10 @@ class TeleportZoneSystem implements ShapeSystem {
     }
 
     toggle(id: LocalId, enabled: boolean, syncTo: Sync): void {
-        if (syncTo.server) sendShapeIsTeleportZone({ shape: getGlobalId(id), value: enabled });
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeIsTeleportZone({ shape, value: enabled });
+        }
         if (this._state.id === id) this._state.enabled = enabled;
 
         if (enabled) {
@@ -122,7 +125,10 @@ class TeleportZoneSystem implements ShapeSystem {
             this.data.set(id, options);
         }
 
-        if (syncTo.server) sendShapeIsImmediateTeleportZone({ shape: getGlobalId(id), value: immediate });
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeIsImmediateTeleportZone({ shape, value: immediate });
+        }
         if (this._state.id === id) this._state.immediate = immediate;
 
         options.immediate = immediate;
@@ -143,7 +149,10 @@ class TeleportZoneSystem implements ShapeSystem {
             this.data.set(id, options);
         }
 
-        if (syncTo.server) sendShapeTeleportZonePermissions({ shape: getGlobalId(id), value: permissions });
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeTeleportZonePermissions({ shape, value: permissions });
+        }
         if (this._state.id === id) this._state.permissions = permissions;
         options.permissions = permissions;
     }
@@ -159,7 +168,10 @@ class TeleportZoneSystem implements ShapeSystem {
             this.data.set(id, options);
         }
 
-        if (syncTo.server) sendShapeTeleportZoneTarget({ shape: getGlobalId(id), value: target });
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeTeleportZoneTarget({ shape, value: target });
+        }
         if (this._state.id === id) this._state.target = target;
 
         options.location = target;
@@ -180,10 +192,10 @@ class TeleportZoneSystem implements ShapeSystem {
                 if (
                     shape.id === tp ||
                     getProperties(shape.id)!.isLocked ||
-                    (locationSettingsState.raw.spawnLocations.value.includes(getGlobalId(shape.id)) ?? false)
+                    locationSettingsState.raw.spawnLocations.value.includes(getGlobalId(shape.id)!)
                 )
                     continue;
-                if (tpShape.floor.id === shape.floor.id && tpShape.contains(shape.center)) {
+                if (tpShape.floor?.id === shape.floorId && tpShape.contains(shape.center)) {
                     shapesToMove.push(shape.id);
                 }
             }
@@ -196,12 +208,14 @@ class TeleportZoneSystem implements ShapeSystem {
                         toast.info("Request to use teleport zone sent", {
                             position: POSITION.TOP_RIGHT,
                         });
-                        sendRequest({
-                            fromZone: getGlobalId(tp),
-                            toZone,
-                            transfers: shapesToMove.map((s) => getGlobalId(s)),
-                            logic: "tp",
-                        });
+                        const gId = getGlobalId(tp);
+                        if (gId)
+                            sendRequest({
+                                fromZone: gId,
+                                toZone,
+                                transfers: shapesToMove.map((s) => getGlobalId(s)!),
+                                logic: "tp",
+                            });
                     } else {
                         await teleport(tp, toZone, shapesToMove);
                     }

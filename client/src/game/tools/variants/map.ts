@@ -9,7 +9,7 @@ import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/sh
 import type { IShape } from "../../interfaces/shape";
 import type { IRect } from "../../interfaces/shapes/rect";
 import { ToolName } from "../../models/tools";
-import type { ToolPermission } from "../../models/tools";
+import type { ITool, ToolPermission } from "../../models/tools";
 import { Rect } from "../../shapes/variants/rect";
 import { floorState } from "../../systems/floors/state";
 import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
@@ -17,7 +17,7 @@ import { selectedSystem } from "../../systems/selected";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
 
-class MapTool extends Tool {
+class MapTool extends Tool implements ITool {
     readonly toolName = ToolName.Map;
     readonly toolTranslation = i18n.global.t("tool.Map");
 
@@ -52,7 +52,7 @@ class MapTool extends Tool {
     }
 
     setSelection(shapes: readonly IShape[]): void {
-        if (shapes.length === 1 && this.shape === undefined && ["assetrect", "rect"].includes(shapes[0].type)) {
+        if (shapes.length === 1 && this.shape === undefined && ["assetrect", "rect"].includes(shapes[0]!.type)) {
             this.shape = shapes[0] as IRect;
             this.state.hasShape = true;
             this.ogRP = this.shape.refPoint;
@@ -91,10 +91,9 @@ class MapTool extends Tool {
         this.state.manualDrag = true;
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onDown(lp: LocalPoint): Promise<void> {
-        if (!this.state.manualDrag) return;
-        if (this.rect !== undefined || !selectedSystem.hasSelection) return;
+    onDown(lp: LocalPoint): Promise<void> {
+        if (!this.state.manualDrag) return Promise.resolve();
+        if (this.rect !== undefined || !selectedSystem.hasSelection) return Promise.resolve();
 
         const startPoint = l2g(lp);
 
@@ -116,11 +115,11 @@ class MapTool extends Tool {
         this.rect.preventSync = true;
         layer.addShape(this.rect, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         selectedSystem.set(this.rect.id);
+        return Promise.resolve();
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onMove(lp: LocalPoint): Promise<void> {
-        if (!this.active.value || this.rect === undefined || this.startPoint === undefined) return;
+    onMove(lp: LocalPoint): Promise<void> {
+        if (!this.active.value || this.rect === undefined || this.startPoint === undefined) return Promise.resolve();
 
         const endPoint = l2g(lp);
 
@@ -130,22 +129,23 @@ class MapTool extends Tool {
         this.rect.h = Math.abs(endPoint.y - this.startPoint.y);
         this.rect.refPoint = toGP(Math.min(this.startPoint.x, endPoint.x), Math.min(this.startPoint.y, endPoint.y));
         layer.invalidate(false);
+        return Promise.resolve();
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onUp(): Promise<void> {
-        if (!this.active.value || this.rect === undefined) return;
+    onUp(): Promise<void> {
+        if (!this.active.value || this.rect === undefined) return Promise.resolve();
 
         this.active.value = false;
 
         if (selectedSystem.$.value.size !== 1) {
             this.removeRect();
-            return;
+            return Promise.resolve();
         }
 
         this.permittedTools_ = [
             { name: ToolName.Select, features: { enabled: [SelectFeatures.Drag, SelectFeatures.Resize] } },
         ];
+        return Promise.resolve();
     }
 
     preview(temporary: boolean): void {

@@ -4,12 +4,15 @@ import type { CSSProperties } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { baseAdjust } from "../../../core/http";
-import { getGameState } from "../../../store/_game";
 import { coreStore } from "../../../store/core";
 import { ToolMode, ToolName } from "../../models/tools";
 import { accessState } from "../../systems/access/state";
+import { gameSystem } from "../../systems/game";
+import { gameState } from "../../systems/game/state";
+import { labelState } from "../../systems/labels/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { activeModeTools, activeTool, activeToolMode, dmTools, toggleActiveMode, toolMap } from "../../tools/tools";
+import { initiativeStore } from "../initiative/state";
 
 import DiceTool from "./DiceTool.vue";
 import DrawTool from "./DrawTool.vue";
@@ -33,7 +36,7 @@ const visibleTools = computed(() => {
     {
         const tools = [];
         for (const [toolName] of activeModeTools.value) {
-            if (dmTools.includes(toolName) && !getGameState().isDm) continue;
+            if (dmTools.includes(toolName) && !gameState.reactive.isDm) continue;
             if (!isToolVisible(toolName)) continue;
 
             const tool = toolMap[toolName];
@@ -63,7 +66,7 @@ function updateDetails(): void {
 
 function isToolVisible(tool: ToolName): boolean {
     if (tool === ToolName.Filter) {
-        return getGameState().labels.size > 0;
+        return labelState.raw.labels.size > 0;
     } else if (tool === ToolName.Vision) {
         return accessState.raw.ownedTokens.size > 1;
     }
@@ -93,6 +96,10 @@ const toolModes = computed(() => {
         { name: t("tool.Play"), style: getStyle(ToolMode.Play) },
     ];
 });
+
+function toggleFakePlayer(): void {
+    gameSystem.setFakePlayer(!gameState.raw.isFakePlayer);
+}
 </script>
 
 <template>
@@ -104,10 +111,10 @@ const toolModes = computed(() => {
             <ul>
                 <li
                     v-for="tool in visibleTools"
+                    :id="tool.name + '-selector'"
                     :key="tool.name"
                     class="tool"
                     :class="{ 'tool-selected': activeTool === tool.name, 'tool-alert': tool.alert }"
-                    :id="tool.name + '-selector'"
                     @click="activeTool = tool.name"
                 >
                     <a href="#" :title="tool.translation">
@@ -119,10 +126,27 @@ const toolModes = computed(() => {
                 </li>
                 <li id="tool-mode"></li>
             </ul>
-            <div id="tool-mode-full" @click="toggleActiveMode" :title="t('game.ui.tools.tools.change_mode')">
-                <template v-if="!hasGameboard">
-                    <span v-for="mode of toolModes" :style="mode.style" :key="mode.name">{{ mode.name }}</span>
-                </template>
+            <div v-if="!hasGameboard" id="tool-status">
+                <div v-if="gameState.isDmOrFake.value" id="tool-status-toggles">
+                    <div
+                        :class="{ active: gameState.reactive.isFakePlayer }"
+                        title="Toggle fake-player"
+                        @click="toggleFakePlayer"
+                    >
+                        FP
+                    </div>
+                    <div
+                        :class="{ active: initiativeStore.state.isActive }"
+                        title="Toggle Initiative State"
+                        @click="initiativeStore.toggleActive"
+                    >
+                        INI
+                    </div>
+                </div>
+                <div style="flex-grow: 1"></div>
+                <div id="tool-status-modes" :title="t('game.ui.tools.tools.change_mode')" @click="toggleActiveMode">
+                    <span v-for="mode of toolModes" :key="mode.name" :style="mode.style">{{ mode.name }}</span>
+                </div>
             </div>
         </div>
         <div>
@@ -147,11 +171,10 @@ const toolModes = computed(() => {
 
 #toolselect {
     position: absolute;
-    bottom: 15px;
+    bottom: 0.8rem;
     right: 25px;
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
 
     * {
         user-select: none !important;
@@ -192,13 +215,40 @@ const toolModes = computed(() => {
         }
     }
 
-    #tool-mode-full {
-        background-color: cadetblue;
-        padding: 0.3em 0.75em;
-        border-radius: 0 0 10px 10px;
+    #tool-status {
+        display: flex;
 
-        span + span {
-            padding-left: 10px;
+        #tool-status-toggles {
+            padding-top: 0.3em;
+            display: flex;
+
+            > div {
+                margin: 0 0.5rem;
+                background-color: rgba(0, 0, 0, 0.25);
+                padding: 5px;
+                border-radius: 7px;
+                border: solid 2px white;
+                color: white;
+
+                &:hover {
+                    cursor: pointer;
+                }
+
+                &.active {
+                    border-color: #39ff14;
+                    color: #39ff14;
+                }
+            }
+        }
+
+        #tool-status-modes {
+            background-color: cadetblue;
+            padding: 0.3em 0.75em;
+            border-radius: 0 0 10px 10px;
+
+            span + span {
+                padding-left: 10px;
+            }
         }
     }
 }

@@ -8,7 +8,7 @@ import { EdgeIterator } from "../vision/tds";
 import type { Edge, TDS } from "../vision/tds";
 import { ccw, cw } from "../vision/triag";
 
-function drawPoint(point: number[], r: number, options?: { colour?: string; fill?: boolean }): void {
+function drawPoint(point: [number, number], r: number, options?: { colour?: string; fill?: boolean }): void {
     const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
     const ctx = dl.ctx;
@@ -25,7 +25,7 @@ function drawPoint(point: number[], r: number, options?: { colour?: string; fill
     if (options?.fill === true) ctx.fill();
 }
 
-function drawPointL(point: number[], r: number, colour?: string): void {
+function drawPointL(point: [number, number], r: number, colour?: string): void {
     const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
     const ctx = dl.ctx;
@@ -40,9 +40,11 @@ function drawPointL(point: number[], r: number, colour?: string): void {
 }
 
 export function drawPolygon(
-    polygon: number[][],
+    polygon: [number, number][],
     options?: { colour?: string; strokeWidth?: number; close?: boolean; debug?: boolean },
 ): void {
+    if (polygon.length === 0) return;
+
     const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
     const ctx = dl.ctx;
@@ -54,8 +56,8 @@ export function drawPolygon(
         options?.colour === undefined
             ? `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})`
             : options.colour;
-    const x = g2lx(polygon[0][0]);
-    const y = g2ly(polygon[0][1]);
+    const x = g2lx(polygon[0]![0]);
+    const y = g2ly(polygon[0]![1]);
     ctx.moveTo(x, y);
     if (options?.debug ?? false) console.log(x, y);
     for (const point of polygon) {
@@ -69,7 +71,9 @@ export function drawPolygon(
     ctx.stroke();
 }
 
-function drawPolygonL(polygon: number[][], colour?: string): void {
+function drawPolygonL(polygon: [number, number][], colour?: string): void {
+    if (polygon.length === 0) return;
+
     const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
     const ctx = dl.ctx;
@@ -79,7 +83,7 @@ function drawPolygonL(polygon: number[][], colour?: string): void {
     ctx.beginPath();
     ctx.strokeStyle =
         colour === undefined ? `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})` : colour;
-    ctx.moveTo(polygon[0][0], polygon[0][1]);
+    ctx.moveTo(polygon[0]![0], polygon[0]![1]);
     for (const point of polygon) {
         ctx.lineTo(point[0], point[1]);
     }
@@ -101,8 +105,8 @@ let I = 0;
 let J = 0;
 
 export function drawLine(
-    from: number[],
-    to: number[],
+    from: [number, number],
+    to: [number, number],
     local: boolean,
     options?: { constrained?: boolean; lineWidth?: number; strokeStyle?: string },
 ): void {
@@ -117,7 +121,7 @@ export function drawLine(
     const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
     const ctx = dl.ctx;
-    if (options?.lineWidth !== undefined) ctx.lineWidth = options?.lineWidth;
+    if (options?.lineWidth !== undefined) ctx.lineWidth = options.lineWidth;
     ctx.beginPath();
     if (options?.strokeStyle !== undefined) ctx.strokeStyle = options.strokeStyle;
     else ctx.strokeStyle = constrained ? "rgba(255, 255, 0, 0.30)" : "rgba(0, 0, 0, 0.30)";
@@ -141,7 +145,7 @@ export function drawTear(ray: Ray<LocalPoint>, options?: { fillColour?: string }
     const r = 34.5;
     const angleA = angleRay - Math.PI / 2 - toRadians(30);
     const angleB = angleA + Math.PI + toRadians(60);
-    const c = [b[0] + r * Math.cos(angleA), b[1] + r * Math.sin(angleA)];
+    const c = [b[0] + r * Math.cos(angleA), b[1] + r * Math.sin(angleA)] as [number, number];
 
     ctx.beginPath();
     ctx.lineJoin = "miter";
@@ -164,8 +168,8 @@ export function drawTear(ray: Ray<LocalPoint>, options?: { fillColour?: string }
 }
 
 function drawEdge(edge: Edge, colour: string, local = false): void {
-    const from = edge.first!.vertices[edge.second === 0 ? 1 : 0]!.point!;
-    const to = edge.first!.vertices[edge.second === 2 ? 1 : 2]!.point!;
+    const from = edge.first!.vertices[edge.second === 0 ? 1 : 0]!.point as [number, number];
+    const to = edge.first!.vertices[edge.second === 2 ? 1 : 2]!.point as [number, number];
     const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
     const ctx = dl.ctx;
@@ -191,18 +195,20 @@ function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0)
     const ei = new EdgeIterator(tds);
     while (!ei.valid) ei.next();
     do {
-        const fromP = ei.edge.first!.vertices[ccw(ei.edge.second)]!.point!;
-        const toP = ei.edge.first!.vertices[cw(ei.edge.second)]!.point!;
+        const fromP = ei.edge.first!.vertices[ccw(ei.edge.second)]!.point as [number, number];
+        const toP = ei.edge.first!.vertices[cw(ei.edge.second)]!.point as [number, number];
         if (logs > 0) {
             if (fromP[0] === -Infinity || toP[0] === -Infinity) {
                 ei.next();
                 continue;
             }
             J++;
-            if (ei.edge.first!.constraints[ei.edge.second]) {
+            if (ei.edge.first!.constraints[ei.edge.second] === true) {
                 I++;
-                if (logs === 2) console.log(`Edge: (*) ${fromP} > ${toP}   (${ei.edge.first!.uid})`);
-            } else if (logs === 2) console.log(`Edge: ${fromP} > ${toP}   (${ei.edge.first!.uid})`);
+                if (logs === 2)
+                    console.log(`Edge: (*) ${fromP.toString()} > ${toP.toString()}   (${ei.edge.first!.uid})`);
+            } else if (logs === 2)
+                console.log(`Edge: ${fromP.toString()} > ${toP.toString()}   (${ei.edge.first!.uid})`);
         }
         ei.next();
     } while (ei.valid);
@@ -214,31 +220,37 @@ function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0)
         if (t.vertices[0] !== undefined) {
             po.push(t.vertices[0]!.point);
             ctx.beginPath();
-            ctx.arc(x(t.vertices[0]!.point![0], local), y(t.vertices[0]!.point![1], local), 5, 0, 2 * Math.PI);
+            ctx.arc(x(t.vertices[0]!.point![0]!, local), y(t.vertices[0]!.point![1]!, local), 5, 0, 2 * Math.PI);
             ctx.closePath();
             ctx.fill();
         }
         if (t.vertices[1] !== undefined) {
             po.push(t.vertices[1]!.point);
-            ctx.arc(x(t.vertices[1]!.point![0], local), y(t.vertices[1]!.point![1], local), 5, 0, 2 * Math.PI);
+            ctx.arc(x(t.vertices[1]!.point![0]!, local), y(t.vertices[1]!.point![1]!, local), 5, 0, 2 * Math.PI);
             ctx.closePath();
             ctx.fill();
         }
         if (t.vertices[2] !== undefined) {
             po.push(t.vertices[2]!.point);
-            ctx.arc(x(t.vertices[2]!.point![0], local), y(t.vertices[2]!.point![1], local), 5, 0, 2 * Math.PI);
+            ctx.arc(x(t.vertices[2]!.point![0]!, local), y(t.vertices[2]!.point![1]!, local), 5, 0, 2 * Math.PI);
             ctx.closePath();
             ctx.fill();
         }
         if (logs === 2) console.log(`[T ${t.uid}] `, ...po, t.constraints);
 
-        ctx.moveTo(x(t.vertices[0]!.point![0], local), y(t.vertices[0]!.point![1], local));
+        ctx.moveTo(x(t.vertices[0]!.point![0]!, local), y(t.vertices[0]!.point![1]!, local));
         if (t.vertices[0] !== undefined && t.vertices[1] !== undefined)
-            drawLine(t.vertices[0]!.point!, t.vertices[1]!.point!, local, { constrained: t.constraints[2] });
+            drawLine(t.vertices[0]!.point as [number, number], t.vertices[1]!.point as [number, number], local, {
+                constrained: t.constraints[2],
+            });
         if (t.vertices[1] !== undefined && t.vertices[2] !== undefined)
-            drawLine(t.vertices[1]!.point!, t.vertices[2]!.point!, local, { constrained: t.constraints[0] });
+            drawLine(t.vertices[1]!.point as [number, number], t.vertices[2]!.point as [number, number], local, {
+                constrained: t.constraints[0],
+            });
         if (t.vertices[2] !== undefined && t.vertices[0] !== undefined)
-            drawLine(t.vertices[2]!.point!, t.vertices[0]!.point!, local, { constrained: t.constraints[1] });
+            drawLine(t.vertices[2]!.point as [number, number], t.vertices[0]!.point as [number, number], local, {
+                constrained: t.constraints[1],
+            });
     }
     if (logs > 0) {
         console.log(`Edges: ${I}/${J}`);
@@ -251,20 +263,28 @@ function showLayerPoints(): void {
     const dL = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw)!;
     dL.ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     for (const point of layer.points.keys()) {
-        const parsedPoint = JSON.parse(point);
+        const parsedPoint = JSON.parse(point) as [number, number];
         dL.ctx.beginPath();
         dL.ctx.arc(g2lx(parsedPoint[0]), g2ly(parsedPoint[1]), 5, 0, 2 * Math.PI);
         dL.ctx.fill();
     }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).drawPoint = drawPoint;
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).drawPointLocal = drawPointL;
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).drawLine = drawLine;
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).DE = drawEdge;
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).DP = drawPolygon;
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).DPL = drawPolygonL;
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).DPT = drawPolygonT;
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).showLayerPoints = showLayerPoints;
 
 // COMMON DEBUG CODE

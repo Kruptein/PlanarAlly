@@ -8,10 +8,11 @@ function fromLGtoPA(points: [number, number]): GlobalPoint {
     return l2g(toLP(points[0] * 2560, points[1] * 2560));
 }
 
-const TOK_SESSION: Map<number, TokMessage> = new Map();
+const TOK_SESSION = new Map<number, TokMessage>();
 
-(window as any).onTokMessageReceived = (data: any) => {
-    const messages: TokMessage[] = JSON.parse(data);
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+(window as any).onTokMessageReceived = (data: string) => {
+    const messages = JSON.parse(data) as TokMessage[];
     for (const msg of messages) {
         const sId = msg.sessionId;
         const tId = msg.typeId;

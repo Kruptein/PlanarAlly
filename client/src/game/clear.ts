@@ -1,4 +1,3 @@
-import { gameStore } from "../store/game";
 import { lastGameboardStore } from "../store/lastGameboard";
 import { locationStore } from "../store/location";
 
@@ -11,7 +10,6 @@ import { visionState } from "./vision/state";
 
 export function clearGame(partial: boolean): void {
     stopDrawLoop();
-    gameStore.clear();
     visionState.clear();
     locationStore.setLocations([], false);
     document.getElementById("layers")!.innerHTML = "";

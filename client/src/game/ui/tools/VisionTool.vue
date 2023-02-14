@@ -32,7 +32,7 @@ function getImageSrc(token: IShape): string {
 </script>
 
 <template>
-    <div class="tool-detail" v-if="selected">
+    <div v-if="selected" class="tool-detail">
         <div
             v-for="token in tokens"
             :key="token.id"
@@ -40,7 +40,7 @@ function getImageSrc(token: IShape): string {
             :class="{ selected: selection.has(token.id) }"
             @click="toggle(token.id)"
         >
-            <img :src="getImageSrc(token)" width="30px" height="30px" v-if="getImageSrc(token) !== ''" alt="" />
+            <img v-if="getImageSrc(token) !== ''" :src="getImageSrc(token)" width="30px" height="30px" alt="" />
             <div>{{ getProperties(token.id)!.name }}</div>
         </div>
     </div>

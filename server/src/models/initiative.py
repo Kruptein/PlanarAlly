@@ -1,7 +1,7 @@
 import json
 from typing import cast
 
-from peewee import ForeignKeyField, IntegerField, TextField
+from peewee import BooleanField, ForeignKeyField, IntegerField, TextField
 from playhouse.shortcuts import model_to_dict
 
 from . import Location
@@ -19,8 +19,12 @@ class Initiative(BaseModel):
     turn = cast(int, IntegerField())
     sort = cast(int, IntegerField(default=0))
     data = cast(str, TextField())
+    is_active = cast(bool, BooleanField(default=False))
 
     def as_dict(self):
-        initiative = model_to_dict(self, recurse=False, exclude=[Initiative.id])
+        initiative = model_to_dict(
+            self, recurse=False, exclude=[Initiative.id, Initiative.is_active]
+        )
         initiative["data"] = json.loads(initiative["data"])
+        initiative["isActive"] = self.is_active
         return initiative

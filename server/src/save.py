@@ -1,3 +1,4 @@
+# ruff: noqa
 """
 This file is responsible for migrating old save files to new versions.
 
@@ -13,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 83
+SAVE_VERSION = 85
 
 import json
 import logging
@@ -363,6 +364,28 @@ def upgrade(db: SqliteExtDatabase, version: int):
                         "UPDATE location_options SET spawn_locations=? WHERE id=?",
                         (json.dumps(unpacked_spawn_locations), lo_id),
                     )
+    elif version == 83:
+        # Add Initiative.is_active
+        # Add UserOptions.initiative_open_on_activate
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE initiative ADD COLUMN is_active INTEGER DEFAULT 0 NOT NULL"
+            )
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN initiative_open_on_activate INTEGER DEFAULT 1"
+            )
+            db.execute_sql(
+                "UPDATE user_options SET initiative_open_on_activate = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
+            )
+    elif version == 84:
+        # Add LocationOptions.limit_movement_during_initiative
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE location_options ADD COLUMN limit_movement_during_initiative INTEGER DEFAULT 0"
+            )
+            db.execute_sql(
+                "UPDATE location_options SET limit_movement_during_initiative = NULL WHERE id NOT IN (SELECT default_options_id FROM room)"
+            )
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

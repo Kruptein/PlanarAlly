@@ -42,8 +42,8 @@ export abstract class Tool implements ITool {
     async onMouseMove(event: MouseEvent, features: ToolFeatures): Promise<void> {
         await this.onMove(getLocalPointFromEvent(event), event, features);
     }
-    onTouchStart(event: TouchEvent, features: ToolFeatures): void {
-        this.onDown(getLocalPointFromEvent(event), event, features);
+    async onTouchStart(event: TouchEvent, features: ToolFeatures): Promise<void> {
+        await this.onDown(getLocalPointFromEvent(event), event, features);
     }
     async onTouchEnd(event: TouchEvent, features: ToolFeatures): Promise<void> {
         await this.onUp(getLocalPointFromEvent(event), event, features);
@@ -56,13 +56,23 @@ export abstract class Tool implements ITool {
     onPinchStart(_event: TouchEvent, _features: ToolFeatures): void {}
     onPinchMove(_event: TouchEvent, _features: ToolFeatures): void {}
     onPinchEnd(_event: TouchEvent, _features: ToolFeatures): void {}
-    onContextMenu(_event: MouseEvent, _features: ToolFeatures): void {}
+    onContextMenu(_event: MouseEvent, _features: ToolFeatures): Promise<boolean> {
+        return Promise.resolve(true);
+    }
 
-    async onSelect(): Promise<void> {}
+    onSelect(): Promise<void> {
+        return Promise.resolve();
+    }
     onDeselect(): void {}
-    async onDown(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): Promise<void> {}
-    async onUp(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): Promise<void> {}
-    async onMove(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): Promise<void> {}
+    onDown(_lp: LocalPoint, _event: MouseEvent | TouchEvent | undefined, _features: ToolFeatures): Promise<void> {
+        return Promise.resolve();
+    }
+    onUp(_lp: LocalPoint, _event: MouseEvent | TouchEvent | undefined, _features: ToolFeatures): Promise<void> {
+        return Promise.resolve();
+    }
+    onMove(_lp: LocalPoint, _event: MouseEvent | TouchEvent | undefined, _features: ToolFeatures): Promise<void> {
+        return Promise.resolve();
+    }
 
     onToolsModeChange(_mode: ToolMode, _features: ToolFeatures): void {}
     onPanStart(): void {}

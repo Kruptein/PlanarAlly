@@ -3,8 +3,8 @@ import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { getValue } from "../../../../core/utils";
-import { getGameState } from "../../../../store/_game";
-import { gameStore } from "../../../../store/game";
+import { gameSystem } from "../../../systems/game";
+import { gameState } from "../../../systems/game/state";
 import { locationSettingsSystem } from "../../../systems/settings/location";
 import { locationSettingsState } from "../../../systems/settings/location/state";
 import { VisibilityMode, visionState } from "../../../vision/state";
@@ -22,10 +22,10 @@ const location = computed(() => (isGlobal.value ? undefined : props.location));
 
 const fakePlayer = computed({
     get() {
-        return getGameState().isFakePlayer;
+        return gameState.reactive.isFakePlayer;
     },
     set(isFakePlayer: boolean) {
-        gameStore.setFakePlayer(isFakePlayer);
+        gameSystem.setFakePlayer(isFakePlayer);
     },
 });
 
@@ -90,6 +90,7 @@ function changeVisionMode(event: Event): void {
 }
 
 function o(k: any): boolean {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return getOption(k, location.value).override !== undefined;
 }
 </script>
@@ -109,22 +110,22 @@ function o(k: any): boolean {
             </template>
         </div>
         <div class="spanrow header">{{ t("game.ui.settings.VisionSettings.core") }}</div>
-        <div class="row" v-if="isGlobal">
+        <div v-if="isGlobal" class="row">
             <label for="fakePlayerInput">{{ t("game.ui.settings.VisionSettings.fake_player") }}</label>
             <div>
-                <input id="fakePlayerInput" type="checkbox" v-model="fakePlayer" />
+                <input id="fakePlayerInput" v-model="fakePlayer" type="checkbox" />
             </div>
             <div></div>
         </div>
         <div class="row" :class="{ overwritten: !isGlobal && o($.fullFow) }">
             <label :for="'useFOWInput-' + location">{{ t("game.ui.settings.VisionSettings.fill_fow") }}</label>
             <div>
-                <input :id="'useFOWInput-' + location" type="checkbox" v-model="fullFow" />
+                <input :id="'useFOWInput-' + location" v-model="fullFow" type="checkbox" />
             </div>
             <div
                 v-if="!isGlobal && o($.fullFow)"
-                @click="fullFow = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
+                @click="fullFow = undefined"
             >
                 <font-awesome-icon icon="times-circle" />
             </div>
@@ -133,12 +134,12 @@ function o(k: any): boolean {
         <div class="row" :class="{ overwritten: !isGlobal && o($.fowLos) }">
             <label :for="'fowLos-' + location">{{ t("game.ui.settings.VisionSettings.only_show_lights_los") }}</label>
             <div>
-                <input :id="'fowLos-' + location" type="checkbox" v-model="fowLos" />
+                <input :id="'fowLos-' + location" v-model="fowLos" type="checkbox" />
             </div>
             <div
                 v-if="!isGlobal && o($.fowLos)"
-                @click="fowLos = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
+                @click="fowLos = undefined"
             >
                 <font-awesome-icon icon="times-circle" />
             </div>
@@ -149,24 +150,24 @@ function o(k: any): boolean {
             <div>
                 <input
                     :id="'fowOpacity-' + location"
+                    v-model.number="fowOpacity"
                     type="number"
                     min="0"
                     max="1"
                     step="0.1"
-                    v-model.number="fowOpacity"
                 />
             </div>
             <div
                 v-if="!isGlobal && o($.fowOpacity)"
-                @click="fowOpacity = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
+                @click="fowOpacity = undefined"
             >
                 <font-awesome-icon icon="times-circle" />
             </div>
             <div v-else></div>
         </div>
         <div class="spanrow header">{{ t("game.ui.settings.VisionSettings.advanced") }}</div>
-        <div class="row" v-if="isGlobal">
+        <div v-if="isGlobal" class="row">
             <label :for="'visionMode-' + location">{{ t("game.ui.settings.VisionSettings.vision_mode") }}</label>
             <div>
                 <select :id="'visionMode-' + location" @change="changeVisionMode">
@@ -185,16 +186,16 @@ function o(k: any): boolean {
             <div>
                 <input
                     :id="'vmininp-' + location"
+                    v-model.lazy.number="visionMinRange"
                     type="number"
                     min="0"
                     :max="$.visionMaxRange.value"
-                    v-model.lazy.number="visionMinRange"
                 />
             </div>
             <div
                 v-if="!isGlobal && o($.visionMinRange)"
-                @click="visionMinRange = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
+                @click="visionMinRange = undefined"
             >
                 <font-awesome-icon icon="times-circle" />
             </div>
@@ -207,15 +208,15 @@ function o(k: any): boolean {
             <div>
                 <input
                     :id="'vmaxinp-' + location"
+                    v-model.lazy.number="visionMaxRange"
                     type="number"
                     :min="Math.max(0, $.visionMinRange.value)"
-                    v-model.lazy.number="visionMaxRange"
                 />
             </div>
             <div
                 v-if="!isGlobal && o($.visionMaxRange)"
-                @click="visionMaxRange = undefined"
                 :title="t('game.ui.settings.common.reset_default')"
+                @click="visionMaxRange = undefined"
             >
                 <font-awesome-icon icon="times-circle" />
             </div>

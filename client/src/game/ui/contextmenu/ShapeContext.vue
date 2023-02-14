@@ -6,14 +6,11 @@ import { useI18n } from "vue-i18n";
 import ContextMenu from "../../../core/components/ContextMenu.vue";
 import { SyncMode } from "../../../core/models/types";
 import { useModal } from "../../../core/plugins/modals/plugin";
-import { getGameState } from "../../../store/_game";
 import { activeShapeStore } from "../../../store/activeShape";
-import { gameStore } from "../../../store/game";
 import { locationStore } from "../../../store/location";
 import { requestAssetOptions, sendAssetOptions } from "../../api/emits/asset";
 import { requestSpawnInfo } from "../../api/emits/location";
 import { sendShapesMove } from "../../api/emits/shape/core";
-import { addGroupMembers, createNewGroupForShapes, getGroupSize, removeGroup } from "../../groups";
 import { getGlobalId, getShape } from "../../id";
 import type { LocalId } from "../../id";
 import type { ILayer } from "../../interfaces/layer";
@@ -26,6 +23,10 @@ import { deleteShapes } from "../../shapes/utils";
 import { accessSystem } from "../../systems/access";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
+import { gameState } from "../../systems/game/state";
+import { groupSystem } from "../../systems/groups";
+import { markerSystem } from "../../systems/markers";
+import { markerState } from "../../systems/markers/state";
 import { playerSystem } from "../../systems/players";
 import { getProperties } from "../../systems/properties/state";
 import { selectedSystem } from "../../systems/selected";
@@ -39,12 +40,12 @@ import { shapeContextLeft, shapeContextTop, showShapeContextMenu } from "./state
 const { t } = useI18n();
 const modals = useModal();
 
-const isDm = toRef(getGameState(), "isDm");
-
 const selectionIncludesSpawnToken = computed(() =>
-    [...selectedSystem.$.value].some(
-        (s) => locationSettingsState.reactive.spawnLocations.value.includes(getGlobalId(s)) ?? false,
-    ),
+    [...selectedSystem.$.value].some((s) => {
+        const gId = getGlobalId(s);
+        if (gId === undefined) return false;
+        return locationSettingsState.reactive.spawnLocations.value.includes(gId);
+    }),
 );
 
 const isOwned = computed(() =>
@@ -66,20 +67,20 @@ function openEditDialog(): void {
 const isMarker = computed(() => {
     const sel = selectedSystem.$.value;
     if (sel.size !== 1) return false;
-    return getGameState().markers.has([...sel][0]);
+    return markerState.reactive.markers.has([...sel][0]!);
 });
 
 function deleteMarker(): void {
     const sel = selectedSystem.$.value;
     if (sel.size !== 1) return;
-    gameStore.removeMarker([...sel][0], true);
+    markerSystem.removeMarker([...sel][0]!, true);
     close();
 }
 
 function setMarker(): void {
     const sel = selectedSystem.$.value;
     if (sel.size !== 1) return;
-    gameStore.newMarker([...sel][0], true);
+    markerSystem.newMarker([...sel][0]!, true);
     close();
 }
 
@@ -88,23 +89,34 @@ function setMarker(): void {
 async function addToInitiative(): Promise<void> {
     let groupInitiatives = false;
     const selection = selectedSystem.get({ includeComposites: false });
-    if (new Set(selection.map((s) => s.groupId)).size < selectedSystem.$.value.size) {
-        const answer = await modals.confirm(
-            "Adding initiative",
-            "Some of the selected shapes belong to the same group. Do you wish to add 1 entry for these?",
-            { no: "no, create a separate entry for each", focus: "confirm" },
-        );
-        if (answer === undefined) return;
-        groupInitiatives = answer;
-    }
-    const groupsProcessed = new Set();
+    // First check if there are shapes with the same groupId
+    const groupsFound = new Set();
     for (const shape of selection) {
-        if (!groupInitiatives || shape.groupId === undefined || !groupsProcessed.has(shape.groupId)) {
-            initiativeStore.addInitiative(shape.id, undefined, groupInitiatives && shape.groupId !== undefined);
-            groupsProcessed.add(shape.groupId);
+        const group = groupSystem.getGroupId(shape.id);
+        if (group === undefined) continue;
+        if (groupsFound.has(group)) {
+            const answer = await modals.confirm(
+                "Adding initiative",
+                "Some of the selected shapes belong to the same group. Do you wish to add 1 entry for these?",
+                { no: "no, create a separate entry for each", focus: "confirm" },
+            );
+            if (answer === undefined) return;
+            groupInitiatives = answer;
+            break;
+        } else {
+            groupsFound.add(group);
         }
     }
-    initiativeStore.show(true);
+    // Handle the actual initiative addition
+    const groupsProcessed = new Set();
+    for (const shape of selection) {
+        const groupId = groupSystem.getGroupId(shape.id);
+        if (!groupInitiatives || groupId === undefined || !groupsProcessed.has(groupId)) {
+            initiativeStore.addInitiative(shape.id, groupInitiatives && groupId !== undefined);
+            groupsProcessed.add(groupId);
+        }
+    }
+    initiativeStore.show(true, true);
     close();
 }
 
@@ -124,7 +136,7 @@ function getInitiativeWord(): string {
 // LAYERS
 
 const layers = computed(() => {
-    if (isDm.value && !selectionIncludesSpawnToken.value) {
+    if (gameState.reactive.isDm && !selectionIncludesSpawnToken.value) {
         const currentFloor = floorState.currentFloor.value;
         if (currentFloor !== undefined) return floorSystem.getLayers(currentFloor).filter((l) => l.selectable);
     }
@@ -165,7 +177,7 @@ function setFloor(floor: Floor): void {
 // LOCATIONS
 
 const locations = computed(() => {
-    if (isDm.value && !selectionIncludesSpawnToken.value) {
+    if (gameState.reactive.isDm && !selectionIncludesSpawnToken.value) {
         return locationStore.activeLocations.value;
     }
     return [];
@@ -190,15 +202,15 @@ async function setLocation(newLocation: number): Promise<void> {
             close();
             return;
         case 1:
-            spawnLocation = spawnInfo[0];
+            spawnLocation = spawnInfo[0]!;
             break;
         default: {
-            const choice = await modals.selectionBox(
+            const choices = await modals.selectionBox(
                 "Choose the desired spawn location",
                 spawnInfo.map((s) => s.name),
             );
-            if (choice === undefined) return;
-            const choiceShape = spawnInfo.find((s) => s.name === choice[0]);
+            if (choices === undefined) return;
+            const choiceShape = spawnInfo.find((s) => s.name === choices[0]);
             if (choiceShape === undefined) return;
             spawnLocation = choiceShape;
             break;
@@ -212,12 +224,12 @@ async function setLocation(newLocation: number): Promise<void> {
     };
 
     sendShapesMove({
-        shapes: shapes.map((s) => getGlobalId(s.id)),
+        shapes: shapes.map((s) => getGlobalId(s.id)!),
         target: { location: newLocation, ...targetPosition },
         tp_zone: false,
     });
     if (locationSettingsState.raw.movePlayerOnTokenChange.value) {
-        const users: Set<string> = new Set();
+        const users = new Set<string>();
         for (const shape of selectedSystem.get({ includeComposites: true })) {
             if (getProperties(shape.id)!.isLocked) continue;
             for (const owner of accessSystem.getOwners(shape.id)) users.add(owner);
@@ -247,6 +259,8 @@ const canBeSaved = computed(() =>
 
 async function saveTemplate(): Promise<void> {
     const shape = selectedSystem.get({ includeComposites: false })[0];
+    if (shape === undefined) return;
+
     let assetOptions: AssetOptions = {
         version: "0",
         shape: shape.type,
@@ -261,12 +275,12 @@ async function saveTemplate(): Promise<void> {
     }
     const choices = Object.keys(assetOptions.templates);
     try {
-        const choice = await modals.selectionBox(t("game.ui.templates.save"), choices, {
+        const selection = await modals.selectionBox(t("game.ui.templates.save"), choices, {
             defaultButton: t("game.ui.templates.overwrite"),
             customButton: t("game.ui.templates.create_new"),
         });
-        if (choice === undefined) return;
-        assetOptions.templates[choice[0]] = toTemplate(shape.asDict());
+        if (selection === undefined || selection.length === 0) return;
+        assetOptions.templates[selection[0]!] = toTemplate(shape.asDict());
         sendAssetOptions(shape.assetId, assetOptions);
     } catch {
         // no-op ; action cancelled
@@ -275,19 +289,23 @@ async function saveTemplate(): Promise<void> {
 
 // GROUPS
 
-const groups = computed(() =>
-    [...selectedSystem.$.value].map((s) => getShape(s)!.groupId).filter((g) => g !== undefined),
-) as ComputedRef<string[]>;
+const groups = computed(
+    () => new Set([...selectedSystem.$.value].map((s) => groupSystem.getGroupId(s)).filter((g) => g !== undefined)),
+) as ComputedRef<Set<string>>;
 
 const hasEntireGroup = computed(() => {
     const selection = selectedSystem.$.value;
-    return selection.size === getGroupSize(getShape([...selection][0])!.groupId!);
+    const sel = [...selection][0];
+    if (sel === undefined) return false;
+    const groupId = groupSystem.getGroupId(sel);
+    if (groupId === undefined) return false;
+    return selection.size === groupSystem.getGroupSize(groupId);
 });
 
-const hasUngrouped = computed(() => [...selectedSystem.$.value].some((s) => getShape(s)!.groupId === undefined));
+const hasUngrouped = computed(() => [...selectedSystem.$.value].some((s) => groupSystem.getGroupId(s) === undefined));
 
 function createGroup(): void {
-    createNewGroupForShapes([...selectedSystem.$.value]);
+    groupSystem.createNewGroupForShapes([...selectedSystem.$.value]);
     close();
 }
 
@@ -296,7 +314,7 @@ async function splitGroup(): Promise<void> {
         no: "No, reset them",
     });
     if (keepBadges === undefined) return;
-    createNewGroupForShapes([...selectedSystem.$.value], keepBadges);
+    groupSystem.createNewGroupForShapes([...selectedSystem.$.value], keepBadges);
     close();
 }
 
@@ -312,33 +330,45 @@ async function mergeGroups(): Promise<void> {
     let targetGroup: string | undefined;
     const membersToMove: { uuid: LocalId; badge?: number }[] = [];
     for (const shape of selectedSystem.get({ includeComposites: false })) {
-        if (shape.groupId !== undefined) {
+        const groupId = groupSystem.getGroupId(shape.id);
+        if (groupId !== undefined) {
             if (targetGroup === undefined) {
-                targetGroup = shape.groupId;
-            } else if (targetGroup === shape.groupId) {
+                targetGroup = groupId;
+            } else if (targetGroup === groupId) {
                 continue;
             } else {
-                membersToMove.push({ uuid: shape.id, badge: keepBadges ? shape.badge : undefined });
+                const badge = groupSystem.getBadge(shape.id);
+                membersToMove.push({ uuid: shape.id, badge: keepBadges ? badge : undefined });
             }
         }
     }
-    addGroupMembers(targetGroup!, membersToMove, true);
+    groupSystem.addGroupMembers(targetGroup!, membersToMove, true);
     close();
 }
 
 function removeEntireGroup(): void {
-    removeGroup(selectedSystem.get({ includeComposites: false })[0].groupId!, true);
+    const shape = selectedSystem.get({ includeComposites: false })[0];
+    if (shape !== undefined) {
+        const groupId = groupSystem.getGroupId(shape.id);
+        if (groupId !== undefined) {
+            groupSystem.removeGroup(groupId, true);
+        }
+    }
     close();
 }
 
 function enlargeGroup(): void {
-    const selection = selectedSystem.get({ includeComposites: false });
-    const groupId = selection.find((s) => s.groupId !== undefined)!.groupId!;
-    addGroupMembers(
-        groupId,
-        selection.filter((s) => s.groupId === undefined).map((s) => ({ uuid: s.id })),
-        true,
-    );
+    const selection = selectedSystem
+        .get({ includeComposites: false })
+        .map((s) => ({ id: s.id, groupId: groupSystem.getGroupId(s.id) }));
+    const shape = selection.find((s) => s.groupId !== undefined);
+    if (shape?.groupId !== undefined) {
+        groupSystem.addGroupMembers(
+            shape.groupId,
+            selection.filter((s) => s.groupId === undefined).map((s) => ({ uuid: s.id })),
+            true,
+        );
+    }
     close();
 }
 
@@ -350,7 +380,7 @@ const floors = toRef(floorState.reactive, "floors");
 
 <template>
     <ContextMenu :visible="showShapeContextMenu" :left="shapeContextLeft" :top="shapeContextTop" @cm:close="close">
-        <li v-if="isDm && floors.length > 1">
+        <li v-if="gameState.reactive.isDm && floors.length > 1">
             {{ t("common.floor") }}
             <ul>
                 <li
@@ -389,16 +419,16 @@ const floors = toRef(floorState.reactive, "floors");
                 </li>
             </ul>
         </li>
-        <li @click="moveToBack" v-if="isOwned">{{ t("game.ui.selection.ShapeContext.move_back") }}</li>
-        <li @click="moveToFront" v-if="isOwned">{{ t("game.ui.selection.ShapeContext.move_front") }}</li>
-        <li @click="addToInitiative" v-if="isOwned && !selectionIncludesSpawnToken">{{ getInitiativeWord() }}</li>
-        <li @click="deleteSelection" v-if="!selectionIncludesSpawnToken && (isDm || isOwned)">
+        <li v-if="isOwned" @click="moveToBack">{{ t("game.ui.selection.ShapeContext.move_back") }}</li>
+        <li v-if="isOwned" @click="moveToFront">{{ t("game.ui.selection.ShapeContext.move_front") }}</li>
+        <li v-if="isOwned && !selectionIncludesSpawnToken" @click="addToInitiative">{{ getInitiativeWord() }}</li>
+        <li v-if="!selectionIncludesSpawnToken && (gameState.reactive.isDm || isOwned)" @click="deleteSelection">
             {{ t("game.ui.selection.ShapeContext.delete_shapes") }}
         </li>
         <template v-if="hasSingleSelection">
             <li v-if="isMarker" @click="deleteMarker">{{ t("game.ui.selection.ShapeContext.remove_marker") }}</li>
             <li v-else @click="setMarker">{{ t("game.ui.selection.ShapeContext.set_marker") }}</li>
-            <li @click="saveTemplate" v-if="!selectionIncludesSpawnToken && isDm && canBeSaved">
+            <li v-if="!selectionIncludesSpawnToken && gameState.reactive.isDm && canBeSaved" @click="saveTemplate">
                 {{ t("game.ui.templates.save") }}
             </li>
         </template>
@@ -406,15 +436,15 @@ const floors = toRef(floorState.reactive, "floors");
             <li>
                 Group
                 <ul>
-                    <li v-if="groups.length === 0" @click="createGroup">Create group</li>
-                    <li v-if="groups.length === 1 && !hasUngrouped && !hasEntireGroup" @click="splitGroup">
+                    <li v-if="groups.size === 0" @click="createGroup">Create group</li>
+                    <li v-if="groups.size === 1 && !hasUngrouped && !hasEntireGroup" @click="splitGroup">
                         Split from group
                     </li>
-                    <li v-if="groups.length === 1 && !hasUngrouped && hasEntireGroup" @click="removeEntireGroup">
+                    <li v-if="groups.size === 1 && !hasUngrouped && hasEntireGroup" @click="removeEntireGroup">
                         Remove group
                     </li>
-                    <li v-if="groups.length > 1" @click="mergeGroups">Merge groups</li>
-                    <li v-if="groups.length === 1 && hasUngrouped" @click="enlargeGroup">Enlarge group</li>
+                    <li v-if="groups.size > 1" @click="mergeGroups">Merge groups</li>
+                    <li v-if="groups.size === 1 && hasUngrouped" @click="enlargeGroup">Enlarge group</li>
                 </ul>
             </li>
         </template>

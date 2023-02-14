@@ -1,12 +1,16 @@
 import { addP, toArrayP } from "../../core/geometry";
 import type { Vector } from "../../core/geometry";
 import { sendShapePositionUpdate } from "../api/emits/shape/core";
+import type { LocalId } from "../id";
 import type { IShape } from "../interfaces/shape";
 import { accessSystem } from "../systems/access";
 import { clientSystem } from "../systems/client";
+import { gameState } from "../systems/game/state";
 import { teleportZoneSystem } from "../systems/logic/tp";
 import { getProperties } from "../systems/properties/state";
 import { selectedSystem } from "../systems/selected";
+import { locationSettingsState } from "../systems/settings/location/state";
+import { initiativeStore } from "../ui/initiative/state";
 import { TriangulationTarget, visionState } from "../vision/state";
 
 import type { MovementOperation, ShapeMovementOperation } from "./model";
@@ -21,6 +25,8 @@ import { addOperation } from "./undo";
  * @param temporary Flag to indicate near-future override
  */
 export async function moveShapes(shapes: readonly IShape[], delta: Vector, temporary: boolean): Promise<void> {
+    if (shapes.length === 0) return;
+
     let recalculateMovement = false;
     let recalculateVision = false;
 
@@ -28,7 +34,7 @@ export async function moveShapes(shapes: readonly IShape[], delta: Vector, tempo
     const operationList: MovementOperation = { type: "movement", shapes: [] };
 
     for (const shape of shapes) {
-        if (!accessSystem.hasAccessTo(shape.id, false, { movement: true })) continue;
+        if (!canMove(shape.id)) continue;
         const props = getProperties(shape.id);
         if (props === undefined) continue;
 
@@ -77,8 +83,18 @@ export async function moveShapes(shapes: readonly IShape[], delta: Vector, tempo
         await teleportZoneSystem.checkTeleport(selectedSystem.get({ includeComposites: true }));
     }
 
-    const floorId = shapes[0].floor.id;
-    if (recalculateVision) visionState.recalculateVision(floorId);
-    if (recalculateMovement) visionState.recalculateMovement(floorId);
-    shapes[0].layer.invalidate(false);
+    const layer = shapes[0]?.layer;
+    if (layer !== undefined) {
+        if (recalculateVision) visionState.recalculateVision(layer.floor);
+        if (recalculateMovement) visionState.recalculateMovement(layer.floor);
+        layer.invalidate(false);
+    }
+}
+
+function canMove(shapeId: LocalId): boolean {
+    if (!accessSystem.hasAccessTo(shapeId, false, { movement: true })) return false;
+    if (!locationSettingsState.raw.limitMovementDuringInitiative.value) return true;
+    if (!initiativeStore.state.isActive) return true;
+    if (gameState.raw.isDm) return true;
+    return initiativeStore.getActor()?.localId === shapeId;
 }

@@ -17,7 +17,7 @@ socket.on("Shape.Options.Tracker.Remove", (data: { shape: GlobalId; value: Track
 socket.on("Shape.Options.Tracker.Create", (data: ServerTracker): void => {
     const shape = getLocalId(data.shape);
     if (shape === undefined) return;
-    trackerSystem.add(shape, trackersFromServer(data)[0], UI_SYNC);
+    trackerSystem.add(shape, trackersFromServer(data)[0]!, UI_SYNC);
 });
 
 socket.on("Shape.Options.Tracker.Update", (data: { uuid: TrackerId; shape: GlobalId } & Partial<Tracker>): void => {

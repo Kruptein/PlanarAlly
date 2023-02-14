@@ -24,11 +24,11 @@ function reject(): void {
     emit("close-toast");
 }
 
-function accept(): void {
+async function accept(): Promise<void> {
     if (props.data.logic === "door") {
         approveDoor(props.data);
     } else if (props.data.logic === "tp") {
-        approveTp(props.data);
+        await approveTp(props.data);
     }
     emit("close-toast");
 }
@@ -39,8 +39,8 @@ function approveDoor(request: Global<DoorRequest> & { requester: string }): void
     doorSystem.toggleDoor(shape);
 }
 
-function approveTp(request: Global<TpRequest> & { requester: string }): void {
-    teleport(
+async function approveTp(request: Global<TpRequest> & { requester: string }): Promise<void> {
+    await teleport(
         getLocalId(request.fromZone)!,
         request.toZone,
         request.transfers.map((t) => getLocalId(t)!),
@@ -50,11 +50,11 @@ function approveTp(request: Global<TpRequest> & { requester: string }): void {
 function showArea(): void {
     const uuid = props.data.logic === "door" ? props.data.door : props.data.toZone;
     const shape = getShapeFromGlobal(uuid);
-    if (shape === undefined) return;
+    if (shape?.floorId === undefined) return;
 
     shape.showHighlight = true;
     setCenterPosition(shape.center);
-    floorSystem.selectFloor({ name: shape.floor.name }, true);
+    floorSystem.selectFloor({ id: shape.floorId }, true);
 }
 </script>
 

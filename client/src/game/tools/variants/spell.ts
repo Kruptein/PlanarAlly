@@ -1,7 +1,8 @@
-import { reactive, watch, watchEffect } from "vue";
+import tinycolor from "tinycolor2";
+import { reactive, watch } from "vue";
 
 import { g2l, getUnitDistance, l2g, toRadians } from "../../../core/conversions";
-import { equalsP, toGP } from "../../../core/geometry";
+import { toGP, toLP } from "../../../core/geometry";
 import type { LocalPoint } from "../../../core/geometry";
 import { InvalidationMode, NO_SYNC, SyncMode, UI_SYNC } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
@@ -10,7 +11,7 @@ import { getShape } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import type { ICircle } from "../../interfaces/shapes/circle";
 import { ToolName } from "../../models/tools";
-import type { ToolPermission } from "../../models/tools";
+import type { ITool, ToolPermission } from "../../models/tools";
 import { Circle } from "../../shapes/variants/circle";
 import { Rect } from "../../shapes/variants/rect";
 import { accessSystem } from "../../systems/access";
@@ -20,7 +21,7 @@ import { propertiesSystem } from "../../systems/properties";
 import { selectedSystem } from "../../systems/selected";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
-import { activateTool } from "../tools";
+import { activateTool, toolMap } from "../tools";
 
 export enum SpellShape {
     Square = "square",
@@ -28,12 +29,11 @@ export enum SpellShape {
     Cone = "cone",
 }
 
-class SpellTool extends Tool {
+class SpellTool extends Tool implements ITool {
     readonly toolName = ToolName.Spell;
     readonly toolTranslation = i18n.global.t("tool.Spell");
 
     shape?: IShape;
-    rangeShape?: Circle;
 
     state = reactive({
         selectedSpellShape: SpellShape.Square,
@@ -41,7 +41,6 @@ class SpellTool extends Tool {
 
         colour: "rgb(63, 127, 191)",
         size: 5,
-        range: 0,
     });
 
     get permittedTools(): ToolPermission[] {
@@ -52,34 +51,38 @@ class SpellTool extends Tool {
         super();
         watch(
             () => this.state.size,
-            () => {
+            async () => {
                 if (this.state.size <= 0) this.state.size = 1;
-                if (this.shape !== undefined) this.drawShape();
+                if (this.shape !== undefined) await this.drawShape();
             },
         );
-        watchEffect(() => {
-            if (this.state.range < 0) this.state.range = 0;
-            if (this.state.range > 0 && this.state.selectedSpellShape === SpellShape.Cone) {
-                this.state.selectedSpellShape = SpellShape.Circle;
-            }
-            if (this.shape !== undefined) this.drawShape();
-            else if (this.rangeShape !== undefined) this.drawRangeShape();
-        });
+        watch(
+            () => this.state.selectedSpellShape,
+            async () => {
+                if (
+                    selectedSystem.getFocus().value === undefined &&
+                    this.state.selectedSpellShape === SpellShape.Cone
+                ) {
+                    this.state.selectedSpellShape = SpellShape.Circle;
+                }
+                if (this.shape !== undefined) await this.drawShape();
+            },
+        );
         watch(
             () => this.state.colour,
-            () => {
-                if (this.shape !== undefined) this.drawShape();
+            async () => {
+                if (this.shape !== undefined) await this.drawShape();
             },
         );
         watch(
             () => this.state.showPublic,
-            () => {
-                if (this.shape !== undefined) this.drawShape(true);
+            async () => {
+                if (this.shape !== undefined) await this.drawShape(true);
             },
         );
     }
 
-    drawShape(syncChanged = false): void {
+    async drawShape(syncChanged = false): Promise<void> {
         if (!selectedSystem.hasSelection && this.state.selectedSpellShape === SpellShape.Cone) return;
 
         const layer = floorState.currentLayer.value!;
@@ -113,9 +116,9 @@ class SpellTool extends Tool {
                 break;
         }
 
-        if (this.shape === undefined) return;
-
-        propertiesSystem.setFillColour(this.shape.id, this.state.colour.replace(")", ", 0.7)"), NO_SYNC);
+        const c = tinycolor(this.state.colour);
+        c.setAlpha(c.getAlpha() * 0.7);
+        propertiesSystem.setFillColour(this.shape.id, c.toRgbString(), NO_SYNC);
         propertiesSystem.setStrokeColour(this.shape.id, this.state.colour, NO_SYNC);
 
         accessSystem.addAccess(
@@ -125,117 +128,106 @@ class SpellTool extends Tool {
             UI_SYNC,
         );
 
-        if (selectedSystem.hasSelection && (this.state.range === 0 || equalsP(startPosition, ogPoint))) {
-            const selection = [...selectedSystem.$.value];
-            this.shape.center = getShape(selection[0])!.center;
-        }
-
         layer.addShape(
             this.shape,
             this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC,
             InvalidationMode.NORMAL,
         );
 
-        this.drawRangeShape();
-    }
-
-    drawRangeShape(): void {
-        const layer = floorState.currentLayer.value!;
-
-        if (this.rangeShape !== undefined) {
-            layer.removeShape(this.rangeShape, { sync: SyncMode.NO_SYNC, recalculate: false, dropShapeId: true });
+        if (this.state.selectedSpellShape === SpellShape.Cone) {
+            const selection = selectedSystem.getFocus().value;
+            if (selection === undefined) {
+                console.error("SpellTool: No selection found.");
+            } else {
+                const selectionShape = getShape(selection);
+                if (selectionShape === undefined) {
+                    console.error("SpellTool: Selected shape does not exist.");
+                } else {
+                    this.shape.center = selectionShape.center;
+                }
+            }
         }
 
-        if (!selectedSystem.hasSelection || this.state.range === 0) return;
-
-        const selection = [...selectedSystem.$.value];
-        this.rangeShape = new Circle(
-            getShape(selection[0])!.center,
-            getUnitDistance(this.state.range),
-            {
-                isSnappable: false,
-            },
-            { fillColour: "rgba(0,0,0,0)", strokeColour: ["black"] },
-        );
-        layer.addShape(this.rangeShape, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
+        await this.drawRangeShape();
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
+    async drawRangeShape(): Promise<void> {
+        const focus = selectedSystem.getFocus().value;
+
+        if (focus === undefined || this.shape === undefined) return;
+
+        const focusShape = getShape(focus);
+        if (focusShape === undefined) return;
+
+        const ruler = toolMap[ToolName.Ruler];
+        await ruler.onDown(g2l(focusShape.center), undefined, {});
+    }
+
     async onSelect(): Promise<void> {
         if (!selectedSystem.hasSelection && this.state.selectedSpellShape === SpellShape.Cone) {
             this.state.selectedSpellShape = SpellShape.Circle;
         }
-        this.drawShape();
+        await this.drawShape();
     }
 
-    onDeselect(): void {
-        const layer = floorState.currentLayer.value!;
-
-        if (this.shape !== undefined) {
-            layer.removeShape(this.shape, {
-                sync: this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC,
-                recalculate: false,
-                dropShapeId: true,
-            });
-            this.shape = undefined;
-        }
-        if (this.rangeShape !== undefined) {
-            layer.removeShape(this.rangeShape, {
-                sync: this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC,
-                recalculate: false,
-                dropShapeId: true,
-            });
-            this.rangeShape = undefined;
-        }
+    async onDeselect(): Promise<void> {
+        await this.close(true);
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
     async onDown(): Promise<void> {
-        if (this.shape === undefined) return;
-        const layer = floorState.currentLayer.value!;
-
-        layer.removeShape(this.shape, {
-            sync: this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC,
-            recalculate: false,
-            dropShapeId: false,
-        });
-        propertiesSystem.setIsInvisible(this.shape.id, !this.state.showPublic, NO_SYNC);
-        layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NORMAL);
-        this.shape = undefined;
-        activateTool(ToolName.Select);
+        await this.close(false);
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
     async onMove(lp: LocalPoint): Promise<void> {
-        if (this.shape === undefined) return;
+        if (this.shape === undefined) return Promise.resolve();
 
         const endPoint = l2g(lp);
         const layer = floorState.currentLayer.value!;
 
-        if (selectedSystem.hasSelection && this.state.range === 0) {
-            if (this.state.selectedSpellShape === SpellShape.Cone) {
-                const center = g2l(this.shape.center);
-                (this.shape as ICircle).angle = -Math.atan2(lp.y - center.y, center.x - lp.x) + Math.PI;
-                if (this.state.showPublic) sendShapePositionUpdate([this.shape], true);
-                layer.invalidate(true);
-            }
+        if (this.state.selectedSpellShape === SpellShape.Cone) {
+            const center = g2l(this.shape.center);
+            (this.shape as ICircle).angle = -Math.atan2(lp.y - center.y, center.x - lp.x) + Math.PI;
+            if (this.state.showPublic) sendShapePositionUpdate([this.shape], true);
+            layer.invalidate(true);
         } else {
             this.shape.center = endPoint;
             if (this.state.showPublic) sendShapePositionUpdate([this.shape], true);
+
+            const focus = selectedSystem.getFocus().value;
+
+            if (focus !== undefined) {
+                const ruler = toolMap[ToolName.Ruler];
+                await ruler.onMove(g2l(this.shape.center), undefined, {});
+            }
+
             layer.invalidate(true);
         }
     }
 
-    onContextMenu(): void {
+    async onContextMenu(): Promise<boolean> {
+        await this.close(true);
+        return false;
+    }
+
+    async close(dropShapeId: boolean): Promise<void> {
         if (this.shape !== undefined) {
-            const layer = floorState.currentLayer.value!;
+            const layer = floorState.currentLayer.value;
+            if (layer === undefined) return;
 
             layer.removeShape(this.shape, {
                 sync: this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC,
                 recalculate: false,
-                dropShapeId: true,
+                dropShapeId,
             });
+
+            if (!dropShapeId) {
+                propertiesSystem.setIsInvisible(this.shape.id, !this.state.showPublic, NO_SYNC);
+                layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NORMAL);
+            }
             this.shape = undefined;
+
+            const ruler = toolMap[ToolName.Ruler];
+            await ruler.onUp(toLP(0, 0), undefined, {});
         }
         activateTool(ToolName.Select);
     }

@@ -184,7 +184,6 @@
                         "dim_value": "模糊值",
                         "toggle_light_source": "切换光源",
                         "delete_aura": "移除光晕",
-                        "edit_asset": "编辑素材",
                         "is_a_token": "指示物属性",
                         "is_invisible": "不可见状态",
                         "is_locked": "锁定状态",

@@ -5,26 +5,23 @@ import draggable from "vuedraggable";
 
 import { baseAdjust } from "../../core/http";
 import { useModal } from "../../core/plugins/modals/plugin";
-import { getGameState } from "../../store/_game";
-import { uiStore } from "../../store/ui";
 import { sendCreateFloor } from "../api/emits/floor";
 import type { Floor, FloorIndex } from "../models/floor";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
+import { gameState } from "../systems/game/state";
 import { playerSettingsState } from "../systems/settings/players/state";
+import { uiSystem } from "../systems/ui";
 
 import { layerTranslationMapping } from "./translations";
 
 const { t } = useI18n();
 const modals = useModal();
 
-const isDm = toRef(getGameState(), "isDm");
-
 const selectFloor = floorSystem.selectFloor.bind(floorSystem);
 const selectLayer = floorSystem.selectLayer.bind(floorSystem);
-const openSettings = uiStore.showFloorSettings.bind(uiStore);
 
-const visible = computed(() => floorState.reactive.floors.length > 1 || isDm.value);
+const visible = computed(() => floorState.reactive.floors.length > 1 || gameState.reactive.isDm);
 const detailsOpen = ref(false);
 
 function getStaticFloorImg(img: string): string {
@@ -39,7 +36,7 @@ const floors = computed({
     get() {
         return [...floorState.reactive.floors]
             .reverse()
-            .filter((f) => f.playerVisible || isDm.value)
+            .filter((f) => f.playerVisible || gameState.reactive.isDm)
             .map((f) => ({ reverseIndex: floorSystem.getFloorIndex({ id: f.id })!, floor: f }));
     },
     set(floors: { reverseIndex: number; floor: Floor }[]) {
@@ -65,21 +62,23 @@ function toggleVisible(floor: Floor): void {
 // LAYERS
 
 const layers = computed(() => {
-    if (!getGameState().boardInitialized) return [];
+    if (!gameState.reactive.boardInitialized) return [];
     return floorSystem
         .getLayers(floorState.currentFloor.value!)
-        .filter((l) => l.selectable && (isDm.value || l.playerEditable))
+        .filter((l) => l.selectable && (gameState.reactive.isDm || l.playerEditable))
         .map((l) => l.name);
 });
 
-const selectedLayer = computed(
-    () => floorSystem.getLayers(floorState.currentFloor.value!)[floorState.reactive.layerIndex].name,
-);
+const selectedLayer = computed(() => {
+    const floor = floorState.currentFloor.value;
+    if (floor === undefined) return undefined;
+    return floorSystem.getLayers(floor)[floorState.reactive.layerIndex]?.name ?? undefined;
+});
 </script>
 
 <template>
     <div id="floor-layer">
-        <div id="floor-selector" @click="detailsOpen = !detailsOpen" v-if="visible" title="Floor selection">
+        <div v-if="visible" id="floor-selector" title="Floor selection" @click="detailsOpen = !detailsOpen">
             <a href="#">
                 <template v-if="playerSettingsState.reactive.useToolIcons.value">
                     <img :src="getStaticFloorImg('floors.svg')" alt="Floor Selection" />
@@ -87,8 +86,8 @@ const selectedLayer = computed(
                 <template v-else>{{ floorIndex }}</template>
             </a>
         </div>
-        <div id="floor-detail" v-if="detailsOpen">
-            <draggable v-model="floors" :disabled="!isDm" item-key="reverseIndex">
+        <div v-if="detailsOpen" id="floor-detail">
+            <draggable v-model="floors" :disabled="!gameState.reactive.isDm" item-key="reverseIndex">
                 <template #item="{ element: f }: { element: { floor: Floor, reverseIndex: FloorIndex } }">
                     <div class="floor-row" @click="selectFloor({ name: f.floor.name }, true)">
                         <div
@@ -98,26 +97,28 @@ const selectedLayer = computed(
                             {{ f.reverseIndex }}
                         </div>
                         <div class="floor-name">{{ f.floor.name }}</div>
-                        <div class="floor-actions" v-if="isDm">
+                        <div v-if="gameState.reactive.isDm" class="floor-actions">
                             <div
-                                @click.stop="toggleVisible(f.floor)"
                                 :style="{ opacity: f.floor.playerVisible ? 1.0 : 0.3, marginRight: '5px' }"
                                 :title="t('game.ui.FloorSelect.toggle_visibility')"
+                                @click.stop="toggleVisible(f.floor)"
                             >
                                 <font-awesome-icon icon="eye" />
                             </div>
-                            <div @click="openSettings(f.floor.id)"><font-awesome-icon icon="cog" /></div>
+                            <div @click="uiSystem.showFloorSettings(f.floor.id)"><font-awesome-icon icon="cog" /></div>
                         </div>
                     </div>
                 </template>
             </draggable>
-            <div class="floor-add" @click="addFloor" v-if="isDm">{{ t("game.ui.FloorSelect.add_new_floor") }}</div>
+            <div v-if="gameState.reactive.isDm" class="floor-add" @click="addFloor">
+                {{ t("game.ui.FloorSelect.add_new_floor") }}
+            </div>
         </div>
-        <div style="display: contents" v-show="layers.length > 1">
+        <div v-show="layers.length > 1" style="display: contents">
             <div
                 v-for="layer in layers"
-                class="layer"
                 :key="layer"
+                class="layer"
                 :class="{ 'layer-selected': layer === selectedLayer }"
                 @click="selectLayer(layer)"
             >
@@ -137,6 +138,7 @@ const selectedLayer = computed(
 
 <style scoped lang="scss">
 #floor-layer {
+    position: relative;
     grid-area: layer;
     display: flex;
     list-style: none;
@@ -196,8 +198,7 @@ a {
 #floor-detail {
     pointer-events: auto;
     position: absolute;
-    left: 1.5rem;
-    bottom: 6.25rem;
+    bottom: 4.75rem;
     border: solid 1px #2b2b2b;
     background-color: white;
     padding: 0.625rem;

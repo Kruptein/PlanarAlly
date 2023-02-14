@@ -3,6 +3,7 @@ import { addP, subtractP, toArrayP, toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { rotateAroundPoint } from "../../../core/math";
 import type { GlobalId, LocalId } from "../../id";
+import type { IShape } from "../../interfaces/shape";
 import type { ServerLine } from "../../models/shapes";
 import { getProperties } from "../../systems/properties/state";
 import type { ShapeProperties } from "../../systems/properties/state";
@@ -11,7 +12,7 @@ import type { SHAPE_TYPE } from "../types";
 
 import { BoundingRect } from "./simple/boundingRect";
 
-export class Line extends Shape {
+export class Line extends Shape implements IShape {
     type: SHAPE_TYPE = "line";
     private _endPoint: GlobalPoint;
     lineWidth: number;
@@ -41,16 +42,19 @@ export class Line extends Shape {
         this.invalidatePoints();
     }
 
-    get isClosed(): boolean {
-        return false;
-    }
+    readonly isClosed = false;
 
     getPositionRepresentation(): { angle: number; points: [number, number][] } {
         return { angle: this.angle, points: [toArrayP(this.refPoint), toArrayP(this.endPoint)] };
     }
 
     setPositionRepresentation(position: { angle: number; points: [number, number][] }): void {
-        this.endPoint = toGP(position.points[1]);
+        if (position.points.length < 2) {
+            console.error("Attempt to set position representation with not enough points");
+            return;
+        }
+
+        this.endPoint = toGP(position.points[1]!);
         super.setPositionRepresentation(position);
     }
 
@@ -84,7 +88,7 @@ export class Line extends Shape {
         const center = g2l(this.center);
         const props = getProperties(this.id)!;
 
-        ctx.strokeStyle = props.strokeColour[0];
+        ctx.strokeStyle = props.strokeColour[0]!;
         ctx.beginPath();
         ctx.moveTo(g2lx(this.refPoint.x) - center.x, g2ly(this.refPoint.y) - center.y);
         ctx.lineTo(g2lx(this.endPoint.x) - center.x, g2ly(this.endPoint.y) - center.y);

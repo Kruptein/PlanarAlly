@@ -30,7 +30,7 @@ class DiceStore extends Store<DiceState> {
     }
 
     async loadEnv(): Promise<void> {
-        if (this._state.loaded === true) {
+        if (this._state.loaded) {
             return;
         }
         const e = await env();
@@ -81,4 +81,5 @@ class DiceStore extends Store<DiceState> {
 }
 
 export const diceStore = new DiceStore();
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).diceStore = diceStore;

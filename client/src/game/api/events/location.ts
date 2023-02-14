@@ -1,11 +1,11 @@
 // Bootup Sequence
 
 import { coreStore } from "../../../store/core";
-import { gameStore } from "../../../store/game";
 import { locationStore } from "../../../store/location";
 import type { GlobalId } from "../../id";
 import type { ServerLocation } from "../../models/general";
 import type { Location } from "../../models/settings";
+import { gameSystem } from "../../systems/game";
 import { playerSystem } from "../../systems/players";
 import { locationSettingsSystem } from "../../systems/settings/location";
 import type { ServerLocationInfo, ServerLocationOptions } from "../../systems/settings/location/models";
@@ -20,7 +20,7 @@ socket.on("Location.Set", (data: ServerLocation) => {
 socket.on("Locations.Settings.Set", (data: ServerLocationInfo) => {
     locationSettingsSystem.setActiveLocation(data.active);
     setLocationOptions(undefined, data.default, true);
-    for (const key in data.locations) setLocationOptions(Number.parseInt(key), data.locations[key], true);
+    for (const key in data.locations) setLocationOptions(Number.parseInt(key), data.locations[key]!, true);
 });
 
 // Varia
@@ -36,7 +36,7 @@ socket.on("Locations.Order.Set", (locations: Location[]) => {
 
 socket.on("Location.Change.Start", () => {
     coreStore.setLoading(true);
-    gameStore.setBoardInitialized(false);
+    gameSystem.setBoardInitialized(false);
 });
 
 socket.on("Location.Rename", (data: { location: number; name: string }) => {
@@ -88,11 +88,13 @@ function setLocationOptions(
 
     if (overwrite_all || options.move_player_on_token_change !== undefined)
         locationSettingsSystem.setMovePlayerOnTokenChange(options.move_player_on_token_change, id, false);
+    if (overwrite_all || options.limit_movement_during_initiative !== undefined)
+        locationSettingsSystem.setLimitMovementDuringInitiative(options.limit_movement_during_initiative, id, false);
 
     // SPAWN LOCATIONS
 
     if (id !== undefined && (overwrite_all || options.spawn_locations !== undefined)) {
-        const spawnLocations: GlobalId[] = JSON.parse(options.spawn_locations ?? "[]");
+        const spawnLocations = JSON.parse(options.spawn_locations ?? "[]") as GlobalId[];
         locationSettingsSystem.setSpawnLocations(spawnLocations, id, false);
     }
 }

@@ -1,4 +1,3 @@
-import type { GlobalPoint } from "../../../../core/geometry";
 import { requestShapeInfo, sendShapesMove } from "../../../api/emits/shape/core";
 import { getShape, getLocalId, getGlobalId } from "../../../id";
 import type { LocalId, GlobalId } from "../../../id";
@@ -39,8 +38,8 @@ export async function teleport(fromZone: LocalId, toZone: GlobalId, transfers?: 
     let targetLocation = activeLocation;
     const tpTargetId = getLocalId(toZone);
     const targetShape = tpTargetId === undefined ? undefined : getShape(tpTargetId);
-    let center: GlobalPoint | undefined = targetShape?.center;
-    let floor: string | undefined = targetShape?.floor.name;
+    let center = targetShape?.center;
+    let floor = targetShape?.floor?.name;
 
     if (targetShape === undefined) {
         const { location, shape } = await requestShapeInfo(toZone);
@@ -60,7 +59,7 @@ export async function teleport(fromZone: LocalId, toZone: GlobalId, transfers?: 
     };
 
     sendShapesMove({
-        shapes: shapes.map((s) => getGlobalId(s)),
+        shapes: shapes.map((s) => getGlobalId(s)!),
         target,
         tp_zone: true,
     });
@@ -69,7 +68,7 @@ export async function teleport(fromZone: LocalId, toZone: GlobalId, transfers?: 
         if (location === activeLocation) {
             setCenterPosition(center);
         } else {
-            const users: Set<string> = new Set();
+            const users = new Set<string>();
             for (const sh of shapes) {
                 for (const owner of accessSystem.getOwners(sh)) users.add(owner);
             }

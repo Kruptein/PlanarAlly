@@ -3,7 +3,7 @@ import { POSITION, useToast } from "vue-toastification";
 const toast = useToast();
 
 export function handleNotifications(data: { uuid: string; message: string }[]): void {
-    const readNotifications: string[] = JSON.parse(localStorage.getItem("notifications-read") ?? "[]");
+    const readNotifications = JSON.parse(localStorage.getItem("notifications-read") ?? "[]") as string[];
 
     for (const notification of data) {
         if (readNotifications.includes(notification.uuid)) continue;
@@ -17,7 +17,7 @@ export function handleNotifications(data: { uuid: string; message: string }[]): 
 }
 
 function markAsRead(uuid: string): void {
-    const readNotifications: string[] = JSON.parse(localStorage.getItem("notifications-read") ?? "[]");
+    const readNotifications = JSON.parse(localStorage.getItem("notifications-read") ?? "[]") as string[];
     readNotifications.push(uuid);
     localStorage.setItem("notifications-read", JSON.stringify(readNotifications));
 }

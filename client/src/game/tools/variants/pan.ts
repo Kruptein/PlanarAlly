@@ -3,14 +3,14 @@ import type { LocalPoint } from "../../../core/geometry";
 import { i18n } from "../../../i18n";
 import { sendClientLocationOptions } from "../../api/emits/client";
 import { ToolName } from "../../models/tools";
-import type { ToolPermission } from "../../models/tools";
+import type { ITool, ToolPermission } from "../../models/tools";
 import { floorSystem } from "../../systems/floors";
 import { positionSystem } from "../../systems/position";
 import { positionState } from "../../systems/position/state";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
 
-class PanTool extends Tool {
+class PanTool extends Tool implements ITool {
     readonly toolName = ToolName.Pan;
     readonly toolTranslation = i18n.global.t("tool.Pan");
 
@@ -30,23 +30,22 @@ class PanTool extends Tool {
         sendClientLocationOptions(!full);
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onDown(lp: LocalPoint): Promise<void> {
+    onDown(lp: LocalPoint): Promise<void> {
         this.panStart = lp;
         this.active.value = true;
+        return Promise.resolve();
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onMove(lp: LocalPoint): Promise<void> {
-        if (!this.active.value) return;
-        this.panScreen(lp, false);
+    onMove(lp: LocalPoint): Promise<void> {
+        if (this.active.value) this.panScreen(lp, false);
+        return Promise.resolve();
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onUp(lp: LocalPoint): Promise<void> {
-        if (!this.active.value) return;
+    onUp(lp: LocalPoint): Promise<void> {
+        if (!this.active.value) return Promise.resolve();
         this.active.value = false;
         this.panScreen(lp, true);
+        return Promise.resolve();
     }
 }
 

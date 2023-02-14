@@ -34,8 +34,6 @@ async def claim_invite(request):
                     room=csid,
                     namespace=GAME_NS,
                 )
-        return web.json_response(
-            {
-                "sessionUrl": f"/game/{urllib.parse.quote(room.creator.name, safe='')}/{urllib.parse.quote(room.name, safe='')}"
-            }
-        )
+        creator_url = urllib.parse.quote(room.creator.name, safe="")
+        room_url = urllib.parse.quote(room.name, safe="")
+        return web.json_response({"sessionUrl": f"/game/{creator_url}/{room_url}"})

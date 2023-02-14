@@ -55,6 +55,7 @@ class LocationOptions(BaseModel):
     air_map_background = TextField(default="none", null=True)
     ground_map_background = TextField(default="none", null=True)
     underground_map_background = TextField(default="none", null=True)
+    limit_movement_during_initiative = BooleanField(default=False, null=True)
 
     @classmethod
     def create_empty(cls):
@@ -73,6 +74,7 @@ class LocationOptions(BaseModel):
             air_map_background=None,
             ground_map_background=None,
             underground_map_background=None,
+            limit_movement_during_initiative=None,
         )
 
     def as_dict(self):
@@ -283,12 +285,14 @@ class Floor(BaseModel):
         data = model_to_dict(self, recurse=False, exclude=[Floor.id, Floor.location])
         if dm:
             data["layers"] = [
-                l.as_dict(user, True) for l in self.layers.order_by(Layer.index)
+                layer.as_dict(user, True) for layer in self.layers.order_by(Layer.index)
             ]
         else:
             data["layers"] = [
-                l.as_dict(user, False)
-                for l in self.layers.order_by(Layer.index).where(Layer.player_visible)
+                layer.as_dict(user, False)
+                for layer in self.layers.order_by(Layer.index).where(
+                    Layer.player_visible
+                )
             ]
         return data
 

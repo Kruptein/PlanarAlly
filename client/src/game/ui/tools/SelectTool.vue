@@ -48,13 +48,13 @@ function removePoint(): void {
 
 <template>
     <div id="polygon-edit">
-        <div @click="removePoint" v-if="$.polygonUiVertex"><font-awesome-icon icon="trash-alt" /></div>
-        <div @click="addPoint" v-else><font-awesome-icon icon="plus-square" /></div>
+        <div v-if="$.polygonUiVertex" @click="removePoint"><font-awesome-icon icon="trash-alt" /></div>
+        <div v-else @click="addPoint"><font-awesome-icon icon="plus-square" /></div>
         <div @click="cutPolygon"><font-awesome-icon icon="cut" /></div>
     </div>
 
-    <div id="ruler" class="tool-detail" v-if="selected && $.hasSelection">
-        <button @click="toggleShowRuler" :aria-pressed="$.showRuler">Show ruler</button>
+    <div v-if="selected && $.hasSelection" id="ruler" class="tool-detail">
+        <button :aria-pressed="$.showRuler" @click="toggleShowRuler">Show ruler</button>
     </div>
 </template>
 

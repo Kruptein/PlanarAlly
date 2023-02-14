@@ -1,9 +1,8 @@
 <script lang="ts">
 import throttle from "lodash/throttle";
-import { defineComponent, onMounted, onUnmounted, toRef, watchEffect } from "vue";
+import { defineComponent, onMounted, onUnmounted, watchEffect } from "vue";
 
 import { useModal } from "../core/plugins/modals/plugin";
-import { getGameState } from "../store/_game";
 import { coreStore } from "../store/core";
 
 import { createConnection, socket } from "./api/socket";
@@ -13,6 +12,7 @@ import { scrollZoom } from "./input/mouse";
 import { LgCompanion } from "./integrations/lastgameboard/companion";
 import { clearUndoStacks } from "./operations/undo";
 import { floorSystem } from "./systems/floors";
+import { gameState } from "./systems/game/state";
 import { playerSettingsState } from "./systems/settings/players/state";
 import { setSelectionBoxFunction } from "./temp";
 import { keyUp, mouseDown, mouseLeave, mouseMove, mouseUp, touchEnd, touchMove, touchStart } from "./tools/events";
@@ -39,7 +39,6 @@ export default defineComponent({
         const modals = useModal();
         setSelectionBoxFunction(modals.selectionBox);
 
-        const gameState = getGameState();
         const companion = new LgCompanion();
 
         const mediaQuery = matchMedia(`(resolution: ${devicePixelRatio}dppx)`);
@@ -49,16 +48,17 @@ export default defineComponent({
         let throttledTouchMove: (event: TouchEvent) => void = (_event: TouchEvent) => {};
 
         watchEffect(() => {
-            if (!getGameState().boardInitialized) {
+            if (!gameState.reactive.boardInitialized) {
                 throttledMoveSet = false;
                 throttledTouchMoveSet = false;
             }
         });
 
+        const keyDown = (event: KeyboardEvent): void => void onKeyDown(event);
         onMounted(async () => {
             window.Gameboard?.setDrawerVisibility(false);
             window.addEventListener("keyup", keyUp);
-            window.addEventListener("keydown", onKeyDown);
+            window.addEventListener("keydown", keyDown);
             window.addEventListener("resize", resizeWindow);
             clearUndoStacks();
             mediaQuery.addEventListener("change", resizeWindow);
@@ -68,7 +68,7 @@ export default defineComponent({
 
         onUnmounted(() => {
             window.removeEventListener("keyup", keyUp);
-            window.removeEventListener("keydown", onKeyDown);
+            window.removeEventListener("keydown", keyDown);
             window.removeEventListener("resize", resizeWindow);
             mediaQuery.removeEventListener("change", resizeWindow);
             companion.disconnect();
@@ -90,6 +90,7 @@ export default defineComponent({
             // limit the number of touch moves to ease server load
             if (!throttledTouchMoveSet) {
                 throttledTouchMoveSet = true;
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises
                 throttledTouchMove = throttle(touchMove, 5);
             }
             // after throttling pass event to object
@@ -99,6 +100,7 @@ export default defineComponent({
         function mousemove(event: MouseEvent): void {
             if (!throttledMoveSet) {
                 throttledMoveSet = true;
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises
                 throttledMove = throttle(mouseMove, 15);
             }
             throttledMove(event);
@@ -119,16 +121,17 @@ export default defineComponent({
             ) {
                 return;
             } else {
-                const data: { imageSource: string; assetId: number } = JSON.parse(
-                    event.dataTransfer.getData("text/plain"),
-                );
+                const data = JSON.parse(event.dataTransfer.getData("text/plain")) as {
+                    imageSource: string;
+                    assetId: number;
+                };
                 await dropAsset(data, { x: event.clientX, y: event.clientY });
             }
         }
 
         return {
             drop,
-            isConnected: toRef(gameState, "isConnected"),
+            gameState,
             mouseDown,
             mouseLeave,
             mousemove,
@@ -145,7 +148,7 @@ export default defineComponent({
 <template>
     <div id="main" @mouseleave="mouseLeave" @wheel.passive="zoom">
         <canvas id="babylon"></canvas>
-        <div id="board" :class="{ disconnected: !isConnected }">
+        <div id="board" :class="{ disconnected: !gameState.reactive.isConnected }">
             <div
                 id="layers"
                 @mousedown="mouseDown"

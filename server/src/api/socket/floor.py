@@ -1,4 +1,5 @@
 from typing import List, Optional, cast
+
 from typing_extensions import TypedDict
 
 from ... import auth
@@ -9,6 +10,7 @@ from ...models import Floor, PlayerRoom
 from ...models.db import db
 from ...models.role import Role
 from ...state.game import game_state
+
 
 # DATA CLASSES FOR TYPE CHECKING
 class FloorRename(TypedDict):

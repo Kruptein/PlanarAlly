@@ -177,6 +177,17 @@ class PlayerSettingsSystem implements System {
             sendRoomClientOptions("initiative_effect_visibility", initiativeEffectVisibility, options.default);
     }
 
+    setInitiativeOpenOnActivate(
+        initiativeOpenOnActivate: boolean | undefined,
+        options: { sync: boolean; default?: boolean },
+    ): void {
+        $.initiativeOpenOnActivate.override = initiativeOpenOnActivate;
+        if (options.default !== undefined) $.initiativeOpenOnActivate.default = options.default;
+        $.initiativeOpenOnActivate.value = initiativeOpenOnActivate ?? $.initiativeOpenOnActivate.default;
+        if (options.sync)
+            sendRoomClientOptions("initiative_open_on_activate", initiativeOpenOnActivate, options.default);
+    }
+
     // PERFORMANCE
 
     setRenderAllFloors(renderAllFloors: boolean | undefined, options: { sync: boolean; default?: boolean }): void {

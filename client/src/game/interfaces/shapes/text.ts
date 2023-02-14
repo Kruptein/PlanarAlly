@@ -5,5 +5,5 @@ export interface IText extends IShape {
     fontSize: number;
     text: string;
 
-    setText(text: string, sync: SyncMode): void;
+    setText: (text: string, sync: SyncMode) => void;
 }

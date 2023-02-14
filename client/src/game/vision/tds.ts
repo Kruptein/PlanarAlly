@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-duplicate-enum-values */
 import { equalPoints } from "../../core/math";
 import type { LocalId } from "../id";
 import type { IShape } from "../interfaces/shape";
@@ -5,7 +6,11 @@ import type { IShape } from "../interfaces/shape";
 import type { CDT } from "./cdt";
 import { ccw, cw, orientation, sideOfOrientedCircleP, ulp } from "./triag";
 
-export type Point = number[];
+export type Point = [number, number];
+type OptionalVertex = Vertex | null;
+type OptionalTriangle = Triangle | null;
+type TriangleNeighbours = [OptionalTriangle, OptionalTriangle, OptionalTriangle];
+type TriangleConstraints = [boolean, boolean, boolean];
 
 // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
 const INFINITE = -7e310;
@@ -49,9 +54,9 @@ function newPoint(): Point {
 }
 
 export class Triangle {
-    vertices: (Vertex | null)[] = [];
-    neighbours: (Triangle | null)[] = [null, null, null];
-    constraints = [false, false, false];
+    vertices: OptionalVertex[] = [];
+    neighbours: TriangleNeighbours = [null, null, null];
+    constraints: TriangleConstraints = [false, false, false];
     static _counter = 0;
     uid = Triangle._counter++;
 
@@ -61,8 +66,8 @@ export class Triangle {
 
     from(t: Triangle): this {
         this.vertices = t.vertices.slice(0, t.vertices.length);
-        this.neighbours = t.neighbours.slice(0, t.neighbours.length);
-        this.constraints = t.constraints.slice(0, t.constraints.length);
+        this.neighbours = t.neighbours.slice(0, t.neighbours.length) as TriangleNeighbours;
+        this.constraints = t.constraints.slice(0, t.constraints.length) as TriangleConstraints;
         return this;
     }
 
@@ -78,20 +83,17 @@ export class Triangle {
     }
 
     addVertex(vertex: Vertex): void {
-        if (vertex === undefined) {
-            console.log("UNDEFINED HIERE");
-        }
         this.vertices.push(vertex);
         vertex.triangle = this;
     }
 
     isConstrained(index: number): boolean {
-        return this.constraints[index];
+        return this.constraints[index]!;
     }
 
     reorient(): void {
         // If certain indices do not exist yet thay will append faulty undefined's, thus we slice them
-        this.vertices = [this.vertices[1], this.vertices[0], this.vertices[2]].slice(0, this.vertices.length);
+        this.vertices = [this.vertices[1]!, this.vertices[0]!, this.vertices[2]!].slice(0, this.vertices.length);
         this.neighbours = [this.neighbours[1], this.neighbours[0], this.neighbours[2]];
         this.constraints = [this.constraints[1], this.constraints[0], this.constraints[2]];
     }
@@ -158,7 +160,7 @@ export class Vertex {
     infinite = false;
     private _point: Point | undefined;
     triangle: Triangle | undefined;
-    shapes: Set<IShape> = new Set();
+    shapes = new Set<IShape>();
 
     constructor(point?: Point) {
         this._point = point;
@@ -186,7 +188,7 @@ export class Vertex {
         // const edges: Edge[] = [];
         const ec = new EdgeCirculator(this, null);
         do {
-            if (!constrainedOnly || ec.t!.constraints[ec.ri]) yield new Edge(ec.t, ec.ri);
+            if (!constrainedOnly || ec.t!.constraints[ec.ri]!) yield new Edge(ec.t, ec.ri);
         } while (ec.valid && ec.next());
         // return edges;
     }
@@ -231,8 +233,8 @@ export class EdgeCirculator {
         if (this.t!.dimension === 1) {
             this.t = this.t!.neighbours[i === 0 ? 1 : 0];
         } else {
-            this.t = this.t!.neighbours[ccw(i)];
-            i = this.t!.indexV(this.v!);
+            this.t = this.t!.neighbours[ccw(i)]!;
+            i = this.t.indexV(this.v!);
             this.ri = ccw(i);
         }
         return this.ri !== this._ri || this.v !== this._v || this.t !== this._t;
@@ -254,9 +256,9 @@ export class EdgeIterator {
             this.pos = null;
             return;
         }
-        this.pos = tds.triangles[0];
+        this.pos = tds.triangles[0]!;
         if (tds.dimension === 1) this.es = 2;
-        if (this.pos !== null && !this.associatedEdge()) {
+        if (!this.associatedEdge()) {
             throw new Error("Vision Error (EdgeIterator)");
         }
 
@@ -296,12 +298,12 @@ export class EdgeIterator {
         if (this.tds.dimension === 1) {
             this.i++;
             if (this.tds.triangles.length <= this.i) this.pos = null;
-            else this.pos = this.tds.triangles[this.i];
+            else this.pos = this.tds.triangles[this.i]!;
         } else if (this.es === 2) {
             this.es = 0;
             this.i++;
             if (this.tds.triangles.length <= this.i) this.pos = null;
-            else this.pos = this.tds.triangles[this.i];
+            else this.pos = this.tds.triangles[this.i]!;
         } else {
             this.es++;
         }
@@ -345,12 +347,12 @@ export class FaceCirculator {
 
     prev(): void {
         const i = this.t!.indexV(this.v!);
-        this.t = this.t!.neighbours[cw(i)];
+        this.t = this.t!.neighbours[cw(i)]!;
     }
 
     next(): boolean {
         const i = this.t!.indexV(this.v!);
-        this.t = this.t!.neighbours[ccw(i)];
+        this.t = this.t!.neighbours[ccw(i)]!;
         return !this.done;
     }
 }
@@ -382,7 +384,6 @@ export class LineFaceCirculator {
 
         let vr = fc.t!.vertices[ccw(ic)]!;
         let pqr: Sign = Sign.RIGHT_TURN;
-        // tslint:disable:no-conditional-assignment
         while (vr !== _INFINITE_VERTEX && (pqr = orientation(this.p, this.q, vr.point!)) === Sign.LEFT_TURN) {
             fc.prev();
             ic = fc.t!.indexV(v);
@@ -485,13 +486,15 @@ export class Edge {
     }
 
     toString(): string {
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         return `${this.first!.vertices[this.second === 1 ? 0 : 1]!.point} - ${
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             this.first!.vertices[this.second === 1 ? 2 : 1]!.point
         }`;
     }
 
     vertices(): [Vertex | null, Vertex | null] {
-        return [this.first!.vertices[this.second === 0 ? 1 : 0], this.first!.vertices[this.second === 2 ? 1 : 2]];
+        return [this.first!.vertices[this.second === 0 ? 1 : 0]!, this.first!.vertices[this.second === 2 ? 1 : 2]!];
     }
 }
 
@@ -504,7 +507,7 @@ export enum LocateType {
 }
 
 export class TDS {
-    private triagVertices: Map<LocalId, Vertex[]> = new Map();
+    private triagVertices = new Map<LocalId, Vertex[]>();
     dimension = -1;
     vertices: Vertex[] = [];
     triangles: Triangle[] = [];
@@ -553,8 +556,8 @@ export class TDS {
         f3: Triangle | null = null,
         i3: number | null = null,
     ): Triangle {
-        const v3 = f3 === null || i3 === null ? f2.vertices[ccw(i2)] : f3.vertices[cw(i3)];
-        const t = new Triangle(f1.vertices[cw(i1)], f2.vertices[cw(i2)], v3);
+        const v3 = f3 === null || i3 === null ? f2.vertices[ccw(i2)]! : f3.vertices[cw(i3)]!;
+        const t = new Triangle(f1.vertices[cw(i1)]!, f2.vertices[cw(i2)]!, v3);
         f1.neighbours[i1] = t;
         f2.neighbours[i2] = t;
         if (f3 !== null && i3 !== null) f3.neighbours[i3] = t;
@@ -566,7 +569,7 @@ export class TDS {
     }
 
     createTriangle3(f1: Triangle, i1: number, v: Vertex): Triangle {
-        const t = new Triangle(f1.vertices[cw(i1)], f1.vertices[ccw(i1)], v);
+        const t = new Triangle(f1.vertices[cw(i1)]!, f1.vertices[ccw(i1)]!, v);
         t.neighbours[2] = f1;
         // not sure if I should create new Triangle() in the other neighbor spots or leave them as null
         f1.neighbours[i1] = t;
@@ -584,7 +587,7 @@ export class TDS {
     }
 
     get finiteVertex(): Vertex {
-        return this.vertices[1];
+        return this.vertices[1]!;
     }
 
     get finiteEdge(): Edge {
@@ -602,7 +605,7 @@ export class TDS {
         do {
             const edge = ei.edge;
             if (onlyConstraint) {
-                if (edge.first!.constraints[edge.second]) {
+                if (edge.first!.constraints[edge.second]!) {
                     edges.push(edge);
                 }
             } else {
@@ -622,7 +625,7 @@ export class TDS {
         do {
             j++;
             const edge = ei.edge;
-            if (edge.first!.constraints[edge.second]) {
+            if (edge.first!.constraints[edge.second]!) {
                 i++;
             }
             ei.next();
@@ -643,7 +646,7 @@ export class TDS {
         let t2: Triangle;
         switch (this.dimension) {
             case 0: {
-                t1 = this.triangles[0];
+                t1 = this.triangles[0]!;
                 t2 = new Triangle(v);
                 this.triangles.push(t2);
                 this.setAdjacency(t1, 0, t2, 0);
@@ -665,20 +668,20 @@ export class TDS {
                 for (const trig of triangles) {
                     const neighbour = trig.neighbours[this.dimension];
                     for (let j = 0; j < this.dimension; ++j) {
-                        neighbour!.neighbours[j] = trig.neighbours[j]!.neighbours[this.dimension];
+                        neighbour!.neighbours[j] = trig.neighbours[j]!.neighbours[this.dimension]!;
                     }
                 }
 
                 let lfit = 0;
                 if (this.dimension === 1) {
                     if (orient) {
-                        triangles[lfit].reorient();
+                        triangles[lfit]!.reorient();
                         lfit++;
-                        triangles[lfit].neighbours[1]!.reorient();
+                        triangles[lfit]!.neighbours[1]!.reorient();
                     } else {
-                        triangles[lfit].neighbours[1]!.reorient();
+                        triangles[lfit]!.neighbours[1]!.reorient();
                         lfit++;
-                        triangles[lfit].reorient();
+                        triangles[lfit]!.reorient();
                     }
                 } else {
                     for (const trig of triangles) {
@@ -720,8 +723,8 @@ export class TDS {
         const v0 = t.vertices[0]!;
         const v1 = t.vertices[1]!;
         const v2 = t.vertices[2]!;
-        const n1 = t.neighbours[1]!;
-        const n2 = t.neighbours[2]!;
+        const n1 = t.neighbours[1];
+        const n2 = t.neighbours[2];
         const t1 = this.createTriangle(v0, v, v2, t, n1, null);
         const t2 = this.createTriangle(v0, v1, v, t, null, n2);
         this.setAdjacency(t1, 2, t2, 1);
@@ -758,8 +761,8 @@ export class TDS {
         this.setAdjacency(t, ccw(i), n, ccw(ni));
         this.setAdjacency(n, ni, tr, tri);
 
-        if (vCW.triangle! === t) vCW.triangle = n;
-        if (vCCW.triangle! === n) vCCW.triangle = t;
+        if (vCW.triangle === t) vCW.triangle = n;
+        if (vCCW.triangle === n) vCCW.triangle = t;
     }
 
     insertInEdge(t: Triangle, i: number): Vertex {
@@ -820,17 +823,17 @@ export class TDS {
         const holeList: [Triangle, number][][] = [];
         holeList.push(firstHole);
         while (holeList.length > 0) {
-            const hole = holeList[0];
+            const hole = holeList[0]!;
             let hit: number;
 
             if (hole.length === 3) {
                 hit = 0;
-                f = hole[hit][0];
-                i = hole[hit][1];
-                ff = hole[++hit][0];
-                ii = hole[hit][1];
-                fn = hole[++hit][0];
-                inn = hole[hit][1];
+                f = hole[hit]![0];
+                i = hole[hit]![1];
+                ff = hole[++hit]![0];
+                ii = hole[hit]![1];
+                fn = hole[++hit]![0];
+                inn = hole[hit]![1];
                 this.createTriangle2(f, i, ff, ii, fn, inn);
                 holeList.shift();
                 continue;
@@ -838,8 +841,8 @@ export class TDS {
 
             let finite = false;
             while (!finite) {
-                ff = hole[0][0];
-                ii = hole[0][1];
+                ff = hole[0]![0];
+                ii = hole[0]![1];
                 if (ff.vertices[cw(ii)]!.infinite || ff.vertices[ccw(ii)]!.infinite) {
                     hole.push(hole.shift()!);
                 } else {
@@ -847,8 +850,8 @@ export class TDS {
                 }
             }
 
-            ff = hole[0][0];
-            ii = hole[0][1];
+            ff = hole[0]![0];
+            ii = hole[0]![1];
             hole.shift();
 
             const v0 = ff.vertices[cw(ii)]!;
@@ -862,8 +865,8 @@ export class TDS {
             let cutAfter = 0;
 
             while (hit !== hole.length - 1) {
-                fn = hole[hit][0];
-                inn = hole[hit][1];
+                fn = hole[hit]![0];
+                inn = hole[hit]![1];
                 const vv = fn.vertices[ccw(inn)]!;
                 if (vv.infinite && v2.infinite) cutAfter = hit;
                 else {
@@ -883,8 +886,8 @@ export class TDS {
             }
             let newf: Triangle;
 
-            fn = hole[0][0];
-            inn = hole[0][1];
+            fn = hole[0]![0];
+            inn = hole[0]![1];
             if (fn.vertices[ccw(inn)] === v2) {
                 newf = this.createTriangle2(ff, ii, fn, inn);
                 hole.shift();
@@ -958,7 +961,7 @@ export class TDS {
     }
 
     addTriagVertices(shape: LocalId, ...vertices: Vertex[]): void {
-        const tv = this.triagVertices.get(shape) || this.triagVertices.set(shape, []).get(shape)!;
+        const tv = this.triagVertices.get(shape) ?? this.triagVertices.set(shape, []).get(shape)!;
         for (const vertex of vertices) {
             if (tv.some((v) => equalPoints(vertex.point!, v.point!))) continue;
             tv.push(vertex);

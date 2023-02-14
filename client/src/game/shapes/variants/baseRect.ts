@@ -1,9 +1,10 @@
 import { clampGridLine, clampToGrid, g2lx, g2ly } from "../../../core/conversions";
-import { addP, toGP, Vector } from "../../../core/geometry";
+import { addP, cloneP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { rotateAroundPoint } from "../../../core/math";
 import { calculateDelta } from "../../drag";
 import type { GlobalId, LocalId } from "../../id";
+import type { IShape } from "../../interfaces/shape";
 import type { ServerShape } from "../../models/shapes";
 import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
 import type { ShapeProperties } from "../../systems/properties/state";
@@ -13,7 +14,7 @@ import { BoundingRect } from "./simple/boundingRect";
 
 type ServerBaseRect = ServerShape & { width: number; height: number };
 
-export abstract class BaseRect extends Shape {
+export abstract class BaseRect extends Shape implements IShape {
     private _w: number;
     private _h: number;
 
@@ -194,6 +195,7 @@ export abstract class BaseRect extends Shape {
             case 2: {
                 this.w = point.x - this.refPoint.x;
                 this.h = point.y - this.refPoint.y;
+                this.refPoint = cloneP(this.refPoint); // required to recalculate center!!
                 break;
             }
             case 3: {
@@ -238,7 +240,7 @@ export abstract class BaseRect extends Shape {
         // this call needs to happen BEFORE the below code
         this.invalidatePoints();
 
-        const vec = Vector.fromPoints(toGP(this.points[oppositeNRP]), toGP(oldPoints[oppositeNRP]));
+        const vec = Vector.fromPoints(toGP(this.points[oppositeNRP]!), toGP(oldPoints[oppositeNRP]!));
         this.refPoint = addP(this.refPoint, vec);
 
         return newResizePoint;

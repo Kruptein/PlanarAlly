@@ -1,7 +1,7 @@
 import type { GlobalId } from "../../../id";
 
-export type WithDefault<T> = { default: T; override?: T; value: T };
-export type WithLocationDefault<T> = { default: T; value: T; location: { [key: number]: T | undefined } };
+export interface WithDefault<T> { default: T; override?: T; value: T }
+export interface WithLocationDefault<T> { default: T; value: T; location: Record<number, T | undefined> }
 
 export interface ServerLocationOptions {
     use_grid: boolean;
@@ -16,6 +16,7 @@ export interface ServerLocationOptions {
     vision_max_range: number;
     spawn_locations: string;
     move_player_on_token_change: boolean;
+    limit_movement_during_initiative: boolean;
 
     air_map_background: string;
     ground_map_background: string;
@@ -37,6 +38,7 @@ export interface LocationOptions {
     // when switching locations this can be completely wrong
     spawnLocations: GlobalId[];
     movePlayerOnTokenChange: boolean;
+    limitMovementDuringInitiative: boolean;
 
     airMapBackground: string;
     groundMapBackground: string;
@@ -46,5 +48,5 @@ export interface LocationOptions {
 export interface ServerLocationInfo {
     default: ServerLocationOptions;
     active: number;
-    locations: { [key: number]: Partial<ServerLocationOptions> };
+    locations: Record<number, Partial<ServerLocationOptions>>;
 }

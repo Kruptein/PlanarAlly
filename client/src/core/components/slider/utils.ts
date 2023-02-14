@@ -2,8 +2,8 @@ export function getPosByEvent(e: MouseEvent | TouchEvent, elem: HTMLDivElement):
     const event = "targetTouches" in e ? e.targetTouches[0] : e;
     const offset = getOffset(elem);
     return {
-        x: event.pageX - offset.x,
-        y: event.pageY - offset.y,
+        x: (event?.pageX ?? 0) - offset.x,
+        y: (event?.pageY ?? 0) - offset.y,
     };
 }
 

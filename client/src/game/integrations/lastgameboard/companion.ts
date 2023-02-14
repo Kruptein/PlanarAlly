@@ -3,6 +3,7 @@ import type {
     ButtonPressed,
     CardButtonPressed,
     CardPlayed,
+    CardsReordered,
     DiceRolled,
     GameBoardClient,
     GameBoardListener,
@@ -47,10 +48,10 @@ export class LgCompanion implements GameBoardListener {
             this.userPresences[userPresence.userId] = userPresence;
             console.log(
                 `User ${userPresence.display ?? ""}(${userPresence.userId}) is sitting at ${
-                    userPresence.boardUserPosition?.x
-                },${userPresence.boardUserPosition?.y}`,
+                    userPresence.boardUserPosition.x
+                },${userPresence.boardUserPosition.y}`,
             );
-            this.boardClient.sendUserMessage(userPresence.userId, "companion/rollDice", {
+            await this.boardClient.sendUserMessage(userPresence.userId, "companion/rollDice", {
                 ownerId: userPresence.userId,
                 diceSizesToRoll: [20],
                 addedModifier: 0,
@@ -83,15 +84,15 @@ export class LgCompanion implements GameBoardListener {
             console.log(JSON.stringify(userPresence));
             const oldPosition = this.userPresences[userPresence.userId]?.boardUserPosition;
             this.userPresences[userPresence.userId] = userPresence;
-            if (JSON.stringify(userPresence?.boardUserPosition) !== JSON.stringify(oldPosition)) {
+            if (JSON.stringify(userPresence.boardUserPosition) !== JSON.stringify(oldPosition)) {
                 console.log(
                     `User ${userPresence.display ?? ""}(${userPresence.userId}) is sitting at ${
-                        userPresence.boardUserPosition?.x
-                    },${userPresence.boardUserPosition?.y}`,
+                        userPresence.boardUserPosition.x
+                    },${userPresence.boardUserPosition.y}`,
                 );
             }
             if (userPresence.change !== ChangeType.CHANGE_POSITION) {
-                this.boardClient.sendUserMessage(userPresence.userId, "companion/rollDice", {
+                void this.boardClient.sendUserMessage(userPresence.userId, "companion/rollDice", {
                     ownerId: userPresence.userId,
                     diceSizesToRoll: [20],
                     addedModifier: 0,
@@ -111,8 +112,13 @@ export class LgCompanion implements GameBoardListener {
         }
 
         const userPresence = this.userPresences[diceRolled.ownerId];
+        if (userPresence === undefined) {
+            console.error("[Companion] Unknown userPresence during dice roll attempt");
+            return;
+        }
+
         const startPosition = [userPresence.boardUserPosition.x, userPresence.boardUserPosition.y] as [number, number];
-        diceTool.roll(diceRolled.diceNotation!, {
+        void diceTool.roll(diceRolled.diceNotation, {
             color: userPresence.tokenColor,
             startPosition,
             throwKey: diceRolled.ownerId,
@@ -123,6 +129,13 @@ export class LgCompanion implements GameBoardListener {
         throw new Error("Method not implemented.");
     }
     onButtonPressed(buttonPressed: ButtonPressed): void {
+        throw new Error("Method not implemented.");
+    }
+
+    onCardTapped(cardPlayed: CardPlayed): void {
+        throw new Error("Method not implemented.");
+    }
+    onCardsReordered(cardsReordered: CardsReordered): void {
         throw new Error("Method not implemented.");
     }
 
@@ -139,11 +152,11 @@ export class LgCompanion implements GameBoardListener {
 function notation(dice: number[], modifier: number | null = null): string {
     const accum: { [key in number]: number } = {};
     dice.forEach((d) => {
-        accum[d] = (accum[d] || 0) + 1;
+        accum[d] = (accum[d] ?? 0) + 1;
     });
-    const accumArr = Object.keys(accum).map((d) => [+d, accum[+d]]);
-    accumArr.sort((ent1, ent2) => ent1[0] - ent2[0]);
-    let result = accumArr.map((ent) => `${ent[1]}d${ent[0]}`).join(" ");
-    if (modifier !== null) result = result + " " + (modifier >= 0 ? "+" : "") + modifier;
+    const accumArr = Object.keys(accum).map((d) => [+d, accum[+d]!]);
+    accumArr.sort((ent1, ent2) => ent1[0]! - ent2[0]!);
+    let result = accumArr.map((ent) => `${ent[1]!}d${ent[0]!}`).join(" ");
+    if (modifier !== null) result = result + " " + (modifier >= 0 ? "+" : "") + modifier.toString();
     return result;
 }

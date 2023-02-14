@@ -1,8 +1,6 @@
 import { toGP, Vector } from "../../../core/geometry";
 import { FULL_SYNC } from "../../../core/models/types";
 import { ctrlOrCmdPressed } from "../../../core/utils";
-import { getGameState } from "../../../store/_game";
-import { gameStore } from "../../../store/game";
 import { sendClientLocationOptions } from "../../api/emits/client";
 import { calculateDelta } from "../../drag";
 import { ToolName } from "../../models/tools";
@@ -11,14 +9,17 @@ import { moveShapes } from "../../operations/movement";
 import { redoOperation, undoOperation } from "../../operations/undo";
 import { setCenterPosition } from "../../position";
 import { copyShapes, pasteShapes } from "../../shapes/utils";
+import { accessSystem } from "../../systems/access";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
+import { gameState } from "../../systems/game/state";
 import { positionSystem } from "../../systems/position";
 import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
 import { propertiesSystem } from "../../systems/properties";
 import { getProperties } from "../../systems/properties/state";
 import { selectedSystem } from "../../systems/selected";
 import { locationSettingsState } from "../../systems/settings/location/state";
+import { uiSystem } from "../../systems/ui";
 import { moveFloor } from "../../temp";
 import { toggleActiveMode, toolMap } from "../../tools/tools";
 
@@ -85,7 +86,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                 }
                 const selection = selectedSystem.get({ includeComposites: false });
                 let delta = new Vector(offsetX, offsetY);
-                if (!event.shiftKey || !getGameState().isDm) {
+                if (!event.shiftKey || !gameState.raw.isDm) {
                     // First check for collisions.  Using the smooth wall slide collision check used on mouse move is overkill here.
                     for (const sel of selection) {
                         delta = calculateDelta(delta, sel, true);
@@ -109,18 +110,22 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             // x - Mark Defeated
             const selection = selectedSystem.get({ includeComposites: true });
             for (const shape of selection) {
-                const isDefeated = getProperties(shape.id)!.isDefeated;
-                propertiesSystem.setIsDefeated(shape.id, !isDefeated, FULL_SYNC);
+                if (accessSystem.hasAccessTo(shape.id, false, { edit: true })) {
+                    const isDefeated = getProperties(shape.id)!.isDefeated;
+                    propertiesSystem.setIsDefeated(shape.id, !isDefeated, FULL_SYNC);
+                }
             }
             event.preventDefault();
             event.stopPropagation();
         } else if (event.key === "l" && ctrlOrCmdPressed(event)) {
             const selection = selectedSystem.get({ includeComposites: true });
             for (const shape of selection) {
-                // This and GroupSettings are the only places currently where we would need to update both UI and Server.
-                // Might need to introduce a SyncTo.BOTH
-                const isLocked = getProperties(shape.id)!.isLocked;
-                propertiesSystem.setLocked(shape.id, !isLocked, FULL_SYNC);
+                if (accessSystem.hasAccessTo(shape.id, false, { edit: true })) {
+                    // This and GroupSettings are the only places currently where we would need to update both UI and Server.
+                    // Might need to introduce a SyncTo.BOTH
+                    const isLocked = getProperties(shape.id)!.isLocked;
+                    propertiesSystem.setLocked(shape.id, !isLocked, FULL_SYNC);
+                }
             }
             event.preventDefault();
             event.stopPropagation();
@@ -128,7 +133,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             // Ctrl-u - disable and reenable the Interface
             event.preventDefault();
             event.stopPropagation();
-            gameStore.toggleUi();
+            uiSystem.toggleUi();
         } else if (event.key === "0" && ctrlOrCmdPressed(event)) {
             // Ctrl-0 or numpad 0 - Re-center/reset the viewport
             setCenterPosition(toGP(0, 0));
@@ -153,11 +158,11 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             // Ctrl-v - Paste
             pasteShapes();
         } else if (event.key.toLocaleLowerCase() === "z" && event.shiftKey && ctrlOrCmdPressed(event)) {
-            redoOperation();
+            await redoOperation();
             event.preventDefault();
             event.stopPropagation();
         } else if (event.key === "z" && ctrlOrCmdPressed(event)) {
-            undoOperation();
+            await undoOperation();
             event.preventDefault();
             event.stopPropagation();
         } else if (event.key === "PageUp" && floorState.raw.floorIndex < floorState.raw.floors.length - 1) {
@@ -167,7 +172,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             event.preventDefault();
             event.stopPropagation();
             const targetFloor = floorState.raw.floors.findIndex(
-                (f, i) => i > floorState.raw.floorIndex && (getGameState().isDm || f.playerVisible),
+                (f, i) => i > floorState.raw.floorIndex && (gameState.raw.isDm || f.playerVisible),
             );
 
             changeFloor(event, targetFloor);
@@ -181,7 +186,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             let targetFloor = [...floorState.raw.floors]
                 .reverse()
                 .findIndex(
-                    (f, i) => maxLength - i < floorState.raw.floorIndex && (getGameState().isDm || f.playerVisible),
+                    (f, i) => maxLength - i < floorState.raw.floorIndex && (gameState.raw.isDm || f.playerVisible),
                 );
             targetFloor = maxLength - targetFloor;
 
@@ -194,9 +199,10 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
 }
 
 function changeFloor(event: KeyboardEvent, targetFloor: number): void {
-    if (targetFloor < 0 || targetFloor > floorState.raw.floors.length - 1) return;
-    const selection = selectedSystem.get({ includeComposites: false });
     const newFloor = floorState.raw.floors[targetFloor];
+    if (newFloor === undefined) return;
+
+    const selection = selectedSystem.get({ includeComposites: false });
 
     if (event.altKey) {
         moveFloor([...selectedSystem.get({ includeComposites: true })], newFloor, true);

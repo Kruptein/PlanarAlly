@@ -6,19 +6,23 @@ import { useRouter } from "vue-router";
 import { baseAdjust } from "../../../core/http";
 import type { AssetFile } from "../../../core/models/types";
 import { uuidv4 } from "../../../core/utils";
-import { getGameState } from "../../../store/_game";
 import { coreStore } from "../../../store/core";
-import { gameStore } from "../../../store/game";
-import { uiStore } from "../../../store/ui";
 import { clearGame } from "../../clear";
 import type { LocalId } from "../../id";
-import type { Note } from "../../models/general";
 import { setCenterPosition } from "../../position";
 import { clientSystem } from "../../systems/client";
 import type { ClientId } from "../../systems/client/models";
 import { clientState } from "../../systems/client/state";
+import { gameState } from "../../systems/game/state";
+import { markerSystem } from "../../systems/markers";
+import { markerState } from "../../systems/markers/state";
+import { noteSystem } from "../../systems/notes";
+import type { Note } from "../../systems/notes/models";
+import { noteState } from "../../systems/notes/state";
 import { playerState } from "../../systems/players/state";
 import { getProperties } from "../../systems/properties/state";
+import { uiSystem } from "../../systems/ui";
+import { uiState } from "../../systems/ui/state";
 import NoteDialog from "../NoteDialog.vue";
 
 import AssetParentNode from "./AssetParentNode.vue";
@@ -29,17 +33,12 @@ const { t } = useI18n();
 const showNote = ref(false);
 
 const assetSearch = ref("");
-const gameState = getGameState();
-
-const isDm = toRef(gameState, "isDm");
-const isFakePlayer = toRef(gameState, "isFakePlayer");
-const notes = toRef(gameState, "notes");
-const markers = toRef(gameState, "markers");
 
 const username = toRef(coreStore.state, "username");
 
 const noAssets = computed(() => {
-    return gameState.assets.size === 1 && (gameState.assets.get("__files") as AssetFile[]).length <= 0;
+    const assets = gameState.reactive.assets;
+    return assets.size === 1 && (assets.get("__files") as AssetFile[]).length <= 0;
 });
 
 const hasGameboardClients = computed(() => clientState.reactive.clientBoards.size > 0);
@@ -61,21 +60,21 @@ function settingsClick(event: MouseEvent): void {
 
 function createNote(): void {
     const note = { title: t("game.ui.menu.MenuBar.new_note"), text: "", uuid: uuidv4() };
-    gameStore.newNote(note, true);
+    noteSystem.newNote(note, true);
     openNote(note);
 }
 
 function openNote(note: Note): void {
     showNote.value = true;
-    uiStore.setActiveNote(note);
+    uiSystem.setActiveNote(note);
 }
 
 function delMarker(marker: LocalId): void {
-    gameStore.removeMarker(marker, true);
+    markerSystem.removeMarker(marker, true);
 }
 
 function jumpToMarker(marker: LocalId): void {
-    gameStore.jumpToMarker(marker);
+    markerSystem.jumpToMarker(marker);
 }
 
 function nameMarker(marker: LocalId): string {
@@ -91,7 +90,7 @@ const clientInfo = computed(() => {
     const info = [];
     for (const [playerId, player] of playerState.reactive.players) {
         const clients = clientSystem.getClients(playerId);
-        info.push({ player, client: clients[0] });
+        if (clients.length > 0) info.push({ player, client: clients[0]! });
     }
     return info;
 });
@@ -103,9 +102,9 @@ function jumpToClient(client: ClientId): void {
     setCenterPosition(location);
 }
 
-const openDmSettings = (): void => uiStore.showDmSettings(!uiStore.state.showDmSettings);
-const openClientSettings = (): void => uiStore.showClientSettings(!uiStore.state.showClientSettings);
-const openLgSettings = (): void => uiStore.showLgSettings(!uiStore.state.showLgSettings);
+const openDmSettings = (): void => uiSystem.showDmSettings(!uiState.raw.showDmSettings);
+const openClientSettings = (): void => uiSystem.showClientSettings(!uiState.raw.showClientSettings);
+const openLgSettings = (): void => uiSystem.showLgSettings(!uiState.raw.showLgSettings);
 </script>
 
 <template>
@@ -114,7 +113,7 @@ const openLgSettings = (): void => uiStore.showLgSettings(!uiStore.state.showLgS
     <div id="menu" @click="settingsClick">
         <div style="width: 12.5rem; overflow-y: auto; overflow-x: hidden">
             <!-- ASSETS -->
-            <template v-if="isDm || isFakePlayer">
+            <template v-if="gameState.isDmOrFake.value">
                 <button class="menu-accordion">{{ t("common.assets") }}</button>
                 <div id="menu-assets" class="menu-accordion-panel" style="position: relative">
                     <input id="asset-search" v-model="assetSearch" :placeholder="t('common.search')" />
@@ -127,7 +126,7 @@ const openLgSettings = (): void => uiStore.showLgSettings(!uiStore.state.showLgS
                     >
                         <font-awesome-icon icon="external-link-alt" />
                     </a>
-                    <div class="directory" id="menu-tokens">
+                    <div id="menu-tokens" class="directory">
                         <AssetParentNode :search="assetSearch.toLowerCase()" />
                         <div v-if="noAssets">
                             {{ t("game.ui.menu.MenuBar.no_assets") }}
@@ -137,12 +136,17 @@ const openLgSettings = (): void => uiStore.showLgSettings(!uiStore.state.showLgS
                 <!-- NOTES -->
                 <button class="menu-accordion">{{ t("common.notes") }}</button>
                 <div class="menu-accordion-panel">
-                    <div class="menu-accordion-subpanel" id="menu-notes" style="position: relative">
-                        <div v-for="note in notes" :key="note.uuid" @click="openNote(note)" style="cursor: pointer">
+                    <div id="menu-notes" class="menu-accordion-subpanel" style="position: relative">
+                        <div
+                            v-for="note in noteState.reactive.notes"
+                            :key="note.uuid"
+                            style="cursor: pointer"
+                            @click="openNote(note)"
+                        >
                             {{ note.title || "[?]" }}
                         </div>
-                        <div v-if="!notes.length">{{ t("game.ui.menu.MenuBar.no_notes") }}</div>
-                        <a class="actionButton" @click="createNote" :title="t('game.ui.menu.MenuBar.create_note')">
+                        <div v-if="!noteState.reactive.notes.length">{{ t("game.ui.menu.MenuBar.no_notes") }}</div>
+                        <a class="actionButton" :title="t('game.ui.menu.MenuBar.create_note')" @click="createNote">
                             <font-awesome-icon icon="plus-square" />
                         </a>
                     </div>
@@ -158,10 +162,10 @@ const openLgSettings = (): void => uiStore.showLgSettings(!uiStore.state.showLgS
                 <!-- PLAYERS -->
                 <button class="menu-accordion">Players</button>
                 <div class="menu-accordion-panel">
-                    <div class="menu-accordion-subpanel" id="menu-players">
+                    <div id="menu-players" class="menu-accordion-subpanel">
                         <template v-for="info of clientInfo" :key="info.client">
                             <div v-if="info.player.name !== username" style="cursor: pointer">
-                                <div @click="jumpToClient(info.client)" class="menu-accordion-subpanel-text">
+                                <div class="menu-accordion-subpanel-text" @click="jumpToClient(info.client)">
                                     {{ info.player.name }}
                                 </div>
                             </div>
@@ -173,16 +177,16 @@ const openLgSettings = (): void => uiStore.showLgSettings(!uiStore.state.showLgS
             <!-- MARKERS -->
             <button class="menu-accordion">{{ t("common.markers") }}</button>
             <div class="menu-accordion-panel">
-                <div class="menu-accordion-subpanel" id="menu-markers">
-                    <div v-for="marker of markers.values()" :key="marker" style="cursor: pointer">
-                        <div @click="jumpToMarker(marker)" class="menu-accordion-subpanel-text">
+                <div id="menu-markers" class="menu-accordion-subpanel">
+                    <div v-for="marker of markerState.reactive.markers.values()" :key="marker" style="cursor: pointer">
+                        <div class="menu-accordion-subpanel-text" @click="jumpToMarker(marker)">
                             {{ nameMarker(marker) || "[?]" }}
                         </div>
-                        <div @click="delMarker(marker)" :title="t('game.ui.menu.MenuBar.delete_marker')">
+                        <div :title="t('game.ui.menu.MenuBar.delete_marker')" @click="delMarker(marker)">
                             <font-awesome-icon icon="minus-square" />
                         </div>
                     </div>
-                    <div v-if="markers.size === 0">{{ t("game.ui.menu.MenuBar.no_markers") }}</div>
+                    <div v-if="markerState.reactive.markers.size === 0">{{ t("game.ui.menu.MenuBar.no_markers") }}</div>
                 </div>
             </div>
             <!-- CLIENT SETTINGS -->
@@ -191,9 +195,9 @@ const openLgSettings = (): void => uiStore.showLgSettings(!uiStore.state.showLgS
             </button>
         </div>
         <div
-            @click="exit"
             class="menu-accordion"
             style="width: 12.5rem; box-sizing: border-box; text-decoration: none; display: inline-block"
+            @click="exit"
         >
             {{ t("common.exit") }}
         </div>
@@ -242,24 +246,19 @@ DIRECTORY.CSS changes
     display: block;
 }
 
-#menuContainer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 100%;
-    pointer-events: none;
-}
-
 #menu {
-    grid-area: menu;
     display: flex;
+    position: relative;
+    grid-area: menu;
+
+    max-width: 12.5rem;
+
     flex-direction: column;
     justify-content: space-between;
+
     background-color: #fa5a5a;
     overflow: auto;
     pointer-events: auto;
-    max-width: 12.5rem;
 }
 
 .actionButton {

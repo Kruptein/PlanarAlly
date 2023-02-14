@@ -28,5 +28,5 @@ function getMouse(e: MouseEvent): LocalPoint {
 function getTouch(e: TouchEvent): LocalPoint {
     // touches is a TouchList, which is a list of touches (for each finger)
     // default to first touch (first index) to get x/y
-    return toLP(e.changedTouches[0].pageX, e.changedTouches[0].pageY);
+    return toLP(e.changedTouches[0]?.pageX ?? 0, e.changedTouches[0]?.pageY ?? 0);
 }

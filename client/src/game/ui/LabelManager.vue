@@ -4,13 +4,13 @@ import { useI18n } from "vue-i18n";
 
 import Modal from "../../core/components/modals/Modal.vue";
 import { uuidv4 } from "../../core/utils";
-import { getGameState } from "../../store/_game";
-import { gameStore } from "../../store/game";
-import { sendLabelVisibility } from "../api/emits/labels";
-import type { Label } from "../interfaces/label";
+import { labelSystem } from "../systems/labels";
+import { sendLabelVisibility } from "../systems/labels/emits";
+import type { Label } from "../systems/labels/models";
+import { labelState } from "../systems/labels/state";
 import { playerSystem } from "../systems/players";
 
-const emit = defineEmits(["update:visible", "addLabel"]);
+const emit = defineEmits(["update:visible", "add-label"]);
 defineProps<{ visible: boolean }>();
 
 const { t } = useI18n();
@@ -25,12 +25,12 @@ function close(): void {
     emit("update:visible", false);
 }
 
-const hasLabels = computed(() => getGameState().labels.size > 0);
+const hasLabels = computed(() => labelState.reactive.labels.size > 0);
 
 const categories = computed(() => {
-    const cat: Map<string, Label[]> = new Map();
+    const cat = new Map<string, Label[]>();
     cat.set("", []);
-    for (const label of getGameState().labels.values()) {
+    for (const label of labelState.reactive.labels.values()) {
         if (label.user !== playerSystem.getCurrentPlayer()?.name) continue;
         const fullName = `${label.category.toLowerCase()}${label.name.toLowerCase()}`;
         if (state.search.length > 0 && fullName.search(state.search.toLowerCase()) < 0) {
@@ -50,7 +50,7 @@ const categories = computed(() => {
 });
 
 function selectLabel(label: string): void {
-    emit("addLabel", label);
+    emit("add-label", label);
     close();
 }
 
@@ -59,7 +59,7 @@ function toggleVisibility(label: Label): void {
     sendLabelVisibility({ uuid: label.uuid, visible: label.visible });
 }
 
-function addLabel(): void {
+function createLabel(): void {
     if (state.newName === "") return;
     const label = {
         uuid: uuidv4(),
@@ -68,22 +68,22 @@ function addLabel(): void {
         visible: false,
         user: playerSystem.getCurrentPlayer()!.name,
     };
-    gameStore.addLabel(label, true);
+    labelSystem.createLabel(label, true);
     state.newCategory = "";
     state.newName = "";
 }
 
 function deleteLabel(uuid: string): void {
-    gameStore.deleteLabel(uuid, true);
+    labelSystem.deleteLabel(uuid, true);
 }
 </script>
 
 <template>
-    <Modal :visible="visible" @close="close" :mask="false">
-        <template v-slot:header="m">
+    <Modal :visible="visible" :mask="false" @close="close">
+        <template #header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 <div>{{ t("game.ui.LabelManager.title") }}</div>
-                <div class="header-close" @click="close" :title="t('common.close')">
+                <div class="header-close" :title="t('common.close')" @click.stop="close">
                     <font-awesome-icon :icon="['far', 'window-close']" />
                 </div>
             </div>
@@ -101,7 +101,7 @@ function deleteLabel(uuid: string): void {
                     <abbr :title="t('game.ui.LabelManager.delete')">{{ t("game.ui.LabelManager.del_abbr") }}</abbr>
                 </div>
                 <div class="separator spanrow" style="margin: 0 0 7px"></div>
-                <input class="spanrow" type="text" :placeholder="t('common.search')" v-model="state.search" />
+                <input v-model="state.search" class="spanrow" type="text" :placeholder="t('common.search')" />
             </div>
             <div class="grid scroll">
                 <template v-for="labels of categories.values()">
@@ -109,25 +109,25 @@ function deleteLabel(uuid: string): void {
                         <div class="row" @click="selectLabel(label.uuid)">
                             <template v-if="label.category">
                                 <div :key="'cat-' + label.uuid">{{ label.category }}</div>
-                                <div class="name" :key="'name-' + label.uuid">{{ label.name }}</div>
+                                <div :key="'name-' + label.uuid" class="name">{{ label.name }}</div>
                             </template>
                             <template v-if="!label.category">
                                 <div :key="'cat-' + label.uuid"></div>
-                                <div class="name" :key="'name-' + label.uuid">{{ label.name }}</div>
+                                <div :key="'name-' + label.uuid" class="name">{{ label.name }}</div>
                             </template>
                             <div
                                 :key="'visible-' + label.uuid"
                                 :style="{ textAlign: 'center' }"
                                 :class="{ 'lower-opacity': !label.visible }"
-                                @click.stop="toggleVisibility(label)"
                                 :title="t('common.toggle_public_private')"
+                                @click.stop="toggleVisibility(label)"
                             >
                                 <font-awesome-icon icon="eye" />
                             </div>
                             <div
                                 :key="'delete-' + label.uuid"
-                                @click.stop="deleteLabel(label.uuid)"
                                 :title="t('game.ui.LabelManager.delete_label')"
+                                @click.stop="deleteLabel(label.uuid)"
                             >
                                 <font-awesome-icon icon="trash-alt" />
                             </div>
@@ -140,9 +140,9 @@ function deleteLabel(uuid: string): void {
             </div>
             <div class="grid">
                 <div class="separator spanrow"></div>
-                <input type="text" v-model.trim="state.newCategory" />
-                <input type="text" v-model.trim="state.newName" />
-                <button id="addLabelButton" @click.stop="addLabel">{{ t("common.add") }}</button>
+                <input v-model.trim="state.newCategory" type="text" />
+                <input v-model.trim="state.newName" type="text" />
+                <button id="addLabelButton" @click.stop="createLabel">{{ t("common.add") }}</button>
             </div>
         </div>
     </Modal>

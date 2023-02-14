@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import { nextTick, onMounted, onUnmounted, ref, watch, watchEffect } from "vue";
 
 import { clearDropCallback, registerDropCallback } from "../../../game/ui/firefox";
 
@@ -7,7 +7,7 @@ const props = withDefaults(defineProps<{ colour?: string; mask?: boolean; visibl
     colour: "white",
     mask: true,
 });
-const emit = defineEmits(["close"]);
+const emit = defineEmits(["close", "focus"]);
 
 const container = ref<HTMLDivElement | null>(null);
 
@@ -25,9 +25,9 @@ function close(): void {
     emit("close");
 }
 
-function positionCheck(): void {
+async function positionCheck(): Promise<void> {
     if (props.visible && !positioned) {
-        nextTick(() => updatePosition());
+        await nextTick(() => updatePosition());
     }
 }
 
@@ -42,24 +42,29 @@ function checkBounds(): void {
     }
 }
 
-onMounted(() => {
+onMounted(async () => {
     window.addEventListener("resize", checkBounds);
-    positionCheck();
+    await positionCheck();
 });
 onUnmounted(() => window.removeEventListener("resize", checkBounds));
 watch(
     () => props.visible,
     () => positionCheck(),
 );
+watchEffect(() => {
+    if (props.visible) {
+        emit("focus");
+    }
+});
 
 function updatePosition(): void {
-    if (container.value === undefined) return;
+    if (container.value === null) return;
     if (!positioned) {
-        if (container.value!.offsetWidth === 0 && container.value!.offsetHeight === 0) return;
-        containerX = (window.innerWidth - container.value!.offsetWidth) / 2;
-        containerY = (window.innerHeight - container.value!.offsetHeight) / 2;
-        container.value!.style.left = `${containerX}px`;
-        container.value!.style.top = `${containerY}px`;
+        if (container.value.offsetWidth === 0 && container.value.offsetHeight === 0) return;
+        containerX = (window.innerWidth - container.value.offsetWidth) / 2;
+        containerY = (window.innerHeight - container.value.offsetHeight) / 2;
+        container.value.style.left = `${containerX}px`;
+        container.value.style.top = `${containerY}px`;
         positioned = true;
     }
 }
@@ -104,17 +109,21 @@ function dragOver(_event: DragEvent): void {
 </script>
 
 <template>
-    <div ref="test"></div>
     <transition name="modal">
         <div
+            v-show="visible"
             class="mask"
             :class="{ 'modal-mask': mask, 'dialog-mask': !mask }"
             @click="close"
-            v-show="visible"
             @dragover.prevent="dragOver"
         >
-            <div class="modal-container" @click.stop ref="container" :style="{ backgroundColor: colour }">
-                <slot name="header" :dragStart="dragStart" :dragEnd="dragEnd"></slot>
+            <div
+                ref="container"
+                class="modal-container"
+                :style="{ backgroundColor: colour }"
+                @click.stop="emit('focus')"
+            >
+                <slot name="header" :drag-start="dragStart" :drag-end="dragEnd"></slot>
                 <slot></slot>
             </div>
         </div>

@@ -53,7 +53,7 @@ export class FowLightingLayer extends FowLayer {
                     const shape = getShape(sh);
                     if (shape === undefined) continue;
                     if (shape.options.skipDraw ?? false) continue;
-                    if (shape.floor.id !== activeFloor.id) continue;
+                    if (shape.floorId !== activeFloor.id) continue;
                     const bb = shape.getBoundingBox();
                     const lcenter = g2l(shape.center);
                     const alm = 0.8 * g2lz(bb.w);
@@ -90,7 +90,7 @@ export class FowLightingLayer extends FowLayer {
 
             // First cut out all the light sources
             if (locationSettingsState.raw.fullFow.value) {
-                const shapesBoundChecked: Set<LocalId> = new Set();
+                const shapesBoundChecked = new Set<LocalId>();
                 for (const light of visionState.getVisionSourcesInView(this.floor)) {
                     const shape = getShape(light.shape);
                     if (shape === undefined) continue;

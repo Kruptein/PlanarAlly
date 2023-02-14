@@ -8,6 +8,7 @@ import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { FOG_COLOUR } from "../../colour";
 import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
+import type { IShape } from "../../interfaces/shape";
 import type { ServerPolygon } from "../../models/shapes";
 import type { AuraId } from "../../systems/auras/models";
 import { getProperties } from "../../systems/properties/state";
@@ -19,7 +20,7 @@ import type { SHAPE_TYPE } from "../types";
 
 import { BoundingRect } from "./simple/boundingRect";
 
-export class Polygon extends Shape {
+export class Polygon extends Shape implements IShape {
     type: SHAPE_TYPE = "polygon";
     private _vertices: GlobalPoint[] = [];
     openPolygon = false;
@@ -38,7 +39,7 @@ export class Polygon extends Shape {
         properties?: Partial<ShapeProperties>,
     ) {
         super(startPoint, options, properties);
-        this._vertices = vertices || [];
+        this._vertices = vertices ?? [];
         this.openPolygon = options?.openPolygon ?? false;
         this._center = this.__center();
         this.lineWidth = options?.lineWidth ?? [2];
@@ -54,7 +55,9 @@ export class Polygon extends Shape {
     set refPoint(point: GlobalPoint) {
         const delta = subtractP(point, this._refPoint);
         this._refPoint = point;
-        for (let i = 0; i < this._vertices.length; i++) this._vertices[i] = addP(this._vertices[i], delta);
+        for (let i = 0; i < this._vertices.length; i++) {
+            this._vertices[i] = addP(this._vertices[i]!, delta);
+        }
         this._center = this.__center();
         this.resetVisionIteration();
         this.invalidatePoints();
@@ -65,7 +68,11 @@ export class Polygon extends Shape {
     }
 
     set vertices(v: GlobalPoint[]) {
-        this._refPoint = v[0];
+        if (v.length < 2) {
+            throw new Error("Setting vertices with not enough elements");
+        }
+
+        this._refPoint = v[0]!;
         this._vertices = v.slice(1);
         this._center = this.__center();
         this.invalidatePoints();
@@ -79,7 +86,7 @@ export class Polygon extends Shape {
         return Object.assign(this.getBaseDict(), {
             vertices: this._vertices.map((v) => toArrayP(v)),
             open_polygon: this.openPolygon,
-            line_width: this.lineWidth[0],
+            line_width: this.lineWidth[0]!,
         });
     }
 
@@ -91,10 +98,11 @@ export class Polygon extends Shape {
     }
 
     getBoundingBox(delta = 0): BoundingRect {
-        let minx = this.vertices[0].x;
-        let maxx = this.vertices[0].x;
-        let miny = this.vertices[0].y;
-        let maxy = this.vertices[0].y;
+        const firstVertex = this.vertices[0]!;
+        let minx = firstVertex.x;
+        let maxx = firstVertex.x;
+        let miny = firstVertex.y;
+        let maxy = firstVertex.y;
         for (const p of this.vertices.slice(1)) {
             if (p.x < minx) minx = p.x;
             if (p.x > maxx) maxx = p.x;
@@ -139,12 +147,12 @@ export class Polygon extends Shape {
         else ctx.fillStyle = props.fillColour;
 
         ctx.beginPath();
-        let localVertex = subtractP(g2l(this.vertices[0]), center);
+        let localVertex = subtractP(g2l(this.vertices[0]!), center);
         ctx.moveTo(localVertex.x, localVertex.y);
         for (let i = 1; i <= this.vertices.length - (this.openPolygon ? 1 : 0); i++) {
-            const vertex = this.vertices[i % this.vertices.length];
+            const vertex = this.vertices[i % this.vertices.length]!;
             if (this.ignoreZoomSize) {
-                localVertex = addP(localVertex, subtractP(vertex, this.vertices[i - 1]));
+                localVertex = addP(localVertex, subtractP(vertex, this.vertices[i - 1]!));
             } else {
                 localVertex = subtractP(g2l(vertex), center);
             }
@@ -154,7 +162,7 @@ export class Polygon extends Shape {
         if (!this.openPolygon) ctx.fill();
 
         for (const [i, c] of props.strokeColour.entries()) {
-            const lw = this.lineWidth[i] ?? this.lineWidth[0];
+            const lw = this.lineWidth[i] ?? this.lineWidth[0]!;
             ctx.lineWidth = this.ignoreZoomSize ? lw : g2lz(lw);
 
             if (c === "fog") ctx.strokeStyle = FOG_COLOUR;
@@ -166,14 +174,14 @@ export class Polygon extends Shape {
     }
 
     contains(point: GlobalPoint, nearbyThreshold?: number): boolean {
-        if (nearbyThreshold === undefined) nearbyThreshold = this.lineWidth[0];
+        if (nearbyThreshold === undefined) nearbyThreshold = this.lineWidth[0]!;
         const bbox = this.getBoundingBox(nearbyThreshold);
         if (!bbox.contains(point)) return false;
         if (this.isClosed) return true;
         if (this.angle !== 0) point = rotateAroundPoint(point, this.center, -this.angle);
         const vertices = this.uniqueVertices;
         for (const [i, v] of vertices.entries()) {
-            const nv = vertices[(i + 1) % vertices.length];
+            const nv = vertices[(i + 1) % vertices.length]!;
             const { distance } = getDistanceToSegment(point, [v, nv]);
             if (distance <= nearbyThreshold) return true;
         }
@@ -215,11 +223,11 @@ export class Polygon extends Shape {
         let lastVertex = -1;
         let nearVertex: GlobalPoint | null = null;
         for (let i = 1; i <= this.vertices.length - (this.openPolygon ? 1 : 0); i++) {
-            const prevVertex = this.vertices[i - 1];
-            const vertex = this.vertices[i % this.vertices.length];
+            const prevVertex = this.vertices[i - 1]!;
+            const vertex = this.vertices[i % this.vertices.length]!;
 
             const info = getDistanceToSegment(point, [prevVertex, vertex]);
-            if (info.distance < this.lineWidth[0]) {
+            if (info.distance < this.lineWidth[0]!) {
                 lastVertex = i - 1;
                 nearVertex = info.nearest;
                 break;
@@ -231,7 +239,7 @@ export class Polygon extends Shape {
             this._vertices.push(nearVertex!);
 
             const newPolygon = new Polygon(nearVertex!, newVertices);
-            const uuid = getGlobalId(newPolygon.id);
+            const uuid = getGlobalId(newPolygon.id)!;
             // make sure we copy over all the same properties but retain the correct uuid and vertices
             const oldDict = this.asDict();
             newPolygon.fromDict({
@@ -245,7 +253,7 @@ export class Polygon extends Shape {
 
             const props = getProperties(this.id)!;
 
-            this.layer.addShape(
+            this.layer?.addShape(
                 newPolygon,
                 SyncMode.FULL_SYNC,
                 props.blocksVision ? InvalidationMode.WITH_LIGHT : InvalidationMode.NORMAL,
@@ -263,17 +271,17 @@ export class Polygon extends Shape {
     pushPoint(point: GlobalPoint): void {
         this._vertices.push(point);
         this._points.push(this.invalidatePoint(point, this.center));
-        this.layer.updateSectors(this.id, this.getAuraAABB());
+        this.layer?.updateSectors(this.id, this.getAuraAABB());
         if (this.isSnappable) this.updateLayerPoints();
     }
 
     addPoint(point: GlobalPoint): void {
         for (let i = 1; i <= this.vertices.length - (this.openPolygon ? 1 : 0); i++) {
-            const prevVertex = this.vertices[i - 1];
-            const vertex = this.vertices[i % this.vertices.length];
+            const prevVertex = this.vertices[i - 1]!;
+            const vertex = this.vertices[i % this.vertices.length]!;
 
             const info = getDistanceToSegment(point, [prevVertex, vertex]);
-            if (info.distance < this.lineWidth[0]) {
+            if (info.distance < this.lineWidth[0]!) {
                 this._vertices.splice(i - 1, 0, info.nearest);
 
                 if (!this.preventSync) sendShapePositionUpdate([this], false);
@@ -289,7 +297,8 @@ export class Polygon extends Shape {
         const pointArr = toArrayP(point);
         let invalidate = false;
         if (equalPoints(pointArr, toArrayP(this.refPoint))) {
-            this._refPoint = this._vertices.splice(0, 1)[0];
+            if (this._vertices.length === 0) return;
+            this._refPoint = this._vertices.splice(0, 1)[0]!;
             invalidate = true;
             this.invalidate(true);
         } else {
@@ -304,8 +313,10 @@ export class Polygon extends Shape {
 
         if (invalidate) {
             const props = getProperties(this.id)!;
-            if (props.blocksVision) visionState.recalculateVision(this.floor.id);
-            if (props.blocksMovement) visionState.recalculateMovement(this.floor.id);
+            if (this.floorId !== undefined) {
+                if (props.blocksVision) visionState.recalculateVision(this.floorId);
+                if (props.blocksMovement) visionState.recalculateMovement(this.floorId);
+            }
             if (!this.preventSync) sendShapePositionUpdate([this], false);
 
             this.invalidatePoints();

@@ -8,7 +8,7 @@ import { getPattern, patternToString } from "../../../layers/floor";
 import type { BackgroundPattern } from "../../../models/floor";
 
 const props = defineProps<{ pattern: string }>();
-const emit = defineEmits<{ (e: "update:pattern", p: string): void }>();
+const emit = defineEmits<(e: "update:pattern", p: string) => void>();
 
 const modals = useModal();
 

@@ -10,14 +10,14 @@ import { i18n } from "../../../i18n";
 import { coreStore } from "../../../store/core";
 import { diceStore } from "../../dice/state";
 import { ToolName } from "../../models/tools";
-import type { ToolPermission } from "../../models/tools";
+import type { ITool, ToolPermission } from "../../models/tools";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
 
 const hasGameboard = coreStore.state.boardId !== undefined;
 
-class DiceTool extends Tool {
+class DiceTool extends Tool implements ITool {
     readonly toolName = ToolName.Dice;
     readonly toolTranslation = i18n.global.t("tool.Dice");
 
@@ -46,7 +46,7 @@ class DiceTool extends Tool {
     }
 
     async onSelect(): Promise<void> {
-        if (diceStore.state.loaded === false) {
+        if (!diceStore.state.loaded) {
             await diceStore.loadEnv();
         }
     }
@@ -128,9 +128,17 @@ class DiceTool extends Tool {
             diceStore.setIsPending(false);
             diceStore.setShowDiceResults(results.key);
         }
-        const timeoutId = window.setTimeout(async () => {
-            (await diceStore.getDiceThrower()).reset(results.key);
-            delete this.state.timeouts[results.key];
+        const timeoutId = window.setTimeout(() => {
+            diceStore
+                .getDiceThrower()
+                .then((thrower) => {
+                    thrower.reset(results.key);
+                    delete this.state.timeouts[results.key];
+                })
+                .catch(() => {
+                    console.error("Failed to retrieve diceThrower instance");
+                    delete this.state.timeouts[results.key];
+                });
         }, 10_000);
         this.state.timeouts[results.key] = timeoutId;
 
@@ -138,7 +146,9 @@ class DiceTool extends Tool {
     }
 
     addShadow(die: Dice, mesh: Mesh): void {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         ((window as any).shadowGenerator as ShadowGenerator).addShadowCaster(mesh);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         ((window as any).shadowGenerator as ShadowGenerator).useCloseExponentialShadowMap = true;
     }
 }

@@ -21,18 +21,18 @@ from . import save
 
 save_newly_created = save.check_existence()
 
-from .api import http
-from . import routes
-from .state.asset import asset_state
-from .state.game import game_state
+from .api import http  # noqa: F401, E402
+from . import routes  # noqa: F401, E402
+from .state.asset import asset_state  # noqa: E402
+from .state.game import game_state  # noqa: E402
 
 # Force loading of socketio routes
-from .api.socket import load_socket_commands
-from .api.socket.constants import GAME_NS
-from .app import admin_app, app as main_app, runners, setup_runner, sio
-from .config import config
-from .logs import logger
-from .models import User, Room
+from .api.socket import load_socket_commands  # noqa: E402
+from .api.socket.constants import GAME_NS  # noqa: E402
+from .app import admin_app, app as main_app, runners, setup_runner, sio  # noqa: E402
+from .config import config  # noqa: E402
+from .logs import logger  # noqa: E402
+from .models import User, Room  # noqa: E402
 
 load_socket_commands()
 
@@ -137,12 +137,13 @@ def server_main(args):
 
     # Check for existence of './templates/' as it is not present if client was not built before
     if (not (FILE_DIR / "templates").exists()) and args.dev:
-        print(
-            "You must gather your par— you must build the client, before starting the server.\nSee https://www.planarally.io/server/setup/self-hosting/ on how to build the client or import a pre-built client."
-        )
+        print("You must first build the client, before starting the server.")
+        url = "https://www.planarally.io/server/setup/self-hosting/"
+        print(f"See {url} on how to build the client or import a pre-built client.")
         sys.exit(1)
 
-    # Mimetype recognition for js files apparently is not always properly setup out of the box for some users out there.
+    # Mimetype recognition for js files apparently is not always properly setup out of the box
+    # for some users out there.
     mimetypes.init()
     mimetypes.types_map[".js"] = "application/javascript; charset=utf-8"
 

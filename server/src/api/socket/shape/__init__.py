@@ -31,8 +31,23 @@ from ....state.game import game_state
 from ..constants import GAME_NS
 from ..groups import remove_group_if_empty
 from .. import initiative
-from .data_models import *
-from . import access, options, toggle_composite
+from .data_models import (
+    AssetRectImageData,
+    CircleSizeData,
+    OptionUpdate,
+    OptionUpdateList,
+    PositionUpdate,
+    PositionUpdateList,
+    RectSizeData,
+    ServerShapeLocationMove,
+    ShapeAdd,
+    ShapeFloorChange,
+    ShapeOrder,
+    TemporaryShapesList,
+    TextSizeData,
+    TextUpdateData,
+)
+from . import access, options, toggle_composite  # noqa: F401
 
 
 @sio.on("Shape.Add", namespace=GAME_NS)
@@ -472,6 +487,25 @@ async def update_text_size(sid: str, data: TextSizeData):
 
     await sio.emit(
         "Shape.Text.Size.Update",
+        data,
+        room=pr.active_location.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )
+
+
+@sio.on("Shape.Asset.Image.Set", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def change_asset_image(sid: str, data: AssetRectImageData):
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = AssetRect.get_by_id(data["uuid"])
+
+    shape.src = data["src"]
+    shape.save()
+
+    await sio.emit(
+        "Shape.Asset.Image.Set",
         data,
         room=pr.active_location.get_path(),
         skip_sid=sid,

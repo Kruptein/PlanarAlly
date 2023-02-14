@@ -34,7 +34,9 @@ def handle_exception(exc_type, exc_value, exc_traceback):
 
 
 def handle_async_exception(loop, context):
-    logger.critical(f"Uncaught async exception {context}")
+    msg = context.get("exception", context["message"])
+    logger.critical(f"Uncaught async exception {msg}")
+    loop.default_exception_handler(context)
 
 
 sys.excepthook = handle_exception

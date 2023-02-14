@@ -8,7 +8,7 @@ socket.on("Shape.Text.Value.Set", (data: { uuid: GlobalId; text: string }) => {
     if (shape === undefined) return;
 
     shape.text = data.text;
-    shape.layer.invalidate(true);
+    shape.layer?.invalidate(true);
 });
 
 socket.on("Shape.Text.Size.Update", (data: { uuid: GlobalId; font_size: number }) => {
@@ -16,5 +16,5 @@ socket.on("Shape.Text.Size.Update", (data: { uuid: GlobalId; font_size: number }
     if (shape === undefined) return;
 
     shape.fontSize = data.font_size;
-    shape.layer.invalidate(!shape.triggersVisionRecalc);
+    shape.layer?.invalidate(!shape.triggersVisionRecalc);
 });

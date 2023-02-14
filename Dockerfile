@@ -10,13 +10,13 @@ WORKDIR /usr/src/admin-client
 
 # Copy first package.json so changes in code dont require to reinstall all npm modules
 COPY admin-client/package.json admin-client/package-lock.json ./
-RUN npm i
+RUN npm i && npm cache clean --force;
 
 WORKDIR /usr/src/client
 
 # Copy first package.json so changes in code dont require to reinstall all npm modules
 COPY client/package.json client/package-lock.json ./
-RUN npm i
+RUN npm i && npm cache clean --force;
 
 ARG PA_BASEPATH="/"
 
@@ -53,7 +53,7 @@ VOLUME /planarally/static/assets
 
 ENV PA_GIT_INFO docker:${DOCKER_TAG}-${SOURCE_COMMIT}
 
-RUN apt-get update && apt-get install dumb-init curl libffi-dev libssl-dev gcc -y && \
+RUN apt-get update && apt-get install --no-install-recommends dumb-init curl libffi-dev libssl-dev gcc -y && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy first requirements.txt so changes in code dont require to reinstall python requirements

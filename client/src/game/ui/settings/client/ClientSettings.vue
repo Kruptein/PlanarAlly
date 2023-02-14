@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, toRef } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
-import { uiStore } from "../../../../store/ui";
+import { uiSystem } from "../../../systems/ui";
+import { uiState } from "../../../systems/ui/state";
 
 import AppearanceSettings from "./AppearanceSettings.vue";
 import BehaviourSettings from "./BehaviourSettings.vue";
@@ -16,13 +17,18 @@ const { t } = useI18n();
 
 const visible = computed({
     get() {
-        return uiStore.state.showClientSettings;
+        return uiState.reactive.showClientSettings;
     },
     set(visible: boolean) {
-        uiStore.showClientSettings(visible);
+        uiSystem.showClientSettings(visible);
     },
 });
 
+function close(): void {
+    visible.value = false;
+}
+
+defineExpose({ close });
 const categoryNames = [
     ClientSettingCategory.Appearance,
     ClientSettingCategory.Behaviour,
@@ -30,14 +36,16 @@ const categoryNames = [
     ClientSettingCategory.Initiative,
     ClientSettingCategory.Performance,
 ];
-
-const activeClientTab = toRef(uiStore.state, "clientSettingsTab");
 </script>
 
 <template>
-    <PanelModal v-model:visible="visible" :categories="categoryNames" :initialSelection="activeClientTab">
-        <template v-slot:title>{{ t("game.ui.settings.client.ClientSettings.client_settings") }}</template>
-        <template v-slot:default="{ selection }">
+    <PanelModal
+        v-model:visible="visible"
+        :categories="categoryNames"
+        :initial-selection="uiState.reactive.clientSettingsTab"
+    >
+        <template #title>{{ t("game.ui.settings.client.ClientSettings.client_settings") }}</template>
+        <template #default="{ selection }">
             <AppearanceSettings v-show="selection === ClientSettingCategory.Appearance" />
             <DisplaySettings v-show="selection === ClientSettingCategory.Display" />
             <BehaviourSettings v-show="selection === ClientSettingCategory.Behaviour" />

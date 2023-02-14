@@ -13,6 +13,15 @@ const pss = playerSettingsSystem;
 
 const effectVisibilityOptions = Object.values(InitiativeEffectMode);
 
+const openOnActivate = computed({
+    get() {
+        return $.initiativeOpenOnActivate.value;
+    },
+    set(openOnActivate: boolean | undefined) {
+        pss.setInitiativeOpenOnActivate(openOnActivate, { sync: true });
+    },
+});
+
 const cameraLock = computed({
     get() {
         return $.initiativeCameraLock.value;
@@ -48,8 +57,28 @@ function setEffectVisibility(event: Event): void {
 <template>
     <div class="panel restore-panel">
         <div class="row">
+            <label for="openOnActivate">{{ t("game.ui.settings.client.InitiativeSettings.open_on_activate") }}</label>
+            <div><input id="openOnActivate" v-model="openOnActivate" type="checkbox" /></div>
+            <template v-if="$.initiativeOpenOnActivate.override !== undefined">
+                <div :title="t('game.ui.settings.common.reset_default')" @click="openOnActivate = undefined">
+                    <font-awesome-icon icon="times-circle" />
+                </div>
+                <div
+                    :title="t('game.ui.settings.common.sync_default')"
+                    @click="
+                        pss.setInitiativeOpenOnActivate(undefined, {
+                            sync: true,
+                            default: $.initiativeOpenOnActivate.override,
+                        })
+                    "
+                >
+                    <font-awesome-icon icon="sync-alt" />
+                </div>
+            </template>
+        </div>
+        <div class="row">
             <label for="cameraLock">{{ t("game.ui.settings.client.InitiativeSettings.camera_lock") }}</label>
-            <div><input id="cameraLock" type="checkbox" v-model="cameraLock" /></div>
+            <div><input id="cameraLock" v-model="cameraLock" type="checkbox" /></div>
             <template v-if="$.initiativeCameraLock.override !== undefined">
                 <div :title="t('game.ui.settings.common.reset_default')" @click="cameraLock = undefined">
                     <font-awesome-icon icon="times-circle" />
@@ -66,7 +95,7 @@ function setEffectVisibility(event: Event): void {
         </div>
         <div class="row">
             <label for="visionLock">{{ t("game.ui.settings.client.InitiativeSettings.vision_lock") }}</label>
-            <div><input id="visionLock" type="checkbox" v-model="visionLock" /></div>
+            <div><input id="visionLock" v-model="visionLock" type="checkbox" /></div>
             <template v-if="$.initiativeVisionLock.override !== undefined">
                 <div :title="t('game.ui.settings.common.reset_default')" @click="visionLock = undefined">
                     <font-awesome-icon icon="times-circle" />

@@ -67,7 +67,10 @@ export class PropertiesSystem implements ShapeSystem {
 
         shape.name = name;
 
-        if (syncTo.server) sendShapeSetName({ shape: getGlobalId(id), value: name });
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeSetName({ shape, value: name });
+        }
         if ($.id === id) $.name = name;
     }
 
@@ -79,7 +82,10 @@ export class PropertiesSystem implements ShapeSystem {
 
         shape.nameVisible = visible;
 
-        if (syncTo.server) sendShapeSetNameVisible({ shape: getGlobalId(id), value: visible });
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeSetNameVisible({ shape, value: visible });
+        }
         if ($.id === id) $.nameVisible = visible;
     }
 
@@ -91,7 +97,10 @@ export class PropertiesSystem implements ShapeSystem {
 
         shape.isToken = isToken;
 
-        if (syncTo.server) sendShapeSetIsToken({ shape: getGlobalId(id), value: isToken });
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeSetIsToken({ shape, value: isToken });
+        }
         if ($.id === id) $.isToken = isToken;
 
         if (accessSystem.hasAccessTo(id, false, { vision: true })) {
@@ -109,7 +118,10 @@ export class PropertiesSystem implements ShapeSystem {
 
         shape.isInvisible = isInvisible;
 
-        if (syncTo.server) sendShapeSetInvisible({ shape: getGlobalId(id), value: isInvisible });
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeSetInvisible({ shape, value: isInvisible });
+        }
         if ($.id === id) $.isInvisible = isInvisible;
 
         const _shape = getShape(id)!;
@@ -124,7 +136,10 @@ export class PropertiesSystem implements ShapeSystem {
 
         shape.strokeColour = [strokeColour];
 
-        if (syncTo.server) sendShapeSetStrokeColour({ shape: getGlobalId(id), value: strokeColour });
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeSetStrokeColour({ shape, value: strokeColour });
+        }
         if ($.id === id) $.strokeColour = [strokeColour];
 
         getShape(id)?.invalidate(true);
@@ -138,7 +153,10 @@ export class PropertiesSystem implements ShapeSystem {
 
         shape.fillColour = fillColour;
 
-        if (syncTo.server) sendShapeSetFillColour({ shape: getGlobalId(id), value: fillColour });
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeSetFillColour({ shape, value: fillColour });
+        }
         if ($.id === id) $.fillColour = fillColour;
 
         getShape(id)?.invalidate(true);
@@ -153,7 +171,10 @@ export class PropertiesSystem implements ShapeSystem {
 
         shape.blocksMovement = blocksMovement;
 
-        if (syncTo.server) sendShapeSetBlocksMovement({ shape: getGlobalId(id), value: blocksMovement });
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeSetBlocksMovement({ shape, value: blocksMovement });
+        }
         if ($.id === id) $.blocksMovement = blocksMovement;
 
         const alteredMovement = checkMovementSources(id, blocksMovement, recalculate);
@@ -170,7 +191,10 @@ export class PropertiesSystem implements ShapeSystem {
 
         shape.blocksVision = blocksVision;
 
-        if (syncTo.server) sendShapeSetBlocksVision({ shape: getGlobalId(id), value: blocksVision });
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeSetBlocksVision({ shape, value: blocksVision });
+        }
         if ($.id === id) $.blocksVision = blocksVision;
 
         const alteredVision = checkVisionSources(id, blocksVision, recalculate);
@@ -186,7 +210,10 @@ export class PropertiesSystem implements ShapeSystem {
 
         shape.showBadge = showBadge;
 
-        if (syncTo.server) sendShapeSetShowBadge({ shape: getGlobalId(id), value: showBadge });
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeSetShowBadge({ shape, value: showBadge });
+        }
         if ($.id === id) $.showBadge = showBadge;
 
         const _shape = getShape(id)!;
@@ -201,7 +228,10 @@ export class PropertiesSystem implements ShapeSystem {
 
         shape.isDefeated = isDefeated;
 
-        if (syncTo.server) sendShapeSetDefeated({ shape: getGlobalId(id), value: isDefeated });
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeSetDefeated({ shape, value: isDefeated });
+        }
         if ($.id === id) $.isDefeated = isDefeated;
 
         const _shape = getShape(id)!;
@@ -216,7 +246,10 @@ export class PropertiesSystem implements ShapeSystem {
 
         shape.isLocked = isLocked;
 
-        if (syncTo.server) sendShapeSetLocked({ shape: getGlobalId(id), value: isLocked });
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeSetLocked({ shape, value: isLocked });
+        }
         if ($.id === id) $.isLocked = isLocked;
     }
 }

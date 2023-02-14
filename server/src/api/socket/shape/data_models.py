@@ -1,5 +1,7 @@
 from typing import List, Optional
+
 from typing_extensions import Literal, TypedDict
+
 
 # DATA CLASSES FOR TYPE CHECKING
 class PositionTuple(TypedDict):
@@ -162,6 +164,11 @@ class TextSizeData(TypedDict):
     temporary: bool
 
 
+class AssetRectImageData(TypedDict):
+    uuid: str
+    src: str
+
+
 class OptionUpdate(TypedDict):
     uuid: str
     option: str
@@ -169,4 +176,5 @@ class OptionUpdate(TypedDict):
 
 class OptionUpdateList(TypedDict):
     options: List[OptionUpdate]
+    temporary: bool
     temporary: bool

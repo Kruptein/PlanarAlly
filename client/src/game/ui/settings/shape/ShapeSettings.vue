@@ -26,6 +26,11 @@ const visible = computed({
     },
 });
 
+function close(): void {
+    visible.value = false;
+}
+defineExpose({ close });
+
 const hasShape = computed(() => activeShapeStore.state.id !== undefined);
 
 const categoryNames = computed(() => {
@@ -48,13 +53,13 @@ const SSC = ShapeSettingCategory;
 
 <template>
     <PanelModal v-model:visible="visible" :categories="categoryNames">
-        <template v-slot:title>{{ t("game.ui.selection.edit_dialog.dialog.edit_asset") }}</template>
-        <template v-slot:default="{ selection }">
+        <template #title>{{ t("game.ui.selection.edit_dialog.dialog.edit_shape") }}</template>
+        <template #default="{ selection }">
             <div v-if="hasShape" style="display: flex; flex-direction: column">
                 <PropertySettings v-show="selection === SSC.Properties" />
-                <TrackerSettings :activeSelection="selection === SSC.Trackers" />
-                <AccessSettings :activeSelection="selection === SSC.Access" />
-                <LogicSettings :activeSelection="selection === SSC.Logic" />
+                <TrackerSettings :active-selection="selection === SSC.Trackers" />
+                <AccessSettings :active-selection="selection === SSC.Access" />
+                <LogicSettings :active-selection="selection === SSC.Logic" />
                 <GroupSettings v-show="owned && selection === SSC.Group" />
                 <ExtraSettings v-show="owned && selection === SSC.Extra" />
                 <VariantSwitcher v-show="owned" />

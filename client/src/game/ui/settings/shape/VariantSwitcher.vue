@@ -19,17 +19,17 @@ const currentIndex = computed(() => vState.variants.findIndex((v) => v.id === vS
 
 const previousVariant = computed(() => {
     if (currentIndex.value < 0) return { name: "No variant" };
-    return vState.variants[(currentIndex.value + vState.variants.length - 1) % vState.variants.length];
+    return vState.variants[(currentIndex.value + vState.variants.length - 1) % vState.variants.length]!;
 });
 
 const currentVariant = computed(() => {
     if (currentIndex.value < 0) return "No variant";
-    return vState.variants[currentIndex.value].name;
+    return vState.variants[currentIndex.value]!.name;
 });
 
 const nextVariant = computed(() => {
     if (currentIndex.value < 0) return { name: "No variant" };
-    return vState.variants[(currentIndex.value + 1) % vState.variants.length];
+    return vState.variants[(currentIndex.value + 1) % vState.variants.length]!;
 });
 
 const compositeParent = computed(() => {
@@ -60,6 +60,11 @@ async function addVariant(): Promise<void> {
 
     const shape = getShape(vState.id!)!;
 
+    if (asset.file_hash === undefined) {
+        console.error("Missing file_hash for new variant");
+        return;
+    }
+
     const newShape = await dropAsset(
         { imageSource: `/static/assets/${asset.file_hash}`, assetId: asset.id },
         { x: shape.refPoint.x, y: shape.refPoint.y },
@@ -72,7 +77,7 @@ async function addVariant(): Promise<void> {
     let parent = compositeParent.value;
     if (parent === undefined) {
         parent = new ToggleComposite(cloneP(shape.refPoint), shape.id, [{ id: shape.id, name: "base variant" }]);
-        shape.layer.addShape(parent, SyncMode.FULL_SYNC, InvalidationMode.NO);
+        shape.layer?.addShape(parent, SyncMode.FULL_SYNC, InvalidationMode.NO);
     }
     parent.addVariant(newShape.id, name, true);
     parent.setActiveVariant(newShape.id, true);
@@ -107,29 +112,29 @@ const variants = toRef(vState, "variants");
         <font-awesome-icon
             id="variant-left"
             icon="chevron-left"
-            @click="swapPrev"
             :title="previousVariant.name"
             :style="{ opacity: variants.length > 1 ? '1.0' : '0.3' }"
+            @click="swapPrev"
         />
         <div id="variant-name">{{ currentVariant }}</div>
         <font-awesome-icon
             icon="chevron-right"
-            @click="swapNext"
             :title="nextVariant.name"
             :style="{ opacity: variants.length > 1 ? '1.0' : '0.3' }"
+            @click="swapNext"
         />
         <font-awesome-icon id="add-variant" icon="plus-square" title="Add a variant" @click="addVariant" />
         <font-awesome-icon
             icon="pencil-alt"
             title="Edit variant name"
-            @click="renameVariant"
             :style="{ opacity: compositeParent !== undefined ? '1.0' : '0.3' }"
+            @click="renameVariant"
         />
         <font-awesome-icon
             icon="trash-alt"
             title="Remove variant"
-            @click="removeVariant"
             :style="{ opacity: compositeParent !== undefined ? '1.0' : '0.3' }"
+            @click="removeVariant"
         />
     </div>
 </template>

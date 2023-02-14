@@ -96,7 +96,7 @@ async def update_shape_owner(sid: str, data: ServerShapeOwner):
 
     try:
         so = ShapeOwner.get(shape=shape, user=target_user)
-    except ShapeOwner.DoesNotExist as exc:
+    except ShapeOwner.DoesNotExist:
         logger.warning(
             f"Attempt to update unknown shape-owner relation by {pr.player.name}"
         )

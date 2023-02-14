@@ -1,5 +1,6 @@
-import type { Note } from "../../models/general";
-import { wrapSocket } from "../helpers";
+import { wrapSocket } from "../../api/helpers";
+
+import type { Note } from "./models";
 
 export const sendNewNote = wrapSocket<Note>("Note.New");
 export const sendUpdateNote = wrapSocket<Note>("Note.Update");

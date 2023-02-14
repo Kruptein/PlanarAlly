@@ -32,7 +32,7 @@ export const sendShapesMove = wrapSocket<{
 export function sendShapePositionUpdate(shapes: readonly IShape[], temporary: boolean): void {
     const positions = shapes
         .filter((s) => !s.preventSync)
-        .map((s) => ({ uuid: getGlobalId(s.id), position: s.getPositionRepresentation() }));
+        .map((s) => ({ uuid: getGlobalId(s.id)!, position: s.getPositionRepresentation() }));
     if (positions.length > 0) _sendShapePositionUpdate(positions, temporary);
 }
 
@@ -41,15 +41,19 @@ export function sendShapeSizeUpdate(data: { shape: IShape; temporary: boolean })
         case "assetrect":
         case "rect": {
             const shape = data.shape as IRect;
+            const uuid = getGlobalId(shape.id);
+            if (uuid === undefined) return;
             // a shape resize can move the refpoint!
             sendShapePositionUpdate([data.shape], data.temporary);
-            _sendRectSizeUpdate({ uuid: getGlobalId(shape.id), w: shape.w, h: shape.h, temporary: data.temporary });
+            _sendRectSizeUpdate({ uuid, w: shape.w, h: shape.h, temporary: data.temporary });
             break;
         }
         case "circulartoken":
         case "circle": {
             const shape = data.shape as ICircle;
-            _sendCircleSizeUpdate({ uuid: getGlobalId(shape.id), r: shape.r, temporary: data.temporary });
+            const uuid = getGlobalId(shape.id);
+            if (uuid === undefined) return;
+            _sendCircleSizeUpdate({ uuid, r: shape.r, temporary: data.temporary });
             break;
         }
         case "polygon": {
@@ -58,7 +62,9 @@ export function sendShapeSizeUpdate(data: { shape: IShape; temporary: boolean })
         }
         case "text": {
             const shape = data.shape as IText;
-            _sendTextSizeUpdate({ uuid: getGlobalId(shape.id), font_size: shape.fontSize, temporary: data.temporary });
+            const uuid = getGlobalId(shape.id);
+            if (uuid === undefined) return;
+            _sendTextSizeUpdate({ uuid, font_size: shape.fontSize, temporary: data.temporary });
         }
     }
 }

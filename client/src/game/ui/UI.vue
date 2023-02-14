@@ -5,32 +5,25 @@ import { useI18n } from "vue-i18n";
 import MarkdownModal from "../../core/components/modals/MarkdownModal.vue";
 import SliderComponent from "../../core/components/slider/SliderComponent.vue";
 import { baseAdjust } from "../../core/http";
-import { getGameState } from "../../store/_game";
 import { activeShapeStore } from "../../store/activeShape";
 import { coreStore } from "../../store/core";
-import { clientState } from "../systems/client/state";
+import { gameState } from "../systems/game/state";
 import { positionSystem } from "../systems/position";
 import { positionState } from "../systems/position/state";
+import { uiState } from "../systems/ui/state";
 
 import Annotation from "./Annotation.vue";
 import DefaultContext from "./contextmenu/DefaultContext.vue";
 import ShapeContext from "./contextmenu/ShapeContext.vue";
 import { showDefaultContextMenu, showShapeContextMenu } from "./contextmenu/state";
-import DiceResults from "./dice/DiceResults.vue";
 import LgDiceResults from "./dice/LgDiceResults.vue";
 import Floors from "./Floors.vue";
-import Initiative from "./initiative/Initiative.vue";
 import { initiativeStore } from "./initiative/state";
 import LgGridId from "./lg/GridId.vue";
 import LocationBar from "./menu/LocationBar.vue";
 import MenuBar from "./menu/MenuBar.vue";
+import ModalStack from "./ModalStack.vue";
 import SelectionInfo from "./SelectionInfo.vue";
-import ClientSettings from "./settings/client/ClientSettings.vue";
-import DmSettings from "./settings/dm/DmSettings.vue";
-import FloorSettings from "./settings/FloorSettings.vue";
-import LgSettings from "./settings/lg/LgSettings.vue";
-import LocationSettings from "./settings/location/LocationSettings.vue";
-import ShapeSettings from "./settings/shape/ShapeSettings.vue";
 import CreateTokenDialog from "./tokendialog/CreateTokenDialog.vue";
 import { tokenDialogVisible } from "./tokendialog/state";
 import TokenDirections from "./TokenDirections.vue";
@@ -48,8 +41,6 @@ const visible = reactive({
     settings: false,
 });
 const topLeft = computed(() => visible.locations && visible.settings);
-
-const hasGameboardClients = computed(() => clientState.reactive.clientBoards.size > 0);
 
 const changelogText = computed(() =>
     t("game.ui.ui.changelog_RELEASE_LOG", {
@@ -73,7 +64,7 @@ const showChangelog = computed(() => {
 onMounted(() => {
     // hide all UI elements that were previously open
     activeShapeStore.setShowEditDialog(false);
-    initiativeStore.show(false);
+    initiativeStore.show(false, false);
     showDefaultContextMenu.value = false;
     showShapeContextMenu.value = false;
     tokenDialogVisible.value = false;
@@ -125,8 +116,8 @@ function setTempZoomDisplay(value: number): void {
 </script>
 
 <template>
-    <div id="ui" ref="uiEl" v-show="getGameState().showUi">
-        <div id="logo" v-show="topLeft">
+    <div v-show="uiState.reactive.showUi" id="ui" ref="uiEl">
+        <div v-show="topLeft" id="logo">
             <div id="logo-icons">
                 <a href="https://www.planarally.io" target="_blank" rel="noopener noreferrer">
                     <img :src="baseAdjust('/static/favicon.png')" alt="" />
@@ -167,19 +158,19 @@ function setTempZoomDisplay(value: number): void {
         <div id="radialmenu">
             <div class="rm-wrapper">
                 <div class="rm-toggler">
-                    <ul class="rm-list" :class="{ 'rm-list-dm': getGameState().isDm }">
+                    <ul class="rm-list" :class="{ 'rm-list-dm': gameState.reactive.isDm }">
                         <li
-                            @click="toggleLocations"
-                            v-if="getGameState().isDm"
-                            class="rm-item"
+                            v-if="gameState.reactive.isDm"
                             id="rm-locations"
+                            class="rm-item"
                             :title="t('game.ui.ui.open_loc_menu')"
+                            @click="toggleLocations"
                         >
                             <a href="#">
                                 <font-awesome-icon :icon="['far', 'compass']" />
                             </a>
                         </li>
-                        <li @click="toggleMenu" class="rm-item" id="rm-settings" :title="t('game.ui.ui.open_settings')">
+                        <li id="rm-settings" class="rm-item" :title="t('game.ui.ui.open_settings')" @click="toggleMenu">
                             <a href="#">
                                 <font-awesome-icon icon="cog" />
                             </a>
@@ -189,36 +180,34 @@ function setTempZoomDisplay(value: number): void {
                 <span class="rm-topper"></span>
             </div>
         </div>
-        <MenuBar />
-        <Tools />
-        <LocationBar v-if="getGameState().isDm" :active="visible.locations" :menuActive="visible.settings" />
-        <Floors />
-        <CreateTokenDialog />
-        <Initiative />
-        <DefaultContext />
-        <ShapeContext />
-        <ShapeSettings />
-        <DmSettings v-if="getGameState().isDm || getGameState().isFakePlayer" />
-        <LgSettings v-if="hasGameboardClients && (getGameState().isDm || getGameState().isFakePlayer)" />
-        <LgGridId v-if="hasGameboard" />
-        <FloorSettings v-if="getGameState().isDm || getGameState().isFakePlayer" />
-        <LocationSettings v-if="getGameState().isDm || getGameState().isFakePlayer" />
-        <ClientSettings />
-        <SelectionInfo />
-        <Annotation />
-        <template v-if="!hasGameboard"><DiceResults /></template>
-        <template v-else><LgDiceResults /></template>
-        <div id="teleport-modals"></div>
-        <MarkdownModal v-if="showChangelog" :title="t('game.ui.ui.new_ver_msg')" :source="changelogText" />
-        <div id="oob" v-if="positionState.reactive.outOfBounds" @click="positionSystem.returnToBounds">
+        <div v-if="positionState.reactive.outOfBounds" id="oob" @click="positionSystem.returnToBounds">
             Click to return to content
         </div>
         <TokenDirections />
+        <!-- Core overlays -->
+        <MenuBar />
+        <Tools />
+        <LocationBar v-if="gameState.reactive.isDm" :active="visible.locations" :menu-active="visible.settings" />
+        <Floors />
+        <DefaultContext />
+        <ShapeContext />
+        <Annotation />
+        <LgGridId v-if="hasGameboard" />
+        <SelectionInfo />
+        <template v-if="hasGameboard"><LgDiceResults /></template>
+        <!-- Modals that can be rearranged -->
+        <ModalStack />
+        <!-- Modals that require immediate attention -->
+        <CreateTokenDialog />
+        <div id="teleport-modals"></div>
+        <MarkdownModal v-if="showChangelog" :title="t('game.ui.ui.new_ver_msg')" :source="changelogText" />
+        <!-- end of main modals -->
         <!-- When updating zoom boundaries, also update store updateZoom function;
             should probably do this using a store variable-->
         <SliderComponent
             v-if="!hasGameboard"
             id="zoom"
+            v-model="zoomDisplay"
             height="6px"
             width="200px"
             :dot-size="[8, 20]"
@@ -226,7 +215,6 @@ function setTempZoomDisplay(value: number): void {
             :dot-style="{ 'border-radius': '15%' }"
             :min="0"
             :max="1"
-            v-model="zoomDisplay"
             @change="setTempZoomDisplay"
         />
     </div>

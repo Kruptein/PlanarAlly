@@ -6,8 +6,61 @@ All notable changes to this project will be documented in this file.
 [server] denotes changes only useful for the server owner\
 [tech] denotes internal changes that are only useful for code contributors\
 tech changes will usually be stripped from release notes for the public
+[lang] this is a change to some translation string
 
 ## Unreleased
+
+## [2023.1.0] - 2023-02-14
+
+### Added
+
+-   Button to change the current asset for a shape to the shape property settings
+-   [DM] Quick access togglebar under the tool bar
+    -   Fake Player
+    -   Initiative active state (see below)
+-   Initiative now has a specific "active" state
+    -   This streamlines some things and allows some further future things without relying on the initiative window being open
+    -   The Initiative vision lock setting now only triggers when initiative is active
+    -   The above setting now also properly reverts to the original vision lock when initiative is no longer active as was always intended
+    -   The initiative UI is automatically opened for everybody once initiative is started. (and automatically closed as well)
+    -   The above behaviour can be disabled by a new user setting.
+    -   A new DM setting (under Varia) can be enabled to limit (non-DM) initiated movement only to the active initiative shape.
+-   Most modals will now move to the front when interacted with
+-   Most modals can be closed with escape
+
+### Changed
+
+-   Spell tool
+    -   range property is removed as it was confusing to people and a bit fiddly
+    -   a ruler is now automatically drawn between the spell shape and the selected shape
+-   Dice tool: Add min-height in dice tool UI where the dice to roll are being prepared
+-   [lang] The edit dialog for shapes now properly says "Edit shape" instead of "Edit asset"
+
+### Fixed
+
+-   Spell tool: spell on selection bugged
+-   Spell tool: fill colour behaving janky when border colour has <1 opacity
+-   Spell tool: right-click was opening the context-menu
+-   Spell tool: once used, the select tool was not being properly activated
+-   Spell tool: the 'is public' label was wrongly attached to the range input box
+-   Fake Player: showing DM layer
+-   DM settings: Fix last DM being able to demote themselves to a player
+-   DM settings: Fix invite URL not containing subpath if set
+-   Assets: default stroke colour wrongly set, causing badges to be transparent
+-   Trackers: Display on token not working for trackers that are shared across variants
+-   Some cases where a client could edit shape info without access
+    -   _this was always rejected by the server and never synced_
+    -   most tracker properties
+    -   defeated and locked state using keybinds
+-   Prompt modals sometimes still using a validation check from an earlier prompt
+-   Resizing the botright corner of a rectangle-based shape while rotated was moving the shape
+-   Token direction UI triggering when other UI is on top of it
+-   Floor detail UI not moving along if side menu is opened
+-   Unlocking shape could sometimes trigger the shape following your mouse
+-   Templates: only using the first character of the provided template name
+-   Asset Manager: close contextmenu when scrolling
+-   Asset Manager: contextmenu appearing in the wrong location when scrolled
+-   Adding multiple shapes to group always prompting group question even if no groups are present
 
 ## [2022.3.0] - 2022-12-12
 

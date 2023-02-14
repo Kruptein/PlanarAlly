@@ -1,8 +1,8 @@
 import type { GlobalId } from "../id";
-import type { Label } from "../interfaces/label";
 import type { SHAPE_TYPE } from "../shapes/types";
 import type { ServerShapeOwner } from "../systems/access/models";
 import type { ServerAura } from "../systems/auras/models";
+import type { Label } from "../systems/labels/models";
 import type { DoorOptions } from "../systems/logic/door/models";
 import type { TeleportOptions } from "../systems/logic/tp/models";
 import type { ServerTracker } from "../systems/trackers/models";

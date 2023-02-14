@@ -3,6 +3,7 @@ import tinycolor from "tinycolor2";
 import { g2l, g2lr, toRadians } from "../../core/conversions";
 import { coreStore } from "../../store/core";
 import type { IShape } from "../interfaces/shape";
+import { LayerName } from "../models/floor";
 import { auraSystem } from "../systems/auras";
 
 const hasGameboard = coreStore.state.boardId !== undefined;
@@ -12,7 +13,7 @@ export function drawAuras(shape: IShape, ctx: CanvasRenderingContext2D): void {
     const lCenter = g2l(center);
 
     for (const aura of auraSystem.getAll(shape.id, true)) {
-        if (!aura.active) continue;
+        if (!aura.active || (!aura.visionSource && shape.layerName === LayerName.Lighting)) continue;
 
         const value = aura.value > 0 && !isNaN(aura.value) ? aura.value : 0;
         const dim = aura.dim > 0 && !isNaN(aura.dim) ? aura.dim : 0;

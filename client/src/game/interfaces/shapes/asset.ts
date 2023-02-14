@@ -8,5 +8,5 @@ export interface IAsset extends IShape {
     get h(): number;
     get w(): number;
 
-    loadSvgs(): Promise<void>;
+    loadSvgs: () => Promise<void>;
 }

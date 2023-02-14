@@ -5,7 +5,7 @@ import type { IShape } from "../interfaces/shape";
 import type { IToggleComposite } from "../interfaces/shapes/toggleComposite";
 
 class CompositeState {
-    private compositeMap: Map<LocalId, LocalId> = new Map();
+    private compositeMap = new Map<LocalId, LocalId>();
 
     clear(): void {
         this.compositeMap.clear();
@@ -20,18 +20,26 @@ class CompositeState {
     }
 
     addComposite(parent: LocalId, variant: { id: LocalId; name: string }, sync: boolean): void {
+        const gId = getGlobalId(parent);
+        const gIdVariant = getGlobalId(variant.id);
+
+        if (gId === undefined || gIdVariant === undefined) {
+            console.error("Composite globalId error");
+            return;
+        }
+
         this.compositeMap.set(variant.id, parent);
         if (sync) {
             sendToggleCompositeAddVariant({
-                shape: getGlobalId(parent),
-                variant: getGlobalId(variant.id),
+                shape: gId,
+                variant: gIdVariant,
                 name: variant.name,
             });
         }
     }
 
     addAllCompositeShapes(shapes: readonly IShape[]): readonly IShape[] {
-        const shapeUuids: Set<LocalId> = new Set(shapes.map((s) => s.id));
+        const shapeUuids = new Set<LocalId>(shapes.map((s) => s.id));
         const allShapes = [...shapes];
         for (const shape of this.compositeMap.keys()) {
             if (shapes.some((s) => s.id === shape)) {

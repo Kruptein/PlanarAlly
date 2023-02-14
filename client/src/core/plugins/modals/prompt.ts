@@ -9,7 +9,7 @@ export type PromptFunction = (
     validation?: validationFunc,
 ) => Promise<string | undefined>;
 
-interface PromptModal {
+export interface PromptModal {
     visible: DeepReadonly<Ref<boolean>>;
     question: Ref<string>;
     title: Ref<string>;
@@ -27,9 +27,11 @@ export function usePrompt(): PromptModal {
         error: "",
     });
 
-    let validationFunction: validationFunc = (_value) => ({
+    const defaultValidationFunction: validationFunc = (_value) => ({
         valid: true,
     });
+
+    let validationFunction = defaultValidationFunction;
 
     let resolve: (value: string | undefined) => void = (_value: string | undefined) => {};
 
@@ -39,6 +41,7 @@ export function usePrompt(): PromptModal {
         data.title = title;
         data.error = "";
         if (validation) validationFunction = validation;
+        else validationFunction = defaultValidationFunction;
         return new Promise((res) => (resolve = res));
     }
 

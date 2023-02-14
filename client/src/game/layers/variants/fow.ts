@@ -44,7 +44,7 @@ export class FowLayer extends Layer {
             floorState.raw.floors.length > 1
         ) {
             for (const floor of floorState.raw.floors) {
-                if (floor.name !== floorState.raw.floors[0].name) {
+                if (floor.name !== floorState.raw.floors[0]!.name) {
                     const mapl = floorSystem.getLayer(floor, LayerName.Map);
                     if (mapl === undefined) continue;
                     this.ctx.globalCompositeOperation = "destination-out";

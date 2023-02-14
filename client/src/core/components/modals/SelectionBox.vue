@@ -7,7 +7,7 @@ import type { SelectionBoxOptions } from "../../plugins/modals/selectionBox";
 
 import Modal from "./Modal.vue";
 
-const emit = defineEmits(["close", "submit"]);
+const emit = defineEmits<{ (e: "submit", choices: string[]): void; (e: "close"): void }>();
 const props = defineProps<{
     visible: boolean;
     title: string;
@@ -61,7 +61,7 @@ function create(): void {
     } else if (props.choices.includes(state.customName)) {
         state.error = t("core.components.selectionbox.already_exists_warning").toString();
     } else {
-        emit("submit", state.customName);
+        emit("submit", [state.customName]);
         close();
     }
 }
@@ -69,21 +69,21 @@ function create(): void {
 function submit(): void {
     emit(
         "submit",
-        [...state.activeSelection].map((i) => props.choices[i]),
+        [...state.activeSelection].map((i) => props.choices[i]!),
     );
 }
 </script>
 
 <template>
     <Modal :visible="visible" @close="close">
-        <template v-slot:header="m">
+        <template #header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 {{ title }}
             </div>
         </template>
         <div class="modal-body">
             <VueMarkdownIt :source="text" />
-            <div id="error" v-if="state.error.length > 0">{{ state.error }}</div>
+            <div v-if="state.error.length > 0" id="error">{{ state.error }}</div>
             <template v-if="choices.length > 0">
                 <div id="selectionbox">
                     <template v-for="[i, choice] of choices.entries()" :key="choice">
@@ -99,7 +99,7 @@ function submit(): void {
                             {{ t("common.or").toLocaleUpperCase().toString() }}
                         </span>
                     </h4>
-                    <input type="text" class="input" v-model="state.customName" />
+                    <input v-model="state.customName" type="text" class="input" />
                     <div class="button" @click="create">{{ customButton }}</div>
                 </template>
             </template>

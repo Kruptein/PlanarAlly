@@ -28,16 +28,16 @@ const sendPosUpdate = throttle(sendShapePositionUpdate, 50);
 
 class LastGameboardStore extends Store<LastGameboardState> {
     // Map<sessionId, typeId>
-    private sessionMap: Map<number, number> = new Map();
+    private sessionMap = new Map<number, number>();
 
     // Map<typeId, uuid>
-    private shapeMap: Map<number, LocalId | null> = new Map();
+    private shapeMap = new Map<number, LocalId | null>();
 
     // Set of PA shapes that are actually attached to tokens
-    private tokenShapes: Set<number> = new Set();
+    private tokenShapes = new Set<number>();
 
-    private contourShapes: Map<number, LocalId> = new Map();
-    private contourHistory: Map<number, [number, number][]> = new Map();
+    private contourShapes = new Map<number, LocalId>();
+    private contourHistory = new Map<number, [number, number][]>();
 
     protected data(): LastGameboardState {
         const boardInfo: BoardInfo = new Map();
@@ -94,7 +94,10 @@ class LastGameboardStore extends Store<LastGameboardState> {
 
     addLgShape(typeId: number, id: LocalId, sync: boolean): void {
         this.shapeMap.set(typeId, id);
-        if (sync) sendLgTokenConnect({ typeId, uuid: getGlobalId(id) });
+        if (sync) {
+            const uuid = getGlobalId(id);
+            if (uuid) sendLgTokenConnect({ typeId, uuid });
+        }
         this.tokenShapes.add(typeId);
 
         // cleanup
@@ -104,7 +107,7 @@ class LastGameboardStore extends Store<LastGameboardState> {
             this.contourHistory.delete(typeId);
             this.contourShapes.delete(typeId);
             if (shape === undefined) return;
-            shape.layer.removeShape(shape, { sync: SyncMode.FULL_SYNC, recalculate: true, dropShapeId: true });
+            shape.layer?.removeShape(shape, { sync: SyncMode.FULL_SYNC, recalculate: true, dropShapeId: true });
         }
     }
 
@@ -152,4 +155,5 @@ class LastGameboardStore extends Store<LastGameboardState> {
 }
 
 export const lastGameboardStore = new LastGameboardStore();
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).lastGameboardStore = lastGameboardStore;

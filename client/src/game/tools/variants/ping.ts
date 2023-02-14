@@ -5,7 +5,7 @@ import { i18n } from "../../../i18n";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { LayerName } from "../../models/floor";
 import { ToolName } from "../../models/tools";
-import type { ToolPermission } from "../../models/tools";
+import type { ITool, ToolPermission } from "../../models/tools";
 import { deleteShapes } from "../../shapes/utils";
 import { Circle } from "../../shapes/variants/circle";
 import { accessSystem } from "../../systems/access";
@@ -16,7 +16,7 @@ import { playerSettingsState } from "../../systems/settings/players/state";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
 
-class PingTool extends Tool {
+class PingTool extends Tool implements ITool {
     readonly toolName = ToolName.Ping;
     readonly toolTranslation = i18n.global.t("tool.Ping");
 
@@ -42,15 +42,14 @@ class PingTool extends Tool {
         this.cleanup();
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onDown(lp: LocalPoint): Promise<void> {
+    onDown(lp: LocalPoint): Promise<void> {
         this.cleanup();
         this.startPoint = l2g(lp);
         const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
 
         if (layer === undefined) {
             console.log("No draw layer!");
-            return;
+            return Promise.resolve();
         }
 
         this.active.value = true;
@@ -84,19 +83,19 @@ class PingTool extends Tool {
         );
         layer.addShape(this.ping, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
         layer.addShape(this.border, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
+        return Promise.resolve();
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onMove(lp: LocalPoint): Promise<void> {
+    onMove(lp: LocalPoint): Promise<void> {
         if (!this.active.value || this.ping === undefined || this.border === undefined || this.startPoint === undefined)
-            return;
+            return Promise.resolve();
 
         const gp = l2g(lp);
 
         const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
         if (layer === undefined) {
             console.log("No draw layer!");
-            return;
+            return Promise.resolve();
         }
 
         this.ping.center = gp;
@@ -105,11 +104,12 @@ class PingTool extends Tool {
         sendShapePositionUpdate([this.ping, this.border], true);
 
         layer.invalidate(true);
+        return Promise.resolve();
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async onUp(): Promise<void> {
+    onUp(): Promise<void> {
         this.cleanup();
+        return Promise.resolve();
     }
 }
 

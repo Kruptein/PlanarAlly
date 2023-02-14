@@ -10,6 +10,8 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+## [2023.1.0] - 2023-02-14
+
 ### Added
 
 -   Button to change the current asset for a shape to the shape property settings

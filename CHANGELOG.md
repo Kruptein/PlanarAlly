@@ -56,7 +56,8 @@ tech changes will usually be stripped from release notes for the public
 -   Floor detail UI not moving along if side menu is opened
 -   Unlocking shape could sometimes trigger the shape following your mouse
 -   Templates: only using the first character of the provided template name
--   Asset manager: close contextmenu when scrolling
+-   Asset Manager: close contextmenu when scrolling
+-   Asset Manager: contextmenu appearing in the wrong location when scrolled
 -   Adding multiple shapes to group always prompting group question even if no groups are present
 
 ## [2022.3.0] - 2022-12-12

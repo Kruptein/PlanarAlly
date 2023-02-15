@@ -164,11 +164,6 @@ class TextSizeData(TypedDict):
     temporary: bool
 
 
-class AssetRectImageData(TypedDict):
-    uuid: str
-    src: str
-
-
 class OptionUpdate(TypedDict):
     uuid: str
     option: str

@@ -7,7 +7,11 @@ import { locationSettingsState } from "../location/state";
 
 import type { PlayerOptions } from "./models";
 
-interface WithDefault<T> { default: T; override?: T; value: T }
+interface WithDefault<T> {
+    default: T;
+    override?: T;
+    value: T;
+}
 const init = <T>(x: T): WithDefault<T> => ({ default: x, override: undefined, value: x });
 
 type PlayerState = { [key in keyof PlayerOptions]: WithDefault<PlayerOptions[key]> };

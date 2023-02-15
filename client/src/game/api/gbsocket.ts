@@ -11,7 +11,7 @@ function fromLGtoPA(points: [number, number]): GlobalPoint {
 const TOK_SESSION = new Map<number, TokMessage>();
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-(window as any).onTokMessageReceived = (data: string) => {
+window.onTokMessageReceived = (data: string) => {
     const messages = JSON.parse(data) as TokMessage[];
     for (const msg of messages) {
         const sId = msg.sessionId;

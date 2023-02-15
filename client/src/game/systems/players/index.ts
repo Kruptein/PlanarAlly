@@ -105,7 +105,7 @@ class PlayerSystem implements System {
     }
 
     getCurrentPlayer(): Player | undefined {
-        for (const player of $.players.values()) {
+        for (const player of raw.players.values()) {
             if (player.name === coreStore.state.username) {
                 return player;
             }

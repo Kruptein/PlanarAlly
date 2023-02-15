@@ -28,7 +28,8 @@ from ..models.campaign import (
     PlayerRoom,
     Room,
 )
-from ..models.db import db as ACTIVE_DB, open_db
+from ..models.db import db as ACTIVE_DB
+from ..models.db import open_db
 from ..models.general import Constants
 from ..models.groups import Group
 from ..models.initiative import Initiative
@@ -160,7 +161,7 @@ class CampaignExporter:
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
         self.filename = name
-        self.copy_name = TEMP_DIR / f"{str(uuid.uuid4())}.sqlite"
+        self.copy_name = TEMP_DIR / f"PA-temp-{str(uuid.uuid4())}.sqlite"
         self.sid = sid
         self.loop = loop
 

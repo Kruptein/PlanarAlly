@@ -338,8 +338,8 @@ class SelectTool extends Tool implements ISelectTool {
 
         // GroupSelect case, draw a selection box to select multiple shapes
         if (!hit) {
-            if (!this.hasFeature(SelectFeatures.ChangeSelection, features)) return Promise.resolve();
-            if (!this.hasFeature(SelectFeatures.GroupSelect, features)) return Promise.resolve();
+            if (!this.hasFeature(SelectFeatures.ChangeSelection, features)) return;
+            if (!this.hasFeature(SelectFeatures.GroupSelect, features)) return;
             this.mode = SelectOperations.GroupSelect;
 
             this.selectionStartPoint = gp;

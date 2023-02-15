@@ -1,7 +1,15 @@
 import type { GlobalId } from "../../../id";
 
-export interface WithDefault<T> { default: T; override?: T; value: T }
-export interface WithLocationDefault<T> { default: T; value: T; location: Record<number, T | undefined> }
+export interface WithDefault<T> {
+    default: T;
+    override?: T;
+    value: T;
+}
+export interface WithLocationDefault<T> {
+    default: T;
+    value: T;
+    location: Record<number, T | undefined>;
+}
 
 export interface ServerLocationOptions {
     use_grid: boolean;

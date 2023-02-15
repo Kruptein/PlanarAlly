@@ -181,7 +181,7 @@ class AccessSystem implements ShapeSystem {
         }
 
         if (locationSettingsState.raw.fowLos.value) floorSystem.invalidateLightAllFloors();
-        initiativeStore._forceUpdate();
+        if (syncTo.ui) initiativeStore._forceUpdate();
     }
 
     updateAccess(shapeId: LocalId, user: ACCESS_KEY, access: Partial<ShapeAccess>, syncTo: Sync): void {

@@ -1,5 +1,6 @@
 declare global {
     interface Window {
+        onTokMessageReceived: (data: string) => void;
         gbCodes?: {
             dm: string;
             gb: string;

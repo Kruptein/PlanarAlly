@@ -1,13 +1,13 @@
-import bcrypt
-from typing import List, TYPE_CHECKING, Optional, cast
+from typing import TYPE_CHECKING, List, Optional, cast
 
+import bcrypt
 from peewee import (
+    BooleanField,
     FloatField,
     ForeignKeyField,
-    fn,
-    BooleanField,
     IntegerField,
     TextField,
+    fn,
 )
 from playhouse.shortcuts import model_to_dict
 
@@ -121,3 +121,14 @@ class User(BaseModel):
     @classmethod
     def by_name(cls, name: str) -> "User":
         return cls.get_or_none(fn.Lower(cls.name) == name.lower())
+
+    @classmethod
+    def create_new(cls, name: str, password: str, email: Optional[str] = None):
+        u = User(name=name)
+        u.set_password(password)
+        if email:
+            u.email = email
+        default_options = UserOptions()
+        default_options.save()
+        u.default_options = default_options
+        u.save()

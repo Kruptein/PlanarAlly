@@ -115,7 +115,7 @@ function toggleFakePlayer(): void {
                     :key="tool.name"
                     class="tool"
                     :class="{ 'tool-selected': activeTool === tool.name, 'tool-alert': tool.alert }"
-                    @click="activeTool = tool.name"
+                    @click.prevent="activeTool = tool.name"
                 >
                     <a href="#" :title="tool.translation">
                         <template v-if="playerSettingsState.reactive.useToolIcons.value">

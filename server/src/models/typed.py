@@ -1,8 +1,19 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, Dict, Generic, Sequence, Tuple, Type, TypeVar
-from typing_extensions import Self
+
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Generic,
+    Iterator,
+    Sequence,
+    Tuple,
+    Type,
+    TypeVar,
+)
 
 from peewee import ModelDelete, ModelSelect, ModelUpdate
+from typing_extensions import Self
 
 if TYPE_CHECKING:
     from .base import BaseModel
@@ -32,6 +43,9 @@ class SelectSequence(Generic[T], Sequence[T], ModelSelect):
         ...
 
     def where(self, *_expressions) -> SelectSequence[T]:
+        ...
+
+    def __iter__(self) -> Iterator[T]:
         ...
 
 

@@ -9,7 +9,6 @@ from ....app import app, sio
 from ....logs import logger
 from ....models import (
     AssetRect,
-    Aura,
     Circle,
     CircularToken,
     Floor,
@@ -17,21 +16,15 @@ from ....models import (
     PlayerRoom,
     Rect,
     Shape,
-    ShapeOwner,
     Text,
-    Tracker,
-    User,
 )
 from ....models.campaign import Location
 from ....models.db import db
 from ....models.role import Role
 from ....models.shape.access import has_ownership
-from ....models.utils import get_table, reduce_data_to_model
 from ....state.game import game_state
-from ..constants import GAME_NS
-from ..groups import remove_group_if_empty
-from .. import initiative
-from .data_models import (
+from ...common.shapes import create_shape
+from ...common.shapes.data_models import (
     AssetRectImageData,
     CircleSizeData,
     OptionUpdate,
@@ -47,6 +40,9 @@ from .data_models import (
     TextSizeData,
     TextUpdateData,
 )
+from .. import initiative
+from ..constants import GAME_NS
+from ..groups import remove_group_if_empty
 from . import access, options, toggle_composite  # noqa: F401
 
 
@@ -70,43 +66,11 @@ async def add_shape(sid: str, data: ShapeAdd):
     if data["temporary"]:
         game_state.add_temp(sid, data["shape"]["uuid"])
     else:
-        with db.atomic():
-            data["shape"]["layer"] = layer
-            data["shape"]["index"] = layer.shapes.count()
-            # Shape itself
-            shape = Shape.create(**reduce_data_to_model(Shape, data["shape"]))
-            # Subshape
-            type_table = get_table(shape.type_)
-            if type_table is None:
-                logger.error("UNKNOWN SHAPE TYPE DETECTED")
-                return
-
-            subshape = type_table.create(
-                shape=shape,
-                **type_table.pre_create(
-                    **reduce_data_to_model(type_table, data["shape"])
-                ),
-            )
-            type_table.post_create(subshape, **data["shape"])
-            # Owners
-            for owner in data["shape"]["owners"]:
-                ShapeOwner.create(
-                    shape=shape,
-                    user=User.by_name(owner["user"]),
-                    edit_access=owner["edit_access"],
-                    movement_access=owner["movement_access"],
-                    vision_access=owner["vision_access"],
-                )
-            # Trackers
-            for tracker in data["shape"]["trackers"]:
-                # do not shortline this to **reduce_data_to_model(...), shape=shape
-                # if shape exists in the model it crashes
-                tracker_model = reduce_data_to_model(Tracker, tracker)
-                tracker_model.update(shape=shape)
-                Tracker.create(**tracker_model)
-            # Auras
-            for aura in data["shape"]["auras"]:
-                Aura.create(**reduce_data_to_model(Aura, aura))
+        data["shape"]["layer"] = layer
+        data["shape"]["index"] = layer.shapes.count()
+        shape = create_shape(data["shape"])
+        if shape is None:
+            return
 
     for room_player in pr.room.players:
         is_dm = cast(bool, room_player.role == Role.DM)

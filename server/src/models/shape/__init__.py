@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import json
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, cast
 from uuid import uuid4
@@ -7,7 +8,7 @@ from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, Text
 from playhouse.shortcuts import model_to_dict, update_model_from_dict
 
 if TYPE_CHECKING:
-    from ...api.socket.shape.data_models import ServerShapeOwner, ShapeKeys
+    from ...api.common.shapes.data_models import ServerShapeOwner, ShapeKeys
 
 from ...logs import logger
 from ..asset import Asset
@@ -17,7 +18,6 @@ from ..groups import Group
 from ..label import Label
 from ..typed import SelectSequence
 from ..user import User
-
 
 __all__ = [
     "AssetRect",

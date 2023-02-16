@@ -216,7 +216,7 @@ export class Layer implements ILayer {
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync) {
             sendShapeAdd({ shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
         }
-        if (invalidate) this.invalidate(invalidate !== InvalidationMode.WITH_LIGHT);
+        if (invalidate !== InvalidationMode.NO) this.invalidate(invalidate !== InvalidationMode.WITH_LIGHT);
 
         if (
             this.isActiveLayer &&

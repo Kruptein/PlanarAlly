@@ -41,7 +41,6 @@ async def add(sid: str, raw_data: Any):
 @sio.on("Label.Delete", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def delete(sid: str, label_id: str):
-
     pr: PlayerRoom = game_state.get(sid)
 
     label = Label.get_or_none(uuid=label_id)

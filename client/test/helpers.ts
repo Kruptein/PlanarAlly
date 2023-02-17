@@ -53,7 +53,7 @@ function generateTestFloor(name?: string): ApiFloor {
             {
                 groups: [],
                 index: 0,
-                name: "test",
+                name: "test" as LayerName,
                 player_editable: false,
                 selectable: true,
                 shapes: [],

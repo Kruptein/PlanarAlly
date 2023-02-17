@@ -1,7 +1,9 @@
-from pydantic import BaseModel
+from pydantic import Field
+
+from ...helpers import TypeIdModel
 
 
-class RoomInfoPlayersAdd(BaseModel):
-    id: int
+class RoomInfoPlayersAdd(TypeIdModel):
+    id: int = Field(typeId="PlayerId")
     name: str
     location: int

@@ -13,8 +13,8 @@ class ApiGroup(BaseModel):
     creation_order: str
 
 
-class ApiLayer(BaseModel):
-    name: str
+class ApiLayer(TypeIdModel):
+    name: str = Field(typeId="LayerName")
     type_: str
     player_editable: bool
     selectable: bool

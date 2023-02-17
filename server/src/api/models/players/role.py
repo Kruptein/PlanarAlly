@@ -1,6 +1,8 @@
-from pydantic import BaseModel
+from pydantic import Field
+
+from ..helpers import TypeIdModel
 
 
-class PlayerRoleSet(BaseModel):
-    player: int
+class PlayerRoleSet(TypeIdModel):
+    player: int = Field(typeId="PlayerId")
     role: int

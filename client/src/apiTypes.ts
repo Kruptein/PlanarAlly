@@ -2,6 +2,7 @@ import type { GlobalId } from "./game/id";
 import type { LayerName } from "./game/models/floor";
 import type { AuraId } from "./game/systems/auras/models";
 import type { ClientId } from "./game/systems/client/models";
+import type { PlayerId } from "./game/systems/players/models";
 import type { TrackerId } from "./game/systems/trackers/models";
 
 export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiToggleCompositeShape
@@ -14,7 +15,7 @@ export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCi
 
 export interface ApiAssetRectShape {
   uuid: GlobalId;
-  layer: string;
+  layer: LayerName;
   floor: string;
   type_: string;
   x: number;
@@ -94,7 +95,7 @@ export interface ApiLabel {
 }
 export interface ApiBaseRectShape {
   uuid: GlobalId;
-  layer: string;
+  layer: LayerName;
   floor: string;
   type_: string;
   x: number;
@@ -134,7 +135,7 @@ export interface ApiBaseRectShape {
 }
 export interface ApiCircleShape {
   uuid: GlobalId;
-  layer: string;
+  layer: LayerName;
   floor: string;
   type_: string;
   x: number;
@@ -174,7 +175,7 @@ export interface ApiCircleShape {
 }
 export interface ApiCircularTokenShape {
   uuid: GlobalId;
-  layer: string;
+  layer: LayerName;
   floor: string;
   type_: string;
   x: number;
@@ -216,7 +217,7 @@ export interface ApiCircularTokenShape {
 }
 export interface ApiCoreShape {
   uuid: GlobalId;
-  layer: string;
+  layer: LayerName;
   floor: string;
   type_: string;
   x: number;
@@ -267,7 +268,7 @@ export interface ApiFloor {
   layers: ApiLayer[];
 }
 export interface ApiLayer {
-  name: string;
+  name: LayerName;
   type_: string;
   player_editable: boolean;
   selectable: boolean;
@@ -286,7 +287,7 @@ export interface ApiLayer {
 }
 export interface ApiRectShape {
   uuid: GlobalId;
-  layer: string;
+  layer: LayerName;
   floor: string;
   type_: string;
   x: number;
@@ -326,7 +327,7 @@ export interface ApiRectShape {
 }
 export interface ApiPolygonShape {
   uuid: GlobalId;
-  layer: string;
+  layer: LayerName;
   floor: string;
   type_: string;
   x: number;
@@ -367,7 +368,7 @@ export interface ApiPolygonShape {
 }
 export interface ApiTextShape {
   uuid: GlobalId;
-  layer: string;
+  layer: LayerName;
   floor: string;
   type_: string;
   x: number;
@@ -407,7 +408,7 @@ export interface ApiTextShape {
 }
 export interface ApiLineShape {
   uuid: GlobalId;
-  layer: string;
+  layer: LayerName;
   floor: string;
   type_: string;
   x: number;
@@ -448,7 +449,7 @@ export interface ApiLineShape {
 }
 export interface ApiToggleCompositeShape {
   uuid: GlobalId;
-  layer: string;
+  layer: LayerName;
   floor: string;
   type_: string;
   x: number;
@@ -611,7 +612,7 @@ export interface ClientActiveLayerSet {
 }
 export interface ClientConnected {
   client: ClientId;
-  player: number;
+  player: PlayerId;
 }
 export interface ClientDisconnected {
   client: ClientId;
@@ -754,7 +755,7 @@ export interface Permissions {
   disabled: string[];
 }
 export interface PlayerInfoCore {
-  id: number;
+  id: PlayerId;
   name: string;
   location: number;
   role: number;
@@ -765,7 +766,7 @@ export interface PlayerOptionsSet {
   room_user_options?: ApiOptionalUserOptions;
 }
 export interface PlayerRoleSet {
-  player: number;
+  player: PlayerId;
   role: number;
 }
 export interface PlayersBring {
@@ -784,7 +785,7 @@ export interface PositionTuple {
   y: number;
 }
 export interface RoomInfoPlayersAdd {
-  id: number;
+  id: PlayerId;
   name: string;
   location: number;
 }

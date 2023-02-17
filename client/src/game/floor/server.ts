@@ -45,7 +45,7 @@ export function addServerFloor(serverFloor: ApiFloor): void {
 function addServerLayer(layerInfo: ApiLayer, floor: Floor): void {
     const canvas = createCanvas(layerInfo.name);
 
-    const layerName = layerInfo.name as LayerName;
+    const layerName = layerInfo.name;
 
     // Create the Layer instance
     let layer: ILayer;

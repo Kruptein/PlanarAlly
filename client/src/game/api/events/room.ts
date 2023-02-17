@@ -2,7 +2,6 @@ import type { RoomInfoPlayersAdd, RoomInfoSet } from "../../../apiTypes";
 import { Role } from "../../models/role";
 import { gameSystem } from "../../systems/game";
 import { playerSystem } from "../../systems/players";
-import type { PlayerId } from "../../systems/players/models";
 import { socket } from "../socket";
 
 socket.on("Room.Info.Set", (data: RoomInfoSet) => {
@@ -18,5 +17,5 @@ socket.on("Room.Info.InvitationCode.Set", (invitationCode: string) => {
 });
 
 socket.on("Room.Info.Players.Add", (data: RoomInfoPlayersAdd) => {
-    playerSystem.addPlayer({ ...data, id: data.id as PlayerId, role: Role.Player, showRect: false });
+    playerSystem.addPlayer({ ...data, role: Role.Player, showRect: false });
 });

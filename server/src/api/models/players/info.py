@@ -1,11 +1,12 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from ..client import OptionalClientViewport
+from ..helpers import TypeIdModel
 from ..location.userOption import ApiLocationUserOption
 
 
-class PlayerInfoCore(BaseModel):
-    id: int
+class PlayerInfoCore(TypeIdModel):
+    id: int = Field(typeId="PlayerId")
     name: str
     location: int
     role: int

@@ -10,12 +10,11 @@ import { clientSystem } from "../../systems/client";
 import type { BoardId } from "../../systems/client/models";
 import { gameState } from "../../systems/game/state";
 import { playerSystem } from "../../systems/players";
-import type { PlayerId } from "../../systems/players/models";
 import { positionSystem } from "../../systems/position";
 import { socket } from "../socket";
 
 socket.on("Client.Connected", (data: ClientConnected) => {
-    clientSystem.addClient(data.player as PlayerId, data.client);
+    clientSystem.addClient(data.player, data.client);
 });
 
 socket.on("Client.Disconnected", (data: ClientDisconnected) => {

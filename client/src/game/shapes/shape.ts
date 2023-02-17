@@ -539,7 +539,7 @@ export abstract class Shape implements IShape {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             Object.fromEntries(JSON.parse(data.options));
 
-        this.layerName = data.layer as LayerName;
+        this.layerName = data.layer;
         this.floorId = floorSystem.getFloor({ name: data.floor })!.id;
         this.angle = data.angle;
         this.globalCompositeOperation = data.draw_operator as GlobalCompositeOperation;

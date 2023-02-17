@@ -42,7 +42,7 @@ class ClientMove(TypeIdModel):
 
 class ClientConnected(TypeIdModel):
     client: str = Field(typeId="ClientId")
-    player: int
+    player: int = Field(typeId="PlayerId")
 
 
 class ClientDisconnected(TypeIdModel):

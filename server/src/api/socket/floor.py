@@ -1,6 +1,4 @@
-from typing import Any, List, Optional
-
-from typing_extensions import TypedDict
+from typing import Any, List
 
 from ... import auth
 from ...api.socket.constants import GAME_NS
@@ -170,7 +168,5 @@ async def reorder_floors(sid: str, data: List[str]):
         "Floors.Reorder",
         data,
         room=pr.active_location.get_path(),
-        skip_sid=sid,
-    )
         skip_sid=sid,
     )

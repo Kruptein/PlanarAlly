@@ -3,9 +3,9 @@ from typing import Any, cast
 from .... import auth
 from ....api.helpers import _send_game
 from ....app import app, sio
-from ....models import PlayerRoom
-from ....models.shape import ToggleComposite
-from ....models.shape.subtypes import CompositeShapeAssociation
+from ....db.models.composite_shape_association import CompositeShapeAssociation
+from ....db.models.player_room import PlayerRoom
+from ....db.models.toggle_composite import ToggleComposite
 from ....state.game import game_state
 from ...models.togglecomposite import ToggleCompositeNewVariant, ToggleCompositeVariant
 from ..constants import GAME_NS

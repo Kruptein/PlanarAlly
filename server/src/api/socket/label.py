@@ -3,8 +3,11 @@ from typing import Any
 from ... import auth
 from ...api.socket.constants import GAME_NS
 from ...app import app, sio
+from ...db.models.label import Label
+from ...db.models.label_selection import LabelSelection
+from ...db.models.player_room import PlayerRoom
+from ...db.models.user import User
 from ...logs import logger
-from ...models import Label, LabelSelection, PlayerRoom, User
 from ...state.game import game_state
 from ..helpers import _send_game
 from ..models.label import ApiLabel, LabelVisibilitySet

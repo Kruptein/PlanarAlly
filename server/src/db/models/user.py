@@ -1,0 +1,65 @@
+from typing import TYPE_CHECKING, List, Optional, cast
+
+import bcrypt
+from peewee import ForeignKeyField, TextField, fn
+from playhouse.shortcuts import model_to_dict
+
+from ..base import BaseDbModel
+from ..typed import SelectSequence
+from .user_options import UserOptions
+
+if TYPE_CHECKING:
+    from .label import Label
+    from .player_room import PlayerRoom
+    from .room import Room
+
+
+class User(BaseDbModel):
+    id: int
+    labels: List["Label"]
+    rooms_created: SelectSequence["Room"]
+    rooms_joined: SelectSequence["PlayerRoom"]
+
+    name = cast(str, TextField())
+    email = TextField(null=True)
+    password_hash = cast(str, TextField())
+    default_options = cast(
+        UserOptions, ForeignKeyField(UserOptions, on_delete="CASCADE")
+    )
+
+    colour_history = cast(Optional[str], TextField(null=True))
+
+    def __repr__(self):
+        return f"<User {self.name}>"
+
+    def set_password(self, pw: str):
+        pwhash = bcrypt.hashpw(pw.encode("utf8"), bcrypt.gensalt())
+        self.password_hash = pwhash.decode("utf8")
+
+    def check_password(self, pw: str):
+        if self.password_hash is None:
+            return False
+        expected_hash = self.password_hash.encode("utf8")
+        return bcrypt.checkpw(pw.encode("utf8"), expected_hash)
+
+    def as_dict(self):
+        return model_to_dict(
+            self,
+            recurse=False,
+            exclude=[User.id, User.password_hash, User.default_options],
+        )
+
+    @classmethod
+    def by_name(cls, name: str) -> "User":
+        return cls.get_or_none(fn.Lower(cls.name) == name.lower())
+
+    @classmethod
+    def create_new(cls, name: str, password: str, email: Optional[str] = None):
+        u = User(name=name)
+        u.set_password(password)
+        if email:
+            u.email = email
+        default_options = UserOptions()
+        default_options.save()
+        u.default_options = default_options
+        u.save()

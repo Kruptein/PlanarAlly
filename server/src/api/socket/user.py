@@ -1,6 +1,6 @@
 from ... import auth
 from ...app import app, sio
-from ...models import PlayerRoom
+from ...db.models.player_room import PlayerRoom
 from ...state.game import game_state
 from ..helpers import _send_game
 from .constants import GAME_NS

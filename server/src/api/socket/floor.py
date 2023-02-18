@@ -3,11 +3,14 @@ from typing import Any, List
 from ... import auth
 from ...api.socket.constants import GAME_NS
 from ...app import app, sio
+from ...db.create.floor import create_floor
+from ...db.db import db
+from ...db.models.floor import Floor
+from ...db.models.player_room import PlayerRoom
 from ...logs import logger
-from ...models import Floor, PlayerRoom
-from ...models.db import db
 from ...models.role import Role
 from ...state.game import game_state
+from ...transform.floor import transform_floor
 from ..helpers import _send_game
 from ..models.floor import FloorCreate, FloorRename
 from ..models.floor.background import FloorBackgroundSet
@@ -17,21 +20,23 @@ from ..models.floor.visible import FloorVisibleSet
 
 @sio.on("Floor.Create", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def create_floor(sid: str, floor_name: str):
+async def _create_floor(sid: str, floor_name: str):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
         logger.warning(f"{pr.player.name} attempted to create a new floor")
         return
 
-    floor = pr.active_location.create_floor(floor_name)
+    floor = create_floor(pr.active_location, floor_name)
 
     for psid, player in game_state.get_users(active_location=pr.active_location):
         await _send_game(
             "Floor.Create",
             FloorCreate(
                 creator=pr.player.name,
-                floor=floor.as_pydantic(player, game_state.get(psid).role == Role.DM),
+                floor=transform_floor(
+                    floor, player, game_state.get(psid).role == Role.DM
+                ),
             ),
             room=psid,
         )

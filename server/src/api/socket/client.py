@@ -1,15 +1,15 @@
 from typing import Any
 
-from typing_extensions import TypedDict
-
 from ... import auth
 from ...api.socket.constants import GAME_NS
 from ...app import app, sio
-from ...data_types.location import LocationOptions
-from ...models import Floor, Layer, LocationUserOption, PlayerRoom
-from ...models.db import db
+from ...db.db import db
+from ...db.models.floor import Floor
+from ...db.models.layer import Layer
+from ...db.models.location_user_option import LocationUserOption
+from ...db.models.player_room import PlayerRoom
+from ...db.models.user_options import UserOptions
 from ...models.role import Role
-from ...models.user import UserOptions
 from ...state.game import game_state
 from ..helpers import _send_game
 from ..models.client import (
@@ -22,17 +22,6 @@ from ..models.client import (
 from ..models.client.activeLayer import ClientActiveLayerSet
 from ..models.client.gameboard import ClientGameboardSet
 from ..models.client.offset import ClientOffsetSet
-
-
-# DATA CLASSES FOR TYPE CHECKING
-class MoveClientData(TypedDict):
-    client: str
-    data: LocationOptions
-
-
-class TempLocationOptions(TypedDict):
-    temp: bool
-    options: LocationOptions
 
 
 @sio.on("Client.Options.Default.Set", namespace=GAME_NS)

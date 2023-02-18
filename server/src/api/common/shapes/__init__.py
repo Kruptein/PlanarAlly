@@ -1,7 +1,11 @@
+from ....db.db import db
+from ....db.models.aura import Aura
+from ....db.models.shape import Shape
+from ....db.models.shape_owner import ShapeOwner
+from ....db.models.tracker import Tracker
+from ....db.models.user import User
+from ....db.utils import get_table, reduce_data_to_model
 from ....logs import logger
-from ....models import Aura, Shape, ShapeOwner, Tracker, User
-from ....models.db import db
-from ....models.utils import get_table, reduce_data_to_model
 from ...models.shape import ApiShape
 
 

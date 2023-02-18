@@ -3,11 +3,11 @@ from typing import Any
 
 from .... import auth
 from ....app import app, sio
+from ....db.db import db
+from ....db.models.initiative import Initiative
+from ....db.models.shape import Shape
 from ....logs import logger
-from ....models import Initiative
-from ....models.db import db
-from ....models.shape import Shape
-from ....models.shape.access import has_ownership
+from ....models.access import has_ownership
 from ....state.game import game_state
 from ...helpers import _send_game
 from ...models.initiative.effect import (

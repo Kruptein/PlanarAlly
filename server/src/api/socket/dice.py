@@ -1,15 +1,13 @@
 from typing import Any
 
-from ..models.dice.roll import DiceRollResult
-
-from ..helpers import _send_game
-
 from ... import auth
 from ...api.socket.constants import GAME_NS
 from ...app import app, sio
-from ...models import PlayerRoom
+from ...db.models.player_room import PlayerRoom
 from ...models.role import Role
 from ...state.game import game_state
+from ..helpers import _send_game
+from ..models.dice.roll import DiceRollResult
 
 
 @sio.on("Dice.Roll.Result", namespace=GAME_NS)

@@ -1,11 +1,12 @@
 import base64
-import json
 import hashlib
+import json
 from typing import List
+
 from typing_extensions import TypedDict
 
 from ....app import sio
-from ....models import Asset
+from ....db.models.asset import Asset
 from ....state.asset import asset_state
 from ....utils import ASSETS_DIR
 from ..constants import ASSET_NS

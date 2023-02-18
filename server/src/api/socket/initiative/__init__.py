@@ -3,13 +3,14 @@ from typing import Any, Dict, List, Optional
 
 from .... import auth
 from ....app import app, sio
+from ....db.db import db
+from ....db.models.group import Group
+from ....db.models.initiative import Initiative
+from ....db.models.player_room import PlayerRoom
+from ....db.models.shape import Shape
 from ....logs import logger
-from ....models import Initiative, PlayerRoom
-from ....models.db import db
-from ....models.groups import Group
+from ....models.access import has_ownership
 from ....models.role import Role
-from ....models.shape import Shape
-from ....models.shape.access import has_ownership
 from ....state.game import game_state
 from ...helpers import _send_game
 from ...models.initiative import ApiInitiative, InitiativeAdd

@@ -3,10 +3,10 @@ from typing import Any
 from ... import auth
 from ...api.socket.constants import GAME_NS
 from ...app import app, sio
+from ...db.models.player_room import PlayerRoom
+from ...db.models.user import User
 from ...logs import logger
-from ...models import PlayerRoom
 from ...models.role import Role
-from ...models.user import User
 from ...state.game import game_state
 from ..helpers import _send_game
 from ..models.players import PlayersBring

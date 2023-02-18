@@ -2,11 +2,15 @@ from typing import Any, cast
 
 from .... import auth
 from ....app import app, sio
+from ....db.models.player_room import PlayerRoom
+from ....db.models.shape import Shape
+from ....db.models.shape_owner import ShapeOwner
+from ....db.models.user import User
 from ....logs import logger
-from ....models import PlayerRoom, Shape, ShapeOwner, User
+from ....models.access import has_ownership
 from ....models.role import Role
-from ....models.shape.access import has_ownership
 from ....state.game import game_state
+from ....transform.shape import transform_shape
 from ...helpers import _send_game
 from ...models.shape.owner import ApiDefaultShapeOwner, ApiShapeOwner
 from ..constants import GAME_NS
@@ -60,7 +64,7 @@ async def add_shape_owner(sid: str, raw_data: Any):
             player=target_user, active_location=pr.active_location
         ):
             await _send_game(
-                "Shape.Set", shape.as_pydantic(target_user, False), room=sid
+                "Shape.Set", transform_shape(shape, target_user, False), room=sid
             )
 
 
@@ -186,6 +190,8 @@ async def update_default_shape_owner(sid: str, raw_data: Any):
     ):
         await _send_game(
             "Shape.Set",
-            shape.as_pydantic(player, cast(bool, game_state.get(sid).role == Role.DM)),
+            transform_shape(
+                shape, player, cast(bool, game_state.get(sid).role == Role.DM)
+            ),
             room=sid,
         )

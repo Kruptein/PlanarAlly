@@ -1,9 +1,13 @@
 from typing import Optional
 
-from ....models.campaign import Location, LocationOptions, PlayerRoom, Room
-from ....models.db import db
+from ....db.create.floor import create_floor
+from ....db.db import db
+from ....db.models.location import Location
+from ....db.models.location_options import LocationOptions
+from ....db.models.player_room import PlayerRoom
+from ....db.models.room import Room
+from ....db.models.user import User
 from ....models.role import Role
-from ....models.user import User
 
 
 def create_room(name: str, user: User, logo: int) -> Optional[Room]:
@@ -22,7 +26,7 @@ def create_room(name: str, user: User, logo: int) -> Optional[Room]:
             room.logo_id = logo
 
         loc = Location.create(room=room, name="start", index=1)
-        loc.create_floor()
+        create_floor(loc, "ground")
         PlayerRoom.create(player=user, room=room, role=Role.DM, active_location=loc)
         room.save()
 

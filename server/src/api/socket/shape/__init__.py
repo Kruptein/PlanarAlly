@@ -5,23 +5,22 @@ from peewee import Case
 from .... import auth
 from ....api.helpers import _send_game
 from ....app import app, sio
+from ....db.db import db
+from ....db.models.asset_rect import AssetRect
+from ....db.models.circle import Circle
+from ....db.models.circular_token import CircularToken
+from ....db.models.floor import Floor
+from ....db.models.layer import Layer
+from ....db.models.location import Location
+from ....db.models.player_room import PlayerRoom
+from ....db.models.rect import Rect
+from ....db.models.shape import Shape
+from ....db.models.text import Text
 from ....logs import logger
-from ....models import (
-    AssetRect,
-    Circle,
-    CircularToken,
-    Floor,
-    Layer,
-    PlayerRoom,
-    Rect,
-    Shape,
-    Text,
-)
-from ....models.campaign import Location
-from ....models.db import db
+from ....models.access import has_ownership
 from ....models.role import Role
-from ....models.shape.access import has_ownership
 from ....state.game import game_state
+from ....transform.shape import transform_shape
 from ...common.shapes import create_shape
 from ...models.shape import (
     ShapeAdd,
@@ -82,7 +81,7 @@ async def add_shape(sid: str, raw_data: Any):
             if not is_dm and not layer.player_visible:
                 continue
             if not data.temporary and shape is not None:
-                data.shape = shape.as_pydantic(room_player.player, is_dm)
+                data.shape = transform_shape(shape, room_player.player, is_dm)
             await _send_game("Shape.Add", data.shape, room=psid)
 
 
@@ -273,7 +272,7 @@ async def change_shape_layer(sid: str, raw_data: Any):
                     await _send_game(
                         "Shapes.Add",
                         [
-                            shape.as_pydantic(room_player.player, False)
+                            transform_shape(shape, room_player.player, False)
                             for shape in shapes
                         ],
                         room=psid,
@@ -349,7 +348,7 @@ async def move_shapes(sid: str, raw_data: Any):
         await _send_game(
             "Shapes.Add",
             [
-                sh.as_pydantic(player, game_state.get(psid).role == Role.DM)
+                transform_shape(sh, player, game_state.get(psid).role == Role.DM)
                 for sh in shapes
             ],
             room=psid,
@@ -484,6 +483,8 @@ async def get_shape_info(sid: str, shape_id: str):
 
     await _send_game(
         "Shape.Info",
-        data=ShapeInfo(shape=shape.as_pydantic(pr.player, False), location=location),
+        data=ShapeInfo(
+            shape=transform_shape(shape, pr.player, False), location=location
+        ),
         room=sid,
     )

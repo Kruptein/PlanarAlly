@@ -2,11 +2,9 @@ import uuid
 
 from aiohttp import web
 
-from ..models.notification import NotificationShow
-
+from ...db.models.notification import Notification
 from ..helpers import _send_game
-
-from ...models import Notification
+from ..models.notification import NotificationShow
 
 
 async def create(request: web.Request) -> web.Response:

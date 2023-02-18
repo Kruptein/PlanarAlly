@@ -3,9 +3,10 @@ from typing import Any
 from ... import auth
 from ...api.socket.constants import GAME_NS
 from ...app import app, sio
+from ...db.db import db
+from ...db.models.note import Note
+from ...db.models.player_room import PlayerRoom
 from ...logs import logger
-from ...models import Note, PlayerRoom
-from ...models.db import db
 from ...state.game import game_state
 from ..models.note import ApiNote
 

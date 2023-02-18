@@ -8,37 +8,24 @@ import tempfile
 import time
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Optional, Union, cast
+from typing import Dict, List, Union, cast
 from uuid import uuid4
 
 from aiohttp import web
 from aiohttp_security import authorized_userid
-from typing_extensions import TypedDict
 
 from .... import auth
 from ....app import app, sio
+from ....db.models.asset import Asset
+from ....db.models.user import User
 from ....logs import logger
-from ....models import Asset
-from ....models.user import User
 from ....state.asset import asset_state
 from ....state.game import game_state
 from ....utils import ASSETS_DIR, TEMP_DIR
 from ..constants import ASSET_NS, GAME_NS
 from .common import UploadData
 from .ddraft import handle_ddraft_file
-
-
-class AssetDict(TypedDict):
-    id: int
-    name: str
-    file_hash: Optional[str]
-    options: Optional[str]
-    parent: int
-
-
-class AssetExport(TypedDict):
-    file_hashes: List[str]
-    data: List[AssetDict]
+from .types import AssetDict, AssetExport
 
 
 async def update_live_game(user: User):
@@ -226,7 +213,7 @@ async def handle_paa_file(upload_data: UploadData, data: bytes, sid: str):
                 shutil.move(str(tmp_path / "files" / asset), str(ASSETS_DIR / asset))
 
         with open(tmp_path / "data") as json_data:
-            raw_assets: List[AssetDict] = json.load(json_data)
+            raw_assets: list[AssetDict] = json.load(json_data)
 
     user = asset_state.get_user(sid)
     parent_map: Dict[int, int] = defaultdict(lambda: upload_data["directory"])
@@ -328,7 +315,7 @@ def export_asset(asset: Union[AssetDict, List[AssetDict]], parent=-1) -> AssetEx
         if asset["file_hash"] is not None:
             file_hashes.append(asset["file_hash"])
 
-        children = asset.get("children", [])  # type: ignore
+        children = asset.get("children", []) or []
         parent = asset_dict["id"]
     else:
         children = asset

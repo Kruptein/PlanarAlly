@@ -8,24 +8,26 @@ from ... import auth
 from ...api.socket.constants import GAME_NS
 from ...app import app, sio
 from ...config import config
+from ...db.create.floor import create_floor
+from ...db.models.asset import Asset
+from ...db.models.floor import Floor
+from ...db.models.initiative import Initiative
+from ...db.models.label import Label
+from ...db.models.label_selection import LabelSelection
+from ...db.models.layer import Layer
+from ...db.models.location import Location
+from ...db.models.location_options import LocationOptions
+from ...db.models.location_user_option import LocationUserOption
+from ...db.models.marker import Marker
+from ...db.models.note import Note
+from ...db.models.player_room import PlayerRoom
+from ...db.models.room import Room
+from ...db.models.shape import Shape
 from ...logs import logger
-from ...models import (
-    Floor,
-    Initiative,
-    Layer,
-    Location,
-    LocationOptions,
-    LocationUserOption,
-    Marker,
-    Note,
-    PlayerRoom,
-    Room,
-    Shape,
-)
-from ...models.asset import Asset
-from ...models.label import Label, LabelSelection
 from ...models.role import Role
 from ...state.game import game_state
+from ...transform.floor import transform_floor
+from ...transform.shape import transform_shape
 from ..helpers import _send_game
 from ..models.client import OptionalClientViewport
 from ..models.client.gameboard import ClientGameboardSet
@@ -199,7 +201,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
 
     for floor in floors:
         await _send_game(
-            "Board.Floor.Set", floor.as_pydantic(pr.player, IS_DM), room=sid
+            "Board.Floor.Set", transform_floor(floor, pr.player, IS_DM), room=sid
         )
 
     # 6. Load Initiative
@@ -378,7 +380,7 @@ async def add_new_location(sid: str, location: str):
     new_location = Location.create(
         room=pr.room, name=location, index=pr.room.locations.count()
     )
-    new_location.create_floor()
+    create_floor(new_location, "ground")
 
     for psid in game_state.get_sids(
         player=pr.player, active_location=pr.active_location
@@ -417,7 +419,7 @@ async def clone_location(sid: str, raw_data: Any):
     floor_map = {}
 
     for prev_floor in src_location.floors.order_by(Floor.index):
-        new_floor = new_location.create_floor(prev_floor.name)
+        new_floor = create_floor(new_location, prev_floor.name)
         floor_map[prev_floor.name] = {}
         for prev_layer in prev_floor.layers:
             new_layer = new_floor.layers.where(Layer.name == prev_layer.name).get()
@@ -580,7 +582,7 @@ async def get_location_spawn_info(sid: str, location_id: int):
                 except Shape.DoesNotExist:
                     pass
                 else:
-                    data.append(shape.as_pydantic(pr.player, True))
+                    data.append(transform_shape(shape, pr.player, True))
     except:
         logger.exception("Could not load spawn locations")
 

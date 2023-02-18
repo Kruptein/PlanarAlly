@@ -6,9 +6,12 @@ from playhouse.shortcuts import update_model_from_dict
 from .... import auth
 from ....api.helpers import _send_game
 from ....app import app, sio
-from ....models import Aura, PlayerRoom, ShapeLabel, Tracker
-from ....models.shape import Shape
-from ....models.utils import reduce_data_to_model
+from ....db.models.aura import Aura
+from ....db.models.player_room import PlayerRoom
+from ....db.models.shape import Shape
+from ....db.models.shape_label import ShapeLabel
+from ....db.models.tracker import Tracker
+from ....db.utils import reduce_data_to_model
 from ....state.game import game_state
 from ...models.aura import ApiAura, ApiOptionalAura, AuraMove, ShapeSetAuraValue
 from ...models.shape.options import (

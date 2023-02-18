@@ -5,8 +5,10 @@ from playhouse.shortcuts import update_model_from_dict
 from ... import auth
 from ...api.socket.constants import GAME_NS
 from ...app import app, sio
+from ...db.models.group import Group
+from ...db.models.player_room import PlayerRoom
+from ...db.models.shape import Shape
 from ...logs import logger
-from ...models import Group, PlayerRoom, Shape
 from ...state.game import game_state
 from ..helpers import _send_game
 from ..models.floor import ApiGroup

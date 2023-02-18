@@ -55,4 +55,3 @@ async def set_asset_options(sid: str, raw_data: Any):
         )
     asset.options = asset_options.options
     asset.save()
-    asset.save()

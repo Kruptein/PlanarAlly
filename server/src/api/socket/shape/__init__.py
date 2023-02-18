@@ -66,12 +66,11 @@ async def add_shape(sid: str, raw_data: Any):
     if data.temporary:
         game_state.add_temp(sid, data.shape.uuid)
     else:
-        with db.atomic():
-            data.shape.layer = layer.name
-            data.shape.index = layer.shapes.count()
-            shape = create_shape(data.shape)
-            if shape is None:
-                return
+        data.shape.layer = layer.name
+        data.shape.index = layer.shapes.count()
+        shape = create_shape(data.shape)
+        if shape is None:
+            return
 
     for room_player in pr.room.players:
         is_dm = cast(bool, room_player.role == Role.DM)

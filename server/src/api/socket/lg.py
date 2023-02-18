@@ -28,4 +28,3 @@ async def hide_grid_ids(sid: str):
     pr = game_state.get(sid)
 
     await _send_game("Lg.Grid.Ids.Hide", None, room=pr.room.get_path(), skip_sid=sid)
-    await _send_game("Lg.Grid.Ids.Hide", None, room=pr.room.get_path(), skip_sid=sid)

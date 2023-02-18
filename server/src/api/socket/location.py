@@ -1,5 +1,5 @@
 import json
-from typing import Any, List, cast
+from typing import Any, List
 
 from playhouse.shortcuts import update_model_from_dict
 from typing_extensions import TypedDict
@@ -199,7 +199,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
 
     for floor in floors:
         await _send_game(
-            "Board.Floor.Set", floor.as_pydantic(pr.player, cast(bool, IS_DM)), room=sid
+            "Board.Floor.Set", floor.as_pydantic(pr.player, IS_DM), room=sid
         )
 
     # 6. Load Initiative

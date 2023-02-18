@@ -877,4 +877,3 @@ class CampaignMigrator:
 
                 with self.to_db.bind_ctx([Note]):
                     Note.create(**note_data)
-                    Note.create(**note_data)

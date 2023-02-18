@@ -4,6 +4,7 @@ import json
 from typing import List, Optional, Tuple, cast
 
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
+from playhouse.shortcuts import model_to_dict
 
 from ...api.models.shape import ApiShape
 from ...api.models.shape.shape import ApiCoreShape
@@ -24,7 +25,7 @@ from .shape import Shape
 
 
 class ShapeType(BaseModel):
-    shape = ForeignKeyField(Shape, primary_key=True, on_delete="CASCADE")
+    shape = cast(Shape, ForeignKeyField(Shape, primary_key=True, on_delete="CASCADE"))
 
     @staticmethod
     def pre_create(**kwargs):
@@ -48,8 +49,7 @@ class ShapeType(BaseModel):
 
     def make_copy(self, new_shape: Shape):
         table = type(self)
-        _dict = self.as_pydantic().dict()
-        del _dict["shape"]
+        _dict = model_to_dict(self, exclude=[table.shape])
         table.create(shape=new_shape, **_dict)
 
 

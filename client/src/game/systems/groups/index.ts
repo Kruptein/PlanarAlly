@@ -1,4 +1,5 @@
 import { registerSystem, type ShapeSystem } from "..";
+import type { ApiGroup } from "../../../apiTypes";
 import { UI_SYNC } from "../../../core/models/types";
 import { uuidv4 } from "../../../core/utils";
 import { getGlobalId, getShape, type GlobalId, type LocalId } from "../../id";
@@ -12,14 +13,7 @@ import {
     sendMemberBadgeUpdate,
     sendRemoveGroup,
 } from "./emits";
-import {
-    type CREATION_ORDER_TYPES,
-    groupToServer,
-    type Group,
-    CharacterSet,
-    type ServerGroup,
-    groupToClient,
-} from "./models";
+import { type CREATION_ORDER_TYPES, groupToServer, type Group, CharacterSet, groupToClient } from "./models";
 import { groupState } from "./state";
 
 const { mutableReactive: $, mutable, readonly } = groupState;
@@ -250,7 +244,7 @@ class GroupSystem implements ShapeSystem {
 
     // server
 
-    updateGroupFromServer(serverGroup: ServerGroup): void {
+    updateGroupFromServer(serverGroup: ApiGroup): void {
         const group = groupToClient(serverGroup);
         mutable.groups.set(group.uuid, group);
         for (const member of this.getGroupMembers(group.uuid)) {

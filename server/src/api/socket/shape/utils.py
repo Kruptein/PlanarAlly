@@ -1,8 +1,9 @@
 from typing import Generator, Union
 
+from ....db.models.player_room import PlayerRoom
+from ....db.models.shape import Shape
 from ....logs import logger
-from ....models import PlayerRoom, Shape
-from ....models.shape.access import has_ownership
+from ....models.access import has_ownership
 from ....state.game import game_state
 
 

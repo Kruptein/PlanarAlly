@@ -10,6 +10,10 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Fixed
+
+-   No longer sending group info for each member (just once)
+
 ## [2023.1.0] - 2023-02-14
 
 ### Added

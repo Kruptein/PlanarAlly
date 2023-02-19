@@ -1,20 +1,20 @@
+import type { ApiGroup, GroupJoin, GroupLeave, GroupMemberBadge } from "../../../apiTypes";
 import { socket } from "../../api/socket";
 import { getLocalId, getShapeFromGlobal } from "../../id";
-import type { GlobalId } from "../../id";
 
-import { type GroupJoinPayload, groupToClient, type ServerGroup } from "./models";
+import { groupToClient } from "./models";
 
 import { groupSystem } from ".";
 
-socket.on("Group.Update", (data: ServerGroup) => {
+socket.on("Group.Update", (data: ApiGroup) => {
     groupSystem.updateGroupFromServer(data);
 });
 
-socket.on("Group.Create", (data: ServerGroup) => {
+socket.on("Group.Create", (data: ApiGroup) => {
     groupSystem.addNewGroup(groupToClient(data), false);
 });
 
-socket.on("Group.Join", (data: GroupJoinPayload) => {
+socket.on("Group.Join", (data: GroupJoin) => {
     groupSystem.addGroupMembers(
         data.group_id,
         data.members.map((m) => ({ badge: m.badge, uuid: getLocalId(m.uuid)! })),
@@ -22,7 +22,7 @@ socket.on("Group.Join", (data: GroupJoinPayload) => {
     );
 });
 
-socket.on("Group.Leave", (data: { uuid: GlobalId; group_id: string }[]) => {
+socket.on("Group.Leave", (data: GroupLeave[]) => {
     for (const member of data) {
         groupSystem.removeGroupMember(getLocalId(member.uuid)!, false);
     }
@@ -32,7 +32,7 @@ socket.on("Group.Remove", (data: string) => {
     groupSystem.removeGroup(data, false);
 });
 
-socket.on("Group.Members.Update", (data: { uuid: GlobalId; badge: number }[]) => {
+socket.on("Group.Members.Update", (data: GroupMemberBadge[]) => {
     for (const { uuid, badge } of data) {
         const shape = getShapeFromGlobal(uuid);
         if (shape === undefined) return;

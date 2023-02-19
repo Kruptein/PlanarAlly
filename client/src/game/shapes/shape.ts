@@ -1,5 +1,6 @@
 import clamp from "lodash/clamp";
 
+import type { ApiCoreShape, ApiShape } from "../../apiTypes";
 import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "../../core/conversions";
 import { addP, cloneP, equalsP, subtractP, toArrayP, toGP, Vector } from "../../core/geometry";
 import type { GlobalPoint } from "../../core/geometry";
@@ -11,7 +12,7 @@ import type { ILayer } from "../interfaces/layer";
 import type { IShape } from "../interfaces/shape";
 import { LayerName } from "../models/floor";
 import type { Floor, FloorId } from "../models/floor";
-import type { ServerShape, ServerShapeOptions, ShapeOptions } from "../models/shapes";
+import type { ServerShapeOptions, ShapeOptions } from "../models/shapes";
 import { accessSystem } from "../systems/access";
 import { ownerToClient, ownerToServer } from "../systems/access/helpers";
 import { annotationSystem } from "../systems/annotations";
@@ -485,8 +486,9 @@ export abstract class Shape implements IShape {
     }
 
     // STATE
-    abstract asDict(): ServerShape;
-    getBaseDict(): ServerShape {
+    abstract asDict(): ApiShape;
+
+    getBaseDict(): ApiCoreShape {
         const defaultAccess = accessSystem.getDefault(this.id);
         const props = getProperties(this.id)!;
         const annotationInfo = annotationState.get(this.id);
@@ -523,22 +525,22 @@ export abstract class Shape implements IShape {
             default_edit_access: defaultAccess.edit,
             default_movement_access: defaultAccess.movement,
             default_vision_access: defaultAccess.vision,
-            asset: this.assetId,
-            group: groupSystem.getGroupId(this.id),
+            asset: this.assetId ?? null,
+            group: groupSystem.getGroupId(this.id) ?? null,
             ignore_zoom_size: this.ignoreZoomSize,
             is_door: doorSystem.isDoor(this.id),
             is_teleport_zone: teleportZoneSystem.isTeleportZone(this.id),
         };
     }
-    fromDict(data: ServerShape): void {
+    fromDict(data: ApiCoreShape): void {
         const options: Partial<ServerShapeOptions> =
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            data.options === undefined ? {} : Object.fromEntries(JSON.parse(data.options));
+            Object.fromEntries(JSON.parse(data.options));
 
         this.layerName = data.layer;
         this.floorId = floorSystem.getFloor({ name: data.floor })!.id;
         this.angle = data.angle;
-        this.globalCompositeOperation = data.draw_operator;
+        this.globalCompositeOperation = data.draw_operator as GlobalCompositeOperation;
 
         propertiesSystem.inform(this.id, {
             name: data.name,
@@ -574,8 +576,8 @@ export abstract class Shape implements IShape {
         this.ignoreZoomSize = data.ignore_zoom_size;
 
         if (data.options !== undefined) this.options = options;
-        if (data.asset !== undefined) this.assetId = data.asset;
-        groupSystem.inform(this.id, { groupId: data.group, badge: data.badge });
+        if (data.asset !== null) this.assetId = data.asset;
+        groupSystem.inform(this.id, { groupId: data.group ?? undefined, badge: data.badge });
     }
 
     // UTILITY

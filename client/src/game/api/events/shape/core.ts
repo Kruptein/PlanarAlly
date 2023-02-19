@@ -1,3 +1,12 @@
+import type {
+    ApiShape,
+    ShapeCircleSizeUpdate,
+    ShapeFloorChange,
+    ShapeLayerChange,
+    ShapeOrder,
+    ShapePositionUpdate,
+    ShapeRectSizeUpdate,
+} from "../../../../apiTypes";
 import { SyncMode } from "../../../../core/models/types";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { getLocalId, getShapeFromGlobal } from "../../../id";
@@ -5,8 +14,6 @@ import type { GlobalId } from "../../../id";
 import type { IShape } from "../../../interfaces/shape";
 import type { ICircle } from "../../../interfaces/shapes/circle";
 import type { IRect } from "../../../interfaces/shapes/rect";
-import type { LayerName } from "../../../models/floor";
-import type { ServerShape } from "../../../models/shapes";
 import { deleteShapes } from "../../../shapes/utils";
 import { accessSystem } from "../../../systems/access";
 import { floorSystem } from "../../../systems/floors";
@@ -15,10 +22,11 @@ import { addShape, moveFloor, moveLayer } from "../../../temp";
 import { initiativeStore } from "../../../ui/initiative/state";
 import { socket } from "../../socket";
 
-socket.on("Shape.Set", (data: ServerShape) => {
+socket.on("Shape.Set", (data: ApiShape) => {
     // hard reset a shape
-    const old = getShapeFromGlobal(data.uuid);
-    const isActive = activeShapeStore.state.id === getLocalId(data.uuid);
+    const uuid = data.uuid;
+    const old = getShapeFromGlobal(uuid);
+    const isActive = activeShapeStore.state.id === getLocalId(uuid);
     const hasEditDialogOpen = isActive && activeShapeStore.state.showEditDialog;
     if (old) old.layer?.removeShape(old, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
     const shape = addShape(data, SyncMode.NO_SYNC);
@@ -30,12 +38,12 @@ socket.on("Shape.Set", (data: ServerShape) => {
     }
 });
 
-socket.on("Shape.Add", (shape: ServerShape) => {
+socket.on("Shape.Add", (shape: ApiShape) => {
     addShape(shape, SyncMode.NO_SYNC);
     initiativeStore._forceUpdate();
 });
 
-socket.on("Shapes.Add", (shapes: ServerShape[]) => {
+socket.on("Shapes.Add", (shapes: ApiShape[]) => {
     for (const shape of shapes) {
         addShape(shape, SyncMode.NO_SYNC);
     }
@@ -48,20 +56,17 @@ socket.on("Shapes.Remove", (shapeIds: GlobalId[]) => {
     initiativeStore._forceUpdate();
 });
 
-socket.on(
-    "Shapes.Position.Update",
-    (data: { uuid: GlobalId; position: { angle: number; points: [number, number][] } }[]) => {
-        for (const sh of data) {
-            const shape = getShapeFromGlobal(sh.uuid);
-            if (shape === undefined) {
-                continue;
-            }
-            shape.setPositionRepresentation(sh.position);
+socket.on("Shapes.Position.Update", (data: ShapePositionUpdate[]) => {
+    for (const sh of data) {
+        const shape = getShapeFromGlobal(sh.uuid);
+        if (shape === undefined) {
+            continue;
         }
-    },
-);
+        shape.setPositionRepresentation(sh.position);
+    }
+});
 
-socket.on("Shape.Order.Set", (data: { uuid: GlobalId; index: number }) => {
+socket.on("Shape.Order.Set", (data: ShapeOrder) => {
     const shape = getShapeFromGlobal(data.uuid);
     if (shape === undefined) {
         console.log(`Attempted to move the shape order of an unknown shape`);
@@ -70,7 +75,7 @@ socket.on("Shape.Order.Set", (data: { uuid: GlobalId; index: number }) => {
     shape.layer?.moveShapeOrder(shape, data.index, SyncMode.NO_SYNC);
 });
 
-socket.on("Shapes.Floor.Change", (data: { uuids: GlobalId[]; floor: string }) => {
+socket.on("Shapes.Floor.Change", (data: ShapeFloorChange) => {
     const shapes = data.uuids.map((u) => getShapeFromGlobal(u) ?? undefined).filter((s) => s !== undefined) as IShape[];
     if (shapes.length === 0) return;
     moveFloor(shapes, floorSystem.getFloor({ name: data.floor })!, false);
@@ -79,13 +84,13 @@ socket.on("Shapes.Floor.Change", (data: { uuids: GlobalId[]; floor: string }) =>
     }
 });
 
-socket.on("Shapes.Layer.Change", (data: { uuids: GlobalId[]; floor: string; layer: LayerName }) => {
+socket.on("Shapes.Layer.Change", (data: ShapeLayerChange) => {
     const shapes = data.uuids.map((u) => getShapeFromGlobal(u) ?? undefined).filter((s) => s !== undefined) as IShape[];
     if (shapes.length === 0) return;
     moveLayer(shapes, floorSystem.getLayer(floorSystem.getFloor({ name: data.floor })!, data.layer)!, false);
 });
 
-socket.on("Shape.Rect.Size.Update", (data: { uuid: GlobalId; w: number; h: number }) => {
+socket.on("Shape.Rect.Size.Update", (data: ShapeRectSizeUpdate) => {
     const shape = getShapeFromGlobal(data.uuid) as IRect | undefined;
     if (shape === undefined) return;
 
@@ -94,7 +99,7 @@ socket.on("Shape.Rect.Size.Update", (data: { uuid: GlobalId; w: number; h: numbe
     shape.layer?.invalidate(!shape.triggersVisionRecalc);
 });
 
-socket.on("Shape.Circle.Size.Update", (data: { uuid: GlobalId; r: number }) => {
+socket.on("Shape.Circle.Size.Update", (data: ShapeCircleSizeUpdate) => {
     const shape = getShapeFromGlobal(data.uuid) as ICircle | undefined;
     if (shape === undefined) return;
 

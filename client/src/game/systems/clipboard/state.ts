@@ -1,10 +1,10 @@
+import type { ApiShape } from "../../../apiTypes";
 import { toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
-import type { ServerShape } from "../../models/shapes";
 import { buildState } from "../state";
 
 interface ClipboardState {
-    clipboard: ServerShape[];
+    clipboard: ApiShape[];
     clipboardPosition: GlobalPoint;
 }
 

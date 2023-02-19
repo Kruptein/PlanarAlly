@@ -1,3 +1,4 @@
+import type { ApiPolygonShape } from "../../../apiTypes";
 import { g2l, g2lz } from "../../../core/conversions";
 import { addP, getDistanceToSegment, subtractP, toArrayP, toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
@@ -9,7 +10,6 @@ import { FOG_COLOUR } from "../../colour";
 import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
-import type { ServerPolygon } from "../../models/shapes";
 import type { AuraId } from "../../systems/auras/models";
 import { getProperties } from "../../systems/properties/state";
 import type { ShapeProperties } from "../../systems/properties/state";
@@ -82,17 +82,19 @@ export class Polygon extends Shape implements IShape {
         return filterEqualPoints(this.vertices);
     }
 
-    asDict(): ServerPolygon {
-        return Object.assign(this.getBaseDict(), {
-            vertices: this._vertices.map((v) => toArrayP(v)),
+    asDict(): ApiPolygonShape {
+        return {
+            ...this.getBaseDict(),
+            vertices: JSON.stringify(this._vertices.map((v) => toArrayP(v))),
             open_polygon: this.openPolygon,
             line_width: this.lineWidth[0]!,
-        });
+        };
     }
 
-    fromDict(data: ServerPolygon): void {
+    fromDict(data: ApiPolygonShape): void {
         super.fromDict(data);
-        this._vertices = data.vertices.map((v) => toGP(v));
+        const vertices = JSON.parse(data.vertices) as [number, number][];
+        this._vertices = vertices.map((v) => toGP(v));
         this.openPolygon = data.open_polygon;
         this.lineWidth = [data.line_width];
     }

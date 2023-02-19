@@ -1,3 +1,4 @@
+import type { ApiToggleCompositeShape } from "../../../apiTypes";
 import type { GlobalPoint } from "../../../core/geometry";
 import { SyncMode } from "../../../core/models/types";
 import type { Sync } from "../../../core/models/types";
@@ -13,7 +14,6 @@ import { getGlobalId, getShape } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import type { IToggleComposite } from "../../interfaces/shapes/toggleComposite";
 import { compositeState } from "../../layers/state";
-import type { ServerToggleComposite } from "../../models/shapes";
 import { accessSystem } from "../../systems/access";
 import { auraSystem } from "../../systems/auras";
 import { getProperties } from "../../systems/properties/state";
@@ -189,11 +189,12 @@ export class ToggleComposite extends Shape implements IToggleComposite {
         newVariant.invalidate(false);
     }
 
-    asDict(): ServerToggleComposite {
-        return Object.assign(this.getBaseDict(), {
+    asDict(): ApiToggleCompositeShape {
+        return {
+            ...this.getBaseDict(),
             active_variant: getGlobalId(this.active_variant)!,
             variants: this._variants.map((v) => ({ uuid: getGlobalId(v.id)!, name: v.name })),
-        });
+        };
     }
 
     invalidatePoints(): void {

@@ -1,11 +1,15 @@
+from ....db.db import db
+from ....db.models.aura import Aura
+from ....db.models.shape import Shape
+from ....db.models.shape_owner import ShapeOwner
+from ....db.models.tracker import Tracker
+from ....db.models.user import User
+from ....db.utils import get_table, reduce_data_to_model
 from ....logs import logger
-from ....models import Aura, Shape, ShapeOwner, Tracker, User
-from ....models.db import db
-from ....models.utils import get_table, reduce_data_to_model
-from .data_models import ShapeKeys
+from ...models.shape import ApiShape
 
 
-def create_shape(data: ShapeKeys):
+def create_shape(data: ApiShape):
     with db.atomic():
         # Shape itself
         shape = Shape.create(**reduce_data_to_model(Shape, data))
@@ -19,25 +23,21 @@ def create_shape(data: ShapeKeys):
             shape=shape,
             **type_table.pre_create(**reduce_data_to_model(type_table, data)),
         )
-        type_table.post_create(subshape, **data)
+        type_table.post_create(subshape, **data.dict())
         # Owners
-        for owner in data["owners"]:
+        for owner in data.owners:
             ShapeOwner.create(
                 shape=shape,
-                user=User.by_name(owner["user"]),
-                edit_access=owner["edit_access"],
-                movement_access=owner["movement_access"],
-                vision_access=owner["vision_access"],
+                user=User.by_name(owner.user),
+                edit_access=owner.edit_access,
+                movement_access=owner.movement_access,
+                vision_access=owner.vision_access,
             )
         # Trackers
-        for tracker in data["trackers"]:
-            # do not shortline this to **reduce_data_to_model(...), shape=shape
-            # if shape exists in the model it crashes
-            tracker_model = reduce_data_to_model(Tracker, tracker)
-            tracker_model.update(shape=shape)
-            Tracker.create(**tracker_model)
+        for tracker in data.trackers:
+            Tracker.create(**reduce_data_to_model(Tracker, tracker))
         # Auras
-        for aura in data["auras"]:
+        for aura in data.auras:
             Aura.create(**reduce_data_to_model(Aura, aura))
 
         return shape

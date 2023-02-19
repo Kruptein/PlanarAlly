@@ -1,15 +1,17 @@
-import { sendSimpleShapeOption } from "../../../api/emits/shape/options";
-import type { Permissions } from "../models";
+import type {
+    ShapeSetBooleanValue,
+    ShapeSetPermissionValue,
+    ShapeSetTeleportLocationValue,
+} from "../../../../apiTypes";
+import { wrapSocket } from "../../../api/helpers";
 
-import type { TeleportOptions } from "./models";
-
-export const sendShapeIsTeleportZone = sendSimpleShapeOption<boolean>("Shape.Options.IsTeleportZone.Set");
-export const sendShapeIsImmediateTeleportZone = sendSimpleShapeOption<boolean>(
+export const sendShapeIsTeleportZone = wrapSocket<ShapeSetBooleanValue>("Shape.Options.IsTeleportZone.Set");
+export const sendShapeIsImmediateTeleportZone = wrapSocket<ShapeSetBooleanValue>(
     "Shape.Options.IsImmediateTeleportZone.Set",
 );
-export const sendShapeTeleportZonePermissions = sendSimpleShapeOption<Permissions>(
+export const sendShapeTeleportZonePermissions = wrapSocket<ShapeSetPermissionValue>(
     "Shape.Options.TeleportZonePermissions.Set",
 );
-export const sendShapeTeleportZoneTarget = sendSimpleShapeOption<TeleportOptions["location"]>(
+export const sendShapeTeleportZoneTarget = wrapSocket<ShapeSetTeleportLocationValue>(
     "Shape.Options.TeleportZoneTarget.Set",
 );

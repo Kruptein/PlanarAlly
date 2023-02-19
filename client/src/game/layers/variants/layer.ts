@@ -1,5 +1,6 @@
 import { toRaw } from "vue";
 
+import type { ApiShape } from "../../../apiTypes";
 import { g2l, l2g, l2gz } from "../../../core/conversions";
 import { Ray, toLP } from "../../../core/geometry";
 import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
@@ -12,7 +13,6 @@ import type { ILayer } from "../../interfaces/layer";
 import type { IShape } from "../../interfaces/shape";
 import { LayerName } from "../../models/floor";
 import type { FloorId } from "../../models/floor";
-import type { ServerShape } from "../../models/shapes";
 import { addOperation } from "../../operations/undo";
 import { drawAuras } from "../../rendering/auras";
 import { drawTear } from "../../rendering/basic";
@@ -262,7 +262,7 @@ export class Layer implements ILayer {
         this.updateView();
     }
 
-    setServerShapes(shapes: ServerShape[]): void {
+    setServerShapes(shapes: ApiShape[]): void {
         if (this.isActiveLayer) selectedSystem.clear(); // TODO: Fix keeping selection on those items that are not moved.
         // We need to ensure composites are added after all their variants have been added
         const composites = [];
@@ -276,7 +276,7 @@ export class Layer implements ILayer {
         for (const composite of composites) this.setServerShape(composite);
     }
 
-    private setServerShape(serverShape: ServerShape): void {
+    private setServerShape(serverShape: ApiShape): void {
         const shape = createShapeFromDict(serverShape);
         if (shape === undefined) {
             console.log(`Shape with unknown type ${serverShape.type_} could not be added`);

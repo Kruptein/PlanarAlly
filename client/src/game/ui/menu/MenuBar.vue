@@ -3,6 +3,7 @@ import { computed, ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 
+import type { ApiNote } from "../../../apiTypes";
 import { baseAdjust } from "../../../core/http";
 import type { AssetFile } from "../../../core/models/types";
 import { uuidv4 } from "../../../core/utils";
@@ -17,7 +18,6 @@ import { gameState } from "../../systems/game/state";
 import { markerSystem } from "../../systems/markers";
 import { markerState } from "../../systems/markers/state";
 import { noteSystem } from "../../systems/notes";
-import type { Note } from "../../systems/notes/models";
 import { noteState } from "../../systems/notes/state";
 import { playerState } from "../../systems/players/state";
 import { getProperties } from "../../systems/properties/state";
@@ -64,7 +64,7 @@ function createNote(): void {
     openNote(note);
 }
 
-function openNote(note: Note): void {
+function openNote(note: ApiNote): void {
     showNote.value = true;
     uiSystem.setActiveNote(note);
 }

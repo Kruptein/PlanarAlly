@@ -1,23 +1,22 @@
+import type { ApiLabel, LabelVisibilitySet } from "../../../apiTypes";
 import { socket } from "../../api/socket";
-
-import type { Label } from "./models";
 
 import { labelSystem } from ".";
 
-socket.on("Labels.Set", (labels: Label[]) => {
+socket.on("Labels.Set", (labels: ApiLabel[]) => {
     for (const label of labels) labelSystem.createLabel(label, false);
 });
 
-socket.on("Label.Visibility.Set", (data: { user: string; uuid: string; visible: boolean }) => {
+socket.on("Label.Visibility.Set", (data: LabelVisibilitySet) => {
     labelSystem.setLabelVisibility(data.uuid, data.visible);
 });
 
-socket.on("Label.Add", (data: Label) => {
+socket.on("Label.Add", (data: ApiLabel) => {
     labelSystem.createLabel(data, false);
 });
 
-socket.on("Label.Delete", (data: { user: string; uuid: string }) => {
-    labelSystem.deleteLabel(data.uuid, false);
+socket.on("Label.Delete", (data: string) => {
+    labelSystem.deleteLabel(data, false);
 });
 
 socket.on("Labels.Filter.Add", (uuid: string) => {

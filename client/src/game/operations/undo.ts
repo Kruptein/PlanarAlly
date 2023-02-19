@@ -1,10 +1,10 @@
+import type { ApiShape } from "../../apiTypes";
 import { toGP, Vector } from "../../core/geometry";
 import type { GlobalPoint } from "../../core/geometry";
 import { SyncMode } from "../../core/models/types";
 import { getLocalId, getShape } from "../id";
 import type { LocalId } from "../id";
 import type { LayerName } from "../models/floor";
-import type { ServerShape } from "../models/shapes";
 import { ToolName } from "../models/tools";
 import type { ISelectTool } from "../models/tools";
 import { deleteShapes } from "../shapes/utils";
@@ -141,7 +141,7 @@ function handleLayerMove(shapes: LocalId[], from: LayerName, to: LayerName, dire
     }
 }
 
-function handleShapeRemove(shapes: ServerShape[], direction: "undo" | "redo"): void {
+function handleShapeRemove(shapes: ApiShape[], direction: "undo" | "redo"): void {
     if (direction === "undo") {
         for (const shape of shapes) addShape(shape, SyncMode.FULL_SYNC);
     } else {

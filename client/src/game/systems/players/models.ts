@@ -1,11 +1,5 @@
+import type { PlayerInfoCore } from "../../../apiTypes";
 import type { NumberId } from "../../id";
 
 export type PlayerId = NumberId<"playerId">;
-
-export interface Player {
-    id: PlayerId;
-    name: string;
-    location: number;
-    role: number;
-    showRect: boolean;
-}
+export type Player = PlayerInfoCore & { showRect: boolean };

@@ -1,4 +1,4 @@
-import type { GlobalId, LocalId } from "../../id";
+import type { LocalId } from "../../id";
 
 export const DEFAULT_ACCESS_SYMBOL = Symbol();
 export type ACCESS_KEY = string | typeof DEFAULT_ACCESS_SYMBOL;
@@ -24,9 +24,4 @@ export interface ServerShapeAccess {
     edit_access: boolean;
     movement_access: boolean;
     vision_access: boolean;
-}
-
-export interface ServerShapeOwner extends ServerShapeAccess {
-    shape: GlobalId;
-    user: string;
 }

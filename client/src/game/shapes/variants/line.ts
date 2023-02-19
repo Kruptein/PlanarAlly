@@ -1,10 +1,10 @@
+import type { ApiLineShape } from "../../../apiTypes";
 import { g2l, g2lx, g2ly, g2lz } from "../../../core/conversions";
 import { addP, subtractP, toArrayP, toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { rotateAroundPoint } from "../../../core/math";
 import type { GlobalId, LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
-import type { ServerLine } from "../../models/shapes";
 import { getProperties } from "../../systems/properties/state";
 import type { ShapeProperties } from "../../systems/properties/state";
 import { Shape } from "../shape";
@@ -58,12 +58,8 @@ export class Line extends Shape implements IShape {
         super.setPositionRepresentation(position);
     }
 
-    asDict(): ServerLine {
-        return Object.assign(this.getBaseDict(), {
-            x2: this.endPoint.x,
-            y2: this.endPoint.y,
-            line_width: this.lineWidth,
-        });
+    asDict(): ApiLineShape {
+        return { ...this.getBaseDict(), x2: this.endPoint.x, y2: this.endPoint.y, line_width: this.lineWidth };
     }
 
     invalidatePoints(): void {

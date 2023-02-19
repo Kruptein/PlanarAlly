@@ -9,6 +9,7 @@ from aiohttp_session.cookie_storage import EncryptedCookieStorage
 
 from . import auth
 from .config import config
+from .json import PydanticJson
 from .logs import handle_async_exception
 from .typed import TypedAsyncServer
 
@@ -38,7 +39,8 @@ async def setup_runner(app: web.Application, site: Type[web.BaseSite], **kwargs)
 # MAIN APP
 
 sio = TypedAsyncServer(
-    cors_allowed_origins=config.get("Webserver", "cors_allowed_origins", fallback=None)
+    cors_allowed_origins=config.get("Webserver", "cors_allowed_origins", fallback=None),
+    json=PydanticJson,
 )
 app = setup_app()
 basepath = os.environ.get("PA_BASEPATH", "/")[1:]

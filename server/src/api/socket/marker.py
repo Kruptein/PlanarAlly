@@ -1,7 +1,8 @@
 from ... import auth
 from ...api.socket.constants import GAME_NS
 from ...app import app, sio
-from ...models import Marker, PlayerRoom
+from ...db.models.marker import Marker
+from ...db.models.player_room import PlayerRoom
 from ...state.game import game_state
 
 

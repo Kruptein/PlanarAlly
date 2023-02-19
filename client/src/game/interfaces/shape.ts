@@ -1,7 +1,8 @@
+import type { ApiCoreShape, ApiShape } from "../../apiTypes";
 import type { GlobalPoint, Vector } from "../../core/geometry";
 import type { LocalId } from "../id";
 import type { Floor, FloorId, LayerName } from "../models/floor";
-import type { ShapeOptions, ServerShape } from "../models/shapes";
+import type { ShapeOptions } from "../models/shapes";
 import type { SHAPE_TYPE } from "../shapes/types";
 import type { BoundingRect } from "../shapes/variants/simple/boundingRect";
 
@@ -92,10 +93,11 @@ export interface IShape extends SimpleShape {
 
     // STATE
 
-    asDict: () => ServerShape;
-    getBaseDict: () => ServerShape;
+    asDict: () => ApiShape;
+    getBaseDict: () => ApiCoreShape;
+    // getSubtypeDict: () => ApiShape["subtype"];
     // eslint-disable-next-line @typescript-eslint/method-signature-style
-    fromDict(data: ServerShape): void;
+    fromDict(data: ApiShape): void;
 
     // UTILITY
 

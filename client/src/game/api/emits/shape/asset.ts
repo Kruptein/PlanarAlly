@@ -1,3 +1,4 @@
+import type { ShapeAssetImageSet } from "../../../../apiTypes";
 import { wrapSocket } from "../../helpers";
 
-export const sendAssetRectImageChange = wrapSocket<{ uuid: string; src: string }>("Shape.Asset.Image.Set");
+export const sendAssetRectImageChange = wrapSocket<ShapeAssetImageSet>("Shape.Asset.Image.Set");

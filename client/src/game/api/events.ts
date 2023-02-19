@@ -29,6 +29,7 @@ import "./events/user";
 
 import "./gbsocket"; // Start tuio listener
 
+import type { ApiFloor, ApiLocationCore, PlayersBring, PositionTuple } from "../../apiTypes";
 import { toGP } from "../../core/geometry";
 import { SyncMode } from "../../core/models/types";
 import type { AssetList } from "../../core/models/types";
@@ -41,8 +42,6 @@ import { clearGame } from "../clear";
 import { addServerFloor } from "../floor/server";
 import { getShapeFromGlobal } from "../id";
 import type { GlobalId } from "../id";
-import type { ServerFloor } from "../models/general";
-import type { Location } from "../models/settings";
 import { setCenterPosition } from "../position";
 import { deleteShapes } from "../shapes/utils";
 import { floorSystem } from "../systems/floors";
@@ -92,11 +91,11 @@ socket.on("redirect", async (destination: string) => {
 socket.on("CLEAR", () => clearGame(false));
 socket.on("PARTIAL-CLEAR", () => clearGame(true));
 
-socket.on("Board.Locations.Set", (locationInfo: Location[]) => {
+socket.on("Board.Locations.Set", (locationInfo: ApiLocationCore[]) => {
     locationStore.setLocations(locationInfo, false);
 });
 
-socket.on("Board.Floor.Set", (floor: ServerFloor) => {
+socket.on("Board.Floor.Set", (floor: ApiFloor) => {
     // It is important that this condition is evaluated before the async addFloor call.
     // The very first floor that arrives is the one we want to select
     // When this condition is evaluated after the await, we are at the mercy of the async scheduler
@@ -118,7 +117,7 @@ socket.on("Board.Floor.Set", (floor: ServerFloor) => {
 
 // Varia
 
-socket.on("Position.Set", (data: { floor?: string; x: number; y: number; zoom?: number }) => {
+socket.on("Position.Set", (data: PositionTuple & Partial<PlayersBring>) => {
     if (data.floor !== undefined) floorSystem.selectFloor({ name: data.floor }, true);
     if (data.zoom !== undefined)
         positionSystem.setZoomDisplay(data.zoom, { invalidate: false, updateSectors: false, sync: false });

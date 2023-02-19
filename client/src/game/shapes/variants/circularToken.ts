@@ -1,3 +1,4 @@
+import type { ApiCircularTokenShape } from "../../../apiTypes";
 import { g2l, g2lz } from "../../../core/conversions";
 import type { GlobalPoint } from "../../../core/geometry";
 import { SyncMode } from "../../../core/models/types";
@@ -6,7 +7,6 @@ import { sendCircularTokenUpdate } from "../../api/emits/shape/circularToken";
 import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
-import type { ServerCircularToken } from "../../models/shapes";
 import { getProperties } from "../../systems/properties/state";
 import type { ShapeProperties } from "../../systems/properties/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
@@ -34,16 +34,15 @@ export class CircularToken extends Circle implements IShape {
         this.font = font;
     }
 
-    asDict(): ServerCircularToken {
-        return Object.assign(this.getBaseDict(), {
-            radius: this.r,
-            viewing_angle: this.viewingAngle,
+    asDict(): ApiCircularTokenShape {
+        return {
+            ...super.asDict(),
             text: this.text,
             font: this.font,
-        });
+        };
     }
 
-    fromDict(data: ServerCircularToken): void {
+    fromDict(data: ApiCircularTokenShape): void {
         super.fromDict(data);
         this.r = data.radius;
         this.viewingAngle = data.viewing_angle;

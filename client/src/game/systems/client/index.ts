@@ -2,6 +2,7 @@ import throttle from "lodash/throttle";
 
 import { registerSystem } from "..";
 import type { System } from "..";
+import type { ClientPosition, Viewport } from "../../../apiTypes";
 import { toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
@@ -11,7 +12,6 @@ import { getClientId } from "../../api/socket";
 import { getShape } from "../../id";
 import type { LocalId } from "../../id";
 import { LayerName } from "../../models/floor";
-import type { ServerUserLocationOptions } from "../../models/settings";
 import { Polygon } from "../../shapes/variants/polygon";
 import { floorSystem } from "../floors";
 import { floorState } from "../floors/state";
@@ -22,10 +22,10 @@ import { positionSystem } from "../position";
 import { positionState } from "../position/state";
 import { locationSettingsState } from "../settings/location/state";
 
-import type { BoardId, ClientId, Viewport } from "./models";
+import type { BoardId, ClientId } from "./models";
 import { clientState } from "./state";
 
-const { mutableReactive: $ } = clientState;
+const { mutableReactive: $, raw } = clientState;
 
 const sendMoveClientThrottled = throttle(sendMoveClient, 50, { trailing: true });
 
@@ -50,6 +50,12 @@ class ClientSystem implements System {
 
     getClients(player: PlayerId): ClientId[] {
         return [...$.clientIds.entries()].filter(([, p]) => p === player).map(([c, _]) => c);
+    }
+
+    getPlayer(client: ClientId): PlayerId | undefined {
+        for (const [_client, player] of raw.clientIds.entries()) {
+            if (client === _client) return player;
+        }
     }
 
     updatePlayerRect(player: PlayerId): void {
@@ -105,7 +111,7 @@ class ClientSystem implements System {
         polygon.invalidate(true);
     }
 
-    private getClientPosition(client: ClientId): ServerUserLocationOptions | undefined {
+    private getClientPosition(client: ClientId): ClientPosition | undefined {
         const player = $.clientIds.get(client);
         if (player === undefined) return undefined;
         return playerSystem.getPosition(player);
@@ -176,7 +182,7 @@ class ClientSystem implements System {
 
         sendMoveClientThrottled({
             client,
-            data: newPosition,
+            position: newPosition,
         });
         const player = $.clientIds.get(client);
         if (player !== undefined) {

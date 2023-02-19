@@ -3,6 +3,7 @@ import { computed, toRef } from "vue";
 import type { ComputedRef } from "vue";
 import { useI18n } from "vue-i18n";
 
+import type { ApiAssetRectShape } from "../../../apiTypes";
 import ContextMenu from "../../../core/components/ContextMenu.vue";
 import { SyncMode } from "../../../core/models/types";
 import { useModal } from "../../../core/plugins/modals/plugin";
@@ -17,7 +18,6 @@ import type { ILayer } from "../../interfaces/layer";
 import { compositeState } from "../../layers/state";
 import type { AssetOptions } from "../../models/asset";
 import type { Floor, LayerName } from "../../models/floor";
-import type { ServerAsset } from "../../models/shapes";
 import { toTemplate } from "../../shapes/templates";
 import { deleteShapes } from "../../shapes/utils";
 import { accessSystem } from "../../systems/access";
@@ -190,7 +190,7 @@ async function setLocation(newLocation: number): Promise<void> {
     }
 
     const spawnInfo = await requestSpawnInfo(newLocation);
-    let spawnLocation: ServerAsset;
+    let spawnLocation: ApiAssetRectShape;
 
     switch (spawnInfo.length) {
         case 0:

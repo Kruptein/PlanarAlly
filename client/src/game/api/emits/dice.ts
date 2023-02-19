@@ -1,4 +1,4 @@
-import type { DiceResult } from "../../models/dice";
+import type { DiceRollResult } from "../../../apiTypes";
 import { wrapSocket } from "../helpers";
 
-export const sendDiceRollResult = wrapSocket<DiceResult>("Dice.Roll.Result");
+export const sendDiceRollResult = wrapSocket<DiceRollResult>("Dice.Roll.Result");

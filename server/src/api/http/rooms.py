@@ -9,8 +9,10 @@ from typing_extensions import TypedDict
 
 from ...app import sio
 from ...config import config
+from ...db.models.player_room import PlayerRoom
+from ...db.models.room import Room
+from ...db.models.user import User
 from ...export.campaign import export_campaign, import_campaign
-from ...models import PlayerRoom, Room, User
 from ..common.rooms.create import create_room
 from ..socket.constants import DASHBOARD_NS
 

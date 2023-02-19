@@ -2,7 +2,7 @@ import secrets
 
 from aiohttp import web
 
-from ....models import User
+from ....db.models.user import User
 
 
 async def collect(_request: web.Request) -> web.Response:

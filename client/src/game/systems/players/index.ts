@@ -2,6 +2,7 @@ import type { DeepReadonly } from "vue";
 
 import { registerSystem } from "..";
 import type { System } from "..";
+import type { ClientPosition } from "../../../apiTypes";
 import { getLocalStorageObject } from "../../../localStorageHelpers";
 import { router } from "../../../router";
 import { coreStore } from "../../../store/core";
@@ -35,7 +36,7 @@ class PlayerSystem implements System {
         return $.playerLocation.get(player);
     }
 
-    setPosition(player: PlayerId, position: ServerUserLocationOptions): void {
+    setPosition(player: PlayerId, position: ClientPosition): void {
         $.playerLocation.set(player, position);
         clientSystem.updatePlayerRect(player);
     }

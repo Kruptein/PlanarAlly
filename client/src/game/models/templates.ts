@@ -1,8 +1,5 @@
+import type { ApiAura, ApiShape, ApiTracker } from "../../apiTypes";
 import type { SHAPE_TYPE } from "../shapes/types";
-import type { ServerAura } from "../systems/auras/models";
-import type { ServerTracker } from "../systems/trackers/models";
-
-import type { ServerShape } from "./shapes";
 
 // Some of these keys are added later but with restrictions
 export const BaseTemplateStrings = [
@@ -28,9 +25,9 @@ export const BaseTemplateStrings = [
 ] as const;
 export const BaseAuraStrings = ["vision_source", "visible", "name", "value", "dim", "colour"] as const;
 export const BaseTrackerStrings = ["visible", "name", "value", "maxvalue"] as const;
-export type BaseAuraTemplate = Pick<ServerAura, typeof BaseAuraStrings[number]>;
-export type BaseTrackerTemplate = Pick<ServerTracker, typeof BaseTrackerStrings[number]>;
-type BasePropertyTemplate = Pick<ServerShape, typeof BaseTemplateStrings[number]>;
+export type BaseAuraTemplate = Pick<ApiAura, typeof BaseAuraStrings[number]>;
+export type BaseTrackerTemplate = Pick<ApiTracker, typeof BaseTrackerStrings[number]>;
+type BasePropertyTemplate = Pick<ApiShape, typeof BaseTemplateStrings[number]>;
 export type BaseTemplate = Partial<
     BasePropertyTemplate & { auras: Partial<BaseAuraTemplate>[] } & { trackers: Partial<BaseTrackerTemplate>[] }
 >;

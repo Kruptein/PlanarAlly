@@ -1,11 +1,11 @@
+import type { PlayerOptionsSet } from "../../../../apiTypes";
 import { colourHistory } from "../../../../core/components/store";
 import { coreStore } from "../../../../store/core";
 import { playerSettingsSystem } from "../../../systems/settings/players";
 import { playerOptionsToClient } from "../../../systems/settings/players/helpers";
-import type { ServerPlayerInfo } from "../../../systems/settings/players/models";
 import { socket } from "../../socket";
 
-socket.on("Player.Options.Set", (options: ServerPlayerInfo) => {
+socket.on("Player.Options.Set", (options: PlayerOptionsSet) => {
     colourHistory.value = options.colour_history === null ? [] : (JSON.parse(options.colour_history) as string[]);
 
     const defaultOptions = playerOptionsToClient(options.default_user_options);

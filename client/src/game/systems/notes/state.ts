@@ -1,9 +1,8 @@
+import type { ApiNote } from "../../../apiTypes";
 import { buildState } from "../state";
 
-import type { Note } from "./models";
-
 interface NoteState {
-    notes: Note[];
+    notes: ApiNote[];
 }
 
 const state = buildState<NoteState>({

@@ -490,7 +490,11 @@ async def update_tracker(sid: str, raw_data: Any):
         return
 
     tracker = Tracker.get_by_id(data.uuid)
-    changed_visible = tracker.visible != (data.visible or tracker.visible)
+
+    changed_visible = False
+    if data.visible is not None and data.visible != tracker.visible:
+        changed_visible = True
+
     # don't use data.dict() as it contains a bunch of None's
     update_model_from_dict(tracker, raw_data)
     tracker.save()
@@ -580,7 +584,11 @@ async def update_aura(sid: str, raw_data: Any):
         return
 
     aura = Aura.get_by_id(data.uuid)
-    changed_visible = aura.visible != (data.visible or aura.visible)
+
+    changed_visible = False
+    if data.visible is not None and data.visible != aura.visible:
+        changed_visible = True
+
     # don't use data.dict() as it contains a bunch of None's
     update_model_from_dict(aura, raw_data)
     aura.save()

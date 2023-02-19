@@ -141,6 +141,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
     client_options = PlayerOptionsSet(
         colour_history=pr.player.colour_history,
         default_user_options=pr.player.default_options.as_pydantic(False),
+        room_user_options=None,
     )
 
     if pr.user_options:

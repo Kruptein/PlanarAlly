@@ -439,7 +439,7 @@ export interface PlayerInfoCore {
 export interface PlayerOptionsSet {
   colour_history: string | null;
   default_user_options: ApiUserOptions;
-  room_user_options?: ApiOptionalUserOptions;
+  room_user_options: ApiOptionalUserOptions | null;
 }
 export interface PlayerRoleSet {
   player: PlayerId;

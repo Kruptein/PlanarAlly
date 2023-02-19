@@ -488,8 +488,6 @@ export abstract class Shape implements IShape {
     // STATE
     abstract asDict(): ApiShape;
 
-    // abstract getSubtypeDict(): Omit<ApiShape, keyof ApiCoreShape>;
-
     getBaseDict(): ApiCoreShape {
         const defaultAccess = accessSystem.getDefault(this.id);
         const props = getProperties(this.id)!;

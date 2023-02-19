@@ -12,7 +12,11 @@ from ....models.role import Role
 from ....state.game import game_state
 from ....transform.shape import transform_shape
 from ...helpers import _send_game
-from ...models.shape.owner import ApiDefaultShapeOwner, ApiShapeOwner
+from ...models.shape.owner import (
+    ApiDefaultShapeOwner,
+    ApiDeleteShapeOwner,
+    ApiShapeOwner,
+)
 from ..constants import GAME_NS
 
 
@@ -119,7 +123,7 @@ async def update_shape_owner(sid: str, raw_data: Any):
 @sio.on("Shape.Owner.Delete", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def delete_shape_owner(sid: str, raw_data: Any):
-    data = ApiShapeOwner(**raw_data)
+    data = ApiDeleteShapeOwner(**raw_data)
 
     pr: PlayerRoom = game_state.get(sid)
 

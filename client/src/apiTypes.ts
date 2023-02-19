@@ -115,6 +115,10 @@ export interface ApiDefaultShapeOwner {
   vision_access: boolean;
   shape: GlobalId;
 }
+export interface ApiDeleteShapeOwner {
+  shape: GlobalId;
+  user: string;
+}
 export interface ApiFloor {
   index: number;
   name: string;

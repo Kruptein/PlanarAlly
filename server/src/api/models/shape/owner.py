@@ -12,3 +12,8 @@ class ApiDefaultShapeOwner(TypeIdModel):
 
 class ApiShapeOwner(ApiDefaultShapeOwner):
     user: str
+
+
+class ApiDeleteShapeOwner(TypeIdModel):
+    shape: str = Field(typeId="GlobalId")
+    user: str

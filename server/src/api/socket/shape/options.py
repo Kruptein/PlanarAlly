@@ -491,7 +491,8 @@ async def update_tracker(sid: str, raw_data: Any):
 
     tracker = Tracker.get_by_id(data.uuid)
     changed_visible = tracker.visible != (data.visible or tracker.visible)
-    update_model_from_dict(tracker, data)
+    # don't use data.dict() as it contains a bunch of None's
+    update_model_from_dict(tracker, raw_data)
     tracker.save()
 
     owners = [*get_owner_sids(pr, shape, skip_sid=sid)]
@@ -580,7 +581,8 @@ async def update_aura(sid: str, raw_data: Any):
 
     aura = Aura.get_by_id(data.uuid)
     changed_visible = aura.visible != (data.visible or aura.visible)
-    update_model_from_dict(aura, data)
+    # don't use data.dict() as it contains a bunch of None's
+    update_model_from_dict(aura, raw_data)
     aura.save()
 
     owners = [*get_owner_sids(pr, shape, skip_sid=sid)]

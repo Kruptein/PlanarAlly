@@ -1,6 +1,5 @@
 def load_socket_commands():
     from . import asset  # noqa: F401.
-    from . import asset_manager  # noqa: F401.
     from . import client  # noqa: F401.
     from . import connection  # noqa: F401.
     from . import dashboard  # noqa: F401.
@@ -18,3 +17,4 @@ def load_socket_commands():
     from . import room  # noqa: F401.
     from . import shape  # noqa: F401.
     from . import user  # noqa: F401.
+    from .asset_manager import core  # noqa: F401.

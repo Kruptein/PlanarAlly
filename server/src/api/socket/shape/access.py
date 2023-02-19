@@ -1,4 +1,4 @@
-from typing import Any, cast
+from typing import Any
 
 from .... import auth
 from ....app import app, sio
@@ -119,6 +119,16 @@ async def update_shape_owner(sid: str, raw_data: Any):
         "Shape.Owner.Update", data, room=pr.active_location.get_path(), skip_sid=sid
     )
 
+    # Ensure the target player has an updated view of the shape due to access changes
+    for tsid in game_state.get_sids(
+        player=target_user, active_location=pr.active_location
+    ):
+        await _send_game(
+            "Shape.Set",
+            transform_shape(shape, target_user, pr.room.creator == target_user),
+            room=tsid,
+        )
+
 
 @sio.on("Shape.Owner.Delete", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
@@ -159,6 +169,16 @@ async def delete_shape_owner(sid: str, raw_data: Any):
         "Shape.Owner.Delete", data, room=pr.active_location.get_path(), skip_sid=sid
     )
 
+    # Ensure the target player has an updated view of the shape due to access changes
+    for tsid in game_state.get_sids(
+        player=target_user, active_location=pr.active_location
+    ):
+        await _send_game(
+            "Shape.Set",
+            transform_shape(shape, target_user, pr.room.creator == target_user),
+            room=tsid,
+        )
+
 
 @sio.on("Shape.Owner.Default.Update", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
@@ -194,8 +214,6 @@ async def update_default_shape_owner(sid: str, raw_data: Any):
     ):
         await _send_game(
             "Shape.Set",
-            transform_shape(
-                shape, player, cast(bool, game_state.get(sid).role == Role.DM)
-            ),
+            transform_shape(shape, player, game_state.get(sid).role == Role.DM),
             room=sid,
         )

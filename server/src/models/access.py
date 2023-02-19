@@ -20,4 +20,7 @@ def has_ownership(shape: Shape, pr: PlayerRoom, movement=False) -> bool:
     if movement and shape.default_movement_access:
         return True
 
-    return ShapeOwner.get_or_none(shape=shape, user=pr.player) is not None
+    so = ShapeOwner.get_or_none(shape=shape, user=pr.player)
+    if so is None:
+        return False
+    return so.edit_access or (movement and so.movement_access)

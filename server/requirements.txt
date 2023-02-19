@@ -5,4 +5,5 @@ bcrypt==4.0.1
 cryptography==39.0.1
 python-socketio==5.7.2
 peewee==3.15.4
+pydantic==1.10.5
 typing_extensions==4.5.0

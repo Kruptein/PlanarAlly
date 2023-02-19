@@ -11,7 +11,13 @@ class TypeIdModel(BaseModel):
         def schema_extra(schema) -> None:
             for prop in schema["properties"].values():
                 if prop.get("noneAsNull", False):
-                    prop["type"] = [prop["type"], "null"]
+                    if "type" in prop:
+                        prop["type"] = [prop["type"], "null"]
+                    elif "allOf" in prop and len(prop["allOf"]) == 1:
+                        prop["anyOf"] = [prop["allOf"][0], {"type": "null"}]
+                        del prop["allOf"]
+                    else:
+                        raise Exception("Unhandled noneAsNull case")
                 if prop.get("type", None) == "array":
                     items = prop["items"]
                     if "typeId" in prop:

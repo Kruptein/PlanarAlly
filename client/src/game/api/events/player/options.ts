@@ -10,7 +10,7 @@ socket.on("Player.Options.Set", (options: PlayerOptionsSet) => {
 
     const defaultOptions = playerOptionsToClient(options.default_user_options);
     const roomOptions =
-        options.room_user_options !== undefined ? playerOptionsToClient(options.room_user_options) : undefined;
+        options.room_user_options !== null ? playerOptionsToClient(options.room_user_options) : undefined;
 
     const hasGameboard = coreStore.state.boardId !== undefined;
 

@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Union, cast
+from typing import Any, List, Optional, Union
 
 from peewee import Case
 
@@ -72,7 +72,7 @@ async def add_shape(sid: str, raw_data: Any):
             return
 
     for room_player in pr.room.players:
-        is_dm = cast(bool, room_player.role == Role.DM)
+        is_dm = room_player.role == Role.DM
         for psid in game_state.get_sids(
             player=room_player.player, active_location=pr.active_location
         ):

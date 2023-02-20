@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory, type NavigationGuardNext } from "vue-router";
+import { createRouter, createWebHistory, type NavigationGuardNext, type RouteLocationNormalized } from "vue-router";
 
 import { http } from "../core/http";
 import { handleNotifications } from "../notifications";
@@ -45,21 +45,23 @@ router.beforeEach(async (to, _from, next) => {
                 coreStore.setEmail(authData.email);
                 next();
             } else {
-                forceLogin(next, to.path);
+                checkLogin(next, to);
             }
         } else {
             console.error("Authentication check could not be fulfilled.");
-            forceLogin(next, to.path);
+            checkLogin(next, to);
         }
-    } else if (to.meta.auth === true && !coreStore.state.authenticated) {
-        forceLogin(next, to.path);
     } else {
-        next();
+        checkLogin(next, to);
     }
 });
 
-function forceLogin(next: NavigationGuardNext, redirect: string): void {
-    next({ name: "login", query: { redirect } });
+function checkLogin(next: NavigationGuardNext, to: RouteLocationNormalized): void {
+    if (to.meta.auth === true && !coreStore.state.authenticated) {
+        next({ name: "login", query: { redirect: to.path } });
+    } else {
+        next();
+    }
 }
 
 router.afterEach((_to, _from) => {

@@ -1,5 +1,6 @@
 from ....db.db import db
 from ....db.models.aura import Aura
+from ....db.models.layer import Layer
 from ....db.models.shape import Shape
 from ....db.models.shape_owner import ShapeOwner
 from ....db.models.tracker import Tracker
@@ -9,10 +10,13 @@ from ....logs import logger
 from ...models.shape import ApiShape
 
 
-def create_shape(data: ApiShape):
+def create_shape(data: ApiShape, *, layer: Layer):
     with db.atomic():
         # Shape itself
-        shape = Shape.create(**reduce_data_to_model(Shape, data))
+        data_dict = data.dict()
+        index = layer.shapes.count()
+        data_dict["layer"] = layer
+        shape = Shape.create(index=index, **reduce_data_to_model(Shape, data_dict))
         # Subshape
         type_table = get_table(shape.type_)
         if type_table is None:
@@ -21,9 +25,9 @@ def create_shape(data: ApiShape):
 
         subshape = type_table.create(
             shape=shape,
-            **type_table.pre_create(**reduce_data_to_model(type_table, data)),
+            **type_table.pre_create(**reduce_data_to_model(type_table, data_dict)),
         )
-        type_table.post_create(subshape, **data.dict())
+        type_table.post_create(subshape, **data_dict)
         # Owners
         for owner in data.owners:
             ShapeOwner.create(
@@ -35,9 +39,9 @@ def create_shape(data: ApiShape):
             )
         # Trackers
         for tracker in data.trackers:
-            Tracker.create(**reduce_data_to_model(Tracker, tracker))
+            Tracker.create(**reduce_data_to_model(Tracker, tracker.dict()))
         # Auras
         for aura in data.auras:
-            Aura.create(**reduce_data_to_model(Aura, aura))
+            Aura.create(**reduce_data_to_model(Aura, aura.dict()))
 
         return shape

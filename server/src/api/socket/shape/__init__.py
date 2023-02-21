@@ -65,9 +65,7 @@ async def add_shape(sid: str, raw_data: Any):
     if data.temporary:
         game_state.add_temp(sid, data.shape.uuid)
     else:
-        data.shape.layer = layer.name
-        data.shape.index = layer.shapes.count()
-        shape = create_shape(data.shape)
+        shape = create_shape(data.shape, layer=layer)
         if shape is None:
             return
 
@@ -146,7 +144,7 @@ async def remove_shapes(sid: str, raw_data: Any):
         # Use the server version of the shapes.
         try:
             shapes: List[Shape] = [
-                s for s in Shape.select().where(Shape.uuid << data["uuids"])  # type: ignore
+                s for s in Shape.select().where(Shape.uuid << data.uuids)  # type: ignore
             ]
         except Shape.DoesNotExist:
             logger.warning(f"Attempt to remove unknown shape by {pr.player.name}")

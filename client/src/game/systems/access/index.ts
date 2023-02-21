@@ -36,13 +36,18 @@ class AccessSystem implements ShapeSystem {
 
     loadState(id: LocalId): void {
         $.id = id;
-        $.id = id;
+        $.defaultAccess = { ...DEFAULT_ACCESS };
         $.playerAccess.clear();
-        for (const [user, access] of this.access.get(id) ?? []) {
-            if (user === DEFAULT_ACCESS_SYMBOL) {
-                $.defaultAccess = { ...access };
-            } else {
-                $.playerAccess.set(user, { ...access });
+
+        const accessMap = this.access.get(id);
+
+        if (accessMap !== undefined) {
+            for (const [user, access] of accessMap) {
+                if (user === DEFAULT_ACCESS_SYMBOL) {
+                    $.defaultAccess = { ...access };
+                } else {
+                    $.playerAccess.set(user, { ...access });
+                }
             }
         }
     }

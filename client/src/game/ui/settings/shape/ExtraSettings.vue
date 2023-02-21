@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import tinycolor from "tinycolor2";
-import { computed, ref, toRef, watch } from "vue";
+import { computed, ref, toRef, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { l2gz } from "../../../../core/conversions";
@@ -37,19 +37,16 @@ import LabelManager from "../../LabelManager.vue";
 const { t } = useI18n();
 const modals = useModal();
 
-watch(
-    () => selectedSystem.getFocus().value,
-    (newId, oldId) => {
-        if (newId !== undefined && oldId !== newId) {
-            annotationSystem.loadState(newId);
-            labelSystem.loadState(newId);
-        } else if (newId === undefined) {
-            annotationSystem.dropState();
-            labelSystem.dropState();
-        }
-    },
-    { immediate: true },
-);
+watchEffect(() => {
+    const id = selectedSystem.getFocus().value;
+    if (id) {
+        annotationSystem.loadState(id);
+        labelSystem.loadState(id);
+    } else {
+        annotationSystem.dropState();
+        labelSystem.dropState();
+    }
+});
 
 const textarea = ref<HTMLTextAreaElement | null>(null);
 

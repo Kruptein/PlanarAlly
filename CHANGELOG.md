@@ -21,6 +21,7 @@ tech changes will usually be stripped from release notes for the public
 -   Templates: Missing some settings when saved
 -   Fake player: no longer render auras and isToken vision
 -   Labels: Fix removal not working
+-   Toolbar: Fix vision and filter tools not immediately being available when relevant
 
 ## [2023.1.0] - 2023-02-14
 

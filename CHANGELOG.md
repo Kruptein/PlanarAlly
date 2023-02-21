@@ -10,10 +10,15 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Changed
+
+-   Templates no longer save certain settings
+
 ### Fixed
 
 -   No longer sending group info for each member (just once)
 -   A logic error in the auth routing code - in some cases you had to manually go to the login page
+-   Templates missing some settings when saved
 
 ## [2023.1.0] - 2023-02-14
 

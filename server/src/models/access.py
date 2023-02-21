@@ -4,7 +4,7 @@ from ..db.models.shape_owner import ShapeOwner
 from .role import Role
 
 
-def has_ownership(shape: Shape, pr: PlayerRoom, movement=False) -> bool:
+def has_ownership(shape: Shape, pr: PlayerRoom, *, movement=False) -> bool:
     if shape is None:
         return False
 

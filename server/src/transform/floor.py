@@ -1,22 +1,18 @@
-from ..api.models.floor import ApiFloor, ApiLayer
+from ..api.models.floor import ApiFloor
 from ..db.models.floor import Floor
 from ..db.models.layer import Layer
-from ..db.models.user import User
+from ..db.models.player_room import PlayerRoom
+from ..models.role import Role
 from .layer import transform_layer
 
 
-def transform_floor(floor: Floor, user: User, dm: bool) -> ApiFloor:
-    layers: list[ApiLayer]
-    if dm:
-        layers = [
-            transform_layer(layer, user, True)
-            for layer in floor.layers.order_by(Layer.index)
-        ]
-    else:
-        layers = [
-            transform_layer(layer, user, False)
-            for layer in floor.layers.order_by(Layer.index).where(Layer.player_visible)
-        ]
+def transform_floor(floor: Floor, pr: PlayerRoom) -> ApiFloor:
+    layer_query = floor.layers.order_by(Layer.index)
+    if pr.role != Role.DM:
+        layer_query = layer_query.where(Layer.player_visible)
+
+    layers = [transform_layer(layer, pr) for layer in layer_query]
+
     return ApiFloor(
         index=floor.index,
         name=floor.name,

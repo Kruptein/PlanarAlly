@@ -79,7 +79,7 @@ async def add_shape(sid: str, raw_data: Any):
             if not is_dm and not layer.player_visible:
                 continue
             if not data.temporary and shape is not None:
-                data.shape = transform_shape(shape, room_player.player, is_dm)
+                data.shape = transform_shape(shape, room_player)
             await _send_game("Shape.Add", data.shape, room=psid)
 
 
@@ -257,7 +257,7 @@ async def change_shape_layer(sid: str, raw_data: Any):
     else:
         for room_player in pr.room.players:
             is_dm = room_player.role == Role.DM
-            for psid in game_state.get_sids(
+            for psid, tpr in game_state.get_t(
                 player=room_player.player,
                 active_location=pr.active_location,
                 skip_sid=sid,
@@ -269,10 +269,7 @@ async def change_shape_layer(sid: str, raw_data: Any):
                 elif layer.player_visible:
                     await _send_game(
                         "Shapes.Add",
-                        [
-                            transform_shape(shape, room_player.player, False)
-                            for shape in shapes
-                        ],
+                        [transform_shape(shape, tpr) for shape in shapes],
                         room=psid,
                     )
                     await initiative.check_initiative([s.uuid for s in shapes], pr)
@@ -342,13 +339,10 @@ async def move_shapes(sid: str, raw_data: Any):
         shape.center_at(x, y)
         shape.save()
 
-    for psid, player in game_state.get_users(active_location=location):
+    for psid, tpr in game_state.get_t(active_location=location):
         await _send_game(
             "Shapes.Add",
-            [
-                transform_shape(sh, player, game_state.get(psid).role == Role.DM)
-                for sh in shapes
-            ],
+            [transform_shape(sh, tpr) for sh in shapes],
             room=psid,
         )
 
@@ -481,8 +475,6 @@ async def get_shape_info(sid: str, shape_id: str):
 
     await _send_game(
         "Shape.Info",
-        data=ShapeInfo(
-            shape=transform_shape(shape, pr.player, False), location=location
-        ),
+        data=ShapeInfo(shape=transform_shape(shape, pr), location=location),
         room=sid,
     )

@@ -64,12 +64,10 @@ async def add_shape_owner(sid: str, raw_data: Any):
         "Shape.Owner.Add", data, room=pr.active_location.get_path(), skip_sid=sid
     )
     if not (shape.default_vision_access or shape.default_edit_access):
-        for sid in game_state.get_sids(
+        for sid, tpr in game_state.get_t(
             player=target_user, active_location=pr.active_location
         ):
-            await _send_game(
-                "Shape.Set", transform_shape(shape, target_user, False), room=sid
-            )
+            await _send_game("Shape.Set", transform_shape(shape, tpr), room=sid)
 
 
 @sio.on("Shape.Owner.Update", namespace=GAME_NS)
@@ -120,14 +118,10 @@ async def update_shape_owner(sid: str, raw_data: Any):
     )
 
     # Ensure the target player has an updated view of the shape due to access changes
-    for tsid in game_state.get_sids(
+    for tsid, tpr in game_state.get_t(
         player=target_user, active_location=pr.active_location
     ):
-        await _send_game(
-            "Shape.Set",
-            transform_shape(shape, target_user, pr.room.creator == target_user),
-            room=tsid,
-        )
+        await _send_game("Shape.Set", transform_shape(shape, tpr), room=tsid)
 
 
 @sio.on("Shape.Owner.Delete", namespace=GAME_NS)
@@ -170,14 +164,10 @@ async def delete_shape_owner(sid: str, raw_data: Any):
     )
 
     # Ensure the target player has an updated view of the shape due to access changes
-    for tsid in game_state.get_sids(
+    for tsid, tpr in game_state.get_t(
         player=target_user, active_location=pr.active_location
     ):
-        await _send_game(
-            "Shape.Set",
-            transform_shape(shape, target_user, pr.room.creator == target_user),
-            room=tsid,
-        )
+        await _send_game("Shape.Set", transform_shape(shape, tpr), room=tsid)
 
 
 @sio.on("Shape.Owner.Default.Update", namespace=GAME_NS)
@@ -209,11 +199,7 @@ async def update_default_shape_owner(sid: str, raw_data: Any):
 
     # We need to send each player their new view of the shape which includes the default access fields,
     # so there is no use in sending those separately
-    for sid, player in game_state.get_users(
+    for sid, player_room in game_state.get_t(
         active_location=pr.active_location, skip_sid=sid
     ):
-        await _send_game(
-            "Shape.Set",
-            transform_shape(shape, player, game_state.get(sid).role == Role.DM),
-            room=sid,
-        )
+        await _send_game("Shape.Set", transform_shape(shape, player_room), room=sid)

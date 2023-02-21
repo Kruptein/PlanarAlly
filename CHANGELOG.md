@@ -20,6 +20,7 @@ tech changes will usually be stripped from release notes for the public
 -   Auth: A logic error in the auth routing code - in some cases you had to manually go to the login page
 -   Templates: Missing some settings when saved
 -   Fake player: no longer render auras and isToken vision
+-   Labels: Fix removal not working
 
 ## [2023.1.0] - 2023-02-14
 

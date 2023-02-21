@@ -25,6 +25,7 @@ tech changes will usually be stripped from release notes for the public
 -   Access: Fix players with specific access rules, having edit access at all times
 -   Access: Changing access would not live update the edit shape UI if it was open by another client
 -   Access: Fix default access in UI not being up to date if shape has no access modifications until reload
+-   Access: Prevent DMs from having an explicit access rule
 
 ## [2023.1.0] - 2023-02-14
 

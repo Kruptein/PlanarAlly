@@ -4,6 +4,7 @@ import { registerSystem } from "..";
 import type { ShapeSystem } from "..";
 import { NO_SYNC } from "../../../core/models/types";
 import type { Sync } from "../../../core/models/types";
+import { coreStore } from "../../../store/core";
 import { getGlobalId } from "../../id";
 import type { LocalId } from "../../id";
 import { initiativeStore } from "../../ui/initiative/state";
@@ -156,6 +157,7 @@ class AccessSystem implements ShapeSystem {
             console.error("[ACCESS] Attempt to add access for user with access");
             return;
         }
+        if (gameState.isDmOrFake.value && coreStore.state.username === user) return;
 
         const userAccess = { ...DEFAULT_ACCESS, ...access };
 
@@ -215,6 +217,9 @@ class AccessSystem implements ShapeSystem {
 
         // Commit to state
         const newAccess = { ...oldAccess, ...access };
+        if (!this.access.has(shapeId)) {
+            this.access.set(shapeId, new Map());
+        }
         this.access.get(shapeId)!.set(user, newAccess);
 
         if ($.id === shapeId) {

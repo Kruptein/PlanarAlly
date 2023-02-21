@@ -1,24 +1,17 @@
-from ..api.models.shape.owner import ApiShapeOwner
 from ..api.models.shape.shape import ApiCoreShape
 from ..api.models.shape.subtypes import ApiShapeSubType
 from ..db.models.aura import Aura
 from ..db.models.label import Label
+from ..db.models.player_room import PlayerRoom
 from ..db.models.shape import Shape
-from ..db.models.shape_owner import ShapeOwner
 from ..db.models.tracker import Tracker
-from ..db.models.user import User
+from ..models.access import has_ownership
 
 
-# todo: Change this API to accept a PlayerRoom instead
-def transform_shape(shape: Shape, user: User, dm: bool) -> ApiShapeSubType:
-    owners: list[ApiShapeOwner] = []
-    user_owner: ShapeOwner | None = None
-    for owner in shape.owners:
-        owners.append(owner.as_pydantic())
-        if owner.user == user:
-            user_owner = owner
+def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:
+    owners = [owner.as_pydantic() for owner in shape.owners]
 
-    edit_access = shape.default_edit_access or (user_owner and user_owner.edit_access)
+    edit_access = has_ownership(shape, pr)
 
     # Access checks
     tracker_query = shape.trackers

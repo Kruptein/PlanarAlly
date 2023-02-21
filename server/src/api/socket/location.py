@@ -201,9 +201,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
         floors = [floors[index], *lower_floors, *higher_floors]
 
     for floor in floors:
-        await _send_game(
-            "Board.Floor.Set", transform_floor(floor, pr.player, IS_DM), room=sid
-        )
+        await _send_game("Board.Floor.Set", transform_floor(floor, pr), room=sid)
 
     # 6. Load Initiative
 
@@ -583,7 +581,7 @@ async def get_location_spawn_info(sid: str, location_id: int):
                 except Shape.DoesNotExist:
                     pass
                 else:
-                    data.append(transform_shape(shape, pr.player, True))
+                    data.append(transform_shape(shape, pr))
     except:
         logger.exception("Could not load spawn locations")
 

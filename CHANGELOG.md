@@ -22,6 +22,8 @@ tech changes will usually be stripped from release notes for the public
 -   Fake player: no longer render auras and isToken vision
 -   Labels: Fix removal not working
 -   Toolbar: Fix vision and filter tools not immediately being available when relevant
+-   Access: Fix players with specific access rules, having edit access at all times
+-   Access: Changing access would not live update the edit shape UI if it was open by another client
 
 ## [2023.1.0] - 2023-02-14
 

@@ -1,31 +1,28 @@
 <script setup lang="ts">
-import { computed, ref, toRef, watch } from "vue";
+import { computed, ref, toRef, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { SERVER_SYNC } from "../../../../core/models/types";
 import type { PartialPick } from "../../../../core/types";
-import { activeShapeStore } from "../../../../store/activeShape";
 import { Role } from "../../../models/role";
 import { accessSystem } from "../../../systems/access";
 import { DEFAULT_ACCESS, DEFAULT_ACCESS_SYMBOL } from "../../../systems/access/models";
 import type { ACCESS_KEY, ShapeAccess } from "../../../systems/access/models";
 import { accessState } from "../../../systems/access/state";
 import { playerState } from "../../../systems/players/state";
+import { selectedSystem } from "../../../systems/selected";
 
 const { t } = useI18n();
 defineProps<{ activeSelection: boolean }>();
 
-watch(
-    () => activeShapeStore.state.id,
-    (newId, oldId) => {
-        if (newId !== undefined && oldId !== newId) {
-            accessSystem.loadState(newId);
-        } else if (newId === undefined) {
-            accessSystem.dropState();
-        }
-    },
-    { immediate: true },
-);
+watchEffect(() => {
+    const id = selectedSystem.getFocus().value;
+    if (id !== undefined) {
+        accessSystem.loadState(id);
+    } else {
+        accessSystem.dropState();
+    }
+});
 
 const accessDropdown = ref<HTMLSelectElement | null>(null);
 

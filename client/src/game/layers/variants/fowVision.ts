@@ -41,6 +41,8 @@ export class FowVisionLayer extends FowLayer {
             for (const tokenId of accessState.activeTokens.value) {
                 const token = getShape(tokenId);
                 if (token === undefined || token.floorId !== this.floor) continue;
+                if (token.layerName === LayerName.Dm && gameState.raw.isFakePlayer) continue;
+
                 const center = token.center;
                 const lcenter = g2l(center);
 

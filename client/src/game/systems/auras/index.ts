@@ -8,7 +8,9 @@ import type { Sync } from "../../../core/models/types";
 import { getGlobalId, getShape } from "../../id";
 import type { LocalId } from "../../id";
 import { compositeState } from "../../layers/state";
+import { LayerName } from "../../models/floor";
 import { visionState } from "../../vision/state";
+import { gameState } from "../game/state";
 import { selectedSystem } from "../selected";
 
 import { aurasToServer, partialAuraToServer, toUiAuras } from "./conversion";
@@ -100,6 +102,12 @@ class AuraSystem implements ShapeSystem {
     }
 
     getAll(id: LocalId, includeParent: boolean): DeepReadonly<Aura[]> {
+        if (gameState.raw.isFakePlayer) {
+            const shape = getShape(id);
+            if (shape === undefined) return [];
+            if (shape.layerName === LayerName.Dm) return [];
+        }
+
         const auras: Aura[] = [];
         if (includeParent) {
             const parent = compositeState.getCompositeParent(id);

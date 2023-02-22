@@ -28,6 +28,7 @@ tech changes will usually be stripped from release notes for the public
 -   Access: Fix default access in UI not being up to date if shape has no access modifications until reload
 -   Access: Prevent DMs from having an explicit access rule
 -   TpZone: Fix tp zone moving a player to a different floor not moving their view along (if 'move players' configured)
+-   Logic: Request mode not working as intended and behaving as Enabled mode instead
 
 ## [2023.1.0] - 2023-02-14
 

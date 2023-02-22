@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from ..helpers import TypeIdModel
 
@@ -14,9 +14,9 @@ class LogicTeleportRequest(TypeIdModel):
     logic: Literal["tp"]
     fromZone: str = Field(typeId="GlobalId")
     toZone: str = Field(typeId="GlobalId")
-    transfers: list[str]
+    transfers: list[str] = Field(typeId="GlobalId")
 
 
-class LogicRequestInfo(BaseModel):
-    requester: str
+class LogicRequestInfo(TypeIdModel):
+    requester: int = Field(typeId="PlayerId")
     request: LogicDoorRequest | LogicTeleportRequest

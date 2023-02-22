@@ -219,7 +219,7 @@ class SelectTool extends Tool implements ISelectTool {
                 doorSystem.toggleDoor(_.hoveredDoor);
                 return;
             } else {
-                if (doorSystem.canUse(_.hoveredDoor) === Access.Request) {
+                if (doorSystem.canUse(_.hoveredDoor, playerSystem.getCurrentPlayerId()!) === Access.Request) {
                     toast.info("Request to open door sent", {
                         position: POSITION.TOP_RIGHT,
                     });
@@ -404,7 +404,7 @@ class SelectTool extends Tool implements ISelectTool {
                 if (shape === undefined) continue;
                 if (shape.floorId !== floorState.currentFloor.value!.id) continue;
                 if (!shape.contains(gp)) continue;
-                if (doorSystem.canUse(id) === Access.Disabled) continue;
+                if (doorSystem.canUse(id, playerSystem.getCurrentPlayerId()!) === Access.Disabled) continue;
 
                 foundDoor = true;
                 _.hoveredDoor = id;

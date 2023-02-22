@@ -14,7 +14,7 @@ socket.on("Logic.Request", (data: LogicRequestInfo) => {
     if (data.request.logic === "door") {
         const doorId = getLocalId(data.request.door);
         if (doorId === undefined) return;
-        const canUse = doorSystem.canUse(doorId);
+        const canUse = doorSystem.canUse(doorId, data.requester);
         if (canUse === Access.Enabled) {
             doorSystem.toggleDoor(doorId);
             return;

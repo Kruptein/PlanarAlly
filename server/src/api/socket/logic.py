@@ -33,18 +33,18 @@ async def request(sid: str, raw_data: Dict):
         if game_state.get(psid).role == Role.DM:
             await _send_game(
                 "Logic.Request",
-                LogicRequestInfo(requester=pr.player.name, request=data),
+                LogicRequestInfo(requester=pr.player.id, request=data),
                 room=psid,
             )
 
 
 @sio.on("Logic.Request.Decline", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def decline_request(sid: str, name: str):
+async def decline_request(sid: str, player_id: int):
     pr: PlayerRoom = game_state.get(sid)
 
     for psid in game_state.get_sids(room=pr.room):
-        if game_state.get(psid).player.name == name:
+        if game_state.get(psid).player.id == player_id:
             await sio.emit(
                 "Logic.Request.Declined",
                 room=psid,

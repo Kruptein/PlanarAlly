@@ -7,7 +7,6 @@ import { registerSystem } from "../..";
 import type { ShapeSystem } from "../..";
 import SingleButtonToast from "../../../../core/components/toasts/SingleButtonToast.vue";
 import type { Sync } from "../../../../core/models/types";
-import { sendRequest } from "../../../api/emits/logic";
 import { getGlobalId, getShape } from "../../../id";
 import type { LocalId } from "../../../id";
 import type { IShape } from "../../../interfaces/shape";
@@ -19,7 +18,7 @@ import { canUse } from "../common";
 import { Access, DEFAULT_PERMISSIONS } from "../models";
 import type { Permissions } from "../models";
 
-import { getTpZoneShapes, teleport } from "./core";
+import { getTpZoneShapes, validateTeleport } from "./core";
 import {
     sendShapeIsImmediateTeleportZone,
     sendShapeIsTeleportZone,
@@ -206,28 +205,14 @@ class TeleportZoneSystem implements ShapeSystem {
                 const toZone = options.location.spawnUuid;
 
                 if (options.immediate) {
-                    if (access === Access.Request) {
-                        toast.info("Request to use teleport zone sent", {
-                            position: POSITION.TOP_RIGHT,
-                        });
-                        const gId = getGlobalId(tp);
-                        if (gId)
-                            sendRequest({
-                                fromZone: gId,
-                                toZone,
-                                transfers: shapesToMove.map((s) => getGlobalId(s)!),
-                                logic: "tp",
-                            });
-                    } else {
-                        await teleport(tp, toZone, shapesToMove);
-                    }
+                    await validateTeleport(access, tp, toZone, shapesToMove);
                 } else if (options.toastId === undefined) {
                     options.toastId = toast.info(
                         {
                             component: SingleButtonToast,
                             props: {
                                 text: "Teleport Zone",
-                                onClick: async () => await teleport(tp, toZone),
+                                onClick: async () => await validateTeleport(access, tp, toZone, shapesToMove),
                             },
                         },
                         {

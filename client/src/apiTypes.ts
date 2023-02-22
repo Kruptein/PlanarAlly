@@ -526,7 +526,6 @@ export interface ShapeLayerChange {
 export interface ShapeLocationMove {
   shapes: GlobalId[];
   target: ShapeLocationMoveTarget;
-  tp_zone: boolean;
 }
 export interface ShapeLocationMoveTarget {
   x: number;

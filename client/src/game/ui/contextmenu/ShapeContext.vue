@@ -226,7 +226,6 @@ async function setLocation(newLocation: number): Promise<void> {
     sendShapesMove({
         shapes: shapes.map((s) => getGlobalId(s.id)!),
         target: { location: newLocation, ...targetPosition },
-        tp_zone: false,
     });
     if (locationSettingsState.raw.movePlayerOnTokenChange.value) {
         const users = new Set<string>();

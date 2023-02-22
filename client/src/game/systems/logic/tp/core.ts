@@ -1,3 +1,4 @@
+import { sendSetPlayersPosition } from "../../../api/emits/players";
 import { requestShapeInfo, sendShapesMove } from "../../../api/emits/shape/core";
 import { getShape, getLocalId, getGlobalId } from "../../../id";
 import type { LocalId, GlobalId } from "../../../id";
@@ -65,14 +66,16 @@ export async function teleport(fromZone: LocalId, toZone: GlobalId, transfers?: 
     });
     const { location, ...position } = target;
     if (locationSettingsState.raw.movePlayerOnTokenChange.value) {
+        const players = new Set<string>();
+        for (const sh of shapes) {
+            for (const owner of accessSystem.getOwners(sh)) players.add(owner);
+        }
+
         if (location === activeLocation) {
             setCenterPosition(center);
+            sendSetPlayersPosition({ ...position, players: [...players] });
         } else {
-            const users = new Set<string>();
-            for (const sh of shapes) {
-                for (const owner of accessSystem.getOwners(sh)) users.add(owner);
-            }
-            playerSystem.updatePlayersLocation([...users], location, true, position);
+            playerSystem.updatePlayersLocation([...players], location, true, position);
         }
     }
 }

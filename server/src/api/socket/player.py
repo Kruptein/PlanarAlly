@@ -9,7 +9,7 @@ from ...logs import logger
 from ...models.role import Role
 from ...state.game import game_state
 from ..helpers import _send_game
-from ..models.players import PlayerPosition
+from ..models.players import PlayerPosition, PlayersPositionSet
 from ..models.players.role import PlayerRoleSet
 
 
@@ -27,6 +27,23 @@ async def bring_players(sid: str, raw_data: Any):
     await _send_game(
         "Position.Set", data, room=pr.active_location.get_path(), skip_sid=sid
     )
+
+
+@sio.on("Players.Position.Set", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def set_players_position(sid: str, raw_data: Any):
+    data = PlayersPositionSet(**raw_data)
+
+    pr = game_state.get(sid)
+
+    if pr.role != Role.DM:
+        logger.warning(f"{pr.player.name} attempted to set players position")
+        return
+
+    for player in data.players:
+        for psid, pt in game_state.get_t():
+            if pt.player.name == player:
+                await _send_game("Position.Set", data, room=psid)
 
 
 @sio.on("Player.Role.Set", namespace=GAME_NS)

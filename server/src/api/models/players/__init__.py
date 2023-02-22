@@ -6,3 +6,7 @@ from .role import *
 
 class PlayerPosition(PositionTuple):
     floor: str
+
+
+class PlayersPositionSet(PlayerPosition):
+    players: list[str]

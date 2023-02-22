@@ -459,6 +459,12 @@ export interface PlayersInfoSet {
   position?: ApiLocationUserOption;
   clients?: OptionalClientViewport[];
 }
+export interface PlayersPositionSet {
+  x: number;
+  y: number;
+  floor: string;
+  players: string[];
+}
 export interface PositionTuple {
   x: number;
   y: number;

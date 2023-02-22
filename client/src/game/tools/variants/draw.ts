@@ -368,7 +368,6 @@ class DrawTool extends Tool implements ITool {
                     break;
                 }
                 case DrawShape.Polygon: {
-                    const fill = this.state.isClosedPolygon ? this.state.fillColour : undefined;
                     const stroke = this.state.isClosedPolygon ? this.state.borderColour : this.state.fillColour;
                     if (event && playerSettingsState.useSnapping(event) && !this.snappedToPoint) {
                         this.brushHelper.refPoint = toGP(clampGridLine(startPoint.x), clampGridLine(startPoint.y));
@@ -378,7 +377,7 @@ class DrawTool extends Tool implements ITool {
                         [],
                         { lineWidth: [this.state.brushSize], openPolygon: !this.state.isClosedPolygon },
                         {
-                            fillColour: fill,
+                            fillColour: this.state.fillColour, // is ignored for open polygons
                             strokeColour: [stroke],
                         },
                     );

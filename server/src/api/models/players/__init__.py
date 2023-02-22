@@ -4,6 +4,5 @@ from .options import *
 from .role import *
 
 
-class PlayersBring(PositionTuple):
+class PlayerPosition(PositionTuple):
     floor: str
-    zoom: int

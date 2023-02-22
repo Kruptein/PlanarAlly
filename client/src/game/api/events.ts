@@ -29,7 +29,7 @@ import "./events/user";
 
 import "./gbsocket"; // Start tuio listener
 
-import type { ApiFloor, ApiLocationCore, PlayersBring, PositionTuple } from "../../apiTypes";
+import type { ApiFloor, ApiLocationCore, PlayerPosition } from "../../apiTypes";
 import { toGP } from "../../core/geometry";
 import { SyncMode } from "../../core/models/types";
 import type { AssetList } from "../../core/models/types";
@@ -48,7 +48,6 @@ import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
 import { gameSystem } from "../systems/game";
 import { playerSystem } from "../systems/players";
-import { positionSystem } from "../systems/position";
 
 import { socket } from "./socket";
 
@@ -117,10 +116,8 @@ socket.on("Board.Floor.Set", (floor: ApiFloor) => {
 
 // Varia
 
-socket.on("Position.Set", (data: PositionTuple & Partial<PlayersBring>) => {
+socket.on("Position.Set", (data: PlayerPosition) => {
     if (data.floor !== undefined) floorSystem.selectFloor({ name: data.floor }, true);
-    if (data.zoom !== undefined)
-        positionSystem.setZoomDisplay(data.zoom, { invalidate: false, updateSectors: false, sync: false });
     setCenterPosition(toGP(data.x, data.y));
 });
 

@@ -13,6 +13,7 @@ tech changes will usually be stripped from release notes for the public
 ### Changed
 
 -   Templates no longer save certain settings
+-   Bring players no longer changes the zoom level of the players
 
 ### Fixed
 

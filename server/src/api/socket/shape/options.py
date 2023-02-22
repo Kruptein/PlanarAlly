@@ -669,7 +669,7 @@ def set_options(shape: Shape, key: str, value):
     shape.save()
 
 
-def set_options_deep(shape: Shape, key: str, subkey: str, value):
+def set_options_deep(shape: Shape, key: str, subkey: str, value: dict | str | int):
     options: List[Any] = json.loads(shape.options or "[]")
     for option in options:
         if option[0] == key:
@@ -693,7 +693,7 @@ async def set_door_permissions(sid: str, raw_data: Any):
     if shape is None:
         return
 
-    set_options_deep(shape, "door", "permissions", data.value)
+    set_options_deep(shape, "door", "permissions", data.value.dict())
 
     await _send_game(
         "Shape.Options.Door.Permissions.Set",
@@ -778,7 +778,7 @@ async def set_tp_permissions(sid: str, raw_data: Any):
     if shape is None:
         return
 
-    set_options_deep(shape, "teleport", "permissions", data.value)
+    set_options_deep(shape, "teleport", "permissions", data.value.dict())
 
     await _send_game(
         "Shape.Options.TeleportZonePermissions.Set",
@@ -799,7 +799,7 @@ async def set_tp_target(sid: str, raw_data: Any):
     if shape is None:
         return
 
-    set_options_deep(shape, "teleport", "location", data.value)
+    set_options_deep(shape, "teleport", "location", data.value.dict())
 
     await _send_game(
         "Shape.Options.TeleportZoneTarget.Set",

@@ -445,15 +445,14 @@ export interface PlayerOptionsSet {
   default_user_options: ApiUserOptions;
   room_user_options: ApiOptionalUserOptions | null;
 }
-export interface PlayerRoleSet {
-  player: PlayerId;
-  role: number;
-}
-export interface PlayersBring {
+export interface PlayerPosition {
   x: number;
   y: number;
   floor: string;
-  zoom: number;
+}
+export interface PlayerRoleSet {
+  player: PlayerId;
+  role: number;
 }
 export interface PlayersInfoSet {
   core: PlayerInfoCore;

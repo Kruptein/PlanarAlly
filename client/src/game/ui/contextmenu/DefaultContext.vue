@@ -15,7 +15,6 @@ import { Asset } from "../../shapes/variants/asset";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { gameState } from "../../systems/game/state";
-import { positionState } from "../../systems/position/state";
 import { propertiesSystem } from "../../systems/properties";
 import { getProperties } from "../../systems/properties/state";
 import { locationSettingsSystem } from "../../systems/settings/location";
@@ -38,9 +37,7 @@ function bringPlayers(): void {
     sendBringPlayers({
         floor: floorState.currentFloor.value!.name,
         x: l2gx(defaultContextLeft.value),
-        // eslint-disable-next-line no-undef
         y: l2gy(defaultContextTop.value),
-        zoom: positionState.raw.zoomDisplay,
     });
     close();
 }

@@ -319,7 +319,7 @@ async def move_shapes(sid: str, raw_data: Any):
 
     pr: PlayerRoom = game_state.get(sid)
 
-    if pr.role != Role.DM and not data.tp_zone:
+    if pr.role != Role.DM:
         logger.warning(f"{pr.player.name} attempted to move shape locations")
         return
 

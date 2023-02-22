@@ -50,7 +50,6 @@ class ShapeLocationMoveTarget(PositionTuple):
 class ShapeLocationMove(TypeIdModel):
     shapes: list[str] = Field(typeId="GlobalId")
     target: ShapeLocationMoveTarget
-    tp_zone: bool
 
 
 class ShapeTextValueSet(TypeIdModel):

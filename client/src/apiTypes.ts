@@ -412,14 +412,14 @@ export interface LogicDoorRequest {
   door: GlobalId;
 }
 export interface LogicRequestInfo {
-  requester: string;
+  requester: PlayerId;
   request: LogicDoorRequest | LogicTeleportRequest;
 }
 export interface LogicTeleportRequest {
   logic: "tp";
   fromZone: GlobalId;
   toZone: GlobalId;
-  transfers: string[];
+  transfers: GlobalId[];
 }
 export interface NotificationShow {
   uuid: string;

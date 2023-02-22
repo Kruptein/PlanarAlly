@@ -105,6 +105,15 @@ class PlayerSystem implements System {
         return $.players.get(playerId);
     }
 
+    // the following 2 functions should be cached..
+    getCurrentPlayerId(): PlayerId | undefined {
+        for (const player of raw.players.values()) {
+            if (player.name === coreStore.state.username) {
+                return player.id;
+            }
+        }
+    }
+
     getCurrentPlayer(): Player | undefined {
         for (const player of raw.players.values()) {
             if (player.name === coreStore.state.username) {

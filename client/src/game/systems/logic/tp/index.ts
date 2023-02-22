@@ -11,6 +11,8 @@ import { sendRequest } from "../../../api/emits/logic";
 import { getGlobalId, getShape } from "../../../id";
 import type { LocalId } from "../../../id";
 import type { IShape } from "../../../interfaces/shape";
+import { playerSystem } from "../../players";
+import type { PlayerId } from "../../players/models";
 import { getProperties } from "../../properties/state";
 import { locationSettingsState } from "../../settings/location/state";
 import { canUse } from "../common";
@@ -157,8 +159,8 @@ class TeleportZoneSystem implements ShapeSystem {
         options.permissions = permissions;
     }
 
-    canUse(id: LocalId): Access {
-        return canUse(id, "tp");
+    canUse(id: LocalId, playerId: PlayerId): Access {
+        return canUse(id, "tp", playerId);
     }
 
     setTarget(id: LocalId, target: NonNullable<TeleportOptions["location"]>, syncTo: Sync): void {
@@ -183,7 +185,7 @@ class TeleportZoneSystem implements ShapeSystem {
             const tpShape = getShape(tp);
             if (tpShape === undefined || options.location === undefined) continue;
 
-            const access = this.canUse(tp);
+            const access = this.canUse(tp, playerSystem.getCurrentPlayerId()!);
             if (access === Access.Disabled) {
                 continue;
             }

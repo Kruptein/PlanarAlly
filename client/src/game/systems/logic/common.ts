@@ -1,8 +1,9 @@
 import type { DeepReadonly } from "vue";
 
-import { coreStore } from "../../../store/core";
 import type { LocalId } from "../../id";
-import { gameState } from "../game/state";
+import { Role } from "../../models/role";
+import { playerSystem } from "../players";
+import type { PlayerId } from "../players/models";
 
 import { doorSystem } from "./door";
 import { Access, DEFAULT_PERMISSIONS } from "./models";
@@ -17,30 +18,34 @@ export function copyPermissions(permission: DeepReadonly<Permissions>): Permissi
     };
 }
 
-export function canUse(shapeId: LocalId, target: LOGIC_TYPES): Access {
+export function canUse(shapeId: LocalId, target: LOGIC_TYPES, playerId: PlayerId): Access {
     if (
         (target === "door" && !doorSystem.isDoor(shapeId)) ||
         (target === "tp" && !teleportZoneSystem.isTeleportZone(shapeId))
     ) {
         return Access.Disabled;
     }
-    if (!gameState.raw.isDm) {
-        const permissions =
-            target === "door"
-                ? doorSystem.getPermissions(shapeId)
-                : teleportZoneSystem.getPermissions(shapeId) ?? DEFAULT_PERMISSIONS();
-        if (permissions === undefined) return Access.Disabled;
 
-        // First specific user permissions
-        const username = coreStore.state.username;
-        if (permissions.enabled.includes(username)) return Access.Enabled;
-        if (permissions.request.includes(username)) return Access.Request;
-        if (permissions.disabled.includes(username)) return Access.Disabled;
+    const player = playerSystem.getPlayer(playerId);
 
-        // Check default permissions
-        if (permissions.enabled.includes("default")) return Access.Enabled;
-        if (permissions.request.includes("default")) return Access.Request;
-        if (permissions.disabled.includes("default")) return Access.Disabled;
-    }
-    return Access.Enabled;
+    if (player === undefined) return Access.Disabled;
+    if (player.role === Role.DM) return Access.Enabled;
+
+    const permissions =
+        target === "door"
+            ? doorSystem.getPermissions(shapeId)
+            : teleportZoneSystem.getPermissions(shapeId) ?? DEFAULT_PERMISSIONS();
+    if (permissions === undefined) return Access.Disabled;
+
+    // First specific user permissions
+    if (permissions.enabled.includes(player.name)) return Access.Enabled;
+    if (permissions.request.includes(player.name)) return Access.Request;
+    if (permissions.disabled.includes(player.name)) return Access.Disabled;
+
+    // Check default permissions
+    if (permissions.enabled.includes("default")) return Access.Enabled;
+    if (permissions.request.includes("default")) return Access.Request;
+    if (permissions.disabled.includes("default")) return Access.Disabled;
+
+    return Access.Disabled;
 }

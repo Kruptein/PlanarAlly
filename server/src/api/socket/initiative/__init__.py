@@ -153,10 +153,10 @@ async def add_initiative(sid: str, raw_data: Any):
 
         for initiative in json_data:
             if initiative["shape"] == data.shape:
-                initiative.update(**data)
+                initiative.update(**data.dict())
                 break
         else:
-            json_data.append(data)
+            json_data.append(data.dict())
 
         location_data.data = json.dumps(json_data)
         location_data.save()

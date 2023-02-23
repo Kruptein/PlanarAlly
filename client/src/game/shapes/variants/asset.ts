@@ -2,6 +2,7 @@ import type { ApiAssetRectShape } from "../../../apiTypes";
 import { g2l, g2lz } from "../../../core/conversions";
 import { toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
+import { baseAdjust } from "../../../core/http";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { sendAssetRectImageChange } from "../../api/emits/shape/asset";
 import { FOG_COLOUR } from "../../colour";
@@ -122,7 +123,7 @@ export class Asset extends BaseRect implements IAsset {
     setImage(url: string, sync: boolean): void {
         this.#loaded = false;
         this.src = url;
-        this.img.src = url;
+        this.img.src = baseAdjust(url);
         this.img.onload = () => {
             this.setLoaded();
         };

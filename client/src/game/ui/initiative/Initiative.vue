@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 import draggable from "vuedraggable";
 
 import Modal from "../../../core/components/modals/Modal.vue";
+import { baseAdjust } from "../../../core/http";
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { getTarget, getValue } from "../../../core/utils";
 import { sendRequestInitiatives } from "../../api/emits/initiative";
@@ -110,7 +111,7 @@ function hasImage(actor: InitiativeData): boolean {
 
 function getImage(actor: InitiativeData): string {
     if (actor.localId === undefined) return "";
-    return (getShape(actor.localId) as IAsset).src;
+    return baseAdjust((getShape(actor.localId) as IAsset).src);
 }
 
 function canSee(actor: InitiativeData): boolean {

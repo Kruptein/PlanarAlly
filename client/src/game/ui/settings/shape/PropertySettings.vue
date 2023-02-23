@@ -3,7 +3,6 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../../core/components/ColourPicker.vue";
-import { baseAdjust } from "../../../../core/http";
 import { NO_SYNC, SERVER_SYNC, SyncMode } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../../../store/activeShape";
@@ -117,7 +116,7 @@ async function changeAsset(): Promise<void> {
     if (data === undefined || data.file_hash === undefined) return;
     const shape = getShape(activeShapeStore.state.id);
     if (shape === undefined || shape.type !== "assetrect") return;
-    (shape as Asset).setImage(baseAdjust(`/static/assets/${data.file_hash}`), true);
+    (shape as Asset).setImage(`/static/assets/${data.file_hash}`, true);
 }
 </script>
 

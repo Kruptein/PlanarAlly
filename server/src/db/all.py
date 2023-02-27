@@ -32,6 +32,7 @@ from .models.toggle_composite import ToggleComposite
 from .models.tracker import Tracker
 from .models.user import User
 from .models.user_options import UserOptions
+from .signals import *  # noqa: F403
 
 ALL_MODELS = [
     AssetRect,

@@ -352,7 +352,7 @@ async def set_location_options(sid: str, raw_data: Any):
             loc.save()
         options = loc.options
 
-    update_model_from_dict(options, raw_data["options"]) # Don't use .dict() here
+    update_model_from_dict(options, raw_data["options"])  # Don't use .dict() here
     options.save()
 
     if data.location is None:

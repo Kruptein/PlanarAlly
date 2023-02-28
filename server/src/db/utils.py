@@ -1,3 +1,6 @@
+from .base import BaseDbModel
+
+
 def get_table(name: str):
     from .all import ALL_MODELS
 
@@ -6,5 +9,5 @@ def get_table(name: str):
             return model
 
 
-def reduce_data_to_model(model, data):
+def reduce_data_to_model(model: type[BaseDbModel], data: dict):
     return {k: data[k] for k in model._meta.fields.keys() if k in data}

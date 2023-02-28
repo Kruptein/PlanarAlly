@@ -1,7 +1,6 @@
 import json
 from typing import Any, List
 
-from playhouse.shortcuts import update_model_from_dict
 from typing_extensions import TypedDict
 
 from ... import auth
@@ -23,6 +22,7 @@ from ...db.models.note import Note
 from ...db.models.player_room import PlayerRoom
 from ...db.models.room import Room
 from ...db.models.shape import Shape
+from ...db.typed import safe_update_model_from_dict
 from ...logs import logger
 from ...models.role import Role
 from ...state.game import game_state
@@ -352,7 +352,7 @@ async def set_location_options(sid: str, raw_data: Any):
             loc.save()
         options = loc.options
 
-    update_model_from_dict(options, raw_data["options"])  # Don't use .dict() here
+    safe_update_model_from_dict(options, raw_data["options"])  # Don't use .dict() here
     options.save()
 
     if data.location is None:

@@ -1,8 +1,6 @@
 import json
 from typing import Any, List, Optional
 
-from playhouse.shortcuts import update_model_from_dict
-
 from .... import auth
 from ....api.helpers import _send_game
 from ....app import app, sio
@@ -11,6 +9,7 @@ from ....db.models.player_room import PlayerRoom
 from ....db.models.shape import Shape
 from ....db.models.shape_label import ShapeLabel
 from ....db.models.tracker import Tracker
+from ....db.typed import safe_update_model_from_dict
 from ....db.utils import reduce_data_to_model
 from ....state.game import game_state
 from ...models.aura import ApiAura, ApiOptionalAura, AuraMove, ShapeSetAuraValue
@@ -496,7 +495,7 @@ async def update_tracker(sid: str, raw_data: Any):
         changed_visible = True
 
     # don't use data.dict() as it contains a bunch of None's
-    update_model_from_dict(tracker, raw_data)
+    safe_update_model_from_dict(tracker, raw_data)
     tracker.save()
 
     owners = [*get_owner_sids(pr, shape, skip_sid=sid)]
@@ -556,7 +555,7 @@ async def create_aura(sid: str, raw_data: Any):
     if shape is None:
         return
 
-    model = reduce_data_to_model(Aura, data)
+    model = reduce_data_to_model(Aura, data.dict())
     aura = Aura.create(**model)
     aura.save()
 
@@ -590,7 +589,7 @@ async def update_aura(sid: str, raw_data: Any):
         changed_visible = True
 
     # don't use data.dict() as it contains a bunch of None's
-    update_model_from_dict(aura, raw_data)
+    safe_update_model_from_dict(aura, raw_data)
     aura.save()
 
     owners = [*get_owner_sids(pr, shape, skip_sid=sid)]

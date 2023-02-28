@@ -13,6 +13,7 @@ from typing import (
 )
 
 from peewee import ModelDelete, ModelSelect, ModelUpdate
+from playhouse.shortcuts import update_model_from_dict
 from typing_extensions import Self
 
 if TYPE_CHECKING:
@@ -21,6 +22,10 @@ if TYPE_CHECKING:
 
 T = TypeVar("T", bound="TypedModel")
 U = TypeVar("U", bound="TypedModel")
+
+
+def safe_update_model_from_dict(instance: TypedModel, data: dict, ignore_unknown=False):
+    update_model_from_dict(instance, data, ignore_unknown=ignore_unknown)
 
 
 class SelectSequence(Generic[T], Sequence[T], ModelSelect):
@@ -67,6 +72,7 @@ class DeleteSequence(Generic[T], Sequence[T], ModelDelete):
 
 class TypedMeta:
     name: str
+    fields: dict
 
 
 class TypedModel:

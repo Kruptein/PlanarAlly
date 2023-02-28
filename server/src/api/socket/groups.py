@@ -1,13 +1,12 @@
 from typing import Any, List
 
-from playhouse.shortcuts import update_model_from_dict
-
 from ... import auth
 from ...api.socket.constants import GAME_NS
 from ...app import app, sio
 from ...db.models.group import Group
 from ...db.models.player_room import PlayerRoom
 from ...db.models.shape import Shape
+from ...db.typed import safe_update_model_from_dict
 from ...logs import logger
 from ...state.game import game_state
 from ..helpers import _send_game
@@ -29,7 +28,7 @@ async def update_group(sid: str, raw_data: Any):
         logger.exception(f"Could not retrieve group information for {data.uuid}")
         return
     else:
-        update_model_from_dict(group, data.dict())
+        safe_update_model_from_dict(group, data.dict())
         group.save()
 
     for psid in game_state.get_sids(room=pr.room):

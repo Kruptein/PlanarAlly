@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
+import { map } from "../../../core/iter";
 import { getShape } from "../../id";
 import type { LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
@@ -12,7 +13,7 @@ import { visionTool } from "../../tools/variants/vision";
 
 const selected = visionTool.isActiveTool;
 
-const tokens = computed(() => [...accessState.reactive.ownedTokens].map((t) => getShape(t)!));
+const tokens = computed(() => map(accessState.reactive.ownedTokens, (t) => getShape(t)!));
 const selection = computed(() => {
     if (accessState.reactive.activeTokenFilters === undefined) return accessState.reactive.ownedTokens;
     return accessState.reactive.activeTokenFilters;

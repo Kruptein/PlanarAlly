@@ -1,5 +1,6 @@
 import { registerSystem, type ShapeSystem } from "..";
 import type { ApiLabel } from "../../../apiTypes";
+import { map } from "../../../core/iter";
 import { sendShapeAddLabel, sendShapeRemoveLabel } from "../../api/emits/shape/options";
 import { getGlobalId, getShape, type LocalId } from "../../id";
 import { floorSystem } from "../floors";
@@ -25,7 +26,7 @@ class LabelSystem implements ShapeSystem {
     loadState(id: LocalId): void {
         $.activeShape = {
             id,
-            labels: [...($.shapeLabels.get(id) ?? [])].map((l) => $.labels.get(l)!),
+            labels: [...map($.shapeLabels.get(id) ?? [], (l) => $.labels.get(l)!)],
         };
     }
 
@@ -67,10 +68,10 @@ class LabelSystem implements ShapeSystem {
         if (sync) sendShapeRemoveLabel({ shape: getGlobalId(id)!, value: labelId });
     }
 
-    getLabels(id: LocalId): ApiLabel[] {
+    getLabels(id: LocalId): Iterable<ApiLabel> {
         const labels = $.shapeLabels.get(id);
         if (labels === undefined) return [];
-        return [...labels].map((l) => $.labels.get(l)!);
+        return map(labels, (l) => $.labels.get(l)!);
     }
 
     addLabelFilter(filter: string, sync: boolean): void {

@@ -2,6 +2,7 @@ import type { DeepReadonly } from "vue";
 
 import { registerSystem } from "..";
 import type { ShapeSystem } from "..";
+import { guard } from "../../../core/iter";
 import { NO_SYNC } from "../../../core/models/types";
 import type { Sync } from "../../../core/models/types";
 import { coreStore } from "../../../store/core";
@@ -18,7 +19,7 @@ import { locationSettingsState } from "../settings/location/state";
 
 import { sendShapeAddOwner, sendShapeDeleteOwner, sendShapeUpdateDefaultOwner, sendShapeUpdateOwner } from "./emits";
 import { accessToServer, ownerToServer } from "./helpers";
-import { DEFAULT_ACCESS, DEFAULT_ACCESS_SYMBOL } from "./models";
+import { DEFAULT_ACCESS, DEFAULT_ACCESS_SYMBOL, isNonDefaultAccessSymbol } from "./models";
 import type { ACCESS_KEY, ShapeAccess, ShapeOwner } from "./models";
 import { accessState } from "./state";
 
@@ -289,8 +290,8 @@ class AccessSystem implements ShapeSystem {
         initiativeStore._forceUpdate();
     }
 
-    getOwners(id: LocalId): DeepReadonly<string[]> {
-        return [...(this.access.get(id)?.keys() ?? [])].filter((user) => user !== DEFAULT_ACCESS_SYMBOL) as string[];
+    getOwners(id: LocalId): Iterable<string> {
+        return guard(this.access.get(id)?.keys() ?? [], isNonDefaultAccessSymbol);
     }
 
     getOwnersFull(id: LocalId): DeepReadonly<ShapeOwner[]> {

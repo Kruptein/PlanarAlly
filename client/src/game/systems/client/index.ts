@@ -5,6 +5,7 @@ import type { System } from "..";
 import type { ClientPosition, Viewport } from "../../../apiTypes";
 import { toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
+import { filter, map } from "../../../core/iter";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { setLocalStorageObject } from "../../../localStorageHelpers";
 import { sendMoveClient, sendOffset, sendViewport } from "../../api/emits/client";
@@ -48,8 +49,9 @@ class ClientSystem implements System {
         $.clientBoards.delete(client);
     }
 
-    getClients(player: PlayerId): ClientId[] {
-        return [...$.clientIds.entries()].filter(([, p]) => p === player).map(([c, _]) => c);
+    getClients(player: PlayerId): Iterable<ClientId> {
+        const filtered = filter($.clientIds.entries(), ([, p]) => p === player);
+        return map(filtered, ([c, _]) => c);
     }
 
     getPlayer(client: ClientId): PlayerId | undefined {

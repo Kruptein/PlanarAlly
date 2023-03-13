@@ -524,7 +524,7 @@ describe("Access System", () => {
             // setup
             const id = generateTestLocalId();
             // test
-            expect(accessSystem.getOwners(id).length).toBe(0);
+            expect([...accessSystem.getOwners(id)].length).toBe(0);
         });
         it("should return an empty list if no owners are associated with the shape", () => {
             // setup
@@ -534,7 +534,7 @@ describe("Access System", () => {
                 extra: [],
             });
             // test
-            expect(accessSystem.getOwners(id).length).toBe(0);
+            expect([...accessSystem.getOwners(id)].length).toBe(0);
         });
         it("should return all owners associated with the shape", () => {
             // setup
@@ -544,9 +544,9 @@ describe("Access System", () => {
                 extra: [{ user: "some user", shape: id, access: { edit: false, movement: false, vision: true } }],
             });
             // test
-            expect(accessSystem.getOwners(id)).toEqual(["some user"]);
+            expect([...accessSystem.getOwners(id)]).toEqual(["some user"]);
             accessSystem.addAccess(id, "other user", DEFAULT_ACCESS, UI_SYNC);
-            expect(accessSystem.getOwners(id)).toEqual(["some user", "other user"]);
+            expect([...accessSystem.getOwners(id)]).toEqual(["some user", "other user"]);
         });
     });
     describe("getOwnersFull", () => {

@@ -2,6 +2,7 @@
 import { computed, reactive } from "vue";
 
 import { baseAdjust } from "../../../core/http";
+import { filter } from "../../../core/iter";
 import type { AssetFile, AssetListMap } from "../../../core/models/types";
 
 interface State {
@@ -25,7 +26,7 @@ const files = computed(() => {
 });
 
 const folders = computed(() => {
-    return [...props.assets.keys()].filter((el) => "__files" !== el);
+    return filter(props.assets.keys(), (el) => "__files" !== el);
 });
 
 function toggle(folder: string): void {

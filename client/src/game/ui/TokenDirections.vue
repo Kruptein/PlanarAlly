@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { toRef } from "vue";
+import { computed } from "vue";
 
+import { filter } from "../../core/iter";
 import { getShape } from "../id";
 import type { LocalId } from "../id";
 import { setCenterPosition } from "../position";
+import { accessState } from "../systems/access/state";
 import { positionState } from "../systems/position/state";
 
-const tokens = toRef(positionState.reactive, "tokenDirections");
+const tokens = computed(() =>
+    filter(positionState.reactive.tokenDirections.entries(), ([id]) => accessState.activeTokens.value.has(id)),
+);
 
 function center(token: LocalId): void {
     const shape = getShape(token);

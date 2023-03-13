@@ -31,7 +31,8 @@ tech changes will usually be stripped from release notes for the public
 -   TpZone: Fix non-immediate player initiated teleports not working correctly
 -   TpZone: Fix teleports initiated in build-mode not working correctly for players
 -   Logic: Request mode not working as intended and behaving as Enabled mode instead
--   Subpath: 2 cases where subpath based setup was not properly loading images (initiative & change asset)
+-   Token Directions: Fix shown tokens not taking filtered tokens into account
+-   [server] Subpath: 2 cases where subpath based setup was not properly loading images (initiative & change asset)
 
 ## [2023.1.0] - 2023-02-14
 

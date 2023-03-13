@@ -3,6 +3,7 @@ import { g2l, g2lz } from "../../../core/conversions";
 import { toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { baseAdjust } from "../../../core/http";
+import { map } from "../../../core/iter";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { sendAssetRectImageChange } from "../../api/emits/shape/asset";
 import { FOG_COLOUR } from "../../colour";
@@ -25,7 +26,7 @@ export class Asset extends BaseRect implements IAsset {
     src = "";
     #loaded: boolean;
 
-    svgData?: { svg: Node; rp: GlobalPoint; paths?: [number, number][][][] }[];
+    svgData?: Iterable<{ svg: Node; rp: GlobalPoint; paths?: [number, number][][][] }>;
 
     constructor(
         img: HTMLImageElement,
@@ -82,7 +83,7 @@ export class Asset extends BaseRect implements IAsset {
             );
             this.layer?.addShape(cover, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
             const svgs = await loadSvgData(`/static/assets/${this.options.svgAsset}`);
-            this.svgData = [...svgs.values()].map((svg) => ({ svg, rp: this.refPoint, paths: undefined }));
+            this.svgData = map(svgs.values(), (svg) => ({ svg, rp: this.refPoint, paths: undefined }));
             const props = getProperties(this.id)!;
             if (props.blocksVision) {
                 if (this.floorId !== undefined) visionState.recalculateVision(this.floorId);

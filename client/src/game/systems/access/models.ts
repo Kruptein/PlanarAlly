@@ -8,6 +8,10 @@ export const DEFAULT_ACCESS: ShapeAccess = {
     vision: false,
 };
 
+export function isNonDefaultAccessSymbol(s: ACCESS_KEY): s is string {
+    return s !== DEFAULT_ACCESS_SYMBOL;
+}
+
 export interface ShapeAccess {
     edit: boolean;
     vision: boolean;

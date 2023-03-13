@@ -3,6 +3,7 @@ import { toRaw } from "vue";
 import type { ApiShape } from "../../../apiTypes";
 import { g2l, l2g, l2gz } from "../../../core/conversions";
 import { Ray, toLP } from "../../../core/geometry";
+import { filter } from "../../../core/iter";
 import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
 import { debugLayers } from "../../../localStorageHelpers";
 import { activeShapeStore } from "../../../store/activeShape";
@@ -110,10 +111,10 @@ export class Layer implements ILayer {
                 const x = this.xSectors.get(i);
                 const y = this.ySectors.get(j);
                 if (x !== undefined && y !== undefined) {
-                    for (const id of [...x].filter((x) => y.has(x))) {
+                    for (const id of filter(x, (x) => y.has(x))) {
                         this.shapeIdsInSector.add(id);
                     }
-                    for (const id of [...y].filter((y) => x.has(y))) {
+                    for (const id of filter(y, (y) => x.has(y))) {
                         this.shapeIdsInSector.add(id);
                     }
                 }

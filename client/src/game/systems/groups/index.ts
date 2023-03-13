@@ -1,5 +1,6 @@
 import { registerSystem, type ShapeSystem } from "..";
 import type { ApiGroup } from "../../../apiTypes";
+import { map } from "../../../core/iter";
 import { UI_SYNC } from "../../../core/models/types";
 import { uuidv4 } from "../../../core/utils";
 import { getGlobalId, getShape, type GlobalId, type LocalId } from "../../id";
@@ -179,12 +180,12 @@ class GroupSystem implements ShapeSystem {
             }
         }
 
-        sendMemberBadgeUpdate(
-            [...members].map((m) => ({
+        sendMemberBadgeUpdate([
+            ...map(members, (m) => ({
                 uuid: getGlobalId(m)!,
                 badge: this.getBadge(m),
             })),
-        );
+        ]);
     }
 
     // badge
@@ -202,14 +203,14 @@ class GroupSystem implements ShapeSystem {
         if (group === undefined) throw new Error("Invalid groupId provided");
 
         const members = this.getGroupMembers(groupId);
-        const badges = [...members].map((m) => this.getBadge(m));
+        const badges = new Set(map(members, (m) => this.getBadge(m)));
         const membersLength = Math.max(2 * members.size + 1, 10);
 
         if (group.creationOrder === "incrementing") {
             return Math.max(-1, ...badges) + 1;
         } else {
             let value: number | undefined;
-            while (value === undefined || badges.includes(value)) {
+            while (value === undefined || badges.has(value)) {
                 value = Math.floor(Math.random() * membersLength);
             }
             return value;

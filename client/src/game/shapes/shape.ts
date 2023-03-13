@@ -506,7 +506,7 @@ export abstract class Shape implements IShape {
             vision_obstruction: props.blocksVision,
             auras: aurasToServer(uuid, auraSystem.getAll(this.id, false)),
             trackers: trackersToServer(uuid, trackerSystem.getAll(this.id, false)),
-            labels: labelSystem.getLabels(this.id),
+            labels: [...labelSystem.getLabels(this.id)],
             owners: accessSystem.getOwnersFull(this.id).map((o) => ownerToServer(o)),
             fill_colour: props.fillColour,
             stroke_colour: props.strokeColour[0]!,

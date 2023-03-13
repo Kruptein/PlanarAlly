@@ -3,11 +3,12 @@ import { computed, reactive } from "vue";
 import VueMarkdownIt from "vue3-markdown-it";
 
 import { i18n } from "../../../i18n";
+import { map } from "../../iter";
 import type { SelectionBoxOptions } from "../../plugins/modals/selectionBox";
 
 import Modal from "./Modal.vue";
 
-const emit = defineEmits<{ (e: "submit", choices: string[]): void; (e: "close"): void }>();
+const emit = defineEmits<{ (e: "submit", choices: Iterable<string>): void; (e: "close"): void }>();
 const props = defineProps<{
     visible: boolean;
     title: string;
@@ -69,7 +70,7 @@ function create(): void {
 function submit(): void {
     emit(
         "submit",
-        [...state.activeSelection].map((i) => props.choices[i]!),
+        map(state.activeSelection, (i) => props.choices[i]!),
     );
 }
 </script>

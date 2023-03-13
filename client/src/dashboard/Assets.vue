@@ -10,6 +10,7 @@ import { socket } from "../assetManager/socket";
 import { assetStore } from "../assetManager/state";
 import { changeDirectory, getIdImageSrc, showIdName } from "../assetManager/utils";
 import { baseAdjust } from "../core/http";
+import { map } from "../core/iter";
 import { useModal } from "../core/plugins/modals/plugin";
 import { ctrlOrCmdPressed } from "../core/utils";
 
@@ -75,7 +76,7 @@ async function onDrop(event: DragEvent): Promise<void> {
     hideDropZone();
     if (event.dataTransfer && event.dataTransfer.items.length > 0) {
         await parseDirectoryUpload(
-            [...event.dataTransfer.items].map((i) => i.webkitGetAsEntry()),
+            map(event.dataTransfer.items, (i) => i.webkitGetAsEntry()),
             assetStore.currentFolder.value,
         );
     }
@@ -86,7 +87,7 @@ function fsToFile(fl: FileSystemFileEntry): Promise<File> {
 }
 
 async function parseDirectoryUpload(
-    fileSystemEntries: (FileSystemEntry | null)[],
+    fileSystemEntries: Iterable<FileSystemEntry | null>,
     target: number,
     targetOffset: string[] = [],
 ): Promise<void> {
@@ -172,7 +173,7 @@ async function stopDrag(event: DragEvent, target: number): Promise<void> {
         assetStore.clearSelected();
     } else if (event.dataTransfer && event.dataTransfer.items.length > 0) {
         await parseDirectoryUpload(
-            [...event.dataTransfer.items].map((i) => i.webkitGetAsEntry()),
+            map(event.dataTransfer.items, (i) => i.webkitGetAsEntry()),
             target,
         );
     }

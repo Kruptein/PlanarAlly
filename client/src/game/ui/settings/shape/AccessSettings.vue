@@ -2,6 +2,7 @@
 import { computed, ref, toRef, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { filter } from "../../../../core/iter";
 import { SERVER_SYNC } from "../../../../core/models/types";
 import type { PartialPick } from "../../../../core/types";
 import { Role } from "../../../models/role";
@@ -32,9 +33,12 @@ const defaultAccess = toRef(accessState.reactive, "defaultAccess");
 const playersWithoutAccess = computed(() => {
     const id = accessState.reactive.id;
     if (id === undefined) return [];
-    return [...playerState.reactive.players.values()].filter(
-        (p) => p.role !== Role.DM && !accessState.owners.value.some((o) => o === p.name),
-    );
+    return [
+        ...filter(
+            playerState.reactive.players.values(),
+            (p) => p.role !== Role.DM && !accessState.owners.value.some((o) => o === p.name),
+        ),
+    ];
 });
 
 function addOwner(): void {

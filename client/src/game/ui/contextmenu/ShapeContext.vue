@@ -5,6 +5,7 @@ import { useI18n } from "vue-i18n";
 
 import type { ApiAssetRectShape } from "../../../apiTypes";
 import ContextMenu from "../../../core/components/ContextMenu.vue";
+import { defined, guard, map } from "../../../core/iter";
 import { SyncMode } from "../../../core/models/types";
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../../store/activeShape";
@@ -288,9 +289,11 @@ async function saveTemplate(): Promise<void> {
 
 // GROUPS
 
-const groups = computed(
-    () => new Set([...selectedSystem.$.value].map((s) => groupSystem.getGroupId(s)).filter((g) => g !== undefined)),
-) as ComputedRef<Set<string>>;
+const groups = computed(() => {
+    const ids = map(selectedSystem.$.value, (s) => groupSystem.getGroupId(s));
+    const definedIds = guard(ids, defined);
+    return new Set(definedIds);
+});
 
 const hasEntireGroup = computed(() => {
     const selection = selectedSystem.$.value;

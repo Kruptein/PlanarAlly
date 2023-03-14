@@ -8,7 +8,7 @@ import type { SelectionBoxOptions } from "../../plugins/modals/selectionBox";
 
 import Modal from "./Modal.vue";
 
-const emit = defineEmits<{ (e: "submit", choices: Iterable<string>): void; (e: "close"): void }>();
+const emit = defineEmits<{ (e: "submit", choices: string[]): void; (e: "close"): void }>();
 const props = defineProps<{
     visible: boolean;
     title: string;
@@ -68,10 +68,7 @@ function create(): void {
 }
 
 function submit(): void {
-    emit(
-        "submit",
-        map(state.activeSelection, (i) => props.choices[i]!),
-    );
+    emit("submit", [...map(state.activeSelection, (i) => props.choices[i]!)]);
 }
 </script>
 

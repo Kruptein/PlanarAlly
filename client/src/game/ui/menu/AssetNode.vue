@@ -26,7 +26,7 @@ const files = computed(() => {
 });
 
 const folders = computed(() => {
-    return filter(props.assets.keys(), (el) => "__files" !== el);
+    return [...filter(props.assets.keys(), (el) => "__files" !== el)];
 });
 
 function toggle(folder: string): void {

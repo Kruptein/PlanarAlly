@@ -357,11 +357,11 @@ async def set_location_options(sid: str, raw_data: Any):
 
     if data.location is None:
         for sid in game_state.get_sids(skip_sid=sid, room=pr.room):
-            await _send_game("Location.Options.Set", data, room=sid)
+            await _send_game("Location.Options.Set", raw_data, room=sid)
     else:
         await _send_game(
             "Location.Options.Set",
-            data,
+            raw_data,
             room=pr.active_location.get_path(),
             skip_sid=sid,
         )

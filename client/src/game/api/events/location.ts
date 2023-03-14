@@ -52,47 +52,48 @@ function _<T>(x: T | undefined | null): x is T {
 
 function setLocationOptions(id: number | undefined, options: ApiOptionalLocationOptions, overwrite_all: boolean): void {
     // GRID
-    if (overwrite_all || _(options.use_grid))
+    if (overwrite_all || options.use_grid !== undefined)
         locationSettingsSystem.setUseGrid(options.use_grid ?? undefined, id, false);
-    if (overwrite_all || _(options.grid_type))
+    if (overwrite_all || options.grid_type !== undefined)
         locationSettingsSystem.setGridType(options.grid_type ?? undefined, id, false);
-    if (overwrite_all || _(options.unit_size))
+    if (overwrite_all || options.unit_size !== undefined)
         locationSettingsSystem.setUnitSize(options.unit_size ?? undefined, id, false);
-    if (overwrite_all || _(options.unit_size_unit))
+    if (overwrite_all || options.unit_size_unit !== undefined)
         locationSettingsSystem.setUnitSizeUnit(options.unit_size_unit ?? undefined, id, false);
 
     // VISION
 
-    if (overwrite_all || _(options.full_fow))
+    if (overwrite_all || options.full_fow !== undefined)
         locationSettingsSystem.setFullFow(options.full_fow ?? undefined, id, false);
-    if (overwrite_all || _(options.fow_los)) locationSettingsSystem.setFowLos(options.fow_los ?? undefined, id, false);
-    if (overwrite_all || _(options.fow_opacity))
+    if (overwrite_all || options.fow_los !== undefined)
+        locationSettingsSystem.setFowLos(options.fow_los ?? undefined, id, false);
+    if (overwrite_all || options.fow_opacity !== undefined)
         locationSettingsSystem.setFowOpacity(options.fow_opacity ?? undefined, id, false);
 
-    if (overwrite_all || _(options.vision_mode)) {
+    if (overwrite_all || options.vision_mode !== undefined) {
         const visionMode = _(options.vision_mode) ? visibilityModeFromString(options.vision_mode) : undefined;
         if (visionMode !== undefined) visionState.setVisionMode(visionMode, false);
     }
 
-    if (overwrite_all || _(options.vision_min_range))
+    if (overwrite_all || options.vision_min_range !== undefined)
         locationSettingsSystem.setVisionMinRange(options.vision_min_range ?? undefined, id, false);
-    if (overwrite_all || _(options.vision_max_range))
+    if (overwrite_all || options.vision_max_range !== undefined)
         locationSettingsSystem.setVisionMaxRange(options.vision_max_range ?? undefined, id, false);
 
     // FLOOR
 
-    if (overwrite_all || _(options.air_map_background))
+    if (overwrite_all || options.air_map_background !== undefined)
         locationSettingsSystem.setAirMapBackground(options.air_map_background ?? undefined, id, false);
-    if (overwrite_all || _(options.ground_map_background))
+    if (overwrite_all || options.ground_map_background !== undefined)
         locationSettingsSystem.setGroundMapBackground(options.ground_map_background ?? undefined, id, false);
-    if (overwrite_all || _(options.underground_map_background))
+    if (overwrite_all || options.underground_map_background !== undefined)
         locationSettingsSystem.setUndergroundMapBackground(options.underground_map_background ?? undefined, id, false);
 
     // VARIA
 
-    if (overwrite_all || options.move_player_on_token_change !== null)
+    if (overwrite_all || options.move_player_on_token_change !== undefined)
         locationSettingsSystem.setMovePlayerOnTokenChange(options.move_player_on_token_change ?? undefined, id, false);
-    if (overwrite_all || options.limit_movement_during_initiative !== null)
+    if (overwrite_all || options.limit_movement_during_initiative !== undefined)
         locationSettingsSystem.setLimitMovementDuringInitiative(
             options.limit_movement_during_initiative ?? undefined,
             id,

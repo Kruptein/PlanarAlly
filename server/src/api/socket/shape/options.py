@@ -502,7 +502,7 @@ async def update_tracker(sid: str, raw_data: Any):
     for psid in owners:
         await _send_game(
             "Shape.Options.Tracker.Update",
-            data,
+            raw_data,
             room=psid,
         )
     for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=sid):
@@ -518,7 +518,7 @@ async def update_tracker(sid: str, raw_data: Any):
                     room=psid,
                 )
         else:
-            await _send_game("Shape.Options.Tracker.Update", data, room=psid)
+            await _send_game("Shape.Options.Tracker.Update", raw_data, room=psid)
 
 
 @sio.on("Shape.Options.Tracker.Move", namespace=GAME_NS)
@@ -594,7 +594,7 @@ async def update_aura(sid: str, raw_data: Any):
 
     owners = [*get_owner_sids(pr, shape, skip_sid=sid)]
     for psid in owners:
-        await _send_game("Shape.Options.Aura.Update", data, room=psid)
+        await _send_game("Shape.Options.Aura.Update", raw_data, room=psid)
     for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=sid):
         if psid in owners:
             continue
@@ -608,7 +608,7 @@ async def update_aura(sid: str, raw_data: Any):
                     room=psid,
                 )
         else:
-            await _send_game("Shape.Options.Aura.Update", data, room=psid)
+            await _send_game("Shape.Options.Aura.Update", raw_data, room=psid)
 
 
 @sio.on("Shape.Options.Aura.Move", namespace=GAME_NS)

@@ -13,7 +13,7 @@ import { visionTool } from "../../tools/variants/vision";
 
 const selected = visionTool.isActiveTool;
 
-const tokens = computed(() => map(accessState.reactive.ownedTokens, (t) => getShape(t)!));
+const tokens = computed(() => [...map(accessState.reactive.ownedTokens, (t) => getShape(t)!)]);
 const selection = computed(() => {
     if (accessState.reactive.activeTokenFilters === undefined) return accessState.reactive.ownedTokens;
     return accessState.reactive.activeTokenFilters;

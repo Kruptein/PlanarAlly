@@ -26,7 +26,7 @@ export class Asset extends BaseRect implements IAsset {
     src = "";
     #loaded: boolean;
 
-    svgData?: Iterable<{ svg: Node; rp: GlobalPoint; paths?: [number, number][][][] }>;
+    svgData?: { svg: Node; rp: GlobalPoint; paths?: [number, number][][][] }[];
 
     constructor(
         img: HTMLImageElement,
@@ -83,7 +83,7 @@ export class Asset extends BaseRect implements IAsset {
             );
             this.layer?.addShape(cover, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
             const svgs = await loadSvgData(`/static/assets/${this.options.svgAsset}`);
-            this.svgData = map(svgs.values(), (svg) => ({ svg, rp: this.refPoint, paths: undefined }));
+            this.svgData = [...map(svgs.values(), (svg) => ({ svg, rp: this.refPoint, paths: undefined }))];
             const props = getProperties(this.id)!;
             if (props.blocksVision) {
                 if (this.floorId !== undefined) visionState.recalculateVision(this.floorId);

@@ -52,7 +52,7 @@ jobs:
               working-directory: client
               run: |
                   npm run test
-    SERVER-lint:
+    SERVER:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v3
@@ -65,23 +65,11 @@ jobs:
             - name: Install dependencies
               run: |
                   python -m pip install --upgrade pip
-                  pip install ruff
+                  pip install -r server/requirements-dev.txt
             - name: ruff
               working-directory: server
               run: |
                   ruff src
-    SERVER-test:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v3
-            - name: Install Python
-              uses: actions/setup-python@v4
-              with:
-                  python-version: "3.10"
-            - name: Install dependencies
-              run: |
-                  python -m pip install --upgrade pip
-                  pip install pytest
             - name: pytest
               working-directory: server
               run: |

@@ -52,7 +52,6 @@ async def handle(event: str, data, f: asyncio.Future):
 
 @pytest_asyncio.fixture
 async def client(server):
-
     # Internal data structure used to cleanup after use
     data = []
 

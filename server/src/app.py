@@ -1,3 +1,4 @@
+import asyncio
 import os
 from typing import Callable, Iterable, List, Type
 
@@ -32,7 +33,7 @@ async def setup_runner(app: web.Application, site: Type[web.BaseSite], **kwargs)
     runners.append(runner)
     await runner.setup()
     s = site(runner, **kwargs)
-    app.loop.set_exception_handler(handle_async_exception)
+    asyncio.get_event_loop().set_exception_handler(handle_async_exception)
     await s.start()
 
 

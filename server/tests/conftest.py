@@ -4,6 +4,7 @@ from functools import partial
 import pytest_asyncio
 import socketio
 
+from src import save
 from src.app import app
 from src.db.models.user import User
 from src.planarserver import start_http
@@ -25,6 +26,7 @@ def event_loop():
 @pytest_asyncio.fixture(scope="session")
 async def server():
     """Start server as test fixture and tear down after test"""
+    save.check_existence()
     task = asyncio.create_task(start_http(app, "0.0.0.0", PORT))
 
     yield

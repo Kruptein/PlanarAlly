@@ -63,3 +63,5 @@ class User(BaseDbModel):
         default_options.save()
         u.default_options = default_options
         u.save()
+
+        return u

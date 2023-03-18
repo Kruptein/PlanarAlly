@@ -4,11 +4,13 @@ from functools import partial
 import pytest_asyncio
 import socketio
 
-from src import save
+from src.db.models.room import Room
 from src.db.models.user import User
 from src.planarserver import start_http
 
-save.check_existence()
+from .db import load_test_db
+
+load_test_db()
 
 from src.app import app  # noqa: E402
 
@@ -67,8 +69,9 @@ async def client(server):
 
         # Hardcode the state details for now
         u = User.by_name(username)
+        r = Room.get(name="test-room")
         app["state"]["asset"]._sid_map[sid] = u
-        app["state"]["game"]._sid_map[sid] = u.rooms_joined[0]
+        app["state"]["game"]._sid_map[sid] = r.players.filter(player=u)[0]
 
         # Create a future that we use to set received socket data on
         fut = asyncio.get_running_loop().create_future()

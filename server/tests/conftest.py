@@ -5,9 +5,12 @@ import pytest_asyncio
 import socketio
 
 from src import save
-from src.app import app
 from src.db.models.user import User
 from src.planarserver import start_http
+
+save.check_existence()
+
+from src.app import app  # noqa: E402
 
 PORT = 8009
 
@@ -26,7 +29,6 @@ def event_loop():
 @pytest_asyncio.fixture(scope="session")
 async def server():
     """Start server as test fixture and tear down after test"""
-    save.check_existence()
     task = asyncio.create_task(start_http(app, "0.0.0.0", PORT))
 
     yield

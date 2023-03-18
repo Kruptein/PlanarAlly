@@ -21,12 +21,14 @@ tech changes will usually be stripped from release notes for the public
 -   Auth: A logic error in the auth routing code - in some cases you had to manually go to the login page
 -   Templates: Missing some settings when saved
 -   Fake player: no longer render auras and isToken vision
+-   Fake player: no longer shows invisible shapes
 -   Labels: Fix removal not working
 -   Toolbar: Fix vision and filter tools not immediately being available when relevant
 -   Access: Fix players with specific access rules, having edit access at all times
 -   Access: Changing access would not live update the edit shape UI if it was open by another client
 -   Access: Fix default access in UI not being up to date if shape has no access modifications until reload
 -   Access: Prevent DMs from having an explicit access rule
+-   Access: No longer gives full access for fake DM
 -   TpZone: Fix tp zone moving a player to a different floor not moving their view along (if 'move players' configured)
 -   TpZone: Fix non-immediate player initiated teleports not working correctly
 -   TpZone: Fix teleports initiated in build-mode not working correctly for players

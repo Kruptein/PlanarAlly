@@ -120,11 +120,13 @@ class AccessSystem implements ShapeSystem {
 
         if (props.isToken && limitToActiveTokens) {
             if (!activeTokens.value.has(id)) {
+                // In theory we should check default permission rights here
+                // But that's a usecase I haven't come across yet.
                 return false;
             }
         }
 
-        if (gameState.isDmOrFake.value) return true;
+        if (gameState.raw.isDm) return true;
 
         const accessMap = this.access.get(id);
         if (accessMap === undefined) return false;

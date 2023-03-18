@@ -28,14 +28,13 @@ async def test_invite_code_refresh_player(client: ClientBuilder):
 
     # Await
     with pytest.raises(asyncio.TimeoutError):
-        await asyncio.wait_for(fut2, 1.0)
+        await asyncio.wait_for(fut, 1.0)
 
     # Assert
 
     # Players cannot trigger invitecode changes
-    # so nothing should have happened on the futures
-    assert fut2.cancelled()
-    assert not fut.done()
+    # so nothing should have happened on the other futures
+    assert not fut2.done()
     assert not fut3.done()
     assert not fut4.done()
 
@@ -64,10 +63,7 @@ async def test_invite_code_refresh_dm(client: ClientBuilder):
 
     # Assert
 
-    # Invite code updates should only be synced to all connected DMs
-    assert fut.done()
-    assert fut2.done()
-    assert fut3.done()
+    # Invite code updates should NOT be received by players
     assert not fut4.done()
 
     e1, d1 = fut.result()

@@ -188,15 +188,15 @@ describe("Access System", () => {
             coreStore.setUsername("userWithFullRights");
             expect(accessSystem.hasAccessTo(id2, true, { edit: true })).toBe(false);
         });
-        it("should return true if fake player is activated", () => {
+        it("should return false if fake player is activated", () => {
             // setup
             gameSystem.setFakePlayer(true);
             // test
-            expect(accessSystem.hasAccessTo(id, false, { movement: true })).toBe(true);
+            expect(accessSystem.hasAccessTo(id, false, { movement: true })).toBe(false);
             // extra checks
             // 1. user access is not granted
             coreStore.setUsername("userWithNoRights");
-            expect(accessSystem.hasAccessTo(id2, false, { edit: true })).toBe(true);
+            expect(accessSystem.hasAccessTo(id2, false, { edit: true })).toBe(false);
             // teardown
             gameSystem.setFakePlayer(false);
             gameSystem.setDm(false); // fakeplayer resets isDm

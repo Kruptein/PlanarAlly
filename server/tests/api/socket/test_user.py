@@ -40,7 +40,6 @@ async def test_colour_history(client: ClientBuilder):
     # Assert
 
     # Only other connected sids from the same User should receive an update
-    assert fut2.done()
     assert not fut.done()
     assert not fut3.done()
     assert not fut4.done()

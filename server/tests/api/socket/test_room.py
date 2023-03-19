@@ -1,14 +1,11 @@
 import asyncio
-from typing import Awaitable, Callable
 
 import pytest
-import socketio
 
 from src.api.socket.constants import GAME_NS
 from src.db.models.room import Room
 
-ClientTuple = tuple[socketio.AsyncClient, asyncio.Future]
-ClientBuilder = Callable[[str, str], Awaitable[ClientTuple]]
+from ...types import ClientBuilder, CreateRoomBuilder
 
 
 @pytest.mark.asyncio
@@ -61,11 +58,11 @@ async def test_invite_code_refresh_dm(client: ClientBuilder):
     # Await
     await asyncio.wait_for(asyncio.gather(fut, fut2, fut3), 1.0)
 
-    # Assert
-
     # Invite code updates should NOT be received by players
-    assert not fut4.done()
+    with pytest.raises(asyncio.TimeoutError):
+        await asyncio.wait_for(fut4, 1.0)
 
+    # Assert
     e1, d1 = fut.result()
     e2, d2 = fut2.result()
     e3, d3 = fut3.result()
@@ -77,3 +74,33 @@ async def test_invite_code_refresh_dm(client: ClientBuilder):
     new_invitation_code = Room.get(name="test-room").invitation_code
     assert invitation_code != new_invitation_code
     assert new_invitation_code == d2
+
+
+@pytest.mark.asyncio
+async def test_player_kick_player(
+    client: ClientBuilder, create_room: CreateRoomBuilder
+):
+    # Setup
+    r = create_room(["dm1", "dm2"], ["player1", "player2"])
+    sio, fut = await client("player1", GAME_NS, r)
+    _, fut2 = await client("player1", GAME_NS, r)
+    _, fut3 = await client("player2", GAME_NS, r)
+    _, fut4 = await client("dm1", GAME_NS, r)
+
+    # Trigger
+    await sio.emit("Room.Info.Players.Kick", namespace=GAME_NS)
+
+    # Await
+    with pytest.raises(asyncio.TimeoutError):
+        await asyncio.wait_for(fut, 1.0)
+
+    # Assert
+
+    # Kicking a player can NOT be initiated by players
+    assert not fut2.done()
+    assert not fut3.done()
+    assert not fut4.done()
+
+    # The data in the database should be modified
+
+    assert len(r.players) == 4

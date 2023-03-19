@@ -11,4 +11,14 @@ def open_db(path: Path) -> SqliteExtDatabase:
     )
 
 
+def set_db(path: Path):
+    from .all import ALL_MODELS
+
+    global db
+    db.close()
+    db = open_db(path)
+    db.bind(ALL_MODELS)
+    return db
+
+
 db = open_db(SAVE_FILE)

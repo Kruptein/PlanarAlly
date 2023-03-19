@@ -45,7 +45,9 @@ async def test_colour_history(client: ClientBuilder):
     assert not fut4.done()
 
     # The data sent to client2 should be correct
-    event, data = fut2.result()
+    results = fut2.result()
+    assert len(results) == 1
+    event, data = results[0]
     assert event == "User.ColourHistory.Set"
     assert data == new_history
 

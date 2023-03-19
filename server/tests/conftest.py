@@ -17,6 +17,8 @@ from src.app import app  # noqa: E402
 
 PORT = 8009
 
+pytest.register_assert_rewrite("tests.helpers")
+
 ## SERVER FIXTURES
 
 
@@ -54,7 +56,11 @@ async def server():
 
 
 async def handle(event: str, data, f: asyncio.Future):
-    f.set_result((event, data))
+    data_tuple = (event, data)
+    if f.done():
+        f.result().append(data_tuple)
+    else:
+        f.set_result([data_tuple])
 
 
 @pytest_asyncio.fixture
@@ -65,6 +71,7 @@ async def client(server):
     async def _make(username: str, namespace: str, room: str | Room | None = None):
         # Setup sio client
         sio = socketio.AsyncClient()
+
         await sio.connect(f"http://0.0.0.0:{PORT}", namespaces=namespace)
         sid = sio.get_sid(namespace)
 
@@ -83,6 +90,11 @@ async def client(server):
 
         # Listen to all events on the client socket and set this data on the future
         sio.on("*", partial(handle, f=fut), namespace=namespace)
+        sio.on(
+            "disconnect",
+            partial(handle, event="disconnect", data=None, f=fut),
+            namespace=namespace,
+        )
 
         ret = (sio, fut)
         data.append(ret)

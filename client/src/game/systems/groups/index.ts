@@ -117,7 +117,7 @@ class GroupSystem implements ShapeSystem {
                     mutable.groupMembers.get(memberGroupId)?.delete(member.uuid);
                 }
                 if (!mutable.shapeData.has(member.uuid)) {
-                    this.inform(member.uuid, { groupId, badge: 0 });
+                    this.inform(member.uuid, { groupId, badge: member.badge });
                 } else {
                     mutable.shapeData.set(member.uuid, { groupId, badge: member.badge });
                 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, toRef } from "vue";
+import { computed, toRef, watch } from "vue";
 
 import { FULL_SYNC, SERVER_SYNC } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
@@ -17,6 +17,18 @@ import { getProperties } from "../../../systems/properties/state";
 const id = toRef(activeShapeStore.state, "id");
 
 const modals = useModal();
+
+watch(
+    () => activeShapeStore.state.id,
+    (newId, oldId) => {
+        if (newId !== undefined && oldId !== newId) {
+            groupSystem.loadState(newId);
+        } else if (newId === undefined) {
+            groupSystem.dropState();
+        }
+    },
+    { immediate: true },
+);
 
 const characterSet = ["numbers", "latin characters", "custom"];
 let characterSetSelected = 0;
@@ -240,7 +252,7 @@ async function deleteGroup(): Promise<void> {
                 </div>
             </template>
         </template>
-        <template v-if="groupState.reactive.activeId === undefined">
+        <template v-if="groupState.reactive.activeGroupId === undefined">
             <div class="spanrow header">Actions</div>
             <div></div>
             <div></div>

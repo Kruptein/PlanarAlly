@@ -18,6 +18,9 @@ tech changes will usually be stripped from release notes for the public
 ### Fixed
 
 -   Group: No longer sending group info for each member (just once)
+-   Group: Shape group settings fixes
+    -   Create group button was not properly behaving
+    -   Remove group button was not immediately updating the UI until a reselection
 -   Auth: A logic error in the auth routing code - in some cases you had to manually go to the login page
 -   Templates: Missing some settings when saved
 -   Fake player: no longer render auras and isToken vision

@@ -387,6 +387,11 @@ export class Layer implements ILayer {
 
             if (doClear) this.clear();
 
+            if (this.name !== LayerName.Lighting) {
+                if (floorState.raw.layerIndex < this.index) ctx.globalAlpha = 0.3;
+                else ctx.globalAlpha = 1.0;
+            }
+
             // We iterate twice over all shapes
             // First to draw the auras and a second time to draw the shapes themselves
             // Otherwise auras from one shape could overlap another shape.

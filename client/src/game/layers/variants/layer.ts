@@ -387,7 +387,7 @@ export class Layer implements ILayer {
 
             if (doClear) this.clear();
 
-            if (this.name !== LayerName.Lighting) {
+            if (this.name !== LayerName.Lighting && this.selectable) {
                 if (floorState.raw.layerIndex < this.index) ctx.globalAlpha = 0.3;
                 else ctx.globalAlpha = 1.0;
             }

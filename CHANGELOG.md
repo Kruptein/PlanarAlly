@@ -14,6 +14,7 @@ tech changes will usually be stripped from release notes for the public
 
 -   Templates no longer save certain settings
 -   Bring players no longer changes the zoom level of the players
+-   TpZone: When a player TP request arrives, the view area action will bring the DM to the trigger location and not to the target location
 
 ### Fixed
 

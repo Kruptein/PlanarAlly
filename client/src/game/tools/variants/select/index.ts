@@ -1,4 +1,4 @@
-import { watchEffect } from "vue";
+import { watch, watchEffect } from "vue";
 import { POSITION, useToast } from "vue-toastification";
 
 import { g2l, g2lx, g2ly, g2lz, l2g, l2gz, toDegrees, toRadians } from "../../../../core/conversions";
@@ -120,6 +120,17 @@ class SelectTool extends Tool implements ISelectTool {
     constructor() {
         super();
 
+        // Zoom changes
+        watch(
+            () => positionState.reactive.zoomDisplay,
+            () => {
+                if (this.rotationUiActive) {
+                    this.resetRotationHelper();
+                }
+            },
+        );
+
+        // Selection changes
         watchEffect(() => {
             const selection = selectedSystem.$.value;
 
@@ -184,6 +195,7 @@ class SelectTool extends Tool implements ISelectTool {
     }
 
     onDeselect(): void {
+        this.removeRotationUi();
         this.removePolygonEditUi();
     }
 
@@ -192,6 +204,9 @@ class SelectTool extends Tool implements ISelectTool {
         if (this.hasFeature(SelectFeatures.PolygonEdit, features)) {
             this.createPolygonEditUi();
             _$.polygonUiVisible = "hidden";
+        }
+        if (this.hasFeature(SelectFeatures.Rotate, features)) {
+            this.createRotationUi(features);
         }
         return Promise.resolve();
     }
@@ -822,7 +837,7 @@ class SelectTool extends Tool implements ISelectTool {
         }
 
         const topCenter = toGP((bbox.topRight.x + bbox.topLeft.x) / 2, bbox.topLeft.y);
-        const topCenterPlus = addP(topCenter, new Vector(0, -DEFAULT_GRID_SIZE));
+        const topCenterPlus = addP(topCenter, new Vector(0, -Math.max(DEFAULT_GRID_SIZE, l2gz(DEFAULT_GRID_SIZE / 2))));
 
         this.angle = 0;
         this.rotationAnchor = new Line(

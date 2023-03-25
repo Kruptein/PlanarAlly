@@ -40,6 +40,7 @@ tech changes will usually be stripped from release notes for the public
 -   Token Directions: Fix shown tokens not taking filtered tokens into account
 -   Auras: Fix sometimes not being visible until a refresh or panning closer to the aura
 -   Rendering: Transparency of higher layers was no longer applied after a window resize
+-   Select: Rotation UI should stay consistent when zooming
 -   [server] Subpath: 2 cases where subpath based setup was not properly loading images (initiative & change asset)
 
 ## [2023.1.0] - 2023-02-14

@@ -43,15 +43,17 @@ function approveDoor(request: LogicDoorRequest): void {
 }
 
 async function approveTp(request: LogicTeleportRequest): Promise<void> {
+    const shape = getLocalId(request.fromZone);
+    if (shape === undefined) return;
     await teleport(
-        getLocalId(request.fromZone)!,
+        shape,
         request.toZone,
         request.transfers.map((t) => getLocalId(t)!),
     );
 }
 
 function showArea(): void {
-    const uuid = props.data.request.logic === "door" ? props.data.request.door : props.data.request.toZone;
+    const uuid = props.data.request.logic === "door" ? props.data.request.door : props.data.request.fromZone;
     const shape = getShapeFromGlobal(uuid);
     if (shape?.floorId === undefined) return;
 

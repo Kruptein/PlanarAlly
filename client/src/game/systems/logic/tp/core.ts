@@ -45,10 +45,18 @@ export async function validateTeleport(
     toZone: GlobalId,
     shapesToMove: LocalId[],
 ): Promise<void> {
-    if (access === Access.Request) {
-        toast.info("Request to use teleport zone sent", {
-            position: POSITION.TOP_RIGHT,
-        });
+    if (gameState.raw.isDm) {
+        await teleport(tp, toZone, shapesToMove);
+    } else {
+        if (access === Access.Disabled) {
+            toast.error("You don't have permission to use this TP zone.");
+            return;
+        } else if (access === Access.Request) {
+            toast.info("Request to use teleport zone sent", {
+                position: POSITION.TOP_RIGHT,
+            });
+        }
+
         const gId = getGlobalId(tp);
         if (gId) {
             sendRequest({
@@ -57,9 +65,9 @@ export async function validateTeleport(
                 transfers: shapesToMove.map((s) => getGlobalId(s)!),
                 logic: "tp",
             });
+        } else {
+            toast.error("Something went wrong while using this tp zone :(");
         }
-    } else if (access === Access.Enabled) {
-        await teleport(tp, toZone, shapesToMove);
     }
 }
 

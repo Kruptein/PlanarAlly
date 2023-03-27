@@ -411,7 +411,6 @@ export class Layer implements ILayer {
                     if (shape.options.skipDraw ?? false) continue;
                     const props = getProperties(shape.id)!;
                     if (props.isInvisible && !accessSystem.hasAccessTo(shape.id, true, { vision: true })) continue;
-                    // todo: move as a call to label system?
                     if (labelSystem.isFiltered(shape.id)) continue;
 
                     shape.draw(ctx);

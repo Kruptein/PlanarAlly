@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, toRef, watch } from "vue";
+import { onMounted, toRef } from "vue";
 
 import type { Polygon } from "../../shapes/variants/polygon";
 import { selectedSystem } from "../../systems/selected";
@@ -19,9 +19,6 @@ const polygonUiSizeY = toRef($, "polygonUiSizeY");
 
 onMounted(() => {
     selectTool.checkRuler();
-    watch(selectedSystem.$, () => {
-        selectTool.resetRotationHelper();
-    });
 });
 
 function toggleShowRuler(event: MouseEvent): void {

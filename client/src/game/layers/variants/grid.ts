@@ -33,11 +33,16 @@ export class GridLayer extends Layer implements IGridLayer {
                 const state = positionState.readonly;
 
                 if (locationSettingsState.raw.gridType.value === "SQUARE") {
-                    for (let i = 0; i < this.width; i += DEFAULT_GRID_SIZE * state.zoom) {
-                        ctx.moveTo(i + (state.panX % DEFAULT_GRID_SIZE) * state.zoom, 0);
-                        ctx.lineTo(i + (state.panX % DEFAULT_GRID_SIZE) * state.zoom, this.height);
-                        ctx.moveTo(0, i + (state.panY % DEFAULT_GRID_SIZE) * state.zoom);
-                        ctx.lineTo(this.width, i + (state.panY % DEFAULT_GRID_SIZE) * state.zoom);
+                    const zoomed_grid_size = DEFAULT_GRID_SIZE * state.zoom;
+                    for (let i = 0; i < this.height; i += zoomed_grid_size) {
+                        const zoomed_pan_size = (state.panY % DEFAULT_GRID_SIZE) * state.zoom;
+                        ctx.moveTo(0, i + zoomed_pan_size);
+                        ctx.lineTo(this.width, i + zoomed_pan_size);
+                    }
+                    for (let i = 0; i < this.width; i += zoomed_grid_size) {
+                        const zoomed_pan_size = (state.panX % DEFAULT_GRID_SIZE) * state.zoom;
+                        ctx.moveTo(i + zoomed_pan_size, 0);
+                        ctx.lineTo(i + zoomed_pan_size, this.height);
                     }
                 } else {
                     const s3 = Math.sqrt(3);

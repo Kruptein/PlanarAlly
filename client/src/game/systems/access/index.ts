@@ -6,7 +6,7 @@ import { guard } from "../../../core/iter";
 import { NO_SYNC } from "../../../core/models/types";
 import type { Sync } from "../../../core/models/types";
 import { coreStore } from "../../../store/core";
-import { getGlobalId } from "../../id";
+import { getGlobalId, getShape } from "../../id";
 import type { LocalId } from "../../id";
 import { initiativeStore } from "../../ui/initiative/state";
 import { annotationSystem } from "../annotations";
@@ -245,7 +245,14 @@ class AccessSystem implements ShapeSystem {
             }
         }
 
-        if (locationSettingsState.raw.fowLos.value) floorSystem.invalidateLightAllFloors();
+        if (locationSettingsState.raw.fowLos.value) {
+            if (access.vision !== undefined && access.vision !== oldAccess.vision) {
+                const shape = getShape(shapeId);
+                // The shape's aura on it's normal layer might not be up to date yet at this point
+                if (shape !== undefined) shape.invalidate(true);
+            }
+            floorSystem.invalidateLightAllFloors();
+        }
         initiativeStore._forceUpdate();
     }
 
@@ -317,6 +324,9 @@ class AccessSystem implements ShapeSystem {
         if ($.activeTokenFilters === undefined) return;
         $.activeTokenFilters.add(token);
         if ($.activeTokenFilters.size === $.ownedTokens.size) $.activeTokenFilters = undefined;
+
+        // the token itself might need re-rendering (e.g. invisible)
+        getShape(token)?.invalidate(true);
         floorSystem.invalidateLightAllFloors();
     }
 
@@ -325,6 +335,9 @@ class AccessSystem implements ShapeSystem {
             $.activeTokenFilters = new Set([...$.ownedTokens]);
         }
         $.activeTokenFilters.delete(token);
+
+        // the token itself might need re-rendering (e.g. invisible)
+        getShape(token)?.invalidate(true);
         floorSystem.invalidateLightAllFloors();
     }
 

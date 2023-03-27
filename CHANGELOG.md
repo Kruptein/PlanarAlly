@@ -43,6 +43,7 @@ tech changes will usually be stripped from release notes for the public
 -   Auras: Fix sometimes not being visible until a refresh or panning closer to the aura
 -   Rendering: Transparency of higher layers was no longer applied after a window resize
 -   Rendering: Some cases where vision access related changes would not rerender immediately
+-   Rendering: Grid not rendering horizontal lines when the width is smaller than the height of the screen
 -   Select: Rotation UI should stay consistent when zooming
 -   LocationBar: Fix width on drag handle for multiline locations
 -   [server] Subpath: 2 cases where subpath based setup was not properly loading images (initiative & change asset)

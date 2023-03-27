@@ -1,5 +1,6 @@
 import { computed } from "vue";
 
+import { filter, some } from "../../../core/iter";
 import type { LocalId } from "../../id";
 import { LayerName } from "../../models/floor";
 import { floorSystem } from "../floors";
@@ -9,9 +10,9 @@ import { playerSystem } from "../players";
 import { buildState } from "../state";
 
 import { DEFAULT_ACCESS } from "./models";
-import type { ShapeAccess } from "./models";
+import type { AccessMap, ShapeAccess } from "./models";
 
-interface AccessState {
+interface ReactiveAccessState {
     id: LocalId | undefined;
     defaultAccess: ShapeAccess;
     playerAccess: Map<string, ShapeAccess>;
@@ -20,20 +21,52 @@ interface AccessState {
     activeTokenFilters: Set<LocalId> | undefined;
 }
 
-const state = buildState<AccessState>({
-    id: undefined,
-    defaultAccess: DEFAULT_ACCESS,
-    playerAccess: new Map(),
+interface AccessState {
+    // If a LocalId is NOT in the access map,
+    // it is assumed to have default access settings
+    // this is the case for the vast majority of shapes
+    // and would thus just waste memory
+    access: Map<LocalId, AccessMap>;
+}
 
-    ownedTokens: new Set(),
-    activeTokenFilters: undefined,
-});
+const state = buildState<ReactiveAccessState, AccessState>(
+    {
+        id: undefined,
+        defaultAccess: DEFAULT_ACCESS,
+        playerAccess: new Map(),
+
+        ownedTokens: new Set(),
+        activeTokenFilters: undefined,
+    },
+    { access: new Map<LocalId, AccessMap>() },
+);
+
+function playerWithVision(shapeId: LocalId): boolean {
+    const access = state.readonly.access.get(shapeId);
+    if (access === undefined) return false;
+    return some(access.values(), (a) => a.vision);
+}
 
 const activeTokens = computed(() => {
+    // this is used to update OOB tokens
+    // This feels a bit out of place though
+    // should probably be triggered in a separate watcher
     const floor = floorState.currentFloor.value;
     if (floor !== undefined) floorSystem.getLayer(floor, LayerName.Draw)?.invalidate(true);
-    if (state.reactive.activeTokenFilters !== undefined) return state.reactive.activeTokenFilters;
-    return state.reactive.ownedTokens;
+
+    // grab active tokens for normal flow
+    let tokens: ReadonlySet<LocalId>;
+    if (state.reactive.activeTokenFilters !== undefined) tokens = state.reactive.activeTokenFilters;
+    else tokens = state.reactive.ownedTokens;
+
+    // Filter when we're faking it
+    if (gameState.reactive.isFakePlayer) {
+        // !!! this is not triggering reactively !!!
+        const filtered = filter(tokens, (t) => playerWithVision(t));
+        tokens = new Set(filtered);
+    }
+
+    return tokens;
 });
 
 export const accessState = {

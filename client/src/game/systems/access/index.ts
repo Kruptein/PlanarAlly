@@ -20,20 +20,12 @@ import { locationSettingsState } from "../settings/location/state";
 import { sendShapeAddOwner, sendShapeDeleteOwner, sendShapeUpdateDefaultOwner, sendShapeUpdateOwner } from "./emits";
 import { accessToServer, ownerToServer } from "./helpers";
 import { DEFAULT_ACCESS, DEFAULT_ACCESS_SYMBOL, isNonDefaultAccessSymbol } from "./models";
-import type { ACCESS_KEY, ShapeAccess, ShapeOwner } from "./models";
+import type { AccessMap, ACCESS_KEY, ShapeAccess, ShapeOwner } from "./models";
 import { accessState } from "./state";
 
-const { mutableReactive: $, activeTokens } = accessState;
-
-type AccessMap = Map<ACCESS_KEY, ShapeAccess>;
+const { mutableReactive: $, activeTokens, mutable } = accessState;
 
 class AccessSystem implements ShapeSystem {
-    // If a LocalId is NOT in the access map,
-    // it is assumed to have default access settings
-    // this is the case for the vast majority of shapes
-    // and would thus just waste memory
-    private access = new Map<LocalId, AccessMap>();
-
     // REACTIVE
 
     loadState(id: LocalId): void {
@@ -41,7 +33,7 @@ class AccessSystem implements ShapeSystem {
         $.defaultAccess = { ...DEFAULT_ACCESS };
         $.playerAccess.clear();
 
-        const accessMap = this.access.get(id);
+        const accessMap = mutable.access.get(id);
 
         if (accessMap !== undefined) {
             for (const [user, access] of accessMap) {
@@ -64,7 +56,7 @@ class AccessSystem implements ShapeSystem {
         this.dropState();
         $.activeTokenFilters?.clear();
         $.ownedTokens.clear();
-        this.access.clear();
+        mutable.access.clear();
     }
 
     // Inform the system about the state of a certain LocalId
@@ -93,19 +85,19 @@ class AccessSystem implements ShapeSystem {
         }
 
         // Commit
-        this.access.set(id, accessMap);
+        mutable.access.set(id, accessMap);
         initiativeStore._forceUpdate();
     }
 
     drop(id: LocalId): void {
-        this.access.delete(id);
+        mutable.access.delete(id);
         if ($.id === id) {
             this.dropState();
         }
     }
 
     getDefault(id: LocalId): DeepReadonly<ShapeAccess> {
-        return this.access.get(id)?.get(DEFAULT_ACCESS_SYMBOL) ?? DEFAULT_ACCESS;
+        return mutable.access.get(id)?.get(DEFAULT_ACCESS_SYMBOL) ?? DEFAULT_ACCESS;
     }
 
     hasAccessTo(
@@ -123,12 +115,14 @@ class AccessSystem implements ShapeSystem {
                 // In theory we should check default permission rights here
                 // But that's a usecase I haven't come across yet.
                 return false;
+            } else if (gameState.raw.isFakePlayer) {
+                return true;
             }
         }
 
         if (gameState.raw.isDm) return true;
 
-        const accessMap = this.access.get(id);
+        const accessMap = mutable.access.get(id);
         if (accessMap === undefined) return false;
 
         const defaultAccess = accessMap.get(DEFAULT_ACCESS_SYMBOL) ?? DEFAULT_ACCESS;
@@ -152,11 +146,11 @@ class AccessSystem implements ShapeSystem {
     }
 
     getAccess(shapeId: LocalId, user: string): DeepReadonly<ShapeAccess> | undefined {
-        return this.access.get(shapeId)?.get(user);
+        return mutable.access.get(shapeId)?.get(user);
     }
 
     addAccess(shapeId: LocalId, user: string, access: Partial<ShapeAccess>, syncTo: Sync): void {
-        if (this.access.get(shapeId)?.has(user) === true) {
+        if (mutable.access.get(shapeId)?.has(user) === true) {
             console.error("[ACCESS] Attempt to add access for user with access");
             return;
         }
@@ -164,9 +158,9 @@ class AccessSystem implements ShapeSystem {
 
         const userAccess = { ...DEFAULT_ACCESS, ...access };
 
-        const shapeMap = this.access.get(shapeId) ?? (new Map() as AccessMap);
+        const shapeMap = mutable.access.get(shapeId) ?? (new Map() as AccessMap);
         shapeMap.set(user, userAccess);
-        this.access.set(shapeId, shapeMap);
+        mutable.access.set(shapeId, shapeMap);
 
         if (syncTo.server) {
             sendShapeAddOwner(
@@ -195,15 +189,16 @@ class AccessSystem implements ShapeSystem {
     }
 
     updateAccess(shapeId: LocalId, user: ACCESS_KEY, access: Partial<ShapeAccess>, syncTo: Sync): void {
-        if (user !== DEFAULT_ACCESS_SYMBOL && this.access.get(shapeId)?.has(user) !== true) {
+        if (user !== DEFAULT_ACCESS_SYMBOL && mutable.access.get(shapeId)?.has(user) !== true) {
             console.error("[ACCESS] Attempt to update access for user without access");
             return;
         }
 
-        const oldAccess = this.access.get(shapeId)?.get(user) ?? DEFAULT_ACCESS;
+        const oldAccess = mutable.access.get(shapeId)?.get(user) ?? DEFAULT_ACCESS;
 
         // Check owned-token changes
         if (
+            !gameState.isDmOrFake.value &&
             access.vision !== undefined &&
             access.vision !== oldAccess.vision &&
             (user === playerSystem.getCurrentPlayer()?.name || user === DEFAULT_ACCESS_SYMBOL)
@@ -220,10 +215,10 @@ class AccessSystem implements ShapeSystem {
 
         // Commit to state
         const newAccess = { ...oldAccess, ...access };
-        if (!this.access.has(shapeId)) {
-            this.access.set(shapeId, new Map());
+        if (!mutable.access.has(shapeId)) {
+            mutable.access.set(shapeId, new Map());
         }
-        this.access.get(shapeId)!.set(user, newAccess);
+        mutable.access.get(shapeId)!.set(user, newAccess);
 
         if ($.id === shapeId) {
             if (user === DEFAULT_ACCESS_SYMBOL) {
@@ -255,13 +250,13 @@ class AccessSystem implements ShapeSystem {
     }
 
     removeAccess(shapeId: LocalId, user: string, syncTo: Sync): void {
-        if (this.access.get(shapeId)?.has(user) !== true) {
+        if (mutable.access.get(shapeId)?.has(user) !== true) {
             console.error("[ACCESS] Attempt to remove access for user without access");
             return;
         }
 
-        const oldAccess = this.access.get(shapeId)!.get(user)!;
-        this.access.get(shapeId)!.delete(user);
+        const oldAccess = mutable.access.get(shapeId)!.get(user)!;
+        mutable.access.get(shapeId)!.delete(user);
 
         // annotation check
         if (!annotationState.readonly.visible.has(shapeId)) {
@@ -293,11 +288,11 @@ class AccessSystem implements ShapeSystem {
     }
 
     getOwners(id: LocalId): Iterable<string> {
-        return guard(this.access.get(id)?.keys() ?? [], isNonDefaultAccessSymbol);
+        return guard(mutable.access.get(id)?.keys() ?? [], isNonDefaultAccessSymbol);
     }
 
     getOwnersFull(id: LocalId): DeepReadonly<ShapeOwner[]> {
-        return [...(this.access.get(id)?.entries() ?? [])]
+        return [...(mutable.access.get(id)?.entries() ?? [])]
             .filter(([user]) => user !== DEFAULT_ACCESS_SYMBOL)
             .map(([user, access]) => ({
                 access,

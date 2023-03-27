@@ -3,6 +3,7 @@ import type { DeepReadonly } from "vue";
 
 import { registerSystem } from "..";
 import type { ShapeSystem } from "..";
+import { filter } from "../../../core/iter";
 import { NO_SYNC } from "../../../core/models/types";
 import type { Sync } from "../../../core/models/types";
 import { getGlobalId, getShape } from "../../id";
@@ -10,6 +11,7 @@ import type { LocalId } from "../../id";
 import { compositeState } from "../../layers/state";
 import { LayerName } from "../../models/floor";
 import { visionState } from "../../vision/state";
+import { accessSystem } from "../access";
 import { gameState } from "../game/state";
 import { selectedSystem } from "../selected";
 
@@ -116,6 +118,11 @@ class AuraSystem implements ShapeSystem {
             }
         }
         auras.push(...(this.data.get(id) ?? []));
+
+        if (gameState.raw.isFakePlayer) {
+            if (!accessSystem.hasAccessTo(id, true, { vision: true })) return [...filter(auras, (a) => a.visible)];
+        }
+
         return auras;
     }
 

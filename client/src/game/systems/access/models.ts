@@ -2,6 +2,7 @@ import type { LocalId } from "../../id";
 
 export const DEFAULT_ACCESS_SYMBOL = Symbol();
 export type ACCESS_KEY = string | typeof DEFAULT_ACCESS_SYMBOL;
+export type AccessMap = Map<ACCESS_KEY, ShapeAccess>;
 export const DEFAULT_ACCESS: ShapeAccess = {
     edit: false,
     movement: false,

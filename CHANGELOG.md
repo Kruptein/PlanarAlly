@@ -24,8 +24,10 @@ tech changes will usually be stripped from release notes for the public
     -   Remove group button was not immediately updating the UI until a reselection
 -   Auth: A logic error in the auth routing code - in some cases you had to manually go to the login page
 -   Templates: Missing some settings when saved
--   Fake player: no longer render auras and isToken vision
--   Fake player: no longer shows invisible shapes
+-   Fake Player: Proper rework of access handling
+    -   Shapes and auras should now only be rendered _if and only if_ some player in the game has `vision` access to that shape _AND_ the shape is selected in the vision tool.
+    -   This also hides invisible shapes
+    -   This also hides _all_ auras on the DM layer regardless of the vision tool
 -   Labels: Fix removal not working
 -   Toolbar: Fix vision and filter tools not immediately being available when relevant
 -   Access: Fix players with specific access rules, having edit access at all times

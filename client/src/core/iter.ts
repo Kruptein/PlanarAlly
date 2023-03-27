@@ -31,3 +31,10 @@ export function* map<T, V>(iterable: Iterable<T>, mapper: (arg0: T) => V): Itera
         yield mapper(value);
     }
 }
+
+export function some<T>(iterable: Iterable<T>, mapper: (arg0: T) => boolean): boolean {
+    for (const value of iterable) {
+        if (mapper(value)) return true;
+    }
+    return false;
+}

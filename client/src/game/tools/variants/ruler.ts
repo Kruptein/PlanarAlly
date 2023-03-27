@@ -81,6 +81,15 @@ class RulerTool extends Tool implements ITool {
 
     // EVENT HANDLERS
 
+    onSelect(): Promise<void> {
+        this.cleanup();
+        return Promise.resolve();
+    }
+
+    onDeselect(): void {
+        this.cleanup();
+    }
+
     onDown(lp: LocalPoint, event: MouseEvent | TouchEvent | undefined): Promise<void> {
         this.cleanup();
         this.startPoint = l2g(lp);

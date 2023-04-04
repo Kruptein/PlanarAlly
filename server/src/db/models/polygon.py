@@ -13,11 +13,6 @@ class Polygon(ShapeType):
     line_width = cast(int, IntegerField())
     open_polygon = cast(bool, BooleanField())
 
-    @staticmethod
-    def pre_create(**kwargs):
-        kwargs["vertices"] = json.dumps(kwargs["vertices"])
-        return kwargs
-
     def as_pydantic(self, shape: ApiCoreShape):
         return ApiPolygonShape(
             **shape.dict(),

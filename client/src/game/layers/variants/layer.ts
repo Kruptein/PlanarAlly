@@ -280,7 +280,6 @@ export class Layer implements ILayer {
     private setServerShape(serverShape: ApiShape): void {
         const shape = createShapeFromDict(serverShape);
         if (shape === undefined) {
-            console.log(`Shape with unknown type ${serverShape.type_} could not be added`);
             return;
         }
         let invalidate = InvalidationMode.NO;

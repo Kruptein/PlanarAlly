@@ -85,7 +85,6 @@ export function addShape(shape: ApiShape, sync: SyncMode): IShape | undefined {
     const layer = floorSystem.getLayer(floorSystem.getFloor({ name: shape.floor })!, layerName)!;
     const sh = createShapeFromDict(shape);
     if (sh === undefined) {
-        console.log(`Shape with unknown type ${shape.type_} could not be added`);
         return;
     }
     layer.addShape(sh, sync, InvalidationMode.NORMAL);

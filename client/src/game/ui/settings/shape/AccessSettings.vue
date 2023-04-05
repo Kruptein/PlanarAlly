@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, toRef, watchEffect } from "vue";
+import { computed, ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { filter } from "../../../../core/iter";
@@ -11,19 +11,8 @@ import { DEFAULT_ACCESS, DEFAULT_ACCESS_SYMBOL } from "../../../systems/access/m
 import type { ACCESS_KEY, ShapeAccess } from "../../../systems/access/models";
 import { accessState } from "../../../systems/access/state";
 import { playerState } from "../../../systems/players/state";
-import { selectedSystem } from "../../../systems/selected";
 
 const { t } = useI18n();
-defineProps<{ activeSelection: boolean }>();
-
-watchEffect(() => {
-    const id = selectedSystem.getFocus().value;
-    if (id !== undefined) {
-        accessSystem.loadState(id);
-    } else {
-        accessSystem.dropState();
-    }
-});
 
 const accessDropdown = ref<HTMLSelectElement | null>(null);
 
@@ -115,7 +104,7 @@ function toggleVisionAccess(user?: ACCESS_KEY): void {
 </script>
 
 <template>
-    <div v-show="activeSelection" class="panel restore-panel">
+    <div class="panel restore-panel">
         <div class="spanrow header">{{ t("game.ui.selection.edit_dialog.access.access") }}</div>
         <div class="owner">
             <em>{{ t("game.ui.selection.edit_dialog.access.default") }}</em>

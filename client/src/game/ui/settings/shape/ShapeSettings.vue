@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
 import { activeShapeStore } from "../../../../store/activeShape";
+import { accessSystem } from "../../../systems/access";
 import { accessState } from "../../../systems/access/state";
+import { selectedSystem } from "../../../systems/selected";
 
 import AccessSettings from "./AccessSettings.vue";
 import { ShapeSettingCategory } from "./categories";
@@ -24,6 +26,15 @@ const visible = computed({
     set(visible: boolean) {
         activeShapeStore.setShowEditDialog(visible);
     },
+});
+
+watchEffect(() => {
+    const id = selectedSystem.getFocus().value;
+    if (id !== undefined) {
+        accessSystem.loadState(id);
+    } else {
+        accessSystem.dropState();
+    }
 });
 
 function close(): void {
@@ -56,13 +67,15 @@ const SSC = ShapeSettingCategory;
         <template #title>{{ t("game.ui.selection.edit_dialog.dialog.edit_shape") }}</template>
         <template #default="{ selection }">
             <div v-if="hasShape" style="display: flex; flex-direction: column">
-                <PropertySettings v-show="selection === SSC.Properties" />
-                <TrackerSettings :active-selection="selection === SSC.Trackers" />
-                <AccessSettings :active-selection="selection === SSC.Access" />
-                <LogicSettings :active-selection="selection === SSC.Logic" />
-                <GroupSettings v-show="owned && selection === SSC.Group" />
-                <ExtraSettings v-show="owned && selection === SSC.Extra" />
-                <VariantSwitcher v-show="owned" />
+                <PropertySettings v-lazy-show="selection === SSC.Properties" />
+                <TrackerSettings v-lazy-show="selection === SSC.Trackers" />
+                <AccessSettings v-lazy-show="selection === SSC.Access" />
+                <LogicSettings v-lazy-show="selection === SSC.Logic" :active-selection="selection === SSC.Logic" />
+                <template v-if="owned">
+                    <GroupSettings v-lazy-show="selection === SSC.Group" />
+                    <ExtraSettings v-lazy-show="selection === SSC.Extra" />
+                    <VariantSwitcher />
+                </template>
             </div>
         </template>
     </PanelModal>

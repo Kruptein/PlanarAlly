@@ -3,19 +3,19 @@ import type { ComputedRef } from "vue";
 
 import type { Sync } from "../core/models/types";
 import { Store } from "../core/store";
-import { sendShapeSvgAsset } from "../game/api/emits/shape/options";
-import { getGlobalId, getShape } from "../game/id";
-import type { LocalId } from "../game/id";
-import type { IShape } from "../game/interfaces/shape";
-import type { IAsset } from "../game/interfaces/shapes/asset";
-import type { IToggleComposite } from "../game/interfaces/shapes/toggleComposite";
-import { compositeState } from "../game/layers/state";
-import type { FloorId } from "../game/models/floor";
-import type { ShapeOptions } from "../game/models/shapes";
-import type { SHAPE_TYPE } from "../game/shapes/types";
-import { floorSystem } from "../game/systems/floors";
-import { selectedSystem } from "../game/systems/selected";
-import { visionState } from "../game/vision/state";
+import { sendShapeSvgAsset } from "../game/core/api/emits/shape/options";
+import { getGlobalId, getShape } from "../game/core/id";
+import type { LocalId } from "../game/core/id";
+import type { IShape } from "../game/core/interfaces/shape";
+import type { IAsset } from "../game/core/interfaces/shapes/asset";
+import type { IToggleComposite } from "../game/core/interfaces/shapes/toggleComposite";
+import { compositeState } from "../game/core/layers/state";
+import type { FloorId } from "../game/core/models/floor";
+import type { ShapeOptions } from "../game/core/models/shapes";
+import type { SHAPE_TYPE } from "../game/core/shapes/types";
+import { floorSystem } from "../game/core/systems/floors";
+import { selectedSystem } from "../game/core/systems/selected";
+import { visionState } from "../game/core/vision/state";
 
 interface ActiveShapeState {
     id?: LocalId;
@@ -170,4 +170,4 @@ class ActiveShapeStore extends Store<ActiveShapeState> {
 
 export const activeShapeStore = new ActiveShapeStore();
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-(window as any).activeShapeStore = activeShapeStore;
+(self as any).activeShapeStore = activeShapeStore;

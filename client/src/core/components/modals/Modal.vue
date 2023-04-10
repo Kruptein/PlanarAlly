@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, onUnmounted, ref, watch, watchEffect } from "vue";
 
-import { clearDropCallback, registerDropCallback } from "../../../game/ui/firefox";
+import { clearDropCallback, registerDropCallback } from "../../../game/dom/ui/firefox";
 
 const props = withDefaults(defineProps<{ colour?: string; mask?: boolean; visible: boolean }>(), {
     colour: "white",

@@ -1,9 +1,9 @@
-import type { GlobalId } from "./game/id";
-import type { LayerName } from "./game/models/floor";
-import type { AuraId } from "./game/systems/auras/models";
-import type { ClientId } from "./game/systems/client/models";
-import type { PlayerId } from "./game/systems/players/models";
-import type { TrackerId } from "./game/systems/trackers/models";
+import type { GlobalId } from "./game/core/id";
+import type { LayerName } from "./game/core/models/floor";
+import type { AuraId } from "./game/core/systems/auras/models";
+import type { ClientId } from "./game/core/systems/client/models";
+import type { PlayerId } from "./game/core/systems/players/models";
+import type { TrackerId } from "./game/core/systems/trackers/models";
 
 export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiToggleCompositeShape
 

@@ -1,0 +1,104 @@
+import { computed, watch } from "vue";
+
+import { coreStore } from "../../../store/core";
+import { ToolMode, ToolName } from "../../core/models/tools";
+import type { ITool, ToolFeatures } from "../../core/models/tools";
+
+import { SelectFeatures } from "./models/select";
+// import { diceTool } from "./variants/dice";
+// import { drawTool } from "./variants/draw";
+// import { filterTool } from "./variants/filter";
+// import { lastGameboardTool } from "./variants/lastGameboard";
+// import { mapTool } from "./variants/map";
+import { activeTool, activeToolMode } from "./state";
+import { panTool } from "./variants/pan";
+// import { pingTool } from "./variants/ping";
+import { rulerTool } from "./variants/ruler";
+import { selectTool } from "./variants/select";
+// import { spellTool } from "./variants/spell";
+// import { visionTool } from "./variants/vision";
+
+const hasGameboard = coreStore.state.boardId !== undefined;
+
+export const toolMap: Record<ToolName, ITool> = {
+    [ToolName.Select]: selectTool,
+    [ToolName.Pan]: panTool,
+    // [ToolName.Draw]: drawTool,
+    [ToolName.Ruler]: rulerTool,
+    // [ToolName.Ping]: pingTool,
+    // [ToolName.Map]: mapTool,
+    // [ToolName.Filter]: filterTool,
+    // [ToolName.Vision]: visionTool,
+    // [ToolName.Spell]: spellTool,
+    // [ToolName.LastGameboard]: lastGameboardTool,
+    // [ToolName.Dice]: diceTool,
+};
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+(self as any).toolMap = toolMap;
+
+const buildTools: [ToolName, ToolFeatures][] = [
+    [ToolName.Select, {}],
+    [ToolName.Pan, {}],
+    [ToolName.Draw, {}],
+    [ToolName.Ruler, {}],
+    [ToolName.Map, {}],
+    [ToolName.Filter, {}],
+    [ToolName.Vision, {}],
+];
+let playTools: [ToolName, ToolFeatures][] = [
+    [ToolName.Select, { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate, SelectFeatures.PolygonEdit] }],
+    [ToolName.Pan, {}],
+    [ToolName.Spell, {}],
+    [ToolName.Ruler, {}],
+    [ToolName.Ping, {}],
+    [ToolName.Filter, {}],
+    [ToolName.Vision, {}],
+    [ToolName.Dice, {}],
+];
+
+if (hasGameboard) {
+    playTools = [
+        [ToolName.LastGameboard, {}],
+        [ToolName.Select, { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate] }],
+        [ToolName.Pan, {}],
+        [ToolName.Ruler, {}],
+        [ToolName.Ping, {}],
+    ];
+    activeTool.value = ToolName.LastGameboard;
+}
+
+export const dmTools = [ToolName.Map];
+
+export const activeModeTools = computed(() => (activeToolMode.value === ToolMode.Build ? buildTools : playTools));
+
+watch(activeTool, (newTool, oldTool) => {
+    toolMap[oldTool].onDeselect();
+    toolMap[newTool].onSelect();
+});
+
+export function getActiveTool(): ITool {
+    return toolMap[activeTool.value];
+}
+
+export function toggleActiveMode(): void {
+    activeToolMode.value = activeToolMode.value === ToolMode.Build ? ToolMode.Play : ToolMode.Build;
+
+    if (!buildTools.some((t) => t[0] === activeTool.value) || !playTools.some((t) => t[0] === activeTool.value)) {
+        activeTool.value = ToolName.Select;
+    }
+
+    const tool = getActiveTool();
+    for (const permitted of tool.permittedTools) {
+        if (!(permitted.early ?? false)) continue;
+        toolMap[permitted.name].onToolsModeChange(activeToolMode.value, permitted.features);
+    }
+    tool.onToolsModeChange(activeToolMode.value, getFeatures(activeTool.value));
+    for (const permitted of tool.permittedTools) {
+        if (permitted.early ?? false) continue;
+        toolMap[permitted.name].onToolsModeChange(activeToolMode.value, permitted.features);
+    }
+}
+
+export function getFeatures(tool: ToolName): ToolFeatures {
+    return activeModeTools.value.find((t) => t[0] === tool)?.[1] ?? {};
+}

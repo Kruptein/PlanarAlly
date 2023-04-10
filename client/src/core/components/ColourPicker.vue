@@ -3,7 +3,7 @@ import clamp from "lodash/clamp";
 import tinycolor from "tinycolor2";
 import { computed, nextTick, ref, watchEffect } from "vue";
 
-import { sendColourHistoryChanged } from "../../game/api/emits/user";
+import { sendColourHistoryChanged } from "../../game/core/api/emits/user";
 import { getInputPosition } from "../events";
 
 import { colourHistory } from "./store";

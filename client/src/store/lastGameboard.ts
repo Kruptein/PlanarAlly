@@ -3,17 +3,17 @@ import { throttle } from "lodash";
 import type { GlobalPoint } from "../core/geometry";
 import { SyncMode } from "../core/models/types";
 import { Store } from "../core/store";
-import { sendLgHideGridIds, sendLgShowGridIds, sendLgTokenConnect } from "../game/api/emits/lg";
-import { sendShapePositionUpdate } from "../game/api/emits/shape/core";
-import { getGlobalId, getShape } from "../game/id";
-import type { LocalId } from "../game/id";
-import type { IShape } from "../game/interfaces/shape";
-import { LayerName } from "../game/models/floor";
-import { rotateShapes } from "../game/operations/rotation";
-import { accessSystem } from "../game/systems/access";
-import type { ClientId } from "../game/systems/client/models";
-import { floorSystem } from "../game/systems/floors";
-import { floorState } from "../game/systems/floors/state";
+import { sendLgHideGridIds, sendLgShowGridIds, sendLgTokenConnect } from "../game/core/api/emits/lg";
+import { sendShapePositionUpdate } from "../game/core/api/emits/shape/core";
+import { getGlobalId, getShape } from "../game/core/id";
+import type { LocalId } from "../game/core/id";
+import type { IShape } from "../game/core/interfaces/shape";
+import { LayerName } from "../game/core/models/floor";
+import { rotateShapes } from "../game/core/operations/rotation";
+import { accessSystem } from "../game/core/systems/access";
+import type { ClientId } from "../game/core/systems/client/models";
+import { floorSystem } from "../game/core/systems/floors";
+import { floorState } from "../game/core/systems/floors/state";
 
 type BoardInfo = Map<string, { client: ClientId; xOffset: number; yOffset: number }>;
 
@@ -74,7 +74,7 @@ class LastGameboardStore extends Store<LastGameboardState> {
     }
 
     canAttach(position: GlobalPoint, typeId: number): IShape | null {
-        const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Tokens);
+        const layer = floorSystem.getLayer(floorState.readonly.currentFloor!, LayerName.Tokens);
         for (const shape of layer?.getShapes({ includeComposites: false, onlyInView: true }) ?? []) {
             // skip if we're already attached
             if (this.shapeMap.get(typeId) === shape.id && shape.contains(position)) return null;
@@ -156,4 +156,4 @@ class LastGameboardStore extends Store<LastGameboardState> {
 
 export const lastGameboardStore = new LastGameboardStore();
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-(window as any).lastGameboardStore = lastGameboardStore;
+(self as any).lastGameboardStore = lastGameboardStore;

@@ -1,14 +1,14 @@
 import type { ApiFloor } from "../src/apiTypes";
 import { toGP } from "../src/core/geometry";
-import { addServerFloor } from "../src/game/floor/server";
-import type { LocalId } from "../src/game/id";
-import { generateLocalId } from "../src/game/id";
-import type { IShape } from "../src/game/interfaces/shape";
-import { LayerName } from "../src/game/models/floor";
-import { Role } from "../src/game/models/role";
-import { Rect } from "../src/game/shapes/variants/rect";
-import { floorSystem } from "../src/game/systems/floors";
-import type { Player, PlayerId } from "../src/game/systems/players/models";
+import { addServerFloor } from "../src/game/core/floor/server";
+import type { LocalId } from "../src/game/core/id";
+import { generateLocalId } from "../src/game/core/id";
+import type { IShape } from "../src/game/core/interfaces/shape";
+import { LayerName } from "../src/game/core/models/floor";
+import { Role } from "../src/game/core/models/role";
+import { Rect } from "../src/game/core/shapes/variants/rect";
+import { floorSystem } from "../src/game/core/systems/floors";
+import type { Player, PlayerId } from "../src/game/core/systems/players/models";
 
 export function generateTestShape(options?: { floor?: string }): IShape {
     const rect = new Rect(toGP(0, 0), 0, 0);

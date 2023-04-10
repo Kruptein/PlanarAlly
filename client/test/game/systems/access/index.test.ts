@@ -1,15 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { NO_SYNC, SERVER_SYNC, UI_SYNC } from "../../../../src/core/models/types";
-import { socket } from "../../../../src/game/api/socket";
-import type { LocalId } from "../../../../src/game/id";
-import { accessSystem } from "../../../../src/game/systems/access";
-import { DEFAULT_ACCESS, DEFAULT_ACCESS_SYMBOL } from "../../../../src/game/systems/access/models";
-import type { ShapeAccess } from "../../../../src/game/systems/access/models";
-import { accessState } from "../../../../src/game/systems/access/state";
-import { gameSystem } from "../../../../src/game/systems/game";
-import { playerSystem } from "../../../../src/game/systems/players";
-import type { ShapeProperties } from "../../../../src/game/systems/properties/state";
+import { socket } from "../../../../src/game/core/api/socket";
+import type { LocalId } from "../../../../src/game/core/id";
+import { accessSystem } from "../../../../src/game/core/systems/access";
+import { DEFAULT_ACCESS, DEFAULT_ACCESS_SYMBOL } from "../../../../src/game/core/systems/access/models";
+import type { ShapeAccess } from "../../../../src/game/core/systems/access/models";
+import { accessState } from "../../../../src/game/core/systems/access/state";
+import { gameSystem } from "../../../../src/game/core/systems/game";
+import { playerSystem } from "../../../../src/game/core/systems/players";
+import type { ShapeProperties } from "../../../../src/game/core/systems/properties/state";
 import { coreStore } from "../../../../src/store/core";
 import { generatePlayer, generateTestLocalId } from "../../../helpers";
 
@@ -20,7 +20,7 @@ const removeOwnedTokenSpy = vi.spyOn(accessSystem, "removeOwnedToken");
 
 let GET_PROPERTIES_OVERRIDE: (() => Partial<ShapeProperties> | undefined) | undefined = undefined;
 vi.mock("../../../../src/game/systems/properties/state", async () => {
-    const state: Record<string, any> = await vi.importActual("../../../../src/game/systems/properties/state");
+    const state: Record<string, any> = await vi.importActual("../../../../src/game/core/systems/properties/state");
     return {
         ...state,
         getProperties: (localId: LocalId) => {

@@ -8,13 +8,13 @@ import {
     sendLocationRemove,
     sendLocationRename,
     sendLocationUnarchive,
-} from "../game/api/emits/location";
-import type { Location } from "../game/models/settings";
-import { gameState } from "../game/systems/game/state";
-import { playerSystem } from "../game/systems/players";
-import { playerState } from "../game/systems/players/state";
-import { locationSettingsSystem } from "../game/systems/settings/location";
-import { locationSettingsState } from "../game/systems/settings/location/state";
+} from "../game/core/api/emits/location";
+import type { Location } from "../game/core/models/settings";
+import { gameState } from "../game/core/systems/game/state";
+import { playerSystem } from "../game/core/systems/players";
+import { playerState } from "../game/core/systems/players/state";
+import { locationSettingsSystem } from "../game/core/systems/settings/location";
+import { locationSettingsState } from "../game/core/systems/settings/location/state";
 
 interface LocationState {
     playerLocations: Map<number, Set<string>>;
@@ -100,4 +100,4 @@ class LocationStore extends Store<LocationState> {
 
 export const locationStore = new LocationStore();
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-(window as any).locationStore = locationStore;
+(self as any).locationStore = locationStore;

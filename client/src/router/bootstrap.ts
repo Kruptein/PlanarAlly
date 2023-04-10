@@ -18,7 +18,7 @@ const Dashboard = () => import("../dashboard/Dashboard.vue");
 const ImportGame = () => import("../dashboard/games/ImportGame.vue");
 const ExportGame = () => import("../dashboard/games/ExportGame.vue");
 // Main game
-const Game = () => import("../game/Game.vue");
+const Game = () => import("../game/dom/Game.vue");
 
 const routes: RouteRecordRaw[] = [
     {

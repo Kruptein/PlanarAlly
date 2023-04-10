@@ -1,6 +1,7 @@
 import tinycolor from "tinycolor2";
 
-import type { GlobalId } from "../game/id";
+import type { CanvasContext } from "../game/core/canvas";
+import type { GlobalId } from "../game/core/id";
 
 // Reference: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
 export function uuidv4(): GlobalId {
@@ -28,7 +29,7 @@ export function randomInterval(min: number, max: number): number {
     return Math.random() * (max - min) + min;
 }
 
-export function calcFontScale(ctx: CanvasRenderingContext2D, text: string, r: number): number {
+export function calcFontScale(ctx: CanvasContext, text: string, r: number): number {
     const fontWidth = ctx.measureText(text).width;
     const fontSize = Number(ctx.font.split("px")[0]) * 1.5;
     return (Math.cos(Math.atan(fontSize / fontWidth)) * 2 * r) / fontWidth;
@@ -45,9 +46,10 @@ export async function getErrorReason(response: Response): Promise<string> {
     return responseText;
 }
 
-export function ctrlOrCmdPressed(event: KeyboardEvent | MouseEvent | TouchEvent): boolean {
-    if (navigator.platform.includes("Mac")) return event.metaKey;
-    return event.ctrlKey;
+export function ctrlOrCmdPressed(pressed: { meta: boolean; ctrl: boolean } | undefined): boolean {
+    if (pressed === undefined) return false;
+    if (navigator.platform.includes("Mac")) return pressed.meta;
+    return pressed.ctrl;
 }
 
 const readableMemory = new Map<string, string>();

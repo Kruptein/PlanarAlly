@@ -243,4 +243,4 @@ class AssetStore extends Store<AssetState> {
 }
 export const assetStore = new AssetStore();
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-(window as any).assetStore = assetStore;
+(self as any).assetStore = assetStore;

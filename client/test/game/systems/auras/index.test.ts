@@ -8,10 +8,10 @@ vi.mock("../../../../src/store/activeShape", () => ({
 }));
 
 import { NO_SYNC, SERVER_SYNC, UI_SYNC } from "../../../../src/core/models/types";
-import { socket } from "../../../../src/game/api/socket";
-import { compositeState } from "../../../../src/game/layers/state";
-import { auraSystem } from "../../../../src/game/systems/auras";
-import { visionState } from "../../../../src/game/vision/state";
+import { socket } from "../../../../src/game/core/api/socket";
+import { compositeState } from "../../../../src/game/core/layers/state";
+import { auraSystem } from "../../../../src/game/core/systems/auras";
+import { visionState } from "../../../../src/game/core/vision/state";
 import { generateTestLocalId, generateTestShape } from "../../../helpers";
 
 import { generateTestAura, generateTestAuraId } from "./helpers";

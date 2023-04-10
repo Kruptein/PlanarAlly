@@ -1,6 +1,6 @@
 // random helpers for interacting with local storage
 
-export const debugLayers = localStorage.getItem("PA_DEBUG_INVALIDATE_DRAW") === "true";
+export const debugLayers = false; // localStorage?.getItem("PA_DEBUG_INVALIDATE_DRAW") === "true";
 
 export function getLocalStorageObject(key: string): unknown | undefined {
     const data = localStorage.getItem(key);

@@ -21,7 +21,7 @@ class CoreStore extends Store<CoreState> {
             loading: false,
             version: { release: "", env: "" },
             changelog: "",
-            boardId: window.Gameboard?.getBoardId(),
+            boardId: undefined, // window.Gameboard?.getBoardId(),
         };
     }
 
@@ -31,8 +31,12 @@ class CoreStore extends Store<CoreState> {
 
     setAuthenticated(authenticated: boolean): void {
         this._state.authenticated = authenticated;
-        if (authenticated && !socket.connected) socket.connect();
-        else if (!authenticated && socket.connected) socket.disconnect();
+        if (authenticated && !socket.connected) {
+            socket.connect();
+        } else if (!authenticated && socket.connected) {
+            console.error("Socket without authentication found. Disconnecting.");
+            socket.disconnect();
+        }
     }
 
     setLoading(loading: boolean): void {
@@ -58,4 +62,4 @@ class CoreStore extends Store<CoreState> {
 
 export const coreStore = new CoreStore();
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-(window as any).coreStore = coreStore;
+(self as any).coreStore = coreStore;

@@ -1,6 +1,6 @@
-import { DEFAULT_GRID_SIZE, positionState } from "../game/systems/position/state";
-import { locationSettingsState } from "../game/systems/settings/location/state";
-import { playerSettingsState } from "../game/systems/settings/players/state";
+import { DEFAULT_GRID_SIZE, positionState } from "../game/core/systems/position/state";
+import { locationSettingsState } from "../game/core/systems/settings/location/state";
+import { playerSettingsState } from "../game/core/systems/settings/players/state";
 
 import { Ray, toGP, toLP } from "./geometry";
 import type { GlobalPoint, LocalPoint } from "./geometry";
@@ -79,6 +79,6 @@ export function zoomDisplayToFactor(display: number): number {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-(window as any).g2l = g2l;
+(self as any).g2l = g2l;
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-(window as any).l2g = l2g;
+(self as any).l2g = l2g;

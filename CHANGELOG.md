@@ -10,6 +10,13 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+WIP
+<--
+- floor settings click no longer propogates and selects the floor
+
+
+-->
+
 ### Changed
 
 -   Templates no longer save certain settings

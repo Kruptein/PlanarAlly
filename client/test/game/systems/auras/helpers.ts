@@ -1,5 +1,5 @@
 import { uuidv4 } from "../../../../src/core/utils";
-import type { Aura, AuraId } from "../../../../src/game/systems/auras/models";
+import type { Aura, AuraId } from "../../../../src/game/core/systems/auras/models";
 
 export function generateTestAuraId(): AuraId {
     return uuidv4() as unknown as AuraId;

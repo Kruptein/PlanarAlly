@@ -125,22 +125,22 @@ class FloorSystem implements System {
         void postUi("Floors.Set", mutable.floors);
     }
 
-    updateLayerVisibility(): void {
-        const data: { name: string; visible: boolean }[] = [];
+    updateLayerVisibility(indices?: Map<string, string>): void {
+        const data: { name: string; visible: boolean; index?: string }[] = [];
         for (const [fI, f] of floorState.readonly.floors.entries()) {
             const hideFloor = playerSettingsState.raw.renderAllFloors.value
                 ? fI > floorState.readonly.floorIndex
                 : fI !== floorState.readonly.floorIndex;
             for (const layer of this.getLayers(f)) {
                 if (layer.name === LayerName.Vision) continue;
-                data.push({ name: `${f.id}-${layer.name}`, visible: !hideFloor });
+                const layerIdentifier = `${f.id}-${layer.name}`;
+                data.push({ name: layerIdentifier, visible: !hideFloor, index: indices?.get(layerIdentifier) });
             }
         }
         void postUi("Canvas.Visibility", data);
     }
 
     selectFloor(targetFloor: FloorRepresentation, sync: boolean): void {
-        console.warn("Selecting floor", targetFloor);
         const targetFloorIndex = this.getFloorIndex(targetFloor);
         if (targetFloorIndex === floorState.readonly.floorIndex || targetFloorIndex === undefined) return;
 

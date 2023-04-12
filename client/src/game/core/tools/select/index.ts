@@ -99,7 +99,7 @@ function onDown(lp: LocalPoint, features: ToolFeatures<SelectFeatures>, pressed:
     //     await rulerTool.onDown(lp, event);
     // }
     if (selectCoreState.mode !== SelectOperations.Noop) {
-        postUi("Tool.Active.Set", { name: ToolName.Select, active: true });
+        void postUi("Tool.Active.Set", { name: ToolName.Select, active: true });
     }
 }
 
@@ -160,7 +160,7 @@ async function onMove(
             selectCursor.updateCursor(gp, features);
         }
     } else {
-        postUi("Cursor.Set", "default");
+        await postUi("Cursor.Set", "default");
     }
 }
 

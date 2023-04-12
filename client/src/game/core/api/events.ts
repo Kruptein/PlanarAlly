@@ -15,7 +15,7 @@ import "./events/lg";
 import "./events/location";
 import "./events/logic";
 import "./events/notification";
-// import "./events/player/options";
+import "./events/player/options";
 import "./events/player/player";
 import "./events/player/players";
 import "./events/room";

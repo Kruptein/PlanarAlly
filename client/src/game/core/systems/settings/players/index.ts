@@ -105,7 +105,7 @@ class PlayerSettingsSystem implements System {
         $.useHighDpi.override = useHighDpi;
         if (options.default !== undefined) $.useHighDpi.default = options.default;
         $.useHighDpi.value = useHighDpi ?? $.useHighDpi.default;
-        floorSystem.resize(window.innerWidth, window.innerHeight);
+        // floorSystem.resize(window.innerWidth, window.innerHeight);
         if (options.sync) sendRoomClientOptions("use_high_dpi", useHighDpi, options.default);
     }
 

@@ -57,13 +57,13 @@ export function setCanvasDimensions(canvas: HTMLCanvasElement, width: number, he
     // canvas.getContext("2d")?.scale(pixelRatio, pixelRatio);
 }
 
-export function updateCanvasVisibility(data: { name: string; visible: boolean }[]): void {
-    console.warn(data);
+export function updateCanvasVisibility(data: { name: string; visible: boolean; index?: string }[]): void {
     for (const el of data) {
         const canvas = document.getElementById(el.name);
         if (canvas === null) {
             console.error(`Broken canvas links detected (${el.name})`);
         } else {
+            if (el.index !== undefined) canvas.style.zIndex = el.index;
             canvas.style.visibility = el.visible ? "visible" : "hidden";
         }
     }

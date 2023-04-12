@@ -1,3 +1,5 @@
+import { watch } from "vue";
+
 import type { Floor } from "../models/floor";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
@@ -5,7 +7,13 @@ import { positionSystem } from "../systems/position";
 import { positionState } from "../systems/position/state";
 import { playerSettingsState } from "../systems/settings/players/state";
 
+import { useFps } from "./a";
+
 let _animationFrameId = 0;
+
+const fps = useFps();
+
+watch(fps, (fps) => console.log(fps));
 
 export function startDrawLoop(): void {
     _animationFrameId = requestAnimationFrame(drawLoop);

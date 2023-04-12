@@ -6,11 +6,11 @@ import type { ITool, ToolFeatures } from "../../core/models/tools";
 
 import { SelectFeatures } from "./models/select";
 // import { diceTool } from "./variants/dice";
-// import { drawTool } from "./variants/draw";
 // import { filterTool } from "./variants/filter";
 // import { lastGameboardTool } from "./variants/lastGameboard";
 // import { mapTool } from "./variants/map";
 import { activeTool, activeToolMode } from "./state";
+import { drawTool } from "./variants/draw";
 import { panTool } from "./variants/pan";
 // import { pingTool } from "./variants/ping";
 import { rulerTool } from "./variants/ruler";
@@ -23,7 +23,7 @@ const hasGameboard = coreStore.state.boardId !== undefined;
 export const toolMap: Record<ToolName, ITool> = {
     [ToolName.Select]: selectTool,
     [ToolName.Pan]: panTool,
-    // [ToolName.Draw]: drawTool,
+    [ToolName.Draw]: drawTool,
     [ToolName.Ruler]: rulerTool,
     // [ToolName.Ping]: pingTool,
     // [ToolName.Map]: mapTool,

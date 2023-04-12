@@ -28,9 +28,10 @@ export abstract class Tool implements ITool {
         );
     }
 
-    onKeyUp(event: KeyboardEvent, _features: ToolFeatures): void {
-        if (event.defaultPrevented) return;
+    onKeyUp(event: KeyboardEvent, _features: ToolFeatures): Promise<void> {
+        if (event.defaultPrevented) return Promise.resolve();
         onKeyUp(event);
+        return Promise.resolve();
     }
 
     async onMouseDown(event: MouseEvent | TouchEvent, features: ToolFeatures): Promise<void> {

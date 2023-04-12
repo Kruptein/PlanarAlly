@@ -10,7 +10,7 @@ import type { DomMessages } from "../types";
 // Handle messages from core to UI
 export async function handleMessage(data: DomMessages): Promise<void> {
     const msg = data.msg;
-    console.debug("[UI] Handling", msg);
+    // console.debug("[UI] Handling", msg);
     if (msg === "Canvas.Visibility") {
         updateCanvasVisibility(data.options);
     } else if (msg === "Cursor.Set") {

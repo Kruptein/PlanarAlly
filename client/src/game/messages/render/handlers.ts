@@ -6,6 +6,7 @@ import { keyboardPan } from "../../core/input/keyboard/down";
 import { floorSystem } from "../../core/systems/floors";
 import { floorState } from "../../core/systems/floors/state";
 import { selectedSystem } from "../../core/systems/selected";
+import { drawCoreTool } from "../../core/tools/draw";
 import { mousePan } from "../../core/tools/pan";
 import { rulerCoreTool } from "../../core/tools/ruler";
 import { selectCoreTool } from "../../core/tools/select";
@@ -15,7 +16,7 @@ import type { WorkerMessages } from "../types";
 // Handle messages from UI to core
 export async function handleMessage(data: WorkerMessages): Promise<void> {
     const msg = data.msg;
-    console.debug("[WORKER] Handling", msg);
+    // console.debug("[WORKER] Handling", msg);
     if (msg === "Floor.Background.Set") {
         const { id, background } = data.options;
         floorSystem.setFloorBackground({ id }, background, true);
@@ -46,6 +47,17 @@ export async function handleMessage(data: WorkerMessages): Promise<void> {
     } else if (msg === "Keyboard.Pan") {
         const { code, shiftPressed } = data.options;
         await keyboardPan(code, shiftPressed);
+    } else if (msg === "Tool.Draw.Down") {
+        const { lp, state, pressed } = data.options;
+        await drawCoreTool.onDown(lp, state, pressed);
+    } else if (msg === "Tool.Draw.Move") {
+        const { lp, pressed } = data.options;
+        drawCoreTool.onMove(lp, pressed);
+    } else if (msg === "Tool.Draw.Select") {
+        await drawCoreTool.onSelect(undefined, data.options);
+    } else if (msg === "Tool.Draw.Up") {
+        const { lp, pressed } = data.options;
+        await drawCoreTool.onUp(lp, pressed);
     } else if (msg === "Tool.Pan") {
         const { origin, target, full } = data.options;
         mousePan(origin, target, full);

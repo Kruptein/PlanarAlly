@@ -2,6 +2,7 @@ import type { RouteParams } from "vue-router";
 
 import type { LocalPoint } from "../../core/geometry";
 import type { PressedModifiers } from "../common/events";
+import type { DrawToolState } from "../common/tools/draw";
 import type { Canvas } from "../core/canvas";
 import type { LocalId } from "../core/id";
 import type { Floor, FloorId, FloorIndex, LayerName, FloorType } from "../core/models/floor";
@@ -30,6 +31,13 @@ type CreateLayerMsg = Message<
     { canvas: Canvas; name: LayerName; floorId: FloorId; width: number; height: number }
 >;
 type SelectLayerMsg = Message<"Layer.Select", { name: LayerName }>;
+type DrawToolDownMsg = Message<
+    "Tool.Draw.Down",
+    { lp: LocalPoint; state: DrawToolState; pressed: PressedModifiers | undefined }
+>;
+type DrawToolMoveMsg = Message<"Tool.Draw.Move", { lp: LocalPoint; pressed: PressedModifiers | undefined }>;
+type DrawToolSelectMsg = Message<"Tool.Draw.Select", DrawToolState>;
+type DrawToolUpMsg = Message<"Tool.Draw.Up", { lp: LocalPoint; pressed: PressedModifiers | undefined }>;
 type PanToolMsg = Message<"Tool.Pan", { origin: LocalPoint; target: LocalPoint; full: boolean }>;
 type RulerToolCleanupMsg = Message<"Tool.Ruler.Cleanup">;
 type RulerToolDownMsg = Message<"Tool.Ruler.Down", { lp: LocalPoint; pressed: PressedModifiers | undefined }>;
@@ -66,6 +74,10 @@ export type WorkerMessages =
     | KeyboardPanMsg
     | CreateLayerMsg
     | SelectLayerMsg
+    | DrawToolDownMsg
+    | DrawToolMoveMsg
+    | DrawToolSelectMsg
+    | DrawToolUpMsg
     | PanToolMsg
     | RulerToolCleanupMsg
     | RulerToolDownMsg
@@ -80,7 +92,7 @@ export type WorkerMessages =
 
 // Worker -> UI
 
-type CanvasVisibilityMsg = Message<"Canvas.Visibility", { name: string; visible: boolean }[]>;
+type CanvasVisibilityMsg = Message<"Canvas.Visibility", { name: string; visible: boolean; index?: string }[]>;
 type SetCursorMsg = Message<"Cursor.Set", string>;
 type CreateFloorMsg = Message<"Floor.Create", { floorId: FloorId; layers: LayerName[]; selectFloor: boolean }>;
 type SetFloorIndexMsg = Message<

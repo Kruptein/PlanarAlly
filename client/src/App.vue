@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import { useFps } from "@vueuse/core";
 import { computed, ref } from "vue";
 
 import { baseAdjust } from "./core/http";
 import { coreStore } from "./store/core";
 
 const hasGameboard = coreStore.state.boardId !== undefined;
+
+// const fps = useFps({ every: 30 });
 
 const webmError = ref(false);
 const webmStart = hasGameboard ? 0 : 2 * Math.floor(Math.random() * 5);
@@ -14,6 +17,9 @@ const loading = computed(() => coreStore.state.loading);
 </script>
 
 <template>
+    <div id="fps">
+        <!-- {{ fps }} -->
+    </div>
     <div id="app">
         <div v-show="loading" id="loading">
             <video
@@ -107,5 +113,14 @@ a:visited,
 a:hover,
 a:active {
     color: inherit;
+}
+
+#fps {
+    position: absolute;
+    top: 10em;
+    left: 10em;
+    z-index: 9999;
+    color: white;
+    background-color: black;
 }
 </style>

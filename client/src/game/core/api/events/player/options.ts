@@ -110,7 +110,8 @@ socket.on("Player.Options.Set", (options: PlayerOptionsSet) => {
             default: false,
         });
     } else {
-        playerSettingsSystem.setRenderAllFloors(roomOptions?.renderAllFloors, {
+        playerSettingsSystem.setRenderAllFloors(true, {
+            // roomOptions?.renderAllFloors, {
             sync: false,
             default: defaultOptions.renderAllFloors,
         });

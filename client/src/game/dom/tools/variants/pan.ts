@@ -18,7 +18,7 @@ class PanTool extends Tool implements ITool {
     }
 
     panScreen(target: LocalPoint, full: boolean): void {
-        postRender("Tool.Pan", { origin: this.panStart, target, full });
+        void postRender("Tool.Pan", { origin: this.panStart, target, full });
         this.panStart = target;
     }
 

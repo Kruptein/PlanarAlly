@@ -46,6 +46,7 @@ tech changes will usually be stripped from release notes for the public
 -   Rendering: Grid not rendering horizontal lines when the width is smaller than the height of the screen
 -   Select: Rotation UI should stay consistent when zooming
 -   LocationBar: Fix width on drag handle for multiline locations
+-   Properties: Invisible toggle not applying until a refresh for players
 -   [server] Subpath: 2 cases where subpath based setup was not properly loading images (initiative & change asset)
 
 ## [2023.1.0] - 2023-02-14

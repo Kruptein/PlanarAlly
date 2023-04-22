@@ -44,7 +44,7 @@ socket.on(
 
 socket.on(
     "Shape.Options.Invisible.Set",
-    wrapSystemCall<ShapeSetBooleanValue>(propertiesSystem.setIsToken.bind(propertiesSystem)),
+    wrapSystemCall<ShapeSetBooleanValue>(propertiesSystem.setIsInvisible.bind(propertiesSystem)),
 );
 
 socket.on(

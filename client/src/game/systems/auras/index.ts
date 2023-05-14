@@ -12,6 +12,7 @@ import { compositeState } from "../../layers/state";
 import { LayerName } from "../../models/floor";
 import { visionState } from "../../vision/state";
 import { accessSystem } from "../access";
+import { accessState } from "../access/state";
 import { gameState } from "../game/state";
 import { selectedSystem } from "../selected";
 
@@ -119,7 +120,7 @@ class AuraSystem implements ShapeSystem {
         }
         auras.push(...(this.data.get(id) ?? []));
 
-        if (gameState.raw.isFakePlayer) {
+        if (gameState.raw.isFakePlayer || !accessState.activeTokens.value.has(id)) {
             if (!accessSystem.hasAccessTo(id, true, { vision: true })) return [...filter(auras, (a) => a.visible)];
         }
 

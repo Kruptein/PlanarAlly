@@ -89,7 +89,7 @@ class InitiativeStore extends Store<InitiativeState> {
 
         if (!this._state.manuallyOpened) this.setActive(data.isActive);
         this.setRoundCounter(data.round, false);
-        this.setTurnCounter(data.turn, false);
+        this.setTurnCounter(data.turn, { sync: false, updateEffects: false });
         this._state.sort = data.sort;
     }
 
@@ -188,25 +188,28 @@ class InitiativeStore extends Store<InitiativeState> {
 
     // TURN / ROUND TRACKING
 
-    setTurnCounter(turn: number, sync: boolean): void {
-        if (sync && !gameState.raw.isDm && !this.owns()) return;
+    setTurnCounter(turn: number, options: { sync: boolean; updateEffects: boolean }): void {
+        if (options.sync && !gameState.raw.isDm && !this.owns()) return;
         this._state.turnCounter = turn;
 
-        const actor = this.getDataSet()[this._state.turnCounter];
-        if (actor === undefined) return;
+        if (options.updateEffects) {
+            const actor = this.getDataSet()[this._state.turnCounter];
+            if (actor === undefined) return;
 
-        if (actor.effects.length > 0) {
-            for (let e = actor.effects.length - 1; e >= 0; e--) {
-                const turns = +actor.effects[e]!.turns;
-                if (!isNaN(turns)) {
-                    if (turns <= 0) actor.effects.splice(e, 1);
-                    else actor.effects[e]!.turns = (turns - 1).toString();
+            if (actor.effects.length > 0) {
+                for (let e = actor.effects.length - 1; e >= 0; e--) {
+                    const turns = +actor.effects[e]!.turns;
+                    if (!isNaN(turns)) {
+                        if (turns <= 0) actor.effects.splice(e, 1);
+                        else actor.effects[e]!.turns = (turns - 1).toString();
+                    }
                 }
             }
         }
+
         this.handleCameraLock();
         this.handleVisionLock();
-        if (sync) sendInitiativeTurnUpdate(turn);
+        if (options.sync) sendInitiativeTurnUpdate(turn);
     }
 
     setRoundCounter(round: number, sync: boolean): void {
@@ -215,7 +218,7 @@ class InitiativeStore extends Store<InitiativeState> {
         if (sync) {
             sendInitiativeRoundUpdate(round);
             if (this.getDataSet().length > 0) {
-                this.setTurnCounter(0, sync);
+                this.setTurnCounter(0, { sync, updateEffects: true });
             }
         }
     }
@@ -225,7 +228,7 @@ class InitiativeStore extends Store<InitiativeState> {
         if (this._state.turnCounter === this.getDataSet().length - 1) {
             this.setRoundCounter(this._state.roundCounter + 1, true);
         } else {
-            this.setTurnCounter(this._state.turnCounter + 1, true);
+            this.setTurnCounter(this._state.turnCounter + 1, { sync: true, updateEffects: true });
         }
     }
 
@@ -233,9 +236,9 @@ class InitiativeStore extends Store<InitiativeState> {
         if (!gameState.raw.isDm) return;
         if (this._state.turnCounter === 0) {
             this.setRoundCounter(this._state.roundCounter - 1, true);
-            this.setTurnCounter(this.getDataSet().length - 1, true);
+            this.setTurnCounter(this.getDataSet().length - 1, { sync: true, updateEffects: true });
         } else {
-            this.setTurnCounter(this._state.turnCounter - 1, true);
+            this.setTurnCounter(this._state.turnCounter - 1, { sync: true, updateEffects: true });
         }
     }
 

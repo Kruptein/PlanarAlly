@@ -284,9 +284,30 @@ async def remove_initiative(sid: str, data: str):
     with db.atomic():
         location_data = Initiative.get(location=pr.active_location)
         json_data = json.loads(location_data.data)
+
         location_data.data = json.dumps(
             [initiative for initiative in json_data if initiative["shape"] != data]
         )
+
+        shape_turn = next(i for i, v in enumerate(json_data) if v["shape"] == data)
+
+        if shape_turn < location_data.turn or shape_turn == len(json_data) - 1:
+            location_data.turn -= 1
+            await _send_game(
+                "Initiative.Turn.Set",
+                location_data.turn,
+                room=pr.active_location.get_path(),
+            )
+        elif shape_turn == location_data.turn:
+            # In this case we just want to proceed to the next actor in line as if we normally would advance
+            # And thus process effects
+            location_data.turn -= 1
+            await _send_game(
+                "Initiative.Turn.Update",
+                location_data.turn,
+                room=pr.active_location.get_path(),
+            )
+
         location_data.save()
 
     await _send_game(
@@ -348,35 +369,51 @@ async def update_initiative_turn(sid: str, turn: int):
     location_data: Initiative = Initiative.get(location=pr.active_location)
     json_data = json.loads(location_data.data)
 
-    shape = Shape.get_or_none(uuid=json_data[location_data.turn]["shape"])
-
-    if shape is None:
-        logger.warning("Attempt to modify the initiative turn for an unknown shape")
-
-    if shape is not None and pr.role != Role.DM and not has_ownership(shape, pr):
-        logger.warning(f"{pr.player.name} attempted to advance the initiative tracker")
+    if turn < 0 or turn >= len(json_data):
+        logger.warning("Provided turn is out of bounds.")
         return
 
-    with db.atomic():
-        next_turn = turn > location_data.turn
+    db_turn_valid = 0 <= location_data.turn < len(json_data)
+
+    if db_turn_valid:
+        shape = Shape.get_or_none(uuid=json_data[location_data.turn]["shape"])
+
+        if shape is None:
+            # don't return here, there is something wrong but we don't want initiative to get stuck on this if possible
+            # we only need the shape to check ownership, so we can safely ignore it if the shape is unknown and
+            # proceed to the next turn
+            logger.warning("Attempt to modify the initiative turn for an unknown shape")
+        elif pr.role != Role.DM and not has_ownership(shape, pr):
+            logger.warning(
+                f"{pr.player.name} attempted to advance the initiative tracker"
+            )
+            return
+
+        with db.atomic():
+            next_turn = turn > location_data.turn
+            location_data.turn = turn
+
+            for i, _effect in enumerate(json_data[turn]["effects"][-1:]):
+                try:
+                    turns = int(_effect["turns"])
+                    if turns <= 0 and next_turn:
+                        json_data[turn]["effects"].pop(i)
+                    elif turns > 0 and next_turn:
+                        _effect["turns"] = str(turns - 1)
+                    else:
+                        _effect["turns"] = str(turns + 1)
+                except ValueError:
+                    # For non-number inputs do not update the effect
+                    pass
+
+            location_data.data = json.dumps(json_data)
+    else:
+        logger.error(
+            "!DB turn state was invalid! Hard setting turn without effect processing."
+        )
         location_data.turn = turn
 
-        for i, _effect in enumerate(json_data[turn]["effects"][-1:]):
-            try:
-                turns = int(_effect["turns"])
-                if turns <= 0 and next_turn:
-                    json_data[turn]["effects"].pop(i)
-                elif turns > 0 and next_turn:
-                    _effect["turns"] = str(turns - 1)
-                else:
-                    _effect["turns"] = str(turns + 1)
-            except ValueError:
-                # For non-number inputs do not update the effect
-                pass
-
-        location_data.data = json.dumps(json_data)
-
-        location_data.save()
+    location_data.save()
 
     await _send_game(
         "Initiative.Turn.Update", turn, room=pr.active_location.get_path(), skip_sid=sid

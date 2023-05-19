@@ -48,6 +48,7 @@ tech changes will usually be stripped from release notes for the public
 -   LocationBar: Fix width on drag handle for multiline locations
 -   Properties: Invisible toggle not applying until a refresh for players
 -   Initiative: Vision lock not properly checking active tokens
+-   Initiative: Removing the last entry while it's active could break initiative
 -   [server] Subpath: 2 cases where subpath based setup was not properly loading images (initiative & change asset)
 
 ## [2023.1.0] - 2023-02-14

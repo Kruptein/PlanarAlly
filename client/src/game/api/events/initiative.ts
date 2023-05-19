@@ -15,7 +15,12 @@ socket.on("Initiative.Set", (data: ApiInitiative) => initiativeStore.setData(dat
 socket.on("Initiative.Active.Set", (isActive: boolean) => initiativeStore.setActive(isActive));
 socket.on("Initiative.Remove", (data: GlobalId) => initiativeStore.removeInitiative(data, false));
 
-socket.on("Initiative.Turn.Update", (turn: number) => initiativeStore.setTurnCounter(turn, false));
+socket.on("Initiative.Turn.Update", (turn: number) =>
+    initiativeStore.setTurnCounter(turn, { sync: false, updateEffects: true }),
+);
+socket.on("Initiative.Turn.Set", (turn: number) =>
+    initiativeStore.setTurnCounter(turn, { sync: false, updateEffects: false }),
+);
 socket.on("Initiative.Round.Update", (round: number) => initiativeStore.setRoundCounter(round, false));
 socket.on("Initiative.Effect.New", (data: InitiativeEffectNew) => {
     initiativeStore.createEffect(data.actor, data.effect, false);

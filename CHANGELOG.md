@@ -22,6 +22,7 @@ tech changes will usually be stripped from release notes for the public
 -   Group: Shape group settings fixes
     -   Create group button was not properly behaving
     -   Remove group button was not immediately updating the UI until a reselection
+-   Group: Fix socket events no longer being listened to; Fixes multiple things that were resolved when you refreshed
 -   Auth: A logic error in the auth routing code - in some cases you had to manually go to the login page
 -   Templates: Missing some settings when saved
 -   Fake Player: Proper rework of access handling

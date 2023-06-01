@@ -534,7 +534,7 @@ class DrawTool extends Tool implements ITool {
                 const br = this.shape as Polygon;
                 const points = br.points; // expensive call
                 if (equalPoints(points.at(-1)!, [endPoint.x, endPoint.y])) return Promise.resolve();
-                br.pushPoint(endPoint);
+                br.pushPoint(endPoint, { simplifyEnd: true });
                 break;
             }
             case DrawShape.Polygon: {

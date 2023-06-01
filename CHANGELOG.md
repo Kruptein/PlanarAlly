@@ -50,6 +50,7 @@ tech changes will usually be stripped from release notes for the public
 -   Initiative: Vision lock not properly checking active tokens
 -   Initiative: Removing the last entry while it's active could break initiative
 -   Vision: Edgecase that could cause an infinite loop when drawing vision lines
+-   Draw: Reduced number of points in brush mode significantly
 -   [server] Subpath: 2 cases where subpath based setup was not properly loading images (initiative & change asset)
 
 ## [2023.1.0] - 2023-02-14

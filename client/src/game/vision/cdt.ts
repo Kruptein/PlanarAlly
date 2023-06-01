@@ -30,7 +30,7 @@ export class CDT {
     }
     insertConstraint(a: Point, b: Point): { va: Vertex; vb: Vertex } {
         const va = this.insert(a);
-        const vb = this.insert(b);
+        const vb = this.insert(b, va.triangle);
         if (va !== vb) this.insertConstraintV(va, vb);
         return { va, vb };
     }
@@ -757,7 +757,11 @@ export class CDT {
             if (c.isInfinite()) {
                 return { loc: c, lt: LocateType.OUTSIDE_CONVEX_HULL, li: c.indexV(this.tds._infinite) };
             }
-            const leftFirst = 0; // Math.round(Math.random());
+            // This random coin toss decides whether the code goes left or right
+            // This is important because there are (extreme) edgecases where constantly going left can
+            // introduce an infinite loop of multiple chains long
+            // whereas sometimes going right can alleviate this
+            const leftFirst = Math.round(Math.random());
             const p0 = c.vertices[0]!.point!;
             const p1 = c.vertices[1]!.point!;
             const p2 = c.vertices[2]!.point!;

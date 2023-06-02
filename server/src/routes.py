@@ -1,23 +1,18 @@
-from functools import partial
 import os
 import sys
+from functools import partial
 
 import aiohttp
 from aiohttp import web
 
 from .api import http
+from .api.http import auth, notifications, rooms, server, users, version
 from .api.http.admin import campaigns
 from .api.http.admin import users as admin_users
-from .api.http import auth
-from .api.http import notifications
-from .api.http import rooms
-from .api.http import server
-from .api.http import users
-from .api.http import version
-from .app import admin_app, api_app, app as main_app
+from .app import admin_app, api_app
+from .app import app as main_app
 from .config import config
 from .utils import ASSETS_DIR, FILE_DIR, STATIC_DIR
-
 
 subpath = os.environ.get("PA_BASEPATH", "/")
 if subpath[-1] == "/":

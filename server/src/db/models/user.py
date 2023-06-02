@@ -20,7 +20,7 @@ class User(BaseDbModel):
     rooms_created: SelectSequence["Room"]
     rooms_joined: SelectSequence["PlayerRoom"]
 
-    name = cast(str, TextField())
+    name = cast(str, TextField(unique=True))
     email = TextField(null=True)
     password_hash = cast(str, TextField())
     default_options = cast(
@@ -63,3 +63,5 @@ class User(BaseDbModel):
         default_options.save()
         u.default_options = default_options
         u.save()
+
+        return u

@@ -9,6 +9,8 @@ server/**/__pycache__/**
 server/venv
 server/oldsaves
 server/static/temp/**
+server/.coverage
+server/coverage.xml
 .mypy**
 .venv
 venv/

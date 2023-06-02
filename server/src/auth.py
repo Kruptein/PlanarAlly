@@ -8,6 +8,7 @@ from typing_extensions import Literal
 
 from .db.models.constants import Constants
 from .db.models.user import User
+from .typed import TypedAsyncServer
 
 logger = logging.getLogger("PlanarAllyServer")
 
@@ -31,7 +32,9 @@ class AuthPolicy(AbstractAuthorizationPolicy):
 
 
 def login_required(
-    app, sio, state: Union[Literal["game"], Literal["asset"], Literal["dashboard"]]
+    app,
+    sio: TypedAsyncServer,
+    state: Union[Literal["game"], Literal["asset"], Literal["dashboard"]],
 ):
     """
     Decorator that restrict access only for authorized users in a websocket context.
@@ -44,7 +47,7 @@ def login_required(
             if not app["state"]["asset"].has_sid(sid) and not app["state"][
                 state
             ].has_sid(sid):
-                await sio.emit("redirect", "/")
+                await sio.emit("redirect", "/", namespace="/planarally")
                 return
             return await fn(*args, **kwargs)
 

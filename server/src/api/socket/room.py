@@ -4,7 +4,6 @@ from ... import auth
 from ...api.socket.constants import GAME_NS
 from ...app import app, sio
 from ...db.models.player_room import PlayerRoom
-from ...db.models.user import User
 from ...logs import logger
 from ...models.role import Role
 from ...state.game import game_state
@@ -42,22 +41,21 @@ async def kick_player(sid: str, player_id: int):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
-        logger.warning(f"{pr.player.name} attempted to refresh the invitation code.")
+        logger.warning(f"{pr.player.name} attempted to kick a player.")
         return
 
-    pr = PlayerRoom.get_or_none(player=player_id, room=pr.room)
-    if pr is None:
+    target_pr = PlayerRoom.get_or_none(player=player_id, room=pr.room)
+    if target_pr is None:
         return
 
-    creator: User = pr.room.creator
-
-    if pr.player != creator and creator == pr.player:
+    if target_pr.player == pr.room.creator:
         logger.warning(f"{pr.player.name} attempted to kick the campaign creator")
         return
 
-    for psid in game_state.get_sids(player=pr.player, room=pr.room):
+    for psid in game_state.get_sids(player=target_pr.player, room=target_pr.room):
         await sio.disconnect(psid, namespace=GAME_NS)
-    pr.delete_instance(True)
+
+    target_pr.delete_instance(True)
 
 
 @sio.on("Room.Delete", namespace=GAME_NS)
@@ -83,6 +81,7 @@ async def set_locked_game_state(sid: str, is_locked: bool):
 
     pr.room.is_locked = is_locked
     pr.room.save()
+
     for psid in game_state.get_sids(room=pr.room):
         if game_state.get(psid).role != Role.DM:
             await sio.disconnect(psid, namespace=GAME_NS)

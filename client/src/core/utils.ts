@@ -71,3 +71,26 @@ export function getValue(event: Event): string {
 export function getChecked(event: Event): boolean {
     return getTarget(event).checked;
 }
+
+export function callbackProvider(): {
+    wait: () => Promise<void>;
+    resolveAll: () => void;
+} {
+    let callbacks: (() => void)[] = [];
+
+    function wait(): Promise<void> {
+        return new Promise((resolve, _reject) => {
+            callbacks.push(resolve);
+        });
+    }
+
+    function resolveAll(): void {
+        for (const cb of callbacks) cb();
+        callbacks = [];
+    }
+
+    return {
+        resolveAll,
+        wait,
+    };
+}

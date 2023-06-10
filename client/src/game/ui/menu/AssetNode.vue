@@ -37,13 +37,13 @@ function toggle(folder: string): void {
     }
 }
 
-function dragStart(event: DragEvent, imageSource: string, assetId: number): void {
+function dragStart(event: DragEvent, assetHash: string, assetId: number): void {
     state.hoveredHash = "";
     if (event.dataTransfer === null) return;
 
     const img = (event.target as HTMLElement).querySelector(".preview")!;
     event.dataTransfer.setDragImage(img, 0, 0);
-    event.dataTransfer.setData("text/plain", JSON.stringify({ imageSource, assetId }));
+    event.dataTransfer.setData("text/plain", JSON.stringify({ assetHash, assetId }));
 }
 </script>
 
@@ -60,7 +60,7 @@ function dragStart(event: DragEvent, imageSource: string, assetId: number): void
             draggable="true"
             @mouseover="state.hoveredHash = file.hash"
             @mouseout="state.hoveredHash = ''"
-            @dragstart="dragStart($event, '/static/assets/' + file.hash, file.id)"
+            @dragstart="dragStart($event, file.hash, file.id)"
         >
             {{ file.name }}
             <div v-if="state.hoveredHash == file.hash" class="preview">

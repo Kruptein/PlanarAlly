@@ -17,6 +17,10 @@ export interface ILayer {
     selectable: boolean;
     shapeIdsInSector: Set<LocalId>;
     shapesInSector: IShape[];
+    postDrawCallback: {
+        wait: () => Promise<void>;
+        resolveAll: () => void;
+    };
 
     get height(): number;
     get isActiveLayer(): boolean;
@@ -29,7 +33,6 @@ export interface ILayer {
     hide: () => void;
     invalidate: (skipLightUpdate: boolean) => void;
     updateView: () => void;
-    waitValid: () => Promise<void>;
     isValid: () => boolean;
     moveShapeOrder: (shape: IShape, destinationIndex: number, sync: SyncMode) => void;
     pushShapes: (...shapes: IShape[]) => void;

@@ -263,12 +263,14 @@ async def handle_regular_file(upload_data: UploadData, data: bytes, sid: str):
         parent=target,
     )
 
+    asset_dict = asset.as_dict()
     await sio.emit(
         "Asset.Upload.Finish",
-        {"asset": asset.as_dict(), "parent": target},
+        {"asset": asset_dict, "parent": target},
         room=sid,
         namespace=ASSET_NS,
     )
+    return asset_dict
 
 
 @sio.on("Asset.Upload", namespace=ASSET_NS)
@@ -290,16 +292,19 @@ async def assetmgmt_upload(sid: str, upload_data: UploadData):
 
     del asset_state.pending_file_upload_cache[upload_data["uuid"]]
 
+    return_data = None
     file_name = upload_data["name"]
     if file_name.endswith(".paa"):
         await handle_paa_file(upload_data, data, sid)
     elif file_name.endswith(".dd2vtt"):
-        await handle_ddraft_file(upload_data, data, sid)
+        return_data = await handle_ddraft_file(upload_data, data, sid)
     else:
-        await handle_regular_file(upload_data, data, sid)
+        return_data = await handle_regular_file(upload_data, data, sid)
 
     user = asset_state.get_user(sid)
     await update_live_game(user)
+
+    return return_data
 
 
 def export_asset(asset: Union[AssetDict, List[AssetDict]], parent=-1) -> AssetExport:

@@ -57,6 +57,7 @@ tech changes will usually be stripped from release notes for the public
 -   Vision: Edgecase that could cause an infinite loop when drawing vision lines
 -   Draw: Reduced number of points in brush mode significantly
 -   AssetManager: Fix progressbar missing
+-   Annotation: Markdown no longer rendering as bold
 -   [server] Subpath: 2 cases where subpath based setup was not properly loading images (initiative & change asset)
 
 ## [2023.1.0] - 2023-02-14

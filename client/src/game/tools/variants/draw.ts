@@ -215,7 +215,7 @@ class DrawTool extends Tool implements ITool {
 
     // private async showLayerPoints(): Promise<void> {
     //     const layer = this.getLayer()!;
-    //     await layer.waitValid();
+    //     await layer.postDrawCallback.wait();
     //     if (!this.isActiveTool.value) return;
     //     const dL = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw)!;
     //     for (const point of layer.points.keys()) {

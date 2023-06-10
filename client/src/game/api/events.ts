@@ -55,7 +55,7 @@ import { socket } from "./socket";
 // Core WS events
 
 socket.on("connect", () => {
-    console.log("Connected");
+    console.log("[Game] connected");
     gameSystem.setConnected(true);
 
     if (coreStore.state.boardId !== undefined) {
@@ -68,7 +68,7 @@ socket.on("connect", () => {
 });
 socket.on("disconnect", (reason: string) => {
     gameSystem.setConnected(false);
-    console.log("Disconnected");
+    console.log("[Game] disconnected");
     if (reason === "io server disconnect") socket.open();
 });
 socket.on("connect_error", async (error: Error) => {

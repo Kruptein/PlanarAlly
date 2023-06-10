@@ -3,7 +3,7 @@ import { computed } from "vue";
 
 import type { Asset } from "../core/models/types";
 import { Store } from "../core/store";
-import { uuidv4 } from "../core/utils";
+import { callbackProvider, uuidv4 } from "../core/utils";
 import { router } from "../router";
 
 import { socket } from "./socket";
@@ -28,6 +28,8 @@ class AssetStore extends Store<AssetState> {
     currentFolder: ComputedRef<number>;
     parentFolder: ComputedRef<number>;
     currentFilePath: ComputedRef<string>;
+
+    protected rootCallback = callbackProvider();
 
     constructor() {
         super();
@@ -76,6 +78,7 @@ class AssetStore extends Store<AssetState> {
 
     setRoot(root: number): void {
         this._state.root = root;
+        this.rootCallback.resolveAll();
     }
 
     setPath(path: number[]): void {
@@ -197,23 +200,32 @@ class AssetStore extends Store<AssetState> {
         }
     }
 
-    async upload(fls?: FileList, target?: number, targetOffset: string[] = []): Promise<void> {
-        if (fls === undefined) {
-            const files = (document.getElementById("files") as HTMLInputElement).files;
-            if (files) fls = files;
-            else return;
+    async upload(fls: FileList, options?: { target?: number | "root"; newDirectories?: string[] }): Promise<Asset[]> {
+        let target = options?.target ?? this.currentFolder.value;
+        const newDirectories = options?.newDirectories ?? [];
+
+        // If the asset-socket isn't open at the moment
+        // Open it, but make sure to close it again after we're done.
+        const closeSocket = socket.disconnected;
+        if (closeSocket) {
+            socket.connect();
+        }
+        if (target === "root") {
+            await this.rootCallback.wait();
+            target = this._state.root;
         }
 
         this._state.expectedUploads += fls.length;
 
-        if (target === undefined) target = this.currentFolder.value;
+        const uploadedFiles = [];
+
         const CHUNK_SIZE = 100000;
         for (const file of fls) {
             const uuid = uuidv4();
             const slices = Math.ceil(file.size / CHUNK_SIZE);
             this._state.pendingUploads.push(file.name);
             for (let slice = 0; slice < slices; slice++) {
-                await new Promise((resolve) => {
+                const uploadedFile = await new Promise<Asset>((resolve) => {
                     const fr = new FileReader();
                     fr.readAsArrayBuffer(
                         file.slice(
@@ -227,7 +239,7 @@ class AssetStore extends Store<AssetState> {
                             {
                                 name: file.name,
                                 directory: target,
-                                newDirectories: targetOffset,
+                                newDirectories,
                                 data: fr.result,
                                 slice,
                                 totalSlices: slices,
@@ -237,8 +249,12 @@ class AssetStore extends Store<AssetState> {
                         );
                     };
                 });
+                uploadedFiles.push(uploadedFile);
             }
         }
+        if (closeSocket) socket.disconnect();
+
+        return uploadedFiles;
     }
 }
 export const assetStore = new AssetStore();

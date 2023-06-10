@@ -5,6 +5,7 @@ import { g2l, l2g, l2gz } from "../../../core/conversions";
 import { Ray, toLP } from "../../../core/geometry";
 import { filter } from "../../../core/iter";
 import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
+import { callbackProvider } from "../../../core/utils";
 import { debugLayers } from "../../../localStorageHelpers";
 import { activeShapeStore } from "../../../store/activeShape";
 import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../../api/emits/shape/core";
@@ -76,7 +77,7 @@ export class Layer implements ILayer {
     protected selectionColor = "#CC0000";
     protected selectionWidth = 2;
 
-    protected postDrawCallbacks: (() => void)[] = [];
+    postDrawCallback = callbackProvider();
 
     constructor(
         public canvas: HTMLCanvasElement,
@@ -467,22 +468,9 @@ export class Layer implements ILayer {
 
             ctx.globalCompositeOperation = ogOP;
             this.valid = true;
-            this.resolveCallbacks();
+            this.postDrawCallback.resolveAll();
         } else {
             this.ctx.clearRect(0, 0, 1, 1);
         }
-    }
-
-    // CALLBACKS
-
-    waitValid(): Promise<void> {
-        return new Promise((resolve, _reject) => {
-            this.postDrawCallbacks.push(resolve);
-        });
-    }
-
-    private resolveCallbacks(): void {
-        for (const cb of this.postDrawCallbacks) cb();
-        this.postDrawCallbacks = [];
     }
 }

@@ -89,7 +89,7 @@ function fsToFile(fl: FileSystemFileEntry): Promise<File> {
 async function parseDirectoryUpload(
     fileSystemEntries: Iterable<FileSystemEntry | null>,
     target: number,
-    targetOffset: string[] = [],
+    newDirectories: string[] = [],
 ): Promise<void> {
     const files: FileSystemFileEntry[] = [];
     for (const entry of fileSystemEntries) {
@@ -97,15 +97,16 @@ async function parseDirectoryUpload(
         if (entry.isDirectory) {
             const fwk = entry as FileSystemDirectoryEntry;
             const reader = fwk.createReader();
-            reader.readEntries((entries) => void parseDirectoryUpload(entries, target, [...targetOffset, entry.name]));
+            reader.readEntries(
+                (entries) => void parseDirectoryUpload(entries, target, [...newDirectories, entry.name]),
+            );
         } else if (entry.isFile) {
             files.push(entry as FileSystemFileEntry);
         }
     }
     if (files.length > 0) {
         const fileList = await Promise.all(files.map((f) => fsToFile(f)));
-        console.log("Uploading", fileList, targetOffset);
-        await assetStore.upload(fileList as unknown as FileList, target, targetOffset);
+        await assetStore.upload(fileList as unknown as FileList, { target, newDirectories });
     }
 }
 
@@ -185,7 +186,10 @@ function prepareUpload(): void {
     document.getElementById("files")!.click();
 }
 
-const upload = (): Promise<void> => assetStore.upload();
+const upload = async (): Promise<void> => {
+    const files = (document.getElementById("files") as HTMLInputElement).files;
+    if (files !== null) await assetStore.upload(files);
+};
 
 async function deleteSelection(): Promise<void> {
     if (assetStore.state.selected.length === 0) return;

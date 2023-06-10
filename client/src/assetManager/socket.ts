@@ -10,20 +10,24 @@ export const socket = socketManager.socket("/pa_assetmgmt");
 let disConnected = false;
 
 socket.on("connect", () => {
-    console.log("Connected");
+    console.log("[Assets] connected");
     if (disConnected) socket.emit("Folder.Get", assetStore.currentFolder.value);
 });
+
 socket.on("disconnect", () => {
-    console.log("Disconnected");
+    console.log("[Assets] disconnected");
     disConnected = true;
 });
+
 socket.on("redirect", (destination: string) => {
     console.log("redirecting");
     window.location.href = destination;
 });
+
 socket.on("Folder.Root.Set", (root: number) => {
     assetStore.setRoot(root);
 });
+
 socket.on("Folder.Set", async (data: { folder: Asset; path?: number[] }) => {
     assetStore.clear();
     assetStore.setFolderData(data.folder.id, data.folder);
@@ -35,9 +39,11 @@ socket.on("Folder.Set", async (data: { folder: Asset; path?: number[] }) => {
         }
     }
 });
+
 socket.on("Folder.Create", (data: { asset: Asset; parent: number }) => {
     assetStore.addAsset(data.asset, data.parent);
 });
+
 socket.on("Asset.Upload.Finish", (data: { asset: Asset; parent: number }) => {
     assetStore.addAsset(data.asset, data.parent);
     assetStore.resolveUpload(data.asset.name);

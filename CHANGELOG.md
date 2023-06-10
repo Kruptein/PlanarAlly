@@ -10,6 +10,10 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Added
+
+-   Drop new assets on the game directly
+
 ### Changed
 
 -   Templates no longer save certain settings

@@ -225,7 +225,7 @@ class AssetStore extends Store<AssetState> {
             const slices = Math.ceil(file.size / CHUNK_SIZE);
             this._state.pendingUploads.push(file.name);
             for (let slice = 0; slice < slices; slice++) {
-                const uploadedFile = await new Promise<Asset>((resolve) => {
+                const uploadedFile = await new Promise<Asset | undefined>((resolve) => {
                     const fr = new FileReader();
                     fr.readAsArrayBuffer(
                         file.slice(
@@ -249,7 +249,9 @@ class AssetStore extends Store<AssetState> {
                         );
                     };
                 });
-                uploadedFiles.push(uploadedFile);
+                // The returned data is undefined, if the file has multiple slices
+                // only the last slice will return a valid file
+                if (uploadedFile !== undefined) uploadedFiles.push(uploadedFile);
             }
         }
         if (closeSocket) socket.disconnect();

@@ -224,6 +224,7 @@ svg {
     width: 100%;
     height: 100%;
     box-sizing: border-box;
+    touch-action: none;
 
     &.disconnected {
         border: solid 5px red;

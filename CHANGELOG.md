@@ -13,6 +13,7 @@ tech changes will usually be stripped from release notes for the public
 ### Added
 
 -   Drop new assets on the game directly
+-   Scroll-like touch gestures no longer attempt to scroll the gameboard out of bounds
 
 ### Changed
 

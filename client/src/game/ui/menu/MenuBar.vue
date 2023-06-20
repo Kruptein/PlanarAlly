@@ -259,6 +259,7 @@ DIRECTORY.CSS changes
     background-color: #fa5a5a;
     overflow: auto;
     pointer-events: auto;
+    touch-action: none;
 }
 
 .actionButton {

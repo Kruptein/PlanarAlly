@@ -1,7 +1,6 @@
 import { g2l } from "../../../core/conversions";
 import { FOG_COLOUR } from "../../colour";
 import type { IShape } from "../../interfaces/shape";
-import type { ServerRect } from "../../models/shapes";
 import { positionState } from "../../systems/position/state";
 import { getProperties } from "../../systems/properties/state";
 import type { SHAPE_TYPE } from "../types";
@@ -12,10 +11,6 @@ export class Rect extends BaseRect implements IShape {
     type: SHAPE_TYPE = "rect";
 
     readonly isClosed = true;
-
-    asDict(): ServerRect {
-        return super.getBaseDict();
-    }
 
     draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);

@@ -2,6 +2,7 @@
 import throttle from "lodash/throttle";
 import { defineComponent, onMounted, onUnmounted, watchEffect } from "vue";
 
+import { assetStore } from "../assetManager/state";
 import { useModal } from "../core/plugins/modals/plugin";
 import { coreStore } from "../store/core";
 
@@ -109,24 +110,39 @@ export default defineComponent({
         async function drop(event: DragEvent): Promise<void> {
             if (event === null || event.dataTransfer === null) return;
             handleDrop(event); // FF modal handling workaround
+
+            const data: {
+                assetHash: string;
+                assetId: number;
+            }[] = [];
+
+            // temp hack to prevent redirection
+            assetStore.setModalActive(true);
+
+            // External files are dropped
             if (event.dataTransfer.files.length > 0) {
-                await modals.confirm("Warning", "Uploading files should be done through the asset manager.", {
-                    yes: "Ok",
-                    showNo: false,
-                });
-            } else if (
-                event.dataTransfer.getData("text/plain") === "" ||
-                event === null ||
-                event.dataTransfer === null
-            ) {
-                return;
+                for (const asset of await assetStore.upload(event.dataTransfer.files, { target: "root" })) {
+                    if (asset.file_hash !== undefined) data.push({ assetHash: asset.file_hash, assetId: asset.id });
+                }
             } else {
-                const data = JSON.parse(event.dataTransfer.getData("text/plain")) as {
-                    imageSource: string;
+                const transferInfo = event.dataTransfer.getData("text/plain");
+                if (transferInfo === "") return;
+
+                const assetInfo = JSON.parse(transferInfo) as {
+                    assetHash: string;
                     assetId: number;
                 };
-                await dropAsset(data, { x: event.clientX, y: event.clientY });
+                data.push(assetInfo);
             }
+
+            for (const asset of data) {
+                await dropAsset(
+                    { assetId: asset.assetId, imageSource: `/static/assets/${asset.assetHash}` },
+                    { x: event.clientX, y: event.clientY },
+                );
+            }
+
+            assetStore.setModalActive(false);
         }
 
         return {
@@ -208,6 +224,7 @@ svg {
     width: 100%;
     height: 100%;
     box-sizing: border-box;
+    touch-action: none;
 
     &.disconnected {
         border: solid 5px red;

@@ -1,3 +1,4 @@
+import { filter } from "../../core/iter";
 import { equalPoints } from "../../core/math";
 import type { IShape } from "../interfaces/shape";
 
@@ -186,7 +187,7 @@ export class IterativeDelete {
             };
             this.newConstraints.push({ edge: constraint, changed: false, onPath });
             if (edgeCovered) continue;
-            const edgeShapes = [...vertex.shapes].filter((sh) => ccwv.shapes.has(sh) && sh !== this.shape);
+            const edgeShapes = [...filter(vertex.shapes, (sh) => ccwv.shapes.has(sh) && sh !== this.shape)];
             if (edgeShapes.length === 0) this.addEdge(edge);
         }
         this.handledPoints.push(vertex.point!);

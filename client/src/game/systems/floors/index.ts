@@ -221,16 +221,12 @@ class FloorSystem implements System {
     }
 
     selectLayer(name: string, sync = true, invalidate = true): void {
-        let found = false;
         selectedSystem.clear();
         for (const [index, layer] of this.getLayers(currentFloor.value!).entries()) {
             if (!layer.selectable) continue;
-            if (found && layer.name !== LayerName.Lighting) layer.ctx.globalAlpha = 0.3;
-            else layer.ctx.globalAlpha = 1.0;
 
             if (name === layer.name) {
                 $.layerIndex = index;
-                found = true;
                 if (sync) sendActiveLayer({ layer: layer.name, floor: this.getFloor({ id: layer.floor })!.name });
             }
 

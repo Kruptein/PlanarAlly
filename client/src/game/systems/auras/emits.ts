@@ -1,15 +1,7 @@
-import { sendShapeOption, sendSimpleShapeOption } from "../../api/emits/shape/options";
-import { socket } from "../../api/socket";
+import type { ApiAura, ApiOptionalAura, AuraMove, ShapeSetAuraValue } from "../../../apiTypes";
+import { wrapSocket } from "../../api/helpers";
 
-import type { AuraId, ServerAura } from "./models";
-
-export const sendShapeMoveAura = sendShapeOption<{ aura: AuraId; new_shape: string }>("Shape.Options.Aura.Move");
-export const sendShapeRemoveAura = sendSimpleShapeOption<AuraId>("Shape.Options.Aura.Remove");
-
-export const sendShapeCreateAura = (data: ServerAura): void => {
-    socket.emit("Shape.Options.Aura.Create", data);
-};
-
-export const sendShapeUpdateAura = (data: { shape: string; uuid: AuraId } & Partial<ServerAura>): void => {
-    socket.emit("Shape.Options.Aura.Update", data);
-};
+export const sendShapeMoveAura = wrapSocket<AuraMove>("Shape.Options.Aura.Move");
+export const sendShapeRemoveAura = wrapSocket<ShapeSetAuraValue>("Shape.Options.Aura.Remove");
+export const sendShapeCreateAura = wrapSocket<ApiAura>("Shape.Options.Aura.Create");
+export const sendShapeUpdateAura = wrapSocket<ApiOptionalAura>("Shape.Options.Aura.Update");

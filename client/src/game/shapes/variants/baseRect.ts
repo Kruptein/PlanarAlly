@@ -1,3 +1,4 @@
+import type { ApiBaseRectShape, ApiShape } from "../../../apiTypes";
 import { clampGridLine, clampToGrid, g2lx, g2ly } from "../../../core/conversions";
 import { addP, cloneP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
@@ -5,14 +6,13 @@ import { rotateAroundPoint } from "../../../core/math";
 import { calculateDelta } from "../../drag";
 import type { GlobalId, LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
-import type { ServerShape } from "../../models/shapes";
 import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
 import type { ShapeProperties } from "../../systems/properties/state";
 import { Shape } from "../shape";
 
 import { BoundingRect } from "./simple/boundingRect";
 
-type ServerBaseRect = ServerShape & { width: number; height: number };
+type ServerBaseRect = ApiShape & { width: number; height: number };
 
 export abstract class BaseRect extends Shape implements IShape {
     private _w: number;
@@ -58,11 +58,8 @@ export abstract class BaseRect extends Shape implements IShape {
         }
     }
 
-    getBaseDict(): ServerBaseRect {
-        return Object.assign(super.getBaseDict(), {
-            width: this.w,
-            height: this.h,
-        });
+    asDict(): ApiBaseRectShape {
+        return { ...this.getBaseDict(), width: this.w, height: this.h };
     }
 
     fromDict(data: ServerBaseRect): void {

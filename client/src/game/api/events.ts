@@ -1,5 +1,6 @@
 import "../systems/access/events";
 import "../systems/auras/events";
+import "../systems/groups/events";
 import "../systems/labels/events";
 import "../systems/logic/door/events";
 import "../systems/logic/tp/events";
@@ -29,6 +30,7 @@ import "./events/user";
 
 import "./gbsocket"; // Start tuio listener
 
+import type { ApiFloor, ApiLocationCore, PlayerPosition } from "../../apiTypes";
 import { toGP } from "../../core/geometry";
 import { SyncMode } from "../../core/models/types";
 import type { AssetList } from "../../core/models/types";
@@ -41,22 +43,19 @@ import { clearGame } from "../clear";
 import { addServerFloor } from "../floor/server";
 import { getShapeFromGlobal } from "../id";
 import type { GlobalId } from "../id";
-import type { ServerFloor } from "../models/general";
-import type { Location } from "../models/settings";
 import { setCenterPosition } from "../position";
 import { deleteShapes } from "../shapes/utils";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
 import { gameSystem } from "../systems/game";
 import { playerSystem } from "../systems/players";
-import { positionSystem } from "../systems/position";
 
 import { socket } from "./socket";
 
 // Core WS events
 
 socket.on("connect", () => {
-    console.log("Connected");
+    console.log("[Game] connected");
     gameSystem.setConnected(true);
 
     if (coreStore.state.boardId !== undefined) {
@@ -69,7 +68,7 @@ socket.on("connect", () => {
 });
 socket.on("disconnect", (reason: string) => {
     gameSystem.setConnected(false);
-    console.log("Disconnected");
+    console.log("[Game] disconnected");
     if (reason === "io server disconnect") socket.open();
 });
 socket.on("connect_error", async (error: Error) => {
@@ -92,11 +91,11 @@ socket.on("redirect", async (destination: string) => {
 socket.on("CLEAR", () => clearGame(false));
 socket.on("PARTIAL-CLEAR", () => clearGame(true));
 
-socket.on("Board.Locations.Set", (locationInfo: Location[]) => {
+socket.on("Board.Locations.Set", (locationInfo: ApiLocationCore[]) => {
     locationStore.setLocations(locationInfo, false);
 });
 
-socket.on("Board.Floor.Set", (floor: ServerFloor) => {
+socket.on("Board.Floor.Set", (floor: ApiFloor) => {
     // It is important that this condition is evaluated before the async addFloor call.
     // The very first floor that arrives is the one we want to select
     // When this condition is evaluated after the await, we are at the mercy of the async scheduler
@@ -118,10 +117,8 @@ socket.on("Board.Floor.Set", (floor: ServerFloor) => {
 
 // Varia
 
-socket.on("Position.Set", (data: { floor?: string; x: number; y: number; zoom?: number }) => {
+socket.on("Position.Set", (data: PlayerPosition) => {
     if (data.floor !== undefined) floorSystem.selectFloor({ name: data.floor }, true);
-    if (data.zoom !== undefined)
-        positionSystem.setZoomDisplay(data.zoom, { invalidate: false, updateSectors: false, sync: false });
     setCenterPosition(toGP(data.x, data.y));
 });
 

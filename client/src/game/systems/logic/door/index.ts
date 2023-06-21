@@ -8,6 +8,7 @@ import type { Sync } from "../../../../core/models/types";
 import { getGlobalId } from "../../../id";
 import type { LocalId } from "../../../id";
 import { selectToolState } from "../../../tools/variants/select/state";
+import type { PlayerId } from "../../players/models";
 import { propertiesSystem } from "../../properties";
 import { getProperties } from "../../properties/state";
 import { canUse } from "../common";
@@ -146,8 +147,8 @@ class DoorSystem implements ShapeSystem {
         return props.blocksMovement ? "lock-open-solid" : "lock-solid";
     }
 
-    canUse(id: LocalId): Access {
-        return canUse(id, "door");
+    canUse(id: LocalId, playerId: PlayerId): Access {
+        return canUse(id, "door", playerId);
     }
 
     getDoors(): Readonly<IterableIterator<LocalId>> {

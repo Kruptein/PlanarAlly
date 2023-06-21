@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
 from ..app import app
-from ..models import User
+from ..db.models.user import User
 from . import State
 
 

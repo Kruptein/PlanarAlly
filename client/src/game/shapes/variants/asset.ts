@@ -1,6 +1,9 @@
+import type { ApiAssetRectShape } from "../../../apiTypes";
 import { g2l, g2lz } from "../../../core/conversions";
 import { toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
+import { baseAdjust } from "../../../core/http";
+import { map } from "../../../core/iter";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { sendAssetRectImageChange } from "../../api/emits/shape/asset";
 import { FOG_COLOUR } from "../../colour";
@@ -8,7 +11,6 @@ import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import type { IAsset } from "../../interfaces/shapes/asset";
 import { LayerName } from "../../models/floor";
-import type { ServerAsset } from "../../models/shapes";
 import { loadSvgData } from "../../svg";
 import { floorSystem } from "../../systems/floors";
 import { getProperties } from "../../systems/properties/state";
@@ -40,13 +42,14 @@ export class Asset extends BaseRect implements IAsset {
 
     readonly isClosed = true;
 
-    asDict(): ServerAsset {
-        return Object.assign(this.getBaseDict(), {
+    asDict(): ApiAssetRectShape {
+        return {
+            ...super.asDict(),
             src: this.src,
-        });
+        };
     }
 
-    fromDict(data: ServerAsset): void {
+    fromDict(data: ApiAssetRectShape): void {
         super.fromDict(data);
         this.src = data.src;
     }
@@ -80,7 +83,7 @@ export class Asset extends BaseRect implements IAsset {
             );
             this.layer?.addShape(cover, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
             const svgs = await loadSvgData(`/static/assets/${this.options.svgAsset}`);
-            this.svgData = [...svgs.values()].map((svg) => ({ svg, rp: this.refPoint, paths: undefined }));
+            this.svgData = [...map(svgs.values(), (svg) => ({ svg, rp: this.refPoint, paths: undefined }))];
             const props = getProperties(this.id)!;
             if (props.blocksVision) {
                 if (this.floorId !== undefined) visionState.recalculateVision(this.floorId);
@@ -121,7 +124,7 @@ export class Asset extends BaseRect implements IAsset {
     setImage(url: string, sync: boolean): void {
         this.#loaded = false;
         this.src = url;
-        this.img.src = url;
+        this.img.src = baseAdjust(url);
         this.img.onload = () => {
             this.setLoaded();
         };

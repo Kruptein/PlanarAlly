@@ -1,12 +1,10 @@
 import type { DeepReadonly } from "vue";
 
-import { sendSimpleShapeOption } from "../../../api/emits/shape/options";
-import type { Permissions } from "../models";
+import type { ShapeSetBooleanValue, ShapeSetDoorToggleModeValue, ShapeSetPermissionValue } from "../../../../apiTypes";
+import { wrapSocket } from "../../../api/helpers";
 
-import type { DOOR_TOGGLE_MODE } from "./models";
-
-export const sendShapeIsDoor = sendSimpleShapeOption<boolean>("Shape.Options.IsDoor.Set");
-export const sendShapeDoorPermissions = sendSimpleShapeOption<DeepReadonly<Permissions>>(
+export const sendShapeIsDoor = wrapSocket<ShapeSetBooleanValue>("Shape.Options.IsDoor.Set");
+export const sendShapeDoorPermissions = wrapSocket<DeepReadonly<ShapeSetPermissionValue>>(
     "Shape.Options.Door.Permissions.Set",
 );
-export const sendShapeDoorToggleMode = sendSimpleShapeOption<DOOR_TOGGLE_MODE>("Shape.Options.Door.ToggleMode.Set");
+export const sendShapeDoorToggleMode = wrapSocket<ShapeSetDoorToggleModeValue>("Shape.Options.Door.ToggleMode.Set");

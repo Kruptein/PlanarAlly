@@ -2,9 +2,9 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import type { ApiLabel } from "../../../apiTypes";
 import Accordion from "../../../core/components/Accordion.vue";
 import { labelSystem } from "../../systems/labels";
-import type { Label } from "../../systems/labels/models";
 import { labelState } from "../../systems/labels/state";
 import { filterTool } from "../../tools/variants/filter";
 
@@ -13,7 +13,7 @@ const { t } = useI18n();
 const selected = filterTool.isActiveTool;
 
 const categories = computed(() => {
-    const cat = new Map<string, Label[]>();
+    const cat = new Map<string, ApiLabel[]>();
     cat.set("", []);
     for (const label of labelState.reactive.labels.values()) {
         if (!label.category) {

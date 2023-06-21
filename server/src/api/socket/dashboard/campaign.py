@@ -4,9 +4,9 @@ from typing import Optional
 from .... import auth
 from ....app import app, sio
 from ....config import config
+from ....db.models.room import Room
 from ....export.campaign import export_campaign
 from ....logs import logger
-from ....models.campaign import Room
 from ....state.dashboard import dashboard_state
 from ..constants import DASHBOARD_NS
 

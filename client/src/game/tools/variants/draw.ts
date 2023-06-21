@@ -215,7 +215,7 @@ class DrawTool extends Tool implements ITool {
 
     // private async showLayerPoints(): Promise<void> {
     //     const layer = this.getLayer()!;
-    //     await layer.waitValid();
+    //     await layer.postDrawCallback.wait();
     //     if (!this.isActiveTool.value) return;
     //     const dL = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw)!;
     //     for (const point of layer.points.keys()) {
@@ -368,7 +368,6 @@ class DrawTool extends Tool implements ITool {
                     break;
                 }
                 case DrawShape.Polygon: {
-                    const fill = this.state.isClosedPolygon ? this.state.fillColour : undefined;
                     const stroke = this.state.isClosedPolygon ? this.state.borderColour : this.state.fillColour;
                     if (event && playerSettingsState.useSnapping(event) && !this.snappedToPoint) {
                         this.brushHelper.refPoint = toGP(clampGridLine(startPoint.x), clampGridLine(startPoint.y));
@@ -378,7 +377,7 @@ class DrawTool extends Tool implements ITool {
                         [],
                         { lineWidth: [this.state.brushSize], openPolygon: !this.state.isClosedPolygon },
                         {
-                            fillColour: fill,
+                            fillColour: this.state.fillColour, // is ignored for open polygons
                             strokeColour: [stroke],
                         },
                     );
@@ -535,7 +534,7 @@ class DrawTool extends Tool implements ITool {
                 const br = this.shape as Polygon;
                 const points = br.points; // expensive call
                 if (equalPoints(points.at(-1)!, [endPoint.x, endPoint.y])) return Promise.resolve();
-                br.pushPoint(endPoint);
+                br.pushPoint(endPoint, { simplifyEnd: true });
                 break;
             }
             case DrawShape.Polygon: {

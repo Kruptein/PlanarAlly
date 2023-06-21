@@ -5,18 +5,22 @@ from aiohttp_security import authorized_userid
 
 from ...api.socket.constants import GAME_NS
 from ...app import sio
+from ...db.models.player_room import PlayerRoom
+from ...db.models.room import Room
+from ...db.models.user import User
 from ...logs import logger
-from ...models import PlayerRoom, Room, User
 from ...models.role import Role
 from ...state.game import game_state
+from ..helpers import _send_game
+from ..models.client import ClientConnected, ClientDisconnected
 
 
 @sio.on("connect", namespace=GAME_NS)
 async def connect(sid, environ):
-    user = await authorized_userid(environ["aiohttp.request"])
+    user: User | None = await authorized_userid(environ["aiohttp.request"])
 
     if user is None:
-        await sio.emit("redirect", "/", room=sid, namespace=GAME_NS)
+        await _send_game("redirect", "/", room=sid)
         return
 
     ref = {
@@ -50,12 +54,11 @@ async def connect(sid, environ):
     sio.enter_room(sid, pr.active_location.get_path(), namespace=GAME_NS)
     sio.enter_room(sid, pr.room.get_path(), namespace=GAME_NS)
 
-    await sio.emit(
+    await _send_game(
         "Client.Connected",
-        data={"player": user.id, "client": sid},
+        ClientConnected(player=user.id, client=sid),
         room=pr.room.get_path(),
         skip_sid=sid,
-        namespace=GAME_NS,
     )
 
 
@@ -72,10 +75,9 @@ async def disconnect(sid):
     except:
         logger.exception("Failed to remove client sid properly")
 
-    await sio.emit(
+    await _send_game(
         "Client.Disconnected",
-        data=sid,
+        ClientDisconnected(client=sid),
         room=pr.room.get_path(),
         skip_sid=sid,
-        namespace=GAME_NS,
     )

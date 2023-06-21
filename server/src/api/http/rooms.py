@@ -9,10 +9,11 @@ from typing_extensions import TypedDict
 
 from ...app import sio
 from ...config import config
+from ...db.models.player_room import PlayerRoom
+from ...db.models.room import Room
+from ...db.models.user import User
 from ...export.campaign import export_campaign, import_campaign
-from ...models import Location, LocationOptions, PlayerRoom, Room, User
-from ...models.db import db
-from ...models.role import Role
+from ..common.rooms.create import create_room
 from ..socket.constants import DASHBOARD_NS
 
 
@@ -79,27 +80,12 @@ async def create(request: web.Request):
     data = await request.json()
     roomname = data["name"]
     logo = data["logo"]
+
     if not roomname:
         return web.HTTPBadRequest()
     else:
-        if Room.get_or_none(name=roomname, creator=user):
+        if not create_room(roomname, user, logo):
             return web.HTTPConflict()
-
-        with db.atomic():
-            default_options = LocationOptions.create()
-            room = Room.create(
-                name=roomname,
-                creator=user,
-                default_options=default_options,
-            )
-
-            if logo >= 0:
-                room.logo_id = logo
-
-            loc = Location.create(room=room, name="start", index=1)
-            loc.create_floor()
-            PlayerRoom.create(player=user, room=room, role=Role.DM, active_location=loc)
-            room.save()
         return web.HTTPOk()
 
 

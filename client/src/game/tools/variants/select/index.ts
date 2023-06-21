@@ -1,4 +1,4 @@
-import { watchEffect } from "vue";
+import { watch, watchEffect } from "vue";
 import { POSITION, useToast } from "vue-toastification";
 
 import { g2l, g2lx, g2ly, g2lz, l2g, l2gz, toDegrees, toRadians } from "../../../../core/conversions";
@@ -120,6 +120,17 @@ class SelectTool extends Tool implements ISelectTool {
     constructor() {
         super();
 
+        // Zoom changes
+        watch(
+            () => positionState.reactive.zoomDisplay,
+            () => {
+                if (this.rotationUiActive) {
+                    this.resetRotationHelper();
+                }
+            },
+        );
+
+        // Selection changes
         watchEffect(() => {
             const selection = selectedSystem.$.value;
 
@@ -184,6 +195,7 @@ class SelectTool extends Tool implements ISelectTool {
     }
 
     onDeselect(): void {
+        this.removeRotationUi();
         this.removePolygonEditUi();
     }
 
@@ -192,6 +204,9 @@ class SelectTool extends Tool implements ISelectTool {
         if (this.hasFeature(SelectFeatures.PolygonEdit, features)) {
             this.createPolygonEditUi();
             _$.polygonUiVisible = "hidden";
+        }
+        if (this.hasFeature(SelectFeatures.Rotate, features)) {
+            this.createRotationUi(features);
         }
         return Promise.resolve();
     }
@@ -219,7 +234,7 @@ class SelectTool extends Tool implements ISelectTool {
                 doorSystem.toggleDoor(_.hoveredDoor);
                 return;
             } else {
-                if (doorSystem.canUse(_.hoveredDoor) === Access.Request) {
+                if (doorSystem.canUse(_.hoveredDoor, playerSystem.getCurrentPlayerId()!) === Access.Request) {
                     toast.info("Request to open door sent", {
                         position: POSITION.TOP_RIGHT,
                     });
@@ -338,8 +353,8 @@ class SelectTool extends Tool implements ISelectTool {
 
         // GroupSelect case, draw a selection box to select multiple shapes
         if (!hit) {
-            if (!this.hasFeature(SelectFeatures.ChangeSelection, features)) return Promise.resolve();
-            if (!this.hasFeature(SelectFeatures.GroupSelect, features)) return Promise.resolve();
+            if (!this.hasFeature(SelectFeatures.ChangeSelection, features)) return;
+            if (!this.hasFeature(SelectFeatures.GroupSelect, features)) return;
             this.mode = SelectOperations.GroupSelect;
 
             this.selectionStartPoint = gp;
@@ -404,7 +419,7 @@ class SelectTool extends Tool implements ISelectTool {
                 if (shape === undefined) continue;
                 if (shape.floorId !== floorState.currentFloor.value!.id) continue;
                 if (!shape.contains(gp)) continue;
-                if (doorSystem.canUse(id) === Access.Disabled) continue;
+                if (doorSystem.canUse(id, playerSystem.getCurrentPlayerId()!) === Access.Disabled) continue;
 
                 foundDoor = true;
                 _.hoveredDoor = id;
@@ -822,7 +837,7 @@ class SelectTool extends Tool implements ISelectTool {
         }
 
         const topCenter = toGP((bbox.topRight.x + bbox.topLeft.x) / 2, bbox.topLeft.y);
-        const topCenterPlus = addP(topCenter, new Vector(0, -DEFAULT_GRID_SIZE));
+        const topCenterPlus = addP(topCenter, new Vector(0, -Math.max(DEFAULT_GRID_SIZE, l2gz(DEFAULT_GRID_SIZE / 2))));
 
         this.angle = 0;
         this.rotationAnchor = new Line(

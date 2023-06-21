@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Generator, Generic, Tuple, TypeVar
 
-from ..models import User
-
+from ..db.models.user import User
 
 T = TypeVar("T")
 

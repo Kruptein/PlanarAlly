@@ -15,44 +15,42 @@ from playhouse.sqlite_ext import SqliteExtDatabase
 from ..api.socket.constants import DASHBOARD_NS
 from ..app import sio
 from ..config import SAVE_FILE
+from ..db.all import ALL_MODELS
+from ..db.db import db as ACTIVE_DB
+from ..db.db import open_db
+from ..db.models.asset import Asset
+from ..db.models.asset_rect import AssetRect
+from ..db.models.aura import Aura
+from ..db.models.circle import Circle
+from ..db.models.circular_token import CircularToken
+from ..db.models.composite_shape_association import CompositeShapeAssociation
+from ..db.models.constants import Constants
+from ..db.models.floor import Floor
+from ..db.models.group import Group
+from ..db.models.initiative import Initiative
+from ..db.models.label import Label
+from ..db.models.label_selection import LabelSelection
+from ..db.models.layer import Layer
+from ..db.models.line import Line
+from ..db.models.location import Location
+from ..db.models.location_options import LocationOptions
+from ..db.models.location_user_option import LocationUserOption
+from ..db.models.marker import Marker
+from ..db.models.note import Note
+from ..db.models.player_room import PlayerRoom
+from ..db.models.polygon import Polygon
+from ..db.models.rect import Rect
+from ..db.models.room import Room
+from ..db.models.shape import Shape
+from ..db.models.shape_label import ShapeLabel
+from ..db.models.shape_owner import ShapeOwner
+from ..db.models.text import Text
+from ..db.models.toggle_composite import ToggleComposite
+from ..db.models.tracker import Tracker
+from ..db.models.user import User
+from ..db.models.user_options import UserOptions
+from ..db.typed import SelectSequence
 from ..logs import logger
-from ..models import ALL_MODELS
-from ..models.asset import Asset
-from ..models.campaign import (
-    Floor,
-    Layer,
-    Location,
-    LocationOptions,
-    LocationUserOption,
-    Note,
-    PlayerRoom,
-    Room,
-)
-from ..models.db import db as ACTIVE_DB, open_db
-from ..models.general import Constants
-from ..models.groups import Group
-from ..models.initiative import Initiative
-from ..models.label import LabelSelection
-from ..models.marker import Marker
-from ..models.shape import (
-    AssetRect,
-    Aura,
-    Circle,
-    CircularToken,
-    CompositeShapeAssociation,
-    Label,
-    Line,
-    Polygon,
-    Rect,
-    Shape,
-    ShapeLabel,
-    ShapeOwner,
-    Text,
-    ToggleComposite,
-    Tracker,
-)
-from ..models.typed import SelectSequence
-from ..models.user import User, UserOptions
 from ..save import SAVE_VERSION, upgrade_save
 from ..state.dashboard import dashboard_state
 from ..utils import ASSETS_DIR, TEMP_DIR
@@ -160,7 +158,7 @@ class CampaignExporter:
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
         self.filename = name
-        self.copy_name = TEMP_DIR / f"{str(uuid.uuid4())}.sqlite"
+        self.copy_name = TEMP_DIR / f"PA-temp-{str(uuid.uuid4())}.sqlite"
         self.sid = sid
         self.loop = loop
 
@@ -871,6 +869,11 @@ class CampaignMigrator:
                 note_data["user"] = self.user_mapping.get(note_data["user"])
                 if note_data["user"] is None:
                     continue
+                if note_data["location"]:
+                    note_data["location"] = self.location_mapping[note_data["location"]]
+
+                with self.to_db.bind_ctx([Note]):
+                    Note.create(**note_data)
                 if note_data["location"]:
                     note_data["location"] = self.location_mapping[note_data["location"]]
 

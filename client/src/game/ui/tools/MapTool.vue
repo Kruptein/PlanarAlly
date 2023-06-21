@@ -2,6 +2,7 @@
 import { reactive, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { map } from "../../../core/iter";
 import { getShape } from "../../id";
 import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
 import { selectedSystem } from "../../systems/selected";
@@ -24,8 +25,8 @@ watchEffect(() => {
 });
 
 watchEffect(() => {
-    const selection = [...selectedSystem.$.value].map((s) => getShape(s)!);
-    mapTool.setSelection(selection);
+    const selection = map(selectedSystem.$.value, (s) => getShape(s)!);
+    mapTool.setSelection([...selection]);
 });
 
 function apply(): void {

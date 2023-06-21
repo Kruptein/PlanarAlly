@@ -1,4 +1,6 @@
 import { registerSystem, type ShapeSystem } from "..";
+import type { ApiGroup } from "../../../apiTypes";
+import { map } from "../../../core/iter";
 import { UI_SYNC } from "../../../core/models/types";
 import { uuidv4 } from "../../../core/utils";
 import { getGlobalId, getShape, type GlobalId, type LocalId } from "../../id";
@@ -12,14 +14,7 @@ import {
     sendMemberBadgeUpdate,
     sendRemoveGroup,
 } from "./emits";
-import {
-    type CREATION_ORDER_TYPES,
-    groupToServer,
-    type Group,
-    CharacterSet,
-    type ServerGroup,
-    groupToClient,
-} from "./models";
+import { type CREATION_ORDER_TYPES, groupToServer, type Group, CharacterSet, groupToClient } from "./models";
 import { groupState } from "./state";
 
 const { mutableReactive: $, mutable, readonly } = groupState;
@@ -122,7 +117,7 @@ class GroupSystem implements ShapeSystem {
                     mutable.groupMembers.get(memberGroupId)?.delete(member.uuid);
                 }
                 if (!mutable.shapeData.has(member.uuid)) {
-                    this.inform(member.uuid, { groupId, badge: 0 });
+                    this.inform(member.uuid, { groupId, badge: member.badge });
                 } else {
                     mutable.shapeData.set(member.uuid, { groupId, badge: member.badge });
                 }
@@ -185,12 +180,12 @@ class GroupSystem implements ShapeSystem {
             }
         }
 
-        sendMemberBadgeUpdate(
-            [...members].map((m) => ({
+        sendMemberBadgeUpdate([
+            ...map(members, (m) => ({
                 uuid: getGlobalId(m)!,
                 badge: this.getBadge(m),
             })),
-        );
+        ]);
     }
 
     // badge
@@ -208,14 +203,14 @@ class GroupSystem implements ShapeSystem {
         if (group === undefined) throw new Error("Invalid groupId provided");
 
         const members = this.getGroupMembers(groupId);
-        const badges = [...members].map((m) => this.getBadge(m));
+        const badges = new Set(map(members, (m) => this.getBadge(m)));
         const membersLength = Math.max(2 * members.size + 1, 10);
 
         if (group.creationOrder === "incrementing") {
             return Math.max(-1, ...badges) + 1;
         } else {
             let value: number | undefined;
-            while (value === undefined || badges.includes(value)) {
+            while (value === undefined || badges.has(value)) {
                 value = Math.floor(Math.random() * membersLength);
             }
             return value;
@@ -250,7 +245,7 @@ class GroupSystem implements ShapeSystem {
 
     // server
 
-    updateGroupFromServer(serverGroup: ServerGroup): void {
+    updateGroupFromServer(serverGroup: ApiGroup): void {
         const group = groupToClient(serverGroup);
         mutable.groups.set(group.uuid, group);
         for (const member of this.getGroupMembers(group.uuid)) {

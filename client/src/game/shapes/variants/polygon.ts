@@ -1,5 +1,6 @@
-import { g2l, g2lz } from "../../../core/conversions";
-import { addP, getDistanceToSegment, subtractP, toArrayP, toGP } from "../../../core/geometry";
+import type { ApiPolygonShape } from "../../../apiTypes";
+import { g2l, g2lz, toDegrees } from "../../../core/conversions";
+import { Vector, addP, getAngleBetween, getDistanceToSegment, subtractP, toArrayP, toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { equalPoints, filterEqualPoints, getPointsCenter, rotateAroundPoint } from "../../../core/math";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
@@ -9,8 +10,8 @@ import { FOG_COLOUR } from "../../colour";
 import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
-import type { ServerPolygon } from "../../models/shapes";
 import type { AuraId } from "../../systems/auras/models";
+import { positionState } from "../../systems/position/state";
 import { getProperties } from "../../systems/properties/state";
 import type { ShapeProperties } from "../../systems/properties/state";
 import type { TrackerId } from "../../systems/trackers/models";
@@ -19,6 +20,11 @@ import { Shape } from "../shape";
 import type { SHAPE_TYPE } from "../types";
 
 import { BoundingRect } from "./simple/boundingRect";
+
+// Consts for simplifyEnd
+const MIN_AREA = 0.04 * 5;
+const MAX_AREA = 13 * 5;
+const ANGLE_C = 56;
 
 export class Polygon extends Shape implements IShape {
     type: SHAPE_TYPE = "polygon";
@@ -82,17 +88,19 @@ export class Polygon extends Shape implements IShape {
         return filterEqualPoints(this.vertices);
     }
 
-    asDict(): ServerPolygon {
-        return Object.assign(this.getBaseDict(), {
-            vertices: this._vertices.map((v) => toArrayP(v)),
+    asDict(): ApiPolygonShape {
+        return {
+            ...this.getBaseDict(),
+            vertices: JSON.stringify(this._vertices.map((v) => toArrayP(v))),
             open_polygon: this.openPolygon,
             line_width: this.lineWidth[0]!,
-        });
+        };
     }
 
-    fromDict(data: ServerPolygon): void {
+    fromDict(data: ApiPolygonShape): void {
         super.fromDict(data);
-        this._vertices = data.vertices.map((v) => toGP(v));
+        const vertices = JSON.parse(data.vertices) as [number, number][];
+        this._vertices = vertices.map((v) => toGP(v));
         this.openPolygon = data.open_polygon;
         this.lineWidth = [data.line_width];
     }
@@ -268,11 +276,12 @@ export class Polygon extends Shape implements IShape {
         }
     }
 
-    pushPoint(point: GlobalPoint): void {
+    pushPoint(point: GlobalPoint, options?: { simplifyEnd?: boolean }): void {
         this._vertices.push(point);
         this._points.push(this.invalidatePoint(point, this.center));
         this.layer?.updateSectors(this.id, this.getAuraAABB());
         if (this.isSnappable) this.updateLayerPoints();
+        if (options?.simplifyEnd === true) this.simplifyEnd();
     }
 
     addPoint(point: GlobalPoint): void {
@@ -321,6 +330,40 @@ export class Polygon extends Shape implements IShape {
 
             this.invalidatePoints();
             this.invalidate(true);
+        }
+    }
+
+    // Run a Visvalingam-Whyatt style simplification on the end of the polygon
+    // This assumes that a new point was added to the end and that the previous points have been simplified before
+    private simplifyEnd(): void {
+        function area(t: [number, number][]): number {
+            return Math.abs(
+                (t[0]![0] - t[2]![0]) * (t[1]![1] - t[0]![1]) - (t[0]![0] - t[1]![0]) * (t[2]![1] - t[0]![1]),
+            );
+        }
+
+        const max_area = MAX_AREA / positionState.readonly.zoom;
+        const min_area = MIN_AREA / positionState.readonly.zoom;
+
+        while (this._points.length >= 3) {
+            const a = area(this._points.slice(-3));
+            if (a > max_area) {
+                break;
+            } else if (a >= min_area) {
+                let angle = toDegrees(
+                    getAngleBetween(
+                        Vector.fromPoints(toGP(this._points.at(-2)!), toGP(this._points.at(-3)!)),
+                        Vector.fromPoints(toGP(this._points.at(-2)!), toGP(this._points.at(-1)!)),
+                    ),
+                );
+                if (angle < 0) angle *= -1;
+                if (angle <= 180 - ANGLE_C || angle >= 180 + ANGLE_C) {
+                    break;
+                }
+            }
+
+            const p = this._vertices.at(-2)!;
+            this.removePoint(p);
         }
     }
 }

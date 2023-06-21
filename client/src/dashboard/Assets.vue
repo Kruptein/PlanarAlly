@@ -10,6 +10,7 @@ import { socket } from "../assetManager/socket";
 import { assetStore } from "../assetManager/state";
 import { changeDirectory, getIdImageSrc, showIdName } from "../assetManager/utils";
 import { baseAdjust } from "../core/http";
+import { map } from "../core/iter";
 import { useModal } from "../core/plugins/modals/plugin";
 import { ctrlOrCmdPressed } from "../core/utils";
 
@@ -75,7 +76,7 @@ async function onDrop(event: DragEvent): Promise<void> {
     hideDropZone();
     if (event.dataTransfer && event.dataTransfer.items.length > 0) {
         await parseDirectoryUpload(
-            [...event.dataTransfer.items].map((i) => i.webkitGetAsEntry()),
+            map(event.dataTransfer.items, (i) => i.webkitGetAsEntry()),
             assetStore.currentFolder.value,
         );
     }
@@ -86,9 +87,9 @@ function fsToFile(fl: FileSystemFileEntry): Promise<File> {
 }
 
 async function parseDirectoryUpload(
-    fileSystemEntries: (FileSystemEntry | null)[],
+    fileSystemEntries: Iterable<FileSystemEntry | null>,
     target: number,
-    targetOffset: string[] = [],
+    newDirectories: string[] = [],
 ): Promise<void> {
     const files: FileSystemFileEntry[] = [];
     for (const entry of fileSystemEntries) {
@@ -96,15 +97,16 @@ async function parseDirectoryUpload(
         if (entry.isDirectory) {
             const fwk = entry as FileSystemDirectoryEntry;
             const reader = fwk.createReader();
-            reader.readEntries((entries) => void parseDirectoryUpload(entries, target, [...targetOffset, entry.name]));
+            reader.readEntries(
+                (entries) => void parseDirectoryUpload(entries, target, [...newDirectories, entry.name]),
+            );
         } else if (entry.isFile) {
             files.push(entry as FileSystemFileEntry);
         }
     }
     if (files.length > 0) {
         const fileList = await Promise.all(files.map((f) => fsToFile(f)));
-        console.log("Uploading", fileList, targetOffset);
-        await assetStore.upload(fileList as unknown as FileList, target, targetOffset);
+        await assetStore.upload(fileList as unknown as FileList, { target, newDirectories });
     }
 }
 
@@ -172,7 +174,7 @@ async function stopDrag(event: DragEvent, target: number): Promise<void> {
         assetStore.clearSelected();
     } else if (event.dataTransfer && event.dataTransfer.items.length > 0) {
         await parseDirectoryUpload(
-            [...event.dataTransfer.items].map((i) => i.webkitGetAsEntry()),
+            map(event.dataTransfer.items, (i) => i.webkitGetAsEntry()),
             target,
         );
     }
@@ -184,7 +186,10 @@ function prepareUpload(): void {
     document.getElementById("files")!.click();
 }
 
-const upload = (): Promise<void> => assetStore.upload();
+const upload = async (): Promise<void> => {
+    const files = (document.getElementById("files") as HTMLInputElement).files;
+    if (files !== null) await assetStore.upload(files);
+};
 
 async function deleteSelection(): Promise<void> {
     if (assetStore.state.selected.length === 0) return;
@@ -273,6 +278,15 @@ async function deleteSelection(): Promise<void> {
             >
                 <img :src="getIdImageSrc(file)" width="50" alt="" />
                 <div class="title">{{ showIdName(file) }}</div>
+            </div>
+        </div>
+        <div v-show="state.expectedUploads > 0 && state.expectedUploads !== state.resolvedUploads" id="progressbar">
+            <div id="progressbar-label">
+                {{ t("assetManager.AssetManager.uploading") }} {{ state.resolvedUploads }} /
+                {{ state.expectedUploads }}
+            </div>
+            <div id="progressbar-meter">
+                <span :style="{ width: (state.resolvedUploads / state.expectedUploads) * 100 + '%' }"></span>
             </div>
         </div>
     </div>
@@ -404,6 +418,74 @@ async function deleteSelection(): Promise<void> {
 
         > .inode-not-selected::after {
             background-image: v-bind(emptySelectionUrl);
+        }
+    }
+}
+
+#progressbar {
+    position: sticky;
+    bottom: 2rem;
+
+    margin-top: 2rem;
+
+    display: flex;
+    flex-direction: row;
+
+    border: solid 2px white;
+    border-radius: 15px;
+    overflow: hidden;
+
+    #progressbar-label {
+        padding: 10px 15px;
+        background-color: rgba(137, 0, 37, 1);
+        font-weight: bold;
+    }
+
+    #progressbar-meter {
+        background-color: white;
+        padding: 1px;
+        flex-grow: 2;
+
+        > span {
+            display: block;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            background-color: rgba(137, 0, 37, 1);
+            background-image: linear-gradient(to bottom, rgba(137, 0, 37, 1) 37%, rgba(137, 0, 37, 1) 69%);
+            box-shadow: inset 0 2px 9px rgba(255, 255, 255, 0.3), inset 0 -2px 6px rgba(0, 0, 0, 0.4);
+
+            &:after {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                right: 0;
+                background-image: linear-gradient(
+                    -45deg,
+                    rgba(255, 255, 255, 0.2) 25%,
+                    transparent 25%,
+                    transparent 50%,
+                    rgba(255, 255, 255, 0.2) 50%,
+                    rgba(255, 255, 255, 0.2) 75%,
+                    transparent 75%,
+                    transparent
+                );
+                z-index: 1;
+                background-size: 50px 50px;
+                overflow: hidden;
+                animation: move 2s linear infinite;
+            }
+        }
+    }
+
+    @keyframes move {
+        0% {
+            background-position: 0 0;
+        }
+        100% {
+            background-position: 50px 50px;
         }
     }
 }

@@ -9,7 +9,7 @@ import { annotationState } from "./state";
 
 const { mutableReactive: $, mutable, readonly } = annotationState;
 
-export class AnnotationSystem implements ShapeSystem {
+class AnnotationSystem implements ShapeSystem {
     // BEHAVIOUR
 
     clear(): void {

@@ -2,7 +2,7 @@ from typing import List, cast
 
 from aiohttp import web
 
-from ....models.campaign import Room
+from ....db.models.room import Room
 
 
 async def collect(_request: web.Request) -> web.Response:

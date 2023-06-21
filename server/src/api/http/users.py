@@ -1,7 +1,7 @@
 from aiohttp import web
 from aiohttp_security import check_authorized, forget
 
-from ...models import User
+from ...db.models.user import User
 
 
 async def set_email(request: web.Request):

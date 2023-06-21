@@ -19,8 +19,6 @@ import type { Tracker, TrackerId, UiTracker } from "../../../systems/trackers/mo
 
 const { t } = useI18n();
 
-defineProps<{ activeSelection: boolean }>();
-
 const owned = accessState.hasEditAccess;
 const isComposite = activeShapeStore.isComposite;
 
@@ -122,7 +120,7 @@ function toggleCompositeAura(shape: LocalId, auraId: AuraId): void {
 </script>
 
 <template>
-    <div v-show="activeSelection" style="display: contents">
+    <div style="display: contents">
         <div id="trackers-panel">
             <div class="spanrow header">{{ t("common.trackers") }}</div>
             <div

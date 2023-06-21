@@ -78,7 +78,6 @@ body,
     min-width: 100%;
     min-height: 100%;
     font-family: "Open Sans", sans-serif;
-    font-weight: 200;
 
     display: flex;
     background-repeat: repeat;

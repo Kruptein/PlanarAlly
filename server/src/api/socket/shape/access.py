@@ -1,26 +1,37 @@
-from typing import cast
+from typing import Any
 
 from .... import auth
 from ....app import app, sio
+from ....db.models.player_room import PlayerRoom
+from ....db.models.shape import Shape
+from ....db.models.shape_owner import ShapeOwner
+from ....db.models.user import User
 from ....logs import logger
-from ....models import PlayerRoom, Shape, ShapeOwner, User
+from ....models.access import has_ownership
 from ....models.role import Role
-from ....models.shape.access import has_ownership
 from ....state.game import game_state
+from ....transform.shape import transform_shape
+from ...helpers import _send_game
+from ...models.shape.owner import (
+    ApiDefaultShapeOwner,
+    ApiDeleteShapeOwner,
+    ApiShapeOwner,
+)
 from ..constants import GAME_NS
-from .data_models import ServerShapeDefaultOwner, ServerShapeOwner
 
 
 @sio.on("Shape.Owner.Add", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def add_shape_owner(sid: str, data: ServerShapeOwner):
+async def add_shape_owner(sid: str, raw_data: Any):
+    data = ApiShapeOwner(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
     try:
-        shape = Shape.get(uuid=data["shape"])
+        shape = Shape.get(uuid=data.shape)
     except Shape.DoesNotExist as exc:
         logger.warning(
-            f"Attempt to add owner to unknown shape by {pr.player.name} [{data['shape']}]"
+            f"Attempt to add owner to unknown shape by {pr.player.name} [{data.shape}]"
         )
         raise exc
 
@@ -30,10 +41,10 @@ async def add_shape_owner(sid: str, data: ServerShapeOwner):
         )
         return
 
-    target_user = User.by_name(data["user"])
+    target_user = User.by_name(data.user)
     if target_user is None:
         logger.warning(
-            f"Attempt to add unknown user as owner to shape by {pr.player.name} [{data['user']}]"
+            f"Attempt to add unknown user as owner to shape by {pr.player.name} [{data.user}]"
         )
         return
 
@@ -45,39 +56,32 @@ async def add_shape_owner(sid: str, data: ServerShapeOwner):
         ShapeOwner.create(
             shape=shape,
             user=target_user,
-            edit_access=data["edit_access"],
-            movement_access=data["movement_access"],
-            vision_access=data["vision_access"],
+            edit_access=data.edit_access,
+            movement_access=data.movement_access,
+            vision_access=data.vision_access,
         )
-    await sio.emit(
-        "Shape.Owner.Add",
-        data,
-        room=pr.active_location.get_path(),
-        skip_sid=sid,
-        namespace=GAME_NS,
+    await _send_game(
+        "Shape.Owner.Add", data, room=pr.active_location.get_path(), skip_sid=sid
     )
     if not (shape.default_vision_access or shape.default_edit_access):
-        for sid in game_state.get_sids(
+        for sid, tpr in game_state.get_t(
             player=target_user, active_location=pr.active_location
         ):
-            await sio.emit(
-                "Shape.Set",
-                shape.as_dict(target_user, False),
-                room=sid,
-                namespace=GAME_NS,
-            )
+            await _send_game("Shape.Set", transform_shape(shape, tpr), room=sid)
 
 
 @sio.on("Shape.Owner.Update", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def update_shape_owner(sid: str, data: ServerShapeOwner):
+async def update_shape_owner(sid: str, raw_data: Any):
+    data = ApiShapeOwner(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
     try:
-        shape = Shape.get(uuid=data["shape"])
+        shape = Shape.get(uuid=data.shape)
     except Shape.DoesNotExist as exc:
         logger.warning(
-            f"Attempt to update owner of unknown shape by {pr.player.name} [{data['shape']}]"
+            f"Attempt to update owner of unknown shape by {pr.player.name} [{data.shape}]"
         )
         raise exc
 
@@ -87,10 +91,10 @@ async def update_shape_owner(sid: str, data: ServerShapeOwner):
         )
         return
 
-    target_user = User.by_name(data["user"])
+    target_user = User.by_name(data.user)
     if target_user is None:
         logger.warning(
-            f"Attempt to update unknown user as owner to shape by {pr.player.name} [{data['user']}]"
+            f"Attempt to update unknown user as owner to shape by {pr.player.name} [{data.user}]"
         )
         return
 
@@ -104,30 +108,34 @@ async def update_shape_owner(sid: str, data: ServerShapeOwner):
 
     so.shape = shape
     so.user = target_user
-    so.edit_access = data["edit_access"]
-    so.movement_access = data["movement_access"]
-    so.vision_access = data["vision_access"]
+    so.edit_access = data.edit_access
+    so.movement_access = data.movement_access
+    so.vision_access = data.vision_access
     so.save()
 
-    await sio.emit(
-        "Shape.Owner.Update",
-        data,
-        room=pr.active_location.get_path(),
-        skip_sid=sid,
-        namespace=GAME_NS,
+    await _send_game(
+        "Shape.Owner.Update", data, room=pr.active_location.get_path(), skip_sid=sid
     )
+
+    # Ensure the target player has an updated view of the shape due to access changes
+    for tsid, tpr in game_state.get_t(
+        player=target_user, active_location=pr.active_location
+    ):
+        await _send_game("Shape.Set", transform_shape(shape, tpr), room=tsid)
 
 
 @sio.on("Shape.Owner.Delete", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def delete_shape_owner(sid: str, data: ServerShapeOwner):
+async def delete_shape_owner(sid: str, raw_data: Any):
+    data = ApiDeleteShapeOwner(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
     try:
-        shape = Shape.get(uuid=data["shape"])
+        shape = Shape.get(uuid=data.shape)
     except Shape.DoesNotExist as exc:
         logger.warning(
-            f"Attempt to delete owner of unknown shape by {pr.player.name} [{data['shape']}]"
+            f"Attempt to delete owner of unknown shape by {pr.player.name} [{data.shape}]"
         )
         raise exc
 
@@ -137,10 +145,10 @@ async def delete_shape_owner(sid: str, data: ServerShapeOwner):
         )
         return
 
-    target_user = User.by_name(data["user"])
+    target_user = User.by_name(data.user)
     if target_user is None:
         logger.warning(
-            f"Attempt to delete unknown user as owner to shape by {pr.player.name} [{data['user']}]"
+            f"Attempt to delete unknown user as owner to shape by {pr.player.name} [{data.user}]"
         )
         return
 
@@ -151,25 +159,29 @@ async def delete_shape_owner(sid: str, data: ServerShapeOwner):
     except Exception:
         logger.warning(f"Could not delete shape-owner relation by {pr.player.name}")
 
-    await sio.emit(
-        "Shape.Owner.Delete",
-        data,
-        room=pr.active_location.get_path(),
-        skip_sid=sid,
-        namespace=GAME_NS,
+    await _send_game(
+        "Shape.Owner.Delete", data, room=pr.active_location.get_path(), skip_sid=sid
     )
+
+    # Ensure the target player has an updated view of the shape due to access changes
+    for tsid, tpr in game_state.get_t(
+        player=target_user, active_location=pr.active_location
+    ):
+        await _send_game("Shape.Set", transform_shape(shape, tpr), room=tsid)
 
 
 @sio.on("Shape.Owner.Default.Update", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def update_default_shape_owner(sid: str, data: ServerShapeDefaultOwner):
+async def update_default_shape_owner(sid: str, raw_data: Any):
+    data = ApiDefaultShapeOwner(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
     try:
-        shape: Shape = Shape.get(uuid=data["shape"])
+        shape: Shape = Shape.get(uuid=data.shape)
     except Shape.DoesNotExist as exc:
         logger.warning(
-            f"Attempt to update owner of unknown shape by {pr.player.name} [{data['shape']}]"
+            f"Attempt to update owner of unknown shape by {pr.player.name} [{data.shape}]"
         )
         raise exc
 
@@ -179,25 +191,15 @@ async def update_default_shape_owner(sid: str, data: ServerShapeDefaultOwner):
         )
         return
 
-    if "edit_access" in data:
-        shape.default_edit_access = data["edit_access"]
-
-    if "vision_access" in data:
-        shape.default_vision_access = data["vision_access"]
-
-    if "movement_access" in data:
-        shape.default_movement_access = data["movement_access"]
+    shape.default_edit_access = data.edit_access
+    shape.default_vision_access = data.vision_access
+    shape.default_movement_access = data.movement_access
 
     shape.save()
 
     # We need to send each player their new view of the shape which includes the default access fields,
     # so there is no use in sending those separately
-    for sid, player in game_state.get_users(
+    for sid, player_room in game_state.get_t(
         active_location=pr.active_location, skip_sid=sid
     ):
-        await sio.emit(
-            "Shape.Set",
-            shape.as_dict(player, cast(bool, game_state.get(sid).role == Role.DM)),
-            room=sid,
-            namespace=GAME_NS,
-        )
+        await _send_game("Shape.Set", transform_shape(shape, player_room), room=sid)

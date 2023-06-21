@@ -34,8 +34,9 @@ TEMP_DIR = STATIC_DIR / "temp"
 SAVE_DIR = get_save_dir()
 
 
-if not ASSETS_DIR.exists():
-    ASSETS_DIR.mkdir()
+for folder in [ASSETS_DIR, TEMP_DIR]:
+    if not folder.exists():
+        folder.mkdir()
 
 
 class OldVersionException(Exception):

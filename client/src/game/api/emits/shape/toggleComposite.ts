@@ -1,17 +1,14 @@
+import type { ToggleCompositeNewVariant, ToggleCompositeVariant } from "../../../../apiTypes";
 import { wrapSocket } from "../../helpers";
 
-export const sendToggleCompositeActiveVariant = wrapSocket<{ shape: string; variant: string }>(
+export const sendToggleCompositeActiveVariant = wrapSocket<ToggleCompositeVariant>(
     "ToggleComposite.Variants.Active.Set",
 );
 
-export const sendToggleCompositeAddVariant = wrapSocket<{ shape: string; variant: string; name: string }>(
-    "ToggleComposite.Variants.Add",
-);
+export const sendToggleCompositeAddVariant = wrapSocket<ToggleCompositeNewVariant>("ToggleComposite.Variants.Add");
 
-export const sendToggleCompositeRenameVariant = wrapSocket<{ shape: string; variant: string; name: string }>(
+export const sendToggleCompositeRenameVariant = wrapSocket<ToggleCompositeNewVariant>(
     "ToggleComposite.Variants.Rename",
 );
 
-export const sendToggleCompositeRemoveVariant = wrapSocket<{ shape: string; variant: string }>(
-    "ToggleComposite.Variants.Remove",
-);
+export const sendToggleCompositeRemoveVariant = wrapSocket<ToggleCompositeVariant>("ToggleComposite.Variants.Remove");

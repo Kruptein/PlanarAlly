@@ -1,22 +1,25 @@
 <script lang="ts" setup>
 import { computed } from "vue";
 
+import type { LogicDoorRequest, LogicRequestInfo, LogicTeleportRequest } from "../../../apiTypes";
 import { sendDeclineRequest } from "../../api/emits/logic";
 import { getLocalId, getShapeFromGlobal } from "../../id";
-import type { Global } from "../../id";
 import { setCenterPosition } from "../../position";
 import { floorSystem } from "../../systems/floors";
 import { doorSystem } from "../../systems/logic/door";
-import type { DoorRequest } from "../../systems/logic/door/models";
-import type { RequestTypeResponse } from "../../systems/logic/models";
 import { teleport } from "../../systems/logic/tp/core";
-import type { TpRequest } from "../../systems/logic/tp/models";
+import { playerSystem } from "../../systems/players";
 
 const emit = defineEmits(["close-toast"]);
-const props = defineProps<{ data: RequestTypeResponse }>();
+const props = defineProps<{ data: LogicRequestInfo }>();
+
+const player = computed(() => playerSystem.getPlayer(props.data.requester));
 
 const text = computed(
-    () => `${props.data.requester} requests to use ${props.data.logic === "door" ? "door" : "teleport zone"}`,
+    () =>
+        `${player.value?.name ?? "unknown player"} requests to use ${
+            props.data.request.logic === "door" ? "door" : "teleport zone"
+        }`,
 );
 
 function reject(): void {
@@ -25,30 +28,32 @@ function reject(): void {
 }
 
 async function accept(): Promise<void> {
-    if (props.data.logic === "door") {
-        approveDoor(props.data);
-    } else if (props.data.logic === "tp") {
-        await approveTp(props.data);
+    if (props.data.request.logic === "door") {
+        approveDoor(props.data.request);
+    } else if (props.data.request.logic === "tp") {
+        await approveTp(props.data.request);
     }
     emit("close-toast");
 }
 
-function approveDoor(request: Global<DoorRequest> & { requester: string }): void {
+function approveDoor(request: LogicDoorRequest): void {
     const shape = getLocalId(request.door);
     if (shape === undefined) return;
     doorSystem.toggleDoor(shape);
 }
 
-async function approveTp(request: Global<TpRequest> & { requester: string }): Promise<void> {
+async function approveTp(request: LogicTeleportRequest): Promise<void> {
+    const shape = getLocalId(request.fromZone);
+    if (shape === undefined) return;
     await teleport(
-        getLocalId(request.fromZone)!,
+        shape,
         request.toZone,
         request.transfers.map((t) => getLocalId(t)!),
     );
 }
 
 function showArea(): void {
-    const uuid = props.data.logic === "door" ? props.data.door : props.data.toZone;
+    const uuid = props.data.request.logic === "door" ? props.data.request.door : props.data.request.fromZone;
     const shape = getShapeFromGlobal(uuid);
     if (shape?.floorId === undefined) return;
 

@@ -3,6 +3,7 @@ import { computed, ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 
+import type { ApiNote } from "../../../apiTypes";
 import { baseAdjust } from "../../../core/http";
 import type { AssetFile } from "../../../core/models/types";
 import { uuidv4 } from "../../../core/utils";
@@ -17,7 +18,6 @@ import { gameState } from "../../systems/game/state";
 import { markerSystem } from "../../systems/markers";
 import { markerState } from "../../systems/markers/state";
 import { noteSystem } from "../../systems/notes";
-import type { Note } from "../../systems/notes/models";
 import { noteState } from "../../systems/notes/state";
 import { playerState } from "../../systems/players/state";
 import { getProperties } from "../../systems/properties/state";
@@ -64,7 +64,7 @@ function createNote(): void {
     openNote(note);
 }
 
-function openNote(note: Note): void {
+function openNote(note: ApiNote): void {
     showNote.value = true;
     uiSystem.setActiveNote(note);
 }
@@ -89,7 +89,7 @@ function nameMarker(marker: LocalId): string {
 const clientInfo = computed(() => {
     const info = [];
     for (const [playerId, player] of playerState.reactive.players) {
-        const clients = clientSystem.getClients(playerId);
+        const clients = [...clientSystem.getClients(playerId)];
         if (clients.length > 0) info.push({ player, client: clients[0]! });
     }
     return info;
@@ -259,6 +259,7 @@ DIRECTORY.CSS changes
     background-color: #fa5a5a;
     overflow: auto;
     pointer-events: auto;
+    touch-action: none;
 }
 
 .actionButton {

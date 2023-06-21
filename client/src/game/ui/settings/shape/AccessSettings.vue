@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, ref, toRef, watch } from "vue";
+import { computed, ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { filter } from "../../../../core/iter";
 import { SERVER_SYNC } from "../../../../core/models/types";
 import type { PartialPick } from "../../../../core/types";
-import { activeShapeStore } from "../../../../store/activeShape";
 import { Role } from "../../../models/role";
 import { accessSystem } from "../../../systems/access";
 import { DEFAULT_ACCESS, DEFAULT_ACCESS_SYMBOL } from "../../../systems/access/models";
@@ -13,19 +13,6 @@ import { accessState } from "../../../systems/access/state";
 import { playerState } from "../../../systems/players/state";
 
 const { t } = useI18n();
-defineProps<{ activeSelection: boolean }>();
-
-watch(
-    () => activeShapeStore.state.id,
-    (newId, oldId) => {
-        if (newId !== undefined && oldId !== newId) {
-            accessSystem.loadState(newId);
-        } else if (newId === undefined) {
-            accessSystem.dropState();
-        }
-    },
-    { immediate: true },
-);
 
 const accessDropdown = ref<HTMLSelectElement | null>(null);
 
@@ -35,9 +22,12 @@ const defaultAccess = toRef(accessState.reactive, "defaultAccess");
 const playersWithoutAccess = computed(() => {
     const id = accessState.reactive.id;
     if (id === undefined) return [];
-    return [...playerState.reactive.players.values()].filter(
-        (p) => p.role !== Role.DM && !accessState.owners.value.some((o) => o === p.name),
-    );
+    return [
+        ...filter(
+            playerState.reactive.players.values(),
+            (p) => p.role !== Role.DM && !accessState.owners.value.some((o) => o === p.name),
+        ),
+    ];
 });
 
 function addOwner(): void {
@@ -114,7 +104,7 @@ function toggleVisionAccess(user?: ACCESS_KEY): void {
 </script>
 
 <template>
-    <div v-show="activeSelection" class="panel restore-panel">
+    <div class="panel restore-panel">
         <div class="spanrow header">{{ t("game.ui.selection.edit_dialog.access.access") }}</div>
         <div class="owner">
             <em>{{ t("game.ui.selection.edit_dialog.access.default") }}</em>

@@ -10,6 +10,7 @@ import { accessState } from "../../systems/access/state";
 import { auraSystem } from "../../systems/auras";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
+import { gameState } from "../../systems/game/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import { visionState } from "../../vision/state";
 
@@ -54,6 +55,7 @@ export class FowLightingLayer extends FowLayer {
                     if (shape === undefined) continue;
                     if (shape.options.skipDraw ?? false) continue;
                     if (shape.floorId !== activeFloor.id) continue;
+                    if (shape.layerName === LayerName.Dm && gameState.raw.isFakePlayer) continue;
                     const bb = shape.getBoundingBox();
                     const lcenter = g2l(shape.center);
                     const alm = 0.8 * g2lz(bb.w);

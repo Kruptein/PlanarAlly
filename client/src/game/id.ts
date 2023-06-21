@@ -3,10 +3,6 @@ import { uuidv4 } from "../core/utils";
 import type { IShape } from "./interfaces/shape";
 import { dropFromSystems } from "./systems";
 
-export type Global<T> = {
-    [key in keyof T]: T[key] extends LocalId ? GlobalId : T[key] extends LocalId[] ? GlobalId[] : T[key];
-};
-
 export type NumberId<T extends string> = number & { __brand: T };
 export type StringId<T extends string> = string & { __brand: T };
 export type GlobalId = StringId<"globalId">;

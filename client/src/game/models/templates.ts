@@ -1,8 +1,5 @@
+import type { ApiAura, ApiShape, ApiTracker } from "../../apiTypes";
 import type { SHAPE_TYPE } from "../shapes/types";
-import type { ServerAura } from "../systems/auras/models";
-import type { ServerTracker } from "../systems/trackers/models";
-
-import type { ServerShape } from "./shapes";
 
 // Some of these keys are added later but with restrictions
 export const BaseTemplateStrings = [
@@ -16,27 +13,46 @@ export const BaseTemplateStrings = [
     "name",
     "name_visible",
     "annotation",
+    "annotation_visible",
     "is_token",
-    "is_invisible",
-    "is_defeated",
-    "show_badge",
-    "is_locked",
     "default_edit_access",
     "default_movement_access",
     "default_vision_access",
     "asset",
 ] as const;
-export const BaseAuraStrings = ["vision_source", "visible", "name", "value", "dim", "colour"] as const;
-export const BaseTrackerStrings = ["visible", "name", "value", "maxvalue"] as const;
-export type BaseAuraTemplate = Pick<ServerAura, typeof BaseAuraStrings[number]>;
-export type BaseTrackerTemplate = Pick<ServerTracker, typeof BaseTrackerStrings[number]>;
-type BasePropertyTemplate = Pick<ServerShape, typeof BaseTemplateStrings[number]>;
+// Some properties are not desirable by default:
+// is_door, is_teleport_zone, is_locked, is_defeated, show_badge, is_invisible
+// ideally we have an advanced option where you can decide which template options are saved including the above by default deselected
+export const BaseAuraStrings = [
+    "vision_source",
+    "visible",
+    "name",
+    "value",
+    "dim",
+    "colour",
+    "active",
+    "border_colour",
+    "angle",
+    "direction",
+] as const;
+export const BaseTrackerStrings = [
+    "visible",
+    "name",
+    "value",
+    "maxvalue",
+    "draw",
+    "primary_color",
+    "secondary_color",
+] as const;
+export type BaseAuraTemplate = Pick<ApiAura, (typeof BaseAuraStrings)[number]>;
+export type BaseTrackerTemplate = Pick<ApiTracker, (typeof BaseTrackerStrings)[number]>;
+type BasePropertyTemplate = Pick<ApiShape, (typeof BaseTemplateStrings)[number]>;
 export type BaseTemplate = Partial<
     BasePropertyTemplate & { auras: Partial<BaseAuraTemplate>[] } & { trackers: Partial<BaseTrackerTemplate>[] }
 >;
 
+// Why do these exist, templates only work for Assets at the moment?
 const PolygonTemplateStrings = ["x", "y", "vertices", "open_polygon", "line_width"] as const;
-
 const TextTemplateStrings = ["text", "font"] as const;
 
 const AssetTemplateStrings = ["width", "height", "src"] as const;
@@ -58,5 +74,8 @@ const TEMPLATE_TYPES: Record<SHAPE_TYPE, SpecifcShapeTemplateStrings> = {
 };
 
 export function getTemplateKeys(shapeType: SHAPE_TYPE): SpecifcShapeTemplateStrings {
+    if (shapeType !== "assetrect") {
+        console.error("Template keys requested for non-assetrect");
+    }
     return TEMPLATE_TYPES[shapeType];
 }

@@ -4,6 +4,8 @@ import { useI18n } from "vue-i18n";
 import draggable from "vuedraggable";
 
 import Modal from "../../../core/components/modals/Modal.vue";
+import { baseAdjust } from "../../../core/http";
+import { map } from "../../../core/iter";
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { getTarget, getValue } from "../../../core/utils";
 import { sendRequestInitiatives } from "../../api/emits/initiative";
@@ -88,14 +90,14 @@ function removeEffect(shape: GlobalId, index: number): void {
 
 function toggleHighlight(actorId: LocalId | undefined, show: boolean): void {
     if (actorId === undefined) return;
-    let shapeArray: IShape[];
+    let shapeArray: Iterable<IShape>;
     const groupId = groupSystem.getGroupId(actorId);
     if (groupId === undefined) {
         const shape = getShape(actorId);
         if (shape === undefined) return;
         shapeArray = [shape];
     } else {
-        shapeArray = [...groupSystem.getGroupMembers(groupId)].map((m) => getShape(m)!);
+        shapeArray = map(groupSystem.getGroupMembers(groupId), (m) => getShape(m)!);
     }
     for (const sh of shapeArray) {
         sh.showHighlight = show;
@@ -110,7 +112,7 @@ function hasImage(actor: InitiativeData): boolean {
 
 function getImage(actor: InitiativeData): string {
     if (actor.localId === undefined) return "";
-    return (getShape(actor.localId) as IAsset).src;
+    return baseAdjust((getShape(actor.localId) as IAsset).src);
 }
 
 function canSee(actor: InitiativeData): boolean {

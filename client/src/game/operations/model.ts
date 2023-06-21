@@ -1,7 +1,7 @@
+import type { ApiShape } from "../../apiTypes";
 import type { GlobalPoint } from "../../core/geometry";
 import type { LocalId } from "../id";
 import type { LayerName } from "../models/floor";
-import type { ServerShape } from "../models/shapes";
 
 export type Operation =
     | FloorMoveOperation
@@ -71,12 +71,12 @@ interface LayerMoveOperation {
 
 interface ShapeRemoveOperation {
     type: "shaperemove";
-    shapes: ServerShape[];
+    shapes: ApiShape[];
 }
 
 // SHAPE ADD
 
 interface ShapeAddOperation {
     type: "shapeadd";
-    shapes: ServerShape[];
+    shapes: ApiShape[];
 }

@@ -359,6 +359,7 @@ const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
 }
 
 .drag-handle {
+    flex-shrink: 0; // prevent multiline location names to butt into the handle
     width: 1.6rem;
     height: 1.25rem;
 

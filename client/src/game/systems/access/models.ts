@@ -1,12 +1,17 @@
-import type { GlobalId, LocalId } from "../../id";
+import type { LocalId } from "../../id";
 
 export const DEFAULT_ACCESS_SYMBOL = Symbol();
 export type ACCESS_KEY = string | typeof DEFAULT_ACCESS_SYMBOL;
+export type AccessMap = Map<ACCESS_KEY, ShapeAccess>;
 export const DEFAULT_ACCESS: ShapeAccess = {
     edit: false,
     movement: false,
     vision: false,
 };
+
+export function isNonDefaultAccessSymbol(s: ACCESS_KEY): s is string {
+    return s !== DEFAULT_ACCESS_SYMBOL;
+}
 
 export interface ShapeAccess {
     edit: boolean;
@@ -24,9 +29,4 @@ export interface ServerShapeAccess {
     edit_access: boolean;
     movement_access: boolean;
     vision_access: boolean;
-}
-
-export interface ServerShapeOwner extends ServerShapeAccess {
-    shape: GlobalId;
-    user: string;
 }

@@ -1,8 +1,11 @@
 import { toRaw } from "vue";
 
+import type { ApiShape } from "../../../apiTypes";
 import { g2l, l2g, l2gz } from "../../../core/conversions";
 import { Ray, toLP } from "../../../core/geometry";
+import { filter } from "../../../core/iter";
 import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
+import { callbackProvider } from "../../../core/utils";
 import { debugLayers } from "../../../localStorageHelpers";
 import { activeShapeStore } from "../../../store/activeShape";
 import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../../api/emits/shape/core";
@@ -12,7 +15,6 @@ import type { ILayer } from "../../interfaces/layer";
 import type { IShape } from "../../interfaces/shape";
 import { LayerName } from "../../models/floor";
 import type { FloorId } from "../../models/floor";
-import type { ServerShape } from "../../models/shapes";
 import { addOperation } from "../../operations/undo";
 import { drawAuras } from "../../rendering/auras";
 import { drawTear } from "../../rendering/basic";
@@ -75,7 +77,7 @@ export class Layer implements ILayer {
     protected selectionColor = "#CC0000";
     protected selectionWidth = 2;
 
-    protected postDrawCallbacks: (() => void)[] = [];
+    postDrawCallback = callbackProvider();
 
     constructor(
         public canvas: HTMLCanvasElement,
@@ -110,10 +112,10 @@ export class Layer implements ILayer {
                 const x = this.xSectors.get(i);
                 const y = this.ySectors.get(j);
                 if (x !== undefined && y !== undefined) {
-                    for (const id of [...x].filter((x) => y.has(x))) {
+                    for (const id of filter(x, (x) => y.has(x))) {
                         this.shapeIdsInSector.add(id);
                     }
-                    for (const id of [...y].filter((y) => x.has(y))) {
+                    for (const id of filter(y, (y) => x.has(y))) {
                         this.shapeIdsInSector.add(id);
                     }
                 }
@@ -216,7 +218,7 @@ export class Layer implements ILayer {
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync) {
             sendShapeAdd({ shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
         }
-        if (invalidate) this.invalidate(invalidate !== InvalidationMode.WITH_LIGHT);
+        if (invalidate !== InvalidationMode.NO) this.invalidate(invalidate !== InvalidationMode.WITH_LIGHT);
 
         if (
             this.isActiveLayer &&
@@ -262,7 +264,7 @@ export class Layer implements ILayer {
         this.updateView();
     }
 
-    setServerShapes(shapes: ServerShape[]): void {
+    setServerShapes(shapes: ApiShape[]): void {
         if (this.isActiveLayer) selectedSystem.clear(); // TODO: Fix keeping selection on those items that are not moved.
         // We need to ensure composites are added after all their variants have been added
         const composites = [];
@@ -276,10 +278,9 @@ export class Layer implements ILayer {
         for (const composite of composites) this.setServerShape(composite);
     }
 
-    private setServerShape(serverShape: ServerShape): void {
+    private setServerShape(serverShape: ApiShape): void {
         const shape = createShapeFromDict(serverShape);
         if (shape === undefined) {
-            console.log(`Shape with unknown type ${serverShape.type_} could not be added`);
             return;
         }
         let invalidate = InvalidationMode.NO;
@@ -386,6 +387,11 @@ export class Layer implements ILayer {
 
             if (doClear) this.clear();
 
+            if (this.name !== LayerName.Lighting && this.selectable) {
+                if (floorState.raw.layerIndex < this.index) ctx.globalAlpha = 0.3;
+                else ctx.globalAlpha = 1.0;
+            }
+
             // We iterate twice over all shapes
             // First to draw the auras and a second time to draw the shapes themselves
             // Otherwise auras from one shape could overlap another shape.
@@ -405,7 +411,6 @@ export class Layer implements ILayer {
                     if (shape.options.skipDraw ?? false) continue;
                     const props = getProperties(shape.id)!;
                     if (props.isInvisible && !accessSystem.hasAccessTo(shape.id, true, { vision: true })) continue;
-                    // todo: move as a call to label system?
                     if (labelSystem.isFiltered(shape.id)) continue;
 
                     shape.draw(ctx);
@@ -463,22 +468,9 @@ export class Layer implements ILayer {
 
             ctx.globalCompositeOperation = ogOP;
             this.valid = true;
-            this.resolveCallbacks();
+            this.postDrawCallback.resolveAll();
         } else {
             this.ctx.clearRect(0, 0, 1, 1);
         }
-    }
-
-    // CALLBACKS
-
-    waitValid(): Promise<void> {
-        return new Promise((resolve, _reject) => {
-            this.postDrawCallbacks.push(resolve);
-        });
-    }
-
-    private resolveCallbacks(): void {
-        for (const cb of this.postDrawCallbacks) cb();
-        this.postDrawCallbacks = [];
     }
 }

@@ -1,7 +1,7 @@
 import { registerSystem } from "..";
 import type { System } from "..";
+import type { ApiNote } from "../../../apiTypes";
 import type { ClientSettingCategory } from "../../ui/settings/client/categories";
-import type { Note } from "../notes/models";
 
 import { uiState } from "./state";
 
@@ -34,7 +34,7 @@ class UiSystem implements System {
         $.openedLocationSettings = location;
     }
 
-    setActiveNote(note: Note): void {
+    setActiveNote(note: ApiNote): void {
         $.activeNote = note;
     }
 

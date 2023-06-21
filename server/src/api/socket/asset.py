@@ -1,18 +1,19 @@
-from typing import Optional
-from typing_extensions import TypedDict
+from typing import Any, Optional
 
 from ... import auth
 from ...api.socket.constants import GAME_NS
 from ...app import app, sio
+from ...db.models.asset import Asset
+from ...db.models.player_room import PlayerRoom
 from ...logs import logger
-from ...models import Asset, PlayerRoom
 from ...models.role import Role
 from ...state.game import game_state
-
-
-class AssetOptions(TypedDict):
-    asset: int
-    options: str
+from ..helpers import _send_game
+from ..models.asset.options import (
+    AssetOptionsInfoFail,
+    AssetOptionsInfoSuccess,
+    AssetOptionsSet,
+)
 
 
 @sio.on("Asset.Options.Get", namespace=GAME_NS)
@@ -27,27 +28,31 @@ async def get_asset_options(sid: str, asset_id: int):
     asset: Optional[Asset] = Asset.get_or_none(id=asset_id)
 
     if asset is None:
-        options = {"success": False, "error": "AssetNotFound"}
+        options = AssetOptionsInfoFail(success=False, error="AssetNotFound")
     else:
-        options = {"success": True, "name": asset.name, "options": asset.options}
+        options = AssetOptionsInfoSuccess(
+            success=True, name=asset.name, options=asset.options
+        )
 
-    await sio.emit("Asset.Options.Info", options, room=sid, namespace=GAME_NS)
+    await _send_game("Asset.Options.Info", options, room=sid)
 
 
 @sio.on("Asset.Options.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_asset_options(sid: str, asset_options: AssetOptions):
+async def set_asset_options(sid: str, raw_data: Any):
+    asset_options = AssetOptionsSet(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
         logger.warning(f"{pr.player.name} attempted to set asset options")
         return
 
-    asset = Asset.get_or_none(id=asset_options["asset"])
+    asset = Asset.get_or_none(id=asset_options.asset)
     if asset is None:
         asset = Asset.create(
             name="T",
             owner=game_state.get_user(sid),
         )
-    asset.options = asset_options["options"]
+    asset.options = asset_options.options
     asset.save()

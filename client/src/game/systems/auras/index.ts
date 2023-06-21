@@ -3,12 +3,18 @@ import type { DeepReadonly } from "vue";
 
 import { registerSystem } from "..";
 import type { ShapeSystem } from "..";
+import { filter } from "../../../core/iter";
 import { NO_SYNC } from "../../../core/models/types";
 import type { Sync } from "../../../core/models/types";
 import { getGlobalId, getShape } from "../../id";
 import type { LocalId } from "../../id";
 import { compositeState } from "../../layers/state";
+import { LayerName } from "../../models/floor";
 import { visionState } from "../../vision/state";
+import { accessSystem } from "../access";
+import { accessState } from "../access/state";
+import { gameState } from "../game/state";
+import { getProperties } from "../properties/state";
 import { selectedSystem } from "../selected";
 
 import { aurasToServer, partialAuraToServer, toUiAuras } from "./conversion";
@@ -100,6 +106,12 @@ class AuraSystem implements ShapeSystem {
     }
 
     getAll(id: LocalId, includeParent: boolean): DeepReadonly<Aura[]> {
+        if (gameState.raw.isFakePlayer) {
+            const shape = getShape(id);
+            if (shape === undefined) return [];
+            if (shape.layerName === LayerName.Dm) return [];
+        }
+
         const auras: Aura[] = [];
         if (includeParent) {
             const parent = compositeState.getCompositeParent(id);
@@ -108,6 +120,12 @@ class AuraSystem implements ShapeSystem {
             }
         }
         auras.push(...(this.data.get(id) ?? []));
+
+        const props = getProperties(id);
+        if (gameState.raw.isFakePlayer || (props?.isToken === true && !accessState.activeTokens.value.has(id))) {
+            if (!accessSystem.hasAccessTo(id, true, { vision: true })) return [...filter(auras, (a) => a.visible)];
+        }
+
         return auras;
     }
 
@@ -124,12 +142,19 @@ class AuraSystem implements ShapeSystem {
         if (aura.active) {
             const shape = getShape(id);
 
-            if (shape && aura.visionSource) {
-                if (shape.floorId !== undefined)
-                    visionState.addVisionSource({ aura: aura.uuid, shape: id }, shape.floorId);
-            }
+            if (shape !== undefined) {
+                const layer = shape.layer;
+                if (layer !== undefined) {
+                    layer.updateSectors(id, shape.getAuraAABB());
+                }
 
-            shape?.invalidate(false);
+                if (aura.visionSource) {
+                    if (shape.floorId !== undefined)
+                        visionState.addVisionSource({ aura: aura.uuid, shape: id }, shape.floorId);
+                }
+
+                shape.invalidate(false);
+            }
         }
     }
 
@@ -156,6 +181,11 @@ class AuraSystem implements ShapeSystem {
         const oldAuraVisionSource = aura.visionSource;
 
         Object.assign(aura, delta);
+
+        const layer = shape.layer;
+        if (layer !== undefined) {
+            layer.updateSectors(id, shape.getAuraAABB());
+        }
 
         const floorId = shape.floorId;
 
@@ -185,6 +215,12 @@ class AuraSystem implements ShapeSystem {
         const oldAura = this.get(id, auraId, false);
 
         this.data.set(id, this.data.get(id)?.filter((au) => au.uuid !== auraId) ?? []);
+
+        const shape = getShape(id);
+        const layer = shape?.layer;
+        if (shape !== undefined && layer !== undefined) {
+            layer.updateSectors(id, shape.getAuraAABB());
+        }
 
         if (id === this._state.id || id === this._state.parentId) this.updateAuraState();
 

@@ -37,7 +37,12 @@ const visibleTools = computed(() => {
         const tools = [];
         for (const [toolName] of activeModeTools.value) {
             if (dmTools.includes(toolName) && !gameState.reactive.isDm) continue;
-            if (!isToolVisible(toolName)) continue;
+
+            if (toolName === ToolName.Filter) {
+                if (labelState.reactive.labels.size === 0) continue;
+            } else if (toolName === ToolName.Vision) {
+                if (accessState.reactive.ownedTokens.size <= 1) continue;
+            }
 
             const tool = toolMap[toolName];
             tools.push({
@@ -62,15 +67,6 @@ function updateDetails(): void {
     const pos = useToolPosition(activeTool.value);
     detailRight.value = pos.right;
     detailArrow.value = pos.arrow;
-}
-
-function isToolVisible(tool: ToolName): boolean {
-    if (tool === ToolName.Filter) {
-        return labelState.raw.labels.size > 0;
-    } else if (tool === ToolName.Vision) {
-        return accessState.raw.ownedTokens.size > 1;
-    }
-    return true;
 }
 
 function getStyle(tool: ToolMode): CSSProperties {
@@ -115,7 +111,7 @@ function toggleFakePlayer(): void {
                     :key="tool.name"
                     class="tool"
                     :class="{ 'tool-selected': activeTool === tool.name, 'tool-alert': tool.alert }"
-                    @click="activeTool = tool.name"
+                    @click.prevent="activeTool = tool.name"
                 >
                     <a href="#" :title="tool.translation">
                         <template v-if="playerSettingsState.reactive.useToolIcons.value">

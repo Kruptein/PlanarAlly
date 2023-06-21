@@ -1,6 +1,7 @@
+import type { ApiShapeOwner } from "../../../apiTypes";
 import { getGlobalId, getLocalId } from "../../id";
 
-import type { ServerShapeAccess, ServerShapeOwner, ShapeAccess, ShapeOwner } from "./models";
+import type { ServerShapeAccess, ShapeAccess, ShapeOwner } from "./models";
 
 export const accessToServer = (access: ShapeAccess): ServerShapeAccess => ({
     edit_access: access.edit,
@@ -8,7 +9,7 @@ export const accessToServer = (access: ShapeAccess): ServerShapeAccess => ({
     vision_access: access.vision,
 });
 
-export const ownerToServer = (owner: ShapeOwner): ServerShapeOwner => ({
+export const ownerToServer = (owner: ShapeOwner): ApiShapeOwner => ({
     user: owner.user,
     shape: getGlobalId(owner.shape)!,
     ...accessToServer(owner.access),
@@ -20,7 +21,7 @@ export const accessToClient = (access: ServerShapeAccess): ShapeAccess => ({
     vision: access.vision_access,
 });
 
-export const ownerToClient = (owner: ServerShapeOwner): ShapeOwner => ({
+export const ownerToClient = (owner: ApiShapeOwner): ShapeOwner => ({
     user: owner.user,
     shape: getLocalId(owner.shape)!,
     access: accessToClient(owner),

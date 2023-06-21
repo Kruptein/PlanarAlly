@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHistory, type NavigationGuardNext, type RouteLocationNormalized } from "vue-router";
 
 import { http } from "../core/http";
 import { handleNotifications } from "../notifications";
@@ -35,24 +35,34 @@ router.beforeEach(async (to, _from, next) => {
         if (authResponse!.ok && versionResponse!.ok) {
             const authData = (await authResponse!.json()) as { auth: boolean; username: string; email: string };
             const versionData = (await versionResponse!.json()) as { release: string; env: string };
-            if (authData.auth) {
-                coreStore.setAuthenticated(true);
-                coreStore.setUsername(authData.username);
-                coreStore.setEmail(authData.email);
-            }
+
+            coreStore.setAuthenticated(authData.auth);
             coreStore.setVersion(versionData);
             coreStore.setInitialized(true);
-            await router.push(to.path);
-            next();
+
+            if (authData.auth) {
+                coreStore.setUsername(authData.username);
+                coreStore.setEmail(authData.email);
+                next();
+            } else {
+                checkLogin(next, to);
+            }
         } else {
             console.error("Authentication check could not be fulfilled.");
+            checkLogin(next, to);
         }
-    } else if (to.matched.some((record) => record.meta.auth) && !coreStore.state.authenticated) {
-        next({ path: "/auth/login", query: { redirect: to.path } });
+    } else {
+        checkLogin(next, to);
+    }
+});
+
+function checkLogin(next: NavigationGuardNext, to: RouteLocationNormalized): void {
+    if (to.meta.auth === true && !coreStore.state.authenticated) {
+        next({ name: "login", query: { redirect: to.path } });
     } else {
         next();
     }
-});
+}
 
 router.afterEach((_to, _from) => {
     coreStore.setLoading(false);

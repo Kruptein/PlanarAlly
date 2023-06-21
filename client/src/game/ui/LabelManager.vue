@@ -2,11 +2,11 @@
 import { computed, reactive } from "vue";
 import { useI18n } from "vue-i18n";
 
+import type { ApiLabel } from "../../apiTypes";
 import Modal from "../../core/components/modals/Modal.vue";
 import { uuidv4 } from "../../core/utils";
 import { labelSystem } from "../systems/labels";
 import { sendLabelVisibility } from "../systems/labels/emits";
-import type { Label } from "../systems/labels/models";
 import { labelState } from "../systems/labels/state";
 import { playerSystem } from "../systems/players";
 
@@ -28,7 +28,7 @@ function close(): void {
 const hasLabels = computed(() => labelState.reactive.labels.size > 0);
 
 const categories = computed(() => {
-    const cat = new Map<string, Label[]>();
+    const cat = new Map<string, ApiLabel[]>();
     cat.set("", []);
     for (const label of labelState.reactive.labels.values()) {
         if (label.user !== playerSystem.getCurrentPlayer()?.name) continue;
@@ -54,7 +54,7 @@ function selectLabel(label: string): void {
     close();
 }
 
-function toggleVisibility(label: Label): void {
+function toggleVisibility(label: ApiLabel): void {
     label.visible = !label.visible;
     sendLabelVisibility({ uuid: label.uuid, visible: label.visible });
 }

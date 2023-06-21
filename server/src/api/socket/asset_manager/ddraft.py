@@ -1,11 +1,12 @@
 import base64
-import json
 import hashlib
+import json
 from typing import List
+
 from typing_extensions import TypedDict
 
 from ....app import sio
-from ....models import Asset
+from ....db.models.asset import Asset
 from ....state.asset import asset_state
 from ....utils import ASSETS_DIR
 from ..constants import ASSET_NS
@@ -75,9 +76,11 @@ async def handle_ddraft_file(upload_data: UploadData, data: bytes, sid: str):
         options=json.dumps(template),
     )
 
+    asset_dict = asset.as_dict()
     await sio.emit(
         "Asset.Upload.Finish",
-        {"asset": asset.as_dict(), "parent": upload_data["directory"]},
+        {"asset": asset_dict, "parent": upload_data["directory"]},
         room=sid,
         namespace=ASSET_NS,
     )
+    return asset_dict

@@ -3,6 +3,7 @@ import { computed, reactive } from "vue";
 import VueMarkdownIt from "vue3-markdown-it";
 
 import { i18n } from "../../../i18n";
+import { map } from "../../iter";
 import type { SelectionBoxOptions } from "../../plugins/modals/selectionBox";
 
 import Modal from "./Modal.vue";
@@ -67,10 +68,7 @@ function create(): void {
 }
 
 function submit(): void {
-    emit(
-        "submit",
-        [...state.activeSelection].map((i) => props.choices[i]!),
-    );
+    emit("submit", [...map(state.activeSelection, (i) => props.choices[i]!)]);
 }
 </script>
 

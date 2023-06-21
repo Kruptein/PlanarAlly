@@ -1,17 +1,18 @@
 import { registerSystem, type ShapeSystem } from "..";
+import type { ApiLabel } from "../../../apiTypes";
+import { map } from "../../../core/iter";
 import { sendShapeAddLabel, sendShapeRemoveLabel } from "../../api/emits/shape/options";
 import { getGlobalId, getShape, type LocalId } from "../../id";
 import { floorSystem } from "../floors";
 
 import { sendLabelAdd, sendLabelDelete, sendLabelFilterAdd, sendLabelFilterDelete } from "./emits";
-import type { Label } from "./models";
 import { labelState } from "./state";
 
 const { mutableReactive: $, mutable, raw } = labelState;
 
-export class LabelSystem implements ShapeSystem {
+class LabelSystem implements ShapeSystem {
     // Inform the system about the state of a certain LocalId
-    inform(id: LocalId, data: Label[]): void {
+    inform(id: LocalId, data: ApiLabel[]): void {
         mutable.data.set(id, data);
     }
 
@@ -25,7 +26,7 @@ export class LabelSystem implements ShapeSystem {
     loadState(id: LocalId): void {
         $.activeShape = {
             id,
-            labels: [...($.shapeLabels.get(id) ?? [])].map((l) => $.labels.get(l)!),
+            labels: [...map($.shapeLabels.get(id) ?? [], (l) => $.labels.get(l)!)],
         };
     }
 
@@ -41,7 +42,7 @@ export class LabelSystem implements ShapeSystem {
 
     // END OF ACTIVE SHAPE STUFF
 
-    createLabel(label: Label, sync: boolean): void {
+    createLabel(label: ApiLabel, sync: boolean): void {
         $.labels.set(label.uuid, label);
         if (sync) sendLabelAdd(label);
     }
@@ -67,10 +68,10 @@ export class LabelSystem implements ShapeSystem {
         if (sync) sendShapeRemoveLabel({ shape: getGlobalId(id)!, value: labelId });
     }
 
-    getLabels(id: LocalId): Label[] {
+    getLabels(id: LocalId): Iterable<ApiLabel> {
         const labels = $.shapeLabels.get(id);
         if (labels === undefined) return [];
-        return [...labels].map((l) => $.labels.get(l)!);
+        return map(labels, (l) => $.labels.get(l)!);
     }
 
     addLabelFilter(filter: string, sync: boolean): void {
@@ -106,7 +107,7 @@ export class LabelSystem implements ShapeSystem {
         }
         $.labels.delete(uuid);
 
-        if (sync) sendLabelDelete({ uuid });
+        if (sync) sendLabelDelete(uuid);
     }
 
     isFiltered(id: LocalId): boolean {

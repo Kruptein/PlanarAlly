@@ -16,23 +16,26 @@ from urllib.parse import quote, unquote
 
 from aiohttp import web
 
-from .utils import FILE_DIR
 from . import save
+from .db.models.room import Room
+from .db.models.user import User
+from .utils import FILE_DIR
 
 save_newly_created = save.check_existence()
 
-from .api import http  # noqa: F401, E402
 from . import routes  # noqa: F401, E402
-from .state.asset import asset_state  # noqa: E402
-from .state.game import game_state  # noqa: E402
+from .api import http  # noqa: F401, E402
 
 # Force loading of socketio routes
 from .api.socket import load_socket_commands  # noqa: E402
 from .api.socket.constants import GAME_NS  # noqa: E402
-from .app import admin_app, app as main_app, runners, setup_runner, sio  # noqa: E402
+from .app import admin_app  # noqa: E402
+from .app import app as main_app  # noqa: E402
+from .app import runners, setup_runner, sio  # noqa: E402
 from .config import config  # noqa: E402
 from .logs import logger  # noqa: E402
-from .models import User, Room  # noqa: E402
+from .state.asset import asset_state  # noqa: E402
+from .state.game import game_state  # noqa: E402
 
 load_socket_commands()
 
@@ -290,6 +293,10 @@ def main():
 
     options = parser.parse_args()
     options.func(options)
+
+
+if __name__ == "__main__":
+    main()
 
 
 if __name__ == "__main__":

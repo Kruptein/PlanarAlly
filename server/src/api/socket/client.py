@@ -1,71 +1,50 @@
-from typing import Any, Dict, Optional
-from typing_extensions import TypedDict
+from typing import Any
 
 from ... import auth
 from ...api.socket.constants import GAME_NS
 from ...app import app, sio
-from ...data_types.client import Viewport
-from ...data_types.location import LocationOptions
-from ...models import Floor, Layer, LocationUserOption, PlayerRoom
-from ...models.db import db
+from ...db.db import db
+from ...db.models.floor import Floor
+from ...db.models.layer import Layer
+from ...db.models.location_user_option import LocationUserOption
+from ...db.models.player_room import PlayerRoom
+from ...db.models.user_options import UserOptions
 from ...models.role import Role
-from ...models.user import UserOptions
 from ...state.game import game_state
-
-
-# DATA CLASSES FOR TYPE CHECKING
-class MoveClientData(TypedDict):
-    client: str
-    data: LocationOptions
-
-
-class TempLocationOptions(TypedDict):
-    temp: bool
-    options: LocationOptions
-
-
-class OffsetMessage(TypedDict):
-    client: str
-    x: Optional[int]
-    y: Optional[int]
-
-
-class ClientOptions(TypedDict, total=False):
-    grid_colour: str
-    fow_colour: str
-    ruler_colour: str
-
-    invert_alt: bool
-    disable_scroll_to_zoom: bool
-
-    use_high_dpi: bool
-    grid_size: int
-    use_as_physical_board: bool
-    mini_size: int
-    ppi: int
-
-    initiative_camera_lock: bool
-    initiative_vision_lock: bool
-    initiative_effect_visibility: int
+from ..helpers import _send_game
+from ..models.client import (
+    ClientMove,
+    ClientPosition,
+    ClientViewport,
+    TempClientPosition,
+    Viewport,
+)
+from ..models.client.activeLayer import ClientActiveLayerSet
+from ..models.client.gameboard import ClientGameboardSet
+from ..models.client.offset import ClientOffsetSet
 
 
 @sio.on("Client.Options.Default.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_client_default_options(sid: str, data: ClientOptions):
+async def set_client_default_options(sid: str, raw_data: dict[str, Any]):
+    # Don't use the full pydantic model as the returned type is actually Partial<...>
+
     pr: PlayerRoom = game_state.get(sid)
 
-    UserOptions.update(**data).where(
+    UserOptions.update(**raw_data).where(
         UserOptions.id == pr.player.default_options
     ).execute()
 
-    UserOptions.update({k: None for k in data}).where(
+    UserOptions.update({k: None for k in raw_data}).where(
         UserOptions.id == pr.user_options
     ).execute()
 
 
 @sio.on("Client.Options.Room.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_client_room_options(sid: str, data: ClientOptions):
+async def set_client_room_options(sid: str, raw_data: dict[str, Any]):
+    # Don't use the full pydantic model as the returned type is actually Partial<...>
+
     pr: PlayerRoom = game_state.get(sid)
 
     with db.atomic():
@@ -73,19 +52,21 @@ async def set_client_room_options(sid: str, data: ClientOptions):
             pr.user_options = UserOptions.create_empty()
             pr.save()
 
-        UserOptions.update(**data).where(UserOptions.id == pr.user_options).execute()
+        UserOptions.update(**raw_data).where(
+            UserOptions.id == pr.user_options
+        ).execute()
 
 
 async def update_client_location(
-    sid: str, target_client: str, data: TempLocationOptions
+    sid: str, target_client: str, data: TempClientPosition
 ):
     pr = game_state.get(target_client)
 
-    if not data["temp"]:
+    if not data.temp:
         LocationUserOption.update(
-            pan_x=data["options"]["pan_x"],
-            pan_y=data["options"]["pan_y"],
-            zoom_display=data["options"]["zoom_display"],
+            pan_x=data.position.pan_x,
+            pan_y=data.position.pan_y,
+            zoom_display=data.position.zoom_display,
         ).where(
             (LocationUserOption.location == pr.active_location)
             & (LocationUserOption.user == pr.player)
@@ -95,56 +76,63 @@ async def update_client_location(
         is_dm = p_player.role == Role.DM
         is_in_active_location = p_player.active_location == pr.active_location
         if (is_dm and is_in_active_location) or p_player.player.id == pr.player.id:
-            await sio.emit(
+            await _send_game(
                 "Client.Move",
-                {
-                    "player": pr.player.id,
-                    "client": sid,
-                    **data["options"],
-                },
+                ClientMove(
+                    client=sid,
+                    position=ClientPosition(
+                        pan_x=data.position.pan_x,
+                        pan_y=data.position.pan_y,
+                        zoom_display=data.position.zoom_display,
+                    ),
+                ),
                 room=p_sid,
-                namespace=GAME_NS,
             )
 
 
 @sio.on("Client.Options.Location.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_client_location_options(sid: str, data: TempLocationOptions):
+async def set_client_location_options(sid: str, raw_data: Any):
+    data = TempClientPosition(**raw_data)
     await update_client_location(sid, sid, data)
 
 
 @sio.on("Client.Move", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def move_client(sid: str, data: MoveClientData):
+async def move_client(sid: str, raw_data: Any):
+    data = ClientMove(**raw_data)
     await update_client_location(
-        sid, data["client"], {"temp": False, "options": data["data"]}
+        sid, data.client, TempClientPosition(temp=False, position=data.position)
     )
 
 
 @sio.on("Client.Viewport.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_viewport(sid: str, data: Viewport):
+async def set_viewport(sid: str, raw_data: Any):
+    viewport = Viewport(**raw_data)
+
     pr = game_state.get(sid)
 
-    game_state.client_viewports[sid] = data
+    game_state.client_viewports[sid] = viewport
 
-    await sio.emit(
+    await _send_game(
         "Client.Viewport.Set",
-        {"viewport": data, "client": sid},
+        ClientViewport(viewport=viewport, client=sid),
         room=pr.room.get_path(),
         skip_sid=sid,
-        namespace=GAME_NS,
     )
 
 
 @sio.on("Client.ActiveLayer.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_layer(sid: str, data: Dict[str, Any]):
+async def set_layer(sid: str, raw_data: Any):
+    data = ClientActiveLayerSet(**raw_data)
+
     pr: PlayerRoom = game_state.get(sid)
 
     try:
-        floor = pr.active_location.floors.where(Floor.name == data["floor"])[0]
-        layer = floor.layers.where(Layer.name == data["layer"])[0]
+        floor = pr.active_location.floors.where(Floor.name == data.floor)[0]
+        layer = floor.layers.where(Layer.name == data.layer)[0]
     except IndexError:
         pass
     else:
@@ -162,34 +150,31 @@ async def set_gameboard(sid: str, board_id: str):
 
     for psid, ppr in game_state.get_t(skip_sid=sid, room=pr.room):
         if ppr.role == Role.DM:
-            await sio.emit(
+            await _send_game(
                 "Client.Gameboard.Set",
-                {
-                    "client": sid,
-                    "boardId": board_id,
-                },
+                ClientGameboardSet(client=sid, boardId=board_id),
                 room=psid,
-                namespace=GAME_NS,
             )
 
 
 @sio.on("Client.Offset.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_offset(sid: str, data: OffsetMessage):
+async def set_offset(sid: str, raw_data: Any):
+    data = ClientOffsetSet(**raw_data)
+
     pr = game_state.get(sid)
 
-    viewport = game_state.client_viewports.get(data["client"])
+    viewport = game_state.client_viewports.get(data.client)
 
     if viewport is not None:
-        viewport["offset_x"] = data.get("x", viewport.get("offset_x", None))
-        viewport["offset_y"] = data.get("y", viewport.get("offset_y", None))
+        viewport.offset_x = data.x or viewport.offset_x or None
+        viewport.offset_y = data.y or viewport.offset_y or None
     else:
         print("Unknown client viewport")
 
-    await sio.emit(
+    await _send_game(
         "Client.Offset.Set",
         data,
         room=pr.active_location.get_path(),
         skip_sid=sid,
-        namespace=GAME_NS,
     )

@@ -1,12 +1,13 @@
 import logging
 from functools import wraps
 from typing import Union
-from typing_extensions import Literal
 
 from aiohttp import web
 from aiohttp_security.abc import AbstractAuthorizationPolicy
+from typing_extensions import Literal
 
-from .models import Constants, User
+from .db.models.constants import Constants
+from .db.models.user import User
 
 logger = logging.getLogger("PlanarAllyServer")
 

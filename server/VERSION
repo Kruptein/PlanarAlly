@@ -1,51 +1,52 @@
-2023.1.0
+2023.2.0
 
 ### Added
 
--   Button to change the current asset for a shape to the shape property settings
--   [DM] Quick access togglebar under the tool bar
-    -   Fake Player
-    -   Initiative active state (see below)
--   Initiative now has a specific "active" state
-    -   This streamlines some things and allows some further future things without relying on the initiative window being open
-    -   The Initiative vision lock setting now only triggers when initiative is active
-    -   The above setting now also properly reverts to the original vision lock when initiative is no longer active as was always intended
-    -   The initiative UI is automatically opened for everybody once initiative is started. (and automatically closed as well)
-    -   The above behaviour can be disabled by a new user setting.
-    -   A new DM setting (under Varia) can be enabled to limit (non-DM) initiated movement only to the active initiative shape.
--   Most modals will now move to the front when interacted with
--   Most modals can be closed with escape
+-   Drop new assets on the game directly
+-   Scroll-like touch gestures no longer attempt to scroll the gameboard out of bounds
 
 ### Changed
 
--   Spell tool
-    -   range property is removed as it was confusing to people and a bit fiddly
-    -   a ruler is now automatically drawn between the spell shape and the selected shape
--   Dice tool: Add min-height in dice tool UI where the dice to roll are being prepared
--   [lang] The edit dialog for shapes now properly says "Edit shape" instead of "Edit asset"
+-   Templates no longer save certain settings
+-   Bring players no longer changes the zoom level of the players
+-   TpZone: When a player TP request arrives, the view area action will bring the DM to the trigger location and not to the target location
 
 ### Fixed
 
--   Spell tool: spell on selection bugged
--   Spell tool: fill colour behaving janky when border colour has <1 opacity
--   Spell tool: right-click was opening the context-menu
--   Spell tool: once used, the select tool was not being properly activated
--   Spell tool: the 'is public' label was wrongly attached to the range input box
--   Fake Player: showing DM layer
--   DM settings: Fix last DM being able to demote themselves to a player
--   DM settings: Fix invite URL not containing subpath if set
--   Assets: default stroke colour wrongly set, causing badges to be transparent
--   Trackers: Display on token not working for trackers that are shared across variants
--   Some cases where a client could edit shape info without access
-    -   _this was always rejected by the server and never synced_
-    -   most tracker properties
-    -   defeated and locked state using keybinds
--   Prompt modals sometimes still using a validation check from an earlier prompt
--   Resizing the botright corner of a rectangle-based shape while rotated was moving the shape
--   Token direction UI triggering when other UI is on top of it
--   Floor detail UI not moving along if side menu is opened
--   Unlocking shape could sometimes trigger the shape following your mouse
--   Templates: only using the first character of the provided template name
--   Asset Manager: close contextmenu when scrolling
--   Asset Manager: contextmenu appearing in the wrong location when scrolled
--   Adding multiple shapes to group always prompting group question even if no groups are present
+-   Group: No longer sending group info for each member (just once)
+-   Group: Shape group settings fixes
+    -   Create group button was not properly behaving
+    -   Remove group button was not immediately updating the UI until a reselection
+-   Group: Fix socket events no longer being listened to; Fixes multiple things that were resolved when you refreshed
+-   Auth: A logic error in the auth routing code - in some cases you had to manually go to the login page
+-   Templates: Missing some settings when saved
+-   Fake Player: Proper rework of access handling
+    -   Shapes and auras should now only be rendered _if and only if_ some player in the game has `vision` access to that shape _AND_ the shape is selected in the vision tool.
+    -   This also hides invisible shapes
+    -   This also hides _all_ auras on the DM layer regardless of the vision tool
+-   Labels: Fix removal not working
+-   Toolbar: Fix vision and filter tools not immediately being available when relevant
+-   Access: Fix players with specific access rules, having edit access at all times
+-   Access: Changing access would not live update the edit shape UI if it was open by another client
+-   Access: Fix default access in UI not being up to date if shape has no access modifications until reload
+-   Access: Prevent DMs from having an explicit access rule
+-   Access: No longer gives full access for fake DM
+-   TpZone: Fix tp zone moving a player to a different floor not moving their view along (if 'move players' configured)
+-   TpZone: Fix non-immediate player initiated teleports not working correctly
+-   TpZone: Fix teleports initiated in build-mode not working correctly for players
+-   Logic: Request mode not working as intended and behaving as Enabled mode instead
+-   Token Directions: Fix shown tokens not taking filtered tokens into account
+-   Auras: Fix sometimes not being visible until a refresh or panning closer to the aura
+-   Rendering: Transparency of higher layers was no longer applied after a window resize
+-   Rendering: Some cases where vision access related changes would not rerender immediately
+-   Rendering: Grid not rendering horizontal lines when the width is smaller than the height of the screen
+-   Select: Rotation UI should stay consistent when zooming
+-   LocationBar: Fix width on drag handle for multiline locations
+-   Properties: Invisible toggle not applying until a refresh for players
+-   Initiative: Vision lock not properly checking active tokens
+-   Initiative: Removing the last entry while it's active could break initiative
+-   Vision: Edgecase that could cause an infinite loop when drawing vision lines
+-   Draw: Reduced number of points in brush mode significantly
+-   AssetManager: Fix progressbar missing
+-   Annotation: Markdown no longer rendering as bold
+-   [server] Subpath: 2 cases where subpath based setup was not properly loading images (initiative & change asset)

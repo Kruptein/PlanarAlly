@@ -10,6 +10,8 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+## [2023.2.0] - 2023-06-21
+
 ### Added
 
 -   Drop new assets on the game directly

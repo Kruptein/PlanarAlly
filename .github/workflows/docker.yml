@@ -6,6 +6,7 @@ on:
             - "dev"
         tags:
             - "v*"
+            - "docker-pr-*"
 
 jobs:
     docker:

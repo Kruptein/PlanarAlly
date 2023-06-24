@@ -1,6 +1,7 @@
 import {
     BoundingBox,
     EdgeCirculator,
+    EdgeIterator,
     FaceCirculator,
     LineFaceCirculator,
     LocateType,
@@ -745,6 +746,22 @@ export class CDT {
         if (collinearBetween(p, t.vertices[1 - i]!.point!, t.vertices[i]!.point!))
             return { loc: ff, lt: LocateType.OUTSIDE_CONVEX_HULL, li: iv };
         if (xyEqual(p, t.vertices[1 - i]!.point!)) return { loc: t, lt: LocateType.VERTEX, li: 1 - i };
+
+        const ei = new EdgeIterator(this.tds, true);
+        while (!ei.valid) ei.next();
+        do {
+            const edge = ei.edge;
+            const u = edge.first!.vertices[0]!
+            const v = edge.first!.vertices[1]!;
+            if (xyEqual(p, v.point!)) {
+                return {loc: edge.first!, lt: LocateType.VERTEX, li: 1}
+            }
+            if (collinearBetween(u.point!, p, v.point!)) {
+                return {loc: edge.first!, lt: LocateType.EDGE, li: 2}
+            }
+            ei.next();
+        } while (ei.valid);
+        
         throw new Error("Vision Error (marchLocate1D)");
     }
 

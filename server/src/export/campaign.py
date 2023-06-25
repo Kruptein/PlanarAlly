@@ -867,13 +867,10 @@ class CampaignMigrator:
                 note_data["uuid"] = new_uuid
                 note_data["room"] = self.room_mapping[room.id]
                 note_data["user"] = self.user_mapping.get(note_data["user"])
+
                 if note_data["user"] is None:
                     continue
-                if note_data["location"]:
-                    note_data["location"] = self.location_mapping[note_data["location"]]
 
-                with self.to_db.bind_ctx([Note]):
-                    Note.create(**note_data)
                 if note_data["location"]:
                     note_data["location"] = self.location_mapping[note_data["location"]]
 

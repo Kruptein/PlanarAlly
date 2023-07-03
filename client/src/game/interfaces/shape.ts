@@ -1,4 +1,4 @@
-import type { ApiCoreShape, ApiShape } from "../../apiTypes";
+import type { ApiCharacter, ApiCoreShape, ApiShape } from "../../apiTypes";
 import type { GlobalPoint, Vector } from "../../core/geometry";
 import type { LocalId } from "../id";
 import type { Floor, FloorId, LayerName } from "../models/floor";
@@ -15,6 +15,8 @@ export interface SimpleShape {
 export interface IShape extends SimpleShape {
     readonly id: LocalId;
     readonly type: SHAPE_TYPE;
+
+    readonly character: ApiCharacter | undefined;
 
     get points(): [number, number][];
     invalidatePoints: () => void;

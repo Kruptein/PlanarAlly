@@ -43,6 +43,7 @@ import { clearGame } from "../clear";
 import { addServerFloor } from "../floor/server";
 import { getShapeFromGlobal } from "../id";
 import type { GlobalId } from "../id";
+import { initMods } from "../mods";
 import { setCenterPosition } from "../position";
 import { deleteShapes } from "../shapes/utils";
 import { floorSystem } from "../systems/floors";
@@ -95,7 +96,7 @@ socket.on("Board.Locations.Set", (locationInfo: ApiLocationCore[]) => {
     locationStore.setLocations(locationInfo, false);
 });
 
-socket.on("Board.Floor.Set", (floor: ApiFloor) => {
+socket.on("Board.Floor.Set", async (floor: ApiFloor) => {
     // It is important that this condition is evaluated before the async addFloor call.
     // The very first floor that arrives is the one we want to select
     // When this condition is evaluated after the await, we are at the mercy of the async scheduler
@@ -112,6 +113,7 @@ socket.on("Board.Floor.Set", (floor: ApiFloor) => {
         coreStore.setLoading(false);
         gameSystem.setBoardInitialized(true);
         playerSystem.loadPosition();
+        await initMods();
     }
 });
 

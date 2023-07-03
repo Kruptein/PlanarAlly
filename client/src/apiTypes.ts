@@ -57,6 +57,16 @@ export interface ApiLabel {
   name: string;
   visible: boolean;
 }
+export interface ApiCharacter {
+  id: number;
+  name: string;
+  dataBlocks: ApiDataBlock[];
+}
+export interface ApiDataBlock {
+  source: string;
+  name: string;
+  data: string;
+}
 export interface ApiBaseRectShape extends ApiCoreShape {
   width: number;
   height: number;
@@ -108,6 +118,7 @@ export interface ApiCoreShape {
   trackers: ApiTracker[];
   auras: ApiAura[];
   labels: ApiLabel[];
+  character: ApiCharacter | null;
 }
 export interface ApiDefaultShapeOwner {
   edit_access: boolean;
@@ -624,6 +635,10 @@ export interface ToggleCompositeVariant {
   variant: GlobalId;
 }
 export interface TypeIdModel {}
+export interface ApiDataBlockDescription {
+  source: string;
+  name: string;
+}
 export interface ApiLocation {
   id: number;
   name: string;

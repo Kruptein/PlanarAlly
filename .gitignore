@@ -31,6 +31,8 @@ server/*.sqlite*
 server/save_backups
 server/server_config.cfg
 
+server/static/mods/**
+
 # These folders are all output directories for the vue client build
 server/static/assets/**
 server/static/css/**

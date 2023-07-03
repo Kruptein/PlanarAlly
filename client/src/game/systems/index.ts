@@ -1,12 +1,12 @@
 import type { LocalId } from "../id";
 
-const SYSTEMS: Record<string, System> = {};
+export const SYSTEMS: Record<string, System> = {};
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).systems = SYSTEMS;
 const SHAPE_SYSTEMS = new Set<string>();
-const STATE: Record<string, unknown> = {};
+export const SYSTEMS_STATE: Record<string, unknown> = {};
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-(window as any).state = STATE;
+(window as any).state = SYSTEMS_STATE;
 
 export function registerSystem(
     key: string,
@@ -16,7 +16,7 @@ export function registerSystem(
 ): void {
     SYSTEMS[key] = system;
     if (isShapeSystem) SHAPE_SYSTEMS.add(key);
-    if (state !== undefined) STATE[key] = state;
+    if (state !== undefined) SYSTEMS_STATE[key] = state;
 }
 
 export function dropFromSystems(id: LocalId): void {

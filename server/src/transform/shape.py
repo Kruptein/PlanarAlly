@@ -31,6 +31,9 @@ def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:
     trackers = [t.as_pydantic() for t in tracker_query]
     auras = [a.as_pydantic() for a in aura_query]
     labels = [sh_label.label.as_pydantic() for sh_label in label_query]
+    character = None
+    if shape.character is not None:
+        character = shape.character.as_pydantic()
     # Subtype
     layer = shape.layer
     shape_model = ApiCoreShape(
@@ -70,5 +73,6 @@ def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:
         trackers=trackers,
         auras=auras,
         labels=labels,
+        character=character,
     )
     return shape.subtype.as_pydantic(shape_model)

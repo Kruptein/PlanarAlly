@@ -8,6 +8,7 @@ import { activeShapeStore } from "../../../store/activeShape";
 import { getGlobalId, getShape } from "../../id";
 import type { LocalId } from "../../id";
 import { compositeState } from "../../layers/state";
+import { modTrigger } from "../../mods";
 
 import { partialTrackerToServer, toUiTrackers, trackersToServer } from "./conversion";
 import { sendShapeCreateTracker, sendShapeRemoveTracker, sendShapeUpdateTracker } from "./emits";
@@ -82,7 +83,7 @@ class TrackerSystem implements ShapeSystem {
         }
     }
 
-    private getOrCreate(id: LocalId): Tracker[] {
+    private getOrCreateForShape(id: LocalId): Tracker[] {
         let idTrackers = this.data.get(id);
         if (idTrackers === undefined) {
             this.inform(id, []);
@@ -95,8 +96,25 @@ class TrackerSystem implements ShapeSystem {
         return this.getAll(id, includeParent).find((t) => t.uuid === trackerId);
     }
 
+    getOrCreate(
+        id: LocalId,
+        trackerId: TrackerId,
+        sync: Sync,
+        initialData?: () => Partial<Tracker>,
+    ): { tracker: DeepReadonly<Tracker>; created: boolean } {
+        if (trackerId !== undefined) {
+            const tracker = this.get(id, trackerId, false);
+            if (tracker !== undefined) return { tracker, created: false };
+        }
+        const tracker = createEmptyUiTracker(id);
+        if (initialData !== undefined) Object.assign(tracker, initialData());
+        tracker.uuid = trackerId;
+        this.add(id, tracker, sync);
+        return { tracker, created: true };
+    }
+
     getAll(id: LocalId, includeParent: boolean): DeepReadonly<Tracker[]> {
-        const trackers: Tracker[] = [];
+        const trackers: DeepReadonly<Tracker>[] = [];
         if (includeParent) {
             const parent = compositeState.getCompositeParent(id);
             if (parent !== undefined) {
@@ -113,7 +131,7 @@ class TrackerSystem implements ShapeSystem {
             if (gId) sendShapeCreateTracker(trackersToServer(gId, [tracker])[0]!);
         }
 
-        this.getOrCreate(id).push(tracker);
+        this.getOrCreateForShape(id).push(tracker);
 
         if (id === this._state.id || id === this._state.parentId) this.updateTrackerState();
 
@@ -123,6 +141,10 @@ class TrackerSystem implements ShapeSystem {
     update(id: LocalId, trackerId: TrackerId, delta: Partial<Tracker>, syncTo: Sync): void {
         const tracker = this.data.get(id)?.find((t) => t.uuid === trackerId);
         if (tracker === undefined) return;
+
+        const modRet = modTrigger(id, tracker, delta);
+        if (modRet.abort) return;
+        delta = modRet.delta;
 
         if (syncTo.server) {
             const shape = getGlobalId(id);

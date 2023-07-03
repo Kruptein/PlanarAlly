@@ -1,6 +1,7 @@
 from pydantic import Field
 
 from ..aura import ApiAura
+from ..character import ApiCharacter
 from ..helpers import TypeIdModel
 from ..label import ApiLabel
 from ..tracker import ApiTracker
@@ -45,3 +46,4 @@ class ApiCoreShape(TypeIdModel):
     trackers: list[ApiTracker]
     auras: list[ApiAura]
     labels: list[ApiLabel]
+    character: ApiCharacter | None = Field(..., noneAsNull=True)

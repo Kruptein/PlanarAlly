@@ -7,6 +7,7 @@ from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, Text
 from ..base import BaseDbModel
 from ..typed import SelectSequence
 from .asset import Asset
+from .character import Character
 from .group import Group
 from .layer import Layer
 
@@ -77,12 +78,20 @@ class Shape(BaseDbModel):
     )
     group = cast(
         Optional[Group],
-        ForeignKeyField(Group, backref="members", null=True, default=None),
+        ForeignKeyField(
+            Group, backref="members", null=True, default=None, on_delete="SET NULL"
+        ),
     )
     annotation_visible = cast(bool, BooleanField(default=False))
     ignore_zoom_size = cast(bool, BooleanField(default=False))
     is_door = cast(bool, BooleanField(default=False))
     is_teleport_zone = cast(bool, BooleanField(default=False))
+    character = cast(
+        Character | None,
+        ForeignKeyField(
+            Character, backref="shapes", null=True, default=None, on_delete="SET NULL"
+        ),
+    )
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"

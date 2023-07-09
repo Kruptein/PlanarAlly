@@ -376,12 +376,16 @@ export abstract class Shape implements IShape {
                 const rectWidth = botRight.x - topLeft.x; // - g2lz(10);
                 const rectHeight = g2lz(5);
                 const maxVal = tracker.maxvalue;
-                const curVal = clamp(tracker.value, 0, tracker.maxvalue);
                 ctx.beginPath();
-                ctx.fillStyle = tracker.secondaryColor;
-                ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
-                ctx.fillStyle = tracker.primaryColor;
-                ctx.fillRect(rectX, rectY, rectWidth * (curVal / maxVal), rectHeight);
+                if (tracker.customDraw === undefined) {
+                    const curVal = clamp(tracker.value, 0, tracker.maxvalue);
+                    ctx.fillStyle = tracker.secondaryColor;
+                    ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
+                    ctx.fillStyle = tracker.primaryColor;
+                    ctx.fillRect(rectX, rectY, rectWidth * (curVal / maxVal), rectHeight);
+                } else {
+                    tracker.customDraw(ctx, { x: rectX, y: rectY, width: rectWidth, height: rectHeight }, tracker);
+                }
                 ctx.rect(rectX, rectY, rectWidth, rectHeight);
                 ctx.stroke();
                 barOffset += 10;

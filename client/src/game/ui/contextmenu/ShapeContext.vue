@@ -3,7 +3,7 @@ import { computed, toRef } from "vue";
 import type { ComputedRef } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { ApiAssetRectShape } from "../../../apiTypes";
+import type { ApiAssetRectShape, CharacterCreate } from "../../../apiTypes";
 import ContextMenu from "../../../core/components/ContextMenu.vue";
 import { defined, guard, map } from "../../../core/iter";
 import { SyncMode } from "../../../core/models/types";
@@ -13,6 +13,7 @@ import { locationStore } from "../../../store/location";
 import { requestAssetOptions, sendAssetOptions } from "../../api/emits/asset";
 import { requestSpawnInfo } from "../../api/emits/location";
 import { sendShapesMove } from "../../api/emits/shape/core";
+import { socket } from "../../api/socket";
 import { getGlobalId, getShape } from "../../id";
 import type { LocalId } from "../../id";
 import type { ILayer } from "../../interfaces/layer";
@@ -22,6 +23,7 @@ import type { Floor, LayerName } from "../../models/floor";
 import { toTemplate } from "../../shapes/templates";
 import { deleteShapes } from "../../shapes/utils";
 import { accessSystem } from "../../systems/access";
+import { characterState } from "../../systems/characters/state";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { gameState } from "../../systems/game/state";
@@ -288,6 +290,23 @@ async function saveTemplate(): Promise<void> {
     }
 }
 
+// CHARACTER
+
+const hasCharacter = computed(() => characterState.reactive.activeCharacterId !== undefined);
+
+function createCharacter(): void {
+    close();
+    const selectedId = [...selectedSystem.$.value].at(0);
+    if (selectedId === undefined) return;
+    const shape = getShape(selectedId);
+    if (shape === undefined || shape.character !== undefined) return;
+    const data: CharacterCreate = {
+        shape: getGlobalId(selectedId)!,
+        name: getProperties(selectedId)!.name,
+    };
+    socket.emit("Character.Create", data);
+}
+
 // GROUPS
 
 const groups = computed(() => {
@@ -436,6 +455,7 @@ const floors = toRef(floorState.reactive, "floors");
             <li v-if="!selectionIncludesSpawnToken && gameState.reactive.isDm && canBeSaved" @click="saveTemplate">
                 {{ t("game.ui.templates.save") }}
             </li>
+            <li v-if="!hasCharacter" @click="createCharacter">Create character</li>
         </template>
         <template v-else>
             <li>

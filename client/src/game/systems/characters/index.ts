@@ -1,13 +1,15 @@
-import type { DeepReadonly } from "vue";
+import { watchEffect, type DeepReadonly } from "vue";
 
 import { registerSystem } from "..";
 import type { ShapeSystem } from "..";
 import type { ApiCharacter } from "../../../apiTypes";
-import type { LocalId } from "../../id";
+import { find } from "../../../core/iter";
+import { type LocalId } from "../../id";
+import { selectedSystem } from "../selected";
 
 import { characterState } from "./state";
 
-const { mutable, readonly } = characterState;
+const { mutable, readonly, mutableReactive: $ } = characterState;
 
 class CharacterSystem implements ShapeSystem {
     // BEHAVIOUR
@@ -24,6 +26,7 @@ class CharacterSystem implements ShapeSystem {
             mutable.characterShapes.set(data.id, new Set());
         }
         mutable.characterShapes.get(data.id)!.add(id);
+        if (selectedSystem.$.value.has(id)) $.activeCharacterId = data.id;
     }
 
     drop(id: LocalId): void {
@@ -34,6 +37,14 @@ class CharacterSystem implements ShapeSystem {
                 mutable.characterShapes.delete(characterId);
             }
         }
+    }
+
+    loadState(id: LocalId): void {
+        $.activeCharacterId = find(readonly.characterShapes.entries(), ([, shapes]) => shapes.has(id))?.[0];
+    }
+
+    dropState(): void {
+        $.activeCharacterId = undefined;
     }
 
     getAllCharacters(): IterableIterator<DeepReadonly<ApiCharacter>> {
@@ -47,3 +58,10 @@ class CharacterSystem implements ShapeSystem {
 
 export const characterSystem = new CharacterSystem();
 registerSystem("characters", characterSystem, true, characterState);
+
+watchEffect(() => {
+    const id = selectedSystem.getFocus();
+    if (id.value) {
+        characterSystem.loadState(id.value);
+    } else characterSystem.dropState();
+});

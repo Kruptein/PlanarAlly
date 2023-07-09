@@ -38,3 +38,9 @@ export function some<T>(iterable: Iterable<T>, mapper: (arg0: T) => boolean): bo
     }
     return false;
 }
+
+export function find<T>(iterable: Iterable<T>, mapper: (arg0: T) => boolean): T | undefined {
+    for (const value of iterable) {
+        if (mapper(value)) return value;
+    }
+}

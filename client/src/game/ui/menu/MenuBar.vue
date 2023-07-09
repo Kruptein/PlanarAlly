@@ -11,6 +11,7 @@ import { coreStore } from "../../../store/core";
 import { clearGame } from "../../clear";
 import type { LocalId } from "../../id";
 import { setCenterPosition } from "../../position";
+import { characterState } from "../../systems/characters/state";
 import { clientSystem } from "../../systems/client";
 import type { ClientId } from "../../systems/client/models";
 import { clientState } from "../../systems/client/state";
@@ -112,6 +113,16 @@ const openLgSettings = (): void => uiSystem.showLgSettings(!uiState.raw.showLgSe
     <!-- SETTINGS -->
     <div id="menu" @click="settingsClick">
         <div style="width: 12.5rem; overflow-y: auto; overflow-x: hidden">
+            <!-- CHARACTERS -->
+            <button class="menu-accordion">Characters</button>
+            <div class="menu-accordion-panel">
+                <div class="menu-accordion-subpanel" style="position: relative">
+                    <div v-for="char in characterState.reactive.characterIds" :key="char" style="cursor: pointer">
+                        {{ characterState.readonly.characters.get(char)?.name }}
+                    </div>
+                    <div v-if="!characterState.reactive.characterIds.size">No characters</div>
+                </div>
+            </div>
             <!-- ASSETS -->
             <template v-if="gameState.isDmOrFake.value">
                 <button class="menu-accordion">{{ t("common.assets") }}</button>

@@ -1,10 +1,11 @@
 def load_socket_commands():
     from . import (
         asset,  # noqa: F401.
+        character,  # noqa: F401.
         client,  # noqa: F401.
         connection,  # noqa: F401.
         dashboard,  # noqa: F401.
-        data_block,  # noqa: F401
+        data_block,  # noqa: F401.
         dice,  # noqa: F401.
         floor,  # noqa: F401.
         groups,  # noqa: F401.

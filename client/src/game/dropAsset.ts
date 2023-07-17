@@ -1,5 +1,5 @@
 import { clampGridLine, l2gx, l2gy, l2gz } from "../core/conversions";
-import { toGP } from "../core/geometry";
+import { type GlobalPoint, toGP } from "../core/geometry";
 import { baseAdjust } from "../core/http";
 import { SyncMode, InvalidationMode } from "../core/models/types";
 import { uuidv4 } from "../core/utils";
@@ -16,7 +16,7 @@ import { selectionBoxFunction } from "./temp";
 
 export async function dropAsset(
     data: { imageSource: string; assetId: number },
-    position: { x: number; y: number },
+    position: GlobalPoint,
 ): Promise<Asset | undefined> {
     const layer = floorState.currentLayer.value!;
 

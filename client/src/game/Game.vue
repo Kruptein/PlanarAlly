@@ -3,15 +3,21 @@ import throttle from "lodash/throttle";
 import { defineComponent, onMounted, onUnmounted, watchEffect } from "vue";
 
 import { assetStore } from "../assetManager/state";
+import { l2gx, l2gy } from "../core/conversions";
+import type { GlobalPoint } from "../core/geometry";
+import { toGP, Vector } from "../core/geometry";
 import { useModal } from "../core/plugins/modals/plugin";
 import { coreStore } from "../store/core";
 
 import { createConnection, socket } from "./api/socket";
 import { dropAsset } from "./dropAsset";
+import { getShape } from "./id";
 import { onKeyDown } from "./input/keyboard/down";
 import { scrollZoom } from "./input/mouse";
 import { LgCompanion } from "./integrations/lastgameboard/companion";
+import { moveShapes } from "./operations/movement";
 import { clearUndoStacks } from "./operations/undo";
+import { characterSystem } from "./systems/characters";
 import { floorSystem } from "./systems/floors";
 import { gameState } from "./systems/game/state";
 import { playerSettingsState } from "./systems/settings/players/state";
@@ -110,11 +116,7 @@ export default defineComponent({
         async function drop(event: DragEvent): Promise<void> {
             if (event === null || event.dataTransfer === null) return;
             handleDrop(event); // FF modal handling workaround
-
-            const data: {
-                assetHash: string;
-                assetId: number;
-            }[] = [];
+            const location = toGP(l2gx(event.clientX), l2gy(event.clientY));
 
             // temp hack to prevent redirection
             assetStore.setModalActive(true);
@@ -122,7 +124,8 @@ export default defineComponent({
             // External files are dropped
             if (event.dataTransfer.files.length > 0) {
                 for (const asset of await assetStore.upload(event.dataTransfer.files, { target: "root" })) {
-                    if (asset.file_hash !== undefined) data.push({ assetHash: asset.file_hash, assetId: asset.id });
+                    if (asset.file_hash !== undefined)
+                        await _drop({ assetHash: asset.file_hash, assetId: asset.id }, location);
                 }
             } else {
                 const transferInfo = event.dataTransfer.getData("text/plain");
@@ -131,18 +134,34 @@ export default defineComponent({
                 const assetInfo = JSON.parse(transferInfo) as {
                     assetHash: string;
                     assetId: number;
+                    characterId?: number;
                 };
-                data.push(assetInfo);
-            }
-
-            for (const asset of data) {
-                await dropAsset(
-                    { assetId: asset.assetId, imageSource: `/static/assets/${asset.assetHash}` },
-                    { x: event.clientX, y: event.clientY },
-                );
+                await _drop(assetInfo, location);
             }
 
             assetStore.setModalActive(false);
+        }
+
+        async function _drop(
+            assetInfo: { assetHash: string; assetId: number; characterId?: number },
+            location: GlobalPoint,
+        ): Promise<void> {
+            if (assetInfo.characterId !== undefined) {
+                // TODO: Check on location
+                // if (shape === undefined) -> sio.emit("Char.Tp") ???
+                // too much work to deal on the client side I'm guessing
+                const shapeId = [...characterSystem.getShapes(assetInfo.characterId)!][0]!;
+                const shape = getShape(shapeId);
+
+                if (shape !== undefined) {
+                    await moveShapes([shape], Vector.fromPoints(shape.center, location), false);
+                }
+            }
+
+            await dropAsset(
+                { assetId: assetInfo.assetId, imageSource: `/static/assets/${assetInfo.assetHash}` },
+                location,
+            );
         }
 
         return {

@@ -11,7 +11,6 @@ import { coreStore } from "../../../store/core";
 import { clearGame } from "../../clear";
 import type { LocalId } from "../../id";
 import { setCenterPosition } from "../../position";
-import { characterState } from "../../systems/characters/state";
 import { clientSystem } from "../../systems/client";
 import type { ClientId } from "../../systems/client/models";
 import { clientState } from "../../systems/client/state";
@@ -27,6 +26,7 @@ import { uiState } from "../../systems/ui/state";
 import NoteDialog from "../NoteDialog.vue";
 
 import AssetParentNode from "./AssetParentNode.vue";
+import Characters from "./Characters.vue";
 
 const router = useRouter();
 const { t } = useI18n();
@@ -114,15 +114,7 @@ const openLgSettings = (): void => uiSystem.showLgSettings(!uiState.raw.showLgSe
     <div id="menu" @click="settingsClick">
         <div style="width: 12.5rem; overflow-y: auto; overflow-x: hidden">
             <!-- CHARACTERS -->
-            <button class="menu-accordion">Characters</button>
-            <div class="menu-accordion-panel">
-                <div class="menu-accordion-subpanel" style="position: relative">
-                    <div v-for="char in characterState.reactive.characterIds" :key="char" style="cursor: pointer">
-                        {{ characterState.readonly.characters.get(char)?.name }}
-                    </div>
-                    <div v-if="!characterState.reactive.characterIds.size">No characters</div>
-                </div>
-            </div>
+            <Characters />
             <!-- ASSETS -->
             <template v-if="gameState.isDmOrFake.value">
                 <button class="menu-accordion">{{ t("common.assets") }}</button>
@@ -279,58 +271,60 @@ DIRECTORY.CSS changes
     top: 3px;
 }
 
-.menu-accordion {
-    background-color: #eee;
-    color: #444;
-    cursor: pointer;
-    padding: 1rem;
-    text-align: left;
-    border: none;
-    outline: none;
-    transition: 0.4s;
-    border-top: solid 1px #82c8a0;
-    width: 100%;
-    width: -moz-available;
-    width: -webkit-fill-available;
-    width: stretch;
-}
+:deep() {
+    .menu-accordion {
+        background-color: #eee;
+        color: #444;
+        cursor: pointer;
+        padding: 1rem;
+        text-align: left;
+        border: none;
+        outline: none;
+        transition: 0.4s;
+        border-top: solid 1px #82c8a0;
+        width: 100%;
+        width: -moz-available;
+        width: -webkit-fill-available;
+        width: stretch;
+    }
 
-.menu-accordion-active,
-.menu-accordion:hover {
-    background-color: #82c8a0;
-}
+    .menu-accordion-active,
+    .menu-accordion:hover {
+        background-color: #82c8a0;
+    }
 
-.menu-accordion-panel {
-    background-color: white;
-    display: none;
-    overflow: hidden;
-    min-height: 2em;
-}
+    .menu-accordion-panel {
+        background-color: white;
+        display: none;
+        overflow: hidden;
+        min-height: 2em;
+    }
 
-.menu-accordion-active + .menu-accordion-panel {
-    display: block;
-}
+    .menu-accordion-active + .menu-accordion-panel {
+        display: block;
+    }
 
-.menu-accordion-subpanel {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-
-    > * {
-        padding: 5px;
+    .menu-accordion-subpanel {
         display: flex;
-        justify-content: space-evenly;
-        align-items: center;
+        flex-direction: column;
+        width: 100%;
 
-        &:hover {
-            background-color: #82c8a0;
+        > * {
+            padding: 5px;
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+
+            &:hover {
+                background-color: #82c8a0;
+            }
         }
     }
-}
 
-.menu-accordion-subpanel-text {
-    text-align: left;
-    justify-content: flex-start;
-    flex: 1;
+    .menu-accordion-subpanel-text {
+        text-align: left;
+        justify-content: flex-start;
+        flex: 1;
+    }
 }
 </style>

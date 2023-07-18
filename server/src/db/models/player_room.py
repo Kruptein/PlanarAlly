@@ -10,6 +10,8 @@ from .user import User, UserOptions
 
 
 class PlayerRoom(BaseDbModel):
+    id: int
+
     role = cast(int, IntegerField(default=0))
     player = cast(
         User, ForeignKeyField(User, backref="rooms_joined", on_delete="CASCADE")

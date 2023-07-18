@@ -43,6 +43,7 @@ class Shape(BaseDbModel):
     togglecomposite_set: SelectSequence["ToggleComposite"]
     composite_parent: SelectSequence["CompositeShapeAssociation"]
     shape_variants: SelectSequence["CompositeShapeAssociation"]
+    character_id: int
 
     uuid = cast(str, TextField(primary_key=True))
     layer = cast(Layer, ForeignKeyField(Layer, backref="shapes", on_delete="CASCADE"))

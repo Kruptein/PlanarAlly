@@ -2,14 +2,16 @@ import type { ApiCharacter } from "../../../apiTypes";
 import type { LocalId } from "../../id";
 import { buildState } from "../state";
 
+import type { CharacterId } from "./models";
+
 interface ReactiveCharacterState {
-    activeCharacterId: number | undefined;
-    characterIds: Set<number>;
+    activeCharacterId: CharacterId | undefined;
+    characterIds: Set<CharacterId>;
 }
 
 interface CharacterState {
-    characterShapes: Map<number, Set<LocalId>>;
-    characters: Map<number, ApiCharacter>;
+    characterShapes: Map<CharacterId, Set<LocalId>>;
+    characters: Map<CharacterId, ApiCharacter>;
 }
 
 const state = buildState<ReactiveCharacterState, CharacterState>(

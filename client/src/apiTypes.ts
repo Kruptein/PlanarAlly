@@ -1,6 +1,7 @@
 import type { GlobalId } from "./game/id";
 import type { LayerName } from "./game/models/floor";
 import type { AuraId } from "./game/systems/auras/models";
+import type { CharacterId } from "./game/systems/characters/models";
 import type { ClientId } from "./game/systems/client/models";
 import type { PlayerId } from "./game/systems/players/models";
 import type { TrackerId } from "./game/systems/trackers/models";
@@ -13,44 +14,7 @@ export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCi
 /* Do not modify it by hand - just update the pydantic models and then re-run the script
 */
 
-export interface ApiAssetRectShape {
-  uuid: GlobalId;
-  layer: LayerName;
-  floor: string;
-  type_: string;
-  x: number;
-  y: number;
-  name: string;
-  name_visible: boolean;
-  fill_colour: string;
-  stroke_colour: string;
-  vision_obstruction: boolean;
-  movement_obstruction: boolean;
-  is_token: boolean;
-  annotation: string;
-  draw_operator: string;
-  options: string;
-  badge: number;
-  show_badge: boolean;
-  default_edit_access: boolean;
-  default_vision_access: boolean;
-  is_invisible: boolean;
-  is_defeated: boolean;
-  default_movement_access: boolean;
-  is_locked: boolean;
-  angle: number;
-  stroke_width: number;
-  asset: number | null;
-  group: string | null;
-  annotation_visible: boolean;
-  ignore_zoom_size: boolean;
-  is_door: boolean;
-  is_teleport_zone: boolean;
-  owners: ApiShapeOwner[];
-  trackers: ApiTracker[];
-  auras: ApiAura[];
-  labels: ApiLabel[];
-  character: ApiCharacter | null;
+export interface ApiAssetRectShape extends ApiCoreShape {
   width: number;
   height: number;
   src: string;
@@ -94,136 +58,22 @@ export interface ApiLabel {
   name: string;
   visible: boolean;
 }
-export interface ApiCharacter {
-  id: number;
-  name: string;
-  dataBlocks: ApiDataBlock[];
-}
-export interface ApiDataBlock {
-  source: string;
-  name: string;
-  data: string;
-}
-export interface ApiBaseRectShape {
-  uuid: GlobalId;
-  layer: LayerName;
-  floor: string;
-  type_: string;
-  x: number;
-  y: number;
-  name: string;
-  name_visible: boolean;
-  fill_colour: string;
-  stroke_colour: string;
-  vision_obstruction: boolean;
-  movement_obstruction: boolean;
-  is_token: boolean;
-  annotation: string;
-  draw_operator: string;
-  options: string;
-  badge: number;
-  show_badge: boolean;
-  default_edit_access: boolean;
-  default_vision_access: boolean;
-  is_invisible: boolean;
-  is_defeated: boolean;
-  default_movement_access: boolean;
-  is_locked: boolean;
-  angle: number;
-  stroke_width: number;
-  asset: number | null;
-  group: string | null;
-  annotation_visible: boolean;
-  ignore_zoom_size: boolean;
-  is_door: boolean;
-  is_teleport_zone: boolean;
-  owners: ApiShapeOwner[];
-  trackers: ApiTracker[];
-  auras: ApiAura[];
-  labels: ApiLabel[];
-  character: ApiCharacter | null;
+export interface ApiBaseRectShape extends ApiCoreShape {
   width: number;
   height: number;
 }
-export interface ApiCircleShape {
-  uuid: GlobalId;
-  layer: LayerName;
-  floor: string;
-  type_: string;
-  x: number;
-  y: number;
+export interface ApiCharacter {
+  id: CharacterId;
   name: string;
-  name_visible: boolean;
-  fill_colour: string;
-  stroke_colour: string;
-  vision_obstruction: boolean;
-  movement_obstruction: boolean;
-  is_token: boolean;
-  annotation: string;
-  draw_operator: string;
-  options: string;
-  badge: number;
-  show_badge: boolean;
-  default_edit_access: boolean;
-  default_vision_access: boolean;
-  is_invisible: boolean;
-  is_defeated: boolean;
-  default_movement_access: boolean;
-  is_locked: boolean;
-  angle: number;
-  stroke_width: number;
-  asset: number | null;
-  group: string | null;
-  annotation_visible: boolean;
-  ignore_zoom_size: boolean;
-  is_door: boolean;
-  is_teleport_zone: boolean;
-  owners: ApiShapeOwner[];
-  trackers: ApiTracker[];
-  auras: ApiAura[];
-  labels: ApiLabel[];
-  character: ApiCharacter | null;
+  shapeId: GlobalId;
+  assetId: number;
+  assetHash: string;
+}
+export interface ApiCircleShape extends ApiCoreShape {
   radius: number;
   viewing_angle: number | null;
 }
-export interface ApiCircularTokenShape {
-  uuid: GlobalId;
-  layer: LayerName;
-  floor: string;
-  type_: string;
-  x: number;
-  y: number;
-  name: string;
-  name_visible: boolean;
-  fill_colour: string;
-  stroke_colour: string;
-  vision_obstruction: boolean;
-  movement_obstruction: boolean;
-  is_token: boolean;
-  annotation: string;
-  draw_operator: string;
-  options: string;
-  badge: number;
-  show_badge: boolean;
-  default_edit_access: boolean;
-  default_vision_access: boolean;
-  is_invisible: boolean;
-  is_defeated: boolean;
-  default_movement_access: boolean;
-  is_locked: boolean;
-  angle: number;
-  stroke_width: number;
-  asset: number | null;
-  group: string | null;
-  annotation_visible: boolean;
-  ignore_zoom_size: boolean;
-  is_door: boolean;
-  is_teleport_zone: boolean;
-  owners: ApiShapeOwner[];
-  trackers: ApiTracker[];
-  auras: ApiAura[];
-  labels: ApiLabel[];
-  character: ApiCharacter | null;
+export interface ApiCircularTokenShape extends ApiCoreShape {
   radius: number;
   viewing_angle: number | null;
   text: string;
@@ -266,7 +116,7 @@ export interface ApiCoreShape {
   trackers: ApiTracker[];
   auras: ApiAura[];
   labels: ApiLabel[];
-  character: ApiCharacter | null;
+  character: CharacterId | null;
 }
 export interface ApiDefaultShapeOwner {
   edit_access: boolean;
@@ -304,210 +154,25 @@ export interface ApiLayer {
   )[];
   groups: ApiGroup[];
 }
-export interface ApiRectShape {
-  uuid: GlobalId;
-  layer: LayerName;
-  floor: string;
-  type_: string;
-  x: number;
-  y: number;
-  name: string;
-  name_visible: boolean;
-  fill_colour: string;
-  stroke_colour: string;
-  vision_obstruction: boolean;
-  movement_obstruction: boolean;
-  is_token: boolean;
-  annotation: string;
-  draw_operator: string;
-  options: string;
-  badge: number;
-  show_badge: boolean;
-  default_edit_access: boolean;
-  default_vision_access: boolean;
-  is_invisible: boolean;
-  is_defeated: boolean;
-  default_movement_access: boolean;
-  is_locked: boolean;
-  angle: number;
-  stroke_width: number;
-  asset: number | null;
-  group: string | null;
-  annotation_visible: boolean;
-  ignore_zoom_size: boolean;
-  is_door: boolean;
-  is_teleport_zone: boolean;
-  owners: ApiShapeOwner[];
-  trackers: ApiTracker[];
-  auras: ApiAura[];
-  labels: ApiLabel[];
-  character: ApiCharacter | null;
+export interface ApiRectShape extends ApiCoreShape {
   width: number;
   height: number;
 }
-export interface ApiPolygonShape {
-  uuid: GlobalId;
-  layer: LayerName;
-  floor: string;
-  type_: string;
-  x: number;
-  y: number;
-  name: string;
-  name_visible: boolean;
-  fill_colour: string;
-  stroke_colour: string;
-  vision_obstruction: boolean;
-  movement_obstruction: boolean;
-  is_token: boolean;
-  annotation: string;
-  draw_operator: string;
-  options: string;
-  badge: number;
-  show_badge: boolean;
-  default_edit_access: boolean;
-  default_vision_access: boolean;
-  is_invisible: boolean;
-  is_defeated: boolean;
-  default_movement_access: boolean;
-  is_locked: boolean;
-  angle: number;
-  stroke_width: number;
-  asset: number | null;
-  group: string | null;
-  annotation_visible: boolean;
-  ignore_zoom_size: boolean;
-  is_door: boolean;
-  is_teleport_zone: boolean;
-  owners: ApiShapeOwner[];
-  trackers: ApiTracker[];
-  auras: ApiAura[];
-  labels: ApiLabel[];
-  character: ApiCharacter | null;
+export interface ApiPolygonShape extends ApiCoreShape {
   vertices: string;
   line_width: number;
   open_polygon: boolean;
 }
-export interface ApiTextShape {
-  uuid: GlobalId;
-  layer: LayerName;
-  floor: string;
-  type_: string;
-  x: number;
-  y: number;
-  name: string;
-  name_visible: boolean;
-  fill_colour: string;
-  stroke_colour: string;
-  vision_obstruction: boolean;
-  movement_obstruction: boolean;
-  is_token: boolean;
-  annotation: string;
-  draw_operator: string;
-  options: string;
-  badge: number;
-  show_badge: boolean;
-  default_edit_access: boolean;
-  default_vision_access: boolean;
-  is_invisible: boolean;
-  is_defeated: boolean;
-  default_movement_access: boolean;
-  is_locked: boolean;
-  angle: number;
-  stroke_width: number;
-  asset: number | null;
-  group: string | null;
-  annotation_visible: boolean;
-  ignore_zoom_size: boolean;
-  is_door: boolean;
-  is_teleport_zone: boolean;
-  owners: ApiShapeOwner[];
-  trackers: ApiTracker[];
-  auras: ApiAura[];
-  labels: ApiLabel[];
-  character: ApiCharacter | null;
+export interface ApiTextShape extends ApiCoreShape {
   text: string;
   font_size: number;
 }
-export interface ApiLineShape {
-  uuid: GlobalId;
-  layer: LayerName;
-  floor: string;
-  type_: string;
-  x: number;
-  y: number;
-  name: string;
-  name_visible: boolean;
-  fill_colour: string;
-  stroke_colour: string;
-  vision_obstruction: boolean;
-  movement_obstruction: boolean;
-  is_token: boolean;
-  annotation: string;
-  draw_operator: string;
-  options: string;
-  badge: number;
-  show_badge: boolean;
-  default_edit_access: boolean;
-  default_vision_access: boolean;
-  is_invisible: boolean;
-  is_defeated: boolean;
-  default_movement_access: boolean;
-  is_locked: boolean;
-  angle: number;
-  stroke_width: number;
-  asset: number | null;
-  group: string | null;
-  annotation_visible: boolean;
-  ignore_zoom_size: boolean;
-  is_door: boolean;
-  is_teleport_zone: boolean;
-  owners: ApiShapeOwner[];
-  trackers: ApiTracker[];
-  auras: ApiAura[];
-  labels: ApiLabel[];
-  character: ApiCharacter | null;
+export interface ApiLineShape extends ApiCoreShape {
   x2: number;
   y2: number;
   line_width: number;
 }
-export interface ApiToggleCompositeShape {
-  uuid: GlobalId;
-  layer: LayerName;
-  floor: string;
-  type_: string;
-  x: number;
-  y: number;
-  name: string;
-  name_visible: boolean;
-  fill_colour: string;
-  stroke_colour: string;
-  vision_obstruction: boolean;
-  movement_obstruction: boolean;
-  is_token: boolean;
-  annotation: string;
-  draw_operator: string;
-  options: string;
-  badge: number;
-  show_badge: boolean;
-  default_edit_access: boolean;
-  default_vision_access: boolean;
-  is_invisible: boolean;
-  is_defeated: boolean;
-  default_movement_access: boolean;
-  is_locked: boolean;
-  angle: number;
-  stroke_width: number;
-  asset: number | null;
-  group: string | null;
-  annotation_visible: boolean;
-  ignore_zoom_size: boolean;
-  is_door: boolean;
-  is_teleport_zone: boolean;
-  owners: ApiShapeOwner[];
-  trackers: ApiTracker[];
-  auras: ApiAura[];
-  labels: ApiLabel[];
-  character: ApiCharacter | null;
+export interface ApiToggleCompositeShape extends ApiCoreShape {
   active_variant: GlobalId;
   variants: ToggleVariant[];
 }
@@ -629,6 +294,25 @@ export interface AuraMove {
 export interface AuraRef {
   uuid: AuraId;
   shape: GlobalId;
+}
+export interface CharacterCreate {
+  shape: GlobalId;
+  name: string;
+}
+export interface CharacterLink {
+  shape: GlobalId;
+  character: CharacterId;
+}
+export interface CharacterMove {
+  id: CharacterId;
+  target: PositionTuple;
+  location: number;
+  floor: string;
+  layer: string;
+}
+export interface PositionTuple {
+  x: number;
+  y: number;
 }
 export interface ClientActiveLayerSet {
   floor: string;
@@ -809,10 +493,6 @@ export interface PlayersPositionSet {
   floor: string;
   players: string[];
 }
-export interface PositionTuple {
-  x: number;
-  y: number;
-}
 export interface RoomInfoPlayersAdd {
   id: PlayerId;
   name: string;
@@ -968,18 +648,6 @@ export interface ToggleCompositeVariant {
   variant: GlobalId;
 }
 export interface TypeIdModel {}
-export interface CharacterCreate {
-  shape: GlobalId;
-  name: string;
-}
-export interface CharacterLink {
-  shape: GlobalId;
-  character: number;
-}
-export interface ApiDataBlockDescription {
-  source: string;
-  name: string;
-}
 export interface ApiLocation {
   id: number;
   name: string;

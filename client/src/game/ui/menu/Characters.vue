@@ -2,22 +2,18 @@
 import { computed, ref } from "vue";
 
 import { baseAdjust } from "../../../core/http";
-import { getShape } from "../../id";
-import type { IAsset } from "../../interfaces/shapes/asset";
-import { characterSystem } from "../../systems/characters";
+import type { CharacterId } from "../../systems/characters/models";
 import { characterState } from "../../systems/characters/state";
 
-const characterId = ref<number | undefined>(undefined);
+const characterId = ref<CharacterId | undefined>(undefined);
 
 const charAsset = computed(() => {
     if (characterId.value === undefined) return undefined;
 
-    const char = [...(characterSystem.getShapes(characterId.value) ?? [])].at(0)!;
-    const shape = getShape(char) as IAsset;
-    if (shape === undefined || shape.assetId === undefined || shape.type !== "assetrect") return;
+    const char = characterState.readonly.characters.get(characterId.value);
+    if (char === undefined) return undefined;
 
-    const assetHash = shape.src.split("/").at(-1)!;
-    return { assetHash, assetId: shape.assetId };
+    return { assetHash: char.assetHash, assetId: char.assetId };
 });
 
 function dragStart(event: DragEvent): void {
@@ -45,7 +41,7 @@ function dragStart(event: DragEvent): void {
                 @mouseover="characterId = char"
                 @mouseout="characterId = undefined"
             >
-                {{ characterState.readonly.characters.get(char)?.name }}
+                {{ characterState.readonly.characters.get(char)?.name ?? "??" }}
             </div>
             <div v-if="!characterState.reactive.characterIds.size">No characters</div>
             <div v-if="charAsset !== undefined" class="preview">

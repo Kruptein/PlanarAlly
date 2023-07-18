@@ -7,6 +7,7 @@ import { find } from "../../../core/iter";
 import { type LocalId } from "../../id";
 import { selectedSystem } from "../selected";
 
+import type { CharacterId } from "./models";
 import { characterState } from "./state";
 
 const { mutable, readonly, mutableReactive: $ } = characterState;
@@ -14,19 +15,19 @@ const { mutable, readonly, mutableReactive: $ } = characterState;
 class CharacterSystem implements ShapeSystem {
     // BEHAVIOUR
 
-    clear(): void {
-        mutable.characters.clear();
-        mutable.characterShapes.clear();
+    clear(partial: boolean): void {
+        $.activeCharacterId = undefined;
+        mutable.characterShapes.clear(); // LocalIds change between location changes
+        if (!partial) {
+            $.characterIds.clear();
+            mutable.characters.clear();
+        }
     }
 
     // Inform the system about the state of a certain LocalId
-    inform(id: LocalId, data: ApiCharacter): void {
-        mutable.characters.set(data.id, data);
-        if (!mutable.characterShapes.has(data.id)) {
-            mutable.characterShapes.set(data.id, new Set());
-        }
-        mutable.characterShapes.get(data.id)!.add(id);
-        if (selectedSystem.$.value.has(id)) $.activeCharacterId = data.id;
+    inform(id: LocalId, characterId: CharacterId): void {
+        mutable.characterShapes.get(characterId)?.add(id);
+        if (selectedSystem.$.value.has(id)) $.activeCharacterId = characterId;
     }
 
     drop(id: LocalId): void {
@@ -47,11 +48,17 @@ class CharacterSystem implements ShapeSystem {
         $.activeCharacterId = undefined;
     }
 
+    addCharacter(character: ApiCharacter): void {
+        $.characterIds.add(character.id);
+        mutable.characters.set(character.id, character);
+        mutable.characterShapes.set(character.id, new Set());
+    }
+
     getAllCharacters(): IterableIterator<DeepReadonly<ApiCharacter>> {
         return readonly.characters.values();
     }
 
-    getShapes(characterId: number): ReadonlySet<LocalId> | undefined {
+    getShapes(characterId: CharacterId): ReadonlySet<LocalId> | undefined {
         return readonly.characterShapes.get(characterId);
     }
 }

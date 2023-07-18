@@ -1,5 +1,6 @@
 from .asset import *
 from .aura import *
+from .character import *
 from .client import *
 from .common import *
 from .dice import *

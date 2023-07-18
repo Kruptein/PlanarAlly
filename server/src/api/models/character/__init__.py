@@ -1,13 +1,14 @@
-from pydantic import BaseModel, Field
+from pydantic import Field
 
-from ..data_block import ApiDataBlock
 from ..helpers import TypeIdModel
 
 
-class ApiCharacter(BaseModel):
-    id: int
+class ApiCharacter(TypeIdModel):
+    id: int = Field(typeId="CharacterId")
     name: str
-    dataBlocks: list[ApiDataBlock]
+    shapeId: str = Field(typeId="GlobalId")
+    assetId: int
+    assetHash: str
 
 
 class CharacterCreate(TypeIdModel):
@@ -17,4 +18,4 @@ class CharacterCreate(TypeIdModel):
 
 class CharacterLink(TypeIdModel):
     shape: str = Field(typeId="GlobalId")
-    character: int
+    character: int = Field(typeId="CharacterId")

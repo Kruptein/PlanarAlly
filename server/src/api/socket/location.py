@@ -1,7 +1,6 @@
 import json
 from typing import Any, List
 
-from playhouse.shortcuts import model_to_dict
 from typing_extensions import TypedDict
 
 from ... import auth
@@ -152,6 +151,16 @@ async def load_location(sid: str, location: Location, *, complete=False):
     await _send_game("Players.Info.Set", player_data, room=sid)
     await _send_game("Player.Options.Set", client_options, room=sid)
 
+    # Load Character info
+
+    if complete:
+        characters = Character.select().where(Character.campaign == pr.room)
+        await _send_game(
+            "Characters.Set",
+            [c.as_pydantic() for c in characters],
+            room=sid,
+        )
+
     # 3. Load location
 
     location_data = location.as_pydantic()
@@ -262,14 +271,6 @@ async def load_location(sid: str, location: Location, *, complete=False):
         # todo: pydantic
         await _send_game(
             "Asset.List.Set", Asset.get_user_structure(pr.player), room=sid
-        )
-
-    if complete:
-        characters = Character.select().where(Character.campaign == pr.room)
-        await _send_game(
-            "Characters.Set",
-            [model_to_dict(c, recurse=False) for c in characters],
-            room=sid,
         )
 
     # 11. Sync Gameboards

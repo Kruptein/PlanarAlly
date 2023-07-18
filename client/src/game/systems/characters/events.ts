@@ -7,7 +7,9 @@ import { characterState } from "./state";
 import { characterSystem } from ".";
 
 socket.on("Characters.Set", (characters: ApiCharacter[]) => {
-    characterState.mutableReactive.characterIds = new Set(characters.map((c) => c.id));
+    for (const char of characters) {
+        characterSystem.addCharacter(char);
+    }
 });
 
 socket.on("Character.Created", (char: ApiCharacter) => {
@@ -21,7 +23,7 @@ socket.on("Character.Link", (link: CharacterLink) => {
     if (id !== undefined) {
         const char = characterState.mutable.characters.get(link.character);
         if (char !== undefined) {
-            characterSystem.inform(id, char);
+            characterSystem.inform(id, char.id);
         }
     }
 });

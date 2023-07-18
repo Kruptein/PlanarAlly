@@ -1,10 +1,11 @@
-import type { ApiCharacter, ApiCoreShape, ApiShape } from "../../apiTypes";
+import type { ApiCoreShape, ApiShape } from "../../apiTypes";
 import type { GlobalPoint, Vector } from "../../core/geometry";
 import type { LocalId } from "../id";
 import type { Floor, FloorId, LayerName } from "../models/floor";
 import type { ShapeOptions } from "../models/shapes";
 import type { SHAPE_TYPE } from "../shapes/types";
 import type { BoundingRect } from "../shapes/variants/simple/boundingRect";
+import type { CharacterId } from "../systems/characters/models";
 
 import type { ILayer } from "./layer";
 
@@ -16,7 +17,7 @@ export interface IShape extends SimpleShape {
     readonly id: LocalId;
     readonly type: SHAPE_TYPE;
 
-    readonly character: ApiCharacter | undefined;
+    readonly character: CharacterId | undefined;
 
     get points(): [number, number][];
     invalidatePoints: () => void;

@@ -1,16 +1,22 @@
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 from peewee import ForeignKeyField, TextField
 
 from ...api.models.character import ApiCharacter
+from ...api.models.data_block import ApiDataBlock
 from ..base import BaseDbModel
+from ..typed import SelectSequence
 from .asset import Asset
 from .room import Room
 from .user import User
 
+if TYPE_CHECKING:
+    from .shape import Shape
+
 
 class Character(BaseDbModel):
     id: int
+    shapes: SelectSequence["Shape"]
 
     name = cast(str, TextField())
     owner = cast(User, ForeignKeyField(User, backref="characters", on_delete="CASCADE"))
@@ -24,11 +30,26 @@ class Character(BaseDbModel):
         ),
     )
 
+    @property
+    def shape(self):
+        return self.shapes[0]
+
     def as_pydantic(self):
+        file_hash = self.asset.file_hash
+        if file_hash is None:
+            raise Exception("Character with illegal Asset link detected")
+        return ApiCharacter(
+            id=self.id,
+            name=self.name,
+            shapeId=self.shape.uuid,
+            assetHash=file_hash,
+            assetId=self.asset.id,
+        )
+
+    def get_data_blocks(self) -> list[ApiDataBlock]:
         from .data_block_character import CharacterDataBlock
 
         data_blocks_query = CharacterDataBlock.select().where(
             CharacterDataBlock.character == self
         )
-        data_blocks = [db.data_block.as_pydantic() for db in data_blocks_query]
-        return ApiCharacter(id=self.id, name=self.name, dataBlocks=data_blocks)
+        return [db.data_block.as_pydantic() for db in data_blocks_query]

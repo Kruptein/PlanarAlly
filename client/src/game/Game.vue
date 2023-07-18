@@ -9,17 +9,21 @@ import { toGP, Vector } from "../core/geometry";
 import { useModal } from "../core/plugins/modals/plugin";
 import { coreStore } from "../store/core";
 
+import { sendShapesMove } from "./api/emits/shape/core";
 import { createConnection, socket } from "./api/socket";
 import { dropAsset } from "./dropAsset";
-import { getShape } from "./id";
+import { getLocalId, getShape } from "./id";
 import { onKeyDown } from "./input/keyboard/down";
 import { scrollZoom } from "./input/mouse";
 import { LgCompanion } from "./integrations/lastgameboard/companion";
 import { moveShapes } from "./operations/movement";
 import { clearUndoStacks } from "./operations/undo";
-import { characterSystem } from "./systems/characters";
+import type { CharacterId } from "./systems/characters/models";
+import { characterState } from "./systems/characters/state";
 import { floorSystem } from "./systems/floors";
+import { floorState } from "./systems/floors/state";
 import { gameState } from "./systems/game/state";
+import { locationSettingsState } from "./systems/settings/location/state";
 import { playerSettingsState } from "./systems/settings/players/state";
 import { setSelectionBoxFunction } from "./temp";
 import { keyUp, mouseDown, mouseLeave, mouseMove, mouseUp, touchEnd, touchMove, touchStart } from "./tools/events";
@@ -134,7 +138,7 @@ export default defineComponent({
                 const assetInfo = JSON.parse(transferInfo) as {
                     assetHash: string;
                     assetId: number;
-                    characterId?: number;
+                    characterId?: CharacterId;
                 };
                 await _drop(assetInfo, location);
             }
@@ -143,19 +147,31 @@ export default defineComponent({
         }
 
         async function _drop(
-            assetInfo: { assetHash: string; assetId: number; characterId?: number },
+            assetInfo: { assetHash: string; assetId: number; characterId?: CharacterId },
             location: GlobalPoint,
         ): Promise<void> {
             if (assetInfo.characterId !== undefined) {
-                // TODO: Check on location
-                // if (shape === undefined) -> sio.emit("Char.Tp") ???
-                // too much work to deal on the client side I'm guessing
-                const shapeId = [...characterSystem.getShapes(assetInfo.characterId)!][0]!;
-                const shape = getShape(shapeId);
-
-                if (shape !== undefined) {
-                    await moveShapes([shape], Vector.fromPoints(shape.center, location), false);
+                const character = characterState.readonly.characters.get(assetInfo.characterId);
+                if (character === undefined) {
+                    throw new Error("Unknown character ID encountered");
                 }
+                const shapeId = getLocalId(character.shapeId, false);
+
+                if (shapeId !== undefined) {
+                    const shape = getShape(shapeId)!;
+                    await moveShapes([shape], Vector.fromPoints(shape.center, location), false);
+                } else {
+                    sendShapesMove({
+                        shapes: [character.shapeId],
+                        target: {
+                            floor: floorState.currentFloor.value!.name,
+                            location: locationSettingsState.raw.activeLocation,
+                            x: location.x,
+                            y: location.y,
+                        },
+                    });
+                }
+                return;
             }
 
             await dropAsset(

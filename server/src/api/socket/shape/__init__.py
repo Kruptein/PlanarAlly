@@ -331,7 +331,7 @@ async def move_shapes(sid: str, raw_data: Any):
     shapes = [Shape.get_by_id(sh) for sh in data.shapes]
 
     await send_remove_shapes(
-        [sh.uuid for sh in shapes], room=pr.active_location.get_path()
+        [sh.uuid for sh in shapes], room=shapes[0].layer.floor.location.get_path()
     )
 
     for shape in shapes:

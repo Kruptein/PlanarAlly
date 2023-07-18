@@ -293,6 +293,7 @@ async def change_location(sid: str, raw_data: Any):
         for psid in game_state.get_sids(player=room_player.player, room=pr.room):
             await _send_game("Location.Change.Start", None, room=psid)
 
+    old_locations = {rp.id: rp.active_location for rp in prs_to_move}
     new_location = Location.get_by_id(data.location)
 
     # First update DB for _all_ affected players
@@ -305,7 +306,7 @@ async def change_location(sid: str, raw_data: Any):
         for psid in game_state.get_sids(player=room_player.player, room=pr.room):
             try:
                 sio.leave_room(
-                    psid, room_player.active_location.get_path(), namespace=GAME_NS
+                    psid, old_locations[room_player.id].get_path(), namespace=GAME_NS
                 )
                 sio.enter_room(psid, new_location.get_path(), namespace=GAME_NS)
             except KeyError:

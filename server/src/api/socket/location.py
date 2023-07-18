@@ -286,29 +286,22 @@ async def change_location(sid: str, raw_data: Any):
         logger.warning(f"{pr.player.name} attempted to change location")
         return
 
-    # Send an anouncement to show loading state
-    for room_player in pr.room.players:
-        if room_player.player.name not in data.users:
-            continue
+    prs_to_move = [p for p in pr.room.players if p.player.name in data.users]
 
+    # Send an anouncement to show loading state
+    for room_player in prs_to_move:
         for psid in game_state.get_sids(player=room_player.player, room=pr.room):
             await _send_game("Location.Change.Start", None, room=psid)
 
     new_location = Location.get_by_id(data.location)
 
     # First update DB for _all_ affected players
-    for room_player in pr.room.players:
-        if room_player.player.name not in data.users:
-            continue
-
+    for room_player in prs_to_move:
         room_player.active_location = new_location
         room_player.save()
 
     # Then send out updates
-    for room_player in pr.room.players:
-        if room_player.player.name not in data.users:
-            continue
-
+    for room_player in prs_to_move:
         for psid in game_state.get_sids(player=room_player.player, room=pr.room):
             try:
                 sio.leave_room(

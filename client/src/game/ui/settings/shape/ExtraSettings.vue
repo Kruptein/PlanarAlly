@@ -29,7 +29,7 @@ import { labelState } from "../../../systems/labels/state";
 import { playerSystem } from "../../../systems/players";
 import { DEFAULT_GRID_SIZE } from "../../../systems/position/state";
 import { propertiesSystem } from "../../../systems/properties";
-import { selectedSystem } from "../../../systems/selected";
+import { selectedState } from "../../../systems/selected/state";
 import { locationSettingsState } from "../../../systems/settings/location/state";
 import { visionState } from "../../../vision/state";
 import LabelManager from "../../LabelManager.vue";
@@ -38,7 +38,7 @@ const { t } = useI18n();
 const modals = useModal();
 
 watchEffect(() => {
-    const id = selectedSystem.getFocus().value;
+    const id = selectedState.reactive.focus;
     if (id) {
         annotationSystem.loadState(id);
         labelSystem.loadState(id);

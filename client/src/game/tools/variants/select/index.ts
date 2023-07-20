@@ -49,6 +49,7 @@ import { playerSystem } from "../../../systems/players";
 import { DEFAULT_GRID_SIZE, positionState } from "../../../systems/position/state";
 import { getProperties } from "../../../systems/properties/state";
 import { selectedSystem } from "../../../systems/selected";
+import { selectedState } from "../../../systems/selected/state";
 import { locationSettingsState } from "../../../systems/settings/location/state";
 import { playerSettingsState } from "../../../systems/settings/players/state";
 import { openDefaultContextMenu, openShapeContextMenu } from "../../../ui/contextmenu/state";
@@ -132,7 +133,7 @@ class SelectTool extends Tool implements ISelectTool {
 
         // Selection changes
         watchEffect(() => {
-            const selection = selectedSystem.$.value;
+            const selection = selectedState.reactive.selected;
 
             // rotation logic
             if (selection.size === 0) {

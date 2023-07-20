@@ -4,11 +4,15 @@ All notable changes to this project will be documented in this file.
 
 [DM] denotes changes only useful for the dungeon master\
 [server] denotes changes only useful for the server owner\
-[tech] denotes internal changes that are only useful for code contributors\
+[tech] denotes internal technical changes that are only useful for code contributors\
 tech changes will usually be stripped from release notes for the public
 [lang] this is a change to some translation string
 
 ## Unreleased
+
+### Changed
+
+-   [tech] Selected system now has a proper state with better type ergonomics for focus retrieval
 
 ### Fixed
 

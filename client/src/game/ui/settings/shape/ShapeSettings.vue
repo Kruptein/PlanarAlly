@@ -6,7 +6,7 @@ import PanelModal from "../../../../core/components/modals/PanelModal.vue";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { accessSystem } from "../../../systems/access";
 import { accessState } from "../../../systems/access/state";
-import { selectedSystem } from "../../../systems/selected";
+import { selectedState } from "../../../systems/selected/state";
 
 import AccessSettings from "./AccessSettings.vue";
 import { ShapeSettingCategory } from "./categories";
@@ -29,7 +29,7 @@ const visible = computed({
 });
 
 watchEffect(() => {
-    const id = selectedSystem.getFocus().value;
+    const id = selectedState.reactive.focus;
     if (id !== undefined) {
         accessSystem.loadState(id);
     } else {

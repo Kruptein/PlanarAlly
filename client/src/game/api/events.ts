@@ -36,6 +36,7 @@ import { toGP } from "../../core/geometry";
 import { SyncMode } from "../../core/models/types";
 import type { AssetList } from "../../core/models/types";
 import { debugLayers } from "../../localStorageHelpers";
+import { modEvents } from "../../mods/events";
 import { router } from "../../router";
 import { coreStore } from "../../store/core";
 import { locationStore } from "../../store/location";
@@ -44,7 +45,6 @@ import { clearGame } from "../clear";
 import { addServerFloor } from "../floor/server";
 import { getShapeFromGlobal } from "../id";
 import type { GlobalId } from "../id";
-import { initMods } from "../mods";
 import { setCenterPosition } from "../position";
 import { deleteShapes } from "../shapes/utils";
 import { floorSystem } from "../systems/floors";
@@ -114,7 +114,7 @@ socket.on("Board.Floor.Set", async (floor: ApiFloor) => {
         coreStore.setLoading(false);
         gameSystem.setBoardInitialized(true);
         playerSystem.loadPosition();
-        await initMods();
+        await modEvents.locationLoaded();
     }
 });
 

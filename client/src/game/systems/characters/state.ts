@@ -10,7 +10,7 @@ interface ReactiveCharacterState {
 }
 
 interface CharacterState {
-    characterShapes: Map<CharacterId, Set<LocalId>>;
+    characterShapes: Map<CharacterId, LocalId>;
     characters: Map<CharacterId, ApiCharacter>;
 }
 

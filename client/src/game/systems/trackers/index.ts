@@ -8,11 +8,11 @@ import { activeShapeStore } from "../../../store/activeShape";
 import { getGlobalId, getShape } from "../../id";
 import type { LocalId } from "../../id";
 import { compositeState } from "../../layers/state";
-import { modTrigger } from "../../mods";
 
 import { partialTrackerToServer, toUiTrackers, trackersToServer } from "./conversion";
 import { sendShapeCreateTracker, sendShapeRemoveTracker, sendShapeUpdateTracker } from "./emits";
 import type { Tracker, TrackerId, UiTracker } from "./models";
+import { trackerEvents } from "./mods";
 import { createEmptyUiTracker } from "./utils";
 
 interface TrackerState {
@@ -142,9 +142,7 @@ class TrackerSystem implements ShapeSystem {
         const tracker = this.data.get(id)?.find((t) => t.uuid === trackerId);
         if (tracker === undefined) return;
 
-        const modRet = modTrigger(id, tracker, delta);
-        if (modRet.abort) return;
-        delta = modRet.delta;
+        delta = trackerEvents.updateTracker(id, tracker, delta);
 
         if (syncTo.server) {
             const shape = getGlobalId(id);

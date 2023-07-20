@@ -1,4 +1,4 @@
-import { socket } from "../api/socket";
+import { socket } from "../game/api/socket";
 
 type DBR = Record<string, unknown>;
 

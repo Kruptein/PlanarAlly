@@ -1,5 +1,6 @@
 import { Store } from "../core/store";
 import { socket } from "../dashboard/socket";
+import { initMods } from "../mods";
 
 interface CoreState {
     authenticated: boolean;
@@ -27,6 +28,7 @@ class CoreStore extends Store<CoreState> {
 
     setInitialized(initialized: boolean): void {
         this._state.initialized = initialized;
+        void initMods();
     }
 
     setAuthenticated(authenticated: boolean): void {

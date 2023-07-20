@@ -13,9 +13,7 @@ socket.on("Characters.Set", (characters: ApiCharacter[]) => {
 });
 
 socket.on("Character.Created", (char: ApiCharacter) => {
-    characterState.mutableReactive.characterIds.add(char.id);
-    characterState.mutable.characters.set(char.id, char);
-    characterState.mutable.characterShapes.set(char.id, new Set());
+    characterSystem.addCharacter(char);
 });
 
 socket.on("Character.Link", (link: CharacterLink) => {

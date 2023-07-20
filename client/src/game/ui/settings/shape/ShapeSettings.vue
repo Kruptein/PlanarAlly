@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { type Component, computed, ref, watchEffect } from "vue";
+import { type Component, computed, type DeepReadonly, ref, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 
 import Modal from "../../../../core/components/modals/Modal.vue";
 import { activeShapeStore } from "../../../../store/activeShape";
-import { charTabs } from "../../../mods";
 import { accessSystem } from "../../../systems/access";
 import { accessState } from "../../../systems/access/state";
 import { selectedState } from "../../../systems/selected/state";
+import { uiState } from "../../../systems/ui/state";
 
 import AccessSettings from "./AccessSettings.vue";
 import ExtraSettings from "./ExtraSettings.vue";
@@ -46,7 +46,7 @@ const hasShape = computed(() => activeShapeStore.state.id !== undefined);
 const owned = accessState.hasEditAccess;
 
 const components = computed(() => {
-    const comps: { name: string; component: Component }[] = [];
+    const comps: DeepReadonly<{ name: string; component: Component }>[] = [];
     if (!hasShape.value) return comps;
     comps.push(
         { name: "Properties", component: PropertySettings },
@@ -57,8 +57,8 @@ const components = computed(() => {
     if (owned.value) {
         comps.push({ name: "Groups", component: GroupSettings }, { name: "Extra", component: ExtraSettings });
     }
-    for (const charTab of charTabs) {
-        if (charTab.filter(activeShapeStore.state.id!)) comps.push(charTab);
+    for (const charTab of uiState.reactive.characterTabs) {
+        if (charTab.filter?.(activeShapeStore.state.id!) ?? true) comps.push(charTab);
     }
 
     return comps;

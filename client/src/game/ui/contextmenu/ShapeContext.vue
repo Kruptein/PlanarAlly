@@ -296,7 +296,7 @@ const hasCharacter = computed(() => characterState.reactive.activeCharacterId !=
 
 function createCharacter(): void {
     close();
-    const selectedId = [...selectedSystem.$.value].at(0);
+    const selectedId = [...selectedState.raw.selected].at(0);
     if (selectedId === undefined) return;
     const shape = getShape(selectedId);
     if (shape === undefined || shape.character !== undefined) return;

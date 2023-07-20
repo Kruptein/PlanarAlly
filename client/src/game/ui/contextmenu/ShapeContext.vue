@@ -288,23 +288,6 @@ async function saveTemplate(): Promise<void> {
     }
 }
 
-// CHARACTER
-
-const hasCharacter = computed(() => characterState.reactive.activeCharacterId !== undefined);
-
-function createCharacter(): void {
-    close();
-    const selectedId = [...selectedState.raw.selected].at(0);
-    if (selectedId === undefined) return;
-    const shape = getShape(selectedId);
-    if (shape === undefined || shape.character !== undefined) return;
-    const data: CharacterCreate = {
-        shape: getGlobalId(selectedId)!,
-        name: getProperties(selectedId)!.name,
-    };
-    socket.emit("Character.Create", data);
-}
-
 // GROUPS
 
 const groups = computed(() => {

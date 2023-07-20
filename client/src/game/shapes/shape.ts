@@ -19,6 +19,8 @@ import { annotationSystem } from "../systems/annotations";
 import { annotationState } from "../systems/annotations/state";
 import { auraSystem } from "../systems/auras";
 import { aurasFromServer, aurasToServer } from "../systems/auras/conversion";
+import { characterSystem } from "../systems/characters";
+import type { CharacterId } from "../systems/characters/models";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
 import { groupSystem } from "../systems/groups";
@@ -41,6 +43,8 @@ export abstract class Shape implements IShape {
     // Used to create class instance from server shape data
     abstract readonly type: SHAPE_TYPE;
     readonly id: LocalId;
+
+    character: CharacterId | undefined;
 
     // The layer the shape is currently on
     floorId: FloorId | undefined;
@@ -528,6 +532,7 @@ export abstract class Shape implements IShape {
             ignore_zoom_size: this.ignoreZoomSize,
             is_door: doorSystem.isDoor(this.id),
             is_teleport_zone: teleportZoneSystem.isTeleportZone(this.id),
+            character: this.character ?? null,
         };
     }
     fromDict(data: ApiCoreShape): void {
@@ -535,6 +540,7 @@ export abstract class Shape implements IShape {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             Object.fromEntries(JSON.parse(data.options));
 
+        this.character = data.character ?? undefined;
         this.angle = data.angle;
         this.globalCompositeOperation = data.draw_operator as GlobalCompositeOperation;
 
@@ -568,6 +574,7 @@ export abstract class Shape implements IShape {
         doorSystem.inform(this.id, data.is_door, options.door);
         teleportZoneSystem.inform(this.id, data.is_teleport_zone, options.teleport);
         labelSystem.inform(this.id, data.labels);
+        if (data.character !== null) characterSystem.inform(this.id, data.character);
 
         this.ignoreZoomSize = data.ignore_zoom_size;
 

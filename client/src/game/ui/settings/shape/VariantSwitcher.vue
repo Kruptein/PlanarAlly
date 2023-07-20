@@ -67,7 +67,7 @@ async function addVariant(): Promise<void> {
 
     const newShape = await dropAsset(
         { imageSource: `/static/assets/${asset.file_hash}`, assetId: asset.id },
-        { x: shape.refPoint.x, y: shape.refPoint.y },
+        shape.refPoint,
     );
     if (newShape === undefined) return;
 

@@ -11,6 +11,6 @@ export function clearDropCallback(): void {
     activeDropHandler = undefined;
 }
 
-export function handleDrop(event: DragEvent): void {
+export function handleDropFF(event: DragEvent): void {
     if (activeDropHandler !== undefined) activeDropHandler(event);
 }

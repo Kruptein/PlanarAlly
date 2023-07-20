@@ -1,5 +1,6 @@
 import "../systems/access/events";
 import "../systems/auras/events";
+import "../systems/characters/events";
 import "../systems/groups/events";
 import "../systems/labels/events";
 import "../systems/logic/door/events";

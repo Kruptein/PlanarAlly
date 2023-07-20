@@ -77,7 +77,9 @@ class Shape(BaseDbModel):
     )
     group = cast(
         Optional[Group],
-        ForeignKeyField(Group, backref="members", null=True, default=None),
+        ForeignKeyField(
+            Group, backref="members", null=True, default=None, on_delete="SET NULL"
+        ),
     )
     annotation_visible = cast(bool, BooleanField(default=False))
     ignore_zoom_size = cast(bool, BooleanField(default=False))

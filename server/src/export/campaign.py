@@ -196,6 +196,9 @@ class CampaignExporter:
         self.db = open_db(self.sqlite_path)
         self.db.foreign_keys = False
 
+        # The pragma call should make sure that all recent wal changes have been copied into the main sqlite file
+        # So that copying just the sqlite file is enough
+        ACTIVE_DB.execute_sql("PRAGMA wal_checkpoint(FULL)")
         shutil.copyfile(SAVE_FILE, self.copy_name)
 
         # Base model creation

@@ -10,7 +10,7 @@ import { auraSystem } from "../systems/auras";
 import type { Aura, AuraId } from "../systems/auras/models";
 import { propertiesSystem } from "../systems/properties";
 import { getProperties, propertiesState } from "../systems/properties/state";
-import { selectedSystem } from "../systems/selected";
+import { selectedState } from "../systems/selected/state";
 import { trackerSystem } from "../systems/trackers";
 import type { Tracker, TrackerId } from "../systems/trackers/models";
 
@@ -20,15 +20,14 @@ const { t } = useI18n();
 
 const activeTracker = ref<Tracker | Aura | null>(null);
 
-const shapeId = selectedSystem.getFocus();
-
 const trackers = computed(() => [...trackerSystem.state.parentTrackers, ...trackerSystem.state.trackers.slice(0, -1)]);
 
 const auras = computed(() => [...auraSystem.state.parentAuras, ...auraSystem.state.auras.slice(0, -1)]);
 
 function setLocked(): void {
+    const shapeId = selectedState.raw.focus;
     if (accessState.hasEditAccess.value && shapeId !== undefined) {
-        propertiesSystem.setLocked(shapeId.value!, !getProperties(shapeId.value!)!.isLocked, SERVER_SYNC);
+        propertiesSystem.setLocked(shapeId, !getProperties(shapeId)!.isLocked, SERVER_SYNC);
     }
 }
 
@@ -37,7 +36,7 @@ function openEditDialog(): void {
 }
 
 function changeValue(tracker: Tracker | Aura): void {
-    if (shapeId.value === undefined || !accessState.hasEditAccess.value) return;
+    if (selectedState.raw.focus === undefined || !accessState.hasEditAccess.value) return;
 
     activeTracker.value = tracker;
 }
@@ -45,15 +44,16 @@ function changeValue(tracker: Tracker | Aura): void {
 function setValue(data: { solution: number; relativeMode: boolean }): void {
     const tracker = activeTracker.value;
 
-    if (shapeId.value === undefined || tracker === null) return;
+    const shapeId = selectedState.raw.focus;
+    if (shapeId === undefined || tracker === null) return;
     activeTracker.value = null; // close the modal
 
     const value = data.relativeMode ? tracker.value + data.solution : data.solution;
     if (trackers.value.some((t) => t.uuid === tracker.uuid)) {
-        trackerSystem.update(shapeId.value, tracker.uuid as TrackerId, { value }, SERVER_SYNC);
+        trackerSystem.update(shapeId, tracker.uuid as TrackerId, { value }, SERVER_SYNC);
     } else {
-        auraSystem.update(shapeId.value, tracker.uuid as AuraId, { value }, SERVER_SYNC);
-        const sh = getShape(shapeId.value)!;
+        auraSystem.update(shapeId, tracker.uuid as AuraId, { value }, SERVER_SYNC);
+        const sh = getShape(shapeId)!;
         sh.invalidate(false);
     }
 }
@@ -62,7 +62,7 @@ function setValue(data: { solution: number; relativeMode: boolean }): void {
 <template>
     <div>
         <TrackerInput :tracker="activeTracker" @submit="setValue" @close="activeTracker = null" />
-        <template v-if="shapeId !== undefined">
+        <template v-if="selectedState.reactive.focus !== undefined">
             <div id="selection-menu">
                 <div id="selection-lock-button" :title="t('game.ui.selection.SelectionInfo.lock')" @click="setLocked">
                     <font-awesome-icon v-if="propertiesState.reactive.isLocked" icon="lock" />

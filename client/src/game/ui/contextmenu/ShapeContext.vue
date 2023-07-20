@@ -31,6 +31,7 @@ import { markerState } from "../../systems/markers/state";
 import { playerSystem } from "../../systems/players";
 import { getProperties } from "../../systems/properties/state";
 import { selectedSystem } from "../../systems/selected";
+import { selectedState } from "../../systems/selected/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import { moveFloor, moveLayer } from "../../temp";
 import { initiativeStore } from "../initiative/state";
@@ -42,7 +43,7 @@ const { t } = useI18n();
 const modals = useModal();
 
 const selectionIncludesSpawnToken = computed(() =>
-    [...selectedSystem.$.value].some((s) => {
+    [...selectedState.reactive.selected].some((s) => {
         const gId = getGlobalId(s);
         if (gId === undefined) return false;
         return locationSettingsState.reactive.spawnLocations.value.includes(gId);
@@ -50,7 +51,7 @@ const selectionIncludesSpawnToken = computed(() =>
 );
 
 const isOwned = computed(() =>
-    [...selectedSystem.$.value].every((s) => accessSystem.hasAccessTo(s, false, { edit: true })),
+    [...selectedState.reactive.selected].every((s) => accessSystem.hasAccessTo(s, false, { edit: true })),
 );
 
 function close(): void {
@@ -58,7 +59,7 @@ function close(): void {
 }
 
 function openEditDialog(): void {
-    if (selectedSystem.$.value.size !== 1) return;
+    if (selectedState.raw.selected.size !== 1) return;
     activeShapeStore.setShowEditDialog(true);
     close();
 }
@@ -66,20 +67,20 @@ function openEditDialog(): void {
 // MARKERS
 
 const isMarker = computed(() => {
-    const sel = selectedSystem.$.value;
+    const sel = selectedState.reactive.selected;
     if (sel.size !== 1) return false;
     return markerState.reactive.markers.has([...sel][0]!);
 });
 
 function deleteMarker(): void {
-    const sel = selectedSystem.$.value;
+    const sel = selectedState.raw.selected;
     if (sel.size !== 1) return;
     markerSystem.removeMarker([...sel][0]!, true);
     close();
 }
 
 function setMarker(): void {
-    const sel = selectedSystem.$.value;
+    const sel = selectedState.raw.selected;
     if (sel.size !== 1) return;
     markerSystem.newMarker([...sel][0]!, true);
     close();
@@ -122,7 +123,7 @@ async function addToInitiative(): Promise<void> {
 }
 
 function getInitiativeWord(): string {
-    const selection = selectedSystem.$.value;
+    const selection = selectedState.raw.selected;
     if (selection.size === 1) {
         return initiativeStore.state.locationData.some((i) => i.localId === [...selection][0])
             ? t("game.ui.selection.ShapeContext.show_initiative")
@@ -242,7 +243,7 @@ async function setLocation(newLocation: number): Promise<void> {
 
 // SELECTION
 
-const hasSingleSelection = computed(() => selectedSystem.$.value.size === 1);
+const hasSingleSelection = computed(() => selectedState.reactive.selected.size === 1);
 
 function deleteSelection(): void {
     deleteShapes(selectedSystem.get({ includeComposites: true }), SyncMode.FULL_SYNC);
@@ -252,7 +253,7 @@ function deleteSelection(): void {
 // TEMPLATES
 
 const canBeSaved = computed(() =>
-    [...selectedSystem.$.value].every(
+    [...selectedState.reactive.selected].every(
         (s) => getShape(s)!.assetId !== undefined && compositeState.getCompositeParent(s) === undefined,
     ),
 );
@@ -290,13 +291,13 @@ async function saveTemplate(): Promise<void> {
 // GROUPS
 
 const groups = computed(() => {
-    const ids = map(selectedSystem.$.value, (s) => groupSystem.getGroupId(s));
+    const ids = map(selectedState.reactive.selected, (s) => groupSystem.getGroupId(s));
     const definedIds = guard(ids, defined);
     return new Set(definedIds);
 });
 
 const hasEntireGroup = computed(() => {
-    const selection = selectedSystem.$.value;
+    const selection = selectedState.reactive.selected;
     const sel = [...selection][0];
     if (sel === undefined) return false;
     const groupId = groupSystem.getGroupId(sel);
@@ -304,10 +305,12 @@ const hasEntireGroup = computed(() => {
     return selection.size === groupSystem.getGroupSize(groupId);
 });
 
-const hasUngrouped = computed(() => [...selectedSystem.$.value].some((s) => groupSystem.getGroupId(s) === undefined));
+const hasUngrouped = computed(() =>
+    [...selectedState.reactive.selected].some((s) => groupSystem.getGroupId(s) === undefined),
+);
 
 function createGroup(): void {
-    groupSystem.createNewGroupForShapes([...selectedSystem.$.value]);
+    groupSystem.createNewGroupForShapes([...selectedState.raw.selected]);
     close();
 }
 
@@ -316,7 +319,7 @@ async function splitGroup(): Promise<void> {
         no: "No, reset them",
     });
     if (keepBadges === undefined) return;
-    groupSystem.createNewGroupForShapes([...selectedSystem.$.value], keepBadges);
+    groupSystem.createNewGroupForShapes([...selectedState.raw.selected], keepBadges);
     close();
 }
 

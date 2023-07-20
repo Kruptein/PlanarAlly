@@ -19,6 +19,7 @@ import { floorState } from "../../systems/floors/state";
 import { playerSystem } from "../../systems/players";
 import { propertiesSystem } from "../../systems/properties";
 import { selectedSystem } from "../../systems/selected";
+import { selectedState } from "../../systems/selected/state";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
 import { activateTool, toolMap } from "../tools";
@@ -59,10 +60,7 @@ class SpellTool extends Tool implements ITool {
         watch(
             () => this.state.selectedSpellShape,
             async () => {
-                if (
-                    selectedSystem.getFocus().value === undefined &&
-                    this.state.selectedSpellShape === SpellShape.Cone
-                ) {
+                if (selectedState.reactive.focus === undefined && this.state.selectedSpellShape === SpellShape.Cone) {
                     this.state.selectedSpellShape = SpellShape.Circle;
                 }
                 if (this.shape !== undefined) await this.drawShape();
@@ -135,7 +133,7 @@ class SpellTool extends Tool implements ITool {
         );
 
         if (this.state.selectedSpellShape === SpellShape.Cone) {
-            const selection = selectedSystem.getFocus().value;
+            const selection = selectedState.raw.focus;
             if (selection === undefined) {
                 console.error("SpellTool: No selection found.");
             } else {
@@ -152,7 +150,7 @@ class SpellTool extends Tool implements ITool {
     }
 
     async drawRangeShape(): Promise<void> {
-        const focus = selectedSystem.getFocus().value;
+        const focus = selectedState.raw.focus;
 
         if (focus === undefined || this.shape === undefined) return;
 
@@ -193,7 +191,7 @@ class SpellTool extends Tool implements ITool {
             this.shape.center = endPoint;
             if (this.state.showPublic) sendShapePositionUpdate([this.shape], true);
 
-            const focus = selectedSystem.getFocus().value;
+            const focus = selectedState.raw.focus;
 
             if (focus !== undefined) {
                 const ruler = toolMap[ToolName.Ruler];

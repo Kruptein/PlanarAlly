@@ -14,7 +14,7 @@ import type { FloorId } from "../game/models/floor";
 import type { ShapeOptions } from "../game/models/shapes";
 import type { SHAPE_TYPE } from "../game/shapes/types";
 import { floorSystem } from "../game/systems/floors";
-import { selectedSystem } from "../game/systems/selected";
+import { selectedState } from "../game/systems/selected/state";
 import { visionState } from "../game/vision/state";
 
 interface ActiveShapeState {
@@ -50,7 +50,7 @@ class ActiveShapeStore extends Store<ActiveShapeState> {
         this.isComposite = computed(() => this._state.parentUuid !== undefined);
 
         watchEffect(() => {
-            const selection = selectedSystem.$.value;
+            const selection = selectedState.reactive.selected;
             if (selection.size === 0) {
                 this.clear();
             } else if (this._state.id === undefined) {

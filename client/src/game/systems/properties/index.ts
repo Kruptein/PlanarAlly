@@ -20,7 +20,7 @@ import { getGlobalId, getShape } from "../../id";
 import type { LocalId } from "../../id";
 import { accessSystem } from "../access";
 import { doorSystem } from "../logic/door";
-import { selectedSystem } from "../selected";
+import { selectedState } from "../selected/state";
 
 import { checkMovementSources } from "./movement";
 import { getProperties, propertiesState } from "./state";
@@ -260,8 +260,8 @@ registerSystem("properties", propertiesSystem, true, propertiesState);
 // Properties System state is active whenever a shape is selected due to the quick selection info
 
 watchEffect(() => {
-    const id = selectedSystem.getFocus();
-    if (id.value) {
-        propertiesSystem.loadState(id.value);
+    const id = selectedState.reactive.focus;
+    if (id) {
+        propertiesSystem.loadState(id);
     } else propertiesSystem.dropState();
 });

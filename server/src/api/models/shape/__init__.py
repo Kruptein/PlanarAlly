@@ -82,7 +82,8 @@ class ShapeAssetImageSet(TypeIdModel):
     src: str
 
 
+# todo: This can probably be removed in favor of the very similar SpawnInfo
 class ShapeInfo(BaseModel):
-    shape: ApiShape
-    location: int
+    position: PositionTuple
+    floor: str
     location: int

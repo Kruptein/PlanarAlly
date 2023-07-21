@@ -466,13 +466,18 @@ async def change_asset_image(sid: str, raw_data: Any):
 @sio.on("Shape.Info.Get", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def get_shape_info(sid: str, shape_id: str):
-    pr: PlayerRoom = game_state.get(sid)
-
     shape: Shape = Shape.get_by_id(shape_id)
-    location = shape.layer.floor.location.id
+    layer = shape.layer
+    if layer is None:
+        logger.error("Attempt to get shape info from shape without layer")
+        return
+
+    location = layer.floor.location.id
 
     await _send_game(
         "Shape.Info",
-        data=ShapeInfo(shape=transform_shape(shape, pr), location=location),
+        data=ShapeInfo(
+            position=shape.center, floor=layer.floor.name, location=location
+        ),
         room=sid,
     )

@@ -507,15 +507,8 @@ export interface ShapeFloorChange {
   floor: string;
 }
 export interface ShapeInfo {
-  shape:
-    | ApiAssetRectShape
-    | ApiRectShape
-    | ApiCircleShape
-    | ApiCircularTokenShape
-    | ApiPolygonShape
-    | ApiTextShape
-    | ApiLineShape
-    | ApiToggleCompositeShape;
+  position: PositionTuple;
+  floor: string;
   location: number;
 }
 export interface ShapeLayerChange {

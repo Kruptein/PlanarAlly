@@ -27,7 +27,7 @@ class ShapeType(BaseDbModel):
     def as_pydantic(self, shape: ApiCoreShape) -> ApiShape:
         raise Exception(f"{self.__class__.__name__} has no pydantic model")
 
-    def get_center_offset(self, x: float, y: float) -> Tuple[float, float]:
+    def get_center_offset(self) -> Tuple[float, float]:
         return 0, 0
 
     def set_location(self, points: list[tuple[float, float]]) -> None:

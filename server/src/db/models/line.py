@@ -12,7 +12,7 @@ class Line(ShapeType):
     y2 = cast(float, FloatField())
     line_width = cast(int, IntegerField())
 
-    def get_center_offset(self, x: int, y: int) -> Tuple[float, float]:
+    def get_center_offset(self) -> Tuple[float, float]:
         return (self.x2 - self.shape.x) / 2, (self.y2 - self.shape.y) / 2
 
     def as_pydantic(self, shape: ApiCoreShape):

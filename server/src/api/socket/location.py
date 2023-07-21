@@ -27,7 +27,6 @@ from ...logs import logger
 from ...models.role import Role
 from ...state.game import game_state
 from ...transform.floor import transform_floor
-from ...transform.shape import transform_shape
 from ..helpers import _send_game
 from ..models.client import OptionalClientViewport
 from ..models.client.gameboard import ClientGameboardSet
@@ -42,10 +41,10 @@ from ..models.location.settings import (
     LocationOptionsSet,
     LocationSettingsSet,
 )
+from ..models.location.spawn_info import ApiSpawnInfo
 from ..models.players.info import PlayerInfoCore, PlayersInfoSet
 from ..models.players.options import PlayerOptionsSet
 from ..models.room.info import RoomInfoSet
-from ..models.shape import ApiShape
 
 
 # DATA CLASSES FOR TYPE CHECKING
@@ -562,9 +561,9 @@ async def get_location_spawn_info(sid: str, location_id: int):
 
     if pr.role != Role.DM:
         logger.warning(f"{pr.player.name} attempted to retrieve spawn locations.")
-        return
+        return []
 
-    data: list[ApiShape] = []
+    data: list[ApiSpawnInfo] = []
 
     try:
         location = Location.get_by_id(location_id)
@@ -575,8 +574,15 @@ async def get_location_spawn_info(sid: str, location_id: int):
                 except Shape.DoesNotExist:
                     pass
                 else:
-                    data.append(transform_shape(shape, pr))
+                    data.append(
+                        ApiSpawnInfo(
+                            position=shape.center,
+                            floor=shape.layer.floor.name,
+                            uuid=shape.uuid,
+                            name=shape.name or "Unknown Shape",
+                        )
+                    )
     except:
         logger.exception("Could not load spawn locations")
 
-    await _send_game("Location.Spawn.Info", data, room=sid)
+    return data

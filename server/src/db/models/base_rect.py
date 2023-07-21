@@ -9,5 +9,5 @@ class BaseRect(ShapeType):
     width = cast(float, FloatField())
     height = cast(float, FloatField())
 
-    def get_center_offset(self, x: int, y: int) -> Tuple[float, float]:
+    def get_center_offset(self) -> Tuple[float, float]:
         return self.width / 2, self.height / 2

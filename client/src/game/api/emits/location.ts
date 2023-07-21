@@ -1,4 +1,4 @@
-import type { ApiAssetRectShape, LocationClone, LocationOptionsSet, LocationRename } from "../../../apiTypes";
+import type { ApiSpawnInfo, LocationClone, LocationOptionsSet, LocationRename } from "../../../apiTypes";
 import type { ServerLocationOptions } from "../../systems/settings/location/models";
 import { wrapSocket } from "../helpers";
 import { socket } from "../socket";
@@ -16,9 +16,10 @@ export const sendLocationArchive = wrapSocket<number>("Location.Archive");
 export const sendLocationUnarchive = wrapSocket<number>("Location.Unarchive");
 export const sendLocationClone = wrapSocket<LocationClone>("Location.Clone");
 
-export async function requestSpawnInfo(location: number): Promise<ApiAssetRectShape[]> {
-    socket.emit("Location.Spawn.Info.Get", location);
-    return new Promise((resolve: (value: ApiAssetRectShape[]) => void) => socket.once("Location.Spawn.Info", resolve));
+export async function requestSpawnInfo(location: number): Promise<ApiSpawnInfo[]> {
+    return new Promise((resolve: (value: ApiSpawnInfo[]) => void) => {
+        socket.emit("Location.Spawn.Info.Get", location, resolve);
+    });
 }
 
 export function sendLocationOption<T extends keyof ServerLocationOptions>(

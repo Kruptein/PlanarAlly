@@ -1,5 +1,6 @@
 import { POSITION, useToast } from "vue-toastification";
 
+import { toArrayP, toGP } from "../../../../core/geometry";
 import { sendRequest } from "../../../api/emits/logic";
 import { sendSetPlayersPosition } from "../../../api/emits/players";
 import { requestShapeInfo, sendShapesMove } from "../../../api/emits/shape/core";
@@ -7,7 +8,6 @@ import { getShape, getLocalId, getGlobalId } from "../../../id";
 import type { LocalId, GlobalId } from "../../../id";
 import { LayerName } from "../../../models/floor";
 import { Role } from "../../../models/role";
-import { createSimpleShapeFromDict } from "../../../shapes/simple";
 import { accessSystem } from "../../access";
 import { floorSystem } from "../../floors";
 import { floorState } from "../../floors/state";
@@ -88,12 +88,10 @@ export async function teleport(fromZone: LocalId, toZone: GlobalId, transfers?: 
     let floor = targetShape?.floor?.name;
 
     if (targetShape === undefined) {
-        const { location, shape } = await requestShapeInfo(toZone);
-        targetLocation = location;
-        const simpleShape = createSimpleShapeFromDict(shape);
-        if (simpleShape === undefined) return;
-        center = simpleShape.center;
-        floor = shape.floor;
+        const shapeInfo = await requestShapeInfo(toZone);
+        targetLocation = shapeInfo.location;
+        center = toGP(toArrayP(shapeInfo.position));
+        floor = shapeInfo.floor;
     }
     if (floor === undefined || center === undefined) return;
 

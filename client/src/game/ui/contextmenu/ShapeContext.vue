@@ -3,7 +3,7 @@ import { computed, toRef } from "vue";
 import type { ComputedRef } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { ApiAssetRectShape } from "../../../apiTypes";
+import type { ApiSpawnInfo } from "../../../apiTypes";
 import ContextMenu from "../../../core/components/ContextMenu.vue";
 import { defined, guard, map } from "../../../core/iter";
 import { SyncMode } from "../../../core/models/types";
@@ -192,7 +192,7 @@ async function setLocation(newLocation: number): Promise<void> {
     }
 
     const spawnInfo = await requestSpawnInfo(newLocation);
-    let spawnLocation: ApiAssetRectShape;
+    let spawnLocation: ApiSpawnInfo;
 
     switch (spawnInfo.length) {
         case 0:
@@ -221,8 +221,8 @@ async function setLocation(newLocation: number): Promise<void> {
 
     const targetPosition = {
         floor: spawnLocation.floor,
-        x: spawnLocation.x + spawnLocation.width / 2,
-        y: spawnLocation.y + spawnLocation.height / 2,
+        x: spawnLocation.position.x,
+        y: spawnLocation.position.y,
     };
 
     sendShapesMove({

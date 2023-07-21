@@ -671,6 +671,12 @@ export interface ApiLocationOptions {
   underground_map_background: string;
   limit_movement_during_initiative: boolean;
 }
+export interface ApiSpawnInfo {
+  position: PositionTuple;
+  floor: string;
+  name: string;
+  uuid: GlobalId;
+}
 export interface LocationChange {
   location: number;
   users: string[];

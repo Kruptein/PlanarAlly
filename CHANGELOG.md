@@ -13,6 +13,7 @@ tech changes will usually be stripped from release notes for the public
 ### Changed
 
 -   [tech] Selected system now has a proper state with better type ergonomics for focus retrieval
+-   [tech] Spawn Info no longer sends entire shape info, but just position, floor, id and name
 
 ### Fixed
 

@@ -4,6 +4,7 @@ from uuid import uuid4
 
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
 
+from ...api.models.common import PositionTuple
 from ..base import BaseDbModel
 from ..typed import SelectSequence
 from .asset import Asset
@@ -101,10 +102,16 @@ class Shape(BaseDbModel):
     def set_options(self, options: Dict[str, Any]) -> None:
         self.options = json.dumps([[k, v] for k, v in options.items()])
 
-    def center_at(self, x: float, y: float) -> None:
-        x_off, y_off = self.subtype.get_center_offset(x, y)
-        self.x = x - x_off
-        self.y = y - y_off
+    @property
+    def center(self) -> PositionTuple:
+        x_off, y_off = self.subtype.get_center_offset()
+        return PositionTuple(x=self.x + x_off, y=self.y + y_off)
+
+    @center.setter
+    def center(self, center: PositionTuple):
+        x_off, y_off = self.subtype.get_center_offset()
+        self.x = center.x - x_off
+        self.y = center.y - y_off
 
     @property
     def subtype(self) -> "ShapeType":

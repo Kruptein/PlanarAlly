@@ -325,8 +325,6 @@ async def move_shapes(sid: str, raw_data: Any):
 
     location = Location.get_by_id(data.target.location)
     floor = location.floors.where(Floor.name == data.target.floor)[0]
-    x = data.target.x
-    y = data.target.y
 
     shapes = [Shape.get_by_id(sh) for sh in data.shapes]
 
@@ -336,7 +334,7 @@ async def move_shapes(sid: str, raw_data: Any):
 
     for shape in shapes:
         shape.layer = floor.layers.where(Layer.name == shape.layer.name)[0]
-        shape.center_at(x, y)
+        shape.center = data.target
         shape.save()
 
     for psid, tpr in game_state.get_t(active_location=location):

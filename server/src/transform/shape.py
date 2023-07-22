@@ -32,12 +32,9 @@ def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:
     auras = [a.as_pydantic() for a in aura_query]
     labels = [sh_label.label.as_pydantic() for sh_label in label_query]
     # Subtype
-    layer = shape.layer
     shape_model = ApiCoreShape(
         uuid=shape.uuid,
         type_=shape.type_,
-        layer=layer.name,
-        floor=layer.floor.name,
         x=shape.x,
         y=shape.y,
         name=name or "Unknown Shape",

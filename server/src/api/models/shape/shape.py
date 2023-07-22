@@ -9,8 +9,6 @@ from .owner import ApiShapeOwner
 
 class ApiCoreShape(TypeIdModel):
     uuid: str = Field(typeId="GlobalId")
-    layer: str = Field(typeId="LayerName")
-    floor: str
     type_: str
     x: float
     y: float

@@ -4,7 +4,7 @@ import { registerSystem } from "..";
 import type { ShapeSystem } from "..";
 import type { ApiCharacter } from "../../../apiTypes";
 import { find } from "../../../core/iter";
-import { type LocalId } from "../../id";
+import { getGlobalId, type LocalId } from "../../id";
 import { selectedState } from "../selected/state";
 
 import type { CharacterId } from "./models";
@@ -17,7 +17,6 @@ class CharacterSystem implements ShapeSystem {
 
     clear(partial: boolean): void {
         $.activeCharacterId = undefined;
-        mutable.characterShapes.clear(); // LocalIds change between location changes
         if (!partial) {
             $.characterIds.clear();
             mutable.characters.clear();
@@ -26,20 +25,13 @@ class CharacterSystem implements ShapeSystem {
 
     // Inform the system about the state of a certain LocalId
     inform(id: LocalId, characterId: CharacterId): void {
-        mutable.characterShapes.set(characterId, id);
         if (selectedState.raw.selected.has(id)) $.activeCharacterId = characterId;
     }
 
-    drop(id: LocalId): void {
-        for (const [characterId, shape] of mutable.characterShapes.entries()) {
-            if (shape === id) {
-                mutable.characterShapes.delete(characterId);
-            }
-        }
-    }
+    drop(_id: LocalId): void {}
 
     loadState(id: LocalId): void {
-        $.activeCharacterId = find(readonly.characterShapes.entries(), ([, shape]) => shape === id)?.[0];
+        $.activeCharacterId = find(readonly.characters.entries(), ([, char]) => char.shapeId === getGlobalId(id))?.[0];
     }
 
     dropState(): void {
@@ -53,10 +45,6 @@ class CharacterSystem implements ShapeSystem {
 
     getAllCharacters(): IterableIterator<DeepReadonly<ApiCharacter>> {
         return readonly.characters.values();
-    }
-
-    getShape(characterId: CharacterId): LocalId | undefined {
-        return readonly.characterShapes.get(characterId);
     }
 }
 

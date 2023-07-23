@@ -10,7 +10,7 @@ from ...db.models.shape import Shape
 from ...logs import logger
 from ...state.game import game_state
 from ..helpers import _send_game
-from ..models.character import CharacterCreate, CharacterLink
+from ..models.character import CharacterCreate
 
 
 @sio.on("Character.Create", namespace=GAME_NS)
@@ -37,10 +37,5 @@ async def set_layer(sid: str, raw_data: Any):
         await _send_game(
             "Character.Created",
             model_to_dict(char, recurse=False),
-            room=pr.room.get_path(),
-        )
-        await _send_game(
-            "Character.Link",
-            CharacterLink(shape=s.uuid, character=char.id),
             room=pr.room.get_path(),
         )

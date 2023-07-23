@@ -310,10 +310,6 @@ export interface CharacterCreate {
   shape: GlobalId;
   name: string;
 }
-export interface CharacterLink {
-  shape: GlobalId;
-  character: CharacterId;
-}
 export interface ClientActiveLayerSet {
   floor: string;
   layer: string;

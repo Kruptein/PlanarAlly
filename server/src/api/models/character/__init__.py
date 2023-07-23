@@ -14,8 +14,3 @@ class ApiCharacter(TypeIdModel):
 class CharacterCreate(TypeIdModel):
     shape: str = Field(typeId="GlobalId")
     name: str
-
-
-class CharacterLink(TypeIdModel):
-    shape: str = Field(typeId="GlobalId")
-    character: int = Field(typeId="CharacterId")

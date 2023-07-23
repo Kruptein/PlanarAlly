@@ -499,8 +499,6 @@ export abstract class Shape implements IShape {
             x: this.refPoint.x,
             y: this.refPoint.y,
             angle: this.angle,
-            floor: this.floor!.name,
-            layer: this.layerName!,
             draw_operator: this.globalCompositeOperation,
             movement_obstruction: props.blocksMovement,
             vision_obstruction: props.blocksVision,
@@ -537,8 +535,6 @@ export abstract class Shape implements IShape {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             Object.fromEntries(JSON.parse(data.options));
 
-        this.layerName = data.layer;
-        this.floorId = floorSystem.getFloor({ name: data.floor })!.id;
         this.angle = data.angle;
         this.globalCompositeOperation = data.draw_operator as GlobalCompositeOperation;
 

@@ -1,5 +1,5 @@
 import type {
-    ApiShape,
+    ApiShapeWithLayerInfo,
     ShapeCircleSizeUpdate,
     ShapeFloorChange,
     ShapeLayerChange,
@@ -22,14 +22,15 @@ import { addShape, moveFloor, moveLayer } from "../../../temp";
 import { initiativeStore } from "../../../ui/initiative/state";
 import { socket } from "../../socket";
 
-socket.on("Shape.Set", (data: ApiShape) => {
+socket.on("Shape.Set", (data: ApiShapeWithLayerInfo) => {
+    const { shape: apiShape, layer, floor } = data;
     // hard reset a shape
-    const uuid = data.uuid;
+    const uuid = apiShape.uuid;
     const old = getShapeFromGlobal(uuid);
     const isActive = activeShapeStore.state.id === getLocalId(uuid);
     const hasEditDialogOpen = isActive && activeShapeStore.state.showEditDialog;
     if (old) old.layer?.removeShape(old, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
-    const shape = addShape(data, SyncMode.NO_SYNC);
+    const shape = addShape(apiShape, floor, layer, SyncMode.NO_SYNC);
 
     if (shape && isActive) {
         selectedSystem.push(shape.id);
@@ -38,14 +39,14 @@ socket.on("Shape.Set", (data: ApiShape) => {
     }
 });
 
-socket.on("Shape.Add", (shape: ApiShape) => {
-    addShape(shape, SyncMode.NO_SYNC);
+socket.on("Shape.Add", (data: ApiShapeWithLayerInfo) => {
+    addShape(data.shape, data.floor, data.layer, SyncMode.NO_SYNC);
     initiativeStore._forceUpdate();
 });
 
-socket.on("Shapes.Add", (shapes: ApiShape[]) => {
-    for (const shape of shapes) {
-        addShape(shape, SyncMode.NO_SYNC);
+socket.on("Shapes.Add", (shapes: ApiShapeWithLayerInfo[]) => {
+    for (const data of shapes) {
+        addShape(data.shape, data.floor, data.layer, SyncMode.NO_SYNC);
     }
     initiativeStore._forceUpdate();
 });

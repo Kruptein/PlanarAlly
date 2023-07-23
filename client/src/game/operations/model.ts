@@ -72,6 +72,8 @@ interface LayerMoveOperation {
 interface ShapeRemoveOperation {
     type: "shaperemove";
     shapes: ApiShape[];
+    floor: string;
+    layerName: LayerName;
 }
 
 // SHAPE ADD
@@ -79,4 +81,6 @@ interface ShapeRemoveOperation {
 interface ShapeAddOperation {
     type: "shapeadd";
     shapes: ApiShape[];
+    floor: string;
+    layerName: LayerName;
 }

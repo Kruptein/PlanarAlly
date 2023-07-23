@@ -78,9 +78,9 @@ async function handleOperation(direction: "undo" | "redo"): Promise<void> {
         } else if (op.type === "layermovement") {
             handleLayerMove(op.shapes, op.from, op.to, direction);
         } else if (op.type === "shaperemove") {
-            handleShapeRemove(op.shapes, direction);
+            handleShapeRemove(op.shapes, op.floor, op.layerName, direction);
         } else if (op.type === "shapeadd") {
-            handleShapeRemove(op.shapes, direction === "redo" ? "undo" : "redo");
+            handleShapeRemove(op.shapes, op.floor, op.layerName, direction === "redo" ? "undo" : "redo");
         }
     }
     operationInProgress = false;
@@ -141,9 +141,9 @@ function handleLayerMove(shapes: LocalId[], from: LayerName, to: LayerName, dire
     }
 }
 
-function handleShapeRemove(shapes: ApiShape[], direction: "undo" | "redo"): void {
+function handleShapeRemove(shapes: ApiShape[], floor: string, layerName: LayerName, direction: "undo" | "redo"): void {
     if (direction === "undo") {
-        for (const shape of shapes) addShape(shape, SyncMode.FULL_SYNC);
+        for (const shape of shapes) addShape(shape, floor, layerName, SyncMode.FULL_SYNC);
     } else {
         deleteShapes(
             shapes.map((s) => getShape(getLocalId(s.uuid)!)!),

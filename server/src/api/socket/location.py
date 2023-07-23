@@ -574,6 +574,9 @@ async def get_location_spawn_info(sid: str, location_id: int):
                 except Shape.DoesNotExist:
                     pass
                 else:
+                    if shape.layer is None:
+                        logger.warn("Spawn location without layer detected")
+                        continue
                     data.append(
                         ApiSpawnInfo(
                             position=shape.center,

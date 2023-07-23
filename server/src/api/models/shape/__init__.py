@@ -17,9 +17,14 @@ if TYPE_CHECKING:
 ApiShape = ApiShapeSubType
 
 
-class ShapeAdd(BaseModel):
+class ApiShapeWithLayerInfo(TypeIdModel):
+    shape: ApiShape
+    floor: str
+    layer: str = Field(..., typeId="LayerName")
+
+
+class ShapeAdd(ApiShapeWithLayerInfo):
     temporary: bool
-    shape: "ApiShape"
 
 
 class TemporaryShapes(TypeIdModel):

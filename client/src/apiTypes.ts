@@ -73,8 +73,6 @@ export interface ApiCircularTokenShape extends ApiCoreShape {
 }
 export interface ApiCoreShape {
   uuid: GlobalId;
-  layer: LayerName;
-  floor: string;
   type_: string;
   x: number;
   y: number;
@@ -242,6 +240,19 @@ export interface ApiOptionalUserOptions {
   initiative_effect_visibility?: string | null;
   initiative_open_on_activate?: boolean | null;
   render_all_floors?: boolean | null;
+}
+export interface ApiShapeWithLayerInfo {
+  shape:
+    | ApiAssetRectShape
+    | ApiRectShape
+    | ApiCircleShape
+    | ApiCircularTokenShape
+    | ApiPolygonShape
+    | ApiTextShape
+    | ApiLineShape
+    | ApiToggleCompositeShape;
+  floor: string;
+  layer: LayerName;
 }
 export interface ApiUserOptions {
   fow_colour: string;
@@ -482,7 +493,6 @@ export interface RoomInfoSet {
   publicName: string;
 }
 export interface ShapeAdd {
-  temporary: boolean;
   shape:
     | ApiAssetRectShape
     | ApiRectShape
@@ -492,6 +502,9 @@ export interface ShapeAdd {
     | ApiTextShape
     | ApiLineShape
     | ApiToggleCompositeShape;
+  floor: string;
+  layer: LayerName;
+  temporary: boolean;
 }
 export interface ShapeAssetImageSet {
   uuid: GlobalId;

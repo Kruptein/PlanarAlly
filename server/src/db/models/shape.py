@@ -45,7 +45,10 @@ class Shape(BaseDbModel):
     shape_variants: SelectSequence["CompositeShapeAssociation"]
 
     uuid = cast(str, TextField(primary_key=True))
-    layer = cast(Layer, ForeignKeyField(Layer, backref="shapes", on_delete="CASCADE"))
+    layer = cast(
+        Layer | None,
+        ForeignKeyField(Layer, backref="shapes", on_delete="CASCADE", null=True),
+    )
     type_ = cast(str, TextField())
     x = cast(float, FloatField())
     y = cast(float, FloatField())
@@ -91,9 +94,9 @@ class Shape(BaseDbModel):
         return f"<Shape {self.get_path()}>"
 
     def get_path(self):
-        try:
+        if self.layer:
             return f"{self.name}@{self.layer.get_path()}"
-        except:
+        else:
             return self.name
 
     def get_options(self) -> Dict[str, Any]:

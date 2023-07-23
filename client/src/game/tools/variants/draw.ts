@@ -204,7 +204,12 @@ class DrawTool extends Tool implements ITool {
                     true,
                 );
             }
-            overrideLastOperation({ type: "shapeadd", shapes: [this.shape.asDict()] });
+            overrideLastOperation({
+                type: "shapeadd",
+                shapes: [this.shape.asDict()],
+                floor: this.shape.floor!.name,
+                layerName: this.shape.layer!.name,
+            });
         }
         this.active.value = false;
         const layer = this.getLayer();

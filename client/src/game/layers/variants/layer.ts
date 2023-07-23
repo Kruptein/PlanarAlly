@@ -289,7 +289,7 @@ export class Layer implements ILayer {
     }
 
     private setServerShape(serverShape: ApiShape): void {
-        const shape = createShapeFromDict(serverShape);
+        const shape = createShapeFromDict(serverShape, this.floor, this.name);
         if (shape === undefined) {
             return;
         }

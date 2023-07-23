@@ -82,7 +82,7 @@ export function addShape(shape: ApiShape, floor: string, layerName: LayerName, s
         return;
     }
     const layer = floorSystem.getLayer(floorSystem.getFloor({ name: floor })!, layerName)!;
-    const sh = createShapeFromDict(shape);
+    const sh = createShapeFromDict(shape, layer.floor, layerName);
     if (sh === undefined) {
         return;
     }

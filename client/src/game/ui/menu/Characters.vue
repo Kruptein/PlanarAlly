@@ -4,6 +4,7 @@ import { computed, ref } from "vue";
 import { baseAdjust } from "../../../core/http";
 import type { CharacterId } from "../../systems/characters/models";
 import { characterState } from "../../systems/characters/state";
+import { gameState } from "../../systems/game/state";
 
 const characterId = ref<CharacterId | undefined>(undefined);
 
@@ -17,6 +18,7 @@ const charAsset = computed(() => {
 });
 
 function dragStart(event: DragEvent): void {
+    if (!gameState.isDmOrFake.value) return;
     if (event.dataTransfer === null) return;
     if (charAsset.value === undefined) return;
     const { assetHash, assetId } = charAsset.value;
@@ -36,7 +38,7 @@ function dragStart(event: DragEvent): void {
                 v-for="char in characterState.reactive.characterIds"
                 :key="char"
                 style="cursor: pointer"
-                draggable="true"
+                :draggable="gameState.isDmOrFake.value"
                 @dragstart="dragStart"
                 @mouseover="characterId = char"
                 @mouseout="characterId = undefined"

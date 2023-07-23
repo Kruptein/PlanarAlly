@@ -454,7 +454,7 @@ const floors = toRef(floorState.reactive, "floors");
             <li v-if="!selectionIncludesSpawnToken && gameState.reactive.isDm && canBeSaved" @click="saveTemplate">
                 {{ t("game.ui.templates.save") }}
             </li>
-            <li v-if="!hasCharacter" @click="createCharacter">Create character</li>
+            <li v-if="isOwned && !hasCharacter" @click="createCharacter">Create character</li>
         </template>
         <template v-else>
             <li>

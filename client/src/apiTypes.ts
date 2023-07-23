@@ -551,6 +551,7 @@ export interface ShapeLocationMoveTarget {
   y: number;
   location: number;
   floor: string;
+  layer?: string;
 }
 export interface ShapeOption {
   uuid: GlobalId;

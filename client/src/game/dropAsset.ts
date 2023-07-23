@@ -68,6 +68,7 @@ async function dropHelper(
             sendShapesMove({
                 shapes: [character.shapeId],
                 target: {
+                    layer: floorState.currentLayer.value!.name,
                     floor: floorState.currentFloor.value!.name,
                     location: locationSettingsState.raw.activeLocation,
                     x: location.x,

@@ -50,6 +50,7 @@ class ShapeOrder(TypeIdModel):
 class ShapeLocationMoveTarget(PositionTuple):
     location: int
     floor: str
+    layer: str | None = Field(typeId="LayerName", noneAsNull=True)
 
 
 class ShapeLocationMove(TypeIdModel):

@@ -2,6 +2,7 @@ from .models.asset import Asset
 from .models.asset_rect import AssetRect
 from .models.aura import Aura
 from .models.base_rect import BaseRect
+from .models.character import Character
 from .models.circle import Circle
 from .models.circular_token import CircularToken
 from .models.composite_shape_association import CompositeShapeAssociation
@@ -39,6 +40,7 @@ ALL_MODELS = [
     Asset,
     Aura,
     BaseRect,
+    Character,
     Circle,
     CircularToken,
     CompositeShapeAssociation,

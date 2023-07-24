@@ -10,6 +10,16 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Added
+
+-   Character concept
+    -   A shape can be marked as a character
+    -   Characters can be dropped anywhere (by the DM), moving/teleporting the shape to the new location
+    -   This fills in a niche adjacent to the "Templates" concept
+        -   Templates allow configuration of common data before placement, allowing unique modification afterwards
+            (e.g. useful for prefilling monster info)
+        -   Characters are a specific instance that remember their modifications (e.g. useful for (N)PCs)
+
 ### Changed
 
 -   [tech] Selected system now has a proper state with better type ergonomics for focus retrieval

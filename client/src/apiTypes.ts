@@ -1,6 +1,7 @@
 import type { GlobalId } from "./game/id";
 import type { LayerName } from "./game/models/floor";
 import type { AuraId } from "./game/systems/auras/models";
+import type { CharacterId } from "./game/systems/characters/models";
 import type { ClientId } from "./game/systems/client/models";
 import type { PlayerId } from "./game/systems/players/models";
 import type { TrackerId } from "./game/systems/trackers/models";
@@ -61,6 +62,13 @@ export interface ApiBaseRectShape extends ApiCoreShape {
   width: number;
   height: number;
 }
+export interface ApiCharacter {
+  id: CharacterId;
+  name: string;
+  shapeId: GlobalId;
+  assetId: number;
+  assetHash: string;
+}
 export interface ApiCircleShape extends ApiCoreShape {
   radius: number;
   viewing_angle: number | null;
@@ -106,6 +114,7 @@ export interface ApiCoreShape {
   trackers: ApiTracker[];
   auras: ApiAura[];
   labels: ApiLabel[];
+  character: CharacterId | null;
 }
 export interface ApiDefaultShapeOwner {
   edit_access: boolean;
@@ -296,6 +305,10 @@ export interface AuraMove {
 export interface AuraRef {
   uuid: AuraId;
   shape: GlobalId;
+}
+export interface CharacterCreate {
+  shape: GlobalId;
+  name: string;
 }
 export interface ClientActiveLayerSet {
   floor: string;
@@ -538,6 +551,7 @@ export interface ShapeLocationMoveTarget {
   y: number;
   location: number;
   floor: string;
+  layer?: string;
 }
 export interface ShapeOption {
   uuid: GlobalId;

@@ -2,12 +2,11 @@
 import throttle from "lodash/throttle";
 import { defineComponent, onMounted, onUnmounted, watchEffect } from "vue";
 
-import { assetStore } from "../assetManager/state";
 import { useModal } from "../core/plugins/modals/plugin";
 import { coreStore } from "../store/core";
 
 import { createConnection, socket } from "./api/socket";
-import { dropAsset } from "./dropAsset";
+import { handleDropEvent } from "./dropAsset";
 import { onKeyDown } from "./input/keyboard/down";
 import { scrollZoom } from "./input/mouse";
 import { LgCompanion } from "./integrations/lastgameboard/companion";
@@ -18,7 +17,6 @@ import { playerSettingsState } from "./systems/settings/players/state";
 import { setSelectionBoxFunction } from "./temp";
 import { keyUp, mouseDown, mouseLeave, mouseMove, mouseUp, touchEnd, touchMove, touchStart } from "./tools/events";
 // import DebugInfo from "./ui/DebugInfo.vue";
-import { handleDrop } from "./ui/firefox";
 import UI from "./ui/UI.vue";
 
 import "./api/events";
@@ -107,46 +105,8 @@ export default defineComponent({
             throttledMove(event);
         }
 
-        async function drop(event: DragEvent): Promise<void> {
-            if (event === null || event.dataTransfer === null) return;
-            handleDrop(event); // FF modal handling workaround
-
-            const data: {
-                assetHash: string;
-                assetId: number;
-            }[] = [];
-
-            // temp hack to prevent redirection
-            assetStore.setModalActive(true);
-
-            // External files are dropped
-            if (event.dataTransfer.files.length > 0) {
-                for (const asset of await assetStore.upload(event.dataTransfer.files, { target: "root" })) {
-                    if (asset.file_hash !== undefined) data.push({ assetHash: asset.file_hash, assetId: asset.id });
-                }
-            } else {
-                const transferInfo = event.dataTransfer.getData("text/plain");
-                if (transferInfo === "") return;
-
-                const assetInfo = JSON.parse(transferInfo) as {
-                    assetHash: string;
-                    assetId: number;
-                };
-                data.push(assetInfo);
-            }
-
-            for (const asset of data) {
-                await dropAsset(
-                    { assetId: asset.assetId, imageSource: `/static/assets/${asset.assetHash}` },
-                    { x: event.clientX, y: event.clientY },
-                );
-            }
-
-            assetStore.setModalActive(false);
-        }
-
         return {
-            drop,
+            drop: handleDropEvent,
             gameState,
             mouseDown,
             mouseLeave,

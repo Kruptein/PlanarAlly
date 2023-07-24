@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 85
+SAVE_VERSION = 86
 
 import json
 import logging
@@ -387,6 +387,21 @@ def upgrade(db: SqliteExtDatabase, version: int):
             db.execute_sql(
                 "UPDATE location_options SET limit_movement_during_initiative = NULL WHERE id NOT IN (SELECT default_options_id FROM room)"
             )
+    elif version == 85:
+        # Add Character things
+        with db.atomic():
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "character" ("id" INTEGER NOT NULL PRIMARY KEY, "name" TEXT NOT NULL, "owner_id" INTEGER NOT NULL, "asset_id" INTEGER NOT NULL, "campaign_id" INTEGER DEFAULT NULL, FOREIGN KEY ("owner_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("asset_id") REFERENCES "asset" ("id") ON DELETE RESTRICT, FOREIGN KEY ("campaign_id") REFERENCES "room" ("id") ON DELETE SET NULL)'
+            )
+            db.execute_sql("CREATE TEMPORARY TABLE _shape_85 AS SELECT * FROM shape")
+            db.execute_sql("DROP TABLE shape")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "shape" ("uuid" TEXT NOT NULL PRIMARY KEY, "layer_id" INTEGER, "type_" TEXT NOT NULL, "x" REAL NOT NULL, "y" REAL NOT NULL, "name" TEXT, "name_visible" INTEGER NOT NULL, "fill_colour" TEXT NOT NULL, "stroke_colour" TEXT NOT NULL, "vision_obstruction" INTEGER NOT NULL, "movement_obstruction" INTEGER NOT NULL, "is_token" INTEGER NOT NULL, "annotation" TEXT NOT NULL, "draw_operator" TEXT NOT NULL, "index" INTEGER NOT NULL, "options" TEXT, "badge" INTEGER NOT NULL, "show_badge" INTEGER NOT NULL, "default_edit_access" INTEGER NOT NULL, "default_vision_access" INTEGER NOT NULL, "is_invisible" INTEGER NOT NULL DEFAULT 0, "default_movement_access" INTEGER NOT NULL DEFAULT 0, "is_locked" INTEGER NOT NULL DEFAULT 0, "angle" REAL NOT NULL DEFAULT 0, "stroke_width" INTEGER NOT NULL DEFAULT 2, "asset_id" INTEGER DEFAULT NULL, "group_id" TEXT DEFAULT NULL, "annotation_visible" INTEGER NOT NULL DEFAULT 0, "ignore_zoom_size" INTEGER DEFAULT 0, "is_defeated" INTEGER NOT NULL DEFAULT 0, "is_door" INTEGER DEFAULT 0 NOT NULL, "is_teleport_zone" INTEGER DEFAULT 0 NOT NULL, "character_id" INTEGER DEFAULT NULL, FOREIGN KEY ("layer_id") REFERENCES "layer" ("id") ON DELETE CASCADE, FOREIGN KEY ("asset_id") REFERENCES "asset" ("id") ON DELETE SET NULL, FOREIGN KEY ("group_id") REFERENCES "group" ("uuid") ON DELETE SET NULL, FOREIGN KEY ("character_id") REFERENCES "character" ("id") ON DELETE SET NULL);'
+            )
+            db.execute_sql(
+                'INSERT INTO "shape" ("uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "is_token", "annotation", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "annotation_visible", "ignore_zoom_size", "is_defeated", "is_door", "is_teleport_zone") SELECT "uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "is_token", "annotation", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "annotation_visible", "ignore_zoom_size", "is_defeated", "is_door", "is_teleport_zone" FROM _shape_85'
+            )
+            db.execute_sql("DROP TABLE _shape_85")
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

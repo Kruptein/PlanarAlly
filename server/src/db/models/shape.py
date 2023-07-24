@@ -8,6 +8,7 @@ from ...api.models.common import PositionTuple
 from ..base import BaseDbModel
 from ..typed import SelectSequence
 from .asset import Asset
+from .character import Character
 from .group import Group
 from .layer import Layer
 
@@ -43,6 +44,7 @@ class Shape(BaseDbModel):
     togglecomposite_set: SelectSequence["ToggleComposite"]
     composite_parent: SelectSequence["CompositeShapeAssociation"]
     shape_variants: SelectSequence["CompositeShapeAssociation"]
+    character_id: int
 
     uuid = cast(str, TextField(primary_key=True))
     layer = cast(
@@ -89,6 +91,12 @@ class Shape(BaseDbModel):
     ignore_zoom_size = cast(bool, BooleanField(default=False))
     is_door = cast(bool, BooleanField(default=False))
     is_teleport_zone = cast(bool, BooleanField(default=False))
+    character = cast(
+        Character | None,
+        ForeignKeyField(
+            Character, backref="shapes", null=True, default=None, on_delete="SET NULL"
+        ),
+    )
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"

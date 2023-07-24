@@ -9,6 +9,7 @@ from ...app import app, sio
 from ...config import config
 from ...db.create.floor import create_floor
 from ...db.models.asset import Asset
+from ...db.models.character import Character
 from ...db.models.floor import Floor
 from ...db.models.initiative import Initiative
 from ...db.models.label import Label
@@ -24,6 +25,7 @@ from ...db.models.room import Room
 from ...db.models.shape import Shape
 from ...db.typed import safe_update_model_from_dict
 from ...logs import logger
+from ...models.access import has_ownership
 from ...models.role import Role
 from ...state.game import game_state
 from ...transform.floor import transform_floor
@@ -148,6 +150,16 @@ async def load_location(sid: str, location: Location, *, complete=False):
 
     await _send_game("Players.Info.Set", player_data, room=sid)
     await _send_game("Player.Options.Set", client_options, room=sid)
+
+    # Load Character info
+
+    if complete:
+        characters = Character.select().where(Character.campaign == pr.room)
+        await _send_game(
+            "Characters.Set",
+            [c.as_pydantic() for c in characters if has_ownership(c.shape, pr)],
+            room=sid,
+        )
 
     # 3. Load location
 

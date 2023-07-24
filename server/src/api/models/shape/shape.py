@@ -43,3 +43,4 @@ class ApiCoreShape(TypeIdModel):
     trackers: list[ApiTracker]
     auras: list[ApiAura]
     labels: list[ApiLabel]
+    character: int | None = Field(..., typeId="CharacterId", noneAsNull=True)

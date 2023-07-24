@@ -3,7 +3,7 @@ import { computed, toRef } from "vue";
 import type { ComputedRef } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { ApiSpawnInfo } from "../../../apiTypes";
+import type { ApiSpawnInfo, CharacterCreate } from "../../../apiTypes";
 import ContextMenu from "../../../core/components/ContextMenu.vue";
 import { defined, guard, map } from "../../../core/iter";
 import { SyncMode } from "../../../core/models/types";
@@ -22,6 +22,8 @@ import type { Floor, LayerName } from "../../models/floor";
 import { toTemplate } from "../../shapes/templates";
 import { deleteShapes } from "../../shapes/utils";
 import { accessSystem } from "../../systems/access";
+import { sendCreateCharacter } from "../../systems/characters/emits";
+import { characterState } from "../../systems/characters/state";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { gameState } from "../../systems/game/state";
@@ -288,6 +290,22 @@ async function saveTemplate(): Promise<void> {
     }
 }
 
+// CHARACTER
+const hasCharacter = computed(() => characterState.reactive.activeCharacterId !== undefined);
+
+function createCharacter(): void {
+    close();
+    const selectedId = [...selectedState.raw.selected].at(0);
+    if (selectedId === undefined) return;
+    const shape = getShape(selectedId);
+    if (shape === undefined || shape.character !== undefined) return;
+    const data: CharacterCreate = {
+        shape: getGlobalId(selectedId)!,
+        name: getProperties(selectedId)!.name,
+    };
+    sendCreateCharacter(data);
+}
+
 // GROUPS
 
 const groups = computed(() => {
@@ -436,6 +454,7 @@ const floors = toRef(floorState.reactive, "floors");
             <li v-if="!selectionIncludesSpawnToken && gameState.reactive.isDm && canBeSaved" @click="saveTemplate">
                 {{ t("game.ui.templates.save") }}
             </li>
+            <li v-if="isOwned && !hasCharacter" @click="createCharacter">Create character</li>
         </template>
         <template v-else>
             <li>

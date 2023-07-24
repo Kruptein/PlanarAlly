@@ -5,6 +5,7 @@ import type { Floor, FloorId, LayerName } from "../models/floor";
 import type { ShapeOptions } from "../models/shapes";
 import type { SHAPE_TYPE } from "../shapes/types";
 import type { BoundingRect } from "../shapes/variants/simple/boundingRect";
+import type { CharacterId } from "../systems/characters/models";
 
 import type { ILayer } from "./layer";
 
@@ -15,6 +16,8 @@ export interface SimpleShape {
 export interface IShape extends SimpleShape {
     readonly id: LocalId;
     readonly type: SHAPE_TYPE;
+
+    character: CharacterId | undefined;
 
     get points(): [number, number][];
     invalidatePoints: () => void;

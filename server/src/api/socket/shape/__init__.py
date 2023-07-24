@@ -56,6 +56,9 @@ async def add_shape(sid: str, raw_data: Any):
         floor = pr.active_location.floors.where(Floor.name == data.floor)[0]
         layer = floor.layers.where(Layer.name == data.layer)[0]
     except IndexError:
+        logger.error(
+            f"Attempt to add a shape to unknown floor/layer {data.floor}/{data.layer}"
+        )
         return
 
     if pr.role != Role.DM and not layer.player_editable:
@@ -69,6 +72,7 @@ async def add_shape(sid: str, raw_data: Any):
     else:
         shape = create_shape(data.shape, layer=layer)
         if shape is None:
+            logger.error(f"Failed to create new shape {raw_data}")
             return
 
     for room_player in pr.room.players:
@@ -82,6 +86,11 @@ async def add_shape(sid: str, raw_data: Any):
                 continue
             if not data.temporary and shape is not None:
                 data.shape = transform_shape(shape, room_player)
+            print(34593485)
+            x = ApiShapeWithLayerInfo(
+                shape=data.shape, floor=floor.name, layer=layer.name
+            )
+            print(x)
             await _send_game(
                 "Shape.Add",
                 ApiShapeWithLayerInfo(
@@ -137,11 +146,17 @@ async def send_remove_shapes(
     await _send_game("Shapes.Remove", data, room=room, skip_sid=skip_sid)
 
 
-def _get_shapes_from_uuids(uuids: list[str]) -> SelectSequence[Shape]:
-    return Shape.select().where(
+def _get_shapes_from_uuids(
+    uuids: list[str], filter_layer: bool
+) -> SelectSequence[Shape]:
+    query = Shape.select().where(
         (Shape.uuid << uuids)  # pyright: ignore[reportGeneralTypeIssues]
-        & ~(Shape.layer >> None)  # pyright: ignore[reportGeneralTypeIssues]
     )
+    if filter_layer:
+        query = query.where(
+            ~(Shape.layer >> None)  # pyright: ignore[reportGeneralTypeIssues]
+        )
+    return query
 
 
 @sio.on("Shapes.Remove", namespace=GAME_NS)
@@ -155,9 +170,13 @@ async def remove_shapes(sid: str, raw_data: Any):
         # This stuff is not stored so we cannot do any server side validation /shrug
         for shape in data.uuids:
             game_state.remove_temp(sid, shape)
+
+        await send_remove_shapes(
+            data.uuids, room=pr.active_location.get_path(), skip_sid=sid
+        )
     else:
         # Use the server version of the shapes.
-        shapes = list(_get_shapes_from_uuids(data.uuids))
+        shapes = list(_get_shapes_from_uuids(data.uuids, True))
         if len(shapes) == 0:
             return
 
@@ -177,18 +196,22 @@ async def remove_shapes(sid: str, raw_data: Any):
             if shape.group:
                 group_ids.add(shape.group)
 
-            old_index = shape.index
-            shape.delete_instance(True)
-            Shape.update(index=Shape.index - 1).where(
-                (Shape.layer == layer) & (Shape.index >= old_index)
-            ).execute()
+            if shape.character_id is None:
+                old_index = shape.index
+                shape.delete_instance(True)
+                Shape.update(index=Shape.index - 1).where(
+                    (Shape.layer == layer) & (Shape.index >= old_index)
+                ).execute()
+            else:
+                shape.layer = None
+                shape.save()
 
         for group_id in group_ids:
             await remove_group_if_empty(group_id)
 
-    await send_remove_shapes(
-        data.uuids, room=pr.active_location.get_path(), skip_sid=sid
-    )
+        await send_remove_shapes(
+            [sh.uuid for sh in shapes], room=pr.active_location.get_path(), skip_sid=sid
+        )
 
 
 @sio.on("Shapes.Floor.Change", namespace=GAME_NS)
@@ -202,7 +225,7 @@ async def change_shape_floor(sid: str, raw_data: Any):
         return
 
     floor: Floor = Floor.get(location=pr.active_location, name=data.floor)
-    shapes = list(_get_shapes_from_uuids(data.uuids))
+    shapes = list(_get_shapes_from_uuids(data.uuids, True))
     layer: Layer = Layer.get(
         floor=floor,
         name=shapes[0].layer.name,  # pyright: ignore[reportOptionalMemberAccess]
@@ -236,7 +259,7 @@ async def change_shape_layer(sid: str, raw_data: Any):
         return
 
     floor = Floor.get(location=pr.active_location, name=data.floor)
-    shapes = list(_get_shapes_from_uuids(data.uuids))
+    shapes = list(_get_shapes_from_uuids(data.uuids, True))
     layer = Layer.get(floor=floor, name=data.layer)
     old_layer = shapes[0].layer
 
@@ -355,21 +378,26 @@ async def move_shapes(sid: str, raw_data: Any):
     location = Location.get_by_id(data.target.location)
     floor = location.floors.where(Floor.name == data.target.floor)[0]
 
-    shapes = list(_get_shapes_from_uuids(data.shapes))
-    layer = shapes[0].layer
-    if layer is None:
-        logger.error("Attempt to location-move shape without layer")
-        return
+    target_layer = None
+    if data.target.layer:
+        target_layer = floor.layers.where(Layer.name == data.target.layer)[0]
+
+    shapes = []
+    for shape in _get_shapes_from_uuids(data.shapes, False):
+        layer = target_layer
+        if shape.layer:
+            layer = floor.layers.where(Layer.name == shape.layer.name)[0]
+        elif layer is None:
+            logger.warn("Attempt to move a shape without layer info")
+            continue
+        shapes.append((shape, layer))
 
     await send_remove_shapes(
-        [sh.uuid for sh in shapes], room=layer.floor.location.get_path()
+        [sh.uuid for sh, _ in shapes], room=floor.location.get_path()
     )
 
-    for shape in shapes:
-        if shape.layer is None:
-            continue
-
-        shape.layer = floor.layers.where(Layer.name == shape.layer.name)[0]
+    for shape, layer in shapes:
+        shape.layer = layer
         shape.center = data.target
         shape.save()
 
@@ -382,7 +410,7 @@ async def move_shapes(sid: str, raw_data: Any):
                     floor=floor.name,
                     layer=layer.name,
                 )
-                for shape in shapes
+                for shape, layer in shapes
             ],
             room=psid,
         )

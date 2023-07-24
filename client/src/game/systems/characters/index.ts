@@ -44,6 +44,16 @@ class CharacterSystem implements ShapeSystem {
         mutable.characters.set(character.id, character);
     }
 
+    removeCharacter(characterId: CharacterId): void {
+        if ($.activeCharacterId === characterId) $.activeCharacterId = undefined;
+        $.characterIds.delete(characterId);
+        const shape = this.getShape(characterId);
+        if (shape) {
+            shape.character = undefined;
+        }
+        mutable.characters.delete(characterId);
+    }
+
     getAllCharacters(): IterableIterator<DeepReadonly<ApiCharacter>> {
         return readonly.characters.values();
     }
@@ -51,7 +61,7 @@ class CharacterSystem implements ShapeSystem {
     getShape(character: CharacterId): IShape | undefined {
         const shapeId = mutable.characters.get(character)?.shapeId;
         if (shapeId) {
-            const localId = getLocalId(shapeId);
+            const localId = getLocalId(shapeId, false);
             if (localId) return getShape(localId);
         }
     }

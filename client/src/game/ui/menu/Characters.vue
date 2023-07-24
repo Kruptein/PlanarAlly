@@ -2,11 +2,15 @@
 import { computed, ref } from "vue";
 
 import { baseAdjust } from "../../../core/http";
+import { useModal } from "../../../core/plugins/modals/plugin";
+import { socket } from "../../api/socket";
 import { setCenterPosition } from "../../position";
 import { characterSystem } from "../../systems/characters";
 import type { CharacterId } from "../../systems/characters/models";
 import { characterState } from "../../systems/characters/state";
 import { gameState } from "../../systems/game/state";
+
+const modals = useModal();
 
 const characterId = ref<CharacterId | undefined>(undefined);
 
@@ -35,6 +39,14 @@ function focus(characterId: CharacterId): void {
     const shape = characterSystem.getShape(characterId);
     if (shape) setCenterPosition(shape.center);
 }
+
+async function remove(characterId: CharacterId): Promise<void> {
+    const name = characterState.readonly.characters.get(characterId)?.name ?? "??";
+    const confirmed = await modals.confirm("Character Removal", `Are you sure you wish to remove character ${name}?`);
+    if (confirmed ?? false) {
+        socket.emit("Character.Remove", characterId);
+    }
+}
 </script>
 
 <template>
@@ -44,7 +56,7 @@ function focus(characterId: CharacterId): void {
             <div
                 v-for="char in characterState.reactive.characterIds"
                 :key="char"
-                style="cursor: pointer"
+                class="character"
                 :draggable="gameState.isDmOrFake.value"
                 @dragstart="dragStart"
                 @mouseover="characterId = char"
@@ -52,6 +64,7 @@ function focus(characterId: CharacterId): void {
                 @click="focus(char)"
             >
                 {{ characterState.readonly.characters.get(char)?.name ?? "??" }}
+                <span class="remove" title="Remove character" @click.stop="remove(char)">X</span>
             </div>
             <div v-if="!characterState.reactive.characterIds.size">No characters</div>
             <div v-if="charAsset !== undefined" class="preview">
@@ -71,5 +84,22 @@ function focus(characterId: CharacterId): void {
 .asset-preview-image {
     width: 100%;
     max-width: 250px;
+}
+
+.character {
+    position: relative;
+
+    &:hover {
+        cursor: pointer;
+    }
+
+    .remove {
+        position: absolute;
+        right: 1rem;
+
+        &:hover {
+            font-weight: bold;
+        }
+    }
 }
 </style>

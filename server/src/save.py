@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 86
+SAVE_VERSION = 87
 
 import json
 import logging
@@ -406,16 +406,22 @@ def upgrade(db: SqliteExtDatabase, version: int):
         # Add DataBlock
         with db.atomic():
             db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "general_data_block" ("id" INTEGER NOT NULL PRIMARY KEY, "source" TEXT NOT NULL, "name" TEXT NOT NULL, "data" TEXT NOT NULL)'
+                'CREATE TABLE IF NOT EXISTS "room_data_block" ("id" INTEGER NOT NULL PRIMARY KEY, "source" TEXT NOT NULL, "name" TEXT NOT NULL, "room_id" TEXT NOT NULL, "data" TEXT NOT NULL, FOREIGN KEY ("room_id") REFERENCES "room" ("id") ON DELETE CASCADE)'
             )
             db.execute_sql(
-                'CREATE UNIQUE INDEX "general_data_block_keys" ON "general_data_block" ("source", "name");'
+                'CREATE UNIQUE INDEX "room_data_block_keys" ON "room_data_block" ("source", "name", "room_id");'
             )
             db.execute_sql(
                 'CREATE TABLE IF NOT EXISTS "shape_data_block" ("id" INTEGER NOT NULL PRIMARY KEY, "source" TEXT NOT NULL, "name" TEXT NOT NULL, "shape_id" TEXT NOT NULL, "data" TEXT NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)'
             )
             db.execute_sql(
-                'CREATE UNIQUE INDEX "shape_data_block_keys" ON "shape_data_block" ("source", "name", "shape");'
+                'CREATE UNIQUE INDEX "shape_data_block_keys" ON "shape_data_block" ("source", "name", "shape_id");'
+            )
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "user_data_block" ("id" INTEGER NOT NULL PRIMARY KEY, "source" TEXT NOT NULL, "name" TEXT NOT NULL, "user_id" TEXT NOT NULL, "data" TEXT NOT NULL, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql(
+                'CREATE UNIQUE INDEX "user_data_block_keys" ON "user_data_block" ("source", "name", "user_id");'
             )
     else:
         raise UnknownVersionException(

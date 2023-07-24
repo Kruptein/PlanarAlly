@@ -8,7 +8,6 @@ from .models.circular_token import CircularToken
 from .models.composite_shape_association import CompositeShapeAssociation
 from .models.constants import Constants
 from .models.floor import Floor
-from .models.general_data_block import GeneralDataBlock
 from .models.group import Group
 from .models.initiative import Initiative
 from .models.label import Label
@@ -25,6 +24,7 @@ from .models.player_room import PlayerRoom
 from .models.polygon import Polygon
 from .models.rect import Rect
 from .models.room import Room
+from .models.room_data_block import RoomDataBlock
 from .models.shape import Shape
 from .models.shape_data_block import ShapeDataBlock
 from .models.shape_label import ShapeLabel
@@ -34,6 +34,7 @@ from .models.text import Text
 from .models.toggle_composite import ToggleComposite
 from .models.tracker import Tracker
 from .models.user import User
+from .models.user_data_block import UserDataBlock
 from .models.user_options import UserOptions
 from .signals import *  # noqa: F403
 
@@ -48,7 +49,6 @@ ALL_MODELS = [
     CompositeShapeAssociation,
     Constants,
     Floor,
-    GeneralDataBlock,
     Group,
     Initiative,
     LabelSelection,
@@ -65,6 +65,7 @@ ALL_MODELS = [
     Polygon,
     Rect,
     Room,
+    RoomDataBlock,
     ShapeDataBlock,
     ShapeLabel,
     ShapeOwner,
@@ -73,6 +74,7 @@ ALL_MODELS = [
     Text,
     ToggleComposite,
     Tracker,
+    UserDataBlock,
     UserOptions,
     User,
 ]

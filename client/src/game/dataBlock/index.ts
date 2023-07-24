@@ -10,7 +10,7 @@ function getId(db: DbRepr): string {
     if (db.category === "shape") {
         special = db.shape;
     } else {
-        special = "";
+        special = db.category;
     }
     return `${db.source}-${db.category}-${db.name}-${special}`;
 }

@@ -8,12 +8,13 @@ from ..helpers import TypeIdModel
 class ApiCoreDataBlock(TypeIdModel):
     source: str
     name: str
-    category: Literal["general"] | Literal["shape"]
+    category: Literal["room"] | Literal["shape"] | Literal["user"]
     data: str
 
 
-class ApiGeneralDataBlock(ApiCoreDataBlock):
-    category: Literal["general"]
+# RoomDataBlock is always associated with the active room
+class ApiRoomDataBlock(ApiCoreDataBlock):
+    category: Literal["room"]
 
 
 class ApiShapeDataBlock(ApiCoreDataBlock):
@@ -21,6 +22,12 @@ class ApiShapeDataBlock(ApiCoreDataBlock):
     shape: str = Field(typeId="GlobalId")
 
 
+# RoomDataBlock is always associated with the active user
+class ApiUserDataBlock(ApiCoreDataBlock):
+    category: Literal["user"]
+
+
 ApiDataBlock = Annotated[
-    ApiGeneralDataBlock | ApiShapeDataBlock, Field(discriminator="category")
+    ApiRoomDataBlock | ApiShapeDataBlock | ApiUserDataBlock,
+    Field(discriminator="category"),
 ]

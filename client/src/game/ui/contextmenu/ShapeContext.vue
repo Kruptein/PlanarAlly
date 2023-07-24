@@ -13,7 +13,6 @@ import { locationStore } from "../../../store/location";
 import { requestAssetOptions, sendAssetOptions } from "../../api/emits/asset";
 import { requestSpawnInfo } from "../../api/emits/location";
 import { sendShapesMove } from "../../api/emits/shape/core";
-import { socket } from "../../api/socket";
 import { getGlobalId, getShape } from "../../id";
 import type { LocalId } from "../../id";
 import type { ILayer } from "../../interfaces/layer";
@@ -23,6 +22,7 @@ import type { Floor, LayerName } from "../../models/floor";
 import { toTemplate } from "../../shapes/templates";
 import { deleteShapes } from "../../shapes/utils";
 import { accessSystem } from "../../systems/access";
+import { sendCreateCharacter } from "../../systems/characters/emits";
 import { characterState } from "../../systems/characters/state";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
@@ -303,7 +303,7 @@ function createCharacter(): void {
         shape: getGlobalId(selectedId)!,
         name: getProperties(selectedId)!.name,
     };
-    socket.emit("Character.Create", data);
+    sendCreateCharacter(data);
 }
 
 // GROUPS

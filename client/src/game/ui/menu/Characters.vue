@@ -3,9 +3,9 @@ import { computed, ref } from "vue";
 
 import { baseAdjust } from "../../../core/http";
 import { useModal } from "../../../core/plugins/modals/plugin";
-import { socket } from "../../api/socket";
 import { setCenterPosition } from "../../position";
 import { characterSystem } from "../../systems/characters";
+import { sendRemoveCharacter } from "../../systems/characters/emits";
 import type { CharacterId } from "../../systems/characters/models";
 import { characterState } from "../../systems/characters/state";
 import { gameState } from "../../systems/game/state";
@@ -44,7 +44,7 @@ async function remove(characterId: CharacterId): Promise<void> {
     const name = characterState.readonly.characters.get(characterId)?.name ?? "??";
     const confirmed = await modals.confirm("Character Removal", `Are you sure you wish to remove character ${name}?`);
     if (confirmed ?? false) {
-        socket.emit("Character.Remove", characterId);
+        sendRemoveCharacter(characterId);
     }
 }
 </script>

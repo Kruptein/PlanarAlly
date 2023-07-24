@@ -2,6 +2,8 @@
 import { computed, ref } from "vue";
 
 import { baseAdjust } from "../../../core/http";
+import { setCenterPosition } from "../../position";
+import { characterSystem } from "../../systems/characters";
 import type { CharacterId } from "../../systems/characters/models";
 import { characterState } from "../../systems/characters/state";
 import { gameState } from "../../systems/game/state";
@@ -28,6 +30,11 @@ function dragStart(event: DragEvent): void {
 
     characterId.value = undefined;
 }
+
+function focus(characterId: CharacterId): void {
+    const shape = characterSystem.getShape(characterId);
+    if (shape) setCenterPosition(shape.center);
+}
 </script>
 
 <template>
@@ -42,6 +49,7 @@ function dragStart(event: DragEvent): void {
                 @dragstart="dragStart"
                 @mouseover="characterId = char"
                 @mouseout="characterId = undefined"
+                @click="focus(char)"
             >
                 {{ characterState.readonly.characters.get(char)?.name ?? "??" }}
             </div>

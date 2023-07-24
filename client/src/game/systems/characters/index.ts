@@ -4,7 +4,8 @@ import { registerSystem } from "..";
 import type { ShapeSystem } from "..";
 import type { ApiCharacter } from "../../../apiTypes";
 import { find } from "../../../core/iter";
-import { getGlobalId, type LocalId } from "../../id";
+import { getGlobalId, getLocalId, getShape, type LocalId } from "../../id";
+import type { IShape } from "../../interfaces/shape";
 import { selectedState } from "../selected/state";
 
 import type { CharacterId } from "./models";
@@ -45,6 +46,14 @@ class CharacterSystem implements ShapeSystem {
 
     getAllCharacters(): IterableIterator<DeepReadonly<ApiCharacter>> {
         return readonly.characters.values();
+    }
+
+    getShape(character: CharacterId): IShape | undefined {
+        const shapeId = mutable.characters.get(character)?.shapeId;
+        if (shapeId) {
+            const localId = getLocalId(shapeId);
+            if (localId) return getShape(localId);
+        }
     }
 }
 

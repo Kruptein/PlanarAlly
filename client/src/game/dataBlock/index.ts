@@ -15,6 +15,7 @@ function getId(db: DbRepr): string {
     return `${db.source}-${db.category}-${db.name}-${special}`;
 }
 
+// eslint-disable-next-line import/no-unused-modules
 export async function getOrLoadDataBlock<D extends DBR, S extends DBR>(
     repr: DbRepr,
     serializer: DataBlockSerializer<D, S>,
@@ -27,6 +28,7 @@ export async function getOrLoadDataBlock<D extends DBR, S extends DBR>(
     return await loadDataBlock(repr, serializer, defaultData);
 }
 
+// eslint-disable-next-line import/no-unused-modules
 export async function loadDataBlock<D extends DBR, S extends DBR>(
     repr: DbRepr,
     serializer: DataBlockSerializer<D, S>,
@@ -62,11 +64,13 @@ export async function loadDataBlock<D extends DBR, S extends DBR>(
     }
 }
 
+// eslint-disable-next-line import/no-unused-modules
 export function getDataBlock<D extends DBR, S extends DBR>(repr: DbRepr): DataBlock<D, S> | undefined {
     const id = getId(repr);
     return dataBlocks.get(id) as DataBlock<D, S> | undefined;
 }
 
+// eslint-disable-next-line import/no-unused-modules
 export async function createDataBlock<D extends DBR, S extends DBR>(
     repr: DbRepr,
     data: D,

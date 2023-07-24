@@ -105,7 +105,7 @@ class TypedModel:
             ...
 
         @classmethod
-        def get_or_none(cls, *args, **kwargs) -> Self:
+        def get_or_none(cls, *args, **kwargs) -> Self | None:
             ...
 
         @classmethod

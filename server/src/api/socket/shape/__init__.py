@@ -56,6 +56,9 @@ async def add_shape(sid: str, raw_data: Any):
         floor = pr.active_location.floors.where(Floor.name == data.floor)[0]
         layer = floor.layers.where(Layer.name == data.layer)[0]
     except IndexError:
+        logger.error(
+            f"Attempt to add a shape to unknown floor/layer {data.floor}/{data.layer}"
+        )
         return
 
     if pr.role != Role.DM and not layer.player_editable:
@@ -69,6 +72,7 @@ async def add_shape(sid: str, raw_data: Any):
     else:
         shape = create_shape(data.shape, layer=layer)
         if shape is None:
+            logger.error(f"Failed to create new shape {raw_data}")
             return
 
     for room_player in pr.room.players:
@@ -82,6 +86,11 @@ async def add_shape(sid: str, raw_data: Any):
                 continue
             if not data.temporary and shape is not None:
                 data.shape = transform_shape(shape, room_player)
+            print(34593485)
+            x = ApiShapeWithLayerInfo(
+                shape=data.shape, floor=floor.name, layer=layer.name
+            )
+            print(x)
             await _send_game(
                 "Shape.Add",
                 ApiShapeWithLayerInfo(
@@ -161,6 +170,10 @@ async def remove_shapes(sid: str, raw_data: Any):
         # This stuff is not stored so we cannot do any server side validation /shrug
         for shape in data.uuids:
             game_state.remove_temp(sid, shape)
+
+        await send_remove_shapes(
+            data.uuids, room=pr.active_location.get_path(), skip_sid=sid
+        )
     else:
         # Use the server version of the shapes.
         shapes = list(_get_shapes_from_uuids(data.uuids, True))
@@ -196,9 +209,9 @@ async def remove_shapes(sid: str, raw_data: Any):
         for group_id in group_ids:
             await remove_group_if_empty(group_id)
 
-    await send_remove_shapes(
-        data.uuids, room=pr.active_location.get_path(), skip_sid=sid
-    )
+        await send_remove_shapes(
+            [sh.uuid for sh in shapes], room=pr.active_location.get_path(), skip_sid=sid
+        )
 
 
 @sio.on("Shapes.Floor.Change", namespace=GAME_NS)

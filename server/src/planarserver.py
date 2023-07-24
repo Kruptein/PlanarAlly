@@ -29,9 +29,13 @@ from .api import http  # noqa: F401, E402
 # Force loading of socketio routes
 from .api.socket import load_socket_commands  # noqa: E402
 from .api.socket.constants import GAME_NS  # noqa: E402
-from .app import admin_app  # noqa: E402
+from .app import (  # noqa: E402
+    admin_app,  # noqa: E402
+    runners,
+    setup_runner,
+    sio,
+)
 from .app import app as main_app  # noqa: E402
-from .app import runners, setup_runner, sio  # noqa: E402
 from .config import config  # noqa: E402
 from .logs import logger  # noqa: E402
 from .state.asset import asset_state  # noqa: E402
@@ -194,8 +198,8 @@ def remove_main(args):
     resource = args.resource.lower()
 
     if resource == "user":
-        user = User.by_name(args.name)
-        user.delete_instance(recursive=True)
+        if user := User.by_name(args.name):
+            user.delete_instance(recursive=True)
     elif resource == "room":
         room = get_room(args.name)
         room.delete_instance(recursive=True)

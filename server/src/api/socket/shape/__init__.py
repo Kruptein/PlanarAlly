@@ -111,11 +111,16 @@ async def update_shape_positions(sid: str, raw_data: Any):
 
     for sh in data.shapes:
         shape = Shape.get_or_none(Shape.uuid == sh.uuid)
-        if shape is not None and not has_ownership(shape, pr, movement=True):
+        if shape is None:
+            logger.warning(
+                f"User {pr.player.name} attempted to move a shape with unknown uuid ({sh.uuid})."
+            )
+            continue
+        elif not has_ownership(shape, pr, movement=True):
             logger.warning(
                 f"User {pr.player.name} attempted to move a shape it does not own."
             )
-            return
+            continue
         shapes.append((shape, sh))
 
     if not data.temporary:

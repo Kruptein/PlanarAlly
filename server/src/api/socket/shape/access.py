@@ -10,7 +10,7 @@ from ....logs import logger
 from ....models.access import has_ownership
 from ....models.role import Role
 from ....state.game import game_state
-from ....transform.shape import transform_shape
+from ....transform.to_api.shape import transform_shape
 from ...helpers import _send_game
 from ...models.shape import ApiShapeWithLayerInfo
 from ...models.shape.owner import (

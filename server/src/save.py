@@ -402,6 +402,21 @@ def upgrade(db: SqliteExtDatabase, version: int):
                 'INSERT INTO "shape" ("uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "is_token", "annotation", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "annotation_visible", "ignore_zoom_size", "is_defeated", "is_door", "is_teleport_zone") SELECT "uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "is_token", "annotation", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "annotation_visible", "ignore_zoom_size", "is_defeated", "is_door", "is_teleport_zone" FROM _shape_85'
             )
             db.execute_sql("DROP TABLE _shape_85")
+    elif version == 86:
+        # Add DataBlock
+        with db.atomic():
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "general_data_block" ("id" INTEGER NOT NULL PRIMARY KEY, "source" TEXT NOT NULL, "name" TEXT NOT NULL, "data" TEXT NOT NULL)'
+            )
+            db.execute_sql(
+                'CREATE UNIQUE INDEX "general_data_block_keys" ON "general_data_block" ("source", "name");'
+            )
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "shape_data_block" ("id" INTEGER NOT NULL PRIMARY KEY, "source" TEXT NOT NULL, "name" TEXT NOT NULL, "shape_id" TEXT NOT NULL, "data" TEXT NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)'
+            )
+            db.execute_sql(
+                'CREATE UNIQUE INDEX "shape_data_block_keys" ON "shape_data_block" ("source", "name", "shape");'
+            )
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

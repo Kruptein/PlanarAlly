@@ -28,7 +28,7 @@ from ...logs import logger
 from ...models.access import has_ownership
 from ...models.role import Role
 from ...state.game import game_state
-from ...transform.floor import transform_floor
+from ...transform.to_api.floor import transform_floor
 from ..helpers import _send_game
 from ..models.client import OptionalClientViewport
 from ..models.client.gameboard import ClientGameboardSet

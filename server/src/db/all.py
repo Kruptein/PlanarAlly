@@ -8,6 +8,7 @@ from .models.circular_token import CircularToken
 from .models.composite_shape_association import CompositeShapeAssociation
 from .models.constants import Constants
 from .models.floor import Floor
+from .models.general_data_block import GeneralDataBlock
 from .models.group import Group
 from .models.initiative import Initiative
 from .models.label import Label
@@ -25,6 +26,7 @@ from .models.polygon import Polygon
 from .models.rect import Rect
 from .models.room import Room
 from .models.shape import Shape
+from .models.shape_data_block import ShapeDataBlock
 from .models.shape_label import ShapeLabel
 from .models.shape_owner import ShapeOwner
 from .models.shape_type import ShapeType
@@ -46,6 +48,7 @@ ALL_MODELS = [
     CompositeShapeAssociation,
     Constants,
     Floor,
+    GeneralDataBlock,
     Group,
     Initiative,
     LabelSelection,
@@ -62,6 +65,7 @@ ALL_MODELS = [
     Polygon,
     Rect,
     Room,
+    ShapeDataBlock,
     ShapeLabel,
     ShapeOwner,
     ShapeType,

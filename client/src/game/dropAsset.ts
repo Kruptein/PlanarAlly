@@ -125,8 +125,7 @@ export async function dropAsset(
 
     return new Promise((resolve) => {
         image.onload = () => {
-            const refPoint = toGP(l2gx(position.x), l2gy(position.y));
-            const asset = new Asset(image, refPoint, l2gz(image.width), l2gz(image.height), {
+            const asset = new Asset(image, position, l2gz(image.width), l2gz(image.height), {
                 assetId: data.assetId,
                 uuid,
             });

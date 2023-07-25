@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { type Component, computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
@@ -29,26 +29,17 @@ function close(): void {
 }
 defineExpose({ close });
 
-const categoryNames = computed(() => {
-    return [
-        DmSettingCategory.Admin,
-        DmSettingCategory.Grid,
-        DmSettingCategory.Vision,
-        DmSettingCategory.Floor,
-        DmSettingCategory.Varia,
-    ];
-});
+const tabs: { name: string; component: Component; props: { global: true } }[] = [
+    { name: t(DmSettingCategory.Admin), component: AdminSettings, props: { global: true } },
+    { name: t(DmSettingCategory.Grid), component: GridSettings, props: { global: true } },
+    { name: t(DmSettingCategory.Vision), component: VisionSettings, props: { global: true } },
+    { name: t(DmSettingCategory.Floor), component: FloorSettings, props: { global: true } },
+    { name: t(DmSettingCategory.Varia), component: VariaSettings, props: { global: true } },
+];
 </script>
 
 <template>
-    <PanelModal v-model:visible="visible" :categories="categoryNames" :apply-translation="true">
+    <PanelModal v-model:visible="visible" :tabs="tabs">
         <template #title>{{ t("game.ui.settings.dm.DmSettings.dm_settings") }}</template>
-        <template #default="{ selection }">
-            <AdminSettings v-show="selection === DmSettingCategory.Admin" />
-            <GridSettings v-show="selection === DmSettingCategory.Grid" />
-            <VisionSettings v-show="selection === DmSettingCategory.Vision" />
-            <FloorSettings v-show="selection === DmSettingCategory.Floor" />
-            <VariaSettings v-show="selection === DmSettingCategory.Varia" />
-        </template>
     </PanelModal>
 </template>

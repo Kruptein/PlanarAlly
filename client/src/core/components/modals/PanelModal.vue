@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { ref, watchEffect } from "vue";
+import { type Component, ref, watchEffect, computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import Modal from "./Modal.vue";
 
 const props = withDefaults(
-    defineProps<{ visible: boolean; categories: string[]; applyTranslation?: boolean; initialSelection?: string }>(),
-    { applyTranslation: false, initialSelection: undefined },
+    defineProps<{
+        visible: boolean;
+        tabs: { name: string; component: Component; props?: object }[];
+        initialSelection?: string;
+    }>(),
+    { initialSelection: undefined },
 );
 const emit = defineEmits<{
     (e: "update:visible", visible: boolean): void;
@@ -16,11 +20,18 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 
-const selection = ref(props.categories[0]);
+const selection = ref(props.tabs[0]?.name);
+const activeTab = computed(() => props.tabs.find((t) => t.name === selection.value));
 
 watchEffect(() => {
-    if (props.initialSelection !== undefined && props.categories.includes(props.initialSelection)) {
-        selection.value = props.initialSelection;
+    if (props.initialSelection === undefined) {
+        if (!props.tabs.some((c) => c.name === selection.value)) {
+            selection.value = props.tabs.at(0)?.name;
+        }
+    } else {
+        if (props.tabs.some((c) => c.name === props.initialSelection)) {
+            selection.value = props.initialSelection;
+        }
     }
 });
 
@@ -48,16 +59,21 @@ function hideModal(): void {
         <div class="modal-body">
             <div id="categories">
                 <div
-                    v-for="category in categories"
-                    :key="category"
+                    v-for="tab of tabs"
+                    :key="tab.name"
                     class="category"
-                    :class="{ selected: selection === category }"
-                    @click="setSelection(category)"
+                    :class="{ selected: tab.name === selection }"
+                    @click="setSelection(tab.name)"
                 >
-                    {{ applyTranslation ? t(category) : category }}
+                    {{ tab.name }}
                 </div>
             </div>
-            <slot :selection="selection"></slot>
+            <div style="display: flex; flex-direction: column">
+                <template v-if="activeTab">
+                    <KeepAlive><component :is="activeTab.component" v-bind="activeTab.props" /></KeepAlive>
+                </template>
+                <slot></slot>
+            </div>
         </div>
     </Modal>
 </template>

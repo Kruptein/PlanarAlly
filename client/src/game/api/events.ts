@@ -36,6 +36,7 @@ import { toGP } from "../../core/geometry";
 import { SyncMode } from "../../core/models/types";
 import type { AssetList } from "../../core/models/types";
 import { debugLayers } from "../../localStorageHelpers";
+import { modEvents } from "../../mods/events";
 import { router } from "../../router";
 import { coreStore } from "../../store/core";
 import { locationStore } from "../../store/location";
@@ -95,6 +96,8 @@ socket.on("PARTIAL-CLEAR", () => clearGame(true));
 socket.on("Board.Locations.Set", (locationInfo: ApiLocationCore[]) => {
     locationStore.setLocations(locationInfo, false);
 });
+
+socket.on("Location.Loaded", async () => await modEvents.locationLoaded());
 
 socket.on("Board.Floor.Set", (floor: ApiFloor) => {
     // It is important that this condition is evaluated before the async addFloor call.

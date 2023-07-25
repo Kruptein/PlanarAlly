@@ -1,4 +1,7 @@
+import type { Component, Raw } from "vue";
+
 import type { ApiNote } from "../../../apiTypes";
+import type { LocalId } from "../../id";
 import { ClientSettingCategory } from "../../ui/settings/client/categories";
 import { buildState } from "../state";
 
@@ -22,6 +25,8 @@ interface UiState {
     selectedFloor: number;
 
     preventContextMenu: boolean;
+
+    characterTabs: { name: string; component: Raw<Component>; filter?: (shape: LocalId) => boolean }[];
 }
 
 const state = buildState<UiState>({
@@ -44,6 +49,8 @@ const state = buildState<UiState>({
     selectedFloor: 0,
 
     preventContextMenu: false,
+
+    characterTabs: [],
 });
 
 export const uiState = {

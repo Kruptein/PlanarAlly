@@ -39,6 +39,7 @@
     },
     "devDependencies": {
         "@babylonjs/core": "^4.2.2",
+        "@esbuild-plugins/esm-externals": "^0.1.2",
         "@intlify/unplugin-vue-i18n": "^0.8.2",
         "@types/lodash": "^4.14.191",
         "@types/swiper": "^5.4.3",

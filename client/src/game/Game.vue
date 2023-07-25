@@ -3,6 +3,7 @@ import throttle from "lodash/throttle";
 import { defineComponent, onMounted, onUnmounted, watchEffect } from "vue";
 
 import { useModal } from "../core/plugins/modals/plugin";
+import { modEvents } from "../mods/events";
 import { coreStore } from "../store/core";
 
 import { createConnection, socket } from "./api/socket";
@@ -61,6 +62,8 @@ export default defineComponent({
             window.addEventListener("resize", resizeWindow);
             clearUndoStacks();
             mediaQuery.addEventListener("change", resizeWindow);
+
+            await modEvents.gameOpened();
 
             if (coreStore.state.boardId !== undefined) await companion.run();
         });

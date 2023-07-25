@@ -2,6 +2,7 @@
 
 import path from "path";
 import { defineConfig } from "vite";
+import EsmExternals from "@esbuild-plugins/esm-externals";
 import vue from "@vitejs/plugin-vue";
 import vueI18n from "@intlify/unplugin-vue-i18n/vite";
 import { transformLazyShow } from "v-lazy-show";
@@ -31,8 +32,25 @@ export default defineConfig({
         outDir: "../server",
         chunkSizeWarningLimit: 2500,
         rollupOptions: {
-            external: ["ammo.js"],
+            external: ["ammo.js", "vue"],
+            output: { globals: { vue: "Vue" } },
         },
+        commonjsOptions: {
+            esmExternals: true,
+        },
+    },
+    optimizeDeps: {
+        esbuildOptions: {
+            plugins: [EsmExternals({ externals: ["vue"] })],
+        },
+    },
+    resolve: {
+        alias: [
+            {
+                find: new RegExp("^vue$"),
+                replacement: "https://unpkg.com/vue@3/dist/vue.esm-browser.js",
+            },
+        ],
     },
     css: { preprocessorOptions: { scss: { charset: false } } },
     test: {

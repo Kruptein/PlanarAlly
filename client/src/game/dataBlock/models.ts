@@ -1,6 +1,6 @@
 import type { ApiDataBlock } from "../../apiTypes";
 
-type DistributiveOmit<T, K extends keyof any> = T extends any ? Omit<T, K> : never;
+export type DistributiveOmit<T, K extends keyof any> = T extends any ? Omit<T, K> : never;
 export type DbRepr = DistributiveOmit<ApiDataBlock, "data">;
 
 export type DBR = Record<string, unknown>;

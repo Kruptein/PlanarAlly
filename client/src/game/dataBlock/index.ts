@@ -1,7 +1,7 @@
 import { socket } from "../api/socket";
 
 import { DataBlock } from "./db";
-import type { DBR, DataBlockSerializer, DbRepr } from "./model";
+import type { DBR, DataBlockSerializer, DbRepr } from "./models";
 
 const dataBlocks = new Map<string, DataBlock<DBR, DBR>>();
 

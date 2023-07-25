@@ -2,7 +2,7 @@ import type { DeepReadonly } from "vue";
 
 import { socket } from "../api/socket";
 
-import type { DBR, DataBlockSerializer, DbRepr } from "./model";
+import type { DBR, DataBlockSerializer, DbRepr } from "./models";
 
 export class DataBlock<D extends DBR, S extends DBR> {
     #listeners: { source: string; key: keyof D; cb: (value: D[keyof D]) => void }[] = [];

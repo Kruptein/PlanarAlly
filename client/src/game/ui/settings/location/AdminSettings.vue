@@ -9,7 +9,7 @@ import { locationStore } from "../../../../store/location";
 import { playerState } from "../../../systems/players/state";
 import { uiState } from "../../../systems/ui/state";
 
-const emit = defineEmits(["update:location", "close"]);
+const emit = defineEmits(["close"]);
 
 const { t } = useI18n();
 const modals = useModal();
@@ -30,7 +30,6 @@ const name = computed({
 });
 
 function archiveLocation(): void {
-    emit("update:location", locationStore.activeLocations.value.find((l) => l.id !== location.value)!.id);
     locationStore.archiveLocation(location.value, true);
     emit("close");
 }
@@ -47,7 +46,6 @@ async function deleteLocation(): Promise<void> {
         },
     );
     if (remove !== true) return;
-    emit("update:location", locationStore.activeLocations.value.find((l) => l.id !== location.value)!.id);
     locationStore.removeLocation(location.value, true);
     emit("close");
 }

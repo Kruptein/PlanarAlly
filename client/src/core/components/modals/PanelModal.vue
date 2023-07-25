@@ -70,7 +70,9 @@ function hideModal(): void {
             </div>
             <div style="display: flex; flex-direction: column">
                 <template v-if="activeTab">
-                    <KeepAlive><component :is="activeTab.component" v-bind="activeTab.props" /></KeepAlive>
+                    <KeepAlive>
+                        <component :is="activeTab.component" v-bind="activeTab.props" @close="hideModal" />
+                    </KeepAlive>
                 </template>
                 <slot></slot>
             </div>

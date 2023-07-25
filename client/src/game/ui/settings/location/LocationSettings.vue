@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, toRef } from "vue";
+import { type Component, computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
@@ -36,30 +36,19 @@ const locationName = computed(
     () => locationStore.activeLocations.value.find((l) => l.id === location.value)?.name ?? "",
 );
 
-const categoryNames = [
-    LocationSettingCategory.Admin,
-    LocationSettingCategory.Grid,
-    LocationSettingCategory.Vision,
-    LocationSettingCategory.Floor,
-    LocationSettingCategory.Varia,
+const tabs: { name: string; component: Component; props?: { global: false } }[] = [
+    { name: t(LocationSettingCategory.Admin), component: AdminSettings, props: { global: false } },
+    { name: t(LocationSettingCategory.Grid), component: GridSettings, props: { global: false } },
+    { name: t(LocationSettingCategory.Vision), component: VisionSettings, props: { global: false } },
+    { name: t(LocationSettingCategory.Floor), component: FloorSettings, props: { global: false } },
+    { name: t(LocationSettingCategory.Varia), component: VariaSettings, props: { global: false } },
 ];
 </script>
 
 <template>
-    <PanelModal v-if="location >= 0" v-model:visible="visible" :categories="categoryNames" :apply-translation="true">
+    <PanelModal v-if="location >= 0" v-model:visible="visible" :tabs="tabs">
         <template #title>
             {{ t("game.ui.settings.LocationBar.LocationSettings.location_settings") }} {{ locationName }}
-        </template>
-        <template #default="{ selection }">
-            <AdminSettings
-                v-show="selection === LocationSettingCategory.Admin"
-                :location="location"
-                @close="visible = false"
-            />
-            <GridSettings v-show="selection === LocationSettingCategory.Grid" :location="location" />
-            <VisionSettings v-show="selection === LocationSettingCategory.Vision" :location="location" />
-            <FloorSettings v-show="selection === LocationSettingCategory.Floor" :location="location" />
-            <VariaSettings v-show="selection === LocationSettingCategory.Varia" :location="location" />
         </template>
     </PanelModal>
 </template>

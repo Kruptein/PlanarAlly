@@ -6,17 +6,17 @@ import ColourPicker from "../../../../core/components/ColourPicker.vue";
 import { BackgroundType, getBackgroundTypeFromString, getBackgroundTypes } from "../../../../game/models/floor";
 import { locationSettingsSystem } from "../../../systems/settings/location";
 import { locationSettingsState } from "../../../systems/settings/location/state";
+import { uiState } from "../../../systems/ui/state";
 import PatternSettings from "../floor/PatternSettings.vue";
 
-const props = withDefaults(defineProps<{ location?: number }>(), { location: -1 });
+const props = defineProps<{ global: boolean }>();
 
 const { t } = useI18n();
 
 const { reactive: $, getOption } = locationSettingsState;
 const lss = locationSettingsSystem;
 
-const isGlobal = computed(() => props.location < 0);
-const location = computed(() => (isGlobal.value ? undefined : props.location));
+const location = computed(() => (props.global ? undefined : uiState.reactive.openedLocationSettings));
 
 const backgroundTypes = getBackgroundTypes();
 
@@ -97,7 +97,7 @@ function o(k: any): boolean {
 <template>
     <div class="panel restore-panel">
         <div class="spanrow">
-            <template v-if="isGlobal">
+            <template v-if="global">
                 <em style="max-width: 40vw">
                     {{ t("game.ui.settings.common.overridden_msg") }}
                 </em>
@@ -111,7 +111,7 @@ function o(k: any): boolean {
 
         <div class="spanrow header">{{ t("game.ui.settings.FloorSettings.backgrounds") }}</div>
 
-        <div class="row" :class="{ overwritten: !isGlobal && o($.airMapBackground) }">
+        <div class="row" :class="{ overwritten: !global && o($.airMapBackground) }">
             <label :for="'airBackground-' + location">{{ t("game.ui.settings.FloorSettings.air_background") }}</label>
             <div>
                 <select :value="airBackgroundType" @change="setAirBackgroundFromEvent">
@@ -121,7 +121,7 @@ function o(k: any): boolean {
                 </select>
             </div>
             <div
-                v-if="!isGlobal && o($.airMapBackground)"
+                v-if="!global && o($.airMapBackground)"
                 :title="t('game.ui.settings.common.reset_default')"
                 @click="airBackground = undefined"
             >
@@ -138,7 +138,7 @@ function o(k: any): boolean {
             <PatternSettings :pattern="airBackground ?? ''" @update:pattern="airBackground = $event" />
         </div>
 
-        <div class="row" :class="{ overwritten: !isGlobal && o($.groundMapBackground) }">
+        <div class="row" :class="{ overwritten: !global && o($.groundMapBackground) }">
             <label :for="'groundBackground-' + location">
                 {{ t("game.ui.settings.FloorSettings.ground_background") }}
             </label>
@@ -150,7 +150,7 @@ function o(k: any): boolean {
                 </select>
             </div>
             <div
-                v-if="!isGlobal && o($.groundMapBackground)"
+                v-if="!global && o($.groundMapBackground)"
                 :title="t('game.ui.settings.common.reset_default')"
                 @click="groundBackground = undefined"
             >
@@ -169,7 +169,7 @@ function o(k: any): boolean {
             <PatternSettings :pattern="groundBackground ?? ''" @update:pattern="groundBackground = $event" />
         </div>
 
-        <div class="row" :class="{ overwritten: !isGlobal && o($.undergroundMapBackground) }">
+        <div class="row" :class="{ overwritten: !global && o($.undergroundMapBackground) }">
             <label :for="'undergroundBackground-' + location">
                 {{ t("game.ui.settings.FloorSettings.underground_background") }}
             </label>
@@ -185,7 +185,7 @@ function o(k: any): boolean {
                 </select>
             </div>
             <div
-                v-if="!isGlobal && o($.undergroundMapBackground)"
+                v-if="!global && o($.undergroundMapBackground)"
                 :title="t('game.ui.settings.common.reset_default')"
                 @click="undergroundBackground = undefined"
             >

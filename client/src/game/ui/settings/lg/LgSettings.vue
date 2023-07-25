@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { type Component, computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
@@ -25,14 +25,11 @@ function close(): void {
 }
 defineExpose({ close });
 
-const categoryNames = [LgSettingCategory.Grid];
+const tabs: { name: string; component: Component }[] = [{ name: t(LgSettingCategory.Grid), component: LgGridSettings }];
 </script>
 
 <template>
-    <PanelModal v-model:visible="visible" :categories="categoryNames" :apply-translation="true">
+    <PanelModal v-model:visible="visible" :tabs="tabs">
         <template #title>{{ t("game.ui.settings.lg.LgSettings.title") }}</template>
-        <template #default="{ selection }">
-            <LgGridSettings :visible="visible && selection === LgSettingCategory.Grid" />
-        </template>
     </PanelModal>
 </template>

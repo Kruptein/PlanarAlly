@@ -7,9 +7,10 @@ import { gameSystem } from "../../../systems/game";
 import { gameState } from "../../../systems/game/state";
 import { locationSettingsSystem } from "../../../systems/settings/location";
 import { locationSettingsState } from "../../../systems/settings/location/state";
+import { uiState } from "../../../systems/ui/state";
 import { VisibilityMode, visionState } from "../../../vision/state";
 
-const props = withDefaults(defineProps<{ location?: number }>(), { location: -1 });
+const props = defineProps<{ global: boolean }>();
 const { t } = useI18n();
 
 const { reactive: $, getOption } = locationSettingsState;
@@ -17,8 +18,7 @@ const lss = locationSettingsSystem;
 
 const visionMode = toRef(visionState.state, "mode");
 
-const isGlobal = computed(() => props.location < 0);
-const location = computed(() => (isGlobal.value ? undefined : props.location));
+const location = computed(() => (props.global ? undefined : uiState.reactive.openedLocationSettings));
 
 const fakePlayer = computed({
     get() {
@@ -98,7 +98,7 @@ function o(k: any): boolean {
 <template>
     <div class="panel restore-panel">
         <div class="spanrow">
-            <template v-if="isGlobal">
+            <template v-if="global">
                 <em style="max-width: 40vw">
                     {{ t("game.ui.settings.common.overridden_msg") }}
                 </em>
@@ -110,20 +110,20 @@ function o(k: any): boolean {
             </template>
         </div>
         <div class="spanrow header">{{ t("game.ui.settings.VisionSettings.core") }}</div>
-        <div v-if="isGlobal" class="row">
+        <div v-if="global" class="row">
             <label for="fakePlayerInput">{{ t("game.ui.settings.VisionSettings.fake_player") }}</label>
             <div>
                 <input id="fakePlayerInput" v-model="fakePlayer" type="checkbox" />
             </div>
             <div></div>
         </div>
-        <div class="row" :class="{ overwritten: !isGlobal && o($.fullFow) }">
+        <div class="row" :class="{ overwritten: !global && o($.fullFow) }">
             <label :for="'useFOWInput-' + location">{{ t("game.ui.settings.VisionSettings.fill_fow") }}</label>
             <div>
                 <input :id="'useFOWInput-' + location" v-model="fullFow" type="checkbox" />
             </div>
             <div
-                v-if="!isGlobal && o($.fullFow)"
+                v-if="!global && o($.fullFow)"
                 :title="t('game.ui.settings.common.reset_default')"
                 @click="fullFow = undefined"
             >
@@ -131,13 +131,13 @@ function o(k: any): boolean {
             </div>
             <div v-else></div>
         </div>
-        <div class="row" :class="{ overwritten: !isGlobal && o($.fowLos) }">
+        <div class="row" :class="{ overwritten: !global && o($.fowLos) }">
             <label :for="'fowLos-' + location">{{ t("game.ui.settings.VisionSettings.only_show_lights_los") }}</label>
             <div>
                 <input :id="'fowLos-' + location" v-model="fowLos" type="checkbox" />
             </div>
             <div
-                v-if="!isGlobal && o($.fowLos)"
+                v-if="!global && o($.fowLos)"
                 :title="t('game.ui.settings.common.reset_default')"
                 @click="fowLos = undefined"
             >
@@ -145,7 +145,7 @@ function o(k: any): boolean {
             </div>
             <div v-else></div>
         </div>
-        <div class="row" :class="{ overwritten: !isGlobal && o($.fowOpacity) }">
+        <div class="row" :class="{ overwritten: !global && o($.fowOpacity) }">
             <label :for="'fowOpacity-' + location">{{ t("game.ui.settings.VisionSettings.fow_opacity") }}</label>
             <div>
                 <input
@@ -158,7 +158,7 @@ function o(k: any): boolean {
                 />
             </div>
             <div
-                v-if="!isGlobal && o($.fowOpacity)"
+                v-if="!global && o($.fowOpacity)"
                 :title="t('game.ui.settings.common.reset_default')"
                 @click="fowOpacity = undefined"
             >
@@ -167,7 +167,7 @@ function o(k: any): boolean {
             <div v-else></div>
         </div>
         <div class="spanrow header">{{ t("game.ui.settings.VisionSettings.advanced") }}</div>
-        <div v-if="isGlobal" class="row">
+        <div v-if="global" class="row">
             <label :for="'visionMode-' + location">{{ t("game.ui.settings.VisionSettings.vision_mode") }}</label>
             <div>
                 <select :id="'visionMode-' + location" @change="changeVisionMode">
@@ -179,7 +179,7 @@ function o(k: any): boolean {
             </div>
             <div></div>
         </div>
-        <div class="row" :class="{ overwritten: !isGlobal && o($.visionMinRange) }">
+        <div class="row" :class="{ overwritten: !global && o($.visionMinRange) }">
             <label :for="'vmininp-' + location">
                 {{ t("game.ui.settings.VisionSettings.min_full_vision_UNIT", { unit: $.unitSizeUnit.value }) }}
             </label>
@@ -193,7 +193,7 @@ function o(k: any): boolean {
                 />
             </div>
             <div
-                v-if="!isGlobal && o($.visionMinRange)"
+                v-if="!global && o($.visionMinRange)"
                 :title="t('game.ui.settings.common.reset_default')"
                 @click="visionMinRange = undefined"
             >
@@ -201,7 +201,7 @@ function o(k: any): boolean {
             </div>
             <div v-else></div>
         </div>
-        <div class="row" :class="{ overwritten: !isGlobal && o($.visionMaxRange) }">
+        <div class="row" :class="{ overwritten: !global && o($.visionMaxRange) }">
             <label :for="'vmaxinp-' + location">
                 {{ t("game.ui.settings.VisionSettings.max_vision_UNIT", { unit: $.unitSizeUnit.value }) }}
             </label>
@@ -214,7 +214,7 @@ function o(k: any): boolean {
                 />
             </div>
             <div
-                v-if="!isGlobal && o($.visionMaxRange)"
+                v-if="!global && o($.visionMaxRange)"
                 :title="t('game.ui.settings.common.reset_default')"
                 @click="visionMaxRange = undefined"
             >

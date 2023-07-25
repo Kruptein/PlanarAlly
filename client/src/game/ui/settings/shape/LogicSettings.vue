@@ -21,15 +21,14 @@ import LogicPermissions from "./LogicPermissions.vue";
 
 const { t } = useI18n();
 const modals = useModal();
-const props = defineProps<{ activeSelection: boolean }>();
 
 watch(
-    [() => activeShapeStore.state.id, () => props.activeSelection],
-    ([newId, newSelection], [oldId, oldSelection]) => {
-        if (newSelection && newId !== undefined && (!(oldSelection ?? false) || oldId !== newId)) {
+    () => activeShapeStore.state.id,
+    (newId) => {
+        if (newId !== undefined) {
             doorLogicState.loadState(newId);
             teleportZoneSystem.loadState(newId);
-        } else if ((!newSelection && (oldSelection ?? false)) || newId === undefined) {
+        } else {
             doorLogicState.dropState();
             teleportZoneSystem.dropState();
         }
@@ -142,7 +141,7 @@ async function chooseTarget(): Promise<void> {
 </script>
 
 <template>
-    <div v-show="activeSelection" class="panel restore-panel">
+    <div class="panel restore-panel">
         <teleport to="#teleport-modals">
             <LogicPermissions
                 v-model:visible="showPermissions"

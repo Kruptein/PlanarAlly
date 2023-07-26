@@ -8,7 +8,11 @@
         <script type="importmap">
             {
                 "imports": {
-                    "vue": "https://unpkg.com/vue@3/dist/vue.esm-browser.js"
+                    <% if(localVue){ %>
+                        "vue": "%BASE_URL%<%= vueUrl %>"
+                    <% } else { %>
+                        "vue": "<%= vueUrl %>"
+                    <% } %>
                 }
             }
         </script>

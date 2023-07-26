@@ -15,7 +15,7 @@ export interface Mod {
     preTrackerUpdate?: (id: LocalId, tracker: Tracker, delta: Partial<Tracker>) => Partial<Tracker>;
 }
 
-export interface ModLoad {
+interface ModLoad {
     systems: Record<string, System>;
     systemsState: typeof SYSTEMS_STATE;
 

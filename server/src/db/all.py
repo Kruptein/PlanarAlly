@@ -24,7 +24,9 @@ from .models.player_room import PlayerRoom
 from .models.polygon import Polygon
 from .models.rect import Rect
 from .models.room import Room
+from .models.room_data_block import RoomDataBlock
 from .models.shape import Shape
+from .models.shape_data_block import ShapeDataBlock
 from .models.shape_label import ShapeLabel
 from .models.shape_owner import ShapeOwner
 from .models.shape_type import ShapeType
@@ -32,6 +34,7 @@ from .models.text import Text
 from .models.toggle_composite import ToggleComposite
 from .models.tracker import Tracker
 from .models.user import User
+from .models.user_data_block import UserDataBlock
 from .models.user_options import UserOptions
 from .signals import *  # noqa: F403
 
@@ -62,6 +65,8 @@ ALL_MODELS = [
     Polygon,
     Rect,
     Room,
+    RoomDataBlock,
+    ShapeDataBlock,
     ShapeLabel,
     ShapeOwner,
     ShapeType,
@@ -69,6 +74,7 @@ ALL_MODELS = [
     Text,
     ToggleComposite,
     Tracker,
+    UserDataBlock,
     UserOptions,
     User,
 ]

@@ -1,11 +1,11 @@
-from ..api.models.shape.shape import ApiCoreShape
-from ..api.models.shape.subtypes import ApiShapeSubType
-from ..db.models.aura import Aura
-from ..db.models.label import Label
-from ..db.models.player_room import PlayerRoom
-from ..db.models.shape import Shape
-from ..db.models.tracker import Tracker
-from ..models.access import has_ownership
+from ...api.models.shape.shape import ApiCoreShape
+from ...api.models.shape.subtypes import ApiShapeSubType
+from ...db.models.aura import Aura
+from ...db.models.label import Label
+from ...db.models.player_room import PlayerRoom
+from ...db.models.shape import Shape
+from ...db.models.tracker import Tracker
+from ...models.access import has_ownership
 
 
 def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:

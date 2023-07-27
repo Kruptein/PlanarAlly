@@ -10,7 +10,7 @@ from ...db.models.player_room import PlayerRoom
 from ...logs import logger
 from ...models.role import Role
 from ...state.game import game_state
-from ...transform.floor import transform_floor
+from ...transform.to_api.floor import transform_floor
 from ..helpers import _send_game
 from ..models.floor import FloorCreate, FloorRename
 from ..models.floor.background import FloorBackgroundSet

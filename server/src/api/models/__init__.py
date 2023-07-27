@@ -3,6 +3,7 @@ from .aura import *
 from .character import *
 from .client import *
 from .common import *
+from .data_block import *
 from .dice import *
 from .floor import *
 from .groups import *

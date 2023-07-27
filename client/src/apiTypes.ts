@@ -7,6 +7,7 @@ import type { PlayerId } from "./game/systems/players/models";
 import type { TrackerId } from "./game/systems/trackers/models";
 
 export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiToggleCompositeShape
+export type ApiDataBlock = ApiRoomDataBlock | ApiShapeDataBlock | ApiUserDataBlock
 
 /* eslint-disable */
 /**
@@ -78,6 +79,12 @@ export interface ApiCircularTokenShape extends ApiCoreShape {
   viewing_angle: number | null;
   text: string;
   font: string;
+}
+export interface ApiCoreDataBlock {
+  source: string;
+  name: string;
+  category: "room" | "shape" | "user";
+  data: string;
 }
 export interface ApiCoreShape {
   uuid: GlobalId;
@@ -250,6 +257,13 @@ export interface ApiOptionalUserOptions {
   initiative_open_on_activate?: boolean | null;
   render_all_floors?: boolean | null;
 }
+export interface ApiRoomDataBlock extends ApiCoreDataBlock {
+  category: "room";
+}
+export interface ApiShapeDataBlock extends ApiCoreDataBlock {
+  category: "shape";
+  shape: GlobalId;
+}
 export interface ApiShapeWithLayerInfo {
   shape:
     | ApiAssetRectShape
@@ -262,6 +276,9 @@ export interface ApiShapeWithLayerInfo {
     | ApiToggleCompositeShape;
   floor: string;
   layer: LayerName;
+}
+export interface ApiUserDataBlock extends ApiCoreDataBlock {
+  category: "user";
 }
 export interface ApiUserOptions {
   fow_colour: string;

@@ -10,7 +10,7 @@ export function showIdName(dir: AssetId): string {
 }
 
 export function getIdImageSrc(file: AssetId): string {
-    return baseAdjust("/static/assets/" + (assetState.raw.idMap.get(file)!.file_hash ?? ""));
+    return baseAdjust("/static/assets/" + (assetState.raw.idMap.get(file)!.fileHash ?? ""));
 }
 
 export function changeDirectory(folder: AssetId | "POP"): void {

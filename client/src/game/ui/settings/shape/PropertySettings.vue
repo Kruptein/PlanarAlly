@@ -113,10 +113,10 @@ async function changeAsset(): Promise<void> {
     if (!owned.value) return;
     if (activeShapeStore.state.id === undefined) return;
     const data = await modals.assetPicker();
-    if (data === undefined || data.file_hash === undefined) return;
+    if (data === undefined || data.fileHash === undefined) return;
     const shape = getShape(activeShapeStore.state.id);
     if (shape === undefined || shape.type !== "assetrect") return;
-    (shape as Asset).setImage(`/static/assets/${data.file_hash}`, true);
+    (shape as Asset).setImage(`/static/assets/${data.fileHash}`, true);
 }
 </script>
 

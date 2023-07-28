@@ -1,5 +1,5 @@
+import type { ApiAsset } from "../apiTypes";
 import { baseAdjust } from "../core/http";
-import type { Asset } from "../core/models/types";
 import { socketManager } from "../core/socket";
 import { router } from "../router";
 
@@ -31,7 +31,7 @@ socket.on("Folder.Root.Set", (root: AssetId) => {
     assetSystem.setRoot(root);
 });
 
-socket.on("Folder.Set", async (data: { folder: Asset; path?: AssetId[] }) => {
+socket.on("Folder.Set", async (data: { folder: ApiAsset; path?: AssetId[] }) => {
     assetSystem.clear();
     assetSystem.setFolderData(data.folder.id, data.folder);
     if (!assetState.readonly.modalActive) {
@@ -43,11 +43,11 @@ socket.on("Folder.Set", async (data: { folder: Asset; path?: AssetId[] }) => {
     }
 });
 
-socket.on("Folder.Create", (data: { asset: Asset; parent: AssetId }) => {
+socket.on("Folder.Create", (data: { asset: ApiAsset; parent: AssetId }) => {
     assetSystem.addAsset(data.asset, data.parent);
 });
 
-socket.on("Asset.Upload.Finish", (data: { asset: Asset; parent: AssetId }) => {
+socket.on("Asset.Upload.Finish", (data: { asset: ApiAsset; parent: AssetId }) => {
     assetSystem.addAsset(data.asset, data.parent);
     assetSystem.resolveUpload(data.asset.name);
 });

@@ -1,4 +1,4 @@
-import type { Asset } from "../core/models/types";
+import type { ApiAsset } from "../apiTypes";
 import { callbackProvider, uuidv4 } from "../core/utils";
 import { router } from "../router";
 
@@ -62,7 +62,7 @@ class AssetSystem {
         socket.emit("Folder.Get", assetState.currentFolder.value);
     }
 
-    setFolderData(folder: AssetId, data: Asset): void {
+    setFolderData(folder: AssetId, data: ApiAsset): void {
         $.idMap.set(folder, data);
         if (data.children) {
             for (const child of data.children) {
@@ -92,12 +92,12 @@ class AssetSystem {
 
     // ASSET
 
-    addAsset(asset: Asset, parent?: AssetId): void {
+    addAsset(asset: ApiAsset, parent?: AssetId): void {
         if (parent !== undefined && parent !== assetState.currentFolder.value) return;
 
         $.idMap.set(asset.id, asset);
         let _target: "folders" | "files" = "folders";
-        if (asset.file_hash !== null) {
+        if (asset.fileHash !== null) {
             _target = "files";
         }
         const target = $[_target];
@@ -141,7 +141,10 @@ class AssetSystem {
         }
     }
 
-    async upload(fls: FileList, options?: { target?: number | "root"; newDirectories?: string[] }): Promise<Asset[]> {
+    async upload(
+        fls: FileList,
+        options?: { target?: number | "root"; newDirectories?: string[] },
+    ): Promise<ApiAsset[]> {
         let target = options?.target ?? assetState.currentFolder.value;
         const newDirectories = options?.newDirectories ?? [];
 
@@ -166,7 +169,7 @@ class AssetSystem {
             const slices = Math.ceil(file.size / CHUNK_SIZE);
             $.pendingUploads.push(file.name);
             for (let slice = 0; slice < slices; slice++) {
-                const uploadedFile = await new Promise<Asset | undefined>((resolve) => {
+                const uploadedFile = await new Promise<ApiAsset | undefined>((resolve) => {
                     const fr = new FileReader();
                     fr.readAsArrayBuffer(
                         file.slice(

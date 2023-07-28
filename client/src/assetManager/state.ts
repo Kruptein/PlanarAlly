@@ -1,6 +1,6 @@
 import { computed } from "vue";
 
-import type { Asset } from "../core/models/types";
+import type { ApiAsset } from "../apiTypes";
 import { buildState } from "../game/systems/state";
 
 import type { AssetId } from "./models";
@@ -9,7 +9,7 @@ interface ReactiveAssetState {
     root: AssetId | undefined;
     files: AssetId[];
     folders: AssetId[];
-    idMap: Map<AssetId, Asset>;
+    idMap: Map<AssetId, ApiAsset>;
     selected: AssetId[];
     folderPath: AssetId[];
 

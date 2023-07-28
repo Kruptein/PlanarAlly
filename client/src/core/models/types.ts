@@ -1,5 +1,3 @@
-import type { AssetId } from "../../assetManager/models";
-
 export type AssetListMap = Map<string, AssetListMap | AssetFile[]>;
 export type ReadonlyAssetListMap = ReadonlyMap<string, ReadonlyAssetListMap | AssetFile[]>;
 
@@ -11,13 +9,6 @@ export interface AssetFile {
     id: number;
     name: string;
     hash: string;
-}
-
-export interface Asset {
-    id: AssetId;
-    name: string;
-    file_hash?: string;
-    children?: Asset[];
 }
 
 export enum SyncMode {

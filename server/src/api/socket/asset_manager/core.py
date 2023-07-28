@@ -8,7 +8,7 @@ import tempfile
 import time
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Union, cast
+from typing import Dict, List, Union
 from uuid import uuid4
 
 from aiohttp import web
@@ -22,6 +22,7 @@ from ....logs import logger
 from ....state.asset import asset_state
 from ....state.game import game_state
 from ....utils import ASSETS_DIR, TEMP_DIR
+from ...models.asset import ApiAsset
 from ..constants import ASSET_NS, GAME_NS
 from .common import UploadData
 from .ddraft import handle_ddraft_file
@@ -75,7 +76,7 @@ async def get_folder(sid: str, folder=None):
         raise web.HTTPForbidden()
     await sio.emit(
         "Folder.Set",
-        {"folder": folder.as_dict(children=True)},
+        {"folder": folder.as_pydantic(children=True)},
         room=sid,
         namespace=ASSET_NS,
     )
@@ -101,7 +102,7 @@ async def get_folder_by_path(sid: str, folder):
 
     await sio.emit(
         "Folder.Set",
-        {"folder": target_folder.as_dict(children=True), "path": id_path},
+        {"folder": target_folder.as_pydantic(children=True), "path": id_path},
         room=sid,
         namespace=ASSET_NS,
     )
@@ -117,7 +118,7 @@ async def create_folder(sid: str, data):
     asset = Asset.create(name=data["name"], owner=user, parent=parent)
     await sio.emit(
         "Folder.Create",
-        {"asset": asset.as_dict(), "parent": parent},
+        {"asset": asset.as_pydantic(), "parent": parent},
         room=sid,
         namespace=ASSET_NS,
     )
@@ -162,7 +163,7 @@ async def assetmgmt_rm(sid: str, data):
     if asset.owner != user:
         logger.warning(f"{user.name} attempted to remove a file it doesn't own.")
         return
-    asset_dict = asset.as_dict(children=True, recursive=True)
+    asset_dict = asset.as_pydantic(children=True, recursive=True)
     asset.delete_instance()
 
     await update_live_game(user)
@@ -250,7 +251,7 @@ async def handle_regular_file(upload_data: UploadData, data: bytes, sid: str):
         if created:
             await sio.emit(
                 "Folder.Create",
-                {"asset": asset.as_dict(), "parent": target},
+                {"asset": asset.as_pydantic(), "parent": target},
                 room=sid,
                 namespace=ASSET_NS,
             )
@@ -263,7 +264,7 @@ async def handle_regular_file(upload_data: UploadData, data: bytes, sid: str):
         parent=target,
     )
 
-    asset_dict = asset.as_dict()
+    asset_dict = asset.as_pydantic()
     await sio.emit(
         "Asset.Upload.Finish",
         {"asset": asset_dict, "parent": target},
@@ -307,21 +308,18 @@ async def assetmgmt_upload(sid: str, upload_data: UploadData):
     return return_data
 
 
-def export_asset(asset: Union[AssetDict, List[AssetDict]], parent=-1) -> AssetExport:
+def export_asset(asset: Union[ApiAsset, List[ApiAsset]], parent=-1) -> AssetExport:
     file_hashes: List[str] = []
-    asset_info: List[AssetDict] = []
+    asset_info: List[ApiAsset] = []
 
     if not isinstance(asset, list):
-        asset_dict = cast(
-            AssetDict, {k: v for k, v in asset.items() if k != "children"}
-        )
-        asset_dict["parent"] = parent
+        asset_dict = asset.copy(exclude={"children"})
         asset_info.append(asset_dict)
-        if asset["file_hash"] is not None:
-            file_hashes.append(asset["file_hash"])
+        if asset.fileHash is not None:
+            file_hashes.append(asset.fileHash)
 
-        children = asset.get("children", []) or []
-        parent = asset_dict["id"]
+        children = asset.children or []
+        parent = asset.id
     else:
         children = asset
 
@@ -335,8 +333,8 @@ def export_asset(asset: Union[AssetDict, List[AssetDict]], parent=-1) -> AssetEx
 @sio.on("Asset.Export", namespace=ASSET_NS)
 @auth.login_required(app, sio, "asset")
 async def assetmgmt_export(sid: str, selection: List[int]):
-    full_selection: List[AssetDict] = [
-        Asset.get_by_id(asset).as_dict(True, True) for asset in selection
+    full_selection = [
+        Asset.get_by_id(asset).as_pydantic(True, True) for asset in selection
     ]
 
     asset_data = export_asset(full_selection)

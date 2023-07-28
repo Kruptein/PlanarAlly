@@ -1,3 +1,4 @@
+import type { AssetId } from "./assetManager/models";
 import type { GlobalId } from "./game/id";
 import type { LayerName } from "./game/models/floor";
 import type { AuraId } from "./game/systems/auras/models";
@@ -15,6 +16,12 @@ export type ApiDataBlock = ApiRoomDataBlock | ApiShapeDataBlock | ApiUserDataBlo
 /* Do not modify it by hand - just update the pydantic models and then re-run the script
 */
 
+export interface ApiAsset {
+  id: AssetId;
+  name: string;
+  fileHash?: string;
+  children?: ApiAsset[];
+}
 export interface ApiAssetRectShape extends ApiCoreShape {
   width: number;
   height: number;

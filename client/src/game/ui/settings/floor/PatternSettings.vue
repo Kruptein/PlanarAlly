@@ -24,9 +24,9 @@ const backgroundPattern = computed(() => getPattern(props.pattern) ?? defaultPat
 
 async function setPatternImage(): Promise<void> {
     const data = await modals.assetPicker();
-    if (data === undefined || data.file_hash === undefined) return;
+    if (data === undefined || data.fileHash === undefined) return;
 
-    emit("update:pattern", patternToString({ ...backgroundPattern.value, hash: data.file_hash }));
+    emit("update:pattern", patternToString({ ...backgroundPattern.value, hash: data.fileHash }));
 }
 
 function setPatternData(data: { offsetX?: Event; offsetY?: Event; scaleX?: Event; scaleY?: Event }): void {

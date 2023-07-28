@@ -239,7 +239,7 @@ async function deleteSelection(): Promise<void> {
         </div>
         <div id="assets" :class="{ dropzone: dragState > 0 }" @dragover.prevent @drop.prevent.stop="onDrop">
             <div
-                v-if="assetState.parentFolder.value"
+                v-if="assetState.raw.folderPath.length && assetState.parentFolder.value"
                 class="inode folder"
                 @dblclick="changeDirectory('POP')"
                 @dragover.prevent="moveDrag"

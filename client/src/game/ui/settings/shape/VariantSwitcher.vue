@@ -60,13 +60,13 @@ async function addVariant(): Promise<void> {
 
     const shape = getShape(vState.id!)!;
 
-    if (asset.file_hash === undefined) {
-        console.error("Missing file_hash for new variant");
+    if (asset.fileHash === undefined) {
+        console.error("Missing fileHash for new variant");
         return;
     }
 
     const newShape = await dropAsset(
-        { imageSource: `/static/assets/${asset.file_hash}`, assetId: asset.id },
+        { imageSource: `/static/assets/${asset.fileHash}`, assetId: asset.id },
         shape.refPoint,
     );
     if (newShape === undefined) return;

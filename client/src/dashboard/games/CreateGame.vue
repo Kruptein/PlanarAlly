@@ -37,8 +37,8 @@ async function create(): Promise<void> {
 
 async function setLogo(): Promise<void> {
     const data = await modals.assetPicker();
-    if (data === undefined || data.file_hash === undefined) return;
-    logo.path = data.file_hash;
+    if (data === undefined || data.fileHash === undefined) return;
+    logo.path = data.fileHash;
     logo.id = data.id;
 }
 </script>

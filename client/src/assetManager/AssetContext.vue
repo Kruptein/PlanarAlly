@@ -6,7 +6,9 @@ import ContextMenu from "../core/components/ContextMenu.vue";
 import { useModal } from "../core/plugins/modals/plugin";
 
 import { assetContextLeft, assetContextTop, showAssetContextMenu } from "./context";
-import { assetStore } from "./state";
+import { assetState } from "./state";
+
+import { assetSystem } from ".";
 
 const cm = ref<{ $el: HTMLDivElement } | null>(null);
 const modals = useModal();
@@ -31,8 +33,8 @@ function close(): void {
 }
 
 async function rename(): Promise<void> {
-    if (assetStore.state.selected.length !== 1) return;
-    const asset = assetStore.state.idMap.get(assetStore.state.selected[0]!);
+    if (assetState.raw.selected.length !== 1) return;
+    const asset = assetState.raw.idMap.get(assetState.raw.selected[0]!);
     if (asset === undefined) {
         console.error("Attempt to rename unknown file");
         return close();
@@ -43,16 +45,16 @@ async function rename(): Promise<void> {
         t("assetManager.AssetContextMenu.renaming_NAME", { name: asset.name }),
     );
     if (name !== undefined) {
-        assetStore.renameAsset(asset.id, name);
+        assetSystem.renameAsset(asset.id, name);
     }
     close();
 }
 
 async function remove(): Promise<void> {
-    if (assetStore.state.selected.length === 0) return;
+    if (assetState.raw.selected.length === 0) return;
     const result = await modals.confirm(t("assetManager.AssetContextMenu.ask_remove"));
     if (result === true) {
-        assetStore.removeSelection();
+        assetSystem.removeSelection();
     }
     close();
 }

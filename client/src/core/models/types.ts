@@ -11,13 +11,6 @@ export interface AssetFile {
     hash: string;
 }
 
-export interface Asset {
-    id: number;
-    name: string;
-    file_hash?: string;
-    children?: Asset[];
-}
-
 export enum SyncMode {
     NO_SYNC,
     TEMP_SYNC,

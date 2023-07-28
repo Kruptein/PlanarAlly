@@ -102,14 +102,14 @@ const showSvgSection = computed(() => gameState.reactive.isDm && activeShapeStor
 
 async function uploadSvg(): Promise<void> {
     const asset = await modals.assetPicker();
-    if (asset === undefined || asset.file_hash === undefined) return;
+    if (asset === undefined || asset.fileHash === undefined) return;
 
     const shape = getShape(activeShapeStore.state.id!);
     if (shape === undefined) return;
     if (shape.options === undefined) {
         shape.options = {};
     }
-    await activeShapeStore.setSvgAsset(asset.file_hash, SERVER_SYNC);
+    await activeShapeStore.setSvgAsset(asset.fileHash, SERVER_SYNC);
 }
 
 async function removeSvg(): Promise<void> {

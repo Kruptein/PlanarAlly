@@ -1,9 +1,12 @@
+import type { ApiAsset } from "../apiTypes";
 import { baseAdjust } from "../core/http";
-import type { Asset } from "../core/models/types";
 import { socketManager } from "../core/socket";
 import { router } from "../router";
 
-import { assetStore } from "./state";
+import type { AssetId } from "./models";
+import { assetState } from "./state";
+
+import { assetSystem } from ".";
 
 export const socket = socketManager.socket("/pa_assetmgmt");
 
@@ -11,7 +14,7 @@ let disConnected = false;
 
 socket.on("connect", () => {
     console.log("[Assets] connected");
-    if (disConnected) socket.emit("Folder.Get", assetStore.currentFolder.value);
+    if (disConnected) socket.emit("Folder.Get", assetState.currentFolder.value);
 });
 
 socket.on("disconnect", () => {
@@ -24,29 +27,29 @@ socket.on("redirect", (destination: string) => {
     window.location.href = destination;
 });
 
-socket.on("Folder.Root.Set", (root: number) => {
-    assetStore.setRoot(root);
+socket.on("Folder.Root.Set", (root: AssetId) => {
+    assetSystem.setRoot(root);
 });
 
-socket.on("Folder.Set", async (data: { folder: Asset; path?: number[] }) => {
-    assetStore.clear();
-    assetStore.setFolderData(data.folder.id, data.folder);
-    if (!assetStore.state.modalActive) {
-        if (data.path) assetStore.setPath(data.path);
-        const path = `/assets${assetStore.currentFilePath.value}/`;
+socket.on("Folder.Set", async (data: { folder: ApiAsset; path?: AssetId[] }) => {
+    assetSystem.clear();
+    assetSystem.setFolderData(data.folder.id, data.folder);
+    if (!assetState.readonly.modalActive) {
+        if (data.path) assetSystem.setPath(data.path);
+        const path = `/assets${assetState.currentFilePath.value}/`;
         if (path !== router.currentRoute.value.path) {
             await router.push({ path });
         }
     }
 });
 
-socket.on("Folder.Create", (data: { asset: Asset; parent: number }) => {
-    assetStore.addAsset(data.asset, data.parent);
+socket.on("Folder.Create", (data: { asset: ApiAsset; parent: AssetId }) => {
+    assetSystem.addAsset(data.asset, data.parent);
 });
 
-socket.on("Asset.Upload.Finish", (data: { asset: Asset; parent: number }) => {
-    assetStore.addAsset(data.asset, data.parent);
-    assetStore.resolveUpload(data.asset.name);
+socket.on("Asset.Upload.Finish", (data: { asset: ApiAsset; parent: AssetId }) => {
+    assetSystem.addAsset(data.asset, data.parent);
+    assetSystem.resolveUpload(data.asset.name);
 });
 
 socket.on("Asset.Export.Finish", (uuid: string) => {
@@ -54,6 +57,6 @@ socket.on("Asset.Export.Finish", (uuid: string) => {
 });
 
 socket.on("Asset.Import.Finish", (name: string) => {
-    assetStore.resolveUpload(name);
-    socket.emit("Folder.Get", assetStore.currentFolder.value);
+    assetSystem.resolveUpload(name);
+    socket.emit("Folder.Get", assetState.currentFolder.value);
 });

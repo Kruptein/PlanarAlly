@@ -2,10 +2,9 @@ import json
 from typing import Any, Dict, List, Optional, Union, cast
 
 from peewee import ForeignKeyField, TextField
-from playhouse.shortcuts import model_to_dict
 from typing_extensions import Self, TypedDict
 
-from ...api.socket.asset_manager.types import AssetDict
+from ...api.models.asset import ApiAsset
 from ..base import BaseDbModel
 from .user import User
 
@@ -25,6 +24,7 @@ AssetStructure = Union[FileStructure, Dict[str, "AssetStructure"]]
 
 class Asset(BaseDbModel):
     id: int
+    parent_id: int
 
     owner = ForeignKeyField(User, backref="assets", on_delete="CASCADE")
     parent = cast(
@@ -44,18 +44,23 @@ class Asset(BaseDbModel):
     def set_options(self, options: Dict[str, Any]) -> None:
         self.options = json.dumps([[k, v] for k, v in options.items()])
 
-    def as_dict(self, children=False, recursive=False):
-        asset = cast(
-            AssetDict, model_to_dict(self, exclude=[Asset.owner, Asset.parent])
-        )
+    def as_pydantic(self, children=False, recursive=False):
+        pydantic_children = [] if children else None
+
         if children:
-            asset["children"] = [
-                child.as_dict(children=children and recursive, recursive=recursive)
+            pydantic_children = [
+                child.as_pydantic(children=children and recursive, recursive=recursive)
                 for child in Asset.select().where(
                     (Asset.owner == self.owner) & (Asset.parent == self)
                 )
             ]
-        return asset
+
+        return ApiAsset(
+            id=self.id,
+            name=self.name,
+            fileHash=self.file_hash,
+            children=pydantic_children,
+        )
 
     def get_child(self, name: str) -> "Asset":
         return Asset.get(

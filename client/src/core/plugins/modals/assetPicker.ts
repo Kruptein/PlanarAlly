@@ -1,10 +1,10 @@
 import { readonly, reactive, toRefs } from "vue";
 import type { DeepReadonly, Ref } from "vue";
 
-import { assetStore } from "../../../assetManager/state";
-import type { Asset } from "../../models/types";
+import type { ApiAsset } from "../../../apiTypes";
+import { assetState } from "../../../assetManager/state";
 
-export type AssetPickerFunction = () => Promise<DeepReadonly<Asset> | undefined>;
+export type AssetPickerFunction = () => Promise<DeepReadonly<ApiAsset> | undefined>;
 
 export interface AssetPickerModal {
     visible: DeepReadonly<Ref<boolean>>;
@@ -18,19 +18,21 @@ export function useAssetPicker(): AssetPickerModal {
         visible: false,
     });
 
-    let resolve: (inode: DeepReadonly<Asset> | undefined) => void = (_inode: DeepReadonly<Asset> | undefined) => {};
+    let resolve: (inode: DeepReadonly<ApiAsset> | undefined) => void = (
+        _inode: DeepReadonly<ApiAsset> | undefined,
+    ) => {};
 
-    async function show(): Promise<DeepReadonly<Asset> | undefined> {
+    async function show(): Promise<DeepReadonly<ApiAsset> | undefined> {
         data.visible = true;
         return new Promise((res) => (resolve = res));
     }
 
     function submit(): void {
-        const selected = assetStore.state.selected;
+        const selected = assetState.raw.selected;
         if (selected.length !== 1) {
             resolve(undefined);
         } else {
-            const asset = assetStore.state.idMap.get(selected[0]!);
+            const asset = assetState.raw.idMap.get(selected[0]!);
             resolve(asset);
         }
         data.visible = false;

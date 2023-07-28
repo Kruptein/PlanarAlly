@@ -1,3 +1,5 @@
+#  Has to appear before Asset due to DeferredForeignKey
+from .models.asset_share import AssetShare  # isort: skip
 from .models.asset import Asset
 from .models.asset_rect import AssetRect
 from .models.aura import Aura
@@ -41,6 +43,7 @@ from .signals import *  # noqa: F403
 ALL_MODELS = [
     AssetRect,
     Asset,
+    AssetShare,
     Aura,
     BaseRect,
     Character,

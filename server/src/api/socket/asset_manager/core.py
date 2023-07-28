@@ -22,6 +22,7 @@ from ....db.models.user import User
 from ....logs import logger
 from ....state.asset import asset_state
 from ....state.game import game_state
+from ....transform.to_api.asset import transform_asset
 from ....utils import ASSETS_DIR, TEMP_DIR
 from ...models.asset import (
     ApiAsset,
@@ -79,14 +80,24 @@ async def get_folder(sid: str, folder: int | None = None):
     else:
         asset = Asset.get_by_id(folder)
 
-    if asset.owner != user:
+    if asset.can_be_accessed_by(user):
+        shared_parent = None
+        if sp := asset.get_shared_parent(user):
+            shared_parent = transform_asset(sp.asset, user)
+
+        await sio.emit(
+            "Folder.Set",
+            ApiAssetFolder(
+                folder=transform_asset(asset, user, children=True),
+                sharedParent=shared_parent,
+                sharedRight=None if sp is None else sp.right,
+                path=None,
+            ),
+            room=sid,
+            namespace=ASSET_NS,
+        )
+    else:
         raise web.HTTPForbidden()
-    await sio.emit(
-        "Folder.Set",
-        ApiAssetFolder(folder=asset.as_pydantic(children=True), path=None),
-        room=sid,
-        namespace=ASSET_NS,
-    )
 
 
 @sio.on("Folder.GetByPath", namespace=ASSET_NS)
@@ -101,15 +112,23 @@ async def get_folder_by_path(sid: str, folder: str):
 
     if folder:
         for path in folder.split("/"):
-            try:
-                target_folder = target_folder.get_child(path)
+            if target_folder := target_folder.get_child(path):
                 id_path.append(target_folder.id)
-            except Asset.DoesNotExist:
+            else:
                 return await get_folder_by_path(sid, "/")
+
+    shared_parent = None
+    if sp := target_folder.get_shared_parent(user):
+        shared_parent = transform_asset(sp.asset, user)
 
     await sio.emit(
         "Folder.Set",
-        ApiAssetFolder(folder=target_folder.as_pydantic(children=True), path=None),
+        ApiAssetFolder(
+            folder=transform_asset(target_folder, user, children=True),
+            path=id_path,
+            sharedParent=shared_parent,
+            sharedRight=None if sp is None else sp.right,
+        ),
         room=sid,
         namespace=ASSET_NS,
     )
@@ -125,7 +144,7 @@ async def create_folder(sid: str, data):
     asset = Asset.create(name=data["name"], owner=user, parent=parent)
     await sio.emit(
         "Folder.Create",
-        {"asset": asset.as_pydantic(), "parent": parent},
+        {"asset": transform_asset(asset, user), "parent": parent},
         room=sid,
         namespace=ASSET_NS,
     )
@@ -140,11 +159,19 @@ async def move_inode(sid: str, raw_data: Any):
     user = asset_state.get_user(sid)
 
     asset = Asset.get_by_id(data.inode)
-    if asset.owner != user:
-        logger.warning(f"{user.name} attempted to move files it doesn't own.")
-        return
-    asset.parent_id = data.target
-    asset.save()
+    if asset.owner == user:
+        asset.parent_id = data.target
+        asset.save()
+    else:
+        for share in asset.shares:
+            if share.user == user:
+                share.parent_id = data.target
+                share.save()
+                break
+        else:
+            logger.warning(f"{user.name} attempted to move files it doesn't own.")
+            return
+
     await update_live_game(user)
 
 
@@ -172,8 +199,7 @@ async def assetmgmt_rm(sid: str, data: int):
     if asset.owner != user:
         logger.warning(f"{user.name} attempted to remove a file it doesn't own.")
         return
-
-    asset_dict = asset.as_pydantic(children=True, recursive=True)
+    asset_dict = transform_asset(asset, user, children=True, recursive=True)
     asset.delete_instance()
 
     await update_live_game(user)
@@ -264,7 +290,7 @@ async def handle_regular_file(upload_data: ApiAssetUpload, data: bytes, sid: str
         if created:
             await sio.emit(
                 "Folder.Create",
-                {"asset": asset.as_pydantic(), "parent": target},
+                {"asset": transform_asset(asset, user), "parent": target},
                 room=sid,
                 namespace=ASSET_NS,
             )
@@ -277,7 +303,7 @@ async def handle_regular_file(upload_data: ApiAssetUpload, data: bytes, sid: str
         parent=target,
     )
 
-    asset_dict = asset.as_pydantic()
+    asset_dict = transform_asset(asset, user)
     await sio.emit(
         "Asset.Upload.Finish",
         ApiAssetUploadFinish(asset=asset_dict, parent=target),
@@ -348,8 +374,11 @@ def export_asset(asset: Union[ApiAsset, List[ApiAsset]], parent=-1) -> AssetExpo
 @sio.on("Asset.Export", namespace=ASSET_NS)
 @auth.login_required(app, sio, "asset")
 async def assetmgmt_export(sid: str, selection: List[int]):
+    user = asset_state.get_user(sid)
+
     full_selection = [
-        Asset.get_by_id(asset).as_pydantic(True, True) for asset in selection
+        transform_asset(Asset.get_by_id(asset), user, children=True, recursive=True)
+        for asset in selection
     ]
 
     asset_data = export_asset(full_selection)

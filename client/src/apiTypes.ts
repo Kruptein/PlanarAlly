@@ -19,8 +19,20 @@ export type ApiDataBlock = ApiRoomDataBlock | ApiShapeDataBlock | ApiUserDataBlo
 export interface ApiAsset {
   id: AssetId;
   name: string;
+  owner: string;
   fileHash?: string;
   children?: ApiAsset[];
+  shares: ApiAssetShare[];
+}
+export interface ApiAssetShare {
+  user: string;
+  right: "view" | "edit";
+}
+export interface ApiAssetFolder {
+  folder: ApiAsset;
+  path: AssetId[] | null;
+  sharedParent: ApiAsset | null;
+  sharedRight: "view" | "edit" | null;
 }
 export interface ApiAssetCreateFolderRequest {
   name: string;

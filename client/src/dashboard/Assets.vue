@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { trimEnd } from "lodash";
-import { onMounted, ref } from "vue";
+import { type DeepReadonly, computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from "vue-router";
 import type { RouteLocationNormalized } from "vue-router";
 
-import type { ApiAssetCreateFolderRequest } from "../apiTypes";
+import type { ApiAsset, ApiAssetCreateFolderRequest } from "../apiTypes";
 import { assetSystem } from "../assetManager";
 import AssetContextMenu from "../assetManager/AssetContext.vue";
 import { openAssetContextMenu } from "../assetManager/context";
@@ -17,6 +17,7 @@ import { baseAdjust } from "../core/http";
 import { map } from "../core/iter";
 import { useModal } from "../core/plugins/modals/plugin";
 import { ctrlOrCmdPressed } from "../core/utils";
+import { coreStore } from "../store/core";
 
 const { t } = useI18n();
 const modals = useModal();
@@ -56,6 +57,9 @@ onBeforeRouteUpdate((to: RouteLocationNormalized) => {
         loadFolder(getCurrentPath(to.path));
     }
 });
+
+const folders = computed(() => assetState.reactive.folders.map((f) => assetState.reactive.idMap.get(f)!));
+const files = computed(() => assetState.reactive.files.map((f) => assetState.reactive.idMap.get(f)!));
 
 const dragState = ref(0);
 
@@ -167,23 +171,25 @@ function leaveDrag(event: DragEvent): void {
 
 async function stopDrag(event: DragEvent, target: AssetId): Promise<void> {
     (event.target as HTMLElement).classList.remove("inode-selected");
-    if (draggingSelection) {
-        if (assetState.raw.selected.includes(target)) return;
-        if (
-            target === assetState.parentFolder.value ||
-            target === assetState.raw.root ||
-            assetState.raw.folders.includes(target)
-        ) {
-            for (const inode of assetState.raw.selected) {
-                assetSystem.moveInode(inode, target);
+    if (assetState.raw.sharedRight !== "view") {
+        if (draggingSelection) {
+            if (assetState.raw.selected.includes(target)) return;
+            if (
+                target === assetState.parentFolder.value ||
+                target === assetState.raw.root ||
+                assetState.raw.folders.includes(target)
+            ) {
+                for (const inode of assetState.raw.selected) {
+                    assetSystem.moveInode(inode, target);
+                }
             }
+            assetSystem.clearSelected();
+        } else if (event.dataTransfer && event.dataTransfer.items.length > 0) {
+            await parseDirectoryUpload(
+                map(event.dataTransfer.items, (i) => i.webkitGetAsEntry()),
+                target,
+            );
         }
-        assetSystem.clearSelected();
-    } else if (event.dataTransfer && event.dataTransfer.items.length > 0) {
-        await parseDirectoryUpload(
-            map(event.dataTransfer.items, (i) => i.webkitGetAsEntry()),
-            target,
-        );
     }
     draggingSelection = false;
     dragState.value = 0;
@@ -204,6 +210,12 @@ async function deleteSelection(): Promise<void> {
     if (result === true) {
         assetSystem.removeSelection();
     }
+}
+
+function isShared(asset: DeepReadonly<ApiAsset>): boolean {
+    return (
+        asset.shares.length > 0 || (asset.owner !== coreStore.state.username && assetState.raw.sharedParent === null)
+    );
 }
 </script>
 
@@ -239,6 +251,9 @@ async function deleteSelection(): Promise<void> {
                 {{ showIdName(dir) }}
             </div>
         </div>
+        <div v-if="assetState.reactive.sharedParent" id="infobar">
+            You are browsing files that are part of a shared folder with you
+        </div>
         <div id="assets" :class="{ dropzone: dragState > 0 }" @dragover.prevent @drop.prevent.stop="onDrop">
             <div
                 v-if="assetState.raw.folderPath.length && assetState.parentFolder.value"
@@ -253,42 +268,44 @@ async function deleteSelection(): Promise<void> {
                 <div class="title">..</div>
             </div>
             <div
-                v-for="key in assetState.reactive.folders"
-                :key="key"
+                v-for="folder of folders"
+                :key="folder.id"
                 class="inode folder"
-                draggable="true"
+                :draggable="assetState.reactive.sharedRight !== 'view'"
                 :class="{
-                    'inode-selected': assetState.reactive.selected.includes(key),
+                    'inode-selected': assetState.reactive.selected.includes(folder.id),
                     'inode-not-selected':
-                        assetState.reactive.selected.length > 0 && !assetState.reactive.selected.includes(key),
+                        assetState.reactive.selected.length > 0 && !assetState.reactive.selected.includes(folder.id),
                 }"
-                @click.stop="select($event, key)"
-                @dblclick="changeDirectory(key)"
-                @contextmenu.prevent="openContextMenu($event, key)"
-                @dragstart="startDrag($event, key)"
+                @click.stop="select($event, folder.id)"
+                @dblclick="changeDirectory(folder.id)"
+                @contextmenu.prevent="openContextMenu($event, folder.id)"
+                @dragstart="startDrag($event, folder.id)"
                 @dragover.prevent="moveDrag"
                 @dragleave.prevent="leaveDrag"
-                @drop.prevent.stop="stopDrag($event, key)"
+                @drop.prevent.stop="stopDrag($event, folder.id)"
             >
+                <font-awesome-icon v-if="isShared(folder)" icon="user-tag" class="asset-link" />
                 <font-awesome-icon icon="folder" style="font-size: 12.5em" />
-                <div class="title">{{ showIdName(key) }}</div>
+                <div class="title">{{ folder.name }}</div>
             </div>
             <div
-                v-for="file in assetState.reactive.files"
-                :key="file"
+                v-for="file of files"
+                :key="file.id"
                 class="inode file"
-                draggable="true"
+                :draggable="assetState.reactive.sharedRight !== 'view'"
                 :class="{
-                    'inode-selected': assetState.reactive.selected.includes(file),
+                    'inode-selected': assetState.reactive.selected.includes(file.id),
                     'inode-not-selected':
-                        assetState.reactive.selected.length > 0 && !assetState.reactive.selected.includes(file),
+                        assetState.reactive.selected.length > 0 && !assetState.reactive.selected.includes(file.id),
                 }"
-                @click.stop="select($event, file)"
-                @contextmenu.prevent="openContextMenu($event, file)"
-                @dragstart="startDrag($event, file)"
+                @click.stop="select($event, file.id)"
+                @contextmenu.prevent="openContextMenu($event, file.id)"
+                @dragstart="startDrag($event, file.id)"
             >
-                <img :src="getIdImageSrc(file)" width="50" alt="" />
-                <div class="title">{{ showIdName(file) }}</div>
+                <font-awesome-icon v-if="isShared(file)" icon="user-tag" class="asset-link" />
+                <img :src="getIdImageSrc(file.id)" width="50" alt="" />
+                <div class="title">{{ file.name }}</div>
             </div>
         </div>
         <div
@@ -379,6 +396,12 @@ async function deleteSelection(): Promise<void> {
         }
     }
 
+    #infobar {
+        background: rgba(219, 0, 59, 1);
+        border-radius: 1rem;
+        padding: 1rem;
+    }
+
     #assets {
         display: grid;
         grid-template-columns: repeat(auto-fit, 12.5em);
@@ -391,6 +414,8 @@ async function deleteSelection(): Promise<void> {
 
         // border: solid 2px transparent;
         border: 5px dotted transparent;
+
+        user-select: none;
 
         &.dropzone {
             border-color: #ffa8bf;
@@ -419,6 +444,19 @@ async function deleteSelection(): Promise<void> {
             > .title {
                 font-size: 1.5em;
                 word-break: break-all;
+            }
+
+            > .asset-link {
+                font-size: 2em;
+                position: absolute;
+                left: 0.25rem;
+                top: 0.25rem;
+                color: white;
+
+                :deep(> path) {
+                    stroke: black;
+                    stroke-width: 1.5rem;
+                }
             }
         }
 

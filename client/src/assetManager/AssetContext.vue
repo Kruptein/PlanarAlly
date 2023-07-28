@@ -4,8 +4,10 @@ import { useI18n } from "vue-i18n";
 
 import ContextMenu from "../core/components/ContextMenu.vue";
 import { useModal } from "../core/plugins/modals/plugin";
+import { coreStore } from "../store/core";
 
 import { assetContextLeft, assetContextTop, showAssetContextMenu } from "./context";
+import { socket } from "./socket";
 import { assetState } from "./state";
 
 import { assetSystem } from ".";
@@ -50,6 +52,25 @@ async function rename(): Promise<void> {
     close();
 }
 
+async function share(): Promise<void> {
+    if (assetState.raw.selected.length !== 1) return;
+    const name = await modals.prompt("Who?", "Yes");
+    const asset = assetState.raw.selected[0]!;
+    socket.emit(
+        "Asset.Share",
+        { right: "view", user: name, asset },
+        (response: { success: true } | { success: false; reason: string }) => {
+            if (response.success) {
+                assetState.mutableReactive.idMap.get(asset)!.shares = [
+                    { user: coreStore.state.username, right: "view" },
+                ];
+            } else {
+                console.warn(response.reason);
+            }
+        },
+    );
+}
+
 async function remove(): Promise<void> {
     if (assetState.raw.selected.length === 0) return;
     const result = await modals.confirm(t("assetManager.AssetContextMenu.ask_remove"));
@@ -69,6 +90,7 @@ async function remove(): Promise<void> {
         @cm:close="close"
     >
         <li @click="rename">{{ t("common.rename") }}</li>
+        <li @click="share">Share</li>
         <li @click="remove">{{ t("common.remove") }}</li>
     </ContextMenu>
 </template>

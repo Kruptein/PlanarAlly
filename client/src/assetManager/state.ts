@@ -13,6 +13,9 @@ interface ReactiveAssetState {
     selected: AssetId[];
     folderPath: AssetId[];
 
+    sharedParent: ApiAsset | null;
+    sharedRight: "edit" | "view" | null;
+
     pendingUploads: string[];
     expectedUploads: number;
     resolvedUploads: number;
@@ -30,6 +33,9 @@ const state = buildState<ReactiveAssetState, NonReactiveAssetState>(
         idMap: new Map(),
         selected: [],
         folderPath: [],
+
+        sharedParent: null,
+        sharedRight: null,
 
         pendingUploads: [],
         expectedUploads: 0,

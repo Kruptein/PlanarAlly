@@ -4,8 +4,9 @@ from typing import Any, Dict, List, Optional, Union, cast
 from peewee import ForeignKeyField, TextField
 from typing_extensions import Self, TypedDict
 
-from ...api.models.asset import ApiAsset
 from ..base import BaseDbModel
+from ..typed import SelectSequence
+from .asset_share import AssetShare
 from .user import User
 
 
@@ -25,6 +26,7 @@ AssetStructure = Union[FileStructure, Dict[str, "AssetStructure"]]
 class Asset(BaseDbModel):
     id: int
     parent_id: int
+    shares: SelectSequence["AssetShare"]
 
     owner = ForeignKeyField(User, backref="assets", on_delete="CASCADE")
     parent = cast(
@@ -44,28 +46,33 @@ class Asset(BaseDbModel):
     def set_options(self, options: Dict[str, Any]) -> None:
         self.options = json.dumps([[k, v] for k, v in options.items()])
 
-    def as_pydantic(self, children=False, recursive=False):
-        pydantic_children = [] if children else None
-
-        if children:
-            pydantic_children = [
-                child.as_pydantic(children=children and recursive, recursive=recursive)
-                for child in Asset.select().where(
-                    (Asset.owner == self.owner) & (Asset.parent == self)
-                )
-            ]
-
-        return ApiAsset(
-            id=self.id,
-            name=self.name,
-            fileHash=self.file_hash,
-            children=pydantic_children,
-        )
-
-    def get_child(self, name: str) -> "Asset":
-        return Asset.get(
+    def get_child(self, name: str) -> Self | None:
+        asset = Asset.get_or_none(
             (Asset.owner == self.owner) & (Asset.parent == self) & (Asset.name == name)
         )
+        if not asset:
+            if share := AssetShare.get_or_none(user=self.owner, name=name, parent=self):
+                asset = share.asset
+        return asset
+
+    def can_be_accessed_by(self, user: User) -> bool:
+        asset = self
+        while asset is not None:
+            if asset.owner == user:
+                return True
+            if any(share.user == user for share in asset.shares):
+                return True
+            asset = asset.parent
+        return False
+
+    def get_shared_parent(self, user: User) -> AssetShare | None:
+        asset = self
+        while asset is not None:
+            for share in asset.shares:
+                if share.user == user:
+                    return share
+            asset = asset.parent
+        return None
 
     @classmethod
     def get_root_folder(cls, user) -> Self:

@@ -1,4 +1,5 @@
-import { assetStore } from "../assetManager/state";
+import { assetSystem } from "../assetManager";
+import { assetState } from "../assetManager/state";
 import { clampGridLine, l2gx, l2gy, l2gz } from "../core/conversions";
 import { type GlobalPoint, toGP, Vector } from "../core/geometry";
 import { baseAdjust } from "../core/http";
@@ -28,11 +29,11 @@ export async function handleDropEvent(event: DragEvent): Promise<void> {
     const location = toGP(l2gx(event.clientX), l2gy(event.clientY));
 
     // temp hack to prevent redirection
-    assetStore.setModalActive(true);
+    assetState.mutable.modalActive = true;
 
     // External files are dropped
     if (event.dataTransfer.files.length > 0) {
-        for (const asset of await assetStore.upload(event.dataTransfer.files, { target: "root" })) {
+        for (const asset of await assetSystem.upload(event.dataTransfer.files, { target: "root" })) {
             if (asset.file_hash !== undefined)
                 await dropHelper({ assetHash: asset.file_hash, assetId: asset.id }, location);
         }
@@ -48,7 +49,7 @@ export async function handleDropEvent(event: DragEvent): Promise<void> {
         await dropHelper(assetInfo, location);
     }
 
-    assetStore.setModalActive(false);
+    assetState.mutable.modalActive = false;
 }
 
 async function dropHelper(

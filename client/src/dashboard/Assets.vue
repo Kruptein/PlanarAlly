@@ -4,10 +4,12 @@ import { useI18n } from "vue-i18n";
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from "vue-router";
 import type { RouteLocationNormalized } from "vue-router";
 
+import { assetSystem } from "../assetManager";
 import AssetContextMenu from "../assetManager/AssetContext.vue";
 import { openAssetContextMenu } from "../assetManager/context";
+import type { AssetId } from "../assetManager/models";
 import { socket } from "../assetManager/socket";
-import { assetStore } from "../assetManager/state";
+import { assetState } from "../assetManager/state";
 import { changeDirectory, getIdImageSrc, showIdName } from "../assetManager/utils";
 import { baseAdjust } from "../core/http";
 import { map } from "../core/iter";
@@ -18,9 +20,7 @@ const { t } = useI18n();
 const modals = useModal();
 const route = useRoute();
 
-const state = assetStore.state;
 const body = document.getElementsByTagName("body")[0];
-const parentFolder = assetStore.parentFolder;
 
 const activeSelectionUrl = `url(${baseAdjust("/static/img/assetmanager/active_selection.png")})`;
 const emptySelectionUrl = `url(${baseAdjust("/static/img/assetmanager/empty_selection.png")})`;
@@ -50,7 +50,7 @@ onBeforeRouteLeave(() => {
 });
 
 onBeforeRouteUpdate((to: RouteLocationNormalized) => {
-    if (getCurrentPath(to.path) !== assetStore.currentFilePath.value) {
+    if (getCurrentPath(to.path) !== assetState.currentFilePath.value) {
         loadFolder(getCurrentPath(to.path));
     }
 });
@@ -68,16 +68,17 @@ function hideDropZone(): void {
 async function createDirectory(): Promise<void> {
     const name = await modals.prompt(t("assetManager.AssetManager.new_folder_name"), "?");
     if (name !== undefined) {
-        socket.emit("Folder.Create", { name, parent: assetStore.currentFolder.value });
+        socket.emit("Folder.Create", { name, parent: assetState.currentFolder.value });
     }
 }
 
 async function onDrop(event: DragEvent): Promise<void> {
     hideDropZone();
-    if (event.dataTransfer && event.dataTransfer.items.length > 0) {
+    const currentFolder = assetState.currentFolder.value;
+    if (currentFolder && event.dataTransfer && event.dataTransfer.items.length > 0) {
         await parseDirectoryUpload(
             map(event.dataTransfer.items, (i) => i.webkitGetAsEntry()),
-            assetStore.currentFolder.value,
+            currentFolder,
         );
     }
 }
@@ -88,7 +89,7 @@ function fsToFile(fl: FileSystemFileEntry): Promise<File> {
 
 async function parseDirectoryUpload(
     fileSystemEntries: Iterable<FileSystemEntry | null>,
-    target: number,
+    target: AssetId,
     newDirectories: string[] = [],
 ): Promise<void> {
     const files: FileSystemFileEntry[] = [];
@@ -106,25 +107,25 @@ async function parseDirectoryUpload(
     }
     if (files.length > 0) {
         const fileList = await Promise.all(files.map((f) => fsToFile(f)));
-        await assetStore.upload(fileList as unknown as FileList, { target, newDirectories });
+        await assetSystem.upload(fileList as unknown as FileList, { target, newDirectories });
     }
 }
 
-function select(event: MouseEvent, inode: number): void {
-    if (event.shiftKey && state.selected.length > 0) {
-        const inodes = [...state.folders, ...state.files];
-        const start = inodes.indexOf(state.selected.at(-1)!);
+function select(event: MouseEvent, inode: AssetId): void {
+    if (event.shiftKey && assetState.raw.selected.length > 0) {
+        const inodes = [...assetState.raw.folders, ...assetState.raw.files];
+        const start = inodes.indexOf(assetState.raw.selected.at(-1)!);
         const end = inodes.indexOf(inode);
         for (let i = start; i !== end; start < end ? i++ : i--) {
             if (i === start) continue;
-            assetStore.addSelectedInode(inodes[i]!);
+            assetSystem.addSelectedInode(inodes[i]!);
         }
-        assetStore.addSelectedInode(inodes[end]!);
+        assetSystem.addSelectedInode(inodes[end]!);
     } else {
         if (!ctrlOrCmdPressed(event)) {
-            assetStore.clearSelected();
+            assetSystem.clearSelected();
         }
-        assetStore.addSelectedInode(inode);
+        assetSystem.addSelectedInode(inode);
     }
 }
 
@@ -132,22 +133,22 @@ function emptySelection(event: MouseEvent): void {
     // When shift or ctrl is pressed you are probably doing a selection operation,
     // but just misclicked. We don't want this to clear the selection on accident.
     if (event.shiftKey || ctrlOrCmdPressed(event)) return;
-    assetStore.clearSelected();
+    assetSystem.clearSelected();
 }
 
-function openContextMenu(event: MouseEvent, key: number): void {
-    assetStore.clearSelected();
-    assetStore.addSelectedInode(key);
+function openContextMenu(event: MouseEvent, key: AssetId): void {
+    assetSystem.clearSelected();
+    assetSystem.addSelectedInode(key);
     openAssetContextMenu(event);
 }
 
 let draggingSelection = false;
 
-function startDrag(event: DragEvent, file: number): void {
+function startDrag(event: DragEvent, file: AssetId): void {
     if (event.dataTransfer === null) return;
     event.dataTransfer.setData("Hack", "ittyHack");
     event.dataTransfer.dropEffect = "move";
-    if (!state.selected.includes(file)) assetStore.addSelectedInode(file);
+    if (!assetState.raw.selected.includes(file)) assetSystem.addSelectedInode(file);
     draggingSelection = true;
 }
 
@@ -162,16 +163,20 @@ function leaveDrag(event: DragEvent): void {
         (event.target as HTMLElement).classList.remove("inode-selected");
 }
 
-async function stopDrag(event: DragEvent, target: number): Promise<void> {
+async function stopDrag(event: DragEvent, target: AssetId): Promise<void> {
     (event.target as HTMLElement).classList.remove("inode-selected");
     if (draggingSelection) {
-        if (state.selected.includes(target)) return;
-        if (target === parentFolder.value || target === state.root || state.folders.includes(target)) {
-            for (const inode of state.selected) {
-                assetStore.moveInode(inode, target);
+        if (assetState.raw.selected.includes(target)) return;
+        if (
+            target === assetState.parentFolder.value ||
+            target === assetState.raw.root ||
+            assetState.raw.folders.includes(target)
+        ) {
+            for (const inode of assetState.raw.selected) {
+                assetSystem.moveInode(inode, target);
             }
         }
-        assetStore.clearSelected();
+        assetSystem.clearSelected();
     } else if (event.dataTransfer && event.dataTransfer.items.length > 0) {
         await parseDirectoryUpload(
             map(event.dataTransfer.items, (i) => i.webkitGetAsEntry()),
@@ -188,14 +193,14 @@ function prepareUpload(): void {
 
 const upload = async (): Promise<void> => {
     const files = (document.getElementById("files") as HTMLInputElement).files;
-    if (files !== null) await assetStore.upload(files);
+    if (files !== null) await assetSystem.upload(files);
 };
 
 async function deleteSelection(): Promise<void> {
-    if (assetStore.state.selected.length === 0) return;
+    if (assetState.raw.selected.length === 0) return;
     const result = await modals.confirm(t("assetManager.AssetContextMenu.ask_remove"));
     if (result === true) {
-        assetStore.removeSelection();
+        assetSystem.removeSelection();
     }
 }
 </script>
@@ -227,30 +232,33 @@ async function deleteSelection(): Promise<void> {
             </div>
         </div>
         <div id="path">
-            <div @click="changeDirectory(state.root)">/</div>
-            <div v-for="dir in state.folderPath" :key="dir" @click="changeDirectory(dir)">{{ showIdName(dir) }}</div>
+            <div @click="changeDirectory(assetState.raw.root ?? 'POP')">/</div>
+            <div v-for="dir in assetState.reactive.folderPath" :key="dir" @click="changeDirectory(dir)">
+                {{ showIdName(dir) }}
+            </div>
         </div>
         <div id="assets" :class="{ dropzone: dragState > 0 }" @dragover.prevent @drop.prevent.stop="onDrop">
             <div
-                v-if="state.folderPath.length"
+                v-if="assetState.parentFolder.value"
                 class="inode folder"
-                @dblclick="changeDirectory(-1)"
+                @dblclick="changeDirectory('POP')"
                 @dragover.prevent="moveDrag"
                 @dragleave.prevent="leaveDrag"
-                @drop.prevent.stop="stopDrag($event, parentFolder)"
+                @drop.prevent.stop="stopDrag($event, assetState.parentFolder.value)"
                 @mousedown.prevent
             >
                 <font-awesome-icon icon="folder" style="font-size: 12.5em" />
                 <div class="title">..</div>
             </div>
             <div
-                v-for="key in state.folders"
+                v-for="key in assetState.reactive.folders"
                 :key="key"
                 class="inode folder"
                 draggable="true"
                 :class="{
-                    'inode-selected': state.selected.includes(key),
-                    'inode-not-selected': state.selected.length > 0 && !state.selected.includes(key),
+                    'inode-selected': assetState.reactive.selected.includes(key),
+                    'inode-not-selected':
+                        assetState.reactive.selected.length > 0 && !assetState.reactive.selected.includes(key),
                 }"
                 @click.stop="select($event, key)"
                 @dblclick="changeDirectory(key)"
@@ -264,13 +272,14 @@ async function deleteSelection(): Promise<void> {
                 <div class="title">{{ showIdName(key) }}</div>
             </div>
             <div
-                v-for="file in state.files"
+                v-for="file in assetState.reactive.files"
                 :key="file"
                 class="inode file"
                 draggable="true"
                 :class="{
-                    'inode-selected': state.selected.includes(file),
-                    'inode-not-selected': state.selected.length > 0 && !state.selected.includes(file),
+                    'inode-selected': assetState.reactive.selected.includes(file),
+                    'inode-not-selected':
+                        assetState.reactive.selected.length > 0 && !assetState.reactive.selected.includes(file),
                 }"
                 @click.stop="select($event, file)"
                 @contextmenu.prevent="openContextMenu($event, file)"
@@ -280,13 +289,23 @@ async function deleteSelection(): Promise<void> {
                 <div class="title">{{ showIdName(file) }}</div>
             </div>
         </div>
-        <div v-show="state.expectedUploads > 0 && state.expectedUploads !== state.resolvedUploads" id="progressbar">
+        <div
+            v-show="
+                assetState.reactive.expectedUploads > 0 &&
+                assetState.reactive.expectedUploads !== assetState.reactive.resolvedUploads
+            "
+            id="progressbar"
+        >
             <div id="progressbar-label">
-                {{ t("assetManager.AssetManager.uploading") }} {{ state.resolvedUploads }} /
-                {{ state.expectedUploads }}
+                {{ t("assetManager.AssetManager.uploading") }} {{ assetState.reactive.resolvedUploads }} /
+                {{ assetState.reactive.expectedUploads }}
             </div>
             <div id="progressbar-meter">
-                <span :style="{ width: (state.resolvedUploads / state.expectedUploads) * 100 + '%' }"></span>
+                <span
+                    :style="{
+                        width: (assetState.reactive.resolvedUploads / assetState.reactive.expectedUploads) * 100 + '%',
+                    }"
+                ></span>
             </div>
         </div>
     </div>

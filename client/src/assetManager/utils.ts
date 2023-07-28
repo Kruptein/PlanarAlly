@@ -1,17 +1,18 @@
 import { baseAdjust } from "../core/http";
 
-import { assetStore } from "./state";
+import type { AssetId } from "./models";
+import { assetState } from "./state";
 
-const state = assetStore.state;
+import { assetSystem } from ".";
 
-export function showIdName(dir: number): string {
-    return state.idMap.get(dir)?.name ?? "";
+export function showIdName(dir: AssetId): string {
+    return assetState.raw.idMap.get(dir)?.name ?? "";
 }
 
-export function getIdImageSrc(file: number): string {
-    return baseAdjust("/static/assets/" + (state.idMap.get(file)!.file_hash ?? ""));
+export function getIdImageSrc(file: AssetId): string {
+    return baseAdjust("/static/assets/" + (assetState.raw.idMap.get(file)!.file_hash ?? ""));
 }
 
-export function changeDirectory(folder: number): void {
-    assetStore.changeDirectory(folder);
+export function changeDirectory(folder: AssetId | "POP"): void {
+    assetSystem.changeDirectory(folder);
 }

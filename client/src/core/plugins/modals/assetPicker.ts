@@ -1,7 +1,7 @@
 import { readonly, reactive, toRefs } from "vue";
 import type { DeepReadonly, Ref } from "vue";
 
-import { assetStore } from "../../../assetManager/state";
+import { assetState } from "../../../assetManager/state";
 import type { Asset } from "../../models/types";
 
 export type AssetPickerFunction = () => Promise<DeepReadonly<Asset> | undefined>;
@@ -26,11 +26,11 @@ export function useAssetPicker(): AssetPickerModal {
     }
 
     function submit(): void {
-        const selected = assetStore.state.selected;
+        const selected = assetState.raw.selected;
         if (selected.length !== 1) {
             resolve(undefined);
         } else {
-            const asset = assetStore.state.idMap.get(selected[0]!);
+            const asset = assetState.raw.idMap.get(selected[0]!);
             resolve(asset);
         }
         data.visible = false;

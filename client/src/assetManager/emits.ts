@@ -3,7 +3,7 @@ import type { ApiAssetInodeMove, ApiAssetRename } from "../apiTypes";
 import type { AssetId } from "./models";
 import { socket } from "./socket";
 
-export function wrapSocket<T>(event: string): (data: T) => void {
+function wrapSocket<T>(event: string): (data: T) => void {
     return (data: T): void => {
         socket.emit(event, data);
     };

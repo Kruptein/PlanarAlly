@@ -184,7 +184,6 @@ def clean_filehash(file_hash: str):
     if (ASSETS_DIR / file_hash).exists():
         no_assets = Asset.get_or_none(file_hash=file_hash) is None
         no_shapes = AssetRect.get_or_none(src=f"/static/assets/{file_hash}") is None
-        print(no_assets, no_shapes)
         if no_assets and no_shapes:
             logger.info(f"No asset maps to file {file_hash}, removing from server")
             (ASSETS_DIR / file_hash).unlink()

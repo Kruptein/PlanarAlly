@@ -8,7 +8,7 @@ import tempfile
 import time
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Union
+from typing import Any, Dict, List, Union
 from uuid import uuid4
 
 from aiohttp import web
@@ -22,9 +22,15 @@ from ....logs import logger
 from ....state.asset import asset_state
 from ....state.game import game_state
 from ....utils import ASSETS_DIR, TEMP_DIR
-from ...models.asset import ApiAsset
+from ...models.asset import (
+    ApiAsset,
+    ApiAssetFolder,
+    ApiAssetInodeMove,
+    ApiAssetRename,
+    ApiAssetUpload,
+    ApiAssetUploadFinish,
+)
 from ..constants import ASSET_NS, GAME_NS
-from .common import UploadData
 from .ddraft import handle_ddraft_file
 from .types import AssetDict, AssetExport
 
@@ -61,22 +67,22 @@ async def disconnect(sid):
 
 @sio.on("Folder.Get", namespace=ASSET_NS)
 @auth.login_required(app, sio, "asset")
-async def get_folder(sid: str, folder=None):
+async def get_folder(sid: str, folder: int | None = None):
     if folder is not None and folder < 0:
         return
 
     user = asset_state.get_user(sid)
 
     if folder is None:
-        folder = Asset.get_root_folder(user)
+        asset = Asset.get_root_folder(user)
     else:
-        folder = Asset.get_by_id(folder)
+        asset = Asset.get_by_id(folder)
 
-    if folder.owner != user:
+    if asset.owner != user:
         raise web.HTTPForbidden()
     await sio.emit(
         "Folder.Set",
-        {"folder": folder.as_pydantic(children=True)},
+        ApiAssetFolder(folder=asset.as_pydantic(children=True), path=None),
         room=sid,
         namespace=ASSET_NS,
     )
@@ -84,7 +90,7 @@ async def get_folder(sid: str, folder=None):
 
 @sio.on("Folder.GetByPath", namespace=ASSET_NS)
 @auth.login_required(app, sio, "asset")
-async def get_folder_by_path(sid: str, folder):
+async def get_folder_by_path(sid: str, folder: str):
     user = asset_state.get_user(sid)
 
     folder = folder.strip("/")
@@ -102,7 +108,7 @@ async def get_folder_by_path(sid: str, folder):
 
     await sio.emit(
         "Folder.Set",
-        {"folder": target_folder.as_pydantic(children=True), "path": id_path},
+        ApiAssetFolder(folder=target_folder.as_pydantic(children=True), path=None),
         room=sid,
         namespace=ASSET_NS,
     )
@@ -127,42 +133,45 @@ async def create_folder(sid: str, data):
 
 @sio.on("Inode.Move", namespace=ASSET_NS)
 @auth.login_required(app, sio, "asset")
-async def move_inode(sid: str, data):
-    user = asset_state.get_user(sid)
-    target = data.get("target", None)
-    if target is None:
-        target = Asset.get_root_folder(user)
+async def move_inode(sid: str, raw_data: Any):
+    data = ApiAssetInodeMove(**raw_data)
 
-    asset = Asset.get_by_id(data["inode"])
+    user = asset_state.get_user(sid)
+
+    asset = Asset.get_by_id(data.inode)
     if asset.owner != user:
         logger.warning(f"{user.name} attempted to move files it doesn't own.")
         return
-    asset.parent = target
+    asset.parent_id = data.target
     asset.save()
     await update_live_game(user)
 
 
 @sio.on("Asset.Rename", namespace=ASSET_NS)
 @auth.login_required(app, sio, "asset")
-async def assetmgmt_rename(sid: str, data):
+async def assetmgmt_rename(sid: str, raw_data: Any):
+    data = ApiAssetRename(**raw_data)
+
     user = asset_state.get_user(sid)
-    asset = Asset.get_by_id(data["asset"])
+    asset = Asset.get_by_id(data.asset)
     if asset.owner != user:
         logger.warning(f"{user.name} attempted to rename a file it doesn't own.")
         return
-    asset.name = data["name"]
+
+    asset.name = data.name
     asset.save()
     await update_live_game(user)
 
 
 @sio.on("Asset.Remove", namespace=ASSET_NS)
 @auth.login_required(app, sio, "asset")
-async def assetmgmt_rm(sid: str, data):
+async def assetmgmt_rm(sid: str, data: int):
     user = asset_state.get_user(sid)
     asset: Asset = Asset.get_by_id(data)
     if asset.owner != user:
         logger.warning(f"{user.name} attempted to remove a file it doesn't own.")
         return
+
     asset_dict = asset.as_pydantic(children=True, recursive=True)
     asset.delete_instance()
 
@@ -170,19 +179,21 @@ async def assetmgmt_rm(sid: str, data):
     cleanup_assets([asset_dict])
 
 
-def cleanup_assets(assets):
+def clean_filehash(file_hash: str):
+    if (ASSETS_DIR / file_hash).exists():
+        no_assets = Asset.get_or_none(file_hash=file_hash) is None
+        if no_assets:
+            logger.info(f"No asset maps to file {file_hash}, removing from server")
+            (ASSETS_DIR / file_hash).unlink()
+
+
+def cleanup_assets(assets: list[ApiAsset]):
     for asset in assets:
-        if (
-            asset["file_hash"] is not None
-            and (ASSETS_DIR / asset["file_hash"]).exists()
-        ):
-            if Asset.select().where(Asset.file_hash == asset["file_hash"]).count() == 0:
-                logger.info(
-                    f"No asset maps to file {asset['file_hash']}, removing from server"
-                )
-                (ASSETS_DIR / asset["file_hash"]).unlink()
-        if "children" in asset:
-            cleanup_assets(asset["children"])
+        if asset.fileHash:
+            clean_filehash(asset.fileHash)
+
+        if asset.children:
+            cleanup_assets(asset.children)
 
 
 def get_safe_members(members: List[tarfile.TarInfo]) -> List[tarfile.TarInfo]:
@@ -199,7 +210,7 @@ def get_safe_members(members: List[tarfile.TarInfo]) -> List[tarfile.TarInfo]:
     return safe_members
 
 
-async def handle_paa_file(upload_data: UploadData, data: bytes, sid: str):
+async def handle_paa_file(upload_data: ApiAssetUpload, data: bytes, sid: str):
     with tempfile.TemporaryDirectory() as tmpdir:
         with tarfile.open(fileobj=io.BytesIO(data), mode="r:bz2") as tar:
             files = tarfile.TarInfo("files")
@@ -217,7 +228,7 @@ async def handle_paa_file(upload_data: UploadData, data: bytes, sid: str):
             raw_assets: list[AssetDict] = json.load(json_data)
 
     user = asset_state.get_user(sid)
-    parent_map: Dict[int, int] = defaultdict(lambda: upload_data["directory"])
+    parent_map: Dict[int, int] = defaultdict(lambda: upload_data.directory)
 
     for raw_asset in raw_assets:
         new_asset = Asset.create(
@@ -230,11 +241,11 @@ async def handle_paa_file(upload_data: UploadData, data: bytes, sid: str):
         parent_map[raw_asset["id"]] = new_asset.id
 
     await sio.emit(
-        "Asset.Import.Finish", upload_data["name"], room=sid, namespace=ASSET_NS
+        "Asset.Import.Finish", upload_data.name, room=sid, namespace=ASSET_NS
     )
 
 
-async def handle_regular_file(upload_data: UploadData, data: bytes, sid: str):
+async def handle_regular_file(upload_data: ApiAssetUpload, data: bytes, sid: str):
     sh = hashlib.sha1(data)
     hashname = sh.hexdigest()
 
@@ -244,9 +255,9 @@ async def handle_regular_file(upload_data: UploadData, data: bytes, sid: str):
 
     user = asset_state.get_user(sid)
 
-    target = upload_data["directory"]
+    target = upload_data.directory
 
-    for directory in upload_data["newDirectories"]:
+    for directory in upload_data.newDirectories:
         asset, created = Asset.get_or_create(name=directory, owner=user, parent=target)
         if created:
             await sio.emit(
@@ -258,7 +269,7 @@ async def handle_regular_file(upload_data: UploadData, data: bytes, sid: str):
         target = asset.id
 
     asset = Asset.create(
-        name=upload_data["name"],
+        name=upload_data.name,
         file_hash=hashname,
         owner=user,
         parent=target,
@@ -267,7 +278,7 @@ async def handle_regular_file(upload_data: UploadData, data: bytes, sid: str):
     asset_dict = asset.as_pydantic()
     await sio.emit(
         "Asset.Upload.Finish",
-        {"asset": asset_dict, "parent": target},
+        ApiAssetUploadFinish(asset=asset_dict, parent=target),
         room=sid,
         namespace=ASSET_NS,
     )
@@ -276,25 +287,27 @@ async def handle_regular_file(upload_data: UploadData, data: bytes, sid: str):
 
 @sio.on("Asset.Upload", namespace=ASSET_NS)
 @auth.login_required(app, sio, "asset")
-async def assetmgmt_upload(sid: str, upload_data: UploadData):
-    uuid = upload_data["uuid"]
+async def assetmgmt_upload(sid: str, raw_data: Any):
+    upload_data = ApiAssetUpload(**raw_data)
+
+    uuid = upload_data.uuid
 
     if uuid not in asset_state.pending_file_upload_cache:
         asset_state.pending_file_upload_cache[uuid] = {}
-    asset_state.pending_file_upload_cache[uuid][upload_data["slice"]] = upload_data
-    if len(asset_state.pending_file_upload_cache[uuid]) != upload_data["totalSlices"]:
+    asset_state.pending_file_upload_cache[uuid][upload_data.slice] = upload_data
+    if len(asset_state.pending_file_upload_cache[uuid]) != upload_data.totalSlices:
         # wait for the rest of the slices
         return
 
     # All slices are present
     data = b""
-    for slice_ in range(upload_data["totalSlices"]):
-        data += asset_state.pending_file_upload_cache[uuid][slice_]["data"]
+    for slice_ in range(upload_data.totalSlices):
+        data += asset_state.pending_file_upload_cache[uuid][slice_].data
 
-    del asset_state.pending_file_upload_cache[upload_data["uuid"]]
+    del asset_state.pending_file_upload_cache[upload_data.uuid]
 
     return_data = None
-    file_name = upload_data["name"]
+    file_name = upload_data.name
     if file_name.endswith(".paa"):
         await handle_paa_file(upload_data, data, sid)
     elif file_name.endswith(".dd2vtt"):

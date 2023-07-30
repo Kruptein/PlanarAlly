@@ -1,15 +1,18 @@
-import type { ApiAsset } from "../apiTypes";
+import type { ApiAsset, ApiAssetUpload } from "../apiTypes";
 import { callbackProvider, uuidv4 } from "../core/utils";
 import { router } from "../router";
 
+import { sendAssetRemove, sendAssetRename, sendFolderGet, sendInodeMove } from "./emits";
 import type { AssetId } from "./models";
 import { socket } from "./socket";
 import { assetState } from "./state";
 
+import "./events";
+
 const { raw, mutableReactive: $ } = assetState;
 
 class AssetSystem {
-    protected rootCallback = callbackProvider();
+    rootCallback = callbackProvider();
 
     clear(): void {
         $.folders = [];
@@ -45,7 +48,7 @@ class AssetSystem {
         let targetData = $.folders;
         if (raw.files.includes(inode)) targetData = $.files;
         targetData.splice(targetData.indexOf(inode), 1);
-        socket.emit("Inode.Move", { inode, target: targetFolder });
+        sendInodeMove({ inode, target: targetFolder });
     }
 
     changeDirectory(targetFolder: AssetId | "POP"): void {
@@ -59,7 +62,8 @@ class AssetSystem {
             $.folderPath.push(targetFolder);
         }
         this.clearSelected();
-        socket.emit("Folder.Get", assetState.currentFolder.value);
+        const folder = assetState.currentFolder.value;
+        if (folder) sendFolderGet(folder);
     }
 
     setFolderData(folder: AssetId, data: ApiAsset): void {
@@ -84,7 +88,8 @@ class AssetSystem {
 
     removeSelection(): void {
         for (const sel of raw.selected) {
-            socket.emit("Asset.Remove", sel);
+            // todo: change this to a single event containing all assetIds
+            sendAssetRemove(sel);
             this.removeAsset(sel);
         }
         assetSystem.clearSelected();
@@ -113,7 +118,7 @@ class AssetSystem {
     }
 
     renameAsset(id: AssetId, name: string): void {
-        socket.emit("Asset.Rename", {
+        sendAssetRename({
             asset: id,
             name,
         });
@@ -143,21 +148,19 @@ class AssetSystem {
 
     async upload(
         fls: FileList,
-        options?: { target?: number | "root"; newDirectories?: string[] },
+        // target is a function, because if the socket is closed, none of the usual targets exist yet
+        options?: { target?: () => AssetId | undefined; newDirectories?: string[] },
     ): Promise<ApiAsset[]> {
-        let target = options?.target ?? assetState.currentFolder.value;
-        const newDirectories = options?.newDirectories ?? [];
-
-        // If the asset-socket isn't open at the moment
-        // Open it, but make sure to close it again after we're done.
         const closeSocket = socket.disconnected;
         if (closeSocket) {
             socket.connect();
+            await assetSystem.rootCallback.wait();
         }
-        if (target === "root") {
-            await this.rootCallback.wait();
-            target = raw.root;
-        }
+
+        const target = options?.target?.() ?? assetState.currentFolder.value;
+        if (target === undefined) throw new Error("Upload target was not found. CurrentFolder is undefined?");
+
+        const newDirectories = options?.newDirectories ?? [];
 
         $.expectedUploads += fls.length;
 
@@ -178,19 +181,18 @@ class AssetSystem {
                         ),
                     );
                     fr.onload = (_e) => {
-                        socket.emit(
-                            "Asset.Upload",
-                            {
-                                name: file.name,
-                                directory: target,
-                                newDirectories,
-                                data: fr.result,
-                                slice,
-                                totalSlices: slices,
-                                uuid,
-                            },
-                            resolve,
-                        );
+                        if (fr.result === null) return;
+
+                        const uploadData: ApiAssetUpload = {
+                            name: file.name,
+                            directory: target,
+                            newDirectories,
+                            data: fr.result,
+                            slice,
+                            totalSlices: slices,
+                            uuid,
+                        };
+                        socket.emit("Asset.Upload", uploadData, resolve);
                     };
                 });
                 // The returned data is undefined, if the file has multiple slices

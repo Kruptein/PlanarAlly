@@ -33,6 +33,7 @@ tech changes will usually be stripped from release notes for the public
 -   Vision: Edgecase in triangulation build
 -   Socket: Changing location was not properly leaving the socket connection to the previous location
 -   Kicking: The check to prevent the co-DM from kicking the main DM was incorrect
+-   AssetManager: Folder changing was doing an unnecessary extra call to the server
 
 ## [2023.2.0] - 2023-06-21
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { trimEnd } from "lodash";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from "vue-router";
@@ -51,7 +52,7 @@ onBeforeRouteLeave(() => {
 });
 
 onBeforeRouteUpdate((to: RouteLocationNormalized) => {
-    if (getCurrentPath(to.path) !== assetState.currentFilePath.value) {
+    if (trimEnd(getCurrentPath(to.path), "/") !== trimEnd(assetState.currentFilePath.value, "/")) {
         loadFolder(getCurrentPath(to.path));
     }
 });

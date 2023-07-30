@@ -22,6 +22,22 @@ export interface ApiAsset {
   fileHash?: string;
   children?: ApiAsset[];
 }
+export interface ApiAssetCreateFolderRequest {
+  name: string;
+  parent: AssetId;
+}
+export interface ApiAssetCreateFolderResponse {
+  asset: ApiAsset;
+  parent: AssetId;
+}
+export interface ApiAssetFolder {
+  folder: ApiAsset;
+  path: AssetId[] | null;
+}
+export interface ApiAssetInodeMove {
+  inode: AssetId;
+  target: AssetId;
+}
 export interface ApiAssetRectShape extends ApiCoreShape {
   width: number;
   height: number;
@@ -65,6 +81,23 @@ export interface ApiLabel {
   category: string;
   name: string;
   visible: boolean;
+}
+export interface ApiAssetRename {
+  asset: AssetId;
+  name: string;
+}
+export interface ApiAssetUpload {
+  uuid: string;
+  name: string;
+  directory: AssetId;
+  newDirectories: string[];
+  slice: number;
+  totalSlices: number;
+  data: string | ArrayBuffer;
+}
+export interface ApiAssetUploadFinish {
+  asset: ApiAsset;
+  parent: AssetId;
 }
 export interface ApiBaseRectShape extends ApiCoreShape {
   width: number;

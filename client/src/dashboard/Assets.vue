@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from "vue-router";
 import type { RouteLocationNormalized } from "vue-router";
 
+import type { ApiAssetCreateFolderRequest } from "../apiTypes";
 import { assetSystem } from "../assetManager";
 import AssetContextMenu from "../assetManager/AssetContext.vue";
 import { openAssetContextMenu } from "../assetManager/context";
@@ -68,7 +69,7 @@ function hideDropZone(): void {
 async function createDirectory(): Promise<void> {
     const name = await modals.prompt(t("assetManager.AssetManager.new_folder_name"), "?");
     if (name !== undefined) {
-        socket.emit("Folder.Create", { name, parent: assetState.currentFolder.value });
+        socket.emit("Folder.Create", { name, parent: assetState.currentFolder.value } as ApiAssetCreateFolderRequest);
     }
 }
 
@@ -107,7 +108,7 @@ async function parseDirectoryUpload(
     }
     if (files.length > 0) {
         const fileList = await Promise.all(files.map((f) => fsToFile(f)));
-        await assetSystem.upload(fileList as unknown as FileList, { target, newDirectories });
+        await assetSystem.upload(fileList as unknown as FileList, { target: () => target, newDirectories });
     }
 }
 

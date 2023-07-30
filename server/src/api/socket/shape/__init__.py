@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, cast
 
 from peewee import Case
 
@@ -40,6 +40,7 @@ from ...models.shape import (
 )
 from ...models.shape.position import ShapePositionUpdate, ShapesPositionUpdateList
 from .. import initiative
+from ..asset_manager.core import clean_filehash
 from ..constants import GAME_NS
 from ..groups import remove_group_if_empty
 from . import access, options, toggle_composite  # noqa: F401
@@ -202,11 +203,21 @@ async def remove_shapes(sid: str, raw_data: Any):
                 group_ids.add(shape.group)
 
             if shape.character_id is None:
+                file_hash_to_clean = None
+                if shape.type_ == "assetrect":
+                    rect = cast(AssetRect, shape.subtype)
+                    if rect.src.startswith("/static/assets"):
+                        file_hash_to_clean = rect.src[len("/static/assets/") :]
+
                 old_index = shape.index
                 shape.delete_instance(True)
                 Shape.update(index=Shape.index - 1).where(
                     (Shape.layer == layer) & (Shape.index >= old_index)
                 ).execute()
+
+                # The Shape has to be removed before cleaning
+                if file_hash_to_clean:
+                    clean_filehash(file_hash_to_clean)
             else:
                 shape.layer = None
                 shape.save()

@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, Dict, List, Literal, Optional, Union, cast
 
 from peewee import ForeignKeyField, TextField
 from typing_extensions import Self, TypedDict
@@ -55,12 +55,17 @@ class Asset(BaseDbModel):
                 asset = share.asset
         return asset
 
-    def can_be_accessed_by(self, user: User) -> bool:
+    def can_be_accessed_by(
+        self, user: User, *, right: Literal["edit", "view", "all"]
+    ) -> bool:
         asset = self
         while asset is not None:
             if asset.owner == user:
                 return True
-            if any(share.user == user for share in asset.shares):
+            if any(
+                share.user == user and (share.right == right or right == "all")
+                for share in asset.shares
+            ):
                 return True
             asset = asset.parent
         return False

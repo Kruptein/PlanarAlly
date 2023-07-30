@@ -4,6 +4,7 @@ import { type DeepReadonly, computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from "vue-router";
 import type { RouteLocationNormalized } from "vue-router";
+import { useToast } from "vue-toastification";
 
 import type { ApiAsset, ApiAssetCreateFolderRequest } from "../apiTypes";
 import { assetSystem } from "../assetManager";
@@ -22,6 +23,7 @@ import { coreStore } from "../store/core";
 const { t } = useI18n();
 const modals = useModal();
 const route = useRoute();
+const toast = useToast();
 
 const body = document.getElementsByTagName("body")[0];
 
@@ -72,6 +74,7 @@ function hideDropZone(): void {
 }
 
 async function createDirectory(): Promise<void> {
+    if (!canEdit(assetState.currentFolder.value)) return;
     const name = await modals.prompt(t("assetManager.AssetManager.new_folder_name"), "?");
     if (name !== undefined) {
         socket.emit("Folder.Create", { name, parent: assetState.currentFolder.value } as ApiAssetCreateFolderRequest);
@@ -81,6 +84,11 @@ async function createDirectory(): Promise<void> {
 async function onDrop(event: DragEvent): Promise<void> {
     hideDropZone();
     const currentFolder = assetState.currentFolder.value;
+    if (!canEdit(currentFolder)) {
+        toast.error("You do not have permission to do this.");
+        return;
+    }
+
     if (currentFolder && event.dataTransfer && event.dataTransfer.items.length > 0) {
         await parseDirectoryUpload(
             map(event.dataTransfer.items, (i) => i.webkitGetAsEntry()),
@@ -118,6 +126,10 @@ async function parseDirectoryUpload(
 }
 
 function select(event: MouseEvent, inode: AssetId): void {
+    if (!canEdit(inode, false)) {
+        return;
+    }
+
     if (event.shiftKey && assetState.raw.selected.length > 0) {
         const inodes = [...assetState.raw.folders, ...assetState.raw.files];
         const start = inodes.indexOf(assetState.raw.selected.at(-1)!);
@@ -143,6 +155,10 @@ function emptySelection(event: MouseEvent): void {
 }
 
 function openContextMenu(event: MouseEvent, key: AssetId): void {
+    if (!canEdit(key, false)) {
+        return;
+    }
+
     assetSystem.clearSelected();
     assetSystem.addSelectedInode(key);
     openAssetContextMenu(event);
@@ -152,6 +168,11 @@ let draggingSelection = false;
 
 function startDrag(event: DragEvent, file: AssetId): void {
     if (event.dataTransfer === null) return;
+
+    if (!canEdit(file, false)) {
+        return;
+    }
+
     event.dataTransfer.setData("Hack", "ittyHack");
     event.dataTransfer.dropEffect = "move";
     if (!assetState.raw.selected.includes(file)) assetSystem.addSelectedInode(file);
@@ -171,7 +192,10 @@ function leaveDrag(event: DragEvent): void {
 
 async function stopDrag(event: DragEvent, target: AssetId): Promise<void> {
     (event.target as HTMLElement).classList.remove("inode-selected");
-    if (assetState.raw.sharedRight !== "view") {
+
+    if (!canEdit(target)) {
+        if (!assetState.raw.selected.includes(target)) toast.error("You do not have permission to do this.");
+    } else {
         if (draggingSelection) {
             if (assetState.raw.selected.includes(target)) return;
             if (
@@ -196,15 +220,18 @@ async function stopDrag(event: DragEvent, target: AssetId): Promise<void> {
 }
 
 function prepareUpload(): void {
+    if (!canEdit(assetState.currentFolder.value)) return;
     document.getElementById("files")!.click();
 }
 
 const upload = async (): Promise<void> => {
+    if (!canEdit(assetState.currentFolder.value)) return;
     const files = (document.getElementById("files") as HTMLInputElement).files;
     if (files !== null) await assetSystem.upload(files);
 };
 
 async function deleteSelection(): Promise<void> {
+    if (!canEdit(assetState.currentFolder.value)) return;
     if (assetState.raw.selected.length === 0) return;
     const result = await modals.confirm(t("assetManager.AssetContextMenu.ask_remove"));
     if (result === true) {
@@ -217,13 +244,32 @@ function isShared(asset: DeepReadonly<ApiAsset>): boolean {
         asset.shares.length > 0 || (asset.owner !== coreStore.state.username && assetState.raw.sharedParent === null)
     );
 }
+
+function canEdit(data: AssetId | DeepReadonly<ApiAsset> | undefined, includeRootShare = true): boolean {
+    if (data === undefined) return false; // We accept undefined to alleviate awkward type checks in callers
+    let asset: DeepReadonly<ApiAsset> | undefined;
+    if (data instanceof Object && "id" in data) asset = data;
+    else asset = assetState.raw.idMap.get(data);
+
+    if (asset === undefined) return false;
+
+    if (assetState.raw.sharedRight === "view") return false;
+
+    if (includeRootShare) {
+        const username = coreStore.state.username;
+        if (asset === undefined) return false;
+        if (asset.owner !== username && !asset.shares.some((s) => s.user === username && s.right === "edit"))
+            return false;
+    }
+    return true;
+}
 </script>
 
 <template>
     <div id="content" @click="emptySelection">
         <div class="content-title">
             <span>MANAGE ASSETS</span>
-            <div>
+            <div v-show="assetState.reactive.sharedRight !== 'view'">
                 <input id="files" type="file" multiple hidden @change="upload()" />
                 <img
                     :src="baseAdjust('/static/img/assetmanager/create_folder.svg')"

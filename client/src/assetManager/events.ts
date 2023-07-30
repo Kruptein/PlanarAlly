@@ -33,6 +33,8 @@ socket.on("Folder.Root.Set", (root: AssetId) => {
 socket.on("Folder.Set", async (data: ApiAssetFolder) => {
     assetSystem.clear();
     assetSystem.setFolderData(data.folder.id, data.folder);
+    assetState.mutableReactive.sharedParent = data.sharedParent;
+    assetState.mutableReactive.sharedRight = data.sharedRight;
     if (!assetState.readonly.modalActive) {
         if (data.path) assetSystem.setPath(data.path);
         const path = `/assets${assetState.currentFilePath.value}/`;

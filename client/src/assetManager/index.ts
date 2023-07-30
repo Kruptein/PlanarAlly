@@ -29,7 +29,7 @@ class AssetSystem {
     }
 
     setPath(path: AssetId[]): void {
-        $.folderPath = path;
+        $.folderPath = [];
         let assetPath = router.currentRoute.value.path.slice("/assets/".length);
         if (assetPath.at(-1) === "/") assetPath = assetPath.slice(0, -1);
         if (assetPath.length === 0) return;
@@ -40,7 +40,7 @@ class AssetSystem {
                 console.error("Incorrect PathIndex encountered.");
                 continue;
             }
-            $.idMap.set(pathId, { id: pathId, name: part });
+            $.folderPath.push({ id: pathId, name: part });
         }
     }
 
@@ -56,10 +56,11 @@ class AssetSystem {
             $.folderPath.pop();
         } else if (targetFolder === raw.root) {
             $.folderPath = [];
-        } else if (raw.folderPath.includes(targetFolder)) {
+        } else if (raw.folderPath.some((fp) => fp.id === targetFolder)) {
             while (assetState.currentFolder.value !== targetFolder) $.folderPath.pop();
         } else {
-            $.folderPath.push(targetFolder);
+            const asset = raw.idMap.get(targetFolder);
+            if (asset !== undefined) $.folderPath.push({ id: targetFolder, name: asset.name });
         }
         this.clearSelected();
         const folder = assetState.currentFolder.value;

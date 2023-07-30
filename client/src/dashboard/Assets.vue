@@ -12,7 +12,7 @@ import { openAssetContextMenu } from "../assetManager/context";
 import type { AssetId } from "../assetManager/models";
 import { socket } from "../assetManager/socket";
 import { assetState } from "../assetManager/state";
-import { changeDirectory, getIdImageSrc, showIdName } from "../assetManager/utils";
+import { getIdImageSrc } from "../assetManager/utils";
 import { baseAdjust } from "../core/http";
 import { map } from "../core/iter";
 import { useModal } from "../core/plugins/modals/plugin";
@@ -246,9 +246,13 @@ function isShared(asset: DeepReadonly<ApiAsset>): boolean {
             </div>
         </div>
         <div id="path">
-            <div @click="changeDirectory(assetState.raw.root ?? 'POP')">/</div>
-            <div v-for="dir in assetState.reactive.folderPath" :key="dir" @click="changeDirectory(dir)">
-                {{ showIdName(dir) }}
+            <div @click="assetSystem.changeDirectory(assetState.raw.root ?? 'POP')">/</div>
+            <div
+                v-for="dir in assetState.reactive.folderPath"
+                :key="dir.id"
+                @click="assetSystem.changeDirectory(dir.id)"
+            >
+                {{ dir.name }}
             </div>
         </div>
         <div v-if="assetState.reactive.sharedParent" id="infobar">
@@ -258,7 +262,7 @@ function isShared(asset: DeepReadonly<ApiAsset>): boolean {
             <div
                 v-if="assetState.raw.folderPath.length && assetState.parentFolder.value"
                 class="inode folder"
-                @dblclick="changeDirectory('POP')"
+                @dblclick="assetSystem.changeDirectory('POP')"
                 @dragover.prevent="moveDrag"
                 @dragleave.prevent="leaveDrag"
                 @drop.prevent.stop="stopDrag($event, assetState.parentFolder.value)"
@@ -278,7 +282,7 @@ function isShared(asset: DeepReadonly<ApiAsset>): boolean {
                         assetState.reactive.selected.length > 0 && !assetState.reactive.selected.includes(folder.id),
                 }"
                 @click.stop="select($event, folder.id)"
-                @dblclick="changeDirectory(folder.id)"
+                @dblclick="assetSystem.changeDirectory(folder.id)"
                 @contextmenu.prevent="openContextMenu($event, folder.id)"
                 @dragstart="startDrag($event, folder.id)"
                 @dragover.prevent="moveDrag"

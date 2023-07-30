@@ -11,7 +11,8 @@ interface ReactiveAssetState {
     folders: AssetId[];
     idMap: Map<AssetId, ApiAsset>;
     selected: AssetId[];
-    folderPath: AssetId[];
+    // We track names here, as the full breadcrumb Asset info might not be known in idMap
+    folderPath: { id: AssetId; name: string }[];
 
     sharedParent: ApiAsset | null;
     sharedRight: "edit" | "view" | null;
@@ -47,15 +48,12 @@ const state = buildState<ReactiveAssetState, NonReactiveAssetState>(
 export const assetState = {
     ...state,
     currentFolder: computed(() => {
-        return state.reactive.folderPath.at(-1) ?? state.reactive.root;
+        return state.reactive.folderPath.at(-1)?.id ?? state.reactive.root;
     }),
     parentFolder: computed(() => {
-        return state.reactive.folderPath.at(-2) ?? state.reactive.root;
+        return state.reactive.folderPath.at(-2)?.id ?? state.reactive.root;
     }),
     currentFilePath: computed(() =>
-        state.reactive.folderPath.reduce(
-            (acc: string, val: AssetId) => `${acc}/${state.reactive.idMap.get(val)!.name}`,
-            "",
-        ),
+        state.reactive.folderPath.reduce((acc: string, val: { name: string }) => `${acc}/${val.name}`, ""),
     ),
 };

@@ -93,9 +93,10 @@ class Asset(BaseDbModel):
             parent = cls.get_root_folder(user)
         # ideally we change this to a single query to get all assets and process them as such
         data: AssetStructure = {"__files": []}
-        for asset in Asset.select().where(
-            (Asset.owner == user) & (Asset.parent == parent)
-        ):
+        assets = [*Asset.select().where((Asset.parent == parent))]
+        for asset_share in AssetShare().select().where((AssetShare.parent == parent)):
+            assets.append(asset_share.asset)
+        for asset in assets:
             if asset.file_hash:
                 data["__files"].append(
                     {"id": asset.id, "name": asset.name, "hash": asset.file_hash}

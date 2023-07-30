@@ -9,7 +9,7 @@ function wrapSocket<T>(event: string): (data: T) => void {
     };
 }
 
-export const sendFolderGet = wrapSocket<AssetId>("Folder.Get");
+export const sendFolderGet = wrapSocket<AssetId | undefined>("Folder.Get");
 export const sendInodeMove = wrapSocket<ApiAssetInodeMove>("Inode.Move");
 export const sendAssetRename = wrapSocket<ApiAssetRename>("Asset.Rename");
 export const sendAssetRemove = wrapSocket<AssetId>("Asset.Remove");

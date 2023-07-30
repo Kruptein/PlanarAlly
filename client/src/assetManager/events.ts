@@ -13,8 +13,7 @@ let disConnected = false;
 
 socket.on("connect", () => {
     console.log("[Assets] connected");
-    const folder = assetState.currentFolder.value;
-    if (disConnected && folder !== undefined) sendFolderGet(folder);
+    if (disConnected) sendFolderGet(assetState.currentFolder.value);
 });
 
 socket.on("disconnect", () => {
@@ -57,9 +56,6 @@ socket.on("Asset.Export.Finish", (uuid: string) => {
 });
 
 socket.on("Asset.Import.Finish", (name: string) => {
-    const folder = assetState.currentFolder.value;
-    if (folder) {
-        assetSystem.resolveUpload(name);
-        sendFolderGet(folder);
-    }
+    assetSystem.resolveUpload(name);
+    sendFolderGet(assetState.currentFolder.value);
 });

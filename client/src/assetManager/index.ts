@@ -63,8 +63,7 @@ class AssetSystem {
             if (asset !== undefined) $.folderPath.push({ id: targetFolder, name: asset.name });
         }
         this.clearSelected();
-        const folder = assetState.currentFolder.value;
-        if (folder) sendFolderGet(folder);
+        sendFolderGet(assetState.currentFolder.value);
     }
 
     setFolderData(folder: AssetId, data: ApiAsset): void {

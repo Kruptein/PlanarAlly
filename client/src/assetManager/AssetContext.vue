@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ContextMenu from "../core/components/ContextMenu.vue";
 import { useModal } from "../core/plugins/modals/plugin";
 import { coreStore } from "../store/core";
 
+import AssetShare from "./AssetShare.vue";
 import { assetContextLeft, assetContextTop, showAssetContextMenu } from "./context";
-import { socket } from "./socket";
 import { assetState } from "./state";
 
 import { assetSystem } from ".";
@@ -15,6 +15,8 @@ import { assetSystem } from ".";
 const cm = ref<{ $el: HTMLDivElement } | null>(null);
 const modals = useModal();
 const { t } = useI18n();
+
+const showAssetShare = ref(false);
 
 onMounted(() => {
     window.addEventListener("scroll", close);
@@ -28,6 +30,17 @@ watch(showAssetContextMenu, async () => {
     if (showAssetContextMenu.value) {
         await nextTick(() => cm.value!.$el.focus());
     }
+});
+
+const asset = computed(() => assetState.reactive.selected.at(0));
+const canShare = computed(() => {
+    if (assetState.reactive.selected.length !== 1) return false;
+    if (asset.value === undefined) return false;
+    const data = assetState.reactive.idMap.get(asset.value);
+    if (data === undefined) return false;
+    const username = coreStore.state.username;
+    console.log(data.shares);
+    return data.owner === username || data.shares.some((s) => s.user === username && s.right === "edit");
 });
 
 function close(): void {
@@ -52,23 +65,9 @@ async function rename(): Promise<void> {
     close();
 }
 
-async function share(): Promise<void> {
-    if (assetState.raw.selected.length !== 1) return;
-    const name = await modals.prompt("Who?", "Yes");
-    const asset = assetState.raw.selected[0]!;
-    socket.emit(
-        "Asset.Share",
-        { right: "view", user: name, asset },
-        (response: { success: true } | { success: false; reason: string }) => {
-            if (response.success) {
-                assetState.mutableReactive.idMap.get(asset)!.shares = [
-                    { user: coreStore.state.username, right: "view" },
-                ];
-            } else {
-                console.warn(response.reason);
-            }
-        },
-    );
+function share(): void {
+    showAssetShare.value = true;
+    close();
 }
 
 async function remove(): Promise<void> {
@@ -82,6 +81,7 @@ async function remove(): Promise<void> {
 </script>
 
 <template>
+    <AssetShare :visible="showAssetShare" :asset="asset" @close="showAssetShare = false" />
     <ContextMenu
         ref="cm"
         :visible="showAssetContextMenu"
@@ -90,7 +90,7 @@ async function remove(): Promise<void> {
         @cm:close="close"
     >
         <li @click="rename">{{ t("common.rename") }}</li>
-        <li @click="share">Share</li>
+        <li v-show="canShare" @click="share">Share</li>
         <li @click="remove">{{ t("common.remove") }}</li>
     </ContextMenu>
 </template>

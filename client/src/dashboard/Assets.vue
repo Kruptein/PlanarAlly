@@ -6,10 +6,11 @@ import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from "vue-router";
 import type { RouteLocationNormalized } from "vue-router";
 import { useToast } from "vue-toastification";
 
-import type { ApiAsset, ApiAssetCreateFolderRequest } from "../apiTypes";
+import type { ApiAsset } from "../apiTypes";
 import { assetSystem } from "../assetManager";
 import AssetContextMenu from "../assetManager/AssetContext.vue";
 import { openAssetContextMenu } from "../assetManager/context";
+import { sendCreateFolder, sendFolderGetByPath } from "../assetManager/emits";
 import type { AssetId } from "../assetManager/models";
 import { socket } from "../assetManager/socket";
 import { assetState } from "../assetManager/state";
@@ -38,7 +39,7 @@ function getCurrentPath(path?: string): string {
 
 function loadFolder(path: string): void {
     if (!socket.connected) socket.connect();
-    socket.emit("Folder.GetByPath", path);
+    sendFolderGetByPath(path);
 }
 
 onMounted(() => {
@@ -74,10 +75,11 @@ function hideDropZone(): void {
 }
 
 async function createDirectory(): Promise<void> {
-    if (!canEdit(assetState.currentFolder.value)) return;
+    const currentFolder = assetState.currentFolder.value;
+    if (currentFolder === undefined || !canEdit(currentFolder)) return;
     const name = await modals.prompt(t("assetManager.AssetManager.new_folder_name"), "?");
     if (name !== undefined) {
-        socket.emit("Folder.Create", { name, parent: assetState.currentFolder.value } as ApiAssetCreateFolderRequest);
+        sendCreateFolder({ name, parent: currentFolder });
     }
 }
 
@@ -382,7 +384,7 @@ function canEdit(data: AssetId | DeepReadonly<ApiAsset> | undefined, includeRoot
 </template>
 
 <style lang="scss">
-#content + .ContextMenu ul {
+#content ~ .ContextMenu ul {
     background: rgba(77, 0, 21);
 
     > li:hover {

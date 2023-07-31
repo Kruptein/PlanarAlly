@@ -204,6 +204,14 @@ class AssetSystem {
 
         return uploadedFiles;
     }
+
+    // SHARES
+
+    addShare(asset: AssetId, user: string, right: "view" | "edit"): void {
+        const data = $.idMap.get(asset);
+        if (data === undefined) return console.error("Unknown asset was provided");
+        data.shares.push({ user, right });
+    }
 }
 export const assetSystem = new AssetSystem();
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access

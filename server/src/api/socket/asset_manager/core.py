@@ -26,13 +26,12 @@ from ....transform.to_api.asset import transform_asset
 from ....utils import ASSETS_DIR, TEMP_DIR
 from ...models.asset import (
     ApiAsset,
-    ApiAssetCreateFolderRequest,
-    ApiAssetCreateFolderResponse,
+    ApiAssetAdd,
+    ApiAssetCreateFolder,
     ApiAssetFolder,
     ApiAssetInodeMove,
     ApiAssetRename,
     ApiAssetUpload,
-    ApiAssetUploadFinish,
 )
 from ..constants import ASSET_NS, GAME_NS
 from .ddraft import handle_ddraft_file
@@ -131,7 +130,7 @@ async def get_folder_by_path(sid: str, folder: str):
 @sio.on("Folder.Create", namespace=ASSET_NS)
 @auth.login_required(app, sio, "asset")
 async def create_folder(sid: str, raw_data: Any):
-    data = ApiAssetCreateFolderRequest(**raw_data)
+    data = ApiAssetCreateFolder(**raw_data)
 
     user = asset_state.get_user(sid)
 
@@ -142,10 +141,8 @@ async def create_folder(sid: str, raw_data: Any):
 
     asset = Asset.create(name=data.name, owner=user, parent=data.parent)
     await sio.emit(
-        "Folder.Create",
-        ApiAssetCreateFolderResponse(
-            asset=transform_asset(asset, user), parent=data.parent
-        ),
+        "Asset.Add",
+        ApiAssetAdd(asset=transform_asset(asset, user), parent=data.parent),
         room=sid,
         namespace=ASSET_NS,
     )
@@ -326,8 +323,8 @@ async def handle_regular_file(upload_data: ApiAssetUpload, data: bytes, sid: str
         asset, created = Asset.get_or_create(name=directory, owner=user, parent=target)
         if created:
             await sio.emit(
-                "Folder.Create",
-                {"asset": transform_asset(asset, user), "parent": target},
+                "Asset.Add",
+                ApiAssetAdd(asset=transform_asset(asset, user), parent=target),
                 room=sid,
                 namespace=ASSET_NS,
             )
@@ -343,7 +340,7 @@ async def handle_regular_file(upload_data: ApiAssetUpload, data: bytes, sid: str
     asset_dict = transform_asset(asset, user)
     await sio.emit(
         "Asset.Upload.Finish",
-        ApiAssetUploadFinish(asset=asset_dict, parent=target),
+        ApiAssetAdd(asset=asset_dict, parent=target),
         room=sid,
         namespace=ASSET_NS,
     )

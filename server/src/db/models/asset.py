@@ -28,7 +28,7 @@ class Asset(BaseDbModel):
     parent_id: int
     shares: SelectSequence["AssetShare"]
 
-    owner = ForeignKeyField(User, backref="assets", on_delete="CASCADE")
+    owner = cast(User, ForeignKeyField(User, backref="assets", on_delete="CASCADE"))
     parent = cast(
         Optional["Asset"],
         ForeignKeyField("self", backref="children", null=True, on_delete="CASCADE"),

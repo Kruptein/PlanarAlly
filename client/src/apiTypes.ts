@@ -28,23 +28,24 @@ export interface ApiAssetShare {
   user: string;
   right: "view" | "edit";
 }
+export interface ApiAssetAdd {
+  asset: ApiAsset;
+  parent: AssetId;
+}
+export interface ApiAssetCreateFolder {
+  name: string;
+  parent: AssetId;
+}
+export interface ApiAssetCreateShare {
+  right: "view" | "edit";
+  user: string;
+  asset: AssetId;
+}
 export interface ApiAssetFolder {
   folder: ApiAsset;
   path: AssetId[] | null;
   sharedParent: ApiAsset | null;
   sharedRight: "view" | "edit" | null;
-}
-export interface ApiAssetCreateFolderRequest {
-  name: string;
-  parent: AssetId;
-}
-export interface ApiAssetCreateFolderResponse {
-  asset: ApiAsset;
-  parent: AssetId;
-}
-export interface ApiAssetFolder {
-  folder: ApiAsset;
-  path: AssetId[] | null;
 }
 export interface ApiAssetInodeMove {
   inode: AssetId;
@@ -94,6 +95,10 @@ export interface ApiLabel {
   name: string;
   visible: boolean;
 }
+export interface ApiAssetRemoveShare {
+  asset: AssetId;
+  user: string;
+}
 export interface ApiAssetRename {
   asset: AssetId;
   name: string;
@@ -106,10 +111,6 @@ export interface ApiAssetUpload {
   slice: number;
   totalSlices: number;
   data: string | ArrayBuffer;
-}
-export interface ApiAssetUploadFinish {
-  asset: ApiAsset;
-  parent: AssetId;
 }
 export interface ApiBaseRectShape extends ApiCoreShape {
   width: number;

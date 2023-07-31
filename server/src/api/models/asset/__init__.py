@@ -6,6 +6,7 @@ from pydantic import Field
 
 from ..helpers import TypeIdModel
 from .options import *
+from .share import *
 
 
 class ApiAssetShare(TypeIdModel):
@@ -33,13 +34,8 @@ class ApiAssetFolder(TypeIdModel):
     sharedRight: Literal["view"] | Literal["edit"] | None = Field(..., noneAsNull=True)
 
 
-class ApiAssetCreateFolderRequest(TypeIdModel):
+class ApiAssetCreateFolder(TypeIdModel):
     name: str
-    parent: int = Field(..., typeId="AssetId")
-
-
-class ApiAssetCreateFolderResponse(TypeIdModel):
-    asset: ApiAsset
     parent: int = Field(..., typeId="AssetId")
 
 
@@ -63,6 +59,6 @@ class ApiAssetUpload(TypeIdModel):
     data: bytes
 
 
-class ApiAssetUploadFinish(TypeIdModel):
+class ApiAssetAdd(TypeIdModel):
     asset: ApiAsset
     parent: int = Field(..., typeId="AssetId")

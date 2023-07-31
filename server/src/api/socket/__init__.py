@@ -21,4 +21,4 @@ def load_socket_commands():
         shape,  # noqa: F401.
         user,  # noqa: F401.
     )
-    from .asset_manager import core  # noqa: F401.
+    from .asset_manager import core, share  # noqa: F401.

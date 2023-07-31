@@ -22,14 +22,16 @@ from ....db.models.user import User
 from ....logs import logger
 from ....state.asset import asset_state
 from ....state.game import game_state
+from ....transform.to_api.asset import transform_asset
 from ....utils import ASSETS_DIR, TEMP_DIR
 from ...models.asset import (
     ApiAsset,
+    ApiAssetAdd,
+    ApiAssetCreateFolder,
     ApiAssetFolder,
     ApiAssetInodeMove,
     ApiAssetRename,
     ApiAssetUpload,
-    ApiAssetUploadFinish,
 )
 from ..constants import ASSET_NS, GAME_NS
 from .ddraft import handle_ddraft_file
@@ -66,6 +68,27 @@ async def disconnect(sid):
     await asset_state.remove_sid(sid)
 
 
+async def _get_folder(asset: Asset, user: User, sid: str, *, path: list[int] | None):
+    if asset.can_be_accessed_by(user, right="all"):
+        shared_parent = None
+        if sp := asset.get_shared_parent(user):
+            shared_parent = transform_asset(sp.asset, user)
+
+        await sio.emit(
+            "Folder.Set",
+            ApiAssetFolder(
+                folder=transform_asset(asset, user, children=True),
+                sharedParent=shared_parent,
+                sharedRight=None if sp is None else sp.right,
+                path=path,
+            ),
+            room=sid,
+            namespace=ASSET_NS,
+        )
+    else:
+        raise web.HTTPForbidden()
+
+
 @sio.on("Folder.Get", namespace=ASSET_NS)
 @auth.login_required(app, sio, "asset")
 async def get_folder(sid: str, folder: int | None = None):
@@ -79,14 +102,7 @@ async def get_folder(sid: str, folder: int | None = None):
     else:
         asset = Asset.get_by_id(folder)
 
-    if asset.owner != user:
-        raise web.HTTPForbidden()
-    await sio.emit(
-        "Folder.Set",
-        ApiAssetFolder(folder=asset.as_pydantic(children=True), path=None),
-        room=sid,
-        namespace=ASSET_NS,
-    )
+    await _get_folder(asset, user, sid, path=None)
 
 
 @sio.on("Folder.GetByPath", namespace=ASSET_NS)
@@ -95,37 +111,38 @@ async def get_folder_by_path(sid: str, folder: str):
     user = asset_state.get_user(sid)
 
     folder = folder.strip("/")
-    target_folder = Asset.get_root_folder(user)
+    root_folder = Asset.get_root_folder(user)
+    target_folder = root_folder
 
-    id_path = []
+    id_path: list[int] = []
 
     if folder:
         for path in folder.split("/"):
-            try:
-                target_folder = target_folder.get_child(path)
+            if target_folder := target_folder.get_child(path):
                 id_path.append(target_folder.id)
-            except Asset.DoesNotExist:
-                return await get_folder_by_path(sid, "/")
+            else:
+                target_folder = root_folder
+                break
 
-    await sio.emit(
-        "Folder.Set",
-        ApiAssetFolder(folder=target_folder.as_pydantic(children=True), path=None),
-        room=sid,
-        namespace=ASSET_NS,
-    )
+    await _get_folder(target_folder, user, sid, path=id_path)
 
 
 @sio.on("Folder.Create", namespace=ASSET_NS)
 @auth.login_required(app, sio, "asset")
-async def create_folder(sid: str, data):
+async def create_folder(sid: str, raw_data: Any):
+    data = ApiAssetCreateFolder(**raw_data)
+
     user = asset_state.get_user(sid)
-    parent = data.get("parent", None)
-    if parent is None:
-        parent = Asset.get_root_folder(user).id
-    asset = Asset.create(name=data["name"], owner=user, parent=parent)
+
+    asset = Asset.get_by_id(data.parent)
+    if not asset.can_be_accessed_by(user, right="edit"):
+        logger.warn(f"{user.name} attempted to create a folder without permissions")
+        return
+
+    asset = Asset.create(name=data.name, owner=user, parent=data.parent)
     await sio.emit(
-        "Folder.Create",
-        {"asset": asset.as_pydantic(), "parent": parent},
+        "Asset.Add",
+        ApiAssetAdd(asset=transform_asset(asset, user), parent=data.parent),
         room=sid,
         namespace=ASSET_NS,
     )
@@ -140,11 +157,35 @@ async def move_inode(sid: str, raw_data: Any):
     user = asset_state.get_user(sid)
 
     asset = Asset.get_by_id(data.inode)
-    if asset.owner != user:
-        logger.warning(f"{user.name} attempted to move files it doesn't own.")
+    target = Asset.get_by_id(data.target)
+
+    # The user NEEDS edit access in the target folder
+    if not target.can_be_accessed_by(user, right="edit"):
+        logger.warn(
+            f"{user.name} attempted to move an asset into a folder they don't own"
+        )
         return
-    asset.parent_id = data.target
-    asset.save()
+
+    if asset.owner == user:
+        asset.parent_id = data.target
+        asset.save()
+    else:
+        # Check if we're moving the anchor itself
+        for share in asset.shares:
+            if share.user == user:
+                share.parent_id = data.target
+                share.save()
+                break
+        else:
+            # todo: What to do if files move to a folder with a different owner
+            # Check if we have edit rights in the shared folder
+            if asset.can_be_accessed_by(user, right="edit"):
+                asset.parent_id = data.target
+                asset.save()
+            else:
+                logger.warning(f"{user.name} attempted to move files they don't own.")
+                return
+
     await update_live_game(user)
 
 
@@ -155,8 +196,9 @@ async def assetmgmt_rename(sid: str, raw_data: Any):
 
     user = asset_state.get_user(sid)
     asset = Asset.get_by_id(data.asset)
-    if asset.owner != user:
-        logger.warning(f"{user.name} attempted to rename a file it doesn't own.")
+
+    if not asset.can_be_accessed_by(user, right="edit"):
+        logger.warning(f"{user.name} attempted to rename a file they don't own.")
         return
 
     asset.name = data.name
@@ -169,15 +211,33 @@ async def assetmgmt_rename(sid: str, raw_data: Any):
 async def assetmgmt_rm(sid: str, data: int):
     user = asset_state.get_user(sid)
     asset: Asset = Asset.get_by_id(data)
-    if asset.owner != user:
-        logger.warning(f"{user.name} attempted to remove a file it doesn't own.")
-        return
 
-    asset_dict = asset.as_pydantic(children=True, recursive=True)
-    asset.delete_instance()
+    remove_asset = False
+
+    if asset.owner == user:
+        remove_asset = True
+    else:
+        # Check if we're removing the anchor itself
+        for share in asset.shares:
+            if share.user == user:
+                share.delete_instance(True)
+                break
+        else:
+            # Check if we have edit rights in the shared folder
+            if asset.can_be_accessed_by(user, right="edit"):
+                remove_asset = True
+            else:
+                logger.warning(
+                    f"{user.name} attempted to remove a file they don't own."
+                )
+                return
+
+    if remove_asset:
+        asset_model = transform_asset(asset, user, children=True, recursive=True)
+        asset.delete_instance()
+        cleanup_assets([asset_model])
 
     await update_live_game(user)
-    cleanup_assets([asset_dict])
 
 
 def clean_filehash(file_hash: str):
@@ -263,8 +323,8 @@ async def handle_regular_file(upload_data: ApiAssetUpload, data: bytes, sid: str
         asset, created = Asset.get_or_create(name=directory, owner=user, parent=target)
         if created:
             await sio.emit(
-                "Folder.Create",
-                {"asset": asset.as_pydantic(), "parent": target},
+                "Asset.Add",
+                ApiAssetAdd(asset=transform_asset(asset, user), parent=target),
                 room=sid,
                 namespace=ASSET_NS,
             )
@@ -277,10 +337,10 @@ async def handle_regular_file(upload_data: ApiAssetUpload, data: bytes, sid: str
         parent=target,
     )
 
-    asset_dict = asset.as_pydantic()
+    asset_dict = transform_asset(asset, user)
     await sio.emit(
         "Asset.Upload.Finish",
-        ApiAssetUploadFinish(asset=asset_dict, parent=target),
+        ApiAssetAdd(asset=asset_dict, parent=target),
         room=sid,
         namespace=ASSET_NS,
     )
@@ -291,6 +351,13 @@ async def handle_regular_file(upload_data: ApiAssetUpload, data: bytes, sid: str
 @auth.login_required(app, sio, "asset")
 async def assetmgmt_upload(sid: str, raw_data: Any):
     upload_data = ApiAssetUpload(**raw_data)
+
+    user = asset_state.get_user(sid)
+
+    if asset := Asset.get_or_none(id=upload_data.directory):
+        if not asset.can_be_accessed_by(user, right="edit"):
+            logger.warn(f"{user.name} attempted to upload into a folder they don't own")
+            return
 
     uuid = upload_data.uuid
 
@@ -317,7 +384,6 @@ async def assetmgmt_upload(sid: str, raw_data: Any):
     else:
         return_data = await handle_regular_file(upload_data, data, sid)
 
-    user = asset_state.get_user(sid)
     await update_live_game(user)
 
     return return_data
@@ -348,8 +414,11 @@ def export_asset(asset: Union[ApiAsset, List[ApiAsset]], parent=-1) -> AssetExpo
 @sio.on("Asset.Export", namespace=ASSET_NS)
 @auth.login_required(app, sio, "asset")
 async def assetmgmt_export(sid: str, selection: List[int]):
+    user = asset_state.get_user(sid)
+
     full_selection = [
-        Asset.get_by_id(asset).as_pydantic(True, True) for asset in selection
+        transform_asset(Asset.get_by_id(asset), user, children=True, recursive=True)
+        for asset in selection
     ]
 
     asset_data = export_asset(full_selection)

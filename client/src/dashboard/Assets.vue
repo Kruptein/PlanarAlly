@@ -1,26 +1,30 @@
 <script setup lang="ts">
 import { trimEnd } from "lodash";
-import { onMounted, ref } from "vue";
+import { type DeepReadonly, computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from "vue-router";
 import type { RouteLocationNormalized } from "vue-router";
+import { useToast } from "vue-toastification";
 
-import type { ApiAssetCreateFolderRequest } from "../apiTypes";
+import type { ApiAsset } from "../apiTypes";
 import { assetSystem } from "../assetManager";
 import AssetContextMenu from "../assetManager/AssetContext.vue";
 import { openAssetContextMenu } from "../assetManager/context";
+import { sendCreateFolder, sendFolderGetByPath } from "../assetManager/emits";
 import type { AssetId } from "../assetManager/models";
 import { socket } from "../assetManager/socket";
 import { assetState } from "../assetManager/state";
-import { changeDirectory, getIdImageSrc, showIdName } from "../assetManager/utils";
+import { getIdImageSrc } from "../assetManager/utils";
 import { baseAdjust } from "../core/http";
 import { map } from "../core/iter";
 import { useModal } from "../core/plugins/modals/plugin";
 import { ctrlOrCmdPressed } from "../core/utils";
+import { coreStore } from "../store/core";
 
 const { t } = useI18n();
 const modals = useModal();
 const route = useRoute();
+const toast = useToast();
 
 const body = document.getElementsByTagName("body")[0];
 
@@ -35,7 +39,7 @@ function getCurrentPath(path?: string): string {
 
 function loadFolder(path: string): void {
     if (!socket.connected) socket.connect();
-    socket.emit("Folder.GetByPath", path);
+    sendFolderGetByPath(path);
 }
 
 onMounted(() => {
@@ -57,6 +61,9 @@ onBeforeRouteUpdate((to: RouteLocationNormalized) => {
     }
 });
 
+const folders = computed(() => assetState.reactive.folders.map((f) => assetState.reactive.idMap.get(f)!));
+const files = computed(() => assetState.reactive.files.map((f) => assetState.reactive.idMap.get(f)!));
+
 const dragState = ref(0);
 
 function showDropZone(): void {
@@ -68,15 +75,22 @@ function hideDropZone(): void {
 }
 
 async function createDirectory(): Promise<void> {
+    const currentFolder = assetState.currentFolder.value;
+    if (currentFolder === undefined || !canEdit(currentFolder)) return;
     const name = await modals.prompt(t("assetManager.AssetManager.new_folder_name"), "?");
     if (name !== undefined) {
-        socket.emit("Folder.Create", { name, parent: assetState.currentFolder.value } as ApiAssetCreateFolderRequest);
+        sendCreateFolder({ name, parent: currentFolder });
     }
 }
 
 async function onDrop(event: DragEvent): Promise<void> {
     hideDropZone();
     const currentFolder = assetState.currentFolder.value;
+    if (!canEdit(currentFolder)) {
+        toast.error("You do not have permission to do this.");
+        return;
+    }
+
     if (currentFolder && event.dataTransfer && event.dataTransfer.items.length > 0) {
         await parseDirectoryUpload(
             map(event.dataTransfer.items, (i) => i.webkitGetAsEntry()),
@@ -114,6 +128,10 @@ async function parseDirectoryUpload(
 }
 
 function select(event: MouseEvent, inode: AssetId): void {
+    if (!canEdit(inode, false)) {
+        return;
+    }
+
     if (event.shiftKey && assetState.raw.selected.length > 0) {
         const inodes = [...assetState.raw.folders, ...assetState.raw.files];
         const start = inodes.indexOf(assetState.raw.selected.at(-1)!);
@@ -139,6 +157,10 @@ function emptySelection(event: MouseEvent): void {
 }
 
 function openContextMenu(event: MouseEvent, key: AssetId): void {
+    if (!canEdit(key, false)) {
+        return;
+    }
+
     assetSystem.clearSelected();
     assetSystem.addSelectedInode(key);
     openAssetContextMenu(event);
@@ -148,6 +170,11 @@ let draggingSelection = false;
 
 function startDrag(event: DragEvent, file: AssetId): void {
     if (event.dataTransfer === null) return;
+
+    if (!canEdit(file, false)) {
+        return;
+    }
+
     event.dataTransfer.setData("Hack", "ittyHack");
     event.dataTransfer.dropEffect = "move";
     if (!assetState.raw.selected.includes(file)) assetSystem.addSelectedInode(file);
@@ -167,43 +194,76 @@ function leaveDrag(event: DragEvent): void {
 
 async function stopDrag(event: DragEvent, target: AssetId): Promise<void> {
     (event.target as HTMLElement).classList.remove("inode-selected");
-    if (draggingSelection) {
-        if (assetState.raw.selected.includes(target)) return;
-        if (
-            target === assetState.parentFolder.value ||
-            target === assetState.raw.root ||
-            assetState.raw.folders.includes(target)
-        ) {
-            for (const inode of assetState.raw.selected) {
-                assetSystem.moveInode(inode, target);
+
+    if (!canEdit(target)) {
+        if (!assetState.raw.selected.includes(target)) toast.error("You do not have permission to do this.");
+    } else {
+        if (draggingSelection) {
+            if (assetState.raw.selected.includes(target)) return;
+            if (
+                target === assetState.parentFolder.value ||
+                target === assetState.raw.root ||
+                assetState.raw.folders.includes(target)
+            ) {
+                for (const inode of assetState.raw.selected) {
+                    assetSystem.moveInode(inode, target);
+                }
             }
+            assetSystem.clearSelected();
+        } else if (event.dataTransfer && event.dataTransfer.items.length > 0) {
+            await parseDirectoryUpload(
+                map(event.dataTransfer.items, (i) => i.webkitGetAsEntry()),
+                target,
+            );
         }
-        assetSystem.clearSelected();
-    } else if (event.dataTransfer && event.dataTransfer.items.length > 0) {
-        await parseDirectoryUpload(
-            map(event.dataTransfer.items, (i) => i.webkitGetAsEntry()),
-            target,
-        );
     }
     draggingSelection = false;
     dragState.value = 0;
 }
 
 function prepareUpload(): void {
+    if (!canEdit(assetState.currentFolder.value)) return;
     document.getElementById("files")!.click();
 }
 
 const upload = async (): Promise<void> => {
+    if (!canEdit(assetState.currentFolder.value)) return;
     const files = (document.getElementById("files") as HTMLInputElement).files;
     if (files !== null) await assetSystem.upload(files);
 };
 
 async function deleteSelection(): Promise<void> {
+    if (!canEdit(assetState.currentFolder.value)) return;
     if (assetState.raw.selected.length === 0) return;
     const result = await modals.confirm(t("assetManager.AssetContextMenu.ask_remove"));
     if (result === true) {
         assetSystem.removeSelection();
     }
+}
+
+function isShared(asset: DeepReadonly<ApiAsset>): boolean {
+    return (
+        asset.shares.length > 0 || (asset.owner !== coreStore.state.username && assetState.raw.sharedParent === null)
+    );
+}
+
+function canEdit(data: AssetId | DeepReadonly<ApiAsset> | undefined, includeRootShare = true): boolean {
+    if (data === undefined) return false; // We accept undefined to alleviate awkward type checks in callers
+    let asset: DeepReadonly<ApiAsset> | undefined;
+    if (data instanceof Object && "id" in data) asset = data;
+    else asset = assetState.raw.idMap.get(data);
+
+    if (asset === undefined) return false;
+
+    if (assetState.raw.sharedRight === "view") return false;
+
+    if (includeRootShare) {
+        const username = coreStore.state.username;
+        if (asset === undefined) return false;
+        if (asset.owner !== username && !asset.shares.some((s) => s.user === username && s.right === "edit"))
+            return false;
+    }
+    return true;
 }
 </script>
 
@@ -211,7 +271,7 @@ async function deleteSelection(): Promise<void> {
     <div id="content" @click="emptySelection">
         <div class="content-title">
             <span>MANAGE ASSETS</span>
-            <div>
+            <div v-show="assetState.reactive.sharedRight !== 'view'">
                 <input id="files" type="file" multiple hidden @change="upload()" />
                 <img
                     :src="baseAdjust('/static/img/assetmanager/create_folder.svg')"
@@ -234,16 +294,23 @@ async function deleteSelection(): Promise<void> {
             </div>
         </div>
         <div id="path">
-            <div @click="changeDirectory(assetState.raw.root ?? 'POP')">/</div>
-            <div v-for="dir in assetState.reactive.folderPath" :key="dir" @click="changeDirectory(dir)">
-                {{ showIdName(dir) }}
+            <div @click="assetSystem.changeDirectory(assetState.raw.root ?? 'POP')">/</div>
+            <div
+                v-for="dir in assetState.reactive.folderPath"
+                :key="dir.id"
+                @click="assetSystem.changeDirectory(dir.id)"
+            >
+                {{ dir.name }}
             </div>
+        </div>
+        <div v-if="assetState.reactive.sharedParent" id="infobar">
+            You are browsing files that are part of a shared folder with you
         </div>
         <div id="assets" :class="{ dropzone: dragState > 0 }" @dragover.prevent @drop.prevent.stop="onDrop">
             <div
                 v-if="assetState.raw.folderPath.length && assetState.parentFolder.value"
                 class="inode folder"
-                @dblclick="changeDirectory('POP')"
+                @dblclick="assetSystem.changeDirectory('POP')"
                 @dragover.prevent="moveDrag"
                 @dragleave.prevent="leaveDrag"
                 @drop.prevent.stop="stopDrag($event, assetState.parentFolder.value)"
@@ -253,42 +320,44 @@ async function deleteSelection(): Promise<void> {
                 <div class="title">..</div>
             </div>
             <div
-                v-for="key in assetState.reactive.folders"
-                :key="key"
+                v-for="folder of folders"
+                :key="folder.id"
                 class="inode folder"
-                draggable="true"
+                :draggable="assetState.reactive.sharedRight !== 'view'"
                 :class="{
-                    'inode-selected': assetState.reactive.selected.includes(key),
+                    'inode-selected': assetState.reactive.selected.includes(folder.id),
                     'inode-not-selected':
-                        assetState.reactive.selected.length > 0 && !assetState.reactive.selected.includes(key),
+                        assetState.reactive.selected.length > 0 && !assetState.reactive.selected.includes(folder.id),
                 }"
-                @click.stop="select($event, key)"
-                @dblclick="changeDirectory(key)"
-                @contextmenu.prevent="openContextMenu($event, key)"
-                @dragstart="startDrag($event, key)"
+                @click.stop="select($event, folder.id)"
+                @dblclick="assetSystem.changeDirectory(folder.id)"
+                @contextmenu.prevent="openContextMenu($event, folder.id)"
+                @dragstart="startDrag($event, folder.id)"
                 @dragover.prevent="moveDrag"
                 @dragleave.prevent="leaveDrag"
-                @drop.prevent.stop="stopDrag($event, key)"
+                @drop.prevent.stop="stopDrag($event, folder.id)"
             >
+                <font-awesome-icon v-if="isShared(folder)" icon="user-tag" class="asset-link" />
                 <font-awesome-icon icon="folder" style="font-size: 12.5em" />
-                <div class="title">{{ showIdName(key) }}</div>
+                <div class="title">{{ folder.name }}</div>
             </div>
             <div
-                v-for="file in assetState.reactive.files"
-                :key="file"
+                v-for="file of files"
+                :key="file.id"
                 class="inode file"
-                draggable="true"
+                :draggable="assetState.reactive.sharedRight !== 'view'"
                 :class="{
-                    'inode-selected': assetState.reactive.selected.includes(file),
+                    'inode-selected': assetState.reactive.selected.includes(file.id),
                     'inode-not-selected':
-                        assetState.reactive.selected.length > 0 && !assetState.reactive.selected.includes(file),
+                        assetState.reactive.selected.length > 0 && !assetState.reactive.selected.includes(file.id),
                 }"
-                @click.stop="select($event, file)"
-                @contextmenu.prevent="openContextMenu($event, file)"
-                @dragstart="startDrag($event, file)"
+                @click.stop="select($event, file.id)"
+                @contextmenu.prevent="openContextMenu($event, file.id)"
+                @dragstart="startDrag($event, file.id)"
             >
-                <img :src="getIdImageSrc(file)" width="50" alt="" />
-                <div class="title">{{ showIdName(file) }}</div>
+                <font-awesome-icon v-if="isShared(file)" icon="user-tag" class="asset-link" />
+                <img :src="getIdImageSrc(file.id)" width="50" alt="" />
+                <div class="title">{{ file.name }}</div>
             </div>
         </div>
         <div
@@ -315,7 +384,7 @@ async function deleteSelection(): Promise<void> {
 </template>
 
 <style lang="scss">
-#content + .ContextMenu ul {
+#content ~ .ContextMenu ul {
     background: rgba(77, 0, 21);
 
     > li:hover {
@@ -379,6 +448,12 @@ async function deleteSelection(): Promise<void> {
         }
     }
 
+    #infobar {
+        background: rgba(219, 0, 59, 1);
+        border-radius: 1rem;
+        padding: 1rem;
+    }
+
     #assets {
         display: grid;
         grid-template-columns: repeat(auto-fit, 12.5em);
@@ -391,6 +466,8 @@ async function deleteSelection(): Promise<void> {
 
         // border: solid 2px transparent;
         border: 5px dotted transparent;
+
+        user-select: none;
 
         &.dropzone {
             border-color: #ffa8bf;
@@ -419,6 +496,19 @@ async function deleteSelection(): Promise<void> {
             > .title {
                 font-size: 1.5em;
                 word-break: break-all;
+            }
+
+            > .asset-link {
+                font-size: 2em;
+                position: absolute;
+                left: 0.25rem;
+                top: 0.25rem;
+                color: white;
+
+                :deep(> path) {
+                    stroke: black;
+                    stroke-width: 1.5rem;
+                }
             }
         }
 

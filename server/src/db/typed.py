@@ -38,7 +38,7 @@ class SelectSequence(Generic[T], Sequence[T], ModelSelect):
     def filter(self, *_args, **_kwargs) -> Self:
         ...
 
-    def join(self, _model: Type[BaseDbModel]) -> Self:
+    def join(self, _model: Type[BaseDbModel], *args, **_kwargs) -> Self:
         ...
 
     def order_by(self, *args, **kwargs) -> Self:

@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 87
+SAVE_VERSION = 88
 
 import json
 import logging
@@ -423,6 +423,11 @@ def upgrade(db: SqliteExtDatabase, version: int):
             db.execute_sql(
                 'CREATE UNIQUE INDEX "user_data_block_keys" ON "user_data_block" ("source", "name", "user_id");'
             )
+    elif version == 87:
+        # Add AssetShare
+        db.execute_sql(
+            'CREATE TABLE IF NOT EXISTS "asset_share" ("id" INTEGER NOT NULL PRIMARY KEY, "asset_id" INT NOT NULL, "user_id" INT NOT NULL, "right" TEXT NOT NULL, "name" TEXT NOT NULL, "parent_id" INT NOT NULL, FOREIGN KEY ("asset_id") REFERENCES "asset" ("id") ON DELETE CASCADE, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("parent_id") REFERENCES "asset" ("id") ON DELETE CASCADE)'
+        )
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

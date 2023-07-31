@@ -52,6 +52,7 @@ import {
     faUnlock,
     faUpload,
     faUserCircle,
+    faUserTag,
     faUsers,
     faVideo,
 } from "@fortawesome/free-solid-svg-icons";
@@ -113,8 +114,9 @@ export function loadFontAwesome(): void {
         faTrashAlt,
         faUnlink,
         faUpload,
-        faUsers,
+        faUserTag,
         faUserCircle,
+        faUsers,
         faVideo,
         faWindowClose,
     );

@@ -6,7 +6,7 @@ import { assetSystem } from "../../../assetManager";
 import type { AssetId } from "../../../assetManager/models";
 import { socket } from "../../../assetManager/socket";
 import { assetState } from "../../../assetManager/state";
-import { changeDirectory, getIdImageSrc, showIdName } from "../../../assetManager/utils";
+import { getIdImageSrc, showIdName } from "../../../assetManager/utils";
 import { i18n } from "../../../i18n";
 
 import Modal from "./Modal.vue";
@@ -51,13 +51,13 @@ function select(event: MouseEvent, inode: AssetId): void {
             <div id="assets">
                 <div id="breadcrumbs">
                     <div>/</div>
-                    <div v-for="dir in assetState.reactive.folderPath" :key="dir">{{ showIdName(dir) }}</div>
+                    <div v-for="dir in assetState.reactive.folderPath" :key="dir.id">{{ dir.name }}</div>
                 </div>
                 <div id="explorer">
                     <div
                         v-if="assetState.reactive.folderPath.length"
                         class="inode folder"
-                        @dblclick="changeDirectory('POP')"
+                        @dblclick="assetSystem.changeDirectory('POP')"
                     >
                         <font-awesome-icon icon="folder" style="font-size: 50px" />
                         <div class="title">..</div>
@@ -69,7 +69,7 @@ function select(event: MouseEvent, inode: AssetId): void {
                         draggable="true"
                         :class="{ 'inode-selected': assetState.reactive.selected.includes(key) }"
                         @click="select($event, key)"
-                        @dblclick="changeDirectory(key)"
+                        @dblclick="assetSystem.changeDirectory(key)"
                     >
                         <font-awesome-icon icon="folder" style="font-size: 50px" />
                         <div class="title">{{ showIdName(key) }}</div>

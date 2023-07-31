@@ -1,6 +1,9 @@
-import type { ApiAssetCreateFolderResponse, ApiAssetFolder, ApiAssetUploadFinish } from "../apiTypes";
+import { useToast } from "vue-toastification";
+
+import type { ApiAssetAdd, ApiAssetCreateShare, ApiAssetFolder, ApiAssetRemoveShare } from "../apiTypes";
 import { baseAdjust } from "../core/http";
 import { router } from "../router";
+import { coreStore } from "../store/core";
 
 import { sendFolderGet } from "./emits";
 import type { AssetId } from "./models";
@@ -11,10 +14,11 @@ import { assetSystem } from ".";
 
 let disConnected = false;
 
+const toast = useToast();
+
 socket.on("connect", () => {
     console.log("[Assets] connected");
-    const folder = assetState.currentFolder.value;
-    if (disConnected && folder !== undefined) sendFolderGet(folder);
+    if (disConnected) sendFolderGet(assetState.currentFolder.value);
 });
 
 socket.on("disconnect", () => {
@@ -27,6 +31,10 @@ socket.on("redirect", (destination: string) => {
     window.location.href = destination;
 });
 
+socket.on("Toast.Warn", (msg: string) => {
+    toast.warning(msg);
+});
+
 socket.on("Folder.Root.Set", (root: AssetId) => {
     assetSystem.setRoot(root);
 });
@@ -34,6 +42,8 @@ socket.on("Folder.Root.Set", (root: AssetId) => {
 socket.on("Folder.Set", async (data: ApiAssetFolder) => {
     assetSystem.clear();
     assetSystem.setFolderData(data.folder.id, data.folder);
+    assetState.mutableReactive.sharedParent = data.sharedParent;
+    assetState.mutableReactive.sharedRight = data.sharedRight;
     if (!assetState.readonly.modalActive) {
         if (data.path) assetSystem.setPath(data.path);
         const path = `/assets${assetState.currentFilePath.value}/`;
@@ -43,11 +53,11 @@ socket.on("Folder.Set", async (data: ApiAssetFolder) => {
     }
 });
 
-socket.on("Folder.Create", (data: ApiAssetCreateFolderResponse) => {
+socket.on("Asset.Add", (data: ApiAssetAdd) => {
     assetSystem.addAsset(data.asset, data.parent);
 });
 
-socket.on("Asset.Upload.Finish", (data: ApiAssetUploadFinish) => {
+socket.on("Asset.Upload.Finish", (data: ApiAssetAdd) => {
     assetSystem.addAsset(data.asset, data.parent);
     assetSystem.resolveUpload(data.asset.name);
 });
@@ -57,9 +67,34 @@ socket.on("Asset.Export.Finish", (uuid: string) => {
 });
 
 socket.on("Asset.Import.Finish", (name: string) => {
-    const folder = assetState.currentFolder.value;
-    if (folder) {
-        assetSystem.resolveUpload(name);
-        sendFolderGet(folder);
+    assetSystem.resolveUpload(name);
+    sendFolderGet(assetState.currentFolder.value);
+});
+
+socket.on("Asset.Share.Created", (data: ApiAssetCreateShare) => {
+    const assetData = assetState.mutableReactive.idMap.get(data.asset);
+    if (assetData) {
+        assetData.shares.push({ right: data.right, user: data.user });
+    }
+});
+
+socket.on("Asset.Share.Edit", (data: ApiAssetCreateShare) => {
+    const assetData = assetState.mutableReactive.idMap.get(data.asset);
+    if (assetData) {
+        for (const share of assetData.shares) {
+            if (share.user == data.user) share.right = data.right;
+        }
+    }
+});
+
+socket.on("Asset.Share.Removed", (data: ApiAssetRemoveShare) => {
+    const assetData = assetState.mutableReactive.idMap.get(data.asset);
+    if (assetData) {
+        assetData.shares = assetData.shares.filter((s) => s.user !== data.user);
+
+        const username = coreStore.state.username;
+        if (assetData.owner !== username && data.user === username) {
+            assetSystem.removeAsset(data.asset);
+        }
     }
 });

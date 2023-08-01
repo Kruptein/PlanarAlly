@@ -3,5 +3,5 @@ export interface RoomInfo {
     creator: string;
     logo?: string;
     is_locked: boolean;
-    last_played?: string;
+    last_played: string | null;
 }

@@ -26,7 +26,7 @@ async function create(): Promise<void> {
         logo: logo.id,
     });
     if (response.ok) {
-        await open({ creator: coreStore.state.username, name: name.value, is_locked: false });
+        await open({ creator: coreStore.state.username, name: name.value, is_locked: false, last_played: null });
         await router.push(`/game/${encodeURIComponent(coreStore.state.username)}/${encodeURIComponent(name.value)}`);
     } else if (response.statusText === "Conflict") {
         toast.error("A campaign with that name already exists!");

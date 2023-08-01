@@ -19,6 +19,8 @@ tech changes will usually be stripped from release notes for the public
         -   Templates allow configuration of common data before placement, allowing unique modification afterwards
             (e.g. useful for prefilling monster info)
         -   Characters are a specific instance that remember their modifications (e.g. useful for (N)PCs)
+-   Sort campaign listing by recent play or alphabetically
+    -   Defaults to recent sort
 
 ### Changed
 

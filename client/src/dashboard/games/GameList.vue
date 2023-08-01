@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive } from "vue";
+import { onMounted, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 
@@ -29,6 +29,24 @@ const state: SessionState = reactive({
     joined: [],
     error: "",
 });
+const sort = ref<"clock" | "az" | "za">("clock");
+
+watch(sort, () => {
+    sortData(state.owned);
+    sortData(state.joined);
+});
+
+function sortData(data: RoomInfo[]): void {
+    data.sort((a, b) => {
+        if (sort.value === "clock") {
+            if (a.last_played === null) return 1;
+            if (b.last_played === null) return -1;
+            return b.last_played.localeCompare(a.last_played);
+        } else {
+            return a.name.localeCompare(b.name) * (sort.value === "az" ? 1 : -1);
+        }
+    });
+}
 
 onMounted(async () => {
     if (route.params.error === "join_game") {
@@ -44,6 +62,8 @@ onMounted(async () => {
         const data = (await response.json()) as { owned: RoomInfo[]; joined: RoomInfo[] };
         state.owned = data.owned;
         state.joined = data.joined;
+        sortData(state.owned);
+        sortData(state.joined);
     } else {
         state.error = await getErrorReason(response);
     }
@@ -128,6 +148,16 @@ async function exportCampaign(): Promise<void> {
                 <span>DUNGEON MASTER</span>
                 <span @click="router.push({ name: 'create-game' })">NEW GAME +</span>
             </div>
+            <div class="filters">
+                <span>Sort:</span>
+                <font-awesome-icon
+                    icon="clock-rotate-left"
+                    :class="{ selected: sort === 'clock' }"
+                    @click="sort = 'clock'"
+                />
+                <font-awesome-icon icon="arrow-down-a-z" :class="{ selected: sort === 'az' }" @click="sort = 'az'" />
+                <font-awesome-icon icon="arrow-down-z-a" :class="{ selected: sort === 'za' }" @click="sort = 'za'" />
+            </div>
             <div class="sessions">
                 <div
                     v-for="session of state.owned"
@@ -174,6 +204,16 @@ async function exportCampaign(): Promise<void> {
             <div class="title">
                 <span>PLAYER</span>
                 <span></span>
+            </div>
+            <div class="filters">
+                <span>Sort:</span>
+                <font-awesome-icon
+                    icon="clock-rotate-left"
+                    :class="{ selected: sort === 'clock' }"
+                    @click="sort = 'clock'"
+                />
+                <font-awesome-icon icon="arrow-down-a-z" :class="{ selected: sort === 'az' }" @click="sort = 'az'" />
+                <font-awesome-icon icon="arrow-down-z-a" :class="{ selected: sort === 'za' }" @click="sort = 'za'" />
             </div>
             <div class="sessions">
                 <div
@@ -235,6 +275,30 @@ async function exportCampaign(): Promise<void> {
     flex-direction: column;
     width: 100%;
 
+    .filters {
+        display: flex;
+        align-items: center;
+        font-size: 1.3em;
+
+        > span {
+            margin-right: 1rem;
+        }
+
+        > svg {
+            margin-right: 0.25rem;
+
+            &.selected,
+            &:hover {
+                stroke: white;
+                stroke-width: 1rem;
+            }
+
+            &:not(.selected) {
+                color: lightgray;
+            }
+        }
+    }
+
     #dm {
         margin-bottom: 2.5rem;
     }
@@ -275,7 +339,7 @@ async function exportCampaign(): Promise<void> {
             grid-auto-rows: 6.25rem;
             gap: 3.125rem;
             height: inherit;
-            margin-top: 2.75rem;
+            margin-top: 0.5rem;
             padding-top: 1rem;
             z-index: 0; // force stacking context
             overflow: visible;

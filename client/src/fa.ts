@@ -4,6 +4,8 @@ import { faCompass, faCopy, faWindowClose } from "@fortawesome/free-regular-svg-
 import {
     faAngleDoubleLeft,
     faArchive,
+    faArrowDownAZ,
+    faArrowDownZA,
     faArrowRight,
     faArrowsAlt,
     faAt,
@@ -14,6 +16,7 @@ import {
     faChevronRight,
     faChevronUp,
     faCircle,
+    faClockRotateLeft,
     faCog,
     faCogs,
     faCut,
@@ -60,6 +63,8 @@ import {
 export function loadFontAwesome(): void {
     library.add(
         faArchive,
+        faArrowDownAZ,
+        faArrowDownZA,
         faArrowRight,
         faArrowsAlt,
         faAt,
@@ -70,6 +75,7 @@ export function loadFontAwesome(): void {
         faChevronRight,
         faChevronUp,
         faCircle,
+        faClockRotateLeft,
         faCog,
         faCogs,
         faCopy,

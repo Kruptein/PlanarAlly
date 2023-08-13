@@ -9,4 +9,16 @@ sed -i 's/"PlayerId"/PlayerId/g' ../client/src/apiTypes.ts
 sed -i 's/"CharacterId"/CharacterId/g' ../client/src/apiTypes.ts
 sed -i 's/"LayerName"/LayerName/g' ../client/src/apiTypes.ts
 sed -i 's/"AssetId"/AssetId/g' ../client/src/apiTypes.ts
-sed -i '1s/^/import type { AssetId } from ".\/assetManager\/models";\nimport type { GlobalId } from ".\/game\/id";\nimport type { LayerName } from ".\/game\/models\/floor";\nimport type { AuraId } from ".\/game\/systems\/auras\/models";\nimport type { CharacterId } from ".\/game\/systems\/characters\/models";\nimport type { ClientId } from ".\/game\/systems\/client\/models";\nimport type { PlayerId } from ".\/game\/systems\/players\/models";\nimport type { TrackerId } from ".\/game\/systems\/trackers\/models";\n\nexport type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiToggleCompositeShape\nexport type ApiDataBlock = ApiRoomDataBlock | ApiShapeDataBlock | ApiUserDataBlock\n\n/' ../client/src/apiTypes.ts
+sed -i '1s/^/'\
+'import type { AssetId } from ".\/assetManager\/models";\n'\
+'import type { GlobalId } from ".\/game\/id";\n'\
+'import type { LayerName } from ".\/game\/models\/floor";\n'\
+'import type { AuraId } from ".\/game\/systems\/auras\/models";\n'\
+'import type { CharacterId } from ".\/game\/systems\/characters\/models";\n'\
+'import type { ClientId } from ".\/game\/systems\/client\/models";\n'\
+'import type { PlayerId } from ".\/game\/systems\/players\/models";\n'\
+'import type { TrackerId } from ".\/game\/systems\/trackers\/models";\n'\
+'\n'\
+'export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiToggleCompositeShape\n'\
+'export type ApiDataBlock = ApiRoomDataBlock | ApiShapeDataBlock | ApiUserDataBlock\n'\
+'\n/' ../client/src/apiTypes.ts

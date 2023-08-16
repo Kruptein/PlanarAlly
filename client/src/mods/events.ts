@@ -2,13 +2,14 @@ import { createDataBlock, getDataBlock, getOrLoadDataBlock, loadDataBlock } from
 import type { DBR, DataBlockSerializer, DbRepr, DistributiveOmit } from "../game/dataBlock/models";
 import { getShape } from "../game/id";
 import { SYSTEMS, SYSTEMS_STATE } from "../game/systems";
-import { registerTab } from "../game/systems/ui/mods";
+import { registerTab, registerTrackerSettings } from "../game/systems/ui/mods";
 
 import { loadedMods } from ".";
 
 const ui = {
     shape: {
         registerTab,
+        registerTrackerSettings,
     },
 };
 

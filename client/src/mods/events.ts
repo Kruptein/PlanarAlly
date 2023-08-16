@@ -1,6 +1,6 @@
 import { createDataBlock, getDataBlock, getOrLoadDataBlock, loadDataBlock } from "../game/dataBlock";
 import type { DBR, DataBlockSerializer, DbRepr, DistributiveOmit } from "../game/dataBlock/models";
-import { getShape } from "../game/id";
+import { getGlobalId, getShape } from "../game/id";
 import { SYSTEMS, SYSTEMS_STATE } from "../game/systems";
 import { registerTab, registerTrackerSettings } from "../game/systems/ui/mods";
 
@@ -20,6 +20,7 @@ async function gameOpened(): Promise<void> {
                 systems: SYSTEMS,
                 systemsState: SYSTEMS_STATE,
                 ui,
+                getGlobalId,
                 getShape,
                 getDataBlock,
                 createDataBlock,

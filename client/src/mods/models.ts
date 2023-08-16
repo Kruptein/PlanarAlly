@@ -2,7 +2,7 @@ import type { Component } from "vue";
 
 import type { DataBlock } from "../game/dataBlock/db";
 import type { DBR, DataBlockSerializer, DbRepr } from "../game/dataBlock/models";
-import { type LocalId } from "../game/id";
+import { type GlobalId, type LocalId } from "../game/id";
 import type { IShape } from "../game/interfaces/shape";
 import type { SYSTEMS_STATE, System } from "../game/systems";
 import type { Tracker } from "../game/systems/trackers/models";
@@ -26,6 +26,7 @@ interface ModLoad {
     };
 
     getShape: (shape: LocalId) => IShape | undefined;
+    getGlobalId: (id: LocalId) => GlobalId | undefined;
 
     getOrLoadDataBlock: <D extends DBR, S extends DBR>(
         repr: DbRepr,

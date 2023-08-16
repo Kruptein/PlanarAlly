@@ -25,13 +25,13 @@ async function gameOpened(): Promise<void> {
                 loadDataBlock: <D extends DBR, S extends DBR>(
                     repr: DistributiveOmit<DbRepr, "source">,
                     serializer: DataBlockSerializer<D, S>,
-                    defaultData?: () => D,
-                ) => loadDataBlock<D, S>({ ...repr, source: modName }, serializer, defaultData),
+                    options?: { createOnServer?: boolean; defaultData?: () => D },
+                ) => loadDataBlock<D, S>({ ...repr, source: modName }, serializer, options),
                 getOrLoadDataBlock: <D extends DBR, S extends DBR>(
                     repr: DistributiveOmit<DbRepr, "source">,
                     serializer: DataBlockSerializer<D, S>,
-                    defaultData?: () => D,
-                ) => getOrLoadDataBlock<D, S>({ ...repr, source: modName }, serializer, defaultData),
+                    options?: { createOnServer?: boolean; defaultData?: () => D },
+                ) => getOrLoadDataBlock<D, S>({ ...repr, source: modName }, serializer, options),
             });
         } catch {
             console.error("Failed to call initGame on mod", modName);

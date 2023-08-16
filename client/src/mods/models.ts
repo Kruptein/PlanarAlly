@@ -30,12 +30,12 @@ interface ModLoad {
     getOrLoadDataBlock: <D extends DBR, S extends DBR>(
         repr: DbRepr,
         serializer: DataBlockSerializer<D, S>,
-        defaultData?: () => D,
+        options?: { createOnServer?: boolean; defaultData?: () => D },
     ) => Promise<DataBlock<D, S> | undefined>;
     loadDataBlock: <D extends DBR, S extends DBR>(
         repr: DbRepr,
         serializer: DataBlockSerializer<D, S>,
-        defaultData?: () => D,
+        options?: { createOnServer?: boolean; defaultData?: () => D },
     ) => Promise<DataBlock<D, S> | undefined>;
     createDataBlock: <D extends DBR, S extends DBR>(
         repr: DbRepr,

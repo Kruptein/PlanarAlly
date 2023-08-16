@@ -34,8 +34,8 @@ async function gameOpened(): Promise<void> {
                     options?: { createOnServer?: boolean; defaultData?: () => D },
                 ) => getOrLoadDataBlock<D, S>({ ...repr, source: modName }, serializer, options),
             });
-        } catch {
-            console.error("Failed to call initGame on mod", modName);
+        } catch (e) {
+            console.error("Failed to call initGame on mod", modName, "\n", e);
         }
     }
 }

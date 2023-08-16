@@ -285,6 +285,8 @@ async def load_location(sid: str, location: Location, *, complete=False):
                     room=sid,
                 )
 
+    await _send_game("Location.Loaded", room=sid, data=None)
+
 
 @sio.on("Location.Change", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")

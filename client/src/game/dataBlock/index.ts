@@ -16,23 +16,23 @@ function getId(db: DbRepr): string {
 }
 
 // eslint-disable-next-line import/no-unused-modules
-export async function getOrLoadDataBlock<D extends DBR, S extends DBR>(
+export async function getOrLoadDataBlock<D extends DBR, S extends DBR = D>(
     repr: DbRepr,
     serializer: DataBlockSerializer<D, S>,
-    defaultData?: () => D,
+    options?: { createOnServer?: boolean; defaultData?: () => D },
 ): Promise<DataBlock<D, S> | undefined> {
     const id = getId(repr);
     if (dataBlocks.has(id)) {
         return dataBlocks.get(id) as DataBlock<D, S>;
     }
-    return await loadDataBlock(repr, serializer, defaultData);
+    return await loadDataBlock(repr, serializer, options);
 }
 
 // eslint-disable-next-line import/no-unused-modules
-export async function loadDataBlock<D extends DBR, S extends DBR>(
+export async function loadDataBlock<D extends DBR, S extends DBR = D>(
     repr: DbRepr,
     serializer: DataBlockSerializer<D, S>,
-    defaultData?: () => D,
+    options?: { createOnServer?: boolean; defaultData?: () => D },
 ): Promise<DataBlock<D, S> | undefined> {
     const id = getId(repr);
     if (dataBlocks.has(id)) {
@@ -49,44 +49,45 @@ export async function loadDataBlock<D extends DBR, S extends DBR>(
             const strDataBlock = JSON.parse(rawDataBlock.data) as [string, unknown][];
             const dataBlock = {} as D;
             for (const [key, value] of strDataBlock) {
-                dataBlock[key as keyof D] = serializer.deserialize[key]!(value as S[string]);
+                dataBlock[key as keyof D] = serializer.deserialize?.[key]?.(value as S[string]) ?? (value as D[string]);
             }
-            const db = new DataBlock(repr, dataBlock, serializer);
+            const db = new DataBlock(repr, dataBlock, serializer, true);
             dataBlocks.set(id, db as DataBlock<DBR, DBR>);
             return db;
         } catch {
             throw new Error(`Failed to parse DataBlock ${id}`);
         }
-    } else if (defaultData !== undefined) {
-        return await createDataBlock(repr, defaultData(), serializer);
+    } else if (options?.defaultData !== undefined) {
+        return await createDataBlock(repr, options.defaultData(), serializer, {
+            createOnServer: options?.createOnServer,
+        });
     } else {
+        if (options?.createOnServer === true) {
+            console.warn("createOnServer was passed without defaultData. This has no effect.");
+        }
         return undefined;
     }
 }
 
 // eslint-disable-next-line import/no-unused-modules
-export function getDataBlock<D extends DBR, S extends DBR>(repr: DbRepr): DataBlock<D, S> | undefined {
+export function getDataBlock<D extends DBR, S extends DBR = D>(repr: DbRepr): DataBlock<D, S> | undefined {
     const id = getId(repr);
     return dataBlocks.get(id) as DataBlock<D, S> | undefined;
 }
 
 // eslint-disable-next-line import/no-unused-modules
-export async function createDataBlock<D extends DBR, S extends DBR>(
+export async function createDataBlock<D extends DBR, S extends DBR = D>(
     repr: DbRepr,
     data: D,
     serializer: DataBlockSerializer<D, S>,
+    options?: { createOnServer?: boolean },
 ): Promise<DataBlock<D, S>> {
     const id = getId(repr);
     if (dataBlocks.has(id)) throw new Error(`A DataBlock for ${id} already exists`);
 
-    const db = new DataBlock(repr, data, serializer);
+    const db = new DataBlock(repr, data, serializer, false);
 
-    await new Promise<boolean>((resolve, reject) => {
-        socket.emit("DataBlock.Create", { ...repr, data: db.toJson() }, (success: boolean) => {
-            if (success) resolve(true);
-            reject("Failed to create DataBlock");
-        });
-    });
+    if (options?.createOnServer ?? true) await db.createOnServer();
 
     dataBlocks.set(id, db as DataBlock<DBR, DBR>);
     return db;

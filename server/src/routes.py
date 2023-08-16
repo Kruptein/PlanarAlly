@@ -1,23 +1,18 @@
-from functools import partial
 import os
 import sys
+from functools import partial
 
 import aiohttp
 from aiohttp import web
 
 from .api import http
+from .api.http import auth, mods, notifications, rooms, server, users, version
 from .api.http.admin import campaigns
 from .api.http.admin import users as admin_users
-from .api.http import auth
-from .api.http import notifications
-from .api.http import rooms
-from .api.http import server
-from .api.http import users
-from .api.http import version
-from .app import admin_app, api_app, app as main_app
+from .app import admin_app, api_app
+from .app import app as main_app
 from .config import config
 from .utils import ASSETS_DIR, FILE_DIR, STATIC_DIR
-
 
 subpath = os.environ.get("PA_BASEPATH", "/")
 if subpath[-1] == "/":
@@ -87,6 +82,7 @@ main_app.router.add_post(f"{subpath}/api/invite", http.claim_invite)
 main_app.router.add_get(f"{subpath}/api/version", version.get_version)
 main_app.router.add_get(f"{subpath}/api/changelog", version.get_changelog)
 main_app.router.add_get(f"{subpath}/api/notifications", notifications.collect)
+main_app.router.add_get(f"{subpath}/api/mods/list", mods.collect)
 
 # ADMIN ROUTES
 

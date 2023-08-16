@@ -7,6 +7,7 @@ import { activeShapeStore } from "../../../../store/activeShape";
 import { accessSystem } from "../../../systems/access";
 import { accessState } from "../../../systems/access/state";
 import { selectedState } from "../../../systems/selected/state";
+import { uiState } from "../../../systems/ui/state";
 
 import AccessSettings from "./AccessSettings.vue";
 import { ShapeSettingCategory } from "./categories";
@@ -57,6 +58,9 @@ const tabs = computed(() => {
     );
     if (owned.value) {
         tabs.push({ name: "Groups", component: GroupSettings }, { name: "Extra", component: ExtraSettings });
+    }
+    for (const charTab of uiState.mutableReactive.characterTabs) {
+        if (charTab.filter?.(activeShapeStore.state.id!) ?? true) tabs.push(charTab);
     }
 
     return tabs;

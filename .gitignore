@@ -40,6 +40,7 @@ server/static/vite/**
 server/static/vite-admin/**
 server/templates/**
 server/static/temp/**
+server/static/mods/**
 
 # docs
 docs/_build

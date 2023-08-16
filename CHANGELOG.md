@@ -26,6 +26,7 @@ tech changes will usually be stripped from release notes for the public
 
 -   Assets removed in the asset manager will not remove the image on disk if there are still shapes depending on it
 -   Shape removal will now also remove the related image on disk if there are no other assets/shapes depending on it
+-   Don't server main app on unknown `/api/` endpoints
 -   [tech] Selected system now has a proper state with better type ergonomics for focus retrieval
 -   [tech] Spawn Info no longer sends entire shape info, but just position, floor, id and name
 

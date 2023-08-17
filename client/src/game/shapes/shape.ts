@@ -56,8 +56,12 @@ export abstract class Shape implements IShape {
     protected _center!: GlobalPoint;
 
     protected _points: [number, number][] = [];
+    protected _shadowPoints: [number, number][] | undefined = undefined;
     get points(): [number, number][] {
         return this._points;
+    }
+    get shadowPoints(): [number, number][] {
+        return this._shadowPoints ?? this._points;
     }
 
     abstract contains(point: GlobalPoint, nearbyThreshold?: number): boolean;

@@ -153,7 +153,7 @@ class VisionState extends Store<State> {
     }
 
     private triangulateShape(target: TriangulationTarget, shape: IShape): void {
-        const points = shape.points; // expensive call
+        const points = shape.shadowPoints;
         if (points.length === 0) return;
         if (shape.type === "assetrect") {
             const asset = shape as IAsset;

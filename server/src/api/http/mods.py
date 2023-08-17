@@ -10,7 +10,13 @@ from ...utils import STATIC_DIR
 
 _mods = defaultdict(set)
 
-for fl in os.listdir(STATIC_DIR / "mods"):
+MODS_DIR = STATIC_DIR / "mods"
+
+
+if not MODS_DIR.exists():
+    MODS_DIR.mkdir()
+
+for fl in os.listdir(MODS_DIR):
     name, ext = fl.rsplit(".")
     _mods[name].add(ext)
 

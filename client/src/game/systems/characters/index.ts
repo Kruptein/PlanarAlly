@@ -1,4 +1,4 @@
-import { watchEffect, type DeepReadonly } from "vue";
+import { type DeepReadonly, watch } from "vue";
 
 import { registerSystem } from "..";
 import type { ShapeSystem } from "..";
@@ -42,6 +42,8 @@ class CharacterSystem implements ShapeSystem {
     addCharacter(character: ApiCharacter): void {
         $.characterIds.add(character.id);
         mutable.characters.set(character.id, character);
+
+        checkSelectedForCharacterState(selectedState.reactive.focus);
     }
 
     removeCharacter(characterId: CharacterId): void {
@@ -70,9 +72,9 @@ class CharacterSystem implements ShapeSystem {
 export const characterSystem = new CharacterSystem();
 registerSystem("characters", characterSystem, true, characterState);
 
-watchEffect(() => {
-    const id = selectedState.reactive.focus;
-    if (id) {
-        characterSystem.loadState(id);
-    } else characterSystem.dropState();
-});
+function checkSelectedForCharacterState(shapeId: LocalId | undefined): void {
+    if (shapeId) characterSystem.loadState(shapeId);
+    else characterSystem.dropState();
+}
+
+watch(() => selectedState.reactive.focus, checkSelectedForCharacterState);

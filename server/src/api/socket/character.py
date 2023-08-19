@@ -28,6 +28,9 @@ async def create_character(sid: str, raw_data: Any):
     elif not has_ownership(shape, pr):
         logger.warn("Attempt to create character without access")
         return
+    elif shape.character_id is not None:
+        logger.warn("Shape is already associated with a character")
+        return
 
     try:
         char = Character.create(

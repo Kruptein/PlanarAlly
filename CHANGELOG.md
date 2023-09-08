@@ -39,6 +39,7 @@ tech changes will usually be stripped from release notes for the public
 -   Kicking: The check to prevent the co-DM from kicking the main DM was incorrect
 -   AssetManager: Folder changing was doing an unnecessary extra call to the server
 -   Shapes: The angle of shapes while rotating was being rounded to whole integers, which is kinda awkard when dealing with radians
+-   Lighting: auras with both value and dim value set to 0 no longer light up the entire map
 
 ## [2023.2.0] - 2023-06-21
 

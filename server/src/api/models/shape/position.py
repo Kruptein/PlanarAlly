@@ -4,7 +4,7 @@ from ..helpers import TypeIdModel
 
 
 class ShapePosition(BaseModel):
-    angle: int
+    angle: float
     points: list[tuple[float, float]]
 
 

@@ -1,52 +1,27 @@
-2023.2.0
+2023.3.0
 
 ### Added
 
--   Drop new assets on the game directly
--   Scroll-like touch gestures no longer attempt to scroll the gameboard out of bounds
+-   Character concept
+    -   A shape can be marked as a character
+    -   Characters can be dropped anywhere (by the DM), moving/teleporting the shape to the new location
+    -   This fills in a niche adjacent to the "Templates" concept
+        -   Templates allow configuration of common data before placement, allowing unique modification afterwards
+            (e.g. useful for prefilling monster info)
+        -   Characters are a specific instance that remember their modifications (e.g. useful for (N)PCs)
+-   Sort campaign listing by recent play or alphabetically
+    -   Defaults to recent sort
 
 ### Changed
 
--   Templates no longer save certain settings
--   Bring players no longer changes the zoom level of the players
--   TpZone: When a player TP request arrives, the view area action will bring the DM to the trigger location and not to the target location
+-   Assets removed in the asset manager will not remove the image on disk if there are still shapes depending on it
+-   Shape removal will now also remove the related image on disk if there are no other assets/shapes depending on it
+-   Circles used for shadows no longer use a square bounding box, but instead use a polygon approximating the circle.
 
 ### Fixed
 
--   Group: No longer sending group info for each member (just once)
--   Group: Shape group settings fixes
-    -   Create group button was not properly behaving
-    -   Remove group button was not immediately updating the UI until a reselection
--   Group: Fix socket events no longer being listened to; Fixes multiple things that were resolved when you refreshed
--   Auth: A logic error in the auth routing code - in some cases you had to manually go to the login page
--   Templates: Missing some settings when saved
--   Fake Player: Proper rework of access handling
-    -   Shapes and auras should now only be rendered _if and only if_ some player in the game has `vision` access to that shape _AND_ the shape is selected in the vision tool.
-    -   This also hides invisible shapes
-    -   This also hides _all_ auras on the DM layer regardless of the vision tool
--   Labels: Fix removal not working
--   Toolbar: Fix vision and filter tools not immediately being available when relevant
--   Access: Fix players with specific access rules, having edit access at all times
--   Access: Changing access would not live update the edit shape UI if it was open by another client
--   Access: Fix default access in UI not being up to date if shape has no access modifications until reload
--   Access: Prevent DMs from having an explicit access rule
--   Access: No longer gives full access for fake DM
--   TpZone: Fix tp zone moving a player to a different floor not moving their view along (if 'move players' configured)
--   TpZone: Fix non-immediate player initiated teleports not working correctly
--   TpZone: Fix teleports initiated in build-mode not working correctly for players
--   Logic: Request mode not working as intended and behaving as Enabled mode instead
--   Token Directions: Fix shown tokens not taking filtered tokens into account
--   Auras: Fix sometimes not being visible until a refresh or panning closer to the aura
--   Rendering: Transparency of higher layers was no longer applied after a window resize
--   Rendering: Some cases where vision access related changes would not rerender immediately
--   Rendering: Grid not rendering horizontal lines when the width is smaller than the height of the screen
--   Select: Rotation UI should stay consistent when zooming
--   LocationBar: Fix width on drag handle for multiline locations
--   Properties: Invisible toggle not applying until a refresh for players
--   Initiative: Vision lock not properly checking active tokens
--   Initiative: Removing the last entry while it's active could break initiative
--   Vision: Edgecase that could cause an infinite loop when drawing vision lines
--   Draw: Reduced number of points in brush mode significantly
--   AssetManager: Fix progressbar missing
--   Annotation: Markdown no longer rendering as bold
--   [server] Subpath: 2 cases where subpath based setup was not properly loading images (initiative & change asset)
+-   Export: Campaigns with notes could fail to export
+-   Vision: Edgecase in triangulation build
+-   Kicking: The check to prevent the co-DM from kicking the main DM was incorrect
+-   Shapes: The angle of shapes while rotating was being rounded to whole integers, which is kinda awkard when dealing with radians
+-   Lighting: auras with both value and dim value set to 0 no longer light up the entire map

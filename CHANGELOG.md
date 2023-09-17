@@ -26,8 +26,8 @@ tech changes will usually be stripped from release notes for the public
 
 -   Assets removed in the asset manager will not remove the image on disk if there are still shapes depending on it
 -   Shape removal will now also remove the related image on disk if there are no other assets/shapes depending on it
--   Don't server main app on unknown `/api/` endpoints
 -   Circles used for shadows no longer use a square bounding box, but instead use a polygon approximating the circle.
+-   [tech] Don't serve main app on unknown `/api/` endpoints
 -   [tech] Selected system now has a proper state with better type ergonomics for focus retrieval
 -   [tech] Spawn Info no longer sends entire shape info, but just position, floor, id and name
 
@@ -35,11 +35,11 @@ tech changes will usually be stripped from release notes for the public
 
 -   Export: Campaigns with notes could fail to export
 -   Vision: Edgecase in triangulation build
--   Socket: Changing location was not properly leaving the socket connection to the previous location
 -   Kicking: The check to prevent the co-DM from kicking the main DM was incorrect
--   AssetManager: Folder changing was doing an unnecessary extra call to the server
 -   Shapes: The angle of shapes while rotating was being rounded to whole integers, which is kinda awkard when dealing with radians
 -   Lighting: auras with both value and dim value set to 0 no longer light up the entire map
+-   [tech] AssetManager: Folder changing was doing an unnecessary extra call to the server
+-   [tech] Socket: Changing location was not properly leaving the socket connection to the previous location
 
 ## [2023.2.0] - 2023-06-21
 

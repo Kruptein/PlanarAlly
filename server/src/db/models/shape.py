@@ -4,9 +4,11 @@ from uuid import uuid4
 
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
 
+from ...api.models.common import PositionTuple
 from ..base import BaseDbModel
 from ..typed import SelectSequence
 from .asset import Asset
+from .character import Character
 from .group import Group
 from .layer import Layer
 
@@ -42,9 +44,13 @@ class Shape(BaseDbModel):
     togglecomposite_set: SelectSequence["ToggleComposite"]
     composite_parent: SelectSequence["CompositeShapeAssociation"]
     shape_variants: SelectSequence["CompositeShapeAssociation"]
+    character_id: int | None
 
     uuid = cast(str, TextField(primary_key=True))
-    layer = cast(Layer, ForeignKeyField(Layer, backref="shapes", on_delete="CASCADE"))
+    layer = cast(
+        Layer | None,
+        ForeignKeyField(Layer, backref="shapes", on_delete="CASCADE", null=True),
+    )
     type_ = cast(str, TextField())
     x = cast(float, FloatField())
     y = cast(float, FloatField())
@@ -77,20 +83,28 @@ class Shape(BaseDbModel):
     )
     group = cast(
         Optional[Group],
-        ForeignKeyField(Group, backref="members", null=True, default=None),
+        ForeignKeyField(
+            Group, backref="members", null=True, default=None, on_delete="SET NULL"
+        ),
     )
     annotation_visible = cast(bool, BooleanField(default=False))
     ignore_zoom_size = cast(bool, BooleanField(default=False))
     is_door = cast(bool, BooleanField(default=False))
     is_teleport_zone = cast(bool, BooleanField(default=False))
+    character = cast(
+        Character | None,
+        ForeignKeyField(
+            Character, backref="shapes", null=True, default=None, on_delete="SET NULL"
+        ),
+    )
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"
 
     def get_path(self):
-        try:
+        if self.layer:
             return f"{self.name}@{self.layer.get_path()}"
-        except:
+        else:
             return self.name
 
     def get_options(self) -> Dict[str, Any]:
@@ -99,10 +113,16 @@ class Shape(BaseDbModel):
     def set_options(self, options: Dict[str, Any]) -> None:
         self.options = json.dumps([[k, v] for k, v in options.items()])
 
-    def center_at(self, x: float, y: float) -> None:
-        x_off, y_off = self.subtype.get_center_offset(x, y)
-        self.x = x - x_off
-        self.y = y - y_off
+    @property
+    def center(self) -> PositionTuple:
+        x_off, y_off = self.subtype.get_center_offset()
+        return PositionTuple(x=self.x + x_off, y=self.y + y_off)
+
+    @center.setter
+    def center(self, center: PositionTuple):
+        x_off, y_off = self.subtype.get_center_offset()
+        self.x = center.x - x_off
+        self.y = center.y - y_off
 
     @property
     def subtype(self) -> "ShapeType":

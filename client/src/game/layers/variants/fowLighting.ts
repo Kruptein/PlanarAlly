@@ -112,6 +112,8 @@ export class FowLightingLayer extends FowLayer {
                     const auraValue = aura.value > 0 && !isNaN(aura.value) ? aura.value : 0;
                     const auraDim = aura.dim > 0 && !isNaN(aura.dim) ? aura.dim : 0;
 
+                    if (auraValue + auraDim === 0) continue;
+
                     const center = shape.center;
                     const lcenter = g2l(center);
                     const innerRange = g2lr(auraValue + auraDim);

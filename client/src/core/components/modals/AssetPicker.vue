@@ -2,9 +2,11 @@
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { watchEffect } from "vue";
 
+import { assetSystem } from "../../../assetManager";
+import type { AssetId } from "../../../assetManager/models";
 import { socket } from "../../../assetManager/socket";
-import { assetStore } from "../../../assetManager/state";
-import { changeDirectory, getIdImageSrc, showIdName } from "../../../assetManager/utils";
+import { assetState } from "../../../assetManager/state";
+import { getIdImageSrc, showIdName } from "../../../assetManager/utils";
 import { i18n } from "../../../i18n";
 
 import Modal from "./Modal.vue";
@@ -14,14 +16,12 @@ const emit = defineEmits(["submit", "close"]);
 
 const { t } = i18n.global;
 
-const state = assetStore.state;
-
 watchEffect(() => {
     if (props.visible) {
-        assetStore.clear();
-        assetStore.clearSelected();
-        assetStore.clearFolderPath();
-        assetStore.setModalActive(true);
+        assetSystem.clear();
+        assetSystem.clearSelected();
+        assetSystem.clearFolderPath();
+        assetState.mutable.modalActive = true;
         if (!socket.connected) socket.connect();
         socket.emit("Folder.Get");
     } else {
@@ -29,10 +29,10 @@ watchEffect(() => {
     }
 });
 
-function select(event: MouseEvent, inode: number): void {
-    assetStore.clearSelected();
-    if (assetStore.state.files.includes(inode)) {
-        assetStore.addSelectedInode(inode);
+function select(event: MouseEvent, inode: AssetId): void {
+    assetSystem.clearSelected();
+    if (assetState.raw.files.includes(inode)) {
+        assetSystem.addSelectedInode(inode);
     }
 }
 </script>
@@ -51,31 +51,35 @@ function select(event: MouseEvent, inode: number): void {
             <div id="assets">
                 <div id="breadcrumbs">
                     <div>/</div>
-                    <div v-for="dir in state.folderPath" :key="dir">{{ showIdName(dir) }}</div>
+                    <div v-for="dir in assetState.reactive.folderPath" :key="dir.id">{{ dir.name }}</div>
                 </div>
                 <div id="explorer">
-                    <div v-if="state.folderPath.length" class="inode folder" @dblclick="changeDirectory(-1)">
+                    <div
+                        v-if="assetState.reactive.folderPath.length"
+                        class="inode folder"
+                        @dblclick="assetSystem.changeDirectory('POP')"
+                    >
                         <font-awesome-icon icon="folder" style="font-size: 50px" />
                         <div class="title">..</div>
                     </div>
                     <div
-                        v-for="key in state.folders"
+                        v-for="key in assetState.reactive.folders"
                         :key="key"
                         class="inode folder"
                         draggable="true"
-                        :class="{ 'inode-selected': state.selected.includes(key) }"
+                        :class="{ 'inode-selected': assetState.reactive.selected.includes(key) }"
                         @click="select($event, key)"
-                        @dblclick="changeDirectory(key)"
+                        @dblclick="assetSystem.changeDirectory(key)"
                     >
                         <font-awesome-icon icon="folder" style="font-size: 50px" />
                         <div class="title">{{ showIdName(key) }}</div>
                     </div>
                     <div
-                        v-for="file in state.files"
+                        v-for="file in assetState.reactive.files"
                         :key="file"
                         class="inode file"
                         draggable="true"
-                        :class="{ 'inode-selected': state.selected.includes(file) }"
+                        :class="{ 'inode-selected': assetState.reactive.selected.includes(file) }"
                         @click="select($event, file)"
                     >
                         <img :src="getIdImageSrc(file)" width="50" alt="" />

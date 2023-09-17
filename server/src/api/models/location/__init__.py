@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from ..common import PositionTuple
 from .settings import *
 from .settings import ApiOptionalLocationOptions
+from .spawn_info import *
 from .userOption import *
 
 

@@ -1,6 +1,6 @@
 import type { ApiCircleShape } from "../../../apiTypes";
 import { g2lz, clampGridLine } from "../../../core/conversions";
-import { addP, subtractP, toGP, Vector } from "../../../core/geometry";
+import { addP, subtractP, toArrayP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { FOG_COLOUR } from "../../colour";
 import { calculateDelta } from "../../drag";
@@ -66,6 +66,15 @@ export class Circle extends Shape implements IShape {
     }
 
     invalidatePoints(): void {
+        const ps = [];
+        const r = this.r;
+        const k = 0.75 / r;
+        const N = Math.ceil(Math.PI / Math.sqrt(2 * k));
+        const double_pi = Math.PI * 2;
+        for (let i = 0; i < double_pi; i += double_pi / N) {
+            ps.push(toArrayP(addP(this.center, new Vector(r * Math.cos(i), r * Math.sin(i)))));
+        }
+        this._shadowPoints = ps;
         this._points = this.getBoundingBox().points;
         super.invalidatePoints();
     }

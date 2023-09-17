@@ -17,9 +17,14 @@ if TYPE_CHECKING:
 ApiShape = ApiShapeSubType
 
 
-class ShapeAdd(BaseModel):
+class ApiShapeWithLayerInfo(TypeIdModel):
+    shape: ApiShape
+    floor: str
+    layer: str = Field(..., typeId="LayerName")
+
+
+class ShapeAdd(ApiShapeWithLayerInfo):
     temporary: bool
-    shape: "ApiShape"
 
 
 class TemporaryShapes(TypeIdModel):
@@ -45,6 +50,7 @@ class ShapeOrder(TypeIdModel):
 class ShapeLocationMoveTarget(PositionTuple):
     location: int
     floor: str
+    layer: str | None = Field(typeId="LayerName", noneAsNull=True)
 
 
 class ShapeLocationMove(TypeIdModel):
@@ -82,7 +88,8 @@ class ShapeAssetImageSet(TypeIdModel):
     src: str
 
 
+# todo: This can probably be removed in favor of the very similar SpawnInfo
 class ShapeInfo(BaseModel):
-    shape: ApiShape
-    location: int
+    position: PositionTuple
+    floor: str
     location: int

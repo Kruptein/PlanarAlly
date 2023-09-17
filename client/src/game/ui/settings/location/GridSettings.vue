@@ -4,17 +4,16 @@ import { useI18n } from "vue-i18n";
 
 import { locationSettingsSystem } from "../../../systems/settings/location";
 import { locationSettingsState } from "../../../systems/settings/location/state";
+import { uiState } from "../../../systems/ui/state";
 
-const props = withDefaults(defineProps<{ location?: number }>(), { location: -1 });
+const props = defineProps<{ global: boolean }>();
 
 const { t } = useI18n();
 
 const { reactive: $, getOption } = locationSettingsState;
 const lss = locationSettingsSystem;
 
-const isGlobal = computed(() => props.location < 0);
-
-const location = computed(() => (isGlobal.value ? undefined : props.location));
+const location = computed(() => (props.global ? undefined : uiState.reactive.openedLocationSettings));
 
 const useGrid = computed({
     get() {
@@ -61,7 +60,7 @@ function o(k: any): boolean {
 <template>
     <div class="panel restore-panel">
         <div class="spanrow">
-            <template v-if="isGlobal">
+            <template v-if="global">
                 <em style="max-width: 40vw">
                     {{ t("game.ui.settings.common.overridden_msg") }}
                 </em>
@@ -72,13 +71,13 @@ function o(k: any): boolean {
                 </i18n-t>
             </template>
         </div>
-        <div class="row" :class="{ overwritten: !isGlobal && o($.useGrid) }">
+        <div class="row" :class="{ overwritten: !global && o($.useGrid) }">
             <label :for="'useGridInput-' + location">{{ t("game.ui.settings.GridSettings.use_grid") }}</label>
             <div>
                 <input :id="'useGridInput-' + location" v-model="useGrid" type="checkbox" />
             </div>
             <div
-                v-if="!isGlobal && o($.useGrid)"
+                v-if="!global && o($.useGrid)"
                 :title="t('game.ui.settings.common.reset_default')"
                 @click="useGrid = undefined"
             >
@@ -86,7 +85,7 @@ function o(k: any): boolean {
             </div>
             <div v-else></div>
         </div>
-        <div class="row" :class="{ overwritten: !isGlobal && o($.gridType) }">
+        <div class="row" :class="{ overwritten: !global && o($.gridType) }">
             <label :for="'gridType-' + location">{{ t("game.ui.settings.GridSettings.grid_type") }}</label>
             <div>
                 <select :id="'gridType-' + location" v-model="gridType">
@@ -96,7 +95,7 @@ function o(k: any): boolean {
                 </select>
             </div>
             <div
-                v-if="!isGlobal && o($.gridType)"
+                v-if="!global && o($.gridType)"
                 :title="t('game.ui.settings.common.reset_default')"
                 @click="gridType = undefined"
             >
@@ -104,7 +103,7 @@ function o(k: any): boolean {
             </div>
             <div v-else></div>
         </div>
-        <div class="row" :class="{ overwritten: !isGlobal && o($.unitSizeUnit) }">
+        <div class="row" :class="{ overwritten: !global && o($.unitSizeUnit) }">
             <div>
                 <label :for="'unitSizeUnit-' + location">{{ t("game.ui.settings.GridSettings.size_unit") }}</label>
             </div>
@@ -112,7 +111,7 @@ function o(k: any): boolean {
                 <input :id="'unitSizeUnit-' + location" v-model="unitSizeUnit" type="text" />
             </div>
             <div
-                v-if="!isGlobal && o($.unitSizeUnit)"
+                v-if="!global && o($.unitSizeUnit)"
                 :title="t('game.ui.settings.common.reset_default')"
                 @click="unitSizeUnit = undefined"
             >
@@ -120,7 +119,7 @@ function o(k: any): boolean {
             </div>
             <div v-else></div>
         </div>
-        <div class="row" :class="{ overwritten: !isGlobal && o($.unitSize) }">
+        <div class="row" :class="{ overwritten: !global && o($.unitSize) }">
             <div>
                 <label :for="'unitSizeInput-' + location">
                     {{ t("game.ui.settings.GridSettings.unit_size_in_UNIT", { unit: unitSizeUnit }) }}
@@ -130,7 +129,7 @@ function o(k: any): boolean {
                 <input :id="'unitSizeInput-' + location" v-model.number="unitSize" type="number" step="any" />
             </div>
             <div
-                v-if="!isGlobal && o($.unitSize)"
+                v-if="!global && o($.unitSize)"
                 :title="t('game.ui.settings.common.reset_default')"
                 @click="unitSize = undefined"
             >

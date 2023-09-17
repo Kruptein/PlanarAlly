@@ -8,9 +8,10 @@ from typing_extensions import TypedDict
 from ....app import sio
 from ....db.models.asset import Asset
 from ....state.asset import asset_state
+from ....transform.to_api.asset import transform_asset
 from ....utils import ASSETS_DIR
+from ...models.asset import ApiAssetUpload
 from ..constants import ASSET_NS
-from .common import UploadData
 
 
 class Coord(TypedDict):
@@ -40,7 +41,7 @@ class DDraftData(TypedDict):
     image: str
 
 
-async def handle_ddraft_file(upload_data: UploadData, data: bytes, sid: str):
+async def handle_ddraft_file(upload_data: ApiAssetUpload, data: bytes, sid: str):
     ddraft_file: DDraftData = json.loads(data)
 
     image = base64.b64decode(ddraft_file["image"])
@@ -69,17 +70,17 @@ async def handle_ddraft_file(upload_data: UploadData, data: bytes, sid: str):
     user = asset_state.get_user(sid)
 
     asset = Asset.create(
-        name=upload_data["name"],
+        name=upload_data.name,
         file_hash=hashname,
         owner=user,
-        parent=upload_data["directory"],
+        parent=upload_data.directory,
         options=json.dumps(template),
     )
 
-    asset_dict = asset.as_dict()
+    asset_dict = transform_asset(asset, user)
     await sio.emit(
         "Asset.Upload.Finish",
-        {"asset": asset_dict, "parent": upload_data["directory"]},
+        {"asset": asset_dict, "parent": upload_data.directory},
         room=sid,
         namespace=ASSET_NS,
     )

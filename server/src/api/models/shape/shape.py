@@ -9,8 +9,6 @@ from .owner import ApiShapeOwner
 
 class ApiCoreShape(TypeIdModel):
     uuid: str = Field(typeId="GlobalId")
-    layer: str = Field(typeId="LayerName")
-    floor: str
     type_: str
     x: float
     y: float
@@ -45,3 +43,4 @@ class ApiCoreShape(TypeIdModel):
     trackers: list[ApiTracker]
     auras: list[ApiAura]
     labels: list[ApiLabel]
+    character: int | None = Field(..., typeId="CharacterId", noneAsNull=True)

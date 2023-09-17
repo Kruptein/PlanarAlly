@@ -14,6 +14,7 @@ import { Rect } from "../../shapes/variants/rect";
 import { floorState } from "../../systems/floors/state";
 import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
 import { selectedSystem } from "../../systems/selected";
+import { selectedState } from "../../systems/selected/state";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
 
@@ -137,7 +138,7 @@ class MapTool extends Tool implements ITool {
 
         this.active.value = false;
 
-        if (selectedSystem.$.value.size !== 1) {
+        if (selectedState.raw.selected.size !== 1) {
             this.removeRect();
             return Promise.resolve();
         }

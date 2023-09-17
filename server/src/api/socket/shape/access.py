@@ -10,8 +10,9 @@ from ....logs import logger
 from ....models.access import has_ownership
 from ....models.role import Role
 from ....state.game import game_state
-from ....transform.shape import transform_shape
+from ....transform.to_api.shape import transform_shape
 from ...helpers import _send_game
+from ...models.shape import ApiShapeWithLayerInfo
 from ...models.shape.owner import (
     ApiDefaultShapeOwner,
     ApiDeleteShapeOwner,
@@ -63,11 +64,20 @@ async def add_shape_owner(sid: str, raw_data: Any):
     await _send_game(
         "Shape.Owner.Add", data, room=pr.active_location.get_path(), skip_sid=sid
     )
-    if not (shape.default_vision_access or shape.default_edit_access):
+    layer = shape.layer
+    if layer and not (shape.default_vision_access or shape.default_edit_access):
         for sid, tpr in game_state.get_t(
             player=target_user, active_location=pr.active_location
         ):
-            await _send_game("Shape.Set", transform_shape(shape, tpr), room=sid)
+            await _send_game(
+                "Shape.Set",
+                ApiShapeWithLayerInfo(
+                    shape=transform_shape(shape, tpr),
+                    floor=layer.floor.name,
+                    layer=layer.name,
+                ),
+                room=sid,
+            )
 
 
 @sio.on("Shape.Owner.Update", namespace=GAME_NS)
@@ -117,11 +127,23 @@ async def update_shape_owner(sid: str, raw_data: Any):
         "Shape.Owner.Update", data, room=pr.active_location.get_path(), skip_sid=sid
     )
 
+    layer = shape.layer
+    if layer is None:
+        return
+
     # Ensure the target player has an updated view of the shape due to access changes
     for tsid, tpr in game_state.get_t(
         player=target_user, active_location=pr.active_location
     ):
-        await _send_game("Shape.Set", transform_shape(shape, tpr), room=tsid)
+        await _send_game(
+            "Shape.Set",
+            ApiShapeWithLayerInfo(
+                shape=transform_shape(shape, tpr),
+                floor=layer.floor.name,
+                layer=layer.name,
+            ),
+            room=tsid,
+        )
 
 
 @sio.on("Shape.Owner.Delete", namespace=GAME_NS)
@@ -163,11 +185,23 @@ async def delete_shape_owner(sid: str, raw_data: Any):
         "Shape.Owner.Delete", data, room=pr.active_location.get_path(), skip_sid=sid
     )
 
+    layer = shape.layer
+    if layer is None:
+        return
+
     # Ensure the target player has an updated view of the shape due to access changes
     for tsid, tpr in game_state.get_t(
         player=target_user, active_location=pr.active_location
     ):
-        await _send_game("Shape.Set", transform_shape(shape, tpr), room=tsid)
+        await _send_game(
+            "Shape.Set",
+            ApiShapeWithLayerInfo(
+                shape=transform_shape(shape, tpr),
+                floor=layer.floor.name,
+                layer=layer.name,
+            ),
+            room=tsid,
+        )
 
 
 @sio.on("Shape.Owner.Default.Update", namespace=GAME_NS)
@@ -197,9 +231,21 @@ async def update_default_shape_owner(sid: str, raw_data: Any):
 
     shape.save()
 
+    layer = shape.layer
+    if layer is None:
+        return
+
     # We need to send each player their new view of the shape which includes the default access fields,
     # so there is no use in sending those separately
     for sid, player_room in game_state.get_t(
         active_location=pr.active_location, skip_sid=sid
     ):
-        await _send_game("Shape.Set", transform_shape(shape, player_room), room=sid)
+        await _send_game(
+            "Shape.Set",
+            ApiShapeWithLayerInfo(
+                shape=transform_shape(shape, player_room),
+                floor=layer.floor.name,
+                layer=layer.name,
+            ),
+            room=sid,
+        )

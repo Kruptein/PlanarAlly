@@ -9,6 +9,7 @@ from ...app import app, sio
 from ...config import config
 from ...db.create.floor import create_floor
 from ...db.models.asset import Asset
+from ...db.models.character import Character
 from ...db.models.floor import Floor
 from ...db.models.initiative import Initiative
 from ...db.models.label import Label
@@ -24,10 +25,10 @@ from ...db.models.room import Room
 from ...db.models.shape import Shape
 from ...db.typed import safe_update_model_from_dict
 from ...logs import logger
+from ...models.access import has_ownership
 from ...models.role import Role
 from ...state.game import game_state
-from ...transform.floor import transform_floor
-from ...transform.shape import transform_shape
+from ...transform.to_api.floor import transform_floor
 from ..helpers import _send_game
 from ..models.client import OptionalClientViewport
 from ..models.client.gameboard import ClientGameboardSet
@@ -42,10 +43,10 @@ from ..models.location.settings import (
     LocationOptionsSet,
     LocationSettingsSet,
 )
+from ..models.location.spawn_info import ApiSpawnInfo
 from ..models.players.info import PlayerInfoCore, PlayersInfoSet
 from ..models.players.options import PlayerOptionsSet
 from ..models.room.info import RoomInfoSet
-from ..models.shape import ApiShape
 
 
 # DATA CLASSES FOR TYPE CHECKING
@@ -149,6 +150,16 @@ async def load_location(sid: str, location: Location, *, complete=False):
 
     await _send_game("Players.Info.Set", player_data, room=sid)
     await _send_game("Player.Options.Set", client_options, room=sid)
+
+    # Load Character info
+
+    if complete:
+        characters = Character.select().where(Character.campaign == pr.room)
+        await _send_game(
+            "Characters.Set",
+            [c.as_pydantic() for c in characters if has_ownership(c.shape, pr)],
+            room=sid,
+        )
 
     # 3. Load location
 
@@ -274,6 +285,8 @@ async def load_location(sid: str, location: Location, *, complete=False):
                     room=sid,
                 )
 
+    await _send_game("Location.Loaded", room=sid, data=None)
+
 
 @sio.on("Location.Change", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
@@ -286,33 +299,27 @@ async def change_location(sid: str, raw_data: Any):
         logger.warning(f"{pr.player.name} attempted to change location")
         return
 
-    # Send an anouncement to show loading state
-    for room_player in pr.room.players:
-        if room_player.player.name not in data.users:
-            continue
+    prs_to_move = [p for p in pr.room.players if p.player.name in data.users]
 
+    # Send an anouncement to show loading state
+    for room_player in prs_to_move:
         for psid in game_state.get_sids(player=room_player.player, room=pr.room):
             await _send_game("Location.Change.Start", None, room=psid)
 
+    old_locations = {rp.id: rp.active_location for rp in prs_to_move}
     new_location = Location.get_by_id(data.location)
 
     # First update DB for _all_ affected players
-    for room_player in pr.room.players:
-        if room_player.player.name not in data.users:
-            continue
-
+    for room_player in prs_to_move:
         room_player.active_location = new_location
         room_player.save()
 
     # Then send out updates
-    for room_player in pr.room.players:
-        if room_player.player.name not in data.users:
-            continue
-
+    for room_player in prs_to_move:
         for psid in game_state.get_sids(player=room_player.player, room=pr.room):
             try:
                 sio.leave_room(
-                    psid, room_player.active_location.get_path(), namespace=GAME_NS
+                    psid, old_locations[room_player.id].get_path(), namespace=GAME_NS
                 )
                 sio.enter_room(psid, new_location.get_path(), namespace=GAME_NS)
             except KeyError:
@@ -568,9 +575,9 @@ async def get_location_spawn_info(sid: str, location_id: int):
 
     if pr.role != Role.DM:
         logger.warning(f"{pr.player.name} attempted to retrieve spawn locations.")
-        return
+        return []
 
-    data: list[ApiShape] = []
+    data: list[ApiSpawnInfo] = []
 
     try:
         location = Location.get_by_id(location_id)
@@ -581,8 +588,18 @@ async def get_location_spawn_info(sid: str, location_id: int):
                 except Shape.DoesNotExist:
                     pass
                 else:
-                    data.append(transform_shape(shape, pr))
+                    if shape.layer is None:
+                        logger.warn("Spawn location without layer detected")
+                        continue
+                    data.append(
+                        ApiSpawnInfo(
+                            position=shape.center,
+                            floor=shape.layer.floor.name,
+                            uuid=shape.uuid,
+                            name=shape.name or "Unknown Shape",
+                        )
+                    )
     except:
         logger.exception("Could not load spawn locations")
 
-    await _send_game("Location.Spawn.Info", data, room=sid)
+    return data

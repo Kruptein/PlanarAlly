@@ -1,12 +1,12 @@
 import json
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, Dict, List, Literal, Optional, Union, cast
 
 from peewee import ForeignKeyField, TextField
-from playhouse.shortcuts import model_to_dict
 from typing_extensions import Self, TypedDict
 
-from ...api.socket.asset_manager.types import AssetDict
 from ..base import BaseDbModel
+from ..typed import SelectSequence
+from .asset_share import AssetShare
 from .user import User
 
 
@@ -25,8 +25,10 @@ AssetStructure = Union[FileStructure, Dict[str, "AssetStructure"]]
 
 class Asset(BaseDbModel):
     id: int
+    parent_id: int
+    shares: SelectSequence["AssetShare"]
 
-    owner = ForeignKeyField(User, backref="assets", on_delete="CASCADE")
+    owner = cast(User, ForeignKeyField(User, backref="assets", on_delete="CASCADE"))
     parent = cast(
         Optional["Asset"],
         ForeignKeyField("self", backref="children", null=True, on_delete="CASCADE"),
@@ -44,23 +46,38 @@ class Asset(BaseDbModel):
     def set_options(self, options: Dict[str, Any]) -> None:
         self.options = json.dumps([[k, v] for k, v in options.items()])
 
-    def as_dict(self, children=False, recursive=False):
-        asset = cast(
-            AssetDict, model_to_dict(self, exclude=[Asset.owner, Asset.parent])
-        )
-        if children:
-            asset["children"] = [
-                child.as_dict(children=children and recursive, recursive=recursive)
-                for child in Asset.select().where(
-                    (Asset.owner == self.owner) & (Asset.parent == self)
-                )
-            ]
-        return asset
-
-    def get_child(self, name: str) -> "Asset":
-        return Asset.get(
+    def get_child(self, name: str) -> Self | None:
+        asset = Asset.get_or_none(
             (Asset.owner == self.owner) & (Asset.parent == self) & (Asset.name == name)
         )
+        if not asset:
+            if share := AssetShare.get_or_none(user=self.owner, name=name, parent=self):
+                asset = share.asset
+        return asset
+
+    def can_be_accessed_by(
+        self, user: User, *, right: Literal["edit", "view", "all"]
+    ) -> bool:
+        asset = self
+        while asset is not None:
+            if asset.owner == user:
+                return True
+            if any(
+                share.user == user and (share.right == right or right == "all")
+                for share in asset.shares
+            ):
+                return True
+            asset = asset.parent
+        return False
+
+    def get_shared_parent(self, user: User) -> AssetShare | None:
+        asset = self
+        while asset is not None:
+            for share in asset.shares:
+                if share.user == user:
+                    return share
+            asset = asset.parent
+        return None
 
     @classmethod
     def get_root_folder(cls, user) -> Self:
@@ -76,9 +93,10 @@ class Asset(BaseDbModel):
             parent = cls.get_root_folder(user)
         # ideally we change this to a single query to get all assets and process them as such
         data: AssetStructure = {"__files": []}
-        for asset in Asset.select().where(
-            (Asset.owner == user) & (Asset.parent == parent)
-        ):
+        assets = [*Asset.select().where((Asset.parent == parent))]
+        for asset_share in AssetShare().select().where((AssetShare.parent == parent)):
+            assets.append(asset_share.asset)
+        for asset in assets:
             if asset.file_hash:
                 data["__files"].append(
                     {"id": asset.id, "name": asset.name, "hash": asset.file_hash}

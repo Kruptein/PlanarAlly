@@ -4,11 +4,44 @@ All notable changes to this project will be documented in this file.
 
 [DM] denotes changes only useful for the dungeon master\
 [server] denotes changes only useful for the server owner\
-[tech] denotes internal changes that are only useful for code contributors\
+[tech] denotes internal technical changes that are only useful for code contributors\
 tech changes will usually be stripped from release notes for the public
 [lang] this is a change to some translation string
 
 ## Unreleased
+
+## [2023.3.0] - 2023-09-17
+
+### Added
+
+-   Character concept
+    -   A shape can be marked as a character
+    -   Characters can be dropped anywhere (by the DM), moving/teleporting the shape to the new location
+    -   This fills in a niche adjacent to the "Templates" concept
+        -   Templates allow configuration of common data before placement, allowing unique modification afterwards
+            (e.g. useful for prefilling monster info)
+        -   Characters are a specific instance that remember their modifications (e.g. useful for (N)PCs)
+-   Sort campaign listing by recent play or alphabetically
+    -   Defaults to recent sort
+
+### Changed
+
+-   Assets removed in the asset manager will not remove the image on disk if there are still shapes depending on it
+-   Shape removal will now also remove the related image on disk if there are no other assets/shapes depending on it
+-   Circles used for shadows no longer use a square bounding box, but instead use a polygon approximating the circle.
+-   [tech] Don't serve main app on unknown `/api/` endpoints
+-   [tech] Selected system now has a proper state with better type ergonomics for focus retrieval
+-   [tech] Spawn Info no longer sends entire shape info, but just position, floor, id and name
+
+### Fixed
+
+-   Export: Campaigns with notes could fail to export
+-   Vision: Edgecase in triangulation build
+-   Kicking: The check to prevent the co-DM from kicking the main DM was incorrect
+-   Shapes: The angle of shapes while rotating was being rounded to whole integers, which is kinda awkard when dealing with radians
+-   Lighting: auras with both value and dim value set to 0 no longer light up the entire map
+-   [tech] AssetManager: Folder changing was doing an unnecessary extra call to the server
+-   [tech] Socket: Changing location was not properly leaving the socket connection to the previous location
 
 ## [2023.2.0] - 2023-06-21
 

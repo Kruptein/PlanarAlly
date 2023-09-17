@@ -250,6 +250,7 @@ export class Polygon extends Shape implements IShape {
             const uuid = getGlobalId(newPolygon.id)!;
             // make sure we copy over all the same properties but retain the correct uuid and vertices
             const oldDict = this.asDict();
+            newPolygon.setLayer(this.floorId!, this.layerName!);
             newPolygon.fromDict({
                 ...oldDict,
                 uuid,

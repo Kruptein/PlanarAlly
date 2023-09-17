@@ -19,6 +19,8 @@ import { annotationSystem } from "../systems/annotations";
 import { annotationState } from "../systems/annotations/state";
 import { auraSystem } from "../systems/auras";
 import { aurasFromServer, aurasToServer } from "../systems/auras/conversion";
+import { characterSystem } from "../systems/characters";
+import type { CharacterId } from "../systems/characters/models";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
 import { groupSystem } from "../systems/groups";
@@ -42,6 +44,8 @@ export abstract class Shape implements IShape {
     abstract readonly type: SHAPE_TYPE;
     readonly id: LocalId;
 
+    character: CharacterId | undefined;
+
     // The layer the shape is currently on
     floorId: FloorId | undefined;
     layerName: LayerName | undefined;
@@ -52,8 +56,12 @@ export abstract class Shape implements IShape {
     protected _center!: GlobalPoint;
 
     protected _points: [number, number][] = [];
+    protected _shadowPoints: [number, number][] | undefined = undefined;
     get points(): [number, number][] {
         return this._points;
+    }
+    get shadowPoints(): [number, number][] {
+        return this._shadowPoints ?? this._points;
     }
 
     abstract contains(point: GlobalPoint, nearbyThreshold?: number): boolean;
@@ -499,8 +507,6 @@ export abstract class Shape implements IShape {
             x: this.refPoint.x,
             y: this.refPoint.y,
             angle: this.angle,
-            floor: this.floor!.name,
-            layer: this.layerName!,
             draw_operator: this.globalCompositeOperation,
             movement_obstruction: props.blocksMovement,
             vision_obstruction: props.blocksVision,
@@ -530,6 +536,7 @@ export abstract class Shape implements IShape {
             ignore_zoom_size: this.ignoreZoomSize,
             is_door: doorSystem.isDoor(this.id),
             is_teleport_zone: teleportZoneSystem.isTeleportZone(this.id),
+            character: this.character ?? null,
         };
     }
     fromDict(data: ApiCoreShape): void {
@@ -537,8 +544,7 @@ export abstract class Shape implements IShape {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             Object.fromEntries(JSON.parse(data.options));
 
-        this.layerName = data.layer;
-        this.floorId = floorSystem.getFloor({ name: data.floor })!.id;
+        this.character = data.character ?? undefined;
         this.angle = data.angle;
         this.globalCompositeOperation = data.draw_operator as GlobalCompositeOperation;
 
@@ -572,6 +578,7 @@ export abstract class Shape implements IShape {
         doorSystem.inform(this.id, data.is_door, options.door);
         teleportZoneSystem.inform(this.id, data.is_teleport_zone, options.teleport);
         labelSystem.inform(this.id, data.labels);
+        if (data.character !== null) characterSystem.inform(this.id, data.character);
 
         this.ignoreZoomSize = data.ignore_zoom_size;
 

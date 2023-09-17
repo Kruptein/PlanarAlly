@@ -196,6 +196,9 @@ class CampaignExporter:
         self.db = open_db(self.sqlite_path)
         self.db.foreign_keys = False
 
+        # The pragma call should make sure that all recent wal changes have been copied into the main sqlite file
+        # So that copying just the sqlite file is enough
+        ACTIVE_DB.execute_sql("PRAGMA wal_checkpoint(FULL)")
         shutil.copyfile(SAVE_FILE, self.copy_name)
 
         # Base model creation
@@ -867,13 +870,10 @@ class CampaignMigrator:
                 note_data["uuid"] = new_uuid
                 note_data["room"] = self.room_mapping[room.id]
                 note_data["user"] = self.user_mapping.get(note_data["user"])
+
                 if note_data["user"] is None:
                     continue
-                if note_data["location"]:
-                    note_data["location"] = self.location_mapping[note_data["location"]]
 
-                with self.to_db.bind_ctx([Note]):
-                    Note.create(**note_data)
                 if note_data["location"]:
                     note_data["location"] = self.location_mapping[note_data["location"]]
 

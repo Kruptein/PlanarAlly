@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, List, Optional, cast
 import bcrypt
 from peewee import ForeignKeyField, TextField, fn
 from playhouse.shortcuts import model_to_dict
+from typing_extensions import Self
 
 from ..base import BaseDbModel
 from ..typed import SelectSequence
@@ -50,7 +51,7 @@ class User(BaseDbModel):
         )
 
     @classmethod
-    def by_name(cls, name: str) -> "User":
+    def by_name(cls, name: str) -> Self | None:
         return cls.get_or_none(fn.Lower(cls.name) == name.lower())
 
     @classmethod

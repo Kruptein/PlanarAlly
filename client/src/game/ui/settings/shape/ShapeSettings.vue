@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { computed, watchEffect } from "vue";
+import { type Component, computed, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { accessSystem } from "../../../systems/access";
 import { accessState } from "../../../systems/access/state";
-import { selectedSystem } from "../../../systems/selected";
+import { selectedState } from "../../../systems/selected/state";
+import { uiState } from "../../../systems/ui/state";
 
 import AccessSettings from "./AccessSettings.vue";
 import { ShapeSettingCategory } from "./categories";
@@ -28,8 +29,10 @@ const visible = computed({
     },
 });
 
+const owned = accessState.hasEditAccess;
+
 watchEffect(() => {
-    const id = selectedSystem.getFocus().value;
+    const id = selectedState.reactive.focus;
     if (id !== undefined) {
         accessSystem.loadState(id);
     } else {
@@ -44,39 +47,32 @@ defineExpose({ close });
 
 const hasShape = computed(() => activeShapeStore.state.id !== undefined);
 
-const categoryNames = computed(() => {
-    if (accessState.hasEditAccess.value) {
-        return [
-            ShapeSettingCategory.Properties,
-            ShapeSettingCategory.Trackers,
-            ShapeSettingCategory.Logic,
-            ShapeSettingCategory.Access,
-            ShapeSettingCategory.Group,
-            ShapeSettingCategory.Extra,
-        ];
+const tabs = computed(() => {
+    const tabs: { name: string; component: Component }[] = [];
+    if (!hasShape.value) return tabs;
+    tabs.push(
+        { name: ShapeSettingCategory.Properties, component: PropertySettings },
+        { name: ShapeSettingCategory.Trackers, component: TrackerSettings },
+        { name: ShapeSettingCategory.Access, component: AccessSettings },
+        { name: ShapeSettingCategory.Logic, component: LogicSettings },
+    );
+    if (owned.value) {
+        tabs.push({ name: "Groups", component: GroupSettings }, { name: "Extra", component: ExtraSettings });
     }
-    return [ShapeSettingCategory.Properties, ShapeSettingCategory.Trackers, ShapeSettingCategory.Access];
-});
+    for (const charTab of uiState.mutableReactive.characterTabs) {
+        if (charTab.filter?.(activeShapeStore.state.id!) ?? true) tabs.push(charTab);
+    }
 
-const owned = accessState.hasEditAccess;
-const SSC = ShapeSettingCategory;
+    return tabs;
+});
 </script>
 
 <template>
-    <PanelModal v-model:visible="visible" :categories="categoryNames">
+    <PanelModal v-model:visible="visible" :tabs="tabs">
         <template #title>{{ t("game.ui.selection.edit_dialog.dialog.edit_shape") }}</template>
-        <template #default="{ selection }">
-            <div v-if="hasShape" style="display: flex; flex-direction: column">
-                <PropertySettings v-lazy-show="selection === SSC.Properties" />
-                <TrackerSettings v-lazy-show="selection === SSC.Trackers" />
-                <AccessSettings v-lazy-show="selection === SSC.Access" />
-                <LogicSettings v-lazy-show="selection === SSC.Logic" :active-selection="selection === SSC.Logic" />
-                <template v-if="owned">
-                    <GroupSettings v-lazy-show="selection === SSC.Group" />
-                    <ExtraSettings v-lazy-show="selection === SSC.Extra" />
-                    <VariantSwitcher />
-                </template>
-            </div>
+        <template v-if="owned" #default>
+            <div style="flex-grow: 1"></div>
+            <VariantSwitcher />
         </template>
     </PanelModal>
 </template>

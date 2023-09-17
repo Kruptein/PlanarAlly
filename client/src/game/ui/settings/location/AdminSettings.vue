@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { http } from "../../../../core/http";
@@ -7,29 +7,30 @@ import { useModal } from "../../../../core/plugins/modals/plugin";
 import type { RoomInfo } from "../../../../dashboard/games/types";
 import { locationStore } from "../../../../store/location";
 import { playerState } from "../../../systems/players/state";
+import { uiState } from "../../../systems/ui/state";
 
-const emit = defineEmits(["update:location", "close"]);
-const props = defineProps<{ location: number }>();
+const emit = defineEmits(["close"]);
 
 const { t } = useI18n();
 const modals = useModal();
 
+const location = toRef(uiState.reactive, "openedLocationSettings");
+
 const hasPlayers = computed(() =>
-    [...playerState.reactive.players.values()].some((p) => p.location === props.location),
+    [...playerState.reactive.players.values()].some((p) => p.location === location.value),
 );
 
 const name = computed({
     get() {
-        return locationStore.activeLocations.value.find((l) => l.id === props.location)?.name ?? "";
+        return locationStore.activeLocations.value.find((l) => l.id === location.value)?.name ?? "";
     },
     set(name: string) {
-        locationStore.renameLocation(props.location, name, true);
+        locationStore.renameLocation(location.value, name, true);
     },
 });
 
 function archiveLocation(): void {
-    emit("update:location", locationStore.activeLocations.value.find((l) => l.id !== props.location)!.id);
-    locationStore.archiveLocation(props.location, true);
+    locationStore.archiveLocation(location.value, true);
     emit("close");
 }
 
@@ -45,8 +46,7 @@ async function deleteLocation(): Promise<void> {
         },
     );
     if (remove !== true) return;
-    emit("update:location", locationStore.activeLocations.value.find((l) => l.id !== props.location)!.id);
-    locationStore.removeLocation(props.location, true);
+    locationStore.removeLocation(location.value, true);
     emit("close");
 }
 
@@ -65,7 +65,7 @@ async function onCloneClick(): Promise<void> {
 
         const roomName = chosenRoom.name;
 
-        locationStore.cloneLocation(props.location, roomName, true);
+        locationStore.cloneLocation(location.value, roomName, true);
 
         emit("close");
     } else {

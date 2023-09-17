@@ -216,7 +216,12 @@ export class Layer implements ILayer {
             accessSystem.addOwnedToken(shape.id);
 
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync) {
-            sendShapeAdd({ shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
+            sendShapeAdd({
+                shape: shape.asDict(),
+                floor: shape.floor!.name,
+                layer: shape.layer!.name,
+                temporary: sync === SyncMode.TEMP_SYNC,
+            });
         }
         if (invalidate !== InvalidationMode.NO) this.invalidate(invalidate !== InvalidationMode.WITH_LIGHT);
 
@@ -229,7 +234,12 @@ export class Layer implements ILayer {
         }
 
         if (sync === SyncMode.FULL_SYNC) {
-            addOperation({ type: "shapeadd", shapes: [shape.asDict()] });
+            addOperation({
+                type: "shapeadd",
+                shapes: [shape.asDict()],
+                floor: shape.floor!.name,
+                layerName: shape.layer!.name,
+            });
         }
         shape.onLayerAdd();
     }
@@ -279,7 +289,7 @@ export class Layer implements ILayer {
     }
 
     private setServerShape(serverShape: ApiShape): void {
-        const shape = createShapeFromDict(serverShape);
+        const shape = createShapeFromDict(serverShape, this.floor, this.name);
         if (shape === undefined) {
             return;
         }

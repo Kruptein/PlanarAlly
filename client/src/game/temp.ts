@@ -7,7 +7,7 @@ import { sendFloorChange, sendLayerChange } from "./api/emits/shape/core";
 import { getGlobalId } from "./id";
 import type { ILayer } from "./interfaces/layer";
 import type { IShape } from "./interfaces/shape";
-import type { Floor } from "./models/floor";
+import type { Floor, LayerName } from "./models/floor";
 import { addOperation } from "./operations/undo";
 import { createShapeFromDict } from "./shapes/create";
 import { floorSystem } from "./systems/floors";
@@ -76,14 +76,13 @@ export function moveLayer(shapes: readonly IShape[], newLayer: ILayer, sync: boo
     }
 }
 
-export function addShape(shape: ApiShape, sync: SyncMode): IShape | undefined {
-    const layerName = shape.layer;
-    if (!floorSystem.hasLayer(floorSystem.getFloor({ name: shape.floor })!, layerName)) {
+export function addShape(shape: ApiShape, floor: string, layerName: LayerName, sync: SyncMode): IShape | undefined {
+    if (!floorSystem.hasLayer(floorSystem.getFloor({ name: floor })!, layerName)) {
         console.log(`Shape with unknown layer ${layerName} could not be added`);
         return;
     }
-    const layer = floorSystem.getLayer(floorSystem.getFloor({ name: shape.floor })!, layerName)!;
-    const sh = createShapeFromDict(shape);
+    const layer = floorSystem.getLayer(floorSystem.getFloor({ name: floor })!, layerName)!;
+    const sh = createShapeFromDict(shape, layer.floor, layerName);
     if (sh === undefined) {
         return;
     }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { type Component, computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
@@ -29,28 +29,18 @@ function close(): void {
 }
 
 defineExpose({ close });
-const categoryNames = [
-    ClientSettingCategory.Appearance,
-    ClientSettingCategory.Behaviour,
-    ClientSettingCategory.Display,
-    ClientSettingCategory.Initiative,
-    ClientSettingCategory.Performance,
+
+const tabs: { name: string; component: Component }[] = [
+    { name: ClientSettingCategory.Appearance, component: AppearanceSettings },
+    { name: ClientSettingCategory.Behaviour, component: BehaviourSettings },
+    { name: ClientSettingCategory.Display, component: DisplaySettings },
+    { name: ClientSettingCategory.Initiative, component: InitiativeSettings },
+    { name: ClientSettingCategory.Performance, component: PerformanceSettings },
 ];
 </script>
 
 <template>
-    <PanelModal
-        v-model:visible="visible"
-        :categories="categoryNames"
-        :initial-selection="uiState.reactive.clientSettingsTab"
-    >
+    <PanelModal v-model:visible="visible" :tabs="tabs" :initial-selection="uiState.reactive.clientSettingsTab">
         <template #title>{{ t("game.ui.settings.client.ClientSettings.client_settings") }}</template>
-        <template #default="{ selection }">
-            <AppearanceSettings v-show="selection === ClientSettingCategory.Appearance" />
-            <DisplaySettings v-show="selection === ClientSettingCategory.Display" />
-            <BehaviourSettings v-show="selection === ClientSettingCategory.Behaviour" />
-            <InitiativeSettings v-show="selection === ClientSettingCategory.Initiative" />
-            <PerformanceSettings v-show="selection === ClientSettingCategory.Performance" />
-        </template>
     </PanelModal>
 </template>

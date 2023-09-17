@@ -13,6 +13,7 @@ import { toGP } from "../../core/geometry";
 import { baseAdjust } from "../../core/http";
 import { reserveLocalId, getLocalId } from "../id";
 import type { IShape } from "../interfaces/shape";
+import type { FloorId, LayerName } from "../models/floor";
 import { groupSystem } from "../systems/groups";
 
 import { Asset } from "./variants/asset";
@@ -24,7 +25,7 @@ import { Rect } from "./variants/rect";
 import { Text } from "./variants/text";
 import { ToggleComposite } from "./variants/toggleComposite";
 
-export function createShapeFromDict(shape: ApiShape): IShape | undefined {
+export function createShapeFromDict(shape: ApiShape, floor: FloorId, layerName: LayerName): IShape | undefined {
     let sh: IShape;
 
     const uuid = shape.uuid;
@@ -115,6 +116,7 @@ export function createShapeFromDict(shape: ApiShape): IShape | undefined {
         return undefined;
     }
 
+    sh.setLayer(floor, layerName);
     sh.fromDict(shape);
     return sh;
 }

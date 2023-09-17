@@ -1,11 +1,14 @@
+import type { AssetId } from "./assetManager/models";
 import type { GlobalId } from "./game/id";
 import type { LayerName } from "./game/models/floor";
 import type { AuraId } from "./game/systems/auras/models";
+import type { CharacterId } from "./game/systems/characters/models";
 import type { ClientId } from "./game/systems/client/models";
 import type { PlayerId } from "./game/systems/players/models";
 import type { TrackerId } from "./game/systems/trackers/models";
 
 export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiToggleCompositeShape
+export type ApiDataBlock = ApiRoomDataBlock | ApiShapeDataBlock | ApiUserDataBlock
 
 /* eslint-disable */
 /**
@@ -13,6 +16,41 @@ export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCi
 /* Do not modify it by hand - just update the pydantic models and then re-run the script
 */
 
+export interface ApiAsset {
+  id: AssetId;
+  name: string;
+  owner: string;
+  fileHash?: string;
+  children?: ApiAsset[];
+  shares: ApiAssetShare[];
+}
+export interface ApiAssetShare {
+  user: string;
+  right: "view" | "edit";
+}
+export interface ApiAssetAdd {
+  asset: ApiAsset;
+  parent: AssetId;
+}
+export interface ApiAssetCreateFolder {
+  name: string;
+  parent: AssetId;
+}
+export interface ApiAssetCreateShare {
+  right: "view" | "edit";
+  user: string;
+  asset: AssetId;
+}
+export interface ApiAssetFolder {
+  folder: ApiAsset;
+  path: AssetId[] | null;
+  sharedParent: ApiAsset | null;
+  sharedRight: "view" | "edit" | null;
+}
+export interface ApiAssetInodeMove {
+  inode: AssetId;
+  target: AssetId;
+}
 export interface ApiAssetRectShape extends ApiCoreShape {
   width: number;
   height: number;
@@ -57,9 +95,33 @@ export interface ApiLabel {
   name: string;
   visible: boolean;
 }
+export interface ApiAssetRemoveShare {
+  asset: AssetId;
+  user: string;
+}
+export interface ApiAssetRename {
+  asset: AssetId;
+  name: string;
+}
+export interface ApiAssetUpload {
+  uuid: string;
+  name: string;
+  directory: AssetId;
+  newDirectories: string[];
+  slice: number;
+  totalSlices: number;
+  data: string | ArrayBuffer;
+}
 export interface ApiBaseRectShape extends ApiCoreShape {
   width: number;
   height: number;
+}
+export interface ApiCharacter {
+  id: CharacterId;
+  name: string;
+  shapeId: GlobalId;
+  assetId: number;
+  assetHash: string;
 }
 export interface ApiCircleShape extends ApiCoreShape {
   radius: number;
@@ -71,10 +133,14 @@ export interface ApiCircularTokenShape extends ApiCoreShape {
   text: string;
   font: string;
 }
+export interface ApiCoreDataBlock {
+  source: string;
+  name: string;
+  category: "room" | "shape" | "user";
+  data: string;
+}
 export interface ApiCoreShape {
   uuid: GlobalId;
-  layer: LayerName;
-  floor: string;
   type_: string;
   x: number;
   y: number;
@@ -108,6 +174,7 @@ export interface ApiCoreShape {
   trackers: ApiTracker[];
   auras: ApiAura[];
   labels: ApiLabel[];
+  character: CharacterId | null;
 }
 export interface ApiDefaultShapeOwner {
   edit_access: boolean;
@@ -243,6 +310,29 @@ export interface ApiOptionalUserOptions {
   initiative_open_on_activate?: boolean | null;
   render_all_floors?: boolean | null;
 }
+export interface ApiRoomDataBlock extends ApiCoreDataBlock {
+  category: "room";
+}
+export interface ApiShapeDataBlock extends ApiCoreDataBlock {
+  category: "shape";
+  shape: GlobalId;
+}
+export interface ApiShapeWithLayerInfo {
+  shape:
+    | ApiAssetRectShape
+    | ApiRectShape
+    | ApiCircleShape
+    | ApiCircularTokenShape
+    | ApiPolygonShape
+    | ApiTextShape
+    | ApiLineShape
+    | ApiToggleCompositeShape;
+  floor: string;
+  layer: LayerName;
+}
+export interface ApiUserDataBlock extends ApiCoreDataBlock {
+  category: "user";
+}
 export interface ApiUserOptions {
   fow_colour: string;
   grid_colour: string;
@@ -285,6 +375,10 @@ export interface AuraMove {
 export interface AuraRef {
   uuid: AuraId;
   shape: GlobalId;
+}
+export interface CharacterCreate {
+  shape: GlobalId;
+  name: string;
 }
 export interface ClientActiveLayerSet {
   floor: string;
@@ -482,7 +576,6 @@ export interface RoomInfoSet {
   publicName: string;
 }
 export interface ShapeAdd {
-  temporary: boolean;
   shape:
     | ApiAssetRectShape
     | ApiRectShape
@@ -492,6 +585,9 @@ export interface ShapeAdd {
     | ApiTextShape
     | ApiLineShape
     | ApiToggleCompositeShape;
+  floor: string;
+  layer: LayerName;
+  temporary: boolean;
 }
 export interface ShapeAssetImageSet {
   uuid: GlobalId;
@@ -507,15 +603,8 @@ export interface ShapeFloorChange {
   floor: string;
 }
 export interface ShapeInfo {
-  shape:
-    | ApiAssetRectShape
-    | ApiRectShape
-    | ApiCircleShape
-    | ApiCircularTokenShape
-    | ApiPolygonShape
-    | ApiTextShape
-    | ApiLineShape
-    | ApiToggleCompositeShape;
+  position: PositionTuple;
+  floor: string;
   location: number;
 }
 export interface ShapeLayerChange {
@@ -532,6 +621,7 @@ export interface ShapeLocationMoveTarget {
   y: number;
   location: number;
   floor: string;
+  layer?: string;
 }
 export interface ShapeOption {
   uuid: GlobalId;
@@ -670,6 +760,12 @@ export interface ApiLocationOptions {
   ground_map_background: string;
   underground_map_background: string;
   limit_movement_during_initiative: boolean;
+}
+export interface ApiSpawnInfo {
+  position: PositionTuple;
+  floor: string;
+  name: string;
+  uuid: GlobalId;
 }
 export interface LocationChange {
   location: number;

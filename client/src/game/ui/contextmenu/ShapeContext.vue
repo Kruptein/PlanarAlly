@@ -3,7 +3,7 @@ import { computed, toRef } from "vue";
 import type { ComputedRef } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { ApiAssetRectShape } from "../../../apiTypes";
+import type { ApiSpawnInfo, CharacterCreate } from "../../../apiTypes";
 import ContextMenu from "../../../core/components/ContextMenu.vue";
 import { defined, guard, map } from "../../../core/iter";
 import { SyncMode } from "../../../core/models/types";
@@ -22,6 +22,8 @@ import type { Floor, LayerName } from "../../models/floor";
 import { toTemplate } from "../../shapes/templates";
 import { deleteShapes } from "../../shapes/utils";
 import { accessSystem } from "../../systems/access";
+import { sendCreateCharacter } from "../../systems/characters/emits";
+import { characterState } from "../../systems/characters/state";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { gameState } from "../../systems/game/state";
@@ -31,6 +33,7 @@ import { markerState } from "../../systems/markers/state";
 import { playerSystem } from "../../systems/players";
 import { getProperties } from "../../systems/properties/state";
 import { selectedSystem } from "../../systems/selected";
+import { selectedState } from "../../systems/selected/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import { moveFloor, moveLayer } from "../../temp";
 import { initiativeStore } from "../initiative/state";
@@ -42,7 +45,7 @@ const { t } = useI18n();
 const modals = useModal();
 
 const selectionIncludesSpawnToken = computed(() =>
-    [...selectedSystem.$.value].some((s) => {
+    [...selectedState.reactive.selected].some((s) => {
         const gId = getGlobalId(s);
         if (gId === undefined) return false;
         return locationSettingsState.reactive.spawnLocations.value.includes(gId);
@@ -50,7 +53,7 @@ const selectionIncludesSpawnToken = computed(() =>
 );
 
 const isOwned = computed(() =>
-    [...selectedSystem.$.value].every((s) => accessSystem.hasAccessTo(s, false, { edit: true })),
+    [...selectedState.reactive.selected].every((s) => accessSystem.hasAccessTo(s, false, { edit: true })),
 );
 
 function close(): void {
@@ -58,7 +61,7 @@ function close(): void {
 }
 
 function openEditDialog(): void {
-    if (selectedSystem.$.value.size !== 1) return;
+    if (selectedState.raw.selected.size !== 1) return;
     activeShapeStore.setShowEditDialog(true);
     close();
 }
@@ -66,20 +69,20 @@ function openEditDialog(): void {
 // MARKERS
 
 const isMarker = computed(() => {
-    const sel = selectedSystem.$.value;
+    const sel = selectedState.reactive.selected;
     if (sel.size !== 1) return false;
     return markerState.reactive.markers.has([...sel][0]!);
 });
 
 function deleteMarker(): void {
-    const sel = selectedSystem.$.value;
+    const sel = selectedState.raw.selected;
     if (sel.size !== 1) return;
     markerSystem.removeMarker([...sel][0]!, true);
     close();
 }
 
 function setMarker(): void {
-    const sel = selectedSystem.$.value;
+    const sel = selectedState.raw.selected;
     if (sel.size !== 1) return;
     markerSystem.newMarker([...sel][0]!, true);
     close();
@@ -122,7 +125,7 @@ async function addToInitiative(): Promise<void> {
 }
 
 function getInitiativeWord(): string {
-    const selection = selectedSystem.$.value;
+    const selection = selectedState.raw.selected;
     if (selection.size === 1) {
         return initiativeStore.state.locationData.some((i) => i.localId === [...selection][0])
             ? t("game.ui.selection.ShapeContext.show_initiative")
@@ -191,7 +194,7 @@ async function setLocation(newLocation: number): Promise<void> {
     }
 
     const spawnInfo = await requestSpawnInfo(newLocation);
-    let spawnLocation: ApiAssetRectShape;
+    let spawnLocation: ApiSpawnInfo;
 
     switch (spawnInfo.length) {
         case 0:
@@ -220,8 +223,8 @@ async function setLocation(newLocation: number): Promise<void> {
 
     const targetPosition = {
         floor: spawnLocation.floor,
-        x: spawnLocation.x + spawnLocation.width / 2,
-        y: spawnLocation.y + spawnLocation.height / 2,
+        x: spawnLocation.position.x,
+        y: spawnLocation.position.y,
     };
 
     sendShapesMove({
@@ -242,7 +245,7 @@ async function setLocation(newLocation: number): Promise<void> {
 
 // SELECTION
 
-const hasSingleSelection = computed(() => selectedSystem.$.value.size === 1);
+const hasSingleSelection = computed(() => selectedState.reactive.selected.size === 1);
 
 function deleteSelection(): void {
     deleteShapes(selectedSystem.get({ includeComposites: true }), SyncMode.FULL_SYNC);
@@ -252,7 +255,7 @@ function deleteSelection(): void {
 // TEMPLATES
 
 const canBeSaved = computed(() =>
-    [...selectedSystem.$.value].every(
+    [...selectedState.reactive.selected].every(
         (s) => getShape(s)!.assetId !== undefined && compositeState.getCompositeParent(s) === undefined,
     ),
 );
@@ -287,16 +290,32 @@ async function saveTemplate(): Promise<void> {
     }
 }
 
+// CHARACTER
+const hasCharacter = computed(() => characterState.reactive.activeCharacterId !== undefined);
+
+function createCharacter(): void {
+    close();
+    const selectedId = [...selectedState.raw.selected].at(0);
+    if (selectedId === undefined) return;
+    const shape = getShape(selectedId);
+    if (shape === undefined || shape.character !== undefined) return;
+    const data: CharacterCreate = {
+        shape: getGlobalId(selectedId)!,
+        name: getProperties(selectedId)!.name,
+    };
+    sendCreateCharacter(data);
+}
+
 // GROUPS
 
 const groups = computed(() => {
-    const ids = map(selectedSystem.$.value, (s) => groupSystem.getGroupId(s));
+    const ids = map(selectedState.reactive.selected, (s) => groupSystem.getGroupId(s));
     const definedIds = guard(ids, defined);
     return new Set(definedIds);
 });
 
 const hasEntireGroup = computed(() => {
-    const selection = selectedSystem.$.value;
+    const selection = selectedState.reactive.selected;
     const sel = [...selection][0];
     if (sel === undefined) return false;
     const groupId = groupSystem.getGroupId(sel);
@@ -304,10 +323,12 @@ const hasEntireGroup = computed(() => {
     return selection.size === groupSystem.getGroupSize(groupId);
 });
 
-const hasUngrouped = computed(() => [...selectedSystem.$.value].some((s) => groupSystem.getGroupId(s) === undefined));
+const hasUngrouped = computed(() =>
+    [...selectedState.reactive.selected].some((s) => groupSystem.getGroupId(s) === undefined),
+);
 
 function createGroup(): void {
-    groupSystem.createNewGroupForShapes([...selectedSystem.$.value]);
+    groupSystem.createNewGroupForShapes([...selectedState.raw.selected]);
     close();
 }
 
@@ -316,7 +337,7 @@ async function splitGroup(): Promise<void> {
         no: "No, reset them",
     });
     if (keepBadges === undefined) return;
-    groupSystem.createNewGroupForShapes([...selectedSystem.$.value], keepBadges);
+    groupSystem.createNewGroupForShapes([...selectedState.raw.selected], keepBadges);
     close();
 }
 
@@ -433,6 +454,7 @@ const floors = toRef(floorState.reactive, "floors");
             <li v-if="!selectionIncludesSpawnToken && gameState.reactive.isDm && canBeSaved" @click="saveTemplate">
                 {{ t("game.ui.templates.save") }}
             </li>
+            <li v-if="isOwned && !hasCharacter" @click="createCharacter">Create character</li>
         </template>
         <template v-else>
             <li>

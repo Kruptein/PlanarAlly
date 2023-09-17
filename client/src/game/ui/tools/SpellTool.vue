@@ -4,16 +4,15 @@ import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../core/components/ColourPicker.vue";
 import { baseAdjust } from "../../../core/http";
-import { selectedSystem } from "../../systems/selected";
+import { selectedState } from "../../systems/selected/state";
 import { SpellShape, spellTool } from "../../tools/variants/spell";
 
 const { t } = useI18n();
 
 const selected = spellTool.isActiveTool;
-const selection = selectedSystem.$;
 const shapes = Object.values(SpellShape);
 
-const canConeBeCast = computed(() => selection.value.size > 0);
+const canConeBeCast = computed(() => selectedState.reactive.selected.size > 0);
 
 const translationMapping = {
     [SpellShape.Square]: t("game.ui.tools.DrawTool.square"),

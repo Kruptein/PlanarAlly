@@ -11,7 +11,7 @@ def has_ownership(shape: Shape, pr: PlayerRoom, *, movement=False) -> bool:
     if pr.role == Role.DM:
         return True
 
-    if not shape.layer.player_editable:
+    if shape.layer and not shape.layer.player_editable:
         return False
 
     if shape.default_edit_access:

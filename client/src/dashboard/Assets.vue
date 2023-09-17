@@ -1,26 +1,32 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { trimEnd } from "lodash";
+import { type DeepReadonly, computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from "vue-router";
 import type { RouteLocationNormalized } from "vue-router";
+import { useToast } from "vue-toastification";
 
+import type { ApiAsset } from "../apiTypes";
+import { assetSystem } from "../assetManager";
 import AssetContextMenu from "../assetManager/AssetContext.vue";
 import { openAssetContextMenu } from "../assetManager/context";
+import { sendCreateFolder, sendFolderGetByPath } from "../assetManager/emits";
+import type { AssetId } from "../assetManager/models";
 import { socket } from "../assetManager/socket";
-import { assetStore } from "../assetManager/state";
-import { changeDirectory, getIdImageSrc, showIdName } from "../assetManager/utils";
+import { assetState } from "../assetManager/state";
+import { getIdImageSrc } from "../assetManager/utils";
 import { baseAdjust } from "../core/http";
 import { map } from "../core/iter";
 import { useModal } from "../core/plugins/modals/plugin";
 import { ctrlOrCmdPressed } from "../core/utils";
+import { coreStore } from "../store/core";
 
 const { t } = useI18n();
 const modals = useModal();
 const route = useRoute();
+const toast = useToast();
 
-const state = assetStore.state;
 const body = document.getElementsByTagName("body")[0];
-const parentFolder = assetStore.parentFolder;
 
 const activeSelectionUrl = `url(${baseAdjust("/static/img/assetmanager/active_selection.png")})`;
 const emptySelectionUrl = `url(${baseAdjust("/static/img/assetmanager/empty_selection.png")})`;
@@ -33,7 +39,7 @@ function getCurrentPath(path?: string): string {
 
 function loadFolder(path: string): void {
     if (!socket.connected) socket.connect();
-    socket.emit("Folder.GetByPath", path);
+    sendFolderGetByPath(path);
 }
 
 onMounted(() => {
@@ -50,10 +56,13 @@ onBeforeRouteLeave(() => {
 });
 
 onBeforeRouteUpdate((to: RouteLocationNormalized) => {
-    if (getCurrentPath(to.path) !== assetStore.currentFilePath.value) {
+    if (trimEnd(getCurrentPath(to.path), "/") !== trimEnd(assetState.currentFilePath.value, "/")) {
         loadFolder(getCurrentPath(to.path));
     }
 });
+
+const folders = computed(() => assetState.reactive.folders.map((f) => assetState.reactive.idMap.get(f)!));
+const files = computed(() => assetState.reactive.files.map((f) => assetState.reactive.idMap.get(f)!));
 
 const dragState = ref(0);
 
@@ -66,18 +75,26 @@ function hideDropZone(): void {
 }
 
 async function createDirectory(): Promise<void> {
+    const currentFolder = assetState.currentFolder.value;
+    if (currentFolder === undefined || !canEdit(currentFolder)) return;
     const name = await modals.prompt(t("assetManager.AssetManager.new_folder_name"), "?");
     if (name !== undefined) {
-        socket.emit("Folder.Create", { name, parent: assetStore.currentFolder.value });
+        sendCreateFolder({ name, parent: currentFolder });
     }
 }
 
 async function onDrop(event: DragEvent): Promise<void> {
     hideDropZone();
-    if (event.dataTransfer && event.dataTransfer.items.length > 0) {
+    const currentFolder = assetState.currentFolder.value;
+    if (!canEdit(currentFolder)) {
+        toast.error("You do not have permission to do this.");
+        return;
+    }
+
+    if (currentFolder && event.dataTransfer && event.dataTransfer.items.length > 0) {
         await parseDirectoryUpload(
             map(event.dataTransfer.items, (i) => i.webkitGetAsEntry()),
-            assetStore.currentFolder.value,
+            currentFolder,
         );
     }
 }
@@ -88,7 +105,7 @@ function fsToFile(fl: FileSystemFileEntry): Promise<File> {
 
 async function parseDirectoryUpload(
     fileSystemEntries: Iterable<FileSystemEntry | null>,
-    target: number,
+    target: AssetId,
     newDirectories: string[] = [],
 ): Promise<void> {
     const files: FileSystemFileEntry[] = [];
@@ -106,25 +123,29 @@ async function parseDirectoryUpload(
     }
     if (files.length > 0) {
         const fileList = await Promise.all(files.map((f) => fsToFile(f)));
-        await assetStore.upload(fileList as unknown as FileList, { target, newDirectories });
+        await assetSystem.upload(fileList as unknown as FileList, { target: () => target, newDirectories });
     }
 }
 
-function select(event: MouseEvent, inode: number): void {
-    if (event.shiftKey && state.selected.length > 0) {
-        const inodes = [...state.folders, ...state.files];
-        const start = inodes.indexOf(state.selected.at(-1)!);
+function select(event: MouseEvent, inode: AssetId): void {
+    if (!canEdit(inode, false)) {
+        return;
+    }
+
+    if (event.shiftKey && assetState.raw.selected.length > 0) {
+        const inodes = [...assetState.raw.folders, ...assetState.raw.files];
+        const start = inodes.indexOf(assetState.raw.selected.at(-1)!);
         const end = inodes.indexOf(inode);
         for (let i = start; i !== end; start < end ? i++ : i--) {
             if (i === start) continue;
-            assetStore.addSelectedInode(inodes[i]!);
+            assetSystem.addSelectedInode(inodes[i]!);
         }
-        assetStore.addSelectedInode(inodes[end]!);
+        assetSystem.addSelectedInode(inodes[end]!);
     } else {
         if (!ctrlOrCmdPressed(event)) {
-            assetStore.clearSelected();
+            assetSystem.clearSelected();
         }
-        assetStore.addSelectedInode(inode);
+        assetSystem.addSelectedInode(inode);
     }
 }
 
@@ -132,22 +153,31 @@ function emptySelection(event: MouseEvent): void {
     // When shift or ctrl is pressed you are probably doing a selection operation,
     // but just misclicked. We don't want this to clear the selection on accident.
     if (event.shiftKey || ctrlOrCmdPressed(event)) return;
-    assetStore.clearSelected();
+    assetSystem.clearSelected();
 }
 
-function openContextMenu(event: MouseEvent, key: number): void {
-    assetStore.clearSelected();
-    assetStore.addSelectedInode(key);
+function openContextMenu(event: MouseEvent, key: AssetId): void {
+    if (!canEdit(key, false)) {
+        return;
+    }
+
+    assetSystem.clearSelected();
+    assetSystem.addSelectedInode(key);
     openAssetContextMenu(event);
 }
 
 let draggingSelection = false;
 
-function startDrag(event: DragEvent, file: number): void {
+function startDrag(event: DragEvent, file: AssetId): void {
     if (event.dataTransfer === null) return;
+
+    if (!canEdit(file, false)) {
+        return;
+    }
+
     event.dataTransfer.setData("Hack", "ittyHack");
     event.dataTransfer.dropEffect = "move";
-    if (!state.selected.includes(file)) assetStore.addSelectedInode(file);
+    if (!assetState.raw.selected.includes(file)) assetSystem.addSelectedInode(file);
     draggingSelection = true;
 }
 
@@ -162,41 +192,78 @@ function leaveDrag(event: DragEvent): void {
         (event.target as HTMLElement).classList.remove("inode-selected");
 }
 
-async function stopDrag(event: DragEvent, target: number): Promise<void> {
+async function stopDrag(event: DragEvent, target: AssetId): Promise<void> {
     (event.target as HTMLElement).classList.remove("inode-selected");
-    if (draggingSelection) {
-        if (state.selected.includes(target)) return;
-        if (target === parentFolder.value || target === state.root || state.folders.includes(target)) {
-            for (const inode of state.selected) {
-                assetStore.moveInode(inode, target);
+
+    if (!canEdit(target)) {
+        if (!assetState.raw.selected.includes(target)) toast.error("You do not have permission to do this.");
+    } else {
+        if (draggingSelection) {
+            if (assetState.raw.selected.includes(target)) return;
+            if (
+                target === assetState.parentFolder.value ||
+                target === assetState.raw.root ||
+                assetState.raw.folders.includes(target)
+            ) {
+                for (const inode of assetState.raw.selected) {
+                    assetSystem.moveInode(inode, target);
+                }
             }
+            assetSystem.clearSelected();
+        } else if (event.dataTransfer && event.dataTransfer.items.length > 0) {
+            await parseDirectoryUpload(
+                map(event.dataTransfer.items, (i) => i.webkitGetAsEntry()),
+                target,
+            );
         }
-        assetStore.clearSelected();
-    } else if (event.dataTransfer && event.dataTransfer.items.length > 0) {
-        await parseDirectoryUpload(
-            map(event.dataTransfer.items, (i) => i.webkitGetAsEntry()),
-            target,
-        );
     }
     draggingSelection = false;
     dragState.value = 0;
 }
 
 function prepareUpload(): void {
+    if (!canEdit(assetState.currentFolder.value)) return;
     document.getElementById("files")!.click();
 }
 
 const upload = async (): Promise<void> => {
+    if (!canEdit(assetState.currentFolder.value)) return;
     const files = (document.getElementById("files") as HTMLInputElement).files;
-    if (files !== null) await assetStore.upload(files);
+    if (files !== null) await assetSystem.upload(files);
 };
 
 async function deleteSelection(): Promise<void> {
-    if (assetStore.state.selected.length === 0) return;
+    if (!canEdit(assetState.currentFolder.value)) return;
+    if (assetState.raw.selected.length === 0) return;
     const result = await modals.confirm(t("assetManager.AssetContextMenu.ask_remove"));
     if (result === true) {
-        assetStore.removeSelection();
+        assetSystem.removeSelection();
     }
+}
+
+function isShared(asset: DeepReadonly<ApiAsset>): boolean {
+    return (
+        asset.shares.length > 0 || (asset.owner !== coreStore.state.username && assetState.raw.sharedParent === null)
+    );
+}
+
+function canEdit(data: AssetId | DeepReadonly<ApiAsset> | undefined, includeRootShare = true): boolean {
+    if (data === undefined) return false; // We accept undefined to alleviate awkward type checks in callers
+    let asset: DeepReadonly<ApiAsset> | undefined;
+    if (data instanceof Object && "id" in data) asset = data;
+    else asset = assetState.raw.idMap.get(data);
+
+    if (asset === undefined) return false;
+
+    if (assetState.raw.sharedRight === "view") return false;
+
+    if (includeRootShare) {
+        const username = coreStore.state.username;
+        if (asset === undefined) return false;
+        if (asset.owner !== username && !asset.shares.some((s) => s.user === username && s.right === "edit"))
+            return false;
+    }
+    return true;
 }
 </script>
 
@@ -204,7 +271,7 @@ async function deleteSelection(): Promise<void> {
     <div id="content" @click="emptySelection">
         <div class="content-title">
             <span>MANAGE ASSETS</span>
-            <div>
+            <div v-show="assetState.reactive.sharedRight !== 'view'">
                 <input id="files" type="file" multiple hidden @change="upload()" />
                 <img
                     :src="baseAdjust('/static/img/assetmanager/create_folder.svg')"
@@ -227,66 +294,89 @@ async function deleteSelection(): Promise<void> {
             </div>
         </div>
         <div id="path">
-            <div @click="changeDirectory(state.root)">/</div>
-            <div v-for="dir in state.folderPath" :key="dir" @click="changeDirectory(dir)">{{ showIdName(dir) }}</div>
+            <div @click="assetSystem.changeDirectory(assetState.raw.root ?? 'POP')">/</div>
+            <div
+                v-for="dir in assetState.reactive.folderPath"
+                :key="dir.id"
+                @click="assetSystem.changeDirectory(dir.id)"
+            >
+                {{ dir.name }}
+            </div>
+        </div>
+        <div v-if="assetState.reactive.sharedParent" id="infobar">
+            You are browsing files that are part of a shared folder with you
         </div>
         <div id="assets" :class="{ dropzone: dragState > 0 }" @dragover.prevent @drop.prevent.stop="onDrop">
             <div
-                v-if="state.folderPath.length"
+                v-if="assetState.raw.folderPath.length && assetState.parentFolder.value"
                 class="inode folder"
-                @dblclick="changeDirectory(-1)"
+                @dblclick="assetSystem.changeDirectory('POP')"
                 @dragover.prevent="moveDrag"
                 @dragleave.prevent="leaveDrag"
-                @drop.prevent.stop="stopDrag($event, parentFolder)"
+                @drop.prevent.stop="stopDrag($event, assetState.parentFolder.value)"
                 @mousedown.prevent
             >
                 <font-awesome-icon icon="folder" style="font-size: 12.5em" />
                 <div class="title">..</div>
             </div>
             <div
-                v-for="key in state.folders"
-                :key="key"
+                v-for="folder of folders"
+                :key="folder.id"
                 class="inode folder"
-                draggable="true"
+                :draggable="assetState.reactive.sharedRight !== 'view'"
                 :class="{
-                    'inode-selected': state.selected.includes(key),
-                    'inode-not-selected': state.selected.length > 0 && !state.selected.includes(key),
+                    'inode-selected': assetState.reactive.selected.includes(folder.id),
+                    'inode-not-selected':
+                        assetState.reactive.selected.length > 0 && !assetState.reactive.selected.includes(folder.id),
                 }"
-                @click.stop="select($event, key)"
-                @dblclick="changeDirectory(key)"
-                @contextmenu.prevent="openContextMenu($event, key)"
-                @dragstart="startDrag($event, key)"
+                @click.stop="select($event, folder.id)"
+                @dblclick="assetSystem.changeDirectory(folder.id)"
+                @contextmenu.prevent="openContextMenu($event, folder.id)"
+                @dragstart="startDrag($event, folder.id)"
                 @dragover.prevent="moveDrag"
                 @dragleave.prevent="leaveDrag"
-                @drop.prevent.stop="stopDrag($event, key)"
+                @drop.prevent.stop="stopDrag($event, folder.id)"
             >
+                <font-awesome-icon v-if="isShared(folder)" icon="user-tag" class="asset-link" />
                 <font-awesome-icon icon="folder" style="font-size: 12.5em" />
-                <div class="title">{{ showIdName(key) }}</div>
+                <div class="title">{{ folder.name }}</div>
             </div>
             <div
-                v-for="file in state.files"
-                :key="file"
+                v-for="file of files"
+                :key="file.id"
                 class="inode file"
-                draggable="true"
+                :draggable="assetState.reactive.sharedRight !== 'view'"
                 :class="{
-                    'inode-selected': state.selected.includes(file),
-                    'inode-not-selected': state.selected.length > 0 && !state.selected.includes(file),
+                    'inode-selected': assetState.reactive.selected.includes(file.id),
+                    'inode-not-selected':
+                        assetState.reactive.selected.length > 0 && !assetState.reactive.selected.includes(file.id),
                 }"
-                @click.stop="select($event, file)"
-                @contextmenu.prevent="openContextMenu($event, file)"
-                @dragstart="startDrag($event, file)"
+                @click.stop="select($event, file.id)"
+                @contextmenu.prevent="openContextMenu($event, file.id)"
+                @dragstart="startDrag($event, file.id)"
             >
-                <img :src="getIdImageSrc(file)" width="50" alt="" />
-                <div class="title">{{ showIdName(file) }}</div>
+                <font-awesome-icon v-if="isShared(file)" icon="user-tag" class="asset-link" />
+                <img :src="getIdImageSrc(file.id)" width="50" alt="" />
+                <div class="title">{{ file.name }}</div>
             </div>
         </div>
-        <div v-show="state.expectedUploads > 0 && state.expectedUploads !== state.resolvedUploads" id="progressbar">
+        <div
+            v-show="
+                assetState.reactive.expectedUploads > 0 &&
+                assetState.reactive.expectedUploads !== assetState.reactive.resolvedUploads
+            "
+            id="progressbar"
+        >
             <div id="progressbar-label">
-                {{ t("assetManager.AssetManager.uploading") }} {{ state.resolvedUploads }} /
-                {{ state.expectedUploads }}
+                {{ t("assetManager.AssetManager.uploading") }} {{ assetState.reactive.resolvedUploads }} /
+                {{ assetState.reactive.expectedUploads }}
             </div>
             <div id="progressbar-meter">
-                <span :style="{ width: (state.resolvedUploads / state.expectedUploads) * 100 + '%' }"></span>
+                <span
+                    :style="{
+                        width: (assetState.reactive.resolvedUploads / assetState.reactive.expectedUploads) * 100 + '%',
+                    }"
+                ></span>
             </div>
         </div>
     </div>
@@ -294,7 +384,7 @@ async function deleteSelection(): Promise<void> {
 </template>
 
 <style lang="scss">
-#content + .ContextMenu ul {
+#content ~ .ContextMenu ul {
     background: rgba(77, 0, 21);
 
     > li:hover {
@@ -358,6 +448,12 @@ async function deleteSelection(): Promise<void> {
         }
     }
 
+    #infobar {
+        background: rgba(219, 0, 59, 1);
+        border-radius: 1rem;
+        padding: 1rem;
+    }
+
     #assets {
         display: grid;
         grid-template-columns: repeat(auto-fit, 12.5em);
@@ -370,6 +466,8 @@ async function deleteSelection(): Promise<void> {
 
         // border: solid 2px transparent;
         border: 5px dotted transparent;
+
+        user-select: none;
 
         &.dropzone {
             border-color: #ffa8bf;
@@ -398,6 +496,19 @@ async function deleteSelection(): Promise<void> {
             > .title {
                 font-size: 1.5em;
                 word-break: break-all;
+            }
+
+            > .asset-link {
+                font-size: 2em;
+                position: absolute;
+                left: 0.25rem;
+                top: 0.25rem;
+                color: white;
+
+                :deep(> path) {
+                    stroke: black;
+                    stroke-width: 1.5rem;
+                }
             }
         }
 

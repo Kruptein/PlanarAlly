@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 import { map } from "../../../core/iter";
 import { getShape } from "../../id";
 import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
-import { selectedSystem } from "../../systems/selected";
+import { selectedState } from "../../systems/selected/state";
 import { mapTool } from "../../tools/variants/map";
 
 const { t } = useI18n();
@@ -25,7 +25,7 @@ watchEffect(() => {
 });
 
 watchEffect(() => {
-    const selection = map(selectedSystem.$.value, (s) => getShape(s)!);
+    const selection = map(selectedState.reactive.selected, (s) => getShape(s)!);
     mapTool.setSelection([...selection]);
 });
 

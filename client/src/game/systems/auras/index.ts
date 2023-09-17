@@ -15,7 +15,7 @@ import { accessSystem } from "../access";
 import { accessState } from "../access/state";
 import { gameState } from "../game/state";
 import { getProperties } from "../properties/state";
-import { selectedSystem } from "../selected";
+import { selectedState } from "../selected/state";
 
 import { aurasToServer, partialAuraToServer, toUiAuras } from "./conversion";
 import { sendShapeCreateAura, sendShapeRemoveAura, sendShapeUpdateAura } from "./emits";
@@ -240,8 +240,8 @@ registerSystem("auras", auraSystem, true);
 // Aura System state is active whenever a shape is selected due to the quick selection info
 
 watchEffect(() => {
-    const id = selectedSystem.getFocus();
-    if (id.value) {
-        auraSystem.loadState(id.value);
+    const id = selectedState.reactive.focus;
+    if (id) {
+        auraSystem.loadState(id);
     } else auraSystem.dropState();
 });

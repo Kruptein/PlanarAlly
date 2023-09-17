@@ -10,6 +10,8 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+## [2023.3.0] - 2023-09-17
+
 ### Added
 
 -   Character concept

@@ -399,18 +399,22 @@ async def move_shapes(sid: str, raw_data: Any):
         target_layer = floor.layers.where(Layer.name == data.target.layer)[0]
 
     shapes = []
+    old_floor = None
     for shape in _get_shapes_from_uuids(data.shapes, False):
         layer = target_layer
         if shape.layer:
+            if old_floor is None:
+                old_floor = shape.layer.floor
             layer = floor.layers.where(Layer.name == shape.layer.name)[0]
         elif layer is None:
             logger.warn("Attempt to move a shape without layer info")
             continue
         shapes.append((shape, layer))
 
-    await send_remove_shapes(
-        [sh.uuid for sh, _ in shapes], room=floor.location.get_path()
-    )
+    if old_floor:
+        await send_remove_shapes(
+            [sh.uuid for sh, _ in shapes], room=old_floor.location.get_path()
+        )
 
     for shape, layer in shapes:
         shape.layer = layer

@@ -10,6 +10,10 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Fixed
+
+-   Teleport: shapes would not be removed on the old location until a refresh
+
 ## [2023.3.0] - 2023-09-17
 
 ### Added

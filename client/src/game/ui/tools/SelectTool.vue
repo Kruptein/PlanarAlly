@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onMounted, toRef } from "vue";
 
+import type { GlobalPoint } from "../../../core/geometry";
+import { rotateAroundPoint } from "../../../core/math";
 import type { Polygon } from "../../shapes/variants/polygon";
 import { selectedSystem } from "../../systems/selected";
 import { selectTool } from "../../tools/variants/select";
@@ -21,6 +23,10 @@ onMounted(() => {
     selectTool.checkRuler();
 });
 
+function getGlobalRefPoint(polygon: Polygon): GlobalPoint {
+    return rotateAroundPoint(selectTool.polygonTracer!.refPoint, polygon.center, -polygon.angle);
+}
+
 function toggleShowRuler(event: MouseEvent): void {
     const state = (event.target as HTMLButtonElement).getAttribute("aria-pressed") ?? "false";
     _$.showRuler = state === "false";
@@ -29,17 +35,17 @@ function toggleShowRuler(event: MouseEvent): void {
 
 function cutPolygon(): void {
     const selection = selectedSystem.get({ includeComposites: false })[0] as Polygon;
-    selection.cutPolygon(selectTool.polygonTracer!.refPoint);
+    selection.cutPolygon(getGlobalRefPoint(selection));
 }
 
 function addPoint(): void {
     const selection = selectedSystem.get({ includeComposites: false })[0] as Polygon;
-    selection.addPoint(selectTool.polygonTracer!.refPoint);
+    selection.addPoint(getGlobalRefPoint(selection));
 }
 
 function removePoint(): void {
     const selection = selectedSystem.get({ includeComposites: false })[0] as Polygon;
-    selection.removePoint(selectTool.polygonTracer!.refPoint);
+    selection.removePoint(getGlobalRefPoint(selection));
 }
 </script>
 

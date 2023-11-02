@@ -59,6 +59,12 @@ watch(
         padding: 0;
         list-style: none;
         margin: 0;
+        width: max-content;
+        
+        ul {
+            max-height: 400px;
+            overflow-y: auto;
+        }
 
         li {
             border-bottom: 1px solid #ff7052;

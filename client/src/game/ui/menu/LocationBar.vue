@@ -343,6 +343,7 @@ const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
 
 .location-name-label {
     flex-grow: 2;
+    min-width: 5vw;
 }
 
 .location-settings-icon {

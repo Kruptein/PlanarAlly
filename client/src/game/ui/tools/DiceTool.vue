@@ -83,6 +83,7 @@ async function go(): Promise<void> {
     <div id="dice" class="tool-detail">
         <div id="dice-history" ref="historyDiv">
             <template v-for="r of diceTool.state.history" :key="r.roll">
+                <div class="player" :title="r.player" style="margin-right: 10px; overflow:hidden; text-overflow: ellipsis;">{{ r.player }}</div>
                 <div class="roll" :title="r.player" @click="reroll(r.roll)">{{ r.roll }}</div>
                 <div class="result" :title="r.player">{{ r.result }}</div>
             </template>
@@ -125,7 +126,7 @@ async function go(): Promise<void> {
 
     #dice-history {
         display: grid;
-        grid-template-columns: 1fr 2em;
+        grid-template-columns: 1fr 2fr 2em;
 
         max-height: 3em;
         overflow-y: auto;

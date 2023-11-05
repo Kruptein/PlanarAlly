@@ -374,6 +374,8 @@ function toggleCompositeAura(shape: LocalId, auraId: AuraId): void {
 #trackers-panel {
     background-color: white;
     min-width: 15vw;
+    max-height: 500px;
+    overflow-y: auto;
 }
 
 input[type="text"] {

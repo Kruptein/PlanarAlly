@@ -58,6 +58,8 @@ async function rename(): Promise<void> {
     const name = await modals.prompt(
         t("assetManager.AssetContextMenu.new_name"),
         t("assetManager.AssetContextMenu.renaming_NAME", { name: asset.name }),
+        undefined,
+        asset.name,
     );
     if (name !== undefined) {
         assetSystem.renameAsset(asset.id, name);

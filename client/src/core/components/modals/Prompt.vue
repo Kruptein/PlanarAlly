@@ -6,11 +6,11 @@ import { i18n } from "../../../i18n";
 import Modal from "./Modal.vue";
 
 const emit = defineEmits(["close", "submit"]);
-const props = defineProps<{ visible: boolean; title: string; question: string; error?: string }>();
+const props = defineProps<{ visible: boolean; title: string; question: string; error?: string; defaultText?: string }>();
 
 const { t } = i18n.global;
 
-const answer = ref("");
+const answer = ref(props.defaultText ?? "");
 const input = ref<HTMLInputElement | null>(null);
 
 watch(

@@ -7,6 +7,7 @@ export type PromptFunction = (
     question: string,
     title: string,
     validation?: validationFunc,
+    defaultText?: string,
 ) => Promise<string | undefined>;
 
 export interface PromptModal {
@@ -14,6 +15,7 @@ export interface PromptModal {
     question: Ref<string>;
     title: Ref<string>;
     error: Ref<string>;
+    defaultText: Ref<string>;
     ask: PromptFunction;
     close: () => void;
     submit: (answer: string) => void;
@@ -24,6 +26,7 @@ export function usePrompt(): PromptModal {
         visible: false,
         question: "",
         title: "",
+        defaultText: "",
         error: "",
     });
 
@@ -35,11 +38,12 @@ export function usePrompt(): PromptModal {
 
     let resolve: (value: string | undefined) => void = (_value: string | undefined) => {};
 
-    async function ask(question: string, title: string, validation?: validationFunc): Promise<string | undefined> {
+    async function ask(question: string, title: string, validation?: validationFunc, defaultText?: string): Promise<string | undefined> {
         data.visible = true;
         data.question = question;
         data.title = title;
         data.error = "";
+        data.defaultText = defaultText ?? "";
         if (validation) validationFunction = validation;
         else validationFunction = defaultValidationFunction;
         return new Promise((res) => (resolve = res));

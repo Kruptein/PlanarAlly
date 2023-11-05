@@ -21,7 +21,7 @@ interface ReactiveSelectState {
 
 const reactiveState = reactive<ReactiveSelectState>({
     hasSelection: false,
-    showRuler: false,
+    showRuler: true,
 
     polygonUiLeft: "0px",
     polygonUiTop: "0px",

@@ -75,7 +75,7 @@ async function go(): Promise<void> {
         result,
         shareWithAll: diceTool.state.shareWithAll,
     });
-    diceArray.value = [];
+    // diceArray.value = [];
 }
 </script>
 
@@ -103,12 +103,12 @@ async function go(): Promise<void> {
             ></button>
         </div>
         <div id="dice-picker">
-            <div @click="add(20)">20</div>
-            <div @click="add(12)">12</div>
-            <div @click="add(10)">10</div>
-            <div @click="add(8)">8</div>
-            <div @click="add(6)">6</div>
-            <div @click="add(4)">4</div>
+            <div @click="add(20)">D20</div>
+            <div @click="add(12)">D12</div>
+            <div @click="add(10)">D10</div>
+            <div @click="add(8)">D8</div>
+            <div @click="add(6)">D6</div>
+            <div @click="add(4)">D4</div>
         </div>
         <div style="min-height: 1.5rem">{{ diceText }}</div>
         <div id="dice-input">
@@ -128,7 +128,7 @@ async function go(): Promise<void> {
         display: grid;
         grid-template-columns: 1fr 2fr 2em;
 
-        max-height: 3em;
+        max-height: 10em;
         overflow-y: auto;
         padding-right: 0.5em;
         padding-bottom: 0.5em;

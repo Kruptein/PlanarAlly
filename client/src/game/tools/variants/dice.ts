@@ -24,7 +24,8 @@ class DiceTool extends Tool implements ITool {
     state = reactive<{
         shareWithAll: boolean;
         autoRoll: boolean;
-        history: { roll: string; result: number; player: string }[];
+        // history: { roll: string; result: number; player: string }[];
+        history: { roll: string; result: string; player: string }[];
         timeouts: Record<string, number>;
     }>({
         shareWithAll: true,
@@ -105,8 +106,10 @@ class DiceTool extends Tool implements ITool {
             .subtract(position)
             // Slightly deviate from center
             .add(new Vector3(randomInterval(0, 20) - 10, randomInterval(0, 5) - 2.5, randomInterval(0, 20) - 10))
+            // Normalize
+            .normalize()
             // Power up
-            .multiplyByFloats(randomInterval(2, 4), 1, randomInterval(2, 4));
+            .multiplyByFloats(randomInterval(30, 40), 1, randomInterval(30, 40));
         const dieOptions: Omit<DieOptions, "die"> = {
             position,
             linear,

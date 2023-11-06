@@ -52,7 +52,8 @@ const diceText = computed(() => {
 
 async function reroll(roll: string): Promise<void> {
     const key = await diceTool.roll(roll);
-    const result = diceStore.getTotal(key);
+    // const result = diceStore.getTotal(key);
+    const result = diceStore.getResultString(key);
     diceTool.state.history.push({ roll, result, player: coreStore.state.username });
     sendDiceRollResult({
         player: coreStore.state.username,
@@ -70,7 +71,8 @@ async function go(): Promise<void> {
     button.value?.classList.remove("transition");
     const roll = diceText.value;
     const key = await diceTool.roll(roll);
-    const result = diceStore.getTotal(key);
+    // const result = diceStore.getTotal(key);
+    const result = diceStore.getResultString(key);
     diceTool.state.history.push({ roll, result, player: coreStore.state.username });
     sendDiceRollResult({
         player: coreStore.state.username,
@@ -86,8 +88,8 @@ async function go(): Promise<void> {
     <div id="dice" class="tool-detail">
         <div id="dice-history" ref="historyDiv">
             <template v-for="r of diceTool.state.history" :key="r.roll">
-                <div class="player" :title="r.player" style="margin-right: 10px; overflow:hidden; text-overflow: ellipsis;">{{ r.player }}</div>
-                <div class="roll" :title="r.player" @click="reroll(r.roll)">{{ r.roll }}</div>
+                <div class="player" :title="r.player" style="margin-right: 1em; overflow:hidden; text-overflow: ellipsis;">{{ r.player }}</div>
+                <div class="roll" :title="r.player" style="margin-right: 1em;" @click="reroll(r.roll)">{{ r.roll }}</div>
                 <div class="result" :title="r.player">{{ r.result }}</div>
             </template>
         </div>
@@ -129,7 +131,7 @@ async function go(): Promise<void> {
 
     #dice-history {
         display: grid;
-        grid-template-columns: 1fr 2fr 2em;
+        grid-template-columns: 1fr 2fr 2fr;
 
         max-height: 10em;
         overflow-y: auto;

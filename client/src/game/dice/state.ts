@@ -63,6 +63,17 @@ class DiceStore extends Store<DiceState> {
         return result;
     }
 
+    getResultString(key: string): string {
+        const result = this._state.results.get(key)?.results[0];
+        if (result === undefined) {
+            return "";
+        }
+        return result.details.map(
+            (part) => part.type === 'dice' ? part.output.join('+') : 
+                (part.type === 'fixed' ? part.output : ` ${part.value} `))
+            .join('') + ` = ${result.total}`;
+    }
+
     setResults(key: string, results: DndResult[], position?: [number, number]): void {
         this._state.results.set(key, { position, results });
     }

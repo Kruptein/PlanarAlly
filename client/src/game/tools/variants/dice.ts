@@ -27,8 +27,8 @@ class DiceTool extends Tool implements ITool {
         history: { roll: string; result: number; player: string }[];
         timeouts: Record<string, number>;
     }>({
-        shareWithAll: false,
-        autoRoll: true,
+        shareWithAll: true,
+        autoRoll: false,
         history: [],
         timeouts: {},
     });
@@ -106,7 +106,7 @@ class DiceTool extends Tool implements ITool {
             // Slightly deviate from center
             .add(new Vector3(randomInterval(0, 20) - 10, randomInterval(0, 5) - 2.5, randomInterval(0, 20) - 10))
             // Power up
-            .multiplyByFloats(randomInterval(3, 6), 1, randomInterval(3, 6));
+            .multiplyByFloats(randomInterval(2, 4), 1, randomInterval(2, 4));
         const dieOptions: Omit<DieOptions, "die"> = {
             position,
             linear,

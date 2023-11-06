@@ -1,0 +1,13 @@
+diff --git a/node_modules/@planarally/dice/dist/diceThrower.js b/node_modules/@planarally/dice/dist/diceThrower.js
+index 755c35c..3e6efee 100644
+--- a/node_modules/@planarally/dice/dist/diceThrower.js
++++ b/node_modules/@planarally/dice/dist/diceThrower.js
+@@ -49,7 +49,7 @@ export class DiceThrower {
+      * For now you require to always pass the URL to a .babylon file.
+      */
+     async load(meshUrl, ammo) {
+-        const gravity = new Vector3(0, -10, 0);
++        const gravity = new Vector3(0, -35, 0);
+         const physicsPlugin = new AmmoJSPlugin(undefined, ammo);
+         this.scene.enablePhysics(gravity, physicsPlugin);
+         const asyncLoad = await SceneLoader.ImportMeshAsync("", meshUrl);

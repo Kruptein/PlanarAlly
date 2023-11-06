@@ -63,6 +63,9 @@ async function reroll(roll: string): Promise<void> {
 }
 
 async function go(): Promise<void> {
+    if (diceArray.value.length === 0) {
+        return;
+    }
     clearTimeout(timeout);
     button.value?.classList.remove("transition");
     const roll = diceText.value;

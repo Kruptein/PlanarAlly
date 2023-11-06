@@ -230,6 +230,8 @@ export class Polygon extends Shape implements IShape {
     cutPolygon(point: GlobalPoint): void {
         let lastVertex = -1;
         let nearVertex: GlobalPoint | null = null;
+        const oldCenter = this.center;
+
         for (let i = 1; i <= this.vertices.length - (this.openPolygon ? 1 : 0); i++) {
             const prevVertex = this.vertices[i - 1]!;
             const vertex = this.vertices[i % this.vertices.length]!;
@@ -253,12 +255,14 @@ export class Polygon extends Shape implements IShape {
             newPolygon.setLayer(this.floorId!, this.layerName!);
             newPolygon.fromDict({
                 ...oldDict,
+                angle: 0,
                 uuid,
                 trackers: oldDict.trackers.map((t) => ({ ...t, uuid: uuidv4() as unknown as TrackerId })),
                 auras: oldDict.auras.map((a) => ({ ...a, uuid: uuidv4() as unknown as AuraId })),
             });
-            newPolygon._refPoint = nearVertex!;
-            newPolygon._vertices = newVertices;
+            newPolygon._refPoint = rotateAroundPoint(nearVertex!, oldCenter, this.angle);
+            newPolygon._vertices = newVertices.map((v) => rotateAroundPoint(v, oldCenter, this.angle));
+            newPolygon._center = newPolygon.__center();
 
             const props = getProperties(this.id)!;
 

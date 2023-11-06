@@ -15,7 +15,7 @@ import {
 } from "../../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../../core/geometry";
 import { baseAdjust } from "../../../../core/http";
-import { equalPoints, snapToPoint } from "../../../../core/math";
+import { equalPoints, rotateAroundPoint, snapToPoint } from "../../../../core/math";
 import { InvalidationMode, NO_SYNC, SyncMode } from "../../../../core/models/types";
 import { ctrlOrCmdPressed } from "../../../../core/utils";
 import { i18n } from "../../../../i18n";
@@ -970,7 +970,7 @@ class SelectTool extends Tool implements ISelectTool {
 
         const pw = g2lz(polygon.lineWidth[0]!);
 
-        const pv = polygon.vertices;
+        const pv = polygon.vertices.map((v) => rotateAroundPoint(v, polygon.center, polygon.angle));
         let smallest = { distance: polygon.lineWidth[0]! * 2, nearest: gp, angle: 0, point: false };
         for (let i = 1; i < pv.length; i++) {
             const prevVertex = pv[i - 1]!;

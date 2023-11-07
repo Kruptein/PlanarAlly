@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { SERVER_SYNC } from "../../core/models/types";
+import RotationSlider from "../../core/components/RotationSlider.vue";
+import { NO_SYNC, SERVER_SYNC } from "../../core/models/types";
 import { activeShapeStore } from "../../store/activeShape";
 import { getShape } from "../id";
 import { accessState } from "../systems/access/state";
 import { auraSystem } from "../systems/auras";
-import type { Aura, AuraId } from "../systems/auras/models";
+import type { Aura, AuraId, UiAura } from "../systems/auras/models";
 import { propertiesSystem } from "../systems/properties";
 import { getProperties, propertiesState } from "../systems/properties/state";
 import { selectedState } from "../systems/selected/state";
@@ -57,6 +58,17 @@ function setValue(data: { solution: number; relativeMode: boolean }): void {
         sh.invalidate(false);
     }
 }
+
+function updateAura(aura: DeepReadonly<UiAura>, delta: Partial<Aura>, syncTo = true): void {
+    if (delta.value !== undefined && (isNaN(delta.value) || delta.value < 0)) delta.value = 0;
+    if (delta.dim !== undefined && (isNaN(delta.dim) || delta.dim < 0)) delta.dim = 0;
+
+    if (aura.temporary) {
+        auraSystem.add(aura.shape, { ...aura }, SERVER_SYNC);
+    }
+    auraSystem.update(aura.shape, aura.uuid, delta, syncTo ? SERVER_SYNC : NO_SYNC);
+}
+
 </script>
 
 <template>
@@ -95,12 +107,17 @@ function setValue(data: { solution: number; relativeMode: boolean }): void {
                         <div
                             class="selection-tracker-value"
                             :title="t('game.ui.selection.SelectionInfo.quick_edit_aura')"
-                            @click="changeValue(aura)"
                         >
-                            <template v-if="aura.dim === 0">
+                            <!-- @click="changeValue(aura)" -->
+                            <!-- <template v-if="aura.dim === 0">
                                 {{ aura.value }}
                             </template>
-                            <template v-else>{{ aura.value }} / {{ aura.dim }}</template>
+                            <template v-else>{{ aura.value }} / {{ aura.dim }}</template> -->
+                            <div style="justify-self: center; margin: auto;"><button
+                                class="slider-checkbox"
+                                @click="updateAura(aura, { active: !aura.active })"
+                                :aria-pressed="aura.active"
+                            ></button></div>
                         </div>
                     </template>
                 </div>

@@ -1,0 +1,58 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: PlanarAlly Production Deploy
+
+on:
+  push:
+    branches: [ "409production" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: CHECKOUT
+      uses: actions/checkout@v3
+    - name: Use Node.js 18
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+        cache: 'npm'
+    - run: cd ./client
+    - run: npm install
+    - run: npm run build --if-present
+    - name: deploy-static-vite
+      uses: easingthemes/ssh-deploy@v4.1.10
+      with:
+        # Private key part of an SSH key pair
+        SSH_PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+        # Remote host
+        REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+        # Remote user
+        REMOTE_USER: ${{ secrets.REMOTE_USER }}
+        # Remote port
+        REMOTE_PORT: ${{ secrets.REMOTE_PORT }}
+        # Source directory, path relative to `$GITHUB_WORKSPACE` root, eg: `dist/`
+        SOURCE: server/static/vite/
+        # Target directory
+        TARGET: /home/website/PlanarAlly/PlanarAlly/server/static/vite/
+        # Arguments to pass to rsync
+        # ARGS: # optional, default is -rlgoDzvc -i
+        # An array of ssh arguments, they must be prefixed with -o and separated by a comma, for example: -o SomeArgument=no, -o SomeOtherArgument=5 
+        # SSH_CMD_ARGS: # optional, default is -o StrictHostKeyChecking=no
+        # paths to exclude separated by `,`, ie: `/dist/, /node_modules/`
+        # EXCLUDE: # optional, default is 
+        # Script to run on host machine before rsync
+        # SCRIPT_BEFORE: # optional, default is 
+        # Script to run on host machine after rsync
+        # SCRIPT_AFTER: # optional, default is 
+    - name: deploy-index-html
+      uses: easingthemes/ssh-deploy@v4.1.10
+      with:
+        SSH_PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+        REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+        REMOTE_USER: ${{ secrets.REMOTE_USER }}
+        REMOTE_PORT: ${{ secrets.REMOTE_PORT }}
+        SOURCE: server/templates/
+        TARGET: /home/website/PlanarAlly/PlanarAlly/server/templates/

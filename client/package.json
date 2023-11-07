@@ -14,7 +14,8 @@
         "vue-tsc": "vue-tsc --noEmit",
         "tsc": "tsc --noEmit",
         "test": "vitest",
-        "coverage": "vitest run --coverage"
+        "coverage": "vitest run --coverage",
+        "postinstall": "patch-package"
     },
     "dependencies": {
         "@babylonjs/materials": "^4.2.2",

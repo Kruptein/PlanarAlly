@@ -14,12 +14,13 @@ jobs:
     steps:
     - name: CHECKOUT
       uses: actions/checkout@v3
-    - run: cd ./client
     - name: Use Node.js 18
       uses: actions/setup-node@v3
       with:
         node-version: 18
         cache: 'npm'
+        cache-dependency-path: ./client/package-lock.json
+    - run: cd ./client
     - run: npm install
     - run: npm run build --if-present
     - name: deploy-static-vite

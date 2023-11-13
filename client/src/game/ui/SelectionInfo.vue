@@ -2,7 +2,6 @@
 import { computed, ref, DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
 
-import RotationSlider from "../../core/components/RotationSlider.vue";
 import { NO_SYNC, SERVER_SYNC } from "../../core/models/types";
 import { activeShapeStore } from "../../store/activeShape";
 import { getShape } from "../id";
@@ -165,6 +164,7 @@ function updateAura(aura: DeepReadonly<UiAura>, delta: Partial<Aura>, syncTo = t
     #selection-values {
         display: grid;
         grid-template-columns: [name] 1fr [value] max-content;
+        grid-row-gap: 5px;
 
         .selection-tracker-value {
             justify-self: center;

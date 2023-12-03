@@ -10,6 +10,10 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Changed
+
+-   [tech] ModalStack now supports dynamically inserted
+
 ### Fixed
 
 -   Polygon edit UI: was not taking rotation of shape into account

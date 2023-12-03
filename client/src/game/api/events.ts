@@ -29,8 +29,6 @@ import "./events/shape/text";
 import "./events/shape/togglecomposite";
 import "./events/user";
 
-import "./gbsocket"; // Start tuio listener
-
 import type { ApiFloor, ApiLocationCore, PlayerPosition } from "../../apiTypes";
 import { toGP } from "../../core/geometry";
 import { SyncMode } from "../../core/models/types";

@@ -318,10 +318,10 @@ async def change_location(sid: str, raw_data: Any):
     for room_player in prs_to_move:
         for psid in game_state.get_sids(player=room_player.player, room=pr.room):
             try:
-                sio.leave_room(
+                await sio.leave_room(
                     psid, old_locations[room_player.id].get_path(), namespace=GAME_NS
                 )
-                sio.enter_room(psid, new_location.get_path(), namespace=GAME_NS)
+                await sio.enter_room(psid, new_location.get_path(), namespace=GAME_NS)
             except KeyError:
                 await game_state.remove_sid(psid)
                 continue
@@ -391,8 +391,8 @@ async def add_new_location(sid: str, location: str):
     for psid in game_state.get_sids(
         player=pr.player, active_location=pr.active_location
     ):
-        sio.leave_room(psid, pr.active_location.get_path(), namespace=GAME_NS)
-        sio.enter_room(psid, new_location.get_path(), namespace=GAME_NS)
+        await sio.leave_room(psid, pr.active_location.get_path(), namespace=GAME_NS)
+        await sio.enter_room(psid, new_location.get_path(), namespace=GAME_NS)
         await load_location(psid, new_location)
     pr.active_location = new_location
     pr.save()
@@ -464,8 +464,8 @@ async def clone_location(sid: str, raw_data: Any):
         for psid in game_state.get_sids(
             player=pr.player, active_location=pr.active_location
         ):
-            sio.leave_room(psid, pr.active_location.get_path(), namespace=GAME_NS)
-            sio.enter_room(psid, new_location.get_path(), namespace=GAME_NS)
+            await sio.leave_room(psid, pr.active_location.get_path(), namespace=GAME_NS)
+            await sio.enter_room(psid, new_location.get_path(), namespace=GAME_NS)
             await load_location(psid, new_location)
         pr.active_location = new_location
         pr.save()

@@ -1,10 +1,11 @@
 from datetime import date
 from urllib.parse import unquote
 
-from aiohttp_security import authorized_userid
+from aiohttp import web
 
 from ...api.socket.constants import GAME_NS
 from ...app import sio
+from ...auth import get_authorized_user
 from ...db.models.player_room import PlayerRoom
 from ...db.models.room import Room
 from ...db.models.user import User
@@ -17,9 +18,9 @@ from ..models.client import ClientConnected, ClientDisconnected
 
 @sio.on("connect", namespace=GAME_NS)
 async def connect(sid, environ):
-    user: User | None = await authorized_userid(environ["aiohttp.request"])
-
-    if user is None:
+    try:
+        user = await get_authorized_user(environ["aiohttp.request"])
+    except web.HTTPUnauthorized:
         await _send_game("redirect", "/", room=sid)
         return
 
@@ -51,8 +52,8 @@ async def connect(sid, environ):
 
     logger.info(f"User {user.name} connected with identifier {sid}")
 
-    sio.enter_room(sid, pr.active_location.get_path(), namespace=GAME_NS)
-    sio.enter_room(sid, pr.room.get_path(), namespace=GAME_NS)
+    await sio.enter_room(sid, pr.active_location.get_path(), namespace=GAME_NS)
+    await sio.enter_room(sid, pr.room.get_path(), namespace=GAME_NS)
 
     await _send_game(
         "Client.Connected",

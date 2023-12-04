@@ -3,6 +3,7 @@ from functools import wraps
 from typing import Union
 
 from aiohttp import web
+from aiohttp_security import authorized_userid
 from aiohttp_security.abc import AbstractAuthorizationPolicy
 from typing_extensions import Literal
 
@@ -12,15 +13,20 @@ from .db.models.user import User
 logger = logging.getLogger("PlanarAllyServer")
 
 
+async def get_authorized_user(request: web.Request):
+    if username := await authorized_userid(request):
+        if user := User.by_name(username):
+            return user
+    raise web.HTTPUnauthorized()
+
+
 class AuthPolicy(AbstractAuthorizationPolicy):
     async def authorized_userid(self, identity):
         """Retrieve authorized user id.
         Return the user_id of the user identified by the identity
         or 'None' if no user exists related to the identity.
         """
-        user = User.by_name(identity)
-        if user:
-            return user
+        return identity
 
     async def permits(self, _identity, _permission, _context=None):
         """Check user permissions.

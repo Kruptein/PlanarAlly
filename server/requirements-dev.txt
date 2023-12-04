@@ -1,4 +1,4 @@
-black==23.1.0
-isort==5.11.4
-ruff==0.0.247
+black==23.11.0
+isort==5.12.0
+ruff==0.1.6
 pydantic-to-typescript==1.0.10

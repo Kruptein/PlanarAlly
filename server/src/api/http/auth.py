@@ -1,13 +1,14 @@
 from aiohttp import web
 from aiohttp_security import authorized_userid, forget, remember
 
+from ...auth import get_authorized_user
 from ...config import config
 from ...db.db import db
 from ...db.models.user import User
 
 
 async def is_authed(request):
-    user = await authorized_userid(request)
+    user = await get_authorized_user(request)
 
     if user is None:
         data = {"auth": False, "username": ""}
@@ -17,8 +18,11 @@ async def is_authed(request):
 
 
 async def login(request):
-    user = await authorized_userid(request)
-    if user:
+    try:
+        user = await get_authorized_user(request)
+    except web.HTTPUnauthorized:
+        pass
+    else:
         return web.json_response({"email": user.email})
 
     data = await request.json()
@@ -36,8 +40,7 @@ async def register(request):
     if not config.getboolean("General", "allow_signups"):
         return web.HTTPForbidden()
 
-    username = await authorized_userid(request)
-    if username:
+    if await authorized_userid(request) is not None:
         return web.HTTPOk()
 
     data = await request.json()

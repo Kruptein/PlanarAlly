@@ -87,11 +87,6 @@ async def add_shape(sid: str, raw_data: Any):
                 continue
             if not data.temporary and shape is not None:
                 data.shape = transform_shape(shape, room_player)
-            print(34593485)
-            x = ApiShapeWithLayerInfo(
-                shape=data.shape, floor=floor.name, layer=layer.name
-            )
-            print(x)
             await _send_game(
                 "Shape.Add",
                 ApiShapeWithLayerInfo(
@@ -108,23 +103,23 @@ async def update_shape_positions(sid: str, raw_data: Any):
 
     pr: PlayerRoom = game_state.get(sid)
 
-    shapes: list[tuple[Shape, ShapePositionUpdate]] = []
-
-    for sh in data.shapes:
-        shape = Shape.get_or_none(Shape.uuid == sh.uuid)
-        if shape is None:
-            logger.warning(
-                f"User {pr.player.name} attempted to move a shape with unknown uuid ({sh.uuid})."
-            )
-            continue
-        elif not has_ownership(shape, pr, movement=True):
-            logger.warning(
-                f"User {pr.player.name} attempted to move a shape it does not own."
-            )
-            continue
-        shapes.append((shape, sh))
-
     if not data.temporary:
+        shapes: list[tuple[Shape, ShapePositionUpdate]] = []
+
+        for sh in data.shapes:
+            shape = Shape.get_or_none(Shape.uuid == sh.uuid)
+            if shape is None:
+                logger.warning(
+                    f"User {pr.player.name} attempted to move a shape with unknown uuid ({sh.uuid})."
+                )
+                continue
+            elif not has_ownership(shape, pr, movement=True):
+                logger.warning(
+                    f"User {pr.player.name} attempted to move a shape it does not own."
+                )
+                continue
+            shapes.append((shape, sh))
+
         with db.atomic():
             for db_shape, data_shape in shapes:
                 points = data_shape.position.points

@@ -119,12 +119,13 @@ export interface ApiBaseRectShape extends ApiCoreShape {
   width: number;
   height: number;
 }
-export interface ApiCampaignNote {
-  uuid: string;
-  title: string;
-  text: string;
-  tags: string[];
+export interface ApiCampaignNote extends ApiCoreNote {
   kind: "campaign";
+}
+export interface ApiNoteAccess {
+  name: string;
+  can_edit: boolean;
+  can_view: boolean;
 }
 export interface ApiCharacter {
   id: CharacterId;
@@ -154,6 +155,7 @@ export interface ApiCoreNote {
   title: string;
   text: string;
   tags: string[];
+  access: ApiNoteAccess[];
 }
 export interface ApiCoreShape {
   uuid: GlobalId;
@@ -279,11 +281,7 @@ export interface ApiInitiativeEffect {
   turns: string;
   highlightsActor: boolean;
 }
-export interface ApiLocationNote {
-  uuid: string;
-  title: string;
-  text: string;
-  tags: string[];
+export interface ApiLocationNote extends ApiCoreNote {
   kind: "location";
   location: number;
   shape?: GlobalId;
@@ -349,11 +347,7 @@ export interface ApiShapeDataBlock extends ApiCoreDataBlock {
   category: "shape";
   shape: GlobalId;
 }
-export interface ApiShapeNote {
-  uuid: string;
-  title: string;
-  text: string;
-  tags: string[];
+export interface ApiShapeNote extends ApiCoreNote {
   kind: "shape";
   shape: GlobalId;
 }

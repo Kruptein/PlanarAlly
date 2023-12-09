@@ -15,7 +15,7 @@ const emit = defineEmits<(e: "mode", mode: "list" | "map") => void>();
 
 const modals = useModal();
 
-const tabs = ["view", "edit", "_", "settings"] as const;
+const tabs = ["view", "edit"] as const;
 const activeTab = ref<(typeof tabs)[number]>("view");
 
 const note = computed(() => noteState.reactive.notes.get(noteState.reactive.currentNote!));
@@ -87,10 +87,9 @@ async function remove(): Promise<void> {
         </div>
         <div id="tabs">
             <template v-for="tab of tabs" :key="tab">
-                <div v-if="tab !== '_'" :title="tab" :class="{ active: activeTab === tab }" @click="activeTab = tab">
+                <div :title="tab" :class="{ active: activeTab === tab }" @click="activeTab = tab">
                     {{ tab }}
                 </div>
-                <div v-else style="flex-grow: 1; border: none"></div>
             </template>
         </div>
         <div id="editor">

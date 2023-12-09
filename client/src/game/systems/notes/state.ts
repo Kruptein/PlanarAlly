@@ -1,12 +1,22 @@
-import type { ApiNote } from "../../../apiTypes";
 import { buildState } from "../state";
 
-interface NoteState {
-    notes: ApiNote[];
+import type { ClientNote } from "./types";
+
+interface ReactiveNoteState {
+    // manager UI
+    managerOpen: boolean;
+    managerMode: "list" | "edit" | "map";
+    currentNote: string | undefined;
+
+    notes: Map<string, ClientNote>;
 }
 
-const state = buildState<NoteState>({
-    notes: [],
+const state = buildState<ReactiveNoteState>({
+    managerOpen: false,
+    managerMode: "list",
+    currentNote: undefined,
+
+    notes: new Map(),
 });
 
 export const noteState = {

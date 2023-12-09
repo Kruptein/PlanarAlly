@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 88
+SAVE_VERSION = 89
 
 import json
 import logging
@@ -428,6 +428,21 @@ def upgrade(db: SqliteExtDatabase, version: int):
         db.execute_sql(
             'CREATE TABLE IF NOT EXISTS "asset_share" ("id" INTEGER NOT NULL PRIMARY KEY, "asset_id" INT NOT NULL, "user_id" INT NOT NULL, "right" TEXT NOT NULL, "name" TEXT NOT NULL, "parent_id" INT NOT NULL, FOREIGN KEY ("asset_id") REFERENCES "asset" ("id") ON DELETE CASCADE, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("parent_id") REFERENCES "asset" ("id") ON DELETE CASCADE)'
         )
+    elif version == 88:
+        # Add new Note fields
+        db.execute_sql("CREATE TEMPORARY TABLE _note_88 AS SELECT * FROM note")
+        db.execute_sql("DROP TABLE note")
+        db.execute_sql(
+            'CREATE TABLE IF NOT EXISTS "note" ("uuid" TEXT NOT NULL PRIMARY KEY, "kind" TEXT NOT NULL, "title" TEXT NOT NULL DEFAULT \'\', "text" TEXT NOT NULL DEFAULT \'\', "room_id" INTEGER NOT NULL, "user_id" INTEGER NOT NULL, "location_id" INTEGER DEFAULT NULL, "shape_id" TEXT DEFAULT NULL, "tags" TEXT DEFAULT NULL, "access" TEXT NOT NULL DEFAULT "private", FOREIGN KEY ("room_id") REFERENCES "room" ("id") ON DELETE CASCADE, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE)'
+        )
+        db.execute_sql('CREATE INDEX "note_room_id" ON "note" ("room_id")')
+        db.execute_sql('CREATE INDEX "note_location_id" ON "note" ("location_id")')
+        db.execute_sql('CREATE INDEX "note_shape_id" ON "note" ("shape_id");')
+        db.execute_sql('CREATE INDEX "note_user_id" ON "note" ("user_id");')
+        db.execute_sql(
+            'INSERT INTO "note" ("uuid", "kind", "title", "text", "room_id", "user_id", "location_id") SELECT "uuid", \'campaign\', "title", "text", "room_id", "user_id", "location_id" FROM _note_88'
+        )
+        db.execute_sql("DROP TABLE _note_88")
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

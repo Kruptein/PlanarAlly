@@ -32,6 +32,7 @@
         "tinycolor2": "^1.6.0",
         "vue": "^3.3.11",
         "vue-i18n": "9.8.0",
+        "vue-markdown-render": "^2.1.1",
         "vue-router": "^4.2.5",
         "vue-toastification": "^2.0.0-rc.5",
         "vue3-markdown-it": "^1.0.10",

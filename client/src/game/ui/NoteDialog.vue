@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { ref, toRef } from "vue";
+import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import Modal from "../../core/components/modals/Modal.vue";
 import { useModal } from "../../core/plugins/modals/plugin";
-import { noteSystem } from "../systems/notes";
-import { uiState } from "../systems/ui/state";
+import { modalSystem } from "../systems/modals";
+import type { ModalIndex } from "../systems/modals/types";
+import { noteState } from "../systems/notes/state";
 
-defineProps<{ visible: boolean }>();
-const emit = defineEmits(["update:visible"]);
+const props = defineProps<{ modalIndex: ModalIndex; uuid: string }>();
+defineExpose({ close });
 
 const textarea = ref<HTMLTextAreaElement | null>(null);
 const title = ref<HTMLInputElement | null>(null);
@@ -16,7 +17,7 @@ const title = ref<HTMLInputElement | null>(null);
 const { t } = useI18n();
 const modals = useModal();
 
-const note = toRef(uiState.reactive, "activeNote");
+const note = noteState.reactive.notes.get(props.uuid);
 
 function calcHeight(): void {
     if (textarea.value !== null) {
@@ -26,28 +27,38 @@ function calcHeight(): void {
 }
 
 function setText(event: Event): void {
-    noteSystem.updateNote({ ...note.value, text: (event.target as HTMLTextAreaElement).value }, true);
+    // noteSystem.updateNote({ ...note.value, text: (event.target as HTMLTextAreaElement).value }, true);
 }
 
 function setTitle(event: Event): void {
-    noteSystem.updateNote({ ...note.value, title: (event.target as HTMLInputElement).value }, true);
+    // noteSystem.updateNote({ ...note.value, title: (event.target as HTMLInputElement).value }, true);
 }
 
 async function removeNote(): Promise<void> {
     const doRemove = await modals.confirm(t("game.ui.NoteDialog.warning_msg"));
     if (doRemove === true) {
-        noteSystem.removeNote(note.value, true);
+        // noteSystem.removeNote(note.value, true);
         close();
     }
 }
 
+// watch(
+//     () => props.modalIndex,
+//     () => {},
+//     {
+//         onTrack: () => {
+//             debugger;
+//         },
+//     },
+// );
+
 function close(): void {
-    emit("update:visible", false);
+    modalSystem.close(props.modalIndex, true);
 }
 </script>
 
 <template>
-    <Modal v-if="note !== undefined" :visible="visible" :mask="false" @close="close">
+    <Modal v-if="note !== undefined" :visible="true" :mask="false" @close="close">
         <template #header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 <span :title="t('game.ui.NoteDialog.edit_title')" @click="title?.select()">

@@ -11,6 +11,7 @@ import type { TrackerId } from "./game/systems/trackers/models";
 
 export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiToggleCompositeShape
 export type ApiDataBlock = ApiRoomDataBlock | ApiShapeDataBlock | ApiUserDataBlock
+export type ApiNote = ApiCampaignNote | ApiLocationNote | ApiShapeNote
 
 /* eslint-disable */
 /**
@@ -112,11 +113,18 @@ export interface ApiAssetUpload {
   newDirectories: string[];
   slice: number;
   totalSlices: number;
-  data: string | ArrayBuffer;
+  data: string;
 }
 export interface ApiBaseRectShape extends ApiCoreShape {
   width: number;
   height: number;
+}
+export interface ApiCampaignNote {
+  uuid: string;
+  title: string;
+  text: string;
+  tags: string[];
+  kind: "campaign";
 }
 export interface ApiCharacter {
   id: CharacterId;
@@ -140,6 +148,12 @@ export interface ApiCoreDataBlock {
   name: string;
   category: "room" | "shape" | "user";
   data: string;
+}
+export interface ApiCoreNote {
+  uuid: string;
+  title: string;
+  text: string;
+  tags: string[];
 }
 export interface ApiCoreShape {
   uuid: GlobalId;
@@ -265,6 +279,15 @@ export interface ApiInitiativeEffect {
   turns: string;
   highlightsActor: boolean;
 }
+export interface ApiLocationNote {
+  uuid: string;
+  title: string;
+  text: string;
+  tags: string[];
+  kind: "location";
+  location: number;
+  shape?: GlobalId;
+}
 export interface ApiLocationUserOption {
   pan_x: number;
   pan_y: number;
@@ -272,10 +295,17 @@ export interface ApiLocationUserOption {
   active_layer?: string;
   active_floor?: string;
 }
-export interface ApiNote {
+export interface ApiNoteSetText {
+  uuid: string;
+  text: string;
+}
+export interface ApiNoteSetTitle {
   uuid: string;
   title: string;
-  text: string;
+}
+export interface ApiNoteTag {
+  uuid: string;
+  tag: string;
 }
 export interface ApiOptionalAura {
   uuid: AuraId;
@@ -317,6 +347,14 @@ export interface ApiRoomDataBlock extends ApiCoreDataBlock {
 }
 export interface ApiShapeDataBlock extends ApiCoreDataBlock {
   category: "shape";
+  shape: GlobalId;
+}
+export interface ApiShapeNote {
+  uuid: string;
+  title: string;
+  text: string;
+  tags: string[];
+  kind: "shape";
   shape: GlobalId;
 }
 export interface ApiShapeWithLayerInfo {

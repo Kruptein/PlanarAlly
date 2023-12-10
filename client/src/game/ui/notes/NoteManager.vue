@@ -21,6 +21,7 @@ function setMode(modeType: typeof mode.value): void {
 }
 
 function close(): void {
+    noteState.mutableReactive.managerOpen = false;
     modalSystem.close(props.modalIndex, true);
 }
 </script>

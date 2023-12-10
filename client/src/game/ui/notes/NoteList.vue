@@ -5,6 +5,7 @@ import type { ApiCampaignNote, ApiCoreNote, ApiLocationNote } from "../../../api
 import ToggleGroup from "../../../core/components/ToggleGroup.vue";
 import { filter } from "../../../core/iter";
 import { mostReadable, uuidv4 } from "../../../core/utils";
+import { coreStore } from "../../../store/core";
 import { modalSystem } from "../../systems/modals";
 import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
@@ -52,6 +53,8 @@ async function createNote(kind: "campaign" | "location"): Promise<void> {
         title: "New note...",
         tags: [],
         text: "",
+        access: [],
+        owner: coreStore.state.username,
         uuid,
     };
     let note: ApiCampaignNote | ApiLocationNote;
@@ -123,11 +126,13 @@ function popout(noteId: string): void {
     <template v-else>
         <div id="notes-table">
             <div class="header">NAME</div>
+            <div class="header">OWNER</div>
             <div class="header">KIND</div>
             <div class="header">TAGS</div>
             <div class="header">ACTIONS</div>
             <template v-for="note of visibleNotes" :key="note.title">
                 <div class="title" @click="editNote(note.uuid)">{{ note.title }}</div>
+                <div>{{ note.owner === coreStore.state.username ? 'you' : note.owner }}</div>
                 <div class="kind">{{ note.kind }}</div>
                 <div class="note-tags">
                     <div
@@ -239,7 +244,7 @@ header {
 
 #notes-table {
     display: grid;
-    grid-template-columns: 1fr auto minmax(5rem, auto) auto;
+    grid-template-columns: 1fr auto auto minmax(5rem, auto) auto;
     column-gap: 1rem;
     row-gap: 0.5rem;
     align-items: center;

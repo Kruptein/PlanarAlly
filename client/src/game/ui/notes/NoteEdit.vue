@@ -4,9 +4,12 @@ import VueMarkdown from "vue-markdown-render";
 
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { mostReadable } from "../../../core/utils";
+import { coreStore } from "../../../store/core";
 import { modalSystem } from "../../systems/modals";
 import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
+import type { ClientNote } from "../../systems/notes/types";
+import { playerState } from "../../systems/players/state";
 import NoteDialog from "../NoteDialog.vue";
 
 import { hasShape } from "./utils";
@@ -15,13 +18,44 @@ const emit = defineEmits<(e: "mode", mode: "list" | "map") => void>();
 
 const modals = useModal();
 
-const tabs = ["view", "edit"] as const;
-const activeTab = ref<(typeof tabs)[number]>("view");
-
 const note = computed(() => noteState.reactive.notes.get(noteState.reactive.currentNote!));
+const canEdit = computed(() => {
+    if (!note.value) return false;
+    const username = coreStore.state.username;
+    if (note.value.owner === username) return true;
+    return note.value.access.some((a) => a.name === username && a.can_edit);
+});
+
+const tabs = computed(
+    () =>
+        [
+            {
+                label: "view",
+                icon: "eye",
+                visible: true,
+            },
+            { label: "edit", icon: "pencil", visible: canEdit.value },
+            { label: "access", icon: "cog", visible: canEdit.value },
+            { label: "map", icon: "location-dot", visible: false },
+        ] as const,
+);
+const activeTab = ref(0);
+
+// Ensure that defaultAccess is always first
+// and that defaultAccess is provided even if it has no DB value
+const accessLevels = computed(() => {
+    const access = [];
+    let defaultAccess = { name: "default", can_view: false, can_edit: false };
+    for (const a of note.value?.access ?? []) {
+        if (a.name === "default") defaultAccess = a;
+        else access.push(a);
+    }
+    return [defaultAccess, ...access];
+});
 
 onBeforeMount(() => {
     if (noteState.reactive.currentNote === undefined) emit("mode", "list");
+    if ((note.value?.text ?? "").trim().length === 0) activeTab.value = 1;
 });
 
 function setTitle(event: Event): void {
@@ -41,7 +75,7 @@ async function addTag(): Promise<void> {
 }
 
 function removeTag(tag: string): void {
-    if (!note.value) return;
+    if (!note.value || !canEdit.value) return;
     noteSystem.removeTag(note.value.uuid, tag, true);
 }
 
@@ -61,43 +95,123 @@ async function remove(): Promise<void> {
         emit("mode", "list");
     }
 }
+
+function setViewAccess(access: ClientNote["access"][number], event: MouseEvent): void {
+    if (!note.value) return;
+    const checked = (event.target as HTMLInputElement).checked;
+    noteSystem.setAccess(note.value.uuid, access.name, { can_view: checked, can_edit: false }, true);
+}
+
+function setEditAccess(access: ClientNote["access"][number], event: MouseEvent): void {
+    if (!note.value) return;
+    const checked = (event.target as HTMLInputElement).checked;
+    noteSystem.setAccess(
+        note.value.uuid,
+        access.name,
+        { can_view: checked ? true : access.can_view, can_edit: checked },
+        true,
+    );
+}
+
+async function addAccess(): Promise<void> {
+    if (!note.value) return;
+    const players = playerState.raw.players;
+    const selection = await modals.selectionBox(
+        "Select a player",
+        [...players.values()].map((p) => p.name).filter((p) => note.value?.access.some((a) => a.name === p) !== true),
+        { multiSelect: true },
+    );
+    if (selection === undefined) return;
+
+    for (const s of selection) {
+        noteSystem.addAccess(note.value.uuid, s, { can_view: true, can_edit: false }, true);
+    }
+}
 </script>
 
 <template>
     <template v-if="note">
         <header>
             <span id="return" title="Back to list" @click="$emit('mode', 'list')">↩</span>
-            <input id="title" type="text" :value="note?.title ?? 'New note...'" @change="setTitle" />
+            <input
+                id="title"
+                type="text"
+                :value="note?.title ?? 'New note...'"
+                :disabled="!canEdit"
+                :class="{ edit: canEdit }"
+                @change="setTitle"
+            />
             <font-awesome-icon v-if="hasShape(note)" icon="location-dot" />
             <font-awesome-icon icon="up-right-from-square" @click="popout" />
-            <font-awesome-icon icon="trash-alt" @click="remove" />
+            <font-awesome-icon v-if="canEdit" icon="trash-alt" @click="remove" />
         </header>
+        <!-- TAGS -->
         <div id="tags">
             <div class="kind">{{ note.kind }}</div>
             <div
                 v-for="tag of note.tags"
                 :key="tag.name"
                 class="tag"
+                :class="{ edit: canEdit }"
                 :style="{ color: mostReadable(tag.colour), backgroundColor: tag.colour }"
                 @click="removeTag(tag.name)"
             >
                 {{ tag.name }}
             </div>
-            <div @click="addTag"><font-awesome-icon icon="plus" /></div>
+            <div v-if="canEdit" @click="addTag"><font-awesome-icon icon="plus" /></div>
         </div>
-        <div id="tabs">
-            <template v-for="tab of tabs" :key="tab">
-                <div :title="tab" :class="{ active: activeTab === tab }" @click="activeTab = tab">
-                    {{ tab }}
+        <!-- TABS -->
+        <div v-if="canEdit" id="tabs">
+            <div
+                v-for="(tab, i) of tabs"
+                :key="tab.label"
+                :class="{ active: activeTab === i }"
+                :style="{ display: tab.visible ? 'flex' : 'none' }"
+                @click="activeTab = i"
+            >
+                <font-awesome-icon :icon="tab.icon" />
+                <div>{{ tab.label }}</div>
+            </div>
+            <!-- <div v-if="canHaveShape(note)">
+                <font-awesome-icon icon="location-dot" />
+                <div class="note-setting-title">Map Link</div>
+                <-- <div v-if="hasShape(note)">
+                    <div>Linked to map.</div>
+                    <div style="font-weight: bold; text-decoration: underline; font-style: italic">Remove link</div>
                 </div>
-            </template>
+                <div v-else>
+                    <span>This note is not linked to a map location.</span>
+                    <span id="link-to-map" @click="$emit('mode', 'map')">Link to map</span>
+                </div> --
+            </div> -->
         </div>
-        <div id="editor">
-            <VueMarkdown v-show="activeTab === 'view'" :source="note.text" :options="{ html: true }" />
-            <template v-if="activeTab === 'edit'">
-                <i>This input is markdown aware!</i>
-                <textarea v-show="activeTab === 'edit'" :value="note.text" @change="setText"></textarea>
+        <div v-if="tabs[activeTab]!.label === 'view'" id="editor">
+            <VueMarkdown :source="note.text" :options="{ html: true }" />
+        </div>
+        <div v-else-if="tabs[activeTab]!.label === 'edit'" id="editor">
+            <i>This input is markdown aware!</i>
+            <textarea :value="note.text" @change="setText"></textarea>
+        </div>
+        <!-- </div>
+            </div> -->
+        <div v-else id="note-access-container">
+            <div>Name</div>
+            <div>Can view</div>
+            <div>Can edit</div>
+            <div></div>
+            <template v-for="access of accessLevels" :key="access.name">
+                <div>{{ access.name }}</div>
+                <input type="checkbox" :checked="access.can_view" @click="setViewAccess(access, $event)" />
+                <input type="checkbox" :checked="access.can_edit" @click="setEditAccess(access, $event)" />
+                <font-awesome-icon
+                    v-if="access.name !== 'default'"
+                    icon="trash-alt"
+                    title="Remove access"
+                    @click="noteSystem.removeAccess(note.uuid, access.name, true)"
+                />
+                <div v-else></div>
             </template>
+            <div @click="addAccess">Add</div>
         </div>
     </template>
 </template>
@@ -126,7 +240,7 @@ header {
         font-size: inherit;
         padding: 0.5rem;
 
-        &:hover {
+        &.edit:hover {
             cursor: text;
         }
     }
@@ -151,7 +265,7 @@ header {
         border-radius: 1rem;
         margin-right: 0.5rem;
 
-        &.tag:hover {
+        &.edit.tag:hover {
             cursor: pointer;
 
             &::after {
@@ -174,35 +288,53 @@ header {
     }
 }
 
-.note-color-div {
-    display: grid;
-    // align-items: center;
-    grid-template-areas:
-        "icon title"
-        "icon content";
-
-    padding: 1rem;
-    border: solid 3px lightblue;
-    border-radius: 1rem;
-
-    > svg {
-        font-size: 1.25rem;
-        margin-right: 1rem;
-        grid-area: icon;
-    }
-
-    .note-setting-title {
-        grid-area: title;
-        font-weight: bold;
-        margin-bottom: 0.5rem;
-    }
-}
-
 #note-access {
     border-color: bisque;
     background-color: rgba(255, 228, 196, 0.25);
 
-    margin-right: 1rem;
+    // margin-right: 1rem;
+
+    // > div:last-child {
+    //     display: none;
+    //     align-items: center;
+
+    //     > svg {
+    //         margin-left: 0.5rem;
+    //         opacity: 0.5;
+    //     }
+    // }
+}
+
+#note-access-container {
+    display: grid;
+    max-width: 60%;
+    grid-template-columns: auto repeat(2, 5rem) 1rem;
+
+    border: solid 1px black;
+    padding: 1rem;
+    border-radius: 1rem;
+    overflow: hidden;
+    justify-items: center;
+
+    > :not(:nth-child(4) ~ div) {
+        font-weight: bold;
+        border-bottom: solid 1px black;
+        margin-bottom: 0.5rem;
+    }
+
+    > :nth-child(4n-3) {
+        justify-self: flex-start;
+    }
+
+    > :last-child {
+        margin-top: 0.5rem;
+        font-style: italic;
+
+        &:hover {
+            cursor: pointer;
+            font-weight: bold;
+        }
+    }
 }
 
 #note-location-settings {
@@ -220,29 +352,66 @@ header {
 }
 
 #tabs {
-    margin: 1rem;
-    margin-bottom: 0;
     display: flex;
+    margin-bottom: 1rem;
 
     > div {
-        padding: 0.3rem 0.5rem;
-        border: solid 1px black;
-        border-bottom: none;
-        border-top-left-radius: 0.5rem;
-        border-top-right-radius: 0.5rem;
-        margin-right: 0.25rem;
-        background-color: white;
+        display: flex;
+        align-items: center;
 
-        &.active {
-            margin-bottom: -0.1rem;
-            z-index: 5;
+        margin-left: 0.5rem;
+        padding: 0.75rem;
+        border: solid 2px lightblue;
+        border-radius: 1rem;
+        background-color: rgba(173, 216, 230, 0.25);
+
+        &.active,
+        &:hover {
+            // border-color: bisque;
+            background-color: rgba(255, 228, 196, 0.25);
         }
 
         &:hover {
             cursor: pointer;
+            // filter: brightness(0.9);
+        }
+
+        > svg {
+            margin-right: 0.5rem;
+            grid-area: icon;
+        }
+
+        > div {
+            grid-area: title;
+            font-weight: bold;
         }
     }
 }
+
+// #tabs {
+//     margin: 1rem;
+//     margin-bottom: 0;
+//     display: flex;
+
+//     > div {
+//         padding: 0.3rem 0.5rem;
+//         border: solid 1px black;
+//         border-bottom: none;
+//         border-top-left-radius: 0.5rem;
+//         border-top-right-radius: 0.5rem;
+//         margin-right: 0.25rem;
+//         background-color: white;
+
+//         &.active {
+//             margin-bottom: -0.1rem;
+//             z-index: 5;
+//         }
+
+//         &:hover {
+//             cursor: pointer;
+//         }
+//     }
+// }
 
 #editor {
     border: solid 1px black;

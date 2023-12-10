@@ -152,6 +152,7 @@ export interface ApiCoreDataBlock {
 }
 export interface ApiCoreNote {
   uuid: string;
+  owner: string;
   title: string;
   text: string;
   tags: string[];
@@ -292,6 +293,13 @@ export interface ApiLocationUserOption {
   zoom_display: number;
   active_layer?: string;
   active_floor?: string;
+}
+export interface ApiNoteAccessEdit extends ApiNoteAccess {
+  note: string;
+}
+export interface ApiNoteAccessRemove {
+  uuid: string;
+  username: string;
 }
 export interface ApiNoteSetText {
   uuid: string;

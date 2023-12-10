@@ -1,17 +1,27 @@
 import json
-from typing import Literal, cast
+from typing import TYPE_CHECKING, cast
 
 from peewee import ForeignKeyField, TextField
 
-from ...api.models.note import ApiCampaignNote, ApiLocationNote, ApiShapeNote
+from ...api.models.note import (
+    ApiCampaignNote,
+    ApiCoreNote,
+    ApiLocationNote,
+    ApiShapeNote,
+)
 from ..base import BaseDbModel
+from ..typed import SelectSequence
 from .location import Location
 from .room import Room
 from .shape import Shape
 from .user import User
 
+if TYPE_CHECKING:
+    from .note_access import NoteAccess
+
 
 class Note(BaseDbModel):
+    access: SelectSequence["NoteAccess"]
     uuid = cast(str, TextField(primary_key=True))
     room = ForeignKeyField(Room, backref="notes", on_delete="CASCADE")
     location = ForeignKeyField(
@@ -22,10 +32,6 @@ class Note(BaseDbModel):
     text = cast(str, TextField())
     kind = cast(str, TextField())
     tags = cast(str | None, TextField(null=True))
-    # private / public / mixed (if mixed, NoteAccess is used)
-    access: Literal["private", "public", "mixed"] = cast(
-        Literal["private", "public", "mixed"], TextField()
-    )
     shape = ForeignKeyField(Shape, backref="notes", null=True, on_delete="CASCADE")
 
     def __repr__(self):
@@ -33,33 +39,30 @@ class Note(BaseDbModel):
 
     def as_pydantic(self):
         tags = json.loads(self.tags) if self.tags else []
+        access = [a.as_pydantic() for a in self.access]
+        core = ApiCoreNote(
+            owner=self.user.name,
+            uuid=self.uuid,
+            title=self.title,
+            text=self.text,
+            tags=tags,
+            access=access,
+        )
         if self.kind == "campaign":
             return ApiCampaignNote(
-                uuid=self.uuid,
+                **core.dict(),
                 kind=self.kind,
-                title=self.title,
-                text=self.text,
-                tags=tags,
-                access=self.access,
             )
         elif self.kind == "location":
             return ApiLocationNote(
-                uuid=self.uuid,
+                **core.dict(),
                 kind=self.kind,
-                title=self.title,
-                text=self.text,
-                tags=tags,
-                access=self.access,
                 location=self.location.id,
                 shape=self.shape.id if self.shape else None,
             )
         elif self.kind == "shape":
             return ApiShapeNote(
-                uuid=self.uuid,
+                **core.dict(),
                 kind=self.kind,
-                title=self.title,
-                text=self.text,
-                tags=tags,
-                access=self.access,
                 shape=self.shape.id,
             )

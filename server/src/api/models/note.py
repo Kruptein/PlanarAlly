@@ -20,12 +20,28 @@ class ApiNoteTag(BaseModel):
     tag: str
 
 
+class ApiNoteAccessRemove(BaseModel):
+    uuid: str
+    username: str
+
+
+class ApiNoteAccess(BaseModel):
+    name: str
+    can_edit: bool
+    can_view: bool
+
+
+class ApiNoteAccessEdit(ApiNoteAccess):
+    note: str
+
+
 class ApiCoreNote(TypeIdModel):
     uuid: str
+    owner: str
     title: str
     text: str
     tags: list[str]
-    access: Literal["private", "public", "mixed"]
+    access: list[ApiNoteAccess]
 
 
 class ApiCampaignNote(ApiCoreNote):

@@ -443,6 +443,9 @@ def upgrade(db: SqliteExtDatabase, version: int):
             'INSERT INTO "note" ("uuid", "kind", "title", "text", "room_id", "user_id", "location_id") SELECT "uuid", \'campaign\', "title", "text", "room_id", "user_id", "location_id" FROM _note_88'
         )
         db.execute_sql("DROP TABLE _note_88")
+        db.execute_sql(
+            'CREATE TABLE IF NOT EXISTS "note_access" ("id" INTEGER NOT NULL PRIMARY KEY, "note_id" TEXT NOT NULL, "user_id" INTEGER, can_edit INTEGER NOT NULL DEFAULT 0, can_view INTEGER NOT NULL DEFAULT 0, FOREIGN KEY ("note_id") REFERENCES "note" ("uuid") ON DELETE CASCADE, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE)'
+        )
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

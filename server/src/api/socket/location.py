@@ -20,6 +20,7 @@ from ...db.models.location_options import LocationOptions
 from ...db.models.location_user_option import LocationUserOption
 from ...db.models.marker import Marker
 from ...db.models.note import Note
+from ...db.models.note_access import NoteAccess
 from ...db.models.player_room import PlayerRoom
 from ...db.models.room import Room
 from ...db.models.shape import Shape
@@ -245,8 +246,17 @@ async def load_location(sid: str, location: Location, *, complete=False):
         "Notes.Set",
         [
             note.as_pydantic()
-            for note in Note.select().where(
-                (Note.user == pr.player) & (Note.room == pr.room)
+            for note in Note.select()
+            .join(NoteAccess)
+            .where(
+                (Note.room == pr.room)
+                & (
+                    (Note.user == pr.player)
+                    | (
+                        ((NoteAccess.user >> None) | (NoteAccess.user == pr.player))  # type: ignore
+                        & NoteAccess.can_view
+                    )
+                )
             )
         ],
         room=sid,

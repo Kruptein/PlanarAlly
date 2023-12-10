@@ -11,6 +11,9 @@ import type { ModalIndex } from "../modals/types";
 import {
     sendAddNoteTag,
     sendNewNote,
+    sendNoteAccessAdd,
+    sendNoteAccessEdit,
+    sendNoteAccessRemove,
     sendRemoveNote,
     sendRemoveNoteTag,
     sendSetNoteText,
@@ -99,6 +102,48 @@ class NoteSystem implements System {
     removeNote(noteId: string, sync: boolean): void {
         $.notes.delete(noteId);
         if (sync) sendRemoveNote(noteId);
+    }
+
+    addAccess(noteId: string, userName: string, access: { can_view: boolean; can_edit: boolean }, sync: boolean): void {
+        const note = $.notes.get(noteId);
+        if (note === undefined) return;
+        const a = note.access.findIndex((a) => a.name === userName);
+        if (a >= 0) {
+            throw new Error(`Duplicate NoteAccess entry ${noteId}-${userName}`);
+        }
+        const newAccess = { name: userName, can_edit: access.can_edit, can_view: access.can_view };
+        note.access.push(newAccess);
+        if (sync) {
+            sendNoteAccessAdd({ ...newAccess, note: noteId });
+        }
+    }
+
+    setAccess(noteId: string, userName: string, access: { can_view: boolean; can_edit: boolean }, sync: boolean): void {
+        const note = $.notes.get(noteId);
+        if (note === undefined) return;
+        const a = note.access.find((a) => a.name === userName);
+        if (a === undefined) {
+            if (userName === "default") return this.addAccess(noteId, userName, access, sync);
+            throw new Error(`Unknown NoteAccess ${noteId}-${userName}`);
+        }
+        a.can_view = access.can_view;
+        a.can_edit = access.can_edit;
+        if (sync) {
+            sendNoteAccessEdit({ ...a, note: noteId });
+        }
+    }
+
+    removeAccess(noteId: string, userName: string, sync: boolean): void {
+        const note = $.notes.get(noteId);
+        if (note === undefined) return;
+        const a = note.access.findIndex((a) => a.name === userName);
+        if (a < 0) {
+            throw new Error(`Unknown NoteAccess ${noteId}-${userName}`);
+        }
+        note.access.splice(a, 1);
+        if (sync) {
+            sendNoteAccessRemove({ uuid: noteId, username: userName });
+        }
     }
 }
 

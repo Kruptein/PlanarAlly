@@ -8,12 +8,33 @@ from ...api.socket.constants import GAME_NS
 from ...app import app, sio
 from ...db.db import db
 from ...db.models.note import Note
+from ...db.models.note_access import NoteAccess
 from ...db.models.player_room import PlayerRoom
 from ...db.models.shape import Shape
+from ...db.models.user import User
 from ...logs import logger
 from ...state.game import game_state
 from ..helpers import _send_game
-from ..models.note import ApiNote, ApiNoteSetText, ApiNoteSetTitle, ApiNoteTag
+from ..models.note import (
+    ApiNote,
+    ApiNoteAccessEdit,
+    ApiNoteAccessRemove,
+    ApiNoteSetText,
+    ApiNoteSetTitle,
+    ApiNoteTag,
+)
+
+
+def can_edit(note: Note, pr: PlayerRoom):
+    return note.user == pr.player or any(
+        (not a.user or a.user == pr.player) and a.can_edit for a in note.access
+    )
+
+
+def can_view(note: Note, user: User):
+    return note.user == user or any(
+        (not a.user or a.user == user) and a.can_view for a in note.access
+    )
 
 
 @sio.on("Note.New", namespace=GAME_NS)
@@ -46,7 +67,7 @@ async def new_note(sid: str, raw_data: Any):
     if data.kind == "location":
         location = pr.active_location
 
-    Note.create(
+    note = Note.create(
         uuid=data.uuid,
         kind=data.kind,
         title=data.title,
@@ -57,6 +78,9 @@ async def new_note(sid: str, raw_data: Any):
         tags=data.tags,
         shape=shape,
     )
+
+    for psid in game_state.get_sids(skip_sid=sid, player=pr.player):
+        await _send_game("Note.Add", note.as_pydantic(), room=psid)
 
 
 @sio.on("Note.Title.Set", namespace=GAME_NS)
@@ -74,7 +98,7 @@ async def set_note_title(sid: str, raw_data: Any):
         )
         return
 
-    if note.user != pr.player:
+    if not can_edit(note, pr):
         logger.warn(f"{pr.player.name} tried to update note not belonging to them.")
         return
 
@@ -82,8 +106,9 @@ async def set_note_title(sid: str, raw_data: Any):
         note.title = data.title
         note.save()
 
-    for psid in game_state.get_sids(skip_sid=sid, player=pr.player):
-        await _send_game("Note.Title.Set", data.dict(), room=psid)
+    for psid, user in game_state.get_users(skip_sid=sid, room=pr.room):
+        if can_view(note, user):
+            await _send_game("Note.Title.Set", data.dict(), room=psid)
 
 
 @sio.on("Note.Text.Set", namespace=GAME_NS)
@@ -101,7 +126,7 @@ async def set_note_text(sid: str, raw_data: Any):
         )
         return
 
-    if note.user != pr.player:
+    if not can_edit(note, pr):
         logger.warn(f"{pr.player.name} tried to update note not belonging to them.")
         return
 
@@ -109,8 +134,9 @@ async def set_note_text(sid: str, raw_data: Any):
         note.text = data.text
         note.save()
 
-    for psid in game_state.get_sids(skip_sid=sid, player=pr.player):
-        await _send_game("Note.Text.Set", data.dict(), room=psid)
+    for psid, user in game_state.get_users(skip_sid=sid, room=pr.room):
+        if can_view(note, user):
+            await _send_game("Note.Text.Set", data.dict(), room=psid)
 
 
 @sio.on("Note.Tag.Add", namespace=GAME_NS)
@@ -128,7 +154,7 @@ async def add_note_tag(sid: str, raw_data: Any):
         )
         return
 
-    if note.user != pr.player:
+    if not can_edit(note, pr):
         logger.warn(f"{pr.player.name} tried to update note not belonging to them.")
         return
 
@@ -139,8 +165,9 @@ async def add_note_tag(sid: str, raw_data: Any):
         note.tags = json.dumps(tags)
         note.save()
 
-    for psid in game_state.get_sids(skip_sid=sid, player=pr.player):
-        await _send_game("Note.Tag.Add", data.dict(), room=psid)
+    for psid, user in game_state.get_users(skip_sid=sid, room=pr.room):
+        if can_view(note, user):
+            await _send_game("Note.Tag.Add", data.dict(), room=psid)
 
 
 @sio.on("Note.Tag.Remove", namespace=GAME_NS)
@@ -158,7 +185,7 @@ async def remove_note_tag(sid: str, raw_data: Any):
         )
         return
 
-    if note.user != pr.player:
+    if not can_edit(note, pr):
         logger.warn(f"{pr.player.name} tried to update note not belonging to them.")
         return
 
@@ -169,8 +196,9 @@ async def remove_note_tag(sid: str, raw_data: Any):
         note.tags = json.dumps(tags)
         note.save()
 
-    for psid in game_state.get_sids(skip_sid=sid, player=pr.player):
-        await _send_game("Note.Tag.Remove", data.dict(), room=psid)
+    for psid, user in game_state.get_users(skip_sid=sid, room=pr.room):
+        if can_view(note, user):
+            await _send_game("Note.Tag.Remove", data.dict(), room=psid)
 
 
 @sio.on("Note.Remove", namespace=GAME_NS)
@@ -186,11 +214,141 @@ async def delete_note(sid, uuid):
         )
         return
 
-    if note.user != pr.player:
+    if not can_edit(note, pr):
         logger.warn(f"{pr.player.name} tried to remove a note not belonging to them.")
         return
 
     note.delete_instance()
 
-    for psid in game_state.get_sids(skip_sid=sid, player=pr.player):
-        await _send_game("Note.Remove", uuid, room=psid)
+    for psid, user in game_state.get_users(skip_sid=sid, room=pr.room):
+        if can_view(note, user):
+            await _send_game("Note.Remove", uuid, room=psid)
+
+
+@sio.on("Note.Access.Add", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def add_note_access(sid, raw_data: Any):
+    data = ApiNoteAccessEdit(**raw_data)
+    uuid = data.note
+
+    pr: PlayerRoom = game_state.get(sid)
+
+    note = Note.get_or_none(uuid=uuid)
+
+    if not note:
+        logger.warning(
+            f"{pr.player.name} tried to update non-existent note with id: '{uuid}'"
+        )
+        return
+
+    if not can_edit(note, pr):
+        logger.warn(f"{pr.player.name} tried to update a note not belonging to them.")
+        return
+
+    user = None
+    if data.name != "default":
+        user = User.by_name(data.name)
+    NoteAccess.create(
+        note=note, user=user, can_edit=data.can_edit, can_view=data.can_view
+    )
+
+    for psid, user in game_state.get_users(skip_sid=sid, room=pr.room):
+        if user == pr.player:
+            await _send_game("Note.Access.Add", data.dict(), room=psid)
+        elif data.name == "default" or data.name == user.name:
+            if data.can_view:
+                await _send_game("Note.Add", note.as_pydantic(), room=psid)
+
+
+@sio.on("Note.Access.Edit", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def edit_note_access(sid, raw_data: Any):
+    data = ApiNoteAccessEdit(**raw_data)
+    uuid = data.note
+
+    pr: PlayerRoom = game_state.get(sid)
+
+    note = Note.get_or_none(uuid=uuid)
+
+    if not note:
+        logger.warning(
+            f"{pr.player.name} tried to update non-existent note with id: '{uuid}'"
+        )
+        return
+
+    if not can_edit(note, pr):
+        logger.warn(f"{pr.player.name} tried to update a note not belonging to them.")
+        return
+
+    old_default_can_view = False
+    default_can_view = False
+    user_view = {}
+
+    for access in note.access:
+        if not access.user:
+            old_default_can_view = access.can_view
+        else:
+            user_view[access.user] = {"old": access.can_view}
+
+        if (access.user and access.user.name == data.name) or (
+            not access.user and data.name == "default"
+        ):
+            with db.atomic():
+                access.can_edit = data.can_edit
+                access.can_view = data.can_view
+                access.save()
+
+        if not access.user:
+            default_can_view = access.can_view
+        else:
+            user_view[access.user]["new"] = access.can_view
+
+    for psid, user in game_state.get_users(skip_sid=sid, room=pr.room):
+        if user == pr.player:
+            await _send_game("Note.Access.Edit", data.dict(), room=psid)
+        elif data.name == "default" or data.name == user.name:
+            can_view = user_view[user]["new"] or default_can_view
+            old_can_view = user_view[user]["old"] or old_default_can_view
+
+            if can_view != old_can_view:
+                if data.can_view:
+                    await _send_game("Note.Add", note.as_pydantic(), room=psid)
+                else:
+                    await _send_game("Note.Remove", uuid, room=psid)
+            else:
+                await _send_game("Note.Access.Edit", data.dict(), room=psid)
+
+
+@sio.on("Note.Access.Remove", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def remove_note_access(sid, raw_data: Any):
+    data = ApiNoteAccessRemove(**raw_data)
+    uuid = data.uuid
+
+    pr: PlayerRoom = game_state.get(sid)
+
+    note = Note.get_or_none(uuid=uuid)
+
+    if not note:
+        logger.warning(
+            f"{pr.player.name} tried to update non-existent note with id: '{uuid}'"
+        )
+        return
+
+    if not can_edit(note, pr):
+        logger.warn(f"{pr.player.name} tried to update a note not belonging to them.")
+        return
+
+    default_can_view = False
+    for access in note.access:
+        if not access.user:
+            default_can_view = access.can_view
+        elif access.user.name == data.username:
+            access.delete_instance()
+            break
+
+    for psid, user in game_state.get_users(skip_sid=sid, room=pr.room):
+        if user == pr.player or default_can_view:
+            await _send_game("Note.Access.Remove", data.dict(), room=psid)
+        elif data.username == user.name:
+            await _send_game("Note.Remove", uuid, room=psid)

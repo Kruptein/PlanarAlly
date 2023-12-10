@@ -12,13 +12,14 @@ import { noteState } from "../../systems/notes/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import NoteDialog from "../NoteDialog.vue";
 
-import { noteTypes } from "./types";
 import { hasShape } from "./utils";
 
 const emit = defineEmits<(e: "edit-note" | "create-note") => void>();
 
-const searchBar = ref<HTMLInputElement | null>(null);
+const noteTypes = ["campaign", "location", "shape"] as const;
 const selectedNoteTypes = ref<(typeof noteTypes)[number][]>([]);
+
+const searchBar = ref<HTMLInputElement | null>(null);
 const searchFilter = ref("");
 const searchInText = ref(false);
 const showSearchFilters = ref(false);
@@ -30,7 +31,7 @@ const showSearchFilters = ref(false);
 
 const visibleNotes = computed(() => {
     const sf = searchFilter.value.trim().toLowerCase();
-    const sit = searchInText.value;
+    const textSearch = searchInText.value;
     const filterNoteTypes = ![0, noteTypes.length].includes(selectedNoteTypes.value.length);
     return [
         ...filter(noteState.reactive.notes.values(), (note) => {
@@ -39,7 +40,7 @@ const visibleNotes = computed(() => {
                 return (
                     note.title.toLowerCase().includes(sf) ||
                     note.tags.some((tag) => tag.name.toLowerCase().includes(sf)) ||
-                    (sit ? note.text.toLowerCase().includes(sf) : false)
+                    (textSearch ? note.text.toLowerCase().includes(sf) : false)
                 );
             }
             return true;
@@ -132,7 +133,7 @@ function popout(noteId: string): void {
             <div class="header">ACTIONS</div>
             <template v-for="note of visibleNotes" :key="note.title">
                 <div class="title" @click="editNote(note.uuid)">{{ note.title }}</div>
-                <div>{{ note.owner === coreStore.state.username ? 'you' : note.owner }}</div>
+                <div>{{ note.owner === coreStore.state.username ? "you" : note.owner }}</div>
                 <div class="kind">{{ note.kind }}</div>
                 <div class="note-tags">
                     <div

@@ -95,7 +95,7 @@ export function callbackProvider(): {
     };
 }
 
-export async function sha1(source: string): Promise<string> {
+async function sha1(source: string): Promise<string> {
     const sourceBytes = new TextEncoder().encode(source);
     const digest = await crypto.subtle.digest("SHA-1", sourceBytes);
     const resultBytes = [...new Uint8Array(digest)];

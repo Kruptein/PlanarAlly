@@ -24,8 +24,8 @@ import { playerState } from "./state";
 const { mutableReactive: $, raw } = playerState;
 
 class PlayerSystem implements System {
-    clear(partial: boolean): void {
-        if (!partial) $.players.clear();
+    clear(reason: "full-loading" | "partial-loading" | "leaving"): void {
+        if (reason !== "partial-loading") $.players.clear();
     }
 
     addPlayer(player: Player): void {

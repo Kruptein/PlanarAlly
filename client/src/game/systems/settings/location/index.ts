@@ -13,8 +13,8 @@ import { locationSettingsState } from "./state";
 const { mutableReactive: $, raw, reset } = locationSettingsState;
 
 class LocationSettingsSystem implements System {
-    clear(partial: boolean): void {
-        if (!partial) reset();
+    clear(reason: "full-loading" | "partial-loading" | "leaving"): void {
+        if (reason !== "partial-loading") reset();
     }
 
     private resetValue(setting: WithLocationDefault<unknown>): void {

@@ -16,9 +16,9 @@ const { mutable, readonly, mutableReactive: $ } = characterState;
 class CharacterSystem implements ShapeSystem {
     // BEHAVIOUR
 
-    clear(partial: boolean): void {
+    clear(reason: "full-loading" | "partial-loading" | "leaving"): void {
         $.activeCharacterId = undefined;
-        if (!partial) {
+        if (reason !== "partial-loading") {
             $.characterIds.clear();
             mutable.characters.clear();
         }

@@ -12,9 +12,7 @@ import { playerSettingsState } from "./state";
 const { mutableReactive: $ } = playerSettingsState;
 
 class PlayerSettingsSystem implements System {
-    clear(partial: boolean): void {
-        //
-    }
+    clear(): void {}
 
     // APPEARANCE
 

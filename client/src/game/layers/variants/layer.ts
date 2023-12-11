@@ -423,7 +423,7 @@ export class Layer implements ILayer {
                     if (props.isInvisible && !accessSystem.hasAccessTo(shape.id, true, { vision: true })) continue;
                     if (labelSystem.isFiltered(shape.id)) continue;
 
-                    shape.draw(ctx);
+                    shape.draw(ctx, false);
                 }
             }
 
@@ -465,7 +465,7 @@ export class Layer implements ILayer {
                                     const modifiedRay = new Ray(g2l(ray.get(min)), ray.direction);
                                     drawTear(modifiedRay, { fillColour: playerSettingsState.raw.rulerColour.value });
                                     target = ray.getPointAtDistance(l2gz(68), min);
-                                    shape.draw(ctx, { center: target, width: 60, height: 60 });
+                                    shape.draw(ctx, false, { center: target, width: 60, height: 60 });
                                     positionSystem.setTokenDirection(token, g2l(target));
                                     found = true;
                                 }

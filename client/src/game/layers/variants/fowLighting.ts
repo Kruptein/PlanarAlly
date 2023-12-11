@@ -121,6 +121,12 @@ export class FowLightingLayer extends FowLayer {
                     this.vCtx.globalCompositeOperation = "source-over";
                     this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
                     this.vCtx.fill(shape.visionPolygon);
+                    for (const sh of shape._lightBlockingNeighbours) {
+                        const hitShape = getShape(sh);
+                        if (hitShape) {
+                            hitShape.draw(this.vCtx, true);
+                        }
+                    }
                     if (auraDim > 0 && !hasGameboard) {
                         // Fill the light aura with a radial dropoff towards the outside.
                         const gradient = this.vCtx.createRadialGradient(
@@ -178,7 +184,7 @@ export class FowLightingLayer extends FowLayer {
                     else if (preShape.globalCompositeOperation === "destination-out")
                         preShape.globalCompositeOperation = "source-over";
                 }
-                preShape.draw(this.ctx);
+                preShape.draw(this.ctx, false);
                 preShape.globalCompositeOperation = ogComposite;
                 this.isEmpty = false;
             }

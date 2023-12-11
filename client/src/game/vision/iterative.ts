@@ -187,7 +187,7 @@ export class IterativeDelete {
             };
             this.newConstraints.push({ edge: constraint, changed: false, onPath });
             if (edgeCovered) continue;
-            const edgeShapes = [...filter(vertex.shapes, (sh) => ccwv.shapes.has(sh) && sh !== this.shape)];
+            const edgeShapes = [...filter(vertex.shapes, (sh) => ccwv.shapes.has(sh) && sh !== this.shape.id)];
             if (edgeShapes.length === 0) this.addEdge(edge);
         }
         this.handledPoints.push(vertex.point!);

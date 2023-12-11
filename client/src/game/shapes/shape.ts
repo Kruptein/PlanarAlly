@@ -92,11 +92,18 @@ export abstract class Shape implements IShape {
     // Additional options for specialized uses
     options: Partial<ShapeOptions> = {};
 
+    // All of the below is used for light&vision
+    // This is all to avoid recalculating the vision polygon every frame
     private floorIteration = -1;
     private visionIteration = -1;
     private _visionPolygon: [number, number][] | undefined = undefined;
     private _visionPath: Path2D | undefined = undefined;
     _visionBbox: BoundingRect | undefined = undefined;
+    // This part keeps track of shapes that are blocking light
+    // AND are adjacent to the vision area this shape can see
+    // this is used to provide vision into these shapes,
+    // but not behind them (e.g. reveal a tree trunk, but block what's behind it)
+    _lightBlockingNeighbours: LocalId[] = [];
 
     constructor(
         refPoint: GlobalPoint,
@@ -176,7 +183,14 @@ export abstract class Shape implements IShape {
         const visionIteration = visionState.getVisionIteration(this.floorId);
         const visionAltered = visionIteration !== this.visionIteration;
         if (this._visionPolygon === undefined || visionAltered) {
-            this._visionPolygon = computeVisibility(this.center, TriangulationTarget.VISION, this.floorId);
+            const { visibility, shapeHits } = computeVisibility(
+                this.center,
+                TriangulationTarget.VISION,
+                this.floorId,
+                false,
+            );
+            this._lightBlockingNeighbours = shapeHits;
+            this._visionPolygon = visibility;
             this.visionIteration = visionIteration;
             this.recalcVisionBbox();
         }
@@ -308,9 +322,29 @@ export abstract class Shape implements IShape {
 
     // DRAWING
 
-    draw(ctx: CanvasRenderingContext2D, customScale?: { center: GlobalPoint; width: number; height: number }): void {
-        if (this.globalCompositeOperation !== undefined) ctx.globalCompositeOperation = this.globalCompositeOperation;
-        else ctx.globalCompositeOperation = "source-over";
+    /**
+     * Draw the shape on the canvas.
+     * This base implementation sets the transform and rotation of the canvas context.
+     *
+     * @param ctx
+     * @param lightRevealRender
+     *  This is only used for special edge cases in the light/vision calculation.
+     *  If set, all fillStyle related code should be ignored,
+     *  and all stroke related operations completely skipped.
+     *  only the essentials to draw the contour of the shape should be drawn.
+     * @param customScale
+     *  This is currently only used by Asset shapes to draw them at a custom scale.
+     */
+    draw(
+        ctx: CanvasRenderingContext2D,
+        lightRevealRender: boolean,
+        customScale?: { center: GlobalPoint; width: number; height: number },
+    ): void {
+        if (!lightRevealRender) {
+            if (this.globalCompositeOperation !== undefined)
+                ctx.globalCompositeOperation = this.globalCompositeOperation;
+            else ctx.globalCompositeOperation = "source-over";
+        }
 
         const center = g2l(customScale?.center ?? this.center);
         const pixelRatio = playerSettingsState.devicePixelRatio.value;
@@ -319,9 +353,20 @@ export abstract class Shape implements IShape {
         ctx.rotate(this.angle);
     }
 
-    drawPost(ctx: CanvasRenderingContext2D): void {
+    /**
+     * This should be called after the shape has been drawn.
+     * This base implementation resets the transform and rotation of the canvas context and
+     * draws a couple of basic things all shapes can have (badges/bbox/trackers/...)
+     *
+     * @param ctx
+     * @param lightRevealRender - see `draw`, only the transform should be reset if this is true
+     */
+    drawPost(ctx: CanvasRenderingContext2D, lightRevealRender: boolean): void {
         const pixelRatio = playerSettingsState.devicePixelRatio.value;
         ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+
+        if (lightRevealRender) return;
+
         const props = getProperties(this.id);
         if (props === undefined) return console.error("Missing props");
 

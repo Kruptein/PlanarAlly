@@ -142,8 +142,10 @@ export class Polygon extends Shape implements IShape {
         super.invalidatePoints();
     }
 
-    draw(ctx: CanvasRenderingContext2D): void {
-        super.draw(ctx);
+    draw(ctx: CanvasRenderingContext2D, lightRevealRender: boolean): void {
+        if (lightRevealRender && this.openPolygon) return;
+
+        super.draw(ctx, lightRevealRender);
 
         const center = g2l(this.center);
 
@@ -151,8 +153,10 @@ export class Polygon extends Shape implements IShape {
         ctx.lineJoin = "round";
         const props = getProperties(this.id)!;
 
-        if (props.fillColour === "fog") ctx.fillStyle = FOG_COLOUR;
-        else ctx.fillStyle = props.fillColour;
+        if (!lightRevealRender) {
+            if (props.fillColour === "fog") ctx.fillStyle = FOG_COLOUR;
+            else ctx.fillStyle = props.fillColour;
+        }
 
         ctx.beginPath();
         let localVertex = subtractP(g2l(this.vertices[0]!), center);
@@ -169,16 +173,18 @@ export class Polygon extends Shape implements IShape {
 
         if (!this.openPolygon) ctx.fill();
 
-        for (const [i, c] of props.strokeColour.entries()) {
-            const lw = this.lineWidth[i] ?? this.lineWidth[0]!;
-            ctx.lineWidth = this.ignoreZoomSize ? lw : g2lz(lw);
+        if (!lightRevealRender) {
+            for (const [i, c] of props.strokeColour.entries()) {
+                const lw = this.lineWidth[i] ?? this.lineWidth[0]!;
+                ctx.lineWidth = this.ignoreZoomSize ? lw : g2lz(lw);
 
-            if (c === "fog") ctx.strokeStyle = FOG_COLOUR;
-            else ctx.strokeStyle = c;
-            ctx.stroke();
+                if (c === "fog") ctx.strokeStyle = FOG_COLOUR;
+                else ctx.strokeStyle = c;
+                ctx.stroke();
+            }
         }
 
-        super.drawPost(ctx);
+        super.drawPost(ctx, lightRevealRender);
     }
 
     contains(point: GlobalPoint, nearbyThreshold?: number): boolean {

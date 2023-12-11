@@ -240,8 +240,8 @@ class VisionState extends Store<State> {
         if (shape.floorId !== undefined) {
             const cdt = this.getCDT(target, shape.floorId);
             const { va, vb } = cdt.insertConstraint(pa, pb);
-            va.shapes.add(shape);
-            vb.shapes.add(shape);
+            va.shapes.add(shape.id);
+            vb.shapes.add(shape.id);
             cdt.tds.addTriagVertices(shape.id, va, vb);
         }
     }

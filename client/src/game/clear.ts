@@ -8,7 +8,7 @@ import { clearSystems } from "./systems";
 import { initiativeStore } from "./ui/initiative/state";
 import { visionState } from "./vision/state";
 
-export function clearGame(partial: boolean): void {
+export function clearGame(reason: "full-loading" | "partial-loading" | "leaving"): void {
     stopDrawLoop();
     visionState.clear();
     locationStore.setLocations([], false);
@@ -16,6 +16,6 @@ export function clearGame(partial: boolean): void {
     compositeState.clear();
     initiativeStore.clear();
     lastGameboardStore.clear();
-    clearSystems(partial);
+    clearSystems(reason);
     clearIds();
 }

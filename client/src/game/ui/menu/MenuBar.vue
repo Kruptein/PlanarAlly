@@ -45,7 +45,7 @@ const noAssets = computed(() => {
 const hasGameboardClients = computed(() => clientState.reactive.clientBoards.size > 0);
 
 async function exit(): Promise<void> {
-    clearGame(false);
+    clearGame("leaving");
     await router.push({ name: "games" });
 }
 

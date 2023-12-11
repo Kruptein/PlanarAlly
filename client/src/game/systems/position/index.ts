@@ -24,7 +24,7 @@ import { DEFAULT_GRID_SIZE, positionState } from "./state";
 const { mutable, readonly, mutableReactive: $ } = positionState;
 
 class PositionSystem implements System {
-    clear(partial: boolean): void {
+    clear(): void {
         mutable.gridOffset = { x: 0, y: 0 };
         mutable.zoom = NaN;
     }

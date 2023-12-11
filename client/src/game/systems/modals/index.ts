@@ -20,8 +20,12 @@ function fullModal(modal: Modal, modalIndex: ModalIndex): IndexedModal {
 }
 
 class ModalSystem implements System {
-    clear(): void {
-        $.extraModals = [];
+    clear(reason: "full-loading" | "partial-loading" | "leaving"): void {
+        if (reason === "leaving") {
+            $.extraModals = [];
+            $.openModals.clear();
+            $.modalOrder = [];
+        }
     }
 
     // These modals are always available, but sometimes hidden

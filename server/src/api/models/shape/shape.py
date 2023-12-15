@@ -17,7 +17,7 @@ class ApiCoreShape(TypeIdModel):
     name_visible: bool
     fill_colour: str
     stroke_colour: str
-    vision_obstruction: bool
+    vision_obstruction: int = Field(..., typeId="VisionBlock")
     movement_obstruction: bool
     is_token: bool
     annotation: str

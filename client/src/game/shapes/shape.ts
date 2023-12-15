@@ -30,6 +30,7 @@ import { teleportZoneSystem } from "../systems/logic/tp";
 import { propertiesSystem } from "../systems/properties";
 import { getProperties } from "../systems/properties/state";
 import type { ShapeProperties } from "../systems/properties/state";
+import { VisionBlock } from "../systems/properties/types";
 import { playerSettingsState } from "../systems/settings/players/state";
 import { trackerSystem } from "../systems/trackers";
 import { trackersFromServer, trackersToServer } from "../systems/trackers/conversion";
@@ -189,7 +190,10 @@ export abstract class Shape implements IShape {
                 this.floorId,
                 false,
             );
-            this._lightBlockingNeighbours = shapeHits;
+            // Only the behind-blockers need to be tracked as these require extra effort
+            this._lightBlockingNeighbours = shapeHits.filter(
+                (s) => getProperties(s)?.blocksVision === VisionBlock.Behind,
+            );
             this._visionPolygon = visibility;
             this.visionIteration = visionIteration;
             this.recalcVisionBbox();
@@ -482,7 +486,7 @@ export abstract class Shape implements IShape {
 
     updateShapeVision(alteredMovement: boolean, alteredVision: boolean): void {
         const props = getProperties(this.id)!;
-        if (props.blocksVision && !alteredVision) {
+        if (props.blocksVision !== VisionBlock.No && !alteredVision) {
             visionState.deleteFromTriangulation({
                 target: TriangulationTarget.VISION,
                 shape: this.id,

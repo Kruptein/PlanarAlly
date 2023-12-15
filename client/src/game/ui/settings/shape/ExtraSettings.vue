@@ -29,6 +29,7 @@ import { labelState } from "../../../systems/labels/state";
 import { playerSystem } from "../../../systems/players";
 import { DEFAULT_GRID_SIZE } from "../../../systems/position/state";
 import { propertiesSystem } from "../../../systems/properties";
+import { VisionBlock } from "../../../systems/properties/types";
 import { selectedState } from "../../../systems/selected/state";
 import { locationSettingsState } from "../../../systems/settings/location/state";
 import { visionState } from "../../../vision/state";
@@ -150,7 +151,7 @@ function applyDDraft(): void {
             UI_SYNC,
         );
 
-        propertiesSystem.setBlocksVision(shape.id, true, NO_SYNC, false);
+        propertiesSystem.setBlocksVision(shape.id, VisionBlock.Complete, NO_SYNC, false);
         propertiesSystem.setBlocksMovement(shape.id, true, NO_SYNC, false);
         fowLayer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
     }
@@ -168,7 +169,7 @@ function applyDDraft(): void {
         );
 
         if (portal.closed) {
-            propertiesSystem.setBlocksVision(shape.id, true, NO_SYNC, false);
+            propertiesSystem.setBlocksVision(shape.id, VisionBlock.Complete, NO_SYNC, false);
             propertiesSystem.setBlocksMovement(shape.id, true, NO_SYNC, false);
         }
         fowLayer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);

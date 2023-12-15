@@ -15,6 +15,7 @@ import type { Aura, AuraId } from "../systems/auras/models";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
 import { getProperties } from "../systems/properties/state";
+import { VisionBlock } from "../systems/properties/types";
 
 import { CDT } from "./cdt";
 import { IterativeDelete } from "./iterative";
@@ -280,7 +281,7 @@ class VisionState extends Store<State> {
         if (props.blocksMovement) {
             this.moveBlocker(TriangulationTarget.MOVEMENT, id, oldFloor, newFloor, true);
         }
-        if (props.blocksVision) {
+        if (props.blocksVision !== VisionBlock.No) {
             this.moveBlocker(TriangulationTarget.VISION, id, oldFloor, newFloor, true);
         }
         this.moveVisionSource(id, auraSystem.getAll(id, true), oldFloor, newFloor);

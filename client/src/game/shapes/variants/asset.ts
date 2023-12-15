@@ -14,6 +14,7 @@ import { LayerName } from "../../models/floor";
 import { loadSvgData } from "../../svg";
 import { floorSystem } from "../../systems/floors";
 import { getProperties } from "../../systems/properties/state";
+import { VisionBlock } from "../../systems/properties/types";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import type { SHAPE_TYPE } from "../types";
 
@@ -85,7 +86,7 @@ export class Asset extends BaseRect implements IAsset {
             const svgs = await loadSvgData(`/static/assets/${this.options.svgAsset}`);
             this.svgData = [...map(svgs.values(), (svg) => ({ svg, rp: this.refPoint, paths: undefined }))];
             const props = getProperties(this.id)!;
-            if (props.blocksVision) {
+            if (props.blocksVision !== VisionBlock.No) {
                 if (this.floorId !== undefined) visionState.recalculateVision(this.floorId);
                 visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.id });
             }

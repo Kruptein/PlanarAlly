@@ -16,6 +16,7 @@ from ...models.aura import ApiAura, ApiOptionalAura, AuraMove, ShapeSetAuraValue
 from ...models.shape.options import (
     ShapeSetBooleanValue,
     ShapeSetDoorToggleModeValue,
+    ShapeSetIntegerValue,
     ShapeSetOptionalStringValue,
     ShapeSetPermissionValue,
     ShapeSetStringValue,
@@ -172,7 +173,7 @@ async def set_movement_block(sid: str, raw_data: Any):
 @sio.on("Shape.Options.VisionBlock.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def set_vision_block(sid: str, raw_data: Any):
-    data = ShapeSetBooleanValue(**raw_data)
+    data = ShapeSetIntegerValue(**raw_data)
 
     pr: PlayerRoom = game_state.get(sid)
 

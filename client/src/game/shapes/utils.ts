@@ -24,6 +24,7 @@ import { floorState } from "../systems/floors/state";
 import { groupSystem } from "../systems/groups";
 import { positionSystem } from "../systems/position";
 import { getProperties } from "../systems/properties/state";
+import { VisionBlock } from "../systems/properties/types";
 import { selectedSystem } from "../systems/selected";
 import type { TrackerId } from "../systems/trackers/models";
 import { TriangulationTarget, VisibilityMode, visionState } from "../vision/state";
@@ -190,7 +191,7 @@ export function deleteShapes(shapes: readonly IShape[], sync: SyncMode): void {
         const gId = getGlobalId(sel.id);
         if (gId) removed.push(gId);
         const props = getProperties(sel.id)!;
-        if (props.blocksVision) recalculateVision = true;
+        if (props.blocksVision !== VisionBlock.No) recalculateVision = true;
         if (props.blocksMovement) recalculateMovement = true;
         sel.layer?.removeShape(sel, { sync: SyncMode.NO_SYNC, recalculate: recalculateIterative, dropShapeId: true });
     }

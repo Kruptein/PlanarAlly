@@ -25,6 +25,7 @@ import { selectedState } from "../selected/state";
 import { checkMovementSources } from "./movement";
 import { getProperties, propertiesState } from "./state";
 import type { ShapeProperties } from "./state";
+import { VisionBlock } from "./types";
 import { checkVisionSources } from "./vision";
 
 const { mutable, mutableReactive: $, DEFAULT } = propertiesState;
@@ -183,7 +184,7 @@ class PropertiesSystem implements ShapeSystem {
         return alteredMovement;
     }
 
-    setBlocksVision(id: LocalId, blocksVision: boolean, syncTo: Sync, recalculate = true): void {
+    setBlocksVision(id: LocalId, blocksVision: VisionBlock, syncTo: Sync, recalculate = true): void {
         const shape = mutable.data.get(id);
         if (shape === undefined) {
             return console.error("[Properties.setBlocksVision] Unknown local shape.");
@@ -197,7 +198,7 @@ class PropertiesSystem implements ShapeSystem {
         }
         if ($.id === id) $.blocksVision = blocksVision;
 
-        const alteredVision = checkVisionSources(id, blocksVision, recalculate);
+        const alteredVision = checkVisionSources(id, blocksVision !== VisionBlock.No, recalculate);
         if (alteredVision && recalculate) getShape(id)?.invalidate(false);
         doorSystem.checkCursorState(id);
     }

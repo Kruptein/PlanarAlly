@@ -46,10 +46,10 @@ const showBorderColour = computed(() => {
 const alerts = computed(() => {
     const a = new Set<string>();
     if (drawTool.state.blocksMovement || drawTool.state.blocksVision) {
-        a.add("eye");
+        a.add(DrawCategory.Vision);
     }
     if (drawTool.state.isDoor) {
-        a.add("cogs");
+        a.add(DrawCategory.Logic);
     }
     return a;
 });
@@ -72,7 +72,7 @@ const alerts = computed(() => {
                 <font-awesome-icon :icon="category" />
             </div>
         </div>
-        <template v-if="drawTool.state.selectedCategory === 'square'">
+        <template v-if="drawTool.state.selectedCategory === DrawCategory.Shape">
             <div class="draw-center-header">{{ t("common.shape") }}</div>
             <div class="draw-select-group">
                 <div
@@ -117,7 +117,7 @@ const alerts = computed(() => {
                 <input id="font-size" v-model="drawTool.state.fontSize" type="number" />
             </div>
         </template>
-        <template v-else-if="drawTool.state.selectedCategory === 'eye'">
+        <template v-else-if="drawTool.state.selectedCategory === DrawCategory.Vision">
             <div class="draw-center-header">{{ t("game.ui.tools.DrawTool.mode") }}</div>
             <div v-show="gameState.reactive.isDm" class="draw-select-group">
                 <div

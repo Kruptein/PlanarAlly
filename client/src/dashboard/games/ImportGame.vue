@@ -6,7 +6,7 @@ import { http } from "../../core/http";
 import { socket } from "../socket";
 import { dashboardState } from "../state";
 
-import { RoomInfo } from "./types";
+import type { RoomInfo } from "./types";
 import { open } from "./utils";
 
 const toast = useToast();

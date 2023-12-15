@@ -2,6 +2,7 @@ import type { GlobalPoint } from "../../core/geometry";
 import { sendShapePositionUpdate } from "../api/emits/shape/core";
 import type { IShape } from "../interfaces/shape";
 import { getProperties } from "../systems/properties/state";
+import { VisionBlock } from "../systems/properties/types";
 import { TriangulationTarget, visionState } from "../vision/state";
 
 export function rotateShapes(
@@ -24,7 +25,7 @@ export function rotateShapes(
                 shape: shape.id,
             });
         }
-        if (props.blocksVision) {
+        if (props.blocksVision !== VisionBlock.No) {
             recalculateVision = true;
             visionState.deleteFromTriangulation({
                 target: TriangulationTarget.VISION,
@@ -36,7 +37,8 @@ export function rotateShapes(
 
         if (props.blocksMovement && !temporary)
             visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: shape.id });
-        if (props.blocksVision) visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: shape.id });
+        if (props.blocksVision !== VisionBlock.No)
+            visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: shape.id });
 
         if (!shape.preventSync) sendShapePositionUpdate([shape], temporary);
     }

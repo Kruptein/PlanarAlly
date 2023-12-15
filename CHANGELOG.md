@@ -12,6 +12,9 @@ tech changes will usually be stripped from release notes for the public
 
 ### Changed
 
+-   Vision blocking shapes will now ignore themselves if they are closed
+    -   e.g. a tree trunk will be visible, but what's behind the tree trunk will remain hidden
+    -   Open polygons will behave as they have in the past
 -   [tech] ModalStack now supports dynamically inserted
 
 ### Fixed

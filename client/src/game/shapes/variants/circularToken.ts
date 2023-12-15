@@ -50,24 +50,26 @@ export class CircularToken extends Circle implements IShape {
         this.font = data.font;
     }
 
-    draw(ctx: CanvasRenderingContext2D): void {
-        super.draw(ctx);
+    draw(ctx: CanvasRenderingContext2D, lightRevealRender: boolean): void {
+        super.draw(ctx, lightRevealRender);
 
-        const center = g2l(this.center);
-        const props = getProperties(this.id)!;
+        if (!lightRevealRender) {
+            const center = g2l(this.center);
+            const props = getProperties(this.id)!;
 
-        ctx.font = this.font;
+            ctx.font = this.font;
 
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        const fontScale = calcFontScale(ctx, this.text, g2lz(this.r - 5));
-        const pixelRatio = playerSettingsState.devicePixelRatio.value;
-        ctx.setTransform(fontScale, 0, 0, fontScale, center.x * pixelRatio, center.y * pixelRatio);
-        ctx.rotate(this.angle);
-        ctx.fillStyle = mostReadable(props.fillColour);
-        ctx.fillText(this.text, 0, 0);
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            const fontScale = calcFontScale(ctx, this.text, g2lz(this.r - 5));
+            const pixelRatio = playerSettingsState.devicePixelRatio.value;
+            ctx.setTransform(fontScale, 0, 0, fontScale, center.x * pixelRatio, center.y * pixelRatio);
+            ctx.rotate(this.angle);
+            ctx.fillStyle = mostReadable(props.fillColour);
+            ctx.fillText(this.text, 0, 0);
+        }
 
-        super.drawPost(ctx);
+        super.drawPost(ctx, lightRevealRender);
     }
 
     setText(text: string, sync: SyncMode): void {

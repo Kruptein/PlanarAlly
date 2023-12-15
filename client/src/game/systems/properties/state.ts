@@ -3,6 +3,8 @@ import type { DeepReadonly } from "vue";
 import type { LocalId } from "../../id";
 import { buildState } from "../state";
 
+import { VisionBlock } from "./types";
+
 export interface ShapeProperties {
     name: string;
     nameVisible: boolean;
@@ -11,7 +13,7 @@ export interface ShapeProperties {
     strokeColour: string[];
     fillColour: string;
     blocksMovement: boolean;
-    blocksVision: boolean;
+    blocksVision: VisionBlock;
     showBadge: boolean;
     isDefeated: boolean;
     isLocked: boolean;
@@ -36,7 +38,7 @@ const state = buildState<ReactivePropertiesState, PropertiesState>(
         strokeColour: undefined,
         fillColour: undefined,
         blocksMovement: false,
-        blocksVision: false,
+        blocksVision: VisionBlock.No,
         showBadge: false,
         isDefeated: false,
         isLocked: false,
@@ -56,7 +58,7 @@ const DEFAULT_PROPERTIES: () => ShapeProperties = () => ({
     fillColour: "#000",
     strokeColour: ["rgba(0, 0, 0, 0)"],
     blocksMovement: false,
-    blocksVision: false,
+    blocksVision: VisionBlock.No,
     showBadge: false,
 });
 

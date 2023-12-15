@@ -57,8 +57,10 @@ export class Text extends Shape implements IText {
         return bbox;
     }
 
-    draw(ctx: CanvasRenderingContext2D): void {
-        super.draw(ctx);
+    draw(ctx: CanvasRenderingContext2D, lightRevealRender: boolean): void {
+        if (lightRevealRender) return;
+
+        super.draw(ctx, lightRevealRender);
 
         const size = this.ignoreZoomSize ? this.fontSize : g2lz(this.fontSize);
         const props = getProperties(this.id)!;
@@ -87,7 +89,7 @@ export class Text extends Shape implements IText {
         if (this.height === 0) this.height = 5;
         else this.height = l2gz(this.height);
 
-        super.drawPost(ctx);
+        super.drawPost(ctx, lightRevealRender);
     }
 
     contains(point: GlobalPoint): boolean {

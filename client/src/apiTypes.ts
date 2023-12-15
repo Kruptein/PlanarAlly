@@ -6,6 +6,7 @@ import type { AuraId } from "./game/systems/auras/models";
 import type { CharacterId } from "./game/systems/characters/models";
 import type { ClientId } from "./game/systems/client/models";
 import type { PlayerId } from "./game/systems/players/models";
+import type { VisionBlock } from "./game/systems/properties/types";
 import type { TrackerId } from "./game/systems/trackers/models";
 
 export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiToggleCompositeShape
@@ -149,7 +150,7 @@ export interface ApiCoreShape {
   name_visible: boolean;
   fill_colour: string;
   stroke_colour: string;
-  vision_obstruction: boolean;
+  vision_obstruction: VisionBlock;
   movement_obstruction: boolean;
   is_token: boolean;
   annotation: string;
@@ -658,6 +659,10 @@ export interface ShapeSetBooleanValue {
 export interface ShapeSetDoorToggleModeValue {
   shape: GlobalId;
   value: "movement" | "vision" | "both";
+}
+export interface ShapeSetIntegerValue {
+  shape: GlobalId;
+  value: number;
 }
 export interface ShapeSetOptionalStringValue {
   shape: GlobalId;

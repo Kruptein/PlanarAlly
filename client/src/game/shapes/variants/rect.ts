@@ -12,21 +12,28 @@ export class Rect extends BaseRect implements IShape {
 
     readonly isClosed = true;
 
-    draw(ctx: CanvasRenderingContext2D): void {
-        super.draw(ctx);
+    draw(ctx: CanvasRenderingContext2D, lightRevealRender: boolean): void {
+        super.draw(ctx, lightRevealRender);
         const props = getProperties(this.id)!;
-        if (props.fillColour === "fog") ctx.fillStyle = FOG_COLOUR;
-        else ctx.fillStyle = props.fillColour;
+
+        if (!lightRevealRender) {
+            if (props.fillColour === "fog") ctx.fillStyle = FOG_COLOUR;
+            else ctx.fillStyle = props.fillColour;
+        }
+
         const loc = g2l(this.refPoint);
         const center = g2l(this.center);
         const state = positionState.readonly;
         ctx.fillRect(loc.x - center.x, loc.y - center.y, this.w * state.zoom, this.h * state.zoom);
-        if (props.strokeColour[0] !== "rgba(0, 0, 0, 0)") {
-            ctx.strokeStyle = props.strokeColour[0]!;
-            ctx.lineWidth = this.strokeWidth;
-            ctx.strokeRect(loc.x - center.x, loc.y - center.y, this.w * state.zoom, this.h * state.zoom);
+
+        if (!lightRevealRender) {
+            if (props.strokeColour[0] !== "rgba(0, 0, 0, 0)") {
+                ctx.strokeStyle = props.strokeColour[0]!;
+                ctx.lineWidth = this.strokeWidth;
+                ctx.strokeRect(loc.x - center.x, loc.y - center.y, this.w * state.zoom, this.h * state.zoom);
+            }
         }
 
-        super.drawPost(ctx);
+        super.drawPost(ctx, lightRevealRender);
     }
 }

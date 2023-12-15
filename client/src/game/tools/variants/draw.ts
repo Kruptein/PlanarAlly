@@ -35,6 +35,7 @@ import type { Permissions } from "../../systems/logic/models";
 import { playerSystem } from "../../systems/players";
 import { propertiesSystem } from "../../systems/properties";
 import { getProperties } from "../../systems/properties/state";
+import { VisionBlock } from "../../systems/properties/types";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { openDefaultContextMenu } from "../../ui/contextmenu/state";
@@ -57,7 +58,7 @@ export enum DrawShape {
 }
 
 export enum DrawCategory {
-    Shape = "csquare",
+    Shape = "square",
     Vision = "eye",
     Logic = "cogs",
 }
@@ -77,7 +78,7 @@ class DrawTool extends Tool implements ITool {
         isClosedPolygon: false,
         brushSize: 5,
 
-        blocksVision: false,
+        blocksVision: VisionBlock.No,
         blocksMovement: false,
 
         fontSize: 20,
@@ -113,10 +114,10 @@ class DrawTool extends Tool implements ITool {
                         }
                         if (newLayer?.isVisionLayer ?? false) {
                             this.state.blocksMovement = true;
-                            this.state.blocksVision = true;
+                            this.state.blocksVision = VisionBlock.Behind;
                         } else if (oldLayer?.isVisionLayer === true) {
                             this.state.blocksMovement = false;
-                            this.state.blocksVision = false;
+                            this.state.blocksVision = VisionBlock.No;
                         }
                     },
                     { immediate: true },
@@ -189,7 +190,7 @@ class DrawTool extends Tool implements ITool {
             const props = getProperties(this.shape.id)!;
 
             if (this.shape.floorId !== undefined) {
-                if (props.blocksVision) visionState.recalculateVision(this.shape.floorId);
+                if (props.blocksVision !== VisionBlock.No) visionState.recalculateVision(this.shape.floorId);
                 if (props.blocksMovement) visionState.recalculateMovement(this.shape.floorId);
             }
             if (!this.shape.preventSync) sendShapeSizeUpdate({ shape: this.shape, temporary: false });
@@ -428,8 +429,8 @@ class DrawTool extends Tool implements ITool {
                 if (this.state.blocksMovement) {
                     propertiesSystem.setBlocksMovement(this.shape.id, true, UI_SYNC, false);
                 }
-                if (this.state.blocksVision) {
-                    propertiesSystem.setBlocksVision(this.shape.id, true, UI_SYNC, false);
+                if (this.state.blocksVision !== VisionBlock.No) {
+                    propertiesSystem.setBlocksVision(this.shape.id, this.state.blocksVision, UI_SYNC, false);
                 }
             }
             layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
@@ -472,7 +473,7 @@ class DrawTool extends Tool implements ITool {
             }
             const points = this.shape.points; // expensive call
             const props = getProperties(this.shape.id)!;
-            if (props.blocksVision && points.length > 1)
+            if (props.blocksVision !== VisionBlock.No && points.length > 1)
                 visionState.insertConstraint(TriangulationTarget.VISION, this.shape, points.at(-2)!, points.at(-1)!);
             if (props.blocksMovement && points.length > 1)
                 visionState.insertConstraint(TriangulationTarget.MOVEMENT, this.shape, points.at(-2)!, points.at(-1)!);
@@ -551,7 +552,7 @@ class DrawTool extends Tool implements ITool {
         if (this.state.selectedShape !== DrawShape.Polygon) {
             const props = getProperties(this.shape.id)!;
             if (!this.shape.preventSync) sendShapeSizeUpdate({ shape: this.shape, temporary: true });
-            if (props.blocksVision) {
+            if (props.blocksVision !== VisionBlock.No) {
                 if (this.shape.floorId !== undefined) {
                     const vertices = visionState
                         .getCDT(TriangulationTarget.VISION, this.shape.floorId)
@@ -593,13 +594,13 @@ class DrawTool extends Tool implements ITool {
             !this.snappedToPoint
         ) {
             const props = getProperties(this.shape.id)!;
-            if (props.blocksVision)
+            if (props.blocksVision !== VisionBlock.No)
                 visionState.deleteFromTriangulation({
                     target: TriangulationTarget.VISION,
                     shape: this.shape.id,
                 });
             this.shape.resizeToGrid(this.shape.getPointIndex(endPoint, l2gz(5)), ctrlOrCmdPressed(event));
-            if (props.blocksVision) {
+            if (props.blocksVision !== VisionBlock.No) {
                 visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.shape.id });
                 if (this.shape.floorId !== undefined) visionState.recalculateVision(this.shape.floorId);
             }
@@ -629,7 +630,7 @@ class DrawTool extends Tool implements ITool {
             if (this.state.isClosedPolygon) {
                 const props = getProperties(this.shape.id)!;
                 const points = this.shape.points; // expensive call
-                if (props.blocksVision && points.length > 1)
+                if (props.blocksVision !== VisionBlock.No && points.length > 1)
                     visionState.insertConstraint(TriangulationTarget.VISION, this.shape, points[0]!, points.at(-1)!);
                 if (props.blocksMovement && points.length > 1)
                     visionState.insertConstraint(TriangulationTarget.MOVEMENT, this.shape, points[0]!, points.at(-1)!);

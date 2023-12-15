@@ -1,4 +1,9 @@
-import type { ShapeSetBooleanValue, ShapeSetOptionalStringValue, ShapeSetStringValue } from "../../../../apiTypes";
+import type {
+    ShapeSetBooleanValue,
+    ShapeSetIntegerValue,
+    ShapeSetOptionalStringValue,
+    ShapeSetStringValue,
+} from "../../../../apiTypes";
 import { UI_SYNC } from "../../../../core/models/types";
 import type { Sync } from "../../../../core/models/types";
 import { getLocalId, getShape } from "../../../id";
@@ -64,7 +69,7 @@ socket.on(
 
 socket.on(
     "Shape.Options.VisionBlock.Set",
-    wrapSystemCall<ShapeSetBooleanValue>(propertiesSystem.setBlocksVision.bind(propertiesSystem)),
+    wrapSystemCall<ShapeSetIntegerValue>(propertiesSystem.setBlocksVision.bind(propertiesSystem)),
 );
 
 socket.on(

@@ -8,6 +8,7 @@ import { clientSystem } from "../systems/client";
 import { gameState } from "../systems/game/state";
 import { teleportZoneSystem } from "../systems/logic/tp";
 import { getProperties } from "../systems/properties/state";
+import { VisionBlock } from "../systems/properties/types";
 import { selectedSystem } from "../systems/selected";
 import { locationSettingsState } from "../systems/settings/location/state";
 import { initiativeStore } from "../ui/initiative/state";
@@ -45,7 +46,7 @@ export async function moveShapes(shapes: readonly IShape[], delta: Vector, tempo
                 shape: shape.id,
             });
         }
-        if (props.blocksVision) {
+        if (props.blocksVision !== VisionBlock.No) {
             recalculateVision = true;
             visionState.deleteFromTriangulation({
                 target: TriangulationTarget.VISION,
@@ -66,7 +67,8 @@ export async function moveShapes(shapes: readonly IShape[], delta: Vector, tempo
 
         if (props.blocksMovement && !temporary)
             visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: shape.id });
-        if (props.blocksVision) visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: shape.id });
+        if (props.blocksVision !== VisionBlock.No)
+            visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: shape.id });
 
         // todo: Fix again
         // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();

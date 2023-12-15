@@ -2,7 +2,14 @@ import json
 from typing import TYPE_CHECKING, Any, Dict, Optional, cast
 from uuid import uuid4
 
-from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
+from peewee import (
+    BooleanField,
+    FloatField,
+    ForeignKeyField,
+    IntegerField,
+    SmallIntegerField,
+    TextField,
+)
 
 from ...api.models.common import PositionTuple
 from ..base import BaseDbModel
@@ -58,7 +65,7 @@ class Shape(BaseDbModel):
     name_visible = cast(bool, BooleanField(default=False))
     fill_colour = cast(str, TextField(default="#000"))
     stroke_colour = cast(str, TextField(default="#fff"))
-    vision_obstruction = cast(bool, BooleanField(default=False))
+    vision_obstruction = cast(int, SmallIntegerField(default=False))
     movement_obstruction = cast(bool, BooleanField(default=False))
     is_token = cast(bool, BooleanField(default=False))
     annotation = cast(str, TextField(default=""))

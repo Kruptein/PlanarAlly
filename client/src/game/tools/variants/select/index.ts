@@ -48,6 +48,7 @@ import { teleportZoneSystem } from "../../../systems/logic/tp";
 import { playerSystem } from "../../../systems/players";
 import { DEFAULT_GRID_SIZE, positionState } from "../../../systems/position/state";
 import { getProperties } from "../../../systems/properties/state";
+import { VisionBlock } from "../../../systems/properties/types";
 import { selectedSystem } from "../../../systems/selected";
 import { selectedState } from "../../../systems/selected/state";
 import { locationSettingsState } from "../../../systems/settings/location/state";
@@ -643,7 +644,7 @@ class SelectTool extends Tool implements ISelectTool {
                         this.hasFeature(SelectFeatures.Snapping, features) &&
                         !this.deltaChanged
                     ) {
-                        if (props.blocksVision) {
+                        if (props.blocksVision !== VisionBlock.No) {
                             visionState.deleteFromTriangulation({
                                 target: TriangulationTarget.VISION,
                                 shape: sel.id,
@@ -652,7 +653,7 @@ class SelectTool extends Tool implements ISelectTool {
 
                         sel.snapToGrid();
 
-                        if (props.blocksVision) {
+                        if (props.blocksVision !== VisionBlock.No) {
                             visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: sel.id });
                             recalcVision = true;
                         }
@@ -672,7 +673,7 @@ class SelectTool extends Tool implements ISelectTool {
                         this.operationReady = true;
                     }
 
-                    if (props.blocksVision) recalcVision = true;
+                    if (props.blocksVision !== VisionBlock.No) recalcVision = true;
                     if (props.blocksMovement) recalcMovement = true;
                     if (!sel.preventSync) updateList.push(sel);
                 }
@@ -699,13 +700,13 @@ class SelectTool extends Tool implements ISelectTool {
                         playerSettingsState.useSnapping(event) &&
                         this.hasFeature(SelectFeatures.Snapping, features)
                     ) {
-                        if (props.blocksVision)
+                        if (props.blocksVision !== VisionBlock.No)
                             visionState.deleteFromTriangulation({
                                 target: TriangulationTarget.VISION,
                                 shape: sel.id,
                             });
                         sel.resizeToGrid(this.resizePoint, ctrlOrCmdPressed(event));
-                        if (props.blocksVision) {
+                        if (props.blocksVision !== VisionBlock.No) {
                             visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: sel.id });
                             recalcVision = true;
                         }

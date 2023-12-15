@@ -10,6 +10,7 @@ sed -i 's/"CharacterId"/CharacterId/g' ../client/src/apiTypes.ts
 sed -i 's/"LayerName"/LayerName/g' ../client/src/apiTypes.ts
 sed -i 's/"AssetId"/AssetId/g' ../client/src/apiTypes.ts
 sed -i 's/"Role"/Role/g' ../client/src/apiTypes.ts
+sed -i 's/"VisionBlock"/VisionBlock/g' ../client/src/apiTypes.ts
 sed -i '1s/^/'\
 'import type { AssetId } from ".\/assetManager\/models";\n'\
 'import type { GlobalId } from ".\/game\/id";\n'\
@@ -19,6 +20,7 @@ sed -i '1s/^/'\
 'import type { CharacterId } from ".\/game\/systems\/characters\/models";\n'\
 'import type { ClientId } from ".\/game\/systems\/client\/models";\n'\
 'import type { PlayerId } from ".\/game\/systems\/players\/models";\n'\
+'import type { VisionBlock } from ".\/game\/systems\/properties\/types";\n'\
 'import type { TrackerId } from ".\/game\/systems\/trackers\/models";\n'\
 '\n'\
 'export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiToggleCompositeShape\n'\

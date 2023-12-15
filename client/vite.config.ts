@@ -4,7 +4,7 @@ import { fileURLToPath, URL } from "node:url";
 
 import path from "path";
 import { defineConfig, loadEnv } from "vite";
-import EsmExternals from "@esbuild-plugins/esm-externals";
+import { EsmExternalsPlugin } from "@esbuild-plugins/esm-externals";
 import vue from "@vitejs/plugin-vue";
 import vueI18n from "@intlify/unplugin-vue-i18n/vite";
 import { transformLazyShow } from "v-lazy-show";
@@ -50,7 +50,7 @@ export default defineConfig({
     },
     optimizeDeps: {
         esbuildOptions: {
-            plugins: [EsmExternals({ externals: ["vue"] })],
+            plugins: [EsmExternalsPlugin({ externals: ["vue"] })],
         },
     },
     resolve: {

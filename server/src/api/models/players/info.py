@@ -9,7 +9,7 @@ class PlayerInfoCore(TypeIdModel):
     id: int = Field(typeId="PlayerId")
     name: str
     location: int
-    role: int
+    role: int = Field(typeId="Role")
 
 
 class PlayersInfoSet(BaseModel):

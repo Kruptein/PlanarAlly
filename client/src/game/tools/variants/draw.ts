@@ -57,7 +57,7 @@ export enum DrawShape {
 }
 
 export enum DrawCategory {
-    Shape = "square",
+    Shape = "csquare",
     Vision = "eye",
     Logic = "cogs",
 }
@@ -231,7 +231,7 @@ class DrawTool extends Tool implements ITool {
     //     }
     // }
 
-    private onModeChange(newValue: string, oldValue: string): void {
+    private onModeChange(newValue: DrawMode, oldValue: DrawMode): void {
         if (this.brushHelper === undefined) return;
 
         const fowLayer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Lighting);

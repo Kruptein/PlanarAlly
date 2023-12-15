@@ -107,7 +107,7 @@ function toggleHighlight(actorId: LocalId | undefined, show: boolean): void {
 
 function hasImage(actor: InitiativeData): boolean {
     if (actor.localId === undefined) return false;
-    return getShape(actor.localId)?.type === "assetrect" ?? false;
+    return getShape(actor.localId)?.type === "assetrect";
 }
 
 function getImage(actor: InitiativeData): string {
@@ -193,7 +193,7 @@ function n(e: any): number {
                 item-key="uuid"
                 @change="changeOrder"
             >
-                <template #item="{ element: actor, index }: { element: InitiativeData, index: number }">
+                <template #item="{ element: actor, index }: { element: InitiativeData; index: number }">
                     <div v-if="canSee(actor)" style="display: flex; flex-direction: column; align-items: flex-end">
                         <div
                             class="initiative-actor"

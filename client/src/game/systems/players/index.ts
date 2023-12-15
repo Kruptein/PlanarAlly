@@ -68,7 +68,7 @@ class PlayerSystem implements System {
         $.playerLocation.delete(playerId);
     }
 
-    setPlayerRole(playerId: PlayerId, role: number, sync: boolean): void {
+    setPlayerRole(playerId: PlayerId, role: Role, sync: boolean): void {
         const player = this.getPlayer(playerId);
         if (player === undefined) return;
 

@@ -1,6 +1,7 @@
 import type { AssetId } from "./assetManager/models";
 import type { GlobalId } from "./game/id";
 import type { LayerName } from "./game/models/floor";
+import type { Role } from "./game/models/role";
 import type { AuraId } from "./game/systems/auras/models";
 import type { CharacterId } from "./game/systems/characters/models";
 import type { ClientId } from "./game/systems/client/models";
@@ -532,7 +533,7 @@ export interface PlayerInfoCore {
   id: PlayerId;
   name: string;
   location: number;
-  role: number;
+  role: Role;
 }
 export interface PlayerOptionsSet {
   colour_history: string | null;

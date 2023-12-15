@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { create, evaluateDependencies } from "mathjs";
+import { evaluate } from "mathjs";
 import { computed, nextTick, ref, watch, watchEffect } from "vue";
 
 import Modal from "../../core/components/modals/Modal.vue";
@@ -7,8 +7,6 @@ import { i18n } from "../../i18n";
 import type { Aura } from "../systems/auras/models";
 import { playerSettingsState } from "../systems/settings/players/state";
 import type { Tracker } from "../systems/trackers/models";
-
-const math = create(evaluateDependencies);
 
 const emit = defineEmits<{
     (e: "close"): void;
@@ -63,7 +61,7 @@ function setError(): void {
 function submit(): void {
     try {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const solution = math.evaluate(answer.value);
+        const solution = evaluate(answer.value);
         if (typeof solution !== "number") return setError();
 
         emit("submit", { solution, relativeMode: relativeMode.value });

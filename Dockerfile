@@ -1,7 +1,7 @@
 ################################
 # Build stage for the frontend #
 ################################
-FROM node:16-alpine as BUILDER
+FROM node:20-alpine as BUILDER
 
 # Install additional dependencies
 RUN apk add --no-cache python3 make g++

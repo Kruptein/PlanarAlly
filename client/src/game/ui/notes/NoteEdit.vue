@@ -142,8 +142,8 @@ async function addAccess(): Promise<void> {
                 @change="setTitle"
             />
             <font-awesome-icon v-if="hasShape(note)" icon="location-dot" />
-            <font-awesome-icon icon="up-right-from-square" @click="popout" />
-            <font-awesome-icon v-if="canEdit" icon="trash-alt" @click="remove" />
+            <font-awesome-icon icon="up-right-from-square" title="Popout note" @click="popout" />
+            <font-awesome-icon v-if="canEdit" title="Remove note" icon="trash-alt" @click="remove" />
         </header>
         <!-- TAGS -->
         <div id="tags">
@@ -158,7 +158,7 @@ async function addAccess(): Promise<void> {
             >
                 {{ tag.name }}
             </div>
-            <div v-if="canEdit" @click="addTag"><font-awesome-icon icon="plus" /></div>
+            <div v-if="canEdit" title="Add tag" @click="addTag"><font-awesome-icon icon="plus" /></div>
         </div>
         <!-- TABS -->
         <div v-if="canEdit" id="tabs">
@@ -192,8 +192,6 @@ async function addAccess(): Promise<void> {
             <i>This input is markdown aware!</i>
             <textarea :value="note.text" @change="setText"></textarea>
         </div>
-        <!-- </div>
-            </div> -->
         <div v-else id="note-access-container">
             <div>Name</div>
             <div>Can view</div>

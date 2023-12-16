@@ -1,6 +1,7 @@
 import json
 from typing import Any, List
 
+from peewee import JOIN
 from typing_extensions import TypedDict
 
 from ... import auth
@@ -247,7 +248,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
         [
             note.as_pydantic()
             for note in Note.select()
-            .join(NoteAccess)
+            .join(NoteAccess, JOIN.LEFT_OUTER)
             .where(
                 (Note.room == pr.room)
                 & (

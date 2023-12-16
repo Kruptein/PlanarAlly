@@ -10,8 +10,8 @@ import { modalSystem } from "../../systems/modals";
 import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
-import NoteDialog from "../NoteDialog.vue";
 
+import NoteDialog from "./NoteDialog.vue";
 import { hasShape } from "./utils";
 
 const emit = defineEmits<(e: "edit-note" | "create-note") => void>();

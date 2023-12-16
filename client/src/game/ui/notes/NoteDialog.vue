@@ -2,11 +2,11 @@
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import Modal from "../../core/components/modals/Modal.vue";
-import { useModal } from "../../core/plugins/modals/plugin";
-import { modalSystem } from "../systems/modals";
-import type { ModalIndex } from "../systems/modals/types";
-import { noteState } from "../systems/notes/state";
+import Modal from "../../../core/components/modals/Modal.vue";
+import { useModal } from "../../../core/plugins/modals/plugin";
+import { modalSystem } from "../../systems/modals";
+import type { ModalIndex } from "../../systems/modals/types";
+import { noteState } from "../../systems/notes/state";
 
 const props = defineProps<{ modalIndex: ModalIndex; uuid: string }>();
 defineExpose({ close });

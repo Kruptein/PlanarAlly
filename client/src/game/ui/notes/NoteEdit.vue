@@ -10,8 +10,8 @@ import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
 import type { ClientNote } from "../../systems/notes/types";
 import { playerState } from "../../systems/players/state";
-import NoteDialog from "../NoteDialog.vue";
 
+import NoteDialog from "./NoteDialog.vue";
 import { hasShape } from "./utils";
 
 const emit = defineEmits<(e: "mode", mode: "list" | "map") => void>();

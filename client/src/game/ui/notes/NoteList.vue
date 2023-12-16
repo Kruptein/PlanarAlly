@@ -90,7 +90,7 @@ function popout(noteId: string): void {
             <ToggleGroup
                 id="kind-selector"
                 v-model="selectedNoteTypes"
-                :options="noteTypes"
+                :options="noteTypes.map((n) => ({ label: n, value: n }))"
                 :multi-select="true"
                 active-color="rgba(173, 216, 230, 0.5)"
             />

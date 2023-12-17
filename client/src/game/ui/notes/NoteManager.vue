@@ -55,7 +55,7 @@ function close(): void {
     padding: 1.5rem 2rem;
     border-radius: 1rem;
     max-height: 80vh;
-    min-width: 50vw;
+    width: 60vw;
 
     background-color: white;
 

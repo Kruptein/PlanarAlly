@@ -1,6 +1,6 @@
 import { dom, library } from "@fortawesome/fontawesome-svg-core";
 import { faDAndD, faDiscord, faGithub, faPatreon } from "@fortawesome/free-brands-svg-icons";
-import { faCompass, faCopy, faWindowClose } from "@fortawesome/free-regular-svg-icons";
+import { faCompass, faCopy, faSquareMinus, faSquarePlus, faWindowClose } from "@fortawesome/free-regular-svg-icons";
 import {
     faAngleDoubleLeft,
     faArchive,
@@ -122,6 +122,8 @@ export function loadFontAwesome(): void {
         faSortAmountDown,
         faSortAmountDownAlt,
         faSquare,
+        faSquareMinus,
+        faSquarePlus,
         faStopwatch,
         faSyncAlt,
         faTimesCircle,

@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { useI18n } from "vue-i18n";
+import { ref, onMounted, type Ref } from "vue";
+import VueMarkdown from "vue-markdown-render";
 
 import Modal from "../../../core/components/modals/Modal.vue";
-import { useModal } from "../../../core/plugins/modals/plugin";
 import { modalSystem } from "../../systems/modals";
 import type { ModalIndex } from "../../systems/modals/types";
 import { noteState } from "../../systems/notes/state";
@@ -11,46 +10,21 @@ import { noteState } from "../../systems/notes/state";
 const props = defineProps<{ modalIndex: ModalIndex; uuid: string }>();
 defineExpose({ close });
 
-const textarea = ref<HTMLTextAreaElement | null>(null);
-const title = ref<HTMLInputElement | null>(null);
-
-const { t } = useI18n();
-const modals = useModal();
+const modal = ref<{ container: Ref<HTMLDivElement> } | null>(null);
 
 const note = noteState.reactive.notes.get(props.uuid);
 
-function calcHeight(): void {
-    if (textarea.value !== null) {
-        textarea.value.style.height = "auto";
-        textarea.value.style.height = `${textarea.value.scrollHeight}px`;
+onMounted(() => {
+    if (modal.value) {
+        const container = modal.value.container;
+        if ((100 * container.offsetWidth) / window.innerWidth > 30) {
+            container.style.width = "30vw";
+        }
+        if ((100 * container.offsetHeight) / window.innerHeight > 30) {
+            container.style.height = "40vh";
+        }
     }
-}
-
-function setText(event: Event): void {
-    // noteSystem.updateNote({ ...note.value, text: (event.target as HTMLTextAreaElement).value }, true);
-}
-
-function setTitle(event: Event): void {
-    // noteSystem.updateNote({ ...note.value, title: (event.target as HTMLInputElement).value }, true);
-}
-
-async function removeNote(): Promise<void> {
-    const doRemove = await modals.confirm(t("game.ui.NoteDialog.warning_msg"));
-    if (doRemove === true) {
-        // noteSystem.removeNote(note.value, true);
-        close();
-    }
-}
-
-// watch(
-//     () => props.modalIndex,
-//     () => {},
-//     {
-//         onTrack: () => {
-//             debugger;
-//         },
-//     },
-// );
+});
 
 function close(): void {
     modalSystem.close(props.modalIndex, true);
@@ -58,65 +32,62 @@ function close(): void {
 </script>
 
 <template>
-    <Modal v-if="note !== undefined" :visible="true" :mask="false" @close="close">
+    <Modal v-if="note !== undefined" ref="modal" :visible="true" :mask="false" @close="close">
         <template #header="m">
-            <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
-                <span :title="t('game.ui.NoteDialog.edit_title')" @click="title?.select()">
-                    <font-awesome-icon icon="pencil-alt" />
-                </span>
-                <input ref="title" :value="note.title" @change="setTitle" />
-                <div class="header-close" :title="t('common.close')" @click.stop="close">
-                    <font-awesome-icon :icon="['far', 'window-close']" />
-                </div>
-            </div>
+            <header draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
+                <div>{{ note.title }}</div>
+            </header>
         </template>
-        <div class="modal-body">
-            <textarea ref="textarea" :value="note.text" @input="calcHeight" @change="setText"></textarea>
-        </div>
-        <div class="modal-footer">
-            <button :title="t('game.ui.NoteDialog.remove_note')" @click="removeNote">
-                <font-awesome-icon icon="trash-alt" />
-                {{ t("game.ui.NoteDialog.remove_note") }}
-            </button>
+
+        <font-awesome-icon class="close-note" :icon="['far', 'window-close']" @click="close" />
+        <div class="note-body">
+            <VueMarkdown :source="note.text" :options="{ html: true }" />
         </div>
     </Modal>
 </template>
 
 <style scoped lang="scss">
-.modal-header {
-    background-color: #ff7052;
-    padding: 10px;
-    font-size: 20px;
-    font-weight: bold;
-    cursor: move;
+:deep(.modal-container) {
+    display: flex;
+    flex-direction: column;
 
-    > input {
-        background-color: inherit;
-        border: none;
+    border-radius: 1rem;
+    resize: both;
+
+    min-width: 5rem;
+    min-height: 5rem;
+    // width: min(auto, 30vw);
+    overflow: auto;
+
+    .close-note {
+        position: absolute;
+
+        top: 0.75rem;
+        right: 0.75rem;
+
+        font-size: 1.25rem;
+    }
+}
+
+header {
+    display: flex;
+    padding: 1.5rem 2rem;
+
+    &:hover {
+        cursor: move;
+    }
+
+    > :first-child {
+        flex-grow: 1;
+        margin-right: 1rem;
+        border-bottom: solid 1px black;
         font-weight: bold;
-        font-size: large;
-        margin-left: 5px;
+        font-size: 1.75em;
     }
 }
 
-.header-close {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-}
-
-.modal-body {
-    padding: 10px;
-
-    > textarea {
-        width: 100%;
-        min-height: 100px;
-        max-height: 500px;
-    }
-}
-
-.modal-footer {
-    padding: 10px;
-    text-align: right;
+.note-body {
+    padding: 1.5rem 2rem;
+    padding-top: 0;
 }
 </style>

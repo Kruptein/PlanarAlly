@@ -11,6 +11,8 @@ const emit = defineEmits(["close", "focus"]);
 
 const container = ref<HTMLDivElement | null>(null);
 
+defineExpose({ container });
+
 let positioned = false;
 let dragging = false;
 let offsetX = 0;

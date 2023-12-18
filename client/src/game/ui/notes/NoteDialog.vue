@@ -5,6 +5,7 @@ import VueMarkdown from "vue-markdown-render";
 import Modal from "../../../core/components/modals/Modal.vue";
 import { modalSystem } from "../../systems/modals";
 import type { ModalIndex } from "../../systems/modals/types";
+import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
 
 const props = defineProps<{ modalIndex: ModalIndex; uuid: string }>();
@@ -103,22 +104,35 @@ function expand(): void {
 function close(): void {
     modalSystem.close(props.modalIndex, true);
 }
+
+function openInNoteManager(): void {
+    noteState.mutableReactive.currentNote = props.uuid;
+    noteState.mutableReactive.managerMode = "edit";
+    if (!noteState.raw.managerOpen) noteSystem.toggleManager();
+}
 </script>
 
 <template>
     <Modal v-if="note !== undefined" ref="modal" :visible="true" :mask="false" @close="close">
         <template #header="m">
             <header draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
-                <div>{{ note.title }}</div>
+                <div>
+                    <div>{{ note.title }}</div>
 
-                <font-awesome-icon
-                    v-if="collapsed.active"
-                    class="close-note"
-                    :icon="['far', 'square-plus']"
-                    @click="expand"
-                />
-                <font-awesome-icon v-else :icon="['far', 'square-minus']" @click="collapse" />
-                <font-awesome-icon :icon="['far', 'window-close']" @click="close" />
+                    <font-awesome-icon
+                        v-if="collapsed.active"
+                        class="close-note"
+                        :icon="['far', 'square-plus']"
+                        @click="expand"
+                    />
+                    <font-awesome-icon v-else :icon="['far', 'square-minus']" @click="collapse" />
+                    <font-awesome-icon :icon="['far', 'window-close']" @click="close" />
+                </div>
+                <div>
+                    <div>[edit]</div>
+                    <div>[show to players]</div>
+                    <div @click="openInNoteManager">[open in note manager]</div>
+                </div>
             </header>
         </template>
 
@@ -142,28 +156,52 @@ function close(): void {
 }
 
 header {
-    display: flex;
-    padding: 1.5rem 2rem;
-    padding-right: 0.5rem;
     position: sticky;
     top: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    padding-top: 1.5rem;
+    padding-bottom: 1rem;
+    padding-left: 2rem;
+    padding-right: 0.5rem;
+
     background-color: white;
 
     &:hover {
         cursor: move;
     }
 
-    > :first-child {
-        flex-grow: 1;
-        margin-right: 1rem;
-        border-bottom: solid 1px black;
-        font-weight: bold;
-        font-size: 1.75em;
+    > div:first-child {
+        display: flex;
+
+        > :first-child {
+            flex-grow: 1;
+            margin-right: 1rem;
+            border-bottom: solid 1px black;
+            font-weight: bold;
+            font-size: 1.75em;
+        }
+
+        svg {
+            font-size: 1.25rem;
+            margin-left: 0.25rem;
+        }
     }
 
-    svg {
-        font-size: 1.25rem;
-        margin-left: 0.25rem;
+    > div:last-child {
+        display: flex;
+        margin-top: 0.5rem;
+
+        > div {
+            margin-right: 0.5rem;
+
+            &:hover {
+                text-decoration: underline;
+                cursor: pointer;
+            }
+        }
     }
 }
 

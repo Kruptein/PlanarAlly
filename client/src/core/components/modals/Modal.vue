@@ -96,7 +96,12 @@ function dragStart(event: DragEvent): void {
     event.dataTransfer.setData("Hack", "");
     // Because the drag event is happening on the header, we have to change the drag image
     // in order to give the impression that the entire modal is dragged.
-    event.dataTransfer.setDragImage(container.value!, event.offsetX, event.offsetY);
+    // If the modal container is scrolled we need some extra math to get the correct offset.
+    let imageOffsetY = event.offsetY;
+    if (container.value!.scrollTop > 0) {
+        imageOffsetY += container.value!.scrollTop - (event.target as HTMLElement).offsetHeight;
+    }
+    event.dataTransfer.setDragImage(container.value!, event.offsetX, imageOffsetY);
     offsetX = event.offsetX;
     offsetY = event.offsetY;
     screenX = event.screenX;

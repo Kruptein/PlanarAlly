@@ -8,6 +8,10 @@ const props = withDefaults(
     {
         colour: "white",
         mask: true,
+        // This changes the modal to use `right:` positioning instead of the default usage of left.
+        // This is mostly useful for modals that can change size and need to remain aligned to their right side.
+        // important to note however is that native resize behaviour will not work properly with this.
+        // (see NoteDialog for a left-handed component that remains right aligned when resized)
         rightHanded: false,
     },
 );

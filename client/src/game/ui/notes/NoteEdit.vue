@@ -289,18 +289,6 @@ header {
 #note-access {
     border-color: bisque;
     background-color: rgba(255, 228, 196, 0.25);
-
-    // margin-right: 1rem;
-
-    // > div:last-child {
-    //     display: none;
-    //     align-items: center;
-
-    //     > svg {
-    //         margin-left: 0.5rem;
-    //         opacity: 0.5;
-    //     }
-    // }
 }
 
 #note-access-container {
@@ -365,13 +353,11 @@ header {
 
         &.active,
         &:hover {
-            // border-color: bisque;
             background-color: rgba(255, 228, 196, 0.25);
         }
 
         &:hover {
             cursor: pointer;
-            // filter: brightness(0.9);
         }
 
         > svg {
@@ -385,31 +371,6 @@ header {
         }
     }
 }
-
-// #tabs {
-//     margin: 1rem;
-//     margin-bottom: 0;
-//     display: flex;
-
-//     > div {
-//         padding: 0.3rem 0.5rem;
-//         border: solid 1px black;
-//         border-bottom: none;
-//         border-top-left-radius: 0.5rem;
-//         border-top-right-radius: 0.5rem;
-//         margin-right: 0.25rem;
-//         background-color: white;
-
-//         &.active {
-//             margin-bottom: -0.1rem;
-//             z-index: 5;
-//         }
-
-//         &:hover {
-//             cursor: pointer;
-//         }
-//     }
-// }
 
 #editor {
     border: solid 1px black;

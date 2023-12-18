@@ -15,7 +15,16 @@ tech changes will usually be stripped from release notes for the public
 -   Vision blocking shapes will now ignore themselves if they are closed
     -   e.g. a tree trunk will be visible, but what's behind the tree trunk will remain hidden
     -   Open polygons will behave as they have in the past
--   [tech] ModalStack now supports dynamically inserted
+-   Note system is overhauled
+    -   notes can now exis in different types: campaign/location/shape
+    -   notes can now be shared with other players
+    -   notes are now accessed through a special note manager
+        -   this provides filtering / creation / editing / ...
+    -   multiple notes can be popped out at once
+    -   popout notes can be collapsed and freely resized
+    -   popout notes are now markdown aware
+    -   If the text area of a note is still in focus after 5 seconds and an edit was made, a server save is done
+-   [tech] ModalStack now supports dynamically inserted modals
 
 ### Fixed
 

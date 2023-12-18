@@ -21,7 +21,7 @@ import {
 } from "./emits";
 import { noteState } from "./state";
 
-const { mutableReactive: $ } = noteState;
+const { mutableReactive: $, readonly, mutable } = noteState;
 
 let index = 0 as ModalIndex;
 
@@ -57,16 +57,39 @@ class NoteSystem implements System {
         }
     }
 
-    setText(noteId: string, text: string, sync: boolean): void {
+    setText(noteId: string, text: string, sync: boolean, syncAfterDelay: boolean = false): void {
         const note = $.notes.get(noteId);
         if (note === undefined) return;
-        note.text = text;
-        if (sync) {
+
+        // Ensure any existing timeout is cleared,
+        // so that we don't override a sync with a stale value
+        const timeoutId = readonly.syncTimeouts.get(noteId);
+        if (timeoutId !== undefined) {
+            window.clearTimeout(timeoutId);
+            mutable.syncTimeouts.delete(noteId);
+        }
+
+        // If there was a timeout ongoing, flush it immediately
+        // otherwise only flush if the text actually changed
+        if (sync && (timeoutId !== undefined || note.text !== text)) {
             sendSetNoteText({
                 uuid: noteId,
                 text,
             });
+        } else if (syncAfterDelay) {
+            mutable.syncTimeouts.set(
+                noteId,
+                window.setTimeout(() => {
+                    mutable.syncTimeouts.delete(noteId);
+                    sendSetNoteText({
+                        uuid: noteId,
+                        text,
+                    });
+                }, 5_000),
+            );
         }
+
+        note.text = text;
     }
 
     attachShape(noteId: string, shape: GlobalId): void {

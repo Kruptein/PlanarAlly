@@ -63,9 +63,9 @@ function setTitle(event: Event): void {
     noteSystem.setTitle(note.value.uuid, (event.target as HTMLInputElement).value, true);
 }
 
-function setText(event: Event): void {
+function setText(event: Event, sync: boolean): void {
     if (!note.value) return;
-    noteSystem.setText(note.value.uuid, (event.target as HTMLTextAreaElement).value, true);
+    noteSystem.setText(note.value.uuid, (event.target as HTMLTextAreaElement).value, sync, !sync);
 }
 
 async function addTag(): Promise<void> {
@@ -190,7 +190,7 @@ async function addAccess(): Promise<void> {
         </div>
         <div v-else-if="tabs[activeTab]!.label === 'edit'" id="editor">
             <i>This input is markdown aware!</i>
-            <textarea :value="note.text" @change="setText"></textarea>
+            <textarea :value="note.text" @input="setText($event, false)" @change="setText($event, true)"></textarea>
         </div>
         <div v-else id="note-access-container">
             <div>Name</div>

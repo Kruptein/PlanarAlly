@@ -11,6 +11,7 @@ import { noteState } from "../../systems/notes/state";
 const props = defineProps<{ modalIndex: ModalIndex; uuid: string }>();
 defineExpose({ close });
 
+const editing = ref(false);
 const collapsed = reactive({ active: false, width: 0, height: 0 });
 const modal = ref<{ container: Ref<HTMLDivElement> } | null>(null);
 
@@ -110,6 +111,10 @@ function openInNoteManager(): void {
     noteState.mutableReactive.managerMode = "edit";
     if (!noteState.raw.managerOpen) noteSystem.toggleManager();
 }
+
+function setText(event: Event, sync: boolean): void {
+    noteSystem.setText(props.uuid, (event.target as HTMLTextAreaElement).value, sync, !sync);
+}
 </script>
 
 <template>
@@ -129,7 +134,8 @@ function openInNoteManager(): void {
                     <font-awesome-icon :icon="['far', 'window-close']" @click="close" />
                 </div>
                 <div>
-                    <div>[edit]</div>
+                    <div v-if="!editing" @click="editing = true">[edit]</div>
+                    <div v-else @click="editing = false">[show]</div>
                     <div>[show to players]</div>
                     <div @click="openInNoteManager">[open in note manager]</div>
                 </div>
@@ -137,7 +143,8 @@ function openInNoteManager(): void {
         </template>
 
         <div v-if="!collapsed.active" class="note-body">
-            <VueMarkdown :source="note.text" :options="{ html: true }" />
+            <VueMarkdown v-if="!editing" :source="note.text" :options="{ html: true }" />
+            <textarea v-else v-model="note.text" @input="setText($event, false)" @change="setText($event, true)" />
         </div>
     </Modal>
 </template>
@@ -208,5 +215,14 @@ header {
 .note-body {
     padding: 1.5rem 2rem;
     padding-top: 0;
+    height: 100%;
+
+    textarea {
+        width: 100%;
+        height: inherit;
+        padding: 0.5rem;
+        font-size: 1.2em;
+        resize: none;
+    }
 }
 </style>

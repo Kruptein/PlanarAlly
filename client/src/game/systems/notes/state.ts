@@ -11,13 +11,20 @@ interface ReactiveNoteState {
     notes: Map<string, ClientNote>;
 }
 
-const state = buildState<ReactiveNoteState>({
-    managerOpen: false,
-    managerMode: "list",
-    currentNote: undefined,
+interface NonReactiveNoteState {
+    syncTimeouts: Map<string, number>;
+}
 
-    notes: new Map(),
-});
+const state = buildState<ReactiveNoteState, NonReactiveNoteState>(
+    {
+        managerOpen: false,
+        managerMode: "list",
+        currentNote: undefined,
+
+        notes: new Map(),
+    },
+    { syncTimeouts: new Map() },
+);
 
 export const noteState = {
     ...state,

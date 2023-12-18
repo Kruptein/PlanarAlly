@@ -17,14 +17,15 @@ const note = noteState.reactive.notes.get(props.uuid);
 
 onMounted(() => {
     if (modal.value) {
+        constrainInitialLoadDimensions();
+
         const container = modal.value.container;
         container.addEventListener("scroll", scrollHandler);
-        // Put an initial size limit, it can be resized manually afterwards
-        if ((100 * container.offsetWidth) / window.innerWidth > 30) {
-            container.style.width = "30vw";
-        }
-        if ((100 * container.offsetHeight) / window.innerHeight > 30) {
-            container.style.height = "40vh";
+
+        // Images can change the size of the container after our initial check above
+        // so we need to check again after they load
+        for (const image of container.getElementsByTagName("img")) {
+            image.addEventListener("load", imageLoadHandler);
         }
     }
 });
@@ -34,6 +35,28 @@ onUnmounted(() => {
         modal.value.container.removeEventListener("scroll", scrollHandler);
     }
 });
+
+function constrainInitialLoadDimensions(): void {
+    if (!modal.value) return;
+
+    const container = modal.value.container;
+    // If the width is set, it was manually resized already,
+    // so we don't want to suddenly change it again if an image was slow to load
+    if (container.style.width !== "") return;
+
+    // Put an initial size limit, it can be resized manually afterwards
+    if ((100 * container.offsetWidth) / window.innerWidth > 30) {
+        container.style.width = "30vw";
+    }
+    if ((100 * container.offsetHeight) / window.innerHeight > 30) {
+        container.style.height = "40vh";
+    }
+}
+
+function imageLoadHandler(event: Event): void {
+    (event.target as HTMLImageElement).removeEventListener("load", imageLoadHandler);
+    constrainInitialLoadDimensions();
+}
 
 function scrollHandler(): void {
     if (!modal.value) return;

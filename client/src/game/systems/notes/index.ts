@@ -94,8 +94,8 @@ class NoteSystem implements System {
 
     attachShape(noteId: string, shape: GlobalId): void {
         const note = $.notes.get(noteId);
-        if (note === undefined || note.kind === "campaign") return;
-        note.shape = shape;
+        if (note === undefined) return;
+        note.shapes.push(shape);
     }
 
     async addTag(noteId: string, tag: string, sync: boolean): Promise<void> {

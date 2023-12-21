@@ -1,18 +1,15 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 
-import type { ApiCampaignNote, ApiCoreNote, ApiLocationNote } from "../../../apiTypes";
-import ToggleGroup from "../../../core/components/ToggleGroup.vue";
+import type { ApiNote } from "../../../apiTypes";
 import { filter } from "../../../core/iter";
 import { mostReadable, uuidv4 } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
 import { modalSystem } from "../../systems/modals";
 import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
-import { locationSettingsState } from "../../systems/settings/location/state";
 
 import NoteDialog from "./NoteDialog.vue";
-import { hasShape } from "./utils";
 
 const emit = defineEmits<(e: "edit-note" | "create-note") => void>();
 
@@ -32,10 +29,8 @@ const showSearchFilters = ref(false);
 const visibleNotes = computed(() => {
     const sf = searchFilter.value.trim().toLowerCase();
     const textSearch = searchInText.value;
-    const filterNoteTypes = ![0, noteTypes.length].includes(selectedNoteTypes.value.length);
     return [
         ...filter(noteState.reactive.notes.values(), (note) => {
-            if (filterNoteTypes && !selectedNoteTypes.value.includes(note.kind)) return false;
             if (sf.length !== 0) {
                 return (
                     note.title.toLowerCase().includes(sf) ||
@@ -50,20 +45,16 @@ const visibleNotes = computed(() => {
 
 async function createNote(kind: "campaign" | "location"): Promise<void> {
     const uuid = uuidv4();
-    const coreNote: ApiCoreNote = {
-        title: "New note...",
-        tags: [],
-        text: "",
-        access: [],
-        owner: coreStore.state.username,
+    const note: ApiNote = {
         uuid,
+        creator: coreStore.state.username,
+        title: "New note...",
+        text: "",
+        isRoomNote: true,
+        tags: [],
+        access: [],
+        shapes: [],
     };
-    let note: ApiCampaignNote | ApiLocationNote;
-    if (kind === "campaign") {
-        note = { ...coreNote, kind };
-    } else {
-        note = { ...coreNote, kind, location: locationSettingsState.raw.activeLocation };
-    }
     await noteSystem.newNote(note, true);
     editNote(note.uuid);
 }
@@ -87,13 +78,6 @@ function popout(noteId: string): void {
     </header>
     <div id="notes-search">
         <div>
-            <ToggleGroup
-                id="kind-selector"
-                v-model="selectedNoteTypes"
-                :options="noteTypes.map((n) => ({ label: n, value: n }))"
-                :multi-select="true"
-                active-color="rgba(173, 216, 230, 0.5)"
-            />
             <font-awesome-icon icon="magnifying-glass" @click="searchBar?.focus()" />
             <input ref="searchBar" v-model="searchFilter" type="text" placeholder="search through your notes.." />
             <div id="search-icons">
@@ -128,13 +112,11 @@ function popout(noteId: string): void {
         <div id="notes-table">
             <div class="header">NAME</div>
             <div class="header">OWNER</div>
-            <div class="header">KIND</div>
             <div class="header">TAGS</div>
             <div class="header">ACTIONS</div>
             <template v-for="note of visibleNotes" :key="note.title">
                 <div class="title" @click="editNote(note.uuid)">{{ note.title }}</div>
-                <div>{{ note.owner === coreStore.state.username ? "you" : note.owner }}</div>
-                <div class="kind">{{ note.kind }}</div>
+                <div>{{ note.creator === coreStore.state.username ? "you" : note.creator }}</div>
                 <div class="note-tags">
                     <div
                         v-for="tag of note.tags"
@@ -143,10 +125,11 @@ function popout(noteId: string): void {
                     >
                         {{ tag.name }}
                     </div>
+                    <div v-if="note.tags.length === 0">/</div>
                 </div>
                 <div class="note-actions">
                     <font-awesome-icon icon="pencil" title="Edit" @click="editNote(note.uuid)" />
-                    <font-awesome-icon v-if="hasShape(note)" icon="location-dot" title="Go to location" />
+                    <font-awesome-icon v-if="note.shapes.length > 0" icon="location-dot" title="Go to location" />
                     <font-awesome-icon
                         v-else
                         icon="location-dot"
@@ -245,7 +228,7 @@ header {
 
 #notes-table {
     display: grid;
-    grid-template-columns: 1fr auto auto minmax(5rem, auto) auto;
+    grid-template-columns: 1fr auto minmax(5rem, auto) auto;
     column-gap: 1rem;
     row-gap: 0.5rem;
     align-items: center;
@@ -284,7 +267,6 @@ header {
         display: flex;
 
         > div {
-            background-color: orange;
             padding: 0.25rem 0.5rem;
             border-radius: 0.5rem;
             margin-right: 0.5rem;

@@ -22,6 +22,7 @@ from .models.location_user_option import LocationUserOption
 from .models.marker import Marker
 from .models.note import Note
 from .models.note_access import NoteAccess
+from .models.note_shape import NoteShape
 from .models.notification import Notification
 from .models.player_room import PlayerRoom
 from .models.polygon import Polygon
@@ -65,6 +66,7 @@ ALL_MODELS = [
     Marker,
     Note,
     NoteAccess,
+    NoteShape,
     Notification,
     PlayerRoom,
     Polygon,

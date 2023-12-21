@@ -252,7 +252,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
             .where(
                 (Note.room == pr.room)
                 & (
-                    (Note.user == pr.player)
+                    (Note.creator == pr.player)
                     | (
                         ((NoteAccess.user >> None) | (NoteAccess.user == pr.player))  # type: ignore
                         & NoteAccess.can_view

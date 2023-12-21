@@ -433,18 +433,29 @@ def upgrade(db: SqliteExtDatabase, version: int):
         db.execute_sql("CREATE TEMPORARY TABLE _note_88 AS SELECT * FROM note")
         db.execute_sql("DROP TABLE note")
         db.execute_sql(
-            'CREATE TABLE IF NOT EXISTS "note" ("uuid" TEXT NOT NULL PRIMARY KEY, "kind" TEXT NOT NULL, "title" TEXT NOT NULL DEFAULT \'\', "text" TEXT NOT NULL DEFAULT \'\', "room_id" INTEGER NOT NULL, "user_id" INTEGER NOT NULL, "location_id" INTEGER DEFAULT NULL, "shape_id" TEXT DEFAULT NULL, "tags" TEXT DEFAULT NULL, "access" TEXT NOT NULL DEFAULT "private", FOREIGN KEY ("room_id") REFERENCES "room" ("id") ON DELETE CASCADE, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE)'
+            'CREATE TABLE IF NOT EXISTS "note" ("uuid" TEXT NOT NULL PRIMARY KEY, "creator_id" INTEGER NOT NULL, "title" TEXT NOT NULL DEFAULT \'\', "text" TEXT NOT NULL DEFAULT \'\', "tags" TEXT DEFAULT NULL, "room_id" INTEGER DEFAULT NULL, FOREIGN KEY ("creator_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("room_id") REFERENCES "room" ("id") ON DELETE CASCADE)'
         )
         db.execute_sql('CREATE INDEX "note_room_id" ON "note" ("room_id")')
-        db.execute_sql('CREATE INDEX "note_location_id" ON "note" ("location_id")')
-        db.execute_sql('CREATE INDEX "note_shape_id" ON "note" ("shape_id");')
-        db.execute_sql('CREATE INDEX "note_user_id" ON "note" ("user_id");')
+        db.execute_sql('CREATE INDEX "note_creator_id" ON "note" ("creator_id");')
         db.execute_sql(
-            'INSERT INTO "note" ("uuid", "kind", "title", "text", "room_id", "user_id", "location_id") SELECT "uuid", \'campaign\', "title", "text", "room_id", "user_id", "location_id" FROM _note_88'
+            'INSERT INTO "note" ("uuid", "creator_id", "title", "text", "room_id") SELECT "uuid", "user_id", "title", "text", "room_id" FROM _note_88'
         )
         db.execute_sql("DROP TABLE _note_88")
         db.execute_sql(
             'CREATE TABLE IF NOT EXISTS "note_access" ("id" INTEGER NOT NULL PRIMARY KEY, "note_id" TEXT NOT NULL, "user_id" INTEGER, can_edit INTEGER NOT NULL DEFAULT 0, can_view INTEGER NOT NULL DEFAULT 0, FOREIGN KEY ("note_id") REFERENCES "note" ("uuid") ON DELETE CASCADE, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE)'
+        )
+        db.execute_sql(
+            'CREATE INDEX "note_access_note_id" ON "note_access" ("note_id")'
+        )
+        db.execute_sql(
+            'CREATE INDEX "note_access_user_id" ON "note_access" ("user_id")'
+        )
+        db.execute_sql(
+            'CREATE TABLE IF NOT EXISTS "note_shape" ("id" INTEGER NOT NULL PRIMARY KEY, "note_id" TEXT NOT NULL, "shape_id" TEXT NOT NULL, FOREIGN KEY ("note_id") REFERENCES "note" ("uuid") ON DELETE CASCADE, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)'
+        )
+        db.execute_sql('CREATE INDEX "note_shape_note_id" ON "note_shape" ("note_id")')
+        db.execute_sql(
+            'CREATE INDEX "note_shape_shape_id" ON "note_shape" ("shape_id")'
         )
     else:
         raise UnknownVersionException(

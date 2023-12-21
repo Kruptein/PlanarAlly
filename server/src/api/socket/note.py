@@ -10,7 +10,6 @@ from ...db.db import db
 from ...db.models.note import Note
 from ...db.models.note_access import NoteAccess
 from ...db.models.player_room import PlayerRoom
-from ...db.models.shape import Shape
 from ...db.models.user import User
 from ...logs import logger
 from ...state.game import game_state
@@ -26,13 +25,13 @@ from ..models.note import (
 
 
 def can_edit(note: Note, pr: PlayerRoom):
-    return note.user == pr.player or any(
+    return note.creator == pr.player or any(
         (not a.user or a.user == pr.player) and a.can_edit for a in note.access
     )
 
 
 def can_view(note: Note, user: User):
-    return note.user == user or any(
+    return note.creator == user or any(
         (not a.user or a.user == user) and a.can_view for a in note.access
     )
 
@@ -54,29 +53,13 @@ async def new_note(sid: str, raw_data: Any):
         )
         return
 
-    shape = None
-    if data.kind != "campaign" and data.shape is not None:
-        shape = Shape.get_or_none(uuid=data.shape)
-        if shape is None:
-            logger.warning(
-                f"{pr.player.name} tried to create a shape note with a non-existent shape: '{data.shape}'"
-            )
-            return
-
-    location = None
-    if data.kind == "location":
-        location = pr.active_location
-
     note = Note.create(
         uuid=data.uuid,
-        kind=data.kind,
+        creator=pr.player,
         title=data.title,
         text=data.text,
-        user=pr.player,
-        room=pr.room,
-        location=location,
         tags=data.tags,
-        shape=shape,
+        room=pr.room,
     )
 
     for psid in game_state.get_sids(skip_sid=sid, player=pr.player):

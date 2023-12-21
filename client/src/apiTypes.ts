@@ -11,7 +11,6 @@ import type { TrackerId } from "./game/systems/trackers/models";
 
 export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiToggleCompositeShape
 export type ApiDataBlock = ApiRoomDataBlock | ApiShapeDataBlock | ApiUserDataBlock
-export type ApiNote = ApiCampaignNote | ApiLocationNote | ApiShapeNote
 
 /* eslint-disable */
 /**
@@ -119,14 +118,6 @@ export interface ApiBaseRectShape extends ApiCoreShape {
   width: number;
   height: number;
 }
-export interface ApiCampaignNote extends ApiCoreNote {
-  kind: "campaign";
-}
-export interface ApiNoteAccess {
-  name: string;
-  can_edit: boolean;
-  can_view: boolean;
-}
 export interface ApiCharacter {
   id: CharacterId;
   name: string;
@@ -149,14 +140,6 @@ export interface ApiCoreDataBlock {
   name: string;
   category: "room" | "shape" | "user";
   data: string;
-}
-export interface ApiCoreNote {
-  uuid: string;
-  owner: string;
-  title: string;
-  text: string;
-  tags: string[];
-  access: ApiNoteAccess[];
 }
 export interface ApiCoreShape {
   uuid: GlobalId;
@@ -282,17 +265,27 @@ export interface ApiInitiativeEffect {
   turns: string;
   highlightsActor: boolean;
 }
-export interface ApiLocationNote extends ApiCoreNote {
-  kind: "location";
-  location: number;
-  shape?: GlobalId;
-}
 export interface ApiLocationUserOption {
   pan_x: number;
   pan_y: number;
   zoom_display: number;
   active_layer?: string;
   active_floor?: string;
+}
+export interface ApiNote {
+  uuid: string;
+  creator: string;
+  title: string;
+  text: string;
+  tags: string[];
+  isRoomNote: boolean;
+  access: ApiNoteAccess[];
+  shapes: GlobalId[];
+}
+export interface ApiNoteAccess {
+  name: string;
+  can_edit: boolean;
+  can_view: boolean;
 }
 export interface ApiNoteAccessEdit extends ApiNoteAccess {
   note: string;
@@ -353,10 +346,6 @@ export interface ApiRoomDataBlock extends ApiCoreDataBlock {
 }
 export interface ApiShapeDataBlock extends ApiCoreDataBlock {
   category: "shape";
-  shape: GlobalId;
-}
-export interface ApiShapeNote extends ApiCoreNote {
-  kind: "shape";
   shape: GlobalId;
 }
 export interface ApiShapeWithLayerInfo {

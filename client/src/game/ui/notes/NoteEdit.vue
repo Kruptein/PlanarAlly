@@ -22,7 +22,7 @@ const note = computed(() => noteState.reactive.notes.get(noteState.reactive.curr
 const canEdit = computed(() => {
     if (!note.value) return false;
     const username = coreStore.state.username;
-    if (note.value.owner === username) return true;
+    if (note.value.creator === username) return true;
     return note.value.access.some((a) => a.name === username && a.can_edit);
 });
 
@@ -141,13 +141,12 @@ async function addAccess(): Promise<void> {
                 :class="{ edit: canEdit }"
                 @change="setTitle"
             />
-            <font-awesome-icon v-if="hasShape(note)" icon="location-dot" />
+            <font-awesome-icon v-if="note.shapes.length > 0" icon="location-dot" />
             <font-awesome-icon icon="up-right-from-square" title="Popout note" @click="popout" />
             <font-awesome-icon v-if="canEdit" title="Remove note" icon="trash-alt" @click="remove" />
         </header>
         <!-- TAGS -->
-        <div id="tags">
-            <div class="kind">{{ note.kind }}</div>
+        <div v-if="note.tags.length > 0 || canEdit" id="tags">
             <div
                 v-for="tag of note.tags"
                 :key="tag.name"
@@ -158,6 +157,7 @@ async function addAccess(): Promise<void> {
             >
                 {{ tag.name }}
             </div>
+            <div v-if="note.tags.length === 0">No tags yet.</div>
             <div v-if="canEdit" title="Add tag" @click="addTag"><font-awesome-icon icon="plus" /></div>
         </div>
         <!-- TABS -->
@@ -278,11 +278,6 @@ header {
                 pointer-events: auto;
             }
         }
-    }
-
-    > .kind {
-        background-color: lightcoral;
-        border-radius: 0.25rem;
     }
 }
 

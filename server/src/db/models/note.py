@@ -3,66 +3,41 @@ from typing import TYPE_CHECKING, cast
 
 from peewee import ForeignKeyField, TextField
 
-from ...api.models.note import (
-    ApiCampaignNote,
-    ApiCoreNote,
-    ApiLocationNote,
-    ApiShapeNote,
-)
+from ...api.models.note import ApiNote
 from ..base import BaseDbModel
 from ..typed import SelectSequence
-from .location import Location
 from .room import Room
-from .shape import Shape
 from .user import User
 
 if TYPE_CHECKING:
     from .note_access import NoteAccess
+    from .note_shape import NoteShape
 
 
 class Note(BaseDbModel):
     access: SelectSequence["NoteAccess"]
+    shapes: SelectSequence["NoteShape"]
+
     uuid = cast(str, TextField(primary_key=True))
-    room = ForeignKeyField(Room, backref="notes", on_delete="CASCADE")
-    location = ForeignKeyField(
-        Location, null=True, backref="notes", on_delete="CASCADE"
-    )
-    user = ForeignKeyField(User, backref="notes", on_delete="CASCADE")
+    creator = ForeignKeyField(User, backref="notes", on_delete="CASCADE")
     title = cast(str, TextField())
     text = cast(str, TextField())
-    kind = cast(str, TextField())
     tags = cast(str | None, TextField(null=True))
-    shape = ForeignKeyField(Shape, backref="notes", null=True, on_delete="CASCADE")
+    room = cast(Room, ForeignKeyField(Room, backref="notes", on_delete="CASCADE"))
 
     def __repr__(self):
-        return f"<Note {self.title} {self.room.get_path()} - {self.user.name}"
+        return f"<Note {self.title} {self.room.get_path()} - {self.creator.name}"
 
     def as_pydantic(self):
         tags = json.loads(self.tags) if self.tags else []
         access = [a.as_pydantic() for a in self.access]
-        core = ApiCoreNote(
-            owner=self.user.name,
+        return ApiNote(
             uuid=self.uuid,
+            creator=self.creator.name,
             title=self.title,
             text=self.text,
             tags=tags,
             access=access,
+            isRoomNote=self.room is not None,
+            shapes=[s.shape.uuid for s in self.shapes],
         )
-        if self.kind == "campaign":
-            return ApiCampaignNote(
-                **core.dict(),
-                kind=self.kind,
-            )
-        elif self.kind == "location":
-            return ApiLocationNote(
-                **core.dict(),
-                kind=self.kind,
-                location=self.location.id,
-                shape=self.shape.id if self.shape else None,
-            )
-        elif self.kind == "shape":
-            return ApiShapeNote(
-                **core.dict(),
-                kind=self.kind,
-                shape=self.shape.id,
-            )

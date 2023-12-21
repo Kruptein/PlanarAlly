@@ -59,7 +59,7 @@ async def new_note(sid: str, raw_data: Any):
         title=data.title,
         text=data.text,
         tags=data.tags,
-        room=pr.room,
+        room=pr.room if data.isRoomNote else None,
     )
 
     for psid in game_state.get_sids(skip_sid=sid, player=pr.player):

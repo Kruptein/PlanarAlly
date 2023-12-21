@@ -3,10 +3,6 @@ import type { System } from "..";
 import type { ApiNote } from "../../../apiTypes";
 import { word2color } from "../../../core/utils";
 import type { GlobalId } from "../../id";
-// eslint-disable-next-line import/default
-import NoteManager from "../../ui/notes/NoteManager.vue";
-import { modalSystem } from "../modals";
-import type { ModalIndex } from "../modals/types";
 
 import {
     sendAddNoteTag,
@@ -23,20 +19,9 @@ import { noteState } from "./state";
 
 const { mutableReactive: $, readonly, mutable } = noteState;
 
-let index = 0 as ModalIndex;
-
 class NoteSystem implements System {
     clear(): void {
         $.notes.clear();
-    }
-
-    toggleManager(): void {
-        if (noteState.raw.managerOpen) {
-            modalSystem.close(index, true);
-        } else {
-            index = modalSystem.addModal({ component: NoteManager });
-        }
-        $.managerOpen = !noteState.raw.managerOpen;
     }
 
     async newNote(note: ApiNote, sync: boolean): Promise<void> {

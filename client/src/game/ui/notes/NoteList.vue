@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, reactive, ref } from "vue";
 
 import type { ApiNote } from "../../../apiTypes";
+import ToggleGroup from "../../../core/components/ToggleGroup.vue";
 import { filter } from "../../../core/iter";
 import { mostReadable, uuidv4 } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
@@ -13,12 +14,17 @@ import NoteDialog from "./NoteDialog.vue";
 
 const emit = defineEmits<(e: "edit-note" | "create-note") => void>();
 
-const noteTypes = ["campaign", "location", "shape"] as const;
-const selectedNoteTypes = ref<(typeof noteTypes)[number][]>([]);
+const noteTypes = ["global", "local"] as const;
+const selectedNoteTypes = ref<(typeof noteTypes)[number]>("local");
+const searchFilters = reactive({
+    title: true,
+    tags: true,
+    text: false,
+    author: false,
+});
 
 const searchBar = ref<HTMLInputElement | null>(null);
 const searchFilter = ref("");
-const searchInText = ref(false);
 const showSearchFilters = ref(false);
 
 // this is probably disruptive if you quickly open with N and expect to close it with N again ?
@@ -28,29 +34,37 @@ const showSearchFilters = ref(false);
 
 const visibleNotes = computed(() => {
     const sf = searchFilter.value.trim().toLowerCase();
-    const textSearch = searchInText.value;
+    const searchLocal = selectedNoteTypes.value === "local";
     return [
         ...filter(noteState.reactive.notes.values(), (note) => {
+            if (searchLocal === !note.isRoomNote) {
+                return false;
+            }
             if (sf.length !== 0) {
-                return (
-                    note.title.toLowerCase().includes(sf) ||
-                    note.tags.some((tag) => tag.name.toLowerCase().includes(sf)) ||
-                    (textSearch ? note.text.toLowerCase().includes(sf) : false)
-                );
+                if (searchFilters.title && note.title.toLowerCase().includes(sf)) {
+                    return true;
+                } else if (searchFilters.tags && note.tags.some((tag) => tag.name.toLowerCase().includes(sf))) {
+                    return true;
+                } else if (searchFilters.text && note.text.toLowerCase().includes(sf)) {
+                    return true;
+                } else if (searchFilters.author && note.creator.toLowerCase().includes(sf)) {
+                    return true;
+                }
+                return false;
             }
             return true;
         }),
     ];
 });
 
-async function createNote(kind: "campaign" | "location"): Promise<void> {
+async function createNote(isLocal: boolean): Promise<void> {
     const uuid = uuidv4();
     const note: ApiNote = {
         uuid,
         creator: coreStore.state.username,
         title: "New note...",
         text: "",
-        isRoomNote: true,
+        isRoomNote: isLocal,
         tags: [],
         access: [],
         shapes: [],
@@ -78,27 +92,42 @@ function popout(noteId: string): void {
     </header>
     <div id="notes-search">
         <div>
+            <ToggleGroup
+                id="kind-selector"
+                v-model="selectedNoteTypes"
+                :options="noteTypes.map((n) => ({ label: n, value: n }))"
+                :multi-select="false"
+                active-color="rgba(173, 216, 230, 0.5)"
+            />
             <font-awesome-icon icon="magnifying-glass" @click="searchBar?.focus()" />
             <input ref="searchBar" v-model="searchFilter" type="text" placeholder="search through your notes.." />
+            <div v-show="showSearchFilters" id="search-filter">
+                <fieldset style="margin-right: 3rem">
+                    <legend>Where to search</legend>
+                    <div>
+                        <input id="note-search-title" v-model="searchFilters.title" type="checkbox" />
+                        <label for="note-search-title">title</label>
+                    </div>
+                    <div>
+                        <input id="note-search-tags" v-model="searchFilters.tags" type="checkbox" checked />
+                        <label for="note-search-tags">tags</label>
+                    </div>
+                    <div>
+                        <input id="note-search-text" v-model="searchFilters.text" type="checkbox" />
+                        <label for="note-search-text">text</label>
+                    </div>
+                    <div>
+                        <input id="note-search-author" v-model="searchFilters.author" type="checkbox" />
+                        <label for="note-search-author">author</label>
+                    </div>
+                </fieldset>
+            </div>
             <div id="search-icons">
                 <font-awesome-icon
                     icon="sliders"
                     :style="{ opacity: showSearchFilters ? 1 : 0.5 }"
                     @click="showSearchFilters = !showSearchFilters"
                 />
-            </div>
-        </div>
-        <div v-show="showSearchFilters">
-            <div style="flex-grow: 1"></div>
-            <div id="notes-search-filters">
-                <div>
-                    <label for="onlyActiveLocation">Only show in active location</label>
-                    <input id="onlyActiveLocation" type="checkbox" />
-                </div>
-                <div>
-                    <label for="includeNoteText">Also search in text</label>
-                    <input id="includeNoteText" v-model="searchInText" type="checkbox" />
-                </div>
             </div>
         </div>
     </div>
@@ -146,8 +175,8 @@ function popout(noteId: string): void {
         <div id="new-note-selector">
             <div>New note:</div>
             <div id="selector-options">
-                <div @click="createNote('campaign')">Campaign</div>
-                <div @click="createNote('location')">Location</div>
+                <div @click="createNote(false)">Global</div>
+                <div @click="createNote(true)">Local</div>
             </div>
         </div>
     </footer>
@@ -169,33 +198,37 @@ header {
 
 #notes-search {
     margin: 1rem 0;
+    position: relative;
 
     > div {
         position: relative;
         display: flex;
         align-items: center;
-        overflow: hidden;
+        height: 2.7rem;
+        border: solid 2px black;
+        border-radius: 1rem;
+        z-index: 1;
 
-        > svg {
-            position: absolute;
-            margin-left: 16.5rem;
+        > #kind-selector {
+            height: calc(100% + 4px); // 2px border on top and bottom
+            margin-left: -2px; // 2px border on left
+            border-color: black;
+        }
+
+        > svg:first-of-type {
+            margin-left: 1rem;
         }
 
         > input {
             padding: 0.5rem 1rem;
-            padding-left: 18rem;
             flex-grow: 1;
             margin-right: 0.5rem;
+
+            outline: none;
+            border: none;
             border-radius: 1rem;
-            border-color: black;
 
             font-size: 1.25em;
-        }
-
-        > #kind-selector {
-            position: absolute;
-            height: 100%;
-            border-color: black;
         }
 
         > #search-icons {
@@ -203,19 +236,26 @@ header {
             display: flex;
             right: 1.5rem;
         }
-    }
 
-    #notes-search-filters {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        margin-top: 0.5rem;
+        #search-filter-toggle {
+            position: absolute;
+            right: 1.5rem;
+        }
 
-        > div {
-            display: flex;
+        #search-filter {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+
+            display: grid;
+            grid-template-columns: auto 1fr auto 1fr;
             align-items: center;
 
-            margin-bottom: 0.5rem;
+            padding: 1rem;
+            border: solid 2px black;
+            border-radius: 1rem;
+
+            background-color: white;
         }
     }
 }

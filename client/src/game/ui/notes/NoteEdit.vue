@@ -12,7 +12,6 @@ import type { ClientNote } from "../../systems/notes/types";
 import { playerState } from "../../systems/players/state";
 
 import NoteDialog from "./NoteDialog.vue";
-import { hasShape } from "./utils";
 
 const emit = defineEmits<(e: "mode", mode: "list" | "map") => void>();
 

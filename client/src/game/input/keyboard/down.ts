@@ -13,7 +13,7 @@ import { accessSystem } from "../../systems/access";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { gameState } from "../../systems/game/state";
-import { noteSystem } from "../../systems/notes";
+import { toggleNoteManager } from "../../systems/notes/ui";
 import { positionSystem } from "../../systems/position";
 import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
 import { propertiesSystem } from "../../systems/properties";
@@ -197,7 +197,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             toggleActiveMode();
         } else if (event.key === "n") {
             event.preventDefault();
-            noteSystem.toggleManager();
+            toggleNoteManager();
         }
     }
 }

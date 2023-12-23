@@ -23,6 +23,8 @@ const { mutableReactive: $, raw, readonly, mutable } = noteState;
 class NoteSystem implements System {
     clear(): void {
         $.notes.clear();
+        $.shapeNotes.clear();
+        $.currentNote = undefined;
     }
 
     async newNote(note: ApiNote, sync: boolean): Promise<void> {

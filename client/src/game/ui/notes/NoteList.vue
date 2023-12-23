@@ -3,10 +3,11 @@ import { type DeepReadonly, computed, reactive, ref } from "vue";
 
 import type { ApiNote } from "../../../apiTypes";
 import ToggleGroup from "../../../core/components/ToggleGroup.vue";
-import { filter } from "../../../core/iter";
+import { filter, map } from "../../../core/iter";
 import { mostReadable, uuidv4 } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
 import { locationStore } from "../../../store/location";
+import { type LocalId, getLocalId } from "../../id";
 import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
 import type { ClientNote } from "../../systems/notes/types";
@@ -24,6 +25,8 @@ const searchFilters = reactive({
     author: false,
     activeLocation: true,
     includeArchivedLocations: false,
+    notesWithShapes: true,
+    globalIfLocalShape: false,
 });
 
 const searchBar = ref<HTMLInputElement | null>(null);
@@ -41,19 +44,30 @@ const noteArray = computed(() => {
     if (!searchFilters.includeArchivedLocations) {
         it = filter(it, (n) => !locationStore.archivedLocations.value.some((l) => l.id === n.location));
     }
-    return Array.from(it);
+    const it2 = map(it, (n) => ({
+        ...n,
+        shapes: n.shapes.map((s) => getLocalId(s, false)).filter((s): s is LocalId => s !== undefined),
+    }));
+    return Array.from(it2);
 });
 const filteredNotes = computed(() => {
     const sf = searchFilter.value.trim().toLowerCase();
     const searchLocal = selectedNoteTypes.value === "local";
     const locationId = locationSettingsState.reactive.activeLocation;
-    const notes: DeepReadonly<ClientNote>[] = [];
+    const notes: typeof noteArray.value = [];
     for (const note of noteArray.value) {
-        if (searchLocal === !note.isRoomNote) {
+        if (!searchFilters.notesWithShapes && note.shapes.length > 0) continue;
+        if (searchLocal) {
+            if (!note.isRoomNote) {
+                // Global Notes can appear in the Local search _if_ there is a shape linked to them
+                if (!searchFilters.globalIfLocalShape || note.shapes.length === 0) continue;
+            } else if (searchFilters.activeLocation && locationId !== note.location) {
+                continue;
+            }
+        } else if (note.isRoomNote) {
             continue;
-        } else if (searchFilters.activeLocation && searchLocal && locationId !== note.location) {
-            continue;
-        } else if (sf.length === 0) {
+        }
+        if (sf.length === 0) {
             notes.push(note);
             continue;
         }
@@ -117,7 +131,7 @@ function editNote(noteId: string): void {
             <font-awesome-icon icon="magnifying-glass" @click="searchBar?.focus()" />
             <input ref="searchBar" v-model="searchFilter" type="text" placeholder="search through your notes.." />
             <div v-show="showSearchFilters" id="search-filter">
-                <fieldset style="margin-right: 1rem">
+                <fieldset>
                     <legend>Where to search</legend>
                     <div>
                         <input id="note-search-title" v-model="searchFilters.title" type="checkbox" />
@@ -137,14 +151,19 @@ function editNote(noteId: string): void {
                     </div>
                 </fieldset>
                 <fieldset :disabled="selectedNoteTypes === 'global'">
-                    <legend>Locations</legend>
+                    <legend>Local: Locations</legend>
                     <div>
                         <input
                             id="note-search-active-location"
                             v-model="searchFilters.activeLocation"
                             type="checkbox"
                         />
-                        <label for="note-search-active-location">only in active location</label>
+                        <label
+                            for="note-search-active-location"
+                            title="Show only notes that were made in the current location"
+                        >
+                            only in active location
+                        </label>
                     </div>
                     <div>
                         <input
@@ -153,6 +172,27 @@ function editNote(noteId: string): void {
                             type="checkbox"
                         />
                         <label for="note-search-archived">include archived locations</label>
+                    </div>
+                </fieldset>
+                <div></div>
+                <fieldset :disabled="selectedNoteTypes === 'global'">
+                    <legend>Local: Shapes</legend>
+                    <div>
+                        <input id="note-search-shapes" v-model="searchFilters.notesWithShapes" type="checkbox" />
+                        <label for="note-search-shapes">show notes with shapes</label>
+                    </div>
+                    <div>
+                        <input
+                            id="note-search-global-if-local-shape"
+                            v-model="searchFilters.globalIfLocalShape"
+                            type="checkbox"
+                        />
+                        <label
+                            for="note-search-global-if-local-shape"
+                            title="Global notes might be associated with a specific shape due to templating. Toggle this setting if you wish to list global notes that are associated with a shape in the current campaign"
+                        >
+                            show global note if local shape
+                        </label>
                     </div>
                 </fieldset>
             </div>
@@ -168,7 +208,9 @@ function editNote(noteId: string): void {
     <template v-if="visibleNotes.notes.length === 0">
         <div id="no-notes">
             <template v-if="noteState.reactive.notes.size === 0">You don't have any notes yet!</template>
-            <template v-else>You have no notes that match this filter.</template>
+            <template v-else>
+                <span>You have no notes that match this filter.</span>
+            </template>
         </div>
     </template>
     <template v-else>
@@ -300,13 +342,18 @@ header {
 
             display: grid;
             grid-template-columns: repeat(2, auto);
-            align-items: center;
+            gap: 0.5rem;
 
             padding: 1rem;
+            padding-top: 2rem;
             border: solid 2px black;
             border-radius: 1rem;
 
             background-color: white;
+
+            label {
+                display: inline-block;
+            }
         }
     }
 }

@@ -1,4 +1,6 @@
 // eslint-disable-next-line import/default
+import NoteDialog from "../../ui/notes/NoteDialog.vue";
+// eslint-disable-next-line import/default
 import NoteManager from "../../ui/notes/NoteManager.vue";
 import { modalSystem } from "../modals";
 import type { ModalIndex } from "../modals/types";
@@ -14,4 +16,11 @@ export function toggleNoteManager(): void {
         index = modalSystem.addModal({ component: NoteManager });
     }
     noteState.mutableReactive.managerOpen = !noteState.raw.managerOpen;
+}
+
+export function popoutNote(noteId: string): void {
+    modalSystem.addModal({
+        component: NoteDialog,
+        props: { uuid: noteId },
+    });
 }

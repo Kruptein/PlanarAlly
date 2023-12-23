@@ -12,8 +12,6 @@ export const BaseTemplateStrings = [
     "stroke_width",
     "name",
     "name_visible",
-    "annotation",
-    "annotation_visible",
     "is_token",
     "default_edit_access",
     "default_movement_access",

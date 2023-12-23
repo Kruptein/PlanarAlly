@@ -68,7 +68,6 @@ class Shape(BaseDbModel):
     vision_obstruction = cast(int, SmallIntegerField(default=False))
     movement_obstruction = cast(bool, BooleanField(default=False))
     is_token = cast(bool, BooleanField(default=False))
-    annotation = cast(str, TextField(default=""))
     draw_operator = cast(str, TextField(default="source-over"))
     index = cast(int, IntegerField())
     options = cast(Optional[str], TextField(null=True))
@@ -94,7 +93,6 @@ class Shape(BaseDbModel):
             Group, backref="members", null=True, default=None, on_delete="SET NULL"
         ),
     )
-    annotation_visible = cast(bool, BooleanField(default=False))
     ignore_zoom_size = cast(bool, BooleanField(default=False))
     is_door = cast(bool, BooleanField(default=False))
     is_teleport_zone = cast(bool, BooleanField(default=False))
@@ -149,7 +147,6 @@ class Shape(BaseDbModel):
             vision_obstruction=self.vision_obstruction,
             movement_obstruction=self.movement_obstruction,
             is_token=self.is_token,
-            annotation=self.annotation,
             draw_operator=self.draw_operator,
             index=self.index,
             options=self.options,
@@ -165,7 +162,6 @@ class Shape(BaseDbModel):
             stroke_width=self.stroke_width,
             asset=self.asset,
             group=new_group,
-            annotation_visible=self.annotation_visible,
             ignore_zoom_size=self.ignore_zoom_size,
         )
 

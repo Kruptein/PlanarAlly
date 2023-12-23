@@ -23,6 +23,7 @@ import shutil
 import sys
 from pathlib import Path
 from typing import Any, List, Optional
+from uuid import uuid4
 
 from playhouse.sqlite_ext import SqliteExtDatabase
 
@@ -429,34 +430,137 @@ def upgrade(db: SqliteExtDatabase, version: int):
             'CREATE TABLE IF NOT EXISTS "asset_share" ("id" INTEGER NOT NULL PRIMARY KEY, "asset_id" INT NOT NULL, "user_id" INT NOT NULL, "right" TEXT NOT NULL, "name" TEXT NOT NULL, "parent_id" INT NOT NULL, FOREIGN KEY ("asset_id") REFERENCES "asset" ("id") ON DELETE CASCADE, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("parent_id") REFERENCES "asset" ("id") ON DELETE CASCADE)'
         )
     elif version == 88:
-        # Add new Note fields
-        db.execute_sql("CREATE TEMPORARY TABLE _note_88 AS SELECT * FROM note")
-        db.execute_sql("DROP TABLE note")
-        db.execute_sql(
-            'CREATE TABLE IF NOT EXISTS "note" ("uuid" TEXT NOT NULL PRIMARY KEY, "creator_id" INTEGER NOT NULL, "title" TEXT NOT NULL DEFAULT \'\', "text" TEXT NOT NULL DEFAULT \'\', "tags" TEXT DEFAULT NULL, "room_id" INTEGER DEFAULT NULL, FOREIGN KEY ("creator_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("room_id") REFERENCES "room" ("id") ON DELETE CASCADE)'
-        )
-        db.execute_sql('CREATE INDEX "note_room_id" ON "note" ("room_id")')
-        db.execute_sql('CREATE INDEX "note_creator_id" ON "note" ("creator_id");')
-        db.execute_sql(
-            'INSERT INTO "note" ("uuid", "creator_id", "title", "text", "room_id") SELECT "uuid", "user_id", "title", "text", "room_id" FROM _note_88'
-        )
-        db.execute_sql("DROP TABLE _note_88")
-        db.execute_sql(
-            'CREATE TABLE IF NOT EXISTS "note_access" ("id" INTEGER NOT NULL PRIMARY KEY, "note_id" TEXT NOT NULL, "user_id" INTEGER, can_edit INTEGER NOT NULL DEFAULT 0, can_view INTEGER NOT NULL DEFAULT 0, FOREIGN KEY ("note_id") REFERENCES "note" ("uuid") ON DELETE CASCADE, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE)'
-        )
-        db.execute_sql(
-            'CREATE INDEX "note_access_note_id" ON "note_access" ("note_id")'
-        )
-        db.execute_sql(
-            'CREATE INDEX "note_access_user_id" ON "note_access" ("user_id")'
-        )
-        db.execute_sql(
-            'CREATE TABLE IF NOT EXISTS "note_shape" ("id" INTEGER NOT NULL PRIMARY KEY, "note_id" TEXT NOT NULL, "shape_id" TEXT NOT NULL, FOREIGN KEY ("note_id") REFERENCES "note" ("uuid") ON DELETE CASCADE, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)'
-        )
-        db.execute_sql('CREATE INDEX "note_shape_note_id" ON "note_shape" ("note_id")')
-        db.execute_sql(
-            'CREATE INDEX "note_shape_shape_id" ON "note_shape" ("shape_id")'
-        )
+        with db.atomic():
+            # Add new Note fields
+            db.execute_sql("CREATE TEMPORARY TABLE _note_88 AS SELECT * FROM note")
+            db.execute_sql("DROP TABLE note")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "note" ("uuid" TEXT NOT NULL PRIMARY KEY, "creator_id" INTEGER NOT NULL, "title" TEXT NOT NULL DEFAULT \'\', "text" TEXT NOT NULL DEFAULT \'\', "tags" TEXT DEFAULT NULL, "room_id" INTEGER DEFAULT NULL, "location_iD" INTEGER DEFAULT NULL, FOREIGN KEY ("creator_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("room_id") REFERENCES "room" ("id") ON DELETE CASCADE, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql('CREATE INDEX "note_room_id" ON "note" ("room_id")')
+            db.execute_sql('CREATE INDEX "note_creator_id" ON "note" ("creator_id");')
+            db.execute_sql(
+                'INSERT INTO "note" ("uuid", "creator_id", "title", "text", "room_id") SELECT "uuid", "user_id", "title", "text", "room_id" FROM _note_88'
+            )
+            db.execute_sql("DROP TABLE _note_88")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "note_access" ("id" INTEGER NOT NULL PRIMARY KEY, "note_id" TEXT NOT NULL, "user_id" INTEGER, can_edit INTEGER NOT NULL DEFAULT 0, can_view INTEGER NOT NULL DEFAULT 0, FOREIGN KEY ("note_id") REFERENCES "note" ("uuid") ON DELETE CASCADE, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql(
+                'CREATE INDEX "note_access_note_id" ON "note_access" ("note_id")'
+            )
+            db.execute_sql(
+                'CREATE INDEX "note_access_user_id" ON "note_access" ("user_id")'
+            )
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "note_shape" ("id" INTEGER NOT NULL PRIMARY KEY, "note_id" TEXT NOT NULL, "shape_id" TEXT NOT NULL, FOREIGN KEY ("note_id") REFERENCES "note" ("uuid") ON DELETE CASCADE, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)'
+            )
+            db.execute_sql(
+                'CREATE INDEX "note_shape_note_id" ON "note_shape" ("note_id")'
+            )
+            db.execute_sql(
+                'CREATE INDEX "note_shape_shape_id" ON "note_shape" ("shape_id")'
+            )
+            # Move all template annotations to notes
+            data = db.execute_sql(
+                "SELECT a.id, a.owner_id, a.name, a.options FROM asset a WHERE a.options != ''"
+            )
+            asset_id_to_note_id = {}
+            for asset_id, asset_owner, asset_name, raw_options in data.fetchall():
+                try:
+                    asset_options = json.loads(raw_options)
+                    templates = asset_options["templates"]
+                except:
+                    continue
+                for template in templates.values():
+                    if template.get("annotation", "") == "":
+                        continue
+                    note_id = str(uuid4())
+                    asset_id_to_note_id[asset_id] = note_id
+                    db.execute_sql(
+                        'INSERT INTO "note" ("uuid", "creator_id", "title", "text", "room_id") VALUES (?, ?, ?, ?, ?)',
+                        (
+                            note_id,
+                            asset_owner,
+                            asset_name or "?",
+                            template["annotation"],
+                            None,
+                        ),
+                    )
+
+                    # Grant default view access if the annotation was public
+                    if template.get("annotation_visible", False):
+                        db.execute_sql(
+                            'INSERT INTO "note_access" ("note_id", "can_edit", "can_view") VALUES (?, ?, ?)',
+                            (note_id, 0, 1),
+                        )
+
+                    del template["annotation"]
+                    del template["annotation_visible"]
+
+                    options = json.loads(template.get("options", "[]"))
+                    options.append(["templateNoteIds", [note_id]])
+                    template["options"] = json.dumps(options)
+                db.execute_sql(
+                    "UPDATE asset SET options=? WHERE id=?",
+                    (json.dumps(asset_options), asset_id),
+                )
+
+            # Move all annotation to notes
+            data = db.execute_sql(
+                "SELECT s.uuid, s.name, s.annotation, s.annotation_visible, s.asset_id, l2.id, r.id, u.id FROM shape s INNER JOIN layer l ON s.layer_id = l.id INNER JOIN floor f ON f.id = l.floor_id INNER JOIN location l2 ON l2.id = f.location_id INNER JOIN room r ON r.id = l2.room_id INNER JOIN user u ON u.id = r.creator_id WHERE s.annotation != ''"
+            )
+            shape_to_note_ids = {}
+            for (
+                shape_uuid,
+                name,
+                annotation,
+                annotation_visible,
+                asset_id,
+                location_id,
+                room_id,
+                creator_id,
+            ) in data.fetchall():
+                if asset_id is not None and asset_id in asset_id_to_note_id:
+                    note_id = asset_id_to_note_id[asset_id]
+                else:
+                    note_id = str(uuid4())
+                    db.execute_sql(
+                        'INSERT INTO "note" ("uuid", "creator_id", "title", "text", "room_id", "location_id") VALUES (?, ?, ?, ?, ?, ?)',
+                        (
+                            note_id,
+                            creator_id,
+                            name or "?",
+                            annotation,
+                            room_id,
+                            location_id,
+                        ),
+                    )
+                    # Grant default view access if the annotation was public
+                    if annotation_visible:
+                        db.execute_sql(
+                            'INSERT INTO "note_access" ("note_id", "can_edit", "can_view") VALUES (?, ?, ?)',
+                            (note_id, 0, 1),
+                        )
+                shape_to_note_ids[shape_uuid] = note_id
+                # Attach shape to note
+                db.execute_sql(
+                    'INSERT INTO "note_shape" ("note_id", "shape_id") VALUES (?, ?)',
+                    (note_id, shape_uuid),
+                )
+            # Give every user with edit access to a shape access to the note
+            data = db.execute_sql(
+                "SELECT so.user_id, so.shape_id FROM shape_owner so INNER JOIN shape s ON s.uuid = so.shape_id WHERE s.annotation != '' AND so.edit_access = 1"
+            )
+            for user_id, shape_id in data.fetchall():
+                note_id = shape_to_note_ids[shape_id]
+                db.execute_sql(
+                    'INSERT INTO "note_access" ("note_id", "user_id", "can_edit", "can_view") VALUES (?, ?, ?, ?)',
+                    (note_id, user_id, 1, 1),
+                )
+            # Remove annotation columns
+            db.execute_sql("ALTER TABLE shape DROP COLUMN annotation")
+            db.execute_sql("ALTER TABLE shape DROP COLUMN annotation_visible")
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

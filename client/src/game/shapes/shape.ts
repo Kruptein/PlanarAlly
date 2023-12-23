@@ -15,8 +15,6 @@ import type { Floor, FloorId } from "../models/floor";
 import type { ServerShapeOptions, ShapeOptions } from "../models/shapes";
 import { accessSystem } from "../systems/access";
 import { ownerToClient, ownerToServer } from "../systems/access/helpers";
-import { annotationSystem } from "../systems/annotations";
-import { annotationState } from "../systems/annotations/state";
 import { auraSystem } from "../systems/auras";
 import { aurasFromServer, aurasToServer } from "../systems/auras/conversion";
 import { characterSystem } from "../systems/characters";
@@ -548,7 +546,6 @@ export abstract class Shape implements IShape {
     getBaseDict(): ApiCoreShape {
         const defaultAccess = accessSystem.getDefault(this.id);
         const props = getProperties(this.id)!;
-        const annotationInfo = annotationState.get(this.id);
         const uuid = getGlobalId(this.id)!;
         return {
             type_: this.type,
@@ -568,8 +565,6 @@ export abstract class Shape implements IShape {
             stroke_width: this.strokeWidth,
             name: props.name,
             name_visible: props.nameVisible,
-            annotation: annotationInfo.annotation,
-            annotation_visible: annotationInfo.annotationVisible,
             is_token: props.isToken,
             is_invisible: props.isInvisible,
             is_defeated: props.isDefeated,
@@ -610,8 +605,6 @@ export abstract class Shape implements IShape {
             showBadge: data.show_badge,
             isLocked: data.is_locked,
         });
-
-        annotationSystem.inform(this.id, { annotation: data.annotation, annotationVisible: data.annotation_visible });
 
         const defaultAccess = {
             edit: data.default_edit_access,

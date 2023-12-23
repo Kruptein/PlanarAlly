@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from "vue";
+import { type DeepReadonly, computed, reactive, ref } from "vue";
 
 import type { ApiNote } from "../../../apiTypes";
 import ToggleGroup from "../../../core/components/ToggleGroup.vue";
 import { filter } from "../../../core/iter";
 import { mostReadable, uuidv4 } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
-import { modalSystem } from "../../systems/modals";
+import { locationStore } from "../../../store/location";
 import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
-
-import NoteDialog from "./NoteDialog.vue";
+import type { ClientNote } from "../../systems/notes/types";
+import { popoutNote } from "../../systems/notes/ui";
+import { locationSettingsState } from "../../systems/settings/location/state";
 
 const emit = defineEmits<(e: "edit-note" | "create-note") => void>();
 
@@ -21,40 +22,60 @@ const searchFilters = reactive({
     tags: true,
     text: false,
     author: false,
+    activeLocation: true,
+    includeArchivedLocations: false,
 });
 
 const searchBar = ref<HTMLInputElement | null>(null);
 const searchFilter = ref("");
 const showSearchFilters = ref(false);
+const searchPage = ref(1);
 
 // this is probably disruptive if you quickly open with N and expect to close it with N again ?
 // onMounted(() => {
 //     searchBar.value?.focus();
 // });
 
-const visibleNotes = computed(() => {
+const noteArray = computed(() => {
+    let it: Iterable<DeepReadonly<ClientNote>> = noteState.reactive.notes.values();
+    if (!searchFilters.includeArchivedLocations) {
+        it = filter(it, (n) => !locationStore.archivedLocations.value.some((l) => l.id === n.location));
+    }
+    return Array.from(it);
+});
+const filteredNotes = computed(() => {
     const sf = searchFilter.value.trim().toLowerCase();
     const searchLocal = selectedNoteTypes.value === "local";
-    return [
-        ...filter(noteState.reactive.notes.values(), (note) => {
-            if (searchLocal === !note.isRoomNote) {
-                return false;
-            }
-            if (sf.length !== 0) {
-                if (searchFilters.title && note.title.toLowerCase().includes(sf)) {
-                    return true;
-                } else if (searchFilters.tags && note.tags.some((tag) => tag.name.toLowerCase().includes(sf))) {
-                    return true;
-                } else if (searchFilters.text && note.text.toLowerCase().includes(sf)) {
-                    return true;
-                } else if (searchFilters.author && note.creator.toLowerCase().includes(sf)) {
-                    return true;
-                }
-                return false;
-            }
-            return true;
-        }),
-    ];
+    const locationId = locationSettingsState.reactive.activeLocation;
+    const notes: DeepReadonly<ClientNote>[] = [];
+    for (const note of noteArray.value) {
+        if (searchLocal === !note.isRoomNote) {
+            continue;
+        } else if (searchFilters.activeLocation && searchLocal && locationId !== note.location) {
+            continue;
+        } else if (sf.length === 0) {
+            notes.push(note);
+            continue;
+        }
+
+        if (searchFilters.title && note.title.toLowerCase().includes(sf)) {
+            notes.push(note);
+        } else if (searchFilters.tags && note.tags.some((tag) => tag.name.toLowerCase().includes(sf))) {
+            notes.push(note);
+        } else if (searchFilters.text && note.text.toLowerCase().includes(sf)) {
+            notes.push(note);
+        } else if (searchFilters.author && note.creator.toLowerCase().includes(sf)) {
+            notes.push(note);
+        }
+    }
+    return notes;
+});
+
+const visibleNotes = computed(() => {
+    return {
+        notes: filteredNotes.value.slice((searchPage.value - 1) * 25, searchPage.value * 25),
+        hasNext: filteredNotes.value.length > searchPage.value * 25,
+    };
 });
 
 async function createNote(isLocal: boolean): Promise<void> {
@@ -65,6 +86,7 @@ async function createNote(isLocal: boolean): Promise<void> {
         title: "New note...",
         text: "",
         isRoomNote: isLocal,
+        location: isLocal ? locationSettingsState.reactive.activeLocation : null,
         tags: [],
         access: [],
         shapes: [],
@@ -76,13 +98,6 @@ async function createNote(isLocal: boolean): Promise<void> {
 function editNote(noteId: string): void {
     noteState.mutableReactive.currentNote = noteId;
     emit("edit-note");
-}
-
-function popout(noteId: string): void {
-    modalSystem.addModal({
-        component: NoteDialog,
-        props: { uuid: noteId },
-    });
 }
 </script>
 
@@ -102,14 +117,14 @@ function popout(noteId: string): void {
             <font-awesome-icon icon="magnifying-glass" @click="searchBar?.focus()" />
             <input ref="searchBar" v-model="searchFilter" type="text" placeholder="search through your notes.." />
             <div v-show="showSearchFilters" id="search-filter">
-                <fieldset style="margin-right: 3rem">
+                <fieldset style="margin-right: 1rem">
                     <legend>Where to search</legend>
                     <div>
                         <input id="note-search-title" v-model="searchFilters.title" type="checkbox" />
                         <label for="note-search-title">title</label>
                     </div>
                     <div>
-                        <input id="note-search-tags" v-model="searchFilters.tags" type="checkbox" checked />
+                        <input id="note-search-tags" v-model="searchFilters.tags" type="checkbox" />
                         <label for="note-search-tags">tags</label>
                     </div>
                     <div>
@@ -119,6 +134,25 @@ function popout(noteId: string): void {
                     <div>
                         <input id="note-search-author" v-model="searchFilters.author" type="checkbox" />
                         <label for="note-search-author">author</label>
+                    </div>
+                </fieldset>
+                <fieldset :disabled="selectedNoteTypes === 'global'">
+                    <legend>Locations</legend>
+                    <div>
+                        <input
+                            id="note-search-active-location"
+                            v-model="searchFilters.activeLocation"
+                            type="checkbox"
+                        />
+                        <label for="note-search-active-location">only in active location</label>
+                    </div>
+                    <div>
+                        <input
+                            id="note-search-archived"
+                            v-model="searchFilters.includeArchivedLocations"
+                            type="checkbox"
+                        />
+                        <label for="note-search-archived">include archived locations</label>
                     </div>
                 </fieldset>
             </div>
@@ -131,7 +165,7 @@ function popout(noteId: string): void {
             </div>
         </div>
     </div>
-    <template v-if="visibleNotes.length === 0">
+    <template v-if="visibleNotes.notes.length === 0">
         <div id="no-notes">
             <template v-if="noteState.reactive.notes.size === 0">You don't have any notes yet!</template>
             <template v-else>You have no notes that match this filter.</template>
@@ -143,7 +177,24 @@ function popout(noteId: string): void {
             <div class="header">OWNER</div>
             <div class="header">TAGS</div>
             <div class="header">ACTIONS</div>
-            <template v-for="note of visibleNotes" :key="note.title">
+            <template v-if="visibleNotes.hasNext || searchPage > 1">
+                <div />
+                <div />
+                <div />
+                <div>
+                    <font-awesome-icon
+                        icon="chevron-left"
+                        :style="{ opacity: searchPage > 1 ? 1 : 0.5 }"
+                        @click="searchPage = Math.max(1, searchPage - 1)"
+                    />
+                    <font-awesome-icon
+                        icon="chevron-right"
+                        :style="{ opacity: visibleNotes.hasNext ? 1 : 0.5 }"
+                        @click="if (visibleNotes.hasNext) searchPage += 1;"
+                    />
+                </div>
+            </template>
+            <template v-for="note of visibleNotes.notes" :key="note.uuid">
                 <div class="title" @click="editNote(note.uuid)">{{ note.title }}</div>
                 <div>{{ note.creator === coreStore.state.username ? "you" : note.creator }}</div>
                 <div class="note-tags">
@@ -165,7 +216,7 @@ function popout(noteId: string): void {
                         title="This note does not have a location"
                         class="lowOpacity"
                     />
-                    <font-awesome-icon icon="up-right-from-square" title="Pop-out" @click="popout(note.uuid)" />
+                    <font-awesome-icon icon="up-right-from-square" title="Pop-out" @click="popoutNote(note.uuid)" />
                 </div>
             </template>
         </div>
@@ -248,7 +299,7 @@ header {
             right: -2px;
 
             display: grid;
-            grid-template-columns: auto 1fr auto 1fr;
+            grid-template-columns: repeat(2, auto);
             align-items: center;
 
             padding: 1rem;

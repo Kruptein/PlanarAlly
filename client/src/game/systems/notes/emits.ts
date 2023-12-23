@@ -1,10 +1,11 @@
-import {
-    type ApiNoteAccessEdit,
-    type ApiNote,
-    type ApiNoteSetText,
-    type ApiNoteSetTitle,
-    type ApiNoteTag,
-    type ApiNoteAccessRemove,
+import type {
+    ApiNoteAccessEdit,
+    ApiNote,
+    ApiNoteSetText,
+    ApiNoteSetTitle,
+    ApiNoteTag,
+    ApiNoteAccessRemove,
+    ApiNoteShape,
 } from "../../../apiTypes";
 import { wrapSocket } from "../../api/helpers";
 
@@ -17,3 +18,4 @@ export const sendRemoveNoteTag = wrapSocket<ApiNoteTag>("Note.Tag.Remove");
 export const sendNoteAccessAdd = wrapSocket<ApiNoteAccessEdit>("Note.Access.Add");
 export const sendNoteAccessEdit = wrapSocket<ApiNoteAccessEdit>("Note.Access.Edit");
 export const sendNoteAccessRemove = wrapSocket<ApiNoteAccessRemove>("Note.Access.Remove");
+export const sendNoteAddShape = wrapSocket<ApiNoteShape>("Note.Shape.Add");

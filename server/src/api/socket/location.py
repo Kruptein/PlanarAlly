@@ -250,8 +250,10 @@ async def load_location(sid: str, location: Location, *, complete=False):
             for note in Note.select()
             .join(NoteAccess, JOIN.LEFT_OUTER)
             .where(
-                (Note.room == pr.room)
+                # Global or local to the current room
+                ((Note.room >> None) | (Note.room == pr.room))  # type: ignore
                 & (
+                    # Note owner or specific access
                     (Note.creator == pr.player)
                     | (
                         ((NoteAccess.user >> None) | (NoteAccess.user == pr.player))  # type: ignore

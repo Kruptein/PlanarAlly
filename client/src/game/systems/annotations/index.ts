@@ -1,8 +1,6 @@
 import { registerSystem } from "..";
 import type { ShapeSystem } from "..";
 import type { Sync } from "../../../core/models/types";
-import { sendShapeSetAnnotation, sendShapeSetAnnotationVisible } from "../../api/emits/shape/options";
-import { getGlobalId } from "../../id";
 import type { LocalId } from "../../id";
 
 import { annotationState } from "./state";
@@ -49,8 +47,8 @@ class AnnotationSystem implements ShapeSystem {
         else mutable.annotations.set(id, annotation);
 
         if (syncTo.server) {
-            const gId = getGlobalId(id);
-            if (gId !== undefined) sendShapeSetAnnotation({ shape: gId, value: annotation });
+            // const gId = getGlobalId(id);
+            // if (gId !== undefined) sendShapeSetAnnotation({ shape: gId, value: annotation });
         }
         if ($.id === id) $.annotation = annotation;
     }
@@ -60,8 +58,8 @@ class AnnotationSystem implements ShapeSystem {
         else mutable.visible.delete(id);
 
         if (syncTo.server) {
-            const gId = getGlobalId(id);
-            if (gId !== undefined) sendShapeSetAnnotationVisible({ shape: gId, value: annotationVisible });
+            // const gId = getGlobalId(id);
+            // if (gId !== undefined) sendShapeSetAnnotationVisible({ shape: gId, value: annotationVisible });
         }
         if ($.id === id) $.annotationVisible = annotationVisible;
     }

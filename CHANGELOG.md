@@ -16,7 +16,7 @@ tech changes will usually be stripped from release notes for the public
     -   e.g. a tree trunk will be visible, but what's behind the tree trunk will remain hidden
     -   Open polygons will behave as they have in the past
 -   Note system is overhauled
-    -   notes can now exis in different types: campaign/location/shape
+    -   notes can now either be global or local (i.e. campaign specific)
     -   notes can now be shared with other players
     -   notes are now accessed through a special note manager
         -   this provides filtering / creation / editing / ...

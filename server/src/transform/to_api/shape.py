@@ -18,15 +18,12 @@ def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:
     aura_query = shape.auras
     label_query = shape.labels.join(Label)
     name = shape.name
-    annotation = shape.annotation
     if not edit_access:
         tracker_query = tracker_query.where(Tracker.visible)
         aura_query = aura_query.where(Aura.visible)
         label_query = label_query.where(Label.visible)
         if not shape.name_visible:
             name = "?"
-        if not shape.annotation_visible:
-            annotation = ""
 
     trackers = [t.as_pydantic() for t in tracker_query]
     auras = [a.as_pydantic() for a in aura_query]
@@ -44,7 +41,6 @@ def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:
         vision_obstruction=shape.vision_obstruction,
         movement_obstruction=shape.movement_obstruction,
         is_token=shape.is_token,
-        annotation=annotation,
         draw_operator=shape.draw_operator,
         options=shape.options or "[]",
         badge=shape.badge,
@@ -57,7 +53,6 @@ def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:
         is_locked=shape.is_locked,
         angle=shape.angle,
         stroke_width=shape.stroke_width,
-        annotation_visible=shape.annotation_visible,
         ignore_zoom_size=shape.ignore_zoom_size,
         is_door=shape.is_door,
         is_teleport_zone=shape.is_teleport_zone,

@@ -12,7 +12,7 @@ class NoteAccess(BaseDbModel):
     note = cast(Note, ForeignKeyField(Note, backref="access", on_delete="CASCADE"))
     # User is null if the access is describing the default behaviour
     user = cast(
-        User,
+        User | None,
         ForeignKeyField(User, backref="note_access", null=True, on_delete="CASCADE"),
     )
     can_edit = cast(bool, BooleanField(default=False))

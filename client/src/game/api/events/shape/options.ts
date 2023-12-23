@@ -9,7 +9,6 @@ import type { Sync } from "../../../../core/models/types";
 import { getLocalId, getShape } from "../../../id";
 import type { GlobalId, LocalId } from "../../../id";
 import type { IAsset } from "../../../interfaces/shapes/asset";
-import { annotationSystem } from "../../../systems/annotations";
 import { floorSystem } from "../../../systems/floors";
 import { labelSystem } from "../../../systems/labels";
 import { propertiesSystem } from "../../../systems/properties";
@@ -85,16 +84,6 @@ socket.on(
 socket.on(
     "Shape.Options.ShowBadge.Set",
     wrapSystemCall<ShapeSetBooleanValue>(propertiesSystem.setShowBadge.bind(propertiesSystem)),
-);
-
-socket.on(
-    "Shape.Options.Annotation.Set",
-    wrapSystemCall<ShapeSetStringValue>(annotationSystem.setAnnotation.bind(annotationSystem)),
-);
-
-socket.on(
-    "Shape.Options.AnnotationVisible.Set",
-    wrapSystemCall<ShapeSetBooleanValue>(annotationSystem.setAnnotationVisible.bind(annotationSystem)),
 );
 
 socket.on("Shape.Options.Label.Add", wrapCall<ShapeSetStringValue>(labelSystem.addLabel.bind(labelSystem)));

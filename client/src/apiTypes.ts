@@ -153,7 +153,6 @@ export interface ApiCoreShape {
   vision_obstruction: VisionBlock;
   movement_obstruction: boolean;
   is_token: boolean;
-  annotation: string;
   draw_operator: string;
   options: string;
   badge: number;
@@ -168,7 +167,6 @@ export interface ApiCoreShape {
   stroke_width: number;
   asset: number | null;
   group: string | null;
-  annotation_visible: boolean;
   ignore_zoom_size: boolean;
   is_door: boolean;
   is_teleport_zone: boolean;
@@ -279,6 +277,7 @@ export interface ApiNote {
   text: string;
   tags: string[];
   isRoomNote: boolean;
+  location: number | null;
   access: ApiNoteAccess[];
   shapes: GlobalId[];
 }
@@ -301,6 +300,10 @@ export interface ApiNoteSetText {
 export interface ApiNoteSetTitle {
   uuid: string;
   title: string;
+}
+export interface ApiNoteShape {
+  note_id: string;
+  shape_id: GlobalId;
 }
 export interface ApiNoteTag {
   uuid: string;

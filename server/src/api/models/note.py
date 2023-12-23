@@ -33,6 +33,11 @@ class ApiNoteAccessEdit(ApiNoteAccess):
     note: str
 
 
+class ApiNoteShape(TypeIdModel):
+    note_id: str
+    shape_id: str = Field(..., typeId="GlobalId")
+
+
 class ApiNote(TypeIdModel):
     uuid: str
     creator: str
@@ -40,5 +45,6 @@ class ApiNote(TypeIdModel):
     text: str
     tags: list[str]
     isRoomNote: bool
+    location: int | None = Field(..., noneAsNull=True)
     access: list[ApiNoteAccess]
     shapes: list[str] = Field(..., typeId="GlobalId")

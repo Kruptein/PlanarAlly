@@ -30,6 +30,7 @@ import { gameState } from "../../systems/game/state";
 import { groupSystem } from "../../systems/groups";
 import { markerSystem } from "../../systems/markers";
 import { markerState } from "../../systems/markers/state";
+import { noteState } from "../../systems/notes/state";
 import { playerSystem } from "../../systems/players";
 import { getProperties } from "../../systems/properties/state";
 import { selectedSystem } from "../../systems/selected";
@@ -283,6 +284,12 @@ async function saveTemplate(): Promise<void> {
             customButton: t("game.ui.templates.create_new"),
         });
         if (selection === undefined || selection.length === 0) return;
+        const notes = noteState.raw.shapeNotes.get(shape.id);
+        if (notes !== undefined) {
+            shape.options.templateNoteIds = notes.map((n) => n);
+        } else if (shape.options.templateNoteIds !== undefined) {
+            delete shape.options.templateNoteIds;
+        }
         assetOptions.templates[selection[0]!] = toTemplate(shape.asDict());
         sendAssetOptions(shape.assetId, assetOptions);
     } catch {

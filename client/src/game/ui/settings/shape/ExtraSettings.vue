@@ -7,7 +7,7 @@ import { l2gz } from "../../../../core/conversions";
 import { toGP } from "../../../../core/geometry";
 import { InvalidationMode, NO_SYNC, SERVER_SYNC, SyncMode, UI_SYNC } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
-import { getChecked, getValue, uuidv4 } from "../../../../core/utils";
+import { uuidv4 } from "../../../../core/utils";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { getShape } from "../../../id";
 import type { IAsset } from "../../../interfaces/shapes/asset";
@@ -17,8 +17,6 @@ import { Circle } from "../../../shapes/variants/circle";
 import { Polygon } from "../../../shapes/variants/polygon";
 import { accessSystem } from "../../../systems/access";
 import { accessState } from "../../../systems/access/state";
-import { annotationSystem } from "../../../systems/annotations";
-import { annotationState } from "../../../systems/annotations/state";
 import { auraSystem } from "../../../systems/auras";
 import type { Aura, AuraId } from "../../../systems/auras/models";
 import { floorSystem } from "../../../systems/floors";
@@ -41,38 +39,14 @@ const modals = useModal();
 watchEffect(() => {
     const id = selectedState.reactive.focus;
     if (id) {
-        annotationSystem.loadState(id);
         labelSystem.loadState(id);
     } else {
-        annotationSystem.dropState();
         labelSystem.dropState();
     }
 });
 
-const textarea = ref<HTMLTextAreaElement | null>(null);
-
 const owned = accessState.hasEditAccess;
 const id = toRef(activeShapeStore.state, "id");
-
-// ANNOTATIONS
-
-function calcHeight(): void {
-    if (textarea.value !== null) {
-        textarea.value.style.height = "auto";
-        textarea.value.style.height = textarea.value.scrollHeight.toString() + "px";
-    }
-}
-
-function updateAnnotation(event: Event, sync = true): void {
-    if (!owned.value) return;
-    calcHeight();
-    annotationSystem.setAnnotation(annotationState.reactive.id!, getValue(event), sync ? SERVER_SYNC : NO_SYNC);
-}
-
-function setAnnotationVisible(event: Event): void {
-    if (!owned.value) return;
-    annotationSystem.setAnnotationVisible(annotationState.reactive.id!, getChecked(event), SERVER_SYNC);
-}
 
 // LABELS
 
@@ -235,26 +209,6 @@ function applyDDraft(): void {
                 <div class="label-main" @click="showLabelManager = true">+</div>
             </div>
         </div>
-        <div class="spanrow header">{{ t("common.annotation") }}</div>
-        <label for="edit_dialog-extra-show_annotation">
-            {{ t("game.ui.selection.edit_dialog.dialog.show_annotation") }}
-        </label>
-        <input
-            id="edit_dialog-extra-show_annotation"
-            type="checkbox"
-            :checked="annotationState.reactive.annotationVisible"
-            class="styled-checkbox"
-            :disabled="!owned"
-            @click="setAnnotationVisible"
-        />
-        <textarea
-            ref="textarea"
-            class="spanrow"
-            :value="annotationState.reactive.annotation"
-            :disabled="!owned"
-            @input="updateAnnotation($event, false)"
-            @change="updateAnnotation"
-        ></textarea>
         <template v-if="showSvgSection">
             <div class="spanrow header">Lighting & Vision</div>
             <template v-if="!hasPath">

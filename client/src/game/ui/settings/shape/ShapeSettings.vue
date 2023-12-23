@@ -14,6 +14,7 @@ import { ShapeSettingCategory } from "./categories";
 import ExtraSettings from "./ExtraSettings.vue";
 import GroupSettings from "./GroupSettings.vue";
 import LogicSettings from "./LogicSettings.vue";
+import NoteSettings from "./NoteSettings.vue";
 import PropertySettings from "./PropertySettings.vue";
 import TrackerSettings from "./TrackerSettings.vue";
 import VariantSwitcher from "./VariantSwitcher.vue";
@@ -56,6 +57,10 @@ const tabs = computed(() => {
         { name: ShapeSettingCategory.Access, component: AccessSettings },
         { name: ShapeSettingCategory.Logic, component: LogicSettings },
     );
+    // || some note with access to
+    if (owned.value) {
+        tabs.push({ name: "Notes", component: NoteSettings });
+    }
     if (owned.value) {
         tabs.push({ name: "Groups", component: GroupSettings }, { name: "Extra", component: ExtraSettings });
     }

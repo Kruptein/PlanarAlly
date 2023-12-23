@@ -20,7 +20,6 @@ class ApiCoreShape(TypeIdModel):
     vision_obstruction: int = Field(..., typeId="VisionBlock")
     movement_obstruction: bool
     is_token: bool
-    annotation: str
     draw_operator: str
     options: str
     badge: int
@@ -35,7 +34,6 @@ class ApiCoreShape(TypeIdModel):
     stroke_width: int
     asset: int | None = Field(..., noneAsNull=True)
     group: str | None = Field(..., noneAsNull=True)
-    annotation_visible: bool
     ignore_zoom_size: bool
     is_door: bool
     is_teleport_zone: bool

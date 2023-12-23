@@ -9,6 +9,7 @@ from ...app import app, sio
 from ...db.db import db
 from ...db.models.note import Note
 from ...db.models.note_access import NoteAccess
+from ...db.models.note_shape import NoteShape
 from ...db.models.player_room import PlayerRoom
 from ...db.models.user import User
 from ...logs import logger
@@ -20,13 +21,14 @@ from ..models.note import (
     ApiNoteAccessRemove,
     ApiNoteSetText,
     ApiNoteSetTitle,
+    ApiNoteShape,
     ApiNoteTag,
 )
 
 
-def can_edit(note: Note, pr: PlayerRoom):
-    return note.creator == pr.player or any(
-        (not a.user or a.user == pr.player) and a.can_edit for a in note.access
+def can_edit(note: Note, user: User):
+    return note.creator == user or any(
+        (not a.user or a.user == user) and a.can_edit for a in note.access
     )
 
 
@@ -81,7 +83,7 @@ async def set_note_title(sid: str, raw_data: Any):
         )
         return
 
-    if not can_edit(note, pr):
+    if not can_edit(note, pr.player):
         logger.warn(f"{pr.player.name} tried to update note not belonging to them.")
         return
 
@@ -109,7 +111,7 @@ async def set_note_text(sid: str, raw_data: Any):
         )
         return
 
-    if not can_edit(note, pr):
+    if not can_edit(note, pr.player):
         logger.warn(f"{pr.player.name} tried to update note not belonging to them.")
         return
 
@@ -137,7 +139,7 @@ async def add_note_tag(sid: str, raw_data: Any):
         )
         return
 
-    if not can_edit(note, pr):
+    if not can_edit(note, pr.player):
         logger.warn(f"{pr.player.name} tried to update note not belonging to them.")
         return
 
@@ -168,7 +170,7 @@ async def remove_note_tag(sid: str, raw_data: Any):
         )
         return
 
-    if not can_edit(note, pr):
+    if not can_edit(note, pr.player):
         logger.warn(f"{pr.player.name} tried to update note not belonging to them.")
         return
 
@@ -197,7 +199,7 @@ async def delete_note(sid, uuid):
         )
         return
 
-    if not can_edit(note, pr):
+    if not can_edit(note, pr.player):
         logger.warn(f"{pr.player.name} tried to remove a note not belonging to them.")
         return
 
@@ -224,7 +226,7 @@ async def add_note_access(sid, raw_data: Any):
         )
         return
 
-    if not can_edit(note, pr):
+    if not can_edit(note, pr.player):
         logger.warn(f"{pr.player.name} tried to update a note not belonging to them.")
         return
 
@@ -259,7 +261,7 @@ async def edit_note_access(sid, raw_data: Any):
         )
         return
 
-    if not can_edit(note, pr):
+    if not can_edit(note, pr.player):
         logger.warn(f"{pr.player.name} tried to update a note not belonging to them.")
         return
 
@@ -318,7 +320,7 @@ async def remove_note_access(sid, raw_data: Any):
         )
         return
 
-    if not can_edit(note, pr):
+    if not can_edit(note, pr.player):
         logger.warn(f"{pr.player.name} tried to update a note not belonging to them.")
         return
 
@@ -335,3 +337,33 @@ async def remove_note_access(sid, raw_data: Any):
             await _send_game("Note.Access.Remove", data.dict(), room=psid)
         elif data.username == user.name:
             await _send_game("Note.Remove", uuid, room=psid)
+
+
+@sio.on("Note.Shape.Add", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def add_shape(sid, raw_data: Any):
+    data = ApiNoteShape(**raw_data)
+
+    pr: PlayerRoom = game_state.get(sid)
+
+    uuid = data.note_id
+
+    note = Note.get_or_none(uuid=uuid)
+
+    if not note:
+        logger.warning(
+            f"{pr.player.name} tried to add shape to non-existent note with id: '{uuid}'"
+        )
+        return
+
+    if not can_edit(note, pr.player):
+        logger.warn(
+            f"{pr.player.name} tried to add a shape to a note not belonging to them."
+        )
+        return
+
+    NoteShape.create(note_id=note, shape_id=data.shape_id)
+
+    for psid, user in game_state.get_users(skip_sid=sid, room=pr.room):
+        if can_edit(note, user):
+            await _send_game("Note.Shape.Add", data.dict(), room=psid)

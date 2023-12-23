@@ -2,7 +2,7 @@ import { registerSystem } from "..";
 import type { System } from "..";
 import type { ApiNote } from "../../../apiTypes";
 import { word2color } from "../../../core/utils";
-import { getGlobalId, type LocalId } from "../../id";
+import { getGlobalId, getLocalId, type LocalId } from "../../id";
 
 import {
     sendAddNoteTag,
@@ -28,6 +28,11 @@ class NoteSystem implements System {
     async newNote(note: ApiNote, sync: boolean): Promise<void> {
         const tags = await Promise.all(note.tags.map(async (tag) => ({ name: tag, colour: await word2color(tag) })));
         $.notes.set(note.uuid, { ...note, tags });
+        for (const shape of note.shapes) {
+            const shapeId = getLocalId(shape, false);
+            if (shapeId === undefined) continue;
+            this.attachShape(note.uuid, shapeId, false);
+        }
         if (sync) sendNewNote(note);
     }
 
@@ -79,18 +84,21 @@ class NoteSystem implements System {
     }
 
     attachShape(noteId: string, shape: LocalId, sync: boolean): void {
-        const note = $.notes.get(noteId);
-        if (note === undefined) {
-            console.error("Tried to attach a shape to a non-existent note");
-            return;
-        }
         const globalId = getGlobalId(shape);
         if (globalId === undefined) {
             console.error("Tried to attach a note to a local-only shape");
             return;
         }
 
-        note.shapes.push(globalId);
+        const note = $.notes.get(noteId);
+        if (note === undefined) {
+            console.error("Tried to attach a shape to a non-existent note");
+            return;
+        }
+        if (!note.shapes.includes(globalId)) {
+            note.shapes.push(globalId);
+        }
+
         if (!raw.shapeNotes.has(shape)) $.shapeNotes.set(shape, []);
         $.shapeNotes.get(shape)?.push(noteId);
 

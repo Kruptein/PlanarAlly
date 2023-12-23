@@ -4,9 +4,11 @@ import type {
     ApiNoteAccessRemove,
     ApiNoteSetText,
     ApiNoteSetTitle,
+    ApiNoteShape,
     ApiNoteTag,
 } from "../../../apiTypes";
 import { socket } from "../../api/socket";
+import { getLocalId } from "../../id";
 
 import { noteSystem } from ".";
 
@@ -46,4 +48,10 @@ socket.on("Note.Access.Edit", (data: ApiNoteAccessEdit) => {
 
 socket.on("Note.Access.Remove", (data: ApiNoteAccessRemove) => {
     noteSystem.removeAccess(data.uuid, data.username, false);
+});
+
+socket.on("Note.Shape.Add", (data: ApiNoteShape) => {
+    const id = getLocalId(data.shape_id);
+    if (id === undefined) return;
+    noteSystem.attachShape(data.note_id, id, false);
 });

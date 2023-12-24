@@ -121,6 +121,7 @@ async function createNote(isLocal: boolean): Promise<void> {
         shapes: [],
     };
     await noteSystem.newNote(note, true);
+    if (noteState.raw.shapeFilter) noteSystem.attachShape(uuid, noteState.raw.shapeFilter, true);
     editNote(note.uuid);
 }
 

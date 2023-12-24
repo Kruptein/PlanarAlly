@@ -35,19 +35,69 @@ const localShapenotes = computed(
             .map((s) => ({ ...getProperties(s), id: s })),
 );
 
+const showOnHover = computed({
+    get() {
+        return note.value?.showOnHover ?? false;
+    },
+    set(showOnHover: boolean) {
+        noteSystem.setShowOnHover(note.value!.uuid, showOnHover, true);
+    },
+});
+
+const showIconOnShape = computed({
+    get() {
+        return note.value?.showIconOnShape ?? false;
+    },
+    set(showIconOnShape: boolean) {
+        noteSystem.setShowIconOnShape(note.value!.uuid, showIconOnShape, true);
+    },
+});
+
+enum TabLabel {
+    View = "view",
+    Edit = "edit",
+    Access = "access",
+    Shapes = "shapes",
+    Triggers = "triggers & visuals",
+    Map = "map",
+}
+
+interface Tab {
+    label: TabLabel;
+    icon: string;
+    visible: boolean;
+    title: string;
+    disabled?: boolean;
+}
 const tabs = computed(
     () =>
         [
             {
-                label: "view",
+                label: TabLabel.View,
                 icon: "eye",
                 visible: true,
+                title: "View the note as rendered markdown",
             },
-            { label: "edit", icon: "pencil", visible: canEdit.value },
-            { label: "access", icon: "cog", visible: canEdit.value },
-            { label: "shapes", icon: "link", visible: canEdit.value },
-            { label: "map", icon: "location-dot", visible: false },
-        ] as const,
+            { label: TabLabel.Edit, icon: "pencil", visible: canEdit.value, title: "Edit the note" },
+            {
+                label: TabLabel.Triggers,
+                icon: "comment-dots",
+                visible: canEdit.value,
+                disabled: (localShapenotes.value?.length ?? 0) === 0,
+                title:
+                    (localShapenotes.value?.length ?? 0) > 0
+                        ? "Configure when the note should appear"
+                        : "Only notes with shapes can have triggers",
+            },
+            { label: TabLabel.Access, icon: "cog", visible: canEdit.value, title: "Configure access rights" },
+            {
+                label: TabLabel.Shapes,
+                icon: "link",
+                visible: canEdit.value,
+                title: "See which shapes are linked to this note",
+            },
+            // { label: TabLabel.Map, icon: "location-dot", visible: false },
+        ] as Tab[],
 );
 const activeTabIndex = ref(0);
 const activeTab = computed(() => tabs.value[activeTabIndex.value]!.label);
@@ -178,8 +228,9 @@ function navigateToShape(id: LocalId): void {
             <div
                 v-for="(tab, i) of tabs"
                 :key="tab.label"
-                :class="{ active: activeTabIndex === i }"
+                :class="{ active: activeTabIndex === i, disabled: tab.disabled }"
                 :style="{ display: tab.visible ? 'flex' : 'none' }"
+                :title="tab.title"
                 @click="activeTabIndex = i"
             >
                 <font-awesome-icon :icon="tab.icon" />
@@ -198,14 +249,14 @@ function navigateToShape(id: LocalId): void {
                 </div> --
             </div> -->
         </div>
-        <div v-if="activeTab === 'view'" id="editor" class="tab-container">
+        <div v-if="activeTab === TabLabel.View" id="editor" class="tab-container">
             <VueMarkdown :source="note.text" :options="{ html: true }" />
         </div>
-        <div v-else-if="activeTab === 'edit'" id="editor" class="tab-container">
+        <div v-else-if="activeTab === TabLabel.Edit" id="editor" class="tab-container">
             <i>This input is markdown aware!</i>
             <textarea :value="note.text" @input="setText($event, false)" @change="setText($event, true)"></textarea>
         </div>
-        <div v-else-if="activeTab === 'access'" id="note-access-container" class="tab-container">
+        <div v-else-if="activeTab === TabLabel.Access" id="note-access-container" class="tab-container">
             <div>Name</div>
             <div>Can view</div>
             <div>Can edit</div>
@@ -224,7 +275,7 @@ function navigateToShape(id: LocalId): void {
             </template>
             <div @click="addAccess">Add</div>
         </div>
-        <div v-else id="note-shapes" class="tab-container">
+        <div v-else-if="activeTab === TabLabel.Shapes" id="note-shapes" class="tab-container">
             <div>
                 This note is linked to {{ note.shapes.length }} {{ `shape${note.shapes.length !== 1 ? "s" : ""}` }};
                 {{ localShapenotes?.length ?? 0 }} of those
@@ -235,6 +286,24 @@ function navigateToShape(id: LocalId): void {
                 <font-awesome-icon icon="location-dot" title="Go to shape on the map" />
                 {{ shape.name }}
             </div>
+        </div>
+        <div v-else id="note-triggers" class="tab-container">
+            <label for="note-trigger-icon">
+                <font-awesome-icon
+                    icon="circle-info"
+                    title="Checking this will render a special icon in the bottom-left of a shape on the map. This can be useful to remind yourself of an important note"
+                />
+                Show note icon on shape
+            </label>
+            <input id="note-trigger-icon" v-model="showIconOnShape" type="checkbox" />
+            <label for="note-trigger-hover">
+                <font-awesome-icon
+                    icon="circle-info"
+                    title="This will show the text of the note from the top side of the screen when you hover the shape."
+                />
+                Show text on shape hover
+            </label>
+            <input id="note-trigger-hover" v-model="showOnHover" type="checkbox" />
         </div>
     </template>
 </template>
@@ -329,6 +398,19 @@ header {
             cursor: pointer;
         }
 
+        &.disabled {
+            opacity: 0.5;
+
+            &:hover,
+            *:hover {
+                cursor: not-allowed;
+            }
+
+            &:active {
+                pointer-events: none;
+            }
+        }
+
         > svg {
             margin-right: 0.5rem;
             grid-area: icon;
@@ -415,5 +497,12 @@ header {
             }
         }
     }
+}
+
+#note-triggers {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    width: fit-content;
+    gap: 0.5rem;
 }
 </style>

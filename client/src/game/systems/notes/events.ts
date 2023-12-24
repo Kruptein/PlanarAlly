@@ -1,12 +1,4 @@
-import type {
-    ApiNote,
-    ApiNoteAccessEdit,
-    ApiNoteAccessRemove,
-    ApiNoteSetText,
-    ApiNoteSetTitle,
-    ApiNoteShape,
-    ApiNoteTag,
-} from "../../../apiTypes";
+import type { ApiNote, ApiNoteAccessEdit, ApiNoteSetBoolean, ApiNoteSetString, ApiNoteShape } from "../../../apiTypes";
 import { socket } from "../../api/socket";
 import { getLocalId } from "../../id";
 
@@ -20,20 +12,20 @@ socket.on("Note.Add", async (data: ApiNote) => await noteSystem.newNote(data, fa
 
 socket.on("Note.Remove", (data: string) => noteSystem.removeNote(data, false));
 
-socket.on("Note.Title.Set", (data: ApiNoteSetTitle) => {
-    noteSystem.setTitle(data.uuid, data.title, false);
+socket.on("Note.Title.Set", (data: ApiNoteSetString) => {
+    noteSystem.setTitle(data.uuid, data.value, false);
 });
 
-socket.on("Note.Text.Set", (data: ApiNoteSetText) => {
-    noteSystem.setText(data.uuid, data.text, false);
+socket.on("Note.Text.Set", (data: ApiNoteSetString) => {
+    noteSystem.setText(data.uuid, data.value, false);
 });
 
-socket.on("Note.Tag.Add", async (data: ApiNoteTag) => {
-    await noteSystem.addTag(data.uuid, data.tag, false);
+socket.on("Note.Tag.Add", async (data: ApiNoteSetString) => {
+    await noteSystem.addTag(data.uuid, data.value, false);
 });
 
-socket.on("Note.Tag.Remove", (data: ApiNoteTag) => {
-    noteSystem.removeTag(data.uuid, data.tag, false);
+socket.on("Note.Tag.Remove", (data: ApiNoteSetString) => {
+    noteSystem.removeTag(data.uuid, data.value, false);
 });
 
 socket.on("Note.Access.Add", (data: ApiNoteAccessEdit) => {
@@ -46,12 +38,20 @@ socket.on("Note.Access.Edit", (data: ApiNoteAccessEdit) => {
     noteSystem.setAccess(note, name, rest, false);
 });
 
-socket.on("Note.Access.Remove", (data: ApiNoteAccessRemove) => {
-    noteSystem.removeAccess(data.uuid, data.username, false);
+socket.on("Note.Access.Remove", (data: ApiNoteSetString) => {
+    noteSystem.removeAccess(data.uuid, data.value, false);
 });
 
 socket.on("Note.Shape.Add", (data: ApiNoteShape) => {
     const id = getLocalId(data.shape_id);
     if (id === undefined) return;
     noteSystem.attachShape(data.note_id, id, false);
+});
+
+socket.on("Note.ShowOnHover.Set", (data: ApiNoteSetBoolean) => {
+    noteSystem.setShowOnHover(data.uuid, data.value, false);
+});
+
+socket.on("Note.ShowIconOnShape.Set", (data: ApiNoteSetBoolean) => {
+    noteSystem.setShowIconOnShape(data.uuid, data.value, false);
 });

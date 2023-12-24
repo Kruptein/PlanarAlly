@@ -26,6 +26,10 @@ class Note(BaseDbModel):
     title = cast(str, TextField())
     text = cast(str, TextField())
     tags = cast(str | None, TextField(null=True))
+
+    show_on_hover = cast(bool, TextField(default="false"))
+    show_icon_on_shape = cast(bool, TextField(default="false"))
+
     room = cast(
         Room | None,
         ForeignKeyField(Room, null=True, backref="notes", on_delete="CASCADE"),
@@ -47,6 +51,8 @@ class Note(BaseDbModel):
             title=self.title,
             text=self.text,
             tags=tags,
+            showOnHover=self.show_on_hover,
+            showIconOnShape=self.show_icon_on_shape,
             access=access,
             isRoomNote=self.room is not None,
             location=self.location_id,

@@ -11,6 +11,8 @@ import {
     sendNoteAccessEdit,
     sendNoteAccessRemove,
     sendNoteAddShape,
+    sendNoteSetShowIconOnShape,
+    sendNoteSetShowOnHover,
     sendRemoveNote,
     sendRemoveNoteTag,
     sendSetNoteText,
@@ -47,7 +49,7 @@ class NoteSystem implements System {
         if (sync) {
             sendSetNoteTitle({
                 uuid: noteId,
-                title,
+                value: title,
             });
         }
     }
@@ -69,7 +71,7 @@ class NoteSystem implements System {
         if (sync && (timeoutId !== undefined || note.text !== text)) {
             sendSetNoteText({
                 uuid: noteId,
-                text,
+                value: text,
             });
         } else if (syncAfterDelay) {
             mutable.syncTimeouts.set(
@@ -78,7 +80,7 @@ class NoteSystem implements System {
                     mutable.syncTimeouts.delete(noteId);
                     sendSetNoteText({
                         uuid: noteId,
-                        text,
+                        value: text,
                     });
                 }, 5_000),
             );
@@ -118,7 +120,7 @@ class NoteSystem implements System {
         if (sync) {
             sendAddNoteTag({
                 uuid: noteId,
-                tag,
+                value: tag,
             });
         }
     }
@@ -130,7 +132,7 @@ class NoteSystem implements System {
         if (sync) {
             sendRemoveNoteTag({
                 uuid: noteId,
-                tag: tagName,
+                value: tagName,
             });
         }
     }
@@ -191,7 +193,28 @@ class NoteSystem implements System {
         }
         note.access.splice(a, 1);
         if (sync) {
-            sendNoteAccessRemove({ uuid: noteId, username: userName });
+            sendNoteAccessRemove({ uuid: noteId, value: userName });
+        }
+    }
+
+    setShowOnHover(noteId: string, showOnHover: boolean, sync: boolean): void {
+        const note = $.notes.get(noteId);
+        if (note === undefined) return;
+
+        note.showOnHover = showOnHover;
+        if (sync) {
+            sendNoteSetShowOnHover({ uuid: noteId, value: showOnHover });
+        }
+    }
+
+    setShowIconOnShape(noteId: string, showIconOnShape: boolean, sync: boolean): void {
+        const note = $.notes.get(noteId);
+        if (note === undefined) return;
+
+        note.showIconOnShape = showIconOnShape;
+
+        if (sync) {
+            sendNoteSetShowIconOnShape({ uuid: noteId, value: showIconOnShape });
         }
     }
 }

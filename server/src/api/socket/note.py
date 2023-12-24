@@ -18,11 +18,9 @@ from ..helpers import _send_game
 from ..models.note import (
     ApiNote,
     ApiNoteAccessEdit,
-    ApiNoteAccessRemove,
-    ApiNoteSetText,
-    ApiNoteSetTitle,
+    ApiNoteSetBoolean,
+    ApiNoteSetString,
     ApiNoteShape,
-    ApiNoteTag,
 )
 
 
@@ -61,6 +59,8 @@ async def new_note(sid: str, raw_data: Any):
         title=data.title,
         text=data.text,
         tags=data.tags,
+        show_on_hover=data.showOnHover,
+        show_icon_on_shape=data.showIconOnShape,
         room=pr.room if data.isRoomNote else None,
         location=data.location,
     )
@@ -72,7 +72,7 @@ async def new_note(sid: str, raw_data: Any):
 @sio.on("Note.Title.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def set_note_title(sid: str, raw_data: Any):
-    data = ApiNoteSetTitle(**raw_data)
+    data = ApiNoteSetString(**raw_data)
 
     pr: PlayerRoom = game_state.get(sid)
 
@@ -89,7 +89,7 @@ async def set_note_title(sid: str, raw_data: Any):
         return
 
     with db.atomic():
-        note.title = data.title
+        note.title = data.value
         note.save()
 
     for psid, user in game_state.get_users(skip_sid=sid, room=pr.room):
@@ -100,7 +100,7 @@ async def set_note_title(sid: str, raw_data: Any):
 @sio.on("Note.Text.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def set_note_text(sid: str, raw_data: Any):
-    data = ApiNoteSetText(**raw_data)
+    data = ApiNoteSetString(**raw_data)
 
     pr: PlayerRoom = game_state.get(sid)
 
@@ -117,7 +117,7 @@ async def set_note_text(sid: str, raw_data: Any):
         return
 
     with db.atomic():
-        note.text = data.text
+        note.text = data.value
         note.save()
 
     for psid, user in game_state.get_users(skip_sid=sid, room=pr.room):
@@ -128,7 +128,7 @@ async def set_note_text(sid: str, raw_data: Any):
 @sio.on("Note.Tag.Add", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def add_note_tag(sid: str, raw_data: Any):
-    data = ApiNoteTag(**raw_data)
+    data = ApiNoteSetString(**raw_data)
 
     pr: PlayerRoom = game_state.get(sid)
 
@@ -145,7 +145,7 @@ async def add_note_tag(sid: str, raw_data: Any):
         return
 
     tags: list[str] = json.loads(note.tags or "[]")
-    tags.append(data.tag)
+    tags.append(data.value)
 
     with db.atomic():
         note.tags = json.dumps(tags)
@@ -159,7 +159,7 @@ async def add_note_tag(sid: str, raw_data: Any):
 @sio.on("Note.Tag.Remove", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def remove_note_tag(sid: str, raw_data: Any):
-    data = ApiNoteTag(**raw_data)
+    data = ApiNoteSetString(**raw_data)
 
     pr: PlayerRoom = game_state.get(sid)
 
@@ -176,7 +176,7 @@ async def remove_note_tag(sid: str, raw_data: Any):
         return
 
     tags: list[str] = json.loads(note.tags or "[]")
-    tags.remove(data.tag)
+    tags.remove(data.value)
 
     with db.atomic():
         note.tags = json.dumps(tags)
@@ -308,7 +308,7 @@ async def edit_note_access(sid, raw_data: Any):
 @sio.on("Note.Access.Remove", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def remove_note_access(sid, raw_data: Any):
-    data = ApiNoteAccessRemove(**raw_data)
+    data = ApiNoteSetString(**raw_data)
     uuid = data.uuid
 
     pr: PlayerRoom = game_state.get(sid)
@@ -329,14 +329,14 @@ async def remove_note_access(sid, raw_data: Any):
     for access in note.access:
         if not access.user:
             default_can_view = access.can_view
-        elif access.user.name == data.username:
+        elif access.user.name == data.value:
             access.delete_instance()
             break
 
     for psid, user in game_state.get_users(skip_sid=sid, room=pr.room):
         if user == pr.player or default_can_view:
             await _send_game("Note.Access.Remove", data.dict(), room=psid)
-        elif data.username == user.name:
+        elif data.value == user.name:
             await _send_game("Note.Remove", uuid, room=psid)
 
 
@@ -368,3 +368,56 @@ async def add_shape(sid, raw_data: Any):
     for psid, user in game_state.get_users(skip_sid=sid, room=pr.room):
         if can_edit(note, user):
             await _send_game("Note.Shape.Add", data.dict(), room=psid)
+
+
+@sio.on("Note.ShowOnHover.Set", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def set_show_on_hover(sid: str, raw_data: Any):
+    data = ApiNoteSetBoolean(**raw_data)
+
+    pr: PlayerRoom = game_state.get(sid)
+
+    note = Note.get_or_none(uuid=data.uuid)
+
+    if not note:
+        logger.warning(
+            f"{pr.player.name} tried to update non-existent note with id: '{data.uuid}'"
+        )
+        return
+
+    if not can_edit(note, pr.player):
+        logger.warn(f"{pr.player.name} tried to update note not belonging to them.")
+        return
+
+    note.show_on_hover = data.value
+    note.save()
+
+    for psid, user in game_state.get_users(skip_sid=sid, room=pr.room):
+        if can_view(note, user):
+            await _send_game("Note.ShowOnHover.Set", data.dict(), room=psid)
+
+@sio.on("Note.ShowIconOnShape.Set", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def set_show_icon_on_shape(sid: str, raw_data: Any):
+    data = ApiNoteSetBoolean(**raw_data)
+
+    pr: PlayerRoom = game_state.get(sid)
+
+    note = Note.get_or_none(uuid=data.uuid)
+
+    if not note:
+        logger.warning(
+            f"{pr.player.name} tried to update non-existent note with id: '{data.uuid}'"
+        )
+        return
+
+    if not can_edit(note, pr.player):
+        logger.warn(f"{pr.player.name} tried to update note not belonging to them.")
+        return
+
+    note.show_icon_on_shape = data.value
+    note.save()
+
+    for psid, user in game_state.get_users(skip_sid=sid, room=pr.room):
+        if can_view(note, user):
+            await _send_game("Note.ShowIconOnShape.Set", data.dict(), room=psid)

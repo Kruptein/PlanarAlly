@@ -25,6 +25,7 @@ import { groupSystem } from "../systems/groups";
 import { labelSystem } from "../systems/labels";
 import { doorSystem } from "../systems/logic/door";
 import { teleportZoneSystem } from "../systems/logic/tp";
+import { noteState } from "../systems/notes/state";
 import { propertiesSystem } from "../systems/properties";
 import { getProperties } from "../systems/properties/state";
 import type { ShapeProperties } from "../systems/properties/state";
@@ -438,6 +439,16 @@ export abstract class Shape implements IShape {
                 ctx.rect(rectX, rectY, rectWidth, rectHeight);
                 ctx.stroke();
                 barOffset += 10;
+            }
+        }
+        // Note icon
+        for (const noteId of noteState.raw.shapeNotes.get(this.id) ?? []) {
+            const note = noteState.raw.notes.get(noteId);
+            if (note?.showIconOnShape === true) {
+                if (bbox === undefined) bbox = this.getBoundingBox();
+                const botLeft = g2l(bbox.botLeft);
+                ctx.fillStyle = "black";
+                ctx.fillRect(botLeft.x, botLeft.y - g2lz(15), g2lz(15), g2lz(15));
             }
         }
     }

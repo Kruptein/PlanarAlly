@@ -276,6 +276,8 @@ export interface ApiNote {
   title: string;
   text: string;
   tags: string[];
+  showOnHover: boolean;
+  showIconOnShape: boolean;
   isRoomNote: boolean;
   location: number | null;
   access: ApiNoteAccess[];
@@ -289,25 +291,17 @@ export interface ApiNoteAccess {
 export interface ApiNoteAccessEdit extends ApiNoteAccess {
   note: string;
 }
-export interface ApiNoteAccessRemove {
+export interface ApiNoteSetBoolean {
   uuid: string;
-  username: string;
+  value: boolean;
 }
-export interface ApiNoteSetText {
+export interface ApiNoteSetString {
   uuid: string;
-  text: string;
-}
-export interface ApiNoteSetTitle {
-  uuid: string;
-  title: string;
+  value: string;
 }
 export interface ApiNoteShape {
   note_id: string;
   shape_id: GlobalId;
-}
-export interface ApiNoteTag {
-  uuid: string;
-  tag: string;
 }
 export interface ApiOptionalAura {
   uuid: AuraId;

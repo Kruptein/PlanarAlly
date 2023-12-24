@@ -115,6 +115,8 @@ async function createNote(isLocal: boolean): Promise<void> {
         creator: coreStore.state.username,
         title: "New note...",
         text: "",
+        showOnHover: false,
+        showIconOnShape: false,
         isRoomNote: isLocal,
         location: isLocal ? locationSettingsState.reactive.activeLocation : null,
         tags: [],

@@ -3,24 +3,14 @@ from pydantic import BaseModel, Field
 from .helpers import TypeIdModel
 
 
-class ApiNoteSetTitle(BaseModel):
+class ApiNoteSetString(BaseModel):
     uuid: str
-    title: str
+    value: str
 
 
-class ApiNoteSetText(BaseModel):
+class ApiNoteSetBoolean(BaseModel):
     uuid: str
-    text: str
-
-
-class ApiNoteTag(BaseModel):
-    uuid: str
-    tag: str
-
-
-class ApiNoteAccessRemove(BaseModel):
-    uuid: str
-    username: str
+    value: bool
 
 
 class ApiNoteAccess(BaseModel):
@@ -44,6 +34,8 @@ class ApiNote(TypeIdModel):
     title: str
     text: str
     tags: list[str]
+    showOnHover: bool
+    showIconOnShape: bool
     isRoomNote: bool
     location: int | None = Field(..., noneAsNull=True)
     access: list[ApiNoteAccess]

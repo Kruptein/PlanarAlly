@@ -86,13 +86,13 @@ export async function mouseMove(event: MouseEvent): Promise<void> {
     const eventPoint = l2g(getLocalPointFromEvent(event));
     // Annotation hover
     let foundAnnotation = false;
-    for (const [uuid, notes] of noteState.raw.shapeNotes.entries()) {
-        if (floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Draw)) {
+    if (floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Draw)) {
+        for (const [uuid, notes] of noteState.raw.shapeNotes.entries()) {
             const shape = getShape(uuid);
             if (shape && shape.floorId === floorState.currentFloor.value!.id && shape.contains(eventPoint)) {
                 for (const noteId of notes) {
                     const note = noteState.raw.notes.get(noteId);
-                    if (note) {
+                    if (note && note.showOnHover) {
                         foundAnnotation = true;
                         uiSystem.setAnnotationText(note.text);
                         break;
@@ -253,8 +253,8 @@ export async function touchMove(event: TouchEvent): Promise<void> {
 
     // Annotation hover
     let found = false;
-    for (const [uuid, notes] of noteState.raw.shapeNotes.entries()) {
-        if (floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Draw)) {
+    if (floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Draw)) {
+        for (const [uuid, notes] of noteState.raw.shapeNotes.entries()) {
             const shape = getShape(uuid);
             if (
                 shape &&
@@ -263,7 +263,7 @@ export async function touchMove(event: TouchEvent): Promise<void> {
             ) {
                 for (const noteId of notes) {
                     const note = noteState.raw.notes.get(noteId);
-                    if (note) {
+                    if (note && note.showOnHover) {
                         found = true;
                         uiSystem.setAnnotationText(note.text);
                         break;

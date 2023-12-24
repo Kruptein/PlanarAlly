@@ -134,6 +134,19 @@ class NoteSystem implements System {
     }
 
     removeNote(noteId: string, sync: boolean): void {
+        const note = raw.notes.get(noteId);
+        if (note === undefined) return;
+        if (raw.currentNote === noteId) $.currentNote = undefined;
+        for (const shape of note.shapes) {
+            const shapeId = getLocalId(shape, false);
+            if (shapeId === undefined) continue;
+            const shapeNotes = $.shapeNotes.get(shapeId);
+            if (shapeNotes === undefined) continue;
+            $.shapeNotes.set(
+                shapeId,
+                shapeNotes.filter((n) => n !== noteId),
+            );
+        }
         $.notes.delete(noteId);
         if (sync) sendRemoveNote(noteId);
     }

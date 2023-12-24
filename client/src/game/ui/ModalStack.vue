@@ -23,6 +23,7 @@ import type { IndexedModal, ModalIndex } from "../systems/modals/types";
 
 import DiceResults from "./dice/DiceResults.vue";
 import Initiative from "./initiative/Initiative.vue";
+import NoteManager from "./notes/NoteManager.vue";
 import ClientSettings from "./settings/client/ClientSettings.vue";
 import DmSettings from "./settings/dm/DmSettings.vue";
 import FloorSettings from "./settings/FloorSettings.vue";
@@ -43,6 +44,7 @@ const fixedModals = [
     { component: LgSettings, condition: computed(() => hasGameboardClients.value && gameState.isDmOrFake.value) },
     { component: LocationSettings, condition: gameState.isDmOrFake },
     ShapeSettings,
+    NoteManager,
 ];
 if (!hasGameboard) {
     fixedModals.push(DiceResults);

@@ -25,7 +25,7 @@ function close(): void {
 </script>
 
 <template>
-    <div id="notes-container">
+    <div v-show="noteState.reactive.managerOpen" id="notes-container">
         <div id="notes">
             <font-awesome-icon id="close-notes" :icon="['far', 'window-close']" @click="close" />
             <NoteList v-if="mode === NoteManagerMode.List" @edit-note="setMode(NoteManagerMode.Edit)" />

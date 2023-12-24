@@ -7,8 +7,7 @@ import { modalSystem } from "../../systems/modals";
 import type { ModalIndex } from "../../systems/modals/types";
 import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
-import { NoteManagerMode } from "../../systems/notes/types";
-import { openNoteManager } from "../../systems/notes/ui";
+import { editNote } from "../../systems/notes/ui";
 
 const props = defineProps<{ modalIndex: ModalIndex; uuid: string }>();
 defineExpose({ close });
@@ -108,10 +107,6 @@ function close(): void {
     modalSystem.close(props.modalIndex, true);
 }
 
-function openInNoteManager(): void {
-    openNoteManager(NoteManagerMode.Edit, props.uuid);
-}
-
 function setText(event: Event, sync: boolean): void {
     noteSystem.setText(props.uuid, (event.target as HTMLTextAreaElement).value, sync, !sync);
 }
@@ -137,7 +132,7 @@ function setText(event: Event, sync: boolean): void {
                     <div v-if="!editing" @click="editing = true">[edit]</div>
                     <div v-else @click="editing = false">[show]</div>
                     <div>[show to players]</div>
-                    <div @click="openInNoteManager">[open in note manager]</div>
+                    <div @click.stop="editNote(uuid)">[open in note manager]</div>
                 </div>
             </header>
         </template>

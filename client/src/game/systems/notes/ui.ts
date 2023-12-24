@@ -36,6 +36,10 @@ export function toggleNoteManager(): void {
     }
 }
 
+export function editNote(noteId: string): void {
+    openNoteManager(NoteManagerMode.Edit, noteId);
+}
+
 export function popoutNote(noteId: string): void {
     modalSystem.addModal({
         component: NoteDialog,

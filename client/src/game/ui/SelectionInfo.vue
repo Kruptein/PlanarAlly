@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, type DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { SERVER_SYNC } from "../../core/models/types";
@@ -9,13 +9,14 @@ import { accessState } from "../systems/access/state";
 import { auraSystem } from "../systems/auras";
 import type { Aura, AuraId } from "../systems/auras/models";
 import { noteState } from "../systems/notes/state";
-import { NoteManagerMode } from "../systems/notes/types";
-import { openNoteManager } from "../systems/notes/ui";
+import { type ClientNote, NoteManagerMode } from "../systems/notes/types";
+import { editNote, openNoteManager, popoutNote } from "../systems/notes/ui";
 import { propertiesSystem } from "../systems/properties";
 import { getProperties, propertiesState } from "../systems/properties/state";
 import { selectedState } from "../systems/selected/state";
 import { trackerSystem } from "../systems/trackers";
 import type { Tracker, TrackerId } from "../systems/trackers/models";
+import { uiSystem } from "../systems/ui";
 
 import TrackerInput from "./TrackerInput.vue";
 
@@ -70,11 +71,17 @@ function setValue(data: { solution: number; relativeMode: boolean }): void {
 
 // NOTES
 
+const expandNotes = ref(false);
+
 function openNotes(): void {
     const shapeId = selectedState.raw.focus;
     if (shapeId === undefined) return;
 
     openNoteManager(NoteManagerMode.List, shapeId);
+}
+
+function annotate(note: DeepReadonly<ClientNote>): void {
+    uiSystem.setAnnotationText(note.text);
 }
 </script>
 
@@ -130,8 +137,34 @@ function openNotes(): void {
                     </div>
                 </div>
                 <div class="info-notes">
-                    <font-awesome-icon icon="note-sticky" title="Open note manager" @click="openNotes" />
-                    {{ notes.length }} {{ `note${notes.length !== 1 ? "s" : ""}` }}
+                    <div
+                        :title="notes.length > 0 ? (expandNotes ? 'Collapse notes' : 'Expand notes') : ''"
+                        @click="expandNotes = !expandNotes"
+                    >
+                        <font-awesome-icon icon="note-sticky" title="Open note manager" @click.stop="openNotes" />
+                        {{ notes.length }} {{ `note${notes.length !== 1 ? "s" : ""}` }}
+                        <div style="flex-grow: 1"></div>
+                        <font-awesome-icon
+                            v-if="notes.length > 0"
+                            :icon="expandNotes ? 'chevron-up' : 'chevron-down'"
+                        />
+                    </div>
+                    <template v-if="expandNotes">
+                        <div v-for="note of notes" :key="note.uuid" @pointerenter="annotate(note)">
+                            <div>{{ note.title }}</div>
+                            <div style="flex-grow: 1"></div>
+                            <font-awesome-icon
+                                icon="pencil"
+                                title="Edit note in note manager"
+                                @click="editNote(note.uuid)"
+                            />
+                            <font-awesome-icon
+                                icon="up-right-from-square"
+                                title="Popout note"
+                                @click="popoutNote(note.uuid)"
+                            />
+                        </div>
+                    </template>
                 </div>
             </div>
         </template>
@@ -211,10 +244,36 @@ function openNotes(): void {
         background-color: bisque;
         padding: 0.5rem;
         display: flex;
-        align-items: center;
+        flex-direction: column;
 
-        svg {
-            margin: 0 0.5rem;
+        > div {
+            display: flex;
+            align-items: center;
+            margin-top: 0.25rem;
+
+            &:hover {
+                font-weight: bold;
+            }
+
+            svg {
+                margin-left: 0.5rem;
+            }
+
+            &:first-child {
+                margin-top: 0;
+
+                &:hover {
+                    cursor: pointer;
+                }
+
+                svg {
+                    margin: 0 0.5rem;
+                }
+            }
+
+            &:nth-child(2) {
+                margin-top: 1rem;
+            }
         }
     }
 }

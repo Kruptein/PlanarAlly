@@ -5,25 +5,35 @@ import VueMarkdown from "vue-markdown-render";
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { mostReadable } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
-import { modalSystem } from "../../systems/modals";
+import { type LocalId, getLocalId, getShape } from "../../id";
+import { setCenterPosition } from "../../position";
 import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
 import { type ClientNote, NoteManagerMode } from "../../systems/notes/types";
+import { popoutNote } from "../../systems/notes/ui";
 import { playerState } from "../../systems/players/state";
-
-import NoteDialog from "./NoteDialog.vue";
+import { getProperties } from "../../systems/properties/state";
 
 const emit = defineEmits<(e: "mode", mode: NoteManagerMode) => void>();
 
 const modals = useModal();
 
 const note = computed(() => noteState.reactive.notes.get(noteState.reactive.currentNote!));
+
 const canEdit = computed(() => {
     if (!note.value) return false;
     const username = coreStore.state.username;
     if (note.value.creator === username) return true;
     return note.value.access.some((a) => a.name === username && a.can_edit);
 });
+
+const localShapenotes = computed(
+    () =>
+        note.value?.shapes
+            .map((s) => getLocalId(s, false))
+            .filter((s): s is LocalId => s !== undefined)
+            .map((s) => ({ ...getProperties(s), id: s })),
+);
 
 const tabs = computed(
     () =>
@@ -35,10 +45,12 @@ const tabs = computed(
             },
             { label: "edit", icon: "pencil", visible: canEdit.value },
             { label: "access", icon: "cog", visible: canEdit.value },
+            { label: "shapes", icon: "link", visible: canEdit.value },
             { label: "map", icon: "location-dot", visible: false },
         ] as const,
 );
-const activeTab = ref(0);
+const activeTabIndex = ref(0);
+const activeTab = computed(() => tabs.value[activeTabIndex.value]!.label);
 
 // Ensure that defaultAccess is always first
 // and that defaultAccess is provided even if it has no DB value
@@ -54,7 +66,7 @@ const accessLevels = computed(() => {
 
 onBeforeMount(() => {
     if (noteState.reactive.currentNote === undefined) emit("mode", NoteManagerMode.List);
-    if ((note.value?.text ?? "").trim().length === 0) activeTab.value = 1;
+    if ((note.value?.text ?? "").trim().length === 0) activeTabIndex.value = 1;
 });
 
 function setTitle(event: Event): void {
@@ -76,14 +88,6 @@ async function addTag(): Promise<void> {
 function removeTag(tag: string): void {
     if (!note.value || !canEdit.value) return;
     noteSystem.removeTag(note.value.uuid, tag, true);
-}
-
-function popout(): void {
-    if (!note.value) return;
-    modalSystem.addModal({
-        component: NoteDialog,
-        props: { uuid: note.value.uuid },
-    });
 }
 
 async function remove(): Promise<void> {
@@ -126,6 +130,13 @@ async function addAccess(): Promise<void> {
         noteSystem.addAccess(note.value.uuid, s, { can_view: true, can_edit: false }, true);
     }
 }
+
+function navigateToShape(id: LocalId): void {
+    const shape = getShape(id);
+    if (shape !== undefined) {
+        setCenterPosition(shape.center);
+    }
+}
 </script>
 
 <template>
@@ -140,8 +151,11 @@ async function addAccess(): Promise<void> {
                 :class="{ edit: canEdit }"
                 @change="setTitle"
             />
-            <font-awesome-icon v-if="note.shapes.length > 0" icon="location-dot" />
-            <font-awesome-icon icon="up-right-from-square" title="Popout note" @click="popout" />
+            <font-awesome-icon
+                icon="up-right-from-square"
+                title="Popout note"
+                @click="popoutNote(noteState.reactive.currentNote!)"
+            />
             <font-awesome-icon v-if="canEdit" title="Remove note" icon="trash-alt" @click="remove" />
         </header>
         <!-- TAGS -->
@@ -164,9 +178,9 @@ async function addAccess(): Promise<void> {
             <div
                 v-for="(tab, i) of tabs"
                 :key="tab.label"
-                :class="{ active: activeTab === i }"
+                :class="{ active: activeTabIndex === i }"
                 :style="{ display: tab.visible ? 'flex' : 'none' }"
-                @click="activeTab = i"
+                @click="activeTabIndex = i"
             >
                 <font-awesome-icon :icon="tab.icon" />
                 <div>{{ tab.label }}</div>
@@ -184,14 +198,14 @@ async function addAccess(): Promise<void> {
                 </div> --
             </div> -->
         </div>
-        <div v-if="tabs[activeTab]!.label === 'view'" id="editor">
+        <div v-if="activeTab === 'view'" id="editor" class="tab-container">
             <VueMarkdown :source="note.text" :options="{ html: true }" />
         </div>
-        <div v-else-if="tabs[activeTab]!.label === 'edit'" id="editor">
+        <div v-else-if="activeTab === 'edit'" id="editor" class="tab-container">
             <i>This input is markdown aware!</i>
             <textarea :value="note.text" @input="setText($event, false)" @change="setText($event, true)"></textarea>
         </div>
-        <div v-else id="note-access-container">
+        <div v-else-if="activeTab === 'access'" id="note-access-container" class="tab-container">
             <div>Name</div>
             <div>Can view</div>
             <div>Can edit</div>
@@ -209,6 +223,18 @@ async function addAccess(): Promise<void> {
                 <div v-else></div>
             </template>
             <div @click="addAccess">Add</div>
+        </div>
+        <div v-else id="note-shapes" class="tab-container">
+            <div>
+                This note is linked to {{ note.shapes.length }} {{ `shape${note.shapes.length !== 1 ? "s" : ""}` }};
+                {{ localShapenotes?.length ?? 0 }} of those
+                {{ (localShapenotes?.length ?? 0) !== 1 ? "are" : "is" }} used in this location and
+                {{ (localShapenotes?.length ?? 0) !== 1 ? "are" : "is" }} listed below.
+            </div>
+            <div v-for="shape of localShapenotes" :key="shape.id" @click="navigateToShape(shape.id)">
+                <font-awesome-icon icon="location-dot" title="Go to shape on the map" />
+                {{ shape.name }}
+            </div>
         </div>
     </template>
 </template>
@@ -280,57 +306,6 @@ header {
     }
 }
 
-#note-access {
-    border-color: bisque;
-    background-color: rgba(255, 228, 196, 0.25);
-}
-
-#note-access-container {
-    display: grid;
-    max-width: 60%;
-    grid-template-columns: auto repeat(2, 5rem) 1rem;
-
-    border: solid 1px black;
-    padding: 1rem;
-    border-radius: 1rem;
-    overflow: hidden;
-    justify-items: center;
-
-    > :not(:nth-child(4) ~ div) {
-        font-weight: bold;
-        border-bottom: solid 1px black;
-        margin-bottom: 0.5rem;
-    }
-
-    > :nth-child(4n-3) {
-        justify-self: flex-start;
-    }
-
-    > :last-child {
-        margin-top: 0.5rem;
-        font-style: italic;
-
-        &:hover {
-            cursor: pointer;
-            font-weight: bold;
-        }
-    }
-}
-
-#note-location-settings {
-    border-color: lightblue;
-    background-color: rgba(173, 216, 230, 0.25);
-
-    #link-to-map {
-        margin-left: 1rem;
-        text-decoration: underline;
-
-        &:hover {
-            cursor: pointer;
-        }
-    }
-}
-
 #tabs {
     display: flex;
     margin-bottom: 1rem;
@@ -366,13 +341,16 @@ header {
     }
 }
 
-#editor {
+.tab-container {
     border: solid 1px black;
     padding: 1rem;
     border-radius: 1rem;
-    min-height: 30vh;
 
     overflow: auto;
+}
+
+#editor {
+    min-height: 30vh;
 
     > i {
         display: block;
@@ -384,6 +362,58 @@ header {
         min-height: inherit;
         padding: 0.5rem;
         font-size: 1.2em;
+    }
+}
+
+#note-access-container {
+    display: grid;
+    max-width: 60%;
+    grid-template-columns: auto repeat(2, 5rem) 1rem;
+
+    overflow: hidden;
+    justify-items: center;
+
+    > :not(:nth-child(4) ~ div) {
+        font-weight: bold;
+        border-bottom: solid 1px black;
+        margin-bottom: 0.5rem;
+    }
+
+    > :nth-child(4n-3) {
+        justify-self: flex-start;
+    }
+
+    > :last-child {
+        margin-top: 0.5rem;
+        font-style: italic;
+
+        &:hover {
+            cursor: pointer;
+            font-weight: bold;
+        }
+    }
+}
+
+#note-shapes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+    row-gap: 0.5rem;
+
+    > div {
+        &:hover {
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        &:first-child {
+            grid-column: 1/-1;
+            margin-bottom: 1rem;
+
+            &:hover {
+                font-weight: inherit;
+                cursor: inherit;
+            }
+        }
     }
 }
 </style>

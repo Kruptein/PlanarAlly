@@ -273,13 +273,6 @@ function clearShapeFilter(): void {
                 </div>
                 <div class="note-actions">
                     <font-awesome-icon icon="pencil" title="Edit" @click="editNote(note.uuid)" />
-                    <font-awesome-icon v-if="note.shapes.length > 0" icon="location-dot" title="Go to location" />
-                    <font-awesome-icon
-                        v-else
-                        icon="location-dot"
-                        title="This note does not have a location"
-                        class="lowOpacity"
-                    />
                     <font-awesome-icon icon="up-right-from-square" title="Pop-out" @click="popoutNote(note.uuid)" />
                 </div>
             </template>

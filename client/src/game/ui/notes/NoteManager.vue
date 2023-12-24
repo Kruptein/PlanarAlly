@@ -28,8 +28,10 @@ function close(): void {
     <div v-show="noteState.reactive.managerOpen" id="notes-container">
         <div id="notes">
             <font-awesome-icon id="close-notes" :icon="['far', 'window-close']" @click="close" />
-            <NoteList v-if="mode === NoteManagerMode.List" @edit-note="setMode(NoteManagerMode.Edit)" />
-            <NoteEdit v-else-if="mode === NoteManagerMode.Edit" @mode="setMode($event)" />
+            <KeepAlive include="NoteList">
+                <NoteList v-if="mode === NoteManagerMode.List" @edit-note="setMode(NoteManagerMode.Edit)" />
+                <NoteEdit v-else-if="mode === NoteManagerMode.Edit" @mode="setMode($event)" />
+            </KeepAlive>
         </div>
     </div>
 </template>

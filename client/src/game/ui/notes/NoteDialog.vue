@@ -7,7 +7,8 @@ import { modalSystem } from "../../systems/modals";
 import type { ModalIndex } from "../../systems/modals/types";
 import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
-import { toggleNoteManager } from "../../systems/notes/ui";
+import { NoteManagerMode } from "../../systems/notes/types";
+import { openNoteManager } from "../../systems/notes/ui";
 
 const props = defineProps<{ modalIndex: ModalIndex; uuid: string }>();
 defineExpose({ close });
@@ -108,9 +109,7 @@ function close(): void {
 }
 
 function openInNoteManager(): void {
-    noteState.mutableReactive.currentNote = props.uuid;
-    noteState.mutableReactive.managerMode = "edit";
-    if (!noteState.raw.managerOpen) toggleNoteManager();
+    openNoteManager(NoteManagerMode.Edit, props.uuid);
 }
 
 function setText(event: Event, sync: boolean): void {

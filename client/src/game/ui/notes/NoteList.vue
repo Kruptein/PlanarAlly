@@ -12,6 +12,7 @@ import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
 import type { ClientNote } from "../../systems/notes/types";
 import { popoutNote } from "../../systems/notes/ui";
+import { propertiesState } from "../../systems/properties/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
 
 const emit = defineEmits<(e: "edit-note" | "create-note") => void>();
@@ -33,6 +34,13 @@ const searchBar = ref<HTMLInputElement | null>(null);
 const searchFilter = ref("");
 const showSearchFilters = ref(false);
 const searchPage = ref(1);
+
+const shapeFiltered = computed(() => noteState.reactive.shapeFilter !== undefined);
+const shapeProps = computed(() => {
+    const shapeId = noteState.reactive.shapeFilter;
+    if (shapeId === undefined) return undefined;
+    return propertiesState.reactive;
+});
 
 // this is probably disruptive if you quickly open with N and expect to close it with N again ?
 // onMounted(() => {
@@ -56,17 +64,24 @@ const filteredNotes = computed(() => {
     const locationId = locationSettingsState.reactive.activeLocation;
     const notes: typeof noteArray.value = [];
     for (const note of noteArray.value) {
-        if (!searchFilters.notesWithShapes && note.shapes.length > 0) continue;
-        if (searchLocal) {
-            if (!note.isRoomNote) {
-                // Global Notes can appear in the Local search _if_ there is a shape linked to them
-                if (!searchFilters.globalIfLocalShape || note.shapes.length === 0) continue;
-            } else if (searchFilters.activeLocation && locationId !== note.location) {
+        if (shapeFiltered.value) {
+            if (!note.shapes.some((s) => s === noteState.raw.shapeFilter)) {
                 continue;
             }
-        } else if (note.isRoomNote) {
-            continue;
+        } else {
+            if (!searchFilters.notesWithShapes && note.shapes.length > 0) continue;
+            if (searchLocal) {
+                if (!note.isRoomNote) {
+                    // Global Notes can appear in the Local search _if_ there is a shape linked to them
+                    if (!searchFilters.globalIfLocalShape || note.shapes.length === 0) continue;
+                } else if (searchFilters.activeLocation && locationId !== note.location) {
+                    continue;
+                }
+            } else if (note.isRoomNote) {
+                continue;
+            }
         }
+
         if (sf.length === 0) {
             notes.push(note);
             continue;
@@ -113,15 +128,20 @@ function editNote(noteId: string): void {
     noteState.mutableReactive.currentNote = noteId;
     emit("edit-note");
 }
+
+function clearShapeFilter(): void {
+    noteState.mutableReactive.shapeFilter = undefined;
+}
 </script>
 
 <template>
     <header>
-        <div>NOTES</div>
+        <div>NOTES {{ shapeProps ? `for ${shapeProps.name}` : "" }}</div>
     </header>
-    <div id="notes-search">
+    <div id="notes-search" :class="shapeFiltered ? 'disabled' : ''">
         <div>
             <ToggleGroup
+                v-show="!shapeFiltered"
                 id="kind-selector"
                 v-model="selectedNoteTypes"
                 :options="noteTypes.map((n) => ({ label: n, value: n }))"
@@ -129,6 +149,7 @@ function editNote(noteId: string): void {
                 active-color="rgba(173, 216, 230, 0.5)"
             />
             <font-awesome-icon icon="magnifying-glass" @click="searchBar?.focus()" />
+            <div v-if="shapeProps" class="shape-name" @click="clearShapeFilter">{{ shapeProps.name }}</div>
             <input ref="searchBar" v-model="searchFilter" type="text" placeholder="search through your notes.." />
             <div v-show="showSearchFilters" id="search-filter">
                 <fieldset>
@@ -150,7 +171,7 @@ function editNote(noteId: string): void {
                         <label for="note-search-author">author</label>
                     </div>
                 </fieldset>
-                <fieldset :disabled="selectedNoteTypes === 'global'">
+                <fieldset :disabled="selectedNoteTypes === 'global' || shapeFiltered">
                     <legend>Local: Locations</legend>
                     <div>
                         <input
@@ -175,7 +196,7 @@ function editNote(noteId: string): void {
                     </div>
                 </fieldset>
                 <div></div>
-                <fieldset :disabled="selectedNoteTypes === 'global'">
+                <fieldset :disabled="selectedNoteTypes === 'global' || shapeFiltered">
                     <legend>Local: Shapes</legend>
                     <div>
                         <input id="note-search-shapes" v-model="searchFilters.notesWithShapes" type="checkbox" />
@@ -310,6 +331,16 @@ header {
 
         > svg:first-of-type {
             margin-left: 1rem;
+        }
+
+        > .shape-name {
+            margin-left: 0.5rem;
+            font-weight: bold;
+
+            &:hover {
+                text-decoration: line-through;
+                cursor: pointer;
+            }
         }
 
         > input {

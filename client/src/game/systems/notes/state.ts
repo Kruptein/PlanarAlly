@@ -1,13 +1,15 @@
 import type { LocalId } from "../../id";
 import { buildState } from "../state";
 
-import type { ClientNote } from "./types";
+import { type ClientNote, NoteManagerMode } from "./types";
 
 interface ReactiveNoteState {
     // manager UI
     managerOpen: boolean;
-    managerMode: "list" | "edit" | "map";
+    managerMode: NoteManagerMode;
     currentNote: string | undefined;
+
+    shapeFilter: LocalId | undefined;
 
     notes: Map<string, ClientNote>;
     shapeNotes: Map<LocalId, string[]>;
@@ -20,8 +22,10 @@ interface NonReactiveNoteState {
 const state = buildState<ReactiveNoteState, NonReactiveNoteState>(
     {
         managerOpen: false,
-        managerMode: "list",
+        managerMode: NoteManagerMode.List,
         currentNote: undefined,
+
+        shapeFilter: undefined,
 
         notes: new Map(),
         shapeNotes: new Map(),

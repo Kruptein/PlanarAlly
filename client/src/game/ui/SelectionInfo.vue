@@ -8,6 +8,9 @@ import { getShape } from "../id";
 import { accessState } from "../systems/access/state";
 import { auraSystem } from "../systems/auras";
 import type { Aura, AuraId } from "../systems/auras/models";
+import { noteState } from "../systems/notes/state";
+import { NoteManagerMode } from "../systems/notes/types";
+import { openNoteManager } from "../systems/notes/ui";
 import { propertiesSystem } from "../systems/properties";
 import { getProperties, propertiesState } from "../systems/properties/state";
 import { selectedState } from "../systems/selected/state";
@@ -23,6 +26,13 @@ const activeTracker = ref<Tracker | Aura | null>(null);
 const trackers = computed(() => [...trackerSystem.state.parentTrackers, ...trackerSystem.state.trackers.slice(0, -1)]);
 
 const auras = computed(() => [...auraSystem.state.parentAuras, ...auraSystem.state.auras.slice(0, -1)]);
+
+const notes = computed(
+    () =>
+        noteState.reactive.shapeNotes
+            .get(selectedState.reactive.focus!)
+            ?.map((note) => noteState.reactive.notes.get(note)!) ?? [],
+);
 
 function setLocked(): void {
     const shapeId = selectedState.raw.focus;
@@ -57,6 +67,15 @@ function setValue(data: { solution: number; relativeMode: boolean }): void {
         sh.invalidate(false);
     }
 }
+
+// NOTES
+
+function openNotes(): void {
+    const shapeId = selectedState.raw.focus;
+    if (shapeId === undefined) return;
+
+    openNoteManager(NoteManagerMode.List, shapeId);
+}
 </script>
 
 <template>
@@ -64,45 +83,55 @@ function setValue(data: { solution: number; relativeMode: boolean }): void {
         <TrackerInput :tracker="activeTracker" @submit="setValue" @close="activeTracker = null" />
         <template v-if="selectedState.reactive.focus !== undefined">
             <div id="selection-menu">
-                <div id="selection-lock-button" :title="t('game.ui.selection.SelectionInfo.lock')" @click="setLocked">
-                    <font-awesome-icon v-if="propertiesState.reactive.isLocked" icon="lock" />
-                    <font-awesome-icon v-else icon="unlock" />
+                <div>
+                    <div
+                        id="selection-lock-button"
+                        :title="t('game.ui.selection.SelectionInfo.lock')"
+                        @click="setLocked"
+                    >
+                        <font-awesome-icon v-if="propertiesState.reactive.isLocked" icon="lock" />
+                        <font-awesome-icon v-else icon="unlock" />
+                    </div>
+                    <div
+                        id="selection-edit-button"
+                        :title="t('game.ui.selection.SelectionInfo.open_shape_props')"
+                        @click="openEditDialog"
+                    >
+                        <font-awesome-icon icon="edit" />
+                    </div>
+                    <div id="selection-name">{{ propertiesState.reactive.name }}</div>
+                    <div id="selection-values" :class="{ noAccess: !accessState.hasEditAccess.value }">
+                        <template v-for="tracker in trackers" :key="tracker.uuid">
+                            <div>{{ tracker.name }}</div>
+                            <div
+                                class="selection-tracker-value"
+                                :title="t('game.ui.selection.SelectionInfo.quick_edit_tracker')"
+                                @click="changeValue(tracker)"
+                            >
+                                <template v-if="tracker.maxvalue === 0">
+                                    {{ tracker.value }}
+                                </template>
+                                <template v-else>{{ tracker.value }} / {{ tracker.maxvalue }}</template>
+                            </div>
+                        </template>
+                        <template v-for="aura in auras" :key="aura.uuid">
+                            <div>{{ aura.name }}</div>
+                            <div
+                                class="selection-tracker-value"
+                                :title="t('game.ui.selection.SelectionInfo.quick_edit_aura')"
+                                @click="changeValue(aura)"
+                            >
+                                <template v-if="aura.dim === 0">
+                                    {{ aura.value }}
+                                </template>
+                                <template v-else>{{ aura.value }} / {{ aura.dim }}</template>
+                            </div>
+                        </template>
+                    </div>
                 </div>
-                <div
-                    id="selection-edit-button"
-                    :title="t('game.ui.selection.SelectionInfo.open_shape_props')"
-                    @click="openEditDialog"
-                >
-                    <font-awesome-icon icon="edit" />
-                </div>
-                <div id="selection-name">{{ propertiesState.reactive.name }}</div>
-                <div id="selection-values" :class="{ noAccess: !accessState.hasEditAccess.value }">
-                    <template v-for="tracker in trackers" :key="tracker.uuid">
-                        <div>{{ tracker.name }}</div>
-                        <div
-                            class="selection-tracker-value"
-                            :title="t('game.ui.selection.SelectionInfo.quick_edit_tracker')"
-                            @click="changeValue(tracker)"
-                        >
-                            <template v-if="tracker.maxvalue === 0">
-                                {{ tracker.value }}
-                            </template>
-                            <template v-else>{{ tracker.value }} / {{ tracker.maxvalue }}</template>
-                        </div>
-                    </template>
-                    <template v-for="aura in auras" :key="aura.uuid">
-                        <div>{{ aura.name }}</div>
-                        <div
-                            class="selection-tracker-value"
-                            :title="t('game.ui.selection.SelectionInfo.quick_edit_aura')"
-                            @click="changeValue(aura)"
-                        >
-                            <template v-if="aura.dim === 0">
-                                {{ aura.value }}
-                            </template>
-                            <template v-else>{{ aura.value }} / {{ aura.dim }}</template>
-                        </div>
-                    </template>
+                <div class="info-notes">
+                    <font-awesome-icon icon="note-sticky" title="Open note manager" @click="openNotes" />
+                    {{ notes.length }} {{ `note${notes.length !== 1 ? "s" : ""}` }}
                 </div>
             </div>
         </template>
@@ -121,53 +150,72 @@ function setValue(data: { solution: number; relativeMode: boolean }): void {
     opacity: 0.5;
     border-top-left-radius: 5px;
     border-bottom-left-radius: 5px;
-    border: #82c8a0 solid 1px;
     border-right: none;
-    padding: 10px 35px 10px 10px;
-    background-color: #eee;
+    overflow: hidden;
 
     &:hover {
-        background-color: #82c8a0;
         opacity: 1;
+
+        > div:first-child {
+            background-color: #82c8a0;
+        }
     }
 
-    #selection-lock-button {
-        position: absolute;
-        right: 13px;
-        top: 30px;
-        cursor: pointer;
-    }
+    > div:first-child {
+        display: flex;
+        flex-direction: column;
+        padding: 10px 35px 10px 10px;
+        background-color: #eee;
 
-    #selection-edit-button {
-        position: absolute;
-        right: 10px;
-        top: 10px;
-        cursor: pointer;
-    }
+        #selection-lock-button {
+            position: absolute;
+            right: 13px;
+            top: 30px;
+            cursor: pointer;
+        }
 
-    #selection-values {
-        display: grid;
-        grid-template-columns: [name] 1fr [value] max-content;
+        #selection-edit-button {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            cursor: pointer;
+        }
 
-        .selection-tracker-value {
-            justify-self: center;
-            padding: 2px;
+        #selection-values {
+            display: grid;
+            grid-template-columns: [name] 1fr [value] max-content;
 
-            &:hover {
-                cursor: pointer;
-                background-color: rgba(20, 20, 20, 0.2);
+            .selection-tracker-value {
+                justify-self: center;
+                padding: 2px;
+
+                &:hover {
+                    cursor: pointer;
+                    background-color: rgba(20, 20, 20, 0.2);
+                }
+            }
+
+            &.noAccess .selection-tracker-value:hover {
+                cursor: not-allowed;
             }
         }
 
-        &.noAccess .selection-tracker-value:hover {
-            cursor: not-allowed;
+        #selection-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
         }
     }
 
-    #selection-name {
-        font-size: 20px;
-        font-weight: bold;
-        margin-bottom: 10px;
+    .info-notes {
+        background-color: bisque;
+        padding: 0.5rem;
+        display: flex;
+        align-items: center;
+
+        svg {
+            margin: 0 0.5rem;
+        }
     }
 }
 </style>

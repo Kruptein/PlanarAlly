@@ -4,6 +4,7 @@ import { computed } from "vue";
 import { modalSystem } from "../../systems/modals";
 import type { ModalIndex } from "../../systems/modals/types";
 import { noteState } from "../../systems/notes/state";
+import { NoteManagerMode } from "../../systems/notes/types";
 
 import NoteEdit from "./NoteEdit.vue";
 import NoteList from "./NoteList.vue";
@@ -13,8 +14,8 @@ defineExpose({ close });
 
 const mode = computed(() => noteState.reactive.managerMode);
 
-function setMode(modeType: typeof mode.value): void {
-    if (modeType === "list") {
+function setMode(modeType: NoteManagerMode): void {
+    if (modeType === NoteManagerMode.List) {
         noteState.mutableReactive.currentNote = undefined;
     }
     noteState.mutableReactive.managerMode = modeType;
@@ -30,8 +31,8 @@ function close(): void {
     <div id="notes-container">
         <div id="notes">
             <font-awesome-icon id="close-notes" :icon="['far', 'window-close']" @click="close" />
-            <NoteList v-if="mode === 'list'" @edit-note="setMode('edit')" />
-            <NoteEdit v-else-if="mode === 'edit'" @mode="setMode($event)" />
+            <NoteList v-if="mode === NoteManagerMode.List" @edit-note="setMode(NoteManagerMode.Edit)" />
+            <NoteEdit v-else-if="mode === NoteManagerMode.Edit" @mode="setMode($event)" />
         </div>
     </div>
 </template>

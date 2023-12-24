@@ -8,12 +8,12 @@ import { coreStore } from "../../../store/core";
 import { modalSystem } from "../../systems/modals";
 import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
-import type { ClientNote } from "../../systems/notes/types";
+import { type ClientNote, NoteManagerMode } from "../../systems/notes/types";
 import { playerState } from "../../systems/players/state";
 
 import NoteDialog from "./NoteDialog.vue";
 
-const emit = defineEmits<(e: "mode", mode: "list" | "map") => void>();
+const emit = defineEmits<(e: "mode", mode: NoteManagerMode) => void>();
 
 const modals = useModal();
 
@@ -53,7 +53,7 @@ const accessLevels = computed(() => {
 });
 
 onBeforeMount(() => {
-    if (noteState.reactive.currentNote === undefined) emit("mode", "list");
+    if (noteState.reactive.currentNote === undefined) emit("mode", NoteManagerMode.List);
     if ((note.value?.text ?? "").trim().length === 0) activeTab.value = 1;
 });
 
@@ -91,7 +91,7 @@ async function remove(): Promise<void> {
     const answer = await modals.confirm("Delete note", "Are you sure you want to delete this note?");
     if (answer === true) {
         noteSystem.removeNote(note.value.uuid, true);
-        emit("mode", "list");
+        emit("mode", NoteManagerMode.List);
     }
 }
 
@@ -131,7 +131,7 @@ async function addAccess(): Promise<void> {
 <template>
     <template v-if="note">
         <header>
-            <span id="return" title="Back to list" @click="$emit('mode', 'list')">↩</span>
+            <span id="return" title="Back to list" @click="$emit('mode', NoteManagerMode.List)">↩</span>
             <input
                 id="title"
                 type="text"

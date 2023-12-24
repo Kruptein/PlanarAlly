@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../core/components/ColourPicker.vue";
+import { arrToToggleGroup } from "../../../core/components/toggleGroup";
 import ToggleGroup from "../../../core/components/ToggleGroup.vue";
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { gameState } from "../../systems/game/state";
@@ -138,13 +139,12 @@ const alerts = computed(() => {
                     {{ translationMapping[mode] }}
                 </div> -->
                 <ToggleGroup
-                    :model-value="drawTool.state.selectedMode"
-                    :options="modes.map((v) => ({ label: translationMapping.modes[v], value: v }))"
+                    v-model="drawTool.state.selectedMode"
+                    :options="arrToToggleGroup(modes, translationMapping.modes)"
                     active-color="#82c8a0"
                     color="white"
                     style="width: max-content"
                     :multi-select="false"
-                    @update:model-value="(i) => (drawTool.state.selectedMode = i)"
                 />
             </div>
             <div class="draw-checkbox-line">
@@ -153,14 +153,13 @@ const alerts = computed(() => {
             <div style="display: flex">
                 <div style="flex-grow: 1"></div>
                 <ToggleGroup
-                    :model-value="drawTool.state.blocksVision"
+                    v-model="drawTool.state.blocksVision"
                     :options="visionBlocks.map((v) => ({ label: VisionBlock[v], value: v }))"
                     :disabled="drawTool.state.selectedMode !== 'normal'"
                     :multi-select="false"
                     active-color="#82c8a0"
                     color="white"
                     style="width: max-content"
-                    @update:model-value="(i) => (drawTool.state.blocksVision = i)"
                 />
             </div>
 

@@ -2,6 +2,7 @@
 import { type DeepReadonly, computed, reactive, ref } from "vue";
 
 import type { ApiNote } from "../../../apiTypes";
+import { arrToToggleGroup } from "../../../core/components/toggleGroup";
 import ToggleGroup from "../../../core/components/ToggleGroup.vue";
 import { filter, map } from "../../../core/iter";
 import { mostReadable, uuidv4 } from "../../../core/utils";
@@ -145,7 +146,7 @@ function clearShapeFilter(): void {
                 v-show="!shapeFiltered"
                 id="kind-selector"
                 v-model="selectedNoteTypes"
-                :options="noteTypes.map((n) => ({ label: n, value: n }))"
+                :options="arrToToggleGroup(noteTypes)"
                 :multi-select="false"
                 active-color="rgba(173, 216, 230, 0.5)"
             />

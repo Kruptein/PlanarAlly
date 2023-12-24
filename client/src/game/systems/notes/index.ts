@@ -17,11 +17,13 @@ import {
     sendSetNoteTitle,
 } from "./emits";
 import { noteState } from "./state";
+import { closeNoteManager } from "./ui";
 
 const { mutableReactive: $, raw, readonly, mutable } = noteState;
 
 class NoteSystem implements System {
     clear(): void {
+        closeNoteManager();
         $.notes.clear();
         $.shapeNotes.clear();
         $.currentNote = undefined;

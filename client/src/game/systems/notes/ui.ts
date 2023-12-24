@@ -27,10 +27,16 @@ export function openNoteManager(mode: NoteManagerMode, extraId?: string | LocalI
     }
 }
 
-export function toggleNoteManager(): void {
+export function closeNoteManager(): void {
     if (noteState.raw.managerOpen) {
         modalSystem.close(index, true);
         noteState.mutableReactive.managerOpen = false;
+    }
+}
+
+export function toggleNoteManager(): void {
+    if (noteState.raw.managerOpen) {
+        closeNoteManager();
     } else {
         openNoteManager(NoteManagerMode.List);
     }

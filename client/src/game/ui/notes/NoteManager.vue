@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import { modalSystem } from "../../systems/modals";
-import type { ModalIndex } from "../../systems/modals/types";
 import { noteState } from "../../systems/notes/state";
 import { NoteManagerMode } from "../../systems/notes/types";
+import { closeNoteManager } from "../../systems/notes/ui";
 
 import NoteEdit from "./NoteEdit.vue";
 import NoteList from "./NoteList.vue";
 
-const props = defineProps<{ modalIndex: ModalIndex }>();
 defineExpose({ close });
 
 const mode = computed(() => noteState.reactive.managerMode);
@@ -22,8 +20,7 @@ function setMode(modeType: NoteManagerMode): void {
 }
 
 function close(): void {
-    noteState.mutableReactive.managerOpen = false;
-    modalSystem.close(props.modalIndex, true);
+    closeNoteManager();
 }
 </script>
 

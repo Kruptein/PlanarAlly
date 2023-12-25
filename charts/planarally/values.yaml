@@ -2,34 +2,34 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-replicaCount: 1
+replicaCount: 1 ## @param 1 [number] Server deployment replica count
 
 image:
-  registry: docker.io
-  repository: kruptein/planarally
-  pullPolicy: IfNotPresent
+  registry: docker.io ## @param docker.io [string] Image container registry
+  repository: kruptein/planarally ## @param kruptein/planarally [string] Image repository
+  pullPolicy: IfNotPresent ## @param IfNotPresent [string] Image pull policy
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: "" ## @param "" [string] Image tag
 
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
+imagePullSecrets: [] ## @param [] [array] Image pull secrets
+nameOverride: "" ## @param "" [string] Partial name override
+fullnameOverride: "" ## @param "" [string] Full name override
 
 serviceAccount:
   # Specifies whether a service account should be created
-  create: true
+  create: true ## @param true [boolean] If true, a service account will be created
   # Annotations to add to the service account
-  annotations: {}
+  annotations: {} ## @param {} [object] Service account annotations
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: ""
+  name: "" ## @param "" [string] Service account name
 
-podAnnotations: {}
+podAnnotations: {} ## @param {} [object] Pod annotations
 
-podSecurityContext: {}
+podSecurityContext: {} ## @param {} [object] Pod security context
   # fsGroup: 2000
 
-securityContext: {}
+securityContext: {} ## @param {} [object] Security context
   # capabilities:
   #   drop:
   #   - ALL
@@ -38,34 +38,34 @@ securityContext: {}
   # runAsUser: 1000
 
 service:
-  type: ClusterIP
+  type: ClusterIP ## @param ClusterIP [string] Service type
 
 ports:
 # the first port is specially reserved for HTTP
 # and will be picked up by ingress + reverse-proxy
 # other ports are useful for in-cluster processes
-- name: http
-  containerPort: 8000
-  servicePort: 80
-  protocol: TCP
+- name: http ## @param http [string] Primary port name
+  containerPort: 8000 ## @param 8000 [number] Primary port of the container
+  servicePort: 80 ## @param 80 [number] Primary port of the service
+  protocol: TCP ## @param TCP [string] Primary port protocol
 
 ingress:
-  enabled: false
-  className: ""
-  annotations: {}
+  enabled: false ## @param false [boolean] Enable ingress
+  className: "" ## @param "" [string] Ingress class
+  annotations: {} ## @param {} [object] Ingress annotations
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
-  hosts:
-    - host: planarally.local
+  hosts: [] ## @param [] [array] Ingress hosts
+    - host: planarally.local ## @param planarally.local [string] Ingress host
       paths:
-        - path: /
-          pathType: ImplementationSpecific
-  tls: []
+        - path: / ## @param / [string] Ingress path
+          pathType: ImplementationSpecific ## @param ImplementationSpecific [string] Ingress path type
+  tls: [] ## @param [] [array] Ingress TLS
   #  - secretName: planarally-tls
   #    hosts:
   #      - planarally.local
 
-resources: {}
+resources: {} ## @param {} [object] Resources
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
@@ -78,14 +78,14 @@ resources: {}
   #   memory: 128Mi
 
 autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
+  enabled: false ## @param false [boolean] Enable autoscaling
+  minReplicas: 1 ## @param 1 [number] Minimum number of replicas
+  maxReplicas: 3 ## @param 3 [number] Maximum number of replicas
+  targetCPUUtilizationPercentage: 80 ## @param 80 [number] Target CPU utilization percentage
   # targetMemoryUtilizationPercentage: 80
 
-nodeSelector: {}
+nodeSelector: {} ## @param {} [object] Node selector
 
-tolerations: []
+tolerations: [] ## @param [] [array] Tolerations
 
-affinity: {}
+affinity: {} ## @param {} [object] Node affinity

@@ -2,42 +2,46 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 #
-## @param 1 [number] Server deployment replica count
+#
+
+## @section Planarly Configuration
+
+## @param replicaCount [number] Server deployment replica count
 replicaCount: 1
 
 image:
-  ## @param docker.io [string] Image container registry
+  ## @param image.registry [string] Image container registry
   registry: docker.io
-  ## @param kruptein/planarally [string] Image repository
+  ## @param image.repository [string] Image repository
   repository: kruptein/planarally
-  ## @param IfNotPresent [string] Image pull policy
+  ## @param image.pullPolicy [string] Image pull policy
   pullPolicy: IfNotPresent
-  ## @param "" [string] Overrides the image tag whose default is the chart appVersion.
+  ## @param image.tag [string] Overrides the image tag whose default is the chart appVersion.
   tag: ""
 
-## @param [] [array] Image pull secrets
+## @param imagePullSecrets [array] Image pull secrets
 imagePullSecrets: []
-## @param "" [string] Partial name override
+## @param nameOverride [string] Partial name override
 nameOverride: ""
-## @param "" [string] Full name override
+## @param fullnameOverride [string] Full name override
 fullnameOverride: ""
 
 serviceAccount:
-  ## @param true [boolean] Specifies whether a service account should be created
+  ## @param serviceAccount.create [boolean] Specifies whether a service account should be created
   create: true
-  ## @param {} [object] Annotations to add to the service account
+  ## @param serviceAccount.annotations [object] Annotations to add to the service account
   annotations: {}
-  ## @param "" [string] The name of the service account to use. If not set and create is true, a name is generated using the fullname template
+  ## @param serviceAccount.name [string] The name of the service account to use. If not set and create is true, a name is generated using the fullname template
   name: ""
 
-## @param {} [object] Pod annotations
+## @param podAnnotations [object] Pod annotations
 podAnnotations: {}
 
-## @param {} [object] Pod security context
+## @param podSecurityContext [object] Pod security context
 podSecurityContext: {}
   # fsGroup: 2000
   #
-## @param {} [object] Security context
+## @param securityContext [object] Security context
 securityContext: {}
   # capabilities:
   #   drop:
@@ -47,46 +51,38 @@ securityContext: {}
   # runAsUser: 1000
 
 service:
-  ## @param ClusterIP [string] Service type
+  ## @param service.type [string] Service type
   type: ClusterIP
 
-# the first port is specially reserved for HTTP
-# and will be picked up by ingress + reverse-proxy
-# other ports are useful for in-cluster processes
+## @param ports [array] Ports to expose, tie to the service, and ingress
 ports:
-  ## @param http [string] Primary port name
 - name: http
-  ## @param 8000 [number] Primary port of the container
   containerPort: 8000
-  ## @param 80 [number] Primary port of the service
   servicePort: 80
-  ## @param TCP [string] Primary port protocol
   protocol: TCP
 
 ingress:
-  ## @param false [boolean] Enable ingress
+  ## @param ingress.enabled [boolean] Enable ingress
   enabled: false
-  ## @param "" [string] Ingress class
+  ## @param ingress.className [string] Ingress class
   className: ""
-  ## @param {} [object] Ingress annotations
+  ## @param ingress.annotations [object] Ingress annotations
   annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
+  ## @param ingress.hosts [array] Ingress hosts
   hosts:
-    ## @param planarally.local [string] Ingress host
     - host: planarally.local
       paths:
-        ## @param / [string] Ingress path
         - path: /
-          ## @param ImplementationSpecific [string] Ingress path type
           pathType: ImplementationSpecific
-  ## @param [] [array] Ingress TLS
+  ## @param ingress.tls [array] Ingress TLS
   tls: []
   #  - secretName: planarally-tls
   #    hosts:
   #      - planarally.local
 
-## @param {} [object] Resources
+## @param resources [object] Resources
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
@@ -100,21 +96,21 @@ resources: {}
   #   memory: 128Mi
 
 autoscaling:
-  ## @param false [boolean] Enable autoscaling
+  ## @param autoscaling.enabled [boolean] Enable autoscaling
   enabled: false
-  ## @param 1 [number] Minimum number of replicas
+  ## @param autoscaling.minReplicas [number] Minimum number of replicas
   minReplicas: 1
-  ## @param 3 [number] Maximum number of replicas
+  ## @param autoscaling.maxReplicas [number] Maximum number of replicas
   maxReplicas: 3
-  ## @param 80 [number] Target CPU utilization percentage
+  ## @param autoscaling.targetCPUUtilizationPercentage [number] Target CPU utilization percentage
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
-## @param {} [object] Node selector
+## @param nodeSelector [object] Node selector
 nodeSelector: {}
 
-## @param [] [array] Tolerations
+## @param tolerations [array] Tolerations
 tolerations: []
 
-## @param {} [object] Node affinity
+## @param affinity [object] Node affinity
 affinity: {}

@@ -7,9 +7,11 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
-      protocol: TCP
-      name: http
+    {{- range .Values.ports }}
+    - protocol: {{ .protocol }}
+      port: {{ .servicePort }} # services in-cluster port
+      targetPort: {{ .name }} # port of container/ pod
+      name: {{ .name }}
+    {{- end }}
   selector:
     {{- include "planarally.selectorLabels" . | nindent 4 }}

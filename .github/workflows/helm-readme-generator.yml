@@ -10,8 +10,8 @@ on:
   push:
     branches:
       - helm-chart
-    #paths:
-    #  - 'charts/*/values.yaml'
+    paths:
+      - 'charts/*/values.yaml'
 jobs:
   update-readme-metadata:
     runs-on: ubuntu-latest
@@ -34,14 +34,14 @@ jobs:
             echo "Updating README.md for ${chart}"
             readme-generator --values "${chart}/values.yaml" --readme "${chart}/README.md" --schema "/tmp/schema.json"
           done
-      #- name: Push changes
-      #  run: |
-      #    # Push all the relevant changes
-      #    git add charts/*/README.md
-      #    if ! git diff --cached --quiet --exit-code
-      #    then
-      #      git config user.name "github-actions[bot]"
-      #      git config user.email "github-actions[bot]@users.noreply.github.com"
-      #      git commit -am "Update README.md with readme-generator-for-helm" --signoff
-      #      git push
-      #    fi
+      - name: Push changes
+        run: |
+          # Push all the relevant changes
+          git add charts/*/README.md
+          if ! git diff --cached --quiet --exit-code
+          then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git commit -am "Update README.md with readme-generator-for-helm" --signoff
+            git push
+          fi

@@ -50,6 +50,10 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
+persistence:
+  ## @param persistence.enabled [string] Enable persistence (not-yet-implemented)
+  enabled: false
+
 service:
   ## @param service.type [string] Service type
   type: ClusterIP

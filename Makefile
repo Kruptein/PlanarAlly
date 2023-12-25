@@ -27,7 +27,7 @@ helm-dependencies:	## Update all helm chart dependencies
 
 .PHONY: helm-install
 helm-install: helm-dependencies ## Install the helm chart
-	helm upgrade --install --set "ingress.enabled=true" --create-namespace --namespace ${CHART_NAMESPACE} ${CHART_NAME} ${CHART_DIR_PATH}
+	helm upgrade --install --set "ingress.enabled=true" --set "persistence.enabled=true" --create-namespace --namespace ${CHART_NAMESPACE} ${CHART_NAME} ${CHART_DIR_PATH}
 
 .PHONY: helm-upgrade
 helm-upgrade: helm-install ## Upgrade the helm chart

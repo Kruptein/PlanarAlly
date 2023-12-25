@@ -48,6 +48,21 @@ spec:
               port: {{ (first .Values.ports).name }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+          - name: data
+            mountPath: /planarally/data/
+            subpath: data
+          - name: data
+            mountPath: /planarally/static/assets/
+            subpath: assets
+      volumes:
+      - name: data
+        {{- if .Values.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: {{ .Values.persistence.existingClaim | default (print (include "planarally.fullname" . )) }}
+        {{- else }}
+        emptyDir: {}
+        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

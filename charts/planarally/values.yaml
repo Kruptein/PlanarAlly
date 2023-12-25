@@ -51,8 +51,22 @@ securityContext: {}
   # runAsUser: 1000
 
 persistence:
-  ## @param persistence.enabled [string] Enable persistence (not-yet-implemented)
+  ## @param persistence.enabled [string] If true use persistent volume else use emptyDir
   enabled: false
+  ## @param persistence.generatePVC [string] Generate PVC or use existing one does nothing if persistence.enabled is false
+  generatePVC: true
+  ## @param persistence.storageClass [string] Storage class
+  storageClass: ""
+  ## @param persistence.annotations [object] Annotations
+  annotations: {}
+  ## @param persistence.labels [object] Labels
+  labels: {}
+  ## @param persistence.accessModes [array] Access modes
+  accessModes: [ReadWriteOnce]
+  ## @param persistence.existingClaim [string] Manually managed PVC name to use
+  existingClaim: ""
+  ## @param persistence.size [string] Size of the storage for the DB and assets
+  size: 8Gi
 
 service:
   ## @param service.type [string] Service type

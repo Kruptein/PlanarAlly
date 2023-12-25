@@ -2,14 +2,14 @@
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "PlanarAlly.fullname" . }}
+  name: {{ include "planarally.fullname" . }}
   labels:
-    {{- include "PlanarAlly.labels" . | nindent 4 }}
+    {{- include "planarally.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "PlanarAlly.fullname" . }}
+    name: {{ include "planarally.fullname" . }}
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
   metrics:

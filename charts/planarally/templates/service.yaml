@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "PlanarAlly.fullname" . }}
+  name: {{ include "planarally.fullname" . }}
   labels:
-    {{- include "PlanarAlly.labels" . | nindent 4 }}
+    {{- include "planarally.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -12,4 +12,4 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "PlanarAlly.selectorLabels" . | nindent 4 }}
+    {{- include "planarally.selectorLabels" . | nindent 4 }}

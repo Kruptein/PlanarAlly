@@ -28,6 +28,12 @@ tech changes will usually be stripped from release notes for the public
 
 ### Added
 
+- 	[server] Added Kubernetes support (@DreamingRaven)
+	-	Added planarally helm chart so that the application is easily deployable
+	-	Added Makefile to automate local build and run of the helm chart for quick development
+	- 	Added workflow to test helm chart functionality in kind
+	-	Added workflow to release helm chart to gh-pages https://Kruptein.github.io/PlanarAlly/index.yaml
+	-	Added workflow to automatically keep the helm chart README.md up to date with values.yaml
 -   Character concept
     -   A shape can be marked as a character
     -   Characters can be dropped anywhere (by the DM), moving/teleporting the shape to the new location

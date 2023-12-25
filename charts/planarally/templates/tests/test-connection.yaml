@@ -11,5 +11,5 @@ spec:
     - name: wget
       image: busybox
       command: ['wget']
-      args: ['{{ include "planarally.fullname" . }}:{{ .Values.service.port }}']
+      args: ['{{ include "planarally.fullname" . }}:{{ (first .Values.ports).name }}']
   restartPolicy: Never

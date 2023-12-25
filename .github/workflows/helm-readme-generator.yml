@@ -1,17 +1,17 @@
 name: 'Update README metadata'
 
-#on:
-#  pull_request_target:
-#    branches:
-#      - main
-#    paths:
-#      - 'charts/*/values.yaml'
 on:
-  push:
+  pull_request_target:
     branches:
-      - helm-chart
+      - master
     paths:
       - 'charts/*/values.yaml'
+#on:
+#  push:
+#    branches:
+#      - dev
+#    paths:
+#      - 'charts/*/values.yaml'
 jobs:
   update-readme-metadata:
     runs-on: ubuntu-latest

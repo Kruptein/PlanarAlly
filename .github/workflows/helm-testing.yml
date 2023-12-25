@@ -1,12 +1,12 @@
 name: Lint and Test Charts
 
-#on: pull_request
-on:
-  push:
-    branches:
-      - helm-chart
-    paths:
-      - 'charts/**'
+on: pull_request
+#on:
+#  push:
+#    branches:
+#      - dev
+#    paths:
+#      - 'charts/**'
 
 jobs:
   lint-test:

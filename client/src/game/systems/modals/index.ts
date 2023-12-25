@@ -7,7 +7,7 @@ import type { System } from "..";
 import { modalState } from "./state";
 import type { FullModal, IndexedModal, Modal, ModalIndex } from "./types";
 
-const { mutableReactive: $ } = modalState;
+const { mutableReactive: $, raw } = modalState;
 
 function isComponent(x: Component | { component: Component }): x is Component {
     return !("component" in x);
@@ -36,13 +36,14 @@ class ModalSystem implements System {
     }
 
     focus(index: ModalIndex): void {
-        const orderId = modalState.raw.modalOrder.findIndex((m) => m === index);
+        if (raw.modalOrder.at(-1) === index) return;
+        const orderId = raw.modalOrder.findIndex((m) => m === index);
         if (orderId === undefined) {
             console.log("Error in modal focussing");
             return;
         }
         // Doing it like this prevents a double update
-        $.modalOrder = [...modalState.raw.modalOrder.filter((m) => m !== index), index];
+        $.modalOrder = [...raw.modalOrder.filter((m) => m !== index), index];
         $.openModals.add(index);
     }
 
@@ -53,15 +54,15 @@ class ModalSystem implements System {
         $.openModals.delete(modalId);
         if (remove && modalId >= extraStartIndex) {
             delete $.extraModals[modalId - extraStartIndex];
-            $.modalOrder.splice(modalState.raw.modalOrder.indexOf(modalId), 1);
+            $.modalOrder.splice(raw.modalOrder.indexOf(modalId), 1);
         }
     }
 
     addModal(modal: FullModal): ModalIndex {
         // First see if we can fill up a hole
-        let extraIndex = modalState.raw.extraModals.findIndex((m) => m === undefined);
+        let extraIndex = raw.extraModals.findIndex((m) => m === undefined);
         if (extraIndex === -1) {
-            extraIndex = modalState.raw.extraModals.length;
+            extraIndex = raw.extraModals.length;
         }
         const modalIndex = (extraIndex + modalState.readonly.fixedModals.length) as ModalIndex;
         const indexedModal = { ...modal, props: { ...modal.props, modalIndex } };

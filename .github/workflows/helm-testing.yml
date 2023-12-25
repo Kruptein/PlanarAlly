@@ -5,6 +5,8 @@ on:
   push:
     branches:
       - helm-chart
+    paths:
+      - 'charts/**'
 
 jobs:
   lint-test:

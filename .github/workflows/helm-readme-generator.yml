@@ -1,4 +1,4 @@
-name: '[CI/CD] Update README metadata'
+name: 'Update README metadata'
 
 #on:
 #  pull_request_target:
@@ -32,7 +32,7 @@ jobs:
           for chart in "charts/"*
           do
             echo "Updating README.md for ${chart}"
-            readme-generator --values "charts/${chart}/values.yaml" --readme "charts/${chart}/README.md" --schema "/tmp/schema.json"
+            readme-generator --values "${chart}/values.yaml" --readme "${chart}/README.md" --schema "/tmp/schema.json"
           done
       #- name: Push changes
       #  run: |

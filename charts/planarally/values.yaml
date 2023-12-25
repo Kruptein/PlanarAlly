@@ -6,7 +6,7 @@
 
 ## @section Planarly Configuration
 
-## @param replicaCount [number] Server deployment replica count
+## @param replicaCount [string] Server deployment replica count
 replicaCount: 1
 
 image:
@@ -27,7 +27,7 @@ nameOverride: ""
 fullnameOverride: ""
 
 serviceAccount:
-  ## @param serviceAccount.create [boolean] Specifies whether a service account should be created
+  ## @param serviceAccount.create [string] Specifies whether a service account should be created
   create: true
   ## @param serviceAccount.annotations [object] Annotations to add to the service account
   annotations: {}
@@ -62,7 +62,7 @@ ports:
   protocol: TCP
 
 ingress:
-  ## @param ingress.enabled [boolean] Enable ingress
+  ## @param ingress.enabled [string] Enable ingress
   enabled: false
   ## @param ingress.className [string] Ingress class
   className: ""
@@ -96,13 +96,13 @@ resources: {}
   #   memory: 128Mi
 
 autoscaling:
-  ## @param autoscaling.enabled [boolean] Enable autoscaling
+  ## @param autoscaling.enabled [string] Enable autoscaling
   enabled: false
-  ## @param autoscaling.minReplicas [number] Minimum number of replicas
+  ## @param autoscaling.minReplicas [string] Minimum number of replicas
   minReplicas: 1
-  ## @param autoscaling.maxReplicas [number] Maximum number of replicas
+  ## @param autoscaling.maxReplicas [string] Maximum number of replicas
   maxReplicas: 3
-  ## @param autoscaling.targetCPUUtilizationPercentage [number] Target CPU utilization percentage
+  ## @param autoscaling.targetCPUUtilizationPercentage [string] Target CPU utilization percentage
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 

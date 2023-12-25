@@ -32,7 +32,7 @@ jobs:
           for chart in "charts/"*
           do
             echo "Updating README.md for ${chart}"
-            readme-generator --values "${chart}/values.yaml" --readme "${chart}/README.md" --schema "readme-generator.json"
+            readme-generator --values "${chart}/values.yaml" --readme "${chart}/README.md" --schema "/tmp/schema.json"
           done
       #- name: Push changes
       #  run: |

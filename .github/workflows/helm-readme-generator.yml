@@ -10,8 +10,8 @@ on:
   push:
     branches:
       - helm-chart
-    paths:
-      - 'charts/*/values.yaml'
+    #paths:
+    #  - 'charts/*/values.yaml'
 jobs:
   update-readme-metadata:
     runs-on: ubuntu-latest

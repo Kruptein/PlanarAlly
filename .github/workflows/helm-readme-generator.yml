@@ -10,8 +10,6 @@ on:
   push:
     branches:
       - helm-chart
-# Remove all permissions by default
-permissions: {}
 jobs:
   update-readme-metadata:
     runs-on: ubuntu-latest
@@ -20,13 +18,10 @@ jobs:
     steps:
       - name: Install readme-generator-for-helm
         run: npm install -g @bitnami/readme-generator-for-helm
-      - name: Checkout bitnami/charts
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - name: Checkout
+        uses: actions/checkout@v3
         with:
-          path: charts
-          ref: ${{github.event.pull_request.head.ref}}
-          repository: ${{github.event.pull_request.head.repo.full_name}}
-          token: ${{ github.actor == 'bitnami-bot' && secrets.GITHUB_TOKEN || secrets.BITNAMI_BOT_TOKEN }}
+          fetch-depth: 0
       - name: Execute readme-generator-for-helm
         env:
           DIFF_URL: "${{github.event.pull_request.diff_url}}"

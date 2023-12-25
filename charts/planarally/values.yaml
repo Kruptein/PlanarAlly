@@ -55,7 +55,7 @@ ingress:
   annotations: {} ## @param {} [object] Ingress annotations
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
-  hosts: [] ## @param [] [array] Ingress hosts
+  hosts:
     - host: planarally.local ## @param planarally.local [string] Ingress host
       paths:
         - path: / ## @param / [string] Ingress path

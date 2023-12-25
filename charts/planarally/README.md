@@ -20,7 +20,14 @@
 | `podAnnotations`                             | Pod annotations                                                                                                        | `{}`  |
 | `podSecurityContext`                         | Pod security context                                                                                                   | `{}`  |
 | `securityContext`                            | Security context                                                                                                       | `{}`  |
-| `persistence.enabled`                        | Enable persistence (not-yet-implemented)                                                                               | `""`  |
+| `persistence.enabled`                        | If true use persistent volume else use emptyDir                                                                        | `""`  |
+| `persistence.generatePVC`                    | Generate PVC or use existing one does nothing if persistence.enabled is false                                          | `""`  |
+| `persistence.storageClass`                   | Storage class                                                                                                          | `""`  |
+| `persistence.annotations`                    | Annotations                                                                                                            | `{}`  |
+| `persistence.labels`                         | Labels                                                                                                                 | `{}`  |
+| `persistence.accessModes`                    | Access modes                                                                                                           | `[]`  |
+| `persistence.existingClaim`                  | Manually managed PVC name to use                                                                                       | `""`  |
+| `persistence.size`                           | Size of the storage for the DB and assets                                                                              | `""`  |
 | `service.type`                               | Service type                                                                                                           | `""`  |
 | `ports`                                      | Ports to expose, tie to the service, and ingress                                                                       | `[]`  |
 | `ingress.enabled`                            | Enable ingress                                                                                                         | `""`  |

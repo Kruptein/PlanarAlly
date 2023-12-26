@@ -6,7 +6,7 @@ import { addP, cloneP, equalsP, subtractP, toArrayP, toGP, Vector } from "../../
 import type { GlobalPoint } from "../../core/geometry";
 import { rotateAroundPoint } from "../../core/math";
 import { mostReadable } from "../../core/utils";
-import { generateLocalId, getGlobalId } from "../id";
+import { generateLocalId, getGlobalId, getShape } from "../id";
 import type { GlobalId, LocalId } from "../id";
 import type { ILayer } from "../interfaces/layer";
 import type { IShape } from "../interfaces/shape";
@@ -25,7 +25,6 @@ import { groupSystem } from "../systems/groups";
 import { labelSystem } from "../systems/labels";
 import { doorSystem } from "../systems/logic/door";
 import { teleportZoneSystem } from "../systems/logic/tp";
-import { noteState } from "../systems/notes/state";
 import { propertiesSystem } from "../systems/properties";
 import { getProperties } from "../systems/properties/state";
 import type { ShapeProperties } from "../systems/properties/state";
@@ -105,6 +104,8 @@ export abstract class Shape implements IShape {
     // but not behind them (e.g. reveal a tree trunk, but block what's behind it)
     _lightBlockingNeighbours: LocalId[] = [];
 
+    _parentId?: LocalId;
+
     constructor(
         refPoint: GlobalPoint,
         options?: {
@@ -113,6 +114,7 @@ export abstract class Shape implements IShape {
             assetId?: number;
             strokeWidth?: number;
             isSnappable?: boolean;
+            parentId?: LocalId;
         },
         properties?: Partial<ShapeProperties>,
     ) {
@@ -121,6 +123,7 @@ export abstract class Shape implements IShape {
         this.assetId = options?.assetId;
         this.strokeWidth = options?.strokeWidth ?? 5;
         this.isSnappable = options?.isSnappable ?? true;
+        this._parentId = options?.parentId;
 
         propertiesSystem.inform(this.id, properties);
     }
@@ -224,8 +227,16 @@ export abstract class Shape implements IShape {
     }
 
     get refPoint(): GlobalPoint {
-        return cloneP(this._refPoint);
+        let p = cloneP(this._refPoint);
+        if (this._parentId !== undefined) {
+            const sh = getShape(this._parentId);
+            if (sh !== undefined) {
+                p = addP(p, Vector.fromPoint(sh.refPoint));
+            }
+        }
+        return p;
     }
+
     set refPoint(point: GlobalPoint) {
         this._refPoint = point;
         this._center = this.__center();
@@ -439,16 +450,6 @@ export abstract class Shape implements IShape {
                 ctx.rect(rectX, rectY, rectWidth, rectHeight);
                 ctx.stroke();
                 barOffset += 10;
-            }
-        }
-        // Note icon
-        for (const noteId of noteState.raw.shapeNotes.get(this.id) ?? []) {
-            const note = noteState.raw.notes.get(noteId);
-            if (note?.showIconOnShape === true) {
-                if (bbox === undefined) bbox = this.getBoundingBox();
-                const botLeft = g2l(bbox.botLeft);
-                ctx.fillStyle = "black";
-                ctx.fillRect(botLeft.x, botLeft.y - g2lz(15), g2lz(15), g2lz(15));
             }
         }
     }

@@ -1,8 +1,11 @@
 import { registerSystem } from "..";
 import type { System } from "..";
 import type { ApiNote } from "../../../apiTypes";
+import { toGP } from "../../../core/geometry";
+import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { word2color } from "../../../core/utils";
-import { getGlobalId, getLocalId, type LocalId } from "../../id";
+import { getGlobalId, getLocalId, getShape, type LocalId } from "../../id";
+import { FontAwesomeIcon } from "../../shapes/variants/fontAwesomeIcon";
 
 import {
     sendAddNoteTag,
@@ -34,10 +37,15 @@ class NoteSystem implements System {
     async newNote(note: ApiNote, sync: boolean): Promise<void> {
         const tags = await Promise.all(note.tags.map(async (tag) => ({ name: tag, colour: await word2color(tag) })));
         $.notes.set(note.uuid, { ...note, tags });
+
         for (const shape of note.shapes) {
             const shapeId = getLocalId(shape, false);
             if (shapeId === undefined) continue;
             this.attachShape(note.uuid, shapeId, false);
+
+            if (note.showIconOnShape) {
+                this.createNoteIcon(shapeId, note.uuid, InvalidationMode.NO);
+            }
         }
         if (sync) sendNewNote(note);
     }
@@ -107,6 +115,8 @@ class NoteSystem implements System {
 
         if (!raw.shapeNotes.has(shape)) $.shapeNotes.set(shape, []);
         $.shapeNotes.get(shape)?.push(noteId);
+
+        if (note.showIconOnShape) this.createNoteIcon(shape, noteId, InvalidationMode.NORMAL);
 
         if (sync) {
             sendNoteAddShape({ note_id: noteId, shape_id: globalId });
@@ -213,8 +223,38 @@ class NoteSystem implements System {
 
         note.showIconOnShape = showIconOnShape;
 
+        if (note.showIconOnShape) {
+            for (const shape of note.shapes) {
+                const shapeId = getLocalId(shape, false);
+                if (shapeId === undefined) continue;
+                this.createNoteIcon(shapeId, noteId, InvalidationMode.NORMAL);
+            }
+        } else {
+            for (const iconShape of readonly.iconShapes.get(noteId) ?? []) {
+                const shape = getShape(iconShape);
+                if (shape?.layer === undefined) continue;
+                shape.layer.removeShape(shape, { sync: SyncMode.NO_SYNC, recalculate: false, dropShapeId: true });
+            }
+            mutable.iconShapes.delete(noteId);
+        }
+
         if (sync) {
             sendNoteSetShowIconOnShape({ uuid: noteId, value: showIconOnShape });
+        }
+    }
+
+    private createNoteIcon(shapeId: LocalId, noteId: string, InvalidationMode: InvalidationMode): void {
+        const icon = new FontAwesomeIcon({ prefix: "fas", iconName: "sticky-note" }, toGP(0, 30), 15, {
+            parentId: shapeId,
+        });
+        const shape = getShape(shapeId);
+        if (shape?.layer === undefined) return;
+        shape.layer.addShape(icon, SyncMode.NO_SYNC, InvalidationMode);
+
+        if (readonly.iconShapes.has(noteId)) {
+            mutable.iconShapes.get(noteId)?.push(icon.id);
+        } else {
+            mutable.iconShapes.set(noteId, [icon.id]);
         }
     }
 }

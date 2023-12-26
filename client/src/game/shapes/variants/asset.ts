@@ -34,7 +34,14 @@ export class Asset extends BaseRect implements IAsset {
         topleft: GlobalPoint,
         w: number,
         h: number,
-        options?: { id?: LocalId; uuid?: GlobalId; assetId?: number; loaded?: boolean; isSnappable?: boolean },
+        options?: {
+            id?: LocalId;
+            uuid?: GlobalId;
+            assetId?: number;
+            loaded?: boolean;
+            isSnappable?: boolean;
+            parentId?: LocalId;
+        },
     ) {
         super(topleft, w, h, { isSnappable: false, ...options }, { strokeColour: ["white"] });
         this.img = img;

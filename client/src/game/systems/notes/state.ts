@@ -17,6 +17,7 @@ interface ReactiveNoteState {
 
 interface NonReactiveNoteState {
     syncTimeouts: Map<string, number>;
+    iconShapes: Map<string, LocalId[]>;
 }
 
 const state = buildState<ReactiveNoteState, NonReactiveNoteState>(
@@ -30,7 +31,10 @@ const state = buildState<ReactiveNoteState, NonReactiveNoteState>(
         notes: new Map(),
         shapeNotes: new Map(),
     },
-    { syncTimeouts: new Map() },
+    {
+        iconShapes: new Map(),
+        syncTimeouts: new Map(),
+    },
 );
 
 export const noteState = {

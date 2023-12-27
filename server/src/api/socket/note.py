@@ -396,6 +396,7 @@ async def set_show_on_hover(sid: str, raw_data: Any):
         if can_view(note, user):
             await _send_game("Note.ShowOnHover.Set", data.dict(), room=psid)
 
+
 @sio.on("Note.ShowIconOnShape.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def set_show_icon_on_shape(sid: str, raw_data: Any):

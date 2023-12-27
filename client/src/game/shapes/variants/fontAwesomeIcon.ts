@@ -9,7 +9,7 @@ import { Asset } from "./asset";
 
 const faBlobs = new Map<string, string>();
 
-export function getFaBlobUrl(iconDef: IconDefinition): string {
+function getFaBlobUrl(iconDef: IconDefinition): string {
     const name = `${iconDef.prefix}-${iconDef.iconName}`;
     if (faBlobs.has(name)) return faBlobs.get(name)!;
 

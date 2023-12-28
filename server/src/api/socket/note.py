@@ -36,6 +36,14 @@ def can_view(note: Note, user: User):
     )
 
 
+async def send_create_note(note: Note, psid: str):
+    await _send_game("Note.Add", note.as_pydantic(), room=psid)
+
+
+async def send_remove_note(uuid: str, psid: str):
+    await _send_game("Note.Remove", uuid, room=psid)
+
+
 @sio.on("Note.New", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def new_note(sid: str, raw_data: Any):
@@ -66,7 +74,7 @@ async def new_note(sid: str, raw_data: Any):
     )
 
     for psid in game_state.get_sids(skip_sid=sid, player=pr.player):
-        await _send_game("Note.Add", note.as_pydantic(), room=psid)
+        await send_create_note(note, psid)
 
 
 @sio.on("Note.Title.Set", namespace=GAME_NS)
@@ -208,7 +216,7 @@ async def delete_note(sid, uuid):
 
     for psid, user in game_state.get_users(skip_sid=sid, room=pr.room):
         if can_view(note, user):
-            await _send_game("Note.Remove", uuid, room=psid)
+            await send_remove_note(uuid, psid)
 
 
 @sio.on("Note.Access.Add", namespace=GAME_NS)
@@ -243,7 +251,7 @@ async def add_note_access(sid, raw_data: Any):
             await _send_game("Note.Access.Add", data.dict(), room=psid)
         elif data.name == "default" or data.name == user.name:
             if data.can_view:
-                await _send_game("Note.Add", note.as_pydantic(), room=psid)
+                await send_create_note(note, psid)
 
 
 @sio.on("Note.Access.Edit", namespace=GAME_NS)
@@ -298,9 +306,9 @@ async def edit_note_access(sid, raw_data: Any):
 
             if can_view != old_can_view:
                 if data.can_view:
-                    await _send_game("Note.Add", note.as_pydantic(), room=psid)
+                    await send_create_note(note, psid)
                 else:
-                    await _send_game("Note.Remove", uuid, room=psid)
+                    await send_remove_note(uuid, psid)
             else:
                 await _send_game("Note.Access.Edit", data.dict(), room=psid)
 
@@ -337,7 +345,7 @@ async def remove_note_access(sid, raw_data: Any):
         if user == pr.player or default_can_view:
             await _send_game("Note.Access.Remove", data.dict(), room=psid)
         elif data.value == user.name:
-            await _send_game("Note.Remove", uuid, room=psid)
+            await send_remove_note(uuid, psid)
 
 
 @sio.on("Note.Shape.Add", namespace=GAME_NS)

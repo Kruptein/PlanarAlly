@@ -253,7 +253,7 @@ function navigateToShape(id: LocalId): void {
             <VueMarkdown :source="note.text" :options="{ html: true }" />
         </div>
         <div v-else-if="activeTab === TabLabel.Edit" id="editor" class="tab-container">
-            <i>This input is markdown aware!</i>
+            <em>This input is markdown aware!</em>
             <textarea :value="note.text" @input="setText($event, false)" @change="setText($event, true)"></textarea>
         </div>
         <div v-else-if="activeTab === TabLabel.Access" id="note-access-container" class="tab-container">

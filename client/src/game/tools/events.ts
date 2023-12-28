@@ -92,7 +92,7 @@ export async function mouseMove(event: MouseEvent): Promise<void> {
             if (shape && shape.floorId === floorState.currentFloor.value!.id && shape.contains(eventPoint)) {
                 for (const noteId of notes) {
                     const note = noteState.raw.notes.get(noteId);
-                    if (note && note.showOnHover) {
+                    if (note?.showOnHover === true) {
                         foundAnnotation = true;
                         uiSystem.setAnnotationText(note.text);
                         break;
@@ -263,7 +263,7 @@ export async function touchMove(event: TouchEvent): Promise<void> {
             ) {
                 for (const noteId of notes) {
                     const note = noteState.raw.notes.get(noteId);
-                    if (note && note.showOnHover) {
+                    if (note?.showOnHover === true) {
                         found = true;
                         uiSystem.setAnnotationText(note.text);
                         break;

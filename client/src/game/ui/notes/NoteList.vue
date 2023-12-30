@@ -284,7 +284,7 @@ function clearShapeFilter(): void {
     <footer>
         <div style="flex-grow: 1"></div>
         <div id="new-note-selector">
-            <div>New note:</div>
+            <div>New note {{ shapeProps ? `for ${shapeProps.name}` : "" }}:</div>
             <div id="selector-options">
                 <div @click="createNote(false)">Global</div>
                 <div @click="createNote(true)">Local</div>

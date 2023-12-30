@@ -31,6 +31,8 @@ import { groupSystem } from "../../systems/groups";
 import { markerSystem } from "../../systems/markers";
 import { markerState } from "../../systems/markers/state";
 import { noteState } from "../../systems/notes/state";
+import { NoteManagerMode } from "../../systems/notes/types";
+import { openNoteManager } from "../../systems/notes/ui";
 import { playerSystem } from "../../systems/players";
 import { getProperties } from "../../systems/properties/state";
 import { selectedSystem } from "../../systems/selected";
@@ -64,6 +66,12 @@ function close(): void {
 function openEditDialog(): void {
     if (selectedState.raw.selected.size !== 1) return;
     activeShapeStore.setShowEditDialog(true);
+    close();
+}
+
+function openNotes(): void {
+    if (selectedState.raw.selected.size !== 1) return;
+    openNoteManager(NoteManagerMode.List, [...selectedState.raw.selected][0]);
     close();
 }
 
@@ -479,6 +487,7 @@ const floors = toRef(floorState.reactive, "floors");
                 </ul>
             </li>
         </template>
+        <li v-if="hasSingleSelection" @click="openNotes">Open notes</li>
         <li v-if="hasSingleSelection" @click="openEditDialog">{{ t("game.ui.selection.ShapeContext.show_props") }}</li>
     </ContextMenu>
 </template>

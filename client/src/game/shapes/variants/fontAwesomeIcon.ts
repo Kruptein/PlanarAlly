@@ -25,7 +25,7 @@ function getFaBlobUrl(iconDef: IconDefinition): string {
 }
 
 export class FontAwesomeIcon extends Asset implements IAsset {
-    type: SHAPE_TYPE = "assetrect";
+    type: SHAPE_TYPE = "fontawesome";
 
     constructor(
         icon: IconLookup,

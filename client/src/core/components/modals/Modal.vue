@@ -15,7 +15,7 @@ const props = withDefaults(
         rightHanded: false,
     },
 );
-const emit = defineEmits(["close", "focus"]);
+const emit = defineEmits<(e: "close" | "focus") => void>();
 
 const container = ref<HTMLDivElement | null>(null);
 

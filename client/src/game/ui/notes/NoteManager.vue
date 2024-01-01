@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
+import type { ModalIndex } from "../../systems/modals/types";
 import { noteState } from "../../systems/notes/state";
 import { NoteManagerMode } from "../../systems/notes/types";
 import { closeNoteManager } from "../../systems/notes/ui";
@@ -8,7 +9,9 @@ import { closeNoteManager } from "../../systems/notes/ui";
 import NoteEdit from "./NoteEdit.vue";
 import NoteList from "./NoteList.vue";
 
+const emit = defineEmits<(e: "close" | "focus") => void>();
 defineExpose({ close });
+defineProps<{ modalIndex: ModalIndex }>();
 
 const mode = computed(() => noteState.reactive.managerMode);
 
@@ -21,12 +24,13 @@ function setMode(modeType: NoteManagerMode): void {
 
 function close(): void {
     closeNoteManager();
+    emit("close");
 }
 </script>
 
 <template>
     <div v-show="noteState.reactive.managerOpen" id="notes-container">
-        <div id="notes">
+        <div id="notes" @click="$emit('focus')">
             <font-awesome-icon id="close-notes" :icon="['far', 'window-close']" @click="close" />
             <KeepAlive include="NoteList">
                 <NoteList v-if="mode === NoteManagerMode.List" @edit-note="setMode(NoteManagerMode.Edit)" />

@@ -36,6 +36,7 @@ class ModalSystem implements System {
     }
 
     focus(index: ModalIndex): void {
+        $.openModals.add(index);
         if (raw.modalOrder.at(-1) === index) return;
         const orderId = raw.modalOrder.findIndex((m) => m === index);
         if (orderId === undefined) {
@@ -44,7 +45,6 @@ class ModalSystem implements System {
         }
         // Doing it like this prevents a double update
         $.modalOrder = [...raw.modalOrder.filter((m) => m !== index), index];
-        $.openModals.add(index);
     }
 
     close(modalId: ModalIndex, remove: boolean): void {

@@ -65,6 +65,7 @@ const TEMPLATE_TYPES: Record<SHAPE_TYPE, SpecifcShapeTemplateStrings> = {
     text: TextTemplateStrings,
     circle: TextTemplateStrings,
     circulartoken: TextTemplateStrings,
+    fontawesome: AssetTemplateStrings,
     polygon: PolygonTemplateStrings,
     line: TextTemplateStrings,
     rect: TextTemplateStrings,

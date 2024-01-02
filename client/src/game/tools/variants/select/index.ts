@@ -267,6 +267,9 @@ class SelectTool extends Tool implements ISelectTool {
             const shape = selectionStack[i]!;
             if (!(shape.options.preFogShape ?? false) && (shape.options.skipDraw ?? false)) continue;
             if ([this.rotationAnchor?.id, this.rotationBox?.id, this.rotationEnd?.id].includes(shape.id)) continue;
+            // temp hack, should be fixed with a proper can't select feature
+            // this is only used by noteIcons right now, but in the future parentIds might become useful for regular selectable shapes
+            if (shape._parentId !== undefined) continue;
             const props = getProperties(shape.id)!;
             if (props.isInvisible && !accessSystem.hasAccessTo(shape.id, false, { movement: true })) continue;
 

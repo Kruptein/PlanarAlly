@@ -378,6 +378,37 @@ async def add_shape(sid, raw_data: Any):
             await _send_game("Note.Shape.Add", data.dict(), room=psid)
 
 
+@sio.on("Note.Shape.Remove", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def remove_shape(sid, raw_data: Any):
+    data = ApiNoteShape(**raw_data)
+
+    pr: PlayerRoom = game_state.get(sid)
+
+    uuid = data.note_id
+
+    note = Note.get_or_none(uuid=uuid)
+
+    if not note:
+        logger.warning(
+            f"{pr.player.name} tried to add shape to non-existent note with id: '{uuid}'"
+        )
+        return
+
+    if not can_edit(note, pr.player):
+        logger.warn(
+            f"{pr.player.name} tried to add a shape to a note not belonging to them."
+        )
+        return
+
+    NoteShape.get(note_id=note, shape_id=data.shape_id).delete_instance()
+
+    for psid, user in game_state.get_users(skip_sid=sid, room=pr.room):
+        if can_edit(note, user):
+            await _send_game("Note.Shape.Remove", data.dict(), room=psid)
+
+
+
 @sio.on("Note.ShowOnHover.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def set_show_on_hover(sid: str, raw_data: Any):

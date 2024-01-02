@@ -32,7 +32,7 @@ const localShapenotes = computed(
         note.value?.shapes
             .map((s) => getLocalId(s, false))
             .filter((s): s is LocalId => s !== undefined)
-            .map((s) => ({ ...getProperties(s), id: s })),
+            .map((s) => ({ ...getProperties(s), id: s })) ?? [],
 );
 
 const showOnHover = computed({
@@ -83,9 +83,9 @@ const tabs = computed(
                 label: TabLabel.Triggers,
                 icon: "comment-dots",
                 visible: canEdit.value,
-                disabled: (localShapenotes.value?.length ?? 0) === 0,
+                disabled: localShapenotes.value.length === 0,
                 title:
-                    (localShapenotes.value?.length ?? 0) > 0
+                    localShapenotes.value.length > 0
                         ? "Configure when the note should appear"
                         : "Only notes with shapes can have triggers",
             },
@@ -187,6 +187,16 @@ function navigateToShape(id: LocalId): void {
         setCenterPosition(shape.center);
     }
 }
+
+function addShape(): void {
+    if (!note.value) return;
+    emit("mode", NoteManagerMode.AttachShape);
+}
+
+function removeShape(shape: LocalId): void {
+    if (!note.value) return;
+    noteSystem.removeShape(note.value.uuid, shape, true);
+}
 </script>
 
 <template>
@@ -278,13 +288,18 @@ function navigateToShape(id: LocalId): void {
         <div v-else-if="activeTab === TabLabel.Shapes" id="note-shapes" class="tab-container">
             <div>
                 This note is linked to {{ note.shapes.length }} {{ `shape${note.shapes.length !== 1 ? "s" : ""}` }};
-                {{ localShapenotes?.length ?? 0 }} of those
-                {{ (localShapenotes?.length ?? 0) !== 1 ? "are" : "is" }} used in this location and
-                {{ (localShapenotes?.length ?? 0) !== 1 ? "are" : "is" }} listed below.
+                {{ localShapenotes.length }} of those {{ localShapenotes.length !== 1 ? "are" : "is" }} used in this
+                location
+                <span v-if="localShapenotes.length > 0">
+                    and {{ localShapenotes.length !== 1 ? "are" : "is" }} listed below.
+                </span>
+                <button @click="addShape">Add a shape</button>
             </div>
             <div v-for="shape of localShapenotes" :key="shape.id" @click="navigateToShape(shape.id)">
                 <font-awesome-icon icon="location-dot" title="Go to shape on the map" />
-                {{ shape.name }}
+                {{ (shape.name?.length ?? 0) > 15 ? `${shape.name?.slice(0, 12)}...` : shape.name }}
+                <div style="flex-grow: 1"></div>
+                <font-awesome-icon icon="trash-alt" title="Remove shape link" @click="removeShape(shape.id)" />
             </div>
         </div>
         <div v-else id="note-triggers" class="tab-container">
@@ -478,18 +493,37 @@ header {
 
 #note-shapes {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));
     row-gap: 0.5rem;
 
     > div {
+        padding: 0.5rem;
+        border: solid 1px transparent;
+        display: flex;
+
+        > svg:first-child {
+            margin-right: 0.5rem;
+        }
+
+        > svg:last-child {
+            display: none;
+        }
+
         &:hover {
             font-weight: bold;
             cursor: pointer;
+
+            border-color: black;
+            border-radius: 0.5rem;
+
+            svg {
+                display: inline-block;
+            }
         }
 
         &:first-child {
             grid-column: 1/-1;
-            margin-bottom: 1rem;
+            border: none;
 
             &:hover {
                 font-weight: inherit;

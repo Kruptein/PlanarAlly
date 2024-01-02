@@ -11,5 +11,6 @@ export const sendNoteAccessAdd = wrapSocket<ApiNoteAccessEdit>("Note.Access.Add"
 export const sendNoteAccessEdit = wrapSocket<ApiNoteAccessEdit>("Note.Access.Edit");
 export const sendNoteAccessRemove = wrapSocket<ApiNoteSetString>("Note.Access.Remove");
 export const sendNoteAddShape = wrapSocket<ApiNoteShape>("Note.Shape.Add");
+export const sendNoteRemoveShape = wrapSocket<ApiNoteShape>("Note.Shape.Remove");
 export const sendNoteSetShowOnHover = wrapSocket<ApiNoteSetBoolean>("Note.ShowOnHover.Set");
 export const sendNoteSetShowIconOnShape = wrapSocket<ApiNoteSetBoolean>("Note.ShowIconOnShape.Set");

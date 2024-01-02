@@ -9,4 +9,5 @@ export enum NoteManagerMode {
     List,
     Edit,
     Map,
+    AttachShape,
 }

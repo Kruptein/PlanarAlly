@@ -5,6 +5,7 @@ import type { ModalIndex } from "../../systems/modals/types";
 import { noteState } from "../../systems/notes/state";
 import { NoteManagerMode } from "../../systems/notes/types";
 import { closeNoteManager } from "../../systems/notes/ui";
+import NoteTool from "../tools/NoteTool.vue";
 
 import NoteEdit from "./NoteEdit.vue";
 import NoteList from "./NoteList.vue";
@@ -29,15 +30,16 @@ function close(): void {
 </script>
 
 <template>
-    <div v-show="noteState.reactive.managerOpen" id="notes-container">
+    <div v-show="noteState.reactive.managerOpen && mode !== NoteManagerMode.AttachShape" id="notes-container">
         <div id="notes" @click="$emit('focus')">
             <font-awesome-icon id="close-notes" :icon="['far', 'window-close']" @click="close" />
-            <KeepAlive include="NoteList">
+            <KeepAlive>
                 <NoteList v-if="mode === NoteManagerMode.List" @edit-note="setMode(NoteManagerMode.Edit)" />
                 <NoteEdit v-else-if="mode === NoteManagerMode.Edit" @mode="setMode($event)" />
             </KeepAlive>
         </div>
     </div>
+    <NoteTool v-if="mode === NoteManagerMode.AttachShape" @return="setMode(NoteManagerMode.Edit)" />
 </template>
 
 <style lang="scss">

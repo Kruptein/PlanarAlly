@@ -59,6 +59,7 @@ export interface IShape extends SimpleShape {
     get visionPolygon(): Path2D;
     _visionBbox: BoundingRect | undefined;
     _lightBlockingNeighbours: LocalId[];
+    _parentId?: LocalId;
 
     // POSITION
 

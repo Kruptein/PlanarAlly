@@ -14,6 +14,7 @@ import {
     sendNoteAccessEdit,
     sendNoteAccessRemove,
     sendNoteAddShape,
+    sendNoteRemoveShape,
     sendNoteSetShowIconOnShape,
     sendNoteSetShowOnHover,
     sendRemoveNote,
@@ -22,6 +23,7 @@ import {
     sendSetNoteTitle,
 } from "./emits";
 import { noteState } from "./state";
+import type { ClientNote } from "./types";
 import { closeNoteManager } from "./ui";
 
 const { mutableReactive: $, raw, readonly, mutable } = noteState;
@@ -34,20 +36,24 @@ class NoteSystem implements System {
         $.currentNote = undefined;
     }
 
-    async newNote(note: ApiNote, sync: boolean): Promise<void> {
-        const tags = await Promise.all(note.tags.map(async (tag) => ({ name: tag, colour: await word2color(tag) })));
-        $.notes.set(note.uuid, { ...note, tags });
+    async newNote(apiNote: ApiNote, sync: boolean): Promise<void> {
+        const tags = await Promise.all(apiNote.tags.map(async (tag) => ({ name: tag, colour: await word2color(tag) })));
+        const note = { ...apiNote, tags };
+        $.notes.set(apiNote.uuid, note);
 
-        for (const shape of note.shapes) {
+        // This section should only run if the note comes from the remote
+        // as a newly created shape locally should never have a shape already attached
+        // it should be attached with a separate call
+        for (const shape of apiNote.shapes) {
             const shapeId = getLocalId(shape, false);
             if (shapeId === undefined) continue;
-            this.attachShape(note.uuid, shapeId, false);
+            this.hookupShape(note, shapeId);
 
             if (note.showIconOnShape) {
                 this.createNoteIcon(shapeId, note.uuid, InvalidationMode.NO);
             }
         }
-        if (sync) sendNewNote(note);
+        if (sync) sendNewNote(apiNote);
     }
 
     setTitle(noteId: string, title: string, sync: boolean): void {
@@ -111,15 +117,63 @@ class NoteSystem implements System {
         }
         if (!note.shapes.includes(globalId)) {
             note.shapes.push(globalId);
+        } else {
+            console.error("Tried to attach a shape to a note twice");
+            return;
         }
 
-        if (!raw.shapeNotes.has(shape)) $.shapeNotes.set(shape, []);
-        $.shapeNotes.get(shape)?.push(noteId);
-
-        if (note.showIconOnShape) this.createNoteIcon(shape, noteId, InvalidationMode.NORMAL);
+        this.hookupShape(note, shape);
 
         if (sync) {
             sendNoteAddShape({ note_id: noteId, shape_id: globalId });
+        }
+    }
+
+    // This is a utlity function used during loading of notes
+    private hookupShape(note: ClientNote, shape: LocalId): void {
+        if (!raw.shapeNotes.has(shape)) $.shapeNotes.set(shape, []);
+        $.shapeNotes.get(shape)?.push(note.uuid);
+
+        if (note.showIconOnShape) this.createNoteIcon(shape, note.uuid, InvalidationMode.NORMAL);
+    }
+
+    removeShape(noteId: string, shapeId: LocalId, sync: boolean): void {
+        const globalId = getGlobalId(shapeId);
+        if (globalId === undefined) {
+            console.error("Tried to remove a note from a local-only shape???");
+            return;
+        }
+
+        const note = $.notes.get(noteId);
+        if (note === undefined) {
+            console.error("Tried to attach a shape to a non-existent note");
+            return;
+        }
+        if (note.shapes.includes(globalId)) {
+            note.shapes = note.shapes.filter((n) => n !== globalId);
+        } else {
+            console.error("Tried to remove a shape from a note it's not linked to??");
+            return;
+        }
+
+        const noteShapes = raw.shapeNotes.get(shapeId);
+        if (noteShapes) {
+            $.shapeNotes.set(
+                shapeId,
+                noteShapes.filter((n) => n !== noteId),
+            );
+        }
+
+        if (note.showIconOnShape) {
+            for (const iconShape of readonly.iconShapes.get(noteId) ?? []) {
+                const shape = getShape(iconShape);
+                if (shape?.layer === undefined || shape._parentId !== shapeId) continue;
+                shape.layer.removeShape(shape, { sync: SyncMode.NO_SYNC, recalculate: false, dropShapeId: true });
+            }
+        }
+
+        if (sync) {
+            sendNoteRemoveShape({ note_id: noteId, shape_id: globalId });
         }
     }
 
@@ -160,6 +214,13 @@ class NoteSystem implements System {
                 shapeId,
                 shapeNotes.filter((n) => n !== noteId),
             );
+        }
+        if (note.showIconOnShape) {
+            for (const iconShape of readonly.iconShapes.get(noteId) ?? []) {
+                const shape = getShape(iconShape);
+                if (shape?.layer === undefined) continue;
+                shape.layer.removeShape(shape, { sync: SyncMode.NO_SYNC, recalculate: false, dropShapeId: true });
+            }
         }
         $.notes.delete(noteId);
         if (sync) sendRemoveNote(noteId);

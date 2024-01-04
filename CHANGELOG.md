@@ -24,6 +24,7 @@ tech changes will usually be stripped from release notes for the public
     -   popout notes can be collapsed and freely resized
     -   popout notes are now markdown aware
     -   If the text area of a note is still in focus after 5 seconds and an edit was made, a server save is done
+    -   _see the release notes for all the changes_
 -   [tech] ModalStack now supports dynamically inserted modals
 
 ### Fixed

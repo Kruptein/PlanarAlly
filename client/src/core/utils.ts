@@ -94,3 +94,24 @@ export function callbackProvider(): {
         wait,
     };
 }
+
+async function sha1(source: string): Promise<string> {
+    const sourceBytes = new TextEncoder().encode(source);
+    const digest = await crypto.subtle.digest("SHA-1", sourceBytes);
+    const resultBytes = [...new Uint8Array(digest)];
+    return resultBytes.map((x) => x.toString(16).padStart(2, "0")).join("");
+}
+
+const wordMemory = new Map<string, string>();
+
+export async function word2color(word: string): Promise<string> {
+    const mem = wordMemory.get(word);
+    if (mem !== undefined) return mem;
+    const hash = await sha1(word);
+    const r = parseInt(hash.substring(0, 2), 16);
+    const g = parseInt(hash.substring(2, 4), 16);
+    const b = parseInt(hash.substring(4, 6), 16);
+    const rgb = `rgb(${r}, ${g}, ${b})`;
+    wordMemory.set(word, rgb);
+    return rgb;
+}

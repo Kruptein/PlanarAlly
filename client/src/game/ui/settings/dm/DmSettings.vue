@@ -3,6 +3,7 @@ import { type Component, computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
+import type { ModalIndex } from "../../../systems/modals/types";
 import { uiSystem } from "../../../systems/ui";
 import { uiState } from "../../../systems/ui/state";
 import FloorSettings from "../location/FloorSettings.vue";
@@ -12,6 +13,9 @@ import VisionSettings from "../location/VisionSettings.vue";
 
 import AdminSettings from "./AdminSettings.vue";
 import { DmSettingCategory } from "./categories";
+
+const emit = defineEmits<(e: "close" | "focus") => void>();
+defineProps<{ modalIndex: ModalIndex }>();
 
 const { t } = useI18n();
 
@@ -26,6 +30,7 @@ const visible = computed({
 
 function close(): void {
     visible.value = false;
+    emit("close");
 }
 defineExpose({ close });
 
@@ -39,7 +44,7 @@ const tabs: { name: string; component: Component; props: { global: true } }[] = 
 </script>
 
 <template>
-    <PanelModal v-model:visible="visible" :tabs="tabs">
+    <PanelModal v-model:visible="visible" :tabs="tabs" @focus="$emit('focus')" @close="close">
         <template #title>{{ t("game.ui.settings.dm.DmSettings.dm_settings") }}</template>
     </PanelModal>
 </template>

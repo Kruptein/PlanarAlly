@@ -1,6 +1,5 @@
 import type { Component, Raw } from "vue";
 
-import type { ApiNote } from "../../../apiTypes";
 import type { LocalId } from "../../id";
 import { ClientSettingCategory } from "../../ui/settings/client/categories";
 import { buildState } from "../state";
@@ -9,8 +8,6 @@ import type { ModTrackerSetting } from "./types";
 
 interface UiState {
     showUi: boolean;
-
-    activeNote: ApiNote;
 
     annotationText: string;
 
@@ -35,8 +32,6 @@ interface UiState {
 
 const state = buildState<UiState>({
     showUi: true,
-
-    activeNote: { title: "", text: "", uuid: "" },
 
     annotationText: "",
 

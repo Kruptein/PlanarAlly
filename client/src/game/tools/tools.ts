@@ -10,6 +10,7 @@ import { drawTool } from "./variants/draw";
 import { filterTool } from "./variants/filter";
 import { lastGameboardTool } from "./variants/lastGameboard";
 import { mapTool } from "./variants/map";
+import { noteTool } from "./variants/note";
 import { panTool } from "./variants/pan";
 import { pingTool } from "./variants/ping";
 import { rulerTool } from "./variants/ruler";
@@ -35,6 +36,7 @@ export const toolMap: Record<ToolName, ITool> = {
     [ToolName.Spell]: spellTool,
     [ToolName.LastGameboard]: lastGameboardTool,
     [ToolName.Dice]: diceTool,
+    [ToolName.Note]: noteTool,
 };
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).toolMap = toolMap;

@@ -112,7 +112,7 @@ export interface ApiAssetUpload {
   newDirectories: string[];
   slice: number;
   totalSlices: number;
-  data: string | ArrayBuffer;
+  data: string;
 }
 export interface ApiBaseRectShape extends ApiCoreShape {
   width: number;
@@ -153,7 +153,6 @@ export interface ApiCoreShape {
   vision_obstruction: VisionBlock;
   movement_obstruction: boolean;
   is_token: boolean;
-  annotation: string;
   draw_operator: string;
   options: string;
   badge: number;
@@ -168,7 +167,6 @@ export interface ApiCoreShape {
   stroke_width: number;
   asset: number | null;
   group: string | null;
-  annotation_visible: boolean;
   ignore_zoom_size: boolean;
   is_door: boolean;
   is_teleport_zone: boolean;
@@ -274,8 +272,36 @@ export interface ApiLocationUserOption {
 }
 export interface ApiNote {
   uuid: string;
+  creator: string;
   title: string;
   text: string;
+  tags: string[];
+  showOnHover: boolean;
+  showIconOnShape: boolean;
+  isRoomNote: boolean;
+  location: number | null;
+  access: ApiNoteAccess[];
+  shapes: GlobalId[];
+}
+export interface ApiNoteAccess {
+  name: string;
+  can_edit: boolean;
+  can_view: boolean;
+}
+export interface ApiNoteAccessEdit extends ApiNoteAccess {
+  note: string;
+}
+export interface ApiNoteSetBoolean {
+  uuid: string;
+  value: boolean;
+}
+export interface ApiNoteSetString {
+  uuid: string;
+  value: string;
+}
+export interface ApiNoteShape {
+  note_id: string;
+  shape_id: GlobalId;
 }
 export interface ApiOptionalAura {
   uuid: AuraId;

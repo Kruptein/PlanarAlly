@@ -1,13 +1,41 @@
-import type { ApiNote } from "../../../apiTypes";
+import type { LocalId } from "../../id";
 import { buildState } from "../state";
 
-interface NoteState {
-    notes: ApiNote[];
+import { type ClientNote, NoteManagerMode } from "./types";
+
+interface ReactiveNoteState {
+    // manager UI
+    managerOpen: boolean;
+    managerMode: NoteManagerMode;
+    currentNote: string | undefined;
+
+    shapeFilter: LocalId | undefined;
+
+    notes: Map<string, ClientNote>;
+    shapeNotes: Map<LocalId, string[]>;
 }
 
-const state = buildState<NoteState>({
-    notes: [],
-});
+interface NonReactiveNoteState {
+    syncTimeouts: Map<string, number>;
+    iconShapes: Map<string, LocalId[]>;
+}
+
+const state = buildState<ReactiveNoteState, NonReactiveNoteState>(
+    {
+        managerOpen: false,
+        managerMode: NoteManagerMode.List,
+        currentNote: undefined,
+
+        shapeFilter: undefined,
+
+        notes: new Map(),
+        shapeNotes: new Map(),
+    },
+    {
+        iconShapes: new Map(),
+        syncTimeouts: new Map(),
+    },
+);
 
 export const noteState = {
     ...state,

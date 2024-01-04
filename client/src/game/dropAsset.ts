@@ -17,6 +17,7 @@ import { Asset } from "./shapes/variants/asset";
 import type { CharacterId } from "./systems/characters/models";
 import { characterState } from "./systems/characters/state";
 import { floorState } from "./systems/floors/state";
+import { noteSystem } from "./systems/notes";
 import { DEFAULT_GRID_SIZE } from "./systems/position/state";
 import { locationSettingsState } from "./systems/settings/location/state";
 import { selectionBoxFunction } from "./temp";
@@ -88,7 +89,7 @@ export async function dropAsset(
 ): Promise<Asset | undefined> {
     const layer = floorState.currentLayer.value!;
 
-    let options: BaseTemplate | undefined;
+    let template: BaseTemplate | undefined;
     if (data.assetId) {
         const assetInfo = await requestAssetOptions(data.assetId);
         if (assetInfo.success) {
@@ -97,7 +98,7 @@ export async function dropAsset(
             if (dimensions?.groups !== undefined) {
                 const dimX = Number.parseInt(dimensions.groups.x ?? "0");
                 const dimY = Number.parseInt(dimensions.groups.y ?? "0");
-                options = {
+                template = {
                     width: dimX * DEFAULT_GRID_SIZE,
                     height: dimY * DEFAULT_GRID_SIZE,
                 } as BaseTemplate;
@@ -111,7 +112,7 @@ export async function dropAsset(
                         choices,
                     );
                     if (choice === undefined || choice.length === 0) return;
-                    options = assetInfo.options!.templates[choice[0]!];
+                    template = assetInfo.options!.templates[choice[0]!];
                 } catch {
                     // no-op ; action cancelled
                 }
@@ -136,8 +137,8 @@ export async function dropAsset(
 
             asset.setLayer(layer.floor, layer.name); // set this early to avoid conflicts
 
-            if (options) {
-                asset.fromDict(applyTemplate(asset.asDict(), options));
+            if (template) {
+                asset.fromDict(applyTemplate(asset.asDict(), template));
             }
 
             if (locationSettingsState.raw.useGrid.value) {
@@ -145,6 +146,10 @@ export async function dropAsset(
             }
 
             layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
+
+            for (const noteId of asset.options?.templateNoteIds ?? []) {
+                noteSystem.attachShape(noteId, asset.id, true);
+            }
 
             resolve(asset);
         };

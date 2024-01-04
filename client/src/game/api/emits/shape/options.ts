@@ -15,8 +15,6 @@ export const sendShapeSetBlocksVision = wrapSocket<ShapeSetIntegerValue>("Shape.
 export const sendShapeSetNameVisible = wrapSocket<ShapeSetBooleanValue>("Shape.Options.NameVisible.Set");
 export const sendShapeSetShowBadge = wrapSocket<ShapeSetBooleanValue>("Shape.Options.ShowBadge.Set");
 
-export const sendShapeSetAnnotation = wrapSocket<ShapeSetStringValue>("Shape.Options.Annotation.Set");
-export const sendShapeSetAnnotationVisible = wrapSocket<ShapeSetBooleanValue>("Shape.Options.AnnotationVisible.Set");
 export const sendShapeSetName = wrapSocket<ShapeSetStringValue>("Shape.Options.Name.Set");
 export const sendShapeSetStrokeColour = wrapSocket<ShapeSetStringValue>("Shape.Options.StrokeColour.Set");
 export const sendShapeSetFillColour = wrapSocket<ShapeSetStringValue>("Shape.Options.FillColour.Set");

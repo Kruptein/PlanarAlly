@@ -72,6 +72,10 @@ export class Vector {
         this.y = y;
     }
 
+    static fromPoint(p: Point): Vector {
+        return new Vector(p.x, p.y);
+    }
+
     static fromPoints(p1: Point, p2: Point): Vector {
         return new Vector(p2.x - p1.x, p2.y - p1.y);
     }

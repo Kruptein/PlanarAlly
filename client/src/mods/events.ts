@@ -1,5 +1,6 @@
+import type { DistributiveOmit } from "../core/types";
 import { createDataBlock, getDataBlock, getOrLoadDataBlock, loadDataBlock } from "../game/dataBlock";
-import type { DBR, DataBlockSerializer, DbRepr, DistributiveOmit } from "../game/dataBlock/models";
+import type { DBR, DataBlockSerializer, DbRepr } from "../game/dataBlock/models";
 import { getGlobalId, getShape } from "../game/id";
 import { SYSTEMS, SYSTEMS_STATE } from "../game/systems";
 import { registerTab, registerTrackerSettings } from "../game/systems/ui/mods";

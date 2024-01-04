@@ -6,7 +6,7 @@ import { addP, cloneP, equalsP, subtractP, toArrayP, toGP, Vector } from "../../
 import type { GlobalPoint } from "../../core/geometry";
 import { rotateAroundPoint } from "../../core/math";
 import { mostReadable } from "../../core/utils";
-import { generateLocalId, getGlobalId } from "../id";
+import { generateLocalId, getGlobalId, getShape } from "../id";
 import type { GlobalId, LocalId } from "../id";
 import type { ILayer } from "../interfaces/layer";
 import type { IShape } from "../interfaces/shape";
@@ -15,8 +15,6 @@ import type { Floor, FloorId } from "../models/floor";
 import type { ServerShapeOptions, ShapeOptions } from "../models/shapes";
 import { accessSystem } from "../systems/access";
 import { ownerToClient, ownerToServer } from "../systems/access/helpers";
-import { annotationSystem } from "../systems/annotations";
-import { annotationState } from "../systems/annotations/state";
 import { auraSystem } from "../systems/auras";
 import { aurasFromServer, aurasToServer } from "../systems/auras/conversion";
 import { characterSystem } from "../systems/characters";
@@ -106,6 +104,8 @@ export abstract class Shape implements IShape {
     // but not behind them (e.g. reveal a tree trunk, but block what's behind it)
     _lightBlockingNeighbours: LocalId[] = [];
 
+    _parentId?: LocalId;
+
     constructor(
         refPoint: GlobalPoint,
         options?: {
@@ -114,6 +114,7 @@ export abstract class Shape implements IShape {
             assetId?: number;
             strokeWidth?: number;
             isSnappable?: boolean;
+            parentId?: LocalId;
         },
         properties?: Partial<ShapeProperties>,
     ) {
@@ -122,6 +123,7 @@ export abstract class Shape implements IShape {
         this.assetId = options?.assetId;
         this.strokeWidth = options?.strokeWidth ?? 5;
         this.isSnappable = options?.isSnappable ?? true;
+        this._parentId = options?.parentId;
 
         propertiesSystem.inform(this.id, properties);
     }
@@ -225,8 +227,16 @@ export abstract class Shape implements IShape {
     }
 
     get refPoint(): GlobalPoint {
-        return cloneP(this._refPoint);
+        let p = cloneP(this._refPoint);
+        if (this._parentId !== undefined) {
+            const sh = getShape(this._parentId);
+            if (sh !== undefined) {
+                p = addP(p, Vector.fromPoint(sh.refPoint));
+            }
+        }
+        return p;
     }
+
     set refPoint(point: GlobalPoint) {
         this._refPoint = point;
         this._center = this.__center();
@@ -548,7 +558,6 @@ export abstract class Shape implements IShape {
     getBaseDict(): ApiCoreShape {
         const defaultAccess = accessSystem.getDefault(this.id);
         const props = getProperties(this.id)!;
-        const annotationInfo = annotationState.get(this.id);
         const uuid = getGlobalId(this.id)!;
         return {
             type_: this.type,
@@ -568,8 +577,6 @@ export abstract class Shape implements IShape {
             stroke_width: this.strokeWidth,
             name: props.name,
             name_visible: props.nameVisible,
-            annotation: annotationInfo.annotation,
-            annotation_visible: annotationInfo.annotationVisible,
             is_token: props.isToken,
             is_invisible: props.isInvisible,
             is_defeated: props.isDefeated,
@@ -610,8 +617,6 @@ export abstract class Shape implements IShape {
             showBadge: data.show_badge,
             isLocked: data.is_locked,
         });
-
-        annotationSystem.inform(this.id, { annotation: data.annotation, annotationVisible: data.annotation_visible });
 
         const defaultAccess = {
             edit: data.default_edit_access,

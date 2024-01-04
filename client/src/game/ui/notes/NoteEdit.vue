@@ -287,9 +287,12 @@ function removeShape(shape: LocalId): void {
         </div>
         <div v-else-if="activeTab === TabLabel.Shapes" id="note-shapes" class="tab-container">
             <div>
-                This note is linked to {{ note.shapes.length }} {{ `shape${note.shapes.length !== 1 ? "s" : ""}` }};
-                {{ localShapenotes.length }} of those {{ localShapenotes.length !== 1 ? "are" : "is" }} used in this
-                location
+                <span>
+                    This note is linked to {{ note.shapes.length }} {{ `shape${note.shapes.length !== 1 ? "s" : ""}` }};
+                    {{ localShapenotes.length }} of those {{ localShapenotes.length !== 1 ? "are" : "is" }} used in this
+                    location
+                </span>
+                &nbsp;
                 <span v-if="localShapenotes.length > 0">
                     and {{ localShapenotes.length !== 1 ? "are" : "is" }} listed below.
                 </span>

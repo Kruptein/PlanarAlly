@@ -475,6 +475,7 @@ def upgrade(db: SqliteExtDatabase, version: int):
                 for template in templates.values():
                     if template.get("annotation", "") == "":
                         continue
+
                     note_id = str(uuid4())
                     asset_id_to_note_id[asset_id] = note_id
                     db.execute_sql(
@@ -488,6 +489,8 @@ def upgrade(db: SqliteExtDatabase, version: int):
                         ),
                     )
 
+                    del template["annotation"]
+
                     # Grant default view access if the annotation was public
                     if template.get("annotation_visible", False):
                         db.execute_sql(
@@ -495,8 +498,8 @@ def upgrade(db: SqliteExtDatabase, version: int):
                             (note_id, 0, 1),
                         )
 
-                    del template["annotation"]
-                    del template["annotation_visible"]
+                    if "annotation_visible" in template:
+                        del template["annotation_visible"]
 
                     options = json.loads(template.get("options", "[]"))
                     options.append(["templateNoteIds", [note_id]])
@@ -508,7 +511,7 @@ def upgrade(db: SqliteExtDatabase, version: int):
 
             # Move all annotation to notes
             data = db.execute_sql(
-                "SELECT s.uuid, s.name, s.annotation, s.annotation_visible, s.asset_id, l2.id, r.id, u.id FROM shape s INNER JOIN layer l ON s.layer_id = l.id INNER JOIN floor f ON f.id = l.floor_id INNER JOIN location l2 ON l2.id = f.location_id INNER JOIN room r ON r.id = l2.room_id INNER JOIN user u ON u.id = r.creator_id WHERE s.annotation != ''"
+                "SELECT s.uuid, s.name, s.annotation, s.annotation_visible, s.asset_id, s.character_id, l2.id, r.id, u.id FROM shape s LEFT OUTER JOIN layer l ON s.layer_id = l.id LEFT OUTER JOIN floor f ON f.id = l.floor_id LEFT OUTER JOIN location l2 ON l2.id = f.location_id LEFT OUTER JOIN room r ON r.id = l2.room_id LEFT OUTER JOIN user u ON u.id = r.creator_id WHERE s.annotation != ''"
             )
             shape_to_note_ids = {}
             for (
@@ -517,13 +520,14 @@ def upgrade(db: SqliteExtDatabase, version: int):
                 annotation,
                 annotation_visible,
                 asset_id,
+                character_id,
                 location_id,
                 room_id,
                 creator_id,
             ) in data.fetchall():
                 if asset_id is not None and asset_id in asset_id_to_note_id:
                     note_id = asset_id_to_note_id[asset_id]
-                else:
+                elif location_id is not None:
                     note_id = str(uuid4())
                     db.execute_sql(
                         'INSERT INTO "note" ("uuid", "creator_id", "title", "text", "room_id", "location_id") VALUES (?, ?, ?, ?, ?, ?)',
@@ -542,6 +546,42 @@ def upgrade(db: SqliteExtDatabase, version: int):
                             'INSERT INTO "note_access" ("note_id", "can_edit", "can_view") VALUES (?, ?, ?)',
                             (note_id, 0, 1),
                         )
+                elif character_id is not None:
+                    # The shape no longer has a layer associated, we do have a character to figure out who the owner is!
+                    data = db.execute_sql(
+                        "SELECT owner_id, asset_id FROM character WHERE id=?",
+                        (character_id,),
+                    )
+                    results = data.fetchone()
+                    if results is None:
+                        continue
+
+                    owner_id, asset_id = results[0]
+                    if asset_id is not None and asset_id in asset_id_to_note_id:
+                        note_id = asset_id_to_note_id[asset_id]
+                    else:
+                        note_id = str(uuid4())
+
+                    db.execute_sql(
+                        'INSERT INTO "note" ("uuid", "creator_id", "title", "text") VALUES (?, ?, ?, ?)',
+                        (
+                            note_id,
+                            owner_id,
+                            name or "?",
+                            annotation,
+                        ),
+                    )
+                    # Grant default view access if the annotation was public
+                    if annotation_visible:
+                        db.execute_sql(
+                            'INSERT INTO "note_access" ("note_id", "can_edit", "can_view") VALUES (?, ?, ?)',
+                            (note_id, 0, 1),
+                        )
+                else:
+                    # The shape has no layer info and is not a character, we have no clue on who the note belongs to
+                    # These shapes are probably no longer valid anyway
+                    # In theory shape.owners should have info, but in the cases checked, this was empty
+                    continue
                 shape_to_note_ids[shape_uuid] = note_id
                 # Attach shape to note
                 db.execute_sql(
@@ -553,7 +593,10 @@ def upgrade(db: SqliteExtDatabase, version: int):
                 "SELECT so.user_id, so.shape_id FROM shape_owner so INNER JOIN shape s ON s.uuid = so.shape_id WHERE s.annotation != '' AND so.edit_access = 1"
             )
             for user_id, shape_id in data.fetchall():
-                note_id = shape_to_note_ids[shape_id]
+                try:
+                    note_id = shape_to_note_ids[shape_id]
+                except KeyError:
+                    continue
                 db.execute_sql(
                     'INSERT INTO "note_access" ("note_id", "user_id", "can_edit", "can_view") VALUES (?, ?, ?, ?)',
                     (note_id, user_id, 1, 1),

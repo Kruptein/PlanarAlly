@@ -556,7 +556,7 @@ def upgrade(db: SqliteExtDatabase, version: int):
                     if results is None:
                         continue
 
-                    owner_id, asset_id = results[0]
+                    (owner_id, asset_id) = results
                     if asset_id is not None and asset_id in asset_id_to_note_id:
                         note_id = asset_id_to_note_id[asset_id]
                     else:

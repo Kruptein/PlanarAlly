@@ -38,7 +38,8 @@ export function applyTemplate<T extends ApiShape>(shape: T, template: BaseTempla
         shape.auras.push({ ...defaultAura, ...auraTemplate });
     }
 
-    const gridRescale = 5 / locationSettingsState.raw.unitSize.value;
+    // This also handles dropAsset rescaling
+    const gridRescale = locationSettingsState.raw.dropRatio.value;
 
     // Shape specific keys
     for (const key of getTemplateKeys(shape.type_ as SHAPE_TYPE)) {

@@ -98,6 +98,7 @@ export async function dropAsset(
             if (dimensions?.groups !== undefined) {
                 const dimX = Number.parseInt(dimensions.groups.x ?? "0");
                 const dimY = Number.parseInt(dimensions.groups.y ?? "0");
+                // DropRatio is already accounted for in applyTemplate!!
                 template = {
                     width: dimX * DEFAULT_GRID_SIZE,
                     height: dimY * DEFAULT_GRID_SIZE,

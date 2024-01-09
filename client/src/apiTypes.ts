@@ -769,6 +769,7 @@ export interface ApiOptionalLocationOptions {
   ground_map_background?: string | null;
   underground_map_background?: string | null;
   limit_movement_during_initiative?: boolean | null;
+  drop_ratio?: number | null;
 }
 export interface ApiLocationCore {
   id: number;
@@ -792,6 +793,7 @@ export interface ApiLocationOptions {
   ground_map_background: string;
   underground_map_background: string;
   limit_movement_during_initiative: boolean;
+  drop_ratio: number;
 }
 export interface ApiSpawnInfo {
   position: PositionTuple;

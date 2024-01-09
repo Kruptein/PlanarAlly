@@ -64,6 +64,7 @@ class LocationOptionKeys(TypedDict, total=False):
     vision_min_range: float
     vision_max_range: float
     spawn_locations: str
+    drop_ratio: float
 
 
 @sio.on("Location.Load", namespace=GAME_NS)

@@ -10,6 +10,13 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Added
+
+-   New location grid setting: drop ratio
+    -   This is used to indicate how shapes with size info dropped on the map should be resized
+    -   (e.g. a goblin_2x2 will take op 2x2 cells in any setup with dropRatio 1, with dropRatio 0.5 however it would only take up 1x1)
+    -   This addresses an issue where this was not properly working with non ft setups
+
 ### Changed
 
 -   Vision blocking shapes will now ignore themselves if they are closed

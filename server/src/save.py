@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 89
+SAVE_VERSION = 90
 
 import json
 import logging
@@ -611,6 +611,15 @@ def upgrade(db: SqliteExtDatabase, version: int):
                 'INSERT INTO "shape" ("uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "is_token", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "ignore_zoom_size", "is_defeated", "is_door", "is_teleport_zone", "character_id") SELECT "uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "is_token", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "ignore_zoom_size", "is_defeated", "is_door", "is_teleport_zone", "character_id" FROM _shape_88'
             )
             db.execute_sql("DROP TABLE _shape_88")
+    elif version == 89:
+        # Add LocationOptions.drop_ratio
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE location_options ADD COLUMN drop_ratio REAL DEFAULT 1"
+            )
+            db.execute_sql(
+                "UPDATE location_options SET drop_ratio = NULL WHERE id NOT IN (SELECT default_options_id FROM room)"
+            )
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

@@ -95,6 +95,12 @@ class LocationSettingsSystem implements System {
         if (sync) sendLocationOption("unit_size_unit", unitSizeUnit, location);
     }
 
+    setDropRatio(dropRatio: number | undefined, location: number | undefined, sync: boolean): void {
+        if (!this.setValue($.dropRatio, dropRatio, location)) return;
+
+        if (sync) sendLocationOption("drop_ratio", dropRatio, location);
+    }
+
     // VISION
 
     setFullFow(fullFow: boolean | undefined, location: number | undefined, sync: boolean): void {

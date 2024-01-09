@@ -21,6 +21,7 @@ class ApiLocationOptions(BaseModel):
     ground_map_background: str
     underground_map_background: str
     limit_movement_during_initiative: bool
+    drop_ratio: float
 
 
 class ApiOptionalLocationOptions(TypeIdModel):
@@ -41,6 +42,7 @@ class ApiOptionalLocationOptions(TypeIdModel):
     ground_map_background: str | None = Field(default=None, noneAsNull=True)
     underground_map_background: str | None = Field(default=None, noneAsNull=True)
     limit_movement_during_initiative: bool | None = Field(default=None, noneAsNull=True)
+    drop_ratio: float | None = Field(default=None, noneAsNull=True)
 
 
 class LocationSettingsSet(BaseModel):

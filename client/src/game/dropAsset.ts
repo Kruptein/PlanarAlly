@@ -10,6 +10,7 @@ import { i18n } from "../i18n";
 import { requestAssetOptions } from "./api/emits/asset";
 import { sendShapesMove } from "./api/emits/shape/core";
 import { getLocalId, getShape } from "./id";
+import { compositeState } from "./layers/state";
 import type { BaseTemplate } from "./models/templates";
 import { moveShapes } from "./operations/movement";
 import { applyTemplate } from "./shapes/templates";
@@ -63,21 +64,33 @@ async function dropHelper(
             throw new Error("Unknown character ID encountered");
         }
         const shapeId = getLocalId(character.shapeId, false);
+
         if (shapeId !== undefined) {
-            const shape = getShape(shapeId)!;
-            await moveShapes([shape], Vector.fromPoints(shape.center, location), false);
-        } else {
-            sendShapesMove({
-                shapes: [character.shapeId],
-                target: {
-                    layer: floorState.currentLayer.value!.name,
-                    floor: floorState.currentFloor.value!.name,
-                    location: locationSettingsState.raw.activeLocation,
-                    x: location.x,
-                    y: location.y,
-                },
-            });
+            let shape = getShape(shapeId);
+            // bunch of fuckery to patch toggle composites
+            if (shape !== undefined) {
+                const compositeParent = compositeState.getCompositeParent(shapeId);
+                if (compositeParent !== undefined) {
+                    shape = getShape(compositeParent.activeVariant);
+                }
+            }
+            if (shape !== undefined && shape.options?.skipDraw !== true) {
+                await moveShapes([shape], Vector.fromPoints(shape.center, location), false);
+                return;
+            }
         }
+
+        sendShapesMove({
+            shapes: [character.shapeId],
+            target: {
+                layer: floorState.currentLayer.value!.name,
+                floor: floorState.currentFloor.value!.name,
+                location: locationSettingsState.raw.activeLocation,
+                x: location.x,
+                y: location.y,
+            },
+        });
+
         return;
     }
     await dropAsset({ assetId: assetInfo.assetId, imageSource: `/static/assets/${assetInfo.assetHash}` }, location);

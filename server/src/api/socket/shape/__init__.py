@@ -197,7 +197,21 @@ async def remove_shapes(sid: str, raw_data: Any):
             if shape.group:
                 group_ids.add(shape.group)
 
-            if shape.character_id is None:
+            is_char_related = shape.character_id is not None
+            # ToggleComposite patches
+            if not is_char_related:
+                parent = None
+                if shape.composite_parent:
+                    parent = shape.composite_parent[0].parent
+                elif shape.type_ == "togglecomposite":
+                    parent = shape
+                if parent:
+                    for csa in parent.shape_variants:
+                        if csa.variant.character_id is not None:
+                            is_char_related = True
+                            break
+
+            if not is_char_related:
                 file_hash_to_clean = None
                 if shape.type_ == "assetrect":
                     rect = cast(AssetRect, shape.subtype)
@@ -396,6 +410,12 @@ async def move_shapes(sid: str, raw_data: Any):
     shapes = []
     old_floor = None
     for shape in _get_shapes_from_uuids(data.shapes, False):
+        # toggle composite patch
+        parent = None
+        if shape.composite_parent:
+            parent = shape.composite_parent[0].parent
+            shape = Shape.get_by_id(parent.subtype.active_variant)
+
         layer = target_layer
         if shape.layer:
             if old_floor is None:
@@ -404,7 +424,15 @@ async def move_shapes(sid: str, raw_data: Any):
         elif layer is None:
             logger.warn("Attempt to move a shape without layer info")
             continue
+
         shapes.append((shape, layer))
+
+        if parent:
+            shapes.append((parent, layer))
+            for csa in parent.shape_variants:
+                variant = csa.variant
+                if variant != shape:
+                    shapes.append((variant, layer))
 
     if old_floor:
         await send_remove_shapes(

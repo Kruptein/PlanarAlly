@@ -54,6 +54,10 @@ export class ToggleComposite extends Shape implements IToggleComposite {
         return this._variants;
     }
 
+    get activeVariant(): LocalId {
+        return this.active_variant;
+    }
+
     addVariant(id: LocalId, name: string, sync: boolean): void {
         const variant = { id, name };
         this._variants.push(variant);

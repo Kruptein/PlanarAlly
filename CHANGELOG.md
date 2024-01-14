@@ -39,6 +39,7 @@ tech changes will usually be stripped from release notes for the public
 -   Polygon edit UI: was not taking rotation of shape into account
 -   Teleport: shapes would not be removed on the old location until a refresh
 -   Dice tool: would not send zero results when dice list is empty
+-   Character: a collection of bugs with variants have been fixed
 -   [server] log spam of "unknown" shape when temporary shapes are moved
 
 ## [2023.3.0] - 2023-09-17

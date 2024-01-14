@@ -10,4 +10,3 @@ class CompositeShapeAssociation(BaseDbModel):
     variant = ForeignKeyField(Shape, backref="composite_parent", on_delete="CASCADE")
     parent = ForeignKeyField(Shape, backref="shape_variants", on_delete="CASCADE")
     name = cast(str, TextField())
-    name = cast(str, TextField())

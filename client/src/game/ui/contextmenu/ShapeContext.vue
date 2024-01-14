@@ -23,7 +23,6 @@ import { toTemplate } from "../../shapes/templates";
 import { deleteShapes } from "../../shapes/utils";
 import { accessSystem } from "../../systems/access";
 import { sendCreateCharacter } from "../../systems/characters/emits";
-import { characterState } from "../../systems/characters/state";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { gameState } from "../../systems/game/state";
@@ -306,7 +305,16 @@ async function saveTemplate(): Promise<void> {
 }
 
 // CHARACTER
-const hasCharacter = computed(() => characterState.reactive.activeCharacterId !== undefined);
+const canHaveCharacter = computed(() => {
+    const selection = selectedState.reactive.selected;
+    if (selection.size !== 1) return false;
+    const shapeId = [...selection][0]!;
+    const compParent = compositeState.getCompositeParent(shapeId);
+    if (compParent?.variants.some((v) => getShape(v.id)?.character !== undefined) ?? false) return false;
+    const shape = getShape(shapeId);
+    if (shape?.assetId === undefined) return false;
+    return true;
+});
 
 function createCharacter(): void {
     close();
@@ -469,7 +477,7 @@ const floors = toRef(floorState.reactive, "floors");
             <li v-if="!selectionIncludesSpawnToken && gameState.reactive.isDm && canBeSaved" @click="saveTemplate">
                 {{ t("game.ui.templates.save") }}
             </li>
-            <li v-if="isOwned && !hasCharacter" @click="createCharacter">Create character</li>
+            <li v-if="isOwned && canHaveCharacter" @click="createCharacter">Create character</li>
         </template>
         <template v-else>
             <li>

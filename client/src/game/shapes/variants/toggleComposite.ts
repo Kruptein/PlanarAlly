@@ -219,7 +219,12 @@ export class ToggleComposite extends Shape implements IToggleComposite {
     }
 
     __center(): GlobalPoint {
-        return getShape(this.active_variant)!.center;
+        try {
+            return getShape(this.active_variant)!.center;
+        } catch (e) {
+            console.error(e);
+            return this.refPoint;
+        }
     }
 
     get center(): GlobalPoint {

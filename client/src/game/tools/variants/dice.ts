@@ -24,7 +24,7 @@ class DiceTool extends Tool implements ITool {
     state = reactive<{
         shareWithAll: boolean;
         autoRoll: boolean;
-        history: { roll: string; result: number; player: string }[];
+        history: { roll: string; result: string; player: string }[];
         timeouts: Record<string, number>;
     }>({
         shareWithAll: false,

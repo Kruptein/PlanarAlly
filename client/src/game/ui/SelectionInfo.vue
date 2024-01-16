@@ -2,12 +2,13 @@
 import { computed, ref, type DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { SERVER_SYNC } from "../../core/models/types";
+import RotationSlider from "../../core/components/RotationSlider.vue";
+import { NO_SYNC, SERVER_SYNC } from "../../core/models/types";
 import { activeShapeStore } from "../../store/activeShape";
 import { getShape } from "../id";
 import { accessState } from "../systems/access/state";
 import { auraSystem } from "../systems/auras";
-import type { Aura, AuraId } from "../systems/auras/models";
+import type { Aura, AuraId, UiAura } from "../systems/auras/models";
 import { noteState } from "../systems/notes/state";
 import { type ClientNote, NoteManagerMode } from "../systems/notes/types";
 import { editNote, openNoteManager, popoutNote } from "../systems/notes/ui";
@@ -69,6 +70,15 @@ function setValue(data: { solution: number; relativeMode: boolean }): void {
     }
 }
 
+function updateAura(aura: DeepReadonly<UiAura>, delta: Partial<Aura>, syncTo = true): void {
+    if (delta.value !== undefined && (isNaN(delta.value) || delta.value < 0)) delta.value = 0;
+    if (delta.dim !== undefined && (isNaN(delta.dim) || delta.dim < 0)) delta.dim = 0;
+    if (aura.temporary) {
+        auraSystem.add(aura.shape, { ...aura }, SERVER_SYNC);
+    }
+    auraSystem.update(aura.shape, aura.uuid, delta, syncTo ? SERVER_SYNC : NO_SYNC);
+}
+
 // NOTES
 
 const expandNotes = ref(false);
@@ -124,14 +134,23 @@ function annotate(note: DeepReadonly<ClientNote>): void {
                         <template v-for="aura in auras" :key="aura.uuid">
                             <div>{{ aura.name }}</div>
                             <div
-                                class="selection-tracker-value"
+                                class="selection-aura-value"
                                 :title="t('game.ui.selection.SelectionInfo.quick_edit_aura')"
-                                @click="changeValue(aura)"
                             >
-                                <template v-if="aura.dim === 0">
-                                    {{ aura.value }}
+                                <button
+                                    class="slider-checkbox"
+                                    :aria-pressed="aura.active"
+                                    @click="updateAura(aura, { active: !aura.active })"
+                                />
+                                <template v-if="(aura.angle < 360)">
+                                    <RotationSlider
+                                        :angle="aura.direction"
+                                        :show-number-input="false"
+                                        :disabled="!accessState.hasEditAccess.value"
+                                        @input="(direction) => updateAura(aura, { direction }, false)"
+                                        @change="(direction) => updateAura(aura, { direction })"
+                                    />
                                 </template>
-                                <template v-else>{{ aura.value }} / {{ aura.dim }}</template>
                             </div>
                         </template>
                     </div>
@@ -217,6 +236,7 @@ function annotate(note: DeepReadonly<ClientNote>): void {
         #selection-values {
             display: grid;
             grid-template-columns: [name] 1fr [value] max-content;
+            grid-row-gap: 5px;
 
             .selection-tracker-value {
                 justify-self: center;
@@ -228,7 +248,19 @@ function annotate(note: DeepReadonly<ClientNote>): void {
                 }
             }
 
+            .selection-aura-value {
+                display: flex;
+                flex-direction: row;
+                gap: 10px;
+                justify-self: center;
+                padding: 2px;
+            }
+
             &.noAccess .selection-tracker-value:hover {
+                cursor: not-allowed;
+            }
+
+            &.noAccess .selection-aura-value:hover {
                 cursor: not-allowed;
             }
         }

@@ -2,6 +2,7 @@
 import { computed, ref, type DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
 
+import RotationSlider from "../../core/components/RotationSlider.vue";
 import { SERVER_SYNC } from "../../core/models/types";
 import { activeShapeStore } from "../../store/activeShape";
 import { getShape } from "../id";
@@ -124,14 +125,23 @@ function annotate(note: DeepReadonly<ClientNote>): void {
                         <template v-for="aura in auras" :key="aura.uuid">
                             <div>{{ aura.name }}</div>
                             <div
-                                class="selection-tracker-value"
+                                class="selection-aura-value"
                                 :title="t('game.ui.selection.SelectionInfo.quick_edit_aura')"
-                                @click="changeValue(aura)"
                             >
-                                <template v-if="aura.dim === 0">
-                                    {{ aura.value }}
+                                <button
+                                    class="slider-checkbox"
+                                    :aria-pressed="aura.active"
+                                    @click="auraSystem.update(aura.shape, aura.uuid, { active: !aura.active }, SERVER_SYNC)"
+                                />
+                                <template v-if="(aura.angle < 360)">
+                                    <RotationSlider
+                                        :angle="aura.direction"
+                                        :show-number-input="false"
+                                        :disabled="!accessState.hasEditAccess.value"
+                                        @input="(direction) => auraSystem.update(aura.shape, aura.uuid, { direction }, SERVER_SYNC)"
+                                        @change="(direction) => auraSystem.update(aura.shape, aura.uuid, { direction }, SERVER_SYNC)"
+                                    />
                                 </template>
-                                <template v-else>{{ aura.value }} / {{ aura.dim }}</template>
                             </div>
                         </template>
                     </div>
@@ -217,6 +227,7 @@ function annotate(note: DeepReadonly<ClientNote>): void {
         #selection-values {
             display: grid;
             grid-template-columns: [name] 1fr [value] max-content;
+            grid-row-gap: 5px;
 
             .selection-tracker-value {
                 justify-self: center;
@@ -228,7 +239,19 @@ function annotate(note: DeepReadonly<ClientNote>): void {
                 }
             }
 
+            .selection-aura-value {
+                display: flex;
+                flex-direction: row;
+                gap: 10px;
+                justify-self: center;
+                padding: 2px;
+            }
+
             &.noAccess .selection-tracker-value:hover {
+                cursor: not-allowed;
+            }
+
+            &.noAccess .selection-aura-value:hover {
                 cursor: not-allowed;
             }
         }

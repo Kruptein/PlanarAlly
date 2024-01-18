@@ -3,12 +3,12 @@ import { computed, ref, type DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
 
 import RotationSlider from "../../core/components/RotationSlider.vue";
-import { NO_SYNC, SERVER_SYNC } from "../../core/models/types";
+import { SERVER_SYNC } from "../../core/models/types";
 import { activeShapeStore } from "../../store/activeShape";
 import { getShape } from "../id";
 import { accessState } from "../systems/access/state";
 import { auraSystem } from "../systems/auras";
-import type { Aura, AuraId, UiAura } from "../systems/auras/models";
+import type { Aura, AuraId } from "../systems/auras/models";
 import { noteState } from "../systems/notes/state";
 import { type ClientNote, NoteManagerMode } from "../systems/notes/types";
 import { editNote, openNoteManager, popoutNote } from "../systems/notes/ui";
@@ -68,15 +68,6 @@ function setValue(data: { solution: number; relativeMode: boolean }): void {
         const sh = getShape(shapeId)!;
         sh.invalidate(false);
     }
-}
-
-function updateAura(aura: DeepReadonly<UiAura>, delta: Partial<Aura>, syncTo = true): void {
-    if (delta.value !== undefined && (isNaN(delta.value) || delta.value < 0)) delta.value = 0;
-    if (delta.dim !== undefined && (isNaN(delta.dim) || delta.dim < 0)) delta.dim = 0;
-    if (aura.temporary) {
-        auraSystem.add(aura.shape, { ...aura }, SERVER_SYNC);
-    }
-    auraSystem.update(aura.shape, aura.uuid, delta, syncTo ? SERVER_SYNC : NO_SYNC);
 }
 
 // NOTES
@@ -140,15 +131,15 @@ function annotate(note: DeepReadonly<ClientNote>): void {
                                 <button
                                     class="slider-checkbox"
                                     :aria-pressed="aura.active"
-                                    @click="updateAura(aura, { active: !aura.active })"
+                                    @click="auraSystem.update(aura.shape, aura.uuid, { active: !aura.active }, SERVER_SYNC)"
                                 />
                                 <template v-if="(aura.angle < 360)">
                                     <RotationSlider
                                         :angle="aura.direction"
                                         :show-number-input="false"
                                         :disabled="!accessState.hasEditAccess.value"
-                                        @input="(direction) => updateAura(aura, { direction }, false)"
-                                        @change="(direction) => updateAura(aura, { direction })"
+                                        @input="(direction) => auraSystem.update(aura.shape, aura.uuid, { direction }, SERVER_SYNC)"
+                                        @change="(direction) => auraSystem.update(aura.shape, aura.uuid, { direction }, SERVER_SYNC)"
                                     />
                                 </template>
                             </div>

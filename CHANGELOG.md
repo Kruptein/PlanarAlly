@@ -33,7 +33,7 @@ tech changes will usually be stripped from release notes for the public
     -   If the text area of a note is still in focus after 5 seconds and an edit was made, a server save is done
     -   _see the release notes for all the changes_
 -   Dice history now contains user and details
--   Selection Info: quick edition of auras is now aura switch and rotation slider
+-   Selection Info: auras are now toggle and rotation sliders instead of range modifiers
 -   [tech] ModalStack now supports dynamically inserted modals
 
 ### Fixed
@@ -42,8 +42,9 @@ tech changes will usually be stripped from release notes for the public
 -   Teleport: shapes would not be removed on the old location until a refresh
 -   Dice tool: would not send zero results when dice list is empty
 -   Character: a collection of bugs with variants have been fixed
+-   Trackers: add max-height and scrolling
+-   RotationSlider: fix sync issues
 -   [server] log spam of "unknown" shape when temporary shapes are moved
--   Tracker Setting: would not overflow with too many trackers
 
 ## [2023.3.0] - 2023-09-17
 

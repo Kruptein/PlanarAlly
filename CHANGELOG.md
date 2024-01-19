@@ -44,6 +44,7 @@ tech changes will usually be stripped from release notes for the public
 -   Character: a collection of bugs with variants have been fixed
 -   Trackers: add max-height and scrolling
 -   RotationSlider: fix sync issues
+-   RotationSlider: fix slider anchor not sticking to the rail under certain angles
 -   [server] log spam of "unknown" shape when temporary shapes are moved
 
 ## [2023.3.0] - 2023-09-17

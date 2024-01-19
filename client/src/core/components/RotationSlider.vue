@@ -16,7 +16,7 @@ const emit = defineEmits<(e: "change" | "input", angle: number) => void>();
 const circle = ref<HTMLDivElement | null>(null);
 
 let active = false;
-const radius = 10;
+const radius = 8; // circle is 20px - 2px border diameter -> 8px radius
 const radianAngle = ref(0);
 
 const degreeAngle = computed({

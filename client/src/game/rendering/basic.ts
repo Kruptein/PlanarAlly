@@ -220,25 +220,25 @@ function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0)
         if (t.vertices[0] !== undefined) {
             po.push(t.vertices[0]!.point);
             ctx.beginPath();
-            ctx.arc(x(t.vertices[0]!.point![0]!, local), y(t.vertices[0]!.point![1]!, local), 5, 0, 2 * Math.PI);
+            ctx.arc(x(t.vertices[0]!.point![0], local), y(t.vertices[0]!.point![1], local), 5, 0, 2 * Math.PI);
             ctx.closePath();
             ctx.fill();
         }
         if (t.vertices[1] !== undefined) {
             po.push(t.vertices[1]!.point);
-            ctx.arc(x(t.vertices[1]!.point![0]!, local), y(t.vertices[1]!.point![1]!, local), 5, 0, 2 * Math.PI);
+            ctx.arc(x(t.vertices[1]!.point![0], local), y(t.vertices[1]!.point![1], local), 5, 0, 2 * Math.PI);
             ctx.closePath();
             ctx.fill();
         }
         if (t.vertices[2] !== undefined) {
             po.push(t.vertices[2]!.point);
-            ctx.arc(x(t.vertices[2]!.point![0]!, local), y(t.vertices[2]!.point![1]!, local), 5, 0, 2 * Math.PI);
+            ctx.arc(x(t.vertices[2]!.point![0], local), y(t.vertices[2]!.point![1], local), 5, 0, 2 * Math.PI);
             ctx.closePath();
             ctx.fill();
         }
         if (logs === 2) console.log(`[T ${t.uid}] `, ...po, t.constraints);
 
-        ctx.moveTo(x(t.vertices[0]!.point![0]!, local), y(t.vertices[0]!.point![1]!, local));
+        ctx.moveTo(x(t.vertices[0]!.point![0], local), y(t.vertices[0]!.point![1], local));
         if (t.vertices[0] !== undefined && t.vertices[1] !== undefined)
             drawLine(t.vertices[0]!.point as [number, number], t.vertices[1]!.point as [number, number], local, {
                 constrained: t.constraints[2],

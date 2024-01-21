@@ -262,6 +262,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
                     )
                 )
             )
+            .group_by(Note.uuid)
         ],
         room=sid,
     )

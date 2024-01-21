@@ -1,14 +1,38 @@
+import { POSITION, useToast } from "vue-toastification";
+
 import type { ApiNote, ApiNoteAccessEdit, ApiNoteSetBoolean, ApiNoteSetString, ApiNoteShape } from "../../../apiTypes";
+import SingleButtonToastVue from "../../../core/components/toasts/SingleButtonToast.vue";
 import { socket } from "../../api/socket";
 import { getLocalId } from "../../id";
 
+import { popoutNote } from "./ui";
+
 import { noteSystem } from ".";
+
+const toast = useToast();
 
 socket.on("Notes.Set", async (notes: ApiNote[]) => {
     for (const note of notes) await noteSystem.newNote(note, false);
 });
 
-socket.on("Note.Add", async (data: ApiNote) => await noteSystem.newNote(data, false));
+socket.on("Note.Add", async (data: ApiNote) => {
+    await noteSystem.newNote(data, false);
+
+    toast.info(
+        {
+            component: SingleButtonToastVue,
+            props: {
+                text: `You were granted access to a note: ${data.title}`,
+                buttonText: "Open",
+                onClick: () => popoutNote(data.uuid),
+            },
+        },
+        {
+            position: POSITION.TOP_RIGHT,
+            timeout: 10_000,
+        },
+    );
+});
 
 socket.on("Note.Remove", (data: string) => noteSystem.removeNote(data, false));
 

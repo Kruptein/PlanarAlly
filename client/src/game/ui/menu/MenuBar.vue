@@ -15,6 +15,7 @@ import { clientState } from "../../systems/client/state";
 import { gameState } from "../../systems/game/state";
 import { markerSystem } from "../../systems/markers";
 import { markerState } from "../../systems/markers/state";
+import { toggleNoteManager } from "../../systems/notes/ui";
 import { playerState } from "../../systems/players/state";
 import { getProperties } from "../../systems/properties/state";
 import { uiSystem } from "../../systems/ui";
@@ -118,7 +119,9 @@ const openLgSettings = (): void => uiSystem.showLgSettings(!uiState.raw.showLgSe
                     </div>
                 </div>
                 <!-- NOTES -->
-                <button class="menu-accordion">{{ t("common.notes") }}</button>
+                <button class="menu-accordion" @click="toggleNoteManager">
+                    {{ t("common.notes") }}
+                </button>
                 <!-- DM SETTINGS -->
                 <button class="menu-accordion" @click="openDmSettings">
                     {{ t("game.ui.menu.MenuBar.dm_settings") }}

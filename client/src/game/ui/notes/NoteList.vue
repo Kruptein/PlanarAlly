@@ -1,22 +1,20 @@
 <script setup lang="ts">
 import { type DeepReadonly, computed, reactive, ref } from "vue";
 
-import type { ApiNote } from "../../../apiTypes";
 import { arrToToggleGroup } from "../../../core/components/toggleGroup";
 import ToggleGroup from "../../../core/components/ToggleGroup.vue";
 import { filter, map } from "../../../core/iter";
-import { mostReadable, uuidv4 } from "../../../core/utils";
+import { mostReadable } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
 import { locationStore } from "../../../store/location";
 import { type LocalId, getLocalId } from "../../id";
-import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
-import type { ClientNote } from "../../systems/notes/types";
+import { NoteManagerMode, type ClientNote } from "../../systems/notes/types";
 import { popoutNote } from "../../systems/notes/ui";
 import { propertiesState } from "../../systems/properties/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
 
-const emit = defineEmits<(e: "edit-note" | "create-note") => void>();
+const emit = defineEmits<(e: "mode", mode: NoteManagerMode) => void>();
 
 const noteTypes = ["global", "local"] as const;
 const selectedNoteTypes = ref<(typeof noteTypes)[number]>("local");
@@ -108,29 +106,9 @@ const visibleNotes = computed(() => {
     };
 });
 
-async function createNote(isLocal: boolean): Promise<void> {
-    const uuid = uuidv4();
-    const note: ApiNote = {
-        uuid,
-        creator: coreStore.state.username,
-        title: "New note...",
-        text: "",
-        showOnHover: false,
-        showIconOnShape: false,
-        isRoomNote: isLocal,
-        location: isLocal ? locationSettingsState.reactive.activeLocation : null,
-        tags: [],
-        access: [],
-        shapes: [],
-    };
-    await noteSystem.newNote(note, true);
-    if (noteState.raw.shapeFilter) noteSystem.attachShape(uuid, noteState.raw.shapeFilter, true);
-    editNote(note.uuid);
-}
-
 function editNote(noteId: string): void {
     noteState.mutableReactive.currentNote = noteId;
-    emit("edit-note");
+    emit("mode", NoteManagerMode.Edit);
 }
 
 function clearShapeFilter(): void {
@@ -287,12 +265,8 @@ function clearShapeFilter(): void {
     </template>
     <footer>
         <div style="flex-grow: 1"></div>
-        <div id="new-note-selector">
-            <div>New note {{ shapeProps ? `for ${shapeProps.name}` : "" }}:</div>
-            <div id="selector-options">
-                <div @click="createNote(false)">Global</div>
-                <div @click="createNote(true)">Local</div>
-            </div>
+        <div id="new-note-selector" @click="$emit('mode', NoteManagerMode.Create)">
+            New note{{ shapeProps ? `for ${shapeProps.name}` : "" }}
         </div>
     </footer>
 </template>
@@ -469,35 +443,15 @@ footer {
     margin-top: 2rem;
 
     #new-note-selector {
-        display: flex;
-        align-items: center;
-
         background-color: lightblue;
         border: solid 2px lightblue;
         border-radius: 1rem;
 
-        overflow: hidden;
+        padding: 0.5rem 0.75rem;
 
-        > div:first-child {
-            padding: 0.5rem 0.75rem;
-            margin-left: 0.5rem;
-        }
-
-        > div:last-child {
-            display: flex;
-            border-radius: 1rem;
-            border: solid 1px white;
-            background-color: white;
-            border-color: rgba(173, 216, 230, 0.5);
-
-            > div {
-                padding: 0.5rem 0.75rem;
-
-                &:hover {
-                    cursor: pointer;
-                    background-color: rgba(173, 216, 230, 0.5);
-                }
-            }
+        &:hover {
+            cursor: pointer;
+            background-color: rgba(173, 216, 230, 0.5);
         }
     }
 }

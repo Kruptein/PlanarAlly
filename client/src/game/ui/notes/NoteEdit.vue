@@ -212,9 +212,9 @@ function removeShape(shape: LocalId): void {
                 @change="setTitle"
             />
             <font-awesome-icon
-                icon="up-right-from-square"
+                :icon="['far', 'window-restore']"
                 title="Popout note"
-                @click="popoutNote(noteState.reactive.currentNote!)"
+                @click.stop="popoutNote(noteState.reactive.currentNote!)"
             />
             <font-awesome-icon v-if="canEdit" title="Remove note" icon="trash-alt" @click="remove" />
         </header>

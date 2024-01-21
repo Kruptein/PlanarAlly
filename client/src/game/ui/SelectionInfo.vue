@@ -131,15 +131,23 @@ function annotate(note: DeepReadonly<ClientNote>): void {
                                 <button
                                     class="slider-checkbox"
                                     :aria-pressed="aura.active"
-                                    @click="auraSystem.update(aura.shape, aura.uuid, { active: !aura.active }, SERVER_SYNC)"
+                                    @click="
+                                        auraSystem.update(aura.shape, aura.uuid, { active: !aura.active }, SERVER_SYNC)
+                                    "
                                 />
-                                <template v-if="(aura.angle < 360)">
+                                <template v-if="aura.angle < 360">
                                     <RotationSlider
                                         :angle="aura.direction"
                                         :show-number-input="false"
                                         :disabled="!accessState.hasEditAccess.value"
-                                        @input="(direction) => auraSystem.update(aura.shape, aura.uuid, { direction }, SERVER_SYNC)"
-                                        @change="(direction) => auraSystem.update(aura.shape, aura.uuid, { direction }, SERVER_SYNC)"
+                                        @input="
+                                            (direction) =>
+                                                auraSystem.update(aura.shape, aura.uuid, { direction }, SERVER_SYNC)
+                                        "
+                                        @change="
+                                            (direction) =>
+                                                auraSystem.update(aura.shape, aura.uuid, { direction }, SERVER_SYNC)
+                                        "
                                     />
                                 </template>
                             </div>
@@ -164,14 +172,14 @@ function annotate(note: DeepReadonly<ClientNote>): void {
                             <div>{{ note.title }}</div>
                             <div style="flex-grow: 1"></div>
                             <font-awesome-icon
-                                icon="pencil"
-                                title="Edit note in note manager"
-                                @click="editNote(note.uuid)"
-                            />
-                            <font-awesome-icon
-                                icon="up-right-from-square"
+                                :icon="['far', 'window-restore']"
                                 title="Popout note"
                                 @click="popoutNote(note.uuid)"
+                            />
+                            <font-awesome-icon
+                                icon="cog"
+                                title="Edit note in note manager"
+                                @click="editNote(note.uuid)"
                             />
                         </div>
                     </template>

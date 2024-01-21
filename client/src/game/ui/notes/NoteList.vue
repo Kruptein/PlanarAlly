@@ -276,7 +276,11 @@ function clearShapeFilter(): void {
                 </div>
                 <div class="note-actions">
                     <font-awesome-icon icon="pencil" title="Edit" @click="editNote(note.uuid)" />
-                    <font-awesome-icon icon="up-right-from-square" title="Pop-out" @click="popoutNote(note.uuid)" />
+                    <font-awesome-icon
+                        :icon="['far', 'window-restore']"
+                        title="Pop-out"
+                        @click="popoutNote(note.uuid)"
+                    />
                 </div>
             </template>
         </div>

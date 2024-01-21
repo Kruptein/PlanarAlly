@@ -302,7 +302,7 @@ function removeShape(shape: LocalId): void {
                 <font-awesome-icon icon="location-dot" title="Go to shape on the map" />
                 {{ (shape.name?.length ?? 0) > 15 ? `${shape.name?.slice(0, 12)}...` : shape.name }}
                 <div style="flex-grow: 1"></div>
-                <font-awesome-icon icon="trash-alt" title="Remove shape link" @click="removeShape(shape.id)" />
+                <font-awesome-icon icon="trash-alt" title="Remove shape link" @click.stop="removeShape(shape.id)" />
             </div>
         </div>
         <div v-else id="note-triggers" class="tab-container">

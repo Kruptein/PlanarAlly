@@ -301,8 +301,10 @@ async def edit_note_access(sid, raw_data: Any):
         if user == pr.player:
             await _send_game("Note.Access.Edit", data.dict(), room=psid)
         elif data.name == "default" or data.name == user.name:
-            can_view = user_view[user]["new"] or default_can_view
-            old_can_view = user_view[user]["old"] or old_default_can_view
+            can_view = default_can_view or user_view.get(user, {}).get("new", False)
+            old_can_view = old_default_can_view or user_view.get(user, {}).get(
+                "old", False
+            )
 
             if can_view != old_can_view:
                 if data.can_view:

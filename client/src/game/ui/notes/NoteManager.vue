@@ -7,6 +7,7 @@ import { NoteManagerMode } from "../../systems/notes/types";
 import { closeNoteManager } from "../../systems/notes/ui";
 import NoteTool from "../tools/NoteTool.vue";
 
+import NoteCreate from "./NoteCreate.vue";
 import NoteEdit from "./NoteEdit.vue";
 import NoteList from "./NoteList.vue";
 
@@ -34,7 +35,8 @@ function close(): void {
         <div id="notes" @click="$emit('focus')">
             <font-awesome-icon id="close-notes" :icon="['far', 'window-close']" @click="close" />
             <KeepAlive>
-                <NoteList v-if="mode === NoteManagerMode.List" @edit-note="setMode(NoteManagerMode.Edit)" />
+                <NoteList v-if="mode === NoteManagerMode.List" @mode="setMode($event)" />
+                <NoteCreate v-else-if="mode === NoteManagerMode.Create" @mode="setMode($event)" />
                 <NoteEdit v-else-if="mode === NoteManagerMode.Edit" @mode="setMode($event)" />
             </KeepAlive>
         </div>

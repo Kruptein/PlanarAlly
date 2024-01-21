@@ -6,8 +6,9 @@ export type ClientNote = DistributiveOmit<ApiNote, "tags"> & {
 };
 
 export enum NoteManagerMode {
-    List,
-    Edit,
-    Map,
     AttachShape,
+    Create,
+    Edit,
+    List,
+    Map,
 }

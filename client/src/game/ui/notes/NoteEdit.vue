@@ -302,7 +302,7 @@ function removeShape(shape: LocalId): void {
                 <font-awesome-icon icon="location-dot" title="Go to shape on the map" />
                 {{ (shape.name?.length ?? 0) > 15 ? `${shape.name?.slice(0, 12)}...` : shape.name }}
                 <div style="flex-grow: 1"></div>
-                <font-awesome-icon icon="trash-alt" title="Remove shape link" @click="removeShape(shape.id)" />
+                <font-awesome-icon icon="trash-alt" title="Remove shape link" @click.stop="removeShape(shape.id)" />
             </div>
         </div>
         <div v-else id="note-triggers" class="tab-container">
@@ -503,6 +503,7 @@ header {
         padding: 0.5rem;
         border: solid 1px transparent;
         display: flex;
+        align-items: center;
 
         > svg:first-child {
             margin-right: 0.5rem;
@@ -532,6 +533,20 @@ header {
                 font-weight: inherit;
                 cursor: inherit;
             }
+        }
+    }
+
+    button {
+        background-color: lightblue;
+        border: solid 2px lightblue;
+        border-width: 1px;
+        border-radius: 1rem;
+        padding: 0.5rem 0.75rem;
+        margin-left: 1rem;
+
+        &:hover {
+            cursor: pointer;
+            background-color: rgba(173, 216, 230, 0.5);
         }
     }
 }

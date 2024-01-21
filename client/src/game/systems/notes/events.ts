@@ -2,6 +2,7 @@ import { POSITION, useToast } from "vue-toastification";
 
 import type { ApiNote, ApiNoteAccessEdit, ApiNoteSetBoolean, ApiNoteSetString, ApiNoteShape } from "../../../apiTypes";
 import SingleButtonToastVue from "../../../core/components/toasts/SingleButtonToast.vue";
+import { coreStore } from "../../../store/core";
 import { socket } from "../../api/socket";
 import { getLocalId } from "../../id";
 
@@ -17,6 +18,8 @@ socket.on("Notes.Set", async (notes: ApiNote[]) => {
 
 socket.on("Note.Add", async (data: ApiNote) => {
     await noteSystem.newNote(data, false);
+
+    if (data.creator === coreStore.state.username) return;
 
     toast.info(
         {

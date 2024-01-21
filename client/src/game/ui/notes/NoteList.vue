@@ -266,7 +266,7 @@ function clearShapeFilter(): void {
     <footer>
         <div style="flex-grow: 1"></div>
         <div id="new-note-selector" @click="$emit('mode', NoteManagerMode.Create)">
-            New note{{ shapeProps ? `for ${shapeProps.name}` : "" }}
+            New note{{ shapeProps ? ` for ${shapeProps.name}` : "" }}
         </div>
     </footer>
 </template>

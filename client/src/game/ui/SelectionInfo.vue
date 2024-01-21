@@ -157,6 +157,7 @@ function annotate(note: DeepReadonly<ClientNote>): void {
                 <div class="info-notes">
                     <div
                         :title="notes.length > 0 ? (expandNotes ? 'Collapse notes' : 'Expand notes') : ''"
+                        :style="{ cursor: notes.length > 0 ? 'pointer' : 'default' }"
                         @click="expandNotes = !expandNotes"
                     >
                         <font-awesome-icon icon="note-sticky" title="Open note manager" @click.stop="openNotes" />
@@ -292,10 +293,6 @@ function annotate(note: DeepReadonly<ClientNote>): void {
 
             &:first-child {
                 margin-top: 0;
-
-                &:hover {
-                    cursor: pointer;
-                }
 
                 svg {
                     margin: 0 0.5rem;

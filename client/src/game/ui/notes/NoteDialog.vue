@@ -131,7 +131,6 @@ function setText(event: Event, sync: boolean): void {
                 <div>
                     <div v-if="!editing" @click="editing = true">[edit]</div>
                     <div v-else @click="editing = false">[show]</div>
-                    <div>[show to players]</div>
                     <div @click.stop="editNote(uuid)">[open in note manager]</div>
                 </div>
             </header>

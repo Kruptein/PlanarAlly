@@ -503,6 +503,7 @@ header {
         padding: 0.5rem;
         border: solid 1px transparent;
         display: flex;
+        align-items: center;
 
         > svg:first-child {
             margin-right: 0.5rem;
@@ -532,6 +533,20 @@ header {
                 font-weight: inherit;
                 cursor: inherit;
             }
+        }
+    }
+
+    button {
+        background-color: lightblue;
+        border: solid 2px lightblue;
+        border-width: 1px;
+        border-radius: 1rem;
+        padding: 0.5rem 0.75rem;
+        margin-left: 1rem;
+
+        &:hover {
+            cursor: pointer;
+            background-color: rgba(173, 216, 230, 0.5);
         }
     }
 }

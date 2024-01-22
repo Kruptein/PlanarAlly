@@ -227,12 +227,7 @@ async function go(): Promise<void> {
                 box-sizing: inherit;
                 content: "";
                 position: absolute;
-                width: 100%;
-                height: 100%;
-            }
 
-            &::before,
-            &::after {
                 // Set border to invisible, so we don't see a 4px border on a 0x0 element before the transition starts
                 border: 2px solid transparent;
                 width: 0;

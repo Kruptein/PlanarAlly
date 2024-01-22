@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive } from "vue";
-import VueMarkdownIt from "vue3-markdown-it";
+import VueMarkdown from "vue-markdown-render";
 
 import { i18n } from "../../../i18n";
 import { map } from "../../iter";
@@ -80,7 +80,7 @@ function submit(): void {
             </div>
         </template>
         <div class="modal-body">
-            <VueMarkdownIt :source="text" />
+            <VueMarkdown :source="text" />
             <div v-if="state.error.length > 0" id="error">{{ state.error }}</div>
             <template v-if="choices.length > 0">
                 <div id="selectionbox">

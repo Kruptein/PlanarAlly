@@ -180,18 +180,22 @@ async def load_location(sid: str, location: Location, *, complete=False):
     )
     if complete and IS_DM:
         location_settings.locations = {
-            loc.id: ApiOptionalLocationOptions(spawn_locations="[]")
-            if loc.options is None
-            else loc.options.as_pydantic(True)
+            loc.id: (
+                ApiOptionalLocationOptions(spawn_locations="[]")
+                if loc.options is None
+                else loc.options.as_pydantic(True)
+            )
             for loc in pr.room.locations
         }
         await _send_game("Locations.Settings.Set", location_settings, room=sid)
     elif not IS_DM:
         loc = pr.active_location
         location_settings.locations = {
-            loc.id: ApiOptionalLocationOptions(spawn_locations="[]")
-            if loc.options is None
-            else loc.options.as_pydantic(True)
+            loc.id: (
+                ApiOptionalLocationOptions(spawn_locations="[]")
+                if loc.options is None
+                else loc.options.as_pydantic(True)
+            )
         }
         await _send_game("Locations.Settings.Set", location_settings, room=sid)
 

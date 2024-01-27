@@ -10,6 +10,8 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+## [2024.1.0] - 2024-01-27
+
 ### Added
 
 -   New location grid setting: drop ratio

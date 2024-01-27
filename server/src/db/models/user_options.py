@@ -64,16 +64,15 @@ class UserOptions(BaseDbModel):
         )
 
     @overload
-    def as_pydantic(self, optional: Literal[True]) -> ApiOptionalUserOptions:
-        ...
+    def as_pydantic(self, optional: Literal[True]) -> ApiOptionalUserOptions: ...
 
     @overload
-    def as_pydantic(self, optional: Literal[False]) -> ApiUserOptions:
-        ...
+    def as_pydantic(self, optional: Literal[False]) -> ApiUserOptions: ...
 
     @overload
-    def as_pydantic(self, optional: bool) -> ApiOptionalUserOptions | ApiUserOptions:
-        ...
+    def as_pydantic(
+        self, optional: bool
+    ) -> ApiOptionalUserOptions | ApiUserOptions: ...
 
     def as_pydantic(self, optional: bool):
         target = ApiUserOptions if not optional else ApiOptionalUserOptions

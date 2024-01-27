@@ -13,8 +13,8 @@ import { locationSettingsState } from "./state";
 const { mutableReactive: $, raw, reset } = locationSettingsState;
 
 class LocationSettingsSystem implements System {
-    clear(partial: boolean): void {
-        if (!partial) reset();
+    clear(reason: "full-loading" | "partial-loading" | "leaving"): void {
+        if (reason !== "partial-loading") reset();
     }
 
     private resetValue(setting: WithLocationDefault<unknown>): void {
@@ -93,6 +93,12 @@ class LocationSettingsSystem implements System {
         floorSystem.invalidateAllFloors();
 
         if (sync) sendLocationOption("unit_size_unit", unitSizeUnit, location);
+    }
+
+    setDropRatio(dropRatio: number | undefined, location: number | undefined, sync: boolean): void {
+        if (!this.setValue($.dropRatio, dropRatio, location)) return;
+
+        if (sync) sendLocationOption("drop_ratio", dropRatio, location);
     }
 
     // VISION

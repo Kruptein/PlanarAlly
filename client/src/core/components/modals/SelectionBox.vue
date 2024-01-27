@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, reactive } from "vue";
-import VueMarkdownIt from "vue3-markdown-it";
+import { computed, reactive, watch } from "vue";
+import VueMarkdown from "vue-markdown-render";
 
 import { i18n } from "../../../i18n";
 import { map } from "../../iter";
@@ -34,6 +34,17 @@ const state: State = reactive({
 const customButton = computed(() => props.options?.customButton ?? "");
 const defaultButton = computed(() => props.options?.defaultButton ?? t("common.select"));
 const text = computed(() => props.options?.text ?? "");
+
+watch(
+    () => props.visible,
+    (visible) => {
+        if (visible) {
+            for (const option of props.options?.defaultSelect ?? []) {
+                state.activeSelection.add(props.choices.indexOf(option));
+            }
+        }
+    },
+);
 
 function close(): void {
     emit("close");
@@ -70,6 +81,16 @@ function create(): void {
 function submit(): void {
     emit("submit", [...map(state.activeSelection, (i) => props.choices[i]!)]);
 }
+
+function clear(): void {
+    state.activeSelection.clear();
+}
+
+function selectAll(): void {
+    for (let i = 0; i < props.choices.length; i++) {
+        state.activeSelection.add(i);
+    }
+}
 </script>
 
 <template>
@@ -80,7 +101,7 @@ function submit(): void {
             </div>
         </template>
         <div class="modal-body">
-            <VueMarkdownIt :source="text" />
+            <VueMarkdown :source="text" />
             <div v-if="state.error.length > 0" id="error">{{ state.error }}</div>
             <template v-if="choices.length > 0">
                 <div id="selectionbox">
@@ -89,6 +110,10 @@ function submit(): void {
                             {{ choice }}
                         </div>
                     </template>
+                </div>
+                <div v-if="options?.multiSelect" class="small-actions">
+                    <div @click="clear">clear</div>
+                    <div @click="selectAll">select all</div>
                 </div>
                 <div class="button" @click="submit">{{ defaultButton }}</div>
                 <template v-if="customButton.length > 0">
@@ -157,6 +182,23 @@ function submit(): void {
     }
 }
 
+.small-actions {
+    display: flex;
+
+    margin-top: 0.25rem;
+    margin-left: 0.5rem;
+
+    font-size: small;
+
+    div:first-child {
+        margin-right: 0.5rem;
+    }
+
+    &:hover {
+        cursor: pointer;
+    }
+}
+
 .selected,
 .button:hover,
 #selectionbox div:hover {
@@ -171,6 +213,7 @@ function submit(): void {
     padding: 5px 10px;
     margin: 10px;
     margin-right: 0;
+    margin-top: 0.5rem;
     align-self: flex-end;
 }
 

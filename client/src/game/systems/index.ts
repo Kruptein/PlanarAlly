@@ -25,14 +25,14 @@ export function dropFromSystems(id: LocalId): void {
     }
 }
 
-export function clearSystems(partial: boolean): void {
+export function clearSystems(reason: "full-loading" | "partial-loading" | "leaving"): void {
     for (const system of Object.values(SYSTEMS)) {
-        system.clear(partial);
+        system.clear(reason);
     }
 }
 
 export interface System {
-    clear: (partial: boolean) => void;
+    clear: (reason: "full-loading" | "partial-loading" | "leaving") => void;
 }
 
 export interface ShapeSystem extends System {

@@ -79,30 +79,37 @@ export class Circle extends Shape implements IShape {
         super.invalidatePoints();
     }
 
-    draw(ctx: CanvasRenderingContext2D): void {
-        super.draw(ctx);
+    draw(ctx: CanvasRenderingContext2D, lightRevealRender: boolean): void {
+        super.draw(ctx, lightRevealRender);
         const props = getProperties(this.id)!;
         ctx.beginPath();
-        if (props.fillColour === "fog") ctx.fillStyle = FOG_COLOUR;
-        else ctx.fillStyle = props.fillColour;
+
+        if (!lightRevealRender) {
+            if (props.fillColour === "fog") ctx.fillStyle = FOG_COLOUR;
+            else ctx.fillStyle = props.fillColour;
+        }
 
         this.drawArc(ctx, this.ignoreZoomSize ? this.r : g2lz(this.r));
         ctx.fill();
 
-        if (props.strokeColour[0] !== "rgba(0, 0, 0, 0)") {
-            const ogOperation = ctx.globalCompositeOperation;
-            if (this.options.borderOperation !== undefined) ctx.globalCompositeOperation = this.options.borderOperation;
-            ctx.beginPath();
-            ctx.lineWidth = this.ignoreZoomSize ? this.strokeWidth : g2lz(this.strokeWidth);
-            ctx.strokeStyle = props.strokeColour[0]!;
-            // Inset the border with - borderWidth / 2
-            // Slight imperfection added to account for zoom subpixel differences
-            const r = this.r - this.strokeWidth / 2.5;
-            this.drawArc(ctx, Math.max(this.strokeWidth / 2, this.ignoreZoomSize ? r : g2lz(r)));
-            ctx.stroke();
-            ctx.globalCompositeOperation = ogOperation;
+        if (!lightRevealRender) {
+            if (props.strokeColour[0] !== "rgba(0, 0, 0, 0)") {
+                const ogOperation = ctx.globalCompositeOperation;
+                if (this.options.borderOperation !== undefined)
+                    ctx.globalCompositeOperation = this.options.borderOperation;
+                ctx.beginPath();
+                ctx.lineWidth = this.ignoreZoomSize ? this.strokeWidth : g2lz(this.strokeWidth);
+                ctx.strokeStyle = props.strokeColour[0]!;
+                // Inset the border with - borderWidth / 2
+                // Slight imperfection added to account for zoom subpixel differences
+                const r = this.r - this.strokeWidth / 2.5;
+                this.drawArc(ctx, Math.max(this.strokeWidth / 2, this.ignoreZoomSize ? r : g2lz(r)));
+                ctx.stroke();
+                ctx.globalCompositeOperation = ogOperation;
+            }
         }
-        super.drawPost(ctx);
+
+        super.drawPost(ctx, lightRevealRender);
     }
 
     private drawArc(ctx: CanvasRenderingContext2D, r: number): void {

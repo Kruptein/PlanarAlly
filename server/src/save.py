@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 88
+SAVE_VERSION = 90
 
 import json
 import logging
@@ -23,6 +23,7 @@ import shutil
 import sys
 from pathlib import Path
 from typing import Any, List, Optional
+from uuid import uuid4
 
 from playhouse.sqlite_ext import SqliteExtDatabase
 
@@ -428,6 +429,197 @@ def upgrade(db: SqliteExtDatabase, version: int):
         db.execute_sql(
             'CREATE TABLE IF NOT EXISTS "asset_share" ("id" INTEGER NOT NULL PRIMARY KEY, "asset_id" INT NOT NULL, "user_id" INT NOT NULL, "right" TEXT NOT NULL, "name" TEXT NOT NULL, "parent_id" INT NOT NULL, FOREIGN KEY ("asset_id") REFERENCES "asset" ("id") ON DELETE CASCADE, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("parent_id") REFERENCES "asset" ("id") ON DELETE CASCADE)'
         )
+    elif version == 88:
+        with db.atomic():
+            # Add new Note fields
+            db.execute_sql("CREATE TEMPORARY TABLE _note_88 AS SELECT * FROM note")
+            db.execute_sql("DROP TABLE note")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "note" ("uuid" TEXT NOT NULL PRIMARY KEY, "creator_id" INTEGER NOT NULL, "title" TEXT NOT NULL DEFAULT \'\', "text" TEXT NOT NULL DEFAULT \'\', "tags" TEXT DEFAULT NULL, "show_on_hover" INT DEFAULT 0 NOT NULL, "show_icon_on_shape" INT DEFAULT 0 NOT NULL, "room_id" INTEGER DEFAULT NULL, "location_iD" INTEGER DEFAULT NULL, FOREIGN KEY ("creator_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("room_id") REFERENCES "room" ("id") ON DELETE CASCADE, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql('CREATE INDEX "note_room_id" ON "note" ("room_id")')
+            db.execute_sql('CREATE INDEX "note_creator_id" ON "note" ("creator_id");')
+            db.execute_sql(
+                'INSERT INTO "note" ("uuid", "creator_id", "title", "text", "room_id") SELECT "uuid", "user_id", "title", "text", "room_id" FROM _note_88'
+            )
+            db.execute_sql("DROP TABLE _note_88")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "note_access" ("id" INTEGER NOT NULL PRIMARY KEY, "note_id" TEXT NOT NULL, "user_id" INTEGER, can_edit INTEGER NOT NULL DEFAULT 0, can_view INTEGER NOT NULL DEFAULT 0, FOREIGN KEY ("note_id") REFERENCES "note" ("uuid") ON DELETE CASCADE, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql(
+                'CREATE INDEX "note_access_note_id" ON "note_access" ("note_id")'
+            )
+            db.execute_sql(
+                'CREATE INDEX "note_access_user_id" ON "note_access" ("user_id")'
+            )
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "note_shape" ("id" INTEGER NOT NULL PRIMARY KEY, "note_id" TEXT NOT NULL, "shape_id" TEXT NOT NULL, FOREIGN KEY ("note_id") REFERENCES "note" ("uuid") ON DELETE CASCADE, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)'
+            )
+            db.execute_sql(
+                'CREATE INDEX "note_shape_note_id" ON "note_shape" ("note_id")'
+            )
+            db.execute_sql(
+                'CREATE INDEX "note_shape_shape_id" ON "note_shape" ("shape_id")'
+            )
+            # Move all template annotations to notes
+            data = db.execute_sql(
+                "SELECT a.id, a.owner_id, a.name, a.options FROM asset a WHERE a.options != ''"
+            )
+            asset_id_to_note_id = {}
+            for asset_id, asset_owner, asset_name, raw_options in data.fetchall():
+                try:
+                    asset_options = json.loads(raw_options)
+                    templates = asset_options["templates"]
+                except:
+                    continue
+                for template in templates.values():
+                    if template.get("annotation", "") == "":
+                        continue
+
+                    note_id = str(uuid4())
+                    asset_id_to_note_id[asset_id] = note_id
+                    db.execute_sql(
+                        'INSERT INTO "note" ("uuid", "creator_id", "title", "text", "room_id") VALUES (?, ?, ?, ?, ?)',
+                        (
+                            note_id,
+                            asset_owner,
+                            asset_name or "?",
+                            template["annotation"],
+                            None,
+                        ),
+                    )
+
+                    del template["annotation"]
+
+                    # Grant default view access if the annotation was public
+                    if template.get("annotation_visible", False):
+                        db.execute_sql(
+                            'INSERT INTO "note_access" ("note_id", "can_edit", "can_view") VALUES (?, ?, ?)',
+                            (note_id, 0, 1),
+                        )
+
+                    if "annotation_visible" in template:
+                        del template["annotation_visible"]
+
+                    options = json.loads(template.get("options", "[]"))
+                    options.append(["templateNoteIds", [note_id]])
+                    template["options"] = json.dumps(options)
+                db.execute_sql(
+                    "UPDATE asset SET options=? WHERE id=?",
+                    (json.dumps(asset_options), asset_id),
+                )
+
+            # Move all annotation to notes
+            data = db.execute_sql(
+                "SELECT s.uuid, s.name, s.annotation, s.annotation_visible, s.asset_id, s.character_id, l2.id, r.id, u.id FROM shape s LEFT OUTER JOIN layer l ON s.layer_id = l.id LEFT OUTER JOIN floor f ON f.id = l.floor_id LEFT OUTER JOIN location l2 ON l2.id = f.location_id LEFT OUTER JOIN room r ON r.id = l2.room_id LEFT OUTER JOIN user u ON u.id = r.creator_id WHERE s.annotation != ''"
+            )
+            shape_to_note_ids = {}
+            for (
+                shape_uuid,
+                name,
+                annotation,
+                annotation_visible,
+                asset_id,
+                character_id,
+                location_id,
+                room_id,
+                creator_id,
+            ) in data.fetchall():
+                if asset_id is not None and asset_id in asset_id_to_note_id:
+                    note_id = asset_id_to_note_id[asset_id]
+                elif location_id is not None:
+                    note_id = str(uuid4())
+                    db.execute_sql(
+                        'INSERT INTO "note" ("uuid", "creator_id", "title", "text", "room_id", "location_id") VALUES (?, ?, ?, ?, ?, ?)',
+                        (
+                            note_id,
+                            creator_id,
+                            name or "?",
+                            annotation,
+                            room_id,
+                            location_id,
+                        ),
+                    )
+                    # Grant default view access if the annotation was public
+                    if annotation_visible:
+                        db.execute_sql(
+                            'INSERT INTO "note_access" ("note_id", "can_edit", "can_view") VALUES (?, ?, ?)',
+                            (note_id, 0, 1),
+                        )
+                elif character_id is not None:
+                    # The shape no longer has a layer associated, we do have a character to figure out who the owner is!
+                    data = db.execute_sql(
+                        "SELECT owner_id, asset_id FROM character WHERE id=?",
+                        (character_id,),
+                    )
+                    results = data.fetchone()
+                    if results is None:
+                        continue
+
+                    (owner_id, asset_id) = results
+                    if asset_id is not None and asset_id in asset_id_to_note_id:
+                        note_id = asset_id_to_note_id[asset_id]
+                    else:
+                        note_id = str(uuid4())
+
+                    db.execute_sql(
+                        'INSERT INTO "note" ("uuid", "creator_id", "title", "text") VALUES (?, ?, ?, ?)',
+                        (
+                            note_id,
+                            owner_id,
+                            name or "?",
+                            annotation,
+                        ),
+                    )
+                    # Grant default view access if the annotation was public
+                    if annotation_visible:
+                        db.execute_sql(
+                            'INSERT INTO "note_access" ("note_id", "can_edit", "can_view") VALUES (?, ?, ?)',
+                            (note_id, 0, 1),
+                        )
+                else:
+                    # The shape has no layer info and is not a character, we have no clue on who the note belongs to
+                    # These shapes are probably no longer valid anyway
+                    # In theory shape.owners should have info, but in the cases checked, this was empty
+                    continue
+                shape_to_note_ids[shape_uuid] = note_id
+                # Attach shape to note
+                db.execute_sql(
+                    'INSERT INTO "note_shape" ("note_id", "shape_id") VALUES (?, ?)',
+                    (note_id, shape_uuid),
+                )
+            # Give every user with edit access to a shape access to the note
+            data = db.execute_sql(
+                "SELECT so.user_id, so.shape_id FROM shape_owner so INNER JOIN shape s ON s.uuid = so.shape_id WHERE s.annotation != '' AND so.edit_access = 1"
+            )
+            for user_id, shape_id in data.fetchall():
+                try:
+                    note_id = shape_to_note_ids[shape_id]
+                except KeyError:
+                    continue
+                db.execute_sql(
+                    'INSERT INTO "note_access" ("note_id", "user_id", "can_edit", "can_view") VALUES (?, ?, ?, ?)',
+                    (note_id, user_id, 1, 1),
+                )
+            # Remove annotation columns
+            db.execute_sql("CREATE TEMPORARY TABLE _shape_88 AS SELECT * FROM shape")
+            db.execute_sql("DROP TABLE shape")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "shape" ("uuid" TEXT NOT NULL PRIMARY KEY, "layer_id" INTEGER, "type_" TEXT NOT NULL, "x" REAL NOT NULL, "y" REAL NOT NULL, "name" TEXT, "name_visible" INTEGER NOT NULL, "fill_colour" TEXT NOT NULL, "stroke_colour" TEXT NOT NULL, "vision_obstruction" INTEGER NOT NULL, "movement_obstruction" INTEGER NOT NULL, "is_token" INTEGER NOT NULL, "draw_operator" TEXT NOT NULL, "index" INTEGER NOT NULL, "options" TEXT, "badge" INTEGER NOT NULL, "show_badge" INTEGER NOT NULL, "default_edit_access" INTEGER NOT NULL, "default_vision_access" INTEGER NOT NULL, "is_invisible" INTEGER NOT NULL DEFAULT 0, "default_movement_access" INTEGER NOT NULL DEFAULT 0, "is_locked" INTEGER NOT NULL DEFAULT 0, "angle" REAL NOT NULL DEFAULT 0, "stroke_width" INTEGER NOT NULL DEFAULT 2, "asset_id" INTEGER DEFAULT NULL, "group_id" TEXT DEFAULT NULL, "ignore_zoom_size" INTEGER DEFAULT 0, "is_defeated" INTEGER NOT NULL DEFAULT 0, "is_door" INTEGER DEFAULT 0 NOT NULL, "is_teleport_zone" INTEGER DEFAULT 0 NOT NULL, "character_id" INTEGER DEFAULT NULL, FOREIGN KEY ("layer_id") REFERENCES "layer" ("id") ON DELETE CASCADE, FOREIGN KEY ("asset_id") REFERENCES "asset" ("id") ON DELETE SET NULL, FOREIGN KEY ("group_id") REFERENCES "group" ("uuid") ON DELETE SET NULL, FOREIGN KEY ("character_id") REFERENCES "character" ("id") ON DELETE SET NULL);'
+            )
+            db.execute_sql(
+                'INSERT INTO "shape" ("uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "is_token", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "ignore_zoom_size", "is_defeated", "is_door", "is_teleport_zone", "character_id") SELECT "uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "is_token", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "ignore_zoom_size", "is_defeated", "is_door", "is_teleport_zone", "character_id" FROM _shape_88'
+            )
+            db.execute_sql("DROP TABLE _shape_88")
+    elif version == 89:
+        # Add LocationOptions.drop_ratio
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE location_options ADD COLUMN drop_ratio REAL DEFAULT 1"
+            )
+            db.execute_sql(
+                "UPDATE location_options SET drop_ratio = NULL WHERE id NOT IN (SELECT default_options_id FROM room)"
+            )
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

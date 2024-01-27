@@ -10,6 +10,12 @@ import { createEmptyTracker } from "../systems/trackers/utils";
 import type { SHAPE_TYPE } from "./types";
 
 export function applyTemplate<T extends ApiShape>(shape: T, template: BaseTemplate & { options?: string }): T {
+    // This is a patch for a migration of vision_obstruction from boolean to number
+    // todo: this should be addressed in a better way
+    if (template.vision_obstruction !== undefined && typeof template.vision_obstruction === "boolean") {
+        template.vision_obstruction = template.vision_obstruction ? 1 : 0;
+    }
+
     // should be shape[key], but this is something that TS cannot correctly infer (issue #31445)
     for (const key of BaseTemplateStrings) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
@@ -32,7 +38,8 @@ export function applyTemplate<T extends ApiShape>(shape: T, template: BaseTempla
         shape.auras.push({ ...defaultAura, ...auraTemplate });
     }
 
-    const gridRescale = 5 / locationSettingsState.raw.unitSize.value;
+    // This also handles dropAsset rescaling
+    const gridRescale = locationSettingsState.raw.dropRatio.value;
 
     // Shape specific keys
     for (const key of getTemplateKeys(shape.type_ as SHAPE_TYPE)) {

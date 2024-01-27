@@ -23,13 +23,15 @@ import { toTemplate } from "../../shapes/templates";
 import { deleteShapes } from "../../shapes/utils";
 import { accessSystem } from "../../systems/access";
 import { sendCreateCharacter } from "../../systems/characters/emits";
-import { characterState } from "../../systems/characters/state";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { gameState } from "../../systems/game/state";
 import { groupSystem } from "../../systems/groups";
 import { markerSystem } from "../../systems/markers";
 import { markerState } from "../../systems/markers/state";
+import { noteState } from "../../systems/notes/state";
+import { NoteManagerMode } from "../../systems/notes/types";
+import { openNoteManager } from "../../systems/notes/ui";
 import { playerSystem } from "../../systems/players";
 import { getProperties } from "../../systems/properties/state";
 import { selectedSystem } from "../../systems/selected";
@@ -63,6 +65,12 @@ function close(): void {
 function openEditDialog(): void {
     if (selectedState.raw.selected.size !== 1) return;
     activeShapeStore.setShowEditDialog(true);
+    close();
+}
+
+function openNotes(): void {
+    if (selectedState.raw.selected.size !== 1) return;
+    openNoteManager(NoteManagerMode.List, [...selectedState.raw.selected][0]);
     close();
 }
 
@@ -283,6 +291,12 @@ async function saveTemplate(): Promise<void> {
             customButton: t("game.ui.templates.create_new"),
         });
         if (selection === undefined || selection.length === 0) return;
+        const notes = noteState.raw.shapeNotes.get(shape.id);
+        if (notes !== undefined) {
+            shape.options.templateNoteIds = notes.map((n) => n);
+        } else if (shape.options.templateNoteIds !== undefined) {
+            delete shape.options.templateNoteIds;
+        }
         assetOptions.templates[selection[0]!] = toTemplate(shape.asDict());
         sendAssetOptions(shape.assetId, assetOptions);
     } catch {
@@ -291,7 +305,16 @@ async function saveTemplate(): Promise<void> {
 }
 
 // CHARACTER
-const hasCharacter = computed(() => characterState.reactive.activeCharacterId !== undefined);
+const canHaveCharacter = computed(() => {
+    const selection = selectedState.reactive.selected;
+    if (selection.size !== 1) return false;
+    const shapeId = [...selection][0]!;
+    const compParent = compositeState.getCompositeParent(shapeId);
+    if (compParent?.variants.some((v) => getShape(v.id)?.character !== undefined) ?? false) return false;
+    const shape = getShape(shapeId);
+    if (shape?.assetId === undefined) return false;
+    return true;
+});
 
 function createCharacter(): void {
     close();
@@ -454,7 +477,7 @@ const floors = toRef(floorState.reactive, "floors");
             <li v-if="!selectionIncludesSpawnToken && gameState.reactive.isDm && canBeSaved" @click="saveTemplate">
                 {{ t("game.ui.templates.save") }}
             </li>
-            <li v-if="isOwned && !hasCharacter" @click="createCharacter">Create character</li>
+            <li v-if="isOwned && canHaveCharacter" @click="createCharacter">Create character</li>
         </template>
         <template v-else>
             <li>
@@ -472,6 +495,7 @@ const floors = toRef(floorState.reactive, "floors");
                 </ul>
             </li>
         </template>
+        <li v-if="hasSingleSelection" @click="openNotes">Open notes</li>
         <li v-if="hasSingleSelection" @click="openEditDialog">{{ t("game.ui.selection.ShapeContext.show_props") }}</li>
     </ContextMenu>
 </template>

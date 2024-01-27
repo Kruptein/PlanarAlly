@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-duplicate-enum-values */
 import { equalPoints } from "../../core/math";
 import type { LocalId } from "../id";
-import type { IShape } from "../interfaces/shape";
 
 import type { CDT } from "./cdt";
 import { ccw, cw, orientation, sideOfOrientedCircleP, ulp } from "./triag";
@@ -160,7 +159,7 @@ export class Vertex {
     infinite = false;
     private _point: Point | undefined;
     triangle: Triangle | undefined;
-    shapes = new Set<IShape>();
+    shapes = new Set<LocalId>();
 
     constructor(point?: Point) {
         this._point = point;

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, ref, watch } from "vue";
 
 import { toDegrees, toRadians } from "../conversions";
 
@@ -16,7 +16,7 @@ const emit = defineEmits<(e: "change" | "input", angle: number) => void>();
 const circle = ref<HTMLDivElement | null>(null);
 
 let active = false;
-const radius = 10;
+const radius = 8; // circle is 20px - 2px border diameter -> 8px radius
 const radianAngle = ref(0);
 
 const degreeAngle = computed({
@@ -32,9 +32,12 @@ const degreeAngle = computed({
 const left = computed(() => Math.round(radius * Math.cos(radianAngle.value)) + radius / 2);
 const top = computed(() => Math.round(radius * Math.sin(radianAngle.value)) + radius / 2);
 
-onMounted(() => {
-    radianAngle.value = toRadians(props.angle);
-});
+watch(
+    () => props.angle,
+    (angle) => {
+        radianAngle.value = toRadians(angle);
+    },
+);
 
 function mouseDown(): void {
     if (props.disabled) return;

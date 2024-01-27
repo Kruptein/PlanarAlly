@@ -16,6 +16,10 @@ export interface ShapeOptions {
     svgAsset: string;
 
     UiHelper: boolean;
+
+    // used to store noteIds for templates
+    // only relevant on asset drop and template creation
+    templateNoteIds: string[];
 }
 
 export interface ServerShapeOptions extends ShapeOptions {

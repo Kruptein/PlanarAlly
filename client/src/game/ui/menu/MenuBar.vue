@@ -3,10 +3,8 @@ import { computed, ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 
-import type { ApiNote } from "../../../apiTypes";
 import { baseAdjust } from "../../../core/http";
 import type { AssetFile } from "../../../core/models/types";
-import { uuidv4 } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
 import { clearGame } from "../../clear";
 import type { LocalId } from "../../id";
@@ -17,21 +15,17 @@ import { clientState } from "../../systems/client/state";
 import { gameState } from "../../systems/game/state";
 import { markerSystem } from "../../systems/markers";
 import { markerState } from "../../systems/markers/state";
-import { noteSystem } from "../../systems/notes";
-import { noteState } from "../../systems/notes/state";
+import { toggleNoteManager } from "../../systems/notes/ui";
 import { playerState } from "../../systems/players/state";
 import { getProperties } from "../../systems/properties/state";
 import { uiSystem } from "../../systems/ui";
 import { uiState } from "../../systems/ui/state";
-import NoteDialog from "../NoteDialog.vue";
 
 import AssetParentNode from "./AssetParentNode.vue";
 import Characters from "./Characters.vue";
 
 const router = useRouter();
 const { t } = useI18n();
-
-const showNote = ref(false);
 
 const assetSearch = ref("");
 
@@ -45,7 +39,7 @@ const noAssets = computed(() => {
 const hasGameboardClients = computed(() => clientState.reactive.clientBoards.size > 0);
 
 async function exit(): Promise<void> {
-    clearGame(false);
+    clearGame("leaving");
     await router.push({ name: "games" });
 }
 
@@ -57,17 +51,6 @@ function settingsClick(event: MouseEvent): void {
     ) {
         target.classList.toggle("menu-accordion-active");
     }
-}
-
-function createNote(): void {
-    const note = { title: t("game.ui.menu.MenuBar.new_note"), text: "", uuid: uuidv4() };
-    noteSystem.newNote(note, true);
-    openNote(note);
-}
-
-function openNote(note: ApiNote): void {
-    showNote.value = true;
-    uiSystem.setActiveNote(note);
 }
 
 function delMarker(marker: LocalId): void {
@@ -109,7 +92,6 @@ const openLgSettings = (): void => uiSystem.showLgSettings(!uiState.raw.showLgSe
 </script>
 
 <template>
-    <NoteDialog v-model:visible="showNote" />
     <!-- SETTINGS -->
     <div id="menu" @click="settingsClick">
         <div style="width: 12.5rem; overflow-y: auto; overflow-x: hidden">
@@ -137,23 +119,9 @@ const openLgSettings = (): void => uiSystem.showLgSettings(!uiState.raw.showLgSe
                     </div>
                 </div>
                 <!-- NOTES -->
-                <button class="menu-accordion">{{ t("common.notes") }}</button>
-                <div class="menu-accordion-panel">
-                    <div id="menu-notes" class="menu-accordion-subpanel" style="position: relative">
-                        <div
-                            v-for="note in noteState.reactive.notes"
-                            :key="note.uuid"
-                            style="cursor: pointer"
-                            @click="openNote(note)"
-                        >
-                            {{ note.title || "[?]" }}
-                        </div>
-                        <div v-if="!noteState.reactive.notes.length">{{ t("game.ui.menu.MenuBar.no_notes") }}</div>
-                        <a class="actionButton" :title="t('game.ui.menu.MenuBar.create_note')" @click="createNote">
-                            <font-awesome-icon icon="plus-square" />
-                        </a>
-                    </div>
-                </div>
+                <button class="menu-accordion" @click="toggleNoteManager">
+                    {{ t("common.notes") }}
+                </button>
                 <!-- DM SETTINGS -->
                 <button class="menu-accordion" @click="openDmSettings">
                     {{ t("game.ui.menu.MenuBar.dm_settings") }}

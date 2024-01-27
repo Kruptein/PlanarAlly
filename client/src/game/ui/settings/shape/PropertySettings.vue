@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../../core/components/ColourPicker.vue";
+import ToggleGroup from "../../../../core/components/ToggleGroup.vue";
 import { NO_SYNC, SERVER_SYNC, SyncMode } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../../../store/activeShape";
@@ -13,6 +14,7 @@ import type { CircularToken } from "../../../shapes/variants/circularToken";
 import { accessState } from "../../../systems/access/state";
 import { propertiesSystem } from "../../../systems/properties";
 import { getProperties, propertiesState } from "../../../systems/properties/state";
+import { VisionBlock, visionBlocks } from "../../../systems/properties/types";
 
 const { t } = useI18n();
 const modals = useModal();
@@ -56,9 +58,9 @@ function toggleBadge(event: Event): void {
     propertiesSystem.setShowBadge(propertiesState.raw.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
-function setBlocksVision(event: Event): void {
+function setBlocksVision(bv: VisionBlock): void {
     if (!owned.value) return;
-    propertiesSystem.setBlocksVision(propertiesState.raw.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
+    propertiesSystem.setBlocksVision(propertiesState.raw.id!, bv, SERVER_SYNC);
 }
 
 function setBlocksMovement(event: Event): void {
@@ -221,14 +223,18 @@ async function changeAsset(): Promise<void> {
             <label for="shapeselectiondialog-visionblocker">
                 {{ t("game.ui.selection.edit_dialog.dialog.block_vision_light") }}
             </label>
-            <input
-                id="shapeselectiondialog-visionblocker"
-                type="checkbox"
-                :checked="propertiesState.reactive.blocksVision"
-                style="grid-column-start: toggle"
-                :disabled="!owned"
-                @click="setBlocksVision"
-            />
+            <div style="grid-column-start: toggle; position: relative">
+                <ToggleGroup
+                    id="kind-selector"
+                    :model-value="propertiesState.reactive.blocksVision"
+                    :options="visionBlocks.map((v) => ({ label: VisionBlock[v], value: v }))"
+                    :disabled="!owned"
+                    :multi-select="false"
+                    active-color="rgba(173, 216, 230, 0.5)"
+                    style="position: absolute; right: -10px; top: -22px; width: max-content"
+                    @update:model-value="(i) => setBlocksVision(i)"
+                />
+            </div>
         </div>
         <div class="row">
             <label for="shapeselectiondialog-moveblocker">

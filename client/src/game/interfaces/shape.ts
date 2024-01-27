@@ -58,6 +58,8 @@ export interface IShape extends SimpleShape {
 
     get visionPolygon(): Path2D;
     _visionBbox: BoundingRect | undefined;
+    _lightBlockingNeighbours: LocalId[];
+    _parentId?: LocalId;
 
     // POSITION
 
@@ -81,8 +83,12 @@ export interface IShape extends SimpleShape {
 
     // DRAWING
 
-    draw: (ctx: CanvasRenderingContext2D, customScale?: { center: GlobalPoint; width: number; height: number }) => void;
-    drawPost: (ctx: CanvasRenderingContext2D) => void;
+    draw: (
+        ctx: CanvasRenderingContext2D,
+        lightRevealRender: boolean,
+        customScale?: { center: GlobalPoint; width: number; height: number },
+    ) => void;
+    drawPost: (ctx: CanvasRenderingContext2D, lightRevealRender: boolean) => void;
     drawSelection: (ctx: CanvasRenderingContext2D) => void;
 
     // VISION

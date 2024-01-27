@@ -6,7 +6,7 @@ dist/*
 coverage/*
 postcss.config.js
 babel.config.js
-.eslintrc.js
+.eslintrc.cjs
 tests/unit/.eslintrc.js
 vite.config.ts
 vitest.config.ts

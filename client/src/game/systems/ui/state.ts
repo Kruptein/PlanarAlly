@@ -1,15 +1,13 @@
 import type { Component, Raw } from "vue";
 
-import type { ApiNote } from "../../../apiTypes";
 import type { LocalId } from "../../id";
 import { ClientSettingCategory } from "../../ui/settings/client/categories";
 import { buildState } from "../state";
-import type { TrackerId } from "../trackers/models";
+
+import type { ModTrackerSetting } from "./types";
 
 interface UiState {
     showUi: boolean;
-
-    activeNote: ApiNote;
 
     annotationText: string;
 
@@ -29,17 +27,11 @@ interface UiState {
 
     // MOD interactions
     characterTabs: { name: string; component: Raw<Component>; filter?: (shape: LocalId) => boolean }[];
-    modTrackerSettings: {
-        name: string;
-        component: Raw<Component>;
-        filter?: (shape: LocalId, tracker: TrackerId) => boolean;
-    }[];
+    modTrackerSettings: ModTrackerSetting[];
 }
 
 const state = buildState<UiState>({
     showUi: true,
-
-    activeNote: { title: "", text: "", uuid: "" },
 
     annotationText: "",
 

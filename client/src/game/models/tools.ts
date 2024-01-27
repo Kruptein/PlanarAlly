@@ -14,6 +14,7 @@ export enum ToolName {
     Spell = "Spell",
     LastGameboard = "LastGameboard",
     Dice = "Dice",
+    Note = "Note",
 }
 
 export interface ToolPermission {

@@ -29,8 +29,6 @@ import "./events/shape/text";
 import "./events/shape/togglecomposite";
 import "./events/user";
 
-import "./gbsocket"; // Start tuio listener
-
 import type { ApiFloor, ApiLocationCore, PlayerPosition } from "../../apiTypes";
 import { toGP } from "../../core/geometry";
 import { SyncMode } from "../../core/models/types";
@@ -90,8 +88,8 @@ socket.on("redirect", async (destination: string) => {
 
 // Bootup events
 
-socket.on("CLEAR", () => clearGame(false));
-socket.on("PARTIAL-CLEAR", () => clearGame(true));
+socket.on("CLEAR", () => clearGame("full-loading"));
+socket.on("PARTIAL-CLEAR", () => clearGame("partial-loading"));
 
 socket.on("Board.Locations.Set", (locationInfo: ApiLocationCore[]) => {
     locationStore.setLocations(locationInfo, false);

@@ -10,6 +10,46 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+## [2024.1.0] - 2024-01-27
+
+### Added
+
+-   New location grid setting: drop ratio
+    -   This is used to indicate how shapes with size info dropped on the map should be resized
+    -   (e.g. a goblin_2x2 will take op 2x2 cells in any setup with dropRatio 1, with dropRatio 0.5 however it would only take up 1x1)
+    -   This addresses an issue where this was not properly working with non ft setups
+-   Selection Box UI now offers a 'clear' and 'select all' option if it's a multi-select popup
+
+### Changed
+
+-   Vision blocking shapes will now ignore themselves if they are closed
+    -   e.g. a tree trunk will be visible, but what's behind the tree trunk will remain hidden
+    -   Open polygons will behave as they have in the past
+-   Note system is overhauled
+    -   notes can now either be global or local (i.e. campaign specific)
+    -   notes can now be shared with other players
+    -   notes are now accessed through a special note manager
+        -   this provides filtering / creation / editing / ...
+    -   multiple notes can be popped out at once
+    -   popout notes can be collapsed and freely resized
+    -   popout notes are now markdown aware
+    -   If the text area of a note is still in focus after 5 seconds and an edit was made, a server save is done
+    -   _see the release notes for all the changes_
+-   Dice history now contains user and details
+-   Selection Info: auras are now toggle and rotation sliders instead of range modifiers
+-   [tech] ModalStack now supports dynamically inserted modals
+
+### Fixed
+
+-   Polygon edit UI: was not taking rotation of shape into account
+-   Teleport: shapes would not be removed on the old location until a refresh
+-   Dice tool: would not send zero results when dice list is empty
+-   Character: a collection of bugs with variants have been fixed
+-   Trackers: add max-height and scrolling
+-   RotationSlider: fix sync issues
+-   RotationSlider: fix slider anchor not sticking to the rail under certain angles
+-   [server] log spam of "unknown" shape when temporary shapes are moved
+
 ## [2023.3.0] - 2023-09-17
 
 ### Added

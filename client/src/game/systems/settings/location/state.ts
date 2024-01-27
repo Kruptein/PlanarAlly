@@ -23,6 +23,7 @@ function getInitState(): State {
         visionMinRange: init(0),
         visionMode: init(""),
         limitMovementDuringInitiative: init(false),
+        dropRatio: init(1),
 
         airMapBackground: init("none"),
         groundMapBackground: init("none"),

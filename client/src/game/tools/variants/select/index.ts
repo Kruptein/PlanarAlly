@@ -15,7 +15,7 @@ import {
 } from "../../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../../core/geometry";
 import { baseAdjust } from "../../../../core/http";
-import { equalPoints, snapToPoint } from "../../../../core/math";
+import { equalPoints, rotateAroundPoint, snapToPoint } from "../../../../core/math";
 import { InvalidationMode, NO_SYNC, SyncMode } from "../../../../core/models/types";
 import { ctrlOrCmdPressed } from "../../../../core/utils";
 import { i18n } from "../../../../i18n";
@@ -48,6 +48,7 @@ import { teleportZoneSystem } from "../../../systems/logic/tp";
 import { playerSystem } from "../../../systems/players";
 import { DEFAULT_GRID_SIZE, positionState } from "../../../systems/position/state";
 import { getProperties } from "../../../systems/properties/state";
+import { VisionBlock } from "../../../systems/properties/types";
 import { selectedSystem } from "../../../systems/selected";
 import { selectedState } from "../../../systems/selected/state";
 import { locationSettingsState } from "../../../systems/settings/location/state";
@@ -266,6 +267,9 @@ class SelectTool extends Tool implements ISelectTool {
             const shape = selectionStack[i]!;
             if (!(shape.options.preFogShape ?? false) && (shape.options.skipDraw ?? false)) continue;
             if ([this.rotationAnchor?.id, this.rotationBox?.id, this.rotationEnd?.id].includes(shape.id)) continue;
+            // temp hack, should be fixed with a proper can't select feature
+            // this is only used by noteIcons right now, but in the future parentIds might become useful for regular selectable shapes
+            if (shape._parentId !== undefined) continue;
             const props = getProperties(shape.id)!;
             if (props.isInvisible && !accessSystem.hasAccessTo(shape.id, false, { movement: true })) continue;
 
@@ -476,7 +480,7 @@ class SelectTool extends Tool implements ISelectTool {
             if (this.mode === SelectOperations.Drag) {
                 if (ogDelta.length() === 0) return;
                 // If we are on the tokens layer do a movement block check.
-                if (layer.name === "tokens" && !(event?.shiftKey === true && gameState.raw.isDm)) {
+                if (layer.name === LayerName.Tokens && !(event?.shiftKey === true && gameState.raw.isDm)) {
                     for (const sel of layerSelection) {
                         if (!accessSystem.hasAccessTo(sel.id, false, { movement: true })) continue;
                         delta = calculateDelta(delta, sel, true);
@@ -643,7 +647,7 @@ class SelectTool extends Tool implements ISelectTool {
                         this.hasFeature(SelectFeatures.Snapping, features) &&
                         !this.deltaChanged
                     ) {
-                        if (props.blocksVision) {
+                        if (props.blocksVision !== VisionBlock.No) {
                             visionState.deleteFromTriangulation({
                                 target: TriangulationTarget.VISION,
                                 shape: sel.id,
@@ -652,7 +656,7 @@ class SelectTool extends Tool implements ISelectTool {
 
                         sel.snapToGrid();
 
-                        if (props.blocksVision) {
+                        if (props.blocksVision !== VisionBlock.No) {
                             visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: sel.id });
                             recalcVision = true;
                         }
@@ -672,7 +676,7 @@ class SelectTool extends Tool implements ISelectTool {
                         this.operationReady = true;
                     }
 
-                    if (props.blocksVision) recalcVision = true;
+                    if (props.blocksVision !== VisionBlock.No) recalcVision = true;
                     if (props.blocksMovement) recalcMovement = true;
                     if (!sel.preventSync) updateList.push(sel);
                 }
@@ -699,13 +703,13 @@ class SelectTool extends Tool implements ISelectTool {
                         playerSettingsState.useSnapping(event) &&
                         this.hasFeature(SelectFeatures.Snapping, features)
                     ) {
-                        if (props.blocksVision)
+                        if (props.blocksVision !== VisionBlock.No)
                             visionState.deleteFromTriangulation({
                                 target: TriangulationTarget.VISION,
                                 shape: sel.id,
                             });
                         sel.resizeToGrid(this.resizePoint, ctrlOrCmdPressed(event));
-                        if (props.blocksVision) {
+                        if (props.blocksVision !== VisionBlock.No) {
                             visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: sel.id });
                             recalcVision = true;
                         }
@@ -970,7 +974,7 @@ class SelectTool extends Tool implements ISelectTool {
 
         const pw = g2lz(polygon.lineWidth[0]!);
 
-        const pv = polygon.vertices;
+        const pv = polygon.vertices.map((v) => rotateAroundPoint(v, polygon.center, polygon.angle));
         let smallest = { distance: polygon.lineWidth[0]! * 2, nearest: gp, angle: 0, point: false };
         for (let i = 1; i < pv.length; i++) {
             const prevVertex = pv[i - 1]!;

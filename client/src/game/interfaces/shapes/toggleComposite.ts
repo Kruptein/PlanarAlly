@@ -4,6 +4,7 @@ import type { IShape } from "../shape";
 
 export interface IToggleComposite extends IShape {
     get variants(): readonly { id: LocalId; name: string }[];
+    get activeVariant(): LocalId;
 
     addVariant: (uuid: LocalId, name: string, sync: boolean) => void;
     removeVariant: (id: LocalId, syncTo: Sync) => void;

@@ -302,7 +302,7 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     handleCameraLock(): void {
-        if (playerSettingsState.raw.initiativeCameraLock.value) {
+        if (this._state.isActive && playerSettingsState.raw.initiativeCameraLock.value) {
             const actor = this.getDataSet()[this._state.turnCounter];
             if (actor?.localId === undefined) return;
             if (accessSystem.hasAccessTo(actor.localId, false, { vision: true })) {

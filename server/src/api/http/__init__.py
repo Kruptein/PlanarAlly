@@ -1,11 +1,10 @@
 import urllib.parse
 
 from aiohttp import web
-from aiohttp_security import check_authorized
 
+from ...auth import get_authorized_user
 from ...db.models.player_room import PlayerRoom
 from ...db.models.room import Room
-from ...db.models.user import User
 from ...models.role import Role
 from ...state.game import game_state
 from ..helpers import _send_game
@@ -13,7 +12,7 @@ from ..models.room.info.player import RoomInfoPlayersAdd
 
 
 async def claim_invite(request):
-    user: User = await check_authorized(request)
+    user = await get_authorized_user(request)
     data = await request.json()
     room = Room.get_or_none(invitation_code=data["code"])
     if room is None:

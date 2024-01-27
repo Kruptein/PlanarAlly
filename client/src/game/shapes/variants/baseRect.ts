@@ -27,6 +27,7 @@ export abstract class BaseRect extends Shape implements IShape {
             uuid?: GlobalId;
             assetId?: number;
             isSnappable?: boolean;
+            parentId?: LocalId;
         },
         properties?: Partial<ShapeProperties>,
     ) {

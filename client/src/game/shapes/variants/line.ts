@@ -78,19 +78,22 @@ export class Line extends Shape implements IShape {
         );
     }
 
-    draw(ctx: CanvasRenderingContext2D): void {
-        super.draw(ctx);
+    draw(ctx: CanvasRenderingContext2D, lightRevealRender: boolean): void {
+        super.draw(ctx, lightRevealRender);
 
-        const center = g2l(this.center);
-        const props = getProperties(this.id)!;
+        if (!lightRevealRender) {
+            const center = g2l(this.center);
+            const props = getProperties(this.id)!;
 
-        ctx.strokeStyle = props.strokeColour[0]!;
-        ctx.beginPath();
-        ctx.moveTo(g2lx(this.refPoint.x) - center.x, g2ly(this.refPoint.y) - center.y);
-        ctx.lineTo(g2lx(this.endPoint.x) - center.x, g2ly(this.endPoint.y) - center.y);
-        ctx.lineWidth = this.ignoreZoomSize ? this.lineWidth : g2lz(this.lineWidth);
-        ctx.stroke();
-        super.drawPost(ctx);
+            ctx.strokeStyle = props.strokeColour[0]!;
+            ctx.beginPath();
+            ctx.moveTo(g2lx(this.refPoint.x) - center.x, g2ly(this.refPoint.y) - center.y);
+            ctx.lineTo(g2lx(this.endPoint.x) - center.x, g2ly(this.endPoint.y) - center.y);
+            ctx.lineWidth = this.ignoreZoomSize ? this.lineWidth : g2lz(this.lineWidth);
+            ctx.stroke();
+        }
+
+        super.drawPost(ctx, lightRevealRender);
     }
 
     contains(_point: GlobalPoint): boolean {

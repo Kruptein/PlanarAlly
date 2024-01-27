@@ -1,6 +1,7 @@
 import json
 from typing import Any, List
 
+from peewee import JOIN
 from typing_extensions import TypedDict
 
 from ... import auth
@@ -20,6 +21,7 @@ from ...db.models.location_options import LocationOptions
 from ...db.models.location_user_option import LocationUserOption
 from ...db.models.marker import Marker
 from ...db.models.note import Note
+from ...db.models.note_access import NoteAccess
 from ...db.models.player_room import PlayerRoom
 from ...db.models.room import Room
 from ...db.models.shape import Shape
@@ -62,6 +64,7 @@ class LocationOptionKeys(TypedDict, total=False):
     vision_min_range: float
     vision_max_range: float
     spawn_locations: str
+    drop_ratio: float
 
 
 @sio.on("Location.Load", namespace=GAME_NS)
@@ -245,9 +248,21 @@ async def load_location(sid: str, location: Location, *, complete=False):
         "Notes.Set",
         [
             note.as_pydantic()
-            for note in Note.select().where(
-                (Note.user == pr.player) & (Note.room == pr.room)
+            for note in Note.select()
+            .join(NoteAccess, JOIN.LEFT_OUTER)
+            .where(
+                # Global or local to the current room
+                ((Note.room >> None) | (Note.room == pr.room))  # type: ignore
+                & (
+                    # Note owner or specific access
+                    (Note.creator == pr.player)
+                    | (
+                        ((NoteAccess.user >> None) | (NoteAccess.user == pr.player))  # type: ignore
+                        & NoteAccess.can_view
+                    )
+                )
             )
+            .group_by(Note.uuid)
         ],
         room=sid,
     )
@@ -318,10 +333,10 @@ async def change_location(sid: str, raw_data: Any):
     for room_player in prs_to_move:
         for psid in game_state.get_sids(player=room_player.player, room=pr.room):
             try:
-                sio.leave_room(
+                await sio.leave_room(
                     psid, old_locations[room_player.id].get_path(), namespace=GAME_NS
                 )
-                sio.enter_room(psid, new_location.get_path(), namespace=GAME_NS)
+                await sio.enter_room(psid, new_location.get_path(), namespace=GAME_NS)
             except KeyError:
                 await game_state.remove_sid(psid)
                 continue
@@ -391,8 +406,8 @@ async def add_new_location(sid: str, location: str):
     for psid in game_state.get_sids(
         player=pr.player, active_location=pr.active_location
     ):
-        sio.leave_room(psid, pr.active_location.get_path(), namespace=GAME_NS)
-        sio.enter_room(psid, new_location.get_path(), namespace=GAME_NS)
+        await sio.leave_room(psid, pr.active_location.get_path(), namespace=GAME_NS)
+        await sio.enter_room(psid, new_location.get_path(), namespace=GAME_NS)
         await load_location(psid, new_location)
     pr.active_location = new_location
     pr.save()
@@ -464,8 +479,8 @@ async def clone_location(sid: str, raw_data: Any):
         for psid in game_state.get_sids(
             player=pr.player, active_location=pr.active_location
         ):
-            sio.leave_room(psid, pr.active_location.get_path(), namespace=GAME_NS)
-            sio.enter_room(psid, new_location.get_path(), namespace=GAME_NS)
+            await sio.leave_room(psid, pr.active_location.get_path(), namespace=GAME_NS)
+            await sio.enter_room(psid, new_location.get_path(), namespace=GAME_NS)
             await load_location(psid, new_location)
         pr.active_location = new_location
         pr.save()

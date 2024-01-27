@@ -16,6 +16,7 @@ from ...models.aura import ApiAura, ApiOptionalAura, AuraMove, ShapeSetAuraValue
 from ...models.shape.options import (
     ShapeSetBooleanValue,
     ShapeSetDoorToggleModeValue,
+    ShapeSetIntegerValue,
     ShapeSetOptionalStringValue,
     ShapeSetPermissionValue,
     ShapeSetStringValue,
@@ -29,15 +30,6 @@ from ...models.tracker import (
 )
 from ..constants import GAME_NS
 from .utils import get_owner_sids, get_shape_or_none
-
-
-async def send_annotation(
-    data: ShapeSetStringValue,
-    *,
-    room: str,
-    skip_sid: Optional[str] = None,
-):
-    await _send_game("Shape.Options.Annotation.Set", data, room=room, skip_sid=skip_sid)
 
 
 async def send_name(
@@ -172,7 +164,7 @@ async def set_movement_block(sid: str, raw_data: Any):
 @sio.on("Shape.Options.VisionBlock.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def set_vision_block(sid: str, raw_data: Any):
-    data = ShapeSetBooleanValue(**raw_data)
+    data = ShapeSetIntegerValue(**raw_data)
 
     pr: PlayerRoom = game_state.get(sid)
 
@@ -189,61 +181,6 @@ async def set_vision_block(sid: str, raw_data: Any):
         skip_sid=sid,
         room=pr.active_location.get_path(),
     )
-
-
-@sio.on("Shape.Options.Annotation.Set", namespace=GAME_NS)
-@auth.login_required(app, sio, "game")
-async def set_annotation(sid: str, raw_data: Any):
-    data = ShapeSetStringValue(**raw_data)
-
-    pr: PlayerRoom = game_state.get(sid)
-
-    shape = get_shape_or_none(pr, data.shape, "Annotation.Set")
-    if shape is None:
-        return
-
-    shape.annotation = data.value
-    shape.save()
-
-    if shape.annotation_visible:
-        await send_annotation(data, room=pr.active_location.get_path(), skip_sid=sid)
-    else:
-        for sid in get_owner_sids(pr, shape, skip_sid=sid):
-            await send_annotation(data, room=sid)
-
-
-@sio.on("Shape.Options.AnnotationVisible.Set", namespace=GAME_NS)
-@auth.login_required(app, sio, "game")
-async def set_annotation_visible(sid: str, raw_data: Any):
-    data = ShapeSetBooleanValue(**raw_data)
-
-    pr: PlayerRoom = game_state.get(sid)
-
-    shape = get_shape_or_none(pr, data.shape, "AnnotationVisible.Set")
-    if shape is None:
-        return
-
-    shape.annotation_visible = data.value
-    shape.save()
-
-    owners = [*get_owner_sids(pr, shape, skip_sid=sid)]
-
-    await _send_game(
-        "Shape.Options.AnnotationVisible.Set",
-        data,
-        room=pr.active_location.get_path(),
-        skip_sid=sid,
-    )
-
-    for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=sid):
-        if psid in owners:
-            continue
-        await send_annotation(
-            ShapeSetStringValue(
-                shape=shape.uuid, value=shape.annotation if data.value else ""
-            ),
-            room=psid,
-        )
 
 
 @sio.on("Shape.Options.Tracker.Remove", namespace=GAME_NS)

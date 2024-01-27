@@ -14,6 +14,7 @@ import type { AuraId } from "../../systems/auras/models";
 import { positionState } from "../../systems/position/state";
 import { getProperties } from "../../systems/properties/state";
 import type { ShapeProperties } from "../../systems/properties/state";
+import { VisionBlock } from "../../systems/properties/types";
 import type { TrackerId } from "../../systems/trackers/models";
 import { visionState } from "../../vision/state";
 import { Shape } from "../shape";
@@ -142,8 +143,10 @@ export class Polygon extends Shape implements IShape {
         super.invalidatePoints();
     }
 
-    draw(ctx: CanvasRenderingContext2D): void {
-        super.draw(ctx);
+    draw(ctx: CanvasRenderingContext2D, lightRevealRender: boolean): void {
+        if (lightRevealRender && this.openPolygon) return;
+
+        super.draw(ctx, lightRevealRender);
 
         const center = g2l(this.center);
 
@@ -151,8 +154,10 @@ export class Polygon extends Shape implements IShape {
         ctx.lineJoin = "round";
         const props = getProperties(this.id)!;
 
-        if (props.fillColour === "fog") ctx.fillStyle = FOG_COLOUR;
-        else ctx.fillStyle = props.fillColour;
+        if (!lightRevealRender) {
+            if (props.fillColour === "fog") ctx.fillStyle = FOG_COLOUR;
+            else ctx.fillStyle = props.fillColour;
+        }
 
         ctx.beginPath();
         let localVertex = subtractP(g2l(this.vertices[0]!), center);
@@ -169,16 +174,18 @@ export class Polygon extends Shape implements IShape {
 
         if (!this.openPolygon) ctx.fill();
 
-        for (const [i, c] of props.strokeColour.entries()) {
-            const lw = this.lineWidth[i] ?? this.lineWidth[0]!;
-            ctx.lineWidth = this.ignoreZoomSize ? lw : g2lz(lw);
+        if (!lightRevealRender) {
+            for (const [i, c] of props.strokeColour.entries()) {
+                const lw = this.lineWidth[i] ?? this.lineWidth[0]!;
+                ctx.lineWidth = this.ignoreZoomSize ? lw : g2lz(lw);
 
-            if (c === "fog") ctx.strokeStyle = FOG_COLOUR;
-            else ctx.strokeStyle = c;
-            ctx.stroke();
+                if (c === "fog") ctx.strokeStyle = FOG_COLOUR;
+                else ctx.strokeStyle = c;
+                ctx.stroke();
+            }
         }
 
-        super.drawPost(ctx);
+        super.drawPost(ctx, lightRevealRender);
     }
 
     contains(point: GlobalPoint, nearbyThreshold?: number): boolean {
@@ -230,6 +237,8 @@ export class Polygon extends Shape implements IShape {
     cutPolygon(point: GlobalPoint): void {
         let lastVertex = -1;
         let nearVertex: GlobalPoint | null = null;
+        const oldCenter = this.center;
+
         for (let i = 1; i <= this.vertices.length - (this.openPolygon ? 1 : 0); i++) {
             const prevVertex = this.vertices[i - 1]!;
             const vertex = this.vertices[i % this.vertices.length]!;
@@ -253,19 +262,21 @@ export class Polygon extends Shape implements IShape {
             newPolygon.setLayer(this.floorId!, this.layerName!);
             newPolygon.fromDict({
                 ...oldDict,
+                angle: 0,
                 uuid,
                 trackers: oldDict.trackers.map((t) => ({ ...t, uuid: uuidv4() as unknown as TrackerId })),
                 auras: oldDict.auras.map((a) => ({ ...a, uuid: uuidv4() as unknown as AuraId })),
             });
-            newPolygon._refPoint = nearVertex!;
-            newPolygon._vertices = newVertices;
+            newPolygon._refPoint = rotateAroundPoint(nearVertex!, oldCenter, this.angle);
+            newPolygon._vertices = newVertices.map((v) => rotateAroundPoint(v, oldCenter, this.angle));
+            newPolygon._center = newPolygon.__center();
 
             const props = getProperties(this.id)!;
 
             this.layer?.addShape(
                 newPolygon,
                 SyncMode.FULL_SYNC,
-                props.blocksVision ? InvalidationMode.WITH_LIGHT : InvalidationMode.NORMAL,
+                props.blocksVision !== VisionBlock.No ? InvalidationMode.WITH_LIGHT : InvalidationMode.NORMAL,
             );
 
             this.invalidatePoints();
@@ -324,7 +335,7 @@ export class Polygon extends Shape implements IShape {
         if (invalidate) {
             const props = getProperties(this.id)!;
             if (this.floorId !== undefined) {
-                if (props.blocksVision) visionState.recalculateVision(this.floorId);
+                if (props.blocksVision !== VisionBlock.No) visionState.recalculateVision(this.floorId);
                 if (props.blocksMovement) visionState.recalculateMovement(this.floorId);
             }
             if (!this.preventSync) sendShapePositionUpdate([this], false);

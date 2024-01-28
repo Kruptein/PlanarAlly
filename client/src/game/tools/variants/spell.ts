@@ -169,11 +169,11 @@ class SpellTool extends Tool implements ITool {
     }
 
     async onDeselect(): Promise<void> {
-        await this.close(true);
+        await this.close({ dropShapeId: true, deselectTool: false });
     }
 
     async onDown(): Promise<void> {
-        await this.close(false);
+        await this.close({ dropShapeId: false, deselectTool: true });
     }
 
     async onMove(lp: LocalPoint): Promise<void> {
@@ -203,14 +203,16 @@ class SpellTool extends Tool implements ITool {
     }
 
     async onContextMenu(): Promise<boolean> {
-        await this.close(true);
+        await this.close({ dropShapeId: true, deselectTool: true });
         return false;
     }
 
-    async close(dropShapeId: boolean): Promise<void> {
+    async close(options: { dropShapeId: boolean; deselectTool: boolean }): Promise<void> {
         if (this.shape !== undefined) {
             const layer = floorState.currentLayer.value;
             if (layer === undefined) return;
+
+            const { dropShapeId } = options;
 
             layer.removeShape(this.shape, {
                 sync: this.state.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC,
@@ -227,7 +229,7 @@ class SpellTool extends Tool implements ITool {
             const ruler = toolMap[ToolName.Ruler];
             await ruler.onUp(toLP(0, 0), undefined, {});
         }
-        activateTool(ToolName.Select);
+        if (options.deselectTool) activateTool(ToolName.Select);
     }
 }
 

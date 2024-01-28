@@ -10,6 +10,10 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Fixed
+
+-   Spell tool: selecting another tool would swap to the Select tool instead
+
 ## [2024.1.0] - 2024-01-27
 
 ### Added

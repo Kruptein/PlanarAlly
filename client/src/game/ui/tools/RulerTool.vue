@@ -16,17 +16,24 @@ function toggle(event: MouseEvent): void {
     const state = (event.target as HTMLButtonElement).getAttribute("aria-pressed") ?? "false";
     rulerTool.showPublic.value = state === "false";
 }
+
+function toggleGridMode(event: MouseEvent): void {
+    const state = (event.target as HTMLButtonElement).getAttribute("aria-pressed") ?? "false";
+    rulerTool.gridMode.value = state === "false";
+}
 </script>
 
 <template>
     <div v-if="selected" id="ruler" class="tool-detail">
         <button :aria-pressed="showPublic" @click="toggle">{{ t("game.ui.tools.RulerTool.share") }}</button>
+        <button :aria-pressed="rulerTool.gridMode.value" @click="toggleGridMode">Grid Mode</button>
     </div>
 </template>
 
 <style scoped lang="scss">
 #ruler {
     display: flex;
+    flex-direction: column;
 }
 
 button {

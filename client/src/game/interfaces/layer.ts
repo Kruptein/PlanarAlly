@@ -18,7 +18,7 @@ export interface ILayer {
     shapeIdsInSector: Set<LocalId>;
     shapesInSector: IShape[];
     postDrawCallback: {
-        wait: () => Promise<void>;
+        wait: (id?: string) => Promise<void>;
         resolveAll: () => void;
     };
 

@@ -8,7 +8,7 @@ import { EdgeIterator } from "../vision/tds";
 import type { Edge, TDS } from "../vision/tds";
 import { ccw, cw } from "../vision/triag";
 
-function drawPoint(point: [number, number], r: number, options?: { colour?: string; fill?: boolean }): void {
+export function drawPoint(point: [number, number], r: number, options?: { colour?: string; fill?: boolean }): void {
     const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
     const ctx = dl.ctx;
@@ -41,7 +41,7 @@ function drawPointL(point: [number, number], r: number, colour?: string): void {
 
 export function drawPolygon(
     polygon: [number, number][],
-    options?: { colour?: string; strokeWidth?: number; close?: boolean; debug?: boolean },
+    options?: { fillColour?: string; strokeColour?: string; strokeWidth?: number; close?: boolean; debug?: boolean },
 ): void {
     if (polygon.length === 0) return;
 
@@ -52,10 +52,15 @@ export function drawPolygon(
     // ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     ctx.lineJoin = "round";
     ctx.beginPath();
-    ctx.strokeStyle =
-        options?.colour === undefined
-            ? `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})`
-            : options.colour;
+
+    let performStroke = options?.strokeColour !== undefined;
+    if (options?.strokeColour === undefined && options?.fillColour === undefined) {
+        ctx.strokeStyle = `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})`;
+        performStroke = true;
+    }
+    if (options?.strokeColour !== undefined) ctx.strokeStyle = options.strokeColour;
+    if (options?.fillColour !== undefined) ctx.fillStyle = options.fillColour;
+
     const x = g2lx(polygon[0]![0]);
     const y = g2ly(polygon[0]![1]);
     ctx.moveTo(x, y);
@@ -67,8 +72,11 @@ export function drawPolygon(
         if (options?.debug ?? false) console.log(x, y);
     }
     if (options?.close ?? true) ctx.closePath();
-    if (options?.strokeWidth !== undefined) ctx.lineWidth = options.strokeWidth;
-    ctx.stroke();
+    if (performStroke) {
+        if (options?.strokeWidth !== undefined) ctx.lineWidth = options.strokeWidth;
+        ctx.stroke();
+    }
+    if (options?.fillColour !== undefined) ctx.fill();
 }
 
 function drawPolygonL(polygon: [number, number][], colour?: string): void {

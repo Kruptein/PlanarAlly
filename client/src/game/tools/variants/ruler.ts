@@ -1,4 +1,5 @@
-import { ref } from "vue";
+import tinycolor from "tinycolor2";
+import { computed, ref } from "vue";
 
 import { l2g } from "../../../core/conversions";
 import { Ray, cloneP, equalsP, toGP } from "../../../core/geometry";
@@ -10,9 +11,8 @@ import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { LayerName } from "../../models/floor";
 import { ToolName } from "../../models/tools";
 import type { ITool, ToolFeatures, ToolPermission } from "../../models/tools";
-import { Circle } from "../../shapes/variants/circle";
+import { drawPolygon } from "../../rendering/basic";
 import { Line } from "../../shapes/variants/line";
-import { Rect } from "../../shapes/variants/rect";
 import { Text } from "../../shapes/variants/text";
 import { accessSystem } from "../../systems/access";
 import { floorSystem } from "../../systems/floors";
@@ -32,24 +32,30 @@ function getCellCenter(point: GlobalPoint): GlobalPoint {
     return toGP(Math.floor(point.x / gs) * gs + gs / 2, Math.floor(point.y / gs) * gs + gs / 2);
 }
 
+const gridHighlightColour = computed(() => {
+    const rulerColour = tinycolor(playerSettingsState.reactive.rulerColour.value);
+    console.log(rulerColour.toRgbString());
+    const a = rulerColour.setAlpha(rulerColour.getAlpha() * 0.25).toRgbString();
+    console.log(a);
+    return a;
+});
+
 class RulerTool extends Tool implements ITool {
     readonly toolName = ToolName.Ruler;
     readonly toolTranslation = i18n.global.t("tool.Ruler");
 
     // REACTIVE PROPERTIES
     showPublic = ref(false);
+    gridMode = ref(false);
 
     // NON REACTIVE PROPERTIES
 
     private startPoint: GlobalPoint | undefined = undefined;
-    private rulers: Line[] = [];
+    private rulers: { ruler: Line; cells: GlobalPoint[] }[] = [];
     private text: Text | undefined = undefined;
 
     private currentLength = 0;
     private previousLength = 0;
-
-    private highlightedCells: Rect[] = [];
-    private highlightedCellss: Circle[] = [];
 
     get permittedTools(): ToolPermission[] {
         return [{ name: ToolName.Select, features: { enabled: [SelectFeatures.Context] } }];
@@ -85,7 +91,7 @@ class RulerTool extends Tool implements ITool {
             NO_SYNC,
         );
         layer.addShape(ruler, this.syncMode, InvalidationMode.NORMAL);
-        this.rulers.push(ruler);
+        this.rulers.push({ ruler, cells: [] });
     }
 
     // EVENT HANDLERS
@@ -137,18 +143,10 @@ class RulerTool extends Tool implements ITool {
         );
         layer.addShape(this.text, this.syncMode, InvalidationMode.NORMAL);
 
-        const cellCenter = getCellCenter(this.startPoint);
-        const rect = new Rect(cellCenter, DEFAULT_GRID_SIZE, DEFAULT_GRID_SIZE, undefined, {
-            fillColour: "lightblue",
-        });
-        rect.center = cellCenter;
-        this.highlightedCells.push(rect);
-        layer.addShape(rect, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
-
         return Promise.resolve();
     }
 
-    onMove(lp: LocalPoint, event: MouseEvent | TouchEvent | undefined): Promise<void> {
+    async onMove(lp: LocalPoint, event: MouseEvent | TouchEvent | undefined): Promise<void> {
         let endPoint = l2g(lp);
         if (!this.active.value || this.rulers.length === 0 || this.startPoint === undefined || this.text === undefined)
             return Promise.resolve();
@@ -168,75 +166,104 @@ class RulerTool extends Tool implements ITool {
             });
         }
 
-        for (const shape of this.highlightedCells) {
-            layer.removeShape(shape, { sync: SyncMode.NO_SYNC, recalculate: false, dropShapeId: true });
-        }
-        this.highlightedCells = [];
-        for (const shape of this.highlightedCellss) {
-            layer.removeShape(shape, { sync: SyncMode.NO_SYNC, recalculate: false, dropShapeId: true });
-        }
-        this.highlightedCellss = [];
-        const ray = Ray.fromPoints(getCellCenter(this.startPoint), getCellCenter(endPoint));
-        // const iterations = Math.round(ray.getDistance(0, ray.tMax) / DEFAULT_GRID_SIZE);
-        const iterations = Math.round(
-            Math.max(
-                Math.abs(endPoint.x - this.startPoint.x) / DEFAULT_GRID_SIZE,
-                Math.abs(endPoint.y - this.startPoint.y) / DEFAULT_GRID_SIZE,
-            ),
-        );
-        const step = ray.tMax / iterations;
-        for (let i = 0; i <= iterations; i++) {
-            const cellCenter = getCellCenter(ray.get(step * i));
-            const lastCenter = this.highlightedCells.at(-1)?.center;
-            if (lastCenter !== undefined && equalsP(cellCenter, lastCenter)) continue;
-            const rect = new Rect(cellCenter, DEFAULT_GRID_SIZE, DEFAULT_GRID_SIZE, undefined, {
-                fillColour: "rgba(173, 216, 230, 0.25)",
-            });
-            rect.center = cellCenter;
-            this.highlightedCells.push(rect);
-            layer.addShape(rect, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
-        }
-        for (let i = 0; i <= iterations; i++) {
-            const blob = new Circle(ray.get(step * i), 5, undefined, { fillColour: "red" });
-            this.highlightedCellss.push(blob);
-            layer.addShape(blob, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
-        }
-
-        const ruler = this.rulers.at(-1)!;
+        const { cells, ruler } = this.rulers.at(-1)!;
         ruler.endPoint = endPoint;
         sendShapePositionUpdate([ruler], true);
 
         const start = ruler.refPoint;
         const end = ruler.endPoint;
 
+        if (this.gridMode.value) {
+            cells.length = 0;
+
+            const startCenter = getCellCenter(start);
+            const endCenter = getCellCenter(end);
+            const ray = Ray.fromPoints(startCenter, endCenter);
+
+            const iterations = Math.round(
+                Math.max(
+                    Math.abs(endCenter.x - startCenter.x) / DEFAULT_GRID_SIZE,
+                    Math.abs(endCenter.y - startCenter.y) / DEFAULT_GRID_SIZE,
+                ),
+            );
+
+            const step = ray.tMax / iterations;
+            for (let i = 0; i <= iterations; i++) {
+                const cellCenter = getCellCenter(ray.get(step * i));
+                if (Number.isNaN(cellCenter.x)) continue;
+                const lastCenter = cells.at(-1) ?? this.rulers.at(-2)?.cells.at(-1);
+                if (lastCenter !== undefined && equalsP(cellCenter, lastCenter)) continue;
+
+                cells.push(cellCenter);
+            }
+        }
+
         const diffsign = Math.sign(end.x - start.x) * Math.sign(end.y - start.y);
         const xdiff = Math.abs(end.x - start.x);
         const ydiff = Math.abs(end.y - start.y);
-        // let distance =
-        // (Math.sqrt(xdiff ** 2 + ydiff ** 2) * locationSettingsState.raw.unitSize.value) / DEFAULT_GRID_SIZE;
-        let distance = this.highlightedCells.length;
+
+        let distance = cells.length;
+        if (!this.gridMode.value) {
+            distance =
+                (Math.sqrt(xdiff ** 2 + ydiff ** 2) * locationSettingsState.raw.unitSize.value) / DEFAULT_GRID_SIZE;
+        }
+
         this.currentLength = distance;
         distance += this.previousLength;
 
-        // round to 1 decimal
-        // const label =
-        //     i18n.global.n(Math.round(10 * distance) / 10) + " " + locationSettingsState.raw.unitSizeUnit.value;
-        const label =
-            i18n.global.n(distance) +
-            " (" +
-            distance * locationSettingsState.raw.unitSize.value +
-            " " +
-            locationSettingsState.raw.unitSizeUnit.value +
-            ")";
         const angle = Math.atan2(diffsign * ydiff, xdiff);
         const xmid = Math.min(start.x, end.x) + xdiff / 2;
         const ymid = Math.min(start.y, end.y) + ydiff / 2;
         this.text.refPoint = toGP(xmid, ymid);
-        this.text.setText(label, SyncMode.TEMP_SYNC);
         this.text.angle = angle;
         sendShapePositionUpdate([this.text], true);
 
+        let label: string;
+        const unit = locationSettingsState.raw.unitSizeUnit.value;
+        if (this.gridMode.value) {
+            const cellCount = distance - 1;
+            const distanceInUnits = distance * locationSettingsState.raw.unitSize.value;
+            label = `${cellCount} (${distanceInUnits} ${unit})`;
+        } else {
+            // round to 1 decimal
+            const distanceInUnits = i18n.global.n(Math.round(10 * distance) / 10);
+            label = `${distanceInUnits} ${unit}`;
+        }
+        this.text.setText(label, SyncMode.TEMP_SYNC);
+
         layer.invalidate(true);
+
+        // When using grid mode, we don't add the rectangles to the core PA shape system
+        // this would induce a lot of overhead as we would have to constantly add/remove shapes onMove.
+        // instead we draw the rectangles on the draw layer directly.
+        if (this.gridMode.value) {
+            layer.postDrawCallback
+                .wait("grid-cells")
+                .then(() => {
+                    layer.ctx.globalCompositeOperation = "destination-over";
+
+                    const half = DEFAULT_GRID_SIZE / 2;
+                    for (const { cells } of this.rulers) {
+                        for (const cell of cells) {
+                            drawPolygon(
+                                [
+                                    [cell.x - half, cell.y - half],
+                                    [cell.x + half, cell.y - half],
+                                    [cell.x + half, cell.y + half],
+                                    [cell.x - half, cell.y + half],
+                                ],
+                                { fillColour: gridHighlightColour.value },
+                            );
+                        }
+                    }
+
+                    layer.ctx.globalCompositeOperation = "source-over";
+                })
+                // this throws if we request cb multiple times before a draw has completed
+                // we don't care about that, so we just catch it and ignore it
+                .catch(() => {});
+        }
+
         return Promise.resolve();
     }
 
@@ -248,7 +275,7 @@ class RulerTool extends Tool implements ITool {
     onKeyUp(event: KeyboardEvent, features: ToolFeatures): void {
         if (event.defaultPrevented) return;
         if (event.key === " " && this.active.value) {
-            const lastRuler = this.rulers.at(-1)!;
+            const { ruler: lastRuler } = this.rulers.at(-1)!;
             this.createNewRuler(lastRuler.endPoint, lastRuler.endPoint);
             this.previousLength += this.currentLength;
 
@@ -282,7 +309,7 @@ class RulerTool extends Tool implements ITool {
         }
         this.active.value = false;
 
-        for (const ruler of this.rulers) {
+        for (const { ruler } of this.rulers) {
             layer.removeShape(ruler, { sync: this.syncMode, recalculate: true, dropShapeId: true });
         }
         layer.removeShape(this.text, { sync: this.syncMode, recalculate: true, dropShapeId: true });

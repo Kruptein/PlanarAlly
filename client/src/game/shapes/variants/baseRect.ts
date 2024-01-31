@@ -1,10 +1,8 @@
 import type { ApiBaseRectShape, ApiShape } from "../../../apiTypes";
-import { clampGridLine, clampToGrid, g2lx, g2ly } from "../../../core/conversions";
+import { clampToGrid, g2lx, g2ly } from "../../../core/conversions";
 import { addP, cloneP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
-import { DEFAULT_GRID_SIZE } from "../../../core/grid";
 import { rotateAroundPoint } from "../../../core/math";
-import { calculateDelta } from "../../drag";
 import type { GlobalId, LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import type { ShapeProperties } from "../../systems/properties/state";
@@ -127,32 +125,6 @@ export abstract class BaseRect extends Shape implements IShape {
         );
         if (coreVisible) return true;
         return false;
-    }
-
-    snapToGrid(): void {
-        const gs = DEFAULT_GRID_SIZE;
-        const center = this.center;
-        const mx = center.x;
-        const my = center.y;
-
-        let targetX;
-        let targetY;
-
-        if ((this.w / gs) % 2 === 0) {
-            targetX = clampGridLine(mx) - this.w / 2;
-        } else {
-            targetX = (Math.round((mx + gs / 2) / gs) - 1 / 2) * gs - this.w / 2;
-        }
-        if ((this.h / gs) % 2 === 0) {
-            targetY = clampGridLine(my) - this.h / 2;
-        } else {
-            targetY = (Math.round((my + gs / 2) / gs) - 1 / 2) * gs - this.h / 2;
-        }
-
-        const delta = calculateDelta(new Vector(targetX - this.refPoint.x, targetY - this.refPoint.y), this);
-        this.refPoint = addP(this.refPoint, delta);
-
-        this.invalidate(false);
     }
 
     resizeToGrid(resizePoint: number, retainAspectRatio: boolean): void {

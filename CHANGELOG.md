@@ -23,6 +23,9 @@ tech changes will usually be stripped from release notes for the public
 -   Polygon:
     -   selection/contains check went wrong if a polygon used the same point multiple times
     -   selection/contains check was also hitting on the line between the first and last points when not closed
+-   Snap to Grid:
+    -   This now has an implementation for hex grids
+    -   This should now more properly snap shapes that are larger than 1x1
 -   [tech] FloorSystem's floors and layers properties are now only reactive on the array level and are raw for the actual elements.
 
 ## [2024.1.0] - 2024-01-27

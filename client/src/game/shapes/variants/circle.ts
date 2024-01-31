@@ -147,25 +147,6 @@ export class Circle extends Shape implements IShape {
         return this.getBoundingBox().visibleInCanvas(max);
     }
 
-    snapToGrid(): void {
-        const gs = DEFAULT_GRID_SIZE;
-        let targetX;
-        let targetY;
-        if (((2 * this.r) / gs) % 2 === 0) {
-            targetX = clampGridLine(this.refPoint.x);
-        } else {
-            targetX = Math.round((this.refPoint.x - gs / 2) / gs) * gs + this.r;
-        }
-        if (((2 * this.r) / gs) % 2 === 0) {
-            targetY = clampGridLine(this.refPoint.y);
-        } else {
-            targetY = Math.round((this.refPoint.y - gs / 2) / gs) * gs + this.r;
-        }
-        const delta = calculateDelta(new Vector(targetX - this.refPoint.x, targetY - this.refPoint.y), this);
-        this.refPoint = addP(this.refPoint, delta);
-        this.invalidate(false);
-    }
-
     resizeToGrid(): void {
         const gs = DEFAULT_GRID_SIZE;
         this.r = Math.max(clampGridLine(this.r), gs / 2);

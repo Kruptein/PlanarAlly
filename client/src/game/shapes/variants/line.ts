@@ -119,9 +119,6 @@ export class Line extends Shape implements IShape {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    snapToGrid(): void {}
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
     resizeToGrid(): void {}
 
     resize(resizePoint: number, point: GlobalPoint): number {

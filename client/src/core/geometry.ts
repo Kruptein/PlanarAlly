@@ -11,6 +11,13 @@ export function getPointDistance(p1: Point | Vector, p2: Point | Vector): number
     return Math.sqrt(a * a + b * b);
 }
 
+// faster than getPointDistance when the actual distance is not needed (e.g. just finding the closest of a bunch of points)
+export function getPointDistanceSquared(p1: Point | Vector, p2: Point | Vector): number {
+    const a = p1.x - p2.x;
+    const b = p1.y - p2.y;
+    return a * a + b * b;
+}
+
 export function getDistanceToSegment<T extends Point>(p: T, line: [T, T]): { distance: number; nearest: T } {
     const lineVector = Vector.fromPoints(...line);
     const pointVector = Vector.fromPoints(line[0], p);

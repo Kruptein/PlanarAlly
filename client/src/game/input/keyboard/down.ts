@@ -1,4 +1,5 @@
 import { toGP, Vector } from "../../../core/geometry";
+import { DEFAULT_GRID_SIZE } from "../../../core/grid";
 import { FULL_SYNC } from "../../../core/models/types";
 import { ctrlOrCmdPressed } from "../../../core/utils";
 import { sendClientLocationOptions } from "../../api/emits/client";
@@ -15,7 +16,6 @@ import { floorState } from "../../systems/floors/state";
 import { gameState } from "../../systems/game/state";
 import { toggleNoteManager } from "../../systems/notes/ui";
 import { positionSystem } from "../../systems/position";
-import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
 import { propertiesSystem } from "../../systems/properties";
 import { getProperties } from "../../systems/properties/state";
 import { selectedSystem } from "../../systems/selected";

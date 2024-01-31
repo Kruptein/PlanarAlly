@@ -1,12 +1,11 @@
 import type { DeepReadonly } from "vue";
 
 import type { ILayer } from "../game/interfaces/layer";
-import type { IShape } from "../game/interfaces/shape";
-import { DEFAULT_GRID_SIZE } from "../game/systems/position/state";
 
 import { l2gz } from "./conversions";
 import { addP, equalsP, subtractP, toArrayP, toGP, Vector } from "./geometry";
 import type { GlobalPoint } from "./geometry";
+import { DEFAULT_GRID_SIZE } from "./grid";
 
 export function equalPoint(a: number, b: number, delta = 0.0001): boolean {
     return a - delta < b && a + delta > b;

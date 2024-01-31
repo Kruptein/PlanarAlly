@@ -3,6 +3,7 @@ import type { System } from "..";
 import { g2l, l2g, zoomDisplayToFactor } from "../../../core/conversions";
 import { addP, getPointDistance, subtractP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
+import { DEFAULT_GRID_SIZE } from "../../../core/grid";
 import { sendClientLocationOptions } from "../../api/emits/client";
 import { getAllShapes, getShape, getShapeCount } from "../../id";
 import type { LocalId } from "../../id";
@@ -19,7 +20,7 @@ import { gameState } from "../game/state";
 import { locationSettingsState } from "../settings/location/state";
 import { playerSettingsState } from "../settings/players/state";
 
-import { DEFAULT_GRID_SIZE, positionState } from "./state";
+import { positionState } from "./state";
 
 const { mutable, readonly, mutableReactive: $ } = positionState;
 

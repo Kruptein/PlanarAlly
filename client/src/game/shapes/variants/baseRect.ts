@@ -2,11 +2,11 @@ import type { ApiBaseRectShape, ApiShape } from "../../../apiTypes";
 import { clampGridLine, clampToGrid, g2lx, g2ly } from "../../../core/conversions";
 import { addP, cloneP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
+import { DEFAULT_GRID_SIZE } from "../../../core/grid";
 import { rotateAroundPoint } from "../../../core/math";
 import { calculateDelta } from "../../drag";
 import type { GlobalId, LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
-import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
 import type { ShapeProperties } from "../../systems/properties/state";
 import { Shape } from "../shape";
 

@@ -2,9 +2,9 @@
 import { reactive, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { DEFAULT_GRID_SIZE } from "../../../core/grid";
 import { map } from "../../../core/iter";
 import { getShape } from "../../id";
-import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
 import { selectedState } from "../../systems/selected/state";
 import { mapTool } from "../../tools/variants/map";
 

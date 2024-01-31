@@ -1,6 +1,7 @@
+import { DEFAULT_GRID_SIZE } from "../../../core/grid";
 import type { IGridLayer } from "../../interfaces/layers/grid";
 import { floorState } from "../../systems/floors/state";
-import { DEFAULT_GRID_SIZE, positionState } from "../../systems/position/state";
+import { positionState } from "../../systems/position/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 

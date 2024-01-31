@@ -1,9 +1,10 @@
-import { DEFAULT_GRID_SIZE, positionState } from "../game/systems/position/state";
+import { positionState } from "../game/systems/position/state";
 import { locationSettingsState } from "../game/systems/settings/location/state";
 import { playerSettingsState } from "../game/systems/settings/players/state";
 
 import { Ray, toGP, toLP } from "./geometry";
 import type { GlobalPoint, LocalPoint } from "./geometry";
+import { DEFAULT_GRID_SIZE } from "./grid";
 
 export function g2l(obj: GlobalPoint): LocalPoint {
     const state = positionState.readonly;

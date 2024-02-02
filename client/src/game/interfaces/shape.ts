@@ -22,6 +22,7 @@ export interface IShape extends SimpleShape {
     get points(): [number, number][];
     get shadowPoints(): [number, number][];
     invalidatePoints: () => void;
+    updatePoints: () => void;
     resetVisionIteration: () => void;
 
     contains: (point: GlobalPoint, nearbyThreshold?: number) => boolean;
@@ -75,7 +76,6 @@ export interface IShape extends SimpleShape {
     getPositionRepresentation: () => { angle: number; points: [number, number][] };
     setPositionRepresentation: (position: { angle: number; points: [number, number][] }) => void;
     invalidate: (skipLightUpdate: boolean) => void;
-    updateLayerPoints: () => void;
     rotateAround: (point: GlobalPoint, angle: number) => void;
     rotateAroundAbsolute: (point: GlobalPoint, angle: number) => void;
     getPointIndex: (p: GlobalPoint, delta?: number) => number;

@@ -75,7 +75,7 @@ export abstract class BaseRect extends Shape implements IShape {
         return bbox;
     }
 
-    invalidatePoints(): void {
+    updatePoints(): void {
         if (this.w === 0 || this.h === 0) {
             this._points = [[this.refPoint.x, this.refPoint.y]];
             return;
@@ -93,7 +93,6 @@ export abstract class BaseRect extends Shape implements IShape {
             [botright.x, botright.y],
             [topright.x, topright.y],
         ];
-        super.invalidatePoints();
     }
 
     contains(point: GlobalPoint): boolean {
@@ -236,7 +235,7 @@ export abstract class BaseRect extends Shape implements IShape {
         const oppositeNRP = (newResizePoint + 2) % 4;
 
         // this call needs to happen BEFORE the below code
-        this.invalidatePoints();
+        this.updatePoints(); // todo see if we can do this without the full updatePoints call
 
         const vec = Vector.fromPoints(toGP(this.points[oppositeNRP]!), toGP(oldPoints[oppositeNRP]!));
         this.refPoint = addP(this.refPoint, vec);

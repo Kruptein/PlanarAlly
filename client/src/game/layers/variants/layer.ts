@@ -205,12 +205,6 @@ export class Layer implements ILayer {
         propertiesSystem.setBlocksMovement(shape.id, props.blocksMovement, UI_SYNC, invalidate !== InvalidationMode.NO);
 
         shape.invalidatePoints();
-        if (shape.isSnappable) {
-            for (const point of shape.points) {
-                const strp = JSON.stringify(point);
-                this.points.set(strp, (this.points.get(strp) ?? new Set()).add(shape.id));
-            }
-        }
 
         if (accessSystem.hasAccessTo(shape.id, false, { vision: true }) && props.isToken)
             accessSystem.addOwnedToken(shape.id);
@@ -339,13 +333,6 @@ export class Layer implements ILayer {
 
         if (options.dropShapeId) dropId(shape.id);
         markerSystem.removeMarker(shape.id, true);
-
-        for (const point of shape.points) {
-            const strp = JSON.stringify(point);
-            const val = this.points.get(strp);
-            if (val === undefined || val.size === 1) this.points.delete(strp);
-            else val.delete(shape.id);
-        }
 
         if (this.isActiveLayer) selectedSystem.remove(shape.id);
 

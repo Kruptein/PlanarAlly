@@ -65,7 +65,7 @@ export class Circle extends Shape implements IShape {
         return new BoundingRect(toGP(this.refPoint.x - this.r, this.refPoint.y - this.r), this.r * 2, this.r * 2);
     }
 
-    invalidatePoints(): void {
+    updatePoints(): void {
         const ps = [];
         const r = this.r;
         const k = 0.75 / r;
@@ -76,7 +76,6 @@ export class Circle extends Shape implements IShape {
         }
         this._shadowPoints = ps;
         this._points = this.getBoundingBox().points;
-        super.invalidatePoints();
     }
 
     draw(ctx: CanvasRenderingContext2D, lightRevealRender: boolean): void {

@@ -12,6 +12,7 @@ tech changes will usually be stripped from release notes for the public
 
 ### Fixed
 
+-   Select Tool: resizing in snapping mode was also snapping to the point being resized
 -   Spell tool: selecting another tool would swap to the Select tool instead
 
 ## [2024.1.0] - 2024-01-27

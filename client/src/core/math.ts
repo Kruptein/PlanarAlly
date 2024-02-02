@@ -1,6 +1,7 @@
 import type { DeepReadonly } from "vue";
 
 import type { ILayer } from "../game/interfaces/layer";
+import type { IShape } from "../game/interfaces/shape";
 import { DEFAULT_GRID_SIZE } from "../game/systems/position/state";
 
 import { l2gz } from "./conversions";
@@ -41,16 +42,27 @@ export function getPointsCenter(points: GlobalPoint[]): GlobalPoint {
 export function snapToPoint(
     layer: DeepReadonly<ILayer>,
     endPoint: GlobalPoint,
-    ignore?: GlobalPoint,
+    ignore?: { shape: IShape; pointIndex: number },
 ): [GlobalPoint, boolean] {
     const snapDistance = l2gz(20);
     let smallestPoint: [number, GlobalPoint] | undefined;
-    for (const point of layer.points.keys()) {
-        const gp = toGP(JSON.parse(point) as [number, number]);
-        if (ignore && equalsP(gp, ignore)) continue;
-        const l = subtractP(endPoint, gp).length();
+    // We could do an extra cache in Layer, similar to Shape._points if this ends up being too slow
+    // Has to be tested in scenes with a lot of shapes
+    for (const shape of layer.getShapes({ onlyInView: true, includeComposites: false })) {
+        if (!shape.isSnappable) continue;
+        for (const point of shape.points) {
+            // const gp = toGP(JSON.parse(point) as [number, number]);
+            const gp = toGP(point);
+            if (ignore?.shape.id === shape.id) {
+                const ingorePoint = toGP(ignore.shape.points[ignore.pointIndex]!);
+                if (equalsP(gp, ingorePoint)) continue;
+            }
+            const l = subtractP(endPoint, gp).length();
 
-        if (l < (smallestPoint?.[0] ?? snapDistance)) smallestPoint = [l, gp];
+            if (l < (smallestPoint?.[0] ?? snapDistance)) {
+                smallestPoint = [l, gp];
+            }
+        }
     }
     if (smallestPoint !== undefined) endPoint = smallestPoint[1];
     return [endPoint, smallestPoint !== undefined];

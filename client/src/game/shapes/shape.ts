@@ -54,11 +54,19 @@ export abstract class Shape implements IShape {
     protected _angle = 0;
     protected _center!: GlobalPoint;
 
+    private _pointsInvalid = false;
     protected _points: [number, number][] = [];
     protected _shadowPoints: [number, number][] | undefined = undefined;
+    abstract updatePoints(): void;
+
     get points(): [number, number][] {
+        if (this._pointsInvalid) {
+            this.updatePoints();
+            this._pointsInvalid = false;
+        }
         return this._points;
     }
+
     get shadowPoints(): [number, number][] {
         return this._shadowPoints ?? this._points;
     }
@@ -284,27 +292,9 @@ export abstract class Shape implements IShape {
         if (this.layerName !== undefined) this.layer!.invalidate(skipLightUpdate);
     }
 
-    // @mustOverride
     invalidatePoints(): void {
+        this._pointsInvalid = true;
         this.layer?.updateSectors(this.id, this.getAuraAABB());
-        if (this.isSnappable) this.updateLayerPoints();
-    }
-
-    updateLayerPoints(): void {
-        for (const point of this.layer?.points ?? []) {
-            if (point[1].has(this.id)) {
-                if (point[1].size === 1) this.layer?.points.delete(point[0]);
-                else point[1].delete(this.id);
-            }
-        }
-        for (const point of this.points) {
-            const strp = JSON.stringify(point);
-            const layer = this.layer;
-            if (layer !== undefined) {
-                if (layer.points.has(strp)) layer.points.get(strp)!.add(this.id);
-                else layer.points.set(strp, new Set([this.id]));
-            }
-        }
     }
 
     rotateAround(point: GlobalPoint, angle: number): void {
@@ -469,7 +459,7 @@ export abstract class Shape implements IShape {
         }
         ctx.stroke();
 
-        const points = this.points; // expensive call
+        const points = this.points;
         if (points.length === 0) return; // can trigger mid-floor change
 
         // Draw vertices
@@ -519,7 +509,7 @@ export abstract class Shape implements IShape {
     // BOUNDING BOX
 
     getAABB(delta = 0): BoundingRect {
-        const points = this.points; // expensive call
+        const points = this.points;
         if (points.length === 0) {
             return new BoundingRect(this.refPoint, 5, 5);
         }

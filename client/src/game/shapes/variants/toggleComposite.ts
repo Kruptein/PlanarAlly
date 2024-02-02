@@ -202,7 +202,7 @@ export class ToggleComposite extends Shape implements IToggleComposite {
         };
     }
 
-    invalidatePoints(): void {
+    updatePoints(): void {
         return;
     }
 

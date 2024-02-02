@@ -293,7 +293,7 @@ class SelectTool extends Tool implements ISelectTool {
                     selectedSystem.set(shape.id);
                     this.removeRotationUi();
                     this.createRotationUi(features);
-                    const points = shape.points; // expensive call
+                    const points = shape.points;
                     this.originalResizePoints = points;
                     this.mode = SelectOperations.Resize;
                     layer.invalidate(true);
@@ -509,18 +509,16 @@ class SelectTool extends Tool implements ISelectTool {
 
                 if (!accessSystem.hasAccessTo(shape.id, false, { movement: true })) return;
 
-                let ignorePoint: GlobalPoint | undefined;
-                if (this.resizePoint >= 0) {
-                    const targetPoint = this.originalResizePoints[this.resizePoint];
-                    if (targetPoint !== undefined) ignorePoint = toGP(targetPoint);
-                }
                 let targetPoint = gp;
                 if (
                     event &&
                     playerSettingsState.useSnapping(event) &&
                     this.hasFeature(SelectFeatures.Snapping, features)
                 )
-                    [targetPoint, this.snappedToPoint] = snapToPoint(floorState.currentLayer.value!, gp, ignorePoint);
+                    [targetPoint, this.snappedToPoint] = snapToPoint(floorState.currentLayer.value!, gp, {
+                        shape,
+                        pointIndex: this.resizePoint,
+                    });
                 else this.snappedToPoint = false;
 
                 this.resizePoint = resizeShape(
@@ -582,7 +580,7 @@ class SelectTool extends Tool implements ISelectTool {
                 if (!shape.visibleInCanvas({ w: layer.width, h: layer.height }, { includeAuras: false })) continue;
                 if (layerSelection.some((s) => s.id === shape.id)) continue;
 
-                const points = shape.points; // expensive call
+                const points = shape.points;
                 if (points.length > 1) {
                     for (let i = 0; i < points.length; i++) {
                         const ray = Ray.fromPoints(toGP(points[i]!), toGP(points[(i + 1) % points.length]!));

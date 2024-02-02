@@ -42,9 +42,8 @@ export class Text extends Shape implements IText {
         return { ...this.getBaseDict(), text: this.text, font_size: this.fontSize, angle: this.angle };
     }
 
-    invalidatePoints(): void {
+    updatePoints(): void {
         this._points = this.getBoundingBox().points;
-        super.invalidatePoints();
     }
 
     getBoundingBox(): BoundingRect {

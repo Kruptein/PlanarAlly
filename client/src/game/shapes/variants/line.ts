@@ -62,12 +62,11 @@ export class Line extends Shape implements IShape {
         return { ...this.getBaseDict(), x2: this.endPoint.x, y2: this.endPoint.y, line_width: this.lineWidth };
     }
 
-    invalidatePoints(): void {
+    updatePoints(): void {
         this._points = [
             toArrayP(rotateAroundPoint(this.refPoint, this.center, this.angle)),
             toArrayP(rotateAroundPoint(this.endPoint, this.center, this.angle)),
         ];
-        super.invalidatePoints();
     }
 
     getBoundingBox(): BoundingRect {

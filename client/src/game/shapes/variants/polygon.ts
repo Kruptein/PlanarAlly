@@ -137,10 +137,9 @@ export class Polygon extends Shape implements IShape {
         return toArrayP(rotateAroundPoint(point, center, this.angle));
     }
 
-    invalidatePoints(): void {
+    updatePoints(): void {
         const center = this.center;
         this._points = this.vertices.map((point) => this.invalidatePoint(point, center));
-        super.invalidatePoints();
     }
 
     draw(ctx: CanvasRenderingContext2D, lightRevealRender: boolean): void {
@@ -292,7 +291,6 @@ export class Polygon extends Shape implements IShape {
         this._vertices.push(point);
         this._points.push(this.invalidatePoint(point, this.center));
         this.layer?.updateSectors(this.id, this.getAuraAABB());
-        if (this.isSnappable) this.updateLayerPoints();
         if (options?.simplifyEnd === true) this.simplifyEnd();
     }
 

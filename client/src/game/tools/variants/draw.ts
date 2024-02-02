@@ -186,7 +186,6 @@ class DrawTool extends Tool implements ITool {
             this.onDeselect();
             await this.onSelect(mouse);
         } else {
-            this.shape.updateLayerPoints();
             const props = getProperties(this.shape.id)!;
 
             if (this.shape.floorId !== undefined) {
@@ -471,7 +470,7 @@ class DrawTool extends Tool implements ITool {
                 this.ruler.refPoint = lastPoint;
                 this.ruler.endPoint = lastPoint;
             }
-            const points = this.shape.points; // expensive call
+            const points = this.shape.points;
             const props = getProperties(this.shape.id)!;
             if (props.blocksVision !== VisionBlock.No && points.length > 1)
                 visionState.insertConstraint(TriangulationTarget.VISION, this.shape, points.at(-2)!, points.at(-1)!);
@@ -495,9 +494,10 @@ class DrawTool extends Tool implements ITool {
             return Promise.resolve();
         }
 
-        if (event && playerSettingsState.useSnapping(event))
-            [endPoint, this.snappedToPoint] = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
-        else this.snappedToPoint = false;
+        if (event && playerSettingsState.useSnapping(event)) {
+            const ignore = this.ruler ? { shape: this.ruler, pointIndex: 0 } : undefined;
+            [endPoint, this.snappedToPoint] = snapToPoint(this.getLayer()!, endPoint, ignore);
+        } else this.snappedToPoint = false;
 
         if (this.pointer !== undefined) {
             this.pointer.refPoint = endPoint;
@@ -538,7 +538,7 @@ class DrawTool extends Tool implements ITool {
             }
             case DrawShape.Brush: {
                 const br = this.shape as Polygon;
-                const points = br.points; // expensive call
+                const points = br.points;
                 if (equalPoints(points.at(-1)!, [endPoint.x, endPoint.y])) return Promise.resolve();
                 br.pushPoint(endPoint, { simplifyEnd: true });
                 break;
@@ -582,9 +582,10 @@ class DrawTool extends Tool implements ITool {
         }
 
         let endPoint = l2g(lp);
-        if (event && playerSettingsState.useSnapping(event))
-            [endPoint, this.snappedToPoint] = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
-        else this.snappedToPoint = false;
+        if (event && playerSettingsState.useSnapping(event)) {
+            const ignore = this.ruler ? { shape: this.ruler, pointIndex: 0 } : undefined;
+            [endPoint, this.snappedToPoint] = snapToPoint(this.getLayer()!, endPoint, ignore);
+        } else this.snappedToPoint = false;
 
         // TODO: handle touch event different than altKey, long press
         if (
@@ -629,7 +630,7 @@ class DrawTool extends Tool implements ITool {
             this.ruler = undefined;
             if (this.state.isClosedPolygon) {
                 const props = getProperties(this.shape.id)!;
-                const points = this.shape.points; // expensive call
+                const points = this.shape.points;
                 if (props.blocksVision !== VisionBlock.No && points.length > 1)
                     visionState.insertConstraint(TriangulationTarget.VISION, this.shape, points[0]!, points.at(-1)!);
                 if (props.blocksMovement && points.length > 1)

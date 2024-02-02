@@ -945,6 +945,7 @@ class SelectTool extends Tool implements ISelectTool {
             },
             { fillColour: "rgba(0,0,0,0)", strokeColour: ["black"] },
         );
+        this.polygonTracer.options.skipDraw = true;
         const drawLayer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw)!;
         drawLayer.addShape(this.polygonTracer, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         this.updatePolygonEditUi(this.lastMousePosition);
@@ -1004,6 +1005,7 @@ class SelectTool extends Tool implements ISelectTool {
         if (smallest.distance <= polygon.lineWidth[0]!) {
             _$.polygonUiVisible = "visible";
             this.polygonTracer.refPoint = smallest.nearest;
+            this.polygonTracer.options.skipDraw = false;
             this.polygonTracer.layer?.invalidate(true);
             const lp = g2l(smallest.nearest);
             const radians = toRadians(smallest.angle);

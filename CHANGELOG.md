@@ -14,6 +14,8 @@ tech changes will usually be stripped from release notes for the public
 
 -   Select Tool: resizing in snapping mode was also snapping to the point being resized
 -   Spell tool: selecting another tool would swap to the Select tool instead
+-   Polygon: selection/contains check went wrong if a polygon used the same point multiple times
+-   Polygon: selection/contains check was also hitting on the line between the first and last points when not closed
 
 ## [2024.1.0] - 2024-01-27
 

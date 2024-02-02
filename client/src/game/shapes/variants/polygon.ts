@@ -193,8 +193,9 @@ export class Polygon extends Shape implements IShape {
         if (!bbox.contains(point)) return false;
         if (this.isClosed) return true;
         if (this.angle !== 0) point = rotateAroundPoint(point, this.center, -this.angle);
-        const vertices = this.uniqueVertices;
+        const vertices = this.vertices;
         for (const [i, v] of vertices.entries()) {
+            if (i === this.vertices.length - 1 && this.openPolygon) break;
             const nv = vertices[(i + 1) % vertices.length]!;
             const { distance } = getDistanceToSegment(point, [v, nv]);
             if (distance <= nearbyThreshold) return true;

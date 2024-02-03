@@ -8,6 +8,7 @@ import { EdgeIterator } from "../vision/tds";
 import type { Edge, TDS } from "../vision/tds";
 import { ccw, cw } from "../vision/triag";
 
+// eslint-disable-next-line import/no-unused-modules
 export function drawPoint(point: [number, number], r: number, options?: { colour?: string; fill?: boolean }): void {
     const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;

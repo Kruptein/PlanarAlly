@@ -16,6 +16,7 @@ import {
 import { InvalidationMode, NO_SYNC, SyncMode } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
+import type { ILayer } from "../../interfaces/layer";
 import { LayerName } from "../../models/floor";
 import { ToolName } from "../../models/tools";
 import type { ITool, ToolFeatures, ToolPermission } from "../../models/tools";
@@ -113,7 +114,9 @@ class RulerTool extends Tool implements ITool {
         this.cleanup();
         this.startPoint = l2g(lp);
 
-        if (event && playerSettingsState.useSnapping(event)) {
+        if (this.gridMode.value) {
+            this.startPoint = getClosestCellCenter(this.startPoint, locationSettingsState.raw.gridType.value);
+        } else if (event && playerSettingsState.useSnapping(event)) {
             const gridType = locationSettingsState.raw.gridType.value;
             [this.startPoint] = snapPointToGrid(this.startPoint, gridType, {
                 snapDistance: Number.MAX_VALUE,
@@ -240,34 +243,7 @@ class RulerTool extends Tool implements ITool {
         // this would induce a lot of overhead as we would have to constantly add/remove shapes onMove.
         // instead we draw the rectangles on the draw layer directly.
         if (this.gridMode.value) {
-            layer.postDrawCallback
-                .wait("grid-cells")
-                .then(() => {
-                    layer.ctx.globalCompositeOperation = "destination-over";
-
-                    const gridType = locationSettingsState.raw.gridType.value;
-                    let firstCell = true;
-                    const handledCells: GlobalPoint[] = [];
-                    for (const { cells } of this.rulers) {
-                        for (const cellCenter of cells) {
-                            if (handledCells.some((c) => equalsP(c, cellCenter))) continue;
-
-                            drawPolygon(
-                                getCellVertices(getCellFromPoint(cellCenter, gridType), gridType).map((p) =>
-                                    toArrayP(p),
-                                ),
-                                { fillColour: gridHighlightColours.value[firstCell ? "start" : "default"] },
-                            );
-                            firstCell = false;
-                            handledCells.push(cellCenter);
-                        }
-                    }
-
-                    layer.ctx.globalCompositeOperation = "source-over";
-                })
-                // this throws if we request cb multiple times before a draw has completed
-                // we don't care about that, so we just catch it and ignore it
-                .catch(() => {});
+            this.registerHighlightedCellDraw(layer);
         }
 
         return Promise.resolve();
@@ -282,14 +258,20 @@ class RulerTool extends Tool implements ITool {
         if (event.defaultPrevented) return;
         if (event.key === " " && this.active.value) {
             const { ruler: lastRuler } = this.rulers.at(-1)!;
-            this.createNewRuler(lastRuler.endPoint, lastRuler.endPoint);
-            this.previousLength += this.currentLength;
 
             const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
             if (layer === undefined) {
                 console.log("No draw layer!");
                 return;
             }
+
+            if (this.gridMode.value) {
+                lastRuler.endPoint = getClosestCellCenter(lastRuler.endPoint, locationSettingsState.raw.gridType.value);
+                this.registerHighlightedCellDraw(layer);
+            }
+
+            this.createNewRuler(lastRuler.endPoint, lastRuler.endPoint);
+            this.previousLength += this.currentLength;
 
             layer.moveShapeOrder(
                 this.text!,
@@ -300,6 +282,35 @@ class RulerTool extends Tool implements ITool {
             event.preventDefault();
         }
         super.onKeyUp(event, features);
+    }
+
+    private registerHighlightedCellDraw(layer: ILayer): void {
+        layer.postDrawCallback
+            .wait("grid-cells")
+            .then(() => {
+                layer.ctx.globalCompositeOperation = "destination-over";
+
+                const gridType = locationSettingsState.raw.gridType.value;
+                let firstCell = true;
+                const handledCells: GlobalPoint[] = [];
+                for (const { cells } of this.rulers) {
+                    for (const cellCenter of cells) {
+                        if (handledCells.some((c) => equalsP(c, cellCenter))) continue;
+
+                        drawPolygon(
+                            getCellVertices(getCellFromPoint(cellCenter, gridType), gridType).map((p) => toArrayP(p)),
+                            { fillColour: gridHighlightColours.value[firstCell ? "start" : "default"] },
+                        );
+                        firstCell = false;
+                        handledCells.push(cellCenter);
+                    }
+                }
+
+                layer.ctx.globalCompositeOperation = "source-over";
+            })
+            // this throws if we request cb multiple times before a draw has completed
+            // we don't care about that, so we just catch it and ignore it
+            .catch(() => {});
     }
 
     // HELPERS

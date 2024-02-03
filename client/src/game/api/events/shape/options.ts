@@ -57,6 +57,11 @@ socket.on(
 );
 
 socket.on(
+    "Shape.Options.OddHexOrientation.Set",
+    wrapSystemCall<ShapeSetBooleanValue>(propertiesSystem.setOddHexOrientation.bind(propertiesSystem)),
+);
+
+socket.on(
     "Shape.Options.StrokeColour.Set",
     wrapSystemCall<ShapeSetStringValue>(propertiesSystem.setStrokeColour.bind(propertiesSystem)),
 );

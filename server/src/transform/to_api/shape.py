@@ -63,5 +63,6 @@ def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:
         auras=auras,
         labels=labels,
         character=shape.character_id,
+        odd_hex_orientation=shape.odd_hex_orientation,
     )
     return shape.subtype.as_pydantic(shape_model)

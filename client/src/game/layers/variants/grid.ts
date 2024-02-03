@@ -1,6 +1,7 @@
+import { DEFAULT_HEX_RADIUS, DEFAULT_GRID_SIZE, SQRT3, GridType } from "../../../core/grid";
 import type { IGridLayer } from "../../interfaces/layers/grid";
 import { floorState } from "../../systems/floors/state";
-import { DEFAULT_GRID_SIZE, positionState } from "../../systems/position/state";
+import { positionState } from "../../systems/position/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 
@@ -32,7 +33,7 @@ export class GridLayer extends Layer implements IGridLayer {
 
                 const state = positionState.readonly;
 
-                if (locationSettingsState.raw.gridType.value === "SQUARE") {
+                if (locationSettingsState.raw.gridType.value === GridType.Square) {
                     const zoomed_grid_size = DEFAULT_GRID_SIZE * state.zoom;
                     for (let i = 0; i < this.height; i += zoomed_grid_size) {
                         const zoomed_pan_size = (state.panY % DEFAULT_GRID_SIZE) * state.zoom;
@@ -45,10 +46,8 @@ export class GridLayer extends Layer implements IGridLayer {
                         ctx.lineTo(i + zoomed_pan_size, this.height);
                     }
                 } else {
-                    const s3 = Math.sqrt(3);
-                    const centerDistance = DEFAULT_GRID_SIZE * state.zoom;
-                    const side = centerDistance / s3;
-                    const SECONDARY_SIZE = s3 * side;
+                    const side = DEFAULT_HEX_RADIUS * state.zoom;
+                    const SECONDARY_SIZE = SQRT3 * side;
                     const SECONDARY_HALF = SECONDARY_SIZE / 2;
 
                     /*
@@ -59,16 +58,18 @@ export class GridLayer extends Layer implements IGridLayer {
                      * but differ in primary axis.
                      */
 
-                    const flat = locationSettingsState.raw.gridType.value === "FLAT_HEX";
+                    const flat = locationSettingsState.raw.gridType.value === GridType.FlatHex;
 
-                    const pX = (state.panX % ((flat ? 3 / s3 : 1) * DEFAULT_GRID_SIZE)) * state.zoom;
-                    const pY = (state.panY % ((flat ? 1 : 3 / s3) * DEFAULT_GRID_SIZE)) * state.zoom;
+                    const pX = (state.panX % ((flat ? 3 / SQRT3 : 1) * DEFAULT_GRID_SIZE)) * state.zoom;
+                    const pY = (state.panY % ((flat ? 1 : 3 / SQRT3) * DEFAULT_GRID_SIZE)) * state.zoom;
 
                     const primaryAxisLimit = (flat ? this.width : this.height) / (2 * side);
                     const secondaryAxisLimit = (flat ? this.height : this.width) / SECONDARY_HALF;
 
                     for (let i = -2; i <= secondaryAxisLimit + 2; i++) {
-                        const secondaryDelta = (s3 / 2) * i * side;
+                        // Division by 2 as we do a zigzag pattern of rows (pointy) / cols (flat)
+                        const secondaryDelta = (SQRT3 / 2) * i * side;
+                        // We need to take the zigzag (i%2) into account
                         const primaryDelta = i % 2 === 0 ? 0 : 1.5 * side;
                         for (let j = -2; j < primaryAxisLimit; j++) {
                             const s1 = secondaryDelta;

@@ -118,12 +118,6 @@ export class Line extends Shape implements IShape {
         return this.getBoundingBox().visibleInCanvas(max);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    snapToGrid(): void {}
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    resizeToGrid(): void {}
-
     resize(resizePoint: number, point: GlobalPoint): number {
         if (resizePoint === 0) this.refPoint = point;
         else this.endPoint = point;

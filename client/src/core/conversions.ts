@@ -1,9 +1,10 @@
-import { DEFAULT_GRID_SIZE, positionState } from "../game/systems/position/state";
+import { positionState } from "../game/systems/position/state";
 import { locationSettingsState } from "../game/systems/settings/location/state";
 import { playerSettingsState } from "../game/systems/settings/players/state";
 
 import { Ray, toGP, toLP } from "./geometry";
 import type { GlobalPoint, LocalPoint } from "./geometry";
+import { DEFAULT_GRID_SIZE } from "./grid";
 
 export function g2l(obj: GlobalPoint): LocalPoint {
     const state = positionState.readonly;
@@ -52,14 +53,6 @@ export function l2gy(y: number): number {
 
 export function l2gz(z: number): number {
     return z / positionState.readonly.zoom;
-}
-
-export function clampGridLine(point: number): number {
-    return Math.round(point / DEFAULT_GRID_SIZE) * DEFAULT_GRID_SIZE;
-}
-
-export function clampToGrid(point: GlobalPoint): GlobalPoint {
-    return toGP(clampGridLine(point.x), clampGridLine(point.y));
 }
 
 export function toRadians(degrees: number): number {

@@ -1,12 +1,10 @@
 import type { ApiCircleShape } from "../../../apiTypes";
-import { g2lz, clampGridLine } from "../../../core/conversions";
+import { g2lz } from "../../../core/conversions";
 import { addP, subtractP, toArrayP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { FOG_COLOUR } from "../../colour";
-import { calculateDelta } from "../../drag";
 import type { GlobalId, LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
-import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
 import { getProperties } from "../../systems/properties/state";
 import type { ShapeProperties } from "../../systems/properties/state";
 import { Shape } from "../shape";
@@ -146,31 +144,6 @@ export class Circle extends Shape implements IShape {
     visibleInCanvas(max: { w: number; h: number }, options: { includeAuras: boolean }): boolean {
         if (super.visibleInCanvas(max, options)) return true;
         return this.getBoundingBox().visibleInCanvas(max);
-    }
-
-    snapToGrid(): void {
-        const gs = DEFAULT_GRID_SIZE;
-        let targetX;
-        let targetY;
-        if (((2 * this.r) / gs) % 2 === 0) {
-            targetX = clampGridLine(this.refPoint.x);
-        } else {
-            targetX = Math.round((this.refPoint.x - gs / 2) / gs) * gs + this.r;
-        }
-        if (((2 * this.r) / gs) % 2 === 0) {
-            targetY = clampGridLine(this.refPoint.y);
-        } else {
-            targetY = Math.round((this.refPoint.y - gs / 2) / gs) * gs + this.r;
-        }
-        const delta = calculateDelta(new Vector(targetX - this.refPoint.x, targetY - this.refPoint.y), this);
-        this.refPoint = addP(this.refPoint, delta);
-        this.invalidate(false);
-    }
-
-    resizeToGrid(): void {
-        const gs = DEFAULT_GRID_SIZE;
-        this.r = Math.max(clampGridLine(this.r), gs / 2);
-        this.invalidate(false);
     }
 
     resize(resizePoint: number, point: GlobalPoint): number {

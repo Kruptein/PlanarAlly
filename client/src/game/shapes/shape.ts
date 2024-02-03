@@ -4,6 +4,7 @@ import type { ApiCoreShape, ApiShape } from "../../apiTypes";
 import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "../../core/conversions";
 import { addP, cloneP, equalsP, subtractP, toArrayP, toGP, Vector } from "../../core/geometry";
 import type { GlobalPoint } from "../../core/geometry";
+import { GridType, getCellHeight, getCellWidth, snapPointToGrid, snapShapeToGrid } from "../../core/grid";
 import { rotateAroundPoint } from "../../core/math";
 import { mostReadable } from "../../core/utils";
 import { generateLocalId, getGlobalId, getShape } from "../id";
@@ -29,6 +30,7 @@ import { propertiesSystem } from "../systems/properties";
 import { getProperties } from "../systems/properties/state";
 import type { ShapeProperties } from "../systems/properties/state";
 import { VisionBlock } from "../systems/properties/types";
+import { locationSettingsState } from "../systems/settings/location/state";
 import { playerSettingsState } from "../systems/settings/players/state";
 import { trackerSystem } from "../systems/trackers";
 import { trackersFromServer, trackersToServer } from "../systems/trackers/conversion";
@@ -59,6 +61,8 @@ export abstract class Shape implements IShape {
     protected _shadowPoints: [number, number][] | undefined = undefined;
     abstract updatePoints(): void;
 
+    // This is a (delayed) cached version of the points of the shape
+    // the points are globally positioned and ROTATED so that less calculations have to be done during a draw call
     get points(): [number, number][] {
         if (this._pointsInvalid) {
             this.updatePoints();
@@ -67,14 +71,19 @@ export abstract class Shape implements IShape {
         return this._points;
     }
 
+    // This returns the points of the shape without any rotation applied
+    // This is slower (as it starts from the rotated points) and returns GlobalPoints instead of [number, number]
+    // This is primarily used in the context of UI tools
+    get pointsUntransformed(): GlobalPoint[] {
+        return this.points.map((p) => rotateAroundPoint(toGP(p), this.center, this.angle));
+    }
+
     get shadowPoints(): [number, number][] {
         return this._shadowPoints ?? this._points;
     }
 
     abstract contains(point: GlobalPoint, nearbyThreshold?: number): boolean;
 
-    abstract snapToGrid(): void;
-    abstract resizeToGrid(resizePoint: number, retainAspectRatio: boolean): void;
     abstract resize(resizePoint: number, point: GlobalPoint, retainAspectRatio: boolean): number;
 
     strokeWidth: number;
@@ -322,6 +331,32 @@ export abstract class Shape implements IShape {
         const vec = subtractP(next, prev);
         const mid = addP(prev, vec.multiply(0.5));
         return subtractP(point, mid).normalize();
+    }
+
+    getSize(gridType: GridType): number {
+        const bbox = this.getAABB();
+        const s = Math.max(getCellWidth(bbox.w, gridType), getCellHeight(bbox.h, gridType));
+        const cutoff = gridType === GridType.Square ? 0.25 : 0.125;
+        const customRound = (n: number): number => (n % 1 >= cutoff ? Math.ceil(n) : Math.floor(n));
+        return Math.max(1, customRound(s));
+    }
+
+    snapToGrid(): void {
+        const props = getProperties(this.id)!;
+        const gridType = locationSettingsState.raw.gridType.value;
+        const size = this.getSize(gridType);
+
+        this.center = snapShapeToGrid(this.center, gridType, size, props.oddHexOrientation);
+
+        this.invalidate(false);
+    }
+
+    resizeToGrid(resizePoint: number, retainAspectRatio: boolean): void {
+        const gridType = locationSettingsState.raw.gridType.value;
+        const [targetPoint] = snapPointToGrid(this.pointsUntransformed[resizePoint]!, gridType, {
+            snapDistance: Number.MAX_VALUE,
+        });
+        this.resize(resizePoint, targetPoint, retainAspectRatio);
     }
 
     // DRAWING
@@ -583,6 +618,7 @@ export abstract class Shape implements IShape {
             is_door: doorSystem.isDoor(this.id),
             is_teleport_zone: teleportZoneSystem.isTeleportZone(this.id),
             character: this.character ?? null,
+            odd_hex_orientation: props.oddHexOrientation,
         };
     }
     fromDict(data: ApiCoreShape): void {

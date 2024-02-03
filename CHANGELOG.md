@@ -10,15 +10,28 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Added
+
+-   Hex orientation to shape properties dialog
+    -   This is used to determine which orientation even-sized shapes should use in hex grids
+
+### Changed
+
 -   [tech] Select tool: only take shapes in view into account
 
 ### Fixed
 
 -   Draw Tool:
     -   snapping mode was also snapping to the point being moved
+    -   now also snaps to hex vertices
 -   Select Tool:
     -   resizing in snapping mode was also snapping to the point being resized
     -   polygon edit UI had a small visual glitch on appearance causing a circle to appear around (0, 0)
+    -   Snap to Grid:
+        -   This now has an implementation for hex grids
+        -   This should now more properly snap shapes that are larger than 1x1
+-   Ruler Tool:
+    -   Snap now properly works for hex grids
 -   Spell tool: selecting another tool would swap to the Select tool instead
 -   Polygon:
     -   selection/contains check went wrong if a polygon used the same point multiple times

@@ -14,6 +14,7 @@ import {
     getAngleBetween,
 } from "../../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../../core/geometry";
+import { DEFAULT_GRID_SIZE } from "../../../../core/grid";
 import { baseAdjust } from "../../../../core/http";
 import { equalPoints, rotateAroundPoint, snapToPoint } from "../../../../core/math";
 import { InvalidationMode, NO_SYNC, SyncMode } from "../../../../core/models/types";
@@ -46,7 +47,7 @@ import { doorSystem } from "../../../systems/logic/door";
 import { Access } from "../../../systems/logic/models";
 import { teleportZoneSystem } from "../../../systems/logic/tp";
 import { playerSystem } from "../../../systems/players";
-import { DEFAULT_GRID_SIZE, positionState } from "../../../systems/position/state";
+import { positionState } from "../../../systems/position/state";
 import { getProperties } from "../../../systems/properties/state";
 import { VisionBlock } from "../../../systems/properties/types";
 import { selectedSystem } from "../../../systems/selected";

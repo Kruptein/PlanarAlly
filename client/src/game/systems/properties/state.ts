@@ -17,6 +17,7 @@ export interface ShapeProperties {
     showBadge: boolean;
     isDefeated: boolean;
     isLocked: boolean;
+    oddHexOrientation: boolean;
 }
 
 type ReactivePropertiesState = Omit<ShapeProperties, "fillColour" | "strokeColour"> & {
@@ -42,6 +43,7 @@ const state = buildState<ReactivePropertiesState, PropertiesState>(
         showBadge: false,
         isDefeated: false,
         isLocked: false,
+        oddHexOrientation: false,
     },
     {
         data: new Map(),
@@ -60,6 +62,7 @@ const DEFAULT_PROPERTIES: () => ShapeProperties = () => ({
     blocksMovement: false,
     blocksVision: VisionBlock.No,
     showBadge: false,
+    oddHexOrientation: false,
 });
 
 export function getProperties(id: LocalId): DeepReadonly<ShapeProperties> | undefined {

@@ -1,7 +1,8 @@
 import { assetSystem } from "../assetManager";
 import { assetState } from "../assetManager/state";
-import { clampGridLine, l2gx, l2gy, l2gz } from "../core/conversions";
+import { l2gx, l2gy, l2gz } from "../core/conversions";
 import { type GlobalPoint, toGP, Vector } from "../core/geometry";
+import { DEFAULT_GRID_SIZE, snapPointToGrid } from "../core/grid";
 import { baseAdjust } from "../core/http";
 import { SyncMode, InvalidationMode } from "../core/models/types";
 import { uuidv4 } from "../core/utils";
@@ -19,7 +20,6 @@ import type { CharacterId } from "./systems/characters/models";
 import { characterState } from "./systems/characters/state";
 import { floorState } from "./systems/floors/state";
 import { noteSystem } from "./systems/notes";
-import { DEFAULT_GRID_SIZE } from "./systems/position/state";
 import { locationSettingsState } from "./systems/settings/location/state";
 import { selectionBoxFunction } from "./temp";
 import { handleDropFF } from "./ui/firefox";
@@ -156,7 +156,10 @@ export async function dropAsset(
             }
 
             if (locationSettingsState.raw.useGrid.value) {
-                asset.refPoint = toGP(clampGridLine(asset.refPoint.x), clampGridLine(asset.refPoint.y));
+                const gridType = locationSettingsState.raw.gridType.value;
+                asset.refPoint = snapPointToGrid(asset.refPoint, gridType, {
+                    snapDistance: Number.MAX_VALUE,
+                })[0];
             }
 
             layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);

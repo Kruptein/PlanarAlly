@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { l2g } from "../../../core/conversions";
 import { cloneP, toGP } from "../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
-import { snapToGridPoint } from "../../../core/math";
+import { DEFAULT_GRID_SIZE, snapPointToGrid } from "../../../core/grid";
 import { InvalidationMode, NO_SYNC, SyncMode } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
@@ -16,7 +16,6 @@ import { accessSystem } from "../../systems/access";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { playerSystem } from "../../systems/players";
-import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { SelectFeatures } from "../models/select";
@@ -94,7 +93,14 @@ class RulerTool extends Tool implements ITool {
         this.cleanup();
         this.startPoint = l2g(lp);
 
-        if (event && playerSettingsState.useSnapping(event)) [this.startPoint] = snapToGridPoint(this.startPoint);
+        if (event && playerSettingsState.useSnapping(event)) {
+            const gridType = locationSettingsState.raw.gridType.value;
+            [this.startPoint] = snapPointToGrid(this.startPoint, gridType, {
+                snapDistance: Number.MAX_VALUE,
+                includeCellCenter: true,
+                includeEdgeCenters: true,
+            });
+        }
 
         const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
         if (layer === undefined) {
@@ -134,7 +140,14 @@ class RulerTool extends Tool implements ITool {
             return Promise.resolve();
         }
 
-        if (event && playerSettingsState.useSnapping(event)) [endPoint] = snapToGridPoint(endPoint);
+        if (event && playerSettingsState.useSnapping(event)) {
+            const gridType = locationSettingsState.raw.gridType.value;
+            [endPoint] = snapPointToGrid(endPoint, gridType, {
+                snapDistance: Number.MAX_VALUE,
+                includeCellCenter: true,
+                includeEdgeCenters: true,
+            });
+        }
 
         const ruler = this.rulers.at(-1)!;
         ruler.endPoint = endPoint;

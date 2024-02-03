@@ -220,12 +220,6 @@ export class Polygon extends Shape implements IShape {
         return this.getBoundingBox().visibleInCanvas(max);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    snapToGrid(): void {}
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    resizeToGrid(): void {}
-
     resize(resizePoint: number, point: GlobalPoint): number {
         if (resizePoint === 0) this._refPoint = rotateAroundPoint(point, this.center, -this.angle);
         else this._vertices[resizePoint - 1] = rotateAroundPoint(point, this.center, -this.angle);

@@ -1,7 +1,7 @@
 import { computed } from "vue";
 
+import { DEFAULT_GRID_SIZE } from "../../../../core/grid";
 import { InitiativeEffectMode } from "../../../models/initiative";
-import { DEFAULT_GRID_SIZE } from "../../position/state";
 import { buildState } from "../../state";
 import { locationSettingsState } from "../location/state";
 

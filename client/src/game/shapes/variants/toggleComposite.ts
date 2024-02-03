@@ -240,10 +240,6 @@ export class ToggleComposite extends Shape implements IToggleComposite {
         return this.getBoundingBox().visibleInCanvas(max);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    snapToGrid(): void {}
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    resizeToGrid(): void {}
     resize(resizePoint: number, _point: GlobalPoint): number {
         return resizePoint;
     }

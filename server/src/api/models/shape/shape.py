@@ -42,3 +42,4 @@ class ApiCoreShape(TypeIdModel):
     auras: list[ApiAura]
     labels: list[ApiLabel]
     character: int | None = Field(..., typeId="CharacterId", noneAsNull=True)
+    odd_hex_orientation: bool

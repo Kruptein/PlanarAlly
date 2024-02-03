@@ -13,6 +13,7 @@ import {
     sendShapeSetLocked,
     sendShapeSetName,
     sendShapeSetNameVisible,
+    sendShapeSetOddHexOrientation,
     sendShapeSetShowBadge,
     sendShapeSetStrokeColour,
 } from "../../api/emits/shape/options";
@@ -237,6 +238,23 @@ class PropertiesSystem implements ShapeSystem {
 
         const _shape = getShape(id)!;
         _shape.invalidate(!_shape.triggersVisionRecalc);
+    }
+
+    setOddHexOrientation(id: LocalId, oddHexOrientation: boolean, syncTo: Sync): void {
+        const shape = mutable.data.get(id);
+        if (shape === undefined) {
+            return console.error("[Properties.setOddHexOrientation] Unknown local shape.");
+        }
+
+        shape.oddHexOrientation = oddHexOrientation;
+
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeSetOddHexOrientation({ shape, value: oddHexOrientation });
+        }
+        if ($.id === id) $.oddHexOrientation = oddHexOrientation;
+
+        getShape(id)?.invalidate(true);
     }
 
     setLocked(id: LocalId, isLocked: boolean, syncTo: Sync): void {

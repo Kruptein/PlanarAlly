@@ -35,12 +35,13 @@ export enum RulerFeatures {
     All,
 }
 
-const gridHighlightColour = computed(() => {
+const gridHighlightColours = computed(() => {
     const rulerColour = tinycolor(playerSettingsState.reactive.rulerColour.value);
-    console.log(rulerColour.toRgbString());
-    const a = rulerColour.setAlpha(rulerColour.getAlpha() * 0.25).toRgbString();
-    console.log(a);
-    return a;
+    const alpha = rulerColour.getAlpha();
+    return {
+        default: rulerColour.setAlpha(alpha * 0.25).toRgbString(),
+        start: rulerColour.setAlpha(alpha * 0.75).toRgbString(),
+    };
 });
 
 class RulerTool extends Tool implements ITool {
@@ -245,12 +246,20 @@ class RulerTool extends Tool implements ITool {
                     layer.ctx.globalCompositeOperation = "destination-over";
 
                     const gridType = locationSettingsState.raw.gridType.value;
+                    let firstCell = true;
+                    const handledCells: GlobalPoint[] = [];
                     for (const { cells } of this.rulers) {
-                        for (const cell of cells) {
+                        for (const cellCenter of cells) {
+                            if (handledCells.some((c) => equalsP(c, cellCenter))) continue;
+
                             drawPolygon(
-                                getCellVertices(getCellFromPoint(cell, gridType), gridType).map((p) => toArrayP(p)),
-                                { fillColour: gridHighlightColour.value },
+                                getCellVertices(getCellFromPoint(cellCenter, gridType), gridType).map((p) =>
+                                    toArrayP(p),
+                                ),
+                                { fillColour: gridHighlightColours.value[firstCell ? "start" : "default"] },
                             );
+                            firstCell = false;
+                            handledCells.push(cellCenter);
                         }
                     }
 

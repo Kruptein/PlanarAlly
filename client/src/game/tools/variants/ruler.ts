@@ -95,7 +95,11 @@ class RulerTool extends Tool implements ITool {
 
         if (event && playerSettingsState.useSnapping(event)) {
             const gridType = locationSettingsState.raw.gridType.value;
-            [this.startPoint] = snapPointToGrid(this.startPoint, gridType, Number.MAX_VALUE);
+            [this.startPoint] = snapPointToGrid(this.startPoint, gridType, {
+                snapDistance: Number.MAX_VALUE,
+                includeCellCenter: true,
+                includeEdgeCenters: true,
+            });
         }
 
         const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
@@ -138,7 +142,11 @@ class RulerTool extends Tool implements ITool {
 
         if (event && playerSettingsState.useSnapping(event)) {
             const gridType = locationSettingsState.raw.gridType.value;
-            [endPoint] = snapPointToGrid(endPoint, gridType, Number.MAX_VALUE);
+            [endPoint] = snapPointToGrid(endPoint, gridType, {
+                snapDistance: Number.MAX_VALUE,
+                includeCellCenter: true,
+                includeEdgeCenters: true,
+            });
         }
 
         const ruler = this.rulers.at(-1)!;

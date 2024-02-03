@@ -4,7 +4,7 @@ import type { ApiCoreShape, ApiShape } from "../../apiTypes";
 import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "../../core/conversions";
 import { addP, cloneP, equalsP, subtractP, toArrayP, toGP, Vector } from "../../core/geometry";
 import type { GlobalPoint } from "../../core/geometry";
-import { GridType, getCellHeight, getCellWidth, snapShapeToGrid } from "../../core/grid";
+import { GridType, getCellHeight, getCellWidth, snapPointToGrid, snapShapeToGrid } from "../../core/grid";
 import { rotateAroundPoint } from "../../core/math";
 import { mostReadable } from "../../core/utils";
 import { generateLocalId, getGlobalId, getShape } from "../id";
@@ -61,6 +61,8 @@ export abstract class Shape implements IShape {
     protected _shadowPoints: [number, number][] | undefined = undefined;
     abstract updatePoints(): void;
 
+    // This is a (delayed) cached version of the points of the shape
+    // the points are globally positioned and ROTATED so that less calculations have to be done during a draw call
     get points(): [number, number][] {
         if (this._pointsInvalid) {
             this.updatePoints();
@@ -69,13 +71,19 @@ export abstract class Shape implements IShape {
         return this._points;
     }
 
+    // This returns the points of the shape without any rotation applied
+    // This is slower (as it starts from the rotated points) and returns GlobalPoints instead of [number, number]
+    // This is primarily used in the context of UI tools
+    get pointsUntransformed(): GlobalPoint[] {
+        return this.points.map((p) => rotateAroundPoint(toGP(p), this.center, this.angle));
+    }
+
     get shadowPoints(): [number, number][] {
         return this._shadowPoints ?? this._points;
     }
 
     abstract contains(point: GlobalPoint, nearbyThreshold?: number): boolean;
 
-    abstract resizeToGrid(resizePoint: number, retainAspectRatio: boolean): void;
     abstract resize(resizePoint: number, point: GlobalPoint, retainAspectRatio: boolean): number;
 
     strokeWidth: number;
@@ -341,6 +349,14 @@ export abstract class Shape implements IShape {
         this.center = snapShapeToGrid(this.center, gridType, size, props.oddHexOrientation);
 
         this.invalidate(false);
+    }
+
+    resizeToGrid(resizePoint: number, retainAspectRatio: boolean): void {
+        const gridType = locationSettingsState.raw.gridType.value;
+        const [targetPoint] = snapPointToGrid(this.pointsUntransformed[resizePoint]!, gridType, {
+            snapDistance: Number.MAX_VALUE,
+        });
+        this.resize(resizePoint, targetPoint, retainAspectRatio);
     }
 
     // DRAWING

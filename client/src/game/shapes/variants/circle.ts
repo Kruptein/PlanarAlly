@@ -1,8 +1,7 @@
 import type { ApiCircleShape } from "../../../apiTypes";
-import { g2lz, clampGridLine } from "../../../core/conversions";
+import { g2lz } from "../../../core/conversions";
 import { addP, subtractP, toArrayP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
-import { DEFAULT_GRID_SIZE } from "../../../core/grid";
 import { FOG_COLOUR } from "../../colour";
 import type { GlobalId, LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
@@ -145,12 +144,6 @@ export class Circle extends Shape implements IShape {
     visibleInCanvas(max: { w: number; h: number }, options: { includeAuras: boolean }): boolean {
         if (super.visibleInCanvas(max, options)) return true;
         return this.getBoundingBox().visibleInCanvas(max);
-    }
-
-    resizeToGrid(): void {
-        const gs = DEFAULT_GRID_SIZE;
-        this.r = Math.max(clampGridLine(this.r), gs / 2);
-        this.invalidate(false);
     }
 
     resize(resizePoint: number, point: GlobalPoint): number {

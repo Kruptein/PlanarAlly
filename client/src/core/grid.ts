@@ -92,19 +92,27 @@ export function snapShapeToGrid(
 export function snapPointToGrid(
     position: GlobalPoint,
     gridType: GridType,
-    snapDistance?: number,
+    options?: {
+        snapDistance?: number;
+        includeEdgeCenters?: boolean;
+        includeCellCenter?: boolean;
+    },
 ): [GlobalPoint, boolean] {
     const cell = getCellFromPoint(position, gridType);
     const coreVertices = getCellVertices(cell, gridType);
     const vertices = [];
     for (let i = 0; i < coreVertices.length; i++) {
         const iv = coreVertices[i]!;
-        const niv = coreVertices[(i + 1) % coreVertices.length]!;
         vertices.push(iv);
-        vertices.push(toGP((iv.x + niv.x) / 2, (iv.y + niv.y) / 2));
+        if (options?.includeEdgeCenters === true) {
+            const niv = coreVertices[(i + 1) % coreVertices.length]!;
+            vertices.push(toGP((iv.x + niv.x) / 2, (iv.y + niv.y) / 2));
+        }
     }
-    vertices.push(getCellCenter(cell, gridType));
-    return getClosestPoint(position, vertices, snapDistance);
+    if (options?.includeCellCenter === true) {
+        vertices.push(getCellCenter(cell, gridType));
+    }
+    return getClosestPoint(position, vertices, options?.snapDistance);
 }
 
 // Returns the CENTER of the specified cell

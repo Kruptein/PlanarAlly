@@ -1,9 +1,10 @@
 import { computed, reactive, watch, watchEffect } from "vue";
 import type { DeepReadonly } from "vue";
 
-import { clampGridLine, getUnitDistance, l2g, l2gz } from "../../../core/conversions";
+import { getUnitDistance, l2g, l2gz } from "../../../core/conversions";
 import { addP, cloneP, subtractP, toArrayP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
+import { snapPointToGrid } from "../../../core/grid";
 import { equalPoints, snapToPoint } from "../../../core/math";
 import { InvalidationMode, NO_SYNC, SyncMode, UI_SYNC } from "../../../core/models/types";
 import type { PromptFunction } from "../../../core/plugins/modals/prompt";
@@ -375,7 +376,10 @@ class DrawTool extends Tool implements ITool {
                 case DrawShape.Polygon: {
                     const stroke = this.state.isClosedPolygon ? this.state.borderColour : this.state.fillColour;
                     if (event && playerSettingsState.useSnapping(event) && !this.snappedToPoint) {
-                        this.brushHelper.refPoint = toGP(clampGridLine(startPoint.x), clampGridLine(startPoint.y));
+                        const gridType = locationSettingsState.raw.gridType.value;
+                        this.brushHelper.refPoint = snapPointToGrid(startPoint, gridType, {
+                            snapDistance: Number.MAX_VALUE,
+                        })[0];
                     }
                     this.shape = new Polygon(
                         cloneP(this.brushHelper.refPoint),
@@ -443,8 +447,12 @@ class DrawTool extends Tool implements ITool {
         ) {
             // draw tool already active in polygon mode, add a new point to the polygon
 
-            if (event && playerSettingsState.useSnapping(event) && !this.snappedToPoint)
-                this.brushHelper.refPoint = toGP(clampGridLine(startPoint.x), clampGridLine(startPoint.y));
+            if (event && playerSettingsState.useSnapping(event) && !this.snappedToPoint) {
+                const gridType = locationSettingsState.raw.gridType.value;
+                this.brushHelper.refPoint = snapPointToGrid(startPoint, gridType, {
+                    snapDistance: Number.MAX_VALUE,
+                })[0];
+            }
             this.shape.pushPoint(cloneP(this.brushHelper.refPoint));
         }
 

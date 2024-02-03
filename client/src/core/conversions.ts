@@ -55,14 +55,6 @@ export function l2gz(z: number): number {
     return z / positionState.readonly.zoom;
 }
 
-export function clampGridLine(point: number): number {
-    return Math.round(point / DEFAULT_GRID_SIZE) * DEFAULT_GRID_SIZE;
-}
-
-export function clampToGrid(point: GlobalPoint): GlobalPoint {
-    return toGP(clampGridLine(point.x), clampGridLine(point.y));
-}
-
 export function toRadians(degrees: number): number {
     return (degrees * Math.PI) / 180;
 }

@@ -113,9 +113,6 @@ export class Text extends Shape implements IText {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    resizeToGrid(): void {}
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
     resize(resizePoint: number, point: GlobalPoint): number {
         point = rotateAroundPoint(point, this.center, -this.angle);
 

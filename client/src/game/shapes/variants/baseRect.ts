@@ -1,5 +1,5 @@
 import type { ApiBaseRectShape, ApiShape } from "../../../apiTypes";
-import { clampToGrid, g2lx, g2ly } from "../../../core/conversions";
+import { g2lx, g2ly } from "../../../core/conversions";
 import { addP, cloneP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { rotateAroundPoint } from "../../../core/math";
@@ -125,18 +125,6 @@ export abstract class BaseRect extends Shape implements IShape {
         );
         if (coreVisible) return true;
         return false;
-    }
-
-    resizeToGrid(resizePoint: number, retainAspectRatio: boolean): void {
-        const targetPoint = toGP(
-            this.refPoint.x + (resizePoint > 1 ? this.w : 0),
-            this.refPoint.y + ([1, 2].includes(resizePoint) ? this.h : 0),
-        );
-        this.resize(
-            resizePoint,
-            clampToGrid(rotateAroundPoint(targetPoint, this.center, this.angle)),
-            retainAspectRatio,
-        );
     }
 
     // point is expected to be the point as on the map, irregardless of rotation

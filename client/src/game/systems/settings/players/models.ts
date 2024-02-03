@@ -7,6 +7,7 @@ export interface PlayerOptions {
     rulerColour: string;
     useToolIcons: boolean;
     showTokenDirections: boolean;
+    gridModeLabelFormat: GridModeLabelFormat;
 
     // Behaviour
     invertAlt: boolean;
@@ -29,4 +30,11 @@ export interface PlayerOptions {
 
     // Performance
     renderAllFloors: boolean;
+}
+
+// Order must match with en.json!
+export enum GridModeLabelFormat {
+    Both,
+    Distance,
+    Cells,
 }

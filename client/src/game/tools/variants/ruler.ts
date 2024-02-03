@@ -28,6 +28,7 @@ import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { playerSystem } from "../../systems/players";
 import { locationSettingsState } from "../../systems/settings/location/state";
+import { GridModeLabelFormat } from "../../systems/settings/players/models";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
@@ -229,7 +230,14 @@ class RulerTool extends Tool implements ITool {
         if (this.gridMode.value) {
             const cellCount = distance - 1;
             const distanceInUnits = distance * locationSettingsState.raw.unitSize.value;
-            label = `${cellCount} (${distanceInUnits} ${unit})`;
+            const labelMode = playerSettingsState.raw.gridModeLabelFormat.value;
+            if (labelMode === GridModeLabelFormat.Both) {
+                label = `${cellCount} - ${distanceInUnits} ${unit}`;
+            } else if (labelMode === GridModeLabelFormat.Distance) {
+                label = `${distanceInUnits} ${unit}`;
+            } else {
+                label = `${cellCount}`;
+            }
         } else {
             // round to 1 decimal
             const distanceInUnits = i18n.global.n(Math.round(10 * distance) / 10);

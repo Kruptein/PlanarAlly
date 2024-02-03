@@ -1,6 +1,7 @@
 import type { DeepReadonly } from "vue";
 
 import type { ILayer } from "../game/interfaces/layer";
+import type { IShape } from "../game/interfaces/shape";
 
 import { l2gz } from "./conversions";
 import { addP, equalsP, subtractP, toArrayP, toGP, Vector } from "./geometry";

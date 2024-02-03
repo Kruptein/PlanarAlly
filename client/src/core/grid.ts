@@ -47,7 +47,7 @@ export enum GridType {
     FlatHex = "FLAT_HEX",
 }
 
-export function getClosestCellCenter(position: GlobalPoint, gridType: GridType): GlobalPoint {
+function getClosestCellCenter(position: GlobalPoint, gridType: GridType): GlobalPoint {
     return getCellCenter(getCellFromPoint(position, gridType), gridType);
 }
 
@@ -82,7 +82,7 @@ export function snapToGrid(
 }
 
 // Returns the CENTER of the specified cell
-export function getCellCenter(cell: GridCell, gridType: GridType): GlobalPoint {
+function getCellCenter(cell: GridCell, gridType: GridType): GlobalPoint {
     if (gridType === GridType.Square) {
         return toGP(
             cell.q * DEFAULT_GRID_SIZE + DEFAULT_GRID_SIZE / 2,
@@ -102,7 +102,7 @@ export function getCellCenter(cell: GridCell, gridType: GridType): GlobalPoint {
     throw new Error();
 }
 
-export function getCellFromPoint(point: GlobalPoint, gridType: GridType): GridCell {
+function getCellFromPoint(point: GlobalPoint, gridType: GridType): GridCell {
     if (gridType === GridType.Square) {
         return {
             q: Math.floor(point.x / DEFAULT_GRID_SIZE),
@@ -124,7 +124,7 @@ export function getCellFromPoint(point: GlobalPoint, gridType: GridType): GridCe
     throw new Error();
 }
 
-export function getCellVertices(cell: GridCell, gridType: GridType): GlobalPoint[] {
+function getCellVertices(cell: GridCell, gridType: GridType): GlobalPoint[] {
     if (gridType === GridType.Square) {
         const { q, r } = cell;
         return [

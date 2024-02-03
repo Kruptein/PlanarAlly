@@ -495,7 +495,9 @@ class DrawTool extends Tool implements ITool {
         }
 
         if (event && playerSettingsState.useSnapping(event)) {
-            const ignore = this.ruler ? { shape: this.ruler, pointIndex: 0 } : undefined;
+            let ignore = undefined;
+            if (this.ruler) ignore = { shape: this.ruler, pointIndex: 0 };
+            else if (this.shape) ignore = { shape: this.shape };
             [endPoint, this.snappedToPoint] = snapToPoint(this.getLayer()!, endPoint, ignore);
         } else this.snappedToPoint = false;
 

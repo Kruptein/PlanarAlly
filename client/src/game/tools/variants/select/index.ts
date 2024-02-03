@@ -256,7 +256,7 @@ class SelectTool extends Tool implements ISelectTool {
         const layerSelection = selectedSystem.get({ includeComposites: false });
         let selectionStack: readonly IShape[];
         if (this.hasFeature(SelectFeatures.ChangeSelection, features)) {
-            const shapes = layer.getShapes({ includeComposites: false });
+            const shapes = layer.getShapes({ includeComposites: false, onlyInView: true });
             if (!layerSelection.length) selectionStack = shapes;
             else selectionStack = shapes.concat(layerSelection);
         } else {
@@ -574,7 +574,7 @@ class SelectTool extends Tool implements ISelectTool {
                 selectedSystem.clear();
             }
             const cbbox = this.selectionHelper!.getBoundingBox();
-            for (const shape of layer.getShapes({ includeComposites: false })) {
+            for (const shape of layer.getShapes({ includeComposites: false, onlyInView: true })) {
                 if (!(shape.options.preFogShape ?? false) && (shape.options.skipDraw ?? false)) continue;
                 if (!accessSystem.hasAccessTo(shape.id, false, { movement: true })) continue;
                 if (!shape.visibleInCanvas({ w: layer.width, h: layer.height }, { includeAuras: false })) continue;
@@ -797,8 +797,9 @@ class SelectTool extends Tool implements ISelectTool {
         }
 
         // Check if any other shapes are under the mouse
-        for (let i = layer.size({ includeComposites: false }) - 1; i >= 0; i--) {
-            const shape = layer.getShapes({ includeComposites: false })[i];
+        const shapes = layer.getShapes({ includeComposites: false, onlyInView: true });
+        for (let i = shapes.length - 1; i >= 0; i--) {
+            const shape = shapes[i];
             if (shape?.contains(globalMouse) === true) {
                 selectedSystem.set(shape.id);
                 layer.invalidate(true);

@@ -73,19 +73,20 @@ export function getChecked(event: Event): boolean {
 }
 
 export function callbackProvider(): {
-    wait: () => Promise<void>;
+    wait: (id?: string) => Promise<void>;
     resolveAll: () => void;
 } {
-    let callbacks: (() => void)[] = [];
+    let callbacks: { id?: string; cb: () => void }[] = [];
 
-    function wait(): Promise<void> {
+    function wait(id?: string): Promise<void> {
+        if (id !== undefined && callbacks.some((c) => c.id === id)) return Promise.reject();
         return new Promise((resolve, _reject) => {
-            callbacks.push(resolve);
+            callbacks.push({ id, cb: resolve });
         });
     }
 
     function resolveAll(): void {
-        for (const cb of callbacks) cb();
+        for (const { cb } of callbacks) cb();
         callbacks = [];
     }
 

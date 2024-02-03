@@ -4,7 +4,7 @@ import { computed, ref } from "vue";
 import { l2g } from "../../../core/conversions";
 import { Ray, cloneP, equalsP, toGP } from "../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
-import { DEFAULT_GRID_SIZE, snapPointToGrid } from "../../../core/grid";
+import { DEFAULT_GRID_SIZE, getClosestCellCenter, snapPointToGrid } from "../../../core/grid";
 import { InvalidationMode, NO_SYNC, SyncMode } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
@@ -25,11 +25,6 @@ import { Tool } from "../tool";
 
 export enum RulerFeatures {
     All,
-}
-
-function getCellCenter(point: GlobalPoint): GlobalPoint {
-    const gs = DEFAULT_GRID_SIZE;
-    return toGP(Math.floor(point.x / gs) * gs + gs / 2, Math.floor(point.y / gs) * gs + gs / 2);
 }
 
 const gridHighlightColour = computed(() => {
@@ -175,9 +170,10 @@ class RulerTool extends Tool implements ITool {
 
         if (this.gridMode.value) {
             cells.length = 0;
+            const gridType = locationSettingsState.raw.gridType.value;
 
-            const startCenter = getCellCenter(start);
-            const endCenter = getCellCenter(end);
+            const startCenter = getClosestCellCenter(start, gridType);
+            const endCenter = getClosestCellCenter(end, gridType);
             const ray = Ray.fromPoints(startCenter, endCenter);
 
             const iterations = Math.round(
@@ -189,7 +185,7 @@ class RulerTool extends Tool implements ITool {
 
             const step = ray.tMax / iterations;
             for (let i = 0; i <= iterations; i++) {
-                const cellCenter = getCellCenter(ray.get(step * i));
+                const cellCenter = getClosestCellCenter(ray.get(step * i), gridType);
                 if (Number.isNaN(cellCenter.x)) continue;
                 const lastCenter = cells.at(-1) ?? this.rulers.at(-2)?.cells.at(-1);
                 if (lastCenter !== undefined && equalsP(cellCenter, lastCenter)) continue;

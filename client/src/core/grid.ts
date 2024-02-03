@@ -48,7 +48,7 @@ export enum GridType {
     FlatHex = "FLAT_HEX",
 }
 
-function getClosestCellCenter(position: GlobalPoint, gridType: GridType): GlobalPoint {
+export function getClosestCellCenter(position: GlobalPoint, gridType: GridType): GlobalPoint {
     return getCellCenter(getCellFromPoint(position, gridType), gridType);
 }
 

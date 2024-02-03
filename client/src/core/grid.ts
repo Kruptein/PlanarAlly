@@ -1,4 +1,5 @@
 import { type GlobalPoint, toGP, getPointDistanceSquared } from "./geometry";
+import { getClosestPoint } from "./math";
 
 /*
 
@@ -57,7 +58,7 @@ function getClosestCellCenter(position: GlobalPoint, gridType: GridType): Global
  * The returned point will be the center of a cell for odd sized shapes and a cell corner for even sized shapes.
  * For hex grids two different centers are possible depending on the orientation of the shape, which should be provided with the `oddHexOrientation` parameter.
  */
-export function snapToGrid(
+export function snapShapeToGrid(
     position: GlobalPoint,
     gridType: GridType,
     size: number,
@@ -79,6 +80,31 @@ export function snapToGrid(
         if (min[0] === null || d < min[1]) min = [p, d];
     }
     return min[0]!;
+}
+
+/**
+ * Returns the closest point from the provided position to the grid.
+ * The points that are considered for snapping are:
+ *  - the vertices of the cell
+ *  - the center of the cell
+ *  - the center of each cell edge.
+ */
+export function snapPointToGrid(
+    position: GlobalPoint,
+    gridType: GridType,
+    snapDistance?: number,
+): [GlobalPoint, boolean] {
+    const cell = getCellFromPoint(position, gridType);
+    const coreVertices = getCellVertices(cell, gridType);
+    const vertices = [];
+    for (let i = 0; i < coreVertices.length; i++) {
+        const iv = coreVertices[i]!;
+        const niv = coreVertices[(i + 1) % coreVertices.length]!;
+        vertices.push(iv);
+        vertices.push(toGP((iv.x + niv.x) / 2, (iv.y + niv.y) / 2));
+    }
+    vertices.push(getCellCenter(cell, gridType));
+    return getClosestPoint(position, vertices, snapDistance);
 }
 
 // Returns the CENTER of the specified cell

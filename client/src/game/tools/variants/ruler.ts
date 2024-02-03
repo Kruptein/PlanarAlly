@@ -3,8 +3,7 @@ import { ref } from "vue";
 import { l2g } from "../../../core/conversions";
 import { cloneP, toGP } from "../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
-import { DEFAULT_GRID_SIZE } from "../../../core/grid";
-import { snapToGridPoint } from "../../../core/math";
+import { DEFAULT_GRID_SIZE, snapPointToGrid } from "../../../core/grid";
 import { InvalidationMode, NO_SYNC, SyncMode } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
@@ -94,7 +93,10 @@ class RulerTool extends Tool implements ITool {
         this.cleanup();
         this.startPoint = l2g(lp);
 
-        if (event && playerSettingsState.useSnapping(event)) [this.startPoint] = snapToGridPoint(this.startPoint);
+        if (event && playerSettingsState.useSnapping(event)) {
+            const gridType = locationSettingsState.raw.gridType.value;
+            [this.startPoint] = snapPointToGrid(this.startPoint, gridType, Number.MAX_VALUE);
+        }
 
         const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
         if (layer === undefined) {
@@ -134,7 +136,10 @@ class RulerTool extends Tool implements ITool {
             return Promise.resolve();
         }
 
-        if (event && playerSettingsState.useSnapping(event)) [endPoint] = snapToGridPoint(endPoint);
+        if (event && playerSettingsState.useSnapping(event)) {
+            const gridType = locationSettingsState.raw.gridType.value;
+            [endPoint] = snapPointToGrid(endPoint, gridType, Number.MAX_VALUE);
+        }
 
         const ruler = this.rulers.at(-1)!;
         ruler.endPoint = endPoint;

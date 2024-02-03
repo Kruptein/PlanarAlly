@@ -4,7 +4,7 @@ import type { ApiCoreShape, ApiShape } from "../../apiTypes";
 import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "../../core/conversions";
 import { addP, cloneP, equalsP, subtractP, toArrayP, toGP, Vector } from "../../core/geometry";
 import type { GlobalPoint } from "../../core/geometry";
-import { GridType, getCellHeight, getCellWidth, snapToGrid } from "../../core/grid";
+import { GridType, getCellHeight, getCellWidth, snapShapeToGrid } from "../../core/grid";
 import { rotateAroundPoint } from "../../core/math";
 import { mostReadable } from "../../core/utils";
 import { generateLocalId, getGlobalId, getShape } from "../id";
@@ -338,7 +338,7 @@ export abstract class Shape implements IShape {
         const gridType = locationSettingsState.raw.gridType.value;
         const size = this.getSize(gridType);
 
-        this.center = snapToGrid(this.center, gridType, size, props.oddHexOrientation);
+        this.center = snapShapeToGrid(this.center, gridType, size, props.oddHexOrientation);
 
         this.invalidate(false);
     }

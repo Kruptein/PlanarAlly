@@ -1,14 +1,16 @@
-import { computed } from "vue";
+import { type Raw, computed } from "vue";
 
 import type { ILayer } from "../../interfaces/layer";
 import type { Floor, FloorIndex } from "../../models/floor";
 import { buildState } from "../state";
 
+// Floors & Layers are kept in a reactive array,
+// but are themselves not reactive!
 interface ReactiveFloorState {
-    floors: Floor[];
+    floors: Raw<Floor>[];
     floorIndex: FloorIndex;
 
-    layers: ILayer[];
+    layers: Raw<ILayer>[];
     layerIndex: number;
 }
 

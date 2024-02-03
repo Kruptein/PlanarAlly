@@ -42,7 +42,7 @@ export function getPointsCenter(points: GlobalPoint[]): GlobalPoint {
 export function snapToPoint(
     layer: DeepReadonly<ILayer>,
     endPoint: GlobalPoint,
-    ignore?: { shape: IShape; pointIndex: number },
+    ignore?: { shape: IShape; pointIndex?: number },
 ): [GlobalPoint, boolean] {
     const snapDistance = l2gz(20);
     let smallestPoint: [number, GlobalPoint] | undefined;
@@ -54,8 +54,9 @@ export function snapToPoint(
             // const gp = toGP(JSON.parse(point) as [number, number]);
             const gp = toGP(point);
             if (ignore?.shape.id === shape.id) {
-                const ingorePoint = toGP(ignore.shape.points[ignore.pointIndex]!);
-                if (equalsP(gp, ingorePoint)) continue;
+                if (ignore.pointIndex === undefined) continue;
+                const ignorePoint = toGP(ignore.shape.points[ignore.pointIndex]!);
+                if (equalsP(gp, ignorePoint)) continue;
             }
             const l = subtractP(endPoint, gp).length();
 

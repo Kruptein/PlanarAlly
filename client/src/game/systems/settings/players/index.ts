@@ -7,6 +7,7 @@ import type { InitiativeEffectMode } from "../../../models/initiative";
 import { floorSystem } from "../../floors";
 import { floorState } from "../../floors/state";
 
+import type { GridModeLabelFormat } from "./models";
 import { playerSettingsState } from "./state";
 
 const { mutableReactive: $ } = playerSettingsState;
@@ -59,6 +60,16 @@ class PlayerSettingsSystem implements System {
         const floor = floorState.currentFloor.value;
         if (floor !== undefined) floorSystem.getLayer(floor, LayerName.Draw)?.invalidate(true);
         if (options.sync) sendRoomClientOptions("show_token_directions", showTokenDirections, options.default);
+    }
+
+    setGridModeLabelFormat(
+        gridModeLabelFormat: GridModeLabelFormat | undefined,
+        options: { sync: boolean; default?: GridModeLabelFormat },
+    ): void {
+        $.gridModeLabelFormat.override = gridModeLabelFormat;
+        if (options.default !== undefined) $.gridModeLabelFormat.default = options.default;
+        $.gridModeLabelFormat.value = gridModeLabelFormat ?? $.gridModeLabelFormat.default;
+        if (options.sync) sendRoomClientOptions("grid_mode_label_format", gridModeLabelFormat, options.default);
     }
 
     // BEHAVIOUR

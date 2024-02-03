@@ -173,7 +173,7 @@ function moveToBack(): void {
 function moveToFront(): void {
     const layer = floorState.currentLayer.value!;
     for (const shape of selectedSystem.get({ includeComposites: false })) {
-        layer.moveShapeOrder(shape, layer.size({ includeComposites: true }) - 1, SyncMode.FULL_SYNC);
+        layer.moveShapeOrder(shape, layer.size({ includeComposites: true, onlyInView: false }) - 1, SyncMode.FULL_SYNC);
     }
 
     close();

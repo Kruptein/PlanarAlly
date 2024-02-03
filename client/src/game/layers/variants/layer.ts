@@ -167,7 +167,7 @@ export class Layer implements ILayer {
     /**
      * Returns the number of shapes on this layer
      */
-    size(options: { includeComposites: boolean }): number {
+    size(options: { includeComposites: boolean; onlyInView: boolean }): number {
         return this.getShapes(options).length;
     }
 
@@ -240,8 +240,8 @@ export class Layer implements ILayer {
 
     // UI helpers are objects that are created for UI reaons but that are not pertinent to the actual state
     // They are often not desired unless in specific circumstances
-    getShapes(options: { includeComposites: boolean; onlyInView?: boolean }): readonly IShape[] {
-        let shapes: readonly IShape[] = options.onlyInView ?? false ? this.shapesInSector : this.shapes;
+    getShapes(options: { includeComposites: boolean; onlyInView: boolean }): readonly IShape[] {
+        let shapes: readonly IShape[] = options.onlyInView ? this.shapesInSector : this.shapes;
         if (options.includeComposites) {
             shapes = compositeState.addAllCompositeShapes(shapes);
         }

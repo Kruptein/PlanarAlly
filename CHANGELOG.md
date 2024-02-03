@@ -10,6 +10,8 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+-   [tech] Select tool: only take shapes in view into account
+
 ### Fixed
 
 -   Select Tool:

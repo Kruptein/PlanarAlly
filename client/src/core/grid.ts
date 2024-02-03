@@ -116,7 +116,7 @@ export function snapPointToGrid(
 }
 
 // Returns the CENTER of the specified cell
-function getCellCenter(cell: GridCell, gridType: GridType): GlobalPoint {
+export function getCellCenter(cell: GridCell, gridType: GridType): GlobalPoint {
     if (gridType === GridType.Square) {
         return toGP(
             cell.q * DEFAULT_GRID_SIZE + DEFAULT_GRID_SIZE / 2,
@@ -136,7 +136,7 @@ function getCellCenter(cell: GridCell, gridType: GridType): GlobalPoint {
     throw new Error();
 }
 
-function getCellFromPoint(point: GlobalPoint, gridType: GridType): GridCell {
+export function getCellFromPoint(point: GlobalPoint, gridType: GridType): GridCell {
     if (gridType === GridType.Square) {
         return {
             q: Math.floor(point.x / DEFAULT_GRID_SIZE),
@@ -221,6 +221,20 @@ export function getCellHeight(height: number, gridType: GridType): number {
         return height / (2 * DEFAULT_HEX_RADIUS);
     }
     throw new Error();
+}
+
+export function getCellDistance(a: GridCell, b: GridCell, gridType: GridType): number {
+    if (gridType === GridType.Square) {
+        const aCenter = getCellCenter(a, gridType);
+        const bCenter = getCellCenter(b, gridType);
+        return Math.round(
+            Math.max(
+                getCellWidth(Math.abs(bCenter.x - aCenter.x), gridType),
+                getCellHeight(Math.abs(bCenter.y - aCenter.y), gridType),
+            ),
+        );
+    }
+    return (Math.abs(a.q - b.q) + Math.abs(a.q + a.r - b.q - b.r) + Math.abs(a.r - b.r)) / 2;
 }
 
 // helpers

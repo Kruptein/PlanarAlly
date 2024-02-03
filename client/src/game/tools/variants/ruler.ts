@@ -4,7 +4,14 @@ import { computed, ref } from "vue";
 import { l2g } from "../../../core/conversions";
 import { Ray, cloneP, equalsP, toGP } from "../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
-import { DEFAULT_GRID_SIZE, getClosestCellCenter, snapPointToGrid } from "../../../core/grid";
+import {
+    DEFAULT_GRID_SIZE,
+    getCellCenter,
+    getCellDistance,
+    getCellFromPoint,
+    getClosestCellCenter,
+    snapPointToGrid,
+} from "../../../core/grid";
 import { InvalidationMode, NO_SYNC, SyncMode } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
@@ -172,16 +179,14 @@ class RulerTool extends Tool implements ITool {
             cells.length = 0;
             const gridType = locationSettingsState.raw.gridType.value;
 
-            const startCenter = getClosestCellCenter(start, gridType);
-            const endCenter = getClosestCellCenter(end, gridType);
-            const ray = Ray.fromPoints(startCenter, endCenter);
+            const startCell = getCellFromPoint(start, gridType);
+            const startCenter = getCellCenter(startCell, gridType);
+            const endCell = getCellFromPoint(end, gridType);
+            const endCenter = getCellCenter(endCell, gridType);
 
-            const iterations = Math.round(
-                Math.max(
-                    Math.abs(endCenter.x - startCenter.x) / DEFAULT_GRID_SIZE,
-                    Math.abs(endCenter.y - startCenter.y) / DEFAULT_GRID_SIZE,
-                ),
-            );
+            const iterations = getCellDistance(startCell, endCell, gridType);
+
+            const ray = Ray.fromPoints(startCenter, endCenter);
 
             const step = ray.tMax / iterations;
             for (let i = 0; i <= iterations; i++) {

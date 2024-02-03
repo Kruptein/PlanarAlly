@@ -2,13 +2,14 @@ import tinycolor from "tinycolor2";
 import { computed, ref } from "vue";
 
 import { l2g } from "../../../core/conversions";
-import { Ray, cloneP, equalsP, toGP } from "../../../core/geometry";
+import { Ray, cloneP, equalsP, toArrayP, toGP } from "../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import {
     DEFAULT_GRID_SIZE,
     getCellCenter,
     getCellDistance,
     getCellFromPoint,
+    getCellVertices,
     getClosestCellCenter,
     snapPointToGrid,
 } from "../../../core/grid";
@@ -243,16 +244,11 @@ class RulerTool extends Tool implements ITool {
                 .then(() => {
                     layer.ctx.globalCompositeOperation = "destination-over";
 
-                    const half = DEFAULT_GRID_SIZE / 2;
+                    const gridType = locationSettingsState.raw.gridType.value;
                     for (const { cells } of this.rulers) {
                         for (const cell of cells) {
                             drawPolygon(
-                                [
-                                    [cell.x - half, cell.y - half],
-                                    [cell.x + half, cell.y - half],
-                                    [cell.x + half, cell.y + half],
-                                    [cell.x - half, cell.y + half],
-                                ],
+                                getCellVertices(getCellFromPoint(cell, gridType), gridType).map((p) => toArrayP(p)),
                                 { fillColour: gridHighlightColour.value },
                             );
                         }

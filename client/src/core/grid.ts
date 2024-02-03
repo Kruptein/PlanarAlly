@@ -158,7 +158,7 @@ export function getCellFromPoint(point: GlobalPoint, gridType: GridType): GridCe
     throw new Error();
 }
 
-function getCellVertices(cell: GridCell, gridType: GridType): GlobalPoint[] {
+export function getCellVertices(cell: GridCell, gridType: GridType): GlobalPoint[] {
     if (gridType === GridType.Square) {
         const { q, r } = cell;
         return [

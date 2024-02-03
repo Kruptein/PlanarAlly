@@ -618,6 +618,7 @@ export abstract class Shape implements IShape {
             is_door: doorSystem.isDoor(this.id),
             is_teleport_zone: teleportZoneSystem.isTeleportZone(this.id),
             character: this.character ?? null,
+            odd_hex_orientation: props.oddHexOrientation,
         };
     }
     fromDict(data: ApiCoreShape): void {

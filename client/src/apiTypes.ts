@@ -175,6 +175,7 @@ export interface ApiCoreShape {
   auras: ApiAura[];
   labels: ApiLabel[];
   character: CharacterId | null;
+  odd_hex_orientation: boolean;
 }
 export interface ApiDefaultShapeOwner {
   edit_access: boolean;

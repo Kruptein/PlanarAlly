@@ -95,6 +95,28 @@ async def set_defeated(sid: str, raw_data: Any):
     )
 
 
+@sio.on("Shape.Options.OddHexOrientation.Set", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def set_odd_hex_orientation(sid: str, raw_data: Any):
+    data = ShapeSetBooleanValue(**raw_data)
+
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = get_shape_or_none(pr, data.shape, "OddHexOrientation.Set")
+    if shape is None:
+        return
+
+    shape.odd_hex_orientation = data.value
+    shape.save()
+
+    await _send_game(
+        "Shape.Options.OddHexOrientation.Set",
+        data,
+        skip_sid=sid,
+        room=pr.active_location.get_path(),
+    )
+
+
 @sio.on("Shape.Options.Locked.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def set_locked(sid: str, raw_data: Any):

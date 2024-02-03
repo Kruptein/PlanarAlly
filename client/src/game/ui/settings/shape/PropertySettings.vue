@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../../core/components/ColourPicker.vue";
 import ToggleGroup from "../../../../core/components/ToggleGroup.vue";
+import { GridType } from "../../../../core/grid";
 import { NO_SYNC, SERVER_SYNC, SyncMode } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../../../store/activeShape";
@@ -15,6 +16,7 @@ import { accessState } from "../../../systems/access/state";
 import { propertiesSystem } from "../../../systems/properties";
 import { getProperties, propertiesState } from "../../../systems/properties/state";
 import { VisionBlock, visionBlocks } from "../../../systems/properties/types";
+import { locationSettingsState } from "../../../systems/settings/location/state";
 
 const { t } = useI18n();
 const modals = useModal();
@@ -46,6 +48,22 @@ function setInvisible(event: Event): void {
 function setDefeated(event: Event): void {
     if (!owned.value) return;
     propertiesSystem.setIsDefeated(propertiesState.raw.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
+}
+
+const showOddHexOrientation = computed(() => {
+    if (activeShapeStore.state.type === undefined) return false;
+    const gridType = locationSettingsState.reactive.gridType.value;
+    if (gridType === GridType.Square) return false;
+    return true;
+});
+
+function setOddHexOrientation(event: Event): void {
+    if (!owned.value) return;
+    propertiesSystem.setOddHexOrientation(
+        propertiesState.raw.id!,
+        (event.target as HTMLInputElement).checked,
+        SERVER_SYNC,
+    );
 }
 
 function setLocked(event: Event): void {
@@ -192,6 +210,18 @@ async function changeAsset(): Promise<void> {
                 class="styled-checkbox"
                 :disabled="!owned"
                 @click="setDefeated"
+            />
+        </div>
+        <div v-if="showOddHexOrientation" class="row">
+            <label for="shapeselectiondialog-odd-hex-orientation">Odd Hex Orientation</label>
+            <input
+                id="shapeselectiondialog-odd-hex-orientation"
+                type="checkbox"
+                :checked="propertiesState.reactive.oddHexOrientation"
+                style="grid-column-start: toggle"
+                class="styled-checkbox"
+                :disabled="!owned"
+                @click="setOddHexOrientation"
             />
         </div>
         <div class="row">

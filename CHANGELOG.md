@@ -10,6 +10,11 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Added
+
+-   Hex orientation to shape properties dialog
+    -   This is used to determine which orientation even-sized shapes should use in hex grids
+
 ### Changed
 
 -   [tech] Select tool: only take shapes in view into account

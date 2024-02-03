@@ -102,6 +102,7 @@ class Shape(BaseDbModel):
             Character, backref="shapes", null=True, default=None, on_delete="SET NULL"
         ),
     )
+    odd_hex_orientation = cast(bool, BooleanField(default=False))
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"

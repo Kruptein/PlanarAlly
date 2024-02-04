@@ -355,6 +355,7 @@ export class Layer implements ILayer {
                     temporary: sync === SyncMode.TEMP_SYNC,
                 });
         }
+        this.updateView();
         this.invalidate(true);
     }
 

@@ -38,6 +38,7 @@ tech changes will usually be stripped from release notes for the public
 -   Polygon:
     -   selection/contains check went wrong if a polygon used the same point multiple times
     -   selection/contains check was also hitting on the line between the first and last points when not closed
+-   Moving shapes to front/back not updating immediately
 -   [tech] FloorSystem's floors and layers properties are now only reactive on the array level and are raw for the actual elements.
 
 ## [2024.1.0] - 2024-01-27

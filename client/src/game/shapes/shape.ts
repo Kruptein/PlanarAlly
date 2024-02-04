@@ -352,6 +352,8 @@ export abstract class Shape implements IShape {
     }
 
     resizeToGrid(resizePoint: number, retainAspectRatio: boolean): void {
+        if (resizePoint < 0) return;
+
         const gridType = locationSettingsState.raw.gridType.value;
         const [targetPoint] = snapPointToGrid(this.pointsUntransformed[resizePoint]!, gridType, {
             snapDistance: Number.MAX_VALUE,

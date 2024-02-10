@@ -26,6 +26,7 @@ export function drawPoint(point: [number, number], r: number, options?: { colour
     if (options?.fill === true) ctx.fill();
 }
 
+// eslint-disable-next-line import/no-unused-modules
 function drawPointL(point: [number, number], r: number, colour?: string): void {
     const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
@@ -40,6 +41,7 @@ function drawPointL(point: [number, number], r: number, colour?: string): void {
     ctx.stroke();
 }
 
+// eslint-disable-next-line import/no-unused-modules
 export function drawPolygon(
     polygon: [number, number][],
     options?: { fillColour?: string; strokeColour?: string; strokeWidth?: number; close?: boolean; debug?: boolean },
@@ -80,7 +82,8 @@ export function drawPolygon(
     if (options?.fillColour !== undefined) ctx.fill();
 }
 
-function drawPolygonL(polygon: [number, number][], colour?: string): void {
+// eslint-disable-next-line import/no-unused-modules
+export function drawPolygonL(polygon: [number, number][], colour?: string): void {
     if (polygon.length === 0) return;
 
     const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
@@ -90,14 +93,14 @@ function drawPolygonL(polygon: [number, number][], colour?: string): void {
     // ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     ctx.lineJoin = "round";
     ctx.beginPath();
-    ctx.strokeStyle =
+    ctx.fillStyle =
         colour === undefined ? `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})` : colour;
     ctx.moveTo(polygon[0]![0], polygon[0]![1]);
     for (const point of polygon) {
         ctx.lineTo(point[0], point[1]);
     }
     ctx.closePath();
-    ctx.stroke();
+    ctx.fill();
 }
 
 function x(xx: number, local: boolean): number {
@@ -113,6 +116,7 @@ function y(yy: number, local: boolean): number {
 let I = 0;
 let J = 0;
 
+// eslint-disable-next-line import/no-unused-modules
 export function drawLine(
     from: [number, number],
     to: [number, number],
@@ -140,6 +144,7 @@ export function drawLine(
     ctx.stroke();
 }
 
+// eslint-disable-next-line import/no-unused-modules
 export function drawTear(ray: Ray<LocalPoint>, options?: { fillColour?: string }): void {
     const dl = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
     if (dl === undefined) return;
@@ -176,6 +181,7 @@ export function drawTear(ray: Ray<LocalPoint>, options?: { fillColour?: string }
     // drawPointL(c, 5, "green");
 }
 
+// eslint-disable-next-line import/no-unused-modules
 function drawEdge(edge: Edge, colour: string, local = false): void {
     const from = edge.first!.vertices[edge.second === 0 ? 1 : 0]!.point as [number, number];
     const to = edge.first!.vertices[edge.second === 2 ? 1 : 2]!.point as [number, number];
@@ -190,6 +196,7 @@ function drawEdge(edge: Edge, colour: string, local = false): void {
     ctx.stroke();
 }
 
+// eslint-disable-next-line import/no-unused-modules
 function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0): void {
     I = 0;
     J = 0;

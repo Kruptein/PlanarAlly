@@ -194,7 +194,7 @@ export function getCellVertices(cell: GridCell, gridType: GridType): GlobalPoint
  * @param width the width of the element in pixels
  * @param gridType the type of grid used
  */
-export function getCellWidth(width: number, gridType: GridType): number {
+export function getCellCountFromWidth(width: number, gridType: GridType): number {
     if (gridType === GridType.Square || gridType === GridType.PointyHex) {
         // For Pointy Hex this is
         //   width / (SQRT3 * DEFAULT_HEX_RADIUS),
@@ -208,12 +208,21 @@ export function getCellWidth(width: number, gridType: GridType): number {
     throw new Error();
 }
 
+export function getWidthFromCellCount(cells: number, gridType: GridType): number {
+    if (gridType === GridType.Square || gridType === GridType.PointyHex) {
+        return cells * DEFAULT_GRID_SIZE;
+    } else if (gridType === GridType.FlatHex) {
+        return cells * 2 * DEFAULT_HEX_RADIUS;
+    }
+    throw new Error();
+}
+
 /**
  * Returns how many cells the provided height would occupy on the provided grid.
  * @param height the width of the element in pixels
  * @param gridType the type of grid used
  */
-export function getCellHeight(height: number, gridType: GridType): number {
+export function getCellCountFromHeight(height: number, gridType: GridType): number {
     if (gridType === GridType.Square || gridType === GridType.FlatHex) {
         // see getCellWidth, for the math of FlatHex
         return height / DEFAULT_GRID_SIZE;
@@ -223,18 +232,73 @@ export function getCellHeight(height: number, gridType: GridType): number {
     throw new Error();
 }
 
+export function getHeightFromCellCount(cells: number, gridType: GridType): number {
+    if (gridType === GridType.Square || gridType === GridType.FlatHex) {
+        return cells * DEFAULT_GRID_SIZE;
+    } else if (gridType === GridType.PointyHex) {
+        return cells * 2 * DEFAULT_HEX_RADIUS;
+    }
+    throw new Error();
+}
+
+// This does NOT include the starting cell!!!
 export function getCellDistance(a: GridCell, b: GridCell, gridType: GridType): number {
     if (gridType === GridType.Square) {
         const aCenter = getCellCenter(a, gridType);
         const bCenter = getCellCenter(b, gridType);
         return Math.round(
             Math.max(
-                getCellWidth(Math.abs(bCenter.x - aCenter.x), gridType),
-                getCellHeight(Math.abs(bCenter.y - aCenter.y), gridType),
+                getCellCountFromWidth(Math.abs(bCenter.x - aCenter.x), gridType),
+                getCellCountFromHeight(Math.abs(bCenter.y - aCenter.y), gridType),
             ),
         );
     }
     return (Math.abs(a.q - b.q) + Math.abs(a.q + a.r - b.q - b.r) + Math.abs(a.r - b.r)) / 2;
+}
+
+/*
+This is code to deal with resizing shapes on the map tool.
+
+This is derived from the following formulas:
+
+const ratio = getWidthFromCellCount(mapTool.state.gridX, gridType) / mapTool.rect!.w;
+const newHeight = mapTool.rect!.h * ratio;
+mapTool.state.gridY = getCellCountFromHeight(newHeight, gridType);
+
+y = (h * (x * DEFAULT) / w) / (2 * (DEF / SQRT3))
+y = ((h/w) * x * DEFAULT) / (2 * (DEF / SQRT3))
+y = ((h/w) * x) * SQRT3/2
+
+AS = (w/h) * (2/SQRT3)
+1/AS = (h/w) * (SQRT3/2)
+
+---
+
+const ratio = getHeightFromCellCount(mapTool.state.gridY, gridType) / mapTool.rect!.h;
+const newWidth = mapTool.rect!.w * ratio;
+mapTool.state.gridX = getCellCountFromWidth(newWidth, gridType);
+
+x = (w/h) * y * 2/SQRT3
+
+
+---
+
+For square grids in both directions this always comes down to:
+x = (w * (y * DEFAULT) / h) / DEFAULT
+x = ((w/h) * y
+
+*/
+
+export function getAspectRatio(w: number, h: number, gridType: GridType): number {
+    const baseAspect = w / h;
+    if (gridType === GridType.Square) {
+        return baseAspect;
+    } else if (gridType === GridType.PointyHex) {
+        return baseAspect * (2 / SQRT3);
+    } else if (gridType === GridType.FlatHex) {
+        return baseAspect * (SQRT3 / 2);
+    }
+    throw new Error();
 }
 
 // helpers

@@ -34,6 +34,8 @@ tech changes will usually be stripped from release notes for the public
         -   This should now more properly snap shapes that are larger than 1x1
 -   Ruler Tool:
     -   Snap now properly works for hex grids
+-   Map Tool:
+    -   Now better supports hex grids
 -   Spell tool: selecting another tool would swap to the Select tool instead
 -   Polygon:
     -   selection/contains check went wrong if a polygon used the same point multiple times

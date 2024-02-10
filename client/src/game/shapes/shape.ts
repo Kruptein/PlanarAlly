@@ -4,7 +4,13 @@ import type { ApiCoreShape, ApiShape } from "../../apiTypes";
 import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "../../core/conversions";
 import { addP, cloneP, equalsP, subtractP, toArrayP, toGP, Vector } from "../../core/geometry";
 import type { GlobalPoint } from "../../core/geometry";
-import { GridType, getCellHeight, getCellWidth, snapPointToGrid, snapShapeToGrid } from "../../core/grid";
+import {
+    GridType,
+    getCellCountFromHeight,
+    getCellCountFromWidth,
+    snapPointToGrid,
+    snapShapeToGrid,
+} from "../../core/grid";
 import { rotateAroundPoint } from "../../core/math";
 import { mostReadable } from "../../core/utils";
 import { generateLocalId, getGlobalId, getShape } from "../id";
@@ -335,7 +341,7 @@ export abstract class Shape implements IShape {
 
     getSize(gridType: GridType): number {
         const bbox = this.getAABB();
-        const s = Math.max(getCellWidth(bbox.w, gridType), getCellHeight(bbox.h, gridType));
+        const s = Math.max(getCellCountFromWidth(bbox.w, gridType), getCellCountFromHeight(bbox.h, gridType));
         const cutoff = gridType === GridType.Square ? 0.25 : 0.125;
         const customRound = (n: number): number => (n % 1 >= cutoff ? Math.ceil(n) : Math.floor(n));
         return Math.max(1, customRound(s));

@@ -650,6 +650,7 @@ export abstract class Shape implements IShape {
             isDefeated: data.is_defeated,
             showBadge: data.show_badge,
             isLocked: data.is_locked,
+            oddHexOrientation: data.odd_hex_orientation,
         });
 
         const defaultAccess = {

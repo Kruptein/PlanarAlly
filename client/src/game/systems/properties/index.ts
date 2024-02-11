@@ -15,6 +15,7 @@ import {
     sendShapeSetNameVisible,
     sendShapeSetOddHexOrientation,
     sendShapeSetShowBadge,
+    sendShapeSetSize,
     sendShapeSetStrokeColour,
 } from "../../api/emits/shape/options";
 import { getGlobalId, getShape } from "../../id";
@@ -238,6 +239,25 @@ class PropertiesSystem implements ShapeSystem {
 
         const _shape = getShape(id)!;
         _shape.invalidate(!_shape.triggersVisionRecalc);
+    }
+
+    setSize(id: LocalId, size: number, syncTo: Sync): void {
+        const shape = mutable.data.get(id);
+        if (shape === undefined) {
+            return console.error("[Properties.setSize] Unknown local shape.");
+        }
+
+        if (size < 0) size = 0;
+
+        shape.size = size;
+
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeSetSize({ shape, value: size });
+        }
+        if ($.id === id) $.size = size;
+
+        getShape(id)?.invalidate(true);
     }
 
     setOddHexOrientation(id: LocalId, oddHexOrientation: boolean, syncTo: Sync): void {

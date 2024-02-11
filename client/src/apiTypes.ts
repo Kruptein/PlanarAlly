@@ -177,6 +177,7 @@ export interface ApiCoreShape {
   labels: ApiLabel[];
   character: CharacterId | null;
   odd_hex_orientation: boolean;
+  size: number;
 }
 export interface ApiDefaultShapeOwner {
   edit_access: boolean;

@@ -12,8 +12,11 @@ tech changes will usually be stripped from release notes for the public
 
 ### Added
 
--   Hex orientation to shape properties dialog
-    -   This is used to determine which orientation even-sized shapes should use in hex grids
+-   New grid section in Edit Shape dialog
+    -   Configure manual size for shape
+        -   Used for finetuning snapping behaviour
+    -   Configure hex orientation
+        -   This is used to determine which orientation even-sized shapes should use in hex grids
 -   Client Setting "Grid Mode Label Format" to decide what the ruler should show in grid mode
     -   This can be set to either '#cells only', 'distance only' or 'both'
 -   Import: option to specify the name for the imported campaign

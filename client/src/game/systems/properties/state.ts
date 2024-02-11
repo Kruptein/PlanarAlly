@@ -17,6 +17,8 @@ export interface ShapeProperties {
     showBadge: boolean;
     isDefeated: boolean;
     isLocked: boolean;
+    // grid related
+    size: number; // if 0, infer size
     oddHexOrientation: boolean;
 }
 
@@ -43,6 +45,7 @@ const state = buildState<ReactivePropertiesState, PropertiesState>(
         showBadge: false,
         isDefeated: false,
         isLocked: false,
+        size: 0,
         oddHexOrientation: false,
     },
     {
@@ -62,6 +65,7 @@ const DEFAULT_PROPERTIES: () => ShapeProperties = () => ({
     blocksMovement: false,
     blocksVision: VisionBlock.No,
     showBadge: false,
+    size: 0,
     oddHexOrientation: false,
 });
 

@@ -1,5 +1,6 @@
 import type { ApiCoreShape, ApiShape } from "../../apiTypes";
 import type { GlobalPoint, Vector } from "../../core/geometry";
+import type { GridType } from "../../core/grid";
 import type { LocalId } from "../id";
 import type { Floor, FloorId, LayerName } from "../models/floor";
 import type { ShapeOptions } from "../models/shapes";
@@ -25,6 +26,8 @@ export interface IShape extends SimpleShape {
     invalidatePoints: () => void;
     updatePoints: () => void;
     resetVisionIteration: () => void;
+
+    getSize: (gridType: GridType) => number;
 
     contains: (point: GlobalPoint, nearbyThreshold?: number) => boolean;
 

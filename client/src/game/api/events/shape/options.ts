@@ -62,6 +62,11 @@ socket.on(
 );
 
 socket.on(
+    "Shape.Options.Size.Set",
+    wrapSystemCall<ShapeSetIntegerValue>(propertiesSystem.setSize.bind(propertiesSystem)),
+);
+
+socket.on(
     "Shape.Options.StrokeColour.Set",
     wrapSystemCall<ShapeSetStringValue>(propertiesSystem.setStrokeColour.bind(propertiesSystem)),
 );

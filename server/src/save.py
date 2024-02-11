@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 92
+SAVE_VERSION = 93
 
 import json
 import logging
@@ -589,6 +589,10 @@ def upgrade(db: SqliteExtDatabase, version: int):
             db.execute_sql(
                 "UPDATE user_options SET grid_mode_label_format = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
             )
+    elif version == 92:
+        # Add Shape.size
+        with db.atomic():
+            db.execute_sql("ALTER TABLE shape ADD COLUMN size INTEGER DEFAULT 0")
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

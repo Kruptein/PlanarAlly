@@ -340,6 +340,9 @@ export abstract class Shape implements IShape {
     }
 
     getSize(gridType: GridType): number {
+        const props = getProperties(this.id)!;
+        if (props.size !== 0) return props.size;
+
         const bbox = this.getAABB();
         const s = Math.max(getCellCountFromWidth(bbox.w, gridType), getCellCountFromHeight(bbox.h, gridType));
         const cutoff = gridType === GridType.Square ? 0.25 : 0.125;
@@ -627,6 +630,7 @@ export abstract class Shape implements IShape {
             is_teleport_zone: teleportZoneSystem.isTeleportZone(this.id),
             character: this.character ?? null,
             odd_hex_orientation: props.oddHexOrientation,
+            size: props.size,
         };
     }
     fromDict(data: ApiCoreShape): void {
@@ -651,6 +655,7 @@ export abstract class Shape implements IShape {
             showBadge: data.show_badge,
             isLocked: data.is_locked,
             oddHexOrientation: data.odd_hex_orientation,
+            size: data.size,
         });
 
         const defaultAccess = {

@@ -117,6 +117,28 @@ async def set_odd_hex_orientation(sid: str, raw_data: Any):
     )
 
 
+@sio.on("Shape.Options.Size.Set", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def set_size(sid: str, raw_data: Any):
+    data = ShapeSetIntegerValue(**raw_data)
+
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = get_shape_or_none(pr, data.shape, "Size.Set")
+    if shape is None:
+        return
+
+    shape.size = data.value
+    shape.save()
+
+    await _send_game(
+        "Shape.Options.Size.Set",
+        data,
+        skip_sid=sid,
+        room=pr.active_location.get_path(),
+    )
+
+
 @sio.on("Shape.Options.Locked.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def set_locked(sid: str, raw_data: Any):

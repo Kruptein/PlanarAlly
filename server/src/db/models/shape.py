@@ -28,6 +28,7 @@ if TYPE_CHECKING:
     from .line import Line
     from .polygon import Polygon
     from .rect import Rect
+    from .shape_data_block import ShapeDataBlock
     from .shape_label import ShapeLabel
     from .shape_owner import ShapeOwner
     from .shape_type import ShapeType
@@ -52,6 +53,7 @@ class Shape(BaseDbModel):
     composite_parent: SelectSequence["CompositeShapeAssociation"]
     shape_variants: SelectSequence["CompositeShapeAssociation"]
     character_id: int | None
+    data_blocks: SelectSequence["ShapeDataBlock"]
 
     uuid = cast(str, TextField(primary_key=True))
     layer = cast(

@@ -16,9 +16,13 @@ tech changes will usually be stripped from release notes for the public
     -   This is used to determine which orientation even-sized shapes should use in hex grids
 -   Client Setting "Grid Mode Label Format" to decide what the ruler should show in grid mode
     -   This can be set to either '#cells only', 'distance only' or 'both'
+-   Import: option to specify the name for the imported campaign
 
 ### Changed
 
+-   Export/Import:
+    -   Error toasts no longer have a timeout
+    -   (Shape)Labels are no longer exported/imported
 -   [tech] Select tool: only take shapes in view into account
 
 ### Fixed
@@ -41,6 +45,12 @@ tech changes will usually be stripped from release notes for the public
     -   selection/contains check went wrong if a polygon used the same point multiple times
     -   selection/contains check was also hitting on the line between the first and last points when not closed
 -   Moving shapes to front/back not updating immediately
+-   Export:
+    -   Missing Character, DataBlock and new Note data
+    -   Fixed note data migration crashing due to new format
+-   Import:
+    -   Prevent a potential timing edgecase causing import to run twice
+    -   If an import fails, the newly created (faulty) room will be removed
 -   [tech] FloorSystem's floors and layers properties are now only reactive on the array level and are raw for the actual elements.
 
 ## [2024.1.0] - 2024-01-27

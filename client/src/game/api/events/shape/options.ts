@@ -67,6 +67,26 @@ socket.on(
 );
 
 socket.on(
+    "Shape.Options.ShowCells.Set",
+    wrapSystemCall<ShapeSetBooleanValue>(propertiesSystem.setShowCells.bind(propertiesSystem)),
+);
+
+socket.on(
+    "Shape.Options.CellStrokeWidth.Set",
+    wrapSystemCall<ShapeSetIntegerValue>(propertiesSystem.setCellStrokeWidth.bind(propertiesSystem)),
+);
+
+socket.on(
+    "Shape.Options.CellStrokeColour.Set",
+    wrapSystemCall<ShapeSetStringValue>(propertiesSystem.setCellStrokeColour.bind(propertiesSystem)),
+);
+
+socket.on(
+    "Shape.Options.CellFillColour.Set",
+    wrapSystemCall<ShapeSetStringValue>(propertiesSystem.setCellFillColour.bind(propertiesSystem)),
+);
+
+socket.on(
     "Shape.Options.StrokeColour.Set",
     wrapSystemCall<ShapeSetStringValue>(propertiesSystem.setStrokeColour.bind(propertiesSystem)),
 );

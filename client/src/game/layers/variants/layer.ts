@@ -2,7 +2,7 @@ import { toRaw } from "vue";
 
 import type { ApiShape } from "../../../apiTypes";
 import { g2l, l2g, l2gz } from "../../../core/conversions";
-import { Ray, toLP } from "../../../core/geometry";
+import { Ray, cloneP, toLP } from "../../../core/geometry";
 import { filter } from "../../../core/iter";
 import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
 import { callbackProvider } from "../../../core/utils";
@@ -18,6 +18,7 @@ import type { FloorId } from "../../models/floor";
 import { addOperation } from "../../operations/undo";
 import { drawAuras } from "../../rendering/auras";
 import { drawTear } from "../../rendering/basic";
+import { drawCells } from "../../rendering/grid";
 import { createShapeFromDict } from "../../shapes/create";
 import { BoundingRect } from "../../shapes/variants/simple/boundingRect";
 import { accessSystem } from "../../systems/access";
@@ -395,11 +396,27 @@ export class Layer implements ILayer {
             // Otherwise auras from one shape could overlap another shape.
 
             const isActiveLayer = this.isActiveLayer;
+            const gridType = locationSettingsState.raw.gridType.value;
 
             if (this.name !== LayerName.Lighting || isActiveLayer) {
                 // Aura draw loop
                 for (const shape of this.shapesInSector) {
                     if (shape.options.skipDraw ?? false) continue;
+
+                    const props = getProperties(shape.id);
+                    if (props?.showCells === true) {
+                        drawCells(
+                            ctx,
+                            cloneP(shape.center),
+                            shape.getSize(gridType),
+                            { type: gridType, oddHexOrientation: props.oddHexOrientation },
+                            {
+                                fill: props.cellFillColour,
+                                stroke: props.cellStrokeColour,
+                                strokeWidth: props.cellStrokeWidth,
+                            },
+                        );
+                    }
 
                     drawAuras(shape, ctx);
                 }

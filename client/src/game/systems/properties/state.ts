@@ -19,6 +19,10 @@ export interface ShapeProperties {
     isLocked: boolean;
     // grid related
     size: number; // if 0, infer size
+    showCells: boolean;
+    cellFillColour: string;
+    cellStrokeColour: string;
+    cellStrokeWidth: number;
     oddHexOrientation: boolean;
 }
 
@@ -46,6 +50,10 @@ const state = buildState<ReactivePropertiesState, PropertiesState>(
         isDefeated: false,
         isLocked: false,
         size: 0,
+        showCells: true,
+        cellFillColour: "rgba(225, 0, 0, 0.2)",
+        cellStrokeColour: "rgba(225, 0, 0, 0.8)",
+        cellStrokeWidth: 5,
         oddHexOrientation: false,
     },
     {
@@ -66,6 +74,10 @@ const DEFAULT_PROPERTIES: () => ShapeProperties = () => ({
     blocksVision: VisionBlock.No,
     showBadge: false,
     size: 0,
+    showCells: false,
+    cellFillColour: "rgba(225, 0, 0, 0.2)",
+    cellStrokeColour: "rgba(225, 0, 0, 0.8)",
+    cellStrokeWidth: 5,
     oddHexOrientation: false,
 });
 

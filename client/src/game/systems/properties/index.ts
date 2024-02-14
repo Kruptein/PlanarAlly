@@ -6,6 +6,9 @@ import type { Sync } from "../../../core/models/types";
 import {
     sendShapeSetBlocksMovement,
     sendShapeSetBlocksVision,
+    sendShapeSetCellFillColour,
+    sendShapeSetCellStrokeColour,
+    sendShapeSetCellStrokeWidth,
     sendShapeSetDefeated,
     sendShapeSetFillColour,
     sendShapeSetInvisible,
@@ -15,6 +18,7 @@ import {
     sendShapeSetNameVisible,
     sendShapeSetOddHexOrientation,
     sendShapeSetShowBadge,
+    sendShapeSetShowCells,
     sendShapeSetSize,
     sendShapeSetStrokeColour,
 } from "../../api/emits/shape/options";
@@ -256,6 +260,74 @@ class PropertiesSystem implements ShapeSystem {
             if (shape) sendShapeSetSize({ shape, value: size });
         }
         if ($.id === id) $.size = size;
+
+        getShape(id)?.invalidate(true);
+    }
+
+    setShowCells(id: LocalId, showCells: boolean, syncTo: Sync): void {
+        const shape = mutable.data.get(id);
+        if (shape === undefined) {
+            return console.error("[Properties.setShowCell] Unknown local shape.");
+        }
+
+        shape.showCells = showCells;
+
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeSetShowCells({ shape, value: showCells });
+        }
+        if ($.id === id) $.showCells = showCells;
+
+        getShape(id)?.invalidate(true);
+    }
+
+    setCellStrokeColour(id: LocalId, strokeColour: string, syncTo: Sync): void {
+        const shape = mutable.data.get(id);
+        if (shape === undefined) {
+            return console.error("[Properties.setCellStrokeColour] Unknown local shape.");
+        }
+
+        shape.cellStrokeColour = strokeColour;
+
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeSetCellStrokeColour({ shape, value: strokeColour });
+        }
+        if ($.id === id) $.cellStrokeColour = strokeColour;
+
+        getShape(id)?.invalidate(true);
+    }
+
+    setCellFillColour(id: LocalId, fillColour: string, syncTo: Sync): void {
+        const shape = mutable.data.get(id);
+        if (shape === undefined) {
+            return console.error("[Properties.setCellFillColour] Unknown local shape.");
+        }
+
+        shape.cellFillColour = fillColour;
+
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeSetCellFillColour({ shape, value: fillColour });
+        }
+        if ($.id === id) $.cellFillColour = fillColour;
+
+        getShape(id)?.invalidate(true);
+    }
+
+    setCellStrokeWidth(id: LocalId, strokeWidth: number, syncTo: Sync): void {
+        const shape = mutable.data.get(id);
+        if (shape === undefined) {
+            return console.error("[Properties.setCellStrokeWidth] Unknown local shape.");
+        }
+
+        shape.cellStrokeWidth = strokeWidth;
+
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeSetCellStrokeWidth({ shape, value: strokeWidth });
+        }
+        if ($.id === id) $.cellStrokeWidth = strokeWidth;
 
         getShape(id)?.invalidate(true);
     }

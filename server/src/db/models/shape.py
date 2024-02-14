@@ -106,6 +106,10 @@ class Shape(BaseDbModel):
     )
     odd_hex_orientation = cast(bool, BooleanField(default=False))
     size = cast(int, IntegerField(default=0))
+    show_cells = cast(bool, BooleanField(default=False))
+    cell_fill_colour = cast(str, TextField(null=True, default=None))
+    cell_stroke_colour = cast(str, TextField(null=True, default=None))
+    cell_stroke_width = cast(int, IntegerField(null=True, default=None))
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"

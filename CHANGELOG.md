@@ -28,6 +28,7 @@ tech changes will usually be stripped from release notes for the public
     -   Error toasts no longer have a timeout
     -   (Shape)Labels are no longer exported/imported
 -   [tech] Select tool: only take shapes in view into account
+-   Ruler tool: allows Unit Size less than 1.0
 
 ### Fixed
 
@@ -42,6 +43,8 @@ tech changes will usually be stripped from release notes for the public
         -   This should now more properly snap shapes that are larger than 1x1
 -   Ruler Tool:
     -   Snap now properly works for hex grids
+    -   Grid mode now starts count from 0 instead of -1
+    -   Grid mode correctly counts total cells when using multiple rulers
 -   Map Tool:
     -   Now better supports hex grids
 -   Spell tool: selecting another tool would swap to the Select tool instead

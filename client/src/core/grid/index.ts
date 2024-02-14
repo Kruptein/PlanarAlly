@@ -1,10 +1,13 @@
-import { type GlobalPoint, toGP, getPointDistanceSquared } from "./geometry";
-import { getClosestPoint } from "./math";
+import { type GlobalPoint, toGP, getPointDistanceSquared } from "../geometry";
+import { getClosestPoint } from "../math";
+
+import { axialRound } from "./hex";
+import type { AxialCoords } from "./types";
 
 /*
 
 SQUARE GRIDS are defined by a width and height that are equal to DEFAULT_GRID_SIZE.
-HEX GRIDS width and height are defined in terms of the radius of the inner/outer circle of the hexagon.
+HEX GRIDS width and height are defined in terms of the radius of the outer circle of the hexagon.
 This radius is also equal to the length of each of the 6 sides.
 This makes hex grids complexer.
 
@@ -38,9 +41,6 @@ export const DEFAULT_GRID_SIZE = 50;
 
 export const SQRT3 = Math.sqrt(3);
 export const DEFAULT_HEX_RADIUS = DEFAULT_GRID_SIZE / SQRT3;
-
-type GridCell = { q: number; r: number };
-type CubeCoord = { x: number; y: number; z: number };
 
 export enum GridType {
     Square = "SQUARE",
@@ -115,28 +115,33 @@ export function snapPointToGrid(
     return getClosestPoint(position, vertices, options?.snapDistance);
 }
 
-// Returns the CENTER of the specified cell
-export function getCellCenter(cell: GridCell, gridType: GridType): GlobalPoint {
+/**
+ * Returns the CENTER of the specified cell
+ * @param radius
+ *  Optional value to specify the radius of the cell.
+ *  If not provided, DEFAULT_HEX_RADIUS or DEFAULT_GRID_SIZE/2 will be used depending on the grid type.
+ */
+export function getCellCenter(cell: AxialCoords, gridType: GridType, radius?: number): GlobalPoint {
     if (gridType === GridType.Square) {
-        return toGP(
-            cell.q * DEFAULT_GRID_SIZE + DEFAULT_GRID_SIZE / 2,
-            cell.r * DEFAULT_GRID_SIZE + DEFAULT_GRID_SIZE / 2,
-        );
+        radius ??= DEFAULT_GRID_SIZE / 2;
+        return toGP(cell.q * 2 * radius + radius, cell.r * 2 * radius + radius);
     } else if (gridType === GridType.PointyHex) {
+        radius ??= DEFAULT_HEX_RADIUS;
         const { q, r } = cell;
-        const x = DEFAULT_HEX_RADIUS * (SQRT3 * q + (SQRT3 / 2) * r);
-        const y = DEFAULT_HEX_RADIUS * ((3 / 2) * r + 1); // + 1 to account for the move from the top point to the center
+        const x = radius * (SQRT3 * q + (SQRT3 / 2) * r);
+        const y = radius * ((3 / 2) * r + 1); // + 1 to account for the move from the top point to the center
         return toGP(x, y);
     } else if (gridType === GridType.FlatHex) {
+        radius ??= DEFAULT_HEX_RADIUS;
         const { q, r } = cell;
-        const x = DEFAULT_HEX_RADIUS * ((3 / 2) * q + 1); // + 1 to account for the move from the top point to the center
-        const y = DEFAULT_HEX_RADIUS * ((SQRT3 / 2) * q + SQRT3 * r);
+        const x = radius * ((3 / 2) * q + 1); // + 1 to account for the move from the top point to the center
+        const y = radius * ((SQRT3 / 2) * q + SQRT3 * r);
         return toGP(x, y);
     }
     throw new Error();
 }
 
-export function getCellFromPoint(point: GlobalPoint, gridType: GridType): GridCell {
+export function getCellFromPoint(point: GlobalPoint, gridType: GridType): AxialCoords {
     if (gridType === GridType.Square) {
         return {
             q: Math.floor(point.x / DEFAULT_GRID_SIZE),
@@ -158,7 +163,7 @@ export function getCellFromPoint(point: GlobalPoint, gridType: GridType): GridCe
     throw new Error();
 }
 
-export function getCellVertices(cell: GridCell, gridType: GridType): GlobalPoint[] {
+export function getCellVertices(cell: AxialCoords, gridType: GridType): GlobalPoint[] {
     if (gridType === GridType.Square) {
         const { q, r } = cell;
         return [
@@ -242,7 +247,7 @@ export function getHeightFromCellCount(cells: number, gridType: GridType): numbe
 }
 
 // This does NOT include the starting cell!!!
-export function getCellDistance(a: GridCell, b: GridCell, gridType: GridType): number {
+export function getCellDistance(a: AxialCoords, b: AxialCoords, gridType: GridType): number {
     if (gridType === GridType.Square) {
         const aCenter = getCellCenter(a, gridType);
         const bCenter = getCellCenter(b, gridType);
@@ -299,35 +304,4 @@ export function getAspectRatio(w: number, h: number, gridType: GridType): number
         return baseAspect * (SQRT3 / 2);
     }
     throw new Error();
-}
-
-// helpers
-// These are taken almost verbatim from https://www.redblobgames.com/grids/hexagons/#rounding
-
-function axialRound({ q, r }: GridCell): GridCell {
-    return cubeToAxial(cubeRound(axialToCube({ q, r })));
-}
-
-function cubeRound({ x, y, z }: CubeCoord): CubeCoord {
-    let rx = Math.round(x);
-    let ry = Math.round(y);
-    let rz = Math.round(z);
-
-    const xDiff = Math.abs(rx - x);
-    const yDiff = Math.abs(ry - y);
-    const zDiff = Math.abs(rz - z);
-
-    if (xDiff > yDiff && xDiff > zDiff) rx = -ry - rz;
-    else if (yDiff > zDiff) ry = -rx - rz;
-    else rz = -rx - ry;
-
-    return { x: rx, y: ry, z: rz };
-}
-
-function axialToCube({ q, r }: GridCell): CubeCoord {
-    return { x: q, y: r, z: -q - r };
-}
-
-function cubeToAxial({ x, y }: CubeCoord): GridCell {
-    return { q: x, r: y };
 }

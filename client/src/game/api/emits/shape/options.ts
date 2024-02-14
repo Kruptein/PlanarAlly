@@ -27,4 +27,8 @@ export const sendShapeSvgAsset = wrapSocket<ShapeSetOptionalStringValue>("Shape.
 
 // grid related
 export const sendShapeSetSize = wrapSocket<ShapeSetIntegerValue>("Shape.Options.Size.Set");
+export const sendShapeSetShowCells = wrapSocket<ShapeSetBooleanValue>("Shape.Options.ShowCells.Set");
+export const sendShapeSetCellFillColour = wrapSocket<ShapeSetStringValue>("Shape.Options.CellFillColour.Set");
+export const sendShapeSetCellStrokeColour = wrapSocket<ShapeSetStringValue>("Shape.Options.CellStrokeColour.Set");
+export const sendShapeSetCellStrokeWidth = wrapSocket<ShapeSetIntegerValue>("Shape.Options.CellStrokeWidth.Set");
 export const sendShapeSetOddHexOrientation = wrapSocket<ShapeSetBooleanValue>("Shape.Options.OddHexOrientation.Set");

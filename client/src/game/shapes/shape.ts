@@ -631,6 +631,10 @@ export abstract class Shape implements IShape {
             character: this.character ?? null,
             odd_hex_orientation: props.oddHexOrientation,
             size: props.size,
+            show_cells: props.showCells,
+            cell_fill_colour: props.cellFillColour ?? null,
+            cell_stroke_colour: props.cellStrokeColour ?? null,
+            cell_stroke_width: props.cellStrokeWidth ?? null,
         };
     }
     fromDict(data: ApiCoreShape): void {
@@ -656,6 +660,10 @@ export abstract class Shape implements IShape {
             isLocked: data.is_locked,
             oddHexOrientation: data.odd_hex_orientation,
             size: data.size,
+            showCells: data.show_cells,
+            ...(data.cell_fill_colour !== null ? { cellFillColour: data.cell_fill_colour } : {}),
+            ...(data.cell_stroke_colour !== null ? { cellStrokeColour: data.cell_stroke_colour } : {}),
+            ...(data.cell_stroke_width !== null ? { cellStrokeWidth: data.cell_stroke_width } : {}),
         });
 
         const defaultAccess = {

@@ -15,6 +15,7 @@ tech changes will usually be stripped from release notes for the public
 -   New grid section in Edit Shape dialog
     -   Configure manual size for shape
         -   Used for finetuning snapping behaviour
+    -   Show grid cells the shape occupies
     -   Configure hex orientation
         -   This is used to determine which orientation even-sized shapes should use in hex grids
 -   Client Setting "Grid Mode Label Format" to decide what the ruler should show in grid mode

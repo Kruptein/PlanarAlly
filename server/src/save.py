@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 93
+SAVE_VERSION = 94
 
 import json
 import logging
@@ -63,40 +63,14 @@ def check_existence() -> bool:
 
 
 def upgrade(db: SqliteExtDatabase, version: int):
-    if version < 68:
+    if version < 69:
         raise OldVersionException(
             f"Upgrade code for this version is >2 years old and is no longer in the active codebase to reduce clutter. You can still find this code on github, contact me for more info."
         )
 
     db.foreign_keys = False
 
-    if version == 68:
-        # Model change in logic options (doorConditions -> door, conditions -> permissions)
-        with db.atomic():
-            data = db.execute_sql("SELECT uuid, options FROM shape")
-            for row in data.fetchall():
-                uuid, options = row
-                if options is None:
-                    continue
-
-                unpacked_options = json.loads(options)
-                changed = False
-
-                for option in unpacked_options:
-                    if option[0] == "doorConditions":
-                        option[0] = "door"
-                        changed = True
-                    elif option[0] == "teleport":
-                        option[1]["permissions"] = option[1]["conditions"]
-                        del option[1]["conditions"]
-                        changed = True
-
-                if changed:
-                    db.execute_sql(
-                        "UPDATE shape SET options=? WHERE uuid=?",
-                        (json.dumps(unpacked_options), uuid),
-                    )
-    elif version == 69:
+    if version == 69:
         # Change Room.logo on_delete logic from cascade to set null
         with db.atomic():
             db.execute_sql("CREATE TEMPORARY TABLE _room_69 AS SELECT * FROM room")
@@ -593,6 +567,21 @@ def upgrade(db: SqliteExtDatabase, version: int):
         # Add Shape.size
         with db.atomic():
             db.execute_sql("ALTER TABLE shape ADD COLUMN size INTEGER DEFAULT 0")
+    elif version == 93:
+        # Add Shape.show_cells, Shape.cell_fill_colour, Shape.cell_stroke_colour, Shape.cell_stroke_width
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE shape ADD COLUMN show_cells INTEGER NOT NULL DEFAULT 0"
+            )
+            db.execute_sql(
+                "ALTER TABLE shape ADD COLUMN cell_fill_colour TEXT DEFAULT NULL"
+            )
+            db.execute_sql(
+                "ALTER TABLE shape ADD COLUMN cell_stroke_colour TEXT DEFAULT NULL"
+            )
+            db.execute_sql(
+                "ALTER TABLE shape ADD COLUMN cell_stroke_width INTEGER DEFAULT NULL"
+            )
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

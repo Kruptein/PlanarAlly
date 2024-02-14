@@ -139,6 +139,94 @@ async def set_size(sid: str, raw_data: Any):
     )
 
 
+@sio.on("Shape.Options.ShowCells.Set", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def set_show_cells(sid: str, raw_data: Any):
+    data = ShapeSetBooleanValue(**raw_data)
+
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = get_shape_or_none(pr, data.shape, "ShowCells.Set")
+    if shape is None:
+        return
+
+    shape.show_cells = data.value
+    shape.save()
+
+    await _send_game(
+        "Shape.Options.ShowCells.Set",
+        data,
+        skip_sid=sid,
+        room=pr.active_location.get_path(),
+    )
+
+
+@sio.on("Shape.Options.CellFillColour.Set", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def set_cell_fill_colour(sid: str, raw_data: Any):
+    data = ShapeSetStringValue(**raw_data)
+
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = get_shape_or_none(pr, data.shape, "CellFillColour.Set")
+    if shape is None:
+        return
+
+    shape.cell_fill_colour = data.value
+    shape.save()
+
+    await _send_game(
+        "Shape.Options.CellFillColour.Set",
+        data,
+        skip_sid=sid,
+        room=pr.active_location.get_path(),
+    )
+
+
+@sio.on("Shape.Options.CellStrokeColour.Set", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def set_cell_stroke_colour(sid: str, raw_data: Any):
+    data = ShapeSetStringValue(**raw_data)
+
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = get_shape_or_none(pr, data.shape, "CellStrokeColour.Set")
+    if shape is None:
+        return
+
+    shape.cell_stroke_colour = data.value
+    shape.save()
+
+    await _send_game(
+        "Shape.Options.CellStrokeColour.Set",
+        data,
+        skip_sid=sid,
+        room=pr.active_location.get_path(),
+    )
+
+
+@sio.on("Shape.Options.CellStrokeWidth.Set", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def set_cell_stroke_width(sid: str, raw_data: Any):
+    data = ShapeSetIntegerValue(**raw_data)
+
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = get_shape_or_none(pr, data.shape, "CellStrokeWidth.Set")
+    if shape is None:
+        return
+
+    shape.cell_stroke_width = data.value
+    shape.save()
+
+    await _send_game(
+        "Shape.Options.CellStrokeWidth.Set",
+        data,
+        skip_sid=sid,
+        room=pr.active_location.get_path(),
+    )
+
+
 @sio.on("Shape.Options.Locked.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def set_locked(sid: str, raw_data: Any):

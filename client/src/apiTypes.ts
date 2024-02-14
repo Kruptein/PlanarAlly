@@ -178,6 +178,10 @@ export interface ApiCoreShape {
   character: CharacterId | null;
   odd_hex_orientation: boolean;
   size: number;
+  show_cells: boolean;
+  cell_fill_colour: string | null;
+  cell_stroke_colour: string | null;
+  cell_stroke_width: number | null;
 }
 export interface ApiDefaultShapeOwner {
   edit_access: boolean;

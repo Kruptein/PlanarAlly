@@ -53,7 +53,6 @@ class SpellTool extends Tool implements ITool {
         watch(
             () => this.state.size,
             async () => {
-                if (this.state.size <= 0) this.state.size = 1;
                 if (this.shape !== undefined) await this.drawShape();
             },
         );
@@ -82,6 +81,7 @@ class SpellTool extends Tool implements ITool {
 
     async drawShape(syncChanged = false): Promise<void> {
         if (!selectedSystem.hasSelection && this.state.selectedSpellShape === SpellShape.Cone) return;
+        if (this.state.size <= 0) return;
 
         const layer = floorState.currentLayer.value!;
 

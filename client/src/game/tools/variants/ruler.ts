@@ -61,7 +61,9 @@ class RulerTool extends Tool implements ITool {
     private text: Text | undefined = undefined;
 
     private currentLength = 0;
+    private currentCellDistance = 0;
     private previousLength = 0;
+    private previousCellDistance = 0;
 
     get permittedTools(): ToolPermission[] {
         return [{ name: ToolName.Select, features: { enabled: [SelectFeatures.Context] } }];
@@ -209,14 +211,22 @@ class RulerTool extends Tool implements ITool {
         const xdiff = Math.abs(end.x - start.x);
         const ydiff = Math.abs(end.y - start.y);
 
-        let distance = cells.length;
+        let cellDistance = cells.length;
+        let unitDistance = cellDistance;
         if (!this.gridMode.value) {
-            distance =
+            unitDistance =
                 (Math.sqrt(xdiff ** 2 + ydiff ** 2) * locationSettingsState.raw.unitSize.value) / DEFAULT_GRID_SIZE;
+        } else {
+            if (!this.previousCellDistance) {
+                cellDistance = Math.max(cellDistance - 1, 0);
+            }
+            unitDistance = cellDistance * locationSettingsState.raw.unitSize.value;
         }
 
-        this.currentLength = distance;
-        distance += this.previousLength;
+        this.currentLength = unitDistance;
+        this.currentCellDistance = cellDistance;
+        unitDistance += this.previousLength;
+        cellDistance += this.previousCellDistance;
 
         const angle = Math.atan2(diffsign * ydiff, xdiff);
         const xmid = Math.min(start.x, end.x) + xdiff / 2;
@@ -227,21 +237,27 @@ class RulerTool extends Tool implements ITool {
 
         let label: string;
         const unit = locationSettingsState.raw.unitSizeUnit.value;
+
+        // round to decimal precision 1 greater than the precision of unitSize
+        const unitSize = locationSettingsState.raw.unitSize.value;
+        const unitDecimal = unitSize - Math.floor(unitSize);
+        const powerCount = unitDecimal ? -Math.floor(Math.log10(unitDecimal)) + 1 : 1;
+        const powerOfTen = 10 ** powerCount;
+        const displayDistance = i18n.global.n(Math.round(powerOfTen * unitDistance) / powerOfTen);
+
         if (this.gridMode.value) {
-            const cellCount = distance - 1;
-            const distanceInUnits = distance * locationSettingsState.raw.unitSize.value;
+            const cellCount = cellDistance;
+
             const labelMode = playerSettingsState.raw.gridModeLabelFormat.value;
             if (labelMode === GridModeLabelFormat.Both) {
-                label = `${cellCount} - ${distanceInUnits} ${unit}`;
+                label = `${cellCount} - ${displayDistance} ${unit}`;
             } else if (labelMode === GridModeLabelFormat.Distance) {
-                label = `${distanceInUnits} ${unit}`;
+                label = `${displayDistance} ${unit}`;
             } else {
                 label = `${cellCount}`;
             }
         } else {
-            // round to 1 decimal
-            const distanceInUnits = i18n.global.n(Math.round(10 * distance) / 10);
-            label = `${distanceInUnits} ${unit}`;
+            label = `${displayDistance} ${unit}`;
         }
         this.text.setText(label, SyncMode.TEMP_SYNC);
 
@@ -280,6 +296,7 @@ class RulerTool extends Tool implements ITool {
 
             this.createNewRuler(lastRuler.endPoint, lastRuler.endPoint);
             this.previousLength += this.currentLength;
+            this.previousCellDistance += this.currentCellDistance;
 
             layer.moveShapeOrder(
                 this.text!,
@@ -341,6 +358,7 @@ class RulerTool extends Tool implements ITool {
         this.startPoint = this.text = undefined;
         this.rulers = [];
         this.previousLength = 0;
+        this.previousCellDistance = 0;
     }
 }
 

@@ -64,7 +64,7 @@ const filteredNotes = computed(() => {
     const notes: typeof noteArray.value = [];
     for (const note of noteArray.value) {
         if (shapeFiltered.value) {
-            if (!note.shapes.some((s) => s === noteState.raw.shapeFilter)) {
+            if (!note.shapes.some((s) => s === noteState.reactive.shapeFilter)) {
                 continue;
             }
         } else {

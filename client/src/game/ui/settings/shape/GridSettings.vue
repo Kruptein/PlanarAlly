@@ -9,18 +9,21 @@ import { activeShapeStore } from "../../../../store/activeShape";
 import { getShape } from "../../../id";
 import { accessState } from "../../../systems/access/state";
 import { propertiesSystem } from "../../../systems/properties";
-import { propertiesState } from "../../../systems/properties/state";
+import { useShapeProps } from "../../../systems/properties/composables";
+import { selectedState } from "../../../systems/selected/state";
 import { locationSettingsState } from "../../../systems/settings/location/state";
+
+const shapeProps = useShapeProps();
 
 const owned = accessState.hasEditAccess;
 
-const shape = computed(() => getShape(propertiesState.reactive.id!));
+const shape = computed(() => getShape(selectedState.reactive.focus!));
 
 const size = computed(() => {
-    if (propertiesState.reactive.size === 0) {
+    if (shapeProps.value!.size === 0) {
         return shape.value!.getSize(locationSettingsState.reactive.gridType.value);
     }
-    return propertiesState.reactive.size;
+    return shapeProps.value!.size;
 });
 
 function setInferSize(event: Event): void {
@@ -32,28 +35,28 @@ function setSize(event: Event): void {
 }
 
 function _setSize(size: number): void {
-    if (!owned.value) return;
-    propertiesSystem.setSize(propertiesState.raw.id!, size, SERVER_SYNC);
+    if (!owned.value || shape.value === undefined) return;
+    propertiesSystem.setSize(shape.value.id, size, SERVER_SYNC);
 }
 
 function setShowCell(event: Event): void {
-    if (!owned.value) return;
-    propertiesSystem.setShowCells(propertiesState.raw.id!, getChecked(event), SERVER_SYNC);
+    if (!owned.value || shape.value === undefined) return;
+    propertiesSystem.setShowCells(shape.value.id, getChecked(event), SERVER_SYNC);
 }
 
 function setStrokeColour(event: string, temporary = false): void {
-    if (!owned.value) return;
-    propertiesSystem.setCellStrokeColour(propertiesState.raw.id!, event, temporary ? NO_SYNC : SERVER_SYNC);
+    if (!owned.value || shape.value === undefined) return;
+    propertiesSystem.setCellStrokeColour(shape.value.id, event, temporary ? NO_SYNC : SERVER_SYNC);
 }
 
 function setFillColour(colour: string, temporary = false): void {
-    if (!owned.value) return;
-    propertiesSystem.setCellFillColour(propertiesState.raw.id!, colour, temporary ? NO_SYNC : SERVER_SYNC);
+    if (!owned.value || shape.value === undefined) return;
+    propertiesSystem.setCellFillColour(shape.value.id, colour, temporary ? NO_SYNC : SERVER_SYNC);
 }
 
 function setCellStrokeWidth(event: Event): void {
-    if (!owned.value) return;
-    propertiesSystem.setCellStrokeWidth(propertiesState.raw.id!, parseInt(getValue(event)), SERVER_SYNC);
+    if (!owned.value || shape.value === undefined) return;
+    propertiesSystem.setCellStrokeWidth(shape.value.id, parseInt(getValue(event)), SERVER_SYNC);
 }
 
 const showHexSettings = computed(() => {
@@ -64,24 +67,20 @@ const showHexSettings = computed(() => {
 });
 
 function setOddHexOrientation(event: Event): void {
-    if (!owned.value) return;
-    propertiesSystem.setOddHexOrientation(
-        propertiesState.raw.id!,
-        (event.target as HTMLInputElement).checked,
-        SERVER_SYNC,
-    );
+    if (!owned.value || shape.value === undefined) return;
+    propertiesSystem.setOddHexOrientation(shape.value.id, (event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 </script>
 
 <template>
-    <div class="panel restore-panel">
+    <div v-if="shapeProps" class="panel restore-panel">
         <div class="spanrow header">Appearance</div>
         <div class="row">
             <label for="shapeselectiondialog-infer-size">Infer size</label>
             <input
                 id="shapeselectiondialog-infer-size"
                 type="checkbox"
-                :checked="propertiesState.reactive.size === 0"
+                :checked="shapeProps.size === 0"
                 style="grid-column-start: toggle"
                 class="styled-checkbox"
                 :disabled="!owned"
@@ -97,7 +96,7 @@ function setOddHexOrientation(event: Event): void {
                 :step="1"
                 :value="size"
                 style="grid-column: 2/-1; width: 3rem; justify-self: flex-end"
-                :disabled="!owned || propertiesState.reactive.size === 0"
+                :disabled="!owned || shapeProps.size === 0"
                 @change="setSize"
             />
         </div>
@@ -106,43 +105,43 @@ function setOddHexOrientation(event: Event): void {
             <input
                 id="shapeselectiondialog-show-cell"
                 type="checkbox"
-                :checked="propertiesState.reactive.showCells"
+                :checked="shapeProps.showCells"
                 style="grid-column-start: toggle"
                 class="styled-checkbox"
                 :disabled="!owned"
                 @click="setShowCell"
             />
         </div>
-        <div class="row" :class="{ 'row-disabled': !propertiesState.reactive.showCells }">
+        <div class="row" :class="{ 'row-disabled': !shapeProps.showCells }">
             <label for="shapeselectiondialog-strokecolour">Fill colour</label>
             <ColourPicker
-                :colour="propertiesState.reactive.cellFillColour"
+                :colour="shapeProps.cellFillColour"
                 style="grid-column-start: toggle"
-                :disabled="!owned || !propertiesState.reactive.showCells"
+                :disabled="!owned || !shapeProps.showCells"
                 @input:colour="setFillColour($event, true)"
                 @update:colour="setFillColour($event)"
             />
         </div>
-        <div class="row" :class="{ 'row-disabled': !propertiesState.reactive.showCells }">
+        <div class="row" :class="{ 'row-disabled': !shapeProps.showCells }">
             <label for="shapeselectiondialog-strokecolour">Stroke colour</label>
             <ColourPicker
-                :colour="propertiesState.reactive.cellStrokeColour"
+                :colour="shapeProps.cellStrokeColour"
                 style="grid-column-start: toggle"
-                :disabled="!owned || !propertiesState.reactive.showCells"
+                :disabled="!owned || !shapeProps.showCells"
                 @input:colour="setStrokeColour($event, true)"
                 @update:colour="setStrokeColour($event)"
             />
         </div>
-        <div class="row" :class="{ 'row-disabled': !propertiesState.reactive.showCells }">
+        <div class="row" :class="{ 'row-disabled': !shapeProps.showCells }">
             <label for="shapeselectiondialog-name">Stroke width</label>
             <input
                 id="shapeselectiondialog-name"
                 type="number"
                 :min="1"
                 :step="1"
-                :value="propertiesState.reactive.cellStrokeWidth"
+                :value="shapeProps.cellStrokeWidth"
                 style="grid-column: 2/-1; width: 3rem; justify-self: flex-end"
-                :disabled="!owned || !propertiesState.reactive.showCells"
+                :disabled="!owned || !shapeProps.showCells"
                 @change="setCellStrokeWidth"
             />
         </div>
@@ -153,7 +152,7 @@ function setOddHexOrientation(event: Event): void {
                 <input
                     id="shapeselectiondialog-odd-hex-orientation"
                     type="checkbox"
-                    :checked="propertiesState.reactive.oddHexOrientation"
+                    :checked="shapeProps.oddHexOrientation"
                     style="grid-column-start: toggle"
                     class="styled-checkbox"
                     :disabled="!owned"
@@ -201,3 +200,4 @@ button {
     color: grey;
 }
 </style>
+../../../systems/properties/helpers

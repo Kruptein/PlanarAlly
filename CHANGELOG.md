@@ -27,8 +27,9 @@ tech changes will usually be stripped from release notes for the public
 -   Export/Import:
     -   Error toasts no longer have a timeout
     -   (Shape)Labels are no longer exported/imported
--   [tech] Select tool: only take shapes in view into account
 -   Ruler tool: allows Unit Size less than 1.0
+-   [tech] Select tool: only take shapes in view into account
+-   [tech] Properties System can now handle multiple shapes loaded at once
 
 ### Fixed
 
@@ -46,8 +47,8 @@ tech changes will usually be stripped from release notes for the public
 -   Map Tool:
     -   Now better supports hex grids
 -   Spell tool:
--         selecting another tool would swap to the Select tool instead
--         Change 'Size' input box to allow entering numbers less than 1 easily
+-           selecting another tool would swap to the Select tool instead
+-           Change 'Size' input box to allow entering numbers less than 1 easily
 -   Polygon:
     -   selection/contains check went wrong if a polygon used the same point multiple times
     -   selection/contains check was also hitting on the line between the first and last points when not closed

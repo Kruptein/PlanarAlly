@@ -47,7 +47,7 @@ import { computeVisibility } from "../vision/te";
 import type { SHAPE_TYPE } from "./types";
 import { BoundingRect } from "./variants/simple/boundingRect";
 
-export class IconManager {
+class IconManager {
     iconMap : Map<string, HTMLImageElement>;
 
     constructor() {
@@ -60,7 +60,7 @@ export class IconManager {
                 this.iconMap.set(name, new Image());
             }
 
-            let element : HTMLImageElement = this.iconMap.get(name)!;
+            const element : HTMLImageElement = this.iconMap.get(name)!;
             if (element.complete && element.naturalWidth !== 0) {
                 resolve(element);
             } else {
@@ -71,7 +71,7 @@ export class IconManager {
     }
 }
 
-export const iconManager = new IconManager();
+const iconManager = new IconManager();
 
 export abstract class Shape implements IShape {
     // Used to create class instance from server shape data
@@ -475,11 +475,11 @@ export abstract class Shape implements IShape {
             const crossLength = g2lz(Math.min(bbox.w, bbox.h));
             const r = crossLength * 0.3;
 
-            iconManager.fetchImage(baseAdjust('/static/img/eye-slash-solid.svg'))
+            void iconManager.fetchImage(baseAdjust('/static/img/eye-slash-solid.svg'))
                 .then((result) => {
                     const aspect = result.width / result.height;
                     ctx.drawImage(result, location.x - r, location.y, r, r / aspect);
-                });;
+                });
         }
         if (this.showHighlight) {
             if (bbox === undefined) bbox = this.getBoundingBox();

@@ -35,10 +35,10 @@ const showSearchFilters = ref(false);
 const searchPage = ref(1);
 
 const shapeFiltered = computed(() => noteState.reactive.shapeFilter !== undefined);
-const shapeProps = computed(() => {
+const shapeName = computed(() => {
     const shapeId = noteState.reactive.shapeFilter;
     if (shapeId === undefined) return undefined;
-    return propertiesState.reactive;
+    return propertiesState.readonly.data.get(shapeId)?.name;
 });
 
 // this is probably disruptive if you quickly open with N and expect to close it with N again ?
@@ -118,7 +118,7 @@ function clearShapeFilter(): void {
 
 <template>
     <header>
-        <div>NOTES {{ shapeProps ? `for ${shapeProps.name}` : "" }}</div>
+        <div>NOTES {{ shapeName ? `for ${shapeName}` : "" }}</div>
     </header>
     <div id="notes-search" :class="shapeFiltered ? 'disabled' : ''">
         <div>
@@ -131,7 +131,7 @@ function clearShapeFilter(): void {
                 active-color="rgba(173, 216, 230, 0.5)"
             />
             <font-awesome-icon icon="magnifying-glass" @click="searchBar?.focus()" />
-            <div v-if="shapeProps" class="shape-name" @click="clearShapeFilter">{{ shapeProps.name }}</div>
+            <div v-if="shapeName" class="shape-name" @click="clearShapeFilter">{{ shapeName }}</div>
             <input ref="searchBar" v-model="searchFilter" type="text" placeholder="search through your notes.." />
             <div v-show="showSearchFilters" id="search-filter">
                 <fieldset>
@@ -266,7 +266,7 @@ function clearShapeFilter(): void {
     <footer>
         <div style="flex-grow: 1"></div>
         <div id="new-note-selector" @click="$emit('mode', NoteManagerMode.Create)">
-            New note{{ shapeProps ? ` for ${shapeProps.name}` : "" }}
+            New note{{ shapeName ? ` for ${shapeName}` : "" }}
         </div>
     </footer>
 </template>

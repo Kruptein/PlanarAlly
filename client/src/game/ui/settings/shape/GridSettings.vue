@@ -146,19 +146,21 @@ function setOddHexOrientation(event: Event): void {
                 @change="setCellStrokeWidth"
             />
         </div>
-        <div v-if="showHexSettings" class="spanrow header">Hex Settings</div>
-        <div class="row">
-            <label for="shapeselectiondialog-odd-hex-orientation">Odd Hex Orientation</label>
-            <input
-                id="shapeselectiondialog-odd-hex-orientation"
-                type="checkbox"
-                :checked="propertiesState.reactive.oddHexOrientation"
-                style="grid-column-start: toggle"
-                class="styled-checkbox"
-                :disabled="!owned"
-                @click="setOddHexOrientation"
-            />
-        </div>
+        <template v-if="showHexSettings">
+            <div class="spanrow header">Hex Settings</div>
+            <div class="row">
+                <label for="shapeselectiondialog-odd-hex-orientation">Odd Hex Orientation</label>
+                <input
+                    id="shapeselectiondialog-odd-hex-orientation"
+                    type="checkbox"
+                    :checked="propertiesState.reactive.oddHexOrientation"
+                    style="grid-column-start: toggle"
+                    class="styled-checkbox"
+                    :disabled="!owned"
+                    @click="setOddHexOrientation"
+                />
+            </div>
+        </template>
     </div>
 </template>
 

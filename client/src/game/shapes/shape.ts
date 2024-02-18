@@ -11,6 +11,7 @@ import {
     snapPointToGrid,
     snapShapeToGrid,
 } from "../../core/grid";
+import { baseAdjust } from "../../core/http";
 import { rotateAroundPoint } from "../../core/math";
 import { mostReadable } from "../../core/utils";
 import { generateLocalId, getGlobalId, getShape } from "../id";
@@ -45,6 +46,32 @@ import { computeVisibility } from "../vision/te";
 
 import type { SHAPE_TYPE } from "./types";
 import { BoundingRect } from "./variants/simple/boundingRect";
+
+export class IconManager {
+    iconMap : Map<string, HTMLImageElement>;
+
+    constructor() {
+        this.iconMap = new Map<string, HTMLImageElement>();
+    }
+
+    async fetchImage(name: string) : Promise<HTMLImageElement> {
+        return new Promise((resolve) => {
+            if (!this.iconMap.has(name)) {
+                this.iconMap.set(name, new Image());
+            }
+
+            let element : HTMLImageElement = this.iconMap.get(name)!;
+            if (element.complete && element.naturalWidth !== 0) {
+                resolve(element);
+            } else {
+                element.addEventListener('load', () => resolve(element));
+                element.src = name;
+            }
+        });
+    }
+}
+
+export const iconManager = new IconManager();
 
 export abstract class Shape implements IShape {
     // Used to create class instance from server shape data
@@ -441,6 +468,18 @@ export abstract class Shape implements IShape {
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.fillText(badgeChars, location.x - r, location.y - r + g2lz(1));
+        }
+        if (props.isInvisible) {
+            bbox = this.getBoundingBox();
+            const location = g2l(bbox.topRight);
+            const crossLength = g2lz(Math.min(bbox.w, bbox.h));
+            const r = crossLength * 0.3;
+
+            iconManager.fetchImage(baseAdjust('/static/img/eye-slash-solid.svg'))
+                .then((result) => {
+                    const aspect = result.width / result.height;
+                    ctx.drawImage(result, location.x - r, location.y, r, r / aspect);
+                });;
         }
         if (this.showHighlight) {
             if (bbox === undefined) bbox = this.getBoundingBox();

@@ -55,6 +55,8 @@ tech changes will usually be stripped from release notes for the public
 -   Import:
     -   Prevent a potential timing edgecase causing import to run twice
     -   If an import fails, the newly created (faulty) room will be removed
+-   Notes:
+    -   The filter was not properly rerunning when opening shape notes, causing notes from the previous shape to still be visible sometimes
 -   [tech] FloorSystem's floors and layers properties are now only reactive on the array level and are raw for the actual elements.
 
 ## [2024.1.0] - 2024-01-27

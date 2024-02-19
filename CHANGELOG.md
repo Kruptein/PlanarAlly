@@ -47,8 +47,8 @@ tech changes will usually be stripped from release notes for the public
 -   Map Tool:
     -   Now better supports hex grids
 -   Spell tool:
--             selecting another tool would swap to the Select tool instead
--             Change 'Size' input box to allow entering numbers less than 1 easily
+    -   selecting another tool would swap to the Select tool instead
+    -   Change 'Size' input box to allow entering numbers less than 1 easily
 -   Polygon:
     -   selection/contains check went wrong if a polygon used the same point multiple times
     -   selection/contains check was also hitting on the line between the first and last points when not closed

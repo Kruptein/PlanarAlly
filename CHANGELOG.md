@@ -47,8 +47,8 @@ tech changes will usually be stripped from release notes for the public
 -   Map Tool:
     -   Now better supports hex grids
 -   Spell tool:
--           selecting another tool would swap to the Select tool instead
--           Change 'Size' input box to allow entering numbers less than 1 easily
+-             selecting another tool would swap to the Select tool instead
+-             Change 'Size' input box to allow entering numbers less than 1 easily
 -   Polygon:
     -   selection/contains check went wrong if a polygon used the same point multiple times
     -   selection/contains check was also hitting on the line between the first and last points when not closed
@@ -62,6 +62,11 @@ tech changes will usually be stripped from release notes for the public
 -   Notes:
     -   The filter was not properly rerunning when opening shape notes, causing notes from the previous shape to still be visible sometimes
     -   When shape filtering, the shape name in the UI would change if you clicked on another shape with the select tool.
+-   Groups:
+    -   The 'edit shape' groups tab was completely broken, this has been resolved
+    -   Multiple things in the groups tab have become more responsive to changes
+        -   Everything badge related is now updating as it happens
+        -   Members will now appear/disappear immediately
 -   [tech] FloorSystem's floors and layers properties are now only reactive on the array level and are raw for the actual elements.
 
 ## [2024.1.0] - 2024-01-27

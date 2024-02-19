@@ -27,5 +27,58 @@ For example: when you click on a door in select mode, the select tool who handle
 (1) The name `system` is possibly confusing here, but `component` has a naming conflict with vue components. Another name might be used in the future.
 (2) This is handled with vue reactivity, so it doesn't really actively check the UI, but just updates a reactive object
 
-Most systems have a separate state that has a readonly reactive and non-reactive view into the state, accessible with `.reactive` and `.raw` respectively. The reactive view also has a mutable variant `.mutableReactive`, which should be used to alter the state.
-A pure non-reactive mutable view is not directly accessible as it will not update any reactive watchers. There is however also the possibility to add state that will never be reactive. Properties part of this non-reactive state are available as `.readonly` and `.mutable`.
+## State
+
+Most systems have their own state in a `state.ts` file.
+
+Two types of state are commonly provided:
+
+-   reactive state
+-   non-reactive state
+
+Non-reactive state usually contains all the data for all the entities the system manages, it can be accessed in two ways:
+
+-   `state.readonly`: A readonly view on the data
+-   `state.mutable`: A direct reference to the data allowing you to mutate it
+
+Generally only the system itself should mutate the state, whereas other files may freely access the readonly state.
+This is currently not hard enforced, but a best practice.
+
+Reactive state on the other hand is almost exlusively used to handle UI updates.
+As there are often a lot of shapes in a game, PA does not want to keep reactive info for all shapes loaded all the time.
+Changes to shapes that don't have their UI open are not interesting to track reactively,
+nor is the overhead of reactive references for shapes that are not interacted with after creation (e.g. walls).
+
+This means that a common thing systems do is to load reactive data from the non-reactive state temporarily while a shape is selected.
+Reactive state can be interacted with on 3 levels:
+
+-   `state.reactive`: A readonly view on the reactive data
+-   `state.mutableReactive`: mutable access
+-   `state.raw`: This skips the reactive proxy and gives immediate mutable access to the data directly
+
+The last access level is used for small performance tweaks were we know that just the last data is all we need,
+this is common in render code, but can also be encountered in other places.
+
+A common system update will look something like this:
+
+```typescript
+setSomeProperty(id: LocalId, property: boolean, sync: boolean): void {
+    const data = mutable.data.get(id);
+    if (data === undefined) return;
+
+    // Update non-reactive data
+    data.property = property;
+
+    if (sync) {
+        // update server
+    }
+
+    // Update reactive data if the shape is currently loaded
+    if ($.id === id) $.property = property;
+}
+```
+
+If in the above example `property` was a more complex shape and the reactive state is set to just have a reference to the non-reactive state,
+we would miss a reactive update in our UI components, as by the time the reactive update happens, vue will see that property is already set to that value (by the earlier non-reactive update) and thus not bother with triggering watchers.
+
+So the lesson here is either ensure that the reactive data is a copy of the non-reactive data or that you make sure you update reactive state first!

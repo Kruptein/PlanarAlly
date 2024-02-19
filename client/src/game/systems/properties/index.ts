@@ -69,12 +69,13 @@ class PropertiesSystem implements ShapeSystem {
     }
 
     dropState(id: LocalId, source: string): void {
-        $.data.delete(id);
-
         const leases = this.shapeLeases.get(id);
         if (leases === undefined) return console.error("Dropping state for shape without active lease.");
         leases.delete(source);
-        if (leases.size === 0) this.shapeLeases.delete(id);
+        if (leases.size === 0) {
+            this.shapeLeases.delete(id);
+            $.data.delete(id);
+        }
     }
 
     setName(id: LocalId, name: string, syncTo: Sync): void {

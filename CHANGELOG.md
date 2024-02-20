@@ -68,6 +68,8 @@ tech changes will usually be stripped from release notes for the public
         -   Everything badge related is now updating as it happens
         -   Members will now appear/disappear immediately
 -   [tech] FloorSystem's floors and layers properties are now only reactive on the array level and are raw for the actual elements.
+-   Initiative:
+    -   Fixed an issue where Initiative.Order.Change would fail when called with some Shape Ids.
 
 ## [2024.1.0] - 2024-01-27
 

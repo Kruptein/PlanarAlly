@@ -160,6 +160,13 @@ export abstract class Shape implements IShape {
         this._visionPolygon = undefined;
     }
 
+    get parentId(): LocalId | undefined {
+      return this._parentId;
+    }
+    set parentId(pId: LocalId) {
+      this._parentId = pId;
+    }
+
     // Informs whether `points` forms a close loop
     abstract get isClosed(): boolean;
 

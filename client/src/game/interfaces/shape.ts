@@ -55,6 +55,9 @@ export interface IShape extends SimpleShape {
     get center(): GlobalPoint;
     set center(centerPoint: GlobalPoint);
 
+    get parentId(): LocalId | undefined;
+    set parentId(pId: LocalId);
+
     get isClosed(): boolean;
 
     get triggersVisionRecalc(): boolean;

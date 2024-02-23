@@ -33,6 +33,10 @@ export function moveFloor(shapes: IShape[], newFloor: Floor, sync: boolean): voi
     for (const shape of shapes) {
         visionState.moveShape(shape.id, oldFloor.id, newFloor.id);
         shape.setLayer(newFloor.id, oldLayer.name);
+        for (const dependent of oldLayer.getDependentShapes(shape.id)) {
+          oldLayer.removeDependentShape(shape.id, dependent.id, { dropShapeId: false });
+          newLayer.addDependentShape(shape.id, dependent);
+        }
     }
     oldLayer.setShapes(
         ...oldLayer.getShapes({ includeComposites: true, onlyInView: false }).filter((s) => !shapes.includes(s)),
@@ -59,7 +63,13 @@ export function moveLayer(shapes: readonly IShape[], newLayer: ILayer, sync: boo
         throw new Error("Mixing shapes from different floors in shape move");
     }
 
-    for (const shape of shapes) shape.setLayer(newLayer.floor, newLayer.name);
+    for (const shape of shapes) {
+      shape.setLayer(newLayer.floor, newLayer.name);
+      for (const dependent of oldLayer.getDependentShapes(shape.id)) {
+         oldLayer.removeDependentShape(shape.id, dependent.id, { dropShapeId: false });
+         newLayer.addDependentShape(shape.id, dependent);
+      }
+    }
     // Update layer shapes
     oldLayer.setShapes(
         ...oldLayer.getShapes({ includeComposites: true, onlyInView: false }).filter((s) => !shapes.includes(s)),

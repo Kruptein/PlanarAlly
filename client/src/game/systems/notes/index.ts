@@ -47,10 +47,6 @@ class NoteSystem implements System {
             const shapeId = getLocalId(shape, false);
             if (shapeId === undefined) continue;
             this.hookupShape(note, shapeId);
-
-            if (note.showIconOnShape) {
-                this.createNoteIcon(shapeId, note.uuid);
-            }
         }
         if (sync) sendNewNote(apiNote);
     }
@@ -129,11 +125,11 @@ class NoteSystem implements System {
     }
 
     // This is a utlity function used during loading of notes
-    private hookupShape(note: ClientNote, shape: LocalId): void {
+    hookupShape(note: ClientNote, shape: LocalId): void {
         if (!raw.shapeNotes.has(shape)) $.shapeNotes.set(shape, []);
         $.shapeNotes.get(shape)?.push(note.uuid);
 
-        //if (note.showIconOnShape) this.createNoteIcon(shape, note.uuid);
+        if (note.showIconOnShape) this.createNoteIcon(shape, note.uuid);
     }
 
     removeShape(noteId: string, shapeId: LocalId, sync: boolean): void {

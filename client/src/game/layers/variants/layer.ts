@@ -340,6 +340,10 @@ export class Layer implements ILayer {
                 true,
             );
         }
+        for (const dep of this.dependents.get(shape.id) ?? []) {
+          this.removeDependentShape(shape.id, dep.id, { dropShapeId: true });
+        }
+        this.dependents.delete(shape.id);
         this.shapes.splice(idx, 1);
         this.removeShapeFromSectors(shape.id);
         this.updateView();

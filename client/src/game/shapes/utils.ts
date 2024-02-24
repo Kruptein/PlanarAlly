@@ -193,6 +193,9 @@ export function deleteShapes(shapes: readonly IShape[], sync: SyncMode): void {
         const props = getProperties(sel.id)!;
         if (props.blocksVision !== VisionBlock.No) recalculateVision = true;
         if (props.blocksMovement) recalculateMovement = true;
+        for (const dep of sel.layer?.getDependentShapes(sel.id) ?? []) {
+          sel.layer?.removeDependentShape(sel.id, dep.id, { dropShapeId: true });
+        }
         sel.layer?.removeShape(sel, { sync: SyncMode.NO_SYNC, recalculate: recalculateIterative, dropShapeId: true });
     }
     if (sync !== SyncMode.NO_SYNC) sendRemoveShapes({ uuids: removed, temporary: sync === SyncMode.TEMP_SYNC });

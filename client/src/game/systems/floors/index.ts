@@ -80,14 +80,14 @@ class FloorSystem implements System {
             const I = this.indices.findIndex((i) => i > targetIndex);
             if (I >= 0) {
                 this.indices.splice(I, 0, targetIndex);
-                $.floors.splice(I, 0, markRaw(floor));
+                $.floors.splice(I, 0, floor);
                 if (I <= floorState.raw.floorIndex) $.floorIndex = (floorState.raw.floorIndex + 1) as FloorIndex;
             } else {
                 this.indices.push(targetIndex);
-                $.floors.push(markRaw(floor));
+                $.floors.push(floor);
             }
         } else {
-            $.floors.push(markRaw(floor));
+            $.floors.push(floor);
         }
         this.layerMap.set(floor.id, []);
     }
@@ -164,7 +164,7 @@ class FloorSystem implements System {
             return;
         }
 
-        $.floors = floors.map((name) => markRaw(floorState.raw.floors.find((f) => f.name === name)!));
+        $.floors = floors.map((name) => floorState.raw.floors.find((f) => f.name === name)!);
         $.floorIndex = this.getFloorIndex({ name: activeFloorName })!;
         recalculateZIndices();
         if (sync) sendFloorReorder(floors);

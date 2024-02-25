@@ -83,13 +83,6 @@ export abstract class Shape implements IShape {
         return this._points;
     }
 
-    // This returns the points of the shape without any rotation applied
-    // This is slower (as it starts from the rotated points) and returns GlobalPoints instead of [number, number]
-    // This is primarily used in the context of UI tools
-    get pointsUntransformed(): GlobalPoint[] {
-        return this.points.map((p) => rotateAroundPoint(toGP(p), this.center, this.angle));
-    }
-
     get shadowPoints(): [number, number][] {
         return this._shadowPoints ?? this._points;
     }
@@ -377,7 +370,7 @@ export abstract class Shape implements IShape {
         if (resizePoint < 0) return;
 
         const gridType = locationSettingsState.raw.gridType.value;
-        const [targetPoint] = snapPointToGrid(this.pointsUntransformed[resizePoint]!, gridType, {
+        const [targetPoint] = snapPointToGrid(toGP(this.points[resizePoint]!), gridType, {
             snapDistance: Number.MAX_VALUE,
         });
         this.resize(resizePoint, targetPoint, retainAspectRatio);

@@ -63,14 +63,15 @@ tech changes will usually be stripped from release notes for the public
     -   The filter was not properly rerunning when opening shape notes, causing notes from the previous shape to still be visible sometimes
     -   When shape filtering, the shape name in the UI would change if you clicked on another shape with the select tool.
     -   Note icons drawn on a shape could be drawn behind the shape in some circumstances.
+    -   Fix 'add shape' and 'remove shape' events not being synced immediately if you only have view access
 -   Groups:
     -   The 'edit shape' groups tab was completely broken, this has been resolved
     -   Multiple things in the groups tab have become more responsive to changes
         -   Everything badge related is now updating as it happens
         -   Members will now appear/disappear immediately
--   [tech] FloorSystem's floors and layers properties are now only reactive on the array level and are raw for the actual elements.
 -   Initiative:
     -   Fixed an issue where Initiative.Order.Change would fail when called with some Shape Ids.
+-   [tech] FloorSystem's layers properties are now only reactive on the array level and are raw for the actual elements.
 
 ## [2024.1.0] - 2024-01-27
 

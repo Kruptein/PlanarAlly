@@ -97,7 +97,7 @@ export function addShape(shape: ApiShape, floor: string, layerName: LayerName, s
 
     // if this shape has been moved to a new location, notes are already set up for it client-side.
     // we need to reattach the notes to this new shape since the local id is changed!
-    const noteList = Array.from(noteState.mutableReactive.notes.values());
+    const noteList = Array.from(noteState.reactive.notes.values());
     const shapeNotes = noteList.filter((n) => n.shapes.includes(shape.uuid));
     for (const note of shapeNotes) {
         noteSystem.hookupShape(note, sh.id);

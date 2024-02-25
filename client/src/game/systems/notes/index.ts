@@ -1,3 +1,5 @@
+import type { DeepReadonly } from "vue";
+
 import { registerSystem } from "..";
 import type { System } from "..";
 import type { ApiNote } from "../../../apiTypes";
@@ -125,14 +127,14 @@ class NoteSystem implements System {
     }
 
     // This is a utlity function used during loading of notes
-    hookupShape(note: ClientNote, shape: LocalId): void {
+    hookupShape(note: DeepReadonly<ClientNote>, shape: LocalId): void {
         if (!raw.shapeNotes.has(shape)) $.shapeNotes.set(shape, []);
         $.shapeNotes.get(shape)?.push(note.uuid);
 
         if (note.showIconOnShape) this.createNoteIcon(shape, note.uuid);
     }
 
-    unhookShape(note: ClientNote, shape: LocalId): void {
+    unhookShape(shape: LocalId): void {
         if (!raw.shapeNotes.has(shape)) return;
         const notes = $.shapeNotes.get(shape) ?? [];
         while (notes.length) {

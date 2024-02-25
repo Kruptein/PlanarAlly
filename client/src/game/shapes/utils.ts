@@ -23,7 +23,6 @@ import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
 import { groupSystem } from "../systems/groups";
 import { noteSystem } from "../systems/notes";
-import { noteState } from "../systems/notes/state";
 import { positionSystem } from "../systems/position";
 import { getProperties } from "../systems/properties/state";
 import { VisionBlock } from "../systems/properties/types";
@@ -194,12 +193,7 @@ export function deleteShapes(shapes: readonly IShape[], sync: SyncMode): void {
         const gId = getGlobalId(sel.id);
         if (gId) {
             removed.push(gId);
-
-            const noteList = Array.from(noteState.mutableReactive.notes.values());
-            const shapeNotes = noteList.filter((n) => n.shapes.includes(gId));
-            for (const note of shapeNotes) {
-                noteSystem.unhookShape(note, sel.id);
-            }
+            noteSystem.unhookShape(sel.id);
         }
         const props = getProperties(sel.id)!;
         if (props.blocksVision !== VisionBlock.No) recalculateVision = true;

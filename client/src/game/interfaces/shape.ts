@@ -21,7 +21,6 @@ export interface IShape extends SimpleShape {
     character: CharacterId | undefined;
 
     get points(): [number, number][];
-    get pointsUntransformed(): GlobalPoint[];
     get shadowPoints(): [number, number][];
     invalidatePoints: () => void;
     updatePoints: () => void;

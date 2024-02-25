@@ -62,6 +62,7 @@ tech changes will usually be stripped from release notes for the public
 -   Notes:
     -   The filter was not properly rerunning when opening shape notes, causing notes from the previous shape to still be visible sometimes
     -   When shape filtering, the shape name in the UI would change if you clicked on another shape with the select tool.
+    -   Fix 'add shape' and 'remove shape' events not being synced immediately if you only have view access
 -   Groups:
     -   The 'edit shape' groups tab was completely broken, this has been resolved
     -   Multiple things in the groups tab have become more responsive to changes

@@ -74,6 +74,11 @@ socket.on("Note.Shape.Add", (data: ApiNoteShape) => {
     if (id === undefined) return;
     noteSystem.attachShape(data.note_id, id, false);
 });
+socket.on("Note.Shape.Remove", (data: ApiNoteShape) => {
+    const id = getLocalId(data.shape_id);
+    if (id === undefined) return;
+    noteSystem.removeShape(data.note_id, id, false);
+});
 
 socket.on("Note.ShowOnHover.Set", (data: ApiNoteSetBoolean) => {
     noteSystem.setShowOnHover(data.uuid, data.value, false);

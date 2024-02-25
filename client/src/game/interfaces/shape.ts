@@ -69,6 +69,8 @@ export interface IShape extends SimpleShape {
     _lightBlockingNeighbours: LocalId[];
     _parentId?: LocalId;
 
+    get dependentShapes(): IShape[];
+
     // POSITION
 
     readonly floorId: FloorId | undefined;
@@ -119,4 +121,11 @@ export interface IShape extends SimpleShape {
     // UTILITY
 
     visibleInCanvas: (max: { w: number; h: number }, options: { includeAuras: boolean }) => boolean;
+
+    // DEPENDENT SHAPES
+
+    addDependentShape: (shape: IShape) => void;
+    removeDependentShape: (shapeId: LocalId, options: {dropShapeId: boolean}) => void;
+    removeDependentShapes: (options: {dropShapeId: boolean}) => void;
+
 }

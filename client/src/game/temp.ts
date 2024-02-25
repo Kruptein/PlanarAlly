@@ -35,10 +35,6 @@ export function moveFloor(shapes: IShape[], newFloor: Floor, sync: boolean): voi
     for (const shape of shapes) {
         visionState.moveShape(shape.id, oldFloor.id, newFloor.id);
         shape.setLayer(newFloor.id, oldLayer.name);
-        for (const dependent of oldLayer.getDependentShapes(shape.id)) {
-          oldLayer.removeDependentShape(shape.id, dependent.id, { dropShapeId: false });
-          newLayer.addDependentShape(shape.id, dependent);
-        }
     }
     oldLayer.setShapes(
         ...oldLayer.getShapes({ includeComposites: true, onlyInView: false }).filter((s) => !shapes.includes(s)),
@@ -66,11 +62,7 @@ export function moveLayer(shapes: readonly IShape[], newLayer: ILayer, sync: boo
     }
 
     for (const shape of shapes) {
-      shape.setLayer(newLayer.floor, newLayer.name);
-      for (const dependent of oldLayer.getDependentShapes(shape.id)) {
-         oldLayer.removeDependentShape(shape.id, dependent.id, { dropShapeId: false });
-         newLayer.addDependentShape(shape.id, dependent);
-      }
+        shape.setLayer(newLayer.floor, newLayer.name);
     }
     // Update layer shapes
     oldLayer.setShapes(
@@ -113,8 +105,7 @@ export function addShape(shape: ApiShape, floor: string, layerName: LayerName, s
 
     layer.addShape(sh, sync, InvalidationMode.NORMAL);
     for (const dep of dependents ?? []) {
-      dep.parentId = sh.id;
-      layer.addDependentShape(sh.id, dep);
+        sh.addDependentShape(dep);
     }
     layer.invalidate(false);
     return sh;

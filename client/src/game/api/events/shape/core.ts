@@ -31,11 +31,11 @@ socket.on("Shape.Set", (data: ApiShapeWithLayerInfo) => {
     const hasEditDialogOpen = isActive && activeShapeStore.state.showEditDialog;
     let deps = undefined;
     if (old) {
-      deps = old.layer?.getDependentShapes(old.id) ?? [];
-      for (const dep of deps) {
-        old.layer!.removeDependentShape(old.id, dep.id, { dropShapeId: false });
-      }
-      old.layer?.removeShape(old, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
+        deps = old.dependentShapes;
+        for (const dep of deps) {
+            old?.removeDependentShape(dep.id, { dropShapeId: false });
+        }
+        old.layer?.removeShape(old, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
     }
     const shape = addShape(apiShape, floor, layer, SyncMode.NO_SYNC, deps);
 

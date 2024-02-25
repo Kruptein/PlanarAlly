@@ -132,6 +132,14 @@ class NoteSystem implements System {
         if (note.showIconOnShape) this.createNoteIcon(shape, note.uuid);
     }
 
+    unhookShape(note: ClientNote, shape: LocalId): void {
+        if (!raw.shapeNotes.has(shape)) return;
+        const notes = $.shapeNotes.get(shape) ?? [];
+        while (notes.length) {
+            notes.pop();
+        }
+    }
+
     removeShape(noteId: string, shapeId: LocalId, sync: boolean): void {
         const globalId = getGlobalId(shapeId);
         if (globalId === undefined) {
@@ -163,7 +171,9 @@ class NoteSystem implements System {
             for (const iconShape of readonly.iconShapes.get(noteId) ?? []) {
                 const shape = getShape(iconShape);
                 if (shape?.layer === undefined || shape._parentId !== shapeId) continue;
-                shape.layer.removeDependentShape(shapeId, shape.id, { dropShapeId: true});
+                const parent = getShape(shape._parentId);
+                if (parent) parent.removeDependentShape(shape.id, { dropShapeId: true});
+                mutable.iconShapes.set(noteId, mutable.iconShapes.get(noteId)?.filter((id) => id !== shape.id) ?? []);
             }
         }
 
@@ -215,7 +225,9 @@ class NoteSystem implements System {
                 const shape = getShape(iconShape);
                 if (shape?.layer === undefined) continue;
                 if (shape?.parentId === undefined) continue;
-                shape.layer.removeDependentShape(shape.parentId, shape.id, { dropShapeId: true });
+                const parent = getShape(shape.parentId);
+                if (parent) parent.removeDependentShape(shape.id, { dropShapeId: true });
+                mutable.iconShapes.set(noteId, mutable.iconShapes.get(noteId)?.filter((id) => id !== shape.id) ?? []);
             }
         }
         $.notes.delete(noteId);
@@ -291,7 +303,8 @@ class NoteSystem implements System {
                 const shape = getShape(iconShape);
                 if (shape?.layer === undefined) continue;
                 if (shape?.parentId === undefined) continue;
-                shape.layer.removeDependentShape(shape.parentId, shape.id, { dropShapeId: true });
+                const parent = getShape(shape.parentId);
+                if (parent) parent.removeDependentShape(shape.id, { dropShapeId: true });
             }
             mutable.iconShapes.delete(noteId);
         }
@@ -307,8 +320,7 @@ class NoteSystem implements System {
         });
         const shape = getShape(shapeId);
         if (shape?.layer === undefined) return;
-        shape.layer.addDependentShape(shapeId, icon);
-
+        shape.addDependentShape(icon);
         if (readonly.iconShapes.has(noteId)) {
             mutable.iconShapes.get(noteId)?.push(icon.id);
         } else {

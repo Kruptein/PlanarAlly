@@ -43,7 +43,4 @@ export interface ILayer {
     show: () => void;
     size: (options: { includeComposites: boolean; onlyInView: boolean }) => number;
     updateSectors: (shapeId: LocalId, aabb: BoundingRect) => void;
-    addDependentShape: (parent: LocalId, shape: IShape) => void;
-    removeDependentShape: (parent: LocalId, shapeId: LocalId, options: { dropShapeId: boolean }) => void;
-    getDependentShapes: (parent: LocalId) => IShape[];
 }

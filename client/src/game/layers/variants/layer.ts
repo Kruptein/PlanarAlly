@@ -66,7 +66,6 @@ export class Layer implements ILayer {
     // The collection of shapes that this layer contains.
     // These are ordered on a depth basis.
     protected shapes: IShape[] = [];
-    protected dependents = new Map<LocalId, IShape[]>();
     shapesInSector: IShape[] = [];
     protected xSectors = new Map<number, Set<LocalId>>();
     protected ySectors = new Map<number, Set<LocalId>>();
@@ -239,31 +238,6 @@ export class Layer implements ILayer {
         }
         shape.onLayerAdd();
     }
-    private getOrCreateDependents(key: LocalId): IShape[] {
-      let deps = this.dependents.get(key);
-      if (deps === undefined) {
-        this.dependents.set(key, []);
-        deps = this.dependents.get(key)!;
-      }
-      return deps;
-    }
-    addDependentShape(parent: LocalId, shape: IShape): void {
-      shape.setLayer(this.floor, this.name);
-
-      const deps = this.getOrCreateDependents(parent);
-      deps.push(shape);
-
-      this.invalidate(true);
-    }
-    removeDependentShape(parent: LocalId, shapeId: LocalId, options: {dropShapeId: boolean}): void {
-      this.dependents.set(parent, this.dependents.get(parent)?.filter((entry) => entry.id !== shapeId) ?? []);
-      if (options.dropShapeId) dropId(shapeId);
-
-      this.invalidate(true);
-    }
-    getDependentShapes(parent: LocalId): IShape[] {
-      return this.dependents.get(parent) ?? [];
-    }
 
     // UI helpers are objects that are created for UI reaons but that are not pertinent to the actual state
     // They are often not desired unless in specific circumstances
@@ -340,10 +314,7 @@ export class Layer implements ILayer {
                 true,
             );
         }
-        for (const dep of this.dependents.get(shape.id) ?? []) {
-          this.removeDependentShape(shape.id, dep.id, { dropShapeId: true });
-        }
-        this.dependents.delete(shape.id);
+        shape.removeDependentShapes({ dropShapeId: true });
         this.shapes.splice(idx, 1);
         this.removeShapeFromSectors(shape.id);
         this.updateView();
@@ -459,9 +430,6 @@ export class Layer implements ILayer {
                     if (labelSystem.isFiltered(shape.id)) continue;
 
                     shape.draw(ctx, false);
-                    for (const dependent of this.dependents.get(shape.id) ?? []) {
-                      dependent.draw(ctx, false);
-                    }
                 }
             }
 

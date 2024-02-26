@@ -287,6 +287,9 @@ export abstract class Shape implements IShape {
     }
 
     setLayer(floor: FloorId, layer: LayerName): void {
+        for (const dep of this._dependentShapes) {
+            dep.setLayer(floor, layer);
+        }
         this.floorId = floor;
         this.layerName = layer;
     }
@@ -742,9 +745,7 @@ export abstract class Shape implements IShape {
                 dropId(shape.id);
             }
         }
-        while (this._dependentShapes.length) {
-            this._dependentShapes.pop();
-        }
+        this._dependentShapes = [];
         this.invalidate(true);
     }
 

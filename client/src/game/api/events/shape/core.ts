@@ -32,9 +32,7 @@ socket.on("Shape.Set", (data: ApiShapeWithLayerInfo) => {
     let deps = undefined;
     if (old) {
         deps = old.dependentShapes;
-        for (const dep of deps) {
-            old?.removeDependentShape(dep.id, { dropShapeId: false });
-        }
+        old.removeDependentShapes({ dropShapeId: false });
         old.layer?.removeShape(old, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
     }
     const shape = addShape(apiShape, floor, layer, SyncMode.NO_SYNC, deps);

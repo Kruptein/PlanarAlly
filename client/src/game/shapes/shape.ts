@@ -13,7 +13,7 @@ import {
 } from "../../core/grid";
 import { rotateAroundPoint } from "../../core/math";
 import { mostReadable } from "../../core/utils";
-import { generateLocalId, getGlobalId, getShape } from "../id";
+import { generateLocalId, getGlobalId, getShape, dropId } from "../id";
 import type { GlobalId, LocalId } from "../id";
 import type { ILayer } from "../interfaces/layer";
 import type { IShape } from "../interfaces/shape";
@@ -52,6 +52,12 @@ export abstract class Shape implements IShape {
     readonly id: LocalId;
 
     character: CharacterId | undefined;
+
+    _dependentShapes: IShape[] = [];
+
+    get dependentShapes(): IShape[] {
+        return this._dependentShapes;
+    }
 
     // The layer the shape is currently on
     floorId: FloorId | undefined;
@@ -151,6 +157,13 @@ export abstract class Shape implements IShape {
     set center(centerPoint: GlobalPoint) {
         this._center = centerPoint;
         this._visionPolygon = undefined;
+    }
+
+    get parentId(): LocalId | undefined {
+        return this._parentId;
+    }
+    set parentId(pId: LocalId) {
+        this._parentId = pId;
     }
 
     // Informs whether `points` forms a close loop
@@ -274,6 +287,9 @@ export abstract class Shape implements IShape {
     }
 
     setLayer(floor: FloorId, layer: LayerName): void {
+        for (const dep of this._dependentShapes) {
+            dep.setLayer(floor, layer);
+        }
         this.floorId = floor;
         this.layerName = layer;
     }
@@ -480,6 +496,9 @@ export abstract class Shape implements IShape {
                 ctx.stroke();
                 barOffset += 10;
             }
+        }
+        for (const dep of this.dependentShapes) {
+            dep.draw(ctx, false);
         }
     }
 
@@ -699,4 +718,36 @@ export abstract class Shape implements IShape {
         }
         return false;
     }
+
+    // DEPENDENT SHAPES
+
+    addDependentShape(shape: IShape): void {
+        if (this.floorId === undefined || this.layerName === undefined) return;
+
+        shape.setLayer(this?.floorId, this?.layerName);
+        shape.parentId = this.id;
+
+        this.dependentShapes.push(shape);
+
+        this.invalidate(true);
+    }
+
+    removeDependentShape(shapeId: LocalId, options: {dropShapeId: boolean}): void {
+        this._dependentShapes = this._dependentShapes.filter((entry) => entry.id !== shapeId);
+        if (options.dropShapeId) dropId(shapeId);
+
+        this.invalidate(true);
+    }
+
+    removeDependentShapes(options: {dropShapeId: boolean}): void {
+        if (options.dropShapeId) {
+            for (const shape of this.dependentShapes) {
+                dropId(shape.id);
+            }
+        }
+        this._dependentShapes = [];
+        this.invalidate(true);
+    }
+
+
 }

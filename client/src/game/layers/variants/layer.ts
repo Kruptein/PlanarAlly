@@ -314,6 +314,7 @@ export class Layer implements ILayer {
                 true,
             );
         }
+        shape.removeDependentShapes({ dropShapeId: true });
         this.shapes.splice(idx, 1);
         this.removeShapeFromSectors(shape.id);
         this.updateView();

@@ -1,8 +1,9 @@
+import type { DeepReadonly } from "vue";
+
 import { registerSystem } from "..";
 import type { System } from "..";
 import type { ApiNote } from "../../../apiTypes";
 import { toGP } from "../../../core/geometry";
-import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { word2color } from "../../../core/utils";
 import { getGlobalId, getLocalId, getShape, type LocalId } from "../../id";
 import { FontAwesomeIcon } from "../../shapes/variants/fontAwesomeIcon";
@@ -48,10 +49,6 @@ class NoteSystem implements System {
             const shapeId = getLocalId(shape, false);
             if (shapeId === undefined) continue;
             this.hookupShape(note, shapeId);
-
-            if (note.showIconOnShape) {
-                this.createNoteIcon(shapeId, note.uuid, InvalidationMode.NO);
-            }
         }
         if (sync) sendNewNote(apiNote);
     }
@@ -130,11 +127,19 @@ class NoteSystem implements System {
     }
 
     // This is a utlity function used during loading of notes
-    private hookupShape(note: ClientNote, shape: LocalId): void {
+    hookupShape(note: DeepReadonly<ClientNote>, shape: LocalId): void {
         if (!raw.shapeNotes.has(shape)) $.shapeNotes.set(shape, []);
         $.shapeNotes.get(shape)?.push(note.uuid);
 
-        if (note.showIconOnShape) this.createNoteIcon(shape, note.uuid, InvalidationMode.NORMAL);
+        if (note.showIconOnShape) this.createNoteIcon(shape, note.uuid);
+    }
+
+    unhookShape(shape: LocalId): void {
+        if (!raw.shapeNotes.has(shape)) return;
+        const notes = $.shapeNotes.get(shape) ?? [];
+        while (notes.length) {
+            notes.pop();
+        }
     }
 
     removeShape(noteId: string, shapeId: LocalId, sync: boolean): void {
@@ -168,7 +173,9 @@ class NoteSystem implements System {
             for (const iconShape of readonly.iconShapes.get(noteId) ?? []) {
                 const shape = getShape(iconShape);
                 if (shape?.layer === undefined || shape._parentId !== shapeId) continue;
-                shape.layer.removeShape(shape, { sync: SyncMode.NO_SYNC, recalculate: false, dropShapeId: true });
+                const parent = getShape(shape._parentId);
+                if (parent) parent.removeDependentShape(shape.id, { dropShapeId: true});
+                mutable.iconShapes.set(noteId, mutable.iconShapes.get(noteId)?.filter((id) => id !== shape.id) ?? []);
             }
         }
 
@@ -219,7 +226,10 @@ class NoteSystem implements System {
             for (const iconShape of readonly.iconShapes.get(noteId) ?? []) {
                 const shape = getShape(iconShape);
                 if (shape?.layer === undefined) continue;
-                shape.layer.removeShape(shape, { sync: SyncMode.NO_SYNC, recalculate: false, dropShapeId: true });
+                if (shape?.parentId === undefined) continue;
+                const parent = getShape(shape.parentId);
+                if (parent) parent.removeDependentShape(shape.id, { dropShapeId: true });
+                mutable.iconShapes.set(noteId, mutable.iconShapes.get(noteId)?.filter((id) => id !== shape.id) ?? []);
             }
         }
         $.notes.delete(noteId);
@@ -288,13 +298,15 @@ class NoteSystem implements System {
             for (const shape of note.shapes) {
                 const shapeId = getLocalId(shape, false);
                 if (shapeId === undefined) continue;
-                this.createNoteIcon(shapeId, noteId, InvalidationMode.NORMAL);
+                this.createNoteIcon(shapeId, noteId);
             }
         } else {
             for (const iconShape of readonly.iconShapes.get(noteId) ?? []) {
                 const shape = getShape(iconShape);
                 if (shape?.layer === undefined) continue;
-                shape.layer.removeShape(shape, { sync: SyncMode.NO_SYNC, recalculate: false, dropShapeId: true });
+                if (shape?.parentId === undefined) continue;
+                const parent = getShape(shape.parentId);
+                if (parent) parent.removeDependentShape(shape.id, { dropShapeId: true });
             }
             mutable.iconShapes.delete(noteId);
         }
@@ -304,14 +316,13 @@ class NoteSystem implements System {
         }
     }
 
-    private createNoteIcon(shapeId: LocalId, noteId: string, InvalidationMode: InvalidationMode): void {
+    private createNoteIcon(shapeId: LocalId, noteId: string): void {
         const icon = new FontAwesomeIcon({ prefix: "fas", iconName: "sticky-note" }, toGP(0, 30), 15, {
             parentId: shapeId,
         });
         const shape = getShape(shapeId);
         if (shape?.layer === undefined) return;
-        shape.layer.addShape(icon, SyncMode.NO_SYNC, InvalidationMode);
-
+        shape.addDependentShape(icon);
         if (readonly.iconShapes.has(noteId)) {
             mutable.iconShapes.get(noteId)?.push(icon.id);
         } else {

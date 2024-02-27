@@ -29,8 +29,13 @@ socket.on("Shape.Set", (data: ApiShapeWithLayerInfo) => {
     const old = getShapeFromGlobal(uuid);
     const isActive = activeShapeStore.state.id === getLocalId(uuid);
     const hasEditDialogOpen = isActive && activeShapeStore.state.showEditDialog;
-    if (old) old.layer?.removeShape(old, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
-    const shape = addShape(apiShape, floor, layer, SyncMode.NO_SYNC);
+    let deps = undefined;
+    if (old) {
+        deps = old.dependentShapes;
+        old.removeDependentShapes({ dropShapeId: false });
+        old.layer?.removeShape(old, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
+    }
+    const shape = addShape(apiShape, floor, layer, SyncMode.NO_SYNC, deps);
 
     if (shape && isActive) {
         selectedSystem.push(shape.id);

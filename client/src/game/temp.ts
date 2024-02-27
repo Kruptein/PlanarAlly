@@ -11,6 +11,8 @@ import type { Floor, LayerName } from "./models/floor";
 import { addOperation } from "./operations/undo";
 import { createShapeFromDict } from "./shapes/create";
 import { floorSystem } from "./systems/floors";
+import { noteSystem } from "./systems/notes";
+import { noteState } from "./systems/notes/state";
 import { getProperties } from "./systems/properties/state";
 import { visionState } from "./vision/state";
 
@@ -59,7 +61,9 @@ export function moveLayer(shapes: readonly IShape[], newLayer: ILayer, sync: boo
         throw new Error("Mixing shapes from different floors in shape move");
     }
 
-    for (const shape of shapes) shape.setLayer(newLayer.floor, newLayer.name);
+    for (const shape of shapes) {
+        shape.setLayer(newLayer.floor, newLayer.name);
+    }
     // Update layer shapes
     oldLayer.setShapes(
         ...oldLayer.getShapes({ includeComposites: true, onlyInView: false }).filter((s) => !shapes.includes(s)),
@@ -80,7 +84,7 @@ export function moveLayer(shapes: readonly IShape[], newLayer: ILayer, sync: boo
     }
 }
 
-export function addShape(shape: ApiShape, floor: string, layerName: LayerName, sync: SyncMode): IShape | undefined {
+export function addShape(shape: ApiShape, floor: string, layerName: LayerName, sync: SyncMode, dependents?: IShape[]): IShape | undefined {
     if (!floorSystem.hasLayer(floorSystem.getFloor({ name: floor })!, layerName)) {
         console.log(`Shape with unknown layer ${layerName} could not be added`);
         return;
@@ -90,7 +94,19 @@ export function addShape(shape: ApiShape, floor: string, layerName: LayerName, s
     if (sh === undefined) {
         return;
     }
+
+    // if this shape has been moved to a new location, notes are already set up for it client-side.
+    // we need to reattach the notes to this new shape since the local id is changed!
+    const noteList = Array.from(noteState.reactive.notes.values());
+    const shapeNotes = noteList.filter((n) => n.shapes.includes(shape.uuid));
+    for (const note of shapeNotes) {
+        noteSystem.hookupShape(note, sh.id);
+    }
+
     layer.addShape(sh, sync, InvalidationMode.NORMAL);
+    for (const dep of dependents ?? []) {
+        sh.addDependentShape(dep);
+    }
     layer.invalidate(false);
     return sh;
 }

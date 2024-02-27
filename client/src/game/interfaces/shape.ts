@@ -54,6 +54,9 @@ export interface IShape extends SimpleShape {
     get center(): GlobalPoint;
     set center(centerPoint: GlobalPoint);
 
+    get parentId(): LocalId | undefined;
+    set parentId(pId: LocalId);
+
     get isClosed(): boolean;
 
     get triggersVisionRecalc(): boolean;
@@ -64,6 +67,8 @@ export interface IShape extends SimpleShape {
     _visionBbox: BoundingRect | undefined;
     _lightBlockingNeighbours: LocalId[];
     _parentId?: LocalId;
+
+    get dependentShapes(): IShape[];
 
     // POSITION
 
@@ -115,4 +120,11 @@ export interface IShape extends SimpleShape {
     // UTILITY
 
     visibleInCanvas: (max: { w: number; h: number }, options: { includeAuras: boolean }) => boolean;
+
+    // DEPENDENT SHAPES
+
+    addDependentShape: (shape: IShape) => void;
+    removeDependentShape: (shapeId: LocalId, options: {dropShapeId: boolean}) => void;
+    removeDependentShapes: (options: {dropShapeId: boolean}) => void;
+
 }

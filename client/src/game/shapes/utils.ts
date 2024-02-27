@@ -22,6 +22,7 @@ import { clipboardState } from "../systems/clipboard/state";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
 import { groupSystem } from "../systems/groups";
+import { noteSystem } from "../systems/notes";
 import { positionSystem } from "../systems/position";
 import { getProperties } from "../systems/properties/state";
 import { VisionBlock } from "../systems/properties/types";
@@ -30,6 +31,7 @@ import type { TrackerId } from "../systems/trackers/models";
 import { TriangulationTarget, VisibilityMode, visionState } from "../vision/state";
 
 import { createShapeFromDict } from "./create";
+
 
 export function copyShapes(): void {
     if (!selectedSystem.hasSelection) return;
@@ -189,10 +191,14 @@ export function deleteShapes(shapes: readonly IShape[], sync: SyncMode): void {
         const sel = shapes[i]!;
         if (sync !== SyncMode.NO_SYNC && !accessSystem.hasAccessTo(sel.id, false, { edit: true })) continue;
         const gId = getGlobalId(sel.id);
-        if (gId) removed.push(gId);
+        if (gId) {
+            removed.push(gId);
+            noteSystem.unhookShape(sel.id);
+        }
         const props = getProperties(sel.id)!;
         if (props.blocksVision !== VisionBlock.No) recalculateVision = true;
         if (props.blocksMovement) recalculateMovement = true;
+
         sel.layer?.removeShape(sel, { sync: SyncMode.NO_SYNC, recalculate: recalculateIterative, dropShapeId: true });
     }
     if (sync !== SyncMode.NO_SYNC) sendRemoveShapes({ uuids: removed, temporary: sync === SyncMode.TEMP_SYNC });

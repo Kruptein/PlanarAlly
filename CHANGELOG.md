@@ -71,6 +71,8 @@ tech changes will usually be stripped from release notes for the public
         -   Members will now appear/disappear immediately
 -   Initiative:
     -   Fixed an issue where Initiative.Order.Change would fail when called with some Shape Ids.
+-   Annotations:
+    -   Fixed rendering of markdown which included raw HTML elements.
 -   [tech] FloorSystem's layers properties are now only reactive on the array level and are raw for the actual elements.
 
 ## [2024.1.0] - 2024-01-27

@@ -9,7 +9,7 @@ import { uiState } from "../systems/ui/state";
         v-show="uiState.reactive.annotationText.length > 0"
         id="annotation"
         :source="uiState.reactive.annotationText"
-        :html="true"
+        :options="{ html: true }"
     />
 </template>
 

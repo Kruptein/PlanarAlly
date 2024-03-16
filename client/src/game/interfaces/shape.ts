@@ -4,7 +4,7 @@ import type { GridType } from "../../core/grid";
 import type { LocalId } from "../id";
 import type { Floor, FloorId, LayerName } from "../models/floor";
 import type { ShapeOptions } from "../models/shapes";
-import type { SHAPE_TYPE } from "../shapes/types";
+import type { DepShape, SHAPE_TYPE } from "../shapes/types";
 import type { BoundingRect } from "../shapes/variants/simple/boundingRect";
 import type { CharacterId } from "../systems/characters/models";
 
@@ -68,7 +68,7 @@ export interface IShape extends SimpleShape {
     _lightBlockingNeighbours: LocalId[];
     _parentId?: LocalId;
 
-    get dependentShapes(): IShape[];
+    get dependentShapes(): readonly DepShape[];
 
     // POSITION
 
@@ -123,8 +123,7 @@ export interface IShape extends SimpleShape {
 
     // DEPENDENT SHAPES
 
-    addDependentShape: (shape: IShape) => void;
-    removeDependentShape: (shapeId: LocalId, options: {dropShapeId: boolean}) => void;
-    removeDependentShapes: (options: {dropShapeId: boolean}) => void;
-
+    addDependentShape: (depShape: DepShape) => void;
+    removeDependentShape: (shapeId: LocalId, options: { dropShapeId: boolean }) => void;
+    removeDependentShapes: (options: { dropShapeId: boolean }) => void;
 }

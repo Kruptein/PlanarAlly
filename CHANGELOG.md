@@ -64,6 +64,7 @@ tech changes will usually be stripped from release notes for the public
     -   When shape filtering, the shape name in the UI would change if you clicked on another shape with the select tool.
     -   Note icons drawn on a shape could be drawn behind the shape in some circumstances.
     -   Fix 'add shape' and 'remove shape' events not being synced immediately if you only have view access
+    -   Note icon on shape was drawn in strange locations for shapes larger than 1x1
 -   Groups:
     -   The 'edit shape' groups tab was completely broken, this has been resolved
     -   Multiple things in the groups tab have become more responsive to changes

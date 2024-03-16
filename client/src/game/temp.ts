@@ -10,6 +10,7 @@ import type { IShape } from "./interfaces/shape";
 import type { Floor, LayerName } from "./models/floor";
 import { addOperation } from "./operations/undo";
 import { createShapeFromDict } from "./shapes/create";
+import type { DepShape } from "./shapes/types";
 import { floorSystem } from "./systems/floors";
 import { noteSystem } from "./systems/notes";
 import { noteState } from "./systems/notes/state";
@@ -84,7 +85,13 @@ export function moveLayer(shapes: readonly IShape[], newLayer: ILayer, sync: boo
     }
 }
 
-export function addShape(shape: ApiShape, floor: string, layerName: LayerName, sync: SyncMode, dependents?: IShape[]): IShape | undefined {
+export function addShape(
+    shape: ApiShape,
+    floor: string,
+    layerName: LayerName,
+    sync: SyncMode,
+    dependents?: readonly DepShape[],
+): IShape | undefined {
     if (!floorSystem.hasLayer(floorSystem.getFloor({ name: floor })!, layerName)) {
         console.log(`Shape with unknown layer ${layerName} could not be added`);
         return;

@@ -82,6 +82,18 @@ export class Asset extends BaseRect implements IAsset {
         }
     }
 
+    resizeH(h: number, keepAspectratio: boolean): void {
+        const ar = this.h / this.w;
+        this.h = h;
+        if (keepAspectratio) this.w = h / ar;
+    }
+
+    resizeW(w: number, keepAspectratio: boolean): void {
+        const ar = this.h / this.w;
+        this.w = w;
+        if (keepAspectratio) this.h = w * ar;
+    }
+
     async loadSvgs(): Promise<void> {
         if (this.options.svgAsset !== undefined) {
             const cover = new Polygon(

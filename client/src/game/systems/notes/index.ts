@@ -3,9 +3,10 @@ import type { DeepReadonly } from "vue";
 import { registerSystem } from "..";
 import type { System } from "..";
 import type { ApiNote } from "../../../apiTypes";
-import { toGP } from "../../../core/geometry";
+import { Vector, addP, toGP } from "../../../core/geometry";
 import { word2color } from "../../../core/utils";
 import { getGlobalId, getLocalId, getShape, type LocalId } from "../../id";
+import type { IAsset } from "../../interfaces/shapes/asset";
 import { FontAwesomeIcon } from "../../shapes/variants/fontAwesomeIcon";
 
 import {
@@ -174,7 +175,7 @@ class NoteSystem implements System {
                 const shape = getShape(iconShape);
                 if (shape?.layer === undefined || shape._parentId !== shapeId) continue;
                 const parent = getShape(shape._parentId);
-                if (parent) parent.removeDependentShape(shape.id, { dropShapeId: true});
+                if (parent) parent.removeDependentShape(shape.id, { dropShapeId: true });
                 mutable.iconShapes.set(noteId, mutable.iconShapes.get(noteId)?.filter((id) => id !== shape.id) ?? []);
             }
         }
@@ -317,12 +318,24 @@ class NoteSystem implements System {
     }
 
     private createNoteIcon(shapeId: LocalId, noteId: string): void {
-        const icon = new FontAwesomeIcon({ prefix: "fas", iconName: "sticky-note" }, toGP(0, 30), 15, {
+        const icon = new FontAwesomeIcon({ prefix: "fas", iconName: "sticky-note" }, toGP(0, 0), 15, {
             parentId: shapeId,
         });
         const shape = getShape(shapeId);
         if (shape?.layer === undefined) return;
-        shape.addDependentShape(icon);
+        shape.addDependentShape({
+            shape: icon,
+            render: (ctx, bbox, _depShape) => {
+                const depShape = _depShape as IAsset;
+                if (bbox.w <= bbox.h) {
+                    depShape.resizeW(bbox.w * 0.35, true);
+                } else {
+                    depShape.resizeH(bbox.h * 0.35, true);
+                }
+                depShape.center = addP(bbox.botLeft, new Vector(depShape.w / 2, -depShape.h / 2));
+                depShape.draw(ctx, false);
+            },
+        });
         if (readonly.iconShapes.has(noteId)) {
             mutable.iconShapes.get(noteId)?.push(icon.id);
         } else {

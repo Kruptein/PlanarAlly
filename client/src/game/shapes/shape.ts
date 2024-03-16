@@ -13,7 +13,7 @@ import {
 } from "../../core/grid";
 import { rotateAroundPoint } from "../../core/math";
 import { mostReadable } from "../../core/utils";
-import { generateLocalId, getGlobalId, getShape, dropId } from "../id";
+import { generateLocalId, getGlobalId, dropId } from "../id";
 import type { GlobalId, LocalId } from "../id";
 import type { ILayer } from "../interfaces/layer";
 import type { IShape } from "../interfaces/shape";
@@ -43,7 +43,7 @@ import { trackersFromServer, trackersToServer } from "../systems/trackers/conver
 import { TriangulationTarget, visionState } from "../vision/state";
 import { computeVisibility } from "../vision/te";
 
-import type { SHAPE_TYPE } from "./types";
+import type { DepShape, SHAPE_TYPE } from "./types";
 import { BoundingRect } from "./variants/simple/boundingRect";
 
 export abstract class Shape implements IShape {
@@ -53,9 +53,9 @@ export abstract class Shape implements IShape {
 
     character: CharacterId | undefined;
 
-    _dependentShapes: IShape[] = [];
+    _dependentShapes: DepShape[] = [];
 
-    get dependentShapes(): IShape[] {
+    get dependentShapes(): readonly DepShape[] {
         return this._dependentShapes;
     }
 
@@ -256,14 +256,7 @@ export abstract class Shape implements IShape {
     }
 
     get refPoint(): GlobalPoint {
-        let p = cloneP(this._refPoint);
-        if (this._parentId !== undefined) {
-            const sh = getShape(this._parentId);
-            if (sh !== undefined) {
-                p = addP(p, Vector.fromPoint(sh.refPoint));
-            }
-        }
-        return p;
+        return cloneP(this._refPoint);
     }
 
     set refPoint(point: GlobalPoint) {
@@ -287,8 +280,8 @@ export abstract class Shape implements IShape {
     }
 
     setLayer(floor: FloorId, layer: LayerName): void {
-        for (const dep of this._dependentShapes) {
-            dep.setLayer(floor, layer);
+        for (const { shape } of this._dependentShapes) {
+            shape.setLayer(floor, layer);
         }
         this.floorId = floor;
         this.layerName = layer;
@@ -497,8 +490,11 @@ export abstract class Shape implements IShape {
                 barOffset += 10;
             }
         }
-        for (const dep of this.dependentShapes) {
-            dep.draw(ctx, false);
+        if (this._dependentShapes.length > 0) {
+            if (bbox === undefined) bbox = this.getBoundingBox();
+            for (const dep of this._dependentShapes) {
+                dep.render(ctx, bbox, dep.shape);
+            }
         }
     }
 
@@ -721,33 +717,31 @@ export abstract class Shape implements IShape {
 
     // DEPENDENT SHAPES
 
-    addDependentShape(shape: IShape): void {
+    addDependentShape(dep: DepShape): void {
         if (this.floorId === undefined || this.layerName === undefined) return;
 
-        shape.setLayer(this?.floorId, this?.layerName);
-        shape.parentId = this.id;
+        dep.shape.setLayer(this?.floorId, this?.layerName);
+        dep.shape.parentId = this.id;
 
-        this.dependentShapes.push(shape);
+        this._dependentShapes.push(dep);
 
         this.invalidate(true);
     }
 
-    removeDependentShape(shapeId: LocalId, options: {dropShapeId: boolean}): void {
-        this._dependentShapes = this._dependentShapes.filter((entry) => entry.id !== shapeId);
+    removeDependentShape(shapeId: LocalId, options: { dropShapeId: boolean }): void {
+        this._dependentShapes = this._dependentShapes.filter((entry) => entry.shape.id !== shapeId);
         if (options.dropShapeId) dropId(shapeId);
 
         this.invalidate(true);
     }
 
-    removeDependentShapes(options: {dropShapeId: boolean}): void {
+    removeDependentShapes(options: { dropShapeId: boolean }): void {
         if (options.dropShapeId) {
-            for (const shape of this.dependentShapes) {
+            for (const { shape } of this.dependentShapes) {
                 dropId(shape.id);
             }
         }
         this._dependentShapes = [];
         this.invalidate(true);
     }
-
-
 }

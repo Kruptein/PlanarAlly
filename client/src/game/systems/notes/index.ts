@@ -137,9 +137,8 @@ class NoteSystem implements System {
 
     unhookShape(shape: LocalId): void {
         if (!raw.shapeNotes.has(shape)) return;
-        const notes = $.shapeNotes.get(shape) ?? [];
-        while (notes.length) {
-            notes.pop();
+        for (const note of raw.shapeNotes.get(shape) ?? []) {
+            this.removeShape(note, shape, false);
         }
     }
 

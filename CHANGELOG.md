@@ -65,6 +65,7 @@ tech changes will usually be stripped from release notes for the public
     -   Note icons drawn on a shape could be drawn behind the shape in some circumstances.
     -   Fix 'add shape' and 'remove shape' events not being synced immediately if you only have view access
     -   Note icon on shape was drawn in strange locations for shapes larger than 1x1
+    -   Fix shape removal not properly removing the shape from related notes client-side
 -   Groups:
     -   The 'edit shape' groups tab was completely broken, this has been resolved
     -   Multiple things in the groups tab have become more responsive to changes

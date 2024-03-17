@@ -22,7 +22,6 @@ import { clipboardState } from "../systems/clipboard/state";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
 import { groupSystem } from "../systems/groups";
-import { noteSystem } from "../systems/notes";
 import { positionSystem } from "../systems/position";
 import { getProperties } from "../systems/properties/state";
 import { VisionBlock } from "../systems/properties/types";
@@ -31,7 +30,6 @@ import type { TrackerId } from "../systems/trackers/models";
 import { TriangulationTarget, VisibilityMode, visionState } from "../vision/state";
 
 import { createShapeFromDict } from "./create";
-
 
 export function copyShapes(): void {
     if (!selectedSystem.hasSelection) return;
@@ -193,7 +191,6 @@ export function deleteShapes(shapes: readonly IShape[], sync: SyncMode): void {
         const gId = getGlobalId(sel.id);
         if (gId) {
             removed.push(gId);
-            noteSystem.unhookShape(sel.id);
         }
         const props = getProperties(sel.id)!;
         if (props.blocksVision !== VisionBlock.No) recalculateVision = true;

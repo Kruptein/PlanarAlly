@@ -12,8 +12,6 @@ import { addOperation } from "./operations/undo";
 import { createShapeFromDict } from "./shapes/create";
 import type { DepShape } from "./shapes/types";
 import { floorSystem } from "./systems/floors";
-import { noteSystem } from "./systems/notes";
-import { noteState } from "./systems/notes/state";
 import { getProperties } from "./systems/properties/state";
 import { visionState } from "./vision/state";
 
@@ -100,14 +98,6 @@ export function addShape(
     const sh = createShapeFromDict(shape, layer.floor, layerName);
     if (sh === undefined) {
         return;
-    }
-
-    // if this shape has been moved to a new location, notes are already set up for it client-side.
-    // we need to reattach the notes to this new shape since the local id is changed!
-    const noteList = Array.from(noteState.reactive.notes.values());
-    const shapeNotes = noteList.filter((n) => n.shapes.includes(shape.uuid));
-    for (const note of shapeNotes) {
-        noteSystem.hookupShape(note, sh.id);
     }
 
     layer.addShape(sh, sync, InvalidationMode.NORMAL);

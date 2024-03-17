@@ -7,7 +7,6 @@ import { filter, map } from "../../../core/iter";
 import { mostReadable } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
 import { locationStore } from "../../../store/location";
-import { type LocalId, getLocalId } from "../../id";
 import { noteState } from "../../systems/notes/state";
 import { NoteManagerMode, type ClientNote } from "../../systems/notes/types";
 import { popoutNote } from "../../systems/notes/ui";
@@ -53,7 +52,7 @@ const noteArray = computed(() => {
     }
     const it2 = map(it, (n) => ({
         ...n,
-        shapes: n.shapes.map((s) => getLocalId(s, false)).filter((s): s is LocalId => s !== undefined),
+        shapes: noteState.reactive.shapeNotes.get2(n.uuid) ?? [],
     }));
     return Array.from(it2);
 });

@@ -24,7 +24,7 @@ const shapeAlreadyHooked = computed(() => {
     if (note === undefined || shape === undefined) {
         return false;
     }
-    return noteState.reactive.shapeNotes.get(shape)?.includes(note) ?? false;
+    return noteState.reactive.shapeNotes.get1(shape)?.includes(note) ?? false;
 });
 
 function close(): void {

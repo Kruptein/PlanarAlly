@@ -11,6 +11,7 @@ import { groupSystem } from "../systems/groups";
 import { labelSystem } from "../systems/labels";
 import { doorSystem } from "../systems/logic/door";
 import { teleportZoneSystem } from "../systems/logic/tp";
+import { noteSystem } from "../systems/notes";
 import { propertiesSystem } from "../systems/properties";
 import { getProperties } from "../systems/properties/state";
 import { trackerSystem } from "../systems/trackers";
@@ -60,6 +61,7 @@ export function loadShapeData(shape: IShape, data: ApiShape): void {
     teleportZoneSystem.inform(id, data.is_teleport_zone, options.teleport);
     labelSystem.inform(id, data.labels);
     if (data.character !== null) characterSystem.inform(id, data.character);
+    noteSystem.inform(id);
     groupSystem.inform(id, { groupId: data.group ?? undefined, badge: data.badge });
 }
 

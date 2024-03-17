@@ -291,7 +291,7 @@ async function saveTemplate(): Promise<void> {
             customButton: t("game.ui.templates.create_new"),
         });
         if (selection === undefined || selection.length === 0) return;
-        const notes = noteState.raw.shapeNotes.get(shape.id);
+        const notes = noteState.raw.shapeNotes.get1(shape.id);
         if (notes !== undefined) {
             shape.options.templateNoteIds = notes.map((n) => n);
         } else if (shape.options.templateNoteIds !== undefined) {

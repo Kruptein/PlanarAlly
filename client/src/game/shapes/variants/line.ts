@@ -1,3 +1,4 @@
+import { exportShapeData } from "..";
 import type { ApiLineShape } from "../../../apiTypes";
 import { g2l, g2lx, g2ly, g2lz } from "../../../core/conversions";
 import { addP, subtractP, toArrayP, toGP } from "../../../core/geometry";
@@ -59,7 +60,7 @@ export class Line extends Shape implements IShape {
     }
 
     asDict(): ApiLineShape {
-        return { ...this.getBaseDict(), x2: this.endPoint.x, y2: this.endPoint.y, line_width: this.lineWidth };
+        return { ...exportShapeData(this), x2: this.endPoint.x, y2: this.endPoint.y, line_width: this.lineWidth };
     }
 
     updatePoints(): void {

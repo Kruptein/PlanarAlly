@@ -1,3 +1,4 @@
+import { exportShapeData, loadShapeData } from "..";
 import type { ApiPolygonShape } from "../../../apiTypes";
 import { g2l, g2lz, toDegrees } from "../../../core/conversions";
 import { Vector, addP, getAngleBetween, getDistanceToSegment, subtractP, toArrayP, toGP } from "../../../core/geometry";
@@ -10,6 +11,7 @@ import { FOG_COLOUR } from "../../colour";
 import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
+import type { ServerShapeOptions } from "../../models/shapes";
 import type { AuraId } from "../../systems/auras/models";
 import { positionState } from "../../systems/position/state";
 import { getProperties } from "../../systems/properties/state";
@@ -91,15 +93,15 @@ export class Polygon extends Shape implements IShape {
 
     asDict(): ApiPolygonShape {
         return {
-            ...this.getBaseDict(),
+            ...exportShapeData(this),
             vertices: JSON.stringify(this._vertices.map((v) => toArrayP(v))),
             open_polygon: this.openPolygon,
             line_width: this.lineWidth[0]!,
         };
     }
 
-    fromDict(data: ApiPolygonShape): void {
-        super.fromDict(data);
+    fromDict(data: ApiPolygonShape, options: Partial<ServerShapeOptions>): void {
+        super.fromDict(data, options);
         const vertices = JSON.parse(data.vertices) as [number, number][];
         this._vertices = vertices.map((v) => toGP(v));
         this.openPolygon = data.open_polygon;
@@ -254,7 +256,7 @@ export class Polygon extends Shape implements IShape {
             // make sure we copy over all the same properties but retain the correct uuid and vertices
             const oldDict = this.asDict();
             newPolygon.setLayer(this.floorId!, this.layerName!);
-            newPolygon.fromDict({
+            loadShapeData(newPolygon, {
                 ...oldDict,
                 angle: 0,
                 uuid,

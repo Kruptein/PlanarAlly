@@ -1,3 +1,4 @@
+import { exportShapeData } from "..";
 import type { ApiCircleShape } from "../../../apiTypes";
 import { g2lz } from "../../../core/conversions";
 import { addP, subtractP, toArrayP, toGP, Vector } from "../../../core/geometry";
@@ -5,6 +6,7 @@ import type { GlobalPoint } from "../../../core/geometry";
 import { FOG_COLOUR } from "../../colour";
 import type { GlobalId, LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
+import type { ServerShapeOptions } from "../../models/shapes";
 import { getProperties } from "../../systems/properties/state";
 import type { ShapeProperties } from "../../systems/properties/state";
 import { Shape } from "../shape";
@@ -50,11 +52,11 @@ export class Circle extends Shape implements IShape {
     readonly isClosed = true;
 
     asDict(): ApiCircleShape {
-        return { ...this.getBaseDict(), radius: this.r, viewing_angle: this.viewingAngle };
+        return { ...exportShapeData(this), radius: this.r, viewing_angle: this.viewingAngle };
     }
 
-    fromDict(data: ApiCircleShape): void {
-        super.fromDict(data);
+    fromDict(data: ApiCircleShape, options: Partial<ServerShapeOptions>): void {
+        super.fromDict(data, options);
         this.r = data.radius;
         this.viewingAngle = data.viewing_angle;
     }

@@ -1,3 +1,4 @@
+import { exportShapeData } from "..";
 import type { ApiBaseRectShape, ApiShape } from "../../../apiTypes";
 import { g2lx, g2ly } from "../../../core/conversions";
 import { addP, cloneP, toGP, Vector } from "../../../core/geometry";
@@ -5,6 +6,7 @@ import type { GlobalPoint } from "../../../core/geometry";
 import { rotateAroundPoint } from "../../../core/math";
 import type { GlobalId, LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
+import type { ServerShapeOptions } from "../../models/shapes";
 import type { ShapeProperties } from "../../systems/properties/state";
 import { Shape } from "../shape";
 
@@ -58,11 +60,11 @@ export abstract class BaseRect extends Shape implements IShape {
     }
 
     asDict(): ApiBaseRectShape {
-        return { ...this.getBaseDict(), width: this.w, height: this.h };
+        return { ...exportShapeData(this), width: this.w, height: this.h };
     }
 
-    fromDict(data: ServerBaseRect): void {
-        super.fromDict(data);
+    fromDict(data: ServerBaseRect, options: Partial<ServerShapeOptions>): void {
+        super.fromDict(data, options);
         this.w = data.width;
         this.h = data.height;
     }

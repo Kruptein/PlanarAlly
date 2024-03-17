@@ -13,7 +13,7 @@ import {
 } from "../../core/grid";
 import { rotateAroundPoint } from "../../core/math";
 import { mostReadable } from "../../core/utils";
-import { generateLocalId, getGlobalId, dropId } from "../id";
+import { generateLocalId, dropId } from "../id";
 import type { GlobalId, LocalId } from "../id";
 import type { ILayer } from "../interfaces/layer";
 import type { IShape } from "../interfaces/shape";
@@ -21,17 +21,11 @@ import { LayerName } from "../models/floor";
 import type { Floor, FloorId } from "../models/floor";
 import type { ServerShapeOptions, ShapeOptions } from "../models/shapes";
 import { accessSystem } from "../systems/access";
-import { ownerToClient, ownerToServer } from "../systems/access/helpers";
 import { auraSystem } from "../systems/auras";
-import { aurasFromServer, aurasToServer } from "../systems/auras/conversion";
-import { characterSystem } from "../systems/characters";
 import type { CharacterId } from "../systems/characters/models";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
 import { groupSystem } from "../systems/groups";
-import { labelSystem } from "../systems/labels";
-import { doorSystem } from "../systems/logic/door";
-import { teleportZoneSystem } from "../systems/logic/tp";
 import { propertiesSystem } from "../systems/properties";
 import { getProperties } from "../systems/properties/state";
 import type { ShapeProperties } from "../systems/properties/state";
@@ -39,7 +33,6 @@ import { VisionBlock } from "../systems/properties/types";
 import { locationSettingsState } from "../systems/settings/location/state";
 import { playerSettingsState } from "../systems/settings/players/state";
 import { trackerSystem } from "../systems/trackers";
-import { trackersFromServer, trackersToServer } from "../systems/trackers/conversion";
 import { TriangulationTarget, visionState } from "../vision/state";
 import { computeVisibility } from "../vision/te";
 
@@ -599,102 +592,15 @@ export abstract class Shape implements IShape {
     // STATE
     abstract asDict(): ApiShape;
 
-    getBaseDict(): ApiCoreShape {
-        const defaultAccess = accessSystem.getDefault(this.id);
-        const props = getProperties(this.id)!;
-        const uuid = getGlobalId(this.id)!;
-        return {
-            type_: this.type,
-            uuid,
-            x: this.refPoint.x,
-            y: this.refPoint.y,
-            angle: this.angle,
-            draw_operator: this.globalCompositeOperation,
-            movement_obstruction: props.blocksMovement,
-            vision_obstruction: props.blocksVision,
-            auras: aurasToServer(uuid, auraSystem.getAll(this.id, false)),
-            trackers: trackersToServer(uuid, trackerSystem.getAll(this.id, false)),
-            labels: [...labelSystem.getLabels(this.id)],
-            owners: accessSystem.getOwnersFull(this.id).map((o) => ownerToServer(o)),
-            fill_colour: props.fillColour,
-            stroke_colour: props.strokeColour[0]!,
-            stroke_width: this.strokeWidth,
-            name: props.name,
-            name_visible: props.nameVisible,
-            is_token: props.isToken,
-            is_invisible: props.isInvisible,
-            is_defeated: props.isDefeated,
-            options: JSON.stringify(Object.entries(this.options)),
-            badge: groupSystem.getBadge(this.id),
-            show_badge: props.showBadge,
-            is_locked: props.isLocked,
-            default_edit_access: defaultAccess.edit,
-            default_movement_access: defaultAccess.movement,
-            default_vision_access: defaultAccess.vision,
-            asset: this.assetId ?? null,
-            group: groupSystem.getGroupId(this.id) ?? null,
-            ignore_zoom_size: this.ignoreZoomSize,
-            is_door: doorSystem.isDoor(this.id),
-            is_teleport_zone: teleportZoneSystem.isTeleportZone(this.id),
-            character: this.character ?? null,
-            odd_hex_orientation: props.oddHexOrientation,
-            size: props.size,
-            show_cells: props.showCells,
-            cell_fill_colour: props.cellFillColour ?? null,
-            cell_stroke_colour: props.cellStrokeColour ?? null,
-            cell_stroke_width: props.cellStrokeWidth ?? null,
-        };
-    }
-    fromDict(data: ApiCoreShape): void {
-        const options: Partial<ServerShapeOptions> =
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            Object.fromEntries(JSON.parse(data.options));
-
+    fromDict(data: ApiCoreShape, options: Partial<ServerShapeOptions>): void {
         this.character = data.character ?? undefined;
         this.angle = data.angle;
         this.globalCompositeOperation = data.draw_operator as GlobalCompositeOperation;
-
-        propertiesSystem.inform(this.id, {
-            name: data.name,
-            nameVisible: data.name_visible,
-            blocksMovement: data.movement_obstruction,
-            blocksVision: data.vision_obstruction,
-            fillColour: data.fill_colour,
-            strokeColour: [data.stroke_colour],
-            isToken: data.is_token,
-            isInvisible: data.is_invisible,
-            isDefeated: data.is_defeated,
-            showBadge: data.show_badge,
-            isLocked: data.is_locked,
-            oddHexOrientation: data.odd_hex_orientation,
-            size: data.size,
-            showCells: data.show_cells,
-            ...(data.cell_fill_colour !== null ? { cellFillColour: data.cell_fill_colour } : {}),
-            ...(data.cell_stroke_colour !== null ? { cellStrokeColour: data.cell_stroke_colour } : {}),
-            ...(data.cell_stroke_width !== null ? { cellStrokeWidth: data.cell_stroke_width } : {}),
-        });
-
-        const defaultAccess = {
-            edit: data.default_edit_access,
-            vision: data.default_vision_access,
-            movement: data.default_movement_access,
-        };
-        accessSystem.inform(this.id, {
-            default: defaultAccess,
-            extra: data.owners.map((owner) => ownerToClient(owner)),
-        });
-        auraSystem.inform(this.id, aurasFromServer(...data.auras));
-        trackerSystem.inform(this.id, trackersFromServer(...data.trackers));
-        doorSystem.inform(this.id, data.is_door, options.door);
-        teleportZoneSystem.inform(this.id, data.is_teleport_zone, options.teleport);
-        labelSystem.inform(this.id, data.labels);
-        if (data.character !== null) characterSystem.inform(this.id, data.character);
 
         this.ignoreZoomSize = data.ignore_zoom_size;
 
         if (data.options !== undefined) this.options = options;
         if (data.asset !== null) this.assetId = data.asset;
-        groupSystem.inform(this.id, { groupId: data.group ?? undefined, badge: data.badge });
     }
 
     // UTILITY

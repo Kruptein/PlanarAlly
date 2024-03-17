@@ -14,6 +14,7 @@ import { getLocalId, getShape } from "./id";
 import { compositeState } from "./layers/state";
 import type { BaseTemplate } from "./models/templates";
 import { moveShapes } from "./operations/movement";
+import { loadShapeData } from "./shapes";
 import { applyTemplate } from "./shapes/templates";
 import { Asset } from "./shapes/variants/asset";
 import type { CharacterId } from "./systems/characters/models";
@@ -152,7 +153,7 @@ export async function dropAsset(
             asset.setLayer(layer.floor, layer.name); // set this early to avoid conflicts
 
             if (template) {
-                asset.fromDict(applyTemplate(asset.asDict(), template));
+                loadShapeData(asset, applyTemplate(asset.asDict(), template));
             }
 
             if (locationSettingsState.raw.useGrid.value) {

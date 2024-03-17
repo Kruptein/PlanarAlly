@@ -7,6 +7,7 @@ import { sendCircularTokenUpdate } from "../../api/emits/shape/circularToken";
 import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
+import type { ServerShapeOptions } from "../../models/shapes";
 import { getProperties } from "../../systems/properties/state";
 import type { ShapeProperties } from "../../systems/properties/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
@@ -42,8 +43,8 @@ export class CircularToken extends Circle implements IShape {
         };
     }
 
-    fromDict(data: ApiCircularTokenShape): void {
-        super.fromDict(data);
+    fromDict(data: ApiCircularTokenShape, options: Partial<ServerShapeOptions>): void {
+        super.fromDict(data, options);
         this.r = data.radius;
         this.viewingAngle = data.viewing_angle;
         this.text = data.text;

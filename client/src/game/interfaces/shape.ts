@@ -1,9 +1,9 @@
-import type { ApiCoreShape, ApiShape } from "../../apiTypes";
+import type { ApiShape } from "../../apiTypes";
 import type { GlobalPoint, Vector } from "../../core/geometry";
 import type { GridType } from "../../core/grid";
 import type { LocalId } from "../id";
 import type { Floor, FloorId, LayerName } from "../models/floor";
-import type { ShapeOptions } from "../models/shapes";
+import type { ServerShapeOptions, ShapeOptions } from "../models/shapes";
 import type { DepShape, SHAPE_TYPE } from "../shapes/types";
 import type { BoundingRect } from "../shapes/variants/simple/boundingRect";
 import type { CharacterId } from "../systems/characters/models";
@@ -112,10 +112,9 @@ export interface IShape extends SimpleShape {
     // STATE
 
     asDict: () => ApiShape;
-    getBaseDict: () => ApiCoreShape;
     // getSubtypeDict: () => ApiShape["subtype"];
     // eslint-disable-next-line @typescript-eslint/method-signature-style
-    fromDict(data: ApiShape): void;
+    fromDict(data: ApiShape, options: Partial<ServerShapeOptions>): void;
 
     // UTILITY
 

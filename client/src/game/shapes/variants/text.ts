@@ -1,3 +1,4 @@
+import { exportShapeData } from "..";
 import type { ApiTextShape } from "../../../apiTypes";
 import { g2lz, l2gz } from "../../../core/conversions";
 import { addP, toGP, Vector } from "../../../core/geometry";
@@ -39,7 +40,7 @@ export class Text extends Shape implements IText {
     readonly isClosed = true;
 
     asDict(): ApiTextShape {
-        return { ...this.getBaseDict(), text: this.text, font_size: this.fontSize, angle: this.angle };
+        return { ...exportShapeData(this), text: this.text, font_size: this.fontSize, angle: this.angle };
     }
 
     updatePoints(): void {

@@ -11,6 +11,7 @@ import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import type { IAsset } from "../../interfaces/shapes/asset";
 import { LayerName } from "../../models/floor";
+import type { ServerShapeOptions } from "../../models/shapes";
 import { loadSvgData } from "../../svg";
 import { floorSystem } from "../../systems/floors";
 import { getProperties } from "../../systems/properties/state";
@@ -57,8 +58,8 @@ export class Asset extends BaseRect implements IAsset {
         };
     }
 
-    fromDict(data: ApiAssetRectShape): void {
-        super.fromDict(data);
+    fromDict(data: ApiAssetRectShape, options: Partial<ServerShapeOptions>): void {
+        super.fromDict(data, options);
         this.src = data.src;
     }
 

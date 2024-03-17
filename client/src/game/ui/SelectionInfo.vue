@@ -33,7 +33,7 @@ const auras = computed(() => [...auraSystem.state.parentAuras, ...auraSystem.sta
 const notes = computed(
     () =>
         noteState.reactive.shapeNotes
-            .get(selectedState.reactive.focus!)
+            .get1(selectedState.reactive.focus!)
             ?.map((note) => noteState.reactive.notes.get(note)!) ?? [],
 );
 

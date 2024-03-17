@@ -1,9 +1,10 @@
 import type { DeepReadonly } from "vue";
 
 import { registerSystem } from "..";
-import type { System } from "..";
+import type { ShapeSystem } from "..";
 import type { ApiNote } from "../../../apiTypes";
 import { Vector, addP, toGP } from "../../../core/geometry";
+import { filter } from "../../../core/iter";
 import { word2color } from "../../../core/utils";
 import { getGlobalId, getLocalId, getShape, type LocalId } from "../../id";
 import type { IAsset } from "../../interfaces/shapes/asset";
@@ -30,7 +31,24 @@ import { closeNoteManager } from "./ui";
 
 const { mutableReactive: $, raw, readonly, mutable } = noteState;
 
-class NoteSystem implements System {
+class NoteSystem implements ShapeSystem {
+    inform(id: LocalId): void {
+        if (raw.shapeNotes.has1(id)) return;
+
+        const gid = getGlobalId(id);
+        if (gid === undefined) return;
+
+        const shapeNotes = filter(raw.notes.values(), (n) => n.shapes.includes(gid));
+        for (const note of shapeNotes) {
+            noteSystem.hookupShape(note, id);
+        }
+    }
+
+    drop(id: LocalId): void {
+        if (!raw.shapeNotes.has1(id)) return;
+        $.shapeNotes.delete1(id);
+    }
+
     clear(): void {
         closeNoteManager();
         $.notes.clear();
@@ -129,17 +147,8 @@ class NoteSystem implements System {
 
     // This is a utlity function used during loading of notes
     hookupShape(note: DeepReadonly<ClientNote>, shape: LocalId): void {
-        if (!raw.shapeNotes.has(shape)) $.shapeNotes.set(shape, []);
-        $.shapeNotes.get(shape)?.push(note.uuid);
-
+        $.shapeNotes.add(shape, note.uuid);
         if (note.showIconOnShape) this.createNoteIcon(shape, note.uuid);
-    }
-
-    unhookShape(shape: LocalId): void {
-        if (!raw.shapeNotes.has(shape)) return;
-        for (const note of raw.shapeNotes.get(shape) ?? []) {
-            this.removeShape(note, shape, false);
-        }
     }
 
     removeShape(noteId: string, shapeId: LocalId, sync: boolean): void {
@@ -161,13 +170,7 @@ class NoteSystem implements System {
             return;
         }
 
-        const noteShapes = raw.shapeNotes.get(shapeId);
-        if (noteShapes) {
-            $.shapeNotes.set(
-                shapeId,
-                noteShapes.filter((n) => n !== noteId),
-            );
-        }
+        $.shapeNotes.deletePair(shapeId, noteId);
 
         if (note.showIconOnShape) {
             for (const iconShape of readonly.iconShapes.get(noteId) ?? []) {
@@ -212,16 +215,7 @@ class NoteSystem implements System {
         const note = raw.notes.get(noteId);
         if (note === undefined) return;
         if (raw.currentNote === noteId) $.currentNote = undefined;
-        for (const shape of note.shapes) {
-            const shapeId = getLocalId(shape, false);
-            if (shapeId === undefined) continue;
-            const shapeNotes = $.shapeNotes.get(shapeId);
-            if (shapeNotes === undefined) continue;
-            $.shapeNotes.set(
-                shapeId,
-                shapeNotes.filter((n) => n !== noteId),
-            );
-        }
+        $.shapeNotes.delete2(noteId);
         if (note.showIconOnShape) {
             for (const iconShape of readonly.iconShapes.get(noteId) ?? []) {
                 const shape = getShape(iconShape);
@@ -344,4 +338,4 @@ class NoteSystem implements System {
 }
 
 export const noteSystem = new NoteSystem();
-registerSystem("notes", noteSystem, false, noteState);
+registerSystem("notes", noteSystem, true, noteState);

@@ -87,8 +87,8 @@ export async function mouseMove(event: MouseEvent): Promise<void> {
     // Annotation hover
     let foundAnnotation = false;
     if (floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Draw)) {
-        for (const [uuid, notes] of noteState.raw.shapeNotes.entries()) {
-            const shape = getShape(uuid);
+        for (const [shapeId, notes] of noteState.raw.shapeNotes.entries1()) {
+            const shape = getShape(shapeId);
             if (shape && shape.floorId === floorState.currentFloor.value!.id && shape.contains(eventPoint)) {
                 for (const noteId of notes) {
                     const note = noteState.raw.notes.get(noteId);
@@ -254,8 +254,8 @@ export async function touchMove(event: TouchEvent): Promise<void> {
     // Annotation hover
     let found = false;
     if (floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Draw)) {
-        for (const [uuid, notes] of noteState.raw.shapeNotes.entries()) {
-            const shape = getShape(uuid);
+        for (const [shapeId, notes] of noteState.raw.shapeNotes.entries1()) {
+            const shape = getShape(shapeId);
             if (
                 shape &&
                 shape.floorId === floorState.currentFloor.value!.id &&

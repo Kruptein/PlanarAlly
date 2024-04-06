@@ -36,6 +36,7 @@ tech changes will usually be stripped from release notes for the public
 -   Draw Tool:
     -   snapping mode was also snapping to the point being moved
     -   now also snaps to hex vertices
+    -   the first mouse press now also properly snaps to the grid
 -   Select Tool:
     -   resizing in snapping mode was also snapping to the point being resized
     -   polygon edit UI had a small visual glitch on appearance causing a circle to appear around (0, 0)

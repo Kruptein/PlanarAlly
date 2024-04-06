@@ -41,6 +41,8 @@ export abstract class BaseRect extends Shape implements IShape {
         return this._w;
     }
 
+    // THIS DOES NOT UPDATE THE CENTER
+    // A later call to either set refPoint or updateCenter is expected
     set w(width: number) {
         if (width > 0) {
             this._w = width;
@@ -52,6 +54,8 @@ export abstract class BaseRect extends Shape implements IShape {
         return this._h;
     }
 
+    // THIS DOES NOT UPDATE THE CENTER
+    // A later call to either set refPoint or updateCenter is expected
     set h(height: number) {
         if (height > 0) {
             this._h = height;

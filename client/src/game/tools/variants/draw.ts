@@ -537,7 +537,7 @@ class DrawTool extends Tool implements ITool {
                 const rect = this.shape as IRect;
                 const newW = Math.abs(endPoint.x - this.startPoint.x);
                 const newH = Math.abs(endPoint.y - this.startPoint.y);
-                if (newW === rect.w && newH === rect.h) return Promise.resolve();
+                if ((newW === rect.w && newH === rect.h) || newW === 0 || newH === 0) return Promise.resolve();
                 rect.w = newW;
                 rect.h = newH;
                 if (endPoint.x < this.startPoint.x || endPoint.y < this.startPoint.y) {
@@ -545,6 +545,9 @@ class DrawTool extends Tool implements ITool {
                         Math.min(this.startPoint.x, endPoint.x),
                         Math.min(this.startPoint.y, endPoint.y),
                     );
+                } else {
+                    // Force proper refPoint after w/h modification
+                    rect.refPoint = cloneP(this.startPoint);
                 }
                 break;
             }

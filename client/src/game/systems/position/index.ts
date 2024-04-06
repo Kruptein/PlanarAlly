@@ -1,3 +1,5 @@
+import { watch } from "vue";
+
 import { registerSystem } from "..";
 import type { System } from "..";
 import { g2l, l2g, zoomDisplayToFactor } from "../../../core/conversions";
@@ -113,6 +115,11 @@ class PositionSystem implements System {
         clientSystem.updateZoomFactor();
     }
 
+    // This is used to recalculate the zoom factor when the grid size changes
+    recalculateZoom(): void {
+        this.setZoomFactor($.zoomDisplay);
+    }
+
     // OOB
 
     checkOutOfBounds(): void {
@@ -214,3 +221,7 @@ class PositionSystem implements System {
 
 export const positionSystem = new PositionSystem();
 registerSystem("position", positionSystem, false, positionState);
+
+watch(playerSettingsState.gridSize, (gs) => {
+    positionSystem.recalculateZoom();
+});

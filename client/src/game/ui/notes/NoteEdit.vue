@@ -277,7 +277,7 @@ function removeShape(shape: LocalId): void {
                     v-if="access.name !== 'default'"
                     icon="trash-alt"
                     title="Remove access"
-                    @click="noteSystem.removeAccess(note.uuid, access.name, true)"
+                    @click="noteSystem.removeAccess(note!.uuid, access.name, true)"
                 />
                 <div v-else></div>
             </template>

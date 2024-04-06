@@ -212,6 +212,7 @@ class DrawTool extends Tool implements ITool {
                 layerName: this.shape.layer!.name,
             });
         }
+        this.shape = undefined;
         this.active.value = false;
         const layer = this.getLayer();
         if (layer !== undefined) {

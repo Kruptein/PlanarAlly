@@ -345,18 +345,26 @@ class DrawTool extends Tool implements ITool {
         if (this.brushHelper === undefined) return;
 
         if (!this.active.value) {
-            this.startPoint = startPoint;
+            if (event && playerSettingsState.useSnapping(event)) {
+                const gridType = locationSettingsState.raw.gridType.value;
+                this.startPoint = snapPointToGrid(startPoint, gridType, {
+                    snapDistance: Number.MAX_VALUE,
+                })[0];
+            } else {
+                this.startPoint = startPoint;
+            }
+
             this.active.value = true;
             switch (this.state.selectedShape) {
                 case DrawShape.Square: {
-                    this.shape = new Rect(cloneP(startPoint), 0, 0, undefined, {
+                    this.shape = new Rect(cloneP(this.startPoint), 0, 0, undefined, {
                         fillColour: this.state.fillColour,
                         strokeColour: [this.state.borderColour],
                     });
                     break;
                 }
                 case DrawShape.Circle: {
-                    this.shape = new Circle(cloneP(startPoint), this.helperSize, undefined, {
+                    this.shape = new Circle(cloneP(this.startPoint), this.helperSize, undefined, {
                         fillColour: this.state.fillColour,
                         strokeColour: [this.state.borderColour],
                     });
@@ -364,7 +372,7 @@ class DrawTool extends Tool implements ITool {
                 }
                 case DrawShape.Brush: {
                     this.shape = new Polygon(
-                        cloneP(startPoint),
+                        cloneP(this.startPoint),
                         [],
                         { openPolygon: true, lineWidth: [this.state.brushSize] },
                         {
@@ -378,7 +386,7 @@ class DrawTool extends Tool implements ITool {
                     const stroke = this.state.isClosedPolygon ? this.state.borderColour : this.state.fillColour;
                     if (event && playerSettingsState.useSnapping(event) && !this.snappedToPoint) {
                         const gridType = locationSettingsState.raw.gridType.value;
-                        this.brushHelper.refPoint = snapPointToGrid(startPoint, gridType, {
+                        this.brushHelper.refPoint = snapPointToGrid(this.startPoint, gridType, {
                             snapDistance: Number.MAX_VALUE,
                         })[0];
                     }

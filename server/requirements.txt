@@ -6,5 +6,5 @@ cryptography==42.0.4
 python-engineio==4.8.2
 python-socketio==5.11.0
 peewee==3.17.0
-pydantic==1.10.5
+pydantic==1.10.13
 typing_extensions==4.8.0

@@ -46,7 +46,9 @@ export type BaseAuraTemplate = Pick<ApiAura, (typeof BaseAuraStrings)[number]>;
 export type BaseTrackerTemplate = Pick<ApiTracker, (typeof BaseTrackerStrings)[number]>;
 type BasePropertyTemplate = Pick<ApiShape, (typeof BaseTemplateStrings)[number]>;
 export type BaseTemplate = Partial<
-    BasePropertyTemplate & { auras: Partial<BaseAuraTemplate>[] } & { trackers: Partial<BaseTrackerTemplate>[] }
+    BasePropertyTemplate & { options?: string } & { auras: Partial<BaseAuraTemplate>[] } & {
+        trackers: Partial<BaseTrackerTemplate>[];
+    }
 >;
 
 // Why do these exist, templates only work for Assets at the moment?

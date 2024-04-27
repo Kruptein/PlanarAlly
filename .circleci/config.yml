@@ -77,7 +77,7 @@ jobs:
 
     build-windows:
         executor:
-            name: win/server-2022
+            name: win/default
             size: large
 
         working_directory: ~/PlanarAlly/server

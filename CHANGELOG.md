@@ -28,6 +28,7 @@ tech changes will usually be stripped from release notes for the public
     -   Error toasts no longer have a timeout
     -   (Shape)Labels are no longer exported/imported
 -   Ruler tool: allows Unit Size less than 1.0
+-   Context menus have been restyled
 -   [tech] Select tool: only take shapes in view into account
 -   [tech] Properties System can now handle multiple shapes loaded at once
 

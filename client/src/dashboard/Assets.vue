@@ -387,6 +387,8 @@ function canEdit(data: AssetId | DeepReadonly<ApiAsset> | undefined, includeRoot
 #content ~ .ContextMenu ul {
     background: rgba(77, 0, 21);
 
+    box-shadow: 0 0 1rem rgba(77, 0, 21, 0.5);
+
     > li:hover {
         background: rgba(219, 0, 59, 1);
     }

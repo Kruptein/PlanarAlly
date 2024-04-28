@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { nextTick, ref, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
+
+import ContextMenuSection from "./ContextMenuSection.vue";
+import type { Section } from "./types";
 
 defineEmits<(e: "cm:close") => void>();
-const props = defineProps<{ left: number; top: number; visible: boolean }>();
+const props = defineProps<{ left: number; top: number; sections: Section[]; visible: boolean }>();
 
 const menu = ref<HTMLDivElement | null>(null);
 
@@ -29,6 +32,14 @@ watch(
         }
     },
 );
+
+function isVisible(section: Section): boolean {
+    if (Array.isArray(section)) return section.some((item) => isVisible(item));
+    else if ("subitems" in section) return section.subitems.some((section) => isVisible(section));
+    return !(section.disabled ?? false);
+}
+
+const visibleSections = computed(() => props.sections.filter((section) => isVisible(section)));
 </script>
 
 <template>
@@ -42,7 +53,7 @@ watch(
         @contextmenu.stop.prevent
     >
         <ul>
-            <slot></slot>
+            <ContextMenuSection :sections="visibleSections" />
         </ul>
     </div>
 </template>
@@ -52,30 +63,50 @@ watch(
     position: fixed;
     pointer-events: auto;
 
+    &:focus-visible {
+        outline: none;
+    }
+
     ul {
-        border: 1px solid #ff7052;
         border-radius: 5px;
         background: white;
-        padding: 0;
         list-style: none;
+        padding: 0.5rem 0;
         margin: 0;
+        width: max-content;
+
+        box-shadow: 0 0 13px rgba(0, 0, 0, 0.5);
 
         li {
-            border-bottom: 1px solid #ff7052;
-            padding: 5px;
+            padding: 0.5rem 1.5rem;
             cursor: pointer;
 
-            &:hover {
-                background-color: #ff7052;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+
+            &.selected {
+                background-color: rgba(0, 0, 0, 0.1);
             }
 
-            &:last-child {
-                border-bottom: none;
+            &:not(.divider):hover {
+                background-color: lightblue;
+            }
+
+            &.divider {
+                border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+                padding-top: 0.25rem;
+                padding-bottom: 0;
+                margin-bottom: 0.25rem;
+            }
+
+            > span:has(+ svg) {
+                min-width: 5rem;
             }
         }
     }
 
-    > ul > li {
+    ul > li {
         clear: left;
         position: relative;
 
@@ -86,7 +117,7 @@ watch(
             top: -1px;
         }
 
-        &:hover ul {
+        &:hover > ul {
             display: flex;
             flex-direction: column;
         }

@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import ContextMenu from "../../../core/components/ContextMenu.vue";
+import ContextMenu from "../../../core/components/contextMenu/ContextMenu.vue";
+import type { Section } from "../../../core/components/contextMenu/types";
 import { l2g, l2gx, l2gy } from "../../../core/conversions";
 import { toLP } from "../../../core/geometry";
 import { baseAdjust } from "../../../core/http";
@@ -96,6 +98,29 @@ function showTokenDialog(): void {
     openCreateTokenDialog({ x: defaultContextLeft.value, y: defaultContextTop.value });
     close();
 }
+
+const sections = computed<Section[]>(() => {
+    return [
+        {
+            title: t("game.ui.tools.DefaultContext.bring_pl"),
+            action: bringPlayers,
+            disabled: !gameState.reactive.isDm,
+        },
+        {
+            title: t("game.ui.tools.DefaultContext.create_basic_token"),
+            action: showTokenDialog,
+        },
+        {
+            title: t("game.ui.tools.DefaultContext.show_initiative"),
+            action: showInitiativeDialog,
+        },
+        {
+            title: t("game.ui.tools.DefaultContext.create_spawn_location"),
+            action: createSpawnLocation,
+            disabled: !gameState.reactive.isDm,
+        },
+    ];
+});
 </script>
 
 <template>
@@ -103,15 +128,9 @@ function showTokenDialog(): void {
         :visible="showDefaultContextMenu"
         :left="defaultContextLeft"
         :top="defaultContextTop"
+        :sections="sections"
         @cm:close="close"
-    >
-        <li v-if="gameState.reactive.isDm" @click="bringPlayers">{{ t("game.ui.tools.DefaultContext.bring_pl") }}</li>
-        <li @click="showTokenDialog">{{ t("game.ui.tools.DefaultContext.create_basic_token") }}</li>
-        <li @click="showInitiativeDialog">{{ t("game.ui.tools.DefaultContext.show_initiative") }}</li>
-        <li v-if="gameState.reactive.isDm" @click="createSpawnLocation">
-            {{ t("game.ui.tools.DefaultContext.create_spawn_location") }}
-        </li>
-    </ContextMenu>
+    />
 </template>
 
 <style scoped lang="scss">

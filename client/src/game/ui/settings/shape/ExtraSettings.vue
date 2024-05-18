@@ -5,6 +5,7 @@ import { useI18n } from "vue-i18n";
 
 import { l2gz } from "../../../../core/conversions";
 import { toGP } from "../../../../core/geometry";
+import { DEFAULT_GRID_SIZE } from "../../../../core/grid";
 import { InvalidationMode, NO_SYNC, SERVER_SYNC, SyncMode, UI_SYNC } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { uuidv4 } from "../../../../core/utils";
@@ -25,7 +26,6 @@ import { gameState } from "../../../systems/game/state";
 import { labelSystem } from "../../../systems/labels";
 import { labelState } from "../../../systems/labels/state";
 import { playerSystem } from "../../../systems/players";
-import { DEFAULT_GRID_SIZE } from "../../../systems/position/state";
 import { propertiesSystem } from "../../../systems/properties";
 import { VisionBlock } from "../../../systems/properties/types";
 import { selectedState } from "../../../systems/selected/state";

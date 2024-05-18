@@ -3,6 +3,7 @@ import { reactive } from "vue";
 import { l2g } from "../../../core/conversions";
 import { addP, cloneP, subtractP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
+import { getAspectRatio, getCellCountFromHeight, getCellCountFromWidth } from "../../../core/grid";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
@@ -12,9 +13,9 @@ import { ToolName } from "../../models/tools";
 import type { ITool, ToolPermission } from "../../models/tools";
 import { Rect } from "../../shapes/variants/rect";
 import { floorState } from "../../systems/floors/state";
-import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
 import { selectedSystem } from "../../systems/selected";
 import { selectedState } from "../../systems/selected/state";
+import { locationSettingsState } from "../../systems/settings/location/state";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
 
@@ -59,7 +60,11 @@ class MapTool extends Tool implements ITool {
             this.ogRP = this.shape.refPoint;
             this.ogW = this.shape.w;
             this.ogH = this.shape.h;
-            this.state.aspectRatio = this.shape.w / this.shape.h;
+            this.state.aspectRatio = getAspectRatio(
+                this.shape.w,
+                this.shape.h,
+                locationSettingsState.raw.gridType.value,
+            );
         } else if (shapes.length === 0) {
             this.removeRect();
         }
@@ -162,8 +167,8 @@ class MapTool extends Tool implements ITool {
         }
 
         if (this.rect !== undefined) {
-            const xFactor = (this.state.gridX * DEFAULT_GRID_SIZE) / this.rect.w;
-            const yFactor = (this.state.gridY * DEFAULT_GRID_SIZE) / this.rect.h;
+            const xFactor = this.state.sizeX / this.rect.w;
+            const yFactor = this.state.sizeY / this.rect.h;
 
             this.shape.w *= xFactor;
             this.shape.h *= yFactor;
@@ -187,9 +192,11 @@ class MapTool extends Tool implements ITool {
     skipManualDrag(): void {
         if (this.shape === undefined) return;
 
+        const gridType = locationSettingsState.raw.gridType.value;
+
         this.state.manualDrag = false;
-        this.state.gridX = this.shape.w / DEFAULT_GRID_SIZE;
-        this.state.gridY = this.shape.h / DEFAULT_GRID_SIZE;
+        this.state.gridX = getCellCountFromWidth(this.shape.w, gridType);
+        this.state.gridY = getCellCountFromHeight(this.shape.h, gridType);
         this.state.sizeX = this.shape.w;
         this.state.sizeY = this.shape.h;
     }

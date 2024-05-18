@@ -1,3 +1,4 @@
+import type { GridType } from "../../../../core/grid";
 import type { GlobalId } from "../../../id";
 
 export interface WithDefault<T> {
@@ -13,7 +14,7 @@ export interface WithLocationDefault<T> {
 
 export interface LocationOptions {
     useGrid: boolean;
-    gridType: string;
+    gridType: GridType;
     unitSize: number;
     unitSizeUnit: string;
     fullFow: boolean;

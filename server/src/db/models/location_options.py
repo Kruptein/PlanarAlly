@@ -54,18 +54,15 @@ class LocationOptions(BaseDbModel):
         )
 
     @overload
-    def as_pydantic(self, optional: Literal[True]) -> ApiOptionalLocationOptions:
-        ...
+    def as_pydantic(self, optional: Literal[True]) -> ApiOptionalLocationOptions: ...
 
     @overload
-    def as_pydantic(self, optional: Literal[False]) -> ApiLocationOptions:
-        ...
+    def as_pydantic(self, optional: Literal[False]) -> ApiLocationOptions: ...
 
     @overload
     def as_pydantic(
         self, optional: bool
-    ) -> ApiOptionalLocationOptions | ApiLocationOptions:
-        ...
+    ) -> ApiOptionalLocationOptions | ApiLocationOptions: ...
 
     def as_pydantic(self, optional: bool):
         target = ApiLocationOptions if not optional else ApiOptionalLocationOptions

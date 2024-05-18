@@ -1,3 +1,4 @@
+import { exportShapeData } from "..";
 import type { ApiLineShape } from "../../../apiTypes";
 import { g2l, g2lx, g2ly, g2lz } from "../../../core/conversions";
 import { addP, subtractP, toArrayP, toGP } from "../../../core/geometry";
@@ -59,15 +60,14 @@ export class Line extends Shape implements IShape {
     }
 
     asDict(): ApiLineShape {
-        return { ...this.getBaseDict(), x2: this.endPoint.x, y2: this.endPoint.y, line_width: this.lineWidth };
+        return { ...exportShapeData(this), x2: this.endPoint.x, y2: this.endPoint.y, line_width: this.lineWidth };
     }
 
-    invalidatePoints(): void {
+    updatePoints(): void {
         this._points = [
             toArrayP(rotateAroundPoint(this.refPoint, this.center, this.angle)),
             toArrayP(rotateAroundPoint(this.endPoint, this.center, this.angle)),
         ];
-        super.invalidatePoints();
     }
 
     getBoundingBox(): BoundingRect {
@@ -118,12 +118,6 @@ export class Line extends Shape implements IShape {
         if (super.visibleInCanvas(max, options)) return true;
         return this.getBoundingBox().visibleInCanvas(max);
     }
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    snapToGrid(): void {}
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    resizeToGrid(): void {}
 
     resize(resizePoint: number, point: GlobalPoint): number {
         if (resizePoint === 0) this.refPoint = point;

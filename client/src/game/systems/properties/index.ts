@@ -1,4 +1,4 @@
-import { watchEffect } from "vue";
+import { watch } from "vue";
 
 import type { ShapeSystem } from "..";
 import { registerSystem } from "..";
@@ -6,6 +6,9 @@ import type { Sync } from "../../../core/models/types";
 import {
     sendShapeSetBlocksMovement,
     sendShapeSetBlocksVision,
+    sendShapeSetCellFillColour,
+    sendShapeSetCellStrokeColour,
+    sendShapeSetCellStrokeWidth,
     sendShapeSetDefeated,
     sendShapeSetFillColour,
     sendShapeSetInvisible,
@@ -13,7 +16,10 @@ import {
     sendShapeSetLocked,
     sendShapeSetName,
     sendShapeSetNameVisible,
+    sendShapeSetOddHexOrientation,
     sendShapeSetShowBadge,
+    sendShapeSetShowCells,
+    sendShapeSetSize,
     sendShapeSetStrokeColour,
 } from "../../api/emits/shape/options";
 import { getGlobalId, getShape } from "../../id";
@@ -23,7 +29,7 @@ import { doorSystem } from "../logic/door";
 import { selectedState } from "../selected/state";
 
 import { checkMovementSources } from "./movement";
-import { getProperties, propertiesState } from "./state";
+import { propertiesState } from "./state";
 import type { ShapeProperties } from "./state";
 import { VisionBlock } from "./types";
 import { checkVisionSources } from "./vision";
@@ -31,10 +37,15 @@ import { checkVisionSources } from "./vision";
 const { mutable, mutableReactive: $, DEFAULT } = propertiesState;
 
 class PropertiesSystem implements ShapeSystem {
+    // Multiple sources might want to reactively load info on a shape.
+    // To ensure that we do not remove data that is still in use, we keep track of the sources that are using the data.
+    // at one point we might want to do something more fancy were we keep shapes that are often used always loaded.
+    private shapeLeases = new Map<LocalId, Set<string>>();
+
     // BEHAVIOUR
 
     clear(): void {
-        $.id = undefined;
+        $.data.clear();
         mutable.data.clear();
     }
 
@@ -45,19 +56,26 @@ class PropertiesSystem implements ShapeSystem {
 
     drop(id: LocalId): void {
         mutable.data.delete(id);
-        if ($.id === id) {
-            $.id = undefined;
+        $.data.delete(id);
+    }
+
+    loadState(id: LocalId, source: string): void {
+        const data = mutable.data.get(id);
+        if (data === undefined) return console.error("Attempt to load state for shape that has no state.");
+        $.data.set(id, { ...data });
+
+        if (!this.shapeLeases.has(id)) this.shapeLeases.set(id, new Set());
+        this.shapeLeases.get(id)!.add(source);
+    }
+
+    dropState(id: LocalId, source: string): void {
+        const leases = this.shapeLeases.get(id);
+        if (leases === undefined) return console.error("Dropping state for shape without active lease.");
+        leases.delete(source);
+        if (leases.size === 0) {
+            this.shapeLeases.delete(id);
+            $.data.delete(id);
         }
-    }
-
-    loadState(id: LocalId): void {
-        const props = getProperties(id)!;
-        Object.assign($, props);
-        $.id = id;
-    }
-
-    dropState(): void {
-        $.id = undefined;
     }
 
     setName(id: LocalId, name: string, syncTo: Sync): void {
@@ -72,7 +90,9 @@ class PropertiesSystem implements ShapeSystem {
             const shape = getGlobalId(id);
             if (shape) sendShapeSetName({ shape, value: name });
         }
-        if ($.id === id) $.name = name;
+
+        const d = $.data.get(id);
+        if (d) d.name = name;
     }
 
     setNameVisible(id: LocalId, visible: boolean, syncTo: Sync): void {
@@ -87,7 +107,9 @@ class PropertiesSystem implements ShapeSystem {
             const shape = getGlobalId(id);
             if (shape) sendShapeSetNameVisible({ shape, value: visible });
         }
-        if ($.id === id) $.nameVisible = visible;
+
+        const d = $.data.get(id);
+        if (d) d.nameVisible = visible;
     }
 
     setIsToken(id: LocalId, isToken: boolean, syncTo: Sync): void {
@@ -102,7 +124,9 @@ class PropertiesSystem implements ShapeSystem {
             const shape = getGlobalId(id);
             if (shape) sendShapeSetIsToken({ shape, value: isToken });
         }
-        if ($.id === id) $.isToken = isToken;
+
+        const d = $.data.get(id);
+        if (d) d.isToken = isToken;
 
         if (accessSystem.hasAccessTo(id, false, { vision: true })) {
             if (isToken) accessSystem.addOwnedToken(id);
@@ -123,7 +147,9 @@ class PropertiesSystem implements ShapeSystem {
             const shape = getGlobalId(id);
             if (shape) sendShapeSetInvisible({ shape, value: isInvisible });
         }
-        if ($.id === id) $.isInvisible = isInvisible;
+
+        const d = $.data.get(id);
+        if (d) d.isInvisible = isInvisible;
 
         const _shape = getShape(id)!;
         _shape.invalidate(!_shape.triggersVisionRecalc);
@@ -141,7 +167,9 @@ class PropertiesSystem implements ShapeSystem {
             const shape = getGlobalId(id);
             if (shape) sendShapeSetStrokeColour({ shape, value: strokeColour });
         }
-        if ($.id === id) $.strokeColour = [strokeColour];
+
+        const d = $.data.get(id);
+        if (d) d.strokeColour = [strokeColour];
 
         getShape(id)?.invalidate(true);
     }
@@ -158,7 +186,9 @@ class PropertiesSystem implements ShapeSystem {
             const shape = getGlobalId(id);
             if (shape) sendShapeSetFillColour({ shape, value: fillColour });
         }
-        if ($.id === id) $.fillColour = fillColour;
+
+        const d = $.data.get(id);
+        if (d) d.fillColour = fillColour;
 
         getShape(id)?.invalidate(true);
     }
@@ -176,7 +206,9 @@ class PropertiesSystem implements ShapeSystem {
             const shape = getGlobalId(id);
             if (shape) sendShapeSetBlocksMovement({ shape, value: blocksMovement });
         }
-        if ($.id === id) $.blocksMovement = blocksMovement;
+
+        const d = $.data.get(id);
+        if (d) d.blocksMovement = blocksMovement;
 
         const alteredMovement = checkMovementSources(id, blocksMovement, recalculate);
         doorSystem.checkCursorState(id);
@@ -196,7 +228,9 @@ class PropertiesSystem implements ShapeSystem {
             const shape = getGlobalId(id);
             if (shape) sendShapeSetBlocksVision({ shape, value: blocksVision });
         }
-        if ($.id === id) $.blocksVision = blocksVision;
+
+        const d = $.data.get(id);
+        if (d) d.blocksVision = blocksVision;
 
         const alteredVision = checkVisionSources(id, blocksVision !== VisionBlock.No, recalculate);
         if (alteredVision && recalculate) getShape(id)?.invalidate(false);
@@ -215,7 +249,9 @@ class PropertiesSystem implements ShapeSystem {
             const shape = getGlobalId(id);
             if (shape) sendShapeSetShowBadge({ shape, value: showBadge });
         }
-        if ($.id === id) $.showBadge = showBadge;
+
+        const d = $.data.get(id);
+        if (d) d.showBadge = showBadge;
 
         const _shape = getShape(id)!;
         _shape.invalidate(!_shape.triggersVisionRecalc);
@@ -233,10 +269,128 @@ class PropertiesSystem implements ShapeSystem {
             const shape = getGlobalId(id);
             if (shape) sendShapeSetDefeated({ shape, value: isDefeated });
         }
-        if ($.id === id) $.isDefeated = isDefeated;
+
+        const d = $.data.get(id);
+        if (d) d.isDefeated = isDefeated;
 
         const _shape = getShape(id)!;
         _shape.invalidate(!_shape.triggersVisionRecalc);
+    }
+
+    setSize(id: LocalId, size: number, syncTo: Sync): void {
+        const shape = mutable.data.get(id);
+        if (shape === undefined) {
+            return console.error("[Properties.setSize] Unknown local shape.");
+        }
+
+        if (size < 0) size = 0;
+
+        shape.size = size;
+
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeSetSize({ shape, value: size });
+        }
+
+        const d = $.data.get(id);
+        if (d) d.size = size;
+
+        getShape(id)?.invalidate(true);
+    }
+
+    setShowCells(id: LocalId, showCells: boolean, syncTo: Sync): void {
+        const shape = mutable.data.get(id);
+        if (shape === undefined) {
+            return console.error("[Properties.setShowCell] Unknown local shape.");
+        }
+
+        shape.showCells = showCells;
+
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeSetShowCells({ shape, value: showCells });
+        }
+
+        const d = $.data.get(id);
+        if (d) d.showCells = showCells;
+
+        getShape(id)?.invalidate(true);
+    }
+
+    setCellStrokeColour(id: LocalId, strokeColour: string, syncTo: Sync): void {
+        const shape = mutable.data.get(id);
+        if (shape === undefined) {
+            return console.error("[Properties.setCellStrokeColour] Unknown local shape.");
+        }
+
+        shape.cellStrokeColour = strokeColour;
+
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeSetCellStrokeColour({ shape, value: strokeColour });
+        }
+
+        const d = $.data.get(id);
+        if (d) d.cellStrokeColour = strokeColour;
+
+        getShape(id)?.invalidate(true);
+    }
+
+    setCellFillColour(id: LocalId, fillColour: string, syncTo: Sync): void {
+        const shape = mutable.data.get(id);
+        if (shape === undefined) {
+            return console.error("[Properties.setCellFillColour] Unknown local shape.");
+        }
+
+        shape.cellFillColour = fillColour;
+
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeSetCellFillColour({ shape, value: fillColour });
+        }
+
+        const d = $.data.get(id);
+        if (d) d.cellFillColour = fillColour;
+
+        getShape(id)?.invalidate(true);
+    }
+
+    setCellStrokeWidth(id: LocalId, strokeWidth: number, syncTo: Sync): void {
+        const shape = mutable.data.get(id);
+        if (shape === undefined) {
+            return console.error("[Properties.setCellStrokeWidth] Unknown local shape.");
+        }
+
+        shape.cellStrokeWidth = strokeWidth;
+
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeSetCellStrokeWidth({ shape, value: strokeWidth });
+        }
+
+        const d = $.data.get(id);
+        if (d) d.cellStrokeWidth = strokeWidth;
+
+        getShape(id)?.invalidate(true);
+    }
+
+    setOddHexOrientation(id: LocalId, oddHexOrientation: boolean, syncTo: Sync): void {
+        const shape = mutable.data.get(id);
+        if (shape === undefined) {
+            return console.error("[Properties.setOddHexOrientation] Unknown local shape.");
+        }
+
+        shape.oddHexOrientation = oddHexOrientation;
+
+        if (syncTo.server) {
+            const shape = getGlobalId(id);
+            if (shape) sendShapeSetOddHexOrientation({ shape, value: oddHexOrientation });
+        }
+
+        const d = $.data.get(id);
+        if (d) d.oddHexOrientation = oddHexOrientation;
+
+        getShape(id)?.invalidate(true);
     }
 
     setLocked(id: LocalId, isLocked: boolean, syncTo: Sync): void {
@@ -251,7 +405,9 @@ class PropertiesSystem implements ShapeSystem {
             const shape = getGlobalId(id);
             if (shape) sendShapeSetLocked({ shape, value: isLocked });
         }
-        if ($.id === id) $.isLocked = isLocked;
+
+        const d = $.data.get(id);
+        if (d) d.isLocked = isLocked;
     }
 }
 
@@ -260,9 +416,10 @@ registerSystem("properties", propertiesSystem, true, propertiesState);
 
 // Properties System state is active whenever a shape is selected due to the quick selection info
 
-watchEffect(() => {
-    const id = selectedState.reactive.focus;
-    if (id) {
-        propertiesSystem.loadState(id);
-    } else propertiesSystem.dropState();
-});
+watch(
+    () => selectedState.reactive.focus,
+    (newId, oldId) => {
+        if (newId) propertiesSystem.loadState(newId, "selected-system");
+        if (oldId) propertiesSystem.dropState(oldId, "selected-system");
+    },
+);

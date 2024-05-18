@@ -14,6 +14,7 @@ import {
     getAngleBetween,
 } from "../../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../../core/geometry";
+import { DEFAULT_GRID_SIZE } from "../../../../core/grid";
 import { baseAdjust } from "../../../../core/http";
 import { equalPoints, rotateAroundPoint, snapToPoint } from "../../../../core/math";
 import { InvalidationMode, NO_SYNC, SyncMode } from "../../../../core/models/types";
@@ -46,7 +47,7 @@ import { doorSystem } from "../../../systems/logic/door";
 import { Access } from "../../../systems/logic/models";
 import { teleportZoneSystem } from "../../../systems/logic/tp";
 import { playerSystem } from "../../../systems/players";
-import { DEFAULT_GRID_SIZE, positionState } from "../../../systems/position/state";
+import { positionState } from "../../../systems/position/state";
 import { getProperties } from "../../../systems/properties/state";
 import { VisionBlock } from "../../../systems/properties/types";
 import { selectedSystem } from "../../../systems/selected";
@@ -256,7 +257,7 @@ class SelectTool extends Tool implements ISelectTool {
         const layerSelection = selectedSystem.get({ includeComposites: false });
         let selectionStack: readonly IShape[];
         if (this.hasFeature(SelectFeatures.ChangeSelection, features)) {
-            const shapes = layer.getShapes({ includeComposites: false });
+            const shapes = layer.getShapes({ includeComposites: false, onlyInView: true });
             if (!layerSelection.length) selectionStack = shapes;
             else selectionStack = shapes.concat(layerSelection);
         } else {
@@ -293,7 +294,7 @@ class SelectTool extends Tool implements ISelectTool {
                     selectedSystem.set(shape.id);
                     this.removeRotationUi();
                     this.createRotationUi(features);
-                    const points = shape.points; // expensive call
+                    const points = shape.points;
                     this.originalResizePoints = points;
                     this.mode = SelectOperations.Resize;
                     layer.invalidate(true);
@@ -509,18 +510,16 @@ class SelectTool extends Tool implements ISelectTool {
 
                 if (!accessSystem.hasAccessTo(shape.id, false, { movement: true })) return;
 
-                let ignorePoint: GlobalPoint | undefined;
-                if (this.resizePoint >= 0) {
-                    const targetPoint = this.originalResizePoints[this.resizePoint];
-                    if (targetPoint !== undefined) ignorePoint = toGP(targetPoint);
-                }
                 let targetPoint = gp;
                 if (
                     event &&
                     playerSettingsState.useSnapping(event) &&
                     this.hasFeature(SelectFeatures.Snapping, features)
                 )
-                    [targetPoint, this.snappedToPoint] = snapToPoint(floorState.currentLayer.value!, gp, ignorePoint);
+                    [targetPoint, this.snappedToPoint] = snapToPoint(floorState.currentLayer.value!, gp, {
+                        shape,
+                        pointIndex: this.resizePoint,
+                    });
                 else this.snappedToPoint = false;
 
                 this.resizePoint = resizeShape(
@@ -576,13 +575,13 @@ class SelectTool extends Tool implements ISelectTool {
                 selectedSystem.clear();
             }
             const cbbox = this.selectionHelper!.getBoundingBox();
-            for (const shape of layer.getShapes({ includeComposites: false })) {
+            for (const shape of layer.getShapes({ includeComposites: false, onlyInView: true })) {
                 if (!(shape.options.preFogShape ?? false) && (shape.options.skipDraw ?? false)) continue;
                 if (!accessSystem.hasAccessTo(shape.id, false, { movement: true })) continue;
                 if (!shape.visibleInCanvas({ w: layer.width, h: layer.height }, { includeAuras: false })) continue;
                 if (layerSelection.some((s) => s.id === shape.id)) continue;
 
-                const points = shape.points; // expensive call
+                const points = shape.points;
                 if (points.length > 1) {
                     for (let i = 0; i < points.length; i++) {
                         const ray = Ray.fromPoints(toGP(points[i]!), toGP(points[(i + 1) % points.length]!));
@@ -799,8 +798,9 @@ class SelectTool extends Tool implements ISelectTool {
         }
 
         // Check if any other shapes are under the mouse
-        for (let i = layer.size({ includeComposites: false }) - 1; i >= 0; i--) {
-            const shape = layer.getShapes({ includeComposites: false })[i];
+        const shapes = layer.getShapes({ includeComposites: false, onlyInView: true });
+        for (let i = shapes.length - 1; i >= 0; i--) {
+            const shape = shapes[i];
             if (shape?.contains(globalMouse) === true) {
                 selectedSystem.set(shape.id);
                 layer.invalidate(true);
@@ -947,6 +947,7 @@ class SelectTool extends Tool implements ISelectTool {
             },
             { fillColour: "rgba(0,0,0,0)", strokeColour: ["black"] },
         );
+        this.polygonTracer.options.skipDraw = true;
         const drawLayer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw)!;
         drawLayer.addShape(this.polygonTracer, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         this.updatePolygonEditUi(this.lastMousePosition);
@@ -1006,6 +1007,7 @@ class SelectTool extends Tool implements ISelectTool {
         if (smallest.distance <= polygon.lineWidth[0]!) {
             _$.polygonUiVisible = "visible";
             this.polygonTracer.refPoint = smallest.nearest;
+            this.polygonTracer.options.skipDraw = false;
             this.polygonTracer.layer?.invalidate(true);
             const lp = g2l(smallest.nearest);
             const radians = toRadians(smallest.angle);

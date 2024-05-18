@@ -376,7 +376,7 @@ async def add_shape(sid, raw_data: Any):
     NoteShape.create(note_id=note, shape_id=data.shape_id)
 
     for psid, user in game_state.get_users(skip_sid=sid, room=pr.room):
-        if can_edit(note, user):
+        if can_view(note, user):
             await _send_game("Note.Shape.Add", data.dict(), room=psid)
 
 
@@ -406,7 +406,7 @@ async def remove_shape(sid, raw_data: Any):
     NoteShape.get(note_id=note, shape_id=data.shape_id).delete_instance()
 
     for psid, user in game_state.get_users(skip_sid=sid, room=pr.room):
-        if can_edit(note, user):
+        if can_view(note, user):
             await _send_game("Note.Shape.Remove", data.dict(), room=psid)
 
 

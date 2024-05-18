@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 90
+SAVE_VERSION = 94
 
 import json
 import logging
@@ -63,86 +63,14 @@ def check_existence() -> bool:
 
 
 def upgrade(db: SqliteExtDatabase, version: int):
-    if version < 64:
+    if version < 69:
         raise OldVersionException(
-            f"Upgrade code for this version is >1 year old and is no longer in the active codebase to reduce clutter. You can still find this code on github, contact me for more info."
+            f"Upgrade code for this version is >2 years old and is no longer in the active codebase to reduce clutter. You can still find this code on github, contact me for more info."
         )
 
     db.foreign_keys = False
 
-    if version == 64:
-        # Add LocationOptions.map_background_{air/ground/underground}
-        # Add Floor.type_ and Floor.background_color
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE location_options ADD COLUMN air_map_background TEXT DEFAULT NULL"
-            )
-            db.execute_sql(
-                "ALTER TABLE location_options ADD COLUMN ground_map_background TEXT DEFAULT NULL"
-            )
-            db.execute_sql(
-                "ALTER TABLE location_options ADD COLUMN underground_map_background TEXT DEFAULT NULL"
-            )
-            db.execute_sql("SELECT default_options_id FROM room")
-
-            db.execute_sql(
-                "ALTER TABLE floor ADD COLUMN type_ INTEGER NOT NULL DEFAULT 1"
-            )
-            db.execute_sql(
-                "ALTER TABLE floor ADD COLUMN background_color TEXT DEFAULT NULL"
-            )
-    elif version == 65:
-        # Migrate new saves to allow NULL for map backgrounds
-        with db.atomic():
-            db.execute_sql(
-                "CREATE TEMPORARY TABLE _location_options_65 AS SELECT * FROM location_options"
-            )
-            db.execute_sql("DROP TABLE location_options")
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "location_options" ("id" INTEGER NOT NULL PRIMARY KEY, "unit_size" REAL, "unit_size_unit" TEXT, "use_grid" INTEGER, "full_fow" INTEGER, "fow_opacity" REAL, "fow_los" INTEGER, "vision_mode" TEXT, "vision_min_range" REAL, "vision_max_range" REAL, "spawn_locations" TEXT NOT NULL, "move_player_on_token_change" INTEGER, "grid_type" TEXT, "air_map_background" TEXT, "ground_map_background" TEXT, "underground_map_background" TEXT);'
-            )
-            db.execute_sql(
-                'INSERT INTO "location_options" (id, unit_size, unit_size_unit, use_grid, full_fow, fow_opacity, fow_los, vision_mode, vision_min_range, vision_max_range, spawn_locations, move_player_on_token_change, grid_type, air_map_background, ground_map_background, underground_map_background) SELECT id, unit_size, unit_size_unit, use_grid, full_fow, fow_opacity, fow_los, vision_mode, vision_min_range, vision_max_range, spawn_locations, move_player_on_token_change, grid_type, air_map_background, ground_map_background, underground_map_background FROM _location_options_65 '
-            )
-    elif version == 66:
-        # Add Shape.IsDoor
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE shape ADD COLUMN is_door INTEGER DEFAULT 0 NOT NULL"
-            )
-    elif version == 67:
-        # Add Shape.IsTeleportZone
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE shape ADD COLUMN is_teleport_zone INTEGER DEFAULT 0 NOT NULL"
-            )
-    elif version == 68:
-        # Model change in logic options (doorConditions -> door, conditions -> permissions)
-        with db.atomic():
-            data = db.execute_sql("SELECT uuid, options FROM shape")
-            for row in data.fetchall():
-                uuid, options = row
-                if options is None:
-                    continue
-
-                unpacked_options = json.loads(options)
-                changed = False
-
-                for option in unpacked_options:
-                    if option[0] == "doorConditions":
-                        option[0] = "door"
-                        changed = True
-                    elif option[0] == "teleport":
-                        option[1]["permissions"] = option[1]["conditions"]
-                        del option[1]["conditions"]
-                        changed = True
-
-                if changed:
-                    db.execute_sql(
-                        "UPDATE shape SET options=? WHERE uuid=?",
-                        (json.dumps(unpacked_options), uuid),
-                    )
-    elif version == 69:
+    if version == 69:
         # Change Room.logo on_delete logic from cascade to set null
         with db.atomic():
             db.execute_sql("CREATE TEMPORARY TABLE _room_69 AS SELECT * FROM room")
@@ -619,6 +547,40 @@ def upgrade(db: SqliteExtDatabase, version: int):
             )
             db.execute_sql(
                 "UPDATE location_options SET drop_ratio = NULL WHERE id NOT IN (SELECT default_options_id FROM room)"
+            )
+    elif version == 90:
+        # Add Shape.odd_hex_orientation
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE shape ADD COLUMN odd_hex_orientation INTEGER DEFAULT 0"
+            )
+    elif version == 91:
+        # Add UserOptions.grid_mode_label_format
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN grid_mode_label_format INTEGER DEFAULT 0"
+            )
+            db.execute_sql(
+                "UPDATE user_options SET grid_mode_label_format = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
+            )
+    elif version == 92:
+        # Add Shape.size
+        with db.atomic():
+            db.execute_sql("ALTER TABLE shape ADD COLUMN size INTEGER DEFAULT 0")
+    elif version == 93:
+        # Add Shape.show_cells, Shape.cell_fill_colour, Shape.cell_stroke_colour, Shape.cell_stroke_width
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE shape ADD COLUMN show_cells INTEGER NOT NULL DEFAULT 0"
+            )
+            db.execute_sql(
+                "ALTER TABLE shape ADD COLUMN cell_fill_colour TEXT DEFAULT NULL"
+            )
+            db.execute_sql(
+                "ALTER TABLE shape ADD COLUMN cell_stroke_colour TEXT DEFAULT NULL"
+            )
+            db.execute_sql(
+                "ALTER TABLE shape ADD COLUMN cell_stroke_width INTEGER DEFAULT NULL"
             )
     else:
         raise UnknownVersionException(

@@ -13,7 +13,7 @@ import { noteState } from "../systems/notes/state";
 import { type ClientNote, NoteManagerMode } from "../systems/notes/types";
 import { editNote, openNoteManager, popoutNote } from "../systems/notes/ui";
 import { propertiesSystem } from "../systems/properties";
-import { getProperties, propertiesState } from "../systems/properties/state";
+import { useShapeProps } from "../systems/properties/composables";
 import { selectedState } from "../systems/selected/state";
 import { trackerSystem } from "../systems/trackers";
 import type { Tracker, TrackerId } from "../systems/trackers/models";
@@ -22,6 +22,7 @@ import { uiSystem } from "../systems/ui";
 import TrackerInput from "./TrackerInput.vue";
 
 const { t } = useI18n();
+const shapeProps = useShapeProps();
 
 const activeTracker = ref<Tracker | Aura | null>(null);
 
@@ -32,14 +33,14 @@ const auras = computed(() => [...auraSystem.state.parentAuras, ...auraSystem.sta
 const notes = computed(
     () =>
         noteState.reactive.shapeNotes
-            .get(selectedState.reactive.focus!)
+            .get1(selectedState.reactive.focus!)
             ?.map((note) => noteState.reactive.notes.get(note)!) ?? [],
 );
 
 function setLocked(): void {
     const shapeId = selectedState.raw.focus;
     if (accessState.hasEditAccess.value && shapeId !== undefined) {
-        propertiesSystem.setLocked(shapeId, !getProperties(shapeId)!.isLocked, SERVER_SYNC);
+        propertiesSystem.setLocked(shapeId, !shapeProps.value!.isLocked, SERVER_SYNC);
     }
 }
 
@@ -89,7 +90,7 @@ function annotate(note: DeepReadonly<ClientNote>): void {
 <template>
     <div>
         <TrackerInput :tracker="activeTracker" @submit="setValue" @close="activeTracker = null" />
-        <template v-if="selectedState.reactive.focus !== undefined">
+        <template v-if="shapeProps">
             <div id="selection-menu">
                 <div>
                     <div
@@ -97,7 +98,7 @@ function annotate(note: DeepReadonly<ClientNote>): void {
                         :title="t('game.ui.selection.SelectionInfo.lock')"
                         @click="setLocked"
                     >
-                        <font-awesome-icon v-if="propertiesState.reactive.isLocked" icon="lock" />
+                        <font-awesome-icon v-if="shapeProps.isLocked" icon="lock" />
                         <font-awesome-icon v-else icon="unlock" />
                     </div>
                     <div
@@ -107,7 +108,7 @@ function annotate(note: DeepReadonly<ClientNote>): void {
                     >
                         <font-awesome-icon icon="edit" />
                     </div>
-                    <div id="selection-name">{{ propertiesState.reactive.name }}</div>
+                    <div id="selection-name">{{ shapeProps.name }}</div>
                     <div id="selection-values" :class="{ noAccess: !accessState.hasEditAccess.value }">
                         <template v-for="tracker in trackers" :key="tracker.uuid">
                             <div>{{ tracker.name }}</div>

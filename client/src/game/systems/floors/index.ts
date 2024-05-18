@@ -1,4 +1,4 @@
-import type { DeepReadonly } from "vue";
+import { markRaw, type DeepReadonly } from "vue";
 
 import { registerSystem } from "..";
 import type { System } from "..";
@@ -110,7 +110,7 @@ class FloorSystem implements System {
         const floor = this.getFloor(targetFloor)!;
 
         $.floorIndex = targetFloorIndex;
-        $.layers = this.getLayers(floor);
+        $.layers = this.getLayers(floor).map((l) => markRaw(l));
 
         this.updateLayerVisibility();
 

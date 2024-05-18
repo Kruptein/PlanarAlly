@@ -28,6 +28,7 @@ if TYPE_CHECKING:
     from .line import Line
     from .polygon import Polygon
     from .rect import Rect
+    from .shape_data_block import ShapeDataBlock
     from .shape_label import ShapeLabel
     from .shape_owner import ShapeOwner
     from .shape_type import ShapeType
@@ -52,6 +53,7 @@ class Shape(BaseDbModel):
     composite_parent: SelectSequence["CompositeShapeAssociation"]
     shape_variants: SelectSequence["CompositeShapeAssociation"]
     character_id: int | None
+    data_blocks: SelectSequence["ShapeDataBlock"]
 
     uuid = cast(str, TextField(primary_key=True))
     layer = cast(
@@ -102,6 +104,12 @@ class Shape(BaseDbModel):
             Character, backref="shapes", null=True, default=None, on_delete="SET NULL"
         ),
     )
+    odd_hex_orientation = cast(bool, BooleanField(default=False))
+    size = cast(int, IntegerField(default=0))
+    show_cells = cast(bool, BooleanField(default=False))
+    cell_fill_colour = cast(str, TextField(null=True, default=None))
+    cell_stroke_colour = cast(str, TextField(null=True, default=None))
+    cell_stroke_width = cast(int, IntegerField(null=True, default=None))
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"

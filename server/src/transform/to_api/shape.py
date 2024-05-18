@@ -63,5 +63,11 @@ def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:
         auras=auras,
         labels=labels,
         character=shape.character_id,
+        odd_hex_orientation=shape.odd_hex_orientation,
+        size=shape.size,
+        show_cells=shape.show_cells,
+        cell_fill_colour=shape.cell_fill_colour,
+        cell_stroke_colour=shape.cell_stroke_colour,
+        cell_stroke_width=shape.cell_stroke_width,
     )
     return shape.subtype.as_pydantic(shape_model)

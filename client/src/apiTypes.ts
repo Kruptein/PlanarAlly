@@ -7,6 +7,7 @@ import type { CharacterId } from "./game/systems/characters/models";
 import type { ClientId } from "./game/systems/client/models";
 import type { PlayerId } from "./game/systems/players/models";
 import type { VisionBlock } from "./game/systems/properties/types";
+import type { GridModeLabelFormat } from "./game/systems/settings/players/models";
 import type { TrackerId } from "./game/systems/trackers/models";
 
 export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiToggleCompositeShape
@@ -175,6 +176,12 @@ export interface ApiCoreShape {
   auras: ApiAura[];
   labels: ApiLabel[];
   character: CharacterId | null;
+  odd_hex_orientation: boolean;
+  size: number;
+  show_cells: boolean;
+  cell_fill_colour: string | null;
+  cell_stroke_colour: string | null;
+  cell_stroke_width: number | null;
 }
 export interface ApiDefaultShapeOwner {
   edit_access: boolean;
@@ -323,6 +330,7 @@ export interface ApiOptionalUserOptions {
   ruler_colour?: string | null;
   use_tool_icons?: boolean | null;
   show_token_directions?: boolean | null;
+  grid_mode_label_format?: GridModeLabelFormat | null;
   invert_alt?: boolean | null;
   disable_scroll_to_zoom?: boolean | null;
   default_tracker_mode?: boolean | null;
@@ -367,6 +375,7 @@ export interface ApiUserOptions {
   ruler_colour: string;
   use_tool_icons: boolean;
   show_token_directions: boolean;
+  grid_mode_label_format: GridModeLabelFormat;
   invert_alt: boolean;
   disable_scroll_to_zoom: boolean;
   default_tracker_mode: boolean;

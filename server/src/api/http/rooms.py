@@ -199,9 +199,13 @@ async def export_all(request: web.Request):
 
 
 class ImportData(TypedDict):
+    lock: asyncio.Lock
+    running: bool
     totalLength: int
     chunks: List[Optional[bytes]]
     sid: Optional[str]
+    takeOverName: bool
+    name: str
 
 
 import_mapping: Dict[str, ImportData] = {}
@@ -232,9 +236,13 @@ async def import_info(request: web.Request):
         )
 
     import_mapping[name] = {
+        "lock": asyncio.Lock(),
+        "running": False,
         "totalLength": length,
         "chunks": [None for _ in range(length)],
         "sid": data.get("sid", None),
+        "takeOverName": data["takeOverName"],
+        "name": data["name"],
     }
 
     # todo: some timer / or other condition to clear the import_mapping
@@ -270,14 +278,20 @@ async def import_chunk(request: web.Request):
 
     chunks = import_mapping[name]["chunks"]
     if all(chunks):
-        print(f"Got all chunks for {name}")
-        await asyncio.create_task(
-            import_campaign(
-                user,
-                io.BytesIO(b"".join(cast(List[bytes], chunks))),
-                sid=sid,
-            )
-        )
-        del import_mapping[name]
+        async with import_mapping[name]["lock"]:
+            if not import_mapping.get(name, {}).get("running", True):
+                import_mapping[name]["running"] = True
+
+                print(f"Got all chunks for {name}")
+                await asyncio.create_task(
+                    import_campaign(
+                        user,
+                        io.BytesIO(b"".join(cast(List[bytes], chunks))),
+                        sid=sid,
+                        name=import_mapping[name]["name"],
+                        take_over_name=import_mapping[name]["takeOverName"],
+                    )
+                )
+                del import_mapping[name]
 
     return web.HTTPOk()

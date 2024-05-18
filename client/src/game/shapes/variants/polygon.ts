@@ -1,3 +1,4 @@
+import { exportShapeData, loadShapeData } from "..";
 import type { ApiPolygonShape } from "../../../apiTypes";
 import { g2l, g2lz, toDegrees } from "../../../core/conversions";
 import { Vector, addP, getAngleBetween, getDistanceToSegment, subtractP, toArrayP, toGP } from "../../../core/geometry";
@@ -10,6 +11,7 @@ import { FOG_COLOUR } from "../../colour";
 import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
+import type { ServerShapeOptions } from "../../models/shapes";
 import type { AuraId } from "../../systems/auras/models";
 import { positionState } from "../../systems/position/state";
 import { getProperties } from "../../systems/properties/state";
@@ -91,15 +93,15 @@ export class Polygon extends Shape implements IShape {
 
     asDict(): ApiPolygonShape {
         return {
-            ...this.getBaseDict(),
+            ...exportShapeData(this),
             vertices: JSON.stringify(this._vertices.map((v) => toArrayP(v))),
             open_polygon: this.openPolygon,
             line_width: this.lineWidth[0]!,
         };
     }
 
-    fromDict(data: ApiPolygonShape): void {
-        super.fromDict(data);
+    fromDict(data: ApiPolygonShape, options: Partial<ServerShapeOptions>): void {
+        super.fromDict(data, options);
         const vertices = JSON.parse(data.vertices) as [number, number][];
         this._vertices = vertices.map((v) => toGP(v));
         this.openPolygon = data.open_polygon;
@@ -137,10 +139,9 @@ export class Polygon extends Shape implements IShape {
         return toArrayP(rotateAroundPoint(point, center, this.angle));
     }
 
-    invalidatePoints(): void {
+    updatePoints(): void {
         const center = this.center;
         this._points = this.vertices.map((point) => this.invalidatePoint(point, center));
-        super.invalidatePoints();
     }
 
     draw(ctx: CanvasRenderingContext2D, lightRevealRender: boolean): void {
@@ -194,8 +195,9 @@ export class Polygon extends Shape implements IShape {
         if (!bbox.contains(point)) return false;
         if (this.isClosed) return true;
         if (this.angle !== 0) point = rotateAroundPoint(point, this.center, -this.angle);
-        const vertices = this.uniqueVertices;
+        const vertices = this.vertices;
         for (const [i, v] of vertices.entries()) {
+            if (i === this.vertices.length - 1 && this.openPolygon) break;
             const nv = vertices[(i + 1) % vertices.length]!;
             const { distance } = getDistanceToSegment(point, [v, nv]);
             if (distance <= nearbyThreshold) return true;
@@ -219,12 +221,6 @@ export class Polygon extends Shape implements IShape {
         if (super.visibleInCanvas(max, options)) return true;
         return this.getBoundingBox().visibleInCanvas(max);
     }
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    snapToGrid(): void {}
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    resizeToGrid(): void {}
 
     resize(resizePoint: number, point: GlobalPoint): number {
         if (resizePoint === 0) this._refPoint = rotateAroundPoint(point, this.center, -this.angle);
@@ -260,7 +256,7 @@ export class Polygon extends Shape implements IShape {
             // make sure we copy over all the same properties but retain the correct uuid and vertices
             const oldDict = this.asDict();
             newPolygon.setLayer(this.floorId!, this.layerName!);
-            newPolygon.fromDict({
+            loadShapeData(newPolygon, {
                 ...oldDict,
                 angle: 0,
                 uuid,
@@ -292,7 +288,6 @@ export class Polygon extends Shape implements IShape {
         this._vertices.push(point);
         this._points.push(this.invalidatePoint(point, this.center));
         this.layer?.updateSectors(this.id, this.getAuraAABB());
-        if (this.isSnappable) this.updateLayerPoints();
         if (options?.simplifyEnd === true) this.simplifyEnd();
     }
 

@@ -4,7 +4,8 @@ import type { ComputedRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { ApiSpawnInfo, CharacterCreate } from "../../../apiTypes";
-import ContextMenu from "../../../core/components/ContextMenu.vue";
+import ContextMenu from "../../../core/components/contextMenu/ContextMenu.vue";
+import type { Section } from "../../../core/components/contextMenu/types";
 import { defined, guard, map } from "../../../core/iter";
 import { SyncMode } from "../../../core/models/types";
 import { useModal } from "../../../core/plugins/modals/plugin";
@@ -173,7 +174,7 @@ function moveToBack(): void {
 function moveToFront(): void {
     const layer = floorState.currentLayer.value!;
     for (const shape of selectedSystem.get({ includeComposites: false })) {
-        layer.moveShapeOrder(shape, layer.size({ includeComposites: true }) - 1, SyncMode.FULL_SYNC);
+        layer.moveShapeOrder(shape, layer.size({ includeComposites: true, onlyInView: false }) - 1, SyncMode.FULL_SYNC);
     }
 
     close();
@@ -291,7 +292,7 @@ async function saveTemplate(): Promise<void> {
             customButton: t("game.ui.templates.create_new"),
         });
         if (selection === undefined || selection.length === 0) return;
-        const notes = noteState.raw.shapeNotes.get(shape.id);
+        const notes = noteState.raw.shapeNotes.get1(shape.id);
         if (notes !== undefined) {
             shape.options.templateNoteIds = notes.map((n) => n);
         } else if (shape.options.templateNoteIds !== undefined) {
@@ -422,96 +423,180 @@ const activeLayer = floorState.currentLayer as ComputedRef<ILayer>;
 const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
 const currentFloorIndex = toRef(floorState.reactive, "floorIndex");
 const floors = toRef(floorState.reactive, "floors");
+
+const sections = computed(() => {
+    // MOVE [group A] >
+    const moveGroupA = [];
+    if (gameState.reactive.isDm && floors.value.length > 1) {
+        moveGroupA.push({
+            title: t("common.floor"),
+            subitems: floors.value.map((floor, idx) => ({
+                title: floor.name,
+                action: () => setFloor(floor),
+                selected: idx === currentFloorIndex.value,
+            })),
+        });
+    }
+    if (layers.value.length > 1) {
+        moveGroupA.push({
+            title: t("common.layer"),
+            subitems: layers.value.map((layer) => ({
+                title: layerTranslationMapping[layer.name] ?? "",
+                action: () => setLayer(layer.name),
+                selected: layer.name === activeLayer.value.name,
+            })),
+        });
+    }
+    if (locations.value.length > 1) {
+        moveGroupA.push({
+            title: t("common.location"),
+            subitems: locations.value.map((location) => ({
+                title: location.name,
+                action: () => setLocation(location.id),
+                selected: location.id === activeLocation.value,
+            })),
+        });
+    }
+
+    // MOVE [group B] >
+    const moveGroupB = [
+        {
+            title: t("game.ui.selection.ShapeContext.move_back"),
+            action: moveToBack,
+            disabled: !isOwned.value,
+        },
+        {
+            title: t("game.ui.selection.ShapeContext.move_front"),
+            action: moveToFront,
+            disabled: !isOwned.value,
+        },
+    ];
+
+    const moveSection = [moveGroupA, moveGroupB];
+
+    const groupsSection = [];
+    if (!hasSingleSelection.value) {
+        const groupSize = groups.value.size;
+        if (groupSize === 0) {
+            groupsSection.push({
+                title: "Create group",
+                action: createGroup,
+            });
+        } else if (groupSize === 1) {
+            if (hasUngrouped.value) {
+                groupsSection.push({
+                    title: "Enlarge group",
+                    action: enlargeGroup,
+                });
+            } else {
+                if (hasEntireGroup.value) {
+                    groupsSection.push({
+                        title: "Remove group",
+                        action: removeEntireGroup,
+                    });
+                } else if (!hasEntireGroup.value) {
+                    groupsSection.push({
+                        title: "Split from group",
+                        action: splitGroup,
+                    });
+                }
+            }
+        } else {
+            groupsSection.push({
+                title: "Merge groups",
+                action: mergeGroups,
+            });
+        }
+    }
+
+    const rootGroupA = [
+        {
+            title: "Move",
+            subitems: moveSection,
+        },
+        {
+            title: "Group",
+            subitems: groupsSection,
+        },
+    ];
+
+    const rootGroupB: Section[] = [];
+
+    if (isOwned.value && !selectionIncludesSpawnToken.value) {
+        rootGroupB.push({
+            title: getInitiativeWord(),
+            action: addToInitiative,
+        });
+    }
+
+    if (hasSingleSelection.value) {
+        if (isMarker.value) {
+            rootGroupB.push({
+                title: t("game.ui.selection.ShapeContext.remove_marker"),
+                action: deleteMarker,
+            });
+        } else {
+            rootGroupB.push({
+                title: t("game.ui.selection.ShapeContext.set_marker"),
+                action: setMarker,
+            });
+        }
+
+        if (!selectionIncludesSpawnToken.value && gameState.reactive.isDm && canBeSaved.value) {
+            rootGroupB.push({
+                title: t("game.ui.templates.save"),
+                action: saveTemplate,
+            });
+        }
+
+        if (isOwned.value && canHaveCharacter.value) {
+            rootGroupB.push({
+                title: "Create character",
+                action: createCharacter,
+            });
+        }
+    }
+
+    const rootGroupC: Section[] = [];
+    if (!selectionIncludesSpawnToken.value && (gameState.reactive.isDm || isOwned.value)) {
+        rootGroupC.push({
+            title: t("game.ui.selection.ShapeContext.delete_shapes"),
+            action: deleteSelection,
+        });
+    }
+
+    const rootGroupD: Section[] = [];
+
+    if (hasSingleSelection.value) {
+        rootGroupD.push([
+            {
+                title: t("game.ui.selection.ShapeContext.show_props"),
+                action: openEditDialog,
+            },
+            {
+                title: "Open notes",
+                action: openNotes,
+            },
+        ]);
+    }
+
+    return [rootGroupA, rootGroupB, rootGroupC, rootGroupD];
+});
 </script>
 
 <template>
-    <ContextMenu :visible="showShapeContextMenu" :left="shapeContextLeft" :top="shapeContextTop" @cm:close="close">
-        <li v-if="gameState.reactive.isDm && floors.length > 1">
-            {{ t("common.floor") }}
-            <ul>
-                <li
-                    v-for="(floor, idx) in floors"
-                    :key="floor.name"
-                    :style="[idx === currentFloorIndex ? { backgroundColor: '#82c8a0' } : {}]"
-                    @click="setFloor(floor)"
-                >
-                    {{ floor.name }}
-                </li>
-            </ul>
-        </li>
-        <li v-if="layers.length > 1">
-            {{ t("common.layer") }}
-            <ul>
-                <li
-                    v-for="layer in layers"
-                    :key="layer.name"
-                    :style="[layer.name === activeLayer.name ? { backgroundColor: '#82c8a0' } : {}]"
-                    @click="setLayer(layer.name)"
-                >
-                    {{ layerTranslationMapping[layer.name] }}
-                </li>
-            </ul>
-        </li>
-        <li v-if="locations.length > 1">
-            {{ t("common.location") }}
-            <ul>
-                <li
-                    v-for="location in locations"
-                    :key="location.id"
-                    :style="[activeLocation === location.id ? { backgroundColor: '#82c8a0' } : {}]"
-                    @click="setLocation(location.id)"
-                >
-                    {{ location.name }}
-                </li>
-            </ul>
-        </li>
-        <li v-if="isOwned" @click="moveToBack">{{ t("game.ui.selection.ShapeContext.move_back") }}</li>
-        <li v-if="isOwned" @click="moveToFront">{{ t("game.ui.selection.ShapeContext.move_front") }}</li>
-        <li v-if="isOwned && !selectionIncludesSpawnToken" @click="addToInitiative">{{ getInitiativeWord() }}</li>
-        <li v-if="!selectionIncludesSpawnToken && (gameState.reactive.isDm || isOwned)" @click="deleteSelection">
-            {{ t("game.ui.selection.ShapeContext.delete_shapes") }}
-        </li>
-        <template v-if="hasSingleSelection">
-            <li v-if="isMarker" @click="deleteMarker">{{ t("game.ui.selection.ShapeContext.remove_marker") }}</li>
-            <li v-else @click="setMarker">{{ t("game.ui.selection.ShapeContext.set_marker") }}</li>
-            <li v-if="!selectionIncludesSpawnToken && gameState.reactive.isDm && canBeSaved" @click="saveTemplate">
-                {{ t("game.ui.templates.save") }}
-            </li>
-            <li v-if="isOwned && canHaveCharacter" @click="createCharacter">Create character</li>
-        </template>
-        <template v-else>
-            <li>
-                Group
-                <ul>
-                    <li v-if="groups.size === 0" @click="createGroup">Create group</li>
-                    <li v-if="groups.size === 1 && !hasUngrouped && !hasEntireGroup" @click="splitGroup">
-                        Split from group
-                    </li>
-                    <li v-if="groups.size === 1 && !hasUngrouped && hasEntireGroup" @click="removeEntireGroup">
-                        Remove group
-                    </li>
-                    <li v-if="groups.size > 1" @click="mergeGroups">Merge groups</li>
-                    <li v-if="groups.size === 1 && hasUngrouped" @click="enlargeGroup">Enlarge group</li>
-                </ul>
-            </li>
-        </template>
-        <li v-if="hasSingleSelection" @click="openNotes">Open notes</li>
-        <li v-if="hasSingleSelection" @click="openEditDialog">{{ t("game.ui.selection.ShapeContext.show_props") }}</li>
-    </ContextMenu>
+    <ContextMenu
+        :visible="showShapeContextMenu"
+        :left="shapeContextLeft"
+        :top="shapeContextTop"
+        :sections="sections"
+        @cm:close="close"
+    />
 </template>
 
 <style scoped lang="scss">
 .ContextMenu ul {
-    border: 1px solid #82c8a0;
     width: -moz-fit-content;
     width: fit-content;
-
-    li {
-        border-bottom: 1px solid #82c8a0;
-
-        &:hover {
-            background-color: #82c8a0;
-        }
-    }
 }
 </style>

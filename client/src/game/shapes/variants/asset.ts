@@ -11,6 +11,7 @@ import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import type { IAsset } from "../../interfaces/shapes/asset";
 import { LayerName } from "../../models/floor";
+import type { ServerShapeOptions } from "../../models/shapes";
 import { loadSvgData } from "../../svg";
 import { floorSystem } from "../../systems/floors";
 import { getProperties } from "../../systems/properties/state";
@@ -57,8 +58,8 @@ export class Asset extends BaseRect implements IAsset {
         };
     }
 
-    fromDict(data: ApiAssetRectShape): void {
-        super.fromDict(data);
+    fromDict(data: ApiAssetRectShape, options: Partial<ServerShapeOptions>): void {
+        super.fromDict(data, options);
         this.src = data.src;
     }
 
@@ -80,6 +81,18 @@ export class Asset extends BaseRect implements IAsset {
         if (this.options.svgAsset !== undefined && this.svgData === undefined) {
             await this.loadSvgs();
         }
+    }
+
+    resizeH(h: number, keepAspectratio: boolean): void {
+        const ar = this.h / this.w;
+        this.h = h;
+        if (keepAspectratio) this.w = h / ar;
+    }
+
+    resizeW(w: number, keepAspectratio: boolean): void {
+        const ar = this.h / this.w;
+        this.w = w;
+        if (keepAspectratio) this.h = w * ar;
     }
 
     async loadSvgs(): Promise<void> {

@@ -12,14 +12,13 @@ class TypedAsyncServer(socketio.AsyncServer):
     if TYPE_CHECKING:
 
         @overload
-        def on(self, event: str, *, namespace: str, handler: None = None) -> Callable:
-            ...
+        def on(
+            self, event: str, *, namespace: str, handler: None = None
+        ) -> Callable: ...
 
         @overload
-        def on(self, event: str, *, namespace: str, handler: Callable) -> None:
-            ...
+        def on(self, event: str, *, namespace: str, handler: Callable) -> None: ...
 
         def on(
             self, event: str, *, namespace: str, handler: Optional[Callable] = None
-        ) -> Union[Callable, None]:
-            ...
+        ) -> Union[Callable, None]: ...

@@ -35,6 +35,10 @@ socket.on("Player.Options.Set", (options: PlayerOptionsSet) => {
         sync: false,
         default: defaultOptions.showTokenDirections,
     });
+    playerSettingsSystem.setGridModeLabelFormat(roomOptions?.gridModeLabelFormat, {
+        sync: false,
+        default: defaultOptions.gridModeLabelFormat,
+    });
 
     // Behaviour
     playerSettingsSystem.setInvertAlt(roomOptions?.invertAlt, {

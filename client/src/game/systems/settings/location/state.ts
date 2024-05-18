@@ -1,3 +1,4 @@
+import { GridType } from "../../../../core/grid";
 import { buildState } from "../../state";
 
 import type { LocationOptions, WithDefault, WithLocationDefault } from "./models";
@@ -12,7 +13,7 @@ function getInitState(): State {
 
         fowLos: init(false),
         fowOpacity: init(0),
-        gridType: init("SQUARE"),
+        gridType: init(GridType.Square),
         fullFow: init(false),
         movePlayerOnTokenChange: init(false),
         spawnLocations: init([]),

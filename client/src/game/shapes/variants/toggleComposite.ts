@@ -1,3 +1,4 @@
+import { exportShapeData } from "..";
 import type { ApiToggleCompositeShape } from "../../../apiTypes";
 import type { GlobalPoint } from "../../../core/geometry";
 import { SyncMode } from "../../../core/models/types";
@@ -196,13 +197,13 @@ export class ToggleComposite extends Shape implements IToggleComposite {
 
     asDict(): ApiToggleCompositeShape {
         return {
-            ...this.getBaseDict(),
+            ...exportShapeData(this),
             active_variant: getGlobalId(this.active_variant)!,
             variants: this._variants.map((v) => ({ uuid: getGlobalId(v.id)!, name: v.name })),
         };
     }
 
-    invalidatePoints(): void {
+    updatePoints(): void {
         return;
     }
 
@@ -240,10 +241,6 @@ export class ToggleComposite extends Shape implements IToggleComposite {
         return this.getBoundingBox().visibleInCanvas(max);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    snapToGrid(): void {}
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    resizeToGrid(): void {}
     resize(resizePoint: number, _point: GlobalPoint): number {
         return resizePoint;
     }

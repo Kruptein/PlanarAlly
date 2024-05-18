@@ -39,7 +39,7 @@ export function computeVisibility(
         }
     }
 
-    if (drawt) drawPolygon(rawOutput, { colour: "red" });
+    if (drawt) drawPolygon(rawOutput, { strokeColour: "red" });
 
     return { visibility: rawOutput, shapeHits };
 }

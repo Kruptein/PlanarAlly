@@ -38,7 +38,7 @@ const unitSize = computed({
         return getOption($.unitSize, location.value).value;
     },
     set(unitSize: number | undefined) {
-        if (unitSize === undefined || unitSize >= 1) lss.setUnitSize(unitSize, location.value, true);
+        if (unitSize === undefined || unitSize > 0) lss.setUnitSize(unitSize, location.value, true);
     },
 });
 

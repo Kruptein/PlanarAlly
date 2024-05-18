@@ -1,3 +1,4 @@
+import { BiArrMap } from "../../../core/biArrMap";
 import type { LocalId } from "../../id";
 import { buildState } from "../state";
 
@@ -12,7 +13,7 @@ interface ReactiveNoteState {
     shapeFilter: LocalId | undefined;
 
     notes: Map<string, ClientNote>;
-    shapeNotes: Map<LocalId, string[]>;
+    shapeNotes: BiArrMap<LocalId, string>;
 }
 
 interface NonReactiveNoteState {
@@ -29,7 +30,7 @@ const state = buildState<ReactiveNoteState, NonReactiveNoteState>(
         shapeFilter: undefined,
 
         notes: new Map(),
-        shapeNotes: new Map(),
+        shapeNotes: new BiArrMap(),
     },
     {
         iconShapes: new Map(),

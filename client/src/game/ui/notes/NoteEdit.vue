@@ -5,7 +5,7 @@ import VueMarkdown from "vue-markdown-render";
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { mostReadable } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
-import { type LocalId, getLocalId, getShape } from "../../id";
+import { type LocalId, getShape } from "../../id";
 import { setCenterPosition } from "../../position";
 import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
@@ -27,12 +27,10 @@ const canEdit = computed(() => {
     return note.value.access.some((a) => a.name === username && a.can_edit);
 });
 
-const localShapenotes = computed(
-    () =>
-        note.value?.shapes
-            .map((s) => getLocalId(s, false))
-            .filter((s): s is LocalId => s !== undefined)
-            .map((s) => ({ ...getProperties(s), id: s })) ?? [],
+const localShapenotes = computed(() =>
+    note.value === undefined
+        ? []
+        : noteState.reactive.shapeNotes.get2(note.value.uuid)?.map((s) => ({ ...getProperties(s), id: s })) ?? [],
 );
 
 const showOnHover = computed({
@@ -279,7 +277,7 @@ function removeShape(shape: LocalId): void {
                     v-if="access.name !== 'default'"
                     icon="trash-alt"
                     title="Remove access"
-                    @click="noteSystem.removeAccess(note.uuid, access.name, true)"
+                    @click="noteSystem.removeAccess(note!.uuid, access.name, true)"
                 />
                 <div v-else></div>
             </template>

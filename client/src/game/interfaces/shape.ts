@@ -1,9 +1,10 @@
-import type { ApiCoreShape, ApiShape } from "../../apiTypes";
+import type { ApiShape } from "../../apiTypes";
 import type { GlobalPoint, Vector } from "../../core/geometry";
+import type { GridType } from "../../core/grid";
 import type { LocalId } from "../id";
 import type { Floor, FloorId, LayerName } from "../models/floor";
-import type { ShapeOptions } from "../models/shapes";
-import type { SHAPE_TYPE } from "../shapes/types";
+import type { ServerShapeOptions, ShapeOptions } from "../models/shapes";
+import type { DepShape, SHAPE_TYPE } from "../shapes/types";
 import type { BoundingRect } from "../shapes/variants/simple/boundingRect";
 import type { CharacterId } from "../systems/characters/models";
 
@@ -22,7 +23,10 @@ export interface IShape extends SimpleShape {
     get points(): [number, number][];
     get shadowPoints(): [number, number][];
     invalidatePoints: () => void;
+    updatePoints: () => void;
     resetVisionIteration: () => void;
+
+    getSize: (gridType: GridType) => number;
 
     contains: (point: GlobalPoint, nearbyThreshold?: number) => boolean;
 
@@ -50,6 +54,9 @@ export interface IShape extends SimpleShape {
     get center(): GlobalPoint;
     set center(centerPoint: GlobalPoint);
 
+    get parentId(): LocalId | undefined;
+    set parentId(pId: LocalId);
+
     get isClosed(): boolean;
 
     get triggersVisionRecalc(): boolean;
@@ -60,6 +67,8 @@ export interface IShape extends SimpleShape {
     _visionBbox: BoundingRect | undefined;
     _lightBlockingNeighbours: LocalId[];
     _parentId?: LocalId;
+
+    get dependentShapes(): readonly DepShape[];
 
     // POSITION
 
@@ -75,7 +84,6 @@ export interface IShape extends SimpleShape {
     getPositionRepresentation: () => { angle: number; points: [number, number][] };
     setPositionRepresentation: (position: { angle: number; points: [number, number][] }) => void;
     invalidate: (skipLightUpdate: boolean) => void;
-    updateLayerPoints: () => void;
     rotateAround: (point: GlobalPoint, angle: number) => void;
     rotateAroundAbsolute: (point: GlobalPoint, angle: number) => void;
     getPointIndex: (p: GlobalPoint, delta?: number) => number;
@@ -104,12 +112,17 @@ export interface IShape extends SimpleShape {
     // STATE
 
     asDict: () => ApiShape;
-    getBaseDict: () => ApiCoreShape;
     // getSubtypeDict: () => ApiShape["subtype"];
     // eslint-disable-next-line @typescript-eslint/method-signature-style
-    fromDict(data: ApiShape): void;
+    fromDict(data: ApiShape, options: Partial<ServerShapeOptions>): void;
 
     // UTILITY
 
     visibleInCanvas: (max: { w: number; h: number }, options: { includeAuras: boolean }) => boolean;
+
+    // DEPENDENT SHAPES
+
+    addDependentShape: (depShape: DepShape) => void;
+    removeDependentShape: (shapeId: LocalId, options: { dropShapeId: boolean }) => void;
+    removeDependentShapes: (options: { dropShapeId: boolean }) => void;
 }

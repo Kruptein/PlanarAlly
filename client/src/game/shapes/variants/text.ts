@@ -1,3 +1,4 @@
+import { exportShapeData } from "..";
 import type { ApiTextShape } from "../../../apiTypes";
 import { g2lz, l2gz } from "../../../core/conversions";
 import { addP, toGP, Vector } from "../../../core/geometry";
@@ -39,12 +40,11 @@ export class Text extends Shape implements IText {
     readonly isClosed = true;
 
     asDict(): ApiTextShape {
-        return { ...this.getBaseDict(), text: this.text, font_size: this.fontSize, angle: this.angle };
+        return { ...exportShapeData(this), text: this.text, font_size: this.fontSize, angle: this.angle };
     }
 
-    invalidatePoints(): void {
+    updatePoints(): void {
         this._points = this.getBoundingBox().points;
-        super.invalidatePoints();
     }
 
     getBoundingBox(): BoundingRect {
@@ -112,12 +112,6 @@ export class Text extends Shape implements IText {
         if (super.visibleInCanvas(max, options)) return true;
         return this.getBoundingBox().visibleInCanvas(max);
     }
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    snapToGrid(): void {}
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    resizeToGrid(): void {}
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     resize(resizePoint: number, point: GlobalPoint): number {

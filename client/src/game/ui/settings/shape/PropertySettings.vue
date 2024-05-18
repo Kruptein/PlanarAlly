@@ -13,60 +13,62 @@ import type { Asset } from "../../../shapes/variants/asset";
 import type { CircularToken } from "../../../shapes/variants/circularToken";
 import { accessState } from "../../../systems/access/state";
 import { propertiesSystem } from "../../../systems/properties";
-import { getProperties, propertiesState } from "../../../systems/properties/state";
+import { useShapeProps } from "../../../systems/properties/composables";
 import { VisionBlock, visionBlocks } from "../../../systems/properties/types";
+import { selectedState } from "../../../systems/selected/state";
 
 const { t } = useI18n();
 const modals = useModal();
+const shapeProps = useShapeProps();
 
 const owned = accessState.hasEditAccess;
 const isAsset = computed(() => activeShapeStore.state.type === "assetrect");
 
 function updateName(event: Event): void {
     if (!owned.value) return;
-    propertiesSystem.setName(propertiesState.raw.id!, (event.target as HTMLInputElement).value, SERVER_SYNC);
+    propertiesSystem.setName(selectedState.raw.focus!, (event.target as HTMLInputElement).value, SERVER_SYNC);
 }
 
 function toggleNameVisible(): void {
     if (!owned.value) return;
-    const id = propertiesState.raw.id!;
-    propertiesSystem.setNameVisible(id, !getProperties(id)!.nameVisible, SERVER_SYNC);
+    const id = selectedState.raw.focus!;
+    propertiesSystem.setNameVisible(id, !shapeProps.value!.nameVisible, SERVER_SYNC);
 }
 
 function setToken(event: Event): void {
     if (!owned.value) return;
-    propertiesSystem.setIsToken(propertiesState.raw.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
+    propertiesSystem.setIsToken(selectedState.raw.focus!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
 function setInvisible(event: Event): void {
     if (!owned.value) return;
-    propertiesSystem.setIsInvisible(propertiesState.raw.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
+    propertiesSystem.setIsInvisible(selectedState.raw.focus!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
 function setDefeated(event: Event): void {
     if (!owned.value) return;
-    propertiesSystem.setIsDefeated(propertiesState.raw.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
+    propertiesSystem.setIsDefeated(selectedState.raw.focus!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
 function setLocked(event: Event): void {
     if (!owned.value) return;
-    propertiesSystem.setLocked(propertiesState.raw.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
+    propertiesSystem.setLocked(selectedState.raw.focus!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
 function toggleBadge(event: Event): void {
     if (!owned.value) return;
-    propertiesSystem.setShowBadge(propertiesState.raw.id!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
+    propertiesSystem.setShowBadge(selectedState.raw.focus!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
 }
 
 function setBlocksVision(bv: VisionBlock): void {
     if (!owned.value) return;
-    propertiesSystem.setBlocksVision(propertiesState.raw.id!, bv, SERVER_SYNC);
+    propertiesSystem.setBlocksVision(selectedState.raw.focus!, bv, SERVER_SYNC);
 }
 
 function setBlocksMovement(event: Event): void {
     if (!owned.value) return;
     propertiesSystem.setBlocksMovement(
-        propertiesState.raw.id!,
+        selectedState.raw.focus!,
         (event.target as HTMLInputElement).checked,
         SERVER_SYNC,
     );
@@ -74,12 +76,12 @@ function setBlocksMovement(event: Event): void {
 
 function setStrokeColour(event: string, temporary = false): void {
     if (!owned.value) return;
-    propertiesSystem.setStrokeColour(propertiesState.raw.id!, event, temporary ? NO_SYNC : SERVER_SYNC);
+    propertiesSystem.setStrokeColour(selectedState.raw.focus!, event, temporary ? NO_SYNC : SERVER_SYNC);
 }
 
 function setFillColour(colour: string, temporary = false): void {
     if (!owned.value) return;
-    propertiesSystem.setFillColour(propertiesState.raw.id!, colour, temporary ? NO_SYNC : SERVER_SYNC);
+    propertiesSystem.setFillColour(selectedState.raw.focus!, colour, temporary ? NO_SYNC : SERVER_SYNC);
 }
 
 const hasValue = computed(() => {
@@ -123,19 +125,19 @@ async function changeAsset(): Promise<void> {
 </script>
 
 <template>
-    <div class="panel restore-panel">
+    <div v-if="shapeProps" class="panel restore-panel">
         <div class="spanrow header">Common</div>
         <div class="row">
             <label for="shapeselectiondialog-name">{{ t("common.name") }}</label>
             <input
                 id="shapeselectiondialog-name"
                 type="text"
-                :value="propertiesState.reactive.name"
+                :value="shapeProps.name"
                 :disabled="!owned"
                 @change="updateName"
             />
             <div
-                :style="{ opacity: propertiesState.reactive.nameVisible ? 1.0 : 0.3, textAlign: 'center' }"
+                :style="{ opacity: shapeProps.nameVisible ? 1.0 : 0.3, textAlign: 'center' }"
                 :disabled="!owned"
                 :title="t('common.toggle_public_private')"
                 @click="toggleNameVisible"
@@ -159,7 +161,7 @@ async function changeAsset(): Promise<void> {
             <input
                 id="shapeselectiondialog-istoken"
                 type="checkbox"
-                :checked="propertiesState.reactive.isToken"
+                :checked="shapeProps.isToken"
                 style="grid-column-start: toggle"
                 class="styled-checkbox"
                 :disabled="!owned"
@@ -173,7 +175,7 @@ async function changeAsset(): Promise<void> {
             <input
                 id="shapeselectiondialog-is-invisible"
                 type="checkbox"
-                :checked="propertiesState.reactive.isInvisible"
+                :checked="shapeProps.isInvisible"
                 style="grid-column-start: toggle"
                 class="styled-checkbox"
                 :disabled="!owned"
@@ -187,7 +189,7 @@ async function changeAsset(): Promise<void> {
             <input
                 id="shapeselectiondialog-is-defeated"
                 type="checkbox"
-                :checked="propertiesState.reactive.isDefeated"
+                :checked="shapeProps.isDefeated"
                 style="grid-column-start: toggle"
                 class="styled-checkbox"
                 :disabled="!owned"
@@ -197,7 +199,7 @@ async function changeAsset(): Promise<void> {
         <div class="row">
             <label for="shapeselectiondialog-strokecolour">{{ t("common.border_color") }}</label>
             <ColourPicker
-                :colour="propertiesState.reactive.strokeColour?.[0]"
+                :colour="shapeProps.strokeColour?.[0]"
                 style="grid-column-start: toggle"
                 :disabled="!owned"
                 @input:colour="setStrokeColour($event, true)"
@@ -207,7 +209,7 @@ async function changeAsset(): Promise<void> {
         <div class="row">
             <label for="shapeselectiondialog-fillcolour">{{ t("common.fill_color") }}</label>
             <ColourPicker
-                :colour="propertiesState.reactive.fillColour"
+                :colour="shapeProps.fillColour"
                 style="grid-column-start: toggle"
                 :disabled="!owned"
                 @input:colour="setFillColour($event, true)"
@@ -226,7 +228,7 @@ async function changeAsset(): Promise<void> {
             <div style="grid-column-start: toggle; position: relative">
                 <ToggleGroup
                     id="kind-selector"
-                    :model-value="propertiesState.reactive.blocksVision"
+                    :model-value="shapeProps.blocksVision"
                     :options="visionBlocks.map((v) => ({ label: VisionBlock[v], value: v }))"
                     :disabled="!owned"
                     :multi-select="false"
@@ -243,7 +245,7 @@ async function changeAsset(): Promise<void> {
             <input
                 id="shapeselectiondialog-moveblocker"
                 type="checkbox"
-                :checked="propertiesState.reactive.blocksMovement"
+                :checked="shapeProps.blocksMovement"
                 style="grid-column-start: toggle"
                 :disabled="!owned"
                 @click="setBlocksMovement"
@@ -256,7 +258,7 @@ async function changeAsset(): Promise<void> {
             <input
                 id="shapeselectiondialog-is-locked"
                 type="checkbox"
-                :checked="propertiesState.reactive.isLocked"
+                :checked="shapeProps.isLocked"
                 style="grid-column-start: toggle"
                 class="styled-checkbox"
                 :disabled="!owned"
@@ -270,7 +272,7 @@ async function changeAsset(): Promise<void> {
             <input
                 id="shapeselectiondialog-showBadge"
                 type="checkbox"
-                :checked="propertiesState.reactive.showBadge"
+                :checked="shapeProps.showBadge"
                 style="grid-column-start: toggle"
                 class="styled-checkbox"
                 :disabled="!owned"
@@ -311,3 +313,4 @@ button {
     justify-self: flex-end;
 }
 </style>
+../../../systems/properties/helpers

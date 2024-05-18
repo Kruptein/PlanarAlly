@@ -10,6 +10,8 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+## [2024.2.0] - 2024-05-18
+
 ### Added
 
 -   New grid section in Edit Shape dialog

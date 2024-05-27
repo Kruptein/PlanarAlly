@@ -75,7 +75,8 @@
         "name_already_in_use": "This name is already in use!",
         "varia": "Varia",
         "select": "Select",
-        "or": "or"
+        "or": "or",
+        "features": "Features"
     },
     "auth": {
         "login": {

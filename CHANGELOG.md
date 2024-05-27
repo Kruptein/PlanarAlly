@@ -17,6 +17,9 @@ tech changes will usually be stripped from release notes for the public
     -   Chat is basic markdown aware, but does not allow direct HTML
     -   (image) urls can be pasted without special markdown syntax
     -   Can be collapsed by clicking on the chat title
+-   [DM] new DM settings section: Features
+    -   Can be used to enable/disable certain features campaign wide
+    -   Currently limited to chat & dice
 
 ## [2024.2.0] - 2024-05-18
 

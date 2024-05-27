@@ -10,6 +10,7 @@ import { accessState } from "../../systems/access/state";
 import { gameSystem } from "../../systems/game";
 import { gameState } from "../../systems/game/state";
 import { labelState } from "../../systems/labels/state";
+import { roomState } from "../../systems/room/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { activeModeTools, activeTool, activeToolMode, dmTools, toggleActiveMode, toolMap } from "../../tools/tools";
 import { initiativeStore } from "../initiative/state";
@@ -42,6 +43,8 @@ const visibleTools = computed(() => {
                 if (labelState.reactive.labels.size === 0) continue;
             } else if (toolName === ToolName.Vision) {
                 if (accessState.reactive.ownedTokens.size <= 1) continue;
+            } else if (toolName === ToolName.Dice) {
+                if (!roomState.reactive.enableDice) continue;
             }
 
             const tool = toolMap[toolName];
@@ -155,7 +158,7 @@ function toggleFakePlayer(): void {
             <MapTool v-if="activeTool === ToolName.Map" />
             <FilterTool v-if="activeTool === ToolName.Filter" />
             <VisionTool v-if="activeTool === ToolName.Vision" />
-            <DiceTool v-if="activeTool === ToolName.Dice" />
+            <DiceTool v-if="roomState.reactive.enableDice && activeTool === ToolName.Dice" />
         </div>
     </div>
 </template>

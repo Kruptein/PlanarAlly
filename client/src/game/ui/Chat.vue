@@ -6,7 +6,7 @@ import { chatState } from "../systems/chat/state";
 import { playerSystem } from "../systems/players";
 
 const URL_REGEX =
-    /\bhttps?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g;
+    /\bhttps?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)/g;
 
 const chatContainer = ref<HTMLElement | null>(null);
 const expanded = ref(false);
@@ -108,7 +108,7 @@ function handleMessage(event: KeyboardEvent): void {
 
 <template>
     <dialog v-show="enlargedUrl" ref="dialog" @click="closeDialog">
-        <img v-if="enlargedUrl" :src="enlargedUrl" />
+        <img v-if="enlargedUrl" :src="enlargedUrl" alt="Enlarged chat image" />
     </dialog>
     <div id="chat" :class="{ collapsed: !expanded }">
         <div id="chat-title" @click="toggleChat">

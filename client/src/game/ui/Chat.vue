@@ -106,7 +106,7 @@ function handleMessage(event: KeyboardEvent): void {
     <dialog v-show="enlargedUrl" ref="dialog" @click="closeDialog">
         <img v-if="enlargedUrl" :src="enlargedUrl" />
     </dialog>
-    <div id="chat">
+    <div id="chat" :class="{ collapsed: !expanded }">
         <div id="chat-title" @click="toggleChat">
             <div>
                 Chat
@@ -166,6 +166,11 @@ dialog {
 
     resize: horizontal;
     overflow: auto;
+
+    &.collapsed {
+        min-width: 7.5rem;
+        width: 7.5rem;
+    }
 
     &:hover,
     &:focus-within {

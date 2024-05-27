@@ -9,7 +9,7 @@ const URL_REGEX =
     /\bhttps?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g;
 
 const chatContainer = ref<HTMLElement | null>(null);
-const expanded = ref(true);
+const expanded = ref(false);
 const enlargedUrl = ref<string | null>(null);
 const dialog = ref<HTMLDialogElement | null>(null);
 const messagesSeenCount = ref(chatState.raw.messages.length);

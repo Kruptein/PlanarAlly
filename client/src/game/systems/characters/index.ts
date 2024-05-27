@@ -7,6 +7,7 @@ import { find } from "../../../core/iter";
 import { getGlobalId, getLocalId, getShape, type LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import type { IToggleComposite } from "../../interfaces/shapes/toggleComposite";
+import type { SystemClearReason } from "../models";
 import { selectedState } from "../selected/state";
 
 import type { CharacterId } from "./models";
@@ -17,7 +18,7 @@ const { mutable, readonly, mutableReactive: $ } = characterState;
 class CharacterSystem implements ShapeSystem {
     // BEHAVIOUR
 
-    clear(reason: "full-loading" | "partial-loading" | "leaving"): void {
+    clear(reason: SystemClearReason): void {
         $.activeCharacterId = undefined;
         if (reason !== "partial-loading") {
             $.characterIds.clear();

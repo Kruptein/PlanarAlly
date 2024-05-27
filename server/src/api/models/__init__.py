@@ -1,6 +1,7 @@
 from .asset import *
 from .aura import *
 from .character import *
+from .chat import *
 from .client import *
 from .common import *
 from .data_block import *

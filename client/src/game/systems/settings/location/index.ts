@@ -5,6 +5,7 @@ import { updateFogColour } from "../../../colour";
 import type { GlobalId } from "../../../id";
 import { floorSystem } from "../../floors";
 import { floorState } from "../../floors/state";
+import type { SystemClearReason } from "../../models";
 
 import { isDefaultWrapper } from "./helpers";
 import type { WithLocationDefault } from "./models";
@@ -13,7 +14,7 @@ import { locationSettingsState } from "./state";
 const { mutableReactive: $, raw, reset } = locationSettingsState;
 
 class LocationSettingsSystem implements System {
-    clear(reason: "full-loading" | "partial-loading" | "leaving"): void {
+    clear(reason: SystemClearReason): void {
         if (reason !== "partial-loading") reset();
     }
 

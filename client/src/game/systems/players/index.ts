@@ -16,6 +16,7 @@ import { startDrawLoop } from "../../rendering/core";
 import { clientSystem } from "../client";
 import { clientState } from "../client/state";
 import { floorSystem } from "../floors";
+import type { SystemClearReason } from "../models";
 import { positionSystem } from "../position";
 
 import type { Player, PlayerId } from "./models";
@@ -24,7 +25,7 @@ import { playerState } from "./state";
 const { mutableReactive: $, raw } = playerState;
 
 class PlayerSystem implements System {
-    clear(reason: "full-loading" | "partial-loading" | "leaving"): void {
+    clear(reason: SystemClearReason): void {
         if (reason !== "partial-loading") $.players.clear();
     }
 

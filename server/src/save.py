@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 94
+SAVE_VERSION = 95
 
 import json
 import logging
@@ -581,6 +581,15 @@ def upgrade(db: SqliteExtDatabase, version: int):
             )
             db.execute_sql(
                 "ALTER TABLE shape ADD COLUMN cell_stroke_width INTEGER DEFAULT NULL"
+            )
+    elif version == 94:
+        # Add Room.enable_chat Room.enable_dice
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE room ADD COLUMN enable_chat INTEGER NOT NULL DEFAULT 1"
+            )
+            db.execute_sql(
+                "ALTER TABLE room ADD COLUMN enable_dice INTEGER NOT NULL DEFAULT 1"
             )
     else:
         raise UnknownVersionException(

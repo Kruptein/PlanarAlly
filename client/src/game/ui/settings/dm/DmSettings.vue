@@ -13,6 +13,7 @@ import VisionSettings from "../location/VisionSettings.vue";
 
 import AdminSettings from "./AdminSettings.vue";
 import { DmSettingCategory } from "./categories";
+import FeatureSettings from "./FeatureSettings.vue";
 
 const emit = defineEmits<(e: "close" | "focus") => void>();
 defineProps<{ modalIndex: ModalIndex }>();
@@ -36,6 +37,7 @@ defineExpose({ close });
 
 const tabs: { name: string; component: Component; props: { global: true } }[] = [
     { name: t(DmSettingCategory.Admin), component: AdminSettings, props: { global: true } },
+    { name: t(DmSettingCategory.Features), component: FeatureSettings, props: { global: true } },
     { name: t(DmSettingCategory.Grid), component: GridSettings, props: { global: true } },
     { name: t(DmSettingCategory.Vision), component: VisionSettings, props: { global: true } },
     { name: t(DmSettingCategory.Floor), component: FloorSettings, props: { global: true } },

@@ -10,6 +10,7 @@ import { coreStore } from "../../store/core";
 import { gameState } from "../systems/game/state";
 import { positionSystem } from "../systems/position";
 import { positionState } from "../systems/position/state";
+import { roomState } from "../systems/room/state";
 import { uiState } from "../systems/ui/state";
 
 import Annotation from "./Annotation.vue";
@@ -190,7 +191,7 @@ function setTempZoomDisplay(value: number): void {
         <Tools />
         <LocationBar v-if="gameState.reactive.isDm" :active="visible.locations" :menu-active="visible.settings" />
         <div id="floor-and-chat">
-            <Chat />
+            <Chat v-if="roomState.reactive.enableChat" />
             <Floors />
         </div>
         <DefaultContext />

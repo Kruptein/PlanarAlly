@@ -115,8 +115,7 @@ function handleMessage(event: KeyboardEvent): void {
             <div>
                 Chat
                 <span v-show="chatState.raw.messages.length > messagesSeenCount">
-                    ({{ chatState.raw.messages.length - messagesSeenCount }}) {{ chatState.reactive.messages.length }}
-                    {{ messagesSeenCount }}
+                    ({{ chatState.raw.messages.length - messagesSeenCount }})
                 </span>
             </div>
         </div>

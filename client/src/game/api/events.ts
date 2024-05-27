@@ -8,6 +8,7 @@ import "../systems/logic/door/events";
 import "../systems/logic/tp/events";
 import "../systems/markers/events";
 import "../systems/notes/events";
+import "../systems/room/events";
 import "../systems/trackers/events";
 
 import "./events/client";
@@ -21,7 +22,6 @@ import "./events/notification";
 import "./events/player/options";
 import "./events/player/player";
 import "./events/player/players";
-import "./events/room";
 import "./events/shape/asset";
 import "./events/shape/circularToken";
 import "./events/shape/core";

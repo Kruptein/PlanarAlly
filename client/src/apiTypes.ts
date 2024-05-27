@@ -604,6 +604,10 @@ export interface PositionTuple {
   x: number;
   y: number;
 }
+export interface RoomFeatures {
+  chat: boolean;
+  dice: boolean;
+}
 export interface RoomInfoPlayersAdd {
   id: PlayerId;
   name: string;
@@ -615,6 +619,7 @@ export interface RoomInfoSet {
   invitationCode: string;
   isLocked: boolean;
   publicName: string;
+  features: RoomFeatures;
 }
 export interface ShapeAdd {
   shape:

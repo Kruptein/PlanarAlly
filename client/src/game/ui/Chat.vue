@@ -12,15 +12,19 @@ const chatContainer = ref<HTMLElement | null>(null);
 const expanded = ref(false);
 const enlargedUrl = ref<string | null>(null);
 const dialog = ref<HTMLDialogElement | null>(null);
+const textInput = ref<HTMLTextAreaElement | null>(null);
 const messagesSeenCount = ref(chatState.raw.messages.length);
 
 async function toggleChat(): Promise<void> {
     expanded.value = !expanded.value;
     const messageLength = chatState.raw.messages.length;
-    if (expanded.value && messagesSeenCount.value < messageLength) {
-        messagesSeenCount.value = messageLength;
+    if (expanded.value) {
         await nextTick();
-        scrollToBottom();
+        if (messagesSeenCount.value < messageLength) {
+            messagesSeenCount.value = messageLength;
+            scrollToBottom();
+        }
+        textInput.value?.focus();
     }
 }
 
@@ -130,7 +134,7 @@ function handleMessage(event: KeyboardEvent): void {
                 <div style="font-style: italic">No messages yet.</div>
             </template>
         </div>
-        <textarea v-show="expanded" @keydown.enter="handleMessage" />
+        <textarea v-show="expanded" ref="textInput" @keydown.enter="handleMessage" />
     </div>
 </template>
 

@@ -10,6 +10,14 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Added
+
+-   Optional simple chat system
+    -   This is **not** stored serverside, so messages will be lost on refresh or later re-opening of the session
+    -   Chat is basic markdown aware, but does not allow direct HTML
+    -   (image) urls can be pasted without special markdown syntax
+    -   Can be collapsed by clicking on the chat title
+
 ## [2024.2.0] - 2024-05-18
 
 ### Added

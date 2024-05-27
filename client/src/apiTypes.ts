@@ -126,6 +126,10 @@ export interface ApiCharacter {
   assetId: number;
   assetHash: string;
 }
+export interface ApiChatMessage {
+  author: string;
+  data: string[];
+}
 export interface ApiCircleShape extends ApiCoreShape {
   radius: number;
   viewing_angle: number | null;

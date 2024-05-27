@@ -143,7 +143,6 @@ dialog {
     min-width: 20rem;
     max-width: 75vw;
 
-    margin: 1rem;
     margin-left: 1.5rem;
 
     background-color: lightblue;
@@ -157,11 +156,10 @@ dialog {
     resize: horizontal;
     overflow: auto;
 
-    z-index: 1;
-
     &:hover,
     &:focus-within {
         opacity: 1;
+        z-index: 1;
     }
 
     #chat-title {

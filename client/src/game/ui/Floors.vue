@@ -140,6 +140,7 @@ const selectedLayer = computed(() => {
 #floor-layer {
     display: flex;
     list-style: none;
+    margin-top: 1rem;
     margin-left: 1.5rem;
     margin-bottom: 1.5rem;
     -webkit-user-drag: none !important;

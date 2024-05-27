@@ -1,4 +1,5 @@
-import { registerSystem } from "..";
+import { type System, registerSystem } from "..";
+import type { SystemClearReason } from "../models";
 
 import { sendChatMessage } from "./emits";
 import { loadChatImages } from "./image-loader";
@@ -7,9 +8,9 @@ import { chatState } from "./state";
 
 const { mutableReactive: $ } = chatState;
 
-class ChatSystem {
-    clear(): void {
-        $.messages = [];
+class ChatSystem implements System {
+    clear(reason: SystemClearReason): void {
+        if (reason === "full-loading") $.messages = [];
     }
 
     addMessage(author: string, data: string[], sync: boolean): void {

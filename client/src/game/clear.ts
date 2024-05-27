@@ -5,10 +5,11 @@ import { clearIds } from "./id";
 import { compositeState } from "./layers/state";
 import { stopDrawLoop } from "./rendering/core";
 import { clearSystems } from "./systems";
+import type { SystemClearReason } from "./systems/models";
 import { initiativeStore } from "./ui/initiative/state";
 import { visionState } from "./vision/state";
 
-export function clearGame(reason: "full-loading" | "partial-loading" | "leaving"): void {
+export function clearGame(reason: SystemClearReason): void {
     stopDrawLoop();
     visionState.clear();
     locationStore.setLocations([], false);

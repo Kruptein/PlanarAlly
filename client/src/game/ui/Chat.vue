@@ -12,6 +12,17 @@ const chatContainer = ref<HTMLElement | null>(null);
 const expanded = ref(true);
 const enlargedUrl = ref<string | null>(null);
 const dialog = ref<HTMLDialogElement | null>(null);
+const messagesSeenCount = ref(chatState.raw.messages.length);
+
+async function toggleChat(): Promise<void> {
+    expanded.value = !expanded.value;
+    const messageLength = chatState.raw.messages.length;
+    if (expanded.value && messagesSeenCount.value < messageLength) {
+        messagesSeenCount.value = messageLength;
+        await nextTick();
+        scrollToBottom();
+    }
+}
 
 // MutationObserver to detect new images and add onload & onClick handlers
 
@@ -39,6 +50,7 @@ onMounted(() => {
 // Scroll to bottom when new messages are added
 
 watch(chatState.reactive.messages, async () => {
+    if (expanded.value) messagesSeenCount.value = chatState.raw.messages.length;
     await nextTick();
     scrollToBottom();
 });
@@ -89,8 +101,13 @@ function handleMessage(event: KeyboardEvent): void {
         <img v-if="enlargedUrl" :src="enlargedUrl" />
     </dialog>
     <div id="chat">
-        <div id="chat-title" @click="expanded = !expanded">
-            <div>Chat</div>
+        <div id="chat-title" @click="toggleChat">
+            <div>
+                Chat
+                <span v-show="chatState.raw.messages.length > messagesSeenCount">
+                    ({{ chatState.raw.messages.length - messagesSeenCount }})
+                </span>
+            </div>
         </div>
         <div v-show="expanded" id="chat-container" ref="chatContainer">
             <template

@@ -49,11 +49,17 @@ onMounted(() => {
 
 // Scroll to bottom when new messages are added
 
-watch(chatState.reactive.messages, async () => {
-    if (expanded.value) messagesSeenCount.value = chatState.raw.messages.length;
-    await nextTick();
-    scrollToBottom();
-});
+watch(
+    () => chatState.reactive.messages,
+    async (newData) => {
+        if (expanded.value && newData.length !== messagesSeenCount.value) {
+            messagesSeenCount.value = chatState.raw.messages.length;
+            await nextTick();
+            scrollToBottom();
+        }
+    },
+    { deep: true },
+);
 
 function scrollToBottom(): void {
     const chatContainer = document.getElementById("chat-container");
@@ -105,7 +111,8 @@ function handleMessage(event: KeyboardEvent): void {
             <div>
                 Chat
                 <span v-show="chatState.raw.messages.length > messagesSeenCount">
-                    ({{ chatState.raw.messages.length - messagesSeenCount }})
+                    ({{ chatState.raw.messages.length - messagesSeenCount }}) {{ chatState.reactive.messages.length }}
+                    {{ messagesSeenCount }}
                 </span>
             </div>
         </div>
@@ -117,6 +124,10 @@ function handleMessage(event: KeyboardEvent): void {
                 <div class="author">{{ message.author }}</div>
                 <!-- eslint-disable-next-line vue/no-v-html -->
                 <div class="message" v-html="message.content"></div>
+            </template>
+            <template v-if="chatState.reactive.messages.length === 0">
+                <div></div>
+                <div style="font-style: italic">No messages yet.</div>
             </template>
         </div>
         <textarea v-show="expanded" @keydown.enter="handleMessage" />

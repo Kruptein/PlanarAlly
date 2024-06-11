@@ -278,7 +278,7 @@ class RulerTool extends Tool implements ITool {
         return Promise.resolve();
     }
 
-    onKeyUp(event: KeyboardEvent, features: ToolFeatures): void {
+    async onKeyUp(event: KeyboardEvent, features: ToolFeatures): Promise<void> {
         if (event.defaultPrevented) return;
         if (event.key === " " && this.active.value) {
             const { ruler: lastRuler } = this.rulers.at(-1)!;
@@ -306,7 +306,7 @@ class RulerTool extends Tool implements ITool {
 
             event.preventDefault();
         }
-        super.onKeyUp(event, features);
+        await super.onKeyUp(event, features);
     }
 
     private registerHighlightedCellDraw(layer: ILayer): void {

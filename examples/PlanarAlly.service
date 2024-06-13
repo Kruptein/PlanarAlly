@@ -1,0 +1,17 @@
+#Systemd service
+
+[Unit]
+Description=PlanarAlly Server
+After=network.target
+
+[Service]
+Type=simple
+#user www-data is important for nginx to work, it needs write access to planarally folder
+User=www-data
+WorkingDirectory=/path/to/PlanarAlly/server
+ExecStart=/path/to/PlanarAlly/server/.venv/bin/python /path/to/PlanarAlly/server/planarserver.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

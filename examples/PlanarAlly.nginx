@@ -1,0 +1,75 @@
+upstream pa {
+   server 0.0.0.0:8000 fail_timeout=0;
+
+## If you use unix socket comment the previous and uncomment the next line
+#   server unix:/tmp/planarally.sock fail_timeout=0;
+}
+
+
+server {
+
+   # SSL configuration
+
+   listen 443 ssl http2;
+   listen [::]:443 ssl http2;
+
+   #Change this to your server name
+   server_name planarally.example.com
+
+   index index;
+   client_max_body_size 4G;
+
+   location / {
+      proxy_set_header Host $http_host;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_redirect off;
+      proxy_buffering off;
+      proxy_pass http://pa/;
+   }
+
+   location /socket.io/ {
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "Upgrade";
+      proxy_set_header Host $host;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_pass_request_headers on;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_pass http://pa/socket.io/;
+   }
+
+   location /static {
+      root /path/to/PlanarAlly/server;
+   }
+
+   #certs
+   ssl_certificate /path/to/fullchain.pem;
+   ssl_certificate_key /path/to/privkey.pem;
+
+   ssl_session_timeout 1d;
+   ssl_session_cache shared:PASSL:10m;
+   ssl_session_tickets off;
+
+   ssl_protocols TLSv1.3;
+   ssl_prefer_server_ciphers off;
+
+#   #HSTS - uncomment this if you know you won't come back to http only access.
+#   add_header Strict-Transport-Security "max-age=63072000" always;
+
+   #OCSP stapling
+   ssl_stapling on;
+   ssl_stapling_verify on;
+   ssl_trusted_certificate /path/to/chain.pem;
+
+}
+
+
+## Forward http requests to https
+server {
+   listen 80;
+   listen [::]:80;
+   return 301 https://$host$request_uri;
+
+   server_name planarally.example.com;
+}

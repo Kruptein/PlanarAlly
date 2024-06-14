@@ -55,6 +55,7 @@ export async function expandSelection(updateList?: IShape[]): Promise<void> {
         const collapsedShape = getShape(collapsedId);
         if (collapsedShape !== undefined) {
             await moveShapes([collapsedShape], calculateDelta(vector, collapsedShape, true), true);
+            selectedSystem.push(collapsedShape.id);
             if (updateList && !collapsedShape.preventSync) updateList.push(collapsedShape);
         }
     }

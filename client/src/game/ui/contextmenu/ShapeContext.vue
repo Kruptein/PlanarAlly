@@ -13,10 +13,11 @@ import { activeShapeStore } from "../../../store/activeShape";
 import { locationStore } from "../../../store/location";
 import { requestAssetOptions, sendAssetOptions } from "../../api/emits/asset";
 import { requestSpawnInfo } from "../../api/emits/location";
-import { sendShapesMove } from "../../api/emits/shape/core";
+import { sendShapePositionUpdate, sendShapesMove } from "../../api/emits/shape/core";
 import { getGlobalId, getShape } from "../../id";
 import type { LocalId } from "../../id";
 import type { ILayer } from "../../interfaces/layer";
+import type { IShape } from "../../interfaces/shape";
 import { compositeState } from "../../layers/state";
 import type { AssetOptions } from "../../models/asset";
 import type { Floor, LayerName } from "../../models/floor";
@@ -36,6 +37,7 @@ import { openNoteManager } from "../../systems/notes/ui";
 import { playerSystem } from "../../systems/players";
 import { getProperties } from "../../systems/properties/state";
 import { selectedSystem } from "../../systems/selected";
+import { collapseSelection, expandSelection } from "../../systems/selected/collapse";
 import { selectedState } from "../../systems/selected/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import { moveFloor, moveLayer } from "../../temp";
@@ -419,6 +421,19 @@ function enlargeGroup(): void {
     close();
 }
 
+function _collapseSelection(): void {
+    collapseSelection();
+    close();
+}
+
+async function _expandSelection(): Promise<void> {
+    const updateList: IShape[] = [];
+    await expandSelection(updateList);
+    sendShapePositionUpdate(updateList, false);
+
+    close();
+}
+
 const activeLayer = floorState.currentLayer as ComputedRef<ILayer>;
 const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
 const currentFloorIndex = toRef(floorState.reactive, "floorIndex");
@@ -509,7 +524,7 @@ const sections = computed(() => {
         }
     }
 
-    const rootGroupA = [
+    const rootGroupA: Section[] = [
         {
             title: "Move",
             subitems: moveSection,
@@ -519,6 +534,21 @@ const sections = computed(() => {
             subitems: groupsSection,
         },
     ];
+
+    if (hasSingleSelection.value) {
+        const selection = selectedState.reactive.focus!;
+        if ((getShape(selection)?.options?.collapsedIds?.length ?? 0) > 0) {
+            rootGroupA.push({
+                title: "Expand",
+                action: _expandSelection,
+            });
+        }
+    } else {
+        rootGroupA.push({
+            title: "Collapse",
+            action: _collapseSelection,
+        });
+    }
 
     const rootGroupB: Section[] = [];
 

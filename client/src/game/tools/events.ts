@@ -177,19 +177,35 @@ async function contextMenu(event: MouseEvent): Promise<void> {
     }
 }
 
-export function keyUp(event: KeyboardEvent): void {
+export async function keyDown(event: KeyboardEvent): Promise<void> {
     const tool = getActiveTool();
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
-        toolMap[permitted.name].onKeyUp(event, permitted.features);
+        await toolMap[permitted.name].onKeyDown(event, permitted.features);
     }
 
-    tool.onKeyUp(event, getFeatures(activeTool.value));
+    await tool.onKeyDown(event, getFeatures(activeTool.value));
 
     for (const permitted of tool.permittedTools) {
         if (permitted.early ?? false) continue;
-        toolMap[permitted.name].onKeyUp(event, permitted.features);
+        await toolMap[permitted.name].onKeyDown(event, permitted.features);
+    }
+}
+
+export async function keyUp(event: KeyboardEvent): Promise<void> {
+    const tool = getActiveTool();
+
+    for (const permitted of tool.permittedTools) {
+        if (!(permitted.early ?? false)) continue;
+        await toolMap[permitted.name].onKeyUp(event, permitted.features);
+    }
+
+    await tool.onKeyUp(event, getFeatures(activeTool.value));
+
+    for (const permitted of tool.permittedTools) {
+        if (permitted.early ?? false) continue;
+        await toolMap[permitted.name].onKeyUp(event, permitted.features);
     }
 }
 

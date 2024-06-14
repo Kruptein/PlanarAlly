@@ -49,7 +49,8 @@ export interface ITool {
     onSelect: () => void;
     onDeselect: () => void;
 
-    onKeyUp: (event: KeyboardEvent, features: ToolFeatures) => void;
+    onKeyDown: (event: KeyboardEvent, features: ToolFeatures) => Promise<void>;
+    onKeyUp: (event: KeyboardEvent, features: ToolFeatures) => Promise<void>;
 
     onMouseUp: (event: MouseEvent, features: ToolFeatures) => Promise<void>;
     onMouseMove: (event: MouseEvent, features: ToolFeatures) => Promise<void>;

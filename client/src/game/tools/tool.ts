@@ -1,6 +1,7 @@
 import { computed, ref } from "vue";
 
 import type { LocalPoint } from "../../core/geometry";
+import { onKeyDown } from "../input/keyboard/down";
 import { onKeyUp } from "../input/keyboard/up";
 import { getLocalPointFromEvent } from "../input/mouse";
 import type { ToolFeatures, ITool, ToolMode, ToolName, ToolPermission } from "../models/tools";
@@ -28,9 +29,14 @@ export abstract class Tool implements ITool {
         );
     }
 
-    onKeyUp(event: KeyboardEvent, _features: ToolFeatures): void {
+    async onKeyDown(event: KeyboardEvent, _features: ToolFeatures): Promise<void> {
         if (event.defaultPrevented) return;
-        onKeyUp(event);
+        await onKeyDown(event);
+    }
+
+    async onKeyUp(event: KeyboardEvent, _features: ToolFeatures): Promise<void> {
+        if (event.defaultPrevented) return;
+        await onKeyUp(event);
     }
 
     async onMouseDown(event: MouseEvent | TouchEvent, features: ToolFeatures): Promise<void> {

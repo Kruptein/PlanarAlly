@@ -831,8 +831,8 @@ class SelectTool extends Tool implements ISelectTool {
         return Promise.resolve(true);
     }
 
-    onKeyDown(event: KeyboardEvent): Promise<void> {
-        if (event.defaultPrevented) return Promise.resolve();
+    onKeyDown(event: KeyboardEvent, features: ToolFeatures<number>): Promise<void> {
+        if (event.defaultPrevented) return super.onKeyDown(event, features);
         if (this.active.value) {
             if (event.key === "c") {
                 event.preventDefault();
@@ -840,7 +840,7 @@ class SelectTool extends Tool implements ISelectTool {
                 collapseSelection();
             }
         }
-        return Promise.resolve();
+        return super.onKeyDown(event, features);
     }
 
     async onKeyUp(event: KeyboardEvent, features: ToolFeatures): Promise<void> {

@@ -69,4 +69,4 @@ jobs:
             - name: ruff
               working-directory: server
               run: |
-                  ruff src
+                  ruff check src

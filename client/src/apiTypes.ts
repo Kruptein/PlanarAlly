@@ -127,8 +127,13 @@ export interface ApiCharacter {
   assetHash: string;
 }
 export interface ApiChatMessage {
+  id: string;
   author: string;
   data: string[];
+}
+export interface ApiChatMessageUpdate {
+  id: string;
+  message: string;
 }
 export interface ApiCircleShape extends ApiCoreShape {
   radius: number;

@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref, watch } from "vue";
 
+import { uuidv4 } from "../../core/utils";
 import { chatSystem } from "../systems/chat";
 import { chatState } from "../systems/chat/state";
 import { playerSystem } from "../systems/players";
 
+// Check for URL that starts at word boundary && does not follow ]( as this is likely already wrapped in markdown syntax in that case
 const URL_REGEX =
-    /\bhttps?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)/g;
+    /\b(?<!\]\()https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)/g;
 
 const chatContainer = ref<HTMLElement | null>(null);
 const expanded = ref(false);
@@ -102,7 +104,7 @@ function handleMessage(event: KeyboardEvent): void {
 
     input.value = "";
 
-    chatSystem.addMessage(playerSystem.getCurrentPlayer()?.name ?? "?", data, true);
+    chatSystem.addMessage(uuidv4(), playerSystem.getCurrentPlayer()?.name ?? "?", data, true);
 }
 </script>
 

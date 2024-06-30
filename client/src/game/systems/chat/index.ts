@@ -2,7 +2,6 @@ import { type System, registerSystem } from "..";
 import type { SystemClearReason } from "../models";
 
 import { sendChatMessage } from "./emits";
-import { loadChatImages } from "./image-loader";
 import { chatMarkDown } from "./md";
 import { chatState } from "./state";
 
@@ -13,18 +12,23 @@ class ChatSystem implements System {
         if (reason === "full-loading") $.messages = [];
     }
 
-    addMessage(author: string, data: string[], sync: boolean): void {
+    addMessage(id: string, author: string, data: string[], sync: boolean): void {
         const message = {
+            id,
             author,
             content: chatMarkDown.render(data.join("")),
         };
 
-        if (sync) sendChatMessage({ author, data });
+        if (sync) sendChatMessage({ id, author, data });
 
-        const messageIndex = $.messages.push(message) - 1;
+        $.messages.push(message) - 1;
+    }
 
-        // Non-blocking on purpose
-        loadChatImages(data, messageIndex).catch((err) => console.log("failed to load images", err));
+    updateImage(id: string, content: string): void {
+        const message = $.messages.findLast((m) => m.id === id);
+        if (message) {
+            message.content = chatMarkDown.render(content);
+        }
     }
 }
 

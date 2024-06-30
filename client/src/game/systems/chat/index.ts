@@ -21,7 +21,7 @@ class ChatSystem implements System {
 
         if (sync) sendChatMessage({ id, author, data });
 
-        $.messages.push(message) - 1;
+        $.messages.push(message);
     }
 
     updateImage(id: string, content: string): void {

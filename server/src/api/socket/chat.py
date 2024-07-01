@@ -45,7 +45,7 @@ async def add_chat_message(sid: str, raw_data: Any):
 
     if image_found:
         await _send_game(
-            "Chat.Image.Update",
+            "Chat.Message.Update",
             ApiChatMessageUpdate(id=data.id, message=content),
             room=pr.room.get_path(),
         )

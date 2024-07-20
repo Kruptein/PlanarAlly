@@ -10,6 +10,7 @@ import type { IShape } from "./interfaces/shape";
 import type { Floor, LayerName } from "./models/floor";
 import { addOperation } from "./operations/undo";
 import { createShapeFromDict } from "./shapes/create";
+import type { DepShape } from "./shapes/types";
 import { floorSystem } from "./systems/floors";
 import { getProperties } from "./systems/properties/state";
 import { visionState } from "./vision/state";
@@ -34,7 +35,9 @@ export function moveFloor(shapes: IShape[], newFloor: Floor, sync: boolean): voi
         visionState.moveShape(shape.id, oldFloor.id, newFloor.id);
         shape.setLayer(newFloor.id, oldLayer.name);
     }
-    oldLayer.setShapes(...oldLayer.getShapes({ includeComposites: true }).filter((s) => !shapes.includes(s)));
+    oldLayer.setShapes(
+        ...oldLayer.getShapes({ includeComposites: true, onlyInView: false }).filter((s) => !shapes.includes(s)),
+    );
     newLayer.pushShapes(...shapes);
     oldLayer.invalidate(false);
     newLayer.invalidate(false);
@@ -57,9 +60,13 @@ export function moveLayer(shapes: readonly IShape[], newLayer: ILayer, sync: boo
         throw new Error("Mixing shapes from different floors in shape move");
     }
 
-    for (const shape of shapes) shape.setLayer(newLayer.floor, newLayer.name);
+    for (const shape of shapes) {
+        shape.setLayer(newLayer.floor, newLayer.name);
+    }
     // Update layer shapes
-    oldLayer.setShapes(...oldLayer.getShapes({ includeComposites: true }).filter((s) => !shapes.includes(s)));
+    oldLayer.setShapes(
+        ...oldLayer.getShapes({ includeComposites: true, onlyInView: false }).filter((s) => !shapes.includes(s)),
+    );
     newLayer.pushShapes(...shapes);
     // Revalidate layers  (light should at most be redone once)
     oldLayer.invalidate(true);
@@ -76,7 +83,13 @@ export function moveLayer(shapes: readonly IShape[], newLayer: ILayer, sync: boo
     }
 }
 
-export function addShape(shape: ApiShape, floor: string, layerName: LayerName, sync: SyncMode): IShape | undefined {
+export function addShape(
+    shape: ApiShape,
+    floor: string,
+    layerName: LayerName,
+    sync: SyncMode,
+    dependents?: readonly DepShape[],
+): IShape | undefined {
     if (!floorSystem.hasLayer(floorSystem.getFloor({ name: floor })!, layerName)) {
         console.log(`Shape with unknown layer ${layerName} could not be added`);
         return;
@@ -86,7 +99,11 @@ export function addShape(shape: ApiShape, floor: string, layerName: LayerName, s
     if (sh === undefined) {
         return;
     }
+
     layer.addShape(sh, sync, InvalidationMode.NORMAL);
+    for (const dep of dependents ?? []) {
+        sh.addDependentShape(dep);
+    }
     layer.invalidate(false);
     return sh;
 }

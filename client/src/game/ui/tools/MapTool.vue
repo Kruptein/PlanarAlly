@@ -2,10 +2,18 @@
 import { reactive, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 
+import {
+    GridType,
+    getAspectRatio,
+    getCellCountFromHeight,
+    getCellCountFromWidth,
+    getHeightFromCellCount,
+    getWidthFromCellCount,
+} from "../../../core/grid";
 import { map } from "../../../core/iter";
 import { getShape } from "../../id";
-import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
 import { selectedState } from "../../systems/selected/state";
+import { locationSettingsState } from "../../systems/settings/location/state";
 import { mapTool } from "../../tools/variants/map";
 
 const { t } = useI18n();
@@ -20,7 +28,8 @@ const skipManualDrag = (): void => mapTool.skipManualDrag();
 
 watchEffect(() => {
     if (state.lock) {
-        mapTool.state.aspectRatio = mapTool.shape!.w / mapTool.shape!.h;
+        const gridType = locationSettingsState.reactive.gridType.value;
+        mapTool.state.aspectRatio = getAspectRatio(mapTool.shape!.w, mapTool.shape!.h, gridType);
     }
 });
 
@@ -34,48 +43,86 @@ function apply(): void {
     mapTool.removeRect(false);
 }
 
-function updateGridX(): void {
-    if (state.lock) {
-        if (mapTool.state.manualDrag) {
-            mapTool.state.gridY = mapTool.state.gridX / (mapTool.rect!.w / mapTool.rect!.h);
-        } else {
-            mapTool.state.gridY = mapTool.state.gridX / mapTool.state.aspectRatio;
-        }
-        mapTool.state.sizeY = mapTool.state.gridY * DEFAULT_GRID_SIZE;
+function unzigzag(xy: number, applies: boolean): number {
+    if (applies) {
+        return 1 + (xy - 1) * 0.75;
     }
-    mapTool.state.sizeX = mapTool.state.gridX * DEFAULT_GRID_SIZE;
+    return xy;
+}
+
+function zigzag(xy: number, applies: boolean): number {
+    if (applies) {
+        return 1 + (xy - 1) / 0.75;
+    }
+    return xy;
+}
+
+function updateGridX(): void {
+    const gridType = locationSettingsState.reactive.gridType.value;
+    const realGridX = unzigzag(mapTool.state.gridX, gridType === GridType.FlatHex);
+    mapTool.state.sizeX = getWidthFromCellCount(realGridX, gridType);
+    if (state.lock) {
+        calculateY(realGridX, gridType);
+    }
     if (!mapTool.state.manualDrag && mapTool.state.gridX > 0) mapTool.preview(true);
 }
 
 function updateGridY(): void {
+    const gridType = locationSettingsState.reactive.gridType.value;
+    const realGridY = unzigzag(mapTool.state.gridY, gridType === GridType.PointyHex);
+    mapTool.state.sizeY = getHeightFromCellCount(realGridY, gridType);
     if (state.lock) {
-        if (mapTool.state.manualDrag) {
-            mapTool.state.gridX = mapTool.state.gridY * (mapTool.rect!.w / mapTool.rect!.h);
-        } else {
-            mapTool.state.gridX = mapTool.state.gridY * mapTool.state.aspectRatio;
-        }
-        mapTool.state.sizeX = mapTool.state.gridX * DEFAULT_GRID_SIZE;
+        calculateX(realGridY, gridType);
     }
-    mapTool.state.sizeY = mapTool.state.gridY * DEFAULT_GRID_SIZE;
     if (!mapTool.state.manualDrag && mapTool.state.gridY > 0) mapTool.preview(true);
 }
 
 function updateSizeX(): void {
+    const gridType = locationSettingsState.reactive.gridType.value;
+    const realGridX = getCellCountFromWidth(mapTool.state.sizeX, gridType);
+    mapTool.state.gridX = zigzag(realGridX, gridType === GridType.FlatHex);
     if (state.lock) {
-        mapTool.state.sizeY = mapTool.state.sizeX / mapTool.state.aspectRatio;
-        mapTool.state.gridY = mapTool.state.sizeY / DEFAULT_GRID_SIZE;
+        calculateY(realGridX, gridType);
     }
-    mapTool.state.gridX = mapTool.state.sizeX / DEFAULT_GRID_SIZE;
     if (mapTool.state.sizeX > 0) mapTool.preview(true);
 }
 
 function updateSizeY(): void {
+    const gridType = locationSettingsState.reactive.gridType.value;
+    const realGridY = getCellCountFromHeight(mapTool.state.sizeY, gridType);
+    mapTool.state.gridY = zigzag(realGridY, gridType === GridType.PointyHex);
     if (state.lock) {
-        mapTool.state.sizeX = mapTool.state.sizeY * mapTool.state.aspectRatio;
-        mapTool.state.gridX = mapTool.state.sizeX / DEFAULT_GRID_SIZE;
+        calculateX(realGridY, gridType);
     }
-    mapTool.state.gridY = mapTool.state.sizeY / DEFAULT_GRID_SIZE;
     if (mapTool.state.sizeY > 0) mapTool.preview(true);
+}
+
+function calculateX(gridY: number, gridType: GridType): void {
+    const aspectRatio = mapTool.state.manualDrag
+        ? getAspectRatio(mapTool.rect!.w, mapTool.rect!.h, gridType)
+        : mapTool.state.aspectRatio;
+
+    // Calculate the real width
+    const realGridX = gridY * aspectRatio;
+
+    mapTool.state.sizeX = getWidthFromCellCount(realGridX, gridType);
+
+    // Calculate the visual width (same for squares, but not for hexes)
+    mapTool.state.gridX = zigzag(realGridX, gridType === GridType.FlatHex);
+}
+
+function calculateY(gridX: number, gridType: GridType): void {
+    const aspectRatio = mapTool.state.manualDrag
+        ? getAspectRatio(mapTool.rect!.w, mapTool.rect!.h, gridType)
+        : mapTool.state.aspectRatio;
+
+    // Calculate the real height
+    const realGridY = gridX / aspectRatio;
+
+    mapTool.state.sizeY = getHeightFromCellCount(realGridY, gridType);
+
+    // Calculate the visual height (same for squares, but not for hexes)
+    mapTool.state.gridY = zigzag(realGridY, gridType === GridType.PointyHex);
 }
 </script>
 <template>

@@ -64,6 +64,12 @@ export class FowVisionLayer extends FowLayer {
                 }
 
                 this.ctx.fill(token.visionPolygon);
+                for (const sh of token._lightBlockingNeighbours) {
+                    const hitShape = getShape(sh);
+                    if (hitShape) {
+                        hitShape.draw(this.ctx, true);
+                    }
+                }
 
                 // Out of Bounds check
                 if (token._visionBbox?.visibleInCanvas({ w: this.width, h: this.height }) ?? false) {

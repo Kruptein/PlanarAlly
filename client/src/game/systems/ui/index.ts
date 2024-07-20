@@ -1,6 +1,5 @@
 import { registerSystem } from "..";
 import type { System } from "..";
-import type { ApiNote } from "../../../apiTypes";
 import type { ClientSettingCategory } from "../../ui/settings/client/categories";
 
 import { uiState } from "./state";
@@ -32,10 +31,6 @@ class UiSystem implements System {
 
     showLocationSettings(location: number): void {
         $.openedLocationSettings = location;
-    }
-
-    setActiveNote(note: ApiNote): void {
-        $.activeNote = note;
     }
 
     setAnnotationText(text: string): void {

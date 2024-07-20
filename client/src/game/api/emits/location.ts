@@ -1,5 +1,10 @@
-import type { ApiSpawnInfo, LocationClone, LocationOptionsSet, LocationRename } from "../../../apiTypes";
-import type { ServerLocationOptions } from "../../systems/settings/location/models";
+import type {
+    ApiLocationOptions,
+    ApiSpawnInfo,
+    LocationClone,
+    LocationOptionsSet,
+    LocationRename,
+} from "../../../apiTypes";
 import { wrapSocket } from "../helpers";
 import { socket } from "../socket";
 
@@ -22,9 +27,9 @@ export async function requestSpawnInfo(location: number): Promise<ApiSpawnInfo[]
     });
 }
 
-export function sendLocationOption<T extends keyof ServerLocationOptions>(
+export function sendLocationOption<T extends keyof ApiLocationOptions>(
     key: T,
-    value: ServerLocationOptions[T] | undefined,
+    value: ApiLocationOptions[T] | undefined,
     location: number | undefined,
 ): void {
     const data: LocationOptionsSet = { options: { [key]: value ?? null }, location };

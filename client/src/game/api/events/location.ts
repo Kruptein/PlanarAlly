@@ -60,6 +60,8 @@ function setLocationOptions(id: number | undefined, options: ApiOptionalLocation
         locationSettingsSystem.setUnitSize(options.unit_size ?? undefined, id, false);
     if (overwrite_all || options.unit_size_unit !== undefined)
         locationSettingsSystem.setUnitSizeUnit(options.unit_size_unit ?? undefined, id, false);
+    if (overwrite_all || options.drop_ratio !== undefined)
+        locationSettingsSystem.setDropRatio(options.drop_ratio ?? undefined, id, false);
 
     // VISION
 

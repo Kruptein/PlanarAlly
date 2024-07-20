@@ -12,8 +12,6 @@ export const BaseTemplateStrings = [
     "stroke_width",
     "name",
     "name_visible",
-    "annotation",
-    "annotation_visible",
     "is_token",
     "default_edit_access",
     "default_movement_access",
@@ -48,7 +46,9 @@ export type BaseAuraTemplate = Pick<ApiAura, (typeof BaseAuraStrings)[number]>;
 export type BaseTrackerTemplate = Pick<ApiTracker, (typeof BaseTrackerStrings)[number]>;
 type BasePropertyTemplate = Pick<ApiShape, (typeof BaseTemplateStrings)[number]>;
 export type BaseTemplate = Partial<
-    BasePropertyTemplate & { auras: Partial<BaseAuraTemplate>[] } & { trackers: Partial<BaseTrackerTemplate>[] }
+    BasePropertyTemplate & { options?: string } & { auras: Partial<BaseAuraTemplate>[] } & {
+        trackers: Partial<BaseTrackerTemplate>[];
+    }
 >;
 
 // Why do these exist, templates only work for Assets at the moment?
@@ -67,6 +67,7 @@ const TEMPLATE_TYPES: Record<SHAPE_TYPE, SpecifcShapeTemplateStrings> = {
     text: TextTemplateStrings,
     circle: TextTemplateStrings,
     circulartoken: TextTemplateStrings,
+    fontawesome: AssetTemplateStrings,
     polygon: PolygonTemplateStrings,
     line: TextTemplateStrings,
     rect: TextTemplateStrings,

@@ -30,7 +30,7 @@ This tool is provided free to use and is open source.
 
 # Downloads
 
-_Typically only one person in your group should have to download and install PA, alternatively you can use [a publicly hosted version](https://www.planarally.io/server/setup/external/)._
+_Typically only one person in your group should have to download and install PA, alternatively you can use [a publicly hosted version](https://www.planarally.io/server/setup/managed/)._
 
 Releases of PlanarAlly can be found on [the release page](https://github.com/Kruptein/PlanarAlly/releases).
 

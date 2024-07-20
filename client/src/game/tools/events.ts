@@ -3,9 +3,9 @@ import { getShape } from "../id";
 import { getLocalPointFromEvent } from "../input/mouse";
 import { LayerName } from "../models/floor";
 import { ToolName } from "../models/tools";
-import { annotationState } from "../systems/annotations/state";
 import { floorSystem } from "../systems/floors";
 import { floorState } from "../systems/floors/state";
+import { noteState } from "../systems/notes/state";
 import { playerSettingsState } from "../systems/settings/players/state";
 import { uiSystem } from "../systems/ui";
 import { uiState } from "../systems/ui/state";
@@ -86,12 +86,19 @@ export async function mouseMove(event: MouseEvent): Promise<void> {
     const eventPoint = l2g(getLocalPointFromEvent(event));
     // Annotation hover
     let foundAnnotation = false;
-    for (const [uuid, annotation] of annotationState.readonly.annotations.entries()) {
-        if (floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Draw)) {
-            const shape = getShape(uuid);
+    if (floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Draw)) {
+        for (const [shapeId, notes] of noteState.raw.shapeNotes.entries1()) {
+            const shape = getShape(shapeId);
             if (shape && shape.floorId === floorState.currentFloor.value!.id && shape.contains(eventPoint)) {
-                foundAnnotation = true;
-                uiSystem.setAnnotationText(annotation);
+                for (const noteId of notes) {
+                    const note = noteState.raw.notes.get(noteId);
+                    if (note?.showOnHover === true) {
+                        foundAnnotation = true;
+                        uiSystem.setAnnotationText(note.text);
+                        break;
+                    }
+                }
+                if (foundAnnotation) break;
             }
         }
     }
@@ -170,19 +177,35 @@ async function contextMenu(event: MouseEvent): Promise<void> {
     }
 }
 
-export function keyUp(event: KeyboardEvent): void {
+export async function keyDown(event: KeyboardEvent): Promise<void> {
     const tool = getActiveTool();
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
-        toolMap[permitted.name].onKeyUp(event, permitted.features);
+        await toolMap[permitted.name].onKeyDown(event, permitted.features);
     }
 
-    tool.onKeyUp(event, getFeatures(activeTool.value));
+    await tool.onKeyDown(event, getFeatures(activeTool.value));
 
     for (const permitted of tool.permittedTools) {
         if (permitted.early ?? false) continue;
-        toolMap[permitted.name].onKeyUp(event, permitted.features);
+        await toolMap[permitted.name].onKeyDown(event, permitted.features);
+    }
+}
+
+export async function keyUp(event: KeyboardEvent): Promise<void> {
+    const tool = getActiveTool();
+
+    for (const permitted of tool.permittedTools) {
+        if (!(permitted.early ?? false)) continue;
+        await toolMap[permitted.name].onKeyUp(event, permitted.features);
+    }
+
+    await tool.onKeyUp(event, getFeatures(activeTool.value));
+
+    for (const permitted of tool.permittedTools) {
+        if (permitted.early ?? false) continue;
+        await toolMap[permitted.name].onKeyUp(event, permitted.features);
     }
 }
 
@@ -246,16 +269,23 @@ export async function touchMove(event: TouchEvent): Promise<void> {
 
     // Annotation hover
     let found = false;
-    for (const [uuid, annotation] of annotationState.readonly.annotations.entries()) {
-        if (floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Draw)) {
-            const shape = getShape(uuid);
+    if (floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Draw)) {
+        for (const [shapeId, notes] of noteState.raw.shapeNotes.entries1()) {
+            const shape = getShape(shapeId);
             if (
                 shape &&
                 shape.floorId === floorState.currentFloor.value!.id &&
                 shape.contains(l2g(getLocalPointFromEvent(event)))
             ) {
-                found = true;
-                uiSystem.setAnnotationText(annotation);
+                for (const noteId of notes) {
+                    const note = noteState.raw.notes.get(noteId);
+                    if (note?.showOnHover === true) {
+                        found = true;
+                        uiSystem.setAnnotationText(note.text);
+                        break;
+                    }
+                }
+                if (found) break;
             }
         }
     }

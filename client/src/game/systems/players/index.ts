@@ -16,6 +16,7 @@ import { startDrawLoop } from "../../rendering/core";
 import { clientSystem } from "../client";
 import { clientState } from "../client/state";
 import { floorSystem } from "../floors";
+import type { SystemClearReason } from "../models";
 import { positionSystem } from "../position";
 
 import type { Player, PlayerId } from "./models";
@@ -24,8 +25,8 @@ import { playerState } from "./state";
 const { mutableReactive: $, raw } = playerState;
 
 class PlayerSystem implements System {
-    clear(partial: boolean): void {
-        if (!partial) $.players.clear();
+    clear(reason: SystemClearReason): void {
+        if (reason !== "partial-loading") $.players.clear();
     }
 
     addPlayer(player: Player): void {
@@ -68,7 +69,7 @@ class PlayerSystem implements System {
         $.playerLocation.delete(playerId);
     }
 
-    setPlayerRole(playerId: PlayerId, role: number, sync: boolean): void {
+    setPlayerRole(playerId: PlayerId, role: Role, sync: boolean): void {
         const player = this.getPlayer(playerId);
         if (player === undefined) return;
 

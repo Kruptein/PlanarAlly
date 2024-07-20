@@ -30,6 +30,11 @@ class ShapeSetOptionalStringValue(TypeIdModel):
     value: str | None = Field(..., noneAsNull=True)
 
 
+class ShapeSetIntegerValue(TypeIdModel):
+    shape: str = Field(typeId="GlobalId")
+    value: int
+
+
 class Permissions(BaseModel):
     enabled: list[str]
     request: list[str]

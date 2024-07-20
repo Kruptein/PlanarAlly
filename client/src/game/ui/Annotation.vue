@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import VueMarkdownIt from "vue3-markdown-it";
+import VueMarkdown from "vue-markdown-render";
 
 import { uiState } from "../systems/ui/state";
 </script>
 
 <template>
-    <VueMarkdownIt
+    <VueMarkdown
         v-show="uiState.reactive.annotationText.length > 0"
         id="annotation"
         :source="uiState.reactive.annotationText"
-        :html="true"
+        :options="{ html: true }"
     />
 </template>
 

@@ -1,4 +1,5 @@
 import type { GlobalPoint } from "../../core/geometry";
+import type { LocalId } from "../id";
 import type { FloorId } from "../models/floor";
 import { drawPolygon } from "../rendering/basic";
 
@@ -14,34 +15,44 @@ export function computeVisibility(
     target: TriangulationTarget,
     floor: FloorId,
     drawt?: boolean,
-): Point[] {
+): { visibility: Point[]; shapeHits: LocalId[] } {
     if (drawt === undefined) drawt = visionState.drawTeContour;
     // console.time("CV");
     const Q: Point = [q.x, q.y];
     const rawOutput: Point[] = [];
+    const shapeHits: LocalId[] = [];
     const triangle = visionState.getCDT(target, floor).locate(Q, null).loc;
     if (triangle === null) {
         console.error("Triangle not found");
-        return [];
+        return { visibility: [], shapeHits: [] };
     }
     // triangle.fill();
-    rawOutput.push(triangle.vertices[1]!.point!);
-    if (!triangle.isConstrained(0))
-        expandEdge(Q, triangle.vertices[2]!.point!, triangle.vertices[1]!.point!, triangle, 0, rawOutput);
-    rawOutput.push(triangle.vertices[2]!.point!);
-    if (!triangle.isConstrained(1))
-        expandEdge(Q, triangle.vertices[0]!.point!, triangle.vertices[2]!.point!, triangle, 1, rawOutput);
-    rawOutput.push(triangle.vertices[0]!.point!);
-    if (!triangle.isConstrained(2))
-        expandEdge(Q, triangle.vertices[1]!.point!, triangle.vertices[0]!.point!, triangle, 2, rawOutput);
-    // console.timeEnd("CV");
+    for (let i = 0; i < 3; i++) {
+        const nextI = (i + 1) % 3;
+        const prevI = (i + 2) % 3;
+        const vNext = triangle.vertices[nextI]!;
+        const vPrev = triangle.vertices[prevI]!;
+        rawOutput.push(vNext.point!);
+        shapeHits.push(...vNext.shapes);
+        if (!triangle.isConstrained(i)) {
+            expandEdge(Q, vPrev.point!, vNext.point!, triangle, i, rawOutput, shapeHits);
+        }
+    }
 
-    if (drawt) drawPolygon(rawOutput, { colour: "red" });
+    if (drawt) drawPolygon(rawOutput, { strokeColour: "red" });
 
-    return rawOutput;
+    return { visibility: rawOutput, shapeHits };
 }
 
-function expandEdge(q: Point, left: Point, right: Point, fh: Triangle, index: number, rawOutput: Point[]): void {
+function expandEdge(
+    q: Point,
+    left: Point,
+    right: Point,
+    fh: Triangle,
+    index: number,
+    rawOutput: Point[],
+    shapeHits: LocalId[],
+): void {
     // fh.edge(index).draw();
     const nfh = fh.neighbours[index]!;
     // nfh.fill("rgba(255, 0, 0, 0.25)");
@@ -81,13 +92,14 @@ function expandEdge(q: Point, left: Point, right: Point, fh: Triangle, index: nu
             if (right !== rvh.point!) rawOutput.push(raySegIntersection(q, right, nvh.point!, rvh.point!));
             if (lo === Sign.COUNTERCLOCKWISE) rawOutput.push(raySegIntersection(q, left, nvh.point!, rvh.point!));
         } else {
-            if (lo === Sign.COUNTERCLOCKWISE) return expandEdge(q, left, right, nfh, rIndex, rawOutput);
-            else expandEdge(q, nvh.point!, right, nfh, rIndex, rawOutput);
+            if (lo === Sign.COUNTERCLOCKWISE) return expandEdge(q, left, right, nfh, rIndex, rawOutput, shapeHits);
+            else expandEdge(q, nvh.point!, right, nfh, rIndex, rawOutput, shapeHits);
         }
     }
 
     if (ro !== Sign.CLOCKWISE && lo !== Sign.COUNTERCLOCKWISE) {
         rawOutput.push(nvh.point!);
+        shapeHits.push(...nvh.shapes);
     }
 
     if (lo === Sign.CLOCKWISE) {
@@ -101,9 +113,9 @@ function expandEdge(q: Point, left: Point, right: Point, fh: Triangle, index: nu
             return;
         } else {
             if (ro === Sign.CLOCKWISE) {
-                return expandEdge(q, left, right, nfh, lIndex, rawOutput);
+                return expandEdge(q, left, right, nfh, lIndex, rawOutput, shapeHits);
             } else {
-                return expandEdge(q, left, nvh.point!, nfh, lIndex, rawOutput);
+                return expandEdge(q, left, nvh.point!, nfh, lIndex, rawOutput, shapeHits);
             }
         }
     }

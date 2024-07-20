@@ -1,3 +1,5 @@
+import type { LayerName } from "./floor";
+
 export interface Location {
     id: number;
     name: string;
@@ -9,5 +11,5 @@ export interface ServerUserLocationOptions {
     pan_y: number;
     zoom_display: number;
     active_floor?: string;
-    active_layer?: string;
+    active_layer?: LayerName;
 }

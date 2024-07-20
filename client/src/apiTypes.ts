@@ -1,10 +1,13 @@
 import type { AssetId } from "./assetManager/models";
 import type { GlobalId } from "./game/id";
 import type { LayerName } from "./game/models/floor";
+import type { Role } from "./game/models/role";
 import type { AuraId } from "./game/systems/auras/models";
 import type { CharacterId } from "./game/systems/characters/models";
 import type { ClientId } from "./game/systems/client/models";
 import type { PlayerId } from "./game/systems/players/models";
+import type { VisionBlock } from "./game/systems/properties/types";
+import type { GridModeLabelFormat } from "./game/systems/settings/players/models";
 import type { TrackerId } from "./game/systems/trackers/models";
 
 export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiToggleCompositeShape
@@ -110,7 +113,7 @@ export interface ApiAssetUpload {
   newDirectories: string[];
   slice: number;
   totalSlices: number;
-  data: string | ArrayBuffer;
+  data: string;
 }
 export interface ApiBaseRectShape extends ApiCoreShape {
   width: number;
@@ -122,6 +125,15 @@ export interface ApiCharacter {
   shapeId: GlobalId;
   assetId: number;
   assetHash: string;
+}
+export interface ApiChatMessage {
+  id: string;
+  author: string;
+  data: string[];
+}
+export interface ApiChatMessageUpdate {
+  id: string;
+  message: string;
 }
 export interface ApiCircleShape extends ApiCoreShape {
   radius: number;
@@ -148,10 +160,9 @@ export interface ApiCoreShape {
   name_visible: boolean;
   fill_colour: string;
   stroke_colour: string;
-  vision_obstruction: boolean;
+  vision_obstruction: VisionBlock;
   movement_obstruction: boolean;
   is_token: boolean;
-  annotation: string;
   draw_operator: string;
   options: string;
   badge: number;
@@ -166,7 +177,6 @@ export interface ApiCoreShape {
   stroke_width: number;
   asset: number | null;
   group: string | null;
-  annotation_visible: boolean;
   ignore_zoom_size: boolean;
   is_door: boolean;
   is_teleport_zone: boolean;
@@ -175,6 +185,12 @@ export interface ApiCoreShape {
   auras: ApiAura[];
   labels: ApiLabel[];
   character: CharacterId | null;
+  odd_hex_orientation: boolean;
+  size: number;
+  show_cells: boolean;
+  cell_fill_colour: string | null;
+  cell_stroke_colour: string | null;
+  cell_stroke_width: number | null;
 }
 export interface ApiDefaultShapeOwner {
   edit_access: boolean;
@@ -272,8 +288,36 @@ export interface ApiLocationUserOption {
 }
 export interface ApiNote {
   uuid: string;
+  creator: string;
   title: string;
   text: string;
+  tags: string[];
+  showOnHover: boolean;
+  showIconOnShape: boolean;
+  isRoomNote: boolean;
+  location: number | null;
+  access: ApiNoteAccess[];
+  shapes: GlobalId[];
+}
+export interface ApiNoteAccess {
+  name: string;
+  can_edit: boolean;
+  can_view: boolean;
+}
+export interface ApiNoteAccessEdit extends ApiNoteAccess {
+  note: string;
+}
+export interface ApiNoteSetBoolean {
+  uuid: string;
+  value: boolean;
+}
+export interface ApiNoteSetString {
+  uuid: string;
+  value: string;
+}
+export interface ApiNoteShape {
+  note_id: string;
+  shape_id: GlobalId;
 }
 export interface ApiOptionalAura {
   uuid: AuraId;
@@ -295,6 +339,7 @@ export interface ApiOptionalUserOptions {
   ruler_colour?: string | null;
   use_tool_icons?: boolean | null;
   show_token_directions?: boolean | null;
+  grid_mode_label_format?: GridModeLabelFormat | null;
   invert_alt?: boolean | null;
   disable_scroll_to_zoom?: boolean | null;
   default_tracker_mode?: boolean | null;
@@ -339,6 +384,7 @@ export interface ApiUserOptions {
   ruler_colour: string;
   use_tool_icons: boolean;
   show_token_directions: boolean;
+  grid_mode_label_format: GridModeLabelFormat;
   invert_alt: boolean;
   disable_scroll_to_zoom: boolean;
   default_tracker_mode: boolean;
@@ -423,7 +469,6 @@ export interface Viewport {
 export interface DiceRollResult {
   player: string;
   roll: string;
-  // result: number;
   result: string;
   shareWithAll: boolean;
 }
@@ -533,7 +578,7 @@ export interface PlayerInfoCore {
   id: PlayerId;
   name: string;
   location: number;
-  role: number;
+  role: Role;
 }
 export interface PlayerOptionsSet {
   colour_history: string | null;
@@ -564,6 +609,10 @@ export interface PositionTuple {
   x: number;
   y: number;
 }
+export interface RoomFeatures {
+  chat: boolean;
+  dice: boolean;
+}
 export interface RoomInfoPlayersAdd {
   id: PlayerId;
   name: string;
@@ -575,6 +624,7 @@ export interface RoomInfoSet {
   invitationCode: string;
   isLocked: boolean;
   publicName: string;
+  features: RoomFeatures;
 }
 export interface ShapeAdd {
   shape:
@@ -659,6 +709,10 @@ export interface ShapeSetDoorToggleModeValue {
   shape: GlobalId;
   value: "movement" | "vision" | "both";
 }
+export interface ShapeSetIntegerValue {
+  shape: GlobalId;
+  value: number;
+}
 export interface ShapeSetOptionalStringValue {
   shape: GlobalId;
   value: string | null;
@@ -738,6 +792,7 @@ export interface ApiOptionalLocationOptions {
   ground_map_background?: string | null;
   underground_map_background?: string | null;
   limit_movement_during_initiative?: boolean | null;
+  drop_ratio?: number | null;
 }
 export interface ApiLocationCore {
   id: number;
@@ -761,6 +816,7 @@ export interface ApiLocationOptions {
   ground_map_background: string;
   underground_map_background: string;
   limit_movement_during_initiative: boolean;
+  drop_ratio: number;
 }
 export interface ApiSpawnInfo {
   position: PositionTuple;

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
-import VueMarkdownIt from "vue3-markdown-it";
+import VueMarkdown from "vue-markdown-render";
 
 import Modal from "./Modal.vue";
 
@@ -27,7 +27,7 @@ function close(): void {
             </div>
         </template>
         <div class="modal-body">
-            <VueMarkdownIt :source="source" />
+            <VueMarkdown :source="source" />
         </div>
     </Modal>
 </template>

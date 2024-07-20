@@ -5,6 +5,7 @@ import { useI18n } from "vue-i18n";
 import ColourPicker from "../../../../core/components/ColourPicker.vue";
 import LanguageSelect from "../../../../core/components/LanguageSelect.vue";
 import { playerSettingsSystem } from "../../../systems/settings/players";
+import { GridModeLabelFormat } from "../../../systems/settings/players/models";
 import { playerSettingsState } from "../../../systems/settings/players/state";
 
 const { t } = useI18n();
@@ -36,6 +37,15 @@ const gridColour = computed({
     },
     set(gridColour: string | undefined) {
         pss.setGridColour(gridColour, { sync: true });
+    },
+});
+
+const gridModeLabelFormat = computed({
+    get() {
+        return $.gridModeLabelFormat.value;
+    },
+    set(gridModeLabelFormat: GridModeLabelFormat | undefined) {
+        pss.setGridModeLabelFormat(gridModeLabelFormat, { sync: true });
     },
 });
 
@@ -133,6 +143,38 @@ const rulerColour = computed({
                 <div
                     :title="t('game.ui.settings.common.sync_default')"
                     @click="pss.setRulerColour(undefined, { sync: true, default: $.rulerColour.override })"
+                >
+                    <font-awesome-icon icon="sync-alt" />
+                </div>
+            </template>
+        </div>
+        <div class="row">
+            <label for="gridModeLabelFormat">
+                {{ t("game.ui.settings.client.AppearanceSettings.grid_mode_label_format") }}
+            </label>
+            <div>
+                <select v-model="gridModeLabelFormat">
+                    <option
+                        v-for="option in Object.keys(GridModeLabelFormat).length / 2"
+                        :key="option"
+                        :value="option - 1"
+                        :label="t('game.ui.settings.client.AppearanceSettings.grid_mode_label_format_' + (option - 1))"
+                        :selected="option - 1 === gridModeLabelFormat"
+                    ></option>
+                </select>
+            </div>
+            <template v-if="$.gridModeLabelFormat.override !== undefined">
+                <div :title="t('game.ui.settings.common.reset_default')" @click="gridModeLabelFormat = undefined">
+                    <font-awesome-icon icon="times-circle" />
+                </div>
+                <div
+                    :title="t('game.ui.settings.common.sync_default')"
+                    @click="
+                        pss.setGridModeLabelFormat(undefined, {
+                            sync: true,
+                            default: $.gridModeLabelFormat.override,
+                        })
+                    "
                 >
                     <font-awesome-icon icon="sync-alt" />
                 </div>

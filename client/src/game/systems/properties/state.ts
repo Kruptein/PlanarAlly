@@ -3,6 +3,8 @@ import type { DeepReadonly } from "vue";
 import type { LocalId } from "../../id";
 import { buildState } from "../state";
 
+import { VisionBlock } from "./types";
+
 export interface ShapeProperties {
     name: string;
     nameVisible: boolean;
@@ -11,35 +13,49 @@ export interface ShapeProperties {
     strokeColour: string[];
     fillColour: string;
     blocksMovement: boolean;
-    blocksVision: boolean;
+    blocksVision: VisionBlock;
     showBadge: boolean;
     isDefeated: boolean;
     isLocked: boolean;
+    // grid related
+    size: number; // if 0, infer size
+    showCells: boolean;
+    cellFillColour: string;
+    cellStrokeColour: string;
+    cellStrokeWidth: number;
+    oddHexOrientation: boolean;
 }
 
-type ReactivePropertiesState = Omit<ShapeProperties, "fillColour" | "strokeColour"> & {
-    id: LocalId | undefined;
-    strokeColour: string[] | undefined;
-    fillColour: string | undefined;
-};
+// type ReactivePropertiesState = Omit<ShapeProperties, "fillColour" | "strokeColour"> & {
+//     id: LocalId | undefined;
+//     strokeColour: string[] | undefined;
+//     fillColour: string | undefined;
+// };
 interface PropertiesState {
     data: Map<LocalId, ShapeProperties>;
 }
 
-const state = buildState<ReactivePropertiesState, PropertiesState>(
+const state = buildState<PropertiesState, PropertiesState>(
     {
-        id: undefined,
-        name: "Unknown Shape",
-        nameVisible: false,
-        isToken: false,
-        isInvisible: false,
-        strokeColour: undefined,
-        fillColour: undefined,
-        blocksMovement: false,
-        blocksVision: false,
-        showBadge: false,
-        isDefeated: false,
-        isLocked: false,
+        data: new Map(),
+        // id: undefined,
+        // name: "Unknown Shape",
+        // nameVisible: false,
+        // isToken: false,
+        // isInvisible: false,
+        // strokeColour: undefined,
+        // fillColour: undefined,
+        // blocksMovement: false,
+        // blocksVision: VisionBlock.No,
+        // showBadge: false,
+        // isDefeated: false,
+        // isLocked: false,
+        // size: 0,
+        // showCells: true,
+        // cellFillColour: "rgba(225, 0, 0, 0.2)",
+        // cellStrokeColour: "rgba(225, 0, 0, 0.8)",
+        // cellStrokeWidth: 5,
+        // oddHexOrientation: false,
     },
     {
         data: new Map(),
@@ -56,8 +72,14 @@ const DEFAULT_PROPERTIES: () => ShapeProperties = () => ({
     fillColour: "#000",
     strokeColour: ["rgba(0, 0, 0, 0)"],
     blocksMovement: false,
-    blocksVision: false,
+    blocksVision: VisionBlock.No,
     showBadge: false,
+    size: 0,
+    showCells: false,
+    cellFillColour: "rgba(225, 0, 0, 0.2)",
+    cellStrokeColour: "rgba(225, 0, 0, 0.8)",
+    cellStrokeWidth: 5,
+    oddHexOrientation: false,
 });
 
 export function getProperties(id: LocalId): DeepReadonly<ShapeProperties> | undefined {

@@ -6,7 +6,7 @@ orbs:
 jobs:
     build-client:
         docker:
-            - image: cimg/node:16.18.1
+            - image: cimg/node:20.11.0
 
         working_directory: ~/PlanarAlly/client
         resource_class: large
@@ -77,7 +77,7 @@ jobs:
 
     build-windows:
         executor:
-            name: win/server-2022
+            name: win/default
             size: large
 
         working_directory: ~/PlanarAlly/server

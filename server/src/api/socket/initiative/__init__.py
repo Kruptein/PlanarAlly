@@ -322,7 +322,7 @@ async def change_initiative_order(sid: str, raw_data: Any):
 
     pr = game_state.get(sid)
 
-    if Shape.get_or_none(data.shape) is None:
+    if Shape.get_or_none(uuid=data.shape) is None:
         logger.warning("Attempt to change initiative order for unknown shape")
         return
 

@@ -1,9 +1,10 @@
 import { computed, reactive, watch, watchEffect } from "vue";
 import type { DeepReadonly } from "vue";
 
-import { clampGridLine, getUnitDistance, l2g, l2gz } from "../../../core/conversions";
+import { getUnitDistance, l2g, l2gz } from "../../../core/conversions";
 import { addP, cloneP, subtractP, toArrayP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
+import { snapPointToGrid } from "../../../core/grid";
 import { equalPoints, snapToPoint } from "../../../core/math";
 import { InvalidationMode, NO_SYNC, SyncMode, UI_SYNC } from "../../../core/models/types";
 import type { PromptFunction } from "../../../core/plugins/modals/prompt";
@@ -35,6 +36,7 @@ import type { Permissions } from "../../systems/logic/models";
 import { playerSystem } from "../../systems/players";
 import { propertiesSystem } from "../../systems/properties";
 import { getProperties } from "../../systems/properties/state";
+import { VisionBlock } from "../../systems/properties/types";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { openDefaultContextMenu } from "../../ui/contextmenu/state";
@@ -77,7 +79,7 @@ class DrawTool extends Tool implements ITool {
         isClosedPolygon: false,
         brushSize: 5,
 
-        blocksVision: false,
+        blocksVision: VisionBlock.No,
         blocksMovement: false,
 
         fontSize: 20,
@@ -113,10 +115,10 @@ class DrawTool extends Tool implements ITool {
                         }
                         if (newLayer?.isVisionLayer ?? false) {
                             this.state.blocksMovement = true;
-                            this.state.blocksVision = true;
+                            this.state.blocksVision = VisionBlock.Behind;
                         } else if (oldLayer?.isVisionLayer === true) {
                             this.state.blocksMovement = false;
-                            this.state.blocksVision = false;
+                            this.state.blocksVision = VisionBlock.No;
                         }
                     },
                     { immediate: true },
@@ -185,11 +187,10 @@ class DrawTool extends Tool implements ITool {
             this.onDeselect();
             await this.onSelect(mouse);
         } else {
-            this.shape.updateLayerPoints();
             const props = getProperties(this.shape.id)!;
 
             if (this.shape.floorId !== undefined) {
-                if (props.blocksVision) visionState.recalculateVision(this.shape.floorId);
+                if (props.blocksVision !== VisionBlock.No) visionState.recalculateVision(this.shape.floorId);
                 if (props.blocksMovement) visionState.recalculateMovement(this.shape.floorId);
             }
             if (!this.shape.preventSync) sendShapeSizeUpdate({ shape: this.shape, temporary: false });
@@ -211,6 +212,7 @@ class DrawTool extends Tool implements ITool {
                 layerName: this.shape.layer!.name,
             });
         }
+        this.shape = undefined;
         this.active.value = false;
         const layer = this.getLayer();
         if (layer !== undefined) {
@@ -231,7 +233,7 @@ class DrawTool extends Tool implements ITool {
     //     }
     // }
 
-    private onModeChange(newValue: string, oldValue: string): void {
+    private onModeChange(newValue: DrawMode, oldValue: DrawMode): void {
         if (this.brushHelper === undefined) return;
 
         const fowLayer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Lighting);
@@ -343,18 +345,26 @@ class DrawTool extends Tool implements ITool {
         if (this.brushHelper === undefined) return;
 
         if (!this.active.value) {
-            this.startPoint = startPoint;
+            if (event && playerSettingsState.useSnapping(event)) {
+                const gridType = locationSettingsState.raw.gridType.value;
+                this.startPoint = snapPointToGrid(startPoint, gridType, {
+                    snapDistance: Number.MAX_VALUE,
+                })[0];
+            } else {
+                this.startPoint = startPoint;
+            }
+
             this.active.value = true;
             switch (this.state.selectedShape) {
                 case DrawShape.Square: {
-                    this.shape = new Rect(cloneP(startPoint), 0, 0, undefined, {
+                    this.shape = new Rect(cloneP(this.startPoint), 0, 0, undefined, {
                         fillColour: this.state.fillColour,
                         strokeColour: [this.state.borderColour],
                     });
                     break;
                 }
                 case DrawShape.Circle: {
-                    this.shape = new Circle(cloneP(startPoint), this.helperSize, undefined, {
+                    this.shape = new Circle(cloneP(this.startPoint), this.helperSize, undefined, {
                         fillColour: this.state.fillColour,
                         strokeColour: [this.state.borderColour],
                     });
@@ -362,7 +372,7 @@ class DrawTool extends Tool implements ITool {
                 }
                 case DrawShape.Brush: {
                     this.shape = new Polygon(
-                        cloneP(startPoint),
+                        cloneP(this.startPoint),
                         [],
                         { openPolygon: true, lineWidth: [this.state.brushSize] },
                         {
@@ -375,7 +385,10 @@ class DrawTool extends Tool implements ITool {
                 case DrawShape.Polygon: {
                     const stroke = this.state.isClosedPolygon ? this.state.borderColour : this.state.fillColour;
                     if (event && playerSettingsState.useSnapping(event) && !this.snappedToPoint) {
-                        this.brushHelper.refPoint = toGP(clampGridLine(startPoint.x), clampGridLine(startPoint.y));
+                        const gridType = locationSettingsState.raw.gridType.value;
+                        this.brushHelper.refPoint = snapPointToGrid(this.startPoint, gridType, {
+                            snapDistance: Number.MAX_VALUE,
+                        })[0];
                     }
                     this.shape = new Polygon(
                         cloneP(this.brushHelper.refPoint),
@@ -428,8 +441,8 @@ class DrawTool extends Tool implements ITool {
                 if (this.state.blocksMovement) {
                     propertiesSystem.setBlocksMovement(this.shape.id, true, UI_SYNC, false);
                 }
-                if (this.state.blocksVision) {
-                    propertiesSystem.setBlocksVision(this.shape.id, true, UI_SYNC, false);
+                if (this.state.blocksVision !== VisionBlock.No) {
+                    propertiesSystem.setBlocksVision(this.shape.id, this.state.blocksVision, UI_SYNC, false);
                 }
             }
             layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
@@ -443,8 +456,12 @@ class DrawTool extends Tool implements ITool {
         ) {
             // draw tool already active in polygon mode, add a new point to the polygon
 
-            if (event && playerSettingsState.useSnapping(event) && !this.snappedToPoint)
-                this.brushHelper.refPoint = toGP(clampGridLine(startPoint.x), clampGridLine(startPoint.y));
+            if (event && playerSettingsState.useSnapping(event) && !this.snappedToPoint) {
+                const gridType = locationSettingsState.raw.gridType.value;
+                this.brushHelper.refPoint = snapPointToGrid(startPoint, gridType, {
+                    snapDistance: Number.MAX_VALUE,
+                })[0];
+            }
             this.shape.pushPoint(cloneP(this.brushHelper.refPoint));
         }
 
@@ -470,9 +487,9 @@ class DrawTool extends Tool implements ITool {
                 this.ruler.refPoint = lastPoint;
                 this.ruler.endPoint = lastPoint;
             }
-            const points = this.shape.points; // expensive call
+            const points = this.shape.points;
             const props = getProperties(this.shape.id)!;
-            if (props.blocksVision && points.length > 1)
+            if (props.blocksVision !== VisionBlock.No && points.length > 1)
                 visionState.insertConstraint(TriangulationTarget.VISION, this.shape, points.at(-2)!, points.at(-1)!);
             if (props.blocksMovement && points.length > 1)
                 visionState.insertConstraint(TriangulationTarget.MOVEMENT, this.shape, points.at(-2)!, points.at(-1)!);
@@ -494,9 +511,12 @@ class DrawTool extends Tool implements ITool {
             return Promise.resolve();
         }
 
-        if (event && playerSettingsState.useSnapping(event))
-            [endPoint, this.snappedToPoint] = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
-        else this.snappedToPoint = false;
+        if (event && playerSettingsState.useSnapping(event)) {
+            let ignore = undefined;
+            if (this.ruler) ignore = { shape: this.ruler };
+            else if (this.shape) ignore = { shape: this.shape };
+            [endPoint, this.snappedToPoint] = snapToPoint(this.getLayer()!, endPoint, ignore);
+        } else this.snappedToPoint = false;
 
         if (this.pointer !== undefined) {
             this.pointer.refPoint = endPoint;
@@ -517,7 +537,7 @@ class DrawTool extends Tool implements ITool {
                 const rect = this.shape as IRect;
                 const newW = Math.abs(endPoint.x - this.startPoint.x);
                 const newH = Math.abs(endPoint.y - this.startPoint.y);
-                if (newW === rect.w && newH === rect.h) return Promise.resolve();
+                if ((newW === rect.w && newH === rect.h) || newW === 0 || newH === 0) return Promise.resolve();
                 rect.w = newW;
                 rect.h = newH;
                 if (endPoint.x < this.startPoint.x || endPoint.y < this.startPoint.y) {
@@ -525,6 +545,9 @@ class DrawTool extends Tool implements ITool {
                         Math.min(this.startPoint.x, endPoint.x),
                         Math.min(this.startPoint.y, endPoint.y),
                     );
+                } else {
+                    // Force proper refPoint after w/h modification
+                    rect.refPoint = cloneP(this.startPoint);
                 }
                 break;
             }
@@ -537,7 +560,7 @@ class DrawTool extends Tool implements ITool {
             }
             case DrawShape.Brush: {
                 const br = this.shape as Polygon;
-                const points = br.points; // expensive call
+                const points = br.points;
                 if (equalPoints(points.at(-1)!, [endPoint.x, endPoint.y])) return Promise.resolve();
                 br.pushPoint(endPoint, { simplifyEnd: true });
                 break;
@@ -551,7 +574,7 @@ class DrawTool extends Tool implements ITool {
         if (this.state.selectedShape !== DrawShape.Polygon) {
             const props = getProperties(this.shape.id)!;
             if (!this.shape.preventSync) sendShapeSizeUpdate({ shape: this.shape, temporary: true });
-            if (props.blocksVision) {
+            if (props.blocksVision !== VisionBlock.No) {
                 if (this.shape.floorId !== undefined) {
                     const vertices = visionState
                         .getCDT(TriangulationTarget.VISION, this.shape.floorId)
@@ -581,9 +604,10 @@ class DrawTool extends Tool implements ITool {
         }
 
         let endPoint = l2g(lp);
-        if (event && playerSettingsState.useSnapping(event))
-            [endPoint, this.snappedToPoint] = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
-        else this.snappedToPoint = false;
+        if (event && playerSettingsState.useSnapping(event)) {
+            const ignore = this.shape !== undefined ? { shape: this.shape } : undefined;
+            [endPoint, this.snappedToPoint] = snapToPoint(this.getLayer()!, endPoint, ignore);
+        } else this.snappedToPoint = false;
 
         // TODO: handle touch event different than altKey, long press
         if (
@@ -593,13 +617,13 @@ class DrawTool extends Tool implements ITool {
             !this.snappedToPoint
         ) {
             const props = getProperties(this.shape.id)!;
-            if (props.blocksVision)
+            if (props.blocksVision !== VisionBlock.No)
                 visionState.deleteFromTriangulation({
                     target: TriangulationTarget.VISION,
                     shape: this.shape.id,
                 });
             this.shape.resizeToGrid(this.shape.getPointIndex(endPoint, l2gz(5)), ctrlOrCmdPressed(event));
-            if (props.blocksVision) {
+            if (props.blocksVision !== VisionBlock.No) {
                 visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.shape.id });
                 if (this.shape.floorId !== undefined) visionState.recalculateVision(this.shape.floorId);
             }
@@ -628,8 +652,8 @@ class DrawTool extends Tool implements ITool {
             this.ruler = undefined;
             if (this.state.isClosedPolygon) {
                 const props = getProperties(this.shape.id)!;
-                const points = this.shape.points; // expensive call
-                if (props.blocksVision && points.length > 1)
+                const points = this.shape.points;
+                if (props.blocksVision !== VisionBlock.No && points.length > 1)
                     visionState.insertConstraint(TriangulationTarget.VISION, this.shape, points[0]!, points.at(-1)!);
                 if (props.blocksMovement && points.length > 1)
                     visionState.insertConstraint(TriangulationTarget.MOVEMENT, this.shape, points[0]!, points.at(-1)!);
@@ -652,7 +676,7 @@ class DrawTool extends Tool implements ITool {
             await this.onSelect(mouse);
             event.preventDefault();
         }
-        super.onKeyUp(event, features);
+        await super.onKeyUp(event, features);
     }
 
     // BRUSH

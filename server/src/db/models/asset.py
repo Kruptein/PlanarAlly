@@ -46,7 +46,7 @@ class Asset(BaseDbModel):
     def set_options(self, options: Dict[str, Any]) -> None:
         self.options = json.dumps([[k, v] for k, v in options.items()])
 
-    def get_child(self, name: str) -> Self | None:
+    def get_child(self, name: str) -> "Asset | None":
         asset = Asset.get_or_none(
             (Asset.owner == self.owner) & (Asset.parent == self) & (Asset.name == name)
         )

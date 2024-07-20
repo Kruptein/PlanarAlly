@@ -6,6 +6,7 @@ export interface SelectionBoxOptions {
     defaultButton?: string;
     customButton?: string;
     multiSelect?: boolean;
+    defaultSelect?: string[];
 }
 
 export type SelectionBoxFunction = (

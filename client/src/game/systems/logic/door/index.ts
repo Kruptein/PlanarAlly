@@ -11,6 +11,7 @@ import { selectToolState } from "../../../tools/variants/select/state";
 import type { PlayerId } from "../../players/models";
 import { propertiesSystem } from "../../properties";
 import { getProperties } from "../../properties/state";
+import { VisionBlock } from "../../properties/types";
 import { canUse } from "../common";
 import type { Access, Permissions } from "../models";
 
@@ -109,18 +110,36 @@ class DoorSystem implements ShapeSystem {
         options.toggleMode = mode;
     }
 
+    private toggleMovement(id: LocalId, blocksMovement: boolean): void {
+        propertiesSystem.setBlocksMovement(id, !blocksMovement, FULL_SYNC, true);
+    }
+
+    private toggleVision(id: LocalId, blocksVision: VisionBlock): void {
+        // Currently visionBlocking toggle will always toggle to BEHIND mode
+        // As we're toggling this property we lose the original meaning if it was something else.
+        // We could keep track of the original state in the shape options,
+        // but I rather keep it simple unless it's a requested feature
+
+        propertiesSystem.setBlocksVision(
+            id,
+            blocksVision !== VisionBlock.No ? VisionBlock.No : VisionBlock.Behind,
+            FULL_SYNC,
+            true,
+        );
+    }
+
     toggleDoor(id: LocalId): undefined {
         const props = getProperties(id);
         const options = readonly.data.get(id);
         if (props === undefined || options === undefined) return;
 
         if (options.toggleMode === "both") {
-            propertiesSystem.setBlocksMovement(id, !props.blocksMovement, FULL_SYNC, true);
-            propertiesSystem.setBlocksVision(id, !props.blocksVision, FULL_SYNC, true);
+            this.toggleMovement(id, props.blocksMovement);
+            this.toggleVision(id, props.blocksVision);
         } else if (options.toggleMode === "movement") {
-            propertiesSystem.setBlocksMovement(id, !props.blocksMovement, FULL_SYNC, true);
+            this.toggleMovement(id, props.blocksMovement);
         } else {
-            propertiesSystem.setBlocksVision(id, !props.blocksVision, FULL_SYNC, true);
+            this.toggleVision(id, props.blocksVision);
         }
 
         this.checkCursorState(id);
@@ -142,7 +161,7 @@ class DoorSystem implements ShapeSystem {
         if (props === undefined || options === undefined) return;
 
         if (options.toggleMode === "vision") {
-            return props.blocksVision ? "eye-solid" : "eye-slash-solid";
+            return props.blocksVision !== VisionBlock.No ? "eye-solid" : "eye-slash-solid";
         }
         return props.blocksMovement ? "lock-open-solid" : "lock-solid";
     }

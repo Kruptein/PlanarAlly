@@ -6,12 +6,15 @@ import { http } from "../../core/http";
 import { socket } from "../socket";
 import { dashboardState } from "../state";
 
-import { RoomInfo } from "./types";
+import type { RoomInfo } from "./types";
 import { open } from "./utils";
 
 const toast = useToast();
 
 type Done = (RoomInfo & { success: true }) | { success: false; reason: string };
+
+const name = ref("");
+const takeOverName = ref(true);
 
 const messages = ref<string[]>([]);
 const done = ref<Done>({ success: false, reason: "" });
@@ -45,9 +48,16 @@ async function uploadSave(): Promise<void> {
 
     const pac = files[0]!;
     const totalChunks = Math.ceil(pac.size / chunkSize);
-    const response = await http.postJson(`/api/rooms/import/${pac.name}`, { totalChunks, sid: socket.id });
+    const response = await http.postJson(`/api/rooms/import/${pac.name}`, {
+        totalChunks,
+        sid: socket.id,
+        takeOverName: takeOverName.value,
+        name: name.value,
+    });
     if (!response.ok) {
-        toast.error(response.statusText);
+        toast.error(response.statusText, {
+            timeout: false,
+        });
         return;
     }
     dashboardState.chunkLength = totalChunks;
@@ -59,7 +69,9 @@ async function uploadSave(): Promise<void> {
     }
     const responses = await Promise.all(chunks);
     if (responses.some((r) => !r.ok)) {
-        toast.error("Something went wrong while uploading the campaign to the server :(");
+        toast.error("Something went wrong while uploading the campaign to the server :(", {
+            timeout: false,
+        });
     }
 }
 </script>
@@ -68,7 +80,14 @@ async function uploadSave(): Promise<void> {
     <div id="content">
         <div class="title">Import a campaign</div>
         <div>This is an experimental feature! If you discover any problems let me know :)</div>
-        <div class="entry subtitle">Import a file</div>
+        <div class="entry">
+            <label for="takeOverName">Use original name:</label>
+            <input id="takeOverName" v-model="takeOverName" type="checkbox" />
+        </div>
+        <div class="entry">
+            <label for="name">Name:</label>
+            <input id="name" v-model="name" type="text" :disabled="takeOverName" />
+        </div>
         <template v-if="dashboardState.chunkLength === 0">
             <button @click="prepareUpload">Upload</button>
             <input id="files" type="file" hidden accept=".pac" @change="uploadSave" />
@@ -149,18 +168,27 @@ async function uploadSave(): Promise<void> {
     .entry {
         display: flex;
         padding: 1rem;
+        justify-content: flex-start;
         align-items: center;
 
         label {
-            width: 10vw;
+            width: 20vw;
             font-size: 2em;
         }
 
         input {
-            width: 20vw;
-            height: 3rem;
             font-size: 1.5em;
             padding: 0 1rem;
+        }
+
+        input[type="checkbox"] {
+            height: 2rem;
+            width: 2rem;
+        }
+
+        input[type="text"] {
+            height: 3rem;
+            width: 20vw;
         }
 
         .logo {

@@ -1,11 +1,11 @@
 import { computed } from "vue";
 
+import { DEFAULT_GRID_SIZE } from "../../../../core/grid";
 import { InitiativeEffectMode } from "../../../models/initiative";
-import { DEFAULT_GRID_SIZE } from "../../position/state";
 import { buildState } from "../../state";
 import { locationSettingsState } from "../location/state";
 
-import type { PlayerOptions } from "./models";
+import { GridModeLabelFormat, type PlayerOptions } from "./models";
 
 interface WithDefault<T> {
     default: T;
@@ -22,6 +22,7 @@ const state = buildState<PlayerState, "gridSize">({
     rulerColour: init("rgba(255, 0, 0, 1)"),
     useToolIcons: init(true),
     showTokenDirections: init(true),
+    gridModeLabelFormat: init(GridModeLabelFormat.Both),
 
     invertAlt: init(false),
     disableScrollToZoom: init(false),

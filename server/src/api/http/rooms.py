@@ -8,6 +8,7 @@ from aiohttp_security import check_authorized
 from typing_extensions import TypedDict
 
 from ...app import sio
+from ...auth import get_authorized_user
 from ...config import config
 from ...db.models.player_room import PlayerRoom
 from ...db.models.room import Room
@@ -18,7 +19,7 @@ from ..socket.constants import DASHBOARD_NS
 
 
 async def get_list(request: web.Request):
-    user: User = await check_authorized(request)
+    user = await get_authorized_user(request)
 
     # We should rework this to a playerroom.as_dashboard_dict
     # to prevent these extra queries we're doing for the info
@@ -48,7 +49,7 @@ def get_info(room: Room, user: User):
 
 
 async def set_info(request: web.Request):
-    user: User = await check_authorized(request)
+    user = await get_authorized_user(request)
 
     creator = request.match_info["creator"]
     roomname = request.match_info["roomname"]
@@ -76,7 +77,7 @@ async def set_info(request: web.Request):
 
 
 async def create(request: web.Request):
-    user: User = await check_authorized(request)
+    user = await get_authorized_user(request)
     data = await request.json()
     roomname = data["name"]
     logo = data["logo"]
@@ -90,7 +91,7 @@ async def create(request: web.Request):
 
 
 async def patch(request: web.Request):
-    user: User = await check_authorized(request)
+    user = await get_authorized_user(request)
     data = await request.json()
 
     creator = request.match_info["creator"]
@@ -123,7 +124,7 @@ async def patch(request: web.Request):
 
 
 async def delete(request: web.Request):
-    user: User = await check_authorized(request)
+    user = await get_authorized_user(request)
 
     creator = request.match_info["creator"]
     roomname = request.match_info["roomname"]
@@ -154,7 +155,7 @@ async def export(request: web.Request):
     if not config.getboolean("General", "enable_export"):
         return web.HTTPForbidden()
 
-    user: User = await check_authorized(request)
+    user = await get_authorized_user(request)
 
     creator = request.match_info["creator"]
     roomname = request.match_info["roomname"]
@@ -176,7 +177,7 @@ async def export_all(request: web.Request):
     if not config.getboolean("General", "enable_export"):
         return web.HTTPForbidden()
 
-    user: User = await check_authorized(request)
+    user = await get_authorized_user(request)
 
     creator = request.match_info["creator"]
 
@@ -198,9 +199,13 @@ async def export_all(request: web.Request):
 
 
 class ImportData(TypedDict):
+    lock: asyncio.Lock
+    running: bool
     totalLength: int
     chunks: List[Optional[bytes]]
     sid: Optional[str]
+    takeOverName: bool
+    name: str
 
 
 import_mapping: Dict[str, ImportData] = {}
@@ -231,9 +236,13 @@ async def import_info(request: web.Request):
         )
 
     import_mapping[name] = {
+        "lock": asyncio.Lock(),
+        "running": False,
         "totalLength": length,
         "chunks": [None for _ in range(length)],
         "sid": data.get("sid", None),
+        "takeOverName": data["takeOverName"],
+        "name": data["name"],
     }
 
     # todo: some timer / or other condition to clear the import_mapping
@@ -245,7 +254,7 @@ async def import_chunk(request: web.Request):
     if not config.getboolean("General", "enable_export"):
         return web.HTTPForbidden()
 
-    user: User = await check_authorized(request)
+    user = await get_authorized_user(request)
 
     name = request.match_info["name"]
     try:
@@ -269,14 +278,20 @@ async def import_chunk(request: web.Request):
 
     chunks = import_mapping[name]["chunks"]
     if all(chunks):
-        print(f"Got all chunks for {name}")
-        await asyncio.create_task(
-            import_campaign(
-                user,
-                io.BytesIO(b"".join(cast(List[bytes], chunks))),
-                sid=sid,
-            )
-        )
-        del import_mapping[name]
+        async with import_mapping[name]["lock"]:
+            if not import_mapping.get(name, {}).get("running", True):
+                import_mapping[name]["running"] = True
+
+                print(f"Got all chunks for {name}")
+                await asyncio.create_task(
+                    import_campaign(
+                        user,
+                        io.BytesIO(b"".join(cast(List[bytes], chunks))),
+                        sid=sid,
+                        name=import_mapping[name]["name"],
+                        take_over_name=import_mapping[name]["takeOverName"],
+                    )
+                )
+                del import_mapping[name]
 
     return web.HTTPOk()

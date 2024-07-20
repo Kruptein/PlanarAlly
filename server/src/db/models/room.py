@@ -32,6 +32,9 @@ class Room(BaseDbModel):
     )
     logo = ForeignKeyField(Asset, null=True, on_delete="SET NULL")
 
+    enable_chat = cast(bool, BooleanField(default=True))
+    enable_dice = cast(bool, BooleanField(default=True))
+
     def __repr__(self):
         return f"<Room {self.get_path()}>"
 

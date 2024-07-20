@@ -68,10 +68,19 @@ class DiceStore extends Store<DiceState> {
         if (result === undefined) {
             return "";
         }
-        return result.details.map(
-            (part) => part.type === 'dice' ? part.output.join('+') : 
-                (part.type === 'fixed' ? part.output : ` ${part.value} `))
-            .join('') + ` = ${result.total}`;
+        return (
+            "(" +
+            result.details
+                .map((part) =>
+                    part.type === "dice"
+                        ? part.output.join("+")
+                        : part.type === "fixed"
+                        ? part.output
+                        : `) ${part.value} (`,
+                )
+                .join("") +
+            `) = ${result.total}`
+        );
     }
 
     setResults(key: string, results: DndResult[], position?: [number, number]): void {

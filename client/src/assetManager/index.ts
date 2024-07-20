@@ -187,7 +187,10 @@ class AssetSystem {
                             name: file.name,
                             directory: target,
                             newDirectories,
-                            data: fr.result,
+                            // todo: At server this is typed as `bytes`
+                            // but openapi makes it `string`
+                            // in reality it's an ArrayBuffer, but that's fine for the bytes type
+                            data: fr.result as string,
                             slice,
                             totalSlices: slices,
                             uuid,

@@ -17,6 +17,7 @@ import { trackerSystem } from "../../../systems/trackers";
 import { sendShapeMoveTracker } from "../../../systems/trackers/emits";
 import type { Tracker, TrackerId, UiTracker } from "../../../systems/trackers/models";
 import { uiState } from "../../../systems/ui/state";
+import type { ModTrackerSetting } from "../../../systems/ui/types";
 
 const { t } = useI18n();
 
@@ -29,9 +30,11 @@ const trackers = computed(() => {
     const allTrackers = [...trackerSystem.state.parentTrackers, ...trackerSystem.state.trackers];
     const shapeId = activeShapeStore.state.id;
     if (shapeId === undefined) return [];
+    // There are some "type instantation excessively deep" errors, so we're skipping the DeepReadonly here
+    const modTrackers = uiState.reactive.modTrackerSettings as ModTrackerSetting[];
     return allTrackers.map((t) => ({
         tracker: t,
-        mods: uiState.reactive.modTrackerSettings.filter((ts) => ts.filter?.(shapeId, t.uuid) ?? true),
+        mods: modTrackers.filter((ts) => ts.filter?.(shapeId, t.uuid) ?? true) as DeepReadonly<ModTrackerSetting>[],
     }));
 });
 
@@ -374,7 +377,7 @@ function toggleCompositeAura(shape: LocalId, auraId: AuraId): void {
 #trackers-panel {
     background-color: white;
     min-width: 15vw;
-    max-height: 500px;
+    max-height: 60vh;
     overflow-y: auto;
 }
 

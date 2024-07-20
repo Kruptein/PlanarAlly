@@ -1,3 +1,4 @@
+import { exportShapeData } from "..";
 import type { ApiToggleCompositeShape } from "../../../apiTypes";
 import type { GlobalPoint } from "../../../core/geometry";
 import { SyncMode } from "../../../core/models/types";
@@ -18,6 +19,7 @@ import { accessSystem } from "../../systems/access";
 import { auraSystem } from "../../systems/auras";
 import { getProperties } from "../../systems/properties/state";
 import type { ShapeProperties } from "../../systems/properties/state";
+import { VisionBlock } from "../../systems/properties/types";
 import { selectedSystem } from "../../systems/selected";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { Shape } from "../shape";
@@ -51,6 +53,10 @@ export class ToggleComposite extends Shape implements IToggleComposite {
 
     get variants(): readonly { id: LocalId; name: string }[] {
         return this._variants;
+    }
+
+    get activeVariant(): LocalId {
+        return this.active_variant;
     }
 
     addVariant(id: LocalId, name: string, sync: boolean): void {
@@ -115,7 +121,7 @@ export class ToggleComposite extends Shape implements IToggleComposite {
                 if (props.isToken) accessSystem.removeOwnedToken(variant.id);
                 if (props.blocksMovement)
                     visionState.removeBlocker(TriangulationTarget.MOVEMENT, variant.floorId, variant, true);
-                if (props.blocksVision)
+                if (props.blocksVision !== VisionBlock.No)
                     visionState.removeBlocker(TriangulationTarget.VISION, variant.floorId, variant, true);
                 if (auraSystem.getAll(variant.id, false).length > 0)
                     visionState.removeVisionSources(variant.floorId, variant.id);
@@ -155,7 +161,7 @@ export class ToggleComposite extends Shape implements IToggleComposite {
         if (newVariant.floorId !== undefined) {
             if (props.blocksMovement)
                 visionState.addBlocker(TriangulationTarget.MOVEMENT, newVariant.id, newVariant.floorId, true);
-            if (props.blocksVision)
+            if (props.blocksVision !== VisionBlock.No)
                 visionState.addBlocker(TriangulationTarget.VISION, newVariant.id, newVariant.floorId, true);
 
             for (const au of auraSystem.getAll(newVariant.id, false)) {
@@ -191,13 +197,13 @@ export class ToggleComposite extends Shape implements IToggleComposite {
 
     asDict(): ApiToggleCompositeShape {
         return {
-            ...this.getBaseDict(),
+            ...exportShapeData(this),
             active_variant: getGlobalId(this.active_variant)!,
             variants: this._variants.map((v) => ({ uuid: getGlobalId(v.id)!, name: v.name })),
         };
     }
 
-    invalidatePoints(): void {
+    updatePoints(): void {
         return;
     }
 
@@ -214,7 +220,12 @@ export class ToggleComposite extends Shape implements IToggleComposite {
     }
 
     __center(): GlobalPoint {
-        return getShape(this.active_variant)!.center;
+        try {
+            return getShape(this.active_variant)!.center;
+        } catch (e) {
+            console.error(e);
+            return this.refPoint;
+        }
     }
 
     get center(): GlobalPoint {
@@ -230,10 +241,6 @@ export class ToggleComposite extends Shape implements IToggleComposite {
         return this.getBoundingBox().visibleInCanvas(max);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    snapToGrid(): void {}
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    resizeToGrid(): void {}
     resize(resizePoint: number, _point: GlobalPoint): number {
         return resizePoint;
     }

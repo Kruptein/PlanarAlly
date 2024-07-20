@@ -25,6 +25,8 @@ import { Rect } from "./variants/rect";
 import { Text } from "./variants/text";
 import { ToggleComposite } from "./variants/toggleComposite";
 
+import { loadShapeData } from ".";
+
 export function createShapeFromDict(shape: ApiShape, floor: FloorId, layerName: LayerName): IShape | undefined {
     let sh: IShape;
 
@@ -117,6 +119,6 @@ export function createShapeFromDict(shape: ApiShape, floor: FloorId, layerName: 
     }
 
     sh.setLayer(floor, layerName);
-    sh.fromDict(shape);
+    loadShapeData(sh, shape);
     return sh;
 }

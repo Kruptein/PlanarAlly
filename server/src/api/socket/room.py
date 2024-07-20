@@ -88,3 +88,41 @@ async def set_locked_game_state(sid: str, is_locked: bool):
     for psid in game_state.get_sids(room=pr.room):
         if game_state.get(psid).role != Role.DM:
             await sio.disconnect(psid, namespace=GAME_NS)
+
+
+@sio.on("Room.Features.Chat.Set", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def set_chat_enabled(sid: str, is_enabled: bool):
+    pr: PlayerRoom = game_state.get(sid)
+
+    if pr.role != Role.DM:
+        logger.warning(
+            f"{pr.player.name} attempted to set the chat feature as a non DM."
+        )
+        return
+
+    pr.room.enable_chat = is_enabled
+    pr.room.save()
+
+    await _send_game(
+        "Room.Features.Chat.Set", is_enabled, room=pr.room.get_path(), skip_sid=sid
+    )
+
+
+@sio.on("Room.Features.Dice.Set", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def set_dice_enabled(sid: str, is_enabled: bool):
+    pr: PlayerRoom = game_state.get(sid)
+
+    if pr.role != Role.DM:
+        logger.warning(
+            f"{pr.player.name} attempted to set the dice feature as a non DM."
+        )
+        return
+
+    pr.room.enable_dice = is_enabled
+    pr.room.save()
+
+    await _send_game(
+        "Room.Features.Dice.Set", is_enabled, room=pr.room.get_path(), skip_sid=sid
+    )

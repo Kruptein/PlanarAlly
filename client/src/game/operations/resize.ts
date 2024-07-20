@@ -2,6 +2,7 @@ import type { GlobalPoint } from "../../core/geometry";
 import { sendShapeSizeUpdate } from "../api/emits/shape/core";
 import type { IShape } from "../interfaces/shape";
 import { getProperties } from "../systems/properties/state";
+import { VisionBlock } from "../systems/properties/types";
 import { TriangulationTarget, visionState } from "../vision/state";
 
 export function resizeShape(
@@ -23,7 +24,7 @@ export function resizeShape(
             shape: shape.id,
         });
     }
-    if (props.blocksVision) {
+    if (props.blocksVision !== VisionBlock.No) {
         recalculateVision = true;
         visionState.deleteFromTriangulation({
             target: TriangulationTarget.VISION,
@@ -36,7 +37,8 @@ export function resizeShape(
     // todo: think about calling deleteIntersectVertex directly on the corner point
     if (props.blocksMovement && !temporary)
         visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: shape.id });
-    if (props.blocksVision) visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: shape.id });
+    if (props.blocksVision !== VisionBlock.No)
+        visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: shape.id });
 
     if (!shape.preventSync) sendShapeSizeUpdate({ shape, temporary });
 

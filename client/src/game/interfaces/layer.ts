@@ -18,7 +18,7 @@ export interface ILayer {
     shapeIdsInSector: Set<LocalId>;
     shapesInSector: IShape[];
     postDrawCallback: {
-        wait: () => Promise<void>;
+        wait: (id?: string) => Promise<void>;
         resolveAll: () => void;
     };
 
@@ -29,7 +29,7 @@ export interface ILayer {
     addShape: (shape: IShape, sync: SyncMode, invalidate: InvalidationMode) => void;
     clear: () => void;
     draw: (doClear?: boolean) => void;
-    getShapes: (options: { onlyInView?: boolean; includeComposites: boolean }) => readonly IShape[];
+    getShapes: (options: { onlyInView: boolean; includeComposites: boolean }) => readonly IShape[];
     hide: () => void;
     invalidate: (skipLightUpdate: boolean) => void;
     updateView: () => void;
@@ -41,6 +41,6 @@ export interface ILayer {
     setServerShapes: (shapes: ApiShape[]) => void;
     setShapes: (...shapes: IShape[]) => void;
     show: () => void;
-    size: (options: { includeComposites: boolean }) => number;
+    size: (options: { includeComposites: boolean; onlyInView: boolean }) => number;
     updateSectors: (shapeId: LocalId, aabb: BoundingRect) => void;
 }

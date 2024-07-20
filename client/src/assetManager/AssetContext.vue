@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import ContextMenu from "../core/components/ContextMenu.vue";
+import ContextMenu from "../core/components/contextMenu/ContextMenu.vue";
 import { useModal } from "../core/plugins/modals/plugin";
 import { coreStore } from "../store/core";
 
@@ -80,6 +80,22 @@ async function remove(): Promise<void> {
     }
     close();
 }
+
+const sections = computed(() => [
+    {
+        title: t("common.rename"),
+        action: rename,
+    },
+    {
+        title: "Share",
+        action: share,
+        disabled: !canShare.value,
+    },
+    {
+        title: t("common.remove"),
+        action: remove,
+    },
+]);
 </script>
 
 <template>
@@ -89,10 +105,7 @@ async function remove(): Promise<void> {
         :visible="showAssetContextMenu"
         :left="assetContextLeft"
         :top="assetContextTop"
+        :sections="sections"
         @cm:close="close"
-    >
-        <li @click="rename">{{ t("common.rename") }}</li>
-        <li v-show="canShare" @click="share">Share</li>
-        <li @click="remove">{{ t("common.remove") }}</li>
-    </ContextMenu>
+    />
 </template>

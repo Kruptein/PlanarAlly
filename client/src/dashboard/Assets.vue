@@ -313,7 +313,7 @@ function canEdit(data: AssetId | DeepReadonly<ApiAsset> | undefined, includeRoot
                 @dblclick="assetSystem.changeDirectory('POP')"
                 @dragover.prevent="moveDrag"
                 @dragleave.prevent="leaveDrag"
-                @drop.prevent.stop="stopDrag($event, assetState.parentFolder.value)"
+                @drop.prevent.stop="stopDrag($event, assetState.parentFolder.value!)"
                 @mousedown.prevent
             >
                 <font-awesome-icon icon="folder" style="font-size: 12.5em" />
@@ -386,6 +386,8 @@ function canEdit(data: AssetId | DeepReadonly<ApiAsset> | undefined, includeRoot
 <style lang="scss">
 #content ~ .ContextMenu ul {
     background: rgba(77, 0, 21);
+
+    box-shadow: 0 0 1rem rgba(77, 0, 21, 0.5);
 
     > li:hover {
         background: rgba(219, 0, 59, 1);
@@ -564,7 +566,9 @@ function canEdit(data: AssetId | DeepReadonly<ApiAsset> | undefined, includeRoot
             overflow: hidden;
             background-color: rgba(137, 0, 37, 1);
             background-image: linear-gradient(to bottom, rgba(137, 0, 37, 1) 37%, rgba(137, 0, 37, 1) 69%);
-            box-shadow: inset 0 2px 9px rgba(255, 255, 255, 0.3), inset 0 -2px 6px rgba(0, 0, 0, 0.4);
+            box-shadow:
+                inset 0 2px 9px rgba(255, 255, 255, 0.3),
+                inset 0 -2px 6px rgba(0, 0, 0, 0.4);
 
             &:after {
                 content: "";

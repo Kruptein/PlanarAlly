@@ -75,7 +75,8 @@
         "name_already_in_use": "This name is already in use!",
         "varia": "Varia",
         "select": "Select",
-        "or": "or"
+        "or": "or",
+        "features": "Features"
     },
     "auth": {
         "login": {
@@ -240,7 +241,11 @@
                         "toolbars": "Toolbars",
                         "use_tool_icons": "Use icons",
                         "fog": "Fog",
-                        "show_token_directions": "Show off-screen token directions"
+                        "show_token_directions": "Show off-screen token directions",
+                        "grid_mode_label_format": "Label format in grid mode",
+                        "grid_mode_label_format_0": "Both",
+                        "grid_mode_label_format_1": "Distance only",
+                        "grid_mode_label_format_2": "#cells only"
                     },
                     "BehaviourSettings": {
                         "invert_alt_set": "Invert ALT behaviour",

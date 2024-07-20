@@ -49,11 +49,11 @@ function addServerLayer(layerInfo: ApiLayer, floor: Floor): void {
 
     // Create the Layer instance
     let layer: ILayer;
-    if (layerInfo.type_ === LayerName.Grid) {
+    if (layerInfo.name === LayerName.Grid) {
         layer = new GridLayer(canvas, layerName, floor.id, layerInfo.index);
-    } else if (layerInfo.type_ === LayerName.Lighting) {
+    } else if (layerInfo.name === LayerName.Lighting) {
         layer = new FowLightingLayer(canvas, layerName, floor.id, layerInfo.index);
-    } else if (layerInfo.type_ === LayerName.Vision) {
+    } else if (layerInfo.name === LayerName.Vision) {
         layer = new FowVisionLayer(canvas, layerName, floor.id, layerInfo.index);
     } else if (layerName === LayerName.Map) {
         layer = new MapLayer(canvas, layerName, floor.id, layerInfo.index);
@@ -72,7 +72,7 @@ function addServerLayer(layerInfo: ApiLayer, floor: Floor): void {
         console.warn("Layers div is missing, this will prevent the main game board from loading!");
         return;
     }
-    if (layerInfo.name !== "fow-players") layers.appendChild(canvas);
+    if (layerInfo.name !== LayerName.Vision) layers.appendChild(canvas);
 
     // Load layer groups
 

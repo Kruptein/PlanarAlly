@@ -12,7 +12,6 @@ from typing import Any, Dict, List, Union
 from uuid import uuid4
 
 from aiohttp import web
-from aiohttp_security import authorized_userid
 
 from .... import auth
 from ....app import app, sio
@@ -51,7 +50,7 @@ async def update_live_game(user: User):
 
 @sio.on("connect", namespace=ASSET_NS)
 async def assetmgmt_connect(sid: str, environ):
-    user = await authorized_userid(environ["aiohttp.request"])
+    user = await auth.get_authorized_user(environ["aiohttp.request"])
     if user is None:
         await sio.emit("redirect", "/", room=sid, namespace=ASSET_NS)
     else:

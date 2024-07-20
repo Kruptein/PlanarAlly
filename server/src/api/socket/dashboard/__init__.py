@@ -1,7 +1,6 @@
-from aiohttp_security import authorized_userid
-
 from ....api.socket.constants import DASHBOARD_NS
 from ....app import sio
+from ....auth import get_authorized_user
 from ....config import config
 from ....state.dashboard import dashboard_state
 from . import campaign  # noqa: F401.
@@ -9,11 +8,11 @@ from . import campaign  # noqa: F401.
 
 @sio.on("connect", namespace=DASHBOARD_NS)
 async def dashboard_connect(sid: str, environ):
-    user = await authorized_userid(environ["aiohttp.request"])
+    user = await get_authorized_user(environ["aiohttp.request"])
     if user is not None:
         await dashboard_state.add_sid(sid, user)
         if config.getboolean("General", "enable_export"):
-            await sio.emit("Export.Enabled", True, sid=sid, namespace=DASHBOARD_NS)
+            await sio.emit("Export.Enabled", True, to=sid, namespace=DASHBOARD_NS)
 
 
 @sio.on("disconnect", namespace=DASHBOARD_NS)

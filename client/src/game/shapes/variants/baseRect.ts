@@ -1,12 +1,12 @@
+import { exportShapeData } from "..";
 import type { ApiBaseRectShape, ApiShape } from "../../../apiTypes";
-import { clampGridLine, clampToGrid, g2lx, g2ly } from "../../../core/conversions";
+import { g2lx, g2ly } from "../../../core/conversions";
 import { addP, cloneP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { rotateAroundPoint } from "../../../core/math";
-import { calculateDelta } from "../../drag";
 import type { GlobalId, LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
-import { DEFAULT_GRID_SIZE } from "../../systems/position/state";
+import type { ServerShapeOptions } from "../../models/shapes";
 import type { ShapeProperties } from "../../systems/properties/state";
 import { Shape } from "../shape";
 
@@ -27,6 +27,7 @@ export abstract class BaseRect extends Shape implements IShape {
             uuid?: GlobalId;
             assetId?: number;
             isSnappable?: boolean;
+            parentId?: LocalId;
         },
         properties?: Partial<ShapeProperties>,
     ) {
@@ -40,6 +41,8 @@ export abstract class BaseRect extends Shape implements IShape {
         return this._w;
     }
 
+    // THIS DOES NOT UPDATE THE CENTER
+    // A later call to either set refPoint or updateCenter is expected
     set w(width: number) {
         if (width > 0) {
             this._w = width;
@@ -51,6 +54,8 @@ export abstract class BaseRect extends Shape implements IShape {
         return this._h;
     }
 
+    // THIS DOES NOT UPDATE THE CENTER
+    // A later call to either set refPoint or updateCenter is expected
     set h(height: number) {
         if (height > 0) {
             this._h = height;
@@ -59,11 +64,11 @@ export abstract class BaseRect extends Shape implements IShape {
     }
 
     asDict(): ApiBaseRectShape {
-        return { ...this.getBaseDict(), width: this.w, height: this.h };
+        return { ...exportShapeData(this), width: this.w, height: this.h };
     }
 
-    fromDict(data: ServerBaseRect): void {
-        super.fromDict(data);
+    fromDict(data: ServerBaseRect, options: Partial<ServerShapeOptions>): void {
+        super.fromDict(data, options);
         this.w = data.width;
         this.h = data.height;
     }
@@ -74,7 +79,7 @@ export abstract class BaseRect extends Shape implements IShape {
         return bbox;
     }
 
-    invalidatePoints(): void {
+    updatePoints(): void {
         if (this.w === 0 || this.h === 0) {
             this._points = [[this.refPoint.x, this.refPoint.y]];
             return;
@@ -92,7 +97,6 @@ export abstract class BaseRect extends Shape implements IShape {
             [botright.x, botright.y],
             [topright.x, topright.y],
         ];
-        super.invalidatePoints();
     }
 
     contains(point: GlobalPoint): boolean {
@@ -127,44 +131,6 @@ export abstract class BaseRect extends Shape implements IShape {
         );
         if (coreVisible) return true;
         return false;
-    }
-
-    snapToGrid(): void {
-        const gs = DEFAULT_GRID_SIZE;
-        const center = this.center;
-        const mx = center.x;
-        const my = center.y;
-
-        let targetX;
-        let targetY;
-
-        if ((this.w / gs) % 2 === 0) {
-            targetX = clampGridLine(mx) - this.w / 2;
-        } else {
-            targetX = (Math.round((mx + gs / 2) / gs) - 1 / 2) * gs - this.w / 2;
-        }
-        if ((this.h / gs) % 2 === 0) {
-            targetY = clampGridLine(my) - this.h / 2;
-        } else {
-            targetY = (Math.round((my + gs / 2) / gs) - 1 / 2) * gs - this.h / 2;
-        }
-
-        const delta = calculateDelta(new Vector(targetX - this.refPoint.x, targetY - this.refPoint.y), this);
-        this.refPoint = addP(this.refPoint, delta);
-
-        this.invalidate(false);
-    }
-
-    resizeToGrid(resizePoint: number, retainAspectRatio: boolean): void {
-        const targetPoint = toGP(
-            this.refPoint.x + (resizePoint > 1 ? this.w : 0),
-            this.refPoint.y + ([1, 2].includes(resizePoint) ? this.h : 0),
-        );
-        this.resize(
-            resizePoint,
-            clampToGrid(rotateAroundPoint(targetPoint, this.center, this.angle)),
-            retainAspectRatio,
-        );
     }
 
     // point is expected to be the point as on the map, irregardless of rotation
@@ -235,7 +201,7 @@ export abstract class BaseRect extends Shape implements IShape {
         const oppositeNRP = (newResizePoint + 2) % 4;
 
         // this call needs to happen BEFORE the below code
-        this.invalidatePoints();
+        this.updatePoints(); // todo see if we can do this without the full updatePoints call
 
         const vec = Vector.fromPoints(toGP(this.points[oppositeNRP]!), toGP(oldPoints[oppositeNRP]!));
         this.refPoint = addP(this.refPoint, vec);

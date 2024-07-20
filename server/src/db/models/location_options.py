@@ -30,6 +30,7 @@ class LocationOptions(BaseDbModel):
     limit_movement_during_initiative = cast(
         bool | None, BooleanField(default=False, null=True)
     )
+    drop_ratio = cast(float | None, FloatField(default=1.0, null=True))
 
     @classmethod
     def create_empty(cls):
@@ -49,21 +50,19 @@ class LocationOptions(BaseDbModel):
             ground_map_background=None,
             underground_map_background=None,
             limit_movement_during_initiative=None,
+            drop_ratio=None,
         )
 
     @overload
-    def as_pydantic(self, optional: Literal[True]) -> ApiOptionalLocationOptions:
-        ...
+    def as_pydantic(self, optional: Literal[True]) -> ApiOptionalLocationOptions: ...
 
     @overload
-    def as_pydantic(self, optional: Literal[False]) -> ApiLocationOptions:
-        ...
+    def as_pydantic(self, optional: Literal[False]) -> ApiLocationOptions: ...
 
     @overload
     def as_pydantic(
         self, optional: bool
-    ) -> ApiOptionalLocationOptions | ApiLocationOptions:
-        ...
+    ) -> ApiOptionalLocationOptions | ApiLocationOptions: ...
 
     def as_pydantic(self, optional: bool):
         target = ApiLocationOptions if not optional else ApiOptionalLocationOptions
@@ -86,4 +85,5 @@ class LocationOptions(BaseDbModel):
             underground_map_background=self.underground_map_background,  # type: ignore
             limit_movement_during_initiative=self.limit_movement_during_initiative,  # type: ignore
             spawn_locations=self.spawn_locations,
+            drop_ratio=self.drop_ratio,  # type: ignore
         )

@@ -1,10 +1,14 @@
-import type { ShapeSetBooleanValue, ShapeSetOptionalStringValue, ShapeSetStringValue } from "../../../../apiTypes";
+import type {
+    ShapeSetBooleanValue,
+    ShapeSetIntegerValue,
+    ShapeSetOptionalStringValue,
+    ShapeSetStringValue,
+} from "../../../../apiTypes";
 import { UI_SYNC } from "../../../../core/models/types";
 import type { Sync } from "../../../../core/models/types";
 import { getLocalId, getShape } from "../../../id";
 import type { GlobalId, LocalId } from "../../../id";
 import type { IAsset } from "../../../interfaces/shapes/asset";
-import { annotationSystem } from "../../../systems/annotations";
 import { floorSystem } from "../../../systems/floors";
 import { labelSystem } from "../../../systems/labels";
 import { propertiesSystem } from "../../../systems/properties";
@@ -53,6 +57,36 @@ socket.on(
 );
 
 socket.on(
+    "Shape.Options.OddHexOrientation.Set",
+    wrapSystemCall<ShapeSetBooleanValue>(propertiesSystem.setOddHexOrientation.bind(propertiesSystem)),
+);
+
+socket.on(
+    "Shape.Options.Size.Set",
+    wrapSystemCall<ShapeSetIntegerValue>(propertiesSystem.setSize.bind(propertiesSystem)),
+);
+
+socket.on(
+    "Shape.Options.ShowCells.Set",
+    wrapSystemCall<ShapeSetBooleanValue>(propertiesSystem.setShowCells.bind(propertiesSystem)),
+);
+
+socket.on(
+    "Shape.Options.CellStrokeWidth.Set",
+    wrapSystemCall<ShapeSetIntegerValue>(propertiesSystem.setCellStrokeWidth.bind(propertiesSystem)),
+);
+
+socket.on(
+    "Shape.Options.CellStrokeColour.Set",
+    wrapSystemCall<ShapeSetStringValue>(propertiesSystem.setCellStrokeColour.bind(propertiesSystem)),
+);
+
+socket.on(
+    "Shape.Options.CellFillColour.Set",
+    wrapSystemCall<ShapeSetStringValue>(propertiesSystem.setCellFillColour.bind(propertiesSystem)),
+);
+
+socket.on(
     "Shape.Options.StrokeColour.Set",
     wrapSystemCall<ShapeSetStringValue>(propertiesSystem.setStrokeColour.bind(propertiesSystem)),
 );
@@ -64,7 +98,7 @@ socket.on(
 
 socket.on(
     "Shape.Options.VisionBlock.Set",
-    wrapSystemCall<ShapeSetBooleanValue>(propertiesSystem.setBlocksVision.bind(propertiesSystem)),
+    wrapSystemCall<ShapeSetIntegerValue>(propertiesSystem.setBlocksVision.bind(propertiesSystem)),
 );
 
 socket.on(
@@ -80,16 +114,6 @@ socket.on(
 socket.on(
     "Shape.Options.ShowBadge.Set",
     wrapSystemCall<ShapeSetBooleanValue>(propertiesSystem.setShowBadge.bind(propertiesSystem)),
-);
-
-socket.on(
-    "Shape.Options.Annotation.Set",
-    wrapSystemCall<ShapeSetStringValue>(annotationSystem.setAnnotation.bind(annotationSystem)),
-);
-
-socket.on(
-    "Shape.Options.AnnotationVisible.Set",
-    wrapSystemCall<ShapeSetBooleanValue>(annotationSystem.setAnnotationVisible.bind(annotationSystem)),
 );
 
 socket.on("Shape.Options.Label.Add", wrapCall<ShapeSetStringValue>(labelSystem.addLabel.bind(labelSystem)));

@@ -1,3 +1,4 @@
+import { exportShapeData } from "..";
 import type { ApiLineShape } from "../../../apiTypes";
 import { g2l, g2lx, g2ly, g2lz } from "../../../core/conversions";
 import { addP, subtractP, toArrayP, toGP } from "../../../core/geometry";
@@ -59,15 +60,14 @@ export class Line extends Shape implements IShape {
     }
 
     asDict(): ApiLineShape {
-        return { ...this.getBaseDict(), x2: this.endPoint.x, y2: this.endPoint.y, line_width: this.lineWidth };
+        return { ...exportShapeData(this), x2: this.endPoint.x, y2: this.endPoint.y, line_width: this.lineWidth };
     }
 
-    invalidatePoints(): void {
+    updatePoints(): void {
         this._points = [
             toArrayP(rotateAroundPoint(this.refPoint, this.center, this.angle)),
             toArrayP(rotateAroundPoint(this.endPoint, this.center, this.angle)),
         ];
-        super.invalidatePoints();
     }
 
     getBoundingBox(): BoundingRect {
@@ -78,19 +78,22 @@ export class Line extends Shape implements IShape {
         );
     }
 
-    draw(ctx: CanvasRenderingContext2D): void {
-        super.draw(ctx);
+    draw(ctx: CanvasRenderingContext2D, lightRevealRender: boolean): void {
+        super.draw(ctx, lightRevealRender);
 
-        const center = g2l(this.center);
-        const props = getProperties(this.id)!;
+        if (!lightRevealRender) {
+            const center = g2l(this.center);
+            const props = getProperties(this.id)!;
 
-        ctx.strokeStyle = props.strokeColour[0]!;
-        ctx.beginPath();
-        ctx.moveTo(g2lx(this.refPoint.x) - center.x, g2ly(this.refPoint.y) - center.y);
-        ctx.lineTo(g2lx(this.endPoint.x) - center.x, g2ly(this.endPoint.y) - center.y);
-        ctx.lineWidth = this.ignoreZoomSize ? this.lineWidth : g2lz(this.lineWidth);
-        ctx.stroke();
-        super.drawPost(ctx);
+            ctx.strokeStyle = props.strokeColour[0]!;
+            ctx.beginPath();
+            ctx.moveTo(g2lx(this.refPoint.x) - center.x, g2ly(this.refPoint.y) - center.y);
+            ctx.lineTo(g2lx(this.endPoint.x) - center.x, g2ly(this.endPoint.y) - center.y);
+            ctx.lineWidth = this.ignoreZoomSize ? this.lineWidth : g2lz(this.lineWidth);
+            ctx.stroke();
+        }
+
+        super.drawPost(ctx, lightRevealRender);
     }
 
     contains(_point: GlobalPoint): boolean {
@@ -115,12 +118,6 @@ export class Line extends Shape implements IShape {
         if (super.visibleInCanvas(max, options)) return true;
         return this.getBoundingBox().visibleInCanvas(max);
     }
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    snapToGrid(): void {}
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    resizeToGrid(): void {}
 
     resize(resizePoint: number, point: GlobalPoint): number {
         if (resizePoint === 0) this.refPoint = point;

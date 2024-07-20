@@ -1,5 +1,7 @@
 import type { LocalId } from "../id";
 
+import type { SystemClearReason } from "./models";
+
 export const SYSTEMS: Record<string, System> = {};
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).systems = SYSTEMS;
@@ -25,14 +27,14 @@ export function dropFromSystems(id: LocalId): void {
     }
 }
 
-export function clearSystems(partial: boolean): void {
+export function clearSystems(reason: SystemClearReason): void {
     for (const system of Object.values(SYSTEMS)) {
-        system.clear(partial);
+        system.clear(reason);
     }
 }
 
 export interface System {
-    clear: (partial: boolean) => void;
+    clear: (reason: SystemClearReason) => void;
 }
 
 export interface ShapeSystem extends System {

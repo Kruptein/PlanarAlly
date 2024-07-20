@@ -7,6 +7,7 @@ import { useModal } from "../../../core/plugins/modals/plugin";
 import { coreStore } from "../../../store/core";
 import { locationStore } from "../../../store/location";
 import { sendLocationChange, sendNewLocation } from "../../api/emits/location";
+import { Role } from "../../models/role";
 import type { Location } from "../../models/settings";
 import { gameState } from "../../systems/game/state";
 import { playerSystem } from "../../systems/players";
@@ -113,7 +114,7 @@ function endPlayersDrag(e: { item: HTMLDivElement; from: HTMLDivElement; to: HTM
 
     const players = [];
     for (const player of playerState.raw.players.values()) {
-        if (player.location === fromLocation && player.role !== 1) {
+        if (player.location === fromLocation && player.role !== Role.DM) {
             players.push(player.name);
         }
     }
@@ -371,7 +372,14 @@ const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
         color: white;
         font-size: 1.25em;
         line-height: 1.25rem;
-        text-shadow: 0 5px white, 0 10px white, 5px 0 white, 5px 5px white, 5px 10px white, 10px 0 white, 10px 5px white,
+        text-shadow:
+            0 5px white,
+            0 10px white,
+            5px 0 white,
+            5px 5px white,
+            5px 10px white,
+            10px 0 white,
+            10px 5px white,
             10px 10px white;
     }
 

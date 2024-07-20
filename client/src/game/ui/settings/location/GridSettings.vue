@@ -38,7 +38,7 @@ const unitSize = computed({
         return getOption($.unitSize, location.value).value;
     },
     set(unitSize: number | undefined) {
-        if (unitSize === undefined || unitSize >= 1) lss.setUnitSize(unitSize, location.value, true);
+        if (unitSize === undefined || unitSize > 0) lss.setUnitSize(unitSize, location.value, true);
     },
 });
 
@@ -48,6 +48,15 @@ const unitSizeUnit = computed({
     },
     set(unitSizeUnit: string | undefined) {
         lss.setUnitSizeUnit(unitSizeUnit, location.value, true);
+    },
+});
+
+const dropRatio = computed({
+    get() {
+        return getOption($.dropRatio, location.value).value;
+    },
+    set(dropRatio: number | undefined) {
+        lss.setDropRatio(dropRatio, location.value, true);
     },
 });
 
@@ -132,6 +141,27 @@ function o(k: any): boolean {
                 v-if="!global && o($.unitSize)"
                 :title="t('game.ui.settings.common.reset_default')"
                 @click="unitSize = undefined"
+            >
+                <font-awesome-icon icon="times-circle" />
+            </div>
+            <div v-else></div>
+        </div>
+        <div class="row" :class="{ overwritten: !global && o($.dropRatio) }">
+            <div>
+                <label
+                    :for="'dropRatioInput-' + location"
+                    title="The drop ratio is used for shapes with size information (e.g. goblin_1x1). The drop ratio is applied to this info to determine the final size."
+                >
+                    Drop Ratio
+                </label>
+            </div>
+            <div>
+                <input :id="'dropRatioInput-' + location" v-model.number="dropRatio" type="number" step="any" />
+            </div>
+            <div
+                v-if="!global && o($.dropRatio)"
+                :title="t('game.ui.settings.common.reset_default')"
+                @click="dropRatio = undefined"
             >
                 <font-awesome-icon icon="times-circle" />
             </div>

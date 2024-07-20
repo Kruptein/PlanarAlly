@@ -12,8 +12,8 @@ export const CHARACTER_SETS = [CharacterSet.number, CharacterSet.latin];
 
 export interface Group {
     uuid: string;
-    readonly characterSet: string[];
-    readonly creationOrder: CREATION_ORDER_TYPES;
+    characterSet: string[];
+    creationOrder: CREATION_ORDER_TYPES;
 }
 
 export const groupToServer = (group: Group): ApiGroup => ({

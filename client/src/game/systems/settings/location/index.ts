@@ -5,6 +5,7 @@ import { updateFogColour } from "../../../colour";
 import type { GlobalId } from "../../../id";
 import { floorSystem } from "../../floors";
 import { floorState } from "../../floors/state";
+import type { SystemClearReason } from "../../models";
 
 import { isDefaultWrapper } from "./helpers";
 import type { WithLocationDefault } from "./models";
@@ -13,8 +14,8 @@ import { locationSettingsState } from "./state";
 const { mutableReactive: $, raw, reset } = locationSettingsState;
 
 class LocationSettingsSystem implements System {
-    clear(partial: boolean): void {
-        if (!partial) reset();
+    clear(reason: SystemClearReason): void {
+        if (reason !== "partial-loading") reset();
     }
 
     private resetValue(setting: WithLocationDefault<unknown>): void {
@@ -93,6 +94,12 @@ class LocationSettingsSystem implements System {
         floorSystem.invalidateAllFloors();
 
         if (sync) sendLocationOption("unit_size_unit", unitSizeUnit, location);
+    }
+
+    setDropRatio(dropRatio: number | undefined, location: number | undefined, sync: boolean): void {
+        if (!this.setValue($.dropRatio, dropRatio, location)) return;
+
+        if (sync) sendLocationOption("drop_ratio", dropRatio, location);
     }
 
     // VISION

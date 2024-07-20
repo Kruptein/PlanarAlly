@@ -12,6 +12,7 @@ import { uiState } from "../../../systems/ui/state";
 import AccessSettings from "./AccessSettings.vue";
 import { ShapeSettingCategory } from "./categories";
 import ExtraSettings from "./ExtraSettings.vue";
+import GridSettings from "./GridSettings.vue";
 import GroupSettings from "./GroupSettings.vue";
 import LogicSettings from "./LogicSettings.vue";
 import PropertySettings from "./PropertySettings.vue";
@@ -52,6 +53,7 @@ const tabs = computed(() => {
     if (!hasShape.value) return tabs;
     tabs.push(
         { name: ShapeSettingCategory.Properties, component: PropertySettings },
+        { name: ShapeSettingCategory.Grid, component: GridSettings },
         { name: ShapeSettingCategory.Trackers, component: TrackerSettings },
         { name: ShapeSettingCategory.Access, component: AccessSettings },
         { name: ShapeSettingCategory.Logic, component: LogicSettings },

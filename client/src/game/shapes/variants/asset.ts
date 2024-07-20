@@ -11,9 +11,11 @@ import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import type { IAsset } from "../../interfaces/shapes/asset";
 import { LayerName } from "../../models/floor";
+import type { ServerShapeOptions } from "../../models/shapes";
 import { loadSvgData } from "../../svg";
 import { floorSystem } from "../../systems/floors";
 import { getProperties } from "../../systems/properties/state";
+import { VisionBlock } from "../../systems/properties/types";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import type { SHAPE_TYPE } from "../types";
 
@@ -33,7 +35,14 @@ export class Asset extends BaseRect implements IAsset {
         topleft: GlobalPoint,
         w: number,
         h: number,
-        options?: { id?: LocalId; uuid?: GlobalId; assetId?: number; loaded?: boolean; isSnappable?: boolean },
+        options?: {
+            id?: LocalId;
+            uuid?: GlobalId;
+            assetId?: number;
+            loaded?: boolean;
+            isSnappable?: boolean;
+            parentId?: LocalId;
+        },
     ) {
         super(topleft, w, h, { isSnappable: false, ...options }, { strokeColour: ["white"] });
         this.img = img;
@@ -49,8 +58,8 @@ export class Asset extends BaseRect implements IAsset {
         };
     }
 
-    fromDict(data: ApiAssetRectShape): void {
-        super.fromDict(data);
+    fromDict(data: ApiAssetRectShape, options: Partial<ServerShapeOptions>): void {
+        super.fromDict(data, options);
         this.src = data.src;
     }
 
@@ -74,6 +83,18 @@ export class Asset extends BaseRect implements IAsset {
         }
     }
 
+    resizeH(h: number, keepAspectratio: boolean): void {
+        const ar = this.h / this.w;
+        this.h = h;
+        if (keepAspectratio) this.w = h / ar;
+    }
+
+    resizeW(w: number, keepAspectratio: boolean): void {
+        const ar = this.h / this.w;
+        this.w = w;
+        if (keepAspectratio) this.h = w * ar;
+    }
+
     async loadSvgs(): Promise<void> {
         if (this.options.svgAsset !== undefined) {
             const cover = new Polygon(
@@ -85,7 +106,7 @@ export class Asset extends BaseRect implements IAsset {
             const svgs = await loadSvgData(`/static/assets/${this.options.svgAsset}`);
             this.svgData = [...map(svgs.values(), (svg) => ({ svg, rp: this.refPoint, paths: undefined }))];
             const props = getProperties(this.id)!;
-            if (props.blocksVision) {
+            if (props.blocksVision !== VisionBlock.No) {
                 if (this.floorId !== undefined) visionState.recalculateVision(this.floorId);
                 visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.id });
             }
@@ -98,8 +119,13 @@ export class Asset extends BaseRect implements IAsset {
         }
     }
 
-    draw(ctx: CanvasRenderingContext2D, customScale?: { center: GlobalPoint; width: number; height: number }): void {
-        super.draw(ctx, customScale);
+    draw(
+        ctx: CanvasRenderingContext2D,
+        lightRevealRender: boolean,
+        customScale?: { center: GlobalPoint; width: number; height: number },
+    ): void {
+        super.draw(ctx, lightRevealRender, customScale);
+
         const center = g2l(this.center);
         const rp = g2l(this.refPoint);
         const ogH = g2lz(this.h);
@@ -108,8 +134,9 @@ export class Asset extends BaseRect implements IAsset {
         const w = customScale ? customScale.width : ogW;
         const deltaH = (ogH - h) / 2;
         const deltaW = (ogW - w) / 2;
+
         if (!this.#loaded) {
-            ctx.fillStyle = FOG_COLOUR;
+            if (!lightRevealRender) ctx.fillStyle = FOG_COLOUR;
             ctx.fillRect(rp.x - center.x, rp.y - center.y, w, h);
         } else {
             try {
@@ -118,7 +145,8 @@ export class Asset extends BaseRect implements IAsset {
                 console.warn(`Shape ${getGlobalId(this.id) ?? "unknown"} could not load the image ${this.src}`);
             }
         }
-        super.drawPost(ctx);
+
+        super.drawPost(ctx, lightRevealRender);
     }
 
     setImage(url: string, sync: boolean): void {

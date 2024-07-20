@@ -19,6 +19,6 @@ socket.on("Campaign.Import.Done", (data: { success: true } | { success: false; r
     if (data.success) {
         toast.info("A campaign import just finished!");
     } else {
-        toast.error(`Something went wrong with the campaign import :( (${data.reason})`);
+        toast.error(`Something went wrong with the campaign import :( (${data.reason})`, { timeout: false });
     }
 });

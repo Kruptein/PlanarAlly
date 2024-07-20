@@ -1,4 +1,4 @@
-import type { DeepReadonly } from "vue";
+import { markRaw, type DeepReadonly } from "vue";
 
 import { registerSystem } from "..";
 import type { System } from "..";
@@ -110,7 +110,7 @@ class FloorSystem implements System {
         const floor = this.getFloor(targetFloor)!;
 
         $.floorIndex = targetFloorIndex;
-        $.layers = this.getLayers(floor);
+        $.layers = this.getLayers(floor).map((l) => markRaw(l));
 
         this.updateLayerVisibility();
 
@@ -220,7 +220,7 @@ class FloorSystem implements System {
         return this.layerMap.get(floor.id)?.some((f) => f.name === name) ?? false;
     }
 
-    selectLayer(name: string, sync = true, invalidate = true): void {
+    selectLayer(name: LayerName, sync = true, invalidate = true): void {
         selectedSystem.clear();
         for (const [index, layer] of this.getLayers(currentFloor.value!).entries()) {
             if (!layer.selectable) continue;
@@ -274,7 +274,7 @@ class FloorSystem implements System {
             const layer = layers[i]!;
             if (layer.isVisionLayer) {
                 layer.invalidate(true);
-            } else if (layer.name === "map" && playerSettingsState.raw.renderAllFloors.value) {
+            } else if (layer.name === LayerName.Map && playerSettingsState.raw.renderAllFloors.value) {
                 layer.invalidate(true);
             }
         }

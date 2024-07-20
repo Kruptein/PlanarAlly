@@ -1,13 +1,14 @@
 import { addP, toArrayP } from "../../core/geometry";
 import type { Vector } from "../../core/geometry";
 import { sendShapePositionUpdate } from "../api/emits/shape/core";
-import type { LocalId } from "../id";
+import { getShape, type LocalId } from "../id";
 import type { IShape } from "../interfaces/shape";
 import { accessSystem } from "../systems/access";
 import { clientSystem } from "../systems/client";
 import { gameState } from "../systems/game/state";
 import { teleportZoneSystem } from "../systems/logic/tp";
 import { getProperties } from "../systems/properties/state";
+import { VisionBlock } from "../systems/properties/types";
 import { selectedSystem } from "../systems/selected";
 import { locationSettingsState } from "../systems/settings/location/state";
 import { initiativeStore } from "../ui/initiative/state";
@@ -45,7 +46,7 @@ export async function moveShapes(shapes: readonly IShape[], delta: Vector, tempo
                 shape: shape.id,
             });
         }
-        if (props.blocksVision) {
+        if (props.blocksVision !== VisionBlock.No) {
             recalculateVision = true;
             visionState.deleteFromTriangulation({
                 target: TriangulationTarget.VISION,
@@ -61,12 +62,20 @@ export async function moveShapes(shapes: readonly IShape[], delta: Vector, tempo
 
         shape.refPoint = addP(shape.refPoint, delta);
 
+        for (const [collapsedId] of shape.options?.collapsedIds ?? []) {
+            const collapsedShape = getShape(collapsedId);
+            if (collapsedShape === undefined) continue;
+            collapsedShape.center = shape.center;
+            if (!collapsedShape.preventSync) updateList.push(collapsedShape);
+        }
+
         operation.to = toArrayP(shape.refPoint);
         operationList.shapes.push(operation);
 
         if (props.blocksMovement && !temporary)
             visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: shape.id });
-        if (props.blocksVision) visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: shape.id });
+        if (props.blocksVision !== VisionBlock.No)
+            visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: shape.id });
 
         // todo: Fix again
         // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();

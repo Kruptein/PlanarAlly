@@ -2,7 +2,7 @@ import { toRaw } from "vue";
 
 import type { ApiShape } from "../../../apiTypes";
 import { g2l, l2g, l2gz } from "../../../core/conversions";
-import { Ray, toLP } from "../../../core/geometry";
+import { Ray, cloneP, toLP } from "../../../core/geometry";
 import { filter } from "../../../core/iter";
 import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
 import { callbackProvider } from "../../../core/utils";
@@ -18,6 +18,7 @@ import type { FloorId } from "../../models/floor";
 import { addOperation } from "../../operations/undo";
 import { drawAuras } from "../../rendering/auras";
 import { drawTear } from "../../rendering/basic";
+import { drawCells } from "../../rendering/grid";
 import { createShapeFromDict } from "../../shapes/create";
 import { BoundingRect } from "../../shapes/variants/simple/boundingRect";
 import { accessSystem } from "../../systems/access";
@@ -167,7 +168,7 @@ export class Layer implements ILayer {
     /**
      * Returns the number of shapes on this layer
      */
-    size(options: { includeComposites: boolean }): number {
+    size(options: { includeComposites: boolean; onlyInView: boolean }): number {
         return this.getShapes(options).length;
     }
 
@@ -205,12 +206,6 @@ export class Layer implements ILayer {
         propertiesSystem.setBlocksMovement(shape.id, props.blocksMovement, UI_SYNC, invalidate !== InvalidationMode.NO);
 
         shape.invalidatePoints();
-        if (shape.isSnappable) {
-            for (const point of shape.points) {
-                const strp = JSON.stringify(point);
-                this.points.set(strp, (this.points.get(strp) ?? new Set()).add(shape.id));
-            }
-        }
 
         if (accessSystem.hasAccessTo(shape.id, false, { vision: true }) && props.isToken)
             accessSystem.addOwnedToken(shape.id);
@@ -246,8 +241,8 @@ export class Layer implements ILayer {
 
     // UI helpers are objects that are created for UI reaons but that are not pertinent to the actual state
     // They are often not desired unless in specific circumstances
-    getShapes(options: { includeComposites: boolean; onlyInView?: boolean }): readonly IShape[] {
-        let shapes: readonly IShape[] = options.onlyInView ?? false ? this.shapesInSector : this.shapes;
+    getShapes(options: { includeComposites: boolean; onlyInView: boolean }): readonly IShape[] {
+        let shapes: readonly IShape[] = options.onlyInView ? this.shapesInSector : this.shapes;
         if (options.includeComposites) {
             shapes = compositeState.addAllCompositeShapes(shapes);
         }
@@ -319,6 +314,7 @@ export class Layer implements ILayer {
                 true,
             );
         }
+        shape.removeDependentShapes({ dropShapeId: true });
         this.shapes.splice(idx, 1);
         this.removeShapeFromSectors(shape.id);
         this.updateView();
@@ -339,13 +335,6 @@ export class Layer implements ILayer {
 
         if (options.dropShapeId) dropId(shape.id);
         markerSystem.removeMarker(shape.id, true);
-
-        for (const point of shape.points) {
-            const strp = JSON.stringify(point);
-            const val = this.points.get(strp);
-            if (val === undefined || val.size === 1) this.points.delete(strp);
-            else val.delete(shape.id);
-        }
 
         if (this.isActiveLayer) selectedSystem.remove(shape.id);
 
@@ -368,6 +357,7 @@ export class Layer implements ILayer {
                     temporary: sync === SyncMode.TEMP_SYNC,
                 });
         }
+        this.updateView();
         this.invalidate(true);
     }
 
@@ -407,11 +397,27 @@ export class Layer implements ILayer {
             // Otherwise auras from one shape could overlap another shape.
 
             const isActiveLayer = this.isActiveLayer;
+            const gridType = locationSettingsState.raw.gridType.value;
 
             if (this.name !== LayerName.Lighting || isActiveLayer) {
                 // Aura draw loop
                 for (const shape of this.shapesInSector) {
                     if (shape.options.skipDraw ?? false) continue;
+
+                    const props = getProperties(shape.id);
+                    if (props?.showCells === true) {
+                        drawCells(
+                            ctx,
+                            cloneP(shape.center),
+                            shape.getSize(gridType),
+                            { type: gridType, oddHexOrientation: props.oddHexOrientation },
+                            {
+                                fill: props.cellFillColour,
+                                stroke: props.cellStrokeColour,
+                                strokeWidth: props.cellStrokeWidth,
+                            },
+                        );
+                    }
 
                     drawAuras(shape, ctx);
                 }
@@ -423,7 +429,7 @@ export class Layer implements ILayer {
                     if (props.isInvisible && !accessSystem.hasAccessTo(shape.id, true, { vision: true })) continue;
                     if (labelSystem.isFiltered(shape.id)) continue;
 
-                    shape.draw(ctx);
+                    shape.draw(ctx, false);
                 }
             }
 
@@ -465,7 +471,7 @@ export class Layer implements ILayer {
                                     const modifiedRay = new Ray(g2l(ray.get(min)), ray.direction);
                                     drawTear(modifiedRay, { fillColour: playerSettingsState.raw.rulerColour.value });
                                     target = ray.getPointAtDistance(l2gz(68), min);
-                                    shape.draw(ctx, { center: target, width: 60, height: 60 });
+                                    shape.draw(ctx, false, { center: target, width: 60, height: 60 });
                                     positionSystem.setTokenDirection(token, g2l(target));
                                     found = true;
                                 }

@@ -1,7 +1,8 @@
 import { assetSystem } from "../assetManager";
 import { assetState } from "../assetManager/state";
-import { clampGridLine, l2gx, l2gy, l2gz } from "../core/conversions";
+import { l2gx, l2gy, l2gz } from "../core/conversions";
 import { type GlobalPoint, toGP, Vector } from "../core/geometry";
+import { DEFAULT_GRID_SIZE, snapPointToGrid } from "../core/grid";
 import { baseAdjust } from "../core/http";
 import { SyncMode, InvalidationMode } from "../core/models/types";
 import { uuidv4 } from "../core/utils";
@@ -10,14 +11,16 @@ import { i18n } from "../i18n";
 import { requestAssetOptions } from "./api/emits/asset";
 import { sendShapesMove } from "./api/emits/shape/core";
 import { getLocalId, getShape } from "./id";
+import { compositeState } from "./layers/state";
 import type { BaseTemplate } from "./models/templates";
 import { moveShapes } from "./operations/movement";
+import { loadShapeData } from "./shapes";
 import { applyTemplate } from "./shapes/templates";
 import { Asset } from "./shapes/variants/asset";
 import type { CharacterId } from "./systems/characters/models";
 import { characterState } from "./systems/characters/state";
 import { floorState } from "./systems/floors/state";
-import { DEFAULT_GRID_SIZE } from "./systems/position/state";
+import { noteSystem } from "./systems/notes";
 import { locationSettingsState } from "./systems/settings/location/state";
 import { selectionBoxFunction } from "./temp";
 import { handleDropFF } from "./ui/firefox";
@@ -62,21 +65,33 @@ async function dropHelper(
             throw new Error("Unknown character ID encountered");
         }
         const shapeId = getLocalId(character.shapeId, false);
+
         if (shapeId !== undefined) {
-            const shape = getShape(shapeId)!;
-            await moveShapes([shape], Vector.fromPoints(shape.center, location), false);
-        } else {
-            sendShapesMove({
-                shapes: [character.shapeId],
-                target: {
-                    layer: floorState.currentLayer.value!.name,
-                    floor: floorState.currentFloor.value!.name,
-                    location: locationSettingsState.raw.activeLocation,
-                    x: location.x,
-                    y: location.y,
-                },
-            });
+            let shape = getShape(shapeId);
+            // bunch of fuckery to patch toggle composites
+            if (shape !== undefined) {
+                const compositeParent = compositeState.getCompositeParent(shapeId);
+                if (compositeParent !== undefined) {
+                    shape = getShape(compositeParent.activeVariant);
+                }
+            }
+            if (shape !== undefined && shape.options?.skipDraw !== true) {
+                await moveShapes([shape], Vector.fromPoints(shape.center, location), false);
+                return;
+            }
         }
+
+        sendShapesMove({
+            shapes: [character.shapeId],
+            target: {
+                layer: floorState.currentLayer.value!.name,
+                floor: floorState.currentFloor.value!.name,
+                location: locationSettingsState.raw.activeLocation,
+                x: location.x,
+                y: location.y,
+            },
+        });
+
         return;
     }
     await dropAsset({ assetId: assetInfo.assetId, imageSource: `/static/assets/${assetInfo.assetHash}` }, location);
@@ -88,7 +103,7 @@ export async function dropAsset(
 ): Promise<Asset | undefined> {
     const layer = floorState.currentLayer.value!;
 
-    let options: BaseTemplate | undefined;
+    let template: BaseTemplate | undefined;
     if (data.assetId) {
         const assetInfo = await requestAssetOptions(data.assetId);
         if (assetInfo.success) {
@@ -97,7 +112,8 @@ export async function dropAsset(
             if (dimensions?.groups !== undefined) {
                 const dimX = Number.parseInt(dimensions.groups.x ?? "0");
                 const dimY = Number.parseInt(dimensions.groups.y ?? "0");
-                options = {
+                // DropRatio is already accounted for in applyTemplate!!
+                template = {
                     width: dimX * DEFAULT_GRID_SIZE,
                     height: dimY * DEFAULT_GRID_SIZE,
                 } as BaseTemplate;
@@ -111,7 +127,7 @@ export async function dropAsset(
                         choices,
                     );
                     if (choice === undefined || choice.length === 0) return;
-                    options = assetInfo.options!.templates[choice[0]!];
+                    template = assetInfo.options!.templates[choice[0]!];
                 } catch {
                     // no-op ; action cancelled
                 }
@@ -136,15 +152,22 @@ export async function dropAsset(
 
             asset.setLayer(layer.floor, layer.name); // set this early to avoid conflicts
 
-            if (options) {
-                asset.fromDict(applyTemplate(asset.asDict(), options));
+            if (template) {
+                loadShapeData(asset, applyTemplate(asset.asDict(), template));
             }
 
             if (locationSettingsState.raw.useGrid.value) {
-                asset.refPoint = toGP(clampGridLine(asset.refPoint.x), clampGridLine(asset.refPoint.y));
+                const gridType = locationSettingsState.raw.gridType.value;
+                asset.refPoint = snapPointToGrid(asset.refPoint, gridType, {
+                    snapDistance: Number.MAX_VALUE,
+                })[0];
             }
 
             layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
+
+            for (const noteId of asset.options?.templateNoteIds ?? []) {
+                noteSystem.attachShape(noteId, asset.id, true);
+            }
 
             resolve(asset);
         };

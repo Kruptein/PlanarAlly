@@ -10,9 +10,11 @@ import { coreStore } from "../../store/core";
 import { gameState } from "../systems/game/state";
 import { positionSystem } from "../systems/position";
 import { positionState } from "../systems/position/state";
+import { roomState } from "../systems/room/state";
 import { uiState } from "../systems/ui/state";
 
 import Annotation from "./Annotation.vue";
+import Chat from "./Chat.vue";
 import DefaultContext from "./contextmenu/DefaultContext.vue";
 import ShapeContext from "./contextmenu/ShapeContext.vue";
 import { showDefaultContextMenu, showShapeContextMenu } from "./contextmenu/state";
@@ -188,7 +190,10 @@ function setTempZoomDisplay(value: number): void {
         <MenuBar />
         <Tools />
         <LocationBar v-if="gameState.reactive.isDm" :active="visible.locations" :menu-active="visible.settings" />
-        <Floors />
+        <div id="floor-and-chat">
+            <Chat v-if="roomState.reactive.enableChat" />
+            <Floors />
+        </div>
         <DefaultContext />
         <ShapeContext />
         <Annotation />
@@ -228,14 +233,21 @@ function setTempZoomDisplay(value: number): void {
     grid-template-areas:
         "topleft locations locations locations"
         "menu    menutoggle  annotation   zoom     "
-        "menu        .       .              .      "
-        "menu      layer     .            tools    ";
+        "menu        .           .          .      "
+        "menu    floor-chat      .        tools    ";
     grid-template-rows: 0 auto 1fr auto;
     grid-template-columns: 0 repeat(3, 1fr);
     width: 100%;
     height: 100%;
 
     z-index: 0;
+}
+
+#floor-and-chat {
+    grid-area: floor-chat;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
 #logo {

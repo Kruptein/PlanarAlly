@@ -3,14 +3,11 @@ import type { DeepReadonly } from "vue";
 import { registerSystem } from "..";
 import type { ShapeSystem } from "..";
 import { guard } from "../../../core/iter";
-import { NO_SYNC } from "../../../core/models/types";
 import type { Sync } from "../../../core/models/types";
 import { coreStore } from "../../../store/core";
 import { getGlobalId, getShape } from "../../id";
 import type { LocalId } from "../../id";
 import { initiativeStore } from "../../ui/initiative/state";
-import { annotationSystem } from "../annotations";
-import { annotationState } from "../annotations/state";
 import { floorSystem } from "../floors";
 import { gameState } from "../game/state";
 import { playerSystem } from "../players";
@@ -265,10 +262,7 @@ class AccessSystem implements ShapeSystem {
         const oldAccess = mutable.access.get(shapeId)!.get(user)!;
         mutable.access.get(shapeId)!.delete(user);
 
-        // annotation check
-        if (!annotationState.readonly.visible.has(shapeId)) {
-            annotationSystem.setAnnotation(shapeId, "", NO_SYNC);
-        }
+        // todo: note check
 
         if (syncTo.server) {
             const shape = getGlobalId(shapeId);

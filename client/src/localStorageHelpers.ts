@@ -2,7 +2,7 @@
 
 export const debugLayers = localStorage.getItem("PA_DEBUG_INVALIDATE_DRAW") === "true";
 
-export function getLocalStorageObject(key: string): unknown | undefined {
+export function getLocalStorageObject(key: string): unknown {
     const data = localStorage.getItem(key);
     if (data === null) return undefined;
 

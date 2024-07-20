@@ -52,7 +52,6 @@ const diceText = computed(() => {
 
 async function reroll(roll: string): Promise<void> {
     const key = await diceTool.roll(roll);
-    // const result = diceStore.getTotal(key);
     const result = diceStore.getResultString(key);
     diceTool.state.history.push({ roll, result, player: coreStore.state.username });
     sendDiceRollResult({
@@ -71,7 +70,6 @@ async function go(): Promise<void> {
     button.value?.classList.remove("transition");
     const roll = diceText.value;
     const key = await diceTool.roll(roll);
-    // const result = diceStore.getTotal(key);
     const result = diceStore.getResultString(key);
     diceTool.state.history.push({ roll, result, player: coreStore.state.username });
     sendDiceRollResult({
@@ -88,9 +86,11 @@ async function go(): Promise<void> {
     <div id="dice" class="tool-detail">
         <div id="dice-history" ref="historyDiv">
             <template v-for="r of diceTool.state.history" :key="r.roll">
-                <div class="player" :title="r.player" style="margin-right: 1em; overflow:hidden; text-overflow: ellipsis;">{{ r.player }}</div>
-                <div class="roll" :title="r.player" style="margin-right: 1em;" @click="reroll(r.roll)">{{ r.roll }}</div>
-                <div class="result" :title="r.player">{{ r.result }}</div>
+                <div class="player">
+                    {{ r.player }}
+                </div>
+                <div class="roll" @click="reroll(r.roll)">{{ r.roll }}</div>
+                <div class="result">{{ r.result }}</div>
             </template>
         </div>
         <div id="dice-options">
@@ -127,23 +127,38 @@ async function go(): Promise<void> {
 #dice {
     display: flex;
     flex-direction: column;
+    align-items: flex-end;
     min-width: 10em;
 
     #dice-history {
         display: grid;
-        grid-template-columns: 1fr 2fr 2fr;
+        grid-template-columns: repeat(3, auto);
 
-        max-height: 10em;
+        max-height: 7.5em;
         overflow-y: auto;
         padding-right: 0.5em;
-        padding-bottom: 0.5em;
+        margin-bottom: 1rem;
+        row-gap: 0.25rem;
+        column-gap: 2rem;
 
-        > .roll:hover {
-            cursor: pointer;
+        > .player {
+            max-width: 5rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        > .roll {
+            margin-right: 1rem;
+
+            &:hover {
+                cursor: pointer;
+            }
         }
 
         > .result {
             text-align: right;
+            max-width: 15rem;
+            overflow-wrap: anywhere;
         }
     }
 
@@ -153,6 +168,8 @@ async function go(): Promise<void> {
         justify-items: end;
         align-items: center;
         row-gap: 0.5em;
+
+        min-width: 15rem;
 
         padding-right: 0.5em;
         padding-top: 0.5em;
@@ -167,6 +184,8 @@ async function go(): Promise<void> {
         padding: 0.5em 0;
         margin: 0.5em 0;
 
+        min-width: 15rem;
+
         border-top: solid 1px;
         border-bottom: solid 1px;
 
@@ -180,6 +199,8 @@ async function go(): Promise<void> {
         display: flex;
         flex-direction: row;
         justify-content: flex-end;
+
+        min-width: 15rem;
 
         > div {
             display: flex;
@@ -206,12 +227,7 @@ async function go(): Promise<void> {
                 box-sizing: inherit;
                 content: "";
                 position: absolute;
-                width: 100%;
-                height: 100%;
-            }
 
-            &::before,
-            &::after {
                 // Set border to invisible, so we don't see a 4px border on a 0x0 element before the transition starts
                 border: 2px solid transparent;
                 width: 0;
@@ -244,7 +260,8 @@ async function go(): Promise<void> {
             &.transition::before {
                 border-top-color: $border; // Make borders visible
                 border-right-color: $border;
-                transition: width 0.25s ease-out,
+                transition:
+                    width 0.25s ease-out,
                     // Width expands first
                     height 0.25s ease-out 0.25s; // And then height
             }
@@ -252,7 +269,8 @@ async function go(): Promise<void> {
             &.transition::after {
                 border-bottom-color: $border; // Make borders visible
                 border-left-color: $border;
-                transition: border-color 0s ease-out 0.5s,
+                transition:
+                    border-color 0s ease-out 0.5s,
                     // Wait for ::before to finish before showing border
                     width 0.25s ease-out 0.5s,
                     // And then exanding width

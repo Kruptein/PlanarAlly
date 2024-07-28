@@ -81,7 +81,7 @@ class DiceTool extends Tool implements ITool {
             // Slightly deviate from center
             .add(new Vector3(randomInterval(0, 20) - 10, randomInterval(0, 5) - 2.5, randomInterval(0, 20) - 10))
             // Power up
-            .multiplyByFloats(randomInterval(3, 6), 1, randomInterval(3, 6));
+            .multiplyByFloats(randomInterval(6, 9), 1, randomInterval(6, 9));
         const dieOptions: Omit<DieOptions, "die"> = {
             position,
             linear,

@@ -55,6 +55,10 @@ class DiceStore extends Store<DiceState> {
         return this.dndParser;
     }
 
+    getResults(key: string): DndResult[] {
+        return this._state.results.get(key)?.results ?? [];
+    }
+
     getTotal(key: string): number {
         let result = 0;
         for (const data of this._state.results.get(key)?.results ?? []) {
@@ -75,8 +79,8 @@ class DiceStore extends Store<DiceState> {
                     part.type === "dice"
                         ? part.output.join("+")
                         : part.type === "fixed"
-                        ? part.output
-                        : `) ${part.value} (`,
+                          ? part.output
+                          : `) ${part.value} (`,
                 )
                 .join("") +
             `) = ${result.total}`

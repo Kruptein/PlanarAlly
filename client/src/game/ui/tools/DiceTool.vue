@@ -1,14 +1,16 @@
 <script setup lang="ts">
+import type { DndResult, ResolvedDicePart } from "@planarally/dice";
 import { computed, ref } from "vue";
 
+import type { DiceRollResult } from "../../../apiTypes";
 import ClickGroup from "../../../core/components/ClickGroup.vue";
 import { arrToToggleGroup } from "../../../core/components/toggleGroup";
 import ToggleGroup from "../../../core/components/ToggleGroup.vue";
 import { randomInterval } from "../../../core/utils";
+import { coreStore } from "../../../store/core";
+import { sendDiceRollResult } from "../../api/emits/dice";
 import { diceStore } from "../../dice/state";
 import { diceTool } from "../../tools/variants/dice";
-// import { coreStore } from "../../../store/core";
-// import { sendDiceRollResult } from "../../api/emits/dice";
 // import { diceStore } from "../../dice/state";
 // import { diceTool } from "../../tools/variants/dice";
 
@@ -117,6 +119,7 @@ const inputText = computed(() => {
 function clear(): void {
     input.value = [];
     lastOutput.value = null;
+    lastResolved.value = null;
 }
 
 function updateSegments(text: string): void {
@@ -301,13 +304,25 @@ function addSymbol(symbol: (typeof symbolOptions)[number]): void {
 }
 
 async function roll(): Promise<void> {
-    // if (use3d.value === "yes") {
-    //     console.warn("3D roller currently unavailable");
-    //     return;
-    // }
+    lastOutput.value = null;
+    lastResolved.value = null;
+
+    // First handle all dice
+    const pendingDice = [];
+    for (const segment of input.value) {
+        if (segment.type === SegmentType.Die) {
+            pendingDice.push(evaluateDie(segment));
+        }
+    }
+
+    const diceResults = await Promise.all(pendingDice);
+
+    // Put it all together
+
     const resolved: Results<Segment>[] = [];
     let total = 0;
     let opMode: OperatorSegment["value"] = "+";
+
     for (const segment of input.value) {
         const { type } = segment;
         if (type === SegmentType.Literal) {
@@ -317,7 +332,7 @@ async function roll(): Promise<void> {
             opMode = segment.value;
             resolved.push({ type, input: segment, output: segment.value } as Results<OperatorSegment>);
         } else if (type === SegmentType.Die) {
-            const output = await evaluateDie(segment);
+            const output = diceResults.shift()!;
             total += output.total * (opMode === "+" ? 1 : -1);
             resolved.push({ type, input: segment, output } as Results<DieSegment>);
         }
@@ -339,8 +354,8 @@ async function roll(): Promise<void> {
 async function evaluateDie(segment: DieSegment): Promise<ResolvedDieSegment> {
     const rolls: ResolvedDieSegment["rolls"] = [];
     // First resolve all normal rolls + rerolls
-    for (let die = 0; die < segment.amount; die++) {
-        let result = await rollDie(segment.die);
+    const results = await rollDie(segment.die, segment.amount);
+    for (let result of (results[0]!.details[0]! as ResolvedDicePart).output) {
         if (segment.operator === "min" && result < segment.selectorValue!) result = segment.selectorValue!;
         if (segment.operator === "max" && result > segment.selectorValue!) result = segment.selectorValue!;
         rolls.push({ number: result });
@@ -360,12 +375,20 @@ async function evaluateDie(segment: DieSegment): Promise<ResolvedDieSegment> {
     return { total, rolls };
 }
 
-async function rollDie(die: (typeof addOptions)[number]): Promise<number> {
+async function rollDie(die: (typeof addOptions)[number], amount: number): Promise<DndResult[]> {
+    const input = `${amount}${die}`;
     if (use3d.value === "yes") {
-        const key = await diceTool.roll(`1${die}`);
-        return diceStore.getTotal(key);
+        const key = await diceTool.roll(input);
+        return diceStore.getResults(key);
     } else {
-        return Math.round(randomInterval(1, Number.parseInt(die.slice(1)))); // todo!!!!
+        const result: DndResult = { total: 0, details: [] };
+        result.details.push({ type: "dice", input, output: [] });
+        for (let i = 0; i < amount; i++) {
+            const roll = Math.round(randomInterval(1, Number.parseInt(die.slice(1))));
+            result.total += roll;
+            (result.details[0]! as ResolvedDicePart).output.push(roll);
+        }
+        return [result];
     }
 }
 

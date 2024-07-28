@@ -437,15 +437,11 @@ function repr(resolved: Results<Segment>[]): string {
                     <ClickGroup :options="rerollOperatorOptions" :disabled="!showOperator" @click="addOperator" />
                     <label>Selectors</label>
                     <ClickGroup :options="selectorOptions" :disabled="!showSelector" @click="addSelector" />
-                    <label>Numbers</label>
-                    <ClickGroup :options="literalOptions" @click="addLiteral" />
                 </div>
+                <label>Numbers</label>
+                <ClickGroup :options="literalOptions" @click="addLiteral" />
                 <label>Symbols</label>
                 <ClickGroup :options="symbolOptions" :disabled="showSelector" @click="addSymbol" />
-                <input id="asd" type="checkbox" />
-                <label for="asd" style="grid-column: 1/-1; justify-self: end; font-style: italic">
-                    Toggle Advanced
-                </label>
             </div>
             <input
                 id="input"

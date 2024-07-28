@@ -19,8 +19,6 @@ import { diceTool } from "../../tools/variants/dice";
 // const diceArray = ref<{ die: number; amount: number }[]>([]);
 // let timeout: number | undefined;
 
-const activeTab = ref(0);
-
 const _3dOptions = ["yes", "no"] as const;
 const use3d = ref<(typeof _3dOptions)[number]>("no");
 const shareResultOptions = ["All", "DM", "None"] as const;
@@ -410,63 +408,49 @@ function repr(resolved: Results<Segment>[]): string {
 
 <template>
     <div id="dice" class="tool-detail">
-        <div id="dice-nav">
-            <div :class="{ active: activeTab === 0 }" @click="activeTab = 0">NEW</div>
-            <div :class="{ active: activeTab === 1 }" @click="activeTab = 1">HISTORY</div>
+        <div class="header">\\ SETTINGS \\</div>
+        <div id="dice-settings" class="dice-grid">
+            <label>Use 3D dice</label>
+            <ToggleGroup v-model="use3d" :options="arrToToggleGroup(_3dOptions)" :multi-select="false" />
+            <label>Share result with</label>
+            <ToggleGroup v-model="shareResult" :options="arrToToggleGroup(shareResultOptions)" :multi-select="false" />
         </div>
-        <template v-if="activeTab === 0">
-            <div class="header">\\ SETTINGS \\</div>
-            <div id="dice-settings" class="dice-grid">
-                <label>Use 3D dice</label>
-                <ToggleGroup v-model="use3d" :options="arrToToggleGroup(_3dOptions)" :multi-select="false" />
-                <label>Share result with</label>
-                <ToggleGroup
-                    v-model="shareResult"
-                    :options="arrToToggleGroup(shareResultOptions)"
-                    :multi-select="false"
-                />
-            </div>
-            <div class="header">
-                <span>\\ CONFIGURE \\</span>
-                <label id="toggle-advanced" for="advanced-configure-toggle">Toggle Advanced</label>
-            </div>
-            <div id="configure-settings" class="dice-grid">
-                <label>Add</label>
-                <ClickGroup :options="addOptions" :disabled="showSelector" @click="addDie" />
-                <div id="advanced-config">
-                    <label>Operators: limit</label>
-                    <ClickGroup :options="limitOperatorOptions" :disabled="!showOperator" @click="addOperator" />
-                    <!--<label>Operators: reroll</label>
+        <div class="header">
+            <span>\\ CONFIGURE \\</span>
+            <label id="toggle-advanced" for="advanced-configure-toggle">Toggle Advanced</label>
+        </div>
+        <div id="configure-settings" class="dice-grid">
+            <label>Add</label>
+            <ClickGroup :options="addOptions" :disabled="showSelector" @click="addDie" />
+            <div id="advanced-config">
+                <label>Operators: limit</label>
+                <ClickGroup :options="limitOperatorOptions" :disabled="!showOperator" @click="addOperator" />
+                <!--<label>Operators: reroll</label>
                         <ClickGroup :options="rerollOperatorOptions" :disabled="!showOperator" @click="addOperator" />-->
-                    <label>Selectors</label>
-                    <ClickGroup :options="selectorOptions" :disabled="!showSelector" @click="addSelector" />
-                </div>
-                <input id="advanced-configure-toggle" type="checkbox" />
-                <label>Numbers</label>
-                <ClickGroup :options="literalOptions" @click="addLiteral" />
-                <label>Symbols</label>
-                <ClickGroup :options="symbolOptions" :disabled="showSelector" @click="addSymbol" />
+                <label>Selectors</label>
+                <ClickGroup :options="selectorOptions" :disabled="!showSelector" @click="addSelector" />
             </div>
-            <input
-                id="input"
-                type="text"
-                :value="inputText"
-                @change="updateSegments(($event.target as HTMLInputElement).value)"
-                @keyup.enter="roll"
-            />
-            <div id="buttons">
-                <font-awesome-icon icon="clock-rotate-left" @click="clear" />
-                <div style="flex-grow: 1"></div>
-                <div v-show="lastOutput" style="margin-right: 0.5rem">= {{ lastOutput }}</div>
-                <div v-if="lastResolved">({{ repr(lastResolved) }})</div>
-                <button :disabled="input.length === 0" @click="clear">Clear</button>
-                <button :disabled="input.length === 0" @click="roll">Roll!</button>
-            </div>
-        </template>
-        <template v-else>
-            <div class="header">\\ HISTORY \\</div>
-            <div id="dice-history" ref="historyDiv">WOOO</div>
-        </template>
+            <input id="advanced-configure-toggle" type="checkbox" />
+            <label>Numbers</label>
+            <ClickGroup :options="literalOptions" @click="addLiteral" />
+            <label>Symbols</label>
+            <ClickGroup :options="symbolOptions" :disabled="showSelector" @click="addSymbol" />
+        </div>
+        <input
+            id="input"
+            type="text"
+            :value="inputText"
+            @change="updateSegments(($event.target as HTMLInputElement).value)"
+            @keyup.enter="roll"
+        />
+        <div id="buttons">
+            <font-awesome-icon icon="clock-rotate-left" @click="clear" />
+            <div style="flex-grow: 1"></div>
+            <div v-show="lastOutput" style="margin-right: 0.5rem">= {{ lastOutput }}</div>
+            <div v-if="lastResolved">({{ repr(lastResolved) }})</div>
+            <button :disabled="input.length === 0" @click="clear">Clear</button>
+            <button :disabled="input.length === 0" @click="roll">Roll!</button>
+        </div>
     </div>
 </template>
 
@@ -490,31 +474,6 @@ function repr(resolved: Results<Segment>[]): string {
     }
 }
 
-#dice-nav {
-    position: absolute;
-    top: -3.4rem;
-    display: flex;
-    flex-direction: row-reverse;
-    align-items: end;
-    transform-origin: 100% 100%;
-    transform: rotate(-90deg);
-    right: 100%;
-    text-align: right;
-    z-index: -1;
-
-    > div {
-        background-color: lightblue;
-        padding: 0.35rem 0.75rem;
-        // margin-right: 0.5rem;
-        border: 1px solid black;
-        transform: skew(-14deg);
-
-        &.active {
-            padding: 0.75rem;
-            font-weight: bold;
-        }
-    }
-}
 #dice {
     display: flex;
     flex-direction: column;

@@ -433,8 +433,8 @@ function repr(resolved: Results<Segment>[]): string {
                 <div id="advanced-config">
                     <label>Operators: limit</label>
                     <ClickGroup :options="limitOperatorOptions" :disabled="!showOperator" @click="addOperator" />
-                    <label>Operators: reroll</label>
-                    <ClickGroup :options="rerollOperatorOptions" :disabled="!showOperator" @click="addOperator" />
+                    <!--<label>Operators: reroll</label>
+                        <ClickGroup :options="rerollOperatorOptions" :disabled="!showOperator" @click="addOperator" />-->
                     <label>Selectors</label>
                     <ClickGroup :options="selectorOptions" :disabled="!showSelector" @click="addSelector" />
                 </div>

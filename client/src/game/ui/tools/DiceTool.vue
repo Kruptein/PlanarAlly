@@ -327,6 +327,15 @@ async function roll(): Promise<void> {
     console.log(resolved, total);
     lastOutput.value = total;
     lastResolved.value = resolved;
+
+    if (shareResult.value !== "None") {
+        sendDiceRollResult({
+            player: coreStore.state.username,
+            roll: inputText.value,
+            result: total.toString(),
+            shareWith: shareResult.value.toLowerCase() as DiceRollResult["shareWith"],
+        });
+    }
 }
 
 async function evaluateDie(segment: DieSegment): Promise<ResolvedDieSegment> {

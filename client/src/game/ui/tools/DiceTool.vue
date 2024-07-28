@@ -452,6 +452,7 @@ function repr(resolved: Results<Segment>[]): string {
                 type="text"
                 :value="inputText"
                 @change="updateSegments(($event.target as HTMLInputElement).value)"
+                @keyup.enter="roll"
             />
             <div id="buttons">
                 <div v-show="lastOutput" style="margin-right: 0.5rem">= {{ lastOutput }}</div>

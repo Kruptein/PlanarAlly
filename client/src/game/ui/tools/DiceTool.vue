@@ -549,6 +549,7 @@ function repr(resolved: Results<Segment>[]): string {
     #configure-settings {
         row-gap: 0.25rem;
 
+        user-select: none;
     }
 
     #toggle-advanced {

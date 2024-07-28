@@ -455,6 +455,8 @@ function repr(resolved: Results<Segment>[]): string {
                 @keyup.enter="roll"
             />
             <div id="buttons">
+                <font-awesome-icon icon="clock-rotate-left" @click="clear" />
+                <div style="flex-grow: 1"></div>
                 <div v-show="lastOutput" style="margin-right: 0.5rem">= {{ lastOutput }}</div>
                 <div v-if="lastResolved">({{ repr(lastResolved) }})</div>
                 <button :disabled="input.length === 0" @click="clear">Clear</button>
@@ -570,6 +572,7 @@ function repr(resolved: Results<Segment>[]): string {
         margin-top: 0.5rem;
         display: flex;
         justify-content: flex-end;
+        align-items: center;
 
         > button {
             margin-left: 0.5rem;

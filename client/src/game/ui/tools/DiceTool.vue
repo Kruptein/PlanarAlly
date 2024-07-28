@@ -426,7 +426,10 @@ function repr(resolved: Results<Segment>[]): string {
                     :multi-select="false"
                 />
             </div>
-            <div class="header">\\ CONFIGURE \\</div>
+            <div class="header">
+                <span>\\ CONFIGURE \\</span>
+                <label id="toggle-advanced" for="advanced-configure-toggle">Toggle Advanced</label>
+            </div>
             <div id="configure-settings" class="dice-grid">
                 <label>Add</label>
                 <ClickGroup :options="addOptions" :disabled="showSelector" @click="addDie" />
@@ -438,6 +441,7 @@ function repr(resolved: Results<Segment>[]): string {
                     <label>Selectors</label>
                     <ClickGroup :options="selectorOptions" :disabled="!showSelector" @click="addSelector" />
                 </div>
+                <input id="advanced-configure-toggle" type="checkbox" />
                 <label>Numbers</label>
                 <ClickGroup :options="literalOptions" @click="addLiteral" />
                 <label>Symbols</label>
@@ -467,12 +471,12 @@ function repr(resolved: Results<Segment>[]): string {
 #advanced-config {
     display: none;
 
-    &:has(~ #asd:checked) {
+    &:has(~ #advanced-configure-toggle:checked) {
         display: contents;
     }
 }
 
-#asd {
+#advanced-configure-toggle {
     display: none;
 
     + label {
@@ -515,9 +519,14 @@ function repr(resolved: Results<Segment>[]): string {
     min-height: 10rem;
 
     .header {
+        display: flex;
+        justify-content: space-between;
+
         margin: 0;
         padding: 0.5rem 1rem;
+
         border-radius: 1rem;
+
         font-weight: bold;
     }
 
@@ -539,6 +548,16 @@ function repr(resolved: Results<Segment>[]): string {
 
     #configure-settings {
         row-gap: 0.25rem;
+
+    }
+
+    #toggle-advanced {
+        font-weight: normal;
+        font-style: italic;
+
+        &:hover {
+            cursor: pointer;
+        }
     }
 
     #input {

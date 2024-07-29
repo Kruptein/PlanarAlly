@@ -108,7 +108,7 @@ class DiceTool extends Tool implements ITool {
                     console.error("Failed to retrieve diceThrower instance");
                     delete this.state.timeouts[results.key];
                 });
-        }, 10_000);
+        }, 5_000);
         this.state.timeouts[results.key] = timeoutId;
 
         return results.key;

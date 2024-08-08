@@ -5,7 +5,7 @@
         "strict": true,
         "jsx": "preserve",
         "importHelpers": true,
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
         "noUnusedLocals": true,
         "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,

@@ -158,7 +158,9 @@ function toggleFakePlayer(): void {
             <MapTool v-if="activeTool === ToolName.Map" />
             <FilterTool v-if="activeTool === ToolName.Filter" />
             <VisionTool v-if="activeTool === ToolName.Vision" />
-            <DiceTool v-if="roomState.reactive.enableDice && activeTool === ToolName.Dice" />
+            <Suspense>
+                <DiceTool v-if="roomState.reactive.enableDice && activeTool === ToolName.Dice" />
+            </Suspense>
         </div>
     </div>
 </template>

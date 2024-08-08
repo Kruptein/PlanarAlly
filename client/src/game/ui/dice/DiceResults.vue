@@ -8,9 +8,10 @@ import { diceStore } from "../../dice/state";
 const { t } = useI18n();
 
 const results = computed(() => {
-    const key = diceStore.state.showKey;
-    if (key === undefined) return { total: 0, details: [] };
-    return diceStore.state.results.get(key)?.results[0] ?? { total: 0, details: [] };
+    // const key = diceStore.state.showKey;
+    // if (key === undefined) return { total: 0, details: [] };
+    // return diceStore.state.results.get(key)?.results[0] ?? { total: 0, details: [] };
+    return { total: 0, details: [] };
 });
 
 function close(): void {
@@ -39,7 +40,7 @@ function sum(data: readonly number[]): number {
                 <template v-if="diceStore.state.pending">
                     <div id="total">...</div>
                 </template>
-                <template v-else-if="diceStore.state.results.size > 0">
+                <!-- <template v-else-if="diceStore.state.results.size > 0">
                     <div id="total">{{ results.total }}</div>
                     <div id="breakdown">
                         <template v-for="result of results.details.entries()" :key="result[0]">
@@ -56,7 +57,7 @@ function sum(data: readonly number[]): number {
                             <div v-else class="value">{{ result[1].output }}</div>
                         </template>
                     </div>
-                </template>
+                </template> -->
                 <template v-else>No dice data known</template>
             </div>
         </div>

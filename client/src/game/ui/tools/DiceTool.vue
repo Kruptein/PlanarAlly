@@ -9,7 +9,7 @@ import ToggleGroup from "../../../core/components/ToggleGroup.vue";
 import { diceSystem } from "../../systems/dice";
 import { DxHelper } from "../../systems/dice/dx";
 import { diceState } from "../../systems/dice/state";
-import { diceTool, DX } from "../../tools/variants/dice";
+import { diceTool } from "../../tools/variants/dice";
 
 const showHistory = ref(false);
 
@@ -79,7 +79,7 @@ function addSymbol(symbol: (typeof DxConfig.symbolOptions)[number]): void {
 }
 
 function updateFromString(event: Event): void {
-    input.value = DX.parse((event.target as HTMLInputElement).value);
+    input.value = diceState.raw.systems!["2d"].parse((event.target as HTMLInputElement).value);
 }
 
 async function roll(): Promise<void> {

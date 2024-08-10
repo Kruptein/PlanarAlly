@@ -1,12 +1,15 @@
-import type { Part, RollResult } from "@planarally/dice/core";
+import { type Part, type RollResult, type SYSTEMS } from "@planarally/dice/core";
 import type { DeepReadonly } from "vue";
 
 import { buildState } from "../state";
+
+type AsyncReturnType<T extends (..._args: any) => Promise<any>> = Awaited<ReturnType<T>>;
 
 interface DiceState {
     dimensions3d: { width: number; height: number };
     history: { roll: RollResult<Part>; name: string; player: string }[];
     loaded3d: boolean;
+    systems?: { "2d": AsyncReturnType<typeof SYSTEMS.DX>["DX"]; "3d": AsyncReturnType<typeof SYSTEMS.DX3>["DX3"] };
     result?: DeepReadonly<RollResult<Part>>;
 }
 
@@ -15,7 +18,6 @@ const state = buildState<DiceState>({
     history: [],
     loaded3d: false,
 });
-
 export const diceState = {
     ...state,
 };

@@ -1,5 +1,5 @@
 import { Vector3 } from "@babylonjs/core/Maths/math";
-import { type Part, type RollResult, rollString, SYSTEMS } from "@planarally/dice/core";
+import { type Part, type RollResult, rollString } from "@planarally/dice/core";
 import tinycolor from "tinycolor2";
 import { reactive } from "vue";
 
@@ -16,9 +16,6 @@ import { diceState } from "../../systems/dice/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
-
-export const { DX } = await SYSTEMS.DX();
-const { DX3 } = await SYSTEMS.DX3();
 
 function generate3dOptions(): {
     color: string;
@@ -85,6 +82,10 @@ class DiceTool extends Tool implements ITool {
     // );
     // }
 
+    async onSelect(): Promise<void> {
+        await diceSystem.loadSystems();
+    }
+
     get permittedTools(): ToolPermission[] {
         return [{ name: ToolName.Select, features: { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate] } }];
     }
@@ -93,9 +94,9 @@ class DiceTool extends Tool implements ITool {
         let roll: RollResult<Part>;
         if (use3d) {
             const dieDefaults = generate3dOptions();
-            roll = await rollString(input, DX3, { thrower: diceThrower!, dieDefaults });
+            roll = await rollString(input, diceState.raw.systems!["3d"], { thrower: diceThrower!, dieDefaults });
         } else {
-            roll = await rollString(input, DX);
+            roll = await rollString(input, diceState.raw.systems!["2d"]);
         }
 
         if (shareWith !== "none") {

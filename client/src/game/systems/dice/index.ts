@@ -1,4 +1,4 @@
-import type { Part, RollResult } from "@planarally/dice/core";
+import { SYSTEMS, type Part, type RollResult } from "@planarally/dice/core";
 import type { DeepReadonly } from "vue";
 
 import { registerSystem } from "..";
@@ -17,6 +17,14 @@ class DiceSystem implements System {
         for (const part of roll.parts) rollString += ` ${part.input}`;
         $.history.push({ roll, player, name: name ?? rollString });
         return rollString;
+    }
+
+    async loadSystems(): Promise<void> {
+        if ($.systems) return;
+
+        const { DX } = await SYSTEMS.DX();
+        const { DX3 } = await SYSTEMS.DX3();
+        $.systems = { "2d": DX, "3d": DX3 };
     }
 
     async load3d(): Promise<void> {

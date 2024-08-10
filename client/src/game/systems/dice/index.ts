@@ -3,6 +3,7 @@ import type { DeepReadonly } from "vue";
 
 import { registerSystem } from "..";
 import type { System } from "..";
+import type { SystemClearReason } from "../models";
 
 import { loadDiceEnv } from "./environment";
 import { diceState } from "./state";
@@ -10,7 +11,13 @@ import { diceState } from "./state";
 const { mutableReactive: $ } = diceState;
 
 class DiceSystem implements System {
-    clear(): void {}
+    clear(reason: SystemClearReason): void {
+        $.result = undefined;
+        if (reason !== "full-loading") {
+            $.history = [];
+            $.loaded3d = false;
+        }
+    }
 
     addToHistory(roll: RollResult<Part>, player: string, name?: string): string {
         let rollString = "";

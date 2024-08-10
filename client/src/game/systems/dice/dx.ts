@@ -7,7 +7,7 @@ const symbolOptions = ["+", "-"] as const; // , "*", "/", "(", ")"] as const;
 function addSegment(partsRef: Ref<DxSegment[]>, segment: DxSegment): void {
     const parts = partsRef.value;
     if (parts.length > 0 && parts.at(-1)?.type !== DxSegmentType.Operator) {
-        parts.push({ type: DxSegmentType.Operator, value: "+" });
+        parts.push({ type: DxSegmentType.Operator, input: "+" });
     }
     parts.push(segment);
 }
@@ -16,11 +16,12 @@ function addDie(parts: Ref<DxSegment[]>, die: (typeof addOptions)[number]): void
     const seg = parts.value.at(-1);
     if (seg?.type === DxSegmentType.Die && seg.die === die) {
         seg.amount += 1;
+        seg.input = `${seg.amount}${die}`;
     } else if (seg?.type === DxSegmentType.Literal) {
         parts.value.pop();
-        addSegment(parts, { type: DxSegmentType.Die, amount: seg.value, die });
+        addSegment(parts, { type: DxSegmentType.Die, amount: seg.value, die, input: `${seg.value}${die}` });
     } else {
-        addSegment(parts, { type: DxSegmentType.Die, amount: 1, die });
+        addSegment(parts, { type: DxSegmentType.Die, amount: 1, die, input: `1${die}` });
     }
 }
 
@@ -32,12 +33,12 @@ function addLiteral(parts: Ref<DxSegment[]>, value: number): void {
     } else if (seg?.type === DxSegmentType.Literal) {
         seg.value = seg.value * 10 + value;
     } else {
-        addSegment(parts, { type: DxSegmentType.Literal, value });
+        addSegment(parts, { type: DxSegmentType.Literal, input: value.toString(), value });
     }
 }
 
-function addOperator(parts: Ref<DxSegment[]>, value: (typeof symbolOptions)[number]): void {
-    addSegment(parts, { type: DxSegmentType.Operator, value });
+function addOperator(parts: Ref<DxSegment[]>, input: (typeof symbolOptions)[number]): void {
+    addSegment(parts, { type: DxSegmentType.Operator, input });
 }
 
 function stringifySegments(parts: DxSegment[]): string {
@@ -59,7 +60,7 @@ function stringifySegments(parts: DxSegment[]): string {
             else if (seg.selector !== undefined) text += seg.selector;
             if (seg.selectorValue !== undefined) text += seg.selectorValue;
         }
-        if (seg.type === DxSegmentType.Operator) text += ` ${seg.value} `;
+        if (seg.type === DxSegmentType.Operator) text += ` ${seg.input} `;
         if (seg.type === DxSegmentType.Literal) text += seg.value;
     }
     return text;

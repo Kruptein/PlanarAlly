@@ -44,7 +44,7 @@ export default defineConfig({
         outDir: "../server",
         chunkSizeWarningLimit: 2500,
         rollupOptions: {
-            external: ["ammo.js", "vue"],
+            external: ["vue"],
             output: { globals: { vue: "Vue" } },
         },
         commonjsOptions: {
@@ -55,6 +55,7 @@ export default defineConfig({
         esbuildOptions: {
             plugins: [EsmExternalsPlugin({ externals: ["vue"] })],
         },
+        exclude: ["@babylonjs/havok"],
     },
     resolve: {
         alias: [

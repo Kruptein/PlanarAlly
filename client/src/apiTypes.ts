@@ -469,7 +469,6 @@ export interface Viewport {
 export interface DiceRollResult {
   player: string;
   roll: string;
-  result: string;
   shareWith: "all" | "dm" | "none";
 }
 export interface FloorBackgroundSet {

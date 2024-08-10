@@ -22,6 +22,10 @@ tech changes will usually be stripped from release notes for the public
     -   Can be used to enable/disable certain features campaign wide
     -   Currently limited to chat & dice
 
+### Changed
+
+-   Spell tool now renders hexes instead of squares in Hex grid mode
+
 ## [2024.2.0] - 2024-05-18
 
 ### Added

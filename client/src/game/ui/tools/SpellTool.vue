@@ -3,14 +3,21 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../core/components/ColourPicker.vue";
+import { GridType } from "../../../core/grid";
 import { baseAdjust } from "../../../core/http";
 import { selectedState } from "../../systems/selected/state";
+import { locationSettingsState } from "../../systems/settings/location/state";
 import { SpellShape, spellTool } from "../../tools/variants/spell";
 
 const { t } = useI18n();
 
 const selected = spellTool.isActiveTool;
-const shapes = Object.values(SpellShape);
+
+const isHexGrid = computed(() => locationSettingsState.reactive.gridType.value !== GridType.Square);
+
+const shapes = computed(() =>
+    isHexGrid.value ? [SpellShape.Hex] : [SpellShape.Square, SpellShape.Circle, SpellShape.Cone],
+);
 
 const canConeBeCast = computed(() => selectedState.reactive.selected.size > 0);
 
@@ -18,7 +25,15 @@ const translationMapping = {
     [SpellShape.Square]: t("game.ui.tools.DrawTool.square"),
     [SpellShape.Circle]: t("game.ui.tools.DrawTool.circle"),
     [SpellShape.Cone]: t("game.ui.tools.DrawTool.cone"),
+    [SpellShape.Hex]: t("game.ui.tools.DrawTool.square"),
 };
+
+const stepSize = computed(() => {
+    if (isHexGrid.value && spellTool.state.selectedSpellShape === SpellShape.Square) {
+        return 1;
+    }
+    return 5;
+});
 
 async function selectShape(shape: SpellShape): Promise<void> {
     spellTool.state.selectedSpellShape = shape;
@@ -28,7 +43,7 @@ async function selectShape(shape: SpellShape): Promise<void> {
 
 <template>
     <div v-if="selected" class="tool-detail">
-        <div class="selectgroup">
+        <div v-if="!isHexGrid" class="selectgroup">
             <div
                 v-for="shape in shapes"
                 :key="shape"
@@ -52,8 +67,17 @@ async function selectShape(shape: SpellShape): Promise<void> {
                 type="number"
                 style="flex: 1; align-self: center"
                 min="0"
-                step="5"
+                :step="stepSize"
             />
+            <template v-if="isHexGrid">
+                <label for="oddHexOrientation" style="flex: 5">Odd Hex Orientation</label>
+                <input
+                    id="oddHexOrientation"
+                    v-model.number="spellTool.state.oddHexOrientation"
+                    type="checkbox"
+                    style="flex: 1; align-self: center"
+                />
+            </template>
             <label for="colour" style="flex: 5">{{ t("common.fill_color") }}</label>
             <ColourPicker
                 v-model:colour="spellTool.state.colour"

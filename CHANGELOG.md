@@ -22,6 +22,13 @@ tech changes will usually be stripped from release notes for the public
     -   Can be used to enable/disable certain features campaign wide
     -   Currently limited to chat & dice
 
+### Changed
+
+-   Spell tool:
+    -   now renders hexes instead of squares in Hex grid mode
+    -   step size changed to 1 in Hex grid mode
+    -   shape bar is no longer visible, only hex is available in hex grid mode for now
+
 ## [2024.2.0] - 2024-05-18
 
 ### Added

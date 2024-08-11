@@ -4,6 +4,7 @@ import { reactive, watch } from "vue";
 import { g2l, getUnitDistance, l2g, toRadians } from "../../../core/conversions";
 import { toGP, toLP } from "../../../core/geometry";
 import type { LocalPoint } from "../../../core/geometry";
+import { DEFAULT_HEX_RADIUS, GridType } from "../../../core/grid";
 import { InvalidationMode, NO_SYNC, SyncMode, UI_SYNC } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
@@ -13,6 +14,7 @@ import type { ICircle } from "../../interfaces/shapes/circle";
 import { ToolName } from "../../models/tools";
 import type { ITool, ToolPermission } from "../../models/tools";
 import { Circle } from "../../shapes/variants/circle";
+import { createHexPolygon } from "../../shapes/variants/hex";
 import { Rect } from "../../shapes/variants/rect";
 import { accessSystem } from "../../systems/access";
 import { floorState } from "../../systems/floors/state";
@@ -20,6 +22,7 @@ import { playerSystem } from "../../systems/players";
 import { propertiesSystem } from "../../systems/properties";
 import { selectedSystem } from "../../systems/selected";
 import { selectedState } from "../../systems/selected/state";
+import { locationSettingsState } from "../../systems/settings/location/state";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
 import { activateTool, toolMap } from "../tools";
@@ -28,6 +31,7 @@ export enum SpellShape {
     Square = "square",
     Circle = "circle",
     Cone = "cone",
+    Hex = "hex",
 }
 
 class SpellTool extends Tool implements ITool {
@@ -39,6 +43,7 @@ class SpellTool extends Tool implements ITool {
     state = reactive({
         selectedSpellShape: SpellShape.Square,
         showPublic: true,
+        oddHexOrientation: false,
 
         colour: "rgb(63, 127, 191)",
         size: 5,
@@ -52,6 +57,12 @@ class SpellTool extends Tool implements ITool {
         super();
         watch(
             () => this.state.size,
+            async () => {
+                if (this.shape !== undefined) await this.drawShape();
+            },
+        );
+        watch(
+            () => this.state.oddHexOrientation,
             async () => {
                 if (this.shape !== undefined) await this.drawShape();
             },
@@ -87,9 +98,11 @@ class SpellTool extends Tool implements ITool {
 
         const ogPoint = toGP(0, 0);
         let startPosition = ogPoint;
+        let shapeCenter = ogPoint;
 
         if (this.shape !== undefined) {
             startPosition = this.shape.refPoint;
+            shapeCenter = this.shape.center;
             const syncMode = this.state.showPublic !== syncChanged ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC;
             layer.removeShape(this.shape, { sync: syncMode, recalculate: false, dropShapeId: true });
         }
@@ -99,18 +112,35 @@ class SpellTool extends Tool implements ITool {
                 this.shape = new Circle(startPosition, getUnitDistance(this.state.size), { isSnappable: false });
                 break;
             case SpellShape.Square:
-                this.shape = new Rect(
-                    startPosition,
-                    getUnitDistance(this.state.size),
-                    getUnitDistance(this.state.size),
-                    { isSnappable: false },
-                );
+                {
+                    this.shape = new Rect(
+                        startPosition,
+                        getUnitDistance(this.state.size),
+                        getUnitDistance(this.state.size),
+                        { isSnappable: false },
+                    );
+                }
                 break;
             case SpellShape.Cone:
                 this.shape = new Circle(startPosition, getUnitDistance(this.state.size), {
                     viewingAngle: toRadians(60),
                     isSnappable: false,
                 });
+                break;
+            case SpellShape.Hex:
+                {
+                    const gridType = locationSettingsState.raw.gridType.value;
+                    this.shape = createHexPolygon(
+                        shapeCenter,
+                        this.state.size,
+                        {
+                            type: gridType,
+                            oddHexOrientation: this.state.oddHexOrientation,
+                            radius: DEFAULT_HEX_RADIUS,
+                        },
+                        { isSnappable: false },
+                    );
+                }
                 break;
         }
 
@@ -164,6 +194,15 @@ class SpellTool extends Tool implements ITool {
     async onSelect(): Promise<void> {
         if (!selectedSystem.hasSelection && this.state.selectedSpellShape === SpellShape.Cone) {
             this.state.selectedSpellShape = SpellShape.Circle;
+        }
+        if (locationSettingsState.raw.gridType.value === GridType.Square) {
+            if (this.state.selectedSpellShape === SpellShape.Hex) {
+                this.state.selectedSpellShape = SpellShape.Square;
+            }
+        } else {
+            if (this.state.selectedSpellShape !== SpellShape.Hex) {
+                this.state.selectedSpellShape = SpellShape.Hex;
+            }
         }
         await this.drawShape();
     }

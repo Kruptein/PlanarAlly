@@ -31,6 +31,7 @@ export enum SpellShape {
     Square = "square",
     Circle = "circle",
     Cone = "cone",
+    Hex = "hex",
 }
 
 class SpellTool extends Tool implements ITool {
@@ -112,26 +113,12 @@ class SpellTool extends Tool implements ITool {
                 break;
             case SpellShape.Square:
                 {
-                    const gridType = locationSettingsState.raw.gridType.value;
-                    if (gridType === GridType.Square) {
-                        this.shape = new Rect(
-                            startPosition,
-                            getUnitDistance(this.state.size),
-                            getUnitDistance(this.state.size),
-                            { isSnappable: false },
-                        );
-                    } else {
-                        this.shape = createHexPolygon(
-                            shapeCenter,
-                            this.state.size,
-                            {
-                                type: gridType,
-                                oddHexOrientation: this.state.oddHexOrientation,
-                                radius: DEFAULT_HEX_RADIUS,
-                            },
-                            { isSnappable: false },
-                        );
-                    }
+                    this.shape = new Rect(
+                        startPosition,
+                        getUnitDistance(this.state.size),
+                        getUnitDistance(this.state.size),
+                        { isSnappable: false },
+                    );
                 }
                 break;
             case SpellShape.Cone:
@@ -139,6 +126,21 @@ class SpellTool extends Tool implements ITool {
                     viewingAngle: toRadians(60),
                     isSnappable: false,
                 });
+                break;
+            case SpellShape.Hex:
+                {
+                    const gridType = locationSettingsState.raw.gridType.value;
+                    this.shape = createHexPolygon(
+                        shapeCenter,
+                        this.state.size,
+                        {
+                            type: gridType,
+                            oddHexOrientation: this.state.oddHexOrientation,
+                            radius: DEFAULT_HEX_RADIUS,
+                        },
+                        { isSnappable: false },
+                    );
+                }
                 break;
         }
 
@@ -192,6 +194,15 @@ class SpellTool extends Tool implements ITool {
     async onSelect(): Promise<void> {
         if (!selectedSystem.hasSelection && this.state.selectedSpellShape === SpellShape.Cone) {
             this.state.selectedSpellShape = SpellShape.Circle;
+        }
+        if (locationSettingsState.raw.gridType.value === GridType.Square) {
+            if (this.state.selectedSpellShape === SpellShape.Hex) {
+                this.state.selectedSpellShape = SpellShape.Square;
+            }
+        } else {
+            if (this.state.selectedSpellShape !== SpellShape.Hex) {
+                this.state.selectedSpellShape = SpellShape.Hex;
+            }
         }
         await this.drawShape();
     }

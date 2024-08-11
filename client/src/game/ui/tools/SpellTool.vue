@@ -12,7 +12,12 @@ import { SpellShape, spellTool } from "../../tools/variants/spell";
 const { t } = useI18n();
 
 const selected = spellTool.isActiveTool;
-const shapes = Object.values(SpellShape);
+
+const isHexGrid = computed(() => locationSettingsState.reactive.gridType.value !== GridType.Square);
+
+const shapes = computed(() =>
+    isHexGrid.value ? [SpellShape.Hex] : [SpellShape.Square, SpellShape.Circle, SpellShape.Cone],
+);
 
 const canConeBeCast = computed(() => selectedState.reactive.selected.size > 0);
 
@@ -20,9 +25,8 @@ const translationMapping = {
     [SpellShape.Square]: t("game.ui.tools.DrawTool.square"),
     [SpellShape.Circle]: t("game.ui.tools.DrawTool.circle"),
     [SpellShape.Cone]: t("game.ui.tools.DrawTool.cone"),
+    [SpellShape.Hex]: t("game.ui.tools.DrawTool.square"),
 };
-
-const isHexGrid = computed(() => locationSettingsState.reactive.gridType.value !== GridType.Square);
 
 const stepSize = computed(() => {
     if (isHexGrid.value && spellTool.state.selectedSpellShape === SpellShape.Square) {
@@ -39,7 +43,7 @@ async function selectShape(shape: SpellShape): Promise<void> {
 
 <template>
     <div v-if="selected" class="tool-detail">
-        <div class="selectgroup">
+        <div v-if="!isHexGrid" class="selectgroup">
             <div
                 v-for="shape in shapes"
                 :key="shape"

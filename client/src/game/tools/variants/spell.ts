@@ -121,11 +121,16 @@ class SpellTool extends Tool implements ITool {
                             { isSnappable: false },
                         );
                     } else {
-                        this.shape = createHexPolygon(shapeCenter, this.state.size, {
-                            type: gridType,
-                            oddHexOrientation: this.state.oddHexOrientation,
-                            radius: DEFAULT_HEX_RADIUS,
-                        });
+                        this.shape = createHexPolygon(
+                            shapeCenter,
+                            this.state.size,
+                            {
+                                type: gridType,
+                                oddHexOrientation: this.state.oddHexOrientation,
+                                radius: DEFAULT_HEX_RADIUS,
+                            },
+                            { isSnappable: false },
+                        );
                     }
                 }
                 break;

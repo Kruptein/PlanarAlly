@@ -1,5 +1,5 @@
 import { g2lz, g2l } from "../../core/conversions";
-import { type GlobalPoint, toArrayP, subtractP, addP } from "../../core/geometry";
+import { type GlobalPoint, subtractP, addP, toGP } from "../../core/geometry";
 import { DEFAULT_GRID_SIZE, DEFAULT_HEX_RADIUS, GridType, getCellCenter } from "../../core/grid";
 import { getHexNeighbour, getHexVertexVector } from "../../core/grid/hex";
 import type { AxialCoords } from "../../core/grid/types";
@@ -58,12 +58,29 @@ function drawHexPolygon(
     ctx.strokeStyle = style?.stroke ?? "rgba(225, 0, 0, 0.8)";
     ctx.lineWidth = style?.strokeWidth ?? 5;
 
+    const vertices = createHex(center, size, grid).map((p) => g2l(p));
+
+    ctx.beginPath();
+    for (const [i, vertex] of vertices.entries()) {
+        if (i === 0) ctx.moveTo(vertex.x, vertex.y);
+        else ctx.lineTo(vertex.x, vertex.y);
+    }
+    ctx.closePath();
+
+    ctx.fill();
+    ctx.stroke();
+}
+
+export function createHex(
+    center: GlobalPoint,
+    size: number,
+    grid: { type: GridType; oddHexOrientation: boolean; radius?: number },
+): GlobalPoint[] {
     const radius = grid.radius ?? DEFAULT_HEX_RADIUS;
 
-    const localRadius = g2lz(radius);
     let currentCell: AxialCoords = { q: 0, r: 0 };
     if (size === 1) {
-        drawSingleHexPolygon(currentCell, toArrayP(g2l(center)), localRadius, ctx);
+        return createSingleHex(currentCell, center, radius);
     } else {
         // This function can be used to draw non-grid aligned hexagons
         // We first need to figure out what the vector is between the grid's {q:0,r:0} and our custom hexagon's {q:0,r:0}
@@ -92,13 +109,13 @@ function drawHexPolygon(
         // eslint-disable-next-line no-inner-declarations
         function even(v1: number, v2: number, n: number): void {
             for (let i = 0; i <= evenSteps; i++) {
-                let v = addP(currentCellCenter, getHexVertexVector(m6(v1), localRadius, isFlat));
-                ctx.lineTo(v.x, v.y);
-                v = addP(currentCellCenter, getHexVertexVector(m6(v2), localRadius, isFlat));
-                ctx.lineTo(v.x, v.y);
+                let v = addP(currentCellCenter, getHexVertexVector(m6(v1), radius, isFlat));
+                vertices.push(v);
+                v = addP(currentCellCenter, getHexVertexVector(m6(v2), radius, isFlat));
+                vertices.push(v);
                 if (i < evenSteps) {
                     currentCell = getHexNeighbour(currentCell, m6(n));
-                    currentCellCenter = g2l(addP(getCellCenter(currentCell, grid.type, radius), offsetVector));
+                    currentCellCenter = addP(getCellCenter(currentCell, grid.type, radius), offsetVector);
                 }
             }
         }
@@ -106,21 +123,21 @@ function drawHexPolygon(
         // eslint-disable-next-line no-inner-declarations
         function odd(v1: number, v2: number, n: number): void {
             for (let i = 0; i < oddSteps; i++) {
-                let v = addP(currentCellCenter, getHexVertexVector(m6(v1), localRadius, isFlat));
-                ctx.lineTo(v.x, v.y);
+                let v = addP(currentCellCenter, getHexVertexVector(m6(v1), radius, isFlat));
+                vertices.push(v);
                 currentCell = getHexNeighbour(currentCell, m6(n));
-                currentCellCenter = g2l(addP(getCellCenter(currentCell, grid.type, radius), offsetVector));
-                v = addP(currentCellCenter, getHexVertexVector(m6(v2), localRadius, isFlat));
-                ctx.lineTo(v.x, v.y);
+                currentCellCenter = addP(getCellCenter(currentCell, grid.type, radius), offsetVector);
+                v = addP(currentCellCenter, getHexVertexVector(m6(v2), radius, isFlat));
+                vertices.push(v);
             }
         }
 
         // First step to a corner of the hexagon
         for (let i = 0; i < (isFlat ? evenSteps : oddSteps); i++) currentCell = getHexNeighbour(currentCell, m6(1));
-        let currentCellCenter = g2l(addP(getCellCenter(currentCell, grid.type, radius), offsetVector));
-        const start = addP(currentCellCenter, getHexVertexVector(m6(2), localRadius, isFlat));
-        ctx.moveTo(start.x, start.y);
-        ctx.beginPath();
+        let currentCellCenter = addP(getCellCenter(currentCell, grid.type, radius), offsetVector);
+        const start = addP(currentCellCenter, getHexVertexVector(m6(2), radius, isFlat));
+
+        const vertices: GlobalPoint[] = [start];
 
         // Now we move along the exterior of the hexagon in a structured pattern
         // Even and Odd are used to handle the different number of steps that can occur when dealing with evenly sized hexagons
@@ -135,31 +152,20 @@ function drawHexPolygon(
         even(3, 2, 1);
         odd(1, 2, 0);
 
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
+        return vertices;
     }
 }
 
-function drawSingleHexPolygon(
-    cell: AxialCoords,
-    center: [number, number],
-    radius: number,
-    ctx: CanvasRenderingContext2D,
-): void {
-    const x0 = center[0] + radius * Math.sqrt(3) * (cell.q + cell.r / 2);
-    const y0 = center[1] + ((radius * 3) / 2) * cell.r;
+function createSingleHex(cell: AxialCoords, center: GlobalPoint, radius: number): GlobalPoint[] {
+    const x0 = center.x + radius * Math.sqrt(3) * (cell.q + cell.r / 2);
+    const y0 = center.y + ((radius * 3) / 2) * cell.r;
 
-    ctx.beginPath();
+    const vertices: GlobalPoint[] = [];
     const angle = (Math.PI * 2) / 6;
     for (let i = 0; i < 6; i++) {
         const x = x0 + radius * Math.cos(i * angle - Math.PI / 6);
         const y = y0 + radius * Math.sin(i * angle - Math.PI / 6);
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
+        vertices.push(toGP(x, y));
     }
-    ctx.closePath();
-
-    ctx.stroke();
-    ctx.fill();
+    return vertices;
 }

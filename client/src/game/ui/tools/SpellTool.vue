@@ -29,7 +29,7 @@ const translationMapping = {
 };
 
 const stepSize = computed(() => {
-    if (isHexGrid.value && spellTool.state.selectedSpellShape === SpellShape.Square) {
+    if (isHexGrid.value && spellTool.state.selectedSpellShape === SpellShape.Hex) {
         return 1;
     }
     return 5;

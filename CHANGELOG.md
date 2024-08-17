@@ -29,6 +29,11 @@ tech changes will usually be stripped from release notes for the public
     -   step size changed to 1 in Hex grid mode
     -   shape bar is no longer visible, only hex is available in hex grid mode for now
 
+### Fixed
+
+-   Ruler tool:
+    -   Gridmode spacebar did not synchronize snapped end correctly to other players
+
 ## [2024.2.0] - 2024-05-18
 
 ### Added

@@ -291,6 +291,7 @@ class RulerTool extends Tool implements ITool {
 
             if (this.gridMode.value) {
                 lastRuler.endPoint = getClosestCellCenter(lastRuler.endPoint, locationSettingsState.raw.gridType.value);
+                sendShapePositionUpdate([lastRuler], true);
                 this.registerHighlightedCellDraw(layer);
             }
 

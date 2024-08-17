@@ -28,6 +28,8 @@ tech changes will usually be stripped from release notes for the public
     -   now renders hexes instead of squares in Hex grid mode
     -   step size changed to 1 in Hex grid mode
     -   shape bar is no longer visible, only hex is available in hex grid mode for now
+-   Ruler tool:
+    -   now defaults to sharing with other users
 
 ### Fixed
 

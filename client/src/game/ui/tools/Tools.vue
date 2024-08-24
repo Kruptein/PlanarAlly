@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed } from "vue";
 import type { CSSProperties } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -22,7 +22,6 @@ import MapTool from "./MapTool.vue";
 import RulerTool from "./RulerTool.vue";
 import SelectTool from "./SelectTool.vue";
 import SpellTool from "./SpellTool.vue";
-import { useToolPosition } from "./toolPosition";
 import VisionTool from "./VisionTool.vue";
 
 const { t } = useI18n();

@@ -10,9 +10,11 @@ import vueI18n from "@intlify/unplugin-vue-i18n/vite";
 import { transformLazyShow } from "v-lazy-show";
 import { ViteEjsPlugin } from "vite-plugin-ejs";
 import VueDevTools from "vite-plugin-vue-devtools";
+import { visualizer } from "rollup-plugin-visualizer";
 
 const isProduction = (process.env.NODE_ENV ?? "production") === "production";
 const viteEnv = loadEnv(process.env.NODE_ENV ?? "production", process.cwd());
+const useVisualizer = false;
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -26,6 +28,15 @@ export default defineConfig({
             vueUrl: viteEnv.VITE_VUE_URL.replace("../server/", ""),
         }),
         ...(!isProduction ? [VueDevTools()] : []),
+        ...(useVisualizer
+            ? [
+                  visualizer({
+                      open: false,
+                      template: "treemap",
+                      filename: "analyse.html",
+                  }),
+              ]
+            : []),
     ],
     server: {
         host: "0.0.0.0",

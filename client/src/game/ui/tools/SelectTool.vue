@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { onMounted, toRef } from "vue";
+import { useI18n } from "vue-i18n";
 
 import type { GlobalPoint } from "../../../core/geometry";
 import { rotateAroundPoint } from "../../../core/math";
 import type { Polygon } from "../../shapes/variants/polygon";
 import { selectedSystem } from "../../systems/selected";
+import { rulerTool } from "../../tools/variants/ruler";
 import { selectTool } from "../../tools/variants/select";
 import { selectToolState } from "../../tools/variants/select/state";
+
+const { t } = useI18n();
 
 const { $, _$ } = selectToolState;
 
@@ -47,6 +51,16 @@ function removePoint(): void {
     const selection = selectedSystem.get({ includeComposites: false })[0] as Polygon;
     selection.removePoint(getGlobalRefPoint(selection));
 }
+
+function toggle(event: MouseEvent): void {
+    const state = (event.target as HTMLButtonElement).getAttribute("aria-pressed") ?? "false";
+    rulerTool.showPublic.value = state === "false";
+}
+
+function toggleGridMode(event: MouseEvent): void {
+    const state = (event.target as HTMLButtonElement).getAttribute("aria-pressed") ?? "false";
+    rulerTool.gridMode.value = state === "false";
+}
 </script>
 
 <template>
@@ -58,6 +72,12 @@ function removePoint(): void {
 
     <div v-if="selected && $.hasSelection" class="tool-detail">
         <button :aria-pressed="$.showRuler" @click="toggleShowRuler">Show ruler</button>
+        <button :aria-pressed="rulerTool.showPublic.value" :disabled="!$.showRuler" @click="toggle">
+            {{ t("game.ui.tools.RulerTool.share") }}
+        </button>
+        <button :aria-pressed="rulerTool.gridMode.value" :disabled="!$.showRuler" @click="toggleGridMode">
+            Grid Mode
+        </button>
     </div>
 </template>
 
@@ -98,6 +118,10 @@ button {
     padding: 0.4em 0 0.4em 4em;
     position: relative;
     outline: none;
+
+    &:disabled {
+        opacity: 0.5;
+    }
 
     &:hover {
         &::before {

@@ -40,6 +40,9 @@ tech changes will usually be stripped from release notes for the public
     -   Option to share result with nobody
     -   clicking on the notification of another player's roll shows the details
     -   clicking on a history entry shows the details
+-   Toolbar UI
+    -   All extended tool UI is now right aligned fully, no longer hovering over the related tool
+    -   This was preventing tools to the left to be limited in screen estate they could occupy
 
 ### Fixed
 

@@ -56,7 +56,7 @@ function removePoint(): void {
         <div @click="cutPolygon"><font-awesome-icon icon="cut" /></div>
     </div>
 
-    <div v-if="selected && $.hasSelection" id="ruler" class="tool-detail">
+    <div v-if="selected && $.hasSelection" class="tool-detail">
         <button :aria-pressed="$.showRuler" @click="toggleShowRuler">Show ruler</button>
     </div>
 </template>
@@ -81,8 +81,9 @@ function removePoint(): void {
     }
 }
 
-#ruler {
+.tool-detail {
     display: flex;
+    flex-direction: column;
 }
 
 button {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed } from "vue";
 import type { CSSProperties } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -22,7 +22,6 @@ import MapTool from "./MapTool.vue";
 import RulerTool from "./RulerTool.vue";
 import SelectTool from "./SelectTool.vue";
 import SpellTool from "./SpellTool.vue";
-import { useToolPosition } from "./toolPosition";
 import VisionTool from "./VisionTool.vue";
 
 const { t } = useI18n();
@@ -30,8 +29,6 @@ const { t } = useI18n();
 const hasGameboard = coreStore.state.boardId !== undefined;
 
 const detailBottom = computed(() => (playerSettingsState.reactive.useToolIcons.value ? "7.8rem" : "6.6rem"));
-const detailRight = ref("0px");
-const detailArrow = ref("0px");
 
 const visibleTools = computed(() => {
     {
@@ -57,20 +54,6 @@ const visibleTools = computed(() => {
         return tools;
     }
 });
-
-watch(
-    [() => playerSettingsState.reactive.useToolIcons.value, activeTool, activeToolMode, visibleTools],
-    () => updateDetails(),
-    { flush: "post" },
-);
-
-onMounted(() => updateDetails());
-
-function updateDetails(): void {
-    const pos = useToolPosition(activeTool.value);
-    detailRight.value = pos.right;
-    detailArrow.value = pos.arrow;
-}
 
 function getStyle(tool: ToolMode): CSSProperties {
     if (tool === activeToolMode.value) {
@@ -102,10 +85,7 @@ function toggleFakePlayer(): void {
 </script>
 
 <template>
-    <div
-        id="tools"
-        :style="{ '--detailBottom': detailBottom, '--detailRight': detailRight, '--detailArrow': detailArrow }"
-    >
+    <div id="tools" :style="{ '--detailBottom': detailBottom }">
         <div id="toolselect">
             <ul>
                 <li
@@ -278,31 +258,15 @@ function toggleFakePlayer(): void {
 <style lang="scss">
 .tool-detail {
     position: absolute;
-    right: var(--detailRight);
-    bottom: var(--detailBottom);
-    /* width: 150px; */
-    border: solid 1px #2b2b2b;
-    background-color: white;
-    display: grid;
-    padding: 10px;
-    /* grid-template-columns: 50% 50%; */
-    grid-template-columns: auto auto;
-    grid-column-gap: 5px;
-    grid-row-gap: 2px;
 
-    &:after {
-        content: "";
-        position: absolute;
-        right: var(--detailArrow);
-        bottom: 0;
-        width: 0;
-        height: 0;
-        border: 14px solid transparent;
-        border-top-color: black;
-        border-bottom: 0;
-        margin-left: -14px;
-        margin-bottom: -14px;
-    }
+    bottom: var(--detailBottom);
+    right: 25px;
+    padding: 1rem;
+
+    border: solid 1px #2b2b2b;
+    border-radius: 1rem;
+
+    background-color: white;
 
     input {
         width: 100%;

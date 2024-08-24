@@ -24,6 +24,9 @@ tech changes will usually be stripped from release notes for the public
 
 ### Changed
 
+-   Select tool:
+    -   now integrates all the ruler toggles in its UI as well
+    -   these toggles are synced with the ones in the ruler
 -   Spell tool:
     -   now renders hexes instead of squares in Hex grid mode
     -   step size changed to 1 in Hex grid mode

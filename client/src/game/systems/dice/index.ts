@@ -3,12 +3,19 @@ import type { DeepReadonly } from "vue";
 
 import { registerSystem } from "..";
 import type { System } from "..";
+import type { AsyncReturnType } from "../../../core/types";
 import type { SystemClearReason } from "../models";
 
-import { loadDiceEnv } from "./environment";
 import { diceState } from "./state";
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const _env = () => import("./environment");
+
 const { mutableReactive: $ } = diceState;
+
+export async function getDiceEnvironment(): Promise<AsyncReturnType<typeof _env>> {
+    return await _env();
+}
 
 class DiceSystem implements System {
     clear(reason: SystemClearReason): void {
@@ -36,7 +43,8 @@ class DiceSystem implements System {
 
     async load3d(): Promise<void> {
         if (!diceState.raw.loaded3d) {
-            await loadDiceEnv();
+            const env = await getDiceEnvironment();
+            await env.loadDiceEnv();
             $.loaded3d = true;
         }
     }

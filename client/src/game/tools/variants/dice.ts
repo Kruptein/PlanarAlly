@@ -1,4 +1,4 @@
-import { Vector3 } from "@babylonjs/core/Maths/math";
+import type { Vector3 } from "@babylonjs/core/Maths/math";
 import { type Part, type RollResult, rollString } from "@planarally/dice/core";
 import tinycolor from "tinycolor2";
 import { reactive } from "vue";
@@ -9,22 +9,24 @@ import { i18n } from "../../../i18n";
 import { coreStore } from "../../../store/core";
 import { ToolName } from "../../models/tools";
 import type { ITool, ToolPermission } from "../../models/tools";
-import { diceSystem } from "../../systems/dice";
+import { diceSystem, getDiceEnvironment } from "../../systems/dice";
 import { sendDiceRollResult } from "../../systems/dice/emits";
-import { diceThrower } from "../../systems/dice/environment";
 import { diceState } from "../../systems/dice/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
 
-function generate3dOptions(): {
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const babMath = () => import("@babylonjs/core/Maths/math");
+
+async function generate3dOptions(): Promise<{
     color: string;
     physics: () => {
         angular: Vector3;
         linear: Vector3;
         position: Vector3;
     };
-} {
+}> {
     const targetColor = playerSettingsState.raw.rulerColour.value;
     const color = tinycolor(targetColor).toHexString();
 
@@ -36,6 +38,8 @@ function generate3dOptions(): {
 
     const w = (diceState.raw.dimensions3d.width / 2) * 0.85;
     const h = (diceState.raw.dimensions3d.height / 2) * 0.85;
+
+    const { Vector3 } = await babMath();
 
     // Aim from side to center
     const physics = (): { angular: Vector3; linear: Vector3; position: Vector3 } => {
@@ -70,18 +74,6 @@ class DiceTool extends Tool implements ITool {
         timeouts: {},
     });
 
-    // constructor() {
-    //     super();
-    // watch(
-    //     () => diceStore.state.showKey,
-    //     async (showKey) => {
-    //         if (showKey === undefined) {
-    //             (await diceStore.getDiceThrower()).reset();
-    //         }
-    //     },
-    // );
-    // }
-
     async onSelect(): Promise<void> {
         await diceSystem.loadSystems();
     }
@@ -93,7 +85,8 @@ class DiceTool extends Tool implements ITool {
     async roll(input: string, use3d: boolean, shareWith: DiceRollResult["shareWith"]): Promise<RollResult<Part>> {
         let roll: RollResult<Part>;
         if (use3d) {
-            const dieDefaults = generate3dOptions();
+            const dieDefaults = await generate3dOptions();
+            const { diceThrower } = await getDiceEnvironment();
             roll = await rollString(input, diceState.raw.systems!["3d"], { thrower: diceThrower!, dieDefaults });
         } else {
             roll = await rollString(input, diceState.raw.systems!["2d"]);
@@ -112,13 +105,5 @@ class DiceTool extends Tool implements ITool {
         return roll;
     }
 }
-
-// addShadow(die: Dice, mesh: Mesh): void {
-//     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-//     ((window as any).shadowGenerator as ShadowGenerator).addShadowCaster(mesh);
-//     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-//     ((window as any).shadowGenerator as ShadowGenerator).useCloseExponentialShadowMap = true;
-// }
-// }
 
 export const diceTool = new DiceTool();

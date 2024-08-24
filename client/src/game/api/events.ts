@@ -2,6 +2,7 @@ import "../systems/access/events";
 import "../systems/auras/events";
 import "../systems/characters/events";
 import "../systems/chat/events";
+import "../systems/dice/events";
 import "../systems/groups/events";
 import "../systems/labels/events";
 import "../systems/logic/door/events";
@@ -12,7 +13,6 @@ import "../systems/room/events";
 import "../systems/trackers/events";
 
 import "./events/client";
-import "./events/dice";
 import "./events/floor";
 import "./events/initiative";
 import "./events/lg";

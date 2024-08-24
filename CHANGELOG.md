@@ -30,6 +30,16 @@ tech changes will usually be stripped from release notes for the public
     -   shape bar is no longer visible, only hex is available in hex grid mode for now
 -   Ruler tool:
     -   now defaults to sharing with other users
+-   Dice
+    -   non-3D mode
+    -   option to use a click interface to build dice strings
+    -   extra operators and selectors (e.g. keep highest 2)
+    -   3D code & assets are only loaded when settin "use 3D" to true in the tool config for the first time
+    -   3D physics now uses havok engine instead of ammo (babylonjs upgraded from 4 to 7)
+    -   history & result UI slightly changed
+    -   Option to share result with nobody
+    -   clicking on the notification of another player's roll shows the details
+    -   clicking on a history entry shows the details
 
 ### Fixed
 

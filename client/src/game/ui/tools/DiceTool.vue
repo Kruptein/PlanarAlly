@@ -1,282 +1,279 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from "vue";
+import { DxConfig, DxSegmentType, type DxSegment } from "@planarally/dice/systems/dx";
+import { computed, ref, watch } from "vue";
 
-import { coreStore } from "../../../store/core";
-import { sendDiceRollResult } from "../../api/emits/dice";
-import { diceStore } from "../../dice/state";
+import type { DiceRollResult } from "../../../apiTypes";
+import ClickGroup from "../../../core/components/ClickGroup.vue";
+import { arrToToggleGroup } from "../../../core/components/toggleGroup";
+import ToggleGroup from "../../../core/components/ToggleGroup.vue";
+import { diceSystem } from "../../systems/dice";
+import { DxHelper } from "../../systems/dice/dx";
+import { diceState } from "../../systems/dice/state";
 import { diceTool } from "../../tools/variants/dice";
 
-const button = ref<HTMLButtonElement | null>(null);
-const historyDiv = ref<HTMLDivElement | null>(null);
+const showHistory = ref(false);
 
-// Dice logic
-const diceArray = ref<{ die: number; amount: number }[]>([]);
-let timeout: number | undefined;
+const _3dOptions = ["yes", "no"] as const;
+const use3d = ref<(typeof _3dOptions)[number]>("no");
+const shareResultOptions = ["All", "DM", "None"] as const;
+const shareResult = ref<(typeof shareResultOptions)[number]>("All");
 
-watch(
-    () => diceTool.state.history.length,
-    async () => {
-        await nextTick(() => {
-            historyDiv.value!.scrollTop = historyDiv.value!.scrollHeight;
-        });
-    },
-);
+const literalOptions = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"] as const;
 
-function add(die: number): void {
-    if (diceTool.state.autoRoll) {
-        button.value?.classList.remove("transition");
-        button.value!.clientWidth; // force reflow
-        button.value?.classList.add("transition");
+const input = ref<DxSegment[]>([]);
+const lastSeg = computed(() => input.value.at(-1));
 
-        clearTimeout(timeout);
-        timeout = window.setTimeout(() => void go(), 1000);
-    }
-    const d = diceArray.value.find((d) => d.die === die);
-    if (d === undefined) {
-        diceArray.value.push({ die, amount: 1 });
-    } else {
-        d.amount++;
-    }
-}
-
-const diceText = computed(() => {
-    let text = "";
-    for (const [i, d] of diceArray.value.entries()) {
-        text += `${d.amount}d${d.die}`;
-        if (i < diceArray.value.length - 1) {
-            text += " + ";
-        }
-    }
-    return text;
+watch(use3d, async (value) => {
+    if (value === "yes") await diceSystem.load3d();
 });
 
-async function reroll(roll: string): Promise<void> {
-    const key = await diceTool.roll(roll);
-    const result = diceStore.getResultString(key);
-    diceTool.state.history.push({ roll, result, player: coreStore.state.username });
-    sendDiceRollResult({
-        player: coreStore.state.username,
-        roll,
-        result,
-        shareWithAll: diceTool.state.shareWithAll,
-    });
+const showOperator = computed(() => {
+    const seg = lastSeg.value;
+    return seg?.type === DxSegmentType.Die && seg.selector === undefined && seg.selectorValue === undefined;
+});
+
+const showSelector = computed(() => {
+    const seg = lastSeg.value;
+    return (
+        seg?.type === DxSegmentType.Die &&
+        seg.operator !== undefined &&
+        seg.operator !== "min" &&
+        seg.operator !== "max" &&
+        seg.selectorValue === undefined &&
+        seg.selector === undefined
+    );
+});
+
+const inputText = ref("");
+watch(input, (parts) => (inputText.value = DxHelper.stringifySegments(parts)), { deep: true });
+
+function clear(): void {
+    input.value = [];
 }
 
-async function go(): Promise<void> {
-    if (diceArray.value.length === 0) {
-        return;
-    }
-    clearTimeout(timeout);
-    button.value?.classList.remove("transition");
-    const roll = diceText.value;
-    const key = await diceTool.roll(roll);
-    const result = diceStore.getResultString(key);
-    diceTool.state.history.push({ roll, result, player: coreStore.state.username });
-    sendDiceRollResult({
-        player: coreStore.state.username,
-        roll,
-        result,
-        shareWithAll: diceTool.state.shareWithAll,
-    });
-    diceArray.value = [];
+function addDie(die: (typeof DxConfig.addOptions)[number]): void {
+    DxHelper.addDie(input, die);
+}
+
+function addOperator(
+    operator: (typeof DxConfig.limitOperatorOptions)[number] | (typeof DxConfig.rerollOperatorOptions)[number],
+): void {
+    const seg = lastSeg.value;
+    if (seg?.type !== DxSegmentType.Die) return;
+    seg.operator = operator;
+}
+
+function addSelector(selector: (typeof DxConfig.selectorOptions)[number]): void {
+    const seg = lastSeg.value;
+    if (seg?.type !== DxSegmentType.Die) return;
+    seg.selector = selector;
+}
+
+function addLiteral(literal: (typeof literalOptions)[number]): void {
+    const value = Number.parseInt(literal);
+    DxHelper.addLiteral(input, value);
+}
+
+function addSymbol(symbol: (typeof DxConfig.symbolOptions)[number]): void {
+    input.value.push({ type: DxSegmentType.Operator, input: symbol });
+}
+
+function updateFromString(event: Event): void {
+    input.value = diceState.raw.systems!["2d"].parse((event.target as HTMLInputElement).value);
+}
+
+async function roll(): Promise<void> {
+    if (inputText.value.length === 0) return;
+
+    const results = await diceTool.roll(
+        inputText.value,
+        use3d.value === "yes",
+        shareResult.value.toLowerCase() as DiceRollResult["shareWith"],
+    );
+    clear();
+    diceSystem.showResults(results);
 }
 </script>
 
 <template>
     <div id="dice" class="tool-detail">
-        <div id="dice-history" ref="historyDiv">
-            <template v-for="r of diceTool.state.history" :key="r.roll">
-                <div class="player">
-                    {{ r.player }}
+        <template v-if="!showHistory">
+            <div class="header">\\ SETTINGS \\</div>
+            <div id="dice-settings" class="dice-grid">
+                <label>Use 3D dice</label>
+                <ToggleGroup v-model="use3d" :options="arrToToggleGroup(_3dOptions)" :multi-select="false" />
+                <label>Share result with</label>
+                <ToggleGroup
+                    v-model="shareResult"
+                    :options="arrToToggleGroup(shareResultOptions)"
+                    :multi-select="false"
+                />
+            </div>
+            <div class="header">
+                <span>\\ CONFIGURE \\</span>
+                <label id="toggle-advanced" for="advanced-configure-toggle">Toggle Advanced</label>
+            </div>
+            <div id="configure-settings" class="dice-grid">
+                <label>Add</label>
+                <ClickGroup :options="DxConfig.addOptions" :disabled="showSelector" @click="addDie" />
+                <div id="advanced-config">
+                    <label>Operators: limit</label>
+                    <ClickGroup
+                        :options="DxConfig.limitOperatorOptions"
+                        :disabled="!showOperator"
+                        @click="addOperator"
+                    />
+                    <!--<label>Operators: reroll</label>
+                        <ClickGroup :options="rerollOperatorOptions" :disabled="!showOperator" @click="addOperator" />-->
+                    <label>Selectors</label>
+                    <ClickGroup :options="DxConfig.selectorOptions" :disabled="!showSelector" @click="addSelector" />
                 </div>
-                <div class="roll" @click="reroll(r.roll)">{{ r.roll }}</div>
-                <div class="result">{{ r.result }}</div>
-            </template>
-        </div>
-        <div id="dice-options">
-            <div>Share with all</div>
-            <button
-                class="slider-checkbox"
-                :aria-pressed="diceTool.state.shareWithAll"
-                @click="diceTool.state.shareWithAll = !diceTool.state.shareWithAll"
-            ></button>
-            <div>Auto roll</div>
-            <button
-                class="slider-checkbox"
-                :aria-pressed="diceTool.state.autoRoll"
-                @click="diceTool.state.autoRoll = !diceTool.state.autoRoll"
-            ></button>
-        </div>
-        <div id="dice-picker">
-            <div @click="add(20)">20</div>
-            <div @click="add(12)">12</div>
-            <div @click="add(10)">10</div>
-            <div @click="add(8)">8</div>
-            <div @click="add(6)">6</div>
-            <div @click="add(4)">4</div>
-        </div>
-        <div style="min-height: 1.5rem">{{ diceText }}</div>
-        <div id="dice-input">
-            <button @click="diceArray = []">clear</button>
-            <button ref="button" @click="go">GO</button>
+                <input id="advanced-configure-toggle" type="checkbox" />
+                <label>Numbers</label>
+                <ClickGroup :options="literalOptions" @click="addLiteral" />
+                <label>Symbols</label>
+                <ClickGroup :options="DxConfig.symbolOptions" :disabled="showSelector" @click="addSymbol" />
+            </div>
+        </template>
+        <template v-else>
+            <div class="header">\\ HISTORY \\</div>
+            <div id="dice-history">
+                <div
+                    v-for="[i, { name, roll: historyRoll, player }] of diceState.reactive.history.entries()"
+                    :key="i"
+                    style="display: contents"
+                    @click="diceSystem.showResults(historyRoll)"
+                >
+                    <div>{{ player }}</div>
+                    <div>{{ name }}</div>
+                    <div>{{ historyRoll.result }}</div>
+                </div>
+                <div v-if="diceState.reactive.history.length === 0">No dice rolls have been made so far</div>
+            </div>
+        </template>
+        <div id="buttons">
+            <font-awesome-icon
+                v-if="showHistory"
+                icon="sliders"
+                title="Show configuration"
+                @click="showHistory = false"
+            />
+            <font-awesome-icon v-else icon="clock-rotate-left" title="Show history" @click="showHistory = true" />
+            <input id="input" type="text" :value="inputText" @change="updateFromString" @keyup.enter="roll" />
+            <font-awesome-icon icon="dice-six" title="Roll!" @click="roll" />
         </div>
     </div>
 </template>
 
 <style scoped lang="scss">
-#dice {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    min-width: 10em;
+#advanced-config {
+    display: none;
 
-    #dice-history {
-        display: grid;
-        grid-template-columns: repeat(3, auto);
-
-        max-height: 7.5em;
-        overflow-y: auto;
-        padding-right: 0.5em;
-        margin-bottom: 1rem;
-        row-gap: 0.25rem;
-        column-gap: 2rem;
-
-        > .player {
-            max-width: 5rem;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        > .roll {
-            margin-right: 1rem;
-
-            &:hover {
-                cursor: pointer;
-            }
-        }
-
-        > .result {
-            text-align: right;
-            max-width: 15rem;
-            overflow-wrap: anywhere;
-        }
+    &:has(~ #advanced-configure-toggle:checked) {
+        display: contents;
     }
+}
 
-    #dice-options {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        justify-items: end;
-        align-items: center;
-        row-gap: 0.5em;
+#advanced-configure-toggle {
+    display: none;
 
-        min-width: 15rem;
-
-        padding-right: 0.5em;
-        padding-top: 0.5em;
-        border-top: solid 1px;
-    }
-
-    #dice-picker {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-around;
-
-        padding: 0.5em 0;
-        margin: 0.5em 0;
-
-        min-width: 15rem;
-
-        border-top: solid 1px;
-        border-bottom: solid 1px;
-
-        > div:hover {
+    + label {
+        &:hover {
             cursor: pointer;
             font-weight: bold;
         }
     }
+}
 
-    #dice-input {
+#dice {
+    display: flex;
+    flex-direction: column;
+
+    .header {
         display: flex;
-        flex-direction: row;
-        justify-content: flex-end;
+        justify-content: space-between;
 
-        min-width: 15rem;
+        margin: 0;
+        padding: 0.5rem 1rem;
 
-        > div {
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            flex-grow: 2;
+        border-radius: 1rem;
+
+        font-weight: bold;
+    }
+
+    .dice-grid {
+        margin-bottom: 1rem;
+
+        display: grid;
+        grid-template-columns: 1fr auto;
+        column-gap: 2rem;
+        row-gap: 0.5rem;
+
+        align-items: center;
+
+        .toggle-group,
+        .click-group {
+            justify-self: flex-end;
+        }
+    }
+
+    #configure-settings {
+        row-gap: 0.25rem;
+
+        user-select: none;
+    }
+
+    #toggle-advanced {
+        font-weight: normal;
+        font-style: italic;
+
+        &:hover {
+            cursor: pointer;
+        }
+    }
+
+    #buttons {
+        margin-top: 0.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        #input {
+            padding: 0.5rem 1rem;
+            margin: 0 0.5rem;
         }
 
         > button {
-            $border: #7c253e;
-            margin-left: 15px;
-            padding: 0.3em 0.6em;
-            border: 0;
-            background: none;
-            box-shadow: inset 0 0 0 2px transparent;
-
-            position: relative;
-            vertical-align: middle;
-
-            transition: color 0.25s;
-
-            &::before,
-            &::after {
-                box-sizing: inherit;
-                content: "";
-                position: absolute;
-
-                // Set border to invisible, so we don't see a 4px border on a 0x0 element before the transition starts
-                border: 2px solid transparent;
-                width: 0;
-                height: 0;
-            }
-
-            // This covers the top & right borders (expands right, then down)
-            &::before {
-                top: 0;
-                left: 0;
-            }
-
-            // And this the bottom & left borders (expands left, then up)
-            &::after {
-                bottom: 0;
-                right: 0;
-            }
-
-            // Hover styles
-            &:hover {
-                cursor: pointer;
-            }
-
-            &.transition::before,
-            &.transition::after {
-                width: 100%;
-                height: 100%;
-            }
-
-            &.transition::before {
-                border-top-color: $border; // Make borders visible
-                border-right-color: $border;
-                transition:
-                    width 0.25s ease-out,
-                    // Width expands first
-                    height 0.25s ease-out 0.25s; // And then height
-            }
-
-            &.transition::after {
-                border-bottom-color: $border; // Make borders visible
-                border-left-color: $border;
-                transition:
-                    border-color 0s ease-out 0.5s,
-                    // Wait for ::before to finish before showing border
-                    width 0.25s ease-out 0.5s,
-                    // And then exanding width
-                    height 0.25s ease-out 0.75s; // And finally height
-            }
+            margin-left: 0.5rem;
+            padding: 0.25rem 0.5rem;
         }
+
+        svg {
+            font-size: 1.5em;
+        }
+
+        svg:last-of-type {
+            font-size: 1.75em;
+        }
+    }
+}
+
+#dice-history {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+
+    max-height: 80vh;
+    overflow-y: auto;
+
+    row-gap: 0.5rem;
+    column-gap: 1rem;
+
+    padding: 0.5rem 1rem;
+
+    overflow-anchor: none;
+
+    div:hover {
+        cursor: pointer;
     }
 }
 </style>

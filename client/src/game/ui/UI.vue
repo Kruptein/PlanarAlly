@@ -18,10 +18,8 @@ import Chat from "./Chat.vue";
 import DefaultContext from "./contextmenu/DefaultContext.vue";
 import ShapeContext from "./contextmenu/ShapeContext.vue";
 import { showDefaultContextMenu, showShapeContextMenu } from "./contextmenu/state";
-import LgDiceResults from "./dice/LgDiceResults.vue";
 import Floors from "./Floors.vue";
 import { initiativeStore } from "./initiative/state";
-import LgGridId from "./lg/GridId.vue";
 import LocationBar from "./menu/LocationBar.vue";
 import MenuBar from "./menu/MenuBar.vue";
 import ModalStack from "./ModalStack.vue";
@@ -197,9 +195,7 @@ function setTempZoomDisplay(value: number): void {
         <DefaultContext />
         <ShapeContext />
         <Annotation />
-        <LgGridId v-if="hasGameboard" />
         <SelectionInfo />
-        <template v-if="hasGameboard"><LgDiceResults /></template>
         <!-- Modals that can be rearranged -->
         <ModalStack />
         <!-- Modals that require immediate attention -->

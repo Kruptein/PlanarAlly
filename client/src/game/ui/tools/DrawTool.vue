@@ -164,9 +164,12 @@ const alerts = computed(() => {
             </div>
 
             <div class="draw-checkbox-line">
-                <div>{{ t("game.ui.selection.edit_dialog.dialog.block_movement") }}</div>
+                <label for="vision-dialog-movement-block-toggle">
+                    {{ t("game.ui.selection.edit_dialog.dialog.block_movement") }}
+                </label>
                 <div>
                     <input
+                        id="vision-dialog-movement-block-toggle"
                         v-model="drawTool.state.blocksMovement"
                         type="checkbox"
                         :disabled="drawTool.state.selectedMode !== 'normal'"

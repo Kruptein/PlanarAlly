@@ -49,6 +49,8 @@ tech changes will usually be stripped from release notes for the public
 
 ### Fixed
 
+-   Draw tool:
+    -   Clicking on the "blocks movement" label in the draw tool's vision setting now properly toggles the related checkbox
 -   Ruler tool:
     -   Gridmode spacebar did not synchronize snapped end correctly to other players
 

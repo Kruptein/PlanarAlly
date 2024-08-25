@@ -129,16 +129,14 @@ function toggleFakePlayer(): void {
             </div>
         </div>
         <div>
-            <SelectTool v-if="activeTool === ToolName.Select" />
-            <SpellTool v-if="activeTool === ToolName.Spell" />
-            <keep-alive>
-                <DrawTool v-if="activeTool === ToolName.Draw" />
-            </keep-alive>
-            <RulerTool v-if="activeTool === ToolName.Ruler" />
-            <MapTool v-if="activeTool === ToolName.Map" />
-            <FilterTool v-if="activeTool === ToolName.Filter" />
-            <VisionTool v-if="activeTool === ToolName.Vision" />
-            <DiceTool v-if="roomState.reactive.enableDice && activeTool === ToolName.Dice" />
+            <SelectTool v-lazy-show="activeTool === ToolName.Select" />
+            <SpellTool v-lazy-show="activeTool === ToolName.Spell" />
+            <DrawTool v-lazy-show="activeTool === ToolName.Draw" />
+            <RulerTool v-lazy-show="activeTool === ToolName.Ruler" />
+            <MapTool v-lazy-show="activeTool === ToolName.Map" />
+            <FilterTool v-lazy-show="activeTool === ToolName.Filter" />
+            <VisionTool v-lazy-show="activeTool === ToolName.Vision" />
+            <DiceTool v-lazy-show="roomState.reactive.enableDice && activeTool === ToolName.Dice" />
         </div>
     </div>
 </template>

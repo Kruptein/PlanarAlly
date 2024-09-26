@@ -6,7 +6,7 @@
     "scripts": {
         "dev": "vite",
         "serve": "vite preview",
-        "clean": "rimraf ../server/static/vite/",
+        "clean": "node -e 'fs.rmSync(\"../server/static/vite\", { recursive: true, force: true })'",
         "build:prep": "npm run clean",
         "build": "npm run build:prep && vite build && mv ../server/index.html ../server/templates/index.html",
         "build:ci": "npm run build:prep && npm run vue-tsc && vite build --outDir dist",
@@ -60,7 +60,6 @@
         "happy-dom": "^14.11.0",
         "json-schema-to-typescript": "^14.0.4",
         "prettier": "^3.3.3",
-        "rimraf": "^5.0.7",
         "rollup-plugin-visualizer": "^5.12.0",
         "sass": "^1.79.3",
         "typescript": "^5.6.2",

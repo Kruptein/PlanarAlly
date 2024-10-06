@@ -10,7 +10,7 @@ const { t } = useI18n();
 const { reactive: $ } = playerSettingsState;
 const pss = playerSettingsSystem;
 
-const invertAlt = computed({
+const invertAlt = computed<boolean | undefined>({
     get() {
         return $.invertAlt.value;
     },
@@ -19,7 +19,7 @@ const invertAlt = computed({
     },
 });
 
-const disableScrollToZoom = computed({
+const disableScrollToZoom = computed<boolean | undefined>({
     get() {
         return $.disableScrollToZoom.value;
     },
@@ -28,7 +28,7 @@ const disableScrollToZoom = computed({
     },
 });
 
-const defaultTrackerMode = computed({
+const defaultTrackerMode = computed<boolean | undefined>({
     get() {
         return $.defaultTrackerMode.value;
     },
@@ -49,7 +49,7 @@ function setDefaultTrackerMode(event: Event): void {
     defaultTrackerMode.value = mode !== TrackerMode.Absolute;
 }
 
-const mousePanMode = computed({
+const mousePanMode = computed<number | undefined>({
     get() {
         return $.mousePanMode.value;
     },

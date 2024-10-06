@@ -21,7 +21,7 @@ let light: DirectionalLight;
 // This is in fact used in dice.ts using dynamic import
 // eslint-disable-next-line import/no-unused-modules
 export async function loadDiceEnv(): Promise<void> {
-    const canvas = document.getElementById("babylon") as HTMLCanvasElement;
+    const canvas = document.getElementById("babylon") as unknown as HTMLCanvasElement;
 
     diceThrower = new DiceThrower({ canvas, tresholds: { linear: 0.05, angular: 0.1 } });
     const scene = diceThrower.scene;

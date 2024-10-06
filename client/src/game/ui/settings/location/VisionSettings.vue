@@ -29,7 +29,7 @@ const fakePlayer = computed({
     },
 });
 
-const fullFow = computed({
+const fullFow = computed<boolean | undefined>({
     get() {
         return getOption($.fullFow, location.value).value;
     },
@@ -38,7 +38,7 @@ const fullFow = computed({
     },
 });
 
-const fowLos = computed({
+const fowLos = computed<boolean | undefined>({
     get() {
         return getOption($.fowLos, location.value).value;
     },
@@ -47,7 +47,7 @@ const fowLos = computed({
     },
 });
 
-const fowOpacity = computed({
+const fowOpacity = computed<number | undefined>({
     get() {
         return getOption($.fowOpacity, location.value).value;
     },
@@ -56,7 +56,7 @@ const fowOpacity = computed({
     },
 });
 
-const visionMinRange = computed({
+const visionMinRange = computed<number | undefined>({
     get() {
         return getOption($.visionMinRange, location.value).value;
     },
@@ -68,7 +68,7 @@ const visionMinRange = computed({
     },
 });
 
-const visionMaxRange = computed({
+const visionMaxRange = computed<number | undefined>({
     get() {
         return getOption($.visionMaxRange, location.value).value;
     },

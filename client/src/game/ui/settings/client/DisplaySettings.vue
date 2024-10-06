@@ -13,7 +13,7 @@ const hasGameboard = coreStore.state.boardId !== undefined;
 const { reactive: $ } = playerSettingsState;
 const pss = playerSettingsSystem;
 
-const useHighDpi = computed({
+const useHighDpi = computed<boolean | undefined>({
     get() {
         return $.useHighDpi.value;
     },
@@ -22,7 +22,7 @@ const useHighDpi = computed({
     },
 });
 
-const gridSize = computed({
+const gridSize = computed<number | undefined>({
     get() {
         return $.gridSize.value;
     },
@@ -32,7 +32,7 @@ const gridSize = computed({
     },
 });
 
-const useAsPhysicalBoard = computed({
+const useAsPhysicalBoard = computed<boolean | undefined>({
     get() {
         return $.useAsPhysicalBoard.value;
     },
@@ -41,7 +41,7 @@ const useAsPhysicalBoard = computed({
     },
 });
 
-const miniSize = computed({
+const miniSize = computed<number | undefined>({
     get() {
         return $.miniSize.value;
     },
@@ -51,7 +51,7 @@ const miniSize = computed({
     },
 });
 
-const ppi = computed({
+const ppi = computed<number | undefined>({
     get() {
         return $.ppi.value;
     },

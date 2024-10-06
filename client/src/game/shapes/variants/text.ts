@@ -113,7 +113,7 @@ export class Text extends Shape implements IText {
         return this.getBoundingBox().visibleInCanvas(max);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+     
     resize(resizePoint: number, point: GlobalPoint): number {
         point = rotateAroundPoint(point, this.center, -this.angle);
 

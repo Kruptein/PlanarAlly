@@ -626,7 +626,7 @@ export abstract class Shape implements IShape {
     addDependentShape(dep: DepShape): void {
         if (this.floorId === undefined || this.layerName === undefined) return;
 
-        dep.shape.setLayer(this?.floorId, this?.layerName);
+        dep.shape.setLayer(this.floorId, this.layerName);
         dep.shape.parentId = this.id;
 
         this._dependentShapes.push(dep);

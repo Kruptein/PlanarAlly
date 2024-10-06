@@ -111,8 +111,8 @@ class AssetSystem {
         const sorted_target = target
             .map((i) => raw.idMap.get(i))
             .filter((a) => a !== undefined)
-            .sort((a, b) => a!.name.localeCompare(b!.name))
-            .map((a) => a!.id);
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((a) => a.id);
 
         $[_target] = sorted_target;
     }

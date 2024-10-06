@@ -13,7 +13,7 @@ const pss = playerSettingsSystem;
 
 const effectVisibilityOptions = Object.values(InitiativeEffectMode);
 
-const openOnActivate = computed({
+const openOnActivate = computed<boolean | undefined>({
     get() {
         return $.initiativeOpenOnActivate.value;
     },
@@ -22,7 +22,7 @@ const openOnActivate = computed({
     },
 });
 
-const cameraLock = computed({
+const cameraLock = computed<boolean | undefined>({
     get() {
         return $.initiativeCameraLock.value;
     },
@@ -31,7 +31,7 @@ const cameraLock = computed({
     },
 });
 
-const visionLock = computed({
+const visionLock = computed<boolean | undefined>({
     get() {
         return $.initiativeVisionLock.value;
     },
@@ -40,7 +40,7 @@ const visionLock = computed({
     },
 });
 
-const effectVisibility = computed({
+const effectVisibility = computed<InitiativeEffectMode | undefined>({
     get() {
         return $.initiativeEffectVisibility.value;
     },

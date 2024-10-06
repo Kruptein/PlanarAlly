@@ -13,7 +13,7 @@ const { t } = useI18n();
 const { reactive: $ } = playerSettingsState;
 const pss = playerSettingsSystem;
 
-const useToolIcons = computed({
+const useToolIcons = computed<boolean | undefined>({
     get() {
         return $.useToolIcons.value;
     },
@@ -22,7 +22,7 @@ const useToolIcons = computed({
     },
 });
 
-const showTokenDirections = computed({
+const showTokenDirections = computed<boolean | undefined>({
     get() {
         return $.showTokenDirections.value;
     },
@@ -31,7 +31,7 @@ const showTokenDirections = computed({
     },
 });
 
-const gridColour = computed({
+const gridColour = computed<string | undefined>({
     get() {
         return $.gridColour.value;
     },
@@ -40,7 +40,7 @@ const gridColour = computed({
     },
 });
 
-const gridModeLabelFormat = computed({
+const gridModeLabelFormat = computed<GridModeLabelFormat | undefined>({
     get() {
         return $.gridModeLabelFormat.value;
     },
@@ -49,7 +49,7 @@ const gridModeLabelFormat = computed({
     },
 });
 
-const fowColour = computed({
+const fowColour = computed<string | undefined>({
     get() {
         return $.fowColour.value;
     },
@@ -58,7 +58,7 @@ const fowColour = computed({
     },
 });
 
-const rulerColour = computed({
+const rulerColour = computed<string | undefined>({
     get() {
         return $.rulerColour.value;
     },

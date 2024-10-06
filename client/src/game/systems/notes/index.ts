@@ -220,7 +220,7 @@ class NoteSystem implements ShapeSystem {
             for (const iconShape of readonly.iconShapes.get(noteId) ?? []) {
                 const shape = getShape(iconShape);
                 if (shape?.layer === undefined) continue;
-                if (shape?.parentId === undefined) continue;
+                if (shape.parentId === undefined) continue;
                 const parent = getShape(shape.parentId);
                 if (parent) parent.removeDependentShape(shape.id, { dropShapeId: true });
                 mutable.iconShapes.set(noteId, mutable.iconShapes.get(noteId)?.filter((id) => id !== shape.id) ?? []);
@@ -298,7 +298,7 @@ class NoteSystem implements ShapeSystem {
             for (const iconShape of readonly.iconShapes.get(noteId) ?? []) {
                 const shape = getShape(iconShape);
                 if (shape?.layer === undefined) continue;
-                if (shape?.parentId === undefined) continue;
+                if (shape.parentId === undefined) continue;
                 const parent = getShape(shape.parentId);
                 if (parent) parent.removeDependentShape(shape.id, { dropShapeId: true });
             }

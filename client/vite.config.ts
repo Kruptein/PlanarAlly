@@ -78,7 +78,7 @@ export default defineConfig({
             },
         ],
     },
-    css: { preprocessorOptions: { scss: { charset: false } } },
+    css: { preprocessorOptions: { scss: { api: 'modern-compiler', charset: false } } },
     test: {
         environment: "happy-dom",
         setupFiles: ["./test/setup.ts"],

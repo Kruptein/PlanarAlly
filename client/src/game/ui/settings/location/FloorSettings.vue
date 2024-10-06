@@ -33,7 +33,7 @@ function getBackgroundValueFromType(type: BackgroundType): string {
 
 // AIR
 
-const airBackground = computed({
+const airBackground = computed<string | undefined>({
     get() {
         return getOption($.airMapBackground, location.value).value;
     },
@@ -52,7 +52,7 @@ function setAirBackgroundFromEvent(event: Event): void {
 
 // GROUND
 
-const groundBackground = computed({
+const groundBackground = computed<string | undefined>({
     get() {
         return getOption($.groundMapBackground, location.value).value;
     },
@@ -71,7 +71,7 @@ function setGroundBackgroundFromEvent(event: Event): void {
 
 // UNDERGROUND
 
-const undergroundBackground = computed({
+const undergroundBackground = computed<string | undefined>({
     get() {
         return getOption($.undergroundMapBackground, location.value).value;
     },

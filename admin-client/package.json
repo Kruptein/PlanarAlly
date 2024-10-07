@@ -1,30 +1,33 @@
 {
     "name": "admin-client",
     "version": "0.0.0",
+    "private": true,
+    "type": "module",
     "scripts": {
         "dev": "vite",
         "preview": "vite preview",
         "clean": "rimraf ../server/static/vite-admin/",
         "build": "npm run clean && vue-tsc --noEmit && vite build && mv ../server/index.html ../server/templates/admin-index.html",
         "build:ci": "npm run clean && vue-tsc --noEmit && vite build --outDir dist",
-        "lint": "eslint src --fix",
-        "lint:ci": "CI=1 eslint src --no-fix"
+        "lint": "eslint src --fix --ext .ts,.vue",
+        "lint:ci": "CI=1 eslint src --no-fix --ext .ts,.vue",
+        "vue-tsc": "vue-tsc --noEmit"
     },
     "dependencies": {
-        "vue": "^3.2.26",
-        "vue-router": "^4.0.12"
+        "vue": "^3.5.11",
+        "vue-router": "^4.4.5"
     },
     "devDependencies": {
-        "@typescript-eslint/parser": "^5.9.1",
-        "@vitejs/plugin-vue": "^2.0.1",
-        "eslint": "^8.6.0",
-        "eslint-config-prettier": "^8.3.0",
-        "eslint-plugin-vue": "^8.3.0",
-        "prettier": "^2.5.1",
-        "sass": "^1.47.0",
-        "typescript": "^4.5.4",
+        "@typescript-eslint/parser": "^7.10.0",
+        "@vitejs/plugin-vue": "^5.1.4",
+        "eslint": "^8.57.0",
+        "eslint-config-prettier": "^9.1.0",
+        "eslint-plugin-vue": "^9.28.0",
+        "prettier": "^3.3.3",
+        "sass": "^1.79.4",
+        "typescript": "^5.6.2",
         "vite": "^5.4.8",
-        "vue-eslint-parser": "^8.0.1",
-        "vue-tsc": "^0.30.2"
+        "vue-eslint-parser": "^9.4.3",
+        "vue-tsc": "^2.1.6"
     }
 }

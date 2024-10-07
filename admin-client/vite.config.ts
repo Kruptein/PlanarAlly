@@ -16,4 +16,9 @@ export default defineConfig({
                 : "dev-static",
         outDir: "../server",
     },
+    css: {
+        preprocessorOptions: {
+            scss: { api: "modern-compiler", charset: false },
+        },
+    },
 });

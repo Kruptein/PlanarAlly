@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { evaluate } from "mathjs";
 import { computed, nextTick, ref, watch, watchEffect } from "vue";
 
 import Modal from "../../core/components/modals/Modal.vue";
@@ -7,6 +6,15 @@ import { i18n } from "../../i18n";
 import type { Aura } from "../systems/auras/models";
 import { playerSettingsState } from "../systems/settings/players/state";
 import type { Tracker } from "../systems/trackers/models";
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const math = () => import("mathjs");
+
+async function evaluateExpression(expression: string): Promise<number> {
+    const { evaluate } = await math();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return evaluate(expression);
+}
 
 const emit = defineEmits<{
     (e: "close"): void;
@@ -58,10 +66,10 @@ function setError(): void {
     error.value = "Expression could not be evaluated properly.";
 }
 
-function submit(): void {
+async function submit(): Promise<void> {
     try {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const solution = evaluate(answer.value);
+        const solution = await evaluateExpression(answer.value);
         if (typeof solution !== "number") return setError();
 
         emit("submit", { solution, relativeMode: relativeMode.value });

@@ -676,7 +676,7 @@ class DrawTool extends Tool implements ITool {
             await this.onSelect(mouse);
             event.preventDefault();
         }
-        super.onKeyUp(event, features);
+        await super.onKeyUp(event, features);
     }
 
     // BRUSH

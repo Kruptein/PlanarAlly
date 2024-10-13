@@ -10,6 +10,52 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+## [2024.3.0] - 2024-10-13
+
+### Added
+
+-   Optional simple chat system
+    -   This is **not** stored serverside, so messages will be lost on refresh or later re-opening of the session
+    -   Chat is basic markdown aware, but does not allow direct HTML
+    -   (image) urls can be pasted without special markdown syntax
+    -   Can be collapsed by clicking on the chat title
+-   Collapse Selection: Temporarily move all shapes in the selection under the cursor for easier navigation through corridors
+-   [DM] new DM settings section: Features
+    -   Can be used to enable/disable certain features campaign wide
+    -   Currently limited to chat & dice
+
+### Changed
+
+-   Select tool:
+    -   now integrates all the ruler toggles in its UI as well
+    -   these toggles are synced with the ones in the ruler
+-   Spell tool:
+    -   now renders hexes instead of squares in Hex grid mode
+    -   step size changed to 1 in Hex grid mode
+    -   shape bar is no longer visible, only hex is available in hex grid mode for now
+-   Ruler tool:
+    -   now defaults to sharing with other users
+-   Dice
+    -   non-3D mode
+    -   option to use a click interface to build dice strings
+    -   extra operators and selectors (e.g. keep highest 2)
+    -   3D code & assets are only loaded when settin "use 3D" to true in the tool config for the first time
+    -   3D physics now uses havok engine instead of ammo (babylonjs upgraded from 4 to 7)
+    -   history & result UI slightly changed
+    -   Option to share result with nobody
+    -   clicking on the notification of another player's roll shows the details
+    -   clicking on a history entry shows the details
+-   Toolbar UI
+    -   All extended tool UI is now right aligned fully, no longer hovering over the related tool
+    -   This was preventing tools to the left to be limited in screen estate they could occupy
+
+### Fixed
+
+-   Draw tool:
+    -   Clicking on the "blocks movement" label in the draw tool's vision setting now properly toggles the related checkbox
+-   Ruler tool:
+    -   Gridmode spacebar did not synchronize snapped end correctly to other players
+
 ## [2024.2.0] - 2024-05-18
 
 ### Added

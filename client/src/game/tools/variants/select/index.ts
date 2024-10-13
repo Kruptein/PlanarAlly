@@ -51,6 +51,7 @@ import { positionState } from "../../../systems/position/state";
 import { getProperties } from "../../../systems/properties/state";
 import { VisionBlock } from "../../../systems/properties/types";
 import { selectedSystem } from "../../../systems/selected";
+import { collapseSelection, expandSelection } from "../../../systems/selected/collapse";
 import { selectedState } from "../../../systems/selected/state";
 import { locationSettingsState } from "../../../systems/settings/location/state";
 import { playerSettingsState } from "../../../systems/settings/players/state";
@@ -101,6 +102,8 @@ class SelectTool extends Tool implements ISelectTool {
 
     deltaChanged = false;
     snappedToPoint = false;
+
+    private selectionCollapsed = false;
 
     // Because we never drag from the asset's (0, 0) coord and want a smoother drag experience
     // we keep track of the actual offset within the asset.
@@ -327,6 +330,8 @@ class SelectTool extends Tool implements ISelectTool {
                 } else {
                     if (event && ctrlOrCmdPressed(event)) {
                         selectedSystem.remove(shape.id);
+                    } else {
+                        selectedSystem.focus(shape.id);
                     }
                 }
                 // Drag case, a shape is selected
@@ -679,6 +684,16 @@ class SelectTool extends Tool implements ISelectTool {
                     if (props.blocksMovement) recalcMovement = true;
                     if (!sel.preventSync) updateList.push(sel);
                 }
+
+                if (
+                    this.selectionCollapsed &&
+                    layerSelection.length === 1 &&
+                    (layerSelection[0]!.options.collapsedIds?.length ?? 0) > 0
+                ) {
+                    this.selectionCollapsed = false;
+                    await expandSelection(updateList);
+                }
+
                 sendShapePositionUpdate(updateList, false);
 
                 await teleportZoneSystem.checkTeleport(selectedSystem.get({ includeComposites: true }));
@@ -789,8 +804,11 @@ class SelectTool extends Tool implements ISelectTool {
         const layerSelection = selectedSystem.get({ includeComposites: false });
         const mouse = getLocalPointFromEvent(event);
         const globalMouse = l2g(mouse);
+
+        // First check active selection
         for (const shape of layerSelection) {
             if (shape.contains(globalMouse)) {
+                selectedSystem.focus(shape.id);
                 layer.invalidate(true);
                 openShapeContextMenu(event);
                 return Promise.resolve(true);
@@ -813,12 +831,33 @@ class SelectTool extends Tool implements ISelectTool {
         return Promise.resolve(true);
     }
 
-    onKeyUp(event: KeyboardEvent, features: ToolFeatures): void {
-        if (event.defaultPrevented) return;
-        if (event.key === " " && this.active.value) {
-            event.preventDefault();
+    onKeyDown(event: KeyboardEvent, features: ToolFeatures): Promise<void> {
+        if (event.defaultPrevented) return super.onKeyDown(event, features);
+        if (this.active.value) {
+            if (event.key === "c") {
+                event.preventDefault();
+                this.selectionCollapsed = true;
+                collapseSelection();
+            }
         }
-        super.onKeyUp(event, features);
+        return super.onKeyDown(event, features);
+    }
+
+    async onKeyUp(event: KeyboardEvent, features: ToolFeatures): Promise<void> {
+        if (event.defaultPrevented) return;
+        if (this.active.value) {
+            if (event.key === " ") {
+                event.preventDefault();
+            } else if (event.key === "c") {
+                event.preventDefault();
+                this.selectionCollapsed = false;
+
+                const shapes: IShape[] = [];
+                await expandSelection(shapes);
+                sendShapePositionUpdate(shapes, false);
+            }
+        }
+        await super.onKeyUp(event, features);
     }
 
     // ROTATION

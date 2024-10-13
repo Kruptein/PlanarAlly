@@ -15,7 +15,7 @@ const location = computed(() => (props.global ? undefined : uiState.reactive.ope
 const { reactive: $, getOption } = locationSettingsState;
 const lss = locationSettingsSystem;
 
-const movePlayerOnTokenChange = computed({
+const movePlayerOnTokenChange = computed<boolean | undefined>({
     get() {
         return getOption($.movePlayerOnTokenChange, location.value).value;
     },
@@ -24,7 +24,7 @@ const movePlayerOnTokenChange = computed({
     },
 });
 
-const limitMovementDuringInitiative = computed({
+const limitMovementDuringInitiative = computed<boolean | undefined>({
     get() {
         return getOption($.limitMovementDuringInitiative, location.value).value;
     },

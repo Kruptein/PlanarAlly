@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { trimEnd } from "lodash";
+import trimEnd from "lodash/trimEnd";
 import { type DeepReadonly, computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from "vue-router";

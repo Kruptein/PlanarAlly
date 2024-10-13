@@ -3,6 +3,7 @@ import type { Component } from "vue";
 
 import { registerSystem } from "..";
 import type { System } from "..";
+import type { SystemClearReason } from "../models";
 
 import { modalState } from "./state";
 import type { FullModal, IndexedModal, Modal, ModalIndex } from "./types";
@@ -20,7 +21,7 @@ function fullModal(modal: Modal, modalIndex: ModalIndex): IndexedModal {
 }
 
 class ModalSystem implements System {
-    clear(reason: "full-loading" | "partial-loading" | "leaving"): void {
+    clear(reason: SystemClearReason): void {
         if (reason === "leaving") {
             $.extraModals = [];
             $.openModals.clear();

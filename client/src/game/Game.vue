@@ -8,14 +8,23 @@ import { coreStore } from "../store/core";
 
 import { createConnection, socket } from "./api/socket";
 import { handleDropEvent } from "./dropAsset";
-import { onKeyDown } from "./input/keyboard/down";
 import { scrollZoom } from "./input/mouse";
 import { clearUndoStacks } from "./operations/undo";
 import { floorSystem } from "./systems/floors";
 import { gameState } from "./systems/game/state";
 import { playerSettingsState } from "./systems/settings/players/state";
 import { setSelectionBoxFunction } from "./temp";
-import { keyUp, mouseDown, mouseLeave, mouseMove, mouseUp, touchEnd, touchMove, touchStart } from "./tools/events";
+import {
+    keyDown,
+    keyUp,
+    mouseDown,
+    mouseLeave,
+    mouseMove,
+    mouseUp,
+    touchEnd,
+    touchMove,
+    touchStart,
+} from "./tools/events";
 // import DebugInfo from "./ui/DebugInfo.vue";
 import UI from "./ui/UI.vue";
 
@@ -51,10 +60,11 @@ export default defineComponent({
             }
         });
 
-        const keyDown = (event: KeyboardEvent): void => void onKeyDown(event);
         onMounted(async () => {
             window.Gameboard?.setDrawerVisibility(false);
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             window.addEventListener("keyup", keyUp);
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             window.addEventListener("keydown", keyDown);
             window.addEventListener("resize", resizeWindow);
             clearUndoStacks();
@@ -64,7 +74,9 @@ export default defineComponent({
         });
 
         onUnmounted(() => {
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             window.removeEventListener("keyup", keyUp);
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             window.removeEventListener("keydown", keyDown);
             window.removeEventListener("resize", resizeWindow);
             mediaQuery.removeEventListener("change", resizeWindow);

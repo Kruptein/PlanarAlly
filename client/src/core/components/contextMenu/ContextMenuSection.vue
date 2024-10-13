@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { defineProps } from "vue";
-
 import type { Section } from "./types";
 
 defineProps<{ sections: Section[]; addDivider?: boolean }>();
 </script>
 
 <template>
-    <template v-for="(section, i) in sections" :key="section.title">
+    <template v-for="(section, i) in sections" :key="Array.isArray(section) ? i : section.title">
         <template v-if="Array.isArray(section)">
             <ContextMenuSection v-if="section.length" :sections="section" :add-divider="i < sections.length - 1" />
         </template>

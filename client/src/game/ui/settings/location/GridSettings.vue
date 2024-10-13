@@ -15,7 +15,7 @@ const lss = locationSettingsSystem;
 
 const location = computed(() => (props.global ? undefined : uiState.reactive.openedLocationSettings));
 
-const useGrid = computed({
+const useGrid = computed<boolean | undefined>({
     get() {
         return getOption($.useGrid, location.value).value;
     },
@@ -24,7 +24,7 @@ const useGrid = computed({
     },
 });
 
-const gridType = computed({
+const gridType = computed<string | undefined>({
     get() {
         return getOption($.gridType, location.value).value;
     },
@@ -33,7 +33,7 @@ const gridType = computed({
     },
 });
 
-const unitSize = computed({
+const unitSize = computed<number | undefined>({
     get() {
         return getOption($.unitSize, location.value).value;
     },
@@ -42,7 +42,7 @@ const unitSize = computed({
     },
 });
 
-const unitSizeUnit = computed({
+const unitSizeUnit = computed<string | undefined>({
     get() {
         return getOption($.unitSizeUnit, location.value).value;
     },
@@ -51,7 +51,7 @@ const unitSizeUnit = computed({
     },
 });
 
-const dropRatio = computed({
+const dropRatio = computed<number | undefined>({
     get() {
         return getOption($.dropRatio, location.value).value;
     },

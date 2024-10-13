@@ -17,5 +17,8 @@ async def on_dice_roll(sid: str, raw_data: Any):
 
     pr: PlayerRoom = game_state.get(sid)
     for p_sid, p_pr in game_state.get_t(room=pr.room):
-        if p_sid != sid and (roll_info.shareWithAll or p_pr.role == Role.DM):
+        if p_sid != sid and roll_info.shareWith != "none":
+            if roll_info.shareWith == "dm" and p_pr.role != Role.DM:
+                continue
+
             await _send_game("Dice.Roll.Result", roll_info, room=p_sid)

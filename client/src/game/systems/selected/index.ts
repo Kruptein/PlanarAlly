@@ -25,6 +25,11 @@ class SelectedSystem implements ShapeSystem {
         this.push(id);
     }
 
+    // Should only be used to update the focus within a selection (e.g. clicking on an already selected shape)
+    focus(id: LocalId): void {
+        $.focus = id;
+    }
+
     push(...selection: LocalId[]): void {
         for (const sel of selection) {
             if ($.focus === undefined) $.focus = sel;

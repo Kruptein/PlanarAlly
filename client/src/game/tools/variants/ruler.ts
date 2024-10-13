@@ -51,7 +51,7 @@ class RulerTool extends Tool implements ITool {
     readonly toolTranslation = i18n.global.t("tool.Ruler");
 
     // REACTIVE PROPERTIES
-    showPublic = ref(false);
+    showPublic = ref(true);
     gridMode = ref(false);
 
     // NON REACTIVE PROPERTIES
@@ -278,7 +278,7 @@ class RulerTool extends Tool implements ITool {
         return Promise.resolve();
     }
 
-    onKeyUp(event: KeyboardEvent, features: ToolFeatures): void {
+    async onKeyUp(event: KeyboardEvent, features: ToolFeatures): Promise<void> {
         if (event.defaultPrevented) return;
         if (event.key === " " && this.active.value) {
             const { ruler: lastRuler } = this.rulers.at(-1)!;
@@ -291,6 +291,7 @@ class RulerTool extends Tool implements ITool {
 
             if (this.gridMode.value) {
                 lastRuler.endPoint = getClosestCellCenter(lastRuler.endPoint, locationSettingsState.raw.gridType.value);
+                sendShapePositionUpdate([lastRuler], true);
                 this.registerHighlightedCellDraw(layer);
             }
 
@@ -306,7 +307,7 @@ class RulerTool extends Tool implements ITool {
 
             event.preventDefault();
         }
-        super.onKeyUp(event, features);
+        await super.onKeyUp(event, features);
     }
 
     private registerHighlightedCellDraw(layer: ILayer): void {

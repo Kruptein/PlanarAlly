@@ -10,7 +10,7 @@ const { t } = useI18n();
 const { reactive: $ } = playerSettingsState;
 const pss = playerSettingsSystem;
 
-const onlyRenderActiveFloor = computed({
+const onlyRenderActiveFloor = computed<boolean | undefined>({
     get() {
         return !$.renderAllFloors.value;
     },

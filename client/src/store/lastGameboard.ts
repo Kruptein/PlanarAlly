@@ -1,4 +1,4 @@
-import { throttle } from "lodash";
+import throttle from "lodash/throttle";
 
 import type { GlobalPoint } from "../core/geometry";
 import { SyncMode } from "../core/models/types";

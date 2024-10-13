@@ -48,7 +48,7 @@ from ..models.location.settings import (
 from ..models.location.spawn_info import ApiSpawnInfo
 from ..models.players.info import PlayerInfoCore, PlayersInfoSet
 from ..models.players.options import PlayerOptionsSet
-from ..models.room.info import RoomInfoSet
+from ..models.room.info import RoomFeatures, RoomInfoSet
 
 
 # DATA CLASSES FOR TYPE CHECKING
@@ -136,6 +136,9 @@ async def load_location(sid: str, location: Location, *, complete=False):
                 invitationCode=str(pr.room.invitation_code),
                 isLocked=pr.room.is_locked,
                 publicName=config.get("General", "public_name", fallback=""),
+                features=RoomFeatures(
+                    chat=pr.room.enable_chat, dice=pr.room.enable_dice
+                ),
             ),
             room=sid,
         )

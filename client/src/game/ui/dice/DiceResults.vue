@@ -1,90 +1,81 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { useI18n } from "vue-i18n";
 
-import Modal from "../../../core/components/modals/Modal.vue";
-import { diceStore } from "../../dice/state";
-
-const { t } = useI18n();
-
-const results = computed(() => {
-    const key = diceStore.state.showKey;
-    if (key === undefined) return { total: 0, details: [] };
-    return diceStore.state.results.get(key)?.results[0] ?? { total: 0, details: [] };
-});
+import { diceState } from "../../systems/dice/state";
 
 function close(): void {
-    diceStore.setShowDiceResults(undefined);
+    diceState.mutableReactive.result = undefined;
 }
+
+const roll = computed(() => diceState.reactive.result);
 
 defineExpose({ close });
-
-function sum(data: readonly number[]): number {
-    return data.reduce((acc, val) => acc + val);
-}
 </script>
 
 <template>
-    <Modal :visible="diceStore.state.showKey !== undefined" :mask="false" @close="close">
-        <template #header="m">
-            <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
-                <div>Dice Results</div>
-                <div class="header-close" :title="t('common.close')" @click="close">
-                    <font-awesome-icon :icon="['far', 'window-close']" />
+    <div v-if="roll !== undefined" id="results-container">
+        <div id="results">
+            <font-awesome-icon id="close-notes" :icon="['far', 'window-close']" @click="close" />
+            <div id="dice-body">
+                <div id="total">{{ roll.result }}</div>
+                <div id="breakdown">
+                    <template v-for="[index, part] of roll.parts.entries()" :key="index">
+                        <div v-if="part.longResult" :title="part.longResult">
+                            <div class="input">{{ part.input ?? "" }}</div>
+                            <div class="value">{{ part.shortResult }}</div>
+                        </div>
+                        <div v-else class="value">{{ part.shortResult }}</div>
+                    </template>
                 </div>
             </div>
-        </template>
-        <div class="modal-body">
-            <div id="dice-body">
-                <template v-if="diceStore.state.pending">
-                    <div id="total">...</div>
-                </template>
-                <template v-else-if="diceStore.state.results.size > 0">
-                    <div id="total">{{ results.total }}</div>
-                    <div id="breakdown">
-                        <template v-for="result of results.details.entries()" :key="result[0]">
-                            <div v-if="result[1].type === 'dice'">
-                                <div class="input">{{ result[1].input }}</div>
-                                <div class="value">{{ sum(result[1].output) }}</div>
-                                <div class="details">
-                                    <div v-for="res of result[1].output" :key="res">{{ res }}</div>
-                                </div>
-                            </div>
-                            <div v-else-if="result[1].type === 'op'">
-                                {{ result[1].value }}
-                            </div>
-                            <div v-else class="value">{{ result[1].output }}</div>
-                        </template>
-                    </div>
-                </template>
-                <template v-else>No dice data known</template>
-            </div>
         </div>
-    </Modal>
+    </div>
 </template>
 
 <style lang="scss" scoped>
-.modal-header {
-    background-color: #ff7052;
-    padding: 10px;
-    font-size: 20px;
-    font-weight: bold;
-    cursor: move;
-}
-.header-close {
+#results-container {
     position: absolute;
-    top: 5px;
-    right: 5px;
+    display: grid;
+    justify-items: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
 }
-.modal-body {
-    padding: 10px;
-    min-width: 10em;
+
+#results {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+
+    padding: 1.5rem 2rem;
+    border-radius: 1rem;
+    max-height: 80vh;
+
+    background-color: white;
+
+    pointer-events: all;
+
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
+
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande",
+        sans-serif;
+
+    #close-notes {
+        position: absolute;
+
+        top: 0.75rem;
+        right: 0.75rem;
+
+        font-size: 1.25rem;
+    }
 }
+
 #dice-body {
     width: auto;
     display: flex;
     flex-direction: column;
     align-items: center;
+
     #total {
         display: flex;
         justify-content: center;
@@ -96,42 +87,29 @@ function sum(data: readonly number[]): number {
         border-bottom: 1px solid;
         margin-bottom: 15px;
     }
+
     #breakdown {
         display: flex;
         flex-wrap: wrap;
-        // align-items: center;
+        align-items: flex-end;
         max-width: 25vw;
         font-size: 20px;
+
         > div {
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 3em;
+            width: 2em;
             margin-bottom: 15px;
         }
+
         .input {
             color: grey;
             font-size: 15px;
         }
+
         .value {
             font-weight: bold;
-        }
-
-        .details {
-            display: flex;
-            font-size: 0.8em;
-            flex-wrap: wrap;
-            margin-top: 0.5rem;
-            font-style: italic;
-            justify-content: center;
-
-            > div::after {
-                content: ",";
-            }
-
-            > div:last-child::after {
-                content: "";
-            }
         }
     }
 }

@@ -19,7 +19,7 @@ export function applyTemplate<T extends ApiShape>(shape: T, template: BaseTempla
 
     // should be shape[key], but this is something that TS cannot correctly infer (issue #31445)
     for (const key of BaseTemplateStrings) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if (key in template) (shape as any)[key] = template[key];
     }
 
@@ -65,7 +65,7 @@ export function applyTemplate<T extends ApiShape>(shape: T, template: BaseTempla
 export function toTemplate(shape: ApiShape): BaseTemplate {
     const template: BaseTemplate = {};
     // should be template[key], but this is something that TS cannot correctly infer (issue #31445)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     for (const key of BaseTemplateStrings) (template as any)[key] = shape[key];
 
     // We usually don't want to save the options that are currently stored on the shape

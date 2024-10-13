@@ -1,7 +1,7 @@
 import { addP, toArrayP } from "../../core/geometry";
 import type { Vector } from "../../core/geometry";
 import { sendShapePositionUpdate } from "../api/emits/shape/core";
-import type { LocalId } from "../id";
+import { getShape, type LocalId } from "../id";
 import type { IShape } from "../interfaces/shape";
 import { accessSystem } from "../systems/access";
 import { clientSystem } from "../systems/client";
@@ -61,6 +61,13 @@ export async function moveShapes(shapes: readonly IShape[], delta: Vector, tempo
         };
 
         shape.refPoint = addP(shape.refPoint, delta);
+
+        for (const [collapsedId] of shape.options.collapsedIds ?? []) {
+            const collapsedShape = getShape(collapsedId);
+            if (collapsedShape === undefined) continue;
+            collapsedShape.center = shape.center;
+            if (!collapsedShape.preventSync) updateList.push(collapsedShape);
+        }
 
         operation.to = toArrayP(shape.refPoint);
         operationList.shapes.push(operation);

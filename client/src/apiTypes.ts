@@ -126,6 +126,15 @@ export interface ApiCharacter {
   assetId: number;
   assetHash: string;
 }
+export interface ApiChatMessage {
+  id: string;
+  author: string;
+  data: string[];
+}
+export interface ApiChatMessageUpdate {
+  id: string;
+  message: string;
+}
 export interface ApiCircleShape extends ApiCoreShape {
   radius: number;
   viewing_angle: number | null;
@@ -460,8 +469,7 @@ export interface Viewport {
 export interface DiceRollResult {
   player: string;
   roll: string;
-  result: string;
-  shareWithAll: boolean;
+  shareWith: "all" | "dm" | "none";
 }
 export interface FloorBackgroundSet {
   name: string;
@@ -600,6 +608,10 @@ export interface PositionTuple {
   x: number;
   y: number;
 }
+export interface RoomFeatures {
+  chat: boolean;
+  dice: boolean;
+}
 export interface RoomInfoPlayersAdd {
   id: PlayerId;
   name: string;
@@ -611,6 +623,7 @@ export interface RoomInfoSet {
   invitationCode: string;
   isLocked: boolean;
   publicName: string;
+  features: RoomFeatures;
 }
 export interface ShapeAdd {
   shape:

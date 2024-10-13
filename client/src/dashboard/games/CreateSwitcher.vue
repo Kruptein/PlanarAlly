@@ -56,12 +56,6 @@ async function create(): Promise<void> {
 </template>
 
 <style scoped lang="scss">
-.has-gameboard {
-    #content {
-        height: min(70vh, 53.75rem);
-    }
-}
-
 #content {
     display: flex;
     flex-direction: column;

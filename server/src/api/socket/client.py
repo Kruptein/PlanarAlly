@@ -20,7 +20,6 @@ from ..models.client import (
     Viewport,
 )
 from ..models.client.activeLayer import ClientActiveLayerSet
-from ..models.client.gameboard import ClientGameboardSet
 from ..models.client.offset import ClientOffsetSet
 
 
@@ -139,22 +138,6 @@ async def set_layer(sid: str, raw_data: Any):
         luo = LocationUserOption.get(user=pr.player, location=pr.active_location)
         luo.active_layer = layer
         luo.save()
-
-
-@sio.on("Client.Gameboard.Set", namespace=GAME_NS)
-@auth.login_required(app, sio, "game")
-async def set_gameboard(sid: str, board_id: str):
-    pr = game_state.get(sid)
-
-    game_state.client_gameboards[sid] = board_id
-
-    for psid, ppr in game_state.get_t(skip_sid=sid, room=pr.room):
-        if ppr.role == Role.DM:
-            await _send_game(
-                "Client.Gameboard.Set",
-                ClientGameboardSet(client=sid, boardId=board_id),
-                room=psid,
-            )
 
 
 @sio.on("Client.Offset.Set", namespace=GAME_NS)

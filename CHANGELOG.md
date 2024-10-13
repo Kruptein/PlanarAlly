@@ -12,6 +12,11 @@ tech changes will usually be stripped from release notes for the public
 
 ## [2024.3.0] - 2024-10-13
 
+### Removed
+
+-   Remnants of last-gameboard integration code
+    -   This was no longer maintained and no longer working afaik
+
 ### Added
 
 -   Optional simple chat system

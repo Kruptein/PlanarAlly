@@ -437,10 +437,6 @@ export interface ClientConnected {
 export interface ClientDisconnected {
   client: ClientId;
 }
-export interface ClientGameboardSet {
-  client: ClientId;
-  boardId: string;
-}
 export interface ClientMove {
   client: ClientId;
   position: ClientPosition;

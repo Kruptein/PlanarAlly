@@ -256,20 +256,6 @@ async function exportCampaign(): Promise<void> {
 </template>
 
 <style scoped lang="scss">
-.has-gameboard {
-    #content {
-        #dm,
-        #player {
-            height: min(70vh, 53.75rem);
-
-            .sessions {
-                overflow-x: hidden;
-                overflow-y: auto;
-            }
-        }
-    }
-}
-
 #content {
     display: flex;
     flex-direction: column;

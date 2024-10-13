@@ -10,6 +10,8 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+## [2024.3.0] - 2024-10-13
+
 ### Added
 
 -   Optional simple chat system

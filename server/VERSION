@@ -1,73 +1,45 @@
-2024.2
+2024.3
 
 ### Added
 
--   New grid section in Edit Shape dialog
-    -   Configure manual size for shape
-        -   Used for finetuning snapping behaviour
-    -   Show grid cells the shape occupies
-    -   Configure hex orientation
-        -   This is used to determine which orientation even-sized shapes should use in hex grids
--   Client Setting "Grid Mode Label Format" to decide what the ruler should show in grid mode
-    -   This can be set to either '#cells only', 'distance only' or 'both'
--   Import: option to specify the name for the imported campaign
+-   Optional simple chat system
+    -   This is **not** stored serverside, so messages will be lost on refresh or later re-opening of the session
+    -   Chat is basic markdown aware, but does not allow direct HTML
+    -   (image) urls can be pasted without special markdown syntax
+    -   Can be collapsed by clicking on the chat title
+-   Collapse Selection: Temporarily move all shapes in the selection under the cursor for easier navigation through corridors
+-   [DM] new DM settings section: Features
+    -   Can be used to enable/disable certain features campaign wide
+    -   Currently limited to chat & dice
 
 ### Changed
 
--   Export/Import:
-    -   Error toasts no longer have a timeout
-    -   (Shape)Labels are no longer exported/imported
--   Ruler tool: allows Unit Size less than 1.0
--   Context menus have been restyled
--   [tech] Select tool: only take shapes in view into account
--   [tech] Properties System can now handle multiple shapes loaded at once
+-   Select tool:
+    -   now integrates all the ruler toggles in its UI as well
+    -   these toggles are synced with the ones in the ruler
+-   Spell tool:
+    -   now renders hexes instead of squares in Hex grid mode
+    -   step size changed to 1 in Hex grid mode
+    -   shape bar is no longer visible, only hex is available in hex grid mode for now
+-   Ruler tool:
+    -   now defaults to sharing with other users
+-   Dice
+    -   non-3D mode
+    -   option to use a click interface to build dice strings
+    -   extra operators and selectors (e.g. keep highest 2)
+    -   3D code & assets are only loaded when settin "use 3D" to true in the tool config for the first time
+    -   3D physics now uses havok engine instead of ammo (babylonjs upgraded from 4 to 7)
+    -   history & result UI slightly changed
+    -   Option to share result with nobody
+    -   clicking on the notification of another player's roll shows the details
+    -   clicking on a history entry shows the details
+-   Toolbar UI
+    -   All extended tool UI is now right aligned fully, no longer hovering over the related tool
+    -   This was preventing tools to the left to be limited in screen estate they could occupy
 
 ### Fixed
 
--   Draw Tool:
-    -   snapping mode was also snapping to the point being moved
-    -   now also snaps to hex vertices
-    -   the first mouse press now also properly snaps to the grid
-    -   fix small point changes when flipping the rectangle axis while drawing
--   Select Tool:
-    -   resizing in snapping mode was also snapping to the point being resized
-    -   polygon edit UI had a small visual glitch on appearance causing a circle to appear around (0, 0)
-    -   Snap to Grid:
-        -   This now has an implementation for hex grids
-        -   This should now more properly snap shapes that are larger than 1x1
--   Ruler Tool:
-    -   Snap now properly works for hex grids
--   Map Tool:
-    -   Now better supports hex grids
--   Spell tool:
-    -   selecting another tool would swap to the Select tool instead
-    -   Change 'Size' input box to allow entering numbers less than 1 easily
--   Polygon:
-    -   selection/contains check went wrong if a polygon used the same point multiple times
-    -   selection/contains check was also hitting on the line between the first and last points when not closed
--   Moving shapes to front/back not updating immediately
--   Export:
-    -   Missing Character, DataBlock and new Note data
-    -   Fixed note data migration crashing due to new format
--   Import:
-    -   Prevent a potential timing edgecase causing import to run twice
-    -   If an import fails, the newly created (faulty) room will be removed
--   Notes:
-    -   The filter was not properly rerunning when opening shape notes, causing notes from the previous shape to still be visible sometimes
-    -   When shape filtering, the shape name in the UI would change if you clicked on another shape with the select tool.
-    -   Note icons drawn on a shape could be drawn behind the shape in some circumstances.
-    -   Fix 'add shape' and 'remove shape' events not being synced immediately if you only have view access
-    -   Note icon on shape was drawn in strange locations for shapes larger than 1x1
-    -   Fix shape removal not properly removing the shape from related notes client-side
-    -   Fix notes not being stored in shape templates
--   Groups:
-    -   The 'edit shape' groups tab was completely broken, this has been resolved
-    -   Multiple things in the groups tab have become more responsive to changes
-        -   Everything badge related is now updating as it happens
-        -   Members will now appear/disappear immediately
--   Initiative:
-    -   Fixed an issue where Initiative.Order.Change would fail when called with some Shape Ids.
--   Annotations:
-    -   Fixed rendering of markdown which included raw HTML elements.
--   Changing client settings for the grid would not immediately update the screen
--   [tech] FloorSystem's layers properties are now only reactive on the array level and are raw for the actual elements.
+-   Draw tool:
+    -   Clicking on the "blocks movement" label in the draw tool's vision setting now properly toggles the related checkbox
+-   Ruler tool:
+    -   Gridmode spacebar did not synchronize snapped end correctly to other players

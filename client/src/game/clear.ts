@@ -1,4 +1,3 @@
-import { lastGameboardStore } from "../store/lastGameboard";
 import { locationStore } from "../store/location";
 
 import { clearIds } from "./id";
@@ -16,7 +15,6 @@ export function clearGame(reason: SystemClearReason): void {
     document.getElementById("layers")!.innerHTML = "";
     compositeState.clear();
     initiativeStore.clear();
-    lastGameboardStore.clear();
     clearSystems(reason);
     clearIds();
 }

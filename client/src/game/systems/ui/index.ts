@@ -25,10 +25,6 @@ class UiSystem implements System {
         $.showDmSettings = show;
     }
 
-    showLgSettings(show: boolean): void {
-        $.showLgSettings = show;
-    }
-
     showLocationSettings(location: number): void {
         $.openedLocationSettings = location;
     }

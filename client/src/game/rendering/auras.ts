@@ -1,12 +1,9 @@
 import tinycolor from "tinycolor2";
 
 import { g2l, g2lr, toRadians } from "../../core/conversions";
-import { coreStore } from "../../store/core";
 import type { IShape } from "../interfaces/shape";
 import { LayerName } from "../models/floor";
 import { auraSystem } from "../systems/auras";
-
-const hasGameboard = coreStore.state.boardId !== undefined;
 
 export function drawAuras(shape: IShape, ctx: CanvasRenderingContext2D): void {
     const center = shape.center;
@@ -26,7 +23,7 @@ export function drawAuras(shape: IShape, ctx: CanvasRenderingContext2D): void {
         ctx.strokeStyle = aura.borderColour;
         ctx.lineWidth = 5;
 
-        if (hasGameboard || dim === 0) ctx.fillStyle = aura.colour;
+        if (dim === 0) ctx.fillStyle = aura.colour;
         else {
             const gradient = ctx.createRadialGradient(
                 lCenter.x,

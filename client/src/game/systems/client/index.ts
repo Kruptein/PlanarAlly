@@ -23,7 +23,7 @@ import { positionSystem } from "../position";
 import { positionState } from "../position/state";
 import { locationSettingsState } from "../settings/location/state";
 
-import type { BoardId, ClientId } from "./models";
+import type { ClientId } from "./models";
 import { clientState } from "./state";
 
 const { mutableReactive: $, raw } = clientState;
@@ -35,7 +35,6 @@ class ClientSystem implements System {
         $.clientIds.clear();
         $.clientRectIds.clear();
         $.clientViewports.clear();
-        $.clientBoards.clear();
     }
 
     addClient(player: PlayerId, client: ClientId): void {
@@ -46,7 +45,6 @@ class ClientSystem implements System {
         $.clientIds.delete(client);
         this.removeClientRect(client);
         $.clientViewports.delete(client);
-        $.clientBoards.delete(client);
     }
 
     getClients(player: PlayerId): Iterable<ClientId> {
@@ -87,7 +85,6 @@ class ClientSystem implements System {
                 if (shape === undefined) return;
                 this.moveClientRect(client, shape);
             }
-            if ($.clientBoards.has(client) && shape.options.skipDraw === true) this.showClientRect(client, true);
         } else if (shapeId !== undefined) {
             this.removeClientRect(client);
         }
@@ -292,13 +289,6 @@ class ClientSystem implements System {
             positionSystem.setGridOffset(this.getOffset());
             setLocalStorageObject("PA_OFFSET", this.getRelativeOffset());
         }
-    }
-
-    // Gameboard
-
-    addBoardId(client: ClientId, board: BoardId): void {
-        $.clientBoards.set(client, board);
-        if ($.clientRectIds.has(client)) this.updateClientRect(client);
     }
 }
 

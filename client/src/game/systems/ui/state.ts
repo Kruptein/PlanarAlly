@@ -16,8 +16,6 @@ interface UiState {
 
     showDmSettings: boolean;
 
-    showLgSettings: boolean;
-
     openedLocationSettings: number;
 
     showFloorSettings: boolean;
@@ -39,8 +37,6 @@ const state = buildState<UiState>({
     clientSettingsTab: ClientSettingCategory.Appearance,
 
     showDmSettings: false,
-
-    showLgSettings: false,
 
     openedLocationSettings: -1,
 

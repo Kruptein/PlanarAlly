@@ -12,7 +12,6 @@ export enum ToolName {
     Filter = "Filter",
     Vision = "Vision",
     Spell = "Spell",
-    LastGameboard = "LastGameboard",
     Dice = "Dice",
     Note = "Note",
 }

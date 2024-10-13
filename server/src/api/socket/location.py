@@ -33,7 +33,6 @@ from ...state.game import game_state
 from ...transform.to_api.floor import transform_floor
 from ..helpers import _send_game
 from ..models.client import OptionalClientViewport
-from ..models.client.gameboard import ClientGameboardSet
 from ..models.location import (
     ApiLocationCore,
     LocationChange,
@@ -294,18 +293,6 @@ async def load_location(sid: str, location: Location, *, complete=False):
         await _send_game(
             "Asset.List.Set", Asset.get_user_structure(pr.player), room=sid
         )
-
-    # 11. Sync Gameboards
-
-    for psid in game_state.get_sids(active_location=pr.active_location):
-        if psid in game_state.client_gameboards:
-            board_id = game_state.client_gameboards[psid]
-            if IS_DM or sid == psid:
-                await _send_game(
-                    "Client.Gameboard.Set",
-                    ClientGameboardSet(client=psid, boardId=board_id),
-                    room=sid,
-                )
 
     await _send_game("Location.Loaded", room=sid, data=None)
 

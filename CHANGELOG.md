@@ -10,6 +10,11 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Changed
+
+-   Dashboard:
+    -   Changed some border colours in the create new game menu
+
 ### Fixed
 
 -   Notes:

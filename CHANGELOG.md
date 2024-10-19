@@ -10,6 +10,11 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Fixed
+
+-   Notes:
+    -   It was possible to open a 'view-only' note on a tab you weren't supposed to see
+
 ## [2024.3.0] - 2024-10-13
 
 ### Removed

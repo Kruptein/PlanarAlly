@@ -14,6 +14,8 @@ tech changes will usually be stripped from release notes for the public
 
 -   Dashboard:
     -   Changed some border colours in the create new game menu
+-   MenuBar:
+    -   Add Notes button for players
 
 ### Fixed
 

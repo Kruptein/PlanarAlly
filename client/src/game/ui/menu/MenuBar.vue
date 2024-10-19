@@ -114,10 +114,12 @@ const openClientSettings = (): void => uiSystem.showClientSettings(!uiState.raw.
                         </div>
                     </div>
                 </div>
-                <!-- NOTES -->
-                <button class="menu-accordion" @click="toggleNoteManager">
-                    {{ t("common.notes") }}
-                </button>
+            </template>
+            <!-- NOTES -->
+            <button class="menu-accordion" @click="toggleNoteManager">
+                {{ t("common.notes") }}
+            </button>
+            <template v-if="gameState.isDmOrFake.value">
                 <!-- DM SETTINGS -->
                 <button class="menu-accordion" @click="openDmSettings">
                     {{ t("game.ui.menu.MenuBar.dm_settings") }}

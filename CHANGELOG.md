@@ -10,6 +10,9 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Changed
+-   Add Notes button to MenuBar for players
+
 ## [2024.3.0] - 2024-10-13
 
 ### Removed

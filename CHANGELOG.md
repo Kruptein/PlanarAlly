@@ -11,7 +11,16 @@ tech changes will usually be stripped from release notes for the public
 ## Unreleased
 
 ### Changed
--   Add Notes button to MenuBar for players
+
+-   Dashboard:
+    -   Changed some border colours in the create new game menu
+-   MenuBar:
+    -   Add Notes button for players
+
+### Fixed
+
+-   Notes:
+    -   It was possible to open a 'view-only' note on a tab you weren't supposed to see
 
 ## [2024.3.0] - 2024-10-13
 

@@ -98,7 +98,7 @@ async function create(): Promise<void> {
             // align-items: center;
             flex-direction: column;
 
-            border: 5px solid transparent;
+            border: 4px solid transparent;
             border-radius: 20px;
 
             padding: 10px;
@@ -107,7 +107,7 @@ async function create(): Promise<void> {
             font-size: 1.2em;
 
             &.selected {
-                border-color: rgba(219, 0, 59, 1);
+                border-color: rgba(255, 255, 255, 0.75);
             }
 
             &:hover {
@@ -140,7 +140,7 @@ async function create(): Promise<void> {
             color: white;
             font-size: 1.125em;
             background-color: rgba(137, 0, 37, 1);
-            border: 3px solid rgba(219, 0, 59, 1);
+            border: 1px solid transparent;
             border-radius: 5px;
             box-shadow: 0 0 10px 0 rgba(6, 6, 6, 0.5);
 
@@ -153,8 +153,14 @@ async function create(): Promise<void> {
                 margin-right: 15px;
             }
 
+            &:last-child {
+                border: 1px solid rgba(255, 255, 255, 0.75);
+                margin-left: 1.25rem;
+            }
+
             &:hover {
                 cursor: pointer;
+                border: 2px solid rgba(255, 255, 255, 0.75);
             }
         }
     }

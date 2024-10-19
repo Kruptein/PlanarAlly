@@ -93,6 +93,10 @@ const openClientSettings = (): void => uiSystem.showClientSettings(!uiState.raw.
         <div style="width: 12.5rem; overflow-y: auto; overflow-x: hidden">
             <!-- CHARACTERS -->
             <Characters />
+            <!-- NOTES -->
+            <button class="menu-accordion" @click="toggleNoteManager">
+                {{ t("common.notes") }}
+            </button>
             <!-- ASSETS -->
             <template v-if="gameState.isDmOrFake.value">
                 <button class="menu-accordion">{{ t("common.assets") }}</button>
@@ -114,10 +118,6 @@ const openClientSettings = (): void => uiSystem.showClientSettings(!uiState.raw.
                         </div>
                     </div>
                 </div>
-                <!-- NOTES -->
-                <button class="menu-accordion" @click="toggleNoteManager">
-                    {{ t("common.notes") }}
-                </button>
                 <!-- DM SETTINGS -->
                 <button class="menu-accordion" @click="openDmSettings">
                     {{ t("game.ui.menu.MenuBar.dm_settings") }}

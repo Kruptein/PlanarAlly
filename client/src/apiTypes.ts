@@ -115,6 +115,10 @@ export interface ApiAssetUpload {
   totalSlices: number;
   data: string;
 }
+export interface ApiAudioMessage {
+  action: string;
+  fileName: string;
+}
 export interface ApiBaseRectShape extends ApiCoreShape {
   width: number;
   height: number;

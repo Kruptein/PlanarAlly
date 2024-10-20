@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, toRef } from "vue";
+import { computed, onMounted, ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 
@@ -23,6 +23,8 @@ import { uiState } from "../../systems/ui/state";
 
 import AssetParentNode from "./AssetParentNode.vue";
 import Characters from "./Characters.vue";
+import { audioSystem } from "../../systems/audio";
+import { audioService } from './audioService';
 
 const router = useRouter();
 const { t } = useI18n();
@@ -89,6 +91,94 @@ function jumpToClient(client: ClientId): void {
 const openDmSettings = (): void => uiSystem.showDmSettings(!uiState.raw.showDmSettings);
 const openClientSettings = (): void => uiSystem.showClientSettings(!uiState.raw.showClientSettings);
 const openLgSettings = (): void => uiSystem.showLgSettings(!uiState.raw.showLgSettings);
+
+// Ref to store available mp3 assets
+const audioAssets = ref<AssetFile[]>([]);
+// Ref to store the selected audio path
+const selectedAudioHash = ref("");
+const selectedPreviewAudioHash = ref("");
+var isAudioLooping = ref(false);
+
+const getAssetPath = (assetHash: string): string => {
+  return `/static/assets/${assetHash}`;
+};
+
+// Fetch assets from the game state and filter them by mp3 type
+const loadAudioAssets = () => {
+    const assets = gameState.reactive.assets.get("__files") as AssetFile[] || [];
+    audioAssets.value = assets.filter(asset => asset.name.endsWith(".mp3"));
+  
+  // Set the first asset as the default selected one
+//   if (audioAssets.value.length > 0) {
+//     selectedPreviewAudioHash.value = getAssetPath(audioAssets.value[0].hash);  // Utilise la fonction getAssetPath
+//   }
+};
+
+// Function to play the selected audio
+const playPreviewAudio = (hash: string) => {
+  const audioElement = document.getElementById("AdminPreviewAudioPlayer") as HTMLAudioElement;
+  const sourceElement = document.getElementById("AdminPreviewAudioSource") as HTMLSourceElement;
+  sourceElement.src = getAssetPath(hash);
+  audioElement.load();
+  audioElement.play();
+};
+
+// Call the function to load audio assets when the component is mounted
+onMounted(() => {
+    loadAudioAssets();
+    // Initialisation de audioPlayer et audioSource après que le DOM est monté
+    audioService.audioPlayer = document.getElementById("clientAudioPlayer") as HTMLAudioElement;
+    audioService.audioSource = document.getElementById("clientAudioSource") as HTMLSourceElement;
+
+    if (!audioService.audioPlayer || !audioService.audioSource) {
+        console.error("Audio player or audio source not found in the DOM");
+    }
+});
+///// from DM /////
+function playAudioForRoom(action: string, fileName: string): void {
+    audioSystem.PlayAudioForRoom(action, fileName);
+}
+function stopAudioForRoom(action: string): void {
+    audioSystem.StopAudioForRoom(action);
+}
+function toggleLoopAudioForRoom(action: string): void {
+    isAudioLooping.value = !isAudioLooping.value;
+    audioSystem.ToggleLoopAudioForRoom(action);
+}
+///// end from DM /////
+
+///// from Player /////
+// // Références au lecteur audio et à la source
+// const clientAudioPlayer = document.getElementById("clientAudioPlayer") as HTMLAudioElement;
+// const clientAudioSource = document.getElementById("clientAudioSource") as HTMLAudioElement;
+
+// // Méthode pour démarrer la lecture de l'audio
+// function startPlayback(file: string) {
+//     clientAudioSource.src = getAssetPath(file);
+//     clientAudioPlayer.load();  // Recharge la nouvelle source
+//     clientAudioPlayer.play();  // Lance la lecture
+// }
+
+// // Méthode pour arrêter l'audio
+// function stopPlayback() {
+//     clientAudioPlayer.pause();
+//     clientAudioPlayer.currentTime = 0;  // Réinitialise la lecture
+// }
+
+// // Méthode pour activer/désactiver la lecture en boucle
+// function toggleLoopPlayback() {
+//     clientAudioPlayer.loop = !clientAudioPlayer.loop;
+// }
+
+// // Exposer les méthodes pour les appeler depuis `index.ts`
+// defineExpose({
+//     startPlayback,
+//     stopPlayback,
+//     toggleLoopPlayback,
+//   });
+
+///// END from Player /////
+
 </script>
 
 <template>
@@ -164,6 +254,61 @@ const openLgSettings = (): void => uiSystem.showLgSettings(!uiState.raw.showLgSe
             <button class="menu-accordion" @click="openClientSettings">
                 {{ t("game.ui.menu.MenuBar.client_settings") }}
             </button>
+
+            <!-- AUDIO PLAYER-->
+            
+                <button class="menu-accordion">
+                        {{ t("game.ui.menu.MenuBar.audio_player") }}  <!-- ou bien : "Audio" directement -->
+                </button>
+                <div id="menu-audio" class="menu-accordion-panel" style="position: relative">
+                        <!-- Audio panel content -->
+                        <template v-if="gameState.isDmOrFake.value">
+                            <p>Preview : </p>
+                            <p>
+                                <select class="audio-perview-select" v-model="selectedPreviewAudioHash">
+                                    <option v-for="asset in audioAssets" :key="asset.id" :value="asset.hash">
+                                        {{ asset.name }}
+                                    </option>
+                                </select>
+                                <button class="audio-preview-button" @click="playPreviewAudio(selectedPreviewAudioHash)">Play</button>
+                            </p>
+                            <audio id="AdminPreviewAudioPlayer" controls style="width: 100%;">
+                                    <source id="AdminPreviewAudioSource" src="" type="audio/mpeg">
+                                    Your browser does not support the audio element.
+                                </audio>
+                            
+                            <div class="audio-player">
+                                <p class="audio-title">Now Playing</p>
+                                
+                                
+                                
+                                <div class="audio-selector">
+                                    <p>
+                                        <select class="audio-perview-select" v-model="selectedAudioHash">
+                                            <option v-for="asset in audioAssets" :key="asset.id" :value="asset.hash">
+                                                {{ asset.name }}
+                                            </option>
+                                        </select>
+                                    </p>
+                                </div>
+                                <div class="audio-controls">
+                                <button class="play-button" @click="playAudioForRoom('play', selectedAudioHash)">Play</button>
+                                <button class="stop-button" @click="stopAudioForRoom('stop')">Stop</button>
+                                <button class="loop-button" @click="toggleLoopAudioForRoom('toggleLoop')">Loop {{ isAudioLooping ? 'OFF' : 'ON' }}</button>
+                                </div>
+                            </div>
+                        </template>
+
+                        <!-- Audio player for clients -->
+                        <template v-if="!gameState.isDmOrFake.value">
+                            <audio id="clientAudioPlayer" controls >
+                                <source id="clientAudioSource" src="" type="audio/mpeg">
+                                Your browser does not support the audio element.
+                            </audio>
+                        </template>
+                </div>
+            
+            <!-- END AUDIO PLAYER -->
         </div>
         <div
             class="menu-accordion"
@@ -177,6 +322,11 @@ const openLgSettings = (): void => uiSystem.showLgSettings(!uiState.raw.showLgSe
 
 <style scoped lang="scss">
 .menu-accordion-active + #menu-assets {
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-accordion-active + #menu-audio {
     display: flex;
     flex-direction: column;
 }

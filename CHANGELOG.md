@@ -10,6 +10,11 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Added
+
+-   Notes:
+    -   Notes can now be popped out to a separate window
+
 ### Changed
 
 -   Dashboard:

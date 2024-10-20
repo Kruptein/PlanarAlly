@@ -21,6 +21,7 @@ tech changes will usually be stripped from release notes for the public
 
 -   Notes:
     -   It was possible to open a 'view-only' note on a tab you weren't supposed to see
+    -   Note manager could be empty and unusable when changing locations
 
 ## [2024.3.0] - 2024-10-13
 

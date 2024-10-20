@@ -26,7 +26,7 @@ import {
     sendSetNoteTitle,
 } from "./emits";
 import { noteState } from "./state";
-import type { ClientNote } from "./types";
+import { NoteManagerMode, type ClientNote } from "./types";
 import { closeNoteManager } from "./ui";
 
 const { mutableReactive: $, raw, readonly, mutable } = noteState;
@@ -54,6 +54,7 @@ class NoteSystem implements ShapeSystem {
         $.notes.clear();
         $.shapeNotes.clear();
         $.currentNote = undefined;
+        $.managerMode = NoteManagerMode.List;
     }
 
     async newNote(apiNote: ApiNote, sync: boolean): Promise<void> {

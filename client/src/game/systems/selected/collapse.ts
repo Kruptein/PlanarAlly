@@ -49,7 +49,7 @@ export async function expandSelection(updateList?: IShape[]): Promise<void> {
     if (focus === undefined) return;
 
     const shape = getShape(focus);
-    if (shape === undefined || shape.options?.collapsedIds === undefined) return;
+    if (shape === undefined || shape.options.collapsedIds === undefined) return;
 
     for (const [collapsedId, vector] of shape.options.collapsedIds) {
         const collapsedShape = getShape(collapsedId);

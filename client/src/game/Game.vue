@@ -61,7 +61,6 @@ export default defineComponent({
         });
 
         onMounted(async () => {
-            window.Gameboard?.setDrawerVisibility(false);
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             window.addEventListener("keyup", keyUp);
             // eslint-disable-next-line @typescript-eslint/no-misused-promises

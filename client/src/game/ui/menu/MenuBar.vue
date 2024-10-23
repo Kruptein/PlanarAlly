@@ -11,7 +11,6 @@ import type { LocalId } from "../../id";
 import { setCenterPosition } from "../../position";
 import { clientSystem } from "../../systems/client";
 import type { ClientId } from "../../systems/client/models";
-import { clientState } from "../../systems/client/state";
 import { gameState } from "../../systems/game/state";
 import { markerSystem } from "../../systems/markers";
 import { markerState } from "../../systems/markers/state";
@@ -37,8 +36,6 @@ const noAssets = computed(() => {
     const assets = gameState.reactive.assets;
     return assets.size === 1 && (assets.get("__files") as AssetFile[]).length <= 0;
 });
-
-const hasGameboardClients = computed(() => clientState.reactive.clientBoards.size > 0);
 
 async function exit(): Promise<void> {
     clearGame("leaving");
@@ -178,7 +175,6 @@ function toggleLoopAudioForRoom(action: string): void {
 //   });
 
 ///// END from Player /////
-
 </script>
 
 <template>
@@ -208,17 +204,15 @@ function toggleLoopAudioForRoom(action: string): void {
                         </div>
                     </div>
                 </div>
-                <!-- NOTES -->
-                <button class="menu-accordion" @click="toggleNoteManager">
-                    {{ t("common.notes") }}
-                </button>
+            </template>
+            <!-- NOTES -->
+            <button class="menu-accordion" @click="toggleNoteManager">
+                {{ t("common.notes") }}
+            </button>
+            <template v-if="gameState.isDmOrFake.value">
                 <!-- DM SETTINGS -->
                 <button class="menu-accordion" @click="openDmSettings">
                     {{ t("game.ui.menu.MenuBar.dm_settings") }}
-                </button>
-                <!-- GAMEBOARD SETTINGS -->
-                <button v-if="hasGameboardClients" class="menu-accordion" @click="openLgSettings">
-                    {{ t("game.ui.menu.MenuBar.gameboard_settings") }}
                 </button>
                 <!-- PLAYERS -->
                 <button class="menu-accordion">Players</button>

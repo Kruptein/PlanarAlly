@@ -59,7 +59,7 @@ export async function loadDataBlock<D extends DBR, S extends DBR = D>(
         }
     } else if (options?.defaultData !== undefined) {
         return await createDataBlock(repr, options.defaultData(), serializer, {
-            createOnServer: options?.createOnServer,
+            createOnServer: options.createOnServer,
         });
     } else {
         if (options?.createOnServer === true) {

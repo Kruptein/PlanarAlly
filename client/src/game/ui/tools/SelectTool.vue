@@ -64,20 +64,22 @@ function toggleGridMode(event: MouseEvent): void {
 </script>
 
 <template>
-    <div id="polygon-edit">
-        <div v-if="$.polygonUiVertex" @click="removePoint"><font-awesome-icon icon="trash-alt" /></div>
-        <div v-else @click="addPoint"><font-awesome-icon icon="plus-square" /></div>
-        <div @click="cutPolygon"><font-awesome-icon icon="cut" /></div>
-    </div>
+    <div>
+        <div id="polygon-edit">
+            <div v-if="$.polygonUiVertex" @click="removePoint"><font-awesome-icon icon="trash-alt" /></div>
+            <div v-else @click="addPoint"><font-awesome-icon icon="plus-square" /></div>
+            <div @click="cutPolygon"><font-awesome-icon icon="cut" /></div>
+        </div>
 
-    <div v-if="selected && $.hasSelection" class="tool-detail">
-        <button :aria-pressed="$.showRuler" @click="toggleShowRuler">Show ruler</button>
-        <button :aria-pressed="rulerTool.showPublic.value" :disabled="!$.showRuler" @click="toggle">
-            {{ t("game.ui.tools.RulerTool.share") }}
-        </button>
-        <button :aria-pressed="rulerTool.gridMode.value" :disabled="!$.showRuler" @click="toggleGridMode">
-            Grid Mode
-        </button>
+        <div v-if="selected && $.hasSelection" class="tool-detail">
+            <button :aria-pressed="$.showRuler" @click="toggleShowRuler">Show ruler</button>
+            <button :aria-pressed="rulerTool.showPublic.value" :disabled="!$.showRuler" @click="toggle">
+                {{ t("game.ui.tools.RulerTool.share") }}
+            </button>
+            <button :aria-pressed="rulerTool.gridMode.value" :disabled="!$.showRuler" @click="toggleGridMode">
+                Grid Mode
+            </button>
+        </div>
     </div>
 </template>
 

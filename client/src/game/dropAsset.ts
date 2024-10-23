@@ -75,7 +75,7 @@ async function dropHelper(
                     shape = getShape(compositeParent.activeVariant);
                 }
             }
-            if (shape !== undefined && shape.options?.skipDraw !== true) {
+            if (shape !== undefined && shape.options.skipDraw !== true) {
                 await moveShapes([shape], Vector.fromPoints(shape.center, location), false);
                 return;
             }
@@ -165,7 +165,7 @@ export async function dropAsset(
 
             layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
 
-            for (const noteId of asset.options?.templateNoteIds ?? []) {
+            for (const noteId of asset.options.templateNoteIds ?? []) {
                 noteSystem.attachShape(noteId, asset.id, true);
             }
 

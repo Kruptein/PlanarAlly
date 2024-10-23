@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, ref } from "vue";
+import { computed, onBeforeMount, ref, watchEffect } from "vue";
 import VueMarkdown from "vue-markdown-render";
 
 import { useModal } from "../../../core/plugins/modals/plugin";
@@ -30,7 +30,7 @@ const canEdit = computed(() => {
 const localShapenotes = computed(() =>
     note.value === undefined
         ? []
-        : noteState.reactive.shapeNotes.get2(note.value.uuid)?.map((s) => ({ ...getProperties(s), id: s })) ?? [],
+        : (noteState.reactive.shapeNotes.get2(note.value.uuid)?.map((s) => ({ ...getProperties(s), id: s })) ?? []),
 );
 
 const showOnHover = computed({
@@ -99,6 +99,10 @@ const tabs = computed(
 );
 const activeTabIndex = ref(0);
 const activeTab = computed(() => tabs.value[activeTabIndex.value]!.label);
+
+watchEffect(() => {
+    if (!canEdit.value && !tabs.value[activeTabIndex.value]!.visible) activeTabIndex.value = 0;
+});
 
 // Ensure that defaultAccess is always first
 // and that defaultAccess is provided even if it has no DB value

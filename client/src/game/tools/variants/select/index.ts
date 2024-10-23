@@ -688,7 +688,7 @@ class SelectTool extends Tool implements ISelectTool {
                 if (
                     this.selectionCollapsed &&
                     layerSelection.length === 1 &&
-                    (layerSelection[0]!.options?.collapsedIds?.length ?? 0) > 0
+                    (layerSelection[0]!.options.collapsedIds?.length ?? 0) > 0
                 ) {
                     this.selectionCollapsed = false;
                     await expandSelection(updateList);
@@ -831,7 +831,7 @@ class SelectTool extends Tool implements ISelectTool {
         return Promise.resolve(true);
     }
 
-    onKeyDown(event: KeyboardEvent, features: ToolFeatures<number>): Promise<void> {
+    onKeyDown(event: KeyboardEvent, features: ToolFeatures): Promise<void> {
         if (event.defaultPrevented) return super.onKeyDown(event, features);
         if (this.active.value) {
             if (event.key === "c") {

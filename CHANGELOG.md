@@ -12,6 +12,31 @@ tech changes will usually be stripped from release notes for the public
 
 ### Added
 
+-   Notes:
+    -   Notes can now be popped out to a separate window
+
+### Changed
+
+-   Dashboard:
+    -   Changed some border colours in the create new game menu
+-   MenuBar:
+    -   Add Notes button for players
+
+### Fixed
+
+-   Notes:
+    -   It was possible to open a 'view-only' note on a tab you weren't supposed to see
+    -   Note manager could be empty and unusable when changing locations
+
+## [2024.3.0] - 2024-10-13
+
+### Removed
+
+-   Remnants of last-gameboard integration code
+    -   This was no longer maintained and no longer working afaik
+
+### Added
+
 -   Optional simple chat system
     -   This is **not** stored serverside, so messages will be lost on refresh or later re-opening of the session
     -   Chat is basic markdown aware, but does not allow direct HTML

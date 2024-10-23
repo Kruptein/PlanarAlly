@@ -12,7 +12,6 @@ def load_socket_commands():
         groups,  # noqa: F401.
         initiative,  # noqa: F401.
         label,  # noqa: F401.
-        lg,  # noqa: F401.
         location,  # noqa: F401.
         logic,  # noqa: F401.
         marker,  # noqa: F401.

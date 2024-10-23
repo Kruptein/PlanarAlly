@@ -120,6 +120,7 @@ function handleMessage(event: KeyboardEvent): void {
                     ({{ chatState.raw.messages.length - messagesSeenCount }})
                 </span>
             </div>
+            <font-awesome-icon v-show="expanded" icon="chevron-down" title="Collapse chat" @click.stop="toggleChat" />
         </div>
         <div v-show="expanded" id="chat-container" ref="chatContainer">
             <template
@@ -194,6 +195,15 @@ dialog {
 
         &:hover {
             cursor: pointer;
+        }
+
+        svg {
+            padding: 0.25rem;
+
+            &:hover {
+                background-color: lightgray;
+                border-radius: 5rem;
+            }
         }
     }
 

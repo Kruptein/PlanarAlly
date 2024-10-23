@@ -14,8 +14,6 @@
 import { computed, onMounted, onUnmounted } from "vue";
 import type { Component } from "vue";
 
-import { coreStore } from "../../store/core";
-import { clientState } from "../systems/client/state";
 import { gameState } from "../systems/game/state";
 import { modalSystem } from "../systems/modals";
 import { modalState } from "../systems/modals/state";
@@ -27,28 +25,21 @@ import NoteManager from "./notes/NoteManager.vue";
 import ClientSettings from "./settings/client/ClientSettings.vue";
 import DmSettings from "./settings/dm/DmSettings.vue";
 import FloorSettings from "./settings/FloorSettings.vue";
-import LgSettings from "./settings/lg/LgSettings.vue";
 import LocationSettings from "./settings/location/LocationSettings.vue";
 import ShapeSettings from "./settings/shape/ShapeSettings.vue";
 
 // Modal Conditions + Listing
-
-const hasGameboard = coreStore.state.boardId !== undefined;
-const hasGameboardClients = computed(() => clientState.reactive.clientBoards.size > 0);
 
 const fixedModals = [
     ClientSettings,
     { component: DmSettings, condition: gameState.isDmOrFake },
     { component: FloorSettings, condition: gameState.isDmOrFake },
     Initiative,
-    { component: LgSettings, condition: computed(() => hasGameboardClients.value && gameState.isDmOrFake.value) },
     { component: LocationSettings, condition: gameState.isDmOrFake },
     ShapeSettings,
     NoteManager,
+    DiceResults,
 ];
-if (!hasGameboard) {
-    fixedModals.push(DiceResults);
-}
 modalSystem.setFixedModals(fixedModals);
 
 // Core logic setup

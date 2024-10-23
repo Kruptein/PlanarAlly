@@ -355,12 +355,6 @@
                     "vision_mode": "Vision Mode:",
                     "default": "Default",
                     "experimental": "Experimental"
-                },
-                "lg": {
-                    "LgSettings": {
-                        "title": "LastGameboard Settings",
-                        "grid": "Grid"
-                    }
                 }
             },
             "templates": {

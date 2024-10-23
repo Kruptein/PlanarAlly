@@ -4,7 +4,6 @@ import type { CSSProperties } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { baseAdjust } from "../../../core/http";
-import { coreStore } from "../../../store/core";
 import { ToolMode, ToolName } from "../../models/tools";
 import { accessState } from "../../systems/access/state";
 import { gameSystem } from "../../systems/game";
@@ -25,8 +24,6 @@ import SpellTool from "./SpellTool.vue";
 import VisionTool from "./VisionTool.vue";
 
 const { t } = useI18n();
-
-const hasGameboard = coreStore.state.boardId !== undefined;
 
 const detailBottom = computed(() => (playerSettingsState.reactive.useToolIcons.value ? "7.8rem" : "6.6rem"));
 
@@ -105,7 +102,7 @@ function toggleFakePlayer(): void {
                 </li>
                 <li id="tool-mode"></li>
             </ul>
-            <div v-if="!hasGameboard" id="tool-status">
+            <div id="tool-status">
                 <div v-if="gameState.isDmOrFake.value" id="tool-status-toggles">
                     <div
                         :class="{ active: gameState.reactive.isFakePlayer }"

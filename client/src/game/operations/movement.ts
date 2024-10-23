@@ -62,7 +62,7 @@ export async function moveShapes(shapes: readonly IShape[], delta: Vector, tempo
 
         shape.refPoint = addP(shape.refPoint, delta);
 
-        for (const [collapsedId] of shape.options?.collapsedIds ?? []) {
+        for (const [collapsedId] of shape.options.collapsedIds ?? []) {
             const collapsedShape = getShape(collapsedId);
             if (collapsedShape === undefined) continue;
             collapsedShape.center = shape.center;

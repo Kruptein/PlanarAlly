@@ -2,7 +2,6 @@ from pydantic import BaseModel, Field
 
 from ..helpers import TypeIdModel
 from .activeLayer import *
-from .gameboard import *
 from .offset import *
 
 

@@ -15,6 +15,8 @@ interface ReactiveModalState {
     modalOrder: ModalIndex[];
     // Dynamically injected modals
     extraModals: IndexedModal[];
+    // Popped out modals
+    poppedModals: Set<ModalIndex>;
 }
 
 const state = buildState<ReactiveModalState, ModalState>(
@@ -22,6 +24,7 @@ const state = buildState<ReactiveModalState, ModalState>(
         openModals: new Set(),
         modalOrder: [],
         extraModals: [],
+        poppedModals: new Set(),
     },
     {
         fixedModals: [],

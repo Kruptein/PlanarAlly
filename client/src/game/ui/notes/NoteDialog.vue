@@ -110,10 +110,34 @@ function close(): void {
 function setText(event: Event, sync: boolean): void {
     noteSystem.setText(props.uuid, (event.target as HTMLTextAreaElement).value, sync, !sync);
 }
+
+const isWindowed = ref(false);
+const previousWindowState = { width: "", height: "" };
+function windowToggle(windowed: boolean): void {
+    isWindowed.value = windowed;
+    if (windowed) {
+        previousWindowState.width = modal.value!.container.style.width;
+        previousWindowState.height = modal.value!.container.style.height;
+        modal.value!.container.style.width = "auto";
+        modal.value!.container.style.height = "auto";
+    } else {
+        modal.value!.container.style.width = previousWindowState.width;
+        modal.value!.container.style.height = previousWindowState.height;
+    }
+}
 </script>
 
 <template>
-    <Modal v-if="note !== undefined" ref="modal" :visible="true" :mask="false" @close="close">
+    <Modal
+        v-if="note !== undefined"
+        ref="modal"
+        :visible="true"
+        :mask="false"
+        :modal-index="props.modalIndex"
+        extra-class="note-dialog"
+        @close="close"
+        @window-toggle="windowToggle"
+    >
         <template #header="m">
             <header draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 <div>
@@ -125,8 +149,13 @@ function setText(event: Event, sync: boolean): void {
                         :icon="['far', 'square-plus']"
                         @click="expand"
                     />
-                    <font-awesome-icon v-else :icon="['far', 'square-minus']" @click="collapse" />
-                    <font-awesome-icon :icon="['far', 'window-close']" @click="close" />
+                    <font-awesome-icon v-else :icon="['far', 'square-minus']" title="Collapse note" @click="collapse" />
+                    <font-awesome-icon
+                        :icon="['far', 'window-restore']"
+                        :title="`${isWindowed ? 'Restore' : 'Pop out'} note`"
+                        @click="m.toggleWindow"
+                    />
+                    <font-awesome-icon :icon="['far', 'window-close']" title="Close note" @click="close" />
                 </div>
                 <div>
                     <div v-if="!editing" @click="editing = true">[edit]</div>
@@ -143,8 +172,8 @@ function setText(event: Event, sync: boolean): void {
     </Modal>
 </template>
 
-<style scoped lang="scss">
-:deep(.modal-container) {
+<style lang="scss">
+.note-dialog {
     display: flex;
     flex-direction: column;
 
@@ -155,7 +184,9 @@ function setText(event: Event, sync: boolean): void {
     min-height: 5rem;
     overflow: auto;
 }
+</style>
 
+<style scoped lang="scss">
 header {
     position: sticky;
     top: 0;

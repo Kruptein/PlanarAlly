@@ -56,7 +56,6 @@
         "stroke_color_short": "Stroke",
         "trackers": "Trackers",
         "auras": "Auras",
-        "labels": "Labels",
         "annotation": "Annotation",
         "floor": "Floor",
         "layer": "Layer",
@@ -134,17 +133,6 @@
                 "clear": "Clear initiatives",
                 "change_sort": "Change sorting",
                 "settings": "Settings"
-            },
-            "LabelManager": {
-                "category": "Category",
-                "visible": "Visible",
-                "delete": "Delete",
-                "delete_label": "Delete label",
-                "title": "Label manager",
-                "cat_abbr": "Cat.",
-                "vis_abbr": "Vis.",
-                "del_abbr": "Del.",
-                "no_exist_msg": "No labels exist yet"
             },
             "menu": {
                 "LocationBar": {

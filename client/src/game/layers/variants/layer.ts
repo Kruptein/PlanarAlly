@@ -27,7 +27,6 @@ import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { gameState } from "../../systems/game/state";
 import { groupSystem } from "../../systems/groups";
-import { labelSystem } from "../../systems/labels";
 import { markerSystem } from "../../systems/markers";
 import { positionSystem } from "../../systems/position";
 import { propertiesSystem } from "../../systems/properties";
@@ -427,7 +426,6 @@ export class Layer implements ILayer {
                     if (shape.options.skipDraw ?? false) continue;
                     const props = getProperties(shape.id)!;
                     if (props.isInvisible && !accessSystem.hasAccessTo(shape.id, true, { vision: true })) continue;
-                    if (labelSystem.isFiltered(shape.id)) continue;
 
                     shape.draw(ctx, false);
                 }

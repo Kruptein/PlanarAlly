@@ -18,9 +18,6 @@ export const sendShapeSetShowBadge = wrapSocket<ShapeSetBooleanValue>("Shape.Opt
 export const sendShapeSetName = wrapSocket<ShapeSetStringValue>("Shape.Options.Name.Set");
 export const sendShapeSetStrokeColour = wrapSocket<ShapeSetStringValue>("Shape.Options.StrokeColour.Set");
 export const sendShapeSetFillColour = wrapSocket<ShapeSetStringValue>("Shape.Options.FillColour.Set");
-export const sendShapeAddLabel = wrapSocket<ShapeSetStringValue>("Shape.Options.Label.Add");
-
-export const sendShapeRemoveLabel = wrapSocket<ShapeSetStringValue>("Shape.Options.Label.Remove");
 
 export const sendShapeSkipDraw = wrapSocket<ShapeSetBooleanValue>("Shape.Options.SkipDraw.Set");
 export const sendShapeSvgAsset = wrapSocket<ShapeSetOptionalStringValue>("Shape.Options.SvgAsset.Set");

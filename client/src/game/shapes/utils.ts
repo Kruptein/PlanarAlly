@@ -69,7 +69,6 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
     for (const clip of clipboardState.mutableReactive.clipboard) {
         const newShape: ApiShape = Object.assign({}, clip, {
             auras: [],
-            labels: [],
             owners: [],
             trackers: [],
         });

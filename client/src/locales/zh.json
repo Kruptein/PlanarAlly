@@ -53,7 +53,6 @@
         "fill_color": "填充色",
         "trackers": "追踪值",
         "auras": "光晕",
-        "labels": "标签",
         "annotation": "注释",
         "floor": "楼层",
         "layer": "图层",
@@ -131,17 +130,6 @@
                 "previous": "上一个",
                 "change_sort": "修改排序",
                 "settings": "设置"
-            },
-            "LabelManager": {
-                "category": "分类",
-                "visible": "可见",
-                "delete": "删除",
-                "delete_label": "删除标签",
-                "title": "标签管理器",
-                "cat_abbr": "分类",
-                "vis_abbr": "视野",
-                "del_abbr": "删除",
-                "no_exist_msg": "暂无标签"
             },
             "menu": {
                 "LocationBar": {

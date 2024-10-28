@@ -63,140 +63,14 @@ def check_existence() -> bool:
 
 
 def upgrade(db: SqliteExtDatabase, version: int):
-    if version < 69:
+    if version < 79:
         raise OldVersionException(
             f"Upgrade code for this version is >2 years old and is no longer in the active codebase to reduce clutter. You can still find this code on github, contact me for more info."
         )
 
     db.foreign_keys = False
 
-    if version == 69:
-        # Change Room.logo on_delete logic from cascade to set null
-        with db.atomic():
-            db.execute_sql("CREATE TEMPORARY TABLE _room_69 AS SELECT * FROM room")
-            db.execute_sql("DROP TABLE room")
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "room" ("id" INTEGER NOT NULL PRIMARY KEY, "name" TEXT NOT NULL, "creator_id" INTEGER NOT NULL, "invitation_code" TEXT NOT NULL, "is_locked" INTEGER NOT NULL, "default_options_id" INTEGER NOT NULL, "logo_id" INTEGER, FOREIGN KEY ("creator_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("default_options_id") REFERENCES "location_options" ("id") ON DELETE CASCADE, FOREIGN KEY ("logo_id") REFERENCES "asset" ("id") ON DELETE SET NULL);'
-            )
-            db.execute_sql(
-                'INSERT INTO "room" (id, name, creator_id, invitation_code, is_locked, default_options_id, logo_id) SELECT id, name, creator_id, invitation_code, is_locked, default_options_id, logo_id FROM _room_69'
-            )
-    elif version == 70:
-        # Move door logic permissions to door logic options block
-        with db.atomic():
-            data = db.execute_sql("SELECT uuid, options FROM shape")
-            for row in data.fetchall():
-                uuid, options = row
-                if options is None:
-                    continue
-
-                unpacked_options = json.loads(options)
-                changed = False
-
-                for option in unpacked_options:
-                    if option[0] == "door" and "toggleMode" not in option[1]:
-                        option[1] = {"permissions": option[1], "toggleMode": "both"}
-                        changed = True
-
-                if changed:
-                    db.execute_sql(
-                        "UPDATE shape SET options=? WHERE uuid=?",
-                        (json.dumps(unpacked_options), uuid),
-                    )
-    elif version == 71:
-        # Add User.colour_history
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE user ADD COLUMN colour_history TEXT DEFAULT NULL"
-            )
-    elif version == 72:
-        # Change default zoom level from 1.0 to 0.2
-        with db.atomic():
-            db.execute_sql(
-                "CREATE TEMPORARY TABLE _location_user_option_72 AS SELECT * FROM location_user_option"
-            )
-            db.execute_sql("DROP TABLE location_user_option")
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "location_user_option" ("id" INTEGER NOT NULL PRIMARY KEY, "location_id" INTEGER NOT NULL, "user_id" INTEGER NOT NULL, "pan_x" REAL DEFAULT 0 NOT NULL, "pan_y" REAL DEFAULT 0 NOT NULL, "zoom_display" REAL DEFAULT 0.2 NOT NULL, "active_layer_id" INTEGER, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("active_layer_id") REFERENCES "layer" ("id"));'
-            )
-            db.execute_sql(
-                'INSERT INTO "location_user_option" (id, location_id, user_id, pan_x, pan_y, zoom_display, active_layer_id) SELECT id, location_id, user_id, pan_x, pan_y, zoom_display, active_layer_id FROM _location_user_option_72'
-            )
-    elif version == 73:
-        # Change Room.logo on_delete logic from cascade to set null
-        with db.atomic():
-            db.execute_sql("CREATE TEMPORARY TABLE _shape_73 AS SELECT * FROM shape")
-            db.execute_sql("DROP TABLE shape")
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "shape" ("uuid" TEXT NOT NULL PRIMARY KEY, "layer_id" INTEGER NOT NULL, "type_" TEXT NOT NULL, "x" REAL NOT NULL, "y" REAL NOT NULL, "name" TEXT, "name_visible" INTEGER NOT NULL, "fill_colour" TEXT NOT NULL, "stroke_colour" TEXT NOT NULL, "vision_obstruction" INTEGER NOT NULL, "movement_obstruction" INTEGER NOT NULL, "is_token" INTEGER NOT NULL, "annotation" TEXT NOT NULL, "draw_operator" TEXT NOT NULL, "index" INTEGER NOT NULL, "options" TEXT, "badge" INTEGER NOT NULL, "show_badge" INTEGER NOT NULL, "default_edit_access" INTEGER NOT NULL, "default_vision_access" INTEGER NOT NULL, is_invisible INTEGER NOT NULL DEFAULT 0, default_movement_access INTEGER NOT NULL DEFAULT 0, is_locked INTEGER NOT NULL DEFAULT 0, angle REAL NOT NULL DEFAULT 0, stroke_width INTEGER NOT NULL DEFAULT 2, asset_id INTEGER, group_id TEXT, annotation_visible INTEGER NOT NULL DEFAULT 0, ignore_zoom_size INTEGER DEFAULT 0, is_defeated INTEGER NOT NULL DEFAULT 0, is_door INTEGER DEFAULT 0 NOT NULL, is_teleport_zone INTEGER DEFAULT 0 NOT NULL, FOREIGN KEY ("layer_id") REFERENCES "layer" ("id") ON DELETE CASCADE, FOREIGN KEY ("asset_id") REFERENCES "asset" ("id") ON DELETE SET NULL, FOREIGN KEY ("group_id") REFERENCES "group" ("uuid"));'
-            )
-            db.execute_sql(
-                'INSERT INTO "shape" ("uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "is_token", "annotation", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "annotation_visible", "ignore_zoom_size", "is_defeated", "is_door", "is_teleport_zone") SELECT "uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "is_token", "annotation", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "annotation_visible", "ignore_zoom_size", "is_defeated", "is_door", "is_teleport_zone" FROM _shape_73'
-            )
-            db.execute_sql("DROP TABLE _shape_73")
-    elif version == 74:
-        # Just an initiative fixer
-        with db.atomic():
-            db_data = db.execute_sql("SELECT id, data FROM initiative")
-            for row in db_data.fetchall():
-                _id, raw_data = row
-                initiative_data: List[Any] = json.loads(raw_data)
-                modified = False
-                for index, info in reversed(list(enumerate(initiative_data))):
-                    if (
-                        db.execute_sql(
-                            "SELECT EXISTS(SELECT 1 FROM shape WHERE uuid=?)",
-                            (info["shape"],),
-                        ).fetchone()[0]
-                        == 0
-                    ):
-                        initiative_data.pop(index)
-                        modified = True
-                if modified:
-                    db.execute_sql(
-                        "UPDATE initiative SET data=? WHERE id=?",
-                        (json.dumps(initiative_data), _id),
-                    )
-    elif version == 75:
-        # Cleanup of background null values for default locations
-        with db.atomic():
-            db.execute_sql(
-                "UPDATE location_options SET air_map_background = 'none' WHERE id IN (SELECT default_options_id FROM room) AND (air_map_background IS NULL OR air_map_background = 'rgba(0, 0, 0, 0)')"
-            )
-            db.execute_sql(
-                "UPDATE location_options SET ground_map_background = 'none' WHERE id IN (SELECT default_options_id FROM room) AND (ground_map_background IS NULL OR ground_map_background = 'rgba(0, 0, 0, 0)')"
-            )
-            db.execute_sql(
-                "UPDATE location_options SET underground_map_background = 'none' WHERE id IN (SELECT default_options_id FROM room) AND (underground_map_background IS NULL OR underground_map_background = 'rgba(0, 0, 0, 0)')"
-            )
-    elif version == 76:
-        # Add UserOptions.render_all_floors
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN render_all_floors INTEGER DEFAULT 1"
-            )
-            db.execute_sql(
-                "UPDATE user_options SET render_all_floors = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
-            )
-    elif version == 77:
-        # Add UserOptions.use_tool_icons
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN use_tool_icons INTEGER DEFAULT 1"
-            )
-            db.execute_sql(
-                "UPDATE user_options SET use_tool_icons = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
-            )
-    elif version == 78:
-        # Add UserOptions.default_tracker_mode
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN default_tracker_mode INTEGER DEFAULT 1"
-            )
-            db.execute_sql(
-                "UPDATE user_options SET default_tracker_mode = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
-            )
-    elif version == 79:
+    if version == 79:
         # Add UserOptions.show_token_directions
         with db.atomic():
             db.execute_sql(

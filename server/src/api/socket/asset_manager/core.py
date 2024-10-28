@@ -392,10 +392,14 @@ async def assetmgmt_upload(sid: str, raw_data: Any):
     max_total_asset_size = config.getint("Webserver", "max_total_asset_size_in_bytes")
 
     if max_single_asset_size > 0 and len(data) > max_single_asset_size:
-        logger.warn(f"{user.name} attempted to upload a file that is too large ({len(data)} > {max_single_asset_size})")
+        logger.warn(
+            f"{user.name} attempted to upload a file that is too large ({len(data)} > {max_single_asset_size})"
+        )
         return
     if max_total_asset_size > 0 and total_asset_size + len(data) > max_total_asset_size:
-        logger.warn(f"{user.name} attempted to upload a file that is too large ({total_asset_size + len(data)} > {max_total_asset_size})")
+        logger.warn(
+            f"{user.name} attempted to upload a file that is too large ({total_asset_size + len(data)} > {max_total_asset_size})"
+        )
         return
 
     return_data = None

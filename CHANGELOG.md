@@ -14,6 +14,11 @@ tech changes will usually be stripped from release notes for the public
 
 -   Notes:
     -   Notes can now be popped out to a separate window
+-   [server] Assets:
+    -   Added limits to the total size of assets a user can upload and the size of a single asset
+    -   These limits can be configured in the server config
+    -   By default there are no limits, it's up to the server admin to configure them
+    -   These limits will only apply to new assets, existing assets are not affected
 
 ### Changed
 

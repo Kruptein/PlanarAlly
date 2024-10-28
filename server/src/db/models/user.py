@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional, cast
 
 import bcrypt
@@ -5,11 +6,13 @@ from peewee import ForeignKeyField, TextField, fn
 from playhouse.shortcuts import model_to_dict
 from typing_extensions import Self
 
+from ...utils import ASSETS_DIR
 from ..base import BaseDbModel
 from ..typed import SelectSequence
 from .user_options import UserOptions
 
 if TYPE_CHECKING:
+    from .asset import Asset
     from .label import Label
     from .player_room import PlayerRoom
     from .room import Room
@@ -17,6 +20,7 @@ if TYPE_CHECKING:
 
 class User(BaseDbModel):
     id: int
+    assets: SelectSequence["Asset"]
     labels: List["Label"]
     rooms_created: SelectSequence["Room"]
     rooms_joined: SelectSequence["PlayerRoom"]
@@ -48,6 +52,13 @@ class User(BaseDbModel):
             self,
             recurse=False,
             exclude=[User.id, User.password_hash, User.default_options],
+        )
+
+    def get_total_asset_size(self) -> int:
+        return sum(
+            Path(ASSETS_DIR / asset.file_hash).stat().st_size
+            for asset in self.assets
+            if asset.file_hash and Path(ASSETS_DIR / asset.file_hash).exists()
         )
 
     @classmethod

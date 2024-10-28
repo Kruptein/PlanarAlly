@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type DeepReadonly, computed, reactive, ref } from "vue";
+import { type DeepReadonly, computed, reactive, ref, watch } from "vue";
 
 import { arrToToggleGroup } from "../../../core/components/toggleGroup";
 import ToggleGroup from "../../../core/components/ToggleGroup.vue";
@@ -98,10 +98,15 @@ const filteredNotes = computed(() => {
     return notes;
 });
 
+watch(filteredNotes, () => {
+    searchPage.value = 1;
+});
+
+const pageSize = 25;
 const visibleNotes = computed(() => {
     return {
-        notes: filteredNotes.value.slice((searchPage.value - 1) * 25, searchPage.value * 25),
-        hasNext: filteredNotes.value.length > searchPage.value * 25,
+        notes: filteredNotes.value.slice((searchPage.value - 1) * pageSize, searchPage.value * pageSize),
+        hasNext: filteredNotes.value.length > searchPage.value * pageSize,
     };
 });
 

@@ -30,6 +30,12 @@ tech changes will usually be stripped from release notes for the public
     -   Delayed syncing of selection state to the global state from mouse down to mouse move/up
     -   This fixes some of the entries in the Fixed section
 
+### Removed
+
+-   Labels:
+    -   As mentioned in the last 2 releases these were going to be removed
+    -   I wasn't happy with the current implementation and they were causing more confusion than they were useful
+
 ### Fixed
 
 -   Notes:

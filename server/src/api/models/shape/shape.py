@@ -2,7 +2,6 @@ from pydantic import Field
 
 from ..aura import ApiAura
 from ..helpers import TypeIdModel
-from ..label import ApiLabel
 from ..tracker import ApiTracker
 from .owner import ApiShapeOwner
 
@@ -40,7 +39,6 @@ class ApiCoreShape(TypeIdModel):
     owners: list[ApiShapeOwner]
     trackers: list[ApiTracker]
     auras: list[ApiAura]
-    labels: list[ApiLabel]
     character: int | None = Field(..., typeId="CharacterId", noneAsNull=True)
     odd_hex_orientation: bool
     size: int

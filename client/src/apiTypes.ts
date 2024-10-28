@@ -91,13 +91,6 @@ export interface ApiAura {
   angle: number;
   direction: number;
 }
-export interface ApiLabel {
-  uuid: string;
-  user: string;
-  category: string;
-  name: string;
-  visible: boolean;
-}
 export interface ApiAssetRemoveShare {
   asset: AssetId;
   user: string;
@@ -183,7 +176,6 @@ export interface ApiCoreShape {
   owners: ApiShapeOwner[];
   trackers: ApiTracker[];
   auras: ApiAura[];
-  labels: ApiLabel[];
   character: CharacterId | null;
   odd_hex_orientation: boolean;
   size: number;
@@ -357,9 +349,11 @@ export interface ApiOptionalUserOptions {
 }
 export interface ApiRoomDataBlock extends ApiCoreDataBlock {
   category: "room";
+  data: string;
 }
 export interface ApiShapeDataBlock extends ApiCoreDataBlock {
   category: "shape";
+  data: string;
   shape: GlobalId;
 }
 export interface ApiShapeWithLayerInfo {
@@ -377,6 +371,7 @@ export interface ApiShapeWithLayerInfo {
 }
 export interface ApiUserDataBlock extends ApiCoreDataBlock {
   category: "user";
+  data: string;
 }
 export interface ApiUserOptions {
   fow_colour: string;
@@ -537,10 +532,6 @@ export interface InitiativeOrderChange {
 export interface InitiativeValueSet {
   shape: GlobalId;
   value: number;
-}
-export interface LabelVisibilitySet {
-  uuid: string;
-  visible: boolean;
 }
 export interface LogicDoorRequest {
   logic: "door";

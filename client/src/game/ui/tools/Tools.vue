@@ -8,7 +8,6 @@ import { ToolMode, ToolName } from "../../models/tools";
 import { accessState } from "../../systems/access/state";
 import { gameSystem } from "../../systems/game";
 import { gameState } from "../../systems/game/state";
-import { labelState } from "../../systems/labels/state";
 import { roomState } from "../../systems/room/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { activeModeTools, activeTool, activeToolMode, dmTools, toggleActiveMode, toolMap } from "../../tools/tools";
@@ -16,7 +15,6 @@ import { initiativeStore } from "../initiative/state";
 
 import DiceTool from "./DiceTool.vue";
 import DrawTool from "./DrawTool.vue";
-import FilterTool from "./FilterTool.vue";
 import MapTool from "./MapTool.vue";
 import RulerTool from "./RulerTool.vue";
 import SelectTool from "./SelectTool.vue";
@@ -33,9 +31,7 @@ const visibleTools = computed(() => {
         for (const [toolName] of activeModeTools.value) {
             if (dmTools.includes(toolName) && !gameState.reactive.isDm) continue;
 
-            if (toolName === ToolName.Filter) {
-                if (labelState.reactive.labels.size === 0) continue;
-            } else if (toolName === ToolName.Vision) {
+            if (toolName === ToolName.Vision) {
                 if (accessState.reactive.ownedTokens.size <= 1) continue;
             } else if (toolName === ToolName.Dice) {
                 if (!roomState.reactive.enableDice) continue;

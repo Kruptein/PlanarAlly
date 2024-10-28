@@ -7,7 +7,6 @@ from ....app import app, sio
 from ....db.models.aura import Aura
 from ....db.models.player_room import PlayerRoom
 from ....db.models.shape import Shape
-from ....db.models.shape_label import ShapeLabel
 from ....db.models.tracker import Tracker
 from ....db.typed import safe_update_model_from_dict
 from ....db.utils import reduce_data_to_model
@@ -353,45 +352,6 @@ async def remove_aura(sid: str, raw_data: Any):
 
     await _send_game(
         "Shape.Options.Aura.Remove",
-        data,
-        skip_sid=sid,
-        room=pr.active_location.get_path(),
-    )
-
-
-@sio.on("Shape.Options.Label.Add", namespace=GAME_NS)
-@auth.login_required(app, sio, "game")
-async def add_label(sid: str, raw_data: Any):
-    data = ShapeSetStringValue(**raw_data)
-
-    pr: PlayerRoom = game_state.get(sid)
-
-    shape = get_shape_or_none(pr, data.shape, "Label.Add")
-    if shape is None:
-        return
-
-    ShapeLabel.create(shape=shape, label=data.value)
-
-    await _send_game(
-        "Shape.Options.Label.Add",
-        data,
-        skip_sid=sid,
-        room=pr.active_location.get_path(),
-    )
-
-
-@sio.on("Shape.Options.Label.Remove", namespace=GAME_NS)
-@auth.login_required(app, sio, "game")
-async def remove_label(sid: str, raw_data: Any):
-    data = ShapeSetStringValue(**raw_data)
-
-    pr: PlayerRoom = game_state.get(sid)
-
-    label = ShapeLabel.get(shape=data.shape, label=data.value)
-    label.delete_instance(True)
-
-    await _send_game(
-        "Shape.Options.Label.Remove",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),

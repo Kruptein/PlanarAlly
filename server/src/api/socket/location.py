@@ -13,8 +13,6 @@ from ...db.models.asset import Asset
 from ...db.models.character import Character
 from ...db.models.floor import Floor
 from ...db.models.initiative import Initiative
-from ...db.models.label import Label
-from ...db.models.label_selection import LabelSelection
 from ...db.models.layer import Layer
 from ...db.models.location import Location
 from ...db.models.location_options import LocationOptions
@@ -229,26 +227,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
     if initiative_data:
         await _send_game("Initiative.Set", initiative_data.as_pydantic(), room=sid)
 
-    # 7. Load labels
-
-    if complete:
-        labels = Label.select().where(
-            (Label.user == pr.player) | (Label.visible == True)  # noqa: E712
-        )
-        label_filters = LabelSelection.select().where(
-            (LabelSelection.user == pr.player) & (LabelSelection.room == pr.room)
-        )
-
-        await _send_game(
-            "Labels.Set", [label.as_pydantic() for label in labels], room=sid
-        )
-        await _send_game(
-            "Labels.Filters.Set",
-            [label_filter.label.uuid for label_filter in label_filters],
-            room=sid,
-        )
-
-    # 8. Load Notes
+    # 7. Load Notes
 
     await _send_game(
         "Notes.Set",
@@ -273,7 +252,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
         room=sid,
     )
 
-    # 9. Load Markers
+    # 8. Load Markers
 
     await _send_game(
         "Markers.Set",
@@ -286,7 +265,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
         room=sid,
     )
 
-    # 10. Load Assets
+    # 9. Load Assets
 
     if complete:
         # todo: pydantic

@@ -8,7 +8,6 @@ import { auraSystem } from "../systems/auras";
 import { aurasFromServer, aurasToServer } from "../systems/auras/conversion";
 import { characterSystem } from "../systems/characters";
 import { groupSystem } from "../systems/groups";
-import { labelSystem } from "../systems/labels";
 import { doorSystem } from "../systems/logic/door";
 import { teleportZoneSystem } from "../systems/logic/tp";
 import { noteSystem } from "../systems/notes";
@@ -59,7 +58,6 @@ export function loadShapeData(shape: IShape, data: ApiShape): void {
     trackerSystem.inform(id, trackersFromServer(...data.trackers));
     doorSystem.inform(id, data.is_door, options.door);
     teleportZoneSystem.inform(id, data.is_teleport_zone, options.teleport);
-    labelSystem.inform(id, data.labels);
     if (data.character !== null) characterSystem.inform(id, data.character);
     noteSystem.inform(id);
     groupSystem.inform(id, { groupId: data.group ?? undefined, badge: data.badge });
@@ -81,7 +79,6 @@ export function exportShapeData(shape: IShape): ApiCoreShape {
         vision_obstruction: props.blocksVision,
         auras: aurasToServer(uuid, auraSystem.getAll(shape.id, false)),
         trackers: trackersToServer(uuid, trackerSystem.getAll(shape.id, false)),
-        labels: [...labelSystem.getLabels(shape.id)],
         owners: accessSystem.getOwnersFull(shape.id).map((o) => ownerToServer(o)),
         fill_colour: props.fillColour,
         stroke_colour: props.strokeColour[0]!,

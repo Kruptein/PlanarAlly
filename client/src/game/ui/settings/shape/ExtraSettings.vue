@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import tinycolor from "tinycolor2";
-import { computed, ref, toRef, watchEffect } from "vue";
-import { useI18n } from "vue-i18n";
+import { computed } from "vue";
 
 import { l2gz } from "../../../../core/conversions";
 import { toGP } from "../../../../core/geometry";
@@ -17,50 +16,18 @@ import { LayerName } from "../../../models/floor";
 import { Circle } from "../../../shapes/variants/circle";
 import { Polygon } from "../../../shapes/variants/polygon";
 import { accessSystem } from "../../../systems/access";
-import { accessState } from "../../../systems/access/state";
 import { auraSystem } from "../../../systems/auras";
 import type { Aura, AuraId } from "../../../systems/auras/models";
 import { floorSystem } from "../../../systems/floors";
 import { floorState } from "../../../systems/floors/state";
 import { gameState } from "../../../systems/game/state";
-import { labelSystem } from "../../../systems/labels";
-import { labelState } from "../../../systems/labels/state";
 import { playerSystem } from "../../../systems/players";
 import { propertiesSystem } from "../../../systems/properties";
 import { VisionBlock } from "../../../systems/properties/types";
-import { selectedState } from "../../../systems/selected/state";
 import { locationSettingsState } from "../../../systems/settings/location/state";
 import { visionState } from "../../../vision/state";
-import LabelManager from "../../LabelManager.vue";
 
-const { t } = useI18n();
 const modals = useModal();
-
-watchEffect(() => {
-    const id = selectedState.reactive.focus;
-    if (id) {
-        labelSystem.loadState(id);
-    } else {
-        labelSystem.dropState();
-    }
-});
-
-const owned = accessState.hasEditAccess;
-const id = toRef(activeShapeStore.state, "id");
-
-// LABELS
-
-const showLabelManager = ref(false);
-
-function addLabel(label: string): void {
-    if (id.value === undefined || !owned.value) return;
-    labelSystem.addLabel(id.value, label, true);
-}
-
-function removeLabel(uuid: string): void {
-    if (id.value === undefined || !owned.value) return;
-    labelSystem.removeLabel(id.value, uuid, true);
-}
 
 // SVG / DDRAFT
 
@@ -194,21 +161,6 @@ function applyDDraft(): void {
 
 <template>
     <div class="panel restore-panel">
-        <div class="spanrow header">{{ t("common.labels") }}</div>
-        <div id="labels" class="spanrow">
-            <div v-for="label in labelState.reactive.activeShape?.labels" :key="label.uuid" class="label">
-                <template v-if="label.category">
-                    <div class="label-user">{{ label.category }}</div>
-                    <div class="label-main" @click="removeLabel(label.uuid)">{{ label.name }}</div>
-                </template>
-                <template v-if="!label.category">
-                    <div class="label-main" @click="removeLabel(label.uuid)">{{ label.name }}</div>
-                </template>
-            </div>
-            <div v-if="owned" id="label-add" class="label">
-                <div class="label-main" @click="showLabelManager = true">+</div>
-            </div>
-        </div>
         <template v-if="showSvgSection">
             <div class="spanrow header">Lighting & Vision</div>
             <template v-if="!hasPath">
@@ -224,9 +176,6 @@ function applyDDraft(): void {
                 <button id="edit_dialog-extra-upload_walls" @click="applyDDraft">Apply</button>
             </template>
         </template>
-        <teleport v-if="showLabelManager" to="#teleport-modals">
-            <LabelManager v-model:visible="showLabelManager" @add-label="addLabel" />
-        </teleport>
     </div>
 </template>
 

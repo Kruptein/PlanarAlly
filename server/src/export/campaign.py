@@ -416,7 +416,6 @@ class CampaignImporter:
         # d) Allow defining user mapping up-front
         # ideally this becomes a multi-step UI heavy thing
         # where user options can also be diffed etc (user default_options todo!)
-        # todo: Labels
         with self.db.bind_ctx([Room, User]):
             creator = cast(User, room.creator)
             self.migrator.user_mapping[creator.id] = self.root_user.id

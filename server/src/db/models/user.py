@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Optional, cast
+from typing import TYPE_CHECKING, Optional, cast
 
 import bcrypt
 from peewee import ForeignKeyField, TextField, fn
@@ -13,7 +13,6 @@ from .user_options import UserOptions
 
 if TYPE_CHECKING:
     from .asset import Asset
-    from .label import Label
     from .player_room import PlayerRoom
     from .room import Room
 
@@ -21,7 +20,6 @@ if TYPE_CHECKING:
 class User(BaseDbModel):
     id: int
     assets: SelectSequence["Asset"]
-    labels: List["Label"]
     rooms_created: SelectSequence["Room"]
     rooms_joined: SelectSequence["PlayerRoom"]
 

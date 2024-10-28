@@ -26,12 +26,17 @@ tech changes will usually be stripped from release notes for the public
     -   Changed some border colours in the create new game menu
 -   MenuBar:
     -   Add Notes button for players
+-   [tech] Select tool:
+    -   Delayed syncing of selection state to the global state from mouse down to mouse move/up
+    -   This fixes some of the entries in the Fixed section
 
 ### Fixed
 
 -   Notes:
     -   It was possible to open a 'view-only' note on a tab you weren't supposed to see
     -   Note manager could be empty and unusable when changing locations
+-   Shape Properties:
+    -   Input changes could not persist or save on the wrong shape if selection focus was changed while editing (see selection changes)
 
 ## [2024.3.0] - 2024-10-13
 

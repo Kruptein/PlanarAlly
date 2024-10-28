@@ -1,3 +1,5 @@
+import { useToast } from "vue-toastification";
+
 import type { ApiAsset, ApiAssetUpload } from "../apiTypes";
 import { callbackProvider, uuidv4 } from "../core/utils";
 import { router } from "../router";
@@ -8,6 +10,8 @@ import { socket } from "./socket";
 import { assetState } from "./state";
 
 import "./events";
+
+const toast = useToast();
 
 const { raw, mutableReactive: $ } = assetState;
 
@@ -155,6 +159,23 @@ class AssetSystem {
         if (closeSocket) {
             socket.connect();
             await assetSystem.rootCallback.wait();
+        }
+
+        const limit = await socket.emitWithAck("Asset.Upload.Limit") as { single: number; total: number; used: number };
+
+        // First check limits
+        let totalSize = 0;
+        for (const file of fls) {
+            totalSize += file.size;
+            if (limit.single > 0 && file.size > limit.single) {
+                toast.error(`File ${file.name} is too large. Max size is ${limit.single} bytes. Contact the server admin if you need to upload larger files.`, { timeout: 0 });
+                return [];
+            }
+            if (limit.total > 0 && totalSize > limit.total - limit.used) {
+                const remaining = Math.max(0, limit.total - limit.used);
+                toast.error(`Total size of files is too large. You have ${remaining} bytes remaining and attempted to upload ${totalSize} bytes. Contact the server admin if you need to upload larger files.`, { timeout: 0 });
+                return [];
+            }
         }
 
         const target = options?.target?.() ?? assetState.currentFolder.value;

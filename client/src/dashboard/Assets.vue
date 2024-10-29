@@ -168,12 +168,16 @@ function openContextMenu(event: MouseEvent, key: AssetId): void {
 
 let draggingSelection = false;
 
-function renameAsset(event: KeyboardEvent, file: AssetId, oldName: string): void {
+function renameAsset(event: FocusEvent, file: AssetId, oldName: string): void {
     if(!canEdit(file, false)) {
         return;
     }
 
     const target = event.target as HTMLElement;
+    if(target.textContent === null){
+        target.textContent = oldName;
+        return;
+    }
     const name = target.textContent.trim();
 
     if (name === undefined || name === "") {
@@ -353,7 +357,7 @@ function canEdit(data: AssetId | DeepReadonly<ApiAsset> | undefined, includeRoot
             >
                 <font-awesome-icon v-if="isShared(folder)" icon="user-tag" class="asset-link" />
                 <font-awesome-icon icon="folder" style="font-size: 12.5em" />
-                <div v-if="canEdit(folder.id, false) && folder.name !== '..'" contenteditable spellcheck="false" @keydown.enter="$event.target.blur()" @blur="renameAsset($event, folder.id, folder.name)" class="title">{{ folder.name }}</div>
+                <div v-if="canEdit(folder.id, false) && folder.name !== '..'" contenteditable spellcheck="false" class="title" @keydown.enter="($event!.target as HTMLElement).blur()" @blur="renameAsset($event, folder.id, folder.name)">{{ folder.name }}</div>
                 <div v-else class="title">{{ folder.name }}</div>
             </div>
             <div
@@ -372,7 +376,7 @@ function canEdit(data: AssetId | DeepReadonly<ApiAsset> | undefined, includeRoot
             >
                 <font-awesome-icon v-if="isShared(file)" icon="user-tag" class="asset-link" />
                 <img :src="getIdImageSrc(file.id)" width="50" alt="" />
-                <div v-if="canEdit(file.id, false)" contenteditable spellcheck="false" @keydown.enter="$event.target.blur()" @blur="renameAsset($event, file.id, file.name)" class="title">{{ file.name }}</div>
+                <div v-if="canEdit(file.id, false)" contenteditable spellcheck="false" class="title" @keydown.enter="($event!.target as HTMLElement).blur()" @blur="renameAsset($event, file.id, file.name)">{{ file.name }}</div>
                 <div v-else class="title">{{ file.name }}</div>
             </div>
         </div>

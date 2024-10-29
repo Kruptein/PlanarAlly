@@ -168,6 +168,20 @@ function openContextMenu(event: MouseEvent, key: AssetId): void {
 
 let draggingSelection = false;
 
+function renameAsset(event: KeyboardEvent, file: AssetId, oldName: string): void {
+    if(!canEdit(file, false)) {
+        return;
+    }
+
+    const target = event.target as HTMLElement;
+    const name = target.textContent.trim();
+
+    if (name === undefined || name === "") {
+        target.textContent = oldName;
+    }else{
+        assetSystem.renameAsset(file, name);
+    }
+}
 function startDrag(event: DragEvent, file: AssetId): void {
     if (event.dataTransfer === null) return;
 
@@ -339,7 +353,8 @@ function canEdit(data: AssetId | DeepReadonly<ApiAsset> | undefined, includeRoot
             >
                 <font-awesome-icon v-if="isShared(folder)" icon="user-tag" class="asset-link" />
                 <font-awesome-icon icon="folder" style="font-size: 12.5em" />
-                <div class="title">{{ folder.name }}</div>
+                <div v-if="canEdit(folder.id, false) && folder.name !== '..'" contenteditable spellcheck="false" @keydown.enter="$event.target.blur()" @blur="renameAsset($event, folder.id, folder.name)" class="title">{{ folder.name }}</div>
+                <div v-else class="title">{{ folder.name }}</div>
             </div>
             <div
                 v-for="file of files"
@@ -357,9 +372,11 @@ function canEdit(data: AssetId | DeepReadonly<ApiAsset> | undefined, includeRoot
             >
                 <font-awesome-icon v-if="isShared(file)" icon="user-tag" class="asset-link" />
                 <img :src="getIdImageSrc(file.id)" width="50" alt="" />
-                <div class="title">{{ file.name }}</div>
+                <div v-if="canEdit(file.id, false)" contenteditable spellcheck="false" @keydown.enter="$event.target.blur()" @blur="renameAsset($event, file.id, file.name)" class="title">{{ file.name }}</div>
+                <div v-else class="title">{{ file.name }}</div>
             </div>
         </div>
+
         <div
             v-show="
                 assetState.reactive.expectedUploads > 0 &&
@@ -483,10 +500,6 @@ function canEdit(data: AssetId | DeepReadonly<ApiAsset> | undefined, includeRoot
 
             &:hover {
                 cursor: pointer;
-            }
-
-            * {
-                pointer-events: none; // prevent drag shenanigans
             }
 
             > img {

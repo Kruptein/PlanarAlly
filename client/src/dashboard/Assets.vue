@@ -180,7 +180,7 @@ function renameAsset(event: FocusEvent, file: AssetId, oldName: string): void {
     }
     const name = target.textContent.trim();
 
-    if (name === undefined || name === "") {
+    if (name === undefined || name === "" || name === "..") {
         target.textContent = oldName;
     }else{
         assetSystem.renameAsset(file, name);

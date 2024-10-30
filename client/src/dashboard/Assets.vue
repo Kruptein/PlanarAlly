@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import trimEnd from "lodash/trimEnd";
-import { type DeepReadonly, computed, onMounted, ref } from "vue";
+import { type DeepReadonly, computed, nextTick, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from "vue-router";
 import type { RouteLocationNormalized } from "vue-router";
@@ -30,6 +30,9 @@ const body = document.getElementsByTagName("body")[0];
 
 const activeSelectionUrl = `url(${baseAdjust("/static/img/assetmanager/active_selection.png")})`;
 const emptySelectionUrl = `url(${baseAdjust("/static/img/assetmanager/empty_selection.png")})`;
+
+const currentRenameElement = ref<HTMLDivElement | null>(null);
+const titleRefs = ref<Record<AssetId, HTMLDivElement | null>>({});
 
 function getCurrentPath(path?: string): string {
     path ??= route.path;
@@ -176,6 +179,7 @@ function renameAsset(event: FocusEvent, file: AssetId, oldName: string): void {
     const target = event.target as HTMLElement;
     if(target.textContent === null){
         target.textContent = oldName;
+        currentRenameElement.value = null;
         return;
     }
     const name = target.textContent.trim();
@@ -185,6 +189,7 @@ function renameAsset(event: FocusEvent, file: AssetId, oldName: string): void {
     }else{
         assetSystem.renameAsset(file, name);
     }
+    currentRenameElement.value = null;
 }
 function startDrag(event: DragEvent, file: AssetId): void {
     if (event.dataTransfer === null) return;
@@ -283,6 +288,49 @@ function canEdit(data: AssetId | DeepReadonly<ApiAsset> | undefined, includeRoot
     }
     return true;
 }
+
+function setTitleRef(el: HTMLDivElement | null, id: AssetId) : void {
+    if (el) {
+        titleRefs.value[id] = el;
+    } else {
+        delete titleRefs.value[id];
+    }
+}
+function canRename(id: AssetId) : boolean {
+    if (!canEdit(id, false)) {
+        return false;
+    }
+    const el = titleRefs.value[id];
+    if (!el) {
+        return false;
+    }
+
+    return el === currentRenameElement.value;
+}
+
+function selectElementContents(el: HTMLElement) : void {
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const sel = window.getSelection();
+    if(sel) {
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+}
+
+function handleRenameEvent(id: AssetId) : void {
+    const el = titleRefs.value[id];
+    if (el) {
+        currentRenameElement.value = el;
+        nextTick().then(() => {
+            el.focus();
+            selectElementContents(el);
+        }).catch((error) => {
+            console.log("Error passing focus to title element: ", error);
+        });
+    }
+}
+
 </script>
 
 <template>
@@ -357,8 +405,15 @@ function canEdit(data: AssetId | DeepReadonly<ApiAsset> | undefined, includeRoot
             >
                 <font-awesome-icon v-if="isShared(folder)" icon="user-tag" class="asset-link" />
                 <font-awesome-icon icon="folder" style="font-size: 12.5em" />
-                <div v-if="canEdit(folder.id, false) && folder.name !== '..'" contenteditable spellcheck="false" class="title" @keydown.enter="($event!.target as HTMLElement).blur()" @blur="renameAsset($event, folder.id, folder.name)">{{ folder.name }}</div>
-                <div v-else class="title">{{ folder.name }}</div>
+                <div
+                     :ref="($el) => setTitleRef($el as HTMLDivElement | null, folder.id)"
+                     :contenteditable="canRename(folder.id)"
+                     class="title"
+                     @keydown.enter="($event!.target as HTMLElement).blur()"
+                     @blur="renameAsset($event, folder.id, folder.name)"
+                >
+                    {{ folder.name }}
+                </div>
             </div>
             <div
                 v-for="file of files"
@@ -376,8 +431,15 @@ function canEdit(data: AssetId | DeepReadonly<ApiAsset> | undefined, includeRoot
             >
                 <font-awesome-icon v-if="isShared(file)" icon="user-tag" class="asset-link" />
                 <img :src="getIdImageSrc(file.id)" width="50" alt="" />
-                <div v-if="canEdit(file.id, false)" contenteditable spellcheck="false" class="title" @keydown.enter="($event!.target as HTMLElement).blur()" @blur="renameAsset($event, file.id, file.name)">{{ file.name }}</div>
-                <div v-else class="title">{{ file.name }}</div>
+                <div
+                     :ref="($el) => setTitleRef($el as HTMLDivElement | null, file.id)"
+                     :contenteditable="canRename(file.id)"
+                     class="title"
+                     @keydown.enter="($event!.target as HTMLElement).blur()"
+                     @blur="renameAsset($event, file.id, file.name)"
+                >
+                    {{ file.name }}
+                </div>
             </div>
         </div>
 
@@ -401,7 +463,7 @@ function canEdit(data: AssetId | DeepReadonly<ApiAsset> | undefined, includeRoot
             </div>
         </div>
     </div>
-    <AssetContextMenu />
+    <AssetContextMenu @rename-event="handleRenameEvent($event.id)" />
 </template>
 
 <style lang="scss">

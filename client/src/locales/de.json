@@ -324,9 +324,6 @@
                     "erase": "radieren",
                     "cone": "Kegel"
                 },
-                "FilterTool": {
-                    "no_category": "keine Kategorie"
-                },
                 "MapTool": {
                     "drag_to_resize": "Markiere den Bereich, dessen Größe Du verändern willst",
                     "select_shape_msg": "Bitte wähle zuerst eine Form aus.",

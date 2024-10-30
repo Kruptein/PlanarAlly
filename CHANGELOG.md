@@ -35,6 +35,7 @@ tech changes will usually be stripped from release notes for the public
 -   Labels:
     -   As mentioned in the last 2 releases these were going to be removed
     -   I wasn't happy with the current implementation and they were causing more confusion than they were useful
+    -   This also removes the Filter Tool
 
 ### Fixed
 

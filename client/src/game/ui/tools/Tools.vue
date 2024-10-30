@@ -127,7 +127,6 @@ function toggleFakePlayer(): void {
             <DrawTool v-lazy-show="activeTool === ToolName.Draw" />
             <RulerTool v-lazy-show="activeTool === ToolName.Ruler" />
             <MapTool v-lazy-show="activeTool === ToolName.Map" />
-            <FilterTool v-lazy-show="activeTool === ToolName.Filter" />
             <VisionTool v-lazy-show="activeTool === ToolName.Vision" />
             <DiceTool v-lazy-show="roomState.reactive.enableDice && activeTool === ToolName.Dice" />
         </div>

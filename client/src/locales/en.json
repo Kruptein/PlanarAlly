@@ -386,9 +386,6 @@
                     "logic-category": "Logic settings",
                     "door": "Add simple door logic"
                 },
-                "FilterTool": {
-                    "no_category": "no category"
-                },
                 "MapTool": {
                     "drag_to_resize": "Drag an area you wish to resize",
                     "select_shape_msg": "Please select a shape first.",

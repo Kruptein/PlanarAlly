@@ -36,6 +36,22 @@ socket.on("Player.Options.Set", (options: PlayerOptionsSet) => {
         sync: false,
         default: defaultOptions.gridModeLabelFormat,
     });
+    playerSettingsSystem.setDefaultWallColour(roomOptions?.defaultWallColour, {
+        sync: false,
+        default: defaultOptions.defaultWallColour,
+    });
+    playerSettingsSystem.setDefaultWindowColour(roomOptions?.defaultWindowColour, {
+        sync: false,
+        default: defaultOptions.defaultWindowColour,
+    });
+    playerSettingsSystem.setDefaultClosedDoorColour(roomOptions?.defaultClosedDoorColour, {
+        sync: false,
+        default: defaultOptions.defaultClosedDoorColour,
+    });
+    playerSettingsSystem.setDefaultOpenDoorColour(roomOptions?.defaultOpenDoorColour, {
+        sync: false,
+        default: defaultOptions.defaultOpenDoorColour,
+    });
 
     // Behaviour
     playerSettingsSystem.setInvertAlt(roomOptions?.invertAlt, {

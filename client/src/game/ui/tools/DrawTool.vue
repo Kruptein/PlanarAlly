@@ -6,6 +6,7 @@ import ColourPicker from "../../../core/components/ColourPicker.vue";
 import { arrToToggleGroup } from "../../../core/components/toggleGroup";
 import ToggleGroup from "../../../core/components/ToggleGroup.vue";
 import { useModal } from "../../../core/plugins/modals/plugin";
+import { getColour } from "../../colour";
 import { gameState } from "../../systems/game/state";
 import { DOOR_TOGGLE_MODES } from "../../systems/logic/door/models";
 import { VisionBlock, visionBlocks } from "../../systems/properties/types";
@@ -24,6 +25,10 @@ const selected = drawTool.isActiveTool;
 const shapes = Object.values(DrawShape);
 
 const showPermissions = ref(false);
+
+const defaultColoursApply = computed(
+    () => drawTool.state.blocksMovement || drawTool.state.blocksVision !== VisionBlock.No || drawTool.state.isDoor,
+);
 
 const translationMapping = {
     modes: {
@@ -101,16 +106,35 @@ const alerts = computed(() => {
             </div>
             <div class="draw-select-group">
                 <ColourPicker
+                    v-if="!(drawTool.state.preferDefaultColours && defaultColoursApply)"
                     v-model:colour="drawTool.state.fillColour"
                     class="draw-select-option"
                     :class="{ 'radius-right': !showBorderColour }"
                     :title="t('game.ui.tools.DrawTool.foreground_color')"
                 />
                 <ColourPicker
+                    v-else
+                    :colour="getColour(drawTool.colours.value.fill, undefined)"
+                    class="draw-select-option"
+                    :class="{ 'radius-right': !showBorderColour }"
+                    :disabled="true"
+                    title="Overriden by default colours, see vision tab"
+                />
+                <ColourPicker
+                    v-if="!(drawTool.state.preferDefaultColours && defaultColoursApply)"
                     v-model:colour="drawTool.state.borderColour"
                     class="draw-select-option"
                     :v-show="showBorderColour"
+                    :disabled="defaultColoursApply"
                     :title="t('game.ui.tools.DrawTool.background_color')"
+                />
+                <ColourPicker
+                    v-else
+                    :colour="getColour(drawTool.colours.value.stroke, undefined)"
+                    class="draw-select-option"
+                    :v-show="showBorderColour"
+                    :disabled="true"
+                    title="Overriden by default colours, see vision tab"
                 />
             </div>
             <div v-show="drawTool.state.selectedShape === DrawShape.Polygon" class="draw-checkbox-line">
@@ -174,6 +198,23 @@ const alerts = computed(() => {
                         type="checkbox"
                         :disabled="drawTool.state.selectedMode !== 'normal'"
                         @click="drawTool.state.blocksMovement = !drawTool.state.blocksMovement"
+                    />
+                </div>
+            </div>
+
+            <div class="draw-checkbox-line">
+                <label
+                    for="vision-dialog-colour-override-toggle"
+                    title="When checked, the default colours as defined in your client settings will be used instead of the colours selected in the draw tool when relevant. This setting is ignored if no relevant blocker is active."
+                >
+                    Prefer default colours
+                </label>
+                <div>
+                    <input
+                        id="vision-dialog-colour-override-toggle"
+                        v-model="drawTool.state.preferDefaultColours"
+                        :disabled="!defaultColoursApply"
+                        type="checkbox"
                     />
                 </div>
             </div>

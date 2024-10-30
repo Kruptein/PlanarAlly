@@ -10,6 +10,10 @@ class ApiUserOptions(TypeIdModel):
     use_tool_icons: bool
     show_token_directions: bool
     grid_mode_label_format: int = Field(..., typeId="GridModeLabelFormat")
+    default_wall_colour: str | None = Field(default=None, noneAsNull=True)
+    default_window_colour: str | None = Field(default=None, noneAsNull=True)
+    default_closed_door_colour: str | None = Field(default=None, noneAsNull=True)
+    default_open_door_colour: str | None = Field(default=None, noneAsNull=True)
 
     invert_alt: bool
     disable_scroll_to_zoom: bool
@@ -41,6 +45,10 @@ class ApiOptionalUserOptions(TypeIdModel):
         typeId="GridModeLabelFormat",
         noneAsNull=True,
     )
+    default_wall_colour: str | None = Field(default=None, noneAsNull=True)
+    default_window_colour: str | None = Field(default=None, noneAsNull=True)
+    default_closed_door_colour: str | None = Field(default=None, noneAsNull=True)
+    default_open_door_colour: str | None = Field(default=None, noneAsNull=True)
 
     invert_alt: bool | None = Field(default=None, noneAsNull=True)
     disable_scroll_to_zoom: bool | None = Field(default=None, noneAsNull=True)

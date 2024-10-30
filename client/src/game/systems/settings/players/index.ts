@@ -1,7 +1,7 @@
 import { registerSystem } from "../..";
 import type { System } from "../..";
 import { sendRoomClientOptions } from "../../../api/emits/client";
-import { updateFogColour } from "../../../colour";
+import { Colour, registerColour, updateFogColour } from "../../../colour";
 import { LayerName } from "../../../models/floor";
 import type { InitiativeEffectMode } from "../../../models/initiative";
 import { floorSystem } from "../../floors";
@@ -18,7 +18,11 @@ class PlayerSettingsSystem implements System {
     // This is a utility function to simplify a lot of the settings UI code
     getSetter<T extends keyof PlayerOptions>(setting: T): (value: PlayerOptions[T] | undefined, options: { sync: boolean; default?: PlayerOptions[T] }) => void {
         const settingMap = {
+            defaultClosedDoorColour: this.setDefaultClosedDoorColour.bind(this),
+            defaultOpenDoorColour: this.setDefaultOpenDoorColour.bind(this),
             defaultTrackerMode: this.setDefaultTrackerMode.bind(this),
+            defaultWallColour: this.setDefaultWallColour.bind(this),
+            defaultWindowColour: this.setDefaultWindowColour.bind(this),
             disableScrollToZoom: this.setDisableScrollToZoom.bind(this),
             fowColour: this.setFowColour.bind(this),
             gridColour: this.setGridColour.bind(this),
@@ -101,6 +105,40 @@ class PlayerSettingsSystem implements System {
         if (options.default !== undefined) $.gridModeLabelFormat.default = options.default;
         $.gridModeLabelFormat.value = gridModeLabelFormat ?? $.gridModeLabelFormat.default;
         if (options.sync) sendRoomClientOptions("grid_mode_label_format", gridModeLabelFormat, options.default);
+    }
+
+    setDefaultWallColour(defaultWallColour: string | undefined, options: { sync: boolean; default?: string }): void {
+        $.defaultWallColour.override = defaultWallColour;
+        if (options.default !== undefined) $.defaultWallColour.default = options.default;
+        $.defaultWallColour.value = defaultWallColour ?? $.defaultWallColour.default;
+        registerColour(Colour.Wall, $.defaultWallColour.value);
+        floorSystem.invalidateAllFloors();
+        if (options.sync) sendRoomClientOptions("default_wall_colour", defaultWallColour, options.default);
+    }
+
+    setDefaultWindowColour(defaultWindowColour: string | undefined, options: { sync: boolean; default?: string }): void {
+        $.defaultWindowColour.override = defaultWindowColour;
+        if (options.default !== undefined) $.defaultWindowColour.default = options.default;
+        $.defaultWindowColour.value = defaultWindowColour ?? $.defaultWindowColour.default;
+        registerColour(Colour.Window, $.defaultWindowColour.value);
+        floorSystem.invalidateAllFloors();
+        if (options.sync) sendRoomClientOptions("default_window_colour", defaultWindowColour, options.default);
+    }
+
+    setDefaultClosedDoorColour(defaultClosedDoorColour: string | undefined, options: { sync: boolean; default?: string }): void {
+        $.defaultClosedDoorColour.override = defaultClosedDoorColour;
+        if (options.default !== undefined) $.defaultClosedDoorColour.default = options.default;
+        $.defaultClosedDoorColour.value = defaultClosedDoorColour ?? $.defaultClosedDoorColour.default;
+        floorSystem.invalidateAllFloors();
+        if (options.sync) sendRoomClientOptions("default_closed_door_colour", defaultClosedDoorColour, options.default);
+    }
+
+    setDefaultOpenDoorColour(defaultOpenDoorColour: string | undefined, options: { sync: boolean; default?: string }): void {
+        $.defaultOpenDoorColour.override = defaultOpenDoorColour;
+        if (options.default !== undefined) $.defaultOpenDoorColour.default = options.default;
+        $.defaultOpenDoorColour.value = defaultOpenDoorColour ?? $.defaultOpenDoorColour.default;
+        floorSystem.invalidateAllFloors();
+        if (options.sync) sendRoomClientOptions("default_open_door_colour", defaultOpenDoorColour, options.default);
     }
 
     // BEHAVIOUR

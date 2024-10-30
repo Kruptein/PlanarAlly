@@ -1,47 +1,49 @@
 import { computed, reactive, watch, watchEffect } from "vue";
 import type { DeepReadonly } from "vue";
 
-import { getUnitDistance, l2g, l2gz } from "../../../core/conversions";
-import { addP, cloneP, subtractP, toArrayP, toGP, Vector } from "../../../core/geometry";
-import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
-import { snapPointToGrid } from "../../../core/grid";
-import { equalPoints, snapToPoint } from "../../../core/math";
-import { InvalidationMode, NO_SYNC, SyncMode, UI_SYNC } from "../../../core/models/types";
-import type { PromptFunction } from "../../../core/plugins/modals/prompt";
-import { ctrlOrCmdPressed, mostReadable } from "../../../core/utils";
-import { i18n } from "../../../i18n";
-import { sendShapeSizeUpdate } from "../../api/emits/shape/core";
-import type { ILayer } from "../../interfaces/layer";
-import type { IShape } from "../../interfaces/shape";
-import type { ICircle } from "../../interfaces/shapes/circle";
-import type { IRect } from "../../interfaces/shapes/rect";
-import { LayerName } from "../../models/floor";
-import type { Floor } from "../../models/floor";
-import { ToolName } from "../../models/tools";
-import type { ToolFeatures, ITool } from "../../models/tools";
-import { overrideLastOperation } from "../../operations/undo";
-import { Circle } from "../../shapes/variants/circle";
-import { Line } from "../../shapes/variants/line";
-import { Polygon } from "../../shapes/variants/polygon";
-import { Rect } from "../../shapes/variants/rect";
-import { Text } from "../../shapes/variants/text";
-import { accessSystem } from "../../systems/access";
-import { floorSystem } from "../../systems/floors";
-import { floorState } from "../../systems/floors/state";
-import { gameState } from "../../systems/game/state";
-import { doorSystem } from "../../systems/logic/door";
-import type { DOOR_TOGGLE_MODE } from "../../systems/logic/door/models";
-import { DEFAULT_PERMISSIONS } from "../../systems/logic/models";
-import type { Permissions } from "../../systems/logic/models";
-import { playerSystem } from "../../systems/players";
-import { propertiesSystem } from "../../systems/properties";
-import { getProperties } from "../../systems/properties/state";
-import { VisionBlock } from "../../systems/properties/types";
-import { locationSettingsState } from "../../systems/settings/location/state";
-import { playerSettingsState } from "../../systems/settings/players/state";
-import { openDefaultContextMenu } from "../../ui/contextmenu/state";
-import { TriangulationTarget, visionState } from "../../vision/state";
-import { Tool } from "../tool";
+import { getUnitDistance, l2g, l2gz } from "../../../../core/conversions";
+import { addP, cloneP, subtractP, toArrayP, toGP, Vector } from "../../../../core/geometry";
+import type { GlobalPoint, LocalPoint } from "../../../../core/geometry";
+import { snapPointToGrid } from "../../../../core/grid";
+import { equalPoints, snapToPoint } from "../../../../core/math";
+import { InvalidationMode, NO_SYNC, SyncMode, UI_SYNC } from "../../../../core/models/types";
+import type { PromptFunction } from "../../../../core/plugins/modals/prompt";
+import { ctrlOrCmdPressed, mostReadable } from "../../../../core/utils";
+import { i18n } from "../../../../i18n";
+import { sendShapeSizeUpdate } from "../../../api/emits/shape/core";
+import type { ILayer } from "../../../interfaces/layer";
+import type { IShape } from "../../../interfaces/shape";
+import type { ICircle } from "../../../interfaces/shapes/circle";
+import type { IRect } from "../../../interfaces/shapes/rect";
+import { LayerName } from "../../../models/floor";
+import type { Floor } from "../../../models/floor";
+import { ToolName } from "../../../models/tools";
+import type { ToolFeatures, ITool } from "../../../models/tools";
+import { overrideLastOperation } from "../../../operations/undo";
+import { Circle } from "../../../shapes/variants/circle";
+import { Line } from "../../../shapes/variants/line";
+import { Polygon } from "../../../shapes/variants/polygon";
+import { Rect } from "../../../shapes/variants/rect";
+import { Text } from "../../../shapes/variants/text";
+import { accessSystem } from "../../../systems/access";
+import { floorSystem } from "../../../systems/floors";
+import { floorState } from "../../../systems/floors/state";
+import { gameState } from "../../../systems/game/state";
+import { doorSystem } from "../../../systems/logic/door";
+import type { DOOR_TOGGLE_MODE } from "../../../systems/logic/door/models";
+import { DEFAULT_PERMISSIONS } from "../../../systems/logic/models";
+import type { Permissions } from "../../../systems/logic/models";
+import { playerSystem } from "../../../systems/players";
+import { propertiesSystem } from "../../../systems/properties";
+import { getProperties } from "../../../systems/properties/state";
+import { VisionBlock } from "../../../systems/properties/types";
+import { locationSettingsState } from "../../../systems/settings/location/state";
+import { playerSettingsState } from "../../../systems/settings/players/state";
+import { openDefaultContextMenu } from "../../../ui/contextmenu/state";
+import { TriangulationTarget, visionState } from "../../../vision/state";
+import { Tool } from "../../tool";
+
+import { getDrawColours } from "./helpers";
 
 export enum DrawMode {
     Normal = "normal",
@@ -73,6 +75,10 @@ class DrawTool extends Tool implements ITool {
         selectedShape: DrawShape.Square,
         selectedCategory: DrawCategory.Shape,
 
+        // Used for default colours (e.g. walls/windows/doors)
+        // When set to true, the default colours will be used when relevant
+        // otherwise the actual selected colours will be used.
+        preferDefaultColours: true,
         fillColour: "rgba(0, 0, 0, 1)",
         borderColour: "rgba(255, 255, 255, 0)",
 
@@ -89,6 +95,13 @@ class DrawTool extends Tool implements ITool {
         toggleMode: "both" as DOOR_TOGGLE_MODE,
     });
     hasBrushSize = computed(() => [DrawShape.Brush, DrawShape.Polygon].includes(this.state.selectedShape));
+    colours = computed(() => {
+        const overruledColour = getDrawColours(this.state.blocksVision, this.state.blocksMovement, this.state.isDoor);
+        return {
+            fill: overruledColour ?? this.state.fillColour,
+            stroke: overruledColour ?? this.state.borderColour,
+        };
+    });
 
     private startPoint?: GlobalPoint;
     private shape?: IShape;
@@ -130,11 +143,11 @@ class DrawTool extends Tool implements ITool {
             (newMode, oldMode) => this.onModeChange(newMode, oldMode),
         );
         watch(
-            () => this.state.fillColour,
+            () => this.colours.value.fill,
             () => {
                 if (this.brushHelper) {
-                    propertiesSystem.setFillColour(this.brushHelper.id, this.state.fillColour, NO_SYNC);
-                    propertiesSystem.setStrokeColour(this.brushHelper.id, mostReadable(this.state.fillColour), NO_SYNC);
+                    propertiesSystem.setFillColour(this.brushHelper.id, this.colours.value.fill, NO_SYNC);
+                    propertiesSystem.setStrokeColour(this.brushHelper.id, mostReadable(this.colours.value.fill), NO_SYNC);
                 }
             },
         );
@@ -358,15 +371,15 @@ class DrawTool extends Tool implements ITool {
             switch (this.state.selectedShape) {
                 case DrawShape.Square: {
                     this.shape = new Rect(cloneP(this.startPoint), 0, 0, undefined, {
-                        fillColour: this.state.fillColour,
-                        strokeColour: [this.state.borderColour],
+                        fillColour: this.colours.value.fill,
+                        strokeColour: [this.colours.value.stroke],
                     });
                     break;
                 }
                 case DrawShape.Circle: {
                     this.shape = new Circle(cloneP(this.startPoint), this.helperSize, undefined, {
-                        fillColour: this.state.fillColour,
-                        strokeColour: [this.state.borderColour],
+                        fillColour: this.colours.value.fill,
+                        strokeColour: [this.colours.value.stroke],
                     });
                     break;
                 }
@@ -376,14 +389,14 @@ class DrawTool extends Tool implements ITool {
                         [],
                         { openPolygon: true, lineWidth: [this.state.brushSize] },
                         {
-                            strokeColour: [this.state.fillColour],
+                            strokeColour: [this.colours.value.fill],
                         },
                     );
-                    propertiesSystem.setFillColour(this.shape.id, this.state.fillColour, NO_SYNC);
+                    propertiesSystem.setFillColour(this.shape.id, this.colours.value.fill, NO_SYNC);
                     break;
                 }
                 case DrawShape.Polygon: {
-                    const stroke = this.state.isClosedPolygon ? this.state.borderColour : this.state.fillColour;
+                    const stroke = this.state.isClosedPolygon ? this.colours.value.stroke : this.colours.value.fill;
                     if (event && playerSettingsState.useSnapping(event) && !this.snappedToPoint) {
                         const gridType = locationSettingsState.raw.gridType.value;
                         this.brushHelper.refPoint = snapPointToGrid(this.startPoint, gridType, {
@@ -395,7 +408,7 @@ class DrawTool extends Tool implements ITool {
                         [],
                         { lineWidth: [this.state.brushSize], openPolygon: !this.state.isClosedPolygon },
                         {
-                            fillColour: this.state.fillColour, // is ignored for open polygons
+                            fillColour: this.colours.value.fill, // is ignored for open polygons
                             strokeColour: [stroke],
                         },
                     );
@@ -409,8 +422,8 @@ class DrawTool extends Tool implements ITool {
                         return;
                     }
                     this.shape = new Text(cloneP(this.brushHelper.refPoint), text, this.state.fontSize, undefined, {
-                        fillColour: this.state.fillColour,
-                        strokeColour: [this.state.borderColour],
+                        fillColour: this.colours.value.fill,
+                        strokeColour: [this.colours.value.stroke],
                     });
                     break;
                 }
@@ -480,7 +493,7 @@ class DrawTool extends Tool implements ITool {
                         lineWidth: this.state.brushSize,
                         isSnappable: false,
                     },
-                    { strokeColour: [this.state.fillColour] },
+                    { strokeColour: [this.colours.value.fill] },
                 );
                 layer.addShape(this.ruler, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
             } else {
@@ -690,7 +703,7 @@ class DrawTool extends Tool implements ITool {
                 strokeWidth: Math.max(1, size * 0.05),
                 isSnappable: false,
             },
-            { fillColour: this.state.fillColour, strokeColour: [mostReadable(this.state.fillColour)] },
+            { fillColour: this.colours.value.fill, strokeColour: [mostReadable(this.colours.value.fill)] },
         );
         // Make sure we can see the border of the reveal brush
         brush.options.borderOperation = "source-over";
@@ -729,7 +742,7 @@ class DrawTool extends Tool implements ITool {
             delete this.brushHelper.options.preFogShape;
             delete this.brushHelper.options.skipDraw;
             this.brushHelper.globalCompositeOperation = "source-over";
-            propertiesSystem.setFillColour(this.brushHelper.id, this.state.fillColour, NO_SYNC);
+            propertiesSystem.setFillColour(this.brushHelper.id, this.colours.value.fill, NO_SYNC);
         }
         this.brushHelper.r = this.helperSize;
     }

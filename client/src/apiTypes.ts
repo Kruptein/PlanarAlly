@@ -332,6 +332,10 @@ export interface ApiOptionalUserOptions {
   use_tool_icons?: boolean | null;
   show_token_directions?: boolean | null;
   grid_mode_label_format?: GridModeLabelFormat | null;
+  default_wall_colour?: string | null;
+  default_window_colour?: string | null;
+  default_closed_door_colour?: string | null;
+  default_open_door_colour?: string | null;
   invert_alt?: boolean | null;
   disable_scroll_to_zoom?: boolean | null;
   default_tracker_mode?: boolean | null;
@@ -380,6 +384,10 @@ export interface ApiUserOptions {
   use_tool_icons: boolean;
   show_token_directions: boolean;
   grid_mode_label_format: GridModeLabelFormat;
+  default_wall_colour?: string | null;
+  default_window_colour?: string | null;
+  default_closed_door_colour?: string | null;
+  default_open_door_colour?: string | null;
   invert_alt: boolean;
   disable_scroll_to_zoom: boolean;
   default_tracker_mode: boolean;

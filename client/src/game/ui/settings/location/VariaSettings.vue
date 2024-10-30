@@ -2,9 +2,10 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { locationSettingsSystem } from "../../../systems/settings/location";
-import { locationSettingsState } from "../../../systems/settings/location/state";
 import { uiState } from "../../../systems/ui/state";
+
+import ResetWrapper from "./ResetWrapper.vue";
+import { useLocationSettings } from "./useLocationSettings";
 
 const props = defineProps<{ global: boolean }>();
 
@@ -12,31 +13,8 @@ const { t } = useI18n();
 
 const location = computed(() => (props.global ? undefined : uiState.reactive.openedLocationSettings));
 
-const { reactive: $, getOption } = locationSettingsState;
-const lss = locationSettingsSystem;
-
-const movePlayerOnTokenChange = computed<boolean | undefined>({
-    get() {
-        return getOption($.movePlayerOnTokenChange, location.value).value;
-    },
-    set(movePlayerOnTokenChange: boolean | undefined) {
-        lss.setMovePlayerOnTokenChange(movePlayerOnTokenChange, location.value, true);
-    },
-});
-
-const limitMovementDuringInitiative = computed<boolean | undefined>({
-    get() {
-        return getOption($.limitMovementDuringInitiative, location.value).value;
-    },
-    set(limitMovementDuringInitiative: boolean | undefined) {
-        lss.setLimitMovementDuringInitiative(limitMovementDuringInitiative, location.value, true);
-    },
-});
-
-function o(k: any): boolean {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return getOption(k, location.value).override !== undefined;
-}
+const movePlayerOnTokenChange = useLocationSettings("movePlayerOnTokenChange", location);
+const limitMovementDuringInitiative = useLocationSettings("limitMovementDuringInitiative", location);
 </script>
 
 <template>
@@ -53,7 +31,7 @@ function o(k: any): boolean {
                 </i18n-t>
             </template>
         </div>
-        <div class="row" :class="{ overwritten: !global && o($.movePlayerOnTokenChange) }">
+        <ResetWrapper :global="global" :location="location" setting="movePlayerOnTokenChange">
             <label :for="'movePlayerOnTokenChangeInput-' + location">
                 {{ t("game.ui.settings.VariaSettings.movePlayerOnTokenChange") }}
             </label>
@@ -64,16 +42,8 @@ function o(k: any): boolean {
                     type="checkbox"
                 />
             </div>
-            <div
-                v-if="!global && o($.movePlayerOnTokenChange)"
-                :title="t('game.ui.settings.common.reset_default')"
-                @click="movePlayerOnTokenChange = undefined"
-            >
-                <font-awesome-icon icon="times-circle" />
-            </div>
-            <div v-else></div>
-        </div>
-        <div class="row" :class="{ overwritten: !global && o($.limitMovementDuringInitiative) }">
+        </ResetWrapper>
+        <ResetWrapper :global="global" :location="location" setting="limitMovementDuringInitiative">
             <label :for="'limitMovementDuringInitiativeInput-' + location">
                 {{ t("game.ui.settings.VariaSettings.limitMovementDuringInitiative") }}
             </label>
@@ -84,15 +54,7 @@ function o(k: any): boolean {
                     type="checkbox"
                 />
             </div>
-            <div
-                v-if="!global && o($.limitMovementDuringInitiative)"
-                :title="t('game.ui.settings.common.reset_default')"
-                @click="limitMovementDuringInitiative = undefined"
-            >
-                <font-awesome-icon icon="times-circle" />
-            </div>
-            <div v-else></div>
-        </div>
+        </ResetWrapper>
     </div>
 </template>
 

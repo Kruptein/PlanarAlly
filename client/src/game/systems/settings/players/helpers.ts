@@ -12,6 +12,11 @@ export function playerOptionsToClient(options: ApiOptionalUserOptions): Partial<
         rulerColour: options.ruler_colour ?? undefined,
         useToolIcons: options.use_tool_icons ?? undefined,
         showTokenDirections: options.show_token_directions ?? undefined,
+        gridModeLabelFormat: options.grid_mode_label_format ?? undefined,
+        defaultWallColour: options.default_wall_colour ?? undefined,
+        defaultWindowColour: options.default_window_colour ?? undefined,
+        defaultClosedDoorColour: options.default_closed_door_colour ?? undefined,
+        defaultOpenDoorColour: options.default_open_door_colour ?? undefined,
 
         invertAlt: options.invert_alt ?? undefined,
         disableScrollToZoom: options.disable_scroll_to_zoom ?? undefined,

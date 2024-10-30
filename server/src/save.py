@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 96
+SAVE_VERSION = 97
 
 import json
 import logging
@@ -471,6 +471,21 @@ def upgrade(db: SqliteExtDatabase, version: int):
             db.execute_sql("DROP TABLE shape_label")
             db.execute_sql("DROP TABLE label_selection")
             db.execute_sql("DROP TABLE label")
+    elif version == 96:
+        # Add UserOptions.default_wall_colour, UserOptions.default_window_colour, UserOptions.default_closed_door_colour, UserOptions.default_open_door_colour
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN default_wall_colour TEXT DEFAULT NULL"
+            )
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN default_window_colour TEXT DEFAULT NULL"
+            )
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN default_closed_door_colour TEXT DEFAULT NULL"
+            )
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN default_open_door_colour TEXT DEFAULT NULL"
+            )
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

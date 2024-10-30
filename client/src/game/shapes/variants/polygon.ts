@@ -7,7 +7,7 @@ import { equalPoints, filterEqualPoints, getPointsCenter, rotateAroundPoint } fr
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { uuidv4 } from "../../../core/utils";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
-import { FOG_COLOUR } from "../../colour";
+import { getColour } from "../../colour";
 import { getGlobalId } from "../../id";
 import type { GlobalId, LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
@@ -156,8 +156,7 @@ export class Polygon extends Shape implements IShape {
         const props = getProperties(this.id)!;
 
         if (!lightRevealRender) {
-            if (props.fillColour === "fog") ctx.fillStyle = FOG_COLOUR;
-            else ctx.fillStyle = props.fillColour;
+            ctx.fillStyle = getColour(props.fillColour, this.id);
         }
 
         ctx.beginPath();
@@ -180,8 +179,7 @@ export class Polygon extends Shape implements IShape {
                 const lw = this.lineWidth[i] ?? this.lineWidth[0]!;
                 ctx.lineWidth = this.ignoreZoomSize ? lw : g2lz(lw);
 
-                if (c === "fog") ctx.strokeStyle = FOG_COLOUR;
-                else ctx.strokeStyle = c;
+                ctx.strokeStyle = getColour(c, this.id);
                 ctx.stroke();
             }
         }

@@ -10,6 +10,10 @@ import { useClientSettings } from "./useClientSettings";
 
 const { t } = useI18n();
 
+const defaultClosedDoorColour = useClientSettings("defaultClosedDoorColour");
+const defaultOpenDoorColour = useClientSettings("defaultOpenDoorColour");
+const defaultWallColour = useClientSettings("defaultWallColour");
+const defaultWindowColour = useClientSettings("defaultWindowColour");
 const fowColour = useClientSettings("fowColour");
 const gridColour = useClientSettings("gridColour");
 const gridModeLabelFormat = useClientSettings("gridModeLabelFormat");
@@ -80,6 +84,41 @@ const useToolIcons = useClientSettings("useToolIcons");
                 <ColourPicker id="fowColour" v-model:colour="fowColour" :disable-alpha="true" />
             </div>
             <OverrideReset setting="fowColour" />
+        </div>
+        <div class="spanrow header">{{ t("tool.Draw") }}</div>
+        <div class="row">
+            <label for="defaultWallColour">{{ t("game.ui.settings.client.AppearanceSettings.wall") }}</label>
+            <div>
+                <ColourPicker id="defaultWallColour" v-model:colour="defaultWallColour" :disable-alpha="true" />
+            </div>
+            <OverrideReset setting="defaultWallColour" />
+        </div>
+        <div class="row">
+            <label for="defaultWindowColour">{{ t("game.ui.settings.client.AppearanceSettings.window") }}</label>
+            <div>
+                <ColourPicker id="defaultWindowColour" v-model:colour="defaultWindowColour" :disable-alpha="true" />
+            </div>
+            <OverrideReset setting="defaultWindowColour" />
+        </div>
+        <div class="row">
+            <label for="defaultClosedDoorColour">
+                {{ t("game.ui.settings.client.AppearanceSettings.closed_door") }}
+            </label>
+            <div>
+                <ColourPicker
+                    id="defaultClosedDoorColour"
+                    v-model:colour="defaultClosedDoorColour"
+                    :disable-alpha="true"
+                />
+            </div>
+            <OverrideReset setting="defaultClosedDoorColour" />
+        </div>
+        <div class="row">
+            <label for="defaultOpenDoorColour">{{ t("game.ui.settings.client.AppearanceSettings.open_door") }}</label>
+            <div>
+                <ColourPicker id="defaultOpenDoorColour" v-model:colour="defaultOpenDoorColour" :disable-alpha="true" />
+            </div>
+            <OverrideReset setting="defaultOpenDoorColour" />
         </div>
     </div>
 </template>

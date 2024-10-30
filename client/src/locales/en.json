@@ -232,7 +232,11 @@
                         "grid_mode_label_format": "Label format in grid mode",
                         "grid_mode_label_format_0": "Both",
                         "grid_mode_label_format_1": "Distance only",
-                        "grid_mode_label_format_2": "#cells only"
+                        "grid_mode_label_format_2": "#cells only",
+                        "wall": "Default wall colour",
+                        "window": "Default window colour",
+                        "closed_door": "Default closed door colour",
+                        "open_door": "Default open door colour"
                     },
                     "BehaviourSettings": {
                         "invert_alt_set": "Invert ALT behaviour",

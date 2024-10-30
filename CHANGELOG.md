@@ -12,6 +12,11 @@ tech changes will usually be stripped from release notes for the public
 
 ### Added
 
+-   Draw tool:
+    -   Added default colours for walls, windows, doors
+    -   These get automatically applied when the relevant vision/logic settings are enabled in the draw tool
+    -   Can be disabled by unchecking the 'prefer default colours' checkbox in the draw tool vision settings
+    -   The specific colours used can be configured in the user options Appearance section and will update shapes retroactively
 -   Notes:
     -   Notes can now be popped out to a separate window
 -   [server] Assets:

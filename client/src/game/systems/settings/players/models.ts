@@ -8,6 +8,10 @@ export interface PlayerOptions {
     useToolIcons: boolean;
     showTokenDirections: boolean;
     gridModeLabelFormat: GridModeLabelFormat;
+    defaultWallColour: string;
+    defaultWindowColour: string;
+    defaultClosedDoorColour: string;
+    defaultOpenDoorColour: string;
 
     // Behaviour
     invertAlt: boolean;

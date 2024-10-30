@@ -4,17 +4,15 @@ import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../../core/components/ColourPicker.vue";
 import { BackgroundType, getBackgroundTypeFromString, getBackgroundTypes } from "../../../../game/models/floor";
-import { locationSettingsSystem } from "../../../systems/settings/location";
-import { locationSettingsState } from "../../../systems/settings/location/state";
 import { uiState } from "../../../systems/ui/state";
 import PatternSettings from "../floor/PatternSettings.vue";
+
+import ResetWrapper from "./ResetWrapper.vue";
+import { useLocationSettings } from "./useLocationSettings";
 
 const props = defineProps<{ global: boolean }>();
 
 const { t } = useI18n();
-
-const { reactive: $, getOption } = locationSettingsState;
-const lss = locationSettingsSystem;
 
 const location = computed(() => (props.global ? undefined : uiState.reactive.openedLocationSettings));
 
@@ -33,14 +31,7 @@ function getBackgroundValueFromType(type: BackgroundType): string {
 
 // AIR
 
-const airBackground = computed<string | undefined>({
-    get() {
-        return getOption($.airMapBackground, location.value).value;
-    },
-    set(airBackground: string | undefined) {
-        lss.setAirMapBackground(airBackground, location.value, true);
-    },
-});
+const airBackground = useLocationSettings("airMapBackground", location);
 const airBackgroundType = computed(() => {
     return getBackgroundTypeFromString(airBackground.value!);
 });
@@ -52,14 +43,7 @@ function setAirBackgroundFromEvent(event: Event): void {
 
 // GROUND
 
-const groundBackground = computed<string | undefined>({
-    get() {
-        return getOption($.groundMapBackground, location.value).value;
-    },
-    set(groundBackground: string | undefined) {
-        lss.setGroundMapBackground(groundBackground, location.value, true);
-    },
-});
+const groundBackground = useLocationSettings("groundMapBackground", location);
 const groundBackgroundType = computed(() => {
     return getBackgroundTypeFromString(groundBackground.value!);
 });
@@ -71,14 +55,7 @@ function setGroundBackgroundFromEvent(event: Event): void {
 
 // UNDERGROUND
 
-const undergroundBackground = computed<string | undefined>({
-    get() {
-        return getOption($.undergroundMapBackground, location.value).value;
-    },
-    set(undergroundBackground: string | undefined) {
-        lss.setUndergroundMapBackground(undergroundBackground, location.value, true);
-    },
-});
+const undergroundBackground = useLocationSettings("undergroundMapBackground", location);
 const undergroundBackgroundType = computed(() => {
     return getBackgroundTypeFromString(undergroundBackground.value!);
 });
@@ -86,11 +63,6 @@ const undergroundBackgroundType = computed(() => {
 function setUndergroundBackgroundFromEvent(event: Event): void {
     const type = Number.parseInt((event.target as HTMLSelectElement).value);
     undergroundBackground.value = getBackgroundValueFromType(type);
-}
-
-function o(k: any): boolean {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return getOption(k, location.value).override !== undefined;
 }
 </script>
 
@@ -111,7 +83,7 @@ function o(k: any): boolean {
 
         <div class="spanrow header">{{ t("game.ui.settings.FloorSettings.backgrounds") }}</div>
 
-        <div class="row" :class="{ overwritten: !global && o($.airMapBackground) }">
+        <ResetWrapper :global="global" :location="location" setting="airMapBackground">
             <label :for="'airBackground-' + location">{{ t("game.ui.settings.FloorSettings.air_background") }}</label>
             <div>
                 <select :value="airBackgroundType" @change="setAirBackgroundFromEvent">
@@ -120,15 +92,7 @@ function o(k: any): boolean {
                     </option>
                 </select>
             </div>
-            <div
-                v-if="!global && o($.airMapBackground)"
-                :title="t('game.ui.settings.common.reset_default')"
-                @click="airBackground = undefined"
-            >
-                <font-awesome-icon icon="times-circle" />
-            </div>
-            <div v-else></div>
-        </div>
+        </ResetWrapper>
         <div v-show="airBackgroundType === BackgroundType.Simple" class="row">
             <div></div>
             <div><ColourPicker :colour="airBackground ?? undefined" @update:colour="airBackground = $event" /></div>
@@ -138,7 +102,7 @@ function o(k: any): boolean {
             <PatternSettings :pattern="airBackground ?? ''" @update:pattern="airBackground = $event" />
         </div>
 
-        <div class="row" :class="{ overwritten: !global && o($.groundMapBackground) }">
+        <ResetWrapper :global="global" :location="location" setting="groundMapBackground">
             <label :for="'groundBackground-' + location">
                 {{ t("game.ui.settings.FloorSettings.ground_background") }}
             </label>
@@ -149,15 +113,7 @@ function o(k: any): boolean {
                     </option>
                 </select>
             </div>
-            <div
-                v-if="!global && o($.groundMapBackground)"
-                :title="t('game.ui.settings.common.reset_default')"
-                @click="groundBackground = undefined"
-            >
-                <font-awesome-icon icon="times-circle" />
-            </div>
-            <div v-else></div>
-        </div>
+        </ResetWrapper>
         <div v-show="groundBackgroundType === BackgroundType.Simple" class="row">
             <div></div>
             <div>
@@ -169,7 +125,7 @@ function o(k: any): boolean {
             <PatternSettings :pattern="groundBackground ?? ''" @update:pattern="groundBackground = $event" />
         </div>
 
-        <div class="row" :class="{ overwritten: !global && o($.undergroundMapBackground) }">
+        <ResetWrapper :global="global" :location="location" setting="undergroundMapBackground">
             <label :for="'undergroundBackground-' + location">
                 {{ t("game.ui.settings.FloorSettings.underground_background") }}
             </label>
@@ -184,15 +140,7 @@ function o(k: any): boolean {
                     </option>
                 </select>
             </div>
-            <div
-                v-if="!global && o($.undergroundMapBackground)"
-                :title="t('game.ui.settings.common.reset_default')"
-                @click="undergroundBackground = undefined"
-            >
-                <font-awesome-icon icon="times-circle" />
-            </div>
-            <div v-else></div>
-        </div>
+        </ResetWrapper>
         <div v-show="undergroundBackgroundType === BackgroundType.Simple" class="row">
             <div></div>
             <div>

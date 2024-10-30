@@ -7,13 +7,44 @@ import type { InitiativeEffectMode } from "../../../models/initiative";
 import { floorSystem } from "../../floors";
 import { floorState } from "../../floors/state";
 
-import type { GridModeLabelFormat } from "./models";
+import type { GridModeLabelFormat, PlayerOptions } from "./models";
 import { playerSettingsState } from "./state";
 
 const { mutableReactive: $ } = playerSettingsState;
 
 class PlayerSettingsSystem implements System {
-    clear(): void {}
+    clear(): void { }
+
+    // This is a utility function to simplify a lot of the settings UI code
+    getSetter<T extends keyof PlayerOptions>(setting: T): (value: PlayerOptions[T] | undefined, options: { sync: boolean; default?: PlayerOptions[T] }) => void {
+        const settingMap = {
+            defaultTrackerMode: this.setDefaultTrackerMode.bind(this),
+            disableScrollToZoom: this.setDisableScrollToZoom.bind(this),
+            fowColour: this.setFowColour.bind(this),
+            gridColour: this.setGridColour.bind(this),
+            gridModeLabelFormat: this.setGridModeLabelFormat.bind(this),
+            gridSize: this.setGridSize.bind(this),
+            initiativeCameraLock: this.setInitiativeCameraLock.bind(this),
+            initiativeEffectVisibility: this.setInitiativeEffectVisibility.bind(this),
+            initiativeOpenOnActivate: this.setInitiativeOpenOnActivate.bind(this),
+            initiativeVisionLock: this.setInitiativeVisionLock.bind(this),
+            invertAlt: this.setInvertAlt.bind(this),
+            miniSize: this.setMiniSize.bind(this),
+            mousePanMode: this.setMousePanMode.bind(this),
+            ppi: this.setPpi.bind(this),
+            renderAllFloors: this.setRenderAllFloors.bind(this),
+            rulerColour: this.setRulerColour.bind(this),
+            showTokenDirections: this.setShowTokenDirections.bind(this),
+            useAsPhysicalBoard: this.setUseAsPhysicalBoard.bind(this),
+            useHighDpi: this.setUseHighDpi.bind(this),
+            useToolIcons: this.setUseToolIcons.bind(this),
+        } as Record<keyof PlayerOptions, this[keyof this]>;
+
+        if (setting in settingMap) {
+            return settingMap[setting] as (value: PlayerOptions[T] | undefined, options: { sync: boolean; default?: PlayerOptions[T] }) => void;
+        }
+        throw new Error(`Unknown setting: ${setting}`);
+    }
 
     // APPEARANCE
 
@@ -119,6 +150,8 @@ class PlayerSettingsSystem implements System {
     }
 
     setGridSize(gridSize: number | undefined, options: { sync: boolean; default?: number }): void {
+        if (gridSize !== undefined && gridSize < 1) return;
+
         $.gridSize.override = gridSize;
         if (options.default !== undefined) $.gridSize.default = options.default;
         $.gridSize.value = gridSize ?? $.gridSize.default;
@@ -138,6 +171,8 @@ class PlayerSettingsSystem implements System {
     }
 
     setMiniSize(miniSize: number | undefined, options: { sync: boolean; default?: number }): void {
+        if (miniSize !== undefined && miniSize < 1) return;
+
         $.miniSize.override = miniSize;
         if (options.default !== undefined) $.miniSize.default = options.default;
         $.miniSize.value = miniSize ?? $.miniSize.default;

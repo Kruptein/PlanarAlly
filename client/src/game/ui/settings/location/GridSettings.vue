@@ -2,68 +2,23 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { locationSettingsSystem } from "../../../systems/settings/location";
-import { locationSettingsState } from "../../../systems/settings/location/state";
 import { uiState } from "../../../systems/ui/state";
+
+import ResetWrapper from "./ResetWrapper.vue";
+import { useLocationSettings } from "./useLocationSettings";
 
 const props = defineProps<{ global: boolean }>();
 
 const { t } = useI18n();
 
-const { reactive: $, getOption } = locationSettingsState;
-const lss = locationSettingsSystem;
-
 const location = computed(() => (props.global ? undefined : uiState.reactive.openedLocationSettings));
 
-const useGrid = computed<boolean | undefined>({
-    get() {
-        return getOption($.useGrid, location.value).value;
-    },
-    set(useGrid: boolean | undefined) {
-        lss.setUseGrid(useGrid, location.value, true);
-    },
-});
+const useGrid = useLocationSettings("useGrid", location);
+const gridType = useLocationSettings("gridType", location);
 
-const gridType = computed<string | undefined>({
-    get() {
-        return getOption($.gridType, location.value).value;
-    },
-    set(gridType: string | undefined) {
-        lss.setGridType(gridType, location.value, true);
-    },
-});
-
-const unitSize = computed<number | undefined>({
-    get() {
-        return getOption($.unitSize, location.value).value;
-    },
-    set(unitSize: number | undefined) {
-        if (unitSize === undefined || unitSize > 0) lss.setUnitSize(unitSize, location.value, true);
-    },
-});
-
-const unitSizeUnit = computed<string | undefined>({
-    get() {
-        return getOption($.unitSizeUnit, location.value).value;
-    },
-    set(unitSizeUnit: string | undefined) {
-        lss.setUnitSizeUnit(unitSizeUnit, location.value, true);
-    },
-});
-
-const dropRatio = computed<number | undefined>({
-    get() {
-        return getOption($.dropRatio, location.value).value;
-    },
-    set(dropRatio: number | undefined) {
-        lss.setDropRatio(dropRatio, location.value, true);
-    },
-});
-
-function o(k: any): boolean {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return getOption(k, location.value).override !== undefined;
-}
+const unitSize = useLocationSettings("unitSize", location);
+const unitSizeUnit = useLocationSettings("unitSizeUnit", location);
+const dropRatio = useLocationSettings("dropRatio", location);
 </script>
 
 <template>
@@ -80,21 +35,13 @@ function o(k: any): boolean {
                 </i18n-t>
             </template>
         </div>
-        <div class="row" :class="{ overwritten: !global && o($.useGrid) }">
+        <ResetWrapper :global="global" :location="location" setting="useGrid">
             <label :for="'useGridInput-' + location">{{ t("game.ui.settings.GridSettings.use_grid") }}</label>
             <div>
                 <input :id="'useGridInput-' + location" v-model="useGrid" type="checkbox" />
             </div>
-            <div
-                v-if="!global && o($.useGrid)"
-                :title="t('game.ui.settings.common.reset_default')"
-                @click="useGrid = undefined"
-            >
-                <font-awesome-icon icon="times-circle" />
-            </div>
-            <div v-else></div>
-        </div>
-        <div class="row" :class="{ overwritten: !global && o($.gridType) }">
+        </ResetWrapper>
+        <ResetWrapper :global="global" :location="location" setting="gridType">
             <label :for="'gridType-' + location">{{ t("game.ui.settings.GridSettings.grid_type") }}</label>
             <div>
                 <select :id="'gridType-' + location" v-model="gridType">
@@ -103,32 +50,16 @@ function o(k: any): boolean {
                     <option value="FLAT_HEX">{{ t("game.ui.settings.GridSettings.FLAT_HEX") }}</option>
                 </select>
             </div>
-            <div
-                v-if="!global && o($.gridType)"
-                :title="t('game.ui.settings.common.reset_default')"
-                @click="gridType = undefined"
-            >
-                <font-awesome-icon icon="times-circle" />
-            </div>
-            <div v-else></div>
-        </div>
-        <div class="row" :class="{ overwritten: !global && o($.unitSizeUnit) }">
+        </ResetWrapper>
+        <ResetWrapper :global="global" :location="location" setting="unitSizeUnit">
             <div>
                 <label :for="'unitSizeUnit-' + location">{{ t("game.ui.settings.GridSettings.size_unit") }}</label>
             </div>
             <div>
                 <input :id="'unitSizeUnit-' + location" v-model="unitSizeUnit" type="text" />
             </div>
-            <div
-                v-if="!global && o($.unitSizeUnit)"
-                :title="t('game.ui.settings.common.reset_default')"
-                @click="unitSizeUnit = undefined"
-            >
-                <font-awesome-icon icon="times-circle" />
-            </div>
-            <div v-else></div>
-        </div>
-        <div class="row" :class="{ overwritten: !global && o($.unitSize) }">
+        </ResetWrapper>
+        <ResetWrapper :global="global" :location="location" setting="unitSize">
             <div>
                 <label :for="'unitSizeInput-' + location">
                     {{ t("game.ui.settings.GridSettings.unit_size_in_UNIT", { unit: unitSizeUnit }) }}
@@ -137,16 +68,8 @@ function o(k: any): boolean {
             <div>
                 <input :id="'unitSizeInput-' + location" v-model.number="unitSize" type="number" step="any" />
             </div>
-            <div
-                v-if="!global && o($.unitSize)"
-                :title="t('game.ui.settings.common.reset_default')"
-                @click="unitSize = undefined"
-            >
-                <font-awesome-icon icon="times-circle" />
-            </div>
-            <div v-else></div>
-        </div>
-        <div class="row" :class="{ overwritten: !global && o($.dropRatio) }">
+        </ResetWrapper>
+        <ResetWrapper :global="global" :location="location" setting="dropRatio">
             <div>
                 <label
                     :for="'dropRatioInput-' + location"
@@ -158,15 +81,7 @@ function o(k: any): boolean {
             <div>
                 <input :id="'dropRatioInput-' + location" v-model.number="dropRatio" type="number" step="any" />
             </div>
-            <div
-                v-if="!global && o($.dropRatio)"
-                :title="t('game.ui.settings.common.reset_default')"
-                @click="dropRatio = undefined"
-            >
-                <font-awesome-icon icon="times-circle" />
-            </div>
-            <div v-else></div>
-        </div>
+        </ResetWrapper>
     </div>
 </template>
 

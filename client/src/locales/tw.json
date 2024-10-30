@@ -292,9 +292,6 @@
                     "reveal": "揭示",
                     "hide": "隱藏"
                 },
-                "FilterTool": {
-                    "no_category": "無分類"
-                },
                 "MapTool": {
                     "drag_to_resize": "拖動出你想要作為縮放基準的區域",
                     "select_shape_msg": "請先選擇一個圖形。",

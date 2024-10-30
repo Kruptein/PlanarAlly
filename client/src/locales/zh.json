@@ -352,9 +352,6 @@
                     "cone": "锥形",
                     "text": "文本"
                 },
-                "FilterTool": {
-                    "no_category": "无分类"
-                },
                 "MapTool": {
                     "drag_to_resize": "拖动出你想要作为缩放基准的区域",
                     "select_shape_msg": "请先选择一个图形。",

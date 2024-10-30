@@ -280,9 +280,6 @@
                     "reveal": "afslør",
                     "hide": "gem"
                 },
-                "FilterTool": {
-                    "no_category": "ingen kategori"
-                },
                 "MapTool": {
                     "drag_to_resize": "Træk et område du ænsker at ændrer størelsen på",
                     "select_shape_msg": "Vælg venligst en form først.",

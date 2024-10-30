@@ -6,7 +6,6 @@ import type { ITool, ToolFeatures } from "../models/tools";
 import { SelectFeatures } from "./models/select";
 import { diceTool } from "./variants/dice";
 import { drawTool } from "./variants/draw";
-import { filterTool } from "./variants/filter";
 import { mapTool } from "./variants/map";
 import { noteTool } from "./variants/note";
 import { panTool } from "./variants/pan";
@@ -27,7 +26,6 @@ export const toolMap: Record<ToolName, ITool> = {
     [ToolName.Ruler]: rulerTool,
     [ToolName.Ping]: pingTool,
     [ToolName.Map]: mapTool,
-    [ToolName.Filter]: filterTool,
     [ToolName.Vision]: visionTool,
     [ToolName.Spell]: spellTool,
     [ToolName.Dice]: diceTool,
@@ -42,7 +40,6 @@ const buildTools: [ToolName, ToolFeatures][] = [
     [ToolName.Draw, {}],
     [ToolName.Ruler, {}],
     [ToolName.Map, {}],
-    [ToolName.Filter, {}],
     [ToolName.Vision, {}],
 ];
 const playTools: [ToolName, ToolFeatures][] = [
@@ -51,7 +48,6 @@ const playTools: [ToolName, ToolFeatures][] = [
     [ToolName.Spell, {}],
     [ToolName.Ruler, {}],
     [ToolName.Ping, {}],
-    [ToolName.Filter, {}],
     [ToolName.Vision, {}],
     [ToolName.Dice, {}],
 ];

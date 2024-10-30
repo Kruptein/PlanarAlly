@@ -309,9 +309,6 @@
                     "reveal": "rivela",
                     "hide": "nascondi"
                 },
-                "FilterTool": {
-                    "no_category": "nessuna categoria"
-                },
                 "MapTool": {
                     "drag_to_resize": "Trascina l'area che vuoi ridimensionare",
                     "select_shape_msg": "Scegli prima la forma, per favore.",

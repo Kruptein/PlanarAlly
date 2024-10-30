@@ -314,9 +314,6 @@
                     "reveal": "revelar",
                     "hide": "esconder"
                 },
-                "FilterTool": {
-                    "no_category": "ninguna categoría"
-                },
                 "MapTool": {
                     "drag_to_resize": "Dibuje un area que quiera redimensionar",
                     "select_shape_msg": "Por favor seleccione una figura primero.",

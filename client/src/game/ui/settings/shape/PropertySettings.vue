@@ -7,6 +7,7 @@ import ToggleGroup from "../../../../core/components/ToggleGroup.vue";
 import { NO_SYNC, SERVER_SYNC, SyncMode } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../../../store/activeShape";
+import { getColour } from "../../../colour";
 import { getShape } from "../../../id";
 import type { IText } from "../../../interfaces/shapes/text";
 import type { Asset } from "../../../shapes/variants/asset";
@@ -199,7 +200,11 @@ async function changeAsset(): Promise<void> {
         <div class="row">
             <label for="shapeselectiondialog-strokecolour">{{ t("common.border_color") }}</label>
             <ColourPicker
-                :colour="shapeProps.strokeColour?.[0]"
+                :colour="
+                    shapeProps.strokeColour?.[0]
+                        ? getColour(shapeProps.strokeColour[0], activeShapeStore.state.id)
+                        : undefined
+                "
                 style="grid-column-start: toggle"
                 :disabled="!owned"
                 @input:colour="setStrokeColour($event, true)"
@@ -209,7 +214,7 @@ async function changeAsset(): Promise<void> {
         <div class="row">
             <label for="shapeselectiondialog-fillcolour">{{ t("common.fill_color") }}</label>
             <ColourPicker
-                :colour="shapeProps.fillColour"
+                :colour="getColour(shapeProps.fillColour, activeShapeStore.state.id)"
                 style="grid-column-start: toggle"
                 :disabled="!owned"
                 @input:colour="setFillColour($event, true)"

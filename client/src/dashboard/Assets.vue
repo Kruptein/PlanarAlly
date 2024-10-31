@@ -450,7 +450,7 @@ async function handleRenameEvent(id: AssetId) : Promise<void> {
             </div>
         </div>
     </div>
-    <AssetContextMenu @rename-event="handleRenameEvent($event.id)" />
+    <AssetContextMenu @rename="handleRenameEvent" />
 </template>
 
 <style lang="scss">

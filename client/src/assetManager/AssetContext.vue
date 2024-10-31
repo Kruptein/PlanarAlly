@@ -13,11 +13,7 @@ import { assetState } from "./state";
 
 import { assetSystem } from ".";
 
-interface RenameEvent {
-    id: AssetId;
-}
-
-const emit = defineEmits<{(event: "renameEvent", payload: RenameEvent): void;}>();
+const emit = defineEmits<{(event: "rename", payload: AssetId): void;}>();
 
 const cm = ref<{ $el: HTMLDivElement } | null>(null);
 const modals = useModal();
@@ -62,7 +58,7 @@ function rename(): void {
         return close();
     }
 
-    emit("renameEvent", {id: asset.id});
+    emit("rename", asset.id);
 
     close();
 }

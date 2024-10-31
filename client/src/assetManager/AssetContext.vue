@@ -3,6 +3,7 @@ import { computed, defineEmits, nextTick, onMounted, onUnmounted, ref, watch } f
 import { useI18n } from "vue-i18n";
 
 import ContextMenu from "../core/components/contextMenu/ContextMenu.vue";
+import type { Section } from "../core/components/contextMenu/types";
 import { useModal } from "../core/plugins/modals/plugin";
 import { coreStore } from "../store/core";
 
@@ -77,7 +78,7 @@ async function remove(): Promise<void> {
     close();
 }
 
-const sections = computed(() => [
+const sections = computed<Section[]>(() => [
     {
         title: t("common.rename"),
         action: rename,

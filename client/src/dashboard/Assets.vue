@@ -307,7 +307,7 @@ function selectElementContents(el: HTMLElement) : void {
     }
 }
 
-async function handleRenameEvent(id: AssetId) : Promise<void> {
+async function showRenameUI(id: AssetId) : Promise<void> {
     const el = titleRefs[id];
     if (el) {
         currentRenameAsset.value = id;
@@ -450,7 +450,7 @@ async function handleRenameEvent(id: AssetId) : Promise<void> {
             </div>
         </div>
     </div>
-    <AssetContextMenu @rename="handleRenameEvent" />
+    <AssetContextMenu @rename="showRenameUI" />
 </template>
 
 <style lang="scss">

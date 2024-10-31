@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import trimEnd from "lodash/trimEnd";
-import { type DeepReadonly, computed, nextTick, onMounted, ref } from "vue";
+import { type DeepReadonly, computed, nextTick, onMounted, reactive, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from "vue-router";
 import type { RouteLocationNormalized } from "vue-router";
@@ -32,7 +32,7 @@ const activeSelectionUrl = `url(${baseAdjust("/static/img/assetmanager/active_se
 const emptySelectionUrl = `url(${baseAdjust("/static/img/assetmanager/empty_selection.png")})`;
 
 const currentRenameAsset = ref<AssetId | null>(null);
-const titleRefs = ref<Record<AssetId, HTMLDivElement | null>>({});
+const titleRefs = reactive<Record<AssetId, HTMLDivElement>>({});
 
 function getCurrentPath(path?: string): string {
     path ??= route.path;
@@ -291,9 +291,9 @@ function canEdit(data: AssetId | DeepReadonly<ApiAsset> | undefined, includeRoot
 
 function setTitleRef(el: HTMLDivElement | null, id: AssetId) : void {
     if (el) {
-        titleRefs.value[id] = el;
+        titleRefs[id] = el;
     } else {
-        delete titleRefs.value[id];
+        delete titleRefs[id];
     }
 }
 
@@ -308,7 +308,7 @@ function selectElementContents(el: HTMLElement) : void {
 }
 
 async function handleRenameEvent(id: AssetId) : Promise<void> {
-    const el = titleRefs.value[id];
+    const el = titleRefs[id];
     if (el) {
         currentRenameAsset.value = id;
         await nextTick(() => {

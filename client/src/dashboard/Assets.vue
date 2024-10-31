@@ -31,7 +31,7 @@ const body = document.getElementsByTagName("body")[0];
 const activeSelectionUrl = `url(${baseAdjust("/static/img/assetmanager/active_selection.png")})`;
 const emptySelectionUrl = `url(${baseAdjust("/static/img/assetmanager/empty_selection.png")})`;
 
-const currentRenameElement = ref<HTMLDivElement | null>(null);
+const currentRenameAsset = ref<AssetId | null>(null);
 const titleRefs = ref<Record<AssetId, HTMLDivElement | null>>({});
 
 function getCurrentPath(path?: string): string {
@@ -179,7 +179,7 @@ function renameAsset(event: FocusEvent, file: AssetId, oldName: string): void {
     const target = event.target as HTMLElement;
     if(target.textContent === null){
         target.textContent = oldName;
-        currentRenameElement.value = null;
+        currentRenameAsset.value = null;
         return;
     }
     const name = target.textContent.trim();
@@ -189,7 +189,7 @@ function renameAsset(event: FocusEvent, file: AssetId, oldName: string): void {
     }else{
         assetSystem.renameAsset(file, name);
     }
-    currentRenameElement.value = null;
+    currentRenameAsset.value = null;
 }
 function startDrag(event: DragEvent, file: AssetId): void {
     if (event.dataTransfer === null) return;
@@ -296,17 +296,6 @@ function setTitleRef(el: HTMLDivElement | null, id: AssetId) : void {
         delete titleRefs.value[id];
     }
 }
-function canRename(id: AssetId) : boolean {
-    if (!canEdit(id, false)) {
-        return false;
-    }
-    const el = titleRefs.value[id];
-    if (!el) {
-        return false;
-    }
-
-    return el === currentRenameElement.value;
-}
 
 function selectElementContents(el: HTMLElement) : void {
     const range = document.createRange();
@@ -321,7 +310,7 @@ function selectElementContents(el: HTMLElement) : void {
 function handleRenameEvent(id: AssetId) : void {
     const el = titleRefs.value[id];
     if (el) {
-        currentRenameElement.value = el;
+        currentRenameAsset.value = id;
         nextTick().then(() => {
             el.focus();
             selectElementContents(el);
@@ -407,7 +396,7 @@ function handleRenameEvent(id: AssetId) : void {
                 <font-awesome-icon icon="folder" style="font-size: 12.5em" />
                 <div
                      :ref="($el) => setTitleRef($el as HTMLDivElement | null, folder.id)"
-                     :contenteditable="canRename(folder.id)"
+                     :contenteditable="folder.id === currentRenameAsset"
                      class="title"
                      @keydown.enter="($event!.target as HTMLElement).blur()"
                      @blur="renameAsset($event, folder.id, folder.name)"
@@ -433,7 +422,7 @@ function handleRenameEvent(id: AssetId) : void {
                 <img :src="getIdImageSrc(file.id)" width="50" alt="" />
                 <div
                      :ref="($el) => setTitleRef($el as HTMLDivElement | null, file.id)"
-                     :contenteditable="canRename(file.id)"
+                     :contenteditable="file.id === currentRenameAsset"
                      class="title"
                      @keydown.enter="($event!.target as HTMLElement).blur()"
                      @blur="renameAsset($event, file.id, file.name)"

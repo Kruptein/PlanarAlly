@@ -307,15 +307,13 @@ function selectElementContents(el: HTMLElement) : void {
     }
 }
 
-function handleRenameEvent(id: AssetId) : void {
+async function handleRenameEvent(id: AssetId) : Promise<void> {
     const el = titleRefs.value[id];
     if (el) {
         currentRenameAsset.value = id;
-        nextTick().then(() => {
+        await nextTick(() => {
             el.focus();
             selectElementContents(el);
-        }).catch((error) => {
-            console.log("Error passing focus to title element: ", error);
         });
     }
 }

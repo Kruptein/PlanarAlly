@@ -19,8 +19,6 @@ tech changes will usually be stripped from release notes for the public
     -   These limits can be configured in the server config
     -   By default there are no limits, it's up to the server admin to configure them
     -   These limits will only apply to new assets, existing assets are not affected
--   AssetManager:
-    -   Added ability to edit asset names by clicking on the name and modifying in-place
 
 ### Changed
 
@@ -31,6 +29,8 @@ tech changes will usually be stripped from release notes for the public
 -   [tech] Select tool:
     -   Delayed syncing of selection state to the global state from mouse down to mouse move/up
     -   This fixes some of the entries in the Fixed section
+-   AssetManager:
+    -   Changed UI of renaming assets, allowing inline editing rather than opening a popup
 
 ### Removed
 

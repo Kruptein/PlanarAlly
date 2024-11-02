@@ -50,6 +50,8 @@ tech changes will usually be stripped from release notes for the public
     -   Search filter not resetting page to 1 potentially causing a blank page if on an other page
 -   Shape Properties:
     -   Input changes could not persist or save on the wrong shape if selection focus was changed while editing (see selection changes)
+-   Modals
+    -   Dragging modals (e.g. notes) now also brings them to the foreground as if clicked
 
 ## [2024.3.0] - 2024-10-13
 

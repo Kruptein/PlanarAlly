@@ -192,7 +192,7 @@ function renameAsset(event: FocusEvent, file: AssetId, oldName: string): void {
 
     if (name === undefined || name === "" || name === "..") {
         target.textContent = oldName;
-    }else{
+    } else if (name !== oldName) {
         assetSystem.renameAsset(file, name);
     }
     currentRenameAsset.value = null;

@@ -109,6 +109,9 @@ function updatePosition(): void {
 
 function dragStart(event: DragEvent): void {
     if (event === null || event.dataTransfer === null) return;
+
+    emit("focus");
+
     registerDropCallback(dragEnd);
     event.dataTransfer.setData("Hack", "");
     // Because the drag event is happening on the header, we have to change the drag image

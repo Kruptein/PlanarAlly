@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { type DeepReadonly, computed, reactive, ref, watch } from "vue";
 
-import { arrToToggleGroup } from "../../../core/components/toggleGroup";
-import ToggleGroup from "../../../core/components/ToggleGroup.vue";
 import { filter, map } from "../../../core/iter";
 import { mostReadable } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
@@ -15,8 +13,8 @@ import { locationSettingsState } from "../../systems/settings/location/state";
 
 const emit = defineEmits<(e: "mode", mode: NoteManagerMode) => void>();
 
-const noteTypes = ["global", "local"] as const;
-const selectedNoteTypes = ref<(typeof noteTypes)[number]>("local");
+const noteTypes = ["global", "local", "all"] as const;
+const selectedNoteTypes = ref<(typeof noteTypes)[number]>("all");
 const searchFilters = reactive({
     title: true,
     tags: true,
@@ -58,7 +56,8 @@ const noteArray = computed(() => {
 });
 const filteredNotes = computed(() => {
     const sf = searchFilter.value.trim().toLowerCase();
-    const searchLocal = selectedNoteTypes.value === "local";
+    const searchLocal = selectedNoteTypes.value !== "global";
+    const searchGlobal = selectedNoteTypes.value !== "local";
     const locationId = locationSettingsState.reactive.activeLocation;
     const notes: typeof noteArray.value = [];
     for (const note of noteArray.value) {
@@ -68,15 +67,16 @@ const filteredNotes = computed(() => {
             }
         } else {
             if (!searchFilters.notesWithShapes && note.shapes.length > 0) continue;
-            if (searchLocal) {
-                if (!note.isRoomNote) {
-                    // Global Notes can appear in the Local search _if_ there is a shape linked to them
-                    if (!searchFilters.globalIfLocalShape || note.shapes.length === 0) continue;
-                } else if (searchFilters.activeLocation && locationId !== note.location) {
+            if (!note.isRoomNote) {
+                if (!searchGlobal) {
+                    if (!searchFilters.globalIfLocalShape || note.shapes.length === 0) {
+                        continue;
+                    }
+                }
+            } else {
+                if (!searchLocal || (searchFilters.activeLocation && locationId !== note.location)) {
                     continue;
                 }
-            } else if (note.isRoomNote) {
-                continue;
             }
         }
 
@@ -126,14 +126,15 @@ function clearShapeFilter(): void {
     </header>
     <div id="notes-search" :class="shapeFiltered ? 'disabled' : ''">
         <div>
-            <ToggleGroup
+            <select
                 v-show="!shapeFiltered"
                 id="kind-selector"
                 v-model="selectedNoteTypes"
-                :options="arrToToggleGroup(noteTypes)"
-                :multi-select="false"
-                active-color="rgba(173, 216, 230, 0.5)"
-            />
+            >
+                <option v-for="type in noteTypes" :key="type" :value="type">
+                    {{ type }}
+                </option>
+            </select>
             <font-awesome-icon icon="magnifying-glass" @click="searchBar?.focus()" />
             <div v-if="shapeName" class="shape-name" @click="clearShapeFilter">{{ shapeName }}</div>
             <input ref="searchBar" v-model="searchFilter" type="text" placeholder="search through your notes.." />
@@ -306,6 +307,9 @@ header {
             height: calc(100% + 4px); // 2px border on top and bottom
             margin-left: -2px; // 2px border on left
             border-color: black;
+            text-transform: capitalize;
+            font-size: 1.25em;
+            text-align-last: center;
         }
 
         > svg:first-of-type {

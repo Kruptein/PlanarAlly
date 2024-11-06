@@ -20,11 +20,13 @@ const modals = useModal();
 
 const note = computed(() => noteState.reactive.notes.get(noteState.reactive.currentNote!));
 
+const defaultAccessName = "default";
+
 const canEdit = computed(() => {
     if (!note.value) return false;
     const username = coreStore.state.username;
     if (note.value.creator === username) return true;
-    return note.value.access.some((a) => a.name === username && a.can_edit);
+    return note.value.access.some((a) => (a.name === username || a.name === defaultAccessName) && a.can_edit);
 });
 
 const localShapenotes = computed(() =>
@@ -108,9 +110,9 @@ watchEffect(() => {
 // and that defaultAccess is provided even if it has no DB value
 const accessLevels = computed(() => {
     const access = [];
-    let defaultAccess = { name: "default", can_view: false, can_edit: false };
+    let defaultAccess = { name: defaultAccessName, can_view: false, can_edit: false };
     for (const a of note.value?.access ?? []) {
-        if (a.name === "default") defaultAccess = a;
+        if (a.name === defaultAccessName) defaultAccess = a;
         else access.push(a);
     }
     return [defaultAccess, ...access];
@@ -278,7 +280,7 @@ function removeShape(shape: LocalId): void {
                 <input type="checkbox" :checked="access.can_view" @click="setViewAccess(access, $event)" />
                 <input type="checkbox" :checked="access.can_edit" @click="setEditAccess(access, $event)" />
                 <font-awesome-icon
-                    v-if="access.name !== 'default'"
+                    v-if="access.name !== defaultAccessName"
                     icon="trash-alt"
                     title="Remove access"
                     @click="noteSystem.removeAccess(note!.uuid, access.name, true)"

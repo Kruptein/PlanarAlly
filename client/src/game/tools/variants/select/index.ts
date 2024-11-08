@@ -334,7 +334,8 @@ class SelectTool extends Tool implements ISelectTool {
                 }
             }
             if (shape.contains(gp)) {
-                if (!this.currentSelection.includes(shape)) {
+                const shapeSelectionIndex = this.currentSelection.findIndex((s) => s.id === shape.id);
+                if (shapeSelectionIndex === -1) {
                     if (event && ctrlOrCmdPressed(event)) {
                         this.currentSelection.push(shape);
                     } else {
@@ -345,8 +346,10 @@ class SelectTool extends Tool implements ISelectTool {
                 } else {
                     if (event && ctrlOrCmdPressed(event)) {
                         this.currentSelection = this.currentSelection.filter((s) => s.id !== shape.id);
-                    } else {
-                        this.currentSelection = [shape];
+                    } else if (shapeSelectionIndex !== 0) {
+                        // Move it to the front of the selection, so that it becomes the new focus
+                        this.currentSelection.splice(shapeSelectionIndex, 1);
+                        this.currentSelection.unshift(shape);
                     }
                 }
                 // Drag case, a shape is selected

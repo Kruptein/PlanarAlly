@@ -50,6 +50,7 @@ tech changes will usually be stripped from release notes for the public
     -   It was possible to open a 'view-only' note on a tab you weren't supposed to see
     -   Note manager could be empty and unusable when changing locations
     -   Search filter not resetting page to 1 potentially causing a blank page if on an other page
+    -   Default edit access on notes was not correctly applied
 -   Shape Properties:
     -   Input changes could not persist or save on the wrong shape if selection focus was changed while editing (see selection changes)
 -   Modals

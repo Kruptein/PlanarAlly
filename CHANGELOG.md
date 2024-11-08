@@ -34,6 +34,8 @@ tech changes will usually be stripped from release notes for the public
 -   [tech] Select tool:
     -   Delayed syncing of selection state to the global state from mouse down to mouse move/up
     -   This fixes some of the entries in the Fixed section
+-   AssetManager:
+    -   Changed UI of renaming assets, allowing inline editing rather than opening a popup
 
 ### Removed
 

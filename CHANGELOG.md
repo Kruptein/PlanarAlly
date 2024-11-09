@@ -51,6 +51,7 @@ tech changes will usually be stripped from release notes for the public
     -   Note manager could be empty and unusable when changing locations
     -   Search filter not resetting page to 1 potentially causing a blank page if on an other page
     -   Default edit access on notes was not correctly applied
+    -   Fix searchbar overlapping over other modals
 -   Shape Properties:
     -   Input changes could not persist or save on the wrong shape if selection focus was changed while editing (see selection changes)
 -   Modals

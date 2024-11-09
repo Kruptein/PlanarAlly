@@ -48,7 +48,7 @@ tech changes will usually be stripped from release notes for the public
 
 -   Notes:
     -   It was possible to open a 'view-only' note on a tab you weren't supposed to see
-    -   Note manager could be empty and unusable when changing locations
+    -   Note manager could be empty and unusable when changing locations or losing view access to an open note
     -   Search filter not resetting page to 1 potentially causing a blank page if on an other page
     -   Default edit access on notes was not correctly applied
     -   Fix searchbar overlapping over other modals

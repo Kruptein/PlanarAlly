@@ -1,16 +1,20 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, defineEmits, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ContextMenu from "../core/components/contextMenu/ContextMenu.vue";
+import type { Section } from "../core/components/contextMenu/types";
 import { useModal } from "../core/plugins/modals/plugin";
 import { coreStore } from "../store/core";
 
 import AssetShare from "./AssetShare.vue";
 import { assetContextLeft, assetContextTop, showAssetContextMenu } from "./context";
+import type { AssetId } from "./models";
 import { assetState } from "./state";
 
 import { assetSystem } from ".";
+
+const emit = defineEmits<{(event: "rename", payload: AssetId): void;}>();
 
 const cm = ref<{ $el: HTMLDivElement } | null>(null);
 const modals = useModal();
@@ -47,7 +51,7 @@ function close(): void {
     showAssetContextMenu.value = false;
 }
 
-async function rename(): Promise<void> {
+function rename(): void {
     if (assetState.raw.selected.length !== 1) return;
     const asset = assetState.raw.idMap.get(assetState.raw.selected[0]!);
     if (asset === undefined) {
@@ -55,13 +59,8 @@ async function rename(): Promise<void> {
         return close();
     }
 
-    const name = await modals.prompt(
-        t("assetManager.AssetContextMenu.new_name"),
-        t("assetManager.AssetContextMenu.renaming_NAME", { name: asset.name }),
-    );
-    if (name !== undefined) {
-        assetSystem.renameAsset(asset.id, name);
-    }
+    emit("rename", asset.id);
+
     close();
 }
 
@@ -79,7 +78,7 @@ async function remove(): Promise<void> {
     close();
 }
 
-const sections = computed(() => [
+const sections = computed<Section[]>(() => [
     {
         title: t("common.rename"),
         action: rename,

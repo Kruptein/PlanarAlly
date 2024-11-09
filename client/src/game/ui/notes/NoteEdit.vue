@@ -20,6 +20,12 @@ const modals = useModal();
 
 const note = computed(() => noteState.reactive.notes.get(noteState.reactive.currentNote!));
 
+watchEffect(() => {
+    if (note.value === undefined) {
+        emit("mode", NoteManagerMode.List);
+    }
+});
+
 const defaultAccessName = "default";
 
 const canEdit = computed(() => {

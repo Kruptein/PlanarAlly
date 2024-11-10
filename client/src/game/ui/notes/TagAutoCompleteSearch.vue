@@ -137,8 +137,8 @@ function handleEnter(): void {
                 @keydown.enter="handleEnter"
                 @focusin="onFocusIn"
             />
-            <div v-show="searchQuery.length > 0" id="clear-button">
-                <font-awesome-icon :icon="['fas', 'x']" title="Clear Search" @click.stop="clearSearchBar" />
+            <div v-show="searchQuery.length > 0" id="clear-button" @click.stop="clearSearchBar">
+                <font-awesome-icon :icon="['fas', 'x']" title="Clear Search" />
             </div>
         </div>
         <div v-show="shouldShowResults()" id="autocomplete-results" tabindex="0" >
@@ -181,7 +181,7 @@ function handleEnter(): void {
 #clear-button {
     border: 0;
     cursor: pointer;
-    margin: 0 0.5rem;
+    padding: 0 0.5rem;
     font-size: 75%;
 }
 #search-tags {

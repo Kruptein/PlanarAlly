@@ -29,7 +29,7 @@ const searchFilters = reactive({
 });
 
 const searchBar = ref<HTMLInputElement | null>(null);
-const searchOptions = ref<HTMLDivElement | null>(null);
+const searchOptionsDialog = ref<HTMLDivElement | null>(null);
 const searchFilter = ref("");
 const showSearchFilters = ref(false);
 const searchPage = ref(1);
@@ -47,8 +47,8 @@ const shapeName = computed(() => {
 // });
 
 function handleClickOutsideDialog(event: MouseEvent): void {
-    if (searchOptions.value) {
-        if (showSearchFilters.value && !searchOptions.value.contains(event.target as Node)) {
+    if (searchOptionsDialog.value) {
+        if (showSearchFilters.value && !searchOptionsDialog.value.contains(event.target as Node)) {
             showSearchFilters.value = false;
         }
     }
@@ -161,7 +161,7 @@ function clearShapeFilter(): void {
                     @click="showSearchFilters = true"
                 />
             </div>
-            <div v-show="showSearchFilters" id="search-filter" ref="searchOptions">
+            <div v-show="showSearchFilters" id="search-filter" ref="searchOptionsDialog">
                 <div style="position:absolute;right:1rem;top:0.7rem">
                     <font-awesome-icon
                         icon="sliders"

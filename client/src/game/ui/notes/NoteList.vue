@@ -419,7 +419,7 @@ header {
         border-bottom: solid 2px black;
 
         > #filter-bubbles {
-            flex: 4 0 0;
+            flex: 5 0 0;
             display: flex;
             flex-direction: row;
             align-items: center;
@@ -435,11 +435,12 @@ header {
 
 
             > div {
-                flex: 0 0 auto;
+                flex: 0 1 auto;
+                word-break: break-word;
             }
         }
         > #tag-search-bar {
-            flex: 1 1 0;
+            flex: 2 1 0;
             height: 1.5rem;
             min-width: 8rem;
         }

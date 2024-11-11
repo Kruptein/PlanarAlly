@@ -206,7 +206,6 @@ function handleEnter(): void {
     border: 1px solid black;
     border-top: 0;
     box-shadow: 0 0.1rem 0.875rem 0 #cacaca;
-    overflow: hidden;
     background: white;
     width: 100%;
     z-index: 1;
@@ -217,6 +216,7 @@ function handleEnter(): void {
     border-radius: 0.5rem;
     margin-right: 0.5rem;
     cursor: pointer;
+    word-break: break-word;
 }
 
 .tag-bubble.is-active,

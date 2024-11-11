@@ -258,11 +258,9 @@ function clearShapeFilter(): void {
                     {{ tag.name }}
                 </div>
             </div>
-            <div id="add-filters">
-                <TagAutoCompleteSearch v-show="showTagSearch" id="tag-search-bar" placeholder="Search Tags..." :options="availableTags" @picked="toggleTagInSearch" />
-                <font-awesome-icon v-if="showTagSearch" id="tag-search-show" icon="minus" title="Hide Tag Search" @click="showTagSearch = false" />
-                <font-awesome-icon v-else id="tag-search-hide" icon="plus" title="Show Tag Search" @click="showTagSearch = true" />
-            </div>
+            <TagAutoCompleteSearch v-show="showTagSearch" id="tag-search-bar" placeholder="Search Tags..." :options="availableTags" @picked="toggleTagInSearch" />
+            <font-awesome-icon v-if="showTagSearch" id="tag-search-show" icon="minus" title="Hide Tag Search" @click="showTagSearch = false" />
+            <font-awesome-icon v-else id="tag-search-hide" icon="plus" title="Show Tag Search" @click="showTagSearch = true" />
         </div>
 
     </div>
@@ -421,7 +419,7 @@ header {
         border-bottom: solid 2px black;
 
         > #filter-bubbles {
-            flex: 2 0 0;
+            flex: 4 0 0;
             display: flex;
             flex-direction: row;
             align-items: center;
@@ -440,21 +438,16 @@ header {
                 flex: 0 0 auto;
             }
         }
-        > #add-filters {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            height: 100%;
+        > #tag-search-bar {
+            flex: 1 1 0;
+            height: 1.5rem;
+            min-width: 8rem;
+        }
 
-            > #tag-search-bar {
-                height: 1.5rem;
-                min-width: 8rem;
-            }
-
-            > #tag-search-show,
-            > #tag-search-hide {
-                margin: 0 0.5rem;
-            }
+        > #tag-search-show,
+        > #tag-search-hide {
+            flex: 0 0 auto;
+            margin: 0 0.5rem;
         }
     }
 

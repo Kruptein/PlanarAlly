@@ -306,10 +306,17 @@ header {
         > #kind-selector {
             height: calc(100% + 4px); // 2px border on top and bottom
             margin-left: -2px; // 2px border on left
-            border-color: black;
+            border-radius: 1rem;
+            border: solid 2px black;
+            outline: none;
             text-transform: capitalize;
             font-size: 1.25em;
             text-align-last: center;
+            padding: 0 0.5em;
+            background-color: rgba(238, 244, 255, 1);
+            > option {
+                background-color: rgba(245, 245, 245, 1);
+            }
         }
 
         > svg:first-of-type {

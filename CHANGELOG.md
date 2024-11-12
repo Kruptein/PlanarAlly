@@ -36,6 +36,8 @@ tech changes will usually be stripped from release notes for the public
     -   This fixes some of the entries in the Fixed section
 -   AssetManager:
     -   Changed UI of renaming assets, allowing inline editing rather than opening a popup
+-   Notes:
+    -   Note popouts for clients without edit access now show 'view source' instead of 'edit'
 
 ### Removed
 
@@ -53,6 +55,7 @@ tech changes will usually be stripped from release notes for the public
     -   Default edit access on notes was not correctly applied
     -   Fix searchbar overlapping over other modals
     -   Global notes no longer have a default access level
+    -   Notes can no longer be locally edited by clients without edit access through the note popouts
 -   Shape Properties:
     -   Input changes could not persist or save on the wrong shape if selection focus was changed while editing (see selection changes)
 -   Modals

@@ -58,6 +58,19 @@ tech changes will usually be stripped from release notes for the public
 -   Modals
     -   Dragging modals (e.g. notes) now also brings them to the foreground as if clicked
 
+## [2024.3.1] - 2024-11-12
+
+This is a hotfix that addresses an issue causing some shapes to be in a broken DB state, causing the related location to no longer load.
+The issue only happens when removing a Character. The root of this issue seems to be related to an upgrade of the db framework which has a regression in its handling of certain removes.
+
+The only change in this patch is a downgrade of the db framework and a temporary script to remove broken shapes.
+
+The script is added to the server folder and can be run with `python remove-broken-shape-links.py`.
+When run as is, it will loop through all shapes and print out the ones with broken links.
+
+When run with the `delete` argument, it will remove the broken shapes from the DB. (i.e. `python remove-broken-shape-links.py delete`)
+
+
 ## [2024.3.0] - 2024-10-13
 
 ### Removed

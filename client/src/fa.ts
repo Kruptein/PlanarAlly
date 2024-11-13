@@ -25,6 +25,7 @@ import {
     faChevronUp,
     faCircle,
     faCircleInfo,
+    faCircleXmark,
     faClockRotateLeft,
     faCog,
     faCogs,
@@ -75,7 +76,6 @@ import {
     faUserTag,
     faUsers,
     faVideo,
-    faX,
 } from "@fortawesome/free-solid-svg-icons";
 
 export function loadFontAwesome(): void {
@@ -96,6 +96,7 @@ export function loadFontAwesome(): void {
         faChevronUp,
         faCircle,
         faCircleInfo,
+        faCircleXmark,
         faClockRotateLeft,
         faCog,
         faCogs,
@@ -156,7 +157,6 @@ export function loadFontAwesome(): void {
         faVideo,
         faWindowClose,
         faWindowRestore,
-        faX,
     );
 
     dom.watch();

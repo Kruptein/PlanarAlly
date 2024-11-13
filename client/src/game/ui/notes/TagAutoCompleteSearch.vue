@@ -138,7 +138,7 @@ function handleEnter(): void {
                 @focusin="onFocusIn"
             />
             <div v-show="searchQuery.length > 0" id="clear-button" @click.stop="clearSearchBar">
-                <font-awesome-icon :icon="['fas', 'x']" title="Clear Search" />
+                <font-awesome-icon icon="circle-xmark" title="Clear Search" />
             </div>
         </div>
         <div v-show="shouldShowResults()" id="autocomplete-results" tabindex="0" >

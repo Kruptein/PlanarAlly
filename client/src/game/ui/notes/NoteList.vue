@@ -55,11 +55,11 @@ function handleClickOutsideDialog(event: MouseEvent): void {
 }
 
 onMounted(() => {
-    document.addEventListener('mousedown', handleClickOutsideDialog);
+    document.addEventListener('pointerdown', handleClickOutsideDialog);
 });
 
 onUnmounted(() => {
-    document.removeEventListener('mousedown', handleClickOutsideDialog);
+    document.removeEventListener('pointerdown', handleClickOutsideDialog);
 });
 
 const noteArray = computed(() => {

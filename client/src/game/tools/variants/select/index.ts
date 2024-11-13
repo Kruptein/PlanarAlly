@@ -551,21 +551,17 @@ class SelectTool extends Tool implements ISelectTool {
                     event !== undefined && ctrlOrCmdPressed(event),
                     true,
                 );
-                this.updateCursor(gp, features);
             } else if (this.mode === SelectOperations.Rotate) {
                 const center = this.rotationBox!.center;
                 const newAngle = -Math.atan2(center.y - gp.y, gp.x - center.x) + Math.PI / 2;
                 this.rotateSelection(newAngle, center, true);
-            } else {
-                this.updateCursor(gp, features);
             }
             // We also sync in onUp, which always runs,
             // however when we click and immediately drag a shape,
             // the selection won't appear until the onUp if we don't sync here as well
             this.syncSelection();
-        } else {
-            document.body.style.cursor = "default";
         }
+        this.updateCursor(gp, features);
     }
 
     async onUp(
@@ -886,7 +882,7 @@ class SelectTool extends Tool implements ISelectTool {
     createRotationUi(features: ToolFeatures<SelectFeatures>): void {
         const layer = floorState.currentLayer.value!;
 
-        const layerSelection = selectedSystem.get({ includeComposites: false });
+        const layerSelection = this.currentSelection;
 
         if (layerSelection.length === 0 || this.rotationUiActive || !this.hasFeature(SelectFeatures.Rotate, features))
             return;

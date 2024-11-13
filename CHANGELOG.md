@@ -19,6 +19,8 @@ tech changes will usually be stripped from release notes for the public
     -   The specific colours used can be configured in the user options Appearance section and will update shapes retroactively
 -   Notes:
     -   Notes can now be popped out to a separate window
+-   NoteManager:
+    -   Added a button to clear the current search
 -   [server] Assets:
     -   Added limits to the total size of assets a user can upload and the size of a single asset
     -   These limits can be configured in the server config

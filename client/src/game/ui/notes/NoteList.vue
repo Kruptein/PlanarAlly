@@ -118,6 +118,12 @@ function editNote(noteId: string): void {
 function clearShapeFilter(): void {
     noteState.mutableReactive.shapeFilter = undefined;
 }
+
+function clearSearchBar(): void {
+    searchFilter.value = "";
+    searchBar.value?.focus();
+}
+
 </script>
 
 <template>
@@ -136,7 +142,10 @@ function clearShapeFilter(): void {
             />
             <font-awesome-icon icon="magnifying-glass" @click="searchBar?.focus()" />
             <div v-if="shapeName" class="shape-name" @click="clearShapeFilter">{{ shapeName }}</div>
-            <input ref="searchBar" v-model="searchFilter" type="text" placeholder="search through your notes.." />
+            <div id="search-field">
+                <input ref="searchBar" v-model="searchFilter" type="text" placeholder="search through your notes.." />
+                <font-awesome-icon v-show="searchFilter.length > 0" id="clear-button" icon="circle-xmark" title="Clear Search" @click.stop="clearSearchBar" />
+            </div>
             <div v-show="showSearchFilters" id="search-filter">
                 <fieldset>
                     <legend>Where to search</legend>
@@ -302,6 +311,7 @@ header {
         border-radius: 1rem;
 
         > #kind-selector {
+            flex-shrink: 0;
             height: calc(100% + 4px); // 2px border on top and bottom
             margin-left: -2px; // 2px border on left
             border-color: black;
@@ -312,6 +322,7 @@ header {
         }
 
         > .shape-name {
+            flex-shrink: 0;
             margin-left: 0.5rem;
             font-weight: bold;
 
@@ -321,16 +332,33 @@ header {
             }
         }
 
-        > input {
-            padding: 0.5rem 1rem;
+        > #search-field {
             flex-grow: 1;
-            margin-right: 0.5rem;
+            flex-shrink: 1;
+            padding-right: 4rem;
 
             outline: none;
             border: none;
-            border-radius: 1rem;
 
-            font-size: 1.25em;
+            display: flex;
+            align-items: center;
+            width: 100%;
+
+            > input {
+                padding: 0.5rem 1rem;
+                outline: none;
+                border: none;
+                border-radius: 1rem;
+                flex-grow: 1;
+
+                font-size: 1.25em;
+            }
+            > #clear-button {
+                border: 0;
+                font-size: 1rem;
+                cursor: pointer;
+            }
+
         }
 
         > #search-icons {

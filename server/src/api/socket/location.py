@@ -236,14 +236,25 @@ async def load_location(sid: str, location: Location, *, complete=False):
             for note in Note.select()
             .join(NoteAccess, JOIN.LEFT_OUTER)
             .where(
-                # Global or local to the current room
-                ((Note.room >> None) | (Note.room == pr.room))  # type: ignore
-                & (
-                    # Note owner or specific access
-                    (Note.creator == pr.player)
-                    | (
-                        ((NoteAccess.user >> None) | (NoteAccess.user == pr.player))  # type: ignore
-                        & NoteAccess.can_view
+                # Global
+                (
+                    (Note.room >> None)  # type: ignore
+                    & (
+                        # Note owner or specific access (w/o default access)
+                        (Note.creator == pr.player)
+                        | ((NoteAccess.user == pr.player) & NoteAccess.can_view)
+                    )
+                )
+                | (
+                    # Local
+                    (Note.room == pr.room)
+                    & (
+                        # Note owner or specific access
+                        (Note.creator == pr.player)
+                        | (
+                            ((NoteAccess.user >> None) | (NoteAccess.user == pr.player))  # type: ignore
+                            & NoteAccess.can_view
+                        )
                     )
                 )
             )
@@ -397,7 +408,7 @@ async def clone_location(sid: str, raw_data: Any):
         return
     try:
         room = Room.select().where(
-            (Room.name == data.room) & (Room.creator == pr.player)
+            (Room.name == data.room) & (Room.creator == pr.player)  # type: ignore
         )[0]
     except IndexError:
         logger.warning(f"Destination room {data.room} not found.")

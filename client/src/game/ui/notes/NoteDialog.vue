@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, reactive, ref, type Ref } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref, type Ref } from "vue";
 import VueMarkdown from "vue-markdown-render";
 
 import Modal from "../../../core/components/modals/Modal.vue";
+import { coreStore } from "../../../store/core";
 import { modalSystem } from "../../systems/modals";
 import type { ModalIndex } from "../../systems/modals/types";
 import { noteSystem } from "../../systems/notes";
@@ -17,6 +18,13 @@ const collapsed = reactive({ active: false, width: 0, height: 0 });
 const modal = ref<{ container: Ref<HTMLDivElement> } | null>(null);
 
 const note = noteState.reactive.notes.get(props.uuid);
+
+const canEdit = computed(() => {
+    if (!note) return false;
+    const username = coreStore.state.username;
+    if (note.creator === username) return true;
+    return note.access.some((a) => (a.name === username || a.name === "default") && a.can_edit);
+});
 
 onMounted(() => {
     if (modal.value) {
@@ -158,7 +166,7 @@ function windowToggle(windowed: boolean): void {
                     <font-awesome-icon :icon="['far', 'window-close']" title="Close note" @click="close" />
                 </div>
                 <div>
-                    <div v-if="!editing" @click="editing = true">[edit]</div>
+                    <div v-if="!editing" @click="editing = true">[{{ canEdit ? "edit" : "view source" }}]</div>
                     <div v-else @click="editing = false">[show]</div>
                     <div @click.stop="editNote(uuid)">[open in note manager]</div>
                 </div>
@@ -167,7 +175,13 @@ function windowToggle(windowed: boolean): void {
 
         <div v-if="!collapsed.active" class="note-body">
             <VueMarkdown v-if="!editing" :source="note.text" :options="{ html: true }" />
-            <textarea v-else v-model="note.text" @input="setText($event, false)" @change="setText($event, true)" />
+            <textarea
+                v-else
+                v-model="note.text"
+                :readonly="!canEdit"
+                @input="setText($event, false)"
+                @change="setText($event, true)"
+            />
         </div>
     </Modal>
 </template>

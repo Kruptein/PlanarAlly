@@ -36,8 +36,9 @@ tech changes will usually be stripped from release notes for the public
     -   This fixes some of the entries in the Fixed section
 -   AssetManager:
     -   Changed UI of renaming assets, allowing inline editing rather than opening a popup
--   NoteManager
-    -   Add filtering option 'All' to show both global and local notes
+-   Notes:
+    -   Add filtering option 'All' to note manager to show both global and local notes
+    -   Note popouts for clients without edit access now show 'view source' instead of 'edit'
 
 ### Removed
 
@@ -50,13 +51,29 @@ tech changes will usually be stripped from release notes for the public
 
 -   Notes:
     -   It was possible to open a 'view-only' note on a tab you weren't supposed to see
-    -   Note manager could be empty and unusable when changing locations
+    -   Note manager could be empty and unusable when changing locations or losing view access to an open note
     -   Search filter not resetting page to 1 potentially causing a blank page if on an other page
     -   Default edit access on notes was not correctly applied
+    -   Fix searchbar overlapping over other modals
+    -   Global notes no longer have a default access level
+    -   Notes can no longer be locally edited by clients without edit access through the note popouts
 -   Shape Properties:
     -   Input changes could not persist or save on the wrong shape if selection focus was changed while editing (see selection changes)
 -   Modals
     -   Dragging modals (e.g. notes) now also brings them to the foreground as if clicked
+
+## [2024.3.1] - 2024-11-12
+
+This is a hotfix that addresses an issue causing some shapes to be in a broken DB state, causing the related location to no longer load.
+The issue only happens when removing a Character. The root of this issue seems to be related to an upgrade of the db framework which has a regression in its handling of certain removes.
+
+The only change in this patch is a downgrade of the db framework and a temporary script to remove broken shapes.
+
+The script is added to the server folder and can be run with `python remove-broken-shape-links.py`.
+When run as is, it will loop through all shapes and print out the ones with broken links.
+
+When run with the `delete` argument, it will remove the broken shapes from the DB. (i.e. `python remove-broken-shape-links.py delete`)
+
 
 ## [2024.3.0] - 2024-10-13
 

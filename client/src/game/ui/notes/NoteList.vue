@@ -301,7 +301,6 @@ header {
         height: 2.7rem;
         border: solid 2px black;
         border-radius: 1rem;
-        z-index: 1;
 
         > #kind-selector {
             height: calc(100% + 4px); // 2px border on top and bottom

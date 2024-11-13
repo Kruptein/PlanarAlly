@@ -14,7 +14,11 @@ import { locationSettingsState } from "../../systems/settings/location/state";
 const emit = defineEmits<(e: "mode", mode: NoteManagerMode) => void>();
 
 const noteTypes = ["global", "local", "all"] as const;
-const selectedNoteTypes = ref<(typeof noteTypes)[number]>("all");
+const selectedNoteTypes = ref<(typeof noteTypes)[number]>((localStorage.getItem("note-display-type") as (typeof noteTypes)[number]) ?? "local");
+watch(selectedNoteTypes, () => {
+    localStorage.setItem("note-display-type", selectedNoteTypes.value);
+});
+
 const searchFilters = reactive({
     title: true,
     tags: true,

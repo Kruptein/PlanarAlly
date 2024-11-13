@@ -144,7 +144,7 @@ function clearSearchBar(): void {
             <div v-if="shapeName" class="shape-name" @click="clearShapeFilter">{{ shapeName }}</div>
             <div id="search-field">
                 <input ref="searchBar" v-model="searchFilter" type="text" placeholder="search through your notes.." />
-                <font-awesome-icon v-show="searchFilter.length > 0" id="clear-button" :icon="['fas', 'x']" title="Clear Search" @click.stop="clearSearchBar" />
+                <font-awesome-icon v-show="searchFilter.length > 0" id="clear-button" icon="circle-xmark" title="Clear Search" @click.stop="clearSearchBar" />
             </div>
             <div v-show="showSearchFilters" id="search-filter">
                 <fieldset>

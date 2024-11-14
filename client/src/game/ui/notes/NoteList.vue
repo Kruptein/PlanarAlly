@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type DeepReadonly, computed, reactive, ref, watch } from "vue";
+import { type DeepReadonly, computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 
 import { arrToToggleGroup } from "../../../core/components/toggleGroup";
 import ToggleGroup from "../../../core/components/ToggleGroup.vue";
@@ -29,6 +29,7 @@ const searchFilters = reactive({
 });
 
 const searchBar = ref<HTMLInputElement | null>(null);
+const searchOptionsDialog = ref<HTMLDivElement | null>(null);
 const searchFilter = ref("");
 const showSearchFilters = ref(false);
 const searchPage = ref(1);
@@ -44,6 +45,22 @@ const shapeName = computed(() => {
 // onMounted(() => {
 //     searchBar.value?.focus();
 // });
+
+function handleClickOutsideDialog(event: MouseEvent): void {
+    if (searchOptionsDialog.value) {
+        if (showSearchFilters.value && !searchOptionsDialog.value.contains(event.target as Node)) {
+            showSearchFilters.value = false;
+        }
+    }
+}
+
+onMounted(() => {
+    document.addEventListener('pointerdown', handleClickOutsideDialog);
+});
+
+onUnmounted(() => {
+    document.removeEventListener('pointerdown', handleClickOutsideDialog);
+});
 
 const noteArray = computed(() => {
     let it: Iterable<DeepReadonly<ClientNote>> = noteState.reactive.notes.values();
@@ -146,7 +163,18 @@ function clearSearchBar(): void {
                 <input ref="searchBar" v-model="searchFilter" type="text" placeholder="search through your notes.." />
                 <font-awesome-icon v-show="searchFilter.length > 0" id="clear-button" icon="circle-xmark" title="Clear Search" @click.stop="clearSearchBar" />
             </div>
-            <div v-show="showSearchFilters" id="search-filter">
+            <font-awesome-icon
+                id="search-options-icon"
+                icon="sliders"
+                style="opacity: 0.5"
+                @click="showSearchFilters = true"
+            />
+            <div v-show="showSearchFilters" id="search-filter" ref="searchOptionsDialog">
+                <font-awesome-icon
+                    id="search-options-close-icon"
+                    icon="sliders"
+                    @click="showSearchFilters = false"
+                />
                 <fieldset>
                     <legend>Where to search</legend>
                     <div>
@@ -211,13 +239,6 @@ function clearSearchBar(): void {
                         </label>
                     </div>
                 </fieldset>
-            </div>
-            <div id="search-icons">
-                <font-awesome-icon
-                    icon="sliders"
-                    :style="{ opacity: showSearchFilters ? 1 : 0.5 }"
-                    @click="showSearchFilters = !showSearchFilters"
-                />
             </div>
         </div>
     </div>
@@ -335,10 +356,10 @@ header {
         > #search-field {
             flex-grow: 1;
             flex-shrink: 1;
-            padding-right: 4rem;
 
             outline: none;
             border: none;
+            border-radius: 1rem;
 
             display: flex;
             align-items: center;
@@ -358,21 +379,19 @@ header {
                 font-size: 1rem;
                 cursor: pointer;
             }
-
+        }
+        > #search-options-icon {
+            margin: 0 1rem;
         }
 
-        > #search-icons {
+        #search-options-close-icon {
             position: absolute;
-            display: flex;
-            right: 1.5rem;
-        }
-
-        #search-filter-toggle {
-            position: absolute;
-            right: 1.5rem;
+            right: 1rem;
+            top: 0.7rem;
         }
 
         #search-filter {
+            z-index: 1;
             position: absolute;
             top: -2px;
             right: -2px;

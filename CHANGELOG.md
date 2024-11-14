@@ -39,6 +39,7 @@ tech changes will usually be stripped from release notes for the public
 -   AssetManager:
     -   Changed UI of renaming assets, allowing inline editing rather than opening a popup
 -   Notes:
+    -   Add filtering option 'All' to note manager to show both global and local notes
     -   Note popouts for clients without edit access now show 'view source' instead of 'edit'
 
 ### Removed

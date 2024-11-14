@@ -31,7 +31,6 @@ watch(selectedNoteTypes, () => {
 
 const searchFilters = reactive({
     title: true,
-    tags: true,
     text: false,
     author: false,
     activeLocation: true,
@@ -127,8 +126,6 @@ const filteredNotes = computed(() => {
         }
 
         if (searchFilters.title && note.title.toLowerCase().includes(sf)) {
-            notes.push(note);
-        } else if (searchFilters.tags && note.tags.some((tag) => tag.name.toLowerCase().includes(sf))) {
             notes.push(note);
         } else if (searchFilters.text && note.text.toLowerCase().includes(sf)) {
             notes.push(note);

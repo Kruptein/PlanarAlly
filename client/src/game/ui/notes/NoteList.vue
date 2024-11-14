@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { type DeepReadonly, computed, reactive, ref, watch } from "vue";
+import { type DeepReadonly, computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 
-import { arrToToggleGroup } from "../../../core/components/toggleGroup";
-import ToggleGroup from "../../../core/components/ToggleGroup.vue";
 import { filter, map } from "../../../core/iter";
 import { mostReadable } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
@@ -17,8 +15,20 @@ import TagAutoCompleteSearch from "./TagAutoCompleteSearch.vue";
 
 const emit = defineEmits<(e: "mode", mode: NoteManagerMode) => void>();
 
-const noteTypes = ["global", "local"] as const;
-const selectedNoteTypes = ref<(typeof noteTypes)[number]>("local");
+onMounted(() => {
+    document.addEventListener('pointerdown', handleClickOutsideDialog);
+});
+
+onUnmounted(() => {
+    document.removeEventListener('pointerdown', handleClickOutsideDialog);
+});
+
+const noteTypes = ["global", "local", "all"] as const;
+const selectedNoteTypes = ref<(typeof noteTypes)[number]>((localStorage.getItem("note-display-type") as (typeof noteTypes)[number]) ?? "local");
+watch(selectedNoteTypes, () => {
+    localStorage.setItem("note-display-type", selectedNoteTypes.value);
+});
+
 const searchFilters = reactive({
     title: true,
     tags: true,
@@ -31,6 +41,7 @@ const searchFilters = reactive({
 });
 
 const searchBar = ref<HTMLInputElement | null>(null);
+const searchOptionsDialog = ref<HTMLDivElement | null>(null);
 const searchTags = ref<NoteTag[]>([]);
 const searchFilter = ref("");
 const showSearchFilters = ref(false);
@@ -48,7 +59,6 @@ const shapeName = computed(() => {
 // onMounted(() => {
 //     searchBar.value?.focus();
 // });
-
 
 const availableTags = computed(() => {
     const tagList = new Map<string, NoteTag>();
@@ -83,7 +93,8 @@ function containsSearchTags(note: typeof noteArray.value[number]): boolean {
 
 const filteredNotes = computed(() => {
     const sf = searchFilter.value.trim().toLowerCase();
-    const searchLocal = selectedNoteTypes.value === "local";
+    const searchLocal = selectedNoteTypes.value !== "global";
+    const searchGlobal = selectedNoteTypes.value !== "local";
     const locationId = locationSettingsState.reactive.activeLocation;
     const notes: typeof noteArray.value = [];
     for (const note of noteArray.value) {
@@ -93,15 +104,16 @@ const filteredNotes = computed(() => {
             }
         } else {
             if (!searchFilters.notesWithShapes && note.shapes.length > 0) continue;
-            if (searchLocal) {
-                if (!note.isRoomNote) {
-                    // Global Notes can appear in the Local search _if_ there is a shape linked to them
-                    if (!searchFilters.globalIfLocalShape || note.shapes.length === 0) continue;
-                } else if (searchFilters.activeLocation && locationId !== note.location) {
+            if (!note.isRoomNote) {
+                if (!searchGlobal) {
+                    if (!searchFilters.globalIfLocalShape || note.shapes.length === 0) {
+                        continue;
+                    }
+                }
+            } else {
+                if (!searchLocal || (searchFilters.activeLocation && locationId !== note.location)) {
                     continue;
                 }
-            } else if (note.isRoomNote) {
-                continue;
             }
         }
 
@@ -139,6 +151,14 @@ const visibleNotes = computed(() => {
     };
 });
 
+function handleClickOutsideDialog(event: MouseEvent): void {
+    if (searchOptionsDialog.value) {
+        if (showSearchFilters.value && !searchOptionsDialog.value.contains(event.target as Node)) {
+            showSearchFilters.value = false;
+        }
+    }
+}
+
 function toggleTagInSearch(tag: NoteTag): void {
     const tempArray = searchTags.value.filter((x) => x.name !== tag.name);
     if (tempArray.length === searchTags.value.length) {
@@ -156,6 +176,12 @@ function editNote(noteId: string): void {
 function clearShapeFilter(): void {
     noteState.mutableReactive.shapeFilter = undefined;
 }
+
+function clearSearchBar(): void {
+    searchFilter.value = "";
+    searchBar.value?.focus();
+}
+
 </script>
 
 <template>
@@ -164,17 +190,32 @@ function clearShapeFilter(): void {
     </header>
     <div id="notes-search" :class="shapeFiltered ? 'disabled' : ''">
         <div id="search-bar">
-            <ToggleGroup
+            <select
                 v-show="!shapeFiltered"
                 id="kind-selector"
                 v-model="selectedNoteTypes"
-                :options="arrToToggleGroup(noteTypes)"
-                :multi-select="false"
-                active-color="rgba(173, 216, 230, 0.5)"
-            />
+            >
+                <option v-for="type in noteTypes" :key="type" :value="type">
+                    {{ type }}
+                </option>
+            </select>
             <font-awesome-icon icon="magnifying-glass" @click="searchBar?.focus()" />
-            <input ref="searchBar" v-model="searchFilter" type="text" placeholder="search through your notes.." />
-            <div v-show="showSearchFilters" id="search-filter">
+            <div id="search-field">
+                <input ref="searchBar" v-model="searchFilter" type="text" placeholder="search through your notes.." />
+                <font-awesome-icon v-show="searchFilter.length > 0" id="clear-button" icon="circle-xmark" title="Clear Search" @click.stop="clearSearchBar" />
+            </div>
+            <font-awesome-icon
+                id="search-options-icon"
+                icon="sliders"
+                style="opacity: 0.5"
+                @click="showSearchFilters = true"
+            />
+            <div v-show="showSearchFilters" id="search-filter" ref="searchOptionsDialog">
+                <font-awesome-icon
+                    id="search-options-close-icon"
+                    icon="sliders"
+                    @click="showSearchFilters = false"
+                />
                 <fieldset>
                     <legend>Where to search</legend>
                     <div>
@@ -235,13 +276,6 @@ function clearShapeFilter(): void {
                         </label>
                     </div>
                 </fieldset>
-            </div>
-            <div id="search-icons">
-                <font-awesome-icon
-                    icon="sliders"
-                    :style="{ opacity: showSearchFilters ? 1 : 0.5 }"
-                    @click="showSearchFilters = !showSearchFilters"
-                />
             </div>
         </div>
         <div id="search-filters">
@@ -357,39 +391,76 @@ header {
         border-radius: 1rem;
 
         > #kind-selector {
+            flex-shrink: 0;
             height: calc(100% + 4px); // 2px border on top and bottom
             margin-left: -2px; // 2px border on left
-            border-color: black;
+            border-radius: 1rem;
+            border: solid 2px black;
+            outline: none;
+            text-transform: capitalize;
+            font-size: 1.25em;
+            text-align-last: center;
+            padding: 0 0.5em;
+            background-color: rgba(238, 244, 255, 1);
+            > option {
+                background-color: rgba(245, 245, 245, 1);
+            }
         }
 
         > svg:first-of-type {
             margin-left: 1rem;
         }
 
-        > input {
-            padding: 0.5rem 1rem;
+        > .shape-name {
+            flex-shrink: 0;
+            margin-left: 0.5rem;
+            font-weight: bold;
+
+            &:hover {
+                text-decoration: line-through;
+                cursor: pointer;
+            }
+        }
+
+        > #search-field {
             flex-grow: 1;
-            margin-right: 0.5rem;
+            flex-shrink: 1;
 
             outline: none;
             border: none;
             border-radius: 1rem;
 
-            font-size: 1.25em;
-        }
-
-        > #search-icons {
-            position: absolute;
             display: flex;
-            right: 1.5rem;
+            align-items: center;
+            width: 100%;
+
+            > input {
+                padding: 0.5rem 1rem;
+                outline: none;
+                border: none;
+                border-radius: 1rem;
+                flex-grow: 1;
+
+                font-size: 1.25em;
+            }
+            > #clear-button {
+                border: 0;
+                font-size: 1rem;
+                cursor: pointer;
+            }
+        }
+        > #search-options-icon {
+            margin: 0 1rem;
         }
 
-        #search-filter-toggle {
+        #search-options-close-icon {
             position: absolute;
-            right: 1.5rem;
+            right: 1rem;
+            top: 0.7rem;
         }
 
         #search-filter {
+            z-index: 1;
             position: absolute;
             top: -2px;
             right: -2px;
@@ -499,6 +570,12 @@ header {
 
     .note-tags {
         display: flex;
+
+        > div {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.5rem;
+            margin-right: 0.5rem;
+        }
     }
 
     .note-actions {

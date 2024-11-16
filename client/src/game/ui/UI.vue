@@ -311,6 +311,7 @@ function setTempZoomDisplay(value: number): void {
 }
 
 #radialmenu {
+    overflow: hidden;
     grid-area: menutoggle;
     z-index: -1;
 }

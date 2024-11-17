@@ -24,7 +24,6 @@ watch(() => props.modelValue, (newValue) => {
     }
 });
 
-// https://stackoverflow.com/a/69901745
 const results = computed(() =>
     props.options.filter(
         (option) => option.name.toLowerCase().includes(searchQuery.value.toLowerCase())

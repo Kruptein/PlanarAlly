@@ -201,12 +201,12 @@ function handleEnter(): void {
     flex-wrap: wrap;
     row-gap: 0.5rem;
     padding: 0.5rem;
-    margin: 0;
+    margin: 0 0.7rem;
     border: 1px solid black;
     border-top: 0;
     box-shadow: 0 0.1rem 0.875rem 0 #cacaca;
     background: white;
-    width: 100%;
+    width: calc(100% - 1.4rem);
     z-index: 1;
 }
 

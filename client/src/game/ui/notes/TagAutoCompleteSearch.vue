@@ -195,16 +195,21 @@ function handleEnter(): void {
 
 
 #autocomplete-results {
-    position:absolute;
+    position: absolute;
     display: flex;
+    padding: 0.5rem;
+    margin: 0 0.7rem;
+
     flex-direction: row;
     flex-wrap: wrap;
     row-gap: 0.5rem;
-    padding: 0.5rem;
-    margin: 0 0.7rem;
+
     border: 1px solid black;
     border-top: 0;
-    box-shadow: 0 0.1rem 0.875rem 0 #cacaca;
+    box-shadow: 0 0.1rem 0.675rem 0 rgba(0, 0, 0, 0.5);
+    border-radius: 0 0 0.5rem 0.5rem;
+    clip-path: inset(0 -1rem -1rem -1rem);
+
     background: white;
     width: calc(100% - 1.4rem);
     z-index: 1;

@@ -6,12 +6,22 @@ import { mostReadable } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
 import { locationStore } from "../../../store/location";
 import { noteState } from "../../systems/notes/state";
-import { NoteManagerMode, type ClientNote } from "../../systems/notes/types";
+import { NoteManagerMode, type ClientNote, type NoteTag } from "../../systems/notes/types";
 import { popoutNote } from "../../systems/notes/ui";
 import { propertiesState } from "../../systems/properties/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
 
+import TagAutoCompleteSearch from "./TagAutoCompleteSearch.vue";
+
 const emit = defineEmits<(e: "mode", mode: NoteManagerMode) => void>();
+
+onMounted(() => {
+    document.addEventListener('pointerdown', handleClickOutsideDialog);
+});
+
+onUnmounted(() => {
+    document.removeEventListener('pointerdown', handleClickOutsideDialog);
+});
 
 const noteTypes = ["global", "local", "all"] as const;
 const selectedNoteTypes = ref<(typeof noteTypes)[number]>((localStorage.getItem("note-display-type") as (typeof noteTypes)[number]) ?? "local");
@@ -21,7 +31,6 @@ watch(selectedNoteTypes, () => {
 
 const searchFilters = reactive({
     title: true,
-    tags: true,
     text: false,
     author: false,
     activeLocation: true,
@@ -32,8 +41,10 @@ const searchFilters = reactive({
 
 const searchBar = ref<HTMLInputElement | null>(null);
 const searchOptionsDialog = ref<HTMLDivElement | null>(null);
+const searchTags = ref<NoteTag[]>([]);
 const searchFilter = ref("");
 const showSearchFilters = ref(false);
+const showTagSearch = ref(false);
 const searchPage = ref(1);
 
 const shapeFiltered = computed(() => noteState.reactive.shapeFilter !== undefined);
@@ -48,20 +59,14 @@ const shapeName = computed(() => {
 //     searchBar.value?.focus();
 // });
 
-function handleClickOutsideDialog(event: MouseEvent): void {
-    if (searchOptionsDialog.value) {
-        if (showSearchFilters.value && !searchOptionsDialog.value.contains(event.target as Node)) {
-            showSearchFilters.value = false;
+const availableTags = computed(() => {
+    const tagList = new Map<string, NoteTag>();
+    for (const [_, note] of noteState.reactive.notes) {
+        for (const tag of note.tags) {
+            tagList.set(tag.name, tag);
         }
     }
-}
-
-onMounted(() => {
-    document.addEventListener('pointerdown', handleClickOutsideDialog);
-});
-
-onUnmounted(() => {
-    document.removeEventListener('pointerdown', handleClickOutsideDialog);
+    return Array.from(tagList, ([name, value]) => value).sort((a, b) => a.name.localeCompare(b.name));
 });
 
 const noteArray = computed(() => {
@@ -75,6 +80,16 @@ const noteArray = computed(() => {
     }));
     return Array.from(it2);
 });
+
+function containsSearchTags(note: typeof noteArray.value[number]): boolean {
+    for (const tag of searchTags.value) {
+        if (!note.tags.some((t) => t.name === tag.name)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 const filteredNotes = computed(() => {
     const sf = searchFilter.value.trim().toLowerCase();
     const searchLocal = selectedNoteTypes.value !== "global";
@@ -101,14 +116,16 @@ const filteredNotes = computed(() => {
             }
         }
 
+        if (!containsSearchTags(note)) {
+            continue;
+        }
+
         if (sf.length === 0) {
             notes.push(note);
             continue;
         }
 
         if (searchFilters.title && note.title.toLowerCase().includes(sf)) {
-            notes.push(note);
-        } else if (searchFilters.tags && note.tags.some((tag) => tag.name.toLowerCase().includes(sf))) {
             notes.push(note);
         } else if (searchFilters.text && note.text.toLowerCase().includes(sf)) {
             notes.push(note);
@@ -131,6 +148,23 @@ const visibleNotes = computed(() => {
     };
 });
 
+function handleClickOutsideDialog(event: MouseEvent): void {
+    if (searchOptionsDialog.value) {
+        if (showSearchFilters.value && !searchOptionsDialog.value.contains(event.target as Node)) {
+            showSearchFilters.value = false;
+        }
+    }
+}
+
+function toggleTagInSearch(tag: NoteTag): void {
+    const tempArray = searchTags.value.filter((x) => x.name !== tag.name);
+    if (tempArray.length === searchTags.value.length) {
+        searchTags.value.push(tag);
+    } else {
+        searchTags.value = tempArray;
+    }
+}
+
 function editNote(noteId: string): void {
     noteState.mutableReactive.currentNote = noteId;
     emit("mode", NoteManagerMode.Edit);
@@ -152,7 +186,7 @@ function clearSearchBar(): void {
         <div>NOTES {{ shapeName ? `for ${shapeName}` : "" }}</div>
     </header>
     <div id="notes-search" :class="shapeFiltered ? 'disabled' : ''">
-        <div>
+        <div id="search-bar">
             <select
                 v-show="!shapeFiltered"
                 id="kind-selector"
@@ -163,7 +197,6 @@ function clearSearchBar(): void {
                 </option>
             </select>
             <font-awesome-icon icon="magnifying-glass" @click="searchBar?.focus()" />
-            <div v-if="shapeName" class="shape-name" @click="clearShapeFilter">{{ shapeName }}</div>
             <div id="search-field">
                 <input ref="searchBar" v-model="searchFilter" type="text" placeholder="search through your notes.." />
                 <font-awesome-icon v-show="searchFilter.length > 0" id="clear-button" icon="circle-xmark" title="Clear Search" @click.stop="clearSearchBar" />
@@ -185,10 +218,6 @@ function clearSearchBar(): void {
                     <div>
                         <input id="note-search-title" v-model="searchFilters.title" type="checkbox" />
                         <label for="note-search-title">title</label>
-                    </div>
-                    <div>
-                        <input id="note-search-tags" v-model="searchFilters.tags" type="checkbox" />
-                        <label for="note-search-tags">tags</label>
                     </div>
                     <div>
                         <input id="note-search-text" v-model="searchFilters.text" type="checkbox" />
@@ -246,6 +275,25 @@ function clearSearchBar(): void {
                 </fieldset>
             </div>
         </div>
+        <div id="search-filters">
+            <span style="padding-right:1rem;">Filters:</span>
+            <div id="filter-bubbles">
+                <div v-if="shapeName" class="shape-name tag-bubble removable" @click="clearShapeFilter">{{ shapeName }}</div>
+                <div
+                    v-for="tag of searchTags"
+                    :key="tag.name"
+                    :style="{ color: mostReadable(tag.colour), backgroundColor: tag.colour }"
+                    class="tag-bubble removable"
+                    @click="toggleTagInSearch(tag)"
+                >
+                    {{ tag.name }}
+                </div>
+            </div>
+            <TagAutoCompleteSearch v-show="showTagSearch" id="tag-search-bar" placeholder="Search Tags..." :options="availableTags" @picked="toggleTagInSearch" />
+            <font-awesome-icon v-if="showTagSearch" id="tag-search-show" icon="minus" title="Hide Tag Search" @click="showTagSearch = false" />
+            <font-awesome-icon v-else id="tag-search-hide" icon="plus" title="Show Tag Search" @click="showTagSearch = true" />
+        </div>
+
     </div>
     <template v-if="visibleNotes.notes.length === 0">
         <div id="no-notes">
@@ -286,6 +334,9 @@ function clearSearchBar(): void {
                         v-for="tag of note.tags"
                         :key="tag.name"
                         :style="{ color: mostReadable(tag.colour), backgroundColor: tag.colour }"
+                        class="tag-bubble"
+                        :title='"Toggle \"" + tag.name + "\" filter"'
+                        @click="toggleTagInSearch(tag)"
                     >
                         {{ tag.name }}
                     </div>
@@ -328,7 +379,7 @@ header {
     margin: 1rem 0;
     position: relative;
 
-    > div {
+    > #search-bar {
         position: relative;
         display: flex;
         align-items: center;
@@ -427,6 +478,48 @@ header {
             }
         }
     }
+    > #search-filters {
+        margin: 0 1rem 0;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        min-height: 2.7rem;
+        border-bottom: solid 2px black;
+
+        > #filter-bubbles {
+            flex: 5 0 0;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            flex-wrap: wrap;
+            row-gap: 0.5rem;
+            height: 100%;
+            padding: 0.25rem;
+
+            > .shape-name {
+                font-weight: bold;
+                border: solid 2px black;
+            }
+
+
+            > div {
+                flex: 0 1 auto;
+                word-break: break-word;
+            }
+        }
+        > #tag-search-bar {
+            flex: 2 1 0;
+            height: 1.5rem;
+            min-width: 8rem;
+        }
+
+        > #tag-search-show,
+        > #tag-search-hide {
+            flex: 0 0 auto;
+            margin: 0 0.5rem;
+        }
+    }
+
 }
 
 #no-notes {
@@ -501,6 +594,21 @@ header {
             }
         }
     }
+}
+.tag-bubble {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.5rem;
+    margin-right: 0.5rem;
+}
+
+.tag-bubble.is-active,
+.tag-bubble:hover {
+    filter: brightness(85%);
+    cursor: pointer;
+}
+
+.removable:hover {
+    text-decoration: line-through;
 }
 
 footer {

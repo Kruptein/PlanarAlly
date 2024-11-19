@@ -1,4 +1,4 @@
-aiohttp==3.10.9
+aiohttp==3.10.11
 aiohttp_security==0.5.0
 aiohttp_session==2.12.1
 bcrypt==4.2.0

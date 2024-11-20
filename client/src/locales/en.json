@@ -150,7 +150,9 @@
                     "no_notes": "No notes",
                     "dm_settings": "DM Settings",
                     "no_markers": "No markers",
-                    "client_settings": "Client Settings"
+                    "client_settings": "Client Settings",
+                    "audio_player": "Audio Player",
+                    "gameboard_settings": "LG Settings"
                 }
             },
             "NoteDialog": {

@@ -8,7 +8,6 @@ import { uiState } from "../../../systems/ui/state";
 
 import AppearanceSettings from "./AppearanceSettings.vue";
 import BehaviourSettings from "./BehaviourSettings.vue";
-import { ClientSettingCategory } from "./categories";
 import DisplaySettings from "./DisplaySettings.vue";
 import InitiativeSettings from "./InitiativeSettings.vue";
 import PerformanceSettings from "./PerformanceSettings.vue";
@@ -31,11 +30,11 @@ function close(): void {
 defineExpose({ close });
 
 const tabs: { name: string; component: Component }[] = [
-    { name: ClientSettingCategory.Appearance, component: AppearanceSettings },
-    { name: ClientSettingCategory.Behaviour, component: BehaviourSettings },
-    { name: ClientSettingCategory.Display, component: DisplaySettings },
-    { name: ClientSettingCategory.Initiative, component: InitiativeSettings },
-    { name: ClientSettingCategory.Performance, component: PerformanceSettings },
+    { name: t('game.ui.settings.client.common.Appearance'), component: AppearanceSettings },
+    { name: t('game.ui.settings.client.common.Behaviour'), component: BehaviourSettings },
+    { name: t('game.ui.settings.client.common.Display'), component: DisplaySettings },
+    { name: t('common.initiative'), component: InitiativeSettings },
+    { name: t('game.ui.settings.client.common.Performance'), component: PerformanceSettings },
 ];
 </script>
 

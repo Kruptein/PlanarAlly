@@ -73,9 +73,9 @@ const dropRatio = useLocationSettings("dropRatio", location);
             <div>
                 <label
                     :for="'dropRatioInput-' + location"
-                    title="The drop ratio is used for shapes with size information (e.g. goblin_1x1). The drop ratio is applied to this info to determine the final size."
+                    :title="t('game.ui.settings.GridSettings.drop_ratio_title')"
                 >
-                    Drop Ratio
+                    {{ t('game.ui.settings.GridSettings.drop_ratio') }}
                 </label>
             </div>
             <div>

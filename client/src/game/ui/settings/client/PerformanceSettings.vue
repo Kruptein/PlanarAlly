@@ -11,7 +11,7 @@ const onlyRenderActiveFloor = useClientSettings("renderAllFloors");
 
 <template>
     <div class="panel restore-panel">
-        <div class="spanrow header">Rendering</div>
+        <div class="spanrow header">{{ t('game.ui.settings.client.PerformanceSettings.Rendering') }}</div>
         <div class="row">
             <label for="renderAllFloors">
                 {{ t("game.ui.settings.client.PerformanceSettings.only_render_active_floor") }}

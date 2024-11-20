@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { baseAdjust } from "../../../../core/http";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { getValue } from "../../../../core/utils";
 import { getPattern, patternToString } from "../../../layers/floor";
 import type { BackgroundPattern } from "../../../models/floor";
+
+const { t } = useI18n();
 
 const props = defineProps<{ pattern: string }>();
 const emit = defineEmits<(e: "update:pattern", p: string) => void>();
@@ -43,7 +46,7 @@ function setPatternData(data: { offsetX?: Event; offsetY?: Event; scaleX?: Event
 </script>
 
 <template>
-    <div>Pattern</div>
+    <div>{{ t('game.ui.settings.FloorSettings.pattern') }}</div>
     <div>
         <img
             v-if="backgroundPattern.hash !== ''"
@@ -55,14 +58,14 @@ function setPatternData(data: { offsetX?: Event; offsetY?: Event; scaleX?: Event
     </div>
     <div></div>
 
-    <div>Offset</div>
+    <div>{{ t('game.ui.settings.FloorSettings.offset') }}</div>
     <div>
         <input type="number" :value="backgroundPattern.offsetX" @change="setPatternData({ offsetX: $event })" />
         <input type="number" :value="backgroundPattern.offsetY" @change="setPatternData({ offsetY: $event })" />
     </div>
     <div></div>
 
-    <div>Scale</div>
+    <div>{{ t('game.ui.settings.FloorSettings.scale') }}</div>
     <div>
         <input
             type="number"

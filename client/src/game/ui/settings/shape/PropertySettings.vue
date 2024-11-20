@@ -127,7 +127,7 @@ async function changeAsset(): Promise<void> {
 
 <template>
     <div v-if="shapeProps" class="panel restore-panel">
-        <div class="spanrow header">Common</div>
+        <div class="spanrow header">{{ t('game.ui.selection.edit_dialog.properties.common') }}</div>
         <div class="row">
             <label for="shapeselectiondialog-name">{{ t("common.name") }}</label>
             <input
@@ -225,7 +225,7 @@ async function changeAsset(): Promise<void> {
             <label></label>
             <button @click="changeAsset">Change asset</button>
         </div>
-        <div class="spanrow header">Advanced</div>
+        <div class="spanrow header">{{ t('game.ui.selection.edit_dialog.properties.advanced') }}</div>
         <div class="row">
             <label for="shapeselectiondialog-visionblocker">
                 {{ t("game.ui.selection.edit_dialog.dialog.block_vision_light") }}

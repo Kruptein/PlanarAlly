@@ -99,16 +99,16 @@ function hideModal(): void {
     <Modal :visible="visible" @close="emit('close')">
         <template #header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
-                Configure logic permissions
+                {{ t('game.ui.selection.edit_dialog.logic.permissions.title') }}
                 <div class="header-close" :title="t('common.close')" @click.stop="hideModal">
                     <font-awesome-icon :icon="['far', 'window-close']" />
                 </div>
             </div>
         </template>
         <div class="modal-body">
-            <span class="condition-header">Enabled</span>
-            <span class="condition-header">Request</span>
-            <span class="condition-header">Disabled</span>
+            <span class="condition-header">{{ t('common.enabled') }}</span>
+            <span class="condition-header">{{ t('game.ui.selection.edit_dialog.logic.permissions.request') }}</span>
+            <span class="condition-header">{{ t('game.ui.selection.edit_dialog.logic.permissions.disabled') }}</span>
 
             <draggable
                 class="condition-sorter"
@@ -122,7 +122,7 @@ function hideModal(): void {
                 </template>
 
                 <template #footer>
-                    <div @click="add('enabled')">Add</div>
+                    <div @click="add('enabled')">{{ t('common.add') }}</div>
                 </template>
             </draggable>
             <draggable
@@ -137,7 +137,7 @@ function hideModal(): void {
                 </template>
 
                 <template #footer>
-                    <div @click="add('request')">Add</div>
+                    <div @click="add('request')">{{ t('common.add') }}</div>
                 </template>
             </draggable>
             <draggable
@@ -152,7 +152,7 @@ function hideModal(): void {
                 </template>
 
                 <template #footer>
-                    <div @click="add('disabled')">Add</div>
+                    <div @click="add('disabled')">{{ t('common.add') }}</div>
                 </template>
             </draggable>
         </div>

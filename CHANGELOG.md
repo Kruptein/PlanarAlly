@@ -41,6 +41,8 @@ tech changes will usually be stripped from release notes for the public
 -   Notes:
     -   Add filtering option 'All' to note manager to show both global and local notes
     -   Note popouts for clients without edit access now show 'view source' instead of 'edit'
+-   I18n:
+    -   Added 95% i18n for zh (except diceTool)
 
 ### Removed
 

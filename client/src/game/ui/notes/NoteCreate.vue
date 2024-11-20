@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onDeactivated, ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 import type { ApiNote } from "../../../apiTypes";
 import { uuidv4 } from "../../../core/utils";
@@ -10,6 +11,8 @@ import { NoteManagerMode } from "../../systems/notes/types";
 import { locationSettingsState } from "../../systems/settings/location/state";
 
 const emit = defineEmits<(e: "mode", mode: NoteManagerMode) => void>();
+
+const { t } = useI18n();
 
 const title = ref("");
 const isLocal = ref(true);
@@ -45,33 +48,31 @@ async function createNote(): Promise<void> {
 <template>
     <header>
         <span id="return" title="Back to list" @click="$emit('mode', NoteManagerMode.List)">↩</span>
-        Create a new note
+        {{ t('game.ui.notes.NoteCreate.header') }}
     </header>
     <div id="create-note">
-        <label for="new-note-title">Title:</label>
-        <input id="new-note-title" v-model="title" type="text" placeholder="New note..." autofocus />
-        <label for="new-note-type">Type:</label>
+        <label for="new-note-title">{{ t('game.ui.notes.NoteCreate.title') }}</label>
+        <input id="new-note-title" v-model="title" type="text" :placeholder="t('game.ui.notes.NoteCreate.title_placeholder')" autofocus />
+        <label for="new-note-type">{{ t('game.ui.notes.NoteCreate.type') }}</label>
         <div @click="isLocal = true">
             <input type="radio" name="new-note-type" value="local" :checked="isLocal" />
             <div>
-                <div>Local note</div>
+                <div>{{ t('game.ui.notes.NoteCreate.local_note_title') }}</div>
                 <div>
-                    A note that is relevant to the current campaign only. This is the most common kind of type and
-                    should be used for most cases.
+                    {{ t('game.ui.notes.NoteCreate.local_note_body') }}
                 </div>
             </div>
         </div>
         <div @click="isLocal = false">
             <input type="radio" name="new-note-type" value="global" :checked="!isLocal" />
             <div>
-                <div>Global note</div>
+                <div>{{ t('game.ui.notes.NoteCreate.global_note_title') }}</div>
                 <div>
-                    A note that will be visible in all campaigns. This is a special type that can be used to note down
-                    information on common things like monster stats thare are used in multiple campaigns.
+                    {{ t('game.ui.notes.NoteCreate.global_note_body') }}
                 </div>
             </div>
         </div>
-        <button @click="createNote">Create note</button>
+        <button @click="createNote">{{ t('game.ui.menu.MenuBar.create_note') }}</button>
     </div>
 </template>
 

@@ -125,7 +125,7 @@ const openClientSettings = (): void => uiSystem.showClientSettings(!uiState.raw.
                     {{ t("game.ui.menu.MenuBar.dm_settings") }}
                 </button>
                 <!-- PLAYERS -->
-                <button class="menu-accordion">Players</button>
+                <button class="menu-accordion">{{ t('common.players') }}</button>
                 <div class="menu-accordion-panel">
                     <div id="menu-players" class="menu-accordion-subpanel">
                         <template v-for="info of clientInfo" :key="info.client">
@@ -135,7 +135,7 @@ const openClientSettings = (): void => uiSystem.showClientSettings(!uiState.raw.
                                 </div>
                             </div>
                         </template>
-                        <div v-if="clientInfo.length === 0">No players connected</div>
+                        <div v-if="clientInfo.length === 0">{{ t('game.ui.menu.MenuBar.no_players') }}</div>
                     </div>
                 </div>
             </template>

@@ -102,17 +102,17 @@ function toggleFakePlayer(): void {
                 <div v-if="gameState.isDmOrFake.value" id="tool-status-toggles">
                     <div
                         :class="{ active: gameState.reactive.isFakePlayer }"
-                        title="Toggle fake-player"
+                        :title="t('game.ui.tools.tools.FP_title')"
                         @click="toggleFakePlayer"
                     >
-                        FP
+                        {{ t('game.ui.tools.tools.FP') }}
                     </div>
                     <div
                         :class="{ active: initiativeStore.state.isActive }"
-                        title="Toggle Initiative State"
+                        :title="t('game.ui.tools.tools.INI_title')"
                         @click="initiativeStore.toggleActive"
                     >
-                        INI
+                        {{ t('game.ui.tools.tools.INI') }}
                     </div>
                 </div>
                 <div style="flex-grow: 1"></div>

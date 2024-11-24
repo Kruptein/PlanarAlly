@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import tinycolor from "tinycolor2";
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { l2gz } from "../../../../core/conversions";
 import { toGP } from "../../../../core/geometry";
@@ -26,6 +27,8 @@ import { propertiesSystem } from "../../../systems/properties";
 import { VisionBlock } from "../../../systems/properties/types";
 import { locationSettingsState } from "../../../systems/settings/location/state";
 import { visionState } from "../../../vision/state";
+
+const { t } = useI18n();
 
 const modals = useModal();
 
@@ -162,18 +165,18 @@ function applyDDraft(): void {
 <template>
     <div class="panel restore-panel">
         <template v-if="showSvgSection">
-            <div class="spanrow header">Lighting & Vision</div>
+            <div class="spanrow header">{{ t('game.ui.selection.edit_dialog.extra.lighting_vision') }}</div>
             <template v-if="!hasPath">
-                <label for="edit_dialog-extra-upload_walls">Upload walls (svg)</label>
-                <button id="edit_dialog-extra-upload_walls" @click="uploadSvg">Upload</button>
+                <label for="edit_dialog-extra-upload_walls">{{ t('game.ui.selection.edit_dialog.extra.upload_walls') }} (svg)</label>
+                <button id="edit_dialog-extra-upload_walls" @click="uploadSvg">{{ t('common.upload') }}</button>
             </template>
             <template v-else>
-                <label for="edit_dialog-extra-upload_walls">Remove walls (svg)</label>
-                <button id="edit_dialog-extra-upload_walls" @click="removeSvg">Remove</button>
+                <label for="edit_dialog-extra-upload_walls">{{ t('game.ui.selection.edit_dialog.extra.remove_walls') }} (svg)</label>
+                <button id="edit_dialog-extra-upload_walls" @click="removeSvg">{{ t('common.remove') }}</button>
             </template>
             <template v-if="hasDDraftInfo">
-                <label for="edit_dialog-extra-upload_walls">Apply ddraft info</label>
-                <button id="edit_dialog-extra-upload_walls" @click="applyDDraft">Apply</button>
+                <label for="edit_dialog-extra-upload_walls">{{ t('game.ui.selection.edit_dialog.extra.apply_draft_info') }}</label>
+                <button id="edit_dialog-extra-upload_walls" @click="applyDDraft">{{ t('common.apply') }}</button>
             </template>
         </template>
     </div>

@@ -1,5 +1,6 @@
 <script setup lang="ts" generic="T extends { name: string, colour: string }">
 import { computed, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { mostReadable } from "../../../core/utils";
 
@@ -13,6 +14,8 @@ const props = defineProps<{
     placeholder: string;
     modelValue?: string;
 }>();
+
+const { t } = useI18n();
 
 const searchQuery = ref(props.modelValue ?? "");
 
@@ -137,7 +140,7 @@ function handleEnter(): void {
                 @focusin="onFocusIn"
             />
             <div v-show="searchQuery.length > 0" id="clear-button" @click.stop="clearSearchBar">
-                <font-awesome-icon icon="circle-xmark" title="Clear Search" />
+                <font-awesome-icon icon="circle-xmark" :title="t('game.ui.notes.NoteList.clear_search')" />
             </div>
         </div>
         <div v-show="shouldShowResults()" id="autocomplete-results" tabindex="0" >

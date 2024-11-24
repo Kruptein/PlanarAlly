@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { uuidv4 } from "../../core/utils";
 import { chatSystem } from "../systems/chat";
 import { chatState } from "../systems/chat/state";
 import { playerSystem } from "../systems/players";
+
+const { t } = useI18n();
 
 // Check for URL that starts at word boundary && does not follow ]( as this is likely already wrapped in markdown syntax in that case
 const URL_REGEX =
@@ -115,7 +118,7 @@ function handleMessage(event: KeyboardEvent): void {
     <div id="chat" :class="{ collapsed: !expanded }">
         <div id="chat-title" @click="toggleChat">
             <div>
-                Chat
+                {{ t('game.ui.chat.title') }}
                 <span v-show="chatState.raw.messages.length > messagesSeenCount">
                     ({{ chatState.raw.messages.length - messagesSeenCount }})
                 </span>
@@ -133,7 +136,7 @@ function handleMessage(event: KeyboardEvent): void {
             </template>
             <template v-if="chatState.reactive.messages.length === 0">
                 <div></div>
-                <div style="font-style: italic">No messages yet.</div>
+                <div style="font-style: italic">{{ t('game.ui.chat.no_messages') }}</div>
             </template>
         </div>
         <textarea v-show="expanded" ref="textInput" @keydown.enter="handleMessage" />

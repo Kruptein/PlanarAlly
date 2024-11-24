@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeMount, ref, watchEffect } from "vue";
+import { useI18n } from "vue-i18n";
 import VueMarkdown from "vue-markdown-render";
 
 import { useModal } from "../../../core/plugins/modals/plugin";
@@ -16,6 +17,7 @@ import { getProperties } from "../../systems/properties/state";
 
 const emit = defineEmits<(e: "mode", mode: NoteManagerMode) => void>();
 
+const { t } = useI18n();
 const modals = useModal();
 
 const note = computed(() => noteState.reactive.notes.get(noteState.reactive.currentNote!));
@@ -26,7 +28,7 @@ watchEffect(() => {
     }
 });
 
-const defaultAccessName = "default";
+const defaultAccessName = t('game.ui.access.default_access');
 
 const canEdit = computed(() => {
     if (!note.value) return false;
@@ -70,6 +72,7 @@ enum TabLabel {
 
 interface Tab {
     label: TabLabel;
+    label_text: string;
     icon: string;
     visible: boolean;
     title: string;
@@ -80,27 +83,30 @@ const tabs = computed(
         [
             {
                 label: TabLabel.View,
+                label_text: t("game.common.view"),
                 icon: "eye",
                 visible: true,
-                title: "View the note as rendered markdown",
+                title: t('game.ui.notes.NoteEdit.tab_label.view_title'),
             },
-            { label: TabLabel.Edit, icon: "pencil", visible: canEdit.value, title: "Edit the note" },
+            { label: TabLabel.Edit, label_text: t('game.common.edit'), icon: "pencil", visible: canEdit.value, title: t('game.ui.notes.NoteEdit.tab_label.edit_title') },
             {
                 label: TabLabel.Triggers,
+                label_text: t('game.ui.notes.NoteEdit.tab_label.triggers'),
                 icon: "comment-dots",
                 visible: canEdit.value,
                 disabled: localShapenotes.value.length === 0,
                 title:
                     localShapenotes.value.length > 0
-                        ? "Configure when the note should appear"
-                        : "Only notes with shapes can have triggers",
+                        ? t('game.ui.notes.NoteEdit.tab_label.triggers_label1')
+                        : t('game.ui.notes.NoteEdit.tab_label.triggers_label2'),
             },
-            { label: TabLabel.Access, icon: "cog", visible: canEdit.value, title: "Configure access rights" },
+            { label: TabLabel.Access, label_text: t("game.ui.notes.NoteEdit.tab_label.access"), icon: "cog", visible: canEdit.value, title: t('game.ui.notes.NoteEdit.tab_label.access_title') },
             {
                 label: TabLabel.Shapes,
+                label_text: t('game.ui.notes.NoteEdit.tab_label.shapes'),
                 icon: "link",
                 visible: canEdit.value,
-                title: "See which shapes are linked to this note",
+                title: t('game.ui.notes.NoteEdit.tab_label.shapes_title'),
             },
             // { label: TabLabel.Map, icon: "location-dot", visible: false },
         ] as Tab[],
@@ -217,21 +223,21 @@ function removeShape(shape: LocalId): void {
 <template>
     <template v-if="note">
         <header>
-            <span id="return" title="Back to list" @click="$emit('mode', NoteManagerMode.List)">↩</span>
+            <span id="return" :title="t('game.ui.notes.NoteEdit.back')" @click="$emit('mode', NoteManagerMode.List)">↩</span>
             <input
                 id="title"
                 type="text"
-                :value="note?.title ?? 'New note...'"
+                :value="note?.title ?? t('game.ui.notes.NoteCreate.title_placeholder')"
                 :disabled="!canEdit"
                 :class="{ edit: canEdit }"
                 @change="setTitle"
             />
             <font-awesome-icon
                 :icon="['far', 'window-restore']"
-                title="Popout note"
+                :title="t('game.ui.notes.NoteDialog.pop_out')"
                 @click.stop="popoutNote(noteState.reactive.currentNote!)"
             />
-            <font-awesome-icon v-if="canEdit" title="Remove note" icon="trash-alt" @click="remove" />
+            <font-awesome-icon v-if="canEdit" :title="t('game.ui.NoteDialog.remove_note')" icon="trash-alt" @click="remove" />
         </header>
         <!-- TAGS -->
         <div v-if="note.tags.length > 0 || canEdit" id="tags">
@@ -245,8 +251,8 @@ function removeShape(shape: LocalId): void {
             >
                 {{ tag.name }}
             </div>
-            <div v-if="note.tags.length === 0">No tags yet.</div>
-            <div v-if="canEdit" title="Add tag" @click="addTag"><font-awesome-icon icon="plus" /></div>
+            <div v-if="note.tags.length === 0">{{ t('game.ui.notes.NoteEdit.no_tags') }}</div>
+            <div v-if="canEdit" :title="t('game.ui.notes.NoteEdit.add_tag')" @click="addTag"><font-awesome-icon icon="plus" /></div>
         </div>
         <!-- TABS -->
         <div v-if="canEdit" id="tabs">
@@ -259,7 +265,7 @@ function removeShape(shape: LocalId): void {
                 @click="activeTabIndex = i"
             >
                 <font-awesome-icon :icon="tab.icon" />
-                <div>{{ tab.label }}</div>
+                <div>{{ tab.label_text }}</div>
             </div>
             <!-- <div v-if="canHaveShape(note)">
                 <font-awesome-icon icon="location-dot" />
@@ -278,13 +284,13 @@ function removeShape(shape: LocalId): void {
             <VueMarkdown :source="note.text" :options="{ html: true }" />
         </div>
         <div v-else-if="activeTab === TabLabel.Edit" id="editor" class="tab-container">
-            <em>This input is markdown aware!</em>
+            <em>{{ t('game.ui.notes.NoteEdit.md_aware') }}</em>
             <textarea :value="note.text" @input="setText($event, false)" @change="setText($event, true)"></textarea>
         </div>
         <div v-else-if="activeTab === TabLabel.Access" id="note-access-container" class="tab-container">
-            <div>Name</div>
-            <div>Can view</div>
-            <div>Can edit</div>
+            <div>{{ t('common.name') }}</div>
+            <div>{{ t('game.ui.access.can_view') }}</div>
+            <div>{{ t('game.ui.access.can_edit') }}</div>
             <div></div>
             <template v-for="access of accessLevels" :key="access.name">
                 <div>{{ access.name }}</div>
@@ -293,48 +299,47 @@ function removeShape(shape: LocalId): void {
                 <font-awesome-icon
                     v-if="access.name !== defaultAccessName"
                     icon="trash-alt"
-                    title="Remove access"
+                    :title="t('game.ui.access.remove_access')"
                     @click="noteSystem.removeAccess(note!.uuid, access.name, true)"
                 />
                 <div v-else></div>
             </template>
-            <div @click="addAccess">Add</div>
+            <div @click="addAccess">{{ t('common.add') }}</div>
         </div>
         <div v-else-if="activeTab === TabLabel.Shapes" id="note-shapes" class="tab-container">
             <div>
                 <span>
-                    This note is linked to {{ note.shapes.length }} {{ `shape${note.shapes.length !== 1 ? "s" : ""}` }};
-                    {{ localShapenotes.length }} of those {{ localShapenotes.length !== 1 ? "are" : "is" }} used in this
-                    location
+                    {{ t('game.ui.notes.NoteEdit.shapes.linked') }} {{ note.shapes.length }} {{ t('game.ui.notes.NoteEdit.shapes.linked_shape') }};
+                    {{ localShapenotes.length }} {{ t('game.ui.notes.NoteEdit.shapes.used') }}
                 </span>
                 &nbsp;
                 <span v-if="localShapenotes.length > 0">
-                    and {{ localShapenotes.length !== 1 ? "are" : "is" }} listed below.
+                    {{ t('game.ui.notes.NoteEdit.shapes.listed') }}
                 </span>
-                <button @click="addShape">Add a shape</button>
+                <button @click="addShape">{{ t('game.ui.notes.NoteEdit.shapes.add') }}</button>
             </div>
             <div v-for="shape of localShapenotes" :key="shape.id" @click="navigateToShape(shape.id)">
-                <font-awesome-icon icon="location-dot" title="Go to shape on the map" />
+                <font-awesome-icon icon="location-dot" :title="t('game.ui.notes.NoteEdit.shapes.go_to_map')" />
                 {{ (shape.name?.length ?? 0) > 15 ? `${shape.name?.slice(0, 12)}...` : shape.name }}
                 <div style="flex-grow: 1"></div>
-                <font-awesome-icon icon="trash-alt" title="Remove shape link" @click.stop="removeShape(shape.id)" />
+                <font-awesome-icon icon="trash-alt" :title="t('game.ui.notes.NoteEdit.shapes.remove')" @click.stop="removeShape(shape.id)" />
             </div>
         </div>
         <div v-else id="note-triggers" class="tab-container">
             <label for="note-trigger-icon">
                 <font-awesome-icon
                     icon="circle-info"
-                    title="Checking this will render a special icon in the bottom-left of a shape on the map. This can be useful to remind yourself of an important note"
+                    :title="t('game.ui.notes.NoteEdit.show_icon_title')"
                 />
-                Show note icon on shape
+                {{ t('game.ui.notes.NoteEdit.show_icon') }}
             </label>
             <input id="note-trigger-icon" v-model="showIconOnShape" type="checkbox" />
             <label for="note-trigger-hover">
                 <font-awesome-icon
                     icon="circle-info"
-                    title="This will show the text of the note from the top side of the screen when you hover the shape."
+                    :title="t('game.ui.notes.NoteEdit.show_text_title')"
                 />
-                Show text on shape hover
+                {{ t('game.ui.notes.NoteEdit.show_text') }}
             </label>
             <input id="note-trigger-hover" v-model="showOnHover" type="checkbox" />
         </div>

@@ -15,17 +15,29 @@ import { diceTool } from "../../tools/variants/dice";
 
 const { t } = useI18n();
 
-const limitOperatorOptionNames = [t('game.ui.tools.DiceTool.limit_operator_options.keep'), t('game.ui.tools.DiceTool.limit_operator_options.drop'), t('game.ui.tools.DiceTool.limit_operator_options.min'), t('game.ui.tools.DiceTool.limit_operator_options.max')]
-const selectorOptionNames = ["=", ">", "<", t('game.ui.tools.DiceTool.selection_option_names.highest'), t('game.ui.tools.DiceTool.selection_option_names.lowest')]
-const dice3dOptions = [t('game.ui.tools.DiceTool.3D_options.off'), t('game.ui.tools.DiceTool.3D_options.on'), t('game.ui.tools.DiceTool.3D_options.box')] as const;
-const dice3dSetting = ref<(typeof dice3dOptions)[number]>(t('game.ui.tools.DiceTool.3D_options.off'));
-const shareResultOptions = [t('game.ui.tools.DiceTool.share_options.all'), t('game.ui.tools.DiceTool.share_options.dm'), t('game.ui.tools.DiceTool.share_options.none')] as const;
-const shareResult = ref<(typeof shareResultOptions)[number]>(t('game.ui.tools.DiceTool.share_options.all'));
+// const limitOperatorOptionNames = [t('game.ui.tools.DiceTool.limit_operator_options.keep'), t('game.ui.tools.DiceTool.limit_operator_options.drop'), t('game.ui.tools.DiceTool.limit_operator_options.min'), t('game.ui.tools.DiceTool.limit_operator_options.max')]
+// const selectorOptionNames = ["=", ">", "<", t('game.ui.tools.DiceTool.selection_option_names.highest'), t('game.ui.tools.DiceTool.selection_option_names.lowest')]
+const dice3dOptions = ["off", "on", "box"] as const;
+const dice3dSetting = ref<(typeof dice3dOptions)[number]>("off");
+const shareResultOptions = ["all", "dm", "none"] as const;
+const shareResult = ref<(typeof shareResultOptions)[number]>("all");
 const showAdvancedOptions = ref(false);
 const showRollHistory = ref(false);
 const showHistoryBreakdownFor = ref<number | null>(null);
 const canvasElement = ref<HTMLCanvasElement | null>(null);
 const inputElement = ref<HTMLInputElement | null>(null);
+const translationMapping = {
+    dice3dOptions: {
+        ["off"]: t('game.ui.tools.DiceTool.3D_options.off'),
+        ["on"]: t('game.ui.tools.DiceTool.3D_options.on'),
+        ["box"]: t('game.ui.tools.DiceTool.3D_options.box'),
+    },
+    shareResultOptions: {
+        ["all"]: t('game.ui.tools.DiceTool.share_options.all'),
+        ["dm"]: t('game.ui.tools.DiceTool.share_options.dm'),
+        ["none"]: t('game.ui.tools.DiceTool.share_options.none'),
+    },
+}
 
 const awaitingRoll = ref(false);
 const awaiting3dLoad = ref(false);
@@ -38,11 +50,11 @@ const lastSeg = computed(() => input.value.at(-1));
 
 
 watch(dice3dSetting, async (value) => {
-    if (value === t('game.ui.tools.DiceTool.3D_options.on')) {
+    if (value === "on") {
         awaiting3dLoad.value = true;
         await diceSystem.load3d();
         awaiting3dLoad.value = false;
-    } else if (value === t('game.ui.tools.DiceTool.3D_options.box')) {
+    } else if (value === "box") {
         awaiting3dLoad.value = true;
         await diceSystem.load3d(canvasElement.value!);
         awaiting3dLoad.value = false;
@@ -138,7 +150,7 @@ async function roll(): Promise<void> {
     const getResult = async (): Promise<RollResult<Part>> => {
         const result = await diceTool.roll(
             inputText.value,
-            dice3dSetting.value !== t('game.ui.tools.DiceTool.3D_options.off'),
+            dice3dSetting.value !== "off",
             shareResult.value.toLowerCase() as DiceRollResult["shareWith"],
         );
 
@@ -162,7 +174,7 @@ async function roll(): Promise<void> {
 <template>
     <div id="dice" class="tool-detail">
         <Transition name="dice-expand">
-            <div v-show="dice3dSetting === t('game.ui.tools.DiceTool.3D_options.box')" class="dice-roller-box">
+            <div v-show="dice3dSetting === 'box'" class="dice-roller-box">
                 <div class="dice-canvas-container">
                     <canvas id="dice-canvas" ref="canvasElement" />
                 </div>
@@ -277,7 +289,7 @@ async function roll(): Promise<void> {
                 <ToggleGroup
                     v-model="dice3dSetting"
                     class="click-group"
-                    :options="arrToToggleGroup(dice3dOptions)"
+                    :options="arrToToggleGroup(dice3dOptions, translationMapping.dice3dOptions)"
                     :multi-select="false"
                     :disabled="awaiting3dLoad"
                 />
@@ -287,7 +299,7 @@ async function roll(): Promise<void> {
                 <ToggleGroup
                     v-model="shareResult"
                     class="click-group"
-                    :options="arrToToggleGroup(shareResultOptions)"
+                    :options="arrToToggleGroup(shareResultOptions, translationMapping.shareResultOptions)"
                     :multi-select="false"
                 />
             </div>
@@ -304,7 +316,6 @@ async function roll(): Promise<void> {
                         <ClickGroup
                             class="click-group"
                             :options="DxConfig.limitOperatorOptions"
-                            :option-names="limitOperatorOptionNames"
                             :disabled="!showOperator"
                             @click="addOperator"
                         />
@@ -314,7 +325,6 @@ async function roll(): Promise<void> {
                         <ClickGroup
                             class="click-group"
                             :options="DxConfig.selectorOptions"
-                            :option-names="selectorOptionNames"
                             :disabled="!showSelector"
                             @click="addSelector"
                         />

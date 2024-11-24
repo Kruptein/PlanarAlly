@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type Component, computed } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
@@ -35,14 +35,45 @@ function close(): void {
 }
 defineExpose({ close });
 
-const tabs: { name: string; component: Component; props: { global: true } }[] = [
-    { name: t(DmSettingCategory.Admin), component: AdminSettings, props: { global: true } },
-    { name: t(DmSettingCategory.Features), component: FeatureSettings, props: { global: true } },
-    { name: t(DmSettingCategory.Grid), component: GridSettings, props: { global: true } },
-    { name: t(DmSettingCategory.Vision), component: VisionSettings, props: { global: true } },
-    { name: t(DmSettingCategory.Floor), component: FloorSettings, props: { global: true } },
-    { name: t(DmSettingCategory.Varia), component: VariaSettings, props: { global: true } },
-];
+// Computed to trigger locale rerender
+const tabs = computed(() => [
+    {
+        category: DmSettingCategory.Admin,
+        name: t(DmSettingCategory.Admin),
+        component: AdminSettings,
+        props: { global: true },
+    },
+    {
+        category: DmSettingCategory.Features,
+        name: t(DmSettingCategory.Features),
+        component: FeatureSettings,
+        props: { global: true },
+    },
+    {
+        category: DmSettingCategory.Grid,
+        name: t(DmSettingCategory.Grid),
+        component: GridSettings,
+        props: { global: true },
+    },
+    {
+        category: DmSettingCategory.Vision,
+        name: t(DmSettingCategory.Vision),
+        component: VisionSettings,
+        props: { global: true },
+    },
+    {
+        category: DmSettingCategory.Floor,
+        name: t(DmSettingCategory.Floor),
+        component: FloorSettings,
+        props: { global: true },
+    },
+    {
+        category: DmSettingCategory.Varia,
+        name: t(DmSettingCategory.Varia),
+        component: VariaSettings,
+        props: { global: true },
+    },
+]);
 </script>
 
 <template>

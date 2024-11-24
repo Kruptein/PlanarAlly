@@ -41,6 +41,13 @@ tech changes will usually be stripped from release notes for the public
 -   Notes:
     -   Add filtering option 'All' to note manager to show both global and local notes
     -   Note popouts for clients without edit access now show 'view source' instead of 'edit'
+-   Dice tool:
+    -   Last result is now displayed in the dice tool rather than a popup window
+    -   Result breakdowns are shown in the last result display and history
+    -   Added a reroll button to quickly redo the previous roll
+    -   Added a reroll button to history entries
+    -   Add an option to roll 3D dice inside a dice box rather than over the playfield
+    -   Input field now scrolls to the end after populating via the on screen buttons
 
 ### Removed
 

@@ -21,7 +21,7 @@ interface ModLoad {
 
     ui: {
         shape: {
-            registerTab: (component: Component, name: string, filter: (shape: LocalId) => boolean) => void;
+            registerTab: (component: Component, category: string, name: string, filter: (shape: LocalId) => boolean) => void;
         };
     };
 

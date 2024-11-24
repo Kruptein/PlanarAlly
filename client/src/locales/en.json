@@ -512,7 +512,7 @@
                     "size": "Size",
                     "range": "Range (radius)"
                 },
-                "tools":
+                "tools": {
                     "change_mode": "Change mode",
                     "FP": "FP",
                     "INI": "INI",

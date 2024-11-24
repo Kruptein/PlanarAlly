@@ -410,8 +410,6 @@ async function roll(): Promise<void> {
             cursor: pointer;
         }
 
-        > .toggle-label {
-        }
         > .toggle-chevron {
             font-size: 80%;
             margin-left: 0.5rem;
@@ -474,8 +472,6 @@ async function roll(): Promise<void> {
 
                         background-color: rgba(235, 240, 245, 1);
 
-                        > .input {
-                        }
                         > .ops {
                             white-space: nowrap;
                         }
@@ -686,9 +682,6 @@ async function roll(): Promise<void> {
         &:hover {
             cursor: pointer;
         }
-    }
-
-    #advanced-config-drawer {
     }
 
     #literal-selector {

@@ -375,6 +375,7 @@ async function roll(): Promise<void> {
     }
 
     .svg-button {
+        font-size: 75%;
         &:hover:not(.disabled) {
             transition: all 0.05s linear;
             transform: scale(105%);
@@ -714,7 +715,7 @@ async function roll(): Promise<void> {
 
         > #reroll-previous-button {
             flex: 0 0 auto;
-            padding: 0.25rem;
+            padding-right: 0.125rem;
             font-size: 1.75em
         }
     }

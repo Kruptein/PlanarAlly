@@ -41,12 +41,10 @@ class DiceSystem implements System {
         $.systems = { "2d": DX, "3d": DX3 };
     }
 
-    async load3d(): Promise<void> {
-        if (!diceState.raw.loaded3d) {
-            const env = await getDiceEnvironment();
-            await env.loadDiceEnv();
-            $.loaded3d = true;
-        }
+    async load3d(canvas?: HTMLCanvasElement): Promise<void> {
+        const env = await getDiceEnvironment();
+        await env.loadDiceEnv(canvas);
+        $.loaded3d = true;
     }
 
     set3dDimensions(width: number, height: number): void {

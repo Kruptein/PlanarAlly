@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { type Part, type RollResult } from "@planarally/dice/core";
 import { DxConfig, DxSegmentType, type DxSegment } from "@planarally/dice/systems/dx";
-import { computed, ref, watch } from "vue";
+import { type DeepReadonly, computed, nextTick, ref, watch } from "vue";
 
 import type { DiceRollResult } from "../../../apiTypes";
 import ClickGroup from "../../../core/components/ClickGroup.vue";
@@ -11,20 +12,36 @@ import { DxHelper } from "../../systems/dice/dx";
 import { diceState } from "../../systems/dice/state";
 import { diceTool } from "../../tools/variants/dice";
 
-const showHistory = ref(false);
-
-const _3dOptions = ["yes", "no"] as const;
-const use3d = ref<(typeof _3dOptions)[number]>("no");
+const dice3dOptions = ["Off", "On", "Box"] as const;
+const dice3dSetting = ref<(typeof dice3dOptions)[number]>("Off");
 const shareResultOptions = ["All", "DM", "None"] as const;
 const shareResult = ref<(typeof shareResultOptions)[number]>("All");
+const showAdvancedOptions = ref(false);
+const showRollHistory = ref(false);
+const showHistoryBreakdownFor = ref<number | null>(null);
+const canvasElement = ref<HTMLCanvasElement | null>(null);
+const inputElement = ref<HTMLInputElement | null>(null);
 
-const literalOptions = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"] as const;
+const awaitingRoll = ref(false);
+const awaiting3dLoad = ref(false);
+const lastRoll = ref<RollResult<Part>>({ result: "-", parts: [{ input: undefined, shortResult: "No rolls yet" }] });
+
+const literalOptions = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ...DxConfig.symbolOptions] as const;
 
 const input = ref<DxSegment[]>([]);
 const lastSeg = computed(() => input.value.at(-1));
 
-watch(use3d, async (value) => {
-    if (value === "yes") await diceSystem.load3d();
+
+watch(dice3dSetting, async (value) => {
+    if (value === "On") {
+        awaiting3dLoad.value = true;
+        await diceSystem.load3d();
+        awaiting3dLoad.value = false;
+    } else if (value === "Box") {
+        awaiting3dLoad.value = true;
+        await diceSystem.load3d(canvasElement.value!);
+        awaiting3dLoad.value = false;
+    }
 });
 
 const showOperator = computed(() => {
@@ -45,7 +62,15 @@ const showSelector = computed(() => {
 });
 
 const inputText = ref("");
-watch(input, (parts) => (inputText.value = DxHelper.stringifySegments(parts)), { deep: true });
+watch(input, async (parts) => {
+    inputText.value = DxHelper.stringifySegments(parts);
+    await nextTick();
+    inputElement.value!.scrollLeft = inputElement.value!.scrollWidth;
+}, { deep: true });
+
+function scrollToHistoryEntry(element: Element): void {
+    element.scrollIntoView({ block: 'end', behavior: 'smooth' });
+}
 
 function clear(): void {
     input.value = [];
@@ -70,157 +95,587 @@ function addSelector(selector: (typeof DxConfig.selectorOptions)[number]): void 
 }
 
 function addLiteral(literal: (typeof literalOptions)[number]): void {
-    const value = Number.parseInt(literal);
-    DxHelper.addLiteral(input, value);
-}
+    const literalAsOperator = literal as (typeof DxConfig.symbolOptions[number]);
 
-function addSymbol(symbol: (typeof DxConfig.symbolOptions)[number]): void {
-    input.value.push({ type: DxSegmentType.Operator, input: symbol });
+    if (DxConfig.symbolOptions.includes(literalAsOperator)) {
+        input.value.push({ type: DxSegmentType.Operator, input: literalAsOperator });
+    } else {
+        const value = Number.parseInt(literal);
+        DxHelper.addLiteral(input, value);
+    }
 }
 
 function updateFromString(event: Event): void {
     input.value = diceState.raw.systems!["2d"].parse((event.target as HTMLInputElement).value);
 }
 
+function populateInputFromHistoryRoll(roll: DeepReadonly<RollResult<Part>>): void {
+    const parts = roll.parts;
+
+    let content = "";
+
+    for (const part of parts) {
+        content += part.input ?? "";
+    }
+    input.value = diceState.raw.systems!["2d"].parse(content);
+}
+function populateInputFromHistoryIndex(index: number): void {
+    const historyItem = diceState.reactive.history[index];
+    if (historyItem === null || historyItem === undefined) return;
+    populateInputFromHistoryRoll(historyItem.roll);
+}
 async function roll(): Promise<void> {
     if (inputText.value.length === 0) return;
 
-    const results = await diceTool.roll(
-        inputText.value,
-        use3d.value === "yes",
-        shareResult.value.toLowerCase() as DiceRollResult["shareWith"],
-    );
     clear();
-    diceSystem.showResults(results);
+    awaitingRoll.value = true;
+
+    const getResult = async (): Promise<RollResult<Part>> => {
+        const result = await diceTool.roll(
+            inputText.value,
+            dice3dSetting.value !== "Off",
+            shareResult.value.toLowerCase() as DiceRollResult["shareWith"],
+        );
+
+        // These lines are required to make sure that the transition for lastroll-results plays,
+        // This covers the case of multiple 3D dice rolls awaiting results simultaneously. When one
+        // finishes, the awaitingRoll value is updated to false and the value is shown. If another
+        // of the rolls finishes, it will not play a transition because awaitingRoll did not change.
+        // Therefore, we change this value here to force an update and play the transition.
+        awaitingRoll.value = true;
+        await nextTick();
+
+        return result;
+    };
+
+    lastRoll.value = await getResult();
+
+    awaitingRoll.value = false;
 }
 </script>
 
 <template>
     <div id="dice" class="tool-detail">
-        <template v-if="!showHistory">
-            <div class="header">\\ SETTINGS \\</div>
-            <div id="dice-settings" class="dice-grid">
-                <label>Use 3D dice</label>
-                <ToggleGroup v-model="use3d" :options="arrToToggleGroup(_3dOptions)" :multi-select="false" />
-                <label>Share result with</label>
+        <Transition name="dice-expand">
+            <div v-show="dice3dSetting === 'Box'" class="dice-roller-box">
+                <div class="dice-canvas-container">
+                    <canvas id="dice-canvas" ref="canvasElement" />
+                </div>
+            </div>
+        </Transition>
+        <div id="lastroll-container" class="history-breakdown">
+            <div id="lastroll-result">
+                <Transition :name="awaitingRoll ? 'fast-fade' : 'get-result'" mode="out-in">
+                    <div v-if="awaitingRoll">
+                        -
+                    </div>
+                    <div v-else>
+                        {{ lastRoll.result }}
+                    </div>
+                </Transition>
+            </div>
+            <div class="breakdown-scroll-container">
+                <Transition name="fast-fade" mode="out-in">
+                    <div v-if="awaitingRoll" class="breakdown-flex-container">
+                        <div style="font-style: italic">Rolling...</div>
+                    </div>
+                    <div v-else class="breakdown-flex-container">
+                        <div
+                            v-for="[index, part] of lastRoll.parts.entries()"
+                            :key="index"
+                        >
+                            <div v-if="lastRoll.result === '-'" style="font-style: italic"> <!-- starting state -->
+                                {{ part.shortResult }}
+                            </div>
+                            <div v-else-if="part.longResult" class="dice-result">
+                                <div class="input">{{ part.input ?? "" }}</div>
+                                <div class="ops">{{ '(' + part.longResult.replaceAll(',', ' + ') + ')' }}</div>
+                                <div class="value">{{ part.shortResult }}</div>
+                            </div>
+                            <div v-else-if="part.shortResult === '+' || part.shortResult === '-'" class="operator-result">
+                                {{ part.shortResult }}
+                            </div>
+                            <div v-else class="literal-result">
+                                {{ part.shortResult }}
+                            </div>
+                        </div>
+                    </div>
+                </Transition>
+            </div>
+        </div>
+        <div class="drawer-toggle" @click="showRollHistory = !showRollHistory">
+            <div class="toggle-label">Full History</div>
+            <font-awesome-icon class="toggle-chevron" :icon="showRollHistory ? 'minus' : 'plus'" title="Toggle Full History" />
+        </div>
+        <div class="drawer-transition-wrapper">
+            <Transition name="drawer-expand">
+                <div v-show="showRollHistory" id="dice-history-drawer" class="drawer"> <!--Make scrollbar conform to border-radius-->
+                    <div
+                        id="dice-history"
+                    >
+                        <div
+                            v-for="[i, { name, roll: historyRoll, player }] of diceState.reactive.history.entries()"
+                            :key="i"
+                            class="dice-history-entry-wrapper"
+                        >
+                            <div
+                                class="dice-history-entry"
+                                :class="{ 'highlighted-history-entry': showHistoryBreakdownFor === i }"
+                                title="Toggle Breakdown"
+                                @click="showHistoryBreakdownFor = showHistoryBreakdownFor === i ? null : i"
+                            >
+                                <div class="history-grid-user">{{ player }}</div>
+                                <div class="history-grid-input">{{ name }}</div>
+                                <div class="history-grid-result">{{ historyRoll.result }}</div>
+                                <div class="toggle-chevron">
+                                    <font-awesome-icon :icon="showHistoryBreakdownFor === i ? 'chevron-up' : 'chevron-down'" />
+                                </div>
+                            </div>
+                            <div class="drawer-transition-wrapper" style="margin:0">
+                                <Transition name="drawer-expand" @after-enter="scrollToHistoryEntry">
+                                    <div v-if="showHistoryBreakdownFor === i" class="history-breakdown">
+                                        <button class="reroll-button" @click="populateInputFromHistoryIndex(i)">Reroll</button>
+                                        <div class="breakdown-scroll-container">
+                                            <div class="breakdown-flex-container">
+                                                <div
+                                                    v-for="[index, part] of historyRoll.parts.entries()"
+                                                    :key="index"
+                                                >
+                                                    <div v-if="part.longResult" class="dice-result">
+                                                        <div class="input">{{ part.input ?? "" }}</div>
+                                                        <div class="ops">{{ '(' + part.longResult.replaceAll(',', ' + ') + ')' }}</div>
+                                                        <div class="value">{{ part.shortResult }}</div>
+                                                    </div>
+                                                    <div v-else-if="part.shortResult === '+' || part.shortResult === '-'" class="operator-result">
+                                                        {{ part.shortResult }}
+                                                    </div>
+                                                    <div v-else class="literal-result">
+                                                        {{ part.shortResult }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Transition>
+                            </div>
+                        </div>
+                        <div v-if="diceState.reactive.history.length === 0" id="dice-history-empty">
+                            dice history is empty
+                        </div>
+                    </div>
+                </div>
+            </Transition>
+        </div>
+        <div id="options-cluster">
+            <div class="vertical-label-plus-group">
+                <label>3D Dice</label>
+                <ToggleGroup
+                    v-model="dice3dSetting"
+                    class="click-group"
+                    :options="arrToToggleGroup(dice3dOptions)"
+                    :multi-select="false"
+                    :disabled="awaiting3dLoad"
+                />
+            </div>
+            <div class="vertical-label-plus-group">
+                <label>Share</label>
                 <ToggleGroup
                     v-model="shareResult"
+                    class="click-group"
                     :options="arrToToggleGroup(shareResultOptions)"
                     :multi-select="false"
                 />
             </div>
-            <div class="header">
-                <span>\\ CONFIGURE \\</span>
-                <label id="toggle-advanced" for="advanced-configure-toggle">Toggle Advanced</label>
-            </div>
-            <div id="configure-settings" class="dice-grid">
-                <label>Add</label>
-                <ClickGroup :options="DxConfig.addOptions" :disabled="showSelector" @click="addDie" />
-                <div id="advanced-config">
-                    <label>Operators: limit</label>
-                    <ClickGroup
-                        :options="DxConfig.limitOperatorOptions"
-                        :disabled="!showOperator"
-                        @click="addOperator"
-                    />
-                    <!--<label>Operators: reroll</label>
-                        <ClickGroup :options="rerollOperatorOptions" :disabled="!showOperator" @click="addOperator" />-->
-                    <label>Selectors</label>
-                    <ClickGroup :options="DxConfig.selectorOptions" :disabled="!showSelector" @click="addSelector" />
+        </div>
+        <div class="drawer-toggle" @click="showAdvancedOptions = !showAdvancedOptions">
+            <div class="toggle-label">Advanced</div>
+            <font-awesome-icon class="toggle-chevron" :icon="showAdvancedOptions ? 'minus' : 'plus'" title="Toggle Advanced Options" />
+        </div>
+        <div class="drawer-transition-wrapper">
+            <Transition name="drawer-expand">
+                <div v-if="showAdvancedOptions" id="advanced-config-drawer" class="drawer">
+                    <div class="label-plus-group">
+                        <label>Operators</label>
+                        <ClickGroup
+                            class="click-group"
+                            :options="DxConfig.limitOperatorOptions"
+                            :disabled="!showOperator"
+                            @click="addOperator"
+                        />
+                    </div>
+                    <div class="label-plus-group">
+                        <label>Selectors</label>
+                        <ClickGroup
+                            class="click-group"
+                            :options="DxConfig.selectorOptions"
+                            :disabled="!showSelector"
+                            @click="addSelector"
+                        />
+                    </div>
                 </div>
-                <input id="advanced-configure-toggle" type="checkbox" />
-                <label>Numbers</label>
-                <ClickGroup :options="literalOptions" @click="addLiteral" />
-                <label>Symbols</label>
-                <ClickGroup :options="DxConfig.symbolOptions" :disabled="showSelector" @click="addSymbol" />
-            </div>
-        </template>
-        <template v-else>
-            <div class="header">\\ HISTORY \\</div>
-            <div id="dice-history">
-                <div
-                    v-for="[i, { name, roll: historyRoll, player }] of diceState.reactive.history.entries()"
-                    :key="i"
-                    style="display: contents"
-                    @click="diceSystem.showResults(historyRoll)"
-                >
-                    <div>{{ player }}</div>
-                    <div>{{ name }}</div>
-                    <div>{{ historyRoll.result }}</div>
-                </div>
-                <div v-if="diceState.reactive.history.length === 0">No dice rolls have been made so far</div>
-            </div>
-        </template>
-        <div id="buttons">
-            <font-awesome-icon
-                v-if="showHistory"
-                icon="sliders"
-                title="Show configuration"
-                @click="showHistory = false"
+            </Transition>
+        </div>
+        <div id="literal-selector">
+            <ClickGroup class="click-group" :options="literalOptions" @click="addLiteral" />
+        </div>
+        <div id="dice-selector">
+            <ClickGroup
+                class="click-group"
+                :options="DxConfig.addOptions"
+                :disabled="showSelector"
+                @click="addDie"
             />
-            <font-awesome-icon v-else icon="clock-rotate-left" title="Show history" @click="showHistory = true" />
-            <input id="input" type="text" :value="inputText" @change="updateFromString" @keyup.enter="roll" />
-            <font-awesome-icon icon="dice-six" title="Roll!" @click="roll" />
+            <font-awesome-icon
+                id="reroll-previous-button"
+                :class="{ disabled: lastRoll.result === '-' }"
+                class="svg-button"
+                icon="rotate-left"
+                title="Reroll Previous"
+                @click="lastRoll.result === '-' ? {} : populateInputFromHistoryRoll(lastRoll)"
+            />
+        </div>
+        <div id="buttons">
+            <div id="input-bar">
+                <input id="input" ref="inputElement" v-model="inputText" type="text" @change="updateFromString" @keyup.enter="roll" />
+                <font-awesome-icon v-show="inputText.length > 0" id="clear-input-icon" icon="circle-xmark" title="Clear Selection" @click.stop="clear"/>
+            </div>
+            <font-awesome-icon id="roll-button" :class="{ disabled: inputText.length === 0 }" class="svg-button" icon="dice-six" title="Roll!" @click="roll" />
         </div>
     </div>
 </template>
 
 <style scoped lang="scss">
-#advanced-config {
-    display: none;
-
-    &:has(~ #advanced-configure-toggle:checked) {
-        display: contents;
-    }
-}
-
-#advanced-configure-toggle {
-    display: none;
-
-    + label {
-        &:hover {
-            cursor: pointer;
-            font-weight: bold;
-        }
-    }
-}
-
 #dice {
+    width: 26rem;
     display: flex;
     flex-direction: column;
 
-    .header {
+    /*********
+     * Classes
+     *********/
+
+    .vertical-label-plus-group,
+    .label-plus-group {
         display: flex;
+        align-items: center;
+        margin: 0.25rem 0;
         justify-content: space-between;
-
-        margin: 0;
-        padding: 0.5rem 1rem;
-
-        border-radius: 1rem;
-
-        font-weight: bold;
+        font-size: 90%;
+    }
+    .vertical-label-plus-group {
+        flex-direction: column;
     }
 
-    .dice-grid {
-        margin-bottom: 1rem;
+    .click-group {
+        transition: opacity 0.1s linear;
+        outline: none;
+        border: solid 1px black;
+        margin: 0 0.5rem;
+        font-size: 90%;
+    }
 
-        display: grid;
-        grid-template-columns: 1fr auto;
-        column-gap: 2rem;
-        row-gap: 0.5rem;
-
-        align-items: center;
-
-        .toggle-group,
-        .click-group {
-            justify-self: flex-end;
+    .svg-button {
+        &:hover:not(.disabled) {
+            transition: all 0.05s linear;
+            transform: scale(105%);
+            cursor: pointer;
+        }
+        &:hover.disabled {
+            cursor: auto;
+        }
+        &:active:not(.disabled) {
+            transform:scale(95%);
+        }
+        &.disabled {
+            transition: all 0.1s linear,
+                        opacity 0.1s linear 0.1s;
+            opacity: 25%;
         }
     }
 
-    #configure-settings {
-        row-gap: 0.25rem;
+    .drawer-toggle {
+        display: flex;
+        justify-content: end;
+        align-items: center;
+        align-self: end;
 
-        user-select: none;
+        margin: 0.25rem 0;
+        padding-bottom: 0;
+
+        border-radius: 1rem;
+        font-size: 85%;
+
+        &:hover {
+            cursor: pointer;
+        }
+
+        > .toggle-label {
+        }
+        > .toggle-chevron {
+            font-size: 80%;
+            margin-left: 0.5rem;
+        }
+    }
+
+    .history-breakdown {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        &:before {
+            pointer-events: none;
+            content: "";
+            border-radius: inherit;
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            box-shadow: inset 0 8px 10px -10px black,
+                        inset 0 -5px 13px -13px black,
+                        inset 4px 0 13px -13px black,
+                        inset -4px 0 13px -13px black;
+        }
+
+        > .reroll-button {
+            margin: 0rem 1rem;
+            margin-top: 0.5rem;
+            align-self: end;
+            flex: 0 0 auto;
+            border-radius: 0.5rem;
+        }
+        > .breakdown-scroll-container {
+            display: flex;
+            justify-content: start;
+            padding: 0.25rem 0.5rem;
+            flex-grow: 1;
+            width: 100%;
+            overflow-x: auto;
+            scrollbar-width: thin;
+
+            > .breakdown-flex-container {
+                display: flex;
+                flex: 1 0 auto;
+                align-items: center;
+                justify-content: safe center;
+                padding: 0.25rem 0.5rem;
+
+                > div {
+                    > div {
+                        padding: 0.25rem 0.5rem;
+                        border-radius: 0.5rem;
+                    }
+                    > .dice-result {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+
+                        background-color: rgba(235, 240, 245, 1);
+
+                        > .input {
+                        }
+                        > .ops {
+                            white-space: nowrap;
+                        }
+                        > .value {
+                            font-weight: bold;
+                            font-size: 125%;
+                        }
+                    }
+
+                    > .literal-result {
+                        background-color: rgba(235, 240, 245, 1);
+                        font-weight: bold;
+                        font-size: 125%;
+                    }
+                    > .operator-result {
+                        font-weight: bold;
+                    }
+                }
+            }
+        }
+    }
+
+    .drawer {
+        padding-left: 1rem;
+        padding-right: 1rem;
+        box-shadow: inset 0 5px 10px -10px black,
+                    inset 0 -3px 10px -10px black,
+                    inset 3px 0 10px -10px black,
+                    inset -3px 0 10px -10px black;
+
+        background-color: rgba(250, 253, 255, 1);
+        border-bottom: solid 1px black;
+        border-top: solid 1px black;
+    }
+    .drawer-transition-wrapper {
+        margin-left: -1rem;
+        margin-right: -1rem;
+        overflow-y: hidden;
+    }
+
+    .dice-roller-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        padding-bottom: 1rem;
+
+        .dice-canvas-container {
+            position: relative;
+            margin: 0;
+            padding: 0;
+            border-radius: 1rem;
+            overflow: hidden;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            max-width: 380px;
+            max-height: 340px;
+            min-height: 340px;
+
+            &:before {
+                pointer-events: none;
+                content: "";
+                border-radius: inherit;
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 0;
+                bottom: 0;
+                box-shadow: inset 0 8px 10px -10px black,
+                            inset 0 -5px 13px -13px black,
+                            inset 4px 0 13px -13px black,
+                            inset -4px 0 13px -13px black;
+            }
+            #dice-canvas {
+                margin: 0;
+                padding: 0;
+                max-width: 380px;
+                max-height: 340px;
+                height: 340px;
+            }
+        }
+    }
+
+    /******
+     * IDs
+     ******/
+
+    #lastroll-container {
+        height: 6.5rem;
+        max-height: 6.5rem;
+        width: 0;
+        min-width: 100%;
+        margin: 0;
+        padding: 0;
+        border-radius: 1em;
+        overflow: hidden;
+
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+
+        > #lastroll-result {
+            display:flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            margin: 0.75rem;
+            margin-right: 0;
+            font-size: 200%;
+            font-weight: bold;
+            min-width: 5rem;
+            max-width: 5rem;
+            max-height: 5rem;
+            min-height: 5rem;
+            border: solid 4px black;
+            border-radius: 0.5rem;
+        }
+    }
+
+    #dice-history-drawer {
+        padding: 0;
+
+        > #dice-history {
+            display: flex;
+            flex-direction: column;
+            max-height: 10rem;
+            padding: 0;
+
+            overflow-y: scroll;
+            scrollbar-width: thin;
+            overflow-anchor: none;
+
+            &.single-entry {
+                overflow-y: auto
+            }
+
+            > .dice-history-entry-wrapper {
+                display: flex;
+                flex-direction: column;
+
+                > .dice-history-entry {
+                    display: grid;
+                    grid-template-columns: 6rem 1fr 3rem auto;
+                    column-gap: 0.25rem;
+                    align-items: center;
+                    padding: 0.25rem 1rem;
+
+                    > .history-grid-user,
+                    > .history-grid-result {
+                        text-overflow: ellipsis;
+                        overflow: hidden;
+                        white-space: nowrap;
+                    }
+
+                    > .history-grid-input {
+                        white-space: break-spaces;
+                    }
+
+                    > .history-grid-result {
+                        font-weight: bold;
+                    }
+
+                    > .toggle-chevron {
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        font-size: 70%;
+                    }
+
+                    &:hover {
+                        background-color: rgba(235, 240, 245, 1);
+                        cursor: pointer;
+                    }
+                }
+                > .highlighted-history-entry {
+                    background-color: rgba(215, 225, 235, 1);
+                    &:hover {
+                        background-color: rgba(195, 205, 215, 1);
+                        cursor: pointer;
+                    }
+                }
+            }
+
+            > #dice-history-empty {
+                padding: 0.25rem 1rem;
+                font-style: italic;
+                align-self: center;
+            }
+        }
+    }
+
+    #options-cluster {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 0.25rem 0;
     }
 
     #toggle-advanced {
@@ -232,48 +687,140 @@ async function roll(): Promise<void> {
         }
     }
 
-    #buttons {
+    #advanced-config-drawer {
+    }
+
+    #literal-selector {
         margin-top: 0.5rem;
+        align-self: start;
+
+        display: flex;
+        align-items: center;
+        row-gap: 0.25rem;
+
+        user-select: none;
+    }
+
+    #dice-selector {
+        margin-bottom: 0.5rem;
+        margin-top: 0.5rem;
+
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        row-gap: 0.25rem;
+
+        user-select: none;
+
+        > #reroll-previous-button {
+            flex: 0 0 auto;
+            padding: 0.25rem;
+            font-size: 1.75em
+        }
+    }
+
+    #buttons {
         display: flex;
         justify-content: space-between;
         align-items: center;
 
-        #input {
-            padding: 0.5rem 1rem;
-            margin: 0 0.5rem;
-        }
-
-        > button {
-            margin-left: 0.5rem;
+        > #input-bar {
+            flex: 1 0 0;
+            display: flex;
+            align-items: center;
+            border: solid 1px black;
+            border-radius: 0.5rem;
             padding: 0.25rem 0.5rem;
+            margin: 0 0.5rem;
+            > input {
+                border-radius: 0.5rem;
+                font-size: 110%;
+                outline: none;
+                border: none;
+                flex: 1 1 auto;
+            }
+            > #clear-input-icon {
+                padding: 0.25rem 0.25rem;
+                font-size: 85%;
+            }
         }
-
-        svg {
-            font-size: 1.5em;
-        }
-
-        svg:last-of-type {
+        > #roll-button {
+            flex: 0 0 auto;
+            padding: 0.25rem;
             font-size: 1.75em;
         }
     }
-}
 
-#dice-history {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
+    /*************
+     * Transitions
+     *************/
 
-    max-height: 80vh;
-    overflow-y: auto;
-
-    row-gap: 0.5rem;
-    column-gap: 1rem;
-
-    padding: 0.5rem 1rem;
-
-    overflow-anchor: none;
-
-    div:hover {
-        cursor: pointer;
+    .dice-expand-enter-active {
+        transition: all 0.3s ease,
+                    opacity 0.2s linear;
+        max-height: calc(340px + 1rem);
+        padding-bottom: 1rem;
     }
+    .dice-expand-leave-active {
+        transition: all 0.3s ease,
+                    opacity 0.2s linear 0.1s;
+        max-height: calc(340px + 1rem);
+        padding-bottom: 1rem;
+    }
+    .dice-expand-enter-from,
+    .dice-expand-leave-to {
+        opacity: 0;
+        max-height: 0;
+        padding-bottom: 0;
+    }
+
+    .get-result-enter-active {
+        backface-visibility: hidden;
+        transition: transform 0.3s cubic-bezier(0.040, 0.970, 0.840, 1.305),
+                    opacity   0.3s ease;
+        transform: scale(1);
+        opacity: 100%;
+    }
+    .get-result-leave-active {
+        transform: scale(1);
+        opacity: 100%;
+    }
+    .get-result-enter-from,
+    .get-result-leave-to {
+        backface-visibility: hidden;
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    .drawer-expand-enter-active {
+        transition: opacity    0.2s linear,
+                    max-height 0.3s ease;
+        max-height: 10rem;
+
+    }
+    .drawer-expand-leave-active {
+        transition: opacity    0.2s linear 0.1s,
+                    max-height 0.3s ease;
+        max-height: 10rem;
+    }
+
+    .drawer-expand-enter-from,
+    .drawer-expand-leave-to {
+        opacity: 0;
+        max-height: 0;
+    }
+
+    .fast-fade-enter-active,
+    .fast-fade-leave-active {
+        transition: opacity 0.1s ease;
+        opacity: 100%;
+    }
+
+    .fast-fade-enter-from,
+    .fast-fade-leave-to {
+        opacity: 0;
+    }
+
 }
+
 </style>

@@ -16,19 +16,34 @@ import { diceSystem } from ".";
 
 export let diceThrower: DiceThrower | undefined;
 
-let light: DirectionalLight;
+interface ThrowerConfig {
+    thrower: DiceThrower;
+    width: number;
+    height: number;
+}
+
+const throwers = new Map<HTMLCanvasElement,ThrowerConfig>();
 
 // This is in fact used in dice.ts using dynamic import
 // eslint-disable-next-line import/no-unused-modules
-export async function loadDiceEnv(): Promise<void> {
-    const canvas = document.getElementById("babylon") as unknown as HTMLCanvasElement;
+export async function loadDiceEnv(canvas?: HTMLCanvasElement): Promise<void> {
+    if (canvas === undefined) {
+        canvas = document.getElementById("babylon") as unknown as HTMLCanvasElement;
+    }
+    const existingThrower = throwers.get(canvas);
+
+    if (existingThrower) {
+        diceThrower = existingThrower.thrower;
+        diceSystem.set3dDimensions(existingThrower.width, existingThrower.height);
+        return;
+    }
 
     diceThrower = new DiceThrower({ canvas, tresholds: { linear: 0.05, angular: 0.1 } });
     const scene = diceThrower.scene;
 
     scene.clearColor = new Color4(0, 0, 0, 0);
 
-    await diceThrower.loadPhysics();
+    await diceThrower.loadPhysics(new Vector3(0, -15, 0));
     await diceThrower.loadMeshes(baseAdjust("/static/all_dice.babylon"), scene);
 
     /*
@@ -37,15 +52,25 @@ export async function loadDiceEnv(): Promise<void> {
      * With (0, 0) at the center of the screen
      */
     const camera = new ArcRotateCamera("camera", 0, 0, 0, new Vector3(0, 0, 0), scene);
-    camera.setPosition(new Vector3(0, 40, 0));
+
+    // Scale the camera's height to make dice larger/smaller depending on canvas dimensions.
+    const cameraHeight = Math.max(canvas.height - 400, 0) / 42 + 15;
+    camera.setPosition(new Vector3(0, cameraHeight, 0));
     camera.attachControl(canvas);
     camera.fovMode = Camera.FOVMODE_HORIZONTAL_FIXED;
-    new HemisphericLight("light", new Vector3(0, 1, 0), scene);
-    light = new DirectionalLight("DirectionalLight", new Vector3(0, -1, 0), scene);
-    light.position = new Vector3(0, 5, 0);
-    light.intensity = 1;
+    camera.inputs.attached.mousewheel?.detachControl();
 
-    loadDiceBox(scene);
+    const hemiLight = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
+    hemiLight.intensity = 0.4;
+
+    const light = new DirectionalLight("dirlight", new Vector3(0, -1, 0), scene);
+    light.position = new Vector3(0, 10, 0);
+    light.intensity = 0.7;
+
+    const groundMat = new ShadowOnlyMaterial("shadowOnly", scene);
+    groundMat.activeLight = light;
+
+    loadDiceBox(scene, canvas);
 
     diceThrower.startRenderLoop();
 }
@@ -54,23 +79,22 @@ function paPredicate(mesh: AbstractMesh): boolean {
     return mesh.isPickable && mesh.isEnabled();
 }
 
-function loadDiceBox(scene: Scene): void {
+function loadDiceBox(scene: Scene, canvas: HTMLCanvasElement): void {
     const ground = MeshBuilder.CreateGround("ground", { width: 100, height: 100 }, scene);
     ground.position = new Vector3(0, 0, 0);
-    const material = new ShadowOnlyMaterial("shadowOnly", scene);
-    material.activeLight = light;
-    ground.material = material;
+    ground.material = scene.getMaterialByName("shadowOnly");
     ground.receiveShadows = true;
 
-    new PhysicsAggregate(ground, PhysicsShapeType.BOX, { mass: 0 });
+    new PhysicsAggregate(ground, PhysicsShapeType.BOX, { mass: 0, friction: 0.5, restitution: 0.01 });
 
     // Visual
     const topLeft = scene.pick(0, 0, paPredicate).pickedPoint!;
-    const topRight = scene.pick(window.innerWidth, 0, paPredicate).pickedPoint!;
-    const botLeft = scene.pick(0, window.innerHeight, paPredicate).pickedPoint!;
+    const topRight = scene.pick(canvas.offsetWidth, 0, paPredicate).pickedPoint!;
+    const botLeft = scene.pick(0, canvas.offsetHeight, paPredicate).pickedPoint!;
 
     const width = Math.abs(topRight.x - topLeft.x);
     const height = Math.abs(botLeft.z - topLeft.z);
+    throwers.set(canvas, { thrower: diceThrower!, width: width, height: height });
     diceSystem.set3dDimensions(width, height);
 
     const wall1 = MeshBuilder.CreateBox("north", { width, depth: 1, height: 40 }, scene);
@@ -92,29 +116,32 @@ function loadDiceBox(scene: Scene): void {
     const roof = MeshBuilder.CreateBox("roof", { width, depth: height }, scene);
     roof.position.y = 40;
 
+    const rebound = 0.5;
+    const frict = 0.5;
+
     new PhysicsAggregate(wall1, PhysicsShapeType.BOX, {
         mass: 0,
-        restitution: 0.5,
-        friction: 0.5,
+        restitution: rebound,
+        friction: frict,
     });
     new PhysicsAggregate(wall2, PhysicsShapeType.BOX, {
         mass: 0,
-        restitution: 0.5,
-        friction: 0.5,
+        restitution: rebound,
+        friction: frict,
     });
     new PhysicsAggregate(wall3, PhysicsShapeType.BOX, {
         mass: 0,
-        restitution: 0.5,
-        friction: 0.5,
+        restitution: rebound,
+        friction: frict,
     });
     new PhysicsAggregate(wall4, PhysicsShapeType.BOX, {
         mass: 0,
-        restitution: 0.5,
-        friction: 0.5,
+        restitution: rebound,
+        friction: frict,
     });
     new PhysicsAggregate(roof, PhysicsShapeType.BOX, {
         mass: 0,
-        restitution: 0.5,
-        friction: 0.5,
+        restitution: rebound,
+        friction: frict,
     });
 }

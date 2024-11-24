@@ -227,9 +227,9 @@ const alerts = computed(() => {
                 />
             </teleport>
             <div class="draw-center-header">{{ t("game.ui.selection.edit_dialog.logic.logic") }}</div>
-            <div class="header">Door</div>
+            <div class="header">{{ t('game.ui.selection.edit_dialog.logic.door') }}</div>
             <div class="draw-logic-flex">
-                <label class="draw-logic-label" for="logic-dialog-door-toggle">Enabled</label>
+                <label class="draw-logic-label" for="logic-dialog-door-toggle">{{ t('common.enabled') }}</label>
                 <input
                     id="logic-dialog-door-toggle"
                     v-model="drawTool.state.isDoor"
@@ -239,7 +239,7 @@ const alerts = computed(() => {
                 />
             </div>
             <div class="draw-logic-flex">
-                <label for="logic-dialog-door-toggles">Toggle</label>
+                <label for="logic-dialog-door-toggles">{{ t('common.toggle') }}</label>
                 <div class="selection-box">
                     <template v-for="mode of DOOR_TOGGLE_MODES" :key="mode">
                         <div
@@ -247,13 +247,13 @@ const alerts = computed(() => {
                             style="text-transform: capitalize"
                             @click="drawTool.state.toggleMode = mode"
                         >
-                            {{ mode }}
+                            {{ t(`common.${mode}`) }}
                         </div>
                     </template>
                 </div>
             </div>
             <div class="draw-logic-flex">
-                <label for="logic-dialog-door-config">Permissions</label>
+                <label for="logic-dialog-door-config">{{ t('common.permission') }}</label>
                 <font-awesome-icon id="logic-dialog-door-config" icon="cog" @click="showPermissions = true" />
             </div>
         </template>

@@ -48,6 +48,8 @@ tech changes will usually be stripped from release notes for the public
     -   Added a reroll button to history entries
     -   Add an option to roll 3D dice inside a dice box rather than over the playfield
     -   Input field now scrolls to the end after populating via the on screen buttons
+-   I18n:
+    -   Added 95% i18n for zh (except diceTool)
 
 ### Removed
 

@@ -801,12 +801,11 @@ class SelectTool extends Tool implements ISelectTool {
             }
         }
 
-        this.syncSelection();
-        this.currentSelection = [];
-
         if (this.operationReady) addOperation(this.operationList!);
 
         _$.hasSelection = this.currentSelection.length > 0;
+        this.syncSelection();
+        this.currentSelection = [];
 
         this.mode = SelectOperations.Noop;
     }

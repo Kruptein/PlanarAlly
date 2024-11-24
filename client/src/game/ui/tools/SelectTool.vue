@@ -72,12 +72,12 @@ function toggleGridMode(event: MouseEvent): void {
         </div>
 
         <div v-if="selected && $.hasSelection" class="tool-detail">
-            <button :aria-pressed="$.showRuler" @click="toggleShowRuler">Show ruler</button>
+            <button :aria-pressed="$.showRuler" @click="toggleShowRuler">{{ t('game.ui.tools.SelectTool.show_ruler') }}</button>
             <button :aria-pressed="rulerTool.showPublic.value" :disabled="!$.showRuler" @click="toggle">
                 {{ t("game.ui.tools.RulerTool.share") }}
             </button>
             <button :aria-pressed="rulerTool.gridMode.value" :disabled="!$.showRuler" @click="toggleGridMode">
-                Grid Mode
+                {{ t('game.ui.tools.RulerTool.grid') }}
             </button>
         </div>
     </div>

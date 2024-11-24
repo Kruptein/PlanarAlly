@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { computed, onBeforeMount, ref, toRef } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { ToolName } from "../../models/tools";
 import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
 import { selectedState } from "../../systems/selected/state";
 import { activateTool, activeTool } from "../../tools/tools";
+
+const { t } = useI18n();
 
 const emit = defineEmits<(e: "return") => void>();
 
@@ -44,9 +47,9 @@ function attach(): void {
 
 <template>
     <div id="note-pin-helper">
-        <header>Attaching note</header>
-        <div>Select the shape you want to attach the note to.</div>
-        <div>You can zoom and pan around.</div>
+        <header>{{ t('game.ui.tools.NoteTool.header') }}</header>
+        <div>{{ t('game.ui.tools.NoteTool.line1') }}</div>
+        <div>{{ t('game.ui.tools.NoteTool.line2') }}</div>
         <div style="margin-top: 1rem; display: flex; justify-content: flex-end">
             <div v-show="shapeAlreadyHooked" style="color: red">Shape already attached.</div>
             <button
@@ -54,9 +57,9 @@ function attach(): void {
                 :disabled="selectedShape === undefined || shapeAlreadyHooked"
                 @click="attach"
             >
-                Confirm
+                {{ t('common.confirm') }}
             </button>
-            <button @click="close">Cancel</button>
+            <button @click="close">{{ t('common.cancel') }}</button>
         </div>
     </div>
 </template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type Component, computed, toRef } from "vue";
+import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
@@ -36,13 +36,39 @@ const locationName = computed(
     () => locationStore.activeLocations.value.find((l) => l.id === location.value)?.name ?? "",
 );
 
-const tabs: { name: string; component: Component; props?: { global: false } }[] = [
-    { name: t(LocationSettingCategory.Admin), component: AdminSettings, props: { global: false } },
-    { name: t(LocationSettingCategory.Grid), component: GridSettings, props: { global: false } },
-    { name: t(LocationSettingCategory.Vision), component: VisionSettings, props: { global: false } },
-    { name: t(LocationSettingCategory.Floor), component: FloorSettings, props: { global: false } },
-    { name: t(LocationSettingCategory.Varia), component: VariaSettings, props: { global: false } },
-];
+// Computed to trigger locale rerender
+const tabs = computed(() => [
+    {
+        category: LocationSettingCategory.Admin,
+        name: t(LocationSettingCategory.Admin),
+        component: AdminSettings,
+        props: { global: false },
+    },
+    {
+        category: LocationSettingCategory.Grid,
+        name: t(LocationSettingCategory.Grid),
+        component: GridSettings,
+        props: { global: false },
+    },
+    {
+        category: LocationSettingCategory.Vision,
+        name: t(LocationSettingCategory.Vision),
+        component: VisionSettings,
+        props: { global: false },
+    },
+    {
+        category: LocationSettingCategory.Floor,
+        name: t(LocationSettingCategory.Floor),
+        component: FloorSettings,
+        props: { global: false },
+    },
+    {
+        category: LocationSettingCategory.Varia,
+        name: t(LocationSettingCategory.Varia),
+        component: VariaSettings,
+        props: { global: false },
+    },
+]);
 </script>
 
 <template>

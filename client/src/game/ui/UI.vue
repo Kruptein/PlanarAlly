@@ -178,7 +178,7 @@ function setTempZoomDisplay(value: number): void {
             </div>
         </div>
         <div v-if="positionState.reactive.outOfBounds" id="oob" @click="positionSystem.returnToBounds">
-            Click to return to content
+            {{ t('game.ui.ui.return_to_content') }}
         </div>
         <TokenDirections />
         <!-- Core overlays -->

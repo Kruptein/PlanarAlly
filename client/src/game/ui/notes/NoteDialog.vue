@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, type Ref } from "vue";
+import { useI18n } from "vue-i18n";
 import VueMarkdown from "vue-markdown-render";
 
 import Modal from "../../../core/components/modals/Modal.vue";
@@ -12,6 +13,8 @@ import { editNote } from "../../systems/notes/ui";
 
 const props = defineProps<{ modalIndex: ModalIndex; uuid: string }>();
 defineExpose({ close });
+
+const { t } = useI18n();
 
 const editing = ref(false);
 const collapsed = reactive({ active: false, width: 0, height: 0 });
@@ -157,18 +160,18 @@ function windowToggle(windowed: boolean): void {
                         :icon="['far', 'square-plus']"
                         @click="expand"
                     />
-                    <font-awesome-icon v-else :icon="['far', 'square-minus']" title="Collapse note" @click="collapse" />
+                    <font-awesome-icon v-else :icon="['far', 'square-minus']" :title="t('game.ui.notes.NoteDialog.collapse')" @click="collapse" />
                     <font-awesome-icon
                         :icon="['far', 'window-restore']"
-                        :title="`${isWindowed ? 'Restore' : 'Pop out'} note`"
+                        :title="`${isWindowed ? t('game.ui.notes.NoteDialog.restore') : t('game.ui.notes.NoteDialog.pop_out')}`"
                         @click="m.toggleWindow"
                     />
-                    <font-awesome-icon :icon="['far', 'window-close']" title="Close note" @click="close" />
+                    <font-awesome-icon :icon="['far', 'window-close']" :title="t('game.ui.notes.NoteDialog.close')" @click="close" />
                 </div>
                 <div>
-                    <div v-if="!editing" @click="editing = true">[{{ canEdit ? "edit" : "view source" }}]</div>
-                    <div v-else @click="editing = false">[show]</div>
-                    <div @click.stop="editNote(uuid)">[open in note manager]</div>
+                    <div v-if="!editing" @click="editing = true">[{{ canEdit ? t('game.ui.notes.NoteDialog.edit') : t('game.ui.notes.NoteDialog.view_source') }}]</div>
+                    <div v-else @click="editing = false">[{{ t('game.ui.notes.NoteDialog.show') }}]</div>
+                    <div @click.stop="editNote(uuid)">[{{ t('game.ui.notes.NoteDialog.open_in_manager') }}]</div>
                 </div>
             </header>
         </template>

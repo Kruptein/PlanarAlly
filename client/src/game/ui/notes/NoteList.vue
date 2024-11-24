@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { type DeepReadonly, computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { filter, map } from "../../../core/iter";
 import { mostReadable } from "../../../core/utils";
@@ -14,6 +15,8 @@ import { locationSettingsState } from "../../systems/settings/location/state";
 import TagAutoCompleteSearch from "./TagAutoCompleteSearch.vue";
 
 const emit = defineEmits<(e: "mode", mode: NoteManagerMode) => void>();
+
+const { t } = useI18n();
 
 onMounted(() => {
     document.addEventListener('pointerdown', handleClickOutsideDialog);
@@ -183,7 +186,7 @@ function clearSearchBar(): void {
 
 <template>
     <header>
-        <div>NOTES {{ shapeName ? `for ${shapeName}` : "" }}</div>
+        <div>{{ t('game.ui.notes.NoteList.title') }} {{ shapeName ? `${t('game.ui.notes.NoteList.title_with_token')} ${shapeName}` : "" }}</div>
     </header>
     <div id="notes-search" :class="shapeFiltered ? 'disabled' : ''">
         <div id="search-bar">
@@ -193,13 +196,13 @@ function clearSearchBar(): void {
                 v-model="selectedNoteTypes"
             >
                 <option v-for="type in noteTypes" :key="type" :value="type">
-                    {{ type }}
+                    {{ t(`game.ui.notes.note_types.${type}`) }}
                 </option>
             </select>
             <font-awesome-icon icon="magnifying-glass" @click="searchBar?.focus()" />
             <div id="search-field">
-                <input ref="searchBar" v-model="searchFilter" type="text" placeholder="search through your notes.." />
-                <font-awesome-icon v-show="searchFilter.length > 0" id="clear-button" icon="circle-xmark" title="Clear Search" @click.stop="clearSearchBar" />
+                <input ref="searchBar" v-model="searchFilter" type="text" :placeholder="t('game.ui.notes.NoteList.search_placeholder')" />
+                <font-awesome-icon v-show="searchFilter.length > 0" id="clear-button" icon="circle-xmark" :title="t('game.ui.notes.NoteList.clear_search')" @click.stop="clearSearchBar" />
             </div>
             <font-awesome-icon
                 id="search-options-icon"
@@ -214,22 +217,22 @@ function clearSearchBar(): void {
                     @click="showSearchFilters = false"
                 />
                 <fieldset>
-                    <legend>Where to search</legend>
+                    <legend>{{ t('game.ui.notes.NoteList.filter.where_to_search') }}</legend>
                     <div>
                         <input id="note-search-title" v-model="searchFilters.title" type="checkbox" />
-                        <label for="note-search-title">title</label>
+                        <label for="note-search-title">{{ t('game.ui.notes.NoteList.filter.title') }}</label>
                     </div>
                     <div>
                         <input id="note-search-text" v-model="searchFilters.text" type="checkbox" />
-                        <label for="note-search-text">text</label>
+                        <label for="note-search-text">{{ t('game.ui.notes.NoteList.filter.text') }}</label>
                     </div>
                     <div>
                         <input id="note-search-author" v-model="searchFilters.author" type="checkbox" />
-                        <label for="note-search-author">author</label>
+                        <label for="note-search-author">{{ t('game.ui.notes.NoteList.filter.author') }}</label>
                     </div>
                 </fieldset>
                 <fieldset :disabled="selectedNoteTypes === 'global' || shapeFiltered">
-                    <legend>Local: Locations</legend>
+                    <legend>{{ t('game.ui.notes.NoteList.filter.local_locations') }}</legend>
                     <div>
                         <input
                             id="note-search-active-location"
@@ -238,9 +241,9 @@ function clearSearchBar(): void {
                         />
                         <label
                             for="note-search-active-location"
-                            title="Show only notes that were made in the current location"
+                            :title="t('game.ui.notes.NoteList.filter.active_location_title')"
                         >
-                            only in active location
+                            {{ t('game.ui.notes.NoteList.filter.active_location') }}
                         </label>
                     </div>
                     <div>
@@ -249,15 +252,15 @@ function clearSearchBar(): void {
                             v-model="searchFilters.includeArchivedLocations"
                             type="checkbox"
                         />
-                        <label for="note-search-archived">include archived locations</label>
+                        <label for="note-search-archived">{{ t('game.ui.notes.NoteList.filter.archived_location') }}</label>
                     </div>
                 </fieldset>
                 <div></div>
                 <fieldset :disabled="selectedNoteTypes === 'global' || shapeFiltered">
-                    <legend>Local: Shapes</legend>
+                    <legend>{{ t('game.ui.notes.NoteList.filter.local_shapes') }}</legend>
                     <div>
                         <input id="note-search-shapes" v-model="searchFilters.notesWithShapes" type="checkbox" />
-                        <label for="note-search-shapes">show notes with shapes</label>
+                        <label for="note-search-shapes">{{ t('game.ui.notes.NoteList.filter.note_with_shape') }}</label>
                     </div>
                     <div>
                         <input
@@ -267,16 +270,16 @@ function clearSearchBar(): void {
                         />
                         <label
                             for="note-search-global-if-local-shape"
-                            title="Global notes might be associated with a specific shape due to templating. Toggle this setting if you wish to list global notes that are associated with a shape in the current campaign"
+                            :title="t('game.ui.notes.NoteList.filter.global_note_title')"
                         >
-                            show global note if local shape
+                            {{ t('game.ui.notes.NoteList.filter.global_note') }}
                         </label>
                     </div>
                 </fieldset>
             </div>
         </div>
         <div id="search-filters">
-            <span style="padding-right:1rem;">Filters:</span>
+            <span style="padding-right:1rem;">{{ t('game.ui.notes.NoteList.filters.title') }}</span>
             <div id="filter-bubbles">
                 <div v-if="shapeName" class="shape-name tag-bubble removable" @click="clearShapeFilter">{{ shapeName }}</div>
                 <div
@@ -289,26 +292,26 @@ function clearSearchBar(): void {
                     {{ tag.name }}
                 </div>
             </div>
-            <TagAutoCompleteSearch v-show="showTagSearch" id="tag-search-bar" placeholder="Search Tags..." :options="availableTags" @picked="toggleTagInSearch" />
-            <font-awesome-icon v-if="showTagSearch" id="tag-search-show" icon="minus" title="Hide Tag Search" @click="showTagSearch = false" />
-            <font-awesome-icon v-else id="tag-search-hide" icon="plus" title="Show Tag Search" @click="showTagSearch = true" />
+            <TagAutoCompleteSearch v-show="showTagSearch" id="tag-search-bar" :placeholder="t('game.ui.notes.NoteList.filters.tag_placeholder')" :options="availableTags" @picked="toggleTagInSearch" />
+            <font-awesome-icon v-if="showTagSearch" id="tag-search-show" icon="minus" :title="t('game.ui.notes.NoteList.filters.hide_title')" @click="showTagSearch = false" />
+            <font-awesome-icon v-else id="tag-search-hide" icon="plus" :title="t('game.ui.notes.NoteList.filters.show_title')" @click="showTagSearch = true" />
         </div>
 
     </div>
     <template v-if="visibleNotes.notes.length === 0">
         <div id="no-notes">
-            <template v-if="noteState.reactive.notes.size === 0">You don't have any notes yet!</template>
+            <template v-if="noteState.reactive.notes.size === 0">{{ t('game.ui.notes.NoteList.empty_note') }}</template>
             <template v-else>
-                <span>You have no notes that match this filter.</span>
+                <span>{{ t('game.ui.notes.NoteList.empty_search') }}</span>
             </template>
         </div>
     </template>
     <template v-else>
         <div id="notes-table">
-            <div class="header">NAME</div>
-            <div class="header">OWNER</div>
-            <div class="header">TAGS</div>
-            <div class="header">ACTIONS</div>
+            <div class="header">{{ t('game.ui.notes.NoteList.name') }}</div>
+            <div class="header">{{ t('game.ui.notes.NoteList.owner') }}</div>
+            <div class="header">{{ t('game.ui.notes.NoteList.tags') }}</div>
+            <div class="header">{{ t('game.ui.notes.NoteList.actions') }}</div>
             <template v-if="visibleNotes.hasNext || searchPage > 1">
                 <div />
                 <div />
@@ -328,14 +331,14 @@ function clearSearchBar(): void {
             </template>
             <template v-for="note of visibleNotes.notes" :key="note.uuid">
                 <div class="title" @click="editNote(note.uuid)">{{ note.title }}</div>
-                <div>{{ note.creator === coreStore.state.username ? "you" : note.creator }}</div>
+                <div>{{ note.creator === coreStore.state.username ? t('common.you') : note.creator }}</div>
                 <div class="note-tags">
                     <div
                         v-for="tag of note.tags"
                         :key="tag.name"
                         :style="{ color: mostReadable(tag.colour), backgroundColor: tag.colour }"
                         class="tag-bubble"
-                        :title='"Toggle \"" + tag.name + "\" filter"'
+                        :title="`${t('game.ui.notes.NoteList.toggle_tags')}${tag.name}`"
                         @click="toggleTagInSearch(tag)"
                     >
                         {{ tag.name }}
@@ -343,10 +346,10 @@ function clearSearchBar(): void {
                     <div v-if="note.tags.length === 0">/</div>
                 </div>
                 <div class="note-actions">
-                    <font-awesome-icon icon="pencil" title="Edit" @click="editNote(note.uuid)" />
+                    <font-awesome-icon icon="pencil" :title="t('game.ui.notes.NoteDialog.edit')" @click="editNote(note.uuid)" />
                     <font-awesome-icon
                         :icon="['far', 'window-restore']"
-                        title="Pop-out"
+                        :title="t('game.ui.notes.NoteDialog.pop_out')"
                         @click="popoutNote(note.uuid)"
                     />
                 </div>
@@ -356,7 +359,7 @@ function clearSearchBar(): void {
     <footer>
         <div style="flex-grow: 1"></div>
         <div id="new-note-selector" @click="$emit('mode', NoteManagerMode.Create)">
-            New note{{ shapeName ? ` for ${shapeName}` : "" }}
+            {{ t('game.ui.menu.MenuBar.new_note') }}{{ shapeName ? ` ${t('game.ui.notes.NoteList.title_with_token')} ${shapeName}` : "" }}
         </div>
     </footer>
 </template>

@@ -266,8 +266,8 @@
                     "AdminSettings": {
                         "delete_session_msg_CREATOR_ROOM": "ENTER {creator}/{room} TO CONFIRM CAMPAIGN REMOVAL.",
                         "deleting_session": "DELETING CAMPAIGN",
-                        "unlock_NBSP_Session_NBSP": "Unlock\u00a0Campaign\u00a0",
-                        "lock_NBSP_Session_NBSP": "Lock\u00a0Campaign\u00a0",
+                        "unlock_NBSP_Session_NBSP": "Unlock Campaign ",
+                        "lock_NBSP_Session_NBSP": "Lock Campaign ",
                         "unlock_this_session": "Unlock this campaign",
                         "lock_this_session": "Lock this campaign",
                         "kick": "Kick",
@@ -275,7 +275,7 @@
                         "invite_code": "Invite code",
                         "invitation_url": "Invitation URL:",
                         "refresh_invitation_code": "Refresh invitation code",
-                        "danger_NBSP_zone": "Danger\u00a0Zone",
+                        "danger_NBSP_zone": "Danger Zone",
                         "dm_access_only": "(DM access only)",
                         "remove_session": "Remove Campaign",
                         "delete_session": "Delete this Campaign"
@@ -408,6 +408,43 @@
                 },
                 "tools": {
                     "change_mode": "Change mode"
+                },
+                "DiceTool": {
+                    "rolling": "Rolling...",
+                    "full_history": "Full History",
+                    "full_history_title": "Toggle Full History",
+                    "empty_history": "dice history is empty",
+                    "3D_dice": "3D Dice",
+                    "share": "Share",
+                    "3D_options": {
+                        "off": "Off",
+                        "on": "On",
+                        "box": "Box"
+                    },
+                    "share_options": {
+                        "all": "All",
+                        "dm": "DM",
+                        "none": "None"
+                    },
+                    "advanced": "Advanced",
+                    "advanced_options": {
+                        "operators": "Operators",
+                        "selectors": "Selectors"
+                    },
+                    "clear_selection_title": "Clear Selection",
+                    "roll": "Roll!",
+                    "reroll_previous_title": "Reroll Previous",
+                    "limit_operator_options": {
+                        "keep": "keep",
+                        "drop": "drop",
+                        "min": "min",
+                        "max": "max"
+                    },
+                    "reroll": "Reroll",
+                    "selection_option_names": {
+                        "highest": "highest",
+                        "lowest": "lowest"
+                    }
                 }
             },
             "ui": {

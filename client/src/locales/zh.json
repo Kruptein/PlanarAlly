@@ -370,6 +370,43 @@
                 "SpellTool": {
                     "size": "尺寸",
                     "range": "距离（半径）"
+                },
+                "DiceTool": {
+                    "rolling": "掷骰中..",
+                    "full_history": "全部历史记录",
+                    "full_history_title": "展开/收起全部历史记录",
+                    "empty_history": "尚无掷骰记录",
+                    "3D_dice": "3D骰子",
+                    "share": "将结果共享给",
+                    "3D_options": {
+                        "off": "关闭",
+                        "on": "打开",
+                        "box": "骰盘"
+                    },
+                    "share_options": {
+                        "all": "所有人",
+                        "dm": "DM",
+                        "none": "无"
+                    },
+                    "advanced": "高级",
+                    "advanced_options": {
+                        "operators": "操作符",
+                        "selectors": "选择符"
+                    },
+                    "clear_selection_title": "清除选择",
+                    "roll": "骰！",
+                    "reroll_previous_title": "重骰上一个",
+                    "limit_operator_options": {
+                        "keep": "保留",
+                        "drop": "去掉",
+                        "min": "最小",
+                        "max": "最大"
+                    },
+                    "reroll": "重骰",
+                    "selection_option_names": {
+                        "highest": "最高",
+                        "lowest": "最低"
+                    }
                 }
             },
             "ui": {

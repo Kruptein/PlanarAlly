@@ -136,11 +136,13 @@ function populateInputFromHistoryRoll(roll: DeepReadonly<RollResult<Part>>): voi
     }
     input.value = diceState.raw.systems!["2d"].parse(content);
 }
+
 function populateInputFromHistoryIndex(index: number): void {
     const historyItem = diceState.reactive.history[index];
     if (historyItem === null || historyItem === undefined) return;
     populateInputFromHistoryRoll(historyItem.roll);
 }
+
 async function roll(): Promise<void> {
     if (inputText.value.length === 0) return;
 

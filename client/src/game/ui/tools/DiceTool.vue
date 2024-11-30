@@ -223,9 +223,7 @@ async function roll(): Promise<void> {
         <div class="drawer-transition-wrapper">
             <Transition name="drawer-expand">
                 <div v-show="showRollHistory" id="dice-history-drawer" class="drawer"> <!--Make scrollbar conform to border-radius-->
-                    <div
-                        id="dice-history"
-                    >
+                    <div id="dice-history">
                         <div
                             v-for="[i, { name, roll: historyRoll, player }] of diceState.reactive.history.entries()"
                             :key="i"

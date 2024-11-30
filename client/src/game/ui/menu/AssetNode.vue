@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, reactive } from "vue";
+import { computed, reactive, ref } from "vue";
 
+import { AssetId } from "../../../assetManager/models";
 import { getImageSrcFromHash } from "../../../assetManager/utils";
 import { filter } from "../../../core/iter";
 import type { AssetFile, AssetListMap } from "../../../core/models/types";
@@ -15,6 +16,8 @@ const state: State = reactive({
     hoveredHash: "",
     openFolders: new Set(),
 });
+
+const thumbnailMisses = ref(new Set<AssetId>());
 
 function childAssets(folder: string): AssetListMap {
     return props.assets.get(folder) as AssetListMap;
@@ -64,7 +67,12 @@ function dragStart(event: DragEvent, assetHash: string, assetId: number): void {
         >
             {{ file.name }}
             <div v-if="state.hoveredHash == file.hash" class="preview">
-                <img class="asset-preview-image" :src="getImageSrcFromHash(file.hash)" alt="" />
+                <picture v-if="!thumbnailMisses.has(file.id)">
+                    <source :srcset="getImageSrcFromHash(file.hash, { thumbnailFormat: 'webp' })" type="image/webp" />
+                    <source :srcset="getImageSrcFromHash(file.hash, { thumbnailFormat: 'jpeg' })" type="image/jpeg" />
+                    <img alt="" loading="lazy" class="asset-preview-image" @error="thumbnailMisses.add(file.id)" />
+                </picture>
+                <img v-else :src="getImageSrcFromHash(file.hash)" alt="" loading="lazy" class="asset-preview-image" />
             </div>
         </li>
     </ul>

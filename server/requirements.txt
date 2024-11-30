@@ -3,6 +3,7 @@ aiohttp_security==0.5.0
 aiohttp_session==2.12.1
 bcrypt==4.2.0
 cryptography==43.0.1
+pillow==11.0.0
 python-engineio==4.9.1
 python-socketio==5.11.4
 peewee==3.17.5

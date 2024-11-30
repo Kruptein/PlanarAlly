@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 98
+SAVE_VERSION = 99
 
 import json
 import logging
@@ -26,6 +26,8 @@ from typing import Optional
 from uuid import uuid4
 
 from playhouse.sqlite_ext import SqliteExtDatabase
+
+from .thumbnail import create_thumbnail
 
 from .config import SAVE_FILE
 from .db.all import ALL_MODELS
@@ -517,6 +519,32 @@ def upgrade(db: SqliteExtDatabase, version: int, is_import: bool):
         # 3 Delete the old files
         if not is_import:
             remove_old_assets()
+    elif version == 98:
+        # Generate thumbnails for all assets
+        # This is a bit of a fake migration as the DB is not modified, but it's a one time thing
+        data = db.execute_sql(
+            "SELECT name, file_hash FROM asset WHERE file_hash NOT NULL"
+        )
+        for asset_name, file_hash in data.fetchall():
+            full_hash_name = get_asset_hash_subpath(file_hash)
+            asset_path = ASSETS_DIR / full_hash_name
+
+            if not asset_path.exists():
+                continue
+
+            try:
+                with open(asset_path, "rb") as f:
+                    thumbnail = create_thumbnail(f.read())
+                if thumbnail is None:
+                    continue
+                for format, data in thumbnail.items():
+                    path = ASSETS_DIR / Path(f"{full_hash_name}.thumb.{format}")
+
+                    with open(path, "wb") as f:
+                        f.write(data)
+            except Exception as e:
+                print()
+                print(f"Thumbnail generation failed for {asset_name}: {e}")
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

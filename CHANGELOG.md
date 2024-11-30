@@ -22,10 +22,13 @@ tech changes will usually be stripped from release notes for the public
 -   NoteManager:
     -   Added a button to clear the current search
 -   [server] Assets:
-    -   Added limits to the total size of assets a user can upload and the size of a single asset
-    -   These limits can be configured in the server config
-    -   By default there are no limits, it's up to the server admin to configure them
-    -   These limits will only apply to new assets, existing assets are not affected
+    -   limits:
+        -   Added limits to the total size of assets a user can upload and the size of a single asset
+        -   These limits can be configured in the server config
+        -   By default there are no limits, it's up to the server admin to configure them
+        -   These limits will only apply to new assets, existing assets are not affected
+    -   Thumbnails:
+        -   The server will now generate thumbnails for all assets
 
 ### Changed
 
@@ -38,6 +41,9 @@ tech changes will usually be stripped from release notes for the public
     -   This fixes some of the entries in the Fixed section
 -   AssetManager:
     -   Changed UI of renaming assets, allowing inline editing rather than opening a popup
+    -   The images shown in the asset manager will now use the thumbnail of the asset if available
+        -   This should reduce load times and improve general performance
+        -   This also applies to the preview when hovering over assets in the in-game assets sidebar
 -   Notes:
     -   Add filtering option 'All' to note manager to show both global and local notes
     -   Note popouts for clients without edit access now show 'view source' instead of 'edit'

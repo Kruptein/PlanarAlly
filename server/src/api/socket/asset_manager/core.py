@@ -295,6 +295,8 @@ async def handle_regular_file(upload_data: ApiAssetUpload, data: bytes, sid: str
         parent=target,
     )
 
+    asset.generate_thumbnails()
+
     asset_dict = transform_asset(asset, user)
     await sio.emit(
         "Asset.Upload.Finish",

@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 97
+SAVE_VERSION = 98
 
 import json
 import logging
@@ -22,7 +22,7 @@ import secrets
 import shutil
 import sys
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Optional
 from uuid import uuid4
 
 from playhouse.sqlite_ext import SqliteExtDatabase
@@ -31,7 +31,13 @@ from .config import SAVE_FILE
 from .db.all import ALL_MODELS
 from .db.db import db as ACTIVE_DB
 from .db.models.constants import Constants
-from .utils import FILE_DIR, OldVersionException, UnknownVersionException
+from .utils import (
+    ASSETS_DIR,
+    FILE_DIR,
+    OldVersionException,
+    UnknownVersionException,
+    get_asset_hash_subpath,
+)
 
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
@@ -62,7 +68,7 @@ def check_existence() -> bool:
     return False
 
 
-def upgrade(db: SqliteExtDatabase, version: int):
+def upgrade(db: SqliteExtDatabase, version: int, is_import: bool):
     if version < 79:
         raise OldVersionException(
             f"Upgrade code for this version is >2 years old and is no longer in the active codebase to reduce clutter. You can still find this code on github, contact me for more info."
@@ -486,6 +492,31 @@ def upgrade(db: SqliteExtDatabase, version: int):
             db.execute_sql(
                 "ALTER TABLE user_options ADD COLUMN default_open_door_colour TEXT DEFAULT NULL"
             )
+    elif version == 97:
+        # Add folder structure to the assets folder
+
+        # 1 first copy the physical files to their new location
+        if not is_import:
+            migrate_assets_folder()
+
+        # 2 update asset shapes in the DB
+        with db.atomic():
+            data = db.execute_sql("SELECT shape_id, src FROM asset_rect")
+            for shape_id, src in data.fetchall():
+                # Regular assets - Grab the file hash
+                # We doe a split, because some legacy assets start with http://
+                if "/static/assets/" in src:
+                    file_hash = src.split("/static/assets/")[1]
+                    new_path = f"/static/assets/{get_asset_hash_subpath(file_hash)}"
+
+                    db.execute_sql(
+                        "UPDATE asset_rect SET src=? WHERE shape_id=?",
+                        (new_path, shape_id),
+                    )
+
+        # 3 Delete the old files
+        if not is_import:
+            remove_old_assets()
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."
@@ -527,7 +558,7 @@ def upgrade_save(db: Optional[SqliteExtDatabase] = None, *, is_import=False):
         else:
             logger.warning(f"Starting upgrade to {save_version + 1}")
         try:
-            upgrade(db, save_version)
+            upgrade(db, save_version, is_import)
         except Exception as e:
             logger.exception(e)
             if is_import:
@@ -548,3 +579,21 @@ def backup_save(version: int):
     backup_path = save_backups.resolve() / f"{Path(SAVE_FILE).name}.{version}"
     logger.warning(f"Backing up old save as {backup_path}")
     shutil.copyfile(SAVE_FILE, backup_path)
+
+
+def migrate_assets_folder():
+    for fl in ASSETS_DIR.iterdir():
+        if fl.is_dir():
+            continue
+        first_level = fl.name[:2]
+        second_level = fl.name[2:4]
+
+        (ASSETS_DIR / first_level / second_level).mkdir(exist_ok=True, parents=True)
+        shutil.copy(fl, ASSETS_DIR / first_level / second_level / fl.name)
+
+
+def remove_old_assets():
+    for fl in ASSETS_DIR.iterdir():
+        if fl.is_dir():
+            continue
+        fl.unlink()

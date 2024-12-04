@@ -14,7 +14,7 @@ import { sendCreateFolder, sendFolderGetByPath } from "../assetManager/emits";
 import type { AssetId } from "../assetManager/models";
 import { socket } from "../assetManager/socket";
 import { assetState } from "../assetManager/state";
-import { getIdImageSrc } from "../assetManager/utils";
+import { getImageSrcFromAssetId } from "../assetManager/utils";
 import { baseAdjust } from "../core/http";
 import { map } from "../core/iter";
 import { useModal } from "../core/plugins/modals/plugin";
@@ -415,7 +415,7 @@ async function showRenameUI(id: AssetId) : Promise<void> {
                 @dragstart="startDrag($event, file.id)"
             >
                 <font-awesome-icon v-if="isShared(file)" icon="user-tag" class="asset-link" />
-                <img :src="getIdImageSrc(file.id)" width="50" alt="" />
+                <img :src="getImageSrcFromAssetId(file.id)" width="50" alt="" />
                 <div
                      :contenteditable="file.id === currentRenameAsset"
                      class="title"

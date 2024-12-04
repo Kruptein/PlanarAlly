@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { getImageSrcFromHash } from "../../../../assetManager/utils";
 import ColourPicker from "../../../../core/components/ColourPicker.vue";
 import ToggleGroup from "../../../../core/components/ToggleGroup.vue";
 import { NO_SYNC, SERVER_SYNC, SyncMode } from "../../../../core/models/types";
@@ -121,7 +122,7 @@ async function changeAsset(): Promise<void> {
     if (data === undefined || data.fileHash === undefined) return;
     const shape = getShape(activeShapeStore.state.id);
     if (shape === undefined || shape.type !== "assetrect") return;
-    (shape as Asset).setImage(`/static/assets/${data.fileHash}`, true);
+    (shape as Asset).setImage(getImageSrcFromHash(data.fileHash, false), true);
 }
 </script>
 

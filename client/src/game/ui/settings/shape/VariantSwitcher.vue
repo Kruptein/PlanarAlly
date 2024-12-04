@@ -2,6 +2,7 @@
 import { computed, toRef } from "vue";
 import { useToast } from "vue-toastification";
 
+import { getImageSrcFromHash } from "../../../../assetManager/utils";
 import { cloneP } from "../../../../core/geometry";
 import { InvalidationMode, SERVER_SYNC, SyncMode } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
@@ -71,7 +72,7 @@ async function addVariant(): Promise<void> {
     if (name === undefined) return;
 
     const newShape = await dropAsset(
-        { imageSource: `/static/assets/${asset.fileHash}`, assetId: asset.id },
+        { imageSource: getImageSrcFromHash(asset.fileHash, false), assetId: asset.id },
         shape.refPoint,
     );
     if (newShape === undefined) {

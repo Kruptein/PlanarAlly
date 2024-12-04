@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive } from "vue";
 
-import { baseAdjust } from "../../../core/http";
+import { getImageSrcFromHash } from "../../../assetManager/utils";
 import { filter } from "../../../core/iter";
 import type { AssetFile, AssetListMap } from "../../../core/models/types";
 
@@ -64,7 +64,7 @@ function dragStart(event: DragEvent, assetHash: string, assetId: number): void {
         >
             {{ file.name }}
             <div v-if="state.hoveredHash == file.hash" class="preview">
-                <img class="asset-preview-image" :src="baseAdjust('/static/assets/' + file.hash)" alt="" />
+                <img class="asset-preview-image" :src="getImageSrcFromHash(file.hash)" alt="" />
             </div>
         </li>
     </ul>

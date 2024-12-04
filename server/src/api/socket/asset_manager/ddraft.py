@@ -9,7 +9,7 @@ from ....app import sio
 from ....db.models.asset import Asset
 from ....state.asset import asset_state
 from ....transform.to_api.asset import transform_asset
-from ....utils import ASSETS_DIR
+from ....utils import ASSETS_DIR, get_asset_hash_subpath
 from ...models.asset import ApiAssetUpload
 from ..constants import ASSET_NS
 
@@ -49,8 +49,10 @@ async def handle_ddraft_file(upload_data: ApiAssetUpload, data: bytes, sid: str)
     sh = hashlib.sha1(image)
     hashname = sh.hexdigest()
 
-    if not (ASSETS_DIR / hashname).exists():
-        with open(ASSETS_DIR / hashname, "wb") as f:
+    full_hash_path = get_asset_hash_subpath(hashname)
+
+    if not (ASSETS_DIR / full_hash_path).exists():
+        with open(ASSETS_DIR / full_hash_path, "wb") as f:
             f.write(image)
 
     template = {

@@ -1,5 +1,6 @@
 import { assetSystem } from "../assetManager";
 import { assetState } from "../assetManager/state";
+import { getImageSrcFromHash } from "../assetManager/utils";
 import { l2gx, l2gy, l2gz } from "../core/conversions";
 import { type GlobalPoint, toGP, Vector } from "../core/geometry";
 import { DEFAULT_GRID_SIZE, snapPointToGrid } from "../core/grid";
@@ -94,7 +95,10 @@ async function dropHelper(
 
         return;
     }
-    await dropAsset({ assetId: assetInfo.assetId, imageSource: `/static/assets/${assetInfo.assetHash}` }, location);
+    await dropAsset(
+        { assetId: assetInfo.assetId, imageSource: getImageSrcFromHash(assetInfo.assetHash, false) },
+        location,
+    );
 }
 
 export async function dropAsset(

@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { baseAdjust } from "../../../core/http";
+import { getImageSrcFromHash } from "../../../assetManager/utils";
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { setCenterPosition } from "../../position";
 import { characterSystem } from "../../systems/characters";
@@ -71,7 +71,7 @@ async function remove(characterId: CharacterId): Promise<void> {
             </div>
             <div v-if="!characterState.reactive.characterIds.size">{{ t('game.ui.menu.MenuBar.no_characters') }}</div>
             <div v-if="charAsset !== undefined" class="preview">
-                <img class="asset-preview-image" :src="baseAdjust('/static/assets/' + charAsset.assetHash)" alt="" />
+                <img class="asset-preview-image" :src="getImageSrcFromHash(charAsset.assetHash)" alt="" />
             </div>
         </div>
     </div>

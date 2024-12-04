@@ -6,7 +6,7 @@ import { assetSystem } from "../../../assetManager";
 import type { AssetId } from "../../../assetManager/models";
 import { socket } from "../../../assetManager/socket";
 import { assetState } from "../../../assetManager/state";
-import { getIdImageSrc, showIdName } from "../../../assetManager/utils";
+import { getImageSrcFromAssetId, showIdName } from "../../../assetManager/utils";
 import { i18n } from "../../../i18n";
 
 import Modal from "./Modal.vue";
@@ -82,7 +82,7 @@ function select(event: MouseEvent, inode: AssetId): void {
                         :class="{ 'inode-selected': assetState.reactive.selected.includes(file) }"
                         @click="select($event, file)"
                     >
-                        <img :src="getIdImageSrc(file)" width="50" alt="" />
+                        <img :src="getImageSrcFromAssetId(file)" width="50" alt="" />
                         <div class="title">{{ showIdName(file) }}</div>
                     </div>
                 </div>

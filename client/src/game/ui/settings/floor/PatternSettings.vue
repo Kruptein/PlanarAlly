@@ -2,7 +2,7 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { baseAdjust } from "../../../../core/http";
+import { getImageSrcFromHash } from "../../../../assetManager/utils";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { getValue } from "../../../../core/utils";
 import { getPattern, patternToString } from "../../../layers/floor";
@@ -51,7 +51,7 @@ function setPatternData(data: { offsetX?: Event; offsetY?: Event; scaleX?: Event
         <img
             v-if="backgroundPattern.hash !== ''"
             alt="Pattern image preview"
-            :src="baseAdjust('/static/assets/' + backgroundPattern.hash)"
+            :src="getImageSrcFromHash(backgroundPattern.hash)"
             class="pattern-preview"
         />
         <font-awesome-icon id="set-pattern" icon="plus-square" title="Set a pattern" @click="setPatternImage" />

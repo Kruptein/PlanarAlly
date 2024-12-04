@@ -16,6 +16,7 @@ When writing migrations make sure that these things are respected:
 
 SAVE_VERSION = 99
 
+import asyncio
 import json
 import logging
 import secrets
@@ -27,7 +28,7 @@ from uuid import uuid4
 
 from playhouse.sqlite_ext import SqliteExtDatabase
 
-from .thumbnail import create_thumbnail
+from .thumbnail import generate_thumbnail_for_asset
 
 from .config import SAVE_FILE
 from .db.all import ALL_MODELS
@@ -70,7 +71,12 @@ def check_existence() -> bool:
     return False
 
 
-def upgrade(db: SqliteExtDatabase, version: int, is_import: bool):
+def upgrade(
+    db: SqliteExtDatabase,
+    version: int,
+    is_import: bool,
+    loop: Optional[asyncio.AbstractEventLoop] = None,
+):
     if version < 79:
         raise OldVersionException(
             f"Upgrade code for this version is >2 years old and is no longer in the active codebase to reduce clutter. You can still find this code on github, contact me for more info."
@@ -522,29 +528,12 @@ def upgrade(db: SqliteExtDatabase, version: int, is_import: bool):
     elif version == 98:
         # Generate thumbnails for all assets
         # This is a bit of a fake migration as the DB is not modified, but it's a one time thing
-        data = db.execute_sql(
-            "SELECT name, file_hash FROM asset WHERE file_hash NOT NULL"
-        )
-        for asset_name, file_hash in data.fetchall():
-            full_hash_name = get_asset_hash_subpath(file_hash)
-            asset_path = ASSETS_DIR / full_hash_name
+        if not is_import and loop is not None:
+            data = db.execute_sql(
+                "SELECT name, file_hash FROM asset WHERE file_hash NOT NULL"
+            ).fetchall()
 
-            if not asset_path.exists():
-                continue
-
-            try:
-                with open(asset_path, "rb") as f:
-                    thumbnail = create_thumbnail(f.read())
-                if thumbnail is None:
-                    continue
-                for format, data in thumbnail.items():
-                    path = ASSETS_DIR / Path(f"{full_hash_name}.thumb.{format}")
-
-                    with open(path, "wb") as f:
-                        f.write(data)
-            except Exception as e:
-                print()
-                print(f"Thumbnail generation failed for {asset_name}: {e}")
+            loop.create_task(generate_thumbnails(data, loop))
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."
@@ -553,7 +542,12 @@ def upgrade(db: SqliteExtDatabase, version: int, is_import: bool):
     db.foreign_keys = True
 
 
-def upgrade_save(db: Optional[SqliteExtDatabase] = None, *, is_import=False):
+def upgrade_save(
+    db: Optional[SqliteExtDatabase] = None,
+    *,
+    is_import=False,
+    loop: Optional[asyncio.AbstractEventLoop] = None,
+):
     if db is None:
         db = ACTIVE_DB
     try:
@@ -586,7 +580,7 @@ def upgrade_save(db: Optional[SqliteExtDatabase] = None, *, is_import=False):
         else:
             logger.warning(f"Starting upgrade to {save_version + 1}")
         try:
-            upgrade(db, save_version, is_import)
+            upgrade(db, save_version, is_import, loop)
         except Exception as e:
             logger.exception(e)
             if is_import:
@@ -625,3 +619,25 @@ def remove_old_assets():
         if fl.is_dir():
             continue
         fl.unlink()
+
+
+async def generate_thumbnails(data, loop):
+    total_size = len(data)
+    print()
+    print(f"Generating thumbnails for {total_size} assets - This might take a while.")
+    print("This process is ran in the background and will log a message when complete")
+    print("Please don't stop the server while this is running.")
+    print()
+
+    def generate():
+        for i, (asset_name, file_hash) in enumerate(data):
+            generate_thumbnail_for_asset(asset_name, file_hash)
+
+            if i % 100 == 0:
+                print(f"Generated {i} / {total_size} thumbnails")
+
+    await loop.run_in_executor(None, generate)
+
+    print()
+    print("Thumbnail generation completed.")
+    print()

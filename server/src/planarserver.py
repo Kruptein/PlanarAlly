@@ -155,7 +155,7 @@ def server_main(args):
     mimetypes.types_map[".js"] = "application/javascript; charset=utf-8"
 
     if not save_newly_created:
-        save.upgrade_save()
+        save.upgrade_save(loop=loop)
 
     loop.create_task(start_servers())
 

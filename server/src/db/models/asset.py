@@ -1,12 +1,10 @@
 import json
-from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Union, cast
 
 from peewee import ForeignKeyField, TextField
 from typing_extensions import Self, TypedDict
 
-from ...thumbnail import create_thumbnail
-from ...utils import ASSETS_DIR, get_asset_hash_subpath
+from ...thumbnail import generate_thumbnail_for_asset
 from ..base import BaseDbModel
 from ..typed import SelectSequence
 from .asset_share import AssetShare
@@ -84,24 +82,7 @@ class Asset(BaseDbModel):
 
     def generate_thumbnails(self) -> None:
         if self.file_hash:
-            asset_path = ASSETS_DIR / self.file_hash
-            if not asset_path.exists():
-                return
-
-            try:
-                with open(asset_path, "rb") as f:
-                    thumbnail = create_thumbnail(f.read())
-                if thumbnail is None:
-                    return
-                for format, data in thumbnail.items():
-                    full_hash_name = get_asset_hash_subpath(self.file_hash)
-                    path = ASSETS_DIR / Path(f"{full_hash_name}.thumb.{format}")
-
-                    with open(path, "wb") as f:
-                        f.write(data)
-            except Exception as e:
-                print()
-                print(f"Thumbnail generation failed for {self.name}: {e}")
+            generate_thumbnail_for_asset(self.name, self.file_hash)
 
     @classmethod
     def get_root_folder(cls, user) -> Self:

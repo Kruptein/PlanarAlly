@@ -43,6 +43,9 @@ tech changes will usually be stripped from release notes for the public
     -   Note popouts for clients without edit access now show 'view source' instead of 'edit'
 -   I18n:
     -   Added 95% i18n for zh (except diceTool)
+-   [server] Assets:
+    -   Assets are no longer stored in a flat folder structure, but instead use a subpath based structure
+        -   An asset with hash `35eaef2e9a116aa152f7f161f1281411cb1e1375` is now stored as `assets/35/ea/35eaef2e9a116aa152f7f161f1281411cb1e1375`
 
 ### Removed
 
@@ -50,6 +53,8 @@ tech changes will usually be stripped from release notes for the public
     -   As mentioned in the last 2 releases these were going to be removed
     -   I wasn't happy with the current implementation and they were causing more confusion than they were useful
     -   This also removes the Filter Tool
+-   .paa asset handling
+    -   This was no longer really maintained and the current frontend doesn't offer any support for it
 
 ### Fixed
 
@@ -77,7 +82,6 @@ The script is added to the server folder and can be run with `python remove-brok
 When run as is, it will loop through all shapes and print out the ones with broken links.
 
 When run with the `delete` argument, it will remove the broken shapes from the DB. (i.e. `python remove-broken-shape-links.py delete`)
-
 
 ## [2024.3.0] - 2024-10-13
 

@@ -96,7 +96,7 @@ async function dropHelper(
         return;
     }
     await dropAsset(
-        { assetId: assetInfo.assetId, imageSource: getImageSrcFromHash(assetInfo.assetHash, false) },
+        { assetId: assetInfo.assetId, imageSource: getImageSrcFromHash(assetInfo.assetHash, { addBaseUrl: false }) },
         location,
     );
 }

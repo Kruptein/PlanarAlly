@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Literal, Optional, Union, cast
 from peewee import ForeignKeyField, TextField
 from typing_extensions import Self, TypedDict
 
+from ...thumbnail import generate_thumbnail_for_asset
 from ..base import BaseDbModel
 from ..typed import SelectSequence
 from .asset_share import AssetShare
@@ -78,6 +79,10 @@ class Asset(BaseDbModel):
                     return share
             asset = asset.parent
         return None
+
+    def generate_thumbnails(self) -> None:
+        if self.file_hash:
+            generate_thumbnail_for_asset(self.name, self.file_hash)
 
     @classmethod
     def get_root_folder(cls, user) -> Self:

@@ -26,6 +26,8 @@ const modals = useModal();
 const route = useRoute();
 const toast = useToast();
 
+const thumbnailMisses = ref(new Set<AssetId>());
+
 const body = document.getElementsByTagName("body")[0];
 
 const activeSelectionUrl = `url(${baseAdjust("/static/img/assetmanager/active_selection.png")})`;
@@ -178,12 +180,12 @@ function openContextMenu(event: MouseEvent, key: AssetId): void {
 let draggingSelection = false;
 
 function renameAsset(event: FocusEvent, file: AssetId, oldName: string): void {
-    if(!canEdit(file, false)) {
+    if (!canEdit(file, false)) {
         return;
     }
 
     const target = event.target as HTMLElement;
-    if(target.textContent === null){
+    if (target.textContent === null) {
         target.textContent = oldName;
         currentRenameAsset.value = null;
         return;
@@ -295,17 +297,17 @@ function canEdit(data: AssetId | DeepReadonly<ApiAsset> | undefined, includeRoot
     return true;
 }
 
-function selectElementContents(el: HTMLElement) : void {
+function selectElementContents(el: HTMLElement): void {
     const range = document.createRange();
     range.selectNodeContents(el);
     const sel = window.getSelection();
-    if(sel) {
+    if (sel) {
         sel.removeAllRanges();
         sel.addRange(range);
     }
 }
 
-async function showRenameUI(id: AssetId) : Promise<void> {
+async function showRenameUI(id: AssetId): Promise<void> {
     const el = contextTargetElement.value;
     contextTargetElement.value = null;
     if (el) {
@@ -316,7 +318,6 @@ async function showRenameUI(id: AssetId) : Promise<void> {
         });
     }
 }
-
 </script>
 
 <template>
@@ -392,10 +393,10 @@ async function showRenameUI(id: AssetId) : Promise<void> {
                 <font-awesome-icon v-if="isShared(folder)" icon="user-tag" class="asset-link" />
                 <font-awesome-icon icon="folder" style="font-size: 12.5em" />
                 <div
-                     :contenteditable="folder.id === currentRenameAsset"
-                     class="title"
-                     @keydown.enter="($event!.target as HTMLElement).blur()"
-                     @blur="renameAsset($event, folder.id, folder.name)"
+                    :contenteditable="folder.id === currentRenameAsset"
+                    class="title"
+                    @keydown.enter="($event!.target as HTMLElement).blur()"
+                    @blur="renameAsset($event, folder.id, folder.name)"
                 >
                     {{ folder.name }}
                 </div>
@@ -415,12 +416,17 @@ async function showRenameUI(id: AssetId) : Promise<void> {
                 @dragstart="startDrag($event, file.id)"
             >
                 <font-awesome-icon v-if="isShared(file)" icon="user-tag" class="asset-link" />
-                <img :src="getImageSrcFromAssetId(file.id)" width="50" alt="" />
+                <picture v-if="!thumbnailMisses.has(file.id)">
+                    <source :srcset="getImageSrcFromAssetId(file.id, { thumbnailFormat: 'webp' })" type="image/webp" />
+                    <source :srcset="getImageSrcFromAssetId(file.id, { thumbnailFormat: 'jpeg' })" type="image/jpeg" />
+                    <img alt="" loading="lazy" @error="thumbnailMisses.add(file.id)" />
+                </picture>
+                <img v-else :src="getImageSrcFromAssetId(file.id)" alt="" loading="lazy" />
                 <div
-                     :contenteditable="file.id === currentRenameAsset"
-                     class="title"
-                     @keydown.enter="($event!.target as HTMLElement).blur()"
-                     @blur="renameAsset($event, file.id, file.name)"
+                    :contenteditable="file.id === currentRenameAsset"
+                    class="title"
+                    @keydown.enter="($event!.target as HTMLElement).blur()"
+                    @blur="renameAsset($event, file.id, file.name)"
                 >
                     {{ file.name }}
                 </div>

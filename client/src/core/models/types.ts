@@ -1,3 +1,5 @@
+import type { AssetId } from "../../assetManager/models";
+
 export type AssetListMap = Map<string, AssetListMap | AssetFile[]>;
 export type ReadonlyAssetListMap = ReadonlyMap<string, ReadonlyAssetListMap | AssetFile[]>;
 
@@ -6,7 +8,7 @@ export interface AssetList {
 }
 
 export interface AssetFile {
-    id: number;
+    id: AssetId;
     name: string;
     hash: string;
 }

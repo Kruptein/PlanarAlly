@@ -122,13 +122,13 @@ async function changeAsset(): Promise<void> {
     if (data === undefined || data.fileHash === undefined) return;
     const shape = getShape(activeShapeStore.state.id);
     if (shape === undefined || shape.type !== "assetrect") return;
-    (shape as Asset).setImage(getImageSrcFromHash(data.fileHash, false), true);
+    (shape as Asset).setImage(getImageSrcFromHash(data.fileHash, { addBaseUrl: false }), true);
 }
 </script>
 
 <template>
     <div v-if="shapeProps" class="panel restore-panel">
-        <div class="spanrow header">{{ t('game.ui.selection.edit_dialog.properties.common') }}</div>
+        <div class="spanrow header">{{ t("game.ui.selection.edit_dialog.properties.common") }}</div>
         <div class="row">
             <label for="shapeselectiondialog-name">{{ t("common.name") }}</label>
             <input
@@ -226,7 +226,7 @@ async function changeAsset(): Promise<void> {
             <label></label>
             <button @click="changeAsset">Change asset</button>
         </div>
-        <div class="spanrow header">{{ t('game.ui.selection.edit_dialog.properties.advanced') }}</div>
+        <div class="spanrow header">{{ t("game.ui.selection.edit_dialog.properties.advanced") }}</div>
         <div class="row">
             <label for="shapeselectiondialog-visionblocker">
                 {{ t("game.ui.selection.edit_dialog.dialog.block_vision_light") }}

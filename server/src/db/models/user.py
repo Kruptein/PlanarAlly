@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import TYPE_CHECKING, Optional, cast
 
 import bcrypt
@@ -6,7 +5,7 @@ from peewee import ForeignKeyField, TextField, fn
 from playhouse.shortcuts import model_to_dict
 from typing_extensions import Self
 
-from ...utils import ASSETS_DIR
+from ...utils import ASSETS_DIR, get_asset_hash_subpath
 from ..base import BaseDbModel
 from ..typed import SelectSequence
 from .user_options import UserOptions
@@ -54,9 +53,10 @@ class User(BaseDbModel):
 
     def get_total_asset_size(self) -> int:
         return sum(
-            Path(ASSETS_DIR / asset.file_hash).stat().st_size
+            (ASSETS_DIR / get_asset_hash_subpath(asset.file_hash)).stat().st_size
             for asset in self.assets
-            if asset.file_hash and Path(ASSETS_DIR / asset.file_hash).exists()
+            if asset.file_hash
+            and (ASSETS_DIR / get_asset_hash_subpath(asset.file_hash)).exists()
         )
 
     @classmethod

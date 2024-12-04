@@ -22,7 +22,7 @@ import secrets
 import shutil
 import sys
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Optional
 from uuid import uuid4
 
 from playhouse.sqlite_ext import SqliteExtDatabase
@@ -31,7 +31,13 @@ from .config import SAVE_FILE
 from .db.all import ALL_MODELS
 from .db.db import db as ACTIVE_DB
 from .db.models.constants import Constants
-from .utils import ASSETS_DIR, FILE_DIR, OldVersionException, UnknownVersionException
+from .utils import (
+    ASSETS_DIR,
+    FILE_DIR,
+    OldVersionException,
+    UnknownVersionException,
+    get_asset_hash_subpath,
+)
 
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
@@ -62,7 +68,7 @@ def check_existence() -> bool:
     return False
 
 
-def upgrade(db: SqliteExtDatabase, version: int):
+def upgrade(db: SqliteExtDatabase, version: int, is_import: bool):
     if version < 79:
         raise OldVersionException(
             f"Upgrade code for this version is >2 years old and is no longer in the active codebase to reduce clutter. You can still find this code on github, contact me for more info."
@@ -490,7 +496,8 @@ def upgrade(db: SqliteExtDatabase, version: int):
         # Add folder structure to the assets folder
 
         # 1 first copy the physical files to their new location
-        migrate_assets_folder()
+        if not is_import:
+            migrate_assets_folder()
 
         # 2 update asset shapes in the DB
         with db.atomic():
@@ -500,9 +507,7 @@ def upgrade(db: SqliteExtDatabase, version: int):
                 # We doe a split, because some legacy assets start with http://
                 if "/static/assets/" in src:
                     file_hash = src.split("/static/assets/")[1]
-                    new_path = (
-                        f"/static/assets/{file_hash[:2]}/{file_hash[2:4]}/{file_hash}"
-                    )
+                    new_path = f"/static/assets/{get_asset_hash_subpath(file_hash)}"
 
                     db.execute_sql(
                         "UPDATE asset_rect SET src=? WHERE shape_id=?",
@@ -510,7 +515,8 @@ def upgrade(db: SqliteExtDatabase, version: int):
                     )
 
         # 3 Delete the old files
-        remove_old_assets()
+        if not is_import:
+            remove_old_assets()
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."
@@ -552,7 +558,7 @@ def upgrade_save(db: Optional[SqliteExtDatabase] = None, *, is_import=False):
         else:
             logger.warning(f"Starting upgrade to {save_version + 1}")
         try:
-            upgrade(db, save_version)
+            upgrade(db, save_version, is_import)
         except Exception as e:
             logger.exception(e)
             if is_import:

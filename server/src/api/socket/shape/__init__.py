@@ -216,7 +216,7 @@ async def remove_shapes(sid: str, raw_data: Any):
                 if shape.type_ == "assetrect":
                     rect = cast(AssetRect, shape.subtype)
                     if rect.src.startswith("/static/assets"):
-                        file_hash_to_clean = rect.src[len("/static/assets/") :]
+                        file_hash_to_clean = rect.src.split("/")[-1]
 
                 old_index = shape.index
                 shape.delete_instance(True)

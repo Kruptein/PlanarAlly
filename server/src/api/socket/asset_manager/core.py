@@ -267,10 +267,11 @@ async def handle_regular_file(upload_data: ApiAssetUpload, data: bytes, sid: str
     sh = hashlib.sha1(data)
     hashname = sh.hexdigest()
 
-    full_hash_path = get_asset_hash_subpath(hashname)
+    full_hash_path = ASSETS_DIR / get_asset_hash_subpath(hashname)
 
-    if not (ASSETS_DIR / full_hash_path).exists():
-        with open(ASSETS_DIR / full_hash_path, "wb") as f:
+    if not full_hash_path.exists():
+        full_hash_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(full_hash_path, "wb") as f:
             f.write(data)
 
     user = asset_state.get_user(sid)

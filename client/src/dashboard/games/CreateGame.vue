@@ -3,6 +3,7 @@ import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useToast } from "vue-toastification";
 
+import { getImageSrcFromHash } from "../../assetManager/utils";
 import { baseAdjust, http } from "../../core/http";
 import { useModal } from "../../core/plugins/modals/plugin";
 import { coreStore } from "../../store/core";
@@ -55,7 +56,13 @@ async function setLogo(): Promise<void> {
             <div class="logo">
                 <img
                     alt="Campaign Logo Preview"
-                    :src="baseAdjust(logo.id >= 0 ? `/static/assets/${logo.path}` : '/static/img/d20.svg')"
+                    :src="
+                        baseAdjust(
+                            logo.id >= 0
+                                ? getImageSrcFromHash(logo.path, { addBaseUrl: false })
+                                : '/static/img/d20.svg',
+                        )
+                    "
                 />
                 <div class="edit" @click="setLogo"><font-awesome-icon icon="pencil-alt" /></div>
             </div>

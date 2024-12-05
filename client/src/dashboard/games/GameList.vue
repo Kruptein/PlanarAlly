@@ -3,6 +3,7 @@ import { onMounted, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 
+import { getImageSrcFromHash } from "../../assetManager/utils";
 import { baseAdjust, getStaticImg, http } from "../../core/http";
 import { useModal } from "../../core/plugins/modals/plugin";
 import { getErrorReason } from "../../core/utils";
@@ -167,7 +168,13 @@ async function exportCampaign(): Promise<void> {
                 >
                     <img
                         class="logo"
-                        :src="baseAdjust(session.logo ? `/static/assets/${session.logo}` : '/static/img/dice.svg')"
+                        :src="
+                            baseAdjust(
+                                session.logo
+                                    ? getImageSrcFromHash(session.logo, { addBaseUrl: false })
+                                    : '/static/img/dice.svg',
+                            )
+                        "
                         alt="Campaign logo"
                     />
                     <div v-if="state.focussed?.name === session.name" class="logo-edit" @click.stop="setLogo">
@@ -224,7 +231,13 @@ async function exportCampaign(): Promise<void> {
                 >
                     <img
                         class="logo"
-                        :src="baseAdjust(session.logo ? `/static/assets/${session.logo}` : '/static/img/dice.svg')"
+                        :src="
+                            baseAdjust(
+                                session.logo
+                                    ? getImageSrcFromHash(session.logo, { addBaseUrl: false })
+                                    : '/static/img/dice.svg',
+                            )
+                        "
                         alt="Campaign logo"
                     />
                     <div class="data">

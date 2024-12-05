@@ -1,4 +1,5 @@
 import type { ApiAssetRectShape } from "../../../apiTypes";
+import { getImageSrcFromHash } from "../../../assetManager/utils";
 import { g2l, g2lz } from "../../../core/conversions";
 import { toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
@@ -103,7 +104,7 @@ export class Asset extends BaseRect implements IAsset {
                 { openPolygon: false, isSnappable: false },
             );
             this.layer?.addShape(cover, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
-            const svgs = await loadSvgData(`/static/assets/${this.options.svgAsset}`);
+            const svgs = await loadSvgData(getImageSrcFromHash(this.options.svgAsset));
             this.svgData = [...map(svgs.values(), (svg) => ({ svg, rp: this.refPoint, paths: undefined }))];
             const props = getProperties(this.id)!;
             if (props.blocksVision !== VisionBlock.No) {

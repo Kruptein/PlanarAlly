@@ -39,6 +39,8 @@ async function generate3dOptions(): Promise<{
     const w = (diceState.raw.dimensions3d.width / 2) * 0.85;
     const h = (diceState.raw.dimensions3d.height / 2) * 0.85;
 
+    const powerScale = Math.min(diceState.raw.dimensions3d.height, diceState.raw.dimensions3d.width) * 0.025;
+
     const { Vector3 } = await babMath();
 
     // Aim from side to center
@@ -49,7 +51,7 @@ async function generate3dOptions(): Promise<{
             // Slightly deviate from center
             .add(new Vector3(randomInterval(0, 20) - 10, randomInterval(0, 5) - 2.5, randomInterval(0, 20) - 10))
             // Power up
-            .multiplyByFloats(randomInterval(6, 9), 1, randomInterval(6, 9));
+            .multiplyByFloats(randomInterval(6, 9) * powerScale, 1, randomInterval(6, 9) * powerScale);
         const angular = new Vector3(linear.x / 2, 0, 0);
         return { angular, linear, position };
     };

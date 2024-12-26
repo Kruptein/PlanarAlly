@@ -530,6 +530,8 @@
                     "previous_roll": "Previous Roll",
                     "details": "Details",
                     "open_options_title": "Show additional options",
+                    "toggle_advanced": "Toggle Advanced Mode",
+                    "toggle_breakdown": "Toggle Breakdown",
                     "3D_options": {
                         "off": "Off",
                         "on": "On",

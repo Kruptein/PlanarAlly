@@ -266,7 +266,7 @@ async function roll(): Promise<void> {
                             <div
                                 class="dice-history-entry"
                                 :class="{ 'highlighted-history-entry': showHistoryBreakdownFor === i }"
-                                title="Toggle Breakdown"
+                                :title="t('game.ui.tools.DiceTool.toggle_breakdown')"
                                 @click="showHistoryBreakdownFor = showHistoryBreakdownFor === i ? null : i"
                             >
                                 <div class="history-grid-user">{{ player }}</div>
@@ -370,7 +370,7 @@ async function roll(): Promise<void> {
         </div>
         <div class="drawer-toggle" @click="showAdvancedOptions = !showAdvancedOptions">
             <div class="toggle-label">{{ t('game.ui.tools.DiceTool.advanced') }}</div>
-            <font-awesome-icon class="toggle-chevron" :icon="showAdvancedOptions ? 'minus' : 'plus'" title="Toggle Advanced Options" />
+            <font-awesome-icon class="toggle-chevron" :icon="showAdvancedOptions ? 'minus' : 'plus'" :title="t('game.ui.tools.DiceTool.toggle_advanced')" />
         </div>
         <div class="drawer-transition-wrapper">
             <Transition name="drawer-expand">

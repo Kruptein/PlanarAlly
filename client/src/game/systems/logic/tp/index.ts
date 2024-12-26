@@ -3,12 +3,12 @@ import type { DeepReadonly } from "vue";
 import { POSITION, useToast } from "vue-toastification";
 import type { ToastID } from "vue-toastification/dist/types/types";
 
-import { registerSystem } from "../..";
-import type { ShapeSystem } from "../..";
 import SingleButtonToast from "../../../../core/components/toasts/SingleButtonToast.vue";
+import type { LocalId } from "../../../../core/id";
 import type { Sync } from "../../../../core/models/types";
+import { registerSystem } from "../../../../core/systems";
+import type { ShapeSystem } from "../../../../core/systems";
 import { getGlobalId, getShape } from "../../../id";
-import type { LocalId } from "../../../id";
 import type { IShape } from "../../../interfaces/shape";
 import { playerSystem } from "../../players";
 import type { PlayerId } from "../../players/models";

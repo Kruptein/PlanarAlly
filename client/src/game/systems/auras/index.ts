@@ -1,13 +1,13 @@
 import { reactive, watchEffect } from "vue";
 import type { DeepReadonly } from "vue";
 
-import { registerSystem } from "..";
-import type { ShapeSystem } from "..";
+import type { LocalId } from "../../../core/id";
 import { filter } from "../../../core/iter";
 import { NO_SYNC } from "../../../core/models/types";
 import type { Sync } from "../../../core/models/types";
+import type { ShapeSystem } from "../../../core/systems";
+import { registerSystem } from "../../../core/systems";
 import { getGlobalId, getShape } from "../../id";
-import type { LocalId } from "../../id";
 import { compositeState } from "../../layers/state";
 import { LayerName } from "../../models/floor";
 import { visionState } from "../../vision/state";

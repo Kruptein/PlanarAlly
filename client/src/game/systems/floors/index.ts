@@ -1,7 +1,7 @@
 import { markRaw, type DeepReadonly } from "vue";
 
-import { registerSystem } from "..";
-import type { System } from "..";
+import { registerSystem } from "../../../core/systems";
+import type { System } from "../../../core/systems";
 import {
     sendActiveLayer,
     sendFloorReorder,

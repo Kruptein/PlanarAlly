@@ -1,6 +1,6 @@
 import { type GlobalPoint } from "../../../core/geometry";
 import type { GridType } from "../../../core/grid";
-import type { GlobalId, LocalId } from "../../id";
+import type { GlobalId, LocalId } from "../../../core/id";
 import { createHex } from "../../rendering/grid";
 
 import { Polygon } from "./polygon";

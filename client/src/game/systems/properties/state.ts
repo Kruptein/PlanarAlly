@@ -1,7 +1,7 @@
 import type { DeepReadonly } from "vue";
 
-import type { LocalId } from "../../id";
-import { buildState } from "../state";
+import type { LocalId } from "../../../core/id";
+import { buildState } from "../../../core/systems/state";
 
 import { VisionBlock } from "./types";
 

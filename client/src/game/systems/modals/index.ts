@@ -1,9 +1,9 @@
 import { markRaw } from "vue";
 import type { Component } from "vue";
 
-import { registerSystem } from "..";
-import type { System } from "..";
-import type { SystemClearReason } from "../models";
+import { registerSystem } from "../../../core/systems";
+import type { System } from "../../../core/systems";
+import type { SystemClearReason } from "../../../core/systems/models";
 
 import { modalState } from "./state";
 import type { FullModal, IndexedModal, Modal, ModalIndex } from "./types";

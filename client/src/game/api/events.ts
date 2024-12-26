@@ -30,6 +30,7 @@ import "./events/user";
 
 import type { ApiFloor, ApiLocationCore, PlayerPosition } from "../../apiTypes";
 import { toGP } from "../../core/geometry";
+import type { GlobalId } from "../../core/id";
 import { SyncMode } from "../../core/models/types";
 import type { AssetList } from "../../core/models/types";
 import { debugLayers } from "../../localStorageHelpers";
@@ -41,7 +42,6 @@ import { convertAssetListToMap } from "../assets/utils";
 import { clearGame } from "../clear";
 import { addServerFloor } from "../floor/server";
 import { getShapeFromGlobal } from "../id";
-import type { GlobalId } from "../id";
 import { setCenterPosition } from "../position";
 import { deleteShapes } from "../shapes/utils";
 import { floorSystem } from "../systems/floors";

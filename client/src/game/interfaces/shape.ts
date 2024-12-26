@@ -1,7 +1,7 @@
 import type { ApiShape } from "../../apiTypes";
 import type { GlobalPoint, Vector } from "../../core/geometry";
 import type { GridType } from "../../core/grid";
-import type { LocalId } from "../id";
+import type { LocalId } from "../../core/id";
 import type { Floor, FloorId, LayerName } from "../models/floor";
 import type { ServerShapeOptions, ShapeOptions } from "../models/shapes";
 import type { DepShape, SHAPE_TYPE } from "../shapes/types";

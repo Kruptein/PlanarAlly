@@ -1,6 +1,6 @@
 import { reactive, readonly } from "vue";
 
-import type { LocalId } from "../../../id";
+import type { LocalId } from "../../../../core/id";
 
 interface SelectState {
     hoveredDoor?: LocalId;

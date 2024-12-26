@@ -5,12 +5,12 @@ import draggable from "vuedraggable";
 
 import Modal from "../../../core/components/modals/Modal.vue";
 import { baseAdjust } from "../../../core/http";
+import type { GlobalId, LocalId } from "../../../core/id";
 import { map } from "../../../core/iter";
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { getTarget, getValue } from "../../../core/utils";
 import { sendRequestInitiatives } from "../../api/emits/initiative";
 import { getShape } from "../../id";
-import type { GlobalId, LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import type { IAsset } from "../../interfaces/shapes/asset";
 import type { InitiativeData } from "../../models/initiative";

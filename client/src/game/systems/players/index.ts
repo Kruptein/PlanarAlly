@@ -1,8 +1,9 @@
 import type { DeepReadonly } from "vue";
 
-import { registerSystem } from "..";
-import type { System } from "..";
 import type { ClientPosition } from "../../../apiTypes";
+import { registerSystem } from "../../../core/systems";
+import type { System } from "../../../core/systems";
+import type { SystemClearReason } from "../../../core/systems/models";
 import { getLocalStorageObject } from "../../../localStorageHelpers";
 import { router } from "../../../router";
 import { coreStore } from "../../../store/core";
@@ -16,7 +17,6 @@ import { startDrawLoop } from "../../rendering/core";
 import { clientSystem } from "../client";
 import { clientState } from "../client/state";
 import { floorSystem } from "../floors";
-import type { SystemClearReason } from "../models";
 import { positionSystem } from "../position";
 
 import type { Player, PlayerId } from "./models";

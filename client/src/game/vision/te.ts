@@ -1,5 +1,5 @@
 import type { GlobalPoint } from "../../core/geometry";
-import type { LocalId } from "../id";
+import type { LocalId } from "../../core/id";
 import type { FloorId } from "../models/floor";
 import { drawPolygon } from "../rendering/basic";
 

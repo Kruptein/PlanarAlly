@@ -1,9 +1,9 @@
 import type { ApiShape } from "../../apiTypes";
 import { toGP, Vector } from "../../core/geometry";
 import type { GlobalPoint } from "../../core/geometry";
+import type { LocalId } from "../../core/id";
 import { SyncMode } from "../../core/models/types";
 import { getLocalId, getShape } from "../id";
-import type { LocalId } from "../id";
 import type { LayerName } from "../models/floor";
 import { ToolName } from "../models/tools";
 import type { ISelectTool } from "../models/tools";

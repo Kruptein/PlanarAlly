@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-duplicate-enum-values */
+import type { LocalId } from "../../core/id";
 import { equalPoints } from "../../core/math";
-import type { LocalId } from "../id";
 
 import type { CDT } from "./cdt";
 import { ccw, cw, orientation, sideOfOrientedCircleP, ulp } from "./triag";

@@ -1,7 +1,7 @@
 import type { ApiFloor } from "../src/apiTypes";
 import { toGP } from "../src/core/geometry";
+import type { LocalId } from "../src/core/id";
 import { addServerFloor } from "../src/game/floor/server";
-import type { LocalId } from "../src/game/id";
 import { generateLocalId } from "../src/game/id";
 import type { IShape } from "../src/game/interfaces/shape";
 import { LayerName } from "../src/game/models/floor";

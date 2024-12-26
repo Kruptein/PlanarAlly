@@ -1,7 +1,7 @@
 import { computed } from "vue";
 
 import type { ApiAsset } from "../apiTypes";
-import { buildState } from "../game/systems/state";
+import { buildState } from "../core/systems/state";
 
 import type { AssetId } from "./models";
 

@@ -1,7 +1,7 @@
 import type { DeepReadonly } from "vue";
 
 import type { ApiTracker } from "../../../apiTypes";
-import type { GlobalId, LocalId } from "../../id";
+import type { GlobalId, LocalId } from "../../../core/id";
 
 import type { Tracker, UiTracker } from "./models";
 

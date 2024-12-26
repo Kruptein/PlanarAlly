@@ -52,6 +52,7 @@ tech changes will usually be stripped from release notes for the public
 -   [server] Assets:
     -   Assets are no longer stored in a flat folder structure, but instead use a subpath based structure
         -   An asset with hash `35eaef2e9a116aa152f7f161f1281411cb1e1375` is now stored as `assets/35/ea/35eaef2e9a116aa152f7f161f1281411cb1e1375`
+-   [tech] Systems: Move system-core from game/ to core/ so that it can also be used by e.g. assets
 
 ### Removed
 

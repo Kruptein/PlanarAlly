@@ -4,10 +4,10 @@ import type {
     ShapeSetOptionalStringValue,
     ShapeSetStringValue,
 } from "../../../../apiTypes";
+import type { GlobalId, LocalId } from "../../../../core/id";
 import { UI_SYNC } from "../../../../core/models/types";
 import type { Sync } from "../../../../core/models/types";
 import { getLocalId, getShape } from "../../../id";
-import type { GlobalId, LocalId } from "../../../id";
 import type { IAsset } from "../../../interfaces/shapes/asset";
 import { floorSystem } from "../../../systems/floors";
 import { propertiesSystem } from "../../../systems/properties";

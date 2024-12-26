@@ -1,6 +1,6 @@
 import tinycolor from "tinycolor2";
 
-import type { GlobalId } from "../game/id";
+import type { GlobalId } from "../core/id";
 
 // Reference: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
 export function uuidv4(): GlobalId {

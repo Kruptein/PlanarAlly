@@ -1,5 +1,5 @@
+import { buildState } from "../../../core/systems/state";
 import type { ServerUserLocationOptions } from "../../models/settings";
-import { buildState } from "../state";
 
 import type { Player, PlayerId } from "./models";
 

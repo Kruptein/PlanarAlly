@@ -69,7 +69,7 @@ async function remove(characterId: CharacterId): Promise<void> {
                 {{ characterState.readonly.characters.get(char)?.name ?? "??" }}
                 <span class="remove" title="Remove character" @click.stop="remove(char)">X</span>
             </div>
-            <div v-if="!characterState.reactive.characterIds.size">{{ t('game.ui.menu.MenuBar.no_characters') }}</div>
+            <div v-if="!characterState.reactive.characterIds.size">{{ t("game.ui.menu.MenuBar.no_characters") }}</div>
             <div v-if="charAsset !== undefined" class="preview">
                 <img class="asset-preview-image" :src="getImageSrcFromHash(charAsset.assetHash)" alt="" />
             </div>

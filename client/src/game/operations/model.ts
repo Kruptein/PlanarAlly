@@ -1,6 +1,6 @@
 import type { ApiShape } from "../../apiTypes";
 import type { GlobalPoint } from "../../core/geometry";
-import type { LocalId } from "../id";
+import type { LocalId } from "../../core/id";
 import type { LayerName } from "../models/floor";
 
 export type Operation =

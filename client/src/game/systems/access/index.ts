@@ -1,12 +1,12 @@
 import type { DeepReadonly } from "vue";
 
-import { registerSystem } from "..";
-import type { ShapeSystem } from "..";
+import type { LocalId } from "../../../core/id";
 import { guard } from "../../../core/iter";
 import type { Sync } from "../../../core/models/types";
+import { registerSystem } from "../../../core/systems";
+import type { ShapeSystem } from "../../../core/systems";
 import { coreStore } from "../../../store/core";
 import { getGlobalId, getShape } from "../../id";
-import type { LocalId } from "../../id";
 import { initiativeStore } from "../../ui/initiative/state";
 import { floorSystem } from "../floors";
 import { gameState } from "../game/state";
@@ -136,9 +136,9 @@ class AccessSystem implements ShapeSystem {
         if (userAccess === undefined) return false;
 
         return (
-            (access.edit ?? false ? userAccess.edit : true) &&
-            (access.movement ?? false ? userAccess.movement : true) &&
-            (access.vision ?? false ? userAccess.vision : true)
+            ((access.edit ?? false) ? userAccess.edit : true) &&
+            ((access.movement ?? false) ? userAccess.movement : true) &&
+            ((access.vision ?? false) ? userAccess.vision : true)
         );
     }
 

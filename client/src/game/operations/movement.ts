@@ -1,7 +1,8 @@
 import { addP, toArrayP } from "../../core/geometry";
 import type { Vector } from "../../core/geometry";
+import type { LocalId } from "../../core/id";
 import { sendShapePositionUpdate } from "../api/emits/shape/core";
-import { getShape, type LocalId } from "../id";
+import { getShape } from "../id";
 import type { IShape } from "../interfaces/shape";
 import { accessSystem } from "../systems/access";
 import { clientSystem } from "../systems/client";

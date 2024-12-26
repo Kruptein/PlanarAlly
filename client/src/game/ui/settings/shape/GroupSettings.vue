@@ -2,11 +2,12 @@
 import { computed, toRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import type { LocalId } from "../../../../core/id";
 import { FULL_SYNC, SERVER_SYNC } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { getChecked, getValue } from "../../../../core/utils";
 import { activeShapeStore } from "../../../../store/activeShape";
-import { getShape, type LocalId } from "../../../id";
+import { getShape } from "../../../id";
 import { setCenterPosition } from "../../../position";
 import { accessState } from "../../../systems/access/state";
 import { groupSystem } from "../../../systems/groups";
@@ -33,7 +34,11 @@ watch(
     { immediate: true },
 );
 
-const characterSet = [t('game.ui.selection.edit_dialog.groups.charset.numbers'), t('game.ui.selection.edit_dialog.groups.charset.latin'), t('game.ui.selection.edit_dialog.groups.charset.custom')];
+const characterSet = [
+    t("game.ui.selection.edit_dialog.groups.charset.numbers"),
+    t("game.ui.selection.edit_dialog.groups.charset.latin"),
+    t("game.ui.selection.edit_dialog.groups.charset.custom"),
+];
 let characterSetSelected = 0;
 let customText: string[] = [];
 let defaultCreationOrder: CREATION_ORDER_TYPES = "incrementing";
@@ -206,8 +211,8 @@ async function deleteGroup(): Promise<void> {
 
 <template>
     <div class="panel restore-panel">
-        <div class="spanrow header">{{ t('game.ui.selection.edit_dialog.groups.rules') }}</div>
-        <div class="rule">{{ t('game.ui.selection.edit_dialog.groups.character_set') }}</div>
+        <div class="spanrow header">{{ t("game.ui.selection.edit_dialog.groups.rules") }}</div>
+        <div class="rule">{{ t("game.ui.selection.edit_dialog.groups.character_set") }}</div>
         <div class="selection-box">
             <template v-for="(cs, i) of characterSet" :key="cs">
                 <div :class="{ 'selection-box-active': i === selectedCharacterSet }" @click="selectedCharacterSet = i">
@@ -216,7 +221,7 @@ async function deleteGroup(): Promise<void> {
             </template>
         </div>
         <template v-if="selectedCharacterSet === 2">
-            <div class="rule">{{ t('game.ui.selection.edit_dialog.groups.custom_charset') }}</div>
+            <div class="rule">{{ t("game.ui.selection.edit_dialog.groups.custom_charset") }}</div>
             <div style="grid-column: fill/end">
                 <input
                     type="text"
@@ -226,7 +231,7 @@ async function deleteGroup(): Promise<void> {
                 />
             </div>
         </template>
-        <div class="rule">{{ t('game.ui.selection.edit_dialog.groups.creation_order') }}</div>
+        <div class="rule">{{ t("game.ui.selection.edit_dialog.groups.creation_order") }}</div>
         <div class="selection-box">
             <template v-for="co of CREATION_ORDER_OPTIONS" :key="co">
                 <div :class="{ 'selection-box-active': co === creationOrder }" @click="_setCreationOrder(co)">
@@ -235,9 +240,9 @@ async function deleteGroup(): Promise<void> {
             </template>
         </div>
         <template v-if="groupState.reactive.activeId !== undefined">
-            <div class="spanrow header">{{ t('game.ui.selection.edit_dialog.groups.members') }}</div>
+            <div class="spanrow header">{{ t("game.ui.selection.edit_dialog.groups.members") }}</div>
             <label class="rule" style="grid-column: badge/toggle" for="toggleCheckbox">
-                {{ t('game.ui.selection.edit_dialog.groups.show_badge_on_all_members') }}
+                {{ t("game.ui.selection.edit_dialog.groups.show_badge_on_all_members") }}
             </label>
             <div>
                 <input
@@ -248,10 +253,10 @@ async function deleteGroup(): Promise<void> {
                 />
             </div>
             <div></div>
-            <div class="subheader">{{ t('game.ui.selection.edit_dialog.groups.badge') }}</div>
+            <div class="subheader">{{ t("game.ui.selection.edit_dialog.groups.badge") }}</div>
             <div></div>
-            <div class="subheader">{{ t('game.ui.selection.edit_dialog.groups.show_badge') }}</div>
-            <div class="subheader">{{ t('common.remove') }}</div>
+            <div class="subheader">{{ t("game.ui.selection.edit_dialog.groups.show_badge") }}</div>
+            <div class="subheader">{{ t("common.remove") }}</div>
             <template v-for="[member, badge] of groupMembers" :key="member">
                 <div
                     class="badge"
@@ -278,19 +283,25 @@ async function deleteGroup(): Promise<void> {
             </template>
         </template>
         <template v-if="groupState.reactive.groupInfo === undefined">
-            <div class="spanrow header">{{ t('common.actions') }}</div>
+            <div class="spanrow header">{{ t("common.actions") }}</div>
             <div></div>
             <div></div>
             <div></div>
             <div style="grid-column: toggle/end">
-                <button class="danger" @click="createGroup">{{ t('game.ui.selection.edit_dialog.groups.create_new_group') }}</button>
+                <button class="danger" @click="createGroup">
+                    {{ t("game.ui.selection.edit_dialog.groups.create_new_group") }}
+                </button>
             </div>
         </template>
         <template v-else>
-            <div class="spanrow header">{{ t('settings.AccountSettings.danger_zone') }}</div>
+            <div class="spanrow header">{{ t("settings.AccountSettings.danger_zone") }}</div>
             <div></div>
             <div></div>
-            <div style="grid-column: toggle/end"><button class="danger" @click="deleteGroup">{{ t('game.ui.selection.edit_dialog.groups.delete_group') }}</button></div>
+            <div style="grid-column: toggle/end">
+                <button class="danger" @click="deleteGroup">
+                    {{ t("game.ui.selection.edit_dialog.groups.delete_group") }}
+                </button>
+            </div>
         </template>
     </div>
 </template>

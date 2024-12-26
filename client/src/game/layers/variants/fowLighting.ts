@@ -1,8 +1,8 @@
 import { g2l, g2lz, g2lr, toRadians } from "../../../core/conversions";
+import type { LocalId } from "../../../core/id";
 import type { SyncMode, InvalidationMode } from "../../../core/models/types";
 import { FOG_COLOUR } from "../../colour";
 import { getShape } from "../../id";
-import type { LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import { LayerName } from "../../models/floor";
 import { accessState } from "../../systems/access/state";

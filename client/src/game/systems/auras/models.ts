@@ -1,4 +1,4 @@
-import type { LocalId } from "../../id";
+import type { LocalId } from "../../../core/id";
 
 export type AuraId = string & { __brand: "auraId" };
 

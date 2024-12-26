@@ -4,12 +4,12 @@ import { useToast } from "vue-toastification";
 
 import { getImageSrcFromHash } from "../../../../assetManager/utils";
 import { cloneP } from "../../../../core/geometry";
+import type { LocalId } from "../../../../core/id";
 import { InvalidationMode, SERVER_SYNC, SyncMode } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { dropAsset } from "../../../dropAsset";
 import { getShape } from "../../../id";
-import type { LocalId } from "../../../id";
 import { compositeState } from "../../../layers/state";
 import { ToggleComposite } from "../../../shapes/variants/toggleComposite";
 

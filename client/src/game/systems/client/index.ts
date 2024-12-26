@@ -1,17 +1,17 @@
 import throttle from "lodash/throttle";
 
-import { registerSystem } from "..";
-import type { System } from "..";
 import type { ClientPosition, Viewport } from "../../../apiTypes";
 import { toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
+import type { LocalId } from "../../../core/id";
 import { filter, map } from "../../../core/iter";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
+import { registerSystem } from "../../../core/systems";
+import type { System } from "../../../core/systems";
 import { setLocalStorageObject } from "../../../localStorageHelpers";
 import { sendMoveClient, sendOffset, sendViewport } from "../../api/emits/client";
 import { getClientId } from "../../api/socket";
 import { getShape } from "../../id";
-import type { LocalId } from "../../id";
 import { LayerName } from "../../models/floor";
 import { Polygon } from "../../shapes/variants/polygon";
 import { floorSystem } from "../floors";

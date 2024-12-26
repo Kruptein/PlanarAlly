@@ -1,4 +1,4 @@
-import { buildState } from "../state";
+import { buildState } from "../../../core/systems/state";
 
 interface ReactiveChatState {
     enableChat: boolean;

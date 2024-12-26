@@ -1,5 +1,5 @@
-import { registerSystem } from "../..";
-import type { System } from "../..";
+import { registerSystem } from "../../../../core/systems";
+import type { System } from "../../../../core/systems";
 import { sendRoomClientOptions } from "../../../api/emits/client";
 import { Colour, registerColour, updateFogColour } from "../../../colour";
 import { LayerName } from "../../../models/floor";
@@ -13,10 +13,12 @@ import { playerSettingsState } from "./state";
 const { mutableReactive: $ } = playerSettingsState;
 
 class PlayerSettingsSystem implements System {
-    clear(): void { }
+    clear(): void {}
 
     // This is a utility function to simplify a lot of the settings UI code
-    getSetter<T extends keyof PlayerOptions>(setting: T): (value: PlayerOptions[T] | undefined, options: { sync: boolean; default?: PlayerOptions[T] }) => void {
+    getSetter<T extends keyof PlayerOptions>(
+        setting: T,
+    ): (value: PlayerOptions[T] | undefined, options: { sync: boolean; default?: PlayerOptions[T] }) => void {
         const settingMap = {
             defaultClosedDoorColour: this.setDefaultClosedDoorColour.bind(this),
             defaultOpenDoorColour: this.setDefaultOpenDoorColour.bind(this),
@@ -45,7 +47,10 @@ class PlayerSettingsSystem implements System {
         } as Record<keyof PlayerOptions, this[keyof this]>;
 
         if (setting in settingMap) {
-            return settingMap[setting] as (value: PlayerOptions[T] | undefined, options: { sync: boolean; default?: PlayerOptions[T] }) => void;
+            return settingMap[setting] as (
+                value: PlayerOptions[T] | undefined,
+                options: { sync: boolean; default?: PlayerOptions[T] },
+            ) => void;
         }
         throw new Error(`Unknown setting: ${setting}`);
     }
@@ -116,7 +121,10 @@ class PlayerSettingsSystem implements System {
         if (options.sync) sendRoomClientOptions("default_wall_colour", defaultWallColour, options.default);
     }
 
-    setDefaultWindowColour(defaultWindowColour: string | undefined, options: { sync: boolean; default?: string }): void {
+    setDefaultWindowColour(
+        defaultWindowColour: string | undefined,
+        options: { sync: boolean; default?: string },
+    ): void {
         $.defaultWindowColour.override = defaultWindowColour;
         if (options.default !== undefined) $.defaultWindowColour.default = options.default;
         $.defaultWindowColour.value = defaultWindowColour ?? $.defaultWindowColour.default;
@@ -125,7 +133,10 @@ class PlayerSettingsSystem implements System {
         if (options.sync) sendRoomClientOptions("default_window_colour", defaultWindowColour, options.default);
     }
 
-    setDefaultClosedDoorColour(defaultClosedDoorColour: string | undefined, options: { sync: boolean; default?: string }): void {
+    setDefaultClosedDoorColour(
+        defaultClosedDoorColour: string | undefined,
+        options: { sync: boolean; default?: string },
+    ): void {
         $.defaultClosedDoorColour.override = defaultClosedDoorColour;
         if (options.default !== undefined) $.defaultClosedDoorColour.default = options.default;
         $.defaultClosedDoorColour.value = defaultClosedDoorColour ?? $.defaultClosedDoorColour.default;
@@ -133,7 +144,10 @@ class PlayerSettingsSystem implements System {
         if (options.sync) sendRoomClientOptions("default_closed_door_colour", defaultClosedDoorColour, options.default);
     }
 
-    setDefaultOpenDoorColour(defaultOpenDoorColour: string | undefined, options: { sync: boolean; default?: string }): void {
+    setDefaultOpenDoorColour(
+        defaultOpenDoorColour: string | undefined,
+        options: { sync: boolean; default?: string },
+    ): void {
         $.defaultOpenDoorColour.override = defaultOpenDoorColour;
         if (options.default !== undefined) $.defaultOpenDoorColour.default = options.default;
         $.defaultOpenDoorColour.value = defaultOpenDoorColour ?? $.defaultOpenDoorColour.default;

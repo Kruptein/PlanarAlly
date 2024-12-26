@@ -232,7 +232,7 @@ async function roll(): Promise<void> {
                             <div v-if="lastRoll.result === '-'" style="font-style: italic"> <!-- starting state -->
                                 {{ part.shortResult }}
                             </div>
-                            <div v-else-if="part.longResult" class="dice-result">
+                            <div v-else-if="part.longResult" class="dice-result" :title="part.longResult">
                                 <div class="input">{{ part.input ?? "" }}</div>
                                 <div v-if="breakdownDetailOptionLastRoll === 'detailed'" class="ops">{{ '(' + part.longResult.replaceAll(',', ' + ') + ')' }}</div>
                                 <div class="value">{{ part.shortResult }}</div>
@@ -289,7 +289,7 @@ async function roll(): Promise<void> {
                                                     v-for="[index, part] of historyRoll.parts.entries()"
                                                     :key="index"
                                                 >
-                                                    <div v-if="part.longResult" class="dice-result">
+                                                    <div v-if="part.longResult" class="dice-result" :title="part.longResult">
                                                         <div class="input">{{ part.input ?? "" }}</div>
                                                         <div v-if="enableDetailedHistoryBreakdown" class="ops">{{ '(' + part.longResult.replaceAll(',', ' + ') + ')' }}</div>
                                                         <div class="value">{{ part.shortResult }}</div>

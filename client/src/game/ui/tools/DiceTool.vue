@@ -17,15 +17,27 @@ const { t } = useI18n();
 
 // const limitOperatorOptionNames = [t('game.ui.tools.DiceTool.limit_operator_options.keep'), t('game.ui.tools.DiceTool.limit_operator_options.drop'), t('game.ui.tools.DiceTool.limit_operator_options.min'), t('game.ui.tools.DiceTool.limit_operator_options.max')]
 // const selectorOptionNames = ["=", ">", "<", t('game.ui.tools.DiceTool.selection_option_names.highest'), t('game.ui.tools.DiceTool.selection_option_names.lowest')]
+
 const dice3dOptions = ["off", "on", "box"] as const;
 const dice3dSetting = ref<(typeof dice3dOptions)[number]>("off");
+
 const shareResultOptions = ["all", "dm", "none"] as const;
 const shareResult = ref<(typeof shareResultOptions)[number]>("all");
+
+const breakdownDetailOptions = ["detailed", "simple"] as const;
+const breakdownDetailOptionHistory = ref<(typeof breakdownDetailOptions)[number]>(localStorage.getItem("diceTool.breakdownDetailOptionHistory") as (typeof breakdownDetailOption)[number] ?? "detailed");
+const breakdownDetailOptionLastRoll = ref<(typeof breakdownDetailOptions)[number]>(localStorage.getItem("diceTool.breakdownDetailOptionLastRoll") as (typeof breakdownDetailOption)[number] ?? "detailed");
+
+// track if temporarily enabled via the option within a history item
+const enableDetailedHistoryBreakdown = ref(breakdownDetailOptionHistory.value === "detailed");
+
 const showAdvancedOptions = ref(false);
 const showRollHistory = ref(false);
 const showHistoryBreakdownFor = ref<number | null>(null);
+
 const canvasElement = ref<HTMLCanvasElement | null>(null);
 const inputElement = ref<HTMLInputElement | null>(null);
+
 const translationMapping = {
     dice3dOptions: {
         ["off"]: t('game.ui.tools.DiceTool.3D_options.off'),
@@ -37,8 +49,13 @@ const translationMapping = {
         ["dm"]: t('game.ui.tools.DiceTool.share_options.dm'),
         ["none"]: t('game.ui.tools.DiceTool.share_options.none'),
     },
+    breakdownDetailOptions: {
+        ["detailed"]: t('game.ui.tools.DiceTool.breakdown_options.detailed'),
+        ["simple"]: t('game.ui.tools.DiceTool.breakdown_options.simple'),
+    },
 }
 
+const showOptionsSubmenu = ref(false);
 const awaitingRoll = ref(false);
 const awaiting3dLoad = ref(false);
 const lastRoll = ref<RollResult<Part>>({ result: "-", parts: [{ input: undefined, shortResult: t('game.ui.tools.DiceTool.empty_history') }] });
@@ -48,6 +65,17 @@ const literalOptions = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ...DxC
 const input = ref<DxSegment[]>([]);
 const lastSeg = computed(() => input.value.at(-1));
 
+watch(breakdownDetailOptionHistory, () => {
+    localStorage.setItem("diceTool.breakdownDetailOptionHistory", breakdownDetailOptionHistory.value);
+});
+
+watch(breakdownDetailOptionLastRoll, () => {
+    localStorage.setItem("diceTool.breakdownDetailOptionLastRoll", breakdownDetailOptionLastRoll.value);
+});
+
+watch(showHistoryBreakdownFor, () => {
+    enableDetailedHistoryBreakdown.value = breakdownDetailOptionHistory.value === "detailed";
+});
 
 watch(dice3dSetting, async (value) => {
     if (value === "on") {
@@ -206,7 +234,7 @@ async function roll(): Promise<void> {
                             </div>
                             <div v-else-if="part.longResult" class="dice-result">
                                 <div class="input">{{ part.input ?? "" }}</div>
-                                <div class="ops">{{ '(' + part.longResult.replaceAll(',', ' + ') + ')' }}</div>
+                                <div v-if="breakdownDetailOptionLastRoll === 'detailed'" class="ops">{{ '(' + part.longResult.replaceAll(',', ' + ') + ')' }}</div>
                                 <div class="value">{{ part.shortResult }}</div>
                             </div>
                             <div v-else-if="part.shortResult === '+' || part.shortResult === '-'" class="operator-result">
@@ -251,7 +279,10 @@ async function roll(): Promise<void> {
                             <div class="drawer-transition-wrapper" style="margin:0">
                                 <Transition name="drawer-expand" @after-enter="scrollToHistoryEntry">
                                     <div v-if="showHistoryBreakdownFor === i" class="history-breakdown">
-                                        <button class="reroll-button" @click="populateInputFromHistoryIndex(i)">{{ t('game.ui.tools.DiceTool.reroll') }}</button>
+                                        <div class="history-item-buttons">
+                                            <button class="detail-toggle-button" @click="enableDetailedHistoryBreakdown = !enableDetailedHistoryBreakdown">{{ t('game.ui.tools.DiceTool.details') }}</button>
+                                            <button class="reroll-button" @click="populateInputFromHistoryIndex(i)">{{ t('game.ui.tools.DiceTool.reroll') }}</button>
+                                        </div>
                                         <div class="breakdown-scroll-container">
                                             <div class="breakdown-flex-container">
                                                 <div
@@ -260,7 +291,7 @@ async function roll(): Promise<void> {
                                                 >
                                                     <div v-if="part.longResult" class="dice-result">
                                                         <div class="input">{{ part.input ?? "" }}</div>
-                                                        <div class="ops">{{ '(' + part.longResult.replaceAll(',', ' + ') + ')' }}</div>
+                                                        <div v-if="enableDetailedHistoryBreakdown" class="ops">{{ '(' + part.longResult.replaceAll(',', ' + ') + ')' }}</div>
                                                         <div class="value">{{ part.shortResult }}</div>
                                                     </div>
                                                     <div v-else-if="part.shortResult === '+' || part.shortResult === '-'" class="operator-result">
@@ -284,25 +315,58 @@ async function roll(): Promise<void> {
             </Transition>
         </div>
         <div id="options-cluster">
-            <div class="vertical-label-plus-group">
-                <label>{{ t('game.ui.tools.DiceTool.3D_dice') }}</label>
-                <ToggleGroup
-                    v-model="dice3dSetting"
-                    class="click-group"
-                    :options="arrToToggleGroup(dice3dOptions, translationMapping.dice3dOptions)"
-                    :multi-select="false"
-                    :disabled="awaiting3dLoad"
-                />
-            </div>
-            <div class="vertical-label-plus-group">
-                <label>{{ t('game.ui.tools.DiceTool.share') }}</label>
-                <ToggleGroup
-                    v-model="shareResult"
-                    class="click-group"
-                    :options="arrToToggleGroup(shareResultOptions, translationMapping.shareResultOptions)"
-                    :multi-select="false"
-                />
-            </div>
+            <Transition
+                name="options-slide"
+                :enter-from-class="showOptionsSubmenu ? 'slide-left-enter' : 'slide-right-enter'"
+                :enter-active-class="showOptionsSubmenu ? 'slide-left-enter-active' : 'slide-right-enter-active'"
+                :leave-to-class="showOptionsSubmenu ? 'slide-right-leave' : 'slide-left-leave'"
+            >
+                <div v-if="!showOptionsSubmenu" id="common-options" >
+                    <div class="vertical-label-plus-group">
+                        <label>{{ t('game.ui.tools.DiceTool.3D_dice') }}</label>
+                        <ToggleGroup
+                            v-model="dice3dSetting"
+                            class="click-group"
+                            :options="arrToToggleGroup(dice3dOptions, translationMapping.dice3dOptions)"
+                            :multi-select="false"
+                            :disabled="awaiting3dLoad"
+                        />
+                    </div>
+                    <div class="vertical-label-plus-group">
+                        <label>{{ t('game.ui.tools.DiceTool.share') }}</label>
+                        <ToggleGroup
+                            v-model="shareResult"
+                            class="click-group"
+                            :options="arrToToggleGroup(shareResultOptions, translationMapping.shareResultOptions)"
+                            :multi-select="false"
+                        />
+                    </div>
+                    <font-awesome-icon icon="cog" id="open-options-button" class="svg-button" :title="t('game.ui.tools.DiceTool.open_options_title')" @click="showOptionsSubmenu = true" />
+                </div>
+                <div v-else id="options-submenu" class="drawer-transition-wrapper">
+                    <div class="side-drawer">
+                        <div class="vertical-label-plus-group">
+                            <label>{{ t('game.ui.tools.DiceTool.history') }}</label>
+                            <ToggleGroup
+                                v-model="breakdownDetailOptionHistory"
+                                class="click-group"
+                                :options="arrToToggleGroup(breakdownDetailOptions, translationMapping.breakdownDetailOptions)"
+                                :multi-select="false"
+                            />
+                        </div>
+                        <div class="vertical-label-plus-group">
+                            <label>{{ t('game.ui.tools.DiceTool.previous_roll') }}</label>
+                            <ToggleGroup
+                                v-model="breakdownDetailOptionLastRoll"
+                                class="click-group"
+                                :options="arrToToggleGroup(breakdownDetailOptions, translationMapping.breakdownDetailOptions)"
+                                :multi-select="false"
+                            />
+                        </div>
+                        <font-awesome-icon icon="chevron-left" id="close-options-button" class="svg-button" @click="showOptionsSubmenu = false" />
+                    </div>
+                </div>
+            </Transition>
         </div>
         <div class="drawer-toggle" @click="showAdvancedOptions = !showAdvancedOptions">
             <div class="toggle-label">{{ t('game.ui.tools.DiceTool.advanced') }}</div>
@@ -363,6 +427,7 @@ async function roll(): Promise<void> {
 
 <style scoped lang="scss">
 #dice {
+    overflow: hidden;
     width: 26rem;
     display: flex;
     flex-direction: column;
@@ -454,12 +519,16 @@ async function roll(): Promise<void> {
                         inset -4px 0 13px -13px black;
         }
 
-        > .reroll-button {
-            margin: 0rem 1rem;
-            margin-top: 0.5rem;
-            align-self: end;
+        > .history-item-buttons {
             flex: 0 0 auto;
-            border-radius: 0.5rem;
+            display: flex;
+            justify-content: end;
+            align-self: stretch;
+
+            button {
+                margin: 0.5rem 1rem 0 0.5rem;
+                border-radius: 0.5rem;
+            }
         }
         > .breakdown-scroll-container {
             display: flex;
@@ -511,6 +580,17 @@ async function roll(): Promise<void> {
         }
     }
 
+    .side-drawer {
+        padding-left: 1rem;
+        padding-right: 1rem;
+        box-shadow: inset 0 5px 10px -10px black,
+                    inset 0 -3px 10px -10px black,
+                    inset 3px 0 10px -10px black,
+                    inset -3px 0 10px -10px black,
+                    inset 0 1px black,
+                    inset 0 -1px black;
+        background-color: rgba(250, 253, 255, 1);
+    }
     .drawer {
         padding-left: 1rem;
         padding-right: 1rem;
@@ -519,13 +599,12 @@ async function roll(): Promise<void> {
                     inset 3px 0 10px -10px black,
                     inset -3px 0 10px -10px black;
 
-        background-color: rgba(250, 253, 255, 1);
         border-bottom: solid 1px black;
         border-top: solid 1px black;
+        background-color: rgba(250, 253, 255, 1);
     }
     .drawer-transition-wrapper {
-        margin-left: -1rem;
-        margin-right: -1rem;
+        margin: 0 -1rem 0 -1rem;
         overflow-y: hidden;
     }
 
@@ -686,10 +765,34 @@ async function roll(): Promise<void> {
     }
 
     #options-cluster {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin: 0.25rem 0;
+        position: relative;
+
+        #common-options {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 0.25rem 0;
+
+            > #open-options-button {
+                padding: 0.75rem 0.25rem;
+                margin-left: -2rem;
+                font-size:125%;
+            }
+        }
+        > #options-submenu {
+            > div {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin: 0.25rem 0;
+
+                > #close-options-button {
+                    padding: 0.75rem 0.25rem;
+                    margin-left: -2rem;
+                    font-size: 125%;
+                }
+            }
+        }
     }
 
     #toggle-advanced {
@@ -765,6 +868,42 @@ async function roll(): Promise<void> {
     /*************
      * Transitions
      *************/
+
+    .slide-left-enter {
+        position: absolute;
+        top: 0;
+        width: calc(100% + 2rem);
+        transform: translate(-100%, 0);
+    }
+    .slide-right-enter {
+        position: absolute;
+        top: 0;
+        width: 100%;
+        transform: translate(100%, 0);
+    }
+    .slide-left-leave {
+        transform: translate(-100%, 0);
+    }
+    .slide-right-leave {
+        transform: translate(100%, 0);
+    }
+
+    .slide-left-enter-active,
+    .slide-right-enter-active {
+        transition: all 0.3s ease;
+        position: absolute;
+        top: 0;
+        transition: all 0.3s ease;
+    }
+    .slide-left-enter-active {
+        width: calc(100% + 2rem);
+    }
+    .slide-right-enter-active {
+        width: 100%;
+    }
+    .options-slide-leave-active {
+        transition: all 0.3s ease;
+    }
 
     .dice-expand-enter-active {
         transition: all 0.3s ease,

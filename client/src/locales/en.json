@@ -526,6 +526,10 @@
                     "empty_history": "dice history is empty",
                     "3D_dice": "3D Dice",
                     "share": "Share",
+                    "history": "History",
+                    "previous_roll": "Previous Roll",
+                    "details": "Details",
+                    "open_options_title": "Show additional options",
                     "3D_options": {
                         "off": "Off",
                         "on": "On",
@@ -535,6 +539,10 @@
                         "all": "All",
                         "dm": "DM",
                         "none": "None"
+                    },
+                    "breakdown_options": {
+                        "detailed": "Detailed",
+                        "simple": "Simple"
                     },
                     "advanced": "Advanced",
                     "advanced_options": {

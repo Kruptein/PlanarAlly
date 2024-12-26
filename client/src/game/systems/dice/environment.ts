@@ -27,8 +27,10 @@ const throwers = new Map<HTMLCanvasElement,ThrowerConfig>();
 // This is in fact used in dice.ts using dynamic import
 // eslint-disable-next-line import/no-unused-modules
 export async function loadDiceEnv(canvas?: HTMLCanvasElement): Promise<void> {
+    let cameraHeight = 15;
     if (canvas === undefined) {
         canvas = document.getElementById("babylon") as unknown as HTMLCanvasElement;
+        cameraHeight = 40;
     }
     const existingThrower = throwers.get(canvas);
 
@@ -53,8 +55,6 @@ export async function loadDiceEnv(canvas?: HTMLCanvasElement): Promise<void> {
      */
     const camera = new ArcRotateCamera("camera", 0, 0, 0, new Vector3(0, 0, 0), scene);
 
-    // Scale the camera's height to make dice larger/smaller depending on canvas dimensions.
-    const cameraHeight = Math.max(canvas.height - 400, 0) / 42 + 15;
     camera.setPosition(new Vector3(0, cameraHeight, 0));
     camera.attachControl(canvas);
     camera.fovMode = Camera.FOVMODE_HORIZONTAL_FIXED;

@@ -1,7 +1,7 @@
 import type { Viewport } from "../../../apiTypes";
-import type { LocalId } from "../../id";
+import type { LocalId } from "../../../core/id";
+import { buildState } from "../../../core/systems/state";
 import type { PlayerId } from "../players/models";
-import { buildState } from "../state";
 
 import type { ClientId } from "./models";
 

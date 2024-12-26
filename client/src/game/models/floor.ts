@@ -1,4 +1,4 @@
-import type { NumberId } from "../id";
+import type { NumberId } from "../../core/id";
 
 export type FloorId = NumberId<"floorId">;
 export type FloorIndex = NumberId<"floorIndex">;

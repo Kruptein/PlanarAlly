@@ -1,5 +1,5 @@
 import type { AssetId } from "./assetManager/models";
-import type { GlobalId } from "./game/id";
+import type { GlobalId } from "./core/id";
 import type { LayerName } from "./game/models/floor";
 import type { Role } from "./game/models/role";
 import type { AuraId } from "./game/systems/auras/models";

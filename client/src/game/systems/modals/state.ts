@@ -1,6 +1,6 @@
 import { computed } from "vue";
 
-import { buildState } from "../state";
+import { buildState } from "../../../core/systems/state";
 
 import type { IndexedModal, ModalIndex } from "./types";
 

@@ -1,11 +1,11 @@
-import { registerSystem } from "../..";
-import type { System } from "../..";
+import type { GlobalId } from "../../../../core/id";
+import { registerSystem } from "../../../../core/systems";
+import type { System } from "../../../../core/systems";
+import type { SystemClearReason } from "../../../../core/systems/models";
 import { sendLocationOption } from "../../../api/emits/location";
 import { updateFogColour } from "../../../colour";
-import type { GlobalId } from "../../../id";
 import { floorSystem } from "../../floors";
 import { floorState } from "../../floors/state";
-import type { SystemClearReason } from "../../models";
 
 import { isDefaultWrapper } from "./helpers";
 import type { LocationOptions, WithLocationDefault } from "./models";
@@ -19,7 +19,9 @@ class LocationSettingsSystem implements System {
     }
 
     // This is a utility function to simplify a lot of the settings UI code
-    getSetter<T extends keyof LocationOptions>(setting: T): (value: LocationOptions[T] | undefined, location: number | undefined, sync: boolean) => void {
+    getSetter<T extends keyof LocationOptions>(
+        setting: T,
+    ): (value: LocationOptions[T] | undefined, location: number | undefined, sync: boolean) => void {
         const settingMap = {
             useGrid: this.setUseGrid.bind(this),
             gridType: this.setGridType.bind(this),
@@ -40,7 +42,11 @@ class LocationSettingsSystem implements System {
         } as Record<keyof LocationOptions, this[keyof this]>;
 
         if (setting in settingMap) {
-            return settingMap[setting] as (value: LocationOptions[T] | undefined, location: number | undefined, sync: boolean) => void;
+            return settingMap[setting] as (
+                value: LocationOptions[T] | undefined,
+                location: number | undefined,
+                sync: boolean,
+            ) => void;
         }
         throw new Error(`Unknown setting: ${setting}`);
     }
@@ -159,7 +165,11 @@ class LocationSettingsSystem implements System {
     }
 
     setVisionMinRange(visionMinRange: number | undefined, location: number | undefined, sync: boolean): void {
-        if (visionMinRange !== undefined && raw.visionMaxRange.value !== undefined && visionMinRange > raw.visionMaxRange.value) {
+        if (
+            visionMinRange !== undefined &&
+            raw.visionMaxRange.value !== undefined &&
+            visionMinRange > raw.visionMaxRange.value
+        ) {
             visionMinRange = raw.visionMaxRange.value;
         }
 
@@ -171,7 +181,11 @@ class LocationSettingsSystem implements System {
     }
 
     setVisionMaxRange(visionMaxRange: number | undefined, location: number | undefined, sync: boolean): void {
-        if (visionMaxRange !== undefined && raw.visionMinRange.value !== undefined && visionMaxRange < raw.visionMinRange.value) {
+        if (
+            visionMaxRange !== undefined &&
+            raw.visionMinRange.value !== undefined &&
+            visionMaxRange < raw.visionMinRange.value
+        ) {
             visionMaxRange = raw.visionMinRange.value;
         }
 

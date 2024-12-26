@@ -5,9 +5,9 @@ import type {
     LocationRename,
     LocationSettingsSet,
 } from "../../../apiTypes";
+import type { GlobalId } from "../../../core/id";
 import { coreStore } from "../../../store/core";
 import { locationStore } from "../../../store/location";
-import type { GlobalId } from "../../id";
 import type { Location } from "../../models/settings";
 import { gameSystem } from "../../systems/game";
 import { playerSystem } from "../../systems/players";

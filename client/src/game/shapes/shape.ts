@@ -11,10 +11,10 @@ import {
     snapPointToGrid,
     snapShapeToGrid,
 } from "../../core/grid";
+import type { GlobalId, LocalId } from "../../core/id";
 import { rotateAroundPoint } from "../../core/math";
 import { mostReadable } from "../../core/utils";
 import { generateLocalId, dropId } from "../id";
-import type { GlobalId, LocalId } from "../id";
 import type { ILayer } from "../interfaces/layer";
 import type { IShape } from "../interfaces/shape";
 import { LayerName } from "../models/floor";

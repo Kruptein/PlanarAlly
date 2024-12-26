@@ -1,7 +1,7 @@
 import { computed } from "vue";
 
 import type { AssetListMap } from "../../../core/models/types";
-import { buildState } from "../state";
+import { buildState } from "../../../core/systems/state";
 
 interface GameState {
     isConnected: boolean;

@@ -1,5 +1,5 @@
 import type { ApiCharacter } from "../../../apiTypes";
-import { buildState } from "../state";
+import { buildState } from "../../../core/systems/state";
 
 import type { CharacterId } from "./models";
 

@@ -1,11 +1,11 @@
 import { POSITION, useToast } from "vue-toastification";
 
 import { toArrayP, toGP } from "../../../../core/geometry";
+import type { LocalId, GlobalId } from "../../../../core/id";
 import { sendRequest } from "../../../api/emits/logic";
 import { sendSetPlayersPosition } from "../../../api/emits/players";
 import { requestShapeInfo, sendShapesMove } from "../../../api/emits/shape/core";
 import { getShape, getLocalId, getGlobalId } from "../../../id";
-import type { LocalId, GlobalId } from "../../../id";
 import { LayerName } from "../../../models/floor";
 import { Role } from "../../../models/role";
 import { accessSystem } from "../../access";

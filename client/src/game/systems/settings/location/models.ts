@@ -1,5 +1,5 @@
 import type { GridType } from "../../../../core/grid";
-import type { GlobalId } from "../../../id";
+import type { GlobalId } from "../../../../core/id";
 
 export interface WithDefault<T> {
     default: T;

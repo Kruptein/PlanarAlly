@@ -1,5 +1,5 @@
+import type { LocalId } from "../../../core/id";
 import { uuidv4 } from "../../../core/utils";
-import type { LocalId } from "../../id";
 
 import type { Tracker, TrackerId, UiTracker } from "./models";
 

@@ -6,7 +6,7 @@ import type {
     InitiativeEffectTurns,
     InitiativeOptionSet,
 } from "../../../apiTypes";
-import type { GlobalId } from "../../id";
+import type { GlobalId } from "../../../core/id";
 import type { InitiativeSort } from "../../models/initiative";
 import { initiativeStore } from "../../ui/initiative/state";
 import { socket } from "../socket";

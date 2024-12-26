@@ -3,11 +3,11 @@ import type { ApiTextShape } from "../../../apiTypes";
 import { g2lz, l2gz } from "../../../core/conversions";
 import { addP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
+import type { GlobalId, LocalId } from "../../../core/id";
 import { rotateAroundPoint } from "../../../core/math";
 import { SyncMode } from "../../../core/models/types";
 import { sendTextUpdate } from "../../api/emits/shape/text";
 import { getGlobalId } from "../../id";
-import type { GlobalId, LocalId } from "../../id";
 import type { IText } from "../../interfaces/shapes/text";
 import { getProperties } from "../../systems/properties/state";
 import type { ShapeProperties } from "../../systems/properties/state";
@@ -113,7 +113,6 @@ export class Text extends Shape implements IText {
         return this.getBoundingBox().visibleInCanvas(max);
     }
 
-     
     resize(resizePoint: number, point: GlobalPoint): number {
         point = rotateAroundPoint(point, this.center, -this.angle);
 

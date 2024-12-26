@@ -1,10 +1,10 @@
+import { clearSystems } from "../core/systems";
+import type { SystemClearReason } from "../core/systems/models";
 import { locationStore } from "../store/location";
 
 import { clearIds } from "./id";
 import { compositeState } from "./layers/state";
 import { stopDrawLoop } from "./rendering/core";
-import { clearSystems } from "./systems";
-import type { SystemClearReason } from "./systems/models";
 import { initiativeStore } from "./ui/initiative/state";
 import { visionState } from "./vision/state";
 

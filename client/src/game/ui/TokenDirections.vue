@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
+import type { LocalId } from "../../core/id";
 import { filter } from "../../core/iter";
 import { getShape } from "../id";
-import type { LocalId } from "../id";
 import { setCenterPosition } from "../position";
 import { accessState } from "../systems/access/state";
 import { positionState } from "../systems/position/state";

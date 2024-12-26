@@ -1,9 +1,10 @@
-import { registerSystem, type ShapeSystem } from "..";
 import type { ApiGroup } from "../../../apiTypes";
+import type { GlobalId, LocalId } from "../../../core/id";
 import { map } from "../../../core/iter";
 import { UI_SYNC } from "../../../core/models/types";
+import { registerSystem, type ShapeSystem } from "../../../core/systems";
 import { uuidv4 } from "../../../core/utils";
-import { getGlobalId, getShape, type GlobalId, type LocalId } from "../../id";
+import { getGlobalId, getShape } from "../../id";
 import { propertiesSystem } from "../properties";
 
 import {

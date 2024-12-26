@@ -1,5 +1,5 @@
+import type { LocalId } from "../../../core/id";
 import { getShape } from "../../id";
-import type { LocalId } from "../../id";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { floorState } from "../floors/state";
 

@@ -1,12 +1,12 @@
 import { reactive, watchEffect } from "vue";
 import type { DeepReadonly } from "vue";
 
-import { registerSystem } from "..";
-import type { ShapeSystem } from "..";
+import type { LocalId } from "../../../core/id";
 import type { Sync } from "../../../core/models/types";
+import { registerSystem } from "../../../core/systems";
+import type { ShapeSystem } from "../../../core/systems";
 import { activeShapeStore } from "../../../store/activeShape";
 import { getGlobalId, getShape } from "../../id";
-import type { LocalId } from "../../id";
 import { compositeState } from "../../layers/state";
 
 import { partialTrackerToServer, toUiTrackers, trackersToServer } from "./conversion";

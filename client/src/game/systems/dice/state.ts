@@ -1,8 +1,8 @@
 import { type Part, type RollResult, type SYSTEMS } from "@planarally/dice/core";
 import type { DeepReadonly } from "vue";
 
+import { buildState } from "../../../core/systems/state";
 import type { AsyncReturnType } from "../../../core/types";
-import { buildState } from "../state";
 
 interface DiceState {
     dimensions3d: { width: number; height: number };

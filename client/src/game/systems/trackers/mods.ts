@@ -1,5 +1,5 @@
+import type { LocalId } from "../../../core/id";
 import { loadedMods } from "../../../mods";
-import type { LocalId } from "../../id";
 
 import type { Tracker } from "./models";
 

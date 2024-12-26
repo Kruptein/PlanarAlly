@@ -1,7 +1,7 @@
 import type { ApiShape } from "../../../apiTypes";
 import { toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
-import { buildState } from "../state";
+import { buildState } from "../../../core/systems/state";
 
 interface ClipboardState {
     clipboard: ApiShape[];

@@ -1,12 +1,8 @@
+import type { GlobalId, LocalId } from "../core/id";
+import { dropFromSystems } from "../core/systems";
 import { uuidv4 } from "../core/utils";
 
 import type { IShape } from "./interfaces/shape";
-import { dropFromSystems } from "./systems";
-
-export type NumberId<T extends string> = number & { __brand: T };
-export type StringId<T extends string> = string & { __brand: T };
-export type GlobalId = StringId<"globalId">;
-export type LocalId = NumberId<"localId">;
 
 // Array of GlobalId indexed by localId
 let uuids: GlobalId[] = [];

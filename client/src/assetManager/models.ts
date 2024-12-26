@@ -1,3 +1,3 @@
-import type { NumberId } from "../game/id";
+import type { NumberId } from "../core/id";
 
 export type AssetId = NumberId<"assetId">;

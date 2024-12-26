@@ -1,6 +1,6 @@
 import type { DeepReadonly } from "vue";
 
-import type { LocalId } from "../../id";
+import type { LocalId } from "../../../core/id";
 import { Role } from "../../models/role";
 import { playerSystem } from "../players";
 import type { PlayerId } from "../players/models";
@@ -34,7 +34,7 @@ export function canUse(shapeId: LocalId, target: LOGIC_TYPES, playerId: PlayerId
     const permissions =
         target === "door"
             ? doorSystem.getPermissions(shapeId)
-            : teleportZoneSystem.getPermissions(shapeId) ?? DEFAULT_PERMISSIONS();
+            : (teleportZoneSystem.getPermissions(shapeId) ?? DEFAULT_PERMISSIONS());
     if (permissions === undefined) return Access.Disabled;
 
     // First specific user permissions

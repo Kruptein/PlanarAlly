@@ -1,6 +1,6 @@
+import type { GlobalId } from "../../../core/id";
 import { socket } from "../../api/socket";
 import { getLocalId } from "../../id";
-import type { GlobalId } from "../../id";
 
 import { markerSystem } from ".";
 

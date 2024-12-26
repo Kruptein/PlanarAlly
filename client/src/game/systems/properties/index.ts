@@ -1,8 +1,9 @@
 import { watch } from "vue";
 
-import type { ShapeSystem } from "..";
-import { registerSystem } from "..";
+import type { LocalId } from "../../../core/id";
 import type { Sync } from "../../../core/models/types";
+import type { ShapeSystem } from "../../../core/systems";
+import { registerSystem } from "../../../core/systems";
 import {
     sendShapeSetBlocksMovement,
     sendShapeSetBlocksVision,
@@ -23,7 +24,6 @@ import {
     sendShapeSetStrokeColour,
 } from "../../api/emits/shape/options";
 import { getGlobalId, getShape } from "../../id";
-import type { LocalId } from "../../id";
 import { accessSystem } from "../access";
 import { doorSystem } from "../logic/door";
 import { selectedState } from "../selected/state";

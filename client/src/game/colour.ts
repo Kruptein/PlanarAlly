@@ -1,6 +1,7 @@
 import tinycolor from "tinycolor2";
 
-import type { LocalId } from "./id";
+import type { LocalId } from "../core/id";
+
 import { gameState } from "./systems/game/state";
 import { locationSettingsState } from "./systems/settings/location/state";
 import { playerSettingsState } from "./systems/settings/players/state";

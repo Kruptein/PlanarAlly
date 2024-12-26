@@ -1,6 +1,6 @@
+import type { LocalId } from "../../core/id";
 import { sendToggleCompositeAddVariant } from "../api/emits/shape/toggleComposite";
 import { getGlobalId, getShape } from "../id";
-import type { LocalId } from "../id";
 import type { IShape } from "../interfaces/shape";
 import type { IToggleComposite } from "../interfaces/shapes/toggleComposite";
 

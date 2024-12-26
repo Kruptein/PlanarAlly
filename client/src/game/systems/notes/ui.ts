@@ -1,4 +1,4 @@
-import type { LocalId } from "../../id";
+import type { LocalId } from "../../../core/id";
 // eslint-disable-next-line import/default
 import NoteDialog from "../../ui/notes/NoteDialog.vue";
 import { modalSystem } from "../modals";

@@ -46,7 +46,7 @@ function setPatternData(data: { offsetX?: Event; offsetY?: Event; scaleX?: Event
 </script>
 
 <template>
-    <div>{{ t('game.ui.settings.FloorSettings.pattern') }}</div>
+    <div>{{ t("game.ui.settings.FloorSettings.pattern") }}</div>
     <div>
         <img
             v-if="backgroundPattern.hash !== ''"
@@ -58,14 +58,14 @@ function setPatternData(data: { offsetX?: Event; offsetY?: Event; scaleX?: Event
     </div>
     <div></div>
 
-    <div>{{ t('game.ui.settings.FloorSettings.offset') }}</div>
+    <div>{{ t("game.ui.settings.FloorSettings.offset") }}</div>
     <div>
         <input type="number" :value="backgroundPattern.offsetX" @change="setPatternData({ offsetX: $event })" />
         <input type="number" :value="backgroundPattern.offsetY" @change="setPatternData({ offsetY: $event })" />
     </div>
     <div></div>
 
-    <div>{{ t('game.ui.settings.FloorSettings.scale') }}</div>
+    <div>{{ t("game.ui.settings.FloorSettings.scale") }}</div>
     <div>
         <input
             type="number"

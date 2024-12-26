@@ -4,10 +4,10 @@ import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 
 import { baseAdjust } from "../../../core/http";
+import type { LocalId } from "../../../core/id";
 import type { AssetFile } from "../../../core/models/types";
 import { coreStore } from "../../../store/core";
 import { clearGame } from "../../clear";
-import type { LocalId } from "../../id";
 import { setCenterPosition } from "../../position";
 import { clientSystem } from "../../systems/client";
 import type { ClientId } from "../../systems/client/models";
@@ -125,7 +125,7 @@ const openClientSettings = (): void => uiSystem.showClientSettings(!uiState.raw.
                     {{ t("game.ui.menu.MenuBar.dm_settings") }}
                 </button>
                 <!-- PLAYERS -->
-                <button class="menu-accordion">{{ t('common.players') }}</button>
+                <button class="menu-accordion">{{ t("common.players") }}</button>
                 <div class="menu-accordion-panel">
                     <div id="menu-players" class="menu-accordion-subpanel">
                         <template v-for="info of clientInfo" :key="info.client">
@@ -135,7 +135,7 @@ const openClientSettings = (): void => uiSystem.showClientSettings(!uiState.raw.
                                 </div>
                             </div>
                         </template>
-                        <div v-if="clientInfo.length === 0">{{ t('game.ui.menu.MenuBar.no_players') }}</div>
+                        <div v-if="clientInfo.length === 0">{{ t("game.ui.menu.MenuBar.no_players") }}</div>
                     </div>
                 </div>
             </template>

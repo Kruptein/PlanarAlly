@@ -1,5 +1,5 @@
-import { registerSystem } from "..";
-import type { System } from "..";
+import { registerSystem } from "../../../core/systems";
+import type { System } from "../../../core/systems";
 import type { ClientSettingCategory } from "../../ui/settings/client/categories";
 
 import { uiState } from "./state";

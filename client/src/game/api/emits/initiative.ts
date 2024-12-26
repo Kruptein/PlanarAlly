@@ -8,7 +8,7 @@ import type {
     InitiativeOrderChange,
     InitiativeValueSet,
 } from "../../../apiTypes";
-import type { GlobalId } from "../../id";
+import type { GlobalId } from "../../../core/id";
 import type { InitiativeSort } from "../../models/initiative";
 import { wrapSocket } from "../helpers";
 import { socket } from "../socket";

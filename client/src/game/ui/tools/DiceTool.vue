@@ -25,8 +25,8 @@ const shareResultOptions = ["all", "dm", "none"] as const;
 const shareResult = ref<(typeof shareResultOptions)[number]>("all");
 
 const breakdownDetailOptions = ["detailed", "simple"] as const;
-const breakdownDetailOptionHistory = ref<(typeof breakdownDetailOptions)[number]>(localStorage.getItem("diceTool.breakdownDetailOptionHistory") as (typeof breakdownDetailOption)[number] ?? "detailed");
-const breakdownDetailOptionLastRoll = ref<(typeof breakdownDetailOptions)[number]>(localStorage.getItem("diceTool.breakdownDetailOptionLastRoll") as (typeof breakdownDetailOption)[number] ?? "detailed");
+const breakdownDetailOptionHistory = ref<(typeof breakdownDetailOptions)[number]>(localStorage.getItem("diceTool.breakdownDetailOptionHistory") as (typeof breakdownDetailOptions)[number] ?? "detailed");
+const breakdownDetailOptionLastRoll = ref<(typeof breakdownDetailOptions)[number]>(localStorage.getItem("diceTool.breakdownDetailOptionLastRoll") as (typeof breakdownDetailOptions)[number] ?? "detailed");
 
 // track if temporarily enabled via the option within a history item
 const enableDetailedHistoryBreakdown = ref(breakdownDetailOptionHistory.value === "detailed");
@@ -248,7 +248,7 @@ async function roll(): Promise<void> {
                 </Transition>
             </div>
         </div>
-        <div class="drawer-toggle" @click="showRollHistory = !showRollHistory" :title="t('game.ui.tools.DiceTool.full_history_title')">
+        <div class="drawer-toggle" :title="t('game.ui.tools.DiceTool.full_history_title')" @click="showRollHistory = !showRollHistory">
             <div class="toggle-label">{{ t('game.ui.tools.DiceTool.full_history') }}</div>
             <font-awesome-icon class="toggle-chevron" :icon="showRollHistory ? 'minus' : 'plus'" />
         </div>
@@ -341,7 +341,7 @@ async function roll(): Promise<void> {
                             :multi-select="false"
                         />
                     </div>
-                    <font-awesome-icon icon="cog" id="open-options-button" class="svg-button" :title="t('game.ui.tools.DiceTool.open_options_title')" @click="showOptionsSubmenu = true" />
+                    <font-awesome-icon id="open-options-button" icon="cog" class="svg-button" :title="t('game.ui.tools.DiceTool.open_options_title')" @click="showOptionsSubmenu = true" />
                 </div>
                 <div v-else id="options-submenu" class="drawer-transition-wrapper">
                     <div class="side-drawer">
@@ -363,12 +363,12 @@ async function roll(): Promise<void> {
                                 :multi-select="false"
                             />
                         </div>
-                        <font-awesome-icon icon="chevron-left" id="close-options-button" class="svg-button" @click="showOptionsSubmenu = false" />
+                        <font-awesome-icon id="close-options-button" icon="chevron-left" class="svg-button" @click="showOptionsSubmenu = false" />
                     </div>
                 </div>
             </Transition>
         </div>
-        <div class="drawer-toggle" @click="showAdvancedOptions = !showAdvancedOptions" :title="t('game.ui.tools.DiceTool.toggle_advanced')">
+        <div class="drawer-toggle"  :title="t('game.ui.tools.DiceTool.toggle_advanced')" @click="showAdvancedOptions = !showAdvancedOptions">
             <div class="toggle-label">{{ t('game.ui.tools.DiceTool.advanced') }}</div>
             <font-awesome-icon class="toggle-chevron" :icon="showAdvancedOptions ? 'minus' : 'plus'" />
         </div>

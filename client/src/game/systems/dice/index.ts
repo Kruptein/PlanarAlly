@@ -22,7 +22,6 @@ class DiceSystem implements System {
         $.result = undefined;
         if (reason !== "full-loading") {
             $.history = [];
-            $.loaded3d = false;
         }
     }
 
@@ -44,7 +43,6 @@ class DiceSystem implements System {
     async load3d(canvas?: HTMLCanvasElement): Promise<void> {
         const env = await getDiceEnvironment();
         await env.loadDiceEnv(canvas);
-        $.loaded3d = true;
     }
 
     set3dDimensions(width: number, height: number): void {

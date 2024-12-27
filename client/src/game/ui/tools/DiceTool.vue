@@ -164,36 +164,32 @@ function populateInputFromHistoryRoll(roll: DeepReadonly<RollResult<Part>>): voi
     }
     input.value = diceState.raw.systems!["2d"].parse(content);
 }
+
 function populateInputFromHistoryIndex(index: number): void {
     const historyItem = diceState.reactive.history[index];
     if (historyItem === null || historyItem === undefined) return;
     populateInputFromHistoryRoll(historyItem.roll);
 }
+
 async function roll(): Promise<void> {
     if (inputText.value.length === 0) return;
 
     clear();
     awaitingRoll.value = true;
 
-    const getResult = async (): Promise<RollResult<Part>> => {
-        const result = await diceTool.roll(
-            inputText.value,
-            dice3dSetting.value !== "off",
-            shareResult.value.toLowerCase() as DiceRollResult["shareWith"],
-        );
+    lastRoll.value = await diceTool.roll(
+        inputText.value,
+        dice3dSetting.value !== "off",
+        shareResult.value.toLowerCase() as DiceRollResult["shareWith"],
+    );
 
-        // These lines are required to make sure that the transition for lastroll-results plays,
-        // This covers the case of multiple 3D dice rolls awaiting results simultaneously. When one
-        // finishes, the awaitingRoll value is updated to false and the value is shown. If another
-        // of the rolls finishes, it will not play a transition because awaitingRoll did not change.
-        // Therefore, we change this value here to force an update and play the transition.
-        awaitingRoll.value = true;
-        await nextTick();
-
-        return result;
-    };
-
-    lastRoll.value = await getResult();
+    // These lines are required to make sure that the transition for lastroll-results plays,
+    // This covers the case of multiple 3D dice rolls awaiting results simultaneously. When one
+    // finishes, the awaitingRoll value is updated to false and the value is shown. If another
+    // of the rolls finishes, it will not play a transition because awaitingRoll did not change.
+    // Therefore, we change this value here to force an update and play the transition.
+    awaitingRoll.value = true;
+    await nextTick();
 
     awaitingRoll.value = false;
 }
@@ -255,9 +251,7 @@ async function roll(): Promise<void> {
         <div class="drawer-transition-wrapper">
             <Transition name="drawer-expand">
                 <div v-show="showRollHistory" id="dice-history-drawer" class="drawer"> <!--Make scrollbar conform to border-radius-->
-                    <div
-                        id="dice-history"
-                    >
+                    <div id="dice-history">
                         <div
                             v-for="[i, { name, roll: historyRoll, player }] of diceState.reactive.history.entries()"
                             :key="i"

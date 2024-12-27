@@ -116,32 +116,32 @@ function loadDiceBox(scene: Scene, canvas: HTMLCanvasElement): void {
     const roof = MeshBuilder.CreateBox("roof", { width, depth: height }, scene);
     roof.position.y = 40;
 
-    const rebound = 0.5;
-    const frict = 0.5;
+    const restitution = 0.5;
+    const friction = 0.5;
 
     new PhysicsAggregate(wall1, PhysicsShapeType.BOX, {
         mass: 0,
-        restitution: rebound,
-        friction: frict,
+        restitution,
+        friction,
     });
     new PhysicsAggregate(wall2, PhysicsShapeType.BOX, {
         mass: 0,
-        restitution: rebound,
-        friction: frict,
+        restitution,
+        friction,
     });
     new PhysicsAggregate(wall3, PhysicsShapeType.BOX, {
         mass: 0,
-        restitution: rebound,
-        friction: frict,
+        restitution,
+        friction,
     });
     new PhysicsAggregate(wall4, PhysicsShapeType.BOX, {
         mass: 0,
-        restitution: rebound,
-        friction: frict,
+        restitution,
+        friction,
     });
     new PhysicsAggregate(roof, PhysicsShapeType.BOX, {
         mass: 0,
-        restitution: rebound,
-        friction: frict,
+        restitution,
+        friction,
     });
 }

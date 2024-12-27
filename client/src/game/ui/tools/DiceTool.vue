@@ -248,9 +248,9 @@ async function roll(): Promise<void> {
                 </Transition>
             </div>
         </div>
-        <div class="drawer-toggle" @click="showRollHistory = !showRollHistory">
+        <div class="drawer-toggle" @click="showRollHistory = !showRollHistory" :title="t('game.ui.tools.DiceTool.full_history_title')">
             <div class="toggle-label">{{ t('game.ui.tools.DiceTool.full_history') }}</div>
-            <font-awesome-icon class="toggle-chevron" :icon="showRollHistory ? 'minus' : 'plus'" :title="t('game.ui.tools.DiceTool.full_history_title')" />
+            <font-awesome-icon class="toggle-chevron" :icon="showRollHistory ? 'minus' : 'plus'" />
         </div>
         <div class="drawer-transition-wrapper">
             <Transition name="drawer-expand">
@@ -368,9 +368,9 @@ async function roll(): Promise<void> {
                 </div>
             </Transition>
         </div>
-        <div class="drawer-toggle" @click="showAdvancedOptions = !showAdvancedOptions">
+        <div class="drawer-toggle" @click="showAdvancedOptions = !showAdvancedOptions" :title="t('game.ui.tools.DiceTool.toggle_advanced')">
             <div class="toggle-label">{{ t('game.ui.tools.DiceTool.advanced') }}</div>
-            <font-awesome-icon class="toggle-chevron" :icon="showAdvancedOptions ? 'minus' : 'plus'" :title="t('game.ui.tools.DiceTool.toggle_advanced')" />
+            <font-awesome-icon class="toggle-chevron" :icon="showAdvancedOptions ? 'minus' : 'plus'" />
         </div>
         <div class="drawer-transition-wrapper">
             <Transition name="drawer-expand">

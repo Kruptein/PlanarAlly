@@ -887,7 +887,6 @@ async function roll(): Promise<void> {
         transition: all 0.3s ease;
         position: absolute;
         top: 0;
-        transition: all 0.3s ease;
     }
     .slide-left-enter-active {
         width: calc(100% + 2rem);

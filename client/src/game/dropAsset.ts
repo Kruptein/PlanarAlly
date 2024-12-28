@@ -1,6 +1,6 @@
-import { assetSystem } from "../assetManager";
-import { assetState } from "../assetManager/state";
-import { getImageSrcFromHash } from "../assetManager/utils";
+import { assetSystem } from "../assets";
+import { assetState } from "../assets/state";
+import { getImageSrcFromHash } from "../assets/utils";
 import { l2gx, l2gy, l2gz } from "../core/conversions";
 import { type GlobalPoint, toGP, Vector } from "../core/geometry";
 import { DEFAULT_GRID_SIZE, snapPointToGrid } from "../core/grid";
@@ -33,18 +33,17 @@ export async function handleDropEvent(event: DragEvent): Promise<void> {
     const location = toGP(l2gx(event.clientX), l2gy(event.clientY));
 
     // temp hack to prevent redirection
-    assetState.mutable.modalActive = true;
+    // assetState.mutable.modalActive = true;
+
+    const transferInfo = event.dataTransfer.getData("text/plain");
 
     // External files are dropped
-    if (event.dataTransfer.files.length > 0) {
+    if (!transferInfo && event.dataTransfer.files.length > 0) {
         for (const asset of await assetSystem.upload(event.dataTransfer.files, { target: () => assetState.raw.root })) {
             if (asset.fileHash !== undefined)
                 await dropHelper({ assetHash: asset.fileHash, assetId: asset.id }, location);
         }
-    } else {
-        const transferInfo = event.dataTransfer.getData("text/plain");
-        if (transferInfo === "") return;
-
+    } else if (transferInfo) {
         const assetInfo = JSON.parse(transferInfo) as {
             assetHash: string;
             assetId: number;
@@ -53,7 +52,7 @@ export async function handleDropEvent(event: DragEvent): Promise<void> {
         await dropHelper(assetInfo, location);
     }
 
-    assetState.mutable.modalActive = false;
+    // assetState.mutable.modalActive = false;
 }
 
 async function dropHelper(

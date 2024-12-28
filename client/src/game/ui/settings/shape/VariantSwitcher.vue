@@ -2,7 +2,7 @@
 import { computed, toRef } from "vue";
 import { useToast } from "vue-toastification";
 
-import { getImageSrcFromHash } from "../../../../assetManager/utils";
+import { getImageSrcFromHash } from "../../../../assets/utils";
 import { cloneP } from "../../../../core/geometry";
 import type { LocalId } from "../../../../core/id";
 import { InvalidationMode, SERVER_SYNC, SyncMode } from "../../../../core/models/types";

@@ -1,7 +1,6 @@
 import { useToast } from "vue-toastification";
 
 import type { ApiAssetAdd, ApiAssetCreateShare, ApiAssetFolder, ApiAssetRemoveShare } from "../apiTypes";
-import { baseAdjust } from "../core/http";
 import { router } from "../router";
 import { coreStore } from "../store/core";
 
@@ -44,7 +43,7 @@ socket.on("Folder.Set", async (data: ApiAssetFolder) => {
     assetSystem.setFolderData(data.folder.id, data.folder);
     assetState.mutableReactive.sharedParent = data.sharedParent;
     assetState.mutableReactive.sharedRight = data.sharedRight;
-    if (!assetState.readonly.modalActive) {
+    if (router.currentRoute.value.name === "assets") {
         if (data.path) assetSystem.setPath(data.path);
         const path = `/assets${assetState.currentFilePath.value}/`;
         if (path !== router.currentRoute.value.path) {
@@ -60,10 +59,6 @@ socket.on("Asset.Add", (data: ApiAssetAdd) => {
 socket.on("Asset.Upload.Finish", (data: ApiAssetAdd) => {
     assetSystem.addAsset(data.asset, data.parent);
     assetSystem.resolveUpload(data.asset.name);
-});
-
-socket.on("Asset.Export.Finish", (uuid: string) => {
-    window.open(baseAdjust(`/static/temp/${uuid}.paa`));
 });
 
 socket.on("Asset.Import.Finish", (name: string) => {

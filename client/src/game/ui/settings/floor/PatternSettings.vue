@@ -2,7 +2,7 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { getImageSrcFromHash } from "../../../../assetManager/utils";
+import { getImageSrcFromHash } from "../../../../assets/utils";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { getValue } from "../../../../core/utils";
 import { getPattern, patternToString } from "../../../layers/floor";

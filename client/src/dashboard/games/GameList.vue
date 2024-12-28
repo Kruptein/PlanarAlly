@@ -3,7 +3,7 @@ import { onMounted, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 
-import { getImageSrcFromHash } from "../../assetManager/utils";
+import { getImageSrcFromHash } from "../../assets/utils";
 import { baseAdjust, getStaticImg, http } from "../../core/http";
 import { useModal } from "../../core/plugins/modals/plugin";
 import { getErrorReason } from "../../core/utils";

@@ -2,11 +2,11 @@
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { ref, watchEffect } from "vue";
 
-import { assetSystem } from "../../../assetManager";
-import type { AssetId } from "../../../assetManager/models";
-import { socket } from "../../../assetManager/socket";
-import { assetState } from "../../../assetManager/state";
-import { getImageSrcFromAssetId, showIdName } from "../../../assetManager/utils";
+import { assetSystem } from "../../../assets";
+import type { AssetId } from "../../../assets/models";
+import { socket } from "../../../assets/socket";
+import { assetState } from "../../../assets/state";
+import { getImageSrcFromAssetId, showIdName } from "../../../assets/utils";
 import { i18n } from "../../../i18n";
 
 import Modal from "./Modal.vue";

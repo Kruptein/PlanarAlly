@@ -4,7 +4,7 @@ import type { ApiAsset, ApiAssetUpload } from "../apiTypes";
 import { callbackProvider, uuidv4 } from "../core/utils";
 import { router } from "../router";
 
-import { sendAssetRemove, sendAssetRename, sendFolderGet, sendInodeMove } from "./emits";
+import { sendAssetRemove, sendAssetRename, sendFolderGet, getFolderPath, sendInodeMove } from "./emits";
 import type { AssetId } from "./models";
 import { socket } from "./socket";
 import { assetState } from "./state";
@@ -55,7 +55,7 @@ class AssetSystem {
         sendInodeMove({ inode, target: targetFolder });
     }
 
-    changeDirectory(targetFolder: AssetId | "POP"): void {
+    async changeDirectory(targetFolder: AssetId | "POP"): Promise<void> {
         if (targetFolder === "POP") {
             $.folderPath.pop();
         } else if (targetFolder === raw.root) {
@@ -64,7 +64,14 @@ class AssetSystem {
             while (assetState.currentFolder.value !== targetFolder) $.folderPath.pop();
         } else {
             const asset = raw.idMap.get(targetFolder);
-            if (asset !== undefined) $.folderPath.push({ id: targetFolder, name: asset.name });
+            if (asset !== undefined) {
+                if (raw.root && ($.idMap.get(raw.root)?.children?.some((c) => c.id === targetFolder) ?? false)) {
+                    $.folderPath.push({ id: targetFolder, name: asset.name });
+                } else {
+                    const path = await getFolderPath(targetFolder);
+                    $.folderPath = path.slice(1);
+                }
+            }
         }
         this.clearSelected();
         sendFolderGet(assetState.currentFolder.value);
@@ -161,19 +168,29 @@ class AssetSystem {
             await assetSystem.rootCallback.wait();
         }
 
-        const limit = await socket.emitWithAck("Asset.Upload.Limit") as { single: number; total: number; used: number };
+        const limit = (await socket.emitWithAck("Asset.Upload.Limit")) as {
+            single: number;
+            total: number;
+            used: number;
+        };
 
         // First check limits
         let totalSize = 0;
         for (const file of fls) {
             totalSize += file.size;
             if (limit.single > 0 && file.size > limit.single) {
-                toast.error(`File ${file.name} is too large. Max size is ${limit.single} bytes. Contact the server admin if you need to upload larger files.`, { timeout: 0 });
+                toast.error(
+                    `File ${file.name} is too large. Max size is ${limit.single} bytes. Contact the server admin if you need to upload larger files.`,
+                    { timeout: 0 },
+                );
                 return [];
             }
             if (limit.total > 0 && totalSize > limit.total - limit.used) {
                 const remaining = Math.max(0, limit.total - limit.used);
-                toast.error(`Total size of files is too large. You have ${remaining} bytes remaining and attempted to upload ${totalSize} bytes. Contact the server admin if you need to upload larger files.`, { timeout: 0 });
+                toast.error(
+                    `Total size of files is too large. You have ${remaining} bytes remaining and attempted to upload ${totalSize} bytes. Contact the server admin if you need to upload larger files.`,
+                    { timeout: 0 },
+                );
                 return [];
             }
         }

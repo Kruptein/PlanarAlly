@@ -2,7 +2,7 @@ import { readonly, reactive, toRefs } from "vue";
 import type { DeepReadonly, Ref } from "vue";
 
 import type { ApiAsset } from "../../../apiTypes";
-import { assetState } from "../../../assetManager/state";
+import { assetState } from "../../../assets/state";
 
 export type AssetPickerFunction = () => Promise<DeepReadonly<ApiAsset> | undefined>;
 

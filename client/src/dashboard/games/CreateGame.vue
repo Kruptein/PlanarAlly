@@ -3,7 +3,7 @@ import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useToast } from "vue-toastification";
 
-import { getImageSrcFromHash } from "../../assetManager/utils";
+import { getImageSrcFromHash } from "../../assets/utils";
 import { baseAdjust, http } from "../../core/http";
 import { useModal } from "../../core/plugins/modals/plugin";
 import { coreStore } from "../../store/core";

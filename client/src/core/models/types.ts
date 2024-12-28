@@ -1,4 +1,4 @@
-import type { AssetId } from "../../assetManager/models";
+import type { AssetId } from "../../assets/models";
 
 export type AssetListMap = Map<string, AssetListMap | AssetFile[]>;
 export type ReadonlyAssetListMap = ReadonlyMap<string, ReadonlyAssetListMap | AssetFile[]>;

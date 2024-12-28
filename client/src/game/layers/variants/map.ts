@@ -1,4 +1,4 @@
-import { getImageSrcFromHash } from "../../../assetManager/utils";
+import { getImageSrcFromHash } from "../../../assets/utils";
 import { FloorType } from "../../models/floor";
 import { floorSystem } from "../../systems/floors";
 import { positionState } from "../../systems/position/state";

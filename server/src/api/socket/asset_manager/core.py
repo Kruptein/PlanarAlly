@@ -373,3 +373,30 @@ async def assetmgmt_upload(sid: str, raw_data: Any):
     await update_live_game(user)
 
     return return_data
+
+
+@sio.on("Asset.Search", namespace=ASSET_NS)
+@auth.login_required(app, sio, "asset")
+async def assetmgmt_search(sid: str, query: str):
+    user = asset_state.get_user(sid)
+
+    assets = Asset.select().where(Asset.owner == user & Asset.name.contains(query)).order_by(Asset.name)  # type: ignore
+
+    return [transform_asset(asset, user) for asset in assets]
+
+
+@sio.on("Asset.FolderPath", namespace=ASSET_NS)
+@auth.login_required(app, sio, "asset")
+async def get_folder_path(sid: str, asset_id: int):
+    user = asset_state.get_user(sid)
+
+    asset = Asset.get_by_id(asset_id)
+    if not asset.can_be_accessed_by(user, right="view"):
+        return []
+
+    path = []
+    while asset is not None:
+        path.insert(0, {"id": asset.id, "name": asset.name})
+        asset = asset.parent
+
+    return path

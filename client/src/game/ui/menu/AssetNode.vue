@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from "vue";
 
-import type { AssetId } from "../../../assetManager/models";
-import { getImageSrcFromHash } from "../../../assetManager/utils";
+import type { AssetId } from "../../../assets/models";
+import { getImageSrcFromHash } from "../../../assets/utils";
 import { filter } from "../../../core/iter";
 import type { AssetFile, AssetListMap } from "../../../core/models/types";
 

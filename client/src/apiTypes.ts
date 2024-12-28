@@ -1,4 +1,4 @@
-import type { AssetId } from "./assetManager/models";
+import type { AssetId } from "./assets/models";
 import type { GlobalId } from "./core/id";
 import type { LayerName } from "./game/models/floor";
 import type { Role } from "./game/models/role";

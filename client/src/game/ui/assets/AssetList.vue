@@ -7,6 +7,7 @@ import type { AssetId } from "../../../assets/models";
 import { useAssetSearch } from "../../../assets/search";
 import { assetState } from "../../../assets/state";
 import AssetListCore from "../../../assets/ui/AssetListCore.vue";
+import AssetUploadProgress from "../../../assets/ui/AssetUploadProgress.vue";
 import { assetGameSystem } from "../../systems/assets";
 import { assetGameState } from "../../systems/assets/state";
 import { closeAssetManager } from "../../systems/assets/ui";
@@ -18,7 +19,6 @@ const assetsDialogFooter = ref<HTMLDivElement | null>(null);
 const searchBar = ref<HTMLInputElement | null>(null);
 const search = useAssetSearch(searchBar);
 
-// const shortcuts = ref([{ name: t("assets.all_assets"), id: assetState.reactive.root }]);
 const activeShortcut = ref<AssetId | null>(null);
 
 const shortcuts = computed(() => {
@@ -166,7 +166,11 @@ const extraContextSections = computed(() => {
                 @on-drag-start="onDragStart"
             />
 
-            <div id="assets-dialog-footer" ref="assetsDialogFooter">
+            <div class="asset-footer">
+                <AssetUploadProgress />
+            </div>
+
+            <div id="drag-info-helper" ref="assetsDialogFooter" class="asset-footer">
                 <font-awesome-icon icon="map-location-dot" />
                 To drop assets on the map, drag them outside of this modal!
             </div>
@@ -320,18 +324,21 @@ header {
     }
 }
 
-#assets-dialog-footer {
-    display: none;
+.asset-footer {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
     padding: 1rem;
-    background-color: #92bbed;
     align-items: center;
     justify-content: center;
     font-size: 1.5em;
     gap: 1rem;
+}
+
+#drag-info-helper {
+    display: none;
+    background-color: #92bbed;
 }
 
 #assets-loading {

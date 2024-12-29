@@ -308,6 +308,7 @@ async function showRenameUI(id: AssetId): Promise<void> {
         padding-top: 1rem;
 
         position: relative;
+        overflow-x: hidden;
         overflow-y: auto;
 
         // border: solid 2px transparent;

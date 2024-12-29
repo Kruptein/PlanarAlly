@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { assetSystem } from "../../../assets";
@@ -19,8 +19,6 @@ const assetsDialogFooter = ref<HTMLDivElement | null>(null);
 const searchBar = ref<HTMLInputElement | null>(null);
 const search = useAssetSearch(searchBar);
 
-const activeShortcut = ref<AssetId | null>(null);
-
 const shortcuts = computed(() => {
     const root = {
         name: t("assets.all_assets"),
@@ -33,10 +31,12 @@ const shortcuts = computed(() => {
     return [root, ..._shortcuts];
 });
 
-watch(activeShortcut, async (newShortcut) => {
-    if (newShortcut === null) return;
-    await assetSystem.changeDirectory(newShortcut);
-});
+const activeShortcut = computed(() => assetState.currentFolder.value);
+
+async function open(id: AssetId | undefined): Promise<void> {
+    const target = id ?? assetState.reactive.root;
+    if (target) await assetSystem.changeDirectory(target);
+}
 
 function setLayersBackground(color: string): void {
     const layers = document.getElementById("layers")!;
@@ -148,10 +148,10 @@ const extraContextSections = computed(() => {
         <template v-else>
             <section id="assets-shortcuts">
                 <div
-                    v-for="[index, shortcut] of shortcuts.entries()"
+                    v-for="shortcut of shortcuts"
                     :key="shortcut.id"
-                    :class="{ active: activeShortcut === shortcut.id || (activeShortcut === null && index === 0) }"
-                    @click="activeShortcut = shortcut.id ?? null"
+                    :class="{ active: activeShortcut === shortcut.id }"
+                    @click="open(shortcut.id)"
                 >
                     {{ shortcut.name }}
                 </div>

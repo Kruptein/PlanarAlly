@@ -5,7 +5,7 @@ import type { ApiAsset } from "../apiTypes";
 import { socket } from "./socket";
 import { assetState } from "./state";
 
-export interface AssetSearch {
+interface AssetSearch {
     clear: () => void;
     filter: Ref<string>;
     results: Ref<ApiAsset[]>;

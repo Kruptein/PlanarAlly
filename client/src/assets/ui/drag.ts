@@ -146,7 +146,7 @@ async function stopDrag(event: DragEvent, target: AssetId): Promise<void> {
     dragState.value = 0;
 }
 
-export interface DragComposable {
+interface DragComposable {
     dragState: Ref<number>;
     startDrag: (event: DragEvent, file: AssetId, fileHash: string | null) => void;
     moveDrag: (event: DragEvent) => void;

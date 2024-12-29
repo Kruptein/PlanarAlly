@@ -33,13 +33,11 @@ import type { ApiFloor, ApiLocationCore, PlayerPosition } from "../../apiTypes";
 import { toGP } from "../../core/geometry";
 import type { GlobalId } from "../../core/id";
 import { SyncMode } from "../../core/models/types";
-import type { AssetList } from "../../core/models/types";
 import { debugLayers } from "../../localStorageHelpers";
 import { modEvents } from "../../mods/events";
 import { router } from "../../router";
 import { coreStore } from "../../store/core";
 import { locationStore } from "../../store/location";
-import { convertAssetListToMap } from "../assets/utils";
 import { clearGame } from "../clear";
 import { addServerFloor } from "../floor/server";
 import { getShapeFromGlobal } from "../id";
@@ -117,10 +115,6 @@ socket.on("Board.Floor.Set", (floor: ApiFloor) => {
 socket.on("Position.Set", (data: PlayerPosition) => {
     if (data.floor !== undefined) floorSystem.selectFloor({ name: data.floor }, true);
     setCenterPosition(toGP(data.x, data.y));
-});
-
-socket.on("Asset.List.Set", (assets: AssetList) => {
-    gameSystem.setAssets(convertAssetListToMap(assets));
 });
 
 socket.on("Temp.Clear", (shapeIds: GlobalId[]) => {

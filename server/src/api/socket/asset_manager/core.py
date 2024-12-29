@@ -12,7 +12,6 @@ from ....db.models.asset_rect import AssetRect
 from ....db.models.user import User
 from ....logs import logger
 from ....state.asset import asset_state
-from ....state.game import game_state
 from ....transform.to_api.asset import transform_asset
 from ....utils import ASSETS_DIR, get_asset_hash_subpath
 from ...models.asset import (
@@ -24,19 +23,14 @@ from ...models.asset import (
     ApiAssetRename,
     ApiAssetUpload,
 )
-from ..constants import ASSET_NS, GAME_NS
+from ..constants import ASSET_NS
 from .ddraft import handle_ddraft_file
 
 
+# todo: This used to send the entire asset list to the client,
+# we should now only send the relevant update
 async def update_live_game(user: User):
-    for sid, pr in game_state._sid_map.items():
-        if pr.player == user:
-            await sio.emit(
-                "Asset.List.Set",
-                Asset.get_user_structure(user),
-                room=sid,
-                namespace=GAME_NS,
-            )
+    pass
 
 
 @sio.on("connect", namespace=ASSET_NS)

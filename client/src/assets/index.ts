@@ -56,6 +56,7 @@ class AssetSystem {
     }
 
     async changeDirectory(targetFolder: AssetId | "POP"): Promise<void> {
+        $.loadingFolder = true;
         if (targetFolder === "POP") {
             $.folderPath.pop();
         } else if (targetFolder === raw.root) {
@@ -85,6 +86,7 @@ class AssetSystem {
                 this.addAsset(child);
             }
         }
+        $.loadingFolder = false;
     }
 
     // SELECTED

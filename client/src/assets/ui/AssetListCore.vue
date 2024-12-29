@@ -52,37 +52,18 @@ const files = computed(() => {
     return assetState.reactive.files.map((f) => assetState.reactive.idMap.get(f)!);
 });
 
-// function getCurrentPath(path?: string): string {
-//     path ??= route.path;
-//     const i = path.indexOf("/assets");
-//     return path.slice(i + "/assets".length);
-// }
+async function load(): Promise<void> {
+    await assetSystem.loadFolder(assetState.currentFolder.value);
+}
 
-// function loadFolder(path: string): void {
-//     if (!socket.connected) socket.connect();
-//     sendFolderGetByPath(path);
-// }
-
-onMounted(() => {
-    if (!socket.connected) socket.connect();
-    socket.emit("Folder.Get");
-    //     loadFolder(getCurrentPath());
-
-    //     body?.addEventListener("dragenter", showDropZone);
-    //     body?.addEventListener("dragleave", hideDropZone);
+onMounted(async () => {
+    if (socket.connected) {
+        await load();
+    } else {
+        socket.connect();
+        socket.once("connect", load);
+    }
 });
-
-// onBeforeRouteLeave(() => {
-//     if (socket.connected) socket.disconnect();
-//     body?.removeEventListener("dragenter", showDropZone);
-//     body?.removeEventListener("dragleave", hideDropZone);
-// });
-
-// onBeforeRouteUpdate((to: RouteLocationNormalized) => {
-//     if (trimEnd(getCurrentPath(to.path), "/") !== trimEnd(assetState.currentFilePath.value, "/")) {
-//         loadFolder(getCurrentPath(to.path));
-//     }
-// });
 
 function dragStart(event: DragEvent, file: AssetId, assetHash: string | null): void {
     // emit("onDragStart", event);
@@ -199,7 +180,7 @@ async function showRenameUI(id: AssetId): Promise<void> {
         </div>
         <div
             id="assets"
-            :class="{ dropzone: drag.dragState.value > 0 }"
+            :class="{ dropzone: drag.dropZoneVisible.value > 0 }"
             @dragleave="emit('onDragLeave', $event)"
             @dragover.prevent
             @drop.prevent.stop="drag.onDrop"
@@ -280,6 +261,10 @@ async function showRenameUI(id: AssetId): Promise<void> {
                     {{ file.name }}
                 </div>
             </div>
+            <div v-if="assetState.reactive.loadingFolder" id="assets-loading-overlay">
+                <div class="loader"></div>
+                <div>Fetching data...</div>
+            </div>
         </div>
     </section>
     <AssetContextMenu
@@ -322,6 +307,7 @@ async function showRenameUI(id: AssetId): Promise<void> {
         margin-top: 0.875rem;
         padding-top: 1rem;
 
+        position: relative;
         overflow-y: auto;
 
         // border: solid 2px transparent;
@@ -401,10 +387,40 @@ async function showRenameUI(id: AssetId): Promise<void> {
         > .inode-selected::after {
             background-image: v-bind(activeSelectionUrl);
         }
+    }
+}
 
-        // > .inode-not-selected::after {
-        //     background-image: v-bind(emptySelectionUrl);
-        // }
+#assets-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    background-color: rgba(255, 255, 255, 0.75);
+    .loader {
+        display: inline-block;
+        width: 2rem;
+        height: 2rem;
+
+        border: 5px solid #a82929;
+        border-bottom-color: transparent;
+        border-radius: 50%;
+
+        animation: rotation 1s linear infinite;
+    }
+
+    @keyframes rotation {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
     }
 }
 </style>

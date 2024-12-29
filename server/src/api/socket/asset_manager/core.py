@@ -52,22 +52,19 @@ async def disconnect(sid):
     await asset_state.remove_sid(sid)
 
 
-async def _get_folder(asset: Asset, user: User, sid: str, *, path: list[int] | None):
+def _get_folder(asset: Asset, user: User, sid: str, *, path: list[int] | None):
     if asset.can_be_accessed_by(user, right="all"):
         shared_parent = None
         if sp := asset.get_shared_parent(user):
             shared_parent = transform_asset(sp.asset, user)
 
-        await sio.emit(
-            "Folder.Set",
+        return (
             ApiAssetFolder(
                 folder=transform_asset(asset, user, children=True),
                 sharedParent=shared_parent,
                 sharedRight=None if sp is None else sp.right,
                 path=path,
             ),
-            room=sid,
-            namespace=ASSET_NS,
         )
     else:
         raise web.HTTPForbidden()
@@ -86,7 +83,7 @@ async def get_folder(sid: str, folder: int | None = None):
     else:
         asset = Asset.get_by_id(folder)
 
-    await _get_folder(asset, user, sid, path=None)
+    return _get_folder(asset, user, sid, path=None)
 
 
 @sio.on("Folder.GetByPath", namespace=ASSET_NS)
@@ -108,7 +105,7 @@ async def get_folder_by_path(sid: str, folder: str):
                 target_folder = root_folder
                 break
 
-    await _get_folder(target_folder, user, sid, path=id_path)
+    return _get_folder(target_folder, user, sid, path=id_path)
 
 
 @sio.on("Folder.Create", namespace=ASSET_NS)

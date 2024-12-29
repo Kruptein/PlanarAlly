@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 99
+SAVE_VERSION = 100
 
 import asyncio
 import json
@@ -534,6 +534,12 @@ def upgrade(
             ).fetchall()
 
             loop.create_task(generate_thumbnails(data, loop))
+    elif version == 99:
+        # Add AssetShortcut
+        with db.atomic():
+            db.execute_sql(
+                "CREATE TABLE IF NOT EXISTS asset_shortcut (id INTEGER NOT NULL PRIMARY KEY, asset_id INTEGER NOT NULL, player_room_id INTEGER NOT NULL, FOREIGN KEY (asset_id) REFERENCES asset (id) ON DELETE CASCADE, FOREIGN KEY (player_room_id) REFERENCES player_room (id) ON DELETE CASCADE)"
+            )
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

@@ -1,16 +1,42 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 
+import { assetSystem } from "../../../assets";
+import type { AssetId } from "../../../assets/models";
 import { useAssetSearch } from "../../../assets/search";
+import { assetState } from "../../../assets/state";
 import AssetListCore from "../../../assets/ui/AssetListCore.vue";
+import { assetGameSystem } from "../../systems/assets";
+import { assetGameState } from "../../systems/assets/state";
 import { closeAssetManager } from "../../systems/assets/ui";
 
-const shortcuts = ref(["All Assets", "SKT", "DND"]);
-const activeShortcut = ref("All Assets");
+const { t } = useI18n();
+
 const assetsDialogFooter = ref<HTMLDivElement | null>(null);
 
 const searchBar = ref<HTMLInputElement | null>(null);
 const search = useAssetSearch(searchBar);
+
+// const shortcuts = ref([{ name: t("assets.all_assets"), id: assetState.reactive.root }]);
+const activeShortcut = ref<AssetId | null>(null);
+
+const shortcuts = computed(() => {
+    const root = {
+        name: t("assets.all_assets"),
+        id: assetState.reactive.root,
+    };
+    const _shortcuts = assetGameState.reactive.shortcuts.map((id) => {
+        const asset = assetState.reactive.idMap.get(id);
+        return { name: asset?.name ?? "Unknown", id };
+    });
+    return [root, ..._shortcuts];
+});
+
+watch(activeShortcut, async (newShortcut) => {
+    if (newShortcut === null) return;
+    await assetSystem.changeDirectory(newShortcut);
+});
 
 function setLayersBackground(color: string): void {
     const layers = document.getElementById("layers")!;
@@ -37,6 +63,52 @@ function onDragLeave(event: DragEvent): void {
         setLayersBackground("unset");
     }
 }
+
+const contextAsset = computed(() => {
+    if (assetState.reactive.selected.length !== 1) return undefined;
+    if (assetState.raw.selected[0] === undefined) return undefined;
+    return assetState.reactive.idMap.get(assetState.raw.selected[0]);
+});
+
+const canShortcut = computed(() => {
+    if (assetState.reactive.selected.length !== 1) return false;
+    if (contextAsset.value === undefined) return false;
+    if (assetGameState.reactive.shortcuts.includes(contextAsset.value.id)) return false;
+    return contextAsset.value.fileHash === null;
+});
+
+const canRemoveShortcut = computed(() => {
+    if (assetState.reactive.selected.length !== 1) return false;
+    if (contextAsset.value === undefined) return false;
+    return assetGameState.reactive.shortcuts.includes(contextAsset.value.id);
+});
+
+function addToShortcuts(): boolean {
+    if (contextAsset.value === undefined) return false;
+    assetGameSystem.addShortcut(contextAsset.value.id);
+    return true;
+}
+
+function removeFromShortcuts(): boolean {
+    if (contextAsset.value === undefined) return false;
+    assetGameSystem.removeShortcut(contextAsset.value.id);
+    return true;
+}
+
+const extraContextSections = computed(() => {
+    return [
+        {
+            title: t("assets.add_shortcut"),
+            action: addToShortcuts,
+            disabled: !canShortcut.value,
+        },
+        {
+            title: t("assets.remove_shortcut"),
+            action: removeFromShortcuts,
+            disabled: !canRemoveShortcut.value,
+        },
+    ];
+});
 </script>
 
 <template>
@@ -76,18 +148,19 @@ function onDragLeave(event: DragEvent): void {
         <template v-else>
             <section id="assets-shortcuts">
                 <div
-                    v-for="shortcut of shortcuts"
-                    :key="shortcut"
-                    :class="{ active: activeShortcut === shortcut }"
-                    @click="activeShortcut = shortcut"
+                    v-for="[index, shortcut] of shortcuts.entries()"
+                    :key="shortcut.id"
+                    :class="{ active: activeShortcut === shortcut.id || (activeShortcut === null && index === 0) }"
+                    @click="activeShortcut = shortcut.id ?? null"
                 >
-                    {{ shortcut }}
+                    {{ shortcut.name }}
                 </div>
             </section>
 
             <AssetListCore
                 font-size="8em"
                 :search-results="search.results.value"
+                :extra-context-sections="extraContextSections"
                 @on-drag-end="onDragEnd"
                 @on-drag-leave="onDragLeave"
                 @on-drag-start="onDragStart"

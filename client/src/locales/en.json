@@ -96,6 +96,11 @@
         "type": "Type",
         "background": "Background"
     },
+    "assets": {
+        "add_shortcut": "Add shortcut",
+        "all_assets": "All Assets",
+        "remove_shortcut": "Remove shortcut"
+    },
     "auth": {
         "login": {
             "register": "Register",

@@ -9,7 +9,7 @@ from ...api.socket.constants import GAME_NS
 from ...app import app, sio
 from ...config import config
 from ...db.create.floor import create_floor
-from ...db.models.asset import Asset
+from ...db.models.asset_shortcut import AssetShortcut
 from ...db.models.character import Character
 from ...db.models.floor import Floor
 from ...db.models.initiative import Initiative
@@ -28,6 +28,7 @@ from ...logs import logger
 from ...models.access import has_ownership
 from ...models.role import Role
 from ...state.game import game_state
+from ...transform.to_api.asset import transform_asset
 from ...transform.to_api.floor import transform_floor
 from ..helpers import _send_game
 from ..models.client import OptionalClientViewport
@@ -278,10 +279,12 @@ async def load_location(sid: str, location: Location, *, complete=False):
 
     # 9. Load Assets
 
-    if complete:
-        # todo: pydantic
+    if complete and IS_DM:
+        shortcuts = AssetShortcut.select().where(AssetShortcut.player_room == pr)
         await _send_game(
-            "Asset.List.Set", Asset.get_user_structure(pr.player), room=sid
+            "Asset.Shortcuts.Set",
+            [transform_asset(shortcut.asset, pr.player) for shortcut in shortcuts],
+            room=sid,
         )
 
     await _send_game("Location.Loaded", room=sid, data=None)

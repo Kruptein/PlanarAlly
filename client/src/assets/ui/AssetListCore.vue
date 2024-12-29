@@ -4,6 +4,7 @@ import type { DeepReadonly } from "vue";
 
 import { assetSystem } from "..";
 import type { ApiAsset } from "../../apiTypes";
+import type { Section } from "../../core/components/contextMenu/types";
 import { baseAdjust } from "../../core/http";
 import { ctrlOrCmdPressed } from "../../core/utils";
 import { coreStore } from "../../store/core";
@@ -20,9 +21,13 @@ import { useDrag } from "./drag";
 const activeSelectionUrl = `url(${baseAdjust("/static/img/assetmanager/active_selection.png")})`;
 
 const emit = defineEmits<(e: "onDragEnd" | "onDragLeave" | "onDragStart", value: DragEvent) => void>();
-const props = withDefaults(defineProps<{ fontSize: string; searchResults?: ApiAsset[] }>(), {
-    searchResults: () => [],
-});
+const props = withDefaults(
+    defineProps<{ extraContextSections?: Section[]; fontSize: string; searchResults?: ApiAsset[] }>(),
+    {
+        extraContextSections: () => [],
+        searchResults: () => [],
+    },
+);
 
 const assetContextMenu = useAssetContextMenu();
 const drag = useDrag(emit);
@@ -79,7 +84,7 @@ onMounted(() => {
 //     }
 // });
 
-function dragStart(event: DragEvent, file: AssetId, assetHash?: string): void {
+function dragStart(event: DragEvent, file: AssetId, assetHash: string | null): void {
     // emit("onDragStart", event);
     drag.startDrag(event, file, assetHash);
 }
@@ -226,7 +231,7 @@ async function showRenameUI(id: AssetId): Promise<void> {
                 @click.stop="select($event, folder.id)"
                 @dblclick="assetSystem.changeDirectory(folder.id)"
                 @contextmenu.prevent="openContextMenu($event, folder.id)"
-                @dragstart="drag.startDrag($event, folder.id)"
+                @dragstart="drag.startDrag($event, folder.id, null)"
                 @dragover.prevent="drag.moveDrag"
                 @dragend="drag.onDragEnd"
                 @dragleave.prevent="drag.leaveDrag"
@@ -277,7 +282,12 @@ async function showRenameUI(id: AssetId): Promise<void> {
             </div>
         </div>
     </section>
-    <AssetContextMenu v-bind="assetContextMenu.state" @close="assetContextMenu.close" @rename="showRenameUI" />
+    <AssetContextMenu
+        v-bind="assetContextMenu.state"
+        :extra-sections="extraContextSections"
+        @close="assetContextMenu.close"
+        @rename="showRenameUI"
+    />
 </template>
 
 <style scoped lang="scss">

@@ -14,7 +14,7 @@ import AssetShare from "./AssetShare.vue";
 import type { AssetContextMenu } from "./context";
 
 const emit = defineEmits<{ (event: "rename", payload: AssetId): void; (event: "close"): void }>();
-const props = defineProps<AssetContextMenu["state"]>();
+const props = defineProps<AssetContextMenu["state"] & { extraSections?: Section[] }>();
 
 const cm = ref<{ $el: HTMLDivElement } | null>(null);
 const modals = useModal();
@@ -28,17 +28,14 @@ watch(props.visible, async () => {
     }
 });
 
-function close(): void {
-    emit("close");
-}
-
 const multiSelect = computed(() => assetState.reactive.selected.length > 1);
 
-const asset = computed(() => assetState.reactive.selected.at(0));
+const selectedAssetId = computed(() => assetState.reactive.selected.at(0));
+
 const canShare = computed(() => {
     if (multiSelect.value) return false;
-    if (asset.value === undefined) return false;
-    const data = assetState.reactive.idMap.get(asset.value);
+    if (selectedAssetId.value === undefined) return false;
+    const data = assetState.reactive.idMap.get(selectedAssetId.value);
     if (data === undefined) return false;
     const username = coreStore.state.username;
     return data.owner === username || data.shares.some((s) => s.user === username && s.right === "edit");
@@ -72,6 +69,7 @@ async function remove(): Promise<boolean> {
 }
 
 const sections = computed<Section[]>(() => [
+    ...(props.extraSections ?? []),
     {
         title: t("common.rename"),
         action: rename,
@@ -90,7 +88,7 @@ const sections = computed<Section[]>(() => [
 </script>
 
 <template>
-    <AssetShare :visible="showAssetShare" :asset="asset" @close="showAssetShare = false" />
+    <AssetShare :visible="showAssetShare" :asset="selectedAssetId" @close="showAssetShare = false" />
     <ContextMenu
         ref="cm"
         :left="left.value"

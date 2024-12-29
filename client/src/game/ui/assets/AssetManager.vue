@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { assetState } from "../../systems/assets/state";
+import { assetGameState } from "../../systems/assets/state";
 import { closeAssetManager } from "../../systems/assets/ui";
 import type { ModalIndex } from "../../systems/modals/types";
 
@@ -16,7 +16,7 @@ function close(): void {
 </script>
 
 <template>
-    <div v-show="assetState.reactive.managerOpen" id="asset-container">
+    <div v-show="assetGameState.reactive.managerOpen" id="asset-container">
         <div id="assets-dialog" @click="$emit('focus')">
             <font-awesome-icon id="close-assets" :icon="['far', 'window-close']" @click="close" />
             <AssetList />

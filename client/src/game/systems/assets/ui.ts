@@ -1,11 +1,11 @@
-import { assetState } from "./state";
+import { assetGameState } from "./state";
 
 export function closeAssetManager(): void {
-    if (assetState.raw.managerOpen) {
-        assetState.mutableReactive.managerOpen = false;
+    if (assetGameState.raw.managerOpen) {
+        assetGameState.mutableReactive.managerOpen = false;
     }
 }
 
 export function toggleAssetManager(): void {
-    assetState.mutableReactive.managerOpen = !assetState.raw.managerOpen;
+    assetGameState.mutableReactive.managerOpen = !assetGameState.raw.managerOpen;
 }

@@ -66,7 +66,7 @@ class AssetSystem {
             const asset = raw.idMap.get(targetFolder);
             if (asset !== undefined) {
                 if (raw.root && ($.idMap.get(raw.root)?.children?.some((c) => c.id === targetFolder) ?? false)) {
-                    $.folderPath.push({ id: targetFolder, name: asset.name });
+                    $.folderPath = [{ id: targetFolder, name: asset.name }];
                 } else {
                     const path = await getFolderPath(targetFolder);
                     $.folderPath = path.slice(1);

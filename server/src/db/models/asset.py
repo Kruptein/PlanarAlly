@@ -49,7 +49,7 @@ class Asset(BaseDbModel):
 
     def get_child(self, name: str) -> "Asset | None":
         asset = Asset.get_or_none(
-            (Asset.owner == self.owner) & (Asset.parent == self) & (Asset.name == name)
+            (Asset.owner == self.owner) & (Asset.parent == self) & (Asset.name == name)  # type: ignore
         )
         if not asset:
             if share := AssetShare.get_or_none(user=self.owner, name=name, parent=self):

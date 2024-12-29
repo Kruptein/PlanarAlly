@@ -25,4 +25,4 @@ class AssetGameSystem implements System {
 }
 
 export const assetGameSystem = new AssetGameSystem();
-registerSystem("assetGame", assetGameSystem, true, assetGameState);
+registerSystem("assetGame", assetGameSystem, false, assetGameState);

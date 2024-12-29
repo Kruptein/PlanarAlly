@@ -123,6 +123,21 @@ const extraContextSections = computed(() => {
         },
     ];
 });
+
+const canPick = computed(() => {
+    const selection = assetState.reactive.selected[0];
+    if (selection === undefined) return false;
+    return (
+        assetState.reactive.selected.length === 1 &&
+        assetGameState.reactive.picker !== null &&
+        assetState.reactive.idMap.get(selection)?.fileHash !== null
+    );
+});
+
+function pickAsset(): void {
+    assetGameState.raw.picker?.(assetState.raw.selected[0]!);
+    closeAssetManager();
+}
 </script>
 
 <template>
@@ -179,6 +194,11 @@ const extraContextSections = computed(() => {
                 @on-drag-leave="onDragLeave"
                 @on-drag-start="onDragStart"
             />
+
+            <div v-if="assetGameState.reactive.picker !== null" id="asset-picker" class="asset-footer">
+                <button @click="closeAssetManager">Cancel</button>
+                <button :disabled="!canPick" @click="pickAsset">Pick</button>
+            </div>
 
             <div class="asset-footer">
                 <AssetUploadProgress />
@@ -380,6 +400,17 @@ header {
     }
     100% {
         transform: rotate(360deg);
+    }
+}
+
+#asset-picker {
+    display: flex;
+    justify-content: flex-end;
+
+    button {
+        height: 2rem;
+        width: 10rem;
+        border-radius: 0.5rem;
     }
 }
 </style>

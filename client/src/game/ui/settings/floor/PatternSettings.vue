@@ -2,18 +2,17 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { assetState } from "../../../../assets/state";
 import { getImageSrcFromHash } from "../../../../assets/utils";
-import { useModal } from "../../../../core/plugins/modals/plugin";
 import { getValue } from "../../../../core/utils";
 import { getPattern, patternToString } from "../../../layers/floor";
 import type { BackgroundPattern } from "../../../models/floor";
+import { pickAsset } from "../../../systems/assets/ui";
 
 const { t } = useI18n();
 
 const props = defineProps<{ pattern: string }>();
 const emit = defineEmits<(e: "update:pattern", p: string) => void>();
-
-const modals = useModal();
 
 const defaultPattern: BackgroundPattern = {
     hash: "",
@@ -26,10 +25,13 @@ const defaultPattern: BackgroundPattern = {
 const backgroundPattern = computed(() => getPattern(props.pattern) ?? defaultPattern);
 
 async function setPatternImage(): Promise<void> {
-    const data = await modals.assetPicker();
-    if (data === undefined || data.fileHash === null) return;
+    const assetId = await pickAsset();
+    if (assetId === null) return;
 
-    emit("update:pattern", patternToString({ ...backgroundPattern.value, hash: data.fileHash }));
+    const assetInfo = assetState.raw.idMap.get(assetId);
+    if (assetInfo === undefined || assetInfo.fileHash === null) return;
+
+    emit("update:pattern", patternToString({ ...backgroundPattern.value, hash: assetInfo.fileHash }));
 }
 
 function setPatternData(data: { offsetX?: Event; offsetY?: Event; scaleX?: Event; scaleY?: Event }): void {
@@ -54,7 +56,7 @@ function setPatternData(data: { offsetX?: Event; offsetY?: Event; scaleX?: Event
             :src="getImageSrcFromHash(backgroundPattern.hash)"
             class="pattern-preview"
         />
-        <font-awesome-icon id="set-pattern" icon="plus-square" title="Set a pattern" @click="setPatternImage" />
+        <font-awesome-icon id="set-pattern" icon="plus-square" title="Set a pattern" @click.stop="setPatternImage" />
     </div>
     <div></div>
 

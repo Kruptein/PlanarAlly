@@ -20,7 +20,7 @@ const { t } = i18n.global;
 
 watchEffect(() => {
     if (props.visible) {
-        assetSystem.clear();
+        assetSystem.clear("partial-loading");
         assetSystem.clearSelected();
         assetSystem.clearFolderPath();
         assetState.mutable.modalActive = true;

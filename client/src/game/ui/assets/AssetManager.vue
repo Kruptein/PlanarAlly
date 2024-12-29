@@ -1,13 +1,25 @@
 <script setup lang="ts">
+import { nextTick, watch } from "vue";
+
 import { assetGameState } from "../../systems/assets/state";
 import { closeAssetManager } from "../../systems/assets/ui";
+import { modalSystem } from "../../systems/modals";
 import type { ModalIndex } from "../../systems/modals/types";
 
 import AssetList from "./AssetList.vue";
 
 const emit = defineEmits<(e: "close" | "focus") => void>();
 defineExpose({ close });
-defineProps<{ modalIndex: ModalIndex }>();
+const props = defineProps<{ modalIndex: ModalIndex }>();
+
+watch(
+    () => assetGameState.reactive.managerOpen,
+    async (open) => {
+        if (open) {
+            await nextTick(() => modalSystem.focus(props.modalIndex));
+        }
+    },
+);
 
 function close(): void {
     closeAssetManager();

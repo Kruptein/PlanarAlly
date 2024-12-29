@@ -1,6 +1,7 @@
 import type {
     ApiAssetCreateFolder,
     ApiAssetCreateShare,
+    ApiAssetFolder,
     ApiAssetInodeMove,
     ApiAssetRemoveShare,
     ApiAssetRename,
@@ -21,8 +22,8 @@ function wrapSocketWithAck<T, Y>(event: string): (data: T) => Promise<Y> {
     };
 }
 
-export const sendFolderGet = wrapSocket<AssetId | undefined>("Folder.Get");
-export const sendFolderGetByPath = wrapSocket<string>("Folder.GetByPath");
+export const getFolder = wrapSocketWithAck<AssetId | undefined, ApiAssetFolder>("Folder.Get");
+export const getFolderByPath = wrapSocketWithAck<string, ApiAssetFolder>("Folder.GetByPath");
 export const sendInodeMove = wrapSocket<ApiAssetInodeMove>("Inode.Move");
 export const sendAssetRename = wrapSocket<ApiAssetRename>("Asset.Rename");
 export const sendAssetRemove = wrapSocket<AssetId>("Asset.Remove");

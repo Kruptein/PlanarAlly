@@ -4,7 +4,7 @@ import type { ApiAsset, ApiAssetUpload } from "../apiTypes";
 import { callbackProvider, uuidv4 } from "../core/utils";
 import { router } from "../router";
 
-import { sendAssetRemove, sendAssetRename, sendFolderGet, getFolderPath, sendInodeMove } from "./emits";
+import { sendAssetRemove, sendAssetRename, getFolder, sendInodeMove, getFolderPath, getFolderByPath } from "./emits";
 import type { AssetId } from "./models";
 import { socket } from "./socket";
 import { assetState } from "./state";
@@ -75,7 +75,18 @@ class AssetSystem {
             }
         }
         this.clearSelected();
-        sendFolderGet(assetState.currentFolder.value);
+        await this.loadFolder(assetState.currentFolder.value);
+    }
+
+    async loadFolder(folder: AssetId | string | undefined): Promise<void> {
+        if (folder === undefined) return;
+
+        const data = typeof folder === "string" ? await getFolderByPath(folder) : await getFolder(folder);
+        this.clear();
+        this.setFolderData(data.folder.id, data.folder);
+        if (data.path) assetSystem.setPath(data.path);
+        assetState.mutableReactive.sharedParent = data.sharedParent;
+        assetState.mutableReactive.sharedRight = data.sharedRight;
     }
 
     setFolderData(folder: AssetId, data: ApiAsset): void {

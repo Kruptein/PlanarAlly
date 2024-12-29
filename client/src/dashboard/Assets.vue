@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import trimEnd from "lodash/trimEnd";
-import { type DeepReadonly, onMounted, ref } from "vue";
+import { type DeepReadonly, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from "vue-router";
-import type { RouteLocationNormalized } from "vue-router";
+import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
 
 import type { ApiAsset } from "../apiTypes";
 import { assetSystem } from "../assets";
-import { sendCreateFolder, sendFolderGetByPath } from "../assets/emits";
+import { sendCreateFolder } from "../assets/emits";
 import type { AssetId } from "../assets/models";
 import { socket } from "../assets/socket";
 import { assetState } from "../assets/state";
@@ -20,8 +18,11 @@ import { coreStore } from "../store/core";
 const { t } = useI18n();
 const modals = useModal();
 const route = useRoute();
+const router = useRouter();
 
-const body = document.getElementsByTagName("body")[0];
+watch(assetState.currentFilePath, async (newPath) => {
+    await router.push(`/assets${newPath}`);
+});
 
 function getCurrentPath(path?: string): string {
     path ??= route.path;
@@ -29,39 +30,18 @@ function getCurrentPath(path?: string): string {
     return path.slice(i + "/assets".length);
 }
 
-function loadFolder(path: string): void {
+async function loadFolder(path: string): Promise<void> {
     if (!socket.connected) socket.connect();
-    sendFolderGetByPath(path);
+    await assetSystem.loadFolder(path);
 }
 
-onMounted(() => {
-    loadFolder(getCurrentPath());
-
-    body?.addEventListener("dragenter", showDropZone);
-    body?.addEventListener("dragleave", hideDropZone);
+onMounted(async () => {
+    await loadFolder(getCurrentPath());
 });
 
 onBeforeRouteLeave(() => {
     if (socket.connected) socket.disconnect();
-    body?.removeEventListener("dragenter", showDropZone);
-    body?.removeEventListener("dragleave", hideDropZone);
 });
-
-onBeforeRouteUpdate((to: RouteLocationNormalized) => {
-    if (trimEnd(getCurrentPath(to.path), "/") !== trimEnd(assetState.currentFilePath.value, "/")) {
-        loadFolder(getCurrentPath(to.path));
-    }
-});
-
-const dragState = ref(0);
-
-function showDropZone(): void {
-    dragState.value++;
-}
-
-function hideDropZone(): void {
-    dragState.value--;
-}
 
 async function createDirectory(): Promise<void> {
     const currentFolder = assetState.currentFolder.value;
@@ -199,6 +179,7 @@ function canEdit(data: AssetId | DeepReadonly<ApiAsset> | undefined, includeRoot
         color: white;
         border-bottom: 5px solid #ffa8bf;
         font-weight: bold;
+        margin-bottom: 1rem;
 
         > div {
             display: flex;
@@ -219,103 +200,11 @@ function canEdit(data: AssetId | DeepReadonly<ApiAsset> | undefined, includeRoot
         }
     }
 
-    // #path {
-    //     margin: 1rem 0;
-    //     display: flex;
-
-    //     // credit: https://stackoverflow.com/questions/46755021/how-to-create-css-breadcrumbs-with-clip-path
-    //     > div {
-    //         padding: 3px 20px;
-    //         background-color: #666;
-    //         color: white;
-    //         display: inline-block;
-    //         clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%, 10px 50%);
-
-    //         &:hover {
-    //             cursor: pointer;
-    //         }
-    //     }
-    // }
-
     #infobar {
         background: rgba(219, 0, 59, 1);
         border-radius: 1rem;
         padding: 1rem;
     }
-
-    // #assets {
-    //     display: grid;
-    //     grid-template-columns: repeat(auto-fit, 12.5em);
-    //     grid-auto-rows: min-content;
-    //     gap: 4.5rem;
-    //     height: inherit;
-    //     margin-top: 0.875rem;
-    //     padding-top: 1rem;
-    //     overflow: visible;
-
-    //     // border: solid 2px transparent;
-    //     border: 5px dotted transparent;
-
-    //     user-select: none;
-
-    //     &.dropzone {
-    //         border-color: #ffa8bf;
-    //     }
-
-    //     > .inode {
-    //         position: relative;
-    //         display: flex;
-    //         flex-direction: column;
-    //         align-items: center;
-
-    //         &:hover {
-    //             cursor: pointer;
-    //         }
-
-    //         > img {
-    //             width: 12.5rem;
-    //             height: 12.5rem;
-    //             object-fit: contain;
-    //         }
-
-    //         > .title {
-    //             font-size: 1.5em;
-    //             word-break: break-all;
-    //         }
-
-    //         > .asset-link {
-    //             font-size: 2em;
-    //             position: absolute;
-    //             left: 0.25rem;
-    //             top: 0.25rem;
-    //             color: white;
-
-    //             :deep(> path) {
-    //                 stroke: black;
-    //                 stroke-width: 1.5rem;
-    //             }
-    //         }
-    //     }
-
-    //     > .inode-not-selected::after,
-    //     > .inode-selected::after {
-    //         position: absolute;
-    //         top: 0;
-    //         right: -0.5rem;
-    //         background-size: 3.125rem 3.125rem;
-    //         content: "";
-    //         width: 3.125rem;
-    //         height: 3.125rem;
-    //     }
-
-    //     > .inode-selected::after {
-    //         background-image: v-bind(activeSelectionUrl);
-    //     }
-
-    //     > .inode-not-selected::after {
-    //         background-image: v-bind(emptySelectionUrl);
-    //     }
-    // }
 }
 
 #progressbar {

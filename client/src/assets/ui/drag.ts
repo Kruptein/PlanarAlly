@@ -1,5 +1,5 @@
 import type { Ref } from "vue";
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { useToast } from "vue-toastification";
 
 import { assetSystem } from "..";
@@ -13,14 +13,14 @@ const toast = useToast();
 
 let emit: (event: "onDragEnd" | "onDragLeave" | "onDragStart", value: DragEvent) => void = () => {};
 let draggingSelection = false;
-const dragState = ref(0);
+const dropZoneVisible = ref(0);
 
-// function showDropZone(): void {
-//     dragState.value++;
-// }
+function showDropZone(): void {
+    dropZoneVisible.value++;
+}
 
 function hideDropZone(): void {
-    dragState.value--;
+    dropZoneVisible.value--;
 }
 
 function fsToFile(fl: FileSystemFileEntry): Promise<File> {
@@ -109,6 +109,7 @@ function leaveDrag(event: DragEvent): void {
 
 function onDragEnd(event: DragEvent): void {
     emit("onDragEnd", event);
+    hideDropZone();
 
     const fromElement = (event.target as HTMLElement).closest(".inode");
     if (fromElement) {
@@ -143,11 +144,11 @@ async function stopDrag(event: DragEvent, target: AssetId): Promise<void> {
         }
     }
     draggingSelection = false;
-    dragState.value = 0;
+    dropZoneVisible.value = 0;
 }
 
 interface DragComposable {
-    dragState: Ref<number>;
+    dropZoneVisible: Ref<number>;
     startDrag: (event: DragEvent, file: AssetId, fileHash: string | null) => void;
     moveDrag: (event: DragEvent) => void;
     leaveDrag: (event: DragEvent) => void;
@@ -160,8 +161,14 @@ export function useDrag(
     _emit: (event: "onDragEnd" | "onDragLeave" | "onDragStart", value: DragEvent) => void,
 ): DragComposable {
     emit = _emit;
+    onMounted(() => {
+        const body = document.getElementsByTagName("body")[0];
+        body?.addEventListener("dragenter", showDropZone);
+        body?.addEventListener("dragleave", hideDropZone);
+    });
+
     return {
-        dragState,
+        dropZoneVisible,
         startDrag,
         moveDrag,
         leaveDrag,

@@ -119,7 +119,7 @@ async function changeAsset(): Promise<void> {
     if (!owned.value) return;
     if (activeShapeStore.state.id === undefined) return;
     const data = await modals.assetPicker();
-    if (data === undefined || data.fileHash === undefined) return;
+    if (data === undefined || data.fileHash === null) return;
     const shape = getShape(activeShapeStore.state.id);
     if (shape === undefined || shape.type !== "assetrect") return;
     (shape as Asset).setImage(getImageSrcFromHash(data.fileHash, { addBaseUrl: false }), true);

@@ -105,7 +105,7 @@ async function setLogo(): Promise<void> {
         logo: data.id,
     });
     if (success.ok) {
-        state.focussed.logo = data.fileHash;
+        state.focussed.logo = data.fileHash ?? undefined;
     }
 }
 

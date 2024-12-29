@@ -23,8 +23,8 @@ export interface ApiAsset {
   id: AssetId;
   name: string;
   owner: string;
-  fileHash?: string;
-  children?: ApiAsset[];
+  fileHash: string | null;
+  children: ApiAsset[] | null;
   shares: ApiAssetShare[];
 }
 export interface ApiAssetShare {

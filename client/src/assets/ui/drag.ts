@@ -68,7 +68,7 @@ async function onDrop(event: DragEvent): Promise<void> {
     }
 }
 
-function startDrag(event: DragEvent, file: AssetId, assetHash?: string): void {
+function startDrag(event: DragEvent, file: AssetId, assetHash: string | null): void {
     if (event.dataTransfer === null) return;
     if (!canEdit(file, false)) {
         return;
@@ -148,7 +148,7 @@ async function stopDrag(event: DragEvent, target: AssetId): Promise<void> {
 
 export interface DragComposable {
     dragState: Ref<number>;
-    startDrag: (event: DragEvent, file: AssetId, fileHash?: string) => void;
+    startDrag: (event: DragEvent, file: AssetId, fileHash: string | null) => void;
     moveDrag: (event: DragEvent) => void;
     leaveDrag: (event: DragEvent) => void;
     onDragEnd: (event: DragEvent) => void;

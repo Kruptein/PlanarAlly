@@ -63,7 +63,7 @@ async function addVariant(): Promise<void> {
 
     const shape = getShape(vState.id!)!;
 
-    if (asset.fileHash === undefined) {
+    if (asset.fileHash === null) {
         console.error("Missing fileHash for new variant");
         return;
     }

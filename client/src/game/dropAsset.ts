@@ -40,8 +40,7 @@ export async function handleDropEvent(event: DragEvent): Promise<void> {
     // External files are dropped
     if (!transferInfo && event.dataTransfer.files.length > 0) {
         for (const asset of await assetSystem.upload(event.dataTransfer.files, { target: () => assetState.raw.root })) {
-            if (asset.fileHash !== undefined)
-                await dropHelper({ assetHash: asset.fileHash, assetId: asset.id }, location);
+            if (asset.fileHash !== null) await dropHelper({ assetHash: asset.fileHash, assetId: asset.id }, location);
         }
     } else if (transferInfo) {
         const assetInfo = JSON.parse(transferInfo) as {

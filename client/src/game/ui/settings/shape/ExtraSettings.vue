@@ -47,7 +47,7 @@ const showSvgSection = computed(() => gameState.reactive.isDm && activeShapeStor
 
 async function uploadSvg(): Promise<void> {
     const asset = await modals.assetPicker();
-    if (asset === undefined || asset.fileHash === undefined) return;
+    if (asset === undefined || asset.fileHash === null) return;
 
     const shape = getShape(activeShapeStore.state.id!);
     if (shape === undefined) return;
@@ -165,18 +165,24 @@ function applyDDraft(): void {
 <template>
     <div class="panel restore-panel">
         <template v-if="showSvgSection">
-            <div class="spanrow header">{{ t('game.ui.selection.edit_dialog.extra.lighting_vision') }}</div>
+            <div class="spanrow header">{{ t("game.ui.selection.edit_dialog.extra.lighting_vision") }}</div>
             <template v-if="!hasPath">
-                <label for="edit_dialog-extra-upload_walls">{{ t('game.ui.selection.edit_dialog.extra.upload_walls') }} (svg)</label>
-                <button id="edit_dialog-extra-upload_walls" @click="uploadSvg">{{ t('common.upload') }}</button>
+                <label for="edit_dialog-extra-upload_walls">
+                    {{ t("game.ui.selection.edit_dialog.extra.upload_walls") }} (svg)
+                </label>
+                <button id="edit_dialog-extra-upload_walls" @click="uploadSvg">{{ t("common.upload") }}</button>
             </template>
             <template v-else>
-                <label for="edit_dialog-extra-upload_walls">{{ t('game.ui.selection.edit_dialog.extra.remove_walls') }} (svg)</label>
-                <button id="edit_dialog-extra-upload_walls" @click="removeSvg">{{ t('common.remove') }}</button>
+                <label for="edit_dialog-extra-upload_walls">
+                    {{ t("game.ui.selection.edit_dialog.extra.remove_walls") }} (svg)
+                </label>
+                <button id="edit_dialog-extra-upload_walls" @click="removeSvg">{{ t("common.remove") }}</button>
             </template>
             <template v-if="hasDDraftInfo">
-                <label for="edit_dialog-extra-upload_walls">{{ t('game.ui.selection.edit_dialog.extra.apply_draft_info') }}</label>
-                <button id="edit_dialog-extra-upload_walls" @click="applyDDraft">{{ t('common.apply') }}</button>
+                <label for="edit_dialog-extra-upload_walls">
+                    {{ t("game.ui.selection.edit_dialog.extra.apply_draft_info") }}
+                </label>
+                <button id="edit_dialog-extra-upload_walls" @click="applyDDraft">{{ t("common.apply") }}</button>
             </template>
         </template>
     </div>

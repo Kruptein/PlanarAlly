@@ -19,11 +19,11 @@ class ApiAsset(TypeIdModel):
     # The name of the asset can be shown differently depending on sharing state
     name: str
     owner: str
-    fileHash: str | None
+    fileHash: str | None = Field(..., noneAsNull=True)
     # If specified, this provides the list of children for this asset
     # This should only be provided for folders (i.e. assets without a fileHash)
     # And is only provided in specific calls
-    children: list["ApiAsset"] | None
+    children: list["ApiAsset"] | None = Field(..., noneAsNull=True)
     shares: list[ApiAssetShare]  # Info on users that this specific asset is shared with
 
 

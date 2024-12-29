@@ -44,31 +44,31 @@ const canShare = computed(() => {
     return data.owner === username || data.shares.some((s) => s.user === username && s.right === "edit");
 });
 
-function rename(): void {
-    if (multiSelect.value) return;
+function rename(): boolean {
+    if (multiSelect.value) return true;
     const asset = assetState.raw.idMap.get(assetState.raw.selected[0]!);
     if (asset === undefined) {
         console.error("Attempt to rename unknown file");
-        return close();
+        return true;
     }
 
     emit("rename", asset.id);
 
-    close();
+    return true;
 }
 
-function share(): void {
+function share(): boolean {
     showAssetShare.value = true;
-    close();
+    return true;
 }
 
-async function remove(): Promise<void> {
-    if (assetState.raw.selected.length === 0) return;
+async function remove(): Promise<boolean> {
+    if (assetState.raw.selected.length === 0) return false;
     const result = await modals.confirm(t("assetManager.AssetContextMenu.ask_remove"));
     if (result === true) {
         assetSystem.removeSelection();
     }
-    close();
+    return true;
 }
 
 const sections = computed<Section[]>(() => [

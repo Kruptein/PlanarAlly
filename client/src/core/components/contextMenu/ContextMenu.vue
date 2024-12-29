@@ -53,7 +53,7 @@ const visibleSections = computed(() => props.sections.filter((section) => isVisi
         @contextmenu.stop.prevent
     >
         <ul>
-            <ContextMenuSection :sections="visibleSections" />
+            <ContextMenuSection :sections="visibleSections" @cm:close="$emit('cm:close')" />
         </ul>
     </div>
 </template>

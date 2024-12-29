@@ -31,8 +31,12 @@ function getCurrentPath(path?: string): string {
 }
 
 async function loadFolder(path: string): Promise<void> {
-    if (!socket.connected) socket.connect();
-    await assetSystem.loadFolder(path);
+    if (socket.connected) {
+        await assetSystem.loadFolder(path);
+    } else {
+        socket.connect();
+        socket.once("connect", () => assetSystem.loadFolder(path));
+    }
 }
 
 onMounted(async () => {

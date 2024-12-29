@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { assetSystem } from "../../../assets";
 import type { AssetId } from "../../../assets/models";
 import { useAssetSearch } from "../../../assets/search";
+import { socket } from "../../../assets/socket";
 import { assetState } from "../../../assets/state";
 import AssetListCore from "../../../assets/ui/AssetListCore.vue";
 import AssetUploadProgress from "../../../assets/ui/AssetUploadProgress.vue";
@@ -18,6 +19,19 @@ const assetsDialogFooter = ref<HTMLDivElement | null>(null);
 
 const searchBar = ref<HTMLInputElement | null>(null);
 const search = useAssetSearch(searchBar);
+
+async function load(): Promise<void> {
+    await assetSystem.loadFolder(assetState.currentFolder.value);
+}
+
+onMounted(async () => {
+    if (socket.connected) {
+        await load();
+    } else {
+        socket.connect();
+        socket.once("connect", load);
+    }
+});
 
 const shortcuts = computed(() => {
     const root = {

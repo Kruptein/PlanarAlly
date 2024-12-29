@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from "vue";
+import { computed, nextTick, ref } from "vue";
 import type { DeepReadonly } from "vue";
 
 import { assetSystem } from "..";
@@ -9,7 +9,6 @@ import { baseAdjust } from "../../core/http";
 import { ctrlOrCmdPressed } from "../../core/utils";
 import { coreStore } from "../../store/core";
 import type { AssetId } from "../models";
-import { socket } from "../socket";
 import { assetState } from "../state";
 import { getImageSrcFromAssetId } from "../utils";
 
@@ -50,19 +49,6 @@ const files = computed(() => {
         return props.searchResults.filter((r) => r.fileHash !== null);
     }
     return assetState.reactive.files.map((f) => assetState.reactive.idMap.get(f)!);
-});
-
-async function load(): Promise<void> {
-    await assetSystem.loadFolder(assetState.currentFolder.value);
-}
-
-onMounted(async () => {
-    if (socket.connected) {
-        await load();
-    } else {
-        socket.connect();
-        socket.once("connect", load);
-    }
 });
 
 function dragStart(event: DragEvent, file: AssetId, assetHash: string | null): void {

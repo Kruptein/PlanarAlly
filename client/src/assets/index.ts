@@ -1,6 +1,8 @@
 import { useToast } from "vue-toastification";
 
 import type { ApiAsset, ApiAssetUpload } from "../apiTypes";
+import { registerSystem, type System } from "../core/systems";
+import type { SystemClearReason } from "../core/systems/models";
 import { callbackProvider, uuidv4 } from "../core/utils";
 import { router } from "../router";
 
@@ -15,12 +17,21 @@ const toast = useToast();
 
 const { raw, mutableReactive: $ } = assetState;
 
-class AssetSystem {
+class AssetSystem implements System {
     rootCallback = callbackProvider();
 
-    clear(): void {
+    clearLocal(): void {
         $.folders = [];
         $.files = [];
+        $.loadingFolder = false;
+    }
+
+    clear(reason: SystemClearReason): void {
+        if (reason === "logging-out") {
+            this.clearLocal();
+            $.idMap.clear();
+            $.folderPath = [];
+        }
     }
 
     clearFolderPath(): void {
@@ -82,7 +93,7 @@ class AssetSystem {
         if (folder === undefined) return;
 
         const data = typeof folder === "string" ? await getFolderByPath(folder) : await getFolder(folder);
-        this.clear();
+        this.clearLocal();
         this.setFolderData(data.folder.id, data.folder);
         if (data.path) assetSystem.setPath(data.path);
         assetState.mutableReactive.sharedParent = data.sharedParent;
@@ -270,3 +281,4 @@ class AssetSystem {
 export const assetSystem = new AssetSystem();
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).assetSystem = assetSystem;
+registerSystem("asset", assetSystem, false, assetState);

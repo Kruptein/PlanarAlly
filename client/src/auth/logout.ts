@@ -1,6 +1,8 @@
 import { defineComponent } from "vue";
 
+import { socket } from "../assets/socket";
 import { http } from "../core/http";
+import { clearSystems } from "../core/systems";
 import { coreStore } from "../store/core";
 
 export const Logout = defineComponent({
@@ -10,6 +12,8 @@ export const Logout = defineComponent({
         await http.postJson("/api/logout");
         coreStore.setAuthenticated(false);
         coreStore.setUsername("");
+        clearSystems("logging-out");
+        socket.disconnect();
         next({ path: "/auth/login" });
     },
 });

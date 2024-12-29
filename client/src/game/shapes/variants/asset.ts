@@ -1,5 +1,5 @@
 import type { ApiAssetRectShape } from "../../../apiTypes";
-import { getImageSrcFromHash } from "../../../assetManager/utils";
+import { getImageSrcFromHash } from "../../../assets/utils";
 import { g2l, g2lz } from "../../../core/conversions";
 import { toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";

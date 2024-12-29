@@ -14,6 +14,8 @@ interface ReactiveAssetState {
     // We track names here, as the full breadcrumb Asset info might not be known in idMap
     folderPath: { id: AssetId; name: string }[];
 
+    loadingFolder: boolean;
+
     sharedParent: ApiAsset | null;
     sharedRight: "edit" | "view" | null;
 
@@ -34,6 +36,8 @@ const state = buildState<ReactiveAssetState, NonReactiveAssetState>(
         idMap: new Map(),
         selected: [],
         folderPath: [],
+
+        loadingFolder: false,
 
         sharedParent: null,
         sharedRight: null,

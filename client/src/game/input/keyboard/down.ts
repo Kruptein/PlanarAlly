@@ -11,6 +11,7 @@ import { redoOperation, undoOperation } from "../../operations/undo";
 import { setCenterPosition } from "../../position";
 import { copyShapes, pasteShapes } from "../../shapes/utils";
 import { accessSystem } from "../../systems/access";
+import { toggleAssetManager } from "../../systems/assets/ui";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { gameState } from "../../systems/game/state";
@@ -28,6 +29,8 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         // Ctrl-a with a HTMLInputElement or a HTMLTextAreaElement selected - select all the text
         if (event.key === "a" && ctrlOrCmdPressed(event)) event.target.select();
+    } else if (event.target instanceof HTMLElement && event.target.contentEditable === "true") {
+        // no-op - we're editing a contentEditable element
     } else {
         const navKeys = [
             "ArrowLeft",
@@ -201,6 +204,9 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
         } else if (event.key === "n") {
             event.preventDefault();
             toggleNoteManager();
+        } else if (event.key === "a") {
+            event.preventDefault();
+            toggleAssetManager();
         }
     }
 }

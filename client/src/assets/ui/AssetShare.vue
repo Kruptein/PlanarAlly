@@ -2,12 +2,11 @@
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import Modal from "../core/components/modals/Modal.vue";
-
-import { sendCreateShare, sendEditShareRight, sendRemoveShare } from "./emits";
-import type { AssetId } from "./models";
-import { socket } from "./socket";
-import { assetState } from "./state";
+import Modal from "../../core/components/modals/Modal.vue";
+import { sendCreateShare, sendEditShareRight, sendRemoveShare } from "../emits";
+import type { AssetId } from "../models";
+import { socket } from "../socket";
+import { assetState } from "../state";
 
 const props = defineProps<{ visible: boolean; asset: AssetId | undefined }>();
 const emit = defineEmits<(e: "close") => void>();

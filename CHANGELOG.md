@@ -21,6 +21,11 @@ tech changes will usually be stripped from release notes for the public
     -   Notes can now be popped out to a separate window
 -   NoteManager:
     -   Added a button to clear the current search
+-   In-Game Assets UI:
+    -   Option to search through assets
+    -   Option to add folder shortcuts per campaign
+        -   These allow quicker navigation to frequently used folders
+        -   A "All assets" shortcut is always available
 -   [server] Assets:
     -   limits:
         -   Added limits to the total size of assets a user can upload and the size of a single asset
@@ -44,6 +49,11 @@ tech changes will usually be stripped from release notes for the public
     -   The images shown in the asset manager will now use the thumbnail of the asset if available
         -   This should reduce load times and improve general performance
         -   This also applies to the preview when hovering over assets in the in-game assets sidebar
+    -   Remove initiated from the context menu now removes the entire selection
+    -   Context menu retains selection unless an item not in the current selection is clicked
+-   In-game assets:
+    -   Sidebar is removed and replaced with a new Assets dialog similar to notes
+    -   The new UI has almost full compatibility with the assets in the dashboard
 -   Notes:
     -   Add filtering option 'All' to note manager to show both global and local notes
     -   Note popouts for clients without edit access now show 'view source' instead of 'edit'

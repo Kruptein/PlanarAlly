@@ -1,10 +1,12 @@
 import { useToast } from "vue-toastification";
 
 import type { ApiAsset, ApiAssetUpload } from "../apiTypes";
+import { registerSystem, type System } from "../core/systems";
+import type { SystemClearReason } from "../core/systems/models";
 import { callbackProvider, uuidv4 } from "../core/utils";
 import { router } from "../router";
 
-import { sendAssetRemove, sendAssetRename, sendFolderGet, sendInodeMove } from "./emits";
+import { sendAssetRemove, sendAssetRename, getFolder, sendInodeMove, getFolderPath, getFolderByPath } from "./emits";
 import type { AssetId } from "./models";
 import { socket } from "./socket";
 import { assetState } from "./state";
@@ -15,12 +17,21 @@ const toast = useToast();
 
 const { raw, mutableReactive: $ } = assetState;
 
-class AssetSystem {
+class AssetSystem implements System {
     rootCallback = callbackProvider();
 
-    clear(): void {
+    clearLocal(): void {
         $.folders = [];
         $.files = [];
+        $.loadingFolder = false;
+    }
+
+    clear(reason: SystemClearReason): void {
+        if (reason === "logging-out") {
+            this.clearLocal();
+            $.idMap.clear();
+            $.folderPath = [];
+        }
     }
 
     clearFolderPath(): void {
@@ -55,7 +66,8 @@ class AssetSystem {
         sendInodeMove({ inode, target: targetFolder });
     }
 
-    changeDirectory(targetFolder: AssetId | "POP"): void {
+    async changeDirectory(targetFolder: AssetId | "POP"): Promise<void> {
+        $.loadingFolder = true;
         if (targetFolder === "POP") {
             $.folderPath.pop();
         } else if (targetFolder === raw.root) {
@@ -64,10 +76,28 @@ class AssetSystem {
             while (assetState.currentFolder.value !== targetFolder) $.folderPath.pop();
         } else {
             const asset = raw.idMap.get(targetFolder);
-            if (asset !== undefined) $.folderPath.push({ id: targetFolder, name: asset.name });
+            if (asset !== undefined) {
+                if (raw.root && ($.idMap.get(raw.root)?.children?.some((c) => c.id === targetFolder) ?? false)) {
+                    $.folderPath = [{ id: targetFolder, name: asset.name }];
+                } else {
+                    const path = await getFolderPath(targetFolder);
+                    $.folderPath = path.slice(1);
+                }
+            }
         }
         this.clearSelected();
-        sendFolderGet(assetState.currentFolder.value);
+        await this.loadFolder(assetState.currentFolder.value);
+    }
+
+    async loadFolder(folder: AssetId | string | undefined): Promise<void> {
+        if (folder === undefined) return;
+
+        const data = typeof folder === "string" ? await getFolderByPath(folder) : await getFolder(folder);
+        this.clearLocal();
+        this.setFolderData(data.folder.id, data.folder);
+        if (data.path) assetSystem.setPath(data.path);
+        assetState.mutableReactive.sharedParent = data.sharedParent;
+        assetState.mutableReactive.sharedRight = data.sharedRight;
     }
 
     setFolderData(folder: AssetId, data: ApiAsset): void {
@@ -78,6 +108,7 @@ class AssetSystem {
                 this.addAsset(child);
             }
         }
+        $.loadingFolder = false;
     }
 
     // SELECTED
@@ -161,19 +192,29 @@ class AssetSystem {
             await assetSystem.rootCallback.wait();
         }
 
-        const limit = await socket.emitWithAck("Asset.Upload.Limit") as { single: number; total: number; used: number };
+        const limit = (await socket.emitWithAck("Asset.Upload.Limit")) as {
+            single: number;
+            total: number;
+            used: number;
+        };
 
         // First check limits
         let totalSize = 0;
         for (const file of fls) {
             totalSize += file.size;
             if (limit.single > 0 && file.size > limit.single) {
-                toast.error(`File ${file.name} is too large. Max size is ${limit.single} bytes. Contact the server admin if you need to upload larger files.`, { timeout: 0 });
+                toast.error(
+                    `File ${file.name} is too large. Max size is ${limit.single} bytes. Contact the server admin if you need to upload larger files.`,
+                    { timeout: 0 },
+                );
                 return [];
             }
             if (limit.total > 0 && totalSize > limit.total - limit.used) {
                 const remaining = Math.max(0, limit.total - limit.used);
-                toast.error(`Total size of files is too large. You have ${remaining} bytes remaining and attempted to upload ${totalSize} bytes. Contact the server admin if you need to upload larger files.`, { timeout: 0 });
+                toast.error(
+                    `Total size of files is too large. You have ${remaining} bytes remaining and attempted to upload ${totalSize} bytes. Contact the server admin if you need to upload larger files.`,
+                    { timeout: 0 },
+                );
                 return [];
             }
         }
@@ -240,3 +281,4 @@ class AssetSystem {
 export const assetSystem = new AssetSystem();
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).assetSystem = assetSystem;
+registerSystem("asset", assetSystem, false, assetState);

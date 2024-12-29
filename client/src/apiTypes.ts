@@ -1,4 +1,4 @@
-import type { AssetId } from "./assetManager/models";
+import type { AssetId } from "./assets/models";
 import type { GlobalId } from "./core/id";
 import type { LayerName } from "./game/models/floor";
 import type { Role } from "./game/models/role";
@@ -23,8 +23,8 @@ export interface ApiAsset {
   id: AssetId;
   name: string;
   owner: string;
-  fileHash?: string;
-  children?: ApiAsset[];
+  fileHash: string | null;
+  children: ApiAsset[] | null;
   shares: ApiAssetShare[];
 }
 export interface ApiAssetShare {

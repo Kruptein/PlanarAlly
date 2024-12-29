@@ -1,4 +1,6 @@
 #  Has to appear before Asset due to DeferredForeignKey
+from .models.asset_shortcut import AssetShortcut
+
 from .models.asset_share import AssetShare  # isort: skip
 from .models.asset import Asset
 from .models.asset_rect import AssetRect
@@ -43,6 +45,7 @@ ALL_MODELS = [
     AssetRect,
     Asset,
     AssetShare,
+    AssetShortcut,
     Aura,
     BaseRect,
     Character,

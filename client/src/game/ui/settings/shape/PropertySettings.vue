@@ -2,11 +2,11 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { getImageSrcFromHash } from "../../../../assetManager/utils";
+import { assetState } from "../../../../assets/state";
+import { getImageSrcFromHash } from "../../../../assets/utils";
 import ColourPicker from "../../../../core/components/ColourPicker.vue";
 import ToggleGroup from "../../../../core/components/ToggleGroup.vue";
 import { NO_SYNC, SERVER_SYNC, SyncMode } from "../../../../core/models/types";
-import { useModal } from "../../../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { getColour } from "../../../colour";
 import { getShape } from "../../../id";
@@ -14,13 +14,13 @@ import type { IText } from "../../../interfaces/shapes/text";
 import type { Asset } from "../../../shapes/variants/asset";
 import type { CircularToken } from "../../../shapes/variants/circularToken";
 import { accessState } from "../../../systems/access/state";
+import { pickAsset } from "../../../systems/assets/ui";
 import { propertiesSystem } from "../../../systems/properties";
 import { useShapeProps } from "../../../systems/properties/composables";
 import { VisionBlock, visionBlocks } from "../../../systems/properties/types";
 import { selectedState } from "../../../systems/selected/state";
 
 const { t } = useI18n();
-const modals = useModal();
 const shapeProps = useShapeProps();
 
 const owned = accessState.hasEditAccess;
@@ -118,11 +118,17 @@ function setValue(event: Event): void {
 async function changeAsset(): Promise<void> {
     if (!owned.value) return;
     if (activeShapeStore.state.id === undefined) return;
-    const data = await modals.assetPicker();
-    if (data === undefined || data.fileHash === undefined) return;
+
     const shape = getShape(activeShapeStore.state.id);
     if (shape === undefined || shape.type !== "assetrect") return;
-    (shape as Asset).setImage(getImageSrcFromHash(data.fileHash, { addBaseUrl: false }), true);
+
+    const assetId = await pickAsset();
+    if (assetId === null) return;
+
+    const assetInfo = assetState.raw.idMap.get(assetId);
+    if (assetInfo === undefined || assetInfo.fileHash === null) return;
+
+    (shape as Asset).setImage(getImageSrcFromHash(assetInfo.fileHash, { addBaseUrl: false }), true);
 }
 </script>
 
@@ -224,7 +230,7 @@ async function changeAsset(): Promise<void> {
         </div>
         <div v-if="isAsset" class="row">
             <label></label>
-            <button @click="changeAsset">Change asset</button>
+            <button @click.stop="changeAsset">Change asset</button>
         </div>
         <div class="spanrow header">{{ t("game.ui.selection.edit_dialog.properties.advanced") }}</div>
         <div class="row">

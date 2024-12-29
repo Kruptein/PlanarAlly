@@ -1,7 +1,15 @@
 <script setup lang="ts">
 import type { Section } from "./types";
 
+const emit = defineEmits<(e: "cm:close") => void>();
 defineProps<{ sections: Section[]; addDivider?: boolean }>();
+
+async function doAction(action: () => boolean | Promise<boolean>): Promise<void> {
+    const result = await action();
+    if (result) {
+        emit("cm:close");
+    }
+}
 </script>
 
 <template>
@@ -19,7 +27,7 @@ defineProps<{ sections: Section[]; addDivider?: boolean }>();
             </li>
         </template>
         <template v-else>
-            <li :class="{ selected: section.selected }" @click="section.action()">
+            <li :class="{ selected: section.selected }" @click="doAction(section.action)">
                 <span>{{ section.title }}</span>
             </li>
         </template>

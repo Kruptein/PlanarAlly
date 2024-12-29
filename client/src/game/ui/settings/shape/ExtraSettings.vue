@@ -3,11 +3,11 @@ import tinycolor from "tinycolor2";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { assetState } from "../../../../assets/state";
 import { l2gz } from "../../../../core/conversions";
 import { toGP } from "../../../../core/geometry";
 import { DEFAULT_GRID_SIZE } from "../../../../core/grid";
 import { InvalidationMode, NO_SYNC, SERVER_SYNC, SyncMode, UI_SYNC } from "../../../../core/models/types";
-import { useModal } from "../../../../core/plugins/modals/plugin";
 import { uuidv4 } from "../../../../core/utils";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { getShape } from "../../../id";
@@ -17,6 +17,7 @@ import { LayerName } from "../../../models/floor";
 import { Circle } from "../../../shapes/variants/circle";
 import { Polygon } from "../../../shapes/variants/polygon";
 import { accessSystem } from "../../../systems/access";
+import { pickAsset } from "../../../systems/assets/ui";
 import { auraSystem } from "../../../systems/auras";
 import type { Aura, AuraId } from "../../../systems/auras/models";
 import { floorSystem } from "../../../systems/floors";
@@ -29,8 +30,6 @@ import { locationSettingsState } from "../../../systems/settings/location/state"
 import { visionState } from "../../../vision/state";
 
 const { t } = useI18n();
-
-const modals = useModal();
 
 // SVG / DDRAFT
 
@@ -46,15 +45,18 @@ const hasPath = computed(() => {
 const showSvgSection = computed(() => gameState.reactive.isDm && activeShapeStore.state.type === "assetrect");
 
 async function uploadSvg(): Promise<void> {
-    const asset = await modals.assetPicker();
-    if (asset === undefined || asset.fileHash === undefined) return;
+    const assetId = await pickAsset();
+    if (assetId === null) return;
+
+    const assetInfo = assetState.raw.idMap.get(assetId);
+    if (assetInfo === undefined || assetInfo.fileHash === null) return;
 
     const shape = getShape(activeShapeStore.state.id!);
     if (shape === undefined) return;
     if (shape.options === undefined) {
         shape.options = {};
     }
-    await activeShapeStore.setSvgAsset(asset.fileHash, SERVER_SYNC);
+    await activeShapeStore.setSvgAsset(assetInfo.fileHash, SERVER_SYNC);
 }
 
 async function removeSvg(): Promise<void> {
@@ -165,18 +167,24 @@ function applyDDraft(): void {
 <template>
     <div class="panel restore-panel">
         <template v-if="showSvgSection">
-            <div class="spanrow header">{{ t('game.ui.selection.edit_dialog.extra.lighting_vision') }}</div>
+            <div class="spanrow header">{{ t("game.ui.selection.edit_dialog.extra.lighting_vision") }}</div>
             <template v-if="!hasPath">
-                <label for="edit_dialog-extra-upload_walls">{{ t('game.ui.selection.edit_dialog.extra.upload_walls') }} (svg)</label>
-                <button id="edit_dialog-extra-upload_walls" @click="uploadSvg">{{ t('common.upload') }}</button>
+                <label for="edit_dialog-extra-upload_walls">
+                    {{ t("game.ui.selection.edit_dialog.extra.upload_walls") }} (svg)
+                </label>
+                <button id="edit_dialog-extra-upload_walls" @click="uploadSvg">{{ t("common.upload") }}</button>
             </template>
             <template v-else>
-                <label for="edit_dialog-extra-upload_walls">{{ t('game.ui.selection.edit_dialog.extra.remove_walls') }} (svg)</label>
-                <button id="edit_dialog-extra-upload_walls" @click="removeSvg">{{ t('common.remove') }}</button>
+                <label for="edit_dialog-extra-upload_walls">
+                    {{ t("game.ui.selection.edit_dialog.extra.remove_walls") }} (svg)
+                </label>
+                <button id="edit_dialog-extra-upload_walls" @click="removeSvg">{{ t("common.remove") }}</button>
             </template>
             <template v-if="hasDDraftInfo">
-                <label for="edit_dialog-extra-upload_walls">{{ t('game.ui.selection.edit_dialog.extra.apply_draft_info') }}</label>
-                <button id="edit_dialog-extra-upload_walls" @click="applyDDraft">{{ t('common.apply') }}</button>
+                <label for="edit_dialog-extra-upload_walls">
+                    {{ t("game.ui.selection.edit_dialog.extra.apply_draft_info") }}
+                </label>
+                <button id="edit_dialog-extra-upload_walls" @click="applyDDraft">{{ t("common.apply") }}</button>
             </template>
         </template>
     </div>

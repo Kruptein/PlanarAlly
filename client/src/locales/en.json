@@ -524,6 +524,53 @@
                     "FP_title": "Toggle fake-player",
                     "INI_title": "Toggle Initiative State"
                 },
+                "DiceTool": {
+                    "rolling": "Rolling...",
+                    "full_history": "Full History",
+                    "full_history_title": "Toggle Full History",
+                    "empty_history": "dice history is empty",
+                    "3D_dice": "3D Dice",
+                    "share": "Share",
+                    "history": "History",
+                    "previous_roll": "Previous Roll",
+                    "details": "Details",
+                    "open_options_title": "Show Additional Options",
+                    "toggle_advanced": "Toggle Advanced Mode",
+                    "toggle_breakdown": "Toggle Breakdown",
+                    "3D_options": {
+                        "off": "Off",
+                        "on": "On",
+                        "box": "Box"
+                    },
+                    "share_options": {
+                        "all": "All",
+                        "dm": "DM",
+                        "none": "None"
+                    },
+                    "breakdown_options": {
+                        "detailed": "Detailed",
+                        "simple": "Simple"
+                    },
+                    "advanced": "Advanced",
+                    "advanced_options": {
+                        "operators": "Operators",
+                        "selectors": "Selectors"
+                    },
+                    "clear_selection_title": "Clear Selection",
+                    "roll": "Roll!",
+                    "reroll_previous_title": "Reroll Previous",
+                    "limit_operator_options": {
+                        "keep": "keep",
+                        "drop": "drop",
+                        "min": "min",
+                        "max": "max"
+                    },
+                    "reroll": "Reroll",
+                    "selection_option_names": {
+                        "highest": "highest",
+                        "lowest": "lowest"
+                    }
+                },
                 "NoteTool": {
                     "header": "Attaching note",
                     "line1": "Select the shape you want to attach the note to.",

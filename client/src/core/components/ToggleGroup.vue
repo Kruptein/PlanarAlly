@@ -84,12 +84,13 @@ function toggle(option: T): void {
         }
     }
 
-    &.disabled > {
-        div:hover {
+    &.disabled {
+        opacity: 0.5;
+        > div:hover {
             cursor: not-allowed;
         }
 
-        :not(.selected):hover {
+        > :not(.selected):hover {
             background-color: inherit;
         }
     }

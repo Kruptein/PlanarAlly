@@ -18,14 +18,14 @@
         "coverage": "vitest run --coverage"
     },
     "dependencies": {
-        "@babylonjs/core": "^7.20.1",
-        "@babylonjs/materials": "^7.20.1",
+        "@babylonjs/core": "^7.43.0",
+        "@babylonjs/materials": "^7.43.0",
         "@fortawesome/fontawesome-svg-core": "^6.6.0",
         "@fortawesome/free-brands-svg-icons": "^6.6.0",
         "@fortawesome/free-regular-svg-icons": "^6.6.0",
         "@fortawesome/free-solid-svg-icons": "^6.6.0",
         "@fortawesome/vue-fontawesome": "^3.0.8",
-        "@planarally/dice": "^0.6.0",
+        "@planarally/dice": "^0.7.0",
         "mathjs": "^13.2.0",
         "path-data-polyfill": "^1.0.6",
         "socket.io-client": "^4.8.0",

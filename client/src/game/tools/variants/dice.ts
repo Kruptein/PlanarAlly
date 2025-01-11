@@ -89,9 +89,13 @@ class DiceTool extends Tool implements ITool {
         if (use3d) {
             const dieDefaults = await generate3dOptions();
             const { diceThrower } = await getDiceEnvironment();
-            roll = await rollString(input, diceState.raw.systems!["3d"], { thrower: diceThrower!, dieDefaults });
+            roll = await rollString(input, diceState.raw.systems!["3d"], {
+                thrower: diceThrower!,
+                dieDefaults,
+                d100Mode: 100 as const,
+            });
         } else {
-            roll = await rollString(input, diceState.raw.systems!["2d"]);
+            roll = await rollString(input, diceState.raw.systems!["2d"], { d100Mode: 100 as const });
         }
 
         if (shareWith !== "none") {

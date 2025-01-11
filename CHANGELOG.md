@@ -64,6 +64,13 @@ tech changes will usually be stripped from release notes for the public
     -   Added a reroll button to history entries
     -   Add an option to roll 3D dice inside a dice box rather than over the playfield
     -   Input field now scrolls to the end after populating via the on screen buttons
+-   @planarally/dice:
+    -   (this is the standalone dice library that handles most of the dice logic and rendering)
+    -   Upgraded to v0.7
+    -   Dice will now stop sliding smoother
+    -   Clear state can be configured
+    -   D100 dice now properly work in 3D for the full range (1-100 / 0-99)
+        -   Currently hardcoded to 1-100 in the client, but the library can be told otherwise
 -   I18n:
     -   Added 95% i18n for zh (except diceTool)
 -   [server] Assets:

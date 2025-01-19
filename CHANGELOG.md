@@ -101,6 +101,8 @@ tech changes will usually be stripped from release notes for the public
     -   Input changes could not persist or save on the wrong shape if selection focus was changed while editing (see selection changes)
 -   Modals
     -   Dragging modals (e.g. notes) now also brings them to the foreground as if clicked
+-   Composites:
+    -   Moving composites to a different location could sometimes lead to errors on the client even though the moves were succesful serverside
 
 ## [2024.3.1] - 2024-11-12
 

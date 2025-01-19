@@ -729,6 +729,7 @@ class SelectTool extends Tool implements ISelectTool {
                         event &&
                         locationSettingsState.raw.useGrid.value &&
                         playerSettingsState.useSnapping(event) &&
+                        !this.snappedToPoint &&
                         this.hasFeature(SelectFeatures.Snapping, features)
                     ) {
                         if (props.blocksVision !== VisionBlock.No)

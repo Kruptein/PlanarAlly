@@ -150,13 +150,9 @@ async def send_remove_shapes(
 def _get_shapes_from_uuids(
     uuids: list[str], filter_layer: bool
 ) -> SelectSequence[Shape]:
-    query = Shape.select().where(
-        (Shape.uuid << uuids)  # type: ignore
-    )
+    query = Shape.select().where((Shape.uuid << uuids))  # type: ignore
     if filter_layer:
-        query = query.where(
-            ~(Shape.layer >> None)  # type: ignore
-        )
+        query = query.where(~(Shape.layer >> None))  # type: ignore
     return query
 
 

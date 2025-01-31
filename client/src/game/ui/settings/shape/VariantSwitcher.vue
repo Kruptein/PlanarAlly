@@ -134,7 +134,7 @@ const variants = toRef(vState, "variants");
             :style="{ opacity: variants.length > 1 ? '1.0' : '0.3' }"
             @click="swapNext"
         />
-        <font-awesome-icon id="add-variant" icon="plus-square" title="Add a variant" @click="addVariant" />
+        <font-awesome-icon id="add-variant" icon="plus-square" title="Add a variant" @click.stop="addVariant" />
         <font-awesome-icon
             icon="pencil-alt"
             title="Edit variant name"

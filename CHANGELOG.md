@@ -105,6 +105,8 @@ tech changes will usually be stripped from release notes for the public
     -   Moving composites to a different location could sometimes lead to errors on the client even though the moves were succesful serverside
 -   Select Tool:
     -   Snapping an existing shape point to some other point could be overriden with a snap to the grid
+-   Game Listing:
+    -   Clicking on a session that shares a name with another session would foldout both
 
 ## [2024.3.1] - 2024-11-12
 

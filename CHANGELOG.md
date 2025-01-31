@@ -10,6 +10,8 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+## [2025.1] - 2025-01-31
+
 ### Added
 
 -   Draw tool:

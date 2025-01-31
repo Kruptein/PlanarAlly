@@ -1,4 +1,3 @@
-import type { StringId } from "../../id";
+import type { StringId } from "../../../core/id";
 
-export type BoardId = StringId<"boardId">;
 export type ClientId = StringId<"clientId">;

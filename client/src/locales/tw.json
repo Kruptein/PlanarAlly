@@ -52,7 +52,6 @@
         "fill_color": "填滿顏色",
         "trackers": "追踪值",
         "auras": "光暈",
-        "labels": "標籤",
         "annotation": "註釋",
         "floor": "樓層",
         "layer": "圖層",
@@ -117,17 +116,6 @@
                 "camera_log_msg": "自動跟踪指示物所在的視角",
                 "reset_round": "重置輪次/回合",
                 "next": "下一個"
-            },
-            "LabelManager": {
-                "category": "分類",
-                "visible": "可見",
-                "delete": "刪除",
-                "delete_label": "刪除標籤",
-                "title": "標籤管理器",
-                "cat_abbr": "分類",
-                "vis_abbr": "視野",
-                "del_abbr": "刪除",
-                "no_exist_msg": "暫無標籤"
             },
             "menu": {
                 "LocationBar": {
@@ -303,9 +291,6 @@
                     "normal": "普通",
                     "reveal": "揭示",
                     "hide": "隱藏"
-                },
-                "FilterTool": {
-                    "no_category": "無分類"
                 },
                 "MapTool": {
                     "drag_to_resize": "拖動出你想要作為縮放基準的區域",

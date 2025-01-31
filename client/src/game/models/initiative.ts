@@ -1,4 +1,4 @@
-import type { GlobalId, LocalId } from "../id";
+import type { GlobalId, LocalId } from "../../core/id";
 
 interface CommonInitiativeData {
     initiative?: number;

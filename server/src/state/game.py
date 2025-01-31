@@ -13,7 +13,6 @@ class GameState(State[PlayerRoom]):
         super().__init__()
         self.client_temporaries: Dict[str, Set[str]] = {}
         self.client_viewports: Dict[str, Viewport] = {}
-        self.client_gameboards: Dict[str, str] = {}
 
     def get_user(self, sid: str) -> User:
         return self._sid_map[sid].player
@@ -22,8 +21,6 @@ class GameState(State[PlayerRoom]):
         await self.clear_temporaries(sid)
         if sid in self.client_viewports:
             del self.client_viewports[sid]
-        if sid in self.client_gameboards:
-            del self.client_gameboards[sid]
         await super().remove_sid(sid)
 
     async def clear_temporaries(self, sid: str) -> None:

@@ -242,6 +242,10 @@ async def add_note_access(sid, raw_data: Any):
     user = None
     if data.name != "default":
         user = User.by_name(data.name)
+    elif note.room is None:
+        logger.warning(f"Note '{uuid}' is global but tried to add default access")
+        return
+
     NoteAccess.create(
         note=note, user=user, can_edit=data.can_edit, can_view=data.can_view
     )

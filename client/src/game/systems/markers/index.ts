@@ -1,7 +1,7 @@
-import { registerSystem } from "..";
-import type { System } from "..";
+import type { LocalId } from "../../../core/id";
+import { registerSystem } from "../../../core/systems";
+import type { System } from "../../../core/systems";
 import { getGlobalId, getShape } from "../../id";
-import type { LocalId } from "../../id";
 import { setCenterPosition } from "../../position";
 import { floorSystem } from "../floors";
 

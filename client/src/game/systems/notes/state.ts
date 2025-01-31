@@ -1,6 +1,6 @@
 import { BiArrMap } from "../../../core/biArrMap";
-import type { LocalId } from "../../id";
-import { buildState } from "../state";
+import type { LocalId } from "../../../core/id";
+import { buildState } from "../../../core/systems/state";
 
 import { type ClientNote, NoteManagerMode } from "./types";
 

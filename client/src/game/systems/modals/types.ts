@@ -1,6 +1,6 @@
 import type { Component, ComputedRef } from "vue";
 
-import type { NumberId } from "../../id";
+import type { NumberId } from "../../../core/id";
 
 export interface FullModal {
     component: Component;

@@ -1,4 +1,6 @@
 #  Has to appear before Asset due to DeferredForeignKey
+from .models.asset_shortcut import AssetShortcut
+
 from .models.asset_share import AssetShare  # isort: skip
 from .models.asset import Asset
 from .models.asset_rect import AssetRect
@@ -12,8 +14,6 @@ from .models.constants import Constants
 from .models.floor import Floor
 from .models.group import Group
 from .models.initiative import Initiative
-from .models.label import Label
-from .models.label_selection import LabelSelection
 from .models.layer import Layer
 from .models.line import Line
 from .models.location import Location
@@ -31,7 +31,6 @@ from .models.room import Room
 from .models.room_data_block import RoomDataBlock
 from .models.shape import Shape
 from .models.shape_data_block import ShapeDataBlock
-from .models.shape_label import ShapeLabel
 from .models.shape_owner import ShapeOwner
 from .models.shape_type import ShapeType
 from .models.text import Text
@@ -46,6 +45,7 @@ ALL_MODELS = [
     AssetRect,
     Asset,
     AssetShare,
+    AssetShortcut,
     Aura,
     BaseRect,
     Character,
@@ -56,8 +56,6 @@ ALL_MODELS = [
     Floor,
     Group,
     Initiative,
-    LabelSelection,
-    Label,
     Layer,
     Line,
     LocationOptions,
@@ -74,7 +72,6 @@ ALL_MODELS = [
     Room,
     RoomDataBlock,
     ShapeDataBlock,
-    ShapeLabel,
     ShapeOwner,
     ShapeType,
     Shape,

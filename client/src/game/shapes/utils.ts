@@ -7,11 +7,11 @@ import type {
     ApiTracker,
 } from "../../apiTypes";
 import { subtractP, Vector } from "../../core/geometry";
+import type { GlobalId } from "../../core/id";
 import { SyncMode, InvalidationMode } from "../../core/models/types";
 import { uuidv4 } from "../../core/utils";
 import { sendRemoveShapes } from "../api/emits/shape/core";
 import { getGlobalId, getLocalId } from "../id";
-import type { GlobalId } from "../id";
 import type { IShape } from "../interfaces/shape";
 import type { LayerName } from "../models/floor";
 import { addOperation } from "../operations/undo";
@@ -69,7 +69,6 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
     for (const clip of clipboardState.mutableReactive.clipboard) {
         const newShape: ApiShape = Object.assign({}, clip, {
             auras: [],
-            labels: [],
             owners: [],
             trackers: [],
         });

@@ -1,5 +1,5 @@
+import type { LocalId } from "../../../core/id";
 import type { Sync } from "../../../core/models/types";
-import type { LocalId } from "../../id";
 import type { IShape } from "../shape";
 
 export interface IToggleComposite extends IShape {

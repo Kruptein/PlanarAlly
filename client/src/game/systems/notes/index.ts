@@ -1,12 +1,13 @@
 import type { DeepReadonly } from "vue";
 
-import { registerSystem } from "..";
-import type { ShapeSystem } from "..";
 import type { ApiNote } from "../../../apiTypes";
 import { Vector, addP, toGP } from "../../../core/geometry";
+import type { LocalId } from "../../../core/id";
 import { filter } from "../../../core/iter";
+import type { ShapeSystem } from "../../../core/systems";
+import { registerSystem } from "../../../core/systems";
 import { word2color } from "../../../core/utils";
-import { getGlobalId, getLocalId, getShape, type LocalId } from "../../id";
+import { getGlobalId, getLocalId, getShape } from "../../id";
 import type { IAsset } from "../../interfaces/shapes/asset";
 import { FontAwesomeIcon } from "../../shapes/variants/fontAwesomeIcon";
 
@@ -26,7 +27,7 @@ import {
     sendSetNoteTitle,
 } from "./emits";
 import { noteState } from "./state";
-import type { ClientNote } from "./types";
+import { NoteManagerMode, type ClientNote } from "./types";
 import { closeNoteManager } from "./ui";
 
 const { mutableReactive: $, raw, readonly, mutable } = noteState;
@@ -54,6 +55,7 @@ class NoteSystem implements ShapeSystem {
         $.notes.clear();
         $.shapeNotes.clear();
         $.currentNote = undefined;
+        $.managerMode = NoteManagerMode.List;
     }
 
     async newNote(apiNote: ApiNote, sync: boolean): Promise<void> {

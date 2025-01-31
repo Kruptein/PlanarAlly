@@ -3,12 +3,12 @@ import { computed, ref, watch } from "vue";
 import type { DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
 
+import type { GlobalId } from "../../../../core/id";
 import { SERVER_SYNC } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { locationStore } from "../../../../store/location";
 import { requestSpawnInfo } from "../../../api/emits/location";
-import type { GlobalId } from "../../../id";
 import { doorSystem } from "../../../systems/logic/door";
 import { DOOR_TOGGLE_MODES } from "../../../systems/logic/door/models";
 import type { DOOR_TOGGLE_MODE } from "../../../systems/logic/door/models";
@@ -149,8 +149,8 @@ async function chooseTarget(): Promise<void> {
                 @update:permissions="setPermissions"
             />
         </teleport>
-        <div class="spanrow header">Door</div>
-        <label for="logic-dialog-door-toggle">Enabled</label>
+        <div class="spanrow header">{{ t("game.ui.selection.edit_dialog.logic.door") }}</div>
+        <label for="logic-dialog-door-toggle">{{ t("common.enabled") }}</label>
         <input
             id="logic-dialog-door-toggle"
             type="checkbox"
@@ -158,7 +158,7 @@ async function chooseTarget(): Promise<void> {
             :checked="doorLogicState.reactive.enabled"
             @click="toggleDoor"
         />
-        <label for="logic-dialog-door-toggles">Toggle</label>
+        <label for="logic-dialog-door-toggles">{{ t("common.toggle") }}</label>
         <div class="selection-box">
             <template v-for="mode of DOOR_TOGGLE_MODES" :key="mode">
                 <div
@@ -166,16 +166,16 @@ async function chooseTarget(): Promise<void> {
                     style="text-transform: capitalize"
                     @click="setToggleMode(mode)"
                 >
-                    {{ mode }}
+                    {{ t(`common.${mode}`) }}
                 </div>
             </template>
         </div>
-        <label for="logic-dialog-door-config">Permissions</label>
+        <label for="logic-dialog-door-config">{{ t("common.permission") }}</label>
         <button id="logic-dialog-door-config" class="center" @click="openPermissions('door')">
             <font-awesome-icon icon="cog" />
         </button>
-        <div class="spanrow header">Teleport Zone</div>
-        <label for="logic-dialog-tp-toggle">Enabled</label>
+        <div class="spanrow header">{{ t("game.ui.selection.edit_dialog.logic.teleport_zone") }}</div>
+        <label for="logic-dialog-tp-toggle">{{ t("common.enabled") }}</label>
         <input
             id="logic-dialog-tp-toggle"
             type="checkbox"
@@ -183,15 +183,15 @@ async function chooseTarget(): Promise<void> {
             :checked="teleportZoneSystem.state.enabled"
             @click="toggleTeleportZone"
         />
-        <label for="logic-dialog-tp-config">Permissions</label>
+        <label for="logic-dialog-tp-config">{{ t("common.permission") }}</label>
         <button id="logic-dialog-tp-config" class="center" @click="openPermissions('tp')">
             <font-awesome-icon icon="cog" />
         </button>
-        <label for="logic-dialog-tp-target">Target</label>
+        <label for="logic-dialog-tp-target">{{ t("game.ui.selection.edit_dialog.logic.target") }}</label>
         <button id="logic-dialog-tp-target" class="center" @click="chooseTarget">
             <font-awesome-icon icon="cog" />
         </button>
-        <label for="logic-dialog-tp-toggle">Immediate mode</label>
+        <label for="logic-dialog-tp-toggle">{{ t("game.ui.selection.edit_dialog.logic.immediate_mode") }}</label>
         <input
             id="logic-dialog-tp-toggle"
             type="checkbox"

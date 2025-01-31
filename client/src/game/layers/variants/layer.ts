@@ -3,6 +3,7 @@ import { toRaw } from "vue";
 import type { ApiShape } from "../../../apiTypes";
 import { g2l, l2g, l2gz } from "../../../core/conversions";
 import { Ray, cloneP, toLP } from "../../../core/geometry";
+import type { LocalId } from "../../../core/id";
 import { filter } from "../../../core/iter";
 import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
 import { callbackProvider } from "../../../core/utils";
@@ -10,7 +11,6 @@ import { debugLayers } from "../../../localStorageHelpers";
 import { activeShapeStore } from "../../../store/activeShape";
 import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../../api/emits/shape/core";
 import { dropId, getGlobalId, getShape } from "../../id";
-import type { LocalId } from "../../id";
 import type { ILayer } from "../../interfaces/layer";
 import type { IShape } from "../../interfaces/shape";
 import { LayerName } from "../../models/floor";
@@ -27,7 +27,6 @@ import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { gameState } from "../../systems/game/state";
 import { groupSystem } from "../../systems/groups";
-import { labelSystem } from "../../systems/labels";
 import { markerSystem } from "../../systems/markers";
 import { positionSystem } from "../../systems/position";
 import { propertiesSystem } from "../../systems/properties";
@@ -427,7 +426,6 @@ export class Layer implements ILayer {
                     if (shape.options.skipDraw ?? false) continue;
                     const props = getProperties(shape.id)!;
                     if (props.isInvisible && !accessSystem.hasAccessTo(shape.id, true, { vision: true })) continue;
-                    if (labelSystem.isFiltered(shape.id)) continue;
 
                     shape.draw(ctx, false);
                 }

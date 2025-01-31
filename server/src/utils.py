@@ -26,6 +26,10 @@ def set_assets_dir(assets_dir: Path):
         ASSETS_DIR.mkdir()
 
 
+def get_asset_hash_subpath(file_hash: str) -> Path:
+    return Path(file_hash[:2]) / Path(file_hash[2:4]) / Path(file_hash)
+
+
 SRC_DIR = get_src_dir()
 FILE_DIR = SRC_DIR.parent
 STATIC_DIR = FILE_DIR / "static"

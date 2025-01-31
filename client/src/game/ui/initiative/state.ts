@@ -1,4 +1,5 @@
 import type { ApiInitiative } from "../../../apiTypes";
+import type { GlobalId, LocalId } from "../../../core/id";
 import { Store } from "../../../core/store";
 import { i18n } from "../../../i18n";
 import {
@@ -18,7 +19,6 @@ import {
     sendInitiativeActive,
 } from "../../api/emits/initiative";
 import { getGlobalId, getLocalId, getShape } from "../../id";
-import type { GlobalId, LocalId } from "../../id";
 import { InitiativeSort } from "../../models/initiative";
 import type { InitiativeData, InitiativeEffect } from "../../models/initiative";
 import { setCenterPosition } from "../../position";

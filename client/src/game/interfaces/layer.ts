@@ -1,6 +1,6 @@
 import type { ApiShape } from "../../apiTypes";
+import type { LocalId } from "../../core/id";
 import type { InvalidationMode, SyncMode } from "../../core/models/types";
-import type { LocalId } from "../id";
 import type { FloorId, LayerName } from "../models/floor";
 import type { BoundingRect } from "../shapes/variants/simple/boundingRect";
 

@@ -6,6 +6,7 @@ import tarfile
 import uuid
 from functools import partial
 from io import BytesIO
+from pathlib import Path
 from time import time
 from typing import Dict, List, Literal, Optional, Union, cast
 
@@ -56,7 +57,7 @@ from ..db.typed import SelectSequence
 from ..logs import logger
 from ..save import SAVE_VERSION, upgrade_save
 from ..state.dashboard import dashboard_state
-from ..utils import ASSETS_DIR, TEMP_DIR
+from ..utils import ASSETS_DIR, TEMP_DIR, get_asset_hash_subpath
 
 
 async def export_campaign(
@@ -254,14 +255,15 @@ class CampaignExporter:
             tar.addfile(sqlite_info, open(self.sqlite_path, "rb"))
             tar.addfile(assets_dir_info)
 
-            for asset_id in self.migrator.__asset_mapping.keys():
+            for asset_id in self.migrator._asset_mapping.keys():
                 asset: Asset = Asset[asset_id]
                 if not asset.file_hash:
                     continue
                 try:
-                    file_path = ASSETS_DIR / asset.file_hash
+                    full_hash_name = get_asset_hash_subpath(asset.file_hash)
+                    file_path = ASSETS_DIR / full_hash_name
                     info = tar.gettarinfo(str(file_path))
-                    info.name = f"assets/{asset.file_hash}"
+                    info.name = str(Path("assets") / full_hash_name)
                     info.mtime = time()  # type: ignore
                     info.mode = 0o755
                     tar.addfile(info, open(file_path, "rb"))  # type: ignore
@@ -373,7 +375,7 @@ class CampaignImporter:
                     continue
 
                 if member.name.startswith("assets/"):
-                    filehash = member.name[len("assets/") :]
+                    filehash = member.name.split("/")[-1]
 
                     # check if hash is a valid hexstring
                     try:
@@ -383,7 +385,12 @@ class CampaignImporter:
                     if len(filehash) % 2 != 0:
                         continue
 
-                    if (ASSETS_DIR / filehash).exists():
+                    full_hash_name = get_asset_hash_subpath(filehash)
+
+                    if member.name != str(Path("assets") / full_hash_name):
+                        continue
+
+                    if (ASSETS_DIR / full_hash_name).exists():
                         continue
 
                     assets.append(member)
@@ -416,7 +423,6 @@ class CampaignImporter:
         # d) Allow defining user mapping up-front
         # ideally this becomes a multi-step UI heavy thing
         # where user options can also be diffed etc (user default_options todo!)
-        # todo: Labels
         with self.db.bind_ctx([Room, User]):
             creator = cast(User, room.creator)
             self.migrator.user_mapping[creator.id] = self.root_user.id
@@ -439,14 +445,14 @@ class CampaignMigrator:
         self.sid = sid
         self.loop = loop
 
-        self.__asset_mapping: Dict[int, int] = {}
+        self._asset_mapping: Dict[int, int] = {}
         self.aura_mapping: Dict[uuid.UUID, uuid.UUID] = {}
         self.character_mapping: Dict[int, int] = {}
-        self.__group_mapping: Dict[uuid.UUID, uuid.UUID] = {}
+        self._group_mapping: Dict[uuid.UUID, uuid.UUID] = {}
         self.layer_mapping: Dict[int, int] = {}
         self.location_mapping: Dict[int, int] = {}
         self.room_mapping: Dict[int, int] = {}
-        self.__shape_mapping: Dict[uuid.UUID, uuid.UUID] = {}
+        self._shape_mapping: Dict[uuid.UUID, uuid.UUID] = {}
         self.tracker_mapping: Dict[uuid.UUID, uuid.UUID] = {}
         self.user_mapping: Dict[int, int] = {}
 
@@ -456,8 +462,8 @@ class CampaignMigrator:
             return Room.select()
 
     def migrate_asset(self, asset_id: int) -> Optional[int]:
-        if asset_id in self.__asset_mapping:
-            return self.__asset_mapping[asset_id]
+        if asset_id in self._asset_mapping:
+            return self._asset_mapping[asset_id]
 
         with self.from_db.bind_ctx([Asset]):
             try:
@@ -474,7 +480,7 @@ class CampaignMigrator:
 
         with self.to_db.bind_ctx([Asset]):
             asset = Asset.create(**asset_data)
-            self.__asset_mapping[asset_id] = asset.id
+            self._asset_mapping[asset_id] = asset.id
         return asset.id
 
     def migrate_all_assets(self):
@@ -605,8 +611,8 @@ class CampaignMigrator:
                     self.migrate_shape(shape.uuid)
 
     def migrate_shape(self, shape_id: str):
-        if shape_id in self.__shape_mapping:
-            return self.__shape_mapping[shape_id]
+        if shape_id in self._shape_mapping:
+            return self._shape_mapping[shape_id]
 
         with self.from_db.bind_ctx([Shape]):
             try:
@@ -616,7 +622,7 @@ class CampaignMigrator:
 
             shape_data = model_to_dict(shape, recurse=False)
             new_uuid = uuid.uuid4()
-            self.__shape_mapping[shape_data["uuid"]] = new_uuid
+            self._shape_mapping[shape_data["uuid"]] = new_uuid
             shape_data["uuid"] = new_uuid
 
             if shape_data["layer"]:
@@ -648,14 +654,14 @@ class CampaignMigrator:
             self.migrate_shape_datablocks(new_uuid, shape.data_blocks)
 
     def migrate_group(self, group_id: str):
-        if group_id in self.__group_mapping:
-            return self.__group_mapping[group_id]
+        if group_id in self._group_mapping:
+            return self._group_mapping[group_id]
 
         with self.from_db.bind_ctx([Group]):
             group = Group.get_by_id(group_id)
             group_data = model_to_dict(group, recurse=False)
             new_uuid = uuid.uuid4()
-            self.__group_mapping[group_data["uuid"]] = new_uuid
+            self._group_mapping[group_data["uuid"]] = new_uuid
             group_data["uuid"] = new_uuid
 
         with self.to_db.bind_ctx([Group]):

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
+import type { LocalId } from "../../../core/id";
 import { map } from "../../../core/iter";
 import { getShape } from "../../id";
-import type { LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import type { IAsset } from "../../interfaces/shapes/asset";
 import { accessSystem } from "../../systems/access";

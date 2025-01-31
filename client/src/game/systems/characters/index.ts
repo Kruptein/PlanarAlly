@@ -1,13 +1,14 @@
 import { type DeepReadonly, watch } from "vue";
 
-import { registerSystem } from "..";
-import type { ShapeSystem } from "..";
 import type { ApiCharacter } from "../../../apiTypes";
+import type { LocalId } from "../../../core/id";
 import { find } from "../../../core/iter";
-import { getGlobalId, getLocalId, getShape, type LocalId } from "../../id";
+import { registerSystem } from "../../../core/systems";
+import type { ShapeSystem } from "../../../core/systems";
+import type { SystemClearReason } from "../../../core/systems/models";
+import { getGlobalId, getLocalId, getShape } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import type { IToggleComposite } from "../../interfaces/shapes/toggleComposite";
-import type { SystemClearReason } from "../models";
 import { selectedState } from "../selected/state";
 
 import type { CharacterId } from "./models";

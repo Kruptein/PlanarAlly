@@ -1,6 +1,5 @@
 import type { PlayerOptionsSet } from "../../../../apiTypes";
 import { colourHistory } from "../../../../core/components/store";
-import { coreStore } from "../../../../store/core";
 import { playerSettingsSystem } from "../../../systems/settings/players";
 import { playerOptionsToClient } from "../../../systems/settings/players/helpers";
 import { socket } from "../../socket";
@@ -11,8 +10,6 @@ socket.on("Player.Options.Set", (options: PlayerOptionsSet) => {
     const defaultOptions = playerOptionsToClient(options.default_user_options);
     const roomOptions =
         options.room_user_options !== null ? playerOptionsToClient(options.room_user_options) : undefined;
-
-    const hasGameboard = coreStore.state.boardId !== undefined;
 
     // Appearance
     playerSettingsSystem.setGridColour(roomOptions?.gridColour, {
@@ -39,6 +36,22 @@ socket.on("Player.Options.Set", (options: PlayerOptionsSet) => {
         sync: false,
         default: defaultOptions.gridModeLabelFormat,
     });
+    playerSettingsSystem.setDefaultWallColour(roomOptions?.defaultWallColour, {
+        sync: false,
+        default: defaultOptions.defaultWallColour,
+    });
+    playerSettingsSystem.setDefaultWindowColour(roomOptions?.defaultWindowColour, {
+        sync: false,
+        default: defaultOptions.defaultWindowColour,
+    });
+    playerSettingsSystem.setDefaultClosedDoorColour(roomOptions?.defaultClosedDoorColour, {
+        sync: false,
+        default: defaultOptions.defaultClosedDoorColour,
+    });
+    playerSettingsSystem.setDefaultOpenDoorColour(roomOptions?.defaultOpenDoorColour, {
+        sync: false,
+        default: defaultOptions.defaultOpenDoorColour,
+    });
 
     // Behaviour
     playerSettingsSystem.setInvertAlt(roomOptions?.invertAlt, {
@@ -64,29 +77,22 @@ socket.on("Player.Options.Set", (options: PlayerOptionsSet) => {
         default: defaultOptions.gridSize,
     });
 
-    // When using the gameboard ignore client settings from other sources and hardcode the correct values
-    if (hasGameboard) {
-        playerSettingsSystem.setUseAsPhysicalBoard(true, { sync: false, default: true });
-        playerSettingsSystem.setPpi(123, { sync: false, default: 123 });
-        playerSettingsSystem.setUseHighDpi(true, { sync: false, default: true });
-    } else {
-        playerSettingsSystem.setUseAsPhysicalBoard(roomOptions?.useAsPhysicalBoard, {
-            sync: false,
-            default: defaultOptions.useAsPhysicalBoard,
-        });
-        playerSettingsSystem.setMiniSize(roomOptions?.miniSize, {
-            sync: false,
-            default: defaultOptions.miniSize,
-        });
-        playerSettingsSystem.setPpi(roomOptions?.ppi, {
-            sync: false,
-            default: defaultOptions.ppi,
-        });
-        playerSettingsSystem.setUseHighDpi(roomOptions?.useHighDpi, {
-            sync: false,
-            default: defaultOptions.useHighDpi,
-        });
-    }
+    playerSettingsSystem.setUseAsPhysicalBoard(roomOptions?.useAsPhysicalBoard, {
+        sync: false,
+        default: defaultOptions.useAsPhysicalBoard,
+    });
+    playerSettingsSystem.setMiniSize(roomOptions?.miniSize, {
+        sync: false,
+        default: defaultOptions.miniSize,
+    });
+    playerSettingsSystem.setPpi(roomOptions?.ppi, {
+        sync: false,
+        default: defaultOptions.ppi,
+    });
+    playerSettingsSystem.setUseHighDpi(roomOptions?.useHighDpi, {
+        sync: false,
+        default: defaultOptions.useHighDpi,
+    });
 
     // Initiative
     playerSettingsSystem.setInitiativeCameraLock(roomOptions?.initiativeCameraLock, {
@@ -108,15 +114,8 @@ socket.on("Player.Options.Set", (options: PlayerOptionsSet) => {
 
     // Performance
 
-    if (hasGameboard) {
-        playerSettingsSystem.setRenderAllFloors(false, {
-            sync: false,
-            default: false,
-        });
-    } else {
-        playerSettingsSystem.setRenderAllFloors(roomOptions?.renderAllFloors, {
-            sync: false,
-            default: defaultOptions.renderAllFloors,
-        });
-    }
+    playerSettingsSystem.setRenderAllFloors(roomOptions?.renderAllFloors, {
+        sync: false,
+        default: defaultOptions.renderAllFloors,
+    });
 });

@@ -1,5 +1,5 @@
-import { registerSystem } from "..";
-import type { System } from "..";
+import { registerSystem } from "../../../core/systems";
+import type { System } from "../../../core/systems";
 import type { ClientSettingCategory } from "../../ui/settings/client/categories";
 
 import { uiState } from "./state";
@@ -23,10 +23,6 @@ class UiSystem implements System {
 
     showDmSettings(show: boolean): void {
         $.showDmSettings = show;
-    }
-
-    showLgSettings(show: boolean): void {
-        $.showLgSettings = show;
     }
 
     showLocationSettings(location: number): void {

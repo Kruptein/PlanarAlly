@@ -4,28 +4,17 @@ import type {
     ShapeSetOptionalStringValue,
     ShapeSetStringValue,
 } from "../../../../apiTypes";
+import type { GlobalId, LocalId } from "../../../../core/id";
 import { UI_SYNC } from "../../../../core/models/types";
 import type { Sync } from "../../../../core/models/types";
 import { getLocalId, getShape } from "../../../id";
-import type { GlobalId, LocalId } from "../../../id";
 import type { IAsset } from "../../../interfaces/shapes/asset";
 import { floorSystem } from "../../../systems/floors";
-import { labelSystem } from "../../../systems/labels";
 import { propertiesSystem } from "../../../systems/properties";
 import { visionState } from "../../../vision/state";
 import { socket } from "../../socket";
 
 // todo: fix this discrepancy between SyncTo and sync
-
-function wrapCall<T extends { shape: GlobalId; value: unknown }>(
-    func: (id: LocalId, value: T["value"], sync: boolean) => void,
-): (data: T) => void {
-    return (data) => {
-        const id = getLocalId(data.shape);
-        if (id === undefined) return;
-        func(id, data.value, false);
-    };
-}
 
 function wrapSystemCall<T extends { shape: GlobalId; value: unknown }>(
     func: (id: LocalId, value: T["value"], syncTo: Sync) => void,
@@ -115,10 +104,6 @@ socket.on(
     "Shape.Options.ShowBadge.Set",
     wrapSystemCall<ShapeSetBooleanValue>(propertiesSystem.setShowBadge.bind(propertiesSystem)),
 );
-
-socket.on("Shape.Options.Label.Add", wrapCall<ShapeSetStringValue>(labelSystem.addLabel.bind(labelSystem)));
-
-socket.on("Shape.Options.Label.Remove", wrapCall<ShapeSetStringValue>(labelSystem.removeLabel.bind(labelSystem)));
 
 socket.on("Shape.Options.SkipDraw.Set", (data: ShapeSetBooleanValue) => {
     const shapeId = getLocalId(data.shape);

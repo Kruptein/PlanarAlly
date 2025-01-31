@@ -1,5 +1,5 @@
-import { type System, registerSystem } from "..";
-import type { SystemClearReason } from "../models";
+import { type System, registerSystem } from "../../../core/systems";
+import type { SystemClearReason } from "../../../core/systems/models";
 
 import { sendChatMessage } from "./emits";
 import { chatMarkDown } from "./md";

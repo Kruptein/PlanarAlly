@@ -53,7 +53,6 @@
         "fill_color": "填充色",
         "trackers": "追踪值",
         "auras": "光晕",
-        "labels": "标签",
         "annotation": "注释",
         "floor": "楼层",
         "layer": "图层",
@@ -73,7 +72,29 @@
         "select": "选择",
         "or": "或",
         "colour": "颜色",
-        "toggle_draw": "指示物绘画"
+        "toggle_draw": "指示物绘画",
+        "you": "你",
+        "features": "特性",
+        "all": "全部",
+        "stroke_color": "边框色",
+        "stroke_width": "边框线宽",
+        "public": "公开",
+        "primary_color": "主颜色",
+        "secondary_color": "副颜色",
+        "range": "范围",
+        "aura": "光晕",
+        "enabled": "启用",
+        "toggle": "切换",
+        "permission": "许可",
+        "movement": "移动",
+        "both": "两者",
+        "actions": "操作",
+        "upload": "上传",
+        "apply": "应用",
+        "fill_color_short": "填充",
+        "stroke_color_short": "描边",
+        "type": "类型",
+        "background": "背景"
     },
     "auth": {
         "login": {
@@ -114,7 +135,8 @@
                 "add_new_floor": "添加新楼层",
                 "toggle_visibility": "切换玩家可见/不可见",
                 "rename_icon_hover": "重命名此楼层",
-                "rename_header_title": "重命名楼层"
+                "rename_header_title": "重命名楼层",
+                "title": "选择楼层"
             },
             "initiative": {
                 "new_effect": "新的效果",
@@ -132,17 +154,6 @@
                 "change_sort": "修改排序",
                 "settings": "设置"
             },
-            "LabelManager": {
-                "category": "分类",
-                "visible": "可见",
-                "delete": "删除",
-                "delete_label": "删除标签",
-                "title": "标签管理器",
-                "cat_abbr": "分类",
-                "vis_abbr": "视野",
-                "del_abbr": "删除",
-                "no_exist_msg": "暂无标签"
-            },
             "menu": {
                 "LocationBar": {
                     "new_location_name": "新地点名称：",
@@ -151,6 +162,7 @@
                     "show_specific_pl": "显示特定玩家"
                 },
                 "MenuBar": {
+                    "characters": "角色",
                     "new_note": "新便签",
                     "open_asset_manager": "打开素材管理器",
                     "no_assets": "暂无素材",
@@ -159,7 +171,9 @@
                     "no_notes": "暂无便签",
                     "dm_settings": "DM选项",
                     "no_markers": "暂无记号",
-                    "client_settings": "客户端选项"
+                    "client_settings": "客户端选项",
+                    "no_characters": "无角色",
+                    "no_players": "尚无在线玩家"
                 }
             },
             "NoteDialog": {
@@ -191,7 +205,70 @@
                         "block_vision_light": "阻挡视野/光照",
                         "block_movement": "阻挡移动",
                         "is_defeated": "被击败",
-                        "show_annotation": "公开"
+                        "show_annotation": "公开",
+                        "edit_shape": "编辑图形"
+                    },
+                    "logic": {
+                        "logic": "逻辑",
+                        "door": "门",
+                        "teleport_zone": "传送区",
+                        "target": "目标",
+                        "immediate_mode": "立即模式",
+                        "vision": "视野",
+                        "permissions": {
+                            "title": "设置逻辑许可",
+                            "request": "询问",
+                            "disabled": "禁止"
+                        }
+                    },
+                    "properties": {
+                        "properties": "属性",
+                        "common": "通用",
+                        "advanced": "高级"
+                    },
+                    "groups": {
+                        "groups": "集群",
+                        "rules": "规则",
+                        "character_set": "字符集",
+                        "custom_charset": "自定义字符集",
+                        "creation_order": "编号顺序",
+                        "charset": {
+                            "numbers": "数字",
+                            "latin": "拉丁字母",
+                            "custom": "自定义"
+                        },
+                        "order": {
+                            "incrementing": "递增",
+                            "random": "随机"
+                        },
+                        "members": "成员",
+                        "show_badge_on_all_members": "在所有成员上显示标记",
+                        "badge": "标记",
+                        "show_badge": "显示标记",
+                        "create_new_group": "创建新集群",
+                        "delete_group": "删除集群"
+                    },
+                    "extra": {
+                        "extra": "额外",
+                        "lighting_vision": "光照与视野",
+                        "upload_walls": "上传墙壁",
+                        "remove_walls": "移除墙壁",
+                        "apply_draft_info": "应用DDraft信息"
+                    },
+                    "grid": {
+                        "appearance": "外观",
+                        "infer_size": "自动推断大小",
+                        "size": "大小",
+                        "show_cells": "显示占据的格子",
+                        "hex_settings": "六边形格设置",
+                        "odd_hex_orientation": "更改为另一朝向"
+                    },
+                    "tracker": {
+                        "shared_for_all_variants": "与其他变体一致",
+                        "border": "边缘",
+                        "light_source": "光源",
+                        "angle": "角度",
+                        "display_on_token": "在指示物上显示"
                     }
                 },
                 "SelectionInfo": {
@@ -200,7 +277,11 @@
                     "quick_edit_aura": "快速编辑光晕",
                     "new_value_NAME": "赋值 {name}：",
                     "updating_NAME": "更新 {name}",
-                    "lock": "切换锁定状态"
+                    "lock": "切换锁定状态",
+                    "notes": "个便签",
+                    "open_note_manager_title": "打开便签管理器",
+                    "collapse_notes": "收起便签列表",
+                    "expand_notes": "展开便签列表"
                 },
                 "ShapeContext": {
                     "show_initiative": "显示先攻",
@@ -226,18 +307,55 @@
                         "use_high_dpi": "适用时，启用 HiDPI/Retina 显示",
                         "use_as_physical_gameboard": "用作物理游戏板",
                         "mini_size_in_inches": "棋子尺寸（英寸）",
-                        "ppi": "像素密度（PPI）"
+                        "ppi": "像素密度（PPI）",
+                        "Gameboard": "游戏板"
                     },
                     "BehaviourSettings": {
                         "invert_alt_set": "反转ALT使用",
-                        "disable_scroll_to_zoom": "禁用滚动缩放"
+                        "disable_scroll_to_zoom": "禁用滚动缩放",
+                        "snapping": "网格吸附",
+                        "mouse_pan_mode": "鼠标平移模式",
+                        "mouse_pan_mode_0": "无",
+                        "mouse_pan_mode_1": "中键",
+                        "mouse_pan_mode_2": "右键",
+                        "mouse_pan_mode_3": "右键和中键",
+                        "mouse_gestures": "鼠标与手势",
+                        "selection_info": "选择信息面板",
+                        "selection_info_tracker_mode": "追踪值默认修改模式",
+                        "selection_info_tracker_mode_absolute": "绝对",
+                        "selection_info_tracker_mode_relative": "相对"
                     },
                     "InitiativeSettings": {
                         "vision_lock": "锁定视野到激活（拥有）的指示物",
                         "camera_lock": "锁定摄像机到激活（拥有）的指示物",
                         "effect_visibility": "何时显示效果",
                         "effect_always": "总是",
-                        "effect_active": "激活且鼠标悬停"
+                        "effect_active": "激活且鼠标悬停",
+                        "open_on_activate": "当先攻开始时自动打开"
+                    },
+                    "AppearanceSettings": {
+                        "toolbars": "工具栏",
+                        "use_tool_icons": "使用图标",
+                        "show_token_directions": "显示屏幕外指示物的方向",
+                        "grid_mode_label_format": "网格模式下标签格式",
+                        "grid_mode_label_format_0": "全部",
+                        "grid_mode_label_format_1": "仅距离",
+                        "grid_mode_label_format_2": "仅格数",
+                        "fog": "迷雾",
+                        "wall": "墙壁默认颜色",
+                        "window": "窗户默认颜色",
+                        "closed_door": "打开的门默认颜色",
+                        "open_door": "关着的门默认颜色"
+                    },
+                    "common": {
+                        "Appearance": "外观",
+                        "Behaviour": "行为",
+                        "Display": "显示",
+                        "Performance": "性能"
+                    },
+                    "PerformanceSettings": {
+                        "only_render_active_floor": "仅渲染当前楼层",
+                        "Rendering": "渲染"
                     }
                 },
                 "dm": {
@@ -260,6 +378,10 @@
                     },
                     "DmSettings": {
                         "dm_settings": "DM设置"
+                    },
+                    "FeatureSettings": {
+                        "chat": "开启聊天",
+                        "dice": "开启骰子"
                     }
                 },
                 "common": {
@@ -276,7 +398,9 @@
                     "grid_type": "网格类型",
                     "SQUARE": "方格",
                     "POINTY_HEX": "水平六边形",
-                    "FLAT_HEX": "垂直六边形"
+                    "FLAT_HEX": "垂直六边形",
+                    "drop_ratio": "图形缩放比例",
+                    "drop_ratio_title": "图形缩放比例作用于具有大小信息的图形（例如：哥布林_1x1），该大小会乘以缩放比例得到图形的最终大小。"
                 },
                 "LocationBar": {
                     "LocationAdminSettings": {
@@ -300,7 +424,8 @@
                     "resize_owned_tokens": "缩放拥有的指示物："
                 },
                 "VariaSettings": {
-                    "movePlayerOnTokenChange": "在玩家拥有的指示物改变位置时移动玩家"
+                    "movePlayerOnTokenChange": "在玩家拥有的指示物改变位置时移动玩家",
+                    "limitMovementDuringInitiative": "在开启先攻时限制非当前行动图形的移动"
                 },
                 "VisionSettings": {
                     "min_full_vision_UNIT": "最短完全视距（{unit}）：",
@@ -322,7 +447,10 @@
                     "backgrounds": "地图背景",
                     "air_background": "空中楼层",
                     "ground_background": "地面楼层",
-                    "underground_background": "地下楼层"
+                    "underground_background": "地下楼层",
+                    "pattern": "图案",
+                    "offset": "偏移量",
+                    "scale": "缩放"
                 }
             },
             "templates": {
@@ -362,10 +490,10 @@
                     "font_size": "字体大小",
                     "erase": "擦除",
                     "cone": "锥形",
-                    "text": "文本"
-                },
-                "FilterTool": {
-                    "no_category": "无分类"
+                    "text": "文本",
+                    "shape-category": "基础设置",
+                    "vision-category": "视野设置",
+                    "logic-category": "逻辑设置"
                 },
                 "MapTool": {
                     "drag_to_resize": "拖动出你想要作为缩放基准的区域",
@@ -377,14 +505,64 @@
                     "cancel": "取消"
                 },
                 "RulerTool": {
-                    "share": "公开"
+                    "share": "公开",
+                    "grid": "网格模式"
                 },
                 "tools": {
-                    "change_mode": "改变模式"
+                    "change_mode": "改变模式",
+                    "FP": "模拟玩家",
+                    "INI": "先攻",
+                    "FP_title": "切换模拟玩家",
+                    "INI_title": "切换先攻面板"
                 },
                 "SpellTool": {
                     "size": "尺寸",
                     "range": "距离（半径）"
+                },
+                "DiceTool": {
+                    "rolling": "掷骰中..",
+                    "full_history": "全部历史记录",
+                    "full_history_title": "展开/收起全部历史记录",
+                    "empty_history": "尚无掷骰记录",
+                    "3D_dice": "3D骰子",
+                    "share": "将结果共享给",
+                    "3D_options": {
+                        "off": "关闭",
+                        "on": "打开",
+                        "box": "骰盘"
+                    },
+                    "share_options": {
+                        "all": "所有人",
+                        "dm": "DM",
+                        "none": "无"
+                    },
+                    "advanced": "高级",
+                    "advanced_options": {
+                        "operators": "操作符",
+                        "selectors": "选择符"
+                    },
+                    "clear_selection_title": "清除选择",
+                    "roll": "骰！",
+                    "reroll_previous_title": "重骰上一个",
+                    "limit_operator_options": {
+                        "keep": "保留",
+                        "drop": "去掉",
+                        "min": "最小",
+                        "max": "最大"
+                    },
+                    "reroll": "重骰",
+                    "selection_option_names": {
+                        "highest": "最高",
+                        "lowest": "最低"
+                    }
+                },
+                "NoteTool": {
+                    "header": "将便签关联于图形",
+                    "line1": "选择你想要关联该便签的图形。",
+                    "line2": "你可以缩放或移动视角。"
+                },
+                "SelectTool": {
+                    "show_ruler": "显示直尺"
                 }
             },
             "ui": {
@@ -394,8 +572,116 @@
                 "open_loc_menu": "打开地点菜单",
                 "new_ver_msg": "新版本上线啦！",
                 "open_settings": "打开设置",
-                "changelog_RELEASE_LOG": "# 新上线版本 {release}\n*需要了解更多细节，请参见 https://www.planarally.io/blog/*\n{log}"
+                "changelog_RELEASE_LOG": "# 新上线版本 {release}\n*需要了解更多细节，请参见 https://www.planarally.io/blog/*\n{log}",
+                "return_to_content": "点击返回主要场地"
+            },
+            "notes": {
+                "NoteCreate": {
+                    "header": "创建新便签",
+                    "title": "标题：",
+                    "title_placeholder": "新标签...",
+                    "type": "类型：",
+                    "local_note_title": "战局内便签",
+                    "local_note_body": "仅与当前战局相关的便签，最常见的便签类型，适用于大多数情况。",
+                    "global_note_title": "全局便签",
+                    "global_note_body": "在所有战局中均可见的便签，一种特殊类型，可以用于记录例如怪物能力等在多个战局中通用的信息。"
+                },
+                "NoteDialog": {
+                    "show": "预览",
+                    "open_in_manager": "在便签管理器中打开",
+                    "collapse": "缩小窗口",
+                    "restore": "还原窗口",
+                    "pop_out": "弹出窗口",
+                    "close": "关闭便签窗口",
+                    "edit": "编辑",
+                    "view_source": "查看源代码"
+                },
+                "NoteList": {
+                    "title": "便签",
+                    "title_with_token": "关于",
+                    "search_placeholder": "在你的便签中搜索...",
+                    "clear_search": "清除搜索",
+                    "filter": {
+                        "where_to_search": "搜索来源",
+                        "title": "标题",
+                        "text": "文本",
+                        "author": "作者",
+                        "local_locations": "战局内：地点",
+                        "active_location": "仅在当前地点",
+                        "archived_location": "包含留档地点",
+                        "local_shapes": "战局内：图形",
+                        "note_with_shape": "显示与图形有关联的便签",
+                        "global_note": "显示战局内图形关联的全局便签",
+                        "global_note_title": "全局便签有时因为模板会关联于某个图形，勾选该选项以显示关联于本战局内图形的全局便签。",
+                        "active_location_title": "仅显示在当前地点创建的便签。"
+                    },
+                    "empty_note": "这里还没有便签呢！",
+                    "empty_search": "没有便签符合当前筛选。",
+                    "name": "标题",
+                    "owner": "拥有者",
+                    "tags": "标签",
+                    "actions": "操作",
+                    "toggle_tags": "筛选标签：",
+                    "filters": {
+                        "title": "筛选：",
+                        "tag_placeholder": "搜索标签...",
+                        "hide_title": "隐藏标签搜索框",
+                        "show_title": "显示标签搜索框"
+                    }
+                },
+                "NoteEdit": {
+                    "back": "返回便签列表",
+                    "no_tags": "尚无标签。",
+                    "add_tag": "添加标签",
+                    "md_aware": "支持MarkDown语法",
+                    "shapes": {
+                        "linked": "该便签关联于",
+                        "linked_shape": "个图形",
+                        "used": "个其中的图形位于该地点",
+                        "listed": "已列于下方。",
+                        "add": "添加图形",
+                        "go_to_map": "在地图上选择图形",
+                        "remove": "移除与图形的关联"
+                    },
+                    "show_icon": "在图形上显示便签图标",
+                    "show_icon_title": "在图形左下角显示一个图标，有助于提醒注意一些重要便签。",
+                    "show_text": "光标悬停于图形时显示便签内容",
+                    "show_text_title": "光标悬停于图形时在屏幕上方显示便签内容。",
+                    "tab_label": {
+                        "view": "查看",
+                        "edit": "编辑",
+                        "view_title": "以MarkDown预览格式查看便签",
+                        "edit_title": "编辑便签",
+                        "triggers": "显示选项",
+                        "triggers_label1": "设置便签是否在游戏中显示",
+                        "triggers_label2": "只有与图形有关联的便签可以设置显示选项",
+                        "access_title": "设置权限",
+                        "shapes": "图形",
+                        "shapes_title": "查看该便签关联的图形",
+                        "access": "权限"
+                    }
+                },
+                "note_types": {
+                    "global": "全局",
+                    "local": "战局内",
+                    "all": "全部"
+                }
+            },
+            "access": {
+                "can_view": "可查看",
+                "can_edit": "可编辑",
+                "remove_access": "移除权限",
+                "default_access": "默认权限"
+            },
+            "chat": {
+                "title": "聊天",
+                "no_messages": "尚无消息。"
             }
+        },
+        "common": {
+            "view": "查看",
+            "edit": "编辑",
+            "access": "权限"
         }
     },
     "layer": {

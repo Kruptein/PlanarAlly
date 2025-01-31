@@ -1,4 +1,4 @@
-import type { GlobalId } from "../../../id";
+import type { GlobalId } from "../../../../core/id";
 import type { Permissions } from "../models";
 
 export interface TeleportOptions {

@@ -14,24 +14,33 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 95
+SAVE_VERSION = 100
 
+import asyncio
 import json
 import logging
 import secrets
 import shutil
 import sys
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Optional
 from uuid import uuid4
 
 from playhouse.sqlite_ext import SqliteExtDatabase
+
+from .thumbnail import generate_thumbnail_for_asset
 
 from .config import SAVE_FILE
 from .db.all import ALL_MODELS
 from .db.db import db as ACTIVE_DB
 from .db.models.constants import Constants
-from .utils import FILE_DIR, OldVersionException, UnknownVersionException
+from .utils import (
+    ASSETS_DIR,
+    FILE_DIR,
+    OldVersionException,
+    UnknownVersionException,
+    get_asset_hash_subpath,
+)
 
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
@@ -62,141 +71,20 @@ def check_existence() -> bool:
     return False
 
 
-def upgrade(db: SqliteExtDatabase, version: int):
-    if version < 69:
+def upgrade(
+    db: SqliteExtDatabase,
+    version: int,
+    is_import: bool,
+    loop: Optional[asyncio.AbstractEventLoop] = None,
+):
+    if version < 79:
         raise OldVersionException(
             f"Upgrade code for this version is >2 years old and is no longer in the active codebase to reduce clutter. You can still find this code on github, contact me for more info."
         )
 
     db.foreign_keys = False
 
-    if version == 69:
-        # Change Room.logo on_delete logic from cascade to set null
-        with db.atomic():
-            db.execute_sql("CREATE TEMPORARY TABLE _room_69 AS SELECT * FROM room")
-            db.execute_sql("DROP TABLE room")
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "room" ("id" INTEGER NOT NULL PRIMARY KEY, "name" TEXT NOT NULL, "creator_id" INTEGER NOT NULL, "invitation_code" TEXT NOT NULL, "is_locked" INTEGER NOT NULL, "default_options_id" INTEGER NOT NULL, "logo_id" INTEGER, FOREIGN KEY ("creator_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("default_options_id") REFERENCES "location_options" ("id") ON DELETE CASCADE, FOREIGN KEY ("logo_id") REFERENCES "asset" ("id") ON DELETE SET NULL);'
-            )
-            db.execute_sql(
-                'INSERT INTO "room" (id, name, creator_id, invitation_code, is_locked, default_options_id, logo_id) SELECT id, name, creator_id, invitation_code, is_locked, default_options_id, logo_id FROM _room_69'
-            )
-    elif version == 70:
-        # Move door logic permissions to door logic options block
-        with db.atomic():
-            data = db.execute_sql("SELECT uuid, options FROM shape")
-            for row in data.fetchall():
-                uuid, options = row
-                if options is None:
-                    continue
-
-                unpacked_options = json.loads(options)
-                changed = False
-
-                for option in unpacked_options:
-                    if option[0] == "door" and "toggleMode" not in option[1]:
-                        option[1] = {"permissions": option[1], "toggleMode": "both"}
-                        changed = True
-
-                if changed:
-                    db.execute_sql(
-                        "UPDATE shape SET options=? WHERE uuid=?",
-                        (json.dumps(unpacked_options), uuid),
-                    )
-    elif version == 71:
-        # Add User.colour_history
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE user ADD COLUMN colour_history TEXT DEFAULT NULL"
-            )
-    elif version == 72:
-        # Change default zoom level from 1.0 to 0.2
-        with db.atomic():
-            db.execute_sql(
-                "CREATE TEMPORARY TABLE _location_user_option_72 AS SELECT * FROM location_user_option"
-            )
-            db.execute_sql("DROP TABLE location_user_option")
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "location_user_option" ("id" INTEGER NOT NULL PRIMARY KEY, "location_id" INTEGER NOT NULL, "user_id" INTEGER NOT NULL, "pan_x" REAL DEFAULT 0 NOT NULL, "pan_y" REAL DEFAULT 0 NOT NULL, "zoom_display" REAL DEFAULT 0.2 NOT NULL, "active_layer_id" INTEGER, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("active_layer_id") REFERENCES "layer" ("id"));'
-            )
-            db.execute_sql(
-                'INSERT INTO "location_user_option" (id, location_id, user_id, pan_x, pan_y, zoom_display, active_layer_id) SELECT id, location_id, user_id, pan_x, pan_y, zoom_display, active_layer_id FROM _location_user_option_72'
-            )
-    elif version == 73:
-        # Change Room.logo on_delete logic from cascade to set null
-        with db.atomic():
-            db.execute_sql("CREATE TEMPORARY TABLE _shape_73 AS SELECT * FROM shape")
-            db.execute_sql("DROP TABLE shape")
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "shape" ("uuid" TEXT NOT NULL PRIMARY KEY, "layer_id" INTEGER NOT NULL, "type_" TEXT NOT NULL, "x" REAL NOT NULL, "y" REAL NOT NULL, "name" TEXT, "name_visible" INTEGER NOT NULL, "fill_colour" TEXT NOT NULL, "stroke_colour" TEXT NOT NULL, "vision_obstruction" INTEGER NOT NULL, "movement_obstruction" INTEGER NOT NULL, "is_token" INTEGER NOT NULL, "annotation" TEXT NOT NULL, "draw_operator" TEXT NOT NULL, "index" INTEGER NOT NULL, "options" TEXT, "badge" INTEGER NOT NULL, "show_badge" INTEGER NOT NULL, "default_edit_access" INTEGER NOT NULL, "default_vision_access" INTEGER NOT NULL, is_invisible INTEGER NOT NULL DEFAULT 0, default_movement_access INTEGER NOT NULL DEFAULT 0, is_locked INTEGER NOT NULL DEFAULT 0, angle REAL NOT NULL DEFAULT 0, stroke_width INTEGER NOT NULL DEFAULT 2, asset_id INTEGER, group_id TEXT, annotation_visible INTEGER NOT NULL DEFAULT 0, ignore_zoom_size INTEGER DEFAULT 0, is_defeated INTEGER NOT NULL DEFAULT 0, is_door INTEGER DEFAULT 0 NOT NULL, is_teleport_zone INTEGER DEFAULT 0 NOT NULL, FOREIGN KEY ("layer_id") REFERENCES "layer" ("id") ON DELETE CASCADE, FOREIGN KEY ("asset_id") REFERENCES "asset" ("id") ON DELETE SET NULL, FOREIGN KEY ("group_id") REFERENCES "group" ("uuid"));'
-            )
-            db.execute_sql(
-                'INSERT INTO "shape" ("uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "is_token", "annotation", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "annotation_visible", "ignore_zoom_size", "is_defeated", "is_door", "is_teleport_zone") SELECT "uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "is_token", "annotation", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "annotation_visible", "ignore_zoom_size", "is_defeated", "is_door", "is_teleport_zone" FROM _shape_73'
-            )
-            db.execute_sql("DROP TABLE _shape_73")
-    elif version == 74:
-        # Just an initiative fixer
-        with db.atomic():
-            db_data = db.execute_sql("SELECT id, data FROM initiative")
-            for row in db_data.fetchall():
-                _id, raw_data = row
-                initiative_data: List[Any] = json.loads(raw_data)
-                modified = False
-                for index, info in reversed(list(enumerate(initiative_data))):
-                    if (
-                        db.execute_sql(
-                            "SELECT EXISTS(SELECT 1 FROM shape WHERE uuid=?)",
-                            (info["shape"],),
-                        ).fetchone()[0]
-                        == 0
-                    ):
-                        initiative_data.pop(index)
-                        modified = True
-                if modified:
-                    db.execute_sql(
-                        "UPDATE initiative SET data=? WHERE id=?",
-                        (json.dumps(initiative_data), _id),
-                    )
-    elif version == 75:
-        # Cleanup of background null values for default locations
-        with db.atomic():
-            db.execute_sql(
-                "UPDATE location_options SET air_map_background = 'none' WHERE id IN (SELECT default_options_id FROM room) AND (air_map_background IS NULL OR air_map_background = 'rgba(0, 0, 0, 0)')"
-            )
-            db.execute_sql(
-                "UPDATE location_options SET ground_map_background = 'none' WHERE id IN (SELECT default_options_id FROM room) AND (ground_map_background IS NULL OR ground_map_background = 'rgba(0, 0, 0, 0)')"
-            )
-            db.execute_sql(
-                "UPDATE location_options SET underground_map_background = 'none' WHERE id IN (SELECT default_options_id FROM room) AND (underground_map_background IS NULL OR underground_map_background = 'rgba(0, 0, 0, 0)')"
-            )
-    elif version == 76:
-        # Add UserOptions.render_all_floors
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN render_all_floors INTEGER DEFAULT 1"
-            )
-            db.execute_sql(
-                "UPDATE user_options SET render_all_floors = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
-            )
-    elif version == 77:
-        # Add UserOptions.use_tool_icons
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN use_tool_icons INTEGER DEFAULT 1"
-            )
-            db.execute_sql(
-                "UPDATE user_options SET use_tool_icons = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
-            )
-    elif version == 78:
-        # Add UserOptions.default_tracker_mode
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN default_tracker_mode INTEGER DEFAULT 1"
-            )
-            db.execute_sql(
-                "UPDATE user_options SET default_tracker_mode = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
-            )
-    elif version == 79:
+    if version == 79:
         # Add UserOptions.show_token_directions
         with db.atomic():
             db.execute_sql(
@@ -591,6 +479,67 @@ def upgrade(db: SqliteExtDatabase, version: int):
             db.execute_sql(
                 "ALTER TABLE room ADD COLUMN enable_dice INTEGER NOT NULL DEFAULT 1"
             )
+    elif version == 95:
+        # Remove labels
+        with db.atomic():
+            db.execute_sql("DROP TABLE shape_label")
+            db.execute_sql("DROP TABLE label_selection")
+            db.execute_sql("DROP TABLE label")
+    elif version == 96:
+        # Add UserOptions.default_wall_colour, UserOptions.default_window_colour, UserOptions.default_closed_door_colour, UserOptions.default_open_door_colour
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN default_wall_colour TEXT DEFAULT NULL"
+            )
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN default_window_colour TEXT DEFAULT NULL"
+            )
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN default_closed_door_colour TEXT DEFAULT NULL"
+            )
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN default_open_door_colour TEXT DEFAULT NULL"
+            )
+    elif version == 97:
+        # Add folder structure to the assets folder
+
+        # 1 first copy the physical files to their new location
+        if not is_import:
+            migrate_assets_folder()
+
+        # 2 update asset shapes in the DB
+        with db.atomic():
+            data = db.execute_sql("SELECT shape_id, src FROM asset_rect")
+            for shape_id, src in data.fetchall():
+                # Regular assets - Grab the file hash
+                # We doe a split, because some legacy assets start with http://
+                if "/static/assets/" in src:
+                    file_hash = src.split("/static/assets/")[1]
+                    new_path = f"/static/assets/{get_asset_hash_subpath(file_hash)}"
+
+                    db.execute_sql(
+                        "UPDATE asset_rect SET src=? WHERE shape_id=?",
+                        (new_path, shape_id),
+                    )
+
+        # 3 Delete the old files
+        if not is_import:
+            remove_old_assets()
+    elif version == 98:
+        # Generate thumbnails for all assets
+        # This is a bit of a fake migration as the DB is not modified, but it's a one time thing
+        if not is_import and loop is not None:
+            data = db.execute_sql(
+                "SELECT name, file_hash FROM asset WHERE file_hash NOT NULL"
+            ).fetchall()
+
+            loop.create_task(generate_thumbnails(data, loop))
+    elif version == 99:
+        # Add AssetShortcut
+        with db.atomic():
+            db.execute_sql(
+                "CREATE TABLE IF NOT EXISTS asset_shortcut (id INTEGER NOT NULL PRIMARY KEY, asset_id INTEGER NOT NULL, player_room_id INTEGER NOT NULL, FOREIGN KEY (asset_id) REFERENCES asset (id) ON DELETE CASCADE, FOREIGN KEY (player_room_id) REFERENCES player_room (id) ON DELETE CASCADE)"
+            )
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."
@@ -599,7 +548,12 @@ def upgrade(db: SqliteExtDatabase, version: int):
     db.foreign_keys = True
 
 
-def upgrade_save(db: Optional[SqliteExtDatabase] = None, *, is_import=False):
+def upgrade_save(
+    db: Optional[SqliteExtDatabase] = None,
+    *,
+    is_import=False,
+    loop: Optional[asyncio.AbstractEventLoop] = None,
+):
     if db is None:
         db = ACTIVE_DB
     try:
@@ -632,7 +586,7 @@ def upgrade_save(db: Optional[SqliteExtDatabase] = None, *, is_import=False):
         else:
             logger.warning(f"Starting upgrade to {save_version + 1}")
         try:
-            upgrade(db, save_version)
+            upgrade(db, save_version, is_import, loop)
         except Exception as e:
             logger.exception(e)
             if is_import:
@@ -653,3 +607,43 @@ def backup_save(version: int):
     backup_path = save_backups.resolve() / f"{Path(SAVE_FILE).name}.{version}"
     logger.warning(f"Backing up old save as {backup_path}")
     shutil.copyfile(SAVE_FILE, backup_path)
+
+
+def migrate_assets_folder():
+    for fl in ASSETS_DIR.iterdir():
+        if fl.is_dir():
+            continue
+        first_level = fl.name[:2]
+        second_level = fl.name[2:4]
+
+        (ASSETS_DIR / first_level / second_level).mkdir(exist_ok=True, parents=True)
+        shutil.copy(fl, ASSETS_DIR / first_level / second_level / fl.name)
+
+
+def remove_old_assets():
+    for fl in ASSETS_DIR.iterdir():
+        if fl.is_dir():
+            continue
+        fl.unlink()
+
+
+async def generate_thumbnails(data, loop):
+    total_size = len(data)
+    print()
+    print(f"Generating thumbnails for {total_size} assets - This might take a while.")
+    print("This process is ran in the background and will log a message when complete")
+    print("Please don't stop the server while this is running.")
+    print()
+
+    def generate():
+        for i, (asset_name, file_hash) in enumerate(data):
+            generate_thumbnail_for_asset(asset_name, file_hash)
+
+            if i % 100 == 0:
+                print(f"Generated {i} / {total_size} thumbnails")
+
+    await loop.run_in_executor(None, generate)
+
+    print()
+    print("Thumbnail generation completed.")
+    print()

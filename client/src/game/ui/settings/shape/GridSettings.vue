@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../../core/components/ColourPicker.vue";
 import { GridType } from "../../../../core/grid";
@@ -12,6 +13,8 @@ import { propertiesSystem } from "../../../systems/properties";
 import { useShapeProps } from "../../../systems/properties/composables";
 import { selectedState } from "../../../systems/selected/state";
 import { locationSettingsState } from "../../../systems/settings/location/state";
+
+const { t } = useI18n();
 
 const shapeProps = useShapeProps();
 
@@ -74,9 +77,9 @@ function setOddHexOrientation(event: Event): void {
 
 <template>
     <div v-if="shapeProps" class="panel restore-panel">
-        <div class="spanrow header">Appearance</div>
+        <div class="spanrow header">{{ t('game.ui.selection.edit_dialog.grid.appearance') }}</div>
         <div class="row">
-            <label for="shapeselectiondialog-infer-size">Infer size</label>
+            <label for="shapeselectiondialog-infer-size">{{ t('game.ui.selection.edit_dialog.grid.infer_size') }}</label>
             <input
                 id="shapeselectiondialog-infer-size"
                 type="checkbox"
@@ -88,7 +91,7 @@ function setOddHexOrientation(event: Event): void {
             />
         </div>
         <div class="row">
-            <label for="shapeselectiondialog-name">Size</label>
+            <label for="shapeselectiondialog-name">{{ t('game.ui.selection.edit_dialog.grid.size') }}</label>
             <input
                 id="shapeselectiondialog-name"
                 type="number"
@@ -101,7 +104,7 @@ function setOddHexOrientation(event: Event): void {
             />
         </div>
         <div class="row">
-            <label for="shapeselectiondialog-show-cell">Show cells</label>
+            <label for="shapeselectiondialog-show-cell">{{ t('game.ui.selection.edit_dialog.grid.show_cells') }}</label>
             <input
                 id="shapeselectiondialog-show-cell"
                 type="checkbox"
@@ -113,7 +116,7 @@ function setOddHexOrientation(event: Event): void {
             />
         </div>
         <div class="row" :class="{ 'row-disabled': !shapeProps.showCells }">
-            <label for="shapeselectiondialog-strokecolour">Fill colour</label>
+            <label for="shapeselectiondialog-strokecolour">{{ t('common.fill_color') }}</label>
             <ColourPicker
                 :colour="shapeProps.cellFillColour"
                 style="grid-column-start: toggle"
@@ -123,7 +126,7 @@ function setOddHexOrientation(event: Event): void {
             />
         </div>
         <div class="row" :class="{ 'row-disabled': !shapeProps.showCells }">
-            <label for="shapeselectiondialog-strokecolour">Stroke colour</label>
+            <label for="shapeselectiondialog-strokecolour">{{ t('common.stroke_color') }}</label>
             <ColourPicker
                 :colour="shapeProps.cellStrokeColour"
                 style="grid-column-start: toggle"
@@ -133,7 +136,7 @@ function setOddHexOrientation(event: Event): void {
             />
         </div>
         <div class="row" :class="{ 'row-disabled': !shapeProps.showCells }">
-            <label for="shapeselectiondialog-name">Stroke width</label>
+            <label for="shapeselectiondialog-name">{{ t('common.stroke_width') }}</label>
             <input
                 id="shapeselectiondialog-name"
                 type="number"
@@ -146,9 +149,9 @@ function setOddHexOrientation(event: Event): void {
             />
         </div>
         <template v-if="showHexSettings">
-            <div class="spanrow header">Hex Settings</div>
+            <div class="spanrow header">{{ t('game.ui.selection.edit_dialog.grid.hex_settings') }}</div>
             <div class="row">
-                <label for="shapeselectiondialog-odd-hex-orientation">Odd Hex Orientation</label>
+                <label for="shapeselectiondialog-odd-hex-orientation">{{ t('game.ui.selection.edit_dialog.grid.odd_hex_orientation') }}</label>
                 <input
                     id="shapeselectiondialog-odd-hex-orientation"
                     type="checkbox"

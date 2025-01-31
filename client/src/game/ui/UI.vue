@@ -29,8 +29,6 @@ import { tokenDialogVisible } from "./tokendialog/state";
 import TokenDirections from "./TokenDirections.vue";
 import Tools from "./tools/Tools.vue";
 
-const hasGameboard = coreStore.state.boardId !== undefined;
-
 const uiEl = ref<HTMLDivElement | null>(null);
 
 const coreState = coreStore.state;
@@ -52,7 +50,6 @@ const changelogText = computed(() =>
 const releaseVersion = computed(() => coreState.version.release);
 
 const showChangelog = computed(() => {
-    if (hasGameboard) return false;
     const version = localStorage.getItem("last-version");
     if (version !== coreState.version.release) {
         localStorage.setItem("last-version", coreState.version.release);
@@ -181,7 +178,7 @@ function setTempZoomDisplay(value: number): void {
             </div>
         </div>
         <div v-if="positionState.reactive.outOfBounds" id="oob" @click="positionSystem.returnToBounds">
-            Click to return to content
+            {{ t('game.ui.ui.return_to_content') }}
         </div>
         <TokenDirections />
         <!-- Core overlays -->
@@ -206,7 +203,6 @@ function setTempZoomDisplay(value: number): void {
         <!-- When updating zoom boundaries, also update store updateZoom function;
             should probably do this using a store variable-->
         <SliderComponent
-            v-if="!hasGameboard"
             id="zoom"
             v-model="zoomDisplay"
             height="6px"
@@ -315,6 +311,7 @@ function setTempZoomDisplay(value: number): void {
 }
 
 #radialmenu {
+    overflow: hidden;
     grid-area: menutoggle;
     z-index: -1;
 }

@@ -1,13 +1,13 @@
 import { computed } from "vue";
 
+import type { LocalId } from "../../../core/id";
 import { filter, some } from "../../../core/iter";
-import type { LocalId } from "../../id";
+import { buildState } from "../../../core/systems/state";
 import { LayerName } from "../../models/floor";
 import { floorSystem } from "../floors";
 import { floorState } from "../floors/state";
 import { gameState } from "../game/state";
 import { playerSystem } from "../players";
-import { buildState } from "../state";
 
 import { DEFAULT_ACCESS } from "./models";
 import type { AccessMap, ShapeAccess } from "./models";

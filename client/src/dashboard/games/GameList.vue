@@ -3,6 +3,7 @@ import { onMounted, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 
+import { getImageSrcFromHash } from "../../assets/utils";
 import { baseAdjust, getStaticImg, http } from "../../core/http";
 import { useModal } from "../../core/plugins/modals/plugin";
 import { getErrorReason } from "../../core/utils";
@@ -17,11 +18,13 @@ const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
 
+type RoomInfoWithId = RoomInfo & { id: number };
+
 interface SessionState {
-    owned: RoomInfo[];
-    joined: RoomInfo[];
+    owned: RoomInfoWithId[];
+    joined: RoomInfoWithId[];
     error: string;
-    focussed?: RoomInfo;
+    focussed?: RoomInfoWithId;
 }
 
 const state: SessionState = reactive({
@@ -36,7 +39,7 @@ watch(sort, () => {
     sortData(state.joined);
 });
 
-function sortData(data: RoomInfo[]): void {
+function sortData(data: RoomInfoWithId[]): void {
     data.sort((a, b) => {
         if (sort.value === "clock") {
             if (a.last_played === null) return 1;
@@ -60,8 +63,9 @@ onMounted(async () => {
     const response = await http.get("/api/rooms");
     if (response.ok) {
         const data = (await response.json()) as { owned: RoomInfo[]; joined: RoomInfo[] };
-        state.owned = data.owned;
-        state.joined = data.joined;
+        // Add an arbitrary id to each one to do some checks that survive sorting
+        state.owned = data.owned.map((r, i) => ({ ...r, id: i }));
+        state.joined = data.joined.map((r, i) => ({ ...r, id: -i - 1 }));
         sortData(state.owned);
         sortData(state.joined);
     } else {
@@ -69,8 +73,8 @@ onMounted(async () => {
     }
 });
 
-function focus(session: RoomInfo): void {
-    if (state.focussed?.name === session.name) {
+function focus(session: RoomInfoWithId): void {
+    if (state.focussed?.id === session.id) {
         state.focussed = undefined;
     } else {
         state.focussed = session;
@@ -104,7 +108,7 @@ async function setLogo(): Promise<void> {
         logo: data.id,
     });
     if (success.ok) {
-        state.focussed.logo = data.fileHash;
+        state.focussed.logo = data.fileHash ?? undefined;
     }
 }
 
@@ -167,7 +171,13 @@ async function exportCampaign(): Promise<void> {
                 >
                     <img
                         class="logo"
-                        :src="baseAdjust(session.logo ? `/static/assets/${session.logo}` : '/static/img/dice.svg')"
+                        :src="
+                            baseAdjust(
+                                session.logo
+                                    ? getImageSrcFromHash(session.logo, { addBaseUrl: false })
+                                    : '/static/img/dice.svg',
+                            )
+                        "
                         alt="Campaign logo"
                     />
                     <div v-if="state.focussed?.name === session.name" class="logo-edit" @click.stop="setLogo">
@@ -218,13 +228,19 @@ async function exportCampaign(): Promise<void> {
             <div class="sessions">
                 <div
                     v-for="session of state.joined"
-                    :key="session.creator + '-' + session.name"
-                    :class="{ focus: state.focussed?.name === session.name }"
+                    :key="session.id"
+                    :class="{ focus: state.focussed?.id === session.id }"
                     @click="focus(session)"
                 >
                     <img
                         class="logo"
-                        :src="baseAdjust(session.logo ? `/static/assets/${session.logo}` : '/static/img/dice.svg')"
+                        :src="
+                            baseAdjust(
+                                session.logo
+                                    ? getImageSrcFromHash(session.logo, { addBaseUrl: false })
+                                    : '/static/img/dice.svg',
+                            )
+                        "
                         alt="Campaign logo"
                     />
                     <div class="data">
@@ -256,20 +272,6 @@ async function exportCampaign(): Promise<void> {
 </template>
 
 <style scoped lang="scss">
-.has-gameboard {
-    #content {
-        #dm,
-        #player {
-            height: min(70vh, 53.75rem);
-
-            .sessions {
-                overflow-x: hidden;
-                overflow-y: auto;
-            }
-        }
-    }
-}
-
 #content {
     display: flex;
     flex-direction: column;

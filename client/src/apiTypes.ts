@@ -1,5 +1,5 @@
-import type { AssetId } from "./assetManager/models";
-import type { GlobalId } from "./game/id";
+import type { AssetId } from "./assets/models";
+import type { GlobalId } from "./core/id";
 import type { LayerName } from "./game/models/floor";
 import type { Role } from "./game/models/role";
 import type { AuraId } from "./game/systems/auras/models";
@@ -23,8 +23,8 @@ export interface ApiAsset {
   id: AssetId;
   name: string;
   owner: string;
-  fileHash?: string;
-  children?: ApiAsset[];
+  fileHash: string | null;
+  children: ApiAsset[] | null;
   shares: ApiAssetShare[];
 }
 export interface ApiAssetShare {
@@ -90,13 +90,6 @@ export interface ApiAura {
   border_colour: string;
   angle: number;
   direction: number;
-}
-export interface ApiLabel {
-  uuid: string;
-  user: string;
-  category: string;
-  name: string;
-  visible: boolean;
 }
 export interface ApiAssetRemoveShare {
   asset: AssetId;
@@ -183,7 +176,6 @@ export interface ApiCoreShape {
   owners: ApiShapeOwner[];
   trackers: ApiTracker[];
   auras: ApiAura[];
-  labels: ApiLabel[];
   character: CharacterId | null;
   odd_hex_orientation: boolean;
   size: number;
@@ -340,6 +332,10 @@ export interface ApiOptionalUserOptions {
   use_tool_icons?: boolean | null;
   show_token_directions?: boolean | null;
   grid_mode_label_format?: GridModeLabelFormat | null;
+  default_wall_colour?: string | null;
+  default_window_colour?: string | null;
+  default_closed_door_colour?: string | null;
+  default_open_door_colour?: string | null;
   invert_alt?: boolean | null;
   disable_scroll_to_zoom?: boolean | null;
   default_tracker_mode?: boolean | null;
@@ -357,9 +353,11 @@ export interface ApiOptionalUserOptions {
 }
 export interface ApiRoomDataBlock extends ApiCoreDataBlock {
   category: "room";
+  data: string;
 }
 export interface ApiShapeDataBlock extends ApiCoreDataBlock {
   category: "shape";
+  data: string;
   shape: GlobalId;
 }
 export interface ApiShapeWithLayerInfo {
@@ -377,6 +375,7 @@ export interface ApiShapeWithLayerInfo {
 }
 export interface ApiUserDataBlock extends ApiCoreDataBlock {
   category: "user";
+  data: string;
 }
 export interface ApiUserOptions {
   fow_colour: string;
@@ -385,6 +384,10 @@ export interface ApiUserOptions {
   use_tool_icons: boolean;
   show_token_directions: boolean;
   grid_mode_label_format: GridModeLabelFormat;
+  default_wall_colour?: string | null;
+  default_window_colour?: string | null;
+  default_closed_door_colour?: string | null;
+  default_open_door_colour?: string | null;
   invert_alt: boolean;
   disable_scroll_to_zoom: boolean;
   default_tracker_mode: boolean;
@@ -436,10 +439,6 @@ export interface ClientConnected {
 }
 export interface ClientDisconnected {
   client: ClientId;
-}
-export interface ClientGameboardSet {
-  client: ClientId;
-  boardId: string;
 }
 export interface ClientMove {
   client: ClientId;
@@ -541,10 +540,6 @@ export interface InitiativeOrderChange {
 export interface InitiativeValueSet {
   shape: GlobalId;
   value: number;
-}
-export interface LabelVisibilitySet {
-  uuid: string;
-  visible: boolean;
 }
 export interface LogicDoorRequest {
   logic: "door";

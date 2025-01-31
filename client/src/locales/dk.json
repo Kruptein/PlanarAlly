@@ -52,7 +52,6 @@
         "fill_color": "Fyldfarve",
         "trackers": "Trackers",
         "auras": "Auraer",
-        "labels": "Mærkater",
         "annotation": "Anmærkning",
         "floor": "Etage",
         "layer": "Lag",
@@ -111,17 +110,6 @@
                 "camera_log_msg": "Autolås kamera ved aktiv polet",
                 "reset_round": "Nulstil runder/ture",
                 "next": "Næste"
-            },
-            "LabelManager": {
-                "category": "Kategori",
-                "visible": "Synlig",
-                "delete": "Slet",
-                "delete_label": "Slet mærkat",
-                "title": "Mærkat håndtering",
-                "cat_abbr": "Kat.",
-                "vis_abbr": "Syn",
-                "del_abbr": "Slet",
-                "no_exist_msg": "Der er ingen mærkater"
             },
             "menu": {
                 "LocationBar": {
@@ -291,9 +279,6 @@
                     "normal": "normal",
                     "reveal": "afslør",
                     "hide": "gem"
-                },
-                "FilterTool": {
-                    "no_category": "ingen kategori"
                 },
                 "MapTool": {
                     "drag_to_resize": "Træk et område du ænsker at ændrer størelsen på",

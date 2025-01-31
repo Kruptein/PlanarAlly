@@ -1,6 +1,6 @@
 interface BaseSection {
     title: string;
-    action: () => void | Promise<void>;
+    action: () => boolean | Promise<boolean>;
     disabled?: boolean;
     selected?: boolean;
 }

@@ -1,9 +1,9 @@
 import { markRaw } from "vue";
 import type { Component } from "vue";
 
-import { registerSystem } from "..";
-import type { System } from "..";
-import type { SystemClearReason } from "../models";
+import { registerSystem } from "../../../core/systems";
+import type { System } from "../../../core/systems";
+import type { SystemClearReason } from "../../../core/systems/models";
 
 import { modalState } from "./state";
 import type { FullModal, IndexedModal, Modal, ModalIndex } from "./types";
@@ -37,6 +37,10 @@ class ModalSystem implements System {
     }
 
     focus(index: ModalIndex): void {
+        // Interactin with popped modals (i.e. diferent windows)
+        // is funky and it doesn't make much sense anyway, so just skip them
+        if ($.poppedModals.has(index)) return;
+
         $.openModals.add(index);
         if (raw.modalOrder.at(-1) === index) return;
         const orderId = raw.modalOrder.findIndex((m) => m === index);

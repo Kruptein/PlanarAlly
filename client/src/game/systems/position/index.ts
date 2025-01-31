@@ -1,14 +1,14 @@
 import { watch } from "vue";
 
-import { registerSystem } from "..";
-import type { System } from "..";
 import { g2l, l2g, zoomDisplayToFactor } from "../../../core/conversions";
 import { addP, getPointDistance, subtractP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { DEFAULT_GRID_SIZE } from "../../../core/grid";
+import type { LocalId } from "../../../core/id";
+import { registerSystem } from "../../../core/systems";
+import type { System } from "../../../core/systems";
 import { sendClientLocationOptions } from "../../api/emits/client";
 import { getAllShapes, getShape, getShapeCount } from "../../id";
-import type { LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import type { FowLayer } from "../../layers/variants/fow";
 import { LayerName } from "../../models/floor";

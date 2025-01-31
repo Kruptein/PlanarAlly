@@ -1,6 +1,7 @@
 import { exportShapeData } from "..";
 import type { ApiToggleCompositeShape } from "../../../apiTypes";
 import type { GlobalPoint } from "../../../core/geometry";
+import type { GlobalId, LocalId } from "../../../core/id";
 import { SyncMode } from "../../../core/models/types";
 import type { Sync } from "../../../core/models/types";
 import { activeShapeStore } from "../../../store/activeShape";
@@ -12,7 +13,6 @@ import {
     sendToggleCompositeRenameVariant,
 } from "../../api/emits/shape/toggleComposite";
 import { getGlobalId, getShape } from "../../id";
-import type { GlobalId, LocalId } from "../../id";
 import type { IToggleComposite } from "../../interfaces/shapes/toggleComposite";
 import { compositeState } from "../../layers/state";
 import { accessSystem } from "../../systems/access";

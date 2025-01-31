@@ -1,4 +1,4 @@
-import type { LocalId } from "../../id";
+import type { LocalId } from "../../../core/id";
 
 export const DEFAULT_ACCESS_SYMBOL = Symbol();
 export type ACCESS_KEY = string | typeof DEFAULT_ACCESS_SYMBOL;

@@ -1,4 +1,4 @@
-import { baseAdjust } from "../../../core/http";
+import { getImageSrcFromHash } from "../../../assets/utils";
 import { FloorType } from "../../models/floor";
 import { floorSystem } from "../../systems/floors";
 import { positionState } from "../../systems/position/state";
@@ -56,7 +56,7 @@ export class MapLayer extends Layer {
         if (patternImage === undefined) {
             const img = new Image();
             patternImages[hash] = img;
-            img.src = baseAdjust("/static/assets/" + hash);
+            img.src = getImageSrcFromHash(hash);
             img.onload = () => {
                 this.invalidate(true);
             };

@@ -52,7 +52,6 @@
         "fill_color": "Color de Relleno",
         "trackers": "Trackers",
         "auras": "Auras",
-        "labels": "Etiquetas",
         "annotation": "Anotación",
         "floor": "Piso",
         "layer": "Capa",
@@ -124,17 +123,6 @@
                 "camera_log_msg": "Trabar la cámara en el token activo",
                 "reset_round": "Reiniciar rondas/turnos",
                 "next": "Siguiente"
-            },
-            "LabelManager": {
-                "category": "Categoría",
-                "visible": "Visible",
-                "delete": "Borrar",
-                "delete_label": "Borrar Etiqueta",
-                "title": "Administrador de Etiquetas",
-                "cat_abbr": "Cat.",
-                "vis_abbr": "Vis.",
-                "del_abbr": "Borr.",
-                "no_exist_msg": "Aún no existen etiquetas"
             },
             "menu": {
                 "LocationBar": {
@@ -325,9 +313,6 @@
                     "normal": "normal",
                     "reveal": "revelar",
                     "hide": "esconder"
-                },
-                "FilterTool": {
-                    "no_category": "ninguna categoría"
                 },
                 "MapTool": {
                     "drag_to_resize": "Dibuje un area que quiera redimensionar",

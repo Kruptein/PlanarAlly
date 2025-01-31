@@ -1,5 +1,5 @@
 import { GridType } from "../../../../core/grid";
-import { buildState } from "../../state";
+import { buildState } from "../../../../core/systems/state";
 
 import type { LocationOptions, WithDefault, WithLocationDefault } from "./models";
 

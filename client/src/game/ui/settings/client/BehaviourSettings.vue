@@ -1,41 +1,15 @@
 <script setup lang="ts">
-import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { playerSettingsSystem } from "../../../systems/settings/players";
-import { playerSettingsState } from "../../../systems/settings/players/state";
+import OverrideReset from "./OverrideReset.vue";
+import { useClientSettings } from "./useClientSettings";
 
 const { t } = useI18n();
 
-const { reactive: $ } = playerSettingsState;
-const pss = playerSettingsSystem;
-
-const invertAlt = computed<boolean | undefined>({
-    get() {
-        return $.invertAlt.value;
-    },
-    set(invertAlt: boolean | undefined) {
-        pss.setInvertAlt(invertAlt, { sync: true });
-    },
-});
-
-const disableScrollToZoom = computed<boolean | undefined>({
-    get() {
-        return $.disableScrollToZoom.value;
-    },
-    set(disableScrollToZoom: boolean | undefined) {
-        pss.setDisableScrollToZoom(disableScrollToZoom, { sync: true });
-    },
-});
-
-const defaultTrackerMode = computed<boolean | undefined>({
-    get() {
-        return $.defaultTrackerMode.value;
-    },
-    set(defaultTrackerMode: boolean | undefined) {
-        pss.setDefaultTrackerMode(defaultTrackerMode, { sync: true });
-    },
-});
+const defaultTrackerMode = useClientSettings("defaultTrackerMode");
+const disableScrollToZoom = useClientSettings("disableScrollToZoom");
+const mousePanMode = useClientSettings("mousePanMode");
+const invertAlt = useClientSettings("invertAlt");
 
 enum TrackerMode {
     Absolute = "absolute",
@@ -48,59 +22,30 @@ function setDefaultTrackerMode(event: Event): void {
     const mode = (event.target as HTMLSelectElement).value as TrackerMode;
     defaultTrackerMode.value = mode !== TrackerMode.Absolute;
 }
-
-const mousePanMode = computed<number | undefined>({
-    get() {
-        return $.mousePanMode.value;
-    },
-    set(mousePanMode: number | undefined) {
-        pss.setMousePanMode(mousePanMode, { sync: true });
-    },
-});
 </script>
 
 <template>
     <div class="panel restore-panel">
-        <div class="spanrow header">Snapping</div>
+        <div class="spanrow header">{{ t('game.ui.settings.client.BehaviourSettings.snapping') }}</div>
         <div class="row">
             <label for="invertAlt">{{ t("game.ui.settings.client.BehaviourSettings.invert_alt_set") }}</label>
             <div><input id="invertAlt" v-model="invertAlt" type="checkbox" /></div>
-            <template v-if="$.invertAlt.override !== undefined">
-                <div :title="t('game.ui.settings.common.reset_default')" @click="invertAlt = undefined">
-                    <font-awesome-icon icon="times-circle" />
-                </div>
-                <div
-                    :title="t('game.ui.settings.common.sync_default')"
-                    @click="pss.setInvertAlt(undefined, { sync: true, default: $.invertAlt.override })"
-                >
-                    <font-awesome-icon icon="sync-alt" />
-                </div>
-            </template>
+            <OverrideReset setting="invertAlt" />
         </div>
-        <div class="spanrow header">Mouse & Gestures</div>
+        <div class="spanrow header">{{ t('game.ui.settings.client.BehaviourSettings.mouse_gestures') }}</div>
         <div class="row">
             <label for="disableScrollToZoom">
                 {{ t("game.ui.settings.client.BehaviourSettings.disable_scroll_to_zoom") }}
             </label>
             <div><input id="disableScrollToZoom" v-model="disableScrollToZoom" type="checkbox" /></div>
-            <template v-if="$.disableScrollToZoom.override !== undefined">
-                <div :title="t('game.ui.settings.common.reset_default')" @click="disableScrollToZoom = undefined">
-                    <font-awesome-icon icon="times-circle" />
-                </div>
-                <div
-                    :title="t('game.ui.settings.common.sync_default')"
-                    @click="
-                        pss.setDisableScrollToZoom(undefined, { sync: true, default: $.disableScrollToZoom.override })
-                    "
-                >
-                    <font-awesome-icon icon="sync-alt" />
-                </div>
-            </template>
+            <OverrideReset setting="disableScrollToZoom" />
+        </div>
+        <div class="row">
             <label for="mousePanMode">
                 {{ t("game.ui.settings.client.BehaviourSettings.mouse_pan_mode") }}
             </label>
             <div>
-                <select v-model="mousePanMode">
+                <select id="mousePanMode" v-model="mousePanMode">
                     <option
                         v-for="option in [0, 1, 2, 3]"
                         :key="option"
@@ -110,19 +55,9 @@ const mousePanMode = computed<number | undefined>({
                     ></option>
                 </select>
             </div>
-            <template v-if="$.mousePanMode.override !== undefined">
-                <div :title="t('game.ui.settings.common.reset_default')" @click="mousePanMode = undefined">
-                    <font-awesome-icon icon="times-circle" />
-                </div>
-                <div
-                    :title="t('game.ui.settings.common.sync_default')"
-                    @click="pss.setMousePanMode(undefined, { sync: true, default: $.mousePanMode.override })"
-                >
-                    <font-awesome-icon icon="sync-alt" />
-                </div>
-            </template>
+            <OverrideReset setting="mousePanMode" />
         </div>
-        <div class="spanrow header">Selection Info</div>
+        <div class="spanrow header">{{ t('game.ui.settings.client.BehaviourSettings.selection_info') }}</div>
         <div class="row">
             <label for="defaultTrackerMode">
                 {{ t("game.ui.settings.client.BehaviourSettings.selection_info_tracker_mode") }}
@@ -140,19 +75,7 @@ const mousePanMode = computed<number | undefined>({
                     ></option>
                 </select>
             </div>
-            <template v-if="$.defaultTrackerMode.override !== undefined">
-                <div :title="t('game.ui.settings.common.reset_default')" @click="defaultTrackerMode = undefined">
-                    <font-awesome-icon icon="times-circle" />
-                </div>
-                <div
-                    :title="t('game.ui.settings.common.sync_default')"
-                    @click="
-                        pss.setDefaultTrackerMode(undefined, { sync: true, default: $.defaultTrackerMode.override })
-                    "
-                >
-                    <font-awesome-icon icon="sync-alt" />
-                </div>
-            </template>
+            <OverrideReset setting="defaultTrackerMode" />
         </div>
     </div>
 </template>

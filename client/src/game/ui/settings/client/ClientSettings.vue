@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type Component, computed } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
@@ -30,13 +30,30 @@ function close(): void {
 
 defineExpose({ close });
 
-const tabs: { name: string; component: Component }[] = [
-    { name: ClientSettingCategory.Appearance, component: AppearanceSettings },
-    { name: ClientSettingCategory.Behaviour, component: BehaviourSettings },
-    { name: ClientSettingCategory.Display, component: DisplaySettings },
-    { name: ClientSettingCategory.Initiative, component: InitiativeSettings },
-    { name: ClientSettingCategory.Performance, component: PerformanceSettings },
-];
+// Computed to trigger locale rerender
+const tabs = computed(() => [
+    {
+        category: ClientSettingCategory.Appearance,
+        name: t("game.ui.settings.client.common.Appearance"),
+        component: AppearanceSettings,
+    },
+    {
+        category: ClientSettingCategory.Behaviour,
+        name: t("game.ui.settings.client.common.Behaviour"),
+        component: BehaviourSettings,
+    },
+    {
+        category: ClientSettingCategory.Display,
+        name: t("game.ui.settings.client.common.Display"),
+        component: DisplaySettings,
+    },
+    { category: ClientSettingCategory.Initiative, name: t("common.initiative"), component: InitiativeSettings },
+    {
+        category: ClientSettingCategory.Performance,
+        name: t("game.ui.settings.client.common.Performance"),
+        component: PerformanceSettings,
+    },
+]);
 </script>
 
 <template>

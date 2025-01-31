@@ -1,45 +1,23 @@
 <script setup lang="ts">
-import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { playerSettingsSystem } from "../../../systems/settings/players";
-import { playerSettingsState } from "../../../systems/settings/players/state";
+import OverrideReset from "./OverrideReset.vue";
+import { useClientSettings } from "./useClientSettings";
 
 const { t } = useI18n();
 
-const { reactive: $ } = playerSettingsState;
-const pss = playerSettingsSystem;
-
-const onlyRenderActiveFloor = computed<boolean | undefined>({
-    get() {
-        return !$.renderAllFloors.value;
-    },
-    set(onlyRenderActiveFloor: boolean | undefined) {
-        const renderAllFloors = onlyRenderActiveFloor === undefined ? undefined : !onlyRenderActiveFloor;
-        pss.setRenderAllFloors(renderAllFloors, { sync: true });
-    },
-});
+const onlyRenderActiveFloor = useClientSettings("renderAllFloors");
 </script>
 
 <template>
     <div class="panel restore-panel">
-        <div class="spanrow header">Rendering</div>
+        <div class="spanrow header">{{ t('game.ui.settings.client.PerformanceSettings.Rendering') }}</div>
         <div class="row">
             <label for="renderAllFloors">
                 {{ t("game.ui.settings.client.PerformanceSettings.only_render_active_floor") }}
             </label>
             <div><input id="renderAllFloors" v-model="onlyRenderActiveFloor" type="checkbox" /></div>
-            <template v-if="$.renderAllFloors.override !== undefined">
-                <div :title="t('game.ui.settings.common.reset_default')" @click="onlyRenderActiveFloor = undefined">
-                    <font-awesome-icon icon="times-circle" />
-                </div>
-                <div
-                    :title="t('game.ui.settings.common.sync_default')"
-                    @click="pss.setRenderAllFloors(undefined, { sync: true, default: $.renderAllFloors.override })"
-                >
-                    <font-awesome-icon icon="sync-alt" />
-                </div>
-            </template>
+            <OverrideReset setting="renderAllFloors" />
         </div>
     </div>
 </template>

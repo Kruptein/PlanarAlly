@@ -1,7 +1,7 @@
 import { type IconLookup, findIconDefinition, icon, type IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 import type { GlobalPoint } from "../../../core/geometry";
-import type { GlobalId, LocalId } from "../../id";
+import type { GlobalId, LocalId } from "../../../core/id";
 import type { IAsset } from "../../interfaces/shapes/asset";
 import type { SHAPE_TYPE } from "../types";
 

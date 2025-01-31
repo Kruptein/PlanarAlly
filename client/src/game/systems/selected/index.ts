@@ -1,7 +1,7 @@
-import { registerSystem } from "..";
-import type { ShapeSystem } from "..";
+import type { LocalId } from "../../../core/id";
+import { registerSystem } from "../../../core/systems";
+import type { ShapeSystem } from "../../../core/systems";
 import { getShape } from "../../id";
-import type { LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import { compositeState } from "../../layers/state";
 

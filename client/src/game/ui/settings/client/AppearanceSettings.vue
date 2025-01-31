@@ -1,71 +1,25 @@
 <script setup lang="ts">
-import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../../core/components/ColourPicker.vue";
 import LanguageSelect from "../../../../core/components/LanguageSelect.vue";
-import { playerSettingsSystem } from "../../../systems/settings/players";
 import { GridModeLabelFormat } from "../../../systems/settings/players/models";
-import { playerSettingsState } from "../../../systems/settings/players/state";
+
+import OverrideReset from "./OverrideReset.vue";
+import { useClientSettings } from "./useClientSettings";
 
 const { t } = useI18n();
 
-const { reactive: $ } = playerSettingsState;
-const pss = playerSettingsSystem;
-
-const useToolIcons = computed<boolean | undefined>({
-    get() {
-        return $.useToolIcons.value;
-    },
-    set(useToolIcons: boolean | undefined) {
-        pss.setUseToolIcons(useToolIcons, { sync: true });
-    },
-});
-
-const showTokenDirections = computed<boolean | undefined>({
-    get() {
-        return $.showTokenDirections.value;
-    },
-    set(showTokenDirections: boolean | undefined) {
-        pss.setShowTokenDirections(showTokenDirections, { sync: true });
-    },
-});
-
-const gridColour = computed<string | undefined>({
-    get() {
-        return $.gridColour.value;
-    },
-    set(gridColour: string | undefined) {
-        pss.setGridColour(gridColour, { sync: true });
-    },
-});
-
-const gridModeLabelFormat = computed<GridModeLabelFormat | undefined>({
-    get() {
-        return $.gridModeLabelFormat.value;
-    },
-    set(gridModeLabelFormat: GridModeLabelFormat | undefined) {
-        pss.setGridModeLabelFormat(gridModeLabelFormat, { sync: true });
-    },
-});
-
-const fowColour = computed<string | undefined>({
-    get() {
-        return $.fowColour.value;
-    },
-    set(fowColour: string | undefined) {
-        pss.setFowColour(fowColour, { sync: true });
-    },
-});
-
-const rulerColour = computed<string | undefined>({
-    get() {
-        return $.rulerColour.value;
-    },
-    set(rulerColour: string | undefined) {
-        pss.setRulerColour(rulerColour, { sync: true });
-    },
-});
+const defaultClosedDoorColour = useClientSettings("defaultClosedDoorColour");
+const defaultOpenDoorColour = useClientSettings("defaultOpenDoorColour");
+const defaultWallColour = useClientSettings("defaultWallColour");
+const defaultWindowColour = useClientSettings("defaultWindowColour");
+const fowColour = useClientSettings("fowColour");
+const gridColour = useClientSettings("gridColour");
+const gridModeLabelFormat = useClientSettings("gridModeLabelFormat");
+const rulerColour = useClientSettings("rulerColour");
+const showTokenDirections = useClientSettings("showTokenDirections");
+const useToolIcons = useClientSettings("useToolIcons");
 </script>
 
 <template>
@@ -80,17 +34,7 @@ const rulerColour = computed<string | undefined>({
         <div class="row">
             <label for="useToolIcons">{{ t("game.ui.settings.client.AppearanceSettings.use_tool_icons") }}</label>
             <div><input id="useToolIcons" v-model="useToolIcons" type="checkbox" /></div>
-            <template v-if="$.useToolIcons.override !== undefined">
-                <div :title="t('game.ui.settings.common.reset_default')" @click="useToolIcons = undefined">
-                    <font-awesome-icon icon="times-circle" />
-                </div>
-                <div
-                    :title="t('game.ui.settings.common.sync_default')"
-                    @click="pss.setUseToolIcons(undefined, { sync: true, default: $.useToolIcons.override })"
-                >
-                    <font-awesome-icon icon="sync-alt" />
-                </div>
-            </template>
+            <OverrideReset setting="useToolIcons" />
         </div>
         <div class="spanrow header">{{ t("common.tokens") }}</div>
         <div class="row">
@@ -98,19 +42,7 @@ const rulerColour = computed<string | undefined>({
                 {{ t("game.ui.settings.client.AppearanceSettings.show_token_directions") }}
             </label>
             <div><input id="showTokenDirections" v-model="showTokenDirections" type="checkbox" /></div>
-            <template v-if="$.showTokenDirections.override !== undefined">
-                <div :title="t('game.ui.settings.common.reset_default')" @click="showTokenDirections = undefined">
-                    <font-awesome-icon icon="times-circle" />
-                </div>
-                <div
-                    :title="t('game.ui.settings.common.sync_default')"
-                    @click="
-                        pss.setShowTokenDirections(undefined, { sync: true, default: $.showTokenDirections.override })
-                    "
-                >
-                    <font-awesome-icon icon="sync-alt" />
-                </div>
-            </template>
+            <OverrideReset setting="showTokenDirections" />
         </div>
         <div class="spanrow header">{{ t("common.grid") }}</div>
         <div class="row">
@@ -118,17 +50,7 @@ const rulerColour = computed<string | undefined>({
             <div>
                 <ColourPicker id="gridColour" v-model:colour="gridColour" />
             </div>
-            <template v-if="$.gridColour.override !== undefined">
-                <div :title="t('game.ui.settings.common.reset_default')" @click="gridColour = undefined">
-                    <font-awesome-icon icon="times-circle" />
-                </div>
-                <div
-                    :title="t('game.ui.settings.common.sync_default')"
-                    @click="pss.setGridColour(undefined, { sync: true, default: $.gridColour.override })"
-                >
-                    <font-awesome-icon icon="sync-alt" />
-                </div>
-            </template>
+            <OverrideReset setting="gridColour" />
         </div>
         <div class="spanrow header">{{ t("tool.Ruler") }}</div>
         <div class="row">
@@ -136,17 +58,7 @@ const rulerColour = computed<string | undefined>({
             <div>
                 <ColourPicker id="rulerColour" v-model:colour="rulerColour" />
             </div>
-            <template v-if="$.rulerColour.override !== undefined">
-                <div :title="t('game.ui.settings.common.reset_default')" @click="rulerColour = undefined">
-                    <font-awesome-icon icon="times-circle" />
-                </div>
-                <div
-                    :title="t('game.ui.settings.common.sync_default')"
-                    @click="pss.setRulerColour(undefined, { sync: true, default: $.rulerColour.override })"
-                >
-                    <font-awesome-icon icon="sync-alt" />
-                </div>
-            </template>
+            <OverrideReset setting="rulerColour" />
         </div>
         <div class="row">
             <label for="gridModeLabelFormat">
@@ -163,22 +75,7 @@ const rulerColour = computed<string | undefined>({
                     ></option>
                 </select>
             </div>
-            <template v-if="$.gridModeLabelFormat.override !== undefined">
-                <div :title="t('game.ui.settings.common.reset_default')" @click="gridModeLabelFormat = undefined">
-                    <font-awesome-icon icon="times-circle" />
-                </div>
-                <div
-                    :title="t('game.ui.settings.common.sync_default')"
-                    @click="
-                        pss.setGridModeLabelFormat(undefined, {
-                            sync: true,
-                            default: $.gridModeLabelFormat.override,
-                        })
-                    "
-                >
-                    <font-awesome-icon icon="sync-alt" />
-                </div>
-            </template>
+            <OverrideReset setting="gridModeLabelFormat" />
         </div>
         <div class="spanrow header">{{ t("game.ui.settings.client.AppearanceSettings.fog") }}</div>
         <div class="row">
@@ -186,17 +83,42 @@ const rulerColour = computed<string | undefined>({
             <div>
                 <ColourPicker id="fowColour" v-model:colour="fowColour" :disable-alpha="true" />
             </div>
-            <template v-if="$.fowColour.override !== undefined">
-                <div :title="t('game.ui.settings.common.reset_default')" @click="fowColour = undefined">
-                    <font-awesome-icon icon="times-circle" />
-                </div>
-                <div
-                    :title="t('game.ui.settings.common.sync_default')"
-                    @click="pss.setFowColour(undefined, { sync: true, default: $.fowColour.override })"
-                >
-                    <font-awesome-icon icon="sync-alt" />
-                </div>
-            </template>
+            <OverrideReset setting="fowColour" />
+        </div>
+        <div class="spanrow header">{{ t("tool.Draw") }}</div>
+        <div class="row">
+            <label for="defaultWallColour">{{ t("game.ui.settings.client.AppearanceSettings.wall") }}</label>
+            <div>
+                <ColourPicker id="defaultWallColour" v-model:colour="defaultWallColour" :disable-alpha="true" />
+            </div>
+            <OverrideReset setting="defaultWallColour" />
+        </div>
+        <div class="row">
+            <label for="defaultWindowColour">{{ t("game.ui.settings.client.AppearanceSettings.window") }}</label>
+            <div>
+                <ColourPicker id="defaultWindowColour" v-model:colour="defaultWindowColour" :disable-alpha="true" />
+            </div>
+            <OverrideReset setting="defaultWindowColour" />
+        </div>
+        <div class="row">
+            <label for="defaultClosedDoorColour">
+                {{ t("game.ui.settings.client.AppearanceSettings.closed_door") }}
+            </label>
+            <div>
+                <ColourPicker
+                    id="defaultClosedDoorColour"
+                    v-model:colour="defaultClosedDoorColour"
+                    :disable-alpha="true"
+                />
+            </div>
+            <OverrideReset setting="defaultClosedDoorColour" />
+        </div>
+        <div class="row">
+            <label for="defaultOpenDoorColour">{{ t("game.ui.settings.client.AppearanceSettings.open_door") }}</label>
+            <div>
+                <ColourPicker id="defaultOpenDoorColour" v-model:colour="defaultOpenDoorColour" :disable-alpha="true" />
+            </div>
+            <OverrideReset setting="defaultOpenDoorColour" />
         </div>
     </div>
 </template>

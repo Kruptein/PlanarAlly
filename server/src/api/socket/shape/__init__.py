@@ -150,13 +150,9 @@ async def send_remove_shapes(
 def _get_shapes_from_uuids(
     uuids: list[str], filter_layer: bool
 ) -> SelectSequence[Shape]:
-    query = Shape.select().where(
-        (Shape.uuid << uuids)  # pyright: ignore[reportGeneralTypeIssues]
-    )
+    query = Shape.select().where((Shape.uuid << uuids))  # type: ignore
     if filter_layer:
-        query = query.where(
-            ~(Shape.layer >> None)  # pyright: ignore[reportGeneralTypeIssues]
-        )
+        query = query.where(~(Shape.layer >> None))  # type: ignore
     return query
 
 
@@ -216,7 +212,7 @@ async def remove_shapes(sid: str, raw_data: Any):
                 if shape.type_ == "assetrect":
                     rect = cast(AssetRect, shape.subtype)
                     if rect.src.startswith("/static/assets"):
-                        file_hash_to_clean = rect.src[len("/static/assets/") :]
+                        file_hash_to_clean = rect.src.split("/")[-1]
 
                 old_index = shape.index
                 shape.delete_instance(True)
@@ -407,14 +403,19 @@ async def move_shapes(sid: str, raw_data: Any):
     if data.target.layer:
         target_layer = floor.layers.where(Layer.name == data.target.layer)[0]
 
+    shape_uuids = set()
     shapes = []
     old_floor = None
     for shape in _get_shapes_from_uuids(data.shapes, False):
+        if shape.uuid in shape_uuids:
+            continue
+
         # toggle composite patch
         parent = None
         if shape.composite_parent:
             parent = shape.composite_parent[0].parent
             shape = Shape.get_by_id(parent.subtype.active_variant)
+            print(f"Parent found for {shape.uuid}")
 
         layer = target_layer
         if shape.layer:
@@ -425,13 +426,19 @@ async def move_shapes(sid: str, raw_data: Any):
             logger.warn("Attempt to move a shape without layer info")
             continue
 
-        shapes.append((shape, layer))
+        # Shape can be different from the one checked at the start of the loop
+        if shape.uuid not in shape_uuids:
+            shape_uuids.add(shape.uuid)
+            shapes.append((shape, layer))
 
         if parent:
-            shapes.append((parent, layer))
+            if parent.uuid not in shape_uuids:
+                shape_uuids.add(parent.uuid)
+                shapes.append((parent, layer))
             for csa in parent.shape_variants:
                 variant = csa.variant
-                if variant != shape:
+                if variant != shape and variant.uuid not in shape_uuids:
+                    shape_uuids.add(variant.uuid)
                     shapes.append((variant, layer))
 
     if old_floor:

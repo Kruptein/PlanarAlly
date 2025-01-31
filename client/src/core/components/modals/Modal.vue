@@ -1,10 +1,22 @@
 <script setup lang="ts">
 import { nextTick, onMounted, onUnmounted, ref, watch, watchEffect } from "vue";
 
+import WindowPortal from "../../../core/components/WindowPortal.vue";
+import type { ModalIndex } from "../../../game/systems/modals/types";
 import { clearDropCallback, registerDropCallback } from "../../../game/ui/firefox";
 
 const props = withDefaults(
-    defineProps<{ colour?: string; mask?: boolean; visible: boolean; rightHanded?: boolean }>(),
+    defineProps<{
+        colour?: string;
+        mask?: boolean;
+        visible: boolean;
+        rightHanded?: boolean;
+        modalIndex?: ModalIndex;
+        // Extra class to add to the modal container
+        // This can be useful when a :deep cannot be used due to
+        // e.g. windowed modals no longer having the correct child chain
+        extraClass?: string;
+    }>(),
     {
         colour: "white",
         mask: true,
@@ -13,9 +25,14 @@ const props = withDefaults(
         // important to note however is that native resize behaviour will not work properly with this.
         // (see NoteDialog for a left-handed component that remains right aligned when resized)
         rightHanded: false,
+        modalIndex: undefined,
+        extraClass: "",
     },
 );
-const emit = defineEmits<(e: "close" | "focus") => void>();
+const emit = defineEmits<{
+    (e: "close" | "focus"): void;
+    (e: "window-toggle", value: boolean): void;
+}>();
 
 const container = ref<HTMLDivElement | null>(null);
 
@@ -92,6 +109,9 @@ function updatePosition(): void {
 
 function dragStart(event: DragEvent): void {
     if (event === null || event.dataTransfer === null) return;
+
+    emit("focus");
+
     registerDropCallback(dragEnd);
     event.dataTransfer.setData("Hack", "");
     // Because the drag event is happening on the header, we have to change the drag image
@@ -135,6 +155,27 @@ function dragEnd(event: DragEvent): void {
 function dragOver(_event: DragEvent): void {
     if (dragging && container.value) container.value.style.display = "none";
 }
+
+// Windowed mode
+
+const windowed = ref(false);
+const preWindowState = { left: "", top: "" };
+function toggleWindow(): void {
+    if (!container.value) return;
+
+    windowed.value = !windowed.value;
+    emit("window-toggle", windowed.value);
+
+    if (windowed.value) {
+        preWindowState.left = container.value.style.left;
+        preWindowState.top = container.value.style.top;
+        container.value.style.left = "0.4rem";
+        container.value.style.top = "0.4rem";
+    } else {
+        container.value.style.left = preWindowState.left;
+        container.value.style.top = preWindowState.top;
+    }
+}
 </script>
 
 <template>
@@ -146,15 +187,23 @@ function dragOver(_event: DragEvent): void {
             @click="close"
             @dragover.prevent="dragOver"
         >
-            <div
-                ref="container"
-                class="modal-container"
-                :style="{ backgroundColor: colour }"
-                @click.stop="emit('focus')"
-            >
-                <slot name="header" :drag-start="dragStart" :drag-end="dragEnd"></slot>
-                <slot></slot>
-            </div>
+            <WindowPortal :visible="windowed" :modal-index="props.modalIndex">
+                <div
+                    ref="container"
+                    class="modal-container"
+                    :class="extraClass"
+                    :style="{ backgroundColor: colour }"
+                    @click.stop="emit('focus')"
+                >
+                    <slot
+                        name="header"
+                        :drag-start="dragStart"
+                        :drag-end="dragEnd"
+                        :toggle-window="toggleWindow"
+                    ></slot>
+                    <slot></slot>
+                </div>
+            </WindowPortal>
         </div>
     </transition>
 </template>
@@ -182,15 +231,18 @@ function dragOver(_event: DragEvent): void {
     transition: opacity 0.3s ease;
 }
 
-.modal-container {
-    pointer-events: auto;
-    position: absolute;
-    width: auto;
-    height: auto;
-    border-radius: 2px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
-    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande",
-        sans-serif;
+/* Use a layer to ensure components can override these styles when passing an extraClass */
+@layer base-modals {
+    .modal-container {
+        pointer-events: auto;
+        position: absolute;
+        width: auto;
+        height: auto;
+        border-radius: 2px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
+        font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande",
+            sans-serif;
+    }
 }
 
 .modal-enter {

@@ -1,7 +1,6 @@
 from ...api.models.shape.shape import ApiCoreShape
 from ...api.models.shape.subtypes import ApiShapeSubType
 from ...db.models.aura import Aura
-from ...db.models.label import Label
 from ...db.models.player_room import PlayerRoom
 from ...db.models.shape import Shape
 from ...db.models.tracker import Tracker
@@ -16,18 +15,15 @@ def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:
     # Access checks
     tracker_query = shape.trackers
     aura_query = shape.auras
-    label_query = shape.labels.join(Label)
     name = shape.name
     if not edit_access:
         tracker_query = tracker_query.where(Tracker.visible)
         aura_query = aura_query.where(Aura.visible)
-        label_query = label_query.where(Label.visible)
         if not shape.name_visible:
             name = "?"
 
     trackers = [t.as_pydantic() for t in tracker_query]
     auras = [a.as_pydantic() for a in aura_query]
-    labels = [sh_label.label.as_pydantic() for sh_label in label_query]
     # Subtype
     shape_model = ApiCoreShape(
         uuid=shape.uuid,
@@ -61,7 +57,6 @@ def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:
         owners=owners,
         trackers=trackers,
         auras=auras,
-        labels=labels,
         character=shape.character_id,
         odd_hex_orientation=shape.odd_hex_orientation,
         size=shape.size,

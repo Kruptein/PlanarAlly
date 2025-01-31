@@ -3,13 +3,13 @@ import type { ApiPolygonShape } from "../../../apiTypes";
 import { g2l, g2lz, toDegrees } from "../../../core/conversions";
 import { Vector, addP, getAngleBetween, getDistanceToSegment, subtractP, toArrayP, toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
+import type { GlobalId, LocalId } from "../../../core/id";
 import { equalPoints, filterEqualPoints, getPointsCenter, rotateAroundPoint } from "../../../core/math";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { uuidv4 } from "../../../core/utils";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
-import { FOG_COLOUR } from "../../colour";
+import { getColour } from "../../colour";
 import { getGlobalId } from "../../id";
-import type { GlobalId, LocalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import type { ServerShapeOptions } from "../../models/shapes";
 import type { AuraId } from "../../systems/auras/models";
@@ -156,8 +156,7 @@ export class Polygon extends Shape implements IShape {
         const props = getProperties(this.id)!;
 
         if (!lightRevealRender) {
-            if (props.fillColour === "fog") ctx.fillStyle = FOG_COLOUR;
-            else ctx.fillStyle = props.fillColour;
+            ctx.fillStyle = getColour(props.fillColour, this.id);
         }
 
         ctx.beginPath();
@@ -180,8 +179,7 @@ export class Polygon extends Shape implements IShape {
                 const lw = this.lineWidth[i] ?? this.lineWidth[0]!;
                 ctx.lineWidth = this.ignoreZoomSize ? lw : g2lz(lw);
 
-                if (c === "fog") ctx.strokeStyle = FOG_COLOUR;
-                else ctx.strokeStyle = c;
+                ctx.strokeStyle = getColour(c, this.id);
                 ctx.stroke();
             }
         }

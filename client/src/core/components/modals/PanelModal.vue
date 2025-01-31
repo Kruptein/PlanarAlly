@@ -7,7 +7,7 @@ import Modal from "./Modal.vue";
 const props = withDefaults(
     defineProps<{
         visible: boolean;
-        tabs: { name: string; component: Component; props?: object }[];
+        tabs: { category: string; name: string; component: Component; props?: object }[];
         initialSelection?: string;
     }>(),
     { initialSelection: undefined },
@@ -20,16 +20,16 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 
-const selection = ref(props.tabs[0]?.name);
-const activeTab = computed(() => props.tabs.find((t) => t.name === selection.value));
+const selection = ref(props.tabs[0]?.category);
+const activeTab = computed(() => props.tabs.find((t) => t.category === selection.value));
 
 watchEffect(() => {
     if (props.initialSelection === undefined) {
-        if (!props.tabs.some((c) => c.name === selection.value)) {
-            selection.value = props.tabs.at(0)?.name;
+        if (!props.tabs.some((c) => c.category === selection.value)) {
+            selection.value = props.tabs.at(0)?.category;
         }
     } else {
-        if (props.tabs.some((c) => c.name === props.initialSelection)) {
+        if (props.tabs.some((c) => c.category === props.initialSelection)) {
             selection.value = props.initialSelection;
         }
     }
@@ -60,10 +60,10 @@ function hideModal(): void {
             <div id="categories">
                 <div
                     v-for="tab of tabs"
-                    :key="tab.name"
+                    :key="tab.category"
                     class="category"
-                    :class="{ selected: tab.name === selection }"
-                    @click="setSelection(tab.name)"
+                    :class="{ selected: tab.category === selection }"
+                    @click="setSelection(tab.category)"
                 >
                     {{ tab.name }}
                 </div>

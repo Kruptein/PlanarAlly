@@ -4,11 +4,9 @@ import { computed, ref } from "vue";
 import { baseAdjust } from "./core/http";
 import { coreStore } from "./store/core";
 
-const hasGameboard = coreStore.state.boardId !== undefined;
-
 const webmError = ref(false);
-const webmStart = hasGameboard ? 0 : 2 * Math.floor(Math.random() * 5);
-const webmPath = baseAdjust("/static/img/loading.webm" + (hasGameboard ? "" : `#t=${webmStart}`));
+const webmStart = 2 * Math.floor(Math.random() * 5);
+const webmPath = baseAdjust(`/static/img/loading.webm#t=${webmStart}`);
 
 const loading = computed(() => coreStore.state.loading);
 </script>
@@ -38,7 +36,9 @@ const loading = computed(() => coreStore.state.loading);
 @import "vue-toastification/dist/index.css";
 @font-face {
     font-family: "Open Sans";
-    src: local("OpenSans"), url("./core/fonts/OpenSans-Regular.ttf") format("truetype");
+    src:
+        local("OpenSans"),
+        url("./core/fonts/OpenSans-Regular.ttf") format("truetype");
 }
 
 * {

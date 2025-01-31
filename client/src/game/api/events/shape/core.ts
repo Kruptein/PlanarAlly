@@ -7,10 +7,10 @@ import type {
     ShapePositionUpdate,
     ShapeRectSizeUpdate,
 } from "../../../../apiTypes";
+import type { GlobalId } from "../../../../core/id";
 import { SyncMode } from "../../../../core/models/types";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { getLocalId, getShapeFromGlobal } from "../../../id";
-import type { GlobalId } from "../../../id";
 import type { ICircle } from "../../../interfaces/shapes/circle";
 import type { IRect } from "../../../interfaces/shapes/rect";
 import { deleteShapes } from "../../../shapes/utils";

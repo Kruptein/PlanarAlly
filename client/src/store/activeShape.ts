@@ -1,11 +1,11 @@
 import { computed, watchEffect } from "vue";
 import type { ComputedRef } from "vue";
 
+import type { LocalId } from "../core/id";
 import type { Sync } from "../core/models/types";
 import { Store } from "../core/store";
 import { sendShapeSvgAsset } from "../game/api/emits/shape/options";
 import { getGlobalId, getShape } from "../game/id";
-import type { LocalId } from "../game/id";
 import type { IShape } from "../game/interfaces/shape";
 import type { IAsset } from "../game/interfaces/shapes/asset";
 import type { IToggleComposite } from "../game/interfaces/shapes/toggleComposite";

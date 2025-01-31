@@ -33,19 +33,19 @@ function close(): void {
     showDefaultContextMenu.value = false;
 }
 
-function bringPlayers(): void {
-    if (!gameState.raw.isDm) return;
+function bringPlayers(): boolean {
+    if (!gameState.raw.isDm) return false;
 
     sendBringPlayers({
         floor: floorState.currentFloor.value!.name,
         x: l2gx(defaultContextLeft.value),
         y: l2gy(defaultContextTop.value),
     });
-    close();
+    return true;
 }
 
-async function createSpawnLocation(): Promise<void> {
-    if (!gameState.raw.isDm) return;
+async function createSpawnLocation(): Promise<boolean> {
+    if (!gameState.raw.isDm) return false;
 
     const spawnLocations = locationSettingsState.raw.spawnLocations.value;
     const spawnName = await modals.prompt(
@@ -61,7 +61,7 @@ async function createSpawnLocation(): Promise<void> {
             return { valid: true };
         },
     );
-    if (spawnName === undefined || spawnName === "") return;
+    if (spawnName === undefined || spawnName === "") return false;
     const uuid = uuidv4();
 
     const src = "/static/img/spawn.png";
@@ -87,16 +87,17 @@ async function createSpawnLocation(): Promise<void> {
             locationSettingsState.raw.activeLocation,
             true,
         );
+    return true;
 }
 
-function showInitiativeDialog(): void {
+function showInitiativeDialog(): boolean {
     initiativeStore.show(true, true);
-    close();
+    return true;
 }
 
-function showTokenDialog(): void {
+function showTokenDialog(): boolean {
     openCreateTokenDialog({ x: defaultContextLeft.value, y: defaultContextTop.value });
-    close();
+    return true;
 }
 
 const sections = computed<Section[]>(() => {

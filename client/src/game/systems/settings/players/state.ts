@@ -1,8 +1,8 @@
 import { computed } from "vue";
 
 import { DEFAULT_GRID_SIZE } from "../../../../core/grid";
+import { buildState } from "../../../../core/systems/state";
 import { InitiativeEffectMode } from "../../../models/initiative";
-import { buildState } from "../../state";
 import { locationSettingsState } from "../location/state";
 
 import { GridModeLabelFormat, type PlayerOptions } from "./models";
@@ -41,6 +41,11 @@ const state = buildState<PlayerState, "gridSize">({
     initiativeOpenOnActivate: init(true),
 
     renderAllFloors: init(true),
+
+    defaultWallColour: init("rgba(147, 51, 234, 1)"),
+    defaultWindowColour: init("rgba(79, 157, 228, 0.7)"),
+    defaultOpenDoorColour: init("rgba(67, 160, 71, 0.7)"),
+    defaultClosedDoorColour: init("rgba(211, 47, 47, 0.7)"),
 });
 
 const devicePixelRatio = computed(() => {

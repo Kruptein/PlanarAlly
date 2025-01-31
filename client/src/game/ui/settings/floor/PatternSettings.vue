@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 
-import { baseAdjust } from "../../../../core/http";
-import { useModal } from "../../../../core/plugins/modals/plugin";
+import { assetState } from "../../../../assets/state";
+import { getImageSrcFromHash } from "../../../../assets/utils";
 import { getValue } from "../../../../core/utils";
 import { getPattern, patternToString } from "../../../layers/floor";
 import type { BackgroundPattern } from "../../../models/floor";
+import { pickAsset } from "../../../systems/assets/ui";
+
+const { t } = useI18n();
 
 const props = defineProps<{ pattern: string }>();
 const emit = defineEmits<(e: "update:pattern", p: string) => void>();
-
-const modals = useModal();
 
 const defaultPattern: BackgroundPattern = {
     hash: "",
@@ -23,10 +25,13 @@ const defaultPattern: BackgroundPattern = {
 const backgroundPattern = computed(() => getPattern(props.pattern) ?? defaultPattern);
 
 async function setPatternImage(): Promise<void> {
-    const data = await modals.assetPicker();
-    if (data === undefined || data.fileHash === undefined) return;
+    const assetId = await pickAsset();
+    if (assetId === null) return;
 
-    emit("update:pattern", patternToString({ ...backgroundPattern.value, hash: data.fileHash }));
+    const assetInfo = assetState.raw.idMap.get(assetId);
+    if (assetInfo === undefined || assetInfo.fileHash === null) return;
+
+    emit("update:pattern", patternToString({ ...backgroundPattern.value, hash: assetInfo.fileHash }));
 }
 
 function setPatternData(data: { offsetX?: Event; offsetY?: Event; scaleX?: Event; scaleY?: Event }): void {
@@ -43,26 +48,26 @@ function setPatternData(data: { offsetX?: Event; offsetY?: Event; scaleX?: Event
 </script>
 
 <template>
-    <div>Pattern</div>
+    <div>{{ t("game.ui.settings.FloorSettings.pattern") }}</div>
     <div>
         <img
             v-if="backgroundPattern.hash !== ''"
             alt="Pattern image preview"
-            :src="baseAdjust('/static/assets/' + backgroundPattern.hash)"
+            :src="getImageSrcFromHash(backgroundPattern.hash)"
             class="pattern-preview"
         />
-        <font-awesome-icon id="set-pattern" icon="plus-square" title="Set a pattern" @click="setPatternImage" />
+        <font-awesome-icon id="set-pattern" icon="plus-square" title="Set a pattern" @click.stop="setPatternImage" />
     </div>
     <div></div>
 
-    <div>Offset</div>
+    <div>{{ t("game.ui.settings.FloorSettings.offset") }}</div>
     <div>
         <input type="number" :value="backgroundPattern.offsetX" @change="setPatternData({ offsetX: $event })" />
         <input type="number" :value="backgroundPattern.offsetY" @change="setPatternData({ offsetY: $event })" />
     </div>
     <div></div>
 
-    <div>Scale</div>
+    <div>{{ t("game.ui.settings.FloorSettings.scale") }}</div>
     <div>
         <input
             type="number"

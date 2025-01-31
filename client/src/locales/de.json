@@ -54,7 +54,6 @@
         "fill_color": "Füllfarbe",
         "trackers": "Trackers",
         "auras": "Auren",
-        "labels": "Schlagwort",
         "annotation": "Anmerkungen",
         "floor": "Stockwerk",
         "layer": "Ebene",
@@ -127,17 +126,6 @@
                 "camera_log_msg": "Ansicht automatisch auf aktiven Spielstein zentrieren",
                 "reset_round": "Runden/Züge zurücksetzen",
                 "next": "Nächster Zug"
-            },
-            "LabelManager": {
-                "category": "Kategorie",
-                "visible": "Sichtbarkeit",
-                "delete": "Löschen",
-                "delete_label": "Schlagwort löschen",
-                "title": "Schlagwortverwaltung",
-                "cat_abbr": "Kat.",
-                "vis_abbr": "Sib.",
-                "del_abbr": "Entf.",
-                "no_exist_msg": "Bislang existieren keine Schlagworte"
             },
             "menu": {
                 "LocationBar": {
@@ -335,9 +323,6 @@
                     "hide": "verstecken",
                     "erase": "radieren",
                     "cone": "Kegel"
-                },
-                "FilterTool": {
-                    "no_category": "keine Kategorie"
                 },
                 "MapTool": {
                     "drag_to_resize": "Markiere den Bereich, dessen Größe Du verändern willst",

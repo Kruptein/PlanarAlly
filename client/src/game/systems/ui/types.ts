@@ -1,6 +1,6 @@
 import type { Component, Raw } from "vue";
 
-import type { LocalId } from "../../id";
+import type { LocalId } from "../../../core/id";
 import type { TrackerId } from "../trackers/models";
 
 export interface ModTrackerSetting {

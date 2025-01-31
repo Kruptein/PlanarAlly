@@ -1,5 +1,5 @@
 import { g2l } from "../../../core/conversions";
-import { FOG_COLOUR } from "../../colour";
+import { getColour } from "../../colour";
 import type { IShape } from "../../interfaces/shape";
 import { positionState } from "../../systems/position/state";
 import { getProperties } from "../../systems/properties/state";
@@ -17,8 +17,7 @@ export class Rect extends BaseRect implements IShape {
         const props = getProperties(this.id)!;
 
         if (!lightRevealRender) {
-            if (props.fillColour === "fog") ctx.fillStyle = FOG_COLOUR;
-            else ctx.fillStyle = props.fillColour;
+            ctx.fillStyle = getColour(props.fillColour, this.id);
         }
 
         const loc = g2l(this.refPoint);
@@ -28,7 +27,7 @@ export class Rect extends BaseRect implements IShape {
 
         if (!lightRevealRender) {
             if (props.strokeColour[0] !== "rgba(0, 0, 0, 0)") {
-                ctx.strokeStyle = props.strokeColour[0]!;
+                ctx.strokeStyle = getColour(props.strokeColour[0]!, this.id);
                 ctx.lineWidth = this.strokeWidth;
                 ctx.strokeRect(loc.x - center.x, loc.y - center.y, this.w * state.zoom, this.h * state.zoom);
             }

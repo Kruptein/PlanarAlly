@@ -1,14 +1,15 @@
 import type { ApiAssetRectShape } from "../../../apiTypes";
+import { getImageSrcFromHash } from "../../../assets/utils";
 import { g2l, g2lz } from "../../../core/conversions";
 import { toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { baseAdjust } from "../../../core/http";
+import type { GlobalId, LocalId } from "../../../core/id";
 import { map } from "../../../core/iter";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { sendAssetRectImageChange } from "../../api/emits/shape/asset";
 import { FOG_COLOUR } from "../../colour";
 import { getGlobalId } from "../../id";
-import type { GlobalId, LocalId } from "../../id";
 import type { IAsset } from "../../interfaces/shapes/asset";
 import { LayerName } from "../../models/floor";
 import type { ServerShapeOptions } from "../../models/shapes";
@@ -103,7 +104,7 @@ export class Asset extends BaseRect implements IAsset {
                 { openPolygon: false, isSnappable: false },
             );
             this.layer?.addShape(cover, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
-            const svgs = await loadSvgData(`/static/assets/${this.options.svgAsset}`);
+            const svgs = await loadSvgData(getImageSrcFromHash(this.options.svgAsset));
             this.svgData = [...map(svgs.values(), (svg) => ({ svg, rp: this.refPoint, paths: undefined }))];
             const props = getProperties(this.id)!;
             if (props.blocksVision !== VisionBlock.No) {

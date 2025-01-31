@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { watchEffect } from "vue";
+import { ref, watchEffect } from "vue";
 
-import { assetSystem } from "../../../assetManager";
-import type { AssetId } from "../../../assetManager/models";
-import { socket } from "../../../assetManager/socket";
-import { assetState } from "../../../assetManager/state";
-import { getIdImageSrc, showIdName } from "../../../assetManager/utils";
+import { assetSystem } from "../../../assets";
+import type { AssetId } from "../../../assets/models";
+import { socket } from "../../../assets/socket";
+import { assetState } from "../../../assets/state";
+import { getImageSrcFromAssetId, showIdName } from "../../../assets/utils";
 import { i18n } from "../../../i18n";
 
 import Modal from "./Modal.vue";
@@ -14,11 +14,13 @@ import Modal from "./Modal.vue";
 const props = defineProps<{ visible: boolean }>();
 const emit = defineEmits(["submit", "close"]);
 
+const thumbnailMisses = ref(new Set<AssetId>());
+
 const { t } = i18n.global;
 
 watchEffect(() => {
     if (props.visible) {
-        assetSystem.clear();
+        assetSystem.clear("partial-loading");
         assetSystem.clearSelected();
         assetSystem.clearFolderPath();
         assetState.mutable.modalActive = true;
@@ -82,7 +84,18 @@ function select(event: MouseEvent, inode: AssetId): void {
                         :class="{ 'inode-selected': assetState.reactive.selected.includes(file) }"
                         @click="select($event, file)"
                     >
-                        <img :src="getIdImageSrc(file)" width="50" alt="" />
+                        <picture v-if="!thumbnailMisses.has(file)">
+                            <source
+                                :srcset="getImageSrcFromAssetId(file, { thumbnailFormat: 'webp' })"
+                                type="image/webp"
+                            />
+                            <source
+                                :srcset="getImageSrcFromAssetId(file, { thumbnailFormat: 'jpeg' })"
+                                type="image/jpeg"
+                            />
+                            <img alt="" loading="lazy" @error="thumbnailMisses.add(file)" />
+                        </picture>
+                        <img v-else :src="getImageSrcFromAssetId(file)" alt="" loading="lazy" />
                         <div class="title">{{ showIdName(file) }}</div>
                     </div>
                 </div>
@@ -195,6 +208,10 @@ function select(event: MouseEvent, inode: AssetId): void {
 
             * {
                 pointer-events: none;
+            }
+
+            img {
+                width: 50px;
             }
         }
 

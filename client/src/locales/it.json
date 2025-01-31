@@ -52,7 +52,6 @@
         "fill_color": "Colore di riempimento",
         "trackers": "Tracker",
         "auras": "Aure",
-        "labels": "Etichette",
         "annotation": "Annotazione",
         "floor": "Piano",
         "layer": "Livello",
@@ -123,17 +122,6 @@
                 "camera_log_msg": "Blocca la camera sul segnalino attivo",
                 "reset_round": "Azzera round/turni",
                 "next": "Prossimo"
-            },
-            "LabelManager": {
-                "category": "Categoria",
-                "visible": "Visibile",
-                "delete": "Elimina",
-                "delete_label": "Elimina etichetta",
-                "title": "Gestore etichette",
-                "cat_abbr": "Cat.",
-                "vis_abbr": "Vis.",
-                "del_abbr": "Canc.",
-                "no_exist_msg": "Non esiste alcuna etichetta"
             },
             "menu": {
                 "LocationBar": {
@@ -320,9 +308,6 @@
                     "normal": "normale",
                     "reveal": "rivela",
                     "hide": "nascondi"
-                },
-                "FilterTool": {
-                    "no_category": "nessuna categoria"
                 },
                 "MapTool": {
                     "drag_to_resize": "Trascina l'area che vuoi ridimensionare",

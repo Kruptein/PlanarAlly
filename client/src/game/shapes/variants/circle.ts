@@ -3,8 +3,8 @@ import type { ApiCircleShape } from "../../../apiTypes";
 import { g2lz } from "../../../core/conversions";
 import { addP, subtractP, toArrayP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
-import { FOG_COLOUR } from "../../colour";
-import type { GlobalId, LocalId } from "../../id";
+import type { GlobalId, LocalId } from "../../../core/id";
+import { getColour } from "../../colour";
 import type { IShape } from "../../interfaces/shape";
 import type { ServerShapeOptions } from "../../models/shapes";
 import { getProperties } from "../../systems/properties/state";
@@ -84,8 +84,7 @@ export class Circle extends Shape implements IShape {
         ctx.beginPath();
 
         if (!lightRevealRender) {
-            if (props.fillColour === "fog") ctx.fillStyle = FOG_COLOUR;
-            else ctx.fillStyle = props.fillColour;
+            ctx.fillStyle = getColour(props.fillColour, this.id);
         }
 
         this.drawArc(ctx, this.ignoreZoomSize ? this.r : g2lz(this.r));
@@ -98,7 +97,7 @@ export class Circle extends Shape implements IShape {
                     ctx.globalCompositeOperation = this.options.borderOperation;
                 ctx.beginPath();
                 ctx.lineWidth = this.ignoreZoomSize ? this.strokeWidth : g2lz(this.strokeWidth);
-                ctx.strokeStyle = props.strokeColour[0]!;
+                ctx.strokeStyle = getColour(props.strokeColour[0]!, this.id);
                 // Inset the border with - borderWidth / 2
                 // Slight imperfection added to account for zoom subpixel differences
                 const r = this.r - this.strokeWidth / 2.5;

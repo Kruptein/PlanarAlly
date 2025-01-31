@@ -1,5 +1,4 @@
 import { g2l, g2lr } from "../../../core/conversions";
-import { coreStore } from "../../../store/core";
 import { getShape } from "../../id";
 import { LayerName } from "../../models/floor";
 import { accessState } from "../../systems/access/state";
@@ -10,8 +9,6 @@ import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 
 import { FowLayer } from "./fow";
-
-const hasGameboard = coreStore.state.boardId !== undefined;
 
 export class FowVisionLayer extends FowLayer {
     draw(): void {
@@ -46,22 +43,18 @@ export class FowVisionLayer extends FowLayer {
                 const center = token.center;
                 const lcenter = g2l(center);
 
-                if (hasGameboard) {
-                    this.ctx.fillStyle = "rgba(0, 0, 0, 1)";
-                } else {
-                    // Add a gradient vision dropoff
-                    const gradient = this.ctx.createRadialGradient(
-                        lcenter.x,
-                        lcenter.y,
-                        visionMin,
-                        lcenter.x,
-                        lcenter.y,
-                        visionMax,
-                    );
-                    gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
-                    gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
-                    this.ctx.fillStyle = gradient;
-                }
+                // Add a gradient vision dropoff
+                const gradient = this.ctx.createRadialGradient(
+                    lcenter.x,
+                    lcenter.y,
+                    visionMin,
+                    lcenter.x,
+                    lcenter.y,
+                    visionMax,
+                );
+                gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
+                gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+                this.ctx.fillStyle = gradient;
 
                 this.ctx.fill(token.visionPolygon);
                 for (const sh of token._lightBlockingNeighbours) {

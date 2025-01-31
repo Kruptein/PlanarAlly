@@ -9,10 +9,8 @@ export enum ToolName {
     Ruler = "Ruler",
     Ping = "Ping",
     Map = "Map",
-    Filter = "Filter",
     Vision = "Vision",
     Spell = "Spell",
-    LastGameboard = "LastGameboard",
     Dice = "Dice",
     Note = "Note",
 }

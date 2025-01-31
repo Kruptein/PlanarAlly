@@ -1,17 +1,19 @@
 import type { DeepReadonly } from "vue";
 
-import { registerSystem } from "../..";
-import type { ShapeSystem } from "../..";
 import { baseAdjust } from "../../../../core/http";
+import type { LocalId } from "../../../../core/id";
 import { FULL_SYNC } from "../../../../core/models/types";
 import type { Sync } from "../../../../core/models/types";
+import { registerSystem } from "../../../../core/systems";
+import type { ShapeSystem } from "../../../../core/systems";
+import { Colour, registerColour } from "../../../colour";
 import { getGlobalId } from "../../../id";
-import type { LocalId } from "../../../id";
 import { selectToolState } from "../../../tools/variants/select/state";
 import type { PlayerId } from "../../players/models";
 import { propertiesSystem } from "../../properties";
 import { getProperties } from "../../properties/state";
 import { VisionBlock } from "../../properties/types";
+import { playerSettingsState } from "../../settings/players/state";
 import { canUse } from "../common";
 import type { Access, Permissions } from "../models";
 
@@ -22,6 +24,28 @@ import { doorLogicState } from "./state";
 const { readonly, mutable, mutableReactive: $, dropState, DEFAULT_OPTIONS } = doorLogicState;
 
 class DoorSystem implements ShapeSystem {
+    constructor() {
+        // Ensure that toggling doors keeps the correct colour
+        registerColour(Colour.Door, (id: LocalId | undefined) => {
+            const closed = playerSettingsState.raw.defaultClosedDoorColour.value;
+            if (id === undefined) return closed;
+
+            const props = getProperties(id);
+            // The shape does not exist?
+            if (props === undefined) return closed;
+
+            const data = readonly.data.get(id);
+            // Probably not yet registered during draw calls
+            if (data === undefined) return closed;
+
+            if (props.blocksMovement) {
+                if (data.toggleMode !== "vision") return closed;
+            } else if (props.blocksVision !== VisionBlock.No) {
+                if (data.toggleMode !== "movement") return closed;
+            }
+            return playerSettingsState.raw.defaultOpenDoorColour.value;
+        });
+    }
     // BEHAVIOUR
 
     clear(): void {

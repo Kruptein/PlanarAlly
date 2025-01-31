@@ -3,6 +3,7 @@ import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useToast } from "vue-toastification";
 
+import { getImageSrcFromHash } from "../../assets/utils";
 import { baseAdjust, http } from "../../core/http";
 import { useModal } from "../../core/plugins/modals/plugin";
 import { coreStore } from "../../store/core";
@@ -37,7 +38,7 @@ async function create(): Promise<void> {
 
 async function setLogo(): Promise<void> {
     const data = await modals.assetPicker();
-    if (data === undefined || data.fileHash === undefined) return;
+    if (data === undefined || data.fileHash === null) return;
     logo.path = data.fileHash;
     logo.id = data.id;
 }
@@ -55,7 +56,13 @@ async function setLogo(): Promise<void> {
             <div class="logo">
                 <img
                     alt="Campaign Logo Preview"
-                    :src="baseAdjust(logo.id >= 0 ? `/static/assets/${logo.path}` : '/static/img/d20.svg')"
+                    :src="
+                        baseAdjust(
+                            logo.id >= 0
+                                ? getImageSrcFromHash(logo.path, { addBaseUrl: false })
+                                : '/static/img/d20.svg',
+                        )
+                    "
                 />
                 <div class="edit" @click="setLogo"><font-awesome-icon icon="pencil-alt" /></div>
             </div>
@@ -74,12 +81,6 @@ async function setLogo(): Promise<void> {
 </template>
 
 <style scoped lang="scss">
-.has-gameboard {
-    #content {
-        height: min(70vh, 53.75rem);
-    }
-}
-
 #content {
     display: flex;
     flex-direction: column;

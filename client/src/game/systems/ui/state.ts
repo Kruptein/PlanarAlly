@@ -1,8 +1,9 @@
 import type { Component, Raw } from "vue";
 
-import type { LocalId } from "../../id";
+import type { LocalId } from "../../../core/id";
+import { buildState } from "../../../core/systems/state";
 import { ClientSettingCategory } from "../../ui/settings/client/categories";
-import { buildState } from "../state";
+import type { ShapeSettingCategory } from "../../ui/settings/shape/categories";
 
 import type { ModTrackerSetting } from "./types";
 
@@ -16,8 +17,6 @@ interface UiState {
 
     showDmSettings: boolean;
 
-    showLgSettings: boolean;
-
     openedLocationSettings: number;
 
     showFloorSettings: boolean;
@@ -26,7 +25,12 @@ interface UiState {
     preventContextMenu: boolean;
 
     // MOD interactions
-    characterTabs: { name: string; component: Raw<Component>; filter?: (shape: LocalId) => boolean }[];
+    characterTabs: {
+        category: ShapeSettingCategory;
+        name: string;
+        component: Raw<Component>;
+        filter?: (shape: LocalId) => boolean;
+    }[];
     modTrackerSettings: ModTrackerSetting[];
 }
 
@@ -39,8 +43,6 @@ const state = buildState<UiState>({
     clientSettingsTab: ClientSettingCategory.Appearance,
 
     showDmSettings: false,
-
-    showLgSettings: false,
 
     openedLocationSettings: -1,
 

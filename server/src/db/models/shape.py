@@ -29,7 +29,6 @@ if TYPE_CHECKING:
     from .polygon import Polygon
     from .rect import Rect
     from .shape_data_block import ShapeDataBlock
-    from .shape_label import ShapeLabel
     from .shape_owner import ShapeOwner
     from .shape_type import ShapeType
     from .text import Text
@@ -38,7 +37,6 @@ if TYPE_CHECKING:
 
 
 class Shape(BaseDbModel):
-    labels: SelectSequence["ShapeLabel"]
     trackers: SelectSequence["Tracker"]
     auras: SelectSequence["Aura"]
     owners: SelectSequence["ShapeOwner"]
@@ -180,9 +178,6 @@ class Shape(BaseDbModel):
 
         for tracker in self.trackers:
             tracker.make_copy(new_shape)
-
-        for label in self.labels:
-            label.make_copy(new_shape)
 
         for owner in self.owners:
             owner.make_copy(new_shape)

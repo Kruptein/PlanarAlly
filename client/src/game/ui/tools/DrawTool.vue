@@ -6,6 +6,7 @@ import ColourPicker from "../../../core/components/ColourPicker.vue";
 import { arrToToggleGroup } from "../../../core/components/toggleGroup";
 import ToggleGroup from "../../../core/components/ToggleGroup.vue";
 import { useModal } from "../../../core/plugins/modals/plugin";
+import { getColour } from "../../colour";
 import { gameState } from "../../systems/game/state";
 import { DOOR_TOGGLE_MODES } from "../../systems/logic/door/models";
 import { VisionBlock, visionBlocks } from "../../systems/properties/types";
@@ -24,6 +25,10 @@ const selected = drawTool.isActiveTool;
 const shapes = Object.values(DrawShape);
 
 const showPermissions = ref(false);
+
+const defaultColoursApply = computed(
+    () => drawTool.state.blocksMovement || drawTool.state.blocksVision !== VisionBlock.No || drawTool.state.isDoor,
+);
 
 const translationMapping = {
     modes: {
@@ -101,16 +106,35 @@ const alerts = computed(() => {
             </div>
             <div class="draw-select-group">
                 <ColourPicker
+                    v-if="!(drawTool.state.preferDefaultColours && defaultColoursApply)"
                     v-model:colour="drawTool.state.fillColour"
                     class="draw-select-option"
                     :class="{ 'radius-right': !showBorderColour }"
                     :title="t('game.ui.tools.DrawTool.foreground_color')"
                 />
                 <ColourPicker
+                    v-else
+                    :colour="getColour(drawTool.colours.value.fill, undefined)"
+                    class="draw-select-option"
+                    :class="{ 'radius-right': !showBorderColour }"
+                    :disabled="true"
+                    title="Overriden by default colours, see vision tab"
+                />
+                <ColourPicker
+                    v-if="!(drawTool.state.preferDefaultColours && defaultColoursApply)"
                     v-model:colour="drawTool.state.borderColour"
                     class="draw-select-option"
                     :v-show="showBorderColour"
+                    :disabled="defaultColoursApply"
                     :title="t('game.ui.tools.DrawTool.background_color')"
+                />
+                <ColourPicker
+                    v-else
+                    :colour="getColour(drawTool.colours.value.stroke, undefined)"
+                    class="draw-select-option"
+                    :v-show="showBorderColour"
+                    :disabled="true"
+                    title="Overriden by default colours, see vision tab"
                 />
             </div>
             <div v-show="drawTool.state.selectedShape === DrawShape.Polygon" class="draw-checkbox-line">
@@ -177,6 +201,23 @@ const alerts = computed(() => {
                     />
                 </div>
             </div>
+
+            <div class="draw-checkbox-line">
+                <label
+                    for="vision-dialog-colour-override-toggle"
+                    title="When checked, the default colours as defined in your client settings will be used instead of the colours selected in the draw tool when relevant. This setting is ignored if no relevant blocker is active."
+                >
+                    Prefer default colours
+                </label>
+                <div>
+                    <input
+                        id="vision-dialog-colour-override-toggle"
+                        v-model="drawTool.state.preferDefaultColours"
+                        :disabled="!defaultColoursApply"
+                        type="checkbox"
+                    />
+                </div>
+            </div>
         </template>
         <template v-else>
             <teleport to="#teleport-modals">
@@ -186,9 +227,9 @@ const alerts = computed(() => {
                 />
             </teleport>
             <div class="draw-center-header">{{ t("game.ui.selection.edit_dialog.logic.logic") }}</div>
-            <div class="header">Door</div>
+            <div class="header">{{ t('game.ui.selection.edit_dialog.logic.door') }}</div>
             <div class="draw-logic-flex">
-                <label class="draw-logic-label" for="logic-dialog-door-toggle">Enabled</label>
+                <label class="draw-logic-label" for="logic-dialog-door-toggle">{{ t('common.enabled') }}</label>
                 <input
                     id="logic-dialog-door-toggle"
                     v-model="drawTool.state.isDoor"
@@ -198,7 +239,7 @@ const alerts = computed(() => {
                 />
             </div>
             <div class="draw-logic-flex">
-                <label for="logic-dialog-door-toggles">Toggle</label>
+                <label for="logic-dialog-door-toggles">{{ t('common.toggle') }}</label>
                 <div class="selection-box">
                     <template v-for="mode of DOOR_TOGGLE_MODES" :key="mode">
                         <div
@@ -206,13 +247,13 @@ const alerts = computed(() => {
                             style="text-transform: capitalize"
                             @click="drawTool.state.toggleMode = mode"
                         >
-                            {{ mode }}
+                            {{ t(`common.${mode}`) }}
                         </div>
                     </template>
                 </div>
             </div>
             <div class="draw-logic-flex">
-                <label for="logic-dialog-door-config">Permissions</label>
+                <label for="logic-dialog-door-config">{{ t('common.permission') }}</label>
                 <font-awesome-icon id="logic-dialog-door-config" icon="cog" @click="showPermissions = true" />
             </div>
         </template>

@@ -1,6 +1,6 @@
 import { computed } from "vue";
 
-import { buildState } from "../state";
+import { buildState } from "../../../core/systems/state";
 
 import type { IndexedModal, ModalIndex } from "./types";
 
@@ -15,6 +15,8 @@ interface ReactiveModalState {
     modalOrder: ModalIndex[];
     // Dynamically injected modals
     extraModals: IndexedModal[];
+    // Popped out modals
+    poppedModals: Set<ModalIndex>;
 }
 
 const state = buildState<ReactiveModalState, ModalState>(
@@ -22,6 +24,7 @@ const state = buildState<ReactiveModalState, ModalState>(
         openModals: new Set(),
         modalOrder: [],
         extraModals: [],
+        poppedModals: new Set(),
     },
     {
         fixedModals: [],

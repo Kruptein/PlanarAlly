@@ -3,8 +3,9 @@ import type { ApiLineShape } from "../../../apiTypes";
 import { g2l, g2lx, g2ly, g2lz } from "../../../core/conversions";
 import { addP, subtractP, toArrayP, toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
+import type { GlobalId, LocalId } from "../../../core/id";
 import { rotateAroundPoint } from "../../../core/math";
-import type { GlobalId, LocalId } from "../../id";
+import { getColour } from "../../colour";
 import type { IShape } from "../../interfaces/shape";
 import { getProperties } from "../../systems/properties/state";
 import type { ShapeProperties } from "../../systems/properties/state";
@@ -85,7 +86,7 @@ export class Line extends Shape implements IShape {
             const center = g2l(this.center);
             const props = getProperties(this.id)!;
 
-            ctx.strokeStyle = props.strokeColour[0]!;
+            ctx.strokeStyle = getColour(props.strokeColour[0]!, this.id);
             ctx.beginPath();
             ctx.moveTo(g2lx(this.refPoint.x) - center.x, g2ly(this.refPoint.y) - center.y);
             ctx.lineTo(g2lx(this.endPoint.x) - center.x, g2ly(this.endPoint.y) - center.y);

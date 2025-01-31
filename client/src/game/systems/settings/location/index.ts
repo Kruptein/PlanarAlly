@@ -1,14 +1,14 @@
-import { registerSystem } from "../..";
-import type { System } from "../..";
+import type { GlobalId } from "../../../../core/id";
+import { registerSystem } from "../../../../core/systems";
+import type { System } from "../../../../core/systems";
+import type { SystemClearReason } from "../../../../core/systems/models";
 import { sendLocationOption } from "../../../api/emits/location";
 import { updateFogColour } from "../../../colour";
-import type { GlobalId } from "../../../id";
 import { floorSystem } from "../../floors";
 import { floorState } from "../../floors/state";
-import type { SystemClearReason } from "../../models";
 
 import { isDefaultWrapper } from "./helpers";
-import type { WithLocationDefault } from "./models";
+import type { LocationOptions, WithLocationDefault } from "./models";
 import { locationSettingsState } from "./state";
 
 const { mutableReactive: $, raw, reset } = locationSettingsState;
@@ -16,6 +16,39 @@ const { mutableReactive: $, raw, reset } = locationSettingsState;
 class LocationSettingsSystem implements System {
     clear(reason: SystemClearReason): void {
         if (reason !== "partial-loading") reset();
+    }
+
+    // This is a utility function to simplify a lot of the settings UI code
+    getSetter<T extends keyof LocationOptions>(
+        setting: T,
+    ): (value: LocationOptions[T] | undefined, location: number | undefined, sync: boolean) => void {
+        const settingMap = {
+            useGrid: this.setUseGrid.bind(this),
+            gridType: this.setGridType.bind(this),
+            unitSize: this.setUnitSize.bind(this),
+            unitSizeUnit: this.setUnitSizeUnit.bind(this),
+            dropRatio: this.setDropRatio.bind(this),
+            fullFow: this.setFullFow.bind(this),
+            fowLos: this.setFowLos.bind(this),
+            fowOpacity: this.setFowOpacity.bind(this),
+            visionMinRange: this.setVisionMinRange.bind(this),
+            visionMaxRange: this.setVisionMaxRange.bind(this),
+            airMapBackground: this.setAirMapBackground.bind(this),
+            groundMapBackground: this.setGroundMapBackground.bind(this),
+            undergroundMapBackground: this.setUndergroundMapBackground.bind(this),
+            movePlayerOnTokenChange: this.setMovePlayerOnTokenChange.bind(this),
+            limitMovementDuringInitiative: this.setLimitMovementDuringInitiative.bind(this),
+            spawnLocations: this.setSpawnLocations.bind(this),
+        } as Record<keyof LocationOptions, this[keyof this]>;
+
+        if (setting in settingMap) {
+            return settingMap[setting] as (
+                value: LocationOptions[T] | undefined,
+                location: number | undefined,
+                sync: boolean,
+            ) => void;
+        }
+        throw new Error(`Unknown setting: ${setting}`);
     }
 
     private resetValue(setting: WithLocationDefault<unknown>): void {
@@ -81,6 +114,8 @@ class LocationSettingsSystem implements System {
     }
 
     setUnitSize(unitSize: number | undefined, location: number | undefined, sync: boolean): void {
+        if (unitSize !== undefined && unitSize <= 0) return;
+
         if (!this.setValue($.unitSize, unitSize, location)) return;
 
         floorSystem.invalidateAllFloors();
@@ -130,6 +165,14 @@ class LocationSettingsSystem implements System {
     }
 
     setVisionMinRange(visionMinRange: number | undefined, location: number | undefined, sync: boolean): void {
+        if (
+            visionMinRange !== undefined &&
+            raw.visionMaxRange.value !== undefined &&
+            visionMinRange > raw.visionMaxRange.value
+        ) {
+            visionMinRange = raw.visionMaxRange.value;
+        }
+
         if (!this.setValue($.visionMinRange, visionMinRange, location)) return;
 
         floorSystem.invalidateLightAllFloors();
@@ -138,6 +181,14 @@ class LocationSettingsSystem implements System {
     }
 
     setVisionMaxRange(visionMaxRange: number | undefined, location: number | undefined, sync: boolean): void {
+        if (
+            visionMaxRange !== undefined &&
+            raw.visionMinRange.value !== undefined &&
+            visionMaxRange < raw.visionMinRange.value
+        ) {
+            visionMaxRange = raw.visionMinRange.value;
+        }
+
         if (!this.setValue($.visionMaxRange, visionMaxRange, location)) return;
 
         floorSystem.invalidateLightAllFloors();

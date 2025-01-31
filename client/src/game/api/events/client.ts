@@ -1,13 +1,11 @@
 import type {
     ClientConnected,
     ClientDisconnected,
-    ClientGameboardSet,
     ClientMove,
     ClientOffsetSet,
     ClientViewport,
 } from "../../../apiTypes";
 import { clientSystem } from "../../systems/client";
-import type { BoardId } from "../../systems/client/models";
 import { gameState } from "../../systems/game/state";
 import { playerSystem } from "../../systems/players";
 import { positionSystem } from "../../systems/position";
@@ -41,8 +39,4 @@ socket.on("Client.Viewport.Set", (data: ClientViewport) => {
 
 socket.on("Client.Offset.Set", (data: ClientOffsetSet) => {
     clientSystem.setOffset(data.client, { x: data.x, y: data.y }, false);
-});
-
-socket.on("Client.Gameboard.Set", (data: ClientGameboardSet) => {
-    clientSystem.addBoardId(data.client, data.boardId as BoardId);
 });

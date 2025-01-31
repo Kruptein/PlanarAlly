@@ -1,10 +1,10 @@
 import { SYSTEMS, type Part, type RollResult } from "@planarally/dice/core";
 import type { DeepReadonly } from "vue";
 
-import { registerSystem } from "..";
-import type { System } from "..";
+import { registerSystem } from "../../../core/systems";
+import type { System } from "../../../core/systems";
+import type { SystemClearReason } from "../../../core/systems/models";
 import type { AsyncReturnType } from "../../../core/types";
-import type { SystemClearReason } from "../models";
 
 import { diceState } from "./state";
 
@@ -22,7 +22,6 @@ class DiceSystem implements System {
         $.result = undefined;
         if (reason !== "full-loading") {
             $.history = [];
-            $.loaded3d = false;
         }
     }
 
@@ -41,12 +40,9 @@ class DiceSystem implements System {
         $.systems = { "2d": DX, "3d": DX3 };
     }
 
-    async load3d(): Promise<void> {
-        if (!diceState.raw.loaded3d) {
-            const env = await getDiceEnvironment();
-            await env.loadDiceEnv();
-            $.loaded3d = true;
-        }
+    async load3d(canvas?: HTMLCanvasElement): Promise<void> {
+        const env = await getDiceEnvironment();
+        await env.loadDiceEnv(canvas);
     }
 
     set3dDimensions(width: number, height: number): void {

@@ -1,16 +1,3 @@
-export type AssetListMap = Map<string, AssetListMap | AssetFile[]>;
-export type ReadonlyAssetListMap = ReadonlyMap<string, ReadonlyAssetListMap | AssetFile[]>;
-
-export interface AssetList {
-    [inode: string]: AssetList | AssetFile[];
-}
-
-export interface AssetFile {
-    id: number;
-    name: string;
-    hash: string;
-}
-
 export enum SyncMode {
     NO_SYNC,
     TEMP_SYNC,

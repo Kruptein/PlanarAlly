@@ -1,10 +1,10 @@
 import type { Component } from "vue";
 
+import { type GlobalId, type LocalId } from "../core/id";
+import type { SYSTEMS_STATE, System } from "../core/systems";
 import type { DataBlock } from "../game/dataBlock/db";
 import type { DBR, DataBlockSerializer, DbRepr } from "../game/dataBlock/models";
-import { type GlobalId, type LocalId } from "../game/id";
 import type { IShape } from "../game/interfaces/shape";
-import type { SYSTEMS_STATE, System } from "../game/systems";
 import type { Tracker } from "../game/systems/trackers/models";
 
 export interface Mod {
@@ -21,7 +21,12 @@ interface ModLoad {
 
     ui: {
         shape: {
-            registerTab: (component: Component, name: string, filter: (shape: LocalId) => boolean) => void;
+            registerTab: (
+                component: Component,
+                category: string,
+                name: string,
+                filter: (shape: LocalId) => boolean,
+            ) => void;
         };
     };
 

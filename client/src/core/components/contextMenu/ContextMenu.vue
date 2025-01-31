@@ -53,73 +53,75 @@ const visibleSections = computed(() => props.sections.filter((section) => isVisi
         @contextmenu.stop.prevent
     >
         <ul>
-            <ContextMenuSection :sections="visibleSections" />
+            <ContextMenuSection :sections="visibleSections" @cm:close="$emit('cm:close')" />
         </ul>
     </div>
 </template>
 
 <style lang="scss">
-.ContextMenu {
-    position: fixed;
-    pointer-events: auto;
+@layer base-context {
+    .ContextMenu {
+        position: fixed;
+        pointer-events: auto;
 
-    &:focus-visible {
-        outline: none;
-    }
-
-    ul {
-        border-radius: 5px;
-        background: white;
-        list-style: none;
-        padding: 0.5rem 0;
-        margin: 0;
-        width: max-content;
-
-        box-shadow: 0 0 13px rgba(0, 0, 0, 0.5);
-
-        li {
-            padding: 0.5rem 1.5rem;
-            cursor: pointer;
-
-            display: grid;
-            grid-template-columns: 1fr auto;
-            align-items: center;
-
-            &.selected {
-                background-color: rgba(0, 0, 0, 0.1);
-            }
-
-            &:not(.divider):hover {
-                background-color: lightblue;
-            }
-
-            &.divider {
-                border-bottom: 1px solid rgba(0, 0, 0, 0.3);
-                padding-top: 0.25rem;
-                padding-bottom: 0;
-                margin-bottom: 0.25rem;
-            }
-
-            > span:has(+ svg) {
-                min-width: 5rem;
-            }
+        &:focus-visible {
+            outline: none;
         }
-    }
-
-    ul > li {
-        clear: left;
-        position: relative;
 
         ul {
-            display: none;
-            position: absolute;
-            left: 100%;
-            top: -1px;
+            border-radius: 5px;
+            background: white;
+            list-style: none;
+            padding: 0.5rem 0;
+            margin: 0;
+            width: max-content;
+
+            box-shadow: 0 0 13px rgba(0, 0, 0, 0.5);
+
+            li {
+                padding: 0.5rem 1.5rem;
+                cursor: pointer;
+
+                display: grid;
+                grid-template-columns: 1fr auto;
+                align-items: center;
+
+                &.selected {
+                    background-color: rgba(0, 0, 0, 0.1);
+                }
+
+                &:not(.divider):hover {
+                    background-color: lightblue;
+                }
+
+                &.divider {
+                    border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+                    padding-top: 0.25rem;
+                    padding-bottom: 0;
+                    margin-bottom: 0.25rem;
+                }
+
+                > span:has(+ svg) {
+                    min-width: 5rem;
+                }
+            }
         }
 
-        &:hover > ul {
-            display: flex;
-            flex-direction: column;
+        ul > li {
+            clear: left;
+            position: relative;
+
+            ul {
+                display: none;
+                position: absolute;
+                left: 100%;
+                top: -1px;
+            }
+
+            &:hover > ul {
+                display: flex;
+                flex-direction: column;
+            }
         }
     }
 }

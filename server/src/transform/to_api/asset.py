@@ -27,7 +27,7 @@ def transform_asset(
             )
         # We check if there are any assets that were shared with us that are located in this folder
         for child in AssetShare.select().where(
-            (AssetShare.parent == asset) & (AssetShare.user == user)
+            (AssetShare.parent == asset) & (AssetShare.user == user)  # type: ignore
         ):
             pydantic_children.append(
                 transform_asset(

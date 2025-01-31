@@ -1,7 +1,7 @@
-import { registerSystem } from "..";
-import type { System } from "..";
 import type { ApiShape } from "../../../apiTypes";
 import type { GlobalPoint } from "../../../core/geometry";
+import { registerSystem } from "../../../core/systems";
+import type { System } from "../../../core/systems";
 
 import { clipboardState } from "./state";
 

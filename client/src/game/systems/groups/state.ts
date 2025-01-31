@@ -1,5 +1,5 @@
-import { type LocalId } from "../../id";
-import { buildState } from "../state";
+import { type LocalId } from "../../../core/id";
+import { buildState } from "../../../core/systems/state";
 
 import type { Group } from "./models";
 

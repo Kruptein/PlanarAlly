@@ -1,9 +1,9 @@
 import { getUnitDistance } from "../../core/conversions";
 import { equalsP } from "../../core/geometry";
+import type { LocalId } from "../../core/id";
 import { Store } from "../../core/store";
 import { sendLocationOption } from "../api/emits/location";
 import { getShape } from "../id";
-import type { LocalId } from "../id";
 import type { IShape } from "../interfaces/shape";
 import type { IAsset } from "../interfaces/shapes/asset";
 import type { FloorId, LayerName } from "../models/floor";

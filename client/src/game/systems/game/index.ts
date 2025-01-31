@@ -1,6 +1,5 @@
-import { registerSystem } from "..";
-import type { System } from "..";
-import type { AssetListMap } from "../../../core/models/types";
+import { registerSystem } from "../../../core/systems";
+import type { System } from "../../../core/systems";
 import { sendRoomLock } from "../../api/emits/room";
 import { updateFogColour } from "../../colour";
 import { floorSystem } from "../floors";
@@ -53,10 +52,6 @@ class GameSystem implements System {
     setIsLocked(isLocked: boolean, sync: boolean): void {
         $.isLocked = isLocked;
         if (sync) sendRoomLock(isLocked);
-    }
-
-    setAssets(assets: AssetListMap): void {
-        $.assets = assets;
     }
 }
 

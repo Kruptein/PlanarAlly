@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
 
-import { baseAdjust } from "../../../core/http";
+import { getImageSrcFromHash } from "../../../assets/utils";
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { setCenterPosition } from "../../position";
 import { characterSystem } from "../../systems/characters";
@@ -9,6 +10,8 @@ import { sendRemoveCharacter } from "../../systems/characters/emits";
 import type { CharacterId } from "../../systems/characters/models";
 import { characterState } from "../../systems/characters/state";
 import { gameState } from "../../systems/game/state";
+
+const { t } = useI18n();
 
 const modals = useModal();
 
@@ -50,7 +53,7 @@ async function remove(characterId: CharacterId): Promise<void> {
 </script>
 
 <template>
-    <button class="menu-accordion">Characters</button>
+    <button class="menu-accordion">{{ t("game.ui.menu.MenuBar.characters") }}</button>
     <div class="menu-accordion-panel">
         <div class="menu-accordion-subpanel" style="position: relative">
             <div
@@ -66,9 +69,9 @@ async function remove(characterId: CharacterId): Promise<void> {
                 {{ characterState.readonly.characters.get(char)?.name ?? "??" }}
                 <span class="remove" title="Remove character" @click.stop="remove(char)">X</span>
             </div>
-            <div v-if="!characterState.reactive.characterIds.size">No characters</div>
+            <div v-if="!characterState.reactive.characterIds.size">{{ t("game.ui.menu.MenuBar.no_characters") }}</div>
             <div v-if="charAsset !== undefined" class="preview">
-                <img class="asset-preview-image" :src="baseAdjust('/static/assets/' + charAsset.assetHash)" alt="" />
+                <img class="asset-preview-image" :src="getImageSrcFromHash(charAsset.assetHash)" alt="" />
             </div>
         </div>
     </div>

@@ -10,6 +10,13 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+## [2025.1.1] - 2025-02-08
+
+### Fixed
+
+-   pydantic version patched to 1.10.18 to fix windows build
+-   [server] docker server config did not have new keys
+
 ## [2025.1] - 2025-01-31
 
 ### Added

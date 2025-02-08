@@ -7,5 +7,5 @@ pillow==11.0.0
 python-engineio==4.9.1
 python-socketio==5.11.4
 peewee==3.17.5
-pydantic==1.10.13
+pydantic==1.10.18
 typing_extensions==4.12.2

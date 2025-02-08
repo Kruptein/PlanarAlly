@@ -150,9 +150,22 @@ workflows:
                       tags:
                           only: /^v\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
             - build-windows:
+                  # These need to be repeated for the tags for some reason
+                  filters:
+                      branches:
+                          #   only: ci-test  # MAKE SURE TO CONDITION OR RENAME UPLOADED FILES TO GITHUB!!
+                          ignore: /.*/
+                      tags:
+                          only: /^v\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
                   requires:
                       - build-client
             - release-server:
+                  filters:
+                      branches:
+                          #   only: ci-test  # MAKE SURE TO CONDITION OR RENAME UPLOADED FILES TO GITHUB!!
+                          ignore: /.*/
+                      tags:
+                          only: /^v\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
                   requires:
                       - build-client
     windows-test-build:

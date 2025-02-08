@@ -108,26 +108,6 @@ jobs:
 
             - run: python -m pip install nuitka
 
-            # - run:
-            #       name: Install pyinstaller
-            #       command: python -m pip install pyinstaller
-
-            # - run:
-            #       name: Download PyInstaller
-            #       command: Invoke-WebRequest https://github.com/pyinstaller/pyinstaller/archive/refs/tags/v5.6.2.zip -OutFile .\pyinstaller.zip
-
-            # - run: unzip.exe .\pyinstaller.zip
-
-            # - run:
-            #       name: Compile bootloader
-            #       command: cd .\pyinstaller-5.6.2\bootloader; if ($?) { python .\waf all }
-
-            # - run: cd .\pyinstaller-5.6.2; if ($?) {python .\setup.py install}
-
-            # - run:
-            #       name: Run pyinstaller
-            #       command: pyinstaller --clean -y --dist C:\Users\circleci\dist\ PA.spec
-
             - run: python -m nuitka --standalone --assume-yes-for-downloads --include-data-files=VERSION=VERSION --include-data-files=server_config.cfg=server_config.cfg --include-data-dir=static=static --include-data-dir=templates=templates --windows-icon-from-ico=static/favicon.ico ./planarally.py
 
             - run:
@@ -136,34 +116,32 @@ jobs:
                       $VERSION=$(Get-Content -TotalCount 1 VERSION)
                       Compress-Archive -Path .\planarally.dist -DestinationPath C:\Users\circleci\archives\planarally-windows-${VERSION}.zip
 
-            - run:
-                  name: Install ghr
-                  command: go install github.com/tcnksm/ghr@latest
+            - when:
+                  condition:
+                      not:
+                          equal: ["api", << pipeline.trigger_source >>]
+                  steps:
+                      - run:
+                            name: Install ghr
+                            command: go install github.com/tcnksm/ghr@latest
+                      - run:
+                            name: Publish release on github
+                            command: |
+                                $VERSION=$(Get-Content -TotalCount 1 VERSION)
+                                ~\go\bin\ghr.exe -t $env:GITHUB_TOKEN -u $env:CIRCLE_PROJECT_USERNAME -r $env:CIRCLE_PROJECT_REPONAME -c $env:CIRCLE_SHA1 -replace $VERSION C:\Users\circleci\archives
 
-            # - when:
-            #       condition:
-            #           not:
-            #               equal: [ci-test, << pipeline.git.branch >>]
-            #       steps:
-            - run:
-                  name: Publish release on github
-                  command: |
-                      $VERSION=$(Get-Content -TotalCount 1 VERSION)
-                      ~\go\bin\ghr.exe -t $env:GITHUB_TOKEN -u $env:CIRCLE_PROJECT_USERNAME -r $env:CIRCLE_PROJECT_REPONAME -c $env:CIRCLE_SHA1 -replace $VERSION C:\Users\circleci\archives
+            - when:
+                  condition:
+                      equal: ["api", << pipeline.trigger_source >>]
+                  steps:
+                      - store_artifacts:
+                            path: C:\Users\circleci\archives
+                            destination: archives
 
 workflows:
     version: 2
     build:
         jobs:
-            - build-windows:
-                  requires:
-                      - build-client
-                  filters:
-                      branches:
-                          #   only: ci-test  # MAKE SURE TO CONDITION OR RENAME UPLOADED FILES TO GITHUB!!
-                          ignore: /.*/
-                      tags:
-                          only: /^v\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
             - build-client:
                   filters:
                       branches:
@@ -171,12 +149,31 @@ workflows:
                           ignore: /.*/
                       tags:
                           only: /^v\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
-            - release-server:
-                  requires:
-                      - build-client
+            - build-windows:
+                  # These need to be repeated for the tags for some reason
                   filters:
                       branches:
                           #   only: ci-test  # MAKE SURE TO CONDITION OR RENAME UPLOADED FILES TO GITHUB!!
                           ignore: /.*/
                       tags:
                           only: /^v\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
+                  requires:
+                      - build-client
+            - release-server:
+                  filters:
+                      branches:
+                          #   only: ci-test  # MAKE SURE TO CONDITION OR RENAME UPLOADED FILES TO GITHUB!!
+                          ignore: /.*/
+                      tags:
+                          only: /^v\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
+                  requires:
+                      - build-client
+    windows-test-build:
+        when:
+            # Only manual trigger from circle webapp
+            equal: ["api", << pipeline.trigger_source >>]
+        jobs:
+            - build-client
+            - build-windows:
+                  requires:
+                      - build-client

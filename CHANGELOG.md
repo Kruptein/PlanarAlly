@@ -10,6 +10,10 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Fixed
+
+-   Draw tool polygon was not updating vision until shape completion
+
 ## [2025.1.1] - 2025-02-08
 
 ### Fixed

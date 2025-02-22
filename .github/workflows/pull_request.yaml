@@ -4,70 +4,52 @@ concurrency:
     group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
     cancel-in-progress: true
 jobs:
-    CLIENT-build:
+    CLIENT-setup:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
-            - name: Use Node.js 20.x
+            - name: Use Node.js 22.x
               uses: actions/setup-node@v4
               with:
-                  node-version: 20.x
+                  node-version: 22.x
+                  cache: "npm"
+                  cache-dependency-path: client/package-lock.json
+
             - name: npm i
               working-directory: client
-              run: |
-                  npm install
-            - name: build
-              working-directory: client
-              run: |
-                  npm run build:ci
-    CLIENT-format:
+              run: npm ci
+
+            - name: cache deps
+              uses: actions/cache/save@v4
+              with:
+                  path: client/node_modules
+                  key: client-${{ runner.os }}-${{ hashFiles('client/package-lock.json') }}
+                  restore-keys: client-${{ runner.os }}-
+
+    CLIENT-checks:
+        needs: CLIENT-setup
         runs-on: ubuntu-latest
+        strategy:
+            fail-fast: true
+            matrix:
+                check: ["build:ci", "format:ci", "lint:ci", "test"]
         steps:
             - uses: actions/checkout@v4
-            - name: Use Node.js 20.x
+            - name: Restore deps
+              uses: actions/cache/restore@v4
+              with:
+                  path: client/node_modules
+                  key: client-${{ runner.os }}-${{ hashFiles('client/package-lock.json') }}
+
+            - name: Use Node.js 22.x
               uses: actions/setup-node@v4
               with:
-                  node-version: 20.x
-            - name: npm i
+                  node-version: 22.x
+
+            - name: Run ${{ matrix.check }}
               working-directory: client
-              run: |
-                  npm install
-            - name: lint
-              working-directory: client
-              run: |
-                  npm run format:ci
-    CLIENT-lint:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-            - name: Use Node.js 20.x
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 20.x
-            - name: npm i
-              working-directory: client
-              run: |
-                  npm install
-            - name: lint
-              working-directory: client
-              run: |
-                  npm run lint:ci
-    CLIENT-test:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-            - name: Use Node.js 20.x
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 20.x
-            - name: npm i
-              working-directory: client
-              run: |
-                  npm install
-            - name: test
-              working-directory: client
-              run: |
-                  npm run test
+              run: npm run ${{ matrix.check }}
+
     SERVER:
         runs-on: ubuntu-latest
         steps:

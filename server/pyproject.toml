@@ -10,7 +10,7 @@ dependencies = [
     "aiohttp-security==0.5.0",
     "aiohttp-session==2.12.1",
     "bcrypt==4.2.0",
-    "cryptography==43.0.1",
+    "cryptography==44.0.1",
     "peewee==3.17.5",
     "pillow==11.0.0",
     "pydantic==1.10.18",

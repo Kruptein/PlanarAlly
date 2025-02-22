@@ -20,7 +20,7 @@ const useHighDpi = useClientSettings("useHighDpi");
             <div><input id="useHighDpi" v-model="useHighDpi" type="checkbox" /></div>
             <OverrideReset setting="useHighDpi" />
         </div>
-        <div class="spanrow header">{{ t('game.ui.settings.client.DisplaySettings.Gameboard') }}</div>
+        <div class="spanrow header">{{ t("game.ui.settings.client.DisplaySettings.Gameboard") }}</div>
         <div class="row">
             <label for="useAsPhysicalBoard">
                 {{ t("game.ui.settings.client.DisplaySettings.use_as_physical_gameboard") }}
@@ -44,7 +44,7 @@ const useHighDpi = useClientSettings("useHighDpi");
             </div>
             <OverrideReset setting="ppi" />
         </div>
-        <div class="spanrow header">{{ t('common.grid') }}</div>
+        <div class="spanrow header">{{ t("common.grid") }}</div>
         <div class="row" :class="{ 'row-disabled': useAsPhysicalBoard }">
             <label for="gridSize">{{ t("game.ui.settings.client.DisplaySettings.grid_size_in_pixels") }}</label>
             <div>

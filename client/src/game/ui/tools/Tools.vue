@@ -105,14 +105,14 @@ function toggleFakePlayer(): void {
                         :title="t('game.ui.tools.tools.FP_title')"
                         @click="toggleFakePlayer"
                     >
-                        {{ t('game.ui.tools.tools.FP') }}
+                        {{ t("game.ui.tools.tools.FP") }}
                     </div>
                     <div
                         :class="{ active: initiativeStore.state.isActive }"
                         :title="t('game.ui.tools.tools.INI_title')"
                         @click="initiativeStore.toggleActive"
                     >
-                        {{ t('game.ui.tools.tools.INI') }}
+                        {{ t("game.ui.tools.tools.INI") }}
                     </div>
                 </div>
                 <div style="flex-grow: 1"></div>

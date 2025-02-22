@@ -160,18 +160,29 @@ function windowToggle(windowed: boolean): void {
                         :icon="['far', 'square-plus']"
                         @click="expand"
                     />
-                    <font-awesome-icon v-else :icon="['far', 'square-minus']" :title="t('game.ui.notes.NoteDialog.collapse')" @click="collapse" />
+                    <font-awesome-icon
+                        v-else
+                        :icon="['far', 'square-minus']"
+                        :title="t('game.ui.notes.NoteDialog.collapse')"
+                        @click="collapse"
+                    />
                     <font-awesome-icon
                         :icon="['far', 'window-restore']"
                         :title="`${isWindowed ? t('game.ui.notes.NoteDialog.restore') : t('game.ui.notes.NoteDialog.pop_out')}`"
                         @click="m.toggleWindow"
                     />
-                    <font-awesome-icon :icon="['far', 'window-close']" :title="t('game.ui.notes.NoteDialog.close')" @click="close" />
+                    <font-awesome-icon
+                        :icon="['far', 'window-close']"
+                        :title="t('game.ui.notes.NoteDialog.close')"
+                        @click="close"
+                    />
                 </div>
                 <div>
-                    <div v-if="!editing" @click="editing = true">[{{ canEdit ? t('game.ui.notes.NoteDialog.edit') : t('game.ui.notes.NoteDialog.view_source') }}]</div>
-                    <div v-else @click="editing = false">[{{ t('game.ui.notes.NoteDialog.show') }}]</div>
-                    <div @click.stop="editNote(uuid)">[{{ t('game.ui.notes.NoteDialog.open_in_manager') }}]</div>
+                    <div v-if="!editing" @click="editing = true">
+                        [{{ canEdit ? t("game.ui.notes.NoteDialog.edit") : t("game.ui.notes.NoteDialog.view_source") }}]
+                    </div>
+                    <div v-else @click="editing = false">[{{ t("game.ui.notes.NoteDialog.show") }}]</div>
+                    <div @click.stop="editNote(uuid)">[{{ t("game.ui.notes.NoteDialog.open_in_manager") }}]</div>
                 </div>
             </header>
         </template>

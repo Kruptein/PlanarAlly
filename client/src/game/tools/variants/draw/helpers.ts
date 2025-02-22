@@ -1,7 +1,11 @@
 import { Colour } from "../../../colour";
 import { VisionBlock } from "../../../systems/properties/types";
 
-export function getDrawColours(blocksVision: VisionBlock, blocksMovement: boolean, isDoor: boolean): Colour | undefined {
+export function getDrawColours(
+    blocksVision: VisionBlock,
+    blocksMovement: boolean,
+    isDoor: boolean,
+): Colour | undefined {
     // If it's a door, apply door colours
     if (isDoor) {
         return Colour.Door;

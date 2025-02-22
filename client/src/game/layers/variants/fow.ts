@@ -15,7 +15,12 @@ export class FowLayer extends Layer {
     vCtx: CanvasRenderingContext2D;
     isEmpty = false;
 
-    constructor(canvas: HTMLCanvasElement, public name: LayerName, public floor: FloorId, protected index: number) {
+    constructor(
+        canvas: HTMLCanvasElement,
+        public name: LayerName,
+        public floor: FloorId,
+        protected index: number,
+    ) {
         super(canvas, name, floor, index);
         this.virtualCanvas = createCanvas();
         this.vCtx = this.virtualCanvas.getContext("2d")!;

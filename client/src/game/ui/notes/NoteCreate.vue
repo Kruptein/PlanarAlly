@@ -48,31 +48,37 @@ async function createNote(): Promise<void> {
 <template>
     <header>
         <span id="return" title="Back to list" @click="$emit('mode', NoteManagerMode.List)">↩</span>
-        {{ t('game.ui.notes.NoteCreate.header') }}
+        {{ t("game.ui.notes.NoteCreate.header") }}
     </header>
     <div id="create-note">
-        <label for="new-note-title">{{ t('game.ui.notes.NoteCreate.title') }}</label>
-        <input id="new-note-title" v-model="title" type="text" :placeholder="t('game.ui.notes.NoteCreate.title_placeholder')" autofocus />
-        <label for="new-note-type">{{ t('game.ui.notes.NoteCreate.type') }}</label>
+        <label for="new-note-title">{{ t("game.ui.notes.NoteCreate.title") }}</label>
+        <input
+            id="new-note-title"
+            v-model="title"
+            type="text"
+            :placeholder="t('game.ui.notes.NoteCreate.title_placeholder')"
+            autofocus
+        />
+        <label for="new-note-type">{{ t("game.ui.notes.NoteCreate.type") }}</label>
         <div @click="isLocal = true">
             <input type="radio" name="new-note-type" value="local" :checked="isLocal" />
             <div>
-                <div>{{ t('game.ui.notes.NoteCreate.local_note_title') }}</div>
+                <div>{{ t("game.ui.notes.NoteCreate.local_note_title") }}</div>
                 <div>
-                    {{ t('game.ui.notes.NoteCreate.local_note_body') }}
+                    {{ t("game.ui.notes.NoteCreate.local_note_body") }}
                 </div>
             </div>
         </div>
         <div @click="isLocal = false">
             <input type="radio" name="new-note-type" value="global" :checked="!isLocal" />
             <div>
-                <div>{{ t('game.ui.notes.NoteCreate.global_note_title') }}</div>
+                <div>{{ t("game.ui.notes.NoteCreate.global_note_title") }}</div>
                 <div>
-                    {{ t('game.ui.notes.NoteCreate.global_note_body') }}
+                    {{ t("game.ui.notes.NoteCreate.global_note_body") }}
                 </div>
             </div>
         </div>
-        <button @click="createNote">{{ t('game.ui.menu.MenuBar.create_note') }}</button>
+        <button @click="createNote">{{ t("game.ui.menu.MenuBar.create_note") }}</button>
     </div>
 </template>
 

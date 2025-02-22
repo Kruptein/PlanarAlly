@@ -471,7 +471,9 @@ input[type="number"] {
     .body {
         background: #fff;
         border-radius: 2px;
-        box-shadow: 0 0 2px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(0, 0, 0, 0.3);
+        box-shadow:
+            0 0 2px rgba(0, 0, 0, 0.3),
+            0 4px 8px rgba(0, 0, 0, 0.3);
 
         .checker {
             background: repeating-conic-gradient(lightgray 0% 25%, transparent 0% 50%) 50% / 10px 10px;
@@ -599,7 +601,10 @@ input[type="number"] {
             cursor: pointer;
             width: 8px;
             height: 8px;
-            box-shadow: 0 0 0 1.5px #fff, inset 0 0 1px 1px rgba(0, 0, 0, 0.3), 0 0 1px 2px rgba(0, 0, 0, 0.4);
+            box-shadow:
+                0 0 0 1.5px #fff,
+                inset 0 0 1px 1px rgba(0, 0, 0, 0.3),
+                0 0 1px 2px rgba(0, 0, 0, 0.4);
             border-radius: 50%;
             transform: translate(-2px, -2px);
         }

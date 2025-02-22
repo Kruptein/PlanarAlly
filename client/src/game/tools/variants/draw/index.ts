@@ -147,7 +147,11 @@ class DrawTool extends Tool implements ITool {
             () => {
                 if (this.brushHelper) {
                     propertiesSystem.setFillColour(this.brushHelper.id, this.colours.value.fill, NO_SYNC);
-                    propertiesSystem.setStrokeColour(this.brushHelper.id, mostReadable(this.colours.value.fill), NO_SYNC);
+                    propertiesSystem.setStrokeColour(
+                        this.brushHelper.id,
+                        mostReadable(this.colours.value.fill),
+                        NO_SYNC,
+                    );
                 }
             },
         );

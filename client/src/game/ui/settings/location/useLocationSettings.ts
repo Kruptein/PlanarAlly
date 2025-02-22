@@ -10,7 +10,10 @@ export function useLocationSettings<T extends keyof LocationOptions>(
 ): WritableComputedRef<LocationOptions[T] | undefined> {
     return computed<LocationOptions[T] | undefined>({
         get() {
-            return locationSettingsState.getOption(locationSettingsState.reactive[setting] as WithLocationDefault<LocationOptions[T]>, location.value).value;
+            return locationSettingsState.getOption(
+                locationSettingsState.reactive[setting] as WithLocationDefault<LocationOptions[T]>,
+                location.value,
+            ).value;
         },
         set(value: LocationOptions[T] | undefined) {
             locationSettingsSystem.getSetter(setting)(value, location.value, true);

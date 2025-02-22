@@ -71,11 +71,8 @@ const dropRatio = useLocationSettings("dropRatio", location);
         </ResetWrapper>
         <ResetWrapper :global="global" :location="location" setting="dropRatio">
             <div>
-                <label
-                    :for="'dropRatioInput-' + location"
-                    :title="t('game.ui.settings.GridSettings.drop_ratio_title')"
-                >
-                    {{ t('game.ui.settings.GridSettings.drop_ratio') }}
+                <label :for="'dropRatioInput-' + location" :title="t('game.ui.settings.GridSettings.drop_ratio_title')">
+                    {{ t("game.ui.settings.GridSettings.drop_ratio") }}
                 </label>
             </div>
             <div>

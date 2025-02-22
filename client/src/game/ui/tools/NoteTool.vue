@@ -47,9 +47,9 @@ function attach(): void {
 
 <template>
     <div id="note-pin-helper">
-        <header>{{ t('game.ui.tools.NoteTool.header') }}</header>
-        <div>{{ t('game.ui.tools.NoteTool.line1') }}</div>
-        <div>{{ t('game.ui.tools.NoteTool.line2') }}</div>
+        <header>{{ t("game.ui.tools.NoteTool.header") }}</header>
+        <div>{{ t("game.ui.tools.NoteTool.line1") }}</div>
+        <div>{{ t("game.ui.tools.NoteTool.line2") }}</div>
         <div style="margin-top: 1rem; display: flex; justify-content: flex-end">
             <div v-show="shapeAlreadyHooked" style="color: red">Shape already attached.</div>
             <button
@@ -57,9 +57,9 @@ function attach(): void {
                 :disabled="selectedShape === undefined || shapeAlreadyHooked"
                 @click="attach"
             >
-                {{ t('common.confirm') }}
+                {{ t("common.confirm") }}
             </button>
-            <button @click="close">{{ t('common.cancel') }}</button>
+            <button @click="close">{{ t("common.cancel") }}</button>
         </div>
     </div>
 </template>

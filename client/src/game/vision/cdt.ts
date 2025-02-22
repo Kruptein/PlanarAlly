@@ -751,17 +751,17 @@ export class CDT {
         while (!ei.valid) ei.next();
         do {
             const edge = ei.edge;
-            const u = edge.first!.vertices[0]!
+            const u = edge.first!.vertices[0]!;
             const v = edge.first!.vertices[1]!;
             if (xyEqual(p, v.point!)) {
-                return {loc: edge.first!, lt: LocateType.VERTEX, li: 1}
+                return { loc: edge.first!, lt: LocateType.VERTEX, li: 1 };
             }
             if (collinearBetween(u.point!, p, v.point!)) {
-                return {loc: edge.first!, lt: LocateType.EDGE, li: 2}
+                return { loc: edge.first!, lt: LocateType.EDGE, li: 2 };
             }
             ei.next();
         } while (ei.valid);
-        
+
         throw new Error("Vision Error (marchLocate1D)");
     }
 

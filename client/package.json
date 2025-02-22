@@ -10,6 +10,8 @@
         "build:prep": "npm run clean",
         "build": "npm run build:prep && vite build && mv ../server/index.html ../server/templates/index.html",
         "build:ci": "npm run build:prep && npm run vue-tsc && vite build --outDir dist",
+        "format": "prettier --write src",
+        "format:ci": "prettier --check src",
         "lint": "eslint src --fix --ext .ts,.vue",
         "lint:ci": "CI=1 eslint src --no-fix --ext .ts,.vue",
         "vue-tsc": "vue-tsc --noEmit",

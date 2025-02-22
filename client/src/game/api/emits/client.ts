@@ -37,7 +37,7 @@ export function sendRoomClientOptions<T extends keyof ApiUserOptions>(
     defaultValue: ApiUserOptions[T] | undefined,
 ): void {
     const event = defaultValue !== undefined ? "Client.Options.Default.Set" : "Client.Options.Room.Set";
-    const val = defaultValue !== undefined ? defaultValue : value ?? null;
+    const val = defaultValue !== undefined ? defaultValue : (value ?? null);
     const data: Partial<ApiOptionalUserOptions> = { [key]: val };
     socket.emit(event, data);
 }

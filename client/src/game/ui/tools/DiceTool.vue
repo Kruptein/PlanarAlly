@@ -25,8 +25,14 @@ const shareResultOptions = ["all", "dm", "none"] as const;
 const shareResult = ref<(typeof shareResultOptions)[number]>("all");
 
 const breakdownDetailOptions = ["detailed", "simple"] as const;
-const breakdownDetailOptionHistory = ref<(typeof breakdownDetailOptions)[number]>(localStorage.getItem("diceTool.breakdownDetailOptionHistory") as (typeof breakdownDetailOptions)[number] ?? "detailed");
-const breakdownDetailOptionLastRoll = ref<(typeof breakdownDetailOptions)[number]>(localStorage.getItem("diceTool.breakdownDetailOptionLastRoll") as (typeof breakdownDetailOptions)[number] ?? "detailed");
+const breakdownDetailOptionHistory = ref<(typeof breakdownDetailOptions)[number]>(
+    (localStorage.getItem("diceTool.breakdownDetailOptionHistory") as (typeof breakdownDetailOptions)[number]) ??
+        "detailed",
+);
+const breakdownDetailOptionLastRoll = ref<(typeof breakdownDetailOptions)[number]>(
+    (localStorage.getItem("diceTool.breakdownDetailOptionLastRoll") as (typeof breakdownDetailOptions)[number]) ??
+        "detailed",
+);
 
 // track if temporarily enabled via the option within a history item
 const enableDetailedHistoryBreakdown = ref(breakdownDetailOptionHistory.value === "detailed");
@@ -40,25 +46,28 @@ const inputElement = ref<HTMLInputElement | null>(null);
 
 const translationMapping = {
     dice3dOptions: {
-        ["off"]: t('game.ui.tools.DiceTool.3D_options.off'),
-        ["on"]: t('game.ui.tools.DiceTool.3D_options.on'),
-        ["box"]: t('game.ui.tools.DiceTool.3D_options.box'),
+        ["off"]: t("game.ui.tools.DiceTool.3D_options.off"),
+        ["on"]: t("game.ui.tools.DiceTool.3D_options.on"),
+        ["box"]: t("game.ui.tools.DiceTool.3D_options.box"),
     },
     shareResultOptions: {
-        ["all"]: t('game.ui.tools.DiceTool.share_options.all'),
-        ["dm"]: t('game.ui.tools.DiceTool.share_options.dm'),
-        ["none"]: t('game.ui.tools.DiceTool.share_options.none'),
+        ["all"]: t("game.ui.tools.DiceTool.share_options.all"),
+        ["dm"]: t("game.ui.tools.DiceTool.share_options.dm"),
+        ["none"]: t("game.ui.tools.DiceTool.share_options.none"),
     },
     breakdownDetailOptions: {
-        ["detailed"]: t('game.ui.tools.DiceTool.breakdown_options.detailed'),
-        ["simple"]: t('game.ui.tools.DiceTool.breakdown_options.simple'),
+        ["detailed"]: t("game.ui.tools.DiceTool.breakdown_options.detailed"),
+        ["simple"]: t("game.ui.tools.DiceTool.breakdown_options.simple"),
     },
-}
+};
 
 const showOptionsSubmenu = ref(false);
 const awaitingRoll = ref(false);
 const awaiting3dLoad = ref(false);
-const lastRoll = ref<RollResult<Part>>({ result: "-", parts: [{ input: undefined, shortResult: t('game.ui.tools.DiceTool.empty_history') }] });
+const lastRoll = ref<RollResult<Part>>({
+    result: "-",
+    parts: [{ input: undefined, shortResult: t("game.ui.tools.DiceTool.empty_history") }],
+});
 
 const literalOptions = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ...DxConfig.symbolOptions] as const;
 
@@ -107,14 +116,18 @@ const showSelector = computed(() => {
 });
 
 const inputText = ref("");
-watch(input, async (parts) => {
-    inputText.value = DxHelper.stringifySegments(parts);
-    await nextTick();
-    inputElement.value!.scrollLeft = inputElement.value!.scrollWidth;
-}, { deep: true });
+watch(
+    input,
+    async (parts) => {
+        inputText.value = DxHelper.stringifySegments(parts);
+        await nextTick();
+        inputElement.value!.scrollLeft = inputElement.value!.scrollWidth;
+    },
+    { deep: true },
+);
 
 function scrollToHistoryEntry(element: Element): void {
-    element.scrollIntoView({ block: 'end', behavior: 'smooth' });
+    element.scrollIntoView({ block: "end", behavior: "smooth" });
 }
 
 function clear(): void {
@@ -140,7 +153,7 @@ function addSelector(selector: (typeof DxConfig.selectorOptions)[number]): void 
 }
 
 function addLiteral(literal: (typeof literalOptions)[number]): void {
-    const literalAsOperator = literal as (typeof DxConfig.symbolOptions[number]);
+    const literalAsOperator = literal as (typeof DxConfig.symbolOptions)[number];
 
     if (DxConfig.symbolOptions.includes(literalAsOperator)) {
         input.value.push({ type: DxSegmentType.Operator, input: literalAsOperator });
@@ -207,9 +220,7 @@ async function roll(): Promise<void> {
         <div id="lastroll-container" class="history-breakdown">
             <div id="lastroll-result">
                 <Transition :name="awaitingRoll ? 'fast-fade' : 'get-result'" mode="out-in">
-                    <div v-if="awaitingRoll">
-                        -
-                    </div>
+                    <div v-if="awaitingRoll">-</div>
                     <div v-else>
                         {{ lastRoll.result }}
                     </div>
@@ -218,22 +229,25 @@ async function roll(): Promise<void> {
             <div class="breakdown-scroll-container">
                 <Transition name="fast-fade" mode="out-in">
                     <div v-if="awaitingRoll" class="breakdown-flex-container">
-                        <div style="font-style: italic">{{ t('game.ui.tools.DiceTool.rolling') }}</div>
+                        <div style="font-style: italic">{{ t("game.ui.tools.DiceTool.rolling") }}</div>
                     </div>
                     <div v-else class="breakdown-flex-container">
-                        <div
-                            v-for="[index, part] of lastRoll.parts.entries()"
-                            :key="index"
-                        >
-                            <div v-if="lastRoll.result === '-'" style="font-style: italic"> <!-- starting state -->
+                        <div v-for="[index, part] of lastRoll.parts.entries()" :key="index">
+                            <div v-if="lastRoll.result === '-'" style="font-style: italic">
+                                <!-- starting state -->
                                 {{ part.shortResult }}
                             </div>
                             <div v-else-if="part.longResult" class="dice-result" :title="part.longResult">
                                 <div class="input">{{ part.input ?? "" }}</div>
-                                <div v-if="breakdownDetailOptionLastRoll === 'detailed'" class="ops">{{ '(' + part.longResult.replaceAll(',', ' + ') + ')' }}</div>
+                                <div v-if="breakdownDetailOptionLastRoll === 'detailed'" class="ops">
+                                    {{ "(" + part.longResult.replaceAll(",", " + ") + ")" }}
+                                </div>
                                 <div class="value">{{ part.shortResult }}</div>
                             </div>
-                            <div v-else-if="part.shortResult === '+' || part.shortResult === '-'" class="operator-result">
+                            <div
+                                v-else-if="part.shortResult === '+' || part.shortResult === '-'"
+                                class="operator-result"
+                            >
                                 {{ part.shortResult }}
                             </div>
                             <div v-else class="literal-result">
@@ -244,13 +258,18 @@ async function roll(): Promise<void> {
                 </Transition>
             </div>
         </div>
-        <div class="drawer-toggle" :title="t('game.ui.tools.DiceTool.full_history_title')" @click="showRollHistory = !showRollHistory">
-            <div class="toggle-label">{{ t('game.ui.tools.DiceTool.full_history') }}</div>
+        <div
+            class="drawer-toggle"
+            :title="t('game.ui.tools.DiceTool.full_history_title')"
+            @click="showRollHistory = !showRollHistory"
+        >
+            <div class="toggle-label">{{ t("game.ui.tools.DiceTool.full_history") }}</div>
             <font-awesome-icon class="toggle-chevron" :icon="showRollHistory ? 'minus' : 'plus'" />
         </div>
         <div class="drawer-transition-wrapper">
             <Transition name="drawer-expand">
-                <div v-show="showRollHistory" id="dice-history-drawer" class="drawer"> <!--Make scrollbar conform to border-radius-->
+                <div v-show="showRollHistory" id="dice-history-drawer" class="drawer">
+                    <!--Make scrollbar conform to border-radius-->
                     <div id="dice-history">
                         <div
                             v-for="[i, { name, roll: historyRoll, player }] of diceState.reactive.history.entries()"
@@ -267,28 +286,45 @@ async function roll(): Promise<void> {
                                 <div class="history-grid-input">{{ name }}</div>
                                 <div class="history-grid-result">{{ historyRoll.result }}</div>
                                 <div class="toggle-chevron">
-                                    <font-awesome-icon :icon="showHistoryBreakdownFor === i ? 'chevron-up' : 'chevron-down'" />
+                                    <font-awesome-icon
+                                        :icon="showHistoryBreakdownFor === i ? 'chevron-up' : 'chevron-down'"
+                                    />
                                 </div>
                             </div>
-                            <div class="drawer-transition-wrapper" style="margin:0">
+                            <div class="drawer-transition-wrapper" style="margin: 0">
                                 <Transition name="drawer-expand" @after-enter="scrollToHistoryEntry">
                                     <div v-if="showHistoryBreakdownFor === i" class="history-breakdown">
                                         <div class="history-item-buttons">
-                                            <button class="detail-toggle-button" @click="enableDetailedHistoryBreakdown = !enableDetailedHistoryBreakdown">{{ t('game.ui.tools.DiceTool.details') }}</button>
-                                            <button class="reroll-button" @click="populateInputFromHistoryIndex(i)">{{ t('game.ui.tools.DiceTool.reroll') }}</button>
+                                            <button
+                                                class="detail-toggle-button"
+                                                @click="
+                                                    enableDetailedHistoryBreakdown = !enableDetailedHistoryBreakdown
+                                                "
+                                            >
+                                                {{ t("game.ui.tools.DiceTool.details") }}
+                                            </button>
+                                            <button class="reroll-button" @click="populateInputFromHistoryIndex(i)">
+                                                {{ t("game.ui.tools.DiceTool.reroll") }}
+                                            </button>
                                         </div>
                                         <div class="breakdown-scroll-container">
                                             <div class="breakdown-flex-container">
-                                                <div
-                                                    v-for="[index, part] of historyRoll.parts.entries()"
-                                                    :key="index"
-                                                >
-                                                    <div v-if="part.longResult" class="dice-result" :title="part.longResult">
+                                                <div v-for="[index, part] of historyRoll.parts.entries()" :key="index">
+                                                    <div
+                                                        v-if="part.longResult"
+                                                        class="dice-result"
+                                                        :title="part.longResult"
+                                                    >
                                                         <div class="input">{{ part.input ?? "" }}</div>
-                                                        <div v-if="enableDetailedHistoryBreakdown" class="ops">{{ '(' + part.longResult.replaceAll(',', ' + ') + ')' }}</div>
+                                                        <div v-if="enableDetailedHistoryBreakdown" class="ops">
+                                                            {{ "(" + part.longResult.replaceAll(",", " + ") + ")" }}
+                                                        </div>
                                                         <div class="value">{{ part.shortResult }}</div>
                                                     </div>
-                                                    <div v-else-if="part.shortResult === '+' || part.shortResult === '-'" class="operator-result">
+                                                    <div
+                                                        v-else-if="part.shortResult === '+' || part.shortResult === '-'"
+                                                        class="operator-result"
+                                                    >
                                                         {{ part.shortResult }}
                                                     </div>
                                                     <div v-else class="literal-result">
@@ -302,7 +338,7 @@ async function roll(): Promise<void> {
                             </div>
                         </div>
                         <div v-if="diceState.reactive.history.length === 0" id="dice-history-empty">
-                            {{ t('game.ui.tools.DiceTool.empty_history') }}
+                            {{ t("game.ui.tools.DiceTool.empty_history") }}
                         </div>
                     </div>
                 </div>
@@ -315,9 +351,9 @@ async function roll(): Promise<void> {
                 :enter-active-class="showOptionsSubmenu ? 'slide-left-enter-active' : 'slide-right-enter-active'"
                 :leave-to-class="showOptionsSubmenu ? 'slide-right-leave' : 'slide-left-leave'"
             >
-                <div v-if="!showOptionsSubmenu" id="common-options" >
+                <div v-if="!showOptionsSubmenu" id="common-options">
                     <div class="vertical-label-plus-group">
-                        <label>{{ t('game.ui.tools.DiceTool.3D_dice') }}</label>
+                        <label>{{ t("game.ui.tools.DiceTool.3D_dice") }}</label>
                         <ToggleGroup
                             v-model="dice3dSetting"
                             class="click-group"
@@ -327,7 +363,7 @@ async function roll(): Promise<void> {
                         />
                     </div>
                     <div class="vertical-label-plus-group">
-                        <label>{{ t('game.ui.tools.DiceTool.share') }}</label>
+                        <label>{{ t("game.ui.tools.DiceTool.share") }}</label>
                         <ToggleGroup
                             v-model="shareResult"
                             class="click-group"
@@ -335,42 +371,61 @@ async function roll(): Promise<void> {
                             :multi-select="false"
                         />
                     </div>
-                    <font-awesome-icon id="open-options-button" icon="cog" class="svg-button" :title="t('game.ui.tools.DiceTool.open_options_title')" @click="showOptionsSubmenu = true" />
+                    <font-awesome-icon
+                        id="open-options-button"
+                        icon="cog"
+                        class="svg-button"
+                        :title="t('game.ui.tools.DiceTool.open_options_title')"
+                        @click="showOptionsSubmenu = true"
+                    />
                 </div>
                 <div v-else id="options-submenu" class="drawer-transition-wrapper">
                     <div class="side-drawer">
                         <div class="vertical-label-plus-group">
-                            <label>{{ t('game.ui.tools.DiceTool.history') }}</label>
+                            <label>{{ t("game.ui.tools.DiceTool.history") }}</label>
                             <ToggleGroup
                                 v-model="breakdownDetailOptionHistory"
                                 class="click-group"
-                                :options="arrToToggleGroup(breakdownDetailOptions, translationMapping.breakdownDetailOptions)"
+                                :options="
+                                    arrToToggleGroup(breakdownDetailOptions, translationMapping.breakdownDetailOptions)
+                                "
                                 :multi-select="false"
                             />
                         </div>
                         <div class="vertical-label-plus-group">
-                            <label>{{ t('game.ui.tools.DiceTool.previous_roll') }}</label>
+                            <label>{{ t("game.ui.tools.DiceTool.previous_roll") }}</label>
                             <ToggleGroup
                                 v-model="breakdownDetailOptionLastRoll"
                                 class="click-group"
-                                :options="arrToToggleGroup(breakdownDetailOptions, translationMapping.breakdownDetailOptions)"
+                                :options="
+                                    arrToToggleGroup(breakdownDetailOptions, translationMapping.breakdownDetailOptions)
+                                "
                                 :multi-select="false"
                             />
                         </div>
-                        <font-awesome-icon id="close-options-button" icon="chevron-left" class="svg-button" @click="showOptionsSubmenu = false" />
+                        <font-awesome-icon
+                            id="close-options-button"
+                            icon="chevron-left"
+                            class="svg-button"
+                            @click="showOptionsSubmenu = false"
+                        />
                     </div>
                 </div>
             </Transition>
         </div>
-        <div class="drawer-toggle"  :title="t('game.ui.tools.DiceTool.toggle_advanced')" @click="showAdvancedOptions = !showAdvancedOptions">
-            <div class="toggle-label">{{ t('game.ui.tools.DiceTool.advanced') }}</div>
+        <div
+            class="drawer-toggle"
+            :title="t('game.ui.tools.DiceTool.toggle_advanced')"
+            @click="showAdvancedOptions = !showAdvancedOptions"
+        >
+            <div class="toggle-label">{{ t("game.ui.tools.DiceTool.advanced") }}</div>
             <font-awesome-icon class="toggle-chevron" :icon="showAdvancedOptions ? 'minus' : 'plus'" />
         </div>
         <div class="drawer-transition-wrapper">
             <Transition name="drawer-expand">
                 <div v-if="showAdvancedOptions" id="advanced-config-drawer" class="drawer">
                     <div class="label-plus-group">
-                        <label>{{ t('game.ui.tools.DiceTool.advanced_options.operators') }}</label>
+                        <label>{{ t("game.ui.tools.DiceTool.advanced_options.operators") }}</label>
                         <ClickGroup
                             class="click-group"
                             :options="DxConfig.limitOperatorOptions"
@@ -379,7 +434,7 @@ async function roll(): Promise<void> {
                         />
                     </div>
                     <div class="label-plus-group">
-                        <label>{{ t('game.ui.tools.DiceTool.advanced_options.selectors') }}</label>
+                        <label>{{ t("game.ui.tools.DiceTool.advanced_options.selectors") }}</label>
                         <ClickGroup
                             class="click-group"
                             :options="DxConfig.selectorOptions"
@@ -394,12 +449,7 @@ async function roll(): Promise<void> {
             <ClickGroup class="click-group" :options="literalOptions" @click="addLiteral" />
         </div>
         <div id="dice-selector">
-            <ClickGroup
-                class="click-group"
-                :options="DxConfig.addOptions"
-                :disabled="showSelector"
-                @click="addDie"
-            />
+            <ClickGroup class="click-group" :options="DxConfig.addOptions" :disabled="showSelector" @click="addDie" />
             <font-awesome-icon
                 id="reroll-previous-button"
                 :class="{ disabled: lastRoll.result === '-' }"
@@ -411,10 +461,30 @@ async function roll(): Promise<void> {
         </div>
         <div id="buttons">
             <div id="input-bar">
-                <input id="input" ref="inputElement" v-model="inputText" type="text" @change="updateFromString" @keyup.enter="roll" />
-                <font-awesome-icon v-show="inputText.length > 0" id="clear-input-icon" icon="circle-xmark" :title="t('game.ui.tools.DiceTool.clear_selection_title')" @click.stop="clear"/>
+                <input
+                    id="input"
+                    ref="inputElement"
+                    v-model="inputText"
+                    type="text"
+                    @change="updateFromString"
+                    @keyup.enter="roll"
+                />
+                <font-awesome-icon
+                    v-show="inputText.length > 0"
+                    id="clear-input-icon"
+                    icon="circle-xmark"
+                    :title="t('game.ui.tools.DiceTool.clear_selection_title')"
+                    @click.stop="clear"
+                />
             </div>
-            <font-awesome-icon id="roll-button" :class="{ disabled: inputText.length === 0 }" class="svg-button" icon="dice-six" :title="t('game.ui.tools.DiceTool.roll')" @click="roll" />
+            <font-awesome-icon
+                id="roll-button"
+                :class="{ disabled: inputText.length === 0 }"
+                class="svg-button"
+                icon="dice-six"
+                :title="t('game.ui.tools.DiceTool.roll')"
+                @click="roll"
+            />
         </div>
     </div>
 </template>
@@ -461,11 +531,12 @@ async function roll(): Promise<void> {
             cursor: auto;
         }
         &:active:not(.disabled) {
-            transform:scale(95%);
+            transform: scale(95%);
         }
         &.disabled {
-            transition: all 0.1s linear,
-                        opacity 0.1s linear 0.1s;
+            transition:
+                all 0.1s linear,
+                opacity 0.1s linear 0.1s;
             opacity: 25%;
         }
     }
@@ -507,10 +578,11 @@ async function roll(): Promise<void> {
             right: 0;
             top: 0;
             bottom: 0;
-            box-shadow: inset 0 8px 10px -10px black,
-                        inset 0 -5px 13px -13px black,
-                        inset 4px 0 13px -13px black,
-                        inset -4px 0 13px -13px black;
+            box-shadow:
+                inset 0 8px 10px -10px black,
+                inset 0 -5px 13px -13px black,
+                inset 4px 0 13px -13px black,
+                inset -4px 0 13px -13px black;
         }
 
         > .history-item-buttons {
@@ -577,21 +649,23 @@ async function roll(): Promise<void> {
     .side-drawer {
         padding-left: 1rem;
         padding-right: 1rem;
-        box-shadow: inset 0 5px 10px -10px black,
-                    inset 0 -3px 10px -10px black,
-                    inset 3px 0 10px -10px black,
-                    inset -3px 0 10px -10px black,
-                    inset 0 1px black,
-                    inset 0 -1px black;
+        box-shadow:
+            inset 0 5px 10px -10px black,
+            inset 0 -3px 10px -10px black,
+            inset 3px 0 10px -10px black,
+            inset -3px 0 10px -10px black,
+            inset 0 1px black,
+            inset 0 -1px black;
         background-color: rgba(250, 253, 255, 1);
     }
     .drawer {
         padding-left: 1rem;
         padding-right: 1rem;
-        box-shadow: inset 0 5px 10px -10px black,
-                    inset 0 -3px 10px -10px black,
-                    inset 3px 0 10px -10px black,
-                    inset -3px 0 10px -10px black;
+        box-shadow:
+            inset 0 5px 10px -10px black,
+            inset 0 -3px 10px -10px black,
+            inset 3px 0 10px -10px black,
+            inset -3px 0 10px -10px black;
 
         border-bottom: solid 1px black;
         border-top: solid 1px black;
@@ -634,10 +708,11 @@ async function roll(): Promise<void> {
                 right: 0;
                 top: 0;
                 bottom: 0;
-                box-shadow: inset 0 8px 10px -10px black,
-                            inset 0 -5px 13px -13px black,
-                            inset 4px 0 13px -13px black,
-                            inset -4px 0 13px -13px black;
+                box-shadow:
+                    inset 0 8px 10px -10px black,
+                    inset 0 -5px 13px -13px black,
+                    inset 4px 0 13px -13px black,
+                    inset -4px 0 13px -13px black;
             }
             #dice-canvas {
                 margin: 0;
@@ -669,7 +744,7 @@ async function roll(): Promise<void> {
         justify-content: space-between;
 
         > #lastroll-result {
-            display:flex;
+            display: flex;
             align-items: center;
             justify-content: center;
             padding: 1rem;
@@ -700,7 +775,7 @@ async function roll(): Promise<void> {
             overflow-anchor: none;
 
             &.single-entry {
-                overflow-y: auto
+                overflow-y: auto;
             }
 
             > .dice-history-entry-wrapper {
@@ -770,7 +845,7 @@ async function roll(): Promise<void> {
             > #open-options-button {
                 padding: 0.75rem 0.25rem;
                 margin-left: -2rem;
-                font-size:125%;
+                font-size: 125%;
             }
         }
         > #options-submenu {
@@ -823,7 +898,7 @@ async function roll(): Promise<void> {
         > #reroll-previous-button {
             flex: 0 0 auto;
             padding-right: 0.125rem;
-            font-size: 1.75em
+            font-size: 1.75em;
         }
     }
 
@@ -899,14 +974,16 @@ async function roll(): Promise<void> {
     }
 
     .dice-expand-enter-active {
-        transition: all 0.3s ease,
-                    opacity 0.2s linear;
+        transition:
+            all 0.3s ease,
+            opacity 0.2s linear;
         max-height: calc(340px + 1rem);
         padding-bottom: 1rem;
     }
     .dice-expand-leave-active {
-        transition: all 0.3s ease,
-                    opacity 0.2s linear 0.1s;
+        transition:
+            all 0.3s ease,
+            opacity 0.2s linear 0.1s;
         max-height: calc(340px + 1rem);
         padding-bottom: 1rem;
     }
@@ -919,8 +996,9 @@ async function roll(): Promise<void> {
 
     .get-result-enter-active {
         backface-visibility: hidden;
-        transition: transform 0.3s cubic-bezier(0.040, 0.970, 0.840, 1.305),
-                    opacity   0.3s ease;
+        transition:
+            transform 0.3s cubic-bezier(0.04, 0.97, 0.84, 1.305),
+            opacity 0.3s ease;
         transform: scale(1);
         opacity: 100%;
     }
@@ -936,14 +1014,15 @@ async function roll(): Promise<void> {
     }
 
     .drawer-expand-enter-active {
-        transition: opacity    0.2s linear,
-                    max-height 0.3s ease;
+        transition:
+            opacity 0.2s linear,
+            max-height 0.3s ease;
         max-height: 10rem;
-
     }
     .drawer-expand-leave-active {
-        transition: opacity    0.2s linear 0.1s,
-                    max-height 0.3s ease;
+        transition:
+            opacity 0.2s linear 0.1s,
+            max-height 0.3s ease;
         max-height: 10rem;
     }
 
@@ -963,7 +1042,5 @@ async function roll(): Promise<void> {
     .fast-fade-leave-to {
         opacity: 0;
     }
-
 }
-
 </style>

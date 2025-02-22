@@ -78,7 +78,12 @@ const selectedLayer = computed(() => {
 
 <template>
     <div id="floor-layer">
-        <div v-if="visible" id="floor-selector" :title="t('game.ui.FloorSelect.title')" @click="detailsOpen = !detailsOpen">
+        <div
+            v-if="visible"
+            id="floor-selector"
+            :title="t('game.ui.FloorSelect.title')"
+            @click="detailsOpen = !detailsOpen"
+        >
             <a href="#">
                 <template v-if="playerSettingsState.reactive.useToolIcons.value">
                     <img :src="getStaticFloorImg('floors.svg')" alt="Floor Selection" />

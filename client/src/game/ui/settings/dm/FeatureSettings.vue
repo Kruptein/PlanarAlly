@@ -29,11 +29,11 @@ const enableDice = computed({
 <template>
     <div class="panel">
         <div class="row">
-            <label for="enableChat">{{ t('game.ui.settings.dm.FeatureSettings.chat') }}</label>
+            <label for="enableChat">{{ t("game.ui.settings.dm.FeatureSettings.chat") }}</label>
             <input id="enableChat" v-model="enableChat" type="checkbox" />
         </div>
         <div class="row">
-            <label for="enableDice">{{ t('game.ui.settings.dm.FeatureSettings.dice') }}</label>
+            <label for="enableDice">{{ t("game.ui.settings.dm.FeatureSettings.dice") }}</label>
             <input id="enableDice" v-model="enableDice" type="checkbox" />
         </div>
     </div>

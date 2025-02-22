@@ -42,13 +42,13 @@ Access the server by going to `http://localhost:8000` (can be modified in the se
 
 #### Production mode
 
-`uv run planarserver.py`
+`uv run planarally.py`
 
 In production mode the client files are expected to be present in the server folder.
 
 #### Development mode
 
-`uv run planarserver.py dev`
+`uv run planarally.py dev`
 
 In development mode it's expected that a separate client process is running.
 Your main interaction is still through the server's port as it will do the client routing behind the scenes.

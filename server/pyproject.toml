@@ -1,3 +1,32 @@
+[project]
+name = "planarally-server"
+version = "2025.1.1"
+description = "Planarally server"
+readme = "README.md"
+requires-python = ">=3.13.2"
+
+dependencies = [
+    "aiohttp==3.10.11",
+    "aiohttp-security==0.5.0",
+    "aiohttp-session==2.12.1",
+    "bcrypt==4.2.0",
+    "cryptography==43.0.1",
+    "peewee==3.17.5",
+    "pillow==11.0.0",
+    "pydantic==1.10.18",
+    "python-engineio==4.9.1",
+    "python-socketio==5.11.4",
+    "typing-extensions==4.12.2",
+]
+
+[dependency-groups]
+dev = [
+    "black==24.8.0",
+    "isort==5.13.2",
+    "pydantic-to-typescript==1.0.10",
+    "ruff==0.6.9",
+]
+
 [tool.ruff]
 line-length = 120
 ignore = ["E722"]

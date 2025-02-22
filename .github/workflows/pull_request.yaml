@@ -109,4 +109,4 @@ jobs:
             - name: ruff
               if: steps.changed-files.outputs.any_changed == 'true'
               working-directory: server
-              run: ruff check src
+              run: uv run ruff check src

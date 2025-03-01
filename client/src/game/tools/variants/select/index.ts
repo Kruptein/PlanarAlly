@@ -403,7 +403,7 @@ class SelectTool extends Tool implements ISelectTool {
                 accessSystem.addAccess(
                     this.selectionHelper.id,
                     playerSystem.getCurrentPlayer()!.name,
-                    { edit: true, movement: true, vision: true },
+                    { edit: false, movement: false, vision: false },
                     NO_SYNC,
                 );
                 layer.addShape(this.selectionHelper, SyncMode.NO_SYNC, InvalidationMode.NO);
@@ -933,7 +933,7 @@ class SelectTool extends Tool implements ISelectTool {
             accessSystem.addAccess(
                 rotationShape.id,
                 playerSystem.getCurrentPlayer()!.name,
-                { edit: true, movement: true, vision: true },
+                { edit: false, movement: false, vision: false },
                 NO_SYNC,
             );
             layer.addShape(rotationShape, SyncMode.NO_SYNC, InvalidationMode.NO);

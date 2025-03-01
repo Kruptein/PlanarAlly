@@ -72,13 +72,13 @@ class PingTool extends Tool implements ITool {
         accessSystem.addAccess(
             this.ping.id,
             playerSystem.getCurrentPlayer()!.name,
-            { edit: true, movement: true, vision: true },
+            { edit: false, movement: false, vision: false },
             NO_SYNC,
         );
         accessSystem.addAccess(
             this.border.id,
             playerSystem.getCurrentPlayer()!.name,
-            { edit: true, movement: true, vision: true },
+            { edit: false, movement: false, vision: false },
             NO_SYNC,
         );
         layer.addShape(this.ping, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);

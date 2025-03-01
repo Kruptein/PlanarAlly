@@ -451,7 +451,7 @@ class DrawTool extends Tool implements ITool {
             accessSystem.addAccess(
                 this.shape.id,
                 playerSystem.getCurrentPlayer()!.name,
-                { edit: true, movement: true, vision: true },
+                { edit: true, movement: true, vision: false },
                 UI_SYNC,
             );
             if (this.state.selectedMode === DrawMode.Normal) {

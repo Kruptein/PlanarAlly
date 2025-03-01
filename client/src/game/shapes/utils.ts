@@ -186,7 +186,9 @@ export function deleteShapes(shapes: readonly IShape[], sync: SyncMode): void {
     let recalculateMovement = false;
     for (let i = shapes.length - 1; i >= 0; i--) {
         const sel = shapes[i]!;
-        if (sync !== SyncMode.NO_SYNC && !accessSystem.hasAccessTo(sel.id, "edit")) continue;
+        // Temp sync access is less strict as these shapes are short-lived
+        // and usually small UI helpers that a player shouldn't have any real access to
+        if (sync === SyncMode.FULL_SYNC && !accessSystem.hasAccessTo(sel.id, "edit")) continue;
         const gId = getGlobalId(sel.id);
         if (gId) {
             removed.push(gId);

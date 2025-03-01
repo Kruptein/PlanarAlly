@@ -35,7 +35,7 @@ export function copyShapes(): void {
     if (!selectedSystem.hasSelection) return;
     const clipboard: ApiShape[] = [];
     for (const shape of selectedSystem.get({ includeComposites: true })) {
-        if (!accessSystem.hasAccessTo(shape.id, false, { edit: true })) continue;
+        if (!accessSystem.hasAccessTo(shape.id, "edit")) continue;
         if (groupSystem.getGroupId(shape.id) === undefined) {
             groupSystem.createNewGroupForShapes([shape.id]);
         }
@@ -186,7 +186,7 @@ export function deleteShapes(shapes: readonly IShape[], sync: SyncMode): void {
     let recalculateMovement = false;
     for (let i = shapes.length - 1; i >= 0; i--) {
         const sel = shapes[i]!;
-        if (sync !== SyncMode.NO_SYNC && !accessSystem.hasAccessTo(sel.id, false, { edit: true })) continue;
+        if (sync !== SyncMode.NO_SYNC && !accessSystem.hasAccessTo(sel.id, "edit")) continue;
         const gId = getGlobalId(sel.id);
         if (gId) {
             removed.push(gId);

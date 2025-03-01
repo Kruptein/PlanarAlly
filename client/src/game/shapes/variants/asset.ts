@@ -14,6 +14,7 @@ import type { IAsset } from "../../interfaces/shapes/asset";
 import { LayerName } from "../../models/floor";
 import type { ServerShapeOptions } from "../../models/shapes";
 import { loadSvgData } from "../../svg";
+import { accessSystem } from "../../systems/access";
 import { floorSystem } from "../../systems/floors";
 import { getProperties } from "../../systems/properties/state";
 import { VisionBlock } from "../../systems/properties/types";
@@ -69,7 +70,7 @@ export class Asset extends BaseRect implements IAsset {
         this.layer?.invalidate(true);
 
         // invalidate token directions
-        if (getProperties(this.id)?.isToken === true) {
+        if (accessSystem.hasAccessTo(this.id, "vision", true)) {
             const floor = this.floor;
             if (floor !== undefined) floorSystem.getLayer(floor, LayerName.Draw)?.invalidate(true);
         }

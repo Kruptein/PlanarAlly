@@ -206,9 +206,6 @@ export class Layer implements ILayer {
 
         shape.invalidatePoints();
 
-        if (accessSystem.hasAccessTo(shape.id, false, { vision: true }) && props.isToken)
-            accessSystem.addOwnedToken(shape.id);
-
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync) {
             sendShapeAdd({
                 shape: shape.asDict(),
@@ -327,8 +324,6 @@ export class Layer implements ILayer {
         visionState.removeBlocker(TriangulationTarget.MOVEMENT, this.floor, shape, options.recalculate);
         visionState.removeVisionSources(this.floor, shape.id);
 
-        accessSystem.removeOwnedToken(shape.id);
-
         // Needs to be retrieved before dropping the ID
         const triggersVisionRecalc = shape.triggersVisionRecalc;
 
@@ -425,7 +420,7 @@ export class Layer implements ILayer {
                 for (const shape of this.shapesInSector) {
                     if (shape.options.skipDraw ?? false) continue;
                     const props = getProperties(shape.id)!;
-                    if (props.isInvisible && !accessSystem.hasAccessTo(shape.id, true, { vision: true })) continue;
+                    if (props.isInvisible && !accessSystem.hasAccessTo(shape.id, "vision", true)) continue;
 
                     shape.draw(ctx, false);
                 }
@@ -457,7 +452,7 @@ export class Layer implements ILayer {
                 if (this.floor === floorState.currentFloor.value?.id && this.name === LayerName.Draw) {
                     const bbox = new BoundingRect(positionSystem.screenTopLeft, l2gz(this.width), l2gz(this.height));
                     const bboxCenter = bbox.center;
-                    for (const token of accessState.activeTokens.value) {
+                    for (const token of accessState.activeTokens.value.get("vision") ?? []) {
                         let found = false;
                         const shape = getShape(token);
                         if (shape !== undefined && shape.floorId === this.floor && shape.type === "assetrect") {

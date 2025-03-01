@@ -10,9 +10,15 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Removed
+
+-   The `isToken` property has been removed from all shapes
+    -   This is now fully derived based on vision access of the shape
+
 ### Fixed
 
 -   Draw tool polygon was not updating vision until shape completion
+-   Reduced some render overhead when token shapes that the player did not own were moved
 
 ## [2025.1.1] - 2025-02-08
 

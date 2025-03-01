@@ -2,7 +2,6 @@ import { reactive, watchEffect } from "vue";
 import type { DeepReadonly } from "vue";
 
 import type { LocalId } from "../../../core/id";
-import { filter } from "../../../core/iter";
 import { NO_SYNC } from "../../../core/models/types";
 import type { Sync } from "../../../core/models/types";
 import type { ShapeSystem } from "../../../core/systems";
@@ -12,9 +11,7 @@ import { compositeState } from "../../layers/state";
 import { LayerName } from "../../models/floor";
 import { visionState } from "../../vision/state";
 import { accessSystem } from "../access";
-import { accessState } from "../access/state";
 import { gameState } from "../game/state";
-import { getProperties } from "../properties/state";
 import { selectedState } from "../selected/state";
 
 import { aurasToServer, partialAuraToServer, toUiAuras } from "./conversion";
@@ -121,10 +118,7 @@ class AuraSystem implements ShapeSystem {
         }
         auras.push(...(this.data.get(id) ?? []));
 
-        const props = getProperties(id);
-        if (gameState.raw.isFakePlayer || (props?.isToken === true && !accessState.activeTokens.value.has(id))) {
-            if (!accessSystem.hasAccessTo(id, true, { vision: true })) return [...filter(auras, (a) => a.visible)];
-        }
+        if (!accessSystem.hasAccessTo(id, "vision", true)) return auras.filter((a) => a.visible);
 
         return auras;
     }

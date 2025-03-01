@@ -175,7 +175,7 @@ class PositionSystem implements System {
         if (!gameState.raw.isDm && locationSettingsState.raw.fullFow.value) {
             if (locationSettingsState.raw.fowLos.value) {
                 // find nearest token
-                nearest = this.findNearest(accessState.activeTokens.value, (i) => getShape(i));
+                nearest = this.findNearest(accessState.activeTokens.value.get("vision")!, (i) => getShape(i));
             }
 
             if (nearest === undefined) {

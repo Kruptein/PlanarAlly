@@ -8,7 +8,7 @@ import type { PartialPick } from "../../../../core/types";
 import { Role } from "../../../models/role";
 import { accessSystem } from "../../../systems/access";
 import { DEFAULT_ACCESS, DEFAULT_ACCESS_SYMBOL } from "../../../systems/access/models";
-import type { ACCESS_KEY, ShapeAccess } from "../../../systems/access/models";
+import type { ACCESS_KEY, AccessConfig } from "../../../systems/access/models";
 import { accessState } from "../../../systems/access/state";
 import { playerState } from "../../../systems/players/state";
 
@@ -54,7 +54,7 @@ function toggleEditAccess(user?: ACCESS_KEY): void {
     } else {
         oldAccess = accessSystem.getAccess(accessState.raw.id, user) ?? oldAccess;
     }
-    const access: PartialPick<ShapeAccess, "edit"> = { edit: !oldAccess.edit };
+    const access: PartialPick<AccessConfig, "edit"> = { edit: !oldAccess.edit };
 
     if (access.edit) {
         access.movement = true;
@@ -73,7 +73,7 @@ function toggleMovementAccess(user?: ACCESS_KEY): void {
     } else {
         oldAccess = accessSystem.getAccess(accessState.raw.id, user) ?? oldAccess;
     }
-    const access: PartialPick<ShapeAccess, "movement"> = { movement: !oldAccess.movement };
+    const access: PartialPick<AccessConfig, "movement"> = { movement: !oldAccess.movement };
 
     if (access.movement) {
         access.vision = true;
@@ -93,7 +93,7 @@ function toggleVisionAccess(user?: ACCESS_KEY): void {
     } else {
         oldAccess = accessSystem.getAccess(accessState.raw.id, user) ?? oldAccess;
     }
-    const access: PartialPick<ShapeAccess, "vision"> = { vision: !oldAccess.vision };
+    const access: PartialPick<AccessConfig, "vision"> = { vision: !oldAccess.vision };
 
     if (!access.vision) {
         access.edit = false;

@@ -1,7 +1,6 @@
 import { computed } from "vue";
 
 import type { LocalId } from "../../../core/id";
-import { filter, some } from "../../../core/iter";
 import { buildState } from "../../../core/systems/state";
 import { LayerName } from "../../models/floor";
 import { floorSystem } from "../floors";
@@ -9,16 +8,16 @@ import { floorState } from "../floors/state";
 import { gameState } from "../game/state";
 import { playerSystem } from "../players";
 
-import { DEFAULT_ACCESS } from "./models";
-import type { AccessMap, ShapeAccess } from "./models";
+import { ACCESS_LEVELS, DEFAULT_ACCESS } from "./models";
+import type { AccessMap, AccessConfig, AccessLevel } from "./models";
 
 interface ReactiveAccessState {
     id: LocalId | undefined;
-    defaultAccess: ShapeAccess;
-    playerAccess: Map<string, ShapeAccess>;
+    defaultAccess: AccessConfig;
+    playerAccess: Map<string, AccessConfig>;
 
-    ownedTokens: Set<LocalId>;
-    activeTokenFilters: Set<LocalId> | undefined;
+    ownedTokens: Map<AccessLevel, Set<LocalId>>;
+    activeTokenFilters: Map<AccessLevel, Set<LocalId> | undefined>;
 }
 
 interface AccessState {
@@ -35,17 +34,11 @@ const state = buildState<ReactiveAccessState, AccessState>(
         defaultAccess: DEFAULT_ACCESS,
         playerAccess: new Map(),
 
-        ownedTokens: new Set(),
-        activeTokenFilters: undefined,
+        ownedTokens: new Map(ACCESS_LEVELS.map((al) => [al, new Set<LocalId>()])),
+        activeTokenFilters: new Map(ACCESS_LEVELS.map((al) => [al, undefined])),
     },
     { access: new Map<LocalId, AccessMap>() },
 );
-
-function playerWithVision(shapeId: LocalId): boolean {
-    const access = state.readonly.access.get(shapeId);
-    if (access === undefined) return false;
-    return some(access.values(), (a) => a.vision);
-}
 
 const activeTokens = computed(() => {
     // this is used to update OOB tokens
@@ -55,16 +48,12 @@ const activeTokens = computed(() => {
     if (floor !== undefined) floorSystem.getLayer(floor, LayerName.Draw)?.invalidate(true);
 
     // grab active tokens for normal flow
-    let tokens: ReadonlySet<LocalId>;
-    if (state.reactive.activeTokenFilters !== undefined) tokens = state.reactive.activeTokenFilters;
-    else tokens = state.reactive.ownedTokens;
-
-    // Filter when we're faking it
-    if (gameState.reactive.isFakePlayer) {
-        // !!! this is not triggering reactively !!!
-        const filtered = filter(tokens, (t) => playerWithVision(t));
-        tokens = new Set(filtered);
-    }
+    const tokens: Map<AccessLevel, ReadonlySet<LocalId>> = new Map(
+        ACCESS_LEVELS.map((al) => [
+            al,
+            state.reactive.activeTokenFilters.get(al) ?? state.reactive.ownedTokens.get(al) ?? new Set(),
+        ]),
+    );
 
     return tokens;
 });
@@ -77,7 +66,7 @@ export const accessState = {
     hasEditAccess: computed(() => {
         if (state.reactive.id === undefined) return false;
         if (gameState.reactive.isDm) return true;
-        if (gameState.reactive.isFakePlayer && activeTokens.value.has(state.reactive.id)) return true;
+        if (gameState.reactive.isFakePlayer && activeTokens.value.get("edit")!.has(state.reactive.id)) return true;
         if (state.reactive.defaultAccess.edit) return true;
         const username = playerSystem.getCurrentPlayer()?.name;
         return [...state.reactive.playerAccess.entries()].some(([u, a]) => u === username && a.edit);

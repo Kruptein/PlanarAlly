@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 100
+SAVE_VERSION = 101
 
 import asyncio
 import json
@@ -77,134 +77,14 @@ def upgrade(
     is_import: bool,
     loop: Optional[asyncio.AbstractEventLoop] = None,
 ):
-    if version < 79:
+    if version < 85:
         raise OldVersionException(
             f"Upgrade code for this version is >2 years old and is no longer in the active codebase to reduce clutter. You can still find this code on github, contact me for more info."
         )
 
     db.foreign_keys = False
 
-    if version == 79:
-        # Add UserOptions.show_token_directions
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN show_token_directions INTEGER DEFAULT 1"
-            )
-            db.execute_sql(
-                "UPDATE user_options SET show_token_directions = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
-            )
-    elif version == 80:
-        # Add UserOptions.mouse_pan_mode
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN mouse_pan_mode INTEGER DEFAULT 3"
-            )
-            db.execute_sql(
-                "UPDATE user_options SET mouse_pan_mode = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
-            )
-    elif version == 81:
-        # Double check UserOption modifications (lg related)
-        with db.atomic():
-            for option in [
-                "render_all_floors",
-                "use_tool_icons",
-                "default_tracker_mode",
-                "show_token_directions",
-                "mouse_pan_mode",
-            ]:
-                try:
-                    db.execute_sql(f"SELECT {option} FROM user_options")
-                except:
-                    logger.warning(f"PATCHING {option}")
-                    default = 1
-                    if option == "mouse_pan_mode":
-                        default = 3
-                    db.execute_sql(
-                        f"ALTER TABLE user_options ADD COLUMN {option} INTEGER DEFAULT {default}"
-                    )
-                    db.execute_sql(
-                        f"UPDATE user_options SET {option} = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
-                    )
-    elif version == 82:
-        # Fix spawn-location issues
-        with db.atomic():
-            data = db.execute_sql(
-                "SELECT lo.id, lo.spawn_locations, l.id FROM location_options lo INNER JOIN location l ON l.options_id = lo.id"
-            )
-            for lo_id, spawn_locations, l_id in data.fetchall():
-                if spawn_locations is None or spawn_locations == "[]":
-                    continue
-
-                unpacked_spawn_locations = json.loads(spawn_locations)
-                changed = False
-
-                shape_data = db.execute_sql(
-                    "SELECT s.uuid, s.type_, l.type_ FROM shape s INNER JOIN layer l ON s.layer_id = l.id INNER JOIN floor f ON f.id = l.floor_id WHERE f.location_id = ?",
-                    (l_id,),
-                )
-
-                for shape_id, shape_type, layer_type in shape_data.fetchall():
-                    if shape_type != "assetrect":
-                        if shape_id in unpacked_spawn_locations:
-                            # remove from spawn locations
-                            unpacked_spawn_locations = [
-                                sl for sl in unpacked_spawn_locations if sl != shape_id
-                            ]
-                            changed = True
-                            continue
-                    else:
-                        shape_src_data = db.execute_sql(
-                            "SELECT src FROM asset_rect WHERE shape_id=?",
-                            (shape_id,),
-                        ).fetchone()
-                        if not shape_src_data:
-                            continue
-                        shape_src = shape_src_data[0]
-                        if not shape_src.endswith("/static/img/spawn.png"):
-                            if shape_id in unpacked_spawn_locations:
-                                # remove from spawn locations
-                                unpacked_spawn_locations = [
-                                    sl
-                                    for sl in unpacked_spawn_locations
-                                    if sl != shape_id
-                                ]
-                                changed = True
-                        elif (
-                            layer_type != "dm"
-                            and shape_id not in unpacked_spawn_locations
-                        ):
-                            # add to spawn locations
-                            unpacked_spawn_locations.append(shape_id)
-                            changed = True
-
-                if changed:
-                    db.execute_sql(
-                        "UPDATE location_options SET spawn_locations=? WHERE id=?",
-                        (json.dumps(unpacked_spawn_locations), lo_id),
-                    )
-    elif version == 83:
-        # Add Initiative.is_active
-        # Add UserOptions.initiative_open_on_activate
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE initiative ADD COLUMN is_active INTEGER DEFAULT 0 NOT NULL"
-            )
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN initiative_open_on_activate INTEGER DEFAULT 1"
-            )
-            db.execute_sql(
-                "UPDATE user_options SET initiative_open_on_activate = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
-            )
-    elif version == 84:
-        # Add LocationOptions.limit_movement_during_initiative
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE location_options ADD COLUMN limit_movement_during_initiative INTEGER DEFAULT 0"
-            )
-            db.execute_sql(
-                "UPDATE location_options SET limit_movement_during_initiative = NULL WHERE id NOT IN (SELECT default_options_id FROM room)"
-            )
-    elif version == 85:
+    if version == 85:
         # Add Character things
         with db.atomic():
             db.execute_sql(
@@ -540,6 +420,18 @@ def upgrade(
             db.execute_sql(
                 "CREATE TABLE IF NOT EXISTS asset_shortcut (id INTEGER NOT NULL PRIMARY KEY, asset_id INTEGER NOT NULL, player_room_id INTEGER NOT NULL, FOREIGN KEY (asset_id) REFERENCES asset (id) ON DELETE CASCADE, FOREIGN KEY (player_room_id) REFERENCES player_room (id) ON DELETE CASCADE)"
             )
+    elif version == 100:
+        # Remove Shape.isToken
+        with db.atomic():
+            db.execute_sql("CREATE TEMPORARY TABLE _shape_100 AS SELECT * FROM shape")
+            db.execute_sql("DROP TABLE shape")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "shape" ("uuid" TEXT NOT NULL PRIMARY KEY, "layer_id" INTEGER, "type_" TEXT NOT NULL, "x" REAL NOT NULL, "y" REAL NOT NULL, "name" TEXT, "name_visible" INTEGER NOT NULL, "fill_colour" TEXT NOT NULL, "stroke_colour" TEXT NOT NULL, "vision_obstruction" INTEGER NOT NULL, "movement_obstruction" INTEGER NOT NULL, "draw_operator" TEXT NOT NULL, "index" INTEGER NOT NULL, "options" TEXT, "badge" INTEGER NOT NULL, "show_badge" INTEGER NOT NULL, "default_edit_access" INTEGER NOT NULL, "default_vision_access" INTEGER NOT NULL, "is_invisible" INTEGER NOT NULL DEFAULT 0, "is_defeated" INTEGER NOT NULL DEFAULT 0, "default_movement_access" INTEGER NOT NULL DEFAULT 0, "is_locked" INTEGER NOT NULL DEFAULT 0, "angle" REAL NOT NULL DEFAULT 0, "stroke_width" INTEGER NOT NULL DEFAULT 2, "asset_id" INTEGER DEFAULT NULL, "group_id" TEXT DEFAULT NULL, "ignore_zoom_size" INTEGER DEFAULT 0, "is_door" INTEGER DEFAULT 0 NOT NULL, "is_teleport_zone" INTEGER DEFAULT 0 NOT NULL, "character_id" INTEGER DEFAULT NULL, odd_hex_orientation INTEGER DEFAULT 0, size INTEGER DEFAULT 0, show_cells INTEGER NOT NULL DEFAULT 0, cell_fill_colour TEXT DEFAULT NULL, cell_stroke_colour TEXT DEFAULT NULL, cell_stroke_width INTEGER DEFAULT NULL, FOREIGN KEY ("layer_id") REFERENCES "layer" ("id") ON DELETE CASCADE, FOREIGN KEY ("asset_id") REFERENCES "asset" ("id") ON DELETE SET NULL, FOREIGN KEY ("group_id") REFERENCES "group" ("uuid") ON DELETE SET NULL, FOREIGN KEY ("character_id") REFERENCES "character" ("id") ON DELETE SET NULL)'
+            )
+            db.execute_sql(
+                'INSERT INTO "shape" ("uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "is_defeated", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "ignore_zoom_size", "is_door", "is_teleport_zone", "character_id", "odd_hex_orientation", "size", "show_cells", "cell_fill_colour", "cell_stroke_colour", "cell_stroke_width") SELECT "uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "is_defeated", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "ignore_zoom_size", "is_door", "is_teleport_zone", "character_id", "odd_hex_orientation", "size", "show_cells", "cell_fill_colour", "cell_stroke_colour", "cell_stroke_width" FROM _shape_100'
+            )
+            db.execute_sql("DROP TABLE _shape_100")
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

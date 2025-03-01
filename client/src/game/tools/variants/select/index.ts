@@ -290,7 +290,7 @@ class SelectTool extends Tool implements ISelectTool {
             // this is only used by noteIcons right now, but in the future parentIds might become useful for regular selectable shapes
             if (shape._parentId !== undefined) continue;
             const props = getProperties(shape.id)!;
-            if (props.isInvisible && !accessSystem.hasAccessTo(shape.id, false, { movement: true })) continue;
+            if (props.isInvisible && !accessSystem.hasAccessTo(shape.id, "movement")) continue;
 
             if (this.rotationUiActive && this.hasFeature(SelectFeatures.Rotate, features)) {
                 const anchor = this.rotationAnchor!.points[1];
@@ -505,7 +505,7 @@ class SelectTool extends Tool implements ISelectTool {
                 // If we are on the tokens layer do a movement block check.
                 if (layer.name === LayerName.Tokens && !(event?.shiftKey === true && gameState.raw.isDm)) {
                     for (const sel of this.currentSelection) {
-                        if (!accessSystem.hasAccessTo(sel.id, false, { movement: true })) continue;
+                        if (!accessSystem.hasAccessTo(sel.id, "movement")) continue;
                         delta = calculateDelta(delta, sel, true);
                         if (delta !== ogDelta) this.deltaChanged = true;
                     }
@@ -530,7 +530,7 @@ class SelectTool extends Tool implements ISelectTool {
             } else if (this.mode === SelectOperations.Resize) {
                 const shape = this.currentSelection[0]!;
 
-                if (!accessSystem.hasAccessTo(shape.id, false, { movement: true })) return;
+                if (!accessSystem.hasAccessTo(shape.id, "movement")) return;
 
                 let targetPoint = gp;
                 if (
@@ -597,7 +597,7 @@ class SelectTool extends Tool implements ISelectTool {
             const cbbox = this.selectionHelper!.getBoundingBox();
             for (const shape of layer.getShapes({ includeComposites: false, onlyInView: true })) {
                 if (!(shape.options.preFogShape ?? false) && (shape.options.skipDraw ?? false)) continue;
-                if (!accessSystem.hasAccessTo(shape.id, false, { movement: true })) continue;
+                if (!accessSystem.hasAccessTo(shape.id, "movement")) continue;
                 if (!shape.visibleInCanvas({ w: layer.width, h: layer.height }, { includeAuras: false })) continue;
                 if (this.currentSelection.some((s) => s.id === shape.id)) continue;
                 if (shape.id === this.selectionHelper?.id) continue;
@@ -641,7 +641,7 @@ class SelectTool extends Tool implements ISelectTool {
             if (this.mode === SelectOperations.Drag) {
                 const updateList = [];
                 for (const [s, sel] of this.currentSelection.entries()) {
-                    if (!accessSystem.hasAccessTo(sel.id, false, { movement: true })) continue;
+                    if (!accessSystem.hasAccessTo(sel.id, "movement")) continue;
 
                     if (
                         this.dragRay.origin.x === g2lx(sel.refPoint.x) &&
@@ -714,7 +714,7 @@ class SelectTool extends Tool implements ISelectTool {
             }
             if (this.mode === SelectOperations.Resize) {
                 for (const sel of this.currentSelection) {
-                    if (!accessSystem.hasAccessTo(sel.id, false, { movement: true })) continue;
+                    if (!accessSystem.hasAccessTo(sel.id, "movement")) continue;
 
                     const props = getProperties(sel.id)!;
 
@@ -766,7 +766,7 @@ class SelectTool extends Tool implements ISelectTool {
                 const rotationCenter = this.rotationBox!.center;
 
                 for (const [s, sel] of this.currentSelection.entries()) {
-                    if (!accessSystem.hasAccessTo(sel.id, false, { movement: true })) continue;
+                    if (!accessSystem.hasAccessTo(sel.id, "movement")) continue;
 
                     const newAngle = Math.round(this.angle / ANGLE_SNAP) * ANGLE_SNAP;
                     if (

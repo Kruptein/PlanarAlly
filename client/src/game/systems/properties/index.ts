@@ -13,7 +13,6 @@ import {
     sendShapeSetDefeated,
     sendShapeSetFillColour,
     sendShapeSetInvisible,
-    sendShapeSetIsToken,
     sendShapeSetLocked,
     sendShapeSetName,
     sendShapeSetNameVisible,
@@ -24,7 +23,6 @@ import {
     sendShapeSetStrokeColour,
 } from "../../api/emits/shape/options";
 import { getGlobalId, getShape } from "../../id";
-import { accessSystem } from "../access";
 import { doorSystem } from "../logic/door";
 import { selectedState } from "../selected/state";
 
@@ -110,29 +108,6 @@ class PropertiesSystem implements ShapeSystem {
 
         const d = $.data.get(id);
         if (d) d.nameVisible = visible;
-    }
-
-    setIsToken(id: LocalId, isToken: boolean, syncTo: Sync): void {
-        const shape = mutable.data.get(id);
-        if (shape === undefined) {
-            return console.error("[Properties.setIsToken] Unknown local shape.");
-        }
-
-        shape.isToken = isToken;
-
-        if (syncTo.server) {
-            const shape = getGlobalId(id);
-            if (shape) sendShapeSetIsToken({ shape, value: isToken });
-        }
-
-        const d = $.data.get(id);
-        if (d) d.isToken = isToken;
-
-        if (accessSystem.hasAccessTo(id, false, { vision: true })) {
-            if (isToken) accessSystem.addOwnedToken(id);
-            else accessSystem.removeOwnedToken(id);
-        }
-        getShape(id)?.invalidate(false);
     }
 
     setIsInvisible(id: LocalId, isInvisible: boolean, syncTo: Sync): void {

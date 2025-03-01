@@ -67,7 +67,6 @@ class Shape(BaseDbModel):
     stroke_colour = cast(str, TextField(default="#fff"))
     vision_obstruction = cast(int, SmallIntegerField(default=False))
     movement_obstruction = cast(bool, BooleanField(default=False))
-    is_token = cast(bool, BooleanField(default=False))
     draw_operator = cast(str, TextField(default="source-over"))
     index = cast(int, IntegerField())
     options = cast(Optional[str], TextField(null=True))
@@ -152,7 +151,6 @@ class Shape(BaseDbModel):
             stroke_colour=self.stroke_colour,
             vision_obstruction=self.vision_obstruction,
             movement_obstruction=self.movement_obstruction,
-            is_token=self.is_token,
             draw_operator=self.draw_operator,
             index=self.index,
             options=self.options,

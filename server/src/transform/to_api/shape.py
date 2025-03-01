@@ -36,7 +36,6 @@ def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:
         stroke_colour=shape.stroke_colour,
         vision_obstruction=shape.vision_obstruction,
         movement_obstruction=shape.movement_obstruction,
-        is_token=shape.is_token,
         draw_operator=shape.draw_operator,
         options=shape.options or "[]",
         badge=shape.badge,

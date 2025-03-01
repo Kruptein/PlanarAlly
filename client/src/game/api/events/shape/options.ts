@@ -31,11 +31,6 @@ socket.on("Shape.Options.Name.Set", wrapSystemCall(propertiesSystem.setName.bind
 socket.on("Shape.Options.NameVisible.Set", wrapSystemCall(propertiesSystem.setNameVisible.bind(propertiesSystem)));
 
 socket.on(
-    "Shape.Options.Token.Set",
-    wrapSystemCall<ShapeSetBooleanValue>(propertiesSystem.setIsToken.bind(propertiesSystem)),
-);
-
-socket.on(
     "Shape.Options.Invisible.Set",
     wrapSystemCall<ShapeSetBooleanValue>(propertiesSystem.setIsInvisible.bind(propertiesSystem)),
 );

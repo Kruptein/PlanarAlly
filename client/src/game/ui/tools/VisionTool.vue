@@ -13,15 +13,20 @@ import { visionTool } from "../../tools/variants/vision";
 
 const selected = visionTool.isActiveTool;
 
-const tokens = computed(() => [...map(accessState.reactive.ownedTokens, (t) => getShape(t)!)]);
+const tokens = computed(() =>
+    [...map(accessState.reactive.ownedTokens.get("vision")!, (t) => getShape(t)!)].filter(
+        (sh) => !(sh.options.skipDraw ?? false),
+    ),
+);
 const selection = computed(() => {
-    if (accessState.reactive.activeTokenFilters === undefined) return accessState.reactive.ownedTokens;
-    return accessState.reactive.activeTokenFilters;
+    const activeTokens = accessState.reactive.activeTokenFilters.get("vision");
+    if (activeTokens) return activeTokens;
+    return accessState.reactive.ownedTokens.get("vision")!;
 });
 
 function toggle(uuid: LocalId): void {
-    if (selection.value.has(uuid)) accessSystem.removeActiveToken(uuid);
-    else accessSystem.addActiveToken(uuid);
+    if (selection.value.has(uuid)) accessSystem.removeActiveToken(uuid, "vision");
+    else accessSystem.addActiveToken(uuid, "vision");
 }
 
 function getImageSrc(token: IShape): string {

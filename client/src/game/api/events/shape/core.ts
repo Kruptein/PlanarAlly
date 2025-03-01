@@ -84,7 +84,7 @@ socket.on("Shapes.Floor.Change", (data: ShapeFloorChange) => {
     const shapes = data.uuids.map((u) => getShapeFromGlobal(u) ?? undefined).filter((s) => s !== undefined);
     if (shapes.length === 0) return;
     moveFloor(shapes, floorSystem.getFloor({ name: data.floor })!, false);
-    if (shapes.some((s) => accessSystem.hasAccessTo(s.id, false, { edit: true }))) {
+    if (shapes.some((s) => accessSystem.hasAccessTo(s.id, "vision"))) {
         floorSystem.selectFloor({ name: data.floor }, false);
     }
 });

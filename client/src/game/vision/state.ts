@@ -334,7 +334,7 @@ class VisionState extends Store<State> {
             const aura = auraSystem.get(source.shape, source.aura, true);
             if (aura === undefined) continue;
 
-            if (!accessSystem.hasAccessTo(source.shape, true, { vision: true }) && !aura.visible) continue;
+            if (!accessSystem.hasAccessTo(source.shape, "vision", true) && !aura.visible) continue;
 
             const auraValue = aura.value > 0 && !isNaN(aura.value) ? aura.value : 0;
             const auraDim = aura.dim > 0 && !isNaN(aura.dim) ? aura.dim : 0;

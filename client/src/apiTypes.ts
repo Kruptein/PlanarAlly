@@ -155,7 +155,6 @@ export interface ApiCoreShape {
   stroke_colour: string;
   vision_obstruction: VisionBlock;
   movement_obstruction: boolean;
-  is_token: boolean;
   draw_operator: string;
   options: string;
   badge: number;

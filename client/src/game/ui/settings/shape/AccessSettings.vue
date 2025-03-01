@@ -8,7 +8,7 @@ import type { PartialPick } from "../../../../core/types";
 import { Role } from "../../../models/role";
 import { accessSystem } from "../../../systems/access";
 import { DEFAULT_ACCESS, DEFAULT_ACCESS_SYMBOL } from "../../../systems/access/models";
-import type { ACCESS_KEY, AccessConfig } from "../../../systems/access/models";
+import type { ACCESS_KEY, AccessConfig, AccessLevel } from "../../../systems/access/models";
 import { accessState } from "../../../systems/access/state";
 import { playerState } from "../../../systems/players/state";
 
@@ -44,7 +44,7 @@ function removeOwner(user: string): void {
     accessSystem.removeAccess(accessState.raw.id, user, SERVER_SYNC);
 }
 
-function toggleEditAccess(user?: ACCESS_KEY): void {
+function toggleAccess<T extends AccessLevel>(accessLevel: T, user?: ACCESS_KEY): void {
     if (!owned.value || accessState.raw.id === undefined) return;
     user ??= DEFAULT_ACCESS_SYMBOL;
 
@@ -54,51 +54,8 @@ function toggleEditAccess(user?: ACCESS_KEY): void {
     } else {
         oldAccess = accessSystem.getAccess(accessState.raw.id, user) ?? oldAccess;
     }
-    const access: PartialPick<AccessConfig, "edit"> = { edit: !oldAccess.edit };
+    const access = { [accessLevel]: !oldAccess[accessLevel] } as PartialPick<AccessConfig, T>;
 
-    if (access.edit) {
-        access.movement = true;
-        access.vision = true;
-    }
-    accessSystem.updateAccess(accessState.raw.id, user, access, SERVER_SYNC);
-}
-
-function toggleMovementAccess(user?: ACCESS_KEY): void {
-    if (!owned.value || accessState.raw.id === undefined) return;
-    user ??= DEFAULT_ACCESS_SYMBOL;
-
-    let oldAccess = DEFAULT_ACCESS;
-    if (user === DEFAULT_ACCESS_SYMBOL) {
-        oldAccess = accessSystem.getDefault(accessState.raw.id);
-    } else {
-        oldAccess = accessSystem.getAccess(accessState.raw.id, user) ?? oldAccess;
-    }
-    const access: PartialPick<AccessConfig, "movement"> = { movement: !oldAccess.movement };
-
-    if (access.movement) {
-        access.vision = true;
-    } else {
-        access.edit = false;
-    }
-    accessSystem.updateAccess(accessState.raw.id, user, access, SERVER_SYNC);
-}
-
-function toggleVisionAccess(user?: ACCESS_KEY): void {
-    if (!owned.value || accessState.raw.id === undefined) return;
-    user ??= DEFAULT_ACCESS_SYMBOL;
-
-    let oldAccess = DEFAULT_ACCESS;
-    if (user === DEFAULT_ACCESS_SYMBOL) {
-        oldAccess = accessSystem.getDefault(accessState.raw.id);
-    } else {
-        oldAccess = accessSystem.getAccess(accessState.raw.id, user) ?? oldAccess;
-    }
-    const access: PartialPick<AccessConfig, "vision"> = { vision: !oldAccess.vision };
-
-    if (!access.vision) {
-        access.edit = false;
-        access.movement = false;
-    }
     accessSystem.updateAccess(accessState.raw.id, user, access, SERVER_SYNC);
 }
 </script>
@@ -116,7 +73,7 @@ function toggleVisionAccess(user?: ACCESS_KEY): void {
             }"
             :disabled="!owned"
             :title="t('game.ui.selection.edit_dialog.access.toggle_edit_access')"
-            @click="toggleEditAccess()"
+            @click="toggleAccess('edit')"
         >
             <font-awesome-icon icon="pencil-alt" />
         </div>
@@ -124,7 +81,7 @@ function toggleVisionAccess(user?: ACCESS_KEY): void {
             :style="{ opacity: defaultAccess.movement ? 1.0 : 0.3, textAlign: 'center' }"
             :disabled="!owned"
             :title="t('game.ui.selection.edit_dialog.access.toggle_movement_access')"
-            @click="toggleMovementAccess()"
+            @click="toggleAccess('movement')"
         >
             <font-awesome-icon icon="arrows-alt" />
         </div>
@@ -132,7 +89,7 @@ function toggleVisionAccess(user?: ACCESS_KEY): void {
             :style="{ opacity: defaultAccess.vision ? 1.0 : 0.3, textAlign: 'center' }"
             :disabled="!owned"
             :title="t('game.ui.selection.edit_dialog.access.toggle_vision_access')"
-            @click="toggleVisionAccess()"
+            @click="toggleAccess('vision')"
         >
             <font-awesome-icon icon="lightbulb" />
         </div>
@@ -147,7 +104,7 @@ function toggleVisionAccess(user?: ACCESS_KEY): void {
                 }"
                 :disabled="!owned"
                 :title="t('game.ui.selection.edit_dialog.access.toggle_edit_access')"
-                @click="toggleEditAccess(user)"
+                @click="toggleAccess('edit', user)"
             >
                 <font-awesome-icon icon="pencil-alt" />
             </div>
@@ -155,7 +112,7 @@ function toggleVisionAccess(user?: ACCESS_KEY): void {
                 :style="{ opacity: access.movement ? 1.0 : 0.3, textAlign: 'center' }"
                 :disabled="!owned"
                 :title="t('game.ui.selection.edit_dialog.access.toggle_movement_access')"
-                @click="toggleMovementAccess(user)"
+                @click="toggleAccess('movement', user)"
             >
                 <font-awesome-icon icon="arrows-alt" />
             </div>
@@ -163,7 +120,7 @@ function toggleVisionAccess(user?: ACCESS_KEY): void {
                 :style="{ opacity: access.vision ? 1.0 : 0.3, textAlign: 'center' }"
                 :disabled="!owned"
                 :title="t('game.ui.selection.edit_dialog.access.toggle_vision_access')"
-                @click="toggleVisionAccess(user)"
+                @click="toggleAccess('vision', user)"
             >
                 <font-awesome-icon icon="lightbulb" />
             </div>

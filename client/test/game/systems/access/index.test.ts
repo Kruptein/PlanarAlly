@@ -39,6 +39,12 @@ vi.spyOn(coreStore, "setUsername").mockImplementation((username: string) => {
     }
 });
 
+function accessCheck(id: LocalId, access: AccessConfig, limiter: boolean = false): void {
+    for (const [key, value] of Object.entries(access)) {
+        expect(accessSystem.hasAccessTo(id, key as keyof AccessConfig, limiter)).toBe(value);
+    }
+}
+
 describe("Access System", () => {
     beforeEach(() => {
         accessSystem.clear();
@@ -152,17 +158,9 @@ describe("Access System", () => {
             // setup
             gameSystem.setDm(true);
             // test
-            expect(accessSystem.hasAccessTo(id, "edit")).toBe(true);
-            expect(accessSystem.hasAccessTo(id, "movement")).toBe(true);
-            expect(accessSystem.hasAccessTo(id, "vision")).toBe(true);
-
-            expect(accessSystem.hasAccessTo(id2, "edit")).toBe(true);
-            expect(accessSystem.hasAccessTo(id2, "movement")).toBe(true);
-            expect(accessSystem.hasAccessTo(id2, "vision")).toBe(true);
-
-            expect(accessSystem.hasAccessTo(id3, "edit")).toBe(true);
-            expect(accessSystem.hasAccessTo(id3, "movement")).toBe(true);
-            expect(accessSystem.hasAccessTo(id3, "vision")).toBe(true);
+            accessCheck(id, { edit: true, movement: true, vision: true });
+            accessCheck(id2, { edit: true, movement: true, vision: true });
+            accessCheck(id3, { edit: true, movement: true, vision: true });
             // teardown
             gameSystem.setDm(false);
         });
@@ -171,17 +169,9 @@ describe("Access System", () => {
             gameSystem.setDm(true);
             accessSystem.setActiveVisionTokens(id, id2, id3);
             // test
-            expect(accessSystem.hasAccessTo(id, "edit")).toBe(true);
-            expect(accessSystem.hasAccessTo(id, "movement")).toBe(true);
-            expect(accessSystem.hasAccessTo(id, "vision")).toBe(true);
-
-            expect(accessSystem.hasAccessTo(id2, "edit")).toBe(true);
-            expect(accessSystem.hasAccessTo(id2, "movement")).toBe(true);
-            expect(accessSystem.hasAccessTo(id2, "vision")).toBe(true);
-
-            expect(accessSystem.hasAccessTo(id3, "edit")).toBe(true);
-            expect(accessSystem.hasAccessTo(id3, "movement")).toBe(true);
-            expect(accessSystem.hasAccessTo(id3, "vision")).toBe(true);
+            accessCheck(id, { edit: true, movement: true, vision: true });
+            accessCheck(id2, { edit: true, movement: true, vision: true });
+            accessCheck(id3, { edit: true, movement: true, vision: true });
             // teardown
             gameSystem.setDm(false);
         });
@@ -190,19 +180,13 @@ describe("Access System", () => {
             gameSystem.setDm(true);
             // test shape 1
             accessSystem.setActiveVisionTokens(id);
-            expect(accessSystem.hasAccessTo(id, "edit", true)).toBe(true);
-            expect(accessSystem.hasAccessTo(id, "movement", true)).toBe(false);
-            expect(accessSystem.hasAccessTo(id, "vision", true)).toBe(true);
+            accessCheck(id, { edit: true, movement: false, vision: true }, true);
             // test shape 2
             accessSystem.setActiveVisionTokens(id2);
-            expect(accessSystem.hasAccessTo(id2, "edit", true)).toBe(true);
-            expect(accessSystem.hasAccessTo(id2, "movement", true)).toBe(true);
-            expect(accessSystem.hasAccessTo(id2, "vision", true)).toBe(true);
+            accessCheck(id2, { edit: true, movement: true, vision: true }, true);
             // test shape 3
             accessSystem.setActiveVisionTokens(id3);
-            expect(accessSystem.hasAccessTo(id3, "edit", true)).toBe(true);
-            expect(accessSystem.hasAccessTo(id3, "movement", true)).toBe(false);
-            expect(accessSystem.hasAccessTo(id3, "vision", true)).toBe(true);
+            accessCheck(id3, { edit: true, movement: false, vision: true }, true);
             // test all shapes
             accessSystem.setActiveVisionTokens(id, id2, id3);
             expect(accessSystem.hasAccessTo(id, "edit", true)).toBe(true);
@@ -226,17 +210,9 @@ describe("Access System", () => {
             gameSystem.setDm(true);
             gameSystem.setFakePlayer(true);
             // test
-            expect(accessSystem.hasAccessTo(id, "edit")).toBe(true);
-            expect(accessSystem.hasAccessTo(id, "movement")).toBe(false);
-            expect(accessSystem.hasAccessTo(id, "vision")).toBe(true);
-
-            expect(accessSystem.hasAccessTo(id2, "edit")).toBe(true);
-            expect(accessSystem.hasAccessTo(id2, "movement")).toBe(true);
-            expect(accessSystem.hasAccessTo(id2, "vision")).toBe(true);
-
-            expect(accessSystem.hasAccessTo(id3, "edit")).toBe(true);
-            expect(accessSystem.hasAccessTo(id3, "movement")).toBe(false);
-            expect(accessSystem.hasAccessTo(id3, "vision")).toBe(true);
+            accessCheck(id, { edit: true, movement: false, vision: true });
+            accessCheck(id2, { edit: true, movement: true, vision: true });
+            accessCheck(id3, { edit: true, movement: false, vision: true });
             // teardown
             gameSystem.setFakePlayer(false);
             gameSystem.setDm(false);
@@ -247,19 +223,13 @@ describe("Access System", () => {
             gameSystem.setFakePlayer(true);
             // test shape 1
             accessSystem.setActiveVisionTokens(id);
-            expect(accessSystem.hasAccessTo(id, "edit", true)).toBe(true);
-            expect(accessSystem.hasAccessTo(id, "movement", true)).toBe(false);
-            expect(accessSystem.hasAccessTo(id, "vision", true)).toBe(true);
+            accessCheck(id, { edit: true, movement: false, vision: true }, true);
             // test shape 2
             accessSystem.setActiveVisionTokens(id2);
-            expect(accessSystem.hasAccessTo(id2, "edit", true)).toBe(true);
-            expect(accessSystem.hasAccessTo(id2, "movement", true)).toBe(true);
-            expect(accessSystem.hasAccessTo(id2, "vision", true)).toBe(true);
+            accessCheck(id2, { edit: true, movement: true, vision: true }, true);
             // test shape 3
             accessSystem.setActiveVisionTokens(id3);
-            expect(accessSystem.hasAccessTo(id3, "edit", true)).toBe(true);
-            expect(accessSystem.hasAccessTo(id3, "movement", true)).toBe(false);
-            expect(accessSystem.hasAccessTo(id3, "vision", true)).toBe(true);
+            accessCheck(id3, { edit: true, movement: false, vision: true }, true);
             // test all shapes
             accessSystem.setActiveVisionTokens(id, id2, id3);
             expect(accessSystem.hasAccessTo(id, "edit", true)).toBe(true);
@@ -285,45 +255,27 @@ describe("Access System", () => {
             // User 1: No access
             coreStore.setUsername("userWithNoRights");
             //   Shape 1
-            expect(accessSystem.hasAccessTo(id, "edit")).toBe(true);
-            expect(accessSystem.hasAccessTo(id, "movement")).toBe(false);
-            expect(accessSystem.hasAccessTo(id, "vision")).toBe(true);
+            accessCheck(id, { edit: true, movement: false, vision: true });
             //   Shape 2
-            expect(accessSystem.hasAccessTo(id2, "edit")).toBe(false);
-            expect(accessSystem.hasAccessTo(id2, "movement")).toBe(true);
-            expect(accessSystem.hasAccessTo(id2, "vision")).toBe(false);
+            accessCheck(id2, { edit: false, movement: true, vision: false });
             //   Shape 3
-            expect(accessSystem.hasAccessTo(id3, "edit")).toBe(false);
-            expect(accessSystem.hasAccessTo(id3, "movement")).toBe(false);
-            expect(accessSystem.hasAccessTo(id3, "vision")).toBe(true);
+            accessCheck(id3, { edit: false, movement: false, vision: true });
             // User 2: Full access
             coreStore.setUsername("userWithFullRights");
             //   Shape 1
-            expect(accessSystem.hasAccessTo(id, "edit")).toBe(true);
-            expect(accessSystem.hasAccessTo(id, "movement")).toBe(false);
-            expect(accessSystem.hasAccessTo(id, "vision")).toBe(true);
+            accessCheck(id, { edit: true, movement: false, vision: true });
             //   Shape 2
-            expect(accessSystem.hasAccessTo(id2, "edit")).toBe(true);
-            expect(accessSystem.hasAccessTo(id2, "movement")).toBe(true);
-            expect(accessSystem.hasAccessTo(id2, "vision")).toBe(true);
+            accessCheck(id2, { edit: true, movement: true, vision: true });
             //   Shape 3
-            expect(accessSystem.hasAccessTo(id3, "edit")).toBe(false);
-            expect(accessSystem.hasAccessTo(id3, "movement")).toBe(false);
-            expect(accessSystem.hasAccessTo(id3, "vision")).toBe(true);
+            accessCheck(id3, { edit: false, movement: false, vision: true });
             // User 3: Mixed access
             coreStore.setUsername("userWithLimitedRights");
             //   Shape 1
-            expect(accessSystem.hasAccessTo(id, "edit")).toBe(true);
-            expect(accessSystem.hasAccessTo(id, "movement")).toBe(false);
-            expect(accessSystem.hasAccessTo(id, "vision")).toBe(true);
+            accessCheck(id, { edit: true, movement: false, vision: true });
             //   Shape 2
-            expect(accessSystem.hasAccessTo(id2, "edit")).toBe(false);
-            expect(accessSystem.hasAccessTo(id2, "movement")).toBe(true);
-            expect(accessSystem.hasAccessTo(id2, "vision")).toBe(false);
+            accessCheck(id2, { edit: false, movement: true, vision: false });
             //   Shape 3
-            expect(accessSystem.hasAccessTo(id3, "edit")).toBe(true);
-            expect(accessSystem.hasAccessTo(id3, "movement")).toBe(false);
-            expect(accessSystem.hasAccessTo(id3, "vision")).toBe(true);
+            accessCheck(id3, { edit: true, movement: false, vision: true });
         });
     });
     describe("getAccess", () => {

@@ -25,7 +25,7 @@ async def create_character(sid: str, raw_data: Any):
     if shape is None or shape.asset is None:
         logger.error("Attempt to create character for incorrect shape")
         return
-    elif not has_ownership(shape, pr):
+    elif not has_ownership(shape, pr, edit=True):
         logger.warn("Attempt to create character without access")
         return
     elif shape.character_id is not None:
@@ -44,7 +44,7 @@ async def create_character(sid: str, raw_data: Any):
         shape.save()
 
     for psid, ppr in game_state.get_t(room=pr.room):
-        if has_ownership(shape, ppr):
+        if has_ownership(shape, ppr, edit=True):
             await _send_game(
                 "Character.Created",
                 char.as_pydantic(),
@@ -73,7 +73,7 @@ async def remove_character(sid: str, char_id: int):
     shape = character.shape
 
     for psid, ppr in game_state.get_t(room=pr.room):
-        if has_ownership(shape, ppr):
+        if has_ownership(shape, ppr, edit=True):
             await _send_game(
                 "Character.Removed",
                 char_id,

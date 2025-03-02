@@ -36,7 +36,7 @@ async def add_shape_owner(sid: str, raw_data: Any):
         )
         raise exc
 
-    if not has_ownership(shape, pr):
+    if not has_ownership(shape, pr, edit=True):
         logger.warning(
             f"{pr.player.name} attempted to change asset ownership of a shape it does not own"
         )
@@ -95,7 +95,7 @@ async def update_shape_owner(sid: str, raw_data: Any):
         )
         raise exc
 
-    if not has_ownership(shape, pr):
+    if not has_ownership(shape, pr, edit=True):
         logger.warning(
             f"{pr.player.name} attempted to change asset ownership of a shape it does not own"
         )
@@ -161,7 +161,7 @@ async def delete_shape_owner(sid: str, raw_data: Any):
         )
         raise exc
 
-    if not has_ownership(shape, pr):
+    if not has_ownership(shape, pr, edit=True):
         logger.warning(
             f"{pr.player.name} attempted to change asset ownership of a shape it does not own"
         )
@@ -176,7 +176,7 @@ async def delete_shape_owner(sid: str, raw_data: Any):
 
     try:
         ShapeOwner.delete().where(
-            (ShapeOwner.shape == shape) & (ShapeOwner.user == target_user)
+            (ShapeOwner.shape == shape) & (ShapeOwner.user == target_user)  # type: ignore
         ).execute()
     except Exception:
         logger.warning(f"Could not delete shape-owner relation by {pr.player.name}")
@@ -219,7 +219,7 @@ async def update_default_shape_owner(sid: str, raw_data: Any):
         )
         raise exc
 
-    if not has_ownership(shape, pr):
+    if not has_ownership(shape, pr, edit=True):
         logger.warning(
             f"{pr.player.name} attempted to change asset ownership of a shape it does not own"
         )

@@ -10,7 +10,7 @@ from ...models.access import has_ownership
 def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:
     owners = [owner.as_pydantic() for owner in shape.owners]
 
-    edit_access = has_ownership(shape, pr)
+    edit_access = has_ownership(shape, pr, edit=True)
 
     # Access checks
     tracker_query = shape.trackers

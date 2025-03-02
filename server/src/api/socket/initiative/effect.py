@@ -32,7 +32,7 @@ async def new_initiative_effect(sid: str, raw_data: Any):
         logger.warning("Attempt to create initiative effect for an unknown shape")
         return
 
-    if not has_ownership(shape, pr):
+    if not has_ownership(shape, pr, edit=True):
         logger.warning(f"{pr.player.name} attempted to create a new initiative effect")
         return
 
@@ -68,7 +68,7 @@ async def rename_initiative_effect(sid: str, raw_data: Any):
         logger.warning("Attempt to rename initiative effect for an unknown shape")
         return
 
-    if not has_ownership(shape, pr):
+    if not has_ownership(shape, pr, edit=True):
         logger.warning(f"{pr.player.name} attempted to create a new initiative effect")
         return
 
@@ -104,7 +104,7 @@ async def set_initiative_effect_tuns(sid: str, raw_data: Any):
         logger.warning("Attempt to modify initiative effect turns for an unknown shape")
         return
 
-    if not has_ownership(shape, pr):
+    if not has_ownership(shape, pr, edit=True):
         logger.warning(f"{pr.player.name} attempted to create a new initiative effect")
         return
 
@@ -140,7 +140,7 @@ async def remove_initiative_effect(sid: str, raw_data: Any):
         logger.warning("Attempt to remove initiative effect for an unknown shape")
         return
 
-    if not has_ownership(shape, pr):
+    if not has_ownership(shape, pr, edit=True):
         logger.warning(f"{pr.player.name} attempted to remove an initiative effect")
         return
 

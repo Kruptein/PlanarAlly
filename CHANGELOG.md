@@ -10,6 +10,11 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Changed
+
+-   Access levels are no longer additive
+    -   e.g. edit access used to automatically include movement & vision access, this is no longer the case
+
 ### Removed
 
 -   The `isToken` property has been removed from all shapes

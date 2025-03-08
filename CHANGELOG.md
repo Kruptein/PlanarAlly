@@ -24,6 +24,7 @@ tech changes will usually be stripped from release notes for the public
 
 -   Draw tool polygon was not updating vision until shape completion
 -   Reduced some render overhead when token shapes that the player did not own were moved
+-   Shape context menu not closing when selecting an option
 
 ## [2025.1.1] - 2025-02-08
 

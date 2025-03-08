@@ -137,13 +137,13 @@ export class Asset extends BaseRect implements IAsset {
         const deltaH = (ogH - h) / 2;
         const deltaW = (ogW - w) / 2;
 
-        if (!this.#loaded) {
+        if (!this.#loaded || lightRevealRender) {
             if (!lightRevealRender) ctx.fillStyle = FOG_COLOUR;
             ctx.fillRect(rp.x - center.x, rp.y - center.y, w, h);
         } else {
             try {
                 ctx.drawImage(this.img, rp.x - center.x + deltaW, rp.y - center.y + deltaH, w, h);
-            } catch (error) {
+            } catch {
                 console.warn(`Shape ${getGlobalId(this.id) ?? "unknown"} could not load the image ${this.src}`);
             }
         }

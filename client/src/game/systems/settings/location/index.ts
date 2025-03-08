@@ -84,6 +84,14 @@ class LocationSettingsSystem implements System {
         }
     }
 
+    /**
+     * Returns true if the LOS settings are active.
+     * This is the case if the LOS settings are not overwritten and the FOW LOS is enabled.
+     */
+    isLosActive(): boolean {
+        return !raw.losOverwritten && raw.fowLos.value;
+    }
+
     // GRID
 
     setUseGrid(useGrid: boolean | undefined, location: number | undefined, sync: boolean): void {

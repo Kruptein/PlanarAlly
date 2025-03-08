@@ -11,7 +11,7 @@ import { initiativeStore } from "../../ui/initiative/state";
 import { floorSystem } from "../floors";
 import { gameState } from "../game/state";
 import { playerSystem } from "../players";
-import { locationSettingsState } from "../settings/location/state";
+import { locationSettingsSystem } from "../settings/location";
 
 import { sendShapeAddOwner, sendShapeDeleteOwner, sendShapeUpdateDefaultOwner, sendShapeUpdateOwner } from "./emits";
 import { accessToServer, ownerToServer } from "./helpers";
@@ -177,7 +177,7 @@ class AccessSystem implements ShapeSystem {
 
         this._updateOwnedState(shapeId);
 
-        if (locationSettingsState.raw.fowLos.value) floorSystem.invalidateLightAllFloors();
+        if (locationSettingsSystem.isLosActive()) floorSystem.invalidateLightAllFloors();
         if (syncTo.ui) initiativeStore._forceUpdate();
     }
 
@@ -224,7 +224,7 @@ class AccessSystem implements ShapeSystem {
             }
         }
 
-        if (locationSettingsState.raw.fowLos.value) {
+        if (locationSettingsSystem.isLosActive()) {
             if (access.vision !== undefined && access.vision !== oldAccess.vision) {
                 const shape = getShape(shapeId);
                 // The shape's aura on it's normal layer might not be up to date yet at this point
@@ -260,7 +260,7 @@ class AccessSystem implements ShapeSystem {
 
         this._updateOwnedState(shapeId);
 
-        if (locationSettingsState.raw.fowLos.value) floorSystem.invalidateLightAllFloors();
+        if (locationSettingsSystem.isLosActive()) floorSystem.invalidateLightAllFloors();
         initiativeStore._forceUpdate();
     }
 

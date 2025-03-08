@@ -10,6 +10,10 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Added
+
+-   New quick toggle to disable LoS rendering for the DM only
+
 ### Changed
 
 -   Access levels are no longer additive

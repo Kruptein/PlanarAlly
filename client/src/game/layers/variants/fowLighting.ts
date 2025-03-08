@@ -10,6 +10,7 @@ import { auraSystem } from "../../systems/auras";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { gameState } from "../../systems/game/state";
+import { locationSettingsSystem } from "../../systems/settings/location";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import { visionState } from "../../vision/state";
 
@@ -76,7 +77,7 @@ export class FowLightingLayer extends FowLayer {
                     // Out of Bounds check
                     if (
                         // It's overkill to check this if fowLos is set
-                        !locationSettingsState.raw.fowLos.value &&
+                        !locationSettingsSystem.isLosActive() &&
                         bb.visibleInCanvas({ w: this.width, h: this.height })
                     ) {
                         this.isEmpty = false;
@@ -94,7 +95,7 @@ export class FowLightingLayer extends FowLayer {
                     if (aura === undefined) continue;
 
                     // Out of Bounds check
-                    if (!locationSettingsState.raw.fowLos.value) {
+                    if (!locationSettingsSystem.isLosActive()) {
                         if (!shapesBoundChecked.has(shape.id)) {
                             shapesBoundChecked.add(shape.id);
                             if (shape._visionBbox?.visibleInCanvas({ w: this.width, h: this.height }) ?? false) {
@@ -158,7 +159,7 @@ export class FowLightingLayer extends FowLayer {
                 }
             }
 
-            if (locationSettingsState.raw.fowLos.value && this.floor === activeFloor.id) {
+            if (locationSettingsSystem.isLosActive() && this.floor === activeFloor.id) {
                 this.ctx.globalCompositeOperation = "source-in";
                 this.ctx.drawImage(
                     floorSystem.getLayer(activeFloor, LayerName.Vision)!.canvas,

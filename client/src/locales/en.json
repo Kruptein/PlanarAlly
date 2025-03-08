@@ -522,7 +522,9 @@
                     "FP": "FP",
                     "INI": "INI",
                     "FP_title": "Toggle fake-player",
-                    "INI_title": "Toggle Initiative State"
+                    "INI_title": "Toggle Initiative State",
+                    "LOS": "LOS",
+                    "LOS_title": "LoS state (DM only)"
                 },
                 "DiceTool": {
                     "rolling": "Rolling...",

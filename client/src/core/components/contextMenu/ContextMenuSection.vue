@@ -15,14 +15,19 @@ async function doAction(action: () => boolean | Promise<boolean>): Promise<void>
 <template>
     <template v-for="(section, i) in sections" :key="Array.isArray(section) ? i : section.title">
         <template v-if="Array.isArray(section)">
-            <ContextMenuSection v-if="section.length" :sections="section" :add-divider="i < sections.length - 1" />
+            <ContextMenuSection
+                v-if="section.length"
+                :sections="section"
+                :add-divider="i < sections.length - 1"
+                @cm:close="$emit('cm:close')"
+            />
         </template>
         <template v-else-if="'subitems' in section">
             <li v-if="section.subitems.length">
                 {{ section.title }}
                 <font-awesome-icon icon="angle-right" />
                 <ul>
-                    <ContextMenuSection :sections="section.subitems" />
+                    <ContextMenuSection :sections="section.subitems" @cm:close="$emit('cm:close')" />
                 </ul>
             </li>
         </template>

@@ -33,6 +33,19 @@ export function getAngleBetween(a: Vector, b: Vector): number {
     return -a.angle() + b.angle(); // inverted y-axis
 }
 
+export function* getHalfPoints<T extends Point>(points: Iterable<T>): Iterable<T> {
+    let firstPoint = undefined;
+    let lastPoint = undefined;
+    for (const point of points) {
+        if (firstPoint === undefined) firstPoint = point;
+        if (lastPoint !== undefined) yield { x: (lastPoint.x + point.x) / 2, y: (lastPoint.y + point.y) / 2 } as T;
+        yield point;
+        lastPoint = point;
+    }
+    if (firstPoint !== undefined && lastPoint !== undefined)
+        yield { x: (firstPoint.x + lastPoint.x) / 2, y: (firstPoint.y + lastPoint.y) / 2 } as T;
+}
+
 export interface Point {
     x: number;
     y: number;

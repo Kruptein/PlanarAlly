@@ -421,8 +421,13 @@ def upgrade(
                 "CREATE TABLE IF NOT EXISTS asset_shortcut (id INTEGER NOT NULL PRIMARY KEY, asset_id INTEGER NOT NULL, player_room_id INTEGER NOT NULL, FOREIGN KEY (asset_id) REFERENCES asset (id) ON DELETE CASCADE, FOREIGN KEY (player_room_id) REFERENCES player_room (id) ON DELETE CASCADE)"
             )
     elif version == 100:
-        # Remove Shape.isToken
+        # Remove Shape.isToken & Unset vision_access for shapes that are not tokens
         with db.atomic():
+            data = db.execute_sql(
+                "SELECT so.id FROM shape_owner so INNER JOIN shape s ON s.uuid = so.shape_id WHERE s.is_token = 0 AND so.vision_access = 1"
+            )
+            for id in data.fetchall():
+                db.execute_sql("UPDATE shape_owner SET vision_access=0 WHERE id=?", id)
             db.execute_sql("CREATE TEMPORARY TABLE _shape_100 AS SELECT * FROM shape")
             db.execute_sql("DROP TABLE shape")
             db.execute_sql(

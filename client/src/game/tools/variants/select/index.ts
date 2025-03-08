@@ -12,10 +12,12 @@ import {
     getPointDistance,
     getDistanceToSegment,
     getAngleBetween,
+    getHalfPoints,
 } from "../../../../core/geometry";
 import type { GlobalPoint, LocalPoint } from "../../../../core/geometry";
 import { DEFAULT_GRID_SIZE } from "../../../../core/grid";
 import { baseAdjust } from "../../../../core/http";
+import { map } from "../../../../core/iter";
 import { equalPoints, rotateAroundPoint, snapToPoint } from "../../../../core/math";
 import { InvalidationMode, NO_SYNC, SyncMode } from "../../../../core/models/types";
 import { ctrlOrCmdPressed } from "../../../../core/utils";
@@ -290,7 +292,7 @@ class SelectTool extends Tool implements ISelectTool {
             // this is only used by noteIcons right now, but in the future parentIds might become useful for regular selectable shapes
             if (shape._parentId !== undefined) continue;
             const props = getProperties(shape.id)!;
-            if (props.isInvisible && !accessSystem.hasAccessTo(shape.id, false, { movement: true })) continue;
+            if (props.isInvisible && !accessSystem.hasAccessTo(shape.id, "movement")) continue;
 
             if (this.rotationUiActive && this.hasFeature(SelectFeatures.Rotate, features)) {
                 const anchor = this.rotationAnchor!.points[1];
@@ -334,6 +336,9 @@ class SelectTool extends Tool implements ISelectTool {
                 }
             }
             if (shape.contains(gp)) {
+                if (!accessSystem.hasAccessTo(shape.id, "vision", true) && !visionState.isInVision(lp)) {
+                    continue;
+                }
                 const shapeSelectionIndex = this.currentSelection.findIndex((s) => s.id === shape.id);
                 if (shapeSelectionIndex === -1) {
                     if (event && ctrlOrCmdPressed(event)) {
@@ -403,7 +408,7 @@ class SelectTool extends Tool implements ISelectTool {
                 accessSystem.addAccess(
                     this.selectionHelper.id,
                     playerSystem.getCurrentPlayer()!.name,
-                    { edit: true, movement: true, vision: true },
+                    { edit: false, movement: false, vision: false },
                     NO_SYNC,
                 );
                 layer.addShape(this.selectionHelper, SyncMode.NO_SYNC, InvalidationMode.NO);
@@ -505,7 +510,7 @@ class SelectTool extends Tool implements ISelectTool {
                 // If we are on the tokens layer do a movement block check.
                 if (layer.name === LayerName.Tokens && !(event?.shiftKey === true && gameState.raw.isDm)) {
                     for (const sel of this.currentSelection) {
-                        if (!accessSystem.hasAccessTo(sel.id, false, { movement: true })) continue;
+                        if (!accessSystem.hasAccessTo(sel.id, "movement")) continue;
                         delta = calculateDelta(delta, sel, true);
                         if (delta !== ogDelta) this.deltaChanged = true;
                     }
@@ -530,7 +535,7 @@ class SelectTool extends Tool implements ISelectTool {
             } else if (this.mode === SelectOperations.Resize) {
                 const shape = this.currentSelection[0]!;
 
-                if (!accessSystem.hasAccessTo(shape.id, false, { movement: true })) return;
+                if (!accessSystem.hasAccessTo(shape.id, "movement")) return;
 
                 let targetPoint = gp;
                 if (
@@ -595,26 +600,47 @@ class SelectTool extends Tool implements ISelectTool {
                 this.currentSelection = [];
             }
             const cbbox = this.selectionHelper!.getBoundingBox();
+            const fowCtx = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Lighting)?.ctx;
             for (const shape of layer.getShapes({ includeComposites: false, onlyInView: true })) {
-                if (!(shape.options.preFogShape ?? false) && (shape.options.skipDraw ?? false)) continue;
-                if (!accessSystem.hasAccessTo(shape.id, false, { movement: true })) continue;
-                if (!shape.visibleInCanvas({ w: layer.width, h: layer.height }, { includeAuras: false })) continue;
-                if (this.currentSelection.some((s) => s.id === shape.id)) continue;
                 if (shape.id === this.selectionHelper?.id) continue;
+                if (this.currentSelection.some((s) => s.id === shape.id)) continue;
+                if (!(shape.options.preFogShape ?? false) && (shape.options.skipDraw ?? false)) continue;
+                if (!accessSystem.hasAccessTo(shape.id, "movement")) continue;
+                if (!shape.visibleInCanvas({ w: layer.width, h: layer.height }, { includeAuras: false })) continue;
 
                 const points = shape.points;
+                let pendingAdd = false;
                 if (points.length > 1) {
                     for (let i = 0; i < points.length; i++) {
                         const ray = Ray.fromPoints(toGP(points[i]!), toGP(points[(i + 1) % points.length]!));
                         if (cbbox.containsRay(ray).hit) {
-                            this.currentSelection.push(shape);
                             i = points.length; // break out of the inner loop
+                            pendingAdd = true;
                         }
                     }
                 } else if (points.length === 1) {
                     if (cbbox.contains(toGP(points[0]!))) {
-                        this.currentSelection.push(shape);
+                        pendingAdd = true;
                     }
+                }
+                // Before adding the shape to the selection, check if it is in vision
+                // This is done to ensure we're not adding shapes hidden in vision
+                // and thus revealing some information that players shouldn't be aware of
+                // We check the 4 corners of the shape's AABB as well as the midpoints
+                // If at least 4 are in vision, we consider enough of the shape to be visible
+                if (pendingAdd) {
+                    let checksOk = accessSystem.hasAccessTo(shape.id, "vision", true);
+                    if (!checksOk) {
+                        let successChecks = 0;
+                        for (const p of getHalfPoints(map(shape.getAABB().points, (p) => g2l(toGP(p))))) {
+                            if (visionState.isInVision(p, fowCtx)) successChecks++;
+                            if (successChecks >= 4) {
+                                checksOk = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (checksOk) this.currentSelection.push(shape);
                 }
             }
 
@@ -641,7 +667,7 @@ class SelectTool extends Tool implements ISelectTool {
             if (this.mode === SelectOperations.Drag) {
                 const updateList = [];
                 for (const [s, sel] of this.currentSelection.entries()) {
-                    if (!accessSystem.hasAccessTo(sel.id, false, { movement: true })) continue;
+                    if (!accessSystem.hasAccessTo(sel.id, "movement")) continue;
 
                     if (
                         this.dragRay.origin.x === g2lx(sel.refPoint.x) &&
@@ -714,7 +740,7 @@ class SelectTool extends Tool implements ISelectTool {
             }
             if (this.mode === SelectOperations.Resize) {
                 for (const sel of this.currentSelection) {
-                    if (!accessSystem.hasAccessTo(sel.id, false, { movement: true })) continue;
+                    if (!accessSystem.hasAccessTo(sel.id, "movement")) continue;
 
                     const props = getProperties(sel.id)!;
 
@@ -766,7 +792,7 @@ class SelectTool extends Tool implements ISelectTool {
                 const rotationCenter = this.rotationBox!.center;
 
                 for (const [s, sel] of this.currentSelection.entries()) {
-                    if (!accessSystem.hasAccessTo(sel.id, false, { movement: true })) continue;
+                    if (!accessSystem.hasAccessTo(sel.id, "movement")) continue;
 
                     const newAngle = Math.round(this.angle / ANGLE_SNAP) * ANGLE_SNAP;
                     if (
@@ -933,7 +959,7 @@ class SelectTool extends Tool implements ISelectTool {
             accessSystem.addAccess(
                 rotationShape.id,
                 playerSystem.getCurrentPlayer()!.name,
-                { edit: true, movement: true, vision: true },
+                { edit: false, movement: false, vision: false },
                 NO_SYNC,
             );
             layer.addShape(rotationShape, SyncMode.NO_SYNC, InvalidationMode.NO);

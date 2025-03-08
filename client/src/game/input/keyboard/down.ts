@@ -117,7 +117,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             // x - Mark Defeated
             const selection = selectedSystem.get({ includeComposites: true });
             for (const shape of selection) {
-                if (accessSystem.hasAccessTo(shape.id, false, { edit: true })) {
+                if (accessSystem.hasAccessTo(shape.id, "edit")) {
                     const isDefeated = getProperties(shape.id)!.isDefeated;
                     propertiesSystem.setIsDefeated(shape.id, !isDefeated, FULL_SYNC);
                 }
@@ -127,7 +127,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
         } else if (event.key === "l" && ctrlOrCmdPressed(event)) {
             const selection = selectedSystem.get({ includeComposites: true });
             for (const shape of selection) {
-                if (accessSystem.hasAccessTo(shape.id, false, { edit: true })) {
+                if (accessSystem.hasAccessTo(shape.id, "edit")) {
                     // This and GroupSettings are the only places currently where we would need to update both UI and Server.
                     // Might need to introduce a SyncTo.BOTH
                     const isLocked = getProperties(shape.id)!.isLocked;

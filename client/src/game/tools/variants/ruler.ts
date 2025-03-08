@@ -95,7 +95,7 @@ class RulerTool extends Tool implements ITool {
         accessSystem.addAccess(
             ruler.id,
             playerSystem.getCurrentPlayer()!.name,
-            { edit: true, movement: true, vision: true },
+            { edit: false, movement: false, vision: false },
             NO_SYNC,
         );
         layer.addShape(ruler, this.syncMode, InvalidationMode.NORMAL);
@@ -148,7 +148,7 @@ class RulerTool extends Tool implements ITool {
         accessSystem.addAccess(
             this.text.id,
             playerSystem.getCurrentPlayer()!.name,
-            { edit: true, movement: true, vision: true },
+            { edit: false, movement: false, vision: false },
             NO_SYNC,
         );
         layer.addShape(this.text, this.syncMode, InvalidationMode.NORMAL);

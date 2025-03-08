@@ -16,7 +16,7 @@ def get_shape_or_none(pr: PlayerRoom, shape_id: str, action: str) -> Union[Shape
         )
         raise exc
 
-    if not has_ownership(shape, pr):
+    if not has_ownership(shape, pr, edit=True):
         logger.warning(
             f"Attempt by {pr.player.name} on shape they do not own. {{method: {action}, shape id: {shape_id}}}"
         )
@@ -31,5 +31,5 @@ def get_owner_sids(
     for psid in game_state.get_sids(
         active_location=pr.active_location, skip_sid=skip_sid
     ):
-        if has_ownership(shape, game_state.get(psid)):
+        if has_ownership(shape, game_state.get(psid), edit=True):
             yield psid

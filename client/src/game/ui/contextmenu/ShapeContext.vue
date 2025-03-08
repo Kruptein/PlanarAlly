@@ -57,9 +57,7 @@ const selectionIncludesSpawnToken = computed(() =>
     }),
 );
 
-const isOwned = computed(() =>
-    [...selectedState.reactive.selected].every((s) => accessSystem.hasAccessTo(s, false, { edit: true })),
-);
+const isOwned = computed(() => [...selectedState.reactive.selected].every((s) => accessSystem.hasAccessTo(s, "edit")));
 
 function close(): void {
     showShapeContextMenu.value = false;

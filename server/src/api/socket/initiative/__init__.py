@@ -72,7 +72,7 @@ async def set_initiative_option(sid: str, raw_data: Any):
         logger.warning("Attempt to update initiative option for unknown shape")
         return
 
-    if not has_ownership(shape, pr):
+    if not has_ownership(shape, pr, edit=True):
         logger.warning(
             f"{pr.player.name} attempted to change initiative of an asset it does not own"
         )
@@ -139,7 +139,7 @@ async def add_initiative(sid: str, raw_data: Any):
         logger.warning("Attempt to add initiative for unknown shape")
         return
 
-    if not has_ownership(shape, pr):
+    if not has_ownership(shape, pr, edit=True):
         logger.warning(
             f"{pr.player.name} attempted to add initiative to an asset it does not own"
         )
@@ -177,7 +177,7 @@ async def set_initiative_value(sid: str, raw_data: Any):
         logger.warning("Attempt to update initiative value for unknown shape")
         return
 
-    if not has_ownership(shape, pr):
+    if not has_ownership(shape, pr, edit=True):
         logger.warning(
             f"{pr.player.name} attempted to remove initiative of an asset it does not own"
         )
@@ -275,7 +275,7 @@ async def remove_initiative(sid: str, data: str):
         logger.warning("Attempt to remove initiative for unknown shape")
         return
 
-    if not has_ownership(shape, pr):
+    if not has_ownership(shape, pr, edit=True):
         logger.warning(
             f"{pr.player.name} attempted to remove initiative of an asset it does not own"
         )
@@ -383,7 +383,7 @@ async def update_initiative_turn(sid: str, turn: int):
             # we only need the shape to check ownership, so we can safely ignore it if the shape is unknown and
             # proceed to the next turn
             logger.warning("Attempt to modify the initiative turn for an unknown shape")
-        elif pr.role != Role.DM and not has_ownership(shape, pr):
+        elif pr.role != Role.DM and not has_ownership(shape, pr, edit=True):
             logger.warning(
                 f"{pr.player.name} attempted to advance the initiative tracker"
             )
@@ -438,7 +438,7 @@ async def update_initiative_round(sid: str, data: int):
             )
             return
 
-        if not has_ownership(shape, pr):
+        if not has_ownership(shape, pr, edit=True):
             logger.warning(
                 f"{pr.player.name} attempted to advance the initiative tracker"
             )

@@ -182,7 +182,7 @@ async def remove_shapes(sid: str, raw_data: Any):
         group_ids = set()
 
         for shape in shapes:
-            if not has_ownership(shape, pr):
+            if not has_ownership(shape, pr, edit=True):
                 logger.warning(
                     f"User {pr.player.name} tried to remove a shape it does not own."
                 )

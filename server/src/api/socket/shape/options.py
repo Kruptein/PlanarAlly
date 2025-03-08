@@ -248,28 +248,6 @@ async def set_locked(sid: str, raw_data: Any):
     )
 
 
-@sio.on("Shape.Options.Token.Set", namespace=GAME_NS)
-@auth.login_required(app, sio, "game")
-async def set_token(sid: str, raw_data: Any):
-    data = ShapeSetBooleanValue(**raw_data)
-
-    pr: PlayerRoom = game_state.get(sid)
-
-    shape = get_shape_or_none(pr, data.shape, "Token.Set")
-    if shape is None:
-        return
-
-    shape.is_token = data.value
-    shape.save()
-
-    await _send_game(
-        "Shape.Options.Token.Set",
-        data,
-        skip_sid=sid,
-        room=pr.active_location.get_path(),
-    )
-
-
 @sio.on("Shape.Options.MovementBlock.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def set_movement_block(sid: str, raw_data: Any):

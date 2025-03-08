@@ -16,6 +16,7 @@ import { getGlobalId, getShape } from "../../id";
 import type { IToggleComposite } from "../../interfaces/shapes/toggleComposite";
 import { compositeState } from "../../layers/state";
 import { accessSystem } from "../../systems/access";
+import { ACCESS_LEVELS } from "../../systems/access/models";
 import { auraSystem } from "../../systems/auras";
 import { getProperties } from "../../systems/properties/state";
 import type { ShapeProperties } from "../../systems/properties/state";
@@ -118,7 +119,9 @@ export class ToggleComposite extends Shape implements IToggleComposite {
             if (variant === undefined || props === undefined) continue;
 
             if (variant.floorId !== undefined) {
-                if (props.isToken) accessSystem.removeOwnedToken(variant.id);
+                for (const al of ACCESS_LEVELS) {
+                    accessSystem.removeOwnedToken(variant.id, al);
+                }
                 if (props.blocksMovement)
                     visionState.removeBlocker(TriangulationTarget.MOVEMENT, variant.floorId, variant, true);
                 if (props.blocksVision !== VisionBlock.No)
@@ -155,8 +158,7 @@ export class ToggleComposite extends Shape implements IToggleComposite {
 
         const props = getProperties(newVariant.id)!;
 
-        if (props.isToken && accessSystem.hasAccessTo(newVariant.id, false, { vision: true }))
-            accessSystem.addOwnedToken(newVariant.id);
+        accessSystem._updateOwnedState(newVariant.id);
 
         if (newVariant.floorId !== undefined) {
             if (props.blocksMovement)
@@ -207,7 +209,7 @@ export class ToggleComposite extends Shape implements IToggleComposite {
         return;
     }
 
-    getAABB(delta = 0): BoundingRect {
+    getAABB(_delta = 0): BoundingRect {
         return new BoundingRect(this.refPoint, 5, 5);
     }
 

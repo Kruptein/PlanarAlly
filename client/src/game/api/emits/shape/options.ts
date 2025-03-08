@@ -9,7 +9,6 @@ import { wrapSocket } from "../../helpers";
 export const sendShapeSetInvisible = wrapSocket<ShapeSetBooleanValue>("Shape.Options.Invisible.Set");
 export const sendShapeSetDefeated = wrapSocket<ShapeSetBooleanValue>("Shape.Options.Defeated.Set");
 export const sendShapeSetLocked = wrapSocket<ShapeSetBooleanValue>("Shape.Options.Locked.Set");
-export const sendShapeSetIsToken = wrapSocket<ShapeSetBooleanValue>("Shape.Options.Token.Set");
 export const sendShapeSetBlocksMovement = wrapSocket<ShapeSetBooleanValue>("Shape.Options.MovementBlock.Set");
 export const sendShapeSetBlocksVision = wrapSocket<ShapeSetIntegerValue>("Shape.Options.VisionBlock.Set");
 export const sendShapeSetNameVisible = wrapSocket<ShapeSetBooleanValue>("Shape.Options.NameVisible.Set");

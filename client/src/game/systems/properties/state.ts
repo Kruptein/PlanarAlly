@@ -8,7 +8,6 @@ import { VisionBlock } from "./types";
 export interface ShapeProperties {
     name: string;
     nameVisible: boolean;
-    isToken: boolean;
     isInvisible: boolean;
     strokeColour: string[];
     fillColour: string;
@@ -41,7 +40,6 @@ const state = buildState<PropertiesState, PropertiesState>(
         // id: undefined,
         // name: "Unknown Shape",
         // nameVisible: false,
-        // isToken: false,
         // isInvisible: false,
         // strokeColour: undefined,
         // fillColour: undefined,
@@ -65,7 +63,6 @@ const state = buildState<PropertiesState, PropertiesState>(
 const DEFAULT_PROPERTIES: () => ShapeProperties = () => ({
     name: "Unknown Shape",
     nameVisible: true,
-    isToken: false,
     isInvisible: false,
     isDefeated: false,
     isLocked: false,

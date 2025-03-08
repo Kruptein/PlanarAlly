@@ -9,7 +9,10 @@ import { accessState } from "../systems/access/state";
 import { positionState } from "../systems/position/state";
 
 const tokens = computed(() =>
-    filter(positionState.reactive.tokenDirections.entries(), ([id]) => accessState.activeTokens.value.has(id)),
+    filter(
+        positionState.reactive.tokenDirections.entries(),
+        ([id]) => accessState.activeTokens.value.get("vision")?.has(id) ?? false,
+    ),
 );
 
 function center(token: LocalId): void {

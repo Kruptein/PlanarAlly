@@ -54,7 +54,7 @@ function getName(actor: InitiativeData): string {
     const props = getProperties(actor.localId);
     if (props !== undefined) {
         if (props.nameVisible) return props.name;
-        if (accessSystem.hasAccessTo(actor.localId, false, { edit: true })) return props.name;
+        if (accessSystem.hasAccessTo(actor.localId, "edit")) return props.name;
     }
     return "?";
 }
@@ -118,7 +118,7 @@ function getImage(actor: InitiativeData): string {
 function canSee(actor: InitiativeData): boolean {
     if (gameState.raw.isDm || actor.isVisible) return true;
     if (actor.localId === undefined) return false;
-    return accessSystem.hasAccessTo(actor.localId, false, { edit: true });
+    return accessSystem.hasAccessTo(actor.localId, "edit");
 }
 
 function reset(): void {

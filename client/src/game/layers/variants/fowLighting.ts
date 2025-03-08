@@ -47,7 +47,7 @@ export class FowLightingLayer extends FowLayer {
                 floorSystem.hasLayer(activeFloor, LayerName.Tokens) &&
                 activeFloor.id === this.floor
             ) {
-                for (const sh of accessState.activeTokens.value) {
+                for (const sh of accessState.activeTokens.value.get("vision") ?? []) {
                     const shape = getShape(sh);
                     if (shape === undefined) continue;
                     if (shape.options.skipDraw ?? false) continue;

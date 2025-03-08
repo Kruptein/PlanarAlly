@@ -35,7 +35,7 @@ export class FowVisionLayer extends FowLayer {
                 visionMax += 0.01;
             }
 
-            for (const tokenId of accessState.activeTokens.value) {
+            for (const tokenId of accessState.activeTokens.value.get("vision") ?? []) {
                 const token = getShape(tokenId);
                 if (token === undefined || token.floorId !== this.floor) continue;
                 if (token.layerName === LayerName.Dm && gameState.raw.isFakePlayer) continue;

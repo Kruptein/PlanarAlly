@@ -27,6 +27,7 @@ export const sendRemoveShapes = (data: TemporaryShapes): void => {
                 "Attempted to send shape removal request for 0 shapes. If you think this is a bug, please report this!",
             );
         } else {
+            // eslint-disable-next-line no-debugger
             debugger;
         }
     } else wrapSocket<TemporaryShapes>("Shapes.Remove")(data);

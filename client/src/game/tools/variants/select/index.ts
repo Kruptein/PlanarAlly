@@ -919,7 +919,10 @@ class SelectTool extends Tool implements ISelectTool {
     // ROTATION
 
     createRotationUi(features: ToolFeatures<SelectFeatures>): void {
-        const layerSelection = this.currentSelection;
+        // Check both current selection and selected system
+        // This can be entered through different means (e.g. mode change or selection change)
+        const layerSelection =
+            this.currentSelection.length > 0 ? this.currentSelection : selectedSystem.get({ includeComposites: false });
 
         if (layerSelection.length === 0 || this.rotationUiActive || !this.hasFeature(SelectFeatures.Rotate, features))
             return;

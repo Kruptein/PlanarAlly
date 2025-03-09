@@ -250,6 +250,11 @@ class SelectTool extends Tool implements ISelectTool {
             console.log("No active layer!");
             return;
         }
+        const drawLayer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
+        if (drawLayer === undefined) {
+            console.log("No draw layer!");
+            return;
+        }
 
         // Logic Door Check
         if (_.hoveredDoor !== undefined && activeToolMode.value === ToolMode.Play) {
@@ -411,7 +416,7 @@ class SelectTool extends Tool implements ISelectTool {
                     { edit: false, movement: false, vision: false },
                     NO_SYNC,
                 );
-                layer.addShape(this.selectionHelper, SyncMode.NO_SYNC, InvalidationMode.NO);
+                drawLayer.addShape(this.selectionHelper, SyncMode.NO_SYNC, InvalidationMode.NO);
             } else {
                 this.selectionHelper.refPoint = this.selectionStartPoint;
                 this.selectionHelper.w = 0;
@@ -427,6 +432,7 @@ class SelectTool extends Tool implements ISelectTool {
             }
 
             layer.invalidate(true);
+            drawLayer.invalidate(true);
         }
         if (this.checkRuler()) {
             await rulerTool.onDown(lp, event);
@@ -499,7 +505,12 @@ class SelectTool extends Tool implements ISelectTool {
                 Math.min(this.selectionStartPoint.x, endPoint.x),
                 Math.min(this.selectionStartPoint.y, endPoint.y),
             );
-            layer.invalidate(true);
+            const drawLayer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
+            if (drawLayer === undefined) {
+                console.log("No draw layer!");
+                return;
+            }
+            drawLayer.invalidate(true);
         } else if (this.currentSelection.length) {
             let delta = Ray.fromPoints(this.dragRay.get(this.dragRay.tMax), lp).direction.multiply(
                 1 / positionState.readonly.zoom,
@@ -590,6 +601,11 @@ class SelectTool extends Tool implements ISelectTool {
             return;
         }
         const layer = floorState.currentLayer.value;
+        const drawLayer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw);
+        if (drawLayer === undefined) {
+            console.log("No draw layer!");
+            return;
+        }
 
         if (this.currentSelection.some((s) => getProperties(s.id)!.isLocked)) {
             // no-op - don't return because we need to run common logic afterwards
@@ -644,7 +660,11 @@ class SelectTool extends Tool implements ISelectTool {
                 }
             }
 
-            layer.removeShape(this.selectionHelper!, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
+            drawLayer.removeShape(this.selectionHelper!, {
+                sync: SyncMode.NO_SYNC,
+                recalculate: true,
+                dropShapeId: true,
+            });
             this.selectionHelper = undefined;
 
             if (this.currentSelection.some((s) => !getProperties(s.id)!.isLocked)) {

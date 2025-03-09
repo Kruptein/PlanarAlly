@@ -115,6 +115,7 @@ function toggleLoS(): void {
                         {{ t("game.ui.tools.tools.FP") }}
                     </div>
                     <div
+                        v-if="locationSettingsState.reactive.fowLos.value"
                         :class="{
                             active: !locationSettingsState.reactive.losOverwritten,
                             disabled: locationSettingsState.reactive.losOverwritten,

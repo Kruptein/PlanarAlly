@@ -189,15 +189,15 @@ class AccessSystem implements ShapeSystem {
 
         const oldAccess = mutable.access.get(shapeId)?.get(user) ?? DEFAULT_ACCESS;
 
-        // Check owned-token changes
-        this._updateOwnedState(shapeId);
-
         // Commit to state
         const newAccess = { ...oldAccess, ...access };
         if (!mutable.access.has(shapeId)) {
             mutable.access.set(shapeId, new Map());
         }
         mutable.access.get(shapeId)!.set(user, newAccess);
+
+        // Check owned-token changes
+        this._updateOwnedState(shapeId);
 
         if ($.id === shapeId) {
             if (user === DEFAULT_ACCESS_SYMBOL) {

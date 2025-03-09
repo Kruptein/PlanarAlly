@@ -19,7 +19,7 @@ import { DEFAULT_GRID_SIZE } from "../../../../core/grid";
 import { baseAdjust } from "../../../../core/http";
 import { map } from "../../../../core/iter";
 import { equalPoints, rotateAroundPoint, snapToPoint } from "../../../../core/math";
-import { InvalidationMode, NO_SYNC, SyncMode } from "../../../../core/models/types";
+import { InvalidationMode, SyncMode } from "../../../../core/models/types";
 import { ctrlOrCmdPressed } from "../../../../core/utils";
 import { i18n } from "../../../../i18n";
 import { sendRequest } from "../../../api/emits/logic";
@@ -410,12 +410,6 @@ class SelectTool extends Tool implements ISelectTool {
                 );
                 this.selectionHelper.strokeWidth = 2;
                 this.selectionHelper.options.UiHelper = true;
-                accessSystem.addAccess(
-                    this.selectionHelper.id,
-                    playerSystem.getCurrentPlayer()!.name,
-                    { edit: false, movement: false, vision: false },
-                    NO_SYNC,
-                );
                 drawLayer.addShape(this.selectionHelper, SyncMode.NO_SYNC, InvalidationMode.NO);
             } else {
                 this.selectionHelper.refPoint = this.selectionStartPoint;
@@ -431,7 +425,6 @@ class SelectTool extends Tool implements ISelectTool {
                 this.removeRotationUi();
             }
 
-            layer.invalidate(true);
             drawLayer.invalidate(true);
         }
         if (this.checkRuler()) {
@@ -976,12 +969,6 @@ class SelectTool extends Tool implements ISelectTool {
         );
 
         for (const rotationShape of [this.rotationAnchor, this.rotationBox, this.rotationEnd]) {
-            accessSystem.addAccess(
-                rotationShape.id,
-                playerSystem.getCurrentPlayer()!.name,
-                { edit: false, movement: false, vision: false },
-                NO_SYNC,
-            );
             layer.addShape(rotationShape, SyncMode.NO_SYNC, InvalidationMode.NO);
         }
 

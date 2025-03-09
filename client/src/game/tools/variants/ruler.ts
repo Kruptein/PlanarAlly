@@ -13,7 +13,7 @@ import {
     getClosestCellCenter,
     snapPointToGrid,
 } from "../../../core/grid";
-import { InvalidationMode, NO_SYNC, SyncMode } from "../../../core/models/types";
+import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import type { ILayer } from "../../interfaces/layer";
@@ -21,12 +21,11 @@ import { LayerName } from "../../models/floor";
 import { ToolName } from "../../models/tools";
 import type { ITool, ToolFeatures, ToolPermission } from "../../models/tools";
 import { drawPolygon } from "../../rendering/basic";
+import { deleteShapes } from "../../shapes/utils";
 import { Line } from "../../shapes/variants/line";
 import { Text } from "../../shapes/variants/text";
-import { accessSystem } from "../../systems/access";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
-import { playerSystem } from "../../systems/players";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import { GridModeLabelFormat } from "../../systems/settings/players/models";
 import { playerSettingsState } from "../../systems/settings/players/state";
@@ -92,12 +91,6 @@ class RulerTool extends Tool implements ITool {
             return;
         }
 
-        accessSystem.addAccess(
-            ruler.id,
-            playerSystem.getCurrentPlayer()!.name,
-            { edit: false, movement: false, vision: false },
-            NO_SYNC,
-        );
         layer.addShape(ruler, this.syncMode, InvalidationMode.NORMAL);
         this.rulers.push({ ruler, cells: [] });
     }
@@ -145,12 +138,6 @@ class RulerTool extends Tool implements ITool {
             { fillColour: "#000", strokeColour: ["#fff"] },
         );
         this.text.ignoreZoomSize = true;
-        accessSystem.addAccess(
-            this.text.id,
-            playerSystem.getCurrentPlayer()!.name,
-            { edit: false, movement: false, vision: false },
-            NO_SYNC,
-        );
         layer.addShape(this.text, this.syncMode, InvalidationMode.NORMAL);
 
         return Promise.resolve();
@@ -352,10 +339,7 @@ class RulerTool extends Tool implements ITool {
         }
         this.active.value = false;
 
-        for (const { ruler } of this.rulers) {
-            layer.removeShape(ruler, { sync: this.syncMode, recalculate: true, dropShapeId: true });
-        }
-        layer.removeShape(this.text, { sync: this.syncMode, recalculate: true, dropShapeId: true });
+        deleteShapes([...this.rulers.map(({ ruler }) => ruler), this.text], this.syncMode, false);
         this.startPoint = this.text = undefined;
         this.rulers = [];
         this.previousLength = 0;

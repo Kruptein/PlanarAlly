@@ -169,7 +169,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
     return selectedSystem.get({ includeComposites: false });
 }
 
-export function deleteShapes(shapes: readonly IShape[], sync: SyncMode): void {
+export function deleteShapes(shapes: readonly IShape[], sync: SyncMode, invalidateVision = true): void {
     if (shapes.length === 0) return;
     if (sync === SyncMode.FULL_SYNC) {
         addOperation({
@@ -193,14 +193,16 @@ export function deleteShapes(shapes: readonly IShape[], sync: SyncMode): void {
         if (gId) {
             removed.push(gId);
         }
-        const props = getProperties(sel.id)!;
-        if (props.blocksVision !== VisionBlock.No) recalculateVision = true;
-        if (props.blocksMovement) recalculateMovement = true;
+        if (invalidateVision) {
+            const props = getProperties(sel.id)!;
+            if (props.blocksVision !== VisionBlock.No) recalculateVision = true;
+            if (props.blocksMovement) recalculateMovement = true;
+        }
 
         sel.layer?.removeShape(sel, { sync: SyncMode.NO_SYNC, recalculate: recalculateIterative, dropShapeId: true });
     }
     if (sync !== SyncMode.NO_SYNC) sendRemoveShapes({ uuids: removed, temporary: sync === SyncMode.TEMP_SYNC });
-    if (!recalculateIterative) {
+    if (invalidateVision && !recalculateIterative) {
         const floor = shapes[0]?.floorId;
         if (floor !== undefined) {
             if (recalculateMovement) visionState.recalculate({ target: TriangulationTarget.MOVEMENT, floor });

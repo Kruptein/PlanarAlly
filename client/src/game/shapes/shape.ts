@@ -259,7 +259,7 @@ export abstract class Shape implements IShape {
         this.invalidatePoints();
 
         // Update off-screen token directions
-        if (accessSystem.hasAccessTo(this.id, "vision", true)) {
+        if (accessSystem.hasAccessTo(this.id, "vision")) {
             const floor = this.floor;
             if (floor !== undefined) floorSystem.getLayer(floor, LayerName.Draw)?.invalidate(true);
         }
@@ -296,7 +296,7 @@ export abstract class Shape implements IShape {
         this.updateShapeVision(false, false);
 
         // Update off-screen token directions
-        if (accessSystem.hasAccessTo(this.id, "vision", true)) {
+        if (accessSystem.hasAccessTo(this.id, "vision")) {
             const floor = this.floor;
             if (floor !== undefined) floorSystem.getLayer(floor, LayerName.Draw)?.invalidate(true);
         }

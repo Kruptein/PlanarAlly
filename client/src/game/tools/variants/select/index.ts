@@ -919,12 +919,12 @@ class SelectTool extends Tool implements ISelectTool {
     // ROTATION
 
     createRotationUi(features: ToolFeatures<SelectFeatures>): void {
-        const layer = floorState.currentLayer.value!;
-
         const layerSelection = this.currentSelection;
 
         if (layerSelection.length === 0 || this.rotationUiActive || !this.hasFeature(SelectFeatures.Rotate, features))
             return;
+
+        const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Draw)!;
 
         let bbox: BoundingRect;
         if (layerSelection.length === 1) {

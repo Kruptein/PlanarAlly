@@ -19,6 +19,7 @@ tech changes will usually be stripped from release notes for the public
 -   Access levels are no longer additive
     -   e.g. edit access used to automatically include movement & vision access, this is no longer the case
 -   Selection draw box now appears on top of the fog
+-   Selection rotate UI now appears on top fo the fog
 
 ### Removed
 

@@ -336,7 +336,7 @@ class SelectTool extends Tool implements ISelectTool {
                 }
             }
             if (shape.contains(gp)) {
-                if (!accessSystem.hasAccessTo(shape.id, "vision", true) && !visionState.isInVision(lp)) {
+                if (!accessSystem.hasAccessTo(shape.id, "vision", !gameState.raw.isDm) && !visionState.isInVision(lp)) {
                     continue;
                 }
                 const shapeSelectionIndex = this.currentSelection.findIndex((s) => s.id === shape.id);
@@ -629,7 +629,7 @@ class SelectTool extends Tool implements ISelectTool {
                 // We check the 4 corners of the shape's AABB as well as the midpoints
                 // If at least 4 are in vision, we consider enough of the shape to be visible
                 if (pendingAdd) {
-                    let checksOk = accessSystem.hasAccessTo(shape.id, "vision", true);
+                    let checksOk = accessSystem.hasAccessTo(shape.id, "vision", !gameState.raw.isDm);
                     if (!checksOk) {
                         let successChecks = 0;
                         for (const p of getHalfPoints(map(shape.getAABB().points, (p) => g2l(toGP(p))))) {

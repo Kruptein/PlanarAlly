@@ -27,7 +27,7 @@
         "@fortawesome/free-regular-svg-icons": "^6.7.2",
         "@fortawesome/free-solid-svg-icons": "^6.7.2",
         "@fortawesome/vue-fontawesome": "^3.0.8",
-        "@planarally/dice": "^0.7.0",
+        "@planarally/dice": "^0.7.1",
         "mathjs": "^14.2.1",
         "path-data-polyfill": "^1.0.6",
         "socket.io-client": "^4.8.1",

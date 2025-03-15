@@ -19,15 +19,22 @@ if subpath[-1] == "/":
     subpath = subpath[:-1]
 
 
+def __replace_config_data(data: bytes) -> bytes:
+    if not config.getboolean("General", "allow_signups"):
+        data = data.replace(
+            b'name="PA-signup" content="true"', b'name="PA-signup" content="false"'
+        )
+    if not config.getboolean("Mail", "enabled"):
+        data = data.replace(
+            b'name="PA-mail" content="true"', b'name="PA-mail" content="false"'
+        )
+    return data
+
+
 async def root(request, admin_api=False):
     template = "admin-index.html" if admin_api else "index.html"
     with open(FILE_DIR / "templates" / template, "rb") as f:
-        data = f.read()
-
-        if not config.getboolean("General", "allow_signups"):
-            data = data.replace(
-                b'name="PA-signup" content="true"', b'name="PA-signup" content="false"'
-            )
+        data = __replace_config_data(f.read())
         return web.Response(body=data, content_type="text/html")
 
 
@@ -35,17 +42,11 @@ async def root_dev(request, admin_api=False):
     port = 8081 if admin_api else 8080
     target_url = f"http://localhost:{port}{request.rel_url}"
     data = await request.read()
-    async with aiohttp.ClientSession() as session:
-        async with session.request(
-            "get", target_url, headers=request.headers, data=data
+    async with aiohttp.ClientSession() as client:
+        async with client.get(
+            target_url, headers=request.headers, data=data
         ) as response:
-            raw = await response.read()
-            if not config.getboolean("General", "allow_signups"):
-                raw = raw.replace(
-                    b'name="PA-signup" content="true"',
-                    b'name="PA-signup" content="false"',
-                )
-
+            raw = __replace_config_data(await response.read())
     return web.Response(body=raw, status=response.status, headers=response.headers)
 
 
@@ -60,6 +61,8 @@ main_app.router.add_post(f"{subpath}/api/users/delete", users.delete_account)
 main_app.router.add_post(f"{subpath}/api/login", auth.login)
 main_app.router.add_post(f"{subpath}/api/register", auth.register)
 main_app.router.add_post(f"{subpath}/api/logout", auth.logout)
+main_app.router.add_post(f"{subpath}/api/forgot-password", auth.forgot_password)
+main_app.router.add_post(f"{subpath}/api/reset-password", auth.reset_password)
 main_app.router.add_get(f"{subpath}/api/server/upload_limit", server.get_limit)
 main_app.router.add_get(f"{subpath}/api/rooms", rooms.get_list)
 main_app.router.add_post(f"{subpath}/api/rooms", rooms.create)

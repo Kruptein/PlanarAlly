@@ -90,7 +90,7 @@ async def forgot_password(request):
 
     reset_token = auth_state.add_reset_token(user.id)
 
-    reset_url = f"{config.get('General', 'public_name', fallback='')}/auth/login?resetToken={reset_token}"
+    reset_url = f"{config.get('General', 'client_url', fallback='')}/auth/login?resetToken={reset_token}"
 
     print(reset_url)
 

@@ -104,7 +104,15 @@
     "auth": {
         "login": {
             "register": "Register",
-            "login": "Login"
+            "login": "Login",
+            "forgotPassword": "Forgot password?",
+            "forgotPasswordNote1": "Note that password recovery by mail is only possible if you configured an email-address for your account.",
+            "forgotPasswordNote2": "If you did not do this, or are not sure, please contact the administrator of this server.",
+            "forgotPasswordSuccess": "Email sent",
+            "resetPassword": "Reset password",
+            "resetPasswordSuccess": "Password reset",
+            "resetPasswordFailed": "Failed to reset password - Token incorrect or expired",
+            "resetPasswordNote": "Enter your new password below and click submit to reset your password."
         }
     },
     "core": {

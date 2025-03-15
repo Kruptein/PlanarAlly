@@ -1,3 +1,6 @@
+import asyncio
+import random
+
 from aiohttp import web
 from aiohttp_security import authorized_userid, forget, remember
 
@@ -5,6 +8,8 @@ from ...auth import get_authorized_user
 from ...config import config
 from ...db.db import db
 from ...db.models.user import User
+from ...mail import send_mail
+from ...state.auth import auth_state
 
 
 async def is_authed(request):
@@ -70,3 +75,47 @@ async def logout(request):
     response = web.HTTPOk()
     await forget(request, response)
     return response
+
+
+async def forgot_password(request):
+    data = await request.json()
+    email = data["email"]
+    user = User.by_email(email)
+
+    # If the email is not found,
+    # we just return a 200 to avoid leaking information
+    if user is None:
+        await asyncio.sleep(random.randint(1, 5))
+        return web.HTTPOk()
+
+    reset_token = auth_state.add_reset_token(user.id)
+
+    reset_url = f"{config.get('General', 'client_url', fallback='')}/auth/login?resetToken={reset_token}"
+
+    print(reset_url)
+
+    # Send the email
+    send_mail(
+        "Password reset request",
+        f"A password reset for the PlanarAlly account associated with this email address was requested. Visit {reset_url} to reset your password. If you did not do this, please ignore this email.",
+        f"A password reset for the PlanarAlly account associated with this email address was requested. Visit <a href='{reset_url}'>{reset_url}</a> to reset your password.<br><br>If you did not do this, please ignore this email.",
+        [email],
+    )
+
+    return web.HTTPOk()
+
+
+async def reset_password(request):
+    data = await request.json()
+    token = data["token"]
+    password = data["password"]
+
+    uid = auth_state.get_uid_from_token(token)
+    if uid is None:
+        return web.HTTPNotFound()
+
+    user = User.get_by_id(uid)
+    user.set_password(password)
+    user.save()
+
+    return web.HTTPOk()

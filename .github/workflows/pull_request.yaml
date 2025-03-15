@@ -11,8 +11,8 @@ concurrency:
 jobs:
     CLIENT-setup:
         runs-on: ubuntu-latest
-        outputs:
-            changed-files: ${{ steps.changed-files.outputs.any_changed }}
+        # outputs:
+        #     changed-files: ${{ steps.changed-files.outputs.any_changed }}
         steps:
             - uses: actions/checkout@v4
 
@@ -24,13 +24,8 @@ jobs:
             #           client/**
             #           .github/workflows/pull_request.yaml
 
-            - name: Get changed files
-              id: changed-files
-              outputs:
-                  any_changed: true
-
             - name: Use Node.js 22.x
-              if: steps.changed-files.outputs.any_changed == 'true'
+              # if: steps.changed-files.outputs.any_changed == 'true'
               uses: actions/setup-node@v4
               with:
                   node-version: 22.x
@@ -38,12 +33,12 @@ jobs:
                   cache-dependency-path: client/package-lock.json
 
             - name: npm i
-              if: steps.changed-files.outputs.any_changed == 'true'
+              # if: steps.changed-files.outputs.any_changed == 'true'
               working-directory: client
               run: npm ci
 
             - name: cache deps
-              if: steps.changed-files.outputs.any_changed == 'true'
+              # if: steps.changed-files.outputs.any_changed == 'true'
               uses: actions/cache/save@v4
               with:
                   path: client/node_modules
@@ -52,7 +47,7 @@ jobs:
 
     CLIENT-checks:
         needs: CLIENT-setup
-        if: needs.CLIENT-setup.outputs.changed-files == 'true'
+        # if: needs.CLIENT-setup.outputs.changed-files == 'true'
         runs-on: ubuntu-latest
         strategy:
             fail-fast: true
@@ -89,34 +84,29 @@ jobs:
             #           server/**
             #           .github/workflows/pull_request.yaml
 
-            - name: Get changed files
-              id: changed-files
-              outputs:
-                  any_changed: true
-
             - name: Install UV
-              if: steps.changed-files.outputs.any_changed == 'true'
+              # if: steps.changed-files.outputs.any_changed == 'true'
               uses: astral-sh/setup-uv@v5
               with:
                   version: "0.6.2"
                   enable-cache: true
 
             - name: "Set up Python"
-              if: steps.changed-files.outputs.any_changed == 'true'
+              # if: steps.changed-files.outputs.any_changed == 'true'
               uses: actions/setup-python@v5
               with:
                   python-version-file: "server/pyproject.toml"
 
             - name: Install dependencies
-              if: steps.changed-files.outputs.any_changed == 'true'
+              # if: steps.changed-files.outputs.any_changed == 'true'
               working-directory: server
               run: uv sync
 
             - name: black
-              if: steps.changed-files.outputs.any_changed == 'true'
+              # if: steps.changed-files.outputs.any_changed == 'true'
               uses: psf/black@stable
 
             - name: ruff
-              if: steps.changed-files.outputs.any_changed == 'true'
+              # if: steps.changed-files.outputs.any_changed == 'true'
               working-directory: server
               run: uv run ruff check src

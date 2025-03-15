@@ -64,6 +64,10 @@ class User(BaseDbModel):
         return cls.get_or_none(fn.Lower(cls.name) == name.lower())
 
     @classmethod
+    def by_email(cls, email: str) -> Self | None:
+        return cls.get_or_none(cls.email == email)
+
+    @classmethod
     def create_new(cls, name: str, password: str, email: Optional[str] = None):
         u = User(name=name)
         u.set_password(password)

@@ -27,7 +27,7 @@ jobs:
             - name: Get changed files
               id: changed-files
               outputs:
-                  any_changed: true
+                  any_changed: "true"
 
             - name: Use Node.js 22.x
               if: steps.changed-files.outputs.any_changed == 'true'
@@ -92,7 +92,7 @@ jobs:
             - name: Get changed files
               id: changed-files
               outputs:
-                  any_changed: true
+                  any_changed: "true"
 
             - name: Install UV
               if: steps.changed-files.outputs.any_changed == 'true'

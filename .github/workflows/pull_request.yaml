@@ -16,13 +16,18 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
+            # - name: Get changed files
+            #   id: changed-files
+            #   uses: tj-actions/changed-files@v45
+            #   with:
+            #       files: |
+            #           client/**
+            #           .github/workflows/pull_request.yaml
+
             - name: Get changed files
               id: changed-files
-              uses: tj-actions/changed-files@v45
-              with:
-                  files: |
-                      client/**
-                      .github/workflows/pull_request.yaml
+              outputs:
+                  any_changed: true
 
             - name: Use Node.js 22.x
               if: steps.changed-files.outputs.any_changed == 'true'
@@ -76,13 +81,18 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
+            # - name: Get changed files
+            #   id: changed-files
+            #   uses: tj-actions/changed-files@v45
+            #   with:
+            #       files: |
+            #           server/**
+            #           .github/workflows/pull_request.yaml
+
             - name: Get changed files
               id: changed-files
-              uses: tj-actions/changed-files@v45
-              with:
-                  files: |
-                      server/**
-                      .github/workflows/pull_request.yaml
+              outputs:
+                  any_changed: true
 
             - name: Install UV
               if: steps.changed-files.outputs.any_changed == 'true'

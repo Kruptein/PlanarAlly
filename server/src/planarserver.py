@@ -112,7 +112,7 @@ async def start_server(server_section: Literal["Webserver", "APIserver"]):
     if server_section == "APIserver":
         app = admin_app
 
-    cfg = config.config.webserver
+    cfg = config.cfg().webserver
     connection = cfg.connection
 
     if connection.type == "socket":
@@ -147,7 +147,7 @@ async def start_servers():
     print()
     await start_server("Webserver")
     print()
-    if config.config.apiserver:
+    if config.cfg().apiserver:
         await start_server("APIserver")
     else:
         print("API Server disabled")

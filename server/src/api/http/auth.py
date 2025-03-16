@@ -5,7 +5,7 @@ from aiohttp import web
 from aiohttp_security import authorized_userid, forget, remember
 
 from ...auth import get_authorized_user
-from ...config import config
+from ...config import cfg
 from ...db.db import db
 from ...db.models.user import User
 from ...mail import send_mail
@@ -42,7 +42,7 @@ async def login(request):
 
 
 async def register(request):
-    if not config.general.allow_signups:
+    if not cfg().general.allow_signups:
         return web.HTTPForbidden()
 
     if await authorized_userid(request) is not None:
@@ -90,9 +90,7 @@ async def forgot_password(request):
 
     reset_token = auth_state.add_reset_token(user.id)
 
-    reset_url = f"{config.general.client_url}/auth/login?resetToken={reset_token}"
-
-    print(reset_url)
+    reset_url = f"{cfg().general.client_url}/auth/login?resetToken={reset_token}"
 
     # Send the email
     send_mail(

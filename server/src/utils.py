@@ -35,7 +35,6 @@ def set_save_path(save_path: Path | str):
         else:
             save_path = FILE_DIR / save_path
     SAVE_PATH = save_path
-    print(save_path)
 
 
 def get_asset_hash_subpath(file_hash: str) -> Path:

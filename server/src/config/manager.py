@@ -1,4 +1,5 @@
 import os
+import sys
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Callable, Dict
@@ -44,7 +45,6 @@ class ConfigManager:
 
     def load_config(self) -> None:
         """Load configuration from file"""
-        print("Loading config")
         try:
             if self.config_path.exists():
                 config_data = rtoml.loads(self.config_path.read_text())
@@ -54,6 +54,9 @@ class ConfigManager:
             self._notify_observers()
         except rtoml.TomlParsingError as e:
             print(f"Error loading config: {e}")
+        except ValidationError as e:
+            print(f"Error validating config: {e}")
+            sys.exit(1)
 
     def save_config(self) -> None:
         """Save current config to file (debounced)"""

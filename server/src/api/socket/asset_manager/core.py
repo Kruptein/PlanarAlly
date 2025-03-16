@@ -6,7 +6,7 @@ from aiohttp import web
 
 from .... import auth
 from ....app import app, sio
-from ....config import config
+from ....config import cfg
 from ....db.models.asset import Asset
 from ....db.models.asset_rect import AssetRect
 from ....db.models.user import User
@@ -303,6 +303,7 @@ async def handle_regular_file(upload_data: ApiAssetUpload, data: bytes, sid: str
 @auth.login_required(app, sio, "asset")
 async def assetmgmt_upload_limit(sid: str):
     user = asset_state.get_user(sid)
+    config = cfg()
     return {
         "single": config.assets.max_single_asset_size_in_bytes,
         "used": user.get_total_asset_size(),
@@ -340,6 +341,8 @@ async def assetmgmt_upload(sid: str, raw_data: Any):
         data += asset_state.pending_file_upload_cache[uuid][slice_].data
 
     del asset_state.pending_file_upload_cache[upload_data.uuid]
+
+    config = cfg()
 
     total_asset_size = user.get_total_asset_size()
     max_single_asset_size = config.assets.max_single_asset_size_in_bytes

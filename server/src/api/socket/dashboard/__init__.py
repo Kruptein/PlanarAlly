@@ -1,7 +1,7 @@
 from ....api.socket.constants import DASHBOARD_NS
 from ....app import sio
 from ....auth import get_authorized_user
-from ....config import config
+from ....config import cfg
 from ....state.dashboard import dashboard_state
 from . import campaign  # noqa: F401.
 
@@ -11,7 +11,7 @@ async def dashboard_connect(sid: str, environ):
     user = await get_authorized_user(environ["aiohttp.request"])
     if user is not None:
         await dashboard_state.add_sid(sid, user)
-        if config.general.enable_export:
+        if cfg().general.enable_export:
             await sio.emit("Export.Enabled", True, to=sid, namespace=DASHBOARD_NS)
 
 

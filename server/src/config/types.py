@@ -1,6 +1,6 @@
 from typing import Literal, Optional
 
-from pydantic import BaseModel, EmailStr, HttpUrl
+from pydantic import AnyHttpUrl, BaseModel, EmailStr
 
 
 class HostPortConnection(BaseModel):
@@ -74,7 +74,7 @@ class GeneralConfig(BaseModel):
     # This is used for generated URLs (e.g. password reset link, invitation URL)
     # If not specified, this will be guessed or simply not available
     # It's strongly suggested to set this value
-    client_url: Optional[HttpUrl] = None
+    client_url: Optional[AnyHttpUrl] = None
 
     # Allow users to sign up
     # If disabled, only existing accounts can login
@@ -96,7 +96,7 @@ class MailConfig(BaseModel):
     # without having to remove the mail section entirely
     enabled: bool = True
     # HOST:PORT combination for the SMTP server
-    host: HttpUrl
+    host: str
     port: int
     # Username/password are optional for SMTP servers that do not require authentication
     username: Optional[str] = None

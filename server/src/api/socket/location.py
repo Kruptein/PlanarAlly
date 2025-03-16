@@ -7,7 +7,7 @@ from typing_extensions import TypedDict
 from ... import auth
 from ...api.socket.constants import GAME_NS
 from ...app import app, sio
-from ...config import config
+from ...config import cfg
 from ...db.create.floor import create_floor
 from ...db.models.asset_shortcut import AssetShortcut
 from ...db.models.character import Character
@@ -133,7 +133,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
                 creator=pr.room.creator.name,
                 invitationCode=str(pr.room.invitation_code),
                 isLocked=pr.room.is_locked,
-                publicName=config.general.client_url or "",
+                publicName=cfg().general.client_url or "",
                 features=RoomFeatures(
                     chat=pr.room.enable_chat, dice=pr.room.enable_dice
                 ),

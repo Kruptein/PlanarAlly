@@ -1,6 +1,6 @@
 from redmail.email.sender import EmailSender
 
-from ..config import config
+from ..config import cfg
 
 _email = None
 
@@ -14,6 +14,8 @@ def get_email() -> EmailSender:
     """
     global _email
     if _email is None:
+        config = cfg()
+
         if not config.mail or not config.mail.enabled:
             raise ValueError("Mail is not enabled")
 
@@ -44,6 +46,8 @@ def send_mail(
     from_address: str | None = None,
 ) -> None:
     email = get_email()
+    config = cfg()
+
     assert config.mail is not None
     email.send(
         subject=subject,

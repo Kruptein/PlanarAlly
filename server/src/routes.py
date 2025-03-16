@@ -11,7 +11,7 @@ from .api.http.admin import campaigns
 from .api.http.admin import users as admin_users
 from .app import admin_app, api_app
 from .app import app as main_app
-from .config import config
+from .config import cfg
 from .utils import ASSETS_DIR, FILE_DIR, STATIC_DIR
 
 subpath = os.environ.get("PA_BASEPATH", "/")
@@ -20,6 +20,8 @@ if subpath[-1] == "/":
 
 
 def __replace_config_data(data: bytes) -> bytes:
+    config = cfg()
+
     if not config.general.allow_signups:
         data = data.replace(
             b'name="PA-signup" content="true"', b'name="PA-signup" content="false"'

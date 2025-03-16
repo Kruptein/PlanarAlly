@@ -9,7 +9,7 @@ from typing_extensions import TypedDict
 
 from ...app import sio
 from ...auth import get_authorized_user
-from ...config import config
+from ...config import cfg
 from ...db.models.player_room import PlayerRoom
 from ...db.models.room import Room
 from ...db.models.user import User
@@ -152,7 +152,7 @@ async def delete(request: web.Request):
 
 
 async def export(request: web.Request):
-    if not config.general.enable_export:
+    if not cfg().general.enable_export:
         return web.HTTPForbidden()
 
     user = await get_authorized_user(request)
@@ -174,7 +174,7 @@ async def export(request: web.Request):
 
 
 async def export_all(request: web.Request):
-    if not config.general.enable_export:
+    if not cfg().general.enable_export:
         return web.HTTPForbidden()
 
     user = await get_authorized_user(request)
@@ -212,7 +212,7 @@ import_mapping: Dict[str, ImportData] = {}
 
 
 async def import_info(request: web.Request):
-    if not config.general.enable_export:
+    if not cfg().general.enable_export:
         return web.HTTPForbidden(reason="Import is disabled by the server.")
 
     await check_authorized(request)
@@ -251,7 +251,7 @@ async def import_info(request: web.Request):
 
 
 async def import_chunk(request: web.Request):
-    if not config.general.enable_export:
+    if not cfg().general.enable_export:
         return web.HTTPForbidden()
 
     user = await get_authorized_user(request)

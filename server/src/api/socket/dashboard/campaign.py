@@ -3,7 +3,7 @@ from typing import Optional
 
 from .... import auth
 from ....app import app, sio
-from ....config import config
+from ....config import cfg
 from ....db.models.room import Room
 from ....export.campaign import export_campaign
 from ....logs import logger
@@ -14,7 +14,7 @@ from ..constants import DASHBOARD_NS
 @sio.on("Campaign.Export", namespace=DASHBOARD_NS)
 @auth.login_required(app, sio, "dashboard")
 async def _export_campaign(sid: str, campaign_name: str):
-    if not config.general.enable_export:
+    if not cfg().general.enable_export:
         return
 
     user = dashboard_state.get_user(sid)

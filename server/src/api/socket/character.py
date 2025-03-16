@@ -26,10 +26,10 @@ async def create_character(sid: str, raw_data: Any):
         logger.error("Attempt to create character for incorrect shape")
         return
     elif not has_ownership(shape, pr, edit=True):
-        logger.warn("Attempt to create character without access")
+        logger.warning("Attempt to create character without access")
         return
     elif shape.character_id is not None:
-        logger.warn("Shape is already associated with a character")
+        logger.warning("Shape is already associated with a character")
         return
 
     try:

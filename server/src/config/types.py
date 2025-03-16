@@ -1,6 +1,6 @@
 from typing import Literal, Optional
 
-from pydantic import AnyHttpUrl, BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr
 
 
 class HostPortConnection(BaseModel):
@@ -74,7 +74,7 @@ class GeneralConfig(BaseModel):
     # This is used for generated URLs (e.g. password reset link, invitation URL)
     # If not specified, this will be guessed or simply not available
     # It's strongly suggested to set this value
-    client_url: Optional[AnyHttpUrl] = None
+    client_url: Optional[str] = None
 
     # Allow users to sign up
     # If disabled, only existing accounts can login

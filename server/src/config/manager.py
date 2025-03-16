@@ -31,10 +31,9 @@ class ConfigManager:
     def __init__(self, config_path: Path):
         self.config_path = config_path
         self.config = ServerConfig()
-        self._observers: list[Callable[[ServerConfig], Any]] = []
         self._file_observer = Observer()
 
-        self.load_config()
+        self.load_config(startup=True)
 
         # Setup file watching
         event_handler = ConfigFileHandler(self.load_config)
@@ -43,7 +42,7 @@ class ConfigManager:
         )
         self._file_observer.start()
 
-    def load_config(self) -> None:
+    def load_config(self, *, startup=False) -> None:
         """Load configuration from file"""
         try:
             if self.config_path.exists():
@@ -51,16 +50,22 @@ class ConfigManager:
                 self.config = ServerConfig(**config_data)
                 set_save_path(self.config.general.save_file)
 
-            self._notify_observers()
+                if not startup:
+                    from ..logs import logger
+
+                    logger.info("Config file changed, reloading")
         except rtoml.TomlParsingError as e:
             print(f"Error loading config: {e}")
         except ValidationError as e:
             print(f"Error validating config: {e}")
-            sys.exit(1)
+            if startup:
+                sys.exit(1)
 
     def save_config(self) -> None:
         """Save current config to file (debounced)"""
-        print("Saving config")
+        from ..logs import logger
+
+        logger.info("Saving config")
         try:
             config_dict = self.config.dict()
             update_time = datetime.now(UTC).isoformat()
@@ -68,7 +73,7 @@ class ConfigManager:
                 f"# Last updated from UI at {update_time}\n{rtoml.dumps(config_dict, none_value=None)}"
             )
         except Exception as e:
-            print(f"Error saving config: {e}")
+            logger.error(f"Error saving config: {e}")
 
     def update_config(self, updates: Dict[str, Any]) -> None:
         """Update config with new values"""
@@ -79,21 +84,8 @@ class ConfigManager:
 
             # Save and notify
             self.save_config()
-            self._notify_observers()
         except ValidationError as e:
             raise ValueError(f"Invalid configuration: {e}")
-
-    def add_observer(self, callback: Callable[[ServerConfig], None]) -> None:
-        """Add an observer to be notified of config changes"""
-        self._observers.append(callback)
-
-    def _notify_observers(self) -> None:
-        """Notify all observers of config changes"""
-        for observer in self._observers:
-            try:
-                observer(self.config)
-            except Exception as e:
-                print(f"Error in config observer: {e}")
 
     def cleanup(self) -> None:
         """Cleanup resources"""

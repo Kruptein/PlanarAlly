@@ -133,7 +133,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
                 creator=pr.room.creator.name,
                 invitationCode=str(pr.room.invitation_code),
                 isLocked=pr.room.is_locked,
-                publicName=cfg().general.client_url or "",
+                clientUrl=cfg().general.client_url or "",
                 features=RoomFeatures(
                     chat=pr.room.enable_chat, dice=pr.room.enable_dice
                 ),

@@ -12,7 +12,7 @@ interface GameState {
     roomName: string;
     roomCreator: string;
     invitationCode: string;
-    publicName: string;
+    clientUrl: string;
     isLocked: boolean;
 }
 
@@ -26,7 +26,7 @@ const state = buildState<GameState>({
     roomName: "",
     roomCreator: "",
     invitationCode: "",
-    publicName: window.location.host,
+    clientUrl: window.location.host,
     isLocked: false,
 });
 

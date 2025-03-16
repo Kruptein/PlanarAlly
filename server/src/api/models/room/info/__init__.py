@@ -13,5 +13,5 @@ class RoomInfoSet(BaseModel):
     creator: str
     invitationCode: str
     isLocked: bool
-    publicName: str
+    clientUrl: str
     features: RoomFeatures

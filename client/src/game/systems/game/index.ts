@@ -44,9 +44,9 @@ class GameSystem implements System {
         $.invitationCode = invitationCode;
     }
 
-    setPublicName(name: string): void {
-        if (!name.length) return;
-        $.publicName = name;
+    setClientUrl(url: string): void {
+        if (!url.length) return;
+        $.clientUrl = url;
     }
 
     setIsLocked(isLocked: boolean, sync: boolean): void {

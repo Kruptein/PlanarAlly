@@ -616,7 +616,7 @@ export interface RoomInfoSet {
   creator: string;
   invitationCode: string;
   isLocked: boolean;
-  publicName: string;
+  clientUrl: string;
   features: RoomFeatures;
 }
 export interface ShapeAdd {

@@ -23,6 +23,7 @@ tech changes will usually be stripped from release notes for the public
     -   e.g. edit access used to automatically include movement & vision access, this is no longer the case
 -   Selection draw box now appears on top of the fog
 -   Selection rotate UI now appears on top fo the fog
+-   [tech] Server shutdown sequence has been modified
 
 ### Removed
 

@@ -29,7 +29,6 @@ from .api import http  # noqa: F401, E402
 
 # Force loading of socketio routes
 from .api.socket import load_socket_commands  # noqa: E402
-from .api.socket.constants import GAME_NS  # noqa: E402
 from .app import (  # noqa: E402
     admin_app,  # noqa: E402
     runners,
@@ -40,6 +39,7 @@ from .app import app as main_app  # noqa: E402
 from .config import config  # noqa: E402
 from .logs import logger  # noqa: E402
 from .state.asset import asset_state  # noqa: E402
+from .state.dashboard import dashboard_state  # noqa: E402
 from .state.game import game_state  # noqa: E402
 
 load_socket_commands()
@@ -55,13 +55,19 @@ if sys.platform.startswith("win"):
     loop.call_later(0.1, _wakeup)
 
 
-async def on_shutdown(_):
-    # Close socket connections
-    for sid in [*game_state._sid_map.keys(), *asset_state._sid_map.keys()]:
-        await sio.disconnect(sid, namespace=GAME_NS)
-
+async def on_cleanup(_):
     # Close database connection
     db.close()
+
+
+async def on_shutdown(_):
+    print(" Shutting down, this can take a couple of seconds...")
+
+    # Close socket connections
+    for state in [asset_state, dashboard_state, game_state]:
+        await state.disconnect_all()
+
+    await sio.shutdown()
 
 
 async def start_http(app: web.Application, host, port):
@@ -165,6 +171,7 @@ def server_main(args):
     loop.create_task(start_servers())
 
     try:
+        main_app.on_cleanup.append(on_cleanup)
         main_app.on_shutdown.append(on_shutdown)
 
         loop.run_forever()

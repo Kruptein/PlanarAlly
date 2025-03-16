@@ -31,7 +31,7 @@ async def setup_runner(app: web.Application, site: Type[web.BaseSite], **kwargs)
     runner = web.AppRunner(app)
     runners.append(runner)
     await runner.setup()
-    s = site(runner, **kwargs)
+    s = site(runner, shutdown_timeout=5, **kwargs)
     app.loop.set_exception_handler(handle_async_exception)
     await s.start()
 

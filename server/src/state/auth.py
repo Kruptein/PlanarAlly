@@ -9,7 +9,7 @@ from . import State
 
 class AuthState(State[User]):
     def __init__(self) -> None:
-        super().__init__()
+        super().__init__(None)
         # reset_tokens[token] = (user_id, expiration)
         self.reset_tokens: Dict[str, tuple[int, datetime]] = {}
 

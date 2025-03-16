@@ -117,7 +117,7 @@ async def create_folder(sid: str, raw_data: Any):
 
     asset = Asset.get_by_id(data.parent)
     if not asset.can_be_accessed_by(user, right="edit"):
-        logger.warn(f"{user.name} attempted to create a folder without permissions")
+        logger.warning(f"{user.name} attempted to create a folder without permissions")
         return
 
     asset = Asset.create(name=data.name, owner=user, parent=data.parent)
@@ -142,7 +142,7 @@ async def move_inode(sid: str, raw_data: Any):
 
     # The user NEEDS edit access in the target folder
     if not target.can_be_accessed_by(user, right="edit"):
-        logger.warn(
+        logger.warning(
             f"{user.name} attempted to move an asset into a folder they don't own"
         )
         return
@@ -319,7 +319,9 @@ async def assetmgmt_upload(sid: str, raw_data: Any):
 
     if asset := Asset.get_or_none(id=upload_data.directory):
         if not asset.can_be_accessed_by(user, right="edit"):
-            logger.warn(f"{user.name} attempted to upload into a folder they don't own")
+            logger.warning(
+                f"{user.name} attempted to upload into a folder they don't own"
+            )
             return
 
     uuid = upload_data.uuid
@@ -344,12 +346,12 @@ async def assetmgmt_upload(sid: str, raw_data: Any):
     max_total_asset_size = config.getint("Webserver", "max_total_asset_size_in_bytes")
 
     if max_single_asset_size > 0 and len(data) > max_single_asset_size:
-        logger.warn(
+        logger.warning(
             f"{user.name} attempted to upload a file that is too large ({len(data)} > {max_single_asset_size})"
         )
         return
     if max_total_asset_size > 0 and total_asset_size + len(data) > max_total_asset_size:
-        logger.warn(
+        logger.warning(
             f"{user.name} attempted to upload a file that is too large ({total_asset_size + len(data)} > {max_total_asset_size})"
         )
         return

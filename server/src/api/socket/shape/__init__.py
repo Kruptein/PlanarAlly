@@ -423,7 +423,7 @@ async def move_shapes(sid: str, raw_data: Any):
                 old_floor = shape.layer.floor
             layer = floor.layers.where(Layer.name == shape.layer.name)[0]
         elif layer is None:
-            logger.warn("Attempt to move a shape without layer info")
+            logger.warning("Attempt to move a shape without layer info")
             continue
 
         # Shape can be different from the one checked at the start of the loop

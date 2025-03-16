@@ -96,7 +96,7 @@ async def edit_asset_share(sid: str, raw_data: Any):
                 users_with_edit_access.append(share.user)
 
         if initiating_user not in users_with_edit_access:
-            logger.warn(
+            logger.warning(
                 f"{initiating_user.name} attempted to edit asset share rights without permissions."
             )
             return
@@ -117,10 +117,10 @@ async def edit_asset_share(sid: str, raw_data: Any):
                         )
                 break
         else:
-            logger.warn("Attempt to edit non-existing asset share.")
+            logger.warning("Attempt to edit non-existing asset share.")
             return
     else:
-        logger.warn("Attempt to edit asset share from unknown shape.")
+        logger.warning("Attempt to edit asset share from unknown shape.")
         return
 
 
@@ -140,7 +140,7 @@ async def remove_asset_share(sid: str, raw_data: Any):
                 users_with_edit_access.append(share.user)
 
         if initiating_user not in users_with_edit_access:
-            logger.warn(
+            logger.warning(
                 f"{initiating_user.name} attempted to remove asset share rights without permissions."
             )
             return
@@ -160,10 +160,10 @@ async def remove_asset_share(sid: str, raw_data: Any):
                         )
                 break
         else:
-            logger.warn("Attempt to remove non-existing asset share.")
+            logger.warning("Attempt to remove non-existing asset share.")
             return
     else:
-        logger.warn("Attempt to remove asset share from unknown shape.")
+        logger.warning("Attempt to remove asset share from unknown shape.")
         return
 
 

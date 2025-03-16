@@ -15,6 +15,7 @@ tech changes will usually be stripped from release notes for the public
 -   New quick toggle to disable LoS rendering for the DM only
 -   Forgot password flow if Mail is configured on the server
     -   This only works if the user account actually has an email-address
+-   Success notification when changing email in the settings
 -   [server] Email configuration setup
 
 ### Changed

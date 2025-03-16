@@ -136,6 +136,9 @@
             "no_sessions": "No active campaigns",
             "create_session": "Create a campaign",
             "create_new_session": "Create a new campaign"
+        },
+        "settings": {
+            "email_changed": "Email changed successfully"
         }
     },
     "game": {

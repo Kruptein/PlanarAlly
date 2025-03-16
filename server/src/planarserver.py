@@ -17,6 +17,7 @@ from urllib.parse import quote, unquote
 from aiohttp import web
 
 from . import save
+from .db.db import db
 from .db.models.room import Room
 from .db.models.user import User
 from .utils import FILE_DIR
@@ -55,8 +56,12 @@ if sys.platform.startswith("win"):
 
 
 async def on_shutdown(_):
+    # Close socket connections
     for sid in [*game_state._sid_map.keys(), *asset_state._sid_map.keys()]:
         await sio.disconnect(sid, namespace=GAME_NS)
+
+    # Close database connection
+    db.close()
 
 
 async def start_http(app: web.Application, host, port):

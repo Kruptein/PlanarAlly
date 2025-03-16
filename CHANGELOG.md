@@ -10,6 +10,10 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+**Server owners:** The server config has changed location and format. Ensure you check the release notes for the necessary info.
+The old config files are not yet removed from git to prevent losing modifications you made to these files.
+They will be removed in a future release though.
+
 ### Added
 
 -   New quick toggle to disable LoS rendering for the DM only
@@ -23,6 +27,11 @@ tech changes will usually be stripped from release notes for the public
     -   e.g. edit access used to automatically include movement & vision access, this is no longer the case
 -   Selection draw box now appears on top of the fog
 -   Selection rotate UI now appears on top fo the fog
+-   [server] Server config setup has changed
+    -   The server config is now by default stored in the `data` directory and in toml format
+    -   It's no longer tracked in git, as the default values are now coded in python itself
+    -   An env variable can be used to change the location
+    -   Changes to the config are now checked and loaded by the server during runtime
 -   [tech] Server shutdown sequence has been modified
 
 ### Removed

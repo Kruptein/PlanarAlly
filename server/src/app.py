@@ -19,7 +19,7 @@ runners: List[web.AppRunner] = []
 def setup_app(middlewares: Iterable[Callable] = ()) -> web.Application:
     # We add 1 due to a bug in aiohttp uses >= instead of >. This has been fixed on master
     # but is not part of any release
-    max_size = config.getint("Webserver", "max_upload_size_in_bytes") + 1
+    max_size = config.webserver.max_upload_size_in_bytes + 1
     app = web.Application(middlewares=middlewares, client_max_size=max_size)
     app["AuthzPolicy"] = auth.AuthPolicy()
     aiohttp_security.setup(app, SessionIdentityPolicy(), app["AuthzPolicy"])
@@ -39,7 +39,7 @@ async def setup_runner(app: web.Application, site: Type[web.BaseSite], **kwargs)
 # MAIN APP
 
 sio = TypedAsyncServer(
-    cors_allowed_origins=config.get("Webserver", "cors_allowed_origins", fallback=None),
+    cors_allowed_origins=config.webserver.cors_allowed_origins,
     json=PydanticJson,
 )
 app = setup_app()

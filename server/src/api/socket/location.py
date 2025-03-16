@@ -133,7 +133,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
                 creator=pr.room.creator.name,
                 invitationCode=str(pr.room.invitation_code),
                 isLocked=pr.room.is_locked,
-                publicName=config.get("General", "public_name", fallback=""),
+                publicName=config.general.client_url or "",
                 features=RoomFeatures(
                     chat=pr.room.enable_chat, dice=pr.room.enable_dice
                 ),
@@ -595,7 +595,7 @@ async def get_location_spawn_info(sid: str, location_id: int):
                     pass
                 else:
                     if shape.layer is None:
-                        logger.warn("Spawn location without layer detected")
+                        logger.warning("Spawn location without layer detected")
                         continue
                     data.append(
                         ApiSpawnInfo(

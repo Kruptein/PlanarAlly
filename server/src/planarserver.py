@@ -12,11 +12,13 @@ import sys
 from argparse import ArgumentParser
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Literal
 from urllib.parse import quote, unquote
 
 from aiohttp import web
 
-from . import save
+# It's **essential** that the config is imported first
+from . import config, save
 from .db.db import db
 from .db.models.room import Room
 from .db.models.user import User
@@ -36,7 +38,6 @@ from .app import (  # noqa: E402
     sio,
 )
 from .app import app as main_app  # noqa: E402
-from .config import config  # noqa: E402
 from .logs import logger  # noqa: E402
 from .state.asset import asset_state  # noqa: E402
 from .state.dashboard import dashboard_state  # noqa: E402
@@ -56,6 +57,9 @@ if sys.platform.startswith("win"):
 
 
 async def on_cleanup(_):
+    # Stop config observer
+    config.config_manager.cleanup()
+
     # Close database connection
     db.close()
 
@@ -102,26 +106,28 @@ async def start_socket(app: web.Application, sock):
     await setup_runner(app, web.UnixSite, path=sock)
 
 
-async def start_server(server_section: str):
-    socket = config.get(server_section, "socket", fallback=None)
+async def start_server(server_section: Literal["Webserver", "APIserver"]):
     app = main_app
     method = "unknown"
     if server_section == "APIserver":
         app = admin_app
 
-    if socket:
-        await start_socket(app, socket)
-        method = socket
+    cfg = config.config.webserver
+    connection = cfg.connection
+
+    if connection.type == "socket":
+        await start_socket(app, connection.socket)
+        method = f"socket://{connection.socket}"
     else:
-        host = config.get(server_section, "host")
-        port = config.getint(server_section, "port")
+        host = connection.host
+        port = connection.port
 
         environ = os.environ.get("PA_BASEPATH", "/")
 
-        if config.getboolean(server_section, "ssl"):
+        if cfg.ssl and cfg.ssl.enabled:
             try:
-                chain = Path(config.get(server_section, "ssl_fullchain"))
-                key = Path(config.get(server_section, "ssl_privkey"))
+                chain = Path(cfg.ssl.fullchain)
+                key = Path(cfg.ssl.privkey)
             except configparser.NoOptionError:
                 logger.critical(
                     "SSL CONFIGURATION IS NOT CORRECTLY CONFIGURED. ABORTING LAUNCH."
@@ -141,7 +147,7 @@ async def start_servers():
     print()
     await start_server("Webserver")
     print()
-    if config.getboolean("APIserver", "enabled"):
+    if config.config.apiserver:
         await start_server("APIserver")
     else:
         print("API Server disabled")

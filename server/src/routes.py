@@ -20,11 +20,11 @@ if subpath[-1] == "/":
 
 
 def __replace_config_data(data: bytes) -> bytes:
-    if not config.getboolean("General", "allow_signups"):
+    if not config.general.allow_signups:
         data = data.replace(
             b'name="PA-signup" content="true"', b'name="PA-signup" content="false"'
         )
-    if not config.getboolean("Mail", "enabled"):
+    if not config.mail or not config.mail.enabled:
         data = data.replace(
             b'name="PA-mail" content="true"', b'name="PA-mail" content="false"'
         )

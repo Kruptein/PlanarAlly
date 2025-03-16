@@ -30,13 +30,13 @@ from playhouse.sqlite_ext import SqliteExtDatabase
 
 from .thumbnail import generate_thumbnail_for_asset
 
-from .config import SAVE_FILE
 from .db.all import ALL_MODELS
 from .db.db import db as ACTIVE_DB
 from .db.models.constants import Constants
 from .utils import (
     ASSETS_DIR,
     FILE_DIR,
+    SAVE_PATH,
     OldVersionException,
     UnknownVersionException,
     get_asset_hash_subpath,
@@ -64,7 +64,7 @@ def create_new_db(db: SqliteExtDatabase, version: int):
 
 
 def check_existence() -> bool:
-    if not SAVE_FILE.exists():
+    if not SAVE_PATH.exists():
         logger.warning("Provided save file does not exist.  Creating a new one.")
         create_new_db(ACTIVE_DB, SAVE_VERSION)
         return True
@@ -501,9 +501,9 @@ def backup_save(version: int):
     save_backups = FILE_DIR / "save_backups"
     if not save_backups.is_dir():
         save_backups.mkdir()
-    backup_path = save_backups.resolve() / f"{Path(SAVE_FILE).name}.{version}"
+    backup_path = save_backups.resolve() / f"{SAVE_PATH.name}.{version}"
     logger.warning(f"Backing up old save as {backup_path}")
-    shutil.copyfile(SAVE_FILE, backup_path)
+    shutil.copyfile(SAVE_PATH, backup_path)
 
 
 def migrate_assets_folder():

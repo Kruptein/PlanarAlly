@@ -35,7 +35,7 @@ async def send_log_toast(
     event_name = "Toast."
     if severity == "warn":
         event_name += "Warn"
-        logger.warn(message)
+        logger.warning(message)
     else:
         logger.debug(message)
 

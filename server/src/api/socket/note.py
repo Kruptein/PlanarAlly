@@ -93,7 +93,7 @@ async def set_note_title(sid: str, raw_data: Any):
         return
 
     if not can_edit(note, pr.player):
-        logger.warn(f"{pr.player.name} tried to update note not belonging to them.")
+        logger.warning(f"{pr.player.name} tried to update note not belonging to them.")
         return
 
     with db.atomic():
@@ -121,7 +121,7 @@ async def set_note_text(sid: str, raw_data: Any):
         return
 
     if not can_edit(note, pr.player):
-        logger.warn(f"{pr.player.name} tried to update note not belonging to them.")
+        logger.warning(f"{pr.player.name} tried to update note not belonging to them.")
         return
 
     with db.atomic():
@@ -149,7 +149,7 @@ async def add_note_tag(sid: str, raw_data: Any):
         return
 
     if not can_edit(note, pr.player):
-        logger.warn(f"{pr.player.name} tried to update note not belonging to them.")
+        logger.warning(f"{pr.player.name} tried to update note not belonging to them.")
         return
 
     tags: list[str] = json.loads(note.tags or "[]")
@@ -180,7 +180,7 @@ async def remove_note_tag(sid: str, raw_data: Any):
         return
 
     if not can_edit(note, pr.player):
-        logger.warn(f"{pr.player.name} tried to update note not belonging to them.")
+        logger.warning(f"{pr.player.name} tried to update note not belonging to them.")
         return
 
     tags: list[str] = json.loads(note.tags or "[]")
@@ -209,7 +209,9 @@ async def delete_note(sid, uuid):
         return
 
     if not can_edit(note, pr.player):
-        logger.warn(f"{pr.player.name} tried to remove a note not belonging to them.")
+        logger.warning(
+            f"{pr.player.name} tried to remove a note not belonging to them."
+        )
         return
 
     note.delete_instance()
@@ -236,7 +238,9 @@ async def add_note_access(sid, raw_data: Any):
         return
 
     if not can_edit(note, pr.player):
-        logger.warn(f"{pr.player.name} tried to update a note not belonging to them.")
+        logger.warning(
+            f"{pr.player.name} tried to update a note not belonging to them."
+        )
         return
 
     user = None
@@ -275,7 +279,9 @@ async def edit_note_access(sid, raw_data: Any):
         return
 
     if not can_edit(note, pr.player):
-        logger.warn(f"{pr.player.name} tried to update a note not belonging to them.")
+        logger.warning(
+            f"{pr.player.name} tried to update a note not belonging to them."
+        )
         return
 
     old_default_can_view = False
@@ -336,7 +342,9 @@ async def remove_note_access(sid, raw_data: Any):
         return
 
     if not can_edit(note, pr.player):
-        logger.warn(f"{pr.player.name} tried to update a note not belonging to them.")
+        logger.warning(
+            f"{pr.player.name} tried to update a note not belonging to them."
+        )
         return
 
     default_can_view = False
@@ -372,7 +380,7 @@ async def add_shape(sid, raw_data: Any):
         return
 
     if not can_edit(note, pr.player):
-        logger.warn(
+        logger.warning(
             f"{pr.player.name} tried to add a shape to a note not belonging to them."
         )
         return
@@ -402,7 +410,7 @@ async def remove_shape(sid, raw_data: Any):
         return
 
     if not can_edit(note, pr.player):
-        logger.warn(
+        logger.warning(
             f"{pr.player.name} tried to add a shape to a note not belonging to them."
         )
         return
@@ -430,7 +438,7 @@ async def set_show_on_hover(sid: str, raw_data: Any):
         return
 
     if not can_edit(note, pr.player):
-        logger.warn(f"{pr.player.name} tried to update note not belonging to them.")
+        logger.warning(f"{pr.player.name} tried to update note not belonging to them.")
         return
 
     note.show_on_hover = data.value
@@ -457,7 +465,7 @@ async def set_show_icon_on_shape(sid: str, raw_data: Any):
         return
 
     if not can_edit(note, pr.player):
-        logger.warn(f"{pr.player.name} tried to update note not belonging to them.")
+        logger.warning(f"{pr.player.name} tried to update note not belonging to them.")
         return
 
     note.show_icon_on_shape = data.value

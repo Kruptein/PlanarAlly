@@ -11,7 +11,7 @@ async def dashboard_connect(sid: str, environ):
     user = await get_authorized_user(environ["aiohttp.request"])
     if user is not None:
         await dashboard_state.add_sid(sid, user)
-        if config.getboolean("General", "enable_export"):
+        if config.general.enable_export:
             await sio.emit("Export.Enabled", True, to=sid, namespace=DASHBOARD_NS)
 
 

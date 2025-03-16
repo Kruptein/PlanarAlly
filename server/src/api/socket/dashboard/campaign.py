@@ -14,7 +14,7 @@ from ..constants import DASHBOARD_NS
 @sio.on("Campaign.Export", namespace=DASHBOARD_NS)
 @auth.login_required(app, sio, "dashboard")
 async def _export_campaign(sid: str, campaign_name: str):
-    if not config.getboolean("General", "enable_export"):
+    if not config.general.enable_export:
         return
 
     user = dashboard_state.get_user(sid)

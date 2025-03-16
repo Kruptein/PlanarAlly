@@ -42,7 +42,7 @@ async def login(request):
 
 
 async def register(request):
-    if not config.getboolean("General", "allow_signups"):
+    if not config.general.allow_signups:
         return web.HTTPForbidden()
 
     if await authorized_userid(request) is not None:
@@ -90,7 +90,7 @@ async def forgot_password(request):
 
     reset_token = auth_state.add_reset_token(user.id)
 
-    reset_url = f"{config.get('General', 'client_url', fallback='')}/auth/login?resetToken={reset_token}"
+    reset_url = f"{config.general.client_url}/auth/login?resetToken={reset_token}"
 
     print(reset_url)
 

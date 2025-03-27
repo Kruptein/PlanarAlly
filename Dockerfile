@@ -30,9 +30,6 @@ WORKDIR /usr/src/client
 
 RUN npm run build
 
-# Added here to avoid an extra layer in the final stage
-COPY Dockerfiles/server_config_docker.cfg /usr/src/server/server_config.cfg
-
 ###############
 # Final stage #
 ###############

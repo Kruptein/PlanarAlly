@@ -1,12 +1,8 @@
 from redmail.email.sender import EmailSender
 
-from ..config import config
+from ..config import cfg
 
 _email = None
-
-
-def is_enabled() -> bool:
-    return config.get("Mail", "enabled") == "true"
 
 
 def get_email() -> EmailSender:
@@ -18,23 +14,26 @@ def get_email() -> EmailSender:
     """
     global _email
     if _email is None:
-        if not is_enabled():
+        config = cfg()
+
+        if not config.mail or not config.mail.enabled:
             raise ValueError("Mail is not enabled")
 
-        if not config.get("Mail", "host"):
+        if not config.mail.host:
             raise ValueError("Mail host is not set")
 
-        if not config.get("Mail", "port"):
+        if not config.mail.port:
             raise ValueError("Mail port is not set")
 
-        if not config.get("Mail", "default_from_address"):
+        if not config.mail.default_from_address:
             raise ValueError("Mail default from address is not set")
 
         _email = EmailSender(
-            host=config.get("Mail", "host"),
-            port=config.getint("Mail", "port"),
-            username=config.get("Mail", "username"),
-            password=config.get("Mail", "password"),
+            host=config.mail.host,
+            port=config.mail.port,
+            # These are wrongly typed in the redmail library
+            username=config.mail.username,  # type: ignore
+            password=config.mail.password,  # type: ignore
         )
     return _email
 
@@ -47,10 +46,13 @@ def send_mail(
     from_address: str | None = None,
 ) -> None:
     email = get_email()
+    config = cfg()
+
+    assert config.mail is not None
     email.send(
         subject=subject,
         text=text,
         html=html,
         receivers=to,
-        sender=from_address or config.get("Mail", "default_from_address"),
+        sender=from_address or config.mail.default_from_address,
     )

@@ -6,7 +6,7 @@ from aiohttp import web
 
 from .... import auth
 from ....app import app, sio
-from ....config import config
+from ....config import cfg
 from ....db.models.asset import Asset
 from ....db.models.asset_rect import AssetRect
 from ....db.models.user import User
@@ -303,10 +303,11 @@ async def handle_regular_file(upload_data: ApiAssetUpload, data: bytes, sid: str
 @auth.login_required(app, sio, "asset")
 async def assetmgmt_upload_limit(sid: str):
     user = asset_state.get_user(sid)
+    config = cfg()
     return {
-        "single": config.getint("Webserver", "max_single_asset_size_in_bytes"),
+        "single": config.assets.max_single_asset_size_in_bytes,
         "used": user.get_total_asset_size(),
-        "total": config.getint("Webserver", "max_total_asset_size_in_bytes"),
+        "total": config.assets.max_total_asset_size_in_bytes,
     }
 
 
@@ -341,9 +342,11 @@ async def assetmgmt_upload(sid: str, raw_data: Any):
 
     del asset_state.pending_file_upload_cache[upload_data.uuid]
 
+    config = cfg()
+
     total_asset_size = user.get_total_asset_size()
-    max_single_asset_size = config.getint("Webserver", "max_single_asset_size_in_bytes")
-    max_total_asset_size = config.getint("Webserver", "max_total_asset_size_in_bytes")
+    max_single_asset_size = config.assets.max_single_asset_size_in_bytes
+    max_total_asset_size = config.assets.max_total_asset_size_in_bytes
 
     if max_single_asset_size > 0 and len(data) > max_single_asset_size:
         logger.warning(

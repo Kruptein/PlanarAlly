@@ -11,7 +11,7 @@ socket.on("Room.Info.Set", (data: RoomInfoSet) => {
     gameSystem.setRoomCreator(data.creator);
     gameSystem.setInvitationCode(data.invitationCode);
     gameSystem.setIsLocked(data.isLocked, false);
-    gameSystem.setPublicName(data.publicName);
+    gameSystem.setClientUrl(data.clientUrl);
     roomSystem.setChat(data.features.chat, false);
     roomSystem.setDice(data.features.dice, false);
 });

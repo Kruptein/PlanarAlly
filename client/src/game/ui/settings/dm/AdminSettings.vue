@@ -32,10 +32,7 @@ watch(
 );
 
 const invitationUrl = computed(
-    () =>
-        `${window.location.protocol}//${gameState.reactive.publicName}${baseAdjust("/invite/")}${
-            gameState.reactive.invitationCode
-        }`,
+    () => `${gameState.reactive.clientUrl}${baseAdjust("/invite/")}${gameState.reactive.invitationCode}`,
 );
 
 const creator = computed(() => route.params.creator);

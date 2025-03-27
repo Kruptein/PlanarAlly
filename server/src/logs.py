@@ -2,7 +2,7 @@ import logging
 import sys
 from logging.handlers import RotatingFileHandler
 
-from .config import config
+from .config import cfg
 from .utils import FILE_DIR
 
 # SETUP LOGGING
@@ -11,8 +11,8 @@ logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
 file_handler = RotatingFileHandler(
     str(FILE_DIR / "planarallyserver.log"),
-    maxBytes=config.getint("General", "max_log_size_in_bytes"),
-    backupCount=config.getint("General", "max_log_backups"),
+    maxBytes=cfg().general.max_log_size_in_bytes,
+    backupCount=cfg().general.max_log_backups,
 )
 file_handler.setLevel(logging.INFO)
 formatter = logging.Formatter(

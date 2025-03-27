@@ -15,7 +15,6 @@ from playhouse.sqlite_ext import SqliteExtDatabase
 
 from ..api.socket.constants import DASHBOARD_NS
 from ..app import sio
-from ..config import SAVE_FILE
 from ..db.all import ALL_MODELS
 from ..db.db import db as ACTIVE_DB
 from ..db.db import open_db
@@ -57,7 +56,7 @@ from ..db.typed import SelectSequence
 from ..logs import logger
 from ..save import SAVE_VERSION, upgrade_save
 from ..state.dashboard import dashboard_state
-from ..utils import ASSETS_DIR, TEMP_DIR, get_asset_hash_subpath
+from ..utils import ASSETS_DIR, SAVE_PATH, TEMP_DIR, get_asset_hash_subpath
 
 
 async def export_campaign(
@@ -212,7 +211,7 @@ class CampaignExporter:
         # The pragma call should make sure that all recent wal changes have been copied into the main sqlite file
         # So that copying just the sqlite file is enough
         ACTIVE_DB.execute_sql("PRAGMA wal_checkpoint(FULL)")
-        shutil.copyfile(SAVE_FILE, self.copy_name)
+        shutil.copyfile(SAVE_PATH, self.copy_name)
 
         # Base model creation
         with self.db.bind_ctx(ALL_MODELS):

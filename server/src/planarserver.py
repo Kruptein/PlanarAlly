@@ -19,6 +19,7 @@ from aiohttp import web
 
 # It's **essential** that the config is imported first
 from . import config, save
+from .config.types import WebserverConfig
 from .db.db import db
 from .db.models.room import Room
 from .db.models.user import User
@@ -106,14 +107,16 @@ async def start_socket(app: web.Application, sock):
     await setup_runner(app, web.UnixSite, path=sock)
 
 
-async def start_server(server_section: Literal["Webserver", "APIserver"]):
+async def start_server(
+    server_section: Literal["Webserver", "APIserver"], cfg: WebserverConfig
+):
     app = main_app
     method = "unknown"
+
+    connection = cfg.connection
+
     if server_section == "APIserver":
         app = admin_app
-
-    cfg = config.cfg().webserver
-    connection = cfg.connection
 
     if connection.type == "socket":
         await start_socket(app, connection.socket)
@@ -144,11 +147,12 @@ async def start_server(server_section: Literal["Webserver", "APIserver"]):
 
 
 async def start_servers():
+    cfg = config.cfg()
     print()
-    await start_server("Webserver")
+    await start_server("Webserver", cfg.webserver)
     print()
-    if config.cfg().apiserver:
-        await start_server("APIserver")
+    if cfg.apiserver:
+        await start_server("APIserver", cfg.apiserver)
     else:
         print("API Server disabled")
     print()

@@ -21,7 +21,14 @@ const emit = defineEmits<{
 const { t } = useI18n();
 
 const selection = ref(props.tabs[0]?.category);
-const activeTab = computed(() => props.tabs.find((t) => t.category === selection.value));
+const activeTab = computed(() => {
+    const tab = props.tabs.find((t) => t.category === selection.value);
+    if (tab === undefined) return undefined;
+    return {
+        ...tab,
+        props: { ...tab.props, tabSelected: computed(() => tab.category === selection.value) },
+    };
+});
 
 watchEffect(() => {
     if (props.initialSelection === undefined) {

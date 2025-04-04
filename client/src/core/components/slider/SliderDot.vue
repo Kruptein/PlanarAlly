@@ -51,7 +51,6 @@ $tooltipPadding: 2px 5px !default;
 
 .vue-slider-dot {
     position: absolute;
-    z-index: 5;
 
     transform: translate(-50%, -50%);
     top: 50%;

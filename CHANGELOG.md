@@ -28,6 +28,8 @@ They will be removed in a future release though.
     -   e.g. edit access used to automatically include movement & vision access, this is no longer the case
 -   Selection draw box now appears on top of the fog
 -   Selection rotate UI now appears on top fo the fog
+-   Moved zoom bar and selection info behind main modals when overlapping
+    -   the selection info can pop-over when hovered with the mouse
 -   [server] Server config setup has changed
     -   The server config is now by default stored in the `data` directory and in toml format
     -   It's no longer tracked in git, as the default values are now coded in python itself

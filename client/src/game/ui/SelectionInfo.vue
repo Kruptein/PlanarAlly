@@ -209,7 +209,6 @@ function annotate(note: DeepReadonly<ClientNote>): void {
     flex-direction: column;
     top: 75px;
     right: 0;
-    z-index: 10;
     opacity: 0.5;
     border-top-left-radius: 5px;
     border-bottom-left-radius: 5px;
@@ -218,6 +217,7 @@ function annotate(note: DeepReadonly<ClientNote>): void {
 
     &:hover {
         opacity: 1;
+        z-index: 10;
 
         > div:first-child {
             background-color: #82c8a0;

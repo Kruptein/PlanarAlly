@@ -193,13 +193,6 @@ function setTempZoomDisplay(value: number): void {
         <ShapeContext />
         <Annotation />
         <SelectionInfo />
-        <!-- Modals that can be rearranged -->
-        <ModalStack />
-        <!-- Modals that require immediate attention -->
-        <CreateTokenDialog />
-        <div id="teleport-modals"></div>
-        <MarkdownModal v-if="showChangelog" :title="t('game.ui.ui.new_ver_msg')" :source="changelogText" />
-        <!-- end of main modals -->
         <!-- When updating zoom boundaries, also update store updateZoom function;
             should probably do this using a store variable-->
         <SliderComponent
@@ -214,6 +207,13 @@ function setTempZoomDisplay(value: number): void {
             :max="1"
             @change="setTempZoomDisplay"
         />
+        <!-- Modals that can be rearranged -->
+        <ModalStack />
+        <!-- Modals that require immediate attention -->
+        <CreateTokenDialog />
+        <div id="teleport-modals"></div>
+        <MarkdownModal v-if="showChangelog" :title="t('game.ui.ui.new_ver_msg')" :source="changelogText" />
+        <!-- end of main modals -->
     </div>
 </template>
 

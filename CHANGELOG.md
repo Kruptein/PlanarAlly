@@ -57,6 +57,7 @@ They will be removed in a future release though.
 -   Reduced some render overhead when token shapes that the player did not own were moved
 -   Shape context menu not closing when selecting an option
 -   Select tool build UI not appearing when mode toggling
+-   Datablocks for room and user categories had a bug in the server preventing creating them
 
 ## [2025.1.1] - 2025-02-08
 

@@ -49,7 +49,9 @@ async def load_datablock(sid: str, raw_data: Any):
 
 @sio.on("DataBlock.Create", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def create_datablock(_sid: str, raw_data: Any):
+async def create_datablock(sid: str, raw_data: Any):
+    pr = game_state.get(sid)
+
     try:
         data = pydantic.parse_obj_as(ApiDataBlock, raw_data)
     except pydantic.error_wrappers.ValidationError as e:
@@ -59,6 +61,11 @@ async def create_datablock(_sid: str, raw_data: Any):
     try:
         db_data = data.dict()
         del db_data["category"]
+        if data.category == "room":
+            db_data["room"] = pr.room
+        elif data.category == "user":
+            db_data["user"] = pr.player
+
         db_mapper[data.category]["db"].create(**db_data)
     except Exception as e:
         logger.error(e)

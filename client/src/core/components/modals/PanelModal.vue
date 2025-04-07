@@ -134,100 +134,102 @@ function hideModal(): void {
 }
 
 :deep() {
-    .panel {
-        background-color: white;
-        padding: 1em;
-        display: grid;
-        grid-template-columns: [setting] 1fr [value] 1fr [end];
-        /* align-items: center; */
-        align-content: start;
-        min-height: 10em;
+    @layer base-modals {
+        .panel {
+            background-color: white;
+            padding: 1em;
+            display: grid;
+            grid-template-columns: [setting] 1fr [value] 1fr [end];
+            /* align-items: center; */
+            align-content: start;
+            min-height: 10em;
 
-        button {
-            padding: 6px 12px;
-            border: 1px solid lightgray;
-            border-radius: 0.25em;
-            background-color: rgb(235, 235, 228);
+            button {
+                padding: 6px 12px;
+                border: 1px solid lightgray;
+                border-radius: 0.25em;
+                background-color: rgb(235, 235, 228);
+            }
+
+            input[type="number"],
+            input[type="text"] {
+                width: 100%;
+            }
         }
 
-        input[type="number"],
-        input[type="text"] {
-            width: 100%;
+        .row {
+            display: contents;
+
+            &:first-of-type > * {
+                margin-top: 0.5em;
+            }
+
+            &:last-of-type > * {
+                margin-bottom: 0.5em;
+            }
+
+            &:hover > * {
+                cursor: pointer;
+                text-shadow: 0px 0px 1px black;
+            }
         }
-    }
 
-    .row {
-        display: contents;
-
-        &:first-of-type > * {
-            margin-top: 0.5em;
+        .row > *,
+        .panel > *:not(.row) {
+            display: flex;
+            /* justify-content: center; */
+            align-items: center;
+            margin: 0.4em 0;
         }
 
-        &:last-of-type > * {
-            margin-bottom: 0.5em;
+        .smallrow > * {
+            padding: 0.2em;
         }
 
-        &:hover > * {
-            cursor: pointer;
-            text-shadow: 0px 0px 1px black;
+        .header {
+            line-height: 0.1em;
+            margin: 20px 0 15px;
+            font-style: italic;
+            overflow: hidden;
+            padding: 0.5em;
+
+            &:after {
+                position: relative;
+                width: 100%;
+                border-bottom: 1px solid #000;
+                content: "";
+                margin-right: -100%;
+                margin-left: 10px;
+                display: inline-block;
+            }
         }
-    }
 
-    .row > *,
-    .panel > *:not(.row) {
-        display: flex;
-        /* justify-content: center; */
-        align-items: center;
-        margin: 0.4em 0;
-    }
+        .danger {
+            color: #ff7052;
 
-    .smallrow > * {
-        padding: 0.2em;
-    }
+            &:hover {
+                text-shadow: 0px 0px 1px #ff7052;
+                cursor: pointer;
+            }
+        }
 
-    .header {
-        line-height: 0.1em;
-        margin: 20px 0 15px;
-        font-style: italic;
-        overflow: hidden;
-        padding: 0.5em;
+        .spanrow {
+            grid-column: 1 / end;
+            justify-self: normal;
+            font-weight: bold;
+        }
 
-        &:after {
-            position: relative;
-            width: 100%;
-            border-bottom: 1px solid #000;
-            content: "";
-            margin-right: -100%;
-            margin-left: 10px;
+        input[type="checkbox"] {
+            width: 16px;
+            height: 23px;
+            margin: 0;
+            white-space: nowrap;
             display: inline-block;
         }
-    }
 
-    .danger {
-        color: #ff7052;
-
-        &:hover {
-            text-shadow: 0px 0px 1px #ff7052;
-            cursor: pointer;
+        .color-picker {
+            margin: 0.5em 0 !important;
         }
-    }
-
-    .spanrow {
-        grid-column: 1 / end;
-        justify-self: normal;
-        font-weight: bold;
-    }
-
-    input[type="checkbox"] {
-        width: 16px;
-        height: 23px;
-        margin: 0;
-        white-space: nowrap;
-        display: inline-block;
-    }
-
-    .color-picker {
-        margin: 0.5em 0 !important;
     }
 }
 </style>

@@ -49,6 +49,6 @@ interface ModLoad {
         repr: DbRepr,
         data: D,
         serializer: DataBlockSerializer<D, S>,
-    ) => Promise<DataBlock<D, S>>;
+    ) => DataBlock<D, S>;
     getDataBlock: <D extends DBR, S extends DBR>(repr: DbRepr) => DataBlock<D, S> | undefined;
 }

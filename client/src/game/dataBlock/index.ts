@@ -28,6 +28,18 @@ export async function getOrLoadDataBlock<D extends DBR, S extends DBR = D>(
     return await loadDataBlock(repr, serializer, options);
 }
 
+export function parseDataBlockData<D extends DBR, S extends DBR>(
+    rawData: string,
+    serializer: DataBlockSerializer<D, S>,
+): D {
+    const strDataBlock = JSON.parse(rawData) as [string, unknown][];
+    const dataBlock = {} as D;
+    for (const [key, value] of strDataBlock) {
+        dataBlock[key as keyof D] = serializer.deserialize?.[key]?.(value as S[string]) ?? (value as D[string]);
+    }
+    return dataBlock;
+}
+
 // eslint-disable-next-line import/no-unused-modules
 export async function loadDataBlock<D extends DBR, S extends DBR = D>(
     repr: DbRepr,
@@ -46,19 +58,15 @@ export async function loadDataBlock<D extends DBR, S extends DBR = D>(
     });
     if (rawDataBlock !== undefined) {
         try {
-            const strDataBlock = JSON.parse(rawDataBlock.data) as [string, unknown][];
-            const dataBlock = {} as D;
-            for (const [key, value] of strDataBlock) {
-                dataBlock[key as keyof D] = serializer.deserialize?.[key]?.(value as S[string]) ?? (value as D[string]);
-            }
-            const db = new DataBlock(repr, dataBlock, serializer, true);
+            const dataBlockData = parseDataBlockData(rawDataBlock.data, serializer);
+            const db = new DataBlock(repr, dataBlockData, serializer, true);
             dataBlocks.set(id, db as DataBlock<DBR, DBR>);
             return db;
         } catch {
             throw new Error(`Failed to parse DataBlock ${id}`);
         }
     } else if (options?.defaultData !== undefined) {
-        return await createDataBlock(repr, options.defaultData(), serializer, {
+        return createDataBlock(repr, options.defaultData(), serializer, {
             createOnServer: options.createOnServer,
         });
     } else {
@@ -76,18 +84,18 @@ export function getDataBlock<D extends DBR, S extends DBR = D>(repr: DbRepr): Da
 }
 
 // eslint-disable-next-line import/no-unused-modules
-export async function createDataBlock<D extends DBR, S extends DBR = D>(
+export function createDataBlock<D extends DBR, S extends DBR = D>(
     repr: DbRepr,
     data: D,
     serializer: DataBlockSerializer<D, S>,
     options?: { createOnServer?: boolean },
-): Promise<DataBlock<D, S>> {
+): DataBlock<D, S> {
     const id = getId(repr);
     if (dataBlocks.has(id)) throw new Error(`A DataBlock for ${id} already exists`);
 
     const db = new DataBlock(repr, data, serializer, false);
 
-    if (options?.createOnServer ?? true) await db.createOnServer();
+    if (options?.createOnServer ?? true) db.createOnServer();
 
     dataBlocks.set(id, db as DataBlock<DBR, DBR>);
     return db;

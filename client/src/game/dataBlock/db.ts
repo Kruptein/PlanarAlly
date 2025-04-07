@@ -1,22 +1,31 @@
-import type { DeepReadonly } from "vue";
+import { type DeepReadonly, reactive, type Reactive } from "vue";
 
 import { socket } from "../api/socket";
 
 import type { DBR, DataBlockSerializer, DbRepr } from "./models";
 
+import { parseDataBlockData } from ".";
+
 export class DataBlock<D extends DBR, S extends DBR> {
-    #listeners: { source: string; key: keyof D; cb: (value: D[keyof D]) => void }[] = [];
-    #serialize: DataBlockSerializer<D, S>["serialize"];
+    #serializer: DataBlockSerializer<D, S>;
     #existsOnServer = false;
+    #data: D;
+    #reactiveData: Reactive<D> | undefined;
 
     constructor(
         readonly repr: DeepReadonly<DbRepr>,
-        private data: D,
+        data: D,
         serializer: DataBlockSerializer<D, S>,
         existsOnServer: boolean,
     ) {
-        this.#serialize = serializer.serialize;
+        this.#serializer = serializer;
         this.#existsOnServer = existsOnServer;
+        this.#data = data;
+    }
+
+    get reactiveData(): Reactive<D> {
+        if (!this.#reactiveData) this.#reactiveData = reactive(this.#data);
+        return this.#reactiveData;
     }
 
     get existsOnServer(): boolean {
@@ -24,53 +33,59 @@ export class DataBlock<D extends DBR, S extends DBR> {
     }
 
     get<K extends keyof D>(key: K): D[K] {
-        return this.data[key];
+        return this.#data[key];
     }
 
     set<K extends keyof D>(key: K, value: D[K], sync: boolean): void {
-        this.data[key] = value;
-        if (sync) this.save();
-        for (const listener of this.#listeners) if (listener.key === key) listener.cb(value);
-    }
-
-    listen<K extends keyof D>(source: string, key: K, cb: (value: D[K]) => void): void {
-        this.#listeners.push({ source, key, cb: cb as (value: D[keyof D]) => void });
-    }
-
-    save(): void {
-        if (!this.#existsOnServer) {
-            console.warn("Attempt to save DB that has not been created on the server yet.");
-            return;
+        if (this.#reactiveData) {
+            (this.#reactiveData.value as D)[key] = value;
+        } else {
+            this.#data[key] = value;
         }
-
-        const data = this.toJson();
-        socket.emit("DataBlock.Save", { ...this.repr, data });
+        if (sync) this.sync();
     }
 
-    async saveOrCreate(): Promise<void> {
-        if (this.#existsOnServer) this.save();
-        else await this.createOnServer();
-    }
-
-    async createOnServer(): Promise<boolean> {
+    sync(createIfMissing = true): void {
         if (this.#existsOnServer) {
-            console.warn("Attempt to create DB on server when it already exists.");
-            return false;
+            const data = this.toJson();
+            socket.emit("DataBlock.Save", { ...this.repr, data });
+        } else {
+            if (createIfMissing) {
+                this.createOnServer();
+            } else {
+                throw new Error("DataBlock does not exist on server.");
+            }
         }
-        return new Promise<boolean>((resolve, reject) => {
-            socket.emit("DataBlock.Create", { ...this.repr, data: this.toJson() }, (success: boolean) => {
-                if (success) {
-                    this.#existsOnServer = true;
-                    resolve(true);
-                }
-                reject("Failed to create DataBlock");
-            });
+    }
+
+    createOnServer(): void {
+        if (this.#existsOnServer) {
+            throw new Error("DataBlock already exists on server.");
+        }
+        socket.emit("DataBlock.Create", { ...this.repr, data: this.toJson() }, (success: boolean) => {
+            if (success) {
+                this.#existsOnServer = true;
+            } else {
+                throw new Error("Failed to create DataBlock");
+            }
         });
     }
 
     toJson(): string {
         return JSON.stringify(
-            [...Object.entries(this.data)].map(([k, v]) => [k, this.#serialize?.[k]?.(v as D[string]) ?? v]),
+            Object.entries(this.#data).map(([k, v]) => [k, this.#serializer.serialize?.[k]?.(v as D[string]) ?? v]),
         );
+    }
+
+    loadData(rawData: string): void {
+        this.updateData(parseDataBlockData(rawData, this.#serializer));
+    }
+
+    updateData(data: D): void {
+        if (this.#reactiveData) {
+            Object.assign(this.#reactiveData, data);
+        } else {
+            this.#data = data;
+        }
     }
 }

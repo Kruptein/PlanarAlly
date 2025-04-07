@@ -38,6 +38,12 @@ They will be removed in a future release though.
     -   An env variable can be used to change the location
     -   Changes to the config are now checked and loaded by the server during runtime
 -   [tech] Server shutdown sequence has been modified
+-   Mod improvements
+    -   DataBlock API changes
+        -   Made most functions sync
+        -   Save method renamed to Sync
+        -   API added to handle reactivity inside the datablock
+        -   Now listens to saved events from other clients to update local data
 
 ### Removed
 

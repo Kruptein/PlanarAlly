@@ -57,6 +57,7 @@ STATIC_DIR = FILE_DIR / "static"
 ASSETS_DIR = STATIC_DIR / "assets"
 # Temporary files - pending uploads, exports etc
 TEMP_DIR = STATIC_DIR / "temp"
+MODS_DIR = STATIC_DIR / "mods"
 
 
 for folder in [ASSETS_DIR, DATA_DIR, TEMP_DIR]:

@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory, type NavigationGuardNext, type RouteLocationNormalized } from "vue-router";
 
 import { http } from "../core/http";
-import { initMods } from "../mods";
 import { handleNotifications } from "../notifications";
 import { coreStore } from "../store/core";
 
@@ -40,7 +39,6 @@ router.beforeEach(async (to, _from, next) => {
             coreStore.setAuthenticated(authData.auth);
             coreStore.setVersion(versionData);
             coreStore.setInitialized(true);
-            await initMods();
 
             if (authData.auth) {
                 coreStore.setUsername(authData.username);

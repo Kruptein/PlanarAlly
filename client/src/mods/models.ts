@@ -1,5 +1,6 @@
 import type { Component } from "vue";
 
+import type { ApiModMeta } from "../apiTypes";
 import type { Section } from "../core/components/contextMenu/types";
 import { type GlobalId, type LocalId } from "../core/id";
 import type { SYSTEMS_STATE, System } from "../core/systems";
@@ -9,7 +10,7 @@ import type { IShape } from "../game/interfaces/shape";
 import type { Tracker } from "../game/systems/trackers/models";
 
 export interface Mod {
-    init?: () => Promise<void>;
+    init?: (meta: ApiModMeta) => Promise<void>;
     initGame?: (data: ModLoad) => Promise<void>;
     loadLocation?: () => Promise<void>;
 

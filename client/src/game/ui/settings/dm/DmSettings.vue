@@ -10,6 +10,7 @@ import FloorSettings from "../location/FloorSettings.vue";
 import GridSettings from "../location/GridSettings.vue";
 import VariaSettings from "../location/VariaSettings.vue";
 import VisionSettings from "../location/VisionSettings.vue";
+import ModSettings from "../ModSettings.vue";
 
 import AdminSettings from "./AdminSettings.vue";
 import { DmSettingCategory } from "./categories";
@@ -71,6 +72,12 @@ const tabs = computed(() => [
         category: DmSettingCategory.Varia,
         name: t(DmSettingCategory.Varia),
         component: VariaSettings,
+        props: { global: true },
+    },
+    {
+        category: DmSettingCategory.Mods,
+        name: t(DmSettingCategory.Mods),
+        component: ModSettings,
         props: { global: true },
     },
 ]);

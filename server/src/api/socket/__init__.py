@@ -14,6 +14,7 @@ def load_socket_commands():
         location,  # noqa: F401.
         logic,  # noqa: F401.
         marker,  # noqa: F401.
+        mods,  # noqa: F401.
         note,  # noqa: F401.
         player,  # noqa: F401.
         room,  # noqa: F401.

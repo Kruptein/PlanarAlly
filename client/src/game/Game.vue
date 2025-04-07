@@ -3,6 +3,7 @@ import throttle from "lodash/throttle";
 import { defineComponent, onMounted, onUnmounted, watchEffect } from "vue";
 
 import { useModal } from "../core/plugins/modals/plugin";
+import { loadRoomMods } from "../mods";
 import { modEvents } from "../mods/events";
 import { coreStore } from "../store/core";
 
@@ -37,7 +38,14 @@ export default defineComponent({
     beforeRouteEnter(to, _from, next) {
         coreStore.setLoading(true);
         createConnection(to);
-        next();
+        loadRoomMods()
+            .then(() => {
+                next();
+            })
+            .catch(() => {
+                console.error("Failed to initialize mods");
+                next();
+            });
     },
     beforeRouteLeave(_to, _from, next) {
         socket.disconnect();

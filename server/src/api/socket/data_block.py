@@ -11,6 +11,7 @@ from ...db.models.user_data_block import UserDataBlock
 from ...logs import logger
 from ...state.game import game_state
 from ...transform.from_api.data_block import get_data_block
+from ..helpers import _send_game
 from ..models.data_block import (
     ApiCoreDataBlock,
     ApiDataBlock,
@@ -80,3 +81,7 @@ async def save_datablock(sid: str, raw_data: Any):
     if data_block := get_data_block(data, pr):
         data_block.data = data.data
         data_block.save()
+
+        await _send_game(
+            "DataBlock.Saved", data, skip_sid=sid, room=pr.active_location.get_path()
+        )

@@ -15,8 +15,8 @@ const ui = {
     },
 };
 
-async function gameOpened(): Promise<void> {
-    for (const { mod, name: modName } of loadedMods) {
+async function gameOpened(mods?: (typeof loadedMods.value)[number][]): Promise<void> {
+    for (const { id, mod, meta } of mods ?? loadedMods.value) {
         try {
             await mod.initGame?.({
                 systems: SYSTEMS,
@@ -30,21 +30,21 @@ async function gameOpened(): Promise<void> {
                     repr: DistributiveOmit<DbRepr, "source">,
                     serializer: DataBlockSerializer<D, S>,
                     options?: { createOnServer?: boolean; defaultData?: () => D },
-                ) => loadDataBlock<D, S>({ ...repr, source: modName }, serializer, options),
+                ) => loadDataBlock<D, S>({ ...repr, source: meta.tag }, serializer, options),
                 getOrLoadDataBlock: <D extends DBR, S extends DBR>(
                     repr: DistributiveOmit<DbRepr, "source">,
                     serializer: DataBlockSerializer<D, S>,
                     options?: { createOnServer?: boolean; defaultData?: () => D },
-                ) => getOrLoadDataBlock<D, S>({ ...repr, source: modName }, serializer, options),
+                ) => getOrLoadDataBlock<D, S>({ ...repr, source: meta.tag }, serializer, options),
             });
         } catch (e) {
-            console.error("Failed to call initGame on mod", modName, "\n", e);
+            console.error("Failed to call initGame on mod", id, "\n", e);
         }
     }
 }
 
-async function locationLoaded(): Promise<void> {
-    for (const { mod } of loadedMods) await mod.loadLocation?.();
+async function locationLoaded(mods?: (typeof loadedMods.value)[number][]): Promise<void> {
+    for (const { mod } of mods ?? loadedMods.value) await mod.loadLocation?.();
 }
 
 export const modEvents = {

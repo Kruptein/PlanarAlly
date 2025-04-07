@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 101
+SAVE_VERSION = 102
 
 import asyncio
 import json
@@ -437,6 +437,29 @@ def upgrade(
                 'INSERT INTO "shape" ("uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "is_defeated", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "ignore_zoom_size", "is_door", "is_teleport_zone", "character_id", "odd_hex_orientation", "size", "show_cells", "cell_fill_colour", "cell_stroke_colour", "cell_stroke_width") SELECT "uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "is_defeated", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "ignore_zoom_size", "is_door", "is_teleport_zone", "character_id", "odd_hex_orientation", "size", "show_cells", "cell_fill_colour", "cell_stroke_colour", "cell_stroke_width" FROM _shape_100'
             )
             db.execute_sql("DROP TABLE _shape_100")
+    elif version == 101:
+        # Add Mods and ModsPlayerRoom
+        with db.atomic():
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "mod" ("id" INTEGER NOT NULL PRIMARY KEY, "tag" TEXT NOT NULL, "name" TEXT NOT NULL, "version" TEXT NOT NULL, "hash" TEXT NOT NULL, "author" TEXT NOT NULL, "description" TEXT NOT NULL, "short_description" TEXT NOT NULL, "api_schema" TEXT NOT NULL, "first_uploaded_at" DATE NOT NULL, "first_uploaded_by_id" INTEGER, "has_css" INTEGER NOT NULL, FOREIGN KEY ("first_uploaded_by_id") REFERENCES "user" ("id") ON DELETE SET NULL);'
+            )
+            db.execute_sql(
+                'CREATE INDEX "mod_first_uploaded_by_id" ON "mod" ("first_uploaded_by_id");'
+            )
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "mod_room" ("id" INTEGER NOT NULL PRIMARY KEY, "mod_id" INTEGER NOT NULL, "room_id" INTEGER NOT NULL, "enabled" INTEGER NOT NULL, FOREIGN KEY ("mod_id") REFERENCES "mod" ("id") ON DELETE CASCADE, FOREIGN KEY ("room_id") REFERENCES "room" ("id") ON DELETE CASCADE);'
+            )
+            db.execute_sql('CREATE INDEX "mod_room_mod_id" ON "mod_room" ("mod_id");')
+            db.execute_sql('CREATE INDEX "mod_room_room_id" ON "mod_room" ("room_id");')
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "mod_player_room" ("id" INTEGER NOT NULL PRIMARY KEY, "mod_id" INTEGER NOT NULL, "player_room_id" INTEGER NOT NULL, "enabled" INTEGER NOT NULL, FOREIGN KEY ("mod_id") REFERENCES "mod" ("id") ON DELETE CASCADE, FOREIGN KEY ("player_room_id") REFERENCES "player_room" ("id") ON DELETE CASCADE);'
+            )
+            db.execute_sql(
+                'CREATE INDEX "mod_player_room_mod_id" ON "mod_player_room" ("mod_id");'
+            )
+            db.execute_sql(
+                'CREATE INDEX "mod_player_room_player_room_id" ON "mod_player_room" ("player_room_id");'
+            )
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

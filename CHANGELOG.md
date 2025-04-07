@@ -22,6 +22,7 @@ They will be removed in a future release though.
 -   Success notification when changing email in the settings
 -   Mod improvements
     -   Can now register shape context menu entries
+    -   Upload/Remove mods for a specific campaign
 -   [server] Email configuration setup
 
 ### Changed

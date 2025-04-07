@@ -3,12 +3,13 @@ import type { DistributiveOmit } from "../core/types";
 import { createDataBlock, getDataBlock, getOrLoadDataBlock, loadDataBlock } from "../game/dataBlock";
 import type { DBR, DataBlockSerializer, DbRepr } from "../game/dataBlock/models";
 import { getGlobalId, getShape } from "../game/id";
-import { registerTab, registerTrackerSettings } from "../game/systems/ui/mods";
+import { registerContextMenuEntry, registerTab, registerTrackerSettings } from "../game/systems/ui/mods";
 
 import { loadedMods } from ".";
 
 const ui = {
     shape: {
+        registerContextMenuEntry,
         registerTab,
         registerTrackerSettings,
     },

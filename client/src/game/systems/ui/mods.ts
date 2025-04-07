@@ -1,10 +1,15 @@
 import { markRaw, type Component } from "vue";
 
+import type { Section } from "../../../core/components/contextMenu/types";
 import type { LocalId } from "../../../core/id";
 import type { ShapeSettingCategory } from "../../ui/settings/shape/categories";
 import type { TrackerId } from "../trackers/models";
 
 import { uiState } from "./state";
+
+export function registerContextMenuEntry(entry: (shape: LocalId) => Section[]): void {
+    uiState.mutableReactive.shapeContextMenuEntries.push(entry);
+}
 
 export function registerTab(
     component: Component,

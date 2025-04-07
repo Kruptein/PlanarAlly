@@ -1,5 +1,6 @@
 import type { Component } from "vue";
 
+import type { Section } from "../core/components/contextMenu/types";
 import { type GlobalId, type LocalId } from "../core/id";
 import type { SYSTEMS_STATE, System } from "../core/systems";
 import type { DataBlock } from "../game/dataBlock/db";
@@ -21,6 +22,7 @@ interface ModLoad {
 
     ui: {
         shape: {
+            registerContextMenuEntry: (entry: (shape: LocalId) => Section[]) => void;
             registerTab: (
                 component: Component,
                 category: string,

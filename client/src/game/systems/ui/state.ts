@@ -1,5 +1,6 @@
 import type { Component, Raw } from "vue";
 
+import type { Section } from "../../../core/components/contextMenu/types";
 import type { LocalId } from "../../../core/id";
 import { buildState } from "../../../core/systems/state";
 import { ClientSettingCategory } from "../../ui/settings/client/categories";
@@ -32,6 +33,7 @@ interface UiState {
         filter?: (shape: LocalId) => boolean;
     }[];
     modTrackerSettings: ModTrackerSetting[];
+    shapeContextMenuEntries: ((shape: LocalId) => Section[])[];
 }
 
 const state = buildState<UiState>({
@@ -51,8 +53,10 @@ const state = buildState<UiState>({
 
     preventContextMenu: false,
 
+    // MODS
     characterTabs: [],
     modTrackerSettings: [],
+    shapeContextMenuEntries: [],
 });
 
 export const uiState = {

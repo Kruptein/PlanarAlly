@@ -20,6 +20,8 @@ They will be removed in a future release though.
 -   Forgot password flow if Mail is configured on the server
     -   This only works if the user account actually has an email-address
 -   Success notification when changing email in the settings
+-   Mod improvements
+    -   Can now register shape context menu entries
 -   [server] Email configuration setup
 
 ### Changed

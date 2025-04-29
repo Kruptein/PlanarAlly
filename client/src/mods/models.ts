@@ -1,5 +1,3 @@
-import type { Component } from "vue";
-
 import type { ApiModMeta } from "../apiTypes";
 import type { Section } from "../core/components/contextMenu/types";
 import { type GlobalId, type LocalId } from "../core/id";
@@ -11,11 +9,13 @@ import type { PanelTab } from "../game/systems/ui/types";
 import type { ModDataBlockFunctions } from "./db";
 
 export interface Mod {
-    init?: (meta: ApiModMeta) => Promise<void>;
-    initGame?: (data: ModLoad) => Promise<void>;
-    loadLocation?: () => Promise<void>;
+    events?: {
+        init?: (meta: ApiModMeta) => Promise<void>;
+        initGame?: (data: ModLoad & ModDataBlockFunctions) => Promise<void>;
+        loadLocation?: () => Promise<void>;
 
-    preTrackerUpdate?: (id: LocalId, tracker: Tracker, delta: Partial<Tracker>) => Partial<Tracker>;
+        preTrackerUpdate?: (id: LocalId, tracker: Tracker, delta: Partial<Tracker>) => Partial<Tracker>;
+    };
 }
 
 interface ModLoad {

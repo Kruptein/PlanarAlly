@@ -10,7 +10,7 @@ interface TrackerEvents {
 function updateTracker(id: LocalId, tracker: Tracker, delta: Partial<Tracker>): Partial<Tracker> {
     {
         for (const { mod } of loadedMods.value) {
-            delta = mod.preTrackerUpdate?.(id, tracker, delta) ?? delta;
+            delta = mod.events?.preTrackerUpdate?.(id, tracker, delta) ?? delta;
         }
         return delta;
     }

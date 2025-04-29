@@ -15,7 +15,7 @@ export async function loadMod(meta: ApiModMeta): Promise<{ id: string; meta: Api
     try {
         const mod = (await import(/* @vite-ignore */ baseAdjust(`/static/mods/${id}/index.js`))) as Mod;
         if (loadedMods.value.some((m) => m.id === id)) {
-            console.warn(`Mod ${id} has already been loaded.`);
+            console.debug(`Mod ${id} has already been loaded. Skipping.`);
             return;
         }
         if (meta.hasCss) createCss(id);
@@ -35,7 +35,7 @@ export async function loadRoomMods(): Promise<void> {
 }
 
 async function handleMod(modId: string, modMeta: ApiModMeta, mod: Mod): Promise<void> {
-    await mod.init?.(modMeta);
+    await mod.events?.init?.(modMeta);
     loadedMods.value.push({ id: modId, meta: modMeta, mod });
 }
 

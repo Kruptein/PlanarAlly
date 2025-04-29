@@ -1,7 +1,4 @@
 import { SYSTEMS, SYSTEMS_STATE } from "../core/systems";
-import type { DistributiveOmit } from "../core/types";
-import { createDataBlock, getDataBlock, getOrLoadDataBlock, loadDataBlock } from "../game/dataBlock";
-import type { DBR, DataBlockSerializer, DbRepr } from "../game/dataBlock/models";
 import { getGlobalId, getShape } from "../game/id";
 import { registerContextMenuEntry, registerTab, registerTrackerSettings } from "../game/systems/ui/mods";
 
@@ -20,7 +17,7 @@ const ui = {
 async function gameOpened(mods?: (typeof loadedMods.value)[number][]): Promise<void> {
     for (const { id, mod, meta } of mods ?? loadedMods.value) {
         try {
-            await mod.initGame?.({
+            await mod.events?.initGame?.({
                 systems: SYSTEMS,
                 systemsState: SYSTEMS_STATE,
                 ui,
@@ -35,7 +32,7 @@ async function gameOpened(mods?: (typeof loadedMods.value)[number][]): Promise<v
 }
 
 async function locationLoaded(mods?: (typeof loadedMods.value)[number][]): Promise<void> {
-    for (const { mod } of mods ?? loadedMods.value) await mod.loadLocation?.();
+    for (const { mod } of mods ?? loadedMods.value) await mod.events?.loadLocation?.();
 }
 
 export const modEvents = {

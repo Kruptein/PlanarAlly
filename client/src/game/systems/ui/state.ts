@@ -1,12 +1,11 @@
-import type { Component, Raw } from "vue";
+import type { MaybeRef, Raw } from "vue";
 
 import type { Section } from "../../../core/components/contextMenu/types";
 import type { LocalId } from "../../../core/id";
 import { buildState } from "../../../core/systems/state";
 import { ClientSettingCategory } from "../../ui/settings/client/categories";
-import type { ShapeSettingCategory } from "../../ui/settings/shape/categories";
 
-import type { ModTrackerSetting } from "./types";
+import type { ModTrackerSetting, PanelTab } from "./types";
 
 interface UiState {
     showUi: boolean;
@@ -26,14 +25,12 @@ interface UiState {
     preventContextMenu: boolean;
 
     // MOD interactions
-    characterTabs: {
-        category: ShapeSettingCategory;
-        name: string;
-        component: Raw<Component>;
-        filter?: (shape: LocalId) => boolean;
-    }[];
+    characterTabs: Raw<{
+        tab: PanelTab;
+        filter?: MaybeRef<(shape: LocalId) => boolean>;
+    }>[];
     modTrackerSettings: ModTrackerSetting[];
-    shapeContextMenuEntries: ((shape: LocalId) => Section[])[];
+    shapeContextMenuEntries: Raw<MaybeRef<(shape: LocalId) => Section[]>>[];
 }
 
 const state = buildState<UiState>({

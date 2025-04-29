@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, toRef } from "vue";
+import { computed, toRef, unref } from "vue";
 import type { ComputedRef } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -616,7 +616,7 @@ const sections = computed(() => {
         rootGroupB,
         rootGroupC,
         rootGroupD,
-        ...uiState.reactive.shapeContextMenuEntries.map((entry) => entry(focus)),
+        ...uiState.reactive.shapeContextMenuEntries.map((entry) => unref(entry)(focus)),
     ] as readonly Section[];
 });
 </script>

@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { type Component, ref, watchEffect, computed } from "vue";
+import { ref, watchEffect, computed } from "vue";
 import { useI18n } from "vue-i18n";
+
+import type { PanelTab } from "../../../game/systems/ui/types";
 
 import Modal from "./Modal.vue";
 
 const props = withDefaults(
     defineProps<{
         visible: boolean;
-        tabs: { category: string; name: string; component: Component; props?: object }[];
+        tabs: (PanelTab & { props?: object })[];
         initialSelection?: string;
     }>(),
     { initialSelection: undefined },
@@ -20,31 +22,31 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 
-const selection = ref(props.tabs[0]?.category);
+const selection = ref(props.tabs[0]?.id);
 const activeTab = computed(() => {
-    const tab = props.tabs.find((t) => t.category === selection.value);
+    const tab = props.tabs.find((t) => t.id === selection.value);
     if (tab === undefined) return undefined;
     return {
         ...tab,
-        props: { ...tab.props, tabSelected: computed(() => tab.category === selection.value) },
+        props: { ...tab.props, tabSelected: computed(() => tab.id === selection.value) },
     };
 });
 
 watchEffect(() => {
     if (props.initialSelection === undefined) {
-        if (!props.tabs.some((c) => c.category === selection.value)) {
-            selection.value = props.tabs.at(0)?.category;
+        if (!props.tabs.some((c) => c.id === selection.value)) {
+            selection.value = props.tabs.at(0)?.id;
         }
     } else {
-        if (props.tabs.some((c) => c.category === props.initialSelection)) {
+        if (props.tabs.some((c) => c.id === props.initialSelection)) {
             selection.value = props.initialSelection;
         }
     }
 });
 
-function setSelection(category: string): void {
-    selection.value = category;
-    emit("update:selection", category);
+function setSelection(id: string): void {
+    selection.value = id;
+    emit("update:selection", id);
 }
 
 function hideModal(): void {
@@ -67,12 +69,12 @@ function hideModal(): void {
             <div id="categories">
                 <div
                     v-for="tab of tabs"
-                    :key="tab.category"
+                    :key="tab.id"
                     class="category"
-                    :class="{ selected: tab.category === selection }"
-                    @click="setSelection(tab.category)"
+                    :class="{ selected: tab.id === selection }"
+                    @click="setSelection(tab.id)"
                 >
-                    {{ tab.name }}
+                    {{ tab.label }}
                 </div>
             </div>
             <div style="display: flex; flex-direction: column">

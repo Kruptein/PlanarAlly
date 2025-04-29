@@ -39,32 +39,32 @@ const locationName = computed(
 // Computed to trigger locale rerender
 const tabs = computed(() => [
     {
-        category: LocationSettingCategory.Admin,
-        name: t(LocationSettingCategory.Admin),
+        id: LocationSettingCategory.Admin,
+        label: t(LocationSettingCategory.Admin),
         component: AdminSettings,
         props: { global: false },
     },
     {
-        category: LocationSettingCategory.Grid,
-        name: t(LocationSettingCategory.Grid),
+        id: LocationSettingCategory.Grid,
+        label: t(LocationSettingCategory.Grid),
         component: GridSettings,
         props: { global: false },
     },
     {
-        category: LocationSettingCategory.Vision,
-        name: t(LocationSettingCategory.Vision),
+        id: LocationSettingCategory.Vision,
+        label: t(LocationSettingCategory.Vision),
         component: VisionSettings,
         props: { global: false },
     },
     {
-        category: LocationSettingCategory.Floor,
-        name: t(LocationSettingCategory.Floor),
+        id: LocationSettingCategory.Floor,
+        label: t(LocationSettingCategory.Floor),
         component: FloorSettings,
         props: { global: false },
     },
     {
-        category: LocationSettingCategory.Varia,
-        name: t(LocationSettingCategory.Varia),
+        id: LocationSettingCategory.Varia,
+        label: t(LocationSettingCategory.Varia),
         component: VariaSettings,
         props: { global: false },
     },

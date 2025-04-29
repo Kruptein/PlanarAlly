@@ -4,10 +4,9 @@ import type { ApiModMeta } from "../apiTypes";
 import type { Section } from "../core/components/contextMenu/types";
 import { type GlobalId, type LocalId } from "../core/id";
 import type { SYSTEMS_STATE, System } from "../core/systems";
-import type { DataBlock } from "../game/dataBlock/db";
-import type { DBR, DataBlockSerializer, DbRepr } from "../game/dataBlock/models";
 import type { IShape } from "../game/interfaces/shape";
 import type { Tracker } from "../game/systems/trackers/models";
+import type { PanelTab } from "../game/systems/ui/types";
 
 export interface Mod {
     init?: (meta: ApiModMeta) => Promise<void>;
@@ -24,12 +23,7 @@ interface ModLoad {
     ui: {
         shape: {
             registerContextMenuEntry: (entry: (shape: LocalId) => Section[]) => void;
-            registerTab: (
-                component: Component,
-                category: string,
-                name: string,
-                filter: (shape: LocalId) => boolean,
-            ) => void;
+            registerTab: (tab: PanelTab, filter: (shape: LocalId) => boolean) => void;
         };
     };
 

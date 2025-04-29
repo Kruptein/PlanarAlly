@@ -33,24 +33,24 @@ defineExpose({ close });
 // Computed to trigger locale rerender
 const tabs = computed(() => [
     {
-        category: ClientSettingCategory.Appearance,
-        name: t("game.ui.settings.client.common.Appearance"),
+        id: ClientSettingCategory.Appearance,
+        label: t("game.ui.settings.client.common.Appearance"),
         component: AppearanceSettings,
     },
     {
-        category: ClientSettingCategory.Behaviour,
-        name: t("game.ui.settings.client.common.Behaviour"),
+        id: ClientSettingCategory.Behaviour,
+        label: t("game.ui.settings.client.common.Behaviour"),
         component: BehaviourSettings,
     },
     {
-        category: ClientSettingCategory.Display,
-        name: t("game.ui.settings.client.common.Display"),
+        id: ClientSettingCategory.Display,
+        label: t("game.ui.settings.client.common.Display"),
         component: DisplaySettings,
     },
-    { category: ClientSettingCategory.Initiative, name: t("common.initiative"), component: InitiativeSettings },
+    { id: ClientSettingCategory.Initiative, label: t("common.initiative"), component: InitiativeSettings },
     {
-        category: ClientSettingCategory.Performance,
-        name: t("game.ui.settings.client.common.Performance"),
+        id: ClientSettingCategory.Performance,
+        label: t("game.ui.settings.client.common.Performance"),
         component: PerformanceSettings,
     },
 ]);

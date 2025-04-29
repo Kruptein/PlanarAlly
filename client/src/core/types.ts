@@ -4,7 +4,7 @@ export type PartialPick<T, K extends keyof T> = Partial<T> & Pick<T, K>;
 
 // Union pick types are taken from the type-fest repo
 
-export type UnionToIntersection<Union> = // `extends unknown` is always going to be the case and is used to convert the
+type UnionToIntersection<Union> = // `extends unknown` is always going to be the case and is used to convert the
     // `Union` into a [distributive conditional
     // type](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-8.html#distributive-conditional-types).
     (
@@ -23,7 +23,7 @@ export type UnionToIntersection<Union> = // `extends unknown` is always going to
 // A simpler KeysOfUnion type is possible but that does not work with generic types being passed higher up the chain
 // e.g. type a<T extends Something> = DistributivePick<T, "a" | "b">
 // even if "a" and "b" are keys of Something, this info is lost when using the simpler KeyOfUnion type
-export type KeysOfUnion<ObjectType> = keyof UnionToIntersection<
+type KeysOfUnion<ObjectType> = keyof UnionToIntersection<
     ObjectType extends unknown ? Record<keyof ObjectType, never> : never
 >;
 export type DistributivePick<ObjectType, KeyType extends KeysOfUnion<ObjectType>> = ObjectType extends unknown

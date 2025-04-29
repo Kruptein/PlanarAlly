@@ -10,9 +10,9 @@ import type { DbRepr, DBR } from "./models";
 
 import { getOrLoadDataBlock } from ".";
 
-export type Normalize<T> = T extends infer S ? { [K in keyof S]: S[K] } : never;
-export type IsEmptyObject<Obj extends Record<PropertyKey, unknown>> = [keyof Obj] extends [never] ? true : false;
-export type LoadArg<T extends Record<string, unknown>> =
+type Normalize<T> = T extends infer S ? { [K in keyof S]: S[K] } : never;
+type IsEmptyObject<Obj extends Record<PropertyKey, unknown>> = [keyof Obj] extends [never] ? true : false;
+type LoadArg<T extends Record<string, unknown>> =
     IsEmptyObject<T> extends true ? () => Promise<void> : (args: Normalize<T>) => Promise<void>;
 
 export function useDataBlock<

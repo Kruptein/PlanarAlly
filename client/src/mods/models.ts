@@ -8,6 +8,8 @@ import type { IShape } from "../game/interfaces/shape";
 import type { Tracker } from "../game/systems/trackers/models";
 import type { PanelTab } from "../game/systems/ui/types";
 
+import type { ModDataBlockFunctions } from "./db";
+
 export interface Mod {
     init?: (meta: ApiModMeta) => Promise<void>;
     initGame?: (data: ModLoad) => Promise<void>;
@@ -29,21 +31,4 @@ interface ModLoad {
 
     getShape: (shape: LocalId) => IShape | undefined;
     getGlobalId: (id: LocalId) => GlobalId | undefined;
-
-    getOrLoadDataBlock: <D extends DBR, S extends DBR>(
-        repr: DbRepr,
-        serializer: DataBlockSerializer<D, S>,
-        options?: { createOnServer?: boolean; defaultData?: () => D },
-    ) => Promise<DataBlock<D, S> | undefined>;
-    loadDataBlock: <D extends DBR, S extends DBR>(
-        repr: DbRepr,
-        serializer: DataBlockSerializer<D, S>,
-        options?: { createOnServer?: boolean; defaultData?: () => D },
-    ) => Promise<DataBlock<D, S> | undefined>;
-    createDataBlock: <D extends DBR, S extends DBR>(
-        repr: DbRepr,
-        data: D,
-        serializer: DataBlockSerializer<D, S>,
-    ) => DataBlock<D, S>;
-    getDataBlock: <D extends DBR, S extends DBR>(repr: DbRepr) => DataBlock<D, S> | undefined;
 }

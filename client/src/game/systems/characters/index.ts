@@ -1,7 +1,7 @@
 import { type DeepReadonly, watch } from "vue";
 
 import type { ApiCharacter } from "../../../apiTypes";
-import type { LocalId } from "../../../core/id";
+import type { GlobalId, LocalId } from "../../../core/id";
 import { find } from "../../../core/iter";
 import { registerSystem } from "../../../core/systems";
 import type { ShapeSystem } from "../../../core/systems";
@@ -76,6 +76,10 @@ class CharacterSystem implements ShapeSystem {
                 return shape;
             }
         }
+    }
+
+    getShapeId(character: CharacterId): GlobalId | undefined {
+        return mutable.characters.get(character)?.shapeId;
     }
 }
 

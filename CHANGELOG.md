@@ -39,12 +39,14 @@ They will be removed in a future release though.
     -   An env variable can be used to change the location
     -   Changes to the config are now checked and loaded by the server during runtime
 -   [tech] Server shutdown sequence has been modified
--   Mod improvements
+-   [tech] Mod improvements
     -   DataBlock API changes
         -   Made most functions sync
-        -   Save method renamed to Sync
+        -   Save method renamed to `sync`
         -   API added to handle reactivity inside the datablock
         -   Now listens to saved events from other clients to update local data
+        -   No longer runs the (de)serializer per key, but instead just on the entirety, alloweing root arrays
+        -   Added utility `useDataBlock` hook to reduce a lot of boilerplate in mod components
 
 ### Removed
 

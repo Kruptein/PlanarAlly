@@ -5,6 +5,8 @@ import type { DBR, DataBlockSerializer, DbRepr } from "../game/dataBlock/models"
 import { getGlobalId, getShape } from "../game/id";
 import { registerContextMenuEntry, registerTab, registerTrackerSettings } from "../game/systems/ui/mods";
 
+import { getDataBlockFunctions } from "./db";
+
 import { loadedMods } from ".";
 
 const ui = {
@@ -24,18 +26,7 @@ async function gameOpened(mods?: (typeof loadedMods.value)[number][]): Promise<v
                 ui,
                 getGlobalId,
                 getShape,
-                getDataBlock,
-                createDataBlock,
-                loadDataBlock: <D extends DBR, S extends DBR>(
-                    repr: DistributiveOmit<DbRepr, "source">,
-                    serializer: DataBlockSerializer<D, S>,
-                    options?: { createOnServer?: boolean; defaultData?: () => D },
-                ) => loadDataBlock<D, S>({ ...repr, source: meta.tag }, serializer, options),
-                getOrLoadDataBlock: <D extends DBR, S extends DBR>(
-                    repr: DistributiveOmit<DbRepr, "source">,
-                    serializer: DataBlockSerializer<D, S>,
-                    options?: { createOnServer?: boolean; defaultData?: () => D },
-                ) => getOrLoadDataBlock<D, S>({ ...repr, source: meta.tag }, serializer, options),
+                ...getDataBlockFunctions(meta.tag),
             });
         } catch (e) {
             console.error("Failed to call initGame on mod", id, "\n", e);

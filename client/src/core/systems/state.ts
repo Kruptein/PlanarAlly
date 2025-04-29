@@ -1,5 +1,5 @@
 import { reactive } from "vue";
-import type { DeepReadonly, UnwrapNestedRefs } from "vue";
+import type { DeepReadonly, Reactive, UnwrapNestedRefs } from "vue";
 
 // Given that we have a pure ts codebase
 // we can work with readonly purely as typing
@@ -8,7 +8,7 @@ import type { DeepReadonly, UnwrapNestedRefs } from "vue";
 interface ReactiveState<T extends object, W extends string = ""> {
     raw: DeepReadonly<Omit<T, W>>;
     reactive: DeepReadonly<UnwrapNestedRefs<T>>;
-    mutableReactive: UnwrapNestedRefs<T>;
+    mutableReactive: Reactive<T>;
 }
 
 export function buildState<T extends object, W extends string = "">(state: T): ReactiveState<T, W>;

@@ -1,4 +1,4 @@
-import { type DeepReadonly, reactive, type Reactive } from "vue";
+import { type DeepReadonly, ref, type Ref } from "vue";
 
 import { socket } from "../api/socket";
 
@@ -6,25 +6,34 @@ import type { DBR, DataBlockSerializer, DbRepr } from "./models";
 
 import { parseDataBlockData } from ".";
 
-export class DataBlock<D extends DBR, S extends DBR> {
-    #serializer: DataBlockSerializer<D, S>;
-    #existsOnServer = false;
+export type DataBlockOptions<D extends DBR = never, S extends DBR = D> = {
+    createOnServer?: boolean;
+    defaultData?: () => D;
+    updateCallback?: (value: D) => void;
+    serializer?: DataBlockSerializer<D, S>;
+};
+
+export class DataBlock<D extends DBR = never, S extends DBR = D> {
+    #serializer: DataBlockSerializer<D, S> | undefined;
+    #existsOnServer: boolean;
     #data: D;
-    #reactiveData: Reactive<D> | undefined;
+    #reactiveData: Ref<D> | undefined;
+    #updateCallback: ((value: D) => void) | undefined;
 
     constructor(
         readonly repr: DeepReadonly<DbRepr>,
         data: D,
-        serializer: DataBlockSerializer<D, S>,
         existsOnServer: boolean,
+        options?: Omit<DataBlockOptions<D, S>, "createOnServer">,
     ) {
-        this.#serializer = serializer;
-        this.#existsOnServer = existsOnServer;
         this.#data = data;
+        this.#serializer = options?.serializer;
+        this.#existsOnServer = existsOnServer;
+        this.#updateCallback = options?.updateCallback;
     }
 
-    get reactiveData(): Reactive<D> {
-        if (!this.#reactiveData) this.#reactiveData = reactive(this.#data);
+    get reactiveData(): Ref<D> {
+        if (!this.#reactiveData) this.#reactiveData = ref(this.#data) as Ref<D>;
         return this.#reactiveData;
     }
 
@@ -38,7 +47,7 @@ export class DataBlock<D extends DBR, S extends DBR> {
 
     set<K extends keyof D>(key: K, value: D[K], sync: boolean): void {
         if (this.#reactiveData) {
-            (this.#reactiveData.value as D)[key] = value;
+            this.#reactiveData.value[key] = value;
         } else {
             this.#data[key] = value;
         }
@@ -72,9 +81,8 @@ export class DataBlock<D extends DBR, S extends DBR> {
     }
 
     toJson(): string {
-        return JSON.stringify(
-            Object.entries(this.#data).map(([k, v]) => [k, this.#serializer.serialize?.[k]?.(v as D[string]) ?? v]),
-        );
+        const data = this.#serializer?.serialize(this.#data) ?? this.#data;
+        return JSON.stringify(data);
     }
 
     loadData(rawData: string): void {
@@ -83,9 +91,9 @@ export class DataBlock<D extends DBR, S extends DBR> {
 
     updateData(data: D): void {
         if (this.#reactiveData) {
-            Object.assign(this.#reactiveData, data);
-        } else {
-            this.#data = data;
+            this.#reactiveData.value = data;
         }
+        this.#data = data;
+        this.#updateCallback?.(data);
     }
 }

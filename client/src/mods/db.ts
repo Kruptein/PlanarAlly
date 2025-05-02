@@ -1,6 +1,6 @@
 import type { DistributiveOmit } from "../core/types";
 import { createDataBlock, getDataBlock, getOrLoadDataBlock, loadDataBlock } from "../game/dataBlock";
-import { useDataBlock, useShapeDataBlock } from "../game/dataBlock/hooks";
+import { useShapeDataBlock } from "../game/dataBlock/hooks";
 
 // Mods cannot access datablocks from other mods directly,
 // so we expose a function to the mod API that strips `source` from the DbRepr type
@@ -18,18 +18,8 @@ const nameWrap = <T, A extends unknown[], U>(fn: (r: T, ...args: A) => U, tag: s
     return (name: string, ...args: A): U => fn({ name, source: tag } as T, ...args);
 };
 
-// These utility functions sadly lose the <D extends DBR = never, ...> encapsulating generics,
-// which means that users cannot declare the actual shape of the data block they're using.
-//
-// type Wrap<T, A extends unknown[], U> = ReturnType<typeof wrap<T, A, U>>;
-// type Wrap2<T extends (...args: any[]) => any> = T extends (r: infer X, ...args: infer A) => infer R
-//     ? Wrap<X, A, R>
-//     : never;
-// type WrappedGetDataBlock = Wrap2<typeof getDataBlock>;
-
 // Instead we're using these dummy functions to get the proper return types.
 const wrappedGetDataBlock = wrap(getDataBlock, "getDataBlock");
-const wrappedUseDataBlock = wrap(useDataBlock, "useDataBlock");
 const wrappedUseShapeDataBlock = nameWrap(useShapeDataBlock, "useShapeDataBlock");
 const wrappedLoadDataBlock = wrap(loadDataBlock, "loadDataBlock");
 const wrappedCreateDataBlock = wrap(createDataBlock, "createDataBlock");
@@ -41,7 +31,6 @@ export interface ModDataBlockFunctions {
     createDataBlock: typeof wrappedCreateDataBlock;
     getDataBlock: typeof wrappedGetDataBlock;
 
-    useDataBlock: typeof wrappedUseDataBlock;
     useShapeDataBlock: typeof wrappedUseShapeDataBlock;
 }
 
@@ -51,7 +40,6 @@ export function getDataBlockFunctions(tag: string): ModDataBlockFunctions {
         createDataBlock: wrap(createDataBlock, tag),
         loadDataBlock: wrap(loadDataBlock, tag),
         getOrLoadDataBlock: wrap(getOrLoadDataBlock, tag),
-        useDataBlock: wrap(useDataBlock, tag),
         useShapeDataBlock: nameWrap(useShapeDataBlock, tag),
     };
 }

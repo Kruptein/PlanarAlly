@@ -5,7 +5,7 @@ import type { LocalId } from "../../../core/id";
 import { buildState } from "../../../core/systems/state";
 import { ClientSettingCategory } from "../../ui/settings/client/categories";
 
-import type { ModTrackerSetting, PanelTab } from "./types";
+import type { PanelTab } from "./types";
 
 interface UiState {
     showUi: boolean;
@@ -29,7 +29,6 @@ interface UiState {
         tab: PanelTab;
         filter?: MaybeRef<(shape: LocalId) => boolean>;
     }>[];
-    modTrackerSettings: ModTrackerSetting[];
     shapeContextMenuEntries: Raw<MaybeRef<(shape: LocalId) => Section[]>>[];
 }
 
@@ -52,7 +51,6 @@ const state = buildState<UiState>({
 
     // MODS
     characterTabs: [],
-    modTrackerSettings: [],
     shapeContextMenuEntries: [],
 });
 

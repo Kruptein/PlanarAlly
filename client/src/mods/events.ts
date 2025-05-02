@@ -1,6 +1,6 @@
 import { SYSTEMS, SYSTEMS_STATE } from "../core/systems";
 import { getGlobalId, getShape } from "../game/id";
-import { registerContextMenuEntry, registerTab, registerTrackerSettings } from "../game/systems/ui/mods";
+import { registerContextMenuEntry, registerTab } from "../game/systems/ui/mods";
 
 import { getDataBlockFunctions } from "./db";
 
@@ -10,7 +10,6 @@ const ui = {
     shape: {
         registerContextMenuEntry,
         registerTab,
-        registerTrackerSettings,
     },
 };
 

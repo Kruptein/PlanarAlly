@@ -48,6 +48,8 @@ They will be removed in a future release though.
         -   No longer runs the (de)serializer per key, but instead just on the entirety, alloweing root arrays
         -   Added utility `useDataBlock` hook to reduce a lot of boilerplate in mod components
         -   Now expects a root level `events` object with event functions instead of them being exported
+        -   Serialize and Deserialize generic order are swapped
+        -   Remove registerTrackerSettings event
 
 ### Removed
 

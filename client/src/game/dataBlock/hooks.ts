@@ -27,7 +27,7 @@ export function useDataBlock<
     S extends DBR = D,
 >(
     repr: X,
-    options: Partial<DataBlockOptions<D, S>> & { defaultData: () => NoInfer<D> },
+    options: Partial<DataBlockOptions<S, D>> & { defaultData: () => NoInfer<D> },
 ): {
     data: Readonly<Ref<D>>;
     load: LoadArg<Z>;
@@ -56,16 +56,16 @@ export function useDataBlock<
         dataBlock?.sync?.();
     }
 
-    let dataBlock: DataBlock<D, S> | undefined;
+    let dataBlock: DataBlock<S, D> | undefined;
     const internalData = ref(options.defaultData()) as Ref<D>;
     return { data: shallowReadonly(internalData), load, save, write };
 }
 
 // A simpler more specialized version of useDataBlock that only deals with shape data blocks
 // After spending a lot of time on the generic useDataBlock version, it ultimately is only really relevant for shape data blocks atm
-export function useShapeDataBlock<D extends DBR = never, S extends DBR = D>(
+export function useShapeDataBlock<S extends DBR = never, D = S>(
     repr: Pick<ApiShapeDataBlock, "name" | "source">,
-    options: Partial<DataBlockOptions<D, S>> & { defaultData: () => NoInfer<D> },
+    options: Partial<DataBlockOptions<S, D>> & { defaultData: () => NoInfer<D> },
 ): {
     data: Readonly<Ref<D>>;
     load: (shape: GlobalId) => Promise<void>;
@@ -92,7 +92,7 @@ export function useShapeDataBlock<D extends DBR = never, S extends DBR = D>(
         dataBlock?.sync?.();
     }
 
-    let dataBlock: DataBlock<D, S> | undefined;
+    let dataBlock: DataBlock<S, D> | undefined;
     const internalData = ref(options.defaultData()) as Ref<D>;
     return { data: shallowReadonly(internalData), load, save, write };
 }

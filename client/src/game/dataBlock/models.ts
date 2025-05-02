@@ -5,7 +5,7 @@ export type DbRepr = DistributiveOmit<ApiDataBlock, "data">;
 
 export type DBR = Record<string, unknown> | unknown[];
 
-export interface DataBlockSerializer<D extends DBR = never, S extends DBR = D> {
+export interface DataBlockSerializer<S extends DBR = never, D = S> {
     serialize: (data: D) => S;
     deserialize: (data: S) => D;
 }

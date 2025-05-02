@@ -16,30 +16,30 @@ function getId(db: DbRepr): string {
 }
 
 // eslint-disable-next-line import/no-unused-modules
-export async function getOrLoadDataBlock<D extends DBR = never, S extends DBR = D>(
+export async function getOrLoadDataBlock<S extends DBR = never, D = S>(
     repr: DbRepr,
-    options?: DataBlockOptions<D, S>,
-): Promise<DataBlock<D, S> | undefined> {
+    options?: DataBlockOptions<S, D>,
+): Promise<DataBlock<S, D> | undefined> {
     const id = getId(repr);
     if (dataBlocks.has(id)) {
-        return dataBlocks.get(id) as DataBlock<D, S>;
+        return dataBlocks.get(id) as DataBlock<S, D>;
     }
     return await loadDataBlock(repr, options);
 }
 
-export function parseDataBlockData<D extends DBR = never, S extends DBR = D>(
+export function parseDataBlockData<D = never, S extends DBR = D extends DBR ? D : never>(
     rawData: string,
-    serializer?: DataBlockSerializer<D, S>,
+    serializer?: DataBlockSerializer<S, D>,
 ): D {
     const strDataBlock = JSON.parse(rawData) as S;
     return serializer?.deserialize(strDataBlock) ?? (strDataBlock as unknown as D);
 }
 
 // eslint-disable-next-line import/no-unused-modules
-export async function loadDataBlock<D extends DBR = never, S extends DBR = D>(
+export async function loadDataBlock<S extends DBR = never, D = S>(
     repr: DbRepr,
-    options?: DataBlockOptions<D, S>,
-): Promise<DataBlock<D, S> | undefined> {
+    options?: DataBlockOptions<S, D>,
+): Promise<DataBlock<S, D> | undefined> {
     const id = getId(repr);
     if (dataBlocks.has(id)) {
         console.error("DataBlock has already been loaded");
@@ -70,17 +70,17 @@ export async function loadDataBlock<D extends DBR = never, S extends DBR = D>(
 }
 
 // eslint-disable-next-line import/no-unused-modules
-export function getDataBlock<D extends DBR = never, S extends DBR = D>(repr: DbRepr): DataBlock<D, S> | undefined {
+export function getDataBlock<S extends DBR = never, D = S>(repr: DbRepr): DataBlock<S, D> | undefined {
     const id = getId(repr);
-    return dataBlocks.get(id) as DataBlock<D, S> | undefined;
+    return dataBlocks.get(id) as DataBlock<S, D> | undefined;
 }
 
 // eslint-disable-next-line import/no-unused-modules
-export function createDataBlock<D extends DBR = never, S extends DBR = D>(
+export function createDataBlock<S extends DBR = never, D = S>(
     repr: DbRepr,
     data: D,
-    options?: DataBlockOptions<D, S>,
-): DataBlock<D, S> {
+    options?: DataBlockOptions<S, D>,
+): DataBlock<S, D> {
     const id = getId(repr);
     if (dataBlocks.has(id)) throw new Error(`A DataBlock for ${id} already exists`);
 

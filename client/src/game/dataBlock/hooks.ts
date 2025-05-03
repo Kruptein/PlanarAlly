@@ -2,7 +2,8 @@ import type { Ref } from "vue";
 import { ref, shallowReadonly, watch } from "vue";
 
 import type { ApiShapeDataBlock } from "../../apiTypes";
-import type { GlobalId } from "../../core/id";
+import type { GlobalId, LocalId } from "../../core/id";
+import { getGlobalId } from "../id";
 
 import type { DataBlockOptions, DataBlock } from "./db";
 import type { DBR } from "./models";
@@ -16,12 +17,15 @@ export function useShapeDataBlock<S extends DBR = never, D = S>(
     options: Partial<DataBlockOptions<S, D>> & { defaultData: () => NoInfer<D> },
 ): {
     data: Readonly<Ref<D>>;
-    load: (shape: GlobalId) => Promise<void>;
+    load: (shape: GlobalId | LocalId) => Promise<void>;
     save: () => void;
     write: (value: D) => void;
 } {
-    async function load(shape: GlobalId): Promise<void> {
-        dataBlock = await getOrLoadDataBlock({ ...repr, shape, category: "shape" }, options);
+    async function load(shape: GlobalId | LocalId): Promise<void> {
+        const shapeId = typeof shape === "string" ? shape : getGlobalId(shape);
+        if (shapeId === undefined) throw new Error("Invalid shape ID was passed during datablock loading");
+
+        dataBlock = await getOrLoadDataBlock({ ...repr, shape: shapeId, category: "shape" }, options);
         if (dataBlock) {
             internalData.value = dataBlock.reactiveData.value;
             watch(dataBlock.reactiveData, (value) => {

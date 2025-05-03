@@ -1,5 +1,5 @@
 import { reactive, watchEffect } from "vue";
-import type { DeepReadonly } from "vue";
+import type { DeepReadonly, Reactive } from "vue";
 
 import type { LocalId } from "../../../core/id";
 import type { Sync } from "../../../core/models/types";
@@ -27,7 +27,7 @@ class TrackerSystem implements ShapeSystem {
 
     // REACTIVE STATE
 
-    private _state: TrackerState;
+    private _state: Reactive<TrackerState>;
 
     constructor() {
         this._state = reactive({
@@ -38,7 +38,7 @@ class TrackerSystem implements ShapeSystem {
         });
     }
 
-    get state(): DeepReadonly<TrackerState> {
+    get state(): DeepReadonly<Reactive<TrackerState>> {
         return this._state;
     }
 

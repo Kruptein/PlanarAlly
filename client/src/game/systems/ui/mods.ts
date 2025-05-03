@@ -11,6 +11,6 @@ export function registerContextMenuEntry(entry: MaybeRef<(shape: LocalId) => Sec
     uiState.mutableReactive.shapeContextMenuEntries.push(entry);
 }
 
-export function registerTab(tab: PanelTab, filter: MaybeRef<(shape: LocalId) => boolean>): void {
+export function registerTab(tab: PanelTab, filter?: MaybeRef<(shape: LocalId) => boolean>): void {
     uiState.mutableReactive.characterTabs.push(markRaw({ tab, filter }));
 }

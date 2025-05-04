@@ -1,6 +1,7 @@
 import type { ApiModMeta } from "../apiTypes";
 import type { Section } from "../core/components/contextMenu/types";
 import { type GlobalId, type LocalId } from "../core/id";
+import type { Sync } from "../core/models/types";
 import type { SYSTEMS_STATE, System } from "../core/systems";
 import type { IShape } from "../game/interfaces/shape";
 import type { Tracker } from "../game/systems/trackers/models";
@@ -14,7 +15,7 @@ export interface Mod {
         initGame?: (data: ModLoad & ModDataBlockFunctions) => Promise<void>;
         loadLocation?: () => Promise<void>;
 
-        preTrackerUpdate?: (id: LocalId, tracker: Tracker, delta: Partial<Tracker>) => Partial<Tracker>;
+        preTrackerUpdate?: (id: LocalId, tracker: Tracker, delta: Partial<Tracker>, syncTo: Sync) => Partial<Tracker>;
     };
 }
 

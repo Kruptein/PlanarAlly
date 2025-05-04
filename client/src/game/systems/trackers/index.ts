@@ -142,7 +142,7 @@ class TrackerSystem implements ShapeSystem {
         const tracker = this.data.get(id)?.find((t) => t.uuid === trackerId);
         if (tracker === undefined) return;
 
-        delta = trackerEvents.updateTracker(id, tracker, delta);
+        delta = trackerEvents.updateTracker(id, tracker, delta, syncTo);
 
         if (syncTo.server) {
             const shape = getGlobalId(id);

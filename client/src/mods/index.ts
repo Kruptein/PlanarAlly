@@ -1,42 +1,47 @@
-import { baseAdjust, http } from "../core/http";
+import { ref } from "vue";
+
+import type { ApiModMeta } from "../apiTypes";
+import { baseAdjust } from "../core/http";
+import { sendGetRoomMods } from "../game/api/emits/mods";
 
 import "./events";
 import type { Mod } from "./models";
 
 // const enabledMods = ["simple-char-sheet"];
-export const loadedMods: { name: string; mod: Mod }[] = [];
+export const loadedMods = ref<{ id: string; meta: ApiModMeta; mod: Mod }[]>([]);
 
-export async function initMods(): Promise<void> {
-    const modsRequest = await http.get("/api/mods/list");
-    if (!modsRequest.ok) {
-        console.error("Failed to retrieve list of mods");
-        return;
-    }
-    const mods = (await modsRequest.json()) as { name: string; hasCss: boolean }[];
-
-    for (const { name: modName, hasCss } of mods) {
-        try {
-            const mod = (await import(/* @vite-ignore */ baseAdjust(`/static/mods/${modName}.js`))) as Mod;
-            if (loadedMods.some((m) => m.name === modName)) {
-                console.warn(`Mod ${modName} has already been loaded.`);
-                continue;
-            }
-            if (hasCss) createCss(modName);
-            await handleMod(modName, mod);
-        } catch (error) {
-            console.error(`Failed to load ${modName} mod`, error);
+export async function loadMod(meta: ApiModMeta): Promise<{ id: string; meta: ApiModMeta; mod: Mod } | undefined> {
+    const id = `${meta.tag}-${meta.version}-${meta.hash}`;
+    try {
+        const mod = (await import(/* @vite-ignore */ baseAdjust(`/static/mods/${id}/index.js`))) as Mod;
+        if (loadedMods.value.some((m) => m.id === id)) {
+            console.debug(`Mod ${id} has already been loaded. Skipping.`);
+            return;
         }
+        if (meta.hasCss) createCss(id);
+        await handleMod(id, meta, mod);
+        return { id, meta, mod };
+    } catch (error) {
+        console.error(`Failed to load ${id} mod`, error);
     }
 }
 
-async function handleMod(modName: string, mod: Mod): Promise<void> {
-    await mod.init?.();
-    loadedMods.push({ name: modName, mod });
+export async function loadRoomMods(): Promise<void> {
+    const mods = await sendGetRoomMods();
+
+    for (const modMeta of mods) {
+        await loadMod(modMeta);
+    }
 }
 
-function createCss(modName: string): void {
+async function handleMod(modId: string, modMeta: ApiModMeta, mod: Mod): Promise<void> {
+    await mod.events?.init?.(modMeta);
+    loadedMods.value.push({ id: modId, meta: modMeta, mod });
+}
+
+function createCss(modId: string): void {
     const lnk = document.createElement("link");
-    lnk.href = baseAdjust(`/static/mods/${modName}.css`);
+    lnk.href = baseAdjust(`/static/mods/${modId}/index.css`);
     lnk.rel = "stylesheet";
     lnk.type = "text/css";
 

@@ -20,6 +20,9 @@ They will be removed in a future release though.
 -   Forgot password flow if Mail is configured on the server
     -   This only works if the user account actually has an email-address
 -   Success notification when changing email in the settings
+-   Mod improvements
+    -   Can now register shape context menu entries
+    -   Upload/Remove mods for a specific campaign
 -   [server] Email configuration setup
 
 ### Changed
@@ -36,6 +39,17 @@ They will be removed in a future release though.
     -   An env variable can be used to change the location
     -   Changes to the config are now checked and loaded by the server during runtime
 -   [tech] Server shutdown sequence has been modified
+-   [tech] Mod improvements
+    -   DataBlock API changes
+        -   Made most functions sync
+        -   Save method renamed to `sync`
+        -   API added to handle reactivity inside the datablock
+        -   Now listens to saved events from other clients to update local data
+        -   No longer runs the (de)serializer per key, but instead just on the entirety, alloweing root arrays
+        -   Added utility `useDataBlock` hook to reduce a lot of boilerplate in mod components
+        -   Serialize and Deserialize generic order are swapped
+    -   Now expects a root level `events` object with event functions instead of them being exported
+    -   Remove registerTrackerSettings event
 
 ### Removed
 
@@ -48,6 +62,7 @@ They will be removed in a future release though.
 -   Reduced some render overhead when token shapes that the player did not own were moved
 -   Shape context menu not closing when selecting an option
 -   Select tool build UI not appearing when mode toggling
+-   Datablocks for room and user categories had a bug in the server preventing creating them
 
 ## [2025.1.1] - 2025-02-08
 

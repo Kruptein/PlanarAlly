@@ -277,6 +277,22 @@ export interface ApiLocationUserOption {
   active_layer?: string;
   active_floor?: string;
 }
+export interface ApiModLink {
+  tag: string;
+  version: string;
+  hash: string;
+}
+export interface ApiModMeta {
+  apiSchema: string;
+  tag: string;
+  name: string;
+  version: string;
+  author: string;
+  shortDescription: string;
+  description: string;
+  hash: string;
+  hasCss: boolean;
+}
 export interface ApiNote {
   uuid: string;
   creator: string;

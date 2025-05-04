@@ -20,6 +20,9 @@ from .models.location import Location
 from .models.location_options import LocationOptions
 from .models.location_user_option import LocationUserOption
 from .models.marker import Marker
+from .models.mod import Mod
+from .models.mod_player_room import ModPlayerRoom
+from .models.mod_room import ModRoom
 from .models.note import Note
 from .models.note_access import NoteAccess
 from .models.note_shape import NoteShape
@@ -62,6 +65,9 @@ ALL_MODELS = [
     LocationUserOption,
     Location,
     Marker,
+    Mod,
+    ModPlayerRoom,
+    ModRoom,
     Note,
     NoteAccess,
     NoteShape,

@@ -2,7 +2,7 @@
 import type { Section } from "./types";
 
 const emit = defineEmits<(e: "cm:close") => void>();
-defineProps<{ sections: Section[]; addDivider?: boolean }>();
+defineProps<{ sections: readonly Section[]; addDivider?: boolean }>();
 
 async function doAction(action: () => boolean | Promise<boolean>): Promise<void> {
     const result = await action();

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, toRef } from "vue";
+import { computed, toRef, unref } from "vue";
 import type { ComputedRef } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -40,6 +40,7 @@ import { selectedSystem } from "../../systems/selected";
 import { collapseSelection, expandSelection } from "../../systems/selected/collapse";
 import { selectedState } from "../../systems/selected/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
+import { uiState } from "../../systems/ui/state";
 import { moveFloor, moveLayer } from "../../temp";
 import { initiativeStore } from "../initiative/state";
 import { layerTranslationMapping } from "../translations";
@@ -438,6 +439,8 @@ const currentFloorIndex = toRef(floorState.reactive, "floorIndex");
 const floors = toRef(floorState.reactive, "floors");
 
 const sections = computed(() => {
+    const focus = selectedState.reactive.focus;
+    if (focus === undefined) return [];
     // MOVE [group A] >
     const moveGroupA = [];
     if (gameState.reactive.isDm && floors.value.length > 1) {
@@ -608,7 +611,13 @@ const sections = computed(() => {
         ]);
     }
 
-    return [rootGroupA, rootGroupB, rootGroupC, rootGroupD];
+    return [
+        rootGroupA,
+        rootGroupB,
+        rootGroupC,
+        rootGroupD,
+        ...uiState.reactive.shapeContextMenuEntries.map((entry) => unref(entry)(focus)),
+    ] as readonly Section[];
 });
 </script>
 

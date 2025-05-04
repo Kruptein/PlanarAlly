@@ -94,7 +94,8 @@
         "upload": "Upload",
         "apply": "Apply",
         "type": "Type",
-        "background": "Background"
+        "background": "Background",
+        "mods": "Mods"
     },
     "assets": {
         "add_shortcut": "Add shortcut",

@@ -93,7 +93,7 @@ const tabs = computed(() => {
 
     for (const charTab of uiState.mutableReactive.characterTabs) {
         if (charTab.filter) {
-            if (unref(charTab.filter)(activeShapeStore.state.id!)) tabs.push(charTab.tab);
+            if (unref(charTab.filter)(activeShapeStore.state.id!, owned.value)) tabs.push(charTab.tab);
         } else {
             tabs.push(charTab.tab);
         }

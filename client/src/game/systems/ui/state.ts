@@ -27,7 +27,7 @@ interface UiState {
     // MOD interactions
     characterTabs: Raw<{
         tab: PanelTab;
-        filter?: MaybeRef<(shape: LocalId) => boolean>;
+        filter?: MaybeRef<(shape: LocalId, hasEditAccess: boolean) => boolean>;
     }>[];
     shapeContextMenuEntries: Raw<MaybeRef<(shape: LocalId) => Section[]>>[];
 }

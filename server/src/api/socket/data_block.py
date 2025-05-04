@@ -66,11 +66,18 @@ async def create_datablock(sid: str, raw_data: Any):
         elif data.category == "user":
             db_data["user"] = pr.player
 
-        db_mapper[data.category]["db"].create(**db_data)
+        data_block = db_mapper[data.category]["db"].create(**db_data)
     except Exception as e:
         logger.error(e)
         return False
-    logger.debug("!!CREATED A NEW DATABLOCK!!")
+
+    await _send_game(
+        "DataBlock.Created",
+        data_block.as_pydantic(),
+        skip_sid=sid,
+        room=pr.active_location.get_path(),
+    )
+
     return True
 
 

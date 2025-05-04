@@ -3,6 +3,11 @@ import { socket } from "../api/socket";
 import { DataBlock, type DataBlockOptions } from "./db";
 import type { DBR, DataBlockSerializer, DbRepr } from "./models";
 
+// Load attempts is a set of ids that were attempted to be loaded without default data.
+// To prevent multiple network + database calls when these are requested multiple times,
+// we store them in a set and ignore them in all future load calls.
+// When a DB save is triggered for one of these, we remove them from the set and assign them to the new data.
+const loadAttempts = new Map<string, DataBlockOptions<DBR, DBR>>();
 const dataBlocks = new Map<string, DataBlock<DBR, DBR>>();
 
 function getId(db: DbRepr): string {
@@ -45,11 +50,16 @@ export async function loadDataBlock<S extends DBR = never, D = S>(
         console.error("DataBlock has already been loaded");
         return undefined;
     }
-    const rawDataBlock = await new Promise<{ data: string }>((resolve) => {
-        socket.emit("DataBlock.Load", repr, (data: { data: string }) => {
-            resolve(data);
+
+    let rawDataBlock: { data: string } | undefined;
+    if (!loadAttempts.has(id)) {
+        rawDataBlock = await new Promise<{ data: string }>((resolve) => {
+            socket.emit("DataBlock.Load", repr, (data: { data: string }) => {
+                resolve(data);
+            });
         });
-    });
+    }
+
     if (rawDataBlock !== undefined) {
         try {
             const dataBlockData = parseDataBlockData(rawDataBlock.data, options?.serializer);
@@ -65,6 +75,7 @@ export async function loadDataBlock<S extends DBR = never, D = S>(
         if (options?.createOnServer === true) {
             console.warn("createOnServer was passed without defaultData. This has no effect.");
         }
+        loadAttempts.set(id, options as DataBlockOptions<DBR, DBR>);
         return undefined;
     }
 }
@@ -89,5 +100,22 @@ export function createDataBlock<S extends DBR = never, D = S>(
     if (options?.createOnServer ?? false) db.createOnServer();
 
     dataBlocks.set(id, db as DataBlock<DBR, DBR>);
+
+    if (loadAttempts.has(id)) {
+        loadAttempts.delete(id);
+    }
+
     return db;
+}
+
+export function updateDataBlock(repr: DbRepr, rawData: string): void {
+    let db: DataBlock<DBR, DBR> | undefined = getDataBlock(repr);
+    // If the DB is not known yet, check if it's in the loadAttempts map
+    if (db === undefined && loadAttempts.has(getId(repr))) {
+        db = new DataBlock(repr, {}, true, {});
+    }
+    // If the DB is known, update it
+    if (db) {
+        db.loadData(rawData);
+    }
 }

@@ -70,8 +70,11 @@ export class DataBlock<S extends DBR = never, D = S> {
         return JSON.stringify(data);
     }
 
+    // This is an internal API to update the data block to match server state.
+    // It is assumed that this is only called when data from the server arrives.
     loadData(rawData: string): void {
         this.updateData(parseDataBlockData(rawData, this.#serializer));
+        this.#existsOnServer = true;
     }
 
     updateData(data: D): void {

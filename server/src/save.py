@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 102
+SAVE_VERSION = 103
 
 import asyncio
 import json
@@ -460,6 +460,9 @@ def upgrade(
             db.execute_sql(
                 'CREATE INDEX "mod_player_room_player_room_id" ON "mod_player_room" ("player_room_id");'
             )
+    elif version == 102:
+        with db.atomic():
+            db.execute_sql("CREATE UNIQUE INDEX unique_username ON user(name);")
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

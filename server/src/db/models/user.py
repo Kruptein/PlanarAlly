@@ -22,7 +22,7 @@ class User(BaseDbModel):
     rooms_created: SelectSequence["Room"]
     rooms_joined: SelectSequence["PlayerRoom"]
 
-    name = cast(str, TextField())
+    name = cast(str, TextField(unique=True))
     email = TextField(null=True)
     password_hash = cast(str, TextField())
     default_options = cast(

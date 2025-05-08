@@ -63,6 +63,7 @@ They will be removed in a future release though.
 -   Shape context menu not closing when selecting an option
 -   Select tool build UI not appearing when mode toggling
 -   Datablocks for room and user categories had a bug in the server preventing creating them
+-   Asset context-menu remove not working
 
 ## [2025.1.1] - 2025-02-08
 

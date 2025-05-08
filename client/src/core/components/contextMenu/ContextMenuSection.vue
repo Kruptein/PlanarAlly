@@ -32,7 +32,7 @@ async function doAction(action: () => boolean | Promise<boolean>): Promise<void>
             </li>
         </template>
         <template v-else>
-            <li :class="{ selected: section.selected }" @click="doAction(section.action)">
+            <li :class="{ selected: section.selected }" @click.stop="doAction(section.action)">
                 <span>{{ section.title }}</span>
             </li>
         </template>

@@ -1,15 +1,13 @@
 <script setup lang="ts">
-import type { DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { assetSystem } from "..";
-import type { ApiAsset } from "../../apiTypes";
 import { baseAdjust } from "../../core/http";
 import { useModal } from "../../core/plugins/modals/plugin";
-import { coreStore } from "../../store/core";
 import { sendCreateFolder } from "../emits";
-import type { AssetId } from "../models";
 import { assetState } from "../state";
+
+import { canEdit } from "./access";
 
 const { t } = useI18n();
 const modals = useModal();
@@ -41,25 +39,6 @@ async function deleteSelection(): Promise<void> {
     if (result === true) {
         assetSystem.removeSelection();
     }
-}
-
-function canEdit(data: AssetId | DeepReadonly<ApiAsset> | undefined, includeRootShare = true): boolean {
-    if (data === undefined) return false; // We accept undefined to alleviate awkward type checks in callers
-    let asset: DeepReadonly<ApiAsset> | undefined;
-    if (data instanceof Object && "id" in data) asset = data;
-    else asset = assetState.raw.idMap.get(data);
-
-    if (asset === undefined) return false;
-
-    if (assetState.raw.sharedRight === "view") return false;
-
-    if (includeRootShare) {
-        const username = coreStore.state.username;
-        if (asset === undefined) return false;
-        if (asset.owner !== username && !asset.shares.some((s) => s.user === username && s.right === "edit"))
-            return false;
-    }
-    return true;
 }
 </script>
 

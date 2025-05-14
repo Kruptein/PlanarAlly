@@ -64,6 +64,7 @@ They will be removed in a future release though.
 -   Select tool build UI not appearing when mode toggling
 -   Datablocks for room and user categories had a bug in the server preventing creating them
 -   Asset context-menu remove not working
+-   Asset context-menu background colour being wrong in-game sometimes
 
 ## [2025.1.1] - 2025-02-08
 

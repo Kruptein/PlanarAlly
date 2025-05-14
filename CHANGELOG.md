@@ -65,6 +65,7 @@ They will be removed in a future release though.
 -   Datablocks for room and user categories had a bug in the server preventing creating them
 -   Asset context-menu remove not working
 -   Asset context-menu background colour being wrong in-game sometimes
+-   Asset upload bar missing in the dashboard asset manager
 
 ## [2025.1.1] - 2025-02-08
 

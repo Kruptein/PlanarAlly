@@ -10,6 +10,7 @@ import type { AssetId } from "../assets/models";
 import { socket } from "../assets/socket";
 import { assetState } from "../assets/state";
 import AssetListCore from "../assets/ui/AssetListCore.vue";
+import AssetUploadProgress from "../assets/ui/AssetUploadProgress.vue";
 import { baseAdjust } from "../core/http";
 import { useModal } from "../core/plugins/modals/plugin";
 import { ctrlOrCmdPressed } from "../core/utils";

@@ -136,18 +136,6 @@ function canEdit(data: AssetId | DeepReadonly<ApiAsset> | undefined, includeRoot
     </div>
 </template>
 
-<style lang="scss">
-.ContextMenu ul {
-    background: rgba(77, 0, 21);
-
-    box-shadow: 0 0 1rem rgba(77, 0, 21, 0.5);
-
-    li:hover {
-        background: rgba(219, 0, 59, 1);
-    }
-}
-</style>
-
 <style scoped lang="scss">
 #content {
     background-color: rgba(77, 59, 64, 0.6);
@@ -190,6 +178,16 @@ function canEdit(data: AssetId | DeepReadonly<ApiAsset> | undefined, includeRoot
         background: rgba(219, 0, 59, 1);
         border-radius: 1rem;
         padding: 1rem;
+    }
+}
+
+:deep(.ContextMenu) ul {
+    background: rgba(77, 0, 21);
+
+    box-shadow: 0 0 1rem rgba(77, 0, 21, 0.5);
+
+    li:hover {
+        background: rgba(219, 0, 59, 1);
     }
 }
 </style>

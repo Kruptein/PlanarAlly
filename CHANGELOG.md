@@ -23,6 +23,7 @@ They will be removed in a future release though.
 -   Mod improvements
     -   Can now register shape context menu entries
     -   Upload/Remove mods for a specific campaign
+-   Asset create folder/upload file/remove buttons to the in-game asset browser
 -   [server] Email configuration setup
 
 ### Changed

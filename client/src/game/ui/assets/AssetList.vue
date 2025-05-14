@@ -8,6 +8,7 @@ import { useAssetSearch } from "../../../assets/search";
 import { socket } from "../../../assets/socket";
 import { assetState } from "../../../assets/state";
 import AssetListCore from "../../../assets/ui/AssetListCore.vue";
+import AssetListCoreActions from "../../../assets/ui/AssetListCoreActions.vue";
 import AssetUploadProgress from "../../../assets/ui/AssetUploadProgress.vue";
 import { assetGameSystem } from "../../systems/assets";
 import { assetGameState } from "../../systems/assets/state";
@@ -143,6 +144,7 @@ function pickAsset(): void {
 <template>
     <header>
         <div>ASSETS</div>
+        <AssetListCoreActions />
     </header>
     <div id="assets-search">
         <div>
@@ -216,13 +218,20 @@ function pickAsset(): void {
 header {
     position: relative;
     display: flex;
+    height: 2.5em;
+
+    border-bottom: solid 1px black;
 
     > :first-child {
         flex-grow: 1;
         margin-right: 1rem;
-        border-bottom: solid 1px black;
         font-weight: bold;
         font-size: 1.75em;
+    }
+
+    :deep(img) {
+        filter: brightness(0) saturate(100%);
+        height: 100%;
     }
 }
 

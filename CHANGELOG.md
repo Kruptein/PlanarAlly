@@ -67,6 +67,7 @@ They will be removed in a future release though.
 -   Asset context-menu remove not working
 -   Asset context-menu background colour being wrong in-game sometimes
 -   Asset upload bar missing in the dashboard asset manager
+-   Dropping assets you have shared-view permission for on the map was not working
 
 ## [2025.1.1] - 2025-02-08
 

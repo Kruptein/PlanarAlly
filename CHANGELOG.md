@@ -68,6 +68,7 @@ They will be removed in a future release though.
 -   Asset context-menu background colour being wrong in-game sometimes
 -   Asset upload bar missing in the dashboard asset manager
 -   Dropping assets you have shared-view permission for on the map was not working
+-   Movement only door toggle not immediately rerendering screen
 
 ## [2025.1.1] - 2025-02-08
 

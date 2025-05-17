@@ -186,6 +186,10 @@ class PropertiesSystem implements ShapeSystem {
         if (d) d.blocksMovement = blocksMovement;
 
         const alteredMovement = checkMovementSources(id, blocksMovement, recalculate);
+        // Generally movement related block changes do not need render recalculation,
+        // There are some niche things that can require an update though, so we play it safe and just rerender
+        // An example would be toggling a door with movement only mode and the open/door default draw colours in use
+        if (alteredMovement && recalculate) getShape(id)?.invalidate(false);
         doorSystem.checkCursorState(id);
 
         return alteredMovement;

@@ -150,6 +150,7 @@ class SelectTool extends Tool implements ISelectTool {
 
             // rotation logic
             if (selection.size === 0) {
+                _$.hasSelection = false;
                 this.removeRotationUi();
             }
 

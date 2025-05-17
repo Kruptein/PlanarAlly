@@ -69,6 +69,7 @@ They will be removed in a future release though.
 -   Asset upload bar missing in the dashboard asset manager
 -   Dropping assets you have shared-view permission for on the map was not working
 -   Movement only door toggle not immediately rerendering screen
+-   Select tool UI would sometimes stick around when there is no shape selected anymore
 
 ## [2025.1.1] - 2025-02-08
 

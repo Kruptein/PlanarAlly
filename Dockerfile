@@ -44,9 +44,10 @@ EXPOSE 8000
 
 WORKDIR /planarally
 
-RUN mkdir -p /planarally/data /planarally/static/assets && chown -R 9000:9000 /planarally
+RUN mkdir -p /planarally/data /planarally/static/assets /planarally/static/mods && chown -R 9000:9000 /planarally
 VOLUME /planarally/data
 VOLUME /planarally/static/assets
+VOLUME /planarally/static/mods
 
 ENV PA_GIT_INFO docker:${DOCKER_TAG}-${SOURCE_COMMIT}
 ENV PYTHONUNBUFFERED=1

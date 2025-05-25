@@ -21,10 +21,18 @@ const activeSelectionUrl = `url(${baseAdjust("/static/img/assetmanager/active_se
 
 const emit = defineEmits<(e: "onDragEnd" | "onDragLeave" | "onDragStart", value: DragEvent) => void>();
 const props = withDefaults(
-    defineProps<{ extraContextSections?: Section[]; fontSize: string; searchResults?: ApiAsset[] }>(),
+    defineProps<{
+        extraContextSections?: Section[];
+        fontSize: string;
+        searchResults?: ApiAsset[];
+        onlyFiles?: boolean;
+        disableMulti?: boolean;
+    }>(),
     {
         extraContextSections: () => [],
         searchResults: () => [],
+        onlyFiles: false,
+        disableMulti: false,
     },
 );
 
@@ -66,6 +74,13 @@ function select(event: MouseEvent, inode: AssetId): void {
     if (!canEdit(inode, false)) {
         return;
     }
+
+    if (props.onlyFiles && folders.value.some((f) => f.id === inode)) {
+        assetSystem.clearSelected();
+        return;
+    }
+
+    if (props.disableMulti) assetSystem.clearSelected();
 
     if (event.shiftKey && assetState.raw.selected.length > 0) {
         const inodes = [...assetState.raw.folders, ...assetState.raw.files];

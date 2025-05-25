@@ -1,242 +1,120 @@
 <script setup lang="ts">
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { ref, watchEffect } from "vue";
+import { onMounted, useTemplateRef } from "vue";
 
 import { assetSystem } from "../../../assets";
-import type { AssetId } from "../../../assets/models";
 import { socket } from "../../../assets/socket";
 import { assetState } from "../../../assets/state";
-import { getImageSrcFromAssetId, showIdName } from "../../../assets/utils";
-import { i18n } from "../../../i18n";
+import AssetListCore from "../../../assets/ui/AssetListCore.vue";
+import AssetSearchCore from "../../../assets/ui/AssetSearchCore.vue";
 
-import Modal from "./Modal.vue";
+defineProps<{ visible: boolean }>();
+const emit = defineEmits(["close", "submit"]);
 
-const props = defineProps<{ visible: boolean }>();
-const emit = defineEmits(["submit", "close"]);
+const searchCore = useTemplateRef<InstanceType<typeof AssetSearchCore>>("searchCore");
 
-const thumbnailMisses = ref(new Set<AssetId>());
+async function load(): Promise<void> {
+    await assetSystem.loadFolder(assetState.currentFolder.value);
+}
 
-const { t } = i18n.global;
-
-watchEffect(() => {
-    if (props.visible) {
-        assetSystem.clear("partial-loading");
-        assetSystem.clearSelected();
-        assetSystem.clearFolderPath();
-        assetState.mutable.modalActive = true;
-        if (!socket.connected) socket.connect();
-        socket.emit("Folder.Get");
+onMounted(async () => {
+    if (socket.connected) {
+        await load();
     } else {
-        if (socket.connected) socket.disconnect();
+        socket.connect();
+        socket.once("connect", load);
     }
 });
 
-function select(event: MouseEvent, inode: AssetId): void {
-    assetSystem.clearSelected();
-    if (assetState.raw.files.includes(inode)) {
-        assetSystem.addSelectedInode(inode);
-    }
+function setLogo(): void {
+    const assetId = assetState.reactive.selected.at(0);
+    if (assetId === undefined) return;
+    const asset = assetState.raw.idMap.get(assetId);
+    if (asset === undefined) return;
+    emit("submit", { id: asset.id, fileHash: asset.fileHash ?? undefined });
 }
 </script>
 
 <template>
-    <modal :visible="visible" @close="emit('close')">
-        <template #header="m">
-            <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
-                Asset Picker
-                <div class="header-close" :title="t('common.close')" @click="emit('close')">
-                    <font-awesome-icon :icon="['far', 'window-close']" />
-                </div>
-            </div>
-        </template>
-        <div class="modal-body">
-            <div id="assets">
-                <div id="breadcrumbs">
-                    <div>/</div>
-                    <div v-for="dir in assetState.reactive.folderPath" :key="dir.id">{{ dir.name }}</div>
-                </div>
-                <div id="explorer">
-                    <div
-                        v-if="assetState.reactive.folderPath.length"
-                        class="inode folder"
-                        @dblclick="assetSystem.changeDirectory('POP')"
-                    >
-                        <font-awesome-icon icon="folder" style="font-size: 50px" />
-                        <div class="title">..</div>
-                    </div>
-                    <div
-                        v-for="key in assetState.reactive.folders"
-                        :key="key"
-                        class="inode folder"
-                        draggable="true"
-                        :class="{ 'inode-selected': assetState.reactive.selected.includes(key) }"
-                        @click="select($event, key)"
-                        @dblclick="assetSystem.changeDirectory(key)"
-                    >
-                        <font-awesome-icon icon="folder" style="font-size: 50px" />
-                        <div class="title">{{ showIdName(key) }}</div>
-                    </div>
-                    <div
-                        v-for="file in assetState.reactive.files"
-                        :key="file"
-                        class="inode file"
-                        draggable="true"
-                        :class="{ 'inode-selected': assetState.reactive.selected.includes(file) }"
-                        @click="select($event, file)"
-                    >
-                        <picture v-if="!thumbnailMisses.has(file)">
-                            <source
-                                :srcset="getImageSrcFromAssetId(file, { thumbnailFormat: 'webp' })"
-                                type="image/webp"
-                            />
-                            <source
-                                :srcset="getImageSrcFromAssetId(file, { thumbnailFormat: 'jpeg' })"
-                                type="image/jpeg"
-                            />
-                            <img alt="" loading="lazy" @error="thumbnailMisses.add(file)" />
-                        </picture>
-                        <img v-else :src="getImageSrcFromAssetId(file)" alt="" loading="lazy" />
-                        <div class="title">{{ showIdName(file) }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="buttons">
-                <button @click="emit('submit')">Select</button>
-                <button @click="emit('close')">Cancel</button>
+    <div v-show="visible" id="asset-container">
+        <div id="assets-dialog">
+            <font-awesome-icon id="close-assets" :icon="['far', 'window-close']" @click="emit('close')" />
+
+            <AssetSearchCore ref="searchCore" />
+
+            <AssetListCore
+                font-size="8em"
+                :search-results="searchCore?.search.results.value ?? []"
+                only-files
+                disable-multi
+            />
+
+            <div id="assets-footer">
+                <button :disabled="assetState.reactive.selected.length === 0" @click="setLogo">Submit</button>
             </div>
         </div>
-    </modal>
+    </div>
 </template>
 
 <style scoped lang="scss">
-.modal-header {
-    background-color: #ff7052;
-    padding: 10px;
-    font-size: 20px;
-    font-weight: bold;
-    cursor: move;
+#asset-container {
+    position: fixed;
+    display: grid;
+    justify-items: center;
+    padding-top: 10vh;
+    align-items: start;
+    width: 100vw;
+    height: 100vh;
 }
 
-.header-close {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-}
-
-.modal-body {
-    max-width: 30vw;
-    padding: 10px;
-    padding-top: 0;
+#assets-dialog {
+    position: relative;
     display: flex;
     flex-direction: column;
-    align-items: center;
-}
 
-#assets {
-    display: flex;
-    height: 40vh;
-    width: 30vw;
-    flex-grow: 1;
+    padding: 1.5rem 2rem;
+    border-radius: 1rem;
+    max-height: 80vh;
+    width: 60vw;
+
+    color: black;
     background-color: white;
-    position: relative;
-    padding-top: 45px;
 
-    #breadcrumbs {
+    pointer-events: all;
+
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
+
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande",
+        sans-serif;
+
+    overflow: hidden;
+
+    #close-assets {
         position: absolute;
-        left: 0;
-        top: 0;
-        display: flex;
-        overflow: hidden;
-        z-index: 1;
-        background-color: #ff7052;
+
+        top: 0.75rem;
+        right: 0.75rem;
+
+        font-size: 1.25rem;
+    }
+}
+
+#assets-footer {
+    display: flex;
+    justify-content: flex-end;
+
+    button {
+        background-color: rgba(137, 0, 37, 1);
         color: white;
-        align-items: center;
-        padding: 5px;
-        border-bottom-right-radius: 10px;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        font-size: 1rem;
 
-        > div {
-            position: relative;
-            padding: 10px;
-            padding-left: 20px;
-            text-align: center;
-
-            &:first-child {
-                padding-left: 10px;
-            }
-        }
-
-        div {
-            &:last-child::after {
-                content: none;
-            }
-
-            &::after {
-                content: "";
-                position: absolute;
-                display: inline-block;
-                width: 30px;
-                height: 30px;
-                top: 3px;
-                right: -10px;
-                background-color: transparent;
-                border-top-right-radius: 5px;
-                -webkit-transform: scale(0.707) rotate(45deg);
-                transform: scale(0.707) rotate(45deg);
-                box-shadow: 1px -1px rgba(0, 0, 0, 0.25);
-                z-index: 1;
-            }
+        &:disabled {
+            background-color: rgb(150, 150, 150);
+            cursor: not-allowed;
         }
     }
-
-    #explorer {
-        position: relative;
-        left: 0;
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
-        grid-auto-rows: 105px;
-        max-width: 100%;
-        max-height: 54vh;
-        overflow: auto;
-
-        .inode {
-            user-select: none;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 15px;
-
-            * {
-                pointer-events: none;
-            }
-
-            img {
-                width: 50px;
-            }
-        }
-
-        .inode:hover,
-        .inode-selected {
-            cursor: pointer;
-            background-color: #ff7052;
-        }
-        .title {
-            word-break: break-all;
-        }
-    }
-}
-
-.buttons {
-    align-self: flex-end;
-    margin-top: 15px;
-}
-
-button:first-of-type {
-    margin-right: 10px;
-}
-
-.focus {
-    color: #7c253e;
-    font-weight: bold;
 }
 </style>

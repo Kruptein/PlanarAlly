@@ -67,6 +67,7 @@ They will be removed in a future release though.
 -   Asset context-menu remove not working
 -   Asset context-menu background colour being wrong in-game sometimes
 -   Asset upload bar missing in the dashboard asset manager
+-   Asset picker out of game now uses the newer UI
 -   Dropping assets you have shared-view permission for on the map was not working
 -   Movement only door toggle not immediately rerendering screen
 -   Select tool UI would sometimes stick around when there is no shape selected anymore

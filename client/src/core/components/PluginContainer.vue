@@ -1,21 +1,18 @@
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
 
-import type { AssetPickerModal } from "../plugins/modals/assetPicker";
 import type { ConfirmModal } from "../plugins/modals/confirm";
 import type { PromptModal } from "../plugins/modals/prompt";
 import type { SelectionBoxModal } from "../plugins/modals/selectionBox";
 
-import AssetPicker from "./modals/AssetPicker.vue";
 import ConfirmDialog from "./modals/ConfirmDialog.vue";
 import Prompt from "./modals/Prompt.vue";
 import SelectionBox from "./modals/SelectionBox.vue";
 
 export default defineComponent({
     name: "PlanarAllyModals",
-    components: { AssetPicker, ConfirmDialog, Prompt, SelectionBox },
+    components: { ConfirmDialog, Prompt, SelectionBox },
     props: {
-        assetPicker: { type: Object as PropType<AssetPickerModal>, required: true },
         confirm: { type: Object as PropType<ConfirmModal>, required: true },
         prompt: { type: Object as PropType<PromptModal>, required: true },
         selectionBox: { type: Object as PropType<SelectionBoxModal>, required: true },
@@ -24,7 +21,6 @@ export default defineComponent({
 </script>
 
 <template>
-    <AssetPicker :visible="assetPicker.visible.value" @close="assetPicker.close" @submit="assetPicker.submit" />
     <ConfirmDialog
         :visible="confirm.visible.value"
         :yes="confirm.yes.value"

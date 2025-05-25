@@ -3,19 +3,21 @@ import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useToast } from "vue-toastification";
 
+import type { AssetId } from "../../assets/models";
 import { getImageSrcFromHash } from "../../assets/utils";
+import AssetPicker from "../../core/components/modals/AssetPicker.vue";
 import { baseAdjust, http } from "../../core/http";
-import { useModal } from "../../core/plugins/modals/plugin";
 import { coreStore } from "../../store/core";
 
 import { open } from "./utils";
 
-const modals = useModal();
 const router = useRouter();
 const toast = useToast();
 
 const name = ref("");
 const logo = reactive({ path: "", id: -1 });
+
+const showAssetPicker = ref(false);
 
 async function create(): Promise<void> {
     if (name.value === "") {
@@ -36,11 +38,11 @@ async function create(): Promise<void> {
     }
 }
 
-async function setLogo(): Promise<void> {
-    const data = await modals.assetPicker();
-    if (data === undefined || data.fileHash === null) return;
+function setLogo(data: { id: AssetId; fileHash: string | undefined }): void {
+    if (data.fileHash === undefined) return;
     logo.path = data.fileHash;
     logo.id = data.id;
+    showAssetPicker.value = false;
 }
 </script>
 
@@ -64,7 +66,7 @@ async function setLogo(): Promise<void> {
                         )
                     "
                 />
-                <div class="edit" @click="setLogo"><font-awesome-icon icon="pencil-alt" /></div>
+                <div class="edit" @click="showAssetPicker = true"><font-awesome-icon icon="pencil-alt" /></div>
             </div>
         </div>
         <div class="entry">
@@ -78,6 +80,7 @@ async function setLogo(): Promise<void> {
             </button>
         </div>
     </div>
+    <AssetPicker :visible="showAssetPicker" @close="showAssetPicker = false" @submit="setLogo" />
 </template>
 
 <style scoped lang="scss">

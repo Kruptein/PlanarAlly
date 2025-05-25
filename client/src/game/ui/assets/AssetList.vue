@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { assetSystem } from "../../../assets";
 import type { AssetId } from "../../../assets/models";
-import { useAssetSearch } from "../../../assets/search";
 import { socket } from "../../../assets/socket";
 import { assetState } from "../../../assets/state";
 import AssetListCore from "../../../assets/ui/AssetListCore.vue";
 import AssetListCoreActions from "../../../assets/ui/AssetListCoreActions.vue";
+import AssetSearchCore from "../../../assets/ui/AssetSearchCore.vue";
 import AssetUploadProgress from "../../../assets/ui/AssetUploadProgress.vue";
 import { assetGameSystem } from "../../systems/assets";
 import { assetGameState } from "../../systems/assets/state";
@@ -16,10 +16,8 @@ import { closeAssetManager } from "../../systems/assets/ui";
 
 const { t } = useI18n();
 
-const assetsDialogFooter = ref<HTMLDivElement | null>(null);
-
-const searchBar = ref<HTMLInputElement | null>(null);
-const search = useAssetSearch(searchBar);
+const assetsDialogFooter = useTemplateRef<HTMLDivElement>("assetsDialogFooter");
+const searchCore = useTemplateRef<InstanceType<typeof AssetSearchCore>>("searchCore");
 
 async function load(): Promise<void> {
     await assetSystem.loadFolder(assetState.currentFolder.value);
@@ -146,34 +144,20 @@ function pickAsset(): void {
         <div>ASSETS</div>
         <AssetListCoreActions />
     </header>
-    <div id="assets-search">
-        <div>
-            <font-awesome-icon icon="magnifying-glass" @click="searchBar?.focus()" />
-            <div id="search-field">
-                <input
-                    ref="searchBar"
-                    v-model="search.filter.value"
-                    type="text"
-                    placeholder="search through your assets.."
-                />
-                <font-awesome-icon
-                    v-show="search.filter.value.length > 0"
-                    id="clear-button"
-                    icon="circle-xmark"
-                    title="Clear Search"
-                    @click.stop="search.clear"
-                />
-            </div>
-        </div>
-    </div>
+    <AssetSearchCore ref="searchCore" />
     <div id="assets-dialog-body" style="display: flex; overflow: hidden">
-        <div v-if="search.results.value.length === 0 && search.filter.value.length > 0" id="assets-loading">
-            <template v-if="search.loading.value">
+        <div
+            v-if="searchCore?.search.results.value.length === 0 && searchCore?.search.filter.value.length > 0"
+            id="assets-loading"
+        >
+            <template v-if="searchCore?.search.loading.value">
                 <div class="loader"></div>
                 <div>Fetching data...</div>
             </template>
             <template v-else>
-                <div>No results found for "{{ search.filter.value }}". Ensure you type at least 3 characters.</div>
+                <div>
+                    No results found for "{{ searchCore?.search.filter.value }}". Ensure you type at least 3 characters.
+                </div>
             </template>
         </div>
         <template v-else>
@@ -190,7 +174,7 @@ function pickAsset(): void {
 
             <AssetListCore
                 font-size="8em"
-                :search-results="search.results.value"
+                :search-results="searchCore?.search.results.value ?? []"
                 :extra-context-sections="extraContextSections"
                 @on-drag-end="onDragEnd"
                 @on-drag-leave="onDragLeave"

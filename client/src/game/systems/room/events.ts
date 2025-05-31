@@ -1,4 +1,5 @@
 import type { RoomInfoPlayersAdd, RoomInfoSet } from "../../../apiTypes";
+import { loadRoomMods } from "../../../mods";
 import { socket } from "../../api/socket";
 import { Role } from "../../models/role";
 import { gameSystem } from "../game";
@@ -14,6 +15,10 @@ socket.on("Room.Info.Set", (data: RoomInfoSet) => {
     gameSystem.setClientUrl(data.clientUrl);
     roomSystem.setChat(data.features.chat, false);
     roomSystem.setDice(data.features.dice, false);
+
+    loadRoomMods(data.mods).catch(() => {
+        console.error("Failed to initialize mods");
+    });
 });
 
 socket.on("Room.Info.InvitationCode.Set", (invitationCode: string) => {

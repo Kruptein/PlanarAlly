@@ -2,13 +2,16 @@ import { ref } from "vue";
 
 import type { ApiModMeta } from "../apiTypes";
 import { baseAdjust } from "../core/http";
-import { sendGetRoomMods } from "../game/api/emits/mods";
 
 import "./events";
 import type { Mod } from "./models";
 
 // const enabledMods = ["simple-char-sheet"];
 export const loadedMods = ref<{ id: string; meta: ApiModMeta; mod: Mod }[]>([]);
+
+// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+const { promise: modsLoading, resolve: resolveModsLoading } = Promise.withResolvers<void>();
+export { modsLoading };
 
 export async function loadMod(meta: ApiModMeta): Promise<{ id: string; meta: ApiModMeta; mod: Mod } | undefined> {
     const id = `${meta.tag}-${meta.version}-${meta.hash}`;
@@ -26,12 +29,11 @@ export async function loadMod(meta: ApiModMeta): Promise<{ id: string; meta: Api
     }
 }
 
-export async function loadRoomMods(): Promise<void> {
-    const mods = await sendGetRoomMods();
-
+export async function loadRoomMods(mods: ApiModMeta[]): Promise<void> {
     for (const modMeta of mods) {
         await loadMod(modMeta);
     }
+    resolveModsLoading();
 }
 
 async function handleMod(modId: string, modMeta: ApiModMeta, mod: Mod): Promise<void> {

@@ -18,6 +18,7 @@ from ...db.models.location import Location
 from ...db.models.location_options import LocationOptions
 from ...db.models.location_user_option import LocationUserOption
 from ...db.models.marker import Marker
+from ...db.models.mod_room import ModRoom
 from ...db.models.note import Note
 from ...db.models.note_access import NoteAccess
 from ...db.models.player_room import PlayerRoom
@@ -44,6 +45,7 @@ from ..models.location.settings import (
     LocationSettingsSet,
 )
 from ..models.location.spawn_info import ApiSpawnInfo
+from ..models.mods import ApiModMeta
 from ..models.players.info import PlayerInfoCore, PlayersInfoSet
 from ..models.players.options import PlayerOptionsSet
 from ..models.room.info import RoomFeatures, RoomInfoSet
@@ -126,6 +128,10 @@ async def load_location(sid: str, location: Location, *, complete=False):
     # 1. Load room info
 
     if complete:
+        mods = [
+            ApiModMeta(**mod.mod.as_pydantic().dict())
+            for mod in ModRoom.select().where(ModRoom.room == pr.room)
+        ]
         await _send_game(
             "Room.Info.Set",
             RoomInfoSet(
@@ -137,6 +143,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
                 features=RoomFeatures(
                     chat=pr.room.enable_chat, dice=pr.room.enable_dice
                 ),
+                mods=mods,
             ),
             room=sid,
         )

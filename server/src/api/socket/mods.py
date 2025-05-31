@@ -9,16 +9,7 @@ from ...db.models.mod_room import ModRoom
 from ...db.models.player_room import PlayerRoom
 from ...logs import logger
 from ...state.game import game_state
-from ..models.mods import ApiModLink, ApiModMeta
-
-
-@sio.on("Mods.Room.Get", namespace=GAME_NS)
-@auth.login_required(app, sio, "game")
-async def get_room_mods(sid: str):
-    pr: PlayerRoom = game_state.get(sid)
-
-    mods = ModRoom.select().where(ModRoom.room == pr.room)
-    return [ApiModMeta(**mod.mod.as_pydantic().dict()) for mod in mods]
+from ..models.mods import ApiModLink
 
 
 @sio.on("Mods.Room.Remove", namespace=GAME_NS)

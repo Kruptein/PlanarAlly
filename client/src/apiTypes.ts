@@ -634,6 +634,7 @@ export interface RoomInfoSet {
   isLocked: boolean;
   clientUrl: string;
   features: RoomFeatures;
+  mods: ApiModMeta[];
 }
 export interface ShapeAdd {
   shape:

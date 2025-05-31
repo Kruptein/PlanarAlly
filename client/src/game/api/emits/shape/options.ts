@@ -4,7 +4,7 @@ import type {
     ShapeSetOptionalStringValue,
     ShapeSetStringValue,
 } from "../../../../apiTypes";
-import { wrapSocket } from "../../helpers";
+import { wrapSocket } from "../../socket";
 
 export const sendShapeSetInvisible = wrapSocket<ShapeSetBooleanValue>("Shape.Options.Invisible.Set");
 export const sendShapeSetDefeated = wrapSocket<ShapeSetBooleanValue>("Shape.Options.Defeated.Set");

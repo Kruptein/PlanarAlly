@@ -5,7 +5,7 @@ import type {
     FloorTypeSet,
     FloorVisibleSet,
 } from "../../../apiTypes";
-import { wrapSocket } from "../helpers";
+import { wrapSocket } from "../socket";
 
 export const sendCreateFloor = wrapSocket<string>("Floor.Create");
 export const sendRemoveFloor = wrapSocket<string>("Floor.Remove");

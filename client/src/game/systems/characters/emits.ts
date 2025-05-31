@@ -1,5 +1,5 @@
 import type { CharacterCreate } from "../../../apiTypes";
-import { wrapSocket } from "../../api/helpers";
+import { wrapSocket } from "../../api/socket";
 
 import type { CharacterId } from "./models";
 

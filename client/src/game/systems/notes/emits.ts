@@ -1,5 +1,5 @@
 import type { ApiNoteAccessEdit, ApiNote, ApiNoteSetBoolean, ApiNoteSetString, ApiNoteShape } from "../../../apiTypes";
-import { wrapSocket } from "../../api/helpers";
+import { wrapSocket } from "../../api/socket";
 
 export const sendNewNote = wrapSocket<ApiNote>("Note.New");
 export const sendRemoveNote = wrapSocket<string>("Note.Remove");

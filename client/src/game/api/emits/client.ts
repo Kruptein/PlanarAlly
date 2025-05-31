@@ -8,8 +8,7 @@ import type {
 } from "../../../apiTypes";
 import type { ClientId } from "../../systems/client/models";
 import { positionState } from "../../systems/position/state";
-import { wrapSocket } from "../helpers";
-import { socket } from "../socket";
+import { socket, wrapSocket } from "../socket";
 
 export function sendClientLocationOptions(temp: boolean): void {
     const state = positionState.readonly;

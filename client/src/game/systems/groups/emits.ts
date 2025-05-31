@@ -1,5 +1,5 @@
 import type { ApiGroup, GroupJoin, GroupLeave, GroupMemberBadge } from "../../../apiTypes";
-import { wrapSocket } from "../../api/helpers";
+import { wrapSocket } from "../../api/socket";
 
 export const sendGroupUpdate = wrapSocket<ApiGroup>("Group.Update");
 export const sendMemberBadgeUpdate = wrapSocket<GroupMemberBadge[]>("Group.Members.Update");

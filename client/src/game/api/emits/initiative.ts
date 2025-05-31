@@ -10,8 +10,7 @@ import type {
 } from "../../../apiTypes";
 import type { GlobalId } from "../../../core/id";
 import type { InitiativeSort } from "../../models/initiative";
-import { wrapSocket } from "../helpers";
-import { socket } from "../socket";
+import { socket, wrapSocket } from "../socket";
 
 export const sendInitiativeActive = wrapSocket<boolean>("Initiative.Active.Set");
 export const sendInitiativeAdd = wrapSocket<InitiativeAdd>("Initiative.Add");

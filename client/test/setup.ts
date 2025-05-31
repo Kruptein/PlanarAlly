@@ -1,3 +1,4 @@
+import type { Manager } from "socket.io-client";
 import { vi } from "vitest";
 
 (HTMLCanvasElement.prototype as any).getContext = () => {};
@@ -16,9 +17,11 @@ function createMockManager(): { socket: () => { connect: () => void; on: () => v
     };
 }
 
-vi.mock("../src/core/socket", () => {
+vi.mock(import("../src/core/socket"), async (importOriginal) => {
+    const original = await importOriginal();
     return {
-        createNewManager: createMockManager,
-        socketManager: createMockManager(),
+        ...original,
+        createNewManager: createMockManager as unknown as () => Manager,
+        socketManager: createMockManager() as unknown as Manager,
     };
 });

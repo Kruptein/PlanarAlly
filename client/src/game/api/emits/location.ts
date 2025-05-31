@@ -5,8 +5,7 @@ import type {
     LocationOptionsSet,
     LocationRename,
 } from "../../../apiTypes";
-import { wrapSocket } from "../helpers";
-import { socket } from "../socket";
+import { socket, wrapSocket } from "../socket";
 
 export const sendLocationOrder = wrapSocket<number[]>("Locations.Order.Set");
 export const sendLocationChange = wrapSocket<{

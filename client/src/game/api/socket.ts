@@ -1,6 +1,6 @@
 import type { RouteLocationNormalized } from "vue-router";
 
-import { createNewManager } from "../../core/socket";
+import { createNewManager, generateSocketHelpers } from "../../core/socket";
 import type { ClientId } from "../systems/client/models";
 // import { debugInfo } from "../ui/debug";
 
@@ -17,6 +17,8 @@ export function createConnection(route: RouteLocationNormalized): void {
 export function getClientId(): ClientId {
     return socket.id as ClientId;
 }
+
+export const { wrapSocket } = generateSocketHelpers(socket);
 
 // setInterval(() => {
 //     const start = performance.now();

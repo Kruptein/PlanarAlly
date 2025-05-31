@@ -3,7 +3,7 @@ import type {
     ShapeSetPermissionValue,
     ShapeSetTeleportLocationValue,
 } from "../../../../apiTypes";
-import { wrapSocket } from "../../../api/helpers";
+import { wrapSocket } from "../../../api/socket";
 
 export const sendShapeIsTeleportZone = wrapSocket<ShapeSetBooleanValue>("Shape.Options.IsTeleportZone.Set");
 export const sendShapeIsImmediateTeleportZone = wrapSocket<ShapeSetBooleanValue>(

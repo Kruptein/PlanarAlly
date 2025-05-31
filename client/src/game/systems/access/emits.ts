@@ -1,5 +1,5 @@
 import type { ApiDefaultShapeOwner, ApiDeleteShapeOwner, ApiShapeOwner } from "../../../apiTypes";
-import { wrapSocket } from "../../api/helpers";
+import { wrapSocket } from "../../api/socket";
 
 export const sendShapeAddOwner = wrapSocket<ApiShapeOwner>("Shape.Owner.Add");
 export const sendShapeUpdateOwner = wrapSocket<ApiShapeOwner>("Shape.Owner.Update");

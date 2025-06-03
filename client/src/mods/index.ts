@@ -36,6 +36,14 @@ export async function loadRoomMods(mods: ApiModMeta[]): Promise<void> {
     resolveModsLoading();
 }
 
+export function unloadRoomMods(): void {
+    const roomMods = document.querySelectorAll("[data-room-mod]");
+    for (const lnk of roomMods) {
+        lnk.remove();
+    }
+    loadedMods.value = [];
+}
+
 async function handleMod(modId: string, modMeta: ApiModMeta, mod: Mod): Promise<void> {
     await mod.events?.init?.(modMeta);
     loadedMods.value.push({ id: modId, meta: modMeta, mod });
@@ -46,6 +54,7 @@ function createCss(modId: string): void {
     lnk.href = baseAdjust(`/static/mods/${modId}/index.css`);
     lnk.rel = "stylesheet";
     lnk.type = "text/css";
+    lnk.dataset.roomMod = "true";
 
     document.head.appendChild(lnk);
 }

@@ -3,6 +3,7 @@ import throttle from "lodash/throttle";
 import { defineComponent, onMounted, onUnmounted, watchEffect } from "vue";
 
 import { useModal } from "../core/plugins/modals/plugin";
+import { unloadRoomMods } from "../mods";
 import { modEvents } from "../mods/events";
 import { coreStore } from "../store/core";
 
@@ -79,6 +80,7 @@ export default defineComponent({
             window.removeEventListener("keydown", keyDown);
             window.removeEventListener("resize", resizeWindow);
             mediaQuery.removeEventListener("change", resizeWindow);
+            unloadRoomMods();
         });
 
         // Window events

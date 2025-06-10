@@ -19,16 +19,11 @@ class ToggleComposite(ShapeType):
     @staticmethod
     def post_create(subshape, **kwargs):
         for variant in kwargs.get("variants", []):
-            CompositeShapeAssociation.create(
-                parent=subshape, variant=variant["uuid"], name=variant["name"]
-            )
+            CompositeShapeAssociation.create(parent=subshape, variant=variant["uuid"], name=variant["name"])
 
     def as_pydantic(self, shape: ApiCoreShape) -> ApiShape:
         return ApiToggleCompositeShape(
             **shape.dict(),
             active_variant=self.active_variant,
-            variants=[
-                ToggleVariant(uuid=sv.variant.uuid, name=sv.name)
-                for sv in self.shape.shape_variants
-            ],
+            variants=[ToggleVariant(uuid=sv.variant.uuid, name=sv.name) for sv in self.shape.shape_variants],
         )

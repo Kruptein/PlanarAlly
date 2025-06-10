@@ -40,9 +40,7 @@ async def send_name(
     await _send_game("Shape.Options.Name.Set", data, room=room, skip_sid=skip_sid)
 
 
-async def send_new_tracker(
-    data: ApiTracker, *, room: str, skip_sid: Optional[str] = None
-):
+async def send_new_tracker(data: ApiTracker, *, room: str, skip_sid: Optional[str] = None):
     await _send_game("Shape.Options.Tracker.Create", data, room=room, skip_sid=skip_sid)
 
 
@@ -384,9 +382,7 @@ async def set_name_visible(sid: str, raw_data: Any):
         if psid in owners:
             continue
         await send_name(
-            ShapeSetStringValue(
-                shape=shape.uuid, value=(shape.name or "?") if data.value else "?"
-            ),
+            ShapeSetStringValue(shape=shape.uuid, value=(shape.name or "?") if data.value else "?"),
             room=psid,
         )
 
@@ -476,9 +472,7 @@ async def create_tracker(sid: str, raw_data: Any):
     for psid in owners:
         await send_new_tracker(data, room=psid)
     if tracker.visible:
-        for psid in game_state.get_sids(
-            active_location=pr.active_location, skip_sid=sid
-        ):
+        for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=sid):
             if psid in owners:
                 continue
             await send_new_tracker(data, room=psid)
@@ -570,9 +564,7 @@ async def create_aura(sid: str, raw_data: Any):
     for psid in owners:
         await send_new_aura(data, room=psid)
     if aura.visible:
-        for psid in game_state.get_sids(
-            active_location=pr.active_location, skip_sid=sid
-        ):
+        for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=sid):
             if psid in owners:
                 continue
             await send_new_aura(data, room=psid)

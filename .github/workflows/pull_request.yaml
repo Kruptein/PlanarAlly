@@ -105,6 +105,8 @@ jobs:
             - name: black
               # if: steps.changed-files.outputs.any_changed == 'true'
               uses: psf/black@stable
+              with:
+                  src: server
 
             - name: ruff
               # if: steps.changed-files.outputs.any_changed == 'true'

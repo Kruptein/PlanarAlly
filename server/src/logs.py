@@ -15,9 +15,7 @@ file_handler = RotatingFileHandler(
     backupCount=cfg().general.max_log_backups,
 )
 file_handler.setLevel(logging.INFO)
-formatter = logging.Formatter(
-    "%(asctime)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
-)
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)")
 file_handler.setFormatter(formatter)
 stream_handler = logging.StreamHandler(sys.stdout)
 stream_handler.setFormatter(formatter)

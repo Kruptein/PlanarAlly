@@ -19,14 +19,10 @@ class Character(BaseDbModel):
 
     name = cast(str, TextField())
     owner = cast(User, ForeignKeyField(User, backref="characters", on_delete="CASCADE"))
-    asset = cast(
-        Asset, ForeignKeyField(Asset, backref="characters", on_delete="RESTRICT")
-    )
+    asset = cast(Asset, ForeignKeyField(Asset, backref="characters", on_delete="RESTRICT"))
     campaign = cast(
         Room | None,
-        ForeignKeyField(
-            Room, backref="characters", on_delete="SET NULL", default=None, null=True
-        ),
+        ForeignKeyField(Room, backref="characters", on_delete="SET NULL", default=None, null=True),
     )
 
     @property

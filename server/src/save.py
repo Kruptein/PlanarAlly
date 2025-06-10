@@ -142,25 +142,15 @@ def upgrade(
             db.execute_sql(
                 'CREATE TABLE IF NOT EXISTS "note_access" ("id" INTEGER NOT NULL PRIMARY KEY, "note_id" TEXT NOT NULL, "user_id" INTEGER, can_edit INTEGER NOT NULL DEFAULT 0, can_view INTEGER NOT NULL DEFAULT 0, FOREIGN KEY ("note_id") REFERENCES "note" ("uuid") ON DELETE CASCADE, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE)'
             )
-            db.execute_sql(
-                'CREATE INDEX "note_access_note_id" ON "note_access" ("note_id")'
-            )
-            db.execute_sql(
-                'CREATE INDEX "note_access_user_id" ON "note_access" ("user_id")'
-            )
+            db.execute_sql('CREATE INDEX "note_access_note_id" ON "note_access" ("note_id")')
+            db.execute_sql('CREATE INDEX "note_access_user_id" ON "note_access" ("user_id")')
             db.execute_sql(
                 'CREATE TABLE IF NOT EXISTS "note_shape" ("id" INTEGER NOT NULL PRIMARY KEY, "note_id" TEXT NOT NULL, "shape_id" TEXT NOT NULL, FOREIGN KEY ("note_id") REFERENCES "note" ("uuid") ON DELETE CASCADE, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)'
             )
-            db.execute_sql(
-                'CREATE INDEX "note_shape_note_id" ON "note_shape" ("note_id")'
-            )
-            db.execute_sql(
-                'CREATE INDEX "note_shape_shape_id" ON "note_shape" ("shape_id")'
-            )
+            db.execute_sql('CREATE INDEX "note_shape_note_id" ON "note_shape" ("note_id")')
+            db.execute_sql('CREATE INDEX "note_shape_shape_id" ON "note_shape" ("shape_id")')
             # Move all template annotations to notes
-            data = db.execute_sql(
-                "SELECT a.id, a.owner_id, a.name, a.options FROM asset a WHERE a.options != ''"
-            )
+            data = db.execute_sql("SELECT a.id, a.owner_id, a.name, a.options FROM asset a WHERE a.options != ''")
             asset_id_to_note_id = {}
             for asset_id, asset_owner, asset_name, raw_options in data.fetchall():
                 try:
@@ -310,24 +300,18 @@ def upgrade(
     elif version == 89:
         # Add LocationOptions.drop_ratio
         with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE location_options ADD COLUMN drop_ratio REAL DEFAULT 1"
-            )
+            db.execute_sql("ALTER TABLE location_options ADD COLUMN drop_ratio REAL DEFAULT 1")
             db.execute_sql(
                 "UPDATE location_options SET drop_ratio = NULL WHERE id NOT IN (SELECT default_options_id FROM room)"
             )
     elif version == 90:
         # Add Shape.odd_hex_orientation
         with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE shape ADD COLUMN odd_hex_orientation INTEGER DEFAULT 0"
-            )
+            db.execute_sql("ALTER TABLE shape ADD COLUMN odd_hex_orientation INTEGER DEFAULT 0")
     elif version == 91:
         # Add UserOptions.grid_mode_label_format
         with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN grid_mode_label_format INTEGER DEFAULT 0"
-            )
+            db.execute_sql("ALTER TABLE user_options ADD COLUMN grid_mode_label_format INTEGER DEFAULT 0")
             db.execute_sql(
                 "UPDATE user_options SET grid_mode_label_format = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
             )
@@ -338,27 +322,15 @@ def upgrade(
     elif version == 93:
         # Add Shape.show_cells, Shape.cell_fill_colour, Shape.cell_stroke_colour, Shape.cell_stroke_width
         with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE shape ADD COLUMN show_cells INTEGER NOT NULL DEFAULT 0"
-            )
-            db.execute_sql(
-                "ALTER TABLE shape ADD COLUMN cell_fill_colour TEXT DEFAULT NULL"
-            )
-            db.execute_sql(
-                "ALTER TABLE shape ADD COLUMN cell_stroke_colour TEXT DEFAULT NULL"
-            )
-            db.execute_sql(
-                "ALTER TABLE shape ADD COLUMN cell_stroke_width INTEGER DEFAULT NULL"
-            )
+            db.execute_sql("ALTER TABLE shape ADD COLUMN show_cells INTEGER NOT NULL DEFAULT 0")
+            db.execute_sql("ALTER TABLE shape ADD COLUMN cell_fill_colour TEXT DEFAULT NULL")
+            db.execute_sql("ALTER TABLE shape ADD COLUMN cell_stroke_colour TEXT DEFAULT NULL")
+            db.execute_sql("ALTER TABLE shape ADD COLUMN cell_stroke_width INTEGER DEFAULT NULL")
     elif version == 94:
         # Add Room.enable_chat Room.enable_dice
         with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE room ADD COLUMN enable_chat INTEGER NOT NULL DEFAULT 1"
-            )
-            db.execute_sql(
-                "ALTER TABLE room ADD COLUMN enable_dice INTEGER NOT NULL DEFAULT 1"
-            )
+            db.execute_sql("ALTER TABLE room ADD COLUMN enable_chat INTEGER NOT NULL DEFAULT 1")
+            db.execute_sql("ALTER TABLE room ADD COLUMN enable_dice INTEGER NOT NULL DEFAULT 1")
     elif version == 95:
         # Remove labels
         with db.atomic():
@@ -368,18 +340,10 @@ def upgrade(
     elif version == 96:
         # Add UserOptions.default_wall_colour, UserOptions.default_window_colour, UserOptions.default_closed_door_colour, UserOptions.default_open_door_colour
         with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN default_wall_colour TEXT DEFAULT NULL"
-            )
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN default_window_colour TEXT DEFAULT NULL"
-            )
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN default_closed_door_colour TEXT DEFAULT NULL"
-            )
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN default_open_door_colour TEXT DEFAULT NULL"
-            )
+            db.execute_sql("ALTER TABLE user_options ADD COLUMN default_wall_colour TEXT DEFAULT NULL")
+            db.execute_sql("ALTER TABLE user_options ADD COLUMN default_window_colour TEXT DEFAULT NULL")
+            db.execute_sql("ALTER TABLE user_options ADD COLUMN default_closed_door_colour TEXT DEFAULT NULL")
+            db.execute_sql("ALTER TABLE user_options ADD COLUMN default_open_door_colour TEXT DEFAULT NULL")
     elif version == 97:
         # Add folder structure to the assets folder
 
@@ -409,9 +373,7 @@ def upgrade(
         # Generate thumbnails for all assets
         # This is a bit of a fake migration as the DB is not modified, but it's a one time thing
         if not is_import and loop is not None:
-            data = db.execute_sql(
-                "SELECT name, file_hash FROM asset WHERE file_hash NOT NULL"
-            ).fetchall()
+            data = db.execute_sql("SELECT name, file_hash FROM asset WHERE file_hash NOT NULL").fetchall()
 
             loop.create_task(generate_thumbnails(data, loop))
     elif version == 99:
@@ -443,9 +405,7 @@ def upgrade(
             db.execute_sql(
                 'CREATE TABLE IF NOT EXISTS "mod" ("id" INTEGER NOT NULL PRIMARY KEY, "tag" TEXT NOT NULL, "name" TEXT NOT NULL, "version" TEXT NOT NULL, "hash" TEXT NOT NULL, "author" TEXT NOT NULL, "description" TEXT NOT NULL, "short_description" TEXT NOT NULL, "api_schema" TEXT NOT NULL, "first_uploaded_at" DATE NOT NULL, "first_uploaded_by_id" INTEGER, "has_css" INTEGER NOT NULL, FOREIGN KEY ("first_uploaded_by_id") REFERENCES "user" ("id") ON DELETE SET NULL);'
             )
-            db.execute_sql(
-                'CREATE INDEX "mod_first_uploaded_by_id" ON "mod" ("first_uploaded_by_id");'
-            )
+            db.execute_sql('CREATE INDEX "mod_first_uploaded_by_id" ON "mod" ("first_uploaded_by_id");')
             db.execute_sql(
                 'CREATE TABLE IF NOT EXISTS "mod_room" ("id" INTEGER NOT NULL PRIMARY KEY, "mod_id" INTEGER NOT NULL, "room_id" INTEGER NOT NULL, "enabled" INTEGER NOT NULL, FOREIGN KEY ("mod_id") REFERENCES "mod" ("id") ON DELETE CASCADE, FOREIGN KEY ("room_id") REFERENCES "room" ("id") ON DELETE CASCADE);'
             )
@@ -454,19 +414,13 @@ def upgrade(
             db.execute_sql(
                 'CREATE TABLE IF NOT EXISTS "mod_player_room" ("id" INTEGER NOT NULL PRIMARY KEY, "mod_id" INTEGER NOT NULL, "player_room_id" INTEGER NOT NULL, "enabled" INTEGER NOT NULL, FOREIGN KEY ("mod_id") REFERENCES "mod" ("id") ON DELETE CASCADE, FOREIGN KEY ("player_room_id") REFERENCES "player_room" ("id") ON DELETE CASCADE);'
             )
-            db.execute_sql(
-                'CREATE INDEX "mod_player_room_mod_id" ON "mod_player_room" ("mod_id");'
-            )
-            db.execute_sql(
-                'CREATE INDEX "mod_player_room_player_room_id" ON "mod_player_room" ("player_room_id");'
-            )
+            db.execute_sql('CREATE INDEX "mod_player_room_mod_id" ON "mod_player_room" ("mod_id");')
+            db.execute_sql('CREATE INDEX "mod_player_room_player_room_id" ON "mod_player_room" ("player_room_id");')
     elif version == 102:
         with db.atomic():
             db.execute_sql("CREATE UNIQUE INDEX unique_username ON user(name);")
     else:
-        raise UnknownVersionException(
-            f"No upgrade code for save format {version} was found."
-        )
+        raise UnknownVersionException(f"No upgrade code for save format {version} was found.")
     inc_save_version(db)
     db.foreign_keys = True
 
@@ -483,21 +437,15 @@ def upgrade_save(
         save_version = get_save_version(db)
     except:
         if is_import:
-            raise Exception(
-                "The import save database is not correctly formatted. Failed to import"
-            )
+            raise Exception("The import save database is not correctly formatted. Failed to import")
         else:
-            logger.error(
-                "Database does not conform to expected format. Failed to start."
-            )
+            logger.error("Database does not conform to expected format. Failed to start.")
             sys.exit(2)
 
     if save_version == SAVE_VERSION:
         return
     else:
-        logger.warning(
-            f"Save format {save_version} does not match the required version {SAVE_VERSION}!"
-        )
+        logger.warning(f"Save format {save_version} does not match the required version {SAVE_VERSION}!")
         logger.warning("Attempting upgrade")
 
     while save_version != SAVE_VERSION:

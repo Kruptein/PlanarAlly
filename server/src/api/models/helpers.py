@@ -24,9 +24,7 @@ class TypeIdModel(BaseModel):
                 # All of the below deal with adding custom types in the outputted js interfaces
                 # e.g. changing `string` to be `DID` where `DID` is a typescript type in the client
                 prop_type = prop.get("type", None)
-                if prop_type == "array" or (
-                    prop_type and len(prop_type) > 1 and prop_type[0] == "array"
-                ):
+                if prop_type == "array" or (prop_type and len(prop_type) > 1 and prop_type[0] == "array"):
                     items = prop["items"]
                     if "typeId" in prop:
                         items["enum"] = [prop["typeId"]]

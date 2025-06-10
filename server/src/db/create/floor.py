@@ -7,10 +7,7 @@ from ..models.location import Location
 
 def create_floor(location: Location, name: str):
     if Floor.select().where(Floor.location == location).count() > 0:
-        index = (
-            Floor.select(fn.Max(Floor.index)).where(Floor.location == location).scalar()
-            + 1
-        )
+        index = Floor.select(fn.Max(Floor.index)).where(Floor.location == location).scalar() + 1
     else:
         index = 0
     floor = Floor.create(location=location, name=name, index=index)

@@ -14,8 +14,7 @@ def on_location_save(model_class, instance, created):
     if not created:
         return
     players = User.select().where(
-        (User.id << instance.room.players.select(PlayerRoom.player))
-        | (User.id == instance.room.creator)
+        (User.id << instance.room.players.select(PlayerRoom.player)) | (User.id == instance.room.creator)
     )
     with db.atomic():
         for player in players:
@@ -35,6 +34,4 @@ def on_player_join(model_class, instance, created):
 def on_player_leave(model_class, instance):
     with db.atomic():
         for location in instance.room.locations:
-            LocationUserOption.get(
-                location=location, user=instance.player
-            ).delete_instance()
+            LocationUserOption.get(location=location, user=instance.player).delete_instance()

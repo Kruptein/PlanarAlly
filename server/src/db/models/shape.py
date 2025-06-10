@@ -82,24 +82,18 @@ class Shape(BaseDbModel):
     stroke_width = cast(int, IntegerField(default=2))
     asset = cast(
         Optional[Asset],
-        ForeignKeyField(
-            Asset, backref="shapes", null=True, default=None, on_delete="SET NULL"
-        ),
+        ForeignKeyField(Asset, backref="shapes", null=True, default=None, on_delete="SET NULL"),
     )
     group = cast(
         Optional[Group],
-        ForeignKeyField(
-            Group, backref="members", null=True, default=None, on_delete="SET NULL"
-        ),
+        ForeignKeyField(Group, backref="members", null=True, default=None, on_delete="SET NULL"),
     )
     ignore_zoom_size = cast(bool, BooleanField(default=False))
     is_door = cast(bool, BooleanField(default=False))
     is_teleport_zone = cast(bool, BooleanField(default=False))
     character = cast(
         Character | None,
-        ForeignKeyField(
-            Character, backref="shapes", null=True, default=None, on_delete="SET NULL"
-        ),
+        ForeignKeyField(Character, backref="shapes", null=True, default=None, on_delete="SET NULL"),
     )
     odd_hex_orientation = cast(bool, BooleanField(default=False))
     size = cast(int, IntegerField(default=0))

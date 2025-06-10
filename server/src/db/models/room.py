@@ -22,14 +22,10 @@ class Room(BaseDbModel):
     default_options: LocationOptions
 
     name = cast(str, TextField())
-    creator = cast(
-        User, ForeignKeyField(User, backref="rooms_created", on_delete="CASCADE")
-    )
+    creator = cast(User, ForeignKeyField(User, backref="rooms_created", on_delete="CASCADE"))
     invitation_code = cast(uuid.UUID, TextField(default=uuid.uuid4, unique=True))
     is_locked = cast(bool, BooleanField(default=False))
-    default_options = cast(
-        LocationOptions, ForeignKeyField(LocationOptions, on_delete="CASCADE")
-    )
+    default_options = cast(LocationOptions, ForeignKeyField(LocationOptions, on_delete="CASCADE"))
     logo = ForeignKeyField(Asset, null=True, on_delete="SET NULL")
 
     enable_chat = cast(bool, BooleanField(default=True))

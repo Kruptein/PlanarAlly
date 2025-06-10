@@ -31,9 +31,7 @@ async def refresh_invite_code(sid: str):
             player=room_player.player,
             active_location=pr.active_location,
         ):
-            await _send_game(
-                "Room.Info.InvitationCode.Set", str(pr.room.invitation_code), room=psid
-            )
+            await _send_game("Room.Info.InvitationCode.Set", str(pr.room.invitation_code), room=psid)
 
 
 @sio.on("Room.Info.Players.Kick", namespace=GAME_NS)
@@ -52,9 +50,7 @@ async def kick_player(sid: str, player_id: int):
     creator: User = pr.room.creator
 
     if pr.player != creator and creator == target_pr.player:
-        logger.warning(
-            f"{target_pr.player.name} attempted to kick the campaign creator"
-        )
+        logger.warning(f"{target_pr.player.name} attempted to kick the campaign creator")
         return
 
     for psid in game_state.get_sids(player=target_pr.player, room=target_pr.room):
@@ -96,17 +92,13 @@ async def set_chat_enabled(sid: str, is_enabled: bool):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
-        logger.warning(
-            f"{pr.player.name} attempted to set the chat feature as a non DM."
-        )
+        logger.warning(f"{pr.player.name} attempted to set the chat feature as a non DM.")
         return
 
     pr.room.enable_chat = is_enabled
     pr.room.save()
 
-    await _send_game(
-        "Room.Features.Chat.Set", is_enabled, room=pr.room.get_path(), skip_sid=sid
-    )
+    await _send_game("Room.Features.Chat.Set", is_enabled, room=pr.room.get_path(), skip_sid=sid)
 
 
 @sio.on("Room.Features.Dice.Set", namespace=GAME_NS)
@@ -115,14 +107,10 @@ async def set_dice_enabled(sid: str, is_enabled: bool):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
-        logger.warning(
-            f"{pr.player.name} attempted to set the dice feature as a non DM."
-        )
+        logger.warning(f"{pr.player.name} attempted to set the dice feature as a non DM.")
         return
 
     pr.room.enable_dice = is_enabled
     pr.room.save()
 
-    await _send_game(
-        "Room.Features.Dice.Set", is_enabled, room=pr.room.get_path(), skip_sid=sid
-    )
+    await _send_game("Room.Features.Dice.Set", is_enabled, room=pr.room.get_path(), skip_sid=sid)

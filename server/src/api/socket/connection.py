@@ -24,16 +24,9 @@ async def connect(sid, environ):
         await _send_game("redirect", "/", room=sid)
         return
 
-    ref = {
-        k.split("=")[0]: k.split("=")[1]
-        for k in unquote(environ["QUERY_STRING"]).strip().split("&")
-    }
+    ref = {k.split("=")[0]: k.split("=")[1] for k in unquote(environ["QUERY_STRING"]).strip().split("&")}
     try:
-        room = (
-            Room.select()
-            .join(User)
-            .where((Room.name == ref["room"]) & (User.name == ref["user"]))[0]
-        )
+        room = Room.select().join(User).where((Room.name == ref["room"]) & (User.name == ref["user"]))[0]
     except IndexError:
         return False
     else:

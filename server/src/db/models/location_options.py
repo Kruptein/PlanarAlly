@@ -20,16 +20,12 @@ class LocationOptions(BaseDbModel):
     vision_min_range = cast(float | None, FloatField(default=1640, null=True))
     vision_max_range = cast(float | None, FloatField(default=3281, null=True))
     spawn_locations = cast(str, cast(str, TextField(default="[]")))
-    move_player_on_token_change = cast(
-        bool | None, BooleanField(default=True, null=True)
-    )
+    move_player_on_token_change = cast(bool | None, BooleanField(default=True, null=True))
     grid_type = cast(str | None, TextField(default="SQUARE", null=True))
     air_map_background = cast(str | None, TextField(default="none", null=True))
     ground_map_background = cast(str | None, TextField(default="none", null=True))
     underground_map_background = cast(str | None, TextField(default="none", null=True))
-    limit_movement_during_initiative = cast(
-        bool | None, BooleanField(default=False, null=True)
-    )
+    limit_movement_during_initiative = cast(bool | None, BooleanField(default=False, null=True))
     drop_ratio = cast(float | None, FloatField(default=1.0, null=True))
 
     @classmethod
@@ -60,9 +56,7 @@ class LocationOptions(BaseDbModel):
     def as_pydantic(self, optional: Literal[False]) -> ApiLocationOptions: ...
 
     @overload
-    def as_pydantic(
-        self, optional: bool
-    ) -> ApiOptionalLocationOptions | ApiLocationOptions: ...
+    def as_pydantic(self, optional: bool) -> ApiOptionalLocationOptions | ApiLocationOptions: ...
 
     def as_pydantic(self, optional: bool):
         target = ApiLocationOptions if not optional else ApiOptionalLocationOptions

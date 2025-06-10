@@ -17,9 +17,7 @@ class LocationUserOption(BaseDbModel):
     pan_x = cast(int, IntegerField(default=0))
     pan_y = cast(int, IntegerField(default=0))
     zoom_display = cast(float, FloatField(default=0.2))
-    active_layer = cast(
-        Layer, ForeignKeyField(Layer, backref="active_users", null=True)
-    )
+    active_layer = cast(Layer, ForeignKeyField(Layer, backref="active_users", null=True))
 
     def __repr__(self):
         return f"<LocationUserOption {self.location.get_path()} - {self.user.name}>"

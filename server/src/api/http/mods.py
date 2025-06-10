@@ -40,19 +40,13 @@ async def upload(request: web.Request) -> web.Response:
                     **rtoml.load(zip_file.read("mod.toml").decode("utf-8")),
                 )
             except (rtoml.TomlParsingError, UnicodeDecodeError):
-                return web.HTTPBadRequest(
-                    text="Invalid mod: mod.toml could not be opened"
-                )
+                return web.HTTPBadRequest(text="Invalid mod: mod.toml could not be opened")
             except ValidationError as e:
-                return web.HTTPBadRequest(
-                    text=f"Invalid mod: mod.toml validation failed ({e})"
-                )
+                return web.HTTPBadRequest(text=f"Invalid mod: mod.toml validation failed ({e})")
 
             # Because the mod id and version are read from the zip file,
             # and we hash the entire zip file, it should not be possible to mess with the naming scheme
-            target_folder = (
-                MODS_DIR / f"{mod_meta.mod.tag}-{mod_meta.mod.version}-{hash_data}"
-            )
+            target_folder = MODS_DIR / f"{mod_meta.mod.tag}-{mod_meta.mod.version}-{hash_data}"
             if not target_folder.exists():
                 target_folder.mkdir(parents=True)
                 zip_file.extractall(target_folder)

@@ -36,9 +36,7 @@ class AuthPolicy(AbstractAuthorizationPolicy):
         return False
 
 
-def login_required(
-    app, sio, state: Union[Literal["game"], Literal["asset"], Literal["dashboard"]]
-):
+def login_required(app, sio, state: Union[Literal["game"], Literal["asset"], Literal["dashboard"]]):
     """
     Decorator that restrict access only for authorized users in a websocket context.
     """
@@ -47,9 +45,7 @@ def login_required(
         @wraps(fn)
         async def wrapped(*args, **kwargs):
             sid = args[0]
-            if not app["state"]["asset"].has_sid(sid) and not app["state"][
-                state
-            ].has_sid(sid):
+            if not app["state"]["asset"].has_sid(sid) and not app["state"][state].has_sid(sid):
                 await sio.emit("redirect", "/")
                 return
             return await fn(*args, **kwargs)

@@ -25,9 +25,7 @@ class User(BaseDbModel):
     name = cast(str, TextField(unique=True))
     email = TextField(null=True)
     password_hash = cast(str, TextField())
-    default_options = cast(
-        UserOptions, ForeignKeyField(UserOptions, on_delete="CASCADE")
-    )
+    default_options = cast(UserOptions, ForeignKeyField(UserOptions, on_delete="CASCADE"))
 
     colour_history = cast(Optional[str], TextField(null=True))
 
@@ -55,8 +53,7 @@ class User(BaseDbModel):
         return sum(
             (ASSETS_DIR / get_asset_hash_subpath(asset.file_hash)).stat().st_size
             for asset in self.assets
-            if asset.file_hash
-            and (ASSETS_DIR / get_asset_hash_subpath(asset.file_hash)).exists()
+            if asset.file_hash and (ASSETS_DIR / get_asset_hash_subpath(asset.file_hash)).exists()
         )
 
     @classmethod

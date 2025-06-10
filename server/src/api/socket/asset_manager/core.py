@@ -142,9 +142,7 @@ async def move_inode(sid: str, raw_data: Any):
 
     # The user NEEDS edit access in the target folder
     if not target.can_be_accessed_by(user, right="edit"):
-        logger.warning(
-            f"{user.name} attempted to move an asset into a folder they don't own"
-        )
+        logger.warning(f"{user.name} attempted to move an asset into a folder they don't own")
         return
 
     if asset.owner == user:
@@ -208,9 +206,7 @@ async def assetmgmt_rm(sid: str, data: int):
             if asset.can_be_accessed_by(user, right="edit"):
                 remove_asset = True
             else:
-                logger.warning(
-                    f"{user.name} attempted to remove a file they don't own."
-                )
+                logger.warning(f"{user.name} attempted to remove a file they don't own.")
                 return
 
     if remove_asset:
@@ -320,9 +316,7 @@ async def assetmgmt_upload(sid: str, raw_data: Any):
 
     if asset := Asset.get_or_none(id=upload_data.directory):
         if not asset.can_be_accessed_by(user, right="edit"):
-            logger.warning(
-                f"{user.name} attempted to upload into a folder they don't own"
-            )
+            logger.warning(f"{user.name} attempted to upload into a folder they don't own")
             return
 
     uuid = upload_data.uuid

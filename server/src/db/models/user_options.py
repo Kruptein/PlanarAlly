@@ -35,12 +35,8 @@ class UserOptions(BaseDbModel):
 
     initiative_camera_lock = cast(bool | None, BooleanField(default=False, null=True))
     initiative_vision_lock = cast(bool | None, BooleanField(default=False, null=True))
-    initiative_effect_visibility = cast(
-        str | None, TextField(default="active", null=True)
-    )
-    initiative_open_on_activate = cast(
-        bool | None, BooleanField(default=True, null=True)
-    )
+    initiative_effect_visibility = cast(str | None, TextField(default="active", null=True))
+    initiative_open_on_activate = cast(bool | None, BooleanField(default=True, null=True))
 
     render_all_floors = cast(bool | None, BooleanField(default=True, null=True))
 
@@ -80,9 +76,7 @@ class UserOptions(BaseDbModel):
     def as_pydantic(self, optional: Literal[False]) -> ApiUserOptions: ...
 
     @overload
-    def as_pydantic(
-        self, optional: bool
-    ) -> ApiOptionalUserOptions | ApiUserOptions: ...
+    def as_pydantic(self, optional: bool) -> ApiOptionalUserOptions | ApiUserOptions: ...
 
     def as_pydantic(self, optional: bool):
         target = ApiUserOptions if not optional else ApiOptionalUserOptions

@@ -96,6 +96,4 @@ async def save_datablock(sid: str, raw_data: Any):
         data_block.data = data.data
         data_block.save()
 
-        await _send_game(
-            "DataBlock.Saved", data, skip_sid=sid, room=pr.active_location.get_path()
-        )
+        await _send_game("DataBlock.Saved", data, skip_sid=sid, room=pr.active_location.get_path())

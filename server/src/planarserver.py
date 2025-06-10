@@ -107,9 +107,7 @@ async def start_socket(app: web.Application, sock):
     await setup_runner(app, web.UnixSite, path=sock)
 
 
-async def start_server(
-    server_section: Literal["Webserver", "APIserver"], cfg: WebserverConfig
-):
+async def start_server(server_section: Literal["Webserver", "APIserver"], cfg: WebserverConfig):
     app = main_app
     method = "unknown"
 
@@ -132,9 +130,7 @@ async def start_server(
                 chain = Path(cfg.ssl.fullchain)
                 key = Path(cfg.ssl.privkey)
             except configparser.NoOptionError:
-                logger.critical(
-                    "SSL CONFIGURATION IS NOT CORRECTLY CONFIGURED. ABORTING LAUNCH."
-                )
+                logger.critical("SSL CONFIGURATION IS NOT CORRECTLY CONFIGURED. ABORTING LAUNCH.")
                 sys.exit(2)
 
             await start_https(app, host, port, chain, key)

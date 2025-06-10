@@ -26,9 +26,7 @@ class WebserverConfig(BaseModel):
     # Core connection string
     # This is either a HOST:PORT combination
     # or a UNIX socket path
-    connection: HostPortConnection | SocketConnection = HostPortConnection(
-        host="0.0.0.0", port=8000
-    )
+    connection: HostPortConnection | SocketConnection = HostPortConnection(host="0.0.0.0", port=8000)
 
     # Optional SSL configuration
     # Ideally you use a reverse proxy to handle SSL

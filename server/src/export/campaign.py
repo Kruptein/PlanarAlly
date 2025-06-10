@@ -116,9 +116,7 @@ def __export_campaign(
     loop: Optional[asyncio.AbstractEventLoop] = None,
 ):
     try:
-        CampaignExporter(
-            name, rooms, sid, export_all_assets=export_all_assets, loop=loop
-        ).pack()
+        CampaignExporter(name, rooms, sid, export_all_assets=export_all_assets, loop=loop).pack()
     except:
         logger.exception("Export Failed")
 
@@ -222,9 +220,7 @@ class CampaignExporter:
                 secret_token=secrets.token_bytes(32),
                 api_token=secrets.token_hex(32),
             )
-            self.migrator = CampaignMigrator(
-                "export", open_db(self.copy_name), self.db, rooms, self.sid, self.loop
-            )
+            self.migrator = CampaignMigrator("export", open_db(self.copy_name), self.db, rooms, self.sid, self.loop)
 
     def pack(self):
         send_status(self.loop, "export", self.sid, "> Start packing data")
@@ -315,9 +311,7 @@ class CampaignImporter:
 
         self.target_db = ACTIVE_DB
 
-        send_status(
-            self.loop, "import", self.sid, f"Starting campaign import for {user.name}"
-        )
+        send_status(self.loop, "import", self.sid, f"Starting campaign import for {user.name}")
         self.unpack(pac)
 
         from_room = self.migrator.rooms[0]
@@ -331,9 +325,7 @@ class CampaignImporter:
 
         try:
             for room in self.migrator.rooms:
-                send_status(
-                    self.loop, "import", self.sid, f"> Importing room {room.name}"
-                )
+                send_status(self.loop, "import", self.sid, f"> Importing room {room.name}")
                 send_status(self.loop, "import", self.sid, "    > Importing user info")
                 self.import_users(room)
                 send_status(self.loop, "import", self.sid, "    > Importing room info")
@@ -343,9 +335,7 @@ class CampaignImporter:
                 send_status(self.loop, "import", self.sid, "    > Importing locations")
                 self.migrator.migrate_locations(room)
                 self.migrator.migrate_character_shapes()
-                send_status(
-                    self.loop, "import", self.sid, "    > Importing player info"
-                )
+                send_status(self.loop, "import", self.sid, "    > Importing player info")
                 self.migrator.migrate_players(room)
                 send_status(self.loop, "import", self.sid, "    > Importing notes")
                 self.migrator.migrate_notes(room)
@@ -404,14 +394,10 @@ class CampaignImporter:
 
                     upgrade_save(self.db, is_import=True)
 
-                    self.migrator = CampaignMigrator(
-                        "import", self.db, ACTIVE_DB, None, self.sid, loop=self.loop
-                    )
+                    self.migrator = CampaignMigrator("import", self.db, ACTIVE_DB, None, self.sid, loop=self.loop)
 
             if len(assets) > 0:
-                send_status(
-                    self.loop, "import", self.sid, f"> Importing {len(assets)} asset(s)"
-                )
+                send_status(self.loop, "import", self.sid, f"> Importing {len(assets)} asset(s)")
                 tar.extractall(path=ASSETS_DIR.parent, members=assets)
 
     def import_users(self, room: Room):
@@ -547,24 +533,18 @@ class CampaignMigrator:
     def migrate_locations(self, room: Room):
         with self.from_db.bind_ctx([Location, LocationOptions]):
             for location in room.locations:
-                send_status(
-                    self.loop, self.mode, self.sid, f"    > [LOC] {location.name}"
-                )
+                send_status(self.loop, self.mode, self.sid, f"    > [LOC] {location.name}")
                 location_data = model_to_dict(location, recurse=False)
                 del location_data["id"]
                 location_data["room"] = self.room_mapping[room.id]
 
                 location_options_data = None
                 if location.options:
-                    location_options_data = model_to_dict(
-                        location.options, recurse=False
-                    )
+                    location_options_data = model_to_dict(location.options, recurse=False)
                     del location_options_data["id"]
 
                 # signals trigger on this, so to be sure we bind extra
-                with self.to_db.bind_ctx(
-                    [Location, LocationOptions, PlayerRoom, Room, User]
-                ):
+                with self.to_db.bind_ctx([Location, LocationOptions, PlayerRoom, Room, User]):
                     if location_options_data:
                         lo = LocationOptions.create(**location_options_data)
                         location_data["options"] = lo
@@ -595,9 +575,7 @@ class CampaignMigrator:
     def migrate_layers(self, floor_id: int, layers: SelectSequence[Layer]):
         with self.from_db.bind_ctx([Layer]):
             for layer in layers:
-                send_status(
-                    self.loop, self.mode, self.sid, f"    >   [LAY] {layer.name}"
-                )
+                send_status(self.loop, self.mode, self.sid, f"    >   [LAY] {layer.name}")
                 layer_data = model_to_dict(layer, recurse=False)
                 del layer_data["id"]
                 layer_data["floor"] = floor_id
@@ -631,9 +609,7 @@ class CampaignMigrator:
             if shape_data["group"]:
                 shape_data["group"] = self.migrate_group(shape_data["group"])
             if shape_data["character"]:
-                shape_data["character"] = self.character_mapping[
-                    shape_data["character"]
-                ]
+                shape_data["character"] = self.character_mapping[shape_data["character"]]
 
             with self.to_db.bind_ctx([Shape]):
                 Shape.create(**shape_data)
@@ -705,23 +681,14 @@ class CampaignMigrator:
                 with self.to_db.bind_ctx([ShapeOwner]):
                     ShapeOwner.create(**owner_data)
 
-    def migrate_composite_shape_associations(
-        self, associations: SelectSequence[CompositeShapeAssociation]
-    ):
+    def migrate_composite_shape_associations(self, associations: SelectSequence[CompositeShapeAssociation]):
         with self.from_db.bind_ctx([CompositeShapeAssociation]):
             for association in associations:
                 association_data = model_to_dict(association, recurse=False)
                 del association_data["id"]
-                association_data["variant"] = self.migrate_shape(
-                    association_data["variant"]
-                )
-                association_data["parent"] = self.migrate_shape(
-                    association_data["parent"]
-                )
-                if (
-                    association_data["variant"] is None
-                    or association_data["parent"] is None
-                ):
+                association_data["variant"] = self.migrate_shape(association_data["variant"])
+                association_data["parent"] = self.migrate_shape(association_data["parent"])
+                if association_data["variant"] is None or association_data["parent"] is None:
                     continue
 
                 with self.to_db.bind_ctx([CompositeShapeAssociation]):
@@ -749,9 +716,7 @@ class CampaignMigrator:
         with self.from_db.bind_ctx([CircularToken]):
             for circulartoken in circulartokens:
                 circulartoken_data = model_to_dict(circulartoken, recurse=False)
-                circulartoken_data["shape"] = self.migrate_shape(
-                    circulartoken_data["shape"]
-                )
+                circulartoken_data["shape"] = self.migrate_shape(circulartoken_data["shape"])
 
                 with self.to_db.bind_ctx([CircularToken]):
                     CircularToken.create(**circulartoken_data)
@@ -792,25 +757,17 @@ class CampaignMigrator:
                 with self.to_db.bind_ctx([Text]):
                     Text.create(**text_data)
 
-    def migrate_togglecomposite(
-        self, togglecomposites: SelectSequence[ToggleComposite]
-    ):
+    def migrate_togglecomposite(self, togglecomposites: SelectSequence[ToggleComposite]):
         with self.from_db.bind_ctx([ToggleComposite]):
             for togglecomposite in togglecomposites:
                 togglecomposite_data = model_to_dict(togglecomposite, recurse=False)
-                togglecomposite_data["shape"] = self.migrate_shape(
-                    togglecomposite_data["shape"]
-                )
-                togglecomposite_data["active_variant"] = self.migrate_shape(
-                    togglecomposite_data["active_variant"]
-                )
+                togglecomposite_data["shape"] = self.migrate_shape(togglecomposite_data["shape"])
+                togglecomposite_data["active_variant"] = self.migrate_shape(togglecomposite_data["active_variant"])
 
                 with self.to_db.bind_ctx([ToggleComposite]):
                     ToggleComposite.create(**togglecomposite_data)
 
-    def migrate_shape_datablocks(
-        self, new_uuid: uuid.UUID, data_blocks: SelectSequence[ShapeDataBlock]
-    ):
+    def migrate_shape_datablocks(self, new_uuid: uuid.UUID, data_blocks: SelectSequence[ShapeDataBlock]):
         with self.from_db.bind_ctx([DataBlock, ShapeDataBlock]):
             for data_block in data_blocks:
                 data_block_data = model_to_dict(data_block, recurse=False)
@@ -829,9 +786,7 @@ class CampaignMigrator:
             with self.to_db.bind_ctx([Initiative]):
                 Initiative.create(**initiative_data)
 
-    def migrate_location_user_options(
-        self, new_location_id: int, user_options: List[LocationUserOption]
-    ):
+    def migrate_location_user_options(self, new_location_id: int, user_options: List[LocationUserOption]):
         with self.from_db.bind_ctx([LocationUserOption]):
             for user_option in user_options:
                 user_option_data = model_to_dict(user_option, recurse=False)
@@ -844,19 +799,15 @@ class CampaignMigrator:
                 user_option_data["location"] = new_location_id
                 user_option_data["user"] = user
                 if user_option_data["active_layer"]:
-                    user_option_data["active_layer"] = self.layer_mapping[
-                        user_option_data["active_layer"]
-                    ]
+                    user_option_data["active_layer"] = self.layer_mapping[user_option_data["active_layer"]]
 
                 with self.to_db.bind_ctx([LocationUserOption]):
                     q = LocationUserOption.select().where(
-                        (LocationUserOption.location == new_location_id)
-                        & (LocationUserOption.user == user)
+                        (LocationUserOption.location == new_location_id) & (LocationUserOption.user == user)
                     )
                     if q.exists():
                         q[0].update(**user_option_data).where(
-                            (LocationUserOption.location == new_location_id)
-                            & (LocationUserOption.user == user)
+                            (LocationUserOption.location == new_location_id) & (LocationUserOption.user == user)
                         ).execute()
                     else:
                         LocationUserOption.create(**user_option_data)
@@ -893,22 +844,16 @@ class CampaignMigrator:
 
                 player_options_data = None
                 if player_room.user_options:
-                    player_options_data = model_to_dict(
-                        player_room.user_options, recurse=False
-                    )
+                    player_options_data = model_to_dict(player_room.user_options, recurse=False)
                     del player_options_data["id"]
 
                 player_data["room"] = self.room_mapping[room.id]
                 player_data["player"] = self.user_mapping[player_data["player"]]
-                player_data["active_location"] = self.location_mapping[
-                    player_data["active_location"]
-                ]
+                player_data["active_location"] = self.location_mapping[player_data["active_location"]]
 
                 with self.to_db.bind_ctx([PlayerRoom, UserOptions]):
                     if player_options_data:
-                        player_data["user_options"] = UserOptions.create(
-                            **player_options_data
-                        )
+                        player_data["user_options"] = UserOptions.create(**player_options_data)
                     PlayerRoom.create(**player_data)
 
     def migrate_notes(self, room: Room):

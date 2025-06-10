@@ -25,10 +25,7 @@ async def get_list(request: web.Request):
     # to prevent these extra queries we're doing for the info
     return web.json_response(
         {
-            "owned": [
-                {**r.as_dashboard_dict(), "last_played": get_info(r, user)}
-                for r in user.rooms_created
-            ],
+            "owned": [{**r.as_dashboard_dict(), "last_played": get_info(r, user)} for r in user.rooms_created],
             "joined": [
                 {**r.room.as_dashboard_dict(), "last_played": get_info(r.room, user)}
                 for r in user.rooms_joined.join(Room).where(Room.creator != user)
@@ -192,9 +189,7 @@ async def export_all(request: web.Request):
             )
         )
 
-        return web.HTTPAccepted(
-            text=f"Processing started. Check /static/temp/{creator}-all.pac soon."
-        )
+        return web.HTTPAccepted(text=f"Processing started. Check /static/temp/{creator}-all.pac soon.")
     return web.HTTPUnauthorized()
 
 

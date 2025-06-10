@@ -11,6 +11,4 @@ class AssetRect(BaseRect):
     src = cast(str, TextField())
 
     def as_pydantic(self, shape: ApiCoreShape):
-        return ApiAssetRectShape(
-            **shape.dict(), src=self.src, width=self.width, height=self.height
-        )
+        return ApiAssetRectShape(**shape.dict(), src=self.src, width=self.width, height=self.height)

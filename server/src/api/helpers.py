@@ -39,6 +39,4 @@ async def send_log_toast(
     else:
         logger.debug(message)
 
-    await sio.emit(
-        event_name, message, room=room, skip_sid=skip_sid, namespace=namespace
-    )
+    await sio.emit(event_name, message, room=room, skip_sid=skip_sid, namespace=namespace)

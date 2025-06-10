@@ -23,13 +23,9 @@ def __replace_config_data(data: bytes) -> bytes:
     config = cfg()
 
     if not config.general.allow_signups:
-        data = data.replace(
-            b'name="PA-signup" content="true"', b'name="PA-signup" content="false"'
-        )
+        data = data.replace(b'name="PA-signup" content="true"', b'name="PA-signup" content="false"')
     if not config.mail or not config.mail.enabled:
-        data = data.replace(
-            b'name="PA-mail" content="true"', b'name="PA-mail" content="false"'
-        )
+        data = data.replace(b'name="PA-mail" content="true"', b'name="PA-mail" content="false"')
     return data
 
 
@@ -45,9 +41,7 @@ async def root_dev(request, admin_api=False):
     target_url = f"http://localhost:{port}{request.rel_url}"
     data = await request.read()
     async with aiohttp.ClientSession() as client:
-        async with client.get(
-            target_url, headers=request.headers, data=data
-        ) as response:
+        async with client.get(target_url, headers=request.headers, data=data) as response:
             raw = __replace_config_data(await response.read())
     return web.Response(body=raw, status=response.status, headers=response.headers)
 
@@ -69,20 +63,12 @@ main_app.router.add_get(f"{subpath}/api/server/upload_limit", server.get_limit)
 main_app.router.add_get(f"{subpath}/api/rooms", rooms.get_list)
 main_app.router.add_post(f"{subpath}/api/rooms", rooms.create)
 main_app.router.add_patch(f"{subpath}/api/rooms/{{creator}}/{{roomname}}", rooms.patch)
-main_app.router.add_delete(
-    f"{subpath}/api/rooms/{{creator}}/{{roomname}}", rooms.delete
-)
-main_app.router.add_patch(
-    f"{subpath}/api/rooms/{{creator}}/{{roomname}}/info", rooms.set_info
-)
-main_app.router.add_get(
-    f"{subpath}/api/rooms/{{creator}}/{{roomname}}/export", rooms.export
-)
+main_app.router.add_delete(f"{subpath}/api/rooms/{{creator}}/{{roomname}}", rooms.delete)
+main_app.router.add_patch(f"{subpath}/api/rooms/{{creator}}/{{roomname}}/info", rooms.set_info)
+main_app.router.add_get(f"{subpath}/api/rooms/{{creator}}/{{roomname}}/export", rooms.export)
 main_app.router.add_get(f"{subpath}/api/rooms/{{creator}}/export", rooms.export_all)
 main_app.router.add_post(f"{subpath}/api/rooms/import/{{name}}", rooms.import_info)
-main_app.router.add_post(
-    f"{subpath}/api/rooms/import/{{name}}/{{chunk}}", rooms.import_chunk
-)
+main_app.router.add_post(f"{subpath}/api/rooms/import/{{name}}/{{chunk}}", rooms.import_chunk)
 main_app.router.add_post(f"{subpath}/api/invite", http.claim_invite)
 main_app.router.add_get(f"{subpath}/api/version", version.get_version)
 main_app.router.add_get(f"{subpath}/api/changelog", version.get_changelog)

@@ -15,9 +15,7 @@ class Marker(BaseDbModel):
     location = ForeignKeyField(Location, backref="markers", on_delete="CASCADE")
 
     def __repr__(self):
-        return (
-            f"<Marker {self.shape.uuid} {self.location.get_path()} - {self.user.name}"
-        )
+        return f"<Marker {self.shape.uuid} {self.location.get_path()} - {self.user.name}"
 
     def as_string(self):
         return f"{self.shape_id}"

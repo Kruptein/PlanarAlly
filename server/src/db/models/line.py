@@ -16,6 +16,4 @@ class Line(ShapeType):
         return (self.x2 - self.shape.x) / 2, (self.y2 - self.shape.y) / 2
 
     def as_pydantic(self, shape: ApiCoreShape):
-        return ApiLineShape(
-            **shape.dict(), x2=self.x2, y2=self.y2, line_width=self.line_width
-        )
+        return ApiLineShape(**shape.dict(), x2=self.x2, y2=self.y2, line_width=self.line_width)

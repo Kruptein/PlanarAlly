@@ -33,9 +33,7 @@ async def create_character(sid: str, raw_data: Any):
         return
 
     try:
-        char = Character.create(
-            name=data.name, owner=pr.player, campaign=pr.room, asset=shape.asset
-        )
+        char = Character.create(name=data.name, owner=pr.player, campaign=pr.room, asset=shape.asset)
     except:
         logger.exception("Failed to create character")
         return

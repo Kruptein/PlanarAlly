@@ -23,12 +23,8 @@ class AssetShare(BaseDbModel):
             on_delete="CASCADE",
         ),
     )
-    user = cast(
-        User, ForeignKeyField(User, backref="asset_shares", on_delete="CASCADE")
-    )
-    right: Literal["view"] | Literal["edit"] = cast(
-        Literal["view"] | Literal["edit"], TextField()
-    )
+    user = cast(User, ForeignKeyField(User, backref="asset_shares", on_delete="CASCADE"))
+    right: Literal["view"] | Literal["edit"] = cast(Literal["view"] | Literal["edit"], TextField())
     name = cast(str, TextField())
     parent = cast(
         "Asset",

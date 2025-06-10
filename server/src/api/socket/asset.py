@@ -31,9 +31,7 @@ async def get_asset_options(sid: str, asset_id: int):
     if asset is None:
         options = AssetOptionsInfoFail(success=False, error="AssetNotFound")
     else:
-        options = AssetOptionsInfoSuccess(
-            success=True, name=asset.name, options=asset.options
-        )
+        options = AssetOptionsInfoSuccess(success=True, name=asset.name, options=asset.options)
 
     await _send_game("Asset.Options.Info", options, room=sid)
 

@@ -25,15 +25,11 @@ from ..models.note import (
 
 
 def can_edit(note: Note, user: User):
-    return note.creator == user or any(
-        (not a.user or a.user == user) and a.can_edit for a in note.access
-    )
+    return note.creator == user or any((not a.user or a.user == user) and a.can_edit for a in note.access)
 
 
 def can_view(note: Note, user: User):
-    return note.creator == user or any(
-        (not a.user or a.user == user) and a.can_view for a in note.access
-    )
+    return note.creator == user or any((not a.user or a.user == user) and a.can_view for a in note.access)
 
 
 async def send_create_note(note: Note, psid: str):
@@ -56,9 +52,7 @@ async def new_note(sid: str, raw_data: Any):
     pr: PlayerRoom = game_state.get(sid)
 
     if Note.get_or_none(uuid=data.uuid):
-        logger.warning(
-            f"{pr.player.name} tried to overwrite existing note with id: '{data.uuid}'"
-        )
+        logger.warning(f"{pr.player.name} tried to overwrite existing note with id: '{data.uuid}'")
         return
 
     note = Note.create(
@@ -87,9 +81,7 @@ async def set_note_title(sid: str, raw_data: Any):
     note = Note.get_or_none(uuid=data.uuid)
 
     if not note:
-        logger.warning(
-            f"{pr.player.name} tried to update non-existent note with id: '{data.uuid}'"
-        )
+        logger.warning(f"{pr.player.name} tried to update non-existent note with id: '{data.uuid}'")
         return
 
     if not can_edit(note, pr.player):
@@ -115,9 +107,7 @@ async def set_note_text(sid: str, raw_data: Any):
     note = Note.get_or_none(uuid=data.uuid)
 
     if not note:
-        logger.warning(
-            f"{pr.player.name} tried to update non-existent note with id: '{data.uuid}'"
-        )
+        logger.warning(f"{pr.player.name} tried to update non-existent note with id: '{data.uuid}'")
         return
 
     if not can_edit(note, pr.player):
@@ -143,9 +133,7 @@ async def add_note_tag(sid: str, raw_data: Any):
     note = Note.get_or_none(uuid=data.uuid)
 
     if not note:
-        logger.warning(
-            f"{pr.player.name} tried to update non-existent note with id: '{data.uuid}'"
-        )
+        logger.warning(f"{pr.player.name} tried to update non-existent note with id: '{data.uuid}'")
         return
 
     if not can_edit(note, pr.player):
@@ -174,9 +162,7 @@ async def remove_note_tag(sid: str, raw_data: Any):
     note = Note.get_or_none(uuid=data.uuid)
 
     if not note:
-        logger.warning(
-            f"{pr.player.name} tried to update non-existent note with id: '{data.uuid}'"
-        )
+        logger.warning(f"{pr.player.name} tried to update non-existent note with id: '{data.uuid}'")
         return
 
     if not can_edit(note, pr.player):
@@ -203,15 +189,11 @@ async def delete_note(sid, uuid):
     note = Note.get_or_none(uuid=uuid)
 
     if not note:
-        logger.warning(
-            f"{pr.player.name} tried to remove non-existent note with id: '{uuid}'"
-        )
+        logger.warning(f"{pr.player.name} tried to remove non-existent note with id: '{uuid}'")
         return
 
     if not can_edit(note, pr.player):
-        logger.warning(
-            f"{pr.player.name} tried to remove a note not belonging to them."
-        )
+        logger.warning(f"{pr.player.name} tried to remove a note not belonging to them.")
         return
 
     note.delete_instance()
@@ -232,15 +214,11 @@ async def add_note_access(sid, raw_data: Any):
     note = Note.get_or_none(uuid=uuid)
 
     if not note:
-        logger.warning(
-            f"{pr.player.name} tried to update non-existent note with id: '{uuid}'"
-        )
+        logger.warning(f"{pr.player.name} tried to update non-existent note with id: '{uuid}'")
         return
 
     if not can_edit(note, pr.player):
-        logger.warning(
-            f"{pr.player.name} tried to update a note not belonging to them."
-        )
+        logger.warning(f"{pr.player.name} tried to update a note not belonging to them.")
         return
 
     user = None
@@ -250,9 +228,7 @@ async def add_note_access(sid, raw_data: Any):
         logger.warning(f"Note '{uuid}' is global but tried to add default access")
         return
 
-    NoteAccess.create(
-        note=note, user=user, can_edit=data.can_edit, can_view=data.can_view
-    )
+    NoteAccess.create(note=note, user=user, can_edit=data.can_edit, can_view=data.can_view)
 
     for psid, user in game_state.get_users(skip_sid=sid, room=pr.room):
         if user == pr.player:
@@ -273,15 +249,11 @@ async def edit_note_access(sid, raw_data: Any):
     note = Note.get_or_none(uuid=uuid)
 
     if not note:
-        logger.warning(
-            f"{pr.player.name} tried to update non-existent note with id: '{uuid}'"
-        )
+        logger.warning(f"{pr.player.name} tried to update non-existent note with id: '{uuid}'")
         return
 
     if not can_edit(note, pr.player):
-        logger.warning(
-            f"{pr.player.name} tried to update a note not belonging to them."
-        )
+        logger.warning(f"{pr.player.name} tried to update a note not belonging to them.")
         return
 
     old_default_can_view = False
@@ -294,9 +266,7 @@ async def edit_note_access(sid, raw_data: Any):
         else:
             user_view[access.user] = {"old": access.can_view}
 
-        if (access.user and access.user.name == data.name) or (
-            not access.user and data.name == "default"
-        ):
+        if (access.user and access.user.name == data.name) or (not access.user and data.name == "default"):
             with db.atomic():
                 access.can_edit = data.can_edit
                 access.can_view = data.can_view
@@ -312,9 +282,7 @@ async def edit_note_access(sid, raw_data: Any):
             await _send_game("Note.Access.Edit", data.dict(), room=psid)
         elif data.name == "default" or data.name == user.name:
             can_view = default_can_view or user_view.get(user, {}).get("new", False)
-            old_can_view = old_default_can_view or user_view.get(user, {}).get(
-                "old", False
-            )
+            old_can_view = old_default_can_view or user_view.get(user, {}).get("old", False)
 
             if can_view != old_can_view:
                 if data.can_view:
@@ -336,15 +304,11 @@ async def remove_note_access(sid, raw_data: Any):
     note = Note.get_or_none(uuid=uuid)
 
     if not note:
-        logger.warning(
-            f"{pr.player.name} tried to update non-existent note with id: '{uuid}'"
-        )
+        logger.warning(f"{pr.player.name} tried to update non-existent note with id: '{uuid}'")
         return
 
     if not can_edit(note, pr.player):
-        logger.warning(
-            f"{pr.player.name} tried to update a note not belonging to them."
-        )
+        logger.warning(f"{pr.player.name} tried to update a note not belonging to them.")
         return
 
     default_can_view = False
@@ -374,15 +338,11 @@ async def add_shape(sid, raw_data: Any):
     note = Note.get_or_none(uuid=uuid)
 
     if not note:
-        logger.warning(
-            f"{pr.player.name} tried to add shape to non-existent note with id: '{uuid}'"
-        )
+        logger.warning(f"{pr.player.name} tried to add shape to non-existent note with id: '{uuid}'")
         return
 
     if not can_edit(note, pr.player):
-        logger.warning(
-            f"{pr.player.name} tried to add a shape to a note not belonging to them."
-        )
+        logger.warning(f"{pr.player.name} tried to add a shape to a note not belonging to them.")
         return
 
     NoteShape.create(note_id=note, shape_id=data.shape_id)
@@ -404,15 +364,11 @@ async def remove_shape(sid, raw_data: Any):
     note = Note.get_or_none(uuid=uuid)
 
     if not note:
-        logger.warning(
-            f"{pr.player.name} tried to add shape to non-existent note with id: '{uuid}'"
-        )
+        logger.warning(f"{pr.player.name} tried to add shape to non-existent note with id: '{uuid}'")
         return
 
     if not can_edit(note, pr.player):
-        logger.warning(
-            f"{pr.player.name} tried to add a shape to a note not belonging to them."
-        )
+        logger.warning(f"{pr.player.name} tried to add a shape to a note not belonging to them.")
         return
 
     NoteShape.get(note_id=note, shape_id=data.shape_id).delete_instance()
@@ -432,9 +388,7 @@ async def set_show_on_hover(sid: str, raw_data: Any):
     note = Note.get_or_none(uuid=data.uuid)
 
     if not note:
-        logger.warning(
-            f"{pr.player.name} tried to update non-existent note with id: '{data.uuid}'"
-        )
+        logger.warning(f"{pr.player.name} tried to update non-existent note with id: '{data.uuid}'")
         return
 
     if not can_edit(note, pr.player):
@@ -459,9 +413,7 @@ async def set_show_icon_on_shape(sid: str, raw_data: Any):
     note = Note.get_or_none(uuid=data.uuid)
 
     if not note:
-        logger.warning(
-            f"{pr.player.name} tried to update non-existent note with id: '{data.uuid}'"
-        )
+        logger.warning(f"{pr.player.name} tried to update non-existent note with id: '{data.uuid}'")
         return
 
     if not can_edit(note, pr.player):

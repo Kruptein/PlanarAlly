@@ -37,9 +37,7 @@ class ConfigManager:
 
         # Setup file watching
         event_handler = ConfigFileHandler(self.load_config)
-        self._file_observer.schedule(
-            event_handler, str(self.config_path.parent), recursive=False
-        )
+        self._file_observer.schedule(event_handler, str(self.config_path.parent), recursive=False)
         self._file_observer.start()
 
     def load_config(self, *, startup=False) -> None:

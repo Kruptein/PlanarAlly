@@ -51,9 +51,7 @@ async def update_group_badges(sid: str, raw_data: List[Any]):
         try:
             shape = Shape.get_by_id(member.uuid)
         except Shape.DoesNotExist:
-            logger.exception(
-                f"Could not update shape badge for unknown shape {member.uuid}"
-            )
+            logger.exception(f"Could not update shape badge for unknown shape {member.uuid}")
         else:
             shape.badge = member.badge
             shape.save()
@@ -103,9 +101,7 @@ async def join_group(sid: str, raw_data: Any):
         try:
             shape = Shape.get_by_id(member.uuid)
         except Shape.DoesNotExist:
-            logger.exception(
-                f"Could not update shape group for unknown shape {member.uuid}"
-            )
+            logger.exception(f"Could not update shape group for unknown shape {member.uuid}")
         else:
             if shape.group is not None and shape.group != data.group_id:
                 group_ids.add(shape.group)
@@ -139,9 +135,7 @@ async def leave_group(sid: str, raw_data: list[Any]):
         try:
             shape = Shape.get_by_id(client_shape.uuid)
         except Shape.DoesNotExist:
-            logger.exception(
-                f"Could not remove shape group for unknown shape {client_shape.uuid}"
-            )
+            logger.exception(f"Could not remove shape group for unknown shape {client_shape.uuid}")
         else:
             group_ids.add(client_shape.group_id)
             shape.group = None

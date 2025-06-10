@@ -21,9 +21,7 @@ async def _export_campaign(sid: str, campaign_name: str):
 
     room: Optional[Room] = Room.get_or_none(name=campaign_name, creator=user)
     if room is None:
-        logger.warning(
-            f"Attempt to export campaign that does not exist. [{campaign_name}-{user.name}]"
-        )
+        logger.warning(f"Attempt to export campaign that does not exist. [{campaign_name}-{user.name}]")
         return
 
     filename = f"{campaign_name}-{user.name}"

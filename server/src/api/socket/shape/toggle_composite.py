@@ -52,9 +52,7 @@ async def add_toggle_composite_variant(sid: str, raw_data: Any):
 
     CompositeShapeAssociation.create(parent=parent, variant=variant, name=data.name)
 
-    await _send_game(
-        VARIANT_ADD, data, room=pr.active_location.get_path(), skip_sid=sid
-    )
+    await _send_game(VARIANT_ADD, data, room=pr.active_location.get_path(), skip_sid=sid)
 
 
 @sio.on("ToggleComposite.Variants.Rename", namespace=GAME_NS)

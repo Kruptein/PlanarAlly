@@ -4,6 +4,7 @@ import random
 from aiohttp import web
 from aiohttp_security import authorized_userid, forget, remember
 
+from ... import stats
 from ...auth import get_authorized_user
 from ...config import cfg
 from ...db.db import db
@@ -61,7 +62,8 @@ async def register(request):
     else:
         try:
             with db.atomic():
-                User.create_new(username, password, email)
+                user = User.create_new(username, password, email)
+                stats.events.user_created(user.id)
         except:
             return web.HTTPServerError(
                 reason="An unexpected error occured on the server during account creation.  Operation reverted."

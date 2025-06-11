@@ -36,6 +36,7 @@ from .models.shape import Shape
 from .models.shape_data_block import ShapeDataBlock
 from .models.shape_owner import ShapeOwner
 from .models.shape_type import ShapeType
+from .models.stats import Stats
 from .models.text import Text
 from .models.toggle_composite import ToggleComposite
 from .models.tracker import Tracker
@@ -81,6 +82,7 @@ ALL_MODELS = [
     ShapeOwner,
     ShapeType,
     Shape,
+    Stats,
     Text,
     ToggleComposite,
     Tracker,

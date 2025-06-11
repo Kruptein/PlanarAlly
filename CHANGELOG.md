@@ -25,6 +25,10 @@ They will be removed in a future release though.
     -   Upload/Remove mods for a specific campaign
 -   Asset create folder/upload file/remove buttons to the in-game asset browser
 -   [server] Email configuration setup
+-   [server] Anonymous stat collection
+    -   Sends usage stats about number of campaigns and users to stats.planarally.io
+    -   Identifiers are anonymized, no personal info is included
+    -   Can be disabled
 
 ### Changed
 

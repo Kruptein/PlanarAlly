@@ -27,7 +27,12 @@ from .utils import FILE_DIR
 
 save_newly_created = save.check_existence()
 
-from . import routes  # noqa: F401, E402
+loop = asyncio.new_event_loop()
+
+if not save_newly_created:
+    save.upgrade_save(loop=loop)
+
+from . import routes, stats  # noqa: F401, E402
 from .api import http  # noqa: F401, E402
 
 # Force loading of socketio routes
@@ -46,8 +51,6 @@ from .state.game import game_state  # noqa: E402
 
 load_socket_commands()
 
-loop = asyncio.new_event_loop()
-
 # This is a fix for asyncio problems on windows that make it impossible to do ctrl+c
 if sys.platform.startswith("win"):
 
@@ -63,6 +66,8 @@ async def on_cleanup(_):
 
     # Close database connection
     db.close()
+
+    stats.events.server_stopped()
 
 
 async def on_shutdown(_):
@@ -154,6 +159,7 @@ async def start_servers():
     print()
     print("(Press CTRL+C to quit)")
     print()
+    stats.events.server_started()
 
 
 def server_main(args):
@@ -171,10 +177,8 @@ def server_main(args):
     mimetypes.init()
     mimetypes.types_map[".js"] = "application/javascript; charset=utf-8"
 
-    if not save_newly_created:
-        save.upgrade_save(loop=loop)
-
     loop.create_task(start_servers())
+    loop.create_task(stats.data.start_tracking())
 
     try:
         main_app.on_cleanup.append(on_cleanup)

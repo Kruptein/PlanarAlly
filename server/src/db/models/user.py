@@ -65,7 +65,7 @@ class User(BaseDbModel):
         return cls.get_or_none(cls.email == email)
 
     @classmethod
-    def create_new(cls, name: str, password: str, email: Optional[str] = None):
+    def create_new(cls, name: str, password: str, email: Optional[str] = None) -> "User":
         u = User(name=name)
         u.set_password(password)
         if email:
@@ -74,3 +74,5 @@ class User(BaseDbModel):
         default_options.save()
         u.default_options = default_options
         u.save()
+
+        return u

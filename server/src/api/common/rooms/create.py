@@ -1,5 +1,6 @@
 from typing import Optional
 
+from .... import stats
 from ....db.create.floor import create_floor
 from ....db.db import db
 from ....db.models.location import Location
@@ -29,5 +30,7 @@ def create_room(name: str, user: User, logo: int) -> Optional[Room]:
         create_floor(loc, "ground")
         PlayerRoom.create(player=user, room=room, role=Role.DM, active_location=loc)
         room.save()
+
+    stats.events.campaign_created(room.id, user.id)
 
     return room

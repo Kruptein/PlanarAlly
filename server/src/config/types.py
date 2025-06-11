@@ -103,10 +103,27 @@ class MailConfig(BaseModel):
     default_from_address: EmailStr
 
 
+class StatsConfig(BaseModel):
+    # Enable collection of stats
+    enabled: bool = True
+
+    # Enable exporting of stats
+    # If disabled, stats will be collected locally but not sent to the stats server
+    enable_export: bool = True
+
+    # The frequency to export stats in seconds
+    # Defaults to 24 * 60 * 60 = 1 day
+    export_frequency_in_seconds: int = 24 * 60 * 60
+
+    # The base URL to send stats to
+    stats_url: str = "https://stats.planarally.io"
+
+
 class ServerConfig(BaseModel):
     general: GeneralConfig = GeneralConfig()
     assets: AssetsConfig = AssetsConfig()
     webserver: WebserverConfig = WebserverConfig()
+    stats: StatsConfig = StatsConfig()
     mail: Optional[MailConfig] = None
     # Optional API server configuration
     # If not specified, the API server will not be started

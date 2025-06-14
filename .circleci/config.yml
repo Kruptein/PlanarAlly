@@ -73,7 +73,7 @@ jobs:
                             name: "Publish release on github"
                             command: |
                                 VERSION=$(head -1 server/VERSION)
-                                ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace ${VERSION} /tmp/archives
+                                ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace v${VERSION} /tmp/archives
 
     build-windows:
         executor:
@@ -128,7 +128,7 @@ jobs:
                             name: Publish release on github
                             command: |
                                 $VERSION=$(Get-Content -TotalCount 1 VERSION)
-                                ~\go\bin\ghr.exe -t $env:GITHUB_TOKEN -u $env:CIRCLE_PROJECT_USERNAME -r $env:CIRCLE_PROJECT_REPONAME -c $env:CIRCLE_SHA1 -replace $VERSION C:\Users\circleci\archives
+                                ~\go\bin\ghr.exe -t $env:GITHUB_TOKEN -u $env:CIRCLE_PROJECT_USERNAME -r $env:CIRCLE_PROJECT_REPONAME -c $env:CIRCLE_SHA1 -replace v$VERSION C:\Users\circleci\archives
 
             - when:
                   condition:

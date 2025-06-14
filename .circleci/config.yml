@@ -95,20 +95,16 @@ jobs:
                   command: mkdir C:\Users\circleci\dist
 
             - run:
-                  name: Upgrade pip
-                  command: python -m pip install --upgrade pip
+                  name: Install uv
+                  command: python -m pip install uv
 
             - run:
                   name: Install python dependencies
-                  command: python -m pip install -r requirements.txt
+                  command: uv sync
 
-            - run: python -m pip install wheel
+            - run: uv add ordered-set nuitka
 
-            - run: python -m pip install ordered-set
-
-            - run: python -m pip install nuitka
-
-            - run: python -m nuitka --standalone --assume-yes-for-downloads --include-data-files=VERSION=VERSION --include-data-files=server_config.cfg=server_config.cfg --include-data-dir=static=static --include-data-dir=templates=templates --windows-icon-from-ico=static/favicon.ico ./planarally.py
+            - run: uv run -m nuitka --standalone --assume-yes-for-downloads --include-data-files=VERSION=VERSION --include-data-files=server_config.cfg=server_config.cfg --include-data-dir=static=static --include-data-dir=templates=templates --windows-icon-from-ico=static/favicon.ico ./planarally.py
 
             - run:
                   name: Zip artifacts

@@ -35,7 +35,7 @@ export function copyShapes(): void {
     if (!selectedSystem.hasSelection) return;
     const clipboard: ApiShape[] = [];
     for (const shape of selectedSystem.get({ includeComposites: true })) {
-        if (!accessSystem.hasAccessTo(shape.id, false, { edit: true })) continue;
+        if (!accessSystem.hasAccessTo(shape.id, "edit")) continue;
         if (groupSystem.getGroupId(shape.id) === undefined) {
             groupSystem.createNewGroupForShapes([shape.id]);
         }
@@ -169,7 +169,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
     return selectedSystem.get({ includeComposites: false });
 }
 
-export function deleteShapes(shapes: readonly IShape[], sync: SyncMode): void {
+export function deleteShapes(shapes: readonly IShape[], sync: SyncMode, invalidateVision = true): void {
     if (shapes.length === 0) return;
     if (sync === SyncMode.FULL_SYNC) {
         addOperation({
@@ -186,19 +186,23 @@ export function deleteShapes(shapes: readonly IShape[], sync: SyncMode): void {
     let recalculateMovement = false;
     for (let i = shapes.length - 1; i >= 0; i--) {
         const sel = shapes[i]!;
-        if (sync !== SyncMode.NO_SYNC && !accessSystem.hasAccessTo(sel.id, false, { edit: true })) continue;
+        // Temp sync access is less strict as these shapes are short-lived
+        // and usually small UI helpers that a player shouldn't have any real access to
+        if (sync === SyncMode.FULL_SYNC && !accessSystem.hasAccessTo(sel.id, "edit")) continue;
         const gId = getGlobalId(sel.id);
         if (gId) {
             removed.push(gId);
         }
-        const props = getProperties(sel.id)!;
-        if (props.blocksVision !== VisionBlock.No) recalculateVision = true;
-        if (props.blocksMovement) recalculateMovement = true;
+        if (invalidateVision) {
+            const props = getProperties(sel.id)!;
+            if (props.blocksVision !== VisionBlock.No) recalculateVision = true;
+            if (props.blocksMovement) recalculateMovement = true;
+        }
 
         sel.layer?.removeShape(sel, { sync: SyncMode.NO_SYNC, recalculate: recalculateIterative, dropShapeId: true });
     }
     if (sync !== SyncMode.NO_SYNC) sendRemoveShapes({ uuids: removed, temporary: sync === SyncMode.TEMP_SYNC });
-    if (!recalculateIterative) {
+    if (invalidateVision && !recalculateIterative) {
         const floor = shapes[0]?.floorId;
         if (floor !== undefined) {
             if (recalculateMovement) visionState.recalculate({ target: TriangulationTarget.MOVEMENT, floor });

@@ -22,7 +22,7 @@ interface ThrowerConfig {
     height: number;
 }
 
-const throwers = new Map<HTMLCanvasElement,ThrowerConfig>();
+const throwers = new Map<HTMLCanvasElement, ThrowerConfig>();
 
 // This is in fact used in dice.ts using dynamic import
 // eslint-disable-next-line import/no-unused-modules

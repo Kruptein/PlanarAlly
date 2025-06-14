@@ -9,9 +9,7 @@ from .shape import Shape
 class ShapeDataBlock(DataBlock):
     shape_id: str
 
-    shape = cast(
-        Shape, ForeignKeyField(Shape, backref="data_blocks", on_delete="CASCADE")
-    )
+    shape = cast(Shape, ForeignKeyField(Shape, backref="data_blocks", on_delete="CASCADE"))
 
     def as_pydantic(self):
         from ...api.models.data_block import ApiShapeDataBlock

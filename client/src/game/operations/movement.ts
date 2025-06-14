@@ -102,7 +102,7 @@ export async function moveShapes(shapes: readonly IShape[], delta: Vector, tempo
 }
 
 function canMove(shapeId: LocalId): boolean {
-    if (!accessSystem.hasAccessTo(shapeId, false, { movement: true })) return false;
+    if (!accessSystem.hasAccessTo(shapeId, "movement")) return false;
     if (!locationSettingsState.raw.limitMovementDuringInitiative.value) return true;
     if (!initiativeStore.state.isActive) return true;
     if (gameState.raw.isDm) return true;

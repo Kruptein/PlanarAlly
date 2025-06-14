@@ -44,6 +44,4 @@ class Location(BaseDbModel):
             options = self.options.as_pydantic(True)
         else:
             options = ApiOptionalLocationOptions(spawn_locations="[]")
-        return ApiLocation(
-            id=self.id, name=self.name, options=options, archived=self.archived
-        )
+        return ApiLocation(id=self.id, name=self.name, options=options, archived=self.archived)

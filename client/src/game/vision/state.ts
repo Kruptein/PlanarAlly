@@ -1,4 +1,5 @@
 import { getUnitDistance } from "../../core/conversions";
+import type { LocalPoint } from "../../core/geometry";
 import { equalsP } from "../../core/geometry";
 import type { LocalId } from "../../core/id";
 import { Store } from "../../core/store";
@@ -6,7 +7,8 @@ import { sendLocationOption } from "../api/emits/location";
 import { getShape } from "../id";
 import type { IShape } from "../interfaces/shape";
 import type { IAsset } from "../interfaces/shapes/asset";
-import type { FloorId, LayerName } from "../models/floor";
+import type { FloorId } from "../models/floor";
+import { LayerName } from "../models/floor";
 import { SimpleCircle } from "../shapes/variants/simple/circle";
 import { getPaths, pathToArray } from "../svg";
 import { accessSystem } from "../systems/access";
@@ -334,7 +336,7 @@ class VisionState extends Store<State> {
             const aura = auraSystem.get(source.shape, source.aura, true);
             if (aura === undefined) continue;
 
-            if (!accessSystem.hasAccessTo(source.shape, true, { vision: true }) && !aura.visible) continue;
+            if (!accessSystem.hasAccessTo(source.shape, "vision", true) && !aura.visible) continue;
 
             const auraValue = aura.value > 0 && !isNaN(aura.value) ? aura.value : 0;
             const auraDim = aura.dim > 0 && !isNaN(aura.dim) ? aura.dim : 0;
@@ -462,6 +464,28 @@ class VisionState extends Store<State> {
         if (newSources.length !== sources.length) {
             this.setVisionSources(newSources, floor);
         }
+    }
+
+    /**
+     * Check if the given point is visible in the given canvas context.
+     * If no context is provided, the current floor's lighting layer will be used.
+     *
+     * A point is considered visible if the alpha channel of the image data is less than 255.
+     *
+     * We use the lighting layer as that is the actual layer being rendered to the screen.
+     * The vision layer is copied onto it and is only relevant in LoS mode.
+     * So by using lighting we capture the real visibility and also cover cases where LoS is disabled.
+     * If at any point a Vision layer ctx were to be passed, the check should use > 0 instead.
+     */
+    isInVision(location: LocalPoint, ctx?: CanvasRenderingContext2D): boolean {
+        if (ctx === undefined) {
+            const floor = floorState.currentFloor.value;
+            if (floor === undefined) return false;
+            ctx = floorSystem.getLayer(floor, LayerName.Lighting)?.ctx;
+            if (ctx === undefined) return false;
+        }
+        const data = ctx.getImageData(location.x, location.y, 1, 1).data;
+        return (data[3] ?? 255) < 255;
     }
 }
 

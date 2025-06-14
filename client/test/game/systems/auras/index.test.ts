@@ -10,6 +10,7 @@ vi.mock("../../../../src/store/activeShape", () => ({
 import { NO_SYNC, SERVER_SYNC, UI_SYNC } from "../../../../src/core/models/types";
 import { socket } from "../../../../src/game/api/socket";
 import { compositeState } from "../../../../src/game/layers/state";
+import { accessSystem } from "../../../../src/game/systems/access";
 import { auraSystem } from "../../../../src/game/systems/auras";
 import { visionState } from "../../../../src/game/vision/state";
 import { generateTestLocalId, generateTestShape } from "../../../helpers";
@@ -76,9 +77,10 @@ describe("Aura System", () => {
             expect(auraSystem.getAll(id, false)).toEqual([]);
             expect(auraSystem.getAll(id, true)).toEqual([]);
         });
-        it("should return all auras associated with the shape", () => {
+        it("should return all auras associated with the shape when vision access is granted", () => {
             // setup
             const id = generateTestLocalId(generateTestShape({ floor: "test" }));
+            accessSystem.inform(id, { default: { edit: false, movement: false, vision: true }, extra: [] });
             const aura = generateTestAura();
             auraSystem.inform(id, [aura]);
             const aura2 = generateTestAura({ visible: false, visionSource: false });
@@ -87,10 +89,24 @@ describe("Aura System", () => {
             expect(auraSystem.getAll(id, false)).toEqual([aura, aura2]);
             expect(auraSystem.getAll(id, true)).toEqual([aura, aura2]);
         });
+        it("should return the correct auras associated with the shape when vision access is not granted", () => {
+            // setup
+            const id = generateTestLocalId(generateTestShape({ floor: "test" }));
+            const aura = generateTestAura();
+            const aura2 = generateTestAura({ visible: false, visionSource: false });
+            const aura3 = generateTestAura({ visible: false, visionSource: true });
+            const aura4 = generateTestAura({ visible: true, visionSource: false });
+            auraSystem.inform(id, [aura, aura2, aura3, aura4]);
+            // test
+            expect(auraSystem.getAll(id, false)).toEqual([aura, aura4]);
+            expect(auraSystem.getAll(id, true)).toEqual([aura, aura4]);
+        });
         it("should correctly work for variants", () => {
             // setup
             const id = generateTestLocalId(generateTestShape({ floor: "test" }));
+            accessSystem.inform(id, { default: { edit: false, movement: false, vision: true }, extra: [] });
             const id2 = generateTestLocalId();
+            accessSystem.inform(id2, { default: { edit: false, movement: false, vision: true }, extra: [] });
             compositeState.addComposite(id, { id: id2, name: "variant" }, false);
             const aura = generateTestAura();
             auraSystem.inform(id, [aura]);

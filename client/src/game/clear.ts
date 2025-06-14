@@ -12,7 +12,8 @@ export function clearGame(reason: SystemClearReason): void {
     stopDrawLoop();
     visionState.clear();
     locationStore.setLocations([], false);
-    document.getElementById("layers")!.innerHTML = "";
+    const layers = document.getElementById("layers");
+    if (layers) layers.innerHTML = "";
     compositeState.clear();
     initiativeStore.clear();
     clearSystems(reason);

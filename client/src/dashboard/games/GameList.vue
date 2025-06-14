@@ -3,7 +3,9 @@ import { onMounted, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 
+import type { AssetId } from "../../assets/models";
 import { getImageSrcFromHash } from "../../assets/utils";
+import AssetPicker from "../../core/components/modals/AssetPicker.vue";
 import { baseAdjust, getStaticImg, http } from "../../core/http";
 import { useModal } from "../../core/plugins/modals/plugin";
 import { getErrorReason } from "../../core/utils";
@@ -32,6 +34,7 @@ const state: SessionState = reactive({
     joined: [],
     error: "",
 });
+const showAssetPicker = ref(false);
 const sort = ref<"clock" | "az" | "za">("clock");
 
 watch(sort, () => {
@@ -99,16 +102,16 @@ async function rename(): Promise<void> {
     }
 }
 
-async function setLogo(): Promise<void> {
-    if (state.focussed === undefined) return;
+async function setLogo(data: { id: AssetId; fileHash: string | undefined }): Promise<void> {
+    if (state.focussed === undefined || data.fileHash === undefined) return;
+    state.focussed.logo = data.fileHash;
 
-    const data = await modals.assetPicker();
-    if (data === undefined) return;
     const success = await http.patchJson(`/api/rooms/${state.focussed.creator}/${state.focussed.name}`, {
         logo: data.id,
     });
     if (success.ok) {
         state.focussed.logo = data.fileHash ?? undefined;
+        showAssetPicker.value = false;
     }
 }
 
@@ -180,7 +183,11 @@ async function exportCampaign(): Promise<void> {
                         "
                         alt="Campaign logo"
                     />
-                    <div v-if="state.focussed?.name === session.name" class="logo-edit" @click.stop="setLogo">
+                    <div
+                        v-if="state.focussed?.name === session.name"
+                        class="logo-edit"
+                        @click.stop="showAssetPicker = true"
+                    >
                         <img :src="baseAdjust('/static/img/edit.svg')" alt="Edit" />
                     </div>
                     <div class="data">
@@ -269,6 +276,7 @@ async function exportCampaign(): Promise<void> {
             </div>
         </div>
     </div>
+    <AssetPicker :visible="showAssetPicker" @close="showAssetPicker = false" @submit="setLogo" />
 </template>
 
 <style scoped lang="scss">

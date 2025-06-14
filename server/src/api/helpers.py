@@ -35,10 +35,8 @@ async def send_log_toast(
     event_name = "Toast."
     if severity == "warn":
         event_name += "Warn"
-        logger.warn(message)
+        logger.warning(message)
     else:
         logger.debug(message)
 
-    await sio.emit(
-        event_name, message, room=room, skip_sid=skip_sid, namespace=namespace
-    )
+    await sio.emit(event_name, message, room=room, skip_sid=skip_sid, namespace=namespace)

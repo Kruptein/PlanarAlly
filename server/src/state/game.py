@@ -10,7 +10,7 @@ from . import State
 
 class GameState(State[PlayerRoom]):
     def __init__(self) -> None:
-        super().__init__()
+        super().__init__(GAME_NS)
         self.client_temporaries: Dict[str, Set[str]] = {}
         self.client_viewports: Dict[str, Viewport] = {}
 
@@ -28,7 +28,7 @@ class GameState(State[PlayerRoom]):
             await sio.emit(
                 "Temp.Clear",
                 list(self.client_temporaries[sid]),
-                namespace=GAME_NS,
+                namespace=self.namespace,
             )
             if sid in self.client_temporaries:
                 del self.client_temporaries[sid]

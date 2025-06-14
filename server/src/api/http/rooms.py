@@ -9,7 +9,7 @@ from typing_extensions import TypedDict
 
 from ...app import sio
 from ...auth import get_authorized_user
-from ...config import config
+from ...config import cfg
 from ...db.models.player_room import PlayerRoom
 from ...db.models.room import Room
 from ...db.models.user import User
@@ -25,10 +25,7 @@ async def get_list(request: web.Request):
     # to prevent these extra queries we're doing for the info
     return web.json_response(
         {
-            "owned": [
-                {**r.as_dashboard_dict(), "last_played": get_info(r, user)}
-                for r in user.rooms_created
-            ],
+            "owned": [{**r.as_dashboard_dict(), "last_played": get_info(r, user)} for r in user.rooms_created],
             "joined": [
                 {**r.room.as_dashboard_dict(), "last_played": get_info(r.room, user)}
                 for r in user.rooms_joined.join(Room).where(Room.creator != user)
@@ -152,7 +149,7 @@ async def delete(request: web.Request):
 
 
 async def export(request: web.Request):
-    if not config.getboolean("General", "enable_export"):
+    if not cfg().general.enable_export:
         return web.HTTPForbidden()
 
     user = await get_authorized_user(request)
@@ -174,7 +171,7 @@ async def export(request: web.Request):
 
 
 async def export_all(request: web.Request):
-    if not config.getboolean("General", "enable_export"):
+    if not cfg().general.enable_export:
         return web.HTTPForbidden()
 
     user = await get_authorized_user(request)
@@ -192,9 +189,7 @@ async def export_all(request: web.Request):
             )
         )
 
-        return web.HTTPAccepted(
-            text=f"Processing started. Check /static/temp/{creator}-all.pac soon."
-        )
+        return web.HTTPAccepted(text=f"Processing started. Check /static/temp/{creator}-all.pac soon.")
     return web.HTTPUnauthorized()
 
 
@@ -212,7 +207,7 @@ import_mapping: Dict[str, ImportData] = {}
 
 
 async def import_info(request: web.Request):
-    if not config.getboolean("General", "enable_export"):
+    if not cfg().general.enable_export:
         return web.HTTPForbidden(reason="Import is disabled by the server.")
 
     await check_authorized(request)
@@ -251,7 +246,7 @@ async def import_info(request: web.Request):
 
 
 async def import_chunk(request: web.Request):
-    if not config.getboolean("General", "enable_export"):
+    if not cfg().general.enable_export:
         return web.HTTPForbidden()
 
     user = await get_authorized_user(request)

@@ -10,6 +10,7 @@ from .floor import *
 from .groups import *
 from .initiative import *
 from .logic import *
+from .mods import *
 from .note import *
 from .notification import *
 from .players import *

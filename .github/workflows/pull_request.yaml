@@ -1,72 +1,114 @@
-on: pull_request
+on:
+    pull_request:
+        paths:
+            - "client/**"
+            - "server/**"
+            - ".github/workflows/pull_request.yaml"
 name: PR
 concurrency:
     group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
     cancel-in-progress: true
 jobs:
-    CLIENT-build:
+    CLIENT-setup:
         runs-on: ubuntu-latest
+        # outputs:
+        #     changed-files: ${{ steps.changed-files.outputs.any_changed }}
         steps:
             - uses: actions/checkout@v4
-            - name: Use Node.js 20.x
+
+            # - name: Get changed files
+            #   id: changed-files
+            #   uses: tj-actions/changed-files@v45
+            #   with:
+            #       files: |
+            #           client/**
+            #           .github/workflows/pull_request.yaml
+
+            - name: Use Node.js 22.x
+              # if: steps.changed-files.outputs.any_changed == 'true'
               uses: actions/setup-node@v4
               with:
-                  node-version: 20.x
+                  node-version: 22.x
+                  cache: "npm"
+                  cache-dependency-path: client/package-lock.json
+
             - name: npm i
+              # if: steps.changed-files.outputs.any_changed == 'true'
               working-directory: client
-              run: |
-                  npm install
-            - name: build
-              working-directory: client
-              run: |
-                  npm run build:ci
-    CLIENT-lint:
+              run: npm ci
+
+            - name: cache deps
+              # if: steps.changed-files.outputs.any_changed == 'true'
+              uses: actions/cache/save@v4
+              with:
+                  path: client/node_modules
+                  key: client-${{ runner.os }}-${{ hashFiles('client/package-lock.json') }}
+                  restore-keys: client-${{ runner.os }}-
+
+    CLIENT-checks:
+        needs: CLIENT-setup
+        # if: needs.CLIENT-setup.outputs.changed-files == 'true'
         runs-on: ubuntu-latest
+        strategy:
+            fail-fast: true
+            matrix:
+                check: ["build:ci", "format:ci", "lint:ci", "test"]
         steps:
             - uses: actions/checkout@v4
-            - name: Use Node.js 20.x
+
+            - name: Restore deps
+              uses: actions/cache/restore@v4
+              with:
+                  path: client/node_modules
+                  key: client-${{ runner.os }}-${{ hashFiles('client/package-lock.json') }}
+
+            - name: Use Node.js 22.x
               uses: actions/setup-node@v4
               with:
-                  node-version: 20.x
-            - name: npm i
+                  node-version: 22.x
+
+            - name: Run ${{ matrix.check }}
               working-directory: client
-              run: |
-                  npm install
-            - name: lint
-              working-directory: client
-              run: |
-                  npm run lint:ci
-    CLIENT-test:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-            - name: Use Node.js 20.x
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 20.x
-            - name: npm i
-              working-directory: client
-              run: |
-                  npm install
-            - name: test
-              working-directory: client
-              run: |
-                  npm run test
+              run: npm run ${{ matrix.check }}
+
     SERVER:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
-            - name: black
-              uses: psf/black@stable
-            - name: Install Python
+
+            # - name: Get changed files
+            #   id: changed-files
+            #   uses: tj-actions/changed-files@v45
+            #   with:
+            #       files: |
+            #           server/**
+            #           .github/workflows/pull_request.yaml
+
+            - name: Install UV
+              # if: steps.changed-files.outputs.any_changed == 'true'
+              uses: astral-sh/setup-uv@v5
+              with:
+                  version: "0.6.2"
+                  enable-cache: true
+
+            - name: "Set up Python"
+              # if: steps.changed-files.outputs.any_changed == 'true'
               uses: actions/setup-python@v5
               with:
-                  python-version: "3.11"
+                  python-version-file: "server/pyproject.toml"
+
             - name: Install dependencies
-              run: |
-                  python -m pip install --upgrade pip
-                  pip install ruff
-            - name: ruff
+              # if: steps.changed-files.outputs.any_changed == 'true'
               working-directory: server
-              run: |
-                  ruff check src
+              run: uv sync
+
+            - name: black
+              # if: steps.changed-files.outputs.any_changed == 'true'
+              uses: psf/black@stable
+              with:
+                  src: server
+
+            - name: ruff
+              # if: steps.changed-files.outputs.any_changed == 'true'
+              working-directory: server
+              run: uv run ruff check src

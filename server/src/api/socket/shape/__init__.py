@@ -57,9 +57,7 @@ async def add_shape(sid: str, raw_data: Any):
         floor = pr.active_location.floors.where(Floor.name == data.floor)[0]
         layer = floor.layers.where(Layer.name == data.layer)[0]
     except IndexError:
-        logger.error(
-            f"Attempt to add a shape to unknown floor/layer {data.floor}/{data.layer}"
-        )
+        logger.error(f"Attempt to add a shape to unknown floor/layer {data.floor}/{data.layer}")
         return
 
     if pr.role != Role.DM and not layer.player_editable:
@@ -78,9 +76,7 @@ async def add_shape(sid: str, raw_data: Any):
 
     for room_player in pr.room.players:
         is_dm = room_player.role == Role.DM
-        for psid in game_state.get_sids(
-            player=room_player.player, active_location=pr.active_location
-        ):
+        for psid in game_state.get_sids(player=room_player.player, active_location=pr.active_location):
             if psid == sid:
                 continue
             if not is_dm and not layer.player_visible:
@@ -89,9 +85,7 @@ async def add_shape(sid: str, raw_data: Any):
                 data.shape = transform_shape(shape, room_player)
             await _send_game(
                 "Shape.Add",
-                ApiShapeWithLayerInfo(
-                    shape=data.shape, floor=floor.name, layer=layer.name
-                ),
+                ApiShapeWithLayerInfo(shape=data.shape, floor=floor.name, layer=layer.name),
                 room=psid,
             )
 
@@ -109,14 +103,10 @@ async def update_shape_positions(sid: str, raw_data: Any):
         for sh in data.shapes:
             shape = Shape.get_or_none(Shape.uuid == sh.uuid)
             if shape is None:
-                logger.warning(
-                    f"User {pr.player.name} attempted to move a shape with unknown uuid ({sh.uuid})."
-                )
+                logger.warning(f"User {pr.player.name} attempted to move a shape with unknown uuid ({sh.uuid}).")
                 continue
             elif not has_ownership(shape, pr, movement=True):
-                logger.warning(
-                    f"User {pr.player.name} attempted to move a shape it does not own."
-                )
+                logger.warning(f"User {pr.player.name} attempted to move a shape it does not own.")
                 continue
             shapes.append((shape, sh))
 
@@ -141,15 +131,11 @@ async def update_shape_positions(sid: str, raw_data: Any):
     )
 
 
-async def send_remove_shapes(
-    data: list[str], *, room: str, skip_sid: Optional[str] = None
-):
+async def send_remove_shapes(data: list[str], *, room: str, skip_sid: Optional[str] = None):
     await _send_game("Shapes.Remove", data, room=room, skip_sid=skip_sid)
 
 
-def _get_shapes_from_uuids(
-    uuids: list[str], filter_layer: bool
-) -> SelectSequence[Shape]:
+def _get_shapes_from_uuids(uuids: list[str], filter_layer: bool) -> SelectSequence[Shape]:
     query = Shape.select().where((Shape.uuid << uuids))  # type: ignore
     if filter_layer:
         query = query.where(~(Shape.layer >> None))  # type: ignore
@@ -168,9 +154,7 @@ async def remove_shapes(sid: str, raw_data: Any):
         for shape in data.uuids:
             game_state.remove_temp(sid, shape)
 
-        await send_remove_shapes(
-            data.uuids, room=pr.active_location.get_path(), skip_sid=sid
-        )
+        await send_remove_shapes(data.uuids, room=pr.active_location.get_path(), skip_sid=sid)
     else:
         # Use the server version of the shapes.
         shapes = list(_get_shapes_from_uuids(data.uuids, True))
@@ -182,10 +166,8 @@ async def remove_shapes(sid: str, raw_data: Any):
         group_ids = set()
 
         for shape in shapes:
-            if not has_ownership(shape, pr):
-                logger.warning(
-                    f"User {pr.player.name} tried to remove a shape it does not own."
-                )
+            if not has_ownership(shape, pr, edit=True):
+                logger.warning(f"User {pr.player.name} tried to remove a shape it does not own.")
                 return
 
             await initiative.remove_shape(pr, shape.uuid, shape.group)
@@ -216,9 +198,7 @@ async def remove_shapes(sid: str, raw_data: Any):
 
                 old_index = shape.index
                 shape.delete_instance(True)
-                Shape.update(index=Shape.index - 1).where(
-                    (Shape.layer == layer) & (Shape.index >= old_index)
-                ).execute()
+                Shape.update(index=Shape.index - 1).where((Shape.layer == layer) & (Shape.index >= old_index)).execute()
 
                 # The Shape has to be removed before cleaning
                 if file_hash_to_clean:
@@ -230,9 +210,7 @@ async def remove_shapes(sid: str, raw_data: Any):
         for group_id in group_ids:
             await remove_group_if_empty(group_id)
 
-        await send_remove_shapes(
-            [sh.uuid for sh in shapes], room=pr.active_location.get_path(), skip_sid=sid
-        )
+        await send_remove_shapes([sh.uuid for sh in shapes], room=pr.active_location.get_path(), skip_sid=sid)
 
 
 @sio.on("Shapes.Floor.Change", namespace=GAME_NS)
@@ -259,13 +237,9 @@ async def change_shape_floor(sid: str, raw_data: Any):
         shape.index = layer.shapes.count()
         shape.save()
 
-        Shape.update(index=Shape.index - 1).where(
-            (Shape.layer == old_layer) & (Shape.index >= old_index)
-        ).execute()
+        Shape.update(index=Shape.index - 1).where((Shape.layer == old_layer) & (Shape.index >= old_index)).execute()
 
-    await _send_game(
-        "Shapes.Floor.Change", data, room=pr.active_location.get_path(), skip_sid=sid
-    )
+    await _send_game("Shapes.Floor.Change", data, room=pr.active_location.get_path(), skip_sid=sid)
 
 
 @sio.on("Shapes.Layer.Change", namespace=GAME_NS)
@@ -305,9 +279,7 @@ async def change_shape_layer(sid: str, raw_data: Any):
         shape.layer = layer
         shape.index = layer.shapes.count()
         shape.save()
-        Shape.update(index=Shape.index - 1).where(
-            (Shape.layer == old_layer) & (Shape.index >= old_index)
-        ).execute()
+        Shape.update(index=Shape.index - 1).where((Shape.layer == old_layer) & (Shape.index >= old_index)).execute()
 
     if old_layer.player_visible and layer.player_visible:
         await _send_game(
@@ -325,9 +297,7 @@ async def change_shape_layer(sid: str, raw_data: Any):
                 skip_sid=sid,
             ):
                 if is_dm:
-                    await _send_game(
-                        "Shapes.Layer.Change", data, room=psid, skip_sid=sid
-                    )
+                    await _send_game("Shapes.Layer.Change", data, room=psid, skip_sid=sid)
                 elif layer.player_visible:
                     await _send_game(
                         "Shapes.Add",
@@ -360,9 +330,7 @@ async def move_shape_order(sid: str, raw_data: Any):
             return
 
         if pr.role != Role.DM and not layer.player_editable:
-            logger.warning(
-                f"{pr.player.name} attempted to move a shape order on a dm layer"
-            )
+            logger.warning(f"{pr.player.name} attempted to move a shape order on a dm layer")
             return
 
         target = data.index
@@ -380,9 +348,7 @@ async def move_shape_order(sid: str, raw_data: Any):
         )
         Shape.update(index=case).where(Shape.layer == layer).execute()
 
-    await _send_game(
-        "Shape.Order.Set", data, room=pr.active_location.get_path(), skip_sid=sid
-    )
+    await _send_game("Shape.Order.Set", data, room=pr.active_location.get_path(), skip_sid=sid)
 
 
 @sio.on("Shapes.Location.Move", namespace=GAME_NS)
@@ -423,7 +389,7 @@ async def move_shapes(sid: str, raw_data: Any):
                 old_floor = shape.layer.floor
             layer = floor.layers.where(Layer.name == shape.layer.name)[0]
         elif layer is None:
-            logger.warn("Attempt to move a shape without layer info")
+            logger.warning("Attempt to move a shape without layer info")
             continue
 
         # Shape can be different from the one checked at the start of the loop
@@ -442,9 +408,7 @@ async def move_shapes(sid: str, raw_data: Any):
                     shapes.append((variant, layer))
 
     if old_floor:
-        await send_remove_shapes(
-            [sh.uuid for sh, _ in shapes], room=old_floor.location.get_path()
-        )
+        await send_remove_shapes([sh.uuid for sh, _ in shapes], room=old_floor.location.get_path())
 
     for shape, layer in shapes:
         shape.layer = layer
@@ -498,9 +462,7 @@ async def set_text_value(sid: str, raw_data: Any):
         shape.text = data.text
         shape.save()
 
-    await _send_game(
-        "Shape.Text.Value.Set", data, room=pr.active_location.get_path(), skip_sid=sid
-    )
+    await _send_game("Shape.Text.Value.Set", data, room=pr.active_location.get_path(), skip_sid=sid)
 
 
 @sio.on("Shape.Rect.Size.Update", namespace=GAME_NS)
@@ -520,9 +482,7 @@ async def update_rect_size(sid: str, raw_data: Any):
         shape.height = data.h
         shape.save()
 
-    await _send_game(
-        "Shape.Rect.Size.Update", data, room=pr.active_location.get_path(), skip_sid=sid
-    )
+    await _send_game("Shape.Rect.Size.Update", data, room=pr.active_location.get_path(), skip_sid=sid)
 
 
 @sio.on("Shape.Circle.Size.Update", namespace=GAME_NS)
@@ -562,9 +522,7 @@ async def update_text_size(sid: str, raw_data: Any):
         shape.font_size = data.font_size
         shape.save()
 
-    await _send_game(
-        "Shape.Text.Size.Update", data, room=pr.active_location.get_path(), skip_sid=sid
-    )
+    await _send_game("Shape.Text.Size.Update", data, room=pr.active_location.get_path(), skip_sid=sid)
 
 
 @sio.on("Shape.Asset.Image.Set", namespace=GAME_NS)
@@ -579,9 +537,7 @@ async def change_asset_image(sid: str, raw_data: Any):
     shape.src = data.src
     shape.save()
 
-    await _send_game(
-        "Shape.Asset.Image.Set", data, room=pr.active_location.get_path(), skip_sid=sid
-    )
+    await _send_game("Shape.Asset.Image.Set", data, room=pr.active_location.get_path(), skip_sid=sid)
 
 
 @sio.on("Shape.Info.Get", namespace=GAME_NS)
@@ -597,8 +553,6 @@ async def get_shape_info(sid: str, shape_id: str):
 
     await _send_game(
         "Shape.Info",
-        data=ShapeInfo(
-            position=shape.center, floor=layer.floor.name, location=location
-        ),
+        data=ShapeInfo(position=shape.center, floor=layer.floor.name, location=location),
         room=sid,
     )

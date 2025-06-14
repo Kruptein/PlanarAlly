@@ -13,13 +13,9 @@ class PlayerRoom(BaseDbModel):
     id: int
 
     role = cast(int, IntegerField(default=0))
-    player = cast(
-        User, ForeignKeyField(User, backref="rooms_joined", on_delete="CASCADE")
-    )
+    player = cast(User, ForeignKeyField(User, backref="rooms_joined", on_delete="CASCADE"))
     room = cast(Room, ForeignKeyField(Room, backref="players", on_delete="CASCADE"))
-    active_location = cast(
-        Location, ForeignKeyField(Location, backref="players", on_delete="CASCADE")
-    )
+    active_location = cast(Location, ForeignKeyField(Location, backref="players", on_delete="CASCADE"))
     user_options = cast(
         Optional[UserOptions],
         ForeignKeyField(UserOptions, on_delete="CASCADE", null=True),

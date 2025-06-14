@@ -18,7 +18,6 @@ class ApiCoreShape(TypeIdModel):
     stroke_colour: str
     vision_obstruction: int = Field(..., typeId="VisionBlock")
     movement_obstruction: bool
-    is_token: bool
     draw_operator: str
     options: str
     badge: int

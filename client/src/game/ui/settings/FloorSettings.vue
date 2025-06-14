@@ -120,11 +120,11 @@ function setPatternData(data: string): void {
             </div>
         </template>
         <div class="modal-body">
-            <label>{{ t('common.name') }}</label>
+            <label>{{ t("common.name") }}</label>
             <input type="text" :value="floor?.name" @change="updateName" />
             <div></div>
 
-            <label>{{ t('common.type') }}</label>
+            <label>{{ t("common.type") }}</label>
             <select :value="floor?.type" @change="setFloorType">
                 <option v-for="[i, type] of floorTypes.entries()" :key="'floor-' + i" :value="i">
                     {{ type }}
@@ -138,7 +138,7 @@ function setPatternData(data: string): void {
                     overwritten: floor?.backgroundValue !== undefined && defaultBackground !== floor?.backgroundValue,
                 }"
             >
-                <label>{{ t('common.background') }}</label>
+                <label>{{ t("common.background") }}</label>
                 <select :value="backgroundType" @change="setBackgroundType">
                     <option v-for="[i, type] of backgroundTypes.entries()" :key="'background-' + i" :value="i">
                         {{ type }}
@@ -174,7 +174,7 @@ function setPatternData(data: string): void {
             </template>
 
             <div></div>
-            <button @click="removeFloor">{{ t('common.remove') }}</button>
+            <button @click="removeFloor">{{ t("common.remove") }}</button>
         </div>
     </Modal>
 </template>

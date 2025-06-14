@@ -7,7 +7,7 @@ from typing_extensions import TypedDict
 from ... import auth
 from ...api.socket.constants import GAME_NS
 from ...app import app, sio
-from ...config import config
+from ...config import cfg
 from ...db.create.floor import create_floor
 from ...db.models.asset_shortcut import AssetShortcut
 from ...db.models.character import Character
@@ -18,6 +18,7 @@ from ...db.models.location import Location
 from ...db.models.location_options import LocationOptions
 from ...db.models.location_user_option import LocationUserOption
 from ...db.models.marker import Marker
+from ...db.models.mod_room import ModRoom
 from ...db.models.note import Note
 from ...db.models.note_access import NoteAccess
 from ...db.models.player_room import PlayerRoom
@@ -44,6 +45,7 @@ from ..models.location.settings import (
     LocationSettingsSet,
 )
 from ..models.location.spawn_info import ApiSpawnInfo
+from ..models.mods import ApiModMeta
 from ..models.players.info import PlayerInfoCore, PlayersInfoSet
 from ..models.players.options import PlayerOptionsSet
 from ..models.room.info import RoomFeatures, RoomInfoSet
@@ -98,11 +100,9 @@ async def load_location(sid: str, location: Location, *, complete=False):
         )
 
         if IS_DM or rp.player.id == pr.player.id:
-            player_info.position = (
-                LocationUserOption.get(
-                    user=rp.player, location=rp.active_location
-                ).as_pydantic(),
-            )[0]
+            player_info.position = (LocationUserOption.get(user=rp.player, location=rp.active_location).as_pydantic(),)[
+                0
+            ]
 
         if IS_DM:
             client_data: list[OptionalClientViewport] = []
@@ -126,6 +126,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
     # 1. Load room info
 
     if complete:
+        mods = [ApiModMeta(**mod.mod.as_pydantic().dict()) for mod in ModRoom.select().where(ModRoom.room == pr.room)]
         await _send_game(
             "Room.Info.Set",
             RoomInfoSet(
@@ -133,10 +134,9 @@ async def load_location(sid: str, location: Location, *, complete=False):
                 creator=pr.room.creator.name,
                 invitationCode=str(pr.room.invitation_code),
                 isLocked=pr.room.is_locked,
-                publicName=config.get("General", "public_name", fallback=""),
-                features=RoomFeatures(
-                    chat=pr.room.enable_chat, dice=pr.room.enable_dice
-                ),
+                clientUrl=cfg().general.client_url or "",
+                features=RoomFeatures(chat=pr.room.enable_chat, dice=pr.room.enable_dice),
+                mods=mods,
             ),
             room=sid,
         )
@@ -161,7 +161,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
         characters = Character.select().where(Character.campaign == pr.room)
         await _send_game(
             "Characters.Set",
-            [c.as_pydantic() for c in characters if has_ownership(c.shape, pr)],
+            [c.as_pydantic() for c in characters if has_ownership(c.shape, pr, edit=True)],
             room=sid,
         )
 
@@ -212,9 +212,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
 
     player_position = player_data[current_player_index].position
     if player_position and player_position.active_floor is not None:
-        index = next(
-            i for i, f in enumerate(floors) if f.name == player_position.active_floor
-        )
+        index = next(i for i, f in enumerate(floors) if f.name == player_position.active_floor)
         lower_floors = floors[index - 1 :: -1] if index > 0 else []
         higher_floors = floors[index + 1 :] if index < len(floors) else []
         floors = [floors[index], *lower_floors, *higher_floors]
@@ -320,9 +318,7 @@ async def change_location(sid: str, raw_data: Any):
     for room_player in prs_to_move:
         for psid in game_state.get_sids(player=room_player.player, room=pr.room):
             try:
-                await sio.leave_room(
-                    psid, old_locations[room_player.id].get_path(), namespace=GAME_NS
-                )
+                await sio.leave_room(psid, old_locations[room_player.id].get_path(), namespace=GAME_NS)
                 await sio.enter_room(psid, new_location.get_path(), namespace=GAME_NS)
             except KeyError:
                 await game_state.remove_sid(psid)
@@ -385,14 +381,10 @@ async def add_new_location(sid: str, location: str):
         logger.warning(f"{pr.player.name} attempted to add a new location")
         return
 
-    new_location = Location.create(
-        room=pr.room, name=location, index=pr.room.locations.count()
-    )
+    new_location = Location.create(room=pr.room, name=location, index=pr.room.locations.count())
     create_floor(new_location, "ground")
 
-    for psid in game_state.get_sids(
-        player=pr.player, active_location=pr.active_location
-    ):
+    for psid in game_state.get_sids(player=pr.player, active_location=pr.active_location):
         await sio.leave_room(psid, pr.active_location.get_path(), namespace=GAME_NS)
         await sio.enter_room(psid, new_location.get_path(), namespace=GAME_NS)
         await load_location(psid, new_location)
@@ -410,17 +402,13 @@ async def clone_location(sid: str, raw_data: Any):
         logger.warning(f"{pr.player.name} attempted to clone locations.")
         return
     try:
-        room = Room.select().where(
-            (Room.name == data.room) & (Room.creator == pr.player)  # type: ignore
-        )[0]
+        room = Room.select().where((Room.name == data.room) & (Room.creator == pr.player))[0]  # type: ignore
     except IndexError:
         logger.warning(f"Destination room {data.room} not found.")
         return
 
     src_location = Location.get_by_id(data.location)
-    new_location = Location.create(
-        room=room, name=src_location.name, index=room.locations.count()
-    )
+    new_location = Location.create(room=room, name=src_location.name, index=room.locations.count())
 
     new_groups = {}
 
@@ -451,21 +439,17 @@ async def clone_location(sid: str, raw_data: Any):
             del lduo["active_floor"]
 
         q = LocationUserOption.select().where(
-            (LocationUserOption.location == new_location)
-            & (LocationUserOption.user == luo.user)
+            (LocationUserOption.location == new_location) & (LocationUserOption.user == luo.user)
         )
         if q.exists():
             q[0].update(**lduo).where(
-                (LocationUserOption.location == new_location)
-                & (LocationUserOption.user == luo.user)
+                (LocationUserOption.location == new_location) & (LocationUserOption.user == luo.user)
             ).execute()
         else:
             LocationUserOption.create(**lduo)
 
     if room == pr.room:
-        for psid in game_state.get_sids(
-            player=pr.player, active_location=pr.active_location
-        ):
+        for psid in game_state.get_sids(player=pr.player, active_location=pr.active_location):
             await sio.leave_room(psid, pr.active_location.get_path(), namespace=GAME_NS)
             await sio.enter_room(psid, new_location.get_path(), namespace=GAME_NS)
             await load_location(psid, new_location)
@@ -526,9 +510,7 @@ async def delete_location(sid: str, location_id: int):
     location = Location.get_by_id(location_id)
 
     if location.players.count() > 0:
-        logger.error(
-            "A location was attempted to be removed that still has players! This has been prevented"
-        )
+        logger.error("A location was attempted to be removed that still has players! This has been prevented")
         return
 
     location.delete_instance(recursive=True)
@@ -591,7 +573,7 @@ async def get_location_spawn_info(sid: str, location_id: int):
                     pass
                 else:
                     if shape.layer is None:
-                        logger.warn("Spawn location without layer detected")
+                        logger.warning("Spawn location without layer detected")
                         continue
                     data.append(
                         ApiSpawnInfo(

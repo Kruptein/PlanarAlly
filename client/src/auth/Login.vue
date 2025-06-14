@@ -9,6 +9,13 @@ import { baseAdjust, http } from "../core/http";
 import { getErrorReason } from "../core/utils";
 import { coreStore } from "../store/core";
 
+enum Mode {
+    Login = 0,
+    Register = 1,
+    ForgotPassword = 2,
+    ResetPassword = 3,
+}
+
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
@@ -17,9 +24,13 @@ const toast = useToast();
 const username = ref("");
 const password = ref("");
 const email = ref("");
-const mode = ref(0);
+const mode = ref(route.query.resetToken !== undefined ? Mode.ResetPassword : Mode.Login);
+const emailInput = ref<HTMLInputElement | null>(null);
+const resetPending = ref(false);
+
 const showLanguageDropdown = ref(false);
 const allowRegister = (document.querySelector("meta[name='PA-signup']")?.getAttribute("content") ?? "true") === "true";
+const hasMail = (document.querySelector("meta[name='PA-mail']")?.getAttribute("content") ?? "true") === "true";
 
 function getStaticImg(img: string): string {
     return baseAdjust(`/static/img/${img}`);
@@ -58,6 +69,34 @@ async function register(): Promise<void> {
         toast.error(await getErrorReason(response));
     }
 }
+
+async function forgotPassword(): Promise<void> {
+    resetPending.value = true;
+    const response = await http.postJson("/api/forgot-password", {
+        email: email.value,
+    });
+    if (response.ok) {
+        email.value = "";
+        toast.success(t("auth.login.forgotPasswordSuccess"), { timeout: false });
+    } else {
+        toast.error(await getErrorReason(response));
+    }
+    resetPending.value = false;
+}
+
+async function resetPassword(): Promise<void> {
+    const response = await http.postJson("/api/reset-password", {
+        token: route.query.resetToken,
+        password: password.value,
+    });
+    if (response.ok) {
+        toast.success(t("auth.login.resetPasswordSuccess"));
+        password.value = "";
+        mode.value = Mode.Login;
+    } else {
+        toast.error(t("auth.login.resetPasswordFailed"));
+    }
+}
 </script>
 
 <template>
@@ -67,7 +106,7 @@ async function register(): Promise<void> {
         </div>
         <main>
             <form @submit.prevent>
-                <template v-if="mode === 0">
+                <template v-if="mode === Mode.Login">
                     <div id="title">
                         LOG INTO PLANARALLY
                         <span style="flex-grow: 1"></span>
@@ -98,7 +137,12 @@ async function register(): Promise<void> {
                         />
                     </div>
                     <div class="form-row">
-                        <label for="password">{{ t("common.password") }}</label>
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem">
+                            <label for="password">{{ t("common.password") }}</label>
+                            <span v-if="hasMail" class="forgot-password note" @click="mode = Mode.ForgotPassword">
+                                {{ t("auth.login.forgotPassword") }}
+                            </span>
+                        </div>
                         <input
                             id="password"
                             v-model="password"
@@ -111,12 +155,12 @@ async function register(): Promise<void> {
                         <img :src="getStaticImg('check_small.svg')" />
                         {{ t("auth.login.login") }}
                     </button>
-                    <button v-if="allowRegister" type="button" @click="mode = 1">
+                    <button v-if="allowRegister" type="button" @click="mode = Mode.Register">
                         <img :src="getStaticImg('plus.svg')" />
                         {{ t("auth.login.register") }}
                     </button>
                 </template>
-                <template v-else-if="mode === 1">
+                <template v-else-if="mode === Mode.Register">
                     <div id="title">
                         {{ t("auth.login.register") }}
                         <span style="flex-grow: 1"></span>
@@ -158,9 +202,47 @@ async function register(): Promise<void> {
                         <img :src="getStaticImg('plus.svg')" />
                         {{ t("auth.login.register") }}
                     </button>
-                    <button type="button" @click="mode = 0">
+                    <button type="button" @click="mode = Mode.Login">
                         <img :src="getStaticImg('min.svg')" />
                         RETURN TO LOGIN
+                    </button>
+                </template>
+                <template v-else-if="mode === Mode.ForgotPassword">
+                    <div id="title">
+                        {{ t("auth.login.forgotPassword") }}
+                    </div>
+                    <div id="forgot-password-note" class="note">
+                        {{ t("auth.login.forgotPasswordNote1") }}
+                        <br />
+                        <br />
+                        {{ t("auth.login.forgotPasswordNote2") }}
+                    </div>
+                    <div class="form-row">
+                        <label for="email">{{ t("settings.AccountSettings.email") }}</label>
+                        <input id="email" ref="emailInput" v-model="email" type="email" autocomplete="email" required />
+                    </div>
+                    <button
+                        type="submit"
+                        :disabled="!emailInput?.validity.valid || resetPending"
+                        @click="forgotPassword"
+                    >
+                        {{ t("common.submit") }}
+                    </button>
+                    <button type="button" @click="mode = Mode.Login">RETURN TO LOGIN</button>
+                </template>
+                <template v-else-if="mode === Mode.ResetPassword">
+                    <div id="title">
+                        {{ t("auth.login.resetPassword") }}
+                    </div>
+                    <div class="note">
+                        {{ t("auth.login.resetPasswordNote") }}
+                    </div>
+                    <div class="form-row">
+                        <label for="password">{{ t("common.password") }}</label>
+                        <input id="password" v-model="password" type="password" autocomplete="new-password" required />
+                    </div>
+                    <button type="submit" @click="resetPassword">
+                        {{ t("common.submit") }}
                     </button>
                 </template>
             </form>
@@ -291,11 +373,35 @@ main {
             img {
                 margin-right: 0.42rem;
             }
+
+            &[disabled] {
+                opacity: 0.5;
+                &:hover {
+                    cursor: not-allowed;
+                }
+            }
         }
     }
 }
 
 #language-dropdown {
     position: absolute;
+}
+
+.note {
+    font-size: 0.8em;
+    color: #aaa;
+}
+
+.forgot-password {
+    &:hover {
+        cursor: pointer;
+        color: #fff;
+    }
+}
+
+#forgot-password-note {
+    margin-top: -1rem;
+    margin-bottom: 1rem;
 }
 </style>

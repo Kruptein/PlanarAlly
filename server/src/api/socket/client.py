@@ -30,13 +30,9 @@ async def set_client_default_options(sid: str, raw_data: dict[str, Any]):
 
     pr: PlayerRoom = game_state.get(sid)
 
-    UserOptions.update(**raw_data).where(
-        UserOptions.id == pr.player.default_options
-    ).execute()
+    UserOptions.update(**raw_data).where(UserOptions.id == pr.player.default_options).execute()
 
-    UserOptions.update({k: None for k in raw_data}).where(
-        UserOptions.id == pr.user_options
-    ).execute()
+    UserOptions.update({k: None for k in raw_data}).where(UserOptions.id == pr.user_options).execute()
 
 
 @sio.on("Client.Options.Room.Set", namespace=GAME_NS)
@@ -51,14 +47,10 @@ async def set_client_room_options(sid: str, raw_data: dict[str, Any]):
             pr.user_options = UserOptions.create_empty()
             pr.save()
 
-        UserOptions.update(**raw_data).where(
-            UserOptions.id == pr.user_options
-        ).execute()
+        UserOptions.update(**raw_data).where(UserOptions.id == pr.user_options).execute()
 
 
-async def update_client_location(
-    sid: str, target_client: str, data: TempClientPosition
-):
+async def update_client_location(sid: str, target_client: str, data: TempClientPosition):
     pr = game_state.get(target_client)
 
     if not data.temp:
@@ -66,10 +58,7 @@ async def update_client_location(
             pan_x=data.position.pan_x,
             pan_y=data.position.pan_y,
             zoom_display=data.position.zoom_display,
-        ).where(
-            (LocationUserOption.location == pr.active_location)
-            & (LocationUserOption.user == pr.player)
-        ).execute()
+        ).where((LocationUserOption.location == pr.active_location) & (LocationUserOption.user == pr.player)).execute()
 
     for p_sid, p_player in game_state.get_t(skip_sid=sid):
         is_dm = p_player.role == Role.DM
@@ -100,9 +89,7 @@ async def set_client_location_options(sid: str, raw_data: Any):
 @auth.login_required(app, sio, "game")
 async def move_client(sid: str, raw_data: Any):
     data = ClientMove(**raw_data)
-    await update_client_location(
-        sid, data.client, TempClientPosition(temp=False, position=data.position)
-    )
+    await update_client_location(sid, data.client, TempClientPosition(temp=False, position=data.position))
 
 
 @sio.on("Client.Viewport.Set", namespace=GAME_NS)

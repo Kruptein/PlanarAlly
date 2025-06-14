@@ -1,5 +1,5 @@
 import type { ToggleCompositeNewVariant, ToggleCompositeVariant } from "../../../../apiTypes";
-import { wrapSocket } from "../../helpers";
+import { wrapSocket } from "../../socket";
 
 export const sendToggleCompositeActiveVariant = wrapSocket<ToggleCompositeVariant>(
     "ToggleComposite.Variants.Active.Set",

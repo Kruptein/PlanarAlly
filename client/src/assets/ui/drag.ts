@@ -70,9 +70,8 @@ async function onDrop(event: DragEvent): Promise<void> {
 
 function startDrag(event: DragEvent, file: AssetId, assetHash: string | null): void {
     if (event.dataTransfer === null) return;
-    if (!canEdit(file, false)) {
-        return;
-    }
+    // Note: Start drag does NOT require an edit check, as it might be used to drag a file to the canvas
+    // The drop handlers will check if edit access is required
 
     // Find the image to use as the drag image
     const image = (event.target as HTMLElement).closest(".inode")?.querySelector("img");

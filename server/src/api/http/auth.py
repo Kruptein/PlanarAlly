@@ -1,10 +1,16 @@
+import asyncio
+import random
+
 from aiohttp import web
 from aiohttp_security import authorized_userid, forget, remember
 
+from ... import stats
 from ...auth import get_authorized_user
-from ...config import config
+from ...config import cfg
 from ...db.db import db
 from ...db.models.user import User
+from ...mail import send_mail
+from ...state.auth import auth_state
 
 
 async def is_authed(request):
@@ -37,7 +43,7 @@ async def login(request):
 
 
 async def register(request):
-    if not config.getboolean("General", "allow_signups"):
+    if not cfg().general.allow_signups:
         return web.HTTPForbidden()
 
     if await authorized_userid(request) is not None:
@@ -56,7 +62,8 @@ async def register(request):
     else:
         try:
             with db.atomic():
-                User.create_new(username, password, email)
+                user = User.create_new(username, password, email)
+                stats.events.user_created(user.id)
         except:
             return web.HTTPServerError(
                 reason="An unexpected error occured on the server during account creation.  Operation reverted."
@@ -70,3 +77,45 @@ async def logout(request):
     response = web.HTTPOk()
     await forget(request, response)
     return response
+
+
+async def forgot_password(request):
+    data = await request.json()
+    email = data["email"]
+    user = User.by_email(email)
+
+    # If the email is not found,
+    # we just return a 200 to avoid leaking information
+    if user is None:
+        await asyncio.sleep(random.randint(1, 5))
+        return web.HTTPOk()
+
+    reset_token = auth_state.add_reset_token(user.id)
+
+    reset_url = f"{cfg().general.client_url}/auth/login?resetToken={reset_token}"
+
+    # Send the email
+    send_mail(
+        "Password reset request",
+        f"A password reset for the PlanarAlly account associated with this email address was requested. Visit {reset_url} to reset your password. If you did not do this, please ignore this email.",
+        f"A password reset for the PlanarAlly account associated with this email address was requested. Visit <a href='{reset_url}'>{reset_url}</a> to reset your password.<br><br>If you did not do this, please ignore this email.",
+        [email],
+    )
+
+    return web.HTTPOk()
+
+
+async def reset_password(request):
+    data = await request.json()
+    token = data["token"]
+    password = data["password"]
+
+    uid = auth_state.get_uid_from_token(token)
+    if uid is None:
+        return web.HTTPNotFound()
+
+    user = User.get_by_id(uid)
+    user.set_password(password)
+    user.save()
+
+    return web.HTTPOk()

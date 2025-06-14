@@ -5,6 +5,7 @@ import { accessState } from "../../systems/access/state";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { gameState } from "../../systems/game/state";
+import { locationSettingsSystem } from "../../systems/settings/location";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 
@@ -15,7 +16,7 @@ export class FowVisionLayer extends FowLayer {
         if (!this.valid) {
             const originalOperation = this.ctx.globalCompositeOperation;
 
-            if (!locationSettingsState.raw.fowLos.value) {
+            if (!locationSettingsSystem.isLosActive()) {
                 this.ctx.clearRect(0, 0, this.width, this.height);
                 this.valid = true;
                 return;
@@ -35,7 +36,7 @@ export class FowVisionLayer extends FowLayer {
                 visionMax += 0.01;
             }
 
-            for (const tokenId of accessState.activeTokens.value) {
+            for (const tokenId of accessState.activeTokens.value.get("vision") ?? []) {
                 const token = getShape(tokenId);
                 if (token === undefined || token.floorId !== this.floor) continue;
                 if (token.layerName === LayerName.Dm && gameState.raw.isFakePlayer) continue;

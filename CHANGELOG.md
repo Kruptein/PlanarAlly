@@ -10,6 +10,74 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+## [2025.2]
+
+**Server owners:** The server config has changed location and format. Ensure you check the release notes for the necessary info.
+The old config files are not yet removed from git to prevent losing modifications you made to these files.
+They will be removed in a future release though.
+
+### Added
+
+-   New quick toggle to disable LoS rendering for the DM only
+-   Forgot password flow if Mail is configured on the server
+    -   This only works if the user account actually has an email-address
+-   Success notification when changing email in the settings
+-   Mod improvements
+    -   Can now register shape context menu entries
+    -   Upload/Remove mods for a specific campaign
+-   Asset create folder/upload file/remove buttons to the in-game asset browser
+-   [server] Email configuration setup
+-   [server] Anonymous stat collection
+    -   Sends usage stats about number of campaigns and users to stats.planarally.io
+    -   Identifiers are anonymized, no personal info is included
+    -   Can be disabled
+
+### Changed
+
+-   Access levels are no longer additive
+    -   e.g. edit access used to automatically include movement & vision access, this is no longer the case
+-   Selection draw box now appears on top of the fog
+-   Selection rotate UI now appears on top fo the fog
+-   Moved zoom bar and selection info behind main modals when overlapping
+    -   the selection info can pop-over when hovered with the mouse
+-   [server] Server config setup has changed
+    -   The server config is now by default stored in the `data` directory and in toml format
+    -   It's no longer tracked in git, as the default values are now coded in python itself
+    -   An env variable can be used to change the location
+    -   Changes to the config are now checked and loaded by the server during runtime
+-   [tech] Server shutdown sequence has been modified
+-   [tech] Mod improvements
+    -   DataBlock API changes
+        -   Made most functions sync
+        -   Save method renamed to `sync`
+        -   API added to handle reactivity inside the datablock
+        -   Now listens to saved events from other clients to update local data
+        -   No longer runs the (de)serializer per key, but instead just on the entirety, alloweing root arrays
+        -   Added utility `useDataBlock` hook to reduce a lot of boilerplate in mod components
+        -   Serialize and Deserialize generic order are swapped
+    -   Now expects a root level `events` object with event functions instead of them being exported
+    -   Remove registerTrackerSettings event
+
+### Removed
+
+-   The `isToken` property has been removed from all shapes
+    -   This is now fully derived based on vision access of the shape
+
+### Fixed
+
+-   Draw tool polygon was not updating vision until shape completion
+-   Reduced some render overhead when token shapes that the player did not own were moved
+-   Shape context menu not closing when selecting an option
+-   Select tool build UI not appearing when mode toggling
+-   Datablocks for room and user categories had a bug in the server preventing creating them
+-   Asset context-menu remove not working
+-   Asset context-menu background colour being wrong in-game sometimes
+-   Asset upload bar missing in the dashboard asset manager
+-   Asset picker out of game now uses the newer UI
+-   Dropping assets you have shared-view permission for on the map was not working
+-   Movement only door toggle not immediately rerendering screen
+-   Select tool UI would sometimes stick around when there is no shape selected anymore
+
 ## [2025.1.1] - 2025-02-08
 
 ### Fixed

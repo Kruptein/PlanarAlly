@@ -1,14 +1,23 @@
+import asyncio
 from abc import ABC, abstractmethod
 from typing import Dict, Generator, Generic, Tuple, TypeVar
 
+from ..app import sio
 from ..db.models.user import User
 
 T = TypeVar("T")
 
 
 class State(ABC, Generic[T]):
-    def __init__(self) -> None:
+    def __init__(self, namespace: str | None) -> None:
         self._sid_map: Dict[str, T] = {}
+        self.namespace = namespace
+
+    async def disconnect_all(self) -> None:
+        if self.namespace is None:
+            return
+
+        await asyncio.gather(*[sio.disconnect(sid, namespace=self.namespace) for sid in self._sid_map.keys()])
 
     async def add_sid(self, sid: str, value: T) -> None:
         self._sid_map[sid] = value
@@ -31,10 +40,7 @@ class State(ABC, Generic[T]):
             if skip_sid == sid:
                 continue
 
-            if all(
-                getattr(self.get(sid), option, None) == value
-                for option, value in options.items()
-            ):
+            if all(getattr(self.get(sid), option, None) == value for option, value in options.items()):
                 yield sid
 
     def get_t(self, **options) -> Generator[Tuple[str, T], None, None]:

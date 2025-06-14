@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+from ...mods import ApiModMeta
 from .player import *
 
 
@@ -13,5 +14,6 @@ class RoomInfoSet(BaseModel):
     creator: str
     invitationCode: str
     isLocked: bool
-    publicName: str
+    clientUrl: str
     features: RoomFeatures
+    mods: list[ApiModMeta]

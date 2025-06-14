@@ -93,7 +93,7 @@ function applyDDraft(): void {
         accessSystem.addAccess(
             shape.id,
             playerSystem.getCurrentPlayer()!.name,
-            { edit: true, movement: true, vision: true },
+            { edit: true, movement: true, vision: false },
             UI_SYNC,
         );
 
@@ -110,7 +110,7 @@ function applyDDraft(): void {
         accessSystem.addAccess(
             shape.id,
             playerSystem.getCurrentPlayer()!.name,
-            { edit: true, movement: true, vision: true },
+            { edit: true, movement: true, vision: false },
             UI_SYNC,
         );
 
@@ -149,7 +149,7 @@ function applyDDraft(): void {
         accessSystem.addAccess(
             shape.id,
             playerSystem.getCurrentPlayer()!.name,
-            { edit: true, movement: true, vision: true },
+            { edit: true, movement: true, vision: false },
             SERVER_SYNC,
         );
     }

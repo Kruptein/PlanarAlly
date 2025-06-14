@@ -3,6 +3,7 @@ from urllib.parse import unquote
 
 from aiohttp import web
 
+from ... import stats
 from ...api.socket.constants import GAME_NS
 from ...app import sio
 from ...auth import get_authorized_user
@@ -24,16 +25,9 @@ async def connect(sid, environ):
         await _send_game("redirect", "/", room=sid)
         return
 
-    ref = {
-        k.split("=")[0]: k.split("=")[1]
-        for k in unquote(environ["QUERY_STRING"]).strip().split("&")
-    }
+    ref = {k.split("=")[0]: k.split("=")[1] for k in unquote(environ["QUERY_STRING"]).strip().split("&")}
     try:
-        room = (
-            Room.select()
-            .join(User)
-            .where((Room.name == ref["room"]) & (User.name == ref["user"]))[0]
-        )
+        room = Room.select().join(User).where((Room.name == ref["room"]) & (User.name == ref["user"]))[0]
     except IndexError:
         return False
     else:
@@ -62,6 +56,8 @@ async def connect(sid, environ):
         skip_sid=sid,
     )
 
+    stats.events.campaign_opened(pr.room.id, user.id)
+
 
 @sio.on("disconnect", namespace=GAME_NS)
 async def disconnect(sid):
@@ -82,3 +78,5 @@ async def disconnect(sid):
         room=pr.room.get_path(),
         skip_sid=sid,
     )
+
+    stats.events.campaign_closed(pr.room.id, pr.player.id)

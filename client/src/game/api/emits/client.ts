@@ -8,8 +8,7 @@ import type {
 } from "../../../apiTypes";
 import type { ClientId } from "../../systems/client/models";
 import { positionState } from "../../systems/position/state";
-import { wrapSocket } from "../helpers";
-import { socket } from "../socket";
+import { socket, wrapSocket } from "../socket";
 
 export function sendClientLocationOptions(temp: boolean): void {
     const state = positionState.readonly;
@@ -37,7 +36,7 @@ export function sendRoomClientOptions<T extends keyof ApiUserOptions>(
     defaultValue: ApiUserOptions[T] | undefined,
 ): void {
     const event = defaultValue !== undefined ? "Client.Options.Default.Set" : "Client.Options.Room.Set";
-    const val = defaultValue !== undefined ? defaultValue : value ?? null;
+    const val = defaultValue !== undefined ? defaultValue : (value ?? null);
     const data: Partial<ApiOptionalUserOptions> = { [key]: val };
     socket.emit(event, data);
 }

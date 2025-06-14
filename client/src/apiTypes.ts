@@ -155,7 +155,6 @@ export interface ApiCoreShape {
   stroke_colour: string;
   vision_obstruction: VisionBlock;
   movement_obstruction: boolean;
-  is_token: boolean;
   draw_operator: string;
   options: string;
   badge: number;
@@ -277,6 +276,22 @@ export interface ApiLocationUserOption {
   zoom_display: number;
   active_layer?: string;
   active_floor?: string;
+}
+export interface ApiModLink {
+  tag: string;
+  version: string;
+  hash: string;
+}
+export interface ApiModMeta {
+  apiSchema: string;
+  tag: string;
+  name: string;
+  version: string;
+  author: string;
+  shortDescription: string;
+  description: string;
+  hash: string;
+  hasCss: boolean;
 }
 export interface ApiNote {
   uuid: string;
@@ -617,8 +632,9 @@ export interface RoomInfoSet {
   creator: string;
   invitationCode: string;
   isLocked: boolean;
-  publicName: string;
+  clientUrl: string;
   features: RoomFeatures;
+  mods: ApiModMeta[];
 }
 export interface ShapeAdd {
   shape:

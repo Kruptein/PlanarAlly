@@ -31,7 +31,7 @@ async function setEmail(event: Event): Promise<void> {
         });
         if (result.ok) {
             coreStore.setEmail(value);
-            // todo: show some kind of notification to notify of success
+            toast.success(t("dashboard.settings.email_changed"));
         } else {
             (event.target as HTMLInputElement).value = coreStore.state.email ?? "";
         }

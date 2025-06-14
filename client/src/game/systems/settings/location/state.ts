@@ -5,12 +5,13 @@ import type { LocationOptions, WithDefault, WithLocationDefault } from "./models
 
 const init = <T>(x: T): WithLocationDefault<T> => ({ default: x, location: {}, value: x });
 
-type State = { activeLocation: number } & { [key in keyof LocationOptions]: WithLocationDefault<LocationOptions[key]> };
+type _S = {
+    [key in keyof LocationOptions]: WithLocationDefault<LocationOptions[key]>;
+};
+type State = { activeLocation: number; losOverwritten: boolean } & _S;
 
-function getInitState(): State {
+function getInitState(): _S {
     return {
-        activeLocation: 0,
-
         fowLos: init(false),
         fowOpacity: init(0),
         gridType: init(GridType.Square),
@@ -32,7 +33,7 @@ function getInitState(): State {
     };
 }
 
-const state = buildState<State>(getInitState());
+const state = buildState<State>({ ...getInitState(), activeLocation: 0, losOverwritten: false });
 
 function getOption<T>(key: WithLocationDefault<T>, location: number | undefined): WithDefault<T> {
     if (location === undefined) return { value: key.default, default: key.default };
@@ -44,9 +45,11 @@ export const locationSettingsState = {
     ...state,
     getOption,
     reset: () => {
+        state.mutableReactive.activeLocation = 0;
+        state.mutableReactive.losOverwritten = false;
         const i = getInitState();
         for (const key of Object.keys(i)) {
-            const a = key as keyof State;
+            const a = key as keyof _S;
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             state.mutableReactive[a] = i[a] as any; // typing cannot infer Key<>Value relation per key
         }

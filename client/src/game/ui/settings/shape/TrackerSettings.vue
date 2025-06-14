@@ -16,8 +16,6 @@ import type { Aura, AuraId, UiAura } from "../../../systems/auras/models";
 import { trackerSystem } from "../../../systems/trackers";
 import { sendShapeMoveTracker } from "../../../systems/trackers/emits";
 import type { Tracker, TrackerId, UiTracker } from "../../../systems/trackers/models";
-import { uiState } from "../../../systems/ui/state";
-import type { ModTrackerSetting } from "../../../systems/ui/types";
 
 const { t } = useI18n();
 
@@ -30,12 +28,7 @@ const trackers = computed(() => {
     const allTrackers = [...trackerSystem.state.parentTrackers, ...trackerSystem.state.trackers];
     const shapeId = activeShapeStore.state.id;
     if (shapeId === undefined) return [];
-    // There are some "type instantation excessively deep" errors, so we're skipping the DeepReadonly here
-    const modTrackers = uiState.reactive.modTrackerSettings as ModTrackerSetting[];
-    return allTrackers.map((t) => ({
-        tracker: t,
-        mods: modTrackers.filter((ts) => ts.filter?.(shapeId, t.uuid) ?? true) as DeepReadonly<ModTrackerSetting>[],
-    }));
+    return allTrackers;
 });
 
 function updateTracker(tracker: DeepReadonly<UiTracker>, delta: Partial<Tracker>, syncTo = true): void {
@@ -131,21 +124,13 @@ function toggleCompositeAura(shape: LocalId, auraId: AuraId): void {
         aura: aura.uuid,
     });
 }
-
-// mods
-
-// const modTrackers = computed(() => {
-//     for (const tab of uiState.reactive.modTrackerSettings) {
-//         if (tab.filter?.(activeShapeStore.state.id!, ) ?? true) tabs.push(tab);
-//     }
-// })
 </script>
 
 <template>
     <div style="display: contents">
         <div id="trackers-panel">
             <div class="spanrow header">{{ t("common.trackers") }}</div>
-            <div v-for="{ tracker, mods } of trackers" :key="tracker.uuid" class="aura">
+            <div v-for="tracker of trackers" :key="tracker.uuid" class="aura">
                 <div class="summary">
                     <label class="name" :for="'check-' + tracker.uuid">{{ tracker.name }}</label>
                     <div
@@ -237,10 +222,6 @@ function toggleCompositeAura(shape: LocalId, auraId: AuraId): void {
                             @update:colour="updateTracker(tracker, { secondaryColor: $event })"
                         />
                     </div>
-                    <template v-for="mod of mods" :key="mod.name">
-                        <div style="grid-column: 1/-1">- {{ mod.name }} ----</div>
-                        <Component :is="mod.component" :tracker="tracker" />
-                    </template>
                 </div>
             </div>
             <div class="spanrow header">{{ t("common.auras") }}</div>

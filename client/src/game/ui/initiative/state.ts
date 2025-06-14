@@ -105,12 +105,12 @@ class InitiativeStore extends Store<InitiativeState> {
         if (playerSettingsState.raw.initiativeOpenOnActivate.value) this.show(isActive, false);
         if (isActive) {
             if (accessState.raw.activeTokenFilters === undefined) activeTokensBackup = undefined;
-            else activeTokensBackup = new Set(accessState.raw.activeTokenFilters);
+            else activeTokensBackup = new Set(accessState.raw.activeTokenFilters.get("vision") ?? []);
             this.handleCameraLock();
             this.handleVisionLock();
         } else {
-            if (activeTokensBackup === undefined) accessSystem.unsetActiveTokens();
-            else accessSystem.setActiveTokens(...activeTokensBackup.values());
+            if (activeTokensBackup === undefined) accessSystem.clearActiveVisionTokens();
+            else accessSystem.setActiveVisionTokens(...activeTokensBackup.values());
         }
     }
 
@@ -305,7 +305,7 @@ class InitiativeStore extends Store<InitiativeState> {
         if (this._state.isActive && playerSettingsState.raw.initiativeCameraLock.value) {
             const actor = this.getDataSet()[this._state.turnCounter];
             if (actor?.localId === undefined) return;
-            if (accessSystem.hasAccessTo(actor.localId, false, { vision: true })) {
+            if (accessSystem.hasAccessTo(actor.localId, "vision")) {
                 const shape = getShape(actor.localId);
                 if (shape === undefined) return;
                 setCenterPosition(shape.center);
@@ -317,10 +317,10 @@ class InitiativeStore extends Store<InitiativeState> {
     handleVisionLock(): void {
         if (this._state.isActive && playerSettingsState.raw.initiativeVisionLock.value) {
             const actor = this.getDataSet()[this._state.turnCounter];
-            if (actor?.localId !== undefined && accessState.raw.ownedTokens.has(actor.localId)) {
-                accessSystem.setActiveTokens(actor.localId);
+            if (actor?.localId !== undefined && accessSystem.hasAccessTo(actor.localId, "vision")) {
+                accessSystem.setActiveVisionTokens(actor.localId);
             } else {
-                accessSystem.unsetActiveTokens();
+                accessSystem.clearActiveVisionTokens();
             }
         }
     }
@@ -344,7 +344,7 @@ class InitiativeStore extends Store<InitiativeState> {
         }
         const localId = getLocalId(globalId, false);
         if (localId === undefined) return false;
-        return accessSystem.hasAccessTo(localId, false, { edit: true });
+        return accessSystem.hasAccessTo(localId, "edit");
     }
 
     toggleOption(index: number, option: "isVisible" | "isGroup"): void {

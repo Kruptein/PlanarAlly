@@ -31,22 +31,16 @@ async def add_shape_owner(sid: str, raw_data: Any):
     try:
         shape = Shape.get(uuid=data.shape)
     except Shape.DoesNotExist as exc:
-        logger.warning(
-            f"Attempt to add owner to unknown shape by {pr.player.name} [{data.shape}]"
-        )
+        logger.warning(f"Attempt to add owner to unknown shape by {pr.player.name} [{data.shape}]")
         raise exc
 
-    if not has_ownership(shape, pr):
-        logger.warning(
-            f"{pr.player.name} attempted to change asset ownership of a shape it does not own"
-        )
+    if not has_ownership(shape, pr, edit=True):
+        logger.warning(f"{pr.player.name} attempted to change asset ownership of a shape it does not own")
         return
 
     target_user = User.by_name(data.user)
     if target_user is None:
-        logger.warning(
-            f"Attempt to add unknown user as owner to shape by {pr.player.name} [{data.user}]"
-        )
+        logger.warning(f"Attempt to add unknown user as owner to shape by {pr.player.name} [{data.user}]")
         return
 
     # Adding the DM as user is redundant and can only lead to confusion
@@ -61,14 +55,10 @@ async def add_shape_owner(sid: str, raw_data: Any):
             movement_access=data.movement_access,
             vision_access=data.vision_access,
         )
-    await _send_game(
-        "Shape.Owner.Add", data, room=pr.active_location.get_path(), skip_sid=sid
-    )
+    await _send_game("Shape.Owner.Add", data, room=pr.active_location.get_path(), skip_sid=sid)
     layer = shape.layer
     if layer and not (shape.default_vision_access or shape.default_edit_access):
-        for sid, tpr in game_state.get_t(
-            player=target_user, active_location=pr.active_location
-        ):
+        for sid, tpr in game_state.get_t(player=target_user, active_location=pr.active_location):
             await _send_game(
                 "Shape.Set",
                 ApiShapeWithLayerInfo(
@@ -90,30 +80,22 @@ async def update_shape_owner(sid: str, raw_data: Any):
     try:
         shape = Shape.get(uuid=data.shape)
     except Shape.DoesNotExist as exc:
-        logger.warning(
-            f"Attempt to update owner of unknown shape by {pr.player.name} [{data.shape}]"
-        )
+        logger.warning(f"Attempt to update owner of unknown shape by {pr.player.name} [{data.shape}]")
         raise exc
 
-    if not has_ownership(shape, pr):
-        logger.warning(
-            f"{pr.player.name} attempted to change asset ownership of a shape it does not own"
-        )
+    if not has_ownership(shape, pr, edit=True):
+        logger.warning(f"{pr.player.name} attempted to change asset ownership of a shape it does not own")
         return
 
     target_user = User.by_name(data.user)
     if target_user is None:
-        logger.warning(
-            f"Attempt to update unknown user as owner to shape by {pr.player.name} [{data.user}]"
-        )
+        logger.warning(f"Attempt to update unknown user as owner to shape by {pr.player.name} [{data.user}]")
         return
 
     try:
         so = ShapeOwner.get(shape=shape, user=target_user)
     except ShapeOwner.DoesNotExist:
-        logger.warning(
-            f"Attempt to update unknown shape-owner relation by {pr.player.name}"
-        )
+        logger.warning(f"Attempt to update unknown shape-owner relation by {pr.player.name}")
         return
 
     so.shape = shape
@@ -123,18 +105,14 @@ async def update_shape_owner(sid: str, raw_data: Any):
     so.vision_access = data.vision_access
     so.save()
 
-    await _send_game(
-        "Shape.Owner.Update", data, room=pr.active_location.get_path(), skip_sid=sid
-    )
+    await _send_game("Shape.Owner.Update", data, room=pr.active_location.get_path(), skip_sid=sid)
 
     layer = shape.layer
     if layer is None:
         return
 
     # Ensure the target player has an updated view of the shape due to access changes
-    for tsid, tpr in game_state.get_t(
-        player=target_user, active_location=pr.active_location
-    ):
+    for tsid, tpr in game_state.get_t(player=target_user, active_location=pr.active_location):
         await _send_game(
             "Shape.Set",
             ApiShapeWithLayerInfo(
@@ -156,43 +134,33 @@ async def delete_shape_owner(sid: str, raw_data: Any):
     try:
         shape = Shape.get(uuid=data.shape)
     except Shape.DoesNotExist as exc:
-        logger.warning(
-            f"Attempt to delete owner of unknown shape by {pr.player.name} [{data.shape}]"
-        )
+        logger.warning(f"Attempt to delete owner of unknown shape by {pr.player.name} [{data.shape}]")
         raise exc
 
-    if not has_ownership(shape, pr):
-        logger.warning(
-            f"{pr.player.name} attempted to change asset ownership of a shape it does not own"
-        )
+    if not has_ownership(shape, pr, edit=True):
+        logger.warning(f"{pr.player.name} attempted to change asset ownership of a shape it does not own")
         return
 
     target_user = User.by_name(data.user)
     if target_user is None:
-        logger.warning(
-            f"Attempt to delete unknown user as owner to shape by {pr.player.name} [{data.user}]"
-        )
+        logger.warning(f"Attempt to delete unknown user as owner to shape by {pr.player.name} [{data.user}]")
         return
 
     try:
         ShapeOwner.delete().where(
-            (ShapeOwner.shape == shape) & (ShapeOwner.user == target_user)
+            (ShapeOwner.shape == shape) & (ShapeOwner.user == target_user)  # type: ignore
         ).execute()
     except Exception:
         logger.warning(f"Could not delete shape-owner relation by {pr.player.name}")
 
-    await _send_game(
-        "Shape.Owner.Delete", data, room=pr.active_location.get_path(), skip_sid=sid
-    )
+    await _send_game("Shape.Owner.Delete", data, room=pr.active_location.get_path(), skip_sid=sid)
 
     layer = shape.layer
     if layer is None:
         return
 
     # Ensure the target player has an updated view of the shape due to access changes
-    for tsid, tpr in game_state.get_t(
-        player=target_user, active_location=pr.active_location
-    ):
+    for tsid, tpr in game_state.get_t(player=target_user, active_location=pr.active_location):
         await _send_game(
             "Shape.Set",
             ApiShapeWithLayerInfo(
@@ -214,15 +182,11 @@ async def update_default_shape_owner(sid: str, raw_data: Any):
     try:
         shape: Shape = Shape.get(uuid=data.shape)
     except Shape.DoesNotExist as exc:
-        logger.warning(
-            f"Attempt to update owner of unknown shape by {pr.player.name} [{data.shape}]"
-        )
+        logger.warning(f"Attempt to update owner of unknown shape by {pr.player.name} [{data.shape}]")
         raise exc
 
-    if not has_ownership(shape, pr):
-        logger.warning(
-            f"{pr.player.name} attempted to change asset ownership of a shape it does not own"
-        )
+    if not has_ownership(shape, pr, edit=True):
+        logger.warning(f"{pr.player.name} attempted to change asset ownership of a shape it does not own")
         return
 
     shape.default_edit_access = data.edit_access
@@ -237,9 +201,7 @@ async def update_default_shape_owner(sid: str, raw_data: Any):
 
     # We need to send each player their new view of the shape which includes the default access fields,
     # so there is no use in sending those separately
-    for sid, player_room in game_state.get_t(
-        active_location=pr.active_location, skip_sid=sid
-    ):
+    for sid, player_room in game_state.get_t(active_location=pr.active_location, skip_sid=sid):
         await _send_game(
             "Shape.Set",
             ApiShapeWithLayerInfo(

@@ -18,6 +18,7 @@ client/node_modules
 server/env
 server/static/js
 server/static/css
+server/.venv
 
 # From .gitignore
 server/planarallyserver.log

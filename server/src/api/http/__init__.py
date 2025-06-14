@@ -24,9 +24,7 @@ async def claim_invite(request):
                 loc = query.where(PlayerRoom.role == Role.PLAYER)[0].active_location
             except IndexError:
                 loc = query.where(PlayerRoom.role == Role.DM)[0].active_location
-            PlayerRoom.create(
-                player=user, room=room, role=Role.PLAYER, active_location=loc
-            )
+            PlayerRoom.create(player=user, room=room, role=Role.PLAYER, active_location=loc)
 
             for csid in game_state.get_sids(player=room.creator, room=room):
                 await _send_game(

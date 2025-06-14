@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 100
+SAVE_VERSION = 104
 
 import asyncio
 import json
@@ -30,13 +30,13 @@ from playhouse.sqlite_ext import SqliteExtDatabase
 
 from .thumbnail import generate_thumbnail_for_asset
 
-from .config import SAVE_FILE
 from .db.all import ALL_MODELS
 from .db.db import db as ACTIVE_DB
 from .db.models.constants import Constants
 from .utils import (
     ASSETS_DIR,
     FILE_DIR,
+    SAVE_PATH,
     OldVersionException,
     UnknownVersionException,
     get_asset_hash_subpath,
@@ -64,7 +64,7 @@ def create_new_db(db: SqliteExtDatabase, version: int):
 
 
 def check_existence() -> bool:
-    if not SAVE_FILE.exists():
+    if not SAVE_PATH.exists():
         logger.warning("Provided save file does not exist.  Creating a new one.")
         create_new_db(ACTIVE_DB, SAVE_VERSION)
         return True
@@ -77,134 +77,14 @@ def upgrade(
     is_import: bool,
     loop: Optional[asyncio.AbstractEventLoop] = None,
 ):
-    if version < 79:
+    if version < 85:
         raise OldVersionException(
             f"Upgrade code for this version is >2 years old and is no longer in the active codebase to reduce clutter. You can still find this code on github, contact me for more info."
         )
 
     db.foreign_keys = False
 
-    if version == 79:
-        # Add UserOptions.show_token_directions
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN show_token_directions INTEGER DEFAULT 1"
-            )
-            db.execute_sql(
-                "UPDATE user_options SET show_token_directions = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
-            )
-    elif version == 80:
-        # Add UserOptions.mouse_pan_mode
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN mouse_pan_mode INTEGER DEFAULT 3"
-            )
-            db.execute_sql(
-                "UPDATE user_options SET mouse_pan_mode = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
-            )
-    elif version == 81:
-        # Double check UserOption modifications (lg related)
-        with db.atomic():
-            for option in [
-                "render_all_floors",
-                "use_tool_icons",
-                "default_tracker_mode",
-                "show_token_directions",
-                "mouse_pan_mode",
-            ]:
-                try:
-                    db.execute_sql(f"SELECT {option} FROM user_options")
-                except:
-                    logger.warning(f"PATCHING {option}")
-                    default = 1
-                    if option == "mouse_pan_mode":
-                        default = 3
-                    db.execute_sql(
-                        f"ALTER TABLE user_options ADD COLUMN {option} INTEGER DEFAULT {default}"
-                    )
-                    db.execute_sql(
-                        f"UPDATE user_options SET {option} = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
-                    )
-    elif version == 82:
-        # Fix spawn-location issues
-        with db.atomic():
-            data = db.execute_sql(
-                "SELECT lo.id, lo.spawn_locations, l.id FROM location_options lo INNER JOIN location l ON l.options_id = lo.id"
-            )
-            for lo_id, spawn_locations, l_id in data.fetchall():
-                if spawn_locations is None or spawn_locations == "[]":
-                    continue
-
-                unpacked_spawn_locations = json.loads(spawn_locations)
-                changed = False
-
-                shape_data = db.execute_sql(
-                    "SELECT s.uuid, s.type_, l.type_ FROM shape s INNER JOIN layer l ON s.layer_id = l.id INNER JOIN floor f ON f.id = l.floor_id WHERE f.location_id = ?",
-                    (l_id,),
-                )
-
-                for shape_id, shape_type, layer_type in shape_data.fetchall():
-                    if shape_type != "assetrect":
-                        if shape_id in unpacked_spawn_locations:
-                            # remove from spawn locations
-                            unpacked_spawn_locations = [
-                                sl for sl in unpacked_spawn_locations if sl != shape_id
-                            ]
-                            changed = True
-                            continue
-                    else:
-                        shape_src_data = db.execute_sql(
-                            "SELECT src FROM asset_rect WHERE shape_id=?",
-                            (shape_id,),
-                        ).fetchone()
-                        if not shape_src_data:
-                            continue
-                        shape_src = shape_src_data[0]
-                        if not shape_src.endswith("/static/img/spawn.png"):
-                            if shape_id in unpacked_spawn_locations:
-                                # remove from spawn locations
-                                unpacked_spawn_locations = [
-                                    sl
-                                    for sl in unpacked_spawn_locations
-                                    if sl != shape_id
-                                ]
-                                changed = True
-                        elif (
-                            layer_type != "dm"
-                            and shape_id not in unpacked_spawn_locations
-                        ):
-                            # add to spawn locations
-                            unpacked_spawn_locations.append(shape_id)
-                            changed = True
-
-                if changed:
-                    db.execute_sql(
-                        "UPDATE location_options SET spawn_locations=? WHERE id=?",
-                        (json.dumps(unpacked_spawn_locations), lo_id),
-                    )
-    elif version == 83:
-        # Add Initiative.is_active
-        # Add UserOptions.initiative_open_on_activate
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE initiative ADD COLUMN is_active INTEGER DEFAULT 0 NOT NULL"
-            )
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN initiative_open_on_activate INTEGER DEFAULT 1"
-            )
-            db.execute_sql(
-                "UPDATE user_options SET initiative_open_on_activate = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
-            )
-    elif version == 84:
-        # Add LocationOptions.limit_movement_during_initiative
-        with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE location_options ADD COLUMN limit_movement_during_initiative INTEGER DEFAULT 0"
-            )
-            db.execute_sql(
-                "UPDATE location_options SET limit_movement_during_initiative = NULL WHERE id NOT IN (SELECT default_options_id FROM room)"
-            )
-    elif version == 85:
+    if version == 85:
         # Add Character things
         with db.atomic():
             db.execute_sql(
@@ -262,25 +142,15 @@ def upgrade(
             db.execute_sql(
                 'CREATE TABLE IF NOT EXISTS "note_access" ("id" INTEGER NOT NULL PRIMARY KEY, "note_id" TEXT NOT NULL, "user_id" INTEGER, can_edit INTEGER NOT NULL DEFAULT 0, can_view INTEGER NOT NULL DEFAULT 0, FOREIGN KEY ("note_id") REFERENCES "note" ("uuid") ON DELETE CASCADE, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE)'
             )
-            db.execute_sql(
-                'CREATE INDEX "note_access_note_id" ON "note_access" ("note_id")'
-            )
-            db.execute_sql(
-                'CREATE INDEX "note_access_user_id" ON "note_access" ("user_id")'
-            )
+            db.execute_sql('CREATE INDEX "note_access_note_id" ON "note_access" ("note_id")')
+            db.execute_sql('CREATE INDEX "note_access_user_id" ON "note_access" ("user_id")')
             db.execute_sql(
                 'CREATE TABLE IF NOT EXISTS "note_shape" ("id" INTEGER NOT NULL PRIMARY KEY, "note_id" TEXT NOT NULL, "shape_id" TEXT NOT NULL, FOREIGN KEY ("note_id") REFERENCES "note" ("uuid") ON DELETE CASCADE, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)'
             )
-            db.execute_sql(
-                'CREATE INDEX "note_shape_note_id" ON "note_shape" ("note_id")'
-            )
-            db.execute_sql(
-                'CREATE INDEX "note_shape_shape_id" ON "note_shape" ("shape_id")'
-            )
+            db.execute_sql('CREATE INDEX "note_shape_note_id" ON "note_shape" ("note_id")')
+            db.execute_sql('CREATE INDEX "note_shape_shape_id" ON "note_shape" ("shape_id")')
             # Move all template annotations to notes
-            data = db.execute_sql(
-                "SELECT a.id, a.owner_id, a.name, a.options FROM asset a WHERE a.options != ''"
-            )
+            data = db.execute_sql("SELECT a.id, a.owner_id, a.name, a.options FROM asset a WHERE a.options != ''")
             asset_id_to_note_id = {}
             for asset_id, asset_owner, asset_name, raw_options in data.fetchall():
                 try:
@@ -430,24 +300,18 @@ def upgrade(
     elif version == 89:
         # Add LocationOptions.drop_ratio
         with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE location_options ADD COLUMN drop_ratio REAL DEFAULT 1"
-            )
+            db.execute_sql("ALTER TABLE location_options ADD COLUMN drop_ratio REAL DEFAULT 1")
             db.execute_sql(
                 "UPDATE location_options SET drop_ratio = NULL WHERE id NOT IN (SELECT default_options_id FROM room)"
             )
     elif version == 90:
         # Add Shape.odd_hex_orientation
         with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE shape ADD COLUMN odd_hex_orientation INTEGER DEFAULT 0"
-            )
+            db.execute_sql("ALTER TABLE shape ADD COLUMN odd_hex_orientation INTEGER DEFAULT 0")
     elif version == 91:
         # Add UserOptions.grid_mode_label_format
         with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN grid_mode_label_format INTEGER DEFAULT 0"
-            )
+            db.execute_sql("ALTER TABLE user_options ADD COLUMN grid_mode_label_format INTEGER DEFAULT 0")
             db.execute_sql(
                 "UPDATE user_options SET grid_mode_label_format = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
             )
@@ -458,27 +322,15 @@ def upgrade(
     elif version == 93:
         # Add Shape.show_cells, Shape.cell_fill_colour, Shape.cell_stroke_colour, Shape.cell_stroke_width
         with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE shape ADD COLUMN show_cells INTEGER NOT NULL DEFAULT 0"
-            )
-            db.execute_sql(
-                "ALTER TABLE shape ADD COLUMN cell_fill_colour TEXT DEFAULT NULL"
-            )
-            db.execute_sql(
-                "ALTER TABLE shape ADD COLUMN cell_stroke_colour TEXT DEFAULT NULL"
-            )
-            db.execute_sql(
-                "ALTER TABLE shape ADD COLUMN cell_stroke_width INTEGER DEFAULT NULL"
-            )
+            db.execute_sql("ALTER TABLE shape ADD COLUMN show_cells INTEGER NOT NULL DEFAULT 0")
+            db.execute_sql("ALTER TABLE shape ADD COLUMN cell_fill_colour TEXT DEFAULT NULL")
+            db.execute_sql("ALTER TABLE shape ADD COLUMN cell_stroke_colour TEXT DEFAULT NULL")
+            db.execute_sql("ALTER TABLE shape ADD COLUMN cell_stroke_width INTEGER DEFAULT NULL")
     elif version == 94:
         # Add Room.enable_chat Room.enable_dice
         with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE room ADD COLUMN enable_chat INTEGER NOT NULL DEFAULT 1"
-            )
-            db.execute_sql(
-                "ALTER TABLE room ADD COLUMN enable_dice INTEGER NOT NULL DEFAULT 1"
-            )
+            db.execute_sql("ALTER TABLE room ADD COLUMN enable_chat INTEGER NOT NULL DEFAULT 1")
+            db.execute_sql("ALTER TABLE room ADD COLUMN enable_dice INTEGER NOT NULL DEFAULT 1")
     elif version == 95:
         # Remove labels
         with db.atomic():
@@ -488,18 +340,10 @@ def upgrade(
     elif version == 96:
         # Add UserOptions.default_wall_colour, UserOptions.default_window_colour, UserOptions.default_closed_door_colour, UserOptions.default_open_door_colour
         with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN default_wall_colour TEXT DEFAULT NULL"
-            )
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN default_window_colour TEXT DEFAULT NULL"
-            )
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN default_closed_door_colour TEXT DEFAULT NULL"
-            )
-            db.execute_sql(
-                "ALTER TABLE user_options ADD COLUMN default_open_door_colour TEXT DEFAULT NULL"
-            )
+            db.execute_sql("ALTER TABLE user_options ADD COLUMN default_wall_colour TEXT DEFAULT NULL")
+            db.execute_sql("ALTER TABLE user_options ADD COLUMN default_window_colour TEXT DEFAULT NULL")
+            db.execute_sql("ALTER TABLE user_options ADD COLUMN default_closed_door_colour TEXT DEFAULT NULL")
+            db.execute_sql("ALTER TABLE user_options ADD COLUMN default_open_door_colour TEXT DEFAULT NULL")
     elif version == 97:
         # Add folder structure to the assets folder
 
@@ -529,9 +373,7 @@ def upgrade(
         # Generate thumbnails for all assets
         # This is a bit of a fake migration as the DB is not modified, but it's a one time thing
         if not is_import and loop is not None:
-            data = db.execute_sql(
-                "SELECT name, file_hash FROM asset WHERE file_hash NOT NULL"
-            ).fetchall()
+            data = db.execute_sql("SELECT name, file_hash FROM asset WHERE file_hash NOT NULL").fetchall()
 
             loop.create_task(generate_thumbnails(data, loop))
     elif version == 99:
@@ -540,10 +382,58 @@ def upgrade(
             db.execute_sql(
                 "CREATE TABLE IF NOT EXISTS asset_shortcut (id INTEGER NOT NULL PRIMARY KEY, asset_id INTEGER NOT NULL, player_room_id INTEGER NOT NULL, FOREIGN KEY (asset_id) REFERENCES asset (id) ON DELETE CASCADE, FOREIGN KEY (player_room_id) REFERENCES player_room (id) ON DELETE CASCADE)"
             )
+    elif version == 100:
+        # Remove Shape.isToken & Unset vision_access for shapes that are not tokens
+        with db.atomic():
+            data = db.execute_sql(
+                "SELECT so.id FROM shape_owner so INNER JOIN shape s ON s.uuid = so.shape_id WHERE s.is_token = 0 AND so.vision_access = 1"
+            )
+            for id in data.fetchall():
+                db.execute_sql("UPDATE shape_owner SET vision_access=0 WHERE id=?", id)
+            db.execute_sql("CREATE TEMPORARY TABLE _shape_100 AS SELECT * FROM shape")
+            db.execute_sql("DROP TABLE shape")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "shape" ("uuid" TEXT NOT NULL PRIMARY KEY, "layer_id" INTEGER, "type_" TEXT NOT NULL, "x" REAL NOT NULL, "y" REAL NOT NULL, "name" TEXT, "name_visible" INTEGER NOT NULL, "fill_colour" TEXT NOT NULL, "stroke_colour" TEXT NOT NULL, "vision_obstruction" INTEGER NOT NULL, "movement_obstruction" INTEGER NOT NULL, "draw_operator" TEXT NOT NULL, "index" INTEGER NOT NULL, "options" TEXT, "badge" INTEGER NOT NULL, "show_badge" INTEGER NOT NULL, "default_edit_access" INTEGER NOT NULL, "default_vision_access" INTEGER NOT NULL, "is_invisible" INTEGER NOT NULL DEFAULT 0, "is_defeated" INTEGER NOT NULL DEFAULT 0, "default_movement_access" INTEGER NOT NULL DEFAULT 0, "is_locked" INTEGER NOT NULL DEFAULT 0, "angle" REAL NOT NULL DEFAULT 0, "stroke_width" INTEGER NOT NULL DEFAULT 2, "asset_id" INTEGER DEFAULT NULL, "group_id" TEXT DEFAULT NULL, "ignore_zoom_size" INTEGER DEFAULT 0, "is_door" INTEGER DEFAULT 0 NOT NULL, "is_teleport_zone" INTEGER DEFAULT 0 NOT NULL, "character_id" INTEGER DEFAULT NULL, odd_hex_orientation INTEGER DEFAULT 0, size INTEGER DEFAULT 0, show_cells INTEGER NOT NULL DEFAULT 0, cell_fill_colour TEXT DEFAULT NULL, cell_stroke_colour TEXT DEFAULT NULL, cell_stroke_width INTEGER DEFAULT NULL, FOREIGN KEY ("layer_id") REFERENCES "layer" ("id") ON DELETE CASCADE, FOREIGN KEY ("asset_id") REFERENCES "asset" ("id") ON DELETE SET NULL, FOREIGN KEY ("group_id") REFERENCES "group" ("uuid") ON DELETE SET NULL, FOREIGN KEY ("character_id") REFERENCES "character" ("id") ON DELETE SET NULL)'
+            )
+            db.execute_sql(
+                'INSERT INTO "shape" ("uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "is_defeated", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "ignore_zoom_size", "is_door", "is_teleport_zone", "character_id", "odd_hex_orientation", "size", "show_cells", "cell_fill_colour", "cell_stroke_colour", "cell_stroke_width") SELECT "uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "is_defeated", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "ignore_zoom_size", "is_door", "is_teleport_zone", "character_id", "odd_hex_orientation", "size", "show_cells", "cell_fill_colour", "cell_stroke_colour", "cell_stroke_width" FROM _shape_100'
+            )
+            db.execute_sql("DROP TABLE _shape_100")
+    elif version == 101:
+        # Add Mods and ModsPlayerRoom
+        with db.atomic():
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "mod" ("id" INTEGER NOT NULL PRIMARY KEY, "tag" TEXT NOT NULL, "name" TEXT NOT NULL, "version" TEXT NOT NULL, "hash" TEXT NOT NULL, "author" TEXT NOT NULL, "description" TEXT NOT NULL, "short_description" TEXT NOT NULL, "api_schema" TEXT NOT NULL, "first_uploaded_at" DATE NOT NULL, "first_uploaded_by_id" INTEGER, "has_css" INTEGER NOT NULL, FOREIGN KEY ("first_uploaded_by_id") REFERENCES "user" ("id") ON DELETE SET NULL);'
+            )
+            db.execute_sql('CREATE INDEX "mod_first_uploaded_by_id" ON "mod" ("first_uploaded_by_id");')
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "mod_room" ("id" INTEGER NOT NULL PRIMARY KEY, "mod_id" INTEGER NOT NULL, "room_id" INTEGER NOT NULL, "enabled" INTEGER NOT NULL, FOREIGN KEY ("mod_id") REFERENCES "mod" ("id") ON DELETE CASCADE, FOREIGN KEY ("room_id") REFERENCES "room" ("id") ON DELETE CASCADE);'
+            )
+            db.execute_sql('CREATE INDEX "mod_room_mod_id" ON "mod_room" ("mod_id");')
+            db.execute_sql('CREATE INDEX "mod_room_room_id" ON "mod_room" ("room_id");')
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "mod_player_room" ("id" INTEGER NOT NULL PRIMARY KEY, "mod_id" INTEGER NOT NULL, "player_room_id" INTEGER NOT NULL, "enabled" INTEGER NOT NULL, FOREIGN KEY ("mod_id") REFERENCES "mod" ("id") ON DELETE CASCADE, FOREIGN KEY ("player_room_id") REFERENCES "player_room" ("id") ON DELETE CASCADE);'
+            )
+            db.execute_sql('CREATE INDEX "mod_player_room_mod_id" ON "mod_player_room" ("mod_id");')
+            db.execute_sql('CREATE INDEX "mod_player_room_player_room_id" ON "mod_player_room" ("player_room_id");')
+    elif version == 102:
+        with db.atomic():
+            db.execute_sql("CREATE UNIQUE INDEX unique_username ON user(name);")
+    elif version == 103:
+        with db.atomic():
+            db.execute_sql(
+                "CREATE TABLE IF NOT EXISTS stats (id INTEGER NOT NULL PRIMARY KEY, kind TEXT NOT NULL, timestamp DATETIME NOT NULL, data TEXT);"
+            )
+            db.execute_sql(
+                "ALTER TABLE constants ADD COLUMN stats_uuid TEXT;",
+            )
+            db.execute_sql("ALTER TABLE constants ADD COLUMN last_export_date DATETIME;")
+            db.execute_sql(
+                "UPDATE constants SET stats_uuid = ?",
+                (str(uuid4()),),
+            )
     else:
-        raise UnknownVersionException(
-            f"No upgrade code for save format {version} was found."
-        )
+        raise UnknownVersionException(f"No upgrade code for save format {version} was found.")
     inc_save_version(db)
     db.foreign_keys = True
 
@@ -560,21 +450,15 @@ def upgrade_save(
         save_version = get_save_version(db)
     except:
         if is_import:
-            raise Exception(
-                "The import save database is not correctly formatted. Failed to import"
-            )
+            raise Exception("The import save database is not correctly formatted. Failed to import")
         else:
-            logger.error(
-                "Database does not conform to expected format. Failed to start."
-            )
+            logger.error("Database does not conform to expected format. Failed to start.")
             sys.exit(2)
 
     if save_version == SAVE_VERSION:
         return
     else:
-        logger.warning(
-            f"Save format {save_version} does not match the required version {SAVE_VERSION}!"
-        )
+        logger.warning(f"Save format {save_version} does not match the required version {SAVE_VERSION}!")
         logger.warning("Attempting upgrade")
 
     while save_version != SAVE_VERSION:
@@ -604,9 +488,9 @@ def backup_save(version: int):
     save_backups = FILE_DIR / "save_backups"
     if not save_backups.is_dir():
         save_backups.mkdir()
-    backup_path = save_backups.resolve() / f"{Path(SAVE_FILE).name}.{version}"
+    backup_path = save_backups.resolve() / f"{SAVE_PATH.name}.{version}"
     logger.warning(f"Backing up old save as {backup_path}")
-    shutil.copyfile(SAVE_FILE, backup_path)
+    shutil.copyfile(SAVE_PATH, backup_path)
 
 
 def migrate_assets_folder():

@@ -118,7 +118,7 @@ function handleMessage(event: KeyboardEvent): void {
     <div id="chat" :class="{ collapsed: !expanded }">
         <div id="chat-title" @click="toggleChat">
             <div>
-                {{ t('game.ui.chat.title') }}
+                {{ t("game.ui.chat.title") }}
                 <span v-show="chatState.raw.messages.length > messagesSeenCount">
                     ({{ chatState.raw.messages.length - messagesSeenCount }})
                 </span>
@@ -136,7 +136,7 @@ function handleMessage(event: KeyboardEvent): void {
             </template>
             <template v-if="chatState.reactive.messages.length === 0">
                 <div></div>
-                <div style="font-style: italic">{{ t('game.ui.chat.no_messages') }}</div>
+                <div style="font-style: italic">{{ t("game.ui.chat.no_messages") }}</div>
             </template>
         </div>
         <textarea v-show="expanded" ref="textInput" @keydown.enter="handleMessage" />

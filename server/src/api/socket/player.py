@@ -24,9 +24,7 @@ async def bring_players(sid: str, raw_data: Any):
         logger.warning(f"{pr.player.name} attempted to bring all players")
         return
 
-    await _send_game(
-        "Position.Set", data, room=pr.active_location.get_path(), skip_sid=sid
-    )
+    await _send_game("Position.Set", data, room=pr.active_location.get_path(), skip_sid=sid)
 
 
 @sio.on("Players.Position.Set", namespace=GAME_NS)
@@ -63,19 +61,13 @@ async def set_player_role(sid: str, raw_data: Any):
     creator: User = player_pr.room.creator
 
     if pr.player != creator and creator == player_pr.player:
-        logger.warning(
-            f"{pr.player.name} attempted to change the role of the campaign creator"
-        )
+        logger.warning(f"{pr.player.name} attempted to change the role of the campaign creator")
         return
 
     if pr.role == Role.DM and new_role != Role.DM:
-        dm_players = PlayerRoom.filter(room=pr.room, role=Role.DM).where(
-            PlayerRoom.player != data.player
-        )
+        dm_players = PlayerRoom.filter(room=pr.room, role=Role.DM).where(PlayerRoom.player != data.player)
         if dm_players.count() == 0:
-            logger.warning(
-                f"{pr.player.name} attempted to change the role of the last dm in the campaign"
-            )
+            logger.warning(f"{pr.player.name} attempted to change the role of the last dm in the campaign")
             return
 
     player_pr.role = new_role

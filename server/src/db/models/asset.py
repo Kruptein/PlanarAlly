@@ -56,17 +56,12 @@ class Asset(BaseDbModel):
                 asset = share.asset
         return asset
 
-    def can_be_accessed_by(
-        self, user: User, *, right: Literal["edit", "view", "all"]
-    ) -> bool:
+    def can_be_accessed_by(self, user: User, *, right: Literal["edit", "view", "all"]) -> bool:
         asset = self
         while asset is not None:
             if asset.owner == user:
                 return True
-            if any(
-                share.user == user and (share.right == right or right == "all")
-                for share in asset.shares
-            ):
+            if any(share.user == user and (share.right == right or right == "all") for share in asset.shares):
                 return True
             asset = asset.parent
         return False
@@ -103,9 +98,7 @@ class Asset(BaseDbModel):
             assets.append(asset_share.asset)
         for asset in assets:
             if asset.file_hash:
-                data["__files"].append(
-                    {"id": asset.id, "name": asset.name, "hash": asset.file_hash}
-                )
+                data["__files"].append({"id": asset.id, "name": asset.name, "hash": asset.file_hash})
             else:
                 data[asset.name] = cls.get_user_structure(user, asset)
         return data

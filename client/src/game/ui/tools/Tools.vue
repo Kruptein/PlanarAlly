@@ -6,9 +6,11 @@ import { useI18n } from "vue-i18n";
 import { baseAdjust } from "../../../core/http";
 import { ToolMode, ToolName } from "../../models/tools";
 import { accessState } from "../../systems/access/state";
+import { floorSystem } from "../../systems/floors";
 import { gameSystem } from "../../systems/game";
 import { gameState } from "../../systems/game/state";
 import { roomState } from "../../systems/room/state";
+import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { activeModeTools, activeTool, activeToolMode, dmTools, toggleActiveMode, toolMap } from "../../tools/tools";
 import { initiativeStore } from "../initiative/state";
@@ -75,6 +77,11 @@ const toolModes = computed(() => {
 function toggleFakePlayer(): void {
     gameSystem.setFakePlayer(!gameState.raw.isFakePlayer);
 }
+
+function toggleLoS(): void {
+    locationSettingsState.mutableReactive.losOverwritten = !locationSettingsState.raw.losOverwritten;
+    floorSystem.invalidateLightAllFloors();
+}
 </script>
 
 <template>
@@ -105,14 +112,25 @@ function toggleFakePlayer(): void {
                         :title="t('game.ui.tools.tools.FP_title')"
                         @click="toggleFakePlayer"
                     >
-                        {{ t('game.ui.tools.tools.FP') }}
+                        {{ t("game.ui.tools.tools.FP") }}
+                    </div>
+                    <div
+                        v-if="locationSettingsState.reactive.fowLos.value"
+                        :class="{
+                            active: !locationSettingsState.reactive.losOverwritten,
+                            disabled: locationSettingsState.reactive.losOverwritten,
+                        }"
+                        :title="t('game.ui.tools.tools.LOS_title')"
+                        @click="toggleLoS"
+                    >
+                        {{ t("game.ui.tools.tools.LOS") }}
                     </div>
                     <div
                         :class="{ active: initiativeStore.state.isActive }"
                         :title="t('game.ui.tools.tools.INI_title')"
                         @click="initiativeStore.toggleActive"
                     >
-                        {{ t('game.ui.tools.tools.INI') }}
+                        {{ t("game.ui.tools.tools.INI") }}
                     </div>
                 </div>
                 <div style="flex-grow: 1"></div>
@@ -206,6 +224,11 @@ function toggleFakePlayer(): void {
                 &.active {
                     border-color: #39ff14;
                     color: #39ff14;
+                }
+
+                &.disabled {
+                    border-color: #e74c3c;
+                    color: #e74c3c;
                 }
             }
         }

@@ -37,11 +37,6 @@ function toggleNameVisible(): void {
     propertiesSystem.setNameVisible(id, !shapeProps.value!.nameVisible, SERVER_SYNC);
 }
 
-function setToken(event: Event): void {
-    if (!owned.value) return;
-    propertiesSystem.setIsToken(selectedState.raw.focus!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
-}
-
 function setInvisible(event: Event): void {
     if (!owned.value) return;
     propertiesSystem.setIsInvisible(selectedState.raw.focus!, (event.target as HTMLInputElement).checked, SERVER_SYNC);
@@ -163,18 +158,6 @@ async function changeAsset(): Promise<void> {
                 @change="setValue"
             />
             <div></div>
-        </div>
-        <div class="row">
-            <label for="shapeselectiondialog-istoken">{{ t("game.ui.selection.edit_dialog.dialog.is_a_token") }}</label>
-            <input
-                id="shapeselectiondialog-istoken"
-                type="checkbox"
-                :checked="shapeProps.isToken"
-                style="grid-column-start: toggle"
-                class="styled-checkbox"
-                :disabled="!owned"
-                @click="setToken"
-            />
         </div>
         <div class="row">
             <label for="shapeselectiondialog-is-invisible">

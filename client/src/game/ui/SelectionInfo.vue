@@ -157,12 +157,22 @@ function annotate(note: DeepReadonly<ClientNote>): void {
                 </div>
                 <div class="info-notes">
                     <div
-                        :title="notes.length > 0 ? (expandNotes ? t('game.ui.selection.SelectionInfo.collapse_notes') : t('game.ui.selection.SelectionInfo.expand_notes')) : ''"
+                        :title="
+                            notes.length > 0
+                                ? expandNotes
+                                    ? t('game.ui.selection.SelectionInfo.collapse_notes')
+                                    : t('game.ui.selection.SelectionInfo.expand_notes')
+                                : ''
+                        "
                         :style="{ cursor: notes.length > 0 ? 'pointer' : 'default' }"
                         @click="expandNotes = !expandNotes"
                     >
-                        <font-awesome-icon icon="note-sticky" :title="t('game.ui.selection.SelectionInfo.open_note_manager_title')" @click.stop="openNotes" />
-                        {{ notes.length }} {{ t('game.ui.selection.SelectionInfo.notes') }}
+                        <font-awesome-icon
+                            icon="note-sticky"
+                            :title="t('game.ui.selection.SelectionInfo.open_note_manager_title')"
+                            @click.stop="openNotes"
+                        />
+                        {{ notes.length }} {{ t("game.ui.selection.SelectionInfo.notes") }}
                         <div style="flex-grow: 1"></div>
                         <font-awesome-icon
                             v-if="notes.length > 0"
@@ -199,7 +209,6 @@ function annotate(note: DeepReadonly<ClientNote>): void {
     flex-direction: column;
     top: 75px;
     right: 0;
-    z-index: 10;
     opacity: 0.5;
     border-top-left-radius: 5px;
     border-bottom-left-radius: 5px;
@@ -208,6 +217,7 @@ function annotate(note: DeepReadonly<ClientNote>): void {
 
     &:hover {
         opacity: 1;
+        z-index: 10;
 
         > div:first-child {
             background-color: #82c8a0;

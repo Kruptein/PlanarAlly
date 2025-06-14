@@ -23,9 +23,7 @@ async def share_asset(sid: str, raw_data: Any):
 
     target_user = User.by_name(data.user)
     if target_user is None:
-        await send_log_toast(
-            "Username does not exist", "warn", room=sid, namespace=ASSET_NS
-        )
+        await send_log_toast("Username does not exist", "warn", room=sid, namespace=ASSET_NS)
         return
     elif target_user == initiating_user:
         await send_log_toast(
@@ -39,15 +37,11 @@ async def share_asset(sid: str, raw_data: Any):
     try:
         asset = Asset.get_by_id(data.asset)
     except Asset.DoesNotExist:
-        await send_log_toast(
-            "Asset does not exist", "warn", room=sid, namespace=ASSET_NS
-        )
+        await send_log_toast("Asset does not exist", "warn", room=sid, namespace=ASSET_NS)
         return
 
     if asset.owner != initiating_user:
-        await send_log_toast(
-            "You do not own this asset", "warn", room=sid, namespace=ASSET_NS
-        )
+        await send_log_toast("You do not own this asset", "warn", room=sid, namespace=ASSET_NS)
         return
 
     try:
@@ -59,9 +53,7 @@ async def share_asset(sid: str, raw_data: Any):
             parent=Asset.get_root_folder(target_user),
         )
     except:
-        await send_log_toast(
-            "Failed to create asset share", "warn", room=sid, namespace=ASSET_NS
-        )
+        await send_log_toast("Failed to create asset share", "warn", room=sid, namespace=ASSET_NS)
         return
 
     for user in [asset.owner, *(s.user for s in asset.shares if s.user != target_user)]:
@@ -96,9 +88,7 @@ async def edit_asset_share(sid: str, raw_data: Any):
                 users_with_edit_access.append(share.user)
 
         if initiating_user not in users_with_edit_access:
-            logger.warn(
-                f"{initiating_user.name} attempted to edit asset share rights without permissions."
-            )
+            logger.warning(f"{initiating_user.name} attempted to edit asset share rights without permissions.")
             return
 
         for share in shares:
@@ -112,15 +102,13 @@ async def edit_asset_share(sid: str, raw_data: Any):
 
                 for user in users_to_message:
                     for psid in asset_state.get_sids(name=user.name):
-                        await sio.emit(
-                            "Asset.Share.Edit", data, room=psid, namespace=ASSET_NS
-                        )
+                        await sio.emit("Asset.Share.Edit", data, room=psid, namespace=ASSET_NS)
                 break
         else:
-            logger.warn("Attempt to edit non-existing asset share.")
+            logger.warning("Attempt to edit non-existing asset share.")
             return
     else:
-        logger.warn("Attempt to edit asset share from unknown shape.")
+        logger.warning("Attempt to edit asset share from unknown shape.")
         return
 
 
@@ -140,9 +128,7 @@ async def remove_asset_share(sid: str, raw_data: Any):
                 users_with_edit_access.append(share.user)
 
         if initiating_user not in users_with_edit_access:
-            logger.warn(
-                f"{initiating_user.name} attempted to remove asset share rights without permissions."
-            )
+            logger.warning(f"{initiating_user.name} attempted to remove asset share rights without permissions.")
             return
 
         for share in shares:
@@ -155,15 +141,13 @@ async def remove_asset_share(sid: str, raw_data: Any):
 
                 for user in users_to_message:
                     for psid in asset_state.get_sids(name=user.name):
-                        await sio.emit(
-                            "Asset.Share.Removed", data, room=psid, namespace=ASSET_NS
-                        )
+                        await sio.emit("Asset.Share.Removed", data, room=psid, namespace=ASSET_NS)
                 break
         else:
-            logger.warn("Attempt to remove non-existing asset share.")
+            logger.warning("Attempt to remove non-existing asset share.")
             return
     else:
-        logger.warn("Attempt to remove asset share from unknown shape.")
+        logger.warning("Attempt to remove asset share from unknown shape.")
         return
 
 

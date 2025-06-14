@@ -5,11 +5,10 @@ import { NO_SYNC, SERVER_SYNC, UI_SYNC } from "../../../../src/core/models/types
 import { socket } from "../../../../src/game/api/socket";
 import { accessSystem } from "../../../../src/game/systems/access";
 import { DEFAULT_ACCESS, DEFAULT_ACCESS_SYMBOL } from "../../../../src/game/systems/access/models";
-import type { ShapeAccess } from "../../../../src/game/systems/access/models";
+import type { AccessConfig } from "../../../../src/game/systems/access/models";
 import { accessState } from "../../../../src/game/systems/access/state";
 import { gameSystem } from "../../../../src/game/systems/game";
 import { playerSystem } from "../../../../src/game/systems/players";
-import type { ShapeProperties } from "../../../../src/game/systems/properties/state";
 import { coreStore } from "../../../../src/store/core";
 import { generatePlayer, generateTestLocalId } from "../../../helpers";
 
@@ -18,16 +17,33 @@ const emitSpy = vi.spyOn(socket, "emit");
 const addOwnedTokenSpy = vi.spyOn(accessSystem, "addOwnedToken");
 const removeOwnedTokenSpy = vi.spyOn(accessSystem, "removeOwnedToken");
 
-let GET_PROPERTIES_OVERRIDE: (() => Partial<ShapeProperties> | undefined) | undefined = undefined;
-vi.mock("../../../../src/game/systems/properties/state", async () => {
-    const state: Record<string, any> = await vi.importActual("../../../../src/game/systems/properties/state");
-    return {
-        ...state,
-        getProperties: (localId: LocalId) => {
-            return GET_PROPERTIES_OVERRIDE === undefined ? state.getProperties(localId) : GET_PROPERTIES_OVERRIDE();
-        },
-    };
+// Mock for gameSystem.setDm to rerun _updateOwnedToken for all known tokens
+const originalSetDm = gameSystem.setDm.bind(gameSystem);
+vi.spyOn(gameSystem, "setDm").mockImplementation((isDm: boolean) => {
+    originalSetDm(isDm);
+
+    // Rerun _updateOwnedToken for all known tokens
+    for (const id of accessState.readonly.access.keys()) {
+        accessSystem._updateOwnedState(id);
+    }
 });
+
+// Mock for coreStore.setUsername to rerun _updateOwnedToken for all known tokens
+const originalSetUsername = coreStore.setUsername.bind(coreStore);
+vi.spyOn(coreStore, "setUsername").mockImplementation((username: string) => {
+    originalSetUsername(username);
+
+    // Rerun _updateOwnedToken for all known tokens
+    for (const id of accessState.readonly.access.keys()) {
+        accessSystem._updateOwnedState(id);
+    }
+});
+
+function accessCheck(id: LocalId, access: AccessConfig, limiter: boolean = false): void {
+    for (const [key, value] of Object.entries(access)) {
+        expect(accessSystem.hasAccessTo(id, key as keyof AccessConfig, limiter)).toBe(value);
+    }
+}
 
 describe("Access System", () => {
     beforeEach(() => {
@@ -36,7 +52,6 @@ describe("Access System", () => {
         emitSpy.mockClear();
         addOwnedTokenSpy.mockClear();
         removeOwnedTokenSpy.mockClear();
-        GET_PROPERTIES_OVERRIDE = undefined;
     });
     describe("inform", () => {
         it("should update $state if active", () => {
@@ -47,14 +62,14 @@ describe("Access System", () => {
             //test
             accessSystem.inform(id2, {
                 default: { edit: false, movement: true, vision: true },
-                extra: [{ access: { edit: true, movement: false, vision: true }, shape: id2, user: "testUser" }],
+                extra: [{ access: { edit: true, movement: false, vision: true }, user: "testUser" }],
             });
             expect(accessState.raw.defaultAccess).toEqual(DEFAULT_ACCESS);
             expect(accessState.raw.playerAccess.size).toBe(0);
 
             accessSystem.inform(id, {
                 default: { edit: false, movement: true, vision: true },
-                extra: [{ access: { edit: true, movement: false, vision: true }, shape: id2, user: "testUser" }],
+                extra: [{ access: { edit: true, movement: false, vision: true }, user: "testUser" }],
             });
             expect(accessState.raw.defaultAccess).toEqual({ edit: false, movement: true, vision: true });
             expect(accessState.raw.playerAccess.get("testUser")).toEqual({
@@ -72,7 +87,7 @@ describe("Access System", () => {
             accessSystem.inform(id, { default: DEFAULT_ACCESS, extra: [] });
             accessSystem.inform(id2, {
                 default: DEFAULT_ACCESS,
-                extra: [{ access: { edit: true, movement: false, vision: true }, shape: id2, user: "testUser" }],
+                extra: [{ access: { edit: true, movement: false, vision: true }, user: "testUser" }],
             });
             // test
             expect(accessSystem.getDefault(id)).toBe(DEFAULT_ACCESS);
@@ -88,7 +103,7 @@ describe("Access System", () => {
             accessSystem.inform(id, { default: id1Default, extra: [] });
             accessSystem.inform(id2, {
                 default: id2Default,
-                extra: [{ access: { edit: true, movement: false, vision: true }, shape: id2, user: "testUser" }],
+                extra: [{ access: { edit: true, movement: false, vision: true }, user: "testUser" }],
             });
             // test
             expect(accessSystem.getDefault(id)).toBe(id1Default);
@@ -98,133 +113,169 @@ describe("Access System", () => {
     describe("hasAccessTo", () => {
         let id: LocalId;
         let id2: LocalId;
+        let id3: LocalId;
 
         beforeEach(() => {
+            // Shape 1: Only some default access rights
+            // Shape 2: Full access rights for a specific user
+            // Shape 3: Mixed default & specific access rights
             id = generateTestLocalId();
             id2 = generateTestLocalId();
+            id3 = generateTestLocalId();
+
             const id1Default = { edit: true, movement: false, vision: true };
             const id2Default = { edit: false, movement: true, vision: false };
+            const id3Default = { edit: false, movement: false, vision: true };
+
             const id2TestUser = {
                 access: { edit: true, movement: true, vision: true },
-                shape: id2,
                 user: "userWithFullRights",
             };
             playerSystem.addPlayer(generatePlayer("userWithFullRights"));
             const id2DmUser = {
                 access: { edit: false, movement: false, vision: false },
-                shape: id2,
                 user: "userWithNoRights",
             };
             playerSystem.addPlayer(generatePlayer("userWithNoRights"));
+
+            const id3TestUser = {
+                access: { edit: true, movement: false, vision: false },
+                user: "userWithLimitedRights",
+            };
+            playerSystem.addPlayer(generatePlayer("userWithLimitedRights"));
 
             accessSystem.inform(id, { default: id1Default, extra: [] });
             accessSystem.inform(id2, {
                 default: id2Default,
                 extra: [id2TestUser, id2DmUser],
             });
+            accessSystem.inform(id3, {
+                default: id3Default,
+                extra: [id3TestUser],
+            });
         });
-        it("should return correctly if the player is a DM", () => {
+        it("should return true for the DM without limiters", () => {
             // setup
             gameSystem.setDm(true);
             // test
-            expect(accessSystem.hasAccessTo(id, false, { edit: true })).toBe(true);
-            // extra checks
-            // 1. shape does not exist
-            GET_PROPERTIES_OVERRIDE = () => undefined;
-            expect(accessSystem.hasAccessTo(id, false, { edit: true })).toBe(true);
-            // 2. shape is a token that is not active and the limiter is active
-            GET_PROPERTIES_OVERRIDE = () => ({ isToken: true });
-            accessSystem.setActiveTokens();
-            expect(accessSystem.hasAccessTo(id, true, { edit: true })).toBe(false);
-            GET_PROPERTIES_OVERRIDE = undefined;
-            // 3. the current user would otherwise not have access
-            coreStore.setUsername("userWithNoRights");
-            expect(accessSystem.hasAccessTo(id2, false, { edit: true })).toBe(true);
+            accessCheck(id, { edit: true, movement: true, vision: true });
+            accessCheck(id2, { edit: true, movement: true, vision: true });
+            accessCheck(id3, { edit: true, movement: true, vision: true });
             // teardown
             gameSystem.setDm(false);
         });
-        it("should return false if the shape does not exist", () => {
+        it("should return true for the DM without a limiter regardless of the active filter", () => {
             // setup
-            GET_PROPERTIES_OVERRIDE = () => undefined;
+            gameSystem.setDm(true);
+            accessSystem.setActiveVisionTokens(id, id2, id3);
             // test
-            expect(accessSystem.hasAccessTo(id, false, { movement: true })).toBe(false);
-            // extra checks
-            // 1. fake player
-            gameSystem.setFakePlayer(true);
-            expect(accessSystem.hasAccessTo(id, false, { movement: true })).toBe(false);
-            gameSystem.setFakePlayer(false);
-            gameSystem.setDm(false); // fakeplayer resets isDm
-            // 2. default access is granted
-            expect(accessSystem.hasAccessTo(id, false, { edit: true })).toBe(false);
-            // 3. user access is granted
-            coreStore.setUsername("userWithFullRights");
-            expect(accessSystem.hasAccessTo(id2, false, { edit: true })).toBe(false);
+            accessCheck(id, { edit: true, movement: true, vision: true });
+            accessCheck(id2, { edit: true, movement: true, vision: true });
+            accessCheck(id3, { edit: true, movement: true, vision: true });
+            // teardown
+            gameSystem.setDm(false);
         });
-        it("should return false if the shape is a token and NOT an active token with the limiter active", () => {
+        it("should return according to the access rights for the DM with a limiter and the shape in the active filter", () => {
             // setup
-            GET_PROPERTIES_OVERRIDE = () => ({ isToken: true });
-            accessSystem.setActiveTokens();
-            // test
-            expect(accessSystem.hasAccessTo(id, true, { edit: true })).toBe(false);
-            // without limiter
-            expect(accessSystem.hasAccessTo(id, false, { edit: true })).toBe(true);
-            // without isToken
-            GET_PROPERTIES_OVERRIDE = undefined;
-            expect(accessSystem.hasAccessTo(id, true, { edit: true })).toBe(true);
-            // with active token
-            GET_PROPERTIES_OVERRIDE = () => ({ isToken: true });
-            accessSystem.setActiveTokens(id);
-            expect(accessSystem.hasAccessTo(id, true, { edit: true })).toBe(true);
-            accessSystem.setActiveTokens();
-            // extra checks
-            // 1. fake player
-            gameSystem.setFakePlayer(true);
-            expect(accessSystem.hasAccessTo(id, true, { edit: true })).toBe(false);
-            gameSystem.setFakePlayer(false);
-            gameSystem.setDm(false); // fakeplayer resets isDm
-            // 2. default access is granted
-            expect(accessSystem.hasAccessTo(id, true, { edit: true })).toBe(false);
-            // 3. user access is granted
-            coreStore.setUsername("userWithFullRights");
-            expect(accessSystem.hasAccessTo(id2, true, { edit: true })).toBe(false);
+            gameSystem.setDm(true);
+            // test shape 1
+            accessSystem.setActiveVisionTokens(id);
+            accessCheck(id, { edit: true, movement: false, vision: true }, true);
+            // test shape 2
+            accessSystem.setActiveVisionTokens(id2);
+            accessCheck(id2, { edit: true, movement: true, vision: true }, true);
+            // test shape 3
+            accessSystem.setActiveVisionTokens(id3);
+            accessCheck(id3, { edit: true, movement: false, vision: true }, true);
+            // test all shapes
+            accessSystem.setActiveVisionTokens(id, id2, id3);
+            expect(accessSystem.hasAccessTo(id, "edit", true)).toBe(true);
+            expect(accessSystem.hasAccessTo(id2, "movement", true)).toBe(true);
+            expect(accessSystem.hasAccessTo(id3, "vision", true)).toBe(true);
+            // teardown
+            gameSystem.setDm(false);
         });
-        it("should return false if fake player is activated", () => {
+        it("should return false for the DM with a limiter and the shape not in the active filter", () => {
             // setup
+            gameSystem.setDm(true);
+            accessSystem.setActiveVisionTokens(id);
+            // test
+            expect(accessSystem.hasAccessTo(id2, "vision", true)).toBe(false);
+            expect(accessSystem.hasAccessTo(id3, "vision", true)).toBe(false);
+            // teardown
+            gameSystem.setDm(false);
+        });
+        it("should return according to access rights for the FAKE-DM without limiters", () => {
+            // setup
+            gameSystem.setDm(true);
             gameSystem.setFakePlayer(true);
             // test
-            expect(accessSystem.hasAccessTo(id, false, { movement: true })).toBe(false);
-            // extra checks
-            // 1. user access is not granted
-            coreStore.setUsername("userWithNoRights");
-            expect(accessSystem.hasAccessTo(id2, false, { edit: true })).toBe(false);
+            accessCheck(id, { edit: true, movement: false, vision: true });
+            accessCheck(id2, { edit: true, movement: true, vision: true });
+            accessCheck(id3, { edit: true, movement: false, vision: true });
             // teardown
             gameSystem.setFakePlayer(false);
-            gameSystem.setDm(false); // fakeplayer resets isDm
+            gameSystem.setDm(false);
         });
-        it("should return true if default access is granted", () => {
-            // test
-            expect(accessSystem.hasAccessTo(id, false, { edit: true })).toBe(true);
-            expect(accessSystem.hasAccessTo(id2, false, { movement: true })).toBe(true);
-            expect(accessSystem.hasAccessTo(id, false, { vision: true })).toBe(true);
-            // extra checks
-            // 1. user access is not granted
-            coreStore.setUsername("userWithNoRights");
-            expect(accessSystem.hasAccessTo(id2, false, { movement: true })).toBe(true);
-        });
-        it("should return true if user access is granted", () => {
+        it("should return according to the access rights for the FAKE-DM with a limiter and the shape in the active filter", () => {
             // setup
+            gameSystem.setDm(true);
+            gameSystem.setFakePlayer(true);
+            // test shape 1
+            accessSystem.setActiveVisionTokens(id);
+            accessCheck(id, { edit: true, movement: false, vision: true }, true);
+            // test shape 2
+            accessSystem.setActiveVisionTokens(id2);
+            accessCheck(id2, { edit: true, movement: true, vision: true }, true);
+            // test shape 3
+            accessSystem.setActiveVisionTokens(id3);
+            accessCheck(id3, { edit: true, movement: false, vision: true }, true);
+            // test all shapes
+            accessSystem.setActiveVisionTokens(id, id2, id3);
+            expect(accessSystem.hasAccessTo(id, "edit", true)).toBe(true);
+            expect(accessSystem.hasAccessTo(id2, "movement", true)).toBe(true);
+            expect(accessSystem.hasAccessTo(id3, "vision", true)).toBe(true);
+            // teardown
+            gameSystem.setFakePlayer(false);
+            gameSystem.setDm(false);
+        });
+        it("should return false for the FAKE-DM with a limiter and the shape not in the active filter", () => {
+            // setup
+            gameSystem.setDm(true);
+            gameSystem.setFakePlayer(true);
+            accessSystem.setActiveVisionTokens(id);
+            // test
+            expect(accessSystem.hasAccessTo(id2, "vision", true)).toBe(false);
+            expect(accessSystem.hasAccessTo(id3, "vision", true)).toBe(false);
+            // teardown
+            gameSystem.setFakePlayer(false);
+            gameSystem.setDm(false);
+        });
+        it("should return according to access rules values for players", () => {
+            // User 1: No access
+            coreStore.setUsername("userWithNoRights");
+            //   Shape 1
+            accessCheck(id, { edit: true, movement: false, vision: true });
+            //   Shape 2
+            accessCheck(id2, { edit: false, movement: true, vision: false });
+            //   Shape 3
+            accessCheck(id3, { edit: false, movement: false, vision: true });
+            // User 2: Full access
             coreStore.setUsername("userWithFullRights");
-            // test
-            expect(accessSystem.hasAccessTo(id2, false, { edit: true })).toBe(true);
-            expect(accessSystem.hasAccessTo(id2, false, { vision: true })).toBe(true);
-        });
-        it("should return false if user access is not granted", () => {
-            // setup
-            coreStore.setUsername("userWithNoRights");
-            // test
-            expect(accessSystem.hasAccessTo(id, false, { movement: true })).toBe(false);
-            expect(accessSystem.hasAccessTo(id2, false, { edit: true })).toBe(false);
-            expect(accessSystem.hasAccessTo(id2, false, { vision: true })).toBe(false);
+            //   Shape 1
+            accessCheck(id, { edit: true, movement: false, vision: true });
+            //   Shape 2
+            accessCheck(id2, { edit: true, movement: true, vision: true });
+            //   Shape 3
+            accessCheck(id3, { edit: false, movement: false, vision: true });
+            // User 3: Mixed access
+            coreStore.setUsername("userWithLimitedRights");
+            //   Shape 1
+            accessCheck(id, { edit: true, movement: false, vision: true });
+            //   Shape 2
+            accessCheck(id2, { edit: false, movement: true, vision: false });
+            //   Shape 3
+            accessCheck(id3, { edit: true, movement: false, vision: true });
         });
     });
     describe("getAccess", () => {
@@ -239,8 +290,8 @@ describe("Access System", () => {
         });
         it("should return the access for a specific user if it was added", () => {
             const id = generateTestLocalId();
-            const access: ShapeAccess = { vision: true, movement: false, edit: true };
-            accessSystem.inform(id, { default: DEFAULT_ACCESS, extra: [{ user: "some user", shape: id, access }] });
+            const access: AccessConfig = { vision: true, movement: false, edit: true };
+            accessSystem.inform(id, { default: DEFAULT_ACCESS, extra: [{ user: "some user", access }] });
             expect(accessSystem.getAccess(id, "some user")).toBe(access);
         });
     });
@@ -248,8 +299,8 @@ describe("Access System", () => {
         it("should error out if the user already has access", () => {
             // setup
             const id = generateTestLocalId();
-            const access: ShapeAccess = { edit: false, movement: false, vision: true };
-            accessSystem.inform(id, { default: DEFAULT_ACCESS, extra: [{ user: "some user", shape: id, access }] });
+            const access: AccessConfig = { edit: false, movement: false, vision: true };
+            accessSystem.inform(id, { default: DEFAULT_ACCESS, extra: [{ user: "some user", access }] });
             // test
             accessSystem.addAccess(id, "some user", access, SERVER_SYNC);
             expect(errorSpy).toBeCalled();
@@ -259,11 +310,11 @@ describe("Access System", () => {
         it("should add a new user to the system", () => {
             // setup
             const id = generateTestLocalId();
-            const someUserAccess: ShapeAccess = { edit: false, movement: false, vision: true };
-            const newUserAccess: ShapeAccess = { edit: false, movement: true, vision: true };
+            const someUserAccess: AccessConfig = { edit: false, movement: false, vision: true };
+            const newUserAccess: AccessConfig = { edit: false, movement: true, vision: true };
             accessSystem.inform(id, {
                 default: DEFAULT_ACCESS,
-                extra: [{ user: "some user", shape: id, access: someUserAccess }],
+                extra: [{ user: "some user", access: someUserAccess }],
             });
             // test
             accessSystem.addAccess(id, "new user", newUserAccess, SERVER_SYNC);
@@ -278,8 +329,8 @@ describe("Access System", () => {
         it("should not emit if SyncTo is not server", () => {
             // setup
             const id = generateTestLocalId();
-            const someUserAccess: ShapeAccess = { edit: false, movement: false, vision: true };
-            const newUserAccess: ShapeAccess = { edit: false, movement: true, vision: true };
+            const someUserAccess: AccessConfig = { edit: false, movement: false, vision: true };
+            const newUserAccess: AccessConfig = { edit: false, movement: true, vision: true };
             accessSystem.inform(id, {
                 default: DEFAULT_ACCESS,
                 extra: [],
@@ -295,8 +346,8 @@ describe("Access System", () => {
             // setup
             const id = generateTestLocalId();
             const id2 = generateTestLocalId();
-            const someUserAccess: ShapeAccess = { edit: false, movement: false, vision: true };
-            const newUserAccess: ShapeAccess = { edit: false, movement: true, vision: true };
+            const someUserAccess: AccessConfig = { edit: false, movement: false, vision: true };
+            const newUserAccess: AccessConfig = { edit: false, movement: true, vision: true };
             accessSystem.inform(id, {
                 default: DEFAULT_ACCESS,
                 extra: [],
@@ -311,33 +362,6 @@ describe("Access System", () => {
             accessSystem.addAccess(id2, "new user", newUserAccess, NO_SYNC);
             expect(accessState.raw.playerAccess.get("some user")).toEqual(someUserAccess);
             expect(accessState.raw.playerAccess.get("new user")).toBeUndefined();
-        });
-        it("should call addOwnedToken if access is vision AND username matches AND isToken", () => {
-            // setup
-            const id = generateTestLocalId();
-            const userWithoutVision: ShapeAccess = { edit: false, movement: false, vision: false };
-            const userWithVision: ShapeAccess = { edit: false, movement: false, vision: true };
-            accessSystem.inform(id, {
-                default: DEFAULT_ACCESS,
-                extra: [],
-            });
-            playerSystem.addPlayer(generatePlayer("some user"));
-            playerSystem.addPlayer(generatePlayer("vision user wo isToken"));
-            playerSystem.addPlayer(generatePlayer("vision user w isToken"));
-            // test
-            // 1. vision: false && username is ok && !isToken
-            coreStore.setUsername("some user");
-            accessSystem.addAccess(id, "some user", userWithoutVision, UI_SYNC);
-            expect(addOwnedTokenSpy).not.toBeCalled();
-            // 2. vision: true && username is ok && !isToken
-            coreStore.setUsername("vision user wo isToken");
-            accessSystem.addAccess(id, "vision user wo isToken", userWithVision, UI_SYNC);
-            expect(addOwnedTokenSpy).not.toBeCalled();
-            // 3. vision: true && username is ok && isToken
-            GET_PROPERTIES_OVERRIDE = () => ({ isToken: true });
-            coreStore.setUsername("vision user w isToken");
-            accessSystem.addAccess(id, "vision user w isToken", userWithVision, UI_SYNC);
-            expect(addOwnedTokenSpy).toBeCalled();
         });
     });
     describe("updateAccess", () => {
@@ -372,7 +396,7 @@ describe("Access System", () => {
             const id = generateTestLocalId();
             accessSystem.inform(id, {
                 default: DEFAULT_ACCESS,
-                extra: [{ user: "some user", shape: id, access: { edit: false, movement: false, vision: false } }],
+                extra: [{ user: "some user", access: { edit: false, movement: false, vision: false } }],
             });
             // test
             expect(accessSystem.getAccess(id, "some user")).toEqual({ edit: false, movement: false, vision: false });
@@ -381,60 +405,12 @@ describe("Access System", () => {
             expect(errorSpy).not.toBeCalled();
             expect(emitSpy).toBeCalled();
         });
-        it("should add to the owned tokens if vision is toggled on for the current user", () => {
-            // setup
-            const id = generateTestLocalId();
-            accessSystem.inform(id, {
-                default: DEFAULT_ACCESS,
-                extra: [{ user: "some user", shape: id, access: { edit: false, movement: false, vision: false } }],
-            });
-            // test
-            // 1. without correct username
-            accessSystem.updateAccess(id, "some user", { vision: true }, SERVER_SYNC);
-            expect(addOwnedTokenSpy).not.toBeCalled();
-            accessSystem.updateAccess(id, "some user", { vision: false }, SERVER_SYNC); // reset
-            // 2. without isToken
-            coreStore.setUsername("some user");
-            accessSystem.updateAccess(id, "some user", { vision: true }, SERVER_SYNC);
-            expect(addOwnedTokenSpy).not.toBeCalled();
-            accessSystem.updateAccess(id, "some user", { vision: false }, SERVER_SYNC); // reset
-            // 3. correct
-            GET_PROPERTIES_OVERRIDE = () => ({
-                isToken: true,
-            });
-            accessSystem.updateAccess(id, "some user", { vision: true }, SERVER_SYNC);
-            expect(addOwnedTokenSpy).toBeCalled();
-        });
-        it("should remove from the owned tokens if vision is toggled off for the current user", () => {
-            // setup
-            const id = generateTestLocalId();
-            accessSystem.inform(id, {
-                default: DEFAULT_ACCESS,
-                extra: [{ user: "some user", shape: id, access: { edit: false, movement: false, vision: true } }],
-            });
-            // test
-            // 1. without correct username
-            accessSystem.updateAccess(id, "some user", { vision: false }, SERVER_SYNC);
-            expect(removeOwnedTokenSpy).not.toBeCalled();
-            accessSystem.updateAccess(id, "some user", { vision: true }, SERVER_SYNC); // reset
-            // 2. without isToken
-            coreStore.setUsername("some user");
-            accessSystem.updateAccess(id, "some user", { vision: false }, SERVER_SYNC);
-            expect(removeOwnedTokenSpy).not.toBeCalled();
-            accessSystem.updateAccess(id, "some user", { vision: true }, SERVER_SYNC); // reset
-            // 3. correct
-            GET_PROPERTIES_OVERRIDE = () => ({
-                isToken: true,
-            });
-            accessSystem.updateAccess(id, "some user", { vision: false }, SERVER_SYNC);
-            expect(removeOwnedTokenSpy).toBeCalled();
-        });
         it("should update $state", () => {
             // setup
             const id = generateTestLocalId();
             accessSystem.inform(id, {
                 default: DEFAULT_ACCESS,
-                extra: [{ user: "some user", shape: id, access: { edit: false, movement: false, vision: true } }],
+                extra: [{ user: "some user", access: { edit: false, movement: false, vision: true } }],
             });
             accessSystem.loadState(id);
             // test
@@ -472,7 +448,7 @@ describe("Access System", () => {
             const id = generateTestLocalId();
             accessSystem.inform(id, {
                 default: DEFAULT_ACCESS,
-                extra: [{ user: "some user", shape: id, access: { edit: false, movement: false, vision: false } }],
+                extra: [{ user: "some user", access: { edit: false, movement: false, vision: false } }],
             });
             // test
             expect(accessSystem.getAccess(id, "some user")).toEqual({ edit: false, movement: false, vision: false });
@@ -481,36 +457,12 @@ describe("Access System", () => {
             expect(errorSpy).not.toBeCalled();
             expect(emitSpy).toBeCalled();
         });
-        it("should remove from the owned tokens if vision is on for the current user", () => {
-            // setup
-            const id = generateTestLocalId();
-            accessSystem.inform(id, {
-                default: DEFAULT_ACCESS,
-                extra: [{ user: "some user", shape: id, access: { edit: false, movement: false, vision: true } }],
-            });
-            // test
-            // 1. without correct username
-            accessSystem.removeAccess(id, "some user", SERVER_SYNC);
-            expect(removeOwnedTokenSpy).not.toBeCalled();
-            accessSystem.addAccess(id, "some user", { vision: true }, SERVER_SYNC); // reset
-            // 2. without isToken
-            coreStore.setUsername("some user");
-            accessSystem.removeAccess(id, "some user", SERVER_SYNC);
-            expect(removeOwnedTokenSpy).not.toBeCalled();
-            accessSystem.addAccess(id, "some user", { vision: true }, SERVER_SYNC); // reset
-            // 3. correct
-            GET_PROPERTIES_OVERRIDE = () => ({
-                isToken: true,
-            });
-            accessSystem.removeAccess(id, "some user", SERVER_SYNC);
-            expect(removeOwnedTokenSpy).toBeCalled();
-        });
         it("should update $state", () => {
             // setup
             const id = generateTestLocalId();
             accessSystem.inform(id, {
                 default: DEFAULT_ACCESS,
-                extra: [{ user: "some user", shape: id, access: { edit: false, movement: false, vision: true } }],
+                extra: [{ user: "some user", access: { edit: false, movement: false, vision: true } }],
             });
             accessSystem.loadState(id);
             // test
@@ -541,7 +493,7 @@ describe("Access System", () => {
             const id = generateTestLocalId();
             accessSystem.inform(id, {
                 default: DEFAULT_ACCESS,
-                extra: [{ user: "some user", shape: id, access: { edit: false, movement: false, vision: true } }],
+                extra: [{ user: "some user", access: { edit: false, movement: false, vision: true } }],
             });
             // test
             expect([...accessSystem.getOwners(id)]).toEqual(["some user"]);
@@ -571,7 +523,7 @@ describe("Access System", () => {
             const id = generateTestLocalId();
             accessSystem.inform(id, {
                 default: DEFAULT_ACCESS,
-                extra: [{ user: "some user", shape: id, access: { edit: false, movement: false, vision: true } }],
+                extra: [{ user: "some user", access: { edit: false, movement: false, vision: true } }],
             });
             // test
             expect(accessSystem.getOwnersFull(id)).toEqual([

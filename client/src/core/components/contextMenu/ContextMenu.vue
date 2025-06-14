@@ -1,11 +1,23 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from "vue";
 
+declare global {
+    interface ArrayConstructor {
+        // eslint-disable-next-line @typescript-eslint/method-signature-style, @typescript-eslint/no-redundant-type-constituents
+        isArray(arg: ReadonlyArray<any> | any): arg is ReadonlyArray<any>;
+    }
+}
+
 import ContextMenuSection from "./ContextMenuSection.vue";
 import type { Section } from "./types";
 
 defineEmits<(e: "cm:close") => void>();
-const props = defineProps<{ left: number; top: number; sections: Section[]; visible: boolean }>();
+const props = defineProps<{
+    left: number;
+    top: number;
+    sections: readonly Section[];
+    visible: boolean;
+}>();
 
 const menu = ref<HTMLDivElement | null>(null);
 

@@ -20,6 +20,4 @@ class NoteAccess(BaseDbModel):
 
     def as_pydantic(self):
         user_name = "default" if self.user is None else self.user.name
-        return ApiNoteAccess(
-            name=user_name, can_edit=self.can_edit, can_view=self.can_view
-        )
+        return ApiNoteAccess(name=user_name, can_edit=self.can_edit, can_view=self.can_view)

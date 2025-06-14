@@ -168,7 +168,7 @@ export abstract class Shape implements IShape {
      */
     get triggersVisionRecalc(): boolean {
         const props = getProperties(this.id)!;
-        return props.isToken || props.blocksMovement || auraSystem.getAll(this.id, true).some((a) => a.visionSource);
+        return props.blocksMovement || auraSystem.getAll(this.id, true).some((a) => a.visionSource);
     }
 
     resetVisionIteration(): void {
@@ -257,7 +257,9 @@ export abstract class Shape implements IShape {
         this._center = this.__center();
         this.resetVisionIteration();
         this.invalidatePoints();
-        if (getProperties(this.id)?.isToken === true) {
+
+        // Update off-screen token directions
+        if (accessSystem.hasAccessTo(this.id, "vision")) {
             const floor = this.floor;
             if (floor !== undefined) floorSystem.getLayer(floor, LayerName.Draw)?.invalidate(true);
         }
@@ -292,7 +294,9 @@ export abstract class Shape implements IShape {
         this.angle = position.angle;
         this.resetVisionIteration();
         this.updateShapeVision(false, false);
-        if (getProperties(this.id)?.isToken === true) {
+
+        // Update off-screen token directions
+        if (accessSystem.hasAccessTo(this.id, "vision")) {
             const floor = this.floor;
             if (floor !== undefined) floorSystem.getLayer(floor, LayerName.Draw)?.invalidate(true);
         }
@@ -461,7 +465,7 @@ export abstract class Shape implements IShape {
         // Draw tracker bars
         let barOffset = 0;
         for (const tracker of trackerSystem.getAll(this.id, true)) {
-            if (tracker.draw && (tracker.visible || accessSystem.hasAccessTo(this.id, false, { vision: true }))) {
+            if (tracker.draw && (tracker.visible || accessSystem.hasAccessTo(this.id, "vision"))) {
                 if (bbox === undefined) bbox = this.getBoundingBox();
                 ctx.strokeStyle = "black";
                 ctx.lineWidth = g2lz(0.5);

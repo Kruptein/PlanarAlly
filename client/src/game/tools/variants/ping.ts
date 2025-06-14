@@ -1,6 +1,6 @@
 import { l2g } from "../../../core/conversions";
 import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
-import { InvalidationMode, NO_SYNC, SyncMode } from "../../../core/models/types";
+import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { i18n } from "../../../i18n";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { LayerName } from "../../models/floor";
@@ -8,10 +8,8 @@ import { ToolName } from "../../models/tools";
 import type { ITool, ToolPermission } from "../../models/tools";
 import { deleteShapes } from "../../shapes/utils";
 import { Circle } from "../../shapes/variants/circle";
-import { accessSystem } from "../../systems/access";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
-import { playerSystem } from "../../systems/players";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
@@ -33,7 +31,7 @@ class PingTool extends Tool implements ITool {
             return;
 
         this.active.value = false;
-        deleteShapes([this.ping, this.border], SyncMode.TEMP_SYNC);
+        deleteShapes([this.ping, this.border], SyncMode.TEMP_SYNC, false);
         this.ping = undefined;
         this.startPoint = undefined;
     }
@@ -69,18 +67,6 @@ class PingTool extends Tool implements ITool {
         );
         this.ping.ignoreZoomSize = true;
         this.border.ignoreZoomSize = true;
-        accessSystem.addAccess(
-            this.ping.id,
-            playerSystem.getCurrentPlayer()!.name,
-            { edit: true, movement: true, vision: true },
-            NO_SYNC,
-        );
-        accessSystem.addAccess(
-            this.border.id,
-            playerSystem.getCurrentPlayer()!.name,
-            { edit: true, movement: true, vision: true },
-            NO_SYNC,
-        );
         layer.addShape(this.ping, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
         layer.addShape(this.border, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
         return Promise.resolve();

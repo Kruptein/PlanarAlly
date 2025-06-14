@@ -30,7 +30,7 @@ export function getTpZoneShapes(fromZone: LocalId): LocalId[] {
         if (
             shape.id !== fromZone &&
             !getProperties(shape.id)!.isLocked &&
-            accessSystem.hasAccessTo(shape.id, false, { movement: true }) &&
+            accessSystem.hasAccessTo(shape.id, "movement") &&
             fromShape.contains(shape.center)
         ) {
             shapes.push(shape.id);

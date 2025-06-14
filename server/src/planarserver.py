@@ -12,23 +12,31 @@ import sys
 from argparse import ArgumentParser
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Literal
 from urllib.parse import quote, unquote
 
 from aiohttp import web
 
-from . import save
+# It's **essential** that the config is imported first
+from . import config, save
+from .config.types import WebserverConfig
+from .db.db import db
 from .db.models.room import Room
 from .db.models.user import User
 from .utils import FILE_DIR
 
 save_newly_created = save.check_existence()
 
-from . import routes  # noqa: F401, E402
+loop = asyncio.new_event_loop()
+
+if not save_newly_created:
+    save.upgrade_save(loop=loop)
+
+from . import routes, stats  # noqa: F401, E402
 from .api import http  # noqa: F401, E402
 
 # Force loading of socketio routes
 from .api.socket import load_socket_commands  # noqa: E402
-from .api.socket.constants import GAME_NS  # noqa: E402
 from .app import (  # noqa: E402
     admin_app,  # noqa: E402
     runners,
@@ -36,14 +44,12 @@ from .app import (  # noqa: E402
     sio,
 )
 from .app import app as main_app  # noqa: E402
-from .config import config  # noqa: E402
 from .logs import logger  # noqa: E402
 from .state.asset import asset_state  # noqa: E402
+from .state.dashboard import dashboard_state  # noqa: E402
 from .state.game import game_state  # noqa: E402
 
 load_socket_commands()
-
-loop = asyncio.new_event_loop()
 
 # This is a fix for asyncio problems on windows that make it impossible to do ctrl+c
 if sys.platform.startswith("win"):
@@ -54,9 +60,24 @@ if sys.platform.startswith("win"):
     loop.call_later(0.1, _wakeup)
 
 
+async def on_cleanup(_):
+    # Stop config observer
+    config.config_manager.cleanup()
+
+    # Close database connection
+    db.close()
+
+    stats.events.server_stopped()
+
+
 async def on_shutdown(_):
-    for sid in [*game_state._sid_map.keys(), *asset_state._sid_map.keys()]:
-        await sio.disconnect(sid, namespace=GAME_NS)
+    print(" Shutting down, this can take a couple of seconds...")
+
+    # Close socket connections
+    for state in [asset_state, dashboard_state, game_state]:
+        await state.disconnect_all()
+
+    await sio.shutdown()
 
 
 async def start_http(app: web.Application, host, port):
@@ -91,30 +112,30 @@ async def start_socket(app: web.Application, sock):
     await setup_runner(app, web.UnixSite, path=sock)
 
 
-async def start_server(server_section: str):
-    socket = config.get(server_section, "socket", fallback=None)
+async def start_server(server_section: Literal["Webserver", "APIserver"], cfg: WebserverConfig):
     app = main_app
     method = "unknown"
+
+    connection = cfg.connection
+
     if server_section == "APIserver":
         app = admin_app
 
-    if socket:
-        await start_socket(app, socket)
-        method = socket
+    if connection.type == "socket":
+        await start_socket(app, connection.socket)
+        method = f"socket://{connection.socket}"
     else:
-        host = config.get(server_section, "host")
-        port = config.getint(server_section, "port")
+        host = connection.host
+        port = connection.port
 
         environ = os.environ.get("PA_BASEPATH", "/")
 
-        if config.getboolean(server_section, "ssl"):
+        if cfg.ssl and cfg.ssl.enabled:
             try:
-                chain = Path(config.get(server_section, "ssl_fullchain"))
-                key = Path(config.get(server_section, "ssl_privkey"))
+                chain = Path(cfg.ssl.fullchain)
+                key = Path(cfg.ssl.privkey)
             except configparser.NoOptionError:
-                logger.critical(
-                    "SSL CONFIGURATION IS NOT CORRECTLY CONFIGURED. ABORTING LAUNCH."
-                )
+                logger.critical("SSL CONFIGURATION IS NOT CORRECTLY CONFIGURED. ABORTING LAUNCH.")
                 sys.exit(2)
 
             await start_https(app, host, port, chain, key)
@@ -127,16 +148,18 @@ async def start_server(server_section: str):
 
 
 async def start_servers():
+    cfg = config.cfg()
     print()
-    await start_server("Webserver")
+    await start_server("Webserver", cfg.webserver)
     print()
-    if config.getboolean("APIserver", "enabled"):
-        await start_server("APIserver")
+    if cfg.apiserver:
+        await start_server("APIserver", cfg.apiserver)
     else:
         print("API Server disabled")
     print()
     print("(Press CTRL+C to quit)")
     print()
+    stats.events.server_started()
 
 
 def server_main(args):
@@ -154,12 +177,11 @@ def server_main(args):
     mimetypes.init()
     mimetypes.types_map[".js"] = "application/javascript; charset=utf-8"
 
-    if not save_newly_created:
-        save.upgrade_save(loop=loop)
-
     loop.create_task(start_servers())
+    loop.create_task(stats.data.start_tracking())
 
     try:
+        main_app.on_cleanup.append(on_cleanup)
         main_app.on_shutdown.append(on_shutdown)
 
         loop.run_forever()

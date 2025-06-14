@@ -16,9 +16,7 @@ async def create(request: web.Request) -> web.Response:
             notification.save()
             await _send_game(
                 "Notification.Show",
-                NotificationShow(
-                    uuid=str(notification.uuid), message=notification.message
-                ),
+                NotificationShow(uuid=str(notification.uuid), message=notification.message),
                 room=None,
             )
         except:
@@ -29,9 +27,7 @@ async def create(request: web.Request) -> web.Response:
 
 
 async def collect(_request: web.Request) -> web.Response:
-    notifications = [
-        {"uuid": str(n.uuid), "message": n.message} for n in Notification.select()
-    ]
+    notifications = [{"uuid": str(n.uuid), "message": n.message} for n in Notification.select()]
     return web.json_response(notifications)
 
 
@@ -41,9 +37,7 @@ async def delete(request: web.Request) -> web.Response:
         try:
             notification = Notification.get_by_id(uuid)
         except Notification.DoesNotExist:
-            return web.HTTPNotFound(
-                reason="Notification with given uuid was not found."
-            )
+            return web.HTTPNotFound(reason="Notification with given uuid was not found.")
         notification.delete_instance()
         return web.HTTPOk(text=f"Removed notification with id {notification.uuid}")
     else:

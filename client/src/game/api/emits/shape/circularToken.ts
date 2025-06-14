@@ -1,4 +1,4 @@
 import type { ShapeTextValueSet } from "../../../../apiTypes";
-import { wrapSocket } from "../../helpers";
+import { wrapSocket } from "../../socket";
 
 export const sendCircularTokenUpdate = wrapSocket<ShapeTextValueSet>("Shape.CircularToken.Value.Set");

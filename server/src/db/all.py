@@ -20,6 +20,9 @@ from .models.location import Location
 from .models.location_options import LocationOptions
 from .models.location_user_option import LocationUserOption
 from .models.marker import Marker
+from .models.mod import Mod
+from .models.mod_player_room import ModPlayerRoom
+from .models.mod_room import ModRoom
 from .models.note import Note
 from .models.note_access import NoteAccess
 from .models.note_shape import NoteShape
@@ -33,6 +36,7 @@ from .models.shape import Shape
 from .models.shape_data_block import ShapeDataBlock
 from .models.shape_owner import ShapeOwner
 from .models.shape_type import ShapeType
+from .models.stats import Stats
 from .models.text import Text
 from .models.toggle_composite import ToggleComposite
 from .models.tracker import Tracker
@@ -62,6 +66,9 @@ ALL_MODELS = [
     LocationUserOption,
     Location,
     Marker,
+    Mod,
+    ModPlayerRoom,
+    ModRoom,
     Note,
     NoteAccess,
     NoteShape,
@@ -75,6 +82,7 @@ ALL_MODELS = [
     ShapeOwner,
     ShapeType,
     Shape,
+    Stats,
     Text,
     ToggleComposite,
     Tracker,

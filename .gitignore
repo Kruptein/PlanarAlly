@@ -4,6 +4,7 @@
 .vscode/**
 
 # Python
+server/data/**
 server/env/**
 server/**/__pycache__/**
 server/venv

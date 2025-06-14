@@ -1,7 +1,7 @@
-import type { DeepReadonly } from "vue";
+import { type DeepReadonly } from "vue";
 
 import type { LocalId } from "../../../core/id";
-import { guard } from "../../../core/iter";
+import { filter, guard } from "../../../core/iter";
 import type { Sync } from "../../../core/models/types";
 import { registerSystem } from "../../../core/systems";
 import type { ShapeSystem } from "../../../core/systems";
@@ -11,16 +11,15 @@ import { initiativeStore } from "../../ui/initiative/state";
 import { floorSystem } from "../floors";
 import { gameState } from "../game/state";
 import { playerSystem } from "../players";
-import { getProperties } from "../properties/state";
-import { locationSettingsState } from "../settings/location/state";
+import { locationSettingsSystem } from "../settings/location";
 
 import { sendShapeAddOwner, sendShapeDeleteOwner, sendShapeUpdateDefaultOwner, sendShapeUpdateOwner } from "./emits";
 import { accessToServer, ownerToServer } from "./helpers";
-import { DEFAULT_ACCESS, DEFAULT_ACCESS_SYMBOL, isNonDefaultAccessSymbol } from "./models";
-import type { AccessMap, ACCESS_KEY, ShapeAccess, ShapeOwner } from "./models";
+import { ACCESS_LEVELS, DEFAULT_ACCESS, DEFAULT_ACCESS_SYMBOL, isNonDefaultAccessSymbol } from "./models";
+import type { AccessMap, ACCESS_KEY, AccessConfig, ShapeOwner, AccessLevel } from "./models";
 import { accessState } from "./state";
 
-const { mutableReactive: $, activeTokens, mutable } = accessState;
+const { mutableReactive: $, activeTokens, mutable, raw } = accessState;
 
 class AccessSystem implements ShapeSystem {
     // REACTIVE
@@ -51,13 +50,15 @@ class AccessSystem implements ShapeSystem {
 
     clear(): void {
         this.dropState();
-        $.activeTokenFilters?.clear();
-        $.ownedTokens.clear();
+        for (const al of ACCESS_LEVELS) {
+            $.activeTokenFilters.set(al, undefined);
+            $.ownedTokens.get(al)?.clear();
+        }
         mutable.access.clear();
     }
 
     // Inform the system about the state of a certain LocalId
-    inform(id: LocalId, access: { default: ShapeAccess; extra: ShapeOwner[] }): void {
+    inform(id: LocalId, access: { default: AccessConfig; extra: Omit<ShapeOwner, "shape">[] }): void {
         const accessMap: AccessMap = new Map();
 
         // Default Access
@@ -83,70 +84,71 @@ class AccessSystem implements ShapeSystem {
 
         // Commit
         mutable.access.set(id, accessMap);
+        this._updateOwnedState(id);
         initiativeStore._forceUpdate();
     }
 
     drop(id: LocalId): void {
         mutable.access.delete(id);
+        for (const al of ACCESS_LEVELS) {
+            $.ownedTokens.get(al)?.delete(id);
+            $.activeTokenFilters.get(al)?.delete(id);
+        }
         if ($.id === id) {
             this.dropState();
         }
     }
 
-    getDefault(id: LocalId): DeepReadonly<ShapeAccess> {
+    getDefault(id: LocalId): DeepReadonly<AccessConfig> {
         return mutable.access.get(id)?.get(DEFAULT_ACCESS_SYMBOL) ?? DEFAULT_ACCESS;
     }
 
-    hasAccessTo(
-        id: LocalId,
-        limitToActiveTokens: boolean,
-        access: Partial<{ edit: boolean; vision: boolean; movement: boolean }>,
-    ): boolean {
+    // High-level access check based on owned/active state
+    // Should be used by external systems
+    hasAccessTo(id: LocalId, access: AccessLevel | AccessLevel[], limitToActiveTokens = false): boolean {
+        // 1. DMs always have access when not limiting to active tokens
+        // console.log(gameState);
         if (gameState.raw.isDm && !limitToActiveTokens) return true;
 
-        const props = getProperties(id);
-        if (props === undefined) return false;
+        const _access: AccessLevel[] = Array.isArray(access) ? access : [access];
 
-        if (props.isToken && limitToActiveTokens) {
-            if (!activeTokens.value.has(id)) {
-                // In theory we should check default permission rights here
-                // But that's a usecase I haven't come across yet.
-                return false;
-            } else if (gameState.raw.isFakePlayer) {
-                return true;
-            }
-        }
+        // 2. Otherwise check in the active tokens or owned tokens depending on the limitToActiveTokens flag
+        return _access.every((al) => (limitToActiveTokens ? activeTokens.value : raw.ownedTokens).get(al)?.has(id));
+    }
 
-        if (gameState.raw.isDm) return true;
-
+    // Low-level internal access check
+    // This decides whether a shape is regarded as owned for a certain access level
+    private _hasAccessTo(id: LocalId, access: AccessLevel): boolean {
         const accessMap = mutable.access.get(id);
         if (accessMap === undefined) return false;
 
-        const defaultAccess = accessMap.get(DEFAULT_ACCESS_SYMBOL) ?? DEFAULT_ACCESS;
-
-        if (
-            ((access.edit ?? false) && defaultAccess.edit) ||
-            ((access.movement ?? false) && defaultAccess.movement) ||
-            ((access.vision ?? false) && defaultAccess.vision)
-        ) {
-            return true;
+        if (gameState.isDmOrFake.value) {
+            return accessMap.values().some((a) => a[access]);
         }
 
-        const userAccess = accessMap.get(playerSystem.getCurrentPlayer()!.name);
-        if (userAccess === undefined) return false;
+        const defaultAccess = accessMap.get(DEFAULT_ACCESS_SYMBOL) ?? DEFAULT_ACCESS;
+        if (defaultAccess[access]) return true;
 
-        return (
-            ((access.edit ?? false) ? userAccess.edit : true) &&
-            ((access.movement ?? false) ? userAccess.movement : true) &&
-            ((access.vision ?? false) ? userAccess.vision : true)
-        );
+        const playerAccess = accessMap.get(playerSystem.getCurrentPlayer()?.name ?? "");
+        if (playerAccess === undefined) return false;
+        return playerAccess[access];
     }
 
-    getAccess(shapeId: LocalId, user: string): DeepReadonly<ShapeAccess> | undefined {
+    _updateOwnedState(id: LocalId): void {
+        for (const al of ACCESS_LEVELS) {
+            if (this._hasAccessTo(id, al)) {
+                this.addOwnedToken(id, al);
+            } else {
+                this.removeOwnedToken(id, al);
+            }
+        }
+    }
+
+    getAccess(shapeId: LocalId, user: string): DeepReadonly<AccessConfig> | undefined {
         return mutable.access.get(shapeId)?.get(user);
     }
 
-    addAccess(shapeId: LocalId, user: string, access: Partial<ShapeAccess>, syncTo: Sync): void {
+    addAccess(shapeId: LocalId, user: string, access: Partial<AccessConfig>, syncTo: Sync): void {
         if (mutable.access.get(shapeId)?.has(user) === true) {
             console.error("[ACCESS] Attempt to add access for user with access");
             return;
@@ -173,19 +175,13 @@ class AccessSystem implements ShapeSystem {
             $.playerAccess.set(user, userAccess);
         }
 
-        // todo: some sort of event register instead of calling these other systems manually ?
-        if (userAccess.vision && user === playerSystem.getCurrentPlayer()?.name) {
-            const props = getProperties(shapeId);
-            if (props?.isToken === true) {
-                this.addOwnedToken(shapeId);
-            }
-        }
+        this._updateOwnedState(shapeId);
 
-        if (locationSettingsState.raw.fowLos.value) floorSystem.invalidateLightAllFloors();
+        if (locationSettingsSystem.isLosActive()) floorSystem.invalidateLightAllFloors();
         if (syncTo.ui) initiativeStore._forceUpdate();
     }
 
-    updateAccess(shapeId: LocalId, user: ACCESS_KEY, access: Partial<ShapeAccess>, syncTo: Sync): void {
+    updateAccess(shapeId: LocalId, user: ACCESS_KEY, access: Partial<AccessConfig>, syncTo: Sync): void {
         if (user !== DEFAULT_ACCESS_SYMBOL && mutable.access.get(shapeId)?.has(user) !== true) {
             console.error("[ACCESS] Attempt to update access for user without access");
             return;
@@ -193,29 +189,15 @@ class AccessSystem implements ShapeSystem {
 
         const oldAccess = mutable.access.get(shapeId)?.get(user) ?? DEFAULT_ACCESS;
 
-        // Check owned-token changes
-        if (
-            !gameState.isDmOrFake.value &&
-            access.vision !== undefined &&
-            access.vision !== oldAccess.vision &&
-            (user === playerSystem.getCurrentPlayer()?.name || user === DEFAULT_ACCESS_SYMBOL)
-        ) {
-            const props = getProperties(shapeId);
-            if (props?.isToken === true) {
-                if (access.vision) {
-                    this.addOwnedToken(shapeId);
-                } else {
-                    this.removeOwnedToken(shapeId);
-                }
-            }
-        }
-
         // Commit to state
         const newAccess = { ...oldAccess, ...access };
         if (!mutable.access.has(shapeId)) {
             mutable.access.set(shapeId, new Map());
         }
         mutable.access.get(shapeId)!.set(user, newAccess);
+
+        // Check owned-token changes
+        this._updateOwnedState(shapeId);
 
         if ($.id === shapeId) {
             if (user === DEFAULT_ACCESS_SYMBOL) {
@@ -242,7 +224,7 @@ class AccessSystem implements ShapeSystem {
             }
         }
 
-        if (locationSettingsState.raw.fowLos.value) {
+        if (locationSettingsSystem.isLosActive()) {
             if (access.vision !== undefined && access.vision !== oldAccess.vision) {
                 const shape = getShape(shapeId);
                 // The shape's aura on it's normal layer might not be up to date yet at this point
@@ -259,7 +241,6 @@ class AccessSystem implements ShapeSystem {
             return;
         }
 
-        const oldAccess = mutable.access.get(shapeId)!.get(user)!;
         mutable.access.get(shapeId)!.delete(user);
 
         // todo: note check
@@ -277,14 +258,9 @@ class AccessSystem implements ShapeSystem {
             $.playerAccess.delete(user);
         }
 
-        if (oldAccess.vision && user === playerSystem.getCurrentPlayer()?.name) {
-            const props = getProperties(shapeId);
-            if (props?.isToken === true) {
-                this.removeOwnedToken(shapeId);
-            }
-        }
+        this._updateOwnedState(shapeId);
 
-        if (locationSettingsState.raw.fowLos.value) floorSystem.invalidateLightAllFloors();
+        if (locationSettingsSystem.isLosActive()) floorSystem.invalidateLightAllFloors();
         initiativeStore._forceUpdate();
     }
 
@@ -304,43 +280,48 @@ class AccessSystem implements ShapeSystem {
 
     // Owned/Active Tokens
 
-    setActiveTokens(...tokens: LocalId[]): void {
-        $.activeTokenFilters = new Set(tokens);
+    setActiveVisionTokens(...tokens: LocalId[]): void {
+        $.activeTokenFilters.set("vision", new Set(tokens));
         floorSystem.invalidateLightAllFloors();
     }
 
-    unsetActiveTokens(): void {
-        $.activeTokenFilters = undefined;
+    clearActiveVisionTokens(): void {
+        $.activeTokenFilters.delete("vision");
         floorSystem.invalidateLightAllFloors();
     }
 
-    addActiveToken(token: LocalId): void {
-        if ($.activeTokenFilters === undefined) return;
-        $.activeTokenFilters.add(token);
-        if ($.activeTokenFilters.size === $.ownedTokens.size) $.activeTokenFilters = undefined;
+    addActiveToken(token: LocalId, access: AccessLevel): void {
+        const accessActiveTokens = $.activeTokenFilters.get(access);
+        // If there are no current filters, it's as if all tokens are active
+        // so adding another active token requires no further action
+        if (accessActiveTokens === undefined) return;
+        accessActiveTokens.add(token);
+        if (accessActiveTokens.size === raw.ownedTokens.get(access)!.size) $.activeTokenFilters.delete(access);
 
         // the token itself might need re-rendering (e.g. invisible)
         getShape(token)?.invalidate(true);
         floorSystem.invalidateLightAllFloors();
     }
 
-    removeActiveToken(token: LocalId): void {
-        if ($.activeTokenFilters === undefined) {
-            $.activeTokenFilters = new Set([...$.ownedTokens]);
+    removeActiveToken(token: LocalId, access: AccessLevel): void {
+        const accessActiveTokens = $.activeTokenFilters.get(access);
+        if (accessActiveTokens === undefined) {
+            $.activeTokenFilters.set(access, new Set(filter(raw.ownedTokens.get(access)!, (t) => t !== token)));
+        } else {
+            accessActiveTokens.delete(token);
         }
-        $.activeTokenFilters.delete(token);
 
         // the token itself might need re-rendering (e.g. invisible)
         getShape(token)?.invalidate(true);
         floorSystem.invalidateLightAllFloors();
     }
 
-    addOwnedToken(token: LocalId): void {
-        $.ownedTokens.add(token);
+    addOwnedToken(token: LocalId, access: AccessLevel): void {
+        $.ownedTokens.get(access)!.add(token);
     }
 
-    removeOwnedToken(token: LocalId): void {
-        $.ownedTokens.delete(token);
+    removeOwnedToken(token: LocalId, access: AccessLevel): void {
+        $.ownedTokens.get(access)!.delete(token);
     }
 }
 

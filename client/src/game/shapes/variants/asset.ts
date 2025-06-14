@@ -14,6 +14,7 @@ import type { IAsset } from "../../interfaces/shapes/asset";
 import { LayerName } from "../../models/floor";
 import type { ServerShapeOptions } from "../../models/shapes";
 import { loadSvgData } from "../../svg";
+import { accessSystem } from "../../systems/access";
 import { floorSystem } from "../../systems/floors";
 import { getProperties } from "../../systems/properties/state";
 import { VisionBlock } from "../../systems/properties/types";
@@ -69,7 +70,7 @@ export class Asset extends BaseRect implements IAsset {
         this.layer?.invalidate(true);
 
         // invalidate token directions
-        if (getProperties(this.id)?.isToken === true) {
+        if (accessSystem.hasAccessTo(this.id, "vision")) {
             const floor = this.floor;
             if (floor !== undefined) floorSystem.getLayer(floor, LayerName.Draw)?.invalidate(true);
         }
@@ -136,13 +137,13 @@ export class Asset extends BaseRect implements IAsset {
         const deltaH = (ogH - h) / 2;
         const deltaW = (ogW - w) / 2;
 
-        if (!this.#loaded) {
+        if (!this.#loaded || lightRevealRender) {
             if (!lightRevealRender) ctx.fillStyle = FOG_COLOUR;
             ctx.fillRect(rp.x - center.x, rp.y - center.y, w, h);
         } else {
             try {
                 ctx.drawImage(this.img, rp.x - center.x + deltaW, rp.y - center.y + deltaH, w, h);
-            } catch (error) {
+            } catch {
                 console.warn(`Shape ${getGlobalId(this.id) ?? "unknown"} could not load the image ${this.src}`);
             }
         }

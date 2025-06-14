@@ -1,5 +1,4 @@
-import { wrapSocket } from "../helpers";
-import { socket } from "../socket";
+import { socket, wrapSocket } from "../socket";
 
 export const sendRoomLock = wrapSocket<boolean>("Room.Info.Set.Locked");
 export const sendRoomKickPlayer = wrapSocket<number>("Room.Info.Players.Kick");

@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="T extends { name: string, colour: string }">
+<script setup lang="ts" generic="T extends { name: string; colour: string }">
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -21,16 +21,17 @@ const searchQuery = ref(props.modelValue ?? "");
 
 const searchBar = ref<HTMLInputElement | null>(null);
 
-watch(() => props.modelValue, (newValue) => {
-    if (newValue !== undefined) {
-        searchQuery.value = newValue;
-    }
-});
+watch(
+    () => props.modelValue,
+    (newValue) => {
+        if (newValue !== undefined) {
+            searchQuery.value = newValue;
+        }
+    },
+);
 
 const results = computed(() =>
-    props.options.filter(
-        (option) => option.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-    )
+    props.options.filter((option) => option.name.toLowerCase().includes(searchQuery.value.toLowerCase())),
 );
 
 const arrowCounter = ref(-1);
@@ -42,7 +43,7 @@ function isEmpty(str: string | null): boolean {
 }
 
 function onInput(event: Event): void {
-    const target  = event.target as HTMLInputElement;
+    const target = event.target as HTMLInputElement;
     emit("update:modelValue", target.value);
     searchQuery.value = target.value;
 
@@ -76,7 +77,7 @@ function onFocusIn(event: FocusEvent): void {
 }
 
 function shouldShowResults(): boolean {
-    return isOpen.value && (results.value.length > 0);
+    return isOpen.value && results.value.length > 0;
 }
 
 function clearSearchBar(): void {
@@ -86,7 +87,7 @@ function clearSearchBar(): void {
 }
 
 function handleKeyDown(): void {
-    if (isOpen.value && arrowCounter.value < (results.value.length - 1)) {
+    if (isOpen.value && arrowCounter.value < results.value.length - 1) {
         arrowCounter.value += 1;
     }
     isOpen.value = true;
@@ -109,7 +110,7 @@ function handleKeyLeft(): void {
 }
 
 function handleKeyRight(): void {
-    if (isOpen.value && arrowCounter.value < (results.value.length - 1)) {
+    if (isOpen.value && arrowCounter.value < results.value.length - 1) {
         arrowCounter.value += 1;
     }
 }
@@ -119,7 +120,6 @@ function handleEnter(): void {
         emit("picked", results.value[arrowCounter.value] as T);
     }
 }
-
 </script>
 
 <template>
@@ -143,7 +143,7 @@ function handleEnter(): void {
                 <font-awesome-icon icon="circle-xmark" :title="t('game.ui.notes.NoteList.clear_search')" />
             </div>
         </div>
-        <div v-show="shouldShowResults()" id="autocomplete-results" tabindex="0" >
+        <div v-show="shouldShowResults()" id="autocomplete-results" tabindex="0">
             <div
                 v-for="(result, i) in results"
                 :key="i"
@@ -160,8 +160,7 @@ function handleEnter(): void {
 </template>
 
 <style scoped lang="scss">
-
-.autocomplete{
+.autocomplete {
     position: relative;
     width: 100%;
 }
@@ -196,7 +195,6 @@ function handleEnter(): void {
     flex: 0 0 auto;
 }
 
-
 #autocomplete-results {
     position: absolute;
     display: flex;
@@ -230,5 +228,4 @@ function handleEnter(): void {
 .tag-bubble:hover {
     filter: brightness(85%);
 }
-
 </style>

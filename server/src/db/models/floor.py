@@ -14,9 +14,7 @@ class Floor(BaseDbModel):
     id: int
     layers: SelectSequence["Layer"]
 
-    location = cast(
-        Location, ForeignKeyField(Location, backref="floors", on_delete="CASCADE")
-    )
+    location = cast(Location, ForeignKeyField(Location, backref="floors", on_delete="CASCADE"))
     index = cast(int, IntegerField())
     name = cast(str, TextField())
     player_visible = cast(bool, BooleanField(default=False))

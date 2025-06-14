@@ -1,99 +1,67 @@
-2025.1.1
+2025.2.0
+
+**Server owners:** The server config has changed location and format. Ensure you check the release notes for the necessary info.
+The old config files are not yet removed from git to prevent losing modifications you made to these files.
+They will be removed in a future release though.
 
 ### Added
 
--   Draw tool:
-    -   Added default colours for walls, windows, doors
-    -   These get automatically applied when the relevant vision/logic settings are enabled in the draw tool
-    -   Can be disabled by unchecking the 'prefer default colours' checkbox in the draw tool vision settings
-    -   The specific colours used can be configured in the user options Appearance section and will update shapes retroactively
--   Notes:
-    -   Notes can now be popped out to a separate window
--   NoteManager:
-    -   Added a button to clear the current search
--   In-Game Assets UI:
-    -   Option to search through assets
-    -   Option to add folder shortcuts per campaign
-        -   These allow quicker navigation to frequently used folders
-        -   A "All assets" shortcut is always available
--   [server] Assets:
-    -   limits:
-        -   Added limits to the total size of assets a user can upload and the size of a single asset
-        -   These limits can be configured in the server config
-        -   By default there are no limits, it's up to the server admin to configure them
-        -   These limits will only apply to new assets, existing assets are not affected
-    -   Thumbnails:
-        -   The server will now generate thumbnails for all assets
+-   New quick toggle to disable LoS rendering for the DM only
+-   Forgot password flow if Mail is configured on the server
+    -   This only works if the user account actually has an email-address
+-   Success notification when changing email in the settings
+-   Mod improvements
+    -   Can now register shape context menu entries
+    -   Upload/Remove mods for a specific campaign
+-   Asset create folder/upload file/remove buttons to the in-game asset browser
+-   [server] Email configuration setup
+-   [server] Anonymous stat collection
+    -   Sends usage stats about number of campaigns and users to stats.planarally.io
+    -   Identifiers are anonymized, no personal info is included
+    -   Can be disabled
 
 ### Changed
 
--   Dashboard:
-    -   Changed some border colours in the create new game menu
--   MenuBar:
-    -   Add Notes button for players
--   [tech] Select tool:
-    -   Delayed syncing of selection state to the global state from mouse down to mouse move/up
-    -   This fixes some of the entries in the Fixed section
--   AssetManager:
-    -   Changed UI of renaming assets, allowing inline editing rather than opening a popup
-    -   The images shown in the asset manager will now use the thumbnail of the asset if available
-        -   This should reduce load times and improve general performance
-        -   This also applies to the preview when hovering over assets in the in-game assets sidebar
-    -   Remove initiated from the context menu now removes the entire selection
-    -   Context menu retains selection unless an item not in the current selection is clicked
--   In-game assets:
-    -   Sidebar is removed and replaced with a new Assets dialog similar to notes
-    -   The new UI has almost full compatibility with the assets in the dashboard
--   Notes:
-    -   Add filtering option 'All' to note manager to show both global and local notes
-    -   Note popouts for clients without edit access now show 'view source' instead of 'edit'
--   Dice tool:
-    -   Last result is now displayed in the dice tool rather than a popup window
-    -   Result breakdowns are shown in the last result display and history
-    -   Added a reroll button to quickly redo the previous roll
-    -   Added a reroll button to history entries
-    -   Add an option to roll 3D dice inside a dice box rather than over the playfield
-    -   Input field now scrolls to the end after populating via the on screen buttons
--   @planarally/dice:
-    -   (this is the standalone dice library that handles most of the dice logic and rendering)
-    -   Upgraded to v0.7
-    -   Dice will now stop sliding smoother
-    -   Clear state can be configured
-    -   D100 dice now properly work in 3D for the full range (1-100 / 0-99)
-        -   Currently hardcoded to 1-100 in the client, but the library can be told otherwise
--   I18n:
-    -   Added 95% i18n for zh (except diceTool)
--   [server] Assets:
-    -   Assets are no longer stored in a flat folder structure, but instead use a subpath based structure
-        -   An asset with hash `35eaef2e9a116aa152f7f161f1281411cb1e1375` is now stored as `assets/35/ea/35eaef2e9a116aa152f7f161f1281411cb1e1375`
--   [tech] Systems: Move system-core from game/ to core/ so that it can also be used by e.g. assets
+-   Access levels are no longer additive
+    -   e.g. edit access used to automatically include movement & vision access, this is no longer the case
+-   Selection draw box now appears on top of the fog
+-   Selection rotate UI now appears on top fo the fog
+-   Moved zoom bar and selection info behind main modals when overlapping
+    -   the selection info can pop-over when hovered with the mouse
+-   [server] Server config setup has changed
+    -   The server config is now by default stored in the `data` directory and in toml format
+    -   It's no longer tracked in git, as the default values are now coded in python itself
+    -   An env variable can be used to change the location
+    -   Changes to the config are now checked and loaded by the server during runtime
+-   [tech] Server shutdown sequence has been modified
+-   [tech] Mod improvements
+    -   DataBlock API changes
+        -   Made most functions sync
+        -   Save method renamed to `sync`
+        -   API added to handle reactivity inside the datablock
+        -   Now listens to saved events from other clients to update local data
+        -   No longer runs the (de)serializer per key, but instead just on the entirety, alloweing root arrays
+        -   Added utility `useDataBlock` hook to reduce a lot of boilerplate in mod components
+        -   Serialize and Deserialize generic order are swapped
+    -   Now expects a root level `events` object with event functions instead of them being exported
+    -   Remove registerTrackerSettings event
 
 ### Removed
 
--   Labels:
-    -   As mentioned in the last 2 releases these were going to be removed
-    -   I wasn't happy with the current implementation and they were causing more confusion than they were useful
-    -   This also removes the Filter Tool
--   .paa asset handling
-    -   This was no longer really maintained and the current frontend doesn't offer any support for it
+-   The `isToken` property has been removed from all shapes
+    -   This is now fully derived based on vision access of the shape
 
 ### Fixed
 
--   Notes:
-    -   It was possible to open a 'view-only' note on a tab you weren't supposed to see
-    -   Note manager could be empty and unusable when changing locations or losing view access to an open note
-    -   Search filter not resetting page to 1 potentially causing a blank page if on an other page
-    -   Default edit access on notes was not correctly applied
-    -   Fix searchbar overlapping over other modals
-    -   Global notes no longer have a default access level
-    -   Notes can no longer be locally edited by clients without edit access through the note popouts
--   Shape Properties:
-    -   Input changes could not persist or save on the wrong shape if selection focus was changed while editing (see selection changes)
--   Modals
-    -   Dragging modals (e.g. notes) now also brings them to the foreground as if clicked
--   Composites:
-    -   Moving composites to a different location could sometimes lead to errors on the client even though the moves were succesful serverside
--   Select Tool:
-    -   Snapping an existing shape point to some other point could be overriden with a snap to the grid
--   Game Listing:
-    -   Clicking on a session that shares a name with another session would foldout both
+-   Draw tool polygon was not updating vision until shape completion
+-   Reduced some render overhead when token shapes that the player did not own were moved
+-   Shape context menu not closing when selecting an option
+-   Select tool build UI not appearing when mode toggling
+-   Datablocks for room and user categories had a bug in the server preventing creating them
+-   Asset context-menu remove not working
+-   Asset context-menu background colour being wrong in-game sometimes
+-   Asset upload bar missing in the dashboard asset manager
+-   Asset picker out of game now uses the newer UI
+-   Dropping assets you have shared-view permission for on the map was not working
+-   Movement only door toggle not immediately rerendering screen
+-   Select tool UI would sometimes stick around when there is no shape selected anymore

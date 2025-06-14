@@ -10,6 +10,8 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+## [2025.2]
+
 **Server owners:** The server config has changed location and format. Ensure you check the release notes for the necessary info.
 The old config files are not yet removed from git to prevent losing modifications you made to these files.
 They will be removed in a future release though.

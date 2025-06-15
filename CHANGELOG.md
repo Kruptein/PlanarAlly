@@ -23,6 +23,7 @@ This fixes/adds support for a wider variety of smtp email servers.
 
 -   Mail not working in envs where username env is missing (e.g. docker)
     -   This is a problem in the mail lib used, but circumvented in the Dockerfile
+-   Mail error showing a 500 error in the client
 
 ## [2025.2]
 

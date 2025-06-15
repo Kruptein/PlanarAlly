@@ -3,6 +3,7 @@ from smtplib import LMTP, SMTP_SSL
 from redmail.email.sender import EmailSender
 
 from ..config import cfg
+from ..logs import logger
 
 _email = None
 
@@ -54,15 +55,20 @@ def send_mail(
     html: str | None,
     to: str | list[str],
     from_address: str | None = None,
-) -> None:
+) -> bool:
     email = get_email()
     config = cfg()
 
     assert config.mail is not None
-    email.send(
-        subject=subject,
-        text=text,
-        html=html,
-        receivers=to,
-        sender=from_address or config.mail.default_from_address,
-    )
+    try:
+        email.send(
+            subject=subject,
+            text=text,
+            html=html,
+            receivers=to,
+            sender=from_address or config.mail.default_from_address,
+        )
+    except Exception as e:
+        logger.error(f"Error sending mail: {e}")
+        return False
+    return True

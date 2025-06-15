@@ -19,6 +19,11 @@ This fixes/adds support for a wider variety of smtp email servers.
 -   SSL email configuration
     -   Choose between START TLS / TLS / SSL / LMTP for smtp connection
 
+### Fixed
+
+-   Mail not working in envs where username env is missing (e.g. docker)
+    -   This is a problem in the mail lib used, but circumvented in the Dockerfile
+
 ## [2025.2]
 
 **Server owners:** The server config has changed location and format. Ensure you check the release notes for the necessary info.

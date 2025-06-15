@@ -1,3 +1,5 @@
+from smtplib import LMTP, SMTP_SSL
+
 from redmail.email.sender import EmailSender
 
 from ..config import cfg
@@ -28,12 +30,20 @@ def get_email() -> EmailSender:
         if not config.mail.default_from_address:
             raise ValueError("Mail default from address is not set")
 
+        ssl_kwargs = {}
+        if config.mail.ssl_mode == "ssl":
+            ssl_kwargs["cls_smtp"] = SMTP_SSL
+        elif config.mail.ssl_mode == "lmtp":
+            ssl_kwargs["cls_smtp"] = LMTP
+
         _email = EmailSender(
             host=config.mail.host,
             port=config.mail.port,
             # These are wrongly typed in the redmail library
             username=config.mail.username,  # type: ignore
             password=config.mail.password,  # type: ignore
+            use_starttls=config.mail.ssl_mode == "starttls",
+            **ssl_kwargs,
         )
     return _email
 

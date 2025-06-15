@@ -10,6 +10,15 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+## [2025.2.1]
+
+This fixes/adds support for a wider variety of smtp email servers.
+
+### Added
+
+-   SSL email configuration
+    -   Choose between START TLS / TLS / SSL / LMTP for smtp connection
+
 ## [2025.2]
 
 **Server owners:** The server config has changed location and format. Ensure you check the release notes for the necessary info.

@@ -8,6 +8,11 @@ from ..logs import logger
 _email = None
 
 
+def reset_email() -> None:
+    global _email
+    _email = None
+
+
 def get_email() -> EmailSender:
     """
     Get the email sender object.

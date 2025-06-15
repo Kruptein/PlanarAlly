@@ -1,8 +1,16 @@
+from smtplib import LMTP, SMTP_SSL
+
 from redmail.email.sender import EmailSender
 
 from ..config import cfg
+from ..logs import logger
 
 _email = None
+
+
+def reset_email() -> None:
+    global _email
+    _email = None
 
 
 def get_email() -> EmailSender:
@@ -28,12 +36,20 @@ def get_email() -> EmailSender:
         if not config.mail.default_from_address:
             raise ValueError("Mail default from address is not set")
 
+        ssl_kwargs = {}
+        if config.mail.ssl_mode == "ssl":
+            ssl_kwargs["cls_smtp"] = SMTP_SSL
+        elif config.mail.ssl_mode == "lmtp":
+            ssl_kwargs["cls_smtp"] = LMTP
+
         _email = EmailSender(
             host=config.mail.host,
             port=config.mail.port,
             # These are wrongly typed in the redmail library
             username=config.mail.username,  # type: ignore
             password=config.mail.password,  # type: ignore
+            use_starttls=config.mail.ssl_mode == "starttls",
+            **ssl_kwargs,
         )
     return _email
 
@@ -44,15 +60,20 @@ def send_mail(
     html: str | None,
     to: str | list[str],
     from_address: str | None = None,
-) -> None:
+) -> bool:
     email = get_email()
     config = cfg()
 
     assert config.mail is not None
-    email.send(
-        subject=subject,
-        text=text,
-        html=html,
-        receivers=to,
-        sender=from_address or config.mail.default_from_address,
-    )
+    try:
+        email.send(
+            subject=subject,
+            text=text,
+            html=html,
+            receivers=to,
+            sender=from_address or config.mail.default_from_address,
+        )
+    except Exception as e:
+        logger.error(f"Error sending mail: {e}")
+        return False
+    return True

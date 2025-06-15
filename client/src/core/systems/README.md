@@ -33,13 +33,13 @@ Most systems have their own state in a `state.ts` file.
 
 Two types of state are commonly provided:
 
--   reactive state
--   non-reactive state
+- reactive state
+- non-reactive state
 
 Non-reactive state usually contains all the data for all the entities the system manages, it can be accessed in two ways:
 
--   `state.readonly`: A readonly view on the data
--   `state.mutable`: A direct reference to the data allowing you to mutate it
+- `state.readonly`: A readonly view on the data
+- `state.mutable`: A direct reference to the data allowing you to mutate it
 
 Generally only the system itself should mutate the state, whereas other files may freely access the readonly state.
 This is currently not hard enforced, but a best practice.
@@ -52,9 +52,9 @@ nor is the overhead of reactive references for shapes that are not interacted wi
 This means that a common thing systems do is to load reactive data from the non-reactive state temporarily while a shape is selected.
 Reactive state can be interacted with on 3 levels:
 
--   `state.reactive`: A readonly view on the reactive data
--   `state.mutableReactive`: mutable access
--   `state.raw`: This skips the reactive proxy and gives immediate mutable access to the data directly
+- `state.reactive`: A readonly view on the reactive data
+- `state.mutableReactive`: mutable access
+- `state.raw`: This skips the reactive proxy and gives immediate mutable access to the data directly
 
 The last access level is used for small performance tweaks were we know that just the last data is all we need,
 this is common in render code, but can also be encountered in other places.

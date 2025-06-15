@@ -107,7 +107,6 @@ class AccessSystem implements ShapeSystem {
     // Should be used by external systems
     hasAccessTo(id: LocalId, access: AccessLevel | AccessLevel[], limitToActiveTokens = false): boolean {
         // 1. DMs always have access when not limiting to active tokens
-        // console.log(gameState);
         if (gameState.raw.isDm && !limitToActiveTokens) return true;
 
         const _access: AccessLevel[] = Array.isArray(access) ? access : [access];

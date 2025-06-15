@@ -2,7 +2,7 @@ export function arrToToggleGroup<T extends string | number | symbol>(
     x: readonly T[],
     map: Record<T, string>,
 ): { label: string; value: T }[];
-export function arrToToggleGroup<T extends string>(x: readonly string[]): { label: string; value: string }[];
+export function arrToToggleGroup(x: readonly string[]): { label: string; value: string }[];
 export function arrToToggleGroup<T extends string | number | symbol>(
     x: readonly T[],
     map?: Record<T, string>,

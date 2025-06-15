@@ -76,6 +76,7 @@ export function orientation(p: Point, q: Point, r: Point): Sign {
     if (maxY < aprY) maxY = aprY;
     if (maxX > maxY) [maxX, maxY] = [maxY, maxX];
     // underflow proection in eps computation?? Math.sqrt(Number.MIN_VALUE, Number.EPSILON)
+    // eslint-disable-next-line no-loss-of-precision
     if (maxX < 2e-162 && maxX === 0) {
         return Sign.ZERO;
     }

@@ -102,13 +102,12 @@ jobs:
               working-directory: server
               run: uv sync
 
-            - name: black
+            - name: ruff - format
               if: steps.changed-files.outputs.any_changed == 'true'
-              uses: psf/black@stable
-              with:
-                  src: server
+              working-directory: server
+              run: uv run ruff format --check src
 
-            - name: ruff
+            - name: ruff - lint
               if: steps.changed-files.outputs.any_changed == 'true'
               working-directory: server
               run: uv run ruff check src

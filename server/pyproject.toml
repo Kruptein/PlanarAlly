@@ -23,15 +23,7 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = [
-    "black==25.1.0",
-    "isort==6.0.1",
-    "pydantic-to-typescript==1.0.10",
-    "ruff==0.11.13",
-]
-
-[tool.black]
-line-length = 120
+dev = ["isort==6.0.1", "pydantic-to-typescript==1.0.10", "ruff==0.11.13"]
 
 [tool.ruff]
 line-length = 120

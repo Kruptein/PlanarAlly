@@ -52,6 +52,8 @@ VOLUME /planarally/static/mods
 ENV PA_GIT_INFO docker:${DOCKER_TAG}-${SOURCE_COMMIT}
 ENV PYTHONUNBUFFERED=1
 ENV UV_CACHE_DIR /planarally/.uv
+# This is only done to ensure that the mail lib does not crash :4
+ENV USERNAME=planarally 
 
 RUN apt-get update && apt-get install --no-install-recommends dumb-init curl libffi-dev libssl-dev gcc -y && \
     rm -rf /var/lib/apt/lists/*

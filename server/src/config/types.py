@@ -101,6 +101,7 @@ class MailConfig(BaseModel):
     password: Optional[str] = None
     # The default from address to use for emails
     default_from_address: EmailStr
+    ssl_mode: Literal["ssl", "tls", "starttls", "lmtp"] = "starttls"
 
 
 class StatsConfig(BaseModel):

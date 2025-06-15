@@ -50,8 +50,10 @@ class ConfigManager:
 
                 if not startup:
                     from ..logs import logger
+                    from ..mail import reset_email
 
                     logger.info("Config file changed, reloading")
+                    reset_email()
         except rtoml.TomlParsingError as e:
             print(f"Error loading config: {e}")
         except ValidationError as e:

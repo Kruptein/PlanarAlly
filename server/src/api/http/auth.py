@@ -95,12 +95,13 @@ async def forgot_password(request):
     reset_url = f"{cfg().general.client_url}/auth/login?resetToken={reset_token}"
 
     # Send the email
-    send_mail(
+    if not send_mail(
         "Password reset request",
         f"A password reset for the PlanarAlly account associated with this email address was requested. Visit {reset_url} to reset your password. If you did not do this, please ignore this email.",
         f"A password reset for the PlanarAlly account associated with this email address was requested. Visit <a href='{reset_url}'>{reset_url}</a> to reset your password.<br><br>If you did not do this, please ignore this email.",
         [email],
-    )
+    ):
+        return web.HTTPInternalServerError(reason="Failed to send email - check with your administrator")
 
     return web.HTTPOk()
 

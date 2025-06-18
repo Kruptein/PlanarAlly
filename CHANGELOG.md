@@ -15,6 +15,7 @@ tech changes will usually be stripped from release notes for the public
 ### Fixed
 
 -   Initiative effect rename losing focus after pressing 1 character
+-   Locked shapes not being selectable directly
 
 ## [2025.2.1]
 

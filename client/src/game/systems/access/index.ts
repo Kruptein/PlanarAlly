@@ -51,7 +51,7 @@ class AccessSystem implements ShapeSystem {
     clear(): void {
         this.dropState();
         for (const al of ACCESS_LEVELS) {
-            $.activeTokenFilters.set(al, undefined);
+            $.activeTokenFilters.delete(al);
             $.ownedTokens.get(al)?.clear();
         }
         mutable.access.clear();
@@ -111,6 +111,11 @@ class AccessSystem implements ShapeSystem {
         if (gameState.raw.isDm && !limitToActiveTokens) return true;
 
         const _access: AccessLevel[] = Array.isArray(access) ? access : [access];
+
+        // This is an extra case to cover the special case where the shape has no attached users
+        // in which case the auras would be hidden for the DM with the normal behaviour.
+        // If we're not actively filtering tokens, we can assume we want to show them.
+        if (gameState.raw.isDm && _access.every((al) => !raw.activeTokenFilters.has(al))) return true;
 
         // 2. Otherwise check in the active tokens or owned tokens depending on the limitToActiveTokens flag
         return _access.every((al) => (limitToActiveTokens ? activeTokens.value : raw.ownedTokens).get(al)?.has(id));

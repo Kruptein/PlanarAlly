@@ -17,7 +17,7 @@ interface ReactiveAccessState {
     playerAccess: Map<string, AccessConfig>;
 
     ownedTokens: Map<AccessLevel, Set<LocalId>>;
-    activeTokenFilters: Map<AccessLevel, Set<LocalId> | undefined>;
+    activeTokenFilters: Map<AccessLevel, Set<LocalId>>;
 }
 
 interface AccessState {
@@ -35,7 +35,7 @@ const state = buildState<ReactiveAccessState, AccessState>(
         playerAccess: new Map(),
 
         ownedTokens: new Map(ACCESS_LEVELS.map((al) => [al, new Set<LocalId>()])),
-        activeTokenFilters: new Map(ACCESS_LEVELS.map((al) => [al, undefined])),
+        activeTokenFilters: new Map(),
     },
     { access: new Map<LocalId, AccessMap>() },
 );

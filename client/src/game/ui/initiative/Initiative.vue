@@ -268,7 +268,7 @@ function n(e: any): number {
                             class="initiative-effect"
                             :class="{ 'effect-visible': alwaysShowEffects }"
                         >
-                            <div v-for="(effect, e) of actor.effects" :key="`${actor.globalId}-${effect.name}`">
+                            <div v-for="(effect, e) of actor.effects" :key="`${actor.globalId}-${e}`">
                                 <input
                                     v-model="effect.name"
                                     type="text"

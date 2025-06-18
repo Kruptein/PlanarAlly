@@ -10,6 +10,12 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+## [2025.2.2]
+
+### Fixed
+
+-   Initiative effect rename losing focus after pressing 1 character
+
 ## [2025.2.1]
 
 This fixes/adds support for a wider variety of smtp email servers.

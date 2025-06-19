@@ -32,28 +32,32 @@ async def export_stats():
     if len(stats) == 0:
         return
 
-    data = {
-        "stats": [s.to_export_format() for s in stats],
-        "serverId": c.stats_uuid,
-        "totals": {
-            "users": User.select().count(),
-            "rooms": Room.select().count(),
-        },
-        "versions": {
-            "serverEnv": env_version,
-            "serverRelease": release_version,
-            "statsFormat": 1,
-        },
-    }
+    for chunk in range(0, len(stats), 1000):
+        data = {
+            "stats": [s.to_export_format() for s in stats[chunk : chunk + 1000]],
+            "serverId": c.stats_uuid,
+            "totals": {
+                "users": User.select().count(),
+                "rooms": Room.select().count(),
+            },
+            "versions": {
+                "serverEnv": env_version,
+                "serverRelease": release_version,
+                "statsFormat": 1,
+            },
+        }
 
-    try:
-        await send_stats(data)
-    except Exception as e:
-        logger.warning(f"Error exporting stats: {e}")
-        return
+        print(data)
 
-    # Update last export date
-    c.last_export_date = datetime.now()
+        try:
+            await send_stats(data)
+        except Exception as e:
+            logger.warning(f"Error exporting stats: {e}")
+            break
+
+        # Update last export date if at least 1 chunk succeeded,
+        # if a later chunk fails we just suck it up right now and accept that that data is not transmitted
+        c.last_export_date = datetime.now()
     c.save()
 
 

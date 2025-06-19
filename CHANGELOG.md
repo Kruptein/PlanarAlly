@@ -16,6 +16,7 @@ tech changes will usually be stripped from release notes for the public
 
 -   Initiative effect rename losing focus after pressing 1 character
 -   Locked shapes not being selectable directly
+-   DM only auras where no longer rendered due to a bug in the new access logic
 
 ## [2025.2.1]
 

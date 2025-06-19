@@ -10,6 +10,10 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Fixed
+
+-   Ensure stat export is chunked to prevent rejection from stat server
+
 ## [2025.2.2]
 
 ### Fixed

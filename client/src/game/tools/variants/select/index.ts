@@ -70,6 +70,7 @@ enum SelectOperations {
     Noop,
     Resize,
     Drag,
+    Select,
     GroupSelect,
     Rotate,
 }
@@ -227,11 +228,14 @@ class SelectTool extends Tool implements ISelectTool {
     }
 
     // Syncs the local state tracked selection state to the global selection state
-    private syncSelection(): void {
+    private syncSelection(resetCurrentSelection = false): void {
         if (this.currentSelection.length === 0) {
             selectedSystem.clear();
         } else {
             selectedSystem.set(...this.currentSelection.map((s) => s.id));
+        }
+        if (resetCurrentSelection) {
+            this.currentSelection = [];
         }
     }
 
@@ -382,6 +386,8 @@ class SelectTool extends Tool implements ISelectTool {
                                 visionState.removeBlocker(TriangulationTarget.MOVEMENT, shape.floorId, shape, true);
                         }
                     }
+                } else {
+                    this.mode = SelectOperations.Select;
                 }
                 layer.invalidate(true);
                 hit = true;
@@ -834,7 +840,6 @@ class SelectTool extends Tool implements ISelectTool {
                 if (recalcVision) visionState.recalculateVision(floorId);
                 if (recalcMovement) visionState.recalculateMovement(floorId);
             }
-            layer.invalidate(false);
 
             if (this.mode !== SelectOperations.Rotate) {
                 this.removeRotationUi();
@@ -842,11 +847,12 @@ class SelectTool extends Tool implements ISelectTool {
             }
         }
 
+        layer.invalidate(false);
+
         if (this.operationReady) addOperation(this.operationList!);
 
         _$.hasSelection = this.currentSelection.length > 0;
-        this.syncSelection();
-        this.currentSelection = [];
+        this.syncSelection(true);
 
         this.mode = SelectOperations.Noop;
     }

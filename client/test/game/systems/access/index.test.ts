@@ -114,18 +114,26 @@ describe("Access System", () => {
         let id: LocalId;
         let id2: LocalId;
         let id3: LocalId;
+        let id4: LocalId;
+        let id5: LocalId;
 
         beforeEach(() => {
             // Shape 1: Only some default access rights
             // Shape 2: Full access rights for a specific user
             // Shape 3: Mixed default & specific access rights
+            // Shape 4: No access rights
+            // Shape 5: Player with only edit access rights
             id = generateTestLocalId();
             id2 = generateTestLocalId();
             id3 = generateTestLocalId();
+            id4 = generateTestLocalId();
+            id5 = generateTestLocalId();
 
             const id1Default = { edit: true, movement: false, vision: true };
             const id2Default = { edit: false, movement: true, vision: false };
             const id3Default = { edit: false, movement: false, vision: true };
+            const id4Default = { edit: false, movement: false, vision: false };
+            const id5Default = { edit: false, movement: false, vision: false };
 
             const id2TestUser = {
                 access: { edit: true, movement: true, vision: true },
@@ -153,6 +161,14 @@ describe("Access System", () => {
                 default: id3Default,
                 extra: [id3TestUser],
             });
+            accessSystem.inform(id4, {
+                default: id4Default,
+                extra: [],
+            });
+            accessSystem.inform(id5, {
+                default: id5Default,
+                extra: [id3TestUser],
+            });
         });
         it("should return true for the DM without limiters", () => {
             // setup
@@ -161,6 +177,8 @@ describe("Access System", () => {
             accessCheck(id, { edit: true, movement: true, vision: true });
             accessCheck(id2, { edit: true, movement: true, vision: true });
             accessCheck(id3, { edit: true, movement: true, vision: true });
+            accessCheck(id4, { edit: true, movement: true, vision: true });
+            accessCheck(id5, { edit: true, movement: true, vision: true });
             // teardown
             gameSystem.setDm(false);
         });
@@ -172,36 +190,72 @@ describe("Access System", () => {
             accessCheck(id, { edit: true, movement: true, vision: true });
             accessCheck(id2, { edit: true, movement: true, vision: true });
             accessCheck(id3, { edit: true, movement: true, vision: true });
+            accessCheck(id4, { edit: true, movement: true, vision: true });
+            accessCheck(id5, { edit: true, movement: true, vision: true });
             // teardown
             gameSystem.setDm(false);
         });
-        it("should return according to the access rights for the DM with a limiter and the shape in the active filter", () => {
+        it("should return true for the DM with a limiter and the shape in the active filter", () => {
             // setup
             gameSystem.setDm(true);
-            // test shape 1
+            // test only shape 1 active
             accessSystem.setActiveVisionTokens(id);
-            accessCheck(id, { edit: true, movement: false, vision: true }, true);
+            accessCheck(id, { edit: true, movement: true, vision: true }, true);
             // test shape 2
             accessSystem.setActiveVisionTokens(id2);
             accessCheck(id2, { edit: true, movement: true, vision: true }, true);
             // test shape 3
             accessSystem.setActiveVisionTokens(id3);
-            accessCheck(id3, { edit: true, movement: false, vision: true }, true);
+            accessCheck(id3, { edit: true, movement: true, vision: true }, true);
+            // test shape 4
+            accessSystem.setActiveVisionTokens(id4);
+            accessCheck(id4, { edit: true, movement: true, vision: true }, true);
+            // test shape 5
+            accessSystem.setActiveVisionTokens(id5);
+            accessCheck(id5, { edit: true, movement: true, vision: true }, true);
             // test all shapes
-            accessSystem.setActiveVisionTokens(id, id2, id3);
+            accessSystem.setActiveVisionTokens(id, id2, id3, id4, id5);
             expect(accessSystem.hasAccessTo(id, "edit", true)).toBe(true);
             expect(accessSystem.hasAccessTo(id2, "movement", true)).toBe(true);
             expect(accessSystem.hasAccessTo(id3, "vision", true)).toBe(true);
+            expect(accessSystem.hasAccessTo(id4, "vision", true)).toBe(true);
+            expect(accessSystem.hasAccessTo(id5, "vision", true)).toBe(true);
             // teardown
             gameSystem.setDm(false);
         });
         it("should return false for the DM with a limiter and the shape not in the active filter", () => {
             // setup
             gameSystem.setDm(true);
+            // test shape 1 active
             accessSystem.setActiveVisionTokens(id);
-            // test
             expect(accessSystem.hasAccessTo(id2, "vision", true)).toBe(false);
             expect(accessSystem.hasAccessTo(id3, "vision", true)).toBe(false);
+            expect(accessSystem.hasAccessTo(id4, "vision", true)).toBe(false);
+            expect(accessSystem.hasAccessTo(id5, "vision", true)).toBe(false);
+            // test shape 2 active
+            accessSystem.setActiveVisionTokens(id2);
+            expect(accessSystem.hasAccessTo(id, "vision", true)).toBe(false);
+            expect(accessSystem.hasAccessTo(id3, "vision", true)).toBe(false);
+            expect(accessSystem.hasAccessTo(id4, "vision", true)).toBe(false);
+            expect(accessSystem.hasAccessTo(id5, "vision", true)).toBe(false);
+            // test shape 3 active
+            accessSystem.setActiveVisionTokens(id3);
+            expect(accessSystem.hasAccessTo(id, "vision", true)).toBe(false);
+            expect(accessSystem.hasAccessTo(id2, "vision", true)).toBe(false);
+            expect(accessSystem.hasAccessTo(id4, "vision", true)).toBe(false);
+            expect(accessSystem.hasAccessTo(id5, "vision", true)).toBe(false);
+            // test shape 4 active
+            accessSystem.setActiveVisionTokens(id4);
+            expect(accessSystem.hasAccessTo(id, "vision", true)).toBe(false);
+            expect(accessSystem.hasAccessTo(id2, "vision", true)).toBe(false);
+            expect(accessSystem.hasAccessTo(id3, "vision", true)).toBe(false);
+            expect(accessSystem.hasAccessTo(id5, "vision", true)).toBe(false);
+            // test shape 5 active
+            accessSystem.setActiveVisionTokens(id5);
+            expect(accessSystem.hasAccessTo(id, "vision", true)).toBe(false);
+            expect(accessSystem.hasAccessTo(id2, "vision", true)).toBe(false);
+            expect(accessSystem.hasAccessTo(id3, "vision", true)).toBe(false);
+            expect(accessSystem.hasAccessTo(id4, "vision", true)).toBe(false);
             // teardown
             gameSystem.setDm(false);
         });
@@ -260,6 +314,10 @@ describe("Access System", () => {
             accessCheck(id2, { edit: false, movement: true, vision: false });
             //   Shape 3
             accessCheck(id3, { edit: false, movement: false, vision: true });
+            //   Shape 4
+            accessCheck(id4, { edit: false, movement: false, vision: false });
+            //   Shape 5
+            accessCheck(id5, { edit: false, movement: false, vision: false });
             // User 2: Full access
             coreStore.setUsername("userWithFullRights");
             //   Shape 1
@@ -268,6 +326,10 @@ describe("Access System", () => {
             accessCheck(id2, { edit: true, movement: true, vision: true });
             //   Shape 3
             accessCheck(id3, { edit: false, movement: false, vision: true });
+            //   Shape 4
+            accessCheck(id4, { edit: false, movement: false, vision: false });
+            //   Shape 5
+            accessCheck(id5, { edit: false, movement: false, vision: false });
             // User 3: Mixed access
             coreStore.setUsername("userWithLimitedRights");
             //   Shape 1
@@ -276,6 +338,10 @@ describe("Access System", () => {
             accessCheck(id2, { edit: false, movement: true, vision: false });
             //   Shape 3
             accessCheck(id3, { edit: true, movement: false, vision: true });
+            //   Shape 4
+            accessCheck(id4, { edit: false, movement: false, vision: false });
+            //   Shape 5
+            accessCheck(id5, { edit: true, movement: false, vision: false });
         });
     });
     describe("getAccess", () => {

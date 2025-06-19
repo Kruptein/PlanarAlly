@@ -47,8 +47,6 @@ async def export_stats():
             },
         }
 
-        print(data)
-
         try:
             await send_stats(data)
         except Exception as e:

@@ -43,7 +43,7 @@ async def export_stats():
             "versions": {
                 "serverEnv": env_version,
                 "serverRelease": release_version,
-                "statsFormat": 1,
+                "statsFormat": 2,
             },
         }
 

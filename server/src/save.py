@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 104
+SAVE_VERSION = 105
 
 import asyncio
 import json
@@ -22,6 +22,7 @@ import logging
 import secrets
 import shutil
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 from uuid import uuid4
@@ -432,6 +433,47 @@ def upgrade(
                 "UPDATE constants SET stats_uuid = ?",
                 (str(uuid4()),),
             )
+    elif version == 104:
+        with db.atomic():
+            # Add room_id and user_id to stats for better querying
+            db.execute_sql("ALTER TABLE stats ADD COLUMN campaign_id INTEGER DEFAULT NULL")
+            db.execute_sql("ALTER TABLE stats ADD COLUMN user_id INTEGER DEFAULT NULL")
+
+            # Remove spammy connection stats flooding the db && move stats data to new columns
+            stats = db.execute_sql("SELECT id, kind, timestamp, data FROM stats").fetchall()
+            last_known_connections = {}
+            for id, kind, timestamp, data in stats:
+                if kind == "StatsKind.USER_GAME_CONNECTED":
+                    try:
+                        json_data = json.loads(data)
+                    except:
+                        continue
+                    last_known_connections[(json_data["playerId"], json_data["campaignId"])] = (
+                        datetime.fromisoformat(timestamp),
+                        id,
+                    )
+                elif kind == "StatsKind.USER_GAME_DISCONNECTED":
+                    try:
+                        json_data = json.loads(data)
+                    except:
+                        continue
+                    key = (json_data["playerId"], json_data["campaignId"])
+                    if key in last_known_connections:
+                        delta = datetime.fromisoformat(timestamp) - last_known_connections[key][0]
+                        if delta.total_seconds() < 60:
+                            db.execute_sql("DELETE FROM stats WHERE id=?", (last_known_connections[key][1],))
+                            db.execute_sql("DELETE FROM stats WHERE id=?", (id,))
+                        del last_known_connections[key]
+                        continue
+                if data:
+                    try:
+                        json_data = json.loads(data)
+                    except:
+                        continue
+                    db.execute_sql(
+                        "UPDATE stats SET campaign_id=?, user_id=?, data=? WHERE id=?",
+                        (json_data.get("campaignId"), json_data.get("userId"), None, id),
+                    )
     else:
         raise UnknownVersionException(f"No upgrade code for save format {version} was found.")
     inc_save_version(db)

@@ -22,6 +22,7 @@ import { equalPoints, rotateAroundPoint, snapToPoint } from "../../../../core/ma
 import { InvalidationMode, SyncMode } from "../../../../core/models/types";
 import { ctrlOrCmdPressed } from "../../../../core/utils";
 import { i18n } from "../../../../i18n";
+import { activeShapeStore } from "../../../../store/activeShape";
 import { sendRequest } from "../../../api/emits/logic";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../../api/emits/shape/core";
 import { calculateDelta } from "../../../drag";
@@ -230,6 +231,7 @@ class SelectTool extends Tool implements ISelectTool {
     // Syncs the local state tracked selection state to the global selection state
     private syncSelection(resetCurrentSelection = false): void {
         if (this.currentSelection.length === 0) {
+            activeShapeStore.setShowEditDialog(false);
             selectedSystem.clear();
         } else {
             selectedSystem.set(...this.currentSelection.map((s) => s.id));

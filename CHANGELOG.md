@@ -15,6 +15,7 @@ tech changes will usually be stripped from release notes for the public
 -   Ensure stat export is chunked to prevent rejection from stat server
 -   Rapid (dis)connect sequences flooding the stats
 -   Don't re-open shape properties after a re-select
+-   Last grid-line in X or Y axis sometimes not rendering
 
 ## [2025.2.2]
 

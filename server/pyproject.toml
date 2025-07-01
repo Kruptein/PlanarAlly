@@ -12,7 +12,7 @@ dependencies = [
     "bcrypt==4.3.0",
     "cryptography==45.0.4",
     "peewee==3.18.1",
-    "pillow==11.2.1",
+    "pillow==11.3.0",
     "pydantic[email]==1.10.18",
     "python-engineio==4.12.2",
     "python-socketio==5.13.0",

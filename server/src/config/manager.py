@@ -77,6 +77,9 @@ class ConfigManager:
 
     def update_config(self, updates: Dict[str, Any]) -> None:
         """Update config with new values"""
+        if "admin_user" in updates:
+            raise ValueError("admin_user cannot be updated dynamically for security reasons.")
+
         try:
             # Create new config with updates
             new_config = ServerConfig(**(self.config.dict() | updates))

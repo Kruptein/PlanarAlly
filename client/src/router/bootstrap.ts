@@ -6,6 +6,10 @@ import Invitation from "../invitation";
 
 import { router } from ".";
 
+// Admin
+const Admin = () => import("../admin/Admin.vue");
+const AdminUsers = () => import("../admin/Users.vue");
+const AdminCampaigns = () => import("../admin/Campaigns.vue");
 // Auth
 const Login = () => import("../auth/Login.vue");
 // Dashboard
@@ -98,6 +102,29 @@ const routes: RouteRecordRaw[] = [
                 path: "settings",
                 component: DashboardSettings,
                 name: "dashboard-settings",
+            },
+        ],
+    },
+    {
+        path: "/admin",
+        component: Admin,
+        meta: {
+            auth: true,
+        },
+        children: [
+            {
+                path: "",
+                redirect: { name: "admin-users" },
+            },
+            {
+                name: "admin-users",
+                path: "/admin/users",
+                component: AdminUsers,
+            },
+            {
+                name: "admin-campaigns",
+                path: "/admin/campaigns",
+                component: AdminCampaigns,
             },
         ],
     },

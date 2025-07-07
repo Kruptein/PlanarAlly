@@ -93,6 +93,8 @@ class GeneralConfig(ConfigModel):
     max_log_size_in_bytes: int = 200_000
     max_log_backups: int = 5
 
+    admin_user: Optional[str] = None
+
 
 class MailConfig(ConfigModel):
     # Can be used to disable email functionality

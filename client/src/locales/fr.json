@@ -1,0 +1,760 @@
+{
+    "locale": {
+        "select": "Sélectionner la langue :",
+        "en": "Anglais",
+        "zh": "Chinois simplifié",
+        "tw": "Chinois traditionnel",
+        "de": "Allemand",
+        "ru": "Russe",
+        "dk": "Danois",
+        "es": "Espagnol",
+        "it": "Italien"
+    },
+    "assetManager": {
+        "AssetContextMenu": {
+            "new_name": "Nouveau nom :",
+            "renaming_NAME": "Renommer {name}",
+            "ask_remove": "Êtes-vous sûr de vouloir supprimer ceci ?"
+        },
+        "AssetManager": {
+            "new_folder_name": "Nouveau nom de dossier",
+            "uploading": "Téléversement des fichiers",
+            "create_folder": "Créer un dossier",
+            "upload_files": "Téléverser des fichiers",
+            "title": "Gestionnaire de ressources",
+            "download_files": "Télécharger des fichiers"
+        }
+    },
+    "common": {
+        "rename": "Renommer",
+        "remove": "Supprimer",
+        "username": "Nom d'utilisateur",
+        "password": "Mot de passe",
+        "server_ver_prefix": "Version du serveur :",
+        "PlanarAlly": "PlanarAlly",
+        "error_prefix": "Erreur :",
+        "error_msg": "Erreur !",
+        "close": "Fermer",
+        "submit": "Valider",
+        "create": "Créer",
+        "warning": "Avertissement",
+        "value": "Valeur",
+        "toggle_public_private": "Basculer public / privé",
+        "toggle_draw": "Dessiner sur le jeton",
+        "initiative": "Initiative",
+        "search": "Rechercher",
+        "name": "Nom",
+        "add": "Ajouter",
+        "players": "Joueurs",
+        "exit": "Quitter",
+        "assets": "Ressources",
+        "notes": "Notes",
+        "markers": "Marqueurs",
+        "border_color": "Couleur de la bordure",
+        "fill_color": "Couleur de remplissage",
+        "fill_color_short": "Remplissage",
+        "stroke_color_short": "Contour",
+        "trackers": "Suiveurs",
+        "auras": "Auras",
+        "annotation": "Annotation",
+        "floor": "Niveau",
+        "layer": "Calque",
+        "location": "Lieu",
+        "admin": "Admin",
+        "grid": "Grille",
+        "vision": "Vision",
+        "tokens": "Jetons",
+        "shape": "Forme",
+        "colour": "Couleur",
+        "colours": "Couleurs",
+        "version": "version",
+        "confirm": "Confirmer",
+        "cancel": "Annuler",
+        "insert_one_character": "Veuillez saisir au moins un caractère",
+        "name_already_in_use": "Ce nom est déjà utilisé !",
+        "varia": "Divers",
+        "select": "Sélectionner",
+        "or": "ou",
+        "features": "Fonctionnalités",
+        "you": "vous",
+        "all": "tous",
+        "stroke_color": "Couleur du contour",
+        "stroke_width": "Épaisseur du contour",
+        "public": "Public",
+        "primary_color": "Couleur primaire",
+        "secondary_color": "Couleur secondaire",
+        "range": "Portée",
+        "aura": "Aura",
+        "enabled": "Activé",
+        "toggle": "Basculer",
+        "permission": "Permissions",
+        "movement": "Mouvement",
+        "both": "Les deux",
+        "actions": "Actions",
+        "upload": "Téléverser",
+        "apply": "Appliquer",
+        "type": "Type",
+        "background": "Arrière-plan",
+        "mods": "Mods"
+    },
+    "assets": {
+        "add_shortcut": "Ajouter un raccourci",
+        "all_assets": "Toutes les ressources",
+        "remove_shortcut": "Supprimer le raccourci"
+    },
+    "auth": {
+        "login": {
+            "register": "S'inscrire",
+            "login": "Connexion",
+            "forgotPassword": "Mot de passe oublié ?",
+            "forgotPasswordNote1": "Notez que la récupération du mot de passe par e-mail n'est possible que si vous avez configuré une adresse e-mail pour votre compte.",
+            "forgotPasswordNote2": "Si vous ne l'avez pas fait ou si vous n'êtes pas sûr, veuillez contacter l'administrateur de ce serveur.",
+            "forgotPasswordSuccess": "E-mail envoyé",
+            "resetPassword": "Réinitialiser le mot de passe",
+            "resetPasswordSuccess": "Mot de passe réinitialisé",
+            "resetPasswordFailed": "Échec de la réinitialisation du mot de passe - Jeton incorrect ou expiré",
+            "resetPasswordNote": "Entrez votre nouveau mot de passe ci-dessous et cliquez sur valider pour le réinitialiser."
+        }
+    },
+    "core": {
+        "components": {
+            "InputCopyElement": {
+                "copied": "Copié !",
+                "copy": "Copier"
+            },
+            "selectionbox": {
+                "non_empty_warning": "Entrez une valeur personnalisée non vide !",
+                "already_exists_warning": "Ce choix existe déjà !"
+            }
+        }
+    },
+    "dashboard": {
+        "Dashboard": {
+            "session_name": "Nom de la campagne",
+            "account_settings": "Paramètres du compte",
+            "logout": "Se déconnecter",
+            "your_sessions": "Vos campagnes",
+            "no_sessions": "Aucune campagne active",
+            "create_session": "Créer une campagne",
+            "create_new_session": "Créer une nouvelle campagne"
+        },
+        "settings": {
+            "email_changed": "E-mail changé avec succès"
+        }
+    },
+    "game": {
+        "ui": {
+            "FloorSelect": {
+                "new_name": "Nouveau nom de niveau",
+                "creation": "Création de niveau",
+                "warning_msg_Z": "Êtes-vous sûr de vouloir supprimer le niveau {z} ?",
+                "delete_floor": "Supprimer le niveau",
+                "add_new_floor": "Ajouter un nouveau niveau",
+                "toggle_visibility": "Basculer la visibilité du niveau pour les joueurs",
+                "rename_icon_hover": "Renommer ce niveau",
+                "rename_header_title": "Renommage du niveau",
+                "title": "Sélection du niveau"
+            },
+            "initiative": {
+                "new_effect": "Nouvel effet",
+                "add_timed_effect": "Ajouter un effet chronométré",
+                "toggle_group": "Basculer initiative individuelle/groupe",
+                "delete_init": "Supprimer l'initiative",
+                "delete_effect": "Supprimer l'effet",
+                "round_N": "Tour {n}",
+                "vision_log_msg": "Verrouillage automatique de la vision (affiche uniquement la vision du jeton actif)",
+                "camera_log_msg": "Verrouillage automatique de la caméra sur le jeton actif",
+                "reset_round": "Réinitialiser les tours/rounds",
+                "next": "Suivant",
+                "previous": "Précédent",
+                "clear": "Effacer les initiatives",
+                "change_sort": "Changer le tri",
+                "settings": "Paramètres"
+            },
+            "menu": {
+                "LocationBar": {
+                    "new_location_name": "Nouveau nom de lieu :",
+                    "create_new_location": "Créer un nouveau lieu",
+                    "add_new_location": "Ajouter un nouveau lieu",
+                    "show_specific_pl": "Afficher des joueurs spécifiques"
+                },
+                "MenuBar": {
+                    "characters": "Personnages",
+                    "new_note": "Nouvelle note",
+                    "open_asset_manager": "Ouvrir le gestionnaire de ressources",
+                    "no_assets": "Aucune ressource",
+                    "create_note": "Créer une note",
+                    "delete_marker": "Supprimer le marqueur",
+                    "no_notes": "Aucune note",
+                    "dm_settings": "Paramètres MJ",
+                    "no_markers": "Aucun marqueur",
+                    "client_settings": "Paramètres client",
+                    "no_characters": "Aucun personnage",
+                    "no_players": "Aucun joueur connecté"
+                }
+            },
+            "NoteDialog": {
+                "warning_msg": "Êtes-vous sûr de vouloir supprimer ceci ?",
+                "edit_title": "Modifier le titre",
+                "remove_note": "Supprimer la note"
+            },
+            "selection": {
+                "edit_dialog": {
+                    "access": {
+                        "toggle_edit_access": "Basculer l'accès à l'édition",
+                        "toggle_movement_access": "Basculer l'accès au déplacement",
+                        "toggle_vision_access": "Basculer l'accès à la vision",
+                        "remove_owner_access": "Supprimer l'accès du propriétaire",
+                        "access": "Accès",
+                        "default": "Par défaut",
+                        "add_access": "Ajouter un accès"
+                    },
+                    "logic": {
+                        "logic": "Logique",
+                        "door": "Porte",
+                        "teleport_zone": "Zone de téléportation",
+                        "target": "Cible",
+                        "immediate_mode": "Mode immédiat",
+                        "vision": "Vision",
+                        "permissions": {
+                            "title": "Configurer les permissions de logique",
+                            "request": "Demander",
+                            "disabled": "Désactivé"
+                        }
+                    },
+                    "dialog": {
+                        "current_value": "Valeur actuelle",
+                        "remove_tracker": "Supprimer le suivi",
+                        "dim_value": "Valeur atténuée",
+                        "toggle_light_source": "Basculer la source de lumière",
+                        "delete_aura": "Supprimer l'aura",
+                        "edit_shape": "Modifier la forme",
+                        "is_a_token": "Est un jeton",
+                        "is_invisible": "Est invisible",
+                        "is_defeated": "Est vaincu",
+                        "is_locked": "Est verrouillé",
+                        "show_badge": "Afficher l'insigne",
+                        "show_annotation": "Est public",
+                        "block_vision_light": "Bloque la vision/la lumière",
+                        "block_movement": "Bloque le déplacement"
+                    },
+                    "properties": {
+                        "properties": "Propriétés",
+                        "common": "Commun",
+                        "advanced": "Avancé"
+                    },
+                    "groups": {
+                        "groups": "Groupes",
+                        "rules": "Règles",
+                        "character_set": "Ensemble de caractères",
+                        "custom_charset": "Jeu de caractères personnalisé",
+                        "creation_order": "Ordre de création",
+                        "charset": {
+                            "numbers": "nombres",
+                            "latin": "caractères latins",
+                            "custom": "personnalisé"
+                        },
+                        "order": {
+                            "incrementing": "croissant",
+                            "random": "aléatoire"
+                        },
+                        "members": "Membres",
+                        "show_badge_on_all_members": "Afficher l'insigne sur tous les membres :",
+                        "badge": "Insigne",
+                        "show_badge": "Afficher l'insigne",
+                        "create_new_group": "Créer un nouveau groupe",
+                        "delete_group": "Supprimer le groupe"
+                    },
+                    "extra": {
+                        "extra": "Supplémentaire",
+                        "lighting_vision": "Éclairage & Vision",
+                        "upload_walls": "Téléverser les murs",
+                        "remove_walls": "Supprimer les murs",
+                        "apply_draft_info": "Appliquer les informations du brouillon"
+                    },
+                    "grid": {
+                        "appearance": "Apparence",
+                        "infer_size": "Déduire la taille",
+                        "size": "Taille",
+                        "show_cells": "Afficher les cellules",
+                        "hex_settings": "Paramètres hexagonaux",
+                        "odd_hex_orientation": "Orientation hexagonale impaire"
+                    },
+                    "tracker": {
+                        "shared_for_all_variants": "Partagé pour toutes les variantes",
+                        "border": "Bordure",
+                        "light_source": "Source de lumière",
+                        "angle": "Angle",
+                        "display_on_token": "Afficher sur le jeton"
+                    }
+                },
+                "SelectionInfo": {
+                    "open_shape_props": "Ouvrir les propriétés de la forme",
+                    "quick_edit_tracker": "Édition rapide du suivi",
+                    "quick_edit_aura": "Édition rapide de l'aura",
+                    "lock": "Basculer verrouillage/déverrouillage",
+                    "new_value_NAME": "Nouvelle valeur de {name} :",
+                    "updating_NAME": "Mise à jour de {name}",
+                    "notes": "note(s)",
+                    "open_note_manager_title": "Ouvrir le gestionnaire de notes",
+                    "collapse_notes": "Réduire les notes",
+                    "expand_notes": "Développer les notes"
+                },
+                "ShapeContext": {
+                    "show_initiative": "Afficher l'initiative",
+                    "add_initiative": "Ajouter à l'initiative",
+                    "add_all_initiative": "Ajouter tout à l'initiative",
+                    "move_back": "Envoyer à l'arrière",
+                    "move_front": "Mettre au premier plan",
+                    "delete_shapes": "Supprimer les formes",
+                    "show_props": "Afficher les propriétés",
+                    "remove_marker": "Supprimer le marqueur",
+                    "set_marker": "Définir le marqueur",
+                    "no_spawn_set_title": "Impossible de déplacer les formes",
+                    "no_spawn_set_text": "La destination n'a pas de point d'apparition configuré. Assurez-vous d'en créer un via le menu contextuel dans le lieu de destination."
+                }
+            },
+            "settings": {
+                "client": {
+                    "ClientSettings": {
+                        "client_settings": "Paramètres client"
+                    },
+                    "DisplaySettings": {
+                        "use_high_dpi": "Utiliser HiDPI/retina si applicable",
+                        "grid_size_in_pixels": "Taille (en pixels) :",
+                        "use_as_physical_gameboard": "Utiliser comme plateau de jeu physique",
+                        "mini_size_in_inches": "Taille de la figurine (en pouces)",
+                        "ppi": "Densité de pixels (PPI)",
+                        "Gameboard": "Plateau de jeu"
+                    },
+                    "AppearanceSettings": {
+                        "toolbars": "Barres d'outils",
+                        "use_tool_icons": "Utiliser des icônes",
+                        "fog": "Brouillard",
+                        "show_token_directions": "Afficher la direction des jetons hors écran",
+                        "grid_mode_label_format": "Format des étiquettes en mode grille",
+                        "grid_mode_label_format_0": "Les deux",
+                        "grid_mode_label_format_1": "Distance uniquement",
+                        "grid_mode_label_format_2": "Nombre de cellules uniquement",
+                        "wall": "Couleur par défaut des murs",
+                        "window": "Couleur par défaut des fenêtres",
+                        "closed_door": "Couleur par défaut des portes fermées",
+                        "open_door": "Couleur par défaut des portes ouvertes"
+                    },
+                    "BehaviourSettings": {
+                        "invert_alt_set": "Inverser le comportement de la touche ALT",
+                        "disable_scroll_to_zoom": "Désactiver le zoom à la molette",
+                        "selection_info_tracker_mode": "Mode de suivi par défaut",
+                        "selection_info_tracker_mode_absolute": "Absolu",
+                        "selection_info_tracker_mode_relative": "Relatif",
+                        "mouse_pan_mode": "Mode de déplacement à la souris",
+                        "mouse_pan_mode_0": "Aucun",
+                        "mouse_pan_mode_1": "Clic du milieu",
+                        "mouse_pan_mode_2": "Clic droit",
+                        "mouse_pan_mode_3": "Les deux",
+                        "snapping": "Magnétisme",
+                        "mouse_gestures": "Souris & Gestes",
+                        "selection_info": "Informations sur la sélection"
+                    },
+                    "InitiativeSettings": {
+                        "open_on_activate": "Ouvrir automatiquement lors du démarrage de l'initiative",
+                        "camera_lock": "Verrouiller la caméra sur les jetons actifs (possédés)",
+                        "vision_lock": "Verrouiller la vision sur les jetons actifs (possédés)",
+                        "effect_visibility": "Quand afficher les effets",
+                        "effect_always": "Toujours",
+                        "effect_active": "Actif et au survol"
+                    },
+                    "PerformanceSettings": {
+                        "only_render_active_floor": "Ne rendre que le niveau actif",
+                        "Rendering": "Rendu"
+                    },
+                    "common": {
+                        "Appearance": "Apparence",
+                        "Behaviour": "Comportement",
+                        "Display": "Affichage",
+                        "Performance": "Performance"
+                    }
+                },
+                "dm": {
+                    "AdminSettings": {
+                        "delete_session_msg_CREATOR_ROOM": "ENTREZ {creator}/{room} POUR CONFIRMER LA SUPPRESSION DE LA CAMPAGNE.",
+                        "deleting_session": "SUPPRESSION DE LA CAMPAGNE",
+                        "unlock_NBSP_Session_NBSP": "Déverrouiller la campagne",
+                        "lock_NBSP_Session_NBSP": "Verrouiller la campagne",
+                        "unlock_this_session": "Déverrouiller cette campagne",
+                        "lock_this_session": "Verrouiller cette campagne",
+                        "kick": "Expulser",
+                        "no_players_invite_msg": "Il n'y a pas encore de joueurs, invitez-en en utilisant le lien ci-dessous !",
+                        "invite_code": "Code d'invitation",
+                        "invitation_url": "URL d'invitation :",
+                        "refresh_invitation_code": "Rafraîchir le code d'invitation",
+                        "danger_NBSP_zone": "Zone dangereuse",
+                        "dm_access_only": "(Accès MJ uniquement)",
+                        "remove_session": "Supprimer la campagne",
+                        "delete_session": "Supprimer cette campagne"
+                    },
+                    "DmSettings": {
+                        "dm_settings": "Paramètres MJ"
+                    },
+                    "FeatureSettings": {
+                        "chat": "Activer le chat",
+                        "dice": "Activer les dés"
+                    }
+                },
+                "floor": {
+                    "title": "Paramètres de niveau"
+                },
+                "common": {
+                    "overridden_msg": "Certains de ces paramètres peuvent être remplacés par des paramètres spécifiques au lieu",
+                    "overridden_highlight": "en surbrillance",
+                    "reset_default": "Réinitialiser par défaut",
+                    "sync_default": "Définir comme nouveau défaut",
+                    "overridden_highlight_path": "Les paramètres qui remplacent les valeurs par défaut de la campagne sont {0}"
+                },
+                "GridSettings": {
+                    "unit_size_in_UNIT": "Taille de l'unité (en {unit})",
+                    "use_grid": "Utiliser une grille",
+                    "size_unit": "Unité de taille",
+                    "grid_type": "Type de grille",
+                    "SQUARE": "Carrés",
+                    "POINTY_HEX": "Hexagones pointus",
+                    "FLAT_HEX": "Hexagones plats",
+                    "drop_ratio": "Ratio de réduction",
+                    "drop_ratio_title": "Le ratio de réduction est utilisé pour les formes avec une information de taille (ex : gobelin_1x1). Ce ratio est appliqué pour déterminer la taille finale."
+                },
+                "FloorSettings": {
+                    "backgrounds": "Arrière-plans de la carte",
+                    "air_background": "Niveau aérien",
+                    "ground_background": "Niveau de sol",
+                    "underground_background": "Niveau souterrain",
+                    "pattern": "Motif",
+                    "offset": "Décalage",
+                    "scale": "Échelle"
+                },
+                "VariaSettings": {
+                    "movePlayerOnTokenChange": "Déplacer le(s) joueur(s) lorsqu'un jeton qu'ils possèdent change de lieu",
+                    "limitMovementDuringInitiative": "Limiter le mouvement pendant l'initiative à la forme active"
+                },
+                "LocationBar": {
+                    "LocationAdminSettings": {
+                        "remove_location_msg_NAME": "Êtes-vous sûr de vouloir supprimer le lieu {name} ?",
+                        "remove_location_yes": "Oui, supprimer ce lieu",
+                        "remove_location_no": "S'il vous plaît non",
+                        "move_existing_pl": "Déplacer les joueurs existants dans ce lieu",
+                        "delete_this_location": "Supprimer ce lieu",
+                        "archive_this_location": "Archiver ce lieu",
+                        "clone_this_location": "Cloner ce lieu",
+                        "choose_room": "Choisir une salle"
+                    },
+                    "LocationSettings": {
+                        "location_settings": "Paramètres du lieu :"
+                    }
+                },
+                "permissions": {
+                    "edit_owned_tokens": "Modifier les jetons possédés :",
+                    "move_owned_tokens": "Déplacer les jetons possédés :",
+                    "resize_owned_tokens": "Redimensionner les jetons possédés :"
+                },
+                "VisionSettings": {
+                    "min_full_vision_UNIT": "Vision complète minimale ({unit}) :",
+                    "max_vision_UNIT": "Vision maximale ({unit}) :",
+                    "core": "Noyau",
+                    "fake_player": "Faux joueur :",
+                    "fill_fow": "Remplir toute la surface avec le brouillard de guerre :",
+                    "only_show_lights_los": "Afficher uniquement les lumières dans la ligne de vue :",
+                    "fow_opacity": "Opacité du brouillard de guerre :",
+                    "advanced": "Avancé",
+                    "vision_mode": "Mode de vision :",
+                    "default": "Par défaut",
+                    "experimental": "Expérimental"
+                }
+            },
+            "templates": {
+                "choose": "Choisir un modèle",
+                "save": "Enregistrer le modèle",
+                "overwrite": "Écraser",
+                "create_new": "Créer un nouveau"
+            },
+            "tools": {
+                "CreateTokenModal": {
+                    "create_basic_token": "Créer un jeton de base",
+                    "text": "Texte",
+                    "fill": "Remplissage :",
+                    "border": "Bordure :"
+                },
+                "DefaultContext": {
+                    "bring_pl": "Amener les joueurs",
+                    "create_basic_token": "Créer un jeton de base",
+                    "show_initiative": "Afficher l'initiative",
+                    "create_spawn_location": "Créer un point d'apparition",
+                    "new_spawn_question": "Quel nom souhaitez-vous donner à ce point d'apparition ?",
+                    "new_spawn_title": "Création d'un nouveau point d'apparition"
+                },
+                "DrawTool": {
+                    "foreground_color": "Couleur de premier plan",
+                    "background_color": "Couleur de fond",
+                    "mode": "Mode",
+                    "closed_polygon": "Polygone fermé ?",
+                    "brush_size": "Taille du pinceau",
+                    "font_size": "Taille de la police",
+                    "square": "carré",
+                    "circle": "cercle",
+                    "draw-polygon": "polygone",
+                    "paint-brush": "pinceau",
+                    "normal": "normal",
+                    "reveal": "révéler",
+                    "hide": "cacher",
+                    "erase": "effacer",
+                    "cone": "cône",
+                    "text": "texte",
+                    "shape-category": "Paramètres de base",
+                    "vision-category": "Paramètres de vision",
+                    "logic-category": "Paramètres de logique",
+                    "door": "Ajouter une logique de porte simple"
+                },
+                "MapTool": {
+                    "drag_to_resize": "Faites glisser une zone que vous souhaitez redimensionner",
+                    "select_shape_msg": "Veuillez d'abord sélectionner une forme.",
+                    "set_target_grid_cells": "Définir les cellules cibles de la grille",
+                    "horizontal": "Horizontal",
+                    "vertical": "Vertical",
+                    "apply": "APPLIQUER",
+                    "cancel": "ANNULER"
+                },
+                "RulerTool": {
+                    "share": "Partager avec les autres",
+                    "grid": "Mode grille"
+                },
+                "SpellTool": {
+                    "size": "Taille",
+                    "range": "Portée (rayon)"
+                },
+                "tools": {
+                    "change_mode": "Changer de mode",
+                    "FP": "PJ",
+                    "INI": "INI",
+                    "FP_title": "Basculer faux-joueur",
+                    "INI_title": "Basculer l'état de l'initiative",
+                    "LOS": "LOS",
+                    "LOS_title": "État de la ligne de vue (MJ uniquement)"
+                },
+                "DiceTool": {
+                    "rolling": "Lancer...",
+                    "full_history": "Historique complet",
+                    "full_history_title": "Basculer l'historique complet",
+                    "empty_history": "l'historique des dés est vide",
+                    "3D_dice": "Dés 3D",
+                    "share": "Partager",
+                    "history": "Historique",
+                    "previous_roll": "Lancer précédent",
+                    "details": "Détails",
+                    "open_options_title": "Afficher les options supplémentaires",
+                    "toggle_advanced": "Basculer en mode avancé",
+                    "toggle_breakdown": "Basculer la décomposition",
+                    "3D_options": {
+                        "off": "Désactivé",
+                        "on": "Activé",
+                        "box": "Boîte"
+                    },
+                    "share_options": {
+                        "all": "Tous",
+                        "dm": "MJ",
+                        "none": "Aucun"
+                    },
+                    "breakdown_options": {
+                        "detailed": "Détaillé",
+                        "simple": "Simple"
+                    },
+                    "advanced": "Avancé",
+                    "advanced_options": {
+                        "operators": "Opérateurs",
+                        "selectors": "Sélecteurs"
+                    },
+                    "clear_selection_title": "Effacer la sélection",
+                    "roll": "Lancer !",
+                    "reroll_previous_title": "Relancer le précédent",
+                    "limit_operator_options": {
+                        "keep": "garder",
+                        "drop": "supprimer",
+                        "min": "min",
+                        "max": "max"
+                    },
+                    "reroll": "Relancer",
+                    "selection_option_names": {
+                        "highest": "plus haut",
+                        "lowest": "plus bas"
+                    }
+                },
+                "NoteTool": {
+                    "header": "Attacher une note",
+                    "line1": "Sélectionnez la forme à laquelle vous voulez attacher la note.",
+                    "line2": "Vous pouvez zoomer et vous déplacer dans la carte."
+                },
+                "SelectTool": {
+                    "show_ruler": "Afficher la règle"
+                },
+                "ui": {
+                    "github_msg": "Trouvez le code sur github !",
+                    "discord_msg": "Rejoignez la communauté sur discord !",
+                    "patreon_msg": "Contribuez via patreon !",
+                    "open_loc_menu": "Ouvrir le menu des lieux",
+                    "new_ver_msg": "Une nouvelle version est disponible !",
+                    "open_settings": "Ouvrir les paramètres",
+                    "changelog_RELEASE_LOG": "# Version {release}\n*Pour plus de détails, visitez https://www.planarally.io/blog/*\n{log}",
+                    "return_to_content": "Cliquez pour revenir au contenu"
+                },
+                "notes": {
+                    "NoteCreate": {
+                        "header": "Créer une nouvelle note",
+                        "title": "Titre :",
+                        "title_placeholder": "Nouvelle note...",
+                        "type": "Type :",
+                        "local_note_title": "Note locale",
+                        "local_note_body": "Une note qui ne concerne que la campagne actuelle. C'est le type le plus courant et à privilégier dans la majorité des cas.",
+                        "global_note_title": "Note globale",
+                        "global_note_body": "Une note visible dans toutes les campagnes. Ce type spécial est utile pour enregistrer des informations communes, comme des statistiques de monstres utilisées dans plusieurs campagnes."
+                    },
+                    "NoteDialog": {
+                        "show": "afficher",
+                        "open_in_manager": "ouvrir dans le gestionnaire de notes",
+                        "collapse": "Réduire la note",
+                        "restore": "Restaurer la note",
+                        "pop_out": "Détacher la note",
+                        "close": "Fermer la note",
+                        "edit": "Modifier",
+                        "view_source": "voir la source"
+                    },
+                    "NoteList": {
+                        "title": "NOTES",
+                        "title_with_token": "pour",
+                        "search_placeholder": "rechercher dans vos notes...",
+                        "clear_search": "Effacer la recherche",
+                        "filter": {
+                            "where_to_search": "Où chercher",
+                            "title": "titre",
+                            "text": "texte",
+                            "author": "auteur",
+                            "local_locations": "Local : Lieux",
+                            "active_location": "uniquement dans le lieu actif",
+                            "archived_location": "inclure les lieux archivés",
+                            "local_shapes": "Local : Formes",
+                            "note_with_shape": "afficher les notes avec des formes",
+                            "global_note": "afficher les notes globales si une forme locale existe",
+                            "global_note_title": "Les notes globales peuvent être associées à une forme via un modèle. Activez ce paramètre pour afficher les notes globales associées à une forme dans la campagne actuelle",
+                            "active_location_title": "Afficher uniquement les notes créées dans le lieu actuel"
+                        },
+                        "empty_note": "Vous n'avez encore aucune note !",
+                        "empty_search": "Aucune note ne correspond à ce filtre.",
+                        "name": "NOM",
+                        "owner": "PROPRIÉTAIRE",
+                        "tags": "ÉTIQUETTES",
+                        "actions": "ACTIONS",
+                        "toggle_tags": "Basculer le filtre d'étiquette : ",
+                        "filters": {
+                            "title": "Filtres :",
+                            "tag_placeholder": "Rechercher des étiquettes...",
+                            "hide_title": "Masquer la recherche par étiquette",
+                            "show_title": "Afficher la recherche par étiquette"
+                        }
+                    },
+                    "NoteEdit": {
+                        "back": "Retour à la liste",
+                        "no_tags": "Aucune étiquette pour l'instant.",
+                        "add_tag": "Ajouter une étiquette",
+                        "md_aware": "Cette entrée supporte le markdown !",
+                        "shapes": {
+                            "linked": "Cette note est liée à",
+                            "linked_shape": "forme(s)",
+                            "used": "parmi celles-ci est/sont utilisée(s) dans ce lieu",
+                            "and": "et",
+                            "listed": "et est/sont listée(s) ci-dessous.",
+                            "add": "Ajouter une forme",
+                            "go_to_map": "Aller à la forme sur la carte",
+                            "remove": "Supprimer le lien avec la forme"
+                        },
+                        "show_icon": "Afficher une icône sur la forme",
+                        "show_icon_title": "Cochez ceci pour afficher une icône spéciale en bas à gauche d'une forme sur la carte. Cela peut servir de rappel visuel pour une note importante.",
+                        "show_text": "Afficher le texte au survol de la forme",
+                        "show_text_title": "Cela affichera le texte de la note en haut de l'écran lorsque vous survolerez la forme.",
+                        "tab_label": {
+                            "view": "affichage",
+                            "edit": "édition",
+                            "view_title": "Afficher la note en markdown",
+                            "edit_title": "Modifier la note",
+                            "triggers": "déclencheurs & visuels",
+                            "triggers_label1": "Configurer quand la note doit apparaître",
+                            "triggers_label2": "Seules les notes avec des formes peuvent avoir des déclencheurs",
+                            "access_title": "Configurer les droits d'accès",
+                            "shapes": "formes",
+                            "shapes_title": "Voir les formes liées à cette note",
+                            "access": "accès"
+                        }
+                    },
+                    "note_types": {
+                        "global": "global",
+                        "local": "local",
+                        "all": "toutes"
+                    }
+                },
+                "access": {
+                    "can_view": "Peut voir",
+                    "can_edit": "Peut modifier",
+                    "remove_access": "Supprimer l'accès",
+                    "default_access": "par défaut"
+                },
+                "chat": {
+                    "title": "Chat",
+                    "no_messages": "Aucun message pour l'instant."
+                }
+            },
+            "common": {
+                "view": "afficher",
+                "edit": "modifier",
+                "access": "accès"
+            }
+        },
+        "layer": {
+            "map": "carte",
+            "tokens": "jetons",
+            "dm": "mj",
+            "fow": "bdg"
+        },
+        "tool": {
+            "Build": "Construire",
+            "Play": "Jouer",
+            "Select": "Sélectionner",
+            "Pan": "Déplacer",
+            "Draw": "Dessiner",
+            "Ruler": "Règle",
+            "Ping": "Ping",
+            "Map": "Carte",
+            "Filter": "Filtre",
+            "Vision": "Vision",
+            "Spell": "Sort",
+            "Dice": "Dés"
+        },
+        "settings": {
+            "AccountSettings": {
+                "no_pwd_msg": "Aucun nouveau mot de passe fourni !",
+                "pwd_not_match": "Les mots de passe ne correspondent pas !",
+                "server_request_error": "Une erreur s'est produite lors de la requête serveur",
+                "change_pwd": "Changer le mot de passe",
+                "remove_account_msg": "Êtes-vous sûr de vouloir supprimer votre compte ?",
+                "delete_request_error": "Une erreur s'est produite lors de la suppression.",
+                "no_email_set": "aucun e-mail renseigné",
+                "general": "Général",
+                "username": "Nom d'utilisateur :",
+                "email": "E-mail :",
+                "danger_zone": "Zone dangereuse",
+                "new_pwd": "Nouveau mot de passe :",
+                "repeat_pwd": "Répéter le mot de passe :",
+                "delete_account": "Supprimer le compte",
+                "delete_confirm_msg": "Cette action est irréversible !"
+            },
+            "settings": {
+                "account_settings": "Paramètres du compte",
+                "AccountSettings": "Compte"
+            }
+        }
+    }
+}

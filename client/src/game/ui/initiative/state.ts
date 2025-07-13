@@ -21,6 +21,7 @@ import {
 import { getGlobalId, getLocalId, getShape } from "../../id";
 import { InitiativeSort } from "../../models/initiative";
 import type { InitiativeData, InitiativeEffect } from "../../models/initiative";
+import { InitiativeTurnDirection } from "../../models/initiative";
 import { setCenterPosition } from "../../position";
 import { accessSystem } from "../../systems/access";
 import { accessState } from "../../systems/access/state";
@@ -89,7 +90,7 @@ class InitiativeStore extends Store<InitiativeState> {
 
         if (!this._state.manuallyOpened) this.setActive(data.isActive);
         this.setRoundCounter(data.round, false);
-        this.setTurnCounter(data.turn, { sync: false, updateEffects: false });
+        this.setTurnCounter(data.turn, InitiativeTurnDirection.Null, { sync: false, updateEffects: false });
         this._state.sort = data.sort;
     }
 
@@ -188,28 +189,32 @@ class InitiativeStore extends Store<InitiativeState> {
 
     // TURN / ROUND TRACKING
 
-    setTurnCounter(turn: number, options: { sync: boolean; updateEffects: boolean }): void {
+    setTurnCounter(turn: number, direction: InitiativeTurnDirection, options: { sync: boolean; updateEffects: boolean }): void {
         if (options.sync && !gameState.raw.isDm && !this.owns()) return;
-        this._state.turnCounter = turn;
+
+        if (turn < 0) turn = 0;
 
         if (options.updateEffects) {
-            const actor = this.getDataSet()[this._state.turnCounter];
-            if (actor === undefined) return;
+            let entry = direction === InitiativeTurnDirection.Forward ? this._state.turnCounter : turn;
 
-            if (actor.effects.length > 0) {
-                for (let e = actor.effects.length - 1; e >= 0; e--) {
-                    const turns = +actor.effects[e]!.turns;
-                    if (!isNaN(turns)) {
-                        if (turns <= 0) actor.effects.splice(e, 1);
-                        else actor.effects[e]!.turns = (turns - 1).toString();
+            const actor = this.getDataSet()[entry];
+            if (actor !== undefined) {
+                if (actor.effects.length > 0) {
+                    for (let e = actor.effects.length - 1; e >= 0; e--) {
+                        const turns = +actor.effects[e]!.turns;
+                        if (!isNaN(turns)) {
+                            if (turns <= 0) actor.effects.splice(e, 1);
+                            else actor.effects[e]!.turns = (turns - direction).toString();
+                        }
                     }
                 }
             }
         }
+        this._state.turnCounter = turn;
 
         this.handleCameraLock();
         this.handleVisionLock();
-        if (options.sync) sendInitiativeTurnUpdate(turn);
+        if (options.sync) sendInitiativeTurnUpdate({ turn: turn, direction: direction, processEffects: options.updateEffects });
     }
 
     setRoundCounter(round: number, sync: boolean): void {
@@ -218,7 +223,8 @@ class InitiativeStore extends Store<InitiativeState> {
         if (sync) {
             sendInitiativeRoundUpdate(round);
             if (this.getDataSet().length > 0) {
-                this.setTurnCounter(0, { sync, updateEffects: true });
+                // TODO: accept forward and backward
+                this.setTurnCounter(0, InitiativeTurnDirection.Forward, { sync, updateEffects: true });
             }
         }
     }
@@ -228,7 +234,7 @@ class InitiativeStore extends Store<InitiativeState> {
         if (this._state.turnCounter === this.getDataSet().length - 1) {
             this.setRoundCounter(this._state.roundCounter + 1, true);
         } else {
-            this.setTurnCounter(this._state.turnCounter + 1, { sync: true, updateEffects: true });
+            this.setTurnCounter(this._state.turnCounter + 1, InitiativeTurnDirection.Forward, { sync: true, updateEffects: true });
         }
     }
 
@@ -236,9 +242,9 @@ class InitiativeStore extends Store<InitiativeState> {
         if (!gameState.raw.isDm) return;
         if (this._state.turnCounter === 0) {
             this.setRoundCounter(this._state.roundCounter - 1, true);
-            this.setTurnCounter(this.getDataSet().length - 1, { sync: true, updateEffects: true });
+            this.setTurnCounter(this.getDataSet().length - 1, InitiativeTurnDirection.Backward, { sync: true, updateEffects: true });
         } else {
-            this.setTurnCounter(this._state.turnCounter - 1, { sync: true, updateEffects: true });
+            this.setTurnCounter(this._state.turnCounter - 1, InitiativeTurnDirection.Backward, { sync: true, updateEffects: true });
         }
     }
 

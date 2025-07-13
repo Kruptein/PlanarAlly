@@ -28,3 +28,9 @@ export enum InitiativeEffectMode {
     ActiveAndHover = "active",
     Always = "always",
 }
+
+export enum InitiativeTurnDirection {
+    Backward = -1,
+    Null = 0,
+    Forward = 1,
+}

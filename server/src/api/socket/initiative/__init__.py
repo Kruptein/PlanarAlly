@@ -13,7 +13,7 @@ from ....models.access import has_ownership
 from ....models.role import Role
 from ....state.game import game_state
 from ...helpers import _send_game
-from ...models.initiative import ApiInitiative, InitiativeAdd
+from ...models.initiative import ApiInitiative, InitiativeAdd, InitiativeTurnUpdate, InitiativeDirection
 from ...models.initiative.option import InitiativeOptionSet
 from ...models.initiative.order import InitiativeOrderChange
 from ...models.initiative.value import InitiativeValueSet
@@ -349,17 +349,22 @@ async def change_initiative_order(sid: str, raw_data: Any):
 
 @sio.on("Initiative.Turn.Update", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def update_initiative_turn(sid: str, turn: int):
+async def update_initiative_turn(sid: str, raw_data: Any):
+    data = InitiativeTurnUpdate(**raw_data)
     pr = game_state.get(sid)
 
     location_data: Initiative = Initiative.get(location=pr.active_location)
     json_data = json.loads(location_data.data)
+    data_len = len(json_data)
 
-    if turn < 0 or turn >= len(json_data):
+    turn = data.turn
+    process_effects = data.processEffects
+
+    if turn < 0 or turn >= data_len:
         logger.warning("Provided turn is out of bounds.")
         return
 
-    db_turn_valid = 0 <= location_data.turn < len(json_data)
+    db_turn_valid = 0 <= location_data.turn < data_len
 
     if db_turn_valid:
         shape = Shape.get_or_none(uuid=json_data[location_data.turn]["shape"])
@@ -374,22 +379,27 @@ async def update_initiative_turn(sid: str, turn: int):
             return
 
         with db.atomic():
-            next_turn = turn > location_data.turn
+            if process_effects:
+                entry = location_data.turn if data.direction == InitiativeDirection.FORWARD else turn
+                effect_list = json_data[entry]["effects"]
+                i = 0
+                while i < len(effect_list):
+                    _effect = effect_list[i]
+                    effect_turns = _effect["turns"]
+                    if effect_turns is not None:
+                        try:
+                            turns = int(effect_turns)
+                            if turns <= 0 and data.direction == InitiativeDirection.FORWARD:
+                                json_data[entry]["effects"].pop(i)
+                                continue
+                                # Element removed, do not increment
+                            else:
+                                _effect["turns"] = str(turns - data.direction)
+                        except ValueError:
+                            # For non-number inputs do not update the effect
+                            pass
+                    i = i + 1
             location_data.turn = turn
-
-            for i, _effect in enumerate(json_data[turn]["effects"][-1:]):
-                try:
-                    turns = int(_effect["turns"])
-                    if turns <= 0 and next_turn:
-                        json_data[turn]["effects"].pop(i)
-                    elif turns > 0 and next_turn:
-                        _effect["turns"] = str(turns - 1)
-                    else:
-                        _effect["turns"] = str(turns + 1)
-                except ValueError:
-                    # For non-number inputs do not update the effect
-                    pass
-
             location_data.data = json.dumps(json_data)
     else:
         logger.error("!DB turn state was invalid! Hard setting turn without effect processing.")
@@ -397,7 +407,7 @@ async def update_initiative_turn(sid: str, turn: int):
 
     location_data.save()
 
-    await _send_game("Initiative.Turn.Update", turn, room=pr.active_location.get_path(), skip_sid=sid)
+    await _send_game("Initiative.Turn.Update", data, room=pr.active_location.get_path(), skip_sid=sid)
 
 
 @sio.on("Initiative.Round.Update", namespace=GAME_NS)

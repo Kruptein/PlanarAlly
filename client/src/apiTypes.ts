@@ -19,6 +19,8 @@ export type ApiDataBlock = ApiRoomDataBlock | ApiShapeDataBlock | ApiUserDataBlo
 /* Do not modify it by hand - just update the pydantic models and then re-run the script
 */
 
+export type InitiativeDirection = -1 | 0 | 1;
+
 export interface ApiAsset {
   id: AssetId;
   name: string;
@@ -536,6 +538,11 @@ export interface InitiativeEffectRename {
   shape: GlobalId;
   index: number;
   name: string;
+}
+export interface InitiativeTurnUpdate {
+  turn: number;
+  direction: number;
+  processEffects: InitiativeDirection;
 }
 export interface InitiativeEffectTurns {
   shape: GlobalId;

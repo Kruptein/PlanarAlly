@@ -42,5 +42,5 @@ class InitiativeAdd(TypeIdModel):
 
 class InitiativeTurnUpdate(BaseModel):
     turn: int
-    direction: int
-    processEffects: InitiativeDirection
+    direction: InitiativeDirection
+    processEffects: bool

@@ -541,8 +541,8 @@ export interface InitiativeEffectRename {
 }
 export interface InitiativeTurnUpdate {
   turn: number;
-  direction: number;
-  processEffects: InitiativeDirection;
+  direction: InitiativeDirection;
+  processEffects: boolean;
 }
 export interface InitiativeEffectTurns {
   shape: GlobalId;

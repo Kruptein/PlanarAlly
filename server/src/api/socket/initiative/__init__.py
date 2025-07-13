@@ -277,11 +277,9 @@ async def remove_initiative(sid: str, data: str):
         location_data = Initiative.get(location=pr.active_location)
         json_data = json.loads(location_data.data)
 
-        location_data.data = json.dumps([initiative for initiative in json_data if initiative["shape"] != data])
-
         shape_turn = next(i for i, v in enumerate(json_data) if v["shape"] == data)
 
-        if shape_turn < location_data.turn or shape_turn == len(json_data) - 1:
+        if shape_turn < location_data.turn:
             location_data.turn -= 1
             await _send_game(
                 "Initiative.Turn.Set",
@@ -290,14 +288,23 @@ async def remove_initiative(sid: str, data: str):
             )
         elif shape_turn == location_data.turn:
             # In this case we just want to proceed to the next actor in line as if we normally would advance
-            # And thus process effects
-            location_data.turn -= 1
+            next_turn = shape_turn
+            if shape_turn == len(json_data) - 1:
+                next_turn = 0
+                location_data.turn = 0
+                if len(json_data) > 1:
+                    location_data.round = location_data.round + 1
+                    await _send_game(
+                        "Initiative.Round.Update",
+                        location_data.round,
+                        room=pr.active_location.get_path(),
+                    )
             await _send_game(
                 "Initiative.Turn.Update",
-                location_data.turn,
+                InitiativeTurnUpdate(turn=next_turn, direction=InitiativeDirection.FORWARD, processEffects=True),
                 room=pr.active_location.get_path(),
             )
-
+        location_data.data = json.dumps([initiative for initiative in json_data if initiative["shape"] != data])
         location_data.save()
 
     await _send_game("Initiative.Remove", data, room=pr.active_location.get_path(), skip_sid=sid)

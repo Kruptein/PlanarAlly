@@ -219,20 +219,19 @@ class InitiativeStore extends Store<InitiativeState> {
 
     setRoundCounter(round: number, sync: boolean): void {
         if (sync && !gameState.raw.isDm && !this.owns()) return;
+        if (round < 0) round = 0;
         this._state.roundCounter = round;
         if (sync) {
             sendInitiativeRoundUpdate(round);
-            if (this.getDataSet().length > 0) {
-                // TODO: accept forward and backward
-                this.setTurnCounter(0, InitiativeTurnDirection.Forward, { sync, updateEffects: true });
-            }
         }
     }
 
     nextTurn(): void {
         if (!gameState.raw.isDm && !this.owns()) return;
-        if (this._state.turnCounter === this.getDataSet().length - 1) {
+        if (this.getDataSet().length === 0) return;
+        if (this._state.turnCounter >= this.getDataSet().length - 1) {
             this.setRoundCounter(this._state.roundCounter + 1, true);
+            this.setTurnCounter(0, InitiativeTurnDirection.Forward, { sync: true, updateEffects: true });
         } else {
             this.setTurnCounter(this._state.turnCounter + 1, InitiativeTurnDirection.Forward, { sync: true, updateEffects: true });
         }
@@ -240,10 +239,10 @@ class InitiativeStore extends Store<InitiativeState> {
 
     previousTurn(): void {
         if (!gameState.raw.isDm) return;
-        if (this._state.turnCounter === 0) {
+        if (this._state.turnCounter === 0 && this.getDataSet().length > 0) {
             this.setRoundCounter(this._state.roundCounter - 1, true);
             this.setTurnCounter(this.getDataSet().length - 1, InitiativeTurnDirection.Backward, { sync: true, updateEffects: true });
-        } else {
+        } else if (this._state.turnCounter > 0) {
             this.setTurnCounter(this._state.turnCounter - 1, InitiativeTurnDirection.Backward, { sync: true, updateEffects: true });
         }
     }

@@ -1,10 +1,9 @@
 import { socketManager } from "../core/socket";
-
-// import { dashboardState } from "./state";
+import { router } from "../router";
 
 export const socket = socketManager.socket("/admin");
 
-socket.on("disconnect", (reason: string) => {
+socket.on("disconnect", async () => {
     console.log("[Admin] disconnected");
-    if (reason === "io server disconnect") socket.open();
+    await router.push("/dashboard");
 });

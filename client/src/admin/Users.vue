@@ -12,7 +12,8 @@ const users = ref<User[]>([]);
 const filter = ref("");
 
 onMounted(async () => {
-    users.value = (await socket.emitWithAck("Users.List")) as User[];
+    const data = (await socket.emitWithAck("Users.List")) as User[];
+    users.value = data.sort((a, b) => a.name.localeCompare(b.name));
 });
 
 const filteredUsers = computed(() => {
@@ -21,38 +22,76 @@ const filteredUsers = computed(() => {
         (u) => u.name.toLowerCase().includes(filterV) || u.email?.toLowerCase().includes(filterV),
     );
 });
+
+async function reset(name: string): Promise<void> {
+    const ok = window.confirm(`Are you sure you want to reset ${name}'s password?`);
+    if (ok) {
+        const newPw = (await socket.emitWithAck("Users.Reset", name)) as string | false;
+        if (newPw !== false) {
+            await navigator.clipboard.writeText(newPw);
+            window.alert(
+                `New password is: ${newPw}\nMake sure that the user changes it manually\nIt has been copied to your clipboard`,
+            );
+        } else {
+            window.alert("Password reset failed");
+        }
+    }
+}
+
+async function remove(name: string): Promise<void> {
+    const check = window.prompt(`To confirm user "${name}" removal repeat the username below:`);
+    if (check === name) {
+        const success = (await socket.emitWithAck("Users.Remove", name)) as boolean;
+        if (success) {
+            window.alert("Account removed");
+            users.value = users.value.filter((u) => u.name !== name);
+        } else {
+            window.alert("Account removal failed");
+        }
+    }
+}
 </script>
 
 <template>
-    <!-- Users Section -->
-    <section class="content-section">
-        <!-- <div class="section-header">
-            <h1>User Management</h1>
-        </div> -->
-
+    <section>
         <div id="users">
-            <div class="header username">Name {{ filter }}</div>
-            <div class="header">Email</div>
-            <div class="header">Reset password</div>
-            <div class="header">Remove user</div>
+            <div id="users-header">
+                <div class="username">Name</div>
+                <div>Email</div>
+                <div>Reset password</div>
+                <div>Remove user</div>
 
-            <input v-model="filter" class="filter fullWidth" type="text" placeholder="filter name or email" />
+                <input
+                    v-model="filter"
+                    class="filter fullWidth"
+                    type="text"
+                    autocomplete="off"
+                    placeholder="filter name or email"
+                />
+            </div>
 
-            <template v-for="user in filteredUsers" :key="user.name">
-                <div class="username">{{ user.name }}</div>
-                <div>{{ user.email }}</div>
-                <!-- <div class="pointer" @click="reset(user.name)">reset</div>
-                <div class="pointer" @click="remove(user.name)">remove</div> -->
-            </template>
-            <template v-if="filteredUsers.length === 0">
-                <div class="fullWidth">No users match the current filter.</div>
-            </template>
+            <div id="users-list">
+                <template v-for="user in filteredUsers" :key="user.name">
+                    <div class="username">{{ user.name }}</div>
+                    <div>{{ user.email }}</div>
+                    <div class="pointer" @click="reset(user.name)">reset</div>
+                    <div class="pointer" @click="remove(user.name)">remove</div>
+                </template>
+                <template v-if="filteredUsers.length === 0">
+                    <div class="fullWidth">No users match the current filter.</div>
+                </template>
+            </div>
         </div>
     </section>
 </template>
 
 <style scoped lang="scss">
-#users {
+.pointer:hover {
+    cursor: pointer;
+}
+
+#users-header,
+#users-list {
     display: grid;
     grid-template-columns: 1fr 1fr 150px 150px;
     flex-direction: column;
@@ -63,14 +102,8 @@ const filteredUsers = computed(() => {
         border-bottom: dashed 1px;
     }
 
-    .header {
-        font-weight: bold;
-        border-bottom: solid 2px;
-    }
-
     .filter {
-        padding-top: 10px;
-        padding-bottom: 10px;
+        padding: 10px;
         margin-top: 10px;
         margin-bottom: 10px;
     }
@@ -83,5 +116,15 @@ const filteredUsers = computed(() => {
     .fullWidth {
         grid-column: 1 / 5;
     }
+}
+
+#users-header {
+    font-weight: bold;
+    border-bottom: solid 2px;
+}
+
+#users-list {
+    max-height: calc(100vh - 18rem);
+    overflow-y: auto;
 }
 </style>

@@ -1,49 +1,61 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 
-const users = ref<{ name: string; email: string }[]>([]);
+import { socket } from "./socket";
+
+interface Campaign {
+    name: string;
+    creator: string;
+}
+
+const campaigns = ref<Campaign[]>([]);
 const filter = ref("");
 
-const filteredUsers = computed(() => {
+onMounted(async () => {
+    const data = (await socket.emitWithAck("Campaigns.List")) as Campaign[];
+    campaigns.value = data.sort((a, b) => a.name.localeCompare(b.name));
+});
+
+const filteredCampaigns = computed(() => {
     const filterV = filter.value.toLowerCase();
-    return users.value.filter(
-        (u) => u.name.toLowerCase().includes(filterV) || u.email?.toLowerCase().includes(filterV),
+    return campaigns.value.filter(
+        (c) => c.name.toLowerCase().includes(filterV) || c.creator.toLowerCase().includes(filterV),
     );
 });
 </script>
 
 <template>
-    <!-- Users Section -->
     <section class="content-section">
-        <!-- <div class="section-header">
-            <h1>User Management</h1>
-        </div> -->
+        <div id="campaigns">
+            <div id="campaigns-header">
+                <div class="header username">Name</div>
+                <div class="header username">Creator</div>
 
-        <div id="users">
-            <div class="header username">Name {{ filter }}</div>
-            <div class="header">Email</div>
-            <div class="header">Reset password</div>
-            <div class="header">Remove user</div>
+                <input v-model="filter" class="filter fullWidth" type="text" placeholder="filter name" />
+            </div>
 
-            <input v-model="filter" class="filter fullWidth" type="text" placeholder="filter name or email" />
-
-            <template v-for="user in filteredUsers" :key="user.name">
-                <div class="username">{{ user.name }}</div>
-                <div>{{ user.email }}</div>
-                <!-- <div class="pointer" @click="reset(user.name)">reset</div>
-                <div class="pointer" @click="remove(user.name)">remove</div> -->
-            </template>
-            <template v-if="filteredUsers.length === 0">
-                <div class="fullWidth">No users match the current filter.</div>
-            </template>
+            <div id="campaigns-list">
+                <template v-for="campaign in filteredCampaigns" :key="`${campaign.name}-${campaign.creator}`">
+                    <div class="username">{{ campaign.name }}</div>
+                    <div class="username">{{ campaign.creator }}</div>
+                </template>
+                <template v-if="filteredCampaigns.length === 0">
+                    <div class="fullWidth">No campaigns match the current filter.</div>
+                </template>
+            </div>
         </div>
     </section>
 </template>
 
 <style scoped lang="scss">
-#users {
+.pointer:hover {
+    cursor: pointer;
+}
+
+#campaigns-header,
+#campaigns-list {
     display: grid;
-    grid-template-columns: 1fr 1fr 150px 150px;
+    grid-template-columns: 1fr 1fr;
     flex-direction: column;
 
     > div {
@@ -52,14 +64,8 @@ const filteredUsers = computed(() => {
         border-bottom: dashed 1px;
     }
 
-    .header {
-        font-weight: bold;
-        border-bottom: solid 2px;
-    }
-
     .filter {
-        padding-top: 10px;
-        padding-bottom: 10px;
+        padding: 10px;
         margin-top: 10px;
         margin-bottom: 10px;
     }
@@ -70,7 +76,17 @@ const filteredUsers = computed(() => {
     }
 
     .fullWidth {
-        grid-column: 1 / 5;
+        grid-column: 1 / 3;
     }
+}
+
+#campaigns-header {
+    font-weight: bold;
+    border-bottom: solid 2px;
+}
+
+#campaigns-list {
+    max-height: calc(100vh - 18rem);
+    overflow-y: auto;
 }
 </style>

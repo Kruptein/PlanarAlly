@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import type { RouteRecordRaw } from "vue-router";
 
+import { AdminSection } from "../admin/types";
 import { Logout } from "../auth/logout";
 import Invitation from "../invitation";
 
@@ -120,11 +121,17 @@ const routes: RouteRecordRaw[] = [
                 name: "admin-users",
                 path: "/admin/users",
                 component: AdminUsers,
+                meta: {
+                    adminSection: AdminSection.Users,
+                },
             },
             {
                 name: "admin-campaigns",
                 path: "/admin/campaigns",
                 component: AdminCampaigns,
+                meta: {
+                    adminSection: AdminSection.Campaigns,
+                },
             },
         ],
     },

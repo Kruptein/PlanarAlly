@@ -22,3 +22,7 @@ socket.on("Campaign.Import.Done", (data: { success: true } | { success: false; r
         toast.error(`Something went wrong with the campaign import :( (${data.reason})`, { timeout: false });
     }
 });
+
+socket.on("Admin.Enabled", (enabled: boolean) => {
+    dashboardState.adminEnabled = enabled;
+});

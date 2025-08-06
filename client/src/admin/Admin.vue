@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
 import type { NotificationShow } from "../apiTypes";
 
 import AdminNav from "./AdminNav.vue";
 import { socket } from "./socket";
-import { AdminSection } from "./types";
 
 const router = useRouter();
 const notifications = ref<NotificationShow[]>([]);
-const activeSection = ref<AdminSection>(AdminSection.Users);
+
+const activeSection = computed(() => router.currentRoute.value.meta.adminSection);
 
 socket.on("Notifications.List", (data: NotificationShow[]) => (notifications.value = data));
 
@@ -18,11 +18,11 @@ onMounted(() => {
     socket.connect();
 });
 
-function add(): void {
-    const message = window.prompt("New message:");
-    if (message === null) return;
-    socket.emit("Notifications.Add", message);
-}
+// function add(): void {
+//     const message = window.prompt("New message:");
+//     if (message === null) return;
+//     socket.emit("Notifications.Add", message);
+// }
 
 async function returnToMainApp(): Promise<void> {
     await router.push("/dashboard");
@@ -89,7 +89,7 @@ async function returnToMainApp(): Promise<void> {
     margin: 2.5rem 2.5rem 2.5rem 0;
     background-color: rgba(77, 59, 64, 0.6);
     border-radius: 20px;
-    padding: 3.75rem;
+    padding: 3rem;
     overflow-y: auto;
 
     .content-section {
@@ -206,41 +206,6 @@ async function returnToMainApp(): Promise<void> {
                             }
                         }
                     }
-                }
-            }
-        }
-
-        .placeholder-content {
-            text-align: center;
-            padding: 3rem;
-            color: #ccc;
-
-            .placeholder-icon {
-                font-size: 4em;
-                margin-bottom: 1rem;
-                color: #ffa8bf;
-            }
-
-            h2 {
-                font-size: 2em;
-                color: #ffa8bf;
-                margin-bottom: 1rem;
-            }
-
-            p {
-                font-size: 1.1em;
-                margin-bottom: 1rem;
-                line-height: 1.6;
-            }
-
-            ul {
-                text-align: left;
-                max-width: 400px;
-                margin: 0 auto;
-
-                li {
-                    margin-bottom: 0.5rem;
-                    color: #ddd;
                 }
             }
         }

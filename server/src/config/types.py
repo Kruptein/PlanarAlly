@@ -133,7 +133,3 @@ class ServerConfig(ConfigModel):
     webserver: WebserverConfig = WebserverConfig()
     stats: StatsConfig = StatsConfig()
     mail: Optional[MailConfig] = None
-    # Optional API server configuration
-    # If not specified, the API server will not be started
-    # Note: ensure that a different connection string is used
-    apiserver: Optional[WebserverConfig] = None

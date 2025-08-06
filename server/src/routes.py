@@ -1,15 +1,11 @@
 import os
 import sys
-from functools import partial
 
 import aiohttp
 from aiohttp import web
 
 from .api import http
 from .api.http import auth, mods, notifications, rooms, server, users, version
-from .api.http.admin import campaigns
-from .api.http.admin import users as admin_users
-from .app import admin_app, api_app
 from .app import app as main_app
 from .config import cfg
 from .utils import ASSETS_DIR, FILE_DIR, STATIC_DIR
@@ -29,15 +25,15 @@ def __replace_config_data(data: bytes) -> bytes:
     return data
 
 
-async def root(request, admin_api=False):
-    template = "admin-index.html" if admin_api else "index.html"
+async def root(request):
+    template = "index.html"
     with open(FILE_DIR / "templates" / template, "rb") as f:
         data = __replace_config_data(f.read())
         return web.Response(body=data, content_type="text/html")
 
 
-async def root_dev(request, admin_api=False):
-    port = 8081 if admin_api else 8080
+async def root_dev(request):
+    port = 8080
     target_url = f"http://localhost:{port}{request.rel_url}"
     data = await request.read()
     async with aiohttp.ClientSession() as client:
@@ -75,23 +71,8 @@ main_app.router.add_get(f"{subpath}/api/changelog", version.get_changelog)
 main_app.router.add_get(f"{subpath}/api/notifications", notifications.collect)
 main_app.router.add_post(f"{subpath}/api/mod/upload", mods.upload)
 
-# ADMIN ROUTES
-
-api_app.router.add_post(f"{subpath}/notifications", notifications.create)
-api_app.router.add_get(f"{subpath}/notifications", notifications.collect)
-api_app.router.add_delete(f"{subpath}/notifications/{{uuid}}", notifications.delete)
-api_app.router.add_get(f"{subpath}/users", admin_users.collect)
-api_app.router.add_post(f"{subpath}/users/reset", admin_users.reset)
-api_app.router.add_post(f"{subpath}/users/remove", admin_users.remove)
-api_app.router.add_get(f"{subpath}/campaigns", campaigns.collect)
-
-admin_app.router.add_static(f"{subpath}/static", STATIC_DIR)
-admin_app.add_subapp("/api/", api_app)
-
 TAIL_REGEX = "/{tail:(?!api).*}"
 if "dev" in sys.argv:
     main_app.router.add_route("*", TAIL_REGEX, root_dev)
-    admin_app.router.add_route("*", TAIL_REGEX, partial(root_dev, admin_api=True))
 else:
     main_app.router.add_route("*", TAIL_REGEX, root)
-    admin_app.router.add_route("*", TAIL_REGEX, partial(root, admin_api=True))

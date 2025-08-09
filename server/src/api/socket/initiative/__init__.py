@@ -288,12 +288,10 @@ async def remove_initiative(sid: str, data: str):
             )
         elif shape_turn == location_data.turn:
             # In this case we just want to proceed to the next actor in line as if we normally would advance
-            next_turn = shape_turn
             if shape_turn == len(json_data) - 1:
-                next_turn = 0
                 location_data.turn = 0
                 if len(json_data) > 1:
-                    location_data.round = location_data.round + 1
+                    location_data.round += 1
                     await _send_game(
                         "Initiative.Round.Update",
                         location_data.round,
@@ -301,7 +299,9 @@ async def remove_initiative(sid: str, data: str):
                     )
             await _send_game(
                 "Initiative.Turn.Update",
-                InitiativeTurnUpdate(turn=next_turn, direction=InitiativeDirection.FORWARD, processEffects=True),
+                InitiativeTurnUpdate(
+                    turn=location_data.turn, direction=InitiativeDirection.FORWARD, processEffects=True
+                ),
                 room=pr.active_location.get_path(),
             )
         location_data.data = json.dumps([initiative for initiative in json_data if initiative["shape"] != data])
@@ -362,16 +362,16 @@ async def update_initiative_turn(sid: str, raw_data: Any):
 
     location_data: Initiative = Initiative.get(location=pr.active_location)
     json_data = json.loads(location_data.data)
-    data_len = len(json_data)
+    total_turn_count = len(json_data)
 
     turn = data.turn
     process_effects = data.processEffects
 
-    if turn < 0 or turn >= data_len:
+    if turn < 0 or turn >= total_turn_count:
         logger.warning("Provided turn is out of bounds.")
         return
 
-    db_turn_valid = 0 <= location_data.turn < data_len
+    db_turn_valid = 0 <= location_data.turn < total_turn_count
 
     if db_turn_valid:
         shape = Shape.get_or_none(uuid=json_data[location_data.turn]["shape"])
@@ -397,7 +397,7 @@ async def update_initiative_turn(sid: str, raw_data: Any):
                         try:
                             turns = int(effect_turns)
                             if turns <= 0 and data.direction == InitiativeDirection.FORWARD:
-                                json_data[entry]["effects"].pop(i)
+                                effect_list.pop(i)
                                 continue
                                 # Element removed, do not increment
                             else:

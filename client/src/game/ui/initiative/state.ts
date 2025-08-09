@@ -217,8 +217,7 @@ class InitiativeStore extends Store<InitiativeState> {
 
         this.handleCameraLock();
         this.handleVisionLock();
-        if (options.sync)
-            sendInitiativeTurnUpdate({ turn, direction, processEffects: options.updateEffects });
+        if (options.sync) sendInitiativeTurnUpdate({ turn, direction, processEffects: options.updateEffects });
     }
 
     setRoundCounter(round: number, sync: boolean): void {

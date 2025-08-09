@@ -113,10 +113,6 @@ There are two kinds of method to call i18n translation: `$t("key")` and `v-t="'k
 this.$t("dir.sub_dir.file.another_key").toString()
 ```
 
-`v-t` is only used as directives, and it will replace the `textContent`, but provide a better performance in general.
-
-`<p v-t="'dir.file.pa_key'"></p>`
-
 ### Finding missing keys
 
 PlanarAlly integrates [vue-i18n-plugin](https://github.com/intlify/vue-i18n-extensions) to provide i18n report.

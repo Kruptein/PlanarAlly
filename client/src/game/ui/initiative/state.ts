@@ -222,7 +222,6 @@ class InitiativeStore extends Store<InitiativeState> {
 
     setRoundCounter(round: number, sync: boolean): void {
         if (sync && !gameState.raw.isDm && !this.owns()) return;
-        if (round < 0) round = 0;
         this._state.roundCounter = round;
         if (sync) {
             sendInitiativeRoundUpdate(round);

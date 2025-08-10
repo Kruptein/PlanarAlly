@@ -2,6 +2,7 @@
 # editors
 .idea/**
 .vscode/**
+*.sw?
 
 # Python
 server/data/**

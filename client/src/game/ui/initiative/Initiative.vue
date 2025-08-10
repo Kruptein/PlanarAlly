@@ -13,7 +13,7 @@ import { sendRequestInitiatives } from "../../api/emits/initiative";
 import { getShape } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import type { IAsset } from "../../interfaces/shapes/asset";
-import type { InitiativeData } from "../../models/initiative";
+import { InitiativeTurnDirection, type InitiativeData } from "../../models/initiative";
 import { InitiativeEffectMode, InitiativeSort } from "../../models/initiative";
 import { accessSystem } from "../../systems/access";
 import { gameState } from "../../systems/game/state";
@@ -122,6 +122,7 @@ function canSee(actor: InitiativeData): boolean {
 }
 
 function reset(): void {
+    initiativeStore.setTurnCounter(0, InitiativeTurnDirection.Null, { sync: true, updateEffects: false });
     initiativeStore.setRoundCounter(1, true);
     sendRequestInitiatives();
 }

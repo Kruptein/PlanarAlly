@@ -2,12 +2,14 @@ import type {
     ApiInitiative,
     InitiativeEffectNew,
     InitiativeEffectRemove,
+    InitiativeTurnUpdate,
     InitiativeEffectRename,
     InitiativeEffectTurns,
     InitiativeOptionSet,
 } from "../../../apiTypes";
 import type { GlobalId } from "../../../core/id";
 import type { InitiativeSort } from "../../models/initiative";
+import { InitiativeTurnDirection } from "../../models/initiative";
 import { initiativeStore } from "../../ui/initiative/state";
 import { socket } from "../socket";
 
@@ -15,11 +17,11 @@ socket.on("Initiative.Set", (data: ApiInitiative) => initiativeStore.setData(dat
 socket.on("Initiative.Active.Set", (isActive: boolean) => initiativeStore.setActive(isActive));
 socket.on("Initiative.Remove", (data: GlobalId) => initiativeStore.removeInitiative(data, false));
 
-socket.on("Initiative.Turn.Update", (turn: number) =>
-    initiativeStore.setTurnCounter(turn, { sync: false, updateEffects: true }),
+socket.on("Initiative.Turn.Update", (data: InitiativeTurnUpdate) =>
+    initiativeStore.setTurnCounter(data.turn, data.direction, { sync: false, updateEffects: data.processEffects }),
 );
 socket.on("Initiative.Turn.Set", (turn: number) =>
-    initiativeStore.setTurnCounter(turn, { sync: false, updateEffects: false }),
+    initiativeStore.setTurnCounter(turn, InitiativeTurnDirection.Null, { sync: false, updateEffects: false }),
 );
 socket.on("Initiative.Round.Update", (round: number) => initiativeStore.setRoundCounter(round, false));
 socket.on("Initiative.Effect.New", (data: InitiativeEffectNew) => {

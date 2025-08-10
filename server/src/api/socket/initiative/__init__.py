@@ -389,23 +389,20 @@ async def update_initiative_turn(sid: str, raw_data: Any):
             if process_effects:
                 entry = location_data.turn if data.direction == InitiativeDirection.FORWARD else turn
                 effect_list = json_data[entry]["effects"]
-                i = 0
-                while i < len(effect_list):
-                    _effect = effect_list[i]
+                starting_len = len(effect_list)
+                for i, _effect in enumerate(effect_list[::-1]):
                     effect_turns = _effect["turns"]
-                    if effect_turns is not None:
-                        try:
-                            turns = int(effect_turns)
-                            if turns <= 0 and data.direction == InitiativeDirection.FORWARD:
-                                effect_list.pop(i)
-                                continue
-                                # Element removed, do not increment
-                            else:
-                                _effect["turns"] = str(turns - data.direction)
-                        except ValueError:
-                            # For non-number inputs do not update the effect
-                            pass
-                    i = i + 1
+                    if effect_turns is None:
+                        continue
+                    try:
+                        turns = int(effect_turns)
+                        if turns <= 0 and data.direction == InitiativeDirection.FORWARD:
+                            effect_list.pop(starting_len - 1 - i)
+                        else:
+                            _effect["turns"] = str(turns - data.direction)
+                    except ValueError:
+                        # For non-number inputs do not update the effect
+                        pass
             location_data.turn = turn
             location_data.data = json.dumps(json_data)
     else:

@@ -7,6 +7,7 @@ import type { ServerShapeOptions, ShapeOptions } from "../models/shapes";
 import type { DepShape, SHAPE_TYPE } from "../shapes/types";
 import type { BoundingRect } from "../shapes/variants/simple/boundingRect";
 import type { CharacterId } from "../systems/characters/models";
+import type { BehindPatch } from "../vision/state";
 
 import type { ILayer } from "./layer";
 
@@ -64,8 +65,8 @@ export interface IShape extends SimpleShape {
     onLayerAdd: () => void;
 
     get visionPolygon(): Path2D;
+    _behindPatches: Map<LocalId, BehindPatch[]>;
     _visionBbox: BoundingRect | undefined;
-    _lightBlockingNeighbours: LocalId[];
     _parentId?: LocalId;
 
     get dependentShapes(): readonly DepShape[];

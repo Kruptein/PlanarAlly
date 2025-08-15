@@ -18,6 +18,7 @@ export function drawPoint(point: [number, number], r: number, options?: { colour
         options?.colour === undefined
             ? `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})`
             : options.colour;
+    ctx.fillStyle = ctx.strokeStyle;
     ctx.moveTo(g2lx(point[0]), g2ly(point[1]));
     ctx.beginPath();
     ctx.arc(g2lx(point[0]), g2ly(point[1]), r, 0, Math.PI * 2);
@@ -197,7 +198,7 @@ function drawEdge(edge: Edge, colour: string, local = false): void {
 }
 
 // eslint-disable-next-line import/no-unused-modules
-function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0): void {
+export function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0): void {
     I = 0;
     J = 0;
     let T = 0;
@@ -272,6 +273,14 @@ function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0)
         console.log(`Edges: ${I}/${J}`);
         console.log(`Faces: ${T}`);
     }
+}
+
+export function polygon2path(points: [number, number][]): Path2D {
+    const path = new Path2D();
+    path.moveTo(g2lx(points[0]![0]), g2ly(points[0]![1]));
+    for (const point of points) path.lineTo(g2lx(point[0]), g2ly(point[1]));
+    path.closePath();
+    return path;
 }
 
 function showLayerPoints(): void {

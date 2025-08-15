@@ -1,17 +1,23 @@
+/**
+ * This is a debug file for the vision algorithm.
+ * It mimicks the logic in te.ts (and thus has a bunch of duplication),
+ * but it does this in an async manner with draw calls to visualize the algorithm.
+ * This allows us to easily debug it and step through it, without making our core render logic slower.
+ */
+
 import type { GlobalPoint } from "../../core/geometry";
 import type { LocalId } from "../../core/id";
-import type { FloorId } from "../models/floor";
-import { drawPolygon } from "../rendering/basic";
+import { getShape } from "../id";
+import { drawPoint, drawPolygon, drawPolygonT } from "../rendering/basic";
+import { floorState } from "../systems/floors/state";
+import { selectedState } from "../systems/selected/state";
 
 import type { Edge } from "./cdt";
-import { visionState } from "./state";
-import type { BehindPatch, TriangulationTarget } from "./state";
+import { visionState, TriangulationTarget } from "./state";
+import type { BehindPatch } from "./state";
 import { Sign } from "./tds";
 import type { Point, Triangle, Vertex } from "./tds";
 import { ccw, cw, orientation } from "./triag";
-
-// Only import this if you want to debug the vision algorithm.
-// import "./teDebug";
 
 /**
  * Checks (and returns) whether the shape along the `vA`-`vB` edge of triangle `fh` is in "behind" vision mode.
@@ -31,24 +37,18 @@ function getBehindShape(vA: Vertex, vB: Vertex): LocalId | undefined {
  * For these shapes an internal vision polygon is computed along with the entrance edge used to enter the shape.
  * This is used to render the shape partially visible in the fowLighting and fowVision layers.
  */
-export function computeVisibility(
-    q: GlobalPoint,
-    target: TriangulationTarget,
-    floor: FloorId,
-    drawt?: boolean,
-): {
-    visibility: Point[];
-    behindPatches: Map<LocalId, BehindPatch[]>;
-} {
-    if (drawt === undefined) drawt = visionState.drawTeContour;
-    // console.time("CV");
-    const Q: Point = [q.x, q.y];
+async function debugComputeVisibility(): Promise<void> {
+    const cdt = visionState.getCDT(TriangulationTarget.VISION, floorState.currentFloor.value!.id);
+
+    const Q: Point = [getP().x, getP().y];
     const rawOutput: Point[] = [];
     const behindPatches = new Map<LocalId, BehindPatch[]>();
-    const triangle = visionState.getCDT(target, floor).locate(Q, null).loc;
+    const triangle = cdt.locate(Q, null).loc!;
+    await drawCurrent(triangle, [], behindPatches);
+
     if (triangle === null) {
         console.error("Triangle not found");
-        return { visibility: [], behindPatches };
+        return;
     }
 
     // Iterate over the 3 triangle edges.
@@ -60,6 +60,7 @@ export function computeVisibility(
         const vNext = triangle.vertices[nextI]!;
         const vPrev = triangle.vertices[prevI]!;
         rawOutput.push(vNext.point!);
+        await drawCurrent(triangle, rawOutput, behindPatches);
 
         // We can always recurse further if the edge is not constrained.
         let continueExpand = !triangle.isConstrained(i);
@@ -89,17 +90,15 @@ export function computeVisibility(
         }
 
         if (continueExpand) {
-            expandEdge(Q, vPrev.point!, vNext.point!, triangle, i, rawOutput, behindPatches, behindPath);
+            await expandEdge(Q, vPrev.point!, vNext.point!, triangle, i, rawOutput, behindPatches, behindPath);
             if (crossingBehindShape) {
                 behindPath?.push(vPrev.point!);
             }
         }
     }
-
-    if (drawt) drawPolygon(rawOutput, { strokeColour: "red", strokeWidth: 3 });
-
-    return { visibility: rawOutput, behindPatches };
 }
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+(window as any).debugComputeVisibility = debugComputeVisibility;
 
 /**
  * Expand (recursively) through the triangle `fh`'s edge as indicated by `index`.
@@ -107,7 +106,7 @@ export function computeVisibility(
  * Left and right are usually the same as the edge's points, but can also sometimes not match due to a narrower vision angle being enforced by earlier recursions.
  * It should be noted that `left` and `right` are interpreted from the point of view of the neighbouring triangle, we're entering.
  */
-function expandEdge(
+async function expandEdge(
     q: Point,
     left: Point,
     right: Point,
@@ -116,7 +115,7 @@ function expandEdge(
     rawOutput: Point[],
     behindPatches: Map<LocalId, BehindPatch[]>,
     extraOutput?: Point[],
-): void {
+): Promise<void> {
     const nfh = fh.neighbours[index]!;
     const nIndex = nfh.indexT(fh);
     const rIndex = ccw(nIndex);
@@ -134,6 +133,8 @@ function expandEdge(
     // If extraOutput is set, we're tracking the internal vision polygon of a shape and points added only be added to that path.
     const activeOutput = extraOutput ?? rawOutput;
 
+    await drawCurrent(nfh, rawOutput, behindPatches, left, right);
+
     // Check if we should enter the right edge
     if (ro === Sign.COUNTERCLOCKWISE) {
         // We should always recurse further if the edge is not constrained.
@@ -145,7 +146,9 @@ function expandEdge(
             // When dealing with a constrained edge, there are 2 cases where the full edge is not visible
             // In these cases we need to add the relevant intersection point to the path.
             if (right !== rvh.point!) activeOutput.push(raySegIntersection(q, right, nvh.point!, rvh.point!));
+            await drawCurrent(nfh, rawOutput, behindPatches, left, right);
             if (lo === Sign.COUNTERCLOCKWISE) activeOutput.push(raySegIntersection(q, left, nvh.point!, rvh.point!));
+            await drawCurrent(nfh, rawOutput, behindPatches, left, right);
 
             // Check if we're about to enter a behind shape.
             // This can only be done if we're not already tracking an internal vision polygon.
@@ -163,27 +166,33 @@ function expandEdge(
                     behindPatches.get(behindShape)!.push(patch);
                 }
                 if (rawOutput.length > 0) _extraOutput.push(right);
+                await drawCurrent(nfh, rawOutput, behindPatches, left, right);
             }
         }
 
         if (continueExpand) {
             if (lo === Sign.COUNTERCLOCKWISE) {
-                expandEdge(q, left, right, nfh, rIndex, rawOutput, behindPatches, _extraOutput);
+                await expandEdge(q, left, right, nfh, rIndex, rawOutput, behindPatches, _extraOutput);
             } else {
-                expandEdge(q, nvh.point!, right, nfh, rIndex, rawOutput, behindPatches, _extraOutput);
+                await expandEdge(q, nvh.point!, right, nfh, rIndex, rawOutput, behindPatches, _extraOutput);
             }
+            await drawCurrent(nfh, rawOutput, behindPatches, left, right);
             // After handling the edge, if the current triangle was not tracking an internal vision polygon,
             // but the neighbour was, we need to add the exit point to the path.
             if (!extraOutput && _extraOutput) {
                 let exitNode = nvh.point!;
                 if (lo === Sign.COUNTERCLOCKWISE) exitNode = raySegIntersection(q, left, nvh.point!, rvh.point!);
                 _extraOutput.push(exitNode);
+                await drawCurrent(nfh, rawOutput, behindPatches, left, right);
             }
         }
     }
 
+    await drawCurrent(nfh, rawOutput, behindPatches, left, right);
+
     if (ro !== Sign.CLOCKWISE && lo !== Sign.COUNTERCLOCKWISE) {
         activeOutput.push(nvh.point!);
+        await drawCurrent(nfh, rawOutput, behindPatches, left, right);
     }
 
     // Same logic for the left edge.
@@ -196,7 +205,9 @@ function expandEdge(
             continueExpand = false;
 
             if (ro === Sign.CLOCKWISE) activeOutput.push(raySegIntersection(q, right, nvh.point!, lvh.point!));
+            await drawCurrent(nfh, rawOutput, behindPatches, left, right);
             if (left !== lvh.point!) activeOutput.push(raySegIntersection(q, left, nvh.point!, lvh.point!));
+            await drawCurrent(nfh, rawOutput, behindPatches, left, right);
 
             const behindShape = extraOutput ? undefined : getBehindShape(lvh, nvh);
             if (behindShape) {
@@ -213,16 +224,19 @@ function expandEdge(
                 }
                 if (ro === Sign.CLOCKWISE) _extraOutput.push(raySegIntersection(q, right, nvh.point!, lvh.point!));
                 else _extraOutput.push(nvh.point!);
+                await drawCurrent(nfh, rawOutput, behindPatches, left, right);
             }
         }
         if (continueExpand) {
             if (ro === Sign.CLOCKWISE) {
-                expandEdge(q, left, right, nfh, lIndex, rawOutput, behindPatches, _extraOutput);
+                await expandEdge(q, left, right, nfh, lIndex, rawOutput, behindPatches, _extraOutput);
             } else {
-                expandEdge(q, left, nvh.point!, nfh, lIndex, rawOutput, behindPatches, _extraOutput);
+                await expandEdge(q, left, nvh.point!, nfh, lIndex, rawOutput, behindPatches, _extraOutput);
             }
+            await drawCurrent(nfh, rawOutput, behindPatches, left, right);
             if (!extraOutput && _extraOutput) {
                 _extraOutput.push(left);
+                await drawCurrent(nfh, rawOutput, behindPatches, left, right);
             }
         }
     }
@@ -236,4 +250,37 @@ function raySegIntersection(q: Point, b: Point, s: Point, t: Point): Point {
     const y = q[1] + ua * (b[1] - q[1]);
 
     return [x, y];
+}
+
+function getP(): GlobalPoint {
+    const s = selectedState.raw.focus!;
+    return getShape(s)!.center;
+}
+
+async function drawCurrent(
+    triangle: Triangle,
+    rawOutput: Point[],
+    behindPatches: Map<LocalId, { points: Point[]; entrance: [Point, Point] }[]>,
+    left?: Point,
+    right?: Point,
+): Promise<void> {
+    const cdt = visionState.getCDT(TriangulationTarget.VISION, floorState.currentFloor.value!.id);
+    drawPolygonT(cdt.tds, false, true);
+    drawPolygon(
+        triangle.vertices.map((v) => v!.point!),
+        { fillColour: "rgba(0, 0, 255, 0.25)" },
+    );
+    for (const [, patches] of behindPatches) {
+        for (const patch of patches) {
+            drawPolygon(patch.points, {
+                fillColour: `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.25)`,
+                strokeColour: "pink",
+                strokeWidth: 3,
+            });
+        }
+    }
+    drawPolygon(rawOutput, { strokeColour: "red", close: false });
+    if (left) drawPoint(left, 10, { fill: true, colour: "purple" });
+    if (right) drawPoint(right, 10, { fill: true, colour: "green" });
+    await new Promise((resolve) => setTimeout(resolve, 10));
 }

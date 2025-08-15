@@ -1,6 +1,7 @@
 import { g2l, g2lr } from "../../../core/conversions";
 import { getShape } from "../../id";
 import { LayerName } from "../../models/floor";
+import { polygon2path } from "../../rendering/basic";
 import { accessState } from "../../systems/access/state";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
@@ -8,6 +9,7 @@ import { gameState } from "../../systems/game/state";
 import { locationSettingsSystem } from "../../systems/settings/location";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
+import { visionState } from "../../vision/state";
 
 import { FowLayer } from "./fow";
 
@@ -36,6 +38,8 @@ export class FowVisionLayer extends FowLayer {
                 visionMax += 0.01;
             }
 
+            visionState.behindVisionLightPaths.clear();
+
             for (const tokenId of accessState.activeTokens.value.get("vision") ?? []) {
                 const token = getShape(tokenId);
                 if (token === undefined || token.floorId !== this.floor) continue;
@@ -58,10 +62,61 @@ export class FowVisionLayer extends FowLayer {
                 this.ctx.fillStyle = gradient;
 
                 this.ctx.fill(token.visionPolygon);
-                for (const sh of token._lightBlockingNeighbours) {
-                    const hitShape = getShape(sh);
-                    if (hitShape) {
-                        hitShape.draw(this.ctx, true);
+
+                // Behind vision mode rendering
+                // Find all behind-shapes that exist in both the token and the light source's vision polygon.
+                for (const lightIds of visionState.getVisionSourcesInView(this.floor)) {
+                    const lightShape = getShape(lightIds.shape);
+                    if (lightShape === undefined) continue;
+
+                    if (lightShape === token) {
+                        // if we're the light source, we don't need to find matching entrances,
+                        // we just need to render all of them.
+                        const lightPoints = [];
+                        for (const [, bpPoints] of token._behindPatches) {
+                            for (const { points } of bpPoints) {
+                                // Render the additional vision polygon.
+                                this.ctx.fill(polygon2path(points));
+
+                                // Store the additional vision polygon for the light source.
+                                // so we don't have to do this work twice.
+                                lightPoints.push(points);
+                            }
+                        }
+                        visionState.behindVisionLightPaths.set(token.id, lightPoints);
+                        break;
+                    }
+
+                    for (const [bpId, bpPoints] of token._behindPatches) {
+                        const lightBp = lightShape._behindPatches.get(bpId);
+                        if (!lightBp) continue;
+
+                        // Matching shapes found,
+                        // now check if they actually have overlapping entrances,
+                        // for each such entrance, render the additional vision polygon.
+                        for (const {
+                            entrance: [a, b],
+                            points,
+                        } of bpPoints) {
+                            for (const {
+                                entrance: [c, d],
+                                points: lightPoints,
+                            } of lightBp) {
+                                if (a[0] === c[0] && a[1] === c[1] && d[0] === b[0] && d[1] === b[1]) {
+                                    // Render the additional vision polygon.
+                                    this.ctx.fill(polygon2path(points));
+
+                                    // Store the additional vision polygon for the light source.
+                                    // so we don't have to do this work twice.
+                                    if (!visionState.behindVisionLightPaths.has(lightShape.id)) {
+                                        visionState.behindVisionLightPaths.set(lightShape.id, []);
+                                    }
+                                    visionState.behindVisionLightPaths.get(lightShape.id)!.push(lightPoints);
+
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
 

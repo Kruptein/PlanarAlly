@@ -21,6 +21,7 @@ import { VisionBlock } from "../systems/properties/types";
 
 import { CDT } from "./cdt";
 import { IterativeDelete } from "./iterative";
+import type { Point } from "./tds";
 
 export enum TriangulationTarget {
     VISION = "vision",
@@ -31,6 +32,8 @@ export enum VisibilityMode {
     TRIANGLE,
     TRIANGLE_ITERATIVE,
 }
+
+export type BehindPatch = { points: Point[]; entrance: [Point, Point] };
 
 export function visibilityModeFromString(mode: string): VisibilityMode | undefined {
     if (mode.toUpperCase() === VisibilityMode[VisibilityMode.TRIANGLE]) return VisibilityMode.TRIANGLE;
@@ -66,6 +69,8 @@ class VisionState extends Store<State> {
             mode: VisibilityMode.TRIANGLE,
         };
     }
+
+    behindVisionLightPaths = new Map<LocalId, Point[][]>();
 
     clear(): void {
         this.visionBlockers.clear();
@@ -156,6 +161,7 @@ class VisionState extends Store<State> {
     }
 
     private triangulateShape(target: TriangulationTarget, shape: IShape): void {
+        const isBehindShape = shape.isClosed && getProperties(shape.id)?.blocksVision === VisionBlock.Behind;
         const points = shape.shadowPoints;
         if (points.length === 0) return;
         if (shape.type === "assetrect") {
@@ -175,7 +181,7 @@ class VisionState extends Store<State> {
                     }
                     for (const paths of svgData.paths) {
                         for (const path of paths) {
-                            this.triangulatePath(target, shape, path, false);
+                            this.triangulatePath(target, shape, path, false, isBehindShape);
                         }
                     }
                 }
@@ -192,14 +198,14 @@ class VisionState extends Store<State> {
                     pathElement.setAttribute("d", pathString);
                     const paths = pathToArray(shape as IAsset, pathElement, dW, dH);
                     for (const path of paths) {
-                        this.triangulatePath(target, shape, path, false);
+                        this.triangulatePath(target, shape, path, false, isBehindShape);
                         break;
                     }
                 }
                 return;
             }
         }
-        this.triangulatePath(target, shape, points, shape.isClosed);
+        this.triangulatePath(target, shape, points, shape.isClosed, isBehindShape);
     }
 
     private addWalls(cdt: CDT): void {
@@ -230,21 +236,30 @@ class VisionState extends Store<State> {
         shape: IShape,
         path: [number, number][],
         closed: boolean,
+        isBehindShape: boolean,
     ): void {
         const j = closed ? 0 : 1;
         for (let i = 0; i < path.length - j; i++) {
             const pa = path[i]!.map((n) => parseFloat(n.toFixed(10))) as [number, number];
             const pb = path[(i + 1) % path.length]!.map((n) => parseFloat(n.toFixed(10))) as [number, number];
-            this.insertConstraint(target, shape, pa, pb);
+            this.insertConstraint(target, shape, pa, pb, isBehindShape);
         }
     }
 
-    insertConstraint(target: TriangulationTarget, shape: IShape, pa: [number, number], pb: [number, number]): void {
+    insertConstraint(
+        target: TriangulationTarget,
+        shape: IShape,
+        pa: [number, number],
+        pb: [number, number],
+        isBehindShape: boolean,
+    ): void {
         if (shape.floorId !== undefined) {
             const cdt = this.getCDT(target, shape.floorId);
             const { va, vb } = cdt.insertConstraint(pa, pb);
-            va.shapes.add(shape.id);
-            vb.shapes.add(shape.id);
+            if (isBehindShape) {
+                va.shapes.add(shape.id);
+                vb.shapes.add(shape.id);
+            }
             cdt.tds.addTriagVertices(shape.id, va, vb);
         }
     }

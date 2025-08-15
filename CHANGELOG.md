@@ -23,6 +23,7 @@ tech changes will usually be stripped from release notes for the public
 -   Deleting first initiative entry would enter invalid state
 -   Going to previous initiative would decrement effect timers
 -   Going to previous initiative could enter negative rounds
+-   Render bug in vision mode "behind" showing the entire shape under certain circumstances
 
 ## [2025.2.2]
 

@@ -13,6 +13,7 @@ tech changes will usually be stripped from release notes for the public
 ### Changed
 
 -   Smoothed out the scroll zoom behaviour when zoomed in furthest
+-   [server] Config values that are not known will now error and stop the server from starting
 
 ### Fixed
 

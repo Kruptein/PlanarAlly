@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import draggable from "vuedraggable";
 
@@ -7,7 +7,6 @@ import Modal from "../../../core/components/modals/Modal.vue";
 import { baseAdjust } from "../../../core/http";
 import type { GlobalId, LocalId } from "../../../core/id";
 import { map } from "../../../core/iter";
-import { useModal } from "../../../core/plugins/modals/plugin";
 import { getTarget, getValue } from "../../../core/utils";
 import { sendRequestInitiatives } from "../../api/emits/initiative";
 import { getShape } from "../../id";
@@ -26,7 +25,6 @@ import { ClientSettingCategory } from "../settings/client/categories";
 import { initiativeStore } from "./state";
 
 const { t } = useI18n();
-const modals = useModal();
 
 const emit = defineEmits(["close"]);
 
@@ -36,7 +34,13 @@ const close = (): void => {
 };
 defineExpose({ close });
 
-const clearValues = (): void => initiativeStore.clearValues(true);
+interface ConfirmationDialog {
+    message: string;
+    callback: (confirm: boolean) => boolean;
+}
+
+const confirmationDialog = ref<ConfirmationDialog | null>(null);
+
 const nextTurn = (): void => initiativeStore.nextTurn();
 const previousTurn = (): void => initiativeStore.previousTurn();
 const owns = (actorId?: GlobalId): boolean => initiativeStore.owns(actorId);
@@ -49,6 +53,31 @@ const alwaysShowEffects = computed(
     () => playerSettingsState.reactive.initiativeEffectVisibility.value === InitiativeEffectMode.Always,
 );
 
+function confirmation(confirm: boolean): void {
+    if (confirmationDialog.value === null) return;
+    if (confirmationDialog.value.callback(confirm)) {
+        confirmationDialog.value = null;
+    }
+}
+
+function clearInitiativesCallback(confirm: boolean): boolean {
+    if (confirm) {
+        initiativeStore.clearValues(true);
+    }
+    return true;
+}
+
+function loadConfirmationDialog(cd: ConfirmationDialog): void {
+    confirmationDialog.value = cd;
+}
+
+function clearInitiativeValues(): void {
+    loadConfirmationDialog({
+        callback: clearInitiativesCallback,
+        message: t("game.ui.initiative.clear_initiatives_msg"),
+    });
+}
+
 function getName(actor: InitiativeData): string {
     if (actor.localId === undefined) return "?";
     const props = getProperties(actor.localId);
@@ -59,17 +88,20 @@ function getName(actor: InitiativeData): string {
     return "?";
 }
 
-async function removeInitiative(actor: InitiativeData): Promise<void> {
+function removeInitiative(actor: InitiativeData): void {
     if (actor.isGroup) {
-        const continueRemoval = await modals.confirm(
-            "Removing initiative",
-            "Are you sure you wish to remove this group from the initiative order?",
-        );
-        if (continueRemoval !== true) {
-            return;
-        }
+        loadConfirmationDialog({
+            callback: (confirm: boolean): boolean => {
+                if (confirm) {
+                    initiativeStore.removeInitiative(actor.globalId, true);
+                }
+                return true;
+            },
+            message: t("game.ui.initiative.remove_group_msg"),
+        });
+    } else {
+        initiativeStore.removeInitiative(actor.globalId, true);
     }
-    initiativeStore.removeInitiative(actor.globalId, true);
 }
 
 function setEffectName(shape: GlobalId, index: number, name: string): void {
@@ -177,7 +209,7 @@ function n(e: any): number {
 </script>
 
 <template>
-    <Modal :visible="initiativeStore.state.showInitiative" :mask="false" @close="close">
+    <Modal :visible="initiativeStore.state.showInitiative" :mask="false" extra-class="initiative-modal" @close="close">
         <template #header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 <div>{{ t("common.initiative") }}</div>
@@ -306,7 +338,11 @@ function n(e: any): number {
                 <div class="initiative-bar-button" :title="t('game.ui.initiative.previous')" @click="previousTurn">
                     <font-awesome-icon icon="chevron-left" />
                 </div>
-                <div class="initiative-bar-button" :title="t('game.ui.initiative.clear')" @click="clearValues">
+                <div
+                    class="initiative-bar-button"
+                    :title="t('game.ui.initiative.clear')"
+                    @click="clearInitiativeValues"
+                >
                     <font-awesome-icon icon="sync-alt" />
                 </div>
                 <div class="initiative-bar-button" :title="t('game.ui.initiative.change_sort')" @click="changeSort">
@@ -347,9 +383,27 @@ function n(e: any): number {
                     <font-awesome-icon icon="chevron-right" />
                 </div>
             </div>
+            <Transition name="zoom">
+                <div v-if="confirmationDialog" class="initiative-confirm-dialog">
+                    <span>{{ confirmationDialog.message }}</span>
+                    <div>
+                        <button @click="confirmation(true)">Yes</button>
+                        <button @click="confirmation(false)">No</button>
+                    </div>
+                </div>
+            </Transition>
         </div>
     </Modal>
 </template>
+
+<style lang="scss">
+.initiative-modal {
+    position: relative;
+    width: fit-content;
+    height: auto;
+    overflow: hidden;
+}
+</style>
 
 <style scoped lang="scss">
 .modal-header {
@@ -368,6 +422,7 @@ function n(e: any): number {
 }
 
 .modal-body {
+    overflow: hidden;
     padding: 10px;
 }
 
@@ -523,5 +578,60 @@ function n(e: any): number {
     color: white;
     background-color: #82c8a0;
     cursor: pointer;
+}
+
+.initiative-confirm-dialog {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #00000088;
+    user-select: none;
+
+    > span {
+        padding: 5px;
+        color: white;
+        font-weight: bold;
+        font-size: 1.1rem;
+        text-align: center;
+        background-color: #00000088;
+    }
+    > div {
+        display: flex;
+        > button {
+            border-radius: 5px;
+            border: solid 2px #82c8a0;
+            margin: 5px;
+            font-size: 1.1rem;
+            transition: all 0.1s ease;
+            &:hover {
+                background-color: #82c8a0;
+                color: white;
+                transform: scale(102%);
+                cursor: pointer;
+            }
+            &:active {
+                transform: scale(98%);
+            }
+        }
+    }
+}
+
+// Transitions
+
+.zoom-enter-from,
+.zoom-leave-to {
+    transform: scale(125%);
+    opacity: 0;
+}
+
+.zoom-leave-active,
+.zoom-enter-active {
+    transition: all 0.15s ease;
 }
 </style>

@@ -169,7 +169,9 @@
                 "previous": "Previous",
                 "clear": "Clear initiatives",
                 "change_sort": "Change sorting",
-                "settings": "Settings"
+                "settings": "Settings",
+								"remove_group_msg": "Are you sure you wish to remove this group from the initiative order?",
+								"clear_initiatives_msg": "Are you sure you wish to clear all initiatives?"
             },
             "menu": {
                 "LocationBar": {

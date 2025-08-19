@@ -507,9 +507,8 @@ function n(e: any): number {
             </div>
             <div v-else>
                 <div class="initiative-round-display">
-                    <div>
-                        {{ t("game.ui.initiative.round_N", initiativeStore.state.roundCounter) }}
-                    </div>
+                    <div>{{ t("game.ui.initiative.round_N") }}</div>
+                    <RollingCounter :value="initiativeStore.state.roundCounter" :fixed-width="2" />
                 </div>
             </div>
             <div id="initiative-settings" :title="t('game.ui.initiative.settings')" @click="openSettings">

@@ -99,6 +99,8 @@ function scrollToInitiative(): void {
     entryElement.parentElement!.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
+const nextRound = (): void => initiativeStore.nextRound();
+const previousRound = (): void => initiativeStore.previousRound();
 const nextTurn = (): void => initiativeStore.nextTurn();
 const previousTurn = (): void => initiativeStore.previousTurn();
 
@@ -179,7 +181,7 @@ function canSee(actor: InitiativeData): boolean {
 
 function reset(): void {
     initiativeStore.setTurnCounter(0, InitiativeTurnDirection.Null, { sync: true, updateEffects: false });
-    initiativeStore.setRoundCounter(1, true);
+    initiativeStore.setRoundCounter(1, InitiativeTurnDirection.Null, { sync: true, updateEffects: false });
     sendRequestInitiatives();
     scrollToInitiative();
 }
@@ -423,6 +425,13 @@ function n(e: any): number {
             </div>
             <div v-if="gameState.reactive.isDm" id="initiative-bar-dm">
                 <div id="round-bar-dm">
+                    <div
+                        class="initiative-bar-button"
+                        :title="t('game.ui.initiative.previous_round')"
+                        @click="previousRound"
+                    >
+                        <font-awesome-icon icon="angle-double-left" />
+                    </div>
                     <div class="initiative-bar-button" :title="t('game.ui.initiative.previous')" @click="previousTurn">
                         <font-awesome-icon icon="chevron-left" />
                     </div>
@@ -432,10 +441,13 @@ function n(e: any): number {
                     <div class="initiative-bar-button" :title="t('game.ui.initiative.next')" @click="nextTurn">
                         <font-awesome-icon icon="chevron-right" />
                     </div>
+                    <div class="initiative-bar-button" :title="t('game.ui.initiative.next_round')" @click="nextRound">
+                        <font-awesome-icon icon="angle-double-right" />
+                    </div>
                 </div>
                 <div id="meta-bar-dm">
                     <div class="initiative-bar-button" :title="t('game.ui.initiative.reset_round')" @click="reset">
-                        <font-awesome-icon icon="angle-double-left" />
+                        <font-awesome-icon icon="rotate-left" />
                     </div>
                     <div
                         class="initiative-bar-button"

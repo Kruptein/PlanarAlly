@@ -2,6 +2,7 @@ import type {
     InitiativeAdd,
     InitiativeEffectNew,
     InitiativeEffectRemove,
+    InitiativeRoundUpdate,
     InitiativeTurnUpdate,
     InitiativeEffectRename,
     InitiativeEffectTurns,
@@ -18,7 +19,7 @@ export const sendInitiativeAdd = wrapSocket<InitiativeAdd>("Initiative.Add");
 export const sendInitiativeRemove = wrapSocket<GlobalId>("Initiative.Remove");
 export const sendInitiativeSetValue = wrapSocket<InitiativeValueSet>("Initiative.Value.Set");
 export const sendInitiativeTurnUpdate = wrapSocket<InitiativeTurnUpdate>("Initiative.Turn.Update");
-export const sendInitiativeRoundUpdate = wrapSocket<number>("Initiative.Round.Update");
+export const sendInitiativeRoundUpdate = wrapSocket<InitiativeRoundUpdate>("Initiative.Round.Update");
 export const sendInitiativeNewEffect = wrapSocket<InitiativeEffectNew>("Initiative.Effect.New");
 export const sendInitiativeRenameEffect = wrapSocket<InitiativeEffectRename>("Initiative.Effect.Rename");
 export const sendInitiativeTurnsEffect = wrapSocket<InitiativeEffectTurns>("Initiative.Effect.Turns");

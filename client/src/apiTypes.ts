@@ -544,6 +544,11 @@ export interface InitiativeTurnUpdate {
   direction: InitiativeDirection;
   processEffects: boolean;
 }
+export interface InitiativeRoundUpdate {
+  round: number;
+  direction: InitiativeDirection;
+  processEffects: boolean;
+}
 export interface InitiativeEffectTurns {
   shape: GlobalId;
   index: number;

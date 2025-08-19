@@ -13,7 +13,13 @@ from ....models.access import has_ownership
 from ....models.role import Role
 from ....state.game import game_state
 from ...helpers import _send_game
-from ...models.initiative import ApiInitiative, InitiativeAdd, InitiativeTurnUpdate, InitiativeDirection
+from ...models.initiative import (
+    ApiInitiative,
+    InitiativeAdd,
+    InitiativeRoundUpdate,
+    InitiativeTurnUpdate,
+    InitiativeDirection,
+)
 from ...models.initiative.option import InitiativeOptionSet
 from ...models.initiative.order import InitiativeOrderChange
 from ...models.initiative.value import InitiativeValueSet
@@ -294,7 +300,9 @@ async def remove_initiative(sid: str, data: str):
                     location_data.round += 1
                     await _send_game(
                         "Initiative.Round.Update",
-                        location_data.round,
+                        InitiativeRoundUpdate(
+                            round=location_data.round, direction=InitiativeDirection.FORWARD, processEffects=False
+                        ),
                         room=pr.active_location.get_path(),
                     )
             await _send_game(
@@ -354,6 +362,24 @@ async def change_initiative_order(sid: str, raw_data: Any):
     await send_initiative(location_data.as_pydantic(), pr)
 
 
+def update_initiative_effects(entry: Dict[str, Any], direction: InitiativeDirection):
+    effect_list = entry["effects"]
+    starting_len = len(effect_list)
+    for i, _effect in enumerate(effect_list[::-1]):
+        effect_turns = _effect["turns"]
+        if effect_turns is None:
+            continue
+        try:
+            turns = int(effect_turns)
+            if turns <= 0 and direction == InitiativeDirection.FORWARD:
+                effect_list.pop(starting_len - 1 - i)
+            else:
+                _effect["turns"] = str(turns - direction)
+        except ValueError:
+            # For non-number-inputs do not update the effect
+            pass
+
+
 @sio.on("Initiative.Turn.Update", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def update_initiative_turn(sid: str, raw_data: Any):
@@ -387,22 +413,10 @@ async def update_initiative_turn(sid: str, raw_data: Any):
 
         with db.atomic():
             if process_effects:
-                entry = location_data.turn if data.direction == InitiativeDirection.FORWARD else turn
-                effect_list = json_data[entry]["effects"]
-                starting_len = len(effect_list)
-                for i, _effect in enumerate(effect_list[::-1]):
-                    effect_turns = _effect["turns"]
-                    if effect_turns is None:
-                        continue
-                    try:
-                        turns = int(effect_turns)
-                        if turns <= 0 and data.direction == InitiativeDirection.FORWARD:
-                            effect_list.pop(starting_len - 1 - i)
-                        else:
-                            _effect["turns"] = str(turns - data.direction)
-                    except ValueError:
-                        # For non-number inputs do not update the effect
-                        pass
+                update_initiative_effects(
+                    json_data[location_data.turn if data.direction == InitiativeDirection.FORWARD else turn],
+                    data.direction,
+                )
             location_data.turn = turn
             location_data.data = json.dumps(json_data)
     else:
@@ -416,14 +430,15 @@ async def update_initiative_turn(sid: str, raw_data: Any):
 
 @sio.on("Initiative.Round.Update", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def update_initiative_round(sid: str, data: int):
+async def update_initiative_round(sid: str, raw_data: Any):
+    data = InitiativeRoundUpdate(**raw_data)
     pr = game_state.get(sid)
 
     location_data = Initiative.get(location=pr.active_location)
 
-    if pr.role != Role.DM:
-        json_data = json.loads(location_data.data)
+    json_data = json.loads(location_data.data)
 
+    if pr.role != Role.DM:
         shape = Shape.get_or_none(uuid=json_data[location_data.turn]["shape"])
 
         if shape is None:
@@ -435,7 +450,11 @@ async def update_initiative_round(sid: str, data: int):
             return
 
     with db.atomic():
-        location_data.round = data
+        if data.processEffects:
+            for entry in json_data:
+                update_initiative_effects(entry, data.direction)
+        location_data.round = data.round
+        location_data.data = json.dumps(json_data)
         location_data.save()
 
     await _send_game(

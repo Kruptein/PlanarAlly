@@ -88,7 +88,7 @@ class InitiativeStore extends Store<InitiativeState> {
         else this._state.locationData = initiativeData;
 
         if (!this._state.manuallyOpened) this.setActive(data.isActive);
-        this.setRoundCounter(data.round, false);
+        this.setRoundCounter(data.round, InitiativeTurnDirection.Null, { sync: false, updateEffects: false });
         this.setTurnCounter(data.turn, InitiativeTurnDirection.Null, { sync: false, updateEffects: false });
         this._state.sort = data.sort;
     }
@@ -220,19 +220,51 @@ class InitiativeStore extends Store<InitiativeState> {
         if (options.sync) sendInitiativeTurnUpdate({ turn, direction, processEffects: options.updateEffects });
     }
 
-    setRoundCounter(round: number, sync: boolean): void {
-        if (sync && !gameState.raw.isDm && !this.owns()) return;
+    setRoundCounter(
+        round: number,
+        direction: InitiativeTurnDirection,
+        options: { sync: boolean; updateEffects: boolean },
+    ): void {
+        if (options.sync && !gameState.raw.isDm && !this.owns()) return;
         this._state.roundCounter = round;
-        if (sync) {
-            sendInitiativeRoundUpdate(round);
+        if (options.updateEffects) {
+            for (const actor of this.getDataSet()) {
+                if (actor === undefined) continue;
+                for (let e = actor.effects.length - 1; e >= 0; e--) {
+                    const turns = +actor.effects[e]!.turns;
+                    if (isNaN(turns)) continue;
+                    if (turns <= 0) actor.effects.splice(e, 1);
+                    else actor.effects[e]!.turns = (turns - direction).toString();
+                }
+            }
         }
+        if (options.sync) {
+            sendInitiativeRoundUpdate({ round, direction, processEffects: options.updateEffects });
+        }
+    }
+
+    nextRound(): void {
+        this.setRoundCounter(this._state.roundCounter + 1, InitiativeTurnDirection.Forward, {
+            sync: true,
+            updateEffects: true,
+        });
+    }
+
+    previousRound(): void {
+        this.setRoundCounter(this._state.roundCounter + 1, InitiativeTurnDirection.Backward, {
+            sync: true,
+            updateEffects: true,
+        });
     }
 
     nextTurn(): void {
         if (!gameState.raw.isDm && !this.owns()) return;
         if (this.getDataSet().length === 0) return;
         if (this._state.turnCounter >= this.getDataSet().length - 1) {
-            this.setRoundCounter(this._state.roundCounter + 1, true);
+            this.setRoundCounter(this._state.roundCounter + 1, InitiativeTurnDirection.Forward, {
+                sync: true,
+                updateEffects: false,
+            });
             this.setTurnCounter(0, InitiativeTurnDirection.Forward, { sync: true, updateEffects: true });
         } else {
             this.setTurnCounter(this._state.turnCounter + 1, InitiativeTurnDirection.Forward, {
@@ -245,7 +277,10 @@ class InitiativeStore extends Store<InitiativeState> {
     previousTurn(): void {
         if (!gameState.raw.isDm) return;
         if (this._state.turnCounter === 0 && this.getDataSet().length > 0) {
-            this.setRoundCounter(this._state.roundCounter - 1, true);
+            this.setRoundCounter(this._state.roundCounter - 1, InitiativeTurnDirection.Backward, {
+                sync: true,
+                updateEffects: false,
+            });
             this.setTurnCounter(this.getDataSet().length - 1, InitiativeTurnDirection.Backward, {
                 sync: true,
                 updateEffects: true,

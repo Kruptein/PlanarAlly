@@ -2,6 +2,7 @@ import type {
     ApiInitiative,
     InitiativeEffectNew,
     InitiativeEffectRemove,
+    InitiativeRoundUpdate,
     InitiativeTurnUpdate,
     InitiativeEffectRename,
     InitiativeEffectTurns,
@@ -23,7 +24,9 @@ socket.on("Initiative.Turn.Update", (data: InitiativeTurnUpdate) =>
 socket.on("Initiative.Turn.Set", (turn: number) =>
     initiativeStore.setTurnCounter(turn, InitiativeTurnDirection.Null, { sync: false, updateEffects: false }),
 );
-socket.on("Initiative.Round.Update", (round: number) => initiativeStore.setRoundCounter(round, false));
+socket.on("Initiative.Round.Update", (data: InitiativeRoundUpdate) =>
+    initiativeStore.setRoundCounter(data.round, data.direction, { sync: false, updateEffects: data.processEffects }),
+);
 socket.on("Initiative.Effect.New", (data: InitiativeEffectNew) => {
     initiativeStore.createEffect(data.actor, data.effect, false);
 });

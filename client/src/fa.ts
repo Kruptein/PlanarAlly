@@ -10,6 +10,7 @@ import {
 } from "@fortawesome/free-regular-svg-icons";
 import {
     faAngleDoubleLeft,
+    faAngleDoubleRight,
     faAngleRight,
     faArchive,
     faArrowDownAZ,
@@ -85,6 +86,7 @@ import {
 export function loadFontAwesome(): void {
     library.add(
         faAngleDoubleLeft,
+        faAngleDoubleRight,
         faAngleRight,
         faArchive,
         faArrowDownAZ,

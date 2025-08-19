@@ -18,7 +18,8 @@ import { InitiativeEffectMode, InitiativeSort } from "../../models/initiative";
 import { accessSystem } from "../../systems/access";
 import { gameState } from "../../systems/game/state";
 import { groupSystem } from "../../systems/groups";
-import { getProperties } from "../../systems/properties/state";
+import { propertiesSystem } from "../../systems/properties";
+import { propertiesState } from "../../systems/properties/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { uiSystem } from "../../systems/ui";
 import { ClientSettingCategory } from "../settings/client/categories";
@@ -65,6 +66,19 @@ watch(
         scrollToInitiative();
     },
 );
+
+watch(() => initiativeStore.state.locationData, (newList, oldList) => {
+    for (const item of oldList ?? []) {
+        if (item.localId !== undefined) {
+            propertiesSystem.dropState(item.localId, "initiative-ui");
+        }
+    }
+    for (const item of newList) {
+        if (item.localId !== undefined) {
+            propertiesSystem.loadState(item.localId, "initiative-ui");
+        }
+    }
+}, { immediate: true },);
 
 const alwaysShowEffects = computed(
     () => playerSettingsState.reactive.initiativeEffectVisibility.value === InitiativeEffectMode.Always,
@@ -125,7 +139,7 @@ const previousTurn = (): void => initiativeStore.previousTurn();
 
 function getName(actor: InitiativeData): string {
     if (actor.localId === undefined) return "?";
-    const props = getProperties(actor.localId);
+    const props = propertiesState.reactive.data.get(actor.localId);
     if (props !== undefined) {
         if (props.nameVisible) return props.name;
         if (accessSystem.hasAccessTo(actor.localId, "edit")) return props.name;

@@ -31,5 +31,8 @@ export const sendRequestInitiatives = (): void => {
 export const sendInitiativeClear = (): void => {
     socket.emit("Initiative.Clear");
 };
+export const sendInitiativeWipe = (): void => {
+    socket.emit("Initiative.Wipe");
+};
 export const sendInitiativeReorder = wrapSocket<InitiativeOrderChange>("Initiative.Order.Change");
 export const sendInitiativeSetSort = wrapSocket<InitiativeSort>("Initiative.Sort.Set");

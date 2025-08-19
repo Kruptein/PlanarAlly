@@ -17,6 +17,7 @@ import {
     sendInitiativeReorder,
     sendInitiativeSetSort,
     sendInitiativeActive,
+    sendInitiativeWipe,
 } from "../../api/emits/initiative";
 import { getGlobalId, getLocalId, getShape } from "../../id";
 import { type InitiativeData, type InitiativeEffect, InitiativeSort } from "../../models/initiative";
@@ -173,6 +174,16 @@ class InitiativeStore extends Store<InitiativeState> {
         }
     }
 
+    clearEntries(sync: boolean): void {
+        const data = this.getDataSet();
+        const len = data.length;
+        for (let i = 0; i < len; i++) {
+            const entry = data[0];
+            if (!entry) continue;
+            this.removeInitiative(entry.globalId, false);
+        }
+        if (sync) sendInitiativeWipe();
+    }
     clearValues(sync: boolean): void {
         for (const data of this._state.locationData) {
             data.initiative = undefined;

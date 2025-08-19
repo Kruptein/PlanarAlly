@@ -170,11 +170,12 @@
                 "next_round": "Next round",
                 "previous_round": "Previous round",
                 "clear": "Clear initiatives",
+                "clear_entries": "Clear entries",
                 "change_sort": "Change sorting",
                 "settings": "Settings",
                 "remove_group_msg": "Are you sure you wish to remove this group from the initiative order?",
-                "clear_entries_msg": "Are you sure you wish to clear all initiatives?",
-                "clear_initiatives_msg": "Are you sure you wish to clear all initiatives?",
+                "clear_entries_msg": "Are you sure you wish to clear all initiative entries?",
+                "clear_initiatives_msg": "Are you sure you wish to clear all initiative numbers?",
                 "empty_initiative": "Initiative is empty"
             },
             "menu": {

@@ -72,6 +72,13 @@ function confirmation(confirm: boolean): void {
     }
 }
 
+function clearInitiativeEntriesCallback(confirm: boolean): boolean {
+    if (confirm) {
+        initiativeStore.clearEntries(true);
+    }
+    return true;
+}
+
 function clearInitiativesCallback(confirm: boolean): boolean {
     if (confirm) {
         initiativeStore.clearValues(true);
@@ -81,6 +88,13 @@ function clearInitiativesCallback(confirm: boolean): boolean {
 
 function loadConfirmationDialog(cd: ConfirmationDialog): void {
     confirmationDialog.value = cd;
+}
+
+function clearInitiativeEntries(): void {
+    loadConfirmationDialog({
+        callback: clearInitiativeEntriesCallback,
+        message: t("game.ui.initiative.clear_entries_msg"),
+    });
 }
 
 function clearInitiativeValues(): void {
@@ -446,6 +460,13 @@ function n(e: any): number {
                     </div>
                 </div>
                 <div id="meta-bar-dm">
+                    <div
+                        class="initiative-bar-button"
+                        :title="t('game.ui.initiative.clear_entries')"
+                        @click="clearInitiativeEntries"
+                    >
+                        <font-awesome-icon icon="trash-alt" />
+                    </div>
                     <div class="initiative-bar-button" :title="t('game.ui.initiative.reset_round')" @click="reset">
                         <font-awesome-icon icon="rotate-left" />
                     </div>

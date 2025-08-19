@@ -43,4 +43,5 @@ socket.on("Initiative.Option.Set", (data: InitiativeOptionSet) =>
     initiativeStore.setOption(data.shape, data.option, data.value),
 );
 socket.on("Initiative.Clear", () => initiativeStore.clearValues(false));
+socket.on("Initiative.Wipe", () => initiativeStore.clearEntries(false));
 socket.on("Initiative.Sort.Set", (sort: InitiativeSort) => initiativeStore.changeSort(sort, false));

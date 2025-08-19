@@ -206,6 +206,30 @@ async def set_initiative_value(sid: str, raw_data: Any):
     await send_initiative(location_data.as_pydantic(), pr)
 
 
+@sio.on("Initiative.Wipe", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def wipe_initiatives(sid: str):
+    pr = game_state.get(sid)
+
+    if pr.role != Role.DM:
+        logger.warning(f"{pr.player.name} attempted to wipe all initiatives")
+        return
+
+    with db.atomic():
+        location_data = Initiative.get(location=pr.active_location)
+
+        location_data.data = []
+        location_data.turn = 0
+        location_data.save()
+
+    await _send_game(
+        "Initiative.Turn.Set",
+        location_data.turn,
+        room=pr.active_location.get_path(),
+    )
+    await _send_game("Initiative.Wipe", None, room=pr.active_location.get_path(), skip_sid=sid)
+
+
 @sio.on("Initiative.Clear", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def clear_initiatives(sid: str):

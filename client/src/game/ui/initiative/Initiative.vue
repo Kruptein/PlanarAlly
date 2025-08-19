@@ -43,7 +43,9 @@ interface ConfirmationDialog {
 const confirmationDialog = ref<ConfirmationDialog | null>(null);
 const listElement = ref<HTMLElement | null>(null);
 
-const hasVisibleActor = computed(() => initiativeStore.state.locationData.some((actor) => canSee(actor)));
+const hasVisibleActor = computed(() =>
+    initiativeStore.state.locationData.some((actor) => canSee(actor as InitiativeData)),
+);
 
 const owns = (actorId?: GlobalId): boolean => initiativeStore.owns(actorId);
 const toggleOption = (index: number, option: "isVisible" | "isGroup"): void =>
